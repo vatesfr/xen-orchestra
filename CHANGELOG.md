@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **6.7.0** (2026-07-30)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Security
 
@@ -110,7 +112,7 @@
 
 ## **6.6.2** (2026-07-09)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -291,8 +293,6 @@
 - xo-server-sdn-controller 1.4.0
 
 ## **6.5.1** (2026-06-01)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
