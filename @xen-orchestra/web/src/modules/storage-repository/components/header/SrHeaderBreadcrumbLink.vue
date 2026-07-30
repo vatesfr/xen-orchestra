@@ -1,6 +1,6 @@
 <template>
   <div class="breadcrumb-container">
-    <UiBreadcrumb v-if="fromContext === SR_PAGE_CONTEXT.HOST && host" :size>
+    <UiBreadcrumb v-if="fromContext?.type === SR_SCOPE_TYPE.HOST && host" :size>
       <UiLink :size :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }">
         <VtsObjectIcon type="host" :state="toLower(host.power_state)" size="current" />
         {{ host.name_label }}
@@ -13,7 +13,7 @@
         {{ sr.name_label }}
       </span>
     </UiBreadcrumb>
-    <UiBreadcrumb v-else-if="fromContext === SR_PAGE_CONTEXT.POOL && pool" :size>
+    <UiBreadcrumb v-else-if="fromContext?.type === SR_SCOPE_TYPE.POOL && pool" :size>
       <UiLink :size :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }">
         <VtsIcon name="object:pool" size="current" />
         {{ pool.name_label }}
@@ -34,17 +34,17 @@ import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-co
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { SR_PAGE_CONTEXT, type SrPageContext } from '@/shared/constants.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { sr } = defineProps<{ sr: FrontXoSr; host?: FrontXoHost; fromContext?: SrPageContext }>()
+const { sr } = defineProps<{ sr: FrontXoSr; host?: FrontXoHost; fromContext?: SrScope }>()
 
 const { t } = useI18n()
 
