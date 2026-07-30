@@ -70,11 +70,11 @@ const { srConnectionStatus } = useXoSrUtils(() => sr)
   background-color: var(--color-neutral-background-primary);
   justify-content: space-between;
   overflow-y: auto;
-}
 
-.sr-name {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  .sr-name {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
 }
 </style>
