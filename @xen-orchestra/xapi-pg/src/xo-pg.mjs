@@ -47,7 +47,7 @@ async function prepareForPool(poolUuid, poolRef, dbPool, classDict) {
 export async function createPgTransport(pgUrl, createRealTransport) {
   const dbPool = new Pool({ connectionString: pgUrl })
   info('created interceptor transport and connected to DB')
-  const classDict = await loadXapiDefinition(ALL_LIFE_CYCLE_STATES)
+  const classDict = await loadXapiDefinition(ALL_LIFE_CYCLE_STATES, _cls => true)
   const nonSessionMethods = getNonSessionMethods(classDict)
   return function (prm) {
     const realTransport = createRealTransport(prm)

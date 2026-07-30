@@ -4,7 +4,7 @@ import { getRefFromType } from './types.mjs'
  * @enum {string}
  */
 export const LifeCycleStates = {
-  Prototype: 'Prototype_s',
+  Prototype: 'Prototyped_s',
   Published: 'Published_s',
   Deprecated: 'Deprecated_s',
   Removed: 'Removed_s',
