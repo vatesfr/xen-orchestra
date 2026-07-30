@@ -2,12 +2,10 @@
 
 // This should be require first, otherwise fs-promise does not use it.
 const mock = require('mock-fs')
-
 const { afterEach, beforeEach, describe, it } = require('node:test')
 const assert = require('assert')
 const { join } = require('path')
 const homedir = require('os').homedir
-
 const loadConfig = require('.').load
 
 // ===================================================================

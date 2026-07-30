@@ -11,6 +11,7 @@
     "conf",
     "env"
   ],
+  "exports": "./dist/index.js",
   "homepage": "https://github.com/JsCommunity/app-conf",
   "bugs": "https://github.com/JsCommunity/app-conf/issues/",
   "repository": {
@@ -26,7 +27,7 @@
     "_unknown-format-error.js",
     "cli.js",
     "index.d.ts",
-    "index.js"
+    "./dist/index.js"
   ],
   "types": "./index.d.ts",
   "bin": "./cli.js",
@@ -38,29 +39,28 @@
     "debug": "^4.4.3",
     "fast-glob": "^3.3.3",
     "ini": "^7.0.0",
-    "json5": "^2.2.3",
     "js-yaml": "^5.2.1",
+    "json5": "^2.2.3",
     "smol-toml": "^1.7.0",
     "strip-json-comments": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/node": "^26.1.2",
     "eslint": "^10.6.0",
     "globals": "^17.7.0",
     "husky": "^9.0.11",
     "lint-staged": "^15.5.2",
     "mock-fs": "^5.5.0",
-    "prettier": "^3.9.3"
+    "prettier": "^3.9.3",
+    "tsx": "^4.23.1",
+    "typescript": "^5.6.3"
   },
   "scripts": {
-    "test": "node --test",
-    "prepare": "husky"
-  },
-  "lint-staged": {
-    "*": "prettier --ignore-unknown --write",
-    "*.{{,c,m}j,t}s{,x}": [
-      "npm test",
-      "eslint --ignore-pattern '!*'"
-    ]
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist/",
+    "test": "tsc && node --test 'dist/**/*.test.js'",
+    "test:staged": "npm test"
   }
 }

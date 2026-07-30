@@ -74,7 +74,7 @@ async function main(args) {
   }
 
   if (cliOpts._.length === 0 || cliOpts.help) {
-    const { name, version } = require('./package.json')
+    const { name, version } = require('../package.json')
     return stdout.write(`Usage: ${name} [--json | -j] [--watch | -w] [--env-prefix <prefix> | --no-env] [-p <path>]... <appName> [<appDir>]
 
 ${name} v${version}
