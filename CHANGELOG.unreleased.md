@@ -31,4 +31,7 @@
 
 <!--packages-start-->
 
+- @vates/types patch
+- @xen-orchestra/xapi patch
+
 <!--packages-end-->
