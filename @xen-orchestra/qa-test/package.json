@@ -21,8 +21,8 @@
   },
   "dependencies": {
     "@vates/async-each": "^1.0.3",
-    "@xen-orchestra/backups": "^0.73.8",
-    "@xen-orchestra/fs": "^4.9.2",
+    "@xen-orchestra/backups": "^0.73.9",
+    "@xen-orchestra/fs": "^4.9.3",
     "@xen-orchestra/log": "^0.7.2",
     "nodemailer": "^7.0.13",
     "xo-lib": "^0.11.2"

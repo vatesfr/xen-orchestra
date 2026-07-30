@@ -411,7 +411,7 @@ export interface Xapi {
   ): Promise<Readable & { length?: number }>
   VDI_importContent(
     vdiRef: XenApiVdi['$ref'],
-    stream: Readable,
+    stream: Readable | Buffer,
     opts: { cancelToken?: unknown; format: SUPPORTED_VDI_FORMAT }
   ): Promise<void>
   VIF_create(
