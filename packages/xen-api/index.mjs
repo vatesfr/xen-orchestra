@@ -426,6 +426,14 @@ export class Xapi extends EventEmitter {
       return this.call(`${type}.remove_from_${field}`, ref, entry).then(noop)
     }
 
+    // `cores-per-socket` is always present in `platform`, because the value is automatically set by XAPI when it is removed
+    // no choice to update platform to modify the `cores-per-socket` value
+    if (type === 'VM' && field === 'platform' && entry === 'cores-per-socket') {
+      const platform = await this.getField('VM', ref, 'platform')
+      platform['cores-per-socket'] = value
+      return this.call('VM.set_platform', ref, platform)
+    }
+
     while (true) {
       // First, remove any previous value to avoid triggering an unnecessary
       // `MAP_DUPLICATE_KEY` error which will appear in the XAPI logs
