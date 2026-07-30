@@ -40,7 +40,11 @@
             @click="open($event)"
           />
         </template>
-        <HostMoreActions :host :show-change-state="uiStore.isSmall" />
+        <div v-if="uiStore.isSmall">
+          <HostPowerStateAction :host />
+          <VtsDivider type="stretch" />
+        </div>
+        <HostMoreActions :host />
       </MenuList>
     </template>
   </UiHeadBar>
@@ -94,6 +98,7 @@ import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
