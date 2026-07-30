@@ -5,12 +5,12 @@
       <template #action>
         <UiButton
           :busy="isScanningPifs"
-          :disabled="host === undefined"
+          :disabled="!host"
           left-icon="action:scan"
-          variant="primary"
+          variant="secondary"
           accent="brand"
           size="medium"
-          @click="scanPifs"
+          @click="scanPifs()"
         >
           {{ t('scan-pifs') }}
         </UiButton>
@@ -71,7 +71,7 @@ const selectedPifId = useRouteQuery('id')
 const isScanningPifs = ref(false)
 
 const scanPifs = async () => {
-  if (host === undefined) {
+  if (!host) {
     return
   }
 
