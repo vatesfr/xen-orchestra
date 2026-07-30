@@ -22,17 +22,12 @@
       </UiAlert>
 
       <VtsTabularKeyValueList>
-        <VtsTabularKeyValueRow :label="t('vdis-allocated-space')">
-          <template #value>
-            <div class="vdis-allocated-space">
-              {{ vdisAllocatedSpace }}
-              <UiInfo v-if="vdiAllocatedSpaceWarning" accent="warning" wrap>
-                {{ t('vdi-allocated-space-exceeds-sr') }}
-              </UiInfo>
-            </div>
-          </template>
-        </VtsTabularKeyValueRow>
+        <VtsTabularKeyValueRow :label="t('vdis-allocated-space')" :value="vdisAllocatedSpace" />
       </VtsTabularKeyValueList>
+
+      <UiInfo v-if="vdiAllocatedSpaceWarning" class="vdi-allocated-space-warning" accent="warning" wrap>
+        {{ t('vdi-allocated-space-exceeds-sr') }}
+      </UiInfo>
 
       <VtsTabularKeyValueList>
         <VtsTabularKeyValueRow :label="t('used-space-on-sr')" :value="usedSpace" />
@@ -89,12 +84,8 @@ const vdiAllocatedSpaceWarning = computed(() => isWritableSr.value && sr.usage >
 }
 
 .sr-unwritable-alert,
-.sr-usage-exceeded-alert {
+.sr-usage-exceeded-alert,
+.vdi-allocated-space-warning {
   margin: 2rem 0;
-}
-.vdis-allocated-space {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
 }
 </style>
