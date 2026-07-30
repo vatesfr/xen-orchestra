@@ -266,19 +266,30 @@ class Vdi {
   }
 
   /**
+   * Write the content of a disk into an existing VDI.
    *
-   * @param {string} vdiRef
-   * @param {string | undefined} baseRef
-   * @returns
+   * A XAPI task is created for the transfer and linked to the VDI through its
+   * `other_config` (`xo:import:task` / `xo:import:length`). When `content` is a
+   * stream, its progress is reported on that task since XCP-ng does not do it
+   * for every format.
+   *
+   * @param {string} ref - reference of the destination VDI
+   * @param {import('node:stream').Readable | Buffer} content - disk content, whose
+   * `length` (in bytes) must be known: a stream must carry it as a property, a
+   * Buffer (e.g. the cloud config drive) has it natively
+   * @param {object} opts
+   * @param {import('promise-toolbox').CancelToken} [opts.cancelToken]
+   * @param {'raw' | 'vhd' | 'qcow2'} opts.format - format of `content`, must be
+   * one of `SUPPORTED_VDI_FORMAT`
+   * @returns {Promise<void>}
    */
-
-  async importContent(ref, stream, { cancelToken = CancelToken.none, format }) {
+  async importContent(ref, content, { cancelToken = CancelToken.none, format }) {
     assert.notEqual(format, undefined)
     // now we'll handle the VHD and qcow2 export
     if (!SUPPORTED_VDI_FORMAT.includes(format)) {
       throw new Error(`${format} is not in the allowed import format ${JSON.stringify(SUPPORTED_VDI_FORMAT)}`)
     }
-    if (stream.length === undefined) {
+    if (content.length === undefined) {
       throw new Error(
         'Trying to import a VDI without a length field. Please report this error to the Xen Orchestra team.'
       )
@@ -289,14 +300,19 @@ class Vdi {
     try {
       const taskRef = await this.task_create(`Importing content into VDI ${vdi.name_label} on SR ${sr.name_label}`)
       const uuid = await this.getField('task', taskRef, 'uuid')
-      await vdi.update_other_config({ 'xo:import:task': uuid, 'xo:import:length': stream.length.toString() })
+      await vdi.update_other_config({ 'xo:import:task': uuid, 'xo:import:length': content.length.toString() })
 
       // XCP-ng does not report progress on the import task for every format
-      watchUploadProgress(stream, stream.length, progress => {
-        ignoreErrors.call(this.call('task.set_progress', taskRef, progress))
-      })
+      //
+      // only streams can be observed: a Buffer is sent in one go, leave its task
+      // progress to XAPI
+      if (typeof content.on === 'function') {
+        watchUploadProgress(content, content.length, progress => {
+          ignoreErrors.call(this.call('task.set_progress', taskRef, progress))
+        })
+      }
 
-      await this.putResource(cancelToken, stream, '/import_raw_vdi/', {
+      await this.putResource(cancelToken, content, '/import_raw_vdi/', {
         query: {
           format,
           vdi: ref,
