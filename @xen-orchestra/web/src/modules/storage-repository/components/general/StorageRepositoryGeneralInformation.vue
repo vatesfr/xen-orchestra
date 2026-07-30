@@ -52,11 +52,11 @@ const { sms, areSmsReady } = useXoSmCollection()
 
 const { arePbdsReady } = useXoPbdCollection()
 
-const { srConnectionStatus, getSrAccessMode, getSrProvisioning } = useXoSrUtils(() => sr)
+const { srConnectionStatus, getSrAccessModeLabel, getSrProvisioningLabel } = useXoSrUtils(() => sr)
 
-const accessMode = computed(() => getSrAccessMode(sr))
+const accessMode = computed(() => getSrAccessModeLabel(sr))
 
-const provisioning = computed(() => getSrProvisioning(sr))
+const provisioning = computed(() => getSrProvisioningLabel(sr))
 
 const supportedImageFormats = computed(() => {
   if (!areSmsReady.value) {
