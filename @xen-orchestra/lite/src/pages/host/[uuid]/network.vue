@@ -33,9 +33,9 @@ const host = computed(() => getHostByUuid(route.params.uuid as XenApiHost['uuid'
 
 const pifs = computed(() => {
   return records.value.filter(pif => {
-    const host = getHostOpaqueRef(pif.host)
+    const pifHost = getHostOpaqueRef(pif.host)
 
-    return host?.uuid === route.params.uuid
+    return pifHost?.uuid === route.params.uuid
   })
 })
 
