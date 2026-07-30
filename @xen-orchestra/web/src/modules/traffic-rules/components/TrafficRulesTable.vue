@@ -10,8 +10,17 @@
     <UiAlert v-if="showRulesFormatWarning" accent="warning">
       <I18nT keypath="traffic-rules:format-warning">
         <template #check-doc>
-          <UiLink size="small" href="https://docs.xen-orchestra.com/xo5/sdn_controller#migration-path">
+          <UiLink size="small" :href="XO_LINKS.DOC_SDN_CONTROLLER_MIGRATION">
             {{ t('traffic-rules:format-warning:check-doc') }}
+          </UiLink>
+        </template>
+      </I18nT>
+    </UiAlert>
+    <UiAlert v-if="showLegacyOpenFlowError" accent="danger">
+      <I18nT keypath="traffic-rules:error-plugin">
+        <template #check-doc>
+          <UiLink size="small" :href="XO_LINKS.DOC_SDN_CONTROLLER_XAPI_PLUGIN">
+            {{ t('traffic-rules:error-plugin:check-doc') }}
           </UiLink>
         </template>
       </I18nT>
@@ -44,6 +53,8 @@ import { useDirectionLabels } from '@/modules/traffic-rules/composables/directio
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import { useTrafficRuleDeleteModal } from '@/modules/traffic-rules/composables/use-traffic-rule-delete-modal.composable.ts'
 import type { EnrichedTrafficRule } from '@/modules/traffic-rules/types.ts'
+import { isNetworkRuleSupported } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
+import { XO_LINKS } from '@/shared/constants.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -59,7 +70,7 @@ import { useTrafficRulesColumns } from '@core/tables/column-sets/traffic-rules-c
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import { type TrafficRule, SDN_CONTROLLER_OF_METHOD_KEY, SDN_CONTROLLER_OF_FORMAT_KEY } from '@vates/types'
+import { SDN_CONTROLLER_OF_FORMAT_KEY, SDN_CONTROLLER_OF_METHOD_KEY, type TrafficRule } from '@vates/types'
 
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -69,11 +80,13 @@ const {
   pool,
   busy,
   error,
+  canCreateNetworkRules,
 } = defineProps<{
   rules: TrafficRule[]
   pool?: FrontXoPool
   busy?: boolean
   error?: boolean
+  canCreateNetworkRules?: boolean
 }>()
 
 defineSlots<{
@@ -87,6 +100,14 @@ const selectedRuleId = useRouteQuery('id')
 const getTarget = useTrafficRuleTarget()
 
 const getDirectionLabels = useDirectionLabels()
+
+const showLegacyOpenFlowError = computed(() => {
+  if (!canCreateNetworkRules) {
+    return false
+  }
+
+  return !isNetworkRuleSupported(pool)
+})
 
 const showRulesFormatWarning = computed(() => {
   const ofMethod = pool?.otherConfig[SDN_CONTROLLER_OF_METHOD_KEY]

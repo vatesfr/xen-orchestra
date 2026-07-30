@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 export function useDirectionLabels() {
   const { t } = useI18n()
 
-  return (rule: TrafficRule): [string, string] => {
+  return (rule: Pick<TrafficRule, 'type' | 'direction'>): [string, string] => {
     const labels: Record<string, [string, string]> = {
       VIF_from: [t('direction-from'), t('direction-to')],
       VIF_to: [t('direction-to'), t('direction-from')],
