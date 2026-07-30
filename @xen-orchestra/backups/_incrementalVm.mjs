@@ -57,7 +57,7 @@ async function updateNextMemoryField(xapi, memoryValues, vmRef) {
 export async function exportIncrementalVm(
   vm,
   baseVdis = {},
-  { cancelToken = CancelToken.none, nbdConcurrency = 1, preferNbd } = {}
+  { cancelToken = CancelToken.none, nbdConcurrency = 1, preferNbd, exportFormat } = {}
 ) {
   // refs of VM's VDIs → base's VDIs.
 
@@ -100,6 +100,7 @@ export async function exportIncrementalVm(
       baseRef: baseVdi?.$ref,
       nbdConcurrency,
       preferNbd,
+      exportFormat,
     })
     await disks[vdiRef].init()
   })
@@ -111,6 +112,9 @@ export async function exportIncrementalVm(
       ...suspendVdi,
       $SR$uuid: suspendVdi.$SR.uuid,
     }
+    // exportFormat is deliberately not forwarded here: the suspend image is not guest data, and
+    // reading its sm_config is already known to fail on some SRs (see #getPreferedExportFormat),
+    // so a test-only format override must not be able to fail a whole backup over it.
     disks[vdiRef] = new XapiDiskSource({
       vdiRef: suspendVdi.$ref,
       xapi: vm.$xapi,

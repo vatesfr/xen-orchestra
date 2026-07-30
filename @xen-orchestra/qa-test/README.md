@@ -44,7 +44,7 @@ All variables are required. The test suite fails immediately if any are missing.
 | `USERNAME`               | XO user                                                                                                                                                                                    | `admin@admin.net`             |
 | `PASSWORD`               | XO password                                                                                                                                                                                | `admin`                       |
 | `REFERENCE_VM_ID`        | UUID of the VM to clone for tests                                                                                                                                                          | `61c24db9-262d-...`           |
-| `SR_ID`                  | UUID of the Storage Repository                                                                                                                                                             | `8aa2fb4a-143e-...`           |
+| `SR_ID`                  | UUID of the Storage Repository, also used as the restore target                                                                                                                            | `8aa2fb4a-143e-...`           |
 | `VM_PREFIX`              | Test VM name prefix                                                                                                                                                                        | `TST`                         |
 | `BACKUP_REPOSITORY_NAME` | Backup repository name in XO                                                                                                                                                               | `Test backup QA`              |
 | `BACKUP_REPOSITORY_URL`  | `@xen-orchestra/fs` URL for the test backup remote. For `file://` remotes the path must contain `test`, `qa`, or `tmp/xo`. Any supported backend works (`s3://`, `nfs://`, `azure://`, …). | `file:///tmp/xo-test-backups` |
@@ -120,7 +120,37 @@ yarn workspace @xen-orchestra/qa-test qa:backup:combined:cycle  # Full Cycle onl
 yarn workspace @xen-orchestra/qa-test qa:export:vhd             # VDI VHD export only
 yarn workspace @xen-orchestra/qa-test qa:export:xva             # XVA export only
 yarn workspace @xen-orchestra/qa-test qa:export:restore         # Restoration only
+yarn workspace @xen-orchestra/qa-test qa:backup:base:restore    # Full backup, bit-to-bit restore only
 ```
+
+### Restore integrity
+
+A health check proves only that a restored VM boots. It reads the blocks on the boot path and
+nothing else, so a restore that returns a _secondary_ disk empty — or with blocks at the wrong
+offset — passes it: the OS comes up regardless.
+
+Two suites therefore validate content instead of bootability:
+
+| Suite                    | Transport | Mode                      | Export format   |
+| ------------------------ | --------- | ------------------------- | --------------- |
+| `qa:backup:base:restore` | plain     | full                      | n/a (XVA)       |
+| `qa:backup:nbd`          | NBD       | delta (1 full + 2 deltas) | vhd, then qcow2 |
+
+Each restores the last backup onto `SR_ID` and streams a raw export of **every** disk of the
+restored VM against the snapshot the run captured, comparing byte for byte (see
+`utils/diskComparisonUtils.js`). Disks are paired by their position on the VBD bus, since a restore
+rewrites VDI names.
+
+#### Export format
+
+Which disk reader an incremental backup uses — `XapiVhdStreamSource` or `XapiQcow2StreamSource` —
+normally follows the SR's `image-format`, so a pool with one kind of SR would only ever cover one of
+the two. The `exportFormat` job setting overrides that: XAPI emits whichever format is requested, and
+what is under test is our consumption of the stream, not XAPI's conversion. The NBD suite therefore
+runs its whole sequence once per format.
+
+This applies to incremental backups only. A full backup is an XVA produced by `VM_export` and never
+reads a VDI in vhd or qcow2 form, so the setting is a no-op there.
 
 ### Load tests
 

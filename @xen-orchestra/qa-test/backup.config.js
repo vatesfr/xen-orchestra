@@ -9,6 +9,14 @@
  * @param {string} [options.healthCheckSr] - SR UUID for health checks
  * @param {boolean} [options.preferNbd] - Use NBD protocol for backup transfers
  * @param {number} [options.nbdConcurrency] - Number of concurrent NBD connections (default: 1)
+ * @param {'vhd'|'qcow2'} [options.exportFormat] - Forces the disk export format instead of letting
+ *   it follow the SR's `image-format`. Only affects incremental (`delta`) backups — a full backup
+ *   goes through `VM_export` (XVA) and never reads a VDI in vhd/qcow2 form. Lets both of our stream
+ *   readers be exercised against a single SR.
+ * @param {number} [options.snapshotRetention] - Number of snapshots to keep on the VM.
+ *   Left unset (0), XO keeps a snapshot only in delta mode, to compute the next delta from, and
+ *   may even destroy its data (`_removeSnapshotData`, when CBT is on). Set it when the test needs
+ *   the snapshot the run captured to stay readable — a disk comparison uses it as its reference.
  * @returns {Object} Complete backup job configuration
  */
 export function backupConfig(name, schedule, vm, backupRepository, options = {}) {
@@ -46,6 +54,14 @@ export function backupConfig(name, schedule, vm, backupRepository, options = {})
 
   if (options.nbdConcurrency !== undefined) {
     config.settings[''].nbdConcurrency = options.nbdConcurrency
+  }
+
+  if (options.snapshotRetention !== undefined) {
+    config.settings[''].snapshotRetention = options.snapshotRetention
+  }
+
+  if (options.exportFormat !== undefined) {
+    config.settings[''].exportFormat = options.exportFormat
   }
 
   return config

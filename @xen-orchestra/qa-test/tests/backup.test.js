@@ -15,6 +15,7 @@ import {
   getRequiredEnv,
 } from '../utils/index.js'
 import { assertBackupSuccess } from '../utils/backupUtils.js'
+import { assertVmDisksMatchVmSnapshot, getLastVmSnapshot } from '../utils/diskComparisonUtils.js'
 import { setup, teardown } from './setup.js'
 
 const log = createLogger('qa:backup:base')
@@ -228,7 +229,75 @@ describe('Backup basic tests', () => {
     })
   })
 
+  // Counterpart of the same comparison in backup.nbd.test.js, which covers the delta chain over
+  // NBD. Here it covers the other transfer path: a plain full backup, no NBD. Content is checked
+  // rather than health checked, so a block landing at the wrong offset fails even when the restored
+  // VM would still have booted.
+  describe('Restore validation', () => {
+    it('should restore a full backup whose disks are bit to bit identical to the source', async () => {
+      const name = generateBackupJobName()
+      const schedule = getDefaultSchedule()
+      // snapshotRetention: a full-mode job destroys every snapshot it took once transferred — the
+      // keep-the-last-one rule is delta-only. Without this, there is no reference left to compare
+      // the restore against.
+      const config = backupConfig(name, schedule, vm, backupRepository, { snapshotRetention: 1 })
+
+      await createBackupJobForTest(config, 'full')
+      const job = await dispatchClient.backup.details(backupJobId)
+      const realScheduleKey = getScheduleKey(job)
+      assert(realScheduleKey, 'Schedule key is required but was undefined')
+
+      const result = await dispatchClient.backup.runJobAndGetLog(backupJobId, realScheduleKey)
+      assertBackupSuccess(result, 'Full backup for restore validation')
+      assertFullOrDelta(result, backupRepository.id, { mustBeFull: true })
+
+      const snapshot = await getLastVmSnapshot(dispatchClient, vm.uuid)
+      assert(snapshot, `VM ${vm.uuid} has no snapshot left by the full job to compare the restore against`)
+
+      const backupsByRemote = await dispatchClient.backup.listVmBackups([backupRepository.id])
+      const backups = backupsByRemote[backupRepository.id]?.[vm.uuid] ?? []
+      assert(backups.length > 0, `No backup found for VM ${vm.uuid} in repository ${backupRepository.id}`)
+
+      const latestBackup = [...backups].sort((a, b) => a.timestamp - b.timestamp).at(-1)
+      log.debug('Restoring the full backup', { backupId: latestBackup.id, mode: latestBackup.mode })
+
+      // SR_ID doubles as the restore target — the same scratch SR the other tests health check on
+      const restoredVmUuid = await dispatchClient.backup.importVmBackup(latestBackup.id, healthCheckSr.uuid)
+      tracker.trackResource('restoredVm', restoredVmUuid, { sourceVmId: vm.uuid, backupId: latestBackup.id })
+
+      const restoredVm = await dispatchClient.vm.details(restoredVmUuid)
+      assert.strictEqual(
+        restoredVm.power_state,
+        'Halted',
+        'Restored VM must stay halted, otherwise the guest writes to its disks while they are compared'
+      )
+      log.debug('VM restored', { name: restoredVm.name_label, uuid: restoredVmUuid })
+
+      const comparedDisks = await assertVmDisksMatchVmSnapshot(dispatchClient, {
+        vmUuid: restoredVmUuid,
+        snapshotUuid: snapshot.uuid,
+      })
+
+      log.debug('Restored disks are bit to bit identical to the backed up snapshot', {
+        disks: comparedDisks,
+        snapshot: snapshot.uuid,
+        restoredVm: restoredVmUuid,
+      })
+    })
+  })
+
   after(async () => {
+    // Not covered by the fullCleanup teardown runs: the VM restored for the disk comparison.
+    // Must happen before teardown, which closes the connections.
+    const { restoredVms } = tracker.getTrackedResources()
+    if (restoredVms.length > 0) {
+      try {
+        await dispatchClient.cleanup.deleteRestoredVMs({ vmIds: restoredVms.map(restored => restored.id) })
+      } catch (error) {
+        log.warn('Restored-VM cleanup failed', { error })
+      }
+    }
+
     await teardown(dispatchClient, tracker)
   })
 })

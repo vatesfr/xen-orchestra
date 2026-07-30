@@ -21,6 +21,13 @@ const SCHEMA_SETTINGS = {
           minimum: 0,
           optional: true,
         },
+        // Forces the disk export format on incremental backups instead of deriving it from the
+        // SR's image-format. Exists so QA can exercise both stream readers against one SR; full
+        // backups are unaffected, they go through VM_export (XVA).
+        exportFormat: {
+          enum: ['vhd', 'qcow2'],
+          optional: true,
+        },
         longTermRetention: {
           type: 'object',
           optional: true,

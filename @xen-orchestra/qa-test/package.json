@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@vates/async-each": "^1.0.3",
+    "@vates/read-chunk": "^1.2.1",
     "@xen-orchestra/backups": "^0.73.8",
     "@xen-orchestra/fs": "^4.9.2",
     "@xen-orchestra/log": "^0.7.2",
@@ -32,6 +33,7 @@
     "qa:infrastructure": "node --env-file-if-exists=.env --test tests/infrastructure.test.js",
     "qa:vm": "node --env-file-if-exists=.env --test tests/vm.test.js",
     "qa:backup:base": "node --env-file-if-exists=.env --test tests/backup.test.js",
+    "qa:backup:base:restore": "node --env-file-if-exists=.env --test tests/backup.test.js --test-name-pattern='Restore validation'",
     "qa:backup:nbd": "node --env-file-if-exists=.env --test tests/backup.nbd.test.js",
     "qa:backup:combined": "node --env-file-if-exists=.env --test tests/backup-replication-combined.test.js",
     "qa:backup:combined:cycle": "node --env-file-if-exists=.env --test tests/backup-replication-combined.test.js --test-name-pattern='Full Cycle'",

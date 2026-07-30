@@ -16,6 +16,7 @@ import {
   getRequiredEnv,
 } from '../utils/index.js'
 import { assertBackupSuccess } from '../utils/backupUtils.js'
+import { assertVmDisksMatchVmSnapshot, getLastVmSnapshot } from '../utils/diskComparisonUtils.js'
 import { setup, teardown } from './setup.js'
 
 const log = createLogger('qa:backup:nbd')
@@ -104,52 +105,102 @@ describe('NBD Incremental Backup Tests', () => {
     }
   })
 
-  describe('Incremental Backup Sequence with NBD', () => {
-    it('should perform full then incremental backups with NBD', async () => {
-      const name = generateBackupJobName()
-      const schedule = getDefaultSchedule()
-      const config = backupConfig(name, schedule, vm, backupRepository, {
-        healthCheckSr: healthCheckSr.uuid,
-        preferNbd: true,
-        nbdConcurrency: 1,
-      })
+  // Once per export format rather than once overall: which of XapiVhdStreamSource /
+  // XapiQcow2StreamSource runs normally follows the SR's image-format, so a single-SR pool would
+  // only ever cover one of the two readers. exportFormat overrides that — XAPI emits whichever
+  // format is asked for, and what is under test is our consumption of the stream, not XAPI's
+  // conversion. Only meaningful on the incremental path: a full backup is an XVA (VM_export).
+  for (const exportFormat of ['vhd', 'qcow2']) {
+    describe(`Incremental Backup Sequence with NBD (${exportFormat} export)`, () => {
+      it('should perform full then incremental backups with NBD, and restore them bit to bit', async () => {
+        const name = generateBackupJobName()
+        const schedule = getDefaultSchedule()
+        // No healthCheckSr on purpose: this test validates the backup by restoring the whole VM
+        // and comparing every disk against the snapshot the last run captured. A health check only
+        // proves the restored VM boots, so it never reads the blocks off the boot path; the
+        // comparison below reads all of them.
+        // snapshotRetention: delta mode already keeps its last snapshot as the next delta base, but
+        // only while snapshotRetention is 0 does XO consider destroying that snapshot's data once
+        // transferred (see `_removeSnapshotData`, on CBT + preferNbd jobs). Pinning it to 1 keeps the
+        // reference readable whatever the server-side CBT settings are.
+        const config = backupConfig(name, schedule, vm, backupRepository, {
+          preferNbd: true,
+          nbdConcurrency: 1,
+          snapshotRetention: 1,
+          exportFormat,
+        })
 
-      await createBackupJobForTest(config, 'delta')
-      const job = await dispatchClient.backup.details(backupJobId)
-      const realScheduleKey = getScheduleKey(job)
-      assert(realScheduleKey, 'Schedule key is required but was undefined')
+        await createBackupJobForTest(config, 'delta')
+        const job = await dispatchClient.backup.details(backupJobId)
+        const realScheduleKey = getScheduleKey(job)
+        assert(realScheduleKey, 'Schedule key is required but was undefined')
 
-      const backupLogs = []
+        const backupLogs = []
 
-      // Run three backups: full, delta, delta
-      for (let index = 0; index < 3; index++) {
-        log.debug('Running backup', { run: index + 1, of: 3, type: index === 0 ? 'FULL' : 'DELTA' })
-        const result = await dispatchClient.backup.runJobAndGetLog(backupJobId, realScheduleKey)
+        // Run three backups: full, delta, delta
+        for (let index = 0; index < 3; index++) {
+          log.debug('Running backup', { run: index + 1, of: 3, type: index === 0 ? 'FULL' : 'DELTA', exportFormat })
+          const result = await dispatchClient.backup.runJobAndGetLog(backupJobId, realScheduleKey)
 
-        assertBackupSuccess(result, `Backup ${index + 1}`)
-        assertFullOrDelta(result, backupRepository.id, { mustBeFull: index === 0 })
+          assertBackupSuccess(result, `Backup ${index + 1} (${exportFormat})`)
+          assertFullOrDelta(result, backupRepository.id, { mustBeFull: index === 0 })
 
-        backupLogs.push(result)
+          backupLogs.push(result)
 
-        // Log transfer information
-        const transferredBytes = getBackupTransferredBytes(result)
-        const transferredMB = transferredBytes === null ? 'N/A' : (transferredBytes / 1024 / 1024).toFixed(2)
+          // Log transfer information
+          const transferredBytes = getBackupTransferredBytes(result)
+          const transferredMB = transferredBytes === null ? 'N/A' : (transferredBytes / 1024 / 1024).toFixed(2)
 
-        log.debug('Backup completed', { run: index + 1, type: index === 0 ? 'FULL' : 'DELTA', transferredMB })
-
-        // Validate health check
-        const healthCheckData = extractHealthCheckData(result)
-        if (healthCheckData.exists) {
-          assertHealthCheckSuccess(result)
-          log.debug('Health check passed', { status: healthCheckData.status })
+          log.debug('Backup completed', { run: index + 1, type: index === 0 ? 'FULL' : 'DELTA', transferredMB })
         }
-      }
 
-      assertIncrementalBackupEfficiency(backupLogs[1], backupLogs[0])
-      assertIncrementalBackupEfficiency(backupLogs[2], backupLogs[0])
-      log.debug('Incremental backups are efficient (delta < full)')
+        assertIncrementalBackupEfficiency(backupLogs[1], backupLogs[0])
+        assertIncrementalBackupEfficiency(backupLogs[2], backupLogs[0])
+        log.debug('Incremental backups are efficient (delta < full)')
+
+        // The reference the restore is checked against: a delta job always keeps its most recent
+        // snapshot to compute the next delta from, so this is exactly the VM state the third run
+        // wrote to the repository.
+        const snapshot = await getLastVmSnapshot(dispatchClient, vm.uuid)
+        assert(snapshot, `VM ${vm.uuid} has no snapshot left by the delta job to compare the restore against`)
+
+        const backupsByRemote = await dispatchClient.backup.listVmBackups([backupRepository.id])
+        const backups = backupsByRemote[backupRepository.id]?.[vm.uuid] ?? []
+        assert(backups.length > 0, `No backup found for VM ${vm.uuid} in repository ${backupRepository.id}`)
+
+        const latestBackup = [...backups].sort((a, b) => a.timestamp - b.timestamp).at(-1)
+        log.debug('Restoring the last backup', { backupId: latestBackup.id, mode: latestBackup.mode, exportFormat })
+
+        // SR_ID doubles as the restore target — the same scratch SR the other tests health check on
+        const restoredVmUuid = await dispatchClient.backup.importVmBackup(latestBackup.id, healthCheckSr.uuid)
+        tracker.trackResource('restoredVm', restoredVmUuid, {
+          sourceVmId: vm.uuid,
+          backupId: latestBackup.id,
+          exportFormat,
+        })
+
+        const restoredVm = await dispatchClient.vm.details(restoredVmUuid)
+        assert.strictEqual(
+          restoredVm.power_state,
+          'Halted',
+          'Restored VM must stay halted, otherwise the guest writes to its disks while they are compared'
+        )
+        log.debug('VM restored', { name: restoredVm.name_label, uuid: restoredVmUuid })
+
+        const comparedDisks = await assertVmDisksMatchVmSnapshot(dispatchClient, {
+          vmUuid: restoredVmUuid,
+          snapshotUuid: snapshot.uuid,
+        })
+
+        log.debug('Restored disks are bit to bit identical to the backed up snapshot', {
+          disks: comparedDisks,
+          snapshot: snapshot.uuid,
+          restoredVm: restoredVmUuid,
+          exportFormat,
+        })
+      })
     })
-  })
+  }
 
   describe('NBD Concurrency Configuration', () => {
     it('should work with different NBD concurrency settings', async () => {
@@ -234,6 +285,17 @@ describe('NBD Incremental Backup Tests', () => {
   })
 
   after(async () => {
+    // Not covered by the fullCleanup teardown runs: the VM restored for the disk comparison.
+    // Must happen before teardown, which closes the connections.
+    const { restoredVms } = tracker.getTrackedResources()
+    if (restoredVms.length > 0) {
+      try {
+        await dispatchClient.cleanup.deleteRestoredVMs({ vmIds: restoredVms.map(restored => restored.id) })
+      } catch (error) {
+        log.warn('Restored-VM cleanup failed', { error })
+      }
+    }
+
     await teardown(dispatchClient, tracker)
   })
 })

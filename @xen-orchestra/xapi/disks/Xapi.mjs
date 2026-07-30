@@ -46,6 +46,9 @@ export class XapiDiskSource extends DiskPassthrough {
 
   /** @type {boolean} */
   #onlyListChangedBlocks = false
+
+  /** @type {string | undefined} */
+  #exportFormat
   /**
    * @param {Object} params
    * @param {any} params.xapi
@@ -56,6 +59,10 @@ export class XapiDiskSource extends DiskPassthrough {
    * @param {number} [params.blockSize=2*1024*1024]
    * @param {number} [params.timeout=20*60*1000]
    * @param {boolean} [params.onlyListChangedBlocks=false] When true, skips NBD client creation; only getBlockIndexes() may be called, readBlock() will throw.
+   * @param {'vhd'|'qcow2'} [params.exportFormat] Forces the export format instead of deriving it
+   *   from the VDI's `sm_config['image-format']`. XAPI converts on the fly, so either format can be
+   *   requested for any VDI. Intended for tests that need to exercise both of our stream readers
+   *   without provisioning one SR per image format.
    */
   constructor({
     xapi,
@@ -66,8 +73,14 @@ export class XapiDiskSource extends DiskPassthrough {
     blockSize = 2 * 1024 * 1024,
     timeout = 20 * 60 * 1000,
     onlyListChangedBlocks = false,
+    exportFormat,
   }) {
     super(undefined)
+    if (exportFormat !== undefined && exportFormat !== VDI_FORMAT_VHD && exportFormat !== VDI_FORMAT_QCOW2) {
+      throw new Error(
+        `unsupported exportFormat ${JSON.stringify(exportFormat)}, expected ${VDI_FORMAT_VHD} or ${VDI_FORMAT_QCOW2}`
+      )
+    }
     this.#baseRef = baseRef
     this.#blockSize = blockSize
     this.#nbdConcurrency = nbdConcurrency
@@ -76,6 +89,7 @@ export class XapiDiskSource extends DiskPassthrough {
     this.#vdiRef = vdiRef
     this.#xapi = xapi
     this.#onlyListChangedBlocks = onlyListChangedBlocks
+    this.#exportFormat = exportFormat
   }
 
   /**
@@ -136,6 +150,13 @@ export class XapiDiskSource extends DiskPassthrough {
   async #getPreferedExportFormat() {
     const xapi = this.#xapi
     const vdiRef = this.#vdiRef
+
+    // An explicit format wins over whatever the storage holds: XAPI is responsible for emitting the
+    // requested format, and forcing it is the only way to exercise both of our stream readers
+    // against a single SR.
+    if (this.#exportFormat !== undefined) {
+      return this.#exportFormat
+    }
 
     try {
       const sm_config = await xapi.getField('VDI', vdiRef, 'sm_config')

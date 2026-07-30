@@ -47,6 +47,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     const deltaExport = await exportIncrementalVm(exportedVm, baseVdis, {
       nbdConcurrency: this._settings.nbdConcurrency,
       preferNbd: this._settings.preferNbd,
+      exportFormat: this._settings.exportFormat,
     })
 
     const isVhdDifferencing = {}
