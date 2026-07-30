@@ -1,31 +1,36 @@
 #!/usr/bin/env node
 
-'use strict'
-
-const { env } = process
-if (env.DEBUG === undefined) {
-  env.DEBUG = '*'
-}
+const { env, stdout } = process
 
 const { load, watch } = require('./index.js')
 const { inspect } = require('util')
 
-const { stdout } = process
+if (env.DEBUG === undefined) {
+  env.DEBUG = '*'
+}
 
 let useJson = !stdout.isTTY
 
-function print(paths, config) {
+type Config = Record<string, unknown>
+
+function print(paths: string[], config: unknown): void {
+  let result: unknown = config
+
   if (paths.length !== 0) {
-    config =
+    result =
       paths.length === 1
-        ? paths[0].split('.').reduce((o, k) => o?.[k], config)
-        : Object.fromEntries(paths.filter(k => k in config).map(k => [k, config[k]]))
+        ? paths[0].split('.').reduce<unknown>((o, k) => (o as Config | undefined)?.[k], config)
+        : Object.fromEntries(
+            paths
+              .filter(k => config !== null && typeof config === 'object' && k in (config as Config))
+              .map(k => [k, (config as Config)[k]])
+          )
   }
 
   stdout.write(
     useJson
-      ? JSON.stringify(config, null, 2)
-      : inspect(config, {
+      ? JSON.stringify(result, null, 2)
+      : inspect(result, {
           colors: true,
           depth: Infinity,
           sorted: true,
@@ -34,14 +39,23 @@ function print(paths, config) {
   stdout.write('\n')
 }
 
-async function main(args) {
-  const cliOpts = {
+interface CliOptions {
+  _: string[]
+  envPrefix: string | false | undefined
+  help: boolean
+  paths: string[]
+  watch: boolean
+}
+
+async function main(args: string[]): Promise<void> {
+  const cliOpts: CliOptions = {
     _: [],
     envPrefix: undefined,
     help: false,
     paths: [],
     watch: false,
   }
+
   for (let i = 0, n = args.length; i < n;) {
     const arg = args[i++]
     if (arg[0] === '-') {
@@ -75,10 +89,11 @@ async function main(args) {
 
   if (cliOpts._.length === 0 || cliOpts.help) {
     const { name, version } = require('../package.json')
-    return stdout.write(`Usage: ${name} [--json | -j] [--watch | -w] [--env-prefix <prefix> | --no-env] [-p <path>]... <appName> [<appDir>]
+    stdout.write(`Usage: ${name} [--json | -j] [--watch | -w] [--env-prefix <prefix> | --no-env] [-p <path>]... <appName> [<appDir>]
 
 ${name} v${version}
 `)
+    return
   }
 
   const [appName, appDir] = cliOpts._
@@ -93,7 +108,7 @@ ${name} v${version}
   const printPaths = print.bind(undefined, cliOpts.paths)
 
   if (cliOpts.watch) {
-    await watch(opts, (error, config) => {
+    await watch(opts, (error?: unknown, config?: unknown) => {
       console.log('--', new Date())
       if (error !== undefined) {
         console.warn(error)
@@ -105,4 +120,5 @@ ${name} v${version}
     printPaths(await load(appName, opts))
   }
 }
+
 main(process.argv.slice(2)).catch(console.error.bind(console, 'FATAL:'))

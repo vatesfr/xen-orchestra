@@ -1,6 +1,6 @@
 'use strict'
 
-// This should be require first, otherwise fs-promise does not use it.
+// This should be imported first, otherwise fs-promise does not use it.
 const mock = require('mock-fs')
 const { afterEach, beforeEach, describe, it } = require('node:test')
 const assert = require('assert')
@@ -46,7 +46,7 @@ describe('appConf', function () {
     it('works', function () {
       return loadConfig('test-app-conf', {
         appDir: '../..',
-      }).then(function (config) {
+      }).then(function (config: any) {
         assert.deepStrictEqual(config, {
           'local.0': true,
           'local.1': true,
@@ -65,7 +65,7 @@ describe('appConf', function () {
     it('can load only specific entries', function () {
       return loadConfig('test-app-conf', {
         entries: ['local', 'system'],
-      }).then(function (config) {
+      }).then(function (config: any) {
         assert.deepStrictEqual(config, {
           'local.0': true,
           'local.1': true,
@@ -78,7 +78,7 @@ describe('appConf', function () {
     })
 
     describe('env overrides', function () {
-      let savedEnv
+      let savedEnv: NodeJS.ProcessEnv
       beforeEach(function () {
         savedEnv = { ...process.env }
       })
@@ -91,21 +91,21 @@ describe('appConf', function () {
 
       it('overrides config values via env vars (derived prefix)', function () {
         process.env.TEST_APP_CONF_foo = 'from-env'
-        return loadConfig('test-app-conf', { appDir: '../..' }).then(function (config) {
+        return loadConfig('test-app-conf', { appDir: '../..' }).then(function (config: any) {
           assert.strictEqual(config.foo, 'from-env')
         })
       })
 
       it('supports nested keys via __ separator', function () {
         process.env.TEST_APP_CONF_database__host = 'db.example.com'
-        return loadConfig('test-app-conf').then(function (config) {
+        return loadConfig('test-app-conf').then(function (config: any) {
           assert.deepStrictEqual(config.database, { host: 'db.example.com' })
         })
       })
 
       it('accepts a custom envPrefix', function () {
         process.env.MY_APP_foo = 'custom-prefix'
-        return loadConfig('test-app-conf', { envPrefix: 'MY_APP_' }).then(function (config) {
+        return loadConfig('test-app-conf', { envPrefix: 'MY_APP_' }).then(function (config: any) {
           assert.strictEqual(config.foo, 'custom-prefix')
         })
       })
@@ -115,7 +115,7 @@ describe('appConf', function () {
         return loadConfig('test-app-conf', {
           appDir: '../..',
           envPrefix: false,
-        }).then(function (config) {
+        }).then(function (config: any) {
           assert.strictEqual(config.foo, 'local.0')
         })
       })
@@ -124,7 +124,7 @@ describe('appConf', function () {
         process.env.TEST_APP_CONF_port = 'json:5432'
         process.env.TEST_APP_CONF_enabled = 'json:true'
         process.env.TEST_APP_CONF_tags = 'json:["a","b"]'
-        return loadConfig('test-app-conf').then(function (config) {
+        return loadConfig('test-app-conf').then(function (config: any) {
           assert.strictEqual(config.port, 5432)
           assert.strictEqual(config.enabled, true)
           assert.deepStrictEqual(config.tags, ['a', 'b'])
@@ -133,7 +133,7 @@ describe('appConf', function () {
 
       it('keeps non-json: values as strings', function () {
         process.env.TEST_APP_CONF_port = '5432'
-        return loadConfig('test-app-conf').then(function (config) {
+        return loadConfig('test-app-conf').then(function (config: any) {
           assert.strictEqual(config.port, '5432')
         })
       })
@@ -148,14 +148,14 @@ describe('appConf', function () {
         return loadConfig('test-app-conf', {
           appDir: '../..',
           entries: ['vendor', 'system', 'global', 'local'],
-        }).then(function (config) {
+        }).then(function (config: any) {
           assert.strictEqual(config.foo, 'local.0')
         })
       })
     })
 
     describe('global config', function () {
-      let savedXdg, savedAppdata
+      let savedXdg: string | undefined, savedAppdata: string | undefined
       beforeEach(function () {
         savedXdg = process.env.XDG_CONFIG_HOME
         savedAppdata = process.env.APPDATA
@@ -172,7 +172,7 @@ describe('appConf', function () {
         process.env.XDG_CONFIG_HOME = '/custom-xdg'
         delete process.env.APPDATA
         mock({ '/custom-xdg/test-app-conf/config.json': '{ "global": true }' })
-        return loadConfig('test-app-conf', { entries: ['global'] }).then(function (config) {
+        return loadConfig('test-app-conf', { entries: ['global'] }).then(function (config: any) {
           assert.deepStrictEqual(config, { global: true })
         })
       })
@@ -183,7 +183,7 @@ describe('appConf', function () {
         mock({
           [join(homedir(), '.config', 'test-app-conf', 'config.json')]: '{ "global": true }',
         })
-        return loadConfig('test-app-conf', { entries: ['global'] }).then(function (config) {
+        return loadConfig('test-app-conf', { entries: ['global'] }).then(function (config: any) {
           assert.deepStrictEqual(config, { global: true })
         })
       })
@@ -195,7 +195,7 @@ describe('appConf', function () {
           '/custom-xdg/test-app-conf/config.json': '{ "source": "xdg" }',
           [join(homedir(), '.config', 'test-app-conf', 'config.json')]: '{ "source": "home" }',
         })
-        return loadConfig('test-app-conf', { entries: ['global'] }).then(function (config) {
+        return loadConfig('test-app-conf', { entries: ['global'] }).then(function (config: any) {
           assert.strictEqual(config.source, 'xdg')
         })
       })
