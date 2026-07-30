@@ -15,7 +15,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [XO server] Fix a random behavior regarding `coresPerSocket` update
+- [XO server] Fix a random behavior regarding `coresPerSocket` update (PR [#10201](https://github.com/vatesfr/xen-orchestra/pull/10201))
 
 ### Packages to release
 
