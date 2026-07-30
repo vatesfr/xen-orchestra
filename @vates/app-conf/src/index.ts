@@ -1,15 +1,12 @@
 'use strict'
 
 // ===================================================================
-
 const chokidar = require('chokidar')
 const dirname = require('path').dirname
 const homedir = require('os').homedir
 const resolvePath = require('path').resolve
-
 const debug = require('debug')('app-conf')
-
-const entries = require('./_entries')
+const entries = require('./_entries') as Entry[]
 const merge = require('./_merge')
 const pMap = require('./_pMap')
 const readFile = require('./_readFile')
@@ -18,23 +15,74 @@ const unserialize = require('./_serializers').unserialize
 
 // ===================================================================
 
-function deriveEnvPrefix(appName) {
+type LoadOptions = {
+  appName?: string
+  appDir?: string
+  defaults?: Record<string, unknown>
+  envPrefix?: string | false
+  ignoreUnknownFormats?: boolean
+  serializers?: unknown
+  entries?: string[]
+}
+
+type EntryOptions = {
+  appDir?: string
+  appName?: string
+}
+
+type Entry = {
+  name: string
+  dir?: string | ((opts: EntryOptions) => string | undefined)
+  list: (opts: EntryOptions, dir?: string) => string[] | undefined | Promise<string[]>
+}
+
+interface ParseOptions {
+  serializers?: unknown
+}
+
+interface WatchOptions {
+  appName: string
+  defaults?: unknown
+  entries?: string[]
+  initialLoad?: boolean
+  appDir?: string
+  [key: string]: unknown
+}
+
+type Config = unknown
+type Unsubscribe = () => Promise<void>
+
+interface ListSourcesOptions {
+  appName: string
+  appDir?: string
+  entries?: string[]
+}
+
+interface SourceResult {
+  name: string
+  files: string[]
+}
+
+// ===================================================================
+
+function deriveEnvPrefix(appName: string): string {
   return appName.toUpperCase().replace(/[^A-Z0-9]/g, '_') + '_'
 }
 
-function readEnvOverrides(prefix) {
-  const result = {}
+function readEnvOverrides(prefix: string): Record<string, unknown> {
+  const result: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(process.env)) {
+    if (value === undefined) continue
     if (!key.startsWith(prefix)) continue
     const parts = key.slice(prefix.length).split('__')
     if (parts.some(_ => _ === '')) continue
-    let obj = result
+    let obj: Record<string, unknown> = result
     for (let i = 0; i < parts.length - 1; i++) {
       const part = parts[i]
-      if (obj[part] === null || typeof obj[part] !== 'object') {
+      if (obj[part] === null || typeof obj[part] !== 'object' || Array.isArray(obj[part])) {
         obj[part] = {}
       }
-      obj = obj[part]
+      obj = obj[part] as Record<string, unknown>
     }
     obj[parts[parts.length - 1]] = value.startsWith('json:') ? JSON.parse(value.slice(5)) : value
   }
@@ -42,18 +90,21 @@ function readEnvOverrides(prefix) {
 }
 
 const RELATIVE_PATH_RE = /^\.{1,2}[/\\]/
-function resolvePaths(value, base) {
+
+function resolvePaths<T>(value: T, base: string): T {
   if (typeof value === 'string') {
-    return value[0] === '~' && (value[1] === '/' || value[1] === '\\')
-      ? homedir() + value.slice(1)
-      : RELATIVE_PATH_RE.test(value)
-        ? resolvePath(base, value)
-        : value
+    return (
+      value[0] === '~' && (value[1] === '/' || value[1] === '\\')
+        ? homedir() + value.slice(1)
+        : RELATIVE_PATH_RE.test(value)
+          ? resolvePath(base, value)
+          : value
+    ) as T
   }
 
   if (value !== null && typeof value === 'object') {
     for (const key of Object.keys(value)) {
-      value[key] = resolvePaths(value[key], base)
+      ;(value as Record<string, unknown>)[key] = resolvePaths((value as Record<string, unknown>)[key], base)
     }
     return value
   }
@@ -63,32 +114,40 @@ function resolvePaths(value, base) {
 
 // ===================================================================
 
-function load(appName, opts = {}) {
+export async function load(appName?: string | LoadOptions, opts: LoadOptions = {}): Promise<Record<string, unknown>> {
   if (typeof appName === 'object' && appName !== null) {
     opts = appName
     ;({ appName } = opts)
   }
+
   const { appDir, defaults, envPrefix, ignoreUnknownFormats = false, serializers: customSerializers } = opts
-  let { entries: whitelist } = opts
+
+  const whitelist = opts.entries ? new Set(opts.entries) : undefined
+
   const useWhitelist = whitelist !== undefined
-  if (useWhitelist) {
-    whitelist = new Set(whitelist)
+
+  const entryOpts: EntryOptions = {
+    appDir,
+    appName,
   }
-  const entryOpts = { appDir, appName }
-  return pMap(entries, entry => {
+
+  return pMap(entries, (entry: Entry) => {
     if (useWhitelist && !whitelist.has(entry.name)) {
       return []
     }
 
     const dirFn = entry.dir
+
     const dir = typeof dirFn === 'function' ? dirFn(entryOpts) : dirFn
+
     return entry.list(entryOpts, dir) || []
   })
-    .then(files => {
-      files = files.flat()
-      return pMap(files, async file => {
+    .then((files: any) => {
+      return pMap(files.flat(), async (file: any) => {
         try {
-          return await parse(file, { serializers: customSerializers })
+          return await parse(file, {
+            serializers: customSerializers,
+          })
         } catch (error) {
           if (!(ignoreUnknownFormats && error instanceof UnknownFormatError)) {
             throw error
@@ -96,60 +155,76 @@ function load(appName, opts = {}) {
         }
       })
     })
-    .then(data => {
-      const config = data.reduce(
+    .then((data: unknown[]) => {
+      const config = data.reduce<Record<string, unknown>>(
         (acc, cfg) => {
           if (cfg !== undefined) {
             merge(acc, cfg)
           }
+
           return acc
         },
         defaults === undefined ? {} : structuredClone(defaults)
       )
 
-      if (envPrefix !== false && (!useWhitelist || whitelist.has('env'))) {
-        const prefix = envPrefix !== undefined ? envPrefix : deriveEnvPrefix(appName)
+      if (envPrefix !== false && (!useWhitelist || whitelist!.has('env'))) {
+        if (!appName && envPrefix === undefined) {
+          throw new Error('appName is required when deriving env prefix')
+        }
+
+        let prefix: string
+
+        if (envPrefix !== undefined) {
+          prefix = envPrefix
+        } else {
+          if (!appName) {
+            throw new Error('appName is required when deriving env prefix')
+          }
+
+          prefix = deriveEnvPrefix(appName)
+        }
+
         merge(config, readEnvOverrides(prefix))
       }
 
       return config
     })
 }
-exports.load = load
-exports.UnknownFormatError = UnknownFormatError
+
+export { UnknownFormatError }
 
 // ===================================================================
 
-async function parse(path, { serializers: customSerializers } = {}) {
+export async function parse(path: string, { serializers: customSerializers }: ParseOptions = {}): Promise<unknown> {
   const file = await readFile(path)
   const data = unserialize(file, customSerializers)
+
   debug(file.path)
+
   return resolvePaths(data, dirname(file.path))
 }
-exports.parse = parse
 
 // ===================================================================
 
 const ALL_ENTRIES = [...entries.map(_ => _.name), 'env']
 
-exports.watch = function watch(
-  { appName, defaults, entries: whitelist = ALL_ENTRIES, initialLoad = false, ...opts },
-  cb
-) {
+export function watch(
+  { appName, defaults, entries: whitelist = ALL_ENTRIES, initialLoad = false, ...opts }: WatchOptions,
+  cb: (err?: unknown, config?: Config) => void
+): Promise<Unsubscribe> {
   return new Promise((resolve, reject) => {
-    const dirs = []
+    const dirs: string[] = []
     const entryOpts = { appName, appDir: opts.appDir }
+
     entries.forEach(entry => {
       // vendor config should not change and is therefore not watched
-      //
-      // otherwise it could interfere if the program is running during
-      // uninstall/reinstall
       if (entry.name === 'vendor') {
         return
       }
 
       const dirFn = entry.dir
       const dir = typeof dirFn === 'function' ? dirFn(entryOpts) : dirFn
+
       if (dir !== undefined) {
         dirs.push(dir)
       }
@@ -161,9 +236,11 @@ exports.watch = function watch(
       ignorePermissionErrors: true,
     })
 
-    let debounceTimer
+    let debounceTimer: NodeJS.Timeout
+
     const loadWrapper = () => {
       clearTimeout(debounceTimer)
+
       debounceTimer = setTimeout(() => {
         load(appName, opts).then(config => cb(undefined, config), cb)
       }, 100)
@@ -173,20 +250,20 @@ exports.watch = function watch(
       .on('all', loadWrapper)
       .once('error', reject)
       .once('ready', async () => {
-        function unsubscribe() {
+        async function unsubscribe() {
           clearTimeout(debounceTimer)
-          return watcher.close()
+          await watcher.close()
         }
 
-        // vendor config is only read once and merged to defaults to avoid issues
-        // in case it has been deleted and another entry triggers a reload
+        // vendor config is only read once and merged to defaults
         if (whitelist.includes('vendor')) {
           opts.entries = ['vendor']
 
           const vendor = await load(appName, opts)
 
           opts.defaults = defaults === undefined ? vendor : merge(structuredClone(defaults), vendor)
-          opts.entries = whitelist.filter(_ => _ !== 'vendor')
+
+          opts.entries = whitelist.filter(e => e !== 'vendor')
         }
 
         if (initialLoad) {
@@ -196,9 +273,10 @@ exports.watch = function watch(
           } catch (error) {
             try {
               await unsubscribe()
-            } catch (_) {
-              /* empty */
+            } catch {
+              // ignore
             }
+
             reject(error)
           }
         } else {
@@ -210,23 +288,32 @@ exports.watch = function watch(
 
 // ===================================================================
 
-// Returns the list of files that would be loaded, grouped by layer name.
-// Does NOT read file contents — just runs the same globs as load().
-async function listSources(appName, { appDir, entries: whitelist } = {}) {
+export async function listSources(
+  appName: string,
+  { appDir, entries: whitelist }: Omit<ListSourcesOptions, 'appName'> = {}
+): Promise<SourceResult[]> {
   const useWhitelist = whitelist !== undefined
   const entryWhitelist = useWhitelist ? new Set(whitelist) : undefined
   const entryOpts = { appDir, appName }
 
-  const results = await pMap(entries, async entry => {
-    if (useWhitelist && !entryWhitelist.has(entry.name)) {
-      return { name: entry.name, files: [] }
+  const results = await pMap(entries, async (entry: Entry): Promise<SourceResult> => {
+    if (useWhitelist && !entryWhitelist!.has(entry.name)) {
+      return {
+        name: entry.name,
+        files: [],
+      }
     }
+
     const dirFn = entry.dir
     const dir = typeof dirFn === 'function' ? dirFn(entryOpts) : dirFn
-    const files = (await entry.list(entryOpts, dir)) || []
-    return { name: entry.name, files }
+
+    const files = (await entry.list(entryOpts, dir)) ?? []
+
+    return {
+      name: entry.name,
+      files,
+    }
   })
 
   return results
 }
-exports.listSources = listSources
