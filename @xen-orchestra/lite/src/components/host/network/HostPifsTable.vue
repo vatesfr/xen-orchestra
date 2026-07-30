@@ -10,7 +10,7 @@
           variant="secondary"
           accent="brand"
           size="medium"
-          @click="scanPifs()"
+          @click="scanPifs().catch(error => console.error(error))"
         >
           {{ t('scan-pifs') }}
         </UiButton>
@@ -35,10 +35,10 @@
 </template>
 
 <script lang="ts" setup>
+import { usePifScanJob } from '@/jobs/pif-scan.job'
 import type { XenApiHost, XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
-import { useXenApiStore } from '@/stores/xen-api.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -64,27 +64,9 @@ const { getPifStatus } = usePifStore().subscribe()
 
 const { t } = useI18n()
 
-const xenApi = useXenApiStore().getXapi()
-
 const selectedPifId = useRouteQuery('id')
 
-const isScanningPifs = ref(false)
-
-const scanPifs = async () => {
-  if (!host) {
-    return
-  }
-
-  isScanningPifs.value = true
-
-  try {
-    await xenApi.pif.scan(host.$ref)
-  } catch (error) {
-    console.error(error)
-  } finally {
-    isScanningPifs.value = false
-  }
-}
+const { run: scanPifs, isRunning: isScanningPifs } = usePifScanJob(() => host)
 
 const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getByOpaqueRef(networkRef)?.name_label ?? ''
 
