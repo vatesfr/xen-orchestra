@@ -1,13 +1,13 @@
 import { ipToHostname } from '@/libs/utils.ts'
 import { createNetworkOperations } from '@/libs/xen-api/operations/network-operations.ts'
 import { createPbdOperations } from '@/libs/xen-api/operations/pbd-operations.ts'
-import { createPifOperations } from '@/libs/xen-api/operations/pif-operations'
+import { createPifOperations } from '@/libs/xen-api/operations/pif-operations.ts'
 import { createSrOperations } from '@/libs/xen-api/operations/sr-operations.ts'
-import { createVbdOperations } from '@/libs/xen-api/operations/vbd-operations'
-import { createVdiOperations } from '@/libs/xen-api/operations/vdi-operations'
-import { createVifOperations } from '@/libs/xen-api/operations/vif-operations'
-import { createVmOperations } from '@/libs/xen-api/operations/vm-operations'
-import { createVtpmOperations } from '@/libs/xen-api/operations/vtpm-operations'
+import { createVbdOperations } from '@/libs/xen-api/operations/vbd-operations.ts'
+import { createVdiOperations } from '@/libs/xen-api/operations/vdi-operations.ts'
+import { createVifOperations } from '@/libs/xen-api/operations/vif-operations.ts'
+import { createVmOperations } from '@/libs/xen-api/operations/vm-operations.ts'
+import { createVtpmOperations } from '@/libs/xen-api/operations/vtpm-operations.ts'
 import type {
   ObjectType,
   ObjectTypeToRecord,
