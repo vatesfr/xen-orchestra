@@ -1,9 +1,5 @@
 <template>
-  <MenuItem
-    v-if="showChangeState || uiStore.isSmall"
-    icon="action:change-state"
-    class="change-state typo-body-bold-small"
-  >
+  <MenuItem v-if="showChangeState" icon="action:change-state" class="change-state typo-body-bold-small">
     {{ t('action:change-state') }}
     <template #submenu>
       <HostPowerStateAction :host />
@@ -23,7 +19,6 @@ import HostPowerStateAction from '@/modules/host/components/actions/HostPowerSta
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -34,8 +29,6 @@ const { host } = defineProps<{
 }>()
 
 const { t } = useI18n()
-
-const uiStore = useUiStore()
 
 const hostIsHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
 </script>
