@@ -381,6 +381,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/vif/new': RouteRecordInfo<
+      '/vif/new',
+      '/vif/new',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/vm/[id]': RouteRecordInfo<
       '/vm/[id]',
       '/vm/:id',
@@ -449,6 +456,13 @@ declare module 'vue-router/auto-routes' {
       '/vm/:id/vdis',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
+      | never
+    >,
+    '/vm/duplicate': RouteRecordInfo<
+      '/vm/duplicate',
+      '/vm/duplicate',
+      Record<never, never>,
+      Record<never, never>,
       | never
     >,
     '/vm/new': RouteRecordInfo<
@@ -783,6 +797,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/vif/new.vue': {
+      routes:
+        | '/vif/new'
+      views:
+        | never
+    }
     'src/pages/vm/[id].vue': {
       routes:
         | '/vm/[id]'
@@ -842,6 +862,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vm/[id]/vdis.vue': {
       routes:
         | '/vm/[id]/vdis'
+      views:
+        | never
+    }
+    'src/pages/vm/duplicate.vue': {
+      routes:
+        | '/vm/duplicate'
       views:
         | never
     }
