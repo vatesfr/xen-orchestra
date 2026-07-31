@@ -10,15 +10,15 @@ const items: LegendGroupProps['items'] = [
     label: 'First segment',
     accent: 'info',
     value: 42,
-    unit: '%'
+    unit: '%',
   },
   {
     label: 'Second segment',
     accent: 'neutral',
     value: 58,
     unit: '%',
-    tooltip: 'This is another tooltip'
-  }
+    modalInfo: true,
+  },
 ]
 
 const title: LegendGroupProps['title'] = {

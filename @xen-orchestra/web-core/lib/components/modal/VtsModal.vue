@@ -1,11 +1,15 @@
 <template>
-  <UiModal :icon :accent v-on="{ dismiss: handleDismiss, submit: handleSubmit }">
-    <template v-if="slots.title" #title>
-      <slot name="title" />
+  <UiModal :icon class="vts-modal" :accent v-on="{ dismiss: handleDismiss, submit: handleSubmit }">
+    <template v-if="slots.title || title !== undefined" #title>
+      <slot name="title">{{ title }}</slot>
     </template>
 
     <template #content>
-      <slot name="content" />
+      <slot name="content">
+        <div class="content">
+          {{ content }}
+        </div>
+      </slot>
     </template>
 
     <template v-if="slots.buttons" #buttons>
@@ -29,6 +33,8 @@ const { accent, dismissible, onConfirm, onDismiss, current } = defineProps<{
   onConfirm?: () => void
   onDismiss?: () => void
   current?: boolean
+  title?: string
+  content?: string
 }>()
 
 const emit = defineEmits<{
@@ -80,3 +86,11 @@ whenever(escape, () => {
   }
 })
 </script>
+
+<style lang="postcss" scoped>
+.vts-modal {
+  .content {
+    text-align: left;
+  }
+}
+</style>

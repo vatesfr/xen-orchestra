@@ -8,7 +8,12 @@
     <template v-else>
       <VtsDonutChartWithLegend :segments="poolsSegments" :title="poolsTitle" class="chart" />
       <VtsDivider type="stretch" />
-      <VtsDonutChartWithLegend :segments="hostsSegments" :title="hostsTitle" class="chart" />
+      <VtsDonutChartWithLegend
+        :segments="hostsSegments"
+        :title="hostsTitle"
+        class="chart"
+        @open-modal="openEolModal()"
+      />
     </template>
   </UiCard>
 </template>
@@ -22,6 +27,7 @@ import VtsDonutChartWithLegend, {
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { useModal } from '@core/packages/modal/use-modal'
 import { isDefined } from '@vueuse/shared'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -29,6 +35,17 @@ import { useI18n } from 'vue-i18n'
 const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
+
+const openEolModal = useModal({
+  component: import('@core/components/modal/VtsModal.vue'),
+  props: {
+    accent: 'info',
+    icon: 'status:info-picto',
+    dismissible: true,
+    title: t('What-is-an-eol-host?'),
+    content: t('eol-host-helper'),
+  },
+})
 
 const dashboardMissingPatches = computed(() => dashboard.value.missingPatches)
 
@@ -86,13 +103,12 @@ const hostsSegments = computed(() => {
     { value: missingPatches.value.nHostsWithMissingPatches, accent: 'warning', label: t('missing-patches') },
   ]
 
-  // TODO instead of tooltips for nHostsEol , we need to add a modal with a button
   if (typeof missingPatches.value.nHostsEol === 'number') {
     segments.push({
       value: missingPatches.value.nHostsEol,
       accent: 'danger',
       label: t('eol'),
-      tooltip: t('end-of-life'),
+      modalInfo: true,
     })
   }
 
