@@ -15,7 +15,7 @@
         <template #trigger="{ open }">
           <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
         </template>
-        <HostPowerStateAction :host />
+        <HostPowerStateActions :host />
       </MenuList>
 
       <MenuList placement="bottom-end">
@@ -80,7 +80,7 @@
 </template>
 
 <script lang="ts" setup>
-import HostPowerStateAction from '@/modules/host/components/actions/HostPowerStateAction.vue'
+import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
