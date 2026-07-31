@@ -493,6 +493,8 @@
   "job:host-disable:bad-power-state": "Host is not running",
   "job:host-disable:missing-host": "Host is missing",
   "job:host-enable:missing-host": "Host is missing",
+  "job:host-scan-pifs:bad-power-state": "Host is not running",
+  "job:host-scan-pifs:missing-host": "Host is missing",
   "job:host-shutdown:bad-power-state": "Host already halted",
   "job:host-shutdown:in-progress": "Host shut down in progress…",
   "job:host-shutdown:missing-host": "No host to shut down",
