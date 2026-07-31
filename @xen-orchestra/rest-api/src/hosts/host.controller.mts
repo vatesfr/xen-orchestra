@@ -909,11 +909,11 @@ export class HostController extends XapiXoController<XoHost> {
       const host = this.getObject(hostId)
       if (host.power_state === HOST_POWER_STATE.RUNNING) {
         throw incorrectState({
-            actual: host.power_state,
-            expected: HOST_POWER_STATE.HALTED,
-            object: host.id,
-            property: 'power_state',
-          })
+          actual: host.power_state,
+          expected: HOST_POWER_STATE.HALTED,
+          object: host.id,
+          property: 'power_state',
+        })
       }
       await this.getXapiObject(hostId).$xapi.forgetHost(hostId)
     }
@@ -924,6 +924,53 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'forget host',
         objectId: hostId,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: scan-pifs
+   *
+   * Scan for physical interfaces on a host and create PIF objects to represent them. Host must be running.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/scan_pifs')
+  @Middlewares(acl({ resource: 'host', action: 'scan-pifs', objectId: 'params.id' }))
+  @Tags('pifs')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  hostScanPifs(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+
+    const action = async () => {
+      const host = this.getObject(hostId)
+
+      if (host.power_state !== HOST_POWER_STATE.RUNNING) {
+        throw incorrectState({
+          actual: host.power_state,
+          expected: HOST_POWER_STATE.RUNNING,
+          object: host.id,
+          property: 'power_state',
+        })
+      }
+
+      await this.getXapi(host).callAsync('PIF.scan', host._xapiRef)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'scan pifs',
+        objectId: hostId,
+        objectType: 'host',
       },
     })
   }
