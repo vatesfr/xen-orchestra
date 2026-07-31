@@ -11,7 +11,7 @@
   </div>
   <HostDisableButton v-if="host.enabled || isHostHalted" :host />
   <HostEnableButton v-else :host />
-  <HostForgetButton v-if="!isHostHalted" :host />
+  <HostForgetButton :host />
   <VtsDivider type="stretch" />
   <HostDownloadButton :host-id="host.id" />
 </template>
@@ -20,8 +20,8 @@
 import HostDisableButton from '@/modules/host/components/actions/disable/HostDisableButton.vue'
 import HostDownloadButton from '@/modules/host/components/actions/download/HostDownloadButton.vue'
 import HostEnableButton from '@/modules/host/components/actions/enable/HostEnableButton.vue'
-import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
 import HostForgetButton from '@/modules/host/components/actions/forget/HostForgetButton.vue'
+import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
