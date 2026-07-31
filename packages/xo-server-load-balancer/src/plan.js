@@ -406,6 +406,18 @@ export default class Plan {
     }
     const vmsAverages = await this._getVmsAverages(allVms, idToHost)
 
+    // per-host counts of affinity/anti-affinity tagged VMs, to check whether a candidate destination
+    // would deteriorate a VM's constraints, instead of excluding it from vCPU prepositioning entirely
+    const affinityCountsByHostId = this._affinityTags.length
+      ? keyBy(this._getTaggedHosts({ hosts: sanitizedHostList, tagList: this._affinityTags, vms: allVms }).hosts, 'id')
+      : undefined
+    const antiAffinityCountsByHostId = this._antiAffinityTags.length
+      ? keyBy(
+          this._getTaggedHosts({ hosts: sanitizedHostList, tagList: this._antiAffinityTags, vms: allVms }).hosts,
+          'id'
+        )
+      : undefined
+
     // 1. Find source host from which to migrate.
     const sources = sortBy(
       // filter to only get hosts for which removing vCPUs is meaningful
@@ -473,14 +485,40 @@ export default class Plan {
         // ex: if we have a host with 19 vCPU and 9 host with 10 vCPU, each with the same number of CPU, then ideal vCPU per host is 10.9, rounding to 10 would make host with 19 vCPU have no destination to send VMs to
         // reversely, we could have a host with 5 vCPU and 9 host with 10 vCPU, and then the 5 vCPU host would have no source to receive VMs from
         let delta = Math.ceil(Math.min(deltaSource, -deltaDestination))
+        // don't exclude VMs with meaningful tags entirely: only avoid a destination that would
+        // deteriorate the VM's affinity / anti-affinity / vm-to-host affinity constraints
         const vms = sortBy(
-          filter(
-            sourceVms,
-            vm =>
-              !this._isVmInCooldown(vm) &&
-              hostsAverages[destinationHost.id].memoryFree >= vmsAverages[vm.id].memory &&
-              vm.CPUs.number <= delta
-          ),
+          filter(sourceVms, vm => {
+            if (
+              this._isVmInCooldown(vm) ||
+              hostsAverages[destinationHost.id].memoryFree < vmsAverages[vm.id].memory ||
+              vm.CPUs.number > delta
+            ) {
+              return false
+            }
+
+            const affinityTags = intersection(vm.tags, this._affinityTags)
+            if (
+              affinityTags.length > 0 &&
+              !affinityTags.some(tag => affinityCountsByHostId[destinationHost.id].tags[tag] > 0)
+            ) {
+              return false
+            }
+
+            const antiAffinityTags = intersection(vm.tags, this._antiAffinityTags)
+            if (
+              antiAffinityTags.length > 0 &&
+              !antiAffinityTags.every(tag => antiAffinityCountsByHostId[destinationHost.id].tags[tag] === 0)
+            ) {
+              return false
+            }
+
+            const vmToHostAffinityTags = intersection(vm.tags, this._vmToHostAffinityTags)
+            return (
+              vmToHostAffinityTags.length === 0 ||
+              vmToHostAffinityTags.some(tag => idToHost[destinationHost.id].tags.includes(tag))
+            )
+          }),
           [vm => -vm.CPUs.number]
         )
 
@@ -521,6 +559,19 @@ export default class Plan {
                 destHostId: destination._xapiId,
                 reason: 'to balance vCPUs over CPUs',
               })
+            )
+            // keep our local counts in sync so later VMs in this loop aren't checked against stale data
+            this._adjustTagCounts(
+              affinityCountsByHostId,
+              intersection(vm.tags, this._affinityTags),
+              sourceHost.id,
+              destinationHost.id
+            )
+            this._adjustTagCounts(
+              antiAffinityCountsByHostId,
+              intersection(vm.tags, this._antiAffinityTags),
+              sourceHost.id,
+              destinationHost.id
             )
             debugVcpuBalancing(`vCPU count per host: ${inspect(hostList, { depth: null })}`)
 
@@ -569,15 +620,10 @@ export default class Plan {
       const host = idToHost[hostId]
       host.vcpuCount += vm.CPUs.number
 
-      if (
-        vm.xenTools &&
-        vm.tags.every(
-          tag =>
-            !this._antiAffinityTags.includes(tag) &&
-            !this._affinityTags.includes(tag) &&
-            !this._vmToHostAffinityTags.includes(tag)
-        )
-      ) {
+      // don't exclude VMs with meaningful tags entirely: _processVcpuPrepositioning avoids
+      // destinations that would deteriorate their affinity / anti-affinity / vm-to-host affinity
+      // constraints instead
+      if (vm.xenTools) {
         host.vms[vm.id] = vm
       }
     }
