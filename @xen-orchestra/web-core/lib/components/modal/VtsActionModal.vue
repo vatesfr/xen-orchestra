@@ -99,6 +99,11 @@ const textMappingsByObject: TextMappingByObject = {
       title: t('modal:confirm-host-start', { host: hostName }),
       action: t('action:start-host'),
     },
+    'disable-and-evacuate-vm': {
+      title: t('modal:confirm-host-disable-and-evacuate-vms', { host: hostName }),
+      message: t('modal:host-disable-and-evacuate-vms-message'),
+      action: t('action:disable-and-evacuate-vms'),
+    },
   },
 }
 
