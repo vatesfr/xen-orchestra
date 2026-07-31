@@ -498,7 +498,7 @@
   "job:host-disable:missing-host": "Host is missing",
   "job:host-enable:missing-host": "Host is missing",
   "job:host-forget:bad-power-state": "Host is running",
-  "job:host-forget:in-progress": "Host forgetting un progress…",
+  "job:host-forget:in-progress": "Host forgetting in progress…",
   "job:host-forget:missing-host": "No host to forget",
   "job:host-scan-pifs:bad-power-state": "Host is not running",
   "job:host-scan-pifs:in-progress": "@:scan-pifs in progress…",
