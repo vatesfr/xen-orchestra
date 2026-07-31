@@ -13,7 +13,7 @@ import Disposable from 'promise-toolbox/Disposable'
 
 // ===================================================================
 
-const { warn, logError } = createLogger('xo:mixins:remotes')
+const { warn } = createLogger('xo:mixins:remotes')
 
 const obfuscateRemote = ({ url, ...remote }) => {
   const parsedUrl = parse(url)
@@ -229,7 +229,7 @@ export default class {
       if (_isRetryableRemoteError(error)) {
         this._scheduleRemoteInfoRetry(remote, error)
       } else {
-        logError('failed to get remote info, will NOT retry', { id: remote.id, error, code: error.code })
+        warn('failed to get remote info, will NOT retry', { id: remote.id, error, code: error.code })
         this._cancelRemoteInfoRetry(remote.id)
       }
     }

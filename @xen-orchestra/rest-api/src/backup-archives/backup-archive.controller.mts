@@ -1,8 +1,11 @@
 import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import type { Request as ExRequest } from 'express'
-import type { XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
+import { Readable } from 'node:stream'
+import {} from 'xo-common/api-errors.js'
+import { type AnyPrivilege, hasPrivilegeOn } from '@xen-orchestra/acl'
+import type { Request as ExRequest, Response as ExResponse } from 'express'
+import type { XoBackupRepository, XoUser, XoVm, XoVmBackupArchive } from '@vates/types'
 
 import {
   badRequestResp,
@@ -10,6 +13,7 @@ import {
   notFoundResp,
   unauthorizedResp,
   Unbrand,
+  invalidParameters,
 } from '../open-api/common/response.common.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -18,9 +22,12 @@ import {
   backupArchiveIds,
   partialBackupArchives,
 } from '../open-api/oa-examples/backup-archive.oa-example.mjs'
-import { SendObjects } from '../helpers/helper.type.mjs'
+import { SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import { BackupArchiveService } from './backup-archive.service.mjs'
 import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
+import { makeNdJsonStream } from '../helpers/stream.helper.mjs'
+import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
+import { NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 @Route('backup-archives')
 @Security('*')
@@ -39,9 +46,9 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     this.#backupArchiveService = backupArchiveService
   }
 
-  async getAllCollectionObjects({
-    backupRepositories = [],
-  }: { backupRepositories?: (XoBackupRepository['id'] | '*')[] } = {}): Promise<XoVmBackupArchive[]> {
+  async #resolveBackupRepositoryIds(
+    backupRepositories: (XoBackupRepository['id'] | '*')[]
+  ): Promise<XoBackupRepository['id'][]> {
     const backupRepositoryIds: XoBackupRepository['id'][] = []
 
     if (backupRepositories.includes('*')) {
@@ -54,6 +61,14 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       }
     }
 
+    return backupRepositoryIds
+  }
+
+  async getAllCollectionObjects({
+    backupRepositories = [],
+  }: { backupRepositories?: (XoBackupRepository['id'] | '*')[] } = {}): Promise<XoVmBackupArchive[]> {
+    const backupRepositoryIds = await this.#resolveBackupRepositoryIds(backupRepositories)
+
     const backupArchivesByRemote = await this.restApi.xoApp.listVmBackupsNg(backupRepositoryIds)
     const vmBackupArchives = Object.values(backupArchivesByRemote)
       .filter(backupsByVm => backupsByVm !== undefined)
@@ -61,6 +76,62 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       .flat(2)
 
     return vmBackupArchives
+  }
+
+  // same as `getAllCollectionObjects` but yields each backup archive as soon as
+  // its backup repository listing is available
+  // the ids are resolved before the generator since resolution can fail
+  // with `noSuchObject`, and a generator body would only run once the response
+  // is already being streamed, turning that error into a truncated stream
+  async #streamAllCollectionObjects(
+    backupRepositories: (XoBackupRepository['id'] | '*')[]
+  ): Promise<AsyncGenerator<XoVmBackupArchive>> {
+    const backupRepositoryIds = await this.#resolveBackupRepositoryIds(backupRepositories)
+    const xoApp = this.restApi.xoApp
+
+    return (async function* () {
+      for await (const [, backupsByVm] of xoApp.listVmBackupsNgIterator(backupRepositoryIds)) {
+        if (backupsByVm === undefined) {
+          continue
+        }
+
+        for (const vmBackupArchives of Object.values(backupsByVm)) {
+          yield* vmBackupArchives
+        }
+      }
+    })()
+  }
+
+  // streaming counterpart of `BaseController#sendObjects`: applies the same
+  // privilege check, filter, limit and object mapping, but lazily
+  async *#mapFilterLimit(
+    archives: AsyncGenerator<XoVmBackupArchive>,
+    req: ExRequest,
+    {
+      filter,
+      limit = Infinity,
+      user,
+      userPrivileges,
+    }: { filter?: string; limit?: number; user: XoUser; userPrivileges: AnyPrivilege[] }
+  ): AsyncGenerator<string | WithHref<Partial<XoVmBackupArchive>> | WithHref<XoVmBackupArchive>> {
+    const mapper = makeObjectMapper<XoVmBackupArchive>(req)
+    const predicate = filter === undefined ? undefined : safeParseComplexMatcher(filter).createPredicate()
+
+    for await (const archive of archives) {
+      if (limit === 0) {
+        return
+      }
+
+      if (
+        !hasPrivilegeOn({ user, userPrivileges, objects: archive, action: 'read', resource: 'backup-archive' }) ||
+        (predicate !== undefined && !predicate(archive))
+      ) {
+        continue
+      }
+
+      yield mapper(archive)
+      limit--
+    }
   }
 
   getCollectionObject(id: XoVmBackupArchive['id']): Promise<XoVmBackupArchive> {
@@ -84,6 +155,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Get('')
   @Security('*', ['acl'])
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
   async getBackupArchives(
     @Request() req: ExRequest,
     @Query('backup-repository') backupRepositories?: string[],
@@ -93,6 +165,35 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVmBackupArchive>>> {
+    if (ndjson && markdown) {
+      throw invalidParameters
+    }
+    if (ndjson) {
+      // resolve everything that may fail before sending the response headers,
+      // otherwise the error would only appear as a broken stream
+      const archives = await this.#streamAllCollectionObjects(
+        (backupRepositories ?? []) as (XoBackupRepository['id'] | '*')[]
+      )
+      const user = this.restApi.getCurrentUser()
+      const userPrivileges = (
+        user.permission !== 'admin' ? await this.restApi.xoApp.getAclV2UserPrivileges(user.id) : []
+      ) as AnyPrivilege[]
+
+      const res = req.res as ExResponse
+      res.setHeader('Content-Type', NDJSON_CONTENT_TYPE)
+
+      return Readable.from(
+        makeNdJsonStream(
+          this.#mapFilterLimit(archives, req, {
+            filter,
+            limit,
+            user,
+            userPrivileges,
+          })
+        )
+      )
+    }
+
     const backupArchives = await this.getObjects({ backupRepositories, filter })
     return this.sendObjects(Object.values(backupArchives), req, {
       limit,

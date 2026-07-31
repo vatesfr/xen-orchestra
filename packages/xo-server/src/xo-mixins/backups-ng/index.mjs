@@ -11,6 +11,7 @@ import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { invalidParameters, noMatchingVm } from 'xo-common/api-errors.js'
+import { timeout } from 'promise-toolbox'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.mjs'
 import { Task } from '@vates/task'
 
@@ -20,6 +21,39 @@ import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { waitAll } from '../../_waitAll.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
+
+/**
+ * @typedef {import('@vates/types').XoBackupRepository} XoBackupRepository
+ * @typedef {import('@vates/types').XoVm} XoVm
+ * @typedef {import('@vates/types').XoVmBackupArchive} XoVmBackupArchive
+ *
+ * @typedef {Record<XoVm['id'], XoVmBackupArchive[]>} BackupsByVm
+ * @typedef {{ backupsByVm?: BackupsByVm, error?: Error }} RemoteListingResult
+ * @typedef {[XoBackupRepository['id'], BackupsByVm | undefined, Error | undefined]} RemoteListing
+ * @typedef {{ _forceRefresh?: boolean, vmId?: XoVm['id'] }} ListVmBackupsOpts
+ * @typedef {{ attempt: number, nextAttemptAt: number, promise: Promise<BackupsByVm>, error: Error }} ListingRetryState
+ */
+
+// a remote whose listing failed is not listed again before this delay
+const LISTING_RETRY_DELAY = 30e3
+const LISTING_TIMEOUT = 30e3
+const LISTING_RETRY_MAX_DELAY = 60 * 60 * 1e3 // cap at 1h
+/**
+ * @param {number} attempt number of consecutive failures so far, `0` for the first one
+ * @returns {number} delay in ms before the next attempt is allowed
+ */
+export function backupsListingRetryDelay(attempt) {
+  let prev = 1
+  let curr = 1
+
+  for (let i = 0; i < attempt; i++) {
+    const next = prev + curr
+    prev = curr
+    curr = next
+  }
+
+  return Math.min(prev * LISTING_RETRY_DELAY, LISTING_RETRY_MAX_DELAY)
+}
 
 const parseVmBackupId = id => {
   const i = id.indexOf('/')
@@ -66,6 +100,11 @@ export default class BackupNg {
   constructor(app) {
     this._app = app
     this._runningRestores = new Set()
+
+    /** @type {Record<XoBackupRepository['id'], ListingRetryState>} */
+    this._backupsListingRetry = { __proto__: null }
+    /** @type {WeakSet<Promise<BackupsByVm | undefined>>} */
+    this._trackedBackupsListings = new WeakSet()
 
     app.hooks.on('start', async () => {
       const executor = async ({
@@ -356,7 +395,7 @@ export default class BackupNg {
             return result
           }
         } finally {
-          targetRemoteIds.forEach(id => this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, id))
+          targetRemoteIds.forEach(id => this._invalidateVmBackupsListing(id))
         }
       }
       app.registerJobExecutor('backup', executor)
@@ -465,7 +504,7 @@ export default class BackupNg {
         await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteVmBackups(filenames))
       }
 
-      this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
+      this._invalidateVmBackupsListing(remoteId)
     })
   }
 
@@ -584,59 +623,155 @@ export default class BackupNg {
       return [this, remoteId]
     }
   )
+  /**
+   * rejects when the listing failed, `_listVmBackupsWithBackoff()` is in charge of handling it
+   *
+   * @param {XoBackupRepository['id']} remoteId
+   * @param {{ vmId?: XoVm['id'] }} [opts]
+   * @returns {Promise<BackupsByVm>}
+   */
   async _listVmBackupsOnRemote(remoteId, { vmId } = {}) {
     const app = this._app
-    try {
-      const remote = await app.getRemoteWithCredentials(remoteId)
+    const remote = await app.getRemoteWithCredentials(remoteId)
 
-      let backupsByVm
-      if (remote.proxy !== undefined) {
-        ;({ [remoteId]: backupsByVm } = await app.callProxyMethod(remote.proxy, 'backup.listVmBackups', {
-          remotes: {
-            [remoteId]: {
-              url: remote.url,
-              options: remote.options,
-            },
+    let backupsByVm
+    if (remote.proxy !== undefined) {
+      ;({ [remoteId]: backupsByVm } = await app.callProxyMethod(remote.proxy, 'backup.listVmBackups', {
+        remotes: {
+          [remoteId]: {
+            url: remote.url,
+            options: remote.options,
           },
-          vmId,
-        }))
-      } else {
-        backupsByVm = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
-          let vmBackups
-          if (vmId !== undefined) {
-            vmBackups = { [vmId]: await adapter.listVmBackups(vmId) }
-          } else {
-            vmBackups = await adapter.listAllVmBackups()
-          }
+        },
+        vmId,
+      }))
+    } else {
+      backupsByVm = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
+        let vmBackups
+        if (vmId !== undefined) {
+          vmBackups = { [vmId]: await adapter.listVmBackups(vmId) }
+        } else {
+          vmBackups = await adapter.listAllVmBackups()
+        }
 
-          return formatVmBackups(vmBackups, remote.id)
-        })
+        return formatVmBackups(vmBackups, remote.id)
+      })
+    }
+
+    // inject the remote id on the backup which is needed for importVmBackupNg()
+    forOwn(backupsByVm, backups =>
+      backups.forEach(backup => {
+        backup.id = `${remoteId}/${backup.id}`
+      })
+    )
+    return backupsByVm
+  }
+
+  /**
+   * @param {XoBackupRepository['id']} remoteId
+   * @param {Promise<BackupsByVm>} promise identifies the listing attempt this failure comes
+   * from: an attempt which timed out and then failed must only be counted once
+   * @param {Error} error
+   */
+  _scheduleVmBackupsListingRetry(remoteId, promise, error) {
+    const retries = this._backupsListingRetry
+    let state = retries[remoteId]
+    if (state === undefined) {
+      state = retries[remoteId] = { attempt: 0 }
+    } else if (state.promise === promise) {
+      return
+    }
+
+    const delay = backupsListingRetryDelay(state.attempt++)
+    state.promise = promise
+    state.error = error
+    state.nextAttemptAt = Date.now() + delay
+    logger.warn(`listVmBackups for remote ${remoteId} failed, not retrying before ${delay}ms`, { error })
+  }
+
+  /**
+   * never rejects: a failed listing is reported as `error` so that a caller can tell it apart
+   * from a remote which has no backups
+   *
+   * @param {XoBackupRepository['id']} remoteId
+   * @param {{ vmId?: XoVm['id'] }} [opts]
+   * @returns {Promise<RemoteListingResult>} `error` is set when the listing failed, took longer
+   * than `LISTING_TIMEOUT`, or was skipped because the remote is in its retry delay
+   */
+  _listVmBackupsWithBackoff(remoteId, { vmId } = {}) {
+    const state = this._backupsListingRetry[remoteId]
+    if (state !== undefined && state.nextAttemptAt > Date.now()) {
+      // report the failure which put this remote in its retry delay
+      return Promise.resolve({ error: state.error })
+    }
+
+    const promise = this._listVmBackupsOnRemote(remoteId, { vmId })
+
+    // the promise is shared by all the callers of this listing, only track its
+    // outcome once
+    if (!this._trackedBackupsListings.has(promise)) {
+      this._trackedBackupsListings.add(promise)
+      promise.then(
+        () => {
+          delete this._backupsListingRetry[remoteId]
+        },
+        error => this._scheduleVmBackupsListingRetry(remoteId, promise, error)
+      )
+    }
+
+    return timeout.call(promise, LISTING_TIMEOUT).then(
+      backupsByVm => ({ backupsByVm }),
+      error => {
+        // the listing may still be running, in which case it will update the cache and the
+        // retry state when it settles, but the next request must not wait for it again
+        this._scheduleVmBackupsListingRetry(remoteId, promise, error)
+        return { error }
+      }
+    )
+  }
+
+  /**
+   * @param {XoBackupRepository['id'][]} remotes
+   * @param {ListVmBackupsOpts} [opts]
+   * @returns {AsyncGenerator<RemoteListing>}
+   */
+  async *listVmBackupsNgIterator(remotes, { _forceRefresh = false, vmId } = {}) {
+    /** @type {Map<XoBackupRepository['id'], Promise<RemoteListing>>} */
+    const pending = new Map()
+    for (const remoteId of remotes) {
+      if (_forceRefresh) {
+        this._invalidateVmBackupsListing(remoteId)
       }
 
-      // inject the remote id on the backup which is needed for importVmBackupNg()
-      forOwn(backupsByVm, backups =>
-        backups.forEach(backup => {
-          backup.id = `${remoteId}/${backup.id}`
-        })
+      pending.set(
+        remoteId,
+        this._listVmBackupsWithBackoff(remoteId, { vmId }).then(({ backupsByVm, error }) => [
+          remoteId,
+          backupsByVm,
+          error,
+        ])
       )
-      return backupsByVm
-    } catch (error) {
-      logger.warn(`listVmBackups for remote ${remoteId}:`, { error })
+    }
+
+    while (pending.size !== 0) {
+      const [remoteId, backupsByVm, error] = await Promise.race(pending.values())
+      pending.delete(remoteId)
+      yield [remoteId, backupsByVm, error]
     }
   }
 
-  async listVmBackupsNg(remotes, { _forceRefresh = false, vmId } = {}) {
+  /**
+   * @param {XoBackupRepository['id'][]} remotes
+   * @param {ListVmBackupsOpts} [opts]
+   * @returns {Promise<Record<XoBackupRepository['id'], BackupsByVm | undefined>>}
+   */
+  async listVmBackupsNg(remotes, opts) {
+    /** @type {Record<XoBackupRepository['id'], BackupsByVm | undefined>} */
     const backupsByVmByRemote = {}
 
-    await Promise.all(
-      remotes.map(async remoteId => {
-        if (_forceRefresh) {
-          this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
-        }
-
-        backupsByVmByRemote[remoteId] = await this._listVmBackupsOnRemote(remoteId, { vmId })
-      })
-    )
+    for await (const [remoteId, backupsByVm] of this.listVmBackupsNgIterator(remotes, opts)) {
+      backupsByVmByRemote[remoteId] = backupsByVm
+    }
 
     return backupsByVmByRemote
   }
@@ -666,5 +801,10 @@ export default class BackupNg {
           await xapi.VM_destroy(restoredVm.$ref, { bypassBlockedOperation: true })
         }
       })
+  }
+  /** @param {XoBackupRepository['id']} remoteId */
+  _invalidateVmBackupsListing(remoteId) {
+    this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
+    delete this._backupsListingRetry[remoteId]
   }
 }

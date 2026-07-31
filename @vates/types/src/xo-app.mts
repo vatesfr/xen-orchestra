@@ -328,10 +328,19 @@ export type XoApp = {
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
     pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
   }>
+  /** `undefined` when the listing of a backup repository failed */
   listVmBackupsNg(
     backupRepositoryIds: XoBackupRepository['id'][],
-    opts?: { _forceRefresh?: boolean; vmId: XoVm['id'] }
-  ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]>>>
+    opts?: { _forceRefresh?: boolean; vmId?: XoVm['id'] }
+  ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]> | undefined>>
+  /**
+   * Same as `listVmBackupsNg` but yields each backup repository listing as soon as it is
+   * available, along with the error which made it fail if any
+   */
+  listVmBackupsNgIterator(
+    backupRepositoryIds: XoBackupRepository['id'][],
+    opts?: { _forceRefresh?: boolean; vmId?: XoVm['id'] }
+  ): AsyncGenerator<[XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]> | undefined, Error | undefined]>
   pingRemote(id: XoBackupRepository['id']): Promise<{ success: true }>
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(
