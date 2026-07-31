@@ -1,4 +1,4 @@
-import type { Branded } from '@vates/types'
+import type { Branded } from '@vates/types/'
 
 export type IpAddress = Branded<'ip-address'>
 

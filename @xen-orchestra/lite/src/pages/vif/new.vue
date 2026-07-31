@@ -62,7 +62,7 @@ const vm = useGetVmById(vmId)
 
 const formPayload = ref<NewVifPayload>()
 
-const error = ref<ApiError | Error | undefined>()
+// const error = ref<ApiError | Error | undefined>()
 
 const { canRun, run: create, isRunning } = useXoVifCreateJob(formPayload)
 

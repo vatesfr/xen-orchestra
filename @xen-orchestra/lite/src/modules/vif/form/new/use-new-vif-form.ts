@@ -1,35 +1,24 @@
 import {
-  type FrontXoNetwork,
-  useXoNetworkCollection,
-} from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import {
   type BaseVifFormData,
   buildBaseVifPayload,
   useVifFormBaseValidation,
 } from '@/modules/vif/form/use-vif-form-base.ts'
 import type { NewVifPayload } from '@/modules/vif/jobs/vif-create.job.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { mergeValidationConfigs, required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { useArrayFilter } from '@vueuse/shared'
-import { type MaybeRefOrGetter, reactive, watch } from 'vue'
+import type { XenApiNetwork, XenApiVm } from '@vates/types'
+import { type MaybeRefOrGetter, reactive } from 'vue'
 
 export type NewVifFormData = BaseVifFormData & {
-  network: FrontXoNetwork['id'] | undefined
+  network: XenApiNetwork['uuid'] | undefined
 }
 
-export function useNewVifForm(
-  rawVmId: MaybeRefOrGetter<FrontXoVm['id']>,
-  rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>
-) {
+export function useNewVifForm(rawVmId: MaybeRefOrGetter<XenApiVm['uuid']>) {
   const vmId = toComputed(rawVmId)
-  const poolId = toComputed(rawPoolId)
 
-  const { networks } = useXoNetworkCollection()
-
-  const poolNetworks = useArrayFilter(networks, network => network.$pool === poolId.value)
+  const { records: networks } = useNetworkStore().subscribe()
 
   const formData = reactive<NewVifFormData>({
     network: undefined,
@@ -50,17 +39,13 @@ export function useNewVifForm(
     })
   )
 
-  const { id: networkSelectId } = useFormSelect('network', poolNetworks, {
+  const { id: networkSelectId } = useFormSelect('network', networks, {
     searchable: true,
     required: true,
     option: {
       label: 'name_label',
-      value: 'id',
+      value: 'uuid',
     },
-  })
-
-  watch(poolId, () => {
-    formData.network = undefined
   })
 
   async function validateAndBuildPayload(): Promise<NewVifPayload | undefined> {
