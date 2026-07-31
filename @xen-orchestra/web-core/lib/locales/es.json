@@ -763,7 +763,6 @@
   "runs": "Ejecuciones",
   "s3-backup-repository": "Repositorio S3 de salvaguardas",
   "scan-pifs": "Escanear PIFs",
-  "scan-pifs-in-xo-5": "@:scan-pifs en XO-5",
   "schedule": "Planificación",
   "schedules": "Planificaciones",
   "secure-boot": "Arranque seguro",

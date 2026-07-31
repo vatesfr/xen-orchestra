@@ -3,9 +3,7 @@
     <UiCard class="container">
       <PifsTable :pifs>
         <template #title-actions>
-          <UiLink :href="xo5ScanPifsHref" icon="fa:plus" size="medium">
-            {{ t('scan-pifs-in-xo-5') }}
-          </UiLink>
+          <HostScanPifsButton :host />
         </template>
       </PifsTable>
     </UiCard>
@@ -14,28 +12,21 @@
 </template>
 
 <script setup lang="ts">
+import HostScanPifsButton from '@/modules/host/components/actions/scan-pifs/HostScanPifsButton.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import PifSidePanel from '@/modules/pif/components/list/panel/PifSidePanel.vue'
 import PifsTable from '@/modules/pif/components/list/PifsTable.vue'
 import { useXoPifCollection, type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
   host: FrontXoHost
 }>()
 
-const { buildXo5Route } = useXoRoutes()
-const xo5ScanPifsHref = computed(() => buildXo5Route(`/hosts/${host.id}/network`))
-
 const { pifsByHost } = useXoPifCollection()
-
-const { t } = useI18n()
 
 const pifs = computed(() => pifsByHost.value.get(host.id) ?? [])
 

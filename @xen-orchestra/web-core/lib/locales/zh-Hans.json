@@ -848,7 +848,6 @@
   "runs": "执行记录",
   "s3-backup-repository": "S3对象存储备份仓库",
   "scan-pifs": "扫描物理网卡",
-  "scan-pifs-in-xo-5": "前往XO5扫描物理网卡",
   "schedule": "定时计划",
   "schedules": "定时计划列表",
   "secure-boot": "安全启动",

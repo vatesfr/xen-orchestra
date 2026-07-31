@@ -791,7 +791,6 @@
   "runs": "Läufe",
   "s3-backup-repository": "S3-Backupdepot",
   "scan-pifs": "PIFs scannen",
-  "scan-pifs-in-xo-5": "@:scan-pifs in XO-5",
   "schedule": "Zeitplan",
   "schedules": "Zeitpläne",
   "secure-boot": "Secure Boot",
