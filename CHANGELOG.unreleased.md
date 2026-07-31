@@ -16,6 +16,7 @@
 - [XO6/Host] Add possibility to disable an host an evacuate its VMs (PR [#10090](https://github.com/vatesfr/xen-orchestra/pull/10090))
 - [XO6/Host] Add possibility to reboot an host (PR [#10141](https://github.com/vatesfr/xen-orchestra/pull/10141))
 - [XO6/Host] Add possibility to force reboot an host (PR [#10175](https://github.com/vatesfr/xen-orchestra/pull/10175))
+- [XO6/Host] Add possibility to smart reboot an host (PR [#10177](https://github.com/vatesfr/xen-orchestra/pull/10177))
 
 ### Bug fixes
 
