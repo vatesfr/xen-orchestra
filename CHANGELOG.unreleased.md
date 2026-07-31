@@ -18,6 +18,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backup/File restore] Downloading files as `tgz` through an XO Proxy works again: the archive was replaced by an invalid response, failing with `invalid identifier: undefined instead of number or string` (PR [#10208](https://github.com/vatesfr/xen-orchestra/pull/10208))
 - [Immutable backups] Backups are protected again on file servers whose system language is not English: immutability was silently not applied at all on those (PR [#10182](https://github.com/vatesfr/xen-orchestra/pull/10182))
 - [Immutable backups] Release disks that stayed immutable forever after their metadata was deleted by the retention, or after a merge renamed them, which prevented any further merge or deletion of that disk's backups (PR [#10182](https://github.com/vatesfr/xen-orchestra/pull/10182))
 
@@ -38,6 +39,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/acl minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
