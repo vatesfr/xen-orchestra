@@ -85,7 +85,7 @@
             <template #value>
               <UiLink
                 v-if="primaryHost !== undefined"
-                :icon="`object:host:${toLower(primaryHost.power_state)}`"
+                :icon="`object:host:${getHostState(primaryHost)}`"
                 size="small"
                 :to="{ name: '/host/[id]/dashboard', params: { id: primaryHost.id } }"
                 is-primary
@@ -153,7 +153,7 @@
               v-for="host in hosts"
               :key="host.id"
               :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-              :icon="`object:host:${toLower(host.power_state)}`"
+              :icon="`object:host:${getHostState(host)}`"
               size="small"
             >
               {{ host.name_label }}
@@ -175,6 +175,7 @@
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import PoolConnectionToggleButton from '@/modules/pool/components/actions/connection/PoolConnectionToggleButton.vue'
 import PoolDownloadButton from '@/modules/pool/components/actions/download/PoolDownloadButton.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
@@ -199,7 +200,6 @@ import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryVie
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

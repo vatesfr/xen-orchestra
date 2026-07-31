@@ -37,7 +37,7 @@
             v-if="host"
             :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
             size="medium"
-            :icon="`object:host:${hostPowerState}`"
+            :icon="`object:host:${getHostState(host)}`"
             :is-primary="isMaster"
             :primary-tooltip="t('master')"
           >
@@ -88,6 +88,7 @@
 
 <script lang="ts" setup>
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
@@ -102,8 +103,6 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatSize } from '@core/utils/size.util.ts'
-import { HOST_POWER_STATE } from '@vates/types'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -135,10 +134,6 @@ const virtualizationType = computed(() =>
 const host = computed(() => getVmHost(vm))
 
 const isMaster = computed(() => (host.value !== undefined ? isMasterHost(host.value.id) : false))
-
-const hostPowerState = computed(() =>
-  host.value ? toLower(host.value.power_state) : toLower(HOST_POWER_STATE.UNKNOWN)
-)
 </script>
 
 <style lang="postcss" scoped>
