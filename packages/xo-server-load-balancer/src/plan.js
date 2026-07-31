@@ -999,7 +999,7 @@ export default class Plan {
             idToHost,
             taggedHosts,
             memoryNeeded: vmsAverages[vm.id].memory,
-            tag,
+            reason: `to free up resources on host to later migrate affinity-tagged VMs to it (${tag})`,
           })
           promises.push(...otherMigrationPromises)
 
@@ -1037,7 +1037,7 @@ export default class Plan {
     return promises
   }
 
-  async _migrateOtherVms({ crowdedHost, hostsAverages, vmsAverages, idToHost, taggedHosts, memoryNeeded, tag }) {
+  async _migrateOtherVms({ crowdedHost, hostsAverages, vmsAverages, idToHost, taggedHosts, memoryNeeded, reason }) {
     const promises = []
 
     const candidateVms = sortBy(
@@ -1090,7 +1090,7 @@ export default class Plan {
           hostsAverages,
           vmAverages,
           promises,
-          reason: `to free up resources on host to later migrate affinity-tagged VMs to it (${tag})`,
+          reason,
         })
       )
 
@@ -1336,6 +1336,7 @@ export default class Plan {
           idToHost,
           taggedHosts,
           memoryNeeded: vmAverages.memory,
+          reason: `to free up resources on host to later migrate VM-to-host-affinity-tagged VMs to it (${vmTags.join(', ')})`,
         })
         promises.push(...otherMigrationPromises)
 
@@ -1345,6 +1346,8 @@ export default class Plan {
           )
           continue
         }
+        // not a real race: destinationHost is a per-iteration local not touched by _migrateOtherVms or any concurrent call
+        // eslint-disable-next-line require-atomic-updates
         destinationHost = crowdedHost
       }
 
