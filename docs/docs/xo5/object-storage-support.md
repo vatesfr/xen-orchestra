@@ -4,7 +4,6 @@
 
 Xen Orchestra is compatible with a wide range of S3-compatible object storage solutions. Based on our testing and validation, we categorize storage providers into three tiers to help you understand their expected reliability and performance.
 
-
 ## Storage tiers explained
 
 - **Tier 1** providers are extensively tested in our labs. We ensure Xen Orchestra aligns with their implementation and performs reliably, even at scale.
@@ -14,15 +13,17 @@ Xen Orchestra is compatible with a wide range of S3-compatible object storage so
 - **Tier 3** providers have implementations that differ more significantly from Tier 1. Support is provided on a best-effort basis, and some operations may be less reliable.
 
 ## Supported storage providers
-   Provider         | Tier | Notes                                                                                     |
- |------------------|------|-------------------------------------------------------------------------------------------|
- | **AWS / S3**     | 1    | Fully tested and validated for reliability at scale.                                      |
- | **Wasabi**       | 2    | Behaves similarly to Tier 1 but with less extensive large-scale testing.                  |
- | **CleverCloud**  | 2    | Behaves similarly to Tier 1 but with less extensive large-scale testing.                  |
- | **Backblaze / B2** | 3  | The `list` operation may time out, which will cause irrecuperrable errors during the `cleanVM` phase     |
- | **MinIO**        | 2 or 3 | Depends on performance; can be dimensioned to handle large deployment, but this is **not covered by Vates support**.              |
- | **Ceph** (on-premise) | 2 or 3 | Depends on performance; can be dimensioned to handle large deployment, but this is **not covered by Vates support**.              |
- | **NetApp**       | 2    | Tier 2 support applies to ONTAP version 9.16 or later.                                    |
+
+| Provider              | Tier   | Notes                                                                                                                |
+| --------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
+| **AWS / S3**          | 1      | Fully tested and validated for reliability at scale.                                                                 |
+| **OVH**               | 1      | Fully tested and validated for reliability at scale.                                                                 |
+| **Wasabi**            | 2      | Behaves similarly to Tier 1 but with less extensive large-scale testing.                                             |
+| **CleverCloud**       | 2      | Behaves similarly to Tier 1 but with less extensive large-scale testing.                                             |
+| **Backblaze / B2**    | 3      | The `list` operation may time out, which will cause irrecuperrable errors during the `cleanVM` phase                 |
+| **MinIO**             | 2 or 3 | Depends on performance; can be dimensioned to handle large deployment, but this is **not covered by Vates support**. |
+| **Ceph** (on-premise) | 2 or 3 | Depends on performance; can be dimensioned to handle large deployment, but this is **not covered by Vates support**. |
+| **NetApp**            | 2      | Tier 2 support applies to ONTAP version 9.16 or later.                                                               |
 
 ## What this means for your backups
 
