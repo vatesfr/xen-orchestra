@@ -1,8 +1,8 @@
 <template>
-  <VtsContentSidePanel class="security">
+  <VtsContentSidePanel class="traffic-rules">
     <UiCard class="container">
       <VtsStateHero v-if="!isReady" format="page" type="busy" size="medium" />
-      <TrafficRulesTable v-else :rules="trafficRules" :pool>
+      <TrafficRulesTable v-else :rules="trafficRules" :pool can-create-network-rules>
         <template #title-action>
           <UiLink :to="{ name: '/traffic-rule/new', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
             {{ t('new') }}
@@ -59,7 +59,7 @@ const selectedRule = useRouteQuery<TrafficRule | undefined>('id', {
 </script>
 
 <style scoped lang="postcss">
-.security {
+.traffic-rules {
   .container {
     height: fit-content;
     gap: 4rem;

@@ -96,7 +96,7 @@ function redirectAfterSuccess() {
   if (vifId.value) {
     router.push({ name: '/vif/[id]/traffic-rules', params: { id: vifId.value } })
   } else if (queryPoolId.value) {
-    router.push({ name: '/pool/[id]/security', params: { id: queryPoolId.value } })
+    router.push({ name: '/pool/[id]/traffic-rules', params: { id: queryPoolId.value } })
   }
 }
 
@@ -106,7 +106,7 @@ const cancelRoute = computed<RouteLocationRaw>(() => {
   }
 
   if (queryPoolId.value) {
-    return { name: '/pool/[id]/security', params: { id: queryPoolId.value } }
+    return { name: '/pool/[id]/traffic-rules', params: { id: queryPoolId.value } }
   }
 
   return { name: '/(site)/dashboard' }
