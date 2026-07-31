@@ -1,9 +1,10 @@
 import { xoHostArg } from '@/modules/host/jobs/xo-host-args.jobs.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { HOST_POWER_STATE, type XoTask } from '@vates/types'
+import { HOST_POWER_STATE } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useXoHostScanPifsJob = defineJob('host.scan-pifs', [xoHostArg], () => {
@@ -12,7 +13,7 @@ export const useXoHostScanPifsJob = defineJob('host.scan-pifs', [xoHostArg], () 
 
   return {
     async run(host: FrontXoHost) {
-      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host.id}/actions/scan_pifs`)
+      const { taskId } = await fetchPost<{ taskId: FrontXoTask['id'] }>(`hosts/${host.id}/actions/scan_pifs`)
 
       await monitorTask(taskId)
     },
@@ -23,7 +24,7 @@ export const useXoHostScanPifsJob = defineJob('host.scan-pifs', [xoHostArg], () 
       }
 
       if (isRunning) {
-        throw new JobRunningError(t('job:scan-pifs:in-progress'))
+        throw new JobRunningError(t('job:host-scan-pifs:in-progress'))
       }
 
       if (host.power_state !== HOST_POWER_STATE.RUNNING) {
