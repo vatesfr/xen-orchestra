@@ -6,7 +6,7 @@
     :busy="isDisablingAndEvacuateVmsHost"
     @click="openDisableAndEvacuateVmsHostModal()"
   >
-    {{ t('action:disable-host-and-evacuate-vm') }}
+    {{ t('action:disable-host-and-evacuate-vms') }}
   </MenuItem>
 </template>
 
