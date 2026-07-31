@@ -1,3 +1,4 @@
+import BackupDiskMounts from '@xen-orchestra/mixins/BackupDiskMounts.mjs'
 import Config from '@xen-orchestra/mixins/Config.mjs'
 import forEach from 'lodash/forEach.js'
 import Hooks from '@xen-orchestra/mixins/Hooks.mjs'
@@ -34,7 +35,7 @@ export default class Xo extends EventEmitter {
   constructor(opts) {
     super()
 
-    mixin(this, { Config, Hooks, HttpProxy, SslCertificate, Tasks }, [opts])
+    mixin(this, { BackupDiskMounts, Config, Hooks, HttpProxy, SslCertificate, Tasks }, [opts])
     // a lot of mixins adds listener for start/stop/… events
     this.hooks.setMaxListeners(0)
 

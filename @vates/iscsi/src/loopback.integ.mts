@@ -17,7 +17,8 @@ import {
   ScsiStatus,
   TargetOpcode,
 } from './constants.mjs'
-import { FileBlockDevice, IscsiDisk, IscsiInitiator, IscsiTarget } from './index.mjs'
+import { RandomAccessDisk, type DiskBlock } from '@xen-orchestra/disk-transform'
+import { DiskBlockDevice, FileBlockDevice, IscsiDisk, IscsiInitiator, IscsiTarget } from './index.mjs'
 import { allocBhs, assemblePdu, type IncomingPdu, readPdu } from './pdu.mjs'
 import { parseTextKeys, serializeTextKeys } from './login.mjs'
 
@@ -477,5 +478,128 @@ describe('iSCSI CHAP loopback (target authenticator + initiator responder)', () 
   it('rejects an initiator that offers no credentials', async () => {
     const initiator = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN })
     await assert.rejects(initiator.connect(), /login rejected/)
+  })
+})
+
+// --- serving a RandomAccessDisk as a LUN ------------------------------------
+//
+// The shape used to expose a backup's disk chain: a sparse source disk with big
+// blocks, read through the protocol at 512-byte granularity.
+
+describe('DiskBlockDevice loopback', () => {
+  const DISK_BLOCK_SIZE = 64 * 1024
+  const BLOCK_COUNT = 4
+  const DISK_SIZE = BLOCK_COUNT * DISK_BLOCK_SIZE
+  const bytePattern = (i: number) => (i * 31 + 11) & 0xff
+
+  // only blocks 0 and 2 are allocated, like a differencing VHD chain
+  const allocated = new Map<number, Buffer>()
+  for (const index of [0, 2]) {
+    const data = Buffer.alloc(DISK_BLOCK_SIZE)
+    for (let i = 0; i < data.length; i++) {
+      data[i] = bytePattern(index * DISK_BLOCK_SIZE + i)
+    }
+    allocated.set(index, data)
+  }
+
+  const expectedAt = (offset: number, length: number): Buffer => {
+    const expected = Buffer.alloc(length)
+    for (let i = 0; i < length; i++) {
+      const absolute = offset + i
+      if (allocated.has(Math.floor(absolute / DISK_BLOCK_SIZE))) {
+        expected[i] = bytePattern(absolute)
+      }
+    }
+    return expected
+  }
+
+  class SparseDisk extends RandomAccessDisk {
+    getBlockSize(): number {
+      return DISK_BLOCK_SIZE
+    }
+    getVirtualSize(): number {
+      return DISK_SIZE
+    }
+    isDifferencing(): boolean {
+      return false
+    }
+    getBlockIndexes(): Array<number> {
+      return [...allocated.keys()]
+    }
+    hasBlock(index: number): boolean {
+      return allocated.has(index)
+    }
+    async init(): Promise<void> {}
+    async close(): Promise<void> {}
+    async readBlock(index: number): Promise<DiskBlock> {
+      const data = allocated.get(index)
+      if (data === undefined) {
+        // what RemoteVhdDiskChain does, and what the adapter must never trigger
+        throw new Error(`Block ${index} not found in chain`)
+      }
+      return { index, data }
+    }
+  }
+
+  let target: IscsiTarget
+  let port: number
+
+  before(async () => {
+    target = new IscsiTarget({
+      iqn: IQN,
+      host: '127.0.0.1',
+      port: 0,
+      lun: new DiskBlockDevice({ disk: new SparseDisk(), blockSize: BLOCK_SIZE }),
+    })
+    await target.listen()
+    const address = target.address()
+    assert.ok(address !== undefined)
+    port = address.port
+  })
+
+  after(async () => {
+    await target?.close()
+  })
+
+  it('serves the disk content, unallocated blocks reading as zeroes', async () => {
+    const initiator = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN })
+    await initiator.connect()
+    try {
+      assert.equal(initiator.getSize(), DISK_SIZE)
+
+      // one sector inside an allocated block
+      const offset = DISK_BLOCK_SIZE * 2 + 3 * BLOCK_SIZE
+      assert.deepEqual(await initiator.read(offset, BLOCK_SIZE), expectedAt(offset, BLOCK_SIZE))
+
+      // a whole unallocated block
+      assert.deepEqual(await initiator.read(DISK_BLOCK_SIZE, DISK_BLOCK_SIZE), Buffer.alloc(DISK_BLOCK_SIZE))
+
+      // a range straddling allocated and unallocated blocks
+      const straddle = DISK_BLOCK_SIZE - BLOCK_SIZE
+      const length = DISK_BLOCK_SIZE + 2 * BLOCK_SIZE
+      assert.deepEqual(await initiator.read(straddle, length), expectedAt(straddle, length))
+
+      // the whole disk, in one go
+      assert.deepEqual(await initiator.read(0, DISK_SIZE), expectedAt(0, DISK_SIZE))
+    } finally {
+      await initiator.close()
+    }
+  })
+
+  it('fails a write instead of corrupting the source', async () => {
+    const socket = connect({ host: '127.0.0.1', port })
+    await once(socket, 'connect')
+    const initiator = new MiniInitiator(socket)
+    try {
+      await initiator.login('Normal')
+      const status = await initiator.write(rwCdb(0x2a, 0, 1), Buffer.alloc(BLOCK_SIZE, 0xff))
+      assert.equal(status, ScsiStatus.CHECK_CONDITION)
+      // the source is untouched
+      const readBack = await initiator.read(rwCdb(0x28, 0, 1), BLOCK_SIZE)
+      assert.equal(readBack.status, ScsiStatus.GOOD)
+      assert.deepEqual(readBack.data, expectedAt(0, BLOCK_SIZE))
+    } finally {
+      socket.destroy()
+    }
   })
 })
