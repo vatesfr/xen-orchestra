@@ -46,7 +46,7 @@ import { icon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
-import { type SrScope } from '@core/types/storage-repository.type.ts'
+import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
@@ -115,9 +115,6 @@ function getPrimaryIcon(sr: FrontXoSr) {
 
 const { HeadCells, BodyCells } = useSrColumns({
   body: (sr: FrontXoSr) => {
-    const { buildXo5Route } = useXoRoutes()
-
-    const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
     const rightIcon = computed(() => getPrimaryIcon(sr))
 
     const { srStatusIcon } = useXoSrUtils(sr, () => scope)
@@ -162,7 +159,11 @@ const { HeadCells, BodyCells } = useSrColumns({
       storageRepository: r =>
         r({
           label: sr.name_label,
-          href: href.value,
+          to: {
+            name: '/sr/[id]',
+            params: { id: sr.id },
+            query: { from: scope.type, ...(scope.type === SR_SCOPE_TYPE.HOST && { host: scope.hostId }) },
+          },
           icon: srStatusIcon.value,
           rightIcon: rightIcon.value,
         }),
