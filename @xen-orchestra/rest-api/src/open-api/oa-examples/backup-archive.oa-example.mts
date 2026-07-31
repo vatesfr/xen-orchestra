@@ -35,6 +35,14 @@ export const partialBackupArchives = [
   },
 ]
 
+export const backupArchiveDiskMount = {
+  id: '6b1f0e9c2a7d4f83b5c1d9e0a4f76b28',
+  srUuid: '9f2d1c74-3b5a-4e18-9c60-1d7ae4f2b301',
+  iqn: 'iqn.2026-07.tech.vates.xo:backup-6b1f0e9c2a7d4f83b5c1d9e0a4f76b28',
+  address: '192.168.0.1',
+  port: 44321,
+}
+
 export const backupArchive = {
   type: 'xo-vm-backup',
   backupRepository: '1af95910-01b4-4e87-9c2f-d895cafe0776',

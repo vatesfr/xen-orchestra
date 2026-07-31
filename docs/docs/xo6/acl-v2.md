@@ -137,7 +137,7 @@ Actions are written using the exact string you pass in a privilege. A parent act
 | Resource            | Available actions                                                                                                        |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `backup-job`        | `read`                                                                                                                   |
-| `backup-archive`    | `read`                                                                                                                   |
+| `backup-archive`    | `read`, `mount-disk`, `unmount-disk`                                                                                     |
 | `backup-log`        | `read`                                                                                                                   |
 | `backup-repository` | `benchmark`, `create`, `read`, `forget`, `update:enabled`, `update:name`, `update:options`, `update:proxy`, `update:url` |
 | `schedule`          | `read`, `run`                                                                                                            |

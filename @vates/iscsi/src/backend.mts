@@ -6,8 +6,8 @@ import { open, type FileHandle } from 'node:fs/promises'
  * The protocol layer translates SCSI READ/WRITE CDBs (LBA + block count) into
  * byte offsets/lengths against this interface, so an implementation only has to
  * provide flat random access — it is intentionally decoupled from the wire
- * code. An adapter over `@xen-orchestra/disk-transform`'s `RandomAccessDisk`
- * (VHD/raw/NBD) can be added later without touching the protocol.
+ * code. `DiskBlockDevice` is such an implementation, over
+ * `@xen-orchestra/disk-transform`'s `RandomAccessDisk` (VHD/raw/NBD).
  */
 export interface BlockDevice {
   /** Optional one-time initialization, awaited by the target before serving I/O. */
