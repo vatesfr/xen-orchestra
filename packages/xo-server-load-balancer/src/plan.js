@@ -15,6 +15,8 @@ import { inspect } from 'util'
 
 import { EXECUTION_DELAY, debug, warn } from './utils'
 
+// value is shared with DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY in packages/xo-server/src/xo-mixins/xen-servers.mjs
+// and loadBalancerReEnableDelay in config.toml
 const MINUTES_OF_HISTORICAL_DATA = 30
 
 // CPU threshold in percent.
