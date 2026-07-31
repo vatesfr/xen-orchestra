@@ -13,7 +13,6 @@
         :busy="isChangingState"
       />
     </template>
-    {{ host.name_label }}
     <template v-if="isMaster" #status>
       <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
     </template>
