@@ -495,7 +495,7 @@
   "job:host-disable:missing-host": "Host is missing",
   "job:host-enable:missing-host": "Host is missing",
   "job:host-forget:bad-power-state": "Host is running",
-  "job:host-forget:in-progress": "Host forgetting un progress…",
+  "job:host-forget:in-progress": "Host forgetting in progress…",
   "job:host-forget:missing-host": "No host to forget",
   "job:host-shutdown:bad-power-state": "Host already halted",
   "job:host-shutdown:in-progress": "Host shut down in progress…",
