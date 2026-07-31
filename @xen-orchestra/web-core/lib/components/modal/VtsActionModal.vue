@@ -54,6 +54,11 @@ const { action, object, hostName } = defineProps<
   }
 >()
 
+const defaultActionByObject: ActionsByObject = {
+  vm: 'shutdown',
+  host: 'disable',
+}
+
 const { t } = useI18n()
 
 const textMappingsByObject: TextMappingByObject = {
@@ -105,6 +110,6 @@ const textMappingsByObject: TextMappingByObject = {
 const modalTexts = useMapper(
   () => action,
   () => textMappingsByObject[object] as Record<ActionsByObject[ObjectType], ActionTexts>,
-  () => 'shutdown'
+  () => defaultActionByObject[object]
 )
 </script>

@@ -1,5 +1,6 @@
 <template>
   <UiHeadBar>
+    {{ host.name_label }}
     <template #icon>
       <VtsObjectIcon
         v-tooltip="{
@@ -12,7 +13,6 @@
         :busy="isChangingState"
       />
     </template>
-    {{ host.name_label }}
     <template v-if="isMaster" #status>
       <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
     </template>
@@ -24,7 +24,7 @@
         <template #trigger="{ open }">
           <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
         </template>
-        <HostPowerStateAction :host />
+        <HostPowerStateActions :host />
       </MenuList>
 
       <MenuList placement="bottom-end">
@@ -40,10 +40,6 @@
             @click="open($event)"
           />
         </template>
-        <div v-if="uiStore.isSmall">
-          <HostPowerStateAction :host />
-          <VtsDivider type="stretch" />
-        </div>
         <HostMoreActions :host />
       </MenuList>
     </template>
@@ -93,12 +89,11 @@
 </template>
 
 <script lang="ts" setup>
-import HostPowerStateAction from '@/modules/host/components/actions/HostPowerStateAction.vue'
+import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'

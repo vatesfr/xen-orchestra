@@ -1,9 +1,6 @@
 <template>
   <MenuItem
     v-tooltip="!canShutdownHost && shutdownHostErrorMessage"
-    size="medium"
-    variant="tertiary"
-    accent="brand"
     :disabled="!canShutdownHost"
     icon="action:shutdown"
     :busy="isShuttingDownHost"

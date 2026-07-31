@@ -1,12 +1,16 @@
 <template>
-  <MenuItem v-if="showChangeState" icon="action:change-state" class="change-state typo-body-bold-small">
+  <MenuItem v-if="showChangeStateButton && !uiStore.isSmall" icon="action:change-state" class="change-state">
     {{ t('action:change-state') }}
     <template #submenu>
-      <HostPowerStateAction :host />
+      <HostPowerStateActions :host />
     </template>
   </MenuItem>
-  <HostEnableButton v-if="!host.enabled && !hostIsHalted" :host />
-  <HostDisableButton v-else :host />
+  <div v-if="uiStore.isSmall">
+    <HostPowerStateActions :host />
+    <VtsDivider type="stretch" />
+  </div>
+  <HostDisableButton v-if="host.enabled || isHostHalted" :host />
+  <HostEnableButton v-else :host />
   <VtsDivider type="stretch" />
   <HostDownloadButton :host-id="host.id" />
 </template>
@@ -15,22 +19,25 @@
 import HostDisableButton from '@/modules/host/components/actions/disable/HostDisableButton.vue'
 import HostDownloadButton from '@/modules/host/components/actions/download/HostDownloadButton.vue'
 import HostEnableButton from '@/modules/host/components/actions/enable/HostEnableButton.vue'
-import HostPowerStateAction from '@/modules/host/components/actions/HostPowerStateAction.vue'
+import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
   host: FrontXoHost
-  showChangeState?: boolean
+  showChangeStateButton?: boolean
 }>()
 
 const { t } = useI18n()
 
-const hostIsHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
+const uiStore = useUiStore()
+
+const isHostHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
 </script>
 
 <style lang="postcss" scoped>

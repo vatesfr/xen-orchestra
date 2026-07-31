@@ -1,5 +1,5 @@
 <template>
-  <HostShutdownButton v-if="hostIsRunning" :host />
+  <HostShutdownButton v-if="isHostRunning" :host />
   <HostStartButton v-else :host />
 </template>
 
@@ -14,5 +14,5 @@ const { host } = defineProps<{
   host: FrontXoHost
 }>()
 
-const hostIsRunning = computed(() => host.power_state === HOST_POWER_STATE.RUNNING)
+const isHostRunning = computed(() => host.power_state === HOST_POWER_STATE.RUNNING)
 </script>
