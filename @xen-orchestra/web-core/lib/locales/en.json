@@ -56,7 +56,7 @@
   "action:detach-vdi": "Detach VDI",
   "action:disable-and-evacuate-vms": "Disable and evacuate VMs",
   "action:disable-host": "Disable host",
-  "action:disable-host-and-evacuate-vm": "Disable host and evacuate VMs",
+  "action:disable-host-and-evacuate-vms": "Disable host and evacuate VMs",
   "action:disconnect": "Disconnect",
   "action:disconnect-n": "Disconnect {n}",
   "action:disconnect-n-srs": "Disconnect 1 SR | Disconnect {n} SRs",
