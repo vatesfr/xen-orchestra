@@ -38,7 +38,10 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
     {
       power_on: t('operation:start'),
       shutdown: t('operation:shutdown'),
+      reboot: t('operation:clean-reboot'),
+      evacuate: t('operation:evacuate'),
       enable: t('operation:enable'),
+      vm_migrate: t('operation:vm-migrate'),
       unknown: '',
     },
     'unknown'
