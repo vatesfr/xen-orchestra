@@ -29,7 +29,7 @@ export default class MigrateVm {
         },
       },
     }
-    const schedule = { id: 'one-time' }
+    const schedule = { id: 'one-time', name: 'one-time' }
 
     // for now we only support this from the main OA, no proxy
     return createRunner({
@@ -76,26 +76,28 @@ export default class MigrateVm {
     await backup.run()
 
     // find the destination Vm
-    const targets = Object.keys(
-      app.getObjects({
-        filter: obj => {
-          return (
-            'other' in obj &&
+    const targets = new Set(
+      Object.values(
+        app.getObjects({
+          filter: obj =>
+            obj.type === 'VM-snapshot' &&
             obj.other['xo:backup:job'] === jobId &&
             obj.other['xo:backup:sr'] === srId &&
-            obj.other['xo:backup:vm'] === sourceVm.uuid &&
-            'start' in obj.blockedOperations
-          )
-        },
-      })
+            obj.other['xo:backup:vm'] === sourceVm.uuid,
+        })
+      ).map(snapshot => snapshot.$snapshot_of)
     )
-    if (targets.length === 0) {
+
+    if (targets.size === 0) {
       throw new Error(`Vm target of warm migration not found for ${sourceVmId} on SR ${srId} `)
     }
-    if (targets.length > 1) {
+
+    // A transfer is done per run, so the target has one snapshot per run: they are all snapshots
+    // of the same VM and collapse into a single entry, more than one means distinct copies
+    if (targets.size > 1) {
       throw new Error(`Multiple target of warm migration found for ${sourceVmId} on SR ${srId} `)
     }
-    const targetVm = app.getXapiObject(targets[0])
+    const targetVm = app.getXapiObject(targets.values().next().value)
 
     // new vm is ready to start
     // incremental xapi  writer has set this as blocked
