@@ -6,7 +6,7 @@ import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 
-export function useVbdDeleteModal(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>, rawVm: MaybeRefOrGetter<FrontXoVm>) {
+export function useVbdDelete(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>, rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const vbds = toComputed(rawVbds)
   const vm = toComputed(rawVm)
 
@@ -30,9 +30,9 @@ export function useVbdDeleteModal(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>, rawVm
     },
   })
 
-  function openModal() {
+  function deleteVbds() {
     return open({ props: { count: vbds.value.length } })
   }
 
-  return { openModal, canRun, isRunning, errorMessage }
+  return { deleteVbds, canRun, isRunning, errorMessage }
 }

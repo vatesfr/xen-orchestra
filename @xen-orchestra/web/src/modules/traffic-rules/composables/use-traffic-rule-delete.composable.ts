@@ -5,7 +5,7 @@ import type { TrafficRule } from '@vates/types'
 import type { MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useTrafficRuleDeleteModal(rawRules: MaybeRefOrGetter<TrafficRule[]>) {
+export function useTrafficRuleDelete(rawRules: MaybeRefOrGetter<TrafficRule[]>) {
   const rules = toComputed(rawRules)
 
   const { t } = useI18n()
@@ -14,7 +14,7 @@ export function useTrafficRuleDeleteModal(rawRules: MaybeRefOrGetter<TrafficRule
 
   const { open } = useDeleteModal()
 
-  function openModal() {
+  function deleteTrafficRules() {
     const count = rules.value.length
 
     return open({
@@ -35,5 +35,5 @@ export function useTrafficRuleDeleteModal(rawRules: MaybeRefOrGetter<TrafficRule
     })
   }
 
-  return { openModal, canRun, isRunning, errorMessage }
+  return { deleteTrafficRules, canRun, isRunning, errorMessage }
 }

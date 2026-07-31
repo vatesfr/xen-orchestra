@@ -6,13 +6,13 @@ import { toComputed } from '@core/utils/to-computed.util.ts'
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 import { type MaybeRefOrGetter, ref } from 'vue'
 
-export function useVdiExportDrawer(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
+export function useVdiExport(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
   const vdi = toComputed(rawVdi)
   const selectedFormat = ref<VdiExportFormat>(SUPPORTED_VDI_FORMAT.vhd)
 
   const { run, isRunning } = useXoVdiExportJob(vdi, selectedFormat)
 
-  const { open: openDrawer } = useOverlay({
+  const { open: exportVdi } = useOverlay({
     component: () => import('@/modules/vdi/components/drawer/VdiExportDrawer.vue'),
     events: {
       onConfirm: async format => {
@@ -27,5 +27,5 @@ export function useVdiExportDrawer(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
     },
   })
 
-  return { openDrawer, isRunning }
+  return { exportVdi, isRunning }
 }

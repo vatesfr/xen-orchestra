@@ -1,12 +1,12 @@
 <template>
-  <MenuItem icon="action:detach" :disabled="!canDeleteVbd" :busy="isDeletingVbd" @click="openVbdDeleteModal()">
+  <MenuItem icon="action:detach" :disabled="!canDeleteVbd" :busy="isDeletingVbd" @click="deleteVbds()">
     {{ t('action:detach-vdi') }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
-import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-modal.composable.ts'
+import { useVbdDelete } from '@/modules/vbd/composables/use-vbd-delete.composable.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@xen-orchestra/web-core/components/menu/MenuItem.vue'
@@ -21,10 +21,10 @@ const { vbd, vm } = defineProps<{
 const { t } = useI18n()
 
 const {
-  openModal: openVbdDeleteModal,
+  deleteVbds,
   canRun: canDeleteVbd,
   isRunning: isDeletingVbd,
-} = useVbdDeleteModal(
+} = useVbdDelete(
   () => [vbd],
   () => vm
 )

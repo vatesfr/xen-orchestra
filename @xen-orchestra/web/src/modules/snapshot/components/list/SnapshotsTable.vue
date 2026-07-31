@@ -42,8 +42,8 @@ import {
   type FrontXoVmSnapshot,
   useXoVmSnapshotCollection,
 } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
-import { useVmSnapshotDeleteModal } from '@/modules/snapshot/composables/use-vm-snapshot-delete-modal.composable.ts'
-import { useVmSnapshotRevertModal } from '@/modules/snapshot/composables/use-vm-snapshot-revert-modal.composable.ts'
+import { useVmSnapshotDelete } from '@/modules/snapshot/composables/use-vm-snapshot-delete.composable.ts'
+import { useVmSnapshotRevert } from '@/modules/snapshot/composables/use-vm-snapshot-revert.composable.ts'
 import { useSnapshotTrigger } from '@/modules/snapshot/composables/xo-snapshot-trigger.composable.ts'
 import { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'
 import { useXoVmSnapshotJob } from '@/modules/vm/jobs/xo-vm-snapshot.job.ts'
@@ -113,16 +113,16 @@ const state = useTableState({
 const { HeadCells, BodyCells } = useSnapshotColumns({
   body: (snapshot: FrontXoVmSnapshot) => {
     const {
-      openModal: openSnapshotDeleteModal,
+      deleteVmSnapshots,
       canRun: canDeleteSnapshot,
       isRunning: isDeletingSnapshot,
-    } = useVmSnapshotDeleteModal(() => [snapshot])
+    } = useVmSnapshotDelete(() => [snapshot])
 
     const {
-      openModal: openSnapshotRevertModal,
+      revertVmSnapshot,
       canRun: canRevertSnapshot,
       isRunning: isRevertingSnapshot,
-    } = useVmSnapshotRevertModal(() => snapshot)
+    } = useVmSnapshotRevert(() => snapshot)
 
     return {
       name: r =>
@@ -141,14 +141,14 @@ const { HeadCells, BodyCells } = useSnapshotColumns({
             {
               label: t('action:revert-vm-here'),
               icon: 'action:undo',
-              onClick: () => openSnapshotRevertModal(),
+              onClick: () => revertVmSnapshot(),
               disabled: !canRevertSnapshot.value || isDeletingSnapshot.value,
               busy: isRevertingSnapshot.value,
             },
             {
               label: t('action:delete'),
               icon: 'action:delete',
-              onClick: () => openSnapshotDeleteModal(),
+              onClick: () => deleteVmSnapshots(),
               disabled: !canDeleteSnapshot.value || isRevertingSnapshot.value,
               busy: isDeletingSnapshot.value,
             },

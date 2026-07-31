@@ -8,14 +8,14 @@
         variant="tertiary"
         accent="brand"
         left-icon="action:undo"
-        @click="openSnapshotRevertModal()"
+        @click="revertVmSnapshot()"
       >
         {{ t('action:revert-vm-here') }}
       </UiButton>
       <VtsDeleteButton
         :disabled="!canDeleteSnapshot || isRevertingSnapshot"
         :busy="isDeletingSnapshot"
-        @click="openSnapshotDeleteModal()"
+        @click="deleteVmSnapshots()"
       />
     </template>
     <template v-if="snapshot" #default>
@@ -29,8 +29,8 @@
 import SnapshotInfoCard from '@/modules/snapshot/components/list/panel/cards/SnapshotInfoCard.vue'
 import SnapshotVdiCard from '@/modules/snapshot/components/list/panel/cards/SnapshotVdiCard.vue'
 import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
-import { useVmSnapshotDeleteModal } from '@/modules/snapshot/composables/use-vm-snapshot-delete-modal.composable.ts'
-import { useVmSnapshotRevertModal } from '@/modules/snapshot/composables/use-vm-snapshot-revert-modal.composable.ts'
+import { useVmSnapshotDelete } from '@/modules/snapshot/composables/use-vm-snapshot-delete.composable.ts'
+import { useVmSnapshotRevert } from '@/modules/snapshot/composables/use-vm-snapshot-revert.composable.ts'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -45,14 +45,14 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const {
-  openModal: openSnapshotDeleteModal,
+  deleteVmSnapshots,
   canRun: canDeleteSnapshot,
   isRunning: isDeletingSnapshot,
-} = useVmSnapshotDeleteModal(() => (snapshot !== undefined ? [snapshot] : []))
+} = useVmSnapshotDelete(() => (snapshot !== undefined ? [snapshot] : []))
 
 const {
-  openModal: openSnapshotRevertModal,
+  revertVmSnapshot,
   canRun: canRevertSnapshot,
   isRunning: isRevertingSnapshot,
-} = useVmSnapshotRevertModal(() => snapshot)
+} = useVmSnapshotRevert(() => snapshot)
 </script>

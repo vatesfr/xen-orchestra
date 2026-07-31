@@ -5,7 +5,7 @@ import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util'
 import { ref, type MaybeRefOrGetter } from 'vue'
 
-export function useVmExportDrawer(rawVm: MaybeRefOrGetter<FrontXoVm>) {
+export function useVmExport(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const vm = toComputed(rawVm)
 
   const exportType = ref<VmExportType>('xva')
@@ -13,7 +13,7 @@ export function useVmExportDrawer(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   const { run } = useXoVmExportJob(() => vm.value, exportType, exportCompression)
 
-  const { open: openDrawer } = useOverlay({
+  const { open: exportVm } = useOverlay({
     component: () => import('@/modules/vm/components/drawer/VmExportDrawer.vue'),
     events: {
       onConfirm: async (values: VmExportFormValues) => {
@@ -31,6 +31,6 @@ export function useVmExportDrawer(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   })
 
   return {
-    openDrawer,
+    exportVm,
   }
 }

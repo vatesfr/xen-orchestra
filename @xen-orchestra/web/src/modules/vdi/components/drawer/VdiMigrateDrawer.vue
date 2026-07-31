@@ -1,11 +1,11 @@
 <template>
-  <UiDrawer @confirm="emit('confirm')" @dismiss="emit('cancel')">
+  <UiDrawer class="vdi-migrate-drawer" @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       {{ t('action:migrate-vdi-on-sr') }}
     </template>
 
     <template #content>
-      <div class="vdi-migrate-drawer-content">
+      <div class="content">
         <UiTitle>{{ t('general-information') }}</UiTitle>
         <VdiFormSelect v-bind="srSelectBindings">
           <template #option="{ option }">
@@ -63,16 +63,18 @@ provide(
 </script>
 
 <style lang="postcss" scoped>
-.vdi-migrate-drawer-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2.4rem;
-  text-align: left;
-}
+.vdi-migrate-drawer {
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+    text-align: left;
+  }
 
-.select-option {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.8rem;
+  .select-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
 }
 </style>

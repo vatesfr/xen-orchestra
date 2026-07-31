@@ -1,14 +1,9 @@
 <template>
-  <MenuItem
-    icon="action:disconnect"
-    :disabled="!canDisconnectSr"
-    :busy="isDisconnectingSr"
-    @click="openSrDisconnectModal()"
-  >
+  <MenuItem icon="action:disconnect" :disabled="!canDisconnectSr" :busy="isDisconnectingSr" @click="disconnectSr()">
     {{ t('action:disconnect') }}
     <UiCounter
-      v-if="shouldShowTargetCount(scope, targetCount)"
-      :value="targetCount"
+      v-if="shouldShowTargetCount(scope, disconnectTargetCount)"
+      :value="disconnectTargetCount"
       accent="brand"
       variant="secondary"
       size="small"
@@ -18,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
+import { useSrConnection } from '@/modules/storage-repository/composables/use-sr-connection.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
@@ -34,16 +29,11 @@ const { sr, scope } = defineProps<{
 
 const { t } = useI18n()
 
-const {
-  openModal: openSrDisconnectModal,
-  canRun: canDisconnectSr,
-  isRunning: isDisconnectingSr,
-  errorMessage: disconnectSrErrorMessage,
-  targetCount,
-} = useSrDisconnectModal(
-  () => [sr],
-  () => scope
-)
+const { disconnectSr, canDisconnectSr, isDisconnectingSr, disconnectSrErrorMessage, disconnectTargetCount } =
+  useSrConnection({
+    srs: () => [sr],
+    scope: () => scope,
+  })
 
 const hint = computed(() => (!canDisconnectSr.value ? disconnectSrErrorMessage.value : undefined))
 </script>

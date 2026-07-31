@@ -24,9 +24,8 @@
 <script setup lang="ts">
 import type { XenApiPool, XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
 import { useGetPbdsInScope, useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable.ts'
-import { useSrConnectModal } from '@/modules/storage-repository/composables/use-sr-connect-modal.composable.ts'
-import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
-import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
+import { useSrConnection } from '@/modules/storage-repository/composables/use-sr-connection.composable.ts'
+import { useSrDelete } from '@/modules/storage-repository/composables/use-sr-delete.composable.ts'
 import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -112,33 +111,27 @@ const { HeadCells, BodyCells } = useSrColumns({
     const { srStatusIcon } = useSrUtils(sr, () => scope)
 
     const {
-      openModal: openSrDeleteModal,
+      deleteSrs,
       canRun: canDeleteSr,
       isRunning: isDeletingSr,
       errorMessage: deleteSrErrorMessage,
-    } = useSrDeleteModal(() => [sr])
+    } = useSrDelete(() => [sr])
 
     const {
-      openModal: openSrConnectModal,
-      canRun: canConnectSr,
-      isRunning: isConnectingSr,
-      errorMessage: connectSrErrorMessage,
-      targetCount: connectTargetCount,
-    } = useSrConnectModal(
-      () => [sr],
-      () => scope
-    )
-
-    const {
-      openModal: openSrDisconnectModal,
-      canRun: canDisconnectSr,
-      isRunning: isDisconnectingSr,
-      errorMessage: disconnectSrErrorMessage,
-      targetCount: disconnectTargetCount,
-    } = useSrDisconnectModal(
-      () => [sr],
-      () => scope
-    )
+      connectSr,
+      disconnectSr,
+      canConnectSr,
+      canDisconnectSr,
+      isConnectingSr,
+      isDisconnectingSr,
+      connectSrErrorMessage,
+      disconnectSrErrorMessage,
+      connectTargetCount,
+      disconnectTargetCount,
+    } = useSrConnection({
+      srs: () => [sr],
+      scope: () => scope,
+    })
 
     const connectLabel = computed(() =>
       shouldShowTargetCount(scope, connectTargetCount.value)
@@ -170,7 +163,7 @@ const { HeadCells, BodyCells } = useSrColumns({
             {
               label: connectLabel.value,
               icon: 'action:connect',
-              onClick: () => openSrConnectModal(),
+              onClick: () => connectSr(),
               busy: isConnectingSr.value,
               disabled: !canConnectSr.value,
               hint: connectSrErrorMessage.value,
@@ -178,7 +171,7 @@ const { HeadCells, BodyCells } = useSrColumns({
             {
               label: disconnectLabel.value,
               icon: 'action:disconnect',
-              onClick: () => openSrDisconnectModal(),
+              onClick: () => disconnectSr(),
               busy: isDisconnectingSr.value,
               disabled: !canDisconnectSr.value,
               hint: disconnectSrErrorMessage.value,
@@ -186,7 +179,7 @@ const { HeadCells, BodyCells } = useSrColumns({
             {
               label: t('action:delete'),
               icon: 'action:delete',
-              onClick: () => openSrDeleteModal(),
+              onClick: () => deleteSrs(),
               busy: isDeletingSr.value,
               disabled: !canDeleteSr.value,
               hint: deleteSrErrorMessage.value,

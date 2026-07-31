@@ -42,7 +42,7 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
-import { useTrafficRuleDeleteModal } from '@/modules/traffic-rules/composables/use-traffic-rule-delete-modal.composable.ts'
+import { useTrafficRuleDelete } from '@/modules/traffic-rules/composables/use-traffic-rule-delete.composable.ts'
 import type { EnrichedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -140,11 +140,11 @@ const state = useTableState({
 const { HeadCells, BodyCells } = useTrafficRulesColumns({
   body: (rule: EnrichedTrafficRule) => {
     const {
-      openModal: openTrafficRuleDeleteModal,
+      deleteTrafficRules,
       canRun: canDeleteTrafficRule,
       isRunning: isDeletingTrafficRule,
       errorMessage: deleteTrafficRuleErrorMessage,
-    } = useTrafficRuleDeleteModal(() => [rule])
+    } = useTrafficRuleDelete(() => [rule])
 
     return {
       order: r => r(rule.order),
@@ -161,7 +161,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
             {
               label: t('action:delete'),
               icon: 'action:delete',
-              onClick: () => openTrafficRuleDeleteModal(),
+              onClick: () => deleteTrafficRules(),
               disabled: !canDeleteTrafficRule.value,
               busy: isDeletingTrafficRule.value,
               hint: deleteTrafficRuleErrorMessage.value,

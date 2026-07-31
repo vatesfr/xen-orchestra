@@ -27,8 +27,8 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
-import { useVifConnectionToggleModal } from '@/modules/vif/composables/use-vif-connection-toggle-modal.composable.ts'
-import { useVifDeleteModal } from '@/modules/vif/composables/use-vif-delete-modal.composable.ts'
+import { useVifConnection } from '@/modules/vif/composables/use-vif-connection.composable.ts'
+import { useVifDelete } from '@/modules/vif/composables/use-vif-delete.composable.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { getVifTrafficRoute } from '@/modules/vif/utils/xo-vif.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -40,6 +40,8 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
+import { useMapper } from '@core/packages/mapper'
+import { type ActionItem } from '@core/tables/column-definitions/action-column.ts'
 import { useVifNetworkColumns } from '@core/tables/column-sets/vif-network-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { CONNECTION_ACTION, CONNECTION_STATUS } from '@core/types/connection.ts'
@@ -105,21 +107,43 @@ const { HeadCells, BodyCells } = useVifNetworkColumns({
       network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
     )
 
-    const {
-      openModal: openDeleteModal,
-      canRun: canDeleteVif,
-      isRunning: isDeletingVif,
-    } = useVifDeleteModal(() => [vif])
+    const { deleteVifs, canRun: canDeleteVif, isRunning: isDeletingVif } = useVifDelete(() => [vif])
 
     const {
-      openModal: openVifConnectionToggleModal,
-      canRun: canToggleVifConnection,
-      isRunning: isTogglingVifConnection,
-      errorMessage: toggleConnectionErrorMessage,
-    } = useVifConnectionToggleModal(
+      connectVif,
+      disconnectVif,
+      canConnectVif,
+      canDisconnectVif,
+      isConnectingVif,
+      isDisconnectingVif,
+      connectVifErrorMessage,
+      disconnectVifErrorMessage,
+    } = useVifConnection({
+      vifs: () => [vif],
+      vm: () => vm,
+    })
+
+    const connectionAction = useMapper(
       () => (vif.attached ? CONNECTION_ACTION.DISCONNECT : CONNECTION_ACTION.CONNECT),
-      () => [vif],
-      () => vm
+      () => ({
+        connect: {
+          label: t('action:connect'),
+          icon: 'action:connect',
+          onClick: () => connectVif(),
+          disabled: !canConnectVif.value,
+          busy: isConnectingVif.value,
+          hint: canConnectVif.value ? undefined : connectVifErrorMessage.value,
+        } satisfies ActionItem,
+        disconnect: {
+          label: t('action:disconnect'),
+          icon: 'action:disconnect',
+          onClick: () => disconnectVif(),
+          disabled: !canDisconnectVif.value,
+          busy: isDisconnectingVif.value,
+          hint: canDisconnectVif.value ? undefined : disconnectVifErrorMessage.value,
+        } satisfies ActionItem,
+      }),
+      'connect'
     )
 
     return {
@@ -147,19 +171,12 @@ const { HeadCells, BodyCells } = useVifNetworkColumns({
         r({
           onClick: () => (selectedVifId.value = vif.id),
           actions: [
-            {
-              label: vif.attached ? t('action:disconnect') : t('action:connect'),
-              hint: !canToggleVifConnection.value ? toggleConnectionErrorMessage.value : undefined,
-              icon: vif.attached ? 'action:disconnect' : 'action:connect',
-              onClick: () => openVifConnectionToggleModal(),
-              disabled: !canToggleVifConnection.value,
-              busy: isTogglingVifConnection.value,
-            },
+            connectionAction.value,
             {
               label: t('action:delete'),
               hint: !canDeleteVif.value ? t('vif-connected') : undefined,
               icon: 'action:delete',
-              onClick: () => openDeleteModal(),
+              onClick: () => deleteVifs(),
               disabled: !canDeleteVif.value,
               busy: isDeletingVif.value,
             },

@@ -25,9 +25,8 @@
 </template>
 
 <script setup lang="ts">
-import { useSrConnectModal } from '@/modules/storage-repository/composables/use-sr-connect-modal.composable.ts'
-import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
-import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
+import { useSrConnection } from '@/modules/storage-repository/composables/use-sr-connection.composable.ts'
+import { useSrDelete } from '@/modules/storage-repository/composables/use-sr-delete.composable.ts'
 import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   useXoSrCollection,
@@ -122,29 +121,23 @@ const { HeadCells, BodyCells } = useSrColumns({
 
     const { srStatusIcon } = useXoSrUtils(sr, () => scope)
 
-    const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
+    const { deleteSrs, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDelete(() => [sr])
 
     const {
-      openModal: openSrConnectModal,
-      canRun: canConnectSr,
-      isRunning: isConnectingSr,
-      errorMessage: connectSrErrorMessage,
-      targetCount: connectTargetCount,
-    } = useSrConnectModal(
-      () => [sr],
-      () => scope
-    )
-
-    const {
-      openModal: openSrDisconnectModal,
-      canRun: canDisconnectSr,
-      isRunning: isDisconnectingSr,
-      errorMessage: disconnectSrErrorMessage,
-      targetCount: disconnectTargetCount,
-    } = useSrDisconnectModal(
-      () => [sr],
-      () => scope
-    )
+      connectSr,
+      disconnectSr,
+      canConnectSr,
+      canDisconnectSr,
+      isConnectingSr,
+      isDisconnectingSr,
+      connectSrErrorMessage,
+      disconnectSrErrorMessage,
+      connectTargetCount,
+      disconnectTargetCount,
+    } = useSrConnection({
+      srs: () => [sr],
+      scope: () => scope,
+    })
 
     const connectLabel = computed(() =>
       shouldShowTargetCount(scope, connectTargetCount.value)
@@ -177,7 +170,7 @@ const { HeadCells, BodyCells } = useSrColumns({
             {
               label: connectLabel.value,
               icon: 'action:connect',
-              onClick: () => openSrConnectModal(),
+              onClick: () => connectSr(),
               busy: isConnectingSr.value,
               disabled: !canConnectSr.value,
               hint: connectSrErrorMessage.value,
@@ -185,7 +178,7 @@ const { HeadCells, BodyCells } = useSrColumns({
             {
               label: disconnectLabel.value,
               icon: 'action:disconnect',
-              onClick: () => openSrDisconnectModal(),
+              onClick: () => disconnectSr(),
               busy: isDisconnectingSr.value,
               disabled: !canDisconnectSr.value,
               hint: disconnectSrErrorMessage.value,
@@ -193,7 +186,7 @@ const { HeadCells, BodyCells } = useSrColumns({
             {
               label: t('action:delete'),
               icon: 'action:delete',
-              onClick: () => openSrDeleteModal(),
+              onClick: () => deleteSrs(),
               disabled: !canDeleteSr.value,
               busy: isDeletingSr.value,
             },

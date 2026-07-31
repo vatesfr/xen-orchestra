@@ -9,7 +9,7 @@
       size="medium"
       :disabled="!canDisconnect"
       :busy="isDisconnecting"
-      @click="openDisconnectModal()"
+      @click="disconnectServer()"
     >
       {{ t('action:disconnect-pool') }}
     </UiButton>
@@ -30,7 +30,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useServerDisconnectModal } from '@/modules/server/composables/use-server-disconnect-modal.composable.ts'
+import { useServerDisconnect } from '@/modules/server/composables/use-server-disconnect.composable.ts'
 import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
 import {
   type FrontXoServer,
@@ -59,11 +59,11 @@ const {
 } = useXoServerConnectJob([serverIdArg])
 
 const {
-  openModal: openDisconnectModal,
+  disconnectServer,
   canRun: canDisconnect,
   isRunning: isDisconnecting,
   errorMessage: disconnectErrorMessage,
-} = useServerDisconnectModal(() => serverId)
+} = useServerDisconnect(() => serverId)
 
 async function handleConnect() {
   try {

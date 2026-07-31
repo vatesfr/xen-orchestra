@@ -4,7 +4,7 @@
     class="delete"
     :disabled="!canDeleteVdi"
     :busy="isDeletingVdi"
-    @click="openVdiDeleteModal()"
+    @click="deleteVdis()"
   >
     {{ t('action:delete') }}
     <i v-if="hint">{{ hint }}</i>
@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
+import { useVdiDelete } from '@/modules/vdi/composables/use-vdi-delete.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@xen-orchestra/web-core/components/menu/MenuItem.vue'
@@ -27,10 +27,10 @@ const { vdi, vm } = defineProps<{
 const { t } = useI18n()
 
 const {
-  openModal: openVdiDeleteModal,
+  deleteVdis,
   canRun: canDeleteVdi,
   isRunning: isDeletingVdi,
-} = useVdiDeleteModal(
+} = useVdiDelete(
   () => [vdi],
   () => vm
 )

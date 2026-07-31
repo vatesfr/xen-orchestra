@@ -5,7 +5,7 @@ import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useVmSnapshotDeleteModal(rawSnapshots: MaybeRefOrGetter<FrontXoVmSnapshot[]>) {
+export function useVmSnapshotDelete(rawSnapshots: MaybeRefOrGetter<FrontXoVmSnapshot[]>) {
   const snapshots = toComputed(rawSnapshots)
 
   const { t } = useI18n()
@@ -14,7 +14,7 @@ export function useVmSnapshotDeleteModal(rawSnapshots: MaybeRefOrGetter<FrontXoV
 
   const { open } = useDeleteModal()
 
-  function openModal() {
+  function deleteVmSnapshots() {
     const count = snapshots.value.length
 
     return open({
@@ -35,5 +35,5 @@ export function useVmSnapshotDeleteModal(rawSnapshots: MaybeRefOrGetter<FrontXoV
     })
   }
 
-  return { openModal, canRun, isRunning }
+  return { deleteVmSnapshots, canRun, isRunning }
 }

@@ -28,7 +28,7 @@ import {
   type PoolFilterableData,
   usePoolEnhancedData,
 } from '@/modules/pool/composables/use-pool-enhanced-data.composable.ts'
-import { useServerDisconnectModal } from '@/modules/server/composables/use-server-disconnect-modal.composable.ts'
+import { useServerDisconnect } from '@/modules/server/composables/use-server-disconnect.composable.ts'
 import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
 import {
   type FrontXoServer,
@@ -111,11 +111,7 @@ const { HeadCells, BodyCells } = useServerColumns({
 
     const { canRun: canConnect, isRunning: isConnecting, run: connect } = useXoServerConnectJob([serverIdArg])
 
-    const {
-      openModal: openDisconnectModal,
-      canRun: canDisconnect,
-      isRunning: isDisconnecting,
-    } = useServerDisconnectModal(() => server.id)
+    const { disconnectServer, canRun: canDisconnect, isRunning: isDisconnecting } = useServerDisconnect(() => server.id)
 
     const {
       download: downloadBugTools,
@@ -157,7 +153,7 @@ const { HeadCells, BodyCells } = useServerColumns({
                   icon: 'action:disconnect',
                   busy: isDisconnecting.value,
                   disabled: !canDisconnect.value,
-                  onClick: () => openDisconnectModal(),
+                  onClick: () => disconnectServer(),
                 }
               : {
                   label: t('action:connect-pool'),

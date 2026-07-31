@@ -8,7 +8,7 @@ import { reactiveComputed } from '@vueuse/core'
 import { type MaybeRefOrGetter, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-export function useVdiMigrateDrawer(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
+export function useVdiMigrate(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
   const vdi = toComputed(rawVdi)
   const targetSrId = ref<string | undefined>(undefined)
 
@@ -57,14 +57,14 @@ export function useVdiMigrateDrawer(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
     requiresForceMigrate: requiresForceMigrate.value,
   }))
 
-  function openDrawer() {
+  function migrateVdi() {
     reset()
 
     return open({ props })
   }
 
   return {
-    openDrawer,
+    migrateVdi,
     canRun,
     isRunning,
     errorMessage,

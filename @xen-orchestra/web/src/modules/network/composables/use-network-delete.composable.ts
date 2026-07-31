@@ -7,7 +7,7 @@ import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useNetworkDeleteModal(rawNetworks: MaybeRefOrGetter<FrontXoNetwork[]>) {
+export function useNetworkDelete(rawNetworks: MaybeRefOrGetter<FrontXoNetwork[]>) {
   const networks = toComputed(rawNetworks)
 
   const { t } = useI18n()
@@ -35,7 +35,7 @@ export function useNetworkDeleteModal(rawNetworks: MaybeRefOrGetter<FrontXoNetwo
     },
   })
 
-  function openModal() {
+  function deleteNetworks() {
     if (!canRun.value) {
       return openNetworkDeleteErrorModal({
         props: {
@@ -62,5 +62,5 @@ export function useNetworkDeleteModal(rawNetworks: MaybeRefOrGetter<FrontXoNetwo
     })
   }
 
-  return { openModal, canRun, isRunning }
+  return { deleteNetworks, canRun, isRunning }
 }

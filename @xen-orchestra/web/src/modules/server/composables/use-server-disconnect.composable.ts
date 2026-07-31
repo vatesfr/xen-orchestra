@@ -7,7 +7,7 @@ import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
-export function useServerDisconnectModal(rawServerId: MaybeRefOrGetter<FrontXoServer['id']>) {
+export function useServerDisconnect(rawServerId: MaybeRefOrGetter<FrontXoServer['id']>) {
   const serverId = toComputed(rawServerId)
 
   const { getServerById } = useXoServerCollection()
@@ -32,11 +32,11 @@ export function useServerDisconnectModal(rawServerId: MaybeRefOrGetter<FrontXoSe
     },
   })
 
-  function openModal() {
+  function disconnectServer() {
     return open({
       props: { title: serverLabel.value },
     })
   }
 
-  return { openModal, canRun, isRunning, errorMessage }
+  return { disconnectServer, canRun, isRunning, errorMessage }
 }

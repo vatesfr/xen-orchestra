@@ -4,12 +4,12 @@
     icon="action:disconnect"
     :disabled="!canDisconnectSr"
     :busy="isDisconnectingSr"
-    @click="openSrDisconnectModal()"
+    @click="disconnectSr()"
   >
     {{ t('action:disconnect') }}
     <UiCounter
-      v-if="shouldShowTargetCount(scope, targetCount)"
-      :value="targetCount"
+      v-if="shouldShowTargetCount(scope, disconnectTargetCount)"
+      :value="disconnectTargetCount"
       accent="brand"
       variant="secondary"
       size="small"
@@ -20,7 +20,7 @@
 
 <script lang="ts" setup>
 import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
-import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
+import { useSrConnection } from '@/modules/storage-repository/composables/use-sr-connection.composable.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -36,16 +36,11 @@ const { sr, scope } = defineProps<{
 
 const { t } = useI18n()
 
-const {
-  openModal: openSrDisconnectModal,
-  canRun: canDisconnectSr,
-  isRunning: isDisconnectingSr,
-  errorMessage: disconnectSrErrorMessage,
-  targetCount,
-} = useSrDisconnectModal(
-  () => [sr],
-  () => scope
-)
+const { disconnectSr, canDisconnectSr, isDisconnectingSr, disconnectSrErrorMessage, disconnectTargetCount } =
+  useSrConnection({
+    srs: () => [sr],
+    scope: () => scope,
+  })
 
 const hint = computed(() => (!canDisconnectSr.value ? disconnectSrErrorMessage.value : undefined))
 </script>

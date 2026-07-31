@@ -7,7 +7,7 @@ import type { MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
-export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
+export function useVifDelete(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
   const vifs = toComputed(rawVifs)
 
   const { t } = useI18n()
@@ -29,7 +29,7 @@ export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
 
   const { open } = useDeleteModal()
 
-  function openModal() {
+  function deleteVifs() {
     const count = vifs.value.length
 
     return open({
@@ -51,5 +51,5 @@ export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
     })
   }
 
-  return { openModal, canRun, isRunning }
+  return { deleteVifs, canRun, isRunning }
 }

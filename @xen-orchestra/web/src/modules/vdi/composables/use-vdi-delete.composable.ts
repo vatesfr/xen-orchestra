@@ -6,7 +6,7 @@ import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useVdiDeleteModal(
+export function useVdiDelete(
   rawVdis: MaybeRefOrGetter<FrontXoVdi[]>,
   rawVm: MaybeRefOrGetter<FrontXoVm | undefined>
 ) {
@@ -19,7 +19,7 @@ export function useVdiDeleteModal(
 
   const { open } = useDeleteModal()
 
-  function openModal() {
+  function deleteVdis() {
     const count = vdis.value.length
 
     return open({
@@ -40,5 +40,5 @@ export function useVdiDeleteModal(
     })
   }
 
-  return { openModal, canRun, isRunning, errorMessage }
+  return { deleteVdis, canRun, isRunning, errorMessage }
 }
