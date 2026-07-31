@@ -1,5 +1,15 @@
 <template>
-  <HostDisableButton v-if="host.enabled" :host />
+  <MenuItem v-if="showChangeStateButton && !uiStore.isSmall" icon="action:change-state" class="change-state">
+    {{ t('action:change-state') }}
+    <template #submenu>
+      <HostPowerStateActions :host />
+    </template>
+  </MenuItem>
+  <div v-if="uiStore.isSmall">
+    <HostPowerStateActions :host />
+    <VtsDivider type="stretch" />
+  </div>
+  <HostDisableButton v-if="host.enabled || isHostHalted" :host />
   <HostEnableButton v-else :host />
   <VtsDivider type="stretch" />
   <HostDownloadButton :host-id="host.id" />
@@ -9,10 +19,29 @@
 import HostDisableButton from '@/modules/host/components/actions/disable/HostDisableButton.vue'
 import HostDownloadButton from '@/modules/host/components/actions/download/HostDownloadButton.vue'
 import HostEnableButton from '@/modules/host/components/actions/enable/HostEnableButton.vue'
+import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import { useUiStore } from '@core/stores/ui.store.ts'
+import { HOST_POWER_STATE } from '@vates/types'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-defineProps<{
+const { host } = defineProps<{
   host: FrontXoHost
+  showChangeStateButton?: boolean
 }>()
+
+const { t } = useI18n()
+
+const uiStore = useUiStore()
+
+const isHostHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
 </script>
+
+<style lang="postcss" scoped>
+.change-state {
+  color: var(--color-brand-txt-base);
+}
+</style>
