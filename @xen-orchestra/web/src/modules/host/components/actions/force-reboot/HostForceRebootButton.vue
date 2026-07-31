@@ -1,12 +1,12 @@
 <template>
   <MenuItem
-    v-tooltip="!canRebootHost && rebootHostErrorMessage"
-    :disabled="!canRebootHost"
-    icon="action:reboot"
-    :busy="isRebootingHost"
-    @click="openRebootHostModal()"
+    v-tooltip="!canForceRebootHost && forceRebootHostErrorMessage"
+    :disabled="!canForceRebootHost"
+    icon="action:force-reboot"
+    :busy="isForceRebootingHost"
+    @click="openForceRebootHostModal()"
   >
-    {{ t('action:reboot') }}
+    {{ t('action:force-reboot') }}
   </MenuItem>
 </template>
 
@@ -25,21 +25,21 @@ const { host } = defineProps<{
 const { t } = useI18n()
 
 const {
-  run: rebootHost,
-  canRun: canRebootHost,
-  isRunning: isRebootingHost,
-  errorMessage: rebootHostErrorMessage,
-} = useXoHostRebootJob(() => host, false)
+  run: forceRebootHost,
+  canRun: canForceRebootHost,
+  isRunning: isForceRebootingHost,
+  errorMessage: forceRebootHostErrorMessage,
+} = useXoHostRebootJob(() => host, true)
 
-const openRebootHostModal = useModal({
+const openForceRebootHostModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
   props: {
     accent: 'warning',
-    action: 'reboot',
+    action: 'force-reboot',
     object: 'host',
     hostName: host.name_label,
     icon: 'status:warning-picto',
   },
-  onConfirm: () => rebootHost(),
+  onConfirm: () => forceRebootHost(),
 })
 </script>
