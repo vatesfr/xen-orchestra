@@ -30,6 +30,26 @@ Once created, the job is displayed with the other classic jobs.
 Restoring pool metadata completely overwrites the XAPI database of a host. Only perform a metadata restore if it is a new server with nothing running on it (eg replacing a host with new hardware).
 :::
 
+:::warning
+**The XAPI version of the target host must match the one the backup was taken from.** If it
+does not, the restore is refused with `RESTORE_INCOMPATIBLE_VERSION` and no data is written.
+This matters most in the situation the feature exists for: rebuilding a host after a failure,
+where a fresh install from the current ISO is usually several XAPI releases ahead of the
+backup.
+
+The backup itself records the version it was taken from, in its `XAPI_Build` field.
+
+To restore onto a rebuilt host:
+
+1. Reinstall XCP-ng.
+2. Bring the host to the XAPI level the backup was taken at. If the backup is at the XAPI
+   version shipped with the original release of your XCP-ng version, the freshly installed
+   host is already at that level and no extra step is needed. Otherwise, install the specific
+   updates for that level.
+3. Restore the pool metadata.
+4. Patch the host to apply the remaining updates.
+:::
+
 If you browse to the Backup NG Restore panel, you will now notice a Metadata filter button:
 
 ![](../assets/metadata-5.png)
