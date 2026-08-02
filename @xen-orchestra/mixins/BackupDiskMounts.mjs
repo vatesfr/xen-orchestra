@@ -1,10 +1,14 @@
+import { access, constants, readFile } from 'node:fs/promises'
 import { asyncEach } from '@vates/async-each'
+import { CachedDiskBlockDevice, IscsiTarget } from '@vates/iscsi'
 import { createLogger } from '@xen-orchestra/log'
-import { DiskBlockDevice, IscsiTarget } from '@vates/iscsi'
 import { defer } from 'golike-defer'
 import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { randomBytes, randomUUID } from 'node:crypto'
 import { XMLParser } from 'fast-xml-parser'
+import pRetry from 'promise-toolbox/retry'
+
+import LocalBlockDevice from './_LocalBlockDevice.mjs'
 
 const { debug, info, warn } = createLogger('xo:mixins:BackupDiskMounts')
 
@@ -35,6 +39,58 @@ const IMAGE_FORMAT_RAW = 'raw'
 // open-iscsi refuses a CHAP secret outside 12-16 characters
 const CHAP_SECRET_LENGTH = 16
 
+// the cache device node is created by udev after the plug, so it lags a little
+const DEVICE_POLL_DELAY = 500
+const DEVICE_POLL_TRIES = 60
+
+// `/sys/class/block/<name>/size` counts 512-byte sectors, always
+const SECTOR_SIZE = 512
+
+// the LUN serves the *content* of the chain, not the VHD container, so a label
+// must not keep the `.vhd`/`.alias.vhd` suffix of the source file: it would
+// suggest a format the storage layer would then read differently
+const cacheLabel = diskPath =>
+  diskPath
+    .split('/')
+    .pop()
+    .replace(/(\.alias)?\.vhd$/, '')
+
+/**
+ * Open the block device XAPI just plugged into this appliance.
+ *
+ * Waiting for the node to appear is not enough: udev creates it as soon as the
+ * device is announced, but until the block frontend has connected the device
+ * reports a size of 0 and every read hits EOF at once. So wait for a size
+ * instead — `/sys` counts it in 512-byte sectors whatever the device's own
+ * logical block size is.
+ */
+async function openLocalDevice({ name, size }) {
+  const path = `/dev/${name}`
+  const actual = await pRetry(
+    async () => {
+      await access(path, constants.R_OK | constants.W_OK)
+      const sectors = Number.parseInt(await readFile(`/sys/class/block/${name}/size`, 'utf8'), 10)
+      const bytes = sectors * SECTOR_SIZE
+      if (!(bytes > 0)) {
+        throw new Error(`${path} is not ready yet, it still reports no size`)
+      }
+      return bytes
+    },
+    {
+      delay: DEVICE_POLL_DELAY,
+      tries: DEVICE_POLL_TRIES,
+      onRetry: error => debug('waiting for the cache device', { error, path }),
+    }
+  )
+  if (actual < size) {
+    throw new Error(`${path} holds ${actual} bytes, less than the ${size} bytes disk it is meant to cache`)
+  }
+
+  const device = new LocalBlockDevice({ path, size })
+  await device.open()
+  return device
+}
+
 const parseXml = (() => {
   const parser = new XMLParser({
     attributeNamePrefix: '',
@@ -57,16 +113,21 @@ const parseXml = (() => {
 export default class BackupDiskMounts {
   #app
   #createTarget
+  #openCache
   #openDisk
 
   // mount id -> mount record
   #mounts = new Map()
 
-  // `openDisk`/`createTarget` are injectable for tests only, like
+  // `openDisk`/`createTarget`/`openCache` are injectable for tests only, like
   // xo-server's crypto-credentials mixin does with xenStore/fsPromises
-  constructor(app, { openDisk = openDiskChain, createTarget = options => new IscsiTarget(options) } = {}) {
+  constructor(
+    app,
+    { openDisk = openDiskChain, createTarget = options => new IscsiTarget(options), openCache = openLocalDevice } = {}
+  ) {
     this.#app = app
     this.#createTarget = createTarget
+    this.#openCache = openCache
     this.#openDisk = openDisk
 
     app.hooks.on('stop', () =>
@@ -85,11 +146,13 @@ export default class BackupDiskMounts {
    * @param {object} params
    * @param {import('@xen-orchestra/fs').RemoteHandlerAbstract} params.handler - backup repository holding the disk
    * @param {string} params.diskPath - path of the leaf VHD of the chain, relative to the repository
-   * @param {object} params.xapi - XAPI connection of the pool owning `hostRef`
-   * @param {string} params.hostRef - opaque ref of the host the SR is attached to
+   * @param {object} params.xapi - XAPI connection of the pool running this appliance
+   * @param {string} params.vmRef - opaque ref of *this* appliance's VM, where the cache disk is plugged
+   * @param {string} params.cacheSrRef - opaque ref of the SR holding the cache disk; must be writable and
+   * reachable from the appliance's host, which is the caller's job to check
    * @param {string} [params.nameLabel] - name of the created SR
    * @param {() => Promise<void>} [params.release] - called on unmount, e.g. to dispose the remote handler
-   * @returns {Promise<{ id: string, srUuid: string, vdiUuid: string, iqn: string, address: string, port: number }>}
+   * @returns {Promise<{ id: string, srUuid: string, vdiUuid: string, cacheVdiUuid: string, iqn: string, address: string, port: number }>}
    */
   async mount(params) {
     const mount = await this.#createMount(params)
@@ -98,13 +161,14 @@ export default class BackupDiskMounts {
       id: mount.id,
       srUuid: mount.srUuid,
       vdiUuid: mount.vdiUuid,
+      cacheVdiUuid: mount.cacheVdiUuid,
       iqn: mount.iqn,
       address: mount.address,
       port: mount.port,
     }
   }
 
-  #createMount = defer(async ($defer, { handler, diskPath, xapi, hostRef, nameLabel, release }) => {
+  #createMount = defer(async ($defer, { handler, diskPath, xapi, vmRef, cacheSrRef, nameLabel, release }) => {
     const config = this.#app.config
     const address = config.get('iscsi.advertisedAddress')
 
@@ -120,7 +184,20 @@ export default class BackupDiskMounts {
     const disk = await this.#openDisk({ handler, path: diskPath })
     $defer.onFailure(() => disk.close())
 
-    const lun = new DiskBlockDevice({ disk })
+    // the appliance's host: the mount is served to whichever host runs us
+    const hostRef = await xapi.getField('VM', vmRef, 'resident_on')
+
+    const cache = await this.#createCache($defer, {
+      diskPath,
+      size: disk.getVirtualSize(),
+      srRef: cacheSrRef,
+      vmRef,
+      xapi,
+    })
+
+    // the cache owns the reads: the backup is only ever touched for a block that
+    // is not in it yet
+    const lun = new CachedDiskBlockDevice({ cache: cache.device, disk })
     const target = this.#createTarget({
       chap,
       host: config.getOptional('iscsi.bindAddress'),
@@ -176,10 +253,65 @@ export default class BackupDiskMounts {
 
     const vdiUuid = await this.#introduceVdi({ xapi, srRef, SCSIid, size: lun.getSize(), diskPath })
 
-    info('mounted', { id, address, port, srUuid, vdiUuid, diskPath })
+    info('mounted', { id, address, port, srUuid, vdiUuid, cacheVdiUuid: cache.vdiUuid, diskPath })
 
-    return { address, disk, diskPath, id, iqn, port, release, srRef, srUuid, target, vdiUuid, xapi }
+    return {
+      address,
+      cache,
+      cacheVdiUuid: cache.vdiUuid,
+      disk,
+      diskPath,
+      id,
+      iqn,
+      lun,
+      port,
+      release,
+      srRef,
+      srUuid,
+      target,
+      vdiUuid,
+      xapi,
+    }
   })
+
+  /**
+   * Create the disk backing the cache and plug it into this appliance, so its
+   * bytes are reachable as a local block device.
+   *
+   * This is the only random-access write path into a VDI: XAPI's NBD export is
+   * read-only, and `VDI_importContent` is a whole-stream HTTP PUT.
+   *
+   * @returns {Promise<{ device: object, vbdRef: string, vdiRef: string, vdiUuid: string }>}
+   */
+  async #createCache($defer, { diskPath, size, srRef, vmRef, xapi }) {
+    const vdiRef = await xapi.VDI_create({
+      name_description: `read cache for ${diskPath}`,
+      name_label: `${cacheLabel(diskPath)}.raw`,
+      SR: srRef,
+      virtual_size: size,
+    })
+    $defer.onFailure(() => xapi.VDI_destroy(vdiRef))
+
+    // `throwVbdPlug` is not optional here: without it VBD_create only warns when
+    // the plug fails, and we would carry on with a disk that is not attached
+    const vbdRef = await xapi.VBD_create({ mode: 'RW', throwVbdPlug: true, type: 'Disk', VDI: vdiRef, VM: vmRef })
+    $defer.onFailure(() => xapi.VBD_destroy(vbdRef))
+
+    // read back after the plug: the device name passed to VBD.create is ignored
+    // for a running VM, XAPI assigns it
+    const name = await xapi.getField('VBD', vbdRef, 'device')
+    if (name === '') {
+      throw new Error(`XAPI did not assign a device to the cache disk of ${diskPath}`)
+    }
+
+    const device = await this.#openCache({ name, size })
+    $defer.onFailure(() => device.close())
+
+    const vdiUuid = await xapi.getField('VDI', vdiRef, 'uuid')
+    info('cache disk plugged', { device: name, size, vdiUuid })
+
+    return { device, vbdRef, vdiRef, vdiUuid }
+  }
 
   /**
    * Introduce the LUN as a VDI ourselves, which is the only way to choose its
@@ -189,30 +321,22 @@ export default class BackupDiskMounts {
    * `LUNid` is what the driver needs to find the device; it fills `SCSIid` and
    * `backend-kind` in itself, keeping the keys we pass.
    *
-   * `read_only` is passed but *not* honoured by this driver: `RAWVDI.introduce()`
-   * ends in `_db_introduce()`, which builds the record from the driver's own VDI
-   * object (`read_only = False`) — the same reason the resulting uuid is not the
-   * one asked for. Writes are refused by the LUN itself, not by XAPI.
+   * `read_only` is false: writes are accepted and land in the cache disk. The
+   * driver would ignore the flag anyway — `RAWVDI.introduce()` ends in
+   * `_db_introduce()`, which builds the record from the driver's own VDI object,
+   * the same reason the resulting uuid is not the one asked for.
    */
   async #introduceVdi({ xapi, srRef, SCSIid, size, diskPath }) {
     const uuid = randomUUID()
-    // The LUN serves the *content* of the chain, not the VHD container, so the
-    // label must not keep the `.vhd`/`.alias.vhd` suffix of the source file: it
-    // would suggest a format the storage layer would then read differently.
-    const label =
-      diskPath
-        .split('/')
-        .pop()
-        .replace(/(\.alias)?\.vhd$/, '') + '.raw'
     await xapi.call(
       'VDI.introduce',
       uuid,
-      label,
-      `read-only mount of ${diskPath}`,
+      `${cacheLabel(diskPath)}.raw`,
+      `mount of ${diskPath}`,
       srRef,
       'user',
       false, // sharable
-      true, // read_only: states the intent, but this driver ignores it (see above)
+      false, // read_only: writes go to the cache disk
       {}, // other_config
       uuid, // location: this driver uses the uuid
       {}, // xenstore_data
@@ -297,27 +421,57 @@ export default class BackupDiskMounts {
     // half-released mount
     this.#mounts.delete(id)
 
-    const { xapi, srRef, target, release } = mount
-    try {
-      await this.#forgetSr(xapi, srRef)
-    } finally {
-      // closes the LUN, which closes the disk chain
-      await target.close()
-      await release?.()
+    const { cache, xapi, srRef, target, release } = mount
+
+    // Ordered, and each step runs even if an earlier one failed: a mount holds a
+    // socket, a file descriptor, a VBD, a VDI and an SR, and giving up halfway
+    // would leak whatever came after.
+    const errors = []
+    const step = async (what, fn) => {
+      try {
+        await fn()
+      } catch (error) {
+        warn(`failed to ${what}`, { error, id })
+        errors.push(error)
+      }
     }
-    info('unmounted', { id, srUuid: mount.srUuid })
+
+    await step('forget the SR', () => this.#forgetSr(xapi, srRef))
+    // stop serving first, so no I/O is left in flight
+    await step('close the target', () => target.close())
+    // the LUN closes the cache device too; doing it again is a no-op, and makes
+    // sure the descriptor is gone before XAPI is asked to take the disk away
+    await step('close the cache device', () => cache.device.close())
+    // unplugs on the way, and the VDI destroy retries on VDI_IN_USE
+    await step('destroy the cache VBD', () => xapi.VBD_destroy(cache.vbdRef))
+    await step('destroy the cache VDI', () => xapi.VDI_destroy(cache.vdiRef))
+    await step('release the caller resources', () => release?.())
+
+    if (errors.length !== 0) {
+      const error = new Error(`failed to unmount backup disk ${id}`)
+      error.cause = errors[0]
+      error.errors = errors
+      throw error
+    }
+    info('unmounted', { id, srUuid: mount.srUuid, cacheVdiUuid: mount.cacheVdiUuid })
   }
 
   /** Live mounts, in creation order. */
   list() {
-    return [...this.#mounts.values()].map(({ id, srUuid, vdiUuid, diskPath, iqn, address, port }) => ({
-      id,
-      srUuid,
-      vdiUuid,
-      diskPath,
-      iqn,
-      address,
-      port,
-    }))
+    return [...this.#mounts.values()].map(
+      ({ id, srUuid, vdiUuid, cacheVdiUuid, diskPath, iqn, address, port, lun }) => ({
+        id,
+        srUuid,
+        vdiUuid,
+        cacheVdiUuid,
+        diskPath,
+        iqn,
+        address,
+        port,
+        // how much of the backup has been pulled into the cache: once every block
+        // is there, the cache disk holds the whole disk
+        materialized: lun.getMaterialized(),
+      })
+    )
   }
 }

@@ -16,6 +16,8 @@ export { IscsiDisk } from './IscsiDisk.mjs'
 export type { IscsiDiskOptions } from './IscsiDisk.mjs'
 export { DiskBlockDevice } from './DiskBlockDevice.mjs'
 export type { DiskBlockDeviceOptions } from './DiskBlockDevice.mjs'
+export { CachedDiskBlockDevice } from './CachedDiskBlockDevice.mjs'
+export type { CachedDiskBlockDeviceOptions } from './CachedDiskBlockDevice.mjs'
 
 const log: Logger = createLogger('vates:iscsi')
 

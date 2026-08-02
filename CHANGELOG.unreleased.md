@@ -15,6 +15,7 @@
 - [REST API] Add `hosts/:id/actions/scan_pifs` endpoint (PR [#10187](https://github.com/vatesfr/xen-orchestra/pull/10187))
 - [XO6/Host] Add possibility to scan PIFs directly from the host (PR [#10191](https://github.com/vatesfr/xen-orchestra/pull/10191))
 - [REST API/Backup] Add `backup-archives/:id/actions/mountDisk` and `.../unmountDisk` endpoints: attach a disk of a backup to a host as a read-only SR, to read its content without restoring it. Requires `iscsi.advertisedAddress` to be set to an address of this XO reachable from the hosts (PR [#10018](https://github.com/vatesfr/xen-orchestra/pull/10018))
+- [REST API/Backup] Add `backup-archives/:id/actions/mountDisk` and `.../unmountDisk` endpoints: attach a disk of a backup to the host running XO as an SR, to read its content without restoring it first. Blocks read from the backup are cached in a disk created on the SR of your choice, so re-reading them is local, and once the whole disk has been read that cache holds a full copy of it. Requires `iscsi.advertisedAddress` to be set to an address of this XO reachable from the hosts (PR [#10018](https://github.com/vatesfr/xen-orchestra/pull/10018))
 
 ### Bug fixes
 

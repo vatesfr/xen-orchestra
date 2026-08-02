@@ -29,7 +29,12 @@ class XapiError extends Error {
   }
 }
 
-const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
+const CACHE_SR_REF = 'OpaqueRef:cache-sr'
+const CACHE_VDI_REF = 'OpaqueRef:cache-vdi'
+const CACHE_VBD_REF = 'OpaqueRef:cache-vbd'
+const VM_REF = 'OpaqueRef:vm'
+
+const makeXapi = ({ probeError, vdiSmConfig, cacheDevice = 'xvdb' } = {}) => {
   const calls = []
   return {
     calls,
@@ -55,6 +60,15 @@ const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
     },
     async getField(type, ref, field) {
       calls.push(['getField', type, ref, field])
+      if (type === 'VM' && field === 'resident_on') {
+        return HOST_REF
+      }
+      if (type === 'VBD' && field === 'device') {
+        return cacheDevice
+      }
+      if (type === 'VDI' && field === 'uuid') {
+        return 'cache-vdi-uuid'
+      }
       return 'sr-uuid'
     },
     async getRecord(type, ref) {
@@ -63,10 +77,43 @@ const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
       // the one we asked for
       return { uuid: 'vdi-uuid', sm_config: vdiSmConfig ?? { SCSIid: SCSI_ID } }
     },
+    async VDI_create(params) {
+      calls.push(['VDI_create', params])
+      return CACHE_VDI_REF
+    },
+    async VBD_create(params) {
+      calls.push(['VBD_create', params])
+      return CACHE_VBD_REF
+    },
+    async VBD_destroy(ref) {
+      calls.push(['VBD_destroy', ref])
+    },
+    async VDI_destroy(ref) {
+      calls.push(['VDI_destroy', ref])
+    },
   }
 }
 
-const makeMixin = ({ diskOpenError, listenError } = {}) => {
+/** In-memory stand-in for the plugged cache device. */
+const makeCacheDevice = size => {
+  const content = Buffer.alloc(size)
+  return {
+    closed: false,
+    content,
+    getSize: () => size,
+    getBlockSize: () => 512,
+    read: async (offset, length) => Buffer.from(content.subarray(offset, offset + length)),
+    write: async (offset, data) => {
+      data.copy(content, offset)
+    },
+    flush: async () => {},
+    close: async function () {
+      this.closed = true
+    },
+  }
+}
+
+const makeMixin = ({ diskOpenError, listenError, openCacheError } = {}) => {
   const hooks = new EventEmitter()
   const app = {
     config: {
@@ -99,6 +146,8 @@ const makeMixin = ({ diskOpenError, listenError } = {}) => {
     close: async () => (target.closed = true),
   }
 
+  const cache = makeCacheDevice(DISK_SIZE)
+
   const mixin = new BackupDiskMounts(app, {
     openDisk: async params => {
       if (diskOpenError !== undefined) {
@@ -111,17 +160,30 @@ const makeMixin = ({ diskOpenError, listenError } = {}) => {
       target.options = options
       return target
     },
+    openCache: async params => {
+      if (openCacheError !== undefined) {
+        throw openCacheError
+      }
+      cache.params = params
+      return cache
+    },
   })
 
-  return { app, disk, hooks, mixin, target }
+  return { app, cache, disk, hooks, mixin, target }
 }
 
 const mount = (mixin, xapi, params) =>
-  mixin.mount({ diskPath: 'xo-vm-backups/vm/vdis/job/vdi/20260731T120000Z.vhd', hostRef: HOST_REF, xapi, ...params })
+  mixin.mount({
+    cacheSrRef: CACHE_SR_REF,
+    diskPath: 'xo-vm-backups/vm/vdis/job/vdi/20260731T120000Z.alias.vhd',
+    vmRef: VM_REF,
+    xapi,
+    ...params,
+  })
 
 describe('mount', () => {
   it('serves the chain and attaches it as a non-shared iscsi SR on the host', async () => {
-    const { mixin, target, disk } = makeMixin()
+    const { mixin, target, disk, cache } = makeMixin()
     const xapi = makeXapi()
 
     const result = await mount(mixin, xapi)
@@ -135,7 +197,7 @@ describe('mount', () => {
     assert.match(result.iqn, /^iqn\.2026-07\.tech\.vates\.xo:backup-[0-9a-f]{32}$/)
 
     // the chain is opened with its block allocation tables
-    assert.equal(disk.params.path, 'xo-vm-backups/vm/vdis/job/vdi/20260731T120000Z.vhd')
+    assert.equal(disk.params.path, 'xo-vm-backups/vm/vdis/job/vdi/20260731T120000Z.alias.vhd')
     assert.equal(disk.params.ignoreBlockIndexes, undefined)
 
     // one ephemeral target per mount, CHAP enabled, unique serial
@@ -150,7 +212,22 @@ describe('mount', () => {
     assert.equal(srIntroduce[6], false) // shared
     assert.ok(!xapi.calls.some(([method]) => method === 'SR.create'))
 
-    // the PBD is created on the requested host only
+    // the cache disk is created on the given SR at the disk's full size, and
+    // plugged into *this* appliance
+    const vdiCreate = xapi.calls.find(([method]) => method === 'VDI_create')[1]
+    assert.equal(vdiCreate.SR, CACHE_SR_REF)
+    assert.equal(vdiCreate.virtual_size, DISK_SIZE)
+    assert.equal(vdiCreate.name_label, '20260731T120000Z.raw')
+    const vbdCreate = xapi.calls.find(([method]) => method === 'VBD_create')[1]
+    assert.equal(vbdCreate.VM, VM_REF)
+    assert.equal(vbdCreate.VDI, CACHE_VDI_REF)
+    assert.equal(vbdCreate.mode, 'RW')
+    // without this, VBD_create only warns when the plug fails
+    assert.equal(vbdCreate.throwVbdPlug, true)
+    // the device name is read back after the plug, XAPI assigns it
+    assert.deepEqual(cache.params, { name: 'xvdb', size: DISK_SIZE })
+
+    // the PBD is created on the host running this appliance, derived not passed
     const pbdCreate = xapi.calls.find(([method]) => method === 'PBD.create')[1]
     assert.equal(pbdCreate.host, HOST_REF)
     assert.equal(pbdCreate.SR, SR_REF)
@@ -168,7 +245,7 @@ describe('mount', () => {
     const vdiIntroduce = xapi.calls.find(([method]) => method === 'VDI.introduce')
     assert.equal(vdiIntroduce[4], SR_REF)
     assert.equal(vdiIntroduce[5], 'user')
-    assert.equal(vdiIntroduce[7], true) // read_only
+    assert.equal(vdiIntroduce[7], false) // read_only: writes land in the cache
     // `type` is the legacy key the sm drivers still accept:
     // `vdi_sm_config.get("image-format") or vdi_sm_config.get("type")`
     assert.deepEqual(vdiIntroduce[11], { LUNid: '0', SCSIid: SCSI_ID, type: 'raw' })
@@ -192,9 +269,86 @@ describe('mount', () => {
     assert.ok(!xapi.calls.some(([method]) => method === 'VDI.set_read_only'))
 
     assert.deepEqual(
-      mixin.list().map(({ id, srUuid, vdiUuid }) => ({ id, srUuid, vdiUuid })),
-      [{ id: result.id, srUuid: result.srUuid, vdiUuid: 'vdi-uuid' }]
+      mixin.list().map(({ id, srUuid, vdiUuid, cacheVdiUuid, materialized }) => ({
+        id,
+        srUuid,
+        vdiUuid,
+        cacheVdiUuid,
+        materialized,
+      })),
+      [
+        {
+          id: result.id,
+          srUuid: result.srUuid,
+          vdiUuid: 'vdi-uuid',
+          cacheVdiUuid: 'cache-vdi-uuid',
+          // nothing read yet: 2 MiB blocks over the disk
+          materialized: { blocks: 0, total: DISK_SIZE / (2 * 1024 * 1024) },
+        },
+      ]
     )
+  })
+
+  it('serves reads from the cache once the backup has been read', async () => {
+    const { mixin, target, cache, disk } = makeMixin()
+    const readBlocks = []
+    disk.hasBlock = () => true
+    disk.readBlock = async index => {
+      readBlocks.push(index)
+      return { index, data: Buffer.alloc(2 * 1024 * 1024, 0xab) }
+    }
+
+    await mount(mixin, makeXapi())
+    const lun = target.options.lun
+
+    assert.deepEqual(await lun.read(0, 512), Buffer.alloc(512, 0xab))
+    assert.deepEqual(readBlocks, [0])
+    // it landed in the cache disk...
+    assert.deepEqual(cache.content.subarray(0, 512), Buffer.alloc(512, 0xab))
+    // ... so a second read does not touch the backup again
+    assert.deepEqual(await lun.read(1024, 512), Buffer.alloc(512, 0xab))
+    assert.deepEqual(readBlocks, [0])
+    assert.deepEqual(mixin.list()[0].materialized, { blocks: 1, total: DISK_SIZE / (2 * 1024 * 1024) })
+  })
+
+  it('closes the cache device when the probe fails', async () => {
+    const { mixin, cache, disk, target } = makeMixin()
+    const xapi = makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_666', []) })
+
+    await assert.rejects(mount(mixin, xapi), { code: 'SR_BACKEND_FAILURE_666' })
+
+    assert.equal(cache.closed, true)
+    assert.equal(target.closed, true)
+    assert.equal(disk.closed, true)
+    // and the cache disk is taken away again
+    assert.deepEqual(
+      xapi.calls.filter(([method]) => method.endsWith('_destroy')),
+      [
+        ['VBD_destroy', CACHE_VBD_REF],
+        ['VDI_destroy', CACHE_VDI_REF],
+      ]
+    )
+  })
+
+  it('destroys the cache disk when it cannot be opened', async () => {
+    const { mixin, disk } = makeMixin({ openCacheError: new Error('ENOENT /dev/xvdb') })
+    const xapi = makeXapi()
+
+    await assert.rejects(mount(mixin, xapi), /ENOENT/)
+
+    assert.equal(disk.closed, true)
+    assert.deepEqual(
+      xapi.calls.filter(([method]) => method.endsWith('_destroy')),
+      [
+        ['VBD_destroy', CACHE_VBD_REF],
+        ['VDI_destroy', CACHE_VDI_REF],
+      ]
+    )
+  })
+
+  it('fails when XAPI assigns no device to the cache disk', async () => {
+    const { mixin } = makeMixin()
+    await assert.rejects(mount(mixin, makeXapi({ cacheDevice: '' })), /did not assign a device/)
   })
 
   it('reports an unreachable target as a configuration problem', async () => {
@@ -202,17 +356,6 @@ describe('mount', () => {
     const xapi = makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_141', []) })
 
     await assert.rejects(mount(mixin, xapi), /cannot reach the iSCSI target at 192\.168\.1\.8/)
-  })
-
-  it('closes the target and the disk when the probe fails', async () => {
-    const { mixin, target, disk } = makeMixin()
-    const xapi = makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_666', []) })
-
-    await assert.rejects(mount(mixin, xapi), { code: 'SR_BACKEND_FAILURE_666' })
-
-    assert.equal(target.closed, true)
-    assert.equal(disk.closed, true)
-    assert.deepEqual(mixin.list(), [])
   })
 
   it('closes the disk when the target cannot listen', async () => {
@@ -225,8 +368,8 @@ describe('mount', () => {
 })
 
 describe('unmount', () => {
-  it('unplugs, forgets, closes the target and releases the caller resources', async () => {
-    const { mixin, target } = makeMixin()
+  it('forgets the SR, releases the cache disk and the caller resources, in order', async () => {
+    const { mixin, target, cache } = makeMixin()
     const xapi = makeXapi()
     let released = false
 
@@ -237,26 +380,34 @@ describe('unmount', () => {
 
     assert.deepEqual(
       xapi.calls.map(([method]) => method),
-      ['SR.get_PBDs', 'PBD.unplug', 'SR.forget']
+      ['SR.get_PBDs', 'PBD.unplug', 'SR.forget', 'VBD_destroy', 'VDI_destroy']
     )
     assert.equal(target.closed, true)
+    assert.equal(cache.closed, true)
     assert.equal(released, true)
     assert.deepEqual(mixin.list(), [])
   })
 
-  it('still closes the target when forgetting the SR fails', async () => {
-    const { mixin, target } = makeMixin()
+  it('still tears the rest down when forgetting the SR fails', async () => {
+    const { mixin, target, cache } = makeMixin()
     const xapi = makeXapi()
-    const { id } = await mount(mixin, xapi)
+    let released = false
+    const { id } = await mount(mixin, xapi, { release: async () => (released = true) })
     xapi.call = async () => {
       throw new Error('SR_HAS_NO_PBDS')
     }
 
-    await assert.rejects(mixin.unmount(id), /SR_HAS_NO_PBDS/)
+    await assert.rejects(mixin.unmount(id), { message: `failed to unmount backup disk ${id}` })
 
+    // a failing step must not strand the socket, the fd, the VBD or the VDI
     assert.equal(target.closed, true)
+    assert.equal(cache.closed, true)
+    assert.ok(xapi.calls.some(([method]) => method === 'VBD_destroy'))
+    assert.ok(xapi.calls.some(([method]) => method === 'VDI_destroy'))
     // the mount is gone either way, a half-released mount must not be retried
     assert.deepEqual(mixin.list(), [])
+    // and the caller's resources are handed back despite the failure
+    assert.equal(released, true)
   })
 
   it('rejects an unknown mount', async () => {
