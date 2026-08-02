@@ -4,7 +4,7 @@
 
 [Packer](https://developer.hashicorp.com/packer) automates the creation of machine images: describe an image once in code, and rebuild it identically whenever needed. In an XCP-ng/Xen Orchestra environment, that means building **golden VM templates** (base OS, updates, guest tools, your provisioning) instead of preparing them by hand.
 
-Vates maintains the [XenServer Packer plugin](https://github.com/vatesfr/packer-plugin-xenserver), a builder that installs an OS from an ISO on an XCP-ng host and turns the result into a reusable image. It was revived from an abandoned upstream project and is developed alongside the [Terraform provider](./terraform-provider.md) to ensure interoperability: templates built with Packer can then be cloned into VMs through the Terraform provider, the [REST API](../xo5/restapi.md), or the Xen Orchestra web interface.
+Vates maintains the [XenServer Packer plugin](https://github.com/vatesfr/packer-plugin-xenserver), a builder that installs an OS from an ISO on an XCP-ng host and turns the result into a reusable image. It was revived from an abandoned upstream project and is developed alongside the [Terraform provider](./terraform-provider.md) to ensure interoperability: templates built with Packer can then be cloned into VMs through the Terraform provider, the [REST API](restapi.md), or the Xen Orchestra web interface.
 
 :::note
 The plugin talks **directly to an XCP-ng host** (via XAPI and SSH), not to the Xen Orchestra API. You point it at a host with its credentials; Xen Orchestra then sees and manages the resulting templates like any other.

@@ -135,7 +135,7 @@ After adding the VIF, you will need to set an IP address for the new NIC. To do 
 If you want a static address:
 
 <Terminal title="proxy VM: set a static IP on eth1">{`
-$ xoa network static eth1
+xoa network static eth1
 ? Static IP for this machine 192.168.100.120
 ? Network mask (eg 255.255.255.0) 255.255.255.0
 `}</Terminal>

@@ -56,7 +56,7 @@ The provider is also available for the other Pulumi languages: `pulumi-xenorches
 The provider talks to the XO API over a websocket connection (`ws://`, or `wss://` behind TLS) and supports two methods: an **API token** (recommended) or a **username and password**.
 
 :::tip
-Any XO user can create their own API token: see [REST API authentication](../xo5/restapi.md#authentication) for how to create one.
+Any XO user can create their own API token: see [REST API authentication](restapi.md#authentication) for how to create one.
 :::
 
 :::warning

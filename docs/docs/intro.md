@@ -18,7 +18,7 @@ Everything goes through XO, and everything that talks to your infrastructure tal
 <text x="105" y="37" fontSize="13.5" fill="#c6d2e1" textAnchor="middle">Your team</text>
 <text x="105" y="56" fontSize="11.5" fill="#7a8699" textAnchor="middle">Web UI · any browser</text>
 </a>
-<a href="/xo6/terraform-provider" aria-label="Automation and DevOps tools">
+<a href="/automation/terraform-provider" aria-label="Automation and DevOps tools">
 <rect x="205" y="12" width="265" height="62" rx="8" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.28)"/>
 <text x="337" y="37" fontSize="13.5" fill="#c6d2e1" textAnchor="middle">Automation</text>
 <text x="337" y="56" fontSize="11.5" fill="#7a8699" textAnchor="middle">REST API · CLI · Terraform · Ansible</text>
@@ -161,7 +161,7 @@ the parked standby. */}
 <LinkCard title="Discover XO 6" href="/xo6/gettingstarted">Tour the new interface: tree view, dashboards, consoles.</LinkCard>
 <LinkCard title="Set up backups" href="/xo5/backup">Rolling snapshots, incremental backups, replication and more.</LinkCard>
 <LinkCard title="Migrate from VMware" href="/xo5/v2v-migration-guide">Import your ESXi VMs directly into your pools with V2V.</LinkCard>
-<LinkCard title="Automate everything" href="/xo5/restapi">REST API, CLI, Terraform, Ansible, Pulumi and more.</LinkCard>
+<LinkCard title="Automate everything" href="/automation/restapi">REST API, CLI, Terraform, Ansible, Pulumi and more.</LinkCard>
 <LinkCard title="Get support" href="/xo6/support">Professional support by the Vates team, or community help.</LinkCard>
 </CardGrid>
 
@@ -170,7 +170,7 @@ the parked standby. */}
 - **Administration**: complete control of your pools, hosts, VMs, storage and networks, from a [modern web interface](xo6/gettingstarted.md) or from XO 5.
 - **Backup and disaster recovery**: rolling snapshots, full and incremental backups, replication, mirroring and immutability, toward S3, NFS, SMB or Azure targets. See [Backups](xo6/backups.md).
 - **Migration from VMware**: [V2V](xo5/v2v-migration-guide.md) imports your ESXi VMs directly into your pools.
-- **Automation**: a [REST API](xo5/restapi.md), a CLI, and first-class providers for [Terraform](xo6/terraform-provider.md), [Ansible](xo6/ansible.md), [Pulumi](xo6/pulumi-provider.md), [Packer](xo6/packer-provider.md) and [PowerShell](xo6/powershell-module.md), plus [Kubernetes cluster recipes](xo6/kubernetes.md).
+- **Automation**: a [REST API](automation/restapi.md), a CLI, and first-class providers for [Terraform](automation/terraform-provider.md), [Ansible](automation/ansible.md), [Pulumi](automation/pulumi-provider.md), [Packer](automation/packer-provider.md) and [PowerShell](automation/powershell-module.md), plus [Kubernetes cluster recipes](automation/kubernetes.md).
 - **Delegation**: users, groups and [ACLs](xo6/acl-v2.md) to give each team exactly the access it needs.
 - **Scale**: one XO manages any number of pools on any number of sites, over LAN or WAN.
 

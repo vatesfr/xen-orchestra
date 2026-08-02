@@ -90,7 +90,7 @@ A rule is simple to express: allow or block, a protocol (ARP, ICMP, IP, TCP or U
 Traffic rules are enforced by the [SDN Controller plugin](../xo5/sdn_controller.md): it must be loaded, and switched to the **XAPI plugin** mode ([`useDirectChannel = false`](../configuration.md#sdn-controller-mode)). XO 6 shows a notification guiding you through the switch, and a [migration script](../xo5/sdn_controller.md#migration-path) converts existing rules.
 :::
 
-Everything is also available through the [REST API](../xo5/restapi.md), where rules can additionally be updated in place, making network policies easy to automate.
+Everything is also available through the [REST API](../automation/restapi.md), where rules can additionally be updated in place, making network policies easy to automate.
 
 ## Users and administration
 

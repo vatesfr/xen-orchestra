@@ -222,7 +222,7 @@ Because the tool surface is generated from the live OpenAPI spec, it always refl
 The server exposes:
 
 - **Three utility tools**, always present: `check_connection` (validate your setup), `get_infrastructure_summary` (aggregate pools, hosts and VMs into a single overview), and `search_documentation` (look up the XO documentation by topic).
-- **One `{domain}_query` tool per REST resource domain**, generated from the live spec: pools, hosts, VMs, storage (SRs, VDIs), network, backup jobs and logs, users, tasks, alarms, and more. All query tools share the same arguments: `operation` (the OpenAPI `operationId` to invoke), `id`, an optional [`filter` expression](manage_infrastructure.md#live-filter-search), `fields`, and `limit`.
+- **One `{domain}_query` tool per REST resource domain**, generated from the live spec: pools, hosts, VMs, storage (SRs, VDIs), network, backup jobs and logs, users, tasks, alarms, and more. All query tools share the same arguments: `operation` (the OpenAPI `operationId` to invoke), `id`, an optional [`filter` expression](../xo5/manage_infrastructure.md#live-filter-search), `fields`, and `limit`.
 - **A built-in prompt**, `infrastructure-overview`, which turns the infrastructure summary into a readable report.
 
 Stats endpoints and binary downloads (`.xva`, `.vhd`, ...) are deliberately not exposed: their payloads are unsuitable for LLM context. Use the REST API directly when you need them.

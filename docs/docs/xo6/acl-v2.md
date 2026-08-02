@@ -1,6 +1,6 @@
 # ACL v2 / RBAC (REST API/XO6)
 
-ACL v2 is the access control system for the Xen Orchestra [REST API](../xo5/restapi.md) and the XO6 UI. It lets you define exactly what each user or group can see and do, down to individual objects, without granting them full administrator access.
+ACL v2 is the access control system for the Xen Orchestra [REST API](../automation/restapi.md) and the XO6 UI. It lets you define exactly what each user or group can see and do, down to individual objects, without granting them full administrator access.
 
 ## What changed from v1
 
@@ -9,7 +9,7 @@ The old [ACL system (v1)](../xo5/users.md#acls) allowed granting access to indiv
 ACL v2 introduces a full **RBAC (Role-Based Access Control)** model with effects, selectors, and an action hierarchy, covering the entire infrastructure including XO management objects.
 
 :::note
-ACL v2 is available through the **[REST API](../xo5/restapi.md) only**. The JSON-RPC API (used by XO5) stays on [ACL v1](../xo5/users.md#acls). Conversely, ACL v1 is not available on the REST API.
+ACL v2 is available through the **[REST API](../automation/restapi.md) only**. The JSON-RPC API (used by XO5) stays on [ACL v1](../xo5/users.md#acls). Conversely, ACL v1 is not available on the REST API.
 :::
 
 :::info
@@ -129,7 +129,7 @@ Some endpoints are always accessible to a logged-in user **without any ACL privi
 
 `me` is a convenience alias: it is automatically redirected to `/rest/v0/users/{your-id}`.
 
-This is how delegation works end to end: any user, whatever their privileges, can create their own [authentication token](../xo5/restapi.md#authentication) and use it to call the REST API within the limits of their roles.
+This is how delegation works end to end: any user, whatever their privileges, can create their own [authentication token](../automation/restapi.md#authentication) and use it to call the REST API within the limits of their roles.
 
 :::tip
 The Swagger UI available at `/rest/v0/swagger` documents every endpoint with its required privileges. Endpoints with no declared privilege are admin-only.

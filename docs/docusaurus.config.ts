@@ -139,8 +139,8 @@ export default {
             from: '/manage_infrastructure',
           },
           {
-            to: '/xo5/mcp',
-            from: '/mcp',
+            to: '/automation/mcp',
+            from: ['/mcp', '/xo5/mcp'],
           },
           {
             to: '/xo5/metadata_backup',
@@ -171,8 +171,32 @@ export default {
             to: '/releases',
           },
           {
-            to: '/xo5/restapi',
-            from: '/restapi',
+            to: '/automation/restapi',
+            from: ['/restapi', '/xo5/restapi'],
+          },
+          {
+            to: '/automation/terraform-provider',
+            from: '/xo6/terraform-provider',
+          },
+          {
+            to: '/automation/ansible',
+            from: '/xo6/ansible',
+          },
+          {
+            to: '/automation/pulumi-provider',
+            from: '/xo6/pulumi-provider',
+          },
+          {
+            to: '/automation/packer-provider',
+            from: '/xo6/packer-provider',
+          },
+          {
+            to: '/automation/powershell-module',
+            from: '/xo6/powershell-module',
+          },
+          {
+            to: '/automation/kubernetes',
+            from: '/xo6/kubernetes',
           },
           {
             to: '/xo5/rolling_snapshots',

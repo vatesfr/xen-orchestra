@@ -39,7 +39,7 @@ Connect-XoSession -HostName "https://your-xo-server" -Token "your-api-token"
 `}</Terminal>
 
 :::tip Obtaining the API token
-In Xen Orchestra, go to your user page and generate an authentication token. See [REST API authentication](../xo5/restapi.md#authentication) for details.
+In Xen Orchestra, go to your user page and generate an authentication token. See [REST API authentication](restapi.md#authentication) for details.
 :::
 
 ## Pipeline-driven automation {#the-power-of-the-pipeline-for-advanced-automation}
@@ -130,4 +130,4 @@ The `xo-powershell` module is much more than just a collection of commands: it i
 - [xo-powershell on GitHub](https://github.com/vatesfr/xo-powershell) (source of truth for cmdlets and options)
 - [xo-powershell on the PowerShell Gallery](https://www.powershellgallery.com/packages/xo-powershell/)
 - [Infrastructure as Code category on the XCP-ng forum](https://xcp-ng.org/forum/category/29/infrastructure-as-code)
-- [REST API authentication](../xo5/restapi.md#authentication)
+- [REST API authentication](restapi.md#authentication)

@@ -215,7 +215,7 @@ Open a ticket from your personal space on [account.vates.tech](https://account.v
 XOA is the only way to get our pro support, which can investigate remotely through a secure SSH tunnel. Our team will ask you for a "support ID": you get it by opening the tunnel, either from the web UI (XOA menu, **Support** section) or from the CLI if the web UI is not reachable:
 
 <Terminal title="open a secure support tunnel">{`
-$ xoa support tunnel
+xoa support tunnel
 The support tunnel has been created.
 
 Do not stop this command before the intervention is over!

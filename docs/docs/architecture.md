@@ -1,6 +1,6 @@
 # Architecture
 
-Xen Orchestra (XO) is built as **one server and several clients**: the two web interfaces ([XO 6](xo6/gettingstarted.md) and XO 5), the command line client `xo-cli`, and anything speaking the [REST API](xo5/restapi.md). The server, `xo-server`, is the only piece that talks to your infrastructure.
+Xen Orchestra (XO) is built as **one server and several clients**: the two web interfaces ([XO 6](xo6/gettingstarted.md) and XO 5), the command line client `xo-cli`, and anything speaking the [REST API](automation/restapi.md). The server, `xo-server`, is the only piece that talks to your infrastructure.
 
 :::tip
 XO is totally agent-less: nothing to install on your hosts. `xo-server` speaks XAPI, the native toolstack of XCP-ng, directly over the network.
@@ -180,7 +180,7 @@ Both run against the same server and the same data at the same time: see [XO 6 v
 [`xo-cli`](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-cli) sends commands to `xo-server` from a shell. Thanks to introspection, it discovers every method the server exposes, plus a convenient wrapper around the REST API.
 
 :::warning
-`xo-cli` is mainly a debug and power-user tool: there is no absolute guarantee on its stability. Prefer the [REST API](xo5/restapi.md) for automation.
+`xo-cli` is mainly a debug and power-user tool: there is no absolute guarantee on its stability. Prefer the [REST API](automation/restapi.md) for automation.
 :::
 
 Register your XO instance first (only a token is stored):
@@ -213,7 +213,7 @@ Parameters are strings by default (`true`/`false` are parsed as booleans); prefi
 
 ## APIs
 
-The public, supported API of Xen Orchestra is the **[REST API](xo5/restapi.md)**: plain HTTP, easy to call from any language or tool, with its own documentation page and a live OpenAPI reference at `/rest/v0/docs/` on your XO.
+The public, supported API of Xen Orchestra is the **[REST API](automation/restapi.md)**: plain HTTP, easy to call from any language or tool, with its own documentation page and a live OpenAPI reference at `/rest/v0/docs/` on your XO.
 
 Internally, the web UIs and `xo-cli` talk to `xo-server` over a JSON-RPC-over-WebSockets protocol: that connected mode is what lets clients subscribe to events and stay current in real time. This internal API is not designed for third parties: if you automate against XO, use the REST API.
 

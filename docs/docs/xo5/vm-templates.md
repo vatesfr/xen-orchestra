@@ -56,7 +56,7 @@ To check a template’s settings in Xen Orchestra:
 
 If you need more technical details than what the UI shows, the Xen Orchestra API has everything.
 
-To learn more, read the [REST API documentation](restapi.md).
+To learn more, read the [REST API documentation](../automation/restapi.md).
 
 All collections are listed when you run `GET /rest/v0`, including the `vm-templates` collection:
 
@@ -211,20 +211,20 @@ Now start the VM and SSH to its IP:
 - you don't need a password to access it (thanks to your SSH key):
 
 <Terminal title="SSH into the new VM, no password needed">{`
-$ ssh ubuntu@192.168.100.226
+ssh ubuntu@192.168.100.226
 ubuntu@tmp-app1:~$
 `}</Terminal>
 
 The default Cloud-init configuration allows you to become a sudoer directly:
 
 <Terminal title="sudoer out of the box">{`
-ubuntu@tmp-app1:~$ sudo -s
+sudo -s
 root@tmp-app1:/home/ubuntu#
 `}</Terminal>
 
 Check the root file system size: **it was automatically grown** to the size you asked for:
 
 <Terminal title="the root file system was grown automatically">{`
-ubuntu@tmp-app1:~$ df -h /
+df -h /
 /dev/xvda1          20G    1.2G   18G   6% /
 `}</Terminal>

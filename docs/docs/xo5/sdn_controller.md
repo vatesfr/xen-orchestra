@@ -179,7 +179,7 @@ A few caveats:
   :::
 
 :::tip
-This is the backend used by the [XO 6 traffic rules UI](../xo6/management.md#traffic-rules) (since XO 6.5): network-wide and per-VIF rules, with a consolidated view in the pool **Security** tab. The rules can also be managed through the [REST API](./restapi.md), including in-place updates (since XO 6.7).
+This is the backend used by the [XO 6 traffic rules UI](../xo6/management.md#traffic-rules) (since XO 6.5): network-wide and per-VIF rules, with a consolidated view in the pool **Security** tab. The rules can also be managed through the [REST API](../automation/restapi.md), including in-place updates (since XO 6.7).
 :::
 
 - Works on any network:
@@ -336,10 +336,10 @@ This is the simplest case. We have updated the self-signed certificates to work 
 :::tip
 We suggest doing a backup of the certificates in case anything goes wrong:
 
-<Terminal title="back up the current certificates, on your XOA">{`
-xoa@xoa:~$ today=$(date +%Y%m%d)
-xoa@xoa:~$ sudo mkdir /var/lib/xo-server/data/sdn-controller/$today-backup
-xoa@xoa:~$ sudo mv /var/lib/xo-server/data/sdn-controller/*.pem /var/lib/xo-server/data/sdn-controller/$today-backup
+<Terminal shell title="back up the current certificates, on your XOA">{`
+today=$(date +%Y%m%d)
+sudo mkdir /var/lib/xo-server/data/sdn-controller/$today-backup
+sudo mv /var/lib/xo-server/data/sdn-controller/*.pem /var/lib/xo-server/data/sdn-controller/$today-backup
 `}</Terminal>
 
 :::
@@ -354,10 +354,10 @@ We provide a helper script to run on your XOA VM:
 
 [regenerate-certs.sh (download script)](../../static/sh/regenerate-certs.sh)
 
-<Terminal title="regenerate the certificates, on your XOA">{`
-xoa@xoa:~$ sudo bash -e ./regenerate-certs.sh
+<Terminal shell title="regenerate the certificates, on your XOA">{`
+sudo bash -e ./regenerate-certs.sh
 # if you have available updates, just update XOA, otherwise:
-xoa@xoa:~$ sudo systemctl restart xo-server
+sudo systemctl restart xo-server
 `}</Terminal>
 
 Once `xo-server` is back up, the new certificates are pushed to your hosts. You can then update your XCP-ng pools as you normally would.

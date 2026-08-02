@@ -413,7 +413,7 @@ System-level settings of the appliance itself, all managed from its console or S
 By default XOA is firewalled, with only ports 22, 80 and 443 opened. You can see the current status of the firewall:
 
 <Terminal title="check the firewall status">{`
-$ sudo ufw status verbose
+sudo ufw status verbose
 Status: active
 Logging: on (low)
 Default: deny (incoming), allow (outgoing)
@@ -451,7 +451,7 @@ pool 3.debian.pool.ntp.org iburst
 To change the NTP servers, use the `xoa` helper:
 
 <Terminal title="change the NTP servers">{`
-$ xoa network ntp
+xoa network ntp
 ? NTP servers (space separated)
 `}</Terminal>
 
@@ -474,7 +474,7 @@ systemctl restart xo-server.service
 To check the status of `xo-server`:
 
 <Terminal title="check the service">{`
-$ systemctl status xo-server.service
+systemctl status xo-server.service
 xo-server.service - XO Server
    Loaded: loaded (/etc/systemd/system/xo-server.service; enabled)
    Active: active (running) since Thu 2014-08-14 10:59:46 BST; 21min ago

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Xen Orchestra includes a Kubernetes cluster [recipe](../xo5/advanced#recipes) that provides a simple way to deploy an official Kubernetes distribution called **MicroK8s** (maintained by Canonical).
+Xen Orchestra includes a Kubernetes cluster [recipe](../xo5/advanced.md#recipes) that provides a simple way to deploy an official Kubernetes distribution called **MicroK8s** (maintained by Canonical).
 
 :::tip
 One of the key benefits of MicroK8s is its automatic security updates. For example, patch releases (like 1.30.x to 1.30.x+1) are applied automatically. This saves Kubernetes admins a lot of time and effort.
