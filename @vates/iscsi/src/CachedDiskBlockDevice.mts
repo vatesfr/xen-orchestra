@@ -1,3 +1,4 @@
+import { asyncEach } from '@vates/async-each'
 import { createLogger, type Logger } from '@xen-orchestra/log'
 import type { RandomAccessDisk } from '@xen-orchestra/disk-transform'
 
@@ -6,6 +7,7 @@ import type { BlockDevice } from './backend.mjs'
 const log: Logger = createLogger('vates:iscsi:cached-disk-block-device')
 
 const DEFAULT_BLOCK_SIZE = 512
+const DEFAULT_HYDRATE_CONCURRENCY = 8
 
 export interface CachedDiskBlockDeviceOptions {
   /**
@@ -42,6 +44,9 @@ export interface CachedDiskBlockDeviceOptions {
  * Blocks the source does not have are *not* written: they are marked present and
  * read straight from the cache, which assumes the cache reads as zeroes where it
  * has never been written.
+ *
+ * Materialization is otherwise on demand only; call {@link hydrate} to force the
+ * whole source into the cache upfront instead of waiting for something to read it.
  */
 export class CachedDiskBlockDevice implements BlockDevice {
   readonly #disk: RandomAccessDisk
@@ -104,6 +109,26 @@ export class CachedDiskBlockDevice implements BlockDevice {
   /** How much of the source has been materialized into the cache. */
   getMaterialized(): { blocks: number; total: number } {
     return { blocks: this.#cachedCount, total: this.#blockCount }
+  }
+
+  /**
+   * Force every block into the cache — including holes, so `getMaterialized()`
+   * reaches `total` once done, matching what a full sequential read would
+   * naturally mark. Already-materialized blocks are skipped, so this resumes
+   * rather than redoes whatever on-demand reads (or a previous, interrupted
+   * hydration) already did.
+   */
+  async hydrate({ concurrency = DEFAULT_HYDRATE_CONCURRENCY }: { concurrency?: number } = {}): Promise<void> {
+    const blockCount = this.#blockCount
+    await asyncEach(
+      (function* allBlockIndexes() {
+        for (let index = 0; index < blockCount; index++) {
+          yield index
+        }
+      })(),
+      index => this.#ensureBlock(index),
+      { concurrency }
+    )
   }
 
   #isCached(index: number): boolean {

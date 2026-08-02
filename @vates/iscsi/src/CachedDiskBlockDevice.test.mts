@@ -238,6 +238,72 @@ describe('write', () => {
   })
 })
 
+describe('hydrate', () => {
+  it('materializes every block the source has, holes included', async () => {
+    const { device, disk, cache } = await make()
+
+    await device.hydrate()
+
+    assert.deepEqual(device.getMaterialized(), { blocks: BLOCK_COUNT, total: BLOCK_COUNT })
+    // only the allocated ones were actually fetched...
+    assert.deepEqual([...disk.readBlockCalls].sort(), [0, 2])
+    // ...and the whole disk now reads correctly straight from the cache
+    assert.deepEqual(await cache.read(0, DISK_SIZE), expectedAt(0, DISK_SIZE, disk.allocated))
+  })
+
+  it('skips blocks already materialized by an earlier read', async () => {
+    const { device, disk } = await make()
+    await device.read(0, 512)
+    assert.deepEqual(disk.readBlockCalls, [0])
+
+    await device.hydrate()
+
+    // block 0 was not fetched a second time
+    assert.deepEqual(disk.readBlockCalls, [0, 2])
+    assert.deepEqual(device.getMaterialized(), { blocks: BLOCK_COUNT, total: BLOCK_COUNT })
+  })
+
+  it('is a no-op once fully materialized', async () => {
+    const { device, disk } = await make()
+    await device.hydrate()
+    disk.readBlockCalls.length = 0
+
+    await device.hydrate()
+
+    assert.deepEqual(disk.readBlockCalls, [])
+  })
+
+  it('respects the concurrency limit', async () => {
+    const disk = new StubDisk(new Set([0, 1, 2, 3]))
+    const cache = new StubCache()
+    const device = new CachedDiskBlockDevice({ disk, cache })
+    await device.open()
+
+    let inFlight = 0
+    let maxInFlight = 0
+    const releases: Array<() => void> = []
+    disk.readBlock = async index => {
+      inFlight++
+      maxInFlight = Math.max(maxInFlight, inFlight)
+      await new Promise<void>(resolve => releases.push(resolve))
+      inFlight--
+      return { index, data: Buffer.alloc(DISK_BLOCK_SIZE) }
+    }
+
+    const hydrating = device.hydrate({ concurrency: 2 })
+    // let the first batch start
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(maxInFlight, 2)
+    while (releases.length > 0) {
+      releases.shift()!()
+      await new Promise(resolve => setImmediate(resolve))
+    }
+    await hydrating
+
+    assert.equal(maxInFlight, 2)
+  })
+})
+
 describe('flush and close', () => {
   it('flushes the cache', async () => {
     const { device, cache } = await make()

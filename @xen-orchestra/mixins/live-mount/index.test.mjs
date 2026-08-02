@@ -60,9 +60,6 @@ const makeXapi = ({ probeError, vdiSmConfig, cacheDevice = 'xvdb' } = {}) => {
     },
     async getField(type, ref, field) {
       calls.push(['getField', type, ref, field])
-      if (type === 'VM' && field === 'resident_on') {
-        return HOST_REF
-      }
       if (type === 'VBD' && field === 'device') {
         return cacheDevice
       }
@@ -174,9 +171,9 @@ const makeMixin = ({ diskOpenError, listenError, openCacheError } = {}) => {
 
 const mount = (mixin, xapi, params) =>
   mixin.mountDisk({
-    cacheSrRef: CACHE_SR_REF,
+    cache: { srRef: CACHE_SR_REF, vmRef: VM_REF },
     diskPath: 'xo-vm-backups/vm/vdis/job/vdi/20260731T120000Z.alias.vhd',
-    vmRef: VM_REF,
+    hostRef: HOST_REF,
     xapi,
     ...params,
   })
@@ -227,7 +224,7 @@ describe('mount', () => {
     // the device name is read back after the plug, XAPI assigns it
     assert.deepEqual(cache.params, { name: 'xvdb', size: DISK_SIZE })
 
-    // the PBD is created on the host running this appliance, derived not passed
+    // the PBD is created on the requested host
     const pbdCreate = xapi.calls.find(([method]) => method === 'PBD.create')[1]
     assert.equal(pbdCreate.host, HOST_REF)
     assert.equal(pbdCreate.SR, SR_REF)
@@ -364,6 +361,69 @@ describe('mount', () => {
     await assert.rejects(mount(mixin, makeXapi()), /EADDRINUSE/)
 
     assert.equal(disk.closed, true)
+  })
+
+  it('mounts without a cache: no local disk, read-only, works on any host', async () => {
+    const { mixin, target, disk } = makeMixin()
+    const xapi = makeXapi()
+    const otherHostRef = 'OpaqueRef:some-other-host'
+
+    const result = await mount(mixin, xapi, { cache: undefined, hostRef: otherHostRef })
+
+    // no cache disk at all
+    assert.ok(!xapi.calls.some(([method]) => method === 'VDI_create'))
+    assert.ok(!xapi.calls.some(([method]) => method === 'VBD_create'))
+    assert.equal(result.cacheVdiUuid, undefined)
+
+    // the LUN is served straight from the source, on whichever host was asked
+    const pbdCreate = xapi.calls.find(([method]) => method === 'PBD.create')[1]
+    assert.equal(pbdCreate.host, otherHostRef)
+
+    // states the read-only intent, even though the driver itself ignores it
+    const vdiIntroduce = xapi.calls.find(([method]) => method === 'VDI.introduce')
+    assert.equal(vdiIntroduce[7], true) // read_only
+
+    // the LUN really is read-only: no local store to fall back on
+    await assert.rejects(target.options.lun.write(0, Buffer.alloc(512)), /read-only/)
+
+    // an uncached mount has nothing to report progress on
+    assert.equal(mixin.listMountedDisks()[0].materialized, undefined)
+
+    // and reads still go straight to the source
+    disk.hasBlock = () => true
+    disk.readBlock = async index => ({ index, data: Buffer.alloc(2 * 1024 * 1024, 0xcd) })
+    assert.deepEqual(await target.options.lun.read(0, 512), Buffer.alloc(512, 0xcd))
+  })
+})
+
+describe('hydrate', () => {
+  it('forces the whole disk into the cache', async () => {
+    const { mixin, disk } = makeMixin()
+    // a handful of blocks is enough to prove the point without allocating the
+    // whole 2 GiB fixture disk
+    const blockCount = 4
+    disk.getVirtualSize = () => blockCount * 2 * 1024 * 1024
+    disk.hasBlock = () => true
+    disk.readBlock = async index => ({ index, data: Buffer.alloc(2 * 1024 * 1024, 0xab) })
+    const { id } = await mount(mixin, makeXapi())
+
+    const result = await mixin.hydrateDisk(id)
+
+    assert.equal(result.id, id)
+    assert.deepEqual(result.materialized, { blocks: blockCount, total: blockCount })
+    assert.deepEqual(mixin.listMountedDisks()[0].materialized, result.materialized)
+  })
+
+  it('refuses to hydrate an uncached mount', async () => {
+    const { mixin } = makeMixin()
+    const { id } = await mount(mixin, makeXapi(), { cache: undefined, hostRef: HOST_REF })
+
+    await assert.rejects(mixin.hydrateDisk(id), /has no cache to hydrate/)
+  })
+
+  it('rejects an unknown mount', async () => {
+    const { mixin } = makeMixin()
+    await assert.rejects(mixin.hydrateDisk('nope'), /no such live mount nope/)
   })
 })
 

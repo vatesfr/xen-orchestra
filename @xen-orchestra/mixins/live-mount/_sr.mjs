@@ -69,12 +69,13 @@ export async function forgetSr(xapi, srRef) {
  * `LUNid` is what the driver needs to find the device; it fills `SCSIid` and
  * `backend-kind` in itself, keeping the keys we pass.
  *
- * `read_only` is false: writes are accepted and land in the cache disk. The
- * driver would ignore the flag anyway — `RAWVDI.introduce()` ends in
- * `_db_introduce()`, which builds the record from the driver's own VDI object,
- * the same reason the resulting uuid is not the one asked for.
+ * `readOnly` states the intent but the driver ignores it either way —
+ * `RAWVDI.introduce()` ends in `_db_introduce()`, which builds the record from
+ * the driver's own VDI object, the same reason the resulting uuid is not the
+ * one asked for. The LUN itself is what actually enforces it: cached mounts
+ * accept writes into the cache disk, uncached ones throw on write.
  */
-export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath }) {
+export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath, readOnly }) {
   const uuid = randomUUID()
   await xapi.call(
     'VDI.introduce',
@@ -84,7 +85,7 @@ export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath }) {
     srRef,
     'user',
     false, // sharable
-    false, // read_only: writes go to the cache disk
+    readOnly,
     {}, // other_config
     uuid, // location: this driver uses the uuid
     {}, // xenstore_data

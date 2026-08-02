@@ -126,19 +126,21 @@ type License = {
   bundleInfo?: { name: string; id: string }
 }
 
-/** A disk of a backup archive currently served as a read-only iSCSI LUN */
+/** A disk of a backup archive currently served as an iSCSI LUN */
 export type BackupArchiveDiskMount = {
-  /** Handle to pass to `unmountBackupArchiveDisk` */
+  /** Handle to pass to `unmountBackupArchiveDisk` / `hydrateBackupArchiveDisk` */
   id: string
   /** UUID of the SR introduced on the host */
   srUuid: string
   /** UUID of the VDI exposing the backup disk */
   vdiUuid: string
   /**
-   * UUID of the disk caching what has been read from the backup. Destroyed when
-   * the mount is released.
+   * UUID of the disk caching what has been read from the backup, if a cache was
+   * requested. Destroyed when the mount is released. Absent when the mount was
+   * created without a cache: reads then always go straight to the backup, and
+   * writes are refused.
    */
-  cacheVdiUuid: string
+  cacheVdiUuid?: string
   /** IQN of the target serving the disk */
   iqn: string
   /** Address of the portal, as advertised to the host */
@@ -147,6 +149,9 @@ export type BackupArchiveDiskMount = {
   port: number
 }
 
+/** How much of a cached mount's backup has been pulled into its cache disk */
+export type BackupArchiveDiskMountProgress = { blocks: number; total: number }
+
 /** A live mount, as listed by `listMountedBackupArchiveDisks` */
 export type MountedBackupArchiveDisk = BackupArchiveDiskMount & {
   /** Path of the mounted disk on its backup repository */
@@ -154,8 +159,9 @@ export type MountedBackupArchiveDisk = BackupArchiveDiskMount & {
   /**
    * How much of the backup has been pulled into the cache disk. Once `blocks`
    * reaches `total`, that disk holds a complete copy of the backup's disk.
+   * Absent for a mount created without a cache — there is nothing to track.
    */
-  materialized: { blocks: number; total: number }
+  materialized?: BackupArchiveDiskMountProgress
 }
 
 export type XoApp = {
@@ -367,16 +373,33 @@ export type XoApp = {
     opts?: { _forceRefresh?: boolean; vmId: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]>>>
   /**
-   * Serve one disk of a backup archive as a read-only iSCSI LUN and attach it to
-   * `host` as an SR. Undone by `unmountBackupArchiveDisk`.
+   * Serve one disk of a backup archive as an iSCSI LUN and attach it, as an SR,
+   * to a host. Undone by `unmountBackupArchiveDisk`.
    */
   mountBackupArchiveDisk(params: {
     archiveId: XoVmBackupArchive['id']
     /** One of the archive's `disks[].id` */
     diskId: string
-    /** SR holding the disk that caches what has been read from the backup */
-    srId: XoSr['id']
+    /**
+     * Host the disk is attached to; defaults to the host running this appliance
+     * when `srId` is given (required to plug the cache disk there), otherwise
+     * required
+     */
+    hostId?: XoHost['id']
+    /**
+     * SR for a local read/write cache; omit for a lower-performance, read-only
+     * mount that needs no local storage and can target any host
+     */
+    srId?: XoSr['id']
   }): Promise<BackupArchiveDiskMount>
+  /**
+   * Force every block of a cached mount into its cache disk, so it becomes a
+   * complete copy of the backup's disk without waiting for something else to
+   * read it. Rejects if the mount was created without a cache.
+   */
+  hydrateBackupArchiveDisk(
+    id: BackupArchiveDiskMount['id']
+  ): Promise<{ id: BackupArchiveDiskMount['id']; materialized: BackupArchiveDiskMountProgress }>
   pingRemote(id: XoBackupRepository['id']): Promise<{ success: true }>
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(

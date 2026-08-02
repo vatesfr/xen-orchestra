@@ -40,9 +40,14 @@ export const backupArchiveDiskMount = {
   srUuid: '9f2d1c74-3b5a-4e18-9c60-1d7ae4f2b301',
   vdiUuid: '7ef65d7c-c025-f038-429b-a6f06bf48418',
   cacheVdiUuid: 'c1a4d8e2-6b39-4f70-8d51-2fe0a7c94b16',
-  iqn: 'iqn.2026-07.tech.vates.xo:backup-6b1f0e9c2a7d4f83b5c1d9e0a4f76b28',
+  iqn: 'iqn.2026-07.tech.vates.xo:live-mount-6b1f0e9c2a7d4f83b5c1d9e0a4f76b28',
   address: '192.168.0.1',
   port: 44321,
+}
+
+export const backupArchiveDiskMountProgress = {
+  id: '6b1f0e9c2a7d4f83b5c1d9e0a4f76b28',
+  materialized: { blocks: 512, total: 1024 },
 }
 
 export const backupArchive = {
