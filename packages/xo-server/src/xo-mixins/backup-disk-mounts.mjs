@@ -21,15 +21,18 @@ export default class BackupDiskMountsResolver {
   }
 
   /**
-   * Serve one disk of a backup archive as an iSCSI LUN and attach it to the host
-   * running this appliance, cached in a new disk on `srId`.
+   * Serve one disk of a backup archive as an iSCSI LUN and attach it, as an SR,
+   * to a host.
    *
    * @param {object} params
    * @param {string} params.archiveId - `<backup repository id>/<metadata path>`
    * @param {string} params.diskId - id of one of the archive's disks
-   * @param {string} params.srId - SR holding the cache disk
+   * @param {string} [params.hostId] - host the disk is attached to; defaults to the host running this
+   * appliance when `srId` is given (required to plug the cache disk there), otherwise required
+   * @param {string} [params.srId] - SR for a local read/write cache; omit for a lower-performance,
+   * read-only mount that needs no local storage and can target any host
    */
-  async mountBackupArchiveDisk({ archiveId, diskId, srId }) {
+  async mountBackupArchiveDisk({ archiveId, diskId, hostId, srId }) {
     const app = this.#app
 
     const archive = await this.#getArchive(archiveId)
@@ -39,20 +42,40 @@ export default class BackupDiskMountsResolver {
       throw invalidParameters(`disk ${diskId} does not belong to backup archive ${archiveId}`)
     }
 
-    const vm = await this.#getApplianceVm()
-    const cacheSr = this.#getCacheSr(srId, vm)
+    let cache
+    let vm
+    if (srId !== undefined) {
+      vm = await this.#getApplianceVm()
+      const cacheSr = this.#getCacheSr(srId, vm)
+      cache = { srRef: cacheSr.$ref, vmRef: vm.$ref }
+    }
+
+    if (hostId === undefined) {
+      if (vm === undefined) {
+        throw invalidParameters('host is required when no cache SR is given')
+      }
+      hostId = vm.$resident_on.uuid
+    }
+    const host = app.getObject(hostId, 'host')
+    // `vm` (from getXapiObject) has no `.$pool`; `vm.$xapi.pool.uuid` is the
+    // established way to get its pool, already used the same way in #getCacheSr
+    if (vm !== undefined && host.$pool !== vm.$xapi.pool.uuid) {
+      // the mixin uses a single XAPI connection for both the cache disk and
+      // the mounted host, so they must be reachable through the same one
+      throw invalidParameters(`host ${hostId} is not in the pool running this appliance, required to use a cache`)
+    }
 
     const remote = await app.getRemoteWithCredentials(getBackupRepositoryId(archiveId))
     const adapter = await app.getBackupsRemoteAdapter(remote)
     try {
       return await app.liveMount.mountDisk({
-        cacheSrRef: cacheSr.$ref,
+        cache,
         diskPath: diskId,
         handler: adapter.value.handler,
+        hostRef: host._xapiRef,
         nameLabel: `[XO backup] ${archive.vm.name_label}`,
         release: () => adapter.dispose(),
-        vmRef: vm.$ref,
-        xapi: vm.$xapi,
+        xapi: app.getXapi(host),
       })
     } catch (error) {
       await adapter.dispose()
@@ -61,8 +84,8 @@ export default class BackupDiskMountsResolver {
   }
 
   /**
-   * The VM this appliance runs in: the cache disk is plugged into it, and its
-   * host is where the mount is served.
+   * The VM this appliance runs in: the cache disk, when there is one, is
+   * plugged into it.
    */
   async #getApplianceVm() {
     const uuid = await getCurrentVmUuid()
@@ -114,6 +137,13 @@ export default class BackupDiskMountsResolver {
    */
   unmountBackupArchiveDisk(id) {
     return this.#app.liveMount.unmountDisk(id)
+  }
+
+  /**
+   * @param {string} id - identifier returned by `mountBackupArchiveDisk`; must have been mounted with an `srId`
+   */
+  hydrateBackupArchiveDisk(id) {
+    return this.#app.liveMount.hydrateDisk(id)
   }
 
   listMountedBackupArchiveDisks() {
