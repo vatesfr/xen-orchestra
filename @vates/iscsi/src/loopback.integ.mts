@@ -593,6 +593,55 @@ describe('READ error isolation', () => {
   })
 })
 
+describe('connection replacement', () => {
+  it('a new connection replaces an existing one instead of being refused forever', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'vates-iscsi-'))
+    const backingPath = join(dir, 'lun.img')
+    await writeFile(backingPath, Buffer.alloc(0))
+    await truncate(backingPath, LUN_SIZE)
+
+    const target = new IscsiTarget({
+      iqn: IQN,
+      host: '127.0.0.1',
+      port: 0,
+      lun: new FileBlockDevice({ path: backingPath, blockSize: BLOCK_SIZE }),
+    })
+    await target.listen()
+    const address = target.address()
+    assert.ok(address !== undefined)
+
+    try {
+      // First connection: logs in, then goes idle — standing in for an
+      // initiator that gave up on it (its own command timeout, against a slow
+      // backend) without ever actually closing the socket.
+      const socketA = connect(address.port, '127.0.0.1')
+      await once(socketA, 'connect')
+      const initiatorA = new MiniInitiator(socketA)
+      await initiatorA.login('Normal')
+      const closedA = once(socketA, 'close')
+
+      // A second connection must be accepted, not refused, even though the
+      // first is still technically open from the target's point of view.
+      const socketB = connect(address.port, '127.0.0.1')
+      await once(socketB, 'connect')
+      const initiatorB = new MiniInitiator(socketB)
+      await initiatorB.login('Normal')
+
+      // The target must have torn the first connection's socket down.
+      await closedA
+
+      // The new connection is fully usable, not left in some half-adopted state.
+      const result = await initiatorB.read(rwCdb(0x28, 0, 1), BLOCK_SIZE)
+      assert.equal(result.status, ScsiStatus.GOOD)
+      await initiatorB.logout()
+      socketB.destroy()
+    } finally {
+      await target.close()
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+})
+
 // One loopback that exercises BOTH one-way CHAP roles at once: our target is the
 // authenticator (challenges + verifies) and our initiator is the responder
 // (answers the challenge). This is the same code path each production role uses
