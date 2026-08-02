@@ -5,7 +5,7 @@ slug: support
 # Introduction to Support
 
 :::tip
-See the dedicated sub-section to read more about [XOA support and usage](../xo5/xoa.md).
+To run a self-diagnosis or open a secure support tunnel from your XOA, see [Troubleshooting](../troubleshooting.md#still-stuck).
 :::
 
 Xen Orchestra will run in a controlled/tested environment thanks to XOA ([Xen Orchestra virtual Appliance](https://vates.tech/deploy/)). **This is the only way to get pro support**. Any account with a registered XOA can open tickets from its personal space on [account.vates.tech](https://account.vates.tech).

@@ -86,9 +86,9 @@ To solve it, you have to change a parameter in your VM. `xe vm-param-set has-ven
 
 ## ENOSPC: no space left on device
 
-This message appears when you do not have enough free space on the target remote when running a backup to it.
+This message appears when you do not have enough free space on the target backup repository (BR) when running a backup to it.
 
-To check your free space, enter your XOA and run `xoa check` to check free system space and `df -h` to check free space on your chosen remote storage.
+To check your free space, enter your XOA and run `xoa check` to check free system space and `df -h` to check free space on your chosen backup repository.
 
 ## Error: no VMs match this pattern
 
@@ -102,7 +102,7 @@ This error can be caused by leaving any removable device (such as USB storage) a
 
 ## Error: Lock file is already being held
 
-This error message appears in the logs in some instances of a failed backup job. It means that the VM’s folder on the remote is already used by a process. This could be:
+This error message appears in the logs in some instances of a failed backup job. It means that the VM’s folder on the backup repository is already used by a process. This could be:
 
 - another backup job
 - a merge process on the Virtual Hard Disk (VHD)
@@ -110,7 +110,7 @@ This error message appears in the logs in some instances of a failed backup job.
 To solve this issue, we recommend that you:
 
 - wait until the other backup job is completed/the merge process is done
-- make sure your remote storage is not being overworked
+- make sure your backup repository is not being overworked
 
 ## Error: HTTP connection has timed out
 
@@ -140,7 +140,7 @@ This error occurs at the end of the transfer. XO checks the exported VM disk int
 
 ## Error: the job is already running
 
-This means the same job is still running, typically from the last scheduled run. This happens when you have a backup job scheduled too often. It can also occur if you have a long timeout configured for the job, and a slow VM export or slow transfer to your remote. In either case, you need to adjust your backup schedule to allow time for the job to finish or timeout before the next scheduled run. We consider this an error to ensure you'll be notified that the planned schedule won't run this time because the previous one isn't finished.
+This means the same job is still running, typically from the last scheduled run. This happens when you have a backup job scheduled too often. It can also occur if you have a long timeout configured for the job, and a slow VM export or slow transfer to your backup repository. In either case, you need to adjust your backup schedule to allow time for the job to finish or timeout before the next scheduled run. We consider this an error to ensure you'll be notified that the planned schedule won't run this time because the previous one isn't finished.
 
 ## Error: VDI_IO_ERROR
 

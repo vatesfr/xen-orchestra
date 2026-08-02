@@ -6,7 +6,7 @@ Once Xen Orchestra is installed, you can configure some parameters in the config
 The configuration file is located at `/etc/xo-server/config.toml`.
 :::
 
-If you need to do any configuration on the system itself (firewall, SSH…), check the [XOA reference](xo5/xoa.md).
+If you need to do any configuration on the system itself (firewall, NTP, service restart…), see [the XOA appliance settings](#xoa-appliance) at the end of this page.
 
 ## Using XO 5 as the Default Interface
 
@@ -403,5 +403,88 @@ company.net {
 :::note
 Caddy applies no request body size limit by default, so large VM imports work without extra configuration.
 :::
+
+## The XOA appliance {#xoa-appliance}
+
+System-level settings of the appliance itself, all managed from its console or SSH.
+
+### Firewall {#firewall}
+
+By default XOA is firewalled, with only ports 22, 80 and 443 opened. You can see the current status of the firewall:
+
+<Terminal title="check the firewall status">{`
+$ sudo ufw status verbose
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22                         ALLOW IN    Anywhere
+80                         ALLOW IN    Anywhere
+443                        ALLOW IN    Anywhere
+22/tcp                     LIMIT IN    Anywhere
+`}</Terminal>
+
+If you want to open or close ports, please check the [documentation of UFW](https://help.ubuntu.com/community/UFW).
+
+### Timezone {#timezone}
+
+You can verify that your time is correctly set with the `date` command. To set XOA to your current timezone:
+
+<Terminal shell title="set the timezone">{`
+sudo dpkg-reconfigure tzdata
+`}</Terminal>
+
+### Setting a custom NTP server {#setting-a-custom-ntp-server}
+
+By default, XOA is configured to use the `systemd-timesyncd` daemon, along with the standard Debian NTP servers:
+
+```
+pool 0.debian.pool.ntp.org iburst
+pool 1.debian.pool.ntp.org iburst
+pool 2.debian.pool.ntp.org iburst
+pool 3.debian.pool.ntp.org iburst
+```
+
+To change the NTP servers, use the `xoa` helper:
+
+<Terminal title="change the NTP servers">{`
+$ xoa network ntp
+? NTP servers (space separated)
+`}</Terminal>
+
+Alternatively, edit `/etc/systemd/timesyncd.conf` (as root): we recommend adding your custom server to the top of the list, leaving the Debian server entries if possible.
+
+For changes to take effect, restart the time synchronization service:
+
+<Terminal shell title="apply the NTP change">{`
+systemctl restart systemd-timesyncd.service
+`}</Terminal>
+
+### Restart the service {#restart-the-service}
+
+You can restart Xen Orchestra by accessing XOA via SSH (or console):
+
+<Terminal shell title="restart xo-server">{`
+systemctl restart xo-server.service
+`}</Terminal>
+
+To check the status of `xo-server`:
+
+<Terminal title="check the service">{`
+$ systemctl status xo-server.service
+xo-server.service - XO Server
+   Loaded: loaded (/etc/systemd/system/xo-server.service; enabled)
+   Active: active (running) since Thu 2014-08-14 10:59:46 BST; 21min ago
+ Main PID: 394 (node)
+   CGroup: /system.slice/xo-server.service
+           └─394 node /usr/local/bin/xo-server
+
+Aug 14 10:59:46 xoa systemd[1]: Starting XO Server...
+Aug 14 10:59:46 xoa systemd[1]: Started XO Server.
+Aug 14 10:59:48 xoa xo-server[394]: WebServer listening on http://0.0.0.0:80
+`}</Terminal>
 
 That's all!

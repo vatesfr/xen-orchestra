@@ -60,7 +60,7 @@ immutabilityDuration = "7d"
 #### Mandatory Parameters
 
 - **`liftEvery`**: Define how often the script will check and lift immutabiltiy (e.g., `1h` for every hour).
-- Per remote
+- Per backup repository (the `remotes` key in the configuration file keeps the legacy name)
   - **`root`**: Specifies the directory where Xen Orchestra stores backups.
   - **`immutabilityDuration`**: Defines how long files remain protected from deletion (e.g., `7d` for 7 days).
 
@@ -86,7 +86,7 @@ On the first scan after the service starts, all files are checked unconditionall
 
 ## Working With Immutable Backups
 
-When setting up backup jobs in Xen Orchestra, select your configured immutable remote (whether it's an S3 bucket or an on-premises repository). Define your retention and rotation policies as you normally would. Immutability ensures that existing backups cannot be deleted or altered before their protection period expires, while still allowing new backups to be added.
+When setting up backup jobs in Xen Orchestra, select your configured immutable backup repository (whether it's an S3 bucket or an on-premises one). Define your retention and rotation policies as you normally would. Immutability ensures that existing backups cannot be deleted or altered before their protection period expires, while still allowing new backups to be added.
 
 ## Best Practices
 
@@ -131,7 +131,7 @@ The immutability enforcement mechanism **must** operate independently of Xen Orc
 
 ## Limitations
 
-Cloud-based solutions such as S3 Object Lock depend on your provider’s implementation; not all S3‑compatible systems behave identically, so always test before production use.
+Cloud-based solutions such as S3 Object Lock depend on your provider’s implementation; not all S3‑compatible systems behave identically, so always test before production use. See the [supported object storage providers](./object-storage-support.md) list and its support tiers.
 
 ## Troubleshooting
 

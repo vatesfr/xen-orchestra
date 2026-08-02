@@ -207,8 +207,8 @@ export default {
             from: '/vm-templates',
           },
           {
-            to: '/xo5/xoa',
-            from: '/xoa',
+            to: '/installation',
+            from: ['/xoa', '/xo5/xoa'],
           },
         ],
       },

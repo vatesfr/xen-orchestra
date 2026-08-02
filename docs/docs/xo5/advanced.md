@@ -1,5 +1,7 @@
 # Advanced features
 
+<InterfaceNote />
+
 This section is dedicated to all others Xen Orchestra "advanced features".
 
 ## Live Telemetry
@@ -14,7 +16,7 @@ This feature will be only available in XCP-ng+XOA. If you are a hardcore Citrix 
 
 Go into the Advanced host view:
 
-![](https://xen-orchestra.com/blog/content/images/2019/11/advancedenable.png)
+<UiDetail src="/img/xo5/telemetry-enable.png" alt="The Advanced Live Telemetry button, in the host Advanced tab" width={700} />
 
 By clicking here, XOA will handle everything: installing netdata on the host, and configure a secured/encrypted streaming toward your XOA.
 
@@ -24,7 +26,7 @@ As soon it's installed, the button will now be replaced by a "Go to Advanced Liv
 
 IMPI info (power, temperatures, voltages, fans…):
 
-![](https://xen-orchestra.com/blog/content/images/2019/11/ipmistats.png)
+<UiDetail src="/img/xo5/telemetry-ipmi.png" alt="IPMI data in netdata: power, temperatures, voltages, fans" width={620} />
 
 :::tip
 This feature is only available in one-click in your XOA. However, all sources and packages to do it yourself are available!
@@ -32,11 +34,11 @@ This feature is only available in one-click in your XOA. However, all sources an
 
 Memory details:
 
-![](https://xen-orchestra.com/blog/content/images/2019/11/memorystats.png)
+<UiDetail src="/img/xo5/telemetry-memory.png" alt="Detailed memory metrics" width={620} />
 
 Firewall:
 
-![](https://xen-orchestra.com/blog/content/images/2019/11/firewallstats.png)
+<UiDetail src="/img/xo5/telemetry-firewall.png" alt="Firewall activity" width={620} />
 
 ## Hardware Monitoring
 
@@ -47,7 +49,7 @@ Xen Orchestra makes it easy to monitor disk health using a XAPI plugin for XCP-n
 - **Healthy Disks:** If all disks are in good condition, Xen Orchestra shows: **All disks are healthy ✅**.
 - **Unhealthy Disks:** If any issues are detected, a warning icon appears, indicating how many disks are affected:
 
-![](../../static/img/disk-health-warning.png)
+<UiDetail src="/img/disk-health-warning.png" alt="A host with disks reporting SMART issues" width={480} />
 
 ## Web hooks
 
@@ -171,7 +173,7 @@ The key idea is to be able to schedule any action (migrate, reboot etc.), for th
 
 In the main menu, go to the "Job Manager" section:
 
-![](../assets/jobmanager.png)
+<UiDetail src="/img/xo5/jobmanager.png" alt="The Job Manager entry, in the main menu" width={240} />
 
 You can now **schedule all actions** on your hosts, VMs, or ACLs. It's configured in 2 steps:
 
@@ -180,7 +182,7 @@ You can now **schedule all actions** on your hosts, VMs, or ACLs. It's configure
 
 Real example, step by step: **Creating a job called "security reboot"** (in this case, restarting "nfs" and "Core1" VMs):
 
-![](../assets/job_create.png)
+<UiDetail src="/img/xo5/job_create.png" alt="Create a job: pick the action and the target VMs" width={700} />
 
 Note that you can execute this job **now** by clicking on the orange play button (to test it for instance):
 
@@ -188,11 +190,11 @@ Note that you can execute this job **now** by clicking on the orange play button
 
 **Schedule the job** (every Sunday at 5:00 AM):
 
-![](../assets/schedule_job.png)
+<UiDetail src="/img/xo5/schedule_job.png" alt="Schedule the job: every Sunday at 5:00 AM" width={700} />
 
 And that's it! The job is listed in the Overview:
 
-![](../assets/schedule_recap.png)
+<UiDetail src="/img/xo5/schedule_recap.png" alt="The job is now listed in the Overview" width={700} />
 
 The possibilities are infinite! You can schedule a **lot** of things (any actions on a VM, like migrate, start, clone, suspend etc. Same thing also applies to hosts).
 
@@ -226,18 +228,18 @@ If you have a UPS for your hosts, and lose power, you may have a limited amount 
 
 On the host view, clicking on this button will trigger the _Emergency Shutdown_ procedure:
 
-![](../assets/e-shutdown-1.png)
+<UiDetail src="/img/xo5/e-shutdown-1.png" alt="The Emergency Shutdown button, in the host view" width={340} />
 
 1.  **All running VMs will be suspended** (think of it like "hibernate" on your laptop: the RAM will be stored in the storage repository).
 2.  Only after this is complete, the host will be halted.
 
 Here, you can see the running VMs are being suspended:
 
-![](../assets/e-shutdown-2.png)
+<UiDetail src="/img/xo5/e-shutdown-2.png" alt="Running VMs being suspended" width={620} />
 
 And finally, that's it. They are cleanly shut down with the RAM saved to disk to be resumed later:
 
-![](../assets/e-shutdown-3.png)
+<UiDetail src="/img/xo5/e-shutdown-3.png" alt="All VMs suspended, with their RAM saved to disk" width={620} />
 
 Now the host is halted automatically.
 
@@ -270,9 +272,9 @@ From there, you can even manage your existing resources with Terraform!
 
 Synchronize your pools, VMs, network interfaces and IP addresses with your [Netbox](https://docs.netbox.dev/en/stable/) instance.
 
-![](../assets/netbox.png)
+<UiShot light="/img/xo5/netbox.png" alt="Your XO pools, VMs and IP addresses, synchronized in Netbox" url="https://netbox.company.net" />
 
-## Supported versions
+### Supported versions {#supported-versions}
 
 - `>= 2.10`
 - `3.x`
@@ -315,7 +317,7 @@ XO will try to find the right prefix for each IP address. If it can't find a pre
       - Virtualization > virtual machine
       - Virtualization > interface
 
-![](../assets/netbox-permissions.png)
+<UiDetail src="/img/xo5/netbox-permissions.png" alt="The two XO permissions, on the Netbox side" width={620} />
 
 - Create a Netbox user:
   - Go to Admin > Users > Add
@@ -340,7 +342,7 @@ For testing purposes, you can create an API token bound to a Netbox superuser ac
     - Virtualization > interface
   - Name it "uuid" (lower case!)
 
-![](../assets/customfield.png)
+<UiDetail src="/img/xo5/customfield.png" alt="The uuid custom field in Netbox" width={560} />
 
 :::tip
 In Netbox 2.x, custom fields can be created from the Admin panel > Custom fields > Add custom field.
@@ -1034,10 +1036,10 @@ server {
 
 A health check endpoint is available without authentication:
 
-```bash
+<Terminal title="health check, no authentication needed">{`
 curl http://your-xoa-ip/openmetrics/health
-# Response: {"status":"ok"}
-```
+{"status":"ok"}
+`}</Terminal>
 
 ### Troubleshooting
 

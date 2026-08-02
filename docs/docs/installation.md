@@ -18,6 +18,31 @@ The wizard walks four steps: **Connect** (your host address and credentials), **
 
 <UiDetail src="/img/xoa/deploy-wizard.png" alt="The four deploy steps: connect to your primary host, configure, secure, deploy" width={620} />
 
+## XOA specifications and sizing {#xoa-vm-specifications}
+
+By default, the deployed VM is configured with:
+
+- 2 vCPUs
+- 2 GiB of RAM
+- 20 GiB of free SR space (2 GiB on thin provisioned SR)
+
+### Sizing your XOA {#sizing}
+
+The right size depends on what you ask of it:
+
+| Usage                                                       | vCPUs  | RAM                    |
+| ----------------------------------------------------------- | ------ | ---------------------- |
+| A few pools, no backup jobs, no V2V                         | 2      | 2 GiB (strict minimum) |
+| Enterprise usage (backup jobs, V2V, more pools)             | 4      | 4 GiB minimum          |
+| Working at scale (large infrastructure, heavy backup load)  | 4 to 8 | 8 GiB                  |
+
+A few rules of thumb:
+
+- **2 GiB and 2 vCPUs is the strict minimum**, fine for a few pools without backups or V2V.
+- As soon as you use XOA in an enterprise context, **4 GiB and 4 vCPUs** should be your baseline.
+- **8 GiB** is better when working at scale, and **8 vCPUs** can bring extra speed when you run a lot of backups (transfers and compression are parallel workloads).
+- You can always give more, but **measure** afterwards to check the improvement is real before going further.
+
 ## First login
 
 Once the VM is running, open its IP address in your browser. If you did not set a fixed IP or are unsure which one it got:
@@ -26,7 +51,7 @@ Once the VM is running, open its IP address in your browser. If you did not set 
 
 or check your router's DHCP leases for an `xoa` entry.
 
-- Default web UI credentials: `admin@admin.net` / `admin`. Change them right after the first login.
+- Default web UI credentials: `admin@admin.net` / `admin`. Change them right after the first login: create a new admin account and remove this one. If you ever lose your password, you can [reset the configuration](troubleshooting.md#reset-the-configuration) to get the default credentials back.
 - Console and SSH have **no default password**: you set one during deployment, or later [from the host](#first-console-connection).
 
 ## Register and start your trial {#registration}
@@ -43,7 +68,7 @@ To try everything XO can do, start the trial from the same view ("Start Trial", 
 
 <UiDetail src="/img/xoa/start-trial.png" alt="Starting the 30-day Premium trial" width={520} />
 
-When the trial ends, the appliance keeps working and simply returns to the Free feature set: you lose no data and no configuration. Details about the appliance itself (specifications, accounts, firewall) live in [the XOA reference](xo5/xoa.md).
+When the trial ends, the appliance keeps working and simply returns to the Free feature set: you lose no data and no configuration. For system-level settings of the appliance (firewall, NTP, service restart), see [the XOA appliance settings](configuration.md#xoa-appliance).
 
 ## Alternative deployment methods {#alternative-install}
 

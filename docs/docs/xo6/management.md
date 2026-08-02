@@ -1,3 +1,7 @@
+---
+sidebar_label: Management in XO 6
+---
+
 # Management
 
 This page walks through day-to-day management in XO 6: pools, hosts and VMs. For the general layout and navigation, start with [Getting started](gettingstarted.md).
@@ -66,6 +70,27 @@ The **Console** tab is a full VNC console in the browser: fullscreen, open chrom
 **New VM** (from a pool, or from the VMs lists) opens the VM creation form. Picking a template unlocks the full form: install settings (SSH key, cloud-init user and network config, ISO, PXE), name and description, boot firmware with vTPM and Secure Boot options, affinity host, high availability, vCPUs and RAM, network interfaces and disks, and whether to boot the VM right after creation. Creating several VMs at once is not available yet; for that, use XO 5.
 
 <UiShot light="/img/xo6/new-vm-light.png" dark="/img/xo6/new-vm-dark.png" alt="Creating a VM: it starts with a template" url="https://your-xo/v6/#/vm/new" />
+
+## Traffic rules {#traffic-rules}
+
+Traffic rules are the first feature built for XO 6 first: allow or block traffic **network-wide or per virtual interface (VIF)**, from a single place. Typical use case: isolating VMs that share a subnet or a VLAN, without touching anything inside the guests.
+
+They live in two places:
+
+- **Pool → Security tab**: every traffic rule of the pool, across all its networks and VIFs, in one consolidated view.
+- **VIF → Traffic rules tab**: the rules of one specific interface (also reachable from the VIF column in the VM Network tab).
+
+<UiShot light="/img/xo6/pool-security-light.png" dark="/img/xo6/pool-security-dark.png" alt="The pool Security tab gathers every traffic rule of the pool" url="https://your-xo/v6/#/pool/…/security" />
+
+A rule is simple to express: allow or block, a protocol (ARP, ICMP, IP, TCP or UDP), a port for TCP/UDP, an IP address or a CIDR subnet, a direction (from, to, or both), and the object it applies to: a whole network, or a single VIF.
+
+<UiShot light="/img/xo6/traffic-rule-new-light.png" dark="/img/xo6/traffic-rule-new-dark.png" alt="The new traffic rule form: policy, protocol, direction, IP range, and the network or VIF it applies to" url="https://your-xo/v6/#/traffic-rule/new" />
+
+:::warning Prerequisites
+Traffic rules are enforced by the [SDN Controller plugin](../xo5/sdn_controller.md): it must be loaded, and switched to the **XAPI plugin** mode ([`useDirectChannel = false`](../configuration.md#sdn-controller-mode)). XO 6 shows a notification guiding you through the switch, and a [migration script](../xo5/sdn_controller.md#migration-path) converts existing rules.
+:::
+
+Everything is also available through the [REST API](../xo5/restapi.md), where rules can additionally be updated in place, making network policies easy to automate.
 
 ## Users and administration
 

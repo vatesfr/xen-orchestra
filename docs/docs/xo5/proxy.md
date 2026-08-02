@@ -1,3 +1,7 @@
+---
+sidebar_label: Backup proxies
+---
+
 # Backup Proxy
 
 A Xen Orchestra proxy is an architecture component you can deploy in your infrastructure in order to locally handle the data streams of your backup jobs.
@@ -42,9 +46,9 @@ XO proxies require the following resources:
 
 4. If you have an available license, it will be automatically bound to your newly deployed proxy.
 
-## Proxy Remote creation
+## Backup repository through a proxy {#proxy-remote-creation}
 
-Once a proxy is deployed in your infrastructure, you can create a proxy remote using the remote form.
+Once a proxy is deployed in your infrastructure, you can create a backup repository (BR) handled by that proxy, using the usual form (still labeled _Remotes_ in XO 5).
 
 ![](https://user-images.githubusercontent.com/21563339/80117316-54529980-8587-11ea-9721-8a1d61293efe.png)
 ![](https://user-images.githubusercontent.com/21563339/80117185-23726480-8587-11ea-8136-50a8d98b4a5a.png)
@@ -56,7 +60,7 @@ While creating a standard backup job from your main Xen Orchestra appliance, you
 ![](https://user-images.githubusercontent.com/21563339/80116365-29b41100-8586-11ea-9746-e01ca3e53996.png)
 
 :::tip
-If you see this error: `The backup will not be run on this remote because it's not compatible with the selected proxy`, it means the selected remote is not accessible from the proxy or mounted on the proxy that you have selected for the job.
+If you see this error: `The backup will not be run on this remote because it's not compatible with the selected proxy`, it means the selected backup repository is not accessible from the proxy or mounted on the proxy that you have selected for the job.
 
 ![Error message: "The backup will not be run on this remote because it's not compatible with the selected proxy"](../assets/remote_not_compatible_with_proxy.png)
 :::

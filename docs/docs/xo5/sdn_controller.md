@@ -1,5 +1,7 @@
 # SDN Controller
 
+<InterfaceNote>Private networks are currently created and managed from XO 5. Traffic rules moved ahead in [XO 6](../xo6/management.md#traffic-rules), with more capabilities than the XO 5 equivalent.</InterfaceNote>
+
 :::tip
 Be sure to enable the plugin on only one XOA instance.
 :::
@@ -10,7 +12,58 @@ The SDN Controller enables a user to **create pool-wide and cross-pool private n
 
 Interconnect your VMs and hosts within a dedicated and secured private network, even across different pools all around the world. This is a great way to protect "private links" (eg between applications and databases, management networks etc.) without any complicated deployment.
 
-![](../assets/gpn.png)
+<Schema label="One private network spanning two sites" legend={[["#6aabf0", "XO"], ["#8e83fe", "XCP-ng"], ["#5ac8c8", "private network tunnels"]]} maxWidth="640px">
+<svg viewBox="0 0 640 260" role="img" aria-label="The SDN controller in Xen Orchestra builds encrypted GRE or VxLAN tunnels between the hosts of two pools in different locations, forming a single private network for the VMs">
+  <rect x="280" y="10" width="80" height="34" rx="8" fill="rgba(106,171,240,0.12)" stroke="#6aabf0"/>
+  <text x="320" y="27" fontSize="12.5" fill="#6aabf0" textAnchor="middle">XO</text>
+  <text x="320" y="39" fontSize="8.5" fill="#7a8699" textAnchor="middle">SDN controller</text>
+  <g className="schema-flow" stroke="#7a8699" strokeWidth="1.3" strokeDasharray="5 4">
+    <line x1="292" y1="44" x2="160" y2="70"/>
+    <line x1="348" y1="44" x2="480" y2="70"/>
+  </g>
+  <g fill="none" stroke="rgba(255,255,255,0.22)" strokeDasharray="6 5">
+    <rect x="25" y="70" width="270" height="160" rx="10"/>
+    <rect x="345" y="70" width="270" height="160" rx="10"/>
+  </g>
+  <g fontSize="12" fill="#7a8699">
+    <text x="41" y="92">Pool 1 · Paris</text>
+    <text x="361" y="92">Pool 2 · Amsterdam</text>
+  </g>
+  <g fill="rgba(142,131,254,0.1)" stroke="#8e83fe" strokeOpacity="0.8">
+    <rect x="45" y="102" width="115" height="86" rx="6"/>
+    <rect x="175" y="102" width="115" height="86" rx="6"/>
+    <rect x="365" y="102" width="115" height="86" rx="6"/>
+    <rect x="495" y="102" width="115" height="86" rx="6"/>
+  </g>
+  <g fontSize="10" fill="#8e83fe" textAnchor="middle">
+    <text x="102" y="119">Host 1</text>
+    <text x="232" y="119">Host 2</text>
+    <text x="422" y="119">Host 3</text>
+    <text x="552" y="119">Host 4</text>
+  </g>
+  <g fill="rgba(86,194,136,0.14)" stroke="#56c288">
+    <rect x="60" y="132" width="85" height="34" rx="4"/>
+    <rect x="190" y="132" width="85" height="34" rx="4"/>
+    <rect x="380" y="132" width="85" height="34" rx="4"/>
+    <rect x="510" y="132" width="85" height="34" rx="4"/>
+  </g>
+  <g fontSize="10.5" fill="#c6d2e1" textAnchor="middle">
+    <text x="102" y="152">VM</text>
+    <text x="232" y="152">VM</text>
+    <text x="422" y="152">VM</text>
+    <text x="552" y="152">VM</text>
+  </g>
+  <g className="schema-flow" stroke="#5ac8c8" strokeWidth="1.6" strokeDasharray="5 4">
+    <line x1="102" y1="188" x2="102" y2="210"/>
+    <line x1="232" y1="188" x2="232" y2="210"/>
+    <line x1="422" y1="188" x2="422" y2="210"/>
+    <line x1="552" y1="188" x2="552" y2="210"/>
+    <line x1="102" y1="210" x2="552" y2="210"/>
+  </g>
+  <text x="320" y="203" fontSize="9" fill="#5ac8c8" textAnchor="middle">WAN</text>
+  <text x="320" y="248" fontSize="9.5" fill="#7a8699" textAnchor="middle">encrypted GRE / VxLAN tunnels · one L2 network for all these VMs</text>
+</svg>
+</Schema>
 
 ### How does it work?
 
@@ -36,7 +89,7 @@ In the network creation view:
 - Create the network
 - Have fun! ☺
 
-![](../assets/sdn-controller.png)
+<UiShot light="/img/xo5/sdn-controller.png" alt="Creating a private network: interface, encapsulation, encryption, and the pools to join" url="https://your-xo/v5/#/new/network" />
 
 :::tip
 
@@ -61,21 +114,29 @@ The plugin's configuration contains:
 
 ### Encryption
 
-- To be able to encrypt the networks, `openvswitch-ipsec` package must be installed on all the hosts:
-  - `yum install openvswitch-ipsec --enablerepo=xcp-ng-testing`
-  - `systemctl enable ipsec`
-  - `systemctl enable openvswitch-ipsec`
-  - `systemctl start ipsec`
-  - `systemctl start openvswitch-ipsec`
+To be able to encrypt the networks, the `openvswitch-ipsec` package must be installed on all the hosts:
+
+<Terminal shell title="on every host of the network">{`
+yum install openvswitch-ipsec --enablerepo=xcp-ng-testing
+systemctl enable ipsec
+systemctl enable openvswitch-ipsec
+systemctl start ipsec
+systemctl start openvswitch-ipsec
+`}</Terminal>
 
 ## OpenFlow rules
 
-There are currently two implementations:
+Traffic rules let you allow or block traffic per VIF, or network-wide. There are currently two backends:
 
 - One where the SDN Controller plugin talks directly to Open vSwitch through the OpenFlow protocol
 - A newer one using a XAPI plugin on XCP-ng side that directly configures Open vSwitch
 
 At this time, the two options are covered until we can fully deprecate the older, direct OpenFlow implementation.
+
+Where the UI lives:
+
+- **XO 5**: per-VIF rules only, from the VM **Network** tab (described [below](#openflow-protocol))
+- **XO 6**: the full experience, network-wide **and** per-VIF rules, with a consolidated pool view: see [Traffic rules in XO 6](../xo6/management.md#traffic-rules). It requires the XAPI plugin backend.
 
 ### OpenFlow Protocol
 
@@ -103,8 +164,9 @@ In the VM network tab a new column has been added: _Network rules_.
 - The _Show rules_ button allow to display all rules for a VIF.
 - When the rules are display a button to delete a rule is available.
 
-![](../assets/add-rule.png)
-![](../assets/show-rules.png)
+<UiDetail src="/img/xo5/add-rule.png" alt="The Add rule form: allow or deny, protocol, port, IP range, direction" width={480} />
+
+<UiDetail src="/img/xo5/show-rules.png" alt="All the rules of a VIF, with a delete button for each" width={700} />
 
 ### XAPI Plugin
 
@@ -117,7 +179,7 @@ A few caveats:
   :::
 
 :::tip
-Since Xen Orchestra 6.5 UI, you can manage network-wide or VIF traffic rules. The rules can also be created through the [REST API](./restapi.md).
+This is the backend used by the [XO 6 traffic rules UI](../xo6/management.md#traffic-rules) (since XO 6.5): network-wide and per-VIF rules, with a consolidated view in the pool **Security** tab. The rules can also be managed through the [REST API](./restapi.md), including in-place updates (since XO 6.7).
 :::
 
 - Works on any network:
@@ -129,12 +191,12 @@ Since Xen Orchestra 6.5 UI, you can manage network-wide or VIF traffic rules. Th
 
 To setup a per-VIF rule using the UI, follow the [openflow instructions](#openflow-protocol) above, as the UI is the same and only the backend changes.
 
-Here, we describe how to use `xo-cli` to configure rules. First, make sure to register xo-cli to your XOA instance as documented in [it's documentation](../architecture.md#xo-cli).
+Here, we describe how to use `xo-cli` to configure rules. First, make sure to register xo-cli to your XOA instance as documented in [its documentation](../architecture.md#xo-cli).
 
 - Add per-VIF rules: `xo-cli sdnController.addRule vifId=<VIF_UUID> <parameters>`
-- Delete per-VIF rules: `xo-cli sdnController.deleteRule vifId=<VIF_UUID> <parameters`
-- Add new network-wide rules: `xo-cli sdnController.addNetworkRule networkId=<NETWORK_UUID> <parameters`
-- Delete network-wide rules: `xo-cli sdnController.deleteNetworkRule networkId=<NETWORK_UUID> <parameters`
+- Delete per-VIF rules: `xo-cli sdnController.deleteRule vifId=<VIF_UUID> <parameters>`
+- Add new network-wide rules: `xo-cli sdnController.addNetworkRule networkId=<NETWORK_UUID> <parameters>`
+- Delete network-wide rules: `xo-cli sdnController.deleteNetworkRule networkId=<NETWORK_UUID> <parameters>`
 
 Parameters:
 
@@ -149,18 +211,19 @@ Parameters:
 
 Some examples:
 
-```
-# Per-VIF rules:
+<Terminal shell title="per-VIF rules">{`
 xo-cli sdnController.addRule vifId=15f1a9ec-4348-0cca-d2b8-e536db043298 direction=from ipRange=1.1.1.3 protocol=tcp port=json:4242 allow=false
 xo-cli sdnController.deleteRule vifId=15f1a9ec-4348-0cca-d2b8-e536db043298 direction=from ipRange=1.1.1.3 protocol=tcp port=json:4242
 xo-cli sdnController.addRule vifId=e9a7914a-9518-82e2-7052-42cb16cc9724 direction=to ipRange=1.1.1.2 protocol=icmp allow=false
 xo-cli sdnController.deleteRule vifId=e9a7914a-9518-82e2-7052-42cb16cc9724 direction=to ipRange=1.1.1.2 protocol=icmp
-# Network-wide rules:
+`}</Terminal>
+
+<Terminal shell title="network-wide rules">{`
 xo-cli sdnController.addNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=to ipRange=1.1.1.2 protocol=icmp allow=false
 xo-cli sdnController.deleteNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=to ipRange=1.1.1.2 protocol=icmp
 xo-cli sdnController.addNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=from ipRange=1.1.1.2 protocol=tcp allow=false port=json:4242
 xo-cli sdnController.deleteNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=from ipRange=1.1.1.2 protocol=tcp port=json:4242
-```
+`}</Terminal>
 
 ### Migration path
 
@@ -188,13 +251,13 @@ Existing rules will first be removed before restoring the saved ones.
 
 The migration script is available as [sdn-migration.py (download script)](../../static/sh/sdn-migration.py).
 
-```sh
+<Terminal shell title="migrate the rules (backup written to rules-channel.json)">{`
 # Export current rules to rules-channel.json and convert to XAPI format
 python3 sdn-migration.py migrate
 
 # (Optional) Restore original rules (from rules-channel.json file)
 python3 sdn-migration.py restore
-```
+`}</Terminal>
 
 ## OpenSSL 3 + SDN upgrade path
 
@@ -233,9 +296,9 @@ We provide a script to run from a host that has access to your pool. To run the 
 
 Copy the file to where you want to run the script, then run this:
 
-```
-$ bash check-sdn-features.sh <pool-master-ip1> [pool-master-ip2] [pool-master-ip3] ...
-```
+<Terminal shell title="check every pool master">{`
+bash check-sdn-features.sh <pool-master-ip1> [pool-master-ip2] [pool-master-ip3] ...
+`}</Terminal>
 
 The script will connect to those masters and check:
 
@@ -273,11 +336,11 @@ This is the simplest case. We have updated the self-signed certificates to work 
 :::tip
 We suggest doing a backup of the certificates in case anything goes wrong:
 
-```
+<Terminal title="back up the current certificates, on your XOA">{`
 xoa@xoa:~$ today=$(date +%Y%m%d)
 xoa@xoa:~$ sudo mkdir /var/lib/xo-server/data/sdn-controller/$today-backup
 xoa@xoa:~$ sudo mv /var/lib/xo-server/data/sdn-controller/*.pem /var/lib/xo-server/data/sdn-controller/$today-backup
-```
+`}</Terminal>
 
 :::
 
@@ -291,11 +354,11 @@ We provide a helper script to run on your XOA VM:
 
 [regenerate-certs.sh (download script)](../../static/sh/regenerate-certs.sh)
 
-```
+<Terminal title="regenerate the certificates, on your XOA">{`
 xoa@xoa:~$ sudo bash -e ./regenerate-certs.sh
 # if you have available updates, just update XOA, otherwise:
 xoa@xoa:~$ sudo systemctl restart xo-server
-```
+`}</Terminal>
 
 Once `xo-server` is back up, the new certificates are pushed to your hosts. You can then update your XCP-ng pools as you normally would.
 

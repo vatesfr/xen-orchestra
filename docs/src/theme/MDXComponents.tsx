@@ -5,6 +5,7 @@ import UiShot from '@site/src/components/UiShot'
 import UiDetail from '@site/src/components/UiDetail'
 import { CardGrid, LinkCard } from '@site/src/components/Cards'
 import HostCompatTable from '@site/src/components/HostCompat'
+import InterfaceNote from '@site/src/components/InterfaceNote'
 
 export default {
   ...MDXComponents,
@@ -15,4 +16,5 @@ export default {
   CardGrid,
   LinkCard,
   HostCompatTable,
+  InterfaceNote,
 }

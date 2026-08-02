@@ -4,25 +4,44 @@ slug: backup
 
 # Introduction to backups
 
-Xen Orchestra is currently the most capable and advanced solution to backup your VMs/infrastructure. There's many ways and solutions to achieve what you need, take time to read them all. Take a look on the [concept section](backups.md) to learn more about how it works.
+Xen Orchestra ships a complete, **agentless** backup engine for your whole infrastructure: nothing to install inside your VMs, everything managed from one place, from quick rolling snapshots to cross-site disaster recovery.
 
-Alternatively, here is a video recap on different backup capabilities:
+New to backups in XO? Start with these two:
+
+<CardGrid>
+<LinkCard title="Backup strategy guide" href="/xo5/backup_howto">Which backup type for which need: design your protection plan before clicking anything.</LinkCard>
+<LinkCard title="Backups in XO 6" href="/xo6/backups">Follow backup health from the new dashboards: job status, per-VM protection, restore points.</LinkCard>
+</CardGrid>
+
+## Pick your backup type
+
+- **[Rolling snapshots](rolling_snapshots.md)**: scheduled snapshots kept on a rotation. No repository needed, instant restore points.
+- **[Full backups](full_backups.md)**: a complete export of the VM to a backup repository (BR), every time. Simple and self-contained.
+- **[Incremental backups](incremental_backups.md)**: after an initial full, only the changed blocks are sent. Fast, compact, deduplicable.
+- **[Full replication (DR)](full_replication.md)**: a ready-to-boot copy of your VMs, kept up to date on another host or SR.
+- **[Incremental replication (CR)](incremental_replication.md)**: the same standby copy, sending only the deltas.
+- **[Mirror backups](mirror_backup.md)**: replicate a whole backup repository to another one, the key to [3-2-1 strategies](backup_howto.md#long-term-retention-strategy).
+- **[Metadata backup](metadata_backup.md)**: the XO configuration and pool metadata themselves, so the orchestrator is never your single point of failure.
+
+:::tip
+You don't have to pick VMs one by one: **[smart backup](backups.md#smart-backup)** selects them dynamically by pool, tag or power state, so new VMs are protected automatically.
+:::
+
+## Going further
+
+<CardGrid>
+<LinkCard title="Features and settings" href="/xo5/backups">Encryption, schedules, smart backup, backup repositories, restore (including file-level), retention, health checks: the full reference.</LinkCard>
+<LinkCard title="Backup proxies" href="/xo5/proxy">Offload backup traffic to proxies, closer to your pools and repositories.</LinkCard>
+<LinkCard title="Distributed backups" href="/distributed_backups">Combine proxies and mirrors for multi-site, resilient backup architectures.</LinkCard>
+<LinkCard title="Immutability" href="/xo5/immutability">Make your backup repositories tamper-proof against ransomware.</LinkCard>
+<LinkCard title="Backup reports" href="/xo5/backup_reports">Get notified after each run: email, XMPP and more.</LinkCard>
+<LinkCard title="Troubleshooting" href="/xo5/backup_troubleshooting">Interrupted runs, full SRs, slow transfers: the usual suspects and their fixes.</LinkCard>
+</CardGrid>
+
+:::tip
+Sizing question? The [retention calculator](calculator.md) estimates how much storage a given schedule and retention will consume.
+:::
+
+## See it in action
 
 <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/FfUqIwT8KzI?si=kTvxIFhPjv-8Iwri" title="Administer and backup your VM infrastructure the easiest way" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
-- [Rolling Snapshots](rolling_snapshots.md)
-- [Full Backups](full_backups.md)
-- [Incremental Backups](incremental_backups.md)
-- [Full Replication](full_replication.md)
-- [Metadata Backups](metadata_backup.md)
-- [Incremental Replication](incremental_replication.md)
-- [File Level Restore](backups.md#file-level-restore)
-- [Mirror backup](mirror_backup.md)
-
-:::tip
-Don't forget to take a look at the [backup troubleshooting](backup_troubleshooting.md) section. You can also take a look at the [backup reports](backup_reports.md) section for configuring notifications.
-:::
-
-:::tip
-There is also a way to automatically select the VMs to backup: **[smart backup](backups.md#smart-backup)**.
-:::

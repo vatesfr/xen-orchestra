@@ -1,8 +1,12 @@
+---
+sidebar_label: Distributed backups
+---
+
 # Distributed Backups
 
 Distributed backups let you spread backup and replication workloads across multiple storage targets, treating them as a pool rather than independent destinations.
 
-By default, when a backup job has several remotes or storage repositories (SRs) configured, each VM backup is written to **every** target. With distributed mode enabled, each VM backup is written to **exactly one** target per run, selected automatically based on available space.
+By default, when a backup job has several backup repositories (BR) or storage repositories (SRs) configured, each VM backup is written to **every** target. With distributed mode enabled, each VM backup is written to **exactly one** target per run, selected automatically based on available space.
 
 This is useful to:
 
@@ -21,7 +25,7 @@ Distributed backups are about **capacity spreading**, not redundancy. A VM's bac
 
 ## Setup
 
-### Distributed backups (remotes)
+### Distributed backups (backup repositories) {#distributed-backups-remotes}
 
 1. Go to **Backup → New backup job** or edit an existing one.
 2. Configure at least two backup repositories in the **Backup repositories** section.
@@ -71,7 +75,7 @@ When a health check is scheduled, it runs only against the target that holds the
 | Limitation                         | Details                                                                                                                                                                     |
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Cannot mix storage classes         | A pool cannot combine limited-capacity targets (NFS, Local, SMB) with unlimited targets (S3, Azure Blob). Xen Orchestra will throw an error at the start of the backup run. |
-| Minimum 2 targets required         | The option is greyed out in the UI unless at least 2 remotes or SRs are selected.                                                                                           |
+| Minimum 2 targets required         | The option is greyed out in the UI unless at least 2 BRs or SRs are selected.                                                                                           |
 | Not usable as mirror source        | A job with distributed backup enabled cannot be used as the source for a [Mirror Backup](./xo5/mirror_backup.md) job.                                                             |
 | No duplication                     | Distributed mode and per-target duplication are mutually exclusive in the same job. Each VM backup lands on exactly one target.                                             |
 | No cross-target restore dependency | Each VM backup is self-contained on its target. Restoring from one target does not require any other target to be available.                                                |

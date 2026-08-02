@@ -274,7 +274,9 @@
    in src/css/custom.css. */
 .label::before {
   counter-increment: schema-fig;
-  content: 'Fig. ' counter(schema-fig) '  ';
+  /* \2009 is a thin space: a full space gets stretched too wide by the
+     letter-spacing below. */
+  content: 'Fig.\2009' counter(schema-fig) '  ';
   font-family: var(--ifm-font-family-monospace);
   font-style: normal;
   font-size: 0.72rem;

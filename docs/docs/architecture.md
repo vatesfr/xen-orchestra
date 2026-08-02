@@ -86,7 +86,7 @@ Note that `xo-server` only needs to reach the **master** of each pool: the maste
 
 ## XOA
 
-The _Xen Orchestra Appliance_ (XOA) is a VM with the whole stack pre-installed, configured and QA validated. It is the way we recommend and support running XO: see [Installation](installation.md) and [the XOA reference](xo5/xoa.md).
+The _Xen Orchestra Appliance_ (XOA) is a VM with the whole stack pre-installed, configured and QA validated. It is the way we recommend and support running XO: see [Installation](installation.md).
 
 ## xo-server
 
@@ -169,7 +169,7 @@ Legacy clients ask the servers "anything new?" every few seconds: slow, and it c
 Two web UIs currently ship with Xen Orchestra, served by `xo-server` and talking to it over WebSockets:
 
 - **XO 6** (`@xen-orchestra/web`), the new default interface, built with Vue.js on a dedicated design system. See the [XO 6 documentation](xo6/gettingstarted.md).
-- **XO 5** (`xo-web`), the complete historical interface, built with React. See [the management section](xo5/manage.md) for what you can do with it.
+- **XO 5** (`xo-web`), the complete historical interface, built with React. See [the infrastructure management section](xo5/manage_infrastructure.md) for what you can do with it.
 
 <UiShot light="/img/xo6/dashboard-light.png" dark="/img/xo6/dashboard-dark.png" alt="XO 6, the new default web interface" url="https://your-xo/v6/#/dashboard" />
 

@@ -1,7 +1,9 @@
 # Users
 
+<InterfaceNote>This page describes user management in the XO 5 interface. XO 6 currently lists users (with their groups and tokens); creating and editing them still happens here.</InterfaceNote>
+
 :::tip
-For system users (in XOA), please refer to [XOA section](xoa.md). Here, we are only talking about users in Xen Orchestra application
+For the system accounts of the appliance itself, see [First login](../installation.md#first-login). Here, we are only talking about users in the Xen Orchestra application
 :::
 
 There are 2 types of XO users:

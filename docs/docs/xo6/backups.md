@@ -1,3 +1,7 @@
+---
+sidebar_label: Backups in XO 6
+---
+
 # Backups
 
 XO 6 puts backup health where you look every day: on the dashboards. This page covers what you can see and follow from XO 6; creating and editing backup jobs is currently done in XO 5 (see [XO 6 vs. XO 5](xo6vsxo5.md)).
@@ -32,4 +36,4 @@ The **Backups** tab of the VM lists the jobs covering that specific VM.
 
 ## Where the rest lives
 
-Backup restore, job creation and editing, remotes (S3, NFS, SMB and Azure), mirror backups, sequences and health checks are managed in XO 5 for now, and are documented in the [XO 5 backup documentation](../xo5/backups.md). Everything you configure there is immediately reflected in the XO 6 views above.
+Backup restore, job creation and editing, backup repositories (S3, NFS, SMB and Azure), mirror backups, sequences and health checks are managed in XO 5 for now, and are documented in the [XO 5 backup documentation](../xo5/backups.md). Everything you configure there is immediately reflected in the XO 6 views above.

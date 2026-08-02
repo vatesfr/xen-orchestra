@@ -7,6 +7,8 @@ title: What's new
 
 XO 6 is a complete redesign of the Xen Orchestra interface, built as a modern web application on a dedicated design system. It is not a reskin of XO 5: the navigation, the information architecture and the visual language were rebuilt from scratch around how infrastructures are actually operated.
 
+<UiShot dark="/img/xo6/lab-dashboard.webp" alt="XO 6: one dashboard for every pool, host and VM you manage" url="https://myxoa.domain.tld/v6/#/dashboard" />
+
 ## Highlights
 
 - **A tree view of your whole infrastructure**: every pool, host and VM in one always-visible, searchable tree. No more jumping between list pages to find an object.

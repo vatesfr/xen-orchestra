@@ -209,3 +209,21 @@ Backups have their own page: [Backup troubleshooting](xo5/backup_troubleshooting
 ## Still stuck?
 
 Open a ticket from your personal space on [account.vates.tech](https://account.vates.tech): describe the issue, and attach the `xoa check` output and the relevant logs.
+
+### Open a support tunnel {#support-tunnel}
+
+XOA is the only way to get our pro support, which can investigate remotely through a secure SSH tunnel. Our team will ask you for a "support ID": you get it by opening the tunnel, either from the web UI (XOA menu, **Support** section) or from the CLI if the web UI is not reachable:
+
+<Terminal title="open a secure support tunnel">{`
+$ xoa support tunnel
+The support tunnel has been created.
+
+Do not stop this command before the intervention is over!
+Give this id to the support: 40713
+`}</Terminal>
+
+Give this number to the support team: only Vates holds the private key for the tunnel. Close it with `Ctrl+C` once your issue is solved.
+
+:::tip
+The tunnel uses the bundled `xoa-support` user. You can deactivate this account with `chage -E 0 xoa-support`, and re-activate it with `chage -E 1 xoa-support`.
+:::

@@ -1,5 +1,6 @@
 ---
 title: Backup retention calculator
+sidebar_label: Retention calculator
 ---
 
 import LtrBackupCalculator from '@site/src/components/LtrBackupCalculator'
