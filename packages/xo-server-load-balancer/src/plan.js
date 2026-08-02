@@ -251,7 +251,8 @@ export default class Plan {
         object.type === 'host' &&
         includes(this._poolIds, object.$poolId) &&
         object.power_state === powerState &&
-        !includes(this._excludedHosts, object.id)
+        !includes(this._excludedHosts, object.id) &&
+        object.enabled === true
     )
   }
 
