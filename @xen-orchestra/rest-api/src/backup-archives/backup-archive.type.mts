@@ -1,10 +1,10 @@
 /**
- * Body of `POST /backup-archives/{id}/actions/mountDisk`.
+ * Body of `POST /backup-archives/{id}/actions/mountLiveDisk`.
  *
  * The disk is identified by its path on the backup repository, which contains
  * slashes, so it cannot be a route parameter.
  */
-export interface MountDiskBody {
+export interface MountLiveDiskBody {
   /** One of the archive's `disks[].id`. */
   diskId: string
   /**
@@ -15,8 +15,8 @@ export interface MountDiskBody {
   srId: string
 }
 
-/** Body of `POST /backup-archives/{id}/actions/unmountDisk`. */
-export interface UnmountDiskBody {
-  /** Identifier returned by the `mountDisk` action. */
+/** Body of `POST /backup-archives/{id}/actions/unmountLiveDisk`. */
+export interface UnmountLiveDiskBody {
+  /** Identifier returned by the `mountLiveDisk` action. */
   mountId: string
 }

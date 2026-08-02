@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { EventEmitter } from 'node:events'
 
-import BackupDiskMounts from './BackupDiskMounts.mjs'
+import LiveMount from './index.mjs'
 
 const SCSI_ID = '1VATES_xo-backup-db4582d0c901d31379ac5eb5deea9a68'
 const DISK_SIZE = 2 * 1024 * 1024 * 1024
@@ -148,7 +148,7 @@ const makeMixin = ({ diskOpenError, listenError, openCacheError } = {}) => {
 
   const cache = makeCacheDevice(DISK_SIZE)
 
-  const mixin = new BackupDiskMounts(app, {
+  const mixin = new LiveMount(app, {
     openDisk: async params => {
       if (diskOpenError !== undefined) {
         throw diskOpenError
@@ -173,7 +173,7 @@ const makeMixin = ({ diskOpenError, listenError, openCacheError } = {}) => {
 }
 
 const mount = (mixin, xapi, params) =>
-  mixin.mount({
+  mixin.mountDisk({
     cacheSrRef: CACHE_SR_REF,
     diskPath: 'xo-vm-backups/vm/vdis/job/vdi/20260731T120000Z.alias.vhd',
     vmRef: VM_REF,
@@ -194,7 +194,7 @@ describe('mount', () => {
     assert.equal(result.vdiUuid, 'vdi-uuid')
     assert.equal(result.address, '192.168.1.8')
     assert.equal(result.port, 34567)
-    assert.match(result.iqn, /^iqn\.2026-07\.tech\.vates\.xo:backup-[0-9a-f]{32}$/)
+    assert.match(result.iqn, /^iqn\.2026-07\.tech\.vates\.xo:live-mount-[0-9a-f]{32}$/)
 
     // the chain is opened with its block allocation tables
     assert.equal(disk.params.path, 'xo-vm-backups/vm/vdis/job/vdi/20260731T120000Z.alias.vhd')
@@ -204,7 +204,7 @@ describe('mount', () => {
     assert.equal(target.options.port, 0)
     assert.equal(target.options.iqn, result.iqn)
     assert.equal(target.options.chap.secret.length, 16)
-    assert.equal(target.options.identity.serial, `xo-backup-${result.id}`)
+    assert.equal(target.options.identity.serial, `xo-live-mount-${result.id}`)
 
     // introduced, not created: SR.create would scan and introduce the VDI itself
     const srIntroduce = xapi.calls.find(([method]) => method === 'SR.introduce')
@@ -261,7 +261,7 @@ describe('mount', () => {
     assert.deepEqual(
       xapi.calls.filter(([method]) => method === 'setFieldEntry').map(([, , , , entry, value]) => [entry, value]),
       [
-        ['xo:backup-disk-mount', result.id],
+        ['xo:live-mount', result.id],
         ['auto-scan', 'false'],
       ]
     )
@@ -269,7 +269,7 @@ describe('mount', () => {
     assert.ok(!xapi.calls.some(([method]) => method === 'VDI.set_read_only'))
 
     assert.deepEqual(
-      mixin.list().map(({ id, srUuid, vdiUuid, cacheVdiUuid, materialized }) => ({
+      mixin.listMountedDisks().map(({ id, srUuid, vdiUuid, cacheVdiUuid, materialized }) => ({
         id,
         srUuid,
         vdiUuid,
@@ -289,7 +289,7 @@ describe('mount', () => {
     )
   })
 
-  it('serves reads from the cache once the backup has been read', async () => {
+  it('serves reads from the cache once the source has been read', async () => {
     const { mixin, target, cache, disk } = makeMixin()
     const readBlocks = []
     disk.hasBlock = () => true
@@ -305,10 +305,10 @@ describe('mount', () => {
     assert.deepEqual(readBlocks, [0])
     // it landed in the cache disk...
     assert.deepEqual(cache.content.subarray(0, 512), Buffer.alloc(512, 0xab))
-    // ... so a second read does not touch the backup again
+    // ... so a second read does not touch the source again
     assert.deepEqual(await lun.read(1024, 512), Buffer.alloc(512, 0xab))
     assert.deepEqual(readBlocks, [0])
-    assert.deepEqual(mixin.list()[0].materialized, { blocks: 1, total: DISK_SIZE / (2 * 1024 * 1024) })
+    assert.deepEqual(mixin.listMountedDisks()[0].materialized, { blocks: 1, total: DISK_SIZE / (2 * 1024 * 1024) })
   })
 
   it('closes the cache device when the probe fails', async () => {
@@ -376,7 +376,7 @@ describe('unmount', () => {
     const { id } = await mount(mixin, xapi, { release: async () => (released = true) })
     xapi.calls.length = 0
 
-    await mixin.unmount(id)
+    await mixin.unmountDisk(id)
 
     assert.deepEqual(
       xapi.calls.map(([method]) => method),
@@ -385,7 +385,7 @@ describe('unmount', () => {
     assert.equal(target.closed, true)
     assert.equal(cache.closed, true)
     assert.equal(released, true)
-    assert.deepEqual(mixin.list(), [])
+    assert.deepEqual(mixin.listMountedDisks(), [])
   })
 
   it('still tears the rest down when forgetting the SR fails', async () => {
@@ -397,7 +397,7 @@ describe('unmount', () => {
       throw new Error('SR_HAS_NO_PBDS')
     }
 
-    await assert.rejects(mixin.unmount(id), { message: `failed to unmount backup disk ${id}` })
+    await assert.rejects(mixin.unmountDisk(id), { message: `failed to unmount live mount ${id}` })
 
     // a failing step must not strand the socket, the fd, the VBD or the VDI
     assert.equal(target.closed, true)
@@ -405,14 +405,14 @@ describe('unmount', () => {
     assert.ok(xapi.calls.some(([method]) => method === 'VBD_destroy'))
     assert.ok(xapi.calls.some(([method]) => method === 'VDI_destroy'))
     // the mount is gone either way, a half-released mount must not be retried
-    assert.deepEqual(mixin.list(), [])
+    assert.deepEqual(mixin.listMountedDisks(), [])
     // and the caller's resources are handed back despite the failure
     assert.equal(released, true)
   })
 
   it('rejects an unknown mount', async () => {
     const { mixin } = makeMixin()
-    await assert.rejects(mixin.unmount('nope'), /no such backup disk mount nope/)
+    await assert.rejects(mixin.unmountDisk('nope'), /no such live mount nope/)
   })
 })
 
@@ -424,6 +424,6 @@ describe('the stop hook', () => {
     await Promise.all(hooks.listeners('stop').map(listener => listener()))
 
     assert.equal(target.closed, true)
-    assert.deepEqual(mixin.list(), [])
+    assert.deepEqual(mixin.listMountedDisks(), [])
   })
 })
