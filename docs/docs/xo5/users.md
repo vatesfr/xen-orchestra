@@ -43,9 +43,9 @@ To activate two-factor authentication on your account:
 
 1. Go to your profile settings.
 2. At the top of the screen, go to the **OTP authentication** field and toggle the switch to the **On** position.
-    ![User configuration form](../assets/totp-config.png)
+   ![User configuration form](../assets/totp-config.png)
 3. A window will appear displaying a **QR code**:
-    ![QR code for enabling TOTP on a user account](../assets/toptp-qr-code.png)
+   ![QR code for enabling TOTP on a user account](../assets/toptp-qr-code.png)
 4. Open your preferred authentication app on your mobile device and **scan the QR code**.
 5. The app will generate a temporary 6-digit code.
 6. Enter this code into the **OTP code** field in the Xen Orchestra window.
@@ -293,13 +293,18 @@ WantedBy=multi-user.target
 ###### Configuring Keycloak
 
 1. Select your realm.
-  - Open **Admin console → Manage realms** and choose the realm you use with XOA.
+
+- Open **Admin console → Manage realms** and choose the realm you use with XOA.
+
 2. Enable required actions.
-  - Go to **Authentication → Required Actions**.
-  - Check **Webauthn Register** and **Webauthn Register Passwordless**.
+
+- Go to **Authentication → Required Actions**.
+- Check **Webauthn Register** and **Webauthn Register Passwordless**.
+
 3. Choose the WebAuthn authenticator.
-  - In **Authentication → Flows**, edit the login flow you use (e.g., browser).
-  - Add **WebAuthn Authenticator** as an **Alternative** (or replace the current authenticator with it).
+
+- In **Authentication → Flows**, edit the login flow you use (e.g., browser).
+- Add **WebAuthn Authenticator** as an **Alternative** (or replace the current authenticator with it).
 
 ![Keycloak Browser Flow Details](../assets/keycloak-browser-flow.png)
 
@@ -618,4 +623,4 @@ Now, the audit plugin will record users' actions and upload the last record in t
 
 ## Debugging
 
-If you can't log in, please [check the logs of `xo-server`](https://docs.xen-orchestra.com/troubleshooting#logs).
+If you can't log in, please [check the logs of `xo-server`](../troubleshooting.md#logs).

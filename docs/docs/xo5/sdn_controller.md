@@ -47,7 +47,7 @@ In the network creation view:
 
 ### Configuration
 
-Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](architecture#plugins).
+Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](../architecture.md#plugins).
 
 The plugin's configuration contains:
 
@@ -113,7 +113,7 @@ A few caveats:
 
 - This is still in BETA and should not be used in production yet.
 - This will only work on XCP-ng, not on XenServer hosts.
-- This is not enabled by default, and requires a configuration change for `xo-server`. See [the configuration page](configuration#sdn-controller-mode) to know more.
+- This is not enabled by default, and requires a configuration change for `xo-server`. See [the configuration page](../configuration.md#sdn-controller-mode) to know more.
   :::
 
 :::tip
@@ -129,7 +129,7 @@ Since Xen Orchestra 6.5 UI, you can manage network-wide or VIF traffic rules. Th
 
 To setup a per-VIF rule using the UI, follow the [openflow instructions](#openflow-protocol) above, as the UI is the same and only the backend changes.
 
-Here, we describe how to use `xo-cli` to configure rules. First, make sure to register xo-cli to your XOA instance as documented in [it's documentation](architecture#register-your-xo-instance).
+Here, we describe how to use `xo-cli` to configure rules. First, make sure to register xo-cli to your XOA instance as documented in [it's documentation](../architecture.md#xo-cli).
 
 - Add per-VIF rules: `xo-cli sdnController.addRule vifId=<VIF_UUID> <parameters>`
 - Delete per-VIF rules: `xo-cli sdnController.deleteRule vifId=<VIF_UUID> <parameters`
@@ -171,10 +171,10 @@ Because of this mismatch, the two modes are not directly interchangeable and you
 1. Re‑create the rules from scratch, or
 2. Use the provided migration script to translate an existing set of rules.
 
-  :::note
-    The migration is forward only.
-    You can go from OpenFlow Protocol to XAPI Plugin in a semi‑automatic manner, but to revert existing rules will be deleted first.
-  :::
+:::note
+The migration is forward only.
+You can go from OpenFlow Protocol to XAPI Plugin in a semi‑automatic manner, but to revert existing rules will be deleted first.
+:::
 
 #### What the migration script does
 

@@ -54,7 +54,7 @@ To check a template’s settings in Xen Orchestra:
 
 If you need more technical details that aren’t shown in the UI, you can use the Xen Orchestra API to dig deeper.
 
-To know more on the REST API, read [its documentation](https://github.com/vatesfr/xen-orchestra/blob/master/packages/xo-server/docs/rest-api.md).
+To know more on the REST API, read [its documentation](restapi.md).
 
 All collections are listed when you run `GET /rest/v0`, including the `vm-templates` collection:
 
@@ -107,9 +107,9 @@ We strongly advise to create Windows templates by starting from a built-in Windo
 To find and enable the Viridian setting for your template:
 
 1. Navigate to the **Home → VMs** menu.\
-A list of VMs appears.
+   A list of VMs appears.
 2. Choose your VM from the list and click its name.\
-The VM details screen appears.
+   The VM details screen appears.
 3. Click the **Advanced** tab to show more settings for your VM.
 4. In the **Xen settings** section, scroll to the end and activate the **Viridian** toggle switch:
    ![Location of the Viridian toggle in XO](../assets/viridian-extensions.png)

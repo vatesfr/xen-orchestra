@@ -6,7 +6,7 @@ Once Xen Orchestra is installed, you can configure some parameters in the config
 The configuration file is located at `/etc/xo-server/config.toml`.
 :::
 
-If you need to do any configuration on the system itself (firewall, SSH…), check the [XOA dedicated section](xoa.md).
+If you need to do any configuration on the system itself (firewall, SSH…), check the [XOA reference](xo5/xoa.md).
 
 ## Using XO 5 as the Default Interface
 
@@ -76,9 +76,9 @@ The update feature of XOA can reset any `local` config. Use `/etc/xo-server/conf
 
 After updating the configuration, restart the XO server process:
 
-```sh
+<Terminal shell title="xoa — apply the configuration">{`
 sudo systemctl restart xo-server
-```
+`}</Terminal>
 
 XO 5 will now be served as the default UI.
 
@@ -91,7 +91,7 @@ user = 'nobody'
 group = 'nogroup'
 ```
 
-**Warning!** A non-privileged user requires the use of `sudo` to mount NFS shares. See [installation from the sources](installation.md#from-the-sources).
+**Warning!** A non-privileged user requires the use of `sudo` to mount NFS shares. See [installation from the sources](install-from-sources.md).
 
 ## HTTP listen address and port
 
@@ -146,14 +146,14 @@ The SDN Controller plugin has 2 modes for the OpenFlow rule management. The defa
 For this kind of setting, we recommend using something like `/etc/xo-server/config.sdncontroller.toml` and not to modify the main configuration file.
 :::
 
-```
+```toml
 [plugins.sdn-controller]
 useDirectChannel = false
 ```
 
 Changing the mode is only supported forward : from direct OpenFlow Protocol channel to XAPI Plugin communication.
 A migration script is provided to automatically convert the traffic rules.
-See [XO 5 > Management > SDN Controller > OpenFlow rules](sdn_controller#migration-path) for details.
+See [SDN Controller: OpenFlow rules](xo5/sdn_controller.md#migration-path) for details.
 
 ## Custom certificate authority
 
@@ -168,12 +168,17 @@ Environment=NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/my-cert.crt
 
 Don't forget to reload `systemd` conf and restart `xo-server`:
 
-```sh
+<Terminal shell title="xoa — reload systemd">{`
 systemctl daemon-reload
-systemctl restart xo-server.service
-```
+`}</Terminal>
 
-> For XO Proxy, the process is almost the same except the file to create is `/etc/systemd/system/xo-proxy.service.d/ca.conf` and the service to restart is `xo-proxy.service`.
+<Terminal shell title="xoa — restart xo-server">{`
+systemctl restart xo-server.service
+`}</Terminal>
+
+:::note
+For XO Proxy, the process is almost the same: the file to create is `/etc/systemd/system/xo-proxy.service.d/ca.conf` and the service to restart is `xo-proxy.service`.
+:::
 
 ### Let's Encrypt support
 
@@ -205,7 +210,7 @@ In order for XOA to work with Let's Encrypt, follow these prerequisites:
 
 - In `xo-server`, to prevent HTTP access, enable the redirection to HTTPs:
 
-```
+```toml
 [http]
 redirectToHttps = true
 ```
@@ -213,7 +218,7 @@ redirectToHttps = true
 - Your server must be reachable using the configured domain by the certificate provider (e.g., Let's Encrypt). This typically means it needs to be publicly accessible.
 - Add the following entries to your HTTPS configuration:
 
-```
+```toml
 # Must be set to true for this feature
 autoCert = true
 
@@ -290,7 +295,7 @@ For advanced usage, you can customize the way XO connect to Redis:
 #encryptCredentialDatabase = true
 ```
 
-For more information about the encryption feature, see [credential database encryption](credential-encryption.md)
+For more information about the encryption feature, see [credential database encryption](xo5/credential-encryption.md)
 
 ## Proxy for updates and patches
 
@@ -374,5 +379,29 @@ location /[<path>] {
   client_max_body_size 4G;
 }
 ```
+
+### Caddy
+
+[Caddy](https://caddyserver.com/) is the simplest option: WebSockets are proxied natively (no module or upgrade headers to configure) and HTTPS certificates are obtained and renewed automatically. Serving Xen Orchestra on a dedicated domain takes two lines:
+
+```
+xo.company.net {
+	reverse_proxy <XOA ip address>:80
+}
+```
+
+To serve it under a sub-path instead:
+
+```
+company.net {
+	handle_path /xo/* {
+		reverse_proxy <XOA ip address>:80
+	}
+}
+```
+
+:::note
+Caddy applies no request body size limit by default, so large VM imports work without extra configuration.
+:::
 
 That's all!

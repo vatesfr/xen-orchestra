@@ -55,11 +55,11 @@ export default {
             from: '/acls',
           },
           {
-            to: '/xo5/architecture',
-            from: '/architecture',
+            from: '/xo5/architecture',
+            to: '/architecture',
           },
           {
-            to: '/xo5/architecture#plugins',
+            to: '/architecture#plugins',
             from: '/plugins',
           },
           {
@@ -83,8 +83,8 @@ export default {
             from: '/community',
           },
           {
-            to: '/xo5/configuration',
-            from: '/configuration',
+            from: '/xo5/configuration',
+            to: '/configuration',
           },
           {
             to: '/xo5/credential-encryption',
@@ -111,8 +111,8 @@ export default {
             from: '/incremental_replication',
           },
           {
-            to: '/xo5/installation',
-            from: '/installation',
+            from: '/xo5/installation',
+            to: '/installation',
           },
           {
             to: '/xo6/support',
@@ -147,8 +147,8 @@ export default {
             from: '/metadata_backup',
           },
           {
-            to: '/xo5/migrate_to_new_xoa',
-            from: '/migrate_to_new_xoa',
+            from: '/xo5/migrate_to_new_xoa',
+            to: '/migrate_to_new_xoa',
           },
           {
             to: '/xo5/mirror_backup',
@@ -167,8 +167,8 @@ export default {
             from: '/purchase',
           },
           {
-            to: '/xo5/releases',
-            from: '/releases',
+            from: '/xo5/releases',
+            to: '/releases',
           },
           {
             to: '/xo5/restapi',
@@ -183,16 +183,16 @@ export default {
             from: '/sdn_controller',
           },
           {
-            to: '/xo5/supported_hosts',
-            from: '/supported_hosts',
+            from: '/xo5/supported_hosts',
+            to: '/supported_hosts',
           },
           {
-            to: '/xo5/troubleshooting',
-            from: ['/general-troubleshooting', '/troubleshooting'],
+            from: ['/general-troubleshooting', '/xo5/troubleshooting'],
+            to: '/troubleshooting',
           },
           {
-            to: '/xo5/updater',
-            from: '/updater',
+            from: '/xo5/updater',
+            to: '/updater',
           },
           {
             to: '/xo5/users',
@@ -231,7 +231,10 @@ export default {
       siteId: '23',
     },
   },
-  clientModules: [require.resolve('./src/clientModules/matomo.ts')],
+  clientModules: [
+    require.resolve('./src/clientModules/matomo.ts'),
+    require.resolve('./src/clientModules/movedAnchors.ts'),
+  ],
   presets: [
     [
       'classic',
@@ -303,7 +306,7 @@ export default {
             },
             {
               label: 'Installation',
-              href: '/xo5/installation',
+              href: '/installation',
             },
           ],
         },
@@ -352,6 +355,7 @@ export default {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+      additionalLanguages: ['toml', 'ini', 'nginx', 'apacheconf'],
     },
   } satisfies Preset.ThemeConfig,
 

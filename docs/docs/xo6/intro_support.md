@@ -8,7 +8,7 @@ slug: support
 See the dedicated sub-section to read more about [XOA support and usage](../xo5/xoa.md).
 :::
 
-Xen Orchestra will run in a controlled/tested environment thanks to XOA ([Xen Orchestra virtual Appliance](https://vates.tech/deploy/)). **This is the only way to get pro support**. Any account with a registered XOA can access a [dedicated support panel](https://xen-orchestra.com/#!/member/support).
+Xen Orchestra will run in a controlled/tested environment thanks to XOA ([Xen Orchestra virtual Appliance](https://vates.tech/deploy/)). **This is the only way to get pro support**. Any account with a registered XOA can open tickets from its personal space on [account.vates.tech](https://account.vates.tech).
 
 XOA is available in multiple plans:
 
@@ -20,7 +20,7 @@ XOA is available in multiple plans:
 Higher tier support plans include faster ticket response times (and cover more features). Paid support plans and response times are based on the plan you have, plans can be [reviewed here](https://vates.tech/pricing-and-support/).
 
 :::tip
-If you have a subscription (or at least a registered free XOA), you can open a ticket describing your issue directly from your [personal account page here](https://xen-orchestra.com/#!/member/support)
+If you have a subscription (or at least a registered free XOA), you can open a ticket describing your issue directly from your [personal space on account.vates.tech](https://account.vates.tech)
 :::
 
 ## XOA Free support

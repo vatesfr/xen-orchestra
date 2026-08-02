@@ -118,7 +118,7 @@ Xen Orchestra is able to send backup reports to Slack or Mattermost.
 
 ### Plugin configuration
 
-Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](architecture#plugins).
+Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](../architecture.md#plugins).
 
 ### Generate the Webhook
 
@@ -180,15 +180,15 @@ Instead of relying solely on email notifications, this plugin sends the status o
 
 When a backup job completes, Xen Orchestra sends a report. By using the plugin, the result (`Success`, `Warning`, or `Error`) is pushed to the Nagios command file.
 
-* **Success**: Sends an `OK` status.
-* **Warning**: Sends a `WARNING` status.
-* **Error/Partial Success**: Sends a `CRITICAL` status.
+- **Success**: Sends an `OK` status.
+- **Warning**: Sends a `WARNING` status.
+- **Error/Partial Success**: Sends a `CRITICAL` status.
 
 ### Prerequisites
 
 #### NSCA
 
-In order to contact Nagios, you must have NSCA (Nagios Service Check Acceptor) running on this Nagios host. 
+In order to contact Nagios, you must have NSCA (Nagios Service Check Acceptor) running on this Nagios host.
 
 :::note
 NSCA is a Linux/Unix daemon that lets remote systems "push" status updates to a Nagios server as passive checks. It basically acts as a bridge, by sending data from a client to a server-side daemon that feeds the results directly into Nagios's command file.
@@ -244,7 +244,7 @@ Your Nagios setup is now ready. If the service doesn't have news from XOA, it wi
 
 ### Installation in XOA
 
-The plugin is part of the standard Xen Orchestra transport packages. 
+The plugin is part of the standard Xen Orchestra transport packages.
 
 1. Go to **Settings → Plugins**.
 2. Locate `transport-nagios`.
@@ -252,7 +252,7 @@ The plugin is part of the standard Xen Orchestra transport packages.
 
 ### Configuration
 
-Once the plugin is enabled, you need to configure the connection to your Nagios server. 
+Once the plugin is enabled, you need to configure the connection to your Nagios server.
 
 1. Click the edit icon (+) for the `transport-nagios` plugin to show the configuration form:
 

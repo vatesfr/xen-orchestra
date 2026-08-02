@@ -11,7 +11,7 @@ Xen Orchestra stores credentials for XenServer connections, remotes, users, and 
 
 Add the following to your configuration file:
 
-See [Configuration](./configuration.md)
+See [Configuration](../configuration.md)
 
 ```toml
 [redis]
