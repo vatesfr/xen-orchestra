@@ -67,8 +67,17 @@ export interface IscsiTargetOptions {
  * A minimal iSCSI target exposing exactly one read/write LUN.
  *
  * Single initiator, single connection (`MaxConnections=1`), `ErrorRecoveryLevel=0`,
- * no digests — the target drives negotiation onto one fixed code path. Concurrent
- * connections are refused; sequential ones (e.g. after a logout) are accepted.
+ * no digests — the target drives negotiation onto one fixed code path. A new
+ * connection always replaces whatever connection currently exists (see
+ * `#onConnection`), rather than being refused: with no way to tell a stale,
+ * abandoned connection from a healthy one (the initiator may have given up on
+ * it — e.g. its own command timeout firing against a slow backend — without
+ * ever closing the TCP socket), refusing outright would let one stuck
+ * connection wedge the target forever, refusing every subsequent reconnection
+ * attempt. This is not full MC/S or RFC 7143 session reinstatement (no ISID
+ * matching — any new connection displaces the old one, trusted since this
+ * target is ephemeral, CHAP-guarded, and single-consumer by design), just
+ * enough to make a stuck connection recoverable.
  */
 export class IscsiTarget {
   readonly #iqn: string
@@ -121,10 +130,14 @@ export class IscsiTarget {
   }
 
   #onConnection(socket: Socket): void {
-    if (this.#connection !== undefined) {
-      log.warn('refusing concurrent connection (MaxConnections=1)', { remote: socket.remoteAddress })
-      socket.destroy()
-      return
+    const existing = this.#connection
+    if (existing !== undefined) {
+      // Not necessarily still alive: the initiator may have abandoned it (own
+      // timeout against a slow backend) without ever closing the socket. Tear
+      // it down and let the new connection take over rather than refusing —
+      // see the class doc comment.
+      log.warn('replacing existing connection with a new one', { remote: socket.remoteAddress })
+      existing.destroy()
     }
     socket.setNoDelay(true)
     const connection = new Connection(socket, this.#deps())
