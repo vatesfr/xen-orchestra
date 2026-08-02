@@ -1,5 +1,6 @@
 import { access, constants, readFile } from 'node:fs/promises'
 import { createLogger } from '@xen-orchestra/log'
+import { Task } from '@vates/task'
 import pRetry from 'promise-toolbox/retry'
 
 import LocalBlockDevice from './_LocalBlockDevice.mjs'
@@ -60,31 +61,38 @@ export async function openLocalDevice({ name, size }) {
  * @returns {Promise<{ device: object, vbdRef: string, vdiRef: string, vdiUuid: string }>}
  */
 export async function createCache($defer, { diskPath, size, srRef, vmRef, xapi, openCache = openLocalDevice }) {
-  const vdiRef = await xapi.VDI_create({
-    name_description: `read cache for ${diskPath}`,
-    name_label: `${cacheLabel(diskPath)}.raw`,
-    SR: srRef,
-    virtual_size: size,
+  return Task.run({ properties: { name: 'set up cache disk' } }, async () => {
+    const vdiRef = await Task.run({ properties: { name: 'create cache VDI' } }, () =>
+      xapi.VDI_create({
+        name_description: `read cache for ${diskPath}`,
+        name_label: `${cacheLabel(diskPath)}.raw`,
+        SR: srRef,
+        virtual_size: size,
+      })
+    )
+    $defer.onFailure(() => xapi.VDI_destroy(vdiRef))
+
+    // `throwVbdPlug` is not optional here: without it VBD_create only warns when
+    // the plug fails, and we would carry on with a disk that is not attached
+    const { vbdRef, name } = await Task.run({ properties: { name: 'plug cache VDI' } }, async () => {
+      const vbdRef = await xapi.VBD_create({ mode: 'RW', throwVbdPlug: true, type: 'Disk', VDI: vdiRef, VM: vmRef })
+      $defer.onFailure(() => xapi.VBD_destroy(vbdRef))
+
+      // read back after the plug: the device name passed to VBD.create is
+      // ignored for a running VM, XAPI assigns it
+      const name = await xapi.getField('VBD', vbdRef, 'device')
+      if (name === '') {
+        throw new Error(`XAPI did not assign a device to the cache disk of ${diskPath}`)
+      }
+      return { vbdRef, name }
+    })
+
+    const device = await Task.run({ properties: { name: 'wait for cache device' } }, () => openCache({ name, size }))
+    $defer.onFailure(() => device.close())
+
+    const vdiUuid = await xapi.getField('VDI', vdiRef, 'uuid')
+    info('cache disk plugged', { device: name, size, vdiUuid })
+
+    return { device, vbdRef, vdiRef, vdiUuid }
   })
-  $defer.onFailure(() => xapi.VDI_destroy(vdiRef))
-
-  // `throwVbdPlug` is not optional here: without it VBD_create only warns when
-  // the plug fails, and we would carry on with a disk that is not attached
-  const vbdRef = await xapi.VBD_create({ mode: 'RW', throwVbdPlug: true, type: 'Disk', VDI: vdiRef, VM: vmRef })
-  $defer.onFailure(() => xapi.VBD_destroy(vbdRef))
-
-  // read back after the plug: the device name passed to VBD.create is ignored
-  // for a running VM, XAPI assigns it
-  const name = await xapi.getField('VBD', vbdRef, 'device')
-  if (name === '') {
-    throw new Error(`XAPI did not assign a device to the cache disk of ${diskPath}`)
-  }
-
-  const device = await openCache({ name, size })
-  $defer.onFailure(() => device.close())
-
-  const vdiUuid = await xapi.getField('VDI', vdiRef, 'uuid')
-  info('cache disk plugged', { device: name, size, vdiUuid })
-
-  return { device, vbdRef, vdiRef, vdiUuid }
 }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { RandomAccessDisk, type DiskBlock } from '@xen-orchestra/disk-transform'
+import { RandomAccessDisk, type DiskBlock, type ProgressHandler } from '@xen-orchestra/disk-transform'
 
 import { CachedDiskBlockDevice } from './CachedDiskBlockDevice.mjs'
 import type { BlockDevice } from './backend.mjs'
@@ -301,6 +301,142 @@ describe('hydrate', () => {
     await hydrating
 
     assert.equal(maxInFlight, 2)
+  })
+})
+
+describe('progress handler', () => {
+  class StubProgressHandler implements ProgressHandler {
+    calls: Array<number> = []
+    doneCalls = 0
+    throwSync = false
+    rejectAsync = false
+    async setProgress(fraction: number): Promise<void> {
+      this.calls.push(fraction)
+      if (this.throwSync) {
+        throw new Error('sync failure')
+      }
+      if (this.rejectAsync) {
+        throw new Error('async failure')
+      }
+    }
+    done(): void {
+      this.doneCalls++
+    }
+  }
+
+  it('reports the materialized fraction as blocks are read, once each', async () => {
+    const disk = new StubDisk()
+    const cache = new StubCache()
+    const progressHandler = new StubProgressHandler()
+    const device = new CachedDiskBlockDevice({ disk, cache, progressHandler })
+    await device.open()
+
+    await device.read(0, 512)
+    // let the fire-and-forget notification run
+    await new Promise(resolve => setImmediate(resolve))
+    assert.deepEqual(progressHandler.calls, [1 / BLOCK_COUNT])
+
+    // a hole is a materialization too, just with nothing to write
+    await device.read(DISK_BLOCK_SIZE, 512)
+    await new Promise(resolve => setImmediate(resolve))
+    assert.deepEqual(progressHandler.calls, [1 / BLOCK_COUNT, 2 / BLOCK_COUNT])
+
+    // re-reading an already materialized block reports nothing new
+    await device.read(0, 512)
+    await new Promise(resolve => setImmediate(resolve))
+    assert.deepEqual(progressHandler.calls, [1 / BLOCK_COUNT, 2 / BLOCK_COUNT])
+  })
+
+  it('reports a fully-covered write the same way as a read', async () => {
+    const disk = new StubDisk()
+    const cache = new StubCache()
+    const progressHandler = new StubProgressHandler()
+    const device = new CachedDiskBlockDevice({ disk, cache, progressHandler })
+    await device.open()
+
+    await device.write(0, Buffer.alloc(DISK_BLOCK_SIZE, 0xee))
+    await new Promise(resolve => setImmediate(resolve))
+
+    assert.deepEqual(progressHandler.calls, [1 / BLOCK_COUNT])
+  })
+
+  it('does not let a synchronously throwing handler break the read', async () => {
+    const disk = new StubDisk()
+    const cache = new StubCache()
+    const progressHandler = new StubProgressHandler()
+    progressHandler.throwSync = true
+    const device = new CachedDiskBlockDevice({ disk, cache, progressHandler })
+    await device.open()
+
+    assert.deepEqual(await device.read(0, 512), expectedAt(0, 512, disk.allocated))
+    assert.deepEqual(device.getMaterialized(), { blocks: 1, total: BLOCK_COUNT })
+  })
+
+  it('does not let a rejecting handler surface as an unhandled rejection', async () => {
+    const disk = new StubDisk()
+    const cache = new StubCache()
+    const progressHandler = new StubProgressHandler()
+    progressHandler.rejectAsync = true
+    const device = new CachedDiskBlockDevice({ disk, cache, progressHandler })
+    await device.open()
+
+    assert.deepEqual(await device.read(0, 512), expectedAt(0, 512, disk.allocated))
+    // give the rejected promise's `.catch` a turn to run before the test ends
+    await new Promise(resolve => setImmediate(resolve))
+  })
+
+  it('calls done() once every block is cached, via hydrate', async () => {
+    const disk = new StubDisk(new Set([0, 1, 2, 3]))
+    const cache = new StubCache()
+    const progressHandler = new StubProgressHandler()
+    const device = new CachedDiskBlockDevice({ disk, cache, progressHandler })
+    await device.open()
+
+    await device.hydrate()
+    await new Promise(resolve => setImmediate(resolve))
+
+    assert.deepEqual(progressHandler.calls, [0.25, 0.5, 0.75, 1])
+    assert.equal(progressHandler.doneCalls, 1)
+  })
+
+  it('calls done() once every block is cached, via on-demand reads alone', async () => {
+    const disk = new StubDisk(new Set([0, 1, 2, 3]))
+    const cache = new StubCache()
+    const progressHandler = new StubProgressHandler()
+    const device = new CachedDiskBlockDevice({ disk, cache, progressHandler })
+    await device.open()
+
+    await device.read(0, DISK_BLOCK_SIZE * BLOCK_COUNT)
+    await new Promise(resolve => setImmediate(resolve))
+
+    assert.equal(progressHandler.doneCalls, 1)
+  })
+
+  it('does not call done() before every block is cached', async () => {
+    const disk = new StubDisk(new Set([0, 1, 2, 3]))
+    const cache = new StubCache()
+    const progressHandler = new StubProgressHandler()
+    const device = new CachedDiskBlockDevice({ disk, cache, progressHandler })
+    await device.open()
+
+    await device.read(0, 512)
+    await new Promise(resolve => setImmediate(resolve))
+
+    assert.equal(progressHandler.doneCalls, 0)
+  })
+
+  it('does not let a throwing done() surface as an unhandled rejection', async () => {
+    const disk = new StubDisk(new Set([0, 1, 2, 3]))
+    const cache = new StubCache()
+    const progressHandler = new StubProgressHandler()
+    progressHandler.done = () => {
+      throw new Error('done failure')
+    }
+    const device = new CachedDiskBlockDevice({ disk, cache, progressHandler })
+    await device.open()
+
+    await device.hydrate()
+    await new Promise(resolve => setImmediate(resolve))
   })
 })
 

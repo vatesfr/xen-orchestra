@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { EventEmitter } from 'node:events'
+import { Task } from '@vates/task'
 
 import LiveMount from './index.mjs'
 
@@ -424,6 +425,71 @@ describe('hydrate', () => {
   it('rejects an unknown mount', async () => {
     const { mixin } = makeMixin()
     await assert.rejects(mixin.hydrateDisk('nope'), /no such live mount nope/)
+  })
+})
+
+describe('caching task', () => {
+  it('is created at mount time, nested under whatever task is ambient, and tracks the fill regardless of trigger', async () => {
+    const { mixin, disk } = makeMixin()
+    const blockCount = 4
+    disk.getVirtualSize = () => blockCount * 2 * 1024 * 1024
+    disk.hasBlock = () => true
+    disk.readBlock = async index => ({ index, data: Buffer.alloc(2 * 1024 * 1024, 0xab) })
+
+    const events = []
+    const outerTask = new Task({ properties: { name: 'outer' }, onProgress: data => events.push(data) })
+
+    const { id } = await outerTask.runInside(() => mount(mixin, makeXapi()))
+
+    const cachingStart = events.find(e => e.type === 'start' && e.properties.name === 'caching')
+    assert.notEqual(cachingStart, undefined)
+    assert.equal(cachingStart.parentId, outerTask.id)
+    assert.equal(
+      events.some(e => e.id === cachingStart.id && e.type === 'end'),
+      false
+    )
+
+    // driven here by an explicit hydrate call, but the same handler backs
+    // on-demand reads and writes too (CachedDiskBlockDevice's own tests cover
+    // that) — whichever triggers materialization, it lands on this subtask
+    await outerTask.runInside(() => mixin.hydrateDisk(id))
+
+    const progressEvents = events.filter(
+      e => e.id === cachingStart.id && e.type === 'property' && e.name === 'progress'
+    )
+    assert.ok(progressEvents.length > 0)
+    assert.equal(progressEvents.at(-1).value, 100)
+
+    const cachingEnd = events.find(e => e.id === cachingStart.id && e.type === 'end')
+    assert.notEqual(cachingEnd, undefined)
+    assert.equal(cachingEnd.status, 'success')
+  })
+
+  it('ends the caching task at unmount, even if the disk was never fully cached', async () => {
+    const { mixin } = makeMixin()
+    const events = []
+    const outerTask = new Task({ properties: { name: 'outer' }, onProgress: data => events.push(data) })
+    const { id } = await outerTask.runInside(() => mount(mixin, makeXapi()))
+    const cachingStart = events.find(e => e.type === 'start' && e.properties.name === 'caching')
+
+    await mixin.unmountDisk(id)
+
+    const cachingEnd = events.find(e => e.id === cachingStart.id && e.type === 'end')
+    assert.notEqual(cachingEnd, undefined)
+    assert.equal(cachingEnd.status, 'success')
+  })
+
+  it('is not created for an uncached mount', async () => {
+    const { mixin } = makeMixin()
+    const events = []
+    const outerTask = new Task({ properties: { name: 'outer' }, onProgress: data => events.push(data) })
+
+    await outerTask.runInside(() => mount(mixin, makeXapi(), { cache: undefined, hostRef: HOST_REF }))
+
+    assert.equal(
+      events.some(e => e.type === 'start' && e.properties.name === 'caching'),
+      false
+    )
   })
 })
 
