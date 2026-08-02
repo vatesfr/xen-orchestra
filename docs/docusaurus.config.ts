@@ -131,8 +131,8 @@ export default {
             from: '/load_balancing',
           },
           {
-            to: '/xo5/manage',
-            from: '/manage',
+            from: ['/manage', '/xo5/manage'],
+            to: '/xo5/manage_infrastructure',
           },
           {
             to: '/xo5/manage_infrastructure',
@@ -242,6 +242,9 @@ export default {
         docs: {
           routeBasePath: '/',
           sidebarPath: './sidebars.ts',
+          // "Last updated on…" stamp at the bottom of every page, from
+          // the git history of each file.
+          showLastUpdateTime: true,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl: 'https://github.com/vatesfr/xen-orchestra/tree/master/docs',
