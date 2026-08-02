@@ -27,9 +27,14 @@ export default {
     defaultLocale: 'en',
     locales: ['en'],
   },
+  themes: ['docusaurus-theme-search-typesense'],
+
   plugins: [
+    // Kept even though Typesense provides the search UI: this plugin
+    // generates search-doc.json, which the federated search indexer
+    // consumes (src/theme/SearchBar picks the Typesense bar).
     require.resolve('docusaurus-lunr-search'),
-     [
+    [
       '@docusaurus/plugin-client-redirects',
       {
         redirects: [
@@ -100,111 +105,111 @@ export default {
           {
             to: '/xo5/incremental_backups',
             from: '/incremental_backups',
-          }, 
+          },
           {
             to: '/xo5/incremental_replication',
             from: '/incremental_replication',
-          },  
+          },
           {
             to: '/xo5/installation',
             from: '/installation',
-          },  
+          },
           {
             to: '/xo6/support',
             from: '/support',
-          },  
+          },
           {
             to: '/xo5/backup',
             from: '/backup',
-          },  
+          },
           {
             to: '/xo5/license_management',
             from: '/license_management',
-          }, 
+          },
           {
             to: '/xo5/load_balancing',
             from: '/load_balancing',
-          }, 
+          },
           {
             to: '/xo5/manage',
             from: '/manage',
-          }, 
+          },
           {
             to: '/xo5/manage_infrastructure',
             from: '/manage_infrastructure',
-          }, 
+          },
           {
             to: '/xo5/mcp',
             from: '/mcp',
-          }, 
+          },
           {
             to: '/xo5/metadata_backup',
             from: '/metadata_backup',
-          }, 
+          },
           {
             to: '/xo5/migrate_to_new_xoa',
             from: '/migrate_to_new_xoa',
-          }, 
+          },
           {
             to: '/xo5/mirror_backup',
             from: '/mirror_backup',
-          }, 
+          },
           {
             to: '/xo5/object-storage-support',
             from: '/object-storage-support',
-          }, 
+          },
           {
             to: '/xo5/proxy',
             from: '/proxy',
-          }, 
+          },
           {
             to: '/xo6/purchase',
             from: '/purchase',
-          }, 
+          },
           {
             to: '/xo5/releases',
             from: '/releases',
-          }, 
+          },
           {
             to: '/xo5/restapi',
             from: '/restapi',
-          }, 
+          },
           {
             to: '/xo5/rolling_snapshots',
             from: '/rolling_snapshots',
-          }, 
+          },
           {
             to: '/xo5/sdn_controller',
             from: '/sdn_controller',
-          }, 
+          },
           {
             to: '/xo5/supported_hosts',
             from: '/supported_hosts',
-          }, 
+          },
           {
             to: '/xo5/troubleshooting',
-            from: ['/general-troubleshooting', '/troubleshooting']
+            from: ['/general-troubleshooting', '/troubleshooting'],
           },
           {
             to: '/xo5/updater',
             from: '/updater',
-          }, 
+          },
           {
             to: '/xo5/users',
             from: '/users',
-          }, 
+          },
           {
             to: '/xo5/v2v-migration-guide',
             from: '/v2v-migration-guide',
-          }, 
+          },
           {
             to: '/xo5/vm-templates',
             from: '/vm-templates',
-          }, 
+          },
           {
             to: '/xo5/xoa',
             from: '/xoa',
-          }, 
+          },
         ],
       },
     ],
@@ -247,14 +252,38 @@ export default {
   ],
 
   themeConfig: {
+    // Federated search across docs.xen-orchestra.com, docs.vates.tech
+    // and docs.xcp-ng.org. Results group by product; hits from the two
+    // sibling sites keep their absolute URL (externalUrlRegex).
+    // The API key is search-only and public by design.
+    // Local dev against a local Typesense (prod only allows CORS from
+    // the three doc domains):
+    //   TYPESENSE_HOST=localhost TYPESENSE_PORT=8108 \
+    //   TYPESENSE_PROTOCOL=http TYPESENSE_SEARCH_KEY=<key> yarn start
+    typesense: {
+      typesenseCollectionName: 'vates_federated',
+      externalUrlRegex: 'docs\\.vates\\.tech|docs\\.xcp-ng\\.org',
+      typesenseServerConfig: {
+        nodes: [
+          {
+            host: process.env.TYPESENSE_HOST ?? 'typesense.vates.tech',
+            port: Number(process.env.TYPESENSE_PORT ?? 443),
+            protocol: process.env.TYPESENSE_PROTOCOL ?? 'https',
+          },
+        ],
+        apiKey: process.env.TYPESENSE_SEARCH_KEY ?? 'b2806f42e60429ceecb3808a2c6bb31cc9ca955cb1e4290c',
+      },
+      typesenseSearchParameters: {},
+      contextualSearch: false,
+    },
     // Replace with your project's social card
     image: 'img/vates-xo-logo-smol-new-baseline.png',
     navbar: {
       title: 'Xen Orchestra Documentation',
       logo: { alt: 'Xen Orchestra logo', src: 'img/logo.png', href: '/' },
       items: [
-        { to: 'https://docs.vates.tech/', label: 'Vates VMS', position: 'right', target: '_self'},
-        { to: 'https://docs.xcp-ng.org/', label: 'XCP-ng', position: 'right', target: '_self'},
+        { to: 'https://docs.vates.tech/', label: 'Vates VMS', position: 'right', target: '_self' },
+        { to: 'https://docs.xcp-ng.org/', label: 'XCP-ng', position: 'right', target: '_self' },
         { href: '/', label: 'Xen Orchestra', position: 'right' },
       ],
     },
@@ -326,7 +355,7 @@ export default {
     },
   } satisfies Preset.ThemeConfig,
 
-  markdown:{
+  markdown: {
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },
