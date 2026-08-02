@@ -531,10 +531,59 @@ describe('concurrent READ dispatch', () => {
         releases.shift()!()
       }
 
-      for (const itt of itts) {
+      for (let i = 0; i < itts.length; i++) {
         const pdu = await initiator.recv()
         assert.ok(itts.includes(pdu.itt))
       }
+
+      await initiator.logout()
+    } finally {
+      socket.destroy()
+      await target.close()
+    }
+  })
+})
+
+// Regression test: a failed lun.read() (backend hiccup, corrupt source block)
+// must fail only that command, not the whole connection — mirrors the write
+// path's existing per-command CHECK_CONDITION/MEDIUM_ERROR handling.
+describe('READ error isolation', () => {
+  it('fails only the bad read; the connection and subsequent reads stay healthy', async () => {
+    const lun: BlockDevice = {
+      getSize: () => LUN_SIZE,
+      getBlockSize: () => BLOCK_SIZE,
+      read: async offset => {
+        if (offset === 0) {
+          throw new Error('simulated backend failure')
+        }
+        return Buffer.alloc(BLOCK_SIZE, 0xcc)
+      },
+      write: async () => {
+        throw new Error('not used by this test')
+      },
+      flush: async () => {},
+      close: async () => {},
+    }
+
+    const target = new IscsiTarget({ iqn: IQN, host: '127.0.0.1', port: 0, lun })
+    await target.listen()
+    const address = target.address()
+    assert.ok(address !== undefined)
+
+    const socket = connect(address.port, '127.0.0.1')
+    await once(socket, 'connect')
+    try {
+      const initiator = new MiniInitiator(socket)
+      await initiator.login('Normal')
+
+      // LBA 0 is the bad one: must fail with CHECK CONDITION, not drop the connection
+      const failed = await initiator.read(rwCdb(0x28, 0, 1), BLOCK_SIZE)
+      assert.equal(failed.status, ScsiStatus.CHECK_CONDITION)
+
+      // the connection must still be usable: a healthy read afterward succeeds normally
+      const healthy = await initiator.read(rwCdb(0x28, 1, 1), BLOCK_SIZE)
+      assert.equal(healthy.status, ScsiStatus.GOOD)
+      assert.deepEqual(healthy.data, Buffer.alloc(BLOCK_SIZE, 0xcc))
 
       await initiator.logout()
     } finally {

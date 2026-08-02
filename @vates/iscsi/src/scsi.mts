@@ -149,6 +149,7 @@ const ILLEGAL_REQUEST_LBA_OUT_OF_RANGE: SenseInfo = {
   key: SenseKey.ILLEGAL_REQUEST,
   ...Asc.LOGICAL_BLOCK_ADDRESS_OUT_OF_RANGE,
 }
+const MEDIUM_ERROR_NO_ADDITIONAL_SENSE: SenseInfo = { key: SenseKey.MEDIUM_ERROR, ...Asc.NO_ADDITIONAL_SENSE }
 
 function checkCondition(ctx: CommandContext, itt: number, sense: SenseInfo): Promise<void> {
   return ctx.sendScsiResponse(itt, ScsiStatus.CHECK_CONDITION, { sense: buildFixedSense(sense) })
@@ -203,7 +204,19 @@ export async function handleScsiCommand(
         return checkCondition(ctx, itt, ILLEGAL_REQUEST_LBA_OUT_OF_RANGE)
       }
       const byteLength = request.blocks * blockSize
-      const data = byteLength === 0 ? Buffer.alloc(0) : await lun.read(request.lba * blockSize, byteLength)
+      if (byteLength === 0) {
+        return ctx.sendReadData(itt, Buffer.alloc(0), 0)
+      }
+      let data: Buffer
+      try {
+        data = await lun.read(request.lba * blockSize, byteLength)
+      } catch (error) {
+        // A single bad block (backend hiccup, corrupt source) must fail only
+        // this command, not the whole connection — mirrors how a failed
+        // lun.write() is handled in connection.mts's #handleDataOut.
+        log.warn('LUN read failed', error instanceof Error ? error : new Error(String(error)))
+        return checkCondition(ctx, itt, MEDIUM_ERROR_NO_ADDITIONAL_SENSE)
+      }
       return ctx.sendReadData(itt, data, byteLength)
     }
 
