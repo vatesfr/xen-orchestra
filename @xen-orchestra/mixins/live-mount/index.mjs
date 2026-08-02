@@ -4,10 +4,12 @@ import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { randomBytes } from 'node:crypto'
+import { Task } from '@vates/task'
 
 import { createCache, openLocalDevice } from './_cache.mjs'
 import { createChapCredentials, probeScsiId } from './_target.mjs'
 import { forgetSr, introduceSr, introduceVdi } from './_sr.mjs'
+import { createCachingTask } from './_utils.mjs'
 
 const { info, warn } = createLogger('xo:mixins:LiveMount')
 
@@ -116,10 +118,13 @@ export default class LiveMount {
 
       // the chain must keep its block allocation tables: they tell which blocks
       // are allocated, and reading an unallocated one throws
-      const disk = await this.#openDisk({ handler, path: diskPath })
+      const disk = await Task.run({ properties: { name: 'open source disk' } }, () =>
+        this.#openDisk({ handler, path: diskPath })
+      )
       $defer.onFailure(() => disk.close())
 
       let cache
+      let cachingTask
       let lun
       if (cacheParams !== undefined) {
         cache = await createCache($defer, {
@@ -130,9 +135,19 @@ export default class LiveMount {
           xapi,
           openCache: this.#openCache,
         })
+        // nested under whatever task is ambient (the caller's own, if any),
+        // and kept alive for the whole mount — not just this call — since the
+        // cache can keep filling long after mounting itself is done
+        const caching = createCachingTask()
+        cachingTask = caching.task
+        $defer.onFailure(() => {
+          if (cachingTask.status === 'pending') {
+            cachingTask.success()
+          }
+        })
         // the cache owns the reads: the source is only ever touched for a block
         // that is not in it yet
-        lun = new CachedDiskBlockDevice({ cache: cache.device, disk })
+        lun = new CachedDiskBlockDevice({ cache: cache.device, disk, progressHandler: caching.progressHandler })
       } else {
         lun = new DiskBlockDevice({ disk })
       }
@@ -146,7 +161,7 @@ export default class LiveMount {
         port: 0, // ephemeral: one target per mount
       })
       // opens the LUN, so its capacity is readable afterwards
-      await target.listen()
+      await Task.run({ properties: { name: 'start iSCSI target' } }, () => target.listen())
       $defer.onFailure(() => target.close())
       const { port } = target.address()
 
@@ -158,7 +173,9 @@ export default class LiveMount {
         targetIQN: iqn,
       }
 
-      const SCSIid = await probeScsiId({ xapi, hostRef, deviceConfig, address })
+      const SCSIid = await Task.run({ properties: { name: 'probe target SCSIid' } }, () =>
+        probeScsiId({ xapi, hostRef, deviceConfig, address })
+      )
       const fullDeviceConfig = { ...deviceConfig, SCSIid }
 
       const { srRef, srUuid } = await introduceSr($defer, {
@@ -184,6 +201,7 @@ export default class LiveMount {
       return {
         address,
         cache,
+        cachingTask,
         disk,
         diskPath,
         id,
@@ -214,7 +232,7 @@ export default class LiveMount {
     // half-released mount
     this.#mounts.delete(id)
 
-    const { cache, xapi, srRef, target, release } = mount
+    const { cache, cachingTask, xapi, srRef, target, release } = mount
 
     // Ordered, and each step runs even if an earlier one failed: a mount holds a
     // socket, a file descriptor, a VBD, a VDI and an SR, and giving up halfway
@@ -222,7 +240,7 @@ export default class LiveMount {
     const errors = []
     const step = async (what, fn) => {
       try {
-        await fn()
+        await Task.run({ properties: { name: what } }, fn)
       } catch (error) {
         warn(`failed to ${what}`, { error, id })
         errors.push(error)
@@ -233,6 +251,13 @@ export default class LiveMount {
     // stop serving first, so no I/O is left in flight
     await step('close the target', () => target.close())
     if (cache !== undefined) {
+      // whatever fraction it reached: there is no more source to cache from,
+      // so its job ends here rather than being left pending forever
+      await step('end the caching task', () => {
+        if (cachingTask.status === 'pending') {
+          cachingTask.success()
+        }
+      })
       // the LUN closes the cache device too; doing it again is a no-op, and
       // makes sure the descriptor is gone before XAPI is asked to take the
       // disk away
@@ -267,7 +292,11 @@ export default class LiveMount {
     if (mount.cache === undefined) {
       throw new Error(`live mount ${id} has no cache to hydrate`)
     }
-    await mount.lun.hydrate()
+    // progress and completion are already reported on the mount's `caching`
+    // subtask (built at mount time) regardless of what triggers a block's
+    // materialization, so this subtask only needs to say whether *this*
+    // explicit call succeeded
+    await Task.run({ properties: { name: 'hydrate' } }, () => mount.lun.hydrate())
     return { id, materialized: mount.lun.getMaterialized() }
   }
 

@@ -1,6 +1,6 @@
 import { asyncEach } from '@vates/async-each'
 import { createLogger, type Logger } from '@xen-orchestra/log'
-import type { RandomAccessDisk } from '@xen-orchestra/disk-transform'
+import type { ProgressHandler, RandomAccessDisk } from '@xen-orchestra/disk-transform'
 
 import type { BlockDevice } from './backend.mjs'
 
@@ -25,6 +25,13 @@ export interface CachedDiskBlockDeviceOptions {
    * The disk's own block size must be a multiple of it.
    */
   readonly blockSize?: number
+  /**
+   * Notified with the materialized fraction (0..1) every time a new block is
+   * cached — on demand or through {@link hydrate} — and via `done()` once
+   * every block has been. Reused from the `disk-transform` export/import
+   * pipelines rather than inventing a new shape.
+   */
+  readonly progressHandler?: ProgressHandler
 }
 
 /**
@@ -52,6 +59,7 @@ export class CachedDiskBlockDevice implements BlockDevice {
   readonly #disk: RandomAccessDisk
   readonly #cache: BlockDevice
   readonly #blockSize: number
+  readonly #progressHandler?: ProgressHandler
 
   // one bit per source block, set once the block is in the cache
   #bitmap: Buffer = Buffer.alloc(0)
@@ -63,13 +71,14 @@ export class CachedDiskBlockDevice implements BlockDevice {
   #diskBlockSize?: number
   #size?: number
 
-  constructor({ disk, cache, blockSize = DEFAULT_BLOCK_SIZE }: CachedDiskBlockDeviceOptions) {
+  constructor({ disk, cache, blockSize = DEFAULT_BLOCK_SIZE, progressHandler }: CachedDiskBlockDeviceOptions) {
     if (!Number.isInteger(blockSize) || blockSize <= 0) {
       throw new Error(`blockSize must be a positive integer, got ${blockSize}`)
     }
     this.#disk = disk
     this.#cache = cache
     this.#blockSize = blockSize
+    this.#progressHandler = progressHandler
   }
 
   /** Read the source geometry and allocate the bitmap. */
@@ -139,7 +148,27 @@ export class CachedDiskBlockDevice implements BlockDevice {
     if (!this.#isCached(index)) {
       this.#bitmap[index >> 3] |= 1 << (index & 7)
       this.#cachedCount++
+      this.#reportProgress()
     }
+  }
+
+  // best-effort: a failure here (sync or async) must never break block
+  // materialization. Wrapping the body in an `async` function, rather than a
+  // plain try/catch, is what makes a *synchronous* throw from the handler
+  // land in the same `.catch()` as an asynchronous rejection.
+  #reportProgress(): void {
+    const handler = this.#progressHandler
+    if (handler === undefined) {
+      return
+    }
+    const fraction = this.#cachedCount / this.#blockCount
+    ;(async () => {
+      await handler.setProgress(fraction)
+      // every block is in the cache: nothing more will ever be reported
+      if (fraction === 1) {
+        await handler.done()
+      }
+    })().catch(error => log.warn('progress handler failed', { error }))
   }
 
   /**

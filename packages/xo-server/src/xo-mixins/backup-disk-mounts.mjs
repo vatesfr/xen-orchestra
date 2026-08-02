@@ -12,9 +12,20 @@ const getBackupRepositoryId = archiveId => archiveId.split('/')[0]
  * path, this appliance's VM and a XAPI connection. The mounting itself lives in
  * `@xen-orchestra/mixins/live-mount/` so xo-proxy can reuse it, and so can any
  * future feature that mounts a disk from somewhere other than a backup.
+ *
+ * Observability: each mount gets its own XO task, created here (not in the
+ * generic mixin, which has no `app.tasks`) and kept `pending` for as long as
+ * the disk stays mounted — it only ends when `unmountBackupArchiveDisk` is
+ * called. `LiveMount`'s own steps (open the source disk, start the iSCSI
+ * target, introduce the SR/VDI, its cache-fill progress, …) already wrap
+ * themselves in ambient `@vates/task` subtasks, so running the mount call
+ * inside this task via `runInside` is all it takes for them to nest under it.
  */
 export default class BackupDiskMountsResolver {
   #app
+
+  // mount id -> the long-lived task representing it, from `mountBackupArchiveDisk`
+  #tasks = new Map()
 
   constructor(app) {
     this.#app = app
@@ -67,17 +78,37 @@ export default class BackupDiskMountsResolver {
 
     const remote = await app.getRemoteWithCredentials(getBackupRepositoryId(archiveId))
     const adapter = await app.getBackupsRemoteAdapter(remote)
+
+    // independent from the REST call's own task (which only covers this
+    // method's return): this one stays pending for as long as the disk is
+    // mounted, so it is created as its own root rather than nested under
+    // whatever ambient task called us
+    const task = app.tasks.create({
+      name: `live mount of ${archive.vm.name_label} disk ${diskId}`,
+      objectId: archiveId,
+      type: 'xo:live-mount',
+      diskId,
+    })
     try {
-      return await app.liveMount.mountDisk({
-        cache,
-        diskPath: diskId,
-        handler: adapter.value.handler,
-        hostRef: host._xapiRef,
-        nameLabel: `[XO backup] ${archive.vm.name_label}`,
-        release: () => adapter.dispose(),
-        xapi: app.getXapi(host),
-      })
+      // `LiveMount`'s own steps wrap themselves in ambient `@vates/task`
+      // subtasks, so running the call inside `task` is all it takes for them
+      // to nest under it
+      const result = await task.runInside(() =>
+        app.liveMount.mountDisk({
+          cache,
+          diskPath: diskId,
+          handler: adapter.value.handler,
+          hostRef: host._xapiRef,
+          nameLabel: `[XO backup] ${archive.vm.name_label}`,
+          release: () => adapter.dispose(),
+          xapi: app.getXapi(host),
+        })
+      )
+      // left pending on purpose: `unmountBackupArchiveDisk` ends it later
+      this.#tasks.set(result.id, task)
+      return result
     } catch (error) {
+      // `runInside` already ended `task` in failure
       await adapter.dispose()
       throw error
     }
@@ -135,15 +166,36 @@ export default class BackupDiskMountsResolver {
   /**
    * @param {string} id - identifier returned by `mountBackupArchiveDisk`
    */
-  unmountBackupArchiveDisk(id) {
-    return this.#app.liveMount.unmountDisk(id)
+  async unmountBackupArchiveDisk(id) {
+    const task = this.#tasks.get(id)
+    // gone whether unmounting succeeds or not: `LiveMount.unmountDisk` drops
+    // its own record up front too, so a retry against this id could never
+    // find a task to resume anyway
+    this.#tasks.delete(id)
+    if (task === undefined) {
+      return this.#app.liveMount.unmountDisk(id)
+    }
+    await task.runInside(() => this.#app.liveMount.unmountDisk(id))
+    task.success()
   }
 
   /**
    * @param {string} id - identifier returned by `mountBackupArchiveDisk`; must have been mounted with an `srId`
    */
-  hydrateBackupArchiveDisk(id) {
-    return this.#app.liveMount.hydrateDisk(id)
+  async hydrateBackupArchiveDisk(id) {
+    const task = this.#tasks.get(id)
+    if (task === undefined) {
+      return this.#app.liveMount.hydrateDisk(id)
+    }
+    // a failed hydration must not fail the mount's own long-lived task: the
+    // disk is still mounted regardless, so the error is captured here and
+    // rethrown outside `runInside`, which would otherwise end `task` in failure
+    let error
+    const result = await task.runInside(() => this.#app.liveMount.hydrateDisk(id).catch(e => (error = e)))
+    if (error !== undefined) {
+      throw error
+    }
+    return result
   }
 
   listMountedBackupArchiveDisks() {
