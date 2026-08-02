@@ -7,10 +7,11 @@ import { getCurrentVmUuid } from '../_XenStore.mjs'
 const getBackupRepositoryId = archiveId => archiveId.split('/')[0]
 
 /**
- * Resolution layer between XO objects and the `BackupDiskMounts` shared mixin:
- * it turns a backup archive id + disk id + SR id into a remote handler, a disk
+ * Resolution layer between XO objects and the `LiveMount` shared mixin: it
+ * turns a backup archive id + disk id + SR id into a remote handler, a disk
  * path, this appliance's VM and a XAPI connection. The mounting itself lives in
- * `@xen-orchestra/mixins/BackupDiskMounts.mjs` so xo-proxy can reuse it.
+ * `@xen-orchestra/mixins/live-mount/` so xo-proxy can reuse it, and so can any
+ * future feature that mounts a disk from somewhere other than a backup.
  */
 export default class BackupDiskMountsResolver {
   #app
@@ -44,7 +45,7 @@ export default class BackupDiskMountsResolver {
     const remote = await app.getRemoteWithCredentials(getBackupRepositoryId(archiveId))
     const adapter = await app.getBackupsRemoteAdapter(remote)
     try {
-      return await app.backupDiskMounts.mount({
+      return await app.liveMount.mountDisk({
         cacheSrRef: cacheSr.$ref,
         diskPath: diskId,
         handler: adapter.value.handler,
@@ -112,11 +113,11 @@ export default class BackupDiskMountsResolver {
    * @param {string} id - identifier returned by `mountBackupArchiveDisk`
    */
   unmountBackupArchiveDisk(id) {
-    return this.#app.backupDiskMounts.unmount(id)
+    return this.#app.liveMount.unmountDisk(id)
   }
 
   listMountedBackupArchiveDisks() {
-    return this.#app.backupDiskMounts.list()
+    return this.#app.liveMount.listMountedDisks()
   }
 
   async #getArchive(archiveId) {

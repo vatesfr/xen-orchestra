@@ -1,5 +1,5 @@
 export default {
-  'mount-disk': true,
+  'mount-live-disk': true,
   read: true,
-  'unmount-disk': true,
+  'unmount-live-disk': true,
 }

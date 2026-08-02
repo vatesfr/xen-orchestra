@@ -42,7 +42,7 @@ import {
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { SendObjects } from '../helpers/helper.type.mjs'
 import { BackupArchiveService } from './backup-archive.service.mjs'
-import type { MountDiskBody, UnmountDiskBody } from './backup-archive.type.mjs'
+import type { MountLiveDiskBody, UnmountLiveDiskBody } from './backup-archive.type.mjs'
 import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
 
 @Route('backup-archives')
@@ -149,7 +149,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
 
   /**
    * Required privilege:
-   * - resource: backup-archive, action: mount-disk
+   * - resource: backup-archive, action: mount-live-disk
    *
    * Serve one disk of this archive as an iSCSI LUN and attach it, as an SR, to the host running this
    * XO — so its content is readable without being restored first.
@@ -159,7 +159,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    * cache holds a complete copy of it. Writes are accepted and land there too, which means the mount
    * stops matching the backup as soon as anything writes to it. The cache disk is destroyed on unmount.
    *
-   * The returned `id` is the handle to pass to the `unmountDisk` action.
+   * The returned `id` is the handle to pass to the `unmountLiveDisk` action.
    *
    * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
    * @example body {
@@ -169,7 +169,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    */
   @Example(backupArchiveDiskMount)
   @Extension('x-mcp-exposure', 'confirm')
-  @Post('{id}/actions/mountDisk')
+  @Post('{id}/actions/mountLiveDisk')
   @Middlewares([
     json(),
     // the cache disk is created on an SR the caller chooses, so that SR needs its
@@ -177,7 +177,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     acl([
       {
         resource: 'backup-archive',
-        action: 'mount-disk',
+        action: 'mount-live-disk',
         objectId: 'params.id',
         getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
       },
@@ -189,9 +189,9 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
-  mountDisk(
+  mountLiveDisk(
     @Path() id: string,
-    @Body() body: MountDiskBody,
+    @Body() body: MountLiveDiskBody,
     @Query() sync?: boolean
   ): CreateActionReturnType<BackupArchiveDiskMount> {
     const archiveId = id as XoVmBackupArchive['id']
@@ -206,28 +206,28 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     return this.createAction<BackupArchiveDiskMount>(action, {
       sync,
       statusCode: createdResp.status,
-      taskProperties: { name: 'mount backup archive disk', objectId: archiveId, params: body },
+      taskProperties: { name: 'mount live backup archive disk', objectId: archiveId, params: body },
     })
   }
 
   /**
    * Required privilege:
-   * - resource: backup-archive, action: unmount-disk
+   * - resource: backup-archive, action: unmount-live-disk
    *
-   * Detach a disk mounted by the `mountDisk` action: the SR is unplugged and forgotten, and the iSCSI
-   * target is stopped.
+   * Detach a disk mounted by the `mountLiveDisk` action: the SR is unplugged and forgotten, and the
+   * iSCSI target is stopped.
    *
    * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
    * @example body { "mountId": "6b1f0e9c2a7d4f83b5c1d9e0a4f76b28" }
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
-  @Post('{id}/actions/unmountDisk')
+  @Post('{id}/actions/unmountLiveDisk')
   @Middlewares([
     json(),
     acl({
       resource: 'backup-archive',
-      action: 'unmount-disk',
+      action: 'unmount-live-disk',
       objectId: 'params.id',
       getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
     }),
@@ -237,9 +237,9 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Response(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  unmountDisk(
+  unmountLiveDisk(
     @Path() id: string,
-    @Body() body: UnmountDiskBody,
+    @Body() body: UnmountLiveDiskBody,
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const action = () => this.restApi.xoApp.unmountBackupArchiveDisk(body.mountId)
@@ -248,7 +248,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       sync,
       statusCode: noContentResp.status,
       taskProperties: {
-        name: 'unmount backup archive disk',
+        name: 'unmount live backup archive disk',
         objectId: id as XoVmBackupArchive['id'],
         params: body,
       },
