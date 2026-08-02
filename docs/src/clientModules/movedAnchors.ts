@@ -39,7 +39,7 @@ const MOVED_FROM_XOA: Record<string, string> = {
 
 /**
  * The old /xo6/purchase and /xo5/license_management pages moved to the
- * central Vates docs; their redirect lands on /xo6/support, and these
+ * central Vates docs; their redirect lands on /support, and these
  * anchors complete the trip to the right page over there.
  */
 const MOVED_TO_VATES_DOCS: Record<string, string> = {
@@ -65,7 +65,7 @@ export function onRouteDidUpdate({ location }: { location: { pathname: string; h
   if (path === '/installation' && MOVED_FROM_XOA[anchor] !== undefined) {
     window.location.replace(MOVED_FROM_XOA[anchor])
   }
-  if (path === '/xo6/support' && MOVED_TO_VATES_DOCS[anchor] !== undefined) {
+  if (path === '/support' && MOVED_TO_VATES_DOCS[anchor] !== undefined) {
     window.location.replace(MOVED_TO_VATES_DOCS[anchor])
   }
 }

@@ -295,7 +295,7 @@ For advanced usage, you can customize the way XO connect to Redis:
 #encryptCredentialDatabase = true
 ```
 
-For more information about the encryption feature, see [credential database encryption](xo5/credential-encryption.md)
+For more information about the encryption feature, see [credential database encryption](credential-encryption.md)
 
 ## Proxy for updates and patches
 

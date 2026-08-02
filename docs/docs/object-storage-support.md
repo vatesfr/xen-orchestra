@@ -4,7 +4,7 @@
 
 Xen Orchestra is compatible with a wide range of S3-compatible object storage solutions. Based on our testing and validation, we categorize storage providers into three tiers to help you understand their expected reliability and performance.
 
-To configure an S3-compatible backup repository, see [Backup repositories](backups.md#remotes).
+To configure an S3-compatible backup repository, see [Backup repositories](xo5/backups.md#remotes).
 
 ## Storage tiers explained
 
@@ -29,7 +29,7 @@ To configure an S3-compatible backup repository, see [Backup repositories](backu
 
 ## What this means for your backups
 
-The most demanding part of the backup process (cleaning and merging old data) is where tier differences matter most. Once a backup is complete, restoration is fully supported by Vates regardless of the storage tier. You can inspect the health of a backup repository (BR) at any time with the [`xo-backups` CLI](backups.md#backups-cli).
+The most demanding part of the backup process (cleaning and merging old data) is where tier differences matter most. Once a backup is complete, restoration is fully supported by Vates regardless of the storage tier. You can inspect the health of a backup repository (BR) at any time with the [`xo-backups` CLI](xo5/backups.md#backups-cli).
 
 Currently, we don’t have a formal validation program for every provider. This list reflects our hands-on experience working with users to ensure their backups remain secure.
 

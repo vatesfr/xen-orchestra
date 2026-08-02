@@ -82,8 +82,8 @@ export default {
       collapsible: true,
       collapsed: true,
       items: [
-        'xo5/intro_backup',
-        'xo5/backup_howto',
+        'intro_backup',
+        'backup_howto',
         'xo6/backups',
         {
           type: 'category',
@@ -91,12 +91,12 @@ export default {
           collapsible: true,
           collapsed: true,
           items: [
-            'xo5/rolling_snapshots',
-            'xo5/full_backups',
+            'rolling_snapshots',
+            'full_backups',
             'xo5/incremental_backups',
-            'xo5/full_replication',
+            'full_replication',
             'xo5/incremental_replication',
-            'xo5/mirror_backup',
+            'mirror_backup',
             'xo5/metadata_backup',
           ],
         },
@@ -106,11 +106,11 @@ export default {
           label: 'Scale and security',
           collapsible: true,
           collapsed: true,
-          items: ['xo5/proxy', 'distributed_backups', 'xo5/object-storage-support', 'xo5/immutability'],
+          items: ['xo5/proxy', 'distributed_backups', 'object-storage-support', 'immutability'],
         },
         'xo5/backup_reports',
         'xo5/backup_troubleshooting',
-        'xo5/calculator',
+        'calculator',
       ],
     },
     {
@@ -118,7 +118,7 @@ export default {
       label: 'Users and access',
       collapsible: true,
       collapsed: true,
-      items: ['xo5/users', 'xo6/acl-v2', 'xo5/credential-encryption'],
+      items: ['xo5/users', 'xo6/acl-v2', 'credential-encryption'],
     },
     {
       type: 'category',
@@ -149,7 +149,7 @@ export default {
       collapsible: true,
       collapsed: true,
       items: [
-        'xo6/intro_support',
+        'intro_support',
         {
           type: 'link',
           label: 'Vates VMS bundles',
@@ -160,7 +160,7 @@ export default {
           label: 'Applying XO licenses',
           href: 'https://docs.vates.tech/pricing-licencing/applying-xo-licences/',
         },
-        'xo6/community',
+        'community',
       ],
     },
     {

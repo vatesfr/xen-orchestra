@@ -73,5 +73,5 @@ With offline backup enabled, the VM is shut down for the whole duration of the e
 :::
 
 :::tip
-Full backups are storage and bandwidth hungry: each run transfers and stores a complete copy of the VM, with no deduplication between runs. In exchange, you get the simplest possible restore. To use less space and transfer less data, look at [incremental backups](./incremental_backups.md), and see the [backup strategy guide](./backup_howto.md) to choose the right approach for your infrastructure.
+Full backups are storage and bandwidth hungry: each run transfers and stores a complete copy of the VM, with no deduplication between runs. In exchange, you get the simplest possible restore. To use less space and transfer less data, look at [incremental backups](xo5/incremental_backups.md), and see the [backup strategy guide](./backup_howto.md) to choose the right approach for your infrastructure.
 :::

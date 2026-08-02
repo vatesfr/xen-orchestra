@@ -80,11 +80,11 @@ To roll back, open the VM's **Snapshots** tab and revert to the restore point yo
 On thick-provisioned storage (LVM-based SRs: iSCSI, HBA, local LVM), every snapshot reserves the full virtual size of the disk on the SR. Seven rolling snapshots of a 200 GiB disk can claim more than 1.4 TiB. Avoid rolling snapshots for large VMs on these SRs, or keep the retention very low. Thin-provisioned storage (local ext, NFS, XOSTOR) only consumes space for the actual changes.
 :::
 
-- **Coalesce load**: deleting a snapshot triggers coalesce work on the SR to merge the disk chain back together. If snapshots rotate faster than the SR can coalesce (very frequent schedules on slow storage), chains pile up and Xen Orchestra will skip the VM to protect it. See [VDI chain protection](backup_troubleshooting.md#vdi-chain-protection) for details.
+- **Coalesce load**: deleting a snapshot triggers coalesce work on the SR to merge the disk chain back together. If snapshots rotate faster than the SR can coalesce (very frequent schedules on slow storage), chains pile up and Xen Orchestra will skip the VM to protect it. See [VDI chain protection](xo5/backup_troubleshooting.md#vdi-chain-protection) for details.
 - **Reverting is destructive**: rolling a VM back to a snapshot discards everything that happened after that snapshot was taken. If you are not sure you want to lose the current state, snapshot it first, then revert.
 
 ## When to use it
 
 Rolling snapshots shine as a cheap, fast undo button: before risky changes, on dev and test VMs, or as a short-term rollback layer on top of a proper backup policy. They cost nothing to set up, need no backup repository, and restore in seconds.
 
-They are not a protection layer: they will not survive the loss of the SR, a corrupted storage, or a host disaster. Once your rolling snapshots are in place, head over to the [Backup strategy guide](backup_howto.md) to design real protection, with [incremental backups](incremental_backups.md) as the natural next step: they reuse the same snapshot mechanism, but export the data to a separate backup repository where a storage failure can't reach it.
+They are not a protection layer: they will not survive the loss of the SR, a corrupted storage, or a host disaster. Once your rolling snapshots are in place, head over to the [Backup strategy guide](backup_howto.md) to design real protection, with [incremental backups](xo5/incremental_backups.md) as the natural next step: they reuse the same snapshot mechanism, but export the data to a separate backup repository where a storage failure can't reach it.

@@ -173,7 +173,7 @@ I, J and K are transferred in order, and B, C and D are deleted from the destina
 
 ## Synchronizing algorithm for incremental backups
 
-This job only transfers new backups, then runs the same merge algorithm as [Incremental Backups](incremental_backups.md) on the destination. Since each side applies its own retention, the merges happen independently: the source merges sooner (retention 3), the destination later (retention 4).
+This job only transfers new backups, then runs the same merge algorithm as [Incremental Backups](xo5/incremental_backups.md) on the destination. Since each side applies its own retention, the merges happen independently: the source merges sooner (retention 3), the destination later (retention 4).
 
 <Schema label="Three runs of an incremental mirror: only the new deltas cross the wire, and each BR merges its own chain when its own retention is exceeded, the source after run 1, the destination one run later" legend={[["#e0a94a", "key (full) backup"], ["#6aabf0", "delta"], ["#5ac8c8", "transfer"]]} maxWidth="640px">
 <svg viewBox="0 0 640 266" role="img" aria-label="Three rows show successive mirror runs of an incremental chain. Run 1: the source holds key A plus deltas b and c, all three are transferred, the destination holds A, b and c. Run 2: the source has merged A and b into key B and holds B, c and d, only the delta d is transferred, the destination holds A, b, c and d with no merge yet. Run 3: the source holds C, d and e, only the delta e is transferred, and the destination now merges A and b into B, holding B, c, d and e">

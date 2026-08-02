@@ -364,7 +364,7 @@ Xen Orchestra supports Amazon S3 storage and other S3-compatible providers, so y
 
 :::warning
 
-- Not all S3-compatible providers adhere perfectly to Amazon S3 standards. Check the [supported object storage providers](./object-storage-support.md) list and its support tiers, and test your setup before trusting it with critical backups.
+- Not all S3-compatible providers adhere perfectly to Amazon S3 standards. Check the [supported object storage providers](../object-storage-support.md) list and its support tiers, and test your setup before trusting it with critical backups.
 - Losing your encryption key means your backups will be permanently inaccessible. If you enable encryption, make sure your key is stored securely, and outside of the backed up infrastructure, as there's no way to recover your data without it.
 
 :::

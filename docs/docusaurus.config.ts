@@ -63,8 +63,12 @@ export default {
             from: '/plugins',
           },
           {
-            to: '/xo5/backup_howto',
-            from: '/backup_howto',
+            to: '/backup_howto',
+            from: '/xo5/backup_howto',
+          },
+          {
+            to: '/calculator',
+            from: '/xo5/calculator',
           },
           {
             to: '/xo5/backup_reports',
@@ -79,28 +83,28 @@ export default {
             from: '/backups',
           },
           {
-            to: '/xo6/community',
-            from: '/community',
+            to: '/community',
+            from: '/xo6/community',
           },
           {
             from: '/xo5/configuration',
             to: '/configuration',
           },
           {
-            to: '/xo5/credential-encryption',
-            from: '/credential-encryption',
+            to: '/credential-encryption',
+            from: '/xo5/credential-encryption',
           },
           {
-            to: '/xo5/full_backups',
-            from: '/full_backups',
+            to: '/full_backups',
+            from: '/xo5/full_backups',
           },
           {
-            to: '/xo5/full_replication',
-            from: '/full_replication',
+            to: '/full_replication',
+            from: '/xo5/full_replication',
           },
           {
-            to: '/xo5/immutability',
-            from: '/immutability',
+            to: '/immutability',
+            from: '/xo5/immutability',
           },
           {
             to: '/xo5/incremental_backups',
@@ -115,15 +119,15 @@ export default {
             to: '/installation',
           },
           {
-            to: '/xo6/support',
-            from: '/support',
+            to: '/support',
+            from: '/xo6/support',
           },
           {
-            to: '/xo5/backup',
-            from: '/backup',
+            to: '/backup',
+            from: '/xo5/backup',
           },
           {
-            to: '/xo6/support',
+            to: '/support',
             from: ['/license_management', '/xo5/license_management'],
           },
           {
@@ -151,19 +155,19 @@ export default {
             to: '/migrate_to_new_xoa',
           },
           {
-            to: '/xo5/mirror_backup',
-            from: '/mirror_backup',
+            to: '/mirror_backup',
+            from: '/xo5/mirror_backup',
           },
           {
-            to: '/xo5/object-storage-support',
-            from: '/object-storage-support',
+            to: '/object-storage-support',
+            from: '/xo5/object-storage-support',
           },
           {
             to: '/xo5/proxy',
             from: '/proxy',
           },
           {
-            to: '/xo6/support',
+            to: '/support',
             from: ['/purchase', '/xo6/purchase'],
           },
           {
@@ -199,8 +203,8 @@ export default {
             from: '/xo6/kubernetes',
           },
           {
-            to: '/xo5/rolling_snapshots',
-            from: '/rolling_snapshots',
+            to: '/rolling_snapshots',
+            from: '/xo5/rolling_snapshots',
           },
           {
             to: '/xo5/sdn_controller',

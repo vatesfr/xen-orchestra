@@ -9,7 +9,7 @@ Xen Orchestra stores its records (server connections, backup jobs and remotes, s
 
 ## Enabling Encryption
 
-Add the following to your [configuration file](../configuration.md):
+Add the following to your [configuration file](configuration.md):
 
 ```toml
 [redis]

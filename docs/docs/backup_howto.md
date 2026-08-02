@@ -9,22 +9,22 @@ Instead of a simple list of questions and answers, it walks you through **key de
 
 This part explains the terminology of backup types and features.
 
-- [**Backup sequence**](./backups#sequences): A feature that allows you to chain multiple backup jobs to run one after the other, automatically.
-- [**Backup repository (BR)**](./backups#remotes): Formerly called _Remote_. A storage location for backups. For instance:
+- [**Backup sequence**](xo5/backups.md#sequences): A feature that allows you to chain multiple backup jobs to run one after the other, automatically.
+- [**Backup repository (BR)**](xo5/backups.md#remotes): Formerly called _Remote_. A storage location for backups. For instance:
   - Local storage (not recommended)
   - NFS
   - SMB
   - Amazon S3 and compatible
   - Microsoft Azure
   - Azurite
-- [**File restore**](./backups#restore-a-file): A feature that allows you to restore individual files from a VM backup without restoring the full VM.
-- [**Full backup**](./full_backups): Copies the entire VM to backup repositories each time, regardless of previous backups.
-- [**Full replication**](./full_replication): Creates a replica of a VM on other storage repositories (on the same pool or on another) by copying it completely on each run.
-- [**Incremental backup**](./incremental_backups): Transfers and stores only the changes since the last backup to backup repositories, reducing storage and network needs. The first run transfers the VM completely.
-- [**Incremental replication**](./incremental_replication): Transfers and stores only the changes since the last backup to storage repositories (on the same pool or on another), reducing network needs. The first run transfers the VM completely.
-- [**Long-term retention**](./backups#long-term-backup-retention-with-gfs-strategy): Keeps backups over extended periods (weeks, months, or years) for compliance or archival purposes.
-- [**Mirror backup**](./mirror_backup): Mirror a backup repository to another. Retention and encryption of source and destination can be different.
-- [**Distributed backup and replication**](../distributed_backups): Distribute the backups and replications across multiple targets.
+- [**File restore**](xo5/backups.md#restore-a-file): A feature that allows you to restore individual files from a VM backup without restoring the full VM.
+- [**Full backup**](full_backups.md): Copies the entire VM to backup repositories each time, regardless of previous backups.
+- [**Full replication**](full_replication.md): Creates a replica of a VM on other storage repositories (on the same pool or on another) by copying it completely on each run.
+- [**Incremental backup**](xo5/incremental_backups.md): Transfers and stores only the changes since the last backup to backup repositories, reducing storage and network needs. The first run transfers the VM completely.
+- [**Incremental replication**](xo5/incremental_replication.md): Transfers and stores only the changes since the last backup to storage repositories (on the same pool or on another), reducing network needs. The first run transfers the VM completely.
+- [**Long-term retention**](xo5/backups.md#long-term-backup-retention-with-gfs-strategy): Keeps backups over extended periods (weeks, months, or years) for compliance or archival purposes.
+- [**Mirror backup**](mirror_backup.md): Mirror a backup repository to another. Retention and encryption of source and destination can be different.
+- [**Distributed backup and replication**](distributed_backups.md): Distribute the backups and replications across multiple targets.
 
 
 ## What should I do before setting up my backup?
@@ -66,13 +66,13 @@ Here is the whole toolbox at a glance. Most infrastructures combine several of t
 
 | Type                                                       | What you get                                | Storage & network cost      | Restore                          | Typical use                            |
 | ---------------------------------------------------------- | ------------------------------------------- | --------------------------- | -------------------------------- | -------------------------------------- |
-| [Rolling snapshots](./rolling_snapshots.md)                | Instant restore points, on the same storage | SR space only               | Instant revert                   | Oops protection, before risky changes  |
-| [Full backup](./full_backups.md)                           | Complete standalone archive on a BR         | High, every run             | Simple, anywhere                 | Small fleets, simplicity first         |
-| [Incremental backup](./incremental_backups.md)             | Compact archives after the first full       | Low per run                 | Whole VM or single files         | The default choice for most VMs        |
-| [Full replication (DR)](./full_replication.md)             | Boot-ready copy on another host/SR          | High, every run             | Start the copy                   | DR with a modest RPO                   |
-| [Incremental replication (CR)](./incremental_replication.md) | Boot-ready copy, updated by deltas        | Low per run                 | Clone and start                  | Low-RPO DR for critical VMs            |
-| [Mirror backup](./mirror_backup.md)                        | A second copy of a backup repository        | Follows the source          | Same as the source backups       | 3-2-1 strategies, offsite archives     |
-| [Metadata backup](./metadata_backup.md)                    | XO config and pool metadata                 | Tiny                        | Rebuild your orchestration       | Always: it protects the tool itself    |
+| [Rolling snapshots](rolling_snapshots.md)                | Instant restore points, on the same storage | SR space only               | Instant revert                   | Oops protection, before risky changes  |
+| [Full backup](full_backups.md)                           | Complete standalone archive on a BR         | High, every run             | Simple, anywhere                 | Small fleets, simplicity first         |
+| [Incremental backup](xo5/incremental_backups.md)             | Compact archives after the first full       | Low per run                 | Whole VM or single files         | The default choice for most VMs        |
+| [Full replication (DR)](full_replication.md)             | Boot-ready copy on another host/SR          | High, every run             | Start the copy                   | DR with a modest RPO                   |
+| [Incremental replication (CR)](xo5/incremental_replication.md) | Boot-ready copy, updated by deltas        | Low per run                 | Clone and start                  | Low-RPO DR for critical VMs            |
+| [Mirror backup](mirror_backup.md)                        | A second copy of a backup repository        | Follows the source          | Same as the source backups       | 3-2-1 strategies, offsite archives     |
+| [Metadata backup](xo5/metadata_backup.md)                    | XO config and pool metadata                 | Tiny                        | Rebuild your orchestration       | Always: it protects the tool itself    |
 
 ### Rolling snapshots
 
@@ -94,8 +94,8 @@ A complete export of each VM to a backup repository, on every run.
 
 After an initial full, only the changed blocks are exported.
 
-- **Pros**: fast runs, small transfers, restore to any date, [file-level restore](./backups#file-level-restore), works well at high frequency.
-- **Watch out**: restores rely on a chain (full + deltas): set a [full backup interval](./incremental_backups.md#key-backup-interval) to keep chains short, or enable health checks.
+- **Pros**: fast runs, small transfers, restore to any date, [file-level restore](xo5/backups.md#file-level-restore), works well at high frequency.
+- **Watch out**: restores rely on a chain (full + deltas): set a [full backup interval](xo5/incremental_backups.md#key-backup-interval) to keep chains short, or enable health checks.
 - **First steps**: this is the right default for most VMs; start here if in doubt.
 
 ### Full replication (DR)
@@ -124,7 +124,7 @@ Replicates an existing backup repository to another one, possibly with different
 
 ### Sequence
 
-Not a backup type, but the way to chain the jobs above: a [sequence](./backups#sequences) runs several schedules one after the other, in a fixed order.
+Not a backup type, but the way to chain the jobs above: a [sequence](xo5/backups.md#sequences) runs several schedules one after the other, in a fixed order.
 
 - **Pros**: deterministic ordering (backup first, then replication), no overlapping jobs competing for resources.
 - **First steps**: identify the right order, and test the sequence on non-critical VMs first.
@@ -175,10 +175,10 @@ For **advanced scenarios**, you can use the `fuse-vhd` helper script to manually
 
 ## Long-term retention strategy
 
-For compliance or archival needs, you rarely want *every* daily backup kept for years: you want something like 7 dailies, 4 weeklies, 12 monthlies, a few yearlies. This is the **GFS (Grandfather-Father-Son)** scheme, configured directly in the retention settings of a backup job: see [Long-term backup retention with GFS](./backups#long-term-backup-retention-with-gfs-strategy).
+For compliance or archival needs, you rarely want *every* daily backup kept for years: you want something like 7 dailies, 4 weeklies, 12 monthlies, a few yearlies. This is the **GFS (Grandfather-Father-Son)** scheme, configured directly in the retention settings of a backup job: see [Long-term backup retention with GFS](xo5/backups.md#long-term-backup-retention-with-gfs-strategy).
 
 - Define retention periods based on compliance and operational needs
-- Size the required storage with the [retention calculator](./calculator.md)
+- Size the required storage with the [retention calculator](calculator.md)
 - Regularly test restore from long-term backups
 
 :::warning

@@ -51,7 +51,7 @@ You can, for example, run the initial key backup during a weekend, then only del
 - they are small and quick to create
 - restores are simple: XO reads the whole chain and rebuilds the VM automatically
 
-If you want to roll back a VM to a previous state, the cost is only one snapshot on your SR (far less than the [rolling snapshot](rolling_snapshots.md) mechanism). And even if you lose your whole SR or VM, XOA will restore the VM entirely and automatically, at any backup date.
+If you want to roll back a VM to a previous state, the cost is only one snapshot on your SR (far less than the [rolling snapshot](../rolling_snapshots.md) mechanism). And even if you lose your whole SR or VM, XOA will restore the VM entirely and automatically, at any backup date.
 
 You can even use this to back up more often: deltas stay small, and they will **always be deltas**.
 

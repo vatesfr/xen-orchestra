@@ -93,4 +93,4 @@ When you actually need to run a replica, you have two options, and both take it 
 
 The day the production side is gone, the procedure is short: go to the DR pool, take the most recent replica of each VM, clone it or unblock it, fix the network settings if needed, and start it. Your services are back without waiting for any restore.
 
-Because full replication re-sends the entire VM at each run, its practical RPO is limited by how long a full export takes. If you need more frequent runs and a lower RPO, look at [incremental replication](./incremental_replication.md), which only transfers the changed blocks. To decide how replication fits with your other backup jobs, see the [backup strategy guide](./backup_howto.md).
+Because full replication re-sends the entire VM at each run, its practical RPO is limited by how long a full export takes. If you need more frequent runs and a lower RPO, look at [incremental replication](xo5/incremental_replication.md), which only transfers the changed blocks. To decide how replication fits with your other backup jobs, see the [backup strategy guide](./backup_howto.md).

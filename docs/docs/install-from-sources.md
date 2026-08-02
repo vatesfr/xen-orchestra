@@ -215,7 +215,7 @@ Exceptional individual contributors are awarded a free XOA Premium subscription.
 ## FreeBSD and OpenBSD
 
 :::note Community territory
-We do not test Xen Orchestra on FreeBSD or OpenBSD at all: everything below comes purely from community feedback, and may lag behind reality. If you run XO on these systems and want to help maintain these instructions, [contact us](xo6/community.md): we would be happy to have more testers and maintainers for these targets.
+We do not test Xen Orchestra on FreeBSD or OpenBSD at all: everything below comes purely from community feedback, and may lag behind reality. If you run XO on these systems and want to help maintain these instructions, [contact us](community.md): we would be happy to have more testers and maintainers for these targets.
 :::
 
 ### FreeBSD

@@ -23,7 +23,7 @@ Everything goes through XO, and everything that talks to your infrastructure tal
 <text x="337" y="37" fontSize="13.5" fill="#c6d2e1" textAnchor="middle">Automation</text>
 <text x="337" y="56" fontSize="11.5" fill="#7a8699" textAnchor="middle">REST API · CLI · Terraform · Ansible</text>
 </a>
-<a href="/xo5/backup" aria-label="Backups">
+<a href="/backup" aria-label="Backups">
 <rect x="485" y="12" width="175" height="62" rx="8" fill="rgba(224,169,74,0.10)" stroke="#e0a94a"/>
 <text x="572" y="37" fontSize="13.5" fill="#e0a94a" textAnchor="middle">Backup repository</text>
 <text x="572" y="56" fontSize="11.5" fill="#7a8699" textAnchor="middle">S3 · NFS · SMB · Azure</text>
@@ -64,7 +64,7 @@ grows out of XO toward it, and vanishes with it. */}
 <animate attributeName="opacity" dur="36s" repeatCount="indefinite"
       values="0;0;1;1;0;0" keyTimes="0;0.139;0.15;0.41;0.45;1"/>
 </line>
-<a href="/xo5/full_replication" aria-label="Disaster recovery">
+<a href="/full_replication" aria-label="Disaster recovery">
 <rect x="520" y="115" width="140" height="62" rx="8" fill="none" stroke="rgba(255,255,255,0.22)" strokeDasharray="6 5"/>
 <text x="530" y="132" fontSize="12.5" fill="#7a8699">DR site</text>
 <g opacity="0.45">
@@ -159,10 +159,10 @@ the parked standby. */}
 <CardGrid>
 <LinkCard title="Deploy Xen Orchestra" href="/installation">Get the turnkey appliance (XOA) running in minutes, or install from the sources.</LinkCard>
 <LinkCard title="Discover XO 6" href="/xo6/gettingstarted">Tour the new interface: tree view, dashboards, consoles.</LinkCard>
-<LinkCard title="Set up backups" href="/xo5/backup">Rolling snapshots, incremental backups, replication and more.</LinkCard>
+<LinkCard title="Set up backups" href="/backup">Rolling snapshots, incremental backups, replication and more.</LinkCard>
 <LinkCard title="Migrate from VMware" href="/xo5/v2v-migration-guide">Import your ESXi VMs directly into your pools with V2V.</LinkCard>
 <LinkCard title="Automate everything" href="/automation/restapi">REST API, CLI, Terraform, Ansible, Pulumi and more.</LinkCard>
-<LinkCard title="Get support" href="/xo6/support">Professional support by the Vates team, or community help.</LinkCard>
+<LinkCard title="Get support" href="/support">Professional support by the Vates team, or community help.</LinkCard>
 </CardGrid>
 
 ## What XO does for you

@@ -3,7 +3,7 @@
 This page covers the problems you may encounter with your XOA, and how to get out of them.
 
 :::warning
-If you have issues with an XO installed [from the sources](install-from-sources.md), please go through the [community support checklist](xo6/community.md) first.
+If you have issues with an XO installed [from the sources](install-from-sources.md), please go through the [community support checklist](community.md) first.
 :::
 
 ## First reflex: `xoa check`

@@ -75,5 +75,5 @@ To restore one, click the blue restore arrow on its row, choose the backup date 
 That's it!
 
 :::tip
-Metadata backup is one half of protecting your orchestration layer: the other half is keeping the XOA itself recoverable. See [How to ensure XOA is always available](backup_howto.md#how-to-ensure-xoa-is-always-available).
+Metadata backup is one half of protecting your orchestration layer: the other half is keeping the XOA itself recoverable. See [How to ensure XOA is always available](../backup_howto.md#how-to-ensure-xoa-is-always-available).
 :::
