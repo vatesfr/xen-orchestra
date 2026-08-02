@@ -122,17 +122,10 @@ export default {
     },
     {
       type: 'category',
-      label: 'Migrating to XO',
-      collapsible: true,
-      collapsed: true,
-      items: ['xo5/v2v-migration-guide'],
-    },
-    {
-      type: 'category',
       label: 'Guides',
       collapsible: true,
       collapsed: true,
-      items: ['windows-templates'],
+      items: ['xo5/v2v-migration-guide', 'windows-templates'],
     },
     {
       type: 'category',
@@ -155,7 +148,20 @@ export default {
       label: 'Support and licensing',
       collapsible: true,
       collapsed: true,
-      items: ['xo6/intro_support', 'xo6/purchase', 'xo6/community', 'xo5/license_management'],
+      items: [
+        'xo6/intro_support',
+        {
+          type: 'link',
+          label: 'Vates VMS bundles',
+          href: 'https://docs.vates.tech/pricing-licencing/vms-bundle-overview/',
+        },
+        {
+          type: 'link',
+          label: 'Applying XO licenses',
+          href: 'https://docs.vates.tech/pricing-licencing/applying-xo-licences/',
+        },
+        'xo6/community',
+      ],
     },
     {
       type: 'category',

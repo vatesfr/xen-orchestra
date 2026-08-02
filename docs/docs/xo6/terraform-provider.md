@@ -2,597 +2,255 @@
 
 ## Introduction
 
-Managing infrastructure manually often leads to errors and complexity. With Infrastructure as Code (IaC), we describe our infrastructure in configuration files to make it **predictable**, **reproducible**, and **version-controlled**. 
-This tutorial will guide you through using **Terraform** or **OpenTofu**, the leading IaC tools, to automate the deployment and updating of your **VMs** on **Xen Orchestra**.
+Managing infrastructure by hand is error prone and hard to audit. With Infrastructure as Code (IaC), you describe your infrastructure in configuration files to make it **predictable**, **reproducible**, and **version-controlled**.
+
+Xen Orchestra has an official Terraform provider, [`vatesfr/xenorchestra`](https://registry.terraform.io/providers/vatesfr/xenorchestra/latest), published on the Terraform registry and developed [on GitHub](https://github.com/vatesfr/terraform-provider-xenorchestra). This guide walks you through deploying a VM on your Xen Orchestra (XO) instance with **Terraform**, then updating it.
 
 :::note
-This guide works with both **Terraform** and **OpenTofu**. OpenTofu is a community-driven fork of Terraform that maintains compatibility.
+This guide works with both **Terraform** and **OpenTofu**, the community-driven fork that maintains compatibility with Terraform.
 :::
 
 :::tip
-Terraform’s two-step workflow (`plan` then `apply`) gives you full control. You can preview all changes before applying them, ensuring safe and predictable deployments while saving time and effort.
+Terraform's two-step workflow (`plan` then `apply`) gives you full control: you preview every change before applying it, for safe and predictable deployments.
 :::
 
-## Launching Virtual Machines in XO with Terraform
+## Prerequisites
 
-In this guide, we’ll walk you step-by-step through using `Terraform` to launch a virtual machine (VM) on your Xen Orchestra (XO) instance, and then show you how to modify it easily.
+- a running **Xen Orchestra** instance (5.50.1 or newer) connected to an **XCP-ng** pool
+- **Terraform** or **OpenTofu** installed on your workstation
+- a VM **template** with cloud-init support
+- an XO **user account** or **API token** for the provider to authenticate with
 
-:::note 
-*Before starting, make sure you have a running **Xen Orchestra** instance connected to an **XCP-ng** pool.*
-:::
+### Installing Terraform {#installing-terraform}
 
-**Here are the 4 main steps we’ll follow:**
+If you haven't installed Terraform yet, follow the [official HashiCorp tutorial](https://developer.hashicorp.com/terraform/install), or the [OpenTofu installation guide](https://opentofu.org/docs/intro/install/). Any recent release works: the provider itself supports Terraform 0.12 and newer.
 
-1. Install Terraform
-2. Create a VM template
-3. Provision the VM with Terraform
-4. Add an additional network interface to the VM
+### VM templates in Xen Orchestra {#using-vm-templates-in-xen-orchestra}
 
-:::tip
-The code used in this tutorial can be found on [GitHub](https://github.com/vatesfr/terraform-provider-xenorchestra), but we’ll write it from scratch step by step.
-:::
-
-### Installing Terraform
-
-If you haven’t installed Terraform yet, start by following the [official Hashicorp tutorial](https://developer.hashicorp.com/terraform/install) to install it on your system.
+Terraform needs a starting point to create a VM: a template that already contains an installed operating system with **cloud-init** capabilities (or **Cloudbase-init** for Windows), as well as **Xen/Guest Tools** for better integration with Xen Orchestra. This enables automatic customization during deployment: IP assignment, hostname configuration, and so on.
 
 :::info
-**Required Version**: This tutorial requires Terraform `1.13.1` or newer, or OpenTofu `1.10.0` or newer.
-:::
+We recommend the pre-built cloud-init-ready templates from the **XOA Hub** (Debian, Ubuntu, and others) for optimal results. For more information about templates:
 
-### Using VM Templates in Xen Orchestra
-
-Terraform needs a starting point to create a VM: a `template` that already contains an installed operating system with **cloud-init** capabilities (or **Cloudbase-init** for Windows), as well as **Xen/Guest Tools** for better integration with Xen Orchestra. This setup enables automatic customization during deployment and simplifies VM management, including IP assignment and hostname configuration.
-
-:::info
-We recommend using pre-built templates from the **XOA Hub** for optimal results:
-- **Debian 13** (with cloud-init)
-- **Ubuntu 22.04/24.04** (with cloud-init)
-- **etc.**
-
-For more information about templates:
-- [Creating VM Templates](https://docs.xen-orchestra.com/vm-templates#creating-templates)
+- [Creating VM templates](https://docs.xen-orchestra.com/vm-templates#creating-templates)
 - [Cloud-init and Cloudbase-init](https://docs.xen-orchestra.com/vm-templates#cloud-init-and-cloudbase-init)
-- [Windows Templates with Cloudbase-init](https://xen-orchestra.com/blog/windows-templates-with-cloudbase-init-step-by-step-guide-best-practices/)
+- [Windows templates with Cloudbase-init](https://xen-orchestra.com/blog/windows-templates-with-cloudbase-init-step-by-step-guide-best-practices/)
 :::
 
-### Provisioning Your VM with Terraform
+## Installing the provider
 
-Now that Terraform is installed and your environment has a VM template ready, let’s start writing the configuration files that describe our infrastructure.
+Declare the provider in a file named `provider.tf`:
 
-We will now create the configuration files that describe our infrastructure.
-
-1. **Configure the Provider**
-
-    The first step is to tell Terraform to communicate with Xen Orchestra by declaring the **official provider**. Create a file named `provider.tf` and add the following code.
-
-    :::info
-    **Provider Version**: This tutorial uses version `~> 0.35` of the Xen Orchestra provider. Check the [official provider documentation](https://registry.terraform.io/providers/vatesfr/xenorchestra/latest) for the latest version and release notes.
-    :::
-
-    ```tf
-    # provider.tf
-    terraform {
-        required_providers {
-            xenorchestra = {
-                source  = "vatesfr/xenorchestra"
-                version = "~> 0.35"
-            }
-        }
+```tf
+# provider.tf
+terraform {
+  required_providers {
+    xenorchestra = {
+      source  = "vatesfr/xenorchestra"
+      version = "~> 0.40"
     }
-    ```
-
-    This code tells Terraform to download [Xen Orchestra Terraform provider](https://github.com/vatesfr/terraform-provider-xenorchestra) from the [official Terraform registry](https://registry.terraform.io/providers/vatesfr/xenorchestra/latest).
+  }
+}
+```
 
-    Next, open your terminal in this folder and run `terraform init`. This command reads your configuration, downloads the Xen Orchestra provider, and sets up your working environment. 
-
-    You should see output confirming successful initialization.
-
-    ```bash
-    william@william:~$ terraform init 
-    Initializing the backend...
-    Initializing provider plugins...
-    - Finding vatesfr/xenorchestra versions matching "~> 0.35"...
-    - Installing vatesfr/xenorchestra v0.35.1...
-    - Installed vatesfr/xenorchestra v0.35.1 (self-signed, key ID 3084D82948625D89)
-    Partner and community providers are signed by their developers.
-    If you'd like to know more about provider signing, you can read about it here:
-    https://developer.hashicorp.com/terraform/cli/plugins/signing
-    Terraform has created a lock file .terraform.lock.hcl to record the provider
-    selections it made above. Include this file in your version control repository
-    so that Terraform can guarantee to make the same selections by default when
-    you run "terraform init" in the future.
-
-    Terraform has been successfully initialized!
-
-    You may now begin working with Terraform. Try running "terraform plan" to see
-    any changes that are required for your infrastructure. All Terraform commands
-    should now work.
+:::info
+Version `0.40.0` is the latest at the time of writing. Check the [registry page](https://registry.terraform.io/providers/vatesfr/xenorchestra/latest) for the current version and release notes.
+:::
 
-    If you ever set or change modules or backend configuration for Terraform,
-    rerun this command to reinitialize your working directory. If you forget, other
-    commands will detect it and remind you to do so if necessary.
-    ```
+Then initialize your working directory:
 
-2. **Handle Credentials Securely**
+<Terminal shell title="download the provider and set up the working directory">{`
+terraform init
+`}</Terminal>
 
-    To authenticate Terraform with your **Xen Orchestra API**, it needs credentials. 
+Terraform downloads the provider from the registry and ends with `Terraform has been successfully initialized!`. It also creates a `.terraform.lock.hcl` lock file: commit it to version control so every run uses the same provider version.
 
-    :::warning
-    Never store passwords directly in your code. The recommended method is to use environment variables.
-    :::
+## Authentication
 
-    - Create a file `~/.xoa` in your home directory with the following content.
+The provider talks to the XO API over a websocket connection (`ws://`, or `wss://` behind TLS) and supports two methods: an **API token** (recommended) or a **username and password**. When a token is provided, it takes precedence and the username and password are ignored.
 
-        ```bash
-        export XOA_URL=ws://hostname-of-your-deployment
-        export XOA_USER=YOUR_USERNAME
-        export XOA_PASSWORD=YOUR_PASSWORD
-        ```
-        Or using a token:
+:::tip
+Any XO user can create their own API token: see [REST API authentication](../xo5/restapi.md#authentication) for how to create one.
+:::
 
-        ```bash
-        export XOA_URL=ws://hostname-of-your-deployment
-        export XOA_TOKEN=YOUR_TOKEN
-        ```
+:::warning
+Never store credentials directly in your code. The recommended method is to use environment variables.
+:::
 
-    - Then, before running Terraform, load these variables into your terminal session.
-
-        ```bash
-        eval $(cat ~/.xoa)
-        ```
+Create a file `~/.xoa` in your home directory:
 
-    :::tip
-    It’s also possible to use variables to configure authentication details.
-    This can be useful in some cases, especially to avoid storing credentials in plain text.
+```bash
+# ~/.xoa
+export XOA_URL=wss://your-xo-hostname
+export XOA_TOKEN=YOUR_TOKEN
+# or, with a username and password:
+# export XOA_USER=YOUR_USERNAME
+# export XOA_PASSWORD=YOUR_PASSWORD
+```
 
-    ```bash
-    provider "xenorchestra" {
-    # Must be ws or wss
-    token = local.xoa_token         # or set the XOA_TOKEN environment variable
-    url   = "ws://${local.xoa_url}" # or set the XOA_URL environment variable
-    }
-    ```
-    :::
+Then, before running Terraform, load these variables into your terminal session:
 
-3. **Define Existing Resources (Data Sources)**
+<Terminal shell title="load the XO credentials into the current session">{`
+source ~/.xoa
+`}</Terminal>
 
-    Terraform needs to know about existing resources in XO (your pool, network, storage, etc.). For that, we use `data` blocks and read-only queries that fetch existing information. This avoids hardcoding technical identifiers (UUIDs, etc.) and makes your configuration more readable and portable.
+:::tip
+The same settings can be passed in the provider block instead, which is useful when the values come from Terraform variables or a secrets manager:
 
-    Create a file named `vm.tf` (or `data-source.tf`, as most people do) and add the following code, making sure to replace the `name_label` values with the exact names of your resources in Xen Orchestra (the names of your pool, network, storage repository, and VM template, respectively). 
+```tf
+provider "xenorchestra" {
+  url   = "wss://your-xo-hostname" # must be ws:// or wss://, or set XOA_URL
+  token = var.xoa_token            # or set XOA_TOKEN
+  # username/password authentication is also supported (username/password
+  # arguments, or the XOA_USER and XOA_PASSWORD environment variables),
+  # and insecure = true skips TLS verification (XOA_INSECURE)
+}
+```
+:::
 
-    ```tf
-    # vm.tf
+## Deploying your first VM {#launching-virtual-machines-in-xo-with-terraform}
 
-    data "xenorchestra_pool" "pool" {
-    name_label = "Main pool"
-    }
+### Describe your infrastructure {#provisioning-your-vm-with-terraform}
 
-    data "xenorchestra_template" "vm_template" {
-    name_label = "Ubuntu 24.04 Cloud-Init"
-    }
+Terraform needs to know about the existing resources in XO (your pool, network, storage, template). For that, we use `data` blocks: read-only queries that fetch existing information, so you never hardcode UUIDs.
 
-    data "xenorchestra_sr" "sr" {
-    name_label = "ZFS"
-    pool_id = data.xenorchestra_pool.pool.id
-    }
+Create a file named `vm.tf` and add the following code, replacing the `name_label` values with the exact names of your pool, template, storage repository, and network in Xen Orchestra:
 
-    data "xenorchestra_network" "network" {
-    name_label = "Pool-wide network"
-    pool_id = data.xenorchestra_pool.pool.id
-    }
-    ```
-
-    :::tip
-    Using explicit `name_label` values is fine for this tutorial.  
-    However, in real environments, it’s recommended to use **unique names** to prevent conflicts or misconfigurations when multiple resources share similar labels.  
-    :::
-
-4. **Verify Data Sources**
-
-    At this stage, even before defining our VM, we can run `terraform plan` for the first time. This is an excellent practice to ensure that Terraform can successfully connect to Xen Orchestra and locate all the resources we have declared.
-
-    ```bash
-    william@william:~$ terraform plan
-    data.xenorchestra_pool.pool: Reading...
-    data.xenorchestra_template.vm_template: Reading...
-    data.xenorchestra_pool.pool: Read complete after 0s [id=355ee47d-ff4c-4924-3db2-fd86ae629676]
-    data.xenorchestra_network.network: Reading...
-    data.xenorchestra_sr.sr: Reading...
-    data.xenorchestra_network.network: Read complete after 0s [id=a12df741-f34f-7d05-f120-462f0ab39a48]
-    data.xenorchestra_template.vm_template: Read complete after 0s [id=d0b0869b-2503-0c17-1e5e-3725f6eba342]
-    data.xenorchestra_sr.sr: Read complete after 0s [id=86a9757d-9c05-9fe0-e79a-8243cb1f37f3]
-
-    No changes. Your infrastructure matches the configuration.
-
-    Terraform has compared your real infrastructure against your configuration and found no differences, so no changes are needed.
-    ```
-
-    The message `No changes. Infrastructure is up-to-date.` or `No changes. Your infrastructure matches the configuration.` is exactly what we’re expecting. It confirms that our data sources are correctly configured and that Terraform has successfully found the corresponding `pool`, `template`, `SR`, and `network`.
-
-5. **Define the VM Resource**
-
-    Now that Terraform knows where to find the template, storage, and network, we can finally define the VM we want to create.
-
-    Add the following code block at the end of your `vm.tf` file, or create a new file named `resources.tf`.
-
-    :::tip
-    If your template uses multiple disks, be careful to declare the same number of disks in your VM resource, paying attention to the order. The disks must be at least the same size as those in the template.
-    :::
-
-    ```tf
-    resource "xenorchestra_vm" "vm" {
-    memory_max = 2147467264
-    cpus = 1
-    name_label = "XO terraform tutorial"
-    template = data.xenorchestra_template.vm_template.id
-
-    network {
-        network_id = data.xenorchestra_network.network.id
-    }
-
-    disk {
-        sr_id = data.xenorchestra_sr.sr.id
-        name_label = "VM root volume"
-        size = 50214207488
-    }
-    }
-    ```
-
-    This `resource` block describes the characteristics of the VM to be created : its `name`, `memory`, and `CPU`. It uses the information retrieved from the data sources to connect to the correct template, network, and storage.
-
-    :::note 
-    The code above uses the `.vm_template.id` and `.sr.id` references to match the data sources we defined, ensuring that the configuration works properly.
-    :::
-
-6. **Plan and Deploy the VM**
-
-    It’s time to bring our VM to life !
-
-    * Run `terraform plan`
-
-        This command will analyze your code and show you what it’s about to do. The output will indicate that a new resource is going to be created.
-
-        ```bash
-        william@william:~$ terraform plan
-        data.xenorchestra_pool.pool: Reading...
-        data.xenorchestra_template.vm_template: Reading...
-        data.xenorchestra_pool.pool: Read complete after 1s [id=355ee47d-ff4c-4924-3db2-fd86ae629676]
-        data.xenorchestra_network.network: Reading...
-        data.xenorchestra_sr.sr: Reading...
-        data.xenorchestra_template.vm_template: Read complete after 1s [id=d0b0869b-2503-0c17-1e5e-3725f6eba342]
-        data.xenorchestra_network.network: Read complete after 0s [id=a12df741-f34f-7d05-f120-462f0ab39a48]
-        data.xenorchestra_sr.sr: Read complete after 0s [id=86a9757d-9c05-9fe0-e79a-8243cb1f37f3]
-
-        Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
-        symbols:
-        + create
-
-        Terraform will perform the following actions:
-
-        # xenorchestra_vm.vm will be created
-        + resource "xenorchestra_vm" "vm" {
-            + auto_poweron                        = false
-            + clone_type                          = "fast"
-            + core_os                             = false
-            + cpu_cap                             = 0
-            + cpu_weight                          = 0
-            + cpus                                = 1
-            + destroy_cloud_config_vdi_after_boot = false
-            + exp_nested_hvm                      = false
-            + hvm_boot_firmware                   = "bios"
-            + id                                  = (known after apply)
-            + ipv4_addresses                      = (known after apply)
-            + ipv6_addresses                      = (known after apply)
-            + memory_max                          = 2147467264
-            + memory_min                          = (known after apply)
-            + name_label                          = "XO terraform tutorial"
-            + power_state                         = "Running"
-            + start_delay                         = 0
-            + template                            = "d0b0869b-2503-0c17-1e5e-3725f6eba342"
-            + vga                                 = "std"
-            + videoram                            = 8
-
-            + disk {
-                + name_label = "VM root volume"
-                + position   = (known after apply)
-                + size       = 50214207488
-                + sr_id      = "86a9757d-9c05-9fe0-e79a-8243cb1f37f3"
-                + vbd_id     = (known after apply)
-                + vdi_id     = (known after apply)
-                }
-
-            + network {
-                + device         = (known after apply)
-                + ipv4_addresses = (known after apply)
-                + ipv6_addresses = (known after apply)
-                + mac_address    = (known after apply)
-                + network_id     = "a12df741-f34f-7d05-f120-462f0ab39a48"
-                }
-            }
-
-        Plan: 1 to add, 0 to change, 0 to destroy.
-        ```
-
-    * Run `terraform apply`
-
-        If the plan looks good to you, run this command to apply the changes. Terraform will ask for final confirmation, type `yes` and press `Enter`.
-
-        ```bash
-        william@william:~$ terraform apply 
-        data.xenorchestra_template.vm_template: Reading...
-        data.xenorchestra_pool.pool: Reading...
-        data.xenorchestra_pool.pool: Read complete after 1s [id=355ee47d-ff4c-4924-3db2-fd86ae629676]
-        data.xenorchestra_network.network: Reading...
-        data.xenorchestra_sr.sr: Reading...
-        data.xenorchestra_template.vm_template: Read complete after 1s [id=d0b0869b-2503-0c17-1e5e-3725f6eba342]
-        data.xenorchestra_network.network: Read complete after 0s [id=a12df741-f34f-7d05-f120-462f0ab39a48]
-        data.xenorchestra_sr.sr: Read complete after 0s [id=86a9757d-9c05-9fe0-e79a-8243cb1f37f3]
-
-        Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
-        symbols:
-        + create
-
-        Terraform will perform the following actions:
-
-        # xenorchestra_vm.vm will be created
-        + resource "xenorchestra_vm" "vm" {
-            + auto_poweron                        = false
-            + clone_type                          = "fast"
-            + core_os                             = false
-            + cpu_cap                             = 0
-            + cpu_weight                          = 0
-            + cpus                                = 1
-            + destroy_cloud_config_vdi_after_boot = false
-            + exp_nested_hvm                      = false
-            + hvm_boot_firmware                   = "bios"
-            + id                                  = (known after apply)
-            + ipv4_addresses                      = (known after apply)
-            + ipv6_addresses                      = (known after apply)
-            + memory_max                          = 2147467264
-            + memory_min                          = (known after apply)
-            + name_label                          = "XO terraform tutorial"
-            + power_state                         = "Running"
-            + start_delay                         = 0
-            + template                            = "d0b0869b-2503-0c17-1e5e-3725f6eba342"
-            + vga                                 = "std"
-            + videoram                            = 8
-
-            + disk {
-                + name_label = "VM root volume"
-                + position   = (known after apply)
-                + size       = 50214207488
-                + sr_id      = "86a9757d-9c05-9fe0-e79a-8243cb1f37f3"
-                + vbd_id     = (known after apply)
-                + vdi_id     = (known after apply)
-                }
-
-            + network {
-                + device         = (known after apply)
-                + ipv4_addresses = (known after apply)
-                + ipv6_addresses = (known after apply)
-                + mac_address    = (known after apply)
-                + network_id     = "a12df741-f34f-7d05-f120-462f0ab39a48"
-                }
-            }
-
-        Plan: 1 to add, 0 to change, 0 to destroy.
-
-        Do you want to perform these actions?
-        Terraform will perform the actions described above.
-        Only 'yes' will be accepted to approve.
-
-        Enter a value: yes
-
-        xenorchestra_vm.vm: Creating...
-        xenorchestra_vm.vm: Still creating... [00m10s elapsed]
-        xenorchestra_vm.vm: Creation complete after 17s [id=66ec6080-1a77-b460-1d63-8b39baa4a844]
-
-        Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
-        ```
-
-🚀🎉 Congratulations! Your VM is now deployed via Terraform on XO. 
-
-![](../assets/wb_xo_tf1.png)
-
-
-Any future modifications to this VM can now be easily **reviewed** and **version-controlled**.
-
-To demonstrate this, let’s imagine that this VM needs a second network interface. Let’s see how easily we can make that change.
-
-### Updating an Existing Infrastructure
-
-One of Terraform’s greatest advantages is its ability to manage changes throughout the entire lifecycle of your infrastructure.
-
-Our goal is simple: to add a second network interface to the VM we just created.
-
-To do this, simply modify the `resources.tf` file (or `vm.tf` if you combined everything) and add a second `network` block to your VM definition.
+```tf
+# vm.tf
+
+data "xenorchestra_pool" "pool" {
+  name_label = "Main pool"
+}
+
+data "xenorchestra_template" "vm_template" {
+  name_label = "Ubuntu 24.04 Cloud-Init"
+}
+
+data "xenorchestra_sr" "sr" {
+  name_label = "ZFS"
+  pool_id    = data.xenorchestra_pool.pool.id
+}
+
+data "xenorchestra_network" "network" {
+  name_label = "Pool-wide network"
+  pool_id    = data.xenorchestra_pool.pool.id
+}
+```
+
+:::tip
+At this stage you can already run `terraform plan`: it should end with `No changes. Your infrastructure matches the configuration.`, which confirms that Terraform can reach XO and found every declared resource. In real environments, prefer **unique names** for your resources to prevent conflicts when several share similar labels.
+:::
+
+Now add the VM definition at the end of `vm.tf` (or in a separate `resources.tf`):
 
 ```tf
 resource "xenorchestra_vm" "vm" {
   memory_max = 2147467264
-  cpus = 1
+  cpus       = 1
   name_label = "XO terraform tutorial"
-  template = data.xenorchestra_template.vm_template.id
+  template   = data.xenorchestra_template.vm_template.id
 
-  # First network interface
-  network {
-    network_id = data.xenorchestra_network.network.id
-  }
-  
-  # Second network interface
   network {
     network_id = data.xenorchestra_network.network.id
   }
 
   disk {
-    sr_id = data.xenorchestra_sr.sr.id
+    sr_id      = data.xenorchestra_sr.sr.id
     name_label = "VM root volume"
-    size = 50214207488
+    size       = 50214207488
   }
 }
 ```
 
-Once the file is modified, the process of applying the change is exactly the same as for creation.
+This `resource` block describes the VM to be created (its name, memory, and CPUs) and wires it to the template, network, and storage found by the data sources.
 
-* Run `terraform plan`
-
-    This time, the output will be different. Terraform has detected that the resource already exists and needs to be **modified**, not created. You’ll be able to see exactly which `network` block is going to be added.
-
-    ```bash
-    william@william:~$ terraform plan
-    data.xenorchestra_pool.pool: Reading...
-    data.xenorchestra_template.vm_template: Reading...
-    data.xenorchestra_pool.pool: Read complete after 0s [id=355ee47d-ff4c-4924-3db2-fd86ae629676]
-    data.xenorchestra_network.network: Reading...
-    data.xenorchestra_sr.sr: Reading...
-    data.xenorchestra_template.vm_template: Read complete after 0s [id=d0b0869b-2503-0c17-1e5e-3725f6eba342]
-    data.xenorchestra_network.network: Read complete after 0s [id=a12df741-f34f-7d05-f120-462f0ab39a48]
-    data.xenorchestra_sr.sr: Read complete after 0s [id=86a9757d-9c05-9fe0-e79a-8243cb1f37f3]
-    xenorchestra_vm.vm: Refreshing state... [id=66ec6080-1a77-b460-1d63-8b39baa4a844]
-
-    Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
-    symbols:
-    ~ update in-place
-
-    Terraform will perform the following actions:
-
-    # xenorchestra_vm.vm will be updated in-place
-    ~ resource "xenorchestra_vm" "vm" {
-            id                                  = "66ec6080-1a77-b460-1d63-8b39baa4a844"
-            tags                                = []
-            # (24 unchanged attributes hidden)
-
-          disk {
-                # (8 unchanged attributes hidden)
-            }
-
-        + network {
-            + attached       = true
-            + ipv4_addresses = (known after apply)
-            + ipv6_addresses = (known after apply)
-            + network_id     = "a12df741-f34f-7d05-f120-462f0ab39a48"
-            }
-
-            # (1 unchanged block hidden)
-        }
-
-    Plan: 0 to add, 1 to change, 0 to destroy.
-    ```
-
-* Run `terraform apply`
-
-    Run the command to apply the change. After confirming with `yes`, Terraform will add the new network interface to your existing VM.
-    
-    ```bash
-    william@william:~$ terraform apply 
-    data.xenorchestra_pool.pool: Reading...
-    data.xenorchestra_template.vm_template: Reading...
-    data.xenorchestra_pool.pool: Read complete after 0s [id=355ee47d-ff4c-4924-3db2-fd86ae629676]
-    data.xenorchestra_network.network: Reading...
-    data.xenorchestra_sr.sr: Reading...
-    data.xenorchestra_template.vm_template: Read complete after 0s [id=d0b0869b-2503-0c17-1e5e-3725f6eba342]
-    data.xenorchestra_network.network: Read complete after 0s [id=a12df741-f34f-7d05-f120-462f0ab39a48]
-    data.xenorchestra_sr.sr: Read complete after 0s [id=86a9757d-9c05-9fe0-e79a-8243cb1f37f3]
-    xenorchestra_vm.vm: Refreshing state... [id=66ec6080-1a77-b460-1d63-8b39baa4a844]
-
-    Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
-    symbols:
-    ~ update in-place
-
-    Terraform will perform the following actions:
-
-    # xenorchestra_vm.vm will be updated in-place
-    ~ resource "xenorchestra_vm" "vm" {
-            id                                  = "66ec6080-1a77-b460-1d63-8b39baa4a844"
-            tags                                = []
-            # (24 unchanged attributes hidden)
-
-            # (3 unchanged blocks hidden)
-        }
-
-    Plan: 0 to add, 1 to change, 0 to destroy.
-
-    Do you want to perform these actions?
-    Terraform will perform the actions described above.
-    Only 'yes' will be accepted to approve.
-
-    Enter a value: yes
-
-    xenorchestra_vm.vm: Modifying... [id=66ec6080-1a77-b460-1d63-8b39baa4a844]
-    xenorchestra_vm.vm: Still modifying... [id=66ec6080-1a77-b460-1d63-8b39baa4a844, 00m10s elapsed]
-    xenorchestra_vm.vm: Still modifying... [id=66ec6080-1a77-b460-1d63-8b39baa4a844, 00m20s elapsed]
-    xenorchestra_vm.vm: Still modifying... [id=66ec6080-1a77-b460-1d63-8b39baa4a844, 00m30s elapsed]
-    xenorchestra_vm.vm: Modifications complete after 36s [id=66ec6080-1a77-b460-1d63-8b39baa4a844]
-
-    Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
-    ```
-
-In just a few lines of code, you’ve modified your infrastructure in a controlled and reproducible way.
-
-- ***Before the modification - Single network interface***
-![](../assets/wb_xo_tf2.png)
-
-- ***After adding the second network interface***  
-![](../assets/wb_xo_tf3.png)
-
-## Debugging and Logs
-
-The provider supports detailed logging for troubleshooting and debugging purposes.
-
-- **Enable Provider Logs**
-
-    To enable debug logging, set the `TF_LOG_PROVIDER` environment variable:
-
-    ```bash
-    export TF_LOG_PROVIDER=DEBUG
-    terraform plan
-    ```
-
-- **Terraform Log Levels**
-
-    You can control the level of provider logging with the `TF_LOG_PROVIDER`environment variable:
-
-    ```bash
-    export TF_LOG_PROVIDER=DEBUG
-    terraform apply
-    ```
-
-    Valid `TF_LOG_PROVIDER` levels are: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`.
-
-- **Log to File**
-
-    To save logs to a file for analysis:
-
-    ```bash
-    export TF_LOG_PROVIDER=DEBUG
-    export TF_LOG_PATH=./terraform.log
-    terraform apply
-    ```
-
-:::note 
-Only enable debug logging when troubleshooting, as it can significantly increase log verbosity and may impact performance.
+:::tip
+If your template uses multiple disks, declare the same number of disks in your VM resource, in the same order. Each disk must be at least the same size as its counterpart in the template.
 :::
 
-## Conclusion
+### Plan and apply
 
-The Terraform provider for Xen Orchestra represents an important step toward **VirtOps** (the application of DevOps practices to virtualization). By adopting **Infrastructure as Code**, you gain reliability, reproducibility, and efficiency, as it transforms infrastructure management into a collaborative and auditable process.
+It's time to bring the VM to life:
+
+<Terminal shell title="preview the changes, then apply them">{`
+terraform plan
+terraform apply
+`}</Terminal>
+
+`terraform plan` analyzes your code and shows what it is about to do: the run should end with `Plan: 1 to add, 0 to change, 0 to destroy.`, with the full detail of the `xenorchestra_vm.vm` resource to be created. If the plan looks good, `terraform apply` shows it again and asks for confirmation: type `yes` and press `Enter`, and the VM is created on your pool.
+
+<UiShot light="/img/xo5/terraform-vm-console.png" alt="The freshly deployed VM booting, seen from its Console tab in Xen Orchestra" url="https://your-xo/#/vms/…/console" />
+
+Congratulations! Your VM is now deployed via Terraform on XO, and any future modification can be **reviewed** and **version-controlled**.
+
+## Updating an existing infrastructure
+
+One of Terraform's greatest advantages is its ability to manage changes throughout the entire lifecycle of your infrastructure. To demonstrate it, let's add a second network interface to the VM we just created: simply add a second `network` block to the VM definition in `vm.tf`.
+
+```tf
+resource "xenorchestra_vm" "vm" {
+  # ... same attributes as before ...
+
+  # First network interface
+  network {
+    network_id = data.xenorchestra_network.network.id
+  }
+
+  # Second network interface
+  network {
+    network_id = data.xenorchestra_network.network.id
+  }
+
+  # ... same disk block as before ...
+}
+```
+
+The workflow is exactly the same as for the creation:
+
+<Terminal shell title="preview the change, then apply it">{`
+terraform plan
+terraform apply
+`}</Terminal>
+
+This time, Terraform detects that the resource already exists and needs to be **modified**, not created: the plan shows the new `network` block with a `~ update in-place` action and ends with `Plan: 0 to add, 1 to change, 0 to destroy.`. After you confirm with `yes`, the new interface is attached to the running VM.
+
+<UiShot light="/img/xo5/terraform-vm-network-single.png" alt="Before the change: the VM's Network tab shows a single interface" url="https://your-xo/#/vms/…/network" />
+
+<UiShot light="/img/xo5/terraform-vm-network-dual.png" alt="After terraform apply: a second VIF appeared on the VM" url="https://your-xo/#/vms/…/network" />
+
+## Debugging and logs
+
+The provider supports detailed logging for troubleshooting, controlled by the `TF_LOG_PROVIDER` environment variable (valid levels: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`). Add `TF_LOG_PATH` to save the logs to a file:
+
+<Terminal shell title="run Terraform with provider debug logs written to a file">{`
+export TF_LOG_PROVIDER=DEBUG
+export TF_LOG_PATH=./terraform.log
+terraform apply
+`}</Terminal>
 
 :::note
-**Commercial Support**: For technical support, contact our support team through your customer portal.
+Only enable debug logging when troubleshooting, as it significantly increases log verbosity and may impact performance.
+:::
 
-**Community Support**: 
+## Going further {#conclusion}
+
+This guide only scratches the surface: the provider also manages cloud-init configuration, extra disks and VDIs, networks, ACLs, resource sets, and more. The [provider documentation on the Terraform registry](https://registry.terraform.io/providers/vatesfr/xenorchestra/latest/docs) is the reference for every resource and data source, and is always up to date with the latest release.
+
+:::note
+**Commercial support**: contact our support team through your customer portal.
+
+**Community support**:
+
 - [XCP-ng Forum](https://xcp-ng.org/forum/)
 - [Discord Community](https://discord.com/invite/ZpNq8ez)
 - [GitHub Issues](https://github.com/vatesfr/terraform-provider-xenorchestra/issues)
-
-For detailed provider documentation, check the [official Terraform registry](https://registry.terraform.io/providers/vatesfr/xenorchestra/latest) which contains up-to-date information on all resources, data sources, and releases.
 :::
 
-## Related links 
+## Related links
 
-* [Official Terraform Provider Documentation](https://docs.vates.tech/devops-tools/terraform-provider/)
-* [Official Terraform Documentation](https://developer.hashicorp.com/terraform/docs)
-* [Official Xen Orchestra Documentation](https://docs.xen-orchestra.com/)
-* [Official XCP-ng Documentation](https://docs.xcp-ng.org/)
-* [OpenTofu Documentation](https://opentofu.org/docs/)
+- [Provider documentation on the Terraform registry](https://registry.terraform.io/providers/vatesfr/xenorchestra/latest/docs)
+- [Provider source code on GitHub](https://github.com/vatesfr/terraform-provider-xenorchestra)
+- [Official Terraform documentation](https://developer.hashicorp.com/terraform/docs)
+- [OpenTofu documentation](https://opentofu.org/docs/)
+- [Official XCP-ng documentation](https://docs.xcp-ng.org/)

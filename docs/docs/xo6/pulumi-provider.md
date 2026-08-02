@@ -2,278 +2,190 @@
 
 ## Introduction
 
-Manually managing infrastructure can lead to errors and increased complexity. With Infrastructure as Code (IaC), however, we can describe our infrastructure in configuration files, making it **predictable**, **reproducible** and **versioned**. 
+Manually managing infrastructure can lead to errors and increased complexity. With Infrastructure as Code (IaC), you describe your infrastructure in code, making it **predictable**, **reproducible**, and **version-controlled**.
 
-This tutorial will guide you through using **Pulumi**, a modern IaC tool, to automate the deployment and updating of your **virtual machines (VMs)** on **Xen Orchestra (XO)**.
+Xen Orchestra has an official Pulumi provider, developed [on GitHub](https://github.com/vatesfr/pulumi-xenorchestra), with SDKs for **TypeScript/JavaScript**, **Python**, **Go**, and **.NET**. This guide walks you through deploying a virtual machine (VM) on your Xen Orchestra (XO) instance with **Pulumi**, then updating it.
 
 :::note
-Pulumi supports several programming languages (TypeScript, Python, Go, .NET, etc.), but we will use TypeScript for this example. To do this, you need to install Node/NPM version 20 or higher.
+Pulumi supports several programming languages, but this guide uses TypeScript. For that language, you need Node.js 20 or newer.
 :::
 
 :::tip
-Pulumi's approach allows you to use real programming languages to define your infrastructure, offering more flexibility and power than traditional configuration languages.
+Pulumi's approach lets you use real programming languages to define your infrastructure, offering more flexibility and power than traditional configuration languages.
 :::
 
-## Launching virtual machines in XO with Pulumi
+## Prerequisites
 
-In this tutorial, we will guide you through the process of using `Pulumi` to launch a virtual machine (VM) on your Xen Orchestra (XO) instance and demonstrate how to easily modify it.
+- a running **Xen Orchestra** instance connected to an **XCP-ng** pool (the provider drives the XO API)
+- the **Pulumi CLI** (3.x) and **Node.js** 20 or newer installed on your workstation
+- a VM **template** with cloud-init support
+- an XO **user account** or **API token** for the provider to authenticate with
 
-:::note 
-Since Pulumi relies on the Xen Orchestra API to abstract hosts, pools, networks, disks and virtual machines (VMs), as well as to manipulate them declaratively, ensure you have a functioning Xen Orchestra instance connected to XCP-ng before you begin. 
-:::
-
-**Here are the four main steps we will follow:**
-
-1. Install Pulumi
-2. Create a Pulumi project
-3. Use Pulumi to provision the VM
-4. Add an additional network interface to the VM
-
-:::tip
-The code used in this tutorial can be found on [GitHub](https://github.com/vatesfr/pulumi-xenorchestra), but we will write it from scratch step by step.
-:::
-
-### Installing Pulumi
+### Installing Pulumi {#installing-pulumi}
 
 If you haven't installed Pulumi yet, follow the [official Pulumi tutorial](https://www.pulumi.com/docs/install/) to install it on your system.
 
-:::info
-**Required version**: This tutorial requires Pulumi version v3.0+ or newer, as well as the Xen Orchestra provider version v2.0+.
-:::
+### VM templates in Xen Orchestra {#using-vm-templates-in-xen-orchestra}
 
-### Using VM Templates in Xen Orchestra
-
-Pulumi needs a starting point to create a VM. This can be a `template` that already contains an operating system installed with **cloud-init** capabilities (or **Cloudbase-init** for Windows), as well as **Xen/Guest Tools** for better integration with Xen Orchestra.
+Pulumi needs a starting point to create a VM: a template that already contains an installed operating system with **cloud-init** capabilities (or **Cloudbase-init** for Windows), as well as **Xen/Guest Tools** for better integration with Xen Orchestra.
 
 :::info
-We recommend using the pre-built templates from the **XOA Hub** for optimal results.
-- **Debian 13** (with cloud-init)
-- **Ubuntu 22.04/24.04** (with cloud-init)
-- **etc.**
+We recommend the pre-built cloud-init-ready templates from the **XOA Hub** (Debian, Ubuntu, and others) for optimal results. For more information about templates:
 
-For more information on templates:
 - [Creating VM templates](https://docs.xen-orchestra.com/vm-templates#creating-templates)
 - [Cloud-init and Cloudbase-init](https://docs.xen-orchestra.com/vm-templates#cloud-init-and-cloudbase-init)
 :::
 
-### Provisioning your VM with Pulumi
+## Installing the provider
 
-Now that Pulumi is installed and you have a VM template ready in your environment, you can start writing the configuration files that describe your infrastructure.
+Create a new directory and initialize a TypeScript project, then add the Xen Orchestra package:
 
-1. **Creating the Pulumi project**
+<Terminal shell title="create the Pulumi project and install the provider">{`
+mkdir xo-pulumi-project
+cd xo-pulumi-project
+pulumi new typescript
+npm install @vates/pulumi-xenorchestra
+`}</Terminal>
 
-    Create a new directory for your project and initialise the project:
+:::info
+The provider is also available for the other Pulumi languages: `pulumi-xenorchestra` on PyPI for Python, `github.com/vatesfr/pulumi-xenorchestra/sdk` for Go, and `Pulumi.Xenorchestra` on NuGet for .NET. See the [provider repository](https://github.com/vatesfr/pulumi-xenorchestra) for the details and the latest release.
+:::
 
-    ```bash
-    mkdir xo-pulumi-project
-    cd xo-pulumi-project
-    pulumi new typescript
-    ```
+## Authentication
 
-2. **Installing the Xen Orchestra provider**
+The provider talks to the XO API over a websocket connection (`ws://`, or `wss://` behind TLS) and supports two methods: an **API token** (recommended) or a **username and password**.
 
-    Install the Pulumi Xen Orchestra package:
+:::tip
+Any XO user can create their own API token: see [REST API authentication](../xo5/restapi.md#authentication) for how to create one.
+:::
 
-    ```bash
-    npm install @vates/pulumi-xenorchestra
-    ```
+:::warning
+Never store credentials directly in your code. The recommended method is to use environment variables.
+:::
 
-3. **Securely configuring credentials**
+Create a file `~/.xoa` in your home directory:
 
-    In order to authenticate Pulumi with your **Xen Orchestra API**, credentials are required.
+```bash
+# ~/.xoa
+export XOA_URL=wss://your-xo-hostname
+export XOA_TOKEN=YOUR_TOKEN
+# or, with a username and password:
+# export XOA_USERNAME=YOUR_USERNAME
+# export XOA_PASSWORD=YOUR_PASSWORD
+```
 
-    :::warning
-    Never store passwords directly in your code. The recommended method is to use environment variables.
-    :::
+Then, before running Pulumi, load these variables into your terminal session:
 
-    - Create a `~/.xoa` file in your home directory containing the following content:
+<Terminal shell title="load the XO credentials into the current session">{`
+source ~/.xoa
+`}</Terminal>
 
-        ```bash
-        export XOA_URL=ws://hostname-of-your-deployment
-        export XOA_USER=YOUR_USERNAME
-        export XOA_PASSWORD=YOUR_PASSWORD
-        ```
-        Or, if you are using a token:
-        ```bash
-        export XOA_URL=ws://hostname-of-your-deployment
-        export XOA_TOKEN=YOUR_TOKEN
-        ```
+:::tip
+Alternatively, store the settings in the Pulumi configuration of your stack, with the token encrypted as a secret:
 
-    - Then, before running Pulumi, load these variables into your terminal session:
+<Terminal shell title="store the XO connection settings in the stack configuration">{`
+pulumi config set xenorchestra:url wss://your-xo-hostname
+pulumi config set xenorchestra:token YOUR_TOKEN --secret
+`}</Terminal>
+:::
 
-        ```bash
-        eval $(cat ~/.xoa)
-        ```
+## Deploying your first VM {#launching-virtual-machines-in-xo-with-pulumi}
 
-    :::tip
-    It is also possible to use the Pulumi configuration to store the credentials.
+### Describe your infrastructure {#provisioning-your-vm-with-pulumi}
 
-    ```bash
-    pulumi config set xenorchestra:url ws://your-xo-hostname
-    pulumi config set xenorchestra:token YOUR_TOKEN --secret
-    ```
-    :::
-
-4. **Defining existing resources (data sources)**
-
-    Pulumi needs to be aware of the resources already in place in XO (e.g. your pool, network and storage). To achieve this, we use data calls to retrieve existing information.
-
-    Edit the `index.ts` file and replace its contents with:
-
-    ```typescript
-    import * as pulumi from "@pulumi/pulumi";
-    import * as xenorchestra from "@vates/pulumi-xenorchestra";
-
-    // Retrieving the pool
-    const pool = xenorchestra.getXoaPool({
-        nameLabel: "Main pool",
-    });
-
-    // Retrieve the template
-    const template = xenorchestra.getXoaTemplate({
-        nameLabel: "Ubuntu 24.04 Cloud-Init",
-    });
-
-    // Retrieve the storage repository
-    const storageRepository = pool.then(p =>
-        xenorchestra.getXoaStorageRepository({
-            nameLabel: "ZFS",
-            poolId: p.id,
-        })
-    );
-
-    // Retrieve the network
-    const network = pool.then(p =>
-        xenorchestra.getXoaNetwork({
-            nameLabel: "Pool-wide network",
-            poolId: p.id,
-        })
-    );
-    ```
-
-    :::tip
-    Using explicit `nameLabel` values is appropriate for this tutorial.  
-    However, in real-world environments, it is recommended to use **unique names** to avoid conflicts or misconfigurations when multiple resources share similar labels.  
-    :::
-
-5. **Defining the VM resource**
-
-    Now that Pulumi knows where to find the template, storage and network, we can define the VM that we want to create.
-
-    Add the following code to the end of your `index.ts` file:
-
-    :::tip
-    If your template uses multiple disks, make sure you declare the same number of disks in your VM resource and pay attention to the order. The disks must be at least the same size as those in the template.
-    :::
-
-    ```typescript
-    // Creating the VM
-    const vm = new xenorchestra.Vm("xo-pulumi-tutorial", {
-        memoryMax: 2 * 1024 * 1024 * 1024, // 2GB
-        cpus: 1,
-        nameLabel: "XO Pulumi Tutorial",
-        template: template.then(t => t.id),
-        networks: [
-            {
-                networkId: network.then(n => n.id),
-            },
-        ],
-        disks: [
-            {
-                srId: storageRepository.then(sr => sr.id),
-                nameLabel: "VM root volume",
-                size: 50 * 1024 * 1024 * 1024, // 50GB
-            },
-        ],
-    });
-
-    // Export
-    export const vmId = vm.id;
-    export const vmName = vm.nameLabel;
-    export const ipv4 = vm.ipv4Addresses;
-    ```
-
-    This code describes the characteristics of the VM to be created, including its `name`, `memory` and `CPU`. It uses the retrieved data to connect to the correct model, network and storage.
-
-6. **Deploying the VM**
-
-    It's time to bring our VM to life!
-
-    * Run `pulumi up`
-
-        This command will analyse your code and show you what it is about to do. The output will indicate that a new resource is going to be created.
-
-        ```bash
-        pulumi up
-        ```
-
-        Pulumi will then show you a preview of the changes and ask for confirmation before proceeding.
-
-        ```bash
-        Previewing update (dev)
-
-        View in Browser (Ctrl+O): https://app.pulumi.com/batchayw-org/xo-pulumi-project/dev/previews/13fa0ed6-67f7-463d-8e18-83a1fa9571e2
-
-            Type                      Name                   Plan       
-        +   pulumi:pulumi:Stack       xo-pulumi-project-dev  create     
-        +   └─ xenorchestra:index:Vm  xo-pulumi-tutorial     create     
-
-        Outputs:
-            ipv4  : [unknown]
-            vmId  : [unknown]
-            vmName: "XO Pulumi Tutorial"
-
-        Resources:
-            + 2 to create
-
-        Do you want to perform this update?
-        ```
-
-    * Confirm with `yes`
-
-        Pulumi will then deploy the VM on Xen Orchestra.
-
-        ```bash
-        Updating (dev)
-
-        View in Browser (Ctrl+O): https://app.pulumi.com/batchayw-org/xo-pulumi-project/dev/updates/1
-
-            Type                      Name                   Status            
-        +   pulumi:pulumi:Stack       xo-pulumi-project-dev  created (19s)     
-        +   └─ xenorchestra:index:Vm  xo-pulumi-tutorial     created (17s)     
-
-        Outputs:
-            vmId  : "0ae54d06-e3e2-100c-00e8-46f67945e37c"
-            vmName: "XO Pulumi Tutorial"
-
-        Resources:
-            + 2 created
-
-        Duration: 21s
-        ```
-🚀🎉 Congratulations! Your VM has now been deployed via Pulumi on XO.
-
-![](../assets/wb_xo_pl1.png)
-
-Any future changes to this VM can now be easily **revised** and **versioned**.
-
-To demonstrate this, let's imagine that this VM needs a second network interface. Let's see how we can easily implement this change.
-
-### Updating existing infrastructure
-
-One of Pulumi's greatest strengths lies in its ability to manage changes throughout your infrastructure's lifecycle.
-
-Our goal is straightforward: to add a second network interface to the VM we just created.
-
-To achieve this, simply edit the `index.ts` file and add a second network block to your VM definition.
+Pulumi needs to know about the existing resources in XO (your pool, template, storage, network). To achieve this, we use the provider's data functions, so you never hardcode UUIDs. Edit the `index.ts` file and replace its contents with the following, using the exact names of your resources in Xen Orchestra:
 
 ```typescript
-// Create the virtual machine with two network interfaces
+import * as pulumi from "@pulumi/pulumi";
+import * as xenorchestra from "@vates/pulumi-xenorchestra";
+
+// Retrieve the pool
+const pool = xenorchestra.getXoaPool({
+    nameLabel: "Main pool",
+});
+
+// Retrieve the template
+const template = xenorchestra.getXoaTemplate({
+    nameLabel: "Ubuntu 24.04 Cloud-Init",
+});
+
+// Retrieve the storage repository
+const storageRepository = pool.then(p =>
+    xenorchestra.getXoaStorageRepository({
+        nameLabel: "ZFS",
+        poolId: p.id,
+    })
+);
+
+// Retrieve the network
+const network = pool.then(p =>
+    xenorchestra.getXoaNetwork({
+        nameLabel: "Pool-wide network",
+        poolId: p.id,
+    })
+);
+```
+
+:::tip
+Using explicit `nameLabel` values is fine for this tutorial. In real-world environments, prefer **unique names** to avoid conflicts when multiple resources share similar labels.
+:::
+
+Now add the VM definition at the end of `index.ts`:
+
+```typescript
+// Create the VM
 const vm = new xenorchestra.Vm("xo-pulumi-tutorial", {
-    memoryMax: 2 * 1024 * 1024 * 1024, // 2GB
+    memoryMax: 2 * 1024 * 1024 * 1024, // 2 GiB
     cpus: 1,
     nameLabel: "XO Pulumi Tutorial",
     template: template.then(t => t.id),
+    networks: [
+        {
+            networkId: network.then(n => n.id),
+        },
+    ],
+    disks: [
+        {
+            srId: storageRepository.then(sr => sr.id),
+            nameLabel: "VM root volume",
+            size: 50 * 1024 * 1024 * 1024, // 50 GiB
+        },
+    ],
+});
+
+// Export
+export const vmId = vm.id;
+export const vmName = vm.nameLabel;
+export const ipv4 = vm.ipv4Addresses;
+```
+
+This code describes the VM to be created (its name, memory, and CPUs) and wires it to the template, network, and storage retrieved above.
+
+:::tip
+If your template uses multiple disks, declare the same number of disks in your VM resource, in the same order. Each disk must be at least the same size as its counterpart in the template.
+:::
+
+### Deploy the VM
+
+It's time to bring the VM to life:
+
+<Terminal shell title="preview and deploy the stack">{`
+pulumi up
+`}</Terminal>
+
+Pulumi analyzes your code, shows a preview of the changes (`+ 2 to create`: the stack and the VM), and asks for confirmation. Select `yes`, and after a few seconds the VM is created on your pool, with the `vmId` and `vmName` outputs displayed at the end of the run.
+
+<UiShot light="/img/xo5/pulumi-vm-general.png" alt="The freshly deployed VM, seen from its General tab in Xen Orchestra" url="https://your-xo/#/vms/…/general" />
+
+Congratulations! Your VM is now deployed via Pulumi on XO, and any future modification can be **reviewed** and **version-controlled**.
+
+## Updating an existing infrastructure {#updating-existing-infrastructure}
+
+One of Pulumi's greatest strengths is its ability to manage changes throughout your infrastructure's lifecycle. To demonstrate it, let's add a second network interface to the VM we just created: simply add a second entry to the `networks` array in `index.ts`.
+
+```typescript
+const vm = new xenorchestra.Vm("xo-pulumi-tutorial", {
+    // ... same attributes as before ...
     networks: [
         {
             networkId: network.then(n => n.id),
@@ -283,184 +195,66 @@ const vm = new xenorchestra.Vm("xo-pulumi-tutorial", {
             networkId: network.then(n => n.id),
         },
     ],
-    disks: [
-        {
-            srId: storageRepository.then(sr => sr.id),
-            nameLabel: "VM root volume",
-            size: 50 * 1024 * 1024 * 1024, // 50GB
-        },
-    ],
+    // ... same disks as before ...
 });
 ```
 
-The process for applying changes is exactly the same as for creating them.
+The workflow is exactly the same as for the creation:
 
-* Run `pulumi up`
+<Terminal shell title="preview and apply the change">{`
+pulumi up
+`}</Terminal>
 
-    This time, the output will be different. Pulumi has detected that the resource already exists and needs to be modified, not created. You will be able to see exactly which network block is going to be added.
+This time, Pulumi detects that the resource already exists and needs to be modified, not created: the preview shows an `update` plan with `[diff: ~networks]`. After you confirm with `yes`, the new interface is attached to the existing VM.
 
-    ```bash
-    Previewing update (dev)
+<UiShot light="/img/xo5/pulumi-vm-network-single.png" alt="Before the change: the VM's Network tab shows a single interface" url="https://your-xo/#/vms/…/network" />
 
-    View in Browser (Ctrl+O): https://app.pulumi.com/batchayw-org/xo-pulumi-project/dev/previews/9c687495-ba9d-4a8a-8446-f9bb8c2f1826
-
-        Type                      Name                   Plan       Info
-        pulumi:pulumi:Stack       xo-pulumi-project-dev             
-    ~   └─ xenorchestra:index:Vm  xo-pulumi-tutorial     update     [diff: ~networks]
-
-    Resources:
-        ~ 1 to update
-        1 unchanged
-
-    Do you want to perform this update?
-    ```
-
-* Confirm with `yes`
-
-    After confirmation, Pulumi will add the new network interface to your existing VM.
-
-    ```bash
-    Updating (dev)
-
-    View in Browser (Ctrl+O): https://app.pulumi.com/batchayw-org/xo-pulumi-project/dev/updates/2
-
-        Type                      Name                   Status            Info
-        pulumi:pulumi:Stack       xo-pulumi-project-dev                    
-    ~   └─ xenorchestra:index:Vm  xo-pulumi-tutorial     updated (29s)     [diff: ~networks]
-
-    Outputs:
-        vmId  : "0ae54d06-e3e2-100c-00e8-46f67945e37c"
-        vmName: "XO Pulumi Tutorial"
-
-    Resources:
-        ~ 1 updated
-        1 unchanged
-
-    Duration: 32s
-    ```
-
-With just a few lines of code, you can modify your infrastructure in a controlled and reproducible manner.
-
-* ***Before modification: single network interface***
-    ![](../assets/wb_xo_pl2.png)
-
-* ***After adding the second network interface***
-    ![](../assets/wb_xo_pl3.png)
-
-
-## Advanced Features
-
-### Using Cloud-Init
-
-Pulumi supports `cloud-init` configuration to customize your VMs during deployment.
-
-```typescript
-const vmWithCloudInit = new xenorchestra.Vm("vm-with-cloudinit", {
-    // ... other parameters
-    cloudConfig: `#cloud-config
-users:
-  - name: demo
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    ssh-authorized-keys:
-      - ssh-rsa <YOUR_PUBLIC_KEY_HERE>
-packages:
-  - nginx
-  - git
-runcmd:
-  - systemctl enable nginx
-  - systemctl start nginx
-`,
-});
-```
-
-### Managing multiple disks
-
-You can easily add multiple disks to a VM.
-
-```typescript
-const vmWithMultipleDisks = new xenorchestra.Vm(“vm-multi-disk”, {
-    // ... other parameters
-    disks: [
-        {
-            srId: storageRepository.then(sr => sr.id),
-            nameLabel: “System disk”,
-            size: 30 * 1024 * 1024 * 1024, // 30 GB
-        },
-        {
-            srId: storageRepository.then(sr => sr.id),
-            nameLabel: “Data disk”,
-            size: 100 * 1024 * 1024 * 1024, // 100 GB
-        },
-    ],
-});
-```
-
-### Tag configuration
-
-Add tags to organize and manage your resources.
-
-```typescript
-const taggedVm = new xenorchestra.Vm(“tagged-vm”, {
-    // ... other parameters
-    tags: [“production”, “web-server”, “pulumi-managed”],
-});
-```
+<UiShot light="/img/xo5/pulumi-vm-network-dual.png" alt="After pulumi up: a second VIF appeared on the VM" url="https://your-xo/#/vms/…/network" />
 
 ## Debugging and logs
 
-The provider supports detailed logging to facilitate troubleshooting and debugging.
+Pulumi supports detailed logging for troubleshooting; the provider's own logs appear in the Pulumi output when debug mode is enabled:
 
-* **Enabling Pulumi logs**
-
-To enable debug logging, use the verbosity flags.
-
-```bash
+<Terminal shell title="run Pulumi with debug output (increase -v for more detail)">{`
 pulumi up --debug
-```
-Or for more details
-```bash
 pulumi up --logtostderr -v=9
-```
-
-* **Xen Orchestra provider logs**
-
-The Xen Orchestra provider also logs its activities. These logs can be viewed in the Pulumi output when debug mode is enabled.
+`}</Terminal>
 
 :::note
-Only enable debug logging when troubleshooting, as it can significantly increase log verbosity and impact performance.
+Only enable debug logging when troubleshooting, as it significantly increases log verbosity and may impact performance.
 :::
 
 ## Best practices
 
-### State Management
+### State management
 
 :::warning
-Pulumi state contains sensitive information about your infrastructure. Always use a secure backend such as a self-hosted solution or local encrypted storage.
+Pulumi state contains sensitive information about your infrastructure. Always use a secure backend, such as a self-hosted solution or local encrypted storage.
 :::
 
-```bash
-# Configuration with local encrypted backend (recommended for full control)
-pulumi login file://~          # Encrypted local storage in home directory
-pulumi login --local           # Default location
+<Terminal shell title="choose a state backend">{`
+pulumi login --local              # local storage in your home directory
+pulumi login s3://my-pulumi-state # or any self-hosted backend (s3, gs, azblob)
+`}</Terminal>
 
-# Or configuration with a self-hosted backend
-pulumi login s3://my-pulumi-state-bucket
-pulumi login gs://my-pulumi-state-bucket
-pulumi login azblob://my-pulumi-state-bucket
-```
+## Going further {#conclusion}
 
-## Conclusion
-
-The Pulumi provider for Xen Orchestra is an important step towards VirtOps, which involves applying DevOps practices to virtualisation. By adopting Infrastructure as Code with Pulumi, you can achieve greater reliability, reproducibility and efficiency while transforming infrastructure management into a more collaborative and auditable process.
+This guide only scratches the surface: the provider also manages cloud-init configuration, extra disks, tags, networks, and more. The [provider repository](https://github.com/vatesfr/pulumi-xenorchestra) is the reference for all resources, data functions, and releases, and its [examples directory](https://github.com/vatesfr/pulumi-xenorchestra/tree/main/examples) covers each supported language.
 
 :::note
-For detailed documentation on the provider, see the [official NPM package](https://github.com/vatesfr/pulumi-xenorchestra), which contains up-to-date information on all resources, data sources, and versions.
+**Commercial support**: contact our support team through your customer portal.
+
+**Community support**:
+
+- [XCP-ng Forum](https://xcp-ng.org/forum/)
+- [Discord Community](https://discord.com/invite/ZpNq8ez)
+- [GitHub Issues](https://github.com/vatesfr/pulumi-xenorchestra/issues)
 :::
 
 ## Related links
 
-- [Pulumi documentation](https://www.pulumi.com/docs)
-- [Pulumi code examples](https://github.com/vatesfr/pulumi-xenorchestra/tree/v2.3.0/examples)
-- [Pulumi GitHub](https://github.com/vatesfr/pulumi-xenorchestra/issues)
-- [Xen Orchestra docs](https://docs.xen-orchestra.com)
-- [XCP-ng forum](https://xcp-ng.org/forum/)
+- [Provider source code and documentation on GitHub](https://github.com/vatesfr/pulumi-xenorchestra)
+- [Provider package on npm (@vates/pulumi-xenorchestra)](https://www.npmjs.com/package/@vates/pulumi-xenorchestra)
+- [Provider code examples](https://github.com/vatesfr/pulumi-xenorchestra/tree/main/examples)
+- [Official Pulumi documentation](https://www.pulumi.com/docs)
+- [Official XCP-ng documentation](https://docs.xcp-ng.org/)

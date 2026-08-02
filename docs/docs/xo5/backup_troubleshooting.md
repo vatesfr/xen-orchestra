@@ -1,63 +1,77 @@
 # Backup troubleshooting
 
-This section is dedicated to help you if you have problems with XO Backups.
+This page lists the most common errors you can meet with XO backups, what they mean and how to fix them.
 
 ## Backup progress
 
-While a backup job is running, you should see activity in the "Tasks" view (Menu/Tasks), like this:
+While a backup job is running, you should see activity in the Tasks view (main menu, then Tasks):
 
-![](../assets/export_task.png)
+<UiDetail src="/img/xo5/export-task.png" alt="The Tasks view during a backup run, showing a VDI export task at 49% with its progress bar" width={700} />
 
-Another good way to check if there is activity is the XOA VM stats view (on the Network graph).
+Another good way to check for activity is the XOA VM stats view: the Network graph shows the transfer traffic while data is being moved.
 
 ## Unexpected key (full) export
 
 _Incremental Backup_ and _Incremental Replication_ usually produce delta exports after the initial seed.
 
-Nevertheless, there may be some reasons for XO to trigger a key (full) export instead:
+Nevertheless, there are several reasons for XO to trigger a key (full) export instead:
 
 - the configured [_Full backup interval_](incremental_backups#key-backup-interval) advanced setting has been reached for this VM
-- the _Force full backup_ is enabled for the current schedule
+- the _Force full backup_ option is enabled for the current schedule
 - a new disk has been added to the VM (only this disk is completely exported)
-- the reference snapshot for this backup job on the source VM is missing
-- the previous exported backup/replication is either missing or corrupted
+- the reference snapshot for this backup job is missing on the source VM
+- the previously exported backup/replication is missing or corrupted
+- XO could not compute a safe delta for a disk (for example a qcow2 disk exported without NBD): it forces a full rather than risking a broken chain
+
+:::tip
+Recent XO releases record the cause of the fallback as a warning in the backup job log, for example `can't compute delta <VDI> from <base>, fall back to a full`. When a run is unexpectedly full, check the job log first.
+:::
 
 ## VDI chain protection
 
-Backup jobs regularly delete snapshots. When a snapshot is deleted, either manually or via a backup job, it triggers the need for XCP-ng/XenServer to coalesce the VDI chain - to merge the remaining VDIs and base copies in the chain. This means generally we cannot take too many new snapshots on said VM until XCP-ng/XenServer has finished running a coalesce job on the VDI chain.
+Backup jobs regularly delete snapshots. Every time a snapshot is deleted, manually or by a backup job, XCP-ng/XenServer needs to coalesce the VDI chain, that is merge the remaining VDIs and base copies. Until that coalesce is done, taking more snapshots on the VM keeps growing the chain.
 
-This mechanism and scheduling is handled by XCP-ng/XenServer itself, not Xen Orchestra. But we can check your existing VDI chain and avoid creating more snapshots than your storage can merge. If we don't, this will lead to catastrophic consequences. Xen Orchestra is the **only** XCP-ng/XenServer backup product that takes this into account and offers protection.
+Coalescing is scheduled and performed by XCP-ng/XenServer itself, not by Xen Orchestra. But XO checks the existing VDI chain before snapshotting, and refuses to create more snapshots than your storage can merge. Xen Orchestra is the **only** XCP-ng/XenServer backup product offering this protection.
 
-Without this detection, you could have 2 potential issues:
+Without this detection, you would eventually hit one of these:
 
-- `The Snapshot Chain is too Long`
-- `SR_BACKEND_FAILURE_44 (insufficient space)`
+- `The Snapshot Chain is too Long`: the chain contains more than 30 elements, a fixed XCP-ng/XenServer limit
+- `SR_BACKEND_FAILURE_44 (insufficient space)`: the coalesce process couldn't keep up and the storage filled up
 
-The first issue is a chain that contains more than 30 elements (fixed XCP-ng/XenServer limit), and the other one means it's full because the "coalesce" process couldn't keep up the pace and the storage filled up.
-
-In the end, this message is a **protection mechanism preventing damage to your SR**. The backup job will fail, but XCP-ng/XenServer itself should eventually automatically coalesce the snapshot chain, and the next time the backup job should complete.
+So when a run is skipped with the `unhealthy VDI chain` message, it's a **protection mechanism preventing damage to your SR**, not a failure: XCP-ng/XenServer should coalesce the chain on its own, and the next run should complete normally.
 
 Just remember this: **a coalesce should happen every time a snapshot is removed**.
 
-> You can read more on this on our dedicated blog post regarding [XCP-ng/XenServer coalesce detection](https://xen-orchestra.com/blog/xenserver-coalesce-detection-in-xen-orchestra/).
+:::tip
+You can read more about this in our dedicated blog post on [XCP-ng/XenServer coalesce detection](https://xen-orchestra.com/blog/xenserver-coalesce-detection-in-xen-orchestra/).
+:::
 
 ### Troubleshooting a constant VDI Chain Protection message (XCP-ng/XenServer failure to coalesce)
 
-As previously mentioned, this message can be normal and it just means XCP-ng/XenServer needs to perform a coalesce to merge old snapshots. However if you repeatedly get this message and it seems XCP-ng/XenServer is not coalescing, You can take a few steps to determine why.
+As explained above, this message can be normal: XCP-ng/XenServer simply needs time to merge old snapshots. However, if you get it repeatedly and the host never seems to coalesce, take the following steps to find out why.
 
-First check SMlog on the XCP-ng/XenServer host for messages relating to VDI corruption or coalesce job failure. For example, by running `cat /var/log/SMlog | grep -i exception` or `cat /var/log/SMlog | grep -i error` on the XCP-ng/XenServer host with the affected storage.
+First, check `SMlog` on the XCP-ng/XenServer host holding the affected storage, looking for VDI corruption or coalesce job failures:
 
-Coalesce jobs can also fail to run if the SR does not have enough free space. Check the problematic SR and make sure it has enough free space, generally 30% or more free is recommended depending on VM size. You can check if this is the issue by searching `SMlog` with `grep -i coales /var/log/SMlog` (you may have to look at previous logs such as `SMlog.1`).
+<Terminal shell title="XCP-ng host: search SMlog for coalesce failures">{`
+grep -i exception /var/log/SMlog
+grep -i error /var/log/SMlog
+`}</Terminal>
 
-You can check if a coalesce job is currently active by running `ps axf | grep vhd` on the XCP-ng/XenServer host and looking for a VHD process in the results (one of the resulting processes will be the grep command you just ran, ignore that one).
+Coalesce jobs can also fail to run if the SR is short on free space. Check the problematic SR: 30% or more free space is generally recommended, depending on VM size. You can confirm this scenario by searching the logs (also look at rotated files such as `SMlog.1`):
 
-If you don't see any running coalesce jobs, and can't find any other reason that XCP-ng/XenServer has not started one, you can attempt to make it start a coalesce job by rescanning the SR. This is harmless to try, but will not always result in a coalesce. Visit the problematic SR in the XOA UI, then click the "Rescan All Disks" button towards the top right: it looks like a refresh circle icon. This should begin the coalesce process - if you click the Advanced tab in the SR view, the "disks needing to be coalesced" list should become smaller and smaller.
+<Terminal shell title="XCP-ng host: check coalesce attempts in SMlog">{`
+grep -i coales /var/log/SMlog
+`}</Terminal>
 
-As a last resort, migrating the VM (more specifically, its disks) to a new storage repository will also force a coalesce and solve this issue. That means migrating a VM to another host (with its own storage) and back will force the VDI chain for that VM to be coalesced, and get rid of the `VDI Chain Protection` message.
+To check whether a coalesce job is currently active, look for a VHD process on the host (one of the results will be the `grep` command itself, ignore it):
 
-## Parse Error
+<Terminal shell title="XCP-ng host: look for a running coalesce process">{`
+ps axf | grep vhd
+`}</Terminal>
 
-This is most likely due to running a backup job that uses Delta functionality (eg: delta backups, or continuous replication) on a version of XenServer older than 6.5. To use delta functionality you must run [XenServer 6.5 or later](../supported_hosts.md#xenserver-formerly-citrix-hypervisor).
+If no coalesce job is running and you can't find a reason why XCP-ng/XenServer hasn't started one, you can try to trigger it by rescanning the SR. This is harmless, but doesn't always start a coalesce. Open the problematic SR in the XOA UI and click the "Rescan All Disks" button towards the top right (the refresh circle icon). In the SR's Advanced tab, the "disks needing to be coalesced" list should then shrink progressively.
+
+As a last resort, migrating the VM disks to another storage repository forces a coalesce: moving the VM to another host with its own storage and back will merge the VDI chain and get rid of the `VDI Chain Protection` message.
 
 ## SR_BACKEND_FAILURE_44
 
@@ -65,59 +79,70 @@ This is most likely due to running a backup job that uses Delta functionality (e
 This message can be triggered by any backup method.
 :::
 
-`SR_BACKEND_FAILURE_44 (insufficient space)` means the Storage Repository (where your VM disks are currently stored) is full. Note that doing a snapshot on a thick provisioned SR (LVM family for all block devices, like iSCSI, HBA or Local LVM) will consume the current disk size. Eg if you are using this kind of SR at more than 50% and you want to backup ALL VM disks on it, you'll hit this wall.
+`SR_BACKEND_FAILURE_44 (insufficient space)` means the Storage Repository (where your VM disks are currently stored) is full. Keep in mind that a snapshot on a thick provisioned SR (the LVM family used by all block devices: iSCSI, HBA, local LVM) consumes the full current disk size. For example, if this kind of SR is more than 50% full and you back up ALL the VM disks on it, you will hit this wall.
 
 Workarounds:
 
-- use a thin provisioned SR (local ext, NFS, XOSAN)
-- wait for Citrix to release thin provisioning on LVM
-- wait for Citrix to allow another mechanism besides snapshot to be able to export disks
-- use less than 50% of SR space or don't backup all VMs
+- use a thin provisioned SR (local ext, NFS)
+- stay under 50% SR usage, or don't back up all the VMs stored on it
 
 ## Could not find the base VM
 
-This message appears when the previous replicated VM has been deleted on the target side which breaks the replication. To reset the process it's necessary to delete VM snapshot related to this CR job on the original VM. The name of this snapshot is: `XO_DELTA_EXPORT: <name label of target SR> (<UUID of target SR>)`
+This error historically appeared when the previously replicated VM had been deleted on the target side, breaking the incremental replication chain.
+
+Current XO releases no longer fail in this situation: when the base cannot be found, the job automatically falls back to a full export and continues (see [Unexpected key (full) export](#unexpected-key-full-export)).
+
+If you still see this error on an older XO version, delete the reference snapshot of this replication job on the source VM, then run the job again to restart the chain from a new full. The snapshot is named `[XO Backup <job name>] <VM name>` (or `XO_DELTA_EXPORT: <name label of target SR> (<UUID of target SR>)` on very old versions).
 
 ## LICENSE_RESTRICTION
 
-`LICENSE_RESTRICTION (PCI_device_for_auto_update)` message appears when you try to do a backup/snapshot from a VM that was previously on a host with an **active commercial XenServer license** but is now on a host with a free edition of XenServer/Citrix Hypervisor.
+`LICENSE_RESTRICTION (PCI_device_for_auto_update)` appears when you try to back up or snapshot a VM that previously ran on a host with an **active commercial XenServer license**, but now runs on a host with a free edition of XenServer/Citrix Hypervisor.
 
-To solve it, you have to change a parameter in your VM. `xe vm-param-set has-vendor-device=false uuid=<VM_UUID>`.
+To solve it, disable the vendor device on the VM:
+
+<Terminal shell title="XCP-ng host: disable the vendor device on the VM">{`
+xe vm-param-set has-vendor-device=false uuid=<VM_UUID>
+`}</Terminal>
 
 ## ENOSPC: no space left on device
 
-This message appears when you do not have enough free space on the target backup repository (BR) when running a backup to it.
+This message appears when the target backup repository (BR) runs out of free space during a backup.
 
-To check your free space, enter your XOA and run `xoa check` to check free system space and `df -h` to check free space on your chosen backup repository.
+From your XOA, check the free system space and the free space on the BR:
+
+<Terminal shell title="xoa: check free space">{`
+xoa check
+df -h
+`}</Terminal>
 
 ## Error: no VMs match this pattern
 
-This is happening when you have a _smart backup job_ that doesn't match any VMs. For example: you created a job to backup all running VMs. If no VMs are running on backup schedule, you'll have this message. This could also happen if you lost connection with your pool master (the VMs aren't visible anymore from Xen Orchestra).
+This happens when a _smart backup job_ doesn't match any VMs. For example: you created a job to back up all running VMs, and no VM is running when the schedule fires. It can also happen if you lost the connection to your pool master, since the VMs are no longer visible to Xen Orchestra.
 
-Edit your job and try to see matching VMs or check if your pool is connected to XOA.
+Edit your job to review the matching VMs, or check that your pool is connected to XOA. Note that the run is reported as **skipped** rather than failed, so you are notified without the whole sequence being interrupted.
 
 ## Error: SR_OPERATION_NOT_SUPPORTED
 
-This error can be caused by leaving any removable device (such as USB storage) attached to the VM that you are backing up or snapshotting, detach the device and retry. This can also be caused if you created a VM disk using the [RAW format](https://xcp-ng.org/docs/storage.html#using-raw-format).
+This error can be caused by a removable device (such as USB storage) left attached to the VM you are backing up or snapshotting: detach the device and retry. It can also happen if the VM has a disk using the [RAW format](https://xcp-ng.org/docs/storage.html#using-raw-format), which cannot be snapshotted.
 
 ## Error: Lock file is already being held
 
-This error message appears in the logs in some instances of a failed backup job. It means that the VM’s folder on the backup repository is already used by a process. This could be:
+This error appears in the logs of some failed backup runs. It means the VM's folder on the backup repository (BR) is already in use by another process. This could be:
 
 - another backup job
 - a merge process on the Virtual Hard Disk (VHD)
 
 To solve this issue, we recommend that you:
 
-- wait until the other backup job is completed/the merge process is done
+- wait until the other backup job or the merge process is done
 - make sure your backup repository is not being overworked
 
 ## Error: HTTP connection has timed out
 
-This error occurs when XO tries to fetch data from a host, via the HTTP GET method. This error essentially means that the host (dom0 specifically) isn't responding anymore, after we asked it to expose the disk to be exported. This could be a symptom of having an overloaded dom0 that couldn't respond fast enough. It can also be caused by dom0 having trouble attaching the disk in question to expose it for fetching via HTTP, or just not having enough resources to answer our GET request.
+This error occurs when XO fetches disk data from a host via an HTTP GET request, and the host (the dom0 specifically) stops responding after being asked to expose the disk to export. It's usually a symptom of an overloaded dom0: not enough resources to answer the request, or trouble attaching the disk to expose it.
 
-::: warning
-As a temporary workaround you can increase the timeout greater than the default value, to allow the host more time to respond. But you will need to eventually diagnose the root cause of the slow host response or else you risk the issue returning.
+:::warning
+As a temporary workaround, you can raise the inactivity timeout above the default value (5 minutes) to give the host more time to respond. But you still need to diagnose the root cause of the slow host response, or the issue will come back.
 :::
 
 Create the following file:
@@ -134,18 +159,20 @@ Add the following lines:
 httpInactivityTimeout = 1800000 # 30 mins
 ```
 
+Then restart the `xo-server` service to apply the change.
+
 ## Error: Expected values to be strictly equal
 
-This error occurs at the end of the transfer. XO checks the exported VM disk integrity, to ensure it's a valid VHD file (we check the VHD header as well as the footer of the received file). This error means the header and footage did not match, so the file is incomplete (likely the export from dom0 failed at some point and we only received a partial HD/VM disk).
+This error occurs at the end of the transfer, when XO checks the integrity of the exported VM disk to ensure it's a valid VHD file (both the VHD header and the footer of the received file are verified). The error means the check failed: the file is incomplete, most likely because the export from the dom0 stopped at some point and XO only received a partial disk.
 
 ## Error: the job is already running
 
-This means the same job is still running, typically from the last scheduled run. This happens when you have a backup job scheduled too often. It can also occur if you have a long timeout configured for the job, and a slow VM export or slow transfer to your backup repository. In either case, you need to adjust your backup schedule to allow time for the job to finish or timeout before the next scheduled run. We consider this an error to ensure you'll be notified that the planned schedule won't run this time because the previous one isn't finished.
+The full message is `the job (<id>) is already running`: the same job is still busy, typically from the previous scheduled run. This happens when a backup job is scheduled too often, or when a long timeout is configured and a VM export or the transfer to the backup repository (BR) is slow. In either case, adjust the schedule so the job has time to finish (or time out) before the next run. XO treats this as an error on purpose, so you are notified that the planned run was not executed because the previous one wasn't finished.
 
 ## Error: VDI_IO_ERROR
 
-This error comes directly from your host/dom0, and not XO. Essentially, XO asked the host to expose a VM disk to export via HTTP (as usual), XO managed to make the HTTP GET connection, and even start the transfer. But then at some point the host couldn't read the VM disk any further, causing this error on the host side. This might happen if the VDI is corrupted on the storage, or if there's a race condition during snapshots. More rarely, this can also occur if your SR is just too slow to keep up with the export as well as live VM traffic.
+This error comes directly from your host/dom0, not from XO. XO asked the host to expose a VM disk over HTTP as usual, established the connection and even started the transfer, but at some point the host couldn't read the VM disk any further. This can happen if the VDI is corrupted on the storage or if there's a race condition during snapshots. More rarely, it can also mean your SR is too slow to keep up with the export on top of the live VM traffic.
 
 ## Error: no XAPI associated to `UUID`
 
-This message means that XO had a UUID of a VM to backup, but when the job ran it couldn't find any object matching it. This could be caused by the pool where this VM lived no longer being connected to XO. Double-check that the pool hosting the VM is currently connected under Settings > Servers. You can also search for the VM UUID in the Home > VMs search bar. If you can see it, run the backup job again and it will work. If you cannot, either the VM was removed or the pool is not connected.
+This message means XO had the UUID of a VM to back up, but couldn't find any matching object when the job ran. The usual cause is that the pool hosting this VM is no longer connected to XO. Double-check that the pool is connected under Settings > Servers, and search for the VM UUID in the Home > VMs search bar. If you can see the VM, run the backup job again and it will work. If you cannot, either the VM was removed or its pool is disconnected.

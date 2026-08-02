@@ -2,9 +2,11 @@
 
 <InterfaceNote>This page describes user management in the XO 5 interface. XO 6 currently lists users (with their groups and tokens); creating and editing them still happens here.</InterfaceNote>
 
-:::tip
-For the system accounts of the appliance itself, see [First login](../installation.md#first-login). Here, we are only talking about users in the Xen Orchestra application
-:::
+Xen Orchestra involves three distinct notions of "user account". Make sure you are looking at the right one:
+
+- **XOA system accounts**: the Linux accounts (`xoa`, `root`) of the appliance itself, used for SSH and console access. See [First login](../installation.md#first-login).
+- **XO application users**: the accounts inside the Xen Orchestra web application. This is what this page is about.
+- **XO 6 / REST API roles**: XO 6 introduces a new RBAC model (ACL v2) with roles and fine-grained privileges. See the [ACL v2 page](../xo6/acl-v2.md).
 
 There are 2 types of XO users:
 
@@ -31,7 +33,7 @@ This is the default method. Creating a user is very simple:
 1. Go into the Settings view, select "Users"
 2. You can create a _user_ or an _admin_, with their password (or generate one)
 
-![](../assets/usercreation.png)
+<UiDetail src="/img/xo5/user-creation-form.png" alt="The Users settings view, with the creation form on top and the list of existing accounts below" width={700} />
 
 By default, a _user_ won't have any permissions. At the opposite, an _admin_ will have all rights.
 
@@ -45,9 +47,13 @@ To activate two-factor authentication on your account:
 
 1. Go to your profile settings.
 2. At the top of the screen, go to the **OTP authentication** field and toggle the switch to the **On** position.
-   ![User configuration form](../assets/totp-config.png)
+
+   <UiDetail src="/img/xo5/totp-toggle.png" alt="The user profile page, with the OTP authentication toggle at the top" width={700} />
+
 3. A window will appear displaying a **QR code**:
-   ![QR code for enabling TOTP on a user account](../assets/toptp-qr-code.png)
+
+   <UiDetail src="/img/xo5/totp-qr-code.png" alt="The QR code modal shown when enabling TOTP on a user account" width={620} />
+
 4. Open your preferred authentication app on your mobile device and **scan the QR code**.
 5. The app will generate a temporary 6-digit code.
 6. Enter this code into the **OTP code** field in the Xen Orchestra window.
@@ -63,16 +69,19 @@ To disable this feature, return to your profile settings and toggle the **OTP au
 
 ### LDAP
 
-XO currently supports connections to LDAP directories, like _Open LDAP_ or _Active Directory_.
+XO currently supports connections to LDAP directories, like _Open LDAP_ or _Active Directory_, through the `auth-ldap` plugin.
 
-1. **Access the Plugin**:
+1. **Access the plugin**:
    1. Navigate to the **Settings → Plugins** screen.
    2. Locate the **auth-ldap plugin** by scrolling or using the search bar.
-2. **Configure LDAP Settings**:
-   1. Click **+** button for the LDAP plugin.\
-      A list of settings appears: ![LDAP plugin settings](../assets/ldapconfig.png)
-   2. Fill in the required fields based on your LDAP server details.
-3. **Save and Activate**:
+2. **Configure LDAP settings**:
+   1. Click the **+** button for the LDAP plugin.\
+      A list of settings appears:
+
+      <UiDetail src="/img/xo5/ldap-plugin-config.png" alt="The auth-ldap plugin settings: URI, certificates, base, credentials, user filter and ID attribute" width={620} />
+
+   2. Fill in the required fields based on your LDAP server details: the **URI** of the server, the **Base** where users are looked for, the **User filter** and the **ID attribute** (which must be unique and stable, e.g. `dn`). Optional fields cover failover URIs, certificate authorities and certificate checking, StartTLS and the credentials used to search the directory.
+3. **Save and activate**:
    1. Click **Save configuration**.
    2. To check if the plugin is activated, activate the toggle switch next to the **auth-ldap** plugin name.\
       The switch should now appear green.
@@ -101,7 +110,7 @@ The LDAP plugin allows for the synchronization of user groups.
       A list of text fields appear.
    3. Fill out the fields according to the picture below:
 
-   ![LDAP plugin group settings](../assets/ldapgroupconfig.png)
+   <UiDetail src="/img/xo5/ldap-group-sync-config.png" alt="The Synchronize groups section of the auth-ldap plugin, with base, filter, ID and display name attributes" width={620} />
 
 2. **Basic group settings**:
    - **Base** and **Filter**: Similar to the user configuration. The plugin needs an entry point in the directory and a filter to find the groups.
@@ -116,7 +125,7 @@ For example, here's an LDAP directory:
 
 **User:**
 
-```
+```text
 objectClass: Person
 cn: Bruce Wayne
 uid: 347
@@ -125,7 +134,7 @@ uid: 347
 
 **Group:**
 
-```
+```text
 objectClass: Group
 cn: heroes
 displayName: Heroes
@@ -202,9 +211,9 @@ In this section, you'll learn:
 
 On the Xen Orchestra login page, click **Sign in with OpenID Connect**
 
-![OpenID Connect sign in](../assets/openid-connect-signin-button.png)
+<UiDetail src="/img/xo5/oidc-signin-button.png" alt="The XO login page with the Sign in with OpenID Connect button" width={300} />
 
-You’ll be redirected to the login page of your internal portal. Once authenticated on it, you will be redirected to the Xen Orchestra home page.
+You'll be redirected to the login page of your internal portal. Once authenticated on it, you will be redirected to the Xen Orchestra home page.
 
 #### Administrator Guide
 
@@ -216,18 +225,24 @@ You can set up the `auth-oidc` plugin directly in Xen Orchestra:
 2. Find the `auth-oidc` plugin in the list.
 3. Click **+** next to the plugin name to expand the configuration options.
 
-![OpenID Connect plugin settings](../assets/auth-oidc-plugin-configuration.png)
+<UiDetail src="/img/xo5/oidc-plugin-config.png" alt="The auth-oidc plugin configuration: auto-discovery URL, client identifier and client secret" width={620} />
 
 ##### Required Configuration
 
-Fill in the mandatory fields. You can also specify the auto-discovery URL, if needed.
+Fill in the mandatory fields: the **Client identifier (key)** and **Client secret** from your identity provider. You also need to tell the plugin where to find your provider's endpoints, either way:
+
+- **Auto-discovery URL**: the OIDC discovery URL provided by your identity provider (the simplest option), or
+- the **Advanced** section, by filling the **Authorization URL**, **Issuer**, **Token URL** and **User info URL** manually.
 
 ##### Advanced Configuration (Optional)
 
 To access advanced options:
 
 1. Check **Fill information (optional)** to reveal additional fields.
-2. Complete the fields as needed.
+2. Complete the fields as needed:
+   - **Callback URL**: the redirect URI for OIDC responses (defaults to `/signin/oidc/callback`).
+   - **Username field**: the field to use as the XO username, e.g. `displayName`, `username` or `email` (defaults to `username`).
+   - **Scopes**: the scopes from which to request profile information, separated by whitespace (defaults to `profile`; the `openid` scope is implicitly included).
 
 ##### Save and Activate the Plugin
 
@@ -240,20 +255,20 @@ To access advanced options:
 
 ###### Generating certificates
 
-To support passkeys in XOA, the Keycloak server must expose its OIDC endpoints over HTTPS.  
+To support passkeys in XOA, the Keycloak server must expose its OIDC endpoints over HTTPS.
 The TLS certificates used by Keycloak must satisfy the following conditions:
 
 - **Common Name (CN)**: The CN of the certificate has to match the DNS name that clients will use to reach Keycloak.
 - **SubjectAltName (SAN)**: The certificate must contain a SAN entry with the same DNS name.
-- **Certificate chain**: The certificate must be issued by a trusted CA. The `auth‑oidc` plugin does not accept self‑signed certificates that lack a proper chain of trust.
+- **Certificate chain**: The certificate must be issued by a trusted CA. The `auth-oidc` plugin does not accept self-signed certificates that lack a proper chain of trust.
 
 :::info
-The TLS certificate must match the domain that will be used as the _Relying Party ID_ (RP ID). The RP ID cannot be an IP address; it must be the DNS‑name that appears in the certificate’s CN or SAN.
+The TLS certificate must match the domain that will be used as the _Relying Party ID_ (RP ID). The RP ID cannot be an IP address; it must be the DNS name that appears in the certificate's CN or SAN.
 :::
 
 Here is a certificate that meets these requirements:
 
-```
+```text
 Version:          3 (0x02)
 Serial number:    7096756171258138755 (0x627cbe2335671083)
 Algorithm ID:     SHA256withRSA
@@ -273,11 +288,11 @@ With this configuration, Keycloak can participate in passkey authentication flow
 
 ###### Trust the Keycloak cert in XOA
 
-1. Place the CA certificate used to sign Keycloak’s cert on the xo-server host (e.g., `/etc/ssl/poc.crt`).
-2. Edit the xo-server systemd service at `/etc/systemd/system/xo-server.service` to add the environment variable `NODE_EXTRA_CA_CERTS`.
+1. Place the CA certificate used to sign Keycloak's cert on the xo-server host (e.g., `/etc/ssl/poc.crt`).
+2. Edit the xo-server systemd service at `/etc/systemd/system/xo-server.service` to add the environment variable `NODE_EXTRA_CA_CERTS`:
 
-```
-[07:21 10] xoa:~$ cat /etc/systemd/system/xo-server.service
+<Terminal shell title="xoa: xo-server unit with the extra CA certificate">{`
+cat /etc/systemd/system/xo-server.service
 # systemd service for XO-Server.
 [Unit]
 Description= XO Server
@@ -290,7 +305,7 @@ TimeoutStopSec=4s
 Environment="NODE_EXTRA_CA_CERTS=/etc/ssl/poc.crt"
 [Install]
 WantedBy=multi-user.target
-```
+`}</Terminal>
 
 ###### Configuring Keycloak
 
@@ -308,7 +323,7 @@ WantedBy=multi-user.target
 - In **Authentication → Flows**, edit the login flow you use (e.g., browser).
 - Add **WebAuthn Authenticator** as an **Alternative** (or replace the current authenticator with it).
 
-![Keycloak Browser Flow Details](../assets/keycloak-browser-flow.png)
+<UiDetail src="/img/xo5/keycloak-browser-flow.png" alt="The Keycloak browser flow details, with the WebAuthn Authenticator step added as an alternative" width={700} />
 
 4. Disable OTP if not needed
 
@@ -320,32 +335,43 @@ These settings allow users to register and log in with FIDO2 (passkeys) while ke
 
 1. Initiate the OIDC authentication request from the XOA client to Keycloak.
 
-![Passkeys Authentication 1](../assets/auth-flow-1.png)
+   <UiDetail src="/img/xo5/keycloak-passkey-flow-1.png" alt="XOA redirecting the OIDC authentication request to Keycloak" width={700} />
 
 2. The user supplies their username and password at the Keycloak login screen.
 
-![Passkeys Authentication 2](../assets/auth-flow-2.png)
+   <UiDetail src="/img/xo5/keycloak-passkey-flow-2.png" alt="The Keycloak login screen asking for username and password" width={700} />
 
-3. After credential validation, Keycloak presents a second‑factor challenge (User Verification or User Presence) that requires the user to press their Yubikey to complete the authentication.
+3. After credential validation, Keycloak presents a second-factor challenge (User Verification or User Presence) that requires the user to press their Yubikey to complete the authentication.
 
-![Passkeys Authentication 3](../assets/auth-flow-3.png)
+   <UiDetail src="/img/xo5/keycloak-passkey-flow-3.png" alt="The Keycloak second-factor challenge waiting for the security key" width={700} />
 
 ### SAML
 
-This plugin allows SAML users to authenticate to Xen-Orchestra.
+The `auth-saml` plugin allows SAML users to authenticate to Xen Orchestra.
 
 The first time a user signs in, XO will create a new XO user with the same identifier.
 
 #### Configuration
 
+:::warning
+When registering your Xen Orchestra instance to your identity provider, you must configure its callback URL to `https://<xo.company.net>/signin/saml/callback`!
+:::
+
 In the "Settings" then "Plugins" view, expand the SAML plugin configuration. Then provide the needed fields:
 
-![](../assets/samlconfig.png)
+<UiDetail src="/img/xo5/saml-plugin-config.png" alt="The auth-saml plugin configuration: certificate, entry point, issuer and username field" width={700} />
+
+- **Certificate**: copy/paste the identity provider's certificate.
+- **Entry point**: entry point of the identity provider.
+- **Issuer**: issuer string to supply to the identity provider.
+- **Username field**: field to use as the XO username. Try `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress` if you are using Microsoft Entra ID (Azure Active Directory).
+
+Optional settings let you disable the requested authentication context (known to help with Active Directory), force re-authentication, and require signed assertions or signed responses.
 
 Save the configuration and then activate the plugin (button on top).
 
 :::warning
-Since 5.111.1 version, you need to configure signature for Document **and** Assertion in your SAML Identity Provider.
+Since XO 5.111.1, you need to configure signature for Document **and** Assertion in your SAML Identity Provider: either the response or the assertion must be signed.
 
 - **Keycloak:** In Client Settings, Signature and Encryption, check "Sign Documents" and "Sign Assertion".
 - **Azure:** In SAML Signing Certificate options, select **Sign SAML response and assertion**.
@@ -354,9 +380,9 @@ Since 5.111.1 version, you need to configure signature for Document **and** Asse
 
 #### Vendor specific
 
-##### Google Workspace - SAML [support.google.com](https://support.google.com/a/answer/6087519?hl=en#zippy=)
+##### Google Workspace {#google-workspace---saml-supportgooglecom}
 
-Use the screenshots below as a reference as how to setup SAML with Google Workspace.
+Google documents its SAML setup on [support.google.com](https://support.google.com/a/answer/6087519?hl=en#zippy=). Use the screenshots below as a reference as how to set up SAML with Google Workspace.
 
 1. Sign in to your [Google Workspace Admin Dashboard](https://admin.google.com).
 2. Go to **Apps/Web and mobile apps**
@@ -364,20 +390,25 @@ Use the screenshots below as a reference as how to setup SAML with Google Worksp
 4. Give your app a name and optionally a description.
 5. To see how the fields should be filled out, refer to the screenshots below.
 
-> Note: Right now even when the authorization is successful, you will be redirected to the `https://xo.company.net/signin` page. However, just browse directly into the bare URL `https://xo.company.net`, and you'll now be logged in and can use the XO-dashboard.
+:::note
+Right now even when the authorization is successful, you will be redirected to the `https://xo.company.net/signin` page. However, just browse directly into the bare URL `https://xo.company.net`, and you'll now be logged in and can use the XO dashboard.
+:::
 
-> If you get a certificate error. Try to add a newline at the bottom of the Certificate field in Xen Orchestra.
+:::tip
+If you get a certificate error, try to add a newline at the bottom of the Certificate field in Xen Orchestra.
+:::
 
 The first login will create the user inside XO, as a non-privileged user. An administrator then has to promote the user to the appropriate group. (XO: Settings/Users).
 
-![](../assets/saml-googleworkspace1.png)
+<UiDetail src="/img/xo5/saml-google-workspace-app-details.png" alt="The Google Workspace custom SAML app details, side by side with the matching XO plugin fields" width={700} />
 
 Also make sure to adjust the SAML attribute mapping in the Google Workspace configuration. (Primary email -> email)
-![](../assets/saml-googleworkspace2.png)
+
+<UiDetail src="/img/xo5/saml-google-workspace-attribute-mapping.png" alt="The Google Workspace SAML attribute mapping, with Primary email mapped to email" width={620} />
 
 ### GitHub
 
-This plugin allows any GitHub user to authenticate to Xen Orchestra.
+The `auth-github` plugin allows any GitHub user to authenticate to Xen Orchestra.
 
 The first time a user signs in, XO will create a new XO user with the same identifier (i.e. GitHub name), with _user_ permissions. An existing admin will need to apply the appropriate permissions for your environment.
 
@@ -387,19 +418,19 @@ First you need to configure a new app in your GitHub account. Go to your GitHub 
 2. Enter your Xen Orchestra URL (or IP) under "Homepage URL"
 3. Add your "Authorization callback URL" (for example, https://homepageUrl/signin/github/callback)
 
-![](../assets/auth-github-form.png)
+<UiDetail src="/img/xo5/github-oauth-app-form.png" alt="The GitHub OAuth App registration form, with the XO homepage and callback URLs filled in" width={620} />
 
-When you get your Client ID and your Client secret, you can configure them in the GitHub Plugin inside the "Settings/Plugins" view of Xen Orchestra.
+When you get your Client ID and your Client secret, you can configure them in the GitHub plugin inside the "Settings/Plugins" view of Xen Orchestra. They are the only two fields to fill in.
 
-![](../assets/auth-github-secret.png)
+<UiDetail src="/img/xo5/github-plugin-config.png" alt="The auth-github plugin configuration, with the Client ID and Client secret fields" width={620} />
 
 Be sure to activate the plugin after you save the configuration (button on top). When it's done, you'll see a link in the login view, this is where you'll go to authenticate:
 
-![](../assets/githubconfig.png)
+<UiDetail src="/img/xo5/github-signin-link.png" alt="The XO login page with the GitHub sign in link below the credentials form" width={620} />
 
 ### Google
 
-This plugin allows Google users to authenticate to Xen-Orchestra.
+The `auth-google` plugin allows Google users to authenticate to Xen Orchestra.
 
 The first time a user signs in, XO will create a new XO user with the same identifier, without any permissions.
 
@@ -407,22 +438,30 @@ The first time a user signs in, XO will create a new XO user with the same ident
 
 Go to Google's [Credentials page](https://console.developers.google.com/apis/credentials) and create a new project:
 
-![](../assets/auth-google-create-project.png)
+<UiDetail src="/img/xo5/google-create-project.png" alt="Creating a new project in the Google developer console" width={620} />
 
 Configure an OAuth consent screen if requested then create OAuth 2.0 credentials:
 
-![](../assets/auth-google-create-oauth.png)
-![](../assets/auth-google-create-oauth-form.png)
+<UiDetail src="/img/xo5/google-create-oauth-credentials.png" alt="The Create credentials menu, with OAuth client ID selected" width={620} />
+
+<UiDetail src="/img/xo5/google-oauth-client-form.png" alt="The OAuth client creation form, with the authorized redirect URI pointing to the XO callback" width={620} />
 
 Get your client ID and client secret:
 
-![](../assets/auth-google-client-id-secret.png)
+<UiDetail src="/img/xo5/google-client-id-secret.png" alt="The modal displaying the generated OAuth client ID and client secret" width={480} />
 
 #### Configure the XO plugin
 
 In Settings, then Plugins, expand the Google plugin details and configure it with the information from the Google Console:
 
-![](../assets/auth-google-plugin-config.png)
+<UiDetail src="/img/xo5/google-plugin-config.png" alt="The auth-google plugin configuration: callback URL, client ID and client secret" width={620} />
+
+- **Callback URL**: must be exactly the same as specified on the Google developer console.
+- **Client ID** and **Client secret**: the credentials generated above.
+
+:::warning
+The optional **scope** setting selects which profile information is used to build the XO username (Google+ name or simple email address). Changing this value after users started logging in will break existing users.
+:::
 
 Be sure to activate the plugin after you save the configuration (button on top).
 
@@ -434,20 +473,24 @@ You can now connect with your Google account in the login page.
 
 ACLs are permissions that apply to preexisting objects, like users and groups.
 
+:::note
+This section describes ACL v1, used by the XO 5 interface. The REST API and XO 6 use a new RBAC model: see [ACL v2](../xo6/acl-v2.md).
+:::
+
 ### Who can manage ACLs?
 
 Only a super admin (XO administrator) can manage ACLs.
 
 ### How can I view and edit ACLs?
 
-The ACLs view can be accessed in the **Setting** panel.
+The ACLs view can be accessed in the **Settings** panel.
 
 1. Select the user or group you want to apply permissions on
 2. Select the object on which the permission will apply
 3. Choose the role for this ACL
 4. Click the **Create** button.
 
-![](../assets/createacl.png)
+<UiDetail src="/img/xo5/acl-creation.png" alt="The ACL creation form: subject, object and role selectors followed by the Create button" width={700} />
 
 :::tip
 You can click to add multiple objects at the same time!
@@ -455,7 +498,7 @@ You can click to add multiple objects at the same time!
 
 Your ACL is now available in the right list:
 
-![](../assets/acllist.png)
+<UiDetail src="/img/xo5/acl-list.png" alt="The list of existing ACLs, each row showing the user, the object and the assigned role" width={620} />
 
 You can edit or remove existing ACLs here.
 
@@ -513,13 +556,13 @@ If the OS install needs an ISO, you need to give this user 2 permissions:
 
 ## Self-service portal
 
-The self-service feature allows users to create new VMs. This is different from delegating existing resources (VM's) to them, and it leads to a lot of possibilities.
+The self-service feature allows users to create new VMs. This is different from delegating existing resources (VMs) to them, and it leads to a lot of possibilities.
 
 ### Set of resources
 
 To create a new set of resources to delegate, go to the "Self Service" section in the main menu:
 
-![](../assets/selfservice_menu.png)
+<UiDetail src="/img/xo5/self-service-menu.png" alt="The Self Service entry in the XO main menu" width={180} />
 
 #### Create a set
 
@@ -537,7 +580,7 @@ In this example below, we'll create a set called **"sandbox"** with:
 - "SSD NFS" is the only SR where they can create VMs
 - "Pool-wide network with eth0" is the only available network for them
 
-![](../assets/selfserviceset.png)
+<UiDetail src="/img/xo5/self-service-set-creation.png" alt="The resource set creation form: name, subjects, pools, templates, SRs, networks and limits, with the eligible hosts below" width={700} />
 
 As you can see, only compatible hosts are shown and can be used for this resource set (hosts in another pool aren't shown). This way, you can be sure to have resources free for tasks other than self-service.
 
@@ -563,21 +606,21 @@ A snapshot of a Self Service VM will use as much resources as a VM would. You ca
 
 When you click on create, you can see the resource set and remove or edit it:
 
-![](../assets/selfservice_recap_quotas.png)
+<UiDetail src="/img/xo5/self-service-set-quotas.png" alt="The saved resource set recap, with its quota gauges for CPUs, RAM and disk usage" width={700} />
 
 ### Usage (user side)
 
 As soon as a user is granted a resource set, it displays a new button in their main view: "new".
 
-![](../assets/selfservice_new_vm.png)
+<UiDetail src="/img/xo5/self-service-new-vm-button.png" alt="The New button displayed in the user's main menu" width={160} />
 
 Now, the user can create a VM with only the resources granted in the set:
 
-![](../assets/selfservice_create_vm.png)
+<UiShot light="/img/xo5/self-service-vm-creation.png" alt="The VM creation page restricted to the sandbox resource set: only the delegated template, SR and network are selectable" url="https://your-xo/v5/#/vms/new" />
 
 And the recap before creation:
 
-![](../assets/selfservice_summary_quotas.png)
+<UiDetail src="/img/xo5/self-service-quota-summary.png" alt="The summary gauges showing how much of the set's quota the new VM will consume" width={700} />
 
 If the "Create" button is disabled, it means the user requested more resources than available.
 
@@ -592,8 +635,6 @@ Self-service is a major step in the Cloud. Combine it with our [Cloudinit compat
 - delegate this set to a group of users
 
 Now, your authorized users can create VMs with their SSH keys, grow template disks if needed, etc. Everything is inside a "sandbox" (the resource set) you defined earlier!
-
-![](https://pbs.twimg.com/media/CYMt2cJUkAAWCPg.png)
 
 ## Audit log
 
@@ -619,7 +660,7 @@ The recording of the users' actions is disabled by default. To enable it:
 2. expand the `audit` configuration
 3. toggle active and save the configuration
 
-![](../assets/audit_log_configuration.png)
+<UiDetail src="/img/xo5/audit-log-plugin-config.png" alt="The audit plugin configuration, with the active toggle enabled" width={620} />
 
 Now, the audit plugin will record users' actions and upload the last record in the chain every day at **06:00 AM (UTC)**.
 

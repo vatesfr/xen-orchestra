@@ -123,8 +123,8 @@ export default {
             from: '/backup',
           },
           {
-            to: '/xo5/license_management',
-            from: '/license_management',
+            to: '/xo6/support',
+            from: ['/license_management', '/xo5/license_management'],
           },
           {
             to: '/xo5/load_balancing',
@@ -163,8 +163,8 @@ export default {
             from: '/proxy',
           },
           {
-            to: '/xo6/purchase',
-            from: '/purchase',
+            to: '/xo6/support',
+            from: ['/purchase', '/xo6/purchase'],
           },
           {
             from: '/xo5/releases',

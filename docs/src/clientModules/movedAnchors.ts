@@ -37,6 +37,22 @@ const MOVED_FROM_XOA: Record<string, string> = {
   'migrate-from-an-older-xoa': '/migrate_to_new_xoa',
 }
 
+/**
+ * The old /xo6/purchase and /xo5/license_management pages moved to the
+ * central Vates docs; their redirect lands on /xo6/support, and these
+ * anchors complete the trip to the right page over there.
+ */
+const MOVED_TO_VATES_DOCS: Record<string, string> = {
+  'direct-purchase': 'https://docs.vates.tech/pricing-licencing/vms-bundle-overview/',
+  'via-your-purchase-departement': 'https://docs.vates.tech/pricing-licencing/contact-quote-requests/',
+  invoices: 'https://docs.vates.tech/pricing-licencing/account-management/',
+  'ask-for-a-quote': 'https://docs.vates.tech/pricing-licencing/contact-quote-requests/',
+  'edit-your-card-information': 'https://docs.vates.tech/pricing-licencing/account-management/',
+  'upgrade-your-plan': 'https://docs.vates.tech/pricing-licencing/vms-bundle-overview/',
+  'activate-a-xen-orchestra-license': 'https://docs.vates.tech/pricing-licencing/applying-xo-licences/',
+  'rebind-xo-license': 'https://docs.vates.tech/pricing-licencing/migrating-licences/',
+}
+
 export function onRouteDidUpdate({ location }: { location: { pathname: string; hash: string } }): void {
   if (typeof window === 'undefined') {
     return
@@ -48,5 +64,8 @@ export function onRouteDidUpdate({ location }: { location: { pathname: string; h
   }
   if (path === '/installation' && MOVED_FROM_XOA[anchor] !== undefined) {
     window.location.replace(MOVED_FROM_XOA[anchor])
+  }
+  if (path === '/xo6/support' && MOVED_TO_VATES_DOCS[anchor] !== undefined) {
+    window.location.replace(MOVED_TO_VATES_DOCS[anchor])
   }
 }

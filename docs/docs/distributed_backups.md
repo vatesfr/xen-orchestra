@@ -8,6 +8,37 @@ Distributed backups let you spread backup and replication workloads across multi
 
 By default, when a backup job has several backup repositories (BR) or storage repositories (SRs) configured, each VM backup is written to **every** target. With distributed mode enabled, each VM backup is written to **exactly one** target per run, selected automatically based on available space.
 
+<Schema label="Distributed mode: one backup job, and each VM backup lands on a single BR, picked for its free space at run time" legend={[["#56c288", "VM backup"], ["#5ac8c8", "Transfer"], ["#e0a94a", "BR"]]} maxWidth="640px">
+<svg viewBox="0 0 640 220" role="img" aria-label="Three VMs in one backup job each send their backup to exactly one of three backup repositories of different sizes, instead of every backup going to every target">
+  <text x="32" y="26" fill="#c6d2e1" fontSize="12">Backup job</text>
+  <rect x="24" y="34" width="170" height="170" rx="10" fill="none" stroke="rgba(255,255,255,0.22)" strokeDasharray="6 5" />
+  <rect x="40" y="54" width="138" height="36" rx="6" fill="rgba(255,255,255,0.04)" stroke="#56c288" />
+  <text x="109" y="76" fill="#c6d2e1" fontSize="12" textAnchor="middle">VM 1</text>
+  <rect x="40" y="104" width="138" height="36" rx="6" fill="rgba(255,255,255,0.04)" stroke="#56c288" />
+  <text x="109" y="126" fill="#c6d2e1" fontSize="12" textAnchor="middle">VM 2</text>
+  <rect x="40" y="154" width="138" height="36" rx="6" fill="rgba(255,255,255,0.04)" stroke="#56c288" />
+  <text x="109" y="176" fill="#c6d2e1" fontSize="12" textAnchor="middle">VM 3</text>
+  <text x="440" y="26" fill="#c6d2e1" fontSize="12">Backup repositories (BR)</text>
+  <rect x="440" y="34" width="120" height="44" rx="6" fill="rgba(255,255,255,0.04)" stroke="#e0a94a" />
+  <text x="500" y="53" fill="#c6d2e1" fontSize="12" textAnchor="middle">BR 1</text>
+  <text x="500" y="68" fill="#7a8699" fontSize="10" textAnchor="middle">500 GiB free</text>
+  <rect x="440" y="94" width="180" height="52" rx="6" fill="rgba(255,255,255,0.04)" stroke="#e0a94a" />
+  <text x="530" y="116" fill="#c6d2e1" fontSize="12" textAnchor="middle">BR 2</text>
+  <text x="530" y="132" fill="#7a8699" fontSize="10" textAnchor="middle">2 TiB free (most)</text>
+  <rect x="440" y="160" width="150" height="44" rx="6" fill="rgba(255,255,255,0.04)" stroke="#e0a94a" />
+  <text x="515" y="179" fill="#c6d2e1" fontSize="12" textAnchor="middle">BR 3</text>
+  <text x="515" y="194" fill="#7a8699" fontSize="10" textAnchor="middle">1.2 TiB free</text>
+  <line x1="178" y1="72" x2="428" y2="112" stroke="#5ac8c8" strokeWidth="1.5" className="schema-flow" strokeDasharray="5 4" />
+  <polygon points="437,113 427,109 428,119" fill="#5ac8c8" />
+  <line x1="178" y1="122" x2="428" y2="178" stroke="#5ac8c8" strokeWidth="1.5" className="schema-flow" strokeDasharray="5 4" />
+  <polygon points="437,180 427,175 428,185" fill="#5ac8c8" />
+  <line x1="178" y1="172" x2="428" y2="60" stroke="#5ac8c8" strokeWidth="1.5" className="schema-flow" strokeDasharray="5 4" />
+  <polygon points="437,56 427,55 429,65" fill="#5ac8c8" />
+  <text x="308" y="46" fill="#7a8699" fontSize="10" textAnchor="middle">1 VM backup, 1 target</text>
+  <text x="308" y="216" fill="#7a8699" fontSize="10" textAnchor="middle">default mode: every backup goes to every target</text>
+</svg>
+</Schema>
+
 This is useful to:
 
 - Pool multiple smaller storage units without duplicating data across them

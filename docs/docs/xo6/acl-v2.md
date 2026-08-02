@@ -1,15 +1,19 @@
 # ACL v2 / RBAC (REST API/XO6)
 
-ACL v2 is the access control system for the Xen Orchestra REST API and the XO6 UI. It lets you define exactly what each user or group can see and do — down to individual objects — without granting them full administrator access.
+ACL v2 is the access control system for the Xen Orchestra [REST API](../xo5/restapi.md) and the XO6 UI. It lets you define exactly what each user or group can see and do, down to individual objects, without granting them full administrator access.
 
 ## What changed from v1
 
-The old ACL system (v1) allowed granting access to individual objects (a VM, an SR…). Simple, but limited: there was no way to say _"this user can shutdown only VMs tagged `qa`"_. It also only covered **XAPI objects** — VMs, hosts, SRs, networks. Users, groups, backups, schedules, and jobs were out of scope.
+The old [ACL system (v1)](../xo5/users.md#acls) allowed granting access to individual objects (a VM, an SR…). Simple, but limited: there was no way to say _"this user can shutdown only VMs tagged `qa`"_. It also only covered **XAPI objects**: VMs, hosts, SRs, networks. Users, groups, backups, schedules, and jobs were out of scope.
 
 ACL v2 introduces a full **RBAC (Role-Based Access Control)** model with effects, selectors, and an action hierarchy, covering the entire infrastructure including XO management objects.
 
 :::note
-ACL v2 is available through the **REST API only**. The JSON-RPC API (used by XO5) stays on ACL v1. Conversely, ACL v1 is not available on the REST API.
+ACL v2 is available through the **[REST API](../xo5/restapi.md) only**. The JSON-RPC API (used by XO5) stays on [ACL v1](../xo5/users.md#acls). Conversely, ACL v1 is not available on the REST API.
+:::
+
+:::info
+On XOA, RBAC is included in the **Essential+**, **Pro** and **Enterprise** bundles. Installations from the sources are not restricted.
 :::
 
 ---
@@ -41,10 +45,10 @@ A user's effective privileges are the union of all privileges from all their dir
 
 A privilege defines:
 
-- **resource** — the type of object (e.g. `vm`, `backup-job`, `sr`)
-- **action** — what operation is allowed or denied (e.g. `read`, `start`, `delete`)
-- **effect** — whether the privilege grants (`allow`) or blocks (`deny`) the action
-- **selector** _(optional)_ — a filter expression to restrict the privilege to a subset of objects ([complex-matcher format](../xo5/manage_infrastructure.md#filter-syntax))
+- **resource**: the type of object (e.g. `vm`, `backup-job`, `sr`)
+- **action**: what operation is allowed or denied (e.g. `read`, `start`, `delete`)
+- **effect**: whether the privilege grants (`allow`) or blocks (`deny`) the action
+- **selector** _(optional)_: a filter expression to restrict the privilege to a subset of objects ([complex-matcher format](../xo5/manage_infrastructure.md#filter-syntax))
 
 ### Action hierarchy
 
@@ -63,22 +67,52 @@ The reverse is not true: granting `shutdown:clean` does **not** grant `shutdown:
 
 ## Built-in template roles
 
-Xen Orchestra ships with eight ready-to-use role templates. They are **immutable** and automatically kept up to date on startup — they cannot be modified, deleted, or assigned directly.
+Xen Orchestra ships with eight ready-to-use role templates. They are **immutable** and automatically kept up to date on startup: they cannot be modified, deleted, or assigned directly.
 
 To use them, **copy** a template into a new role and assign that copy to your users or groups. This ensures the built-in templates always stay up to date without affecting your custom configuration.
 
-| Role                        | Description                                                                                                                            |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Read only**               | Read access to the entire infrastructure and all XO objects. Cannot modify anything.                                                   |
-| **VMs power state manager** | Can start, stop, reboot, pause, suspend, resume, and unpause VMs.                                                                      |
-| **VMs creator**             | Can instantiate VM templates and create VDIs and VIFs.                                                                                 |
-| **VMs read only**           | Can only list and view VMs.                                                                                                            |
-| **VMs administrator**       | Full control over VM actions                                                                                                           |
-| **Network administrator**   | Can manage networks and VIFs, read and update PIFs, and view hosts and VMs.                                                            |
-| **Administrator**           | Full access to the entire infrastructure                                                                                               |
-| **Storage administrator**   | Administer storage resources (SRs, VDIs, VBDs, PBDs) and backup repositories, plus read access to unmanaged VDIs and storage managers. |
+| Role                        | Description                                                                                                                                 |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Read only**               | Read access to the entire infrastructure and all XO objects. Cannot modify anything.                                                        |
+| **VMs power state manager** | Can start, stop, reboot, pause, suspend, resume, and unpause VMs.                                                                           |
+| **VMs creator**             | Can instantiate VM templates and create VDIs and VIFs.                                                                                      |
+| **VMs read only**           | Can only list and view VMs.                                                                                                                 |
+| **VMs administrator**       | Full control over VM actions, plus read access to VM snapshots.                                                                             |
+| **Network administrator**   | Scoped admin for networking: manages networks and VIFs, creates pool networks, reads and updates PIFs, and views pools, hosts and VMs.      |
+| **Storage administrator**   | Scoped admin for storage: full control over SRs, VDIs, VBDs, PBDs and backup repositories, read access to unmanaged VDIs and storage managers. |
+| **Administrator**           | Full access to the entire infrastructure and all XO objects.                                                                                |
 
-![acl-role copy documented in Swagger](../assets/swagger-role-copy.png)
+The **Administrator** template and the two scoped administrator roles below were introduced in Xen Orchestra 6.6.
+
+### Scoped administrator roles
+
+The two scoped admin templates let you delegate a whole functional area (storage or networking) without handing out global admin rights. Here is exactly what each template grants:
+
+**Storage administrator**
+
+| Resource                                       | Access                                                                                    |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `sr`, `vdi`, `vbd`, `pbd`, `backup-repository` | Every action (`*`): read, create, delete, connect/plug, scan, migrate, resize, and so on. |
+| `vdi-unmanaged`, `sm`                          | Read only.                                                                                |
+
+In practice, a Storage administrator can create and delete SRs, manage virtual disks and their attachments on both hosts and VMs, plug or unplug PBDs, and fully manage backup repositories (create, forget, benchmark, update), while the rest of the infrastructure stays out of reach.
+
+**Network administrator**
+
+| Resource  | Access                                                                                          |
+| --------- | ------------------------------------------------------------------------------------------------ |
+| `network` | Every action (`*`): read, create, delete, update tags and `other_config`.                        |
+| `vif`     | Every action (`*`): read, create, delete, connect, disconnect, update locking mode, rate limit… |
+| `pool`    | `read` and `create:network` (create networks at the pool level, including bonded and internal).  |
+| `pif`     | `read` and `update` (e.g. reconfigure the management interface).                                 |
+| `host`    | Read only.                                                                                       |
+| `vm`      | Read only.                                                                                       |
+
+A Network administrator can therefore manage the whole network stack, from pool networks down to individual VM interfaces, while hosts and VMs themselves remain visible but untouchable.
+
+To copy a template into an assignable role, use `POST /rest/v0/acl-roles/<template-id>/actions/copy`:
+
+<UiDetail src="/img/xo6/swagger-role-copy.png" alt="The copy action on a template role, in the REST API Swagger UI" width={620} />
 
 ---
 
@@ -89,11 +123,13 @@ Some endpoints are always accessible to a logged-in user **without any ACL privi
 | Endpoint                                       | Description                                 |
 | ---------------------------------------------- | ------------------------------------------- |
 | `GET /rest/v0/users/me`                        | Get your own user profile                   |
-| `GET /rest/v0/users/me/privileges`             | List your own privileges                    |
+| `GET /rest/v0/users/me/acl-privileges`         | List your own privileges                    |
 | `GET /rest/v0/users/me/authentication_tokens`  | List your own authentication tokens         |
 | `POST /rest/v0/users/me/authentication_tokens` | Create an authentication token for yourself |
 
-`me` is a convenience alias — it is automatically redirected to `/rest/v0/users/{your-id}`.
+`me` is a convenience alias: it is automatically redirected to `/rest/v0/users/{your-id}`.
+
+This is how delegation works end to end: any user, whatever their privileges, can create their own [authentication token](../xo5/restapi.md#authentication) and use it to call the REST API within the limits of their roles.
 
 :::tip
 The Swagger UI available at `/rest/v0/swagger` documents every endpoint with its required privileges. Endpoints with no declared privilege are admin-only.
@@ -103,7 +139,7 @@ The Swagger UI available at `/rest/v0/swagger` documents every endpoint with its
 
 ## Supported resources and actions
 
-Actions are written using the exact string you pass in a privilege. A parent action (e.g. `reboot`) is a shortcut that covers all its children — see [Action hierarchy](#action-hierarchy).
+Actions are written using the exact string you pass in a privilege. A parent action (e.g. `reboot`) is a shortcut that covers all its children, see [Action hierarchy](#action-hierarchy).
 
 ### Infrastructure resources
 
@@ -157,6 +193,8 @@ Actions are written using the exact string you pass in a privilege. A parent act
 | `acl-role`      | `read`, `create`, `delete`, `update:name`, `update:description`, `update:users`, `update:groups`        |
 | `acl-privilege` | `read`, `create`, `delete`, `update:action`, `update:effect`, `update:resource`, `update:selector`      |
 
+Note the last two rows: RBAC configuration is itself covered by the model. You do not need to be a full administrator to manage roles and privileges; a user holding the right `acl-role` and `acl-privilege` privileges can delegate access in turn, through the REST API.
+
 ---
 
 ## Concrete examples
@@ -184,7 +222,7 @@ This means a single tag change is enough to grant or revoke access to a resource
 
 ### Bob: Snapshot only running VMs
 
-> Bob is allowed to snapshot VMs, but only while they are running — to avoid snapshotting stopped VMs that may be part of an automated maintenance process.
+> Bob is allowed to snapshot VMs, but only while they are running, to avoid snapshotting stopped VMs that may be part of an automated maintenance process.
 
 Create a `Running VM Snapshot` role with these privileges:
 
@@ -199,24 +237,24 @@ Bob can see and snapshot any running VM. Stopped VMs are completely invisible to
 
 ### Carol: Full VM access except production
 
-> Carol can do everything on VMs — except touch anything tagged `prod`.
+> Carol can do everything on VMs, except touch anything tagged `prod`.
 
-Create a `Full VM Access (non-prod)` role with these privileges. The `*` wildcard grants every action on a resource at once. Pair it with a `deny` to carve out an exception — `deny` always wins:
+Create a `Full VM Access (non-prod)` role with these privileges. The `*` wildcard grants every action on a resource at once. Pair it with a `deny` to carve out an exception (`deny` always wins):
 
 ```json
 { "resource": "vm", "action": "*",    "effect": "allow" }
 { "resource": "vm", "action": "*",    "effect": "deny",  "selector": "tags:prod" }
 ```
 
-Carol can start, stop, delete, snapshot any VM she wants. Production VMs are completely invisible to her — they never appear in her lists and any direct attempt returns a 403.
+Carol can start, stop, delete, snapshot any VM she wants. Production VMs are completely invisible to her: they never appear in her lists and any direct attempt returns a 403.
 
 ---
 
 ## Walkthrough: creating and assigning a role
 
-### Step 1 — Create a role
+### Step 1: Create a role {#step-1--create-a-role}
 
-![acl-role create documented in Swagger](../assets/swagger-create-role.png)
+<UiDetail src="/img/xo6/swagger-create-role.png" alt="Creating a custom role through POST /acl-roles" width={480} />
 
 Response:
 
@@ -224,25 +262,49 @@ Response:
 { "id": "e4b1f3c2-1234-5678-abcd-000000000001" }
 ```
 
-### Step 2 — Add privileges to the role
+### Step 2: Add privileges to the role {#step-2--add-privileges-to-the-role}
 
-![acl-privilege create documented in Swagger](../assets/swagger-create-privilege.png)
+<UiDetail src="/img/xo6/swagger-create-privilege.png" alt="Attaching a privilege to a role through POST /acl-privileges" width={480} />
 
-### Step 3 — Assign the role to the user
+### Step 3: Assign the role to the user {#step-3--assign-the-role-to-the-user}
 
-![add user to role documented in Swagger](../assets/swagger-add-user-to-role.png)
+<UiDetail src="/img/xo6/swagger-add-user-to-role.png" alt="Adding a user to a role" width={480} />
 
 The user can now list VMs.
 
 To assign to a group instead (all group members inherit the role):
 
-![add group to role documented in Swagger](../assets/swagger-add-group-to-role.png)
+<UiDetail src="/img/xo6/swagger-add-group-to-role.png" alt="Adding a group to a role" width={480} />
+
+---
+
+## Role management endpoints
+
+Everything shown in the walkthrough (and more) is available as plain REST calls, ready for automation. All endpoints live under `/rest/v0/` and are protected by the matching `acl-role` or `acl-privilege` privileges:
+
+| Endpoint                                       | Description                                                    |
+| ---------------------------------------------- | --------------------------------------------------------------- |
+| `GET` / `POST /acl-roles`                      | List roles / create a role                                     |
+| `GET` / `PATCH` / `DELETE /acl-roles/:id`      | Read, rename or delete a role                                  |
+| `POST /acl-roles/:id/actions/copy`             | Copy a role (the only way to use a template)                   |
+| `GET /acl-roles/:id/privileges`                | List the privileges of a role                                  |
+| `PUT` / `DELETE /acl-roles/:id/users/:userId`  | Assign the role to a user / remove it                          |
+| `PUT` / `DELETE /acl-roles/:id/groups/:groupId`| Assign the role to a group / remove it                         |
+| `GET /acl-roles/:id/users`                     | List the users holding a role _(XO 6.7)_                       |
+| `GET /acl-roles/:id/groups`                    | List the groups holding a role _(XO 6.7)_                      |
+| `GET /groups/:id/acl-roles`                    | List the roles of a group _(XO 6.7)_                           |
+| `GET` / `POST /acl-privileges`                 | List privileges / create a privilege inside a role             |
+| `GET` / `PATCH` / `DELETE /acl-privileges/:id` | Read, update or delete a privilege                             |
+
+In the XO 6 interface, the **Administration** section of the sidebar covers users and groups; role and privilege management itself currently happens through the REST API, as shown above. See [Users and administration](management.md#users-and-administration).
+
+<UiShot light="/img/xo6/administration-light.png" dark="/img/xo6/administration-dark.png" alt="The Administration section in XO 6, where users and groups are managed" url="https://your-xo/v6/#/admin/user-management/users" />
 
 ---
 
 ## Selectors
 
-By default, a privilege applies to **all** objects of the given resource type. The optional `selector` field narrows it down using the [complex-matcher](../xo5/manage_infrastructure#filter-syntax) syntax — the same filter syntax used in the XO UI.
+By default, a privilege applies to **all** objects of the given resource type. The optional `selector` field narrows it down using the [complex-matcher](../xo5/manage_infrastructure.md#filter-syntax) syntax, the same filter syntax used in the XO UI.
 
 A selector is evaluated against each object's properties. If it matches, the privilege applies; otherwise it does not.
 
@@ -264,4 +326,5 @@ A selector is evaluated against each object's properties. If it matches, the pri
 - **Use groups.** Assigning a role to a group avoids repeating the same assignment for every user.
 - **Combine `allow` and `deny`.** When a user needs broad access with specific exceptions, grant with a wildcard privilege and carve out exceptions with `deny` + a selector.
 - **Template roles are immutable.** Copy them first before customizing.
+- **Delegate the delegation.** Grant `acl-role` and `acl-privilege` privileges to trusted operators so they can manage access themselves, without full admin rights.
 - **Endpoint permissions** are visible in the Swagger UI (`/rest/v0/swagger`). Endpoints without a declared privilege require admin access.

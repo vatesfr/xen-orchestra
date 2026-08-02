@@ -353,13 +353,13 @@ Activating "Auto Power on" for a VM will also configure the pool accordingly. If
 
 In the Vates stack, each VM connects to the network through a **Virtual Interface**, or **VIF**.
 
-Think of it as the VM’s virtual network card —it handles all incoming and outgoing traffic on a specific virtual network, which is linked to a physical NIC on the host via a bridge. Every VIF comes with a fixed MAC address and can be tied to a particular VLAN (or virtual network), depending on how your environment is set up.
+Think of it as the VM’s virtual network card: it handles all incoming and outgoing traffic on a specific virtual network, which is linked to a physical NIC on the host via a bridge. Every VIF comes with a fixed MAC address and can be tied to a particular VLAN (or virtual network), depending on how your environment is set up.
 
 #### What does VIF locking mode do?
 
 **VIF locking mode** is a security feature that helps prevent unauthorized or spoofed traffic from getting in or out of a VM.
 
-In practical terms, enabling locking mode means **the VM can’t send traffic using a fake MAC address** — and if an IP address is set, it won’t be able to use anything else either. This is **especially helpful in multi-tenant setups** or anytime you need tight control over which VM is allowed to do what on the network.
+In practical terms, enabling locking mode means **the VM can’t send traffic using a fake MAC address**, and if an IP address is set, it won’t be able to use anything else either. This is **especially helpful in multi-tenant setups** or anytime you need tight control over which VM is allowed to do what on the network.
 
 #### Default behavior
 
@@ -385,7 +385,7 @@ To add a restricted IP address:
    1. Choose your desired mode from that menu:
       <UiDetail src="/img/xo5/choose-vif-locking-mode.png" alt="Choose the locking mode of a VIF" width={320} />
 
-If Xen Orchestra knows the VM’s IP address — either through the guest agent or DHCP — it will automatically apply IP-level locking when the mode is enabled.
+If Xen Orchestra knows the VM’s IP address (either through the guest agent or DHCP), it will automatically apply IP-level locking when the mode is enabled.
 
 #### How do I automate VIF locking mode?
 
@@ -751,7 +751,7 @@ To remove one host from a pool, you can go to the "Advanced" tab of the host pag
 
 Network bonding, also known as link aggregation, involves combining two or more physical network interfaces into a single logical interface.
 
-The primary goals are to improve redundancy —so that a single cable or interface failure does not interrupt connectivity— and, depending on the bonding mode, to increase throughput by distributing traffic across multiple links.
+The primary goals are to improve redundancy, so that a single cable or interface failure does not interrupt connectivity— and, depending on the bonding mode, to increase throughput by distributing traffic across multiple links.
 
 #### Supported bond types
 

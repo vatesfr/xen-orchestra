@@ -151,7 +151,7 @@ Those alerts will be also stored and accessible in the web interface, and also l
 ### Update alerts
 
 :::warning
-:construction_worker: This feature might be missing. We are investigating. :construction_worker:
+This feature might currently be missing. We are investigating.
 :::
 
 When your XOA detects new packages, you'll be notified by email.
@@ -577,9 +577,9 @@ Every SR-tagged metric (`xcp_host_disk_iops_*`, `xcp_host_disk_throughput_*`, `x
 | Metric                             | Type  | Labels   | Description                                                                                                  |
 | ---------------------------------- | ----- | -------- | ------------------------------------------------------------------------------------------------------------ |
 | `xo_nodejs_process_memory_bytes`   | gauge | `type`   | Memory usage of the XO main process in bytes (`rss`, `heap_used`, `heap_total`, `external`, `array_buffers`) |
-| `xo_nodejs_heap_size_limit_bytes`  | gauge |          | V8 heap size limit in bytes — OOM occurs when heap_used approaches this value                                |
+| `xo_nodejs_heap_size_limit_bytes`  | gauge |          | V8 heap size limit in bytes: OOM occurs when heap_used approaches this value                                |
 | `xo_nodejs_heap_available_bytes`   | gauge |          | Remaining V8 heap space before hitting the size limit                                                        |
-| `xo_nodejs_detached_contexts`      | gauge |          | Number of detached V8 contexts not yet GC'd — non-zero and growing indicates a memory leak                   |
+| `xo_nodejs_detached_contexts`      | gauge |          | Number of detached V8 contexts not yet GC'd: non-zero and growing indicates a memory leak                   |
 | `xo_nodejs_process_cpu_seconds`    | gauge | `mode`   | CPU time consumed by the XO main process since last collection (`user`, `system`)                            |
 | `xo_nodejs_event_loop_utilization` | gauge | `metric` | Event loop utilization ratio since last collection (`mean`, `p99`, `max`)                                    |
 
@@ -593,7 +593,7 @@ All metrics include these labels for filtering:
 | `pool_name`         | Pool name                                                                                                                             |
 | `uuid`              | Object UUID (host or VM)                                                                                                              |
 | `type`              | Object type (`host` or `vm`)                                                                                                          |
-| `content_type`      | XAPI SR content type (e.g. `user`, `disk`, `iso`) — on SR capacity metrics and `xo_sr_total`                                          |
+| `content_type`      | XAPI SR content type (e.g. `user`, `disk`, `iso`), on SR capacity metrics and `xo_sr_total`                                          |
 | `host_name`         | Host name (for host metrics)                                                                                                          |
 | `vm_name`           | VM name (for VM metrics)                                                                                                              |
 | `sr_uuid`           | Storage Repository UUID (for SR, VDI, XOSTOR, and resolved host disk metrics)                                                         |
@@ -610,7 +610,7 @@ All metrics include these labels for filtering:
 | `is_control_domain` | Whether the VM is a control domain / dom0 (`true`/`false`)                                                                            |
 | `power_state`       | Power state: `Running`, `Halted`, `Unknown` (for `xcp_host_status`); `Running`, `Paused`, `Halted`, `Suspended` (for `xcp_vm_status`) |
 | `enabled`           | Whether the host is enabled: `true`/`false` (for `xcp_host_status`)                                                                   |
-| `sr_type`           | XAPI SR type (e.g. `linstor`, `lvm`, `nfs`) — on every SR-tagged metric                                                               |
+| `sr_type`           | XAPI SR type (e.g. `linstor`, `lvm`, `nfs`), on every SR-tagged metric                                                               |
 | `node_name`         | LINSTOR node hostname (for XOSTOR node metrics)                                                                                       |
 | `role`              | LINSTOR node role: `master` or `satellite` (for `xcp_xostor_node_status`)                                                             |
 | `state`             | LINSTOR node state (verbatim from `healthCheck`, e.g. `ONLINE`) or replica `disk-state` (e.g. `UpToDate`)                             |
@@ -618,7 +618,7 @@ All metrics include these labels for filtering:
 | `target_type`       | Object targeted by an alarm: `sr` or `host`                                                                                           |
 | `package`           | XOSTOR-related RPM name for pending updates                                                                                           |
 | `status`            | SMART overall-health string: `PASSED`, `FAILED`, `UNKNOWN`                                                                            |
-| `tags`              | XO tags of the object, comma-separated and sorted (e.g. `prod,web`) — on host, VM and SR metrics; omitted when the object has no tags |
+| `tags`              | XO tags of the object, comma-separated and sorted (e.g. `prod,web`), on host, VM and SR metrics; omitted when the object has no tags |
 
 ##### Filtering by XO tags
 
