@@ -13,6 +13,7 @@ import type {
   XoProxy,
   XoSchedule,
   XoServer,
+  XoSr,
   XoTask,
   XoUser,
   XoVif,
@@ -131,8 +132,13 @@ export type BackupArchiveDiskMount = {
   id: string
   /** UUID of the SR introduced on the host */
   srUuid: string
-  /** UUID of the read-only VDI exposing the backup disk */
+  /** UUID of the VDI exposing the backup disk */
   vdiUuid: string
+  /**
+   * UUID of the disk caching what has been read from the backup. Destroyed when
+   * the mount is released.
+   */
+  cacheVdiUuid: string
   /** IQN of the target serving the disk */
   iqn: string
   /** Address of the portal, as advertised to the host */
@@ -145,6 +151,11 @@ export type BackupArchiveDiskMount = {
 export type MountedBackupArchiveDisk = BackupArchiveDiskMount & {
   /** Path of the mounted disk on its backup repository */
   diskPath: string
+  /**
+   * How much of the backup has been pulled into the cache disk. Once `blocks`
+   * reaches `total`, that disk holds a complete copy of the backup's disk.
+   */
+  materialized: { blocks: number; total: number }
 }
 
 export type XoApp = {
@@ -363,7 +374,8 @@ export type XoApp = {
     archiveId: XoVmBackupArchive['id']
     /** One of the archive's `disks[].id` */
     diskId: string
-    host: XoHost['id']
+    /** SR holding the disk that caches what has been read from the backup */
+    srId: XoSr['id']
   }): Promise<BackupArchiveDiskMount>
   pingRemote(id: XoBackupRepository['id']): Promise<{ success: true }>
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */

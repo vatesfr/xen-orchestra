@@ -1,0 +1,218 @@
+import { createLogger, type Logger } from '@xen-orchestra/log'
+import type { RandomAccessDisk } from '@xen-orchestra/disk-transform'
+
+import type { BlockDevice } from './backend.mjs'
+
+const log: Logger = createLogger('vates:iscsi:cached-disk-block-device')
+
+const DEFAULT_BLOCK_SIZE = 512
+
+export interface CachedDiskBlockDeviceOptions {
+  /**
+   * Source disk, already `init()`ed by the caller. Only ever read from, one
+   * whole block at a time.
+   */
+  readonly disk: RandomAccessDisk
+  /**
+   * Writable store holding what has been read from {@link disk} so far, already
+   * `open()`ed and at least as large as the disk's virtual size.
+   */
+  readonly cache: BlockDevice
+  /**
+   * Logical block size advertised to initiators, in bytes. Defaults to 512.
+   * The disk's own block size must be a multiple of it.
+   */
+  readonly blockSize?: number
+}
+
+/**
+ * A read-write {@link BlockDevice} that serves a {@link RandomAccessDisk}
+ * through a local writable store, materializing each source block into it the
+ * first time it is needed.
+ *
+ * A bitmap tracks which source blocks are present in the cache; everything else
+ * — reads, and the parts of a write that are not overwritten — is served from
+ * the cache, so repeated access never goes back to the source. Once every block
+ * has been materialized the cache holds the whole disk, which is why a fully
+ * read mount leaves behind something equivalent to a restored disk.
+ *
+ * Writes are accepted and land in the cache only: the source is never written
+ * to, so the mount diverges from it as soon as anything writes.
+ *
+ * Blocks the source does not have are *not* written: they are marked present and
+ * read straight from the cache, which assumes the cache reads as zeroes where it
+ * has never been written.
+ */
+export class CachedDiskBlockDevice implements BlockDevice {
+  readonly #disk: RandomAccessDisk
+  readonly #cache: BlockDevice
+  readonly #blockSize: number
+
+  // one bit per source block, set once the block is in the cache
+  #bitmap: Buffer = Buffer.alloc(0)
+  #blockCount = 0
+  #cachedCount = 0
+  // source blocks being materialized right now, so concurrent reads of
+  // overlapping ranges fetch each block once
+  readonly #inFlight: Map<number, Promise<void>> = new Map()
+  #diskBlockSize?: number
+  #size?: number
+
+  constructor({ disk, cache, blockSize = DEFAULT_BLOCK_SIZE }: CachedDiskBlockDeviceOptions) {
+    if (!Number.isInteger(blockSize) || blockSize <= 0) {
+      throw new Error(`blockSize must be a positive integer, got ${blockSize}`)
+    }
+    this.#disk = disk
+    this.#cache = cache
+    this.#blockSize = blockSize
+  }
+
+  /** Read the source geometry and allocate the bitmap. */
+  async open(): Promise<void> {
+    const blockSize = this.#blockSize
+    const diskBlockSize = this.#disk.getBlockSize()
+    if (diskBlockSize % blockSize !== 0) {
+      throw new Error(`disk block size (${diskBlockSize}) is not a multiple of the LUN block size (${blockSize})`)
+    }
+    const size = this.#disk.getVirtualSize()
+    if (size <= 0 || size % blockSize !== 0) {
+      throw new Error(`disk virtual size (${size}) is not a positive multiple of the LUN block size (${blockSize})`)
+    }
+    if (this.#cache.getSize() < size) {
+      throw new Error(`cache (${this.#cache.getSize()} bytes) is smaller than the disk (${size} bytes)`)
+    }
+
+    this.#diskBlockSize = diskBlockSize
+    this.#size = size
+    this.#blockCount = Math.ceil(size / diskBlockSize)
+    this.#bitmap = Buffer.alloc(Math.ceil(this.#blockCount / 8))
+    log.debug('opened', { size, blockSize, diskBlockSize, blockCount: this.#blockCount })
+  }
+
+  getSize(): number {
+    const size = this.#size
+    if (size === undefined) {
+      throw new Error('CachedDiskBlockDevice.open() must be called before I/O')
+    }
+    return size
+  }
+
+  getBlockSize(): number {
+    return this.#blockSize
+  }
+
+  /** How much of the source has been materialized into the cache. */
+  getMaterialized(): { blocks: number; total: number } {
+    return { blocks: this.#cachedCount, total: this.#blockCount }
+  }
+
+  #isCached(index: number): boolean {
+    return (this.#bitmap[index >> 3] & (1 << (index & 7))) !== 0
+  }
+
+  #setCached(index: number): void {
+    if (!this.#isCached(index)) {
+      this.#bitmap[index >> 3] |= 1 << (index & 7)
+      this.#cachedCount++
+    }
+  }
+
+  /**
+   * Copy one source block into the cache, unless it is already there. Concurrent
+   * calls for the same block share a single fetch.
+   */
+  #ensureBlock(index: number): Promise<void> {
+    if (this.#isCached(index)) {
+      return Promise.resolve()
+    }
+    let pending = this.#inFlight.get(index)
+    if (pending === undefined) {
+      // the entry goes away whether the fetch succeeded or not, so a failed
+      // block is retried later instead of being remembered as broken
+      pending = this.#fetchBlock(index).finally(() => this.#inFlight.delete(index))
+      this.#inFlight.set(index, pending)
+    }
+    return pending
+  }
+
+  async #fetchBlock(index: number): Promise<void> {
+    const diskBlockSize = this.#diskBlockSize as number
+    if (this.#disk.hasBlock(index)) {
+      const offset = index * diskBlockSize
+      const { data } = await this.#disk.readBlock(index)
+      // a source block is always full-size: the last one may run past the end of
+      // the disk, and the cache must not be written beyond it
+      const length = Math.min(diskBlockSize, this.getSize() - offset)
+      await this.#cache.write(offset, length < data.length ? data.subarray(0, length) : data)
+    }
+    // a block the source does not have stays as the cache has it, which is
+    // zeroes as long as nothing has written there
+    this.#setCached(index)
+  }
+
+  #checkRange(offset: number, length: number): void {
+    const size = this.getSize()
+    if (offset < 0 || length < 0 || offset + length > size) {
+      throw new Error(`access of ${length} bytes at ${offset} is out of range (size ${size})`)
+    }
+  }
+
+  async read(offset: number, length: number): Promise<Buffer> {
+    this.#checkRange(offset, length)
+    if (length === 0) {
+      return Buffer.alloc(0)
+    }
+    const diskBlockSize = this.#diskBlockSize as number
+    const last = Math.floor((offset + length - 1) / diskBlockSize)
+    for (let index = Math.floor(offset / diskBlockSize); index <= last; index++) {
+      await this.#ensureBlock(index)
+    }
+    return this.#cache.read(offset, length)
+  }
+
+  async write(offset: number, data: Buffer): Promise<void> {
+    this.#checkRange(offset, data.length)
+    if (data.length === 0) {
+      return
+    }
+    const diskBlockSize = this.#diskBlockSize as number
+    const size = this.getSize()
+    const end = offset + data.length
+    const last = Math.floor((end - 1) / diskBlockSize)
+
+    // Blocks entirely covered by this write need no fetch — the write provides
+    // all of their bytes. The others must be materialized first, so that the
+    // bytes this write does not touch are the source's and not the cache's.
+    const overwritten = []
+    for (let index = Math.floor(offset / diskBlockSize); index <= last; index++) {
+      if (this.#isCached(index)) {
+        continue
+      }
+      const start = index * diskBlockSize
+      if (offset <= start && end >= Math.min(start + diskBlockSize, size)) {
+        overwritten.push(index)
+      } else {
+        await this.#ensureBlock(index)
+      }
+    }
+
+    await this.#cache.write(offset, data)
+
+    // only now: a failed write must not leave a block marked as present
+    for (const index of overwritten) {
+      this.#setCached(index)
+    }
+  }
+
+  async flush(): Promise<void> {
+    await this.#cache.flush()
+  }
+
+  async close(): Promise<void> {
+    try {
+      await this.#cache.close()
+    } finally {
+      await this.#disk.close()
+    }
+  }
+}

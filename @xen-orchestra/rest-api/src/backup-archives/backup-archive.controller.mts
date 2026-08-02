@@ -17,7 +17,7 @@ import {
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { json, type Request as ExRequest } from 'express'
-import type { BackupArchiveDiskMount, XoBackupRepository, XoHost, XoVm, XoVmBackupArchive } from '@vates/types'
+import type { BackupArchiveDiskMount, XoBackupRepository, XoSr, XoVm, XoVmBackupArchive } from '@vates/types'
 
 import {
   asynchronousActionResp,
@@ -151,16 +151,20 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    * Required privilege:
    * - resource: backup-archive, action: mount-disk
    *
-   * Serve one disk of this archive as a read-only iSCSI LUN and attach it to a host as an SR, so its
-   * content is readable without being restored. Nothing is copied: the disk is read from the backup
-   * repository on demand.
+   * Serve one disk of this archive as an iSCSI LUN and attach it, as an SR, to the host running this
+   * XO — so its content is readable without being restored first.
+   *
+   * A disk is created on `srId` to cache what has been read: nothing is copied up front, but a block
+   * fetched from the backup is kept, so re-reading it is local. Once the whole disk has been read that
+   * cache holds a complete copy of it. Writes are accepted and land there too, which means the mount
+   * stops matching the backup as soon as anything writes to it. The cache disk is destroyed on unmount.
    *
    * The returned `id` is the handle to pass to the `unmountDisk` action.
    *
    * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
    * @example body {
    *  "diskId": "/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/vdis/8b650248-ddd6-4188-ad8b-c0502865ac6c/f1f3c902-dcaa-4ec6-943e-6162c9d85fb2/20250801T080832Z.vhd",
-   *  "host": "b61a5c92-700e-4966-a13b-00633f03eea8"
+   *  "srId": "7a44d4fa-2de6-0bff-7d91-d73ccaca5978"
    * }
    */
   @Example(backupArchiveDiskMount)
@@ -168,12 +172,17 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Post('{id}/actions/mountDisk')
   @Middlewares([
     json(),
-    acl({
-      resource: 'backup-archive',
-      action: 'mount-disk',
-      objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-    }),
+    // the cache disk is created on an SR the caller chooses, so that SR needs its
+    // own privilege, like migrateVdi does for its destination
+    acl([
+      {
+        resource: 'backup-archive',
+        action: 'mount-disk',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+      { resource: 'sr', action: 'import:vdi', objectId: 'body.srId' },
+    ]),
   ])
   @Tags('srs')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -191,7 +200,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       this.restApi.xoApp.mountBackupArchiveDisk({
         archiveId,
         diskId: body.diskId,
-        host: body.host as XoHost['id'],
+        srId: body.srId as XoSr['id'],
       })
 
     return this.createAction<BackupArchiveDiskMount>(action, {

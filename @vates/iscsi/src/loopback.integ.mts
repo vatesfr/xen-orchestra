@@ -18,7 +18,14 @@ import {
   TargetOpcode,
 } from './constants.mjs'
 import { RandomAccessDisk, type DiskBlock } from '@xen-orchestra/disk-transform'
-import { DiskBlockDevice, FileBlockDevice, IscsiDisk, IscsiInitiator, IscsiTarget } from './index.mjs'
+import {
+  CachedDiskBlockDevice,
+  DiskBlockDevice,
+  FileBlockDevice,
+  IscsiDisk,
+  IscsiInitiator,
+  IscsiTarget,
+} from './index.mjs'
 import { allocBhs, assemblePdu, type IncomingPdu, readPdu } from './pdu.mjs'
 import { parseTextKeys, serializeTextKeys } from './login.mjs'
 
@@ -601,5 +608,76 @@ describe('DiskBlockDevice loopback', () => {
     } finally {
       socket.destroy()
     }
+  })
+
+  // --- the same source, but cached into a local store ----------------------
+  //
+  // The shape used for a backup mount with a cache VDI: reads materialize into
+  // the local store, and writes are accepted there.
+
+  describe('cached into a local store', () => {
+    let cache: FileBlockDevice
+    let cachedDir: string
+    let cachedPath: string
+    let cachedTarget: IscsiTarget
+    let cachedPort: number
+
+    before(async () => {
+      cachedDir = await mkdtemp(join(tmpdir(), 'vates-iscsi-cache-'))
+      cachedPath = join(cachedDir, 'cache.img')
+      await writeFile(cachedPath, '')
+      await truncate(cachedPath, DISK_SIZE)
+      cache = new FileBlockDevice({ path: cachedPath, blockSize: BLOCK_SIZE })
+      // the cache is opened by its owner, not by the LUN
+      await cache.open()
+
+      cachedTarget = new IscsiTarget({
+        iqn: IQN,
+        host: '127.0.0.1',
+        port: 0,
+        lun: new CachedDiskBlockDevice({ disk: new SparseDisk(), cache, blockSize: BLOCK_SIZE }),
+      })
+      await cachedTarget.listen()
+      const address = cachedTarget.address()
+      assert.ok(address !== undefined)
+      cachedPort = address.port
+    })
+
+    after(async () => {
+      await cachedTarget?.close()
+      await rm(cachedDir, { recursive: true, force: true })
+    })
+
+    it('serves the source and materializes it into the local store', async () => {
+      const initiator = new IscsiInitiator({ host: '127.0.0.1', port: cachedPort, targetIqn: IQN })
+      await initiator.connect()
+      try {
+        assert.deepEqual(await initiator.read(0, BLOCK_SIZE), expectedAt(0, BLOCK_SIZE))
+        // the whole source block landed in the store, not just the sector read
+        const onDisk = await readFile(cachedPath)
+        assert.deepEqual(onDisk.subarray(0, DISK_BLOCK_SIZE), expectedAt(0, DISK_BLOCK_SIZE))
+      } finally {
+        await initiator.close()
+      }
+    })
+
+    it('accepts a write and reads it back', async () => {
+      const socket = connect({ host: '127.0.0.1', port: cachedPort })
+      await once(socket, 'connect')
+      const initiator = new MiniInitiator(socket)
+      try {
+        await initiator.login('Normal')
+        const payload = Buffer.alloc(BLOCK_SIZE, 0xee)
+        // block 1 is a hole in the source: nothing to fetch, the write stands alone
+        const lba = DISK_BLOCK_SIZE / BLOCK_SIZE
+        assert.equal(await initiator.write(rwCdb(0x2a, lba, 1), payload), ScsiStatus.GOOD)
+
+        const readBack = await initiator.read(rwCdb(0x28, lba, 1), BLOCK_SIZE)
+        assert.equal(readBack.status, ScsiStatus.GOOD)
+        assert.deepEqual(readBack.data, payload)
+      } finally {
+        socket.destroy()
+      }
+    })
   })
 })

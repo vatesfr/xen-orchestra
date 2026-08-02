@@ -7,8 +7,12 @@
 export interface MountDiskBody {
   /** One of the archive's `disks[].id`. */
   diskId: string
-  /** Host the SR is attached to. */
-  host: string
+  /**
+   * SR holding the disk that caches what has been read from the backup. It must
+   * be writable and reachable from the host running this XO, which is also the
+   * host the mount is served to.
+   */
+  srId: string
 }
 
 /** Body of `POST /backup-archives/{id}/actions/unmountDisk`. */
