@@ -18,6 +18,7 @@ import {
   TargetOpcode,
 } from './constants.mjs'
 import { RandomAccessDisk, type DiskBlock } from '@xen-orchestra/disk-transform'
+import type { BlockDevice } from './backend.mjs'
 import {
   CachedDiskBlockDevice,
   DiskBlockDevice,
@@ -388,6 +389,157 @@ describe('iSCSI target loopback', () => {
       assert.deepEqual(data, expected)
     } finally {
       await initiator.close()
+    }
+  })
+})
+
+// Regression coverage for concurrent READ dispatch: a slow read must not block
+// a subsequently-dispatched fast one, and StatSN on the wire must still come
+// out strictly increasing in actual completion/transmission order — not
+// necessarily dispatch order.
+describe('concurrent READ dispatch', () => {
+  it('services a fast read before an earlier, slower one — StatSN follows completion order', async () => {
+    let releaseSlow: () => void
+    const slowGate = new Promise<void>(resolve => {
+      releaseSlow = resolve
+    })
+    const lun: BlockDevice = {
+      getSize: () => LUN_SIZE,
+      getBlockSize: () => BLOCK_SIZE,
+      read: async (offset, length) => {
+        if (offset === 0) {
+          await slowGate // LBA 0 is the slow one
+        }
+        return Buffer.alloc(length, offset === 0 ? 0xaa : 0xbb)
+      },
+      write: async () => {
+        throw new Error('not used by this test')
+      },
+      flush: async () => {},
+      close: async () => {},
+    }
+
+    const target = new IscsiTarget({ iqn: IQN, host: '127.0.0.1', port: 0, lun })
+    await target.listen()
+    const address = target.address()
+    assert.ok(address !== undefined)
+
+    const socket = connect(address.port, '127.0.0.1')
+    await once(socket, 'connect')
+    // Both IscsiTarget and IscsiInitiator disable Nagle internally; this raw
+    // test socket doesn't get that for free, and these tests send several
+    // commands back to back with no read in between — exactly the pattern
+    // Nagle + delayed ACK stalls (~40ms observed without this).
+    socket.setNoDelay(true)
+    try {
+      const initiator = new MiniInitiator(socket)
+      await initiator.login('Normal')
+
+      // Dispatch the slow read (LBA 0) first, then the fast one (LBA 1),
+      // without waiting for either's response — exactly what a real
+      // initiator with a command window > 1 already does.
+      const slowItt = await initiator.scsiCommand(rwCdb(0x28, 0, 1), 'read', BLOCK_SIZE)
+      const fastItt = await initiator.scsiCommand(rwCdb(0x28, 1, 1), 'read', BLOCK_SIZE)
+
+      // The fast one must complete first: proof the read loop didn't block
+      // on the slow one before even starting the fast one's I/O.
+      const fastPdu = await initiator.recv()
+      assert.equal(fastPdu.itt, fastItt)
+      assert.deepEqual(fastPdu.data, Buffer.alloc(BLOCK_SIZE, 0xbb))
+      const fastStatSN = fastPdu.readU32(24)
+
+      releaseSlow!()
+
+      const slowPdu = await initiator.recv()
+      assert.equal(slowPdu.itt, slowItt)
+      assert.deepEqual(slowPdu.data, Buffer.alloc(BLOCK_SIZE, 0xaa))
+      const slowStatSN = slowPdu.readU32(24)
+
+      // StatSN reflects actual transmission order (fast, then slow) even
+      // though the slow one's command was dispatched first.
+      assert.ok(slowStatSN > fastStatSN, `expected slow StatSN (${slowStatSN}) > fast StatSN (${fastStatSN})`)
+
+      await initiator.logout()
+    } finally {
+      socket.destroy()
+      await target.close()
+    }
+  })
+
+  it('caps how many reads run at once, independently of the command window', async () => {
+    const started: number[] = []
+    const releases: Array<() => void> = []
+    const lun: BlockDevice = {
+      getSize: () => LUN_SIZE,
+      getBlockSize: () => BLOCK_SIZE,
+      read: async (offset, length) => {
+        started.push(offset / BLOCK_SIZE)
+        await new Promise<void>(resolve => releases.push(resolve))
+        return Buffer.alloc(length)
+      },
+      write: async () => {
+        throw new Error('not used by this test')
+      },
+      flush: async () => {},
+      close: async () => {},
+    }
+
+    const target = new IscsiTarget({ iqn: IQN, host: '127.0.0.1', port: 0, lun, readConcurrency: 2 })
+    await target.listen()
+    const address = target.address()
+    assert.ok(address !== undefined)
+
+    const socket = connect(address.port, '127.0.0.1')
+    await once(socket, 'connect')
+    // Both IscsiTarget and IscsiInitiator disable Nagle internally; this raw
+    // test socket doesn't get that for free, and these tests send several
+    // commands back to back with no read in between — exactly the pattern
+    // Nagle + delayed ACK stalls (~40ms observed without this).
+    socket.setNoDelay(true)
+    try {
+      const initiator = new MiniInitiator(socket)
+      await initiator.login('Normal')
+
+      const itts = []
+      for (let lba = 0; lba < 4; lba++) {
+        itts.push(await initiator.scsiCommand(rwCdb(0x28, lba, 1), 'read', BLOCK_SIZE))
+      }
+
+      // Poll instead of a fixed number of ticks: the commands still have to
+      // cross a real (loopback) socket before the LUN sees them.
+      for (let attempt = 0; started.length < 2 && attempt < 100; attempt++) {
+        await new Promise(resolve => setImmediate(resolve))
+      }
+      assert.equal(started.length, 2, 'only readConcurrency reads should have started')
+
+      releases.shift()!()
+      for (let attempt = 0; started.length < 3 && attempt < 100; attempt++) {
+        await new Promise(resolve => setImmediate(resolve))
+      }
+      assert.equal(started.length, 3, 'releasing one slot should admit exactly one more')
+
+      // drain the rest: releasing a slot only lets the NEXT queued read start
+      // asynchronously (one microtask later), so keep releasing whatever's
+      // pending and yielding until all four have started
+      while (started.length < 4) {
+        while (releases.length > 0) {
+          releases.shift()!()
+        }
+        await new Promise(resolve => setImmediate(resolve))
+      }
+      while (releases.length > 0) {
+        releases.shift()!()
+      }
+
+      for (const itt of itts) {
+        const pdu = await initiator.recv()
+        assert.ok(itts.includes(pdu.itt))
+      }
+
+      await initiator.logout()
+    } finally {
+      socket.destroy()
+      await target.close()
     }
   })
 })

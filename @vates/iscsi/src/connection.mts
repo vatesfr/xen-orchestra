@@ -26,8 +26,16 @@ import {
 import { buildFixedSense, handleScsiCommand, type ScsiIdentity } from './scsi.mjs'
 import { buildSendTargetsResponse, LoginNegotiator, parseTextKeys } from './login.mjs'
 import { allocBhs, assemblePdu, type IncomingPdu, readPdu, writePdu } from './pdu.mjs'
-import type { ChapCredentials, CommandContext, NegotiatedParams, ScsiResponseOptions, SessionType } from './types.mjs'
+import {
+  decodeCdb,
+  type ChapCredentials,
+  type CommandContext,
+  type NegotiatedParams,
+  type ScsiResponseOptions,
+  type SessionType,
+} from './types.mjs'
 import { buildR2t, type PendingWrite } from './writePath.mjs'
+import { Semaphore } from './semaphore.mjs'
 
 const log: Logger = createLogger('vates:iscsi')
 
@@ -53,6 +61,8 @@ export interface ConnectionDeps {
   readonly writeTimeoutMs: number
   /** Size of the CmdSN command window advertised to the initiator. */
   readonly cmdWindow: number
+  /** Max number of READs served concurrently (see {@link Connection}). */
+  readonly readConcurrency: number
   /** Allocate a fresh, non-zero Target Session Identifying Handle. */
   allocateTsih(): number
   /** When set, require one-way CHAP: the target challenges and verifies the initiator. */
@@ -67,14 +77,35 @@ type Phase = 'login' | 'fullFeature' | 'closed'
  * MaxConnections=1 a connection is also the whole session.
  *
  * Implements {@link CommandContext} (used by the SCSI layer) and constructs a
- * {@link WriteTransport} for the R2T/Data-Out write path. Commands are processed
- * one at a time — the read loop only advances once a command has fully
- * completed, which is why the write path can read its own Data-Out PDUs inline.
+ * {@link WriteTransport} for the R2T/Data-Out write path. Everything except
+ * READ is processed one at a time — the read loop only advances once such a
+ * command has fully completed, which is why the write path can read its own
+ * Data-Out PDUs inline. READ is the one command dispatched without waiting for
+ * its own I/O: {@link handleScsiCommand}'s `lun.read()` can be a slow fetch
+ * (e.g. from a backup chain over the network), and letting it block the read
+ * loop meant no other command — least of all another READ — could even start
+ * until it finished. Up to `readConcurrency` of them now run at once, gated by
+ * `#readGate`.
+ *
+ * This is safe without any extra response-ordering bookkeeping: StatSN is
+ * allocated (`#nextStatSN()`) and handed to `socket.write()` synchronously,
+ * with no `await` in between (see `sendReadData`/`sendScsiResponse`) — so
+ * whichever command's completion callback the event loop happens to run first
+ * is simply the one that gets the next StatSN and reaches the wire first, in
+ * that same order. Node's single-threaded execution means two such pairs can
+ * never interleave with each other, however many reads are in flight.
+ *
+ * One thing this does *not* guard against: a READ overlapping a concurrently
+ * in-progress WRITE to the same LBA range can observe either the old or the
+ * new bytes, same as an untagged (SIMPLE) SCSI command on a real array with no
+ * ordering barrier between them — it is the initiator/filesystem's job to not
+ * rely on ordering it never asked for.
  */
 export class Connection implements CommandContext {
   readonly #socket: Socket
   readonly #deps: ConnectionDeps
   readonly #login: LoginNegotiator
+  readonly #readGate: Semaphore
 
   #phase: Phase = 'login'
   #sessionType: SessionType = 'Normal'
@@ -96,6 +127,7 @@ export class Connection implements CommandContext {
     this.#socket = socket
     this.#deps = deps
     this.#login = new LoginNegotiator(deps.chap)
+    this.#readGate = new Semaphore(deps.readConcurrency)
   }
 
   get lun(): BlockDevice {
@@ -122,18 +154,36 @@ export class Connection implements CommandContext {
         }
       }
     } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error))
-      const code = (err as NodeJS.ErrnoException).code
-      // A peer dropping the socket (e.g. on logout) is normal, not a fault.
-      if (code === 'ECONNRESET' || code === 'EPIPE' || code === 'ECONNABORTED') {
-        log.debug('connection closed by peer', { code })
-      } else {
-        log.warn('connection error', err)
-      }
+      this.#fail(error)
     } finally {
       this.#phase = 'closed'
       this.#socket.destroy()
     }
+  }
+
+  /**
+   * Log a connection-ending error and tear the socket down — the same outcome
+   * an uncaught error in the main `serve()` loop already had, now also reached
+   * by a concurrently-dispatched READ that fails (e.g. a backend read error):
+   * with nothing else awaiting it directly, it would otherwise surface only as
+   * an unhandled rejection while the initiator hangs waiting for a response
+   * that will never come. Safe to call more than once — `socket.destroy()` is
+   * itself idempotent.
+   */
+  #fail(error: unknown): void {
+    if (this.#phase === 'closed') {
+      return
+    }
+    const err = error instanceof Error ? error : new Error(String(error))
+    const code = (err as NodeJS.ErrnoException).code
+    // A peer dropping the socket (e.g. on logout) is normal, not a fault.
+    if (code === 'ECONNRESET' || code === 'EPIPE' || code === 'ECONNABORTED') {
+      log.debug('connection closed by peer', { code })
+    } else {
+      log.warn('connection error', err)
+    }
+    this.#phase = 'closed'
+    this.#socket.destroy()
   }
 
   // --- sequencing -----------------------------------------------------------
@@ -303,6 +353,18 @@ export class Connection implements CommandContext {
 
   async #handleScsiCommand(pdu: IncomingPdu): Promise<void> {
     const cdb = pdu.bhs.subarray(32, 48)
+    if (decodeCdb(cdb).kind === 'read') {
+      // Deliberately not awaited: the read loop must move on to the next PDU
+      // immediately rather than wait on this one's `lun.read()`. See the
+      // class-level doc comment for why this needs no response-ordering
+      // bookkeeping of its own.
+      void this.#readGate
+        .run(() => handleScsiCommand(cdb, pdu.itt, this, this.#deps.identity))
+        .catch(error => {
+          this.#fail(error)
+        })
+      return
+    }
     await handleScsiCommand(cdb, pdu.itt, this, this.#deps.identity)
   }
 

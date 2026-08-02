@@ -24,6 +24,7 @@ const log: Logger = createLogger('vates:iscsi')
 const DEFAULT_PORT = 3260
 const DEFAULT_WRITE_TIMEOUT_MS = 30_000
 const DEFAULT_CMD_WINDOW = 64
+const DEFAULT_READ_CONCURRENCY = 16
 
 const DEFAULT_IDENTITY: ScsiIdentity = {
   vendor: 'VATES',
@@ -48,6 +49,13 @@ export interface IscsiTargetOptions {
   /** CmdSN command-window depth advertised to the initiator. Defaults to 64. */
   readonly cmdWindow?: number
   /**
+   * Max number of READ commands served concurrently — the command window lets
+   * the initiator keep many outstanding, but this caps how many `lun.read()`
+   * calls actually run at once regardless (e.g. so a deep queue depth doesn't
+   * fire dozens of simultaneous fetches against a real backend). Defaults to 16.
+   */
+  readonly readConcurrency?: number
+  /**
    * When set, require one-way CHAP: the target challenges each initiator and
    * rejects the login unless it proves this credential (interop with the
    * open-iscsi `node.session.auth` username/password). Omit for no authentication.
@@ -70,6 +78,7 @@ export class IscsiTarget {
   readonly #identity: ScsiIdentity
   readonly #writeTimeoutMs: number
   readonly #cmdWindow: number
+  readonly #readConcurrency: number
   readonly #chap?: ChapCredentials
 
   #server?: Server
@@ -83,6 +92,7 @@ export class IscsiTarget {
     this.#port = options.port ?? DEFAULT_PORT
     this.#writeTimeoutMs = options.writeTimeoutMs ?? DEFAULT_WRITE_TIMEOUT_MS
     this.#cmdWindow = options.cmdWindow ?? DEFAULT_CMD_WINDOW
+    this.#readConcurrency = options.readConcurrency ?? DEFAULT_READ_CONCURRENCY
     this.#chap = options.chap
     this.#identity = {
       ...DEFAULT_IDENTITY,
@@ -104,6 +114,7 @@ export class IscsiTarget {
       lun: this.#lun,
       writeTimeoutMs: this.#writeTimeoutMs,
       cmdWindow: this.#cmdWindow,
+      readConcurrency: this.#readConcurrency,
       allocateTsih: () => this.#allocateTsih(),
       chap: this.#chap,
     }
