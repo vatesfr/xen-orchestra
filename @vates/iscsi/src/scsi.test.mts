@@ -194,6 +194,29 @@ describe('handleScsiCommand', () => {
     assert.equal(ctx.responses[0].options?.sense?.[2], SenseKey.ILLEGAL_REQUEST)
   })
 
+  it('reports a failed lun.read() as CHECK CONDITION / MEDIUM ERROR, not an uncaught throw', async () => {
+    const lun: BlockDevice = {
+      getSize: () => 4096,
+      getBlockSize: () => 512,
+      read: async () => {
+        throw new Error('backend read failed')
+      },
+      write: async () => {},
+      flush: async () => {},
+      close: async () => {},
+    }
+    const ctx = new FakeContext(lun)
+    const buffer = Buffer.alloc(16)
+    buffer[0] = 0x28
+    buffer.writeUInt32BE(1, 2) // LBA 1
+    buffer.writeUInt16BE(1, 7) // 1 block
+    await handleScsiCommand(buffer, 1, ctx, IDENTITY)
+    assert.equal(ctx.responses.length, 1)
+    assert.equal(ctx.responses[0].status, ScsiStatus.CHECK_CONDITION)
+    assert.equal(ctx.responses[0].options?.sense?.[2], SenseKey.MEDIUM_ERROR)
+    assert.equal(ctx.reads.length, 0) // sendReadData was never reached
+  })
+
   it('returns CHECK CONDITION for an unsupported opcode', async () => {
     const ctx = new FakeContext(new MemoryBlockDevice(4096))
     await handleScsiCommand(cdb(0xff), 1, ctx, IDENTITY)
