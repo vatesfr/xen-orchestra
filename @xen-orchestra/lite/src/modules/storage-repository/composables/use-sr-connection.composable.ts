@@ -15,25 +15,25 @@ export function useSrConnection(options: { srs: MaybeRefOrGetter<XenApiSr[]>; sc
 
   const { getAttachedPbdsInScope, getDetachedPbdsInScope } = useGetPbdsInScope()
 
-  const plugTargets = computed(() => srs.value.flatMap(sr => getDetachedPbdsInScope(sr, scope.value)))
-  const unplugTargets = computed(() => srs.value.flatMap(sr => getAttachedPbdsInScope(sr, scope.value)))
+  const connectionTargets = computed(() => srs.value.flatMap(sr => getDetachedPbdsInScope(sr, scope.value)))
+  const disconnectionTargets = computed(() => srs.value.flatMap(sr => getAttachedPbdsInScope(sr, scope.value)))
 
-  const connectTargetCount = computed(() => plugTargets.value.length)
-  const disconnectTargetCount = computed(() => unplugTargets.value.length)
-
-  const {
-    run: plugSrs,
-    canRun: canConnectSr,
-    isRunning: isConnectingSr,
-    errorMessage: connectSrErrorMessage,
-  } = usePbdPlugJob(plugTargets)
+  const connectionTargetCount = computed(() => connectionTargets.value.length)
+  const disconnectionTargetCount = computed(() => disconnectionTargets.value.length)
 
   const {
-    run: unplugSrs,
-    canRun: canDisconnectSr,
-    isRunning: isDisconnectingSr,
-    errorMessage: disconnectSrErrorMessage,
-  } = usePbdUnplugJob(unplugTargets)
+    run: runConnect,
+    canRun: canConnectSrs,
+    isRunning: isConnectingSrs,
+    errorMessage: connectSrsErrorMessage,
+  } = usePbdPlugJob(connectionTargets)
+
+  const {
+    run: runDisconnect,
+    canRun: canDisconnectSrs,
+    isRunning: isDisconnectingSrs,
+    errorMessage: disconnectSrsErrorMessage,
+  } = usePbdUnplugJob(disconnectionTargets)
 
   const { open } = useOverlay({
     component: () => import('@core/components/sr-connection-modal/VtsSrConnectionModal.vue'),
@@ -43,19 +43,19 @@ export function useSrConnection(options: { srs: MaybeRefOrGetter<XenApiSr[]>; sc
     },
   })
 
-  function connectSr() {
+  function connectSrs() {
     return open({
       props: {
         action: CONNECTION_ACTION.CONNECT,
         count: srs.value.length,
         scope: scope.value,
         accessMode: getSrAccessMode(srs.value),
-        hostsCount: connectTargetCount.value,
+        hostsCount: connectionTargetCount.value,
       },
       events: {
         onConfirm: async () => {
           try {
-            await plugSrs()
+            await runConnect()
           } catch (error) {
             console.error('Error when connecting SR:', error)
           }
@@ -64,19 +64,19 @@ export function useSrConnection(options: { srs: MaybeRefOrGetter<XenApiSr[]>; sc
     })
   }
 
-  function disconnectSr() {
+  function disconnectSrs() {
     return open({
       props: {
         action: CONNECTION_ACTION.DISCONNECT,
         count: srs.value.length,
         scope: scope.value,
         accessMode: getSrAccessMode(srs.value),
-        hostsCount: disconnectTargetCount.value,
+        hostsCount: disconnectionTargetCount.value,
       },
       events: {
         onConfirm: async () => {
           try {
-            await unplugSrs()
+            await runDisconnect()
           } catch (error) {
             console.error('Error when disconnecting SR:', error)
           }
@@ -86,15 +86,15 @@ export function useSrConnection(options: { srs: MaybeRefOrGetter<XenApiSr[]>; sc
   }
 
   return {
-    connectSr,
-    disconnectSr,
-    canConnectSr,
-    canDisconnectSr,
-    isConnectingSr,
-    isDisconnectingSr,
-    connectSrErrorMessage,
-    disconnectSrErrorMessage,
-    connectTargetCount,
-    disconnectTargetCount,
+    connectSrs,
+    disconnectSrs,
+    canConnectSrs,
+    canDisconnectSrs,
+    isConnectingSrs,
+    isDisconnectingSrs,
+    connectSrsErrorMessage,
+    disconnectSrsErrorMessage,
+    connectionTargetCount,
+    disconnectionTargetCount,
   }
 }

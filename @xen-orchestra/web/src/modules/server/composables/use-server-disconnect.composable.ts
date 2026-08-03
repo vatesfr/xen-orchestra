@@ -16,7 +16,12 @@ export function useServerDisconnect(rawServerId: MaybeRefOrGetter<FrontXoServer[
 
   const serverLabel = computed(() => server.value?.poolNameLabel ?? server.value?.label ?? '')
 
-  const { run, canRun, isRunning, errorMessage } = useXoServerDisconnectJob([serverId])
+  const {
+    run,
+    canRun: canDisconnectServer,
+    isRunning: isDisconnectingServer,
+    errorMessage: disconnectServerErrorMessage,
+  } = useXoServerDisconnectJob([serverId])
 
   const { open } = useOverlay({
     component: () => import('@/modules/server/components/modal/ServerDisconnectModal.vue'),
@@ -38,5 +43,5 @@ export function useServerDisconnect(rawServerId: MaybeRefOrGetter<FrontXoServer[
     })
   }
 
-  return { disconnectServer, canRun, isRunning, errorMessage }
+  return { disconnectServer, canDisconnectServer, isDisconnectingServer, disconnectServerErrorMessage }
 }

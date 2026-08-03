@@ -13,7 +13,12 @@ export function useSrDelete(rawSrs: MaybeRefOrGetter<XenApiSr[]>) {
 
   const selectedSrId = useRouteQuery('id')
 
-  const { run, canRun, isRunning, errorMessage } = useSrDeleteJob(srs)
+  const {
+    run,
+    canRun: canDeleteSrs,
+    isRunning: isDeletingSrs,
+    errorMessage: deleteSrsErrorMessage,
+  } = useSrDeleteJob(srs)
 
   const { open } = useDeleteModal()
 
@@ -43,5 +48,5 @@ export function useSrDelete(rawSrs: MaybeRefOrGetter<XenApiSr[]>) {
     })
   }
 
-  return { deleteSrs, canRun, isRunning, errorMessage }
+  return { deleteSrs, canDeleteSrs, isDeletingSrs, deleteSrsErrorMessage }
 }

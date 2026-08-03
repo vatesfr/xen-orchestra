@@ -12,7 +12,7 @@ export function useVifDelete(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
 
   const { t } = useI18n()
 
-  const { run, canRun, isRunning } = useXoVifDeleteJob(vifs)
+  const { run, canRun: canDeleteVifs, isRunning: isDeletingVifs } = useXoVifDeleteJob(vifs)
 
   const route = useRoute()
 
@@ -36,11 +36,13 @@ export function useVifDelete(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
       events: {
         onConfirm: async () => {
           let result
+
           try {
             result = await run()
           } catch (error) {
             console.error('Error when deleting VIF:', error)
           }
+
           await redirectIfOnObjectPage(result)
         },
       },
@@ -51,5 +53,5 @@ export function useVifDelete(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
     })
   }
 
-  return { deleteVifs, canRun, isRunning }
+  return { deleteVifs, canDeleteVifs, isDeletingVifs }
 }

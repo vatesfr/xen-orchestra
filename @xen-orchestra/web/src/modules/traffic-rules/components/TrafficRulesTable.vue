@@ -139,12 +139,8 @@ const state = useTableState({
 
 const { HeadCells, BodyCells } = useTrafficRulesColumns({
   body: (rule: EnrichedTrafficRule) => {
-    const {
-      deleteTrafficRules,
-      canRun: canDeleteTrafficRule,
-      isRunning: isDeletingTrafficRule,
-      errorMessage: deleteTrafficRuleErrorMessage,
-    } = useTrafficRuleDelete(() => [rule])
+    const { deleteTrafficRules, canDeleteTrafficRules, isDeletingTrafficRules, deleteTrafficRulesErrorMessage } =
+      useTrafficRuleDelete(() => [rule])
 
     return {
       order: r => r(rule.order),
@@ -162,9 +158,9 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
               label: t('action:delete'),
               icon: 'action:delete',
               onClick: () => deleteTrafficRules(),
-              disabled: !canDeleteTrafficRule.value,
-              busy: isDeletingTrafficRule.value,
-              hint: deleteTrafficRuleErrorMessage.value,
+              disabled: !canDeleteTrafficRules.value,
+              busy: isDeletingTrafficRules.value,
+              hint: deleteTrafficRulesErrorMessage.value,
             },
           ],
         }),

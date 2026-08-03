@@ -1,6 +1,6 @@
-import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useXenApiStore } from '@/stores/xen-api.store'
+import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums.ts'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 
 export function useVmExport() {

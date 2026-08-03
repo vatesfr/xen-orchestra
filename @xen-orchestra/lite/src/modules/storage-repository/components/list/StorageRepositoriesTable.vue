@@ -110,38 +110,33 @@ const { HeadCells, BodyCells } = useSrColumns({
 
     const { srStatusIcon } = useSrUtils(sr, () => scope)
 
-    const {
-      deleteSrs,
-      canRun: canDeleteSr,
-      isRunning: isDeletingSr,
-      errorMessage: deleteSrErrorMessage,
-    } = useSrDelete(() => [sr])
+    const { deleteSrs, canDeleteSrs, isDeletingSrs, deleteSrsErrorMessage } = useSrDelete(() => [sr])
 
     const {
-      connectSr,
-      disconnectSr,
-      canConnectSr,
-      canDisconnectSr,
-      isConnectingSr,
-      isDisconnectingSr,
-      connectSrErrorMessage,
-      disconnectSrErrorMessage,
-      connectTargetCount,
-      disconnectTargetCount,
+      connectSrs,
+      disconnectSrs,
+      canConnectSrs,
+      canDisconnectSrs,
+      isConnectingSrs,
+      isDisconnectingSrs,
+      connectSrsErrorMessage,
+      disconnectSrsErrorMessage,
+      connectionTargetCount,
+      disconnectionTargetCount,
     } = useSrConnection({
       srs: () => [sr],
       scope: () => scope,
     })
 
     const connectLabel = computed(() =>
-      shouldShowTargetCount(scope, connectTargetCount.value)
-        ? t('action:connect-n', { n: connectTargetCount.value })
+      shouldShowTargetCount(scope, connectionTargetCount.value)
+        ? t('action:connect-n', { n: connectionTargetCount.value })
         : t('action:connect')
     )
 
     const disconnectLabel = computed(() =>
-      shouldShowTargetCount(scope, disconnectTargetCount.value)
-        ? t('action:disconnect-n', { n: disconnectTargetCount.value })
+      shouldShowTargetCount(scope, disconnectionTargetCount.value)
+        ? t('action:disconnect-n', { n: disconnectionTargetCount.value })
         : t('action:disconnect')
     )
 
@@ -163,26 +158,26 @@ const { HeadCells, BodyCells } = useSrColumns({
             {
               label: connectLabel.value,
               icon: 'action:connect',
-              onClick: () => connectSr(),
-              busy: isConnectingSr.value,
-              disabled: !canConnectSr.value,
-              hint: connectSrErrorMessage.value,
+              onClick: () => connectSrs(),
+              busy: isConnectingSrs.value,
+              disabled: !canConnectSrs.value,
+              hint: connectSrsErrorMessage.value,
             },
             {
               label: disconnectLabel.value,
               icon: 'action:disconnect',
-              onClick: () => disconnectSr(),
-              busy: isDisconnectingSr.value,
-              disabled: !canDisconnectSr.value,
-              hint: disconnectSrErrorMessage.value,
+              onClick: () => disconnectSrs(),
+              busy: isDisconnectingSrs.value,
+              disabled: !canDisconnectSrs.value,
+              hint: disconnectSrsErrorMessage.value,
             },
             {
               label: t('action:delete'),
               icon: 'action:delete',
               onClick: () => deleteSrs(),
-              busy: isDeletingSr.value,
-              disabled: !canDeleteSr.value,
-              hint: deleteSrErrorMessage.value,
+              busy: isDeletingSrs.value,
+              disabled: !canDeleteSrs.value,
+              hint: deleteSrsErrorMessage.value,
             },
           ],
         }),

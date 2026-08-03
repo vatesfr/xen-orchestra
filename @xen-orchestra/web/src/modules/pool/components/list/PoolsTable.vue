@@ -109,9 +109,13 @@ const { HeadCells, BodyCells } = useServerColumns({
 
     const serverIdArg = computed(() => server.id)
 
-    const { canRun: canConnect, isRunning: isConnecting, run: connect } = useXoServerConnectJob([serverIdArg])
+    const {
+      run: connectServer,
+      canRun: canConnectServer,
+      isRunning: isConnectingServer,
+    } = useXoServerConnectJob([serverIdArg])
 
-    const { disconnectServer, canRun: canDisconnect, isRunning: isDisconnecting } = useServerDisconnect(() => server.id)
+    const { disconnectServer, canDisconnectServer, isDisconnectingServer } = useServerDisconnect(() => server.id)
 
     const {
       download: downloadBugTools,
@@ -121,7 +125,7 @@ const { HeadCells, BodyCells } = useServerColumns({
 
     async function handleConnect() {
       try {
-        await connect()
+        await connectServer()
       } catch (error) {
         console.error('Error when connecting server:', error)
       }
@@ -151,15 +155,15 @@ const { HeadCells, BodyCells } = useServerColumns({
               ? {
                   label: t('action:disconnect-pool'),
                   icon: 'action:disconnect',
-                  busy: isDisconnecting.value,
-                  disabled: !canDisconnect.value,
+                  busy: isDisconnectingServer.value,
+                  disabled: !canDisconnectServer.value,
                   onClick: () => disconnectServer(),
                 }
               : {
                   label: t('action:connect-pool'),
                   icon: 'action:connect',
-                  busy: isConnecting.value,
-                  disabled: !canConnect.value,
+                  busy: isConnectingServer.value,
+                  disabled: !canConnectServer.value,
                   onClick: () => handleConnect(),
                 },
             {

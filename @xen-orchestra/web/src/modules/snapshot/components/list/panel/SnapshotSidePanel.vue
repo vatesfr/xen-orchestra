@@ -2,8 +2,8 @@
   <VtsSidePanel :has-selection="!!snapshot" @close="emit('close')">
     <template v-if="snapshot" #actions>
       <UiButton
-        :disabled="!canRevertSnapshot || isDeletingSnapshot"
-        :busy="isRevertingSnapshot"
+        :disabled="!canRevertVmSnapshot || isDeletingVmSnapshots"
+        :busy="isRevertingVmSnapshot"
         size="medium"
         variant="tertiary"
         accent="brand"
@@ -13,8 +13,8 @@
         {{ t('action:revert-vm-here') }}
       </UiButton>
       <VtsDeleteButton
-        :disabled="!canDeleteSnapshot || isRevertingSnapshot"
-        :busy="isDeletingSnapshot"
+        :disabled="!canDeleteVmSnapshots || isRevertingVmSnapshot"
+        :busy="isDeletingVmSnapshots"
         @click="deleteVmSnapshots()"
       />
     </template>
@@ -44,15 +44,9 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const {
-  deleteVmSnapshots,
-  canRun: canDeleteSnapshot,
-  isRunning: isDeletingSnapshot,
-} = useVmSnapshotDelete(() => (snapshot !== undefined ? [snapshot] : []))
+const { deleteVmSnapshots, canDeleteVmSnapshots, isDeletingVmSnapshots } = useVmSnapshotDelete(() =>
+  snapshot !== undefined ? [snapshot] : []
+)
 
-const {
-  revertVmSnapshot,
-  canRun: canRevertSnapshot,
-  isRunning: isRevertingSnapshot,
-} = useVmSnapshotRevert(() => snapshot)
+const { revertVmSnapshot, canRevertVmSnapshot, isRevertingVmSnapshot } = useVmSnapshotRevert(() => snapshot)
 </script>

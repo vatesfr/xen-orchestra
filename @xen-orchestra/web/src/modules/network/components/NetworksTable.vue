@@ -117,7 +117,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
     const defaultLockingMode = computed(() => getLockingMode(network.defaultIsLocked))
     const href = computed(() => buildXo5Route(`/pools/${network.$pool}/network?s=1_0_asc-${network.id}`))
 
-    const { deleteNetworks, isRunning: isDeletingNetwork } = useNetworkDelete(() => [network])
+    const { deleteNetworks, isDeletingNetworks } = useNetworkDelete(() => [network])
 
     return {
       network: r =>
@@ -139,7 +139,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
               label: t('action:delete'),
               icon: 'action:delete',
               onClick: () => deleteNetworks(),
-              busy: isDeletingNetwork.value,
+              busy: isDeletingNetworks.value,
             },
           ],
         }),

@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection'
 import type { VmDashboardRun, VmProtectionStatus, XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type'
-import { useVmProtectedInfoModal } from '@/shared/composables/modals/use-vm-protected-info-modal'
+import { useVmProtectedInfoModal } from '@/shared/composables/modals/use-vm-protected-info-modal.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'

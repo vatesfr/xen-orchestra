@@ -1,5 +1,5 @@
 <template>
-  <UiDrawer @dismiss="emit('cancel')" @confirm="handleConfirm">
+  <UiDrawer @dismiss="emit('cancel')" @confirm="handleConfirm()">
     <template #title>
       {{ t('action:export-n-vms', 1) }}
     </template>

@@ -8,7 +8,11 @@ export function useVmSnapshotRevert(rawSnapshot: MaybeRefOrGetter<FrontXoVmSnaps
   const snapshot = toComputed(rawSnapshot)
   const snapshotBefore = ref(true)
 
-  const { run, canRun, isRunning } = useXoVmSnapshotRevertJob(snapshot, snapshotBefore)
+  const {
+    run,
+    canRun: canRevertVmSnapshot,
+    isRunning: isRevertingVmSnapshot,
+  } = useXoVmSnapshotRevertJob(snapshot, snapshotBefore)
 
   const { open: revertVmSnapshot } = useOverlay({
     component: () => import('@/modules/snapshot/components/modal/VmSnapshotRevertModal.vue'),
@@ -26,5 +30,5 @@ export function useVmSnapshotRevert(rawSnapshot: MaybeRefOrGetter<FrontXoVmSnaps
     },
   })
 
-  return { revertVmSnapshot, canRun, isRunning }
+  return { revertVmSnapshot, canRevertVmSnapshot, isRevertingVmSnapshot }
 }

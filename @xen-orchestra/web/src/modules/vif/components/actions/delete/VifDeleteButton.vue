@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:delete" :disabled="!canDeleteVif" :busy="isDeletingVif" @click="deleteVifs()">
+  <MenuItem icon="action:delete" :disabled="!canDeleteVifs" :busy="isDeletingVifs" @click="deleteVifs()">
     {{ t('action:delete') }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>
@@ -18,7 +18,7 @@ const { vif } = defineProps<{
 
 const { t } = useI18n()
 
-const { deleteVifs, canRun: canDeleteVif, isRunning: isDeletingVif } = useVifDelete(() => [vif])
+const { deleteVifs, canDeleteVifs, isDeletingVifs } = useVifDelete(() => [vif])
 
-const hint = computed(() => (!canDeleteVif.value ? t('vif-connected') : undefined))
+const hint = computed(() => (!canDeleteVifs.value ? t('vif-connected') : undefined))
 </script>

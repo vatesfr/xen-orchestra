@@ -13,7 +13,7 @@ export function useSrDelete(rawSrs: MaybeRefOrGetter<FrontXoSr[]>) {
 
   const selectedSrId = useRouteQuery('id')
 
-  const { run, canRun, isRunning } = useXoSrDeleteJob(srs)
+  const { run, canRun: canDeleteSrs, isRunning: isDeletingSrs } = useXoSrDeleteJob(srs)
 
   const { open } = useDeleteModal()
 
@@ -43,5 +43,5 @@ export function useSrDelete(rawSrs: MaybeRefOrGetter<FrontXoSr[]>) {
     })
   }
 
-  return { deleteSrs, canRun, isRunning }
+  return { deleteSrs, canDeleteSrs, isDeletingSrs }
 }

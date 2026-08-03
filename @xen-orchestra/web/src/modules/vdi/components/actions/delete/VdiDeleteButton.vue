@@ -1,11 +1,5 @@
 <template>
-  <MenuItem
-    icon="action:delete"
-    class="delete"
-    :disabled="!canDeleteVdi"
-    :busy="isDeletingVdi"
-    @click="deleteVdis()"
-  >
+  <MenuItem icon="action:delete" class="delete" :disabled="!canDeleteVdis" :busy="isDeletingVdis" @click="deleteVdis()">
     {{ t('action:delete') }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>
@@ -26,20 +20,16 @@ const { vdi, vm } = defineProps<{
 
 const { t } = useI18n()
 
-const {
-  deleteVdis,
-  canRun: canDeleteVdi,
-  isRunning: isDeletingVdi,
-} = useVdiDelete(
-  () => [vdi],
-  () => vm
-)
+const { deleteVdis, canDeleteVdis, isDeletingVdis } = useVdiDelete({
+  vdis: () => [vdi],
+  vm: () => vm,
+})
 
 const hint = computed(() => {
   if (!vm) {
     return t('vdi-not-attached-to-vm')
   }
-  if (!canDeleteVdi.value) {
+  if (!canDeleteVdis.value) {
     return t('vm-running')
   }
   return undefined

@@ -21,8 +21,8 @@ export const useUnreachableHosts = () => {
   const { open } = useOverlay({
     component: () => import('@/components/modals/UnreachableHostsModal.vue'),
     events: {
-      onConfirm: () => window.location.reload(),
-      onCancel: () => unreachableHostsUrls.value.clear(),
+      onConfirm: true,
+      onCancel: true,
     },
   })
 
@@ -30,9 +30,19 @@ export const useUnreachableHosts = () => {
     urls: Array.from(unreachableHostsUrls.value.values()),
   }))
 
+  async function openModal() {
+    const { event } = await open({ props: modalProps })
+
+    if (event === 'onConfirm') {
+      window.location.reload()
+    }
+
+    unreachableHostsUrls.value.clear()
+  }
+
   whenever(
     () => unreachableHostsUrls.value.size > 0,
-    () => open({ props: modalProps }),
+    () => openModal(),
     {
       immediate: true,
     }

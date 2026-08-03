@@ -17,7 +17,12 @@ export function useVdiMigrate(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
 
   const { srSelectBindings, requiresForceMigrate, validateAndGetSrId, reset } = useVdiMigrateForm(vdi)
 
-  const { run, isRunning, errorMessage, canRun } = useXoVdiMigrateJob(() => [vdi.value], targetSrId)
+  const {
+    run,
+    canRun: canMigrateVdi,
+    isRunning: isMigratingVdi,
+    errorMessage: migrateVdiErrorMessage,
+  } = useXoVdiMigrateJob(() => [vdi.value], targetSrId)
 
   const { open } = useOverlay({
     component: () => import('@/modules/vdi/components/drawer/VdiMigrateDrawer.vue'),
@@ -65,8 +70,8 @@ export function useVdiMigrate(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
 
   return {
     migrateVdi,
-    canRun,
-    isRunning,
-    errorMessage,
+    canMigrateVdi,
+    isMigratingVdi,
+    migrateVdiErrorMessage,
   }
 }

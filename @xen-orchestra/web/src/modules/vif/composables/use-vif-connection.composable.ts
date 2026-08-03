@@ -12,17 +12,17 @@ export function useVifConnection(options: { vifs: MaybeRefOrGetter<FrontXoVif[]>
   const vm = toComputed(options.vm)
 
   const {
-    run: connectVifs,
-    canRun: canConnectVif,
-    isRunning: isConnectingVif,
-    errorMessage: connectVifErrorMessage,
+    run: runConnect,
+    canRun: canConnectVifs,
+    isRunning: isConnectingVifs,
+    errorMessage: connectVifsErrorMessage,
   } = useXoVifConnectJob(vifs, vm)
 
   const {
-    run: disconnectVifs,
-    canRun: canDisconnectVif,
-    isRunning: isDisconnectingVif,
-    errorMessage: disconnectVifErrorMessage,
+    run: runDisconnect,
+    canRun: canDisconnectVifs,
+    isRunning: isDisconnectingVifs,
+    errorMessage: disconnectVifsErrorMessage,
   } = useXoVifDisconnectJob(vifs, vm)
 
   const { open } = useOverlay({
@@ -33,7 +33,7 @@ export function useVifConnection(options: { vifs: MaybeRefOrGetter<FrontXoVif[]>
     },
   })
 
-  function connectVif() {
+  function connectVifs() {
     return open({
       props: {
         action: CONNECTION_ACTION.CONNECT,
@@ -42,7 +42,7 @@ export function useVifConnection(options: { vifs: MaybeRefOrGetter<FrontXoVif[]>
       events: {
         onConfirm: async () => {
           try {
-            await connectVifs()
+            await runConnect()
           } catch (error) {
             console.error('Error when connecting VIF:', error)
           }
@@ -51,7 +51,7 @@ export function useVifConnection(options: { vifs: MaybeRefOrGetter<FrontXoVif[]>
     })
   }
 
-  function disconnectVif() {
+  function disconnectVifs() {
     return open({
       props: {
         action: CONNECTION_ACTION.DISCONNECT,
@@ -60,7 +60,7 @@ export function useVifConnection(options: { vifs: MaybeRefOrGetter<FrontXoVif[]>
       events: {
         onConfirm: async () => {
           try {
-            await disconnectVifs()
+            await runDisconnect()
           } catch (error) {
             console.error('Error when disconnecting VIF:', error)
           }
@@ -70,13 +70,13 @@ export function useVifConnection(options: { vifs: MaybeRefOrGetter<FrontXoVif[]>
   }
 
   return {
-    connectVif,
-    disconnectVif,
-    canConnectVif,
-    canDisconnectVif,
-    isConnectingVif,
-    isDisconnectingVif,
-    connectVifErrorMessage,
-    disconnectVifErrorMessage,
+    connectVifs,
+    disconnectVifs,
+    canConnectVifs,
+    canDisconnectVifs,
+    isConnectingVifs,
+    isDisconnectingVifs,
+    connectVifsErrorMessage,
+    disconnectVifsErrorMessage,
   }
 }

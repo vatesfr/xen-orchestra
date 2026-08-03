@@ -16,5 +16,5 @@ const { vdi } = defineProps<{
 
 const { t } = useI18n()
 
-const { exportVdi, isRunning: isExportingVdi } = useVdiExport(() => vdi)
+const { exportVdi, isExportingVdi } = useVdiExport(() => vdi)
 </script>

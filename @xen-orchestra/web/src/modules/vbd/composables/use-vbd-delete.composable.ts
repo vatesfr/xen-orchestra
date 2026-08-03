@@ -6,13 +6,18 @@ import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 
-export function useVbdDelete(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>, rawVm: MaybeRefOrGetter<FrontXoVm>) {
-  const vbds = toComputed(rawVbds)
-  const vm = toComputed(rawVm)
+export function useVbdDelete(options: { vbds: MaybeRefOrGetter<FrontXoVbd[]>; vm: MaybeRefOrGetter<FrontXoVm> }) {
+  const vbds = toComputed(options.vbds)
+  const vm = toComputed(options.vm)
 
   const selectedVdiId = useRouteQuery('id')
 
-  const { run, canRun, isRunning, errorMessage } = useXoVbdDeleteJob(vbds, vm)
+  const {
+    run,
+    canRun: canDeleteVbds,
+    isRunning: isDeletingVbds,
+    errorMessage: deleteVbdsErrorMessage,
+  } = useXoVbdDeleteJob(vbds, vm)
 
   const { open } = useOverlay({
     component: () => import('@/modules/vbd/components/modal/VbdDeleteModal.vue'),
@@ -34,5 +39,5 @@ export function useVbdDelete(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>, rawVm: May
     return open({ props: { count: vbds.value.length } })
   }
 
-  return { deleteVbds, canRun, isRunning, errorMessage }
+  return { deleteVbds, canDeleteVbds, isDeletingVbds, deleteVbdsErrorMessage }
 }

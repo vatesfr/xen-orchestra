@@ -1,7 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!network" @close="emit('close')">
     <template v-if="network" #actions>
-      <VtsDeleteButton :busy="isDeletingNetwork" @click="deleteNetworks()" />
+      <VtsDeleteButton :busy="isDeletingNetworks" @click="deleteNetworks()" />
     </template>
     <template v-if="network" #default>
       <UiCard class="card-container">
@@ -80,9 +80,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { deleteNetworks, isRunning: isDeletingNetwork } = useNetworkDelete(() =>
-  network !== undefined ? [network] : []
-)
+const { deleteNetworks, isDeletingNetworks } = useNetworkDelete(() => (network !== undefined ? [network] : []))
 
 const { buildXo5Route } = useXoRoutes()
 

@@ -112,17 +112,9 @@ const state = useTableState({
 
 const { HeadCells, BodyCells } = useSnapshotColumns({
   body: (snapshot: FrontXoVmSnapshot) => {
-    const {
-      deleteVmSnapshots,
-      canRun: canDeleteSnapshot,
-      isRunning: isDeletingSnapshot,
-    } = useVmSnapshotDelete(() => [snapshot])
+    const { deleteVmSnapshots, canDeleteVmSnapshots, isDeletingVmSnapshots } = useVmSnapshotDelete(() => [snapshot])
 
-    const {
-      revertVmSnapshot,
-      canRun: canRevertSnapshot,
-      isRunning: isRevertingSnapshot,
-    } = useVmSnapshotRevert(() => snapshot)
+    const { revertVmSnapshot, canRevertVmSnapshot, isRevertingVmSnapshot } = useVmSnapshotRevert(() => snapshot)
 
     return {
       name: r =>
@@ -142,15 +134,15 @@ const { HeadCells, BodyCells } = useSnapshotColumns({
               label: t('action:revert-vm-here'),
               icon: 'action:undo',
               onClick: () => revertVmSnapshot(),
-              disabled: !canRevertSnapshot.value || isDeletingSnapshot.value,
-              busy: isRevertingSnapshot.value,
+              disabled: !canRevertVmSnapshot.value || isDeletingVmSnapshots.value,
+              busy: isRevertingVmSnapshot.value,
             },
             {
               label: t('action:delete'),
               icon: 'action:delete',
               onClick: () => deleteVmSnapshots(),
-              disabled: !canDeleteSnapshot.value || isRevertingSnapshot.value,
-              busy: isDeletingSnapshot.value,
+              disabled: !canDeleteVmSnapshots.value || isRevertingVmSnapshot.value,
+              busy: isDeletingVmSnapshots.value,
             },
           ],
         }),

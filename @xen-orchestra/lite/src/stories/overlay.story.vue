@@ -29,7 +29,7 @@
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { KEEP_OVERLAY_OPEN, OVERLAY_ABORT_EVENT } from '@core/packages/overlay/symbols'
+import { KEEP_OVERLAY_OPEN, OVERLAY_ABORT_EVENT } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { reactiveComputed } from '@vueuse/core'
 import { ref } from 'vue'

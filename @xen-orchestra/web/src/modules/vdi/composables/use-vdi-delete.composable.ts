@@ -6,16 +6,21 @@ import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useVdiDelete(
-  rawVdis: MaybeRefOrGetter<FrontXoVdi[]>,
-  rawVm: MaybeRefOrGetter<FrontXoVm | undefined>
-) {
-  const vdis = toComputed(rawVdis)
-  const vm = toComputed(rawVm)
+export function useVdiDelete(options: {
+  vdis: MaybeRefOrGetter<FrontXoVdi[]>
+  vm: MaybeRefOrGetter<FrontXoVm | undefined>
+}) {
+  const vdis = toComputed(options.vdis)
+  const vm = toComputed(options.vm)
 
   const { t } = useI18n()
 
-  const { run, canRun, isRunning, errorMessage } = useXoVdiDeleteJob(vdis, vm)
+  const {
+    run,
+    canRun: canDeleteVdis,
+    isRunning: isDeletingVdis,
+    errorMessage: deleteVdisErrorMessage,
+  } = useXoVdiDeleteJob(vdis, vm)
 
   const { open } = useDeleteModal()
 
@@ -40,5 +45,5 @@ export function useVdiDelete(
     })
   }
 
-  return { deleteVdis, canRun, isRunning, errorMessage }
+  return { deleteVdis, canDeleteVdis, isDeletingVdis, deleteVdisErrorMessage }
 }

@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:delete" :disabled="!canDeleteSr" :busy="isDeletingSr" @click="deleteSrs()">
+  <MenuItem icon="action:delete" :disabled="!canDeleteSrs" :busy="isDeletingSrs" @click="deleteSrs()">
     {{ t('action:delete') }}
   </MenuItem>
 </template>
@@ -16,7 +16,7 @@ const { sr } = defineProps<{
 
 const { t } = useI18n()
 
-const { deleteSrs, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDelete(() => [sr])
+const { deleteSrs, canDeleteSrs, isDeletingSrs } = useSrDelete(() => [sr])
 </script>
 
 <style lang="postcss" scoped>

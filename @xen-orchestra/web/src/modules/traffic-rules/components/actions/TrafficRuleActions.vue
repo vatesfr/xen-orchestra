@@ -1,9 +1,5 @@
 <template>
-  <VtsDeleteButton
-    :disabled="!canDeleteTrafficRule"
-    :busy="isDeletingTrafficRule"
-    @click="deleteTrafficRules()"
-  />
+  <VtsDeleteButton :disabled="!canDeleteTrafficRules" :busy="isDeletingTrafficRules" @click="deleteTrafficRules()" />
 </template>
 
 <script lang="ts" setup>
@@ -15,9 +11,5 @@ const { rule } = defineProps<{
   rule: TrafficRule
 }>()
 
-const {
-  deleteTrafficRules,
-  canRun: canDeleteTrafficRule,
-  isRunning: isDeletingTrafficRule,
-} = useTrafficRuleDelete(() => [rule])
+const { deleteTrafficRules, canDeleteTrafficRules, isDeletingTrafficRules } = useTrafficRuleDelete(() => [rule])
 </script>

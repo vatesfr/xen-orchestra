@@ -98,14 +98,14 @@ const { HeadCells, BodyCells } = useVdiColumns({
     const format = computed(() => getVdiFormat(vdi.image_format))
 
     const {
-      connectVbd,
-      disconnectVbd,
-      canConnectVbd,
-      canDisconnectVbd,
-      isConnectingVbd,
-      isDisconnectingVbd,
-      connectVbdErrorMessage,
-      disconnectVbdErrorMessage,
+      connectVbds,
+      disconnectVbds,
+      canConnectVbds,
+      canDisconnectVbds,
+      isConnectingVbds,
+      isDisconnectingVbds,
+      connectVbdsErrorMessage,
+      disconnectVbdsErrorMessage,
     } = useVbdConnection({
       vbds: () => (vbd.value ? [vbd.value] : []),
       vm: () => vm,
@@ -117,66 +117,51 @@ const { HeadCells, BodyCells } = useVdiColumns({
         connect: {
           label: t('action:connect'),
           icon: 'action:connect',
-          onClick: () => connectVbd(),
-          disabled: !canConnectVbd.value,
-          busy: isConnectingVbd.value,
-          hint: canConnectVbd.value ? undefined : connectVbdErrorMessage.value,
+          onClick: () => connectVbds(),
+          disabled: !canConnectVbds.value,
+          busy: isConnectingVbds.value,
+          hint: canConnectVbds.value ? undefined : connectVbdsErrorMessage.value,
         } satisfies ActionItem,
         disconnect: {
           label: t('action:disconnect'),
           icon: 'action:disconnect',
-          onClick: () => disconnectVbd(),
-          disabled: !canDisconnectVbd.value,
-          busy: isDisconnectingVbd.value,
-          hint: canDisconnectVbd.value ? undefined : disconnectVbdErrorMessage.value,
+          onClick: () => disconnectVbds(),
+          disabled: !canDisconnectVbds.value,
+          busy: isDisconnectingVbds.value,
+          hint: canDisconnectVbds.value ? undefined : disconnectVbdsErrorMessage.value,
         } satisfies ActionItem,
       }),
       'connect'
     )
 
-    const {
-      deleteVbds,
-      canRun: canDeleteVbd,
-      isRunning: isDeletingVbd,
-      errorMessage: deleteVbdErrorMessage,
-    } = useVbdDelete(
-      () => (vbd.value ? [vbd.value] : []),
-      () => vm
-    )
+    const { deleteVbds, canDeleteVbds, isDeletingVbds, deleteVbdsErrorMessage } = useVbdDelete({
+      vbds: () => (vbd.value ? [vbd.value] : []),
+      vm: () => vm,
+    })
 
-    const {
-      deleteVdis,
-      canRun: canDeleteVdi,
-      isRunning: isDeletingVdi,
-      errorMessage: deleteVdiErrorMessage,
-    } = useVdiDelete(
-      () => [vdi],
-      () => vm
-    )
+    const { deleteVdis, canDeleteVdis, isDeletingVdis, deleteVdisErrorMessage } = useVdiDelete({
+      vdis: () => [vdi],
+      vm: () => vm,
+    })
 
-    const { exportVdi, isRunning: isExportingVdi } = useVdiExport(() => vdi)
+    const { exportVdi, isExportingVdi } = useVdiExport(() => vdi)
 
-    const {
-      migrateVdi,
-      canRun: canMigrateVdi,
-      isRunning: isMigratingVdi,
-      errorMessage: migrateVdiErrorMessage,
-    } = useVdiMigrate(() => vdi)
+    const { migrateVdi, canMigrateVdi, isMigratingVdi, migrateVdiErrorMessage } = useVdiMigrate(() => vdi)
 
     const runningAction = computed(() => {
       if (isMigratingVdi.value) {
         return 'migrate'
       }
-      if (isDeletingVdi.value) {
+      if (isDeletingVdis.value) {
         return 'delete'
       }
-      if (isDeletingVbd.value) {
+      if (isDeletingVbds.value) {
         return 'detach'
       }
-      if (isConnectingVbd.value) {
+      if (isConnectingVbds.value) {
         return 'connect'
       }
-      if (isDisconnectingVbd.value) {
+      if (isDisconnectingVbds.value) {
         return 'disconnect'
       }
       return 'none'
@@ -235,19 +220,19 @@ const { HeadCells, BodyCells } = useVdiColumns({
             },
             {
               label: t('action:detach-vdi'),
-              hint: deleteVbdErrorMessage.value,
+              hint: deleteVbdsErrorMessage.value,
               icon: 'action:detach',
               onClick: () => deleteVbds(),
-              disabled: !canDeleteVbd.value,
-              busy: isDeletingVbd.value,
+              disabled: !canDeleteVbds.value,
+              busy: isDeletingVbds.value,
             },
             {
               label: t('action:delete'),
-              hint: deleteVdiErrorMessage.value,
+              hint: deleteVdisErrorMessage.value,
               icon: 'action:delete',
               onClick: () => deleteVdis(),
-              disabled: !canDeleteVdi.value,
-              busy: isDeletingVdi.value,
+              disabled: !canDeleteVdis.value,
+              busy: isDeletingVdis.value,
             },
           ],
         }),

@@ -25,6 +25,7 @@ import { useDisabled } from '@core/composables/disabled.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+import { reactiveComputed } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -69,7 +70,12 @@ const { open: openModal } = useOverlay({
   },
 })
 
+const modalProps = reactiveComputed(() => ({
+  count: selectedRefs.length,
+  availableHosts: availableHosts.value,
+}))
+
 function openMigrateModal() {
-  return openModal({ props: { count: selectedRefs.length, availableHosts: availableHosts.value } })
+  return openModal({ props: modalProps })
 }
 </script>

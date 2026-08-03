@@ -18,12 +18,7 @@ const { vdi } = defineProps<{
 
 const { t } = useI18n()
 
-const {
-  migrateVdi,
-  canRun: canMigrateVdi,
-  isRunning: isMigratingVdi,
-  errorMessage: migrateVdiErrorMessage,
-} = useVdiMigrate(() => vdi)
+const { migrateVdi, canMigrateVdi, isMigratingVdi, migrateVdiErrorMessage } = useVdiMigrate(() => vdi)
 
 const hint = computed(() => (!canMigrateVdi.value ? migrateVdiErrorMessage.value : undefined))
 

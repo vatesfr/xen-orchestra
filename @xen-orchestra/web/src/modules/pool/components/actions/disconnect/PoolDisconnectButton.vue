@@ -2,8 +2,8 @@
   <MenuItem
     icon="action:disconnect"
     class="disconnect typo-body-bold-small"
-    :busy="isRunning"
-    :disabled="!canRun"
+    :busy="isDisconnectingServer"
+    :disabled="!canDisconnectServer"
     @click="disconnectServer()"
   >
     {{ t('action:disconnect-pool') }}
@@ -27,7 +27,7 @@ const { serverByPool } = useXoServerCollection()
 
 const serverId = computed(() => serverByPool.value.get(poolId)?.[0]?.id ?? ('' as XoServer['id']))
 
-const { disconnectServer, canRun, isRunning } = useServerDisconnect(serverId)
+const { disconnectServer, canDisconnectServer, isDisconnectingServer } = useServerDisconnect(serverId)
 </script>
 
 <style lang="postcss" scoped>

@@ -10,7 +10,12 @@ export function useTrafficRuleDelete(rawRules: MaybeRefOrGetter<TrafficRule[]>) 
 
   const { t } = useI18n()
 
-  const { run, canRun, isRunning, errorMessage } = useXoTrafficRuleDeleteJob(rules)
+  const {
+    run,
+    canRun: canDeleteTrafficRules,
+    isRunning: isDeletingTrafficRules,
+    errorMessage: deleteTrafficRulesErrorMessage,
+  } = useXoTrafficRuleDeleteJob(rules)
 
   const { open } = useDeleteModal()
 
@@ -35,5 +40,5 @@ export function useTrafficRuleDelete(rawRules: MaybeRefOrGetter<TrafficRule[]>) 
     })
   }
 
-  return { deleteTrafficRules, canRun, isRunning, errorMessage }
+  return { deleteTrafficRules, canDeleteTrafficRules, isDeletingTrafficRules, deleteTrafficRulesErrorMessage }
 }

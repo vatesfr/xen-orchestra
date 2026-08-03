@@ -12,7 +12,13 @@ export function useNetworkDelete(rawNetworks: MaybeRefOrGetter<FrontXoNetwork[]>
 
   const { t } = useI18n()
 
-  const { run, canRun, isRunning, errorMessage, error } = useXoNetworkDeleteJob(networks)
+  const {
+    run,
+    canRun: canDeleteNetworks,
+    isRunning: isDeletingNetworks,
+    errorMessage: deleteNetworksErrorMessage,
+    error: deleteNetworksError,
+  } = useXoNetworkDeleteJob(networks)
 
   const subject = computed(() => {
     const count = networks.value.length
@@ -36,11 +42,11 @@ export function useNetworkDelete(rawNetworks: MaybeRefOrGetter<FrontXoNetwork[]>
   })
 
   function deleteNetworks() {
-    if (!canRun.value) {
+    if (!canDeleteNetworks.value) {
       return openNetworkDeleteErrorModal({
         props: {
-          error: errorMessage.value,
-          showConnectedVifsMessage: error.value?.jobName === NETWORK_DELETE_ERROR.VIFS_IN_USE,
+          error: deleteNetworksErrorMessage.value,
+          showConnectedVifsMessage: deleteNetworksError.value?.jobName === NETWORK_DELETE_ERROR.VIFS_IN_USE,
         },
       })
     }
@@ -62,5 +68,5 @@ export function useNetworkDelete(rawNetworks: MaybeRefOrGetter<FrontXoNetwork[]>
     })
   }
 
-  return { deleteNetworks, canRun, isRunning }
+  return { deleteNetworks, canDeleteNetworks, isDeletingNetworks }
 }

@@ -1,9 +1,9 @@
 <template>
   <MenuItem
-    v-tooltip="!canDeleteSr && deleteSrErrorMessage"
+    v-tooltip="!canDeleteSrs && deleteSrsErrorMessage"
     icon="action:delete"
-    :disabled="!canDeleteSr"
-    :busy="isDeletingSr"
+    :disabled="!canDeleteSrs"
+    :busy="isDeletingSrs"
     class="delete"
     @click="deleteSrs()"
   >
@@ -24,12 +24,7 @@ const { sr } = defineProps<{
 
 const { t } = useI18n()
 
-const {
-  deleteSrs,
-  canRun: canDeleteSr,
-  isRunning: isDeletingSr,
-  errorMessage: deleteSrErrorMessage,
-} = useSrDelete(() => [sr])
+const { deleteSrs, canDeleteSrs, isDeletingSrs, deleteSrsErrorMessage } = useSrDelete(() => [sr])
 </script>
 
 <style lang="postcss" scoped>

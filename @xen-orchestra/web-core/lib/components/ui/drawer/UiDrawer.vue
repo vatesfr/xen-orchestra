@@ -1,14 +1,13 @@
 <template>
-  <form
-    class="ui-drawer"
-    aria-modal="true"
-    role="dialog"
-    @click.self="emit('dismiss')"
-    @submit.prevent="emit('confirm')"
-  >
-    <aside class="drawer">
+  <form class="ui-drawer" @click.self="emit('dismiss')" @submit.prevent="emit('confirm')">
+    <aside
+      :aria-labelledby="slots.title || title !== undefined ? titleId : undefined"
+      aria-modal="true"
+      class="drawer"
+      role="dialog"
+    >
       <div class="header">
-        <div v-if="slots.title || title !== undefined" class="typo-h4">
+        <div v-if="slots.title || title !== undefined" :id="titleId" class="typo-h4">
           <slot name="title">
             {{ title }}
           </slot>
@@ -36,6 +35,7 @@
 import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useOverlayEscape } from '@core/packages/overlay/use-overlay-escape.ts'
+import { useId } from 'vue'
 
 defineProps<{
   title?: string
@@ -54,6 +54,8 @@ const slots = defineSlots<{
 }>()
 
 useOverlayEscape(() => emit('dismiss'))
+
+const titleId = useId()
 </script>
 
 <style lang="postcss" scoped>

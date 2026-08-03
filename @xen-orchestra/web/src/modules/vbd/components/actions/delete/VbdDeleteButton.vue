@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:detach" :disabled="!canDeleteVbd" :busy="isDeletingVbd" @click="deleteVbds()">
+  <MenuItem icon="action:detach" :disabled="!canDeleteVbds" :busy="isDeletingVbds" @click="deleteVbds()">
     {{ t('action:detach-vdi') }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>
@@ -20,14 +20,10 @@ const { vbd, vm } = defineProps<{
 
 const { t } = useI18n()
 
-const {
-  deleteVbds,
-  canRun: canDeleteVbd,
-  isRunning: isDeletingVbd,
-} = useVbdDelete(
-  () => [vbd],
-  () => vm
-)
+const { deleteVbds, canDeleteVbds, isDeletingVbds } = useVbdDelete({
+  vbds: () => [vbd],
+  vm: () => vm,
+})
 
-const hint = computed(() => (!canDeleteVbd.value ? t('vm-running') : undefined))
+const hint = computed(() => (!canDeleteVbds.value ? t('vm-running') : undefined))
 </script>

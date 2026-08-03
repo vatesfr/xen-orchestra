@@ -10,7 +10,7 @@ export function useVmSnapshotDelete(rawSnapshots: MaybeRefOrGetter<FrontXoVmSnap
 
   const { t } = useI18n()
 
-  const { run, canRun, isRunning } = useXoVmSnapshotDeleteJob(snapshots)
+  const { run, canRun: canDeleteVmSnapshots, isRunning: isDeletingVmSnapshots } = useXoVmSnapshotDeleteJob(snapshots)
 
   const { open } = useDeleteModal()
 
@@ -35,5 +35,5 @@ export function useVmSnapshotDelete(rawSnapshots: MaybeRefOrGetter<FrontXoVmSnap
     })
   }
 
-  return { deleteVmSnapshots, canRun, isRunning }
+  return { deleteVmSnapshots, canDeleteVmSnapshots, isDeletingVmSnapshots }
 }

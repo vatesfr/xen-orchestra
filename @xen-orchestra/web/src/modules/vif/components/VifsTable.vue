@@ -107,17 +107,17 @@ const { HeadCells, BodyCells } = useVifNetworkColumns({
       network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
     )
 
-    const { deleteVifs, canRun: canDeleteVif, isRunning: isDeletingVif } = useVifDelete(() => [vif])
+    const { deleteVifs, canDeleteVifs, isDeletingVifs } = useVifDelete(() => [vif])
 
     const {
-      connectVif,
-      disconnectVif,
-      canConnectVif,
-      canDisconnectVif,
-      isConnectingVif,
-      isDisconnectingVif,
-      connectVifErrorMessage,
-      disconnectVifErrorMessage,
+      connectVifs,
+      disconnectVifs,
+      canConnectVifs,
+      canDisconnectVifs,
+      isConnectingVifs,
+      isDisconnectingVifs,
+      connectVifsErrorMessage,
+      disconnectVifsErrorMessage,
     } = useVifConnection({
       vifs: () => [vif],
       vm: () => vm,
@@ -129,18 +129,18 @@ const { HeadCells, BodyCells } = useVifNetworkColumns({
         connect: {
           label: t('action:connect'),
           icon: 'action:connect',
-          onClick: () => connectVif(),
-          disabled: !canConnectVif.value,
-          busy: isConnectingVif.value,
-          hint: canConnectVif.value ? undefined : connectVifErrorMessage.value,
+          onClick: () => connectVifs(),
+          disabled: !canConnectVifs.value,
+          busy: isConnectingVifs.value,
+          hint: canConnectVifs.value ? undefined : connectVifsErrorMessage.value,
         } satisfies ActionItem,
         disconnect: {
           label: t('action:disconnect'),
           icon: 'action:disconnect',
-          onClick: () => disconnectVif(),
-          disabled: !canDisconnectVif.value,
-          busy: isDisconnectingVif.value,
-          hint: canDisconnectVif.value ? undefined : disconnectVifErrorMessage.value,
+          onClick: () => disconnectVifs(),
+          disabled: !canDisconnectVifs.value,
+          busy: isDisconnectingVifs.value,
+          hint: canDisconnectVifs.value ? undefined : disconnectVifsErrorMessage.value,
         } satisfies ActionItem,
       }),
       'connect'
@@ -174,11 +174,11 @@ const { HeadCells, BodyCells } = useVifNetworkColumns({
             connectionAction.value,
             {
               label: t('action:delete'),
-              hint: !canDeleteVif.value ? t('vif-connected') : undefined,
+              hint: !canDeleteVifs.value ? t('vif-connected') : undefined,
               icon: 'action:delete',
               onClick: () => deleteVifs(),
-              disabled: !canDeleteVif.value,
-              busy: isDeletingVif.value,
+              disabled: !canDeleteVifs.value,
+              busy: isDeletingVifs.value,
             },
           ],
         }),

@@ -12,17 +12,17 @@ export function useVbdConnection(options: { vbds: MaybeRefOrGetter<FrontXoVbd[]>
   const vm = toComputed(options.vm)
 
   const {
-    run: connectVbds,
-    canRun: canConnectVbd,
-    isRunning: isConnectingVbd,
-    errorMessage: connectVbdErrorMessage,
+    run: runConnect,
+    canRun: canConnectVbds,
+    isRunning: isConnectingVbds,
+    errorMessage: connectVbdsErrorMessage,
   } = useXoVbdConnectJob(vbds, vm)
 
   const {
-    run: disconnectVbds,
-    canRun: canDisconnectVbd,
-    isRunning: isDisconnectingVbd,
-    errorMessage: disconnectVbdErrorMessage,
+    run: runDisconnect,
+    canRun: canDisconnectVbds,
+    isRunning: isDisconnectingVbds,
+    errorMessage: disconnectVbdsErrorMessage,
   } = useXoVbdDisconnectJob(vbds, vm)
 
   const { open } = useOverlay({
@@ -33,7 +33,7 @@ export function useVbdConnection(options: { vbds: MaybeRefOrGetter<FrontXoVbd[]>
     },
   })
 
-  function connectVbd() {
+  function connectVbds() {
     return open({
       props: {
         action: CONNECTION_ACTION.CONNECT,
@@ -42,7 +42,7 @@ export function useVbdConnection(options: { vbds: MaybeRefOrGetter<FrontXoVbd[]>
       events: {
         onConfirm: async () => {
           try {
-            await connectVbds()
+            await runConnect()
           } catch (error) {
             console.error('Error when connecting VBD:', error)
           }
@@ -51,7 +51,7 @@ export function useVbdConnection(options: { vbds: MaybeRefOrGetter<FrontXoVbd[]>
     })
   }
 
-  function disconnectVbd() {
+  function disconnectVbds() {
     return open({
       props: {
         action: CONNECTION_ACTION.DISCONNECT,
@@ -60,7 +60,7 @@ export function useVbdConnection(options: { vbds: MaybeRefOrGetter<FrontXoVbd[]>
       events: {
         onConfirm: async () => {
           try {
-            await disconnectVbds()
+            await runDisconnect()
           } catch (error) {
             console.error('Error when disconnecting VBD:', error)
           }
@@ -70,13 +70,13 @@ export function useVbdConnection(options: { vbds: MaybeRefOrGetter<FrontXoVbd[]>
   }
 
   return {
-    connectVbd,
-    disconnectVbd,
-    canConnectVbd,
-    canDisconnectVbd,
-    isConnectingVbd,
-    isDisconnectingVbd,
-    connectVbdErrorMessage,
-    disconnectVbdErrorMessage,
+    connectVbds,
+    disconnectVbds,
+    canConnectVbds,
+    canDisconnectVbds,
+    isConnectingVbds,
+    isDisconnectingVbds,
+    connectVbdsErrorMessage,
+    disconnectVbdsErrorMessage,
   }
 }

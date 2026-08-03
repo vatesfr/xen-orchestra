@@ -28,7 +28,7 @@
 <script lang="ts" setup>
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useVmProtectedInfoModal } from '@/shared/composables/modals/use-vm-protected-info-modal'
+import { useVmProtectedInfoModal } from '@/shared/composables/modals/use-vm-protected-info-modal.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'

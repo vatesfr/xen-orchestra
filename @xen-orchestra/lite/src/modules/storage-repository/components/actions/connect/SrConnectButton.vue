@@ -1,18 +1,18 @@
 <template>
   <UiButton
-    v-tooltip="!canConnectSr && connectSrErrorMessage"
+    v-tooltip="!canConnectSrs && connectSrsErrorMessage"
     size="medium"
     variant="tertiary"
     accent="brand"
-    :disabled="!canConnectSr"
+    :disabled="!canConnectSrs"
     left-icon="action:connect"
-    :busy="isConnectingSr"
-    @click="connectSr()"
+    :busy="isConnectingSrs"
+    @click="connectSrs()"
   >
     {{ t('action:connect') }}
     <UiCounter
       v-if="isPartiallyConnectedInScope"
-      :value="connectTargetCount"
+      :value="connectionTargetCount"
       accent="brand"
       variant="secondary"
       size="small"
@@ -42,7 +42,7 @@ const { isPartiallyConnectedInScope } = useSrUtils(
 
 const { t } = useI18n()
 
-const { connectSr, canConnectSr, isConnectingSr, connectSrErrorMessage, connectTargetCount } = useSrConnection({
+const { connectSrs, canConnectSrs, isConnectingSrs, connectSrsErrorMessage, connectionTargetCount } = useSrConnection({
   srs: () => [sr],
   scope: () => scope,
 })

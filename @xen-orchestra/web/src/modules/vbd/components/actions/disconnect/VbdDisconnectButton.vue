@@ -1,13 +1,13 @@
 <template>
   <UiButton
-    v-tooltip="!canDisconnectVbd && disconnectVbdErrorMessage"
+    v-tooltip="!canDisconnectVbds && disconnectVbdsErrorMessage"
     size="medium"
     variant="tertiary"
     accent="brand"
-    :disabled="!canDisconnectVbd"
+    :disabled="!canDisconnectVbds"
     left-icon="action:disconnect"
-    :busy="isDisconnectingVbd"
-    @click="disconnectVbd()"
+    :busy="isDisconnectingVbds"
+    @click="disconnectVbds()"
   >
     {{ t('action:disconnect') }}
   </UiButton>
@@ -28,7 +28,7 @@ const { vbd, vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { disconnectVbd, canDisconnectVbd, isDisconnectingVbd, disconnectVbdErrorMessage } = useVbdConnection({
+const { disconnectVbds, canDisconnectVbds, isDisconnectingVbds, disconnectVbdsErrorMessage } = useVbdConnection({
   vbds: () => [vbd],
   vm: () => vm,
 })

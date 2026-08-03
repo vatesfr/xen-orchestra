@@ -1,13 +1,13 @@
 <template>
   <UiButton
-    v-tooltip="!canConnectVbd && connectVbdErrorMessage"
+    v-tooltip="!canConnectVbds && connectVbdsErrorMessage"
     size="medium"
     variant="tertiary"
     accent="brand"
-    :disabled="!canConnectVbd"
+    :disabled="!canConnectVbds"
     left-icon="action:connect"
-    :busy="isConnectingVbd"
-    @click="connectVbd()"
+    :busy="isConnectingVbds"
+    @click="connectVbds()"
   >
     {{ t('action:connect') }}
   </UiButton>
@@ -28,7 +28,7 @@ const { vbd, vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { connectVbd, canConnectVbd, isConnectingVbd, connectVbdErrorMessage } = useVbdConnection({
+const { connectVbds, canConnectVbds, isConnectingVbds, connectVbdsErrorMessage } = useVbdConnection({
   vbds: () => [vbd],
   vm: () => vm,
 })

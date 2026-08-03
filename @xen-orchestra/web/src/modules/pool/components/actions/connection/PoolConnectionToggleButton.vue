@@ -2,26 +2,26 @@
   <template v-if="server">
     <UiButton
       v-if="server.status === 'connected'"
-      v-tooltip="!canDisconnect ? disconnectErrorMessage : undefined"
+      v-tooltip="!canDisconnectServer ? disconnectServerErrorMessage : undefined"
       left-icon="action:disconnect"
       variant="tertiary"
       accent="danger"
       size="medium"
-      :disabled="!canDisconnect"
-      :busy="isDisconnecting"
+      :disabled="!canDisconnectServer"
+      :busy="isDisconnectingServer"
       @click="disconnectServer()"
     >
       {{ t('action:disconnect-pool') }}
     </UiButton>
     <UiButton
       v-else
-      v-tooltip="!canConnect ? connectErrorMessage : undefined"
+      v-tooltip="!canConnectServer ? connectServerErrorMessage : undefined"
       left-icon="action:connect"
       variant="tertiary"
       accent="brand"
       size="medium"
-      :disabled="!canConnect"
-      :busy="isConnecting"
+      :disabled="!canConnectServer"
+      :busy="isConnectingServer"
       @click="handleConnect()"
     >
       {{ t('action:connect-pool') }}
@@ -52,22 +52,18 @@ const server = computed(() => getServerById(serverId))
 const serverIdArg = computed(() => serverId)
 
 const {
-  isRunning: isConnecting,
-  canRun: canConnect,
-  errorMessage: connectErrorMessage,
-  run: connect,
+  run: connectServer,
+  canRun: canConnectServer,
+  isRunning: isConnectingServer,
+  errorMessage: connectServerErrorMessage,
 } = useXoServerConnectJob([serverIdArg])
 
-const {
-  disconnectServer,
-  canRun: canDisconnect,
-  isRunning: isDisconnecting,
-  errorMessage: disconnectErrorMessage,
-} = useServerDisconnect(() => serverId)
+const { disconnectServer, canDisconnectServer, isDisconnectingServer, disconnectServerErrorMessage } =
+  useServerDisconnect(() => serverId)
 
 async function handleConnect() {
   try {
-    await connect()
+    await connectServer()
   } catch (error) {
     console.error('Error when connecting server:', error)
   }

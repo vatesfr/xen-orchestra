@@ -1,9 +1,9 @@
 <template>
-  <MenuItem icon="action:disconnect" :disabled="!canDisconnectSr" :busy="isDisconnectingSr" @click="disconnectSr()">
+  <MenuItem icon="action:disconnect" :disabled="!canDisconnectSrs" :busy="isDisconnectingSrs" @click="disconnectSrs()">
     {{ t('action:disconnect') }}
     <UiCounter
-      v-if="shouldShowTargetCount(scope, disconnectTargetCount)"
-      :value="disconnectTargetCount"
+      v-if="shouldShowTargetCount(scope, disconnectionTargetCount)"
+      :value="disconnectionTargetCount"
       accent="brand"
       variant="secondary"
       size="small"
@@ -29,11 +29,11 @@ const { sr, scope } = defineProps<{
 
 const { t } = useI18n()
 
-const { disconnectSr, canDisconnectSr, isDisconnectingSr, disconnectSrErrorMessage, disconnectTargetCount } =
+const { disconnectSrs, canDisconnectSrs, isDisconnectingSrs, disconnectSrsErrorMessage, disconnectionTargetCount } =
   useSrConnection({
     srs: () => [sr],
     scope: () => scope,
   })
 
-const hint = computed(() => (!canDisconnectSr.value ? disconnectSrErrorMessage.value : undefined))
+const hint = computed(() => (!canDisconnectSrs.value ? disconnectSrsErrorMessage.value : undefined))
 </script>

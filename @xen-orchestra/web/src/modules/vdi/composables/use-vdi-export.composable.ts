@@ -10,7 +10,7 @@ export function useVdiExport(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
   const vdi = toComputed(rawVdi)
   const selectedFormat = ref<VdiExportFormat>(SUPPORTED_VDI_FORMAT.vhd)
 
-  const { run, isRunning } = useXoVdiExportJob(vdi, selectedFormat)
+  const { run, isRunning: isExportingVdi } = useXoVdiExportJob(vdi, selectedFormat)
 
   const { open: exportVdi } = useOverlay({
     component: () => import('@/modules/vdi/components/drawer/VdiExportDrawer.vue'),
@@ -27,5 +27,5 @@ export function useVdiExport(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
     },
   })
 
-  return { exportVdi, isRunning }
+  return { exportVdi, isExportingVdi }
 }
