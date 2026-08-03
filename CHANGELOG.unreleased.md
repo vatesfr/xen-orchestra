@@ -23,6 +23,7 @@
 - [Immutable backups] Backups are protected again on file servers whose system language is not English: immutability was silently not applied at all on those (PR [#10182](https://github.com/vatesfr/xen-orchestra/pull/10182))
 - [Immutable backups] Release disks that stayed immutable forever after their metadata was deleted by the retention, or after a merge renamed them, which prevented any further merge or deletion of that disk's backups (PR [#10182](https://github.com/vatesfr/xen-orchestra/pull/10182))
 - [Plugins/load balancer] No longer try to migrate VMs to disabled host (PR [#10209](https://github.com/vatesfr/xen-orchestra/pull/10209))
+- [V2V] Improve performance on big VM (>3 To) imports by improving Nbd disk handling (PR [#10157](https://github.com/vatesfr/xen-orchestra/pull/10157))
 
 ### Packages to release
 
@@ -40,6 +41,7 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/immutable-backups patch
