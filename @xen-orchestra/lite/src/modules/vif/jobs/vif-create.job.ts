@@ -1,4 +1,4 @@
-import type { XenApiNetwork, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import type { XenApiNetwork, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { newVifPayloadArg } from '@/modules/vif/jobs/new-vif-args.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import type { IpAddress } from '@core/utils/ip-address.utils.ts'
@@ -26,7 +26,14 @@ export const useXoVifCreateJob = defineJob('vif.create', [newVifPayloadArg], () 
   const { t } = useI18n()
 
   return {
-    run: payload => xapi.vif.create(payload),
+    run(payloads): Promise<PromiseSettledResult<XenApiVif['$ref']>[]> {
+      return Promise.allSettled(
+        payloads.map(async payload => {
+          const [vifRef] = await xapi.vif.create([payload])
+          return vifRef
+        })
+      )
+    },
     validate: (isRunning, vif) => {
       if (vif.length === 0) {
         throw new JobError(t('job:vm-start:missing-vm'))

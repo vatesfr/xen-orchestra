@@ -26,7 +26,7 @@
       </VtsOperationErrorCard>
       <UiCard v-show="canDisplayForm">
         <UiTitle>{{ t('configuration') }}</UiTitle>
-        <NewVifForm v-if="vm" :vm-id="vm.$ref" :cancel-to="cancelRoute" @create="createVif" />
+        <NewVifForm v-if="vm" :vm-ref="vm.$ref" :cancel-to="cancelRoute" @create="createVif" />
       </UiCard>
     </template>
   </div>

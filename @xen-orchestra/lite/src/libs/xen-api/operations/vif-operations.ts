@@ -2,6 +2,7 @@ import type XenApi from '@/libs/xen-api/xen-api'
 import type { XenApiNetwork, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import type { MaybeArray } from '@core/types/utility.type'
 import { toArray } from '@core/utils/to-array.utils'
+import type { VIF_LOCKING_MODE } from '@vates/types'
 
 export function createVifOperations(xenApi: XenApi) {
   type VifRefs = MaybeArray<XenApiVif['$ref']>
@@ -16,6 +17,9 @@ export function createVifOperations(xenApi: XenApi) {
     network: NetworkRef
     MAC?: string
     MTU?: number
+    ipv4_allowed?: string[]
+    ipv6_allowed?: string[]
+    locking_mode?: VIF_LOCKING_MODE
     other_config?: Record<string, any>
     qos_algorithm_params?: Record<string, any>
     qos_algorithm_type?: string
@@ -32,6 +36,9 @@ export function createVifOperations(xenApi: XenApi) {
           network,
           MAC = '',
           MTU,
+          ipv4_allowed,
+          ipv6_allowed,
+          locking_mode,
           other_config = {},
           qos_algorithm_params = {},
           qos_algorithm_type = '',
@@ -53,6 +60,9 @@ export function createVifOperations(xenApi: XenApi) {
           network,
           MAC,
           MTU,
+          ipv4_allowed,
+          ipv6_allowed,
+          locking_mode,
           other_config,
           qos_algorithm_params,
           qos_algorithm_type,
