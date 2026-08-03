@@ -10,6 +10,7 @@ export default {
   forget: true,
   'join-pool': true,
   'migrate-receive': true,
+  'mount-live-disk': true,
   read: true,
   reboot: {
     clean: true,
