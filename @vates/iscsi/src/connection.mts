@@ -52,6 +52,20 @@ export function addSerial(value: number, delta: number): number {
   return (value + delta) % SERIAL_MODULO
 }
 
+/**
+ * Initiator opcodes whose BHS bytes 24-27 are CmdSN. The two that are missing —
+ * SCSI Data-Out and SNACK — have those bytes reserved instead; see the comment
+ * on `Connection`'s `#updateCommandWindow` for what reading them would cost.
+ */
+const CARRIES_CMD_SN: ReadonlySet<number> = new Set([
+  InitiatorOpcode.NOP_OUT,
+  InitiatorOpcode.SCSI_COMMAND,
+  InitiatorOpcode.SCSI_TASK_MGMT_REQUEST,
+  InitiatorOpcode.LOGIN_REQUEST,
+  InitiatorOpcode.TEXT_REQUEST,
+  InitiatorOpcode.LOGOUT_REQUEST,
+])
+
 /** Everything a {@link Connection} needs from the owning target. */
 export interface ConnectionDeps {
   readonly iqn: string
@@ -174,8 +188,28 @@ export class Connection implements CommandContext {
 
   // --- sequencing -----------------------------------------------------------
 
-  /** Advance the command window from a freshly received PDU. */
+  /**
+   * Advance the command window from a freshly received PDU — but only from one
+   * that actually carries a CmdSN.
+   *
+   * BHS bytes 24-27 hold CmdSN on command PDUs only; on a SCSI Data-Out (RFC
+   * 7143 §11.7) and a SNACK they are reserved, as is the immediate bit. An
+   * initiator zeroes them, so treating such a PDU as a command reads CmdSN=0,
+   * takes the non-immediate branch, and rewinds the window to ExpCmdSN=1 /
+   * MaxCmdSN=1+window — then advertises it on the very next R2T, SCSI Response,
+   * or concurrent READ's Data-In. Initiators discard the rewind as stale only
+   * while the session's CmdSN stays below 2^31; past that it compares as newer
+   * under serial arithmetic, is adopted, and the window collapses into a stall.
+   *
+   * Since every WRITE is R2T-solicited (InitialR2T=Yes), Data-Out is the common
+   * case, not an edge one. Allowlisting the opcodes that do carry CmdSN, rather
+   * than skipping the two that don't, keeps a newly handled opcode from
+   * silently inheriting the bug.
+   */
   #updateCommandWindow(pdu: IncomingPdu): void {
+    if (!CARRIES_CMD_SN.has(pdu.opcode)) {
+      return
+    }
     const cmdSN = pdu.cmdSN
     if (!this.#cmdSNInitialized) {
       this.#expCmdSN = cmdSN

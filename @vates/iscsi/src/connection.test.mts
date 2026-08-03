@@ -260,6 +260,91 @@ const withSession = async (body: (harness: Harness) => Promise<void>, overrides?
   }
 }
 
+const CMD_WINDOW = 64
+/** ExpCmdSN (bytes 28-31) and MaxCmdSN (32-35), the command window we advertise. */
+const commandWindow = (pdu: IncomingPdu) => ({ expCmdSN: pdu.readU32(28), maxCmdSN: pdu.readU32(32) })
+
+describe('command window', () => {
+  // Bytes 24-27 are CmdSN only on command PDUs. On a Data-Out (RFC 7143 §11.7)
+  // and a SNACK they are reserved, so reading a window out of them yields the
+  // zeroes an initiator puts there — advertising ExpCmdSN=1 mid-session. Real
+  // initiators discard that as stale only while session CmdSN < 2^31; past the
+  // wrap it compares as newer, is adopted, and the window collapses to a stall.
+  it('is not recomputed from the reserved bytes of a Data-Out', async () => {
+    await withSession(async harness => {
+      // two bursts, so an R2T is emitted *after* a Data-Out has been processed
+      harness.socket.deliver(scsiCommandPdu({ itt: 31, cmdSN: 50, cdb: write10(0, 2) }))
+      const [, firstR2t] = await harness.untilSent(2)
+      const expected = { expCmdSN: 51, maxCmdSN: 51 + CMD_WINDOW }
+      assert.deepEqual(commandWindow(firstR2t), expected)
+
+      const ttt = firstR2t.readU32(20)
+      harness.socket.deliver(
+        dataOutPdu({ itt: 31, targetTransferTag: ttt, bufferOffset: 0, data: Buffer.alloc(BLOCK_SIZE, 0x11) })
+      )
+
+      const [, , secondR2t] = await harness.untilSent(3)
+      assert.equal(secondR2t.opcode, TargetOpcode.R2T)
+      assert.deepEqual(commandWindow(secondR2t), expected)
+
+      harness.socket.deliver(
+        dataOutPdu({
+          itt: 31,
+          targetTransferTag: ttt,
+          bufferOffset: BLOCK_SIZE,
+          data: Buffer.alloc(BLOCK_SIZE, 0x22),
+          dataSN: 1,
+        })
+      )
+
+      const [, , , response] = await harness.untilSent(4)
+      assert.equal(response.opcode, TargetOpcode.SCSI_RESPONSE)
+      assert.deepEqual(commandWindow(response), expected)
+    })
+  })
+
+  it('is not recomputed from an opcode the target does not implement', async () => {
+    await withSession(async harness => {
+      harness.socket.deliver(scsiCommandPdu({ itt: 33, cmdSN: 70, cdb: read10(0, 1) }))
+      const [, dataIn] = await harness.untilSent(2)
+      const expected = { expCmdSN: 71, maxCmdSN: 71 + CMD_WINDOW }
+      assert.deepEqual(commandWindow(dataIn), expected)
+
+      // SNACK also has bytes 24-27 reserved; it is rejected, but the Reject it
+      // gets must still carry the window the session actually reached
+      const bhs = Buffer.alloc(48)
+      bhs[0] = InitiatorOpcode.SNACK_REQUEST
+      harness.socket.deliver(assemblePdu(bhs))
+
+      const [, , rejected] = await harness.untilSent(3)
+      assert.equal(rejected.opcode, TargetOpcode.REJECT)
+      assert.equal(rejected.readU8(2), RejectReason.COMMAND_NOT_SUPPORTED)
+      assert.deepEqual(commandWindow(rejected), expected)
+    })
+  })
+
+  it('advances the window for each command PDU, but not for an immediate one', async () => {
+    await withSession(async harness => {
+      harness.socket.deliver(scsiCommandPdu({ itt: 35, cmdSN: 5, cdb: read10(0, 1) }))
+      const [, dataIn] = await harness.untilSent(2)
+      assert.deepEqual(commandWindow(dataIn), { expCmdSN: 6, maxCmdSN: 6 + CMD_WINDOW })
+
+      // an immediate NOP-Out is answered but consumes no CmdSN slot
+      const bhs = Buffer.alloc(48)
+      bhs[0] = InitiatorOpcode.NOP_OUT | OPCODE_IMMEDIATE
+      bhs[1] = FLAG_FINAL
+      bhs.writeUInt32BE(37, 16)
+      bhs.writeUInt32BE(RESERVED_TAG, 20)
+      bhs.writeUInt32BE(6, 24)
+      harness.socket.deliver(assemblePdu(bhs))
+
+      const [, , nopIn] = await harness.untilSent(3)
+      assert.equal(nopIn.opcode, TargetOpcode.NOP_IN)
+      assert.deepEqual(commandWindow(nopIn), { expCmdSN: 6, maxCmdSN: 6 + CMD_WINDOW })
+    })
+  })
+})
+
 describe('login', () => {
   it('reaches full feature phase and only then accepts commands', async () => {
     const harness = new Harness()
