@@ -7,19 +7,15 @@ import { getCurrentVmUuid } from '../_XenStore.mjs'
 const getBackupRepositoryId = archiveId => archiveId.split('/')[0]
 
 /**
- * Resolution layer between XO objects and the `LiveMount` shared mixin: it
- * turns a backup archive id + disk id + SR id into a remote handler, a disk
- * path, this appliance's VM and a XAPI connection. The mounting itself lives in
- * `@xen-orchestra/mixins/live-mount/` so xo-proxy can reuse it, and so can any
- * future feature that mounts a disk from somewhere other than a backup.
+ * Resolution layer between XO objects and the `LiveMount` shared mixin: turns
+ * a backup archive id + disk id + SR id into a remote handler, disk path,
+ * appliance VM and XAPI connection.
  *
- * Observability: each mount gets its own XO task, created here (not in the
- * generic mixin, which has no `app.tasks`) and kept `pending` for as long as
- * the disk stays mounted — it only ends when `unmountBackupArchiveDisk` is
- * called. `LiveMount`'s own steps (open the source disk, start the iSCSI
- * target, introduce the SR/VDI, its cache-fill progress, …) already wrap
- * themselves in ambient `@vates/task` subtasks, so running the mount call
- * inside this task via `runInside` is all it takes for them to nest under it.
+ * Each mount gets its own long-lived XO task (created here, since the generic
+ * mixin has no `app.tasks`), kept pending until `unmountBackupArchiveDisk`.
+ * `LiveMount`'s steps already wrap themselves in ambient `@vates/task`
+ * subtasks, so running the mount call inside this task via `runInside` nests
+ * them under it for free.
  */
 export default class BackupDiskMountsResolver {
   #app

@@ -17,33 +17,17 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * Serve a disk as an iSCSI LUN and attach it, as an SR, to a host — so its
  * content is usable without copying it first.
  *
- * Caching is optional. When a cache is given, a local disk plugged into the
- * appliance's VM absorbs the reads: a block is fetched from the source only
- * the first time it is touched, everything else is served locally, and writes
- * are accepted into it too (so a written-to mount no longer matches its
- * source). Once every block has been read the cache disk holds a complete copy
- * of the source — see `hydrateDisk` to force that upfront. Without a cache,
- * every read goes straight to the source, writes are refused, and the mount
- * can target any host reachable by the caller: nothing needs to be plugged
- * into the appliance's own VM, so there is no constraint on which pool or SR
- * is involved.
+ * Caching is optional. With a cache, a local disk plugged into the
+ * appliance's VM absorbs reads (fetched from the source once, then served
+ * locally) and accepts writes, so a written-to mount no longer matches its
+ * source; once fully read, the cache is a complete copy (see `hydrateDisk` to
+ * force that). Without a cache, every read hits the source directly, writes
+ * are refused, and the mount can target any host — nothing needs to be
+ * plugged into the appliance's own VM.
  *
- * Nothing app-specific is read from `app` apart from `config` and `hooks`: the
- * source disk, the XAPI connection, the appliance's VM and the cache SR are all
- * passed in by the caller — so both xo-server and xo-proxy can use this mixin,
- * and so can any future feature built on it (booting a VM straight from a
- * backup, importing one from another hypervisor), each supplying its own way to
- * open the source disk.
- *
- * The implementation is split by concern, each module private to this
- * directory: `_target.mjs` (CHAP + the iSCSI target + SCSI probe), `_cache.mjs`
- * (the local cache disk), `_sr.mjs` (the SR/VDI introduced on the target host).
- * This file is the only public surface.
- *
- * Public methods are named `*Disk` even though the class itself is generic:
- * today it only ever mounts one disk at a time, and a future feature mounting
- * a whole VM (one call per disk, then a VM built on the results) belongs on its
- * own method rather than squatting on a bare `mount`/`unmount`.
+ * Only `app.config`/`app.hooks` are used from `app`: the source disk, XAPI
+ * connection, appliance VM and cache SR are all passed in by the caller, so
+ * both xo-server and xo-proxy can use this mixin.
  */
 export default class LiveMount {
   #app

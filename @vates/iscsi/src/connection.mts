@@ -72,34 +72,20 @@ export interface ConnectionDeps {
 type Phase = 'login' | 'fullFeature' | 'closed'
 
 /**
- * Drives one iSCSI connection: the login state machine, command-window /
- * StatSN sequencing, and dispatch of full-feature-phase PDUs. With
- * MaxConnections=1 a connection is also the whole session.
+ * Drives one iSCSI connection: login, command-window/StatSN sequencing, and
+ * full-feature-phase PDU dispatch. With MaxConnections=1 a connection is also
+ * the whole session.
  *
- * Implements {@link CommandContext} (used by the SCSI layer) and constructs a
- * {@link WriteTransport} for the R2T/Data-Out write path. Everything except
- * READ is processed one at a time — the read loop only advances once such a
- * command has fully completed, which is why the write path can read its own
- * Data-Out PDUs inline. READ is the one command dispatched without waiting for
- * its own I/O: {@link handleScsiCommand}'s `lun.read()` can be a slow fetch
- * (e.g. from a backup chain over the network), and letting it block the read
- * loop meant no other command — least of all another READ — could even start
- * until it finished. Up to `readConcurrency` of them now run at once, gated by
- * `#readGate`.
+ * Everything but READ runs one at a time; the read loop advances only once a
+ * command fully completes. READ is dispatched without waiting on its own
+ * `lun.read()` (can be a slow network fetch) — up to `readConcurrency` at
+ * once, via `#readGate` — so one slow read can't block every other command.
  *
- * This is safe without any extra response-ordering bookkeeping: StatSN is
- * allocated (`#nextStatSN()`) and handed to `socket.write()` synchronously,
- * with no `await` in between (see `sendReadData`/`sendScsiResponse`) — so
- * whichever command's completion callback the event loop happens to run first
- * is simply the one that gets the next StatSN and reaches the wire first, in
- * that same order. Node's single-threaded execution means two such pairs can
- * never interleave with each other, however many reads are in flight.
- *
- * One thing this does *not* guard against: a READ overlapping a concurrently
- * in-progress WRITE to the same LBA range can observe either the old or the
- * new bytes, same as an untagged (SIMPLE) SCSI command on a real array with no
- * ordering barrier between them — it is the initiator/filesystem's job to not
- * rely on ordering it never asked for.
+ * StatSN is allocated and written to the socket synchronously, with no
+ * `await` in between, so responses reach the wire in whatever order the event
+ * loop runs their completions — no extra sequencing needed. This does not
+ * order a READ against a concurrent WRITE to the same LBA range: it may see
+ * old or new bytes, like an untagged SCSI command with no ordering barrier.
  */
 export class Connection implements CommandContext {
   readonly #socket: Socket
@@ -354,10 +340,8 @@ export class Connection implements CommandContext {
   async #handleScsiCommand(pdu: IncomingPdu): Promise<void> {
     const cdb = pdu.bhs.subarray(32, 48)
     if (decodeCdb(cdb).kind === 'read') {
-      // Deliberately not awaited: the read loop must move on to the next PDU
-      // immediately rather than wait on this one's `lun.read()`. See the
-      // class-level doc comment for why this needs no response-ordering
-      // bookkeeping of its own.
+      // Not awaited: the read loop must move on immediately rather than block on
+      // this `lun.read()`. See the class doc for why no extra ordering is needed.
       void this.#readGate
         .run(() => handleScsiCommand(cdb, pdu.itt, this, this.#deps.identity))
         .catch(error => {

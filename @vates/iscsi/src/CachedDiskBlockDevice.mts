@@ -35,25 +35,16 @@ export interface CachedDiskBlockDeviceOptions {
 }
 
 /**
- * A read-write {@link BlockDevice} that serves a {@link RandomAccessDisk}
- * through a local writable store, materializing each source block into it the
- * first time it is needed.
+ * A read-write {@link BlockDevice} over a {@link RandomAccessDisk}, backed by
+ * a local writable store: each source block is materialized into the store
+ * the first time it's needed, tracked by a bitmap so repeat access never goes
+ * back to the source. Call {@link hydrate} to force the whole disk in upfront.
  *
- * A bitmap tracks which source blocks are present in the cache; everything else
- * — reads, and the parts of a write that are not overwritten — is served from
- * the cache, so repeated access never goes back to the source. Once every block
- * has been materialized the cache holds the whole disk, which is why a fully
- * read mount leaves behind something equivalent to a restored disk.
+ * Blocks the source doesn't have are marked present without being written —
+ * relies on the store reading as zero where nothing was ever written.
  *
- * Writes are accepted and land in the cache only: the source is never written
- * to, so the mount diverges from it as soon as anything writes.
- *
- * Blocks the source does not have are *not* written: they are marked present and
- * read straight from the cache, which assumes the cache reads as zeroes where it
- * has never been written.
- *
- * Materialization is otherwise on demand only; call {@link hydrate} to force the
- * whole source into the cache upfront instead of waiting for something to read it.
+ * Writes land in the store only; the source is never written to, so the
+ * mount diverges from it as soon as anything writes.
  */
 export class CachedDiskBlockDevice implements BlockDevice {
   readonly #disk: RandomAccessDisk

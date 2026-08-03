@@ -17,16 +17,15 @@ const OC_MOUNT = 'xo:live-mount'
 // Our target exposes exactly one LUN, numbered 0.
 const LUN_ID = '0'
 
-// `sm_config` can only be set when a VDI is introduced, never afterwards (it is
-// StaticRO), which is why this module introduces the VDI itself instead of
-// letting a scan do it.
+// see introduceVdi: sm_config is StaticRO, so this module introduces the VDI
+// itself rather than letting a scan do it
 const IMAGE_FORMAT_RAW = 'raw'
 
 /**
  * Introduce the SR for the LUN on `hostRef` and plug it there.
  *
- * `SR.introduce`, not `SR.create`: create would scan, and a scan introduces the
- * VDI itself with an sm_config we could no longer amend.
+ * `SR.introduce`, not `SR.create`: create would scan and introduce the VDI
+ * itself (see `introduceVdi`), before we get a chance to set `sm_config`.
  */
 export async function introduceSr($defer, { xapi, hostRef, deviceConfig, id, nameLabel, diskPath }) {
   return Task.run({ properties: { name: 'introduce SR' } }, async () => {
@@ -52,9 +51,8 @@ export async function introduceSr($defer, { xapi, hostRef, deviceConfig, id, nam
     $defer.onFailure(() => forgetSr(xapi, srRef))
 
     await xapi.setFieldEntry('SR', srRef, 'other_config', OC_MOUNT, id)
-    // A scan would introduce the LUN as a VDI on its own, with an sm_config we
-    // could no longer amend, so make sure none is triggered at boot. Unlike with
-    // `SR_create`, nothing else writes this key here.
+    // disable the auto-scan that would otherwise introduce the VDI itself (see
+    // introduceVdi); nothing else writes this key
     await xapi.setFieldEntry('SR', srRef, 'other_config', 'auto-scan', 'false')
 
     return { srRef, srUuid }
@@ -69,18 +67,15 @@ export async function forgetSr(xapi, srRef) {
 }
 
 /**
- * Introduce the LUN as a VDI ourselves, which is the only way to choose its
- * `sm_config`: that field is StaticRO, so a scan-introduced VDI could never be
- * amended afterwards.
+ * Introduce the LUN as a VDI ourselves — the only way to set `sm_config`,
+ * which is StaticRO and can never be amended after introduction.
  *
- * `LUNid` is what the driver needs to find the device; it fills `SCSIid` and
- * `backend-kind` in itself, keeping the keys we pass.
+ * `LUNid` is what the driver needs to find the device; it fills in `SCSIid`
+ * and `backend-kind` itself.
  *
- * `readOnly` states the intent but the driver ignores it either way —
- * `RAWVDI.introduce()` ends in `_db_introduce()`, which builds the record from
- * the driver's own VDI object, the same reason the resulting uuid is not the
- * one asked for. The LUN itself is what actually enforces it: cached mounts
- * accept writes into the cache disk, uncached ones throw on write.
+ * `readOnly` only states intent: the driver ignores it (and derives its own
+ * uuid too, in `_db_introduce()`), so the LUN itself enforces it instead —
+ * cached mounts accept writes into the cache, uncached ones throw.
  */
 export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath, readOnly }) {
   return Task.run({ properties: { name: 'introduce VDI' } }, async () => {

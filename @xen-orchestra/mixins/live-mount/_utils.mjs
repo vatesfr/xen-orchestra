@@ -13,13 +13,9 @@ const PROGRESS_THROTTLE_MS = 5e3
 const PROGRESS_THROTTLE_STEP = 0.01
 
 /**
- * Reports a mount's cache-fill progress onto a dedicated `caching` subtask
- * (built by {@link createCachingTask}), independently of the mount's own
- * long-lived task: block materialization can happen off any call stack (an
- * on-demand SCSI read arrives from the network, with nothing ambient to pick
- * up through `AsyncLocalStorage`), and can go on long after the mount call
- * itself has returned — hence a *retained* reference, not `Task.set`'s usual
- * ambient convention.
+ * Reports cache-fill progress on a retained `caching` subtask rather than via
+ * `Task.set`'s ambient convention: materialization can be triggered from an
+ * arbitrary call stack (a raw SCSI read has no ambient task to attach to).
  */
 class CachingProgressHandler {
   #task
@@ -60,11 +56,10 @@ class CachingProgressHandler {
 
 /**
  * A subtask, nested under whatever `@vates/task` is ambient, tracking one
- * mount's overall cache-fill progress for as long as the mount lives — not
- * just for the duration of one `hydrateDisk` call, since the same progress
- * can just as well come from a guest reading the whole disk on its own.
- * Ended in success by {@link CachingProgressHandler#done}, or, if the mount
- * is torn down first, by the caller.
+ * mount's cache-fill progress for as long as the mount lives — not just one
+ * {@link hydrateDisk} call, since progress can equally come from a guest
+ * reading the disk on its own. Ended by {@link CachingProgressHandler#done},
+ * or by the caller if the mount is torn down first.
  */
 export function createCachingTask() {
   const task = new Task({ properties: { name: 'caching' } })
