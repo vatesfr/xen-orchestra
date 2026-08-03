@@ -303,7 +303,7 @@ export class HostService {
       target: string
       chapuser?: string
       chappassword?: string
-      port?: number
+      port?: string
     }
 
     const deviceConfig: DeviceConfig = {
@@ -318,7 +318,7 @@ export class HostService {
 
     //  if we give another port than default iSCSI
     if (port) {
-      deviceConfig.port = port as number
+      deviceConfig.port = String(port)
     }
 
     let xml: ReturnType<typeof parseXml>
@@ -364,11 +364,10 @@ export class HostService {
       targetIQN: string
       chapuser?: string
       chappassword?: string
-      port?: number
+      port?: string
     }
 
     const deviceConfig: DeviceConfig = {
-      //
       target: targetIp,
       targetIQN: targetIqn,
     }
@@ -381,7 +380,7 @@ export class HostService {
 
     //  if we give another port than default iSCSI
     if (port) {
-      deviceConfig.port = port as number
+      deviceConfig.port = String(port)
     }
 
     let xml: ReturnType<typeof parseXml>
@@ -425,7 +424,7 @@ export class HostService {
       target: string
       targetIQN: string
       SCSIid: string
-      port?: number
+      port?: string
       chapuser?: string
       chappassword?: string
     }
@@ -444,7 +443,7 @@ export class HostService {
 
     //  if we give another port than default iSCSI
     if (port) {
-      deviceConfig.port = port as number
+      deviceConfig.port = String(port)
     }
 
     const xml = parseXml(await xapi.call('SR.probe', xapiHost.$ref, deviceConfig, 'lvmoiscsi', {}))
