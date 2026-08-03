@@ -286,6 +286,52 @@ describe('hydrate', () => {
     assert.deepEqual(disk.readBlockCalls, [])
   })
 
+  it('stops on an aborted signal, keeping what it already cached', async () => {
+    const disk = new StubDisk(new Set([0, 1, 2, 3]))
+    const cache = new StubCache()
+    const device = new CachedDiskBlockDevice({ disk, cache })
+    await device.open()
+
+    // every block but the first parks, so the hydration is still mid-flight
+    // when it is aborted
+    let release = () => {}
+    const parked = new Promise<void>(resolve => {
+      release = resolve
+    })
+    disk.readBlock = async index => {
+      if (index > 0) {
+        await parked
+      }
+      return { index, data: Buffer.alloc(DISK_BLOCK_SIZE, index) }
+    }
+    const controller = new AbortController()
+
+    const hydrating = device.hydrate({ concurrency: 1, signal: controller.signal })
+    for (let turn = 0; turn < 20 && device.getMaterialized().blocks === 0; turn++) {
+      await new Promise(resolve => setImmediate(resolve))
+    }
+    assert.deepEqual(device.getMaterialized(), { blocks: 1, total: BLOCK_COUNT })
+
+    controller.abort()
+
+    // aborting is a failure, not a silent partial success
+    await assert.rejects(hydrating)
+    // and the block already cached stays cached, so a later hydration resumes
+    assert.deepEqual(device.getMaterialized(), { blocks: 1, total: BLOCK_COUNT })
+    release() // let the parked fetch finish rather than leaving it dangling
+  })
+
+  it('refuses to start on an already-aborted signal', async () => {
+    const { device, disk } = await make()
+    const controller = new AbortController()
+    controller.abort()
+
+    await assert.rejects(device.hydrate({ signal: controller.signal }))
+
+    assert.deepEqual(disk.readBlockCalls, [])
+    assert.deepEqual(device.getMaterialized(), { blocks: 0, total: BLOCK_COUNT })
+  })
+
   it('respects the concurrency limit', async () => {
     const disk = new StubDisk(new Set([0, 1, 2, 3]))
     const cache = new StubCache()

@@ -179,19 +179,25 @@ export default class BackupDiskMountsResolver {
    * @param {string} id - identifier returned by `mountBackupArchiveDisk`; must have been mounted with an `srId`
    */
   async hydrateBackupArchiveDisk(id) {
-    const task = this.#tasks.get(id)
-    if (task === undefined) {
-      return this.#app.liveMount.hydrateDisk(id)
-    }
-    // a failed hydration must not fail the mount's own long-lived task: the
-    // disk is still mounted regardless, so the error is captured here and
-    // rethrown outside `runInside`, which would otherwise end `task` in failure
-    let error
-    const result = await task.runInside(() => this.#app.liveMount.hydrateDisk(id).catch(e => (error = e)))
-    if (error !== undefined) {
-      throw error
-    }
-    return result
+    // Deliberately *not* run inside the mount's long-lived task, for three
+    // reasons that all point the same way:
+    //
+    // - `runInside` admits a single occupant at a time (it asserts otherwise),
+    //   and a hydration holds it for as long as it runs — hours on a large
+    //   disk. `unmountBackupArchiveDisk` would then throw an AssertionError
+    //   instead of unmounting, having already dropped its `#tasks` entry, so
+    //   the mount task stayed pending forever with the disk still mounted.
+    // - the mount task's abort signal would become the only way to stop a
+    //   hydration, so "stop hydrating" and "unmount" could not be told apart.
+    // - a failed hydration must not fail the mount, since the disk stays
+    //   mounted either way — which previously took capturing the error and
+    //   rethrowing it outside `runInside`.
+    //
+    // Nothing is lost by not nesting: cache-fill progress is reported on the
+    // mount's `caching` subtask, held from mount time and independent of which
+    // call materializes a block, and this call is covered by the caller's own
+    // task the way any single-call action is.
+    return this.#app.liveMount.hydrateDisk(id)
   }
 
   listMountedBackupArchiveDisks() {

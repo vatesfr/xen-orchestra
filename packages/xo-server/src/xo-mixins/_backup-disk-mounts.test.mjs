@@ -141,4 +141,54 @@ describe('hydrateBackupArchiveDisk', () => {
     assert.deepEqual(result, { id: MOUNT_ID, materialized: { blocks: 1, total: 1 } })
     assert.equal(tasks[0].task.status, 'pending')
   })
+
+  // Hydrating a large disk takes hours. While it runs, the user must still be
+  // able to unmount — which is impossible if the hydration occupies the mount
+  // task, since `runInside` admits one occupant at a time and asserts on the
+  // second. That assertion used to fire *after* `unmountBackupArchiveDisk` had
+  // dropped its `#tasks` entry, so the mount task was left pending forever and
+  // the disk stayed mounted.
+  it('does not lock the mount task, so an unmount can land mid-hydration', async () => {
+    let finishHydration
+    const { app, tasks } = makeApp({
+      hydrateDisk: () => new Promise(resolve => (finishHydration = resolve)),
+    })
+    const resolver = new BackupDiskMountsResolver(app)
+    await resolver.mountBackupArchiveDisk({ archiveId: ARCHIVE_ID, diskId: DISK_ID, hostId: 'host-id' })
+
+    const hydrating = resolver.hydrateBackupArchiveDisk(MOUNT_ID)
+    await new Promise(resolve => setImmediate(resolve))
+
+    // the unmount goes through instead of throwing an AssertionError...
+    await resolver.unmountBackupArchiveDisk(MOUNT_ID)
+    // ... and the mount task is properly ended rather than orphaned
+    assert.equal(tasks[0].task.status, 'success')
+
+    finishHydration({ id: MOUNT_ID, materialized: { blocks: 1, total: 1 } })
+    await hydrating
+  })
+
+  it('does not lock the mount task against a second hydration either', async () => {
+    let running = 0
+    let maxRunning = 0
+    const releases = []
+    const { app } = makeApp({
+      hydrateDisk: () =>
+        new Promise(resolve => {
+          maxRunning = Math.max(maxRunning, ++running)
+          releases.push(resolve)
+        }),
+    })
+    const resolver = new BackupDiskMountsResolver(app)
+    await resolver.mountBackupArchiveDisk({ archiveId: ARCHIVE_ID, diskId: DISK_ID, hostId: 'host-id' })
+
+    const first = resolver.hydrateBackupArchiveDisk(MOUNT_ID)
+    const second = resolver.hydrateBackupArchiveDisk(MOUNT_ID)
+    await new Promise(resolve => setImmediate(resolve))
+
+    assert.equal(maxRunning, 2)
+    releases.forEach(release => release({ id: MOUNT_ID }))
+    await first
+    await second
+  })
 })
