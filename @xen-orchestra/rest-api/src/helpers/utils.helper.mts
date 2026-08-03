@@ -11,9 +11,12 @@ export const BASE_URL = '/rest/v0'
 =======
 import { XMLParser } from 'fast-xml-parser'
 
+<<<<<<< HEAD
 export { default as forEach } from 'lodash/forEach.js'
 
 >>>>>>> 573b4ae74 (adding ensureArray, parseXml, forEach to rest-api helpers)
+=======
+>>>>>>> 1a5638fa5 (remove unused export in utils)
 export const NDJSON_CONTENT_TYPE = 'application/x-ndjson'
 
 const log = createLogger('xo:rest-api:utils-helper')
