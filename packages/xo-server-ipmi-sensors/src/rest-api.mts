@@ -56,16 +56,14 @@ export function createIpmiRestRoutes(plugin: IpmiSensorsPlugin): PluginRestRoute
       ],
       callback: async ({ req, restApi }) => {
         const host = restApi.xoApp.getObject<XoHost>(req.params.id as XoHost['id'], 'host')
-        let result: Awaited<ReturnType<IpmiSensorsPlugin['getAvailableIpmiSensors']>>
+        let result: Awaited<ReturnType<IpmiSensorsPlugin['getAvailableIpmiSensors']>> | undefined
         try {
           result = await plugin.getAvailableIpmiSensors({ host })
         } catch (error) {
-          if (error instanceof Error) {
-            logger.error(error)
-          }
-          throw serviceUnavailable({ serviceName: 'IPMI device' })
+          logger.error(error instanceof Error ? error : JSON.stringify(error))
         }
-        if (result === false) {
+
+        if (result === undefined || result === false) {
           throw serviceUnavailable({ serviceName: 'IPMI device' })
         }
         return result

@@ -24,7 +24,7 @@ Lenovo hosts to `lenovo`, regardless of model.
 
 ## 2. Get the list of sensors to categorize
 
-Fetch the raw inventory for the host with `GET /rest/v0/hosts/{id}/ipmi`.
+Fetch the raw inventory for the host with `GET /rest/v0/plugins/ipmi-sensors/hosts/{id}/ipmi`.
 You'll get output like:
 
 ```json
