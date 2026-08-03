@@ -1,4 +1,6 @@
-# Categorizing "unknown" IPMI sensors
+# IPMI
+
+## Categorizing "unknown" IPMI sensors
 
 When the plugin returns a sensor tagged with `"dataType": "unknown"`, it means
 the sensor name matched **none** of the regex rules configured for that host's
@@ -12,8 +14,8 @@ This guide explains how to map those unknown sensors to a known data type.
 
 - `get_ipmi_sensors` returns sensors **grouped by data type**, after filtering
   out everything irrelevant/unknown. This is what the XO5 UI shows. (XO6 uses
-  the `GET /rest/v0/hosts/{id}/ipmi` REST route instead.)
-- `GET /rest/v0/hosts/{id}/ipmi` returns **every raw sensor** with its resolved
+  the `GET /rest/v0/plugins/ipmi-sensors/hosts/{id}/ipmi` REST route instead.)
+- `GET /rest/v0/plugins/ipmi-sensors/hosts/{id}/ipmi` returns **every raw sensor** with its resolved
   `dataType` (or `"unknown"`). Use it to discover what needs a rule.
 
 Both resolve the vendor from the host BIOS strings (`system-product-name`,
@@ -29,7 +31,6 @@ You'll get output like:
 {
   "productName": "dell",
   "systemManufacturer": "dell inc.",
-  "ipmiDeviceAvailable": true,
   "sensors": [
     { "name": "Inlet Temp", "value": "22 degrees C", "event": "ok", "dataType": "inletTemp" },
     { "name": "Pwr Consumption", "value": "140 Watts", "event": "ok", "dataType": "totalPower" },

@@ -165,6 +165,7 @@ export default {
             'xo5/sdn_controller',
             'xo5/restapi',
             'xo5/mcp',
+            'xo5/ipmi-plugin',
           ],
         },
         {

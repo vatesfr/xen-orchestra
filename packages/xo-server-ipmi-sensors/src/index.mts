@@ -32,7 +32,7 @@ import { createIpmiRestRoutes } from './rest-api.mjs'
 // Constants
 // ============================================================================
 const IPMI_CACHE_TTL = 6e4
-const logger = createLogger('xo:xo-server-ipmi-sensors')
+export const logger = createLogger('xo:xo-server-ipmi-sensors')
 
 // ============================================================================
 // Configuration Schema (exported for xo-server)
@@ -83,7 +83,7 @@ export const configurationPresets = {
 // ============================================================================
 export class IpmiSensorsPlugin {
   #configuredRulesByProduct: SensorRegexByProduct[]
-  readonly xo: XoApp
+  readonly #xo: XoApp
   // cache is type any because it handles itself
   #cache: TTLCache<any, any> = new TTLCache({
     ttl: IPMI_CACHE_TTL,
@@ -92,7 +92,7 @@ export class IpmiSensorsPlugin {
 
   #unloadApiMethods: (() => void)[] = []
   constructor(xo: XoApp) {
-    this.xo = xo
+    this.#xo = xo
     this.#configuredRulesByProduct = []
     logger.info('Plugin initialized')
   }
@@ -110,7 +110,7 @@ export class IpmiSensorsPlugin {
    */
   async load(): Promise<void> {
     this.#unloadApiMethods.push(
-      this.xo.addApiMethod<[{ host: XoHost }], FinalSensorData>(
+      this.#xo.addApiMethod<[{ host: XoHost }], FinalSensorData>(
         'ipmi-sensors.get_ipmi_sensors',
         this.getIpmiSensors.bind(this),
         {
@@ -119,11 +119,15 @@ export class IpmiSensorsPlugin {
         }
       ),
       // replacement for the method in packages/xo-server/src/api/host.mjs
-      this.xo.addApiMethod<[{ host: XoHost }], FinalSensorData>('host.getIpmiSensors', this.getIpmiSensors.bind(this), {
-        resolve: { host: ['id', 'host', 'administrate'] },
-        params: { id: { type: 'string' } },
-      }),
-      this.xo.registerRestRoutes(createIpmiRestRoutes(this))
+      this.#xo.addApiMethod<[{ host: XoHost }], FinalSensorData>(
+        'host.getIpmiSensors',
+        this.getIpmiSensors.bind(this),
+        {
+          resolve: { host: ['id', 'host', 'administrate'] },
+          params: { id: { type: 'string' } },
+        }
+      ),
+      this.#xo.registerRestRoutes(createIpmiRestRoutes(this))
     )
   }
 
@@ -143,7 +147,7 @@ export class IpmiSensorsPlugin {
     systemManufacturer: string
     callIpmiPlugin: <T>(fn: string) => Promise<T>
   } {
-    const xApiHost = this.xo.getXapiObject<XoHost>(host, 'host')
+    const xApiHost = this.#xo.getXapiObject<XoHost>(host, 'host')
     const biosStrings = xApiHost.bios_strings
     let productName = biosStrings['system-product-name']?.toLowerCase() || ''
     const systemManufacturer = biosStrings['system-manufacturer']?.toLowerCase() || ''

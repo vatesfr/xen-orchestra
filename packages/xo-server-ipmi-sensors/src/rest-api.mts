@@ -1,7 +1,9 @@
 import type { PluginRestRouteDefinition, XoHost } from '@vates/types'
 import type { IpmiSensorsPlugin } from './index.mjs'
+import { logger } from './index.mjs'
 import { IPMI_SENSOR_DATA_TYPE } from './types.mjs'
 import { serviceUnavailable } from 'xo-common/api-errors.js'
+
 export function createIpmiRestRoutes(plugin: IpmiSensorsPlugin): PluginRestRouteDefinition[] {
   return [
     {
@@ -12,9 +14,9 @@ export function createIpmiRestRoutes(plugin: IpmiSensorsPlugin): PluginRestRoute
         'Required privilege:',
         '- resource: host, action: read',
       ].join('\n'),
-      endpoint: 'hosts/{id}/ipmi',
+      endpoint: 'plugins/ipmi-sensors/hosts/{id}/ipmi',
 
-      tags: ['ipmi'],
+      tags: ['ipmi-sensors'],
       params: { id: { type: 'string', example: '5b2c9e6a-1d3f-4c7b-9f2e-8a1b0c4d5e6f' } },
       middlewares: [{ name: 'acl', acls: { resource: 'host', action: 'read', objectId: 'params.id' } }],
       responses: [
@@ -52,16 +54,16 @@ export function createIpmiRestRoutes(plugin: IpmiSensorsPlugin): PluginRestRoute
           description: 'The host has no available IPMI device',
         },
       ],
-      callback: async ({ req }) => {
-        const host = plugin.xo.getObject<XoHost>(req.params.id as XoHost['id'], 'host')
+      callback: async ({ req, restApi }) => {
+        const host = restApi.xoApp.getObject<XoHost>(req.params.id as XoHost['id'], 'host')
         let result: Awaited<ReturnType<IpmiSensorsPlugin['getAvailableIpmiSensors']>>
         try {
           result = await plugin.getAvailableIpmiSensors({ host })
         } catch (error) {
-          if (error instanceof Error && error.message === 'The host has no available IPMI device') {
-            throw serviceUnavailable({ serviceName: 'IPMI device' })
+          if (error instanceof Error) {
+            logger.error(error)
           }
-          throw error
+          throw serviceUnavailable({ serviceName: 'IPMI device' })
         }
         if (result === false) {
           throw serviceUnavailable({ serviceName: 'IPMI device' })
