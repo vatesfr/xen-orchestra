@@ -7,7 +7,7 @@
     "vates-iscsi": "dist/cli.mjs"
   },
   "license": "ISC",
-  "private": false,
+  "private": true,
   "type": "module",
   "description": "Minimal iSCSI target and initiator: expose or read a single LUN, with one-way CHAP",
   "keywords": [
