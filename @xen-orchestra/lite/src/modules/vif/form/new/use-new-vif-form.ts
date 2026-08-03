@@ -1,3 +1,4 @@
+import type { XenApiNetwork, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import {
   type BaseVifFormData,
   buildBaseVifPayload,
@@ -8,15 +9,16 @@ import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { mergeValidationConfigs, required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { XenApiNetwork, XenApiVm } from '@vates/types'
 import { type MaybeRefOrGetter, reactive } from 'vue'
 
+// Pourquoi $ref et pas uuid ici ? uuid = identité permanente (id ?), $ref = handle de session, et Xapi est câblé en $ref, pas en uuid
+// uuid pour les url (forcément), partout ailleurs, $ref
 export type NewVifFormData = BaseVifFormData & {
-  network: XenApiNetwork['uuid'] | undefined
+  network: XenApiNetwork['$ref'] | undefined
 }
 
-export function useNewVifForm(rawVmId: MaybeRefOrGetter<XenApiVm['uuid']>) {
-  const vmId = toComputed(rawVmId)
+export function useNewVifForm(rawVmRef: MaybeRefOrGetter<XenApiVm['$ref']>) {
+  const vmRef = toComputed(rawVmRef)
 
   const { records: networks } = useNetworkStore().subscribe()
 
@@ -44,7 +46,7 @@ export function useNewVifForm(rawVmId: MaybeRefOrGetter<XenApiVm['uuid']>) {
     required: true,
     option: {
       label: 'name_label',
-      value: 'uuid',
+      value: '$ref',
     },
   })
 
@@ -56,8 +58,8 @@ export function useNewVifForm(rawVmId: MaybeRefOrGetter<XenApiVm['uuid']>) {
     }
 
     return {
-      vmId: vmId.value,
-      networkId: formData.network,
+      vmRef: vmRef.value,
+      network: formData.network,
       ...buildBaseVifPayload(formData),
     }
   }

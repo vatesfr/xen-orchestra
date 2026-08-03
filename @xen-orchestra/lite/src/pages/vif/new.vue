@@ -7,7 +7,7 @@
     <VtsStateHero v-if="!areVmsReady" format="page" type="busy" size="large" />
 
     <VtsStateHero v-else-if="!vm" format="page" type="not-found" size="large">
-      {{ t('object-not-found', { id: vmId }) }}
+      {{ t('object-not-found', { id: vmUuid }) }}
     </VtsStateHero>
 
     <template v-else>
@@ -26,18 +26,17 @@
       </VtsOperationErrorCard>
       <UiCard v-show="canDisplayForm">
         <UiTitle>{{ t('configuration') }}</UiTitle>
-        <NewVifForm v-if="vm" :vm-id="vm.id" :pool-id="vm.$pool" :cancel-to="cancelRoute" @create="createVif" />
+        <NewVifForm v-if="vm" :vm-id="vm.uuid" :cancel-to="cancelRoute" @create="createVif" />
       </UiCard>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import NewVifForm from '@/modules/vif/components/form/new/NewVifForm.vue'
 import { type NewVifPayload, useXoVifCreateJob } from '@/modules/vif/jobs/vif-create.job.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { ApiError } from '@/shared/error/api.error.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
 import VtsOperationPendingCard from '@core/components/operation-pending-card/VtsOperationPendingCard.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -54,26 +53,26 @@ const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 
-const vmId = computed(() => route.query.vmId as FrontXoVm['id'] | undefined)
+const vmUuid = computed(() => route.query.vmId as XenApiVm['uuid'] | undefined)
 
-const { areVmsReady, useGetVmById } = useXoVmCollection()
+const { isReady: areVmsReady, getByUuid } = useVmStore().subscribe()
 
-const vm = useGetVmById(vmId)
+const vm = computed(() => (vmUuid.value === undefined ? undefined : getByUuid(vmUuid.value)))
 
 const formPayload = ref<NewVifPayload>()
 
-// const error = ref<ApiError | Error | undefined>()
+const error = ref<Error | undefined>()
 
 const { canRun, run: create, isRunning } = useXoVifCreateJob(formPayload)
 
 const canDisplayForm = computed(() => !isRunning.value && error.value === undefined)
 
 const cancelRoute = computed<RouteLocationRaw>(() => {
-  if (!vmId.value) {
-    return { name: '/(site)/dashboard' }
+  if (!vmUuid.value) {
+    return { name: '/' }
   }
 
-  return { name: '/vm/[id]/networks', params: { id: vmId.value } }
+  return { name: '/vm/[uuid]/network', params: { uuid: vmUuid.value } }
 })
 
 async function createVif(payload: NewVifPayload) {
@@ -92,7 +91,7 @@ async function createVif(payload: NewVifPayload) {
 
     await router.push(cancelRoute.value)
   } catch (_error) {
-    error.value = _error as ApiError | Error
+    error.value = _error as Error
   }
 }
 
