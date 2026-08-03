@@ -216,25 +216,38 @@ describe('write', () => {
     assert.equal(cache.closed, false)
   })
 
-  it('skips the fetch when the write covers whole blocks', async () => {
+  it('materializes the block even when the write covers it entirely', async () => {
     const { device, disk } = await make()
 
     await device.write(0, Buffer.alloc(DISK_BLOCK_SIZE, 0xee))
 
-    assert.deepEqual(disk.readBlockCalls, [])
+    // the fetch cannot be skipped: see the race covered by the next test
+    assert.deepEqual(disk.readBlockCalls, [0])
     assert.deepEqual(device.getMaterialized(), { blocks: 1, total: BLOCK_COUNT })
   })
 
-  it('leaves the block cold when the cache write fails', async () => {
-    const { device, cache, disk } = await make()
-    cache.failNextWrite = true
+  it('is not overwritten by a fetch already in flight when it lands', async () => {
+    const { device, disk } = await make()
+    // hold block 0's fetch open, so the write lands while it is in flight
+    let release = () => {}
+    disk.pause = new Promise<void>(resolve => {
+      release = resolve
+    })
 
-    await assert.rejects(device.write(0, Buffer.alloc(DISK_BLOCK_SIZE, 0xee)), /cache write failed/)
+    const reading = device.read(0, 512)
+    await new Promise(resolve => setImmediate(resolve))
 
-    assert.deepEqual(device.getMaterialized(), { blocks: 0, total: BLOCK_COUNT })
-    // so a later read still materializes from the source
-    await device.read(0, 512)
+    const payload = Buffer.alloc(DISK_BLOCK_SIZE, 0xee)
+    const writing = device.write(0, payload)
+    await new Promise(resolve => setImmediate(resolve))
+    release()
+
+    await reading
+    await writing
+
+    // the source block was fetched once, and its bytes did not come back on top
     assert.deepEqual(disk.readBlockCalls, [0])
+    assert.deepEqual(await device.read(0, DISK_BLOCK_SIZE), payload)
   })
 })
 

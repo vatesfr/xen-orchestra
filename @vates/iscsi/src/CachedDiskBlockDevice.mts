@@ -220,33 +220,12 @@ export class CachedDiskBlockDevice implements BlockDevice {
     if (data.length === 0) {
       return
     }
-    const diskBlockSize = this.#diskBlockSize as number
-    const size = this.getSize()
-    const end = offset + data.length
-    const last = Math.floor((end - 1) / diskBlockSize)
-
-    // Blocks entirely covered by this write need no fetch — the write provides
-    // all of their bytes. The others must be materialized first, so that the
-    // bytes this write does not touch are the source's and not the cache's.
-    const overwritten = []
-    for (let index = Math.floor(offset / diskBlockSize); index <= last; index++) {
-      if (this.#isCached(index)) {
-        continue
-      }
-      const start = index * diskBlockSize
-      if (offset <= start && end >= Math.min(start + diskBlockSize, size)) {
-        overwritten.push(index)
-      } else {
-        await this.#ensureBlock(index)
-      }
-    }
-
+    // every covered block must be materialized first, even the ones this write
+    // covers entirely: skipping the fetch would let an already in-flight one
+    // land *after* the payload and overwrite it with the source's bytes.
+    // (optimization left out on purpose — it has to join the in-flight fetch)
+    await this.read(offset, data.length)
     await this.#cache.write(offset, data)
-
-    // only now: a failed write must not leave a block marked as present
-    for (const index of overwritten) {
-      this.#setCached(index)
-    }
   }
 
   async flush(): Promise<void> {
