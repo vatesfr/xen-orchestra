@@ -61,8 +61,8 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
         if (route.security === undefined) route.security = '*'
         await expressAuthentication(req as AuthenticatedRequest, route.security, route.scope === 'acl' ? ['acl'] : [])
 
-        // Coerces query boolean from string to boolean
-        coerceBooleanQueryParams(req.query, route.query)
+        // Coerces query strings to the types declared by the route
+        coerceQueryParams(req.query, route.query)
 
         // Validate inputs, throws if invalid
         paramsSchema?.parse(req.params)
@@ -337,11 +337,19 @@ function extractParametersFromZod(schema: z.ZodType, location: 'path' | 'query')
   return []
 }
 
-function coerceBooleanQueryParams(query: Record<string, unknown>, def: RouteDefinition['query']): void {
+// Express query params are always strings, coerce them to the types declared by the route
+// Exported for testing
+export function coerceQueryParams(query: Record<string, unknown>, def: RouteDefinition['query']): void {
   if (!def) return
   for (const [key, field] of Object.entries(def)) {
-    if (field.type === 'boolean' && typeof query[key] === 'string') {
-      query[key] = query[key] === 'true'
+    const value = query[key]
+    if (typeof value !== 'string') continue
+
+    if (field.type === 'boolean') {
+      query[key] = value === 'true'
+    } else if (field.type === 'number') {
+      // a non-numeric value becomes NaN, which is rejected by the zod validation
+      query[key] = value.trim() === '' ? NaN : Number(value)
     }
   }
 }
