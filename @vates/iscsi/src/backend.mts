@@ -93,7 +93,7 @@ export class FileBlockDevice implements BlockDevice {
 
   async read(offset: number, length: number): Promise<Buffer> {
     const handle = this.#requireHandle()
-    const buffer = Buffer.allocUnsafe(length)
+    const buffer = Buffer.alloc(length, 0)
     let read = 0
     // A single fh.read may return fewer bytes than requested; loop to fill.
     while (read < length) {

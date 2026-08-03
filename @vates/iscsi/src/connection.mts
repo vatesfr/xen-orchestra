@@ -34,7 +34,7 @@ import {
   type ScsiResponseOptions,
   type SessionType,
 } from './types.mjs'
-import { buildR2t, type PendingWrite } from './writePath.mjs'
+import { buildR2t, receiveDataOut, type PendingWrite } from './writePath.mjs'
 import { Semaphore } from './semaphore.mjs'
 
 const log: Logger = createLogger('vates:iscsi')
@@ -338,6 +338,18 @@ export class Connection implements CommandContext {
   }
 
   async #handleScsiCommand(pdu: IncomingPdu): Promise<void> {
+    // Login declares ImmediateData=No unconditionally, so a data segment here is
+    // write data we never solicited and have no path to apply. Ignoring it would
+    // acknowledge a write missing its first bytes — exactly the silent loss the
+    // solicited path is built to avoid — so fail the command loudly instead and
+    // let the initiator retry or give up.
+    if (pdu.data.length > 0) {
+      log.warn('immediate data is not supported', { itt: pdu.itt, length: pdu.data.length })
+      const sense = buildFixedSense({ key: SenseKey.ILLEGAL_REQUEST, ...Asc.INVALID_FIELD_IN_CDB })
+      await this.sendScsiResponse(pdu.itt, ScsiStatus.CHECK_CONDITION, { sense })
+      return
+    }
+
     const cdb = pdu.bhs.subarray(32, 48)
     if (decodeCdb(cdb).kind === 'read') {
       // Not awaited: the read loop must move on immediately rather than block on
@@ -428,9 +440,12 @@ export class Connection implements CommandContext {
       itt,
       targetTransferTag: this.#nextTargetTransferTag++,
       lunOffset,
-      buffer: Buffer.allocUnsafe(totalLength),
+      // zero-filled, not `allocUnsafe`: belt to `receiveDataOut`'s braces, so a
+      // buffer that somehow reaches the LUN partly filled writes zeroes rather
+      // than recycled heap (which the initiator could then read straight back)
+      buffer: Buffer.alloc(totalLength),
       totalLength,
-      received: 0,
+      contiguousReceived: 0,
       solicited: 0,
       r2tSN: 0,
     }
@@ -461,17 +476,30 @@ export class Connection implements CommandContext {
       await this.#sendReject(pdu, RejectReason.PROTOCOL_ERROR)
       return
     }
-    pdu.data.copy(pending.buffer, pdu.readU32(40)) // BufferOffset is absolute
-    pending.received += pdu.data.length
+    const bufferOffset = pdu.readU32(40) // BufferOffset is relative to the command's data
+    const outcome = receiveDataOut(pending, {
+      targetTransferTag: pdu.readU32(20),
+      bufferOffset,
+      data: pdu.data,
+    })
     log.debug('write data-out', {
       itt: pending.itt,
-      offset: pdu.readU32(40),
+      offset: bufferOffset,
       length: pdu.data.length,
-      received: pending.received,
+      received: pending.contiguousReceived,
       total: pending.totalLength,
     })
 
-    if (pending.received >= pending.totalLength) {
+    if (!outcome.ok) {
+      // The command is dropped, not just the PDU: leaving it pending would hang
+      // the initiator on an R2T that never comes, until its command timeout.
+      this.#pendingWrites.delete(pdu.itt)
+      log.warn('unplaceable write data-out', { itt: pending.itt, reason: outcome.reason })
+      await this.#sendReject(pdu, RejectReason.PROTOCOL_ERROR)
+      return
+    }
+
+    if (outcome.complete) {
       this.#pendingWrites.delete(pdu.itt)
       try {
         await this.lun.write(pending.lunOffset, pending.buffer)
@@ -482,7 +510,7 @@ export class Connection implements CommandContext {
         return
       }
       await this.sendScsiResponse(pending.itt, ScsiStatus.GOOD)
-    } else if (pending.received >= pending.solicited) {
+    } else if (outcome.burstComplete) {
       // Current burst complete and data remains: solicit the next one.
       await this.#sendNextR2t(pending)
     }

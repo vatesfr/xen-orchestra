@@ -319,6 +319,9 @@ export class LoginNegotiator {
   }
 
   #negotiateOperational(keys: Map<string, string>, responseKeys: Array<[string, string]>): void {
+    // Only answer what the initiator actually offered: for every key below, the
+    // RFC 7143 default of an unoffered key is already the value we want, so
+    // staying silent and letting the default stand is equivalent.
     const answer = (key: string, value: string) => {
       if (keys.has(key)) {
         responseKeys.push([key, value])
@@ -328,8 +331,16 @@ export class LoginNegotiator {
     answer('DataDigest', 'None')
     answer('MaxConnections', '1')
     answer('InitialR2T', 'Yes')
-    answer('ImmediateData', 'No')
     answer('ErrorRecoveryLevel', '0')
+
+    // ImmediateData is the one exception: its RFC 7143 default is *Yes*, so an
+    // initiator that never offers the key may legally put write data in the SCSI
+    // Command PDU itself — which this target does not implement and would
+    // otherwise silently drop, acknowledging a write it never applied. Declare
+    // No whether or not it was offered. Costs nothing: there is no immediate
+    // data path to lose, and every mainstream initiator offers the key anyway,
+    // so for them this is byte-identical to before.
+    responseKeys.push(['ImmediateData', 'No'])
     answer('DataPDUInOrder', 'Yes')
     answer('DataSequenceInOrder', 'Yes')
     answer('DefaultTime2Wait', '2')
