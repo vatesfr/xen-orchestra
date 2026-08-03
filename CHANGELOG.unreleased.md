@@ -43,16 +43,16 @@
 
 <!--packages-start-->
 
-- @vates/iscsi minor
-- @vates/types minor
+- @vates/iscsi major
 - @vates/nbd-client minor
+- @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/mixins minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
-- xo-server-load-balancer patch
 - xo-server minor
+- xo-server-load-balancer patch
 
 <!--packages-end-->
