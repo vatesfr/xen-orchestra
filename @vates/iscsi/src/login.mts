@@ -121,18 +121,14 @@ const AUTH_FAILURE: AuthFailure = {
 type ChapState = 'none' | 'awaitAlgorithm' | 'awaitResponse' | 'authenticated' | 'failed'
 
 /**
- * Accumulates login state across the (one or more) Login Request PDUs of a
- * connection and produces each Login Response's flags + key text. The caller
- * wraps the result in a BHS carrying the sequence numbers and TSIH.
+ * Negotiates one connection's login: the target is authoritative, so every
+ * key is answered with the pinned value, and RFC 7143's boolean rules
+ * guarantee the session collapses to the one supported path regardless of
+ * what the initiator offers.
  *
- * Since the target is authoritative, every negotiated key is answered with the
- * pinned value; RFC 7143 boolean rules guarantee the session collapses to the
- * single supported code path regardless of the initiator's offer.
- *
- * When constructed with a {@link ChapCredentials}, the target acts as the CHAP
- * authenticator: it challenges the initiator during security negotiation and
- * refuses to transit to the operational stage until the initiator proves the
- * secret. Without one it keeps the legacy `AuthMethod=None` path.
+ * With {@link ChapCredentials}, the target challenges the initiator during
+ * security negotiation and refuses to reach the operational stage until it
+ * proves the secret; without one, it uses the legacy `AuthMethod=None` path.
  */
 export class LoginNegotiator {
   #firstResponseSent = false

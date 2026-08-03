@@ -1,12 +1,8 @@
 import { open } from 'node:fs/promises'
 
 /**
- * Byte-range access to a local block device, as `@vates/iscsi`'s `BlockDevice`
- * interface.
- *
- * Its size is passed in rather than stat'ed: `fs.stat` reports 0 for a device
- * node, and the caller knows the size anyway — it is the one that created the
- * disk behind it.
+ * Byte-range access to a local block device (`@vates/iscsi`'s `BlockDevice`).
+ * Size is passed in, not stat'ed: `fs.stat` reports 0 for a device node.
  */
 export default class LocalBlockDevice {
   #blockSize

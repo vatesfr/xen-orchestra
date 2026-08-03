@@ -80,14 +80,12 @@ export class IncomingPdu {
 
 /**
  * Read exactly one PDU from `stream`, reassembling across TCP boundaries.
+ * Resolves to `null` on a clean EOF between PDUs; throws on a truncated PDU
+ * or read error. No header/data digest bytes: digests are pinned off.
  *
- * Resolves to `null` on a clean end-of-stream between PDUs (the peer closed the
- * connection). Throws on a truncated PDU or a read error. Digests are pinned off
- * during login, so no header/data digest bytes are present.
- *
- * This intentionally has no per-read timeout: a target may sit idle between
- * commands indefinitely, and killing such a connection would be wrong. Liveness
- * is a transport concern (socket timeout / NOP keepalives), handled elsewhere.
+ * No per-read timeout, intentionally — a target may sit idle between commands
+ * indefinitely. Liveness is a transport concern (socket timeout / NOP
+ * keepalives), handled elsewhere.
  */
 export async function readPdu(stream: Readable): Promise<IncomingPdu | null> {
   const bhs = await readChunk(stream, BHS_LENGTH)

@@ -16,13 +16,9 @@ const DEVICE_POLL_TRIES = 60
 const SECTOR_SIZE = 512
 
 /**
- * Open the block device XAPI just plugged into this appliance.
- *
- * Waiting for the node to appear is not enough: udev creates it as soon as the
- * device is announced, but until the block frontend has connected the device
- * reports a size of 0 and every read hits EOF at once. So wait for a size
- * instead — `/sys` counts it in 512-byte sectors whatever the device's own
- * logical block size is.
+ * Open the block device XAPI just plugged into this appliance. Polls
+ * `/sys/class/block/<name>/size` rather than the device node's own reported
+ * size: until the block frontend connects it reports 0 and reads hit EOF.
  */
 export async function openLocalDevice({ name, size }) {
   const path = `/dev/${name}`

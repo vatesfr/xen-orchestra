@@ -1,11 +1,10 @@
-// Shared CHAP (RFC 1994) primitives used by both directions of the iSCSI login:
-// the target as authenticator (challenges + verifies a connecting initiator) and
-// the initiator as responder (answers a target's challenge). Keeping the MD5
-// computation and the iSCSI large-binary value codec here guarantees the two
-// roles agree byte-for-byte (they cross-test against each other in loopback).
+// Shared CHAP (RFC 1994) primitives for both login directions: the target as
+// authenticator, the initiator as responder. Kept in one place so the MD5
+// computation and large-binary codec agree byte-for-byte between the two
+// (cross-tested against each other in loopback).
 //
-// legacy constraint: RFC 7143 §11.1.4 pins CHAP to MD5 (algorithm id 5); it is a
-// wire-format requirement, not a security choice.
+// RFC 7143 §11.1.4 pins CHAP to MD5 (algorithm id 5) — a wire-format
+// requirement, not a security choice.
 
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 

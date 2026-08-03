@@ -60,16 +60,13 @@ interface Pending {
 }
 
 /**
- * A minimal userspace iSCSI **initiator** (client): it connects to a single
- * target portal, logs in (optionally answering a one-way CHAP challenge as the
- * responder), and exposes byte-range reads of the LUN. It is the mirror of
- * {@link IscsiTarget} and reuses the same framing (`pdu.mts`) and text-key
- * helpers; it is structured like `@vates/nbd-client`'s `NbdClient` — a backlog
- * `Map` keyed by ITT plus a single read-loop demultiplexes responses so several
- * reads can be outstanding at once (e.g. under a `ReadAhead` disk wrapper).
+ * A minimal userspace iSCSI initiator (client), mirroring {@link IscsiTarget}'s
+ * framing and negotiation (read-only, single connection, one LUN, digests
+ * off, `ErrorRecoveryLevel=0`).
  *
- * Scope: read-only (no WRITE), single connection, one LUN (LUN 0), digests off,
- * `ErrorRecoveryLevel=0` — matching what {@link IscsiTarget} negotiates.
+ * A backlog `Map` keyed by ITT, drained by a single read loop, demultiplexes
+ * responses so several reads can be outstanding at once (e.g. under a
+ * `ReadAhead` disk wrapper).
  */
 export class IscsiInitiator {
   readonly #host: string

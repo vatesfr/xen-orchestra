@@ -21,20 +21,13 @@ export interface DiskBlockDeviceOptions {
 }
 
 /**
- * A read-only {@link BlockDevice} serving the content of a
- * `@xen-orchestra/disk-transform` {@link RandomAccessDisk} — the inverse of
- * {@link IscsiDisk}, which exposes a LUN *as* a disk.
+ * A read-only {@link BlockDevice} for a {@link RandomAccessDisk} (the inverse
+ * of {@link IscsiDisk}). Unallocated blocks read as zero; the source must
+ * never be asked for a block it doesn't have (e.g. `RemoteVhdDiskChain`
+ * throws).
  *
- * This is what lets a target export something like a VHD chain read from a
- * backup repository: SCSI reads arrive as 512-byte-granular byte ranges and are
- * translated into whole-block reads on the source disk (2 MiB for VHD).
- * Unallocated blocks read as zeroes — a sparse source must never be asked for a
- * block it does not have, since implementations such as `RemoteVhdDiskChain`
- * throw in that case.
- *
- * Nothing is cached: a byte range is fetched from the source on every read, so
- * a 512-byte read costs a whole source block. A caching layer belongs in front
- * of the source disk (as a `RandomAccessDisk` decorator), not here.
+ * Nothing is cached — every read re-fetches a whole source block. Put a
+ * caching decorator in front of the source disk, not here.
  */
 export class DiskBlockDevice implements BlockDevice {
   readonly #disk: RandomAccessDisk
