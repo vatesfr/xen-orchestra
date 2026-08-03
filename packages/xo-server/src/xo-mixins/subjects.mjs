@@ -44,6 +44,9 @@ export default class {
         crypto: app.cryptoCredentials,
       }))
 
+      app.hooks.emit('registerCollection', { collection: groupsDb, type: 'group' })
+      app.hooks.emit('registerCollection', { collection: usersDb, type: 'user' })
+
       app.addConfigManager(
         'groups',
         () => groupsDb.get(),

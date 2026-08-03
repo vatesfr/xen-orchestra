@@ -90,7 +90,7 @@ export class Subscriber {
   }
 }
 
-export class XoListener extends Listener<XoListenerType> {
+export class XoListener extends Listener<XoListenerType | 'user'> {
   #alarmService?: AlarmService
 
   constructor(type: XoListenerType, eventEmitter: EventEmitter, alarmService?: AlarmService) {
