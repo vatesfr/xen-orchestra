@@ -16,8 +16,7 @@ import VtsTaskItemLabel from '@core/components/task/VtsTaskItemLabel.vue'
 import VtsTaskList from '@core/components/task/VtsTaskList.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
-import UiTaskItem from '@core/components/ui/task-item/UiTaskItem.vue'
-import type { Task } from '@core/types/task.type.ts'
+import UiTaskItem, { type Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { computed } from 'vue'
 
 const { task } = defineProps<{

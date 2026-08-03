@@ -18,21 +18,8 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { event, prop } from '@/libs/story/story-param.ts'
 import { boolean } from '@/libs/story/story-widget.ts'
-import UiTaskItem, { type Task } from '@core/components/ui/task-item/UiTaskItem.vue'
+import UiTaskItem from '@core/components/ui/task-item/UiTaskItem.vue'
+import { mockTasks } from '@core/fixtures/mock-tasks.fixture.ts'
 
-const task: Task = {
-  id: '1',
-  name: 'VM backup',
-  status: 'pending',
-  progress: 25,
-  subtasks: [
-    {
-      id: '1-1',
-      name: 'Snapshot',
-      end: Date.now() - 1000 * 60 * 3,
-      status: 'success',
-      progress: 100,
-    },
-  ],
-}
+const task = mockTasks[1]!
 </script>

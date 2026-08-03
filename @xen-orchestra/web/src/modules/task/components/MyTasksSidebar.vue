@@ -31,6 +31,7 @@ import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsTaskList from '@core/components/task/VtsTaskList.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { mockTasks } from '@core/fixtures/mock-tasks.fixture.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -46,9 +47,9 @@ const router = useRouter()
 const filter = ref('')
 const selectedTaskId = useRouteQuery('id')
 
-const { lastDayTasks, areTasksReady } = useXoTaskCollection()
+const { /* lastDayTasks, sortedTasks, */ areTasksReady } = useXoTaskCollection()
 
-const displayedTasks = computed(() => lastDayTasks.value)
+const displayedTasks = computed(() => mockTasks)
 
 const selectTask = (id: string) => {
   router.push({ name: '/(site)/tasks', query: { id } })

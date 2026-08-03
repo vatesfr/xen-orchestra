@@ -37,10 +37,17 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
-import type { TaskObjectSegment, TaskStatus } from '@core/types/task.type.ts'
 import { logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { RouteLocationRaw } from 'vue-router'
+
+export type TaskStatus = 'failure' | 'interrupted' | 'pending' | 'success'
+
+export type TaskObjectSegment = {
+  text: string
+  to?: RouteLocationRaw
+}
 
 export type Task = {
   id: string
