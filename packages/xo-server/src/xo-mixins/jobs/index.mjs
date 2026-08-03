@@ -73,6 +73,7 @@ export default class Jobs {
         indexes: ['user_id', 'key'],
         crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', { collection: jobsDb, type: 'job' })
 
       app.addConfigManager(
         'jobs',
@@ -372,7 +373,7 @@ export default class Jobs {
       delete schedulesByJobId[job.id]
     }
   }
-  
+
   backupGuard(poolId) {
     return backupGuard.call(this._app, poolId)
   }

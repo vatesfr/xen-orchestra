@@ -104,6 +104,7 @@ export default class {
         crypto: app.cryptoCredentials,
       })
       this.#roleDb = roleDb
+      app.hooks.emit('registerCollection', { collection: roleDb, type: 'acl-role' })
 
       const privilegeDb = new Privileges({
         connection: app._redis,
@@ -113,6 +114,7 @@ export default class {
         crypto: app.cryptoCredentials,
       })
       this.#privilegeDb = privilegeDb
+      app.hooks.emit('registerCollection', { collection: privilegeDb, type: 'acl-privilege' })
 
       const userRoleDb = new UserRoles({
         connection: app._redis,

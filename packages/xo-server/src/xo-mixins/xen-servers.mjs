@@ -89,6 +89,7 @@ export default class XenServers {
         indexes: ['host'],
         crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', { collection: serversDb, type: 'server' })
 
       app.addConfigManager(
         'xenServers',

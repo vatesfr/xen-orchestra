@@ -91,6 +91,7 @@ export default class Proxy {
         namespace: 'proxy',
         crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', { collection: db, type: 'proxy' })
 
       return app.addConfigManager(
         'proxies',

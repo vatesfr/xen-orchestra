@@ -14,6 +14,7 @@
 - [XO6/Host] Add possibility to shut down and start an host (PR [#10088](https://github.com/vatesfr/xen-orchestra/pull/10088))
 - [REST API] Add `hosts/:id/actions/scan_pifs` endpoint (PR [#10187](https://github.com/vatesfr/xen-orchestra/pull/10187))
 - [XO6/Host] Add possibility to scan PIFs directly from the host (PR [#10191](https://github.com/vatesfr/xen-orchestra/pull/10191))
+- [REST API] Add more collections to listen to in the SSE (user, group, acl-privilege, acl-role, proxy, server, backup-repository, backup-job, schedule) (PR [#10224](https://github.com/vatesfr/xen-orchestra/pull/10224))
 
 ### Bug fixes
 
@@ -42,11 +43,13 @@
 <!--packages-start-->
 
 - @vates/nbd-client minor
+- @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
+- xo-server minor
 - xo-server-load-balancer patch
 
 <!--packages-end-->

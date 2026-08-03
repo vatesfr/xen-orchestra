@@ -8,11 +8,16 @@ import { PingListener, Subscriber, SubscriberManager, XoListener } from './event
 import type { ListenerType, SubscriberId, XoListenerType } from './event.type.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
+import { XAPI_TYPES, type XapiXoRecord } from '@vates/types'
+import { UserService } from '../users/user.service.mjs'
+import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
 
 export class EventService {
   #alarmService: AlarmService
+  #backupJobService: BackupJobService
+  #userService: UserService
   #restApi: RestApi
   #listeners: Map<string, Listener | Listener<XoListenerType>> = new Map()
   #subscriberManager = new SubscriberManager()
@@ -27,6 +32,8 @@ export class EventService {
 
     this.#restApi = restApi
     this.#alarmService = restApi.ioc.get(AlarmService)
+    this.#backupJobService = restApi.ioc.get(BackupJobService)
+    this.#userService = restApi.ioc.get(UserService)
   }
 
   #getListener<Type extends ListenerType>(type: Type): Listener | Listener<XoListenerType> {
@@ -38,18 +45,30 @@ export class EventService {
     if (type === 'ping') {
       listener = new PingListener()
     } else {
+      const isBackupJob = type === 'backup-job'
       const isMessage = type === 'alarm' || type === 'message'
+      const isUser = type === 'user'
 
       let eventEmitter: EventEmitter
       if (type === 'task') {
         eventEmitter = this.#restApi.xoApp.tasks
-      } else {
+      } else if ((XAPI_TYPES as readonly string[]).includes(isMessage ? 'message' : type)) {
+        // `as` required, because type is typed as string. but XAPI_TYPES.includes only accept `XapiXoRecord['type']` string.
+        // that make no sense as here, we want to known if the string is a XAPI type
         // alarm is purely XO-related; it doesn't exist at the XAPI level.
         // alarm is a message with parsed values. So, in the case of an alarm listener, it listens for message collection.
-        eventEmitter = this.#restApi.xoApp.objects.allIndexes.type.getEventEmitterByType(isMessage ? 'message' : type)
+        eventEmitter = this.#restApi.xoApp.objects.allIndexes.type.getEventEmitterByType(
+          isMessage ? 'message' : (type as XapiXoRecord['type'])
+        )
+      } else {
+        eventEmitter = this.#restApi.xoApp.getXoEventEmitterByType(isBackupJob ? 'job' : type)
       }
 
-      listener = new XoListener(type, eventEmitter, isMessage ? this.#alarmService : undefined)
+      listener = new XoListener(type, eventEmitter, {
+        alarmService: isMessage ? this.#alarmService : undefined,
+        backupJobService: isBackupJob ? this.#backupJobService : undefined,
+        userService: isUser ? this.#userService : undefined,
+      })
     }
 
     this.#listeners.set(type, listener)
