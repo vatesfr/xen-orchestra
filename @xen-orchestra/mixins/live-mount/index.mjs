@@ -280,7 +280,12 @@ export default class LiveMount {
     // subtask (built at mount time) regardless of what triggers a block's
     // materialization, so this subtask only needs to say whether *this*
     // explicit call succeeded
-    await Task.run({ properties: { name: 'hydrate' } }, () => mount.lun.hydrate())
+    //
+    // Hours of work on a large disk, so it is aborted through its own subtask's
+    // signal: `hydrate` stops at the next block boundary and leaves everything
+    // already cached in place, so a later call resumes instead of restarting.
+    // The mount itself is untouched — only this hydration is given up on.
+    await Task.run({ properties: { name: 'hydrate' } }, () => mount.lun.hydrate({ signal: Task.abortSignal }))
     return { id, materialized: mount.lun.getMaterialized() }
   }
 

@@ -117,8 +117,18 @@ export class CachedDiskBlockDevice implements BlockDevice {
    * naturally mark. Already-materialized blocks are skipped, so this resumes
    * rather than redoes whatever on-demand reads (or a previous, interrupted
    * hydration) already did.
+   *
+   * Hydrating a large disk takes hours, so it must be interruptible: `signal`
+   * stops it at the next block boundary, rejecting once the blocks already in
+   * flight settle. Nothing is rolled back — every block cached so far stays
+   * cached, and because this call resumes, aborting and calling again later
+   * picks up where it stopped rather than starting over.
    */
-  async hydrate({ concurrency = DEFAULT_HYDRATE_CONCURRENCY }: { concurrency?: number } = {}): Promise<void> {
+  async hydrate({
+    concurrency = DEFAULT_HYDRATE_CONCURRENCY,
+    signal,
+  }: { concurrency?: number; signal?: AbortSignal } = {}): Promise<void> {
+    signal?.throwIfAborted()
     const blockCount = this.#blockCount
     await asyncEach(
       (function* allBlockIndexes() {
@@ -127,7 +137,7 @@ export class CachedDiskBlockDevice implements BlockDevice {
         }
       })(),
       index => this.#ensureBlock(index),
-      { concurrency }
+      { concurrency, signal }
     )
   }
 
