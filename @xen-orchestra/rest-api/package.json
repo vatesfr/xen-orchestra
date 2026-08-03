@@ -25,7 +25,7 @@
     "test": "npm run build && node --test dist/**/*.test.mjs"
   },
   "devDependencies": {
-    "@eslint/js": "^9.`@xen-orchestra/rest-api/packages`19.0",
+    "@eslint/js": "^9.19.0",
     "@types/express": "^5.0.0",
     "@types/swagger-ui-express": "^4.1.7",
     "openapi-types": "^12.1.3",
