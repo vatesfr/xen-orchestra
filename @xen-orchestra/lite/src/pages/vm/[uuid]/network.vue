@@ -3,7 +3,7 @@
     <UiCard class="container">
       <VifsTable v-if="vm" :vifs :vm>
         <template #title-actions>
-          <UiLink size="medium" :to="{ name: '/vif/new', query: { vmId: vm.uuid } }" icon="fa:plus">
+          <UiLink size="medium" :to="{ name: '/vif/new', query: { vmUuid: vm.uuid } }" icon="fa:plus">
             {{ t('new-vif') }}
           </UiLink>
         </template>

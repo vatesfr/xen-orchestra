@@ -26,7 +26,7 @@
       </VtsOperationErrorCard>
       <UiCard v-show="canDisplayForm">
         <UiTitle>{{ t('configuration') }}</UiTitle>
-        <NewVifForm v-if="vm" :vm-id="vm.uuid" :cancel-to="cancelRoute" @create="createVif" />
+        <NewVifForm v-if="vm" :vm-id="vm.$ref" :cancel-to="cancelRoute" @create="createVif" />
       </UiCard>
     </template>
   </div>
@@ -53,7 +53,7 @@ const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 
-const vmUuid = computed(() => route.query.vmId as XenApiVm['uuid'] | undefined)
+const vmUuid = computed(() => route.query.vmUuid as XenApiVm['uuid'] | undefined)
 
 const { isReady: areVmsReady, getByUuid } = useVmStore().subscribe()
 

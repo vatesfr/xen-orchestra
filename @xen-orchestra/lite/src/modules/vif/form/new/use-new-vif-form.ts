@@ -45,6 +45,7 @@ export function useNewVifForm(rawVmRef: MaybeRefOrGetter<XenApiVm['$ref']>) {
     searchable: true,
     required: true,
     option: {
+      id: '$ref',
       label: 'name_label',
       value: '$ref',
     },
