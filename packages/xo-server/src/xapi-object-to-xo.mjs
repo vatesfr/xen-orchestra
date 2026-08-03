@@ -576,6 +576,7 @@ const TRANSFORMS = {
     } else {
       // https://github.com/vatesfr/xen-orchestra/issues/9111
       // TODO: Remove when correctly handled by XCP-ng
+      // also remove the workaround here: https://github.com/vatesfr/xen-orchestra/pull/10201
       obj
         .update_platform('cores-per-socket', String(vm.CPUs.number))
         .catch(err => {
