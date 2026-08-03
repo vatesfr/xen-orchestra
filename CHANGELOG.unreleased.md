@@ -41,6 +41,7 @@
 
 <!--packages-start-->
 
+- @vates/iscsi major
 - @vates/nbd-client minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups patch
