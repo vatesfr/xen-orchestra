@@ -88,6 +88,13 @@ export class IscsiInitiator {
   // is the only consumer of readPdu, so it is safe to have many entries here.
   readonly #backlog = new Map<number, Pending>()
   #reading = false
+  // set once `close()` starts, so the read loop's own end is not reported as a
+  // fault and it stops instead of racing the socket teardown
+  #closing = false
+  // why the read loop stopped, when it was not us closing
+  #failure?: Error
+  // resolved by the read loop when the target's Logout Response arrives
+  #logoutAnswered?: () => void
 
   constructor(options: IscsiInitiatorOptions) {
     this.#host = options.host
@@ -119,7 +126,10 @@ export class IscsiInitiator {
       socket.setNoDelay(true)
       // A socket error with no read in flight would otherwise go unnoticed.
       socket.on('error', error => this.#rejectAll(error instanceof Error ? error : new Error(String(error))))
+      // `#login` reads its own responses; from here on the read loop owns the
+      // socket, and it must be running before anything can answer a NOP-In
       await this.#login()
+      void this.#pump()
       await this.#readCapacity()
       log.info('session established', { target: this.#targetIqn, capacity: this.#capacityBytes })
     } catch (error) {
@@ -152,17 +162,25 @@ export class IscsiInitiator {
     if (socket === undefined) {
       return
     }
+    // stops the read loop and keeps its own end from being logged as a fault
+    this.#closing = true
     try {
       const bhs = allocBhs(InitiatorOpcode.LOGOUT_REQUEST | OPCODE_IMMEDIATE)
       bhs[1] = FLAG_FINAL // reason 0: close the session
       bhs.writeUInt32BE(this.#nextItt(), 16)
       bhs.writeUInt32BE(this.#cmdSN, 24)
       bhs.writeUInt32BE(this.#expStatSN, 28)
+      // the read loop owns the socket, so the response comes through it: reading
+      // here too would put two consumers on one stream and split PDUs between them
+      const answered = new Promise<void>(resolve => {
+        this.#logoutAnswered = resolve
+      })
       await this.#send(assemblePdu(bhs))
-      await pTimeout.call(readPdu(socket), this.#messageTimeoutMs)
+      await pTimeout.call(answered, this.#messageTimeoutMs)
     } catch (error) {
       log.debug('logout failed, closing anyway', { error })
     } finally {
+      this.#logoutAnswered = undefined
       this.#socket = undefined
       socket.destroy()
     }
@@ -325,6 +343,12 @@ export class IscsiInitiator {
 
   /** Issue a read-type SCSI command and resolve with its assembled Data-In. */
   #scsiRead(cdb: Buffer, expectedLength: number): Promise<Buffer> {
+    const failure = this.#failure
+    if (failure !== undefined) {
+      // the session is already gone: fail with why, rather than writing into a
+      // half-closed socket and waiting out the message timeout
+      return Promise.reject(failure)
+    }
     const socket = this.#requireSocket()
     const itt = this.#nextItt()
     const bhs = allocBhs(InitiatorOpcode.SCSI_COMMAND)
@@ -354,14 +378,26 @@ export class IscsiInitiator {
     return pTimeout.call(promise, this.#messageTimeoutMs)
   }
 
-  /** Drain inbound PDUs until the backlog empties. Only ever one runs at a time. */
+  /**
+   * Drain inbound PDUs for as long as the session lives. Only ever one runs at
+   * a time, and it is the only reader of the socket after login.
+   *
+   * It deliberately does not stop when the backlog empties. A target sends its
+   * NOP-In keepalives precisely when nothing else is going on, and it is the
+   * only reader — so a loop that parked between reads would leave those pings
+   * sitting unread in a paused stream. Targets drop a session whose pings go
+   * unanswered (LIO's `nopin_response_timeout` is 30s by default, arrays are
+   * similar), and nothing here reconnects, so the session would die during any
+   * idle period: right after `connect()`, between reads, or while the consumer
+   * of a mounted disk stalls.
+   */
   async #pump(): Promise<void> {
     if (this.#reading) {
       return
     }
     this.#reading = true
     try {
-      while (this.#backlog.size > 0) {
+      while (!this.#closing) {
         const socket = this.#socket
         if (socket === undefined) {
           throw new Error('connection closed')
@@ -373,7 +409,17 @@ export class IscsiInitiator {
         this.#route(pdu)
       }
     } catch (error) {
-      this.#rejectAll(error instanceof Error ? error : new Error(String(error)))
+      const failure = error instanceof Error ? error : new Error(String(error))
+      if (!this.#closing) {
+        // The loop now runs while idle, so it is usually the first to notice the
+        // session die — with nothing in the backlog to reject and nobody to
+        // return an error to. Log it where it happens, and keep the reason so
+        // later reads fail with the original cause instead of whatever the dead
+        // socket produces.
+        this.#failure = failure
+        log.warn('read loop stopped, session is dead', { error: failure })
+        this.#rejectAll(failure)
+      }
     } finally {
       this.#reading = false
     }
@@ -413,6 +459,10 @@ export class IscsiInitiator {
         }
         return
       }
+      case TargetOpcode.LOGOUT_RESPONSE:
+        // awaited by `close()`, which cannot read the socket itself
+        this.#logoutAnswered?.()
+        return
       default:
         // R2T/Async/Reject are not expected on the read-only path; ignore.
         log.debug('ignoring unexpected PDU', { opcode: pdu.opcode })
