@@ -1,17 +1,14 @@
 import { xoHostArg } from '@/modules/host/jobs/xo-host-args.jobs.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { isPoolOperationPending } from '@/modules/pool/utils/xo-pool.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { POOL_ALLOWED_OPERATIONS, type XoTask } from '@vates/types'
+import { HOST_POWER_STATE, type XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useXoHostDetachJob = defineJob('host.detach', [xoHostArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
-  const { getPoolById } = useXoPoolCollection()
 
   return {
     async run(host: FrontXoHost) {
@@ -24,10 +21,12 @@ export const useXoHostDetachJob = defineJob('host.detach', [xoHostArg], () => {
         throw new JobError(t('job:host-detach:missing-host'))
       }
 
-      const pool = getPoolById(host.$pool)
-
-      if (isRunning || (pool && isPoolOperationPending(pool, POOL_ALLOWED_OPERATIONS.EJECT))) {
+      if (isRunning) {
         throw new JobRunningError(t('job:host-detach:in-progress'))
+      }
+
+      if (host.power_state !== HOST_POWER_STATE.RUNNING) {
+        throw new JobError(t('job:host-detach:bad-power-state'))
       }
     },
   }
