@@ -72,9 +72,6 @@ import type { UnbrandedVmDashboard, UpdateVmRequestBody } from './vm.type.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { Task } from '@vates/task'
 import { vmExportCompressDeprecated } from '../middlewares/deprecated.middleware.mjs'
-import { ApiError } from '../helpers/error.helper.mjs'
-import { object } from 'zod'
-import { property } from 'lodash'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
