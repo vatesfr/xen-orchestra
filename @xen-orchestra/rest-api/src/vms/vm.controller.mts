@@ -73,6 +73,8 @@ import type { CreateActionReturnType } from '../abstract-classes/base-controller
 import { Task } from '@vates/task'
 import { vmExportCompressDeprecated } from '../middlewares/deprecated.middleware.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
+import { object } from 'zod'
+import { property } from 'lodash'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -364,6 +366,16 @@ export class VmController extends XapiXoController<XoVm> {
   ): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
+      const vm = this.getObject(vmId)
+
+      if (vm.power_state !== 'Halted') {
+        throw incorrectState({
+          actual: vm.power_state,
+          expected: 'Halted',
+          object: vm.id,
+          property: 'power_state',
+        })
+      }
       await this.getXapi(vmId).startVm(vmId, { startOnly: true, hostId: body?.hostId as XoHost['id'] })
     }
 
@@ -398,6 +410,17 @@ export class VmController extends XapiXoController<XoVm> {
   async cleanShutdownVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
+      const vm = this.getObject(vmId)
+
+      if (vm.power_state !== 'Running') {
+        throw incorrectState({
+          actual: vm.power_state,
+          expected: 'Running',
+          object: vm.id,
+          property: 'power_state',
+        })
+      }
+
       await this.getXapiObject(vmId).$callAsync('clean_shutdown')
     }
 
@@ -430,6 +453,16 @@ export class VmController extends XapiXoController<XoVm> {
   async cleanRebootVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
+      const vm = this.getObject(vmId)
+
+      if (vm.power_state !== 'Running') {
+        throw incorrectState({
+          actual: vm.power_state,
+          expected: 'Running',
+          object: vm.id,
+          property: 'power_state',
+        })
+      }
       await this.getXapiObject(vmId).$callAsync('clean_reboot')
     }
 
@@ -461,6 +494,16 @@ export class VmController extends XapiXoController<XoVm> {
   async hardShutdownVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
+      const vm = this.getObject(vmId)
+
+      if (vm.power_state === 'Halted') {
+        throw incorrectState({
+          actual: vm.power_state,
+          expected: 'Running || Paused || Suspended',
+          object: vm.id,
+          property: 'power_state',
+        })
+      }
       await this.getXapiObject(vmId).$callAsync('hard_shutdown')
     }
 
@@ -492,6 +535,16 @@ export class VmController extends XapiXoController<XoVm> {
   async hardRebootVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
+      const vm = this.getObject(vmId)
+
+      if (vm.power_state === 'Suspended' || vm.power_state === 'Halted') {
+        throw incorrectState({
+          actual: vm.power_state,
+          expected: 'Running || Paused',
+          object: vm.id,
+          property: 'power_state',
+        })
+      }
       await this.getXapiObject(vmId).$callAsync('hard_reboot')
     }
 
@@ -525,14 +578,17 @@ export class VmController extends XapiXoController<XoVm> {
   async pauseVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
-      try {
-        await this.getXapiObject(vmId).$callAsync('pause')
-      } catch (error: any) {
-        if (error.code?.startsWith('VM_BAD_POWER_STATE')) {
-          throw new ApiError(error, 409)
-        }
-        throw error
+      const vm = this.getObject(vmId)
+
+      if (vm.power_state !== 'Running') {
+        throw incorrectState({
+          actual: vm.power_state,
+          expected: 'Running',
+          object: vm.id,
+          property: 'power_state',
+        })
       }
+      await this.getXapiObject(vmId).$callAsync('pause')
     }
 
     return this.createAction<void>(action, {
@@ -565,6 +621,16 @@ export class VmController extends XapiXoController<XoVm> {
   async suspendVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
+      const vm = this.getObject(vmId)
+
+      if (vm.power_state !== 'Running') {
+        throw incorrectState({
+          actual: vm.power_state,
+          expected: 'Running',
+          object: vm.id,
+          property: 'power_state',
+        })
+      }
       await this.getXapiObject(vmId).$callAsync('suspend')
     }
 
@@ -598,6 +664,17 @@ export class VmController extends XapiXoController<XoVm> {
   async resumeVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
+      const vm = this.getObject(vmId)
+
+      if (vm.power_state !== 'Suspended') {
+        throw incorrectState({
+          actual: vm.power_state,
+          expected: 'Suspended',
+          object: vm.id,
+          property: 'power_state',
+        })
+      }
+
       await this.getXapi(vmId).resumeVm(vmId)
     }
 
@@ -631,6 +708,17 @@ export class VmController extends XapiXoController<XoVm> {
   async unpauseVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
+      const vm = this.getObject(vmId)
+
+      if (vm.power_state !== 'Paused') {
+        throw incorrectState({
+          actual: vm.power_state,
+          expected: 'Paused',
+          object: vm.id,
+          property: 'power_state',
+        })
+      }
+
       await this.getXapi(vmId).unpauseVm(vmId)
     }
 
