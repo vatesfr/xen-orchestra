@@ -62,14 +62,12 @@ export const setup = async ({ referenceVmId, requiredVmQty = 1 } = {}) => {
     }
 
     const vmPrefix = getRequiredEnv('VM_PREFIX')
-    let testVmName = ''
-    let testVmId = ''
     for (let i = 0; i < requiredVmQty; i++) {
-      testVmName = await generateIncrementalVmName(dispatchClient, `${vmPrefix}-QA-Test`)
+      const testVmName = await generateIncrementalVmName(dispatchClient, `${vmPrefix}-QA-Test`)
 
       log.debug('Creating test VM', { name: testVmName })
 
-      testVmId = await dispatchClient.vm.clone(referenceVm.uuid, testVmName, {
+      const testVmId = await dispatchClient.vm.clone(referenceVm.uuid, testVmName, {
         description: `Test VM for QA tests`,
         fastClone: true,
       })
