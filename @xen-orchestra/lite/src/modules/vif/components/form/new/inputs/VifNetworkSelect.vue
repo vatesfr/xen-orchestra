@@ -1,13 +1,8 @@
 <template>
   <VtsInputWrapper :label="t('network')" :message="error">
     <VtsSelect :id accent="brand">
-      <template #default="{ option }">
-        <VtsOption :option>
-          <span class="select-option">
-            <VtsIcon name="object:network" size="medium" />
-            {{ option.properties.label }}
-          </span>
-        </VtsOption>
+      <template v-if="slots.option" #default="slotProps">
+        <slot name="option" v-bind="slotProps" />
       </template>
     </VtsSelect>
   </VtsInputWrapper>
@@ -15,16 +10,21 @@
 
 <script lang="ts" setup>
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import type { FormSelectId } from '@core/packages/form-select'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import type { IconName } from '@core/icons'
+import type { FormOption, FormSelectId } from '@core/packages/form-select'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useI18n } from 'vue-i18n'
+
+export type VifNetworkSelectOption = FormOption<{ icon?: IconName }>
 
 defineProps<{
   id: FormSelectId
   error?: InputWrapperMessage
+}>()
+
+const slots = defineSlots<{
+  option?(props: { option: VifNetworkSelectOption }): any
 }>()
 
 const { t } = useI18n()

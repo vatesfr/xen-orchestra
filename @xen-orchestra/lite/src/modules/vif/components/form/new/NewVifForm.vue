@@ -1,7 +1,17 @@
 <template>
   <VtsForm class="new-vif-form" @submit="onSubmit()">
     <div class="row">
-      <VifNetworkSelect v-bind="networkSelectBindings" />
+      <VifNetworkSelect v-bind="networkSelectBindings">
+        <template #option="{ option }">
+          <VtsOption :option>
+            <span class="network-select-option">
+              <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+              <VtsIcon v-else name="object:network" size="medium" />
+              {{ option.properties.label }}
+            </span>
+          </VtsOption>
+        </template>
+      </VifNetworkSelect>
       <VifMacInput v-bind="macInputBindings" />
     </div>
     <div class="row">
@@ -23,6 +33,8 @@ import NewVifButtonsSection from '@/modules/vif/components/form/new/NewVifButton
 import { useNewVifForm } from '@/modules/vif/form/new/use-new-vif-form.ts'
 import type { NewVifPayload } from '@/modules/vif/jobs/vif-create.job.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsOption from '@core/components/select/VtsOption.vue'
 import type { RouteLocationRaw } from 'vue-router'
 import VifNetworkSelect from './inputs/VifNetworkSelect.vue'
 import VifRateLimitInput from './inputs/VifRateLimitInput.vue'
@@ -84,6 +96,12 @@ async function onSubmit() {
 
   .tx-checksumming {
     margin-block-start: 2.4rem;
+  }
+
+  .network-select-option {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
   }
 }
 </style>
