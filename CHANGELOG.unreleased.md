@@ -16,7 +16,7 @@
 - [Rolling Pool Update/Reboot] New `shutdownPinnedVms` option: VMs that cannot be migrated because they use a host-bound device (PCI passthrough, vGPU, SR-IOV VIF) are cleanly shut down before their host reboots and started again on it afterwards, instead of aborting the whole run. When such VMs block the run, XO now lists them and asks for confirmation instead of failing with a raw `CANNOT_EVACUATE_HOST` error (PR [#10125](https://github.com/vatesfr/xen-orchestra/pull/10125))
 - [i18n] Update Czech, Dutch, German, Korean, Portuguese and Slovak translations (PR [#10033](https://github.com/vatesfr/xen-orchestra/pull/10033))
 - [XO6/copyAll button] Add copy all button for IP list and bond device (PR [#10081](https://github.com/vatesfr/xen-orchestra/pull/10081))
-- [XO6/lite] Add possibility to add new Vif from VM > Network in XOLite, several repercussions on xo6 (PR [#10216](https://github.com/vatesfr/xen-orchestra/pull/10216))
+- [XO6/NEw Vif] The network selector now shows each network's connection status (PR [#10216](https://github.com/vatesfr/xen-orchestra/pull/10216))
 
 ### Bug fixes
 

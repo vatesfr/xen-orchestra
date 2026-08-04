@@ -52,7 +52,7 @@ const { vifs, vm } = defineProps<{
 }>()
 
 defineSlots<{
-  'title-actions'(): void
+  'title-actions'(): any
 }>()
 
 const { isReady, hasError } = useVifStore().subscribe()

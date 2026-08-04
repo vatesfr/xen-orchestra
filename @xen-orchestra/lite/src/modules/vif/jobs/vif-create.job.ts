@@ -34,8 +34,9 @@ export const useVifCreateJob = defineJob('vif.create', [newVifPayloadArg], () =>
         })
       )
     },
-    validate: (isRunning, vif) => {
-      if (vif.length === 0) {
+
+    validate: (isRunning, payloads) => {
+      if (payloads.length === 0) {
         throw new JobError(t('job:arg:missing-payload'))
       }
 
