@@ -14,6 +14,7 @@
 - [XO6/Host] Add possibility to shut down and start an host (PR [#10088](https://github.com/vatesfr/xen-orchestra/pull/10088))
 - [REST API] Add `hosts/:id/actions/scan_pifs` endpoint (PR [#10187](https://github.com/vatesfr/xen-orchestra/pull/10187))
 - [XO6/Host] Add possibility to scan PIFs directly from the host (PR [#10191](https://github.com/vatesfr/xen-orchestra/pull/10191))
+- [XO5/Backups] Add `Synchronize snapshots` checkbox to backup jobs to get consistent restore points (PR [#10136](https://github.com/vatesfr/xen-orchestra/pull/10136))
 
 ### Bug fixes
 
