@@ -5,6 +5,7 @@ import { FullRemoteWriter } from '../_writers/FullRemoteWriter.mjs'
 import { FullXapiWriter } from '../_writers/FullXapiWriter.mjs'
 import { watchStreamSize } from '../../_watchStreamSize.mjs'
 import { AbstractXapi } from './_AbstractXapi.mjs'
+import { markExportSuccessfull } from '../../_otherConfig.mjs'
 import { AggregatedFullRemoteWriter } from '../_writers/AggregatedFullRemoteWriter.mjs'
 import { AggregatedFullXapiWriter } from '../_writers/AggregatedFullXapiWriter.mjs'
 
@@ -80,23 +81,27 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
 
     const sizeContainer = watchStreamSize(stream)
 
-    const timestamp = Date.now()
+    const transferStart = Date.now()
     await this._callWriters(
       writer =>
         writer.run({
           maxStreamLength,
           sizeContainer,
           stream: forkStreamUnpipe(stream),
-          timestamp,
+          timestamp: this.timestamp,
           vm,
           vmSnapshot: exportedVm,
         }),
       'writer.run()'
     )
 
+    // not the case if offlineBackup
+    if (exportedVm.is_a_snapshot) {
+      await markExportSuccessfull(this._xapi, exportedVm.$ref)
+    }
+
     const { size } = sizeContainer
-    const end = Date.now()
-    const duration = end - timestamp
+    const duration = Date.now() - transferStart
     debug('transfer complete', {
       duration,
       speed: duration !== 0 ? (size * 1e3) / 1024 / 1024 / duration : 0,

@@ -7,6 +7,7 @@ import { asyncEach } from '@vates/async-each'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { Task } from '@vates/task'
+import { formatDateTime } from '@xen-orchestra/xapi'
 
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { Abstract } from './_Abstract.mjs'
@@ -16,6 +17,7 @@ import {
   JOB_ID,
   SCHEDULE_ID,
   VM_UUID,
+  EXPORTED_SUCCESSFULLY,
   resetVmOtherConfig,
   setVmOtherConfig,
   setVmSnapshotContentKeys,
@@ -36,6 +38,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     schedule,
     settings,
     srs,
+    synchronizedSnapshotTimestamp,
     throttleGenerator,
     throttleStream,
     vm,
@@ -63,7 +66,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     // VM (snapshot) that is really exported
     this._exportedVm = undefined
-    this._snapshotConsumed = false
+    this._synchronizedSnapshotTimestamp = synchronizedSnapshotTimestamp
     this._vm = vm
 
     this._baseVdis = undefined
@@ -181,9 +184,22 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   }
 
   async _snapshot() {
-    if (this._exportedVm !== undefined) {
-      // snapshot already taken by the synchronized batch phase, reuse it
-      return
+    if (this._synchronizedSnapshotTimestamp !== undefined) {
+      const datetime = formatDateTime(this._synchronizedSnapshotTimestamp)
+      this._exportedVm = this._vm.$snapshots
+        .filter(Boolean)
+        .find(
+          snapshot =>
+            snapshot.other_config[JOB_ID] === this._jobId &&
+            snapshot.other_config[SCHEDULE_ID] === this.scheduleId &&
+            snapshot.other_config[DATETIME] === datetime
+        )
+      if (this._exportedVm !== undefined) {
+        this.timestamp = this._synchronizedSnapshotTimestamp
+        return
+      }
+      // the pre-taken snapshot is gone (e.g. removed by the user) — fall through
+      // and take a fresh one; this VM simply loses synchronization
     }
 
     const vm = this._vm
@@ -471,8 +487,8 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           }
         }
         if (vm?.$ref !== undefined) {
-          if (!this._snapshotConsumed && vm.$ref === this._exportedVm?.$ref) {
-            // fresh synchronized snapshot, not yet transferred — don't reclaim it
+          if (!this._exportedVm?.other_config[EXPORTED_SUCCESSFULLY] && vm.$ref === this._exportedVm?.$ref) {
+            // fresh synchronized snapshot, not yet transferred - don't reclaim it
             return
           }
           return xapi.VM_destroy(vm.$ref)
@@ -504,7 +520,10 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
             return
           }
 
-          if (!this._snapshotConsumed && snapshotPerDatetime[datetime] === this._exportedVm?.$ref) {
+          if (
+            !this._exportedVm?.other_config[EXPORTED_SUCCESSFULLY] &&
+            snapshotPerDatetime[datetime] === this._exportedVm?.$ref
+          ) {
             return
           }
 
@@ -566,6 +585,13 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     throw new Error('Not implemented')
   }
 
+  async _prepareAndSnapshot() {
+    await this._fetchJobSnapshots()
+    await this._cleanMetadata()
+    await this._removeUnusedSnapshots()
+    await this._snapshot()
+  }
+
   async run($defer) {
     const settings = this._settings
     assert(
@@ -611,8 +637,10 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     await this._selectBaseVm()
 
-    await this._cleanMetadata()
-    await this._removeUnusedSnapshots()
+    if (this._synchronizedSnapshotTimestamp === undefined) {
+      await this._cleanMetadata()
+      await this._removeUnusedSnapshots()
+    }
 
     const isRunning = vm.power_state === 'Running'
     const startAfter = isRunning && (settings.offlineBackup ? 'backup' : settings.offlineSnapshot && 'snapshot')
@@ -629,7 +657,6 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       if (this._writers.size !== 0) {
         await this._copy()
       }
-      this._snapshotConsumed = true
     } finally {
       if (startAfter) {
         ignoreErrors.call(vm.$callAsync('start', false, false))

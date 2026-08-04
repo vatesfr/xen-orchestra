@@ -54,6 +54,12 @@ const tests = [
     vms: [vm('a', ['prod'])],
     expected: [],
   },
+  {
+    label: 'non boolean or string yiels an empty batch',
+    setting: 1,
+    vms: [vm('a', ['prod'])],
+    expected: [],
+  },
 ]
 
 describe('selectSynchronizedSnapshotVms()', () => {

@@ -39,7 +39,10 @@ describe('Backup basic tests', () => {
     const filter = FilterBuilder.create().withGlob('name_label', `${vmPrefix}-QA-Test-*`)
     const qaVms = await dispatchClient.vm.list(filter)
 
-    assert(qaVms.length > 0, `Required VM with pattern "${vmPrefix}-QA-Test-*" not found - backup tests cannot run`)
+    assert(
+      qaVms.length >= 2,
+      `at least 2 VM with pattern "${vmPrefix}-QA-Test-*" are required - backup tests cannot run`
+    )
 
     // Use the first available QA VM for backup tests
     vms = qaVms.slice(0, 2)

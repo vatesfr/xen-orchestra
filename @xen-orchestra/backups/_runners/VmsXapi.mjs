@@ -9,6 +9,7 @@ import { getAdaptersByRemote } from './_getAdaptersByRemote.mjs'
 import { IncrementalXapi } from './_vmRunners/IncrementalXapi.mjs'
 import { FullXapi } from './_vmRunners/FullXapi.mjs'
 import { Throttle } from '@vates/generator-toolbox'
+import { asyncEach } from '@vates/async-each'
 import createStreamThrottle from './_createStreamThrottle.mjs'
 import { selectSynchronizedSnapshotVms } from './_selectSynchronizedSnapshotVms.mjs'
 
@@ -48,6 +49,16 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
     Object.assign(baseSettings, DEFAULT_XAPI_VM_SETTINGS, config.defaultSettings, config.vm?.defaultSettings)
     Object.assign(baseSettings, job.settings[''])
     return baseSettings
+  }
+
+  _getVmBackup(jobMode, opts) {
+    if (jobMode === 'delta') {
+      return new IncrementalXapi(opts)
+    } else if (jobMode === 'full') {
+      return new FullXapi(opts)
+    }
+
+    throw new Error(`Job mode ${jobMode} not implemented`)
   }
 
   async run() {
@@ -98,7 +109,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
         const allSettings = this._job.settings
         const baseSettings = this._baseSettings
 
-        const preTakenSnapshotRefByVmId = {}
+        const preTakenTimestampByVmId = {}
         const failedSnapshotByVmId = {}
         if (settings.synchronizedSnapshot) {
           await Task.run({ properties: { name: 'snapshot VMs' } }, async () => {
@@ -110,45 +121,46 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
 
                 const batchIds = selectSynchronizedSnapshotVms(settings.synchronizedSnapshot, vms)
 
-                const snapshotOne = limitConcurrency(settings.snapshotConcurrency)(async vm => {
-                  const vmSettings = { ...settings, ...allSettings[vm.uuid] }
-                  const opts = {
-                    baseSettings,
-                    config,
-                    getSnapshotNameLabel,
-                    healthCheckSr,
-                    job,
-                    remoteAdapters,
-                    schedule,
-                    settings: vmSettings,
-                    srs,
-                    throttleGenerator,
-                    throttleStream,
-                    vm,
-                  }
-
-                  let vmBackup
-                  if (job.mode === 'delta') {
-                    vmBackup = new IncrementalXapi(opts)
-                  } else {
-                    if (job.mode === 'full') {
-                      vmBackup = new FullXapi(opts)
-                    } else {
-                      throw new Error(`Job mode ${job.mode} not implemented`)
-                    }
-                  }
-
-                  try {
-                    await vmBackup._snapshot()
-                    preTakenSnapshotRefByVmId[vm.uuid] = vmBackup._exportedVm.$ref
-                  } catch (error) {
-                    failedSnapshotByVmId[vm.uuid] = error
-                  }
-                })
-
-                await asyncMapSettled(
+                await asyncEach(
                   [...vms].filter(vm => batchIds.has(vm.uuid)),
-                  snapshotOne
+                  async vm => {
+                    const vmSettings = { ...settings, ...allSettings[vm.uuid] }
+                    const opts = {
+                      baseSettings,
+                      config,
+                      getSnapshotNameLabel,
+                      healthCheckSr,
+                      job,
+                      remoteAdapters,
+                      schedule,
+                      settings: vmSettings,
+                      srs,
+                      throttleGenerator,
+                      throttleStream,
+                      vm,
+                    }
+
+                    let vmBackup
+                    try {
+                      vmBackup = this._getVmBackup(job.mode, opts)
+                      if (await vmBackup._mustDoSnapshot()) {
+                        await vmBackup._prepareAndSnapshot()
+                        preTakenTimestampByVmId[vm.uuid] = vmBackup.timestamp
+                      }
+                    } catch (error) {
+                      failedSnapshotByVmId[vm.uuid] = error
+                      if (vmBackup !== undefined) {
+                        try {
+                          await vmBackup._fetchJobSnapshots()
+                          await vmBackup._removeUnusedSnapshots()
+                          await vmBackup._cleanMetadata()
+                        } catch (cleanupError) {}
+                      }
+                    }
+                  },
+                  {
+                    concurrency: settings.snapshotConcurrency,
+                  }
                 )
               }
             )
@@ -225,25 +237,15 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                       schedule,
                       settings: vmSettings,
                       srs,
+                      // when set, the batch phase already snapshotted this VM; the
+                      // runner re-finds that snapshot by its metadata (see _snapshot)
+                      synchronizedSnapshotTimestamp: preTakenTimestampByVmId[vmUuid],
                       throttleGenerator,
                       throttleStream,
                       vm,
                     }
 
-                    let vmBackup
-                    if (job.mode === 'delta') {
-                      vmBackup = new IncrementalXapi(opts)
-                    } else {
-                      if (job.mode === 'full') {
-                        vmBackup = new FullXapi(opts)
-                      } else {
-                        throw new Error(`Job mode ${job.mode} not implemented`)
-                      }
-                    }
-
-                    if (preTakenSnapshotRefByVmId[vmUuid]) {
-                      vmBackup._exportedVm = await vm.$xapi.getRecord('VM', preTakenSnapshotRefByVmId[vmUuid])
-                    }
+                    const vmBackup = this._getVmBackup(job.mode, opts)
 
                     return vmBackup.run().catch(error => {
                       taskError = error
