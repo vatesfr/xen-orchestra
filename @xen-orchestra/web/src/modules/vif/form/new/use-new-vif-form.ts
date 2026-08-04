@@ -12,6 +12,7 @@ import {
 } from '@/modules/vif/form/use-vif-form-base.ts'
 import type { NewVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { objectIcon } from '@core/icons'
 import { mergeValidationConfigs, required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -59,7 +60,7 @@ export function useNewVifForm(
     option: {
       label: 'name_label',
       value: 'id',
-      properties: network => ({ icon: getNetworkStatus(getPifsByIds(network.PIFs)) }),
+      properties: network => ({ icon: objectIcon('network', getNetworkStatus(getPifsByIds(network.PIFs))) }),
     },
   })
 

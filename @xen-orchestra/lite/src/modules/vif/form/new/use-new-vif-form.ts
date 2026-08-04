@@ -7,6 +7,7 @@ import {
 } from '@/modules/vif/form/use-vif-form-base.ts'
 import type { NewVifPayload } from '@/modules/vif/jobs/vif-create.job.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
+import { objectIcon } from '@core/icons'
 import { mergeValidationConfigs, required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -49,7 +50,7 @@ export function useNewVifForm(rawVmRef: MaybeRefOrGetter<XenApiVm['$ref']>) {
       id: '$ref',
       label: 'name_label',
       value: '$ref',
-      properties: network => ({ icon: getNetworkStatus(network) }),
+      properties: network => ({ icon: objectIcon('network', getNetworkStatus(network)) }),
     },
   })
 
