@@ -2,6 +2,8 @@ import {
   type FrontXoNetwork,
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { getNetworkIcon } from '@/modules/network/utils/xo-network.util.ts'
+import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import {
   type BaseVifFormData,
@@ -28,6 +30,7 @@ export function useNewVifForm(
   const poolId = toComputed(rawPoolId)
 
   const { networks } = useXoNetworkCollection()
+  const { getPifsByIds } = useXoPifCollection()
 
   const poolNetworks = useArrayFilter(networks, network => network.$pool === poolId.value)
 
@@ -56,6 +59,7 @@ export function useNewVifForm(
     option: {
       label: 'name_label',
       value: 'id',
+      properties: network => ({ icon: getNetworkIcon(getPifsByIds(network.PIFs)) }),
     },
   })
 

@@ -84,6 +84,12 @@ async function onSubmit() {
       min-width: 0;
     }
 
+    .network-select-option {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
     @media (--medium-or-large) {
       flex-direction: row;
       gap: 8rem;
@@ -96,12 +102,6 @@ async function onSubmit() {
 
   .tx-checksumming {
     margin-block-start: 2.4rem;
-  }
-
-  .network-select-option {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
   }
 }
 </style>

@@ -1,7 +1,17 @@
 <template>
   <VtsForm class="new-vif-form" @submit="onSubmit()">
     <div class="row">
-      <VifNetworkSelect v-bind="networkSelectBindings" />
+      <VifNetworkSelect v-bind="networkSelectBindings">
+        <template #option="{ option }">
+          <VtsOption :option>
+            <span class="network-select-option">
+              <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+              <VtsIcon v-else name="object:network" size="medium" />
+              {{ option.properties.label }}
+            </span>
+          </VtsOption>
+        </template>
+      </VifNetworkSelect>
       <VifMacInput v-bind="macInputBindings" />
     </div>
     <div class="row">
@@ -23,6 +33,8 @@ import { useNewVifForm } from '@/modules/vif/form/new/use-new-vif-form.ts'
 import type { NewVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsOption from '@core/components/select/VtsOption.vue'
 import type { RouteLocationRaw } from 'vue-router'
 import VifAllowedIpsTextarea from './inputs/VifAllowedIpsTextarea.vue'
 import VifNetworkSelect from './inputs/VifNetworkSelect.vue'
@@ -71,6 +83,12 @@ async function onSubmit() {
     & > * {
       width: 100%;
       min-width: 0;
+    }
+
+    .network-select-option {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
     }
 
     @media (--medium-or-large) {
