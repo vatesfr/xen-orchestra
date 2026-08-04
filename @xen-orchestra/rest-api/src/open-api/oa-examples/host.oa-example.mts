@@ -825,18 +825,10 @@ export const nfsExport = [
 ]
 
 export const srUuids = [
-  {
-    uuid: 'd4e4d9b8-2c7e-46fd-9b53-6b8e5d6b2f4a',
-  },
-  {
-    uuid: '8f4c6a91-3b7d-4d7a-a9e3-2c9b6d5e7f81',
-  },
-  {
-    uuid: '1b7f3d54-9d2e-4c1a-8f67-5a9e2c3d4b10',
-  },
-  {
-    uuid: 'f2c8a6e3-7d19-4b2e-9a65-1d8f3c7b5e92',
-  },
+  'd4e4d9b8-2c7e-46fd-9b53-6b8e5d6b2f4a',
+  '8f4c6a91-3b7d-4d7a-a9e3-2c9b6d5e7f81',
+  '1b7f3d54-9d2e-4c1a-8f67-5a9e2c3d4b10',
+  'f2c8a6e3-7d19-4b2e-9a65-1d8f3c7b5e92',
 ]
 
 export const hbaExport = [

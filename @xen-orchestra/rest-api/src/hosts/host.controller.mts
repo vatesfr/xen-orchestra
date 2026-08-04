@@ -77,7 +77,7 @@ import { HostService } from './host.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SupportedActions } from '@xen-orchestra/acl'
-import { XoSrHbaExport, XoSrIscsiIqnsExport, XoSrIscsiLunsExport, XoSrNfsExport, XoSrsExport } from './host.type.mjs'
+import { XoSrHbaExport, XoSrIscsiIqnsExport, XoSrIscsiLunsExport, XoSrNfsExport } from './host.type.mjs'
 
 @Route('hosts')
 @Security('*')
@@ -1031,6 +1031,7 @@ export class HostController extends XapiXoController<XoHost> {
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
+  //TODO: add @Example when we have a host using a zfs SR
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_zfs')
   @Middlewares(acl({ resource: 'host', action: 'probe:zfs', objectId: 'params.id' }))
@@ -1042,8 +1043,8 @@ export class HostController extends XapiXoController<XoHost> {
     const action = () => {
       return this.#hostService.probeZfs(hostId)
     }
-
-    return this.createAction<void>(action, {
+    //FIXME: fix the return type of the createAction
+    return this.createAction<Record<string, unknown>>(action, {
       sync,
       statusCode: 200,
       taskProperties: {
@@ -1215,7 +1216,7 @@ export class HostController extends XapiXoController<XoHost> {
       chapPassword?: string
     },
     @Query() sync?: boolean
-  ): CreateActionReturnType<XoSrsExport[]> {
+  ): CreateActionReturnType<string[]> {
     const hostId = id as XoHost['id']
     const action = () => {
       return this.#hostService.probeIscsiExists(
@@ -1229,7 +1230,7 @@ export class HostController extends XapiXoController<XoHost> {
       )
     }
 
-    return this.createAction<XoSrsExport[]>(action, {
+    return this.createAction<string[]>(action, {
       sync,
       statusCode: asynchronousActionResp.status,
       taskProperties: {
@@ -1260,13 +1261,13 @@ export class HostController extends XapiXoController<XoHost> {
     @Path() id: string,
     @Body() request: { scsiId: string },
     @Query() sync?: boolean
-  ): CreateActionReturnType<XoSrsExport[]> {
+  ): CreateActionReturnType<string[]> {
     const hostId = id as XoHost['id']
     const action = () => {
       return this.#hostService.probeHbaExists(hostId, request.scsiId)
     }
 
-    return this.createAction<XoSrsExport[]>(action, {
+    return this.createAction<string[]>(action, {
       sync,
       statusCode: 200,
       taskProperties: {
@@ -1302,13 +1303,13 @@ export class HostController extends XapiXoController<XoHost> {
       nfsVersion?: string
     },
     @Query() sync?: boolean
-  ): CreateActionReturnType<XoSrsExport[]> {
+  ): CreateActionReturnType<string[]> {
     const hostId = id as XoHost['id']
     const action = () => {
       return this.#hostService.probeNfsExists(hostId, request.server, request.serverPath, request.nfsVersion)
     }
 
-    return this.createAction<XoSrsExport[]>(action, {
+    return this.createAction<string[]>(action, {
       sync,
       statusCode: 200,
       taskProperties: {

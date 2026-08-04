@@ -36,7 +36,3 @@ export type XoSrIscsiIqnsExport = {
   iqn: string
   ip: string
 }
-
-export type XoSrsExport = {
-  uuid: string
-}
