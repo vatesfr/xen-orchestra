@@ -143,7 +143,11 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                     let vmBackup
                     try {
                       vmBackup = this._getVmBackup(job.mode, opts)
-                      if (await vmBackup._mustDoSnapshot()) {
+                      if (
+                        !vmBackup._settings.offlineBackup &&
+                        !vmBackup._settings.offlineSnapshot &&
+                        (await vmBackup._mustDoSnapshot())
+                      ) {
                         await vmBackup._prepareAndSnapshot()
                         preTakenTimestampByVmId[vm.uuid] = vmBackup.timestamp
                       }
@@ -154,7 +158,9 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                           await vmBackup._fetchJobSnapshots()
                           await vmBackup._removeUnusedSnapshots()
                           await vmBackup._cleanMetadata()
-                        } catch (cleanupError) {}
+                        } catch (cleanupError) {
+                          // Best effort cleanup
+                        }
                       }
                     }
                   },
