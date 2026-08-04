@@ -7,7 +7,7 @@ import type { PassThrough } from 'node:stream'
 
 import { Listener } from '../abstract-classes/listener.mjs'
 import type { CollectionEventType, EventType, SubscriberId, XoListenerType } from './event.type.mjs'
-import type { XapiXoRecord, XoAlarm, XoMessage, XoRecord, XoTask, XoUser } from '@vates/types'
+import type { XoAlarm, XoMessage, XoRecord, XoUser } from '@vates/types'
 import type { AlarmService } from '../alarms/alarm.service.mjs'
 import { UserService } from '../users/user.service.mjs'
 

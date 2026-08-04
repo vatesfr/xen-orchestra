@@ -93,7 +93,7 @@ export class EventController extends Controller {
   @Response(notFoundResp.status, notFoundResp.description)
   addSubscription(
     @Path() id: string,
-    @Body() body: { collection: XoListenerType | 'user'; fields?: '*' | string[] }
+    @Body() body: { collection: XoListenerType; fields?: '*' | string[] }
   ): { id: string } {
     this.#eventService.addListenerFor(id as SubscriberId, { ...body, type: body.collection })
     return { id: body.collection }

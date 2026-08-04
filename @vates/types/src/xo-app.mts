@@ -2,7 +2,6 @@ import { EventEmitter } from 'node:stream'
 import type {
   AnyXoJob,
   AnyXoLog,
-  NonXapiXoRecord,
   XapiXoRecord,
   XoAuthenticationToken,
   XoBackupRepository,
