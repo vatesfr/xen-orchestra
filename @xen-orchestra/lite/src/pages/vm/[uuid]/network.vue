@@ -1,26 +1,39 @@
 <template>
   <VtsContentSidePanel class="network">
     <UiCard class="container">
-      <VmVifsTable v-if="vm" :vifs :vm />
+      <VifsTable v-if="vm" :vifs :vm>
+        <template #title-actions>
+          <UiButton
+            left-icon="fa:plus"
+            size="medium"
+            accent="brand"
+            variant="secondary"
+            @click="router.push({ name: '/vif/new', query: { vmUuid: vm.uuid } })"
+          >
+            {{ t('new-vif') }}
+          </UiButton>
+        </template>
+      </VifsTable>
     </UiCard>
-    <VmVifsSidePanel :vif="selectedVif" @close="selectedVif = undefined" />
+    <VifsSidePanel :vif="selectedVif" @close="selectedVif = undefined" />
   </VtsContentSidePanel>
 </template>
 
 <script lang="ts" setup>
-import VmVifsSidePanel from '@/components/vm/network/VmVifsSidePanel.vue'
-import VmVifsTable from '@/components/vm/network/VmVifsTable.vue'
 import type { XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import VifsSidePanel from '@/modules/vif/components/panel/VifsSidePanel.vue'
+import VifsTable from '@/modules/vif/components/VifsTable.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useArrayFilter } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const { records } = useVifStore().subscribe()
 const { getByUuid } = useVmStore().subscribe()
@@ -28,6 +41,9 @@ const { getByUuid } = useVmStore().subscribe()
 const route = useRoute<'/vm/[uuid]/network'>()
 
 const { t } = useI18n()
+
+const router = useRouter()
+
 usePageTitleStore().setTitle(t('network'))
 
 const vm = computed(() => getByUuid(route.params.uuid as XenApiVm['uuid']))

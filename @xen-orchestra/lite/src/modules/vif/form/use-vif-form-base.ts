@@ -1,4 +1,4 @@
-import type { BaseVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
+import type { BaseVifPayload } from '@/modules/vif/jobs/vif-create.job.ts'
 import {
   type FormValidationConfig,
   ipAddresses,

@@ -1,38 +1,27 @@
-import {
-  type FrontXoNetwork,
-  useXoNetworkCollection,
-} from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getNetworkIcon } from '@/modules/network/utils/xo-network.util.ts'
-import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { XenApiNetwork, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useNetworkUtils } from '@/modules/network/composables/network-utils.composable.ts'
 import {
   type BaseVifFormData,
   buildBaseVifPayload,
   useVifFormBaseValidation,
 } from '@/modules/vif/form/use-vif-form-base.ts'
-import type { NewVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { NewVifPayload } from '@/modules/vif/jobs/vif-create.job.ts'
+import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { mergeValidationConfigs, required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { useArrayFilter } from '@vueuse/shared'
-import { type MaybeRefOrGetter, reactive, watch } from 'vue'
+import { type MaybeRefOrGetter, reactive } from 'vue'
 
 export type NewVifFormData = BaseVifFormData & {
-  network: FrontXoNetwork['id'] | undefined
+  network: XenApiNetwork['$ref'] | undefined
 }
 
-export function useNewVifForm(
-  rawVmId: MaybeRefOrGetter<FrontXoVm['id']>,
-  rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>
-) {
-  const vmId = toComputed(rawVmId)
-  const poolId = toComputed(rawPoolId)
+export function useNewVifForm(rawVmRef: MaybeRefOrGetter<XenApiVm['$ref']>) {
+  const vmRef = toComputed(rawVmRef)
 
-  const { networks } = useXoNetworkCollection()
-  const { getPifsByIds } = useXoPifCollection()
+  const { records: networks } = useNetworkStore().subscribe()
 
-  const poolNetworks = useArrayFilter(networks, network => network.$pool === poolId.value)
+  const { getNetworkIcon } = useNetworkUtils()
 
   const formData = reactive<NewVifFormData>({
     network: undefined,
@@ -53,18 +42,15 @@ export function useNewVifForm(
     })
   )
 
-  const { id: networkSelectId } = useFormSelect('network', poolNetworks, {
+  const { id: networkSelectId } = useFormSelect('network', networks, {
     searchable: true,
     required: true,
     option: {
+      id: '$ref',
       label: 'name_label',
-      value: 'id',
-      properties: network => ({ icon: getNetworkIcon(getPifsByIds(network.PIFs)) }),
+      value: '$ref',
+      properties: network => ({ icon: getNetworkIcon(network) }),
     },
-  })
-
-  watch(poolId, () => {
-    formData.network = undefined
   })
 
   async function validateAndBuildPayload(): Promise<NewVifPayload | undefined> {
@@ -75,8 +61,8 @@ export function useNewVifForm(
     }
 
     return {
-      vmId: vmId.value,
-      networkId: formData.network,
+      vmRef: vmRef.value,
+      network: formData.network,
       ...buildBaseVifPayload(formData),
     }
   }
