@@ -21,13 +21,29 @@
       </div>
 
       <div class="main-content">
-        <div v-if="task.nameParts || task.name" class="content-left">
-          <template v-if="task.nameParts">
-            <template v-for="(part, index) in task.nameParts" :key="index">
-              <UiLink size="medium" :to="part.to">{{ part.text }}</UiLink>
+        <div class="content-left">
+          <div v-if="task.nameParts || task.name" class="task-name">
+            <template v-if="linkNameToTasksPage">
+              <UiLink size="small" display-inline :to="`/tasks?id=${task.id}`">
+                <template v-if="task.nameParts">
+                  <template v-for="(part, index) in task.nameParts" :key="index">
+                    {{ part.text }}
+                  </template>
+                </template>
+                <template v-else>{{ task.name }}</template>
+              </UiLink>
             </template>
-          </template>
-          <UiLink v-else size="small">{{ task.name }}</UiLink>
+            <template v-else>
+              <template v-if="task.nameParts">
+                <template v-for="(part, index) in task.nameParts" :key="index">
+                  <UiLink v-if="part.to" size="small" display-inline :to="part.to">{{ part.text }}</UiLink>
+                  <UiLink v-else display-inline size="small">{{ part.text }}</UiLink>
+                </template>
+              </template>
+              <UiLink v-else display-inline size="small">{{ task.name }}</UiLink>
+            </template>
+          </div>
+
           <div v-if="shouldShowInfos || hasSubTasks" class="infos">
             <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="brand" variant="secondary" size="small" />
             <UiInfo v-if="hasInfos" accent="info" />
@@ -43,8 +59,14 @@
           <div class="progress">
             <UiCircleProgressBar :accent="progressAccent" size="small" :value="progress" />
           </div>
-          <div class="actions">
-            <UiButtonIcon icon="fa:eye" size="small" accent="brand" @click="emit('select', task.id)" />
+          <div v-if="showEyeIcon" class="actions">
+            <UiButtonIcon
+              v-if="showEyeIcon"
+              icon="fa:eye"
+              size="small"
+              accent="brand"
+              @click="emit('select', task.id)"
+            />
           </div>
         </div>
       </div>
@@ -91,12 +113,14 @@ export type Task = {
   warnings?: { data: unknown; message: string }[]
 }
 
-const { task } = defineProps<{
+const { task, showEyeIcon = true } = defineProps<{
   task: Task
   depth: number
   expanded?: boolean
   selected?: boolean
   selectedTaskId?: string
+  linkNameToTasksPage?: boolean
+  showEyeIcon?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -208,6 +232,10 @@ const progress = computed(() => {
       flex-wrap: wrap;
       color: var(--color-neutral-txt-secondary);
       word-break: break-word;
+
+      .task-name {
+        line-height: 1;
+      }
 
       .infos {
         display: flex;
