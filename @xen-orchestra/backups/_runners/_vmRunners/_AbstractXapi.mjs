@@ -69,7 +69,6 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     this._synchronizedSnapshotTimestamp = synchronizedSnapshotTimestamp
     this._vm = vm
 
-    this._baseVdis = undefined
     this._getSnapshotNameLabel = getSnapshotNameLabel
     this._isIncremental = job.mode === 'delta'
     this._healthCheckSr = healthCheckSr
@@ -185,6 +184,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
   async _snapshot() {
     if (this._synchronizedSnapshotTimestamp !== undefined) {
+      await this._xapi.barrier()
       const datetime = formatDateTime(this._synchronizedSnapshotTimestamp)
       this._exportedVm = this._vm.$snapshots
         .filter(Boolean)

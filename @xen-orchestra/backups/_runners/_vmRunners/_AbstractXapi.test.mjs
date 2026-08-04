@@ -28,6 +28,7 @@ describe('_snapshot() synchronized-snapshot reuse guard', () => {
       _jobId: 'job-1',
       scheduleId: 'schedule-1',
       _vm: { uuid: 'vm-uuid', $snapshots: [batchSnapshot] },
+      _xapi: { barrier: async () => {} },
       // if the metadata lookup fails, _snapshot() falls through to here
       _mustDoSnapshot: async () => {
         mustDoSnapshotCalls++
@@ -50,7 +51,7 @@ describe('_snapshot() synchronized-snapshot reuse guard', () => {
       _jobId: 'job-1',
       scheduleId: 'schedule-1',
       _vm: vm,
-      _xapi: {},
+      _xapi: { barrier: async () => {} },
       _settings: {},
       _mustDoSnapshot: async () => {
         mustDoSnapshotCalls++
