@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **6.7.1** (2026-08-04)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
@@ -24,8 +26,6 @@
 - xo-server-load-balancer 0.13.1
 
 ## **6.7.0** (2026-07-30)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Security
 
