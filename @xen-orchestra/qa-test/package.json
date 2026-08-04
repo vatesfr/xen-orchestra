@@ -25,7 +25,7 @@
     "@xen-orchestra/backups": "^0.73.10",
     "@xen-orchestra/fs": "^4.9.3",
     "@xen-orchestra/log": "^0.7.2",
-    "@xen-orchestra/vmware-explorer": "^0.14.0",
+    "@xen-orchestra/vmware-explorer": "^0.15.0",
     "nodemailer": "^7.0.13",
     "xo-lib": "^0.11.2"
   },
