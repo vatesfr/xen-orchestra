@@ -9,7 +9,6 @@ import type {
   XoSrHbaExport,
   XoSrIscsiIqnsExport,
   XoSrIscsiLunsExport,
-  XoSrsExport,
 } from './host.type.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import semver from 'semver'
@@ -423,7 +422,7 @@ export class HostService {
     port?: number,
     chapUser?: string,
     chapPassword?: string
-  ): Promise<XoSrsExport[]> {
+  ): Promise<string[]> {
     const xapiHost = this.#restApi.getXapiObject<XoHost>(id, 'host')
     const xapi = xapiHost.$xapi
 
@@ -456,14 +455,12 @@ export class HostService {
     const xml = parseXml(await xapi.call('SR.probe', xapiHost.$ref, deviceConfig, 'lvmoiscsi', {}))
 
     // UUIDs of the SRs connected to this LUN
-    const srs: XoSrsExport[] = ensureArray(xml.SRlist.SR).map(sr => ({
-      uuid: sr.UUID.trim(),
-    }))
+    const srs: string[] = ensureArray(xml.SRlist.SR).map(sr => sr.UUID.trim())
 
     return srs
   }
 
-  async probeHbaExists(id: XoHost['id'], scsiId: string): Promise<XoSrsExport[]> {
+  async probeHbaExists(id: XoHost['id'], scsiId: string): Promise<string[]> {
     const xapiHost = this.#restApi.getXapiObject<XoHost>(id, 'host')
     const xapi = xapiHost.$xapi
 
@@ -474,19 +471,12 @@ export class HostService {
     const xml = parseXml(await xapi.call('SR.probe', xapiHost.$ref, deviceConfig, 'lvmohba', {}))
 
     // get the UUID of SR connected to this LUN
-    const srs: XoSrsExport[] = ensureArray(xml.SRlist.SR).map(sr => ({
-      uuid: sr.UUID.trim(),
-    }))
+    const srs: string[] = ensureArray(xml.SRlist.SR).map(sr => sr.UUID.trim())
 
     return srs
   }
 
-  async probeNfsExists(
-    id: XoHost['id'],
-    server: string,
-    serverPath: string,
-    nfsVersion?: string
-  ): Promise<XoSrsExport[]> {
+  async probeNfsExists(id: XoHost['id'], server: string, serverPath: string, nfsVersion?: string): Promise<string[]> {
     const xapiHost = this.#restApi.getXapiObject<XoHost>(id, 'host')
     const xapi = xapiHost.$xapi
 
@@ -498,9 +488,7 @@ export class HostService {
 
     const xml = parseXml(await xapi.call('SR.probe', xapiHost.$ref, deviceConfig, 'nfs', {}))
 
-    const srs: XoSrsExport[] = ensureArray(xml.SRlist.SR).map(sr => ({
-      uuid: sr.UUID.trim(),
-    }))
+    const srs: string[] = ensureArray(xml.SRlist.SR).map(sr => sr.UUID.trim())
 
     return srs
   }
