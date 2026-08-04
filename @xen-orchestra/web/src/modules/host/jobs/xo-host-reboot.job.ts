@@ -29,6 +29,10 @@ export const useXoHostRebootJob = defineJob('host.reboot', [xoHostArg], () => {
         throw new JobRunningError(t('job:host-reboot:in-progress'))
       }
 
+      if (isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.EVACUATE)) {
+        throw new JobRunningError(t('job:host-reboot:evacuate-in-progress'))
+      }
+
       if (host.power_state !== HOST_POWER_STATE.RUNNING) {
         throw new JobError(t('job:host-reboot:bad-power-state'))
       }

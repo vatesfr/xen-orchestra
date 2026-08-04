@@ -501,6 +501,7 @@
   "job:host-forget:in-progress": "Oubli de l'hôte en cours…",
   "job:host-forget:missing-host": "Aucun hôte à oublier",
   "job:host-reboot:bad-power-state": "L'hôte n'est pas démarré",
+  "job:host-reboot:evacuate-in-progress": "Évacuation des VMs en cours…",
   "job:host-reboot:in-progress": "Redémarrage de l'hôte en cours…",
   "job:host-reboot:missing-host": "Aucun hôte à redémarrer",
   "job:host-shutdown:bad-power-state": "Hôte déjà arrêté",

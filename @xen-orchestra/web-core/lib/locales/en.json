@@ -501,6 +501,7 @@
   "job:host-forget:in-progress": "Host forgetting in progress…",
   "job:host-forget:missing-host": "No host to forget",
   "job:host-reboot:bad-power-state": "Host is not running",
+  "job:host-reboot:evacuate-in-progress": "Evacuate VMs in progress…",
   "job:host-reboot:in-progress": "Host reboot in progress…",
   "job:host-reboot:missing-host": "No host to reboot",
   "job:host-shutdown:bad-power-state": "Host already halted",
