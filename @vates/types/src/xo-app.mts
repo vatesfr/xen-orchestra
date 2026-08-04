@@ -2,6 +2,7 @@ import { EventEmitter } from 'node:stream'
 import type {
   AnyXoJob,
   AnyXoLog,
+  NonXapiXoRecord,
   XapiXoRecord,
   XoAuthenticationToken,
   XoBackupRepository,
@@ -322,6 +323,7 @@ export type XoApp = {
   getXapiPoolStats(poolId: XoPool['id'], granularity?: XapiStatsGranularity): Promise<XapiPoolStats>
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
+  getXoEventEmitterByType(type: string): EventEmitter
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
   listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{

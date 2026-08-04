@@ -8,7 +8,7 @@ export class UserService {
     this.#restApi = restApi
   }
 
-  #sanitizeUser(user: XoUser): XoUser {
+  sanitizeUser<MaybePartial extends XoUser | Partial<XoUser>>(user: MaybePartial): MaybePartial {
     const sanitizedUser = { ...user }
 
     if (sanitizedUser.pw_hash !== undefined) {
@@ -20,11 +20,11 @@ export class UserService {
 
   async getUser(id: XoUser['id']): Promise<XoUser> {
     const user = await this.#restApi.xoApp.getUser(id)
-    return this.#sanitizeUser(user)
+    return this.sanitizeUser(user)
   }
 
   async getUsers(): Promise<XoUser[]> {
     const users = await this.#restApi.xoApp.getAllUsers()
-    return users.map(user => this.#sanitizeUser(user))
+    return users.map(user => this.sanitizeUser(user))
   }
 }

@@ -28,7 +28,10 @@ import { generateToken, noop } from './utils.mjs'
 // ===================================================================
 
 const log = createLogger('xo:xo')
-const COLLECTION_BY_TYPE = new Map()
+/**
+ * @type {Map<string, EventEmitter>}
+ */
+const EE_BY_TYPE = new Map()
 
 @mixinLegacy(Object.values(mixins))
 export default class Xo extends EventEmitter {
@@ -76,15 +79,15 @@ export default class Xo extends EventEmitter {
       }
       collection.on('add', onAddOrUpdate)
       collection.on('update', onAddOrUpdate)
-      collection.on('remove', ids => {
+      collection.on('remove', ids =>
         ids.forEach(id => {
           const previous = cache.get(id)
           cache.delete(id)
           emitter.emit('remove', undefined, previous)
         })
-      })
+      )
 
-      COLLECTION_BY_TYPE.set(type, emitter)
+      EE_BY_TYPE.set(type, emitter)
     })
 
     const debounceResource = createDebounceResource()
@@ -102,13 +105,13 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  getCollectionByType(type) {
-    const collection = COLLECTION_BY_TYPE.get(type)
-    if (collection === undefined) {
+  getXoEventEmitterByType(type) {
+    const emitter = EE_BY_TYPE.get(type)
+    if (emitter === undefined) {
       throw new Error('collection not registered')
     }
 
-    return collection
+    return emitter
   }
 
   // Returns an object from its key or UUID.
