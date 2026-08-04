@@ -132,16 +132,18 @@ describe('Backup basic tests', () => {
       assert(findTaskByMessage(result, 'snapshot VMs') === null, `No batch snapshot should have been performed`)
     })
 
-    it('should run the backup job in full mode and synchronized', async () => {
-      await createBackupJobForTest(synchronizedConfig, 'full')
+    it('should run a synchronized delta backup and reuse the batch snapshots as the delta base on the second run', async () => {
+      await createBackupJobForTest(synchronizedConfig, 'delta')
       const job = await dispatchClient.backup.details(backupJobId)
       const realScheduleKey = getScheduleKey(job)
 
-      const result = await dispatchClient.backup.runJobAndGetLog(backupJobId, realScheduleKey)
-      assertBackupSuccess(result, 'Synchronized full backup')
-      assertFullOrDelta(result, backupRepository.id, { mustBeFull: true })
-
-      assertSynchronizedSnapshot(result, vms.length)
+      // Does 2 backups, first one is full synchronized, second one is a delta.y
+      for (let index = 0; index < 2; index++) {
+        const result = await dispatchClient.backup.runJobAndGetLog(backupJobId, realScheduleKey)
+        assertBackupSuccess(result, index === 0 ? 'Synchronized full backup' : 'Synchronized delta backup')
+        assertFullOrDelta(result, backupRepository.id, { mustBeFull: index === 0 })
+        assertSynchronizedSnapshot(result, vms.length)
+      }
     })
   })
 
