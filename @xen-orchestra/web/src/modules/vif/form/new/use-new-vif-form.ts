@@ -2,7 +2,7 @@ import {
   type FrontXoNetwork,
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getNetworkIcon } from '@/modules/network/utils/xo-network.util.ts'
+import { getNetworkStatus } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import {
@@ -59,7 +59,7 @@ export function useNewVifForm(
     option: {
       label: 'name_label',
       value: 'id',
-      properties: network => ({ icon: getNetworkIcon(getPifsByIds(network.PIFs)) }),
+      properties: network => ({ icon: getNetworkStatus(getPifsByIds(network.PIFs)) }),
     },
   })
 

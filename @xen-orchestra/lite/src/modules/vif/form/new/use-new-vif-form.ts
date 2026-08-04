@@ -21,7 +21,7 @@ export function useNewVifForm(rawVmRef: MaybeRefOrGetter<XenApiVm['$ref']>) {
 
   const { records: networks } = useNetworkStore().subscribe()
 
-  const { getNetworkIcon } = useNetworkUtils()
+  const { getNetworkStatus } = useNetworkUtils()
 
   const formData = reactive<NewVifFormData>({
     network: undefined,
@@ -49,7 +49,7 @@ export function useNewVifForm(rawVmRef: MaybeRefOrGetter<XenApiVm['$ref']>) {
       id: '$ref',
       label: 'name_label',
       value: '$ref',
-      properties: network => ({ icon: getNetworkIcon(network) }),
+      properties: network => ({ icon: getNetworkStatus(network) }),
     },
   })
 

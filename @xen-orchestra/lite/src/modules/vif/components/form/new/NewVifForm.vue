@@ -5,8 +5,7 @@
         <template #option="{ option }">
           <VtsOption :option>
             <span class="network-select-option">
-              <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
-              <VtsIcon v-else name="object:network" size="medium" />
+              <VtsIcon :name="option.properties.icon" size="medium" />
               {{ option.properties.label }}
             </span>
           </VtsOption>

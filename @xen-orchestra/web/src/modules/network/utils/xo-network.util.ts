@@ -1,7 +1,6 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { type IconName, objectIcon } from '@core/icons'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import type { RouteLocationAsRelative } from 'vue-router'
 
@@ -56,15 +55,4 @@ export function getNetworkType(network: FrontXoNetwork): NetworkType {
   }
 
   return NETWORK_TYPE.PHYSICAL
-}
-
-export function getNetworkIcon(pifs: FrontXoPif[]): IconName {
-  switch (getNetworkStatus(pifs)) {
-    case CONNECTION_STATUS.CONNECTED:
-      return objectIcon('network', 'connected')
-    case CONNECTION_STATUS.PARTIALLY_CONNECTED:
-      return objectIcon('network', 'warning')
-    default:
-      return objectIcon('network', 'disconnected')
-  }
 }

@@ -5,8 +5,7 @@
         <template #option="{ option }">
           <VtsOption :option>
             <span class="network-select-option">
-              <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
-              <VtsIcon v-else name="object:network" size="medium" />
+              <VtsIcon :name="option.properties.icon" size="medium" />
               {{ option.properties.label }}
             </span>
           </VtsOption>
@@ -74,6 +73,10 @@ async function onSubmit() {
 
 <style lang="postcss" scoped>
 .new-vif-form {
+  @media (--medium-or-large) {
+    max-width: 88rem;
+  }
+
   .row {
     display: flex;
     align-items: start;
@@ -94,7 +97,6 @@ async function onSubmit() {
     @media (--medium-or-large) {
       flex-direction: row;
       gap: 8rem;
-      max-width: 88rem;
     }
 
     &:not(:first-child) {

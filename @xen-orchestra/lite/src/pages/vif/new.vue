@@ -35,7 +35,7 @@
 <script setup lang="ts">
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import NewVifForm from '@/modules/vif/components/form/new/NewVifForm.vue'
-import { type NewVifPayload, useXoVifCreateJob } from '@/modules/vif/jobs/vif-create.job.ts'
+import { type NewVifPayload, useVifCreateJob } from '@/modules/vif/jobs/vif-create.job.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
 import VtsOperationPendingCard from '@core/components/operation-pending-card/VtsOperationPendingCard.vue'
@@ -63,7 +63,7 @@ const formPayload = ref<NewVifPayload>()
 
 const error = ref<Error | undefined>()
 
-const { canRun, run: create, isRunning } = useXoVifCreateJob(formPayload)
+const { canRun, run: create, isRunning } = useVifCreateJob(formPayload)
 
 const canDisplayForm = computed(() => !isRunning.value && error.value === undefined)
 

@@ -3,7 +3,7 @@
     {{ t('allowed-ips') }}
 
     <template #info>{{ t('allowed-ips-example') }}</template>
-    <template v-if="errorMessage !== undefined">{{ errorMessage }}</template>
+    <template v-if="errorMessage !== undefined" #message>{{ errorMessage }}</template>
   </UiTextarea>
 </template>
 

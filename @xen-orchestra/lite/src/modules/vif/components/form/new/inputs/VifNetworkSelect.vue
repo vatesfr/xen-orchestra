@@ -29,11 +29,3 @@ const slots = defineSlots<{
 
 const { t } = useI18n()
 </script>
-
-<style lang="postcss" scoped>
-.select-option {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
-</style>

@@ -1,5 +1,5 @@
 import type { XenApiNetwork, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
-import { newVifPayloadArg } from '@/modules/vif/jobs/new-vif-args.ts'
+import { newVifPayloadArg } from '@/modules/vif/jobs/vif-create-args.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import type { IpAddress } from '@core/utils/ip-address.utils.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
@@ -21,7 +21,7 @@ export type NewVifPayload = BaseVifPayload & {
   network: XenApiNetwork['$ref']
 }
 
-export const useXoVifCreateJob = defineJob('vif.create', [newVifPayloadArg], () => {
+export const useVifCreateJob = defineJob('vif.create', [newVifPayloadArg], () => {
   const xapi = useXenApiStore().getXapi()
   const { t } = useI18n()
 
@@ -36,11 +36,11 @@ export const useXoVifCreateJob = defineJob('vif.create', [newVifPayloadArg], () 
     },
     validate: (isRunning, vif) => {
       if (vif.length === 0) {
-        throw new JobError(t('job:vm-start:missing-vm'))
+        throw new JobError(t('job:arg:missing-payload'))
       }
 
       if (isRunning) {
-        throw new JobRunningError(t('job:vm-start:in-progress'))
+        throw new JobRunningError(t('job:create:in-progress'))
       }
     },
   }

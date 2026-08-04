@@ -15,13 +15,13 @@
         </template>
       </VifsTable>
     </UiCard>
-    <VifsSidePanel :vif="selectedVif" @close="selectedVif = undefined" />
+    <VifSidePanel :vif="selectedVif" @close="selectedVif = undefined" />
   </VtsContentSidePanel>
 </template>
 
 <script lang="ts" setup>
 import type { XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
-import VifsSidePanel from '@/modules/vif/components/panel/VifsSidePanel.vue'
+import VifSidePanel from '@/modules/vif/components/panel/VifSidePanel.vue'
 import VifsTable from '@/modules/vif/components/VifsTable.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVifStore } from '@/stores/xen-api/vif.store'
