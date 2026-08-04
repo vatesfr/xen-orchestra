@@ -76,4 +76,13 @@ describe('deleteOldMetadataBackups', () => {
     await deleteOldMetadataBackups(handler, dir, 5)
     assert.deepEqual(handler.removed, [])
   })
+
+  // a retention of 0 means "this metadata mode is disabled" everywhere in XO (it is the
+  // default value, and _runners/Metadata.mjs gates the backup on `!== 0`), so it must never
+  // be read as "keep no backup" — that would turn the default into data loss
+  test('deletes nothing when the retention is 0, which means disabled', async () => {
+    const handler = makeHandler([...TIMESTAMPS, 'not-a-backup'])
+    await deleteOldMetadataBackups(handler, dir, 0)
+    assert.deepEqual(handler.removed, [])
+  })
 })

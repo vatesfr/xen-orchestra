@@ -65,23 +65,67 @@ describe('updateCache', () => {
   test('applies the mutation on the existing cache', async () => {
     await VmBackupDirectory.writeCache(handler, cachePath, { 'a.json': { timestamp: 1 } })
 
-    await VmBackupDirectory.updateCache(handler, cachePath, cache => {
-      cache['b.json'] = { timestamp: 2 }
-      delete cache['a.json']
-    })
+    await VmBackupDirectory.updateCache(
+      handler,
+      cachePath,
+      cache => {
+        cache['b.json'] = { timestamp: 2 }
+        delete cache['a.json']
+      },
+      { regenerate: true }
+    )
 
     assert.deepEqual(await VmBackupDirectory.readCache(handler, cachePath), { 'b.json': { timestamp: 2 } })
   })
 
-  // a missing cache is not an empty cache: it must be regenerated from the
-  // directory listing, not created from a partial update
-  test('does nothing when the cache does not exist', async () => {
+  // a missing cache is not an empty cache: it must never be created from a partial update
+  test('does nothing when the cache does not exist and regenerate is false', async () => {
     let called = false
-    await VmBackupDirectory.updateCache(handler, cachePath, () => {
-      called = true
-    })
+    await VmBackupDirectory.updateCache(
+      handler,
+      cachePath,
+      () => {
+        called = true
+      },
+      { regenerate: false }
+    )
 
     assert.equal(called, false)
     assert.equal(await fs.pathExists(`${tempDir}/${cachePath}`), false)
+  })
+
+  // the cache-guard: this is the path RemoteAdapter uses, a missing cache is rebuilt from
+  // the directory listing rather than left missing
+  test('rebuilds a missing cache from the directory listing when regenerate is true', async () => {
+    // handler.list({ prependDir: true }) returns normalized, absolute paths, and those are
+    // what the cache is keyed by
+    const metadataPath = `/${rootPath}/20240102T030405Z.json`
+    await handler.outputFile(
+      metadataPath,
+      JSON.stringify({ mode: 'delta', vm: { uuid: vmUuid, is_a_template: false }, timestamp: 1 })
+    )
+
+    let called = false
+    await VmBackupDirectory.updateCache(
+      handler,
+      cachePath,
+      () => {
+        called = true
+      },
+      { regenerate: true }
+    )
+
+    // the mutation is only ever applied to an existing cache
+    assert.equal(called, false)
+
+    const cache = await VmBackupDirectory.readCache(handler, cachePath)
+    assert.deepEqual(Object.keys(cache), [metadataPath])
+    assert.equal(cache[metadataPath]._filename, metadataPath)
+  })
+
+  test('leaves no cache behind when the directory does not exist', async () => {
+    const missing = 'xo-vm-backups/does-not-exist/cache.json.gz'
+    await VmBackupDirectory.updateCache(handler, missing, () => {}, { regenerate: true })
+    assert.equal(await fs.pathExists(`${tempDir}/${missing}`), false)
   })
 })

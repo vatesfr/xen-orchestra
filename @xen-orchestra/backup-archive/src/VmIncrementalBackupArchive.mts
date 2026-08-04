@@ -5,14 +5,18 @@ import {
   ResolvedBackupCleanOptions,
   VmBackupInterface,
   PartialBackupMetadata,
+  BackupVdi,
+  IncrementalImportPayload,
+  StoredBackupMetadata,
 } from './VmBackup.types.mjs'
+import { Disk } from '@xen-orchestra/disk-transform'
 import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
 import { join } from 'node:path'
 import pickBy from 'lodash/pickBy.js'
-import { asyncMapSettled } from '@xen-orchestra/async-map'
 import { createVhdDisk } from './disks/index.mjs'
 import { RemoteDiskLineage } from './RemoteDiskLineage.mjs'
+import { asyncMapSettled } from '@xen-orchestra/async-map'
 
 export class VmIncrementalBackupArchive implements VmBackupInterface {
   handler: RemoteHandlerAbstract
@@ -58,19 +62,29 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
   // return them alongside the VM/VBD/VIF/vTPM metadata. Ignored VDIs are filtered out.
   static async readIncrementalVmBackup(
     handler: RemoteHandlerAbstract,
-    metadata: any,
+    metadata: StoredBackupMetadata,
     ignoredVdis: Set<string> | undefined,
     { useChain = true }: { useChain?: boolean } = {}
-  ): Promise<any> {
-    const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
-    const dir = dirname(metadata._filename)
-    const vdis =
-      ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, (vdi: any) => !ignoredVdis.has(vdi.uuid))
-    const disks: Record<string, any> = {}
-    await (asyncMapSettled as any)(Object.keys(vdis), async (ref: string) => {
+  ): Promise<IncrementalImportPayload> {
+    const { _filename, vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
+    const dir = dirname(_filename)
+    const allVdis = metadata.vdis ?? {}
+    const vdis: Record<string, BackupVdi> =
+      ignoredVdis === undefined ? allVdis : pickBy(allVdis, (vdi: BackupVdi) => !ignoredVdis.has(vdi.uuid))
+    const disks: Record<string, Disk> = {}
+    await asyncMapSettled(Object.keys(vdis), async (ref: string) => {
       delete vdis[ref].baseVdi
-      disks[ref] = await createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
+      const vhd = vhds?.[ref]
+      if (vhd === undefined) {
+        throw new Error(`no VHD for VDI ${ref} in ${_filename}`)
+      }
+      disks[ref] = await createVhdDisk(handler, join(dir, vhd), { useChain })
     })
+
+    if (vmSnapshot === undefined) {
+      // only ever called on delta metadata, which always records its snapshot
+      throw new Error(`incremental backup metadata without a vmSnapshot: ${_filename}`)
+    }
 
     return {
       disks,

@@ -20,9 +20,13 @@ const cachePath = `${rootPath}/cache.json.gz`
 // locking. `deleteVmBackups` updates the same cache file from several concurrent branches,
 // so the injected `updateCache` must be serialized per path, as `RemoteAdapter` does with
 // `synchronized.withKey()`.
+// `regenerate: true` mirrors `RemoteAdapter._updateCache`: a missing cache is rebuilt from
+// the directory listing rather than left missing.
 const locks = new Map()
 const updateCache = (path, fn) => {
-  const promise = (locks.get(path) ?? Promise.resolve()).then(() => VmBackupDirectory.updateCache(handler, path, fn))
+  const promise = (locks.get(path) ?? Promise.resolve()).then(() =>
+    VmBackupDirectory.updateCache(handler, path, fn, { regenerate: true })
+  )
   locks.set(
     path,
     promise.catch(() => {})

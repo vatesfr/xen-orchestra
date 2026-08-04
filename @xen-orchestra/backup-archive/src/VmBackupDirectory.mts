@@ -1,9 +1,8 @@
 import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
-import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
+import { basename, dirname, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
 import { resolve } from 'node:path'
 import groupBy from 'lodash/groupBy.js'
 import reduce from 'lodash/reduce.js'
-import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { BACKUP_DIR, getVmBackupDir } from './paths.mjs'
 import { formatFilenameDate } from './filenameDate.mjs'
 import { isMetadataFile } from './backupType.mjs'
@@ -18,6 +17,9 @@ import {
   VmBackupInterface,
   PartialBackupMetadata,
   ResolvedBackupCleanOptions,
+  SizedBackups,
+  StoredBackupMetadata,
+  UpdateCache,
   DEFAULT_MERGE_CONCURRENCY,
 } from './VmBackup.types.mjs'
 import { cleanOrphanDiskDirs } from '@xen-orchestra/backup-archive/disks'
@@ -25,6 +27,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { promisify } from 'node:util'
 import zlib from 'node:zlib'
+import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 
 const gzip = promisify(zlib.gzip)
 const gunzip = promisify(zlib.gunzip)
@@ -38,8 +41,6 @@ const IMMUTABILITY_METADATA_FILENAME = '/immutability.json'
 const noop = (): void => {}
 
 const compareTimestamp = (a: { timestamp: number }, b: { timestamp: number }): number => a.timestamp - b.timestamp
-
-const resolveRelativeFromFile = (file: string, path: string): string => resolve('/', dirname(file), path).slice(1)
 
 export class VmBackupDirectory implements VmBackupInterface {
   handler: RemoteHandlerAbstract
@@ -105,14 +106,15 @@ export class VmBackupDirectory implements VmBackupInterface {
   // Read-modify-write of a cache file. Lock-free: callers that need atomicity
   // (e.g. RemoteAdapter) wrap this with their own per-key mutex.
   //
-  // With `regenerate`, a missing cache is not left missing: it is rebuilt from the
-  // directory listing (a missing cache is not an empty cache). The mutation `fn` is
-  // only applied to an existing cache.
+  // `regenerate` is mandatory because both answers are dangerous by default: with
+  // `true` a missing cache is rebuilt from the directory listing (a missing cache is
+  // not an empty cache), with `false` a missing cache is left missing. The mutation
+  // `fn` is only ever applied to an existing cache.
   static async updateCache(
     handler: RemoteHandlerAbstract,
     path: string,
     fn: (cache: Record<string, unknown>) => void,
-    { regenerate = false }: { regenerate?: boolean } = {}
+    { regenerate }: { regenerate: boolean }
   ): Promise<void> {
     const cache = await VmBackupDirectory.readCache(handler, path)
     if (cache !== undefined) {
@@ -129,10 +131,7 @@ export class VmBackupDirectory implements VmBackupInterface {
   // Remove entries from the per-VM cache files for the given backups, grouping by
   // directory so each cache file is updated once. `updateCache` is injected so the
   // caller controls locking.
-  static async removeBackupsFromCache(
-    updateCache: (path: string, fn: (cache: Record<string, unknown>) => void) => Promise<void>,
-    backups: Array<{ _filename: string }>
-  ): Promise<void> {
+  static async removeBackupsFromCache(updateCache: UpdateCache, backups: Array<{ _filename: string }>): Promise<void> {
     await asyncEach(
       Object.entries(
         groupBy(
@@ -143,6 +142,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       ([dir, filenames]) =>
         updateCache(`${dir}/cache.json.gz`, cache => {
           for (const filename of filenames) {
+            debug('removing cache entry', { entry: filename })
             delete cache[filename]
           }
         })
@@ -152,8 +152,8 @@ export class VmBackupDirectory implements VmBackupInterface {
   // Read one backup metadata file. On an immutable remote, the read is retried
   // without triggering the immutability check and the result is flagged as immutable.
   // Also repairs boolean values stored as integers by XenServer < 7.1 XML-RPC transports.
-  static async readVmBackupMetadata(handler: RemoteHandlerAbstract, path: string): Promise<any> {
-    let json: any
+  static async readVmBackupMetadata(handler: RemoteHandlerAbstract, path: string): Promise<StoredBackupMetadata> {
+    let json: Buffer | string
     let isImmutable = false
     let remoteIsImmutable = false
     // if the remote is immutable, check if this metadata is also immutable
@@ -185,7 +185,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     // _filename is a private field used to compute the backup id
     //
     // it's enumerable to make it cacheable
-    const metadata: any = { ...JSON.parse(json), _filename: path, isImmutable }
+    const metadata: StoredBackupMetadata = { ...JSON.parse(json.toString()), _filename: path, isImmutable }
 
     // backups created on XenServer < 7.1 via JSON in XML-RPC transports have boolean values encoded as integers, which make them unusable with more recent XAPIs
     if (typeof metadata.vm.is_a_template === 'number') {
@@ -206,6 +206,8 @@ export class VmBackupDirectory implements VmBackupInterface {
         vmSnapshot: ['is_a_template', 'is_control_domain', 'ha_always_run', 'is_snapshot_from_vmpp'],
       }
 
+      // `any` here is deliberate: this walks raw XAPI records of several unrelated shapes
+      // (vm, vbds, vdis, vifs, vmSnapshot), indexed by arbitrary property names
       function fixBooleans(obj: any, properties: string[]) {
         properties.forEach(property => {
           if (typeof obj[property] === 'number') {
@@ -215,7 +217,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       }
 
       for (const [key, propertiesInKey] of Object.entries(properties)) {
-        const value = metadata[key]
+        const value = (metadata as Record<string, any>)[key]
         if (value !== undefined) {
           // some properties of the metadata are collections indexed by the opaqueRef
           const isCollection = Object.keys(value).some(subKey => subKey.startsWith('OpaqueRef:'))
@@ -235,16 +237,18 @@ export class VmBackupDirectory implements VmBackupInterface {
   static async writeVmBackupMetadata(
     handler: RemoteHandlerAbstract,
     vmUuid: string,
-    metadata: any,
+    metadata: PartialBackupMetadata,
     {
       dirMode,
       updateCache,
     }: {
       dirMode?: number
-      updateCache: (path: string, fn: (cache: Record<string, unknown>) => void) => Promise<void>
+      updateCache: UpdateCache
     }
   ): Promise<string> {
-    const path = `/${getVmBackupDir(vmUuid)}/${formatFilenameDate(metadata.timestamp)}.json`
+    // formatFilenameDate is typed as taking a Date; it coerces internally, so wrapping the
+    // timestamp is equivalent and keeps the call typed
+    const path = `/${getVmBackupDir(vmUuid)}/${formatFilenameDate(new Date(metadata.timestamp))}.json`
 
     await handler.outputFile(path, JSON.stringify(metadata), { dirMode })
 
@@ -268,18 +272,20 @@ export class VmBackupDirectory implements VmBackupInterface {
   static async getCacheableDataListVmBackups(
     handler: RemoteHandlerAbstract,
     dir: string
-  ): Promise<Record<string, any> | undefined> {
+  ): Promise<Record<string, StoredBackupMetadata> | undefined> {
     debug('generating cache', { path: dir })
 
-    const backups: Record<string, any> = {}
+    const backups: Record<string, StoredBackupMetadata> = {}
 
     try {
       const files = await handler.list(dir, {
         filter: isMetadataFile,
         prependDir: true,
       })
-      // asyncMap's JSDoc type over-narrows the callback return to the item type; cast to call it freely
-      await (asyncMap as any)(files, async (file: string): Promise<void> => {
+      // @todo unbounded fan-out: a VM with a long retention makes this open one read per
+      // retained backup at once. Moved as-is from RemoteAdapter; should become
+      // `asyncEach(..., { concurrency: DEFAULT_REMOVE_CONCURRENCY })` in a dedicated change.
+      await asyncMap(files, async (file: string): Promise<void> => {
         try {
           const metadata = await VmBackupDirectory.readVmBackupMetadata(handler, file)
           // inject an id usable by importVmBackupNg()
@@ -304,7 +310,7 @@ export class VmBackupDirectory implements VmBackupInterface {
   static async readCacheListVmBackups(
     handler: RemoteHandlerAbstract,
     vmUuid: string
-  ): Promise<Record<string, any> | undefined> {
+  ): Promise<Record<string, StoredBackupMetadata> | undefined> {
     // immutable remote can't use any caching
     // since the cache file may be non modifiable
     if (handler.isImmutable()) {
@@ -315,7 +321,9 @@ export class VmBackupDirectory implements VmBackupInterface {
     const cache = await VmBackupDirectory.readCache(handler, path)
     if (cache !== undefined) {
       debug('found VM backups cache, using it', { path })
-      return cache
+      // the cache file is written from getCacheableDataListVmBackups(); its entries are
+      // metadata, but nothing on disk guarantees it, hence the assertion
+      return cache as Record<string, StoredBackupMetadata>
     }
 
     // nothing cached, or cache unreadable => regenerate it
@@ -332,11 +340,11 @@ export class VmBackupDirectory implements VmBackupInterface {
   // Sorted, optionally filtered list of a VM's backups. `readCacheListVmBackups` is
   // injected so the caller can supply its locked variant.
   static async listVmBackups(
-    readCacheListVmBackups: (vmUuid: string) => Promise<Record<string, any> | undefined>,
+    readCacheListVmBackups: (vmUuid: string) => Promise<Record<string, StoredBackupMetadata> | undefined>,
     vmUuid: string,
-    predicate?: (metadata: any) => boolean
-  ): Promise<any[]> {
-    const backups: any[] = []
+    predicate?: (metadata: StoredBackupMetadata) => boolean
+  ): Promise<StoredBackupMetadata[]> {
+    const backups: StoredBackupMetadata[] = []
     const cached = await readCacheListVmBackups(vmUuid)
 
     if (cached === undefined) {
@@ -357,10 +365,10 @@ export class VmBackupDirectory implements VmBackupInterface {
   static async deleteDeltaVmBackups(
     handler: RemoteHandlerAbstract,
     backups: Array<{ _filename: string }>,
-    { updateCache }: { updateCache: (path: string, fn: (cache: Record<string, unknown>) => void) => Promise<void> }
+    { updateCache }: { updateCache: UpdateCache }
   ): Promise<void> {
     // this will delete the json, unused VHDs will be detected by `cleanVm`
-    await (asyncMapSettled as any)(backups, ({ _filename }: { _filename: string }) => handler.unlink(_filename))
+    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
 
     await VmBackupDirectory.removeBackupsFromCache(updateCache, backups)
   }
@@ -370,19 +378,19 @@ export class VmBackupDirectory implements VmBackupInterface {
   static async deleteFullVmBackups(
     handler: RemoteHandlerAbstract,
     backups: Array<{ _filename: string; xva: string }>,
-    { updateCache }: { updateCache: (path: string, fn: (cache: Record<string, unknown>) => void) => Promise<void> }
+    { updateCache }: { updateCache: UpdateCache }
   ): Promise<void> {
-    await (asyncMapSettled as any)(backups, ({ _filename, xva }: { _filename: string; xva: string }) =>
+    await asyncMapSettled(backups, ({ _filename, xva }) =>
       Promise.all([
         handler.unlink(_filename).catch((error: any) => {
           logWarn('error while removing full vm backup metadata', { error, filename: _filename })
           if (error.code !== 'ENOENT') throw error
         }),
-        handler.unlink(resolveRelativeFromFile(_filename, xva)).catch((error: any) => {
+        handler.unlink(resolveFromFile(_filename, xva)).catch((error: any) => {
           logWarn('error while removing full vm backup file', { error, filename: _filename })
           if (error.code !== 'ENOENT') throw error
         }),
-        handler.unlink(resolveRelativeFromFile(_filename, `${xva}.checksum`)).catch((error: any) => {
+        handler.unlink(resolveFromFile(_filename, `${xva}.checksum`)).catch((error: any) => {
           // checksum can be missing , it's not an issue
           if (error.code !== 'ENOENT') throw error
         }),
@@ -402,11 +410,12 @@ export class VmBackupDirectory implements VmBackupInterface {
       updateCache,
       cleanVm,
     }: {
-      updateCache: (path: string, fn: (cache: Record<string, unknown>) => void) => Promise<void>
+      updateCache: UpdateCache
       cleanVm: (dir: string, opts: object) => Promise<unknown>
     }
   ): Promise<void> {
-    const metadataOrNull = await (asyncMap as any)(files, async (file: string) => {
+    // @todo unbounded fan-out, as above: one concurrent metadata read per file to delete
+    const metadataOrNull = await asyncMap(files, async (file: string): Promise<StoredBackupMetadata | null> => {
       try {
         return await VmBackupDirectory.readVmBackupMetadata(handler, file)
       } catch (error) {
@@ -419,13 +428,14 @@ export class VmBackupDirectory implements VmBackupInterface {
       }
     })
 
-    const presentMetadata: any[] = []
+    const presentMetadata: StoredBackupMetadata[] = []
     const missingFiles: Array<{ _filename: string }> = []
     for (let i = 0; i < files.length; i++) {
-      if (metadataOrNull[i] === null) {
+      const metadata = metadataOrNull[i]
+      if (metadata === null) {
         missingFiles.push({ _filename: files[i] })
       } else {
-        presentMetadata.push(metadataOrNull[i])
+        presentMetadata.push(metadata)
       }
     }
 
@@ -440,6 +450,9 @@ export class VmBackupDirectory implements VmBackupInterface {
       promises.push(VmBackupDirectory.deleteDeltaVmBackups(handler, delta, { updateCache }))
     }
     if (full !== undefined) {
+      // `xva` is optional on the metadata type, but it is always set when `mode === 'full'`.
+      // Expressing that needs a discriminated union (FullBackupMetadata / DeltaBackupMetadata),
+      // which also means reworking this groupBy dispatch — left for a dedicated change.
       promises.push(VmBackupDirectory.deleteFullVmBackups(handler, full as any, { updateCache }))
     }
     if (missingFiles.length) {
@@ -447,7 +460,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     }
     await Promise.all(promises)
 
-    await (asyncMap as any)(new Set(files.map((file: string) => dirname(file))), (dir: string) =>
+    await asyncMap(new Set(files.map((file: string) => dirname(file))), (dir: string) =>
       // - don't merge in main process, unused VHDs will be merged in the next backup run
       // - don't error in case this fails:
       //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
@@ -480,10 +493,10 @@ export class VmBackupDirectory implements VmBackupInterface {
   // injected so the caller supplies its locked, cache-backed variant.
   static async listAllVmBackups(
     handler: RemoteHandlerAbstract,
-    listVmBackups: (vmUuid: string) => Promise<any[]>
-  ): Promise<Record<string, any[]>> {
+    listVmBackups: (vmUuid: string) => Promise<StoredBackupMetadata[]>
+  ): Promise<Record<string, StoredBackupMetadata[]>> {
     const vmsUuids = await VmBackupDirectory.listAllVms(handler)
-    const backups: Record<string, any[]> = Object.create(null)
+    const backups: Record<string, StoredBackupMetadata[]> = Object.create(null)
     await asyncEach(vmsUuids, async (vmUuid: string) => {
       const vmBackups = await listVmBackups(vmUuid)
       if (vmBackups.length !== 0) {
@@ -493,13 +506,23 @@ export class VmBackupDirectory implements VmBackupInterface {
     return backups
   }
 
-  static computeTotalBackupSizeRecursively(backups: any): { onDisk: number } {
+  // Accepts either a map of vmUuid -> backups, a list of backups, or a single backup, and
+  // recurses into the nested levels.
+  static computeTotalBackupSizeRecursively(backups: SizedBackups | SizedBackups[] | Record<string, SizedBackups[]>): {
+    onDisk: number
+  } {
     return reduce(
       backups,
-      (prev: { onDisk: number }, backup: any) => {
-        const _backup = Array.isArray(backup) ? VmBackupDirectory.computeTotalBackupSizeRecursively(backup) : backup
+      (prev: { onDisk: number }, backup: SizedBackups | SizedBackups[]) => {
+        const _backup: SizedBackups = Array.isArray(backup)
+          ? VmBackupDirectory.computeTotalBackupSizeRecursively(backup)
+          : backup
         return {
-          onDisk: prev.onDisk + (_backup.onDisk ?? _backup.size),
+          // `?? NaN` keeps the pre-existing behaviour: a backup with neither `onDisk` nor
+          // `size` poisons the whole total with NaN. Loud and wrong beats a silent 0, which
+          // would under-report disk usage — but it should be handled explicitly one day.
+          // @todo report such backups instead of returning NaN
+          onDisk: prev.onDisk + (_backup.onDisk ?? _backup.size ?? NaN),
         }
       },
       { onDisk: 0 }
@@ -508,7 +531,7 @@ export class VmBackupDirectory implements VmBackupInterface {
 
   static async getTotalVmBackupSize(
     handler: RemoteHandlerAbstract,
-    listVmBackups: (vmUuid: string) => Promise<any[]>
+    listVmBackups: (vmUuid: string) => Promise<StoredBackupMetadata[]>
   ): Promise<{ onDisk: number }> {
     return VmBackupDirectory.computeTotalBackupSizeRecursively(
       await VmBackupDirectory.listAllVmBackups(handler, listVmBackups)
@@ -711,14 +734,22 @@ export class VmBackupDirectory implements VmBackupInterface {
 
   /**
    * Creates a fresh instance with the given handler/path/opts, then runs init/check/clean.
-   * The `lock` option is accepted but ignored (locking is the caller's responsibility).
+   *
+   * Does NOT lock: locking is the caller's responsibility, `RemoteAdapter.cleanVm` is the
+   * locking entry point. `lock` is still accepted so the signature stays compatible, but it
+   * has never had any effect here, so passing it is reported instead of silently ignored.
    */
   static async cleanVm(
     handler: RemoteHandlerAbstract,
     vmBackupPath: string,
     opts: BackupCleanOptions & { lock?: boolean } = {}
   ) {
-    const { lock: _lock, ...cleanOpts } = opts
+    const { lock, ...cleanOpts } = opts
+    if (lock !== undefined) {
+      ;(opts.logWarn ?? logWarn)('VmBackupDirectory.cleanVm does not lock, use RemoteAdapter.cleanVm', {
+        vmBackupPath,
+      })
+    }
     const dir = new VmBackupDirectory(handler, vmBackupPath, cleanOpts)
     await dir.init()
     await dir.check()

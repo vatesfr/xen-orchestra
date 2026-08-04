@@ -46,8 +46,8 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
-    "test": "yarn run build && node --test 'dist/**/*.test.mjs'",
-    "test-integration": "yarn run clean && tsc && node --test 'dist/**/*.integ.mjs'",
+    "test": "yarn run build && node --test dist/tests/*.test.mjs",
+    "test-integration": "yarn run build && node --test dist/tests/*.integ.mjs",
     "clean": "rimraf dist/"
   },
   "private": false,

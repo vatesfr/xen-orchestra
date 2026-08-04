@@ -277,6 +277,7 @@ export class RemoteAdapter {
 Object.assign(RemoteAdapter.prototype, {
   cleanVm(vmBackupPath, opts = {}) {
     const { lock = true, ...cleanOpts } = opts
+    // VmBackupDirectory.cleanVm never locks: this is the locking entry point
     if (lock) {
       return Disposable.use(this._handler.lock(vmBackupPath), () => {
         return VmBackupDirectory.cleanVm(this._handler, vmBackupPath, cleanOpts)

@@ -49,13 +49,15 @@
 <!--packages-start-->
 
 - @vates/types minor
-- @xen-orchestra/backup-archive patch
+- @xen-orchestra/async-map patch
+- @xen-orchestra/backup-archive minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
+- vhd-lib patch
 - xo-server minor
 - xo-server-openmetrics minor
 - xo-web minor
