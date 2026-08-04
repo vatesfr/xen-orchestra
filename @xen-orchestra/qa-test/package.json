@@ -2,7 +2,7 @@
   "name": "@xen-orchestra/qa-test",
   "private": true,
   "type": "module",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "XenOrchestra QA Test Suite",
   "author": {
     "name": "Vates SAS",
@@ -22,10 +22,10 @@
   "dependencies": {
     "@vates/async-each": "^1.0.3",
     "@vates/read-chunk": "^1.2.1",
-    "@xen-orchestra/backups": "^0.73.9",
+    "@xen-orchestra/backups": "^0.73.10",
     "@xen-orchestra/fs": "^4.9.3",
     "@xen-orchestra/log": "^0.7.2",
-    "@xen-orchestra/vmware-explorer": "^0.14.0",
+    "@xen-orchestra/vmware-explorer": "^0.15.0",
     "nodemailer": "^7.0.13",
     "xo-lib": "^0.11.2"
   },
