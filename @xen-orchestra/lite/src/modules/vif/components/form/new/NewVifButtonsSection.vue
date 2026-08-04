@@ -1,8 +1,8 @@
 <template>
   <div class="buttons-container">
-    <UiLink :to="cancelTo" size="medium">
+    <UiButton size="medium" accent="brand" variant="secondary" @click="router.push(cancelTo)">
       {{ t('cancel') }}
-    </UiLink>
+    </UiButton>
     <UiButton type="submit" size="medium" accent="brand" variant="primary">
       {{ t('action:create-vif') }}
     </UiButton>
@@ -11,21 +11,22 @@
 
 <script lang="ts" setup>
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationRaw } from 'vue-router'
+import { type RouteLocationRaw, useRouter } from 'vue-router'
 
 defineProps<{
   cancelTo: RouteLocationRaw
 }>()
 
 const { t } = useI18n()
+
+const router = useRouter()
 </script>
 
 <style lang="postcss" scoped>
 .buttons-container {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
   gap: 2.4rem;
   margin-block-start: 2.4rem;

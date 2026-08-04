@@ -57,6 +57,10 @@ async function onSubmit() {
 
 <style lang="postcss" scoped>
 .new-vif-form {
+  @media (--medium-or-large) {
+    max-width: 88rem;
+  }
+
   .row {
     display: flex;
     align-items: start;
@@ -71,7 +75,6 @@ async function onSubmit() {
     @media (--medium-or-large) {
       flex-direction: row;
       gap: 8rem;
-      max-width: 88rem;
     }
 
     &:not(:first-child) {
