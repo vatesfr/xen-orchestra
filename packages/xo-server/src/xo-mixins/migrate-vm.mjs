@@ -75,8 +75,8 @@ export default class MigrateVm {
     // since the source is stopped, there won't be any new change after
     await backup.run()
 
-    // find the destination Vm
-    const targets = new Set(
+    // find the destination Vm and collapse into a single id
+    const targetIds = new Set(
       Object.values(
         app.getObjects({
           filter: obj =>
@@ -88,16 +88,23 @@ export default class MigrateVm {
       ).map(snapshot => snapshot.$snapshot_of)
     )
 
-    if (targets.size === 0) {
+    // the incremental xapi writer blocks `start` on the VM it replicates, checking it here ensures
+    // only a replicated VM is ever considered
+    const targets = Object.keys(
+      app.getObjects({
+        filter: obj => obj.type === 'VM' && targetIds.has(obj.id) && 'start' in obj.blockedOperations,
+      })
+    )
+
+    if (targets.length === 0) {
       throw new Error(`Vm target of warm migration not found for ${sourceVmId} on SR ${srId} `)
     }
 
-    // A transfer is done per run, so the target has one snapshot per run: they are all snapshots
-    // of the same VM and collapse into a single entry, more than one means distinct copies
-    if (targets.size > 1) {
+    // more than one means distinct copies
+    if (targets.length > 1) {
       throw new Error(`Multiple target of warm migration found for ${sourceVmId} on SR ${srId} `)
     }
-    const targetVm = app.getXapiObject(targets.values().next().value)
+    const targetVm = app.getXapiObject(targets[0])
 
     // new vm is ready to start
     // incremental xapi  writer has set this as blocked
