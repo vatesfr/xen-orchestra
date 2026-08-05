@@ -231,16 +231,6 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
-   * Returns the compression codec id, or 'MIXED' if not uniform across the chain.
-   * Only meaningful when the disk is a VHD directory.
-   * @returns {string | undefined}
-   */
-  getCompressionType() {
-    throw new Error(`getCompressionType must be implemented`)
-  }
-
-  /**
-   * Abstract
    * @returns {Promise<boolean>}
    */
   async isDirectory() {
@@ -270,16 +260,6 @@ export class RemoteDisk extends RandomAccessDisk {
    */
   async rename(newPath) {
     throw new Error(`rename must be implemented`)
-  }
-
-  /**
-   * Abstract
-   * Points this disk's header/footer at a new parent. The disk must already be differencing.
-   * @param {RemoteDisk} parentDisk
-   * @returns {Promise<void>}
-   */
-  async setChainToParent(parentDisk) {
-    throw new Error(`setChainToParent must be implemented`)
   }
 
   /**
