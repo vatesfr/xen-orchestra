@@ -831,7 +831,6 @@
   "operation:start-on-host": "Démarrage sur l'hôte",
   "operation:suspend": "Suspension",
   "operation:unpause": "Reprise",
-  "operation:vm-migrate": "Migration des VMs",
   "options": "Options",
   "or": "Ou",
   "os-kernel": "Noyau de l'OS",
