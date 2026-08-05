@@ -1,5 +1,6 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getHostPendingStateOperation } from '@/modules/host/utils/xo-host.util.ts'
+import { getHostPendingStateOperation, getHostSmartRebootVmOperations } from '@/modules/host/utils/xo-host.util.ts'
+import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { IconName } from '@core/icons'
 import useRelativeTime from '@core/composables/relative-time.composable'
 import { createMapper, useMapper } from '@core/packages/mapper'
@@ -13,6 +14,8 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
   const { t } = useI18n()
 
   const host = toComputed(rawHost)
+
+  const { vmsByHost } = useXoVmCollection()
 
   const getPowerState = createMapper<HOST_POWER_STATE, { text: string; icon: IconName | undefined }>(
     {
@@ -29,7 +32,11 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
     return useRelativeTime(date)
   }
 
-  const pendingStateOperation = computed(() => getHostPendingStateOperation(host.value))
+  const pendingStateOperation = computed(
+    () =>
+      getHostPendingStateOperation(host.value) ??
+      getHostSmartRebootVmOperations(host.value, vmsByHost.value.get(host.value.id) ?? [])
+  )
 
   const isChangingState = computed(() => pendingStateOperation.value !== undefined)
 
@@ -42,6 +49,9 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
       evacuate: t('operation:evacuate'),
       enable: t('operation:enable'),
       vm_migrate: t('operation:vm-migrate'),
+      suspend: t('operation:vm-suspend'),
+      clean_shutdown: t('operation:vm-clean-shutdown'),
+      hard_shutdown: t('operation:vm-hard-shutdown'),
       unknown: '',
     },
     'unknown'
