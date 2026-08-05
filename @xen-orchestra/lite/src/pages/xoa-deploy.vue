@@ -121,6 +121,36 @@
           </div>
         </FormSection>
 
+        <FormSection :label="t('resources')">
+          <div class="row">
+            <VtsInputWrapper :label="t('sizing-preset')">
+              <UiRadioButtonGroup accent="brand" gap="wide">
+                <UiRadioButton v-model="preset" accent="brand" value="small">
+                  {{ t('sizing-preset-small', RESOURCE_PRESETS.small) }}
+                </UiRadioButton>
+                <UiRadioButton v-model="preset" accent="brand" value="medium">
+                  {{ t('sizing-preset-medium', RESOURCE_PRESETS.medium) }}
+                </UiRadioButton>
+                <UiRadioButton v-model="preset" accent="brand" value="large">
+                  {{ t('sizing-preset-large', RESOURCE_PRESETS.large) }}
+                </UiRadioButton>
+                <UiRadioButton v-model="preset" accent="brand" value="custom">
+                  {{ t('sizing-preset-custom') }}
+                </UiRadioButton>
+              </UiRadioButtonGroup>
+            </VtsInputWrapper>
+          </div>
+          <div class="row">
+            <VtsInputWrapper :label="t('memory-gib')">
+              <!-- min matches the XVA's memory_static_min: VM.set_memory refuses less -->
+              <FormInput v-model="memorySize" type="number" min="4" max="1024" required @input="preset = 'custom'" />
+            </VtsInputWrapper>
+            <VtsInputWrapper :label="t('vcpus')">
+              <FormInput v-model="vcpuCount" type="number" min="1" max="64" required @input="preset = 'custom'" />
+            </VtsInputWrapper>
+          </div>
+        </FormSection>
+
         <FormSection :label="t('xoa-admin-account')">
           <div class="row">
             <VtsInputWrapper
@@ -195,6 +225,8 @@ import FormInput from '@/components/form/FormInput.vue'
 import FormSection from '@/components/form/FormSection.vue'
 import TitleBar from '@/components/TitleBar.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
+import { useHostStore } from '@/stores/xen-api/host.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
@@ -345,6 +377,46 @@ const ip = ref('')
 const netmask = ref('')
 const dns = ref('')
 const gateway = ref('')
+
+// RESOURCES
+
+// Memory in GiB. Large is the default: XOA is typically deployed on large
+// infrastructures running backup jobs
+const RESOURCE_PRESETS = {
+  small: { memory: 4, vcpus: 2 },
+  medium: { memory: 8, vcpus: 4 },
+  large: { memory: 16, vcpus: 8 },
+}
+
+const preset = ref<keyof typeof RESOURCE_PRESETS | 'custom'>('large')
+// A cleared number input holds '' instead of a number
+const memorySize = ref<number | ''>(RESOURCE_PRESETS.large.memory)
+const vcpuCount = ref<number | ''>(RESOURCE_PRESETS.large.vcpus)
+
+watch(preset, preset => {
+  if (preset === 'custom') {
+    return
+  }
+
+  memorySize.value = RESOURCE_PRESETS[preset].memory
+  vcpuCount.value = RESOURCE_PRESETS[preset].vcpus
+})
+
+const { records: hosts } = useHostStore().subscribe()
+const { getHostMemory } = useHostMetricsStore().subscribe()
+
+// undefined when no host metrics are available (e.g. still loading), in which
+// case the memory check is skipped
+const maxFreeHostMemory = computed(() => {
+  const freeMemories = hosts.value
+    .filter(host => host.enabled)
+    .flatMap(host => {
+      const memory = getHostMemory(host)
+      return memory === undefined ? [] : [memory.size - memory.usage]
+    })
+  return freeMemories.length === 0 ? undefined : Math.max(...freeMemories)
+})
+
 const xoaUser = ref('')
 const xoaPwd = ref('')
 const xoaPwdConfirm = ref('')
@@ -392,6 +464,23 @@ async function deploy() {
     return
   }
 
+  const memory = Math.floor(Number(memorySize.value))
+  const nVcpus = Math.floor(Number(vcpuCount.value))
+
+  if (!(memory > 0) || !(nVcpus > 0)) {
+    // Should not happen: the inputs are required with a min
+    console.error('Invalid resources')
+    return
+  }
+
+  // >=: starting a VM taking exactly the whole free memory would still fail
+  // because of the memory overhead
+  if (maxFreeHostMemory.value !== undefined && memory * 1024 ** 3 >= maxFreeHostMemory.value) {
+    openInvalidFieldModal(t('xoa-deploy-not-enough-memory', { n: Math.floor(maxFreeHostMemory.value / 1024 ** 3) }))
+    return
+  }
+
+  resetValues()
   deploying.value = true
 
   try {
@@ -405,6 +494,14 @@ async function deploy() {
         false, // force
       ])) as string[]
     )[0]
+
+    if (!deploying.value) {
+      // Cancelled during the import: cancel() had no VM ref to destroy yet
+      const _vmRef = vmRef.value
+      vmRef.value = undefined
+      await xapi.call('VM.destroy', [_vmRef])
+      return
+    }
 
     status.value = t('deploy-xoa-status:configuring')
 
@@ -468,6 +565,49 @@ async function deploy() {
       return
     }
 
+    // The VM is still halted: memory and vCPU limits can only be changed
+    // before boot. VM.set_memory atomically sets static_max, dynamic_max and
+    // dynamic_min
+    await xapi.call('VM.set_memory', [vmRef.value, String(memory * 1024 ** 3)])
+
+    if (!deploying.value) {
+      return
+    }
+
+    // The template pins platform:cores-per-socket (e.g. 2) and XAPI requires
+    // VCPUs_max to be a multiple of it: drop the topology constraint when the
+    // requested count is not compatible (VCPU_MAX_NOT_CORES_PER_SOCKET_MULTIPLE)
+    const platform = (await xapi.call('VM.get_platform', [vmRef.value])) as Record<string, string>
+    const coresPerSocket = Number(platform['cores-per-socket'])
+    if (coresPerSocket > 0 && nVcpus % coresPerSocket !== 0) {
+      delete platform['cores-per-socket']
+      await xapi.call('VM.set_platform', [vmRef.value, platform])
+    }
+
+    if (!deploying.value) {
+      return
+    }
+
+    // at_startup must always stay <= max: lower it to 1 first so the sequence
+    // is valid whether the vCPU count goes up or down
+    await xapi.call('VM.set_VCPUs_at_startup', [vmRef.value, '1'])
+
+    if (!deploying.value) {
+      return
+    }
+
+    await xapi.call('VM.set_VCPUs_max', [vmRef.value, String(nVcpus)])
+
+    if (!deploying.value) {
+      return
+    }
+
+    await xapi.call('VM.set_VCPUs_at_startup', [vmRef.value, String(nVcpus)])
+
+    if (!deploying.value) {
+      return
+    }
+
     status.value = t('deploy-xoa-status:starting')
 
     await xapi.call('VM.start', [
@@ -510,8 +650,25 @@ async function deploy() {
     // TODO: handle IPv6
     url.value = `https://${networks['0/ip']}`
   } catch (err: any) {
+    if (!deploying.value) {
+      // Cancelled: the rejection was caused by cancel() destroying the VM
+      return
+    }
+
     console.error(err)
     error.value = err?.message ?? err?.code ?? 'Unknown error'
+
+    // Don't leave a half-configured VM behind. VM.destroy only works while
+    // the VM is halted and harmlessly fails if it was already started
+    const _vmRef = vmRef.value
+    vmRef.value = undefined
+    if (_vmRef !== undefined) {
+      try {
+        await xapi.call('VM.destroy', [_vmRef])
+      } catch (cleanupErr) {
+        console.error(cleanupErr)
+      }
+    }
   } finally {
     deploying.value = false
   }

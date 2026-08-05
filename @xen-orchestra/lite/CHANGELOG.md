@@ -2,6 +2,7 @@
 
 ## **next**
 
+- [XOA deploy] XOA resources (memory, vCPUs) can now be scaled during deployment, with sizing presets and a free host memory check (PR [#10232](https://github.com/vatesfr/xen-orchestra/pull/10232))
 - [XOA deploy] Fix the error and success screens never being displayed at the end of a deployment (PR [#10232](https://github.com/vatesfr/xen-orchestra/pull/10232))
 
 ## **0.24.0** (2026-07-30)
