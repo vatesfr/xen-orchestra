@@ -10,7 +10,7 @@ import { computed, type MaybeRefOrGetter } from 'vue'
 export function useVbdConnectionToggleModal(
   rawAction: MaybeRefOrGetter<ConnectionAction>,
   rawVbds: MaybeRefOrGetter<FrontXoVbd[]>,
-  rawVm: MaybeRefOrGetter<FrontXoVm>
+  rawVm: MaybeRefOrGetter<FrontXoVm | undefined>
 ) {
   const action = toComputed(rawAction)
   const vbds = toComputed(rawVbds)
