@@ -22,7 +22,7 @@ export const useXoVmExportJob = defineJob('vm.export', [xoVmArg, xoVmExportTypeA
   const { t } = useI18n()
 
   return {
-    async run(vm: FrontXoVm, type: VmExportType, compression: VmExportCompression) {
+    async run(vm: FrontXoVm | undefined, type: VmExportType, compression: VmExportCompression) {
       const params = new URLSearchParams()
 
       if (type === 'xva' && compression !== 'none') {
@@ -30,8 +30,8 @@ export const useXoVmExportJob = defineJob('vm.export', [xoVmArg, xoVmExportTypeA
       }
 
       const query = params.size > 0 ? `?${params.toString()}` : ''
-      const url = `${BASE_URL}/vms/${vm.id}.${type}${query}`
-      const fileName = `${vm.id}.${type}`
+      const url = `${BASE_URL}/vms/${vm?.id}.${type}${query}`
+      const fileName = `${vm?.id}.${type}`
 
       downloadFile(url, fileName)
     },
