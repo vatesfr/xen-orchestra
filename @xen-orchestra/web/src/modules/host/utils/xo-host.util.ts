@@ -13,13 +13,13 @@ const RUNNING_CHANGING_STATE_OPERATIONS: Partial<HOST_ALLOWED_OPERATIONS>[] = [
   HOST_ALLOWED_OPERATIONS.ENABLE,
 ]
 
+const NOT_RUNNING_CHANGING_STATE_OPERATIONS: Partial<HOST_ALLOWED_OPERATIONS>[] = [HOST_ALLOWED_OPERATIONS.POWER_ON]
+
 const SMART_REBOOT_SUSPENDING_VM_OPERATIONS: Partial<VM_OPERATIONS>[] = [
   VM_OPERATIONS.SUSPEND,
   VM_OPERATIONS.CLEAN_SHUTDOWN,
   VM_OPERATIONS.HARD_SHUTDOWN,
 ]
-
-const NOT_RUNNING_CHANGING_STATE_OPERATIONS: Partial<HOST_ALLOWED_OPERATIONS>[] = [HOST_ALLOWED_OPERATIONS.POWER_ON]
 
 export function isHostOperationPending(
   host: FrontXoHost,
@@ -48,7 +48,7 @@ export function getHostPendingStateOperation(host: FrontXoHost) {
   )
 }
 
-export function getHostSmartRebootVmOperations(host: FrontXoHost, residentVms: FrontXoVm[]) {
+export function getHostSmartRebootVmOperation(host: FrontXoHost, residentVms: FrontXoVm[]) {
   if (host.enabled) {
     return undefined
   }

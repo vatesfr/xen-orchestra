@@ -38,7 +38,7 @@ export function getVmsPendingOperation(vms: FrontXoVm[], operations: VM_OPERATIO
     const currentOperations = Object.values(vm.current_operations)
     const currentOperation = castArray(operations).find(operation => currentOperations.includes(operation))
 
-    if (currentOperation) {
+    if (currentOperation !== undefined) {
       return currentOperation
     }
   }

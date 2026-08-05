@@ -511,6 +511,8 @@
   "job:host-smart-reboot:bad-power-state": "Host is not running",
   "job:host-smart-reboot:in-progress": "Host smart reboot in progress…",
   "job:host-smart-reboot:missing-host": "No host to smart reboot",
+  "job:host-smart-reboot:vm-clean-shutdown-in-progress": "VMs clean shutting down in progress…",
+  "job:host-smart-reboot:vm-hard-shutdown-in-progress": "VMs hard shutting down in progress…",
   "job:host-smart-reboot:vm-resume-in-progress": "VMs resume in progress…",
   "job:host-smart-reboot:vm-suspend-in-progress": "VMs suspend in progress…",
   "job:host-start:bad-power-state": "Host already started",

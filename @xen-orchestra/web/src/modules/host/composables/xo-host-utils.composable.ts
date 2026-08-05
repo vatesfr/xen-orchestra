@@ -1,5 +1,5 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getHostPendingStateOperation, getHostSmartRebootVmOperations } from '@/modules/host/utils/xo-host.util.ts'
+import { getHostPendingStateOperation, getHostSmartRebootVmOperation } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { IconName } from '@core/icons'
 import useRelativeTime from '@core/composables/relative-time.composable'
@@ -35,7 +35,7 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
   const pendingStateOperation = computed(
     () =>
       getHostPendingStateOperation(host.value) ??
-      getHostSmartRebootVmOperations(host.value, vmsByHost.value.get(host.value.id) ?? [])
+      getHostSmartRebootVmOperation(host.value, vmsByHost.value.get(host.value.id) ?? [])
   )
 
   const isChangingState = computed(() => pendingStateOperation.value !== undefined)

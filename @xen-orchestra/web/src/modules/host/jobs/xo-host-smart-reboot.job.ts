@@ -35,8 +35,12 @@ export const useXoHostSmartRebootJob = defineJob('host.smart-reboot', [xoHostArg
         throw new JobRunningError(t('job:host-smart-reboot:vm-suspend-in-progress'))
       }
 
-      if (areVmsOperationPending(residentVms, VM_OPERATIONS.RESUME)) {
-        throw new JobRunningError(t('job:host-smart-reboot:vm-resume-in-progress'))
+      if (areVmsOperationPending(residentVms, VM_OPERATIONS.CLEAN_SHUTDOWN)) {
+        throw new JobRunningError(t('job:host-smart-reboot:vm-clean-shutdown-in-progress'))
+      }
+
+      if (areVmsOperationPending(residentVms, VM_OPERATIONS.HARD_SHUTDOWN)) {
+        throw new JobRunningError(t('job:host-smart-reboot:vm-hard-shutdown-in-progress'))
       }
 
       if (host.power_state !== HOST_POWER_STATE.RUNNING) {

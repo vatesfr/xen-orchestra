@@ -511,6 +511,8 @@
   "job:host-smart-reboot:bad-power-state": "L'hôte n'est pas lancé",
   "job:host-smart-reboot:in-progress": "Redémarrage optimisé de l'hôte en cours…",
   "job:host-smart-reboot:missing-host": "Aucun hôte pour le redémarrage optimisé",
+  "job:host-smart-reboot:vm-clean-shutdown-in-progress": "Arrêt des VMs en cours…",
+  "job:host-smart-reboot:vm-hard-shutdown-in-progress": "Arrêt forcé des VMs en cours…",
   "job:host-smart-reboot:vm-resume-in-progress": "Démarrage des VMs en cours…",
   "job:host-smart-reboot:vm-suspend-in-progress": "Suspension des VMs en cours…",
   "job:host-start:bad-power-state": "Hôte déjà démarré",
