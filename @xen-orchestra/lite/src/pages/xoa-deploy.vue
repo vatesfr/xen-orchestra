@@ -1,6 +1,10 @@
 <template>
   <TitleBar icon="fa:download">{{ t('action:deploy-xoa') }}</TitleBar>
-  <div v-if="deploying" class="status">
+  <!--
+    `deploying` is reset once the deployment settles: the view must stay
+    visible as long as there is an outcome (error or URL) to show
+  -->
+  <div v-if="deploying || error !== undefined || url !== undefined" class="status">
     <img src="@/assets/xo.svg" width="300" alt="Xen Orchestra" />
 
     <!-- Error -->
