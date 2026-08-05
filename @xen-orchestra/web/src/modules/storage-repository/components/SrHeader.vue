@@ -1,5 +1,5 @@
 <template>
-  <SrHeaderBreadcrumbLink :sr :host :from-context />
+  <SrHeaderBreadcrumbLink :sr :from-context="fromContext" />
   <UiHeadBar>
     <template #icon>
       <VtsObjectIcon type="sr" :state="srIconState" size="medium" />
@@ -32,7 +32,6 @@
 </template>
 
 <script setup lang="ts">
-import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import SrHeaderBreadcrumbLink from '@/modules/storage-repository/components/header/SrHeaderBreadcrumbLink.vue'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
@@ -46,20 +45,20 @@ import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
-
-const { sr, fromContext } = defineProps<{ sr: FrontXoSr; host?: FrontXoHost; fromContext?: SrScope }>()
-
-const { t } = useI18n()
-
-const route = useRoute()
 
 const { arePbdsReady } = useXoPbdCollection()
 
 const { isDefaultSr } = useXoSrCollection()
 
 const srIconState = computed(() => (arePbdsReady.value ? srConnectionStatus.value : undefined))
-const contextQuery = computed(() => ({ from: route.query.from, host: route.query.host }))
+
+const { sr, fromContext } = defineProps<{ sr: FrontXoSr; fromContext?: SrScope }>()
+
+const { t } = useI18n()
+
+const contextQuery = computed(() =>
+  fromContext?.type === SR_SCOPE_TYPE.HOST ? { from: SR_SCOPE_TYPE.HOST, host: fromContext.hostId } : {}
+)
 
 const { srConnectionStatus } = useXoSrUtils(() => sr)
 </script>

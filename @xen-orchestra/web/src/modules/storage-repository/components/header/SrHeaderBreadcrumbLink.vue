@@ -36,8 +36,8 @@
 </template>
 
 <script setup lang="ts">
-import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
@@ -51,7 +51,7 @@ import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { sr, fromContext } = defineProps<{ sr: FrontXoSr; host?: FrontXoHost; fromContext?: SrScope }>()
+const { sr, fromContext } = defineProps<{ sr: FrontXoSr; fromContext?: SrScope }>()
 
 const { t } = useI18n()
 
@@ -63,11 +63,15 @@ const { useGetPoolById } = useXoPoolCollection()
 const pool = useGetPoolById(() => sr.$pool)
 
 const { arePbdsReady } = useXoPbdCollection()
-const { srConnectionStatus } = useXoSrUtils(
-  () => sr,
-  () => fromContext ?? { type: SR_SCOPE_TYPE.POOL }
-)
+
 const srIconState = computed(() => (arePbdsReady.value ? srConnectionStatus.value : undefined))
+const { useGetHostById } = useXoHostCollection()
+
+const host = useGetHostById(() =>
+  fromContext?.type === SR_SCOPE_TYPE.HOST ? (fromContext.hostId as FrontXoHost['id']) : undefined
+)
+
+const { srConnectionStatus } = useXoSrUtils(() => sr)
 </script>
 
 <style lang="postcss" scoped>
