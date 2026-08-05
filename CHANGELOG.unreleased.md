@@ -42,6 +42,9 @@
 - **XO 5**:
   - [VM/Console] Fix the page header and tab navigation disappearing permanently in the console tab (PR [#10007](https://github.com/vatesfr/xen-orchestra/pull/10007))
 
+- [xo-server] Disconnect user stalling task result and using to much memory (PR [#10237](https://github.com/vatesfr/xen-orchestra/pull/10237))
+- [XO5] Show a task when a user is disconnected because its task flow is stalled (PR [#10237](https://github.com/vatesfr/xen-orchestra/pull/10237))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
