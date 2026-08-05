@@ -57,6 +57,8 @@ export default class Restore extends Component {
     backupDataByVm: {},
   }
 
+  _refreshId = 0
+
   componentWillReceiveProps(props) {
     if (props.remotes !== this.props.remotes || props.jobs !== this.props.jobs) {
       this._refreshBackupList(props.remotes, props.jobs)
@@ -75,8 +77,12 @@ export default class Restore extends Component {
     }
   }
 
-  _refreshBackupListOnRemote = async (remote, jobs) => {
+  _refreshBackupListOnRemote = async (remote, jobs, refreshId) => {
     const backupsByRemote = await listVmBackups([remote.id])
+
+    if (refreshId !== this._refreshId) {
+      return // a newer refresh has started; discard these stale results
+    }
 
     this.setState(({ backupDataByVm }) => {
       const newBackupDataByVm = { ...backupDataByVm }
@@ -103,20 +109,22 @@ export default class Restore extends Component {
     })
   }
 
-  _refreshBackupList = (_remotes = this.props.remotes, jobs = this.props.jobs) =>
-    new Promise((resolve, reject) => {
+  _refreshBackupList = (_remotes = this.props.remotes, jobs = this.props.jobs) => {
+    const refreshId = ++this._refreshId
+    return new Promise((resolve, reject) => {
       this.setState({ backupDataByVm: {} }, () =>
         Promise.all(
           map(
             filter(_remotes, remote => remote.enabled),
             remote =>
-              this._refreshBackupListOnRemote(remote, jobs).catch(() =>
+              this._refreshBackupListOnRemote(remote, jobs, refreshId).catch(() =>
                 error(_('remoteLoadBackupsFailure'), _('remoteLoadBackupsFailureMessage', { name: remote.name }))
               )
           )
         ).then(resolve, reject)
       )
     })
+  }
 
   // Actions -------------------------------------------------------------------
 

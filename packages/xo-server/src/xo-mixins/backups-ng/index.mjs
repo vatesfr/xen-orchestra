@@ -686,7 +686,7 @@ export default class BackupNg {
     state.promise = promise
     state.error = error
     state.nextAttemptAt = Date.now() + delay
-    logger.warn(`listVmBackups for remote ${remoteId} failed, not retrying before ${delay}ms`, { error })
+    logger.warn(`listVmBackups for remote ${remoteId} failed, not retrying before ${delay}ms`, { error: error.message })
   }
 
   /**
