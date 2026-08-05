@@ -6,6 +6,13 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 
 import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 
+class AggregateError extends Error {
+  constructor(errors, message) {
+    super(message)
+    this.errors = errors
+  }
+}
+
 const isSkippedError = error =>
   error != null &&
   (error.message === 'no disks found' ||
@@ -36,17 +43,25 @@ export const computeStatusAndSortSubtasks = task => {
   // If the initial try fails but a retry succeeds, the failure must not affect the parent task status.
   const wasRetried = task.warnings?.some(({ data }) => data?.isRetry === true) ?? false
 
+  const failedResults = []
   for (let i = 0, n = task.tasks.length; i < n; ++i) {
     const subtask = task.tasks[i]
     if (subtask.status === 'failure') {
       if (wasRetried && isSupersededByRetry(subtask, task.tasks)) {
         continue
       }
-      return 'failure'
+      failedResults.push(subtask.result)
+      continue
     }
     if (subtask.status === 'skipped') {
       status = subtask.status
     }
+  }
+
+  if (failedResults.length > 0) {
+    // the task's own result may already carry an error; only fall back to the subtasks' when it doesn't
+    task.result = task.result ?? (failedResults.length === 1 ? failedResults[0] : new AggregateError(failedResults))
+    return 'failure'
   }
 
   task.tasks.sort(taskTimeComparator)
