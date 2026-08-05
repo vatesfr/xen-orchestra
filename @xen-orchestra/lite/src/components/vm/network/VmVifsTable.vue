@@ -25,7 +25,7 @@
 
 <script lang="ts" setup>
 import type { XenApiNetwork, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
-import { useVifConnectionToggleModal } from '@/modules/vif/composables/use-vif-connection-toggle-modal.composable.ts'
+import { useVifConnection } from '@/modules/vif/composables/use-vif-connection.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
@@ -36,6 +36,8 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTableState } from '@core/composables/table-state.composable'
+import { useMapper } from '@core/packages/mapper'
+import { type ActionItem } from '@core/tables/column-definitions/action-column.ts'
 import { useVifColumns } from '@core/tables/column-sets/vif-columns'
 import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
@@ -95,14 +97,40 @@ const { HeadCells, BodyCells } = useVifColumns({
     const ipAddresses = computed(() => getIpAddresses(vif))
 
     const {
-      openModal: openVifConnectionToggleModal,
-      canRun: canToggleVifConnection,
-      isRunning: isTogglingVifConnection,
-      errorMessage: toggleConnectionErrorMessage,
-    } = useVifConnectionToggleModal(
+      connectVifs,
+      disconnectVifs,
+      canConnectVifs,
+      canDisconnectVifs,
+      isConnectingVifs,
+      isDisconnectingVifs,
+      connectVifsErrorMessage,
+      disconnectVifsErrorMessage,
+    } = useVifConnection({
+      vifs: () => [vif],
+      vm: () => vm,
+    })
+
+    const connectionAction = useMapper(
       () => (vif.currently_attached ? CONNECTION_ACTION.DISCONNECT : CONNECTION_ACTION.CONNECT),
-      () => [vif],
-      () => vm
+      () => ({
+        connect: {
+          label: t('action:connect'),
+          icon: 'action:connect',
+          onClick: () => connectVifs(),
+          disabled: !canConnectVifs.value,
+          busy: isConnectingVifs.value,
+          hint: canConnectVifs.value ? undefined : connectVifsErrorMessage.value,
+        } satisfies ActionItem,
+        disconnect: {
+          label: t('action:disconnect'),
+          icon: 'action:disconnect',
+          onClick: () => disconnectVifs(),
+          disabled: !canDisconnectVifs.value,
+          busy: isDisconnectingVifs.value,
+          hint: canDisconnectVifs.value ? undefined : disconnectVifsErrorMessage.value,
+        } satisfies ActionItem,
+      }),
+      'connect'
     )
 
     return {
@@ -116,16 +144,7 @@ const { HeadCells, BodyCells } = useVifColumns({
       actions: r =>
         r({
           onClick: () => (selectedVifId.value = vif.uuid),
-          actions: [
-            {
-              label: vif.currently_attached ? t('action:disconnect') : t('action:connect'),
-              hint: !canToggleVifConnection.value ? toggleConnectionErrorMessage.value : undefined,
-              icon: vif.currently_attached ? 'action:disconnect' : 'action:connect',
-              onClick: () => openVifConnectionToggleModal(),
-              disabled: !canToggleVifConnection.value,
-              busy: isTogglingVifConnection.value,
-            },
-          ],
+          actions: [connectionAction.value],
         }),
     }
   },

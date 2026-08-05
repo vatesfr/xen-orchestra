@@ -87,7 +87,7 @@ import useSortedCollection from '@/composables/sorted-collection.composable'
 import type { PropParam } from '@/libs/story/story-param'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { useVModel } from '@vueuse/core'
 import { toRef } from 'vue'
 
@@ -111,10 +111,16 @@ const params = useSortedCollection(toRef(props, 'params'), (p1, p2) => {
 
 const model = useVModel(props, 'modelValue', emit)
 
-const openRawValueModal = useModal((code: string) => ({
-  component: import('@/components/modals/CodeHighlightModal.vue'),
-  props: { code },
-}))
+const { open } = useOverlay({
+  component: () => import('@/components/modals/CodeHighlightModal.vue'),
+  events: {
+    onClose: true,
+  },
+})
+
+function openRawValueModal(code: string) {
+  return open({ props: { code } })
+}
 </script>
 
 <style lang="postcss" scoped>

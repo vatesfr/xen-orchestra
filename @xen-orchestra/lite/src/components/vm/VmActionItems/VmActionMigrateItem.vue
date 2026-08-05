@@ -23,8 +23,9 @@ import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { ABORT_MODAL } from '@core/packages/modal/types.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+import { reactiveComputed } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -53,20 +54,28 @@ const isDisabled = useDisabled(() => !isMigratable.value)
 
 const { selectedHost, availableHosts, isValid, migrate } = useVmMigration(() => selectedRefs)
 
-const openMigrateModal = useModal({
-  component: import('@/components/modals/VmMigrateModal.vue'),
-  props: {
-    count: computed(() => selectedRefs.length),
-    availableHosts,
-  },
-  onConfirm: async host => {
-    selectedHost.value = host
+const { open: openModal } = useOverlay({
+  component: () => import('@/components/modals/VmMigrateModal.vue'),
+  events: {
+    onConfirm: async host => {
+      selectedHost.value = host
 
-    if (!isValid.value) {
-      return ABORT_MODAL
-    }
+      if (!isValid.value) {
+        return KEEP_OVERLAY_OPEN
+      }
 
-    await migrate()
+      await migrate()
+    },
+    onCancel: true,
   },
 })
+
+const modalProps = reactiveComputed(() => ({
+  count: selectedRefs.length,
+  availableHosts: availableHosts.value,
+}))
+
+function openMigrateModal() {
+  return openModal({ props: modalProps })
+}
 </script>
