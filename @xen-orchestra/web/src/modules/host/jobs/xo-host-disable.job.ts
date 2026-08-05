@@ -26,7 +26,7 @@ export const useXoHostDisableJob = defineJob('host.disable', [xoHostArg, xoHostD
         throw new JobError(t('job:host-disable:missing-host'))
       }
 
-      if (isRunning || isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.EVACUATE)) {
+      if (isRunning) {
         throw new JobRunningError(t('job:disable:in-progress'))
       }
 
