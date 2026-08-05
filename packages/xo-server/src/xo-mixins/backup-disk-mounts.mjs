@@ -1,4 +1,6 @@
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
+import { createHash } from 'node:crypto'
+import { join } from 'node:path'
 
 import { canSrHaveNewVdiOfSize } from '../xapi/utils.mjs'
 import { getCurrentVmUuid } from '../_XenStore.mjs'
@@ -62,6 +64,18 @@ export default class BackupDiskMountsResolver {
         throw invalidParameters('host is required when no cache SR is given')
       }
       hostId = vm.$resident_on.uuid
+    }
+    if (cache !== undefined) {
+      // one file per (host, archive) pair, so a later mount of the same
+      // archive to the same host resumes instead of starting cold; also
+      // doubles as a cheap "is this archive currently live-mounted (or was,
+      // and ended ungracefully)" existence check, keyed the same way
+      cache.persistPath = join(
+        app.config.get('datadir'),
+        'live-mount-cache',
+        hostId,
+        createHash('sha256').update(archiveId).digest('hex')
+      )
     }
     const host = app.getObject(hostId, 'host')
     // `vm` (from getXapiObject) has no `.$pool`; `vm.$xapi.pool.uuid` is the

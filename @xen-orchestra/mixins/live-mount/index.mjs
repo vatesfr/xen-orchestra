@@ -6,6 +6,7 @@ import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { randomBytes } from 'node:crypto'
 import { Task } from '@vates/task'
 
+import { openCachePersistence } from './_cachePersistence.mjs'
 import { createCache, openLocalDevice } from './_cache.mjs'
 import { createChapCredentials, probeScsiId } from './_target.mjs'
 import { forgetSr, introduceSr, introduceVdi } from './_sr.mjs'
@@ -33,20 +34,28 @@ export default class LiveMount {
   #app
   #createTarget
   #openCache
+  #openCachePersistence
   #openDisk
 
   // mount id -> mount record
   #mounts = new Map()
 
-  // `openDisk`/`createTarget`/`openCache` are injectable for tests only, like
-  // xo-server's crypto-credentials mixin does with xenStore/fsPromises
+  // `openDisk`/`createTarget`/`openCache`/`openCachePersistence` are
+  // injectable for tests only, like xo-server's crypto-credentials mixin
+  // does with xenStore/fsPromises
   constructor(
     app,
-    { openDisk = openDiskChain, createTarget = options => new IscsiTarget(options), openCache = openLocalDevice } = {}
+    {
+      openDisk = openDiskChain,
+      createTarget = options => new IscsiTarget(options),
+      openCache = openLocalDevice,
+      openCachePersistence: openPersistence = openCachePersistence,
+    } = {}
   ) {
     this.#app = app
     this.#createTarget = createTarget
     this.#openCache = openCache
+    this.#openCachePersistence = openPersistence
     this.#openDisk = openDisk
 
     app.hooks.on('stop', () =>
@@ -73,6 +82,8 @@ export default class LiveMount {
    * reachable from the appliance's own host, which is the caller's job to check
    * @param {string} params.cache.vmRef - opaque ref of *this* appliance's VM, where the cache disk is plugged;
    * must be on the same XAPI connection as `hostRef` (`xapi` is used for both)
+   * @param {string} [params.cache.persistPath] - file to persist which blocks are cached to, so a later mount
+   * reusing the same path resumes instead of starting cold; omit for no persistence (today's behavior)
    * @param {string} [params.nameLabel] - name of the created SR
    * @param {() => Promise<void>} [params.release] - called on unmount, e.g. to dispose the remote handler
    * @returns {Promise<{ id: string, srUuid: string, vdiUuid: string, cacheVdiUuid?: string, iqn: string, address: string, port: number }>}
@@ -110,6 +121,7 @@ export default class LiveMount {
       let cache
       let cachingTask
       let lun
+      let persistence
       if (cacheParams !== undefined) {
         cache = await createCache($defer, {
           diskPath,
@@ -129,9 +141,28 @@ export default class LiveMount {
             cachingTask.success()
           }
         })
+
+        if (cacheParams.persistPath !== undefined) {
+          // same block count CachedDiskBlockDevice.open() will compute itself,
+          // known already from the disk alone, before the LUN exists
+          const blockCount = Math.ceil(disk.getVirtualSize() / disk.getBlockSize())
+          persistence = await Task.run({ properties: { name: 'open cache persistence' } }, () =>
+            this.#openCachePersistence(cacheParams.persistPath, blockCount)
+          )
+          // a failed mount attempt does not invalidate a resumable file from an
+          // earlier, successful one — only close it, never delete it here
+          $defer.onFailure(() => persistence.close())
+        }
+
         // the cache owns the reads: the source is only ever touched for a block
         // that is not in it yet
-        lun = new CachedDiskBlockDevice({ cache: cache.device, disk, progressHandler: caching.progressHandler })
+        lun = new CachedDiskBlockDevice({
+          cache: cache.device,
+          disk,
+          progressHandler: caching.progressHandler,
+          initialBitmap: persistence?.initialBitmap,
+          onBlockCached: persistence !== undefined ? index => persistence.markCached(index) : undefined,
+        })
       } else {
         lun = new DiskBlockDevice({ disk })
       }
@@ -191,6 +222,7 @@ export default class LiveMount {
         id,
         iqn,
         lun,
+        persistence,
         port,
         release,
         srRef,
@@ -216,7 +248,7 @@ export default class LiveMount {
     // half-released mount
     this.#mounts.delete(id)
 
-    const { cache, cachingTask, xapi, srRef, target, release } = mount
+    const { cache, cachingTask, xapi, srRef, target, release, persistence } = mount
 
     // Ordered, and each step runs even if an earlier one failed: a mount holds a
     // socket, a file descriptor, a VBD, a VDI and an SR, and giving up halfway
@@ -246,6 +278,13 @@ export default class LiveMount {
       // makes sure the descriptor is gone before XAPI is asked to take the
       // disk away
       await step('close the cache device', () => cache.device.close())
+      if (persistence !== undefined) {
+        // a deliberate unmount means this cache is no longer meaningful to
+        // resume from — also doubles as the "is this archive currently
+        // live-mounted" signal: a leftover file means an earlier mount ended
+        // ungracefully, not that this one did
+        await step('remove the cache persistence file', () => persistence.dispose())
+      }
       // unplugs on the way, and the VDI destroy retries on VDI_IN_USE
       await step('destroy the cache VBD', () => xapi.VBD_destroy(cache.vbdRef))
       await step('destroy the cache VDI', () => xapi.VDI_destroy(cache.vdiRef))

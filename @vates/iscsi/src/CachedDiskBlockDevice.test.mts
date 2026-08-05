@@ -125,6 +125,37 @@ describe('open', () => {
     const device = new CachedDiskBlockDevice({ disk: new StubDisk(), cache: new StubCache(DISK_SIZE - 512) })
     await assert.rejects(device.open(), /smaller than the disk/)
   })
+
+  it('resumes from an initial bitmap of the right length', async () => {
+    // all blocks allocated, so the not-yet-cached one below is a real fetch,
+    // not a hole (which would never call readBlock regardless of the bitmap)
+    const disk = new StubDisk(new Set([0, 1, 2, 3]))
+    const cache = new StubCache()
+    const initialBitmap = Buffer.alloc(BLOCK_COUNT)
+    initialBitmap[0] = 1
+    initialBitmap[2] = 1
+    const device = new CachedDiskBlockDevice({ disk, cache, initialBitmap })
+    await device.open()
+
+    assert.deepEqual(device.getMaterialized(), { blocks: 2, total: BLOCK_COUNT })
+    // already marked cached: served from the (empty) cache store, source untouched
+    assert.deepEqual(await device.read(0, 512), Buffer.alloc(512))
+    assert.deepEqual(disk.readBlockCalls, [])
+    // not marked cached: still fetched from the source as usual
+    assert.deepEqual(await device.read(DISK_BLOCK_SIZE, 512), expectedAt(DISK_BLOCK_SIZE, 512, disk.allocated))
+    assert.deepEqual(disk.readBlockCalls, [1])
+  })
+
+  it('discards an initial bitmap of the wrong length and starts cold', async () => {
+    const disk = new StubDisk()
+    const cache = new StubCache()
+    const device = new CachedDiskBlockDevice({ disk, cache, initialBitmap: Buffer.alloc(BLOCK_COUNT - 1, 1) })
+    await device.open()
+
+    assert.deepEqual(device.getMaterialized(), { blocks: 0, total: BLOCK_COUNT })
+    assert.deepEqual(await device.read(0, 512), expectedAt(0, 512, disk.allocated))
+    assert.deepEqual(disk.readBlockCalls, [0])
+  })
 })
 
 describe('read', () => {
@@ -496,6 +527,56 @@ describe('progress handler', () => {
 
     await device.hydrate()
     await new Promise(resolve => setImmediate(resolve))
+  })
+})
+
+describe('onBlockCached', () => {
+  it('fires with the index of each newly cached block, once each', async () => {
+    const disk = new StubDisk(new Set([0, 1, 2, 3]))
+    const cache = new StubCache()
+    const cached: Array<number> = []
+    const device = new CachedDiskBlockDevice({ disk, cache, onBlockCached: index => cached.push(index) })
+    await device.open()
+
+    await device.read(0, 512)
+    assert.deepEqual(cached, [0])
+
+    // a hole is a materialization too
+    await device.read(DISK_BLOCK_SIZE, 512)
+    assert.deepEqual(cached, [0, 1])
+
+    // re-reading an already materialized block does not fire again
+    await device.read(0, 512)
+    assert.deepEqual(cached, [0, 1])
+  })
+
+  it('does not fire for a block resumed from the initial bitmap', async () => {
+    const disk = new StubDisk()
+    const cache = new StubCache()
+    const initialBitmap = Buffer.alloc(BLOCK_COUNT)
+    initialBitmap[0] = 1
+    const cached: Array<number> = []
+    const device = new CachedDiskBlockDevice({ disk, cache, initialBitmap, onBlockCached: index => cached.push(index) })
+    await device.open()
+
+    await device.read(0, 512)
+    assert.deepEqual(cached, [])
+  })
+
+  it('does not let a synchronously throwing callback break the read', async () => {
+    const disk = new StubDisk()
+    const cache = new StubCache()
+    const device = new CachedDiskBlockDevice({
+      disk,
+      cache,
+      onBlockCached: () => {
+        throw new Error('persistence failure')
+      },
+    })
+    await device.open()
+
+    assert.deepEqual(await device.read(0, 512), expectedAt(0, 512, disk.allocated))
+    assert.deepEqual(device.getMaterialized(), { blocks: 1, total: BLOCK_COUNT })
   })
 })
 

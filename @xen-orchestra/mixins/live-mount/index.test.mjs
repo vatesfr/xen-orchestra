@@ -111,7 +111,7 @@ const makeCacheDevice = size => {
   }
 }
 
-const makeMixin = ({ diskOpenError, listenError, openCacheError } = {}) => {
+const makeMixin = ({ diskOpenError, listenError, openCacheError, persistenceInitialBitmap, persistPathError } = {}) => {
   const hooks = new EventEmitter()
   const app = {
     config: {
@@ -146,6 +146,9 @@ const makeMixin = ({ diskOpenError, listenError, openCacheError } = {}) => {
 
   const cache = makeCacheDevice(DISK_SIZE)
 
+  // populated only if a test's `mount()` call passes `cache.persistPath`
+  let persistence
+
   const mixin = new LiveMount(app, {
     openDisk: async params => {
       if (diskOpenError !== undefined) {
@@ -165,9 +168,32 @@ const makeMixin = ({ diskOpenError, listenError, openCacheError } = {}) => {
       cache.params = params
       return cache
     },
+    openCachePersistence: async (path, blockCount) => {
+      if (persistPathError !== undefined) {
+        throw persistPathError
+      }
+      persistence = {
+        path,
+        blockCount,
+        initialBitmap: persistenceInitialBitmap,
+        marked: [],
+        closed: false,
+        disposed: false,
+        markCached(index) {
+          persistence.marked.push(index)
+        },
+        close: async () => {
+          persistence.closed = true
+        },
+        dispose: async () => {
+          persistence.disposed = true
+        },
+      }
+      return persistence
+    },
   })
 
-  return { app, cache, disk, hooks, mixin, target }
+  return { app, cache, disk, hooks, mixin, target, getPersistence: () => persistence }
 }
 
 const mount = (mixin, xapi, params) =>
@@ -397,6 +423,68 @@ describe('mount', () => {
   })
 })
 
+describe('cache persistence', () => {
+  const BLOCK_COUNT = DISK_SIZE / (2 * 1024 * 1024)
+  const PERSIST_PATH = '/var/lib/xo-server/data/live-mount-cache/host-uuid/archive-hash'
+
+  it('opens no persistence when cache.persistPath is not given', async () => {
+    const { mixin, getPersistence } = makeMixin()
+    await mount(mixin, makeXapi())
+    assert.equal(getPersistence(), undefined)
+  })
+
+  it('opens persistence at the given path, sized to the block count', async () => {
+    const { mixin, getPersistence } = makeMixin()
+    await mount(mixin, makeXapi(), { cache: { srRef: CACHE_SR_REF, vmRef: VM_REF, persistPath: PERSIST_PATH } })
+
+    assert.equal(getPersistence().path, PERSIST_PATH)
+    assert.equal(getPersistence().blockCount, BLOCK_COUNT)
+  })
+
+  it('resumes from an initial bitmap: an already-cached block is not re-fetched', async () => {
+    const initialBitmap = Buffer.alloc(BLOCK_COUNT)
+    initialBitmap[0] = 1
+    const { mixin, disk, target } = makeMixin({ persistenceInitialBitmap: initialBitmap })
+    disk.hasBlock = () => true
+    disk.readBlock = async index => ({ index, data: Buffer.alloc(2 * 1024 * 1024, 0xab) })
+
+    await mount(mixin, makeXapi(), { cache: { srRef: CACHE_SR_REF, vmRef: VM_REF, persistPath: PERSIST_PATH } })
+
+    assert.deepEqual(mixin.listMountedDisks()[0].materialized, { blocks: 1, total: BLOCK_COUNT })
+    assert.deepEqual(await target.options.lun.read(0, 512), Buffer.alloc(512))
+    // block 1, not resumed, still comes from the source
+    assert.deepEqual(await target.options.lun.read(2 * 1024 * 1024, 512), Buffer.alloc(512, 0xab))
+    assert.deepEqual(mixin.listMountedDisks()[0].materialized, { blocks: 2, total: BLOCK_COUNT })
+  })
+
+  it('marks each newly cached block, but not one resumed from the initial bitmap', async () => {
+    const initialBitmap = Buffer.alloc(BLOCK_COUNT)
+    initialBitmap[0] = 1
+    const { mixin, disk, target, getPersistence } = makeMixin({ persistenceInitialBitmap: initialBitmap })
+    disk.hasBlock = () => true
+    disk.readBlock = async index => ({ index, data: Buffer.alloc(2 * 1024 * 1024, 0xab) })
+
+    await mount(mixin, makeXapi(), { cache: { srRef: CACHE_SR_REF, vmRef: VM_REF, persistPath: PERSIST_PATH } })
+
+    await target.options.lun.read(0, 512) // already resumed: no mark
+    await target.options.lun.read(2 * 1024 * 1024, 512) // block 1: newly cached
+    assert.deepEqual(getPersistence().marked, [1])
+  })
+
+  it('closes, but does not delete, the persistence file when a later step fails', async () => {
+    const { mixin, getPersistence } = makeMixin()
+    const xapi = makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_666', []) })
+
+    await assert.rejects(
+      mount(mixin, xapi, { cache: { srRef: CACHE_SR_REF, vmRef: VM_REF, persistPath: PERSIST_PATH } }),
+      { code: 'SR_BACKEND_FAILURE_666' }
+    )
+
+    assert.equal(getPersistence().closed, true)
+    assert.equal(getPersistence().disposed, false)
+  })
+})
+
 describe('hydrate', () => {
   it('forces the whole disk into the cache', async () => {
     const { mixin, disk } = makeMixin()
@@ -539,6 +627,17 @@ describe('unmount', () => {
   it('rejects an unknown mount', async () => {
     const { mixin } = makeMixin()
     await assert.rejects(mixin.unmountDisk('nope'), /no such live mount nope/)
+  })
+
+  it('removes the cache persistence file, once the target and cache device are closed', async () => {
+    const { mixin, getPersistence } = makeMixin()
+    const { id } = await mount(mixin, makeXapi(), {
+      cache: { srRef: CACHE_SR_REF, vmRef: VM_REF, persistPath: '/var/lib/xo-server/data/live-mount-cache/h/a' },
+    })
+
+    await mixin.unmountDisk(id)
+
+    assert.equal(getPersistence().disposed, true)
   })
 })
 

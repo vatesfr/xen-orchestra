@@ -32,6 +32,22 @@ export interface CachedDiskBlockDeviceOptions {
    * pipelines rather than inventing a new shape.
    */
   readonly progressHandler?: ProgressHandler
+  /**
+   * A previously-persisted bitmap to resume from, one byte per block (see
+   * {@link CachedDiskBlockDevice}'s class doc). Its length must match the
+   * block count computed from `disk`/`blockSize`; a mismatch (e.g. the disk
+   * was resized since it was saved) is treated as stale and discarded rather
+   * than rejected, so a corrupt/outdated resume file never blocks a mount.
+   */
+  readonly initialBitmap?: Buffer
+  /**
+   * Notified with a block's index the moment it is newly cached — narrower
+   * than `progressHandler`, which only carries an aggregate fraction and
+   * cannot say *which* block just landed. Meant for persisting the bitmap
+   * one byte at a time; best-effort like `progressHandler`, a failure here
+   * must never break block materialization.
+   */
+  readonly onBlockCached?: (index: number) => void
 }
 
 /**
@@ -39,6 +55,15 @@ export interface CachedDiskBlockDeviceOptions {
  * a local writable store: each source block is materialized into the store
  * the first time it's needed, tracked by a bitmap so repeat access never goes
  * back to the source. Call {@link hydrate} to force the whole disk in upfront.
+ *
+ * The bitmap is one byte per block, not one bit: a caller that persists it
+ * incrementally (see `onBlockCached`) writes one block's byte at a time, and
+ * every block's offset must be independent of every other's for concurrent
+ * writes to be safe. A real bit-packed bitmap fails that: several blocks'
+ * bits sharing one byte would need a read-modify-write of that byte, which
+ * two blocks completing concurrently could race on and lose an update. One
+ * byte per block costs a little more memory (negligible in absolute terms —
+ * a few hundred KB even for a huge disk) and buys that independence for free.
  *
  * Blocks the source doesn't have are marked present without being written —
  * relies on the store reading as zero where nothing was ever written.
@@ -51,8 +76,10 @@ export class CachedDiskBlockDevice implements BlockDevice {
   readonly #cache: BlockDevice
   readonly #blockSize: number
   readonly #progressHandler?: ProgressHandler
+  readonly #onBlockCached?: (index: number) => void
+  readonly #initialBitmap?: Buffer
 
-  // one bit per source block, set once the block is in the cache
+  // one byte per source block, 0 or 1, set once the block is in the cache
   #bitmap: Buffer = Buffer.alloc(0)
   #blockCount = 0
   #cachedCount = 0
@@ -62,7 +89,14 @@ export class CachedDiskBlockDevice implements BlockDevice {
   #diskBlockSize?: number
   #size?: number
 
-  constructor({ disk, cache, blockSize = DEFAULT_BLOCK_SIZE, progressHandler }: CachedDiskBlockDeviceOptions) {
+  constructor({
+    disk,
+    cache,
+    blockSize = DEFAULT_BLOCK_SIZE,
+    progressHandler,
+    initialBitmap,
+    onBlockCached,
+  }: CachedDiskBlockDeviceOptions) {
     if (!Number.isInteger(blockSize) || blockSize <= 0) {
       throw new Error(`blockSize must be a positive integer, got ${blockSize}`)
     }
@@ -70,9 +104,11 @@ export class CachedDiskBlockDevice implements BlockDevice {
     this.#cache = cache
     this.#blockSize = blockSize
     this.#progressHandler = progressHandler
+    this.#initialBitmap = initialBitmap
+    this.#onBlockCached = onBlockCached
   }
 
-  /** Read the source geometry and allocate the bitmap. */
+  /** Read the source geometry and allocate (or resume) the bitmap. */
   async open(): Promise<void> {
     const blockSize = this.#blockSize
     const diskBlockSize = this.#disk.getBlockSize()
@@ -90,8 +126,33 @@ export class CachedDiskBlockDevice implements BlockDevice {
     this.#diskBlockSize = diskBlockSize
     this.#size = size
     this.#blockCount = Math.ceil(size / diskBlockSize)
-    this.#bitmap = Buffer.alloc(Math.ceil(this.#blockCount / 8))
-    log.debug('opened', { size, blockSize, diskBlockSize, blockCount: this.#blockCount })
+
+    const initialBitmap = this.#initialBitmap
+    if (initialBitmap !== undefined && initialBitmap.length === this.#blockCount) {
+      this.#bitmap = initialBitmap
+      let cachedCount = 0
+      for (const byte of initialBitmap) {
+        if (byte !== 0) {
+          cachedCount++
+        }
+      }
+      this.#cachedCount = cachedCount
+    } else {
+      if (initialBitmap !== undefined) {
+        log.warn('discarding stale initial bitmap (block count mismatch)', {
+          gotLength: initialBitmap.length,
+          expectedLength: this.#blockCount,
+        })
+      }
+      this.#bitmap = Buffer.alloc(this.#blockCount)
+    }
+    log.debug('opened', {
+      size,
+      blockSize,
+      diskBlockSize,
+      blockCount: this.#blockCount,
+      resumedBlocks: this.#cachedCount,
+    })
   }
 
   getSize(): number {
@@ -142,14 +203,22 @@ export class CachedDiskBlockDevice implements BlockDevice {
   }
 
   #isCached(index: number): boolean {
-    return (this.#bitmap[index >> 3] & (1 << (index & 7))) !== 0
+    return this.#bitmap[index] !== 0
   }
 
   #setCached(index: number): void {
     if (!this.#isCached(index)) {
-      this.#bitmap[index >> 3] |= 1 << (index & 7)
+      this.#bitmap[index] = 1
       this.#cachedCount++
       this.#reportProgress()
+      // best-effort, same contract as #reportProgress: a synchronous throw
+      // here must never break block materialization. Any async failure (e.g.
+      // the persisted-bitmap write itself) is the callback's own job to catch.
+      try {
+        this.#onBlockCached?.(index)
+      } catch (error) {
+        log.warn('onBlockCached failed', { error, index })
+      }
     }
   }
 
