@@ -1,3 +1,4 @@
+import { useXoHostRestartToolstackJob } from '@/modules/host/jobs/xo-host-restart-toolstack.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostPendingStateOperation } from '@/modules/host/utils/xo-host.util.ts'
 import type { IconName } from '@core/icons'
@@ -13,6 +14,8 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
   const { t } = useI18n()
 
   const host = toComputed(rawHost)
+
+  const { isRunning: isRestartingToolstack } = useXoHostRestartToolstackJob(() => host.value)
 
   const getPowerState = createMapper<HOST_POWER_STATE, { text: string; icon: IconName | undefined }>(
     {
@@ -31,9 +34,9 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
 
   const pendingStateOperation = computed(() => getHostPendingStateOperation(host.value))
 
-  const isChangingState = computed(() => pendingStateOperation.value !== undefined)
+  const isChangingState = computed(() => pendingStateOperation.value !== undefined || isRestartingToolstack.value)
 
-  const currentOperation = useMapper<string, string>(
+  const pendingOperationLabel = useMapper<string, string>(
     () => pendingStateOperation.value,
     {
       power_on: t('operation:start'),
@@ -45,6 +48,10 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
       unknown: '',
     },
     'unknown'
+  )
+
+  const currentOperation = computed(() =>
+    isRestartingToolstack.value ? t('operation:restart-toolstack') : pendingOperationLabel.value
   )
 
   return {

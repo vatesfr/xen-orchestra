@@ -10,7 +10,7 @@
     <VtsDivider type="stretch" />
   </div>
   <HostRestartToolstackButton :host />
-  <div v-if="host.enabled || isHostHalted">
+  <div v-if="showDisableActions">
     <HostDisableButton :host />
     <HostDisableAndEvacuateVmsButton :host />
   </div>
@@ -28,6 +28,7 @@ import HostEnableButton from '@/modules/host/components/actions/enable/HostEnabl
 import HostForgetButton from '@/modules/host/components/actions/forget/HostForgetButton.vue'
 import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
 import HostRestartToolstackButton from '@/modules/host/components/actions/restart-toolstack/HostRestartToolstackButton.vue'
+import { useXoHostRestartToolstackJob } from '@/modules/host/jobs/xo-host-restart-toolstack.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
@@ -45,7 +46,11 @@ const { t } = useI18n()
 
 const uiStore = useUiStore()
 
-const isHostHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
+const { isRunning: isRestartingToolstack } = useXoHostRestartToolstackJob(() => host)
+
+const showDisableActions = computed(
+  () => host.enabled || host.power_state === HOST_POWER_STATE.HALTED || isRestartingToolstack.value
+)
 </script>
 
 <style lang="postcss" scoped>

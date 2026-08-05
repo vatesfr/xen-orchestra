@@ -130,9 +130,9 @@ const textMappingsByObject: TextMappingByObject = {
       action: t('action:smart-reboot-host'),
     },
     'restart-toolstack': {
-      title: t('modal:confirm-host-restart-toolstack', { host: hostName }),
+      title: t('modal:confirm-host-restart-toolstack?', { host: hostName }),
       message: t('modal:host-restart-toolstack-message'),
-      action: t('action:restart-toolstack-host'),
+      action: t('action:restart-toolstack'),
     },
   },
 }

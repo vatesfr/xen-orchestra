@@ -1,9 +1,9 @@
 <template>
   <MenuItem
-    v-tooltip="!canRestartToolstackHost && restartToolstackHostErrorMessage"
-    :disabled="!canRestartToolstackHost"
+    v-tooltip="!canRestartToolstack && restartToolstackErrorMessage"
+    :disabled="!canRestartToolstack"
     icon="action:reboot"
-    :busy="isRestartingToolstackHost"
+    :busy="isRestartingToolstack"
     @click="openRestartToolstackHostModal()"
   >
     {{ t('action:restart-toolstack') }}
@@ -25,10 +25,10 @@ const { host } = defineProps<{
 const { t } = useI18n()
 
 const {
-  run: restartToolstackHost,
-  canRun: canRestartToolstackHost,
-  isRunning: isRestartingToolstackHost,
-  errorMessage: restartToolstackHostErrorMessage,
+  run: restartToolstack,
+  canRun: canRestartToolstack,
+  isRunning: isRestartingToolstack,
+  errorMessage: restartToolstackErrorMessage,
 } = useXoHostRestartToolstackJob(() => host)
 
 const openRestartToolstackHostModal = useModal({
@@ -40,6 +40,6 @@ const openRestartToolstackHostModal = useModal({
     hostName: host.name_label,
     icon: 'status:warning-picto',
   },
-  onConfirm: () => restartToolstackHost(),
+  onConfirm: () => restartToolstack(),
 })
 </script>
