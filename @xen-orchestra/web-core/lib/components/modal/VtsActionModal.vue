@@ -109,7 +109,7 @@ const textMappingsByObject: TextMappingByObject = {
       message: t('modal:host-forget-message'),
       action: t('action:forget-host'),
     },
-    'disable-and-evacuate-vm': {
+    'disable-and-evacuate-vms': {
       title: t('modal:confirm-host-disable-and-evacuate-vms', { host: hostName }),
       message: t('modal:host-disable-and-evacuate-vms-message'),
       action: t('action:disable-and-evacuate-vms'),

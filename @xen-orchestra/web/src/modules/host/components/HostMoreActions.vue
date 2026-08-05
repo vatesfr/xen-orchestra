@@ -9,10 +9,10 @@
     <HostPowerStateActions :host />
     <VtsDivider type="stretch" />
   </div>
-  <div v-if="host.enabled || isHostHalted">
+  <template v-if="host.enabled || isHostHalted">
     <HostDisableButton :host />
     <HostDisableAndEvacuateVmsButton :host />
-  </div>
+  </template>
   <HostEnableButton v-else :host />
   <HostForgetButton :host />
   <VtsDivider type="stretch" />

@@ -496,6 +496,7 @@
   "job:host-disable:bad-power-state": "Host is not running",
   "job:host-disable:missing-host": "Host is missing",
   "job:host-enable:missing-host": "Host is missing",
+  "job:host-evacuate:in-progress": "Host evacuate in progress…",
   "job:host-forget:bad-power-state": "Host is running",
   "job:host-forget:in-progress": "Host forgetting in progress…",
   "job:host-forget:missing-host": "No host to forget",
