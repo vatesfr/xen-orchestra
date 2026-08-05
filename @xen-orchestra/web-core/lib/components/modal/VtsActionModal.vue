@@ -120,9 +120,9 @@ const textMappingsByObject: TextMappingByObject = {
       action: t('action:disable-host-and-evacuate-vms'),
     },
     reboot: {
-      title: t('modal:confirm-host-reboot', { host: hostName }),
+      title: t('modal:confirm-host-reboot?', { host: hostName }),
       message: t('modal:host-reboot-message'),
-      action: t('action:reboot-host'),
+      action: t('action:reboot'),
     },
   },
 }
