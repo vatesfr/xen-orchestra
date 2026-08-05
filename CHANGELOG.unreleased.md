@@ -19,6 +19,9 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [xo-server] Disconnect user stalling task result and using to much memory (PR [#10237](https://github.com/vatesfr/xen-orchestra/pull/10237))
+- [XO5] Show a task when a user is disconnected because its task flow is stalled (PR [#10237](https://github.com/vatesfr/xen-orchestra/pull/10237))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -38,5 +41,7 @@
 - @xen-orchestra/acl minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
+- xo-server patch
+- xo-web patch
 
 <!--packages-end-->
