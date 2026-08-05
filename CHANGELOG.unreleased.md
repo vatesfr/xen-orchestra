@@ -51,6 +51,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/upload-ova patch
 - @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
 - xen-api minor
 - xo-cli patch
