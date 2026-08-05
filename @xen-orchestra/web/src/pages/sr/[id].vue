@@ -4,13 +4,13 @@
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
-    <SrHeader :sr :host :from-context="fromContext" />
+    <SrHeader :sr :from-context="fromContext" />
     <component :is="Component" :sr />
   </RouterView>
 </template>
 
 <script lang="ts" setup>
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import SrHeader from '@/modules/storage-repository/components/SrHeader.vue'
 import {
   type FrontXoSr,
@@ -37,11 +37,5 @@ const fromContext = computed<SrScope>(() =>
   route.query.from === SR_SCOPE_TYPE.HOST
     ? { type: SR_SCOPE_TYPE.HOST, hostId: route.query.host as FrontXoHost['id'] }
     : { type: SR_SCOPE_TYPE.POOL }
-)
-
-const { useGetHostById } = useXoHostCollection()
-
-const host = useGetHostById(() =>
-  fromContext.value.type === SR_SCOPE_TYPE.HOST ? (fromContext.value.hostId as FrontXoHost['id']) : undefined
 )
 </script>

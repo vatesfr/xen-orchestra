@@ -1,5 +1,5 @@
 <template>
-  <SrHeaderBreadcrumbLink :sr :host :from-context="fromContext" />
+  <SrHeaderBreadcrumbLink :sr :from-context="fromContext" />
   <UiHeadBar>
     <template #icon>
       <VtsObjectIcon type="sr" :state="srConnectionStatus" size="medium" />
@@ -29,26 +29,24 @@
 </template>
 
 <script setup lang="ts">
-import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import SrHeaderBreadcrumbLink from '@/modules/storage-repository/components/header/SrHeaderBreadcrumbLink.vue'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
 
-const { sr } = defineProps<{ sr: FrontXoSr; host?: FrontXoHost; fromContext?: SrScope }>()
+const { sr, fromContext } = defineProps<{ sr: FrontXoSr; fromContext?: SrScope }>()
 
 const { t } = useI18n()
 
-const route = useRoute()
-
-const contextQuery = computed(() => ({ from: route.query.from, host: route.query.host }))
+const contextQuery = computed(() =>
+  fromContext?.type === SR_SCOPE_TYPE.HOST ? { from: SR_SCOPE_TYPE.HOST, host: fromContext.hostId } : {}
+)
 
 const { srConnectionStatus } = useXoSrUtils(() => sr)
 </script>
