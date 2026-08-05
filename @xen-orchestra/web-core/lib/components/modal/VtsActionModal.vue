@@ -86,7 +86,7 @@ const textMappingsByObject: TextMappingByObject = {
   },
   host: {
     enable: {
-      title: t('modal:confirm-host-enable', { host: hostName }),
+      title: t('modal:confirm-host-enable?', { host: hostName }),
       message: t('modal:host-enable-message'),
       action: t('action:enable-host'),
     },
@@ -96,12 +96,12 @@ const textMappingsByObject: TextMappingByObject = {
       action: t('action:disable-host'),
     },
     shutdown: {
-      title: t('modal:confirm-host-shutdown', { host: hostName }),
+      title: t('modal:confirm-host-shutdown?', { host: hostName }),
       message: t('modal:host-shutdown-message'),
       action: t('action:shutdown-host'),
     },
     start: {
-      title: t('modal:confirm-host-start', { host: hostName }),
+      title: t('modal:confirm-host-start?', { host: hostName }),
       action: t('action:start-host'),
     },
     forget: {
@@ -120,9 +120,9 @@ const textMappingsByObject: TextMappingByObject = {
       action: t('action:reboot-host'),
     },
     'force-reboot': {
-      title: t('modal:confirm-host-force-reboot', { host: hostName }),
+      title: t('modal:confirm-host-force-reboot?', { host: hostName }),
       message: t('modal:host-force-reboot-message'),
-      action: t('action:force-reboot-host'),
+      action: t('action:force-reboot'),
     },
   },
 }
