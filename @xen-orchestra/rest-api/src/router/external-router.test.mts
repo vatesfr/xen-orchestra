@@ -24,6 +24,11 @@ describe('coerceQueryParams', () => {
   it('coerces booleans', () => {
     assert.deepEqual(coerce({ bool: 'true' }), { bool: true })
     assert.deepEqual(coerce({ bool: 'false' }), { bool: false })
+    assert.deepEqual(coerce({ bool: 'TRUE' }), { bool: true })
+    assert.deepEqual(coerce({ bool: 'FALSE' }), { bool: false })
+  })
+  it('keeps non-boolean values as strings', () => {
+    assert.deepEqual(coerce({ bool: 'abc' }), { bool: 'abc' })
   })
 
   it('coerces numbers', () => {
@@ -33,6 +38,9 @@ describe('coerceQueryParams', () => {
 
   it('coerces a non-numeric value to NaN, which fails the validation', () => {
     assert.ok(Number.isNaN(coerce({ num: 'abc' }).num))
+  })
+  it('coerces empty strings to NaN, which fails the validation', () => {
+    assert.ok(Number.isNaN(coerce({ num: '' }).num))
   })
 
   it('leaves strings and undeclared params untouched', () => {

@@ -346,7 +346,11 @@ export function coerceQueryParams(query: Record<string, unknown>, def: RouteDefi
     if (typeof value !== 'string') continue
 
     if (field.type === 'boolean') {
-      query[key] = value === 'true'
+      if (value.toLowerCase() === 'true') {
+        query[key] = true
+      } else if (value.toLowerCase() === 'false') {
+        query[key] = false
+      }
     } else if (field.type === 'number') {
       // a non-numeric value becomes NaN, which is rejected by the zod validation
       query[key] = value.trim() === '' ? NaN : Number(value)
