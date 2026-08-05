@@ -446,6 +446,26 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Adds VHD-specific compatibility checks on top of the uuid check: the storage
+   * sub-format (VHD directory vs plain) and, for directories, the compression codec
+   * must match what this remote would write for a new disk.
+   * @param {string} parentUuid
+   * @param {Object} referenceConfig
+   * @param {boolean} referenceConfig.useVhdDirectory
+   * @param {string} [referenceConfig.compressionType]
+   * @returns {Promise<boolean>}
+   */
+  async isMergeableParent(parentUuid, referenceConfig) {
+    if (!(await super.isMergeableParent(parentUuid, referenceConfig))) {
+      return false
+    }
+
+    const { useVhdDirectory, compressionType } = referenceConfig
+    const isDirectory = await this.isDirectory()
+    return isDirectory ? useVhdDirectory && this.getCompressionType() === compressionType : !useVhdDirectory
+  }
+
+  /**
    * Points this disk's header/footer at a new parent. The disk must already be differencing.
    * @param {RemoteDisk} parentDisk
    * @returns {Promise<void>}

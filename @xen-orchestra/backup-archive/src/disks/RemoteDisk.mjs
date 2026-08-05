@@ -248,22 +248,19 @@ export class RemoteDisk extends RandomAccessDisk {
   }
 
   /**
-   * Checks whether this disk (or chain) can be used as a merge parent for a child
-   * whose expected parent uuid is `parentUuid`, given the remote's VHD-directory mode
-   * and target compression.
+   * Checks whether this disk (or chain) can act as the merge-target parent for a disk
+   * about to be written with the given reference configuration.
+   *
+   * Base check: this disk's own uuid matches the expected parent uuid. Subclasses should
+   * override to add implementation-specific compatibility checks (storage sub-format,
+   * compression, ...) — calling `super.isMergeableParent()` first.
+   *
    * @param {string} parentUuid
-   * @param {Object} options
-   * @param {boolean} options.useVhdDirectory
-   * @param {string} [options.compressionType]
+   * @param {Object} referenceConfig - describes what this remote would write for a new disk
    * @returns {Promise<boolean>}
    */
-  async isMergeableParent(parentUuid, { useVhdDirectory, compressionType }) {
-    if (this.getUuid() !== parentUuid) {
-      return false
-    }
-
-    const isDirectory = await this.isDirectory()
-    return isDirectory ? useVhdDirectory && this.getCompressionType() === compressionType : !useVhdDirectory
+  async isMergeableParent(parentUuid, referenceConfig) {
+    return this.getUuid() === parentUuid
   }
 
   /**
