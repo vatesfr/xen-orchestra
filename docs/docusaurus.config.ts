@@ -253,7 +253,7 @@ export default {
       title: 'Xen Orchestra Documentation',
       logo: { alt: 'Xen Orchestra logo', src: 'img/logo.png', href: '/' },
       items: [
-        { to: 'https://docs.vates.tech/', label: 'Vates VMS', position: 'right', target: '_self'},
+        { href: 'https://docs.vates.tech/', label: 'Vates VMS', position: 'right'},
         { to: 'https://docs.xcp-ng.org/', label: 'XCP-ng', position: 'right', target: '_self'},
         { href: '/', label: 'Xen Orchestra', position: 'right' },
       ],
