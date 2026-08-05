@@ -27,12 +27,16 @@ export const useXoHostSmartRebootJob = defineJob('host.smart-reboot', [xoHostArg
 
       const residentVms = vmsByHost.value.get(host.id) ?? []
 
-      if (
-        isRunning ||
-        areVmsOperationPending(residentVms, VM_OPERATIONS.SUSPEND) ||
-        isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.REBOOT)
-      ) {
+      if (isRunning || isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.REBOOT)) {
         throw new JobRunningError(t('job:host-smart-reboot:in-progress'))
+      }
+
+      if (areVmsOperationPending(residentVms, VM_OPERATIONS.SUSPEND)) {
+        throw new JobRunningError(t('job:host-smart-reboot:vm-suspend-in-progress'))
+      }
+
+      if (areVmsOperationPending(residentVms, VM_OPERATIONS.RESUME)) {
+        throw new JobRunningError(t('job:host-smart-reboot:vm-resume-in-progress'))
       }
 
       if (host.power_state !== HOST_POWER_STATE.RUNNING) {
