@@ -654,7 +654,7 @@
   "modal:action:vm-shutdown": "@:action:shutdown VM",
   "modal:confirm-host-disable": "Are you sure you want to disable {host}?",
   "modal:confirm-host-enable": "Are you sure you want to enable {host}?",
-  "modal:confirm-host-forget": "Are you sure you want to forget {host}?",
+  "modal:confirm-host-forget?": "Are you sure you want to forget {host}?",
   "modal:confirm-host-shutdown": "Are you sure you want to shut down {host}?",
   "modal:confirm-host-start": "Are you sure you want to start {host}?",
   "modal:confirm-vm-force-reboot": "Confirm VM force reboot",
