@@ -77,68 +77,28 @@ async function generateVhd(path, opts = {}) {
 }
 
 describe('RemoteAdapter#isMergeableParent', { concurrency: 1 }, () => {
-  test('returns true when the target uuid matches a plain VHD', async () => {
-    const adapter = await getAdapter()
-    const targetUuid = uniqueIdBuffer()
-    await generateVhd(`${basePath}/disk.vhd`, { uuid: targetUuid })
+  for (const diskIsDirectory of [false, true]) {
+    for (const useVhdDirectory of [false, true]) {
+      for (const compressionMatches of [false, true]) {
+        for (const uuidMatches of [false, true]) {
+          const expected = uuidMatches && (diskIsDirectory ? useVhdDirectory && compressionMatches : !useVhdDirectory)
 
-    assert.equal(await adapter.isMergeableParent(targetUuid, `${basePath}/disk.vhd`), true)
-  })
+          test(`diskIsDirectory=${diskIsDirectory} useVhdDirectory=${useVhdDirectory} compressionMatches=${compressionMatches} uuidMatches=${uuidMatches} -> ${expected}`, async () => {
+            const targetCompression = 'brotli'
+            const adapter = await getAdapter({ useVhdDirectory, vhdDirectoryCompression: targetCompression })
+            const targetUuid = uniqueIdBuffer()
 
-  test('returns false when the uuid does not match', async () => {
-    const adapter = await getAdapter()
-    await generateVhd(`${basePath}/disk.vhd`, { uuid: uniqueIdBuffer() })
+            await generateVhd(`${basePath}/disk.vhd`, {
+              mode: diskIsDirectory ? 'directory' : 'plain',
+              compression: diskIsDirectory ? (compressionMatches ? targetCompression : 'gzip') : undefined,
+              uuid: uuidMatches ? targetUuid : uniqueIdBuffer(),
+            })
+            const path = diskIsDirectory ? `${basePath}/disk.vhd.alias.vhd` : `${basePath}/disk.vhd`
 
-    assert.equal(await adapter.isMergeableParent(uniqueIdBuffer(), `${basePath}/disk.vhd`), false)
-  })
-
-  test('returns false when the remote uses VHD directories but the chain is a plain VHD', async () => {
-    const adapter = await getAdapter({ useVhdDirectory: true })
-    const targetUuid = uniqueIdBuffer()
-    await generateVhd(`${basePath}/disk.vhd`, { uuid: targetUuid })
-
-    assert.equal(await adapter.isMergeableParent(targetUuid, `${basePath}/disk.vhd`), false)
-  })
-
-  test('returns false when the remote does not use VHD directories but the chain is one', async () => {
-    const adapter = await getAdapter({ useVhdDirectory: false })
-    const targetUuid = uniqueIdBuffer()
-    await generateVhd(`${basePath}/disk.vhd`, { uuid: targetUuid, mode: 'directory' })
-
-    assert.equal(await adapter.isMergeableParent(targetUuid, `${basePath}/disk.vhd.alias.vhd`), false)
-  })
-
-  test('returns true when the whole VHD directory chain has matching, uniform compression', async () => {
-    const adapter = await getAdapter({ useVhdDirectory: true, vhdDirectoryCompression: 'brotli' })
-    const rootDisk = await generateVhd(`${basePath}/root.vhd`, { mode: 'directory', compression: 'brotli' })
-    const targetUuid = uniqueIdBuffer()
-    await generateVhd(`${basePath}/child.vhd`, {
-      mode: 'directory',
-      compression: 'brotli',
-      uuid: targetUuid,
-      header: {
-        parentUnicodeName: 'root.vhd.alias.vhd',
-        parentUuid: rootDisk.footer.uuid,
-      },
-    })
-
-    assert.equal(await adapter.isMergeableParent(targetUuid, `${basePath}/child.vhd.alias.vhd`), true)
-  })
-
-  test('returns false when the VHD directory chain has mixed compression', async () => {
-    const adapter = await getAdapter({ useVhdDirectory: true, vhdDirectoryCompression: 'brotli' })
-    const rootDisk = await generateVhd(`${basePath}/root.vhd`, { mode: 'directory', compression: 'gzip' })
-    const targetUuid = uniqueIdBuffer()
-    await generateVhd(`${basePath}/child.vhd`, {
-      mode: 'directory',
-      compression: 'brotli',
-      uuid: targetUuid,
-      header: {
-        parentUnicodeName: 'root.vhd.alias.vhd',
-        parentUuid: rootDisk.footer.uuid,
-      },
-    })
-
-    assert.equal(await adapter.isMergeableParent(targetUuid, `${basePath}/child.vhd.alias.vhd`), false)
-  })
+            assert.equal(await adapter.isMergeableParent(targetUuid, path), expected)
+          })
+        }
+      }
+    }
+  }
 })
