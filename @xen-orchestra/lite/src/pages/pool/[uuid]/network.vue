@@ -20,7 +20,18 @@
           </MenuList>
         </template>
       </PoolNetworksTable>
-      <PoolHostInternalNetworksTable :networks="networksWithoutPifs" />
+      <PoolHostInternalNetworksTable :networks="networksWithoutPifs">
+        <template #title-actions>
+          <UiLink
+            class="new-internal-network-link"
+            :to="{ name: '/network/new-internal', query: { poolid: pool?.uuid } }"
+            icon="fa:plus"
+            size="medium"
+          >
+            {{ t('new') }}
+          </UiLink>
+        </template>
+      </PoolHostInternalNetworksTable>
     </UiCard>
     <PoolNetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
   </VtsContentSidePanel>

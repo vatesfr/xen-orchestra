@@ -2,6 +2,9 @@
   <div class="pool-host-internal-networks-table">
     <UiTitle>
       {{ t('host-internal-networks') }}
+      <template #action>
+        <slot name="title-actions" />
+      </template>
     </UiTitle>
     <div class="container">
       <UiQuerySearchBar @search="value => (searchQuery = value)" />
