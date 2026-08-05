@@ -78,9 +78,8 @@ export default class MigrateVm {
     // find the destination Vm and collapse into a single id
     const targetIds = new Set(
       Object.values(
-        app.getObjects({
+        app.getObjectsByType('VM-snapshot', {
           filter: obj =>
-            obj.type === 'VM-snapshot' &&
             obj.other['xo:backup:job'] === jobId &&
             obj.other['xo:backup:sr'] === srId &&
             obj.other['xo:backup:vm'] === sourceVm.uuid,
@@ -91,8 +90,8 @@ export default class MigrateVm {
     // the incremental xapi writer blocks `start` on the VM it replicates, checking it here ensures
     // only a replicated VM is ever considered
     const targets = Object.keys(
-      app.getObjects({
-        filter: obj => obj.type === 'VM' && targetIds.has(obj.id) && 'start' in obj.blockedOperations,
+      app.getObjectsByType('VM', {
+        filter: obj => targetIds.has(obj.id) && 'start' in obj.blockedOperations,
       })
     )
 
