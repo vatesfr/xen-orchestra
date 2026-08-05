@@ -3,6 +3,7 @@ import Disposable from 'promise-toolbox/Disposable'
 import forOwn from 'lodash/forOwn.js'
 import groupBy from 'lodash/groupBy.js'
 import merge from 'lodash/merge.js'
+import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
@@ -29,7 +30,6 @@ const logger = createLogger('xo:xo-mixins:backups-ng')
  *
  * @typedef {Record<XoVm['id'], XoVmBackupArchive[]>} BackupsByVm
  * @typedef {{ backupsByVm?: BackupsByVm, error?: Error }} RemoteListingResult
- * @typedef {[XoBackupRepository['id'], BackupsByVm | undefined, Error | undefined]} RemoteListing
  * @typedef {{ _forceRefresh?: boolean, vmId?: XoVm['id'] }} ListVmBackupsOpts
  * @typedef {{ attempt: number, nextAttemptAt: number, promise: Promise<BackupsByVm>, error: Error }} ListingRetryState
  */
@@ -686,7 +686,9 @@ export default class BackupNg {
     state.promise = promise
     state.error = error
     state.nextAttemptAt = Date.now() + delay
-    logger.warn(`listVmBackups for remote ${remoteId} failed, not retrying before ${delay}ms`, { error: error.message })
+    logger.debug(`listVmBackups for remote ${remoteId} failed, not retrying before ${delay}ms`, {
+      error: error.message,
+    })
   }
 
   /**
@@ -731,47 +733,25 @@ export default class BackupNg {
   }
 
   /**
-   * @param {XoBackupRepository['id'][]} remotes
-   * @param {ListVmBackupsOpts} [opts]
-   * @returns {AsyncGenerator<RemoteListing>}
-   */
-  async *listVmBackupsNgIterator(remotes, { _forceRefresh = false, vmId } = {}) {
-    /** @type {Map<XoBackupRepository['id'], Promise<RemoteListing>>} */
-    const pending = new Map()
-    for (const remoteId of remotes) {
-      if (_forceRefresh) {
-        this._invalidateVmBackupsListing(remoteId)
-      }
-
-      pending.set(
-        remoteId,
-        this._listVmBackupsWithBackoff(remoteId, { vmId }).then(({ backupsByVm, error }) => [
-          remoteId,
-          backupsByVm,
-          error,
-        ])
-      )
-    }
-
-    while (pending.size !== 0) {
-      const [remoteId, backupsByVm, error] = await Promise.race(pending.values())
-      pending.delete(remoteId)
-      yield [remoteId, backupsByVm, error]
-    }
-  }
-
-  /**
+   * a backup repository whose listing failed is reported as `undefined` so that a slow or
+   * unreachable one does not prevent the others from being listed
+   *
    * @param {XoBackupRepository['id'][]} remotes
    * @param {ListVmBackupsOpts} [opts]
    * @returns {Promise<Record<XoBackupRepository['id'], BackupsByVm | undefined>>}
    */
-  async listVmBackupsNg(remotes, opts) {
+  async listVmBackupsNg(remotes, { _forceRefresh = false, vmId } = {}) {
     /** @type {Record<XoBackupRepository['id'], BackupsByVm | undefined>} */
     const backupsByVmByRemote = {}
 
-    for await (const [remoteId, backupsByVm] of this.listVmBackupsNgIterator(remotes, opts)) {
+    await asyncEach(remotes, async remoteId => {
+      if (_forceRefresh) {
+        this._invalidateVmBackupsListing(remoteId)
+      }
+
+      const { backupsByVm } = await this._listVmBackupsWithBackoff(remoteId, { vmId })
       backupsByVmByRemote[remoteId] = backupsByVm
-    }
+    })
 
     return backupsByVmByRemote
   }

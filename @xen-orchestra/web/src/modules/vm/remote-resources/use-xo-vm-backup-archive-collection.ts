@@ -13,10 +13,8 @@ export const useXoVmBackupArchiveCollection = defineRemoteResource({
       .map(backupRepositoryId => `backup-repository=${backupRepositoryId}`)
       .join('&')
 
-    return `${BASE_URL}/backup-archives?ndjson=true&fields=${vmBackupArchiveFields.join(',')}&${queryParamBackupRepositoriesIds}`
+    return `${BASE_URL}/backup-archives?fields=${vmBackupArchiveFields.join(',')}&${queryParamBackupRepositoriesIds}`
   },
-  // the archives of each backup repository are streamed as soon as they are available
-  stream: true,
   initialData: () => [] as Pick<XoVmBackupArchive, (typeof vmBackupArchiveFields)[number]>[],
   state: (rawBackupArchives, context) =>
     useXoCollectionState(rawBackupArchives, {
