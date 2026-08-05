@@ -9,7 +9,7 @@
     <HostPowerStateActions :host />
     <VtsDivider type="stretch" />
   </div>
-  <div v-if="host.enabled || isHostHalted">
+  <div v-if="showDisableActions">
     <HostDisableButton :host />
     <HostDisableAndEvacuateVmsButton :host />
   </div>
@@ -26,6 +26,7 @@ import HostDownloadButton from '@/modules/host/components/actions/download/HostD
 import HostEnableButton from '@/modules/host/components/actions/enable/HostEnableButton.vue'
 import HostForgetButton from '@/modules/host/components/actions/forget/HostForgetButton.vue'
 import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
+import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
@@ -43,7 +44,11 @@ const { t } = useI18n()
 
 const uiStore = useUiStore()
 
-const isHostHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
+const { isChangingState } = useXoHostUtils(() => host)
+
+const showDisableActions = computed(
+  () => host.enabled || host.power_state === HOST_POWER_STATE.HALTED || isChangingState.value
+)
 </script>
 
 <style lang="postcss" scoped>
