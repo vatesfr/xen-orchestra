@@ -839,7 +839,6 @@
   "operation:start-on-host": "Starting on host",
   "operation:suspend": "Suspending",
   "operation:unpause": "Resuming",
-  "operation:vm-migrate": "VMs migrating",
   "options": "Options",
   "or": "Or",
   "os-kernel": "OS kernel",
