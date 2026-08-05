@@ -450,6 +450,43 @@ export default class Esxi extends EventEmitter {
     return this.#exec('PowerOnVM_Task', { _this: vmId })
   }
 
+  /**
+   * Hard resets a running VM, making its guest reboot.
+   *
+   * Unlike a powerOff/powerOn pair this keeps the VM powered on as far as the hypervisor is
+   * concerned, so the vmdk files are never closed: a snapshot delta keeps the CID it was
+   * created with. Useful to make a guest write to its active disk without altering the
+   * identity of the disks of the chain.
+   *
+   * @param {string} vmId - id of the VM, must be powered on
+   */
+  async reset(vmId) {
+    const res = await this.#exec('ResetVM_Task', { _this: vmId })
+    const taskId = res.returnval.$value
+    try {
+      return await this.#waitForTaskEnd(taskId)
+    } catch (error) {
+      warn('Fail to reset VM', { vmId, error })
+      throw error
+    }
+  }
+
+  /**
+   * Removes every snapshot of a VM, consolidating their content into the base disks.
+   *
+   * @param {string} vmId - id of the VM
+   */
+  async removeAllSnapshots(vmId) {
+    const res = await this.#exec('RemoveAllSnapshots_Task', { _this: vmId, consolidate: true })
+    const taskId = res.returnval.$value
+    try {
+      return await this.#waitForTaskEnd(taskId)
+    } catch (error) {
+      warn('Fail to remove the snapshots of VM', { vmId, error })
+      throw error
+    }
+  }
+
   async snapshot(vmId, name, description) {
     const res = await this.#exec('CreateSnapshotEx_Task', { _this: vmId, name, description, memory: false })
     const taskId = res.returnval.$value

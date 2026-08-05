@@ -12,6 +12,7 @@ import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
 import { deduped } from '@vates/disposable/deduped.js'
 import { randomBytes } from 'node:crypto'
+import { Readable } from 'node:stream'
 import { join, resolve } from 'node:path'
 import { execFile } from 'child_process'
 import { finished } from 'node:stream/promises'
@@ -297,7 +298,15 @@ export const fileRestoreMethods = {
         // simultaneous reads. Those saturate the libuv threadpool and starve
         // the underlying vhd/CIFS reads NTFS-3g depends on (FUSE-on-FUSE
         // threadpool deadlock). Serializing keeps a worker free for them.
-        outputStream = tar.c({ cwd: path, gzip: true, jobs: 1 }, paths.map(makeRelative))
+        const pack = tar.c({ cwd: path, gzip: true, jobs: 1 }, paths.map(makeRelative))
+
+        // node-tar >= 7 returns a Minipass stream: it has `pipe()` but is not a `node:stream`
+        // instance. xo-proxy serves this stream through Koa, which pipes only bodies passing
+        // `instanceof Stream` and JSON-serializes anything else — so a file restore through a
+        // proxy answered a JSON dump of the tar object instead of the archive. Wrapping it in a
+        // real node stream also propagates tar errors to the consumer and aborts the tar job
+        // when the client disconnects.
+        outputStream = Readable.from(pack, { objectMode: false })
         resolve(outputStream)
       } else if (format === 'zip') {
         const zip = new ZipFile()

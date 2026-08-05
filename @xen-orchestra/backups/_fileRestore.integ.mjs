@@ -1,7 +1,8 @@
 import { strict as assert } from 'node:assert'
 import test from 'node:test'
 import { execFile } from 'node:child_process'
-import { copyFile, mkdtemp, rm } from 'node:fs/promises'
+import { copyFile, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { Stream } from 'node:stream'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
@@ -38,6 +39,37 @@ async function createLvmImage(imagePath, vgName, lvName) {
     await pExec('vgchange', ['-an', vgName])
   })
 }
+
+// xo-proxy answers this stream through Koa, which pipes only bodies passing `instanceof Stream`
+// and JSON-serializes anything else: node-tar >= 7 returns a duck-typed (Minipass) stream, which
+// silently turned a proxied file restore into a JSON dump of the tar object. Every format must
+// resolve with a real node stream.
+test('fetchPartitionFiles resolves with a node:stream for every format', async t => {
+  const tmp = await mkdtemp(join(tmpdir(), 'xo-flr-fetch-'))
+  t.after(() => rm(tmp, { recursive: true, force: true }))
+  await writeFile(join(tmp, 'file.txt'), 'hello')
+
+  const adapter = new RemoteAdapter({})
+  // at this point of a real restore the partition is already mounted
+  adapter.getPartition = Disposable.factory(async function* () {
+    yield tmp
+  })
+
+  for (const [format, magic] of [
+    ['tgz', Buffer.from([0x1f, 0x8b])],
+    ['zip', Buffer.from('PK')],
+  ]) {
+    const stream = await adapter.fetchPartitionFiles('disk', 'partition', ['/file.txt'], format)
+    assert.ok(stream instanceof Stream, `${format}: expected a node:stream instance`)
+
+    const chunks = []
+    for await (const chunk of stream) {
+      chunks.push(chunk)
+    }
+    const archive = Buffer.concat(chunks)
+    assert.deepEqual(archive.subarray(0, magic.length), magic, `${format}: unexpected archive header`)
+  }
+})
 
 test('LVM file-restore against real losetup/dmsetup/lvm', { skip }, async t => {
   const tmp = await mkdtemp(join(tmpdir(), 'xo-flr-'))

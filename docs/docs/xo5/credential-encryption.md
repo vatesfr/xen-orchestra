@@ -47,7 +47,7 @@ If either key half is lost, the database cannot be decrypted and XO will enter d
 
 When credential encryption is enabled, exporting the XO configuration **requires a passphrase**. The passphrase protects the exported credentials with OpenPGP encryption.
 
-See [Back up XO backup metadata](./backup_howto.md#Specific-steps-for-the-XOA-VM)
+See [Back up XO backup metadata](./backup_howto.md#specific-steps-for-the-xoa-vm)
 
 The backup contains the decrypted credential data. When restored on any XO instance, it will be re-encrypted with that instance's keys automatically, no manual key transfer needed.
 

@@ -913,7 +913,6 @@
   "runs": "Běhy",
   "s3-backup-repository": "S3 repozitář záloh",
   "scan-pifs": "Skenovat fyzická rozhraní",
-  "scan-pifs-in-xo-5": "@:scan-pifs v XO-5",
   "schedule": "Plán",
   "schedules": "Plány",
   "secure-boot": "Secure boot",
