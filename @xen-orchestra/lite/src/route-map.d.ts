@@ -120,6 +120,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/network/new-internal': RouteRecordInfo<
+      '/network/new-internal',
+      '/network/new-internal',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/object-not-found': RouteRecordInfo<
       '/object-not-found',
       '/object-not-found',
@@ -1112,6 +1119,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/network/new-bonded.vue': {
       routes:
         | '/network/new-bonded'
+      views:
+        | never
+    }
+    'src/pages/network/new-internal.vue': {
+      routes:
+        | '/network/new-internal'
       views:
         | never
     }
