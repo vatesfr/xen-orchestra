@@ -19,6 +19,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backup/File restore, Backup/Health] An unreachable backup repository no longer slows down every listing: it is skipped after a delay and retried with an increasing backoff (PR [#10205](https://github.com/vatesfr/xen-orchestra/pull/10205))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -35,8 +37,11 @@
 
 <!--packages-start-->
 
+- @vates/types patch
 - @xen-orchestra/acl minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
+- xo-server patch
+- xo-web patch
 
 <!--packages-end-->

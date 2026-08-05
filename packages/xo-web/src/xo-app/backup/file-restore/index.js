@@ -8,7 +8,7 @@ import { addSubscriptions, noop, NumericDate } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { deleteBackups, fetchFiles, listVmBackups, subscribeBackupNgJobs, subscribeRemotes } from 'xo'
-import { filter, find, flatMap, forEach, keyBy, map, orderBy, reduce, toArray } from 'lodash'
+import { filter, find, flatMap, forEach, map, orderBy, reduce } from 'lodash'
 
 import DeleteBackupsModalBody from '../restore/delete-backups-modal-body'
 import RestoreFileModalBody from './restore-file-modal'
@@ -57,62 +57,73 @@ export default class Restore extends Component {
     backupDataByVm: {},
   }
 
+  _refreshId = 0
+
   componentWillReceiveProps(props) {
     if (props.remotes !== this.props.remotes || props.jobs !== this.props.jobs) {
       this._refreshBackupList(props.remotes, props.jobs)
     }
   }
 
-  _refreshBackupList = async (_remotes = this.props.remotes, jobs = this.props.jobs) => {
-    const remotes = keyBy(
-      filter(_remotes, remote => remote.enabled),
-      'id'
-    )
-    const backupsByRemote = await listVmBackups(toArray(remotes))
+  _summarizeBackups = (backups, vmId) => {
+    const sortedBackups = orderBy(backups, 'timestamp', 'desc')
 
-    const backupDataByVm = {}
-    forEach(backupsByRemote, (backups, remoteId) => {
-      const remote = remotes[remoteId]
-      forEach(backups, (vmBackups, vmId) => {
+    return {
+      backups: sortedBackups,
+      first: sortedBackups[sortedBackups.length - 1],
+      last: sortedBackups[0],
+      count: sortedBackups.length, // Number since there's only 1 mode in file restore
+      id: vmId,
+    }
+  }
+
+  _refreshBackupListOnRemote = async (remote, jobs, refreshId) => {
+    const backupsByRemote = await listVmBackups([remote.id])
+
+    if (refreshId !== this._refreshId) {
+      return // a newer refresh has started; discard these stale results
+    }
+
+    this.setState(({ backupDataByVm }) => {
+      const newBackupDataByVm = { ...backupDataByVm }
+
+      forEach(backupsByRemote[remote.id], (vmBackups, vmId) => {
         vmBackups = filter(vmBackups, { mode: 'delta' })
         if (vmBackups.length === 0) {
           return
         }
-        if (backupDataByVm[vmId] === undefined) {
-          backupDataByVm[vmId] = { backups: [] }
-        }
 
-        backupDataByVm[vmId].backups.push(
-          ...map(vmBackups, bkp => {
-            const job = find(jobs, { id: bkp.jobId })
-            return { ...bkp, remote, jobName: job && job.name }
-          })
+        newBackupDataByVm[vmId] = this._summarizeBackups(
+          [
+            ...(newBackupDataByVm[vmId]?.backups ?? []),
+            ...map(vmBackups, bkp => {
+              const job = find(jobs, { id: bkp.jobId })
+              return { ...bkp, remote, jobName: job && job.name }
+            }),
+          ],
+          vmId
         )
       })
-    })
-    let first, last
-    forEach(backupDataByVm, (data, vmId) => {
-      first = { timestamp: Infinity }
-      last = { timestamp: 0 }
-      let count = 0 // Number since there's only 1 mode in file restore
-      forEach(data.backups, backup => {
-        if (backup.timestamp > last.timestamp) {
-          last = backup
-        }
-        if (backup.timestamp < first.timestamp) {
-          first = backup
-        }
-        count++
-      })
 
-      Object.assign(data, { first, last, count, id: vmId })
+      return { backupDataByVm: newBackupDataByVm }
     })
+  }
 
-    forEach(backupDataByVm, ({ backups }, vmId) => {
-      backupDataByVm[vmId].backups = orderBy(backups, 'timestamp', 'desc')
+  _refreshBackupList = (_remotes = this.props.remotes, jobs = this.props.jobs) => {
+    const refreshId = ++this._refreshId
+    return new Promise((resolve, reject) => {
+      this.setState({ backupDataByVm: {} }, () =>
+        Promise.all(
+          map(
+            filter(_remotes, remote => remote.enabled),
+            remote =>
+              this._refreshBackupListOnRemote(remote, jobs, refreshId).catch(() =>
+                error(_('remoteLoadBackupsFailure'), _('remoteLoadBackupsFailureMessage', { name: remote.name }))
+              )
+          )
+        ).then(resolve, reject)
+      )
     })
-
-    this.setState({ backupDataByVm })
   }
 
   // Actions -------------------------------------------------------------------
