@@ -1,9 +1,9 @@
 <template>
   <MenuItem
-    v-tooltip="!canDisableAndEvacuateVmsHost && disableAndEvacuateVmsHostErrorMessage"
-    :disabled="!canDisableAndEvacuateVmsHost"
+    v-tooltip="!canDisableHostAndEvacuateVMs && disableHostAndEvacuateVMsErrorMessage"
+    :disabled="!canDisableHostAndEvacuateVMs"
     icon="action:disable-and-evacuate"
-    :busy="isDisablingAndEvacuateVmsHost"
+    :busy="isDisablingHostAndEvacuatingVMs"
     @click="openDisableAndEvacuateVmsHostModal()"
   >
     {{ t('action:disable-host-and-evacuate-vms') }}
@@ -25,10 +25,10 @@ const { host } = defineProps<{
 const { t } = useI18n()
 
 const {
-  run: disableAndEvacuateVmsHost,
-  canRun: canDisableAndEvacuateVmsHost,
-  isRunning: isDisablingAndEvacuateVmsHost,
-  errorMessage: disableAndEvacuateVmsHostErrorMessage,
+  run: disableHostAndEvacuateVMs,
+  canRun: canDisableHostAndEvacuateVMs,
+  isRunning: isDisablingHostAndEvacuatingVMs,
+  errorMessage: disableHostAndEvacuateVMsErrorMessage,
 } = useXoHostDisableJob(() => host, true)
 
 const openDisableAndEvacuateVmsHostModal = useModal({
@@ -40,6 +40,6 @@ const openDisableAndEvacuateVmsHostModal = useModal({
     hostName: host.name_label,
     icon: 'status:warning-picto',
   },
-  onConfirm: () => disableAndEvacuateVmsHost(),
+  onConfirm: () => disableHostAndEvacuateVMs(),
 })
 </script>

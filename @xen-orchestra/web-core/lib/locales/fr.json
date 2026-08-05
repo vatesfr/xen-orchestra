@@ -494,6 +494,7 @@
   "job:host-disable:bad-power-state": "L'hôte n'est pas lancé",
   "job:host-disable:missing-host": "L'hôte est manquant",
   "job:host-enable:missing-host": "L'hôte est manquant",
+  "job:host-evacuate:in-progress": "Évacuation de l'hôte en cours…",
   "job:host-forget:bad-power-state": "L'hôte est en cours d'exécution",
   "job:host-forget:in-progress": "Oubli de l'hôte en cours…",
   "job:host-forget:missing-host": "Aucun hôte à oublier",
