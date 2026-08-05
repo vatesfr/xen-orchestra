@@ -6,6 +6,12 @@ import { NbdDisk } from '@vates/nbd-client/NbdDisk.mjs'
 import { createLogger } from '@xen-orchestra/log'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
 import { TaskProgressHandler } from '@xen-orchestra/backups/_runners/_vmRunners/_TaskProgressHandler.mjs'
+import {
+  diskIsAlreadyImported,
+  findPreviouslyImportedIndex,
+  VDI_DISK_PATH_KEY,
+  VDI_LEGACY_CID_KEY,
+} from './_diskIdentity.mjs'
 
 const { warn } = createLogger('xo:importdiskfromdatastore')
 
@@ -77,10 +83,10 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
   Task.info(`Importing disk in ${format} format, with block of ${blockSize} bytes`)
 
   let dataMap
-  const previouslyImportedIndex = chainByNode.findLastIndex(disk => !!diskIsAlreadyImported(existingVdis, disk))
+  const previouslyImportedIndex = findPreviouslyImportedIndex(existingVdis, chainByNode)
   let existingVdi
   if (previouslyImportedIndex === chainByNode.length - 1) {
-    Task.info('Nothing to import in this chain')
+    Task.info(`Nothing to import in this chain, ${diskPath} has already been imported`)
     return
   }
   if (previouslyImportedIndex !== -1) {
@@ -147,16 +153,14 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
       `${existingVdi.name_description} 
      ${transfered} MB in ${duration} s (${speed}MB/s) from  ${previouslyImportedIndex === -1 ? 'base' : 'snapshot'}`
     )
-    await sr.$xapi.setFieldEntries('VDI', existingVdi.$ref, 'other_config', { esxi_uuid: uid })
+    await sr.$xapi.setFieldEntries('VDI', existingVdi.$ref, 'other_config', {
+      [VDI_DISK_PATH_KEY]: diskPath,
+      [VDI_LEGACY_CID_KEY]: uid,
+    })
   } catch (err) {
     Task.warning(err)
     throw err
   }
-}
-
-function diskIsAlreadyImported(vdis, vmdkDisk) {
-  // look for a vdi with the right contentId
-  return vdis.find(vdi => vdi?.other_config.esxi_uuid === vmdkDisk.uid)
 }
 
 export const importDisksFromDatastore = async function importDisksFromDatastore({ esxi, vm, vmId, chainsByNodes, sr }) {

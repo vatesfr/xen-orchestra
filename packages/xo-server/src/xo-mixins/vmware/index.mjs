@@ -178,7 +178,7 @@ export default class MigrateVm {
     await vm.$snapshot({ name_label: `after ${isRunning ? 'partial' : 'complete'} import from V2V` })
     if (isRunning) {
       if (stopSource) {
-        await esxi.powerOff(vmId)
+        await Task.run({ properties: { name: 'stopping source VM' } }, async () => esxi.powerOff(vmId))
         await importDisksFromDatastore({
           chainsByNodes,
           esxi,
@@ -188,6 +188,8 @@ export default class MigrateVm {
         })
         await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', { sourceVmId: vmId, sourceSnapshotId: null })
         await vm.$snapshot({ name_label: 'complete import from V2V' })
+      } else {
+        await Task.info(`VM was running, no stop source. We'll keep the partial import.`)
       }
     }
   }
