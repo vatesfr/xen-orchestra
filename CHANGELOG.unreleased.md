@@ -19,6 +19,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [REST API] Fix `/users/:id/authentication_tokens` sometimes did not return the token used to make the request
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -38,5 +40,6 @@
 - @xen-orchestra/acl minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
+- xo-server patch
 
 <!--packages-end-->
