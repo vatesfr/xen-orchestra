@@ -20,7 +20,7 @@ import { isMetadataFile } from './_backupType.mjs'
 import { isValidXva } from './_isValidXva.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
-import { RemoteVhdDisk, openDiskChain } from '@xen-orchestra/backup-archive/disks'
+import { RemoteVhdDisk, openDiskChain, openDisposableDisk } from '@xen-orchestra/backup-archive/disks'
 import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
 
@@ -65,16 +65,17 @@ export class RemoteAdapter {
 
   // check if we will be allowed to merge a vhd created in this adapter
   // with the vhd at path `path`
+  //
+  // only the candidate disk itself is checked (no ancestor walk): mergeBlock() already
+  // degrades gracefully when parent/child formats differ, so chain-wide uniformity isn't
+  // a requirement here.
   async isMergeableParent(packedParentUid, path) {
-    const chain = await openDiskChain({ handler: this.handler, path })
-    try {
-      return await chain.isMergeableParent(stringify(packedParentUid), {
+    return await Disposable.use(openDisposableDisk({ handler: this.handler, path, ignoreBlockIndexes: true }), disk =>
+      disk.isMergeableParent(stringify(packedParentUid), {
         useVhdDirectory: this.useVhdDirectory(),
         compressionType: this.#getCompressionType(),
       })
-    } finally {
-      await chain.close()
-    }
+    )
   }
 
   async #removeVmBackupsFromCache(backups) {

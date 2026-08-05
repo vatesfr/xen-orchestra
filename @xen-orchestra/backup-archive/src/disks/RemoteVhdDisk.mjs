@@ -438,9 +438,9 @@ export class RemoteVhdDisk extends RemoteDisk {
    * undefined for plain VHDs.
    * @returns {string | undefined}
    */
-  getCompressionType() {
+  #getCompressionType() {
     if (this.#vhd === undefined) {
-      throw new Error(`can't call getCompressionType of a RemoteVhdDisk before init`)
+      throw new Error(`can't check compressionType of a RemoteVhdDisk before init`)
     }
     return this.#vhd instanceof VhdDirectory ? this.#vhd.compressionType : undefined
   }
@@ -450,19 +450,19 @@ export class RemoteVhdDisk extends RemoteDisk {
    * sub-format (VHD directory vs plain) and, for directories, the compression codec
    * must match what this remote would write for a new disk.
    * @param {string} parentUuid
-   * @param {Object} referenceConfig
-   * @param {boolean} referenceConfig.useVhdDirectory
-   * @param {string} [referenceConfig.compressionType]
+   * @param {Object} referenceDiskConfig
+   * @param {boolean} referenceDiskConfig.useVhdDirectory
+   * @param {string} [referenceDiskConfig.compressionType]
    * @returns {Promise<boolean>}
    */
-  async isMergeableParent(parentUuid, referenceConfig) {
-    if (!(await super.isMergeableParent(parentUuid, referenceConfig))) {
+  async isMergeableParent(parentUuid, referenceDiskConfig) {
+    if (!(await super.isMergeableParent(parentUuid, referenceDiskConfig))) {
       return false
     }
 
-    const { useVhdDirectory, compressionType } = referenceConfig
+    const { useVhdDirectory, compressionType } = referenceDiskConfig
     const isDirectory = await this.isDirectory()
-    return isDirectory ? useVhdDirectory && this.getCompressionType() === compressionType : !useVhdDirectory
+    return isDirectory ? useVhdDirectory && this.#getCompressionType() === compressionType : !useVhdDirectory
   }
 
   /**
