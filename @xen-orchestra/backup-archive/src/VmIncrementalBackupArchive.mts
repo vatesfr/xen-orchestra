@@ -5,10 +5,18 @@ import {
   ResolvedBackupCleanOptions,
   VmBackupInterface,
   PartialBackupMetadata,
+  BackupVdi,
+  IncrementalImportPayload,
+  StoredBackupMetadata,
 } from './VmBackup.types.mjs'
+import { Disk } from '@xen-orchestra/disk-transform'
 import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
+import { join } from 'node:path'
+import pickBy from 'lodash/pickBy.js'
+import { createVhdDisk } from './disks/index.mjs'
 import { RemoteDiskLineage } from './RemoteDiskLineage.mjs'
+import { asyncMapSettled } from '@xen-orchestra/async-map'
 
 export class VmIncrementalBackupArchive implements VmBackupInterface {
   handler: RemoteHandlerAbstract
@@ -47,6 +55,45 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
     this.opts = opts
     if (lineageRegistry !== undefined) {
       this.diskLineages = lineageRegistry
+    }
+  }
+
+  // Build the import payload for an incremental backup: open a disk (chain) per VDI and
+  // return them alongside the VM/VBD/VIF/vTPM metadata. Ignored VDIs are filtered out.
+  static async readIncrementalVmBackup(
+    handler: RemoteHandlerAbstract,
+    metadata: StoredBackupMetadata,
+    ignoredVdis: Set<string> | undefined,
+    { useChain = true }: { useChain?: boolean } = {}
+  ): Promise<IncrementalImportPayload> {
+    const { _filename, vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
+    const dir = dirname(_filename)
+    const allVdis = metadata.vdis ?? {}
+    const vdis: Record<string, BackupVdi> =
+      ignoredVdis === undefined ? allVdis : pickBy(allVdis, (vdi: BackupVdi) => !ignoredVdis.has(vdi.uuid))
+    const disks: Record<string, Disk> = {}
+    await asyncMapSettled(Object.keys(vdis), async (ref: string) => {
+      delete vdis[ref].baseVdi
+      const vhd = vhds?.[ref]
+      if (vhd === undefined) {
+        throw new Error(`no VHD for VDI ${ref} in ${_filename}`)
+      }
+      disks[ref] = await createVhdDisk(handler, join(dir, vhd), { useChain })
+    })
+
+    if (vmSnapshot === undefined) {
+      // only ever called on delta metadata, which always records its snapshot
+      throw new Error(`incremental backup metadata without a vmSnapshot: ${_filename}`)
+    }
+
+    return {
+      disks,
+      vbds,
+      vdis,
+      version: '1.0.0',
+      vifs,
+      vm: { ...vm, suspend_VDI: vmSnapshot.suspend_VDI },
+      vtpms,
     }
   }
 

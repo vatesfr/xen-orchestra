@@ -3,16 +3,16 @@ import { strict as assert } from 'node:assert'
 
 import tmp from 'tmp'
 import fs from 'fs-extra'
-import * as uuid from 'uuid'
 import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
-import { VHDFOOTER, VHDHEADER } from '../tests.fixtures.mjs'
-import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
-import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
-import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
+import { generateVhd as generateVhdFixture, uniqueId } from './tests.fixtures.mjs'
+/* eslint-disable n/no-missing-import */
+import { RemoteVhdDisk } from '../disks/RemoteVhdDisk.mjs'
+import { RemoteVhdDiskChain } from '../disks/RemoteVhdDiskChain.mjs'
+import { MergeRemoteDisk } from '../disks/MergeRemoteDisk.mjs'
+/* eslint-enable n/no-missing-import */
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
-import { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
 
 const { beforeEach, afterEach, describe } = test
 
@@ -35,48 +35,7 @@ afterEach(async () => {
   await handler.forget()
 })
 
-const uniqueId = () => uuid.v1()
-const uniqueIdBuffer = () => uuid.v1({}, Buffer.alloc(16))
-
-async function generateVhd(path, opts = {}) {
-  let vhd
-
-  let dataPath = path
-  if (opts.useAlias) {
-    await handler.mkdir(dirname(path) + '/data/')
-    dataPath = dirname(path) + '/data/' + basename(path)
-  }
-  if (opts.mode === 'directory') {
-    await handler.mkdir(dataPath)
-    vhd = new VhdDirectory(handler, dataPath)
-  } else {
-    const fd = await handler.openFile(dataPath, 'wx')
-    vhd = new VhdFile(handler, fd)
-  }
-
-  vhd.header = { ...VHDHEADER, ...opts.header }
-  vhd.footer = { ...VHDFOOTER, ...opts.footer, uuid: uniqueIdBuffer() }
-
-  if (vhd.header.parentUuid) {
-    vhd.footer.diskType = Constants.DISK_TYPES.DIFFERENCING
-  } else {
-    vhd.footer.diskType = Constants.DISK_TYPES.DYNAMIC
-  }
-
-  if (opts.useAlias === true) {
-    await VhdAbstract.createAlias(handler, path + '.alias.vhd', dataPath)
-  }
-
-  if (opts.blocks) {
-    for (const blockId of opts.blocks) {
-      await vhd.writeEntireBlock({ id: blockId, buffer: Buffer.alloc(2 * 1024 * 1024 + 512, blockId) })
-    }
-  }
-  await vhd.writeBlockAllocationTable()
-  await vhd.writeHeader()
-  await vhd.writeFooter()
-  return vhd
-}
+const generateVhd = (path, opts) => generateVhdFixture(handler, path, opts)
 
 /**
  * RemoteVhdDisk

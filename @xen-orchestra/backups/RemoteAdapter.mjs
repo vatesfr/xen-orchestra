@@ -1,42 +1,31 @@
-import { asyncEach } from '@vates/async-each'
-import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
+import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
-import { VhdDirectory, VhdSynthetic } from 'vhd-lib'
 import { decorateMethodsWith } from '@vates/decorate-with'
-import { dirname, join, resolve } from 'node:path'
 import { synchronized } from 'decorator-synchronized'
 import Disposable from 'promise-toolbox/Disposable'
-import fromCallback from 'promise-toolbox/fromCallback'
-import groupBy from 'lodash/groupBy.js'
-import pickBy from 'lodash/pickBy.js'
-import reduce from 'lodash/reduce.js'
-import zlib from 'zlib'
 
-import { BACKUP_DIR } from './_getVmBackupDir.mjs'
-import { VmBackupDirectory } from '@xen-orchestra/backup-archive'
+import { VmBackupDirectory, VmFullBackupArchive, VmIncrementalBackupArchive } from '@xen-orchestra/backup-archive'
+import {
+  deleteMetadataBackup as deleteMetadataBackupArchive,
+  deleteOldMetadataBackups as deleteOldMetadataBackupsArchive,
+} from '@xen-orchestra/backup-archive/metadata'
+import {
+  isMergeableParent as isMergeableParentArchive,
+  writeVhd as writeVhdArchive,
+} from '@xen-orchestra/backup-archive/disks'
 import { fileRestoreDecorators, fileRestoreMethods } from './_fileRestore.mjs'
-import { formatFilenameDate } from './_filenameDate.mjs'
-import { isMetadataFile } from './_backupType.mjs'
 import { isValidXva } from './_isValidXva.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
-
-import { RemoteVhdDisk, openDiskChain } from '@xen-orchestra/backup-archive/disks'
-import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
-import { ReadAhead } from '@xen-orchestra/disk-transform'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
 export const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 
-const IMMUTABILITY_METADATA_FILENAME = '/immutability.json'
-
-const { debug, warn } = createLogger('xo:backups:RemoteAdapter')
+const { warn } = createLogger('xo:backups:RemoteAdapter')
 
 export const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
 const noop = Function.prototype
-
-const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
 
 const createSafeReaddir = (handler, methodName) => (path, options) =>
   handler.list(path, options).catch(error => {
@@ -66,88 +55,29 @@ export class RemoteAdapter {
   // check if we will be allowed to merge a vhd created in this adapter
   // with the vhd at path `path`
   async isMergeableParent(packedParentUid, path) {
-    return await Disposable.use(VhdSynthetic.fromVhdChain(this.handler, path), vhd => {
-      // this baseUuid is not linked with this vhd
-      if (!vhd.footer.uuid.equals(packedParentUid)) {
-        return false
-      }
-
-      // check if all the chain is composed of vhd directory
-      const isVhdDirectory = vhd.checkVhdsClass(VhdDirectory)
-      return isVhdDirectory
-        ? this.useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
-        : !this.useVhdDirectory()
+    return isMergeableParentArchive(this._handler, packedParentUid, path, {
+      useVhdDirectory: this.useVhdDirectory(),
+      compressionType: this.#getCompressionType(),
     })
   }
 
-  async #removeVmBackupsFromCache(backups) {
-    await asyncEach(
-      Object.entries(
-        groupBy(
-          backups.map(_ => _._filename),
-          dirname
-        )
-      ),
-      ([dir, filenames]) =>
-        // will not reject
-        this._updateCache(dir + '/cache.json.gz', backups => {
-          for (const filename of filenames) {
-            debug('removing cache entry', { entry: filename })
-            delete backups[filename]
-          }
-        })
-    )
-  }
+  // inject the locked _updateCache so cache updates stay serialized per file
+  #updateCacheLocked = (path, fn) => this._updateCache(path, fn)
 
   async deleteDeltaVmBackups(backups) {
-    const handler = this._handler
-
-    // this will delete the json, unused VHDs will be detected by `cleanVm`
-    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
-
-    await this.#removeVmBackupsFromCache(backups)
+    return VmBackupDirectory.deleteDeltaVmBackups(this._handler, backups, { updateCache: this.#updateCacheLocked })
   }
 
   async deleteMetadataBackup(backupId) {
-    const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
-    const metadataDirReg = 'xo-(config|pool-metadata)-backups'
-    const timestampReg = '\\d{8}T\\d{6}Z'
-    const regexp = new RegExp(`^${metadataDirReg}/${uuidReg}(/${uuidReg})?/${timestampReg}`)
-    if (!regexp.test(backupId)) {
-      throw new Error(`The id (${backupId}) not correspond to a metadata folder`)
-    }
-
-    await this._handler.rmtree(backupId)
+    return deleteMetadataBackupArchive(this._handler, backupId)
   }
 
   async deleteOldMetadataBackups(dir, retention) {
-    const handler = this.handler
-    let list = await handler.list(dir)
-    list.sort()
-    list = list.filter(timestamp => /^\d{8}T\d{6}Z$/.test(timestamp)).slice(0, -retention)
-    await asyncMapSettled(list, timestamp => handler.rmtree(`${dir}/${timestamp}`))
+    return deleteOldMetadataBackupsArchive(this._handler, dir, retention)
   }
 
   async deleteFullVmBackups(backups) {
-    const handler = this._handler
-    await asyncMapSettled(backups, ({ _filename, xva }) =>
-      Promise.all([
-        handler.unlink(_filename).catch(error => {
-          warn('error while removing full vm backup metadata', { error, filename: _filename })
-          if (error.code !== 'ENOENT') throw error
-        }),
-        handler.unlink(resolveRelativeFromFile(_filename, xva)).catch(error => {
-          warn('error while removing full vm backup file', { error, filename: _filename })
-          if (error.code !== 'ENOENT') throw error
-        }),
-        handler.unlink(resolveRelativeFromFile(_filename, `${xva}.checksum`)).catch(error => {
-          // checksum can be missing , it's not an issue
-          if (error.code !== 'ENOENT') throw error
-        }),
-      ])
-    )
-
-    await this.#removeVmBackupsFromCache(backups)
+    return VmBackupDirectory.deleteFullVmBackups(this._handler, backups, { updateCache: this.#updateCacheLocked })
   }
 
   deleteVmBackup(file) {
@@ -155,54 +85,11 @@ export class RemoteAdapter {
   }
 
   async deleteVmBackups(files) {
-    const metadataOrNull = await asyncMap(files, async file => {
-      try {
-        return await this.readVmBackupMetadata(file)
-      } catch (error) {
-        if (error.code === 'ENOENT') {
-          // File was already removed (e.g. by coalescing); clean the stale cache entry
-          warn('backup metadata not found, removing stale cache entry', { file })
-          return null
-        }
-        throw error
-      }
+    // inject the facade's lock-owning cleanVm (not the static one, which ignores locking)
+    return VmBackupDirectory.deleteVmBackups(this._handler, files, {
+      updateCache: this.#updateCacheLocked,
+      cleanVm: (dir, opts) => this.cleanVm(dir, opts),
     })
-
-    const presentMetadata = []
-    const missingFiles = []
-    for (let i = 0; i < files.length; i++) {
-      if (metadataOrNull[i] === null) {
-        missingFiles.push({ _filename: files[i] })
-      } else {
-        presentMetadata.push(metadataOrNull[i])
-      }
-    }
-
-    const { delta, full, ...others } = groupBy(presentMetadata, 'mode')
-
-    const unsupportedModes = Object.keys(others)
-    if (unsupportedModes.length !== 0) {
-      throw new Error('no deleter for backup modes: ' + unsupportedModes.join(', '))
-    }
-    const promises = []
-    if (delta !== undefined) {
-      promises.push(this.deleteDeltaVmBackups(delta))
-    }
-    if (full !== undefined) {
-      promises.push(this.deleteFullVmBackups(full))
-    }
-    if (missingFiles.length) {
-      promises.push(this.#removeVmBackupsFromCache(missingFiles))
-    }
-    await Promise.all(promises)
-
-    await asyncMap(new Set(files.map(file => dirname(file))), dir =>
-      // - don't merge in main process, unused VHDs will be merged in the next backup run
-      // - don't error in case this fails:
-      //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
-      //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
-      this.cleanVm(dir, { remove: true, logWarn: warn }).catch(noop)
-    )
   }
 
   #getCompressionType() {
@@ -226,35 +113,11 @@ export class RemoteAdapter {
   }
 
   async listAllVms() {
-    const handler = this._handler
-    const vmsUuids = []
-    try {
-      await asyncEach(await handler.list(BACKUP_DIR), async entry => {
-        // ignore hidden and lock files
-        if (entry[0] !== '.' && !entry.endsWith('.lock')) {
-          vmsUuids.push(entry)
-        }
-      })
-    } catch (error) {
-      // remote without any VM backup are ok
-      if (error.code !== 'ENOENT') {
-        throw error
-      }
-    }
-
-    return vmsUuids
+    return VmBackupDirectory.listAllVms(this._handler)
   }
 
   async listAllVmBackups() {
-    const vmsUuids = await this.listAllVms()
-    const backups = { __proto__: null }
-    await asyncEach(vmsUuids, async vmUuid => {
-      const vmBackups = await this.listVmBackups(vmUuid)
-      if (vmBackups.length !== 0) {
-        backups[vmUuid] = vmBackups
-      }
-    })
-    return backups
+    return VmBackupDirectory.listAllVmBackups(this._handler, vmUuid => this.listVmBackups(vmUuid))
   }
 
   async listPoolMetadataBackups() {
@@ -294,71 +157,22 @@ export class RemoteAdapter {
   }
 
   #getVmBackupsCache(vmUuid) {
-    return `${BACKUP_DIR}/${vmUuid}/cache.json.gz`
+    return VmBackupDirectory.getVmBackupsCachePath(vmUuid)
   }
 
   async _readCache(path) {
-    try {
-      return JSON.parse(await fromCallback(zlib.gunzip, await this.handler.readFile(path)))
-    } catch (error) {
-      if (error.code !== 'ENOENT') {
-        warn('#readCache', { error, path })
-      }
-    }
+    return VmBackupDirectory.readCache(this._handler, path)
   }
 
   _updateCache = synchronized.withKey()(this._updateCache)
   // eslint-disable-next-line no-dupe-class-members
   async _updateCache(path, fn) {
-    const cache = await this._readCache(path)
-    if (cache !== undefined) {
-      fn(cache)
-
-      await this._writeCache(path, cache)
-    } else {
-      const regenerated = await this.#getCacheableDataListVmBackups(dirname(path))
-      if (regenerated !== undefined) {
-        await this._writeCache(path, regenerated)
-      }
-    }
+    // regenerate a missing cache from the directory listing (cache-guard)
+    return VmBackupDirectory.updateCache(this._handler, path, fn, { regenerate: true })
   }
 
   async _writeCache(path, data) {
-    try {
-      await this.handler.writeFile(path, await fromCallback(zlib.gzip, JSON.stringify(data)), { flags: 'w' })
-    } catch (error) {
-      warn('#writeCache', { error, path })
-    }
-  }
-
-  async #getCacheableDataListVmBackups(dir) {
-    debug('generating cache', { path: dir })
-
-    const handler = this._handler
-    const backups = {}
-
-    try {
-      const files = await handler.list(dir, {
-        filter: isMetadataFile,
-        prependDir: true,
-      })
-      await asyncMap(files, async file => {
-        try {
-          const metadata = await this.readVmBackupMetadata(file)
-          // inject an id usable by importVmBackupNg()
-          metadata.id = metadata._filename
-          backups[file] = metadata
-        } catch (error) {
-          warn(`can't read vm backup metadata`, { error, file, dir })
-        }
-      })
-      return backups
-    } catch (error) {
-      let code
-      if (error == null || ((code = error.code) !== 'ENOENT' && code !== 'ENOTDIR')) {
-        throw error
-      }
-    }
+    return VmBackupDirectory.writeCache(this._handler, path, data)
   }
 
   // use _ to mark this method as private by convention
@@ -367,47 +181,13 @@ export class RemoteAdapter {
   //
   // read the list of backup of a Vm from cache
   // if cache is missing  or broken  => regenerate it and return
-
   async _readCacheListVmBackups(vmUuid) {
-    // immutable remote can't use any caching
-    // since the cache file may be non modifiable
-    if (this._handler.isImmutable()) {
-      return this.#getCacheableDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
-    }
-    const path = this.#getVmBackupsCache(vmUuid)
-
-    const cache = await this._readCache(path)
-    if (cache !== undefined) {
-      debug('found VM backups cache, using it', { path })
-      return cache
-    }
-
-    // nothing cached, or cache unreadable => regenerate it
-    const backups = await this.#getCacheableDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
-    if (backups === undefined) {
-      return
-    }
-
-    await this._writeCache(path, backups)
-
-    return backups
+    return VmBackupDirectory.readCacheListVmBackups(this._handler, vmUuid)
   }
 
   async listVmBackups(vmUuid, predicate) {
-    const backups = []
-    const cached = await this._readCacheListVmBackups(vmUuid)
-
-    if (cached === undefined) {
-      return []
-    }
-
-    Object.values(cached).forEach(metadata => {
-      if (predicate === undefined || predicate(metadata)) {
-        backups.push(metadata)
-      }
-    })
-
-    return backups.sort(compareTimestamp)
+    // pass the locked _readCacheListVmBackups so cache regeneration stays serialized
+    return VmBackupDirectory.listVmBackups(uuid => this._readCacheListVmBackups(uuid), vmUuid, predicate)
   }
 
   async listXoMetadataBackups() {
@@ -432,55 +212,24 @@ export class RemoteAdapter {
   }
 
   async writeVmBackupMetadata(vmUuid, metadata) {
-    const path = `/${BACKUP_DIR}/${vmUuid}/${formatFilenameDate(metadata.timestamp)}.json`
-
-    await this.handler.outputFile(path, JSON.stringify(metadata), {
+    // pass the locked _updateCache so the cache entry is added atomically
+    return VmBackupDirectory.writeVmBackupMetadata(this._handler, vmUuid, metadata, {
       dirMode: this._dirMode,
+      updateCache: (path, fn) => this._updateCache(path, fn),
     })
-
-    // will not throw
-    await this._updateCache(this.#getVmBackupsCache(vmUuid), backups => {
-      debug('adding cache entry', { entry: path })
-      backups[path] = {
-        ...metadata,
-
-        // these values are required in the cache
-        _filename: path,
-        id: path,
-      }
-    })
-
-    return path
   }
 
   async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
-    const handler = this._handler
-
-    if (this.useVhdDirectory()) {
-      return await writeToVhdDirectory({
-        disk,
-        target: {
-          handler,
-          path,
-          concurrency: writeBlockConcurrency,
-          validator,
-          compression: 'brotli',
-          uuid,
-          parentUuid,
-          parentPath,
-        },
-      })
-    } else {
-      const stream = await toVhdStream(disk, { uuid, parentUuid, parentPath })
-      const size = await this.outputStream(path, stream, {
-        validator,
-        // no checksum for VHDs, because they will be invalidated by
-        // merges and chains
-        checksum: false,
-      })
-      await validator(path)
-      return size
-    }
+    // inject outputStream so the facade keeps ownership of stream-size accounting
+    return writeVhdArchive(this._handler, path, disk, {
+      useVhdDirectory: this.useVhdDirectory(),
+      validator,
+      writeBlockConcurrency,
+      uuid,
+      parentUuid,
+      parentPath,
+      outputStream: (p, input, opts) => this.outputStream(p, input, opts),
+    })
   }
 
   async outputStream(
@@ -502,136 +251,20 @@ export class RemoteAdapter {
     return container.size
   }
 
-  // open the  hierarchy of ancestors until we find a full one
-  async _createVhdDisk(handler, path, { useChain }) {
-    let disk
-    if (useChain) {
-      disk = await openDiskChain({ handler, path })
-    } else {
-      disk = new RemoteVhdDisk({ handler, path })
-      await disk.init()
-    }
-    disk = new ReadAhead(disk)
-    return disk
-  }
-
-  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
-    const handler = this._handler
-    const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
-    const dir = dirname(metadata._filename)
-    const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
-    const disks = {}
-    await asyncMapSettled(Object.keys(vdis), async ref => {
-      delete vdis[ref].baseVdi
-      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
-    })
-
-    return {
-      disks,
-      vbds,
-      vdis,
-      version: '1.0.0',
-      vifs,
-      vm: { ...vm, suspend_VDI: vmSnapshot.suspend_VDI },
-      vtpms,
-    }
+  async readIncrementalVmBackup(metadata, ignoredVdis, opts) {
+    return VmIncrementalBackupArchive.readIncrementalVmBackup(this._handler, metadata, ignoredVdis, opts)
   }
 
   readFullVmBackup(metadata) {
-    return this._handler.createReadStream(resolve('/', dirname(metadata._filename), metadata.xva))
+    return VmFullBackupArchive.readFullVmBackup(this._handler, metadata)
   }
 
   async readVmBackupMetadata(path) {
-    let json
-    let isImmutable = false
-    let remoteIsImmutable = false
-    // if the remote is immutable, check if this metadata is also immutable
-    try {
-      // this file is not encrypted
-      await this._handler._readFile(IMMUTABILITY_METADATA_FILENAME)
-      remoteIsImmutable = true
-    } catch (error) {
-      if (error.code !== 'ENOENT') {
-        throw error
-      }
-    }
-
-    try {
-      // this will trigger an EPERM error if the file is immutable
-      json = await this.handler.readFile(path, { flag: 'r+' })
-      // s3 handler don't respect flags
-    } catch (err) {
-      // retry without triggering immutability check ,only on immutable remote
-      if (err.code === 'EPERM' && remoteIsImmutable) {
-        isImmutable = true
-        json = await this._handler.readFile(path, { flag: 'r' })
-      } else {
-        throw err
-      }
-    }
-    // _filename is a private field used to compute the backup id
-    //
-    // it's enumerable to make it cacheable
-    const metadata = { ...JSON.parse(json), _filename: path, isImmutable }
-
-    // backups created on XenServer < 7.1 via JSON in XML-RPC transports have boolean values encoded as integers, which make them unusable with more recent XAPIs
-    if (typeof metadata.vm.is_a_template === 'number') {
-      const properties = {
-        vbds: ['bootable', 'unpluggable', 'storage_lock', 'empty', 'currently_attached'],
-        vdis: [
-          'sharable',
-          'read_only',
-          'storage_lock',
-          'managed',
-          'missing',
-          'is_a_snapshot',
-          'allow_caching',
-          'metadata_latest',
-        ],
-        vifs: ['currently_attached', 'MAC_autogenerated'],
-        vm: ['is_a_template', 'is_control_domain', 'ha_always_run', 'is_a_snapshot', 'is_snapshot_from_vmpp'],
-        vmSnapshot: ['is_a_template', 'is_control_domain', 'ha_always_run', 'is_snapshot_from_vmpp'],
-      }
-
-      function fixBooleans(obj, properties) {
-        properties.forEach(property => {
-          if (typeof obj[property] === 'number') {
-            obj[property] = obj[property] === 1
-          }
-        })
-      }
-
-      for (const [key, propertiesInKey] of Object.entries(properties)) {
-        const value = metadata[key]
-        if (value !== undefined) {
-          // some properties of the metadata are collections indexed by the opaqueRef
-          const isCollection = Object.keys(value).some(subKey => subKey.startsWith('OpaqueRef:'))
-          if (isCollection) {
-            Object.values(value).forEach(subValue => fixBooleans(subValue, propertiesInKey))
-          } else {
-            fixBooleans(value, propertiesInKey)
-          }
-        }
-      }
-    }
-    return metadata
-  }
-
-  #computeTotalBackupSizeRecursively(backups) {
-    return reduce(
-      backups,
-      (prev, backup) => {
-        const _backup = Array.isArray(backup) ? this.#computeTotalBackupSizeRecursively(backup) : backup
-        return {
-          onDisk: prev.onDisk + (_backup.onDisk ?? _backup.size),
-        }
-      },
-      { onDisk: 0 }
-    )
+    return VmBackupDirectory.readVmBackupMetadata(this._handler, path)
   }
 
   async getTotalVmBackupSize() {
-    return this.#computeTotalBackupSizeRecursively(await this.listAllVmBackups())
+    return VmBackupDirectory.getTotalVmBackupSize(this._handler, vmUuid => this.listVmBackups(vmUuid))
   }
 
   async getTotalBackupSize() {
@@ -644,6 +277,7 @@ export class RemoteAdapter {
 Object.assign(RemoteAdapter.prototype, {
   cleanVm(vmBackupPath, opts = {}) {
     const { lock = true, ...cleanOpts } = opts
+    // VmBackupDirectory.cleanVm never locks: this is the locking entry point
     if (lock) {
       return Disposable.use(this._handler.lock(vmBackupPath), () => {
         return VmBackupDirectory.cleanVm(this._handler, vmBackupPath, cleanOpts)

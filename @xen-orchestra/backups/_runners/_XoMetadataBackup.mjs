@@ -3,7 +3,7 @@ import { join } from '@xen-orchestra/fs/path'
 import { Task } from '@vates/task'
 
 import { DIR_XO_CONFIG_BACKUPS } from '../RemoteAdapter.mjs'
-import { formatFilenameDate } from '../_filenameDate.mjs'
+import { formatFilenameDate } from '@xen-orchestra/backup-archive/filenameDate'
 
 export class XoMetadataBackup {
   constructor({ config, job, remoteAdapters, schedule, settings }) {

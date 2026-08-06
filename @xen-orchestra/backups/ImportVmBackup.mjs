@@ -1,6 +1,6 @@
 import assert from 'node:assert'
 
-import { formatFilenameDate } from './_filenameDate.mjs'
+import { formatFilenameDate } from '@xen-orchestra/backup-archive/filenameDate'
 import { importIncrementalVm } from './_incrementalVm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 import { decorateClass } from '@vates/decorate-with'

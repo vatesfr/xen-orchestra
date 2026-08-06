@@ -27,7 +27,12 @@ import { DiskConsumerVhdDirectory } from './DiskConsumerVhdDirectory.mjs'
  * @returns {Promise<Readable>}
  */
 export async function toVhdStream(disk, { signal, uuid, parentUuid, parentPath } = {}) {
-  const consumer = new DiskConsumerVhdStream(disk, { uuid, parentUuid, parentPath })
+  // VhdStreamTarget props are `Buffer | null`; normalize absent (undefined) values to null
+  const consumer = new DiskConsumerVhdStream(disk, {
+    uuid: uuid ?? null,
+    parentUuid: parentUuid ?? null,
+    parentPath: parentPath ?? null,
+  })
   return consumer.toStream(signal)
 }
 

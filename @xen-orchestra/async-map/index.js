@@ -13,11 +13,11 @@ const wrapCall = (fn, arg, thisArg) => {
  *
  * WARNING: Does not handle plain objects
  *
- * @template Item,This
+ * @template Item, Result, [This=Iterable<Item>]
  * @param {Iterable<Item>} iterable
- * @param {(this: This, item: Item) => (Item | PromiseLike<Item>)} mapFn
- * @param {This} [thisArg]
- * @returns {Promise<Item[]>}
+ * @param {(this: This, item: Item) => (Result | PromiseLike<Result>)} mapFn
+ * @param {This} [thisArg] defaults to `iterable`
+ * @returns {Promise<Result[]>}
  */
 exports.asyncMap = function asyncMap(iterable, mapFn, thisArg = iterable) {
   return Promise.all(Array.from(iterable, mapFn, thisArg))
@@ -26,11 +26,11 @@ exports.asyncMap = function asyncMap(iterable, mapFn, thisArg = iterable) {
 /**
  * Like `asyncMap` but wait for all promises to settle before rejecting
  *
- * @template Item,This
+ * @template Item, Result, This
  * @param {Iterable<Item>} iterable
- * @param {(this: This, item: Item) => (Item | PromiseLike<Item>)} mapFn
+ * @param {(this: This, item: Item) => (Result | PromiseLike<Result>)} mapFn
  * @param {This} [thisArg]
- * @returns {Promise<Item[]>}
+ * @returns {Promise<Result[]>}
  */
 exports.asyncMapSettled = function asyncMapSettled(iterable, mapFn, thisArg = iterable) {
   return new Promise((resolve, reject) => {

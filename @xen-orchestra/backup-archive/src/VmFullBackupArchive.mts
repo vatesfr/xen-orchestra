@@ -1,6 +1,7 @@
-import { basename, normalize } from '@xen-orchestra/fs/path'
+import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
+import { resolve } from 'node:path'
 import assert from 'node:assert'
-import { FileDescriptor } from '@xen-orchestra/fs'
+import { FileArg, FileDescriptor } from '@xen-orchestra/fs'
 import {
   ArchiveCleanOptions,
   CheckResult,
@@ -8,6 +9,7 @@ import {
   VmBackupInterface,
   PartialBackupMetadata,
   ResolvedBackupCleanOptions,
+  StoredBackupMetadata,
 } from './VmBackup.types.mjs'
 import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 
@@ -104,6 +106,21 @@ export class VmFullBackupArchive implements VmBackupInterface {
     this.metadata = metadata
     this.xvaPath = normalize(xvaPath)
     this.opts = opts
+  }
+
+  // Read stream of the XVA of a full backup, resolving the xva path relative to the
+  // backup directory.
+  static readFullVmBackup(handler: RemoteHandlerAbstract, metadata: StoredBackupMetadata) {
+    const { _filename, xva } = metadata
+    if (xva === undefined) {
+      // truncated or hand-edited metadata: fail with the offending file instead of a bare
+      // ERR_INVALID_ARG_TYPE from path.resolve()
+      throw new Error(`full backup metadata without an xva: ${_filename}`)
+    }
+    // `createReadStream` is declared as taking a `FileArg`, but the handlers explicitly
+    // support a path string (see `_createReadStream` in @xen-orchestra/fs); the declaration
+    // is too narrow, hence the cast
+    return handler.createReadStream(resolve('/', dirname(_filename), xva) as unknown as FileArg)
   }
 
   async init() {}

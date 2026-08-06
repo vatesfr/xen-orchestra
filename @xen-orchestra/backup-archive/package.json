@@ -8,7 +8,11 @@
   "main": "./dist/index.mjs",
   "exports": {
     ".": "./dist/index.mjs",
-    "./disks": "./dist/disks/index.mjs"
+    "./disks": "./dist/disks/index.mjs",
+    "./metadata": "./dist/MetadataBackupDirectory.mjs",
+    "./paths": "./dist/paths.mjs",
+    "./filenameDate": "./dist/filenameDate.mjs",
+    "./backupType": "./dist/backupType.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
@@ -24,22 +28,26 @@
     "@vates/types": "^1.30.1"
   },
   "dependencies": {
+    "@xen-orchestra/async-map": "^0.1.3",
     "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/fs": "^4.9.3",
     "@xen-orchestra/disk-transform": "^1.3.3",
     "@vates/task": "0.7.0",
+    "d3-time-format": "^4.1.0",
     "golike-defer": "0.5.1",
+    "limit-concurrency-decorator": "^0.6.0",
+    "lodash": "^4.18.0",
     "uuid": "^9.0.0",
     "promise-toolbox": "^0.21.0",
     "@vates/async-each": "^1.0.1",
     "vhd-lib": "^4.16.1"
   },
   "scripts": {
-    "build": "yarn run clean && tsc",
+    "build": "tsc",
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
-    "test": "yarn run clean && tsc && node --test **/*.test.mjs",
-    "test-integration": "yarn run clean && tsc && node --test **/*.integ.mjs",
+    "test": "yarn run build && node --test dist/tests/*.test.mjs",
+    "test-integration": "yarn run build && node --test dist/tests/*.integ.mjs",
     "clean": "rimraf dist/"
   },
   "private": false,
