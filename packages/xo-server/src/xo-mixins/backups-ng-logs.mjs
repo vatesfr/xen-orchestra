@@ -3,6 +3,7 @@ import iteratee from 'lodash/iteratee.js'
 import ms from 'ms'
 import sortedIndexBy from 'lodash/sortedIndexBy.js'
 import { noSuchObject } from 'xo-common/api-errors.js'
+import { serializeError } from '@vates/task'
 
 import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 
@@ -53,7 +54,13 @@ export const consolidateTaskStatusAndResult = task => {
 
   if (failedResults.length > 0) {
     // the task's own result may already carry an error; only fall back to the subtasks' when it doesn't
-    task.result = task.result ?? (failedResults.length === 1 ? failedResults[0] : new AggregateError(failedResults))
+    task.result =
+      task.result ??
+      serializeError(
+        failedResults.length === 1
+          ? failedResults[0]
+          : new AggregateError(failedResults, `Task failed with multiple errors`)
+      )
     return 'failure'
   }
 
