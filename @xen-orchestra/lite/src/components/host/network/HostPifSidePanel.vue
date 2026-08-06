@@ -5,7 +5,7 @@
         :busy="isDeletingPif"
         :disabled="!canDeletePif"
         :tooltip="!canDeletePif && deletePifErrorMessage"
-        @click="openPifDeleteModal()"
+        @click="openPifForgetModal()"
       />
     </template>
     <template v-if="pif" #default>
@@ -234,7 +234,7 @@
 
 <script setup lang="ts">
 import type { XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
-import { usePifDeleteModal } from '@/modules/pif/composables/use-pif-delete-modal.composable.ts'
+import { usePifForgetModal } from '@/modules/pif/composables/use-pif-forget-modal.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
@@ -270,11 +270,11 @@ const { getBondsDevices, isBondMaster } = usePifStore().subscribe()
 const { t } = useI18n()
 
 const {
-  openModal: openPifDeleteModal,
+  openModal: openPifForgetModal,
   canRun: canDeletePif,
   isRunning: isDeletingPif,
   errorMessage: deletePifErrorMessage,
-} = usePifDeleteModal(() => (pif !== undefined ? [pif] : []))
+} = usePifForgetModal(() => (pif !== undefined ? [pif] : []))
 
 const ipAddresses = computed(() => {
   if (pif === undefined) {

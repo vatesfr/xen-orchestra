@@ -3,7 +3,7 @@ import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
-export const usePifDeleteJob = defineJob('pif.delete', [pifsArg], () => {
+export const usePifForgetJob = defineJob('pif.forget', [pifsArg], () => {
   const xapi = useXenApiStore().getXapi()
   const { t } = useI18n()
 
@@ -11,7 +11,7 @@ export const usePifDeleteJob = defineJob('pif.delete', [pifsArg], () => {
     run: pifs => xapi.pif.delete(pifs.map(pif => pif.$ref)),
     validate: (isRunning, pifs) => {
       if (pifs.length === 0) {
-        throw new JobError(t('job:pif-delete:missing-pif'))
+        throw new JobError(t('job:pif-forget:missing-pif'))
       }
 
       if (isRunning) {
@@ -19,7 +19,7 @@ export const usePifDeleteJob = defineJob('pif.delete', [pifsArg], () => {
       }
 
       if (pifs.some(pif => pif.management)) {
-        throw new JobError(t('job:pif-delete:is-management-interface'))
+        throw new JobError(t('job:pif-forget:is-management-interface'))
       }
     },
   }
