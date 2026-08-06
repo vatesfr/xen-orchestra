@@ -8,16 +8,16 @@
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
         <UiTableActions :title="t('table-actions')">
           <UiButton
-            :busy="isDeletingSelectedPifs"
-            :disabled="selectedPifIds.length === 0 || !canDeleteSelectedPifs"
-            :hint="deleteSelectedPifsErrorMessage"
-            left-icon="action:delete"
+            :busy="isForgettingSelectedPifs"
+            :disabled="selectedPifIds.length === 0 || !canForgetSelectedPifs"
+            :hint="forgetSelectedPifsErrorMessage"
+            left-icon="action:forget"
             variant="tertiary"
             accent="danger"
             size="medium"
-            @click="openBulkPifDeleteModal()"
+            @click="openBulkPifForgetModal()"
           >
-            {{ t('action:delete') }}
+            {{ t('action:forget') }}
           </UiButton>
         </UiTableActions>
       </div>
@@ -45,7 +45,7 @@
 
 <script lang="ts" setup>
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
-import { usePifDeleteModal } from '@/modules/pif/composables/use-pif-delete-modal.composable.ts'
+import { usePifForgetModal } from '@/modules/pif/composables/use-pif-forget-modal.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
@@ -129,11 +129,11 @@ const { selected: selectedPifIds, areAllSelected: areAllPifsSelected } = useMult
 const selectedPifs = computed(() => pifs.filter(pif => selectedPifIds.value.includes(pif.uuid)))
 
 const {
-  openModal: openBulkPifDeleteModal,
-  canRun: canDeleteSelectedPifs,
-  isRunning: isDeletingSelectedPifs,
-  errorMessage: deleteSelectedPifsErrorMessage,
-} = usePifDeleteModal(() => selectedPifs.value)
+  openModal: openBulkPifForgetModal,
+  canRun: canForgetSelectedPifs,
+  isRunning: isForgettingSelectedPifs,
+  errorMessage: forgetSelectedPifsErrorMessage,
+} = usePifForgetModal(() => selectedPifs.value)
 
 function getManagementIcon(pif: XenApiPif) {
   if (!pif.management) {
@@ -157,11 +157,11 @@ const { HeadCells, BodyCells } = usePifColumns({
     const rightIcon = computed(() => getManagementIcon(pif))
 
     const {
-      openModal: openPifDeleteModal,
-      canRun: canDeletePif,
-      isRunning: isDeletingPif,
-      errorMessage: deletePifErrorMessage,
-    } = usePifDeleteModal(() => [pif])
+      openModal: openPifForgetModal,
+      canRun: canForgetPif,
+      isRunning: isForgettingPif,
+      errorMessage: forgetPifErrorMessage,
+    } = usePifForgetModal(() => [pif])
 
     return {
       network: r => r({ label: name.value }),
@@ -176,12 +176,12 @@ const { HeadCells, BodyCells } = usePifColumns({
           onClick: () => (selectedPifId.value = pif.uuid),
           actions: [
             {
-              label: t('action:delete'),
-              icon: 'action:delete',
-              onClick: () => openPifDeleteModal(),
-              busy: isDeletingPif.value,
-              disabled: !canDeletePif.value,
-              hint: deletePifErrorMessage.value,
+              label: t('action:forget'),
+              icon: 'action:forget',
+              onClick: () => openPifForgetModal(),
+              busy: isForgettingPif.value,
+              disabled: !canForgetPif.value,
+              hint: forgetPifErrorMessage.value,
             },
           ],
         }),
