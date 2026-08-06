@@ -135,7 +135,7 @@ const textMappingsByObject: TextMappingByObject = {
       action: t('action:restart-toolstack-host'),
     },
     detach: {
-      title: t('modal:confirm-host-detach', { host: hostName }),
+      title: t('modal:confirm-host-detach?', { host: hostName }),
       message: t('modal:host-detach-message'),
       action: t('action:detach-host'),
     },

@@ -673,7 +673,7 @@
   "modal:action:vm-force-shutdown": "@:action:force-shutdown la VM",
   "modal:action:vm-reboot": "@:action:reboot la VM",
   "modal:action:vm-shutdown": "@:action:shutdown la VM",
-  "modal:confirm-host-detach": "Êtes-vous sûr de vouloir détacher {host} ?",
+  "modal:confirm-host-detach?": "Êtes-vous sûr de vouloir détacher {host} ?",
   "modal:confirm-host-disable": "Êtes-vous sûr que vous voulez désactiver {host} ?",
   "modal:confirm-host-disable-and-evacuate-vms": "Êtes-vous sûr de vouloir désactiver {host} et évacuer ses VMs ?",
   "modal:confirm-host-enable": "Êtes-vous sûr que vous voulez activer {host} ?",
