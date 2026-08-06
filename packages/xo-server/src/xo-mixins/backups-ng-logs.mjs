@@ -6,13 +6,6 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 
 import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 
-class AggregateError extends Error {
-  constructor(errors, message) {
-    super(message)
-    this.errors = errors
-  }
-}
-
 const isSkippedError = error =>
   error != null &&
   (error.message === 'no disks found' ||
