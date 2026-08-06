@@ -1,6 +1,6 @@
 import { usePifForgetJob } from '@/jobs/pif-forget.job.ts'
 import type { XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
-import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
+import { useForgetModal } from '@core/composables/modals/use-forget-modal.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
@@ -15,12 +15,12 @@ export function usePifForgetModal(rawPifs: MaybeRefOrGetter<XenApiPif[]>) {
 
   const { run, canRun, isRunning, errorMessage } = usePifForgetJob(pifs)
 
-  const { open: openDeleteModal } = useDeleteModal()
+  const { open: openForgetModal } = useForgetModal()
 
   function openModal() {
     const n = pifs.value.length
 
-    return openDeleteModal({
+    return openForgetModal({
       props: {
         subject: t('n-pifs', { n }),
         description: t('pif-forget-info', { n }),
