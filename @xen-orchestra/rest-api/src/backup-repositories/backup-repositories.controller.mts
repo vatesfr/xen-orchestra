@@ -50,7 +50,7 @@ import { BACKUP_DIR } from '@xen-orchestra/backups/_getVmBackupDir.mjs'
 import { getSyncedHandler } from '@xen-orchestra/fs'
 import { Disposable } from 'promise-toolbox'
 import { Task } from '@vates/task'
-import { asyncMap } from '@xen-orchestra/async-map'
+import { asyncEach } from '@vates/async-each'
 import { BackupRepositoryService } from './backup-repository.service.mjs'
 import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
@@ -348,46 +348,54 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @SuccessResponse(200, 'OK')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  reclaimSpaceBackupRepository(@Path() id: string, @Body() body: { vmuuid?: string }, @Query() sync?: boolean) {
+  reclaimSpaceBackupRepository(@Path() id: string, @Body() body?: { vmuuid?: string }, @Query() sync?: boolean) {
     const backupRepositoryId = id as XoBackupRepository['id']
     const vmUuid = body?.vmuuid
 
     const action = async () => {
       const remote = await this.restApi.xoApp.getRemote(backupRepositoryId)
-      // const remoteOptions = this.restApi.xoApp.config.get('remoteOptions') as unknown as RemoteHandlerOptions// explain why using as, it was retunring a string
 
       let results: ReclaimSpaceResult['results']
       try {
         results = await Disposable.use(getSyncedHandler(remote), async handler => {
           const adapter = new RemoteAdapter(handler)
-          const vmUuids = vmUuid !== undefined ? [vmUuid] : await adapter.listAllVms()
+          const vmUuids: string[] = vmUuid !== undefined ? [vmUuid] : await adapter.listAllVms()
 
           Task.set('total', vmUuids.length)
           let done = 0
 
-          return asyncMap(vmUuids, async uuid => {
-            //use asyncEach instead concurrency = 2
-            try {
-              await Task.run({ name: `Clean VM ${uuid}`, data: { type: 'VM', id: uuid } }, () =>
-                adapter.cleanVm(`${BACKUP_DIR}/${uuid}`, {
-                  remove: true,
-                  merge: true,
-                  logInfo: Task.info,
-                  logWarn: Task.warning,
+          const results: ReclaimSpaceResult['results'] = []
+
+          await asyncEach(
+            vmUuids,
+            async uuid => {
+              try {
+                await Task.run({ name: `Clean VM ${uuid}`, data: { type: 'VM', id: uuid } }, () =>
+                  adapter.cleanVm(`${BACKUP_DIR}/${uuid}`, {
+                    remove: true,
+                    merge: true,
+                    logInfo: Task.info,
+                    logWarn: Task.warning,
+                  })
+                )
+
+                results.push({
+                  vmUuid: uuid,
+                  success: true,
                 })
-              )
-              return { vmUuid: uuid, success: true }
-            } catch (error: any) {
-              Task.warning(`failed to reclaim space for VM ${uuid}`, { error })
-              return { vmUuid: uuid, success: false, error: error.message }
-            } finally {
-              done++
-              Task.set('progress', Math.round((done / vmUuids.length) * 100))
-            }
-          })
+              } catch (error: any) {
+                throw new ApiError(`failed to reclaim space for VM ${uuid}, error: ${error.message}`, 400)
+              } finally {
+                done++
+                Task.set('progress', Math.round((done / vmUuids.length) * 100))
+              }
+            },
+            { concurrency: 2 }
+          )
+          return results
         })
       } catch (error) {
-        throw new ApiError('Backup repository unreachable', 502)
+        throw new ApiError(`${error}`, 502)
       }
 
       const failures = results.filter(r => !r.success)
