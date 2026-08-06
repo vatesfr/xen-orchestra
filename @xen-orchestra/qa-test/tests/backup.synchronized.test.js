@@ -6,6 +6,7 @@ import { backupConfig } from '../backup.config.js'
 import { FilterBuilder } from '../client/FilterBuilder.js'
 import {
   assertFullOrDelta,
+  assertFullOrDeltaForSr,
   findTaskByMessage,
   generateBackupJobName,
   getDefaultSchedule,
@@ -30,6 +31,10 @@ describe('Backup basic tests', () => {
   let dispatchClient
   let tracker
   let createBackupJobForTest
+
+  // Replica VMs created on the destination SR by the CR test; the resource
+  // tracker only tracks the job, so they must be deleted explicitly.
+  const replicatedVmUuids = []
 
   before(async () => {
     ;({ dispatchClient, tracker } = await setup({ requiredVmQty: 2 }))
@@ -145,9 +150,73 @@ describe('Backup basic tests', () => {
         assertSynchronizedSnapshot(result, vms.length)
       }
     })
+
+    it('should replicate a synchronized delta backup and reuse the batch snapshots on the second run', async () => {
+      // reuse the same SR the suite already requires; same-SR replication is fine
+      const targetSrId = getRequiredEnv('SR_ID')
+
+      const crConfig = {
+        name: generateBackupJobName(),
+        mode: 'delta',
+        schedules: { '': getDefaultSchedule() },
+        settings: {
+          '': {
+            timezone: 'Europe/Paris',
+            copyRetention: 3,
+            preferNbd: true,
+            bypassVdiChainsCheck: true,
+            synchronizedSnapshot: true,
+          },
+        },
+        vms: Object.fromEntries(vms.map(vm => [vm.uuid, vm])),
+        srs: { [targetSrId]: true },
+      }
+
+      backupJobId = await dispatchClient.backup.createBackupJob(crConfig)
+      const job = await dispatchClient.backup.details(backupJobId)
+      assert(job.mode === 'delta')
+      tracker.trackResource('backupJob', backupJobId, { name: crConfig.name, mode: 'delta' })
+      const realScheduleKey = getScheduleKey(job)
+      if (realScheduleKey) {
+        tracker.trackResource('schedule', realScheduleKey, { name: crConfig.name, backupJobId })
+      }
+
+      const vmUuidsBefore = new Set((await dispatchClient.vm.list()).map(vm => vm.uuid))
+
+      // First run is a full replication (creates the replicas); the second must
+      // come back as an incremental, which is only possible if the batch
+      // snapshots survived the pre-transfer retention pass as the delta base.
+      for (let index = 0; index < 2; index++) {
+        const result = await dispatchClient.backup.runJobAndGetLog(backupJobId, realScheduleKey)
+        assertBackupSuccess(result, index === 0 ? 'Synchronized full replication' : 'Synchronized delta replication')
+        assertFullOrDeltaForSr(result, targetSrId, { mustBeFull: index === 0 })
+        assertSynchronizedSnapshot(result, vms.length)
+      }
+
+      const replicas = (await dispatchClient.vm.list()).filter(vm => !vmUuidsBefore.has(vm.uuid)).map(vm => vm.uuid)
+      replicatedVmUuids.push(...replicas)
+      assert.strictEqual(replicas.length, vms.length, 'one replica should be created per source VM')
+    })
   })
 
+  const cleanupVms = async vmUuids => {
+    for (const vmUuid of vmUuids) {
+      try {
+        const vmDetails = await dispatchClient.vm.details(vmUuid)
+        if (vmDetails?.power_state === 'Running') {
+          await dispatchClient.vm.stop(vmUuid, { force: true })
+          await dispatchClient.vm.waitForPowerState(vmUuid, 'Halted', 60_000)
+        }
+        await dispatchClient.vm.delete(vmUuid, { deleteDisks: true })
+        log.debug('Cleaned up replica VM', { uuid: vmUuid })
+      } catch (error) {
+        log.warn('Failed to clean up replica VM', { uuid: vmUuid, error })
+      }
+    }
+  }
+
   after(async () => {
+    await cleanupVms(replicatedVmUuids)
     await teardown(dispatchClient, tracker)
   })
 })
