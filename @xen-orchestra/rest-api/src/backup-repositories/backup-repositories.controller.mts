@@ -45,12 +45,22 @@ import {
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
+import { BACKUP_DIR } from '@xen-orchestra/backups/_getVmBackupDir.mjs'
+import { getSyncedHandler } from '@xen-orchestra/fs'
+import { Disposable } from 'promise-toolbox'
+import { Task } from '@vates/task'
+import { asyncMap } from '@xen-orchestra/async-map'
 import { BackupRepositoryService } from './backup-repository.service.mjs'
 import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
 
 type BenchmarkRepositoryResult = Awaited<ReturnType<XoApp['testRemote']>>
+
+interface ReclaimSpaceResult {
+  results: Array<{ vmUuid: string; success: boolean; error?: string }>
+}
 
 @Route('backup-repositories')
 @Security('*')
@@ -310,6 +320,89 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
       statusCode: 200,
       taskProperties: {
         name: 'benchmark backup repository',
+        objectId: backupRepositoryId,
+      },
+    })
+  }
+
+  /**
+   *
+   *
+   * Required privilege:
+   * - resource: backup-repository, action: reclaim-space
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Example('')
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/reclaim-space')
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'backup-repository',
+      action: 'reclaim-space',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getRemote,
+    }),
+  ])
+  @SuccessResponse(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  reclaimSpaceBackupRepository(@Path() id: string, @Body() body: { vmuuid?: string }, @Query() sync?: boolean) {
+    const backupRepositoryId = id as XoBackupRepository['id']
+    const vmUuid = body?.vmuuid
+
+    const action = async () => {
+      const remote = await this.restApi.xoApp.getRemote(backupRepositoryId)
+      // const remoteOptions = this.restApi.xoApp.config.get('remoteOptions') as unknown as RemoteHandlerOptions// explain why using as, it was retunring a string
+
+      let results: ReclaimSpaceResult['results']
+      try {
+        results = await Disposable.use(getSyncedHandler(remote), async handler => {
+          const adapter = new RemoteAdapter(handler)
+          const vmUuids = vmUuid !== undefined ? [vmUuid] : await adapter.listAllVms()
+
+          Task.set('total', vmUuids.length)
+          let done = 0
+
+          return asyncMap(vmUuids, async uuid => {
+            //use asyncEach instead concurrency = 2
+            try {
+              await Task.run({ name: `Clean VM ${uuid}`, data: { type: 'VM', id: uuid } }, () =>
+                adapter.cleanVm(`${BACKUP_DIR}/${uuid}`, {
+                  remove: true,
+                  merge: true,
+                  logInfo: Task.info,
+                  logWarn: Task.warning,
+                })
+              )
+              return { vmUuid: uuid, success: true }
+            } catch (error: any) {
+              Task.warning(`failed to reclaim space for VM ${uuid}`, { error })
+              return { vmUuid: uuid, success: false, error: error.message }
+            } finally {
+              done++
+              Task.set('progress', Math.round((done / vmUuids.length) * 100))
+            }
+          })
+        })
+      } catch (error) {
+        throw new ApiError('Backup repository unreachable', 502)
+      }
+
+      const failures = results.filter(r => !r.success)
+      if (failures.length === results.length && results.length > 0) {
+        throw new ApiError('Reclaim space failed for all VMs', 400, { data: { results } })
+      }
+
+      return { results }
+    }
+
+    return this.createAction<ReclaimSpaceResult>(action, {
+      sync,
+      statusCode: 200,
+      taskProperties: {
+        name: vmUuid !== undefined ? `reclaim space (VM ${vmUuid})` : 'reclaim space',
         objectId: backupRepositoryId,
       },
     })
