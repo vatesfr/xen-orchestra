@@ -17,8 +17,8 @@
 import { useXoHostEnableJob } from '@/modules/host/jobs/xo-host-enable.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -34,15 +34,18 @@ const {
   errorMessage: enableHostErrorMessage,
 } = useXoHostEnableJob(() => host)
 
-const openEnableHostModal = useModal({
-  component: import('@core/components/modal/VtsActionModal.vue'),
-  props: {
-    accent: 'warning',
-    action: 'enable',
-    object: 'host',
-    hostName: host.name_label,
-    icon: 'status:warning-picto',
-  },
-  onConfirm: () => enableHost(),
-})
+const { open: openActionModal } = useActionModal()
+
+function openEnableHostModal() {
+  return openActionModal({
+    events: { onConfirm: () => enableHost() },
+    props: {
+      accent: 'warning',
+      action: 'enable',
+      object: 'host',
+      hostName: host.name_label,
+      icon: 'status:warning-picto',
+    },
+  })
+}
 </script>

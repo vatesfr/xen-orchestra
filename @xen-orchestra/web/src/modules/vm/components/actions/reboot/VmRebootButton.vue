@@ -10,7 +10,8 @@ import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts
 import { useXoVmRebootJob } from '@/modules/vm/jobs/xo-vm-reboot.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
+import { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { logicOr } from '@vueuse/math'
 import { computed } from 'vue'
@@ -33,16 +34,20 @@ const canDisplay = logicOr(
   vm.power_state === VM_POWER_STATE.PAUSED
 )
 
-const openRebootModal = useModal({
-  component: import('@core/components/modal/VtsActionModal.vue'),
-  props: { accent: 'info', action: 'reboot', object: 'vm', icon: 'status:info-picto' },
-  onConfirm: () => reboot(),
-})
+const { open: openRebootModal } = useActionModal()
 
-const openBlockedModal = useModal({
-  component: import('@core/components/modal/VtsBlockedModal.vue'),
-  props: { blockedOperation: 'clean_reboot', href: xo5VmAdvancedHref },
-})
+const { open: openBlockedModal } = useBlockedModal()
 
-const openModal = () => (canRun.value ? openRebootModal() : openBlockedModal())
+const openModal = () => {
+  if (!canRun.value) {
+    return openBlockedModal({
+      props: { blockedOperation: 'clean_reboot', href: xo5VmAdvancedHref.value },
+    })
+  }
+
+  openRebootModal({
+    events: { onConfirm: () => reboot() },
+    props: { accent: 'info', action: 'reboot', object: 'vm', icon: 'status:info-picto' },
+  })
+}
 </script>

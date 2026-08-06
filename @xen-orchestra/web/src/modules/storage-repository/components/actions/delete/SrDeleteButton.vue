@@ -1,11 +1,11 @@
 <template>
-  <MenuItem icon="action:delete" :disabled="!canDeleteSr" :busy="isDeletingSr" @click="openSrDeleteModal()">
+  <MenuItem icon="action:delete" :disabled="!canDeleteSrs" :busy="isDeletingSrs" @click="deleteSrs()">
     {{ t('action:delete') }}
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
-import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
+import { useSrDelete } from '@/modules/storage-repository/composables/use-sr-delete.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useI18n } from 'vue-i18n'
@@ -16,7 +16,7 @@ const { sr } = defineProps<{
 
 const { t } = useI18n()
 
-const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
+const { deleteSrs, canDeleteSrs, isDeletingSrs } = useSrDelete(() => [sr])
 </script>
 
 <style lang="postcss" scoped>

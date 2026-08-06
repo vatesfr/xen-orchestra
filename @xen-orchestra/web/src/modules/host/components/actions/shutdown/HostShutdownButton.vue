@@ -4,7 +4,7 @@
     :disabled="!canShutdownHost"
     icon="action:shutdown"
     :busy="isShuttingDownHost"
-    @click="openShutdownHostModal()"
+    @click="shutdownHost()"
   >
     {{ t('action:shutdown') }}
   </MenuItem>
@@ -14,8 +14,8 @@
 import { useXoHostShutdownJob } from '@/modules/host/jobs/xo-host-shutdown.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -25,21 +25,26 @@ const { host } = defineProps<{
 const { t } = useI18n()
 
 const {
-  run: shutdownHost,
+  run,
   canRun: canShutdownHost,
   isRunning: isShuttingDownHost,
   errorMessage: shutdownHostErrorMessage,
 } = useXoHostShutdownJob(() => host)
 
-const openShutdownHostModal = useModal({
-  component: import('@core/components/modal/VtsActionModal.vue'),
-  props: {
-    accent: 'warning',
-    action: 'shutdown',
-    object: 'host',
-    hostName: host.name_label,
-    icon: 'status:warning-picto',
-  },
-  onConfirm: () => shutdownHost(),
-})
+const { open: openActionModal } = useActionModal()
+
+function shutdownHost() {
+  openActionModal({
+    events: {
+      onConfirm: () => run(),
+    },
+    props: {
+      accent: 'warning',
+      action: 'shutdown',
+      object: 'host',
+      hostName: host.name_label,
+      icon: 'status:warning-picto',
+    },
+  })
+}
 </script>
