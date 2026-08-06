@@ -96,12 +96,14 @@ describe('_snapshot() synchronized-snapshot reuse guard', () => {
 })
 
 describe('_removeUnusedSnapshots() protects the pre-taken synchronized snapshot', () => {
-  const OLD_DATETIME = '2024-01-01T00:00:00Z'
-  const FRESH_DATETIME = '2024-06-01T00:00:00Z'
+  const OLD_DATETIME = '20240101T00:00:00Z'
+  const SYNC_TIMESTAMP = 1717200000000
+  const SYNC_DATETIME = formatDateTime(SYNC_TIMESTAMP)
 
-  // Two backup snapshots in a full-mode job with snapshotRetention 0, so
-  // retention wants to remove *both*. One of them (`vm-fresh`) is the snapshot
-  // just taken by the synchronized batch and referenced by `_exportedVm`.
+  // Full-mode job with snapshotRetention 0, so retention wants to remove every
+  // snapshot. `vdi-fresh` is the snapshot taken up-front by the synchronized
+  // batch phase (identified by SYNC_TIMESTAMP); until it is exported it must be
+  // hidden from retention.
   const makeRemoveRunner = ({ exported }) => {
     const destroyed = []
 
@@ -112,22 +114,26 @@ describe('_removeUnusedSnapshots() protects the pre-taken synchronized snapshot'
       $snapshot_of: 'live-vm-ref',
       other_config: {},
     })
-    const exportedSnapshotVm = snapshotVm('vm-fresh', 'fresh')
-    if (exported) exportedSnapshotVm.other_config[EXPORTED_SUCCESSFULLY] = 'true'
+    const freshSnapshotVm = snapshotVm('vm-fresh', 'fresh')
     const oldSnapshotVm = snapshotVm('vm-old', 'old')
 
-    const vdi = ($ref, datetime, snapshotVmRecord) => ({
+    const vdi = ($ref, datetime, snapshotVmRecord, isExported = false) => ({
       $ref,
-      other_config: { [DATETIME]: datetime, [SCHEDULE_ID]: 'schedule-1' },
+      other_config: {
+        [DATETIME]: datetime,
+        [SCHEDULE_ID]: 'schedule-1',
+        ...(isExported ? { [EXPORTED_SUCCESSFULLY]: 'true' } : {}),
+      },
       $VBDs: [{ $VM: snapshotVmRecord }],
     })
-    const oldVdi = vdi('vdi-old', OLD_DATETIME, oldSnapshotVm)
-    const freshVdi = vdi('vdi-fresh', FRESH_DATETIME, exportedSnapshotVm)
+    // the old snapshot was exported by a previous run
+    const oldVdi = vdi('vdi-old', OLD_DATETIME, oldSnapshotVm, true)
+    const freshVdi = vdi('vdi-fresh', SYNC_DATETIME, freshSnapshotVm, exported)
 
     const registry = { 'vdi-old': oldVdi, 'vdi-fresh': freshVdi }
 
     const runner = makeRunner({
-      _exportedVm: exportedSnapshotVm,
+      _synchronizedSnapshotTimestamp: SYNC_TIMESTAMP,
       _vm: { uuid: 'live-uuid', $snapshots: [] },
       _baseSettings: { snapshotRetention: 0 },
       _jobSnapshotVdis: [oldVdi, freshVdi],
@@ -252,21 +258,23 @@ describe('_removeUnusedSnapshots() reclaims orphan / CBT snapshot VDIs (no attac
 })
 
 describe('_removeUnusedSnapshots() diskless VM snapshots', () => {
-  const OLD_DATETIME = '2024-01-01T00:00:00Z'
-  const FRESH_DATETIME = '2024-06-01T00:00:00Z'
+  const OLD_DATETIME = '20240101T00:00:00Z'
+  const SYNC_TIMESTAMP = 1717200000000
+  const SYNC_DATETIME = formatDateTime(SYNC_TIMESTAMP)
 
   // A diskless VM's backup snapshots are tracked as VM snapshots (no VDIs to
-  // anchor them). `dl-fresh` is the snapshot the synchronized batch pre-took.
+  // anchor them). `dl-fresh` is the snapshot the synchronized batch pre-took,
+  // identified by SYNC_TIMESTAMP.
   const makeDisklessRunner = ({ exported, mode = 'full' }) => {
     const destroyed = []
 
     const oldSnap = { $ref: 'dl-old', other_config: { [DATETIME]: OLD_DATETIME, [SCHEDULE_ID]: 'schedule-1' } }
-    const freshSnap = { $ref: 'dl-fresh', other_config: { [DATETIME]: FRESH_DATETIME, [SCHEDULE_ID]: 'schedule-1' } }
+    const freshSnap = { $ref: 'dl-fresh', other_config: { [DATETIME]: SYNC_DATETIME, [SCHEDULE_ID]: 'schedule-1' } }
     if (exported) freshSnap.other_config[EXPORTED_SUCCESSFULLY] = 'true'
     const registry = { 'dl-old': oldSnap, 'dl-fresh': freshSnap }
 
     const runner = makeRunner({
-      _exportedVm: freshSnap,
+      _synchronizedSnapshotTimestamp: SYNC_TIMESTAMP,
       _vm: { uuid: 'live-uuid', $snapshots: [] },
       _baseSettings: { snapshotRetention: 0 },
       _jobSnapshotVdis: [],
