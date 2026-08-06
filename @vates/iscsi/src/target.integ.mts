@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { execFile, execFileSync } from 'node:child_process'
-import { mkdtemp, open as openFile, readFile, rm, stat, truncate, writeFile } from 'node:fs/promises'
+import { mkdtemp, open as openFile, readFile, rm, truncate, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
@@ -39,7 +39,7 @@ async function iscsiadm(args: string[]): Promise<string> {
   return stdout
 }
 
-/** Parse `iscsiadm -m session -P 3` for the attached SCSI disk of our target. */
+/** Parse `iscsiadm -m session -P 3` for the attached SCSI disk's name (e.g. `sdb`) of our target. */
 function parseAttachedDisk(sessionOutput: string): string | undefined {
   const lines = sessionOutput.split('\n')
   const targetLine = lines.findIndex(line => line.includes(IQN))
@@ -49,23 +49,33 @@ function parseAttachedDisk(sessionOutput: string): string | undefined {
   for (let i = targetLine; i < lines.length; i++) {
     const match = lines[i].match(/Attached scsi disk (sd\w+)/)
     if (match !== null) {
-      return `/dev/${match[1]}`
+      return match[1]
     }
   }
   return undefined
 }
 
+/**
+ * `stat()`ing the device node only proves udev created it, not that the SCSI
+ * layer has finished attaching it — `open()` right after can still fail with
+ * ENXIO. `/sys/class/block/<name>/size` reporting nonzero is what actually
+ * means ready, the same check `_cache.mjs`'s `openLocalDevice` uses for the
+ * same reason on XAPI-plugged devices.
+ */
+async function isDeviceReady(name: string): Promise<boolean> {
+  try {
+    return Number.parseInt(await readFile(`/sys/class/block/${name}/size`, 'utf8'), 10) > 0
+  } catch {
+    return false
+  }
+}
+
 async function waitForDevice(): Promise<string> {
   for (let attempt = 0; attempt < 40; attempt++) {
     const session = await iscsiadm(['-m', 'session', '-P', '3']).catch(() => '')
-    const device = parseAttachedDisk(session)
-    if (device !== undefined) {
-      try {
-        await stat(device)
-        return device
-      } catch {
-        // device node not yet created by udev
-      }
+    const name = parseAttachedDisk(session)
+    if (name !== undefined && (await isDeviceReady(name))) {
+      return `/dev/${name}`
     }
     await delay(250)
   }
