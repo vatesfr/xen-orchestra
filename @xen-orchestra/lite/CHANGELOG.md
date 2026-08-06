@@ -10,7 +10,7 @@
 - Use `MenuItem`'s `accent` prop to color menu actions instead of custom CSS classes (PR [#10348](https://github.com/vatesfr/xen-orchestra/pull/10348))
 - [Host] Add possibility to forget a host (PR [#10315](https://github.com/vatesfr/xen-orchestra/pull/10315))
 - [Pool/Network] Add the possibility to delete host internal networks (PR [#10332](https://github.com/vatesfr/xen-orchestra/pull/10332))
-- [Host/Network] Add the possibility to forget a PIF (PR [#10239](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
+- [Host/Network] Add the possibility to forget a PIF (PR [#10239](https://github.com/vatesfr/xen-orchestra/pull/10239))
 
 ## **0.25.0** (2026-08-31)
 
