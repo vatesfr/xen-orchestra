@@ -1,4 +1,4 @@
-import { usePifDeleteJob } from '@/jobs/pif-delete.job.ts'
+import { usePifForgetJob } from '@/jobs/pif-forget.job.ts'
 import type { XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
 import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
@@ -6,14 +6,14 @@ import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function usePifDeleteModal(rawPifs: MaybeRefOrGetter<XenApiPif[]>) {
+export function usePifForgetModal(rawPifs: MaybeRefOrGetter<XenApiPif[]>) {
   const pifs = toComputed(rawPifs)
 
   const { t } = useI18n()
 
   const selectedPifId = useRouteQuery('id')
 
-  const { run, canRun, isRunning, errorMessage } = usePifDeleteJob(pifs)
+  const { run, canRun, isRunning, errorMessage } = usePifForgetJob(pifs)
 
   const { open: openDeleteModal } = useDeleteModal()
 
@@ -23,8 +23,8 @@ export function usePifDeleteModal(rawPifs: MaybeRefOrGetter<XenApiPif[]>) {
     return openDeleteModal({
       props: {
         subject: t('n-pifs', { n }),
-        description: t('pif-delete-info', { n }),
-        confirmLabel: t('action:delete-n-pifs', { n }),
+        description: t('pif-forget-info', { n }),
+        confirmLabel: t('action:forget-n-pifs', { n }),
       },
       events: {
         onConfirm: async () => {
@@ -35,7 +35,7 @@ export function usePifDeleteModal(rawPifs: MaybeRefOrGetter<XenApiPif[]>) {
               selectedPifId.value = ''
             }
           } catch (error) {
-            console.error('Error when deleting PIF:', error)
+            console.error('Error when forgetting PIF:', error)
           }
         },
       },
