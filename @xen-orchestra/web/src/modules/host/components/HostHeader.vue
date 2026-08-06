@@ -1,5 +1,5 @@
 <template>
-  <UiHeadBar>
+  <UiHeadBar class="host-header">
     {{ host.name_label }}
     <template #icon>
       <VtsObjectIcon
@@ -17,15 +17,16 @@
       <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
     </template>
     <template #actions>
-      <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: host.$pool } }" icon="fa:plus">
-        {{ t('new-vm') }}
-      </UiLink>
       <MenuList v-if="!uiStore.isSmall" placement="bottom-end">
         <template #trigger="{ open }">
           <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
         </template>
         <HostPowerStateActions :host />
       </MenuList>
+
+      <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: host.$pool } }" icon="fa:plus">
+        {{ t('new-vm') }}
+      </UiLink>
 
       <MenuList placement="bottom-end">
         <template #trigger="{ open }">
@@ -126,3 +127,9 @@ const { isMasterHost } = useXoHostCollection()
 
 const isMaster = computed(() => isMasterHost(host.id))
 </script>
+
+<style lang="postcss" scoped>
+.ui-head-bar.host-header :deep(.actions) {
+  gap: 1.6rem;
+}
+</style>
