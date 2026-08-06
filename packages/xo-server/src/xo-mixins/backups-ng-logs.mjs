@@ -25,7 +25,7 @@ const isSupersededByRetry = (subtask, siblings) =>
       other.properties?.id === subtask.properties?.id
   )
 
-export const computeStatusAndSortSubtasks = task => {
+export const consolidateTaskStatusAndResult = task => {
   let status = getStatus(task.result, task.status)
 
   if (status === 'failure' || task.tasks === undefined) {
@@ -181,8 +181,8 @@ export default {
             log.end = time
             log.result = data.error
             log.status = statusFromError(data.error)
-            // computeStatusAndSortSubtasks reads log.status
-            log.status = computeStatusAndSortSubtasks(log)
+            // consolidateTaskStatusAndResult reads log.status
+            log.status = consolidateTaskStatusAndResult(log)
           }
         } else if (event === 'job.backupTaskStart') {
           // happens once, only for backups using XO Tasks
@@ -223,8 +223,8 @@ export default {
             log.end = time
             log.result = data.result
             log.status = data.status
-            // computeStatusAndSortSubtasks reads log.status
-            log.status = computeStatusAndSortSubtasks(log)
+            // consolidateTaskStatusAndResult reads log.status
+            log.status = consolidateTaskStatusAndResult(log)
           }
         } else if (event === 'task.warning') {
           const parent = started[data.taskId]
@@ -263,8 +263,8 @@ export default {
             log.end = time
             log.result = data.error
             log.status = statusFromError(data.error)
-            // computeStatusAndSortSubtasks reads log.status
-            log.status = computeStatusAndSortSubtasks(log)
+            // consolidateTaskStatusAndResult reads log.status
+            log.status = consolidateTaskStatusAndResult(log)
           }
         }
       }
