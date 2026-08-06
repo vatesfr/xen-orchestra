@@ -605,6 +605,9 @@ const messages = {
   mergeBackupsSynchronously: 'Merge backups synchronously',
   mergeBackupsSynchronouslyTooltip:
     'This will use more resources on the backup thread, but ensure there is no locking error when chaining multiple backup jobs on the same remote',
+  synchronizedSnapshot: 'Synchronize snapshots',
+  synchronizedSnapshotTooltip:
+    'Snapshots all VMs together before transfer in order to get consistent restore points. Uses more disks, especially on thick-provisioned SRs',
   newBackupSelection: 'Select your backup type:',
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',

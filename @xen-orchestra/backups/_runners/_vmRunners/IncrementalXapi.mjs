@@ -68,7 +68,6 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
 
     // @todo : reimplement throttle
 
-    const timestamp = Date.now()
     await this._callWriters(
       writer =>
         writer.transfer({
@@ -78,7 +77,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
           // clean; the tip's flag lets the next run skip re-probing
           includeNonNbdQcow2Fix: true,
           isVhdDifferencing,
-          timestamp,
+          timestamp: this.timestamp,
           vm,
           vmSnapshot: exportedVm,
         }),
