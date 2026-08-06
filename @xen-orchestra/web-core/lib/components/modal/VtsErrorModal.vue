@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="danger" icon="status:danger-picto" dismissible>
+  <UiModal accent="danger" icon="status:danger-picto" @dismiss="emit('close')" @confirm="emit('close')">
     <template #title>
       {{ title }}
     </template>
@@ -11,21 +11,25 @@
     </template>
 
     <template #buttons>
-      <VtsModalConfirmButton>
+      <VtsOverlayConfirmButton>
         {{ t('action:close') }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
   title: string
   error?: string
+}>()
+
+const emit = defineEmits<{
+  close: []
 }>()
 
 defineSlots<{

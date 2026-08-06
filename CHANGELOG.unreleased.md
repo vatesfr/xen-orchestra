@@ -40,5 +40,6 @@
 - @xen-orchestra/backup-archive minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - vhd-lib patch
 <!--packages-end-->

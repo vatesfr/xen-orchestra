@@ -1,7 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!network" @close="emit('close')">
     <template v-if="network" #actions>
-      <VtsDeleteButton :busy="isDeletingNetwork" @click="openDeleteModal()" />
+      <VtsDeleteButton :busy="isDeletingNetworks" @click="deleteNetworks()" />
     </template>
     <template v-if="network" #default>
       <UiCard class="card-container">
@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import NetworkPifsInfoCard from '@/modules/network/components/panel/cards/NetworkPifsInfoCard.vue'
-import { useNetworkDeleteModal } from '@/modules/network/composables/use-network-delete-modal.composable.ts'
+import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -80,9 +80,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { openModal: openDeleteModal, isRunning: isDeletingNetwork } = useNetworkDeleteModal(() =>
-  network !== undefined ? [network] : []
-)
+const { deleteNetworks, isDeletingNetworks } = useNetworkDelete(() => (network !== undefined ? [network] : []))
 
 const { buildXo5Route } = useXoRoutes()
 

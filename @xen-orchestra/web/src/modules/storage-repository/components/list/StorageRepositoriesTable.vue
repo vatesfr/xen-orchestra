@@ -25,9 +25,8 @@
 </template>
 
 <script setup lang="ts">
-import { useSrConnectModal } from '@/modules/storage-repository/composables/use-sr-connect-modal.composable.ts'
-import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
-import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
+import { useSrConnection } from '@/modules/storage-repository/composables/use-sr-connection.composable.ts'
+import { useSrDelete } from '@/modules/storage-repository/composables/use-sr-delete.composable.ts'
 import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   useXoSrCollection,
@@ -122,39 +121,33 @@ const { HeadCells, BodyCells } = useSrColumns({
 
     const { srStatusIcon } = useXoSrUtils(sr, () => scope)
 
-    const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
+    const { deleteSrs, canDeleteSrs, isDeletingSrs } = useSrDelete(() => [sr])
 
     const {
-      openModal: openSrConnectModal,
-      canRun: canConnectSr,
-      isRunning: isConnectingSr,
-      errorMessage: connectSrErrorMessage,
-      targetCount: connectTargetCount,
-    } = useSrConnectModal(
-      () => [sr],
-      () => scope
-    )
-
-    const {
-      openModal: openSrDisconnectModal,
-      canRun: canDisconnectSr,
-      isRunning: isDisconnectingSr,
-      errorMessage: disconnectSrErrorMessage,
-      targetCount: disconnectTargetCount,
-    } = useSrDisconnectModal(
-      () => [sr],
-      () => scope
-    )
+      connectSrs,
+      disconnectSrs,
+      canConnectSrs,
+      canDisconnectSrs,
+      isConnectingSrs,
+      isDisconnectingSrs,
+      connectSrsErrorMessage,
+      disconnectSrsErrorMessage,
+      connectionTargetCount,
+      disconnectionTargetCount,
+    } = useSrConnection({
+      srs: () => [sr],
+      scope: () => scope,
+    })
 
     const connectLabel = computed(() =>
-      shouldShowTargetCount(scope, connectTargetCount.value)
-        ? t('action:connect-n', { n: connectTargetCount.value })
+      shouldShowTargetCount(scope, connectionTargetCount.value)
+        ? t('action:connect-n', { n: connectionTargetCount.value })
         : t('action:connect')
     )
 
     const disconnectLabel = computed(() =>
-      shouldShowTargetCount(scope, disconnectTargetCount.value)
-        ? t('action:disconnect-n', { n: disconnectTargetCount.value })
+      shouldShowTargetCount(scope, disconnectionTargetCount.value)
+        ? t('action:disconnect-n', { n: disconnectionTargetCount.value })
         : t('action:disconnect')
     )
 
@@ -177,25 +170,25 @@ const { HeadCells, BodyCells } = useSrColumns({
             {
               label: connectLabel.value,
               icon: 'action:connect',
-              onClick: () => openSrConnectModal(),
-              busy: isConnectingSr.value,
-              disabled: !canConnectSr.value,
-              hint: connectSrErrorMessage.value,
+              onClick: () => connectSrs(),
+              busy: isConnectingSrs.value,
+              disabled: !canConnectSrs.value,
+              hint: connectSrsErrorMessage.value,
             },
             {
               label: disconnectLabel.value,
               icon: 'action:disconnect',
-              onClick: () => openSrDisconnectModal(),
-              busy: isDisconnectingSr.value,
-              disabled: !canDisconnectSr.value,
-              hint: disconnectSrErrorMessage.value,
+              onClick: () => disconnectSrs(),
+              busy: isDisconnectingSrs.value,
+              disabled: !canDisconnectSrs.value,
+              hint: disconnectSrsErrorMessage.value,
             },
             {
               label: t('action:delete'),
               icon: 'action:delete',
-              onClick: () => openSrDeleteModal(),
-              disabled: !canDeleteSr.value,
-              busy: isDeletingSr.value,
+              onClick: () => deleteSrs(),
+              disabled: !canDeleteSrs.value,
+              busy: isDeletingSrs.value,
             },
           ],
         }),

@@ -1,9 +1,8 @@
+import { useVmExport } from '@/composables/vm-export.composable.ts'
 import { vmsArg } from '@/jobs/args'
 import { areSomeVmOperationAllowed, isVmOperationPending } from '@/libs/vm'
 import { VM_COMPRESSION_TYPE, VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
-import { useXenApiStore } from '@/stores/xen-api.store'
 import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
-import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useI18n } from 'vue-i18n'
 
 const compressionArg = defineJobArg<VM_COMPRESSION_TYPE>({
@@ -12,16 +11,15 @@ const compressionArg = defineJobArg<VM_COMPRESSION_TYPE>({
 })
 
 export const useVmExportJob = defineJob('vm.export', [vmsArg, compressionArg], () => {
-  const xapi = useXenApiStore().getXapi()
   const { t } = useI18n()
-  const openModal = useModal()
+
+  const { exportVms } = useVmExport()
 
   return {
     run: (vms, compression) =>
-      xapi.vm.export(
+      exportVms(
         vms.map(vm => vm.$ref),
-        compression,
-        openModal
+        compression
       ),
     validate: (isRunning, vms, compression) => {
       if (vms.length === 0) {

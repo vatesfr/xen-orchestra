@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useVdiMigrateDrawer } from '@/modules/vdi/composables/use-vdi-migrate-drawer.composable.ts'
+import { useVdiMigrate } from '@/modules/vdi/composables/use-vdi-migrate.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import MenuItem from '@xen-orchestra/web-core/components/menu/MenuItem.vue'
 import { computed } from 'vue'
@@ -18,16 +18,11 @@ const { vdi } = defineProps<{
 
 const { t } = useI18n()
 
-const {
-  openDrawer: openVdiMigrateDrawer,
-  canRun: canMigrateVdi,
-  isRunning: isMigratingVdi,
-  errorMessage: migrateVdiErrorMessage,
-} = useVdiMigrateDrawer(() => vdi)
+const { migrateVdi, canMigrateVdi, isMigratingVdi, migrateVdiErrorMessage } = useVdiMigrate(() => vdi)
 
 const hint = computed(() => (!canMigrateVdi.value ? migrateVdiErrorMessage.value : undefined))
 
 function handleClick() {
-  openVdiMigrateDrawer()
+  migrateVdi()
 }
 </script>
