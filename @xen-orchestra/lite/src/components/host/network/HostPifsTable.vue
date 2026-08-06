@@ -4,15 +4,37 @@
       {{ t('pifs') }}
     </UiTitle>
     <div class="container">
-      <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+      <div class="table-actions">
+        <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+        <UiTableActions :title="t('table-actions')">
+          <UiButton
+            :busy="isDeletingSelectedPifs"
+            :disabled="selectedPifIds.length === 0 || !canDeleteSelectedPifs"
+            :hint="deleteSelectedPifsErrorMessage"
+            left-icon="action:delete"
+            variant="tertiary"
+            accent="danger"
+            size="medium"
+            @click="openBulkPifDeleteModal()"
+          >
+            {{ t('action:delete') }}
+          </UiButton>
+        </UiTableActions>
+      </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
+            <VtsHeaderCell>
+              <UiCheckbox v-model="areAllPifsSelected" accent="brand" />
+            </VtsHeaderCell>
             <HeadCells />
           </tr>
         </thead>
         <tbody>
           <VtsRow v-for="pif of paginatedPifs" :key="pif.uuid" :selected="selectedPifId === pif.uuid">
+            <UiTableCell>
+              <UiCheckbox v-model="selectedPifIds" :value="pif.uuid" accent="brand" />
+            </UiTableCell>
             <BodyCells :item="pif" />
           </VtsRow>
         </tbody>
@@ -23,14 +45,21 @@
 
 <script lang="ts" setup>
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
+import { usePifDeleteModal } from '@/modules/pif/composables/use-pif-delete-modal.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
+import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
+import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
+import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable'
 import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns'
@@ -92,6 +121,20 @@ const state = useTableState({
 
 const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', filteredPifs)
 
+const { selected: selectedPifIds, areAllSelected: areAllPifsSelected } = useMultiSelect(
+  computed(() => pifs.map(pif => pif.uuid)),
+  computed(() => paginatedPifs.value.map(pif => pif.uuid))
+)
+
+const selectedPifs = computed(() => pifs.filter(pif => selectedPifIds.value.includes(pif.uuid)))
+
+const {
+  openModal: openBulkPifDeleteModal,
+  canRun: canDeleteSelectedPifs,
+  isRunning: isDeletingSelectedPifs,
+  errorMessage: deleteSelectedPifsErrorMessage,
+} = usePifDeleteModal(() => selectedPifs.value)
+
 function getManagementIcon(pif: XenApiPif) {
   if (!pif.management) {
     return undefined
@@ -104,6 +147,7 @@ function getManagementIcon(pif: XenApiPif) {
 }
 
 const { HeadCells, BodyCells } = usePifColumns({
+  exclude: ['selectItem'],
   body: (pif: XenApiPif) => {
     const name = computed(() => getNetworkName(pif.network))
     const status = computed(() => getPifStatus(pif))
@@ -111,6 +155,13 @@ const { HeadCells, BodyCells } = usePifColumns({
     const ipAddresses = computed(() => getIpAddresses(pif))
     const ipMode = computed(() => getIpConfigurationMode(pif.ip_configuration_mode))
     const rightIcon = computed(() => getManagementIcon(pif))
+
+    const {
+      openModal: openPifDeleteModal,
+      canRun: canDeletePif,
+      isRunning: isDeletingPif,
+      errorMessage: deletePifErrorMessage,
+    } = usePifDeleteModal(() => [pif])
 
     return {
       network: r => r({ label: name.value }),
@@ -120,7 +171,20 @@ const { HeadCells, BodyCells } = usePifColumns({
       ip: r => r(ipAddresses.value),
       mac: r => r(pif.MAC),
       mode: r => r(ipMode.value),
-      selectItem: r => r(() => (selectedPifId.value = pif.uuid)),
+      actions: r =>
+        r({
+          onClick: () => (selectedPifId.value = pif.uuid),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => openPifDeleteModal(),
+              busy: isDeletingPif.value,
+              disabled: !canDeletePif.value,
+              hint: deletePifErrorMessage.value,
+            },
+          ],
+        }),
     }
   },
 })
@@ -128,7 +192,8 @@ const { HeadCells, BodyCells } = usePifColumns({
 
 <style scoped lang="postcss">
 .host-pif-table,
-.container {
+.container,
+.table-actions {
   display: flex;
   flex-direction: column;
 }
@@ -136,7 +201,8 @@ const { HeadCells, BodyCells } = usePifColumns({
 .host-pif-table {
   gap: 2.4rem;
 
-  .container {
+  .container,
+  .table-actions {
     gap: 0.8rem;
   }
 }

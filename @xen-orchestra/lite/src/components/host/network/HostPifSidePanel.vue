@@ -1,5 +1,13 @@
 <template>
   <VtsSidePanel :has-selection="!!pif" @close="emit('close')">
+    <template v-if="pif" #actions>
+      <VtsDeleteButton
+        :busy="isDeletingPif"
+        :disabled="!canDeletePif"
+        :tooltip="!canDeletePif && deletePifErrorMessage"
+        @click="openPifDeleteModal()"
+      />
+    </template>
     <template v-if="pif" #default>
       <!-- PIF -->
       <UiCard class="card">
@@ -226,6 +234,7 @@
 
 <script setup lang="ts">
 import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
+import { usePifDeleteModal } from '@/modules/pif/composables/use-pif-delete-modal.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
@@ -233,6 +242,7 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -258,6 +268,13 @@ const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getBondsDevices, isBondMaster } = usePifStore().subscribe()
 
 const { t } = useI18n()
+
+const {
+  openModal: openPifDeleteModal,
+  canRun: canDeletePif,
+  isRunning: isDeletingPif,
+  errorMessage: deletePifErrorMessage,
+} = usePifDeleteModal(() => (pif !== undefined ? [pif] : []))
 
 const ipAddresses = computed(() => {
   if (pif === undefined) {
