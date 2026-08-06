@@ -19,6 +19,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [REST API] Fix `/users/:id/authentication_tokens` sometimes did not return the token used to make the request (PR [#10233](https://github.com/vatesfr/xen-orchestra/pull/10233))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
