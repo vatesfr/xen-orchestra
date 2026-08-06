@@ -7,7 +7,7 @@
 - [VM/Network] add possibility to “connect/disconnect” a VIF on a VM (PR [#10080](https://github.com/vatesfr/xen-orchestra/pull/10080))
 - [Pool/networks] Add the possibility to copy information from one or more networks in JSON format (PR [#10083](https://github.com/vatesfr/xen-orchestra/pull/10083))
 - Fix some design inconsistency between pages (PR [#10109](https://github.com/vatesfr/xen-orchestra/pull/10109))
-- [Host/Network] Add the possibility to delete a PIF (PR [#10239](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
+- [Host/Network] Add the possibility to forget a PIF (PR [#10239](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 
 ## **0.23.0** (2026-06-30)
 

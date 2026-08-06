@@ -266,6 +266,7 @@
   "confirm-cancel?": "Êtes-vous sûr de vouloir annuler ?",
   "confirm-delete": "Vous êtes sur le point de supprimer {0}",
   "confirm-disconnect": "Vous êtes sur le point de déconnecter {0}",
+  "confirm-forget": "Vous êtes sur le point d'oublier {0}",
   "confirm-vm-revert": "Confirmer la restauration de la VM à l'instantané",
   "connect": "Se connecter",
   "connected": "Connecté",
