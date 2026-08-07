@@ -29,6 +29,16 @@ module.exports = {
       },
     },
     {
+      // packages using this extension have their own eslint.config.mjs for full TS linting;
+      // this override only prevents the plain eslintrc pass (e.g. via lint-staged) from
+      // crashing on TS syntax, it does not enable @typescript-eslint's rule set
+      files: ['*.mts'],
+      parser: '@typescript-eslint/parser',
+      parserOptions: {
+        sourceType: 'module',
+      },
+    },
+    {
       files: ['*.{integ,spec,test}.{,c,m}js'],
       rules: {
         'n/no-unpublished-require': 'off',
