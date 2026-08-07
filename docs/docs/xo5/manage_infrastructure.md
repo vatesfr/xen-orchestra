@@ -441,6 +441,12 @@ You can create a snapshot with one click. It will be named automatically. After 
 By default, XOA will try to make a snapshot with quiesce. If the VM does not support it, it will fall back to the default snapshot system.
 :::
 
+:::note
+Reverting to a snapshot restores the VM's metadata as well as its disk state, so fields like
+the creation date get rolled back to match the snapshot too. If you rely on the creation date
+to track a VM's history, keep that in mind before reverting.
+:::
+
 ## VM import and export
 
 Xen Orchestra can import and export VM's in XVA format (XCP-ng/XenServer format) or import OVA files (OVF1 format).
