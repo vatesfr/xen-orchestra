@@ -40,11 +40,17 @@
 <!--packages-start-->
 
 - @xen-orchestra/acl minor
+- @xen-orchestra/proxy-cli patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/upload-ova patch
 - @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
+- xen-api minor
+- xo-cli patch
 - xo-common minor
 - xo-server patch
 - xo-server-ipmi-sensors minor
+- xo-server-netbox patch
+
 
 <!--packages-end-->
