@@ -1,9 +1,12 @@
 import { asyncMap } from '@xen-orchestra/async-map'
+import { createLogger } from '@xen-orchestra/log'
 import { Task } from '@vates/task'
 
 import { DIR_XO_POOL_METADATA_BACKUPS } from '../RemoteAdapter.mjs'
 import { forkStreamUnpipe } from './_forkStreamUnpipe.mjs'
 import { formatFilenameDate } from '../_filenameDate.mjs'
+
+const { debug } = createLogger('xo:backups:PoolMetadataBackup')
 
 export const PATH_DB_DUMP = '/pool/xmldbdump'
 
@@ -31,7 +34,22 @@ export class PoolMetadataBackup {
     const poolDir = `${DIR_XO_POOL_METADATA_BACKUPS}/${schedule.id}/${pool.$id}`
     const dir = `${poolDir}/${formatFilenameDate(timestamp)}`
 
+    const tasks = Object.values(pool.$xapi.objects.indexes.type.task ?? {})
+    const pendingTasks = tasks.filter(task => task.status === 'pending')
+    debug('pool tasks before export', {
+      total: tasks.length,
+      pending: pendingTasks.length,
+      oldestPendingCreated: pendingTasks.map(task => task.created).sort()[0],
+    })
+
     const stream = (await this._exportPoolMetadata()).body
+    const startedAt = Date.now()
+    let bytes = 0
+    stream.once('data', () => debug('first byte received', { afterMs: Date.now() - startedAt }))
+    stream.on('data', chunk => (bytes += chunk.length))
+    stream.once('end', () => debug('stream ended', { bytes, durationMs: Date.now() - startedAt }))
+    stream.once('error', error => debug('stream errored', { error, bytes, durationMs: Date.now() - startedAt }))
+
     const fileName = `${dir}/data`
 
     const metadata = JSON.stringify(
