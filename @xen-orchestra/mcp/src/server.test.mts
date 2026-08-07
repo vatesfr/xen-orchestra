@@ -5,6 +5,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { createServer, validateEnv, fetchDocumentation } from './index.mjs'
 import { createServer as createServerDirect } from './server.mjs'
 import { formatToolError } from './helpers/tool-error.mjs'
+import { setFetch, type FetchFn } from './utils/proxy.mjs'
 import type { XoClient } from './xo-client.mjs'
 
 const MOCK_SWAGGER_SPEC = {
@@ -42,22 +43,37 @@ function createMockClient(overrides: Record<string, unknown> = {}): XoClient {
 
 let originalFetch: typeof globalThis.fetch
 
+// `fetchSwaggerSpec` passes a dispatcher, so it goes through undici's `fetch`,
+// while `fetchDocumentation` still uses the global one. A stub that has to cover
+// both is installed on both seams, and layers unwind in reverse order.
+const restoreSeams: Array<() => void> = []
+
+function mockFetch(handler: (url: string) => Response | undefined) {
+  const previousGlobal = globalThis.fetch
+  const stub = async (input: RequestInfo | URL, init?: RequestInit) =>
+    handler(input.toString()) ?? (await previousGlobal(input, init))
+
+  globalThis.fetch = stub
+  restoreSeams.push(setFetch(stub as unknown as FetchFn), () => {
+    globalThis.fetch = previousGlobal
+  })
+}
+
+function swaggerResponse() {
+  return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
+    status: 200,
+    headers: { 'content-type': 'application/json' },
+  })
+}
+
 function mockSwaggerFetch() {
-  originalFetch = globalThis.fetch
-  globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = typeof input === 'string' ? input : input.toString()
-    if (url.includes('/rest/v0/docs/swagger.json')) {
-      return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
-        status: 200,
-        headers: { 'content-type': 'application/json' },
-      })
-    }
-    return originalFetch(input, init)
-  }
+  mockFetch(url => (url.includes('/rest/v0/docs/swagger.json') ? swaggerResponse() : undefined))
 }
 
 function restoreFetch() {
-  globalThis.fetch = originalFetch
+  while (restoreSeams.length > 0) {
+    restoreSeams.pop()!()
+  }
 }
 
 async function setupTestServer(mockClient?: XoClient) {
@@ -205,14 +221,9 @@ describe('createServer (dynamic bootstrap)', () => {
 
   describe('search_documentation tool', () => {
     it('fetches and returns documentation', async () => {
-      const prevFetch = globalThis.fetch
-      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = typeof input === 'string' ? input : input.toString()
+      mockFetch(url => {
         if (url.includes('/rest/v0/docs/swagger.json')) {
-          return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
-            status: 200,
-            headers: { 'content-type': 'application/json' },
-          })
+          return swaggerResponse()
         }
         if (url.includes('docs.xen-orchestra.com')) {
           return new Response('<h1>Installation Guide</h1><p>Install XO here.</p>', {
@@ -220,8 +231,7 @@ describe('createServer (dynamic bootstrap)', () => {
             headers: { 'content-type': 'text/html' },
           })
         }
-        return prevFetch(input, init)
-      }
+      })
 
       const { mcpClient } = await setupTestServer()
       const result = await mcpClient.callTool({ name: 'search_documentation', arguments: { topic: 'installation' } })
@@ -231,20 +241,14 @@ describe('createServer (dynamic bootstrap)', () => {
     })
 
     it('returns error when documentation fetch fails', async () => {
-      const prevFetch = globalThis.fetch
-      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = typeof input === 'string' ? input : input.toString()
+      mockFetch(url => {
         if (url.includes('/rest/v0/docs/swagger.json')) {
-          return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
-            status: 200,
-            headers: { 'content-type': 'application/json' },
-          })
+          return swaggerResponse()
         }
         if (url.includes('docs.xen-orchestra.com')) {
           return new Response('Not Found', { status: 404, statusText: 'Not Found' })
         }
-        return prevFetch(input, init)
-      }
+      })
 
       const { mcpClient } = await setupTestServer()
       const result = await mcpClient.callTool({ name: 'search_documentation', arguments: { topic: 'installation' } })

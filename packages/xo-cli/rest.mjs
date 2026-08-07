@@ -1,7 +1,7 @@
 import { basename, join } from 'node:path'
 import { createReadStream, createWriteStream } from 'node:fs'
 import { normalize } from 'node:path/posix'
-import { Agent } from 'undici'
+import { Agent, fetch } from 'undici'
 import { parse as parseContentType } from 'content-type'
 import { pipeline, Readable } from 'node:stream'
 import { pipeline as pPipeline } from 'node:stream/promises'

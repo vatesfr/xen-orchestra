@@ -1,5 +1,7 @@
+import { type Response } from 'undici'
+
 import { isExcludedRoute } from './route-filter.mjs'
-import { getProxyDispatcher, type FetchInit } from '../utils/proxy.mjs'
+import { fetch, getProxyDispatcher, type FetchInit } from '../utils/proxy.mjs'
 
 const FETCH_TIMEOUT_MS = 10_000
 const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const

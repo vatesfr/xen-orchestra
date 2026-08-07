@@ -1,4 +1,6 @@
-import { getProxyDispatcher, type FetchInit } from './utils/proxy.mjs'
+import { type RequestInit, type Response } from 'undici'
+
+import { fetch, getProxyDispatcher, type FetchInit } from './utils/proxy.mjs'
 
 const REQUEST_TIMEOUT_MS = 30_000
 const BOOT_CHECK_TIMEOUT_MS = 10_000

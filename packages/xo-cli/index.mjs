@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Agent } from 'undici'
+import { Agent, fetch } from 'undici'
 import { createReadStream, createWriteStream, readFileSync } from 'fs'
 import { PassThrough, pipeline, Readable } from 'stream'
 import { stat } from 'fs/promises'
