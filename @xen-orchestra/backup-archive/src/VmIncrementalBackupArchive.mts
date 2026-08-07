@@ -5,10 +5,26 @@ import {
   ResolvedBackupCleanOptions,
   VmBackupInterface,
   PartialBackupMetadata,
+  DEFAULT_REMOVE_CONCURRENCY,
 } from './VmBackup.types.mjs'
 import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
 import { RemoteDiskLineage } from './RemoteDiskLineage.mjs'
+import { asyncEach } from '@vates/async-each'
+
+/**
+ * Deletes a delta VM backup's metadata json. Unused VHDs are detected and removed
+ * separately by VmBackupDirectory's clean(). Shared with the legacy @xen-orchestra/backups
+ * RemoteAdapter.
+ */
+export async function deleteDeltaVmBackups(
+  handler: RemoteHandlerAbstract,
+  backups: Array<{ metadataPath: string }>
+): Promise<void> {
+  await asyncEach(backups, ({ metadataPath }) => handler.unlink(metadataPath), {
+    concurrency: DEFAULT_REMOVE_CONCURRENCY,
+  })
+}
 
 export class VmIncrementalBackupArchive implements VmBackupInterface {
   handler: RemoteHandlerAbstract
