@@ -6,7 +6,7 @@
       </UiCard>
     </div>
 
-    <BackupRepositorySidePanel :brs="selectedBr" @close="selectedBr = undefined" />
+    <BackupRepositorySidePanel :br="selectedBr" @close="selectedBr = undefined" />
   </VtsContentSidePanel>
 </template>
 
