@@ -2,6 +2,9 @@
   <div class="host-pif-table">
     <UiTitle>
       {{ t('pifs') }}
+      <template #action>
+        <HostScanPifsButton :host />
+      </template>
     </UiTitle>
     <div class="container">
       <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
@@ -22,7 +25,8 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost, XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
+import HostScanPifsButton from '@/modules/host/components/actions/scan-pifs/HostScanPifsButton.vue'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -38,8 +42,9 @@ import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pifs } = defineProps<{
+const { pifs, host } = defineProps<{
   pifs: XenApiPif[]
+  host: XenApiHost | undefined
 }>()
 
 const { isReady, hasError } = usePifStore().subscribe()
