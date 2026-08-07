@@ -11,7 +11,7 @@ export function createNetworkOperations(xenApi: XenApi) {
   }
 
   type NetworkCreateParams = BaseNetworkCreateParams & {
-    vlan: number
+    vlan?: number
     pifRef: XenApiPif['$ref']
   }
 
@@ -37,7 +37,9 @@ export function createNetworkOperations(xenApi: XenApi) {
       const networkRef = await createEmptyNetwork(nameLabel, nameDescription, mtu)
 
       try {
-        await xenApi.call('pool.create_VLAN_from_PIF', [pifRef, networkRef, vlan])
+        if (vlan !== undefined) {
+          await xenApi.call('pool.create_VLAN_from_PIF', [pifRef, networkRef, vlan])
+        }
 
         if (nbd) {
           await xenApi.call('network.add_purpose', [networkRef, 'nbd'])

@@ -27,7 +27,6 @@ export function useNewNetworkForm() {
     errors: {
       onSubmit: () => ({
         pifRef: { required: withMessage(required, () => t('interface-required')) },
-        vlan: { required: withMessage(required, () => t('vlan-required')) },
       }),
     },
     warnings: {
@@ -58,15 +57,20 @@ export function useNewNetworkForm() {
   async function validateAndBuildPayload(): Promise<NewNetworkPayload | undefined> {
     const valid = await validate()
 
-    if (!valid || formData.pifRef === undefined || formData.vlan === undefined) {
+    if (!valid || formData.pifRef === undefined) {
       return undefined
     }
 
-    return {
+    const payload: NewNetworkPayload = {
       ...buildBasePayload(),
       pifRef: formData.pifRef,
-      vlan: formData.vlan,
     }
+
+    if (typeof formData.vlan === 'number') {
+      payload.vlan = formData.vlan
+    }
+
+    return payload
   }
 
   return {
@@ -76,7 +80,7 @@ export function useNewNetworkForm() {
     mtuInputBindings,
     nbdCheckboxBindings,
     interfaceSelectBindings: useSelect(interfacesSelectId, 'pifRef', () => ({ label: t('interface') })),
-    vlanInputBindings: useField('vlan', () => ({ label: t('vlan'), required: true, info: t('vlan-no-default') })),
+    vlanInputBindings: useField('vlan', () => ({ label: t('vlan') })),
     validateAndBuildPayload,
   }
 }

@@ -13,7 +13,7 @@ export type BaseNewNetworkPayload = {
 
 export type NewNetworkPayload = BaseNewNetworkPayload & {
   pifRef: XenApiPif['$ref']
-  vlan: number
+  vlan?: number
 }
 
 export const useNetworkCreateJob = defineJob('network.create', [payloadsArg], () => {
@@ -54,10 +54,6 @@ export const useNetworkCreateJob = defineJob('network.create', [payloadsArg], ()
 
         if (payload.pifRef === undefined) {
           throw new JobError(t('job:arg:pif-id-required'))
-        }
-
-        if (payload.vlan === undefined) {
-          throw new JobError(t('job:arg:vlan-required'))
         }
       })
     },
