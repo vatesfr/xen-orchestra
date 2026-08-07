@@ -12,11 +12,14 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN } from '@core/utils/injection-keys.util.ts'
 import { onBeforeMount, onBeforeUpdate, provide, ref, toRef, useSlots } from 'vue'
 
-const props = defineProps<{
-  nodeId?: TreeNodeId
-  expanded?: boolean
-  hasChildren?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    nodeId?: TreeNodeId
+    expanded?: boolean
+    hasChildren?: boolean
+  }>(),
+  { hasChildren: undefined }
+)
 
 defineSlots<{
   default(): any
