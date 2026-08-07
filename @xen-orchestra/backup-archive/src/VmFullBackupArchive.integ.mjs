@@ -10,7 +10,11 @@ import { rimraf } from 'rimraf'
 // eslint-disable-next-line n/no-missing-import
 import { VmBackupDirectory } from '../dist/VmBackupDirectory.mjs'
 import tar from 'tar-stream'
+import { promisify } from 'node:util'
+import zlib from 'node:zlib'
 const { beforeEach, afterEach, describe } = test
+
+const gzip = promisify(zlib.gzip)
 
 let tempDir, handler, vmBackupDir
 const vmUuid = 'test-vm-uuid'
@@ -131,6 +135,28 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
     const remainingFiles = await handler.list(rootPath)
     assert.equal(remainingFiles.length, 3)
     assert.ok(remainingFiles.includes('cache.json.gz'))
+  })
+
+  test('clean() on an immutable remote never creates cache.json.gz', async () => {
+    await createFullBackupMetadata('backup1.json', 'backup1.xva')
+    await handler.writeFile(`${rootPath}/orphan.xva`, 'orphan-content')
+    handler.isImmutable = () => true
+
+    await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true })
+
+    const remainingFiles = await handler.list(rootPath)
+    assert.ok(!remainingFiles.includes('cache.json.gz'), 'cache.json.gz should never be created on an immutable remote')
+  })
+
+  test('clean() removes a leftover cache.json.gz found on an immutable remote', async () => {
+    await createFullBackupMetadata('backup1.json', 'backup1.xva')
+    await handler.writeFile(`${rootPath}/cache.json.gz`, await gzip(JSON.stringify({})))
+    handler.isImmutable = () => true
+
+    await VmBackupDirectory.cleanVm(handler, rootPath)
+
+    const remainingFiles = await handler.list(rootPath)
+    assert.ok(!remainingFiles.includes('cache.json.gz'), 'erroneous cache.json.gz should be removed, not rewritten')
   })
 
   test('clean() removes an orphan XVA checksum file (no matching metadata or XVA)', async () => {

@@ -24,6 +24,7 @@
 
 - [REST API] Fix `/users/:id/authentication_tokens` sometimes did not return the token used to make the request (PR [#10233](https://github.com/vatesfr/xen-orchestra/pull/10233))
 - [XO server] Fix a random behavior regarding `coresPerSocket` update (PR [#10201](https://github.com/vatesfr/xen-orchestra/pull/10201))
+- [Backup] No longer create a `cache.json.gz` file on immutable/S3 remote during cleanup, which could not be deleted afterwards and stayed billed forever
 
 ### Packages to release
 
@@ -43,6 +44,8 @@
 
 - @xen-orchestra/acl minor
 - @xen-orchestra/async-map patch
+- @xen-orchestra/backup-archive minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/proxy-cli patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/upload-ova patch
