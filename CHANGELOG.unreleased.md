@@ -23,6 +23,8 @@
 
 - [REST API] Fix `/users/:id/authentication_tokens` sometimes did not return the token used to make the request (PR [#10233](https://github.com/vatesfr/xen-orchestra/pull/10233))
 
+- [VM/Advanced] Fix vGPU support where multiple GPU groups have the same vGPU type [#5750](https://github.com/vatesfr/xen-orchestra/issues/5750)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.

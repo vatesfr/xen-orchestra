@@ -561,9 +561,10 @@ Schedule.defaultProps = {
 
 export const Vgpu = connectStore(() => ({
   vgpuType: createGetObject((_, props) => props.vgpu.vgpuType),
-}))(({ vgpu, vgpuType }) => (
+  gpuGroup: createGetObject((_, props) => props.vgpu.gpuGroup),
+}))(({ vgpu, vgpuType, gpuGroup }) => (
   <span>
-    <Icon icon='vgpu' /> {vgpuType.modelName}
+    <Icon icon='vgpu' /> {renderXoItem(gpuGroup)}: {vgpuType.modelName}
   </span>
 ))
 
@@ -712,13 +713,11 @@ const xoItemToRender = {
   vgpu: vgpu => <Vgpu vgpu={vgpu} />,
 
   vgpuType: type => (
-    <span>
-      <Icon icon='gpu' /> {type.modelName} ({type.vendorName}) {type.maxResolutionX}x{type.maxResolutionY}
-    </span>
+    <span>{type.modelName}{type.vendorName && "("+type.vendorName+")"}{type.maxResolutionX > 0 && type.maxResolutionX+"x"+type.maxResolutionY}</span>
   ),
 
   gpuGroup: group => (
-    <span>{group.name_label.startsWith('Group of ') ? group.name_label.slice(9) : group.name_label}</span>
+    <span>{group.name_label.replace(/^(Group of )?(.*?)( GPUs)?$/, '$2')}</span>
   ),
 
   backup: backup => (
