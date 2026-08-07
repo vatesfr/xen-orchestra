@@ -6,7 +6,12 @@ After=network-online.target
 
 [Service]
 Environment="DEBUG=xo:main"
-ExecStart=/usr/local/bin/xo-server
+# Fallback default, then the auto-computed value (/run), then the admin's
+# override (/etc/default, loaded last so it always wins).
+Environment=NODE_MAX_OLD_SPACE=1536
+EnvironmentFile=-/run/xo-server-autosize.env
+EnvironmentFile=-/etc/default/xo-server
+ExecStart=/usr/local/bin/node --max-old-space-size=${NODE_MAX_OLD_SPACE} /usr/local/bin/xo-server
 Restart=always
 SyslogIdentifier=xo-server
 

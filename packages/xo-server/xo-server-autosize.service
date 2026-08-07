@@ -1,0 +1,12 @@
+# Computes xo-server's Node heap size from total RAM into /run, before xo-server starts.
+[Unit]
+Description=Auto-size xo-server memory limit from total RAM
+After=local-fs.target
+Before=xo-server.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/xo-server-autosize.sh
+
+[Install]
+WantedBy=multi-user.target
