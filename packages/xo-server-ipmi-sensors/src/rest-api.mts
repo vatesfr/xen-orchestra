@@ -16,7 +16,7 @@ export function createIpmiRestRoutes(plugin: IpmiSensorsPlugin): PluginRestRoute
       ].join('\n'),
       endpoint: 'plugins/ipmi-sensors/hosts/{id}/ipmi',
 
-      tags: ['ipmi-sensors'],
+      tags: ['ipmi-sensors', 'hosts'],
       params: { id: { type: 'string', example: '5b2c9e6a-1d3f-4c7b-9f2e-8a1b0c4d5e6f' } },
       middlewares: [{ name: 'acl', acls: { resource: 'host', action: 'read', objectId: 'params.id' } }],
       responses: [
@@ -44,6 +44,10 @@ export function createIpmiRestRoutes(plugin: IpmiSensorsPlugin): PluginRestRoute
               },
             },
           },
+        },
+        {
+          status: 403,
+          description: 'Access denied',
         },
         {
           status: 404,
