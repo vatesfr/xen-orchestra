@@ -2,6 +2,7 @@ import {
   SensorRegexByProduct,
   SensorRegexByDataType,
   ReturnedSensorData,
+  AvailableIpmiSensor,
   IPMI_SENSOR_DATA_TYPE_STRINGS,
   IPMI_SENSOR_DATA_TYPE,
   SensorRegexByProductRaw,
@@ -34,6 +35,16 @@ export function addIpmiSensorDataType(
     }
   }
   data.dataType = IPMI_SENSOR_DATA_TYPE.unknown as IPMI_SENSOR_DATA_TYPE_STRINGS
+}
+
+export function addIpmiSensorsDataType(
+  sensors: ReturnedSensorData[],
+  productName: string,
+  configuredRules: SensorRegexByProduct[]
+): asserts sensors is AvailableIpmiSensor[] {
+  for (const sensor of sensors) {
+    addIpmiSensorDataType(sensor, productName, configuredRules)
+  }
 }
 
 export function containsDigit(str: string): boolean {
