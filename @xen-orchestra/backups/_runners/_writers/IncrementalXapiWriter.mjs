@@ -266,7 +266,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
             onlyListChangedBlocks: true,
           })
           await diffDisk.init()
-          if (diffDisk.getBlockIndexes().length === 0) {
+          if (diffDisk.getBlockIndexesCount() === 0) {
             debug(' NO CHANGE , source detected ? ', !!sourceUuid)
             // no block modification since the common snapshot, we can chain VM and disk
             // the disk is chained with the active to keep the chain linear
@@ -282,7 +282,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
             canChainToTargetVm = false
             debug('checkBaseVdis, data between snapshot and active disk', {
               vdiRef: snapshot.$ref,
-              nbBlocks: diffDisk.getBlockIndexes().length,
+              nbBlocks: diffDisk.getBlockIndexesCount(),
             })
           }
         } catch (error) {
