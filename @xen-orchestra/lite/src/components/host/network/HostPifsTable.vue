@@ -3,17 +3,7 @@
     <UiTitle>
       {{ t('pifs') }}
       <template #action>
-        <UiButton
-          :busy="isScanningPifs"
-          :disabled="!host"
-          left-icon="action:scan"
-          variant="secondary"
-          accent="brand"
-          size="medium"
-          @click="scanPifs()"
-        >
-          {{ t('scan-pifs') }}
-        </UiButton>
+        <HostScanPifsButton :host />
       </template>
     </UiTitle>
     <div class="container">
@@ -35,13 +25,12 @@
 </template>
 
 <script lang="ts" setup>
-import { usePifScanJob } from '@/jobs/pif-scan.job'
 import type { XenApiHost, XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
+import HostScanPifsButton from '@/modules/host/components/actions/scan-pifs/HostScanPifsButton.vue'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
@@ -65,8 +54,6 @@ const { getPifStatus } = usePifStore().subscribe()
 const { t } = useI18n()
 
 const selectedPifId = useRouteQuery('id')
-
-const { run: scanPifs, isRunning: isScanningPifs } = usePifScanJob(() => host)
 
 const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getByOpaqueRef(networkRef)?.name_label ?? ''
 
