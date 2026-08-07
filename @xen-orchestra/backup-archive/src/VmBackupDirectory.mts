@@ -17,11 +17,7 @@ import {
 import { cleanOrphanDiskDirs } from '@xen-orchestra/backup-archive/disks'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
-import { promisify } from 'node:util'
-import zlib from 'node:zlib'
-
-const gzip = promisify(zlib.gzip)
-const gunzip = promisify(zlib.gunzip)
+import { readBackupCache, writeBackupCache } from './BackupCache.mjs'
 
 const { info: logInfo, warn: logWarn } = createLogger('xo:backup-archive')
 
@@ -70,21 +66,11 @@ export class VmBackupDirectory implements VmBackupInterface {
   }
 
   async #readCache(path: string): Promise<Record<string, unknown> | undefined> {
-    try {
-      return JSON.parse((await gunzip(await this.handler.readFile(path))).toString())
-    } catch (error) {
-      if (error?.code !== 'ENOENT') {
-        logWarn('failed to read cache', { error, path })
-      }
-    }
+    return readBackupCache(this.handler, path, logWarn)
   }
 
   async #writeCache(path: string, data: Record<string, unknown>): Promise<void> {
-    try {
-      await this.handler.writeFile(path, await gzip(JSON.stringify(data)), { flags: 'w' })
-    } catch (error) {
-      logWarn('failed to write cache', { error, path })
-    }
+    return writeBackupCache(this.handler, path, data, logWarn)
   }
 
   async init() {
