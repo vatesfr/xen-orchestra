@@ -74,6 +74,7 @@ export default class Xapi extends XapiBase {
     guessVhdSizeOnImport,
     maxUncoalescedVdis,
     restartHostTimeout,
+    twinstorSyncTimeout = '2 hours',
     vdiExportConcurrency,
     vmEvacuationConcurrency,
     vmExportConcurrency,
@@ -87,6 +88,7 @@ export default class Xapi extends XapiBase {
     this._guessVhdSizeOnImport = guessVhdSizeOnImport
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._restartHostTimeout = parseDuration(restartHostTimeout)
+    this._twinstorSyncTimeout = parseDuration(twinstorSyncTimeout)
     this._vmEvacuationConcurrency = vmEvacuationConcurrency
     this._vmShutdownTimeout = parseDuration(vmShutdownTimeout)
 

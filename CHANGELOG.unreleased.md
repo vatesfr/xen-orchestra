@@ -17,12 +17,14 @@
 - [Docs] Improve doc, rename titles, and refactor menu (PR [#10212](https://github.com/vatesfr/xen-orchestra/pull/10212))
 
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
+- [RPU/RPR] On a pool backed by TWINSTOR, wait for the replicated storage to be back in sync before rebooting each host, instead of rebooting while a single host holds the only up-to-date copy of the data. A pool whose storage is already not redundant is refused before anything is disabled (PR [#10248](https://github.com/vatesfr/xen-orchestra/pull/10248))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [REST API] Fix `/users/:id/authentication_tokens` sometimes did not return the token used to make the request (PR [#10233](https://github.com/vatesfr/xen-orchestra/pull/10233))
+- [RPU/RPR] Aborting the task now stops the run instead of being ignored: the remaining hosts are no longer rebooted (PR [#10248](https://github.com/vatesfr/xen-orchestra/pull/10248))
 
 ### Packages to release
 
@@ -49,7 +51,7 @@
 - xen-api minor
 - xo-cli patch
 - xo-common minor
-- xo-server patch
+- xo-server minor
 - xo-server-ipmi-sensors minor
 - xo-server-netbox patch
 
