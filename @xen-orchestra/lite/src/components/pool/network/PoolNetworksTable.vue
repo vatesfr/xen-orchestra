@@ -2,6 +2,9 @@
   <div class="pool-networks-table">
     <UiTitle>
       {{ t('networks') }}
+      <template #action>
+        <slot name="title-actions" />
+      </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
@@ -46,11 +49,10 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
-import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
-import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store.ts'
-import { usePifStore } from '@/stores/xen-api/pif.store.ts'
+<script lang="ts" setup>
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
+import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
+import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -67,15 +69,15 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
 import { useClipboard } from '@vueuse/core'
-import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networks } = defineProps<{
+const { networks, busy, error } = defineProps<{
   networks: XenApiNetwork[]
+  busy?: boolean
+  error?: boolean
 }>()
 
-const { isReady, hasError } = useNetworkStore().subscribe()
 const { records: pifs } = usePifStore().subscribe()
 const { getPifCarrier } = usePifMetricsStore().subscribe()
 
@@ -149,8 +151,8 @@ const {
 })
 
 const state = useTableState({
-  busy: logicNot(isReady),
-  error: hasError,
+  busy: () => busy,
+  error: () => error,
   empty: () =>
     networks.length === 0
       ? t('no-network-detected')
@@ -179,7 +181,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
 })
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .pool-networks-table,
 .container {
   display: flex;
