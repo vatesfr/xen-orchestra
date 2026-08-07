@@ -49,6 +49,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useLocalStorage, whenever } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, watch } from 'vue'
@@ -58,6 +59,14 @@ const { t } = useI18n()
 usePageTitleStore().setTitle(t('login'))
 const xenApiStore = useXenApiStore()
 const { isConnecting } = storeToRefs(xenApiStore)
+
+const openCertModal = useModal({
+  keepOpenOnRouteChange: true,
+  component: import('@/components/modals/UnreachableHostsModal.vue'),
+  props: { urls: [xenApiStore.hostUrl] },
+  onConfirm: () => window.location.reload(),
+  onCancel: () => {},
+})
 const login = ref('root')
 const password = ref('')
 const error = ref<XenApiError>()
@@ -95,7 +104,7 @@ async function handleSubmit() {
       focusPasswordInput()
       isInvalidPassword.value = true
     } else {
-      console.error(error)
+      fetch(xenApiStore.hostUrl, { mode: 'no-cors' }).catch(() => openCertModal())
     }
 
     error.value = err
