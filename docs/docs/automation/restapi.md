@@ -18,7 +18,7 @@ Endpoints require authentication. Two forms are accepted, and you must pick exac
 An invalid token or invalid credentials get a `401 Unauthorized` response.
 
 :::tip
-Admin users have access to all REST API endpoints. Non-admin users can use the REST API according to the [ACL v2 / RBAC](../xo6/acl-v2.md) permissions defined on their account.
+Admin users have access to all REST API endpoints. Non-admin users can use the REST API according to the [RBAC](../rbac.md) permissions defined on their account.
 :::
 
 For scripts and integrations, prefer a token: it does not expose your password and it can be revoked at any time.

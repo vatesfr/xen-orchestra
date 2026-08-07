@@ -43,6 +43,10 @@ export default {
             from: '/administration',
           },
           {
+            to: '/rbac',
+            from: '/xo6/acl-v2',
+          },
+          {
             to: '/xo5/advanced',
             from: '/advanced',
           },

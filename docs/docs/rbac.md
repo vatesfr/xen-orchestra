@@ -1,16 +1,22 @@
-# ACL v2 / RBAC (REST API/XO6)
+---
+sidebar_label: RBAC
+---
 
-ACL v2 is the access control system for the Xen Orchestra [REST API](../automation/restapi.md) and the XO6 UI. It lets you define exactly what each user or group can see and do, down to individual objects, without granting them full administrator access.
+# RBAC: Role-Based Access Control
 
-## What changed from v1
+RBAC is the access control system for the Xen Orchestra [REST API](automation/restapi.md) and the XO 6 interface. It lets you define exactly what each user or group can see and do, down to individual objects, without granting them full administrator access.
 
-The old [ACL system (v1)](../xo5/users.md#acls) allowed granting access to individual objects (a VM, an SR…). Simple, but limited: there was no way to say _"this user can shutdown only VMs tagged `qa`"_. It also only covered **XAPI objects**: VMs, hosts, SRs, networks. Users, groups, backups, schedules, and jobs were out of scope.
+:::note Where RBAC applies, and why it was once called "ACL v2"
+RBAC covers the **[REST API](automation/restapi.md)** and **XO 6**. The JSON-RPC API behind the XO 5 interface keeps the original [ACL system](xo5/users.md#acls), and those ACLs are not available on the REST API.
 
-ACL v2 introduces a full **RBAC (Role-Based Access Control)** model with effects, selectors, and an action hierarchy, covering the entire infrastructure including XO management objects.
-
-:::note
-ACL v2 is available through the **[REST API](../automation/restapi.md) only**. The JSON-RPC API (used by XO5) stays on [ACL v1](../xo5/users.md#acls). Conversely, ACL v1 is not available on the REST API.
+You may still come across this feature under the name **ACL v2**. That was only a working name while it was being built. It is a full rewrite of the original ACLs into a much broader model, so it is now called by what it actually is: RBAC. Same feature, current name.
 :::
+
+## What changed from the original ACLs
+
+The original [ACL system](xo5/users.md#acls) allowed granting access to individual objects (a VM, an SR…). Simple, but limited: there was no way to say _"this user can shutdown only VMs tagged `qa`"_. It also only covered **XAPI objects**: VMs, hosts, SRs, networks. Users, groups, backups, schedules, and jobs were out of scope.
+
+RBAC introduces a full role-based model with effects, selectors, and an action hierarchy, covering the entire infrastructure including XO management objects.
 
 :::info
 On XOA, RBAC is included in the **Essential+**, **Pro** and **Enterprise** bundles. Installations from the sources are not restricted.
@@ -22,7 +28,7 @@ On XOA, RBAC is included in the **Essential+**, **Pro** and **Enterprise** bundl
 
 ### How it works
 
-ACL v2 follows a **deny-by-default** model:
+RBAC follows a **deny-by-default** model:
 
 - XOA admins always have full access, regardless of any ACL configuration.
 - Non-admin users start with **zero access**. They can only access objects they have been explicitly granted permission to.
@@ -48,7 +54,7 @@ A privilege defines:
 - **resource**: the type of object (e.g. `vm`, `backup-job`, `sr`)
 - **action**: what operation is allowed or denied (e.g. `read`, `start`, `delete`)
 - **effect**: whether the privilege grants (`allow`) or blocks (`deny`) the action
-- **selector** _(optional)_: a filter expression to restrict the privilege to a subset of objects ([complex-matcher format](../xo5/manage_infrastructure.md#filter-syntax))
+- **selector** _(optional)_: a filter expression to restrict the privilege to a subset of objects ([complex-matcher format](xo5/manage_infrastructure.md#filter-syntax))
 
 ### Action hierarchy
 
@@ -129,7 +135,7 @@ Some endpoints are always accessible to a logged-in user **without any ACL privi
 
 `me` is a convenience alias: it is automatically redirected to `/rest/v0/users/{your-id}`.
 
-This is how delegation works end to end: any user, whatever their privileges, can create their own [authentication token](../automation/restapi.md#authentication) and use it to call the REST API within the limits of their roles.
+This is how delegation works end to end: any user, whatever their privileges, can create their own [authentication token](automation/restapi.md#authentication) and use it to call the REST API within the limits of their roles.
 
 :::tip
 The Swagger UI available at `/rest/v0/swagger` documents every endpoint with its required privileges. Endpoints with no declared privilege are admin-only.
@@ -203,13 +209,15 @@ Note the last two rows: RBAC configuration is itself covered by the model. You d
 
 > Alice needs to start and stop VMs in her test environment, but must not touch anything in production.
 
-Create a `QA Operator` role with these privileges: POST /acl-privileges
+Create a `QA Operator` role, then POST each of these privileges to `/rest/v0/acl-privileges`:
 
 ```json
-{ "resource": "vm", "action": "read",     "effect": "allow", "selector": "tags:qa" "roleId": "169020fd-4d5e-45fc-a26c-23153df00dcf"}
-{ "resource": "vm", "action": "start",    "effect": "allow", "selector": "tags:qa" "roleId": "169020fd-4d5e-45fc-a26c-23153df00dcf"}
-{ "resource": "vm", "action": "shutdown", "effect": "allow", "selector": "tags:qa" "roleId": "169020fd-4d5e-45fc-a26c-23153df00dcf"}
+{ "resource": "vm", "action": "read",     "effect": "allow", "selector": "tags:qa", "roleId": "169020fd-4d5e-45fc-a26c-23153df00dcf" }
+{ "resource": "vm", "action": "start",    "effect": "allow", "selector": "tags:qa", "roleId": "169020fd-4d5e-45fc-a26c-23153df00dcf" }
+{ "resource": "vm", "action": "shutdown", "effect": "allow", "selector": "tags:qa", "roleId": "169020fd-4d5e-45fc-a26c-23153df00dcf" }
 ```
+
+`roleId` is the id returned when the role was created, as shown in the [walkthrough](#walkthrough-creating-and-assigning-a-role) below. The next two examples omit it and show the privilege itself only.
 
 Attach the role to Alice. She can now manage QA VMs only. Any attempt on a VM without the `qa` tag is blocked with a 403.
 
@@ -296,7 +304,7 @@ Everything shown in the walkthrough (and more) is available as plain REST calls,
 | `GET` / `POST /acl-privileges`                 | List privileges / create a privilege inside a role             |
 | `GET` / `PATCH` / `DELETE /acl-privileges/:id` | Read, update or delete a privilege                             |
 
-In the XO 6 interface, the **Administration** section of the sidebar covers users and groups; role and privilege management itself currently happens through the REST API, as shown above. See [Users and administration](management.md#users-and-administration).
+In the XO 6 interface, the **Administration** section of the sidebar covers users and groups; role and privilege management itself currently happens through the REST API, as shown above. See [Users and administration](xo6/management.md#users-and-administration).
 
 <UiShot light="/img/xo6/administration-light.png" dark="/img/xo6/administration-dark.png" alt="The Administration section in XO 6, where users and groups are managed" url="https://your-xo/v6/#/admin/user-management/users" />
 
@@ -304,7 +312,7 @@ In the XO 6 interface, the **Administration** section of the sidebar covers user
 
 ## Selectors
 
-By default, a privilege applies to **all** objects of the given resource type. The optional `selector` field narrows it down using the [complex-matcher](../xo5/manage_infrastructure.md#filter-syntax) syntax, the same filter syntax used in the XO UI.
+By default, a privilege applies to **all** objects of the given resource type. The optional `selector` field narrows it down using the [complex-matcher](xo5/manage_infrastructure.md#filter-syntax) syntax, the same filter syntax used in the XO UI.
 
 A selector is evaluated against each object's properties. If it matches, the privilege applies; otherwise it does not.
 

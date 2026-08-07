@@ -171,7 +171,7 @@ the parked standby. */}
 - **Backup and disaster recovery**: rolling snapshots, full and incremental backups, replication, mirroring and immutability, toward S3, NFS, SMB or Azure targets. See [Backups](xo6/backups.md).
 - **Migration from VMware**: [V2V](xo5/v2v-migration-guide.md) imports your ESXi VMs directly into your pools.
 - **Automation**: a [REST API](automation/restapi.md), a CLI, and first-class providers for [Terraform](automation/terraform-provider.md), [Ansible](automation/ansible.md), [Pulumi](automation/pulumi-provider.md), [Packer](automation/packer-provider.md) and [PowerShell](automation/powershell-module.md), plus [Kubernetes cluster recipes](automation/kubernetes.md).
-- **Delegation**: users, groups and [ACLs](xo6/acl-v2.md) to give each team exactly the access it needs.
+- **Delegation**: users, groups and [RBAC](rbac.md) to give each team exactly the access it needs.
 - **Scale**: one XO manages any number of pools on any number of sites, over LAN or WAN.
 
 ## XO in the Vates VMS stack

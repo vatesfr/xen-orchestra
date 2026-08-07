@@ -118,7 +118,7 @@ export default {
       label: 'Users and access',
       collapsible: true,
       collapsed: true,
-      items: ['xo5/users', 'xo6/acl-v2', 'credential-encryption'],
+      items: ['xo5/users', 'rbac', 'credential-encryption'],
     },
     {
       type: 'category',

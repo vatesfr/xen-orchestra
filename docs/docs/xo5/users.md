@@ -6,7 +6,7 @@ Xen Orchestra involves three distinct notions of "user account". Make sure you a
 
 - **XOA system accounts**: the Linux accounts (`xoa`, `root`) of the appliance itself, used for SSH and console access. See [First login](../installation.md#first-login).
 - **XO application users**: the accounts inside the Xen Orchestra web application. This is what this page is about.
-- **XO 6 / REST API roles**: XO 6 introduces a new RBAC model (ACL v2) with roles and fine-grained privileges. See the [ACL v2 page](../xo6/acl-v2.md).
+- **XO 6 / REST API roles**: XO 6 introduces a new RBAC model with roles and fine-grained privileges. See the [RBAC page](../rbac.md).
 
 There are 2 types of XO users:
 
@@ -474,7 +474,7 @@ You can now connect with your Google account in the login page.
 ACLs are permissions that apply to preexisting objects, like users and groups.
 
 :::note
-This section describes ACL v1, used by the XO 5 interface. The REST API and XO 6 use a new RBAC model: see [ACL v2](../xo6/acl-v2.md).
+This section describes the original ACLs, used by the XO 5 interface. The REST API and XO 6 use a broader model: see [RBAC](../rbac.md).
 :::
 
 ### Who can manage ACLs?

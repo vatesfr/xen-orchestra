@@ -98,4 +98,4 @@ The **Administration** tab of the sidebar covers who can access your Xen Orchest
 
 <UiShot light="/img/xo6/administration-light.png" dark="/img/xo6/administration-dark.png" alt="The administration panel" url="https://your-xo/v6/#/admin/user-management/users" />
 
-For the permission model itself (roles, scopes and delegation), see [ACLs v2](acl-v2.md).
+For the permission model itself (roles, scopes and delegation), see [RBAC](../rbac.md).
