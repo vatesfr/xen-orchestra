@@ -1,2 +1,5 @@
 export { VmBackupDirectory } from './VmBackupDirectory.mjs'
 export { deleteFullVmBackups } from './VmFullBackupArchive.mjs'
+export { deleteDeltaVmBackups } from './VmIncrementalBackupArchive.mjs'
+export { deleteMetadataBackup } from './MetadataBackup.mjs'
+export { readBackupCache, writeBackupCache } from './BackupCache.mjs'

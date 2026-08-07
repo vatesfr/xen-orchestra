@@ -6,14 +6,19 @@ import { decorateMethodsWith } from '@vates/decorate-with'
 import { dirname, join, resolve } from 'node:path'
 import { synchronized } from 'decorator-synchronized'
 import Disposable from 'promise-toolbox/Disposable'
-import fromCallback from 'promise-toolbox/fromCallback'
 import groupBy from 'lodash/groupBy.js'
 import pickBy from 'lodash/pickBy.js'
 import reduce from 'lodash/reduce.js'
-import zlib from 'zlib'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
-import { VmBackupDirectory, deleteFullVmBackups as deleteFullVmBackupFiles } from '@xen-orchestra/backup-archive'
+import {
+  VmBackupDirectory,
+  deleteFullVmBackups as deleteFullVmBackupFiles,
+  deleteDeltaVmBackups as deleteDeltaVmBackupFiles,
+  deleteMetadataBackup as deleteMetadataBackupFiles,
+  readBackupCache,
+  writeBackupCache,
+} from '@xen-orchestra/backup-archive'
 import { fileRestoreDecorators, fileRestoreMethods } from './_fileRestore.mjs'
 import { formatFilenameDate } from './_filenameDate.mjs'
 import { isMetadataFile } from './_backupType.mjs'
@@ -100,24 +105,17 @@ export class RemoteAdapter {
   }
 
   async deleteDeltaVmBackups(backups) {
-    const handler = this._handler
-
     // this will delete the json, unused VHDs will be detected by `cleanVm`
-    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
+    await deleteDeltaVmBackupFiles(
+      this._handler,
+      backups.map(({ _filename }) => ({ metadataPath: _filename }))
+    )
 
     await this.#removeVmBackupsFromCache(backups)
   }
 
   async deleteMetadataBackup(backupId) {
-    const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
-    const metadataDirReg = 'xo-(config|pool-metadata)-backups'
-    const timestampReg = '\\d{8}T\\d{6}Z'
-    const regexp = new RegExp(`^${metadataDirReg}/${uuidReg}(/${uuidReg})?/${timestampReg}`)
-    if (!regexp.test(backupId)) {
-      throw new Error(`The id (${backupId}) not correspond to a metadata folder`)
-    }
-
-    await this._handler.rmtree(backupId)
+    await deleteMetadataBackupFiles(this._handler, backupId)
   }
 
   async deleteOldMetadataBackups(dir, retention) {
@@ -291,13 +289,7 @@ export class RemoteAdapter {
   }
 
   async _readCache(path) {
-    try {
-      return JSON.parse(await fromCallback(zlib.gunzip, await this.handler.readFile(path)))
-    } catch (error) {
-      if (error.code !== 'ENOENT') {
-        warn('#readCache', { error, path })
-      }
-    }
+    return readBackupCache(this.handler, path, warn)
   }
 
   _updateCache = synchronized.withKey()(this._updateCache)
@@ -317,11 +309,7 @@ export class RemoteAdapter {
   }
 
   async _writeCache(path, data) {
-    try {
-      await this.handler.writeFile(path, await fromCallback(zlib.gzip, JSON.stringify(data)), { flags: 'w' })
-    } catch (error) {
-      warn('#writeCache', { error, path })
-    }
+    return writeBackupCache(this.handler, path, data, warn)
   }
 
   async #getCacheableDataListVmBackups(dir) {
