@@ -35,6 +35,19 @@ const { buildXo5Route } = useXoRoutes()
 
 const sections = computed<AdminMenuSection[]>(() => [
   {
+    titleKey: 'backups',
+    items: [
+      { labelKey: 'jobs', href: buildXo5Route('/backup/overview'), to: undefined },
+      { labelKey: 'brs', href: undefined, to: { name: '/admin/backups' } },
+      { labelKey: 'archives', href: buildXo5Route('/backup/restore'), to: undefined },
+      {
+        labelKey: 'logs',
+        href: buildXo5Route('/backup/overview'),
+        to: undefined,
+      },
+    ],
+  },
+  {
     titleKey: 'user-management',
     items: [
       { labelKey: 'users', href: undefined, to: { name: '/admin/user-management' } },

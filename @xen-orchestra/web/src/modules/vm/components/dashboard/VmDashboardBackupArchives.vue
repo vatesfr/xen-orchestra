@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-br-collection'
+import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection'
 import type { VmDashboardBackupArchive, XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes'
 import VtsRow from '@core/components/table/VtsRow.vue'
