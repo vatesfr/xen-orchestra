@@ -22,7 +22,7 @@
     "xo-proxy-cli": "./index.mjs"
   },
   "engines": {
-    "node": ">=14.13"
+    "node": ">=22.19"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.0",
@@ -36,7 +36,7 @@
     "promise-toolbox": "^0.21.0",
     "pumpify": "^2.0.1",
     "split2": "^4.1.0",
-    "undici": "^6.26.0"
+    "undici": "^8.10.0"
   },
   "scripts": {
     "postversion": "npm publish --access public"

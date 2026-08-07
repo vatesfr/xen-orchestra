@@ -23,6 +23,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [REST API] Fix `/users/:id/authentication_tokens` sometimes did not return the token used to make the request (PR [#10233](https://github.com/vatesfr/xen-orchestra/pull/10233))
+- [Backup] Fix backups and exports hanging forever, with `uncaught exception AssertionError: assert(!this.paused)` in the logs, when a host closes a transfer while XO is writing to a slower destination (PR [#10249](https://github.com/vatesfr/xen-orchestra/pull/10249))
 
 ### Packages to release
 
@@ -41,16 +42,19 @@
 <!--packages-start-->
 
 - @xen-orchestra/acl minor
-- @xen-orchestra/proxy-cli patch
+- @xen-orchestra/mcp major
+- @xen-orchestra/proxy-cli major
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/upload-ova patch
+- @xen-orchestra/vmware-explorer major
 - @xen-orchestra/web minor
-- @xen-orchestra/xapi patch
-- xen-api minor
-- xo-cli patch
+- @xen-orchestra/xapi major
+- xen-api major
+- xo-cli major
 - xo-common minor
-- xo-server patch
+- xo-server major
 - xo-server-ipmi-sensors minor
 - xo-server-netbox patch
+- xo-server-openmetrics major
 
 <!--packages-end-->

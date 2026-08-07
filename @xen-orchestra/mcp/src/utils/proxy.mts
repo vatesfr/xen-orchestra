@@ -1,11 +1,31 @@
-import { EnvHttpProxyAgent, type Dispatcher } from 'undici'
+import { EnvHttpProxyAgent, fetch as undiciFetch, type Dispatcher, type RequestInit, type Response } from 'undici'
+
+/** `RequestInit` augmented with undici's `dispatcher` field. */
+export type FetchInit = RequestInit & { dispatcher?: Dispatcher }
+
+export type FetchFn = (input: string | URL, init?: FetchInit) => Promise<Response>
+
+let fetchImpl: FetchFn = undiciFetch as FetchFn
 
 /**
- * `RequestInit` augmented with undici's `dispatcher` field. Node's global
- * `fetch` reads `dispatcher` correctly even though the DOM types don't expose
- * it — a localised cast at every call site would otherwise be needed.
+ * undici's own `fetch`, used by every call site that passes a `dispatcher`.
+ * Node's global `fetch` is backed by the copy of undici bundled inside Node,
+ * and since undici 8 it rejects a dispatcher built from the standalone package
+ * with `invalid onRequestStart method`.
+ *
+ * Indirected through `fetchImpl` so tests can substitute it, which assigning
+ * `globalThis.fetch` no longer achieves now that the calls no longer go there.
  */
-export type FetchInit = RequestInit & { dispatcher?: Dispatcher }
+export const fetch: FetchFn = (input, init) => fetchImpl(input, init)
+
+/** Test-only: substitute `fetch`. Returns a function restoring the previous one. */
+export function setFetch(impl: FetchFn): () => void {
+  const previous = fetchImpl
+  fetchImpl = impl
+  return () => {
+    fetchImpl = previous
+  }
+}
 
 let cachedDispatcher: Dispatcher | undefined
 

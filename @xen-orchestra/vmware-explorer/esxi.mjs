@@ -3,7 +3,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { dirname, join } from 'node:path'
 import { EventEmitter } from 'node:events'
 import { strictEqual, notStrictEqual } from 'node:assert'
-import { Agent } from 'undici'
+import { Agent, fetch } from 'undici'
 
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
