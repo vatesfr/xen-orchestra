@@ -2,6 +2,17 @@ import type { AnyXoBackupJob, XoBackupRepository } from '@vates/types'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { inject } from 'inversify'
+import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
+import { BACKUP_DIR } from '@xen-orchestra/backups/_getVmBackupDir.mjs'
+import { getSyncedHandler } from '@xen-orchestra/fs'
+import { Disposable } from 'promise-toolbox'
+import { Task } from '@vates/task'
+import { asyncEach } from '@vates/async-each'
+import { ApiError } from '../helpers/error.helper.mjs'
+
+export interface ReclaimSpaceResult {
+  results: Array<{ vmUuid: string; success: boolean; error?: string }>
+}
 
 export class BackupRepositoryService {
   #restApi: RestApi
@@ -38,5 +49,60 @@ export class BackupRepositoryService {
     }
 
     return referencingJobs
+  }
+
+  async reclaimSpace(backupRepositoryId: XoBackupRepository['id'], vmUuid?: string) {
+    const remote = await this.#restApi.xoApp.getRemote(backupRepositoryId)
+
+    let results: ReclaimSpaceResult['results']
+    try {
+      results = await Disposable.use(getSyncedHandler(remote), async handler => {
+        const adapter = new RemoteAdapter(handler)
+        const vmUuids: string[] = vmUuid !== undefined ? [vmUuid] : await adapter.listAllVms()
+
+        Task.set('total', vmUuids.length)
+        let done = 0
+
+        const results: ReclaimSpaceResult['results'] = []
+
+        await asyncEach(
+          vmUuids,
+          async uuid => {
+            try {
+              await Task.run({ name: `Clean VM ${uuid}`, data: { type: 'VM', id: uuid } }, () =>
+                adapter.cleanVm(`${BACKUP_DIR}/${uuid}`, {
+                  lock: true,
+                  remove: true,
+                  merge: true,
+                  logInfo: Task.info,
+                  logWarn: Task.warning,
+                })
+              )
+
+              results.push({
+                vmUuid: uuid,
+                success: true,
+              })
+            } catch (error: any) {
+              throw new ApiError(`failed to reclaim space for VM ${uuid}, error: ${error.message}`, 400)
+            } finally {
+              done++
+              Task.set('progress', Math.round((done / vmUuids.length) * 100))
+            }
+          },
+          { concurrency: 2 }
+        )
+        return results
+      })
+    } catch (error) {
+      throw new ApiError(`${error}`, 502)
+    }
+
+    const failures = results.filter(r => !r.success)
+    if (failures.length === results.length && results.length > 0) {
+      throw new ApiError('Reclaim space failed for all VMs', 400, { data: { results } })
+    }
+
+    return { results }
   }
 }
