@@ -3,6 +3,7 @@
 ## **next**
 
 - [Pool/networks] Add the possibility to create new network or bonded network (PR [#10145](https://github.com/vatesfr/xen-orchestra/pull/10145))
+- [Pool/networks] Add the possibility to create new internal network (PR [#10235](https://github.com/vatesfr/xen-orchestra/pull/10235))
 
 ## **0.24.0** (2026-07-30)
 
