@@ -19,6 +19,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [sdn-controller] Fix `update_traffic_rule` keeping the previous port: `newRule` is a partial update and a field sent as `null` is now removed from the rule (PR [#10307](https://github.com/vatesfr/xen-orchestra/pull/10307))
+- [Backup] No longer create a `cache.json.gz` file on immutable/S3 remote during cleanup, which could not be deleted afterwards and stayed billed forever
 
 
 ### Packages to release
@@ -38,6 +39,8 @@
 <!--packages-start-->
 
 - @vates/types major
+- @xen-orchestra/backup-archive minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor

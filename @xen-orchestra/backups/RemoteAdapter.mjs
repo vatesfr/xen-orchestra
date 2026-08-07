@@ -13,7 +13,7 @@ import reduce from 'lodash/reduce.js'
 import zlib from 'zlib'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
-import { VmBackupDirectory } from '@xen-orchestra/backup-archive'
+import { VmBackupDirectory, deleteFullVmBackups as deleteFullVmBackupFiles } from '@xen-orchestra/backup-archive'
 import { fileRestoreDecorators, fileRestoreMethods } from './_fileRestore.mjs'
 import { formatFilenameDate } from './_filenameDate.mjs'
 import { isMetadataFile } from './_backupType.mjs'
@@ -129,23 +129,16 @@ export class RemoteAdapter {
   }
 
   async deleteFullVmBackups(backups) {
-    const handler = this._handler
-    await asyncMapSettled(backups, ({ _filename, xva }) =>
-      Promise.all([
-        handler.unlink(_filename).catch(error => {
-          warn('error while removing full vm backup metadata', { error, filename: _filename })
-          if (error.code !== 'ENOENT') throw error
-        }),
-        handler.unlink(resolveRelativeFromFile(_filename, xva)).catch(error => {
-          warn('error while removing full vm backup file', { error, filename: _filename })
-          if (error.code !== 'ENOENT') throw error
-        }),
-        handler.unlink(resolveRelativeFromFile(_filename, `${xva}.checksum`)).catch(error => {
-          // checksum can be missing , it's not an issue
-          if (error.code !== 'ENOENT') throw error
-        }),
-      ])
-    )
+    await asyncMapSettled(backups, async ({ _filename, xva }) => {
+      try {
+        await deleteFullVmBackupFiles(this._handler, [
+          { metadataPath: _filename, xvaPath: resolveRelativeFromFile(_filename, xva) },
+        ])
+      } catch (error) {
+        warn('error while removing full vm backup', { error, filename: _filename, failedPath: error.path })
+        throw error
+      }
+    })
 
     await this.#removeVmBackupsFromCache(backups)
   }
