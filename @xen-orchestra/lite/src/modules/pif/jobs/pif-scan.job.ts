@@ -1,4 +1,4 @@
-import { hostArg } from '@/jobs/args'
+import { hostArg } from '@/modules/host/jobs/host-args.ts'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
