@@ -244,6 +244,9 @@ maxUncoalescedVdis = 1
 # The duration XO will wait for a host to be live before assuming it failed to
 # restart
 restartHostTimeout = '20 minutes'
+# The total duration a rolling pool update or reboot may spend waiting for a
+# TWINSTOR storage to be back in sync, for the whole run and not per host
+twinstorSyncTimeout = '2 hours'
 vdiDelayBeforeRemovingCloudConfigDrive = '5 min'
 vdiExportConcurrency = 12
 vmEvacuationConcurrency = 3

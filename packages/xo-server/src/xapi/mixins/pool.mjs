@@ -3,9 +3,18 @@ import { cancelable, timeout } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
+import {
+  describeTwinstorState,
+  isTwinstorDaemonAlive,
+  isTwinstorHost,
+  isTwinstorSr,
+  parseTwinstorSrState,
+} from '../_twinstor.mjs'
 import { incorrectState } from 'xo-common/api-errors.js'
 import { isHostRunning } from '../utils.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
+// only used for its `signal` support, which pDelay does not have
+import { setTimeout as sleep } from 'node:timers/promises'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import filter from 'lodash/filter.js'
 import groupBy from 'lodash/groupBy.js'
@@ -26,6 +35,12 @@ const PINNED_VM_ERROR_CODES = new Set(['VM_HAS_PCI_ATTACHED', 'VM_HAS_VGPU', 'VM
 // just rebooted
 const PINNED_VM_SHUTDOWN_CONCURRENCY = 8
 const PINNED_VM_START_CONCURRENCY = 2
+
+const TWINSTOR_POLL_INTERVAL = 10e3
+
+// without its own bound a read would inherit the XAPI call timeout (an hour)
+// and overrun the sync budget by that much
+const TWINSTOR_PROBE_TIMEOUT = 60e3
 
 const setProgress = (task, progress) => task.set('progress', Math.round(progress))
 
@@ -48,11 +63,179 @@ const methods = {
     })
   },
 
+  // One read of the pool's TWINSTOR advertisement: whether a host may be
+  // rebooted right now, and if not, what is holding it back.
+  async _probeTwinstor({ srRefs, hostRefs, publishedBefore }) {
+    const now = Date.now()
+
+    let srOtherConfigs, hostOtherConfigs
+    try {
+      ;[srOtherConfigs, hostOtherConfigs] = await Promise.all([
+        Promise.all(srRefs.map(ref => timeout.call(this.getField('SR', ref, 'other_config'), TWINSTOR_PROBE_TIMEOUT))),
+        Promise.all(
+          hostRefs.map(ref => timeout.call(this.getField('host', ref, 'other_config'), TWINSTOR_PROBE_TIMEOUT))
+        ),
+      ])
+    } catch (error) {
+      // the pool master may still be reconnecting after its own reboot: an
+      // unreadable advertisement is simply not a synced one
+      log.warn('could not read the TWINSTOR state of the pool', { error })
+      return { isReady: false, blockedBy: `the TWINSTOR state of the pool could not be read: ${error.message}` }
+    }
+
+    const states = srOtherConfigs.map(otherConfig => parseTwinstorSrState(otherConfig, { now }))
+
+    // an advertisement which cannot be read is worth retrying, one which cannot
+    // be interpreted is not: waiting would only delay the same verdict
+    const incompatible = states.find(_ => !_.isSchemaSupported)
+    if (incompatible !== undefined) {
+      throw new Error(`unsupported TWINSTOR schema ${JSON.stringify(incompatible.schema)}, update XO to roll this pool`)
+    }
+
+    // see isTwinstorDaemonAlive: DRBD keeps replicating without the daemon
+    const iDown = hostOtherConfigs.findIndex(otherConfig => !isTwinstorDaemonAlive(otherConfig, { now }))
+    if (iDown !== -1) {
+      return {
+        isReady: false,
+        blockedBy: `the TWINSTOR daemon is not running on ${this.getObject(hostRefs[iDown]).name_label}`,
+      }
+    }
+
+    const iBlocked = states.findIndex((state, i) => {
+      const before = publishedBefore.get(srRefs[i])
+      return !state.isSynced || (before !== undefined && state.updatedAt <= before)
+    })
+    if (iBlocked !== -1) {
+      const state = states[iBlocked]
+      return {
+        isReady: false,
+        blockedBy: state.isSynced
+          ? 'TWINSTOR has not published its state since the last host rebooted'
+          : describeTwinstorState(state, { now }),
+        // a stale advertisement carries a stale percentage, most likely the
+        // 100% which preceded a reboot
+        progress: state.isStale ? undefined : state.progress,
+      }
+    }
+
+    return { isReady: true, published: new Map(srRefs.map((ref, i) => [ref, states[i].updatedAt])) }
+  },
+
+  // Refuse a run upfront rather than once HA, auto power on, the load balancer
+  // and the pool's backup schedules have been disabled. Waiting is only
+  // legitimate later on, when the resync being waited on is one the run caused.
+  async _assertTwinstorReady(twinstor) {
+    if (twinstor.srRefs.length === 0) {
+      return
+    }
+    const { isReady, blockedBy } = await this._probeTwinstor(twinstor)
+    if (!isReady) {
+      throw incorrectState({
+        actual: blockedBy,
+        expected: 'synced',
+        object: this.pool.uuid,
+        property: 'twinstorStorageState',
+      })
+    }
+  },
+
+  // A host may only be rebooted while both replicas are up to date: during a
+  // resync a single host holds the only complete copy of the data. Rebooting is
+  // itself what starts the next resync, so this is the step which paces the
+  // whole run. Returns the advertisement it accepted, which the caller records
+  // before rebooting so the next host is not waved through on a stale one.
+  //
+  // `twinstorSyncTimeout` budgets the whole run rather than one wait, so it also
+  // bounds how long the pool can be held with HA disabled.
+  async _waitForTwinstorSync(twinstor, taskProperties) {
+    if (twinstor.srRefs.length === 0) {
+      return new Map()
+    }
+
+    // by far the common case, on every host but the ones following a reboot:
+    // report nothing rather than adding an instantly resolved task per host
+    const first = await this._probeTwinstor(twinstor)
+    if (first.isReady) {
+      return first.published
+    }
+
+    const task = new Task({ properties: { ...taskProperties, progress: 0 } })
+    const startedAt = Date.now()
+    const deadline = startedAt + twinstor.syncTimeLeft
+    try {
+      return await task.run(async () => {
+        // the one step which can hold for hours, and the only one where the run
+        // is waiting not to have rebooted anything yet
+        const abortSignal = Task.abortSignal
+
+        let probe = first
+        while (!probe.isReady && Date.now() < deadline) {
+          abortSignal?.throwIfAborted()
+          task.set('twinstorState', probe.blockedBy)
+          setProgress(task, probe.progress ?? 0)
+
+          // an abort cuts the delay short, and is raised on the next line with
+          // the run's own reason rather than as a generic AbortError
+          await sleep(twinstor.pollInterval, undefined, { signal: abortSignal }).catch(() => {})
+          abortSignal?.throwIfAborted()
+          probe = await this._probeTwinstor(twinstor)
+        }
+
+        if (!probe.isReady) {
+          throw new Error(`TWINSTOR storage did not get back in sync in time (${probe.blockedBy})`)
+        }
+        setProgress(task, 100)
+        return probe.published
+      })
+    } finally {
+      // charged on every outcome: what the budget bounds is the time the pool
+      // spends held, not whether the wait worked out
+      twinstor.syncTimeLeft = Math.max(0, twinstor.syncTimeLeft - (Date.now() - startedAt))
+    }
+  },
+
   async rollingPoolReboot(
     $defer,
     parentTask,
     { beforeEvacuateVms, beforeRebootHost, ignoreHost, shutdownPinnedVms = false } = {}
   ) {
+    const hosts = filter(this.objects.all, { $type: 'host' })
+
+    // resolved once, while the whole pool is up and its records are all in
+    // cache: re-scanning between reboots could miss an SR whose record has not
+    // been repopulated yet, and silently turn the gate into a no-op
+    const twinstor = {
+      srRefs: filter(this.objects.indexes.type.SR, sr => isTwinstorSr(sr.other_config)).map(sr => sr.$ref),
+      hostRefs: hosts.filter(host => isTwinstorHost(host.other_config)).map(host => host.$ref),
+      // what each SR had published when the last host was rebooted, which the
+      // next advertisement must be newer than to be believed
+      publishedBefore: new Map(),
+      // how much longer this run may spend waiting on the storage, in total
+      syncTimeLeft: this._twinstorSyncTimeout,
+      pollInterval: TWINSTOR_POLL_INTERVAL,
+    }
+    if (twinstor.srRefs.length > 0) {
+      log.info(
+        `pool ${this.pool.uuid} is backed by TWINSTOR, hosts will be rebooted only while both replicas are synced`
+      )
+    } else {
+      // a daemon stamping its liveness right now, on a pool where no SR
+      // advertises, means the gate has no signal rather than that this is an
+      // ordinary pool. A host which merely used to run TWINSTOR does not trip
+      // this: an uninstall stops the daemon, which clears the stamp.
+      const liveHost = hosts.find(host => isTwinstorDaemonAlive(host.other_config))
+      if (liveHost !== undefined) {
+        throw incorrectState({
+          actual: 'no TWINSTOR SR advertises its replication state',
+          expected: 'a TWINSTOR SR advertising its replication state',
+          object: liveHost.uuid,
+          property: 'twinstorStorageState',
+        })
+      }
+    }
+
+    await this._assertTwinstorReady(twinstor)
+
     if (this.pool.ha_enabled) {
       const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
       const haConfig = this.pool.ha_configuration
@@ -65,8 +248,6 @@ const methods = {
       await this.pool.update_other_config('auto_poweron', 'false')
       $defer(() => this.pool.update_other_config('auto_poweron', 'true'))
     }
-
-    const hosts = filter(this.objects.all, { $type: 'host' })
 
     {
       const deadHost = hosts.find(_ => !isHostRunning(_))
@@ -201,6 +382,15 @@ const methods = {
             await this.barrier(metricsRef)
             await this._waitObjectState(metricsRef, metrics => metrics.live)
 
+            // no point evacuating and patching a host which cannot then be
+            // rebooted
+            await this._waitForTwinstorSync(twinstor, {
+              name: 'Waiting for TWINSTOR storage to be in sync before evacuating',
+              objectId: hostId,
+              hostId,
+              hostName,
+            })
+
             const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref)) * 1e3
 
             let pinnedVmRefs = []
@@ -247,6 +437,11 @@ const methods = {
             await Task.run({ properties: { name: `Evacuate`, hostId, hostName } }, async () => {
               await this.clearHost(host)
             })
+            // clearHost leaves the host disabled and only the reboot below
+            // re-enables it, so anything failing in between would leave it in
+            // maintenance mode and take the pinned-VM restart down with it
+            // (VM.start_on refuses a disabled host)
+            $defer.onFailure(() => this.enableHost(hostId))
             rprProgress += progressStepPerHost
             setProgress(parentTask, rprProgress)
             subtaskProgress += subtaskProgressStep
@@ -259,6 +454,21 @@ const methods = {
               subtaskProgress += subtaskProgressStep
               setProgress(restartSubtask, subtaskProgress)
             }
+
+            // evacuating and patching take long enough for the storage to have
+            // lost its redundancy since the check above
+            const twinstorPublished = await this._waitForTwinstorSync(twinstor, {
+              name: 'Waiting for TWINSTOR storage to be in sync before rebooting',
+              objectId: hostId,
+              hostId,
+              hostName,
+            })
+            // this host is about to go down and resync on its way back, so the
+            // advertisement just accepted no longer holds. Nothing clears it,
+            // and it stays young enough to pass a freshness check for minutes,
+            // longer than a host takes to boot: requiring the next one to be
+            // strictly newer is what makes the gate a barrier.
+            twinstor.publishedBefore = twinstorPublished
 
             const rebootTime = await getServerTime()
             await Task.run({ properties: { name: `Restart`, hostId, hostName } }, async () => {
