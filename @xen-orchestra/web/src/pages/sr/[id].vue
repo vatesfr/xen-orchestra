@@ -4,21 +4,20 @@
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
-    <SrHeader :sr :from-context="fromContext" />
+    <SrHeader :sr :scope />
     <component :is="Component" :sr />
   </RouterView>
 </template>
 
 <script lang="ts" setup>
-import { type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import SrHeader from '@/modules/storage-repository/components/SrHeader.vue'
+import SrHeader from '@/modules/storage-repository/components/header/SrHeader.vue'
 import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { parseSrScopeQuery } from '@/modules/storage-repository/utils/sr-scope.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
-import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -33,9 +32,5 @@ const { areSrsReady, useGetSrById } = useXoSrCollection()
 
 const sr = useGetSrById(() => route.params.id as FrontXoSr['id'])
 
-const fromContext = computed<SrScope>(() =>
-  route.query.from === SR_SCOPE_TYPE.HOST
-    ? { type: SR_SCOPE_TYPE.HOST, hostId: route.query.host as FrontXoHost['id'] }
-    : { type: SR_SCOPE_TYPE.POOL }
-)
+const scope = computed(() => parseSrScopeQuery(route.query))
 </script>

@@ -33,7 +33,7 @@ export function useGetPbdsInScope() {
 
   function getSrPbdsSignature(sr: FrontXoSr | undefined, scope: SrScope) {
     if (sr === undefined) {
-      return scope.type === 'host' ? `host:${scope.hostId}` : 'pool'
+      return scope.type === SR_SCOPE_TYPE.HOST ? `host:${scope.hostId}` : 'pool'
     }
 
     const scopedPbds = getPbdsInScope(sr, scope)
