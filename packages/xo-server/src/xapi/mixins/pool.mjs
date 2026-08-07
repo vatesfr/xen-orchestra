@@ -187,6 +187,11 @@ const methods = {
         const hostId = host.uuid
         const hostName = host.name_label
 
+        // the one point where stopping is free: the previous host is back up
+        // and nothing has been done to this one yet. Not applied once a host is
+        // on its way down, there is no un-rebooting it.
+        Task.abortSignal?.throwIfAborted()
+
         if (!ignoreHost || !ignoreHost(host)) {
           await Task.run({ properties: { name: `Restarting host ${hostId}`, hostId, hostName } }, async () => {
             // This is an old metrics reference from before the pool master restart.

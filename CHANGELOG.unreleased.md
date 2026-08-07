@@ -23,6 +23,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [REST API] Fix `/users/:id/authentication_tokens` sometimes did not return the token used to make the request (PR [#10233](https://github.com/vatesfr/xen-orchestra/pull/10233))
+- [RPU/RPR] Aborting the task now stops the run instead of being ignored: the remaining hosts are no longer rebooted (PR [#10248](https://github.com/vatesfr/xen-orchestra/pull/10248))
 
 ### Packages to release
 
