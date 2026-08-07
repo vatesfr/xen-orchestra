@@ -11,7 +11,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoMirrorBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
-import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
+import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

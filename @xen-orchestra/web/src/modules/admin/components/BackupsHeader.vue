@@ -1,5 +1,5 @@
 <template>
-  <UiHeadBar icon="object:organization">
+  <UiHeadBar icon="object:backup-archive">
     {{ t('backups') }}
   </UiHeadBar>
   <TabList>
