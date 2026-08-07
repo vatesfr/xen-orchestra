@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import { getBackupRepositoryType } from '@/modules/backup/components/utils/xo-backup-repository.utils.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsRow from '@xen-orchestra/web-core/components/table/VtsRow.vue'
@@ -75,7 +76,7 @@ const { HeadCells, BodyCells } = useBrColumns({
     return {
       backupRepository: r => r({ label: br.name, icon: 'object:backup-archive', href: xo5BrsHref.value }),
       status: r => r(br.enabled),
-      type: r => r(br.name),
+      type: r => r(getBackupRepositoryType(br.url)),
       proxy: r => r(br.proxy),
       usedSpace: r => r(''),
       selectItem: r => r(() => (selectedBrId.value = br.id)),
