@@ -14,7 +14,7 @@
           :to="{
             name: '/sr/[id]/general',
             params: { id: sr.id },
-            query: { from: SR_SCOPE_TYPE.HOST, host: host.id },
+            query: toSrScopeQuery({ type: SR_SCOPE_TYPE.HOST, hostId: host.id }),
           }"
         >
           {{ sr.name_label }}
@@ -34,6 +34,7 @@ import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { toSrScopeQuery } from '@/modules/storage-repository/utils/sr-scope.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

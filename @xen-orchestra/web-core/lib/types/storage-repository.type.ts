@@ -1,9 +1,11 @@
+import type { XoHost } from '@vates/types/'
+
 export const SR_SCOPE_TYPE = {
   POOL: 'pool',
   HOST: 'host',
 } as const
 
-export type SrScope = { type: typeof SR_SCOPE_TYPE.POOL } | { type: typeof SR_SCOPE_TYPE.HOST; hostId: string }
+export type SrScope = { type: typeof SR_SCOPE_TYPE.POOL } | { type: typeof SR_SCOPE_TYPE.HOST; hostId: XoHost['id'] }
 
 export const SR_ACCESS_MODE = {
   LOCAL: 'local',

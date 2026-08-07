@@ -1,24 +1,10 @@
 <template>
-  <div class="breadcrumb-container">
-    <UiBreadcrumb v-if="fromContext?.type === SR_SCOPE_TYPE.HOST && host" :size>
-      <UiLink :size :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }">
-        <VtsObjectIcon type="host" :state="toLower(host.power_state)" size="current" />
-        {{ host.name_label }}
+  <div class="sr-header-breadcrumb">
+    <UiBreadcrumb v-if="parent" :size>
+      <UiLink :size :to="parent.dashboardTo" :icon="parent.icon">
+        {{ parent.label }}
       </UiLink>
-      <UiLink :size :to="{ name: '/host/[id]/storage', params: { id: host.id } }">
-        {{ t('storage') }}
-      </UiLink>
-      <span class="sr-name">
-        <VtsObjectIcon type="sr" :state="srIconState" size="current" />
-        {{ sr.name_label }}
-      </span>
-    </UiBreadcrumb>
-    <UiBreadcrumb v-else-if="fromContext?.type === SR_SCOPE_TYPE.POOL && pool" :size>
-      <UiLink :size :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }">
-        <VtsIcon name="object:pool" size="current" />
-        {{ pool.name_label }}
-      </UiLink>
-      <UiLink :size :to="{ name: '/pool/[id]/storage', params: { id: pool.id } }">
+      <UiLink :size :to="parent.storageTo">
         {{ t('storage') }}
       </UiLink>
       <span class="sr-name">
@@ -36,46 +22,86 @@
 </template>
 
 <script setup lang="ts">
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { objectIcon, type IconName } from '@core/icons'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { RouteLocationRaw } from 'vue-router'
 
-const { sr, fromContext } = defineProps<{ sr: FrontXoSr; fromContext?: SrScope }>()
+type SrBreadcrumbParent = {
+  icon: IconName
+  label: string
+  dashboardTo: RouteLocationRaw
+  storageTo: RouteLocationRaw
+}
+
+const { sr, scope } = defineProps<{ sr: FrontXoSr; scope: SrScope }>()
 
 const { t } = useI18n()
 
 const uiStore = useUiStore()
 
+const { useGetHostById } = useXoHostCollection()
+const { useGetPoolById } = useXoPoolCollection()
+
 const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
 
-const { useGetPoolById } = useXoPoolCollection()
+const host = useGetHostById(() => (scope.type === SR_SCOPE_TYPE.HOST ? scope.hostId : undefined))
+
 const pool = useGetPoolById(() => sr.$pool)
 
 const { arePbdsReady } = useXoPbdCollection()
 
-const srIconState = computed(() => (arePbdsReady.value ? srConnectionStatus.value : undefined))
-const { useGetHostById } = useXoHostCollection()
+const parent = computed<SrBreadcrumbParent | undefined>(() => {
+  if (scope.type === SR_SCOPE_TYPE.HOST) {
+    const scopedHost = host.value
 
-const host = useGetHostById(() =>
-  fromContext?.type === SR_SCOPE_TYPE.HOST ? (fromContext.hostId as FrontXoHost['id']) : undefined
+    if (scopedHost === undefined) {
+      return undefined
+    }
+
+    return {
+      icon: objectIcon('host', toLower(scopedHost.power_state)),
+      label: scopedHost.name_label,
+      dashboardTo: { name: '/host/[id]/dashboard', params: { id: scopedHost.id } },
+      storageTo: { name: '/host/[id]/storage', params: { id: scopedHost.id } },
+    }
+  }
+
+  const srPool = pool.value
+
+  if (srPool === undefined) {
+    return undefined
+  }
+
+  return {
+    icon: 'object:pool',
+    label: srPool.name_label,
+    dashboardTo: { name: '/pool/[id]/dashboard', params: { id: srPool.id } },
+    storageTo: { name: '/pool/[id]/storage', params: { id: srPool.id } },
+  }
+})
+
+const { srConnectionStatus } = useXoSrUtils(
+  () => sr,
+  () => scope
 )
 
-const { srConnectionStatus } = useXoSrUtils(() => sr)
+const srIconState = computed(() => (arePbdsReady.value ? srConnectionStatus.value : undefined))
 </script>
 
 <style lang="postcss" scoped>
-.breadcrumb-container {
+.sr-header-breadcrumb {
   min-height: 5.6rem;
   padding: 1.2rem 1.6rem;
   display: flex;
