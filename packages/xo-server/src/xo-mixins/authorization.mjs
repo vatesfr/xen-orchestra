@@ -127,7 +127,8 @@ export default class Authorization {
       },
     })
     const activeBundleLicenses = xoaLicences?.filter(
-      ({ expires, bundleInfo }) => (expires === undefined || expires > now) && bundleInfo !== undefined
+      ({ expires, bundleInfo }) =>
+        (expires === undefined || expires > now) && bundleInfo !== undefined && bundleInfo.id !== 'no-bundle'
     )
     if (activeBundleLicenses === undefined || activeBundleLicenses.length === 0) {
       return undefined

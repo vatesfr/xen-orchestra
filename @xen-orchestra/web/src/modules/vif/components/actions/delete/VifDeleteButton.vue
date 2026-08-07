@@ -1,12 +1,12 @@
 <template>
-  <MenuItem icon="action:delete" :disabled="!canDeleteVif" :busy="isDeletingVif" @click="openVifDeleteModal()">
+  <MenuItem icon="action:delete" :disabled="!canDeleteVifs" :busy="isDeletingVifs" @click="deleteVifs()">
     {{ t('action:delete') }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
-import { useVifDeleteModal } from '@/modules/vif/composables/use-vif-delete-modal.composable.ts'
+import { useVifDelete } from '@/modules/vif/composables/use-vif-delete.composable.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import MenuItem from '@xen-orchestra/web-core/components/menu/MenuItem.vue'
 import { computed } from 'vue'
@@ -18,7 +18,7 @@ const { vif } = defineProps<{
 
 const { t } = useI18n()
 
-const { openModal: openVifDeleteModal, canRun: canDeleteVif, isRunning: isDeletingVif } = useVifDeleteModal(() => [vif])
+const { deleteVifs, canDeleteVifs, isDeletingVifs } = useVifDelete(() => [vif])
 
-const hint = computed(() => (!canDeleteVif.value ? t('vif-connected') : undefined))
+const hint = computed(() => (!canDeleteVifs.value ? t('vif-connected') : undefined))
 </script>
