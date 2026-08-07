@@ -110,6 +110,6 @@ To support a brand-new vendor, add a new `{ vendor, sensorRegexps }` object. The
 
 ## 6. Verify
 
-Re-run `GET /rest/v0/hosts/{id}/ipmi` and confirm the previously-unknown sensors
+Re-run `GET /rest/v0/plugins/ipmi-sensors/hosts/{id}/ipmi` and confirm the previously-unknown sensors
 now report the expected `dataType`, then check that the categorized
 `get_ipmi_sensors` output groups them correctly.
