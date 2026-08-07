@@ -14,8 +14,6 @@
     "types": ["node"] // Only use types from Node.js and packages that are explicitly imported
   },
   "include": ["src/**/*"],
-  // *.integ.mjs deliberately imports from the built dist/ output to test it; letting tsc
-  // follow those imports (via allowJs) makes it treat dist/*.d.mts as program input, which
-  // then collides with their own re-emission on any run that doesn't start from a clean dist/
+  // *.integ.mjs deliberately imports from the built dist/ output to test it
   "exclude": ["node_modules", "dist", "**/*.integ.mjs"]
 }

@@ -1,6 +1,6 @@
 import { basename, normalize } from '@xen-orchestra/fs/path'
 import assert from 'node:assert'
-import { FileDescriptor } from '@xen-orchestra/fs'
+import { FileDescriptor, RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import {
   ArchiveCleanOptions,
   CheckResult,
@@ -8,8 +8,9 @@ import {
   VmBackupInterface,
   PartialBackupMetadata,
   ResolvedBackupCleanOptions,
+  DEFAULT_REMOVE_CONCURRENCY,
 } from './VmBackup.types.mjs'
-import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
+import { asyncEach } from '@vates/async-each'
 
 const COMPRESSED_MAGIC_NUMBERS: Buffer[] = [
   // https://tools.ietf.org/html/rfc1952.html#page-5
@@ -79,6 +80,38 @@ export async function isValidXva(
 }
 
 const noop = (): void => {}
+
+async function unlinkTolerant(handler: RemoteHandlerAbstract, path: string): Promise<void> {
+  try {
+    await handler.unlink(path)
+  } catch (error) {
+    if (error?.code !== 'ENOENT') {
+      error.path ??= path
+      throw error
+    }
+  }
+}
+
+/**
+ * Deletes a full VM backup's metadata json and, when provided, its xva and checksum.
+ * Shared with the legacy @xen-orchestra/backups RemoteAdapter.
+ */
+export async function deleteFullVmBackups(
+  handler: RemoteHandlerAbstract,
+  backups: Array<{ metadataPath: string; xvaPath?: string }>
+): Promise<void> {
+  await asyncEach(
+    backups,
+    async ({ metadataPath, xvaPath }) => {
+      await unlinkTolerant(handler, metadataPath)
+      if (xvaPath !== undefined) {
+        await unlinkTolerant(handler, xvaPath)
+        await unlinkTolerant(handler, `${xvaPath}.checksum`)
+      }
+    },
+    { concurrency: DEFAULT_REMOVE_CONCURRENCY }
+  )
+}
 
 export class VmFullBackupArchive implements VmBackupInterface {
   handler: RemoteHandlerAbstract
@@ -158,12 +191,10 @@ export class VmFullBackupArchive implements VmBackupInterface {
             files: this.getAssociatedFiles({ prefix: false }),
           })
         } else {
-          for (const file of removedFiles) {
-            try {
-              await this.handler.unlink(file)
-            } catch (error) {
-              this.opts.logWarn(`Issue removing ${file}`, { error })
-            }
+          try {
+            await deleteFullVmBackups(this.handler, [{ metadataPath: this.metadataPath, xvaPath: this.xvaPath }])
+          } catch (error) {
+            this.opts.logWarn(`Issue removing backup files`, { error, metadataPath: this.metadataPath })
           }
         }
       }
@@ -173,7 +204,7 @@ export class VmFullBackupArchive implements VmBackupInterface {
   }
 
   getAssociatedFiles({ prefix = false }): Array<string> {
-    let validFiles = [this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`]
+    const validFiles = [this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`]
     return prefix ? validFiles : validFiles.map(file => basename(file))
   }
 }
