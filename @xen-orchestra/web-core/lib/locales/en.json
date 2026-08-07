@@ -1217,7 +1217,6 @@
   "virtualization-type": "Virtualization type",
   "vlan": "VLAN",
   "vlan-required": "VLAN is required.",
-  "vlan-no-default": "No VLAN by default.",
   "vm": "VM",
   "vm-backup-failure-number-of-retries": "Number of retries if VM backup fails",
   "vm-disable-blocked-protection": "To proceed, you can disable the protection in the VM’s configuration.",
