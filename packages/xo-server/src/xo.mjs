@@ -28,6 +28,10 @@ import { generateToken, noop } from './utils.mjs'
 // ===================================================================
 
 const log = createLogger('xo:xo')
+/**
+ * @type {Map<string, EventEmitter>}
+ */
+const EE_BY_TYPE = new Map()
 
 @mixinLegacy(Object.values(mixins))
 export default class Xo extends EventEmitter {
@@ -60,6 +64,31 @@ export default class Xo extends EventEmitter {
     }
 
     this.hooks.on('start', () => this._watchObjects())
+    this.hooks.on('registerCollection', async ({ collection, type }) => {
+      const cache = new Map()
+      const emitter = new EventEmitter()
+      const objects = await collection.get()
+      objects.forEach(object => cache.set(object.id, object))
+
+      const onAddOrUpdate = objects => {
+        objects.forEach(object => {
+          const previous = cache.get(object.id)
+          cache.set(object.id, object)
+          emitter.emit(previous === undefined ? 'add' : 'update', object, previous)
+        })
+      }
+      collection.on('add', onAddOrUpdate)
+      collection.on('update', onAddOrUpdate)
+      collection.on('remove', ids =>
+        ids.forEach(id => {
+          const previous = cache.get(id)
+          cache.delete(id)
+          emitter.emit('remove', undefined, previous)
+        })
+      )
+
+      EE_BY_TYPE.set(type, emitter)
+    })
 
     const debounceResource = createDebounceResource()
     debounceResource.defaultDelay = parseDuration(config.resourceCacheDelay)
@@ -75,6 +104,15 @@ export default class Xo extends EventEmitter {
   }
 
   // -----------------------------------------------------------------
+
+  getXoEventEmitterByType(type) {
+    const emitter = EE_BY_TYPE.get(type)
+    if (emitter === undefined) {
+      throw new Error('collection not registered')
+    }
+
+    return emitter
+  }
 
   // Returns an object from its key or UUID.
   getObject(key, type) {

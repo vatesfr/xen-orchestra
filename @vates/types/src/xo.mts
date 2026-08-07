@@ -140,6 +140,7 @@ export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
 }
 
 // TODO: to be typed when Bastien.N has finished working on the XO task
+// Once the [key:string]: unknown is removed, remove the `as XoMessage` in event.class.mts
 type BaseXoLog = {
   id: Branded<'xo-log'>
   infos?: { data: unknown; message: string }[]
