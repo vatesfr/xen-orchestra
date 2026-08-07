@@ -373,7 +373,7 @@ In Xen Orchestra, recipes are ready-to-use automation templates that make it eas
 With just a few clicks, you can launch a complete multi-VM environment, where all nodes are automatically set up and connected.
 
 :::tip
-Currently, the only available recipe is for Kubernetes clusters. [This guide](../xo6/kubernetes.md) will walk you through creating one.
+Currently, the only available recipe is for Kubernetes clusters. [This guide](../automation/kubernetes.md) will walk you through creating one.
 
 Coming soon: We’ll expand the Recipes feature to include EasyVirt DC Scope deployment.
 :::

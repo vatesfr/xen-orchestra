@@ -74,6 +74,7 @@ export default {
         'xo5/advanced',
         'xo5/load_balancing',
         'xo5/sdn_controller',
+        'xo5/ipmi-plugin',
       ],
     },
     {
