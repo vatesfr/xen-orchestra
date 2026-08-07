@@ -64,7 +64,7 @@ grows out of XO toward it, and vanishes with it. */}
 <animate attributeName="opacity" dur="36s" repeatCount="indefinite"
       values="0;0;1;1;0;0" keyTimes="0;0.139;0.15;0.41;0.45;1"/>
 </line>
-<a href="/full_replication" aria-label="Disaster recovery">
+<a href="/full_replication" aria-label="Full replication">
 <rect x="520" y="115" width="140" height="62" rx="8" fill="none" stroke="rgba(255,255,255,0.22)" strokeDasharray="6 5"/>
 <text x="530" y="132" fontSize="12.5" fill="#7a8699">DR site</text>
 <g opacity="0.45">

@@ -5,7 +5,7 @@ sidebar_label: Incremental replication (CR)
 # Incremental Replication
 
 :::note
-Formerly known as Continuous replication
+**Incremental replication** is the current name of the job type formerly called **Continuous Replication (CR)**. Both names describe the same thing, and you will still meet the old one: XO 6 labels this mode **Incremental replication**, while the XO 5 interface still labels it **Continuous Replication**, and replicas keep a `Continuous Replication` tag.
 :::
 
 This feature is an incremental replication system for your XCP-ng or XenServer VMs, **without any storage vendor lock-in**. You can replicate a VM every _X_ minutes or hours to any storage repository (SR): a distant XCP-ng or XenServer host, or simply another local storage target. After the first full transfer, each run only sends the blocks that changed since the previous one.
@@ -76,7 +76,7 @@ This protection also covers VMs with "Auto power on" enabled: replicas will not 
 
 ## Configure it
 
-As you'll see, it is trivial to configure. In the "Backup/new" section, select "Incremental replication".
+As you'll see, it is trivial to configure. In the "Backup/new" section, select the incremental replication mode: this XO 5 screen still labels the button **Continuous Replication**.
 
 Then:
 
@@ -199,7 +199,7 @@ Your backup job should now be working correctly! Manually run the job the first 
 In the situation where you need to failover to your destination host, you simply need to start your VMs on the destination side.
 
 :::tip
-If you want to start a VM on your destination host without breaking the CR jobs on the other side, make a copy of the VM and start the copy. Otherwise, you will be asked if you would like to force start the VM.
+If you want to start a VM on your destination host without breaking the incremental replication jobs on the other side, make a copy of the VM and start the copy. Otherwise, you will be asked if you would like to force start the VM.
 :::
 
 <UiDetail src="/img/xo5/force-start.jpg" alt="The force start confirmation, shown when starting a protected replica" width={480} />

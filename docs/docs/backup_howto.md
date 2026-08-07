@@ -74,6 +74,10 @@ Here is the whole toolbox at a glance. Most infrastructures combine several of t
 | [Mirror backup](mirror_backup.md)                        | A second copy of a backup repository        | Follows the source          | Same as the source backups       | 3-2-1 strategies, offsite archives     |
 | [Metadata backup](xo5/metadata_backup.md)                    | XO config and pool metadata                 | Tiny                        | Rebuild your orchestration       | Always: it protects the tool itself    |
 
+:::note The two replication modes have been renamed
+**Full replication** used to be called **Disaster Recovery (DR)**, and **incremental replication** used to be called **Continuous Replication (CR)**. Only the names changed. The old ones are kept in parentheses here because you will still meet them: the XO 5 interface labels the two buttons **Disaster Recovery** and **Continuous Replication**, and XO tags replicas accordingly. XO 6 uses the current names.
+:::
+
 ### Rolling snapshots
 
 Scheduled snapshots with a retention, kept on the VM's own storage.
@@ -98,7 +102,7 @@ After an initial full, only the changed blocks are exported.
 - **Watch out**: restores rely on a chain (full + deltas): set a [full backup interval](xo5/incremental_backups.md#key-backup-interval) to keep chains short, or enable health checks.
 - **First steps**: this is the right default for most VMs; start here if in doubt.
 
-### Full replication (DR)
+### Full replication (formerly Disaster Recovery, DR) {#full-replication-dr}
 
 A complete, boot-ready copy of the VM on another host or SR, refreshed on each run.
 
@@ -106,7 +110,7 @@ A complete, boot-ready copy of the VM on another host or SR, refreshed on each r
 - **Watch out**: full transfer each time: run it less frequently than incremental replication, and mind SR space on the destination.
 - **First steps**: configure the destination storage (same pool or another), then **test the failover** for real.
 
-### Incremental replication (CR)
+### Incremental replication (formerly Continuous Replication, CR) {#incremental-replication-cr}
 
 The same standby copy, kept up to date by sending only the deltas.
 
@@ -143,7 +147,7 @@ Not a backup type, but the way to chain the jobs above: a [sequence](xo5/backups
 
 - **Compression** is configured at the backup job level, and applies only to full backups. For full backups, prefer [Zstandard (Zstd)](https://en.wikipedia.org/wiki/Zstd) if your host supports it.
 - **Encryption** is configured at the backup repository level, not per individual backup job. To use encryption with incremental backups, the **use VHD blocks** setting must be enabled.
-- Setting a **Full backup interval** prevents infinite backup chains, which may degrade resilience against block corruption over time. We recommend either defining a regular interval or enabling health checks for your Delta backup and Continuous Replication jobs.
+- Setting a **Full backup interval** prevents infinite backup chains, which may degrade resilience against block corruption over time. We recommend either defining a regular interval or enabling health checks for your incremental backup and incremental replication jobs.
 :::
 
 
@@ -205,7 +209,7 @@ Making sure XOA is always available should be a top priority for every administr
 Since XOA runs as a virtual machine, you can apply standard VM protection measures:
 
 - Back up regularly (full or incremental).
-- Replicate the VM (full disaster recovery or incremental replication).
+- Replicate the VM (full replication or incremental replication).
 - Take snapshots for quick rollback if needed.
 
 ### Specific steps for the XOA VM

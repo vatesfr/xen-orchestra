@@ -8,6 +8,17 @@ sidebar_label: Features and settings
 
 This section is dedicated to all general concepts about Xen Orchestra backups.
 
+:::note Replication modes have been renamed
+The two replication job types now have clearer names, but the XO 5 screens below still show the former ones:
+
+| Current name                                                       | Former name, still shown in XO 5 |
+| ------------------------------------------------------------------ | -------------------------------- |
+| [Full replication](../full_replication.md)                          | Disaster Recovery (DR)           |
+| [Incremental replication](incremental_replication.md)               | Continuous Replication (CR)      |
+
+Nothing changed in behaviour: only the labels differ. XO 6 uses the current names, and the tags XO puts on replicas (`Disaster Recovery`, `Continuous Replication`) kept the former ones.
+:::
+
 ## Interface
 
 ### Overview
@@ -16,7 +27,7 @@ This is the welcome panel for the backup view. It recaps all existing scheduled 
 
 ### Logs
 
-All the scheduled operations (backup, snapshots and even DR) are displayed in the main backup view.
+All the scheduled operations (backup, snapshots and even replication) are displayed in the main backup view.
 
 A successful backup task will be displayed in green, a faulty one in red. You can click on the arrow to see each entry detail.
 
@@ -150,7 +161,7 @@ To see the schedules associated with a specific backup job:
    This will open the backup job details screen.
 3. In the **Schedules** section of the details screen, you'll find the list of schedules for that backup job:
 
-<UiShot light="/img/xo5/backup-schedule-list.png" alt="A Continuous Replication job in edit mode, with the Schedules section highlighted on the right" url="https://your-xo/v5/#/backup" />
+<UiShot light="/img/xo5/backup-schedule-list.png" alt="An incremental replication job in edit mode, with the Schedules section highlighted on the right" url="https://your-xo/v5/#/backup" />
 
 ### Creating a schedule
 
@@ -232,7 +243,7 @@ Smart mode offers the following criteria, evaluated at each run:
 - **Tags**: only VMs carrying at least one of the selected tags, with an optional list of excluded tags
 
 :::tip
-XO pre-fills the excluded tags with `Continuous Replication`, `Disaster Recovery` and the XO proxy tag, so a smart backup job doesn't back up the replicas created by your own replication jobs. VMs tagged `xo:no-bak` are always excluded, whatever the job configuration.
+XO pre-fills the excluded tags with `Continuous Replication`, `Disaster Recovery` and the XO proxy tag, so a smart backup job doesn't back up the replicas created by your own replication jobs. Those two tag values kept the former names of the incremental and full replication modes, and XO still writes them as such on the replicas. VMs tagged `xo:no-bak` are always excluded, whatever the job configuration.
 :::
 
 Remember the prod VMs? I added a tag "prod" to each of them:
@@ -267,11 +278,11 @@ This can be very useful when you're running a VM that needs RAM coherence to run
 
 In a nutshell this functionality can be seen as _hot copy_, similar to _hot migration_ but the original VM is not deleted.
 
-### Continuous replication with RAM
+### Incremental replication with RAM {#continuous-replication-with-ram}
 
 This feature allows you to regularly send a copy of a VM to a target SR. The copied VM will be `Suspended` and ready to be resumed if the original VM encounters issues. As the copied VM is `Suspended`, no reboot will be required, resuming it is much faster.
 
-For instance, if an hourly continuous replication is configured on a VM, if the VM is lost, you can quickly resume a running VM with a memory loss of one hour tops.
+For instance, if an hourly incremental replication is configured on a VM, if the VM is lost, you can quickly resume a running VM with a memory loss of one hour tops.
 
 :::warning
 In order to use this functionality, the CPU of the host the VM is restored on should be the same or more recent than the CPU of the host the VM was originally running on.
@@ -526,9 +537,13 @@ This way, without modifying your previous scheduled snapshot, they will be writt
 
 XCP-ng takes replicated VMs into account for High Availability. To avoid the resulting trouble (HA trying to restart your replicas), XO disables HA on the replicated VMs and adds a tag indicating this change.
 
-<UiDetail src="/img/xo5/disabled-dr-ha-tag.png" alt="A Disaster Recovery replica: the VM carries the Disaster Recovery and HA disabled tags" width={620} />
+A full replication replica, carrying the `Disaster Recovery` and `HA disabled` tags:
 
-<UiDetail src="/img/xo5/disabled-cr-ha-tag.png" alt="A Continuous Replication replica: the VM carries the Continuous Replication and HA disabled tags" width={620} />
+<UiDetail src="/img/xo5/disabled-dr-ha-tag.png" alt="A full replication replica: the VM carries the Disaster Recovery and HA disabled tags" width={620} />
+
+An incremental replication replica, carrying the `Continuous Replication` and `HA disabled` tags:
+
+<UiDetail src="/img/xo5/disabled-cr-ha-tag.png" alt="An incremental replication replica: the VM carries the Continuous Replication and HA disabled tags" width={620} />
 
 :::tip
 The tag won't be automatically removed by XO on the replicated VMs, even if HA is re-enabled.
@@ -608,10 +623,10 @@ For example, you could have a regular backup job with 10 VMs configured with Nor
 
 Just a refresher/summary: You can select multiple backup methods for the same job:
 
-- Full: _Backup_ and _Disaster Recovery_ (DR)
-- Deltas: _Delta Backup_ and _Continuous Replication_ (CR)
+- Full: _Backup_ and _Full replication_ (the XO 5 button still reads _Disaster Recovery_)
+- Deltas: _Delta Backup_ and _Incremental replication_ (the XO 5 button still reads _Continuous Replication_)
 
-The Full and Delta options are mutually exclusive; Rolling Snapshots are compatible with both. The Backup and Delta Backup go to a backup repository (e.g. NFS); DR and CR back up to another XCP-ng storage repository (i.e., not the one on which the VM's being backed up reside). In the Schedule configuration, you will have the option to select the number of "Backup Retention" if your backup includes a _Backup_ (or _Delta Backup_); you will have the option to select the number "Replication Retention" if you have selected _DR_ or _CR_ in the backup configuration.
+The Full and Delta options are mutually exclusive; Rolling Snapshots are compatible with both. The Backup and Delta Backup go to a backup repository (e.g. NFS); both replication modes write to another XCP-ng storage repository (i.e., not the one on which the VMs being backed up reside). In the Schedule configuration, you will have the option to select the number of "Backup Retention" if your backup includes a _Backup_ (or _Delta Backup_); you will have the option to select the number "Replication Retention" if you have selected a replication mode in the backup configuration.
 
 ### Rolling snapshots
 
@@ -625,11 +640,11 @@ Vates recommends keeping the Rolling Snapshots retention to a minimum; if you ch
 
 To know more, read this [blog article](https://xen-orchestra.com/blog/xen-orchestra-4-2/#schedulerollingsnapshots).
 
-### Retention of backups and CR/DR
+### Retention of backups and replications {#retention-of-backups-and-cr-dr}
 
-If your backup includes both a (Delta) Backup _and_ a CR/DR, you will have the option to select the number you wish for both "Backup retention" and "Replication retention" in the Schedule configuration; make sure to assign the number you want to the correct retention.
+If your backup includes both a (Delta) Backup _and_ a replication, you will have the option to select the number you wish for both "Backup retention" and "Replication retention" in the Schedule configuration; make sure to assign the number you want to the correct retention.
 
-If you need to restore a (Delta) Backup (or clone and spin up a VM from CR/DR), you will be able to select all the available backups or VMs, regardless of the retention or delta scheme. If you have multiple backup jobs backing up the same VM, you'll see all the backups in the restore list, sorted by date.
+If you need to restore a (Delta) Backup (or clone and spin up a VM from a replica), you will be able to select all the available backups or VMs, regardless of the retention or delta scheme. If you have multiple backup jobs backing up the same VM, you'll see all the backups in the restore list, sorted by date.
 
 ### Decreasing retention frequency with age
 
@@ -774,7 +789,7 @@ Backup health check ensures the backups are ready to be restored: after a run, X
 
 #### Check for boot
 
-XO will restore the VM, either by downloading it for a delta/full backup or by cloning it for a disaster recovery or continuous replication, start it, and then wait for the guest tools to be loaded before the end of a timeout of 10 minutes (boot + guest tools).
+XO will restore the VM, either by downloading it for a delta/full backup or by cloning it for a full or incremental replication, start it, and then wait for the guest tools to be loaded before the end of a timeout of 10 minutes (boot + guest tools).
 
 A VM without guest tools will fail its health check.
 

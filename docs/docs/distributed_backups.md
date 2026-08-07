@@ -70,7 +70,7 @@ This applies to both **Full backup** and **Incremental (Delta) backup** job type
 2. Configure at least two storage repositories in the **Replication** section.
 3. In the **Advanced** settings, enable **Distribute replications across storage repositories**.
 
-This applies to both **Disaster Recovery (DR)** and **Continuous Replication (CR)** job types.
+This applies to both **Full replication** and **Incremental replication** job types (the XO 5 interface still labels them **Disaster Recovery** and **Continuous Replication**).
 
 ## How target storage is selected
 

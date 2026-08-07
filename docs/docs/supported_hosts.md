@@ -51,7 +51,7 @@ XenServer versioning changed over the years: the product was renamed Citrix Hype
   {version: 'XenServer 7.1 LTS', status: '✅ ☠️', eol: true},
   {version: 'XenServer 7.0', status: '✅ ☠️', eol: true},
   {version: 'XenServer 6.5', status: '✅ ☠️', eol: true, notes: 'Random delta backup issues'},
-  {version: 'XenServer 6.1 and 6.2', status: '❎ ☠️', eol: true, notes: 'No official support (XML-RPC only, too CPU intensive); no delta backup, no CR'},
+  {version: 'XenServer 6.1 and 6.2', status: '❎ ☠️', eol: true, notes: 'No official support (XML-RPC only, too CPU intensive); no incremental backup, no incremental replication'},
   {version: 'XenServer 5.x', status: '❎ ☠️', eol: true, notes: 'Basic administration only, no official support'},
 ]} />
 

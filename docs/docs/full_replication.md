@@ -4,7 +4,11 @@ sidebar_label: Full replication (DR)
 
 # Full Replication
 
-> **_NOTE:_** Formerly known as Disaster recovery
+:::note
+**Full replication** is the current name of the job type formerly called **Disaster Recovery (DR)**. Both names describe the same thing, and you will still meet the old one: XO 6 labels this mode **Full replication**, while the XO 5 interface still labels it **Disaster Recovery**, and replicas keep a `Disaster Recovery` tag.
+
+Don't confuse it with disaster recovery in the general sense (the practice of surviving the loss of a site), which is used throughout this page and which both replication modes serve.
+:::
 
 Full replication keeps a complete, ready-to-boot copy of your VMs on another storage repository: in the same pool, in a different pool, even on another site. At each run, the whole VM is exported and streamed directly into the destination SR, so a fresh standby copy is always waiting there, powered off and protected against accidental start.
 
@@ -56,9 +60,9 @@ Full replication helps on the RTO side. There is no restore phase: the export an
 You don't have to test replicas by hand: the backup health check feature can automatically clone a replica, boot it and verify that the guest OS comes up, then discard the clone.
 :::
 
-## Schedule a DR task
+## Schedule a full replication job {#schedule-a-dr-task}
 
-Planning a full replication job is very similar to planning a backup or a snapshot: create a new backup job, select the **Disaster recovery** mode, pick the VMs, set a schedule, and choose the destination storage repository (any SR that XO can reach, on any connected pool).
+Planning a full replication job is very similar to planning a backup or a snapshot: create a new backup job, select the **Full replication** mode (still labelled **Disaster Recovery** in the XO 5 interface), pick the VMs, set a schedule, and choose the destination storage repository (any SR that XO can reach, on any connected pool).
 
 Your replicated VMs will be visible "on the other side" as soon as the first run is done, named after the original VM, the job and the run date, for example: `web01 - DR job - (20260801T040000Z)`.
 
@@ -66,7 +70,7 @@ Your replicated VMs will be visible "on the other side" as soon as the first run
 
 The retention setting (historically called **depth**) is the number of copies kept per replicated VM. At each run, a new copy is imported and the oldest ones beyond the retention count are removed.
 
-Replicas are identified by the backup metadata XO stores on them and by their blocked start operation. Each one also carries a **Disaster Recovery** tag, and HA is disabled on it (with an extra **HA disabled** tag when the source VM used HA). A replica you clone, or whose start block you remove, leaves the rotation: you can play with it without the fear of losing it at the next run.
+Replicas are identified by the backup metadata XO stores on them and by their blocked start operation. Each one also carries a `Disaster Recovery` tag (the tag value kept the former name of the job type), and HA is disabled on it (with an extra **HA disabled** tag when the source VM used HA). A replica you clone, or whose start block you remove, leaves the rotation: you can play with it without the fear of losing it at the next run.
 
 :::warning
 Each retained copy is a full VM on the destination SR: a high retention number will lead to huge space usage. Size your DR storage accordingly.

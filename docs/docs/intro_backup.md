@@ -18,8 +18,8 @@ New to backups in XO? Start with these two:
 - **[Rolling snapshots](rolling_snapshots.md)**: scheduled snapshots kept on a rotation. No repository needed, instant restore points.
 - **[Full backups](full_backups.md)**: a complete export of the VM to a backup repository (BR), every time. Simple and self-contained.
 - **[Incremental backups](xo5/incremental_backups.md)**: after an initial full, only the changed blocks are sent. Fast, compact, deduplicable.
-- **[Full replication (DR)](full_replication.md)**: a ready-to-boot copy of your VMs, kept up to date on another host or SR.
-- **[Incremental replication (CR)](xo5/incremental_replication.md)**: the same standby copy, sending only the deltas.
+- **[Full replication](full_replication.md)** (formerly Disaster Recovery, DR): a ready-to-boot copy of your VMs, kept up to date on another host or SR.
+- **[Incremental replication](xo5/incremental_replication.md)** (formerly Continuous Replication, CR): the same standby copy, sending only the deltas.
 - **[Mirror backups](mirror_backup.md)**: replicate a whole backup repository to another one, the key to [3-2-1 strategies](backup_howto.md#long-term-retention-strategy).
 - **[Metadata backup](xo5/metadata_backup.md)**: the XO configuration and pool metadata themselves, so the orchestrator is never your single point of failure.
 
