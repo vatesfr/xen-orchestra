@@ -262,6 +262,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
             xapi: sr.$xapi,
             vdiRef: activeVdi.$ref,
             baseRef: snapshot.$ref,
+            preferNbd: this._settings.preferNbd,
             onlyListChangedBlocks: true,
           })
           await diffDisk.init()
