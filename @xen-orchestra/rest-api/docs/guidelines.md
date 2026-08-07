@@ -13,7 +13,7 @@ At the request of the DevOps team, any REST API PR that updates the OpenAPI spec
 Naming is hard, building a coherent API is hard: ask/propose naming **before** starting to push code.
 
 - `GET` for getting information of an object or a collection
-- `POST` for creating an object
+- `POST` for creating an object and for actions
 - `PUT`/`PATCH` for updating an object without side effect
 
 Use the `@Deprecated()` decorator if needed, and never remove a route without changing the API version.
