@@ -15,7 +15,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [Backups] Fix error `fetch failed` on backup with proxies (PR [#10346](https://github.com/vatesfr/xen-orchestra/pull/10346))
+- [Backups] Fix error `fetch failed` on backup with proxies (PR [#10346](https://github.com/vatesfr/xen-orchestra/pull/
+- [Backup] No longer create a `cache.json.gz` file on immutable/S3 remote during cleanup, which could not be deleted afterwards and stayed billed forever10346))
 
 ### Packages to release
 
@@ -33,6 +34,4 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/proxy patch
-- xo-server patch
 <!--packages-end-->

@@ -30,7 +30,7 @@ const FILES_TO_KEEP = ['cache.json.gz', 'vdis']
 export class VmBackupDirectory implements VmBackupInterface {
   handler: RemoteHandlerAbstract
   rootPath: string
-  files: Array<string> = new Array()
+  files: Array<string> = []
   orphans: Set<string> = new Set()
   backupArchives: Map<string, VmBackupInterface> = new Map()
   opts: ResolvedBackupCleanOptions
@@ -42,6 +42,9 @@ export class VmBackupDirectory implements VmBackupInterface {
   // Set by #checkCacheCount(): the on-disk cache did not match the archives found
   // on disk, so clean() must regenerate it even when nothing was merged/removed.
   #cacheOutOfSync = false
+
+  // Set by #checkCacheCount(): whether cache.json.gz existed at the start of the run.
+  #cacheExisted = false
 
   constructor(
     handler: RemoteHandlerAbstract,
@@ -90,7 +93,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     this.#uniqueLineages = new Map()
 
     for (const fullPath of this.files.filter(path => path.endsWith('.json'))) {
-      let metadata: PartialBackupMetadata | undefined = undefined
+      let metadata: PartialBackupMetadata | undefined
       try {
         metadata = JSON.parse(await this.handler.readFile(fullPath)) satisfies PartialBackupMetadata
       } catch (error) {
@@ -187,7 +190,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       { concurrency: 2 }
     )
 
-    if (allMergedSizes.size > 0 || cacheNeedsRegen || this.#cacheOutOfSync) {
+    if (this.#cacheExisted && (allMergedSizes.size > 0 || cacheNeedsRegen || this.#cacheOutOfSync)) {
       await this.#regenerateCache()
     }
 
@@ -216,7 +219,31 @@ export class VmBackupDirectory implements VmBackupInterface {
   async #checkCacheCount(): Promise<void> {
     const cachePath = `${this.rootPath}/cache.json.gz`
     const existingCache = await this.#readCache(cachePath)
-    const actual = existingCache === undefined ? 0 : Object.keys(existingCache).length
+    this.#cacheExisted = existingCache !== undefined
+
+    if (this.handler.isImmutable()) {
+      if (existingCache !== undefined) {
+        // RemoteAdapter never creates cache.json.gz on immutable repositories
+        try {
+          await this.handler.unlink(cachePath)
+        } catch (error) {
+          if (error?.code !== 'ENOENT') {
+            this.opts.logWarn('failed to remove erroneous cache on immutable remote', { error, path: cachePath })
+          }
+        }
+      }
+      // never regenerate cache.json.gz on an immutable remote, whether or not the leftover was removed
+      this.#cacheOutOfSync = false
+      this.#cacheExisted = false
+      return
+    }
+
+    if (existingCache === undefined) {
+      this.#cacheOutOfSync = false
+      return
+    }
+
+    const actual = Object.keys(existingCache).length
     const expected = this.backupArchives.size
     this.#cacheOutOfSync = actual !== expected
     if (this.#cacheOutOfSync) {
