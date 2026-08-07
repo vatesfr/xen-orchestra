@@ -3,6 +3,7 @@ import iteratee from 'lodash/iteratee.js'
 import ms from 'ms'
 import sortedIndexBy from 'lodash/sortedIndexBy.js'
 import { noSuchObject } from 'xo-common/api-errors.js'
+import { serializeError } from '@vates/task'
 
 import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 
@@ -25,7 +26,7 @@ const isSupersededByRetry = (subtask, siblings) =>
       other.properties?.id === subtask.properties?.id
   )
 
-export const computeStatusAndSortSubtasks = task => {
+export const consolidateTaskStatusAndResult = task => {
   let status = getStatus(task.result, task.status)
 
   if (status === 'failure' || task.tasks === undefined) {
@@ -36,17 +37,31 @@ export const computeStatusAndSortSubtasks = task => {
   // If the initial try fails but a retry succeeds, the failure must not affect the parent task status.
   const wasRetried = task.warnings?.some(({ data }) => data?.isRetry === true) ?? false
 
+  const failedResults = []
   for (let i = 0, n = task.tasks.length; i < n; ++i) {
     const subtask = task.tasks[i]
     if (subtask.status === 'failure') {
       if (wasRetried && isSupersededByRetry(subtask, task.tasks)) {
         continue
       }
-      return 'failure'
+      failedResults.push(subtask.result)
+      continue
     }
     if (subtask.status === 'skipped') {
       status = subtask.status
     }
+  }
+
+  if (failedResults.length > 0) {
+    // the task's own result may already carry an error; only fall back to the subtasks' when it doesn't
+    task.result =
+      task.result ??
+      serializeError(
+        failedResults.length === 1
+          ? failedResults[0]
+          : new AggregateError(failedResults, `Task failed with multiple errors`)
+      )
+    return 'failure'
   }
 
   task.tasks.sort(taskTimeComparator)
@@ -173,8 +188,8 @@ export default {
             log.end = time
             log.result = data.error
             log.status = statusFromError(data.error)
-            // computeStatusAndSortSubtasks reads log.status
-            log.status = computeStatusAndSortSubtasks(log)
+            // consolidateTaskStatusAndResult reads log.status
+            log.status = consolidateTaskStatusAndResult(log)
           }
         } else if (event === 'job.backupTaskStart') {
           // happens once, only for backups using XO Tasks
@@ -215,8 +230,8 @@ export default {
             log.end = time
             log.result = data.result
             log.status = data.status
-            // computeStatusAndSortSubtasks reads log.status
-            log.status = computeStatusAndSortSubtasks(log)
+            // consolidateTaskStatusAndResult reads log.status
+            log.status = consolidateTaskStatusAndResult(log)
           }
         } else if (event === 'task.warning') {
           const parent = started[data.taskId]
@@ -255,8 +270,8 @@ export default {
             log.end = time
             log.result = data.error
             log.status = statusFromError(data.error)
-            // computeStatusAndSortSubtasks reads log.status
-            log.status = computeStatusAndSortSubtasks(log)
+            // consolidateTaskStatusAndResult reads log.status
+            log.status = consolidateTaskStatusAndResult(log)
           }
         }
       }
