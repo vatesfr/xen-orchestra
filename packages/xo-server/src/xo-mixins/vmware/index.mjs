@@ -20,9 +20,9 @@ export default class MigrateVm {
     this._app = app
   }
 
-  #connectToEsxi(host, user, password, sslVerify) {
+  #connectToEsxi(host, user, password, sslVerify, storageHost) {
     return Task.run({ properties: { name: `connecting to ${host}` } }, async () => {
-      const esxi = new Esxi(host, user, password, sslVerify)
+      const esxi = new Esxi(host, user, password, sslVerify, storageHost)
       await fromEvent(esxi, 'ready')
       return esxi
     })
@@ -196,10 +196,21 @@ export default class MigrateVm {
   @decorateWith(deferrable)
   async migrationfromEsxi(
     $defer,
-    { host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, stopSource, template: templateId }
+    {
+      host,
+      user,
+      password,
+      sslVerify,
+      sr: srId,
+      network: networkId,
+      vm: vmId,
+      stopSource,
+      template: templateId,
+      storageHost,
+    }
   ) {
     const app = this._app
-    const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
+    const esxi = await this.#connectToEsxi(host, user, password, sslVerify, storageHost)
     const sr = app.getXapiObject(srId)
     const template = app.getXapiObject(templateId)
     const xapi = sr.$xapi
@@ -244,8 +255,8 @@ export default class MigrateVm {
     return checkVddkDependencies()
   }
 
-  async exportEsxiDisk({ disk: diskId, format, host, user, password, vm: vmId }) {
-    const esxi = await this.#connectToEsxi(host, user, password, false)
+  async exportEsxiDisk({ disk: diskId, format, host, user, password, vm: vmId, storageHost }) {
+    const esxi = await this.#connectToEsxi(host, user, password, false, storageHost)
     const metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
@@ -303,9 +314,10 @@ export default class MigrateVm {
     sslVerify = true,
     sr: srId,
     vm: vmId,
+    storageHost,
   }) {
     const sr = this._app.getXapiObject(srId)
-    const stream = await this.exportEsxiDisk({ disk, format, host, user, password, vm: vmId })
+    const stream = await this.exportEsxiDisk({ disk, format, host, user, password, vm: vmId, storageHost })
     const vdiRef = await sr.$importVdi(stream, { format, name_label: `[ESXI] ${vmId} / ${disk}` })
     return sr.$xapi.getObject(vdiRef).uuid
   }
