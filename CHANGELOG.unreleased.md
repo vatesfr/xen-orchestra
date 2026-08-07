@@ -19,6 +19,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backup] No longer create a `cache.json.gz` file on immutable/S3 remote during cleanup, which could not be deleted afterwards and stayed billed forever
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -36,6 +38,8 @@
 <!--packages-start-->
 
 - @xen-orchestra/acl minor
+- @xen-orchestra/backup-archive minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
