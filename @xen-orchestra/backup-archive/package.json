@@ -38,7 +38,7 @@
     "build": "yarn run clean && tsc",
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
-    "test": "yarn run clean && tsc && node --test **/*.test.mjs",
+    "test": "tsc && node --test **/*.test.mjs",
     "test-integration": "yarn run clean && tsc && node --test **/*.integ.mjs",
     "clean": "rimraf dist/"
   },
