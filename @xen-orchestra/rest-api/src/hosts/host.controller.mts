@@ -77,7 +77,7 @@ import { HostService } from './host.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SupportedActions } from '@xen-orchestra/acl'
-import { XoSrHbaExport, XoSrIscsiIqnsExport, XoSrIscsiLunsExport, XoSrNfsExport } from './host.type.mjs'
+import type { XoSrHbaExport, XoSrIscsiIqnsExport, XoSrIscsiLunsExport, XoSrNfsExport } from './host.type.mjs'
 
 @Route('hosts')
 @Security('*')
@@ -934,20 +934,21 @@ export class HostController extends XapiXoController<XoHost> {
    * - resource: host, action: probe:nfs
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
-   * @example server "192.168.1.1"
-   * @example nfsVersion "4"
+   * @example body  {"server": "192.168.1.1", "nfsVersion": "4"}
    */
   @Example(nfsExport)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_nfs')
   @Middlewares([json(), acl({ resource: 'host', action: 'probe:nfs', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'OK')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async probeNfs(
     @Path() id: string,
     @Body()
-    request: {
+    body: {
       server: string
       nfsVersion?: string
     },
@@ -955,14 +956,14 @@ export class HostController extends XapiXoController<XoHost> {
   ): CreateActionReturnType<XoSrNfsExport[]> {
     const hostId = id as XoHost['id']
     const action = () => {
-      return this.#hostService.probeNfs(hostId, request.server, request.nfsVersion)
+      return this.#hostService.probeNfs(hostId, body.server, body.nfsVersion)
     }
 
     return this.createAction<XoSrNfsExport[]>(action, {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe nfs',
+        name: 'probe NFS',
         objectId: hostId,
       },
     })
@@ -981,9 +982,11 @@ export class HostController extends XapiXoController<XoHost> {
   @Post('{id}/actions/probe_zfs')
   @Middlewares(acl({ resource: 'host', action: 'probe:zfs', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'OK')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async probeZfs(@Path() id: string, @Query() sync?: boolean) {
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async probeZfs(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<Record<string, unknown>> {
     const hostId = id as XoHost['id']
     const action = () => {
       return this.#hostService.probeZfs(hostId)
@@ -993,7 +996,7 @@ export class HostController extends XapiXoController<XoHost> {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe zfs',
+        name: 'probe ZFS',
         objectId: hostId,
       },
     })
@@ -1012,8 +1015,10 @@ export class HostController extends XapiXoController<XoHost> {
   @Post('{id}/actions/probe_hba')
   @Middlewares(acl({ resource: 'host', action: 'probe:hba', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'OK')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async probeHba(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<XoSrHbaExport[]> {
     const hostId = id as XoHost['id']
 
@@ -1025,7 +1030,7 @@ export class HostController extends XapiXoController<XoHost> {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe hba',
+        name: 'probe HBA',
         objectId: hostId,
       },
     })
@@ -1039,19 +1044,21 @@ export class HostController extends XapiXoController<XoHost> {
    * - resource: host, action: probe:iscsiiqn
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
-   * @example targetIp ""
+   * @example body {"targetIp": "", "port": "", "chapUser": "", "chapPassword": ""}
    */
   @Example(iscsiIqnExport)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_iscsi_iqns')
   @Middlewares([json(), acl({ resource: 'host', action: 'probe:iscsiiqn', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'OK')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async probeIscsiIqns(
     @Path() id: string,
     @Body()
-    request: {
+    body: {
       targetIp: string
       port?: number
       chapUser?: string
@@ -1061,21 +1068,15 @@ export class HostController extends XapiXoController<XoHost> {
   ): CreateActionReturnType<XoSrIscsiIqnsExport[]> {
     const hostId = id as XoHost['id']
     const action = () => {
-      return this.#hostService.probeIscsiIqns(
-        hostId,
-        request.targetIp,
-        request.port,
-        request.chapUser,
-        request.chapPassword
-      )
+      return this.#hostService.probeIscsiIqns(hostId, body.targetIp, body.port, body.chapUser, body.chapPassword)
     }
 
     return this.createAction<XoSrIscsiIqnsExport[]>(action, {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe iscsiiqn',
-        objectId: id as XoHost['id'],
+        name: 'probe ISCSIIQN',
+        objectId: hostId,
       },
     })
   }
@@ -1087,20 +1088,21 @@ export class HostController extends XapiXoController<XoHost> {
    * - resource: host, action: probe:iscsilun
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
-   * @example targetIp ""
-   * @example targetIqn ""
+   * @example body  {"targetIp": "", "targetIqn": "", "port": "", "chapUser": "", "chapPassword": "" }
    */
   @Example(iscsiLunExport)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_iscsi_luns')
   @Middlewares([json(), acl({ resource: 'host', action: 'probe:iscsilun', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'OK')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async probeIscsiLuns(
     @Path() id: string,
     @Body()
-    request: {
+    body: {
       targetIp: string
       targetIqn: string
       port?: number
@@ -1113,11 +1115,11 @@ export class HostController extends XapiXoController<XoHost> {
     const action = () => {
       return this.#hostService.probeIscsiLuns(
         hostId,
-        request.targetIp,
-        request.targetIqn,
-        request.port,
-        request.chapUser,
-        request.chapPassword
+        body.targetIp,
+        body.targetIqn,
+        body.port,
+        body.chapUser,
+        body.chapPassword
       )
     }
 
@@ -1125,7 +1127,7 @@ export class HostController extends XapiXoController<XoHost> {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe iscsilun',
+        name: 'probe ISCSILUN',
         objectId: hostId,
       },
     })
@@ -1139,20 +1141,21 @@ export class HostController extends XapiXoController<XoHost> {
    * - resource: host, action: probe:iscsi-exists
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
-   * @example targetIp ""
-   * @example targetIqn ""
+   * @example body  {"targetIp": "", "targetIqn": "", "scsiId": "", "port": "", "chapUser": "", "chapPassword": "" }
    */
   @Example(srUuids)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_iscsi_exists')
   @Middlewares([json(), acl({ resource: 'host', action: 'probe:iscsi-exists', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'OK')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async probeIscsiExists(
     @Path() id: string,
     @Body()
-    request: {
+    body: {
       targetIp: string
       targetIqn: string
       scsiId: string
@@ -1166,12 +1169,12 @@ export class HostController extends XapiXoController<XoHost> {
     const action = () => {
       return this.#hostService.probeIscsiExists(
         hostId,
-        request.targetIp,
-        request.targetIqn,
-        request.scsiId,
-        request.port,
-        request.chapUser,
-        request.chapPassword
+        body.targetIp,
+        body.targetIqn,
+        body.scsiId,
+        body.port,
+        body.chapUser,
+        body.chapPassword
       )
     }
 
@@ -1179,7 +1182,7 @@ export class HostController extends XapiXoController<XoHost> {
       sync,
       statusCode: asynchronousActionResp.status,
       taskProperties: {
-        name: 'probe iscsi-exists',
+        name: 'probe ISCSI-EXISTS',
         objectId: hostId,
       },
     })
@@ -1193,30 +1196,32 @@ export class HostController extends XapiXoController<XoHost> {
    * - resource: host, action: probe:hba-exists
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
-   * @example scsiId ""
+   * @example body  {"scsiId": ""}
    */
   @Example(srUuids)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_hba_exists')
   @Middlewares([json(), acl({ resource: 'host', action: 'probe:hba-exists', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'OK')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async probeHbaExists(
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  probeHbaExists(
     @Path() id: string,
-    @Body() request: { scsiId: string },
+    @Body() body: { scsiId: string },
     @Query() sync?: boolean
   ): CreateActionReturnType<string[]> {
     const hostId = id as XoHost['id']
     const action = () => {
-      return this.#hostService.probeHbaExists(hostId, request.scsiId)
+      return this.#hostService.probeHbaExists(hostId, body.scsiId)
     }
 
     return this.createAction<string[]>(action, {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe hba-exists',
+        name: 'probe HBA-EXISTS',
         objectId: hostId,
       },
     })
@@ -1230,19 +1235,21 @@ export class HostController extends XapiXoController<XoHost> {
    * - resource: host, action: probe:nfs-exists
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
-   * @example scsiId ""
+   * @example body  {"server": "192.168.1.1", "serverPath": "/srv/nfs", "nfsVersion": "4"}
    */
   @Example(srUuids)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_nfs_exists')
   @Middlewares([json(), acl({ resource: 'host', action: 'probe:nfs-exists', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'OK')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   probeNfsExists(
     @Path() id: string,
     @Body()
-    request: {
+    body: {
       server: string
       serverPath: string
       nfsVersion?: string
@@ -1251,14 +1258,14 @@ export class HostController extends XapiXoController<XoHost> {
   ): CreateActionReturnType<string[]> {
     const hostId = id as XoHost['id']
     const action = () => {
-      return this.#hostService.probeNfsExists(hostId, request.server, request.serverPath, request.nfsVersion)
+      return this.#hostService.probeNfsExists(hostId, body.server, body.serverPath, body.nfsVersion)
     }
 
     return this.createAction<string[]>(action, {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe nfs-exists',
+        name: 'probe NFS-EXISTS',
         objectId: hostId,
       },
     })
