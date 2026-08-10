@@ -3,7 +3,11 @@
     {{ t('backups') }}
   </UiHeadBar>
   <TabList>
-    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/admin/backups/brs' }" custom>
+    <RouterLink
+      v-slot="{ isExactActive, href }"
+      :to="{ name: '/admin/backup-and-replication/backup-repository' }"
+      custom
+    >
       <TabItem :active="isExactActive" :href tag="a">
         {{ t('brs') }}
       </TabItem>

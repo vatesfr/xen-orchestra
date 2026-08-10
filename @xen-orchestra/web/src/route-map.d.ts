@@ -91,16 +91,16 @@ declare module 'vue-router/auto-routes' {
       { path: ParamValue<false> },
       | never
     >,
-    '/admin/backups': RouteRecordInfo<
-      '/admin/backups',
-      '/admin/backups',
+    '/admin/backup-and-replication': RouteRecordInfo<
+      '/admin/backup-and-replication',
+      '/admin/backup-and-replication',
       Record<never, never>,
       Record<never, never>,
-      | '/admin/backups/brs'
+      | '/admin/backup-and-replication/backup-repository'
     >,
-    '/admin/backups/brs': RouteRecordInfo<
-      '/admin/backups/brs',
-      '/admin/backups/brs',
+    '/admin/backup-and-replication/backup-repository': RouteRecordInfo<
+      '/admin/backup-and-replication/backup-repository',
+      '/admin/backup-and-replication/backup-repository',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -574,16 +574,16 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/admin/backups.vue': {
+    'src/pages/admin/backup-and-replication.vue': {
       routes:
-        | '/admin/backups'
-        | '/admin/backups/brs'
+        | '/admin/backup-and-replication'
+        | '/admin/backup-and-replication/backup-repository'
       views:
         | 'default'
     }
-    'src/pages/admin/backups/brs.vue': {
+    'src/pages/admin/backup-and-replication/backup-repository.vue': {
       routes:
-        | '/admin/backups/brs'
+        | '/admin/backup-and-replication/backup-repository'
       views:
         | never
     }

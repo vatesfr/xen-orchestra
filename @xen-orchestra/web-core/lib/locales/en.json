@@ -587,6 +587,7 @@
   "job:vm-start-on:bad-power-state": "VM must be halted",
   "job:vm-start-on:in-progress": "Start in progress…",
   "job:vm-start-on:missing-host": "Destination host must be provided",
+  "backups-and-replication": "Backup & Replication",
   "job:vm-start-on:missing-vm": "No VMs to start",
   "job:vm-start:bad-power-state": "VM must be halted",
   "job:vm-start:in-progress": "Start in progress…",

@@ -11,7 +11,7 @@ import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resourc
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { watch } from 'vue'
 
-useDefaultTab('/admin/backups', 'brs')
+useDefaultTab('/admin/backup-and-replication', 'brs')
 
 const { backupRepositories: brs } = useXoBackupRepositoryCollection()
 
