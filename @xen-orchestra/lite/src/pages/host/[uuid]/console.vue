@@ -24,9 +24,9 @@
 </template>
 
 <script lang="ts" setup>
-import { isHostOperationPending } from '@/libs/host'
 import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import { isHostOperationPending } from '@/modules/host/utils/host.util.ts'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useConsoleStore } from '@/stores/xen-api/console.store'
 import { useControlDomainStore } from '@/stores/xen-api/control-domain.store'
