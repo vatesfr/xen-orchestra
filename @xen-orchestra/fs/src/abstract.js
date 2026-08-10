@@ -609,6 +609,10 @@ export default class RemoteHandlerAbstract {
     return this._remote.useVhdDirectory ?? false
   }
 
+  vhdDirectoryCompression() {
+    return this._remote.compressionType
+  }
+
   async _closeFile(fd) {
     throw new Error('Not implemented')
   }

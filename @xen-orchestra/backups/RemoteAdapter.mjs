@@ -204,7 +204,8 @@ export class RemoteAdapter {
   }
 
   #getCompressionType() {
-    return this._vhdDirectoryCompression
+    const compressionType = this.handler.vhdDirectoryCompression() ?? this._vhdDirectoryCompression
+    return compressionType === 'none' ? undefined : compressionType
   }
 
   useVhdDirectory() {
@@ -458,7 +459,7 @@ export class RemoteAdapter {
           path,
           concurrency: writeBlockConcurrency,
           validator,
-          compression: 'brotli',
+          compression: this.#getCompressionType(),
           uuid,
           parentUuid,
           parentPath,

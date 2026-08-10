@@ -7,6 +7,7 @@ export interface RemoteInfo {
   encryptionKey?: string
   immutable?: boolean
   useVhdDirectory?: boolean
+  compressionType?: string
   [key: string]: unknown
 }
 
@@ -162,5 +163,6 @@ export abstract class RemoteHandlerAbstract {
   abstract test(): Promise<TestResult>
   abstract isImmutable(): boolean
   abstract useVhdDirectory(): boolean
+  abstract vhdDirectoryCompression(): string | undefined
   abstract addPrefix(prefix: string): RemoteHandlerAbstract
 }
