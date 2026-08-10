@@ -1,0 +1,123 @@
+/* A fake browser window around product screenshots. Dark chrome by
+   default (same family as the <Terminal> frame); when the screenshot
+   is in light mode the whole chrome flips to a light gray browser. */
+.browser {
+  margin: 1.4rem 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0c1119;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 14px 34px -20px rgba(0, 0, 0, 0.55);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.5rem 0.8rem;
+  background: #171b26;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.dots {
+  display: flex;
+  gap: 0.42rem;
+  flex-shrink: 0;
+}
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: block;
+}
+.dots .dot:nth-child(1) {
+  background: #ec6a5e;
+}
+.dots .dot:nth-child(2) {
+  background: #f4bf4f;
+}
+.dots .dot:nth-child(3) {
+  background: #61c554;
+}
+
+/* The fake address bar. */
+.address {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.72rem;
+  color: #7a8699;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 0.18rem 0.7rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sun/moon override, styled like the Terminal copy button. */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: #7a8699;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 5px;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+.toggle:hover {
+  color: #c6d2e1;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.screen {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.caption {
+  padding: 0.5rem 1rem 0.55rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  background: #171b26;
+  font-size: 0.84rem;
+  font-style: italic;
+  line-height: 1.4;
+  color: #8b96a8;
+}
+
+/* Light chrome: the whole window follows a light-mode screenshot. */
+.lightChrome {
+  background: #f2f3f6;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 14px 34px -20px rgba(0, 0, 0, 0.35);
+}
+.lightChrome .bar {
+  background: #e6e8ee;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+.lightChrome .address {
+  color: #5f6b7a;
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+.lightChrome .toggle {
+  color: #5f6b7a;
+  border-color: rgba(0, 0, 0, 0.18);
+}
+.lightChrome .toggle:hover {
+  color: #1a2333;
+  border-color: rgba(0, 0, 0, 0.4);
+}
+.lightChrome .caption {
+  background: #e6e8ee;
+  border-top-color: rgba(0, 0, 0, 0.1);
+  color: #5f6b7a;
+}

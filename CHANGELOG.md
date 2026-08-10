@@ -1,6 +1,31 @@
 # ChangeLog
 
-## **next**
+## **6.7.1** (2026-08-04)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Backup/File restore] Downloading files as `tgz` through an XO Proxy works again: the archive was replaced by an invalid response, failing with `invalid identifier: undefined instead of number or string` (PR [#10208](https://github.com/vatesfr/xen-orchestra/pull/10208))
+- [Immutable backups] Backups are protected again on file servers whose system language is not English: immutability was silently not applied at all on those (PR [#10182](https://github.com/vatesfr/xen-orchestra/pull/10182))
+- [Immutable backups] Release disks that stayed immutable forever after their metadata was deleted by the retention, or after a merge renamed them, which prevented any further merge or deletion of that disk's backups (PR [#10182](https://github.com/vatesfr/xen-orchestra/pull/10182))
+- [Plugins/load balancer] No longer try to migrate VMs to disabled host (PR [#10209](https://github.com/vatesfr/xen-orchestra/pull/10209))
+- [V2V] Improve performance on big VM (>3 To) imports by improving Nbd disk handling (PR [#10157](https://github.com/vatesfr/xen-orchestra/pull/10157))
+- [Import/VMware] Fix migration of a VM having 10 snapshots or more, or a snapshot with 10 disks or more: the extra snapshots and disks were silently ignored (PR [#10194](https://github.com/vatesfr/xen-orchestra/pull/10194))
+- [Import/VMware] Fix migration of a running VM with "Stop the source VM" enabled and no pre-existing snapshot: the data written since the snapshot taken by XO was not transferred, and the second transfer reported `Nothing to import in this chain` (PR [#10194](https://github.com/vatesfr/xen-orchestra/pull/10194))
+
+### Released packages
+
+- @vates/nbd-client 3.5.0
+- @xen-orchestra/backups 0.73.10
+- @xen-orchestra/immutable-backups 3.0.4
+- @xen-orchestra/proxy 0.31.6
+- @xen-orchestra/vmware-explorer 0.15.0
+- @xen-orchestra/qa-test 1.1.1
+- xo-server 5.207.2
+- xo-server-load-balancer 0.13.1
+
+## **6.7.0** (2026-07-30)
 
 ### Security
 
@@ -110,7 +135,7 @@
 
 ## **6.6.2** (2026-07-09)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -291,8 +316,6 @@
 - xo-server-sdn-controller 1.4.0
 
 ## **6.5.1** (2026-06-01)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 

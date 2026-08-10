@@ -788,7 +788,6 @@
   "runs": "Körningar",
   "s3-backup-repository": "S3 säkerhetskopieringsförvar",
   "scan-pifs": "Skanna PIF",
-  "scan-pifs-in-xo-5": "@:scan-pifs i XO-5",
   "schedule": "Schema",
   "schedules": "Schema",
   "secure-boot": "Säker boot",

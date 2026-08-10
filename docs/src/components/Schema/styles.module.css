@@ -1,0 +1,309 @@
+/* A schematic board: always dark in both themes, like the <Terminal> frame,
+   so consoles and diagrams read as one family of technical panels. */
+.board {
+  margin: 1.4rem 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0c1119;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 14px 34px -20px rgba(0, 0, 0, 0.55);
+}
+
+/* The board fills the text column; the drawing inside is capped by its
+   maxWidth prop and centered. No breakout: the doc layout has sidebars on
+   both sides, so anything wider than the column collides with them. */
+
+/* Faint blueprint dot grid behind the drawing. */
+.canvas {
+  padding: 1.4rem 1.2rem 1.1rem;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 18px 18px;
+  background-position: 9px 9px;
+}
+
+.drawing {
+  margin: 0 auto;
+}
+
+.drawing svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: var(--ifm-font-family-monospace);
+}
+
+/* Boxes wrapped in <a> are doc links: brighten on hover as affordance.
+   The theme's global a:hover underline would stripe the SVG text - the
+   brightness lift is the only hover cue we want. */
+.drawing svg a {
+  transition: filter 0.15s ease;
+  text-decoration: none;
+}
+
+.drawing svg a:hover {
+  filter: brightness(1.35);
+  text-decoration: none;
+}
+
+/* Opt-in wire animation: add className="schema-flow" to a dashed <line>/<g>
+   and the dashes crawl from the stroke's start point toward its end point,
+   suggesting traffic direction. The travel distance must equal one dash
+   period (dash + gap) for a seamless loop: strokeDasharray="5 4" → 9px (CSS
+   px = SVG user units here). For a different pattern, override with
+   style={{'--schema-dash-period': '11px'}}. */
+.drawing :global(.schema-flow) {
+  animation: dashFlow 1.4s linear infinite;
+}
+
+@keyframes dashFlow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: calc(-1 * var(--schema-dash-period, 9px));
+  }
+}
+
+/* Opt-in glow: add className="schema-glow" to a shape for a slow breathing
+   halo. Color defaults to the XO blue; override with
+   style={{'--schema-glow-color': '...'}}. Costly: the animated blur
+   re-rasterizes every frame - use on at most one element per page, or
+   prefer an opacity pulse on a pre-blurred shape. */
+.drawing :global(.schema-glow) {
+  animation: glowPulse 3.2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 1px var(--schema-glow-color, rgba(106, 171, 240, 0.25)));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px var(--schema-glow-color, rgba(106, 171, 240, 0.55)));
+  }
+}
+
+/* Opt-in migration hop: wrap a VM box (rect + text) in a <g
+   className="schema-hop"> and it periodically slides by --schema-hop-x
+   user units, with a small lift arc, then returns: a live migration
+   between two host slots. Long holds at each end keep it occasional.
+   Tune per element: --schema-hop-x (travel), --schema-hop-dur (cycle
+   length), --schema-hop-delay (stagger several hoppers). */
+.drawing :global(.schema-hop) {
+  animation: hop var(--schema-hop-dur, 11s) ease-in-out infinite;
+  animation-delay: var(--schema-hop-delay, 0s);
+}
+
+@keyframes hop {
+  0%,
+  55% {
+    transform: translate(0, 0);
+  }
+  58.5% {
+    transform: translate(calc(var(--schema-hop-x, 92px) / 2), -7px);
+  }
+  62%,
+  90% {
+    transform: translate(var(--schema-hop-x, 92px), 0);
+  }
+  93.5% {
+    transform: translate(calc(var(--schema-hop-x, 92px) / 2), -7px);
+  }
+  97%,
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+/* Opt-in pop: the element (a pod, a spawning node VM) appears, lives,
+   and is reaped on each cycle. Stagger several with --schema-pop-delay
+   (negative to fast-forward); cycle length via --schema-pop-dur. */
+.drawing :global(.schema-pop) {
+  animation: podPop var(--schema-pop-dur, 9s) ease-in-out infinite;
+  animation-delay: var(--schema-pop-delay, 0s);
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes podPop {
+  0%,
+  8% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  14%,
+  78% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  86%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+/* Same pop, but alive for only ~a third of the cycle: for elements whose
+   short lifetime is the message (ephemeral k8s nodes, spot workloads). */
+.drawing :global(.schema-pop-quick) {
+  animation: podPopQuick var(--schema-pop-dur, 9s) ease-in-out infinite;
+  animation-delay: var(--schema-pop-delay, 0s);
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes podPopQuick {
+  0%,
+  8% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  13%,
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  46%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+/* Opt-in data chunk: a small block that travels --schema-chunk-y along
+   its wire and fades at both ends. Pair one up and one down (positive
+   and negative travel, staggered delays) for two-way traffic. */
+.drawing :global(.schema-chunk) {
+  animation: chunkFlow var(--schema-chunk-dur, 2.8s) linear infinite;
+  animation-delay: var(--schema-chunk-delay, 0s);
+  opacity: 0;
+}
+
+@keyframes chunkFlow {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, var(--schema-chunk-y, -47px));
+    opacity: 0;
+  }
+}
+
+/* Opt-in long-stay parking: the element appears when its delivery lands
+   (align --schema-park-delay with the flight), stays for almost the whole
+   cycle, and fades out just as the next delivery to its slot arrives:
+   "a newer arrival displaces the oldest". */
+.drawing :global(.schema-park) {
+  animation: parkCycle var(--schema-park-dur, 36s) linear infinite;
+  animation-delay: var(--schema-park-delay, 0s);
+  opacity: 0;
+}
+
+@keyframes parkCycle {
+  0% {
+    opacity: 0;
+  }
+  4%,
+  94% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawing :global(.schema-flow),
+  .drawing :global(.schema-glow),
+  .drawing :global(.schema-hop),
+  .drawing :global(.schema-chunk),
+  .drawing :global(.schema-pop),
+  .drawing :global(.schema-pop-quick),
+  .drawing :global(.schema-park) {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Movers and transient wires are SMIL-driven, which CSS can't pause:
+     hide them. */
+  .drawing :global(.schema-packet),
+  .drawing :global(.schema-transient) {
+    display: none;
+  }
+
+  /* SMIL-faded structural elements (the VMware cluster and its VMs):
+     the CSS property beats the animated attribute, pinning them
+     visible. */
+  .drawing :global(.schema-live) {
+    opacity: 1 !important;
+  }
+}
+
+/* Engineering-drawing title strip. */
+.caption {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 1rem 0.55rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  background: #171b26;
+}
+
+/* Book-style caption: a mono "FIG. n" stamp, then the description in
+   sentence-case italic body type. */
+.label {
+  font-family: var(--ifm-font-family-base);
+  font-size: 0.84rem;
+  font-style: italic;
+  line-height: 1.4;
+  color: #8b96a8;
+}
+
+/* Automatic figure numbering, per page. The counter is reset on <article>
+   in src/css/custom.css. */
+.label::before {
+  counter-increment: schema-fig;
+  /* \2009 is a thin space: a full space gets stretched too wide by the
+     letter-spacing below. */
+  content: 'Fig.\2009' counter(schema-fig) '  ';
+  font-family: var(--ifm-font-family-monospace);
+  font-style: normal;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #c6d2e1;
+}
+
+.legend {
+  margin-left: auto;
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.78rem;
+  color: #7a8699;
+}
+
+.swatch {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  display: inline-block;
+}

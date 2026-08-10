@@ -11,7 +11,8 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useRedirectAfterDelete } from '@/shared/composables/redirect-after-delete.composable.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
+import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -40,28 +41,40 @@ const { redirectIfOnObjectPage } = useRedirectAfterDelete({
   },
 })
 
-const openDeleteModal = useModal({
-  component: import('@/modules/vm/components/modal/VmDeleteModal.vue'),
-  props: { count: 1 },
-  onConfirm: async () => {
-    let result
+const { open: openDeleteModal } = useDeleteModal()
 
-    try {
-      result = await deleteVM()
-    } catch (error) {
-      console.error('Error when deleting VM:', error)
-    }
+const { open: openBlockedModal } = useBlockedModal()
 
-    await redirectIfOnObjectPage(result)
-  },
-})
+function openModal() {
+  if (!canRun.value) {
+    return openBlockedModal({
+      props: {
+        blockedOperation: 'destroy',
+        href: xo5VmAdvancedHref.value,
+      },
+    })
+  }
 
-const openBlockedModal = useModal({
-  component: import('@core/components/modal/VtsBlockedModal.vue'),
-  props: { blockedOperation: 'destroy', href: xo5VmAdvancedHref },
-})
+  openDeleteModal({
+    events: {
+      onConfirm: async () => {
+        let result
 
-const openModal = () => (canRun.value ? openDeleteModal() : openBlockedModal())
+        try {
+          result = await deleteVM()
+        } catch (error) {
+          console.error('Error when deleting VM:', error)
+        }
+
+        await redirectIfOnObjectPage(result)
+      },
+    },
+    props: {
+      subject: t('n-vms', { n: 1 }),
+      confirmLabel: t('action:delete-n-vms', { n: 1 }),
+    },
+  })
+}
 </script>
 
 <style lang="postcss" scoped>

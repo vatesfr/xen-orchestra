@@ -1,7 +1,7 @@
 <!-- v4 -->
 <template>
-  <form :class="className" class="ui-modal" @click.self="emit('dismiss')">
-    <div class="modal">
+  <form :class="className" class="ui-modal" @click.self="emit('dismiss')" @submit.prevent="emit('confirm')">
+    <div :aria-labelledby="slots.title ? titleId : undefined" aria-modal="true" class="modal" role="dialog">
       <UiButtonIcon
         v-if="onDismiss"
         :accent="closeIconAccent"
@@ -13,7 +13,7 @@
       />
       <main class="main">
         <VtsIcon v-if="icon" :name="icon" class="icon" size="current" />
-        <div v-if="slots.title" class="typo-h4">
+        <div v-if="slots.title" :id="titleId" class="typo-h4">
           <slot name="title" />
         </div>
         <div class="content">
@@ -33,18 +33,21 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper'
+import { useOverlayEscape } from '@core/packages/overlay/use-overlay-escape.ts'
+import { IK_OVERLAY_ACCENT } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { computed } from 'vue'
+import { computed, provide, useId } from 'vue'
 
 export type ModalAccent = 'info' | 'warning' | 'danger'
 
 const { accent } = defineProps<{
   accent: ModalAccent
   icon?: IconName
-  onDismiss?: () => void
+  onDismiss?: () => any
 }>()
 
 const emit = defineEmits<{
+  confirm: []
   dismiss: []
 }>()
 
@@ -53,6 +56,10 @@ const slots = defineSlots<{
   buttons?(): any
   title?(): any
 }>()
+
+useOverlayEscape(() => emit('dismiss'))
+
+const titleId = useId()
 
 const closeIconAccent = useMapper(
   () => accent,
@@ -65,6 +72,11 @@ const closeIconAccent = useMapper(
 )
 
 const className = computed(() => toVariants({ accent }))
+
+provide(
+  IK_OVERLAY_ACCENT,
+  computed(() => accent)
+)
 </script>
 
 <style lang="postcss" scoped>

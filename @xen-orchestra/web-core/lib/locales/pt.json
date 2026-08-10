@@ -711,7 +711,6 @@
   "runs": "Ações",
   "s3-backup-repository": "Repositório de cópias de segurança do S3",
   "scan-pifs": "Digitalizar PIFs",
-  "scan-pifs-in-xo-5": "@:scan-pifs em XO-5",
   "schedule": "Calendário",
   "schedules": "Calendários",
   "secure-boot": "Arranque seguro",

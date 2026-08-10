@@ -508,7 +508,6 @@
   "runs": "Kjøringer",
   "s3-backup-repository": "S3-sikkerhetskopilager",
   "scan-pifs": "Skann PIF-er",
-  "scan-pifs-in-xo-5": "@:scan-pifs i XO-5",
   "schedule": "Tidsplan",
   "schedules": "Tidsplaner",
   "secure-boot": "Sikker oppstart",

@@ -1,25 +1,25 @@
 <template>
-  <VtsModal :accent :icon dismissible>
+  <UiModal :accent :icon @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       <span>{{ modalTexts.title }}</span>
     </template>
     <template #content>
-      <span>{{ modalTexts.message }}</span>
+      <span v-if="modalTexts.message">{{ modalTexts.message }}</span>
     </template>
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <VtsModalConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton>
         {{ modalTexts.action }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import type { ActionsByObject, HostActions, ObjectType, VmActions } from '@core/types/object.type.ts'
@@ -27,7 +27,7 @@ import { useI18n } from 'vue-i18n'
 
 type ActionTexts = {
   title: string
-  message: string
+  message?: string
   action: string
 }
 
@@ -54,7 +54,12 @@ const { action, object, hostName } = defineProps<
   }
 >()
 
-const defaultActionByObject: { [O in ObjectType]: ActionsByObject[O] } = {
+const emit = defineEmits<{
+  confirm: []
+  cancel: []
+}>()
+
+const defaultActionByObject: ActionsByObject = {
   vm: 'shutdown',
   host: 'disable',
 }
@@ -94,6 +99,15 @@ const textMappingsByObject: TextMappingByObject = {
       title: t('modal:confirm-host-disable', { host: hostName }),
       message: t('modal:host-disable-message'),
       action: t('action:disable-host'),
+    },
+    shutdown: {
+      title: t('modal:confirm-host-shutdown', { host: hostName }),
+      message: t('modal:host-shutdown-message'),
+      action: t('action:shutdown-host'),
+    },
+    start: {
+      title: t('modal:confirm-host-start', { host: hostName }),
+      action: t('action:start-host'),
     },
   },
 }

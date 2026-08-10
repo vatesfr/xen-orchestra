@@ -1,5 +1,10 @@
 <template>
-  <VtsModal accent="warning" icon="status:warning-picto" dismissible @confirm="emit('confirm', snapshotBefore)">
+  <UiModal
+    accent="warning"
+    icon="status:warning-picto"
+    @confirm="emit('confirm', snapshotBefore)"
+    @dismiss="emit('cancel')"
+  >
     <template #title>
       {{ t('confirm-vm-revert') }}
     </template>
@@ -14,22 +19,23 @@
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <VtsModalConfirmButton>{{ t('action:revert-to-snapshot') }}</VtsModalConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton>{{ t('action:revert-to-snapshot') }}</VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
   confirm: [snapshotBefore: boolean]
+  cancel: []
 }>()
 
 const { t } = useI18n()

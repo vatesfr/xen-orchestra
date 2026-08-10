@@ -9,7 +9,6 @@ import { createReadStream } from 'fs'
 import { stat } from 'fs-extra'
 import getStream from 'get-stream'
 import has from 'lodash/has'
-import hrp from 'http-request-plus'
 import humanFormat from 'human-format'
 import isObject from 'lodash/isObject'
 import getKeys from 'lodash/keys'
@@ -229,18 +228,19 @@ export async function upload(args) {
         noop
       )
       formData.append('file', input, { filename: 'file', knownLength: length })
-      try {
-        const response = await hrp(url.toString(), { body: formData, headers: formData.getHeaders(), method: 'POST' })
-        return await response.text()
-      } catch (e) {
-        console.log('ERROR', e)
-        const { response } = e
-        if (response !== undefined) {
-          console.log('ERROR content', await response.text())
-        }
-
-        throw e
+      const response = await fetch(url.toString(), {
+        body: formData,
+        headers: formData.getHeaders(),
+        method: 'POST',
+        duplex: 'half', // required when sending a stream body
+      })
+      if (!response.ok) {
+        const content = await response.text()
+        console.log('ERROR', response.status, response.statusText)
+        console.log('ERROR content', content)
+        throw new Error(`${response.status} ${response.statusText}`)
       }
+      return await response.text()
     }
   }
 }

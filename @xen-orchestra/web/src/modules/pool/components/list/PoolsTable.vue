@@ -28,7 +28,7 @@ import {
   type PoolFilterableData,
   usePoolEnhancedData,
 } from '@/modules/pool/composables/use-pool-enhanced-data.composable.ts'
-import { useServerDisconnectModal } from '@/modules/server/composables/use-server-disconnect-modal.composable.ts'
+import { useServerDisconnect } from '@/modules/server/composables/use-server-disconnect.composable.ts'
 import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
 import {
   type FrontXoServer,
@@ -109,13 +109,13 @@ const { HeadCells, BodyCells } = useServerColumns({
 
     const serverIdArg = computed(() => server.id)
 
-    const { canRun: canConnect, isRunning: isConnecting, run: connect } = useXoServerConnectJob([serverIdArg])
-
     const {
-      openModal: openDisconnectModal,
-      canRun: canDisconnect,
-      isRunning: isDisconnecting,
-    } = useServerDisconnectModal(() => server.id)
+      run: connectServer,
+      canRun: canConnectServer,
+      isRunning: isConnectingServer,
+    } = useXoServerConnectJob([serverIdArg])
+
+    const { disconnectServer, canDisconnectServer, isDisconnectingServer } = useServerDisconnect(() => server.id)
 
     const {
       download: downloadBugTools,
@@ -125,7 +125,7 @@ const { HeadCells, BodyCells } = useServerColumns({
 
     async function handleConnect() {
       try {
-        await connect()
+        await connectServer()
       } catch (error) {
         console.error('Error when connecting server:', error)
       }
@@ -155,15 +155,15 @@ const { HeadCells, BodyCells } = useServerColumns({
               ? {
                   label: t('action:disconnect-pool'),
                   icon: 'action:disconnect',
-                  busy: isDisconnecting.value,
-                  disabled: !canDisconnect.value,
-                  onClick: () => openDisconnectModal(),
+                  busy: isDisconnectingServer.value,
+                  disabled: !canDisconnectServer.value,
+                  onClick: () => disconnectServer(),
                 }
               : {
                   label: t('action:connect-pool'),
                   icon: 'action:connect',
-                  busy: isConnecting.value,
-                  disabled: !canConnect.value,
+                  busy: isConnectingServer.value,
+                  disabled: !canConnectServer.value,
                   onClick: () => handleConnect(),
                 },
             {
