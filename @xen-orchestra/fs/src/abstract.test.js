@@ -13,9 +13,9 @@ import tmp from 'tmp'
 const TIMEOUT = 12e5
 
 class TestHandler extends AbstractHandler {
-  constructor() {
+  constructor(remoteOverrides = {}) {
     const options = { timeout: TIMEOUT, withRetry: [] }
-    super({ url: 'test://' }, options)
+    super({ url: 'test://', ...remoteOverrides }, options)
     Object.defineProperty(this, 'isEncrypted', {
       get: () => false, // encryption is tested separately
     })
@@ -55,6 +55,16 @@ describe('closeFile()', () => {
     const promise = testHandler.closeFile({ fd: undefined, path: '' })
     clock.tick(TIMEOUT)
     await assert.rejects(promise, new TimeoutError())
+  })
+})
+
+describe('vhdDirectoryCompression()', () => {
+  it('is undefined when not set on the remote', () => {
+    assert.equal(new TestHandler().vhdDirectoryCompression(), undefined)
+  })
+
+  it('reads the remote-level compressionType override', () => {
+    assert.equal(new TestHandler({ compressionType: 'brotli' }).vhdDirectoryCompression(), 'brotli')
   })
 })
 
