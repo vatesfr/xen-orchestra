@@ -41,8 +41,6 @@ export const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
 const noop = Function.prototype
 
-const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
-
 const createSafeReaddir = (handler, methodName) => (path, options) =>
   handler.list(path, options).catch(error => {
     if (error?.code !== 'ENOENT') {
@@ -129,9 +127,7 @@ export class RemoteAdapter {
   async deleteFullVmBackups(backups) {
     await asyncMapSettled(backups, async ({ _filename, xva }) => {
       try {
-        await deleteFullVmBackupFiles(this._handler, [
-          { metadataPath: _filename, xvaPath: resolveRelativeFromFile(_filename, xva) },
-        ])
+        await deleteFullVmBackupFiles(this._handler, [{ metadataPath: _filename, xva }])
       } catch (error) {
         warn('error while removing full vm backup', { error, filename: _filename, failedPath: error.path })
         throw error

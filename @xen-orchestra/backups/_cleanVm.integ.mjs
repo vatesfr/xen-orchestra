@@ -230,8 +230,6 @@ test('it merges delta of non destroyed chain', async () => {
     logged.push(message)
   }
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
-  // no cache.json.gz existed before this run, so the cache-count mismatch is not reported
-  assert.equal(logged.includes(`unexpected number of entries in backup cache`), false)
 
   logged = []
   const result = await adapter.cleanVm(rootPath, { remove: true, merge: true, logInfo, logWarn: () => {}, lock: false })

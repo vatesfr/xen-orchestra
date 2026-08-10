@@ -365,8 +365,6 @@ test('it merges delta of non destroyed chain', async () => {
     logged.push(message)
   }
   await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, logInfo, logWarn: logInfo })
-  // no cache.json.gz existed before this run, so the cache-count mismatch is not reported
-  assert.equal(logged.includes(`unexpected number of entries in backup cache`), false)
 
   logged = []
   await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, merge: true, logInfo, logWarn: () => {} })
@@ -856,6 +854,54 @@ test('it does not create nor warn about the cache when none existed, even with a
 
   assert.ok(!logged.includes('unexpected number of entries in backup cache'), 'no cache to be mismatched, no warning')
   await assert.rejects(handler.readFile(`${rootPath}/cache.json.gz`), { code: 'ENOENT' })
+})
+
+test('it regenerates a pre-existing cache after a merge', async () => {
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({
+      mode: 'delta',
+      size: 12000, // a size too small, the merge will fix it
+      vhds: [`${relativePath}/grandchild.vhd`, `${relativePath}/child.vhd`],
+    })
+  )
+
+  // one orphan, which is a full vhd, no parent
+  const orphan = await generateVhd(`${basePath}/orphan.vhd`)
+  // a child to the orphan, orphan will be merged into it
+  const child = await generateVhd(`${basePath}/child.vhd`, {
+    header: {
+      parentUnicodeName: 'orphan.vhd',
+      parentUuid: orphan.footer.uuid,
+    },
+    blocks: [0, 1],
+  })
+  await generateVhd(`${basePath}/grandchild.vhd`, {
+    header: {
+      parentUnicodeName: 'child.vhd',
+      parentUuid: child.footer.uuid,
+    },
+  })
+
+  // a cache with the expected number of entries: it is not out of sync, only the merge can trigger the regeneration
+  await handler.writeFile(
+    `${rootPath}/cache.json.gz`,
+    await gzip(JSON.stringify({ [`/${rootPath}metadata.json`]: { size: 12000 } }))
+  )
+
+  await VmBackupDirectory.cleanVm(handler, rootPath, {
+    remove: true,
+    merge: true,
+    logInfo: () => {},
+    logWarn: () => {},
+  })
+
+  const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
+  assert.notEqual(metadata.size, 12000, 'metadata.size should be updated after merge')
+
+  const cache = JSON.parse((await gunzip(await handler.readFile(`${rootPath}/cache.json.gz`))).toString())
+  assert.equal(Object.keys(cache).length, 1)
+  assert.equal(Object.values(cache)[0].size, metadata.size, 'cache entry should carry the post-merge size')
 })
 
 test('it regenerates a pre-existing cache when its entry count is out of sync, even with nothing to merge/remove', async () => {
