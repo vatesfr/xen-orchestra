@@ -309,13 +309,11 @@ export class HostService {
       target: targetIp,
     }
 
-    // if we give user and password
     if (chapUser && chapPassword) {
       deviceConfig.chapuser = chapUser
       deviceConfig.chappassword = chapPassword
     }
 
-    //  if we give another port than default iSCSI
     if (port) {
       deviceConfig.port = String(port)
     }
@@ -371,13 +369,11 @@ export class HostService {
       targetIQN: targetIqn,
     }
 
-    // if we give user and password
     if (chapUser && chapPassword) {
       deviceConfig.chapuser = chapUser
       deviceConfig.chappassword = chapPassword
     }
 
-    //  if we give another port than default iSCSI
     if (port) {
       deviceConfig.port = String(port)
     }
@@ -434,13 +430,11 @@ export class HostService {
       SCSIid: scsiId,
     }
 
-    // if we give user and password
     if (chapUser && chapPassword) {
       deviceConfig.chapuser = chapUser
       deviceConfig.chappassword = chapPassword
     }
 
-    //  if we give another port than default iSCSI
     if (port) {
       deviceConfig.port = String(port)
     }
