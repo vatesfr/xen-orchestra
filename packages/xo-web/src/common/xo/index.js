@@ -595,13 +595,15 @@ export const subscribeXoTasks = (() => {
     if (abortController !== undefined) {
       return
     }
-    abortController = new AbortController()
     clearTimeout(clearCacheTimeout)
 
     while (true) {
+      abortController = new AbortController()
+      const { signal } = abortController
+      let fetching, watching
       try {
         // starts watching collection
-        const resWatch = await fetch(basePath + '&ndjson=true&watch=true', { signal: abortController.signal })
+        const resWatch = await fetch(basePath + '&ndjson=true&watch=true', { signal })
 
         const applyEvent = ([event, object]) => {
           if (event === 'remove') {
@@ -619,7 +621,7 @@ export const subscribeXoTasks = (() => {
         // this stream must be consumed as soon as possible: events not read are
         // buffered by the server, which closes the connection when too many of
         // them pile up
-        const watching = (async () => {
+        watching = (async () => {
           // eslint-disable-next-line n/no-unsupported-features/node-builtins
           const decoder = new TextDecoder()
           let buf = ''
@@ -644,8 +646,8 @@ export const subscribeXoTasks = (() => {
         })()
 
         // fetches existing objects
-        const fetching = (async () => {
-          const response = await fetch(basePath, { signal: abortController.signal })
+        fetching = (async () => {
+          const response = await fetch(basePath, { signal })
           const objects = await response.json()
           cache.clear()
           for (const object of objects) {
@@ -673,6 +675,10 @@ export const subscribeXoTasks = (() => {
 
         console.error('monitor XO tasks', error)
         notifyDisconnected(error)
+
+        abortController.abort('retry')
+        // eslint-disable-next-line n/no-unsupported-features/es-builtins
+        await Promise.allSettled([fetching, watching])
       }
 
       await new Promise(resolve => setTimeout(resolve, 10e3))
