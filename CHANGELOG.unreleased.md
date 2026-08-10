@@ -36,7 +36,7 @@
 - [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 >>>>>>> 48861713b (updating changelog)
 
-- HOST Probe Sr REST API Endpoints:
+- Host Probe SR REST API Endpoints:
 
   - `POST :id/actions/probe_nfs` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
