@@ -15,8 +15,8 @@
 - [REST API] Add `hosts/:id/actions/scan_pifs` endpoint (PR [#10187](https://github.com/vatesfr/xen-orchestra/pull/10187))
 - [XO6/Host] Add possibility to scan PIFs directly from the host (PR [#10191](https://github.com/vatesfr/xen-orchestra/pull/10191))
 - [Docs] Improve doc, rename titles, and refactor menu (PR [#10212](https://github.com/vatesfr/xen-orchestra/pull/10212))
-
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
+- [New VM] Ability to add the VM to a resource set and to share it during creation
 
 ### Bug fixes
 
@@ -51,8 +51,9 @@
 - xen-api minor
 - xo-cli patch
 - xo-common minor
-- xo-server patch
+- xo-server minor
 - xo-server-ipmi-sensors minor
 - xo-server-netbox patch
+- xo-web minor
 
 <!--packages-end-->

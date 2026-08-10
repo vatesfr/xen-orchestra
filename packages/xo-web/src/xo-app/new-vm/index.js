@@ -304,9 +304,12 @@ export default class NewVm extends BaseComponent {
       this._initTemplate(template)
     }
 
+    // as an admin, the resource set is selected in the advanced settings and
+    // `share` is initialized by `_setResourceSet`, it must not be overridden here
     if (
-      !isEqual(prevProps.resourceSets, this.props.resourceSets) ||
-      prevProps.location.query.resourceSet !== this.props.location.query.resourceSet
+      this.state.state.resourceSet === undefined &&
+      (!isEqual(prevProps.resourceSets, this.props.resourceSets) ||
+        prevProps.location.query.resourceSet !== this.props.location.query.resourceSet)
     ) {
       this._setState({
         share: this._getResourceSet()?.shareByDefault ?? false,
@@ -385,6 +388,7 @@ export default class NewVm extends BaseComponent {
         nameLabels: map(Array(NB_VMS_MIN), (_, index) => `VM_${index + 1}`),
         namePattern: '{name}%',
         nbVms: NB_VMS_MIN,
+        resourceSet: undefined,
         VDIs: [],
         VIFs: [],
         secureBoot: false,
@@ -501,7 +505,9 @@ export default class NewVm extends BaseComponent {
       return _vif
     })
 
-    const resourceSet = this._getResourceSet()
+    // - self user: resource set ID in the URL,
+    // - admin: resource set in state
+    const resourceSet = this._getResourceSet() ?? state.resourceSet
     const { template } = this.props
 
     // Either use `memory` OR `memory*` params
@@ -843,6 +849,14 @@ export default class NewVm extends BaseComponent {
       query: resourceSet && { resourceSet: resourceSet.id },
     })
     this._reset()
+  }
+  // admin only
+  _setResourceSet = resourceSet => {
+    this._setState({
+      // the select gives `null` when cleared, `undefined` is expected by `vm.create`
+      resourceSet: resourceSet ?? undefined,
+      share: resourceSet?.shareByDefault ?? false,
+    })
   }
   _selectPool = pool => {
     const { pathname } = this.props.location
@@ -1634,6 +1648,7 @@ export default class NewVm extends BaseComponent {
       nameLabels,
       namePattern,
       nbVms,
+      resourceSet,
       secureBoot,
       seqStart,
       share,
@@ -1946,6 +1961,23 @@ export default class NewVm extends BaseComponent {
                   </Row>
                 ))}
               </Container>
+            </SectionContent>
+          ),
+          isAdmin && this._getResourceSet() === undefined && (
+            <SectionContent key='resourceSet'>
+              <Item label={_('resourceSet')}>
+                <SelectResourceSet onChange={this._setResourceSet} value={resourceSet} />
+              </Item>
+              <label className='align-self-center'>
+                <input
+                  checked={share}
+                  disabled={resourceSet == null}
+                  onChange={this._linkState('share')}
+                  type='checkbox'
+                />
+                &nbsp;
+                {_('newVmShare')}
+              </label>
             </SectionContent>
           ),
         ]}
