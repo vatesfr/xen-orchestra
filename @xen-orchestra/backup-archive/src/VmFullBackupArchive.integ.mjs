@@ -15,6 +15,7 @@ import zlib from 'node:zlib'
 const { beforeEach, afterEach, describe } = test
 
 const gzip = promisify(zlib.gzip)
+const gunzip = promisify(zlib.gunzip)
 
 let tempDir, handler, vmBackupDir
 const vmUuid = 'test-vm-uuid'
@@ -157,6 +158,40 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
 
     const remainingFiles = await handler.list(rootPath)
     assert.ok(!remainingFiles.includes('cache.json.gz'), 'erroneous cache.json.gz should be removed, not rewritten')
+  })
+
+  test('clean() keeps maintaining a pre-existing cache.json.gz across a remove', async () => {
+    await createFullBackupMetadata('backup1.json', 'backup1.xva')
+    await createFullBackupMetadata('backup2.json', 'backup2.xva')
+
+    // a cache with the expected number of entries: only the removal can trigger the regeneration
+    const cachePath = `${rootPath}/cache.json.gz`
+    await handler.writeFile(
+      cachePath,
+      await gzip(
+        JSON.stringify({
+          [`/${rootPath}/backup1.json`]: { stale: true },
+          [`/${rootPath}/backup2.json`]: { stale: true },
+        })
+      )
+    )
+
+    // backup2 loses its XVA: its metadata will be removed by clean()
+    await handler.unlink(`${rootPath}/backup2.xva`)
+
+    await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, logInfo: () => {}, logWarn: () => {} })
+
+    const remainingFiles = await handler.list(rootPath)
+    assert.ok(remainingFiles.includes('backup1.json'))
+    assert.ok(remainingFiles.includes('backup1.xva'))
+    assert.ok(!remainingFiles.includes('backup2.json'), 'metadata of the backup with a missing XVA should be removed')
+    assert.ok(remainingFiles.includes('cache.json.gz'), 'an existing cache.json.gz must not be dropped by a remove')
+
+    const cache = JSON.parse((await gunzip(await handler.readFile(cachePath))).toString())
+    assert.ok(
+      Object.values(cache).every(entry => entry.stale === undefined),
+      'cache.json.gz should have been regenerated, not left untouched'
+    )
   })
 
   test('clean() removes an orphan XVA checksum file (no matching metadata or XVA)', async () => {
