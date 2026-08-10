@@ -1,4 +1,4 @@
-import { basename, normalize } from '@xen-orchestra/fs/path'
+import { basename, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
 import assert from 'node:assert'
 import { FileDescriptor, RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import {
@@ -94,17 +94,19 @@ async function unlinkTolerant(handler: RemoteHandlerAbstract, path: string): Pro
 
 /**
  * Deletes a full VM backup's metadata json and, when provided, its xva and checksum.
+ * `xva` is the path as stored in the metadata, i.e. relative to the metadata file.
  * Shared with the legacy @xen-orchestra/backups RemoteAdapter.
  */
 export async function deleteFullVmBackups(
   handler: RemoteHandlerAbstract,
-  backups: Array<{ metadataPath: string; xvaPath?: string }>
+  backups: Array<{ metadataPath: string; xva?: string }>
 ): Promise<void> {
   await asyncEach(
     backups,
-    async ({ metadataPath, xvaPath }) => {
+    async ({ metadataPath, xva }) => {
       await unlinkTolerant(handler, metadataPath)
-      if (xvaPath !== undefined) {
+      if (xva !== undefined) {
+        const xvaPath = resolveFromFile(metadataPath, xva)
         await unlinkTolerant(handler, xvaPath)
         await unlinkTolerant(handler, `${xvaPath}.checksum`)
       }
@@ -192,7 +194,7 @@ export class VmFullBackupArchive implements VmBackupInterface {
           })
         } else {
           try {
-            await deleteFullVmBackups(this.handler, [{ metadataPath: this.metadataPath, xvaPath: this.xvaPath }])
+            await deleteFullVmBackups(this.handler, [{ metadataPath: this.metadataPath, xva: this.metadata.xva }])
           } catch (error) {
             this.opts.logWarn(`Issue removing backup files`, { error, metadataPath: this.metadataPath })
           }
