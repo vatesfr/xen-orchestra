@@ -517,6 +517,15 @@ export class Xapi extends EventEmitter {
       return this.call(`${type}.remove_from_${field}`, ref, entry).then(noop)
     }
 
+    // `cores-per-socket` is always present in `platform`, see https://github.com/vatesfr/xen-orchestra/pull/9136
+    // so, updating `platform` is the only way to change the `cores-per-socket` value
+    // this is a workaround, waiting for the XAPI to fix the `cores-per-socket: undefined` bug
+    if (type === 'VM' && field === 'platform' && entry === 'cores-per-socket') {
+      const platform = await this.getField('VM', ref, 'platform')
+      platform['cores-per-socket'] = value
+      return this.call('VM.set_platform', ref, platform)
+    }
+
     while (true) {
       // First, remove any previous value to avoid triggering an unnecessary
       // `MAP_DUPLICATE_KEY` error which will appear in the XAPI logs
