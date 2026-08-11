@@ -22,7 +22,7 @@
 
     <VtsDivider type="stretch" />
 
-    <div class="section">
+    <div>
       <div class="typo-body-bold-small subtitle">
         {{ t('speed') }}
         <UiButtonIcon
@@ -45,8 +45,8 @@
         <VtsCardRowKeyValue>
           <template #key>{{ t('reading-speed') }}</template>
           <template #value>{{ readSpeed }}</template>
-          <template v-if="writeSpeed" #addons>
-            <VtsCopyButton :value="writeSpeed" />
+          <template v-if="readSpeed" #addons>
+            <VtsCopyButton :value="readSpeed" />
           </template>
         </VtsCardRowKeyValue>
       </div>
@@ -77,7 +77,7 @@ const { t } = useI18n()
 const lastBenchmark = computed(() => br.benchmarks?.at(-1))
 
 const formatSpeed = (bytesPerSecond: number) => {
-  const { value, prefix } = formatSpeedRaw(bytesPerSecond)
+  const { value, prefix } = formatSpeedRaw(bytesPerSecond, 2)
 
   return `${value} ${prefix}`
 }
@@ -95,7 +95,7 @@ const {
   canRun: canBenchmark,
   isRunning: isBenchmarking,
   errorMessage: benchmarkErrorMessage,
-} = useXoBackupRepositoryBenchmarkJob(br)
+} = useXoBackupRepositoryBenchmarkJob(() => br)
 </script>
 
 <style scoped lang="postcss">
@@ -113,7 +113,7 @@ const {
     align-items: center;
     justify-content: space-between;
     color: var(--color-neutral-txt-primary);
-    margin-bottom: 1.6rem;
+    margin-block-end: 1.6rem;
   }
 }
 </style>
