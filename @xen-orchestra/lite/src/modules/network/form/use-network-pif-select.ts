@@ -3,6 +3,7 @@ import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useFormSelect } from '@core/packages/form-select'
+import { OPAQUE_REF } from '@vates/types'
 import { useArrayFilter } from '@vueuse/shared'
 import type { Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -22,7 +23,7 @@ export function useNetworkPifSelect(
   const { pool } = usePoolStore().subscribe()
 
   const usablePifs = useArrayFilter(pifs, pif => {
-    const isBondSlave = pif.bond_slave_of !== 'OpaqueRef:NULL'
+    const isBondSlave = pif.bond_slave_of !== OPAQUE_REF.EMPTY
     const isVlanSlave = pif.VLAN !== -1
     const isOnMasterHost = pif.host === pool.value?.master
 

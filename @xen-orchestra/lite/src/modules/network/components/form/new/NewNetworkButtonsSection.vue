@@ -1,5 +1,5 @@
 <template>
-  <div class="new-network-button-section">
+  <div class="new-network-buttons-section">
     <UiLink :to="cancelTo" size="medium">
       {{ t('cancel') }}
     </UiLink>
@@ -24,7 +24,7 @@ const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
-.new-network-button-section {
+.new-network-buttons-section {
   display: flex;
   justify-content: center;
   align-items: center;

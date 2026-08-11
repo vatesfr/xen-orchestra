@@ -1,5 +1,5 @@
 <template>
-  <form class="new-bonded-network-form" novalidate @submit.prevent="onSubmit()">
+  <VtsForm class="new-bonded-network-form" @submit="onSubmit()">
     <div class="row">
       <NetworkFormTextInput v-bind="poolInputBindings" />
       <NetworkFormSelect v-bind="interfaceSelectBindings" />
@@ -16,7 +16,7 @@
       <NewNetworkNbdCheckbox v-bind="nbdCheckboxBindings" />
     </div>
     <NewNetworkButtonsSection :cancel-to :submit-label="t('action:create-bonded-network')" />
-  </form>
+  </VtsForm>
 </template>
 
 <script lang="ts" setup>
@@ -28,6 +28,7 @@ import NewNetworkNbdCheckbox from '@/modules/network/components/form/new/inputs/
 import NewNetworkButtonsSection from '@/modules/network/components/form/new/NewNetworkButtonsSection.vue'
 import { useNewBondedNetworkForm } from '@/modules/network/form/new-bonded/use-new-bonded-network-form.ts'
 import type { NewBondedNetworkPayload } from '@/modules/network/jobs/bonded-network-create.job.ts'
+import VtsForm from '@core/components/form/VtsForm.vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 

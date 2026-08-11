@@ -32,14 +32,12 @@ export function createNetworkOperations(xenApi: XenApi) {
 
   return {
     create: async (params: NetworkCreateParams): Promise<XenApiNetwork['$ref']> => {
-      const { nameLabel, nameDescription = '', mtu = 1500, vlan, pifRef, nbd } = params
+      const { nameLabel, nameDescription = '', mtu = 1500, vlan = 0, pifRef, nbd } = params
 
       const networkRef = await createEmptyNetwork(nameLabel, nameDescription, mtu)
 
       try {
-        if (vlan !== undefined) {
-          await xenApi.call('pool.create_VLAN_from_PIF', [pifRef, networkRef, vlan])
-        }
+        await xenApi.call('pool.create_VLAN_from_PIF', [pifRef, networkRef, vlan])
 
         if (nbd) {
           await xenApi.call('network.add_purpose', [networkRef, 'nbd'])

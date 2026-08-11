@@ -75,7 +75,7 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(formData: T, e
     useSelect,
     validate,
     nameInputBindings: useField('name', () => ({ label: t('name'), required: true })),
-    descriptionInputBindings: useField('description', () => ({ label: t('description') })),
+    descriptionInputBindings: useField('description'),
     mtuInputBindings: useField('mtu', () => ({ label: t('mtu'), info: t('mtu-default-value-message') })),
     nbdCheckboxBindings: useField('nbd'),
   }
