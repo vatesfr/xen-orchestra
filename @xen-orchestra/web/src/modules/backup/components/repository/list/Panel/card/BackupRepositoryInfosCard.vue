@@ -1,11 +1,11 @@
 <template>
   <UiCard class="card-container">
-    <VtsCardObjectTitle :id="br.id" :label="br.name" />
+    <VtsCardObjectTitle :id="br.id" :label="br.name" :icon="getBackupRepositoryIcon(br)" :href="xo5BrHref" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
-          <VtsStatus :status="getBackupReposirotyStatus(br)" />
+          <VtsStatus :status="getBackupRepositoryStatus(br)" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -44,13 +44,15 @@
 
 <script lang="ts" setup>
 import {
-  getBackupReposirotyStatus,
+  getBackupRepositoryIcon,
+  getBackupRepositoryStatus,
   getBackupRepositoryType,
   isBackupRepositoryBlockBased,
   isBackupRepositoryEncrypted,
 } from '@/modules/backup/components/utils/xo-backup-repository.utils.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -66,6 +68,9 @@ const { br } = defineProps<{
 
 const { t } = useI18n()
 
+const { buildXo5Route } = useXoRoutes()
+const xo5BrHref = computed(() => buildXo5Route('/backup/overview'))
+
 const { useGetProxyById } = useXoProxyCollection()
 
 const BrType = computed(() => getBackupRepositoryType(br.url))
@@ -75,6 +80,16 @@ const BrStorageMode = computed(() => (isBackupRepositoryBlockBased(br.url) ? t('
 const isEncrypted = computed(() => isBackupRepositoryEncrypted(br.url))
 
 const brProxy = useGetProxyById(() => br.proxy)
-
-// Ajouter le href sur le titre
 </script>
+
+<style scoped lang="postcss">
+.card-container {
+  gap: 1.6rem;
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+}
+</style>
