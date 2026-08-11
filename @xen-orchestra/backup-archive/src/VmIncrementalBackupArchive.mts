@@ -149,6 +149,7 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
       }
     }
 
+    const changedFiles: string[] = []
     let mergedSize = 0
     if (mergedSizes !== undefined) {
       for (const diskPath of this.diskPaths) {
@@ -156,10 +157,11 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
       }
       if (mergedSize > 0) {
         await this.updateMetadata(mergedSize)
+        changedFiles.push(this.metadataPath)
       }
     }
 
-    return { removedFiles }
+    return { removedFiles, changedFiles }
   }
 
   /**
