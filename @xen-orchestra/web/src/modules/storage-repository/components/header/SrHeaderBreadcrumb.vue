@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
@@ -49,7 +49,7 @@ const { useGetPoolById } = useXoPoolCollection()
 
 const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
 
-const host = useGetHostById(() => (scope.type === SR_SCOPE_TYPE.HOST ? scope.hostId : undefined))
+const host = useGetHostById(() => (scope.type === SR_SCOPE_TYPE.HOST ? (scope.hostId as FrontXoHost['id']) : undefined))
 
 const pool = useGetPoolById(() => sr.$pool)
 
