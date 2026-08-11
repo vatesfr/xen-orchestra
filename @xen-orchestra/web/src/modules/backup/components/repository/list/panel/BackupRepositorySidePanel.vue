@@ -1,7 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!br" @close="emit('close')">
     <template v-if="br" #default>
-      <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
+      <VtsStateHero v-if="!areBrsReady" format="panel" type="busy" size="medium" />
       <template v-else>
         <BackupRepositoryInfosCard :br />
         <BackupRepositorySpaceAndSpeedCard :br />
@@ -12,9 +12,9 @@
 </template>
 
 <script lang="ts" setup>
-import BackupRepositoryInfosCard from '@/modules/backup/components/repository/list/Panel/card/BackupRepositoryInfosCard.vue'
-import BackupRepositoryNFSCard from '@/modules/backup/components/repository/list/Panel/card/BackupRepositoryNFSCard.vue'
-import BackupRepositorySpaceAndSpeedCard from '@/modules/backup/components/repository/list/Panel/card/BackupRepositorySpaceAndSpeedCard.vue'
+import BackupRepositoryInfosCard from '@/modules/backup/components/repository/list/panel/card/BackupRepositoryInfosCard.vue'
+import BackupRepositoryNFSCard from '@/modules/backup/components/repository/list/panel/card/BackupRepositoryNFSCard.vue'
+import BackupRepositorySpaceAndSpeedCard from '@/modules/backup/components/repository/list/panel/card/BackupRepositorySpaceAndSpeedCard.vue'
 import { getBackupRepositoryType } from '@/modules/backup/components/utils/xo-backup-repository.utils.ts'
 import {
   type FrontXoBackupRepository,
@@ -22,7 +22,6 @@ import {
 } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 
 const { br } = defineProps<{
@@ -35,7 +34,5 @@ const emit = defineEmits<{
 
 const { areBackupRepositoriesReady: areBrsReady } = useXoBackupRepositoryCollection()
 
-const isReady = logicAnd(areBrsReady)
-
-const BrType = computed(() => getBackupRepositoryType(br !== undefined ? br.url : ''))
+const BrType = computed(() => (br === undefined ? undefined : getBackupRepositoryType(br.url)))
 </script>

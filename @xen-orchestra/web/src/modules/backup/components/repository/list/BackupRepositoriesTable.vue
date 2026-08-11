@@ -14,8 +14,8 @@
       </tr>
     </thead>
     <tbody>
-      <VtsRow v-for="user of paginatedUsers" :key="user.id" :selected="selectedBrId === user.id">
-        <BodyCells :item="user" />
+      <VtsRow v-for="br of paginatedBrs" :key="br.id" :selected="selectedBrId === br.id">
+        <BodyCells :item="br" />
       </VtsRow>
     </tbody>
   </VtsTable>
@@ -39,7 +39,7 @@ import { useRouteQuery } from '@xen-orchestra/web-core/composables/route-query.c
 import { useTableState } from '@xen-orchestra/web-core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@xen-orchestra/web-core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@xen-orchestra/web-core/packages/query-builder/use-query-builder-filter.ts'
-import { useBrColumns } from '@xen-orchestra/web-core/tables/column-sets/backup-repository-columns.ts'
+import { useBackupRepositoryColumns } from '@xen-orchestra/web-core/tables/column-sets/backup-repository-columns.ts'
 import { useStringSchema } from '@xen-orchestra/web-core/utils/query-builder/use-string-schema.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -49,7 +49,7 @@ const { brs } = defineProps<{
 }>()
 
 defineSlots<{
-  'title-actions'(): any
+  'title-actions'?(): any
 }>()
 
 const { t } = useI18n()
@@ -58,7 +58,7 @@ const { buildXo5Route } = useXoRoutes()
 
 const { useGetProxyById } = useXoProxyCollection()
 
-const { items: filteredUsers, filter } = useQueryBuilderFilter('backup-repositories', () => brs)
+const { items: filteredBrs, filter } = useQueryBuilderFilter('backup-repositories', () => brs)
 
 const schema = useQueryBuilderSchema<FrontXoBackupRepository>({
   '': useStringSchema(t('any-property')),
@@ -68,16 +68,20 @@ const schema = useQueryBuilderSchema<FrontXoBackupRepository>({
 
 const selectedBrId = useRouteQuery('id')
 
-const xo5BrsHref = computed(() => buildXo5Route('/backup/overview'))
+const xo5BrsHref = computed(() => buildXo5Route('/settings/remotes'))
 
-const { pageRecords: paginatedUsers, paginationBindings } = usePagination('users', filteredUsers)
+const { pageRecords: paginatedBrs, paginationBindings } = usePagination('brs', filteredBrs)
 
 const state = useTableState({
   empty: () =>
-    brs.length === 0 ? t('no-user-detected') : filteredUsers.value.length === 0 ? { type: 'no-result' } : false,
+    brs.length === 0
+      ? t('no-backup-repository-detected')
+      : filteredBrs.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
-const { HeadCells, BodyCells } = useBrColumns({
+const { HeadCells, BodyCells } = useBackupRepositoryColumns({
   body: (br: FrontXoBackupRepository) => {
     return {
       backupRepository: r => r({ label: br.name, icon: getBackupRepositoryIcon(br), href: xo5BrsHref.value }),
@@ -87,7 +91,6 @@ const { HeadCells, BodyCells } = useBrColumns({
         const proxyName = useGetProxyById(() => br.proxy).value?.name
         return proxyName ? r(proxyName, { leftIcon: { icon: 'object:instance' } }) : r('')
       },
-      usedSpace: r => r(''),
       selectItem: r => r(() => (selectedBrId.value = br.id)),
     }
   },

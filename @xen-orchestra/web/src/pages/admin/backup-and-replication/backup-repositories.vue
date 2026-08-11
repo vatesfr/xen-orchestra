@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import BackupRepositoriesTable from '@/modules/backup/components/repository/list/BackupRepositoriesTable.vue'
-import BackupRepositorySidePanel from '@/modules/backup/components/repository/list/Panel/BackupRepositorySidePanel.vue'
+import BackupRepositorySidePanel from '@/modules/backup/components/repository/list/panel/BackupRepositorySidePanel.vue'
 import {
   type FrontXoBackupRepository,
   useXoBackupRepositoryCollection,

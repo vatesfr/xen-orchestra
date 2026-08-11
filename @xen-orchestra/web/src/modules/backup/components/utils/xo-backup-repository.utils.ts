@@ -4,16 +4,6 @@ import type { IconName } from '@core/icons'
 
 export type BackupRepositoryType = 'file' | 'nfs' | 'smb' | 's3' | 'azure' | 'azurite'
 
-export type BackupRepositoryUrlInfo = {
-  type: BackupRepositoryType
-  host: string | undefined
-  port: string | undefined
-  path: string | undefined
-  isEncrypted: boolean
-  isBlockBased: boolean
-  isInvalid: boolean
-}
-
 export type BackupRepositoryNfsInfo = {
   host: string
   port: string | undefined
@@ -21,7 +11,6 @@ export type BackupRepositoryNfsInfo = {
 }
 
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:?]+)(\?[^?]*)?$/
-// const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0?]+)(?:\0([^?]*))?(\?[^?]*)?$/
 
 export function getBackupRepositoryType(url: string): BackupRepositoryType {
   const urlProtocol = url.split('://')[0]
@@ -49,7 +38,7 @@ export function isBackupRepositoryBlockBased(url: string): boolean {
   return getUrlParams(url).get('useVhdDirectory') === 'true'
 }
 
-const withLeadingSlash = (path: string) => `${path.replace(/^\/+/, '')}`
+const withoutLeadingSlash = (path: string) => `${path.replace(/^\/+/, '')}`
 
 export function getBackupRepositoryNfsInfo(url: string): BackupRepositoryNfsInfo {
   const rest = url.split('://')[1] ?? ''
@@ -58,12 +47,12 @@ export function getBackupRepositoryNfsInfo(url: string): BackupRepositoryNfsInfo
   if (matches === null) {
     const [host, path = ''] = rest.split(':')
 
-    return { host, port: undefined, path: withLeadingSlash(path) }
+    return { host, port: undefined, path: withoutLeadingSlash(path) }
   }
 
   const [, host, port, path] = matches
 
-  return { host, port, path: withLeadingSlash(path) }
+  return { host, port, path: withoutLeadingSlash(path) }
 }
 
 export function getBackupRepositoryStatus(br: FrontXoBackupRepository): Status {

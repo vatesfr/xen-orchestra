@@ -6,7 +6,7 @@ import { useStatusColumn } from '@core/tables/column-definitions/status-column.t
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
 import { useI18n } from 'vue-i18n'
 
-export const useBrColumns = defineColumns(() => {
+export const useBackupRepositoryColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
@@ -14,7 +14,6 @@ export const useBrColumns = defineColumns(() => {
     status: useStatusColumn({ headerLabel: () => t('status') }),
     type: useLiteralColumn({ headerLabel: () => t('type') }),
     proxy: useTextColumn({ headerLabel: () => t('proxy') }),
-    usedSpace: useLiteralColumn({ headerLabel: () => t('used-space') }),
-    selectItem: useSelectItemColumn({}),
+    selectItem: useSelectItemColumn(),
   }
 })

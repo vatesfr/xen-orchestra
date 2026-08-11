@@ -1,7 +1,7 @@
 <template>
   <UiTableCell>
     <div class="content">
-      <VtsIcon v-if="leftIcon" v-tooltip="leftIcon.tooltip ?? false" size="medium" :name="leftIcon.icon" />
+      <VtsIcon v-if="leftIcon" v-tooltip="leftIcon.tooltip ?? false" :name="leftIcon.icon" size="medium" />
       <span><slot /></span>
       <VtsIcon v-if="rightIcon" v-tooltip="rightIcon.tooltip ?? false" :name="rightIcon.icon" size="medium" />
     </div>

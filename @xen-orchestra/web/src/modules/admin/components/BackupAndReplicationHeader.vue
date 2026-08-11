@@ -5,7 +5,7 @@
   <TabList>
     <RouterLink
       v-slot="{ isExactActive, href }"
-      :to="{ name: '/admin/backup-and-replication/backup-repository' }"
+      :to="{ name: '/admin/backup-and-replication/backup-repositories' }"
       custom
     >
       <TabItem :active="isExactActive" :href tag="a">

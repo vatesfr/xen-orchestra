@@ -15,16 +15,11 @@ export const useXoBackupRepositoryBenchmarkJob = defineJob(
 
     return {
       async run(br: FrontXoBackupRepository) {
-        try {
-          const { taskId } = await fetchPost<{ taskId: FrontXoTask['id'] }>(
-            `backup-repositories/${br.id}/actions/benchmark`
-          )
+        const { taskId } = await fetchPost<{ taskId: FrontXoTask['id'] }>(
+          `backup-repositories/${br.id}/actions/benchmark`
+        )
 
-          await monitorTask(taskId)
-        } catch (error) {
-          console.error(`Failed to benchmark backup repository ${br.id}:`, error)
-          throw error
-        }
+        await monitorTask(taskId)
       },
 
       validate: (isRunning, br: FrontXoBackupRepository | undefined) => {
@@ -37,7 +32,7 @@ export const useXoBackupRepositoryBenchmarkJob = defineJob(
         }
 
         if (!br.enabled) {
-          throw new JobError(t('job:backup-repository-benchmark:backup-disabled'))
+          throw new JobError(t('job:backup-repository-benchmark:repository-disabled'))
         }
       },
     }
