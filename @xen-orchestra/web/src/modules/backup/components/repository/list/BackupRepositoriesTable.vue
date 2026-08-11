@@ -22,12 +22,12 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import {
   getBackupRepositoryIcon,
   getBackupRepositoryStatus,
   getBackupRepositoryType,
-} from '@/modules/backup/components/utils/xo-backup-repository.utils.ts'
-import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+} from '@/modules/backup/utils/xo-backup-repository.utils.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@xen-orchestra/web-core/components/query-builder/VtsQueryBuilder.vue'
