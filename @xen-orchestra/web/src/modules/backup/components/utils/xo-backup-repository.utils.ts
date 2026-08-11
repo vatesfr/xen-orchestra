@@ -21,7 +21,7 @@ export type BackupRepositoryNfsInfo = {
 }
 
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:?]+)(\?[^?]*)?$/
-const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0?]+)(?:\0([^?]*))?(\?[^?]*)?$/
+// const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0?]+)(?:\0([^?]*))?(\?[^?]*)?$/
 
 export function getBackupRepositoryType(url: string): BackupRepositoryType {
   const urlProtocol = url.split('://')[0]
@@ -61,12 +61,12 @@ export function getBackupRepositoryNfsInfo(url: string): BackupRepositoryNfsInfo
     return { host, port: undefined, path: withLeadingSlash(path) }
   }
 
-  const [host, port, path] = matches
+  const [, host, port, path] = matches
 
   return { host, port, path: withLeadingSlash(path) }
 }
 
-export function getBackupReposirotyStatus(br: FrontXoBackupRepository): Status {
+export function getBackupRepositoryStatus(br: FrontXoBackupRepository): Status {
   if (!br.enabled) {
     return 'disabled'
   }
