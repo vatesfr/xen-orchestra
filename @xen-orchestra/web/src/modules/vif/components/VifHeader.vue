@@ -14,6 +14,9 @@
       </span>
     </UiBreadcrumb>
   </div>
+  <UiHeadBar icon="object:vif">
+    {{ t('vif-device', { device: vif.device }) }}
+  </UiHeadBar>
   <TabList>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vif/[id]/general', params: { id: vif.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
@@ -37,6 +40,7 @@ import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
+import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { toLower } from 'lodash-es'
