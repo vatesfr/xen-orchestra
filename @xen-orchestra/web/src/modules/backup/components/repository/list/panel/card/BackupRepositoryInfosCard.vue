@@ -1,25 +1,25 @@
 <template>
   <UiCard class="card-container">
-    <VtsCardObjectTitle :id="br.id" :label="br.name" :icon="getBackupRepositoryIcon(br)" :href="xo5BrHref" />
+    <VtsCardObjectTitle :id="br.id" :label="br.name" :icon="brIcon" :href="xo5BrHref" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
-          <VtsStatus :status="getBackupRepositoryStatus(br)" />
+          <VtsStatus :status="brStatus" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('type') }}</template>
-        <template #value>{{ BrType }}</template>
-        <template v-if="BrType" #addons>
-          <VtsCopyButton :value="BrType" />
+        <template #value>{{ brType }}</template>
+        <template v-if="brType" #addons>
+          <VtsCopyButton :value="brType" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('storage-mode') }}</template>
-        <template #value>{{ BrStorageMode }}</template>
-        <template v-if="BrType" #addons>
-          <VtsCopyButton :value="BrStorageMode" />
+        <template #value>{{ brStorageMode }}</template>
+        <template v-if="brStorageMode" #addons>
+          <VtsCopyButton :value="brStorageMode" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -69,13 +69,17 @@ const { br } = defineProps<{
 const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
-const xo5BrHref = computed(() => buildXo5Route('/backup/overview'))
+const xo5BrHref = computed(() => buildXo5Route('/settings/remotes'))
 
 const { useGetProxyById } = useXoProxyCollection()
 
-const BrType = computed(() => getBackupRepositoryType(br.url))
+const brType = computed(() => getBackupRepositoryType(br.url))
 
-const BrStorageMode = computed(() => (isBackupRepositoryBlockBased(br.url) ? t('block-based') : t('file-based')))
+const brIcon = computed(() => getBackupRepositoryIcon(br))
+
+const brStatus = computed(() => getBackupRepositoryStatus(br))
+
+const brStorageMode = computed(() => (isBackupRepositoryBlockBased(br.url) ? t('block-based') : t('file-based')))
 
 const isEncrypted = computed(() => isBackupRepositoryEncrypted(br.url))
 
