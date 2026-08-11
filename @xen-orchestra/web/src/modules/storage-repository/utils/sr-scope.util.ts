@@ -8,7 +8,7 @@ export type SrScopeQuery =
 
 export function toSrScopeQuery(scope: SrScope): SrScopeQuery {
   if (scope.type === SR_SCOPE_TYPE.HOST) {
-    return { from: SR_SCOPE_TYPE.HOST, host: scope.hostId }
+    return { from: SR_SCOPE_TYPE.HOST, host: scope.hostId as FrontXoHost['id'] }
   }
 
   return { from: SR_SCOPE_TYPE.POOL }
