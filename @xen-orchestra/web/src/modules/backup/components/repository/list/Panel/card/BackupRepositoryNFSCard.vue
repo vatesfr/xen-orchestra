@@ -47,3 +47,15 @@ const { t } = useI18n()
 
 const nfsInfo = computed(() => getBackupRepositoryNfsInfo(br.url))
 </script>
+
+<style scoped lang="postcss">
+.card-container {
+  gap: 1.6rem;
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+}
+</style>

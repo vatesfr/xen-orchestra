@@ -5,7 +5,7 @@
       <slot name="title-actions" />
     </template>
   </UiTitle>
-  <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+  <VtsQueryBuilder v-model="filter" :schema />
 
   <VtsTable :state :pagination-bindings sticky="right">
     <thead>
@@ -23,22 +23,25 @@
 
 <script setup lang="ts">
 import {
-  getBackupReposirotyStatus,
   getBackupRepositoryIcon,
+  getBackupRepositoryStatus,
   getBackupRepositoryType,
 } from '@/modules/backup/components/utils/xo-backup-repository.utils.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import VtsQueryBuilder from '@xen-orchestra/web-core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@xen-orchestra/web-core/components/table/VtsRow.vue'
 import VtsTable from '@xen-orchestra/web-core/components/table/VtsTable.vue'
-import UiQuerySearchBar from '@xen-orchestra/web-core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@xen-orchestra/web-core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@xen-orchestra/web-core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@xen-orchestra/web-core/composables/route-query.composable.ts'
 import { useTableState } from '@xen-orchestra/web-core/composables/table-state.composable.ts'
+import { useQueryBuilderSchema } from '@xen-orchestra/web-core/packages/query-builder/schema/use-query-builder-schema.ts'
+import { useQueryBuilderFilter } from '@xen-orchestra/web-core/packages/query-builder/use-query-builder-filter.ts'
 import { useBrColumns } from '@xen-orchestra/web-core/tables/column-sets/backup-repository-columns.ts'
-import { computed, ref } from 'vue'
+import { useStringSchema } from '@xen-orchestra/web-core/utils/query-builder/use-string-schema.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { brs } = defineProps<{
@@ -55,16 +58,12 @@ const { buildXo5Route } = useXoRoutes()
 
 const { useGetProxyById } = useXoProxyCollection()
 
-const searchQuery = ref('')
+const { items: filteredUsers, filter } = useQueryBuilderFilter('backup-repositories', () => brs)
 
-const filteredUsers = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return brs
-  }
-
-  return brs.filter(br => Object.values(br).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+const schema = useQueryBuilderSchema<FrontXoBackupRepository>({
+  '': useStringSchema(t('any-property')),
+  name: useStringSchema(t('name')),
+  url: useStringSchema(t('url')),
 })
 
 const selectedBrId = useRouteQuery('id')
@@ -82,7 +81,7 @@ const { HeadCells, BodyCells } = useBrColumns({
   body: (br: FrontXoBackupRepository) => {
     return {
       backupRepository: r => r({ label: br.name, icon: getBackupRepositoryIcon(br), href: xo5BrsHref.value }),
-      status: r => r(getBackupReposirotyStatus(br)),
+      status: r => r(getBackupRepositoryStatus(br)),
       type: r => r(getBackupRepositoryType(br.url)),
       proxy: r => {
         const proxyName = useGetProxyById(() => br.proxy).value?.name

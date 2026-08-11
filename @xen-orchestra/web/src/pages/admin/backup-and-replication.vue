@@ -9,13 +9,8 @@
 import BackupsHeader from '@/modules/admin/components/BackupsHeader.vue'
 import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
-import { watch } from 'vue'
 
 useDefaultTab('/admin/backup-and-replication', 'backup-repository')
 
 const { backupRepositories: brs } = useXoBackupRepositoryCollection()
-
-watch(brs, value => {
-  console.log(value)
-})
 </script>
