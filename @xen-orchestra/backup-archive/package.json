@@ -39,7 +39,7 @@
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
     "test": "tsc && node --test **/*.test.mjs",
-    "test-integration": "yarn run clean && tsc && node --test **/*.integ.mjs",
+    "test-integration": "tsc && node --test **/*.integ.mjs",
     "clean": "rimraf dist/"
   },
   "private": false,
