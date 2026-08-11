@@ -1,6 +1,7 @@
 <template>
   <UiTableCell>
     <div class="content">
+      <VtsIcon v-if="leftIcon" v-tooltip="leftIcon.tooltip ?? false" size="medium" :name="leftIcon.icon" />
       <span><slot /></span>
       <VtsIcon v-if="rightIcon" v-tooltip="rightIcon.tooltip ?? false" :name="rightIcon.icon" size="medium" />
     </div>
@@ -14,6 +15,10 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconName } from '@core/icons'
 
 export type TextCellProps = {
+  leftIcon?: {
+    icon: IconName
+    tooltip?: string
+  }
   rightIcon?: {
     icon: IconName
     tooltip?: string

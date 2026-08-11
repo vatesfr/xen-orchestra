@@ -38,7 +38,7 @@ const sections = computed<AdminMenuSection[]>(() => [
     titleKey: 'backups-and-replication',
     items: [
       { labelKey: 'jobs', href: buildXo5Route('/backup/overview'), to: undefined },
-      { labelKey: 'backup-repository', href: undefined, to: { name: '/admin/backup-and-replication' } },
+      { labelKey: 'backup-repositories', href: undefined, to: { name: '/admin/backup-and-replication' } },
       { labelKey: 'archives', href: buildXo5Route('/backup/restore'), to: undefined },
       {
         labelKey: 'logs',

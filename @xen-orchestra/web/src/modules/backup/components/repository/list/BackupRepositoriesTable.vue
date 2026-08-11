@@ -22,8 +22,13 @@
 </template>
 
 <script setup lang="ts">
-import { getBackupRepositoryType } from '@/modules/backup/components/utils/xo-backup-repository.utils.ts'
+import {
+  getBackupReposirotyStatus,
+  getBackupRepositoryIcon,
+  getBackupRepositoryType,
+} from '@/modules/backup/components/utils/xo-backup-repository.utils.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsRow from '@xen-orchestra/web-core/components/table/VtsRow.vue'
 import VtsTable from '@xen-orchestra/web-core/components/table/VtsTable.vue'
@@ -47,6 +52,8 @@ defineSlots<{
 const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
+
+const { useGetProxyById } = useXoProxyCollection()
 
 const searchQuery = ref('')
 
@@ -74,10 +81,13 @@ const state = useTableState({
 const { HeadCells, BodyCells } = useBrColumns({
   body: (br: FrontXoBackupRepository) => {
     return {
-      backupRepository: r => r({ label: br.name, icon: 'object:backup-archive', href: xo5BrsHref.value }),
-      status: r => r(br.enabled),
+      backupRepository: r => r({ label: br.name, icon: getBackupRepositoryIcon(br), href: xo5BrsHref.value }),
+      status: r => r(getBackupReposirotyStatus(br)),
       type: r => r(getBackupRepositoryType(br.url)),
-      proxy: r => r(br.proxy),
+      proxy: r => {
+        const proxyName = useGetProxyById(() => br.proxy).value?.name
+        return proxyName ? r(proxyName, { leftIcon: { icon: 'object:instance' } }) : r('')
+      },
       usedSpace: r => r(''),
       selectItem: r => r(() => (selectedBrId.value = br.id)),
     }

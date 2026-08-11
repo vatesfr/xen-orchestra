@@ -1,8 +1,9 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
-import { useLinkColumn } from '@core/tables/column-definitions/link-column'
+import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
 import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column.ts'
 import { useStatusColumn } from '@core/tables/column-definitions/status-column.ts'
+import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
 import { useI18n } from 'vue-i18n'
 
 export const useBrColumns = defineColumns(() => {
@@ -12,7 +13,7 @@ export const useBrColumns = defineColumns(() => {
     backupRepository: useLinkColumn({ headerLabel: () => t('backup-repository') }),
     status: useStatusColumn({ headerLabel: () => t('status') }),
     type: useLiteralColumn({ headerLabel: () => t('type') }),
-    proxy: useLiteralColumn({ headerLabel: () => t('proxy') }),
+    proxy: useTextColumn({ headerLabel: () => t('proxy') }),
     usedSpace: useLiteralColumn({ headerLabel: () => t('used-space') }),
     selectItem: useSelectItemColumn({}),
   }

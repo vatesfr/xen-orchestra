@@ -1,6 +1,6 @@
 <template>
   <UiHeadBar icon="object:backup-archive">
-    {{ t('backups') }}
+    {{ t('backups-and-replication') }}
   </UiHeadBar>
   <TabList>
     <RouterLink
@@ -9,7 +9,7 @@
       custom
     >
       <TabItem :active="isExactActive" :href tag="a">
-        {{ t('brs') }}
+        {{ t('backup-repositories') }}
       </TabItem>
     </RouterLink>
   </TabList>
