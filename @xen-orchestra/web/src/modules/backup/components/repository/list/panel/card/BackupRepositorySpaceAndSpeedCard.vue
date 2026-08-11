@@ -2,7 +2,7 @@
   <UiCard class="card-container">
     <UiCardTitle>{{ t('space-and-speed') }}</UiCardTitle>
 
-    <div class="section">
+    <div>
       <span class="typo-body-bold-small subtitle">{{ t('space') }}</span>
       <div class="content">
         <VtsCardRowKeyValue>

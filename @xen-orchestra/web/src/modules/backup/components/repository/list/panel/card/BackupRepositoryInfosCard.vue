@@ -43,14 +43,14 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import {
   getBackupRepositoryIcon,
   getBackupRepositoryStatus,
   getBackupRepositoryType,
   isBackupRepositoryBlockBased,
   isBackupRepositoryEncrypted,
-} from '@/modules/backup/components/utils/xo-backup-repository.utils.ts'
-import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+} from '@/modules/backup/utils/xo-backup-repository.utils.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
