@@ -4289,6 +4289,16 @@ export const importVddkLib = file => {
       })
   })
 }
+export const uploadAirgapDataPack = file => {
+  return _call('xoa.licenses.uploadAirgapDataPack').then(({ $sendTo }) => {
+    return post($sendTo, file.file).then(res => {
+      if (res.status !== 204) {
+        throw res.status
+      }
+      success('Airgap data pack successfully uploaded')
+    })
+  })
+}
 export const installNbdInfo = file => {
   return _call('esxi.installNbdInfoFromSource')
     .then(() => {
