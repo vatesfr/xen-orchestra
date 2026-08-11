@@ -307,6 +307,12 @@ export class RemoteAdapter {
   _updateCache = synchronized.withKey()(this._updateCache)
   // eslint-disable-next-line no-dupe-class-members
   async _updateCache(path, fn) {
+    // immutable remote can't use any caching
+    // since the cache file may be non modifiable, and would then stay billed forever
+    if (this._handler.isImmutable()) {
+      return
+    }
+
     const cache = await this._readCache(path)
     if (cache !== undefined) {
       fn(cache)
