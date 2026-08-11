@@ -30,7 +30,7 @@
     </RouterLink>
     <RouterLink
       v-slot="{ isActive, href }"
-      :to="{ name: '/sr/[id]/vdis', params: { id: sr.id }, query: contextQuery }"
+      :to="{ name: '/sr/[id]/vdis', params: { id: sr.id }, query: scopeQuery }"
       custom
     >
       <TabItem :active="isActive" :href tag="a">
