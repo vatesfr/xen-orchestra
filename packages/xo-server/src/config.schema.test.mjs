@@ -67,7 +67,7 @@ describe('applySchema()', function () {
     })
   })
 
-  it('return empty object for an empty configuration', function () {
-    assert.deepEqual({}, {})
+  it('returns an empty object for an empty configuration', function () {
+    assert.deepEqual(applySchema({}), {})
   })
 })
