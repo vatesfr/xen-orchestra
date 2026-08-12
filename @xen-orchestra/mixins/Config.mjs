@@ -16,7 +16,6 @@ export default class Config {
     this._app = app
     this._appDir = appDir
     this._config = config
-    this._appDir = appDir
     this._appName = appName
     this._applySchema = applySchema
     const watchers = (this._watchers = new Set())
