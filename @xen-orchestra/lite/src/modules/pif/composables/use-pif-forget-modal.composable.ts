@@ -24,13 +24,13 @@ export function usePifForgetModal(rawPifs: MaybeRefOrGetter<XenApiPif[]>) {
   })
 
   function openModal() {
-    const n = pifs.value.length
+    const count = pifs.value.length
 
     return openForgetModal({
       props: {
-        subject: t('n-pifs', { n }),
-        description: t('pif-forget-info'),
-        confirmLabel: t('action:forget-n-pifs', { n }),
+        subject: t('n-pifs', { count }),
+        description: t('pif-forget-info', { count }),
+        confirmLabel: t('action:forget-n-pifs', { count }),
       },
       events: {
         onConfirm: async () => {
