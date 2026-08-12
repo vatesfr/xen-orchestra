@@ -16,7 +16,7 @@
 - [XO6/Host] Add possibility to scan PIFs directly from the host (PR [#10191](https://github.com/vatesfr/xen-orchestra/pull/10191))
 - [Docs] Improve doc, rename titles, and refactor menu (PR [#10212](https://github.com/vatesfr/xen-orchestra/pull/10212))
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
-- [New VM] Ability to add the VM to a resource set and to share it during creation
+- [New VM] Ability to add the VM to a resource set and to share it during creation (PR [#10259](https://github.com/vatesfr/xen-orchestra/pull/10259))
 
 ### Bug fixes
 
