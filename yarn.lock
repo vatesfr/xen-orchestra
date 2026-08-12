@@ -4690,14 +4690,6 @@
   resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-14.3.0.tgz#a3e7e6391f9ed7f363cbb28c32c4a278efaacbd0"
   integrity sha512-bZpge9eSXwa4ToSiqJ7j6KRwhAsneMFoSz3LMWKQDkqimm3D/tbFlrklrs/IOqC8tEcYmXQZJ6N0UrjhBirVCg==
 
-"@xen-orchestra/log@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@xen-orchestra/log/-/log-0.6.0.tgz#b7341818dbdc3a56facf815e7124867bf39ea89d"
-  integrity sha512-IA1J5LRfFZdb/TaPLG4oeZl1kApJW5BUWvmsr33eFXMX/KWS/FQt1Lzsl2OpH4AwNw8SpUCCl2+3wC5fBDtLlw==
-  dependencies:
-    lodash "^4.17.4"
-    promise-toolbox "^0.21.0"
-
 "@xmldom/is-dom-node@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@xmldom/is-dom-node/-/is-dom-node-1.0.1.tgz#83b9f3e1260fb008061c6fa787b93a00f9be0629"
@@ -11143,13 +11135,6 @@ http-proxy@^1.16.2:
     eventemitter3 "^4.0.0"
     follow-redirects "^1.0.0"
     requires-port "^1.0.0"
-
-http-request-plus@^1.0.0, http-request-plus@^1.0.2, http-request-plus@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-1.0.3.tgz#34392950412b95056e05192fe7da15ec2c547c3b"
-  integrity sha512-566RDaiBFQ7xfEE01Kw+qjNSBD+a893gJArx/PtQg9Bex5TxGedav7nOOBJzB2/+ZbZ5mMt5aHdiju1sJB2qBw==
-  dependencies:
-    "@xen-orchestra/log" "^0.6.0"
 
 http-server-plus@^1.0.0:
   version "1.0.0"
@@ -19224,6 +19209,11 @@ undici@^6.2.1, undici@^6.5.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/undici/-/undici-6.26.0.tgz#333a35b7f519c48d2dc6aeb38e4e91d9274e0652"
   integrity sha512-4yqz8a3n5HmGTlsbADNtr/dJlhkh/55Rq798G6ibiULcXbDtaLpTl1pvdqcbFfeoj3iSi52lePFM7h9H21cw/A==
+
+undici@^6.26.0:
+  version "6.27.0"
+  resolved "https://registry.yarnpkg.com/undici/-/undici-6.27.0.tgz#41f9e48f7c5a40d27376caaead8c9a9fc7bca9c4"
+  integrity sha512-YmfV3YnEDzXRC5lZ2jWtWWHKGUm1zIt8AhesR1tens+HTNv+YZlN/dp6G727LOvMJ8xjP9Be7Y2Sdr96LDm+pg==
 
 undici@^7.8.0:
   version "7.27.2"

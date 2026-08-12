@@ -1,22 +1,26 @@
 <template>
-  <VtsModal accent="danger" dismissible icon="fa:exclamation-circle">
+  <UiModal accent="danger" icon="fa:exclamation-circle" @dismiss="emit('close')" @confirm="emit('close')">
     <template #title>{{ t('invalid-field') }}</template>
     <template #content>{{ message }}</template>
     <template #buttons>
-      <VtsModalConfirmButton>
+      <VtsOverlayConfirmButton>
         {{ t('ok') }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
   message: string
+}>()
+
+const emit = defineEmits<{
+  close: []
 }>()
 
 const { t } = useI18n()

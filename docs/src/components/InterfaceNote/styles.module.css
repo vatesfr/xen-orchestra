@@ -1,0 +1,28 @@
+.note {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin: 0 0 1.4rem;
+  padding: 0.65rem 0.9rem;
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: 6px;
+  background: var(--ifm-color-emphasis-100);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.badge {
+  flex-shrink: 0;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-primary);
+  border: 1px solid var(--ifm-color-primary);
+  border-radius: 999px;
+  padding: 0.08rem 0.5rem;
+  white-space: nowrap;
+}
+
+.body {
+  color: var(--ifm-color-emphasis-800);
+}

@@ -1,12 +1,12 @@
 <template>
-  <MenuItem icon="action:detach" :disabled="!canDeleteVbd" :busy="isDeletingVbd" @click="openVbdDeleteModal()">
+  <MenuItem icon="action:detach" :disabled="!canDeleteVbds" :busy="isDeletingVbds" @click="deleteVbds()">
     {{ t('action:detach-vdi') }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
-import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-modal.composable.ts'
+import { useVbdDelete } from '@/modules/vbd/composables/use-vbd-delete.composable.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@xen-orchestra/web-core/components/menu/MenuItem.vue'
@@ -20,14 +20,10 @@ const { vbd, vm } = defineProps<{
 
 const { t } = useI18n()
 
-const {
-  openModal: openVbdDeleteModal,
-  canRun: canDeleteVbd,
-  isRunning: isDeletingVbd,
-} = useVbdDeleteModal(
-  () => [vbd],
-  () => vm
-)
+const { deleteVbds, canDeleteVbds, isDeletingVbds } = useVbdDelete({
+  vbds: () => [vbd],
+  vm: () => vm,
+})
 
-const hint = computed(() => (!canDeleteVbd.value ? t('vm-running') : undefined))
+const hint = computed(() => (!canDeleteVbds.value ? t('vm-running') : undefined))
 </script>
