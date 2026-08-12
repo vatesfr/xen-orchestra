@@ -6,10 +6,7 @@ import { useModal } from '@core/packages/modal/use-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 
-export function useVbdDeleteModal(
-  rawVbds: MaybeRefOrGetter<FrontXoVbd[]>,
-  rawVm: MaybeRefOrGetter<FrontXoVm | undefined>
-) {
+export function useVbdDeleteModal(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>, rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const vbds = toComputed(rawVbds)
   const vm = toComputed(rawVm)
 

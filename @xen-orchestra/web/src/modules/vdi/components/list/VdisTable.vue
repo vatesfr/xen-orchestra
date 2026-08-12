@@ -25,17 +25,18 @@
 </template>
 
 <script setup lang="ts">
-import { useVbdConnectionToggleModal } from '@/modules/vbd/composables/use-vbd-connection-toggle-modal.composable.ts'
-import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-modal.composable.ts'
+import { useXoVbdConnectJob } from '@/modules/vbd/jobs/xo-vbd-connect.job.ts'
+import { useXoVbdDeleteJob } from '@/modules/vbd/jobs/xo-vbd-delete.job.ts'
+import { useXoVbdDisconnectJob } from '@/modules/vbd/jobs/xo-vbd-disconnect.job.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
-import { useVdiExportDrawer } from '@/modules/vdi/composables/use-vdi-export-drawer.composable.ts'
-import { useVdiMigrateDrawer } from '@/modules/vdi/composables/use-vdi-migrate-drawer.composable.ts'
+import VdiActions from '@/modules/vdi/components/actions/VdiActions.vue'
+import VmVdiActions from '@/modules/vdi/components/actions/VmVdiActions.vue'
+import { useXoVdiDeleteJob } from '@/modules/vdi/jobs/xo-vdi-delete.job.ts'
+import { useXoVdiMigrateJob } from '@/modules/vdi/jobs/xo-vdi-migrate.job.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
-import type { ActionItem } from '@core/tables/column-definitions/action-column.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -45,7 +46,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns.ts'
-import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -97,45 +97,19 @@ const { HeadCells, BodyCells } = useVdiColumns({
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
 
-    const {
-      openModal: openVbdConnectionToggleModal,
-      canRun: canToggleVbdConnection,
-      isRunning: isTogglingVbdConnection,
-      errorMessage: toggleVbdConnectionErrorMessage,
-    } = useVbdConnectionToggleModal(
-      () => (vbd.value?.attached ? CONNECTION_ACTION.DISCONNECT : CONNECTION_ACTION.CONNECT),
-      () => (vbd.value ? [vbd.value] : []),
-      () => vm
-    )
+    const vbdsArg = () => (vbd.value ? [vbd.value] : [])
 
-    const {
-      openModal: openVbdDeleteModal,
-      canRun: canDeleteVbd,
-      isRunning: isDeletingVbd,
-      errorMessage: deleteVbdErrorMessage,
-    } = useVbdDeleteModal(
-      () => (vbd.value ? [vbd.value] : []),
-      () => vm
+    const { isRunning: isMigratingVdi } = useXoVdiMigrateJob(
+      () => [vdi],
+      () => undefined
     )
-
-    const {
-      openModal: openVdiDeleteModal,
-      canRun: canDeleteVdi,
-      isRunning: isDeletingVdi,
-      errorMessage: deleteVdiErrorMessage,
-    } = useVdiDeleteModal(
+    const { isRunning: isDeletingVdi } = useXoVdiDeleteJob(
       () => [vdi],
       () => vm
     )
-
-    const { openDrawer: openVdiExportDrawer, isRunning: isExportingVdi } = useVdiExportDrawer(() => vdi)
-
-    const {
-      openDrawer: openVdiMigrateDrawer,
-      canRun: canMigrateVdi,
-      isRunning: isMigratingVdi,
-      errorMessage: migrateVdiErrorMessage,
-    } = useVdiMigrateDrawer(() => vdi)
+    const { isRunning: isDeletingVbd } = useXoVbdDeleteJob(vbdsArg, () => vm)
+    const { isRunning: isConnectingVbd } = useXoVbdConnectJob(vbdsArg, () => vm)
+    const { isRunning: isDisconnectingVbd } = useXoVbdDisconnectJob(vbdsArg, () => vm)
 
     const runningAction = computed(() => {
       if (isMigratingVdi.value) {
@@ -147,8 +121,11 @@ const { HeadCells, BodyCells } = useVdiColumns({
       if (isDeletingVbd.value) {
         return 'detach'
       }
-      if (isTogglingVbdConnection.value) {
-        return vbd.value?.attached ? 'disconnect' : 'connect'
+      if (isDisconnectingVbd.value) {
+        return 'disconnect'
+      }
+      if (isConnectingVbd.value) {
+        return 'connect'
       }
       return 'none'
     })
@@ -184,64 +161,11 @@ const { HeadCells, BodyCells } = useVdiColumns({
       size: r => r(size.value.value, size.value.prefix),
       format: r => r(format.value),
       actions: r =>
-        r({
-          onClick: () => (selectedVdiId.value = vdi.id),
-          actions: [
-            ...(vm
-              ? ([
-                  {
-                    label: vbd.value?.attached ? t('action:disconnect') : t('action:connect'),
-                    hint: !canToggleVbdConnection.value ? toggleVbdConnectionErrorMessage.value : undefined,
-                    icon: vbd.value?.attached ? 'action:disconnect' : 'action:connect',
-                    onClick: () => openVbdConnectionToggleModal(),
-                    disabled: !canToggleVbdConnection.value,
-                    busy: isTogglingVbdConnection.value,
-                  },
-                ] satisfies ActionItem[])
-              : []),
-            {
-              label: t('action:migrate-vdi-on-sr'),
-              icon: 'action:migrate',
-              hint: !canMigrateVdi.value ? migrateVdiErrorMessage.value : undefined,
-              onClick: () => openVdiMigrateDrawer(),
-              disabled: !canMigrateVdi.value,
-              busy: isMigratingVdi.value,
-            },
-            {
-              label: t('action:import-export'),
-              icon: 'action:import-export',
-              children: [
-                {
-                  label: t('action:export-content'),
-                  icon: 'action:download',
-                  onClick: () => openVdiExportDrawer(),
-                  busy: isExportingVdi.value,
-                },
-              ],
-            },
-            ...(vm
-              ? ([
-                  {
-                    label: t('action:detach-vdi'),
-                    hint: deleteVbdErrorMessage.value,
-                    icon: 'action:detach',
-                    onClick: () => openVbdDeleteModal(),
-                    disabled: !canDeleteVbd.value,
-                    busy: isDeletingVbd.value,
-                  },
-                ] satisfies ActionItem[])
-              : []),
-            {
-              label: t('action:delete'),
-              hint: deleteVdiErrorMessage.value,
-              icon: 'action:delete',
-              accent: 'danger',
-              onClick: () => openVdiDeleteModal(),
-              disabled: !canDeleteVdi.value,
-              busy: isDeletingVdi.value,
-            },
-          ],
-        }),
+        r(
+          vm
+            ? { onClick: () => (selectedVdiId.value = vdi.id), component: VmVdiActions, props: { vm, vdi } }
+            : { onClick: () => (selectedVdiId.value = vdi.id), component: VdiActions, props: { vdi } }
+        ),
     }
   },
 })
