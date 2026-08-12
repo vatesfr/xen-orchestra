@@ -13,6 +13,7 @@
 
 - [i18n] Add Arabic and update Czech, Dutch, Finnish, Portuguese (Brasil), Slovak and Swedish translations (PR [#10181](https://github.com/vatesfr/xen-orchestra/pull/10181))
 - [XO6/Backups] Add header title on backup job detail page (PR [#10303](https://github.com/vatesfr/xen-orchestra/pull/10303))
+- [Backup/Restore] Faster listing of the backups: a backup repository is now listed once, then kept up to date by replaying its journal instead of being listed again. Especially visible on S3 repositories with Object Lock, where nothing could be cached before (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
 
 ### Bug fixes
 
@@ -44,6 +45,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server minor
 - xo-server-sdn-controller minor
 
 <!--packages-end-->
