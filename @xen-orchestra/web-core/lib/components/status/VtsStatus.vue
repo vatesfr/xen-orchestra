@@ -18,6 +18,7 @@ export type Status =
   | 'disconnected-from-physical-device'
   | 'physically-disconnected'
   | 'unable-to-connect-to-the-pool'
+  | 'unable-to-connect'
   | 'success'
   | 'skipped'
   | 'interrupted'
@@ -47,6 +48,7 @@ const currentStatus = useMapper<Status, { text: string; accent: InfoAccent }>(
     ['disconnected-from-physical-device', { text: t('disconnected-from-physical-device'), accent: 'warning' }],
     ['physically-disconnected', { text: t('disconnected-from-physical-device'), accent: 'danger' }],
     ['unable-to-connect-to-the-pool', { text: t('unable-to-connect-to-the-pool'), accent: 'danger' }],
+    ['unable-to-connect', { text: t('unable-to-connect'), accent: 'danger' }],
     ['success', { text: t('success'), accent: 'success' }],
     ['skipped', { text: t('skipped'), accent: 'warning' }],
     ['interrupted', { text: t('interrupted'), accent: 'danger' }],

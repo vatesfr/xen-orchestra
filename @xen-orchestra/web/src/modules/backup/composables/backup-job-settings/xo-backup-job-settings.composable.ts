@@ -9,8 +9,8 @@ import { formatSpeedRaw } from '@core/utils/speed.util.ts'
 import { formatTimeout } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { reactiveComputed } from '@vueuse/shared'
-import type { Info } from 'human-format'
 import type humanFormat from 'human-format'
+import type { Info } from 'human-format'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -40,7 +40,7 @@ export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<Front
   )
 
   const maxExportRate = computed<Info<humanFormat.Scale<'B/s' | 'KiB/s' | 'MiB/s' | 'GiB/s' | 'TiB/s'>> | undefined>(
-    () => (settings.maxExportRate ? formatSpeedRaw(settings.maxExportRate) : undefined)
+    () => (settings.maxExportRate ? formatSpeedRaw(settings.maxExportRate, 2) : undefined)
   )
 
   const formattedTimeout = computed(() =>
