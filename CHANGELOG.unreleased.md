@@ -33,6 +33,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web-core minor
+- xo-server patch
 
 <!--packages-end-->
