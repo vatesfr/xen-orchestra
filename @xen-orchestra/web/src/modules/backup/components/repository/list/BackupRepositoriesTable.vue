@@ -23,11 +23,11 @@
 
 <script setup lang="ts">
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.utils.ts'
 import {
   getBackupRepositoryIcon,
   getBackupRepositoryStatus,
-  getBackupRepositoryType,
-} from '@/modules/backup/utils/xo-backup-repository-url.utils.js'
+} from '@/modules/backup/utils/xo-backup-repository.utils.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@xen-orchestra/web-core/components/query-builder/VtsQueryBuilder.vue'
@@ -86,7 +86,7 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
     return {
       backupRepository: r => r({ label: br.name, icon: getBackupRepositoryIcon(br), href: xo5BrsHref.value }),
       status: r => r(getBackupRepositoryStatus(br)),
-      type: r => r(getBackupRepositoryType(br.url)),
+      type: r => r(parseBackupRepositoryUrl(br.url)?.type ?? ''),
       proxy: r => {
         const proxyName = useGetProxyById(() => br.proxy).value?.name
         return proxyName ? r(proxyName, { leftIcon: { icon: 'object:instance' } }) : r('')

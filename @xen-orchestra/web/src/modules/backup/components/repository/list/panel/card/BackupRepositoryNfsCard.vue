@@ -4,25 +4,25 @@
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('host') }}</template>
-        <template #value>{{ nfsInfo.host }}</template>
+        <template #value>{{ nfs.host }}</template>
         <template #addons>
-          <VtsCopyButton :value="nfsInfo.host" />
+          <VtsCopyButton :value="nfs.host" />
         </template>
       </VtsCardRowKeyValue>
 
-      <VtsCardRowKeyValue v-if="nfsInfo.port !== undefined">
+      <VtsCardRowKeyValue v-if="nfs.port && true">
         <template #key>{{ t('port') }}</template>
-        <template #value>{{ nfsInfo.port }}</template>
+        <template #value>{{ nfs.port }}</template>
         <template #addons>
-          <VtsCopyButton :value="nfsInfo.port" />
+          <VtsCopyButton :value="nfs.port" />
         </template>
       </VtsCardRowKeyValue>
 
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('path-on-share') }}</template>
-        <template #value>{{ nfsInfo.path }}</template>
+        <template #value>{{ nfs.path }}</template>
         <template #addons>
-          <VtsCopyButton :value="nfsInfo.path" />
+          <VtsCopyButton :value="nfs.path" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -30,22 +30,18 @@
 </template>
 
 <script lang="ts" setup>
-import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
-import { getBackupRepositoryNfsInfo } from '@/modules/backup/utils/xo-backup-repository-url.utils.js'
+import { type NfsBackupRepositoryInfo } from '@/modules/backup/utils/xo-backup-repository-url.utils.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { br } = defineProps<{
-  br: FrontXoBackupRepository
+defineProps<{
+  nfs: NfsBackupRepositoryInfo
 }>()
 
 const { t } = useI18n()
-
-const nfsInfo = computed(() => getBackupRepositoryNfsInfo(br.url))
 </script>
 
 <style scoped lang="postcss">

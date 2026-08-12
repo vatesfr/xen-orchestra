@@ -5,7 +5,7 @@
       <template v-else>
         <BackupRepositoryInfosCard :br />
         <BackupRepositorySpaceAndSpeedCard :br />
-        <BackupRepositoryNFSCard v-if="brType === 'nfs'" :br />
+        <BackupRepositoryNFSCard v-if="nfs" :nfs />
       </template>
     </template>
   </VtsSidePanel>
@@ -19,7 +19,7 @@ import {
   type FrontXoBackupRepository,
   useXoBackupRepositoryCollection,
 } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
-import { getBackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.utils.js'
+import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.utils.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed } from 'vue'
@@ -34,5 +34,9 @@ const emit = defineEmits<{
 
 const { areBackupRepositoriesReady: areBrsReady } = useXoBackupRepositoryCollection()
 
-const brType = computed(() => (br === undefined ? undefined : getBackupRepositoryType(br.url)))
+const nfs = computed(() => {
+  const parsed = br === undefined ? undefined : parseBackupRepositoryUrl(br.url)
+
+  return parsed?.type === 'nfs' ? parsed : undefined
+})
 </script>
