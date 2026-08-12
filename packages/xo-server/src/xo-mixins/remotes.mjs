@@ -229,19 +229,23 @@ export default class {
       if (_isRetryableRemoteError(error)) {
         this._scheduleRemoteInfoRetry(remote, error)
       } else {
-        debug('failed to get remote info, will NOT retry', { id: remote.id, name: remote.name, error: error.message })
+        debug('failed to get remote info, will NOT retry', { id: remote.id, name: remote.name, error })
         this._cancelRemoteInfoRetry(remote.id)
       }
     }
   }
 
   _scheduleRemoteInfoRetry({ id, name }, error) {
-    debug('failed to get remote info, will retry', { id, name, error: error.message })
     let state = this._remotesInfoRetry[id]
     if (!state) {
       state = this._remotesInfoRetry[id] = { attempt: 0 }
     }
-    const delay = remoteInfoRetryDelay(state.attempt++)
+    const attempt = state.attempt++
+    const delay = remoteInfoRetryDelay(attempt)
+
+    const log = attempt === 1 ? warn : debug
+    log('failed to get remote info, will retry', { id, name, delay, error })
+
     state.timer = setTimeout(() => ignoreErrors.call(this._retryRemoteInfo(id)), delay)
     state.timer.unref?.()
   }
@@ -337,6 +341,7 @@ export default class {
     }
 
     this._cancelRemoteInfoRetry(id)
+    this._app.invalidateVmBackupsListing(id)
     if (enabled === false) {
       delete this._remotesInfo[id]
     }
@@ -370,6 +375,7 @@ export default class {
 
   async removeRemote(id) {
     this._cancelRemoteInfoRetry(id)
+    this._app.invalidateVmBackupsListing(id)
     delete this._remotesInfo[id]
 
     const handlers = this._handlers
