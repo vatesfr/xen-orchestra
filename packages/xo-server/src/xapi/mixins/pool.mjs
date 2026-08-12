@@ -332,9 +332,8 @@ const methods = {
       }
     })
 
-    // Start with the last host since it's the emptiest one after the rolling
-    // update
-    ;[hosts[0], hosts[hosts.length - 1]] = [hosts[hosts.length - 1], hosts[0]]
+    // Reverse host order to guarantee successful relocation of VMs to their original host in one step
+    hosts.reverse()
 
     const migrationsSubtask = new Task({ properties: { name: `Migrate VMs back`, progress: 0 } })
     await migrationsSubtask.run(async () => {
