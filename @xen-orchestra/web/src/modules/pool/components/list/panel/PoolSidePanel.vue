@@ -15,7 +15,6 @@
         <PoolDownloadButton :pool-id="server.poolId" />
       </MenuList>
     </template>
-
     <template v-if="server">
       <VtsStateHero v-if="!arePoolsReady" format="panel" type="busy" size="medium" />
       <template v-else>
