@@ -513,6 +513,7 @@
   "job:pbd-plug:pbd-connected": "Un ou plusieurs PBDs sont déjà connectés",
   "job:pbd-unplug:missing-pbd": "Aucun PBD à déconnecter",
   "job:pbd-unplug:pbd-disconnected": "Un ou plusieurs PBDs sont déjà déconnectés",
+  "job:pif-forget:in-progress": "Oubli PIF en cours…",
   "job:pif-forget:is-management-interface": "Impossible d'oublier l'interface de gestion d'un hôte",
   "job:pif-forget:missing-pif": "Aucun PIF à oublier",
   "job:server-connect:missing-server": "Aucun serveur à connecter",

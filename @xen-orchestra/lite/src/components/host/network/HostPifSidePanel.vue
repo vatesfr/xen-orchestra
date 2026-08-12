@@ -1,10 +1,10 @@
 <template>
   <VtsSidePanel :has-selection="!!pif" @close="emit('close')">
     <template v-if="pif" #actions>
-      <VtsDeleteButton
-        :busy="isDeletingPif"
-        :disabled="!canDeletePif"
-        :tooltip="!canDeletePif && deletePifErrorMessage"
+      <VtsForgetButton
+        :busy="isForgettingPif"
+        :disabled="!canForgetPif"
+        :tooltip="!canForgetPif && forgetPifErrorMessage"
         @click="openPifForgetModal()"
       />
     </template>
@@ -242,7 +242,7 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
+import VtsForgetButton from '@core/components/forget-button/VtsForgetButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -271,9 +271,9 @@ const { t } = useI18n()
 
 const {
   openModal: openPifForgetModal,
-  canRun: canDeletePif,
-  isRunning: isDeletingPif,
-  errorMessage: deletePifErrorMessage,
+  canRun: canForgetPif,
+  isRunning: isForgettingPif,
+  errorMessage: forgetPifErrorMessage,
 } = usePifForgetModal(() => (pif !== undefined ? [pif] : []))
 
 const ipAddresses = computed(() => {

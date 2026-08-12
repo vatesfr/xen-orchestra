@@ -5,7 +5,7 @@ import { toArray } from '@core/utils/to-array.utils.ts'
 
 export function createPifOperations(xenApi: XenApi) {
   return {
-    delete: (pifs: MaybeArray<XenApiPif>) =>
+    forget: (pifs: MaybeArray<XenApiPif>) =>
       Promise.all(
         toArray(pifs).map(async pif => {
           if (pif.VLAN_master_of !== 'OpaqueRef:NULL') {
