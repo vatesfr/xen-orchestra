@@ -41,7 +41,6 @@
     "@xen-orchestra/log": "^0.7.2",
     "bind-property-descriptor": "^2.0.0",
     "blocked": "^1.2.1",
-    "http-request-plus": "^1.0.2",
     "jest-diff": "^29.0.3",
     "json-rpc-protocol": "^0.13.1",
     "limit-concurrency-decorator": "^0.6.0",

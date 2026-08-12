@@ -1,13 +1,13 @@
 import { basename, join } from 'node:path'
 import { createReadStream, createWriteStream } from 'node:fs'
 import { normalize } from 'node:path/posix'
+import { Agent } from 'undici'
 import { parse as parseContentType } from 'content-type'
-import { pipeline } from 'node:stream'
+import { pipeline, Readable } from 'node:stream'
 import { pipeline as pPipeline } from 'node:stream/promises'
 import { readChunk } from '@vates/read-chunk'
 import { stat } from 'node:fs/promises'
 import getopts from 'getopts'
-import hrp from 'http-request-plus'
 import merge from 'lodash/merge.js'
 import set from 'lodash/set.js'
 import split2 from 'split2'
@@ -74,10 +74,14 @@ const COMMANDS = {
         output === '-'
           ? process.stdout
           : createWriteStream(output.endsWith('/') ? join(output, basename(path)) : output, { flags: 'wx' })
-      return pPipeline(response, streamStatsPrinter(response.headers['content-length']), outputStream)
+      return pPipeline(
+        Readable.fromWeb(response.body),
+        streamStatsPrinter(response.headers.get('content-length')),
+        outputStream
+      )
     }
 
-    const { type } = parseContentType(response)
+    const { type } = parseContentType(response.headers.get('content-type'))
     if (type === 'application/json') {
       const result = await response.json()
 
@@ -94,7 +98,7 @@ const COMMANDS = {
 
       return this.json ? JSON.stringify(result, null, 2) : result
     } else if (type === 'application/x-ndjson') {
-      const lines = pipeline(response, split2(), noop)
+      const lines = pipeline(Readable.fromWeb(response.body), split2(), noop)
       let line
       while ((line = await readChunk(lines)) !== null) {
         const data = JSON.parse(line)
@@ -162,13 +166,14 @@ export async function rest(args) {
   // FIXME: extract server parsing in dedicated module/function
   const baseUrl = new Xo({ url: server })._url.replace(/^ws/, 'http')
 
-  const baseOpts = {
-    headers: {
-      cookie: 'authenticationToken=' + token,
-    },
-    rejectUnauthorized: !allowUnauthorized,
-    timeout: 0,
+  const baseHeaders = {
+    cookie: 'authenticationToken=' + token,
   }
+  const dispatcher = new Agent({
+    connect: { rejectUnauthorized: !allowUnauthorized },
+    headersTimeout: 0,
+    bodyTimeout: 0,
+  })
 
   if (command === undefined || !(command in COMMANDS)) {
     return console.log('Available commands: ', Object.keys(COMMANDS).sort().join(', '))
@@ -195,17 +200,20 @@ export async function rest(args) {
           }
         }
 
-        try {
-          return await hrp(url, merge({}, baseOpts, opts))
-        } catch (error) {
-          const { response } = error
-          if (response === undefined) {
-            throw error
-          }
-
-          console.error(response.statusCode, response.statusMessage)
+        const merged = merge({ headers: { ...baseHeaders } }, opts)
+        const { body } = merged
+        const isBodyStream = body !== undefined && typeof body.pipe === 'function'
+        const duplex = isBodyStream ? { duplex: 'half' } : {}
+        const response = await fetch(url, {
+          ...merged,
+          dispatcher,
+          ...duplex,
+        })
+        if (!response.ok) {
+          console.error(response.status, response.statusText)
           throw await response.text()
         }
+        return response
       },
       json,
     },
