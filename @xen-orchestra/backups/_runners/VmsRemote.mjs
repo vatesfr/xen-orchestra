@@ -67,20 +67,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
 
         const vmsUuids = await sourceRemoteAdapter.listAllVms()
 
-        const vmBackupsCache = new Map()
-        const fetchVmBackups = async vmUuid => {
-          const vmBackups = await sourceRemoteAdapter.listVmBackups(vmUuid, ({ mode }) => mode === job.mode)
-
-          // avoiding to create tasks for empty directories
-          if (vmBackups.length > 0) {
-            vmBackupsCache.set(vmUuid, vmBackups)
-          }
-        }
-
-        const { concurrency } = settings
-        const _fetchVmBackups = !concurrency ? fetchVmBackups : limitConcurrency(concurrency)(fetchVmBackups)
-
-        await asyncMapSettled(vmsUuids, _fetchVmBackups)
+        const queue = new Set(vmsUuids)
 
         Task.info('vms', { vms: vmsUuids })
         const nbVms = vmsUuids.length
@@ -90,16 +77,10 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
         const allSettings = this._job.settings
         const baseSettings = this._baseSettings
 
-        const queue = new Set()
-        vmBackupsCache.forEach((vmBackups, vmUuid) => {
-          if (predicate === null || predicate(buildVmContext(vmBackups.at(-1).vm, runContext))) {
-            queue.add(vmUuid)
-          }
-        })
         const taskByVmId = {}
         const nTriesByVmId = {}
 
-        const handleVm = vmUuid => {
+        const handleVm = async vmUuid => {
           if (nTriesByVmId[vmUuid] === undefined) {
             nTriesByVmId[vmUuid] = 0
           }
@@ -131,60 +112,45 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
             throw new Error(`Job mode ${job.mode} not implemented for mirror backup`)
           }
 
-          const vmBackups = vmBackupsCache.get(vmUuid) ?? []
+          const vmBackups = await sourceRemoteAdapter.listVmBackups(vmUuid, ({ mode }) => mode === job.mode)
 
           // avoiding to create tasks for empty directories
-          if (vmBackups.length > 0) {
-            if (taskByVmId[vmUuid] === undefined) {
-              taskByVmId[vmUuid] = new Task(taskStart)
-            }
-            const task = taskByVmId[vmUuid]
-            // error has to be caught in the task to prevent its failure, but handled outside the task to execute another task.run()
-            let taskError
-            return task
-              .runInside(async () =>
-                vmBackup.run().catch(error => {
-                  taskError = error
-                })
-              )
-              .then(result => {
-                if (taskError === undefined) {
-                  nbVmsDone++
-                  return task.success(result)
-                }
-                const task = taskByVmId[vmUuid]
-                // error has to be caught in the task to prevent its failure, but handled outside the task to execute another task.run()
-                let taskError
-                return task
-                  .runInside(async () =>
-                    vmBackup.run().catch(error => {
-                      taskError = error
-                    })
-                  )
-                  .then(result => {
-                    if (taskError === undefined) {
-                      nbVmsDone++
-                      return task.success(result)
-                    }
-                    if (isLastRun) {
-                      nbVmsDone++
-                      return task.failure(taskError)
-                    }
-                    Task.set('progress', Math.round((nbVmsDone * 100) / nbVms))
-                    // don't end the task
-                    task.warning(`Retry the VM mirror backup due to an error`, {
-                      attempt: nTriesByVmId[vmUuid],
-                      error: taskError.message,
-                      isRetry: true,
-                    })
-                    queue.add(vmUuid)
-                  })
-                  .catch(noop)
-              }
-            )
+          if (vmBackups.length === 0) return
+          if (predicate !== null && !predicate(buildVmContext(vmBackups.at(-1).vm, runContext))) return
+
+          if (taskByVmId[vmUuid] === undefined) {
+            taskByVmId[vmUuid] = new Task(taskStart)
           }
+          const task = taskByVmId[vmUuid]
+          // error has to be caught in the task to prevent its failure, but handled outside the task to execute another task.run()
+          let taskError
+          return task
+            .runInside(async () =>
+              vmBackup.run().catch(error => {
+                taskError = error
+              })
+            )
+            .then(result => {
+              if (taskError === undefined) {
+                nbVmsDone++
+                return task.success(result)
+              }
+              if (isLastRun) {
+                nbVmsDone++
+                return task.failure(taskError)
+              }
+              Task.set('progress', Math.round((nbVmsDone * 100) / nbVms))
+              // don't end the task
+              task.warning(`Retry the VM mirror backup due to an error`, {
+                attempt: nTriesByVmId[vmUuid],
+                error: taskError.message,
+              })
+              queue.add(vmUuid)
+            })
+            .catch(noop)
         }
 
+        const { concurrency } = settings
         const _handleVm = !concurrency ? handleVm : limitConcurrency(concurrency)(handleVm)
 
         while (queue.size > 0) {
