@@ -22,7 +22,7 @@ import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
 import { compileExpression, isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
-import { buildRunContext, buildSrContext, buildRemoteContext } from '@xen-orchestra/backups/_buildContext.mjs'
+import { buildRunContext, buildSrContext, buildBackupRepositoryContext } from '@xen-orchestra/backups/_buildContext.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
 
@@ -240,7 +240,7 @@ export default class BackupNg {
 
             const remoteIds = []
             remotes.forEach(remote => {
-              if (predicate(buildRemoteContext(remote, runContext))) {
+              if (predicate(buildBackupRepositoryContext(remote, runContext))) {
                 remoteIds.push(remote.id)
               }
             })

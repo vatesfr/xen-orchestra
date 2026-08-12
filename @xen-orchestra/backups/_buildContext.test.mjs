@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { buildRunContext, buildVmContext, buildSrContext, buildRemoteContext } from './_buildContext.mjs'
+import { buildRunContext, buildVmContext, buildSrContext, buildBackupRepositoryContext } from './_buildContext.mjs'
 import { BACKUP_EXPRESSION_CONTEXT } from '@vates/types/backup-expression-context'
 
 describe('buildContext', () => {
@@ -104,38 +104,44 @@ describe('buildContext', () => {
     assert.deepEqual(Object.keys(srContext2.sr).sort(), Object.keys(BACKUP_EXPRESSION_CONTEXT.sr).sort())
   })
 
-  it('buildRemoteContext', () => {
-    const remote1 = {
+  it('buildBackupRepositoryContext', () => {
+    const backupRepository1 = {
       name: 'name',
       url: 'nfs://host/path',
       ignored: 'ignored',
     }
-    const remoteContext1 = buildRemoteContext(remote1, runContext)
-    assert.deepEqual(remoteContext1, {
-      remote: {
+    const backupRepositoryContext1 = buildBackupRepositoryContext(backupRepository1, runContext)
+    assert.deepEqual(backupRepositoryContext1, {
+      backupRepository: {
         name: 'name',
         type: 'nfs',
         tags: [],
       },
       run: expectedRunContext,
     })
-    assert.deepEqual(Object.keys(remoteContext1.remote).sort(), Object.keys(BACKUP_EXPRESSION_CONTEXT.remote).sort())
+    assert.deepEqual(
+      Object.keys(backupRepositoryContext1.backupRepository).sort(),
+      Object.keys(BACKUP_EXPRESSION_CONTEXT.backupRepository).sort()
+    )
 
-    const remote2 = {
+    const backupRepository2 = {
       name: 'name',
       url: 'nfs://host/path',
-      tags: ['tag'],
+      tags: [],
       ignored: 'ignored',
     }
-    const remoteContext2 = buildRemoteContext(remote2, runContext)
-    assert.deepEqual(remoteContext2, {
-      remote: {
+    const backupRepositoryContext2 = buildBackupRepositoryContext(backupRepository2, runContext)
+    assert.deepEqual(backupRepositoryContext2, {
+      backupRepository: {
         name: 'name',
         type: 'nfs',
-        tags: ['tag'],
+        tags: [],
       },
       run: expectedRunContext,
     })
-    assert.deepEqual(Object.keys(remoteContext2.remote).sort(), Object.keys(BACKUP_EXPRESSION_CONTEXT.remote).sort())
+    assert.deepEqual(
+      Object.keys(backupRepositoryContext2.backupRepository).sort(),
+      Object.keys(BACKUP_EXPRESSION_CONTEXT.backupRepository).sort()
+    )
   })
 })
