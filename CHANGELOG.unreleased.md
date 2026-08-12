@@ -56,5 +56,6 @@
 - xo-server minor
 - xo-server-ipmi-sensors minor
 - xo-server-netbox patch
+- xo-web minor
 
 <!--packages-end-->

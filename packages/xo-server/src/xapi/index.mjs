@@ -334,18 +334,15 @@ export default class Xapi extends XapiBase {
   async rebootHost(hostId, force = false, { bypassTwinstorCheck = force } = {}) {
     const host = this.getObject(hostId)
 
-    // on a pool backed by TWINSTOR, taking a host down while the mirror is
-    // catching up leaves the VMs on the only host holding a complete copy
-    if (!bypassTwinstorCheck) {
-      await this.assertTwinstorSynced()
-    }
-
-    await this.clearHost(host, force)
+    await this._assertTwinstorSyncedAround(hostId, bypassTwinstorCheck, () => this.clearHost(host, force))
     await this.callAsync('host.reboot', host.$ref)
   }
 
   // Guard the shared implementation rather than its callers: both the legacy
   // API and the REST API reach `host_smartReboot` directly.
+  //
+  // Checked once only, unlike rebootHost: the suspend phase this would have to
+  // straddle is inside the implementation, in another package.
   async host_smartReboot(ref, bypassBlockedSuspend, bypassCurrentVmCheck, bypassTwinstorCheck = false) {
     if (!bypassTwinstorCheck) {
       await this.assertTwinstorSynced()
@@ -367,15 +364,13 @@ export default class Xapi extends XapiBase {
 
   async shutdownHost(hostId, { force = false, bypassEvacuate = false, bypassTwinstorCheck = force } = {}) {
     const host = this.getObject(hostId)
-    // see rebootHost
-    if (!bypassTwinstorCheck) {
-      await this.assertTwinstorSynced()
-    }
-    if (bypassEvacuate) {
-      await this.call('host.disable', host.$ref)
-    } else {
-      await this.clearHost(host, force)
-    }
+    await this._assertTwinstorSyncedAround(hostId, bypassTwinstorCheck, async () => {
+      if (bypassEvacuate) {
+        await this.call('host.disable', host.$ref)
+      } else {
+        await this.clearHost(host, force)
+      }
+    })
     await this.callAsync('host.shutdown', host.$ref)
   }
 

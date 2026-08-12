@@ -2095,6 +2095,10 @@ const messages = {
     "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost",
   forceStopHost: 'Force shutdown host',
   forceStopHostMessage: 'This will shutdown your host without evacuating its VMs. Do you want to continue?',
+  twinstorNotSyncedTitle: 'Replicated storage is not in sync',
+  twinstorNotSyncedMessage:
+    'This pool uses TWINSTOR and its replicated storage is not in sync ({state}). While a replica is catching up, the other host holds the only up-to-date copy of the data, so taking this one down will interrupt the storage under the running VMs. Do you want to continue anyway?',
+  shutdownAnyway: 'Shutdown anyway',
   addHostModalTitle: 'Add host',
   addHostModalMessage: 'Are you sure you want to add {host} to {pool}?',
   restartHostModalTitle: 'Restart host',

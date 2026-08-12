@@ -120,6 +120,15 @@ describe('_readTwinstor', function () {
     const result = await makeXapi({ getField })._readTwinstor(makeGate())
     assert.match(result.blockedBy, /could not be read/)
   })
+
+  // parseDateTime throws on an input it does not recognize, which would kill a
+  // rolling run instead of being retried on the next poll
+  it('treats an unreadable pool clock as not synced either', async function () {
+    const xapi = makeXapi()
+    xapi.call = async () => undefined
+    const result = await xapi._readTwinstor(makeGate())
+    assert.match(result.blockedBy, /could not be read/)
+  })
 })
 
 describe('assertTwinstorSynced', function () {
@@ -144,6 +153,60 @@ describe('assertTwinstorSynced', function () {
     xapi.objects.indexes.type.SR = { [SR_REF]: { $ref: SR_REF, other_config: SYNCED } }
 
     await xapi.assertTwinstorSynced()
+  })
+})
+
+describe('_assertTwinstorSyncedAround', function () {
+  const makeGatedXapi = otherConfig => {
+    const xapi = makeXapi({ SR: otherConfig })
+    xapi.objects.indexes.type.SR = { [SR_REF]: { $ref: SR_REF, other_config: otherConfig } }
+    xapi.enabled = []
+    xapi.enableHost = async id => xapi.enabled.push(id)
+    return xapi
+  }
+
+  it('runs the operation on a synced pool, and checks again afterwards', async function () {
+    const xapi = makeGatedXapi(SYNCED)
+    let ran = false
+    await xapi._assertTwinstorSyncedAround(HOST_REF, false, async () => {
+      ran = true
+    })
+    assert.equal(ran, true)
+    assert.deepEqual(xapi.enabled, [])
+  })
+
+  // an evacuation takes long enough for the peer to have gone away meanwhile
+  it('refuses, and puts the host back in service, when the storage falls out of sync during the operation', async function () {
+    const xapi = makeGatedXapi(SYNCED)
+
+    await assert.rejects(
+      () =>
+        xapi._assertTwinstorSyncedAround(HOST_REF, false, async () => {
+          xapi.otherConfigs.SR = SYNCING
+        }),
+      error => error.code === 25 /* incorrectState */ && /is syncing/.test(error.data.actual)
+    )
+    assert.deepEqual(xapi.enabled, [HOST_REF], 'the evacuated host was re-enabled')
+  })
+
+  it('does not check at all when the caller bypasses', async function () {
+    const xapi = makeGatedXapi(SYNCING)
+    let ran = false
+    await xapi._assertTwinstorSyncedAround(HOST_REF, true, async () => {
+      ran = true
+    })
+    assert.equal(ran, true)
+  })
+
+  it('refuses before running the operation when the storage is already out of sync', async function () {
+    const xapi = makeGatedXapi(SYNCING)
+    let ran = false
+    await assert.rejects(() =>
+      xapi._assertTwinstorSyncedAround(HOST_REF, false, async () => {
+        ran = true
+      })
+    )
+    assert.equal(ran, false, 'the host was not evacuated for a reboot which was never going to happen')
   })
 })
 

@@ -1,5 +1,5 @@
 import { asyncEach } from '@vates/async-each'
-import { cancelable, timeout } from 'promise-toolbox'
+import { cancelable, ignoreErrors, timeout } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -123,6 +123,27 @@ const methods = {
     }
   },
 
+  // On a pool backed by TWINSTOR, taking a host down while the mirror is
+  // catching up leaves the VMs on the only host holding a complete copy.
+  //
+  // Checked twice: evacuating a host takes long enough for the storage to have
+  // lost its redundancy in the meantime. The second check runs on a host which
+  // is already disabled with its VMs moved away, so put it back in service
+  // before giving up on it.
+  async _assertTwinstorSyncedAround(hostId, bypass, fn) {
+    if (bypass) {
+      return fn()
+    }
+    await this.assertTwinstorSynced()
+    await fn()
+    try {
+      await this.assertTwinstorSynced()
+    } catch (error) {
+      await ignoreErrors.call(this.enableHost(hostId))
+      throw error
+    }
+  },
+
   // One read of everything the gate watches: the replication state each
   // TWINSTOR SR advertises, and the liveness stamp each host's daemon writes.
   //
@@ -131,8 +152,9 @@ const methods = {
   async _readTwinstor({ srRefs, hostRefs, stamps: previous }) {
     const readOtherConfig = (type, ref) => timeout.call(this.getField(type, ref, 'other_config'), TWINSTOR_READ_TIMEOUT)
 
-    let srs, hosts, servertime
+    let srs, hosts, now
     try {
+      let servertime
       ;[srs, hosts, servertime] = await Promise.all([
         Promise.all(srRefs.map(ref => readOtherConfig('SR', ref))),
         Promise.all(hostRefs.map(ref => readOtherConfig('host', ref))),
@@ -144,6 +166,12 @@ const methods = {
           ? timeout.call(this.call('host.get_servertime', this.pool.master), TWINSTOR_READ_TIMEOUT)
           : undefined,
       ])
+      // parsed in here on purpose: parseDateTime throws on an input it does not
+      // recognize, and a clock which cannot be read is a state which cannot be
+      // read, not a reason to fail the whole run
+      if (previous === undefined) {
+        now = parseDateTime(servertime) * 1e3
+      }
     } catch (error) {
       // the pool master may still be reconnecting after its own reboot: a state
       // which cannot be read is simply not a synced one
@@ -158,7 +186,7 @@ const methods = {
     // fail every comparison below, which is the safe direction.
     const isCurrent = i =>
       previous === undefined
-        ? Math.abs(parseDateTime(servertime) * 1e3 - Number(stamps[i]) * 1e3) < TWINSTOR_STALE_PERIOD
+        ? Math.abs(now - Number(stamps[i]) * 1e3) < TWINSTOR_STALE_PERIOD
         : stamps[i] !== undefined && stamps[i] !== previous[i]
 
     for (let i = 0; i < srs.length; ++i) {
