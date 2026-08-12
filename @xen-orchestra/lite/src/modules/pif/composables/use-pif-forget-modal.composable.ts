@@ -23,7 +23,7 @@ export function usePifForgetModal(rawPifs: MaybeRefOrGetter<XenApiPif[]>) {
     return openForgetModal({
       props: {
         subject: t('n-pifs', { n }),
-        description: t('pif-forget-info', { n }),
+        description: t('pif-forget-info'),
         confirmLabel: t('action:forget-n-pifs', { n }),
       },
       events: {

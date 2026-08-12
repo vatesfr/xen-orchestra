@@ -7,37 +7,15 @@
       </template>
     </UiTitle>
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            :busy="isForgettingSelectedPifs"
-            :disabled="selectedPifIds.length === 0 || !canForgetSelectedPifs"
-            :hint="forgetSelectedPifsErrorMessage"
-            left-icon="action:forget"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-            @click="openBulkPifForgetModal()"
-          >
-            {{ t('action:forget') }}
-          </UiButton>
-        </UiTableActions>
-      </div>
+      <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
-            <VtsHeaderCell>
-              <UiCheckbox v-model="areAllPifsSelected" accent="brand" />
-            </VtsHeaderCell>
             <HeadCells />
           </tr>
         </thead>
         <tbody>
           <VtsRow v-for="pif of paginatedPifs" :key="pif.uuid" :selected="selectedPifId === pif.uuid">
-            <UiTableCell>
-              <UiCheckbox v-model="selectedPifIds" :value="pif.uuid" accent="brand" />
-            </UiTableCell>
             <BodyCells :item="pif" />
           </VtsRow>
         </tbody>
@@ -51,19 +29,13 @@ import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
 import { usePifForgetModal } from '@/modules/pif/composables/use-pif-forget-modal.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
-import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
-import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@core/composables/pagination.composable.ts'
-import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
-import { useTableState } from '@core/composables/table-state.composable.ts'
+import { usePagination } from '@core/composables/pagination.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useTableState } from '@core/composables/table-state.composable'
 import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns.ts'
 import { logicNot } from '@vueuse/math'
@@ -128,20 +100,6 @@ const state = useTableState({
 
 const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', filteredPifs)
 
-const { selected: selectedPifIds, areAllSelected: areAllPifsSelected } = useMultiSelect(
-  computed(() => pifs.map(pif => pif.uuid)),
-  computed(() => paginatedPifs.value.map(pif => pif.uuid))
-)
-
-const selectedPifs = computed(() => pifs.filter(pif => selectedPifIds.value.includes(pif.uuid)))
-
-const {
-  openModal: openBulkPifForgetModal,
-  canRun: canForgetSelectedPifs,
-  isRunning: isForgettingSelectedPifs,
-  errorMessage: forgetSelectedPifsErrorMessage,
-} = usePifForgetModal(() => selectedPifs.value)
-
 function getManagementIcon(pif: XenApiPif) {
   if (!pif.management) {
     return undefined
@@ -199,8 +157,7 @@ const { HeadCells, BodyCells } = usePifColumns({
 
 <style scoped lang="postcss">
 .host-pif-table,
-.container,
-.table-actions {
+.container {
   display: flex;
   flex-direction: column;
 }
@@ -208,8 +165,7 @@ const { HeadCells, BodyCells } = usePifColumns({
 .host-pif-table {
   gap: 2.4rem;
 
-  .container,
-  .table-actions {
+  .container {
     gap: 0.8rem;
   }
 }
