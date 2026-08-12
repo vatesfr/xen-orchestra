@@ -114,10 +114,17 @@ function resolvePaths<T>(value: T, base: string): T {
 
 // ===================================================================
 
-export async function load(appName?: string | LoadOptions, opts: LoadOptions = {}): Promise<Record<string, unknown>> {
-  if (typeof appName === 'object' && appName !== null) {
-    opts = appName
-    ;({ appName } = opts)
+export async function load(
+  appNameOrOptions?: string | LoadOptions,
+  opts: LoadOptions = {}
+): Promise<Record<string, unknown>> {
+  let appName: string | undefined
+
+  if (typeof appNameOrOptions === 'object' && appNameOrOptions !== null) {
+    opts = appNameOrOptions
+    appName = opts.appName
+  } else {
+    appName = appNameOrOptions
   }
 
   const { appDir, defaults, envPrefix, ignoreUnknownFormats = false, serializers: customSerializers } = opts
