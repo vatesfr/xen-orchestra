@@ -18,6 +18,7 @@
 
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
 - [RPU/RPR] On a pool backed by TWINSTOR, wait for the replicated storage to be back in sync before rebooting each host, instead of rebooting while a single host holds the only up-to-date copy of the data. The first wait happens before HA and the backup schedules are disabled, so a pool whose storage is not redundant holds there rather than with everything off (PR [#10248](https://github.com/vatesfr/xen-orchestra/pull/10248))
+- [Host] On a pool backed by TWINSTOR, refuse a host reboot, smart reboot or shutdown while the replicated storage is catching up, with the reason and a confirmation to go ahead anyway. Emergency shutdowns are never refused (PR [#10248](https://github.com/vatesfr/xen-orchestra/pull/10248))
 
 ### Bug fixes
 
@@ -42,6 +43,7 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/proxy-cli patch
 - @xen-orchestra/rest-api minor

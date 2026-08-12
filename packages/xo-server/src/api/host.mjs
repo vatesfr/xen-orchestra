@@ -164,6 +164,7 @@ export async function restart({
 
   bypassBlockedSuspend = force,
   bypassCurrentVmCheck = force,
+  bypassTwinstorCheck = force,
   bypassVersionCheck = force,
 }) {
   if (bypassVersionCheck) {
@@ -215,8 +216,8 @@ export async function restart({
 
   const xapi = this.getXapi(host)
   return suspendResidentVms
-    ? xapi.host_smartReboot(host._xapiRef, bypassBlockedSuspend, bypassCurrentVmCheck)
-    : xapi.rebootHost(host._xapiId, force)
+    ? xapi.host_smartReboot(host._xapiRef, bypassBlockedSuspend, bypassCurrentVmCheck, bypassTwinstorCheck)
+    : xapi.rebootHost(host._xapiId, force, { bypassTwinstorCheck })
 }
 
 restart.description = 'restart the host'
@@ -231,6 +232,10 @@ restart.params = {
     optional: true,
   },
   bypassCurrentVmCheck: {
+    type: 'boolean',
+    optional: true,
+  },
+  bypassTwinstorCheck: {
     type: 'boolean',
     optional: true,
   },
@@ -314,19 +319,23 @@ start.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function stop({ bypassBackupCheck = false, host, bypassEvacuate }) {
+export async function stop({ bypassBackupCheck = false, bypassTwinstorCheck = false, host, bypassEvacuate }) {
   if (bypassBackupCheck) {
     log.warn('host.stop with argument "bypassBackupCheck" set to true', { hostId: host.id })
   } else {
     await backupGuard.call(this, host.$poolId)
   }
-  return this.getXapi(host).shutdownHost(host._xapiId, { bypassEvacuate })
+  return this.getXapi(host).shutdownHost(host._xapiId, { bypassEvacuate, bypassTwinstorCheck })
 }
 
 stop.description = 'stop the host'
 
 stop.params = {
   bypassBackupCheck: {
+    type: 'boolean',
+    optional: true,
+  },
+  bypassTwinstorCheck: {
     type: 'boolean',
     optional: true,
   },

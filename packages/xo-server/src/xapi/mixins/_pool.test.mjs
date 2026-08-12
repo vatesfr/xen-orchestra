@@ -9,13 +9,17 @@ const { describe, it } = test
 const SR_REF = 'OpaqueRef:sr'
 const HOST_REF = 'OpaqueRef:host'
 
+// the pool's clock, which is what the stamps are dated against
+const NOW = 1_700_000_000
+const stamp = (secondsAgo = 0) => String(NOW - secondsAgo)
+
 const SYNCED = {
   'twinstor-schema': '1',
   'twinstor-managed': 'true',
   'twinstor-synced': 'true',
   'twinstor-storage-state': 'synced',
   'twinstor-sync-pct': '100',
-  'twinstor-updated-at': '1000',
+  'twinstor-updated-at': stamp(),
 }
 const SYNCING = {
   ...SYNCED,
@@ -23,12 +27,18 @@ const SYNCING = {
   'twinstor-storage-state': 'syncing',
   'twinstor-sync-pct': '30',
 }
-const DAEMON_UP = { 'twinstor-version': '0.5.0', 'twinstor-alive': '1000' }
+const DAEMON_UP = { 'twinstor-version': '0.5.0', 'twinstor-alive': stamp() }
 
 // the methods reach each other through `this`, so they are mixed in as they would be
 const makeXapi = ({ SR = SYNCED, host = DAEMON_UP, getField } = {}) => ({
   ...poolMethods,
   otherConfigs: { SR, host },
+  pool: { uuid: 'pool', master: HOST_REF },
+  objects: {
+    all: { [HOST_REF]: { $type: 'host', $ref: HOST_REF, other_config: host } },
+    indexes: { type: { SR: {} } },
+  },
+  call: async () => String(NOW),
   getField:
     getField ??
     async function (type) {
@@ -53,6 +63,17 @@ describe('_readTwinstor', function () {
     const result = await makeXapi()._readTwinstor(makeGate())
     assert.equal(result.blockedBy, undefined)
     assert.deepEqual(result.stamps, CURRENT_STAMPS)
+  })
+
+  // with no earlier state to compare against, only the stamp's age can say
+  // whether the pool master is still speaking
+  it('refuses a state which has aged out, when it has nothing to compare against', async function () {
+    const xapi = makeXapi({ SR: { ...SYNCED, 'twinstor-updated-at': stamp(200) } })
+    const result = await xapi._readTwinstor(makeGate())
+    assert.match(result.blockedBy, /has not published its state recently/)
+
+    const daemonDown = makeXapi({ host: { ...DAEMON_UP, 'twinstor-alive': stamp(200) } })
+    assert.match((await daemonDown._readTwinstor(makeGate())).blockedBy, /daemon is not running/)
   })
 
   it('reports a running resync, with the SR and its progress', async function () {
@@ -98,6 +119,31 @@ describe('_readTwinstor', function () {
     }
     const result = await makeXapi({ getField })._readTwinstor(makeGate())
     assert.match(result.blockedBy, /could not be read/)
+  })
+})
+
+describe('assertTwinstorSynced', function () {
+  it('does nothing on a pool without a TWINSTOR SR', async function () {
+    // the fake pool advertises no SR, so the gate must not exist at all
+    assert.equal(makeXapi()._getTwinstorGate(), undefined)
+    await makeXapi().assertTwinstorSynced()
+  })
+
+  it('refuses an interactive reboot while the storage is catching up, rather than holding', async function () {
+    const xapi = makeXapi({ SR: SYNCING })
+    xapi.objects.indexes.type.SR = { [SR_REF]: { $ref: SR_REF, other_config: SYNCING } }
+
+    await assert.rejects(
+      () => xapi.assertTwinstorSynced(),
+      error => error.code === 25 /* incorrectState */ && /is syncing/.test(error.data.actual)
+    )
+  })
+
+  it('lets a reboot through on a synced pool', async function () {
+    const xapi = makeXapi()
+    xapi.objects.indexes.type.SR = { [SR_REF]: { $ref: SR_REF, other_config: SYNCED } }
+
+    await xapi.assertTwinstorSynced()
   })
 })
 

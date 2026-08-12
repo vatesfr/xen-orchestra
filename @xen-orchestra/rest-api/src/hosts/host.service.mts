@@ -99,6 +99,7 @@ export class HostService {
     opts: {
       bypassBackupCheck?: boolean
       bypassEvacuate?: boolean
+      bypassTwinstorCheck?: boolean
     } = {}
   ): Promise<void> {
     const host = this.#restApi.getObject<XoHost>(hostId)
@@ -132,13 +133,19 @@ export class HostService {
       bypassVersionCheck: boolean
       bypassBlockedSuspend: boolean
       bypassCurrentVmCheck: boolean
+      bypassTwinstorCheck: boolean
     }
   ): Promise<void> {
     await this.#restApi.xoApp.checkFeatureAuthorization('SMART_REBOOT')
 
     const { xapi, xapiHost } = await this.#rebootChecks(hostId, opts)
 
-    await xapi.host_smartReboot(xapiHost.$ref, opts.bypassBlockedSuspend, opts.bypassCurrentVmCheck)
+    await xapi.host_smartReboot(
+      xapiHost.$ref,
+      opts.bypassBlockedSuspend,
+      opts.bypassCurrentVmCheck,
+      opts.bypassTwinstorCheck
+    )
   }
 
   async restartToolstack(

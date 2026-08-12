@@ -613,7 +613,7 @@ export class HostController extends XapiXoController<XoHost> {
    * Shutdown a host.
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
-   * @example body { "bypassBackupCheck": false, "bypassEvacuate": false }
+   * @example body { "bypassBackupCheck": false, "bypassEvacuate": false, "bypassTwinstorCheck": false }
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'deny')
@@ -632,6 +632,8 @@ export class HostController extends XapiXoController<XoHost> {
       bypassBackupCheck?: boolean
       /** Shut down without evacuating running VMs first. Defaults to false. */
       bypassEvacuate?: boolean
+      /** Shut down even though the pool's TWINSTOR storage is not in sync. Defaults to false. */
+      bypassTwinstorCheck?: boolean
     },
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
@@ -722,7 +724,8 @@ export class HostController extends XapiXoController<XoHost> {
    *  "bypassBackupCheck": false,
    *  "bypassVersionCheck": false,
    *  "bypassBlockedSuspend": false,
-   *  "bypassCurrentVmCheck": false
+   *  "bypassCurrentVmCheck": false,
+   *  "bypassTwinstorCheck": false
    * }
    */
   @Example(taskLocation)
@@ -747,6 +750,8 @@ export class HostController extends XapiXoController<XoHost> {
       bypassBlockedSuspend?: boolean
       /** Skip the check that blocks smart reboot when XOA is running on this host. Defaults to false. */
       bypassCurrentVmCheck?: boolean
+      /** Reboot even though the pool's TWINSTOR storage is not in sync. Defaults to false. */
+      bypassTwinstorCheck?: boolean
     },
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
@@ -755,6 +760,7 @@ export class HostController extends XapiXoController<XoHost> {
       bypassVersionCheck: body?.bypassVersionCheck ?? false,
       bypassBlockedSuspend: body?.bypassBlockedSuspend ?? false,
       bypassCurrentVmCheck: body?.bypassCurrentVmCheck ?? false,
+      bypassTwinstorCheck: body?.bypassTwinstorCheck ?? false,
     }
 
     const hostId = id as XoHost['id']

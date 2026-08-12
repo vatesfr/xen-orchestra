@@ -331,11 +331,26 @@ export default class Xapi extends XapiBase {
     await this.callAsync('host.power_on', this.getObject(hostId).$ref)
   }
 
-  async rebootHost(hostId, force = false) {
+  async rebootHost(hostId, force = false, { bypassTwinstorCheck = force } = {}) {
     const host = this.getObject(hostId)
+
+    // on a pool backed by TWINSTOR, taking a host down while the mirror is
+    // catching up leaves the VMs on the only host holding a complete copy
+    if (!bypassTwinstorCheck) {
+      await this.assertTwinstorSynced()
+    }
 
     await this.clearHost(host, force)
     await this.callAsync('host.reboot', host.$ref)
+  }
+
+  // Guard the shared implementation rather than its callers: both the legacy
+  // API and the REST API reach `host_smartReboot` directly.
+  async host_smartReboot(ref, bypassBlockedSuspend, bypassCurrentVmCheck, bypassTwinstorCheck = false) {
+    if (!bypassTwinstorCheck) {
+      await this.assertTwinstorSynced()
+    }
+    return super.host_smartReboot(ref, bypassBlockedSuspend, bypassCurrentVmCheck)
   }
 
   async setRemoteSyslogHost(hostId, syslogDestination) {
@@ -350,8 +365,12 @@ export default class Xapi extends XapiBase {
     await this.call('host.syslog_reconfigure', host.$ref)
   }
 
-  async shutdownHost(hostId, { force = false, bypassEvacuate = false } = {}) {
+  async shutdownHost(hostId, { force = false, bypassEvacuate = false, bypassTwinstorCheck = force } = {}) {
     const host = this.getObject(hostId)
+    // see rebootHost
+    if (!bypassTwinstorCheck) {
+      await this.assertTwinstorSynced()
+    }
     if (bypassEvacuate) {
       await this.call('host.disable', host.$ref)
     } else {

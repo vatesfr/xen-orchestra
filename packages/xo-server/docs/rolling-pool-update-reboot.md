@@ -82,6 +82,14 @@ Detection is SR-based, not host-based: uninstalling TWINSTOR destroys the SR and
 
 The first wait is placed before HA, `auto_poweron`, the load balancer and the pool's backup schedules are disabled: a pool whose storage is not redundant waits there with everything still enabled, and aborting it costs nothing.
 
+### Outside a rolling run
+
+The same verdict guards every other operation that takes a host down: `host.restart`, its smart-reboot variant, `host.stop`, and their REST equivalents (`actions/clean_reboot`, `actions/smart_reboot`, `actions/clean_shutdown`). Those cannot hold for a resync the way a rolling run can, so they **refuse** instead, with an `incorrectState` on `twinstorStorageState` carrying the same reason string. Each exposes a `bypassTwinstorCheck` parameter, defaulting to `force` where the method has one, so an operator who means it can go ahead; `xo-web` surfaces it as a confirmation like the other `bypass*` checks.
+
+A one-shot check has no earlier state to compare against, so instead of requiring the stamps to have moved it requires them to be younger than 150 seconds, which is what TWINSTOR's own peer interlock allows. The age is taken against the pool master's clock (`host.get_servertime`), not XO's.
+
+The emergency paths, `host.emergencyShutdownHost` and the pool-wide emergency shutdown, are deliberately **not** gated: they exist for the case where the pool has to go down now, and a whole-pool shutdown does not strand a resync the way taking one host out of a pair does.
+
 ### Aborting a run
 
 Aborting (`POST /rest/v0/tasks/<id>/actions/abort`) while the run waits on the storage stops it at once, without rebooting the host it was waiting for. It is honored between two hosts too, so aborting during host 1's reboot means host 2 is never touched. It is not honored once a host is on its way down, there is no un-rebooting it. Cleanups then run as on any failure: HA and `auto_poweron` restored, shut-down pinned VMs started again, evacuated host re-enabled. VMs are left where they were evacuated to.

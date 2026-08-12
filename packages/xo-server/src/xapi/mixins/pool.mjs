@@ -37,11 +37,12 @@ const PINNED_VM_START_CONCURRENCY = 2
 //
 // The pool master republishes the replication state on the SR's `other_config`,
 // and each host stamps its own daemon's liveness on its record. Both are
-// heartbeats, rewritten every 60 seconds even when nothing changed, so XO never
-// reads their value, only whether they moved since the state it last accepted:
-// a host which just rebooted leaves the records frozen on the verdict which
-// allowed its reboot, and dating them against XO's own clock would only work as
-// well as the two clocks agree.
+// heartbeats, rewritten every 60 seconds even when nothing changed, so a value
+// which has not changed proves its writer is not speaking. That is what a
+// rolling run compares, because a host which just rebooted leaves the records
+// frozen on the verdict which allowed its reboot. A one-shot check has no
+// earlier state to compare against and falls back on the stamp's age, read
+// against the pool's own clock rather than XO's.
 const TWINSTOR_POLL_INTERVAL = 10e3
 
 // without its own bound a read would inherit the XAPI call timeout (an hour)
@@ -51,6 +52,10 @@ const TWINSTOR_READ_TIMEOUT = 60e3
 // the daemon bumps it when the meaning of the keys changes, so a `synced` from
 // an unknown one cannot be taken at face value
 const TWINSTOR_SCHEMA = '1'
+
+// TWINSTOR's own peer interlock allows two missed 60s beats before it calls a
+// node down; a check with no earlier state to compare against uses the same
+const TWINSTOR_STALE_PERIOD = 150e3
 
 // uninstalling TWINSTOR destroys the SR and its keys, but leaves
 // `twinstor-version` on the hosts forever: only the SR can tell whether a pool
@@ -79,6 +84,45 @@ const methods = {
     })
   },
 
+  // The records to watch, or undefined on a pool without TWINSTOR, which
+  // disables every gate below.
+  //
+  // A rolling run resolves this once, while the whole pool is up and its records
+  // are all in cache: re-scanning between reboots could miss an SR whose record
+  // has not been repopulated yet, and silently turn the gate into a no-op.
+  _getTwinstorGate() {
+    const srRefs = filter(this.objects.indexes.type.SR, isTwinstorSr).map(_ => _.$ref)
+    if (srRefs.length === 0) {
+      return
+    }
+    return {
+      srRefs,
+      hostRefs: filter(this.objects.all, { $type: 'host' })
+        .filter(isTwinstorHost)
+        .map(_ => _.$ref),
+    }
+  },
+
+  // A single verdict on the pool's replicated storage, for the operations which
+  // take a host down but cannot wait for a resync the way a rolling run can: a
+  // reboot or a shutdown asked for interactively. Refuses rather than holding,
+  // and its callers expose a bypass, since an operator may well mean it.
+  async assertTwinstorSynced() {
+    const gate = this._getTwinstorGate()
+    if (gate === undefined) {
+      return
+    }
+    const { blockedBy } = await this._readTwinstor(gate)
+    if (blockedBy !== undefined) {
+      throw incorrectState({
+        actual: blockedBy,
+        expected: 'synced',
+        object: this.pool.uuid,
+        property: 'twinstorStorageState',
+      })
+    }
+  },
+
   // One read of everything the gate watches: the replication state each
   // TWINSTOR SR advertises, and the liveness stamp each host's daemon writes.
   //
@@ -87,11 +131,18 @@ const methods = {
   async _readTwinstor({ srRefs, hostRefs, stamps: previous }) {
     const readOtherConfig = (type, ref) => timeout.call(this.getField(type, ref, 'other_config'), TWINSTOR_READ_TIMEOUT)
 
-    let srs, hosts
+    let srs, hosts, servertime
     try {
-      ;[srs, hosts] = await Promise.all([
+      ;[srs, hosts, servertime] = await Promise.all([
         Promise.all(srRefs.map(ref => readOtherConfig('SR', ref))),
         Promise.all(hostRefs.map(ref => readOtherConfig('host', ref))),
+        // a check with no earlier state to compare against has to fall back on
+        // an age. Take the clock from the pool rather than from XO: the stamps
+        // are written by hosts, and two hosts of a pool agree on the time far
+        // better than a host and XO do.
+        previous === undefined
+          ? timeout.call(this.call('host.get_servertime', this.pool.master), TWINSTOR_READ_TIMEOUT)
+          : undefined,
       ])
     } catch (error) {
       // the pool master may still be reconnecting after its own reboot: a state
@@ -101,9 +152,14 @@ const methods = {
     }
 
     const stamps = [...srs.map(_ => _['twinstor-updated-at']), ...hosts.map(_ => _['twinstor-alive'])]
-    // before the first accepted state there is nothing to compare against, so
-    // the very first read only has to be synced
-    const hasMoved = i => previous === undefined || (stamps[i] !== undefined && stamps[i] !== previous[i])
+    // a stamp proves its writer is speaking now either by having moved since the
+    // state XO last accepted, or, with nothing to compare against, by being
+    // young. `Number` of a missing or blank stamp is NaN or 0, both of which
+    // fail every comparison below, which is the safe direction.
+    const isCurrent = i =>
+      previous === undefined
+        ? Math.abs(parseDateTime(servertime) * 1e3 - Number(stamps[i]) * 1e3) < TWINSTOR_STALE_PERIOD
+        : stamps[i] !== undefined && stamps[i] !== previous[i]
 
     for (let i = 0; i < srs.length; ++i) {
       const otherConfig = srs[i]
@@ -129,15 +185,21 @@ const methods = {
           progress: Number.isFinite(progress) ? progress : undefined,
         }
       }
-      if (!hasMoved(i)) {
-        return { stamps, blockedBy: 'TWINSTOR has not published its state since the last host rebooted' }
+      if (!isCurrent(i)) {
+        return {
+          stamps,
+          blockedBy:
+            previous === undefined
+              ? 'TWINSTOR has not published its state recently, check that the daemon is running on the pool master'
+              : 'TWINSTOR has not published its state since the last host rebooted',
+        }
       }
     }
 
     for (let i = 0; i < hosts.length; ++i) {
       // DRBD keeps replicating in the kernel without the daemon, so the pair
       // can look perfectly healthy while a node has no supervision at all
-      if (!hasMoved(srs.length + i)) {
+      if (!isCurrent(srs.length + i)) {
         return { stamps, blockedBy: `the TWINSTOR daemon is not running on ${this.getObject(hostRefs[i]).name_label}` }
       }
     }
@@ -200,23 +262,14 @@ const methods = {
   ) {
     const hosts = filter(this.objects.all, { $type: 'host' })
 
-    // undefined on a pool without TWINSTOR, which disables the gate entirely.
-    // Resolved once, while the whole pool is up and its records are all in
-    // cache: re-scanning between reboots could miss an SR whose record has not
-    // been repopulated yet, and silently turn the gate into a no-op.
-    let twinstor
-    const twinstorSrRefs = filter(this.objects.indexes.type.SR, isTwinstorSr).map(_ => _.$ref)
-    if (twinstorSrRefs.length > 0) {
+    const twinstor = this._getTwinstorGate()
+    if (twinstor !== undefined) {
       log.info(
         `pool ${this.pool.uuid} is backed by TWINSTOR, hosts will be rebooted only while both replicas are synced`
       )
-      twinstor = {
-        srRefs: twinstorSrRefs,
-        hostRefs: hosts.filter(isTwinstorHost).map(_ => _.$ref),
-        // how much longer this run may spend waiting on the storage, in total
-        timeLeft: this._twinstorSyncTimeout,
-        pollInterval: TWINSTOR_POLL_INTERVAL,
-      }
+      // how much longer this run may spend waiting on the storage, in total
+      twinstor.timeLeft = this._twinstorSyncTimeout
+      twinstor.pollInterval = TWINSTOR_POLL_INTERVAL
     }
 
     // held here, before HA, auto power on, the load balancer and the pool's
