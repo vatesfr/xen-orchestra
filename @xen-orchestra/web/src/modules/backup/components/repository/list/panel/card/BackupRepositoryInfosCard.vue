@@ -2,27 +2,27 @@
   <UiCard class="card-container">
     <VtsCardObjectTitle :id="br.id" :label="br.name" :icon="brIcon" :href="xo5BrHref" />
     <div class="content">
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('status') }}</template>
         <template #value>
           <VtsStatus :status="brStatus" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('type') }}</template>
         <template #value>{{ brType }}</template>
         <template v-if="brType" #addons>
           <VtsCopyButton :value="brType" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('storage-mode') }}</template>
         <template #value>{{ brStorageMode }}</template>
-        <template v-if="brStorageMode" #addons>
+        <template #addons>
           <VtsCopyButton :value="brStorageMode" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('proxy') }}</template>
         <template v-if="brProxy" #value>
           <VtsIcon size="medium" name="object:instance" />
@@ -32,7 +32,7 @@
           <VtsCopyButton :value="brProxy.name" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('encryption') }}</template>
         <template #value>
           <VtsStatus :status="isEncrypted" />
@@ -44,11 +44,8 @@
 
 <script lang="ts" setup>
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
-import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.utils.ts'
-import {
-  getBackupRepositoryIcon,
-  getBackupRepositoryStatus,
-} from '@/modules/backup/utils/xo-backup-repository.utils.ts'
+import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
+import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'

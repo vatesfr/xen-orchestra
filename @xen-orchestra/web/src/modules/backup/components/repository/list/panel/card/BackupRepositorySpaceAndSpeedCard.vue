@@ -5,15 +5,15 @@
     <div>
       <span class="typo-body-bold-small subtitle">{{ t('space') }}</span>
       <div class="content">
-        <VtsCardRowKeyValue>
+        <VtsCardRowKeyValue truncate align-top>
           <template #key>{{ t('used-space-on-br') }}</template>
           <template #value />
         </VtsCardRowKeyValue>
-        <VtsCardRowKeyValue>
+        <VtsCardRowKeyValue truncate align-top>
           <template #key>{{ t('free-space-on-br') }}</template>
           <template #value />
         </VtsCardRowKeyValue>
-        <VtsCardRowKeyValue>
+        <VtsCardRowKeyValue truncate align-top>
           <template #key>{{ t('allocated-space') }}</template>
           <template #value />
         </VtsCardRowKeyValue>
@@ -35,14 +35,14 @@
         />
       </div>
       <div class="content">
-        <VtsCardRowKeyValue>
+        <VtsCardRowKeyValue truncate align-top>
           <template #key>{{ t('writing-speed') }}</template>
           <template #value>{{ writeSpeed }}</template>
           <template v-if="writeSpeed" #addons>
             <VtsCopyButton :value="writeSpeed" />
           </template>
         </VtsCardRowKeyValue>
-        <VtsCardRowKeyValue>
+        <VtsCardRowKeyValue truncate align-top>
           <template #key>{{ t('reading-speed') }}</template>
           <template #value>{{ readSpeed }}</template>
           <template v-if="readSpeed" #addons>

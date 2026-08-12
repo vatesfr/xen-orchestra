@@ -238,7 +238,7 @@ export function formatBackupRepositoryUrl(info: BackupRepositoryInfoInput): stri
     protocol = type,
     region,
     ...options
-  } = info as BackupRepositoryInfoInput & { invalidUrl?: true }
+  } = info as BackupRepositoryInfoInput
 
   const credentials = `${encodeURIComponent(username ?? '')}:${encodeURIComponent(password ?? '')}@${host}`
 

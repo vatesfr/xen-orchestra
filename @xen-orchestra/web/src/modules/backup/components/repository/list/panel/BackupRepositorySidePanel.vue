@@ -5,7 +5,7 @@
       <template v-else>
         <BackupRepositoryInfosCard :br />
         <BackupRepositorySpaceAndSpeedCard :br />
-        <BackupRepositoryNFSCard v-if="nfs" :nfs />
+        <BackupRepositoryNfsCard v-if="nfs" :nfs />
       </template>
     </template>
   </VtsSidePanel>
@@ -13,13 +13,13 @@
 
 <script lang="ts" setup>
 import BackupRepositoryInfosCard from '@/modules/backup/components/repository/list/panel/card/BackupRepositoryInfosCard.vue'
-import BackupRepositoryNFSCard from '@/modules/backup/components/repository/list/panel/card/BackupRepositoryNfsCard.vue'
+import BackupRepositoryNfsCard from '@/modules/backup/components/repository/list/panel/card/BackupRepositoryNfsCard.vue'
 import BackupRepositorySpaceAndSpeedCard from '@/modules/backup/components/repository/list/panel/card/BackupRepositorySpaceAndSpeedCard.vue'
 import {
   type FrontXoBackupRepository,
   useXoBackupRepositoryCollection,
 } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
-import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.utils.ts'
+import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed } from 'vue'
