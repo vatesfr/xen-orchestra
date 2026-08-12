@@ -1,4 +1,4 @@
-import type { XenApiHost, XenApiPbd, XenApiPif, XenApiSr, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import type { XenApiHost, XenApiPbd, XenApiSr, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { defineJobArg } from '@core/packages/job'
 
 export const vmsArg = defineJobArg({
@@ -18,10 +18,5 @@ export const srsArg = defineJobArg({
 
 export const pbdsArg = defineJobArg({
   identify: (pbd: XenApiPbd) => pbd.$ref,
-  toArray: true,
-})
-
-export const pifsArg = defineJobArg({
-  identify: (pif: XenApiPif) => pif.$ref,
   toArray: true,
 })
