@@ -845,7 +845,7 @@
   "pending": "Pending",
   "physical-interface-status": "Physical interface status",
   "pif": "PIF",
-  "pif-forget-info": "This action will permanently remove the physical interface from the host. This cannot be undone. | All selected physical interfaces will be permanently removed from their hosts. This action is irreversible—proceed with caution.",
+  "pif-forget-info": "This action will permanently remove the physical interface from the host. This cannot be undone.",
   "pif-status": "PIF status",
   "pifs": "PIFs",
   "pifs-status": "PIFs status",
