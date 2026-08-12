@@ -26,10 +26,10 @@ exports.asyncMap = function asyncMap(iterable, mapFn, thisArg = iterable) {
 /**
  * Like `asyncMap` but wait for all promises to settle before rejecting
  *
- * @template Item, Result, This
+ * @template Item, Result, [This=Iterable<Item>]
  * @param {Iterable<Item>} iterable
  * @param {(this: This, item: Item) => (Result | PromiseLike<Result>)} mapFn
- * @param {This} [thisArg]
+ * @param {This} [thisArg] defaults to `iterable`
  * @returns {Promise<Result[]>}
  */
 exports.asyncMapSettled = function asyncMapSettled(iterable, mapFn, thisArg = iterable) {
