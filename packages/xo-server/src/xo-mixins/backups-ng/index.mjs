@@ -1,12 +1,10 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import Disposable from 'promise-toolbox/Disposable'
-import forOwn from 'lodash/forOwn.js'
 import groupBy from 'lodash/groupBy.js'
 import merge from 'lodash/merge.js'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
-import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
@@ -17,6 +15,7 @@ import { Task } from '@vates/task'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
+import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 import { waitAll } from '../../_waitAll.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
@@ -59,6 +58,8 @@ const extractIdsFromSimplePattern = pattern => {
 }
 
 export default class BackupNg {
+  #vmBackupsCache
+
   get runningRestores() {
     return this._runningRestores
   }
@@ -66,6 +67,10 @@ export default class BackupNg {
   constructor(app) {
     this._app = app
     this._runningRestores = new Set()
+    this.#vmBackupsCache = new VmBackupsCache(
+      (repository, fn) => Disposable.use(app.getBackupsRemoteAdapter(repository), fn),
+      { minRefreshDelay: app.config.getDuration('backups.listingDebounce') }
+    )
 
     app.hooks.on('start', async () => {
       const executor = async ({
@@ -356,7 +361,7 @@ export default class BackupNg {
             return result
           }
         } finally {
-          targetRemoteIds.forEach(id => this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, id))
+          targetRemoteIds.forEach(id => this._refreshVmBackupsCache(id))
         }
       }
       app.registerJobExecutor('backup', executor)
@@ -465,7 +470,7 @@ export default class BackupNg {
         await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteVmBackups(filenames))
       }
 
-      this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
+      this._refreshVmBackupsCache(remoteId)
     })
   }
 
@@ -575,6 +580,8 @@ export default class BackupNg {
     }
   }
 
+  // proxies don't expose the journal of their repositories yet, they are still listed in full, at
+  // most once per `backups.listingDebounce`
   @decorateWith(
     debounceWithKey,
     function () {
@@ -584,6 +591,33 @@ export default class BackupNg {
       return [this, remoteId]
     }
   )
+  async _listVmBackupsOnProxy(remoteId, remote) {
+    const { [remoteId]: backupsByVm } = await this._app.callProxyMethod(remote.proxy, 'backup.listVmBackups', {
+      remotes: {
+        [remoteId]: {
+          url: remote.url,
+          options: remote.options,
+        },
+      },
+    })
+    return backupsByVm
+  }
+
+  // the next listing of this repository will replay its journal instead of waiting for the end of the
+  // current refresh window
+  //
+  // to call after a mutation triggered by this process, so that its effect is visible at once
+  _refreshVmBackupsCache(remoteId) {
+    this.#vmBackupsCache.refresh(remoteId)
+    this._listVmBackupsOnProxy(REMOVE_CACHE_ENTRY, remoteId)
+  }
+
+  // the next listing of this repository will be read from scratch
+  _purgeVmBackupsCache(remoteId) {
+    this.#vmBackupsCache.delete(remoteId)
+    this._listVmBackupsOnProxy(REMOVE_CACHE_ENTRY, remoteId)
+  }
+
   async _listVmBackupsOnRemote(remoteId, { vmId } = {}) {
     const app = this._app
     try {
@@ -591,35 +625,16 @@ export default class BackupNg {
 
       let backupsByVm
       if (remote.proxy !== undefined) {
-        ;({ [remoteId]: backupsByVm } = await app.callProxyMethod(remote.proxy, 'backup.listVmBackups', {
-          remotes: {
-            [remoteId]: {
-              url: remote.url,
-              options: remote.options,
-            },
-          },
-          vmId,
-        }))
+        backupsByVm = await this._listVmBackupsOnProxy(remoteId, remote)
+        if (backupsByVm === undefined) {
+          // the proxy omits the repositories it failed to list
+          return
+        }
       } else {
-        backupsByVm = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
-          let vmBackups
-          if (vmId !== undefined) {
-            vmBackups = { [vmId]: await adapter.listVmBackups(vmId) }
-          } else {
-            vmBackups = await adapter.listAllVmBackups()
-          }
-
-          return formatVmBackups(vmBackups, remote.id)
-        })
+        backupsByVm = await this.#vmBackupsCache.get(remote)
       }
 
-      // inject the remote id on the backup which is needed for importVmBackupNg()
-      forOwn(backupsByVm, backups =>
-        backups.forEach(backup => {
-          backup.id = `${remoteId}/${backup.id}`
-        })
-      )
-      return backupsByVm
+      return serveVmBackups(backupsByVm, remoteId, vmId)
     } catch (error) {
       logger.warn(`listVmBackups for remote ${remoteId}:`, { error })
     }
@@ -631,7 +646,7 @@ export default class BackupNg {
     await Promise.all(
       remotes.map(async remoteId => {
         if (_forceRefresh) {
-          this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
+          this._purgeVmBackupsCache(remoteId)
         }
 
         backupsByVmByRemote[remoteId] = await this._listVmBackupsOnRemote(remoteId, { vmId })
