@@ -93,10 +93,6 @@ export default class TabConsole extends Component {
       })
     )
 
-  _toggleMinimalLayout = () => {
-    this.props.setCollapsedHeader(!this.props.collapsedHeader)
-  }
-
   _openSsh = (username = 'root') => {
     window.location = `ssh://${encodeURIComponent(username)}@${formatHostname(this.props.vm.mainIpAddress)}`
   }
@@ -128,7 +124,7 @@ export default class TabConsole extends Component {
   }
 
   render() {
-    const { collapsedHeader, statsOverview, vm } = this.props
+    const { collapsedHeader, setCollapsedHeader, statsOverview, vm } = this.props
     const { scale } = this.state
     const canSshOrRdp = vm.mainIpAddress !== undefined
 
@@ -259,7 +255,7 @@ export default class TabConsole extends Component {
           </Col>
           <Col mediumSize={1}>
             <Tooltip content={collapsedHeader ? _('showHeaderTooltip') : _('hideHeaderTooltip')}>
-              <Button onClick={this._toggleMinimalLayout}>
+              <Button onClick={() => setCollapsedHeader(!collapsedHeader)}>
                 <Icon icon={collapsedHeader ? 'caret' : 'caret-up'} />
               </Button>
             </Tooltip>
