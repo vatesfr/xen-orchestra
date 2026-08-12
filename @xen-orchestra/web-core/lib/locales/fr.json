@@ -846,7 +846,7 @@
   "pending": "En cours",
   "physical-interface-status": "Statut de l'interface physique",
   "pif": "PIF",
-  "pif-forget-info": "Cette action supprimera définitivement l'interface physique de l'hôte. Cette action est irréversible.",
+  "pif-forget-info": "Cette action supprimera définitivement l'interface physique de l'hôte. Cette action est irréversible; procédez avec prudence. | Toutes les interfaces physiques sélectionnées seront définitivement supprimées de leurs hôtes. Cette action est irréversible; procédez avec prudence.",
   "pif-status": "Statut du PIF",
   "pifs": "PIFs",
   "pifs-status": "Statut des PIFs",
