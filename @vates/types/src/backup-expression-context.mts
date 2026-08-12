@@ -12,7 +12,7 @@ export const BACKUP_EXPRESSION_CONTEXT = {
     description: { type: 'string' },
     tags: { type: 'string[]' },
   },
-  remote: {
+  backupRepository: {
     name: { type: 'string' },
     type: { type: 'string' },
     tags: { type: 'string[]' },
@@ -31,7 +31,7 @@ export const BACKUP_SETTING_CONTEXT = {
   fullInterval: ['vm', 'run', 'chainLength'],
   vmFilter: ['vm', 'run'],
   srs: ['sr', 'run'],
-  remotes: ['remote', 'run'],
+  remotes: ['backupRepository', 'run'],
 } as const
 
 export type BACKUP_SETTING_CONTEXT = (typeof BACKUP_SETTING_CONTEXT)[keyof typeof BACKUP_SETTING_CONTEXT]

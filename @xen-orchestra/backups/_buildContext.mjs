@@ -4,6 +4,10 @@ import moment from 'moment-timezone'
 import { parse } from 'xo-remote-parser'
 
 /**
+ * @typedef {import('@vates/types/xen-api').XenApiVm} XenApiVm
+ * @typedef {import('@vates/types/xo').XoSr} XoSr
+ * @typedef {import('@vates/types/xo').XoBackupRepository} XoBackupRepository
+ *
  * @typedef {object} RunContext
  * @property {number} dayOfWeek
  * @property {number} dayOfMonth
@@ -20,8 +24,8 @@ import { parse } from 'xo-remote-parser'
  * @property {object} sr
  * @property {RunContext} run
  *
- * @typedef {object} RemoteContext
- * @property {object} remote
+ * @typedef {object} BackupRepositoryContext
+ * @property {object} backupRepository
  * @property {RunContext} run
  */
 
@@ -42,7 +46,7 @@ export function buildRunContext(date, timezone) {
 }
 
 /**
- * @param {object} vm
+ * @param {XenApiVm} vm
  * @param {RunContext} run
  * @param {number} [chainLength]
  * @returns {VmContext}
@@ -64,7 +68,7 @@ export function buildVmContext(vm, run, chainLength) {
 }
 
 /**
- * @param {Record<string, any>} sr
+ * @param {XoSr} sr
  * @param {RunContext} run
  * @returns {SrContext}
  */
@@ -81,16 +85,16 @@ export function buildSrContext(sr, run) {
 }
 
 /**
- * @param {Record<string, any>} remote
+ * @param {XoBackupRepository} backupRepository
  * @param {RunContext} run
- * @returns {RemoteContext}
+ * @returns {BackupRepositoryContext}
  */
-export function buildRemoteContext(remote, run) {
+export function buildBackupRepositoryContext(backupRepository, run) {
   return {
-    remote: {
-      name: remote.name,
-      type: parse(remote.url).type,
-      tags: Array.isArray(remote.tags) ? remote.tags : [],
+    backupRepository: {
+      name: backupRepository.name,
+      type: parse(backupRepository.url).type,
+      tags: [], // Placeholder - Backup repositories don't have tags yet
     },
     run,
   }
