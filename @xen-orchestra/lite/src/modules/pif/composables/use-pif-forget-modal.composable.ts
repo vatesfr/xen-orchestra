@@ -1,5 +1,5 @@
-import { usePifForgetJob } from '@/jobs/pif-forget.job.ts'
 import type { XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import { usePifForgetJob } from '@/modules/pif/jobs/pif-forget.job.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'

@@ -1,4 +1,4 @@
-import { pifsArg } from '@/jobs/args.ts'
+import { pifsArg } from '@/modules/pif/jobs/pif-args.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
