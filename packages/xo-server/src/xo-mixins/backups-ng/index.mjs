@@ -31,7 +31,7 @@ const logger = createLogger('xo:xo-mixins:backups-ng')
  * @typedef {Record<XoVm['id'], XoVmBackupArchive[]>} BackupsByVm
  * @typedef {{ backupsByVm?: BackupsByVm, error?: Error }} RemoteListingResult
  * @typedef {{ _forceRefresh?: boolean, vmId?: XoVm['id'] }} ListVmBackupsOpts
- * @typedef {{ attempt: number, nextAttemptAt: number, promise: Promise<BackupsByVm>, error: Error }} ListingRetryState
+ * @typedef {{ attempt: number, nextAttemptAt: number, error: Error }} ListingRetryState
  */
 
 // a remote whose listing failed is not listed again before this delay
@@ -104,7 +104,7 @@ export default class BackupNg {
     /** @type {Record<XoBackupRepository['id'], ListingRetryState>} */
     this._backupsListingRetry = { __proto__: null }
     /** @type {Record<XoBackupRepository['id'], Promise<BackupsByVm>>} */
-    this._runningBackupsListings = { __proto__: null }
+    this._trackedBackupsListings = { __proto__: null }
 
     app.hooks.on('start', async () => {
       const executor = async ({
@@ -626,11 +626,24 @@ export default class BackupNg {
   /**
    * rejects when the listing failed, `_listVmBackupsWithBackoff()` is in charge of handling it
    *
+   * the timeout must be *inside* the debounced call: a listing which never settles (it can happen
+   * on NFS/SMB) would otherwise stay cached forever and each caller would pay `LISTING_TIMEOUT`
+   * again
+   *
    * @param {XoBackupRepository['id']} remoteId
    * @param {{ vmId?: XoVm['id'] }} [opts]
    * @returns {Promise<BackupsByVm>}
    */
-  async _listVmBackupsOnRemote(remoteId, { vmId } = {}) {
+  _listVmBackupsOnRemote(remoteId, opts) {
+    return timeout.call(this._listVmBackupsOnRemoteUncached(remoteId, opts), LISTING_TIMEOUT)
+  }
+
+  /**
+   * @param {XoBackupRepository['id']} remoteId
+   * @param {{ vmId?: XoVm['id'] }} [opts]
+   * @returns {Promise<BackupsByVm>}
+   */
+  async _listVmBackupsOnRemoteUncached(remoteId, { vmId } = {}) {
     const app = this._app
     const remote = await app.getRemoteWithCredentials(remoteId)
 
@@ -669,28 +682,23 @@ export default class BackupNg {
 
   /**
    * @param {XoBackupRepository['id']} remoteId
-   * @param {Promise<BackupsByVm>} promise identifies the listing attempt this failure comes
-   * from: an attempt which timed out and then failed must only be counted once
    * @param {Error} error
    */
-  _scheduleVmBackupsListingRetry(remoteId, promise, error) {
+  _scheduleVmBackupsListingRetry(remoteId, error) {
     const retries = this._backupsListingRetry
     let state = retries[remoteId]
     if (state === undefined) {
       state = retries[remoteId] = { attempt: 0 }
-    } else if (state.promise === promise) {
-      return
     }
 
     const attempt = state.attempt++
     const delay = backupsListingRetryDelay(attempt)
-    state.promise = promise
     state.error = error
     state.nextAttemptAt = Date.now() + delay
 
     // warn on the first failure so that an unreachable backup repository is visible in the
     // logs, then debug to avoid flooding them while it keeps failing
-    const log = attempt === 1 ? logger.warn : logger.debug
+    const log = attempt === 0 ? logger.warn : logger.debug
     log(`listVmBackups for remote ${remoteId} failed, not retrying before ${delay}ms`, { error })
   }
 
@@ -705,51 +713,36 @@ export default class BackupNg {
    */
   _listVmBackupsWithBackoff(remoteId, { vmId } = {}) {
     const state = this._backupsListingRetry[remoteId]
-    if (state !== undefined) {
-      if (state.nextAttemptAt > Date.now()) {
-        // report the failure which put this remote in its retry delay
-        return Promise.resolve({ error: state.error })
-      }
-
-      // the listing which put this remote in its retry delay has still not settled: it is cached
-      // by `_listVmBackupsOnRemote()` and would therefore be returned to every caller forever (it
-      // can happen on NFS/SMB), forget it so that this attempt starts a new one
-      if (this._runningBackupsListings[remoteId] === state.promise) {
-        this._forgetRunningVmBackupsListing(remoteId)
-      }
+    if (state !== undefined && state.nextAttemptAt > Date.now()) {
+      // report the failure which put this remote in its retry delay
+      return Promise.resolve({ error: state.error })
     }
 
     const promise = this._listVmBackupsOnRemote(remoteId, { vmId })
 
-    // the promise is shared by all the callers of this listing, only track its
-    // outcome once
-    if (this._runningBackupsListings[remoteId] !== promise) {
-      this._runningBackupsListings[remoteId] = promise
+    // this promise is returned to every caller of the debounce window, even after it has settled:
+    // only track its outcome once, and keep tracking it after it settles or a late caller would
+    // count it a second time
+    if (this._trackedBackupsListings[remoteId] !== promise) {
+      this._trackedBackupsListings[remoteId] = promise
       promise.then(
         () => {
-          // ignore the outcome of a listing which has been forgotten in the meantime
-          if (this._runningBackupsListings[remoteId] === promise) {
-            delete this._runningBackupsListings[remoteId]
+          // ignore the outcome of a listing which has been invalidated in the meantime
+          if (this._trackedBackupsListings[remoteId] === promise) {
             delete this._backupsListingRetry[remoteId]
           }
         },
         error => {
-          if (this._runningBackupsListings[remoteId] === promise) {
-            delete this._runningBackupsListings[remoteId]
-            this._scheduleVmBackupsListingRetry(remoteId, promise, error)
+          if (this._trackedBackupsListings[remoteId] === promise) {
+            this._scheduleVmBackupsListingRetry(remoteId, error)
           }
         }
       )
     }
 
-    return timeout.call(promise, LISTING_TIMEOUT).then(
+    return promise.then(
       backupsByVm => ({ backupsByVm }),
-      error => {
-        // the listing may still be running, in which case it will update the cache and the
-        // retry state when it settles, but the next request must not wait for it again
-        this._scheduleVmBackupsListingRetry(remoteId, promise, error)
-        return { error }
-      }
+      error => ({ error })
     )
   }
 
@@ -806,20 +799,11 @@ export default class BackupNg {
       })
   }
   /**
-   * drops the cached listing of a backup repository, so that the next call to
-   * `_listVmBackupsOnRemote()` starts a new one, and ignores the outcome of the one which may
-   * still be running
-   *
-   * @param {XoBackupRepository['id']} remoteId
-   */
-  _forgetRunningVmBackupsListing(remoteId) {
-    this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
-    delete this._runningBackupsListings[remoteId]
-  }
-
-  /**
    * drops the cached listing of a backup repository and its retry state, so that it is listed
    * again on the next call instead of waiting for the current backoff delay
+   *
+   * the outcome of a listing which is still running is ignored: it no longer represents the
+   * current state of the repository
    *
    * public because it is also called by the remotes mixin when a backup repository is updated
    * or removed
@@ -827,7 +811,8 @@ export default class BackupNg {
    * @param {XoBackupRepository['id']} remoteId
    */
   invalidateVmBackupsListing(remoteId) {
-    this._forgetRunningVmBackupsListing(remoteId)
+    this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
+    delete this._trackedBackupsListings[remoteId]
     delete this._backupsListingRetry[remoteId]
   }
 }
