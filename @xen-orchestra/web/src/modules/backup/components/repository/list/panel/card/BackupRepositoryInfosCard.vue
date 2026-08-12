@@ -50,7 +50,7 @@ import {
   getBackupRepositoryType,
   isBackupRepositoryBlockBased,
   isBackupRepositoryEncrypted,
-} from '@/modules/backup/utils/xo-backup-repository.utils.ts'
+} from '@/modules/backup/utils/xo-backup-repository-url.utils.js'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
