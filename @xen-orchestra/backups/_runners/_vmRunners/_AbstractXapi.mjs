@@ -185,15 +185,23 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   async _snapshot() {
     if (this._synchronizedSnapshotTimestamp !== undefined) {
       const datetime = formatDateTime(this._synchronizedSnapshotTimestamp)
-      const mostRecentJobSnapshot = this._vm.$snapshots
-        .filter(snapshot => snapshot?.other_config[JOB_ID] === this._jobId)
-        .sort((a, b) => a.other_config[DATETIME].localeCompare(b.other_config[DATETIME]))
-        .pop()
-      if (mostRecentJobSnapshot?.other_config[DATETIME] === datetime) {
-        this._exportedVm = mostRecentJobSnapshot
+      const candidates = this._vm.$snapshots.filter(
+        snapshot =>
+          snapshot?.other_config[JOB_ID] === this._jobId &&
+          snapshot?.other_config[DATETIME] === datetime &&
+          !snapshot.other_config[EXPORTED_SUCCESSFULLY]
+      )
+      if (candidates.length === 1) {
+        this._exportedVm = candidates[0]
         this.timestamp = this._synchronizedSnapshotTimestamp
         return
       }
+
+      warn('expected exactly one synchronized snapshot to reuse, taking a fresh one', {
+        vm: this._vm.uuid,
+        datetime,
+        count: candidates.length,
+      })
     }
 
     const vm = this._vm
