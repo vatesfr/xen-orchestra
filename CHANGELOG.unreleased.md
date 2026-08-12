@@ -11,13 +11,10 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [REST API] expose server config with redacted sensitive data through REST API Endpoints:
-
-- `GET /server-config` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
-
-- `GET /server-config/sources` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
-
-- `GET /server-config/sources?path=` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
+- [REST API] Expose the server configuration with redacted sensitive values through server-config REST API Endpoints:
+  - `GET /rest/v0/hosts/server-config` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
+  - `GET /rest/v0/hosts/server-config/sources` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
+  - `GET /rest/v0/hosts/server-config/sources?path=` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
 
 ### Bug fixes
 
