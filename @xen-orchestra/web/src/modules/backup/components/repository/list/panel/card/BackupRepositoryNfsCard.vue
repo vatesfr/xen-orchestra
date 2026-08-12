@@ -2,7 +2,7 @@
   <UiCard class="card-container">
     <UiCardTitle>{{ t('nfs') }}</UiCardTitle>
     <div class="content">
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('host') }}</template>
         <template #value>{{ nfs.host }}</template>
         <template #addons>
@@ -10,7 +10,7 @@
         </template>
       </VtsCardRowKeyValue>
 
-      <VtsCardRowKeyValue v-if="nfs.port && true">
+      <VtsCardRowKeyValue v-if="nfs.port" truncate align-top>
         <template #key>{{ t('port') }}</template>
         <template #value>{{ nfs.port }}</template>
         <template #addons>
@@ -30,7 +30,7 @@
 </template>
 
 <script lang="ts" setup>
-import { type NfsBackupRepositoryInfo } from '@/modules/backup/utils/xo-backup-repository-url.utils.ts'
+import { type NfsBackupRepositoryInfo } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
