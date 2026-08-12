@@ -29,7 +29,7 @@ import {
   usePoolEnhancedData,
 } from '@/modules/pool/composables/use-pool-enhanced-data.composable.ts'
 import { useServerDisconnect } from '@/modules/server/composables/use-server-disconnect.composable.ts'
-import { useServerForget } from '@/modules/server/composables/use-server-forget-modal.composable.ts'
+import { useServerForget } from '@/modules/server/composables/use-server-forget.composable.ts'
 import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
 import {
   type FrontXoServer,
@@ -132,7 +132,7 @@ const { HeadCells, BodyCells } = useServerColumns({
       }
     }
 
-    const { removeServer, isRemovingServer } = useServerForget(
+    const { forgetServer, isForgettingServer } = useServerForget(
       () => server.id,
       () => server.label
     )
@@ -182,8 +182,8 @@ const { HeadCells, BodyCells } = useServerColumns({
             {
               label: t('action:forget'),
               icon: 'action:forget',
-              busy: isRemovingServer.value,
-              onClick: () => removeServer(),
+              busy: isForgettingServer.value,
+              onClick: () => forgetServer(),
             },
           ],
         }),

@@ -1,5 +1,5 @@
 <template>
-  <UiModal accent="warning" icon="action:delete" @confirm="emit('confirm')" @dismiss="emit('cancel')">
+  <UiModal accent="warning" icon="action:forget" @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       <I18nT keypath="pool-forget-confirm-title" scope="global" tag="div">
         <template #name>
@@ -40,9 +40,3 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 </script>
-
-<style lang="postcss" scoped>
-.n-remove {
-  color: var(--color-warning-item-base);
-}
-</style>

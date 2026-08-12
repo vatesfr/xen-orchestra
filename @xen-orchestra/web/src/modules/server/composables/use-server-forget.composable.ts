@@ -14,9 +14,9 @@ export function useServerForget(
 
   const {
     run,
-    canRun: canRemoveServer,
-    isRunning: isRemovingServer,
-    errorMessage: removeServerErrorMessage,
+    canRun: canForgetServer,
+    isRunning: isForgettingServer,
+    errorMessage: forgetServerErrorMessage,
   } = useXoServerRemoveJob([serverId])
 
   const { open } = useOverlay({
@@ -26,18 +26,18 @@ export function useServerForget(
         try {
           await run()
         } catch (error) {
-          console.error('Error when removing server:', error)
+          console.error('Error when forgetting server:', error)
         }
       },
       onCancel: true,
     },
   })
 
-  function removeServer() {
+  function forgetServer() {
     return open({
       props: { serverLabel: serverLabel.value ?? '' },
     })
   }
 
-  return { removeServer, canRemoveServer, isRemovingServer, removeServerErrorMessage }
+  return { forgetServer, canForgetServer, isForgettingServer, forgetServerErrorMessage }
 }
