@@ -9,14 +9,14 @@ export type BackupRepositoryOptions = {
   useVhdDirectory?: boolean
 }
 
-export type FileBackupRepositoryUrl = BackupRepositoryOptions & {
+export type FileBackupRepositoryInfo = BackupRepositoryOptions & {
   type: 'file'
   path: string
 }
 
 // invalidUrl is set when the path could not be fully parsed and part of it was dropped.
 // XO 5 uses it to offer rewriting the stored URL.
-export type NfsBackupRepositoryUrl = BackupRepositoryOptions & {
+export type NfsBackupRepositoryInfo = BackupRepositoryOptions & {
   type: 'nfs'
   host: string
   port: string | undefined
@@ -24,7 +24,7 @@ export type NfsBackupRepositoryUrl = BackupRepositoryOptions & {
   invalidUrl?: true
 }
 
-export type SmbBackupRepositoryUrl = BackupRepositoryOptions & {
+export type SmbBackupRepositoryInfo = BackupRepositoryOptions & {
   type: 'smb'
   host: string
   path: string
@@ -33,7 +33,7 @@ export type SmbBackupRepositoryUrl = BackupRepositoryOptions & {
   password: string
 }
 
-export type S3BackupRepositoryUrl = BackupRepositoryOptions & {
+export type S3BackupRepositoryInfo = BackupRepositoryOptions & {
   type: 's3'
   protocol: BackupRepositoryProtocol
   host: string
@@ -43,7 +43,7 @@ export type S3BackupRepositoryUrl = BackupRepositoryOptions & {
   password: string
 }
 
-export type AzureBackupRepositoryUrl = BackupRepositoryOptions & {
+export type AzureBackupRepositoryInfo = BackupRepositoryOptions & {
   type: 'azure' | 'azurite'
   protocol: BackupRepositoryProtocol
   host: string
@@ -53,14 +53,14 @@ export type AzureBackupRepositoryUrl = BackupRepositoryOptions & {
   password: string
 }
 
-export type BackupRepositoryUrl =
-  | FileBackupRepositoryUrl
-  | NfsBackupRepositoryUrl
-  | SmbBackupRepositoryUrl
-  | S3BackupRepositoryUrl
-  | AzureBackupRepositoryUrl
+export type BackupRepositoryInfo =
+  | FileBackupRepositoryInfo
+  | NfsBackupRepositoryInfo
+  | SmbBackupRepositoryInfo
+  | S3BackupRepositoryInfo
+  | AzureBackupRepositoryInfo
 
-export type BackupRepositoryUrlInput = BackupRepositoryOptions & {
+export type BackupRepositoryInfoInput = BackupRepositoryOptions & {
   type: BackupRepositoryType | 'local'
   host?: string
   port?: string
@@ -119,13 +119,13 @@ function parseCredentialsUrl(url: string) {
   }
 }
 
-function parseFileUrl(rest: string): FileBackupRepositoryUrl {
+function parseFileUrl(rest: string): FileBackupRepositoryInfo {
   const [path = '', search = ''] = rest.split('?')
 
   return { ...parseOptions(search), type: 'file', path: withLeadingSlash(path) }
 }
 
-function parseNfsUrl(rest: string): NfsBackupRepositoryUrl {
+function parseNfsUrl(rest: string): NfsBackupRepositoryInfo {
   const matches = NFS_RE.exec(rest)
 
   // a colon in the path breaks NFS_RE and is still accepted by the XO 5 remote form: fall back to the legacy split (commit: https://github.com/vatesfr/xen-orchestra/commit/fb1bf6a1e748b457f2d2b89ba02fa104554c03df)
@@ -144,7 +144,7 @@ function parseNfsUrl(rest: string): NfsBackupRepositoryUrl {
   return { ...parseOptions(search), type: 'nfs', host, port, path: withLeadingSlash(path) }
 }
 
-function parseSmbUrl(rest: string): SmbBackupRepositoryUrl | undefined {
+function parseSmbUrl(rest: string): SmbBackupRepositoryInfo | undefined {
   const matches = SMB_RE.exec(rest)
 
   if (matches === null) {
@@ -162,7 +162,7 @@ function parseSmbUrl(rest: string): SmbBackupRepositoryUrl | undefined {
   return { ...parseOptions(search), type: 'smb', host, path, domain, username, password }
 }
 
-function parseS3Url(url: string, protocol: BackupRepositoryProtocol): S3BackupRepositoryUrl {
+function parseS3Url(url: string, protocol: BackupRepositoryProtocol): S3BackupRepositoryInfo {
   const { hash, host, path, username, password, options } = parseCredentialsUrl(url)
 
   return {
@@ -179,15 +179,15 @@ function parseS3Url(url: string, protocol: BackupRepositoryProtocol): S3BackupRe
 
 function parseAzureUrl(
   url: string,
-  type: AzureBackupRepositoryUrl['type'],
+  type: AzureBackupRepositoryInfo['type'],
   protocol: BackupRepositoryProtocol
-): AzureBackupRepositoryUrl {
+): AzureBackupRepositoryInfo {
   const { host, port, path, username, password, options } = parseCredentialsUrl(url)
 
   return { ...options, type, protocol, host, port, path, username, password }
 }
 
-export function parseBackupRepositoryUrl(url: string): BackupRepositoryUrl | undefined {
+export function parseBackupRepositoryUrl(url: string): BackupRepositoryInfo | undefined {
   const [scheme, rest = ''] = url.split('://')
 
   switch (scheme) {
@@ -226,7 +226,7 @@ function formatOptions(options: BackupRepositoryOptions): string {
   return search.toString()
 }
 
-export function formatBackupRepositoryUrl(info: BackupRepositoryUrlInput): string {
+export function formatBackupRepositoryUrl(info: BackupRepositoryInfoInput): string {
   const {
     type,
     host,
@@ -238,7 +238,7 @@ export function formatBackupRepositoryUrl(info: BackupRepositoryUrlInput): strin
     protocol = type,
     region,
     ...options
-  } = info as BackupRepositoryUrlInput & { invalidUrl?: true }
+  } = info as BackupRepositoryInfoInput & { invalidUrl?: true }
 
   const credentials = `${encodeURIComponent(username ?? '')}:${encodeURIComponent(password ?? '')}@${host}`
 
