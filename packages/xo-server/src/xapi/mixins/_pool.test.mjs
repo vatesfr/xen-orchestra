@@ -8,8 +8,6 @@ const { describe, it } = test
 
 const SR_REF = 'OpaqueRef:sr'
 const HOST_REF = 'OpaqueRef:host'
-const NOW = Date.now()
-const stamp = (msAgo = 0) => String(Math.round((NOW - msAgo) / 1e3))
 
 const SYNCED = {
   'twinstor-schema': '1',
@@ -17,153 +15,143 @@ const SYNCED = {
   'twinstor-synced': 'true',
   'twinstor-storage-state': 'synced',
   'twinstor-sync-pct': '100',
-  'twinstor-updated-at': stamp(),
+  'twinstor-updated-at': '1000',
 }
 const SYNCING = {
   ...SYNCED,
   'twinstor-synced': 'false',
   'twinstor-storage-state': 'syncing',
   'twinstor-sync-pct': '30',
-  'twinstor-sync-eta': '300',
 }
-const DAEMON_UP = { 'twinstor-version': '0.5.0', 'twinstor-alive': stamp() }
+const DAEMON_UP = { 'twinstor-version': '0.5.0', 'twinstor-alive': '1000' }
 
 // the methods reach each other through `this`, so they are mixed in as they would be
-const makeFakeXapi = ({ sr = SYNCED, host = DAEMON_UP, getField } = {}) => ({
+const makeXapi = ({ SR = SYNCED, host = DAEMON_UP, getField } = {}) => ({
   ...poolMethods,
-  pool: { uuid: 'pool' },
-  getField: getField ?? (async type => (type === 'SR' ? sr : host)),
+  otherConfigs: { SR, host },
+  getField:
+    getField ??
+    async function (type) {
+      return this.otherConfigs[type]
+    },
   getObject: ref => ({ name_label: ref }),
 })
 
-const makeTwinstorState = ({ publishedBefore = new Map(), syncTimeLeft = 0, pollInterval = 5 } = {}) => ({
+const makeGate = ({ stamps, timeLeft = 0, pollInterval = 5 } = {}) => ({
   srRefs: [SR_REF],
   hostRefs: [HOST_REF],
-  publishedBefore,
-  syncTimeLeft,
+  stamps,
+  timeLeft,
   pollInterval,
 })
 
-describe('_probeTwinstor', function () {
-  it('is ready on a synced pool with a live daemon', async function () {
-    const probe = await makeFakeXapi()._probeTwinstor(makeTwinstorState())
-    assert.equal(probe.isReady, true)
-    assert.equal(probe.published.get(SR_REF), Number(SYNCED['twinstor-updated-at']) * 1e3)
+// the stamps a fully synced pool publishes, as `_readTwinstor` reads them
+const CURRENT_STAMPS = [SYNCED['twinstor-updated-at'], DAEMON_UP['twinstor-alive']]
+
+describe('_readTwinstor', function () {
+  it('accepts a synced pool it has no previous state for', async function () {
+    const result = await makeXapi()._readTwinstor(makeGate())
+    assert.equal(result.blockedBy, undefined)
+    assert.deepEqual(result.stamps, CURRENT_STAMPS)
   })
 
-  it('is not ready while a replica is catching up', async function () {
-    const probe = await makeFakeXapi({ sr: SYNCING })._probeTwinstor(makeTwinstorState())
-    assert.equal(probe.isReady, false)
-    assert.equal(probe.progress, 30)
-    assert.match(probe.blockedBy, /catching up/)
+  it('reports a running resync, with the SR and its progress', async function () {
+    const result = await makeXapi({ SR: SYNCING })._readTwinstor(makeGate())
+    assert.equal(result.blockedBy, `${SR_REF} is syncing`)
+    assert.equal(result.progress, 30)
   })
 
-  // a host which just rebooted leaves the advertisement frozen on `synced=true`
-  it('refuses an advertisement not republished since the last reboot', async function () {
-    const publishedAt = Number(SYNCED['twinstor-updated-at']) * 1e3
-
-    const frozen = await makeFakeXapi()._probeTwinstor(
-      makeTwinstorState({ publishedBefore: new Map([[SR_REF, publishedAt]]) })
-    )
-    assert.equal(frozen.isReady, false)
+  // the case this whole gate exists for: a host which just rebooted leaves the
+  // record frozen on the `synced` which allowed its reboot, so only a state
+  // published since then is a verdict on the pool as it is now
+  it('refuses a state which has not been republished since the last one it accepted', async function () {
+    const frozen = await makeXapi()._readTwinstor(makeGate({ stamps: CURRENT_STAMPS }))
     assert.match(frozen.blockedBy, /has not published its state since the last host rebooted/)
 
-    const republished = await makeFakeXapi()._probeTwinstor(
-      makeTwinstorState({ publishedBefore: new Map([[SR_REF, publishedAt - 1e3]]) })
-    )
-    assert.equal(republished.isReady, true)
+    const republished = await makeXapi()._readTwinstor(makeGate({ stamps: ['999', '999'] }))
+    assert.equal(republished.blockedBy, undefined)
   })
 
-  it('refuses to reboot while a daemon is down, however healthy the storage', async function () {
-    const probe = await makeFakeXapi({ host: { 'twinstor-version': '0.5.0' } })._probeTwinstor(makeTwinstorState())
-    assert.equal(probe.isReady, false)
-    assert.match(probe.blockedBy, /daemon is not running/)
+  // DRBD keeps replicating in the kernel without the daemon, so the pair looks
+  // healthy while a node has no supervision at all
+  it('refuses to reboot while a daemon has stopped stamping, however healthy the storage', async function () {
+    const xapi = makeXapi({ SR: { ...SYNCED, 'twinstor-updated-at': '2000' } })
+    const result = await xapi._readTwinstor(makeGate({ stamps: CURRENT_STAMPS }))
+    assert.equal(result.blockedBy, `the TWINSTOR daemon is not running on ${HOST_REF}`)
   })
 
-  it('fails immediately on a schema it cannot interpret', async function () {
+  it('refuses a state whose keys disagree with each other', async function () {
+    const xapi = makeXapi({ SR: { ...SYNCED, 'twinstor-storage-state': 'degraded' } })
+    assert.equal((await xapi._readTwinstor(makeGate())).blockedBy, `${SR_REF} is degraded`)
+  })
+
+  it('fails at once on a schema it cannot interpret, rather than waiting out the timeout', async function () {
     await assert.rejects(
-      () => makeFakeXapi({ sr: { ...SYNCED, 'twinstor-schema': '2' } })._probeTwinstor(makeTwinstorState()),
+      () => makeXapi({ SR: { ...SYNCED, 'twinstor-schema': '2' } })._readTwinstor(makeGate()),
       /unsupported TWINSTOR schema/
     )
   })
 
-  it('treats an unreadable advertisement as not synced, not as an abort', async function () {
+  it('treats an unreadable state as not synced, not as a failure', async function () {
     const getField = async () => {
       throw new Error('ECONNRESET')
     }
-    const probe = await makeFakeXapi({ getField })._probeTwinstor(makeTwinstorState())
-    assert.equal(probe.isReady, false)
-    assert.match(probe.blockedBy, /could not be read/)
+    const result = await makeXapi({ getField })._readTwinstor(makeGate())
+    assert.match(result.blockedBy, /could not be read/)
   })
 })
 
 describe('_waitForTwinstorSync', function () {
   it('does nothing on a pool without TWINSTOR', async function () {
-    const published = await makeFakeXapi()._waitForTwinstorSync(
-      { ...makeTwinstorState(), srRefs: [], hostRefs: [] },
-      {}
-    )
-    assert.equal(published.size, 0)
+    await makeXapi()._waitForTwinstorSync(undefined, {})
   })
 
-  it('returns the accepted advertisement without waiting when already synced', async function () {
-    const published = await makeFakeXapi()._waitForTwinstorSync(makeTwinstorState(), {})
-    assert.equal(published.get(SR_REF), Number(SYNCED['twinstor-updated-at']) * 1e3)
+  it('returns once the storage publishes a new synced state, and accepts it as the next baseline', async function () {
+    const xapi = makeXapi({ SR: SYNCING })
+    const gate = makeGate({ stamps: CURRENT_STAMPS, timeLeft: 60e3 })
+
+    setTimeout(() => {
+      xapi.otherConfigs.SR = { ...SYNCED, 'twinstor-updated-at': '2000' }
+      xapi.otherConfigs.host = { ...DAEMON_UP, 'twinstor-alive': '2000' }
+    }, 20)
+
+    await xapi._waitForTwinstorSync(gate, { name: 'Waiting for TWINSTOR storage to be in sync' })
+    assert.deepEqual(gate.stamps, ['2000', '2000'])
   })
 
   it('throws rather than proceeding when the sync does not complete in time', async function () {
     await assert.rejects(
-      () =>
-        makeFakeXapi({ sr: SYNCING })._waitForTwinstorSync(makeTwinstorState(), {
-          name: 'Waiting for TWINSTOR storage to be in sync',
-        }),
-      error =>
-        /did not get back in sync in time/.test(error.message) && /catching up \(30%, ~5 min left\)/.test(error.message)
+      () => makeXapi({ SR: SYNCING })._waitForTwinstorSync(makeGate(), { name: 'Waiting' }),
+      error => /did not get back in sync in time/.test(error.message) && /is syncing/.test(error.message)
     )
   })
 
   it('draws every wait from one shared budget', async function () {
-    const xapi = makeFakeXapi({ sr: SYNCING })
-    const twinstor = makeTwinstorState({ syncTimeLeft: 80, pollInterval: 20 })
-    const properties = { name: 'Waiting for TWINSTOR storage to be in sync' }
+    const xapi = makeXapi({ SR: SYNCING })
+    const gate = makeGate({ timeLeft: 80, pollInterval: 20 })
 
-    await assert.rejects(() => xapi._waitForTwinstorSync(twinstor, properties))
-    assert.equal(twinstor.syncTimeLeft, 0, 'the first wait consumed the whole budget')
+    await assert.rejects(() => xapi._waitForTwinstorSync(gate, { name: 'Waiting' }))
+    assert.equal(gate.timeLeft, 0, 'the first wait consumed the whole budget')
 
     // with nothing left, the next wait gives up at once rather than starting
     // another full timeout of its own
     const startedAt = Date.now()
-    await assert.rejects(() => xapi._waitForTwinstorSync(twinstor, properties))
+    await assert.rejects(() => xapi._waitForTwinstorSync(gate, { name: 'Waiting' }))
     assert.ok(Date.now() - startedAt < 20, 'the second wait did not poll again')
   })
 
   it('gives up when the run is aborted, instead of waiting out the timeout', async function () {
     const parent = new Task({ properties: { name: 'Rolling pool reboot' } })
-    const xapi = makeFakeXapi({ sr: SYNCING })
+    const xapi = makeXapi({ SR: SYNCING })
 
     await assert.rejects(
       () =>
         parent.run(async () => {
           // abort while the gate is parked in its poll delay
           setTimeout(() => parent.abort('aborted by the user'), 20)
-          return xapi._waitForTwinstorSync(makeTwinstorState({ syncTimeLeft: 60 * 60e3 }), {
-            name: 'Waiting for TWINSTOR storage to be in sync',
-          })
+          return xapi._waitForTwinstorSync(makeGate({ timeLeft: 60 * 60e3 }), { name: 'Waiting' })
         }),
       error => error === 'aborted by the user'
-    )
-  })
-})
-
-describe('_assertTwinstorReady', function () {
-  it('accepts a synced pool', async function () {
-    await makeFakeXapi()._assertTwinstorReady(makeTwinstorState())
-  })
-
-  it('refuses a run upfront when the storage is not already redundant', async function () {
-    await assert.rejects(
-      () => makeFakeXapi({ sr: SYNCING })._assertTwinstorReady(makeTwinstorState()),
-      error => error.code === 25 /* incorrectState */ && /catching up/.test(error.data.actual)
     )
   })
 })
