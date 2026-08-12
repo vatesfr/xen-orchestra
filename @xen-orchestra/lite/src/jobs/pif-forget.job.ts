@@ -8,14 +8,14 @@ export const usePifForgetJob = defineJob('pif.forget', [pifsArg], () => {
   const { t } = useI18n()
 
   return {
-    run: pifs => xapi.pif.delete(pifs),
+    run: pifs => xapi.pif.forget(pifs),
     validate: (isRunning, pifs) => {
       if (pifs.length === 0) {
         throw new JobError(t('job:pif-forget:missing-pif'))
       }
 
       if (isRunning) {
-        throw new JobRunningError(t('job:delete:in-progress'))
+        throw new JobRunningError(t('job:pif-forget:in-progress'))
       }
 
       if (pifs.some(pif => pif.management)) {

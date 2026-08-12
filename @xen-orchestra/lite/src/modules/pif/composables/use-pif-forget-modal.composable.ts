@@ -1,7 +1,7 @@
 import { usePifForgetJob } from '@/jobs/pif-forget.job.ts'
 import type { XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
-import { useForgetModal } from '@core/composables/modals/use-forget-modal.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -15,7 +15,13 @@ export function usePifForgetModal(rawPifs: MaybeRefOrGetter<XenApiPif[]>) {
 
   const { run, canRun, isRunning, errorMessage } = usePifForgetJob(pifs)
 
-  const { open: openForgetModal } = useForgetModal()
+  const { open: openForgetModal } = useOverlay({
+    component: () => import('@/components/modals/ForgetModal.vue'),
+    events: {
+      onConfirm: true,
+      onCancel: true,
+    },
+  })
 
   function openModal() {
     const n = pifs.value.length
