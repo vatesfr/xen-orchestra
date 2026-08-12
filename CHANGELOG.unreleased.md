@@ -45,7 +45,7 @@
 - @xen-orchestra/acl minor
 - @xen-orchestra/async-map patch
 - @xen-orchestra/backup-archive minor
-- @xen-orchestra/backups patch
+- @xen-orchestra/backups minor
 - @xen-orchestra/proxy-cli patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/upload-ova patch
