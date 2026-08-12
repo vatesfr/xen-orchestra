@@ -19,7 +19,7 @@ import {
   type FrontXoBackupRepository,
   useXoBackupRepositoryCollection,
 } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
-import { getBackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository.utils.ts'
+import { getBackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.utils.js'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed } from 'vue'

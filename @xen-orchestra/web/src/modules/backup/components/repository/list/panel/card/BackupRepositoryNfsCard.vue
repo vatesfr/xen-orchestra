@@ -31,7 +31,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
-import { getBackupRepositoryNfsInfo } from '@/modules/backup/utils/xo-backup-repository.utils.ts'
+import { getBackupRepositoryNfsInfo } from '@/modules/backup/utils/xo-backup-repository-url.utils.js'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

@@ -27,7 +27,7 @@ import {
   getBackupRepositoryIcon,
   getBackupRepositoryStatus,
   getBackupRepositoryType,
-} from '@/modules/backup/utils/xo-backup-repository.utils.ts'
+} from '@/modules/backup/utils/xo-backup-repository-url.utils.js'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@xen-orchestra/web-core/components/query-builder/VtsQueryBuilder.vue'
