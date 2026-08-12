@@ -37,7 +37,7 @@ describe('applySchema()', function () {
     })
   })
 
-  it('redacts unknonw keys that are not in schema', function () {
+  it('redacts unknown keys that are not in schema', function () {
     const input = {
       unknownFeature: {
         password: 'secret',
