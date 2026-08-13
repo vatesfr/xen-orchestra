@@ -329,7 +329,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @Example(taskLocation)
   @Example(backupRepositoryReclaimSpaceResults)
   @Extension('x-mcp-exposure', 'confirm')
-  @Post('{id}/reclaim-space')
+  @Post('{id}/actions/reclaim-space')
   @Middlewares([
     json(),
     acl({
