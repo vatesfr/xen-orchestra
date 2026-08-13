@@ -15,17 +15,22 @@
 import { useXoHostForgetJob } from '@/modules/host/jobs/xo-host-forget.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useRedirectAfterDelete } from '@/shared/composables/redirect-after-delete.composable.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 const { host } = defineProps<{
   host: FrontXoHost
 }>()
 
 const { t } = useI18n()
+
+const { hasPoolById } = useXoPoolCollection()
+
+const route = useRoute<'/host/[id]'>()
 
 const {
   run,
@@ -36,21 +41,16 @@ const {
 
 const { open: openActionModal } = useActionModal()
 
-const route = useRoute<'/host/[id]'>()
+const { redirect: redirectAfterForgetHost } = useRedirectAfterDelete({
+  isOnObjectPage: () => route.params.id === host.id,
+  redirectTo: () => {
+    if (hasPoolById(host.$pool)) {
+      return { name: '/pool/[id]/hosts', params: { id: host.$pool } }
+    }
 
-const router = useRouter()
-
-const { hasPoolById } = useXoPoolCollection()
-
-async function redirectIfOnHostPage() {
-  if (route.params.id !== host.id) {
-    return
-  }
-
-  await router.push(
-    hasPoolById(host.$pool) ? { name: '/pool/[id]/hosts', params: { id: host.$pool } } : { name: '/(site)/dashboard' }
-  )
-}
+    return { name: '/(site)/dashboard' }
+  },
+})
 
 function forgetHost() {
   openActionModal({
@@ -63,7 +63,7 @@ function forgetHost() {
           return
         }
 
-        await redirectIfOnHostPage()
+        await redirectAfterForgetHost()
       },
     },
     props: {
