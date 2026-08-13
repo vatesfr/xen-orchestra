@@ -2,7 +2,7 @@ import { Client } from '@vates/node-vsphere-soap'
 import { createLogger } from '@xen-orchestra/log'
 import { dirname, join } from 'node:path'
 import { EventEmitter } from 'node:events'
-import { strictEqual, notStrictEqual } from 'node:assert'
+import { strictEqual } from 'node:assert'
 import { Agent } from 'undici'
 
 import parseVmdk from './parsers/vmdk.mjs'
@@ -16,6 +16,15 @@ import { tmpdir } from 'node:os'
 import fs from 'node:fs/promises'
 
 const { info, warn } = createLogger('xo:vmware-explorer:esxi')
+
+// a datastore path can be expressed in multiple ways depending on the source:
+// - `ds:///vmfs/volumes/<uuid>/` in the `summary.url` reported by vCenter
+// - `/vmfs/volumes/<uuid>` in the `summary.url` reported by an ESXi host
+// - `/vmfs/volumes/<uuid>/<dir>/<file>.vmdk` in the vmx of a VM (typical of vSAN)
+// normalize them to compare a file path with a datastore path
+function normalizeDatastorePath(path) {
+  return path.replace(/^ds:\/\//, '').replace(/\/+$/, '')
+}
 
 export const VDDK_LIB_DIR = '/usr/local/lib/vddk'
 export const VDDK_LIB_PATH = `${VDDK_LIB_DIR}/vmware-vix-disklib-distrib`
@@ -68,14 +77,23 @@ export default class Esxi extends EventEmitter {
     const res = await this.search('Datacenter', ['name', 'datastore'])
     await Promise.all(
       Object.values(res).map(async ({ datastore, name }) => {
-        if (datastore.ManagedObjectReference === undefined) {
+        if (datastore?.ManagedObjectReference === undefined) {
+          warn('datacenter without any datastore', { datacenter: name })
           return
         }
+        // a datacenter with a single datastore gives an object instead of an array
+        const managedObjectReferences = [datastore.ManagedObjectReference].flat()
         await Promise.all(
-          datastore.ManagedObjectReference.map(async ({ $value }) => {
+          managedObjectReferences.map(async ({ $value }) => {
             // get the datastore name
             const res = await this.fetchProperty('Datastore', $value, 'name')
-            this.#dcPaths[res._] = name
+            // the property is wrapped in an object only when the response carries attributes
+            const dataStoreName = typeof res === 'string' ? res : res?._
+            if (dataStoreName === undefined) {
+              warn("can't read the name of a datastore", { datacenter: name, datastore: $value, res })
+              return
+            }
+            this.#dcPaths[dataStoreName] = name
           })
         )
       })
@@ -83,14 +101,15 @@ export default class Esxi extends EventEmitter {
   }
 
   #findDatacenter(dataStore) {
-    try {
-      notStrictEqual(this.#dcPaths, undefined)
-      notStrictEqual(this.#dcPaths[dataStore], undefined)
-    } catch (error) {
+    const dcPath = this.#dcPaths?.[dataStore]
+    if (dcPath === undefined) {
       warn("can't find datacenter for datastore", { datacenters: this.#dcPaths, dataStore })
+      const error = new Error(`can't find the datacenter of the datastore ${dataStore}`)
+      error.dataStore = dataStore
+      error.datastores = Object.keys(this.#dcPaths ?? {})
       throw error
     }
-    return this.#dcPaths[dataStore]
+    return dcPath
   }
 
   #exec(cmd, args) {
@@ -251,14 +270,23 @@ export default class Esxi extends EventEmitter {
 
   async #inspectVmdk(dataStores, currentDataStore, currentPath, filePath) {
     let diskDataStore, diskPath
-    if (filePath.startsWith('/')) {
-      // disk is on another datastore
-      Object.keys(dataStores).forEach(dataStoreUrl => {
-        if (filePath.startsWith(dataStoreUrl)) {
-          diskDataStore = dataStores[dataStoreUrl].name
-          diskPath = filePath.substring(dataStoreUrl.length + 1)
+    if (/^(ds:\/\/)?\//.test(filePath)) {
+      // the disk is referenced by an absolute path: find the datastore containing it
+      const normalizedFilePath = normalizeDatastorePath(filePath)
+      for (const [dataStoreUrl, dataStore] of Object.entries(dataStores)) {
+        const prefix = normalizeDatastorePath(dataStoreUrl)
+        if (normalizedFilePath.startsWith(prefix + '/')) {
+          diskDataStore = dataStore.name
+          diskPath = normalizedFilePath.substring(prefix.length + 1)
+          break
         }
-      })
+      }
+      if (diskDataStore === undefined) {
+        const error = new Error(`can't find the datastore containing the disk ${filePath}`)
+        error.datastoreUrls = Object.keys(dataStores)
+        error.filePath = filePath
+        throw error
+      }
     } else {
       diskDataStore = currentDataStore
       diskPath = currentPath + '/' + filePath
