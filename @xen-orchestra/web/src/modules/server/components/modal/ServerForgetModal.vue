@@ -8,16 +8,12 @@
       </I18nT>
     </template>
     <template #content>
-      <I18nT keypath="pool-forget-confirm-info" scope="global" tag="div">
-        <template #host>
-          <strong>{{ t('host-lowercase') }}</strong>
-        </template>
-      </I18nT>
+      {{ t('pool-forget-confirm-info') }}
     </template>
     <template #buttons>
       <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
       <VtsOverlayConfirmButton>
-        {{ t('action:delete') }}
+        {{ t('action:forget') }}
       </VtsOverlayConfirmButton>
     </template>
   </UiModal>

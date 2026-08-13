@@ -864,7 +864,7 @@
   "pool-cpu-usage": "Utilisation CPU du Pool",
   "pool-disconnect-info": "Vous ne pourrez plus gérer ce pool depuis XO. Vous pourrez le reconnecter ultérieurement.",
   "pool-forget-confirm-title": "Vous êtes sur le point de supprimer l'hôte {name}",
-  "pool-forget-confirm-info": "Cela supprimera définitivement cet {host} de XO. Pour vous reconnecter, vous devrez l'ajouter à nouveau.",
+  "pool-forget-confirm-info": "Cela supprimera définitivement cet hôte de XO. Pour vous reconnecter, vous devrez l'ajouter à nouveau.",
   "pool-management": "Gestion du Pool",
   "pool-ram-usage": "Utilisation RAM du Pool",
   "pool:status:connected": "@:status:connected",
