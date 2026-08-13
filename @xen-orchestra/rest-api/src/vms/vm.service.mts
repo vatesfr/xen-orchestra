@@ -421,7 +421,7 @@ export class VmService {
     const backupArchivesByVmByBr = await this.#restApi.xoApp.listVmBackupsNg(brIds, { vmId: vm.id })
 
     return Object.values(backupArchivesByVmByBr)
-      .filter(backupArchiveByVm => backupArchiveByVm !== undefined)
+      .filter(backupArchiveByVm => backupArchiveByVm !== null)
       .flatMap(backupArchiveByVm => backupArchiveByVm[vm.id] ?? [])
       .sort((a, b) => b.timestamp - a.timestamp)
       .splice(0, 3)
