@@ -613,7 +613,9 @@ export default class BackupNg {
   }
 
   // the next listing of this repository will be read from scratch
-  _purgeVmBackupsCache(remoteId) {
+  //
+  // public because the `remotes` mixin calls it when a repository is gone or has been reconfigured
+  purgeVmBackupsCache(remoteId) {
     this.#vmBackupsCache.delete(remoteId)
     this._listVmBackupsOnProxy(REMOVE_CACHE_ENTRY, remoteId)
   }
@@ -646,7 +648,7 @@ export default class BackupNg {
     await Promise.all(
       remotes.map(async remoteId => {
         if (_forceRefresh) {
-          this._purgeVmBackupsCache(remoteId)
+          this.purgeVmBackupsCache(remoteId)
         }
 
         backupsByVmByRemote[remoteId] = await this._listVmBackupsOnRemote(remoteId, { vmId })
