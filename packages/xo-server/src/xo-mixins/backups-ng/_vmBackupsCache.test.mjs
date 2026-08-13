@@ -7,7 +7,8 @@ const REPOSITORY = { id: 'repository' }
 const VM = 'a-vm-uuid'
 const OTHER_VM = 'another-vm-uuid'
 
-const filenameOf = (vmUuid, name) => `xo-vm-backups/${vmUuid}/${name}.json`
+// `RemoteAdapter` lists and writes the metadata with a leading slash
+const filenameOf = (vmUuid, name) => `/xo-vm-backups/${vmUuid}/${name}.json`
 
 const metadataOf = (vmUuid, name, props) => ({
   _filename: filenameOf(vmUuid, name),
@@ -40,12 +41,18 @@ class Repository {
   // records an event as `RemoteAdapter` would have, i.e. after the mutation
   add(metadata, timestamp) {
     this.metadataByFilename.set(metadata._filename, metadata)
-    this.journal.push({ event: 'add', filename: `/${metadata._filename}`, vmUuid: metadata.vm.uuid, date: timestamp })
+    this.journal.push({ event: 'add', filename: metadata._filename, vmUuid: metadata.vm.uuid, date: timestamp })
   }
 
+  // journaled without the leading slash, to check the entry is keyed by the normalized name
   change(metadata, timestamp) {
     this.metadataByFilename.set(metadata._filename, metadata)
-    this.journal.push({ event: 'change', filename: metadata._filename, vmUuid: metadata.vm.uuid, date: timestamp })
+    this.journal.push({
+      event: 'change',
+      filename: metadata._filename.slice(1),
+      vmUuid: metadata.vm.uuid,
+      date: timestamp,
+    })
   }
 
   del(metadata, timestamp) {
@@ -169,6 +176,22 @@ describe('VmBackupsCache', () => {
 
     assert.equal(backups[VM][metadata._filename].size, 42)
     assert.equal(backups[OTHER_VM], undefined)
+  })
+
+  it('keys the entry by the normalized filename, so a replayed event hits the backup the listing built', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const metadata = metadataOf(VM, '20260811T090000')
+    const repository = new Repository([metadata])
+    const cache = new VmBackupsCache(repository.useAdapter, { minRefreshDelay: 60e3 })
+
+    const built = await cache.get(REPOSITORY)
+    assert.deepEqual(Object.keys(built[VM]), [metadata._filename])
+    assert.equal(built[VM][metadata._filename].id, metadata._filename)
+
+    tick(60e3)
+    repository.del(metadata, Date.now())
+
+    assert.deepEqual(await cache.get(REPOSITORY), {})
   })
 
   it('ignores an event on a missing backup and an unsupported event', async t => {
