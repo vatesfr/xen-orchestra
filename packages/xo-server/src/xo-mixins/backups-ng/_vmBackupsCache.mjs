@@ -16,13 +16,17 @@ const MS_PER_DAY = 24 * 60 * 60 * 1e3
 
 const utcDay = timestamp => Math.floor(timestamp / MS_PER_DAY)
 
-// journal entries and cache keys don't necessarily agree on the leading slash
-const normalizeFilename = filename => resolve('/', filename).slice(1)
+// journal entries and cache keys don't necessarily agree on the leading slash, they must be keyed
+// by the same name for a replayed event to hit the entry the listing built
+//
+// the leading slash is the form `RemoteAdapter` produces, both when it lists a repository
+// (`handler.list()` prepends the normalized dir) and when it writes a metadata
+const normalizeFilename = filename => resolve('/', filename)
 
 // `formatVmBackup` expects the metadata as `RemoteAdapter#listVmBackups` returns it, i.e. with the
 // `id` which the on-repository cache injects
-const format = (metadata, backupRepositoryId) =>
-  formatVmBackup({ ...metadata, backupRepositoryId, id: metadata._filename })
+const format = (metadata, backupRepositoryId, filename) =>
+  formatVmBackup({ ...metadata, _filename: filename, backupRepositoryId, id: filename })
 
 const isSameRepository = (entry, repository) => entry.url === repository.url && entry.options === repository.options
 
@@ -177,7 +181,8 @@ export class VmBackupsCache {
       for (const [vmUuid, backups] of Object.entries(await adapter.listAllVmBackups())) {
         const byFilename = (result[vmUuid] = {})
         for (const backup of backups) {
-          byFilename[backup._filename] = format(backup, id)
+          const key = normalizeFilename(backup._filename)
+          byFilename[key] = format(backup, id, key)
         }
       }
       return result
@@ -219,7 +224,7 @@ export class VmBackupsCache {
             }
             throw error
           }
-          ;(backupsByVm[vmUuid] ??= {})[key] = format(metadata, repository.id)
+          ;(backupsByVm[vmUuid] ??= {})[key] = format(metadata, repository.id, key)
         } else if (event === 'del') {
           const backups = backupsByVm[vmUuid]
           if (backups !== undefined) {
