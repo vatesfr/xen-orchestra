@@ -1,12 +1,30 @@
-<!-- WIP -->
+<!-- WIP - Will be removed in one of the following stacked PRs -->
 <template>
   <div class="ui-quick-task-item">
     <div v-if="hasSubTasks" class="toggle" @click="toggleExpand()">
       <UiButtonIcon accent="brand" :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'" size="small" />
     </div>
     <div class="content">
-      <div class="typo-body-bold">
-        {{ task.name }}
+      <div v-if="task.nameParts || task.name">
+        <template v-if="task.to">
+          <UiLink size="medium" display-inline :to="task.to">
+            <template v-if="task.nameParts">
+              <template v-for="(part, index) in task.nameParts" :key="index">
+                {{ part.text }}
+              </template>
+            </template>
+            <template v-else>{{ task.name }}</template>
+          </UiLink>
+        </template>
+        <template v-else>
+          <template v-if="task.nameParts">
+            <template v-for="(part, index) in task.nameParts" :key="index">
+              <UiLink v-if="part.to" size="medium" display-inline :to="part.to">{{ part.text }}</UiLink>
+              <UiLink v-else display-inline size="medium">{{ part.text }}</UiLink>
+            </template>
+          </template>
+          <UiLink v-else display-inline size="medium">{{ task.name }}</UiLink>
+        </template>
       </div>
       <div class="informations">
         <div class="line-1">
@@ -33,6 +51,7 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickTaskList from '@core/components/task/VtsQuickTaskList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { useToggle } from '@vueuse/core'
