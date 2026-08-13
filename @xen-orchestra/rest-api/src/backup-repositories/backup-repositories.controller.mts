@@ -41,6 +41,7 @@ import {
   backupRepositoryId,
   backupRepositoryBenchmark,
   backupRepositoryHeath,
+  backupRepositoryReclaimSpaceResults,
 } from '../open-api/oa-examples/backup-repository.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -317,14 +318,16 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   }
 
   /**
-   *
+   * Reclaim space from disk when a backup doesnt have its metadata
    *
    * Required privilege:
    * - resource: backup-repository, action: reclaim-space
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example body  {"vmuuid": "9d0d04f7-bb1f-8292-3294-17c6371827c5"}
    */
-  @Example('')
+  @Example(taskLocation)
+  @Example(backupRepositoryReclaimSpaceResults)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/reclaim-space')
   @Middlewares([
@@ -338,9 +341,15 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(200, 'OK')
+  @Response(badRequestResp.status, 'Reclaim space failed')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  reclaimSpaceBackupRepository(@Path() id: string, @Body() body?: { vmuuid?: string }, @Query() sync?: boolean) {
+  @Response(502, 'Backup repository unreachable')
+  reclaimSpaceBackupRepository(
+    @Path() id: string,
+    @Body() body?: { vmuuid?: string },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<ReclaimSpaceResult[]> {
     const backupRepositoryId = id as XoBackupRepository['id']
     const vmUuid = body?.vmuuid
 
@@ -348,7 +357,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
       return this.#backupRepositoryService.reclaimSpace(backupRepositoryId, vmUuid)
     }
 
-    return this.createAction<ReclaimSpaceResult>(action, {
+    return this.createAction<ReclaimSpaceResult[]>(action, {
       sync,
       statusCode: 200,
       taskProperties: {
