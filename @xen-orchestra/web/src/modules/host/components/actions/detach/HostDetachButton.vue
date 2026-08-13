@@ -47,6 +47,6 @@ const openDetachHostModal = useModal({
 
 <style lang="postcss" scoped>
 .detach {
-  color: var(--color-danger-item-base);
+  color: var(--color-warning-item-base);
 }
 </style>
