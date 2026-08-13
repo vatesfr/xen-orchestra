@@ -34,11 +34,11 @@ const {
 const openRestartToolstackHostModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
   props: {
-    accent: 'warning',
+    accent: 'info',
     action: 'restart-toolstack',
     object: 'host',
     hostName: host.name_label,
-    icon: 'status:warning-picto',
+    icon: 'status:info-picto',
   },
   onConfirm: () => restartToolstack(),
 })
