@@ -4481,9 +4481,9 @@ export const importVmsFromEsxi = params => _call('vm.importMultipleFromEsxi', pa
 
 export const uploadAirgapDataPack = file => {
   return _call('xoa.licenses.uploadAirgapDataPack').then(({ $sendTo }) => {
-    return post($sendTo, file.file).then(res => {
-      if (res.status !== 204) {
-        throw res.status
+    return post($sendTo, file.file).then(async res => {
+      if (!res.ok) {
+        throw new Error(await res.text())
       }
       success('Airgap data pack successfully uploaded')
     })

@@ -19,7 +19,10 @@ export default class UploadAirgapDataPack extends Component {
     })
   }
 
-  _handleUpload = () => uploadAirgapDataPack({ file: this.state.airgapDataPack })
+  _handleUpload = () =>
+    uploadAirgapDataPack({ file: this.state.airgapDataPack }).then(() => {
+      this.setState({ airgapDataPack: undefined })
+    })
 
   _handleRemove = () => {
     this.setState({ airgapDataPack: undefined })
