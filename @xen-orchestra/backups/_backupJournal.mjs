@@ -105,7 +105,19 @@ export const parseJournalDate = utcParse('%Y%m%dT%H%M%S.%LZ')
 // chronologically
 const DATE_LENGTH = formatJournalDate(0).length
 
-// `/xo-backup-log/<date>-<random>-<event>-<vmUuid>-<metadata filename>`
+// `YYYYMMDD`, the leading part of a formatted date
+const DAY_LENGTH = 8
+
+const dayOfDate = date => date.slice(0, DAY_LENGTH)
+
+export const formatJournalDay = timestamp => dayOfDate(formatJournalDate(timestamp))
+
+const isDayName = name => /^\d{8}$/.test(name)
+
+// `/xo-backup-log/<day>/<date>-<random>-<event>-<vmUuid>-<metadata filename>`
+//
+// Entries are grouped in one directory per UTC day, so that a reader lists only the days it is
+// missing instead of the whole history of the repository, and a purge removes whole directories.
 //
 // Everything after the date is only there to make the journal readable by a human: the date is read
 // back from the name, all the other fields are read back from the entry itself.
@@ -119,7 +131,7 @@ const DATE_LENGTH = formatJournalDate(0).length
  */
 function getEntryPath({ date, event, vmUuid, filename }) {
   const unique = randomBytes(3).toString('hex')
-  return `/${BACKUP_JOURNAL_DIR}/${date}-${unique}-${event}-${vmUuid}-${basename(filename)}`
+  return `/${BACKUP_JOURNAL_DIR}/${dayOfDate(date)}/${date}-${unique}-${event}-${vmUuid}-${basename(filename)}`
 }
 
 /**
@@ -182,22 +194,36 @@ export async function writeBackupJournalEntries(handler, entries, opts) {
  */
 export async function readBackupJournal(handler, since = 0) {
   const minDate = formatJournalDate(since)
-  const names = await handler.list(`/${BACKUP_JOURNAL_DIR}`, {
-    filter: name => name.slice(0, DATE_LENGTH) > minDate,
-    ignoreMissing: true,
-  })
-  names.sort()
+
+  // only the days which can hold entries newer than `since` are listed, therefore the cost of a read
+  // does not grow with the whole history of the repository
+  const days = (
+    await handler.list(`/${BACKUP_JOURNAL_DIR}`, {
+      filter: name => isDayName(name) && name >= dayOfDate(minDate),
+      ignoreMissing: true,
+    })
+  ).sort()
+
+  const paths = []
+  for (const day of days) {
+    paths.push(
+      ...(await handler.list(`/${BACKUP_JOURNAL_DIR}/${day}`, {
+        filter: name => name.slice(0, DATE_LENGTH) > minDate,
+        ignoreMissing: true,
+        prependDir: true,
+      }))
+    )
+  }
 
   /** @type {BackupJournalEntry[]} */
   const entries = []
-  await asyncEach(names, async name => {
-    const date = parseJournalDate(name.slice(0, DATE_LENGTH))
+  await asyncEach(paths, async path => {
+    const date = parseJournalDate(basename(path).slice(0, DATE_LENGTH))
     if (date === null) {
-      debug('ignoring unrecognized journal entry', { name })
+      debug('ignoring unrecognized journal entry', { path })
       return
     }
 
-    const path = `/${BACKUP_JOURNAL_DIR}/${name}`
     try {
       // this file is not encrypted
       entries.push({ ...JSON.parse(String(await handler._readFile(normalize(path)))), date, _filename: path })
