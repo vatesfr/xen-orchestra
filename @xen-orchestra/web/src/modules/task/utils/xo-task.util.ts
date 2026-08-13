@@ -1,6 +1,7 @@
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import type { CircleProgressBarAccent } from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
 import { createMapper } from '@core/packages/mapper'
+import type { RouteLocationAsRelative } from 'vue-router'
 
 export type BackupLogResult = { message: string; stack: unknown }
 
@@ -67,4 +68,11 @@ export function findTaskById(tasks: FrontXoTask[], taskId: FrontXoTask['id']): F
   }
 
   return undefined
+}
+
+export function getTaskRoute(taskId: FrontXoTask['id']): RouteLocationAsRelative {
+  return {
+    name: '/(site)/tasks',
+    query: { id: taskId },
+  }
 }
