@@ -8,7 +8,7 @@
     </UiTitle>
     <UiAlert accent="info">{{ t('traffic-rules:info-message') }}</UiAlert>
     <UiAlert v-if="showRulesFormatWarning" accent="warning">
-      <I18nT keypath="traffic-rules:format-warning">
+      <I18nT keypath="traffic-rules:format-warning" scope="global">
         <template #check-doc>
           <UiLink size="small" :href="XO_LINKS.DOC_SDN_CONTROLLER_MIGRATION">
             {{ t('traffic-rules:format-warning:check-doc') }}
@@ -16,8 +16,8 @@
         </template>
       </I18nT>
     </UiAlert>
-    <UiAlert v-if="showLegacyOpenFlowError" accent="danger">
-      <I18nT keypath="traffic-rules:error-plugin">
+    <UiAlert v-if="showXapiPluginRequiredError" accent="danger">
+      <I18nT keypath="traffic-rules:error-plugin" scope="global">
         <template #check-doc>
           <UiLink size="small" :href="XO_LINKS.DOC_SDN_CONTROLLER_XAPI_PLUGIN">
             {{ t('traffic-rules:error-plugin:check-doc') }}
@@ -53,7 +53,6 @@ import { useDirectionLabels } from '@/modules/traffic-rules/composables/directio
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import { useTrafficRuleDelete } from '@/modules/traffic-rules/composables/use-traffic-rule-delete.composable.ts'
 import type { EnrichedTrafficRule } from '@/modules/traffic-rules/types.ts'
-import { isNetworkRuleSupported } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { XO_LINKS } from '@/shared/constants.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -80,13 +79,13 @@ const {
   pool,
   busy,
   error,
-  canCreateNetworkRules,
+  showXapiPluginRequiredError,
 } = defineProps<{
   rules: TrafficRule[]
   pool?: FrontXoPool
   busy?: boolean
   error?: boolean
-  canCreateNetworkRules?: boolean
+  showXapiPluginRequiredError?: boolean
 }>()
 
 defineSlots<{
@@ -100,14 +99,6 @@ const selectedRuleId = useRouteQuery('id')
 const getTarget = useTrafficRuleTarget()
 
 const getDirectionLabels = useDirectionLabels()
-
-const showLegacyOpenFlowError = computed(() => {
-  if (!canCreateNetworkRules) {
-    return false
-  }
-
-  return !isNetworkRuleSupported(pool)
-})
 
 const showRulesFormatWarning = computed(() => {
   const ofMethod = pool?.otherConfig[SDN_CONTROLLER_OF_METHOD_KEY]
