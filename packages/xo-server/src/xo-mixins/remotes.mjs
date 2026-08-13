@@ -336,6 +336,8 @@ export default class {
       ignoreErrors.call(handler.forget())
     }
 
+    this._app.purgeVmBackupsCache(id)
+
     this._cancelRemoteInfoRetry(id)
     if (enabled === false) {
       delete this._remotesInfo[id]
@@ -371,6 +373,7 @@ export default class {
   async removeRemote(id) {
     this._cancelRemoteInfoRetry(id)
     delete this._remotesInfo[id]
+    this._app.purgeVmBackupsCache(id)
 
     const handlers = this._handlers
     const handler = handlers[id]
