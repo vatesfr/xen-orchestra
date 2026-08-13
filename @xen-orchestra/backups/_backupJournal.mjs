@@ -82,6 +82,10 @@ export const BACKUP_JOURNAL_DIR = 'xo-backup-log'
 // within the same second keep distinct, ordered names.
 const formatDate = utcFormat('%Y%m%dT%H%M%S.%LZ')
 
+// the time part alone, which is what an entry is named after: its day is already the name of the
+// directory holding it
+const formatTime = utcFormat('%H%M%S.%LZ')
+
 /**
  * Formats a timestamp into the date part of a journal entry name.
  *
@@ -94,32 +98,69 @@ const formatDate = utcFormat('%Y%m%dT%H%M%S.%LZ')
 export const formatJournalDate = timestamp => formatDate(new Date(timestamp))
 
 /**
- * Reads back the date part of a journal entry name.
+ * Formats a timestamp into the day part of a journal entry path, i.e. the name of the directory
+ * holding it.
  *
- * @param {string} date
+ * @param {number} timestamp in ms
+ * @returns {string} `YYYYMMDD`
+ */
+export const formatJournalDay = timestamp => dayOfDate(formatJournalDate(timestamp))
+
+/**
+ * Formats a timestamp into the time part of a journal entry name.
+ *
+ * @param {number} timestamp in ms
+ * @returns {string} `HHMMSS.mmmZ`
+ */
+export const formatJournalTime = timestamp => formatTime(new Date(timestamp))
+
+/**
+ * Reads back the date of a journal entry, from its day and the time part of its name.
+ *
+ * @param {string} date `YYYYMMDDTHHMMSS.mmmZ`, i.e. `<day>T<time>`
  * @returns {Date | null} `null` when the name is not a journal entry
  */
 export const parseJournalDate = utcParse('%Y%m%dT%H%M%S.%LZ')
 
-// the date part has a fixed width, therefore sorting entry names lexicographically sorts them
-// chronologically
+// `YYYYMMDDTHHMMSS.mmmZ`, a day and a time joined by a `T`
 const DATE_LENGTH = formatJournalDate(0).length
 
-// `/xo-backup-log/<date>-<random>-<event>-<vmUuid>-<metadata filename>`
+// `YYYYMMDD`, the leading part of a formatted date
+const DAY_LENGTH = 8
+
+// `HHMMSS.mmmZ`, a formatted date without its day nor the `T` separating the two
 //
-// Everything after the date is only there to make the journal readable by a human: the date is read
-// back from the name, all the other fields are read back from the entry itself.
+// it has a fixed width, therefore sorting the entry names of a day lexicographically sorts them
+// chronologically, and so does sorting whole paths across days
+const TIME_LENGTH = DATE_LENGTH - DAY_LENGTH - 1
+
+const dayOfDate = date => date.slice(0, DAY_LENGTH)
+
+const isDayName = name => /^\d{8}$/.test(name)
+
+// reassembles what `parseJournalDate()` expects from where each part is stored
+const dateOfEntry = (day, name) => parseJournalDate(`${day}T${name.slice(0, TIME_LENGTH)}`)
+
+// `/xo-backup-log/<day>/<time>-<random>-<event>-<vmUuid>-<metadata filename>`
+//
+// Entries are grouped in one directory per UTC day, so that a reader lists only the days it is
+// missing instead of the whole history of the repository, and a purge removes whole directories.
+// The day is therefore not repeated in the name: an entry is named after its time only.
+//
+// Everything after the time is only there to make the journal readable by a human: the date is read
+// back from the day and the time, all the other fields are read back from the entry itself.
 /**
  * @param {object} entry
- * @param {string} entry.date the event date, formatted by `formatJournalDate()`
+ * @param {number} entry.timestamp the event date, in ms
  * @param {BackupJournalEvent} entry.event
  * @param {string} entry.vmUuid
  * @param {string} entry.filename path of the backup metadata this event is about
  * @returns {string} path of the journal entry, unique thanks to a random part
  */
-function getEntryPath({ date, event, vmUuid, filename }) {
+function getEntryPath({ timestamp, event, vmUuid, filename }) {
   const unique = randomBytes(3).toString('hex')
-  return `/${BACKUP_JOURNAL_DIR}/${date}-${unique}-${event}-${vmUuid}-${basename(filename)}`
+  const name = `${formatJournalTime(timestamp)}-${unique}-${event}-${vmUuid}-${basename(filename)}`
+  return `/${BACKUP_JOURNAL_DIR}/${formatJournalDay(timestamp)}/${name}`
 }
 
 /**
@@ -138,7 +179,7 @@ function getEntryPath({ date, event, vmUuid, filename }) {
  */
 export async function writeBackupJournalEntry(handler, { event, vmUuid, filename, who, reason }, { dirMode } = {}) {
   const timestamp = Date.now()
-  const path = getEntryPath({ date: formatJournalDate(timestamp), event, vmUuid, filename })
+  const path = getEntryPath({ timestamp, event, vmUuid, filename })
   try {
     // this file is not encrypted, so that it stays readable by tools which don't have the
     // encryption key (e.g. the `immutable-backups` daemon)
@@ -181,23 +222,41 @@ export async function writeBackupJournalEntries(handler, entries, opts) {
  * @returns {Promise<BackupJournalEntry[]>} oldest first
  */
 export async function readBackupJournal(handler, since = 0) {
-  const minDate = formatJournalDate(since)
-  const names = await handler.list(`/${BACKUP_JOURNAL_DIR}`, {
-    filter: name => name.slice(0, DATE_LENGTH) > minDate,
-    ignoreMissing: true,
-  })
-  names.sort()
+  const minDay = formatJournalDay(since)
+  const minTime = formatJournalTime(since)
+
+  // only the days which can hold entries newer than `since` are listed, therefore the cost of a read
+  // does not grow with the whole history of the repository
+  const days = (
+    await handler.list(`/${BACKUP_JOURNAL_DIR}`, {
+      filter: name => isDayName(name) && name >= minDay,
+      ignoreMissing: true,
+    })
+  ).sort()
+
+  /** @type {Array<{ day: string, path: string }>} */
+  const found = []
+  for (const day of days) {
+    // entries are named after their time only: `since` bounds the day it falls into, every later
+    // day is taken whole
+    const names = await handler.list(`/${BACKUP_JOURNAL_DIR}/${day}`, {
+      filter: day === minDay ? name => name.slice(0, TIME_LENGTH) > minTime : undefined,
+      ignoreMissing: true,
+    })
+    for (const name of names) {
+      found.push({ day, path: `/${BACKUP_JOURNAL_DIR}/${day}/${name}` })
+    }
+  }
 
   /** @type {BackupJournalEntry[]} */
   const entries = []
-  await asyncEach(names, async name => {
-    const date = parseJournalDate(name.slice(0, DATE_LENGTH))
+  await asyncEach(found, async ({ day, path }) => {
+    const date = dateOfEntry(day, basename(path))
     if (date === null) {
-      debug('ignoring unrecognized journal entry', { name })
+      debug('ignoring unrecognized journal entry', { path })
       return
     }
 
-    const path = `/${BACKUP_JOURNAL_DIR}/${name}`
     try {
       // this file is not encrypted
       entries.push({ ...JSON.parse(String(await handler._readFile(normalize(path)))), date, _filename: path })
