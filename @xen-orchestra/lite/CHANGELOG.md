@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [Host/Network] Add the possibility to forget a PIF (PR [#10239](https://github.com/vatesfr/xen-orchestra/pull/10239))
+
 ## **0.24.0** (2026-07-30)
 
 - [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))

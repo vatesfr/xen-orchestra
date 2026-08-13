@@ -106,6 +106,7 @@ function getManagementIcon(pif: FrontXoPif) {
 }
 
 const { HeadCells, BodyCells } = usePifColumns({
+  exclude: ['actions'],
   body: (pif: FrontXoPif) => {
     const status = computed(() => getPifStatus(pif))
     const vlan = computed(() => getVlanData(pif.vlan))
