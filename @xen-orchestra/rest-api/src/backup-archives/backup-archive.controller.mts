@@ -56,7 +56,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
 
     const backupArchivesByRemote = await this.restApi.xoApp.listVmBackupsNg(backupRepositoryIds)
     const vmBackupArchives = Object.values(backupArchivesByRemote)
-      .filter(backupsByVm => backupsByVm !== undefined)
+      .filter(backupsByVm => backupsByVm !== null)
       .map(backupsByVm => Object.values(backupsByVm))
       .flat(2)
 
