@@ -11,7 +11,9 @@ import { asyncEach } from '@vates/async-each'
 import { ApiError } from '../helpers/error.helper.mjs'
 
 export interface ReclaimSpaceResult {
-  results: Array<{ vmUuid: string; success: boolean; error?: string }>
+  vmUuid: string
+  success: boolean
+  error?: string
 }
 
 export class BackupRepositoryService {
@@ -54,7 +56,7 @@ export class BackupRepositoryService {
   async reclaimSpace(backupRepositoryId: XoBackupRepository['id'], vmUuid?: string) {
     const remote = await this.#restApi.xoApp.getRemote(backupRepositoryId)
 
-    let results: ReclaimSpaceResult['results']
+    let results: ReclaimSpaceResult[]
     try {
       results = await Disposable.use(getSyncedHandler(remote), async handler => {
         const adapter = new RemoteAdapter(handler)
@@ -63,7 +65,7 @@ export class BackupRepositoryService {
         Task.set('total', vmUuids.length)
         let done = 0
 
-        const results: ReclaimSpaceResult['results'] = []
+        const results: ReclaimSpaceResult[] = []
 
         await asyncEach(
           vmUuids,
@@ -103,6 +105,6 @@ export class BackupRepositoryService {
       throw new ApiError('Reclaim space failed for all VMs', 400, { data: { results } })
     }
 
-    return { results }
+    return results
   }
 }
