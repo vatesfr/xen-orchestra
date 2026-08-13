@@ -86,6 +86,12 @@ export class RemoteAdapter {
 
   // Single funnel for all the backup deletions triggered by a user or by retention: forgets them
   // from `cache.json.gz` and records them in the journal.
+  /**
+   * @param {{ _filename: string, jobId?: string, scheduleId?: string }[]} backups the metadata of
+   * the deleted backups, or `{ _filename }` alone when it could not be read
+   * @param {import('./_backupJournal.mjs').BackupJournalReason} reason
+   * @returns {Promise<void>}
+   */
   async #forgetVmBackups(backups, reason) {
     await asyncEach(
       Object.entries(
@@ -118,6 +124,12 @@ export class RemoteAdapter {
     )
   }
 
+  /**
+   * @param {object[]} backups metadata of the backups to delete
+   * @param {object} [opts]
+   * @param {import('./_backupJournal.mjs').BackupJournalReason} [opts.reason] what triggered the
+   * deletion, as recorded in the journal
+   */
   async deleteDeltaVmBackups(backups, { reason = 'retention' } = {}) {
     // this will delete the json, unused VHDs will be detected by `cleanVm`
     await deleteDeltaVmBackupFiles(
@@ -140,6 +152,12 @@ export class RemoteAdapter {
     await asyncMapSettled(list, timestamp => handler.rmtree(`${dir}/${timestamp}`))
   }
 
+  /**
+   * @param {object[]} backups metadata of the backups to delete
+   * @param {object} [opts]
+   * @param {import('./_backupJournal.mjs').BackupJournalReason} [opts.reason] what triggered the
+   * deletion, as recorded in the journal
+   */
   async deleteFullVmBackups(backups, { reason = 'retention' } = {}) {
     await asyncMapSettled(backups, async ({ _filename, xva }) => {
       try {
@@ -432,6 +450,10 @@ export class RemoteAdapter {
 
   // read the backup events which happened on this remote after `since` (timestamp in ms),
   // oldest first
+  /**
+   * @param {number} [since] timestamp in ms, exclusive
+   * @returns {Promise<import('./_backupJournal.mjs').BackupJournalEntry[]>}
+   */
   async readBackupJournal(since) {
     return readBackupJournal(this._handler, since)
   }
@@ -663,6 +685,16 @@ export class RemoteAdapter {
 //
 // `removedFiles` also lists the files which would have been removed if `remove` were set, and files
 // which are not backup metadata (stray xva, checksums, …), hence the filtering.
+/**
+ * @param {RemoteAdapter} adapter
+ * @param {string} vmBackupPath directory of the cleaned VM, e.g. `xo-vm-backups/<vmUuid>`
+ * @param {object} cleanOpts the options `cleanVm()` ran with
+ * @param {boolean} [cleanOpts.remove] whether the removals were actually applied
+ * @param {object} result the result of `cleanVm()`
+ * @param {string[]} [result.removedFiles]
+ * @param {string[]} [result.changedFiles]
+ * @returns {Promise<void>}
+ */
 async function journalCleanVm(adapter, vmBackupPath, { remove }, { removedFiles = [], changedFiles = [] }) {
   const dir = resolve('/', vmBackupPath)
   const vmUuid = basename(dir)
