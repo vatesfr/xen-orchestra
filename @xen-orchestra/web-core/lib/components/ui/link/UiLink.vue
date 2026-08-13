@@ -1,7 +1,7 @@
 <!-- v6 -->
 <template>
   <component :is="component" :class="classes" class="ui-link" v-bind="attributes">
-    <VtsIcon :name="icon" :busy :busy-tooltip size="medium" />
+    <VtsIcon v-if="icon" :name="icon" :busy :busy-tooltip size="medium" />
     <slot />
     <VtsIcon v-if="attributes.target === '_blank'" name="action:open-in-new-tab" size="medium" class="external-icon" />
     <VtsIcon v-if="isPrimary" v-tooltip="primaryTooltip" name="status:primary-circle" size="medium" />
@@ -10,8 +10,8 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { type LinkOptions, useLinkComponent } from '@core/composables/link-component.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { type LinkOptions, useLinkComponent } from '@core/composables/link-component.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
 import { computed } from 'vue'
 
@@ -23,6 +23,7 @@ const props = defineProps<
     busyTooltip?: string
     isPrimary?: boolean
     primaryTooltip?: string
+    displayInline?: boolean
   }
 >()
 
@@ -33,7 +34,7 @@ const typoClasses = {
 
 const { component, attributes, isDisabled } = useLinkComponent('span', () => props)
 
-const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.value }])
+const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.value, inline: props.displayInline }])
 </script>
 
 <style lang="postcss" scoped>
@@ -42,6 +43,10 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
   align-items: center;
   gap: 0.8rem;
   color: var(--color-brand-txt-base);
+
+  &.inline {
+    display: inline;
+  }
 
   &:hover {
     color: var(--color-brand-txt-hover);
