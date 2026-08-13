@@ -27,15 +27,24 @@ export default {
     defaultLocale: 'en',
     locales: ['en'],
   },
+  themes: ['docusaurus-theme-search-typesense'],
+
   plugins: [
+    // Kept even though Typesense provides the search UI: this plugin
+    // generates search-doc.json, which the federated search indexer
+    // consumes (src/theme/SearchBar picks the Typesense bar).
     require.resolve('docusaurus-lunr-search'),
-     [
+    [
       '@docusaurus/plugin-client-redirects',
       {
         redirects: [
           {
             to: '/xo5/manage_infrastructure#vms',
             from: '/administration',
+          },
+          {
+            to: '/rbac',
+            from: '/xo6/acl-v2',
           },
           {
             to: '/xo5/advanced',
@@ -50,16 +59,20 @@ export default {
             from: '/acls',
           },
           {
-            to: '/xo5/architecture',
-            from: '/architecture',
+            from: '/xo5/architecture',
+            to: '/architecture',
           },
           {
-            to: '/xo5/architecture#plugins',
+            to: '/architecture#plugins',
             from: '/plugins',
           },
           {
-            to: '/xo5/backup_howto',
-            from: '/backup_howto',
+            to: '/backup_howto',
+            from: '/xo5/backup_howto',
+          },
+          {
+            to: '/calculator',
+            from: '/xo5/calculator',
           },
           {
             to: '/xo5/backup_reports',
@@ -74,137 +87,161 @@ export default {
             from: '/backups',
           },
           {
-            to: '/xo6/community',
-            from: '/community',
+            to: '/community',
+            from: '/xo6/community',
           },
           {
-            to: '/xo5/configuration',
-            from: '/configuration',
+            from: '/xo5/configuration',
+            to: '/configuration',
           },
           {
-            to: '/xo5/credential-encryption',
-            from: '/credential-encryption',
+            to: '/credential-encryption',
+            from: '/xo5/credential-encryption',
           },
           {
-            to: '/xo5/full_backups',
-            from: '/full_backups',
+            to: '/full_backups',
+            from: '/xo5/full_backups',
           },
           {
-            to: '/xo5/full_replication',
-            from: '/full_replication',
+            to: '/full_replication',
+            from: '/xo5/full_replication',
           },
           {
-            to: '/xo5/immutability',
-            from: '/immutability',
+            to: '/immutability',
+            from: '/xo5/immutability',
           },
           {
             to: '/xo5/incremental_backups',
             from: '/incremental_backups',
-          }, 
+          },
           {
             to: '/xo5/incremental_replication',
             from: '/incremental_replication',
-          },  
+          },
           {
-            to: '/xo5/installation',
-            from: '/installation',
-          },  
+            from: '/xo5/installation',
+            to: '/installation',
+          },
           {
-            to: '/xo6/support',
-            from: '/support',
-          },  
+            to: '/support',
+            from: '/xo6/support',
+          },
           {
-            to: '/xo5/backup',
-            from: '/backup',
-          },  
+            to: '/backup',
+            from: '/xo5/backup',
+          },
           {
-            to: '/xo5/license_management',
-            from: '/license_management',
-          }, 
+            to: '/support',
+            from: ['/license_management', '/xo5/license_management'],
+          },
           {
             to: '/xo5/load_balancing',
             from: '/load_balancing',
-          }, 
+          },
           {
-            to: '/xo5/manage',
-            from: '/manage',
-          }, 
+            from: ['/manage', '/xo5/manage'],
+            to: '/xo5/manage_infrastructure',
+          },
           {
             to: '/xo5/manage_infrastructure',
             from: '/manage_infrastructure',
-          }, 
+          },
           {
-            to: '/xo5/mcp',
-            from: '/mcp',
-          }, 
+            to: '/automation/mcp',
+            from: ['/mcp', '/xo5/mcp'],
+          },
           {
             to: '/xo5/metadata_backup',
             from: '/metadata_backup',
-          }, 
+          },
           {
-            to: '/xo5/migrate_to_new_xoa',
-            from: '/migrate_to_new_xoa',
-          }, 
+            from: '/xo5/migrate_to_new_xoa',
+            to: '/migrate_to_new_xoa',
+          },
           {
-            to: '/xo5/mirror_backup',
-            from: '/mirror_backup',
-          }, 
+            to: '/mirror_backup',
+            from: '/xo5/mirror_backup',
+          },
           {
-            to: '/xo5/object-storage-support',
-            from: '/object-storage-support',
-          }, 
+            to: '/object-storage-support',
+            from: '/xo5/object-storage-support',
+          },
           {
             to: '/xo5/proxy',
             from: '/proxy',
-          }, 
+          },
           {
-            to: '/xo6/purchase',
-            from: '/purchase',
-          }, 
+            to: '/support',
+            from: ['/purchase', '/xo6/purchase'],
+          },
           {
-            to: '/xo5/releases',
-            from: '/releases',
-          }, 
+            from: '/xo5/releases',
+            to: '/releases',
+          },
           {
-            to: '/xo5/restapi',
-            from: '/restapi',
-          }, 
+            to: '/automation/restapi',
+            from: ['/restapi', '/xo5/restapi'],
+          },
           {
-            to: '/xo5/rolling_snapshots',
-            from: '/rolling_snapshots',
-          }, 
+            to: '/automation/terraform-provider',
+            from: '/xo6/terraform-provider',
+          },
+          {
+            to: '/automation/ansible',
+            from: '/xo6/ansible',
+          },
+          {
+            to: '/automation/pulumi-provider',
+            from: '/xo6/pulumi-provider',
+          },
+          {
+            to: '/automation/packer-provider',
+            from: '/xo6/packer-provider',
+          },
+          {
+            to: '/automation/powershell-module',
+            from: '/xo6/powershell-module',
+          },
+          {
+            to: '/automation/kubernetes',
+            from: '/xo6/kubernetes',
+          },
+          {
+            to: '/rolling_snapshots',
+            from: '/xo5/rolling_snapshots',
+          },
           {
             to: '/xo5/sdn_controller',
             from: '/sdn_controller',
-          }, 
-          {
-            to: '/xo5/supported_hosts',
-            from: '/supported_hosts',
-          }, 
-          {
-            to: '/xo5/troubleshooting',
-            from: ['/general-troubleshooting', '/troubleshooting']
           },
           {
-            to: '/xo5/updater',
-            from: '/updater',
-          }, 
+            from: '/xo5/supported_hosts',
+            to: '/supported_hosts',
+          },
+          {
+            from: ['/general-troubleshooting', '/xo5/troubleshooting'],
+            to: '/troubleshooting',
+          },
+          {
+            from: '/xo5/updater',
+            to: '/updater',
+          },
           {
             to: '/xo5/users',
             from: '/users',
-          }, 
+          },
           {
             to: '/xo5/v2v-migration-guide',
             from: '/v2v-migration-guide',
-          }, 
+          },
           {
             to: '/xo5/vm-templates',
             from: '/vm-templates',
-          }, 
+          },
           {
-            to: '/xo5/xoa',
-            from: '/xoa',
-          }, 
+            to: '/installation',
+            from: ['/xoa', '/xo5/xoa'],
+          },
         ],
       },
     ],
@@ -226,7 +263,10 @@ export default {
       siteId: '23',
     },
   },
-  clientModules: [require.resolve('./src/clientModules/matomo.ts')],
+  clientModules: [
+    require.resolve('./src/clientModules/matomo.ts'),
+    require.resolve('./src/clientModules/movedAnchors.ts'),
+  ],
   presets: [
     [
       'classic',
@@ -234,6 +274,9 @@ export default {
         docs: {
           routeBasePath: '/',
           sidebarPath: './sidebars.ts',
+          // "Last updated on…" stamp at the bottom of every page, from
+          // the git history of each file.
+          showLastUpdateTime: true,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl: 'https://github.com/vatesfr/xen-orchestra/tree/master/docs',
@@ -247,14 +290,38 @@ export default {
   ],
 
   themeConfig: {
+    // Federated search across docs.xen-orchestra.com, docs.vates.tech
+    // and docs.xcp-ng.org. Results group by product; hits from the two
+    // sibling sites keep their absolute URL (externalUrlRegex).
+    // The API key is search-only and public by design.
+    // Local dev against a local Typesense (prod only allows CORS from
+    // the three doc domains):
+    //   TYPESENSE_HOST=localhost TYPESENSE_PORT=8108 \
+    //   TYPESENSE_PROTOCOL=http TYPESENSE_SEARCH_KEY=<key> yarn start
+    typesense: {
+      typesenseCollectionName: 'vates_federated',
+      externalUrlRegex: 'docs\\.vates\\.tech|docs\\.xcp-ng\\.org',
+      typesenseServerConfig: {
+        nodes: [
+          {
+            host: process.env.TYPESENSE_HOST ?? 'typesense.vates.tech',
+            port: Number(process.env.TYPESENSE_PORT ?? 443),
+            protocol: process.env.TYPESENSE_PROTOCOL ?? 'https',
+          },
+        ],
+        apiKey: process.env.TYPESENSE_SEARCH_KEY ?? 'b2806f42e60429ceecb3808a2c6bb31cc9ca955cb1e4290c',
+      },
+      typesenseSearchParameters: {},
+      contextualSearch: false,
+    },
     // Replace with your project's social card
     image: 'img/vates-xo-logo-smol-new-baseline.png',
     navbar: {
       title: 'Xen Orchestra Documentation',
       logo: { alt: 'Xen Orchestra logo', src: 'img/logo.png', href: '/' },
       items: [
-        { to: 'https://docs.vates.tech/', label: 'Vates VMS', position: 'right', target: '_self'},
-        { to: 'https://docs.xcp-ng.org/', label: 'XCP-ng', position: 'right', target: '_self'},
+        { to: 'https://docs.vates.tech/', label: 'Vates VMS', position: 'right', target: '_self' },
+        { to: 'https://docs.xcp-ng.org/', label: 'XCP-ng', position: 'right', target: '_self' },
         { href: '/', label: 'Xen Orchestra', position: 'right' },
       ],
     },
@@ -274,7 +341,7 @@ export default {
             },
             {
               label: 'Installation',
-              href: '/xo5/installation',
+              href: '/installation',
             },
           ],
         },
@@ -323,10 +390,11 @@ export default {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+      additionalLanguages: ['toml', 'ini', 'nginx', 'apacheconf'],
     },
   } satisfies Preset.ThemeConfig,
 
-  markdown:{
+  markdown: {
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },

@@ -70,7 +70,7 @@ export default class {
 
         token.last_uses = last_uses
 
-        this._tokens.update(token)
+        await this._tokens.update(token)
 
         return { bypassOtp: true, expiration: token.expiration, userId: token.user_id }
       } catch (error) {}

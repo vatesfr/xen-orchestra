@@ -1,25 +1,24 @@
 <template>
   <UiButton
-    v-tooltip="!canDisconnectVbd && disconnectErrorMessage"
+    v-tooltip="!canDisconnectVbds && disconnectVbdsErrorMessage"
     size="medium"
     variant="tertiary"
     accent="brand"
-    :disabled="!canDisconnectVbd"
+    :disabled="!canDisconnectVbds"
     left-icon="action:disconnect"
-    :busy="isDisconnectingVbd"
-    @click="openVbdDisconnectModal()"
+    :busy="isDisconnectingVbds"
+    @click="disconnectVbds()"
   >
     {{ t('action:disconnect') }}
   </UiButton>
 </template>
 
 <script lang="ts" setup>
-import { useVbdConnectionToggleModal } from '@/modules/vbd/composables/use-vbd-connection-toggle-modal.composable.ts'
+import { useVbdConnection } from '@/modules/vbd/composables/use-vbd-connection.composable.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { useI18n } from 'vue-i18n'
 
 const { vbd, vm } = defineProps<{
@@ -29,14 +28,8 @@ const { vbd, vm } = defineProps<{
 
 const { t } = useI18n()
 
-const {
-  openModal: openVbdDisconnectModal,
-  canRun: canDisconnectVbd,
-  isRunning: isDisconnectingVbd,
-  errorMessage: disconnectErrorMessage,
-} = useVbdConnectionToggleModal(
-  CONNECTION_ACTION.DISCONNECT,
-  () => [vbd],
-  () => vm
-)
+const { disconnectVbds, canDisconnectVbds, isDisconnectingVbds, disconnectVbdsErrorMessage } = useVbdConnection({
+  vbds: () => [vbd],
+  vm: () => vm,
+})
 </script>

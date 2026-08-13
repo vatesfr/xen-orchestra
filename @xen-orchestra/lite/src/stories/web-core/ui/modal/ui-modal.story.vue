@@ -4,9 +4,10 @@
     :params="[
       prop('accent').required().enum('info', 'warning', 'danger').preset('info').widget(),
       iconProp(),
-      prop('dismissible').bool().widget(),
-      prop('onDismiss').type('function').widget(),
-      event('dismiss'),
+      event('confirm').help('Emitted when the form is submitted (e.g. a submit button is clicked or Enter is pressed)'),
+      event('dismiss').help(
+        'When a listener is present, the dismiss button is displayed. Also emitted on Escape or backdrop click'
+      ),
       slot('title'),
       slot('content'),
       slot('buttons'),
@@ -25,9 +26,7 @@
       <template #title>{{ settings.titleSlotContent }}</template>
       <template #content>{{ settings.contentSlotContent }}</template>
       <template v-if="settings.showDemoButton" #buttons>
-        <UiButton :accent="properties.accent === 'info' ? 'brand' : properties.accent" variant="primary" size="medium">
-          Confirm
-        </UiButton>
+        <VtsOverlayConfirmButton>Confirm</VtsOverlayConfirmButton>
       </template>
     </UiModal>
   </ComponentStory>
@@ -37,7 +36,7 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { iconProp, prop, event, slot, setting } from '@/libs/story/story-param'
 import { text, boolean } from '@/libs/story/story-widget'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiModal from '@core/components/ui/modal/UiModal.vue'
 </script>
 

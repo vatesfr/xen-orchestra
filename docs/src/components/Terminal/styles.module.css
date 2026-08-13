@@ -1,0 +1,96 @@
+/* A terminal frame with a title bar + traffic-light dots. Always a dark
+   console (in both Docusaurus light and dark themes), matching the CDN. */
+.term {
+  margin: 1.4rem 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0c1119;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 14px 34px -20px rgba(0, 0, 0, 0.55);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  background: #171b26;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.dots {
+  display: flex;
+  gap: 0.42rem;
+}
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: block;
+}
+.dots .dot:nth-child(1) {
+  background: #ec6a5e;
+}
+.dots .dot:nth-child(2) {
+  background: #f4bf4f;
+}
+.dots .dot:nth-child(3) {
+  background: #61c554;
+}
+
+.title {
+  margin: 0 auto;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.72rem;
+  color: #7a8699;
+  letter-spacing: 0.01em;
+}
+
+.copy {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.68rem;
+  color: #7a8699;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 5px;
+  padding: 0.14rem 0.5rem;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+.copy:hover {
+  color: #c6d2e1;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Override Infima's <pre> defaults; the frame provides the background. */
+.screen {
+  margin: 0;
+  padding: 1rem 1.15rem 1.15rem;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.82rem;
+  line-height: 1.62;
+  color: #c6d2e1;
+  overflow-x: auto;
+}
+
+.cmd {
+  color: #ffffff;
+  font-weight: 600;
+}
+.dim {
+  color: #7a8699;
+}
+.good {
+  color: #56c288;
+}
+.warn {
+  color: #e0a94a;
+}
+.bad {
+  color: #ef6a5f;
+}
