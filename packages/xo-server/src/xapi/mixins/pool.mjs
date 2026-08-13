@@ -332,7 +332,7 @@ const methods = {
       }
     })
 
-    // Reverse host order to guarantee successful relocation of VMs to their original host in one step
+    // Reverse host order to improve chances of successful relocation of VMs to their original host in one step
     hosts.reverse()
 
     const migrationsSubtask = new Task({ properties: { name: `Migrate VMs back`, progress: 0 } })
