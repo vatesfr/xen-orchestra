@@ -29,39 +29,41 @@ const isSupersededByRetry = (subtask, siblings) =>
 export const consolidateTaskStatusAndResult = task => {
   let status = getStatus(task.result, task.status)
 
-  if (status === 'failure' || task.tasks === undefined) {
+  if (task.tasks === undefined) {
     return status
   }
 
-  // A retried subtask leaves a warning at the VM task level.
-  // If the initial try fails but a retry succeeds, the failure must not affect the parent task status.
-  const wasRetried = task.warnings?.some(({ data }) => data?.isRetry === true) ?? false
+  if (status !== 'failure') {
+    // A retried subtask leaves a warning at the VM task level.
+    // If the initial try fails but a retry succeeds, the failure must not affect the parent task status.
+    const wasRetried = task.warnings?.some(({ data }) => data?.isRetry === true) ?? false
 
-  const failedResults = []
-  for (let i = 0, n = task.tasks.length; i < n; ++i) {
-    const subtask = task.tasks[i]
-    if (subtask.status === 'failure') {
-      if (wasRetried && isSupersededByRetry(subtask, task.tasks)) {
+    const failedResults = []
+    for (let i = 0, n = task.tasks.length; i < n; ++i) {
+      const subtask = task.tasks[i]
+      if (subtask.status === 'failure') {
+        if (wasRetried && isSupersededByRetry(subtask, task.tasks)) {
+          continue
+        }
+        failedResults.push(subtask.result)
         continue
       }
-      failedResults.push(subtask.result)
-      continue
+      if (subtask.status === 'skipped') {
+        status = subtask.status
+      }
     }
-    if (subtask.status === 'skipped') {
-      status = subtask.status
-    }
-  }
 
-  if (failedResults.length > 0) {
-    // the task's own result may already carry an error; only fall back to the subtasks' when it doesn't
-    task.result =
-      task.result ??
-      serializeError(
-        failedResults.length === 1
-          ? failedResults[0]
-          : new AggregateError(failedResults, `Task failed with multiple errors`)
-      )
-    return 'failure'
+    if (failedResults.length > 0) {
+      // the task's own result may already carry an error; only fall back to the subtasks' when it doesn't
+      task.result =
+        task.result ??
+        serializeError(
+          failedResults.length === 1
+            ? failedResults[0]
+            : new AggregateError(failedResults, `Task failed with multiple errors`)
+        )
+      status = 'failure'
+    }
   }
 
   task.tasks.sort(taskTimeComparator)

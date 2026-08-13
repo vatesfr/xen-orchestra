@@ -28,17 +28,24 @@ describe('consolidateTaskStatusAndResult', function () {
     assert.equal(consolidateTaskStatusAndResult(task), 'skipped')
   })
 
-  it("propagates a single failing subtask's serialized result to the parent", () => {
+  it("propagates a single failing subtask's serialized result to the parent, and still sorts subtasks", () => {
     const error = new Error('BodyTimeoutError')
     const task = {
       status: 'success',
-      tasks: [{ status: 'success' }, { status: 'failure', result: error }],
+      tasks: [
+        { status: 'success', start: 2, end: 20 },
+        { status: 'failure', result: error, start: 1, end: 10 },
+      ],
     }
     assert.equal(consolidateTaskStatusAndResult(task), 'failure')
     // already serialized to a plain object: downstream serializers that don't special-case
     // Error/AggregateError (e.g. a plain JSON.stringify) would otherwise silently drop it
     assert.equal(task.result.message, 'BodyTimeoutError')
     assert.equal(task.result.name, 'Error')
+    assert.deepEqual(
+      task.tasks.map(({ start }) => start),
+      [1, 2]
+    )
   })
 
   it("bundles multiple failing subtasks' results into a serialized AggregateError", () => {
@@ -97,9 +104,26 @@ describe('consolidateTaskStatusAndResult', function () {
     assert.equal(consolidateTaskStatusAndResult(task), 'skipped')
   })
 
-  it('sorts subtasks by end time, finished before unfinished, on the non-failure path', () => {
+  it('sorts subtasks by end time, finished before unfinished', () => {
     const task = {
       status: 'success',
+      tasks: [
+        { status: 'success', start: 3, end: 30 },
+        { status: 'pending', start: 1 },
+        { status: 'success', start: 2, end: 10 },
+      ],
+    }
+    consolidateTaskStatusAndResult(task)
+    assert.deepEqual(
+      task.tasks.map(({ start }) => start),
+      [2, 3, 1]
+    )
+  })
+
+  it('still sorts subtasks when the task itself already failed', () => {
+    const task = {
+      status: 'failure',
+      result: new Error('own failure'),
       tasks: [
         { status: 'success', start: 3, end: 30 },
         { status: 'pending', start: 1 },
