@@ -34,11 +34,11 @@ const {
 const openDisableAndEvacuateVmsHostModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
   props: {
-    accent: 'warning',
+    accent: 'info',
     action: 'disable-and-evacuate-vms',
     object: 'host',
     hostName: host.name_label,
-    icon: 'status:warning-picto',
+    icon: 'status:info-picto',
   },
   onConfirm: () => disableHostAndEvacuateVMs(),
 })
