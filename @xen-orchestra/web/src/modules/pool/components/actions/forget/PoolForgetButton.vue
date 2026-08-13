@@ -1,22 +1,21 @@
 <template>
-  <UiButton
-    v-tooltip="!canForgetServer ? forgetServerErrorMessage : undefined"
-    left-icon="action:forget"
-    variant="tertiary"
-    accent="danger"
-    size="medium"
+  <MenuItem
+    v-tooltip="!canForgetServer && forgetServerErrorMessage"
+    icon="action:forget"
     :disabled="!canForgetServer"
     :busy="isForgettingServer"
+    class="forget"
     @click="forgetServer()"
   >
     {{ t('action:forget') }}
-  </UiButton>
+  </MenuItem>
 </template>
 
 <script lang="ts" setup>
 import { useServerForget } from '@/modules/server/composables/use-server-forget.composable.ts'
 import { type FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const { server } = defineProps<{ server: FrontXoServer }>()
@@ -28,3 +27,9 @@ const { forgetServer, canForgetServer, isForgettingServer, forgetServerErrorMess
   () => server.label
 )
 </script>
+
+<style lang="postcss" scoped>
+.forget {
+  color: var(--color-danger-item-base);
+}
+</style>
