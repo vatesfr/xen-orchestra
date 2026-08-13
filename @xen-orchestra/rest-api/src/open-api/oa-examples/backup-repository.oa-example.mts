@@ -1,5 +1,3 @@
-import { success } from 'zod'
-
 export const backupRepositoryIds = [
   '/rest/v0/backup-repositories/7497c970-6780-4462-a452-fcb8a406ee64',
   '/rest/v0/backup-repositories/f681cef1-617e-4650-ac31-ffdaead076bf',
