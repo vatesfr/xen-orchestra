@@ -3,6 +3,19 @@ import { z } from 'zod'
 // Sentinel for redacted values — use a string so Swagger renders it clearly
 const redacted = z.any().transform(() => '**REDACTED**')
 
+const providerSchema = z.object({
+  type: z.string(),
+  host: z.string().optional(),
+  bindDn: z.string().optional(),
+  issuer: z.string().optional(),
+  clientId: z.string().optional(),
+
+  bindPassword: redacted.optional(),
+  clientSecret: redacted.optional(),
+  certificate: redacted.optional(),
+  privateKey: redacted.optional(),
+})
+
 // Mirror the shape of xo-server's config here.
 // .partial() on every object because config files are always partial — missing keys are fine.
 export const XoServerConfigSchema = z
@@ -20,9 +33,9 @@ export const XoServerConfigSchema = z
         port: z.number().optional(),
         host: z.string().optional(),
         sessionSecret: redacted,
-        cookies: z.record(z.unknown()).optional(),
+        cookies: redacted,
         useForwardedHeaders: z.unknown().optional(),
-        proxies: z.record(z.unknown()).optional(),
+        proxies: redacted,
         publicMounts: z.record(z.string()).optional(),
         mounts: z.record(z.string()).optional(),
         helmet: z.record(z.unknown()).optional(),
@@ -34,7 +47,7 @@ export const XoServerConfigSchema = z
       .object({
         defaultTokenValidity: z.string().optional(),
         maxTokenValidity: z.string().optional(),
-        providers: z.record(z.unknown()).optional(), // provider configs may have secrets — review per provider
+        providers: z.record(providerSchema), // provider configs may have secrets — review per provider
       })
       .partial()
       .optional(),
