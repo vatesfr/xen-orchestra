@@ -40,6 +40,7 @@
     "@xen-orchestra/backup-archive": "^1.1.1",
     "app-conf": "^3.0.0",
     "compare-versions": "^6.0.0",
+    "complex-matcher": "^1.1.1",
     "d3-time-format": "^4.1.0",
     "decorator-synchronized": "^0.6.0",
     "golike-defer": "^0.5.1",
@@ -57,6 +58,7 @@
     "value-matcher": "^0.2.0",
     "vhd-lib": "^4.16.1",
     "xen-api": "^4.8.0",
+    "xo-remote-parser": "^0.10.1",
     "yazl": "^2.5.1"
   },
   "devDependencies": {

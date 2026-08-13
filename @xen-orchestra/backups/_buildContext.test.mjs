@@ -1,0 +1,147 @@
+import { describe, it } from 'node:test'
+import assert from 'node:assert/strict'
+
+import { buildRunContext, buildVmContext, buildSrContext, buildBackupRepositoryContext } from './_buildContext.mjs'
+import { BACKUP_EXPRESSION_CONTEXT } from '@vates/types/backup-expression-context'
+
+describe('buildContext', () => {
+  const date = new Date('2025-01-05T03:00:00Z')
+  const runContext = buildRunContext(date, 'America/New_York')
+  const expectedRunContext = {
+    dayOfWeek: 6,
+    dayOfMonth: 4,
+    hour: 22,
+    month: 1,
+    year: 2025,
+  }
+
+  it('buildRunContext', () => {
+    assert.deepEqual(runContext, expectedRunContext)
+  })
+
+  it('buildVmContext', () => {
+    const vm1 = { name: 'name', $value: '$value', func: () => {} }
+    const vmContext1 = buildVmContext(vm1, runContext, 3)
+    assert.deepEqual(vmContext1, {
+      vm: {
+        name: 'name',
+        tags: [],
+      },
+      run: expectedRunContext,
+      chainLength: 3,
+    })
+
+    const vm2 = { name: 'name', $value: '$value', func: () => {}, tags: ['tag'] }
+    const vmContext2 = buildVmContext(vm2, runContext, undefined)
+    assert.deepEqual(vmContext2, {
+      vm: {
+        name: 'name',
+        tags: ['tag'],
+      },
+      run: expectedRunContext,
+      chainLength: undefined,
+    })
+
+    const vm3 = { name: 'name', $value: '$value', func: () => {}, tags: 'tag' }
+    const vmContext3 = buildVmContext(vm3, runContext, undefined)
+    assert.deepEqual(vmContext3, {
+      vm: {
+        name: 'name',
+        tags: [],
+      },
+      run: expectedRunContext,
+      chainLength: undefined,
+    })
+  })
+
+  it('buildVmContext exposes every field advertised by the schema', () => {
+    // vm is an open context (buildVmContext copies through all real VM fields),
+    // so we assert the schema's curated fields are a subset of the output, not equality.
+    const vm = { name_label: 'name', power_state: 'Running', tags: ['tag'], $ref: 'ref', func: () => {} }
+    const { vm: vmContext } = buildVmContext(vm, runContext)
+
+    for (const field of Object.keys(BACKUP_EXPRESSION_CONTEXT.vm)) {
+      assert.ok(field in vmContext, `vm context is missing schema field: ${field}`)
+    }
+  })
+
+  it('buildSrContext', () => {
+    const sr1 = {
+      name_label: 'name_label',
+      SR_type: 'type',
+      name_description: 'description',
+      ignored: 'ignored',
+    }
+    const srContext1 = buildSrContext(sr1, runContext)
+    assert.deepEqual(srContext1, {
+      sr: {
+        name_label: 'name_label',
+        type: 'type',
+        description: 'description',
+        tags: [],
+      },
+      run: expectedRunContext,
+    })
+    assert.deepEqual(Object.keys(srContext1.sr).sort(), Object.keys(BACKUP_EXPRESSION_CONTEXT.sr).sort())
+
+    const sr2 = {
+      name_label: 'name_label',
+      SR_type: 'type',
+      name_description: 'description',
+      tags: ['tag'],
+      ignored: 'ignored',
+    }
+    const srContext2 = buildSrContext(sr2, runContext)
+    assert.deepEqual(srContext2, {
+      sr: {
+        name_label: 'name_label',
+        type: 'type',
+        description: 'description',
+        tags: ['tag'],
+      },
+      run: expectedRunContext,
+    })
+    assert.deepEqual(Object.keys(srContext2.sr).sort(), Object.keys(BACKUP_EXPRESSION_CONTEXT.sr).sort())
+  })
+
+  it('buildBackupRepositoryContext', () => {
+    const backupRepository1 = {
+      name: 'name',
+      url: 'nfs://host/path',
+      ignored: 'ignored',
+    }
+    const backupRepositoryContext1 = buildBackupRepositoryContext(backupRepository1, runContext)
+    assert.deepEqual(backupRepositoryContext1, {
+      backupRepository: {
+        name: 'name',
+        type: 'nfs',
+        tags: [],
+      },
+      run: expectedRunContext,
+    })
+    assert.deepEqual(
+      Object.keys(backupRepositoryContext1.backupRepository).sort(),
+      Object.keys(BACKUP_EXPRESSION_CONTEXT.backupRepository).sort()
+    )
+
+    const backupRepository2 = {
+      name: 'name',
+      url: 'nfs://host/path',
+      tags: [],
+      ignored: 'ignored',
+    }
+    const backupRepositoryContext2 = buildBackupRepositoryContext(backupRepository2, runContext)
+    assert.deepEqual(backupRepositoryContext2, {
+      backupRepository: {
+        name: 'name',
+        type: 'nfs',
+        tags: [],
+      },
+      run: expectedRunContext,
+    })
+    assert.deepEqual(
+      Object.keys(backupRepositoryContext2.backupRepository).sort(),
+      Object.keys(BACKUP_EXPRESSION_CONTEXT.backupRepository).sort()
+    )
+  })
+})

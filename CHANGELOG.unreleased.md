@@ -17,6 +17,7 @@
 - [Docs] Improve doc, rename titles, and refactor menu (PR [#10212](https://github.com/vatesfr/xen-orchestra/pull/10212))
 
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
+- [Backups] Health check eligibility, full/incremental scheduling, and mirror job VM selection can now be driven by complex-matcher expressions (PR [#10064](https://github.com/vatesfr/xen-orchestra/pull/10064))
 
 ### Bug fixes
 
@@ -42,8 +43,11 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/async-map patch
+- @xen-orchestra/backup-archive patch
+- @xen-orchestra/backups minor
 - @xen-orchestra/proxy-cli patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/upload-ova patch
@@ -52,7 +56,7 @@
 - xen-api minor
 - xo-cli patch
 - xo-common minor
-- xo-server patch
+- xo-server minor
 - xo-server-ipmi-sensors minor
 - xo-server-netbox patch
 
