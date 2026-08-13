@@ -16,6 +16,7 @@
       <MenuItem
         v-for="(action, index) of actions"
         :key="index"
+        :class="{ danger: action.danger }"
         :icon="action.icon"
         :disabled="action.disabled"
         :busy="action.busy"
@@ -27,6 +28,7 @@
           <MenuItem
             v-for="(child, childIndex) of action.children"
             :key="childIndex"
+            :class="{ danger: child.danger }"
             :icon="child.icon"
             :disabled="child.disabled"
             :busy="child.busy"
@@ -67,6 +69,7 @@ type BaseActionItem = {
   icon?: IconName
   disabled?: boolean
   busy?: boolean
+  danger?: boolean
 }
 
 export type LeafActionItem = BaseActionItem & {
@@ -85,3 +88,9 @@ function isGroupAction(action: ActionItem): action is GroupActionItem {
   return 'children' in action
 }
 </script>
+
+<style lang="postcss" scoped>
+.danger {
+  color: var(--color-danger-item-base);
+}
+</style>
