@@ -147,6 +147,7 @@ const { HeadCells, BodyCells } = usePifColumns({
               busy: isForgettingPif.value,
               disabled: !canForgetPif.value,
               hint: forgetPifErrorMessage.value,
+              accent: 'danger',
             },
           ],
         }),
