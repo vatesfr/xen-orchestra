@@ -7,7 +7,7 @@
     :busy="isForgettingHost"
     @click="openForgetHostModal()"
   >
-    {{ t('action:forget-host') }}
+    {{ t('action:forget') }}
   </MenuItem>
 </template>
 
@@ -35,11 +35,11 @@ const {
 const openForgetHostModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
   props: {
-    accent: 'warning',
+    accent: 'danger',
     action: 'forget',
     object: 'host',
     hostName: host.name_label,
-    icon: 'status:warning-picto',
+    icon: 'status:danger-circle',
   },
   onConfirm: () => forgetHost(),
 })
