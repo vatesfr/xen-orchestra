@@ -15,7 +15,7 @@ import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-co
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { logicAnd, logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 
