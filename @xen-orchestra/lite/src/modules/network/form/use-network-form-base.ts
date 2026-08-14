@@ -2,6 +2,7 @@ import type { BaseNewNetworkPayload } from '@/modules/network/jobs/network-creat
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import {
   type FormValidationConfig,
+  integer,
   mergeValidationConfigs,
   outOfRange,
   required,
@@ -25,6 +26,9 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(formData: T, e
     errors: {
       onSubmit: () => ({
         name: { required: withMessage(required, () => t('name-required')) },
+      }),
+      onBlur: () => ({
+        mtu: { integer },
       }),
     },
     warnings: {

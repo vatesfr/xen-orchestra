@@ -49,6 +49,10 @@ const { networks, busy, error } = defineProps<{
   error?: boolean
 }>()
 
+defineSlots<{
+  'title-actions'(): any
+}>()
+
 const { records: pifs } = usePifStore().subscribe()
 const { getPifCarrier } = usePifMetricsStore().subscribe()
 

@@ -12,9 +12,7 @@
       <NewNetworkDescriptionTextarea v-bind="descriptionInputBindings" />
     </div>
     <NetworkFormNumberInput v-bind="vlanInputBindings" class="vlan" />
-    <div class="nbd">
-      <NewNetworkNbdCheckbox v-bind="nbdCheckboxBindings" />
-    </div>
+    <NewNetworkNbdCheckbox class="nbd" v-bind="nbdCheckboxBindings" />
     <NewNetworkButtonsSection :cancel-to :submit-label="t('action:create-network')" />
   </VtsForm>
 </template>
@@ -92,8 +90,8 @@ async function onSubmit() {
     }
   }
 
-  .vlan,
-  .nbd {
+  :has(.nbd),
+  .vlan {
     margin-block-start: 2.4rem;
   }
 

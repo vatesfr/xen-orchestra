@@ -2,7 +2,7 @@ import type { XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
 import { type BaseNetworkFormData, useNetworkFormBase } from '@/modules/network/form/use-network-form-base.ts'
 import { useNetworkPifSelect } from '@/modules/network/form/use-network-pif-select.ts'
 import type { NewNetworkPayload } from '@/modules/network/jobs/network-create.job.ts'
-import { type FormValidationConfig, outOfRange, required, withMessage } from '@core/packages/form-validation'
+import { type FormValidationConfig, integer, outOfRange, required, withMessage } from '@core/packages/form-validation'
 import { reactive, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -27,6 +27,9 @@ export function useNewNetworkForm() {
     errors: {
       onSubmit: () => ({
         pifRef: { required: withMessage(required, () => t('interface-required')) },
+      }),
+      onBlur: () => ({
+        vlan: { integer },
       }),
     },
     warnings: {

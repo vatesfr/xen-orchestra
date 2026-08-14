@@ -12,9 +12,7 @@
       <NewNetworkDescriptionTextarea v-bind="descriptionInputBindings" />
     </div>
     <NetworkFormSelect v-bind="bondModeSelectBindings" class="bond-mode" />
-    <div class="nbd">
-      <NewNetworkNbdCheckbox v-bind="nbdCheckboxBindings" />
-    </div>
+    <NewNetworkNbdCheckbox class="nbd" v-bind="nbdCheckboxBindings" />
     <NewNetworkButtonsSection :cancel-to :submit-label="t('action:create-bonded-network')" />
   </VtsForm>
 </template>
@@ -92,8 +90,8 @@ async function onSubmit() {
     }
   }
 
-  .bond-mode,
-  .nbd {
+  :has(.nbd),
+  .bond-mode {
     margin-block-start: 2.4rem;
   }
 
