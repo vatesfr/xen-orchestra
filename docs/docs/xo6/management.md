@@ -16,7 +16,7 @@ The other tabs cover the pool's building blocks:
 
 - **System**: identity and properties of the pool.
 - **Network**: pool-wide networks and host internal networks, each with a query builder and a details side panel. You can create networks (including bonded and host internal networks) and delete them; editing an existing network opens XO 5.
-- **Security**: security-related settings of the pool.
+- **Traffic rules**: all the traffic rules for a pool.
 - **Storage**: the pool's storage repositories, with connect, disconnect and delete actions (SR creation opens XO 5).
 - **Tasks**: what happened on this pool.
 - **Hosts** and **VMs**: filtered lists scoped to this pool.
@@ -77,10 +77,10 @@ Traffic rules are the first feature built for XO 6 first: allow or block traffic
 
 They live in two places:
 
-- **Pool → Security tab**: every traffic rule of the pool, across all its networks and VIFs, in one consolidated view.
+- **Pool → Traffic rules tab**: every traffic rule of the pool, across all its networks and VIFs, in one consolidated view.
 - **VIF → Traffic rules tab**: the rules of one specific interface (also reachable from the VIF column in the VM Network tab).
 
-<UiShot light="/img/xo6/pool-security-light.png" dark="/img/xo6/pool-security-dark.png" alt="The pool Security tab gathers every traffic rule of the pool" url="https://your-xo/v6/#/pool/…/security" />
+<UiShot light="/img/xo6/pool-traffic-rules-light.png" dark="/img/xo6/pool-traffic-rules-dark.png" alt="The pool Traffic rules tab gathers every traffic rule of the pool" url="https://your-xo/v6/#/pool/…/security" />
 
 A rule is simple to express: allow or block, a protocol (ARP, ICMP, IP, TCP or UDP), a port for TCP/UDP, an IP address or a CIDR subnet, a direction (from, to, or both), and the object it applies to: a whole network, or a single VIF.
 

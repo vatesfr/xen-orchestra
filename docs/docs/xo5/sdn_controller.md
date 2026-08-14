@@ -179,7 +179,7 @@ A few caveats:
   :::
 
 :::tip
-This is the backend used by the [XO 6 traffic rules UI](../xo6/management.md#traffic-rules) (since XO 6.5): network-wide and per-VIF rules, with a consolidated view in the pool **Security** tab. The rules can also be managed through the [REST API](../automation/restapi.md), including in-place updates (since XO 6.7).
+This is the backend used by the [XO 6 traffic rules UI](../xo6/management.md#traffic-rules) (since XO 6.5): network-wide and per-VIF rules, with a consolidated view in the pool **Traffic rules** tab. The rules can also be managed through the [REST API](../automation/restapi.md), including in-place updates (since XO 6.7).
 :::
 
 - Works on any network:

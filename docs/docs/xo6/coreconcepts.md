@@ -34,7 +34,7 @@ Object pages are organized in tabs. The exact set depends on the object:
 | Level         | Tabs                                                                        |
 | ------------- | --------------------------------------------------------------------------- |
 | Xen Orchestra | Dashboard, Backups, Tasks, Pools, Hosts, VMs                                |
-| Pool          | Dashboard, Stats, System, Network, Security, Storage, Tasks, Hosts, VMs     |
+| Pool          | Dashboard, Stats, System, Network, Traffic rules, Storage, Tasks, Hosts, VMs     |
 | Host          | Dashboard, Console, Stats, System, Network, Storage, Tasks, VMs             |
 | VM            | Dashboard, Console, Backups, Stats, System, Network, VDIs, Snapshots, Tasks |
 
