@@ -6,7 +6,7 @@
     :busy="isDisablingHostAndEvacuatingVMs"
     @click="disableHostAndEvacuateVms()"
   >
-    {{ t('action:disable-host-and-evacuate-vms') }}
+    {{ t('action:disable-and-evacuate-vms') }}
   </MenuItem>
 </template>
 

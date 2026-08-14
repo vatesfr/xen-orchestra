@@ -6,7 +6,7 @@
     :busy="isDisablingHost"
     @click="openDisableHostModal()"
   >
-    {{ t('action:disable-host') }}
+    {{ t('action:disable') }}
   </MenuItem>
 </template>
 
