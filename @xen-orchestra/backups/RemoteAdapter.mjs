@@ -9,6 +9,8 @@ import Disposable from 'promise-toolbox/Disposable'
 import groupBy from 'lodash/groupBy.js'
 import pickBy from 'lodash/pickBy.js'
 import reduce from 'lodash/reduce.js'
+import zlib from 'zlib'
+import { Task } from '@vates/task'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
 import {
@@ -121,7 +123,9 @@ export class RemoteAdapter {
    * @param {import('./_backupJournal.mjs').BackupJournalReason} [opts.reason] what triggered the
    * deletion, as recorded in the journal
    */
-  async deleteDeltaVmBackups(backups, { reason = 'retention' } = {}) {
+  async deleteDeltaVmBackups(backups, { reason = 'retention', immediate = false } = {}) {
+    const handler = this._handler
+
     // this will delete the json, unused VHDs will be detected by `cleanVm`
     await deleteDeltaVmBackupFiles(
       this._handler,
@@ -129,6 +133,27 @@ export class RemoteAdapter {
     )
 
     await this.#forgetVmBackups(backups, reason)
+
+    if (immediate) {
+      await this.#mergeVmDirsAfterDelete(backups)
+    }
+  }
+
+  // group by VM backup dir so multiple disks/backups deleted for the same
+  // VM in one call trigger a single merge, not one per backup
+  async #mergeVmDirsAfterDelete(backups) {
+    const dirs = new Set(backups.map(({ _filename }) => dirname(_filename)))
+
+    await asyncEach(dirs, dir =>
+      Task.run({ name: 'merge VM backup chain', data: { type: 'VM', path: dir } }, () =>
+        this.cleanVm(dir, {
+          remove: true,
+          merge: true,
+          logInfo: Task.info,
+          logWarn: Task.warning,
+        })
+      )
+    )
   }
 
   async deleteMetadataBackup(backupId) {
@@ -166,7 +191,7 @@ export class RemoteAdapter {
     return this.deleteVmBackups([file])
   }
 
-  async deleteVmBackups(files) {
+  async deleteVmBackups(files, { immediate = false } = {}) {
     const metadataOrNull = await asyncMap(files, async file => {
       try {
         return await this.readVmBackupMetadata(file)
@@ -198,7 +223,7 @@ export class RemoteAdapter {
     }
     const promises = []
     if (delta !== undefined) {
-      promises.push(this.deleteDeltaVmBackups(delta, { reason: 'user' }))
+      promises.push(this.deleteDeltaVmBackups(delta, { reason: 'user', immediate }))
     }
     if (full !== undefined) {
       promises.push(this.deleteFullVmBackups(full, { reason: 'user' }))
