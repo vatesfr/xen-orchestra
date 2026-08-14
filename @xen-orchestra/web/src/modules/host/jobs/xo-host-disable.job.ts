@@ -1,15 +1,15 @@
-import { xoHostArg } from '@/modules/host/jobs/xo-host-args.jobs.ts'
-import { xoHostDisableEvacuateHostArg } from '@/modules/host/jobs/xo-host-disable-args.ts'
+import { xoHostArg } from '@/modules/host/jobs/xo-host-args.ts'
+import { xoHostDisableArg } from '@/modules/host/jobs/xo-host-disable-args.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { isHostOperationPending } from '@/modules/host/utils/xo-host.util.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { HOST_POWER_STATE, HOST_ALLOWED_OPERATIONS } from '@vates/types'
+import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export const useXoHostDisableJob = defineJob('host.disable', [xoHostArg, xoHostDisableEvacuateHostArg], () => {
+export const useXoHostDisableJob = defineJob('host.disable', [xoHostArg, xoHostDisableArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
 
