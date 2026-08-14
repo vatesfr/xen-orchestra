@@ -26,10 +26,6 @@ export const useXoHostEnableJob = defineJob('host.enable', [xoHostArg], () => {
       if (isRunning || isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.ENABLE)) {
         throw new JobRunningError(t('job:enable:in-progress'))
       }
-
-      if (isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.EVACUATE)) {
-        throw new JobRunningError(t('job:host-evacuate:in-progress'))
-      }
     },
   }
 })
