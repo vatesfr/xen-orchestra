@@ -1,10 +1,8 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <div class="title">
-        {{ t('connected-srs') }}
-        <UiCounter :value="srs.length" accent="neutral" size="small" variant="primary" />
-      </div>
+      {{ t('connected-srs') }}
+      <UiCounter :value="srs.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
     <UiCollapsibleList v-if="srs.length > 0" tag="ul" :total-items="srs.length">
       <li v-for="sr in srs" :key="sr.id" v-tooltip class="text-ellipsis">
@@ -69,11 +67,5 @@ const srIconById = computed(() => {
 <style scoped lang="postcss">
 .card-container {
   gap: 1.6rem;
-
-  .title {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-  }
 }
 </style>
