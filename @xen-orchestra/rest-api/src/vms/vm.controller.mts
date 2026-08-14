@@ -1130,4 +1130,88 @@ export class VmController extends XapiXoController<XoVm> {
       taskProperties: { name: 'Migrate VM', objectId: vmId, params: body },
     })
   }
+
+  /**
+   * Ejects the disc from the VM CD drive. Does nothing if the drive is already empty.
+   *
+   * Required privilege:
+   * - resource: vm, action: eject-cd
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/eject_cd')
+  @Middlewares(acl({ resource: 'vm', action: 'eject-cd', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async ejectCdFromVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const vmId = id as XoVm['id']
+    const action = async () => {
+      await this.getXapi(vmId).ejectCdFromVm(vmId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'eject CD from VM',
+        objectId: vmId,
+      },
+    })
+  }
+
+  /**
+   * Inserts a disc into the VM CD drive. The drive is created if the VM does not have one yet.
+   *
+   * - `force` (default `true`): eject the disc currently in the drive, if any
+   * - `bootable` (default `false`): make the CD drive bootable
+   *
+   * Required privileges:
+   * - resource: vm, action: insert-cd
+   * - resource: vdi, action: boot (on the inserted VDI)
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example body { "vdiId": "d2e0e3bd-9e0f-4c1a-9b0d-8f0e1a2b3c4d" }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/insert_cd')
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'vm', action: 'insert-cd', objectId: 'params.id' },
+      { resource: 'vdi', action: 'boot', objectId: 'body.vdiId' },
+    ]),
+  ])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async insertCdIntoVm(
+    @Path() id: string,
+    @Body() body: { vdiId: string; bootable?: boolean; force?: boolean },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const vmId = id as XoVm['id']
+    const action = async () => {
+      const { bootable, force = true } = body
+      await this.getXapi(vmId).insertCdIntoVm(body.vdiId as XoVdi['id'], vmId, { bootable, force })
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'insert CD into VM',
+        objectId: vmId,
+        params: body,
+      },
+    })
+  }
 }
