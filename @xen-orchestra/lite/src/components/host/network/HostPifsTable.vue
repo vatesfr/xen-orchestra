@@ -42,7 +42,7 @@ import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pifs, host } = defineProps<{
+const { pifs } = defineProps<{
   pifs: XenApiPif[]
   host: XenApiHost | undefined
 }>()
