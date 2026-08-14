@@ -2,7 +2,7 @@
   <VtsSidePanel :has-selection="!!server" @close="emit('close')">
     <template v-if="server" #actions>
       <PoolConnectionToggleButton :server-id="server.id" />
-      <MenuList v-if="server.poolId !== undefined" placement="bottom-end">
+      <MenuList placement="bottom-end">
         <template #trigger="{ open }">
           <UiButtonIcon
             v-tooltip="{ placement: 'left', content: t('more-actions') }"
@@ -12,8 +12,8 @@
             @click="open($event)"
           />
         </template>
-        <PoolDownloadButton :pool-id="server.poolId" />
-        <PoolForgetButton :server="server" />
+        <PoolDownloadButton v-if="server.poolId !== undefined" :pool-id="server.poolId" />
+        <PoolForgetButton :server />
       </MenuList>
     </template>
     <template v-if="server">
