@@ -1115,7 +1115,7 @@
   "traffic-rule": "Traffic rule",
   "traffic-rule-delete-warning": "This action is irreversible. The selected traffic rule will be permanently deleted.",
   "traffic-rules": "Traffic rules",
-  "traffic-rules:error-plugin": "You are using the legacy direct OpenFlow protocol (legacy mode), which does not support network traffic rules. To create them, switch to the XAPI plugin mode (beta) — see {check-doc}.",
+  "traffic-rules:error-plugin": "You are using the direct OpenFlow protocol (legacy mode), which does not support network traffic rules. To create them, switch to the XAPI plugin mode (beta) — see {check-doc}.",
   "traffic-rules:error-plugin:check-doc": "the SDN controller documentation",
   "traffic-rules:format-warning": "Configuration error: Traffic rules are not in the expected format. Please {check-doc} on how to migrate them.",
   "traffic-rules:format-warning:check-doc": "check the latest documentation",
