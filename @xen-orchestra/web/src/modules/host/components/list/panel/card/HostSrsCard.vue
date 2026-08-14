@@ -30,6 +30,7 @@
 <script lang="ts" setup>
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import {
   useXoSrCollection,
   type FrontXoSr,
@@ -43,7 +44,6 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { objectIcon, type IconName } from '@core/icons'
-import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { SR_SCOPE_TYPE } from '@core/types/storage-repository.type.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -69,13 +69,7 @@ const srIconById = computed(() => {
   srs.value.forEach(sr => {
     const pbds = hostPbds.value.filter(pbd => pbd.SR === sr.id)
 
-    if (pbds.length === 0 || pbds.every(pbd => !pbd.attached)) {
-      iconById.set(sr.id, objectIcon('sr', CONNECTION_STATUS.DISCONNECTED))
-    } else if (pbds.some(pbd => !pbd.attached)) {
-      iconById.set(sr.id, objectIcon('sr', CONNECTION_STATUS.PARTIALLY_CONNECTED))
-    } else {
-      iconById.set(sr.id, objectIcon('sr', CONNECTION_STATUS.CONNECTED))
-    }
+    iconById.set(sr.id, objectIcon('sr', getPbdsConnectionStatus(pbds)))
   })
 
   return iconById
