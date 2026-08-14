@@ -28,13 +28,10 @@
 </template>
 
 <script lang="ts" setup>
+import { useHostSrs } from '@/modules/host/composables/use-host-srs.composable.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
-import {
-  useXoSrCollection,
-  type FrontXoSr,
-} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { toSrScopeQuery } from '@/modules/storage-repository/utils/sr-scope.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -54,14 +51,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { pbdsByHost } = useXoPbdCollection()
-const { getSrById } = useXoSrCollection()
-
-const hostPbds = computed(() => pbdsByHost.value.get(host.id) ?? [])
-
-const srs = computed(() =>
-  hostPbds.value.map(pbd => getSrById(pbd.SR)).filter((sr): sr is FrontXoSr => sr !== undefined)
-)
+const { srs, hostPbds } = useHostSrs(() => host.id)
 
 const srIconById = computed(() => {
   const iconById = new Map<FrontXoSr['id'], IconName>()
