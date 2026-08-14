@@ -91,7 +91,7 @@ const textMappingsByObject: TextMappingByObject = {
   },
   host: {
     enable: {
-      title: t('modal:confirm-host-enable', { host: hostName }),
+      title: t('modal:confirm-host-enable?', { host: hostName }),
       message: t('modal:host-enable-message'),
       action: t('action:enable-host'),
     },
