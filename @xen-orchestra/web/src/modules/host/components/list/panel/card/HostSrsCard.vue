@@ -22,7 +22,7 @@
       </li>
     </UiCollapsibleList>
     <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
-      {{ t('no-sr-attached') }}
+      {{ t('no-srs-connected') }}
     </VtsStateHero>
   </UiCard>
 </template>
