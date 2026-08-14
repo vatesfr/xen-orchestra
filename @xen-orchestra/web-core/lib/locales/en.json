@@ -418,7 +418,6 @@
   "host-disable-title": "Are you sure you want to disable {host}?",
   "host-enable-title": "Are you sure you want to enable {host}?",
   "host-internal-networks": "Host internal networks",
-  "host-lowercase": "host",
   "host-not-running": "Host not running",
   "host-off": "Host is powered off",
   "host:status:active": "@:status:active",

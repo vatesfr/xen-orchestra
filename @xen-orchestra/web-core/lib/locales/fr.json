@@ -418,7 +418,6 @@
   "host-disable-title": "Êtes-vous sûr que vous voulez désactiver {host}?",
   "host-enable-title": "Êtes-vous sûr que vous voulez activer {host}?",
   "host-internal-networks": "Réseaux internes de l'hôte",
-  "host-lowercase": "hôte",
   "host-not-running": "Hôte non démarré",
   "host-off": "L’hôte est éteint",
   "host:status:active": "@:status:active",
