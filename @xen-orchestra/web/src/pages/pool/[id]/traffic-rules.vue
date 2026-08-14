@@ -1,8 +1,8 @@
 <template>
-  <VtsContentSidePanel class="security">
+  <VtsContentSidePanel class="traffic-rules">
     <UiCard class="container">
       <VtsStateHero v-if="!isReady" format="page" type="busy" size="medium" />
-      <TrafficRulesTable v-else :rules="trafficRules" :pool>
+      <TrafficRulesTable v-else :rules="trafficRules" :pool :show-xapi-plugin-required-error>
         <template #title-action>
           <UiLink :to="{ name: '/traffic-rule/new', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
             {{ t('new') }}
@@ -20,6 +20,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import TrafficRulesSidePanel from '@/modules/traffic-rules/components/list/panel/TrafficRulesSidePanel.vue'
 import TrafficRulesTable from '@/modules/traffic-rules/components/TrafficRulesTable.vue'
 import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rules.composable'
+import { isNetworkRuleSupported } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
@@ -46,6 +47,8 @@ const { areVmsReady } = useXoVmCollection()
 
 const isReady = logicAnd(areVifsReady, areNetworksReady, areVmsReady)
 
+const showXapiPluginRequiredError = computed(() => !isNetworkRuleSupported(pool))
+
 const poolVifs = computed(() => vifs.value.filter(vif => vif.$pool === pool.id))
 
 const poolNetworks = computed(() => networks.value.filter(network => network.$pool === pool.id))
@@ -59,7 +62,7 @@ const selectedRule = useRouteQuery<TrafficRule | undefined>('id', {
 </script>
 
 <style scoped lang="postcss">
-.security {
+.traffic-rules {
   .container {
     height: fit-content;
     gap: 4rem;

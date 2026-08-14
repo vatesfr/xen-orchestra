@@ -6,6 +6,8 @@ export const XO_LINKS = {
   BLOG: 'https://xen-orchestra.com/blog/',
   COMMUNITY: 'https://xcp-ng.org/forum/category/12/xen-orchestra',
   DOC: 'https://docs.xen-orchestra.com',
+  DOC_SDN_CONTROLLER_MIGRATION: 'https://docs.xen-orchestra.com/xo5/sdn_controller#migration-path',
+  DOC_SDN_CONTROLLER_XAPI_PLUGIN: 'https://docs.xen-orchestra.com/xo5/sdn_controller#xapi-plugin',
   TRANSLATION: 'https://translate.vates.tech/engage/xen-orchestra/',
 }
 
