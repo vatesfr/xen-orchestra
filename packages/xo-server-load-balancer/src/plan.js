@@ -1081,7 +1081,6 @@ export default class Plan {
           vm,
           hostsAverages,
           vmAverages,
-          promises,
           reason: `to free up resources on host to later migrate affinity-tagged VMs to it (${tag})`,
         })
       )
