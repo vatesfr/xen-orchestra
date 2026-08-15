@@ -332,6 +332,7 @@ const methods = {
       }
     })
 
+    if ( this.pool.other_config['xo:RPU_RPR_Migrate_VMs_back'] ) {
     // Reverse host order to improve chances of successful relocation of VMs to their original host in one step
     hosts.reverse()
 
@@ -404,6 +405,7 @@ const methods = {
         throw error
       }
     })
+    }
     // in case task progress has not been incremented properly
     setProgress(parentTask, 100)
   },
