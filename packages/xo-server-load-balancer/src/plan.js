@@ -372,8 +372,8 @@ export default class Plan {
       return false
     }
     return tags.some(tag => {
-      const sourceOtherCount = countsByHostId[sourceHostId].tags[tag] - 1
-      const destinationCount = countsByHostId[destinationHostId].tags[tag]
+      const sourceOtherCount = countsByHostId[sourceHostId].tagCounts[tag] - 1
+      const destinationCount = countsByHostId[destinationHostId].tagCounts[tag]
       return destinationCount < sourceOtherCount
     })
   }
@@ -384,8 +384,8 @@ export default class Plan {
   _wouldDeteriorateAntiAffinity({ vm, countsByHostId, sourceHostId, destinationHostId }) {
     const tags = intersection(vm.tags, this._antiAffinityTags)
     return tags.some(tag => {
-      const sourceOtherCount = countsByHostId[sourceHostId].tags[tag] - 1
-      const destinationCount = countsByHostId[destinationHostId].tags[tag]
+      const sourceOtherCount = countsByHostId[sourceHostId].tagCounts[tag] - 1
+      const destinationCount = countsByHostId[destinationHostId].tagCounts[tag]
       return destinationCount > sourceOtherCount
     })
   }
@@ -681,7 +681,7 @@ export default class Plan {
     // 1. Check if we must migrate VMs...
     const tagsDiff = {}
     for (const watchedTag of this._antiAffinityTags) {
-      const getCount = fn => fn(taggedHosts.hosts, host => host.tags[watchedTag]).tags[watchedTag]
+      const getCount = fn => fn(taggedHosts.hosts, host => host.tagCounts[watchedTag]).tagCounts[watchedTag]
       const diff = getCount(maxBy) - getCount(minBy)
       if (diff > 1) {
         tagsDiff[watchedTag] = diff - 1
@@ -732,9 +732,9 @@ export default class Plan {
       let emptyLoop = true
       // 1. Find source host from which to migrate.
       const sources = sortBy(
-        filter(taggedHosts.hosts, host => host.tags[tag] > 1),
+        filter(taggedHosts.hosts, host => host.tagCounts[tag] > 1),
         [
-          host => host.tags[tag],
+          host => host.tagCounts[tag],
           // Find host with the most memory used. Don't forget the "-". ;)
           host => -hostsAverages[host.id].memoryFree,
         ]
@@ -749,9 +749,12 @@ export default class Plan {
 
         // 2. Find destination host.
         const destinations = sortBy(
-          filter(taggedHosts.hosts, host => host.id !== sourceHost.id && host.tags[tag] + 1 < sourceHost.tags[tag]),
+          filter(
+            taggedHosts.hosts,
+            host => host.id !== sourceHost.id && host.tagCounts[tag] + 1 < sourceHost.tagCounts[tag]
+          ),
           [
-            host => host.tags[tag],
+            host => host.tagCounts[tag],
             // Ideally it would be interesting to migrate in the same pool.
             host => host.poolId !== sourceHost.poolId,
             // Find host with the least memory used. Don't forget the "-". ;)
@@ -858,8 +861,8 @@ export default class Plan {
       return
     }
     for (const tag of tags) {
-      countsByHostId[sourceHostId].tags[tag]--
-      countsByHostId[destinationHostId].tags[tag]++
+      countsByHostId[sourceHostId].tagCounts[tag]--
+      countsByHostId[destinationHostId].tagCounts[tag]++
     }
   }
 
@@ -871,15 +874,15 @@ export default class Plan {
 
     const taggedHosts = {}
     for (const host of hosts) {
-      const tags = {}
+      const tagCounts = {}
       for (const tag of tagList) {
-        tags[tag] = 0
+        tagCounts[tag] = 0
       }
 
       const taggedHost = (taggedHosts[host.id] = {
         id: host.id,
         poolId: host.$poolId,
-        tags,
+        tagCounts,
         vms: {},
       })
 
@@ -904,7 +907,7 @@ export default class Plan {
       for (const tag of vm.tags) {
         if (tagList.includes(tag)) {
           tagCount[tag]++
-          taggedHost.tags[tag]++
+          taggedHost.tagCounts[tag]++
           taggedHost.vms[vm.id] = vm
         }
       }
@@ -919,13 +922,13 @@ export default class Plan {
 
     const { hosts } = taggedHosts
     for (const tag in taggedHosts.tagCount) {
-      const k = hosts[0].tags[tag]
+      const k = hosts[0].tagCounts[tag]
 
       let ex = 0
       let ex2 = 0
 
       for (const host of hosts) {
-        const x = host.tags[tag]
+        const x = host.tagCounts[tag]
         const diff = x - k
         ex += diff
         ex2 += diff * diff
@@ -946,15 +949,15 @@ export default class Plan {
       const vmTags = filter(vm.tags, tag => this._antiAffinityTags.includes(tag))
 
       for (const tag of vmTags) {
-        sourceHost.tags[tag]--
-        destinationHost.tags[tag]++
+        sourceHost.tagCounts[tag]--
+        destinationHost.tagCounts[tag]++
       }
 
       const variance = this._computeAntiAffinityVariance(taggedHosts)
 
       for (const tag of vmTags) {
-        sourceHost.tags[tag]++
-        destinationHost.tags[tag]--
+        sourceHost.tagCounts[tag]++
+        destinationHost.tagCounts[tag]--
       }
 
       if (variance < bestVariance) {
@@ -997,7 +1000,7 @@ export default class Plan {
     const spreadTags = []
     for (const watchedTag of this._affinityTags) {
       const taggedHostCount = taggedHosts.hosts.reduce(
-        (accumulator, host) => accumulator + (host.tags[watchedTag] > 0),
+        (accumulator, host) => accumulator + (host.tagCounts[watchedTag] > 0),
         0
       )
       if (taggedHostCount > 1) {
@@ -1062,11 +1065,11 @@ export default class Plan {
     // in case of coalitions, the sum is incorrect as VMs are counted twice, but it gives an approximation without parsing all the VMs again
     const taggedVmCountPerHost = {}
     for (const host of taggedHosts.hosts) {
-      taggedVmCountPerHost[host.id] = coalition.reduce((sum, coalitionTag) => sum + host.tags[coalitionTag], 0)
+      taggedVmCountPerHost[host.id] = coalition.reduce((sum, coalitionTag) => sum + host.tagCounts[coalitionTag], 0)
     }
 
     const sortedHosts = sortBy(
-      taggedHosts.hosts.filter(host => coalition.some(coalitionTag => host.tags[coalitionTag] > 0)),
+      taggedHosts.hosts.filter(host => coalition.some(coalitionTag => host.tagCounts[coalitionTag] > 0)),
       [host => taggedVmCountPerHost[host.id], host => -hostsAverages[host.id].memoryFree]
     )
 
@@ -1263,9 +1266,9 @@ export default class Plan {
     )
 
     for (const tag of vm.tags) {
-      if (tag in sourceHost.tags) {
-        sourceHost.tags[tag]--
-        destinationHost.tags[tag]++
+      if (tag in sourceHost.tagCounts) {
+        sourceHost.tagCounts[tag]--
+        destinationHost.tagCounts[tag]++
       }
     }
 
