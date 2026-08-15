@@ -173,6 +173,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
 
   // put block in subdirectories to limit impact when doing directory listing
   #getBlockPath(blockId) {
+    // @todo : won't work with vhd bigger than 2TB
     const blockPrefix = Math.floor(blockId / 1e3)
     const blockSuffix = blockId - blockPrefix * 1e3
     return `blocks/${blockPrefix}/${blockSuffix}`
