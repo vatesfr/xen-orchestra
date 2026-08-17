@@ -23,7 +23,7 @@
 - [XO6/Host] Add possibility to force reboot a host (PR [#10175](https://github.com/vatesfr/xen-orchestra/pull/10175))
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
 - [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
-- [XO6/Groups] Add a groups list in the user management page
+- [XO6/Groups] Add a groups list in the user management page (PR [#10272](https://github.com/vatesfr/xen-orchestra/pull/10272))
 
 ### Bug fixes
 
