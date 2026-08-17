@@ -980,6 +980,7 @@ declare module 'vue-router/auto-routes' {
       | '/vm/[uuid]/stats'
       | '/vm/[uuid]/system'
       | '/vm/[uuid]/tasks'
+      | '/vm/[uuid]/vdis'
     >,
     '/vm/[uuid]/alarms': RouteRecordInfo<
       '/vm/[uuid]/alarms',
@@ -1026,6 +1027,13 @@ declare module 'vue-router/auto-routes' {
     '/vm/[uuid]/tasks': RouteRecordInfo<
       '/vm/[uuid]/tasks',
       '/vm/:uuid/tasks',
+      { uuid: ParamValue<true> },
+      { uuid: ParamValue<false> },
+      | never
+    >,
+    '/vm/[uuid]/vdis': RouteRecordInfo<
+      '/vm/[uuid]/vdis',
+      '/vm/:uuid/vdis',
       { uuid: ParamValue<true> },
       { uuid: ParamValue<false> },
       | never
@@ -1875,6 +1883,7 @@ declare module 'vue-router/auto-routes' {
         | '/vm/[uuid]/stats'
         | '/vm/[uuid]/system'
         | '/vm/[uuid]/tasks'
+        | '/vm/[uuid]/vdis'
       views:
         | 'default'
     }
@@ -1917,6 +1926,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vm/[uuid]/tasks.vue': {
       routes:
         | '/vm/[uuid]/tasks'
+      views:
+        | never
+    }
+    'src/pages/vm/[uuid]/vdis.vue': {
+      routes:
+        | '/vm/[uuid]/vdis'
       views:
         | never
     }
