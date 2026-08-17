@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('pifs') }}
       <template #action>
-        <HostScanPifsButton :host />
+        <slot name="title-actions" />
       </template>
     </UiTitle>
     <div class="container">
@@ -25,8 +25,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiHost, XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
-import HostScanPifsButton from '@/modules/host/components/actions/scan-pifs/HostScanPifsButton.vue'
+import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -44,7 +43,10 @@ import { useI18n } from 'vue-i18n'
 
 const { pifs } = defineProps<{
   pifs: XenApiPif[]
-  host: XenApiHost | undefined
+}>()
+
+defineSlots<{
+  'title-actions'(): any
 }>()
 
 const { isReady, hasError } = usePifStore().subscribe()

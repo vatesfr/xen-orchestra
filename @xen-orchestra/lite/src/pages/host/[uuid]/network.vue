@@ -1,7 +1,11 @@
 <template>
   <VtsContentSidePanel class="network">
     <UiCard class="container">
-      <HostPifsTable :pifs :host />
+      <HostPifsTable :pifs>
+        <template #title-actions>
+          <HostScanPifsButton :host />
+        </template>
+      </HostPifsTable>
     </UiCard>
     <HostPifSidePanel :pif="selectedPif" @close="selectedPif = undefined" />
   </VtsContentSidePanel>
@@ -11,6 +15,7 @@
 import HostPifSidePanel from '@/components/host/network/HostPifSidePanel.vue'
 import HostPifsTable from '@/components/host/network/HostPifsTable.vue'
 import type { XenApiHost, XenApiPif } from '@/libs/xen-api/xen-api.types'
+import HostScanPifsButton from '@/modules/host/components/actions/scan-pifs/HostScanPifsButton.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
