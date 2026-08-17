@@ -3,6 +3,8 @@ import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoProxy } from '@vates/types'
 
+export type FrontXoProxy = Pick<XoProxy, (typeof proxyFields)[number]>
+
 const proxyFields = ['id', 'name'] as const satisfies readonly (keyof XoProxy)[]
 
 export const useXoProxyCollection = defineRemoteResource({
