@@ -162,6 +162,22 @@ const DEFAULT_HELMET_CONFIG = {
     },
   },
 }
+
+// Proxied third-party markup (e.g. Netdata) can't satisfy the hash
+// allowlist above, so it gets a more permissive CSP instead of none,
+// `/v5/netdata` self-proxies to `/netdata` (see config.toml)
+const CSP_EXEMPT_PREFIXES = ['/v5/netdata', '/netdata']
+const CSP_EXEMPT_DIRECTIVES = {
+  directives: {
+    'default-src': ["'self'"],
+    'connect-src': ["'self'"],
+    'script-src': ["'self'", "'unsafe-inline'"],
+    'style-src': ["'self'", "'unsafe-inline'"],
+    'img-src': ["'self'", 'data:'],
+    'object-src': ["'none'"],
+  },
+}
+
 async function createExpressApp(config) {
   const app = createExpress()
 
@@ -173,7 +189,21 @@ async function createExpressApp(config) {
   const helmetConfig = mergeWith({}, isDev ? {} : DEFAULT_HELMET_CONFIG, config.http.helmet, (dst, src) =>
     Array.isArray(dst) ? dst.concat(src) : undefined
   )
-  app.use(helmet(helmetConfig))
+
+  if (isDev) {
+    app.use(helmet(helmetConfig))
+  } else {
+    // CSP picked separately by path, other
+    // helmet headers stay the same
+    const { contentSecurityPolicy, ...restHelmetConfig } = helmetConfig
+    app.use(helmet({ ...restHelmetConfig, contentSecurityPolicy: false }))
+
+    const csp = helmet.contentSecurityPolicy(contentSecurityPolicy)
+    const relaxedCsp = helmet.contentSecurityPolicy(CSP_EXEMPT_DIRECTIVES)
+    app.use((req, res, next) =>
+      (CSP_EXEMPT_PREFIXES.some(prefix => req.url.startsWith(prefix)) ? relaxedCsp : csp)(req, res, next)
+    )
+  }
 
   app.use(compression())
 
