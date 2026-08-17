@@ -669,10 +669,26 @@ export default class Plan {
       return
     }
 
+    // process each pool independently: spreading anti-affinity-tagged VMs must never cross pool
+    // boundaries, since that would force a heavy storage-motion migration.
+    // No pool parallelization because we're limited by the concurrent migration limiter.
     const allHosts = this._getHosts()
-    if (allHosts.length <= 1) {
-      return
+    const promises = []
+    for (const poolId of this._poolIds) {
+      const poolHosts = filter(allHosts, host => host.$poolId === poolId)
+      if (poolHosts.length <= 1) {
+        continue
+      }
+      try {
+        promises.push(...(await this._processAntiAffinityForHosts(poolHosts)))
+      } catch (error) {
+        warn(`anti-affinity: failed to process pool ${poolId}`, { poolId, error })
+      }
     }
+    return Promise.all(promises)
+  }
+
+  async _processAntiAffinityForHosts(allHosts) {
     const idToHost = keyBy(allHosts, 'id')
 
     const allVms = filter(this._getAllRunningVms(), vm => vm.$container in idToHost)
@@ -688,7 +704,7 @@ export default class Plan {
       }
     }
     if (isEmpty(tagsDiff)) {
-      return
+      return []
     }
 
     // 2. Migrate!
@@ -708,7 +724,7 @@ export default class Plan {
 
     // 3. Done!
     debugAntiAffinity(`VM tag count per host after migration: ${inspect(taggedHosts, { depth: null })}.`)
-    return Promise.all(promises)
+    return promises
   }
 
   _processAntiAffinityTag({ tag, vmsAverages, hostsAverages, taggedHosts, idToHost }) {
@@ -982,10 +998,26 @@ export default class Plan {
       return
     }
 
+    // process each pool independently: consolidating affinity-tagged VMs onto a single host must never
+    // cross pool boundaries, since that would force a heavy storage-motion migration.
+    // No pool parallelization because we're limited by the concurrent migration limiter.
     const allHosts = this._getHosts()
-    if (allHosts.length <= 1) {
-      return
+    const promises = []
+    for (const poolId of this._poolIds) {
+      const poolHosts = filter(allHosts, host => host.$poolId === poolId)
+      if (poolHosts.length <= 1) {
+        continue
+      }
+      try {
+        promises.push(...(await this._processAffinityForHosts(poolHosts)))
+      } catch (error) {
+        warn(`affinity: failed to process pool ${poolId}`, { poolId, error })
+      }
     }
+    return Promise.allSettled(promises)
+  }
+
+  async _processAffinityForHosts(allHosts) {
     const idToHost = keyBy(allHosts, 'id')
 
     const allVms = filter(this._getAllRunningVms(), vm => vm.$container in idToHost)
@@ -1008,7 +1040,7 @@ export default class Plan {
       }
     }
     if (spreadTags.length === 0) {
-      return
+      return []
     }
 
     // 2. Check for tag coalitions: when a VM has multiple affinity tags, these tags should be considered as the same tag
@@ -1051,8 +1083,7 @@ export default class Plan {
 
     // 4. Done!
     debugAffinity(`VM tag count per host after migration: ${inspect(taggedHosts, { depth: null })}`)
-    // not returning Promise.all so we still wait for all migrations to end even if one fails
-    return Promise.allSettled(promises)
+    return promises
   }
 
   async _processAffinityTag({ tag, vmsAverages, hostsAverages, taggedHosts, idToHost, coalition }) {
@@ -1345,7 +1376,26 @@ export default class Plan {
       return
     }
 
+    // process each pool independently: a VM must never be migrated to a host in a different pool to
+    // satisfy vm-to-host affinity, since that would force a heavy storage-motion migration.
+    // No pool parallelization because we're limited by the concurrent migration limiter.
     const allHosts = this._getHosts()
+    const promises = []
+    for (const poolId of this._poolIds) {
+      const poolHosts = filter(allHosts, host => host.$poolId === poolId)
+      if (poolHosts.length === 0) {
+        continue
+      }
+      try {
+        promises.push(...(await this._processVmToHostAffinityForHosts(poolHosts)))
+      } catch (error) {
+        warn(`vm-to-host affinity: failed to process pool ${poolId}`, { poolId, error })
+      }
+    }
+    return Promise.allSettled(promises)
+  }
+
+  async _processVmToHostAffinityForHosts(allHosts) {
     const idToHost = keyBy(allHosts, 'id')
 
     // 1 - Check that every tagged VM has a preferred host sharing the same tag, otherwise assign one
@@ -1423,7 +1473,7 @@ export default class Plan {
     })
 
     if (misplacedVms.length === 0) {
-      return
+      return []
     }
 
     debugVmToHostAffinity(`Misplaced VMs: ${inspect(mapToArray(misplacedVms, 'id'), { depth: null })}`)
@@ -1521,6 +1571,6 @@ export default class Plan {
       )
     }
 
-    return Promise.allSettled(promises)
+    return promises
   }
 }
