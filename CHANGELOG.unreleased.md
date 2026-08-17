@@ -31,6 +31,15 @@
 - [RPU] A rolling pool update is now refused while a previous one is still in progress or was left incomplete, and asks for confirmation when the master is already up to date but other hosts are not (PR [#10394](https://github.com/vatesfr/xen-orchestra/pull/10394))
 - [REST API/Backup] Add `POST backup-archives/:id/actions/mount_live_disk` and `POST backup-archives/:id/live_disks/:liveDiskId/actions/unmount` endpoints (administrators only): attach a disk of a backup to a host as a read-only SR, to read its content without restoring it. This XO's address reachable from the hosts is auto-detected, or can be set explicitly with `iscsi.advertisedAddress`
 - [Backup/Restore] Choose what to do with each disk when restoring an incremental backup: restore it to an SR, live mount it read-only on a host so it is usable immediately without being copied, or not restore it at all (PR [#10345](https://github.com/vatesfr/xen-orchestra/pull/10345))
+- [XO6/Host] Add possibility to shut down and start an host (PR [#10088](https://github.com/vatesfr/xen-orchestra/pull/10088))
+- [REST API] Add `hosts/:id/actions/scan_pifs` endpoint (PR [#10187](https://github.com/vatesfr/xen-orchestra/pull/10187))
+- [XO6/Host] Add possibility to scan PIFs directly from the host (PR [#10191](https://github.com/vatesfr/xen-orchestra/pull/10191))
+- [Docs] Improve doc, rename titles, and refactor menu (PR [#10212](https://github.com/vatesfr/xen-orchestra/pull/10212))
+- [XO6/Host] Add possibility to forget a host (PR [#10089](https://github.com/vatesfr/xen-orchestra/pull/10089))
+
+- [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
+- [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
+- [Backup] Add 'immediate' flag to deleteVmBackups and deleteDeltaVmBackups to trigger the disk (vhds) deletion after its metadata deletion in incremental backups ( PR [#10273] (https://github.com/vatesfr/xen-orchestra/pull/10273))
 
 ### Bug fixes
 
@@ -101,6 +110,9 @@
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/qcow2 minor
+- @xen-orchestra/async-map patch
+- @xen-orchestra/backups minor
+- @xen-orchestra/proxy-cli patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer major
 - @xen-orchestra/web minor
