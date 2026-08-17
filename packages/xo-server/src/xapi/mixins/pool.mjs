@@ -332,6 +332,8 @@ const methods = {
       }
     })
 
+    // Not all users need VMs migrated back to their original hosts
+    // e.g. if load-balancer plugin is running it would be just a waste of time
     if (this.pool.other_config['xo:RPU_RPR_Migrate_VMs_back'] !== 'false') {
     // Reverse host order to improve chances of successful relocation of VMs to their original host in one step
     hosts.reverse()
