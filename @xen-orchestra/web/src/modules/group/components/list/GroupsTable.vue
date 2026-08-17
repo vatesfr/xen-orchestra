@@ -54,7 +54,7 @@ const { t } = useI18n()
 const filterableGroups = computed<FilterableGroup[]>(() =>
   rawGroups.map(group => ({
     ...group,
-    provider: group.provider ?? t('local'),
+    provider: group.provider ?? '',
     usersCount: group.users.length,
     rolesCount: group.aclRoleIds.length,
   }))
