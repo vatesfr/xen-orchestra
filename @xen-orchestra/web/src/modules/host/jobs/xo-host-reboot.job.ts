@@ -1,5 +1,5 @@
 import { xoHostArg } from '@/modules/host/jobs/xo-host-args.ts'
-import { xoForceRebootHostArg } from '@/modules/host/jobs/xo-host-force-reboot-args.ts'
+import { xoHostBooleanArg } from '@/modules/host/jobs/xo-host-boolean-args.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { isHostOperationPending } from '@/modules/host/utils/xo-host.util.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
@@ -9,7 +9,7 @@ import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export const useXoHostRebootJob = defineJob('host.reboot', [xoHostArg, xoForceRebootHostArg], () => {
+export const useXoHostRebootJob = defineJob('host.reboot', [xoHostArg, xoHostBooleanArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
 
