@@ -9,7 +9,7 @@
     :busy="isEnablingHost"
     @click="openEnableHostModal()"
   >
-    {{ t('action:enable-host') }}
+    {{ t('action:enable') }}
   </MenuItem>
 </template>
 

@@ -1,4 +1,4 @@
-import { xoHostArg } from '@/modules/host/jobs/xo-host-args.jobs.ts'
+import { xoHostArg } from '@/modules/host/jobs/xo-host-args.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { isHostOperationPending } from '@/modules/host/utils/xo-host.util.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'

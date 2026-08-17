@@ -1,12 +1,12 @@
 <template>
   <MenuItem
-    v-tooltip="!canDisableHost && disableHostErrorMessage"
-    :disabled="!canDisableHost"
-    icon="action:disable"
-    :busy="isDisablingHost"
-    @click="openDisableHostModal()"
+    v-tooltip="!canDisableHostAndEvacuateVMs && disableHostAndEvacuateVMsErrorMessage"
+    :disabled="!canDisableHostAndEvacuateVMs"
+    icon="action:disable-and-evacuate"
+    :busy="isDisablingHostAndEvacuatingVMs"
+    @click="disableHostAndEvacuateVms()"
   >
-    {{ t('action:disable') }}
+    {{ t('action:disable-and-evacuate-vms') }}
   </MenuItem>
 </template>
 
@@ -25,23 +25,25 @@ const { host } = defineProps<{
 const { t } = useI18n()
 
 const {
-  run: disableHost,
-  canRun: canDisableHost,
-  isRunning: isDisablingHost,
-  errorMessage: disableHostErrorMessage,
-} = useXoHostDisableJob(() => host, false)
+  run,
+  canRun: canDisableHostAndEvacuateVMs,
+  isRunning: isDisablingHostAndEvacuatingVMs,
+  errorMessage: disableHostAndEvacuateVMsErrorMessage,
+} = useXoHostDisableJob(() => host, true)
 
 const { open: openActionModal } = useActionModal()
 
-function openDisableHostModal() {
-  return openActionModal({
-    events: { onConfirm: () => disableHost() },
+function disableHostAndEvacuateVms() {
+  openActionModal({
+    events: {
+      onConfirm: () => run(),
+    },
     props: {
-      accent: 'warning',
-      action: 'disable',
+      accent: 'info',
+      action: 'disable-and-evacuate-vms',
       object: 'host',
       hostName: host.name_label,
-      icon: 'status:warning-picto',
+      icon: 'status:info-picto',
     },
   })
 }

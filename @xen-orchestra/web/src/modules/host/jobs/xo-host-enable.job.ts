@@ -1,4 +1,4 @@
-import { xoHostArg } from '@/modules/host/jobs/xo-host-args.jobs.ts'
+import { xoHostArg } from '@/modules/host/jobs/xo-host-args.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { isHostOperationPending } from '@/modules/host/utils/xo-host.util.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
@@ -25,6 +25,10 @@ export const useXoHostEnableJob = defineJob('host.enable', [xoHostArg], () => {
 
       if (isRunning || isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.ENABLE)) {
         throw new JobRunningError(t('job:enable:in-progress'))
+      }
+
+      if (isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.EVACUATE)) {
+        throw new JobRunningError(t('job:host-evacuate:in-progress'))
       }
     },
   }
