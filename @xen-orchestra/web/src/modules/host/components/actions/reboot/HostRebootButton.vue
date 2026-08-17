@@ -4,7 +4,7 @@
     :disabled="!canRebootHost"
     icon="action:reboot"
     :busy="isRebootingHost"
-    @click="openRebootHostModal()"
+    @click="rebootHost()"
   >
     {{ t('action:reboot') }}
   </MenuItem>
@@ -14,8 +14,8 @@
 import { useXoHostRebootJob } from '@/modules/host/jobs/xo-host-reboot.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -25,21 +25,26 @@ const { host } = defineProps<{
 const { t } = useI18n()
 
 const {
-  run: rebootHost,
+  run,
   canRun: canRebootHost,
   isRunning: isRebootingHost,
   errorMessage: rebootHostErrorMessage,
 } = useXoHostRebootJob(() => host)
 
-const openRebootHostModal = useModal({
-  component: import('@core/components/modal/VtsActionModal.vue'),
-  props: {
-    accent: 'info',
-    action: 'reboot',
-    object: 'host',
-    hostName: host.name_label,
-    icon: 'status:info-picto',
-  },
-  onConfirm: () => rebootHost(),
-})
+const { open: openActionModal } = useActionModal()
+
+function rebootHost() {
+  openActionModal({
+    events: {
+      onConfirm: () => run(),
+    },
+    props: {
+      accent: 'info',
+      action: 'reboot',
+      object: 'host',
+      hostName: host.name_label,
+      icon: 'status:info-picto',
+    },
+  })
+}
 </script>

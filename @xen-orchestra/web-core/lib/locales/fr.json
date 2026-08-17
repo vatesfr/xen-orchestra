@@ -670,7 +670,7 @@
   "modal:confirm-host-disable?": "Êtes-vous sûr de vouloir désactiver {host} ?",
   "modal:confirm-host-enable?": "Êtes-vous sûr de vouloir activer {host} ?",
   "modal:confirm-host-forget?": "Êtes-vous sûr de vouloir oublier {host} ?",
-  "modal:confirm-host-reboot": "Êtes-vous sûr de vouloir redémarrer {host} ?",
+  "modal:confirm-host-reboot?": "Êtes-vous sûr de vouloir redémarrer {host} ?",
   "modal:confirm-host-shutdown": "Êtes-vous sûr de vouloir arrêter {host} ?",
   "modal:confirm-host-start": "Êtes-vous sûr de vouloir démarrer {host} ?",
   "modal:confirm-vm-force-reboot": "Confirmer le redémarrage forcé de la VM",
