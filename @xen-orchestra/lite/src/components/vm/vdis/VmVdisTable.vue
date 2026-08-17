@@ -34,6 +34,7 @@ import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTableState } from '@core/composables/table-state.composable'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns'
+import { formatSize } from '@core/utils/size.util.ts'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -84,8 +85,8 @@ const { HeadCells, BodyCells } = useVdiColumns({
         }),
       description: r => r(vdi.name_description),
       usedSpace: r => r(vdi.physical_utilisation, vdi.virtual_size),
-      size: r => r(vdi.virtual_size),
-      format: r => r(vdi.type),
+      size: r => r(formatSize(vdi.virtual_size, 2)),
+      format: r => r('VHD'),
       actions: r =>
         r({
           onClick: () => (selectedVdiId.value = vdi.uuid),
