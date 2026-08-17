@@ -102,6 +102,17 @@ export const configurationSchema = {
             },
           },
 
+          vmToHostAffinityTags: {
+            type: 'array',
+            title: 'VM to host affinity tags',
+            description: 'list of tags shared by VMs and hosts to restrict placement of these VMs to these hosts',
+
+            items: {
+              type: 'string',
+              $type: 'Tag',
+            },
+          },
+
           // when UI will allow it, put balanceVcpu option outside performance mode
           // balanceVcpus is an incorrect name kept for compatibility with past configurationSchema
           balanceVcpus: {
