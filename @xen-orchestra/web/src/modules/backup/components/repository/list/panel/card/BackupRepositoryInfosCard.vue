@@ -25,7 +25,7 @@
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('proxy') }}</template>
         <template v-if="brProxy" #value>
-          <VtsIcon size="medium" name="object:instance" />
+          <VtsIcon size="medium" name="object:proxy" />
           {{ brProxy.name }}
         </template>
         <template v-if="brProxy" #addons>

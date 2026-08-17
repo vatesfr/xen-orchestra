@@ -79,7 +79,7 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
       type: r => r(parseBackupRepositoryUrl(br.url)?.type ?? ''),
       proxy: r => {
         const proxyName = useGetProxyById(() => br.proxy).value?.name
-        return proxyName ? r(proxyName, { leftIcon: { icon: 'object:instance' } }) : r('')
+        return proxyName ? r(proxyName, { leftIcon: { icon: 'object:proxy' } }) : r('')
       },
       selectItem: r => r(() => (selectedBrId.value = br.id)),
     }
