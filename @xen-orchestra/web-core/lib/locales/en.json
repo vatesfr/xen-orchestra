@@ -108,7 +108,7 @@
   "action:query-builder:delete-filter": "Delete filter",
   "action:query-builder:delete-group": "Delete group",
   "action:reboot": "Reboot",
-  "action:reboot-host": "Reboot host",
+  "action:reboot-host": "@:action:reboot host",
   "action:reformat": "Reformat",
   "action:resume": "Resume",
   "action:revert-to-snapshot": "Revert to snapshot",

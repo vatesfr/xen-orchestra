@@ -122,7 +122,7 @@ const textMappingsByObject: TextMappingByObject = {
     reboot: {
       title: t('modal:confirm-host-reboot?', { host: hostName }),
       message: t('modal:host-reboot-message'),
-      action: t('action:reboot'),
+      action: t('action:reboot-host'),
     },
   },
 }

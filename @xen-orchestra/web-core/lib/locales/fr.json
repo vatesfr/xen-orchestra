@@ -108,7 +108,7 @@
   "action:query-builder:delete-filter": "Supprimer le filtre",
   "action:query-builder:delete-group": "Supprimer le groupe",
   "action:reboot": "Redémarrer",
-  "action:reboot-host": "Redémarrer l'hôte",
+  "action:reboot-host": "@:action:reboot l'hôte",
   "action:reformat": "Reformater",
   "action:resume": "Reprendre",
   "action:revert-to-snapshot": "Revenir à l'instantané",
