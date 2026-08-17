@@ -332,7 +332,7 @@ const methods = {
       }
     })
 
-    if ( this.pool.other_config['xo:RPU_RPR_Migrate_VMs_back'] !== 'false') {
+    if (this.pool.other_config['xo:RPU_RPR_Migrate_VMs_back'] !== 'false') {
     // Reverse host order to improve chances of successful relocation of VMs to their original host in one step
     hosts.reverse()
 
