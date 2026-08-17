@@ -1,6 +1,11 @@
 <template>
   <UiTitle>
     {{ t('backup-repositories') }}
+    <template #action>
+      <UiButton variant="primary" accent="brand" size="medium" left-icon="fa:plus">
+        {{ t('new') }}
+      </UiButton>
+    </template>
   </UiTitle>
   <VtsQueryBuilder v-model="filter" :schema />
 
@@ -37,6 +42,7 @@ import { useBackupRepositoryColumns } from '@xen-orchestra/web-core/tables/colum
 import { useStringSchema } from '@xen-orchestra/web-core/utils/query-builder/use-string-schema.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 
 const { brs } = defineProps<{
   brs: FrontXoBackupRepository[]
