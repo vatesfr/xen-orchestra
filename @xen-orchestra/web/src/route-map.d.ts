@@ -234,10 +234,10 @@ declare module 'vue-router/auto-routes' {
       | '/pool/[id]/dashboard'
       | '/pool/[id]/hosts'
       | '/pool/[id]/networks'
-      | '/pool/[id]/security'
       | '/pool/[id]/storage'
       | '/pool/[id]/system'
       | '/pool/[id]/tasks'
+      | '/pool/[id]/traffic-rules'
       | '/pool/[id]/vms'
     >,
     '/pool/[id]/dashboard': RouteRecordInfo<
@@ -261,13 +261,6 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
-    '/pool/[id]/security': RouteRecordInfo<
-      '/pool/[id]/security',
-      '/pool/:id/security',
-      { id: ParamValue<true> },
-      { id: ParamValue<false> },
-      | never
-    >,
     '/pool/[id]/storage': RouteRecordInfo<
       '/pool/[id]/storage',
       '/pool/:id/storage',
@@ -285,6 +278,13 @@ declare module 'vue-router/auto-routes' {
     '/pool/[id]/tasks': RouteRecordInfo<
       '/pool/[id]/tasks',
       '/pool/:id/tasks',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/pool/[id]/traffic-rules': RouteRecordInfo<
+      '/pool/[id]/traffic-rules',
+      '/pool/:id/traffic-rules',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -651,10 +651,10 @@ declare module 'vue-router/auto-routes' {
         | '/pool/[id]/dashboard'
         | '/pool/[id]/hosts'
         | '/pool/[id]/networks'
-        | '/pool/[id]/security'
         | '/pool/[id]/storage'
         | '/pool/[id]/system'
         | '/pool/[id]/tasks'
+        | '/pool/[id]/traffic-rules'
         | '/pool/[id]/vms'
       views:
         | 'default'
@@ -677,12 +677,6 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/pool/[id]/security.vue': {
-      routes:
-        | '/pool/[id]/security'
-      views:
-        | never
-    }
     'src/pages/pool/[id]/storage.vue': {
       routes:
         | '/pool/[id]/storage'
@@ -698,6 +692,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/pool/[id]/tasks.vue': {
       routes:
         | '/pool/[id]/tasks'
+      views:
+        | never
+    }
+    'src/pages/pool/[id]/traffic-rules.vue': {
+      routes:
+        | '/pool/[id]/traffic-rules'
       views:
         | never
     }

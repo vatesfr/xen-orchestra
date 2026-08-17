@@ -22,18 +22,29 @@
 
     <div class="row target-row">
       <span class="prefix-wrapper">
-        <span class="prefix">{{ t('on') }}</span>
+        <span class="prefix">{{ targetPrefix }}</span>
       </span>
-      <TrafficRuleFormSelect v-bind="targetTypeSelectBindings" />
+      <TrafficRuleFormSelect v-bind="targetTypeSelectBindings">
+        <template #option="{ option }">
+          <VtsOption :option>
+            <span class="option-content">
+              {{ option.properties.label }}
+              <span v-if="option.properties.disabled" class="em-dash-prefix typo-body-regular-small">
+                {{ t('traffic-rules:xapi-plugin-required') }}
+              </span>
+            </span>
+          </VtsOption>
+        </template>
+      </TrafficRuleFormSelect>
       <TrafficRuleFormSelect v-if="isVifTarget" v-bind="vmSelectBindings">
         <template #option="{ option }">
           <VtsOption :option>
             <span class="option-content">
               <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
               {{ option.properties.label }}
-              <span v-if="option.properties.disabled" class="em-dash-prefix typo-body-regular-small">{{
-                t('no-vif-detected')
-              }}</span>
+              <span v-if="option.properties.disabled" class="em-dash-prefix typo-body-regular-small">
+                {{ t('no-vif-detected') }}
+              </span>
             </span>
           </VtsOption>
         </template>
@@ -82,6 +93,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const {
+  targetPrefix,
   isVifTarget,
   hasPort,
   allowSelectBindings,
@@ -154,7 +166,9 @@ async function onSubmit() {
       align-items: start;
 
       .prefix-wrapper {
-        place-self: end;
+        align-self: start;
+        justify-self: end;
+        margin-block-start: 2.8rem;
 
         .prefix {
           height: 4rem;
