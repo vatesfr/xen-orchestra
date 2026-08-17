@@ -176,7 +176,7 @@ export class RemoteAdapter {
     return this.deleteVmBackups([file])
   }
 
-  async deleteVmBackups(files, { immediate = false } = {}) {
+  async deleteVmBackups(files, { immediate = true } = {}) {
     const metadataOrNull = await asyncMap(files, async file => {
       try {
         return await this.readVmBackupMetadata(file)
