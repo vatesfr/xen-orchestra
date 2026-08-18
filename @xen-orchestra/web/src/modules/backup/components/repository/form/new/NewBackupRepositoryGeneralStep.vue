@@ -61,7 +61,8 @@ const { t } = useI18n()
 .new-backup-repository-general-step {
   display: flex;
   flex-direction: column;
-  gap: 3.2rem;
+  gap: 4.8rem;
+  margin-block-start: 2.4rem;
   text-align: left;
 
   .section {
