@@ -19,7 +19,5 @@ const { info, error } = defineProps<{
 
 const model = defineModel<string>({ required: true })
 
-const messages = computed<InputWrapperMessage>(
-  () => [info, error].filter(message => message !== undefined) as InputWrapperMessage
-)
+const messages = computed<InputWrapperMessage>(() => error ?? info ?? [])
 </script>

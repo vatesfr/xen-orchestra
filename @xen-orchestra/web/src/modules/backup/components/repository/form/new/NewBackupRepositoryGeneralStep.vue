@@ -3,11 +3,11 @@
     <div class="section">
       <UiTitle>{{ t('general-information') }}</UiTitle>
 
-      <div class="row">
+      <BackupRepositoryFormRow>
         <BackupRepositoryFormTextInput v-bind="nameInputBindings" />
-      </div>
+      </BackupRepositoryFormRow>
 
-      <div class="row">
+      <BackupRepositoryFormRow>
         <BackupRepositoryFormSelect v-bind="typeSelectBindings" />
         <BackupRepositoryFormSelect v-bind="backupFormatSelectBindings">
           <template #option="{ option }">
@@ -21,11 +21,11 @@
             </VtsOption>
           </template>
         </BackupRepositoryFormSelect>
-      </div>
+      </BackupRepositoryFormRow>
 
-      <div class="row">
+      <BackupRepositoryFormRow>
         <BackupRepositoryFormSelect v-bind="proxySelectBindings" />
-      </div>
+      </BackupRepositoryFormRow>
     </div>
 
     <div class="section">
@@ -37,14 +37,15 @@
 
       <BackupRepositoryEncryptedCheckbox v-bind="encryptedCheckboxBindings" />
 
-      <div v-if="encryptedCheckboxBindings.modelValue" class="row">
+      <BackupRepositoryFormRow v-if="encryptedCheckboxBindings.modelValue">
         <BackupRepositoryFormTextInput v-bind="encryptionKeyInputBindings" />
-      </div>
+      </BackupRepositoryFormRow>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/new/BackupRepositoryFormRow.vue'
 import BackupRepositoryEncryptedCheckbox from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryEncryptedCheckbox.vue'
 import BackupRepositoryFormSelect from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormSelect.vue'
 import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextInput.vue'
@@ -55,7 +56,7 @@ import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
-type SelectBindings = { id: FormSelectId; label: string } & FieldMetadata
+type SelectBindings = { id: FormSelectId; label: string; learnMoreUrl?: string } & FieldMetadata
 
 defineProps<{
   nameInputBindings: ModelBinding<string> & FieldMetadata & { label: string; required: boolean }
@@ -81,26 +82,6 @@ const { t } = useI18n()
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
-  }
-
-  .row {
-    display: flex;
-    flex-direction: column;
-    gap: 2.4rem;
-
-    & > * {
-      width: 100%;
-      min-width: 0;
-    }
-
-    @media (--medium-or-large) {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-
-      & > * {
-        width: auto;
-      }
-    }
   }
 }
 
