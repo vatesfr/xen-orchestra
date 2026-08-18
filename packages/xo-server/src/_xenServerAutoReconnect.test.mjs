@@ -9,8 +9,7 @@ function makeDeps(overrides) {
   return {
     connect: async () => {},
     delay: () => Promise.resolve(),
-    getServer: async () => ({ enabled: true }),
-    getStatus: () => 'disconnected',
+    getServer: async () => ({ enabled: true, status: 'disconnected' }),
     log: noopLog,
     ...overrides,
   }
@@ -61,7 +60,7 @@ describe('autoReconnect', () => {
           if (++reads === 1) {
             throw new Error('database hiccup')
           }
-          return { enabled: true }
+          return { enabled: true, status: 'disconnected' }
         },
         isGone: () => false,
         connect: async () => {
@@ -79,7 +78,7 @@ describe('autoReconnect', () => {
     const outcome = await autoReconnect(
       's1',
       makeDeps({
-        getStatus: () => 'connected',
+        getServer: () => ({ enabled: true, status: 'connected' }),
         connect: async () => {
           connectCalled = true
         },
