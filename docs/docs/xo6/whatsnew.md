@@ -1,3 +1,7 @@
+---
+sidebar_label: What's new
+---
+
 # What's new in XO 6
 
 XO 6 is a complete redesign of the Xen Orchestra interface, built as a modern web application on a dedicated design system. It is not a reskin of XO 5: the navigation, the information architecture and the visual language were rebuilt from scratch around how infrastructures are actually operated.

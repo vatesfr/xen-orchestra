@@ -1,3 +1,7 @@
+---
+sidebar_label: From source
+---
+
 # Installing XO from source
 
 Xen Orchestra is fully open source: you can build and run it yourself, for free, from its Git repository. This is the method of choice for home labs and evaluation on your own terms.

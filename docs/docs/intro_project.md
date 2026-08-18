@@ -1,5 +1,6 @@
 ---
 slug: project
+sidebar_label: About
 ---
 
 # About Xen Orchestra

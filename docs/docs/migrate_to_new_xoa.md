@@ -1,3 +1,7 @@
+---
+sidebar_label: Replace your XOA
+---
+
 # Migrating to a new XOA
 
 Replacing your appliance with a fresh one takes three steps: deploy the new XOA, export the configuration of the old one, and import it into the new one. Everything follows: users, ACLs, connected pools, backup jobs, remotes and settings.

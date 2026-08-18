@@ -1,3 +1,7 @@
+---
+sidebar_label: Load balancing
+---
+
 # Load balancing (XO 5)
 
 <InterfaceNote />
