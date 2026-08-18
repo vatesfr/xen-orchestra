@@ -17,8 +17,6 @@ export const useXoHostRebootJob = defineJob('host.reboot', [xoHostArg, xoHostBoo
     async run(host: FrontXoHost, isForceReboot: boolean) {
       const { taskId } = await fetchPost<{ taskId: FrontXoTask['id'] }>(`hosts/${host.id}/actions/clean_reboot`, {
         force: isForceReboot,
-        bypassBackupCheck: isForceReboot,
-        bypassVersionCheck: isForceReboot,
       })
       await monitorTask(taskId)
     },
