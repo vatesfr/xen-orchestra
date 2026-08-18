@@ -9,7 +9,18 @@
 
       <div class="row">
         <BackupRepositoryFormSelect v-bind="typeSelectBindings" />
-        <BackupRepositoryFormSelect v-bind="backupFormatSelectBindings" />
+        <BackupRepositoryFormSelect v-bind="backupFormatSelectBindings">
+          <template #option="{ option }">
+            <VtsOption :option>
+              <span class="option-content">
+                <span class="typo-body-bold">{{ option.properties.label }}</span>
+                <span v-if="option.properties.hint" class="em-dash-prefix hint typo-body-regular">
+                  {{ option.properties.hint }}
+                </span>
+              </span>
+            </VtsOption>
+          </template>
+        </BackupRepositoryFormSelect>
       </div>
 
       <div class="row">
@@ -39,6 +50,7 @@ import BackupRepositoryFormSelect from '@/modules/backup/components/repository/f
 import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextInput.vue'
 import type { FormSelectId } from '@core/packages/form-select'
 import type { FieldMetadata, ModelBinding } from '@core/packages/validated-form'
+import VtsOption from '@core/components/select/VtsOption.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
@@ -51,7 +63,7 @@ defineProps<{
   backupFormatSelectBindings: SelectBindings
   proxySelectBindings: SelectBindings
   encryptedCheckboxBindings: ModelBinding<boolean> & FieldMetadata
-  encryptionKeyInputBindings: ModelBinding<string> & FieldMetadata & { label: string }
+  encryptionKeyInputBindings: ModelBinding<string> & FieldMetadata & { label: string; required: boolean; info: string }
 }>()
 
 const { t } = useI18n()
@@ -89,6 +101,16 @@ const { t } = useI18n()
         width: auto;
       }
     }
+  }
+}
+
+.option-content {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.8rem;
+
+  .hint {
+    color: var(--color-neutral-txt-secondary);
   }
 }
 </style>
