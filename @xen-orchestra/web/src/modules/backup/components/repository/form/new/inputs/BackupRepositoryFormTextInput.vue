@@ -1,5 +1,5 @@
 <template>
-  <VtsInputWrapper :label :message="error">
+  <VtsInputWrapper :label :message="messages">
     <UiInput v-model.trim="model" accent="brand" :required />
   </VtsInputWrapper>
 </template>
@@ -8,12 +8,18 @@
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import { computed } from 'vue'
 
-defineProps<{
+const { info, error } = defineProps<{
   label: string
+  info?: string
   error?: InputWrapperMessage
   required?: boolean
 }>()
 
 const model = defineModel<string>({ required: true })
+
+const messages = computed<InputWrapperMessage>(
+  () => [info, error].filter(message => message !== undefined) as InputWrapperMessage
+)
 </script>
