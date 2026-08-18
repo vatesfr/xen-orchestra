@@ -58,4 +58,4 @@ Every level has a **Tasks** tab. It records what happens on your infrastructure:
 
 ## Where XO 5 fits
 
-XO 6 is an official release under active development. A few operations still live in XO 5, and XO 6 tells you explicitly: buttons and links marked with an external-link icon (for example **Manage VM lifecycle in XO 5**, or the **Stats** tab) open the right XO 5 page for that same object. Both interfaces work on the same data at the same time, so there is no synchronization to think about. The current split is documented in [XO 6 vs. XO 5](xo6vsxo5.md).
+XO 6 is an official release under active development. A few operations still live in XO 5, and XO 6 tells you explicitly: buttons and links marked with an external-link icon (for example **Manage VM lifecycle in XO 5**, or the **Stats** tab) open the right XO 5 page for that same object. Both interfaces work on the same data at the same time, so there is no synchronization to think about. The current split is documented in [XO 6 and XO 5](xo6vsxo5.md).

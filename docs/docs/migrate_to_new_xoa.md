@@ -14,7 +14,7 @@ Export your configuration regularly (and after any significant change): it is a 
 
 ## Deploy the new appliance
 
-Deploy a new XOA next to the old one, as described in [Installation](installation.md).
+Deploy a new XOA next to the old one, as described in [Installing XOA](installation.md).
 
 ## Export the configuration
 
