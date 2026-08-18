@@ -28,7 +28,6 @@ defineSlots<{
   @media (--medium-or-large) {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    align-items: end;
 
     & > * {
       width: auto;

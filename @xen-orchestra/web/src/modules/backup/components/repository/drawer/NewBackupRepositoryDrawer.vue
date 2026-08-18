@@ -23,6 +23,11 @@
           :azure-key-input-bindings
           :azure-container-name-input-bindings
           :azure-path-in-container-input-bindings
+          :nfs-host-input-bindings
+          :nfs-port-input-bindings
+          :nfs-path-input-bindings
+          :nfs-custom-options-input-bindings
+          :local-path-input-bindings
         />
       </UiStepper>
     </template>
@@ -68,6 +73,11 @@ const {
   azureKeyInputBindings,
   azureContainerNameInputBindings,
   azurePathInContainerInputBindings,
+  nfsHostInputBindings,
+  nfsPortInputBindings,
+  nfsPathInputBindings,
+  nfsCustomOptionsInputBindings,
+  localPathInputBindings,
 } = useNewBackupRepositoryForm()
 
 const currentStepIndex = computed(() => (currentStep.value === 'general' ? 0 : 1))
