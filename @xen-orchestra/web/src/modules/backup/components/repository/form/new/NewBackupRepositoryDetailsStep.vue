@@ -15,11 +15,13 @@
       :path-input-bindings="nfsPathInputBindings"
       :custom-options-input-bindings="nfsCustomOptionsInputBindings"
     />
+    <BackupRepositoryLocalFields v-else-if="type === 'file'" :path-input-bindings="localPathInputBindings" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import BackupRepositoryAzureFields from '@/modules/backup/components/repository/form/new/fields/BackupRepositoryAzureFields.vue'
+import BackupRepositoryLocalFields from '@/modules/backup/components/repository/form/new/fields/BackupRepositoryLocalFields.vue'
 import BackupRepositoryNfsFields from '@/modules/backup/components/repository/form/new/fields/BackupRepositoryNfsFields.vue'
 import type { BackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import type { FieldMetadata, ModelBinding } from '@core/packages/validated-form'
@@ -37,6 +39,7 @@ defineProps<{
   nfsPortInputBindings: TextInputBindings
   nfsPathInputBindings: TextInputBindings
   nfsCustomOptionsInputBindings: TextInputBindings
+  localPathInputBindings: TextInputBindings
 }>()
 </script>
 

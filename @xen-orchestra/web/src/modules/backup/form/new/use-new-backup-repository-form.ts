@@ -27,6 +27,7 @@ type NewBackupRepositoryFormData = {
     nfsPort: string
     nfsPath: string
     nfsCustomOptions: string
+    localPath: string
   }
 }
 
@@ -63,11 +64,13 @@ export function useNewBackupRepositoryForm() {
       nfsPort: '',
       nfsPath: '',
       nfsCustomOptions: '',
+      localPath: '',
     },
   })
 
   const isAzureType = computed(() => formData.general.type === 'azure' || formData.general.type === 'azurite')
   const isNfsType = computed(() => formData.general.type === 'nfs')
+  const isLocalType = computed(() => formData.general.type === 'file')
 
   const { useField, useFormSelect, useSelect, currentStep, next, back, validateAllSteps } = useMultiStepValidatedForm(
     formData,
@@ -100,6 +103,7 @@ export function useNewBackupRepositoryForm() {
             azureContainerName: { requiredIf: requiredIf(isAzureType) },
             nfsHost: { requiredIf: requiredIf(isNfsType) },
             nfsPath: { requiredIf: requiredIf(isNfsType) },
+            localPath: { requiredIf: requiredIf(isLocalType) },
           }),
         },
       },
@@ -180,5 +184,10 @@ export function useNewBackupRepositoryForm() {
     })),
     nfsPathInputBindings: useField('nfsPath', () => ({ label: t('path-on-share'), required: true })),
     nfsCustomOptionsInputBindings: useField('nfsCustomOptions', () => ({ label: t('custom-options') })),
+    localPathInputBindings: useField('localPath', () => ({
+      label: t('backup-repository-path'),
+      required: true,
+      info: formData.general.proxy !== undefined ? t('path-must-be-absolute-on-proxy-host') : undefined,
+    })),
   }
 }
