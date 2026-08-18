@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="storage-repository-pbds-card">
     <UiCardTitle>
       {{ t('pbd-details') }}
     </UiCardTitle>
@@ -35,7 +35,7 @@
         </template>
       </div>
     </template>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -48,9 +48,9 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -70,9 +70,7 @@ const { areSomePbdsDisconnected, disconnectedPbds } = usePbdUtils(pbdsInScope)
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.storage-repository-pbds-card {
   .content {
     display: flex;
     flex-direction: column;

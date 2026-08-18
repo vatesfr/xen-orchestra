@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="snapshot-info-card">
     <VtsCardObjectTitle
       :id="snapshot.id"
       :label="snapshot.name_label"
@@ -58,7 +58,7 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script setup lang="ts">
@@ -68,9 +68,9 @@ import { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snap
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -93,9 +93,7 @@ const trigger = computed(() => getSnapshotTrigger(snapshot))
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.snapshot-info-card {
   .content {
     display: flex;
     flex-direction: column;

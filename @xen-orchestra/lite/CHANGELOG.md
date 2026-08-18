@@ -4,6 +4,7 @@
 
 - [Pool/networks] Add the possibility to create new network or bonded network (PR [#10145](https://github.com/vatesfr/xen-orchestra/pull/10145))
 - [Host/Network] Add ability to rescan physical network interfaces (PIFs) (PR [#10147](https://github.com/vatesfr/xen-orchestra/pull/10147))
+- Fix inconsistent spacing in side panel cards
 
 ## **0.24.0** (2026-07-30)
 

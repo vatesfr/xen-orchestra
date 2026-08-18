@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="storage-repository-infos-card">
     <VtsCardObjectTitle :id="sr.id" :label="sr.name_label" :href :icon="srStatusIcon" />
     <div class="content">
       <VtsCardRowKeyValue>
@@ -52,7 +52,7 @@
         <template #value><VtsStatus :status="isHaSr" /></template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -68,7 +68,7 @@ import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObject
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -100,9 +100,7 @@ const isHaSr = isHighAvailabilitySr(() => sr)
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.storage-repository-infos-card {
   .content {
     display: flex;
     flex-direction: column;

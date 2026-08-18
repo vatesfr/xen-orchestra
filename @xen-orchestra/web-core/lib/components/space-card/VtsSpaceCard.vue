@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="vts-space-card">
     <UiCardTitle>
       {{ t('space') }}
     </UiCardTitle>
@@ -35,15 +35,15 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script setup lang="ts">
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { formatSize } from '@core/utils/size.util'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -78,9 +78,7 @@ const freeSpace = computed(() => {
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.vts-space-card {
   .content {
     display: flex;
     flex-direction: column;
