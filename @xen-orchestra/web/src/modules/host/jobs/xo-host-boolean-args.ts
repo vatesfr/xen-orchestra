@@ -1,6 +1,6 @@
 import { defineJobArg } from '@core/packages/job'
 
-export const xoHostDisableArg = defineJobArg<boolean>({
+export const xoHostBooleanArg = defineJobArg<boolean>({
   identify: false,
   toArray: false,
 })
