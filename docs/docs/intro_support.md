@@ -2,7 +2,7 @@
 slug: support
 ---
 
-# Support options
+# Support
 
 :::tip
 To run a self-diagnosis or open a secure support tunnel from your XOA, see [Troubleshooting](troubleshooting.md#still-stuck).
