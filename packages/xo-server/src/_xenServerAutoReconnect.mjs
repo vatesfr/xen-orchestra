@@ -41,7 +41,7 @@ export async function autoReconnect(
     if (!server.enabled) {
       return 'server disabled'
     }
-    if (getStatus(id) !== 'disconnected') {
+    if (server.status !== 'disconnected') {
       return 'already connected'
     }
 
