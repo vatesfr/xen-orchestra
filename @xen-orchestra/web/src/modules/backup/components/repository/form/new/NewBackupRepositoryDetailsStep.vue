@@ -8,11 +8,19 @@
       :container-name-input-bindings="azureContainerNameInputBindings"
       :path-in-container-input-bindings="azurePathInContainerInputBindings"
     />
+    <BackupRepositoryNfsFields
+      v-else-if="type === 'nfs'"
+      :host-input-bindings="nfsHostInputBindings"
+      :port-input-bindings="nfsPortInputBindings"
+      :path-input-bindings="nfsPathInputBindings"
+      :custom-options-input-bindings="nfsCustomOptionsInputBindings"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
 import BackupRepositoryAzureFields from '@/modules/backup/components/repository/form/new/fields/BackupRepositoryAzureFields.vue'
+import BackupRepositoryNfsFields from '@/modules/backup/components/repository/form/new/fields/BackupRepositoryNfsFields.vue'
 import type { BackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import type { FieldMetadata, ModelBinding } from '@core/packages/validated-form'
 
@@ -25,6 +33,10 @@ defineProps<{
   azureKeyInputBindings: TextInputBindings
   azureContainerNameInputBindings: TextInputBindings
   azurePathInContainerInputBindings: TextInputBindings
+  nfsHostInputBindings: TextInputBindings
+  nfsPortInputBindings: TextInputBindings
+  nfsPathInputBindings: TextInputBindings
+  nfsCustomOptionsInputBindings: TextInputBindings
 }>()
 </script>
 
