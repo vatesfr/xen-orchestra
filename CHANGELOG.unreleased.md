@@ -55,7 +55,7 @@
 
 <!--packages-start-->
 
-- @vates/types patch
+- @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/async-map patch
 - @xen-orchestra/proxy-cli patch
@@ -67,7 +67,7 @@
 - xen-api minor
 - xo-cli patch
 - xo-common minor
-- xo-server patch
+- xo-server minor
 - xo-server-ipmi-sensors minor
 - xo-server-netbox patch
 - xo-web patch
