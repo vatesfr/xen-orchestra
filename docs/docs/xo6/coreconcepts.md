@@ -1,4 +1,4 @@
-# Core concepts
+# How XO 6 is organized
 
 XO 6 organizes everything around a simple idea: **every level of your infrastructure gets the same treatment**. Your whole Xen Orchestra, a pool, a host or a single VM each have their own page, with a dashboard and a consistent set of tabs. Once you know how one page works, you know them all.
 

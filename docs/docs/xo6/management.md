@@ -1,8 +1,4 @@
----
-sidebar_label: Management in XO 6
----
-
-# Management
+# Management in XO 6
 
 This page walks through day-to-day management in XO 6: pools, hosts and VMs. For the general layout and navigation, start with [Getting started](gettingstarted.md).
 

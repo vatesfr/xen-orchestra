@@ -1,7 +1,3 @@
----
-sidebar_label: Features and settings
----
-
 # Backup features and settings
 
 <InterfaceNote>This page describes the backup configuration in the XO 5 interface. XO 6 already shows your jobs, their runs and each VM's protection status; creating, editing and restoring still happens here.</InterfaceNote>

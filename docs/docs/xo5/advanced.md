@@ -1,8 +1,8 @@
-# Advanced features
+# Additional features
 
 <InterfaceNote />
 
-This section is dedicated to all others Xen Orchestra "advanced features".
+This section is dedicated to all other Xen Orchestra features.
 
 ## Live Telemetry
 
