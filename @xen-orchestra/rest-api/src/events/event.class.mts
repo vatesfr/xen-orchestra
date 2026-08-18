@@ -135,7 +135,7 @@ export class XoListener extends Listener<XoListenerType> {
         _prevObject = prevObjectIsAlarm ? this.#alarmService!.parseAlarm(previousObj) : undefined
       } else {
         _object = objectIsAlarm ? undefined : object
-        _prevObject = prevObjectIsAlarm ? undefined : object
+        _prevObject = prevObjectIsAlarm ? undefined : previousObj
       }
     } else if (this.type === 'backup-job') {
       // If we are in an backup job listener and the objects a simple jobs
