@@ -78,6 +78,8 @@ const detailsStepLabel = computed(() => {
       return t('azure-details')
     case 'azurite':
       return t('azurite-details')
+    case 'nfs':
+      return t('nfs-details')
     default:
       return ''
   }
