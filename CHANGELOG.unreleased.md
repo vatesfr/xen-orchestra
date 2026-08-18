@@ -37,7 +37,7 @@
 - **XO 5**:
   - [VM/Console] Fix the page header and tab navigation disappearing permanently in the console tab (PR [#10007](https://github.com/vatesfr/xen-orchestra/pull/10007))
 - **XO 6**:
-  - [backup/restore] Fix backups of a repository randomly disappearing from the list after visiting a VM (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
+  - [backup/restore] Fix backups of a repository randomly disappearing from the list after visiting a VM (PR [#10277](https://github.com/vatesfr/xen-orchestra/pull/10277))
 
 ### Packages to release
 
