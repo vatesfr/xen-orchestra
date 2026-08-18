@@ -4,7 +4,7 @@
     :disabled="!canForceRebootHost"
     icon="action:force-reboot"
     :busy="isForceRebootingHost"
-    @click="rebootHost()"
+    @click="forceRebootHost()"
   >
     {{ t('action:force-reboot') }}
   </MenuItem>
@@ -33,7 +33,7 @@ const {
 
 const { open: openActionModal } = useActionModal()
 
-function rebootHost() {
+function forceRebootHost() {
   openActionModal({
     events: {
       onConfirm: () => run(),
