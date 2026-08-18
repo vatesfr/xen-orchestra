@@ -23,14 +23,21 @@ type NewBackupRepositoryFormData = {
     azureKey: string
     azureContainerName: string
     azurePathInContainer: string
+    nfsHost: string
+    nfsPort: string
+    nfsPath: string
+    nfsCustomOptions: string
   }
 }
 
 const ENCRYPTION_KEY_LENGTH = 32
 const ENCRYPTION_KEY_REGEX = /^[0-9a-f]{32}$/i
+
 const BACKUP_FORMAT_DOC_URL = 'https://docs.xen-orchestra.com/xo5/incremental_backups'
 
 const BLOCK_ONLY_TYPES: BackupRepositoryType[] = ['azure', 'azurite', 's3']
+
+const NFS_DEFAULT_PORT = 2049
 
 export function useNewBackupRepositoryForm() {
   const { t } = useI18n()
@@ -52,10 +59,15 @@ export function useNewBackupRepositoryForm() {
       azureKey: '',
       azureContainerName: '',
       azurePathInContainer: '',
+      nfsHost: '',
+      nfsPort: '',
+      nfsPath: '',
+      nfsCustomOptions: '',
     },
   })
 
   const isAzureType = computed(() => formData.general.type === 'azure' || formData.general.type === 'azurite')
+  const isNfsType = computed(() => formData.general.type === 'nfs')
 
   const { useField, useFormSelect, useSelect, currentStep, next, back, validateAllSteps } = useMultiStepValidatedForm(
     formData,
@@ -86,6 +98,8 @@ export function useNewBackupRepositoryForm() {
             azureAccountName: { requiredIf: requiredIf(isAzureType) },
             azureKey: { requiredIf: requiredIf(isAzureType) },
             azureContainerName: { requiredIf: requiredIf(isAzureType) },
+            nfsHost: { requiredIf: requiredIf(isNfsType) },
+            nfsPath: { requiredIf: requiredIf(isNfsType) },
           }),
         },
       },
@@ -158,5 +172,13 @@ export function useNewBackupRepositoryForm() {
       required: true,
     })),
     azurePathInContainerInputBindings: useField('azurePathInContainer', () => ({ label: t('path-in-container') })),
+    nfsHostInputBindings: useField('nfsHost', () => ({ label: t('host-or-ip-address'), required: true })),
+    nfsPortInputBindings: useField('nfsPort', () => ({
+      label: t('port'),
+      placeholder: NFS_DEFAULT_PORT,
+      info: t('value-by-default', { value: NFS_DEFAULT_PORT }),
+    })),
+    nfsPathInputBindings: useField('nfsPath', () => ({ label: t('path-on-share'), required: true })),
+    nfsCustomOptionsInputBindings: useField('nfsCustomOptions', () => ({ label: t('custom-options') })),
   }
 }

@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label :message="messages">
-    <UiInput v-model.trim="model" accent="brand" :required />
+    <UiInput v-model.trim="model" accent="brand" :required :placeholder />
   </VtsInputWrapper>
 </template>
 
@@ -15,6 +15,7 @@ const { info, error } = defineProps<{
   info?: string
   error?: InputWrapperMessage
   required?: boolean
+  placeholder?: string
 }>()
 
 const model = defineModel<string>({ required: true })
