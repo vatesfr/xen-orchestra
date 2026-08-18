@@ -14,6 +14,7 @@ export type Status =
   | 'connecting'
   | 'connected'
   | 'disconnected'
+  | 'disconnecting'
   | 'partially-connected'
   | 'disconnected-from-physical-device'
   | 'physically-disconnected'
@@ -43,6 +44,7 @@ const currentStatus = useMapper<Status, { text: string; accent: InfoAccent }>(
     ['connecting', { text: t('connecting'), accent: 'info' }],
     ['connected', { text: t('connected'), accent: 'success' }],
     ['disconnected', { text: t('disconnected'), accent: 'danger' }],
+    ['disconnecting', { text: t('disconnecting'), accent: 'info' }],
     ['partially-connected', { text: t('partially-connected'), accent: 'warning' }],
     ['disconnected-from-physical-device', { text: t('disconnected-from-physical-device'), accent: 'warning' }],
     ['physically-disconnected', { text: t('disconnected-from-physical-device'), accent: 'danger' }],

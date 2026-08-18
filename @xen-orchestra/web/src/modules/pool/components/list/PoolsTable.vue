@@ -74,6 +74,7 @@ const schema = useQueryBuilderSchema<PoolFilterableData>({
   poolStatus: useStringSchema(t('status'), {
     connected: t('connected'),
     connecting: t('connecting'),
+    disconnecting: t('disconnecting'),
     disconnected: t('disconnected'),
     'unable-to-connect-to-the-pool': t('unable-to-connect-to-the-pool'),
   }),
@@ -157,7 +158,7 @@ const { HeadCells, BodyCells } = useServerColumns({
         r({
           onClick: () => (selectedServerId.value = server.id),
           actions: [
-            server.status === 'connected'
+            server.status === 'connected' || server.status === 'connecting'
               ? {
                   label: t('action:disconnect-pool'),
                   icon: 'action:disconnect',

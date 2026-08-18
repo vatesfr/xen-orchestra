@@ -602,7 +602,7 @@ export type XoServer = {
   poolNameDescription?: string
   poolNameLabel?: string
   readOnly: boolean
-  status: 'connected' | 'disconnected' | 'connecting'
+  status: 'connected' | 'disconnecting' | 'disconnected' | 'connecting'
   username: string
 }
 
