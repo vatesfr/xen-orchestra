@@ -24,6 +24,7 @@
 </template>
 
 <script lang="ts" setup>
+import { getVdiIcon } from '@/libs/vdi.ts'
 import type { XenApiVdi, XenApiVbd } from '@/libs/xen-api/xen-api.types.ts'
 import { useVdiStore } from '@/stores/xen-api/vdi.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -54,13 +55,12 @@ const searchQuery = ref('')
 
 const filteredVdis = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return vdis
-  }
+  if (!searchTerm) return vdis
 
   return vdis.filter(vdi =>
-    [...Object.values(vdi)].some(value => String(value).toLocaleLowerCase().includes(searchTerm))
+    [vdi.name_label, vdi.name_description, vdi.uuid]
+      .filter(Boolean)
+      .some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
@@ -75,18 +75,18 @@ const { pageRecords: paginatedVdis, paginationBindings } = usePagination('vdis',
 
 const { HeadCells, BodyCells } = useVdiColumns({
   body: (vdi: XenApiVdi) => {
+    const vdiVbds = vbds.filter(vbd => vbd.VDI === vdi.$ref)
+
     return {
       vdi: r =>
         r({
           label: vdi.name_label,
-          icon: vbds.find(vbd => vbd.VDI === vdi.$ref)?.currently_attached
-            ? 'object:vdi:attached'
-            : 'object:vdi:detached',
+          icon: getVdiIcon(vdiVbds),
         }),
       description: r => r(vdi.name_description),
       usedSpace: r => r(vdi.physical_utilisation, vdi.virtual_size),
       size: r => r(formatSize(vdi.virtual_size, 2)),
-      format: r => r('VHD'),
+      format: r => r(vdi.type === 'user' ? 'VHD' : vdi.sm_config?.['vhd-parent'] ? 'VHD' : 'RAW'),
       actions: r =>
         r({
           onClick: () => (selectedVdiId.value = vdi.uuid),
