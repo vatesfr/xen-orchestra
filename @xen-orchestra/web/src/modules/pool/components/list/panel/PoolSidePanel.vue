@@ -224,7 +224,7 @@ const connectionStatus = useMapper(
   {
     error: { accent: 'danger', text: t('unable-to-connect-to-the-pool') },
     disconnected: { accent: 'muted', text: t('disconnected') },
-    disconnecting: { accent: 'info', text: t('connecting') }, // todo: add disconnecting text
+    disconnecting: { accent: 'info', text: t('disconnecting') }, // TODO: fix when designed
     connected: { accent: 'success', text: t('connected') },
     connecting: { accent: 'info', text: t('connecting') },
   },

@@ -342,6 +342,7 @@
   "disabled": "Disabled",
   "disconnect-vifs-in-xo-5-to-delete-network": "To delete a network, you must first disconnect all VIFs attached to it. You can manage your VMs' VIFs in {xo-5}.",
   "disconnected": "Disconnected",
+  "disconnecting": "Disconnecting",
   "disconnected-from-physical-device": "Disconnected from physical device",
   "disconnected-pbd-number": "Disconnected PBD #{n}",
   "disk-name": "Disk name",
