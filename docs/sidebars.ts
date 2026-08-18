@@ -64,7 +64,7 @@ export default {
     },
     {
       type: 'category',
-      label: 'Managing your infrastructure',
+      label: 'Manage your infrastructure',
       collapsible: true,
       collapsed: true,
       items: [
