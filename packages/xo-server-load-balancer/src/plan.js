@@ -1095,16 +1095,33 @@ export default class Plan {
     // computing the sum of number of VMs per coalition to avoid doing it multiple times while sorting
     // in case of coalitions, the sum is incorrect as VMs are counted twice, but it gives an approximation without parsing all the VMs again
     const taggedVmCountPerHost = {}
+    // number of coalition-tagged VMs on the host that also share a vm-to-host-affinity tag with their host:
+    // such a VM likely can't be migrated away without deteriorating its vm-to-host affinity, so its host
+    // should be preferred as the destination rather than as a source we could never actually migrate it from
+    const pinnedVmCountPerHost = {}
     for (const host of taggedHosts.hosts) {
       taggedVmCountPerHost[host.id] = coalition.reduce((sum, coalitionTag) => sum + host.tagCounts[coalitionTag], 0)
+      pinnedVmCountPerHost[host.id] = Object.values(host.vms).reduce(
+        (sum, vm) =>
+          sum +
+          (intersection(vm.tags, coalition).length > 0 &&
+          intersection(vm.tags, this._vmToHostAffinityTags, idToHost[host.id].tags).length > 0
+            ? 1
+            : 0),
+        0
+      )
     }
 
     const sortedHosts = sortBy(
       taggedHosts.hosts.filter(host => coalition.some(coalitionTag => host.tagCounts[coalitionTag] > 0)),
-      [host => taggedVmCountPerHost[host.id], host => -hostsAverages[host.id].memoryFree]
+      [
+        host => taggedVmCountPerHost[host.id],
+        host => pinnedVmCountPerHost[host.id],
+        host => -hostsAverages[host.id].memoryFree,
+      ]
     )
 
-    // hosts are sorted from having the less tagged VMs to the most, so we pick destinationHost from the end of the list
+    // hosts are sorted from having the least tagged VMs to the most, so we pick destinationHost from the end of the list
     let destinationHost = sortedHosts.pop()
 
     // Migrate tagged VMs from every other host
