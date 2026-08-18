@@ -2,7 +2,7 @@ import { xoServerIdsArg } from '@/modules/server/jobs/xo-server-args.job.ts'
 import { fetchDelete } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 
-export const useXoServerRemoveJob = defineJob('server.remove', [xoServerIdsArg], () => {
+export const useXoServerForgetJob = defineJob('server.remove', [xoServerIdsArg], () => {
   return {
     run(serverIds) {
       return Promise.allSettled(serverIds.map(async serverId => fetchDelete(`servers/${serverId.value}`)))
