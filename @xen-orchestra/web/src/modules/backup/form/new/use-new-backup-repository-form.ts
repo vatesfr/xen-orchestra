@@ -7,6 +7,9 @@ import { defineFormSteps } from '@core/packages/validated-form'
 import { useMultiStepValidatedForm } from '@xen-orchestra/web-core/packages/validated-form/use-multi-step-validated-form.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { requiredIf } from '@regle/rules'
+import { withMessage } from '@regle/rules'
+import { regex } from '@regle/rules'
 
 type NewBackupRepositoryFormData = {
   general: {
@@ -18,6 +21,9 @@ type NewBackupRepositoryFormData = {
     encryptionKey: string
   }
 }
+
+const ENCRYPTION_KEY_LENGTH = 32
+const ENCRYPTION_KEY_REGEX = /^[0-9a-f]{32}$/i
 
 export function useNewBackupRepositoryForm() {
   const { t } = useI18n()
@@ -44,6 +50,12 @@ export function useNewBackupRepositoryForm() {
             name: { required },
             type: { required },
             backupFormat: { required },
+            encryptionKey: {
+              requiredIf: requiredIf(() => formData.general.encrypted),
+              regex: withMessage(regex(ENCRYPTION_KEY_REGEX), () =>
+                t('encryption-key-invalid', { n: ENCRYPTION_KEY_LENGTH })
+              ),
+            },
           }),
         },
       },
