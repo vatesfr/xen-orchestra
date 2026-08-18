@@ -1,5 +1,5 @@
 <template>
-  <VtsInputWrapper :label :message="error">
+  <VtsInputWrapper :label :message="error" :learn-more-url="learnMoreUrl">
     <VtsSelect :id accent="brand">
       <template v-if="slots.option" #default="slotProps">
         <slot name="option" v-bind="slotProps" />
@@ -20,9 +20,18 @@ defineProps<{
   id: FormSelectId
   label: string
   error?: InputWrapperMessage
+  learnMoreUrl?: string
 }>()
 
 const slots = defineSlots<{
   option?(props: { option: BackupRepositoryFormSelectOption }): any
 }>()
 </script>
+
+<style lang="postcss" scoped>
+.vts-input-wrapper {
+  :deep(.ui-link) {
+    white-space: nowrap;
+  }
+}
+</style>
