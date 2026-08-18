@@ -1,4 +1,6 @@
-# ChangeLog
+``# ChangeLog
+
+- [VM/VDIs] Add VDIs page with side panel (PR[#10269](https://github.com/vatesfr/xen-orchestra/pull/10269))
 
 ## **next**
 
