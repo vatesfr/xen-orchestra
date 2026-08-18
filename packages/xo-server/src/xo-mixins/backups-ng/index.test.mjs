@@ -140,6 +140,81 @@ describe('_listVmBackupsWithBackoff()', () => {
   })
 })
 
+describe('listVmBackupsNg()', () => {
+  // as returned by a listing: a VM without any backup is not listed at all
+  const BACKUPS_BY_VM = { vmWithBackups: [{ id: 'remote/backup' }] }
+
+  const createListing = backupNg => {
+    const calls = []
+    backupNg._listVmBackupsOnRemoteUncached = remoteId => {
+      calls.push(remoteId)
+      return Promise.resolve({ ...BACKUPS_BY_VM })
+    }
+    return calls
+  }
+
+  beforeEach(() => {
+    mock.timers.enable({ apis: ['setTimeout', 'Date'] })
+  })
+
+  afterEach(() => {
+    mock.timers.reset()
+  })
+
+  it('does not narrow down the listing of a caller which asked for every VM', async () => {
+    const backupNg = createBackupNg()
+    const calls = createListing(backupNg)
+
+    // the VM dashboard asks for a single VM, which has no backup on this repository
+    assert.deepEqual(await backupNg.listVmBackupsNg(['remote'], { vmId: 'vmWithoutBackups' }), {
+      remote: { vmWithoutBackups: [] },
+    })
+
+    // inside the debounce window, a caller which asked for every VM must still see them all
+    assert.deepEqual(await backupNg.listVmBackupsNg(['remote']), { remote: BACKUPS_BY_VM })
+
+    // both callers share the same listing
+    assert.deepEqual(calls, ['remote'])
+  })
+
+  it('narrows down the listing to the requested VM', async () => {
+    const backupNg = createBackupNg()
+    createListing(backupNg)
+
+    assert.deepEqual(await backupNg.listVmBackupsNg(['remote']), { remote: BACKUPS_BY_VM })
+
+    // inside the debounce window, a caller which asked for a single VM must only get that one
+    assert.deepEqual(await backupNg.listVmBackupsNg(['remote'], { vmId: 'vmWithBackups' }), {
+      remote: { vmWithBackups: BACKUPS_BY_VM.vmWithBackups },
+    })
+
+    // a VM without any backup is not listed by the repository, it must still be reported as empty
+    assert.deepEqual(await backupNg.listVmBackupsNg(['remote'], { vmId: 'vmWithoutBackups' }), {
+      remote: { vmWithoutBackups: [] },
+    })
+  })
+
+  it('reports a failed listing as `null` whether a VM was requested or not', async () => {
+    const backupNg = createBackupNg()
+    backupNg._listVmBackupsOnRemoteUncached = () => Promise.reject(new Error('unreachable'))
+
+    assert.deepEqual(await backupNg.listVmBackupsNg(['remote']), { remote: null })
+    assert.deepEqual(await backupNg.listVmBackupsNg(['remote'], { vmId: 'vmWithBackups' }), { remote: null })
+  })
+
+  it('lists a repository only once for all the callers of a debounce window', async () => {
+    const backupNg = createBackupNg()
+    const calls = createListing(backupNg)
+
+    await Promise.all([backupNg.listVmBackupsNg(['remote']), backupNg.listVmBackupsNg(['remote'])])
+    assert.equal(calls.length, 1)
+
+    await tick(LISTING_DEBOUNCE + 1e3)
+    await backupNg.listVmBackupsNg(['remote'])
+    assert.equal(calls.length, 2)
+  })
+})
+
 describe('invalidateVmBackupsListing()', () => {
   beforeEach(() => {
     mock.timers.enable({ apis: ['setTimeout', 'Date'] })

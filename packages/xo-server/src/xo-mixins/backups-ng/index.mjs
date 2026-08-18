@@ -631,19 +631,17 @@ export default class BackupNg {
    * again
    *
    * @param {XoBackupRepository['id']} remoteId
-   * @param {{ vmId?: XoVm['id'] }} [opts]
    * @returns {Promise<BackupsByVm>}
    */
-  _listVmBackupsOnRemote(remoteId, opts) {
-    return timeout.call(this._listVmBackupsOnRemoteUncached(remoteId, opts), LISTING_TIMEOUT)
+  _listVmBackupsOnRemote(remoteId) {
+    return timeout.call(this._listVmBackupsOnRemoteUncached(remoteId), LISTING_TIMEOUT)
   }
 
   /**
    * @param {XoBackupRepository['id']} remoteId
-   * @param {{ vmId?: XoVm['id'] }} [opts]
    * @returns {Promise<BackupsByVm>}
    */
-  async _listVmBackupsOnRemoteUncached(remoteId, { vmId } = {}) {
+  async _listVmBackupsOnRemoteUncached(remoteId) {
     const app = this._app
     const remote = await app.getRemoteWithCredentials(remoteId)
 
@@ -656,19 +654,11 @@ export default class BackupNg {
             options: remote.options,
           },
         },
-        vmId,
       }))
     } else {
-      backupsByVm = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
-        let vmBackups
-        if (vmId !== undefined) {
-          vmBackups = { [vmId]: await adapter.listVmBackups(vmId) }
-        } else {
-          vmBackups = await adapter.listAllVmBackups()
-        }
-
-        return formatVmBackups(vmBackups, remote.id)
-      })
+      backupsByVm = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter =>
+        formatVmBackups(await adapter.listAllVmBackups(), remote.id)
+      )
     }
 
     // inject the remote id on the backup which is needed for importVmBackupNg()
@@ -707,18 +697,17 @@ export default class BackupNg {
    * from a remote which has no backups
    *
    * @param {XoBackupRepository['id']} remoteId
-   * @param {{ vmId?: XoVm['id'] }} [opts]
    * @returns {Promise<RemoteListingResult>} `error` is set when the listing failed, took longer
    * than `LISTING_TIMEOUT`, or was skipped because the remote is in its retry delay
    */
-  _listVmBackupsWithBackoff(remoteId, { vmId } = {}) {
+  _listVmBackupsWithBackoff(remoteId) {
     const state = this._backupsListingRetry[remoteId]
     if (state !== undefined && state.nextAttemptAt > Date.now()) {
       // report the failure which put this remote in its retry delay
       return Promise.resolve({ error: state.error })
     }
 
-    const promise = this._listVmBackupsOnRemote(remoteId, { vmId })
+    const promise = this._listVmBackupsOnRemote(remoteId)
 
     // this promise is returned to every caller of the debounce window, even after it has settled:
     // only track its outcome once, and keep tracking it after it settles or a late caller would
@@ -763,10 +752,16 @@ export default class BackupNg {
         this.invalidateVmBackupsListing(remoteId)
       }
 
-      const { backupsByVm, error } = await this._listVmBackupsWithBackoff(remoteId, { vmId })
+      const { backupsByVm, error } = await this._listVmBackupsWithBackoff(remoteId)
 
       // `null` = the listing failed, an empty object = this repository has no backups
-      backupsByVmByRemote[remoteId] = error === undefined ? backupsByVm : null
+      backupsByVmByRemote[remoteId] =
+        error !== undefined
+          ? null
+          : vmId === undefined
+            ? backupsByVm
+            : // a VM without any backup is not listed at all
+              { [vmId]: backupsByVm[vmId] ?? [] }
     })
 
     return backupsByVmByRemote
