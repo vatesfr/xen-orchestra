@@ -1,4 +1,4 @@
-# Additional features
+# Advanced features
 
 <InterfaceNote />
 

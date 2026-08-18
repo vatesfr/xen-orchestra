@@ -1,8 +1,4 @@
----
-sidebar_label: Architecture
----
-
-# How XOA works
+# Architecture
 
 Xen Orchestra (XO) is built as **one server and several clients**: the two web interfaces ([XO 6](xo6/gettingstarted.md) and XO 5), the command line client `xo-cli`, and anything speaking the [REST API](automation/restapi.md). The server, `xo-server`, is the only piece that talks to your infrastructure.
 

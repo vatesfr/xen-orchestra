@@ -1,3 +1,7 @@
+---
+sidebar_label: First steps
+---
+
 # XO 6 at a glance
 
 XO 6 is the new generation of the Xen Orchestra web interface. Since its first official release, it is the default interface of your Xen Orchestra: log in as usual and you land in XO 6.

@@ -1,8 +1,4 @@
----
-sidebar_label: VM Templates
----
-
-# VM Templates (XO 5)
+# VM templates
 
 <InterfaceNote />
 

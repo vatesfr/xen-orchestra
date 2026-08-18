@@ -79,7 +79,7 @@ export default {
     },
     {
       type: 'category',
-      label: 'Backups and disaster recovery',
+      label: 'Backups and DR',
       collapsible: true,
       collapsed: true,
       items: [
