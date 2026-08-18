@@ -40,13 +40,6 @@ export default {
     },
     {
       type: 'category',
-      label: 'Discover Xen Orchestra',
-      collapsible: true,
-      collapsed: false,
-      items: ['architecture', 'xo6/whatsnew', 'xo6/xo6vsxo5', 'xo6/gettingstarted', 'xo6/coreconcepts'],
-    },
-    {
-      type: 'category',
       label: 'Getting started',
       collapsible: true,
       collapsed: false,
@@ -59,7 +52,15 @@ export default {
         'updater',
         'migrate_to_new_xoa',
         'troubleshooting',
+        'architecture',
       ],
+    },
+    {
+      type: 'category',
+      label: 'Discover Xen Orchestra',
+      collapsible: true,
+      collapsed: false,
+      items: ['xo6/whatsnew', 'xo6/xo6vsxo5', 'xo6/gettingstarted', 'xo6/coreconcepts'],
     },
     {
       type: 'category',
