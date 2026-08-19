@@ -143,13 +143,6 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
-    '/dev/': RouteRecordInfo<
-      '/dev/',
-      '/dev',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/host/[id]': RouteRecordInfo<
       '/host/[id]',
       '/host/:id',
