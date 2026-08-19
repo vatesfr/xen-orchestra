@@ -7,8 +7,9 @@ import type { PassThrough } from 'node:stream'
 
 import { Listener } from '../abstract-classes/listener.mjs'
 import type { CollectionEventType, EventType, SubscriberId, XoListenerType } from './event.type.mjs'
-import type { XapiXoRecord, XoAlarm, XoTask, XoUser } from '@vates/types'
+import type { AnyXoJob, XoAlarm, XoMessage, XoRecord, XoUser } from '@vates/types'
 import type { AlarmService } from '../alarms/alarm.service.mjs'
+import type { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
 
@@ -92,26 +93,33 @@ export class Subscriber {
 
 export class XoListener extends Listener<XoListenerType> {
   #alarmService?: AlarmService
+  #backupJobService?: BackupJobService
 
-  constructor(type: XoListenerType, eventEmitter: EventEmitter, alarmService?: AlarmService) {
+  constructor(
+    type: XoListenerType,
+    eventEmitter: EventEmitter,
+    opts: { alarmService?: AlarmService; backupJobService?: BackupJobService } = {}
+  ) {
     super(eventEmitter, ['add', 'update', 'remove'], type)
-    this.#alarmService = alarmService
+    this.#alarmService = opts.alarmService
+    this.#backupJobService = opts.backupJobService
   }
 
-  async handleData<T extends Exclude<XapiXoRecord, XoAlarm> | XoTask>(
+  async handleData<T extends Exclude<XoRecord, XoAlarm>>(
     { fields, event, subscriber }: { fields: '*' | string[]; subscriber: Subscriber; event: CollectionEventType },
     object: T | undefined,
     previousObj?: T
-  ): Promise<
-    (Partial<XapiXoRecord | XoTask> & { $subscription: XoListenerType; event: CollectionEventType }) | undefined
-  > {
-    let _object: Partial<XapiXoRecord | XoTask> | undefined = object
-    let _prevObject: Partial<XapiXoRecord | XoTask> | undefined = previousObj
+  ): Promise<(Partial<XoRecord> & { $subscription: XoListenerType; event: CollectionEventType }) | undefined> {
+    let _object: Partial<XoRecord> | undefined = object
+    let _prevObject: Partial<XoRecord> | undefined = previousObj
 
-    ///
     if (this.type === 'alarm' || this.type === 'message') {
       const isAlarm = (object: T | undefined): object is Extract<T, { type: 'message' }> =>
-        object !== undefined && 'type' in object && object.type === 'message' && this.#alarmService!.isAlarm(object)
+        object !== undefined &&
+        'type' in object &&
+        object.type === 'message' &&
+        // FIXME: remove the as XoMessage once the BaseXoLog is correctly typed
+        this.#alarmService!.isAlarm(object as XoMessage)
 
       const objectIsAlarm = isAlarm(object)
       const prevObjectIsAlarm = isAlarm(previousObj)
@@ -126,6 +134,15 @@ export class XoListener extends Listener<XoListenerType> {
         _object = objectIsAlarm ? undefined : object
         _prevObject = prevObjectIsAlarm ? undefined : previousObj
       }
+    } else if (this.type === 'backup-job') {
+      // If we are in an backup job listener and the objects a simple jobs
+      // we clean them to ensure they are not sent via the SSE
+      // `as` assertions are safe here, as we check that we are on a Backup job listener (and then manage AnyXoJob objects)
+      _object = object !== undefined && this.#backupJobService!.isBackupJob(object as AnyXoJob) ? object : undefined
+      _prevObject =
+        previousObj !== undefined && this.#backupJobService!.isBackupJob(previousObj as AnyXoJob)
+          ? previousObj
+          : undefined
     }
 
     if (_object === undefined && _prevObject === undefined) {
