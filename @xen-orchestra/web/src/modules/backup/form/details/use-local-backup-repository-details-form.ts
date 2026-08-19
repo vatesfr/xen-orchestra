@@ -31,5 +31,5 @@ export function useLocalBackupRepositoryDetailsForm(rawProxy: MaybeRefOrGetter<F
     })),
   })
 
-  return { bindings, validate }
+  return { formData, bindings, validate }
 }

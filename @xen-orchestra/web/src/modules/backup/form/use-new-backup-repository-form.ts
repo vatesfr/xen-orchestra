@@ -8,7 +8,9 @@ import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const STEPS = ['general', 'details'] as const
+const STEPS = ['general', 'details', 'review']
+
+type Step = (typeof STEPS)[number]
 
 export type NewBackupRepositoryDetailsForms = ReturnType<typeof useNewBackupRepositoryForm>['details']
 
@@ -61,15 +63,22 @@ export function useNewBackupRepositoryForm() {
   const steps = computed<StepDefinition[]>(() => [
     { label: t('br-details') },
     { label: detailsStepLabel.value },
-    { label: '' },
+    { label: t('review-and-confirm') },
   ])
 
   async function validateCurrentStep(): Promise<boolean> {
-    if (currentStep.value === 'general') {
-      return general.validate()
+    switch (currentStep.value) {
+      case 'general':
+        return general.validate()
+      case 'details':
+        return (await currentDetailsForm.value?.validate()) ?? false
+      default:
+        return true
     }
+  }
 
-    return (await currentDetailsForm.value?.validate()) ?? false
+  function goToStep(step: Step): void {
+    currentStepIndex.value = STEPS.indexOf(step)
   }
 
   async function next(): Promise<boolean> {
@@ -92,8 +101,10 @@ export function useNewBackupRepositoryForm() {
     general,
     details,
     currentStep,
+    detailsStepLabel,
     currentStepIndex,
     steps,
+    goToStep,
     next,
     back,
   }

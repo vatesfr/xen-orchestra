@@ -55,5 +55,5 @@ export function useS3BackupRepositoryDetailsForm() {
     pathInBucket: useField('pathInBucket', () => ({ label: t('path-in-bucket') })),
   })
 
-  return { bindings, validate }
+  return { formData, bindings, validate }
 }

@@ -37,5 +37,5 @@ export function useAzureBackupRepositoryDetailsForm() {
     pathInContainer: useField('pathInContainer', () => ({ label: t('path-in-container') })),
   })
 
-  return { bindings, validate }
+  return { formData, bindings, validate }
 }
