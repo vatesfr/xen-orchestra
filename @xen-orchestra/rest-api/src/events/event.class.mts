@@ -124,7 +124,7 @@ export class XoListener extends Listener<XoListenerType> {
         _prevObject = prevObjectIsAlarm ? this.#alarmService!.parseAlarm(previousObj) : undefined
       } else {
         _object = objectIsAlarm ? undefined : object
-        _prevObject = prevObjectIsAlarm ? undefined : object
+        _prevObject = prevObjectIsAlarm ? undefined : previousObj
       }
     }
 
