@@ -56,7 +56,6 @@ const { t } = useI18n()
 const { srsByHost, areSrsReady, hasSrFetchError } = useXoSrCollection()
 const { arePbdsReady, hasPbdFetchError } = useXoPbdCollection()
 
-// `srsByHost` is derived from the PBD collection, so readiness and errors span both collections
 const isReady = logicAnd(areSrsReady, arePbdsReady)
 
 const hasFetchError = logicOr(hasSrFetchError, hasPbdFetchError)
@@ -67,29 +66,11 @@ const { isConnectedInScope } = useGetPbdsInScope()
 
 const { getSrStatusIcon } = useXoSrUtils(undefined, scope)
 
-// a shared SR gets a PBD on every host of the pool, so `srsByHost` also contains the SRs this host
-// is merely able to connect to. This card only lists the ones it is actually connected to
 const srs = computed(() => {
   const hostSrs = srsByHost.value.get(host.id) ?? []
 
   return hostSrs.filter(sr => isConnectedInScope(sr, scope.value))
 })
-
-// Previously:
-//
-// const { srs, hostPbds } = useHostSrs(() => host.id)
-//
-// const srIconById = computed(() => {
-//   const iconById = new Map<FrontXoSr['id'], IconName>()
-//
-//   srs.value.forEach(sr => {
-//     const pbds = hostPbds.value.filter(pbd => pbd.SR === sr.id)
-//
-//     iconById.set(sr.id, objectIcon('sr', getPbdsConnectionStatus(pbds)))
-//   })
-//
-//   return iconById
-// })
 </script>
 
 <style scoped lang="postcss">
