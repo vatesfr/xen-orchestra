@@ -1,6 +1,7 @@
-import { hostArg, vmsArg } from '@/jobs/args'
+import { vmsArg } from '@/jobs/args'
 import { areSomeVmOperationAllowed, isVmOperationPending } from '@/libs/vm'
 import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
+import { hostArg } from '@/modules/host/jobs/host-args.ts'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'

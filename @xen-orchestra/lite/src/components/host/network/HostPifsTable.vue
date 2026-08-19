@@ -2,6 +2,9 @@
   <div class="host-pif-table">
     <UiTitle>
       {{ t('pifs') }}
+      <template #action>
+        <slot name="title-actions" />
+      </template>
     </UiTitle>
     <div class="container">
       <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
@@ -40,6 +43,10 @@ import { useI18n } from 'vue-i18n'
 
 const { pifs } = defineProps<{
   pifs: XenApiPif[]
+}>()
+
+defineSlots<{
+  'title-actions'(): any
 }>()
 
 const { isReady, hasError } = usePifStore().subscribe()
