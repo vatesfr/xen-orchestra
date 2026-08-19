@@ -109,8 +109,10 @@ export class RemoteAdapter {
     await this.#removeVmBackupsFromCache(backups)
 
     if (immediate) {
-      await this.#mergeVmDirsAfterDelete(backups)
+      return this.#mergeVmDirsAfterDelete(backups)
     }
+
+    return new Set()
   }
 
   // group by VM backup dir so multiple disks/backups deleted for the same
@@ -119,7 +121,7 @@ export class RemoteAdapter {
     const dirs = new Set(backups.map(({ _filename }) => dirname(_filename)))
 
     await asyncEach(dirs, dir =>
-      Task.run({ name: 'merge VM backup chain', data: { type: 'VM', path: dir } }, () =>
+      Task.run({ properties: { name: 'merge VM backup chain', type: 'VM', path: dir } }, () =>
         this.cleanVm(dir, {
           remove: true,
           merge: true,
@@ -128,6 +130,8 @@ export class RemoteAdapter {
         })
       )
     )
+
+    return dirs
   }
 
   async deleteMetadataBackup(backupId) {
@@ -207,8 +211,10 @@ export class RemoteAdapter {
       throw new Error('no deleter for backup modes: ' + unsupportedModes.join(', '))
     }
     const promises = []
+    let deltaBackupDirsPromise = Promise.resolve(new Set())
     if (delta !== undefined) {
-      promises.push(this.deleteDeltaVmBackups(delta, { immediate }))
+      deltaBackupDirsPromise = this.deleteDeltaVmBackups(delta, { immediate })
+      promises.push(deltaBackupDirsPromise)
     }
     if (full !== undefined) {
       promises.push(this.deleteFullVmBackups(full))
@@ -218,12 +224,16 @@ export class RemoteAdapter {
     }
     await Promise.all(promises)
 
-    await asyncMap(new Set(files.map(file => dirname(file))), dir =>
-      // - don't merge in main process, unused VHDs will be merged in the next backup run
-      // - don't error in case this fails:
-      //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
-      //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
-      this.cleanVm(dir, { remove: true, logWarn: warn }).catch(noop)
+    const deltaBackupDirs = await deltaBackupDirsPromise
+
+    await asyncMap(
+      new Set(files.map(file => dirname(file))).filter(dir => !deltaBackupDirs.has(dir)),
+      dir =>
+        // - don't merge in main process, unused VHDs will be merged in the next backup run
+        // - don't error in case this fails:
+        //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
+        //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
+        this.cleanVm(dir, { remove: true, logWarn: warn }).catch(noop)
     )
   }
 
