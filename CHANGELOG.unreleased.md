@@ -39,7 +39,6 @@
 
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
 - [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
-- [Backup] Fixed disk space not being freed during delta backup deletion ( PR [#10273] (https://github.com/vatesfr/xen-orchestra/pull/10273))
 
 ### Bug fixes
 
@@ -81,6 +80,8 @@
 - [OpenMetrics] A host whose IPMI controller does not answer no longer delays the `/openmetrics/metrics` response until Prometheus gives up with `context deadline exceeded`: power and XOSTOR metrics are served from the last collected values and refreshed in the background (PR [#10409](https://github.com/vatesfr/xen-orchestra/pull/10409))
 - [Backup/Restore] Fix listing backups sometimes mixing the results of two different VM listings (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
 - [Backup/Restore] Better handling of a backup repository the proxy fails to list, instead of silently returning nothing (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
+  - [VM/Console] Fix the page header and tab navigation disappearing permanently in the console tab (PR [#10007](https://github.com/vatesfr/xen-orchestra/pull/10007))
+- [Backup] Fixed disk space not being freed during delta backup deletion ( PR [#10273] (https://github.com/vatesfr/xen-orchestra/pull/10273))
 
 ### Packages to release
 
