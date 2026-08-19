@@ -9,5 +9,7 @@ import BackupRepositoryFormRow from '@/modules/backup/components/repository/form
 import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextInput.vue'
 import type { LocalBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-local-backup-repository-details-form.ts'
 
-defineProps<{ bindings: LocalBackupRepositoryDetailsForm['bindings'] }>()
+defineProps<{
+  bindings: LocalBackupRepositoryDetailsForm['bindings']
+}>()
 </script>

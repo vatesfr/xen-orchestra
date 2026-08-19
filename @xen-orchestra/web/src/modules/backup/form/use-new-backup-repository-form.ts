@@ -58,7 +58,6 @@ export function useNewBackupRepositoryForm() {
     }
   })
 
-  // the third step is not implemented yet, it only shows in the stepper bar
   const steps = computed<StepDefinition[]>(() => [
     { label: t('br-details') },
     { label: detailsStepLabel.value },
