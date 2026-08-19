@@ -4,12 +4,12 @@
       <UiTitle>{{ t('general-information') }}</UiTitle>
 
       <BackupRepositoryFormRow>
-        <BackupRepositoryFormTextInput v-bind="nameInputBindings" />
+        <BackupRepositoryFormTextInput v-bind="bindings.name" />
       </BackupRepositoryFormRow>
 
       <BackupRepositoryFormRow>
-        <BackupRepositoryFormSelect v-bind="typeSelectBindings" />
-        <BackupRepositoryFormSelect v-bind="backupFormatSelectBindings">
+        <BackupRepositoryFormSelect v-bind="bindings.type" />
+        <BackupRepositoryFormSelect v-bind="bindings.backupFormat">
           <template #option="{ option }">
             <VtsOption :option>
               <span class="option-content">
@@ -24,7 +24,7 @@
       </BackupRepositoryFormRow>
 
       <BackupRepositoryFormRow>
-        <BackupRepositoryFormSelect v-bind="proxySelectBindings" />
+        <BackupRepositoryFormSelect v-bind="bindings.proxy" />
       </BackupRepositoryFormRow>
     </div>
 
@@ -35,10 +35,10 @@
         {{ t('encryption-available-for-block-modes-only') }}
       </UiAlert>
 
-      <BackupRepositoryFormCheckbox v-bind="encryptedCheckboxBindings" />
+      <BackupRepositoryFormCheckbox v-bind="bindings.encrypted" />
 
-      <BackupRepositoryFormRow v-if="encryptedCheckboxBindings.modelValue">
-        <BackupRepositoryFormTextInput v-bind="encryptionKeyInputBindings" />
+      <BackupRepositoryFormRow v-if="bindings.encrypted.modelValue">
+        <BackupRepositoryFormTextInput v-bind="bindings.encryptionKey" />
       </BackupRepositoryFormRow>
     </div>
   </div>
@@ -49,23 +49,13 @@ import BackupRepositoryFormRow from '@/modules/backup/components/repository/form
 import BackupRepositoryFormCheckbox from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormCheckbox.vue'
 import BackupRepositoryFormSelect from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormSelect.vue'
 import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextInput.vue'
-import type { FormSelectId } from '@core/packages/form-select'
-import type { FieldMetadata, ModelBinding } from '@core/packages/validated-form'
+import type { BackupRepositoryGeneralForm } from '@/modules/backup/form/use-backup-repository-general-form.ts'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
-type SelectBindings = { id: FormSelectId; label: string; learnMoreUrl?: string } & FieldMetadata
-
-defineProps<{
-  nameInputBindings: ModelBinding<string> & FieldMetadata & { label: string; required: boolean }
-  typeSelectBindings: SelectBindings
-  backupFormatSelectBindings: SelectBindings
-  proxySelectBindings: SelectBindings
-  encryptedCheckboxBindings: ModelBinding<boolean> & FieldMetadata
-  encryptionKeyInputBindings: ModelBinding<string> & FieldMetadata & { label: string; required: boolean; info: string }
-}>()
+defineProps<{ bindings: BackupRepositoryGeneralForm['bindings'] }>()
 
 const { t } = useI18n()
 </script>

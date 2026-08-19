@@ -6,43 +6,8 @@
 
     <template #content>
       <UiStepper :steps :current-step="currentStepIndex">
-        <NewBackupRepositoryGeneralStep
-          v-if="currentStep === 'general'"
-          :name-input-bindings
-          :type-select-bindings
-          :backup-format-select-bindings
-          :proxy-select-bindings
-          :encrypted-checkbox-bindings
-          :encryption-key-input-bindings
-        />
-        <NewBackupRepositoryDetailsStep
-          v-else-if="currentStep === 'details'"
-          :type="selectedType"
-          :azure-host-name-input-bindings
-          :azure-account-name-input-bindings
-          :azure-key-input-bindings
-          :azure-container-name-input-bindings
-          :azure-path-in-container-input-bindings
-          :nfs-host-input-bindings
-          :nfs-port-input-bindings
-          :nfs-path-input-bindings
-          :nfs-custom-options-input-bindings
-          :local-path-input-bindings
-          :smb-path-on-share-input-bindings
-          :smb-subfolder-input-bindings
-          :smb-username-input-bindings
-          :smb-password-input-bindings
-          :smb-domain-input-bindings
-          :smb-custom-options-input-bindings
-          :s3-endpoint-input-bindings
-          :s3-use-https-checkbox-bindings
-          :s3-allow-unauthorized-checkbox-bindings
-          :s3-region-input-bindings
-          :s3-access-key-id-input-bindings
-          :s3-secret-input-bindings
-          :s3-bucket-input-bindings
-          :s3-path-in-bucket-input-bindings
-        />
+        <NewBackupRepositoryGeneralStep v-if="currentStep === 'general'" :bindings="general.bindings" />
+        <NewBackupRepositoryDetailsStep v-else :type="general.formData.type" :details />
       </UiStepper>
     </template>
 
@@ -57,12 +22,11 @@
 <script lang="ts" setup>
 import NewBackupRepositoryDetailsStep from '@/modules/backup/components/repository/form/new/NewBackupRepositoryDetailsStep.vue'
 import NewBackupRepositoryGeneralStep from '@/modules/backup/components/repository/form/new/NewBackupRepositoryGeneralStep.vue'
-import { useNewBackupRepositoryForm } from '@/modules/backup/form/new/use-new-backup-repository-form.ts'
+import { useNewBackupRepositoryForm } from '@/modules/backup/form/use-new-backup-repository-form.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiStepper from '@core/components/ui/stepper/UiStepper.vue'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
@@ -71,65 +35,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const {
-  currentStep,
-  selectedType,
-  next,
-  back,
-  nameInputBindings,
-  typeSelectBindings,
-  backupFormatSelectBindings,
-  proxySelectBindings,
-  encryptedCheckboxBindings,
-  encryptionKeyInputBindings,
-  azureHostNameInputBindings,
-  azureAccountNameInputBindings,
-  azureKeyInputBindings,
-  azureContainerNameInputBindings,
-  azurePathInContainerInputBindings,
-  nfsHostInputBindings,
-  nfsPortInputBindings,
-  nfsPathInputBindings,
-  nfsCustomOptionsInputBindings,
-  localPathInputBindings,
-  smbPathOnShareInputBindings,
-  smbSubfolderInputBindings,
-  smbUsernameInputBindings,
-  smbPasswordInputBindings,
-  smbDomainInputBindings,
-  smbCustomOptionsInputBindings,
-  s3EndpointInputBindings,
-  s3AccessKeyIdInputBindings,
-  s3AllowUnauthorizedCheckboxBindings,
-  s3BucketInputBindings,
-  s3PathInBucketInputBindings,
-  s3UseHttpsCheckboxBindings,
-  s3RegionInputBindings,
-  s3SecretInputBindings,
-} = useNewBackupRepositoryForm()
-
-const currentStepIndex = computed(() => (currentStep.value === 'general' ? 0 : 1))
-
-const detailsStepLabel = computed(() => {
-  switch (selectedType.value) {
-    case 'azure':
-      return t('azure-details')
-    case 'azurite':
-      return t('azurite-details')
-    case 'nfs':
-      return t('nfs-details')
-    case 'file':
-      return t('local-details')
-    case 'smb':
-      return t('smb-details')
-    case 's3':
-      return t('s3-details')
-    default:
-      return ''
-  }
-})
-
-const steps = computed(() => [{ label: t('br-details') }, { label: detailsStepLabel.value }, { label: '' }])
+const { general, details, currentStep, currentStepIndex, steps, next, back } = useNewBackupRepositoryForm()
 </script>
 
 <style lang="postcss" scoped>

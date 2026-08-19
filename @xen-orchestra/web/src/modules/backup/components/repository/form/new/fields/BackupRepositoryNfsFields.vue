@@ -1,16 +1,16 @@
 <template>
   <div class="backup-repository-nfs-fields">
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="hostInputBindings" />
-      <BackupRepositoryFormTextInput v-bind="portInputBindings" />
+      <BackupRepositoryFormTextInput v-bind="bindings.host" />
+      <BackupRepositoryFormTextInput v-bind="bindings.port" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow wide>
-      <BackupRepositoryFormTextInput v-bind="pathInputBindings" />
+      <BackupRepositoryFormTextInput v-bind="bindings.path" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow wide>
-      <BackupRepositoryFormTextArea v-bind="customOptionsInputBindings" />
+      <BackupRepositoryFormTextArea v-bind="bindings.customOptions" />
     </BackupRepositoryFormRow>
   </div>
 </template>
@@ -19,17 +19,9 @@
 import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/new/BackupRepositoryFormRow.vue'
 import BackupRepositoryFormTextArea from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextArea.vue'
 import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextInput.vue'
-import type { FieldMetadata, ModelBinding } from '@core/packages/validated-form'
+import type { NfsBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-nfs-backup-repository-details-form.ts'
 
-type TextInputBindings = ModelBinding<string> &
-  FieldMetadata & { label: string; required?: boolean; placeholder?: string; info?: string }
-
-defineProps<{
-  hostInputBindings: TextInputBindings
-  portInputBindings: TextInputBindings
-  pathInputBindings: TextInputBindings
-  customOptionsInputBindings: TextInputBindings
-}>()
+defineProps<{ bindings: NfsBackupRepositoryDetailsForm['bindings'] }>()
 </script>
 
 <style lang="postcss" scoped>
