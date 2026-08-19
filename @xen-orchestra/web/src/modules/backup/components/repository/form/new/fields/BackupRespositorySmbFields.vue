@@ -5,21 +5,21 @@
     </UiAlert>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="pathOnShareInputBindings" />
-      <BackupRepositoryFormTextInput v-bind="subfolderInputBindings" />
+      <BackupRepositoryFormTextInput v-bind="bindings.pathOnShare" />
+      <BackupRepositoryFormTextInput v-bind="bindings.subfolder" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="usernameInputBindings" />
-      <BackupRepositoryFormTextInput v-bind="passwordInputBindings" />
+      <BackupRepositoryFormTextInput v-bind="bindings.username" />
+      <BackupRepositoryFormTextInput v-bind="bindings.password" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="domainInputBindings" />
+      <BackupRepositoryFormTextInput v-bind="bindings.domain" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow wide>
-      <BackupRepositoryFormTextArea v-bind="customOptionsInputBindings" />
+      <BackupRepositoryFormTextArea v-bind="bindings.customOptions" />
     </BackupRepositoryFormRow>
   </div>
 </template>
@@ -28,21 +28,11 @@
 import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/new/BackupRepositoryFormRow.vue'
 import BackupRepositoryFormTextArea from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextArea.vue'
 import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextInput.vue'
-import type { FieldMetadata, ModelBinding } from '@core/packages/validated-form'
+import type { SmbBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-smb-backup-repository-details-form.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { useI18n } from 'vue-i18n'
 
-type TextInputBindings = ModelBinding<string> &
-  FieldMetadata & { label: string; required?: boolean; placeholder?: string; info?: string; prefix?: string }
-
-defineProps<{
-  pathOnShareInputBindings: TextInputBindings
-  subfolderInputBindings: TextInputBindings
-  usernameInputBindings: TextInputBindings
-  passwordInputBindings: TextInputBindings
-  domainInputBindings: TextInputBindings
-  customOptionsInputBindings: TextInputBindings
-}>()
+defineProps<{ bindings: SmbBackupRepositoryDetailsForm['bindings'] }>()
 
 const { t } = useI18n()
 </script>
