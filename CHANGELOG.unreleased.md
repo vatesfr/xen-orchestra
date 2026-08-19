@@ -35,8 +35,8 @@
 - [Backup/File restore, Backup/Health] An unreachable backup repository no longer slows down every listing: it is skipped after a delay and retried with an increasing backoff (PR [#10205](https://github.com/vatesfr/xen-orchestra/pull/10205))
 - [REST API] Fix `/users/:id/authentication_tokens` sometimes did not return the token used to make the request (PR [#10233](https://github.com/vatesfr/xen-orchestra/pull/10233))
 - [XO server] Fix a random behavior regarding `coresPerSocket` update (PR [#10201](https://github.com/vatesfr/xen-orchestra/pull/10201))
-- [Backup] Fix `uncaught exception AssertionError: assert(!this.paused)` in the logs, when a host closes a transfer while XO is writing to a slower destination (PR [#XXXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXXX))
 - [Warm migration] Fix `Vm target of warm migration not found` error at the end of a migration (PR [#10210](https://github.com/vatesfr/xen-orchestra/pull/10210))
+- [Backup] Fix `uncaught exception AssertionError: assert(!this.paused)` in the logs, when a host closes a transfer while XO is writing to a slower destination (PR [#10282](https://github.com/vatesfr/xen-orchestra/pull/10282))
 - **XO 5**:
   - [VM/Console] Fix the page header and tab navigation disappearing permanently in the console tab (PR [#10007](https://github.com/vatesfr/xen-orchestra/pull/10007))
 
