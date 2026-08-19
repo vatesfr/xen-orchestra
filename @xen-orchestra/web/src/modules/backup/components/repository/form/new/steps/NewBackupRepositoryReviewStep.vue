@@ -24,7 +24,7 @@
         />
         <VtsTabularKeyValueRow
           :label="t('storage-mode')"
-          :value="general.formData.backupFormat === 'block' ? t('block-based') : t('file-based')"
+          :value="general.formData.backupFormat === 'block' ? t('block-based') : t('vhd-file')"
         />
         <VtsTabularKeyValueRow :label="t('proxy')">
           <template v-if="proxy" #value>

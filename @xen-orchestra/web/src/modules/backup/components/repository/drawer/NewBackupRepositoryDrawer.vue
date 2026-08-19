@@ -8,7 +8,7 @@
       <UiStepper :steps :current-step="currentStepIndex">
         <NewBackupRepositoryGeneralStep v-if="currentStep === 'general'" :bindings="general.bindings" />
         <NewBackupRepositoryDetailsStep v-else-if="currentStep === 'details'" :type="general.formData.type" :details />
-        <NewBackupRepositoryReviewStep v-else :general :details :details-title="detailsStepLabel" />
+        <NewBackupRepositoryReviewStep v-else :general :details :details-title="detailsStepLabel" @edit="goToStep" />
       </UiStepper>
     </template>
 
@@ -38,7 +38,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { general, details, currentStep, detailsStepLabel, currentStepIndex, steps, next, back } =
+const { general, details, currentStep, detailsStepLabel, currentStepIndex, steps, next, back, goToStep } =
   useNewBackupRepositoryForm()
 </script>
 
