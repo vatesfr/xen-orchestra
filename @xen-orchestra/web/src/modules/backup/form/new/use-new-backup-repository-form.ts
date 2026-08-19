@@ -28,6 +28,12 @@ type NewBackupRepositoryFormData = {
     nfsPath: string
     nfsCustomOptions: string
     localPath: string
+    smbPathOnShare: string
+    smbSubfolder: string
+    smbUsername: string
+    smbPassword: string
+    smbDomain: string
+    smbCustomOptions: string
   }
 }
 
@@ -39,6 +45,8 @@ const BACKUP_FORMAT_DOC_URL = 'https://docs.xen-orchestra.com/xo5/incremental_ba
 const BLOCK_ONLY_TYPES: BackupRepositoryType[] = ['azure', 'azurite', 's3']
 
 const NFS_DEFAULT_PORT = 2049
+
+const SMB_DEFAULT_DOMAIN = 'WORKGROUP'
 
 export function useNewBackupRepositoryForm() {
   const { t } = useI18n()
@@ -65,12 +73,19 @@ export function useNewBackupRepositoryForm() {
       nfsPath: '',
       nfsCustomOptions: '',
       localPath: '',
+      smbPathOnShare: '',
+      smbSubfolder: '',
+      smbUsername: '',
+      smbPassword: '',
+      smbDomain: '',
+      smbCustomOptions: '',
     },
   })
 
   const isAzureType = computed(() => formData.general.type === 'azure' || formData.general.type === 'azurite')
   const isNfsType = computed(() => formData.general.type === 'nfs')
   const isLocalType = computed(() => formData.general.type === 'file')
+  const isSmbType = computed(() => formData.general.type === 'smb')
 
   const { useField, useFormSelect, useSelect, currentStep, next, back, validateAllSteps } = useMultiStepValidatedForm(
     formData,
@@ -104,6 +119,8 @@ export function useNewBackupRepositoryForm() {
             nfsHost: { requiredIf: requiredIf(isNfsType) },
             nfsPath: { requiredIf: requiredIf(isNfsType) },
             localPath: { requiredIf: requiredIf(isLocalType) },
+            smbPathOnShare: { requiredIf: requiredIf(isSmbType) },
+            smbDomain: { requiredIf: requiredIf(isSmbType) },
           }),
         },
       },
@@ -189,5 +206,24 @@ export function useNewBackupRepositoryForm() {
       required: true,
       info: formData.general.proxy !== undefined ? t('path-must-be-absolute-on-proxy-host') : undefined,
     })),
+    smbHostInputBindings: useField('smbPathOnShare', () => ({
+      label: t('path-on-share'),
+      required: true,
+      prefix: '\\\\',
+      info: t('smb-share-sample'),
+    })),
+    smbSubfolderInputBindings: useField('smbSubfolder', () => ({
+      label: t('subfolder'),
+      info: t('smb-subfolder-sample'),
+    })),
+    smbUsernameInputBindings: useField('smbUsername', () => ({ label: t('username') })),
+    smbPasswordInputBindings: useField('smbPassword', () => ({ label: t('password') })),
+    smbDomainInputBindings: useField('smbDomain', () => ({
+      label: t('domain'),
+      required: true,
+      placeholder: SMB_DEFAULT_DOMAIN,
+      info: t('value-by-default', { value: SMB_DEFAULT_DOMAIN }),
+    })),
+    smbCustomOptionsInputBindings: useField('smbCustomOptions', () => ({ label: t('custom-options') })),
   }
 }

@@ -16,6 +16,15 @@
       :custom-options-input-bindings="nfsCustomOptionsInputBindings"
     />
     <BackupRepositoryLocalFields v-else-if="type === 'file'" :path-input-bindings="localPathInputBindings" />
+    <BackupRepositorySmbFields
+      v-else-if="type === 'smb'"
+      :path-on-share-input-bindings="smbPathOnShareInputBindings"
+      :subfolder-input-bindings="smbSubfolderInputBindings"
+      :username-input-bindings="smbUsernameInputBindings"
+      :password-input-bindings="smbPasswordInputBindings"
+      :domain-input-bindings="smbDomainInputBindings"
+      :custom-options-input-bindings="smbCustomOptionsInputBindings"
+    />
   </div>
 </template>
 
@@ -23,6 +32,7 @@
 import BackupRepositoryAzureFields from '@/modules/backup/components/repository/form/new/fields/BackupRepositoryAzureFields.vue'
 import BackupRepositoryLocalFields from '@/modules/backup/components/repository/form/new/fields/BackupRepositoryLocalFields.vue'
 import BackupRepositoryNfsFields from '@/modules/backup/components/repository/form/new/fields/BackupRepositoryNfsFields.vue'
+import BackupRepositorySmbFields from '@/modules/backup/components/repository/form/new/fields/BackupRespositorySmbFields.vue'
 import type { BackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import type { FieldMetadata, ModelBinding } from '@core/packages/validated-form'
 
@@ -40,6 +50,12 @@ defineProps<{
   nfsPathInputBindings: TextInputBindings
   nfsCustomOptionsInputBindings: TextInputBindings
   localPathInputBindings: TextInputBindings
+  smbPathOnShareInputBindings: TextInputBindings
+  smbSubfolderInputBindings: TextInputBindings
+  smbUsernameInputBindings: TextInputBindings
+  smbPasswordInputBindings: TextInputBindings
+  smbDomainInputBindings: TextInputBindings
+  smbCustomOptionsInputBindings: TextInputBindings
 }>()
 </script>
 
