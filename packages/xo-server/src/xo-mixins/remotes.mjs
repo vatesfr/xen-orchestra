@@ -84,6 +84,11 @@ export default class {
         indexes: ['enabled'],
         crypto: app.cryptoCredentials,
       })
+      app.hooks.emit('registerCollection', {
+        collection: this._remotes,
+        type: 'backup-repository',
+        decorate: obfuscateRemote,
+      })
 
       app.addConfigManager(
         'remotes',

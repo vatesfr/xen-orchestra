@@ -71,6 +71,7 @@ async function addProxyVersion(proxy) {
 async function populateProxy(proxy) {
   addProxyUrl.call(this, proxy)
   await addProxyVersion.call(this, proxy)
+  return proxy
 }
 
 export default class Proxy {
@@ -94,6 +95,7 @@ export default class Proxy {
         namespace: 'proxy',
         crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', { collection: db, type: 'proxy', decorate: populateProxy.bind(this) })
 
       return app.addConfigManager(
         'proxies',

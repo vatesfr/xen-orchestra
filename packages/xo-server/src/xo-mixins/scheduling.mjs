@@ -43,6 +43,7 @@ export default class Scheduling {
         namespace: 'schedule',
         crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', { collection: db, type: 'schedule' })
 
       app.addConfigManager(
         'schedules',
