@@ -1,20 +1,20 @@
 <template>
   <div class="backup-repository-azure-fields">
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="hostNameInputBindings" />
+      <BackupRepositoryFormTextInput v-bind="bindings.hostName" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="accountNameInputBindings" />
-      <BackupRepositoryFormTextInput v-bind="keyInputBindings" />
+      <BackupRepositoryFormTextInput v-bind="bindings.accountName" />
+      <BackupRepositoryFormTextInput v-bind="bindings.key" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="containerNameInputBindings" />
+      <BackupRepositoryFormTextInput v-bind="bindings.containerName" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow wide>
-      <BackupRepositoryFormTextInput v-bind="pathInContainerInputBindings" />
+      <BackupRepositoryFormTextInput v-bind="bindings.pathInContainer" />
     </BackupRepositoryFormRow>
   </div>
 </template>
@@ -22,17 +22,9 @@
 <script lang="ts" setup>
 import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/new/BackupRepositoryFormRow.vue'
 import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextInput.vue'
-import type { FieldMetadata, ModelBinding } from '@core/packages/validated-form'
+import type { AzureBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-azure-backup-repository-details-form.ts'
 
-type TextInputBindings = ModelBinding<string> & FieldMetadata & { label: string; required?: boolean }
-
-defineProps<{
-  hostNameInputBindings: TextInputBindings
-  accountNameInputBindings: TextInputBindings
-  keyInputBindings: TextInputBindings
-  containerNameInputBindings: TextInputBindings
-  pathInContainerInputBindings: TextInputBindings
-}>()
+defineProps<{ bindings: AzureBackupRepositoryDetailsForm['bindings'] }>()
 </script>
 
 <style lang="postcss" scoped>

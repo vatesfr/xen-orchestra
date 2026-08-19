@@ -1,107 +1,238 @@
-import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
-import type { BackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
-import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { regex, required, requiredIf, withMessage } from '@core/packages/form-validation'
-import { defineFormSteps } from '@core/packages/validated-form'
-import { useMultiStepValidatedForm } from '@xen-orchestra/web-core/packages/validated-form/use-multi-step-validated-form.ts'
-import { computed } from 'vue'
+import {
+  type FrontXoNetwork,
+  useXoNetworkCollection,
+} from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import {
+  type BaseTrafficRuleFormData,
+  useTrafficRuleFormBase,
+} from '@/modules/traffic-rules/form/use-traffic-rule-form-base.ts'
+import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
+import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { objectIcon } from '@core/icons'
+import { type FormValidationConfig, required, requiredIf, withMessage } from '@core/packages/form-validation'
+import { toComputed } from '@core/utils/to-computed.util.ts'
+import type { TrafficRuleTargetType } from '@vates/types'
+import { toLower } from 'lodash-es'
+import { computed, type MaybeRefOrGetter, reactive, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-type NewBackupRepositoryFormData = {
-  general: {
-    name: string
-    type: BackupRepositoryType | undefined
-    backupFormat: XoBackupFormat | undefined
-    proxy: FrontXoProxy['id'] | undefined
-    encrypted: boolean
-    encryptionKey: string
-  }
+export type NewTrafficRuleFormData = BaseTrafficRuleFormData & {
+  targetType: TrafficRuleTargetType
+  vmId: FrontXoVm['id'] | undefined
+  targetId: FrontXoNetwork['id'] | FrontXoVif['id'] | undefined
 }
 
-const ENCRYPTION_KEY_LENGTH = 32
-const ENCRYPTION_KEY_REGEX = /^[0-9a-f]{32}$/i
+type TargetOption = {
+  id: FrontXoVif['id'] | FrontXoNetwork['id']
+  label: string
+  value: FrontXoVif['id'] | FrontXoNetwork['id']
+  icon: 'object:network' | 'object:vif'
+}
 
-export function useNewBackupRepositoryForm() {
+export function useNewTrafficRuleForm(
+  rawPoolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>,
+  rawVifId: MaybeRefOrGetter<FrontXoVif['id'] | undefined>
+) {
   const { t } = useI18n()
 
-  const { proxies } = useXoProxyCollection()
+  const poolId = toComputed(rawPoolId)
+  const vifId = toComputed(rawVifId)
 
-  const formData = defineFormSteps<NewBackupRepositoryFormData>({
-    general: {
-      name: '',
-      type: undefined,
-      backupFormat: undefined,
-      proxy: undefined,
-      encrypted: false,
-      encryptionKey: '',
-    },
+  const formData = reactive<NewTrafficRuleFormData>({
+    allow: true,
+    direction: 'from',
+    protocol: 'TCP',
+    port: undefined,
+    ipRange: '',
+    targetType: vifId.value ? 'VIF' : 'network',
+    vmId: undefined,
+    targetId: undefined,
   })
 
-  const { useField, useFormSelect, useSelect, currentStep, next, back, validateAllSteps } = useMultiStepValidatedForm(
-    formData,
-    {
-      general: {
-        errors: {
-          onSubmit: () => ({
-            name: { required },
-            type: { required },
-            backupFormat: { required },
-            encryptionKey: {
-              requiredIf: requiredIf(() => formData.general.encrypted),
-              regex: withMessage(regex(ENCRYPTION_KEY_REGEX), () =>
-                t('encryption-key-invalid', { n: ENCRYPTION_KEY_LENGTH })
-              ),
-            },
-          }),
-        },
-      },
+  const isVifTarget = computed(() => formData.targetType === 'VIF')
+
+  const { networks, getNetworkById } = useXoNetworkCollection()
+  const { vifs, useGetVifById } = useXoVifCollection()
+  const { vmsByPool } = useXoVmCollection()
+
+  const sourceVif = useGetVifById(() => vifId.value)
+
+  const isParentNetworkPlugged = computed(() => {
+    const vif = sourceVif.value
+
+    if (!vif) {
+      return true
     }
+
+    const parentNetwork = getNetworkById(vif.$network)
+
+    return parentNetwork ? parentNetwork.PIFs.length > 0 : false
+  })
+
+  const poolNetworks = computed(() =>
+    networks.value.filter(network => network.$pool === poolId.value && network.PIFs.length > 0)
   )
 
-  const typeOptions = computed(() => [
-    { id: 'file', label: t('local'), value: 'file' },
-    { id: 'nfs', label: t('nfs'), value: 'nfs' },
-    { id: 'smb', label: t('smb'), value: 'smb' },
-    { id: 's3', label: t('s3'), value: 's3' },
-    { id: 'azure', label: t('azure'), value: 'azure' },
-  ])
+  const poolVms = computed(() => (poolId.value ? (vmsByPool.value.get(poolId.value) ?? []) : []))
 
-  const { id: typeSelectId } = useFormSelect('type', typeOptions, {
+  const vmVifs = computed(() =>
+    vifs.value.filter(vif => vif.$VM === formData.vmId).sort((vifA, vifB) => Number(vifA.device) - Number(vifB.device))
+  )
+
+  const targetOptions = computed<TargetOption[]>(() =>
+    isVifTarget.value
+      ? vmVifs.value.map(vif => ({
+          id: vif.id,
+          label: `${t('vif')}${vif.device}`,
+          value: vif.id,
+          icon: 'object:vif',
+        }))
+      : poolNetworks.value.map(network => ({
+          id: network.id,
+          label: network.name_label,
+          value: network.id,
+          icon: 'object:network',
+        }))
+  )
+
+  const vmOptions = computed(() =>
+    poolVms.value.map(vm => {
+      const hasVifs = vm.VIFs.length > 0
+
+      return {
+        id: vm.id,
+        label: vm.name_label,
+        value: vm.id,
+        icon: objectIcon('vm', toLower(vm.power_state)),
+        disabled: !hasVifs,
+      }
+    })
+  )
+
+  const targetTypeOptions = [
+    { id: 'network', label: t('network'), value: 'network' },
+    { id: 'VIF', label: t('vif'), value: 'VIF' },
+  ]
+
+  const extraConfig: FormValidationConfig<NewTrafficRuleFormData> = {
+    errors: {
+      onSubmit: () => ({
+        targetId: {
+          required: withMessage(required, () => (isVifTarget.value ? t('vif-required') : t('network-required'))),
+        },
+        vmId: {
+          requiredIf: withMessage(requiredIf(isVifTarget), () => t('vm-required')),
+        },
+      }),
+    },
+  }
+
+  const {
+    validate,
+    useFormSelect,
+    useSelect,
+    hasPort,
+    allowSelectBindings,
+    directionSelectBindings,
+    protocolSelectBindings,
+    portInputBindings,
+    ipRangeInputBindings,
+    buildBaseRulePayload,
+  } = useTrafficRuleFormBase(formData, extraConfig)
+
+  const { id: targetTypeSelectId } = useFormSelect('targetType', targetTypeOptions, {
     required: true,
+    disabled: () => !isParentNetworkPlugged.value,
     option: { label: 'label', value: 'value' },
   })
 
-  const backupFormatOptions = computed(() => [
-    { id: 'block', label: t('block-based'), value: 'block', hint: t('block-based-hint') },
-    { id: 'vhd', label: t('vhd-file'), value: 'vhd', hint: t('vhd-file-hint') },
-  ])
-
-  const { id: backupFormatSelectId } = useFormSelect('backupFormat', backupFormatOptions, {
-    required: true,
-    option: { label: 'label', value: 'value', properties: source => ({ hint: source.hint }) },
-  })
-
-  const { id: proxySelectId } = useFormSelect('proxy', proxies, {
+  const { id: vmSelectId } = useFormSelect('vmId', vmOptions, {
+    required: () => isVifTarget.value,
     searchable: true,
-    emptyOption: { label: t('none'), value: undefined },
-    option: { label: 'name', value: 'id' },
+    disabled: () => sourceVif.value !== undefined,
+    option: {
+      label: 'label',
+      value: 'value',
+      disabled: source => source.disabled,
+      properties: source => ({ icon: source.icon }),
+    },
   })
+
+  const { id: targetSelectId } = useFormSelect('targetId', targetOptions, {
+    required: true,
+    searchable: true,
+    disabled: () => sourceVif.value !== undefined || (formData.targetType === 'VIF' && formData.vmId === undefined),
+    option: {
+      label: 'label',
+      value: 'value',
+      properties: source => ({ icon: source.icon }),
+    },
+  })
+
+  watch(
+    () => formData.targetType,
+    () => {
+      formData.vmId = undefined
+      formData.targetId = undefined
+    }
+  )
+
+  watch(
+    () => formData.vmId,
+    () => {
+      formData.targetId = undefined
+    }
+  )
+
+  watchEffect(() => {
+    if (!sourceVif.value) {
+      return
+    }
+
+    if (formData.targetType === 'VIF') {
+      if (!formData.vmId) {
+        formData.vmId = sourceVif.value.$VM
+      }
+
+      if (!formData.targetId) {
+        formData.targetId = sourceVif.value.id
+      }
+    } else if (formData.targetType === 'network') {
+      if (!formData.targetId) {
+        formData.targetId = sourceVif.value.$network
+      }
+    }
+  })
+
+  async function validateAndBuildPayload(): Promise<NewTrafficRulePayload | undefined> {
+    const valid = await validate()
+
+    if (!valid || formData.targetId === undefined) {
+      return undefined
+    }
+
+    return {
+      ...buildBaseRulePayload(),
+      targetType: formData.targetType,
+      targetId: formData.targetId,
+    }
+  }
 
   return {
-    currentStep,
-    next,
-    back,
-    validateAllSteps,
-    nameInputBindings: useField('name', () => ({ label: t('name'), required: true })),
-    typeSelectBindings: useSelect(typeSelectId, () => ({ label: t('type') })),
-    backupFormatSelectBindings: useSelect(backupFormatSelectId, () => ({ label: t('backup-format') })),
-    proxySelectBindings: useSelect(proxySelectId, () => ({ label: t('proxy') })),
-    encryptedCheckboxBindings: useField('encrypted'),
-    encryptionKeyInputBindings: useField('encryptionKey', () => ({
-      label: t('key'),
-      required: true,
-      info: t('n-hexadecimal-characters', { n: ENCRYPTION_KEY_LENGTH }),
+    isVifTarget,
+    hasPort,
+    allowSelectBindings,
+    protocolSelectBindings,
+    portInputBindings,
+    directionSelectBindings,
+    ipRangeInputBindings,
+    targetTypeSelectBindings: useSelect(targetTypeSelectId, () => ({ label: t('object') })),
+    vmSelectBindings: useSelect(vmSelectId, () => ({ label: t('from-vm') })),
+    targetSelectBindings: useSelect(targetSelectId, () => ({
+      label: formData.targetType === 'network' ? t('choose-network') : t('choose-vif'),
     })),
+    validateAndBuildPayload,
   }
 }

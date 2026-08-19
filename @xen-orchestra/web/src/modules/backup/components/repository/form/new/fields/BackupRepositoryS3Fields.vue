@@ -1,31 +1,28 @@
 <template>
   <div class="backup-repository-s3-fields">
     <div class="endpoint-row">
-      <BackupRepositoryFormTextInput v-bind="endpointInputBindings" class="endpoint" />
+      <BackupRepositoryFormTextInput v-bind="bindings.endpoint" class="endpoint" />
       <div class="checkboxes">
-        <BackupRepositoryFormCheckbox v-bind="useHttpsCheckboxBindings" />
-        <BackupRepositoryFormCheckbox
-          v-if="useHttpsCheckboxBindings.modelValue"
-          v-bind="allowUnauthorizedCheckboxBindings"
-        />
+        <BackupRepositoryFormCheckbox v-bind="bindings.useHttps" />
+        <BackupRepositoryFormCheckbox v-if="bindings.useHttps.modelValue" v-bind="bindings.allowUnauthorized" />
       </div>
     </div>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="regionInputBindings" />
+      <BackupRepositoryFormTextInput v-bind="bindings.region" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="accessKeyIdInputBindings" />
-      <BackupRepositoryFormTextInput v-bind="secretInputBindings" />
+      <BackupRepositoryFormTextInput v-bind="bindings.accessKeyId" />
+      <BackupRepositoryFormTextInput v-bind="bindings.secret" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="bucketInputBindings" />
+      <BackupRepositoryFormTextInput v-bind="bindings.bucket" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow wide>
-      <BackupRepositoryFormTextInput v-bind="pathInBucketInputBindings" />
+      <BackupRepositoryFormTextInput v-bind="bindings.pathInBucket" />
     </BackupRepositoryFormRow>
   </div>
 </template>
@@ -34,22 +31,9 @@
 import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/new/BackupRepositoryFormRow.vue'
 import BackupRepositoryFormCheckbox from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormCheckbox.vue'
 import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextInput.vue'
-import type { FieldMetadata, ModelBinding } from '@core/packages/validated-form'
+import type { S3BackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-s3-backup-repository-details-form.ts'
 
-type TextInputBindings = ModelBinding<string> & FieldMetadata & { label: string; required?: boolean; info?: string }
-
-type CheckboxBindings = ModelBinding<boolean> & FieldMetadata & { label: string }
-
-defineProps<{
-  endpointInputBindings: TextInputBindings
-  useHttpsCheckboxBindings: CheckboxBindings
-  allowUnauthorizedCheckboxBindings: CheckboxBindings
-  regionInputBindings: TextInputBindings
-  accessKeyIdInputBindings: TextInputBindings
-  secretInputBindings: TextInputBindings
-  bucketInputBindings: TextInputBindings
-  pathInBucketInputBindings: TextInputBindings
-}>()
+defineProps<{ bindings: S3BackupRepositoryDetailsForm['bindings'] }>()
 </script>
 
 <style lang="postcss" scoped>
