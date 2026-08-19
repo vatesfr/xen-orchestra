@@ -37,12 +37,22 @@ export default class {
         indexes: ['name'],
         crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', {
+        collection: groupsDb,
+        type: 'group',
+        decorate: this.#normalizeGroup.bind(this),
+      })
       const usersDb = (this._users = new Users({
         connection: redis,
         namespace: 'user',
         indexes: ['email'],
         crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', {
+        collection: usersDb,
+        type: 'user',
+        decorate: user => this.#normalizeUser(user, { obfuscatePassword: true }),
+      })
 
       app.addConfigManager(
         'groups',
@@ -234,26 +244,33 @@ export default class {
 
   // TODO: this method will no longer be async when users are
   // integrated to the main collection.
-  async getUser(id) {
+  async getUser(id, { obfuscatePassword = false } = {}) {
     const user = await this._getUser(id)
+
+    return this.#normalizeUser(user, { obfuscatePassword })
+  }
+
+  #normalizeUser(user, { obfuscatePassword = false } = {}) {
+    const normalizedUser = { ...user }
+
+    if (normalizedUser.pw_hash !== undefined && obfuscatePassword) {
+      normalizedUser.pw_hash = '***obfuscated***'
+    }
 
     // TODO: remove when no longer the email property has been
     // completely eradicated.
-    user.name = user.email
+    if (!('name' in user)) {
+      normalizedUser.name = user.email
+    }
 
-    return user
+    return normalizedUser
   }
 
-  async getAllUsers() {
+  async getAllUsers({ obfuscatePassword = false } = {}) {
     const users = await this._users.get()
 
-    // TODO: remove when the email property has been
-    // completely eradicated.
     return users.map(user => {
-      if (!('name' in user)) {
-        user.name = user.email
-      }
-      return user
+      return this.#normalizeUser(user, { obfuscatePassword })
     })
   }
 
@@ -261,7 +278,7 @@ export default class {
     // TODO: change `email` by `username`.
     const user = await this._users.first({ email: username })
     if (user !== undefined) {
-      return user
+      return this.#normalizeUser(user)
     }
 
     if (returnNullIfMissing) {

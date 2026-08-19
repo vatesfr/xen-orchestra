@@ -759,6 +759,8 @@ export default class XenServers {
 
     // Do not expose password.
     delete server.password
+
+    return server
   }
 
   async getAllXenServers() {

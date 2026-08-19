@@ -103,6 +103,11 @@ export default class {
         namespace: 'acl-v2-role',
         crypto: app.cryptoCredentials,
       })
+      app.hooks.emit('registerCollection', {
+        collection: roleDb,
+        type: 'acl-role',
+        decorate: this.#normalizeAclV2Role.bind(this),
+      })
       this.#roleDb = roleDb
 
       const privilegeDb = new Privileges({
@@ -112,6 +117,7 @@ export default class {
         indexes: ['roleId'],
         crypto: app.cryptoCredentials,
       })
+      app.hooks.emit('registerCollection', { collection: privilegeDb, type: 'acl-privilege' })
       this.#privilegeDb = privilegeDb
 
       const userRoleDb = new UserRoles({
