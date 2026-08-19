@@ -3,7 +3,7 @@ import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const DEFAULT_DOMAIN = 'WORKGROUP'
+export const SMB_DEFAULT_DOMAIN = 'WORKGROUP'
 
 export type SmbBackupRepositoryDetailsForm = ReturnType<typeof useSmbBackupRepositoryDetailsForm>
 
@@ -23,7 +23,6 @@ export function useSmbBackupRepositoryDetailsForm() {
     errors: {
       onSubmit: () => ({
         pathOnShare: { required },
-        domain: { required },
       }),
     },
   })
@@ -44,12 +43,11 @@ export function useSmbBackupRepositoryDetailsForm() {
     password: useField('password', () => ({ label: t('password') })),
     domain: useField('domain', () => ({
       label: t('domain'),
-      required: true,
-      placeholder: DEFAULT_DOMAIN,
-      info: t('value-by-default', { value: DEFAULT_DOMAIN }),
+      placeholder: SMB_DEFAULT_DOMAIN,
+      info: t('value-by-default', { value: SMB_DEFAULT_DOMAIN }),
     })),
     customOptions: useField('customOptions', () => ({ label: t('custom-options') })),
   })
 
-  return { bindings, validate }
+  return { formData, bindings, validate }
 }
