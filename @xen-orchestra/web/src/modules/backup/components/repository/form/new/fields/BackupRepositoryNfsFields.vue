@@ -10,13 +10,14 @@
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow wide>
-      <BackupRepositoryFormTextInput v-bind="customOptionsInputBindings" />
+      <BackupRepositoryFormTextArea v-bind="customOptionsInputBindings" />
     </BackupRepositoryFormRow>
   </div>
 </template>
 
 <script lang="ts" setup>
 import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/new/BackupRepositoryFormRow.vue'
+import BackupRepositoryFormTextArea from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextArea.vue'
 import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextInput.vue'
 import type { FieldMetadata, ModelBinding } from '@core/packages/validated-form'
 
