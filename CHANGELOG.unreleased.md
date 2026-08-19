@@ -19,7 +19,7 @@
 
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
 - [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
-- [Backup] Add 'immediate' flag to deleteVmBackups and deleteDeltaVmBackups to trigger the disk (vhds) deletion after its metadata deletion in incremental backups ( PR [#10273] (https://github.com/vatesfr/xen-orchestra/pull/10273))
+- [Backup] Fixed disk space not being freed during delta backup deletion ( PR [#10273] (https://github.com/vatesfr/xen-orchestra/pull/10273))
 
 ### Bug fixes
 
