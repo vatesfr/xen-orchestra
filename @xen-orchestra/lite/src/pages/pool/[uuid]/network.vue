@@ -24,7 +24,7 @@
         <template #title-actions>
           <UiLink
             class="new-internal-network-link"
-            :to="{ name: '/network/new-internal', query: { poolid: pool?.uuid } }"
+            :to="{ name: '/network/new-internal' }"
             icon="fa:plus"
             size="medium"
           >
