@@ -120,15 +120,28 @@ export class RemoteAdapter {
   async #mergeVmDirsAfterDelete(backups) {
     const dirs = new Set(backups.map(({ _filename }) => dirname(_filename)))
 
-    await asyncEach(dirs, dir =>
-      Task.run({ properties: { name: 'merge VM backup chain', type: 'VM', path: dir } }, () =>
-        this.cleanVm(dir, {
-          remove: true,
-          merge: true,
-          logInfo: Task.info,
-          logWarn: Task.warning,
+    await Task.run(
+      {
+        properties: {
+          name: 'merge VM backup chains',
+          total: dirs.size,
+        },
+      },
+      async () => {
+        Task.set('total', dirs.size)
+        let done = 0
+
+        await asyncEach(dirs, async dir => {
+          await this.cleanVm(dir, {
+            remove: true,
+            merge: true,
+            logInfo: Task.info,
+            logWarn: Task.warning,
+          })
+          done++
+          Task.set('progress', Math.round((done / dirs.size) * 100))
         })
-      )
+      }
     )
 
     return dirs
