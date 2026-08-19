@@ -3,7 +3,7 @@ import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const DEFAULT_PORT = '2049'
+export const NFS_DEFAULT_PORT = '2049'
 
 export type NfsBackupRepositoryDetailsForm = ReturnType<typeof useNfsBackupRepositoryDetailsForm>
 
@@ -30,12 +30,12 @@ export function useNfsBackupRepositoryDetailsForm() {
     host: useField('host', () => ({ label: t('host-or-ip-address'), required: true })),
     port: useField('port', () => ({
       label: t('port'),
-      placeholder: DEFAULT_PORT,
-      info: t('value-by-default', { value: DEFAULT_PORT }),
+      placeholder: NFS_DEFAULT_PORT,
+      info: t('value-by-default', { value: NFS_DEFAULT_PORT }),
     })),
     path: useField('path', () => ({ label: t('path-on-share'), required: true })),
     customOptions: useField('customOptions', () => ({ label: t('custom-options') })),
   })
 
-  return { bindings, validate }
+  return { formData, bindings, validate }
 }

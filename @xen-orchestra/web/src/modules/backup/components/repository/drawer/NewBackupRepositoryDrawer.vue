@@ -7,21 +7,24 @@
     <template #content>
       <UiStepper :steps :current-step="currentStepIndex">
         <NewBackupRepositoryGeneralStep v-if="currentStep === 'general'" :bindings="general.bindings" />
-        <NewBackupRepositoryDetailsStep v-else :type="general.formData.type" :details />
+        <NewBackupRepositoryDetailsStep v-else-if="currentStep === 'details'" :type="general.formData.type" :details />
+        <NewBackupRepositoryReviewStep v-else :general :details :details-title="detailsStepLabel" />
       </UiStepper>
     </template>
 
     <template #buttons>
       <VtsOverlayCancelButton v-if="currentStep === 'general'" @click="emit('cancel')" />
       <VtsOverlayCancelButton v-else @click="back()">{{ t('back') }}</VtsOverlayCancelButton>
-      <VtsOverlayConfirmButton>{{ t('continue') }}</VtsOverlayConfirmButton>
+      <VtsOverlayConfirmButton v-if="currentStep === 'review'">{{ t('create') }}</VtsOverlayConfirmButton>
+      <VtsOverlayConfirmButton v-else>{{ t('continue') }}</VtsOverlayConfirmButton>
     </template>
   </UiDrawer>
 </template>
 
 <script lang="ts" setup>
-import NewBackupRepositoryDetailsStep from '@/modules/backup/components/repository/form/new/NewBackupRepositoryDetailsStep.vue'
-import NewBackupRepositoryGeneralStep from '@/modules/backup/components/repository/form/new/NewBackupRepositoryGeneralStep.vue'
+import NewBackupRepositoryDetailsStep from '@/modules/backup/components/repository/form/new/steps/NewBackupRepositoryDetailsStep.vue'
+import NewBackupRepositoryGeneralStep from '@/modules/backup/components/repository/form/new/steps/NewBackupRepositoryGeneralStep.vue'
+import NewBackupRepositoryReviewStep from '@/modules/backup/components/repository/form/new/steps/NewBackupRepositoryReviewStep.vue'
 import { useNewBackupRepositoryForm } from '@/modules/backup/form/use-new-backup-repository-form.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
@@ -35,7 +38,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { general, details, currentStep, currentStepIndex, steps, next, back } = useNewBackupRepositoryForm()
+const { general, details, currentStep, detailsStepLabel, currentStepIndex, steps, next, back } =
+  useNewBackupRepositoryForm()
 </script>
 
 <style lang="postcss" scoped>
