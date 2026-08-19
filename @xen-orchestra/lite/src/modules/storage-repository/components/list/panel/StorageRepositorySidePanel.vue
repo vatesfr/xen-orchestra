@@ -49,7 +49,6 @@ import { computed } from 'vue'
 
 type EnrichedXenApiVdi = XenApiVdi & { chainPhysicalUsage: number }
 
-const { sr, pool } = defineProps<{
 const { sr, pool, scope } = defineProps<{
   sr?: XenApiSr
   pool: XenApiPool
