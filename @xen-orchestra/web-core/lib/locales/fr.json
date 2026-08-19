@@ -519,7 +519,7 @@
   "job:host-shutdown:bad-power-state": "Hôte déjà arrêté",
   "job:host-shutdown:in-progress": "Arrêt de l'hôte en cours…",
   "job:host-shutdown:missing-host": "Aucun hôte à arrêter",
-  "job:host-smart-reboot:bad-power-state": "L'hôte n'est pas lancé",
+  "job:host-smart-reboot:bad-power-state": "L'hôte n'est pas démarré",
   "job:host-smart-reboot:in-progress": "Redémarrage optimisé de l'hôte en cours…",
   "job:host-smart-reboot:missing-host": "Aucun hôte pour le redémarrage optimisé",
   "job:host-smart-reboot:vm-clean-shutdown-in-progress": "Arrêt des VMs en cours…",
