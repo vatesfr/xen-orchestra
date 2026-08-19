@@ -35,7 +35,7 @@
         {{ t('encryption-available-for-block-modes-only') }}
       </UiAlert>
 
-      <BackupRepositoryEncryptedCheckbox v-bind="encryptedCheckboxBindings" />
+      <BackupRepositoryFormCheckbox v-bind="encryptedCheckboxBindings" />
 
       <BackupRepositoryFormRow v-if="encryptedCheckboxBindings.modelValue">
         <BackupRepositoryFormTextInput v-bind="encryptionKeyInputBindings" />
@@ -46,7 +46,7 @@
 
 <script lang="ts" setup>
 import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/new/BackupRepositoryFormRow.vue'
-import BackupRepositoryEncryptedCheckbox from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryEncryptedCheckbox.vue'
+import BackupRepositoryFormCheckbox from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormCheckbox.vue'
 import BackupRepositoryFormSelect from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormSelect.vue'
 import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextInput.vue'
 import type { FormSelectId } from '@core/packages/form-select'

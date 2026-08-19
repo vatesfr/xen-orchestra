@@ -34,6 +34,14 @@ type NewBackupRepositoryFormData = {
     smbPassword: string
     smbDomain: string
     smbCustomOptions: string
+    s3Endpoint: string
+    s3UseHttps: boolean
+    s3AllowUnauthorized: boolean
+    s3Region: string
+    s3AccessKeyId: string
+    s3Secret: string
+    s3Bucket: string
+    s3PathInBucket: string
   }
 }
 
@@ -79,6 +87,14 @@ export function useNewBackupRepositoryForm() {
       smbPassword: '',
       smbDomain: '',
       smbCustomOptions: '',
+      s3Endpoint: '',
+      s3UseHttps: false,
+      s3AllowUnauthorized: false,
+      s3Region: '',
+      s3AccessKeyId: '',
+      s3Secret: '',
+      s3Bucket: '',
+      s3PathInBucket: '',
     },
   })
 
@@ -86,6 +102,7 @@ export function useNewBackupRepositoryForm() {
   const isNfsType = computed(() => formData.general.type === 'nfs')
   const isLocalType = computed(() => formData.general.type === 'file')
   const isSmbType = computed(() => formData.general.type === 'smb')
+  const isS3Type = computed(() => formData.general.type === 's3')
 
   const { useField, useFormSelect, useSelect, currentStep, next, back, validateAllSteps } = useMultiStepValidatedForm(
     formData,
@@ -121,6 +138,11 @@ export function useNewBackupRepositoryForm() {
             localPath: { requiredIf: requiredIf(isLocalType) },
             smbPathOnShare: { requiredIf: requiredIf(isSmbType) },
             smbDomain: { requiredIf: requiredIf(isSmbType) },
+            s3Endpoint: { requiredIf: requiredIf(isS3Type) },
+            s3Region: { requiredIf: requiredIf(isS3Type) },
+            s3AccessKeyId: { requiredIf: requiredIf(isS3Type) },
+            s3Secret: { requiredIf: requiredIf(isS3Type) },
+            s3Bucket: { requiredIf: requiredIf(isS3Type) },
           }),
         },
       },
@@ -134,6 +156,15 @@ export function useNewBackupRepositoryForm() {
   watch(isBackupFormatLocked, isLocked => {
     formData.general.backupFormat = isLocked ? 'block' : undefined
   })
+
+  watch(
+    () => formData.details.s3UseHttps,
+    useHttps => {
+      if (!useHttps) {
+        formData.details.s3AllowUnauthorized = false
+      }
+    }
+  )
 
   const typeOptions = computed(() => [
     { id: 'file', label: t('local'), value: 'file' },
@@ -179,7 +210,10 @@ export function useNewBackupRepositoryForm() {
       learnMoreUrl: BACKUP_FORMAT_DOC_URL,
     })),
     proxySelectBindings: useSelect(proxySelectId, () => ({ label: t('proxy') })),
-    encryptedCheckboxBindings: useField('encrypted'),
+    encryptedCheckboxBindings: useField('encrypted', () => ({
+      label: t('encrypted'),
+      warning: t('encryption-key-loss-warning'),
+    })),
     encryptionKeyInputBindings: useField('encryptionKey', () => ({
       label: t('key'),
       required: true,
@@ -206,7 +240,7 @@ export function useNewBackupRepositoryForm() {
       required: true,
       info: formData.general.proxy !== undefined ? t('path-must-be-absolute-on-proxy-host') : undefined,
     })),
-    smbHostInputBindings: useField('smbPathOnShare', () => ({
+    smbPathOnShareInputBindings: useField('smbPathOnShare', () => ({
       label: t('path-on-share'),
       required: true,
       prefix: '\\\\',
@@ -214,6 +248,7 @@ export function useNewBackupRepositoryForm() {
     })),
     smbSubfolderInputBindings: useField('smbSubfolder', () => ({
       label: t('subfolder'),
+      prefix: '\\',
       info: t('smb-subfolder-sample'),
     })),
     smbUsernameInputBindings: useField('smbUsername', () => ({ label: t('username') })),
@@ -225,5 +260,17 @@ export function useNewBackupRepositoryForm() {
       info: t('value-by-default', { value: SMB_DEFAULT_DOMAIN }),
     })),
     smbCustomOptionsInputBindings: useField('smbCustomOptions', () => ({ label: t('custom-options') })),
+    s3EndpointInputBindings: useField('s3Endpoint', () => ({
+      label: t('endpoint-url'),
+      required: true,
+      info: t('s3-endpoint-sample'),
+    })),
+    s3UseHttpsCheckboxBindings: useField('s3UseHttps', () => ({ label: t('use-https') })),
+    s3AllowUnauthorizedCheckboxBindings: useField('s3AllowUnauthorized', () => ({ label: t('allow-unauthorized') })),
+    s3RegionInputBindings: useField('s3Region', () => ({ label: t('region'), required: true })),
+    s3AccessKeyIdInputBindings: useField('s3AccessKeyId', () => ({ label: t('access-key-id'), required: true })),
+    s3SecretInputBindings: useField('s3Secret', () => ({ label: t('secret'), required: true })),
+    s3BucketInputBindings: useField('s3Bucket', () => ({ label: t('bucket-name'), required: true })),
+    s3PathInBucketInputBindings: useField('s3PathInBucket', () => ({ label: t('path-in-bucket') })),
   }
 }
