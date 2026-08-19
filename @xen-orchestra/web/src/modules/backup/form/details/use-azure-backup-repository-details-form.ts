@@ -10,6 +10,7 @@ export function useAzureBackupRepositoryDetailsForm() {
 
   const formData = reactive({
     hostName: '',
+    useHttps: true,
     accountName: '',
     key: '',
     containerName: '',
@@ -29,6 +30,7 @@ export function useAzureBackupRepositoryDetailsForm() {
 
   const bindings = reactive({
     hostName: useField('hostName', () => ({ label: t('host-name'), required: true })),
+    useHttps: useField('useHttps', () => ({ label: t('use-https') })),
     accountName: useField('accountName', () => ({ label: t('account-name'), required: true })),
     key: useField('key', () => ({ label: t('key'), required: true })),
     containerName: useField('containerName', () => ({ label: t('container-name'), required: true })),

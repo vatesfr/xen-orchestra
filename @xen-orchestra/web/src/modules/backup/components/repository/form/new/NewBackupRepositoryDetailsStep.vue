@@ -7,6 +7,7 @@
     <BackupRepositoryAzureFields
       v-else-if="type === 'azure' || type === 'azurite'"
       :bindings="details.azure.bindings"
+      :is-azurite="type === 'azurite'"
     />
   </div>
 </template>

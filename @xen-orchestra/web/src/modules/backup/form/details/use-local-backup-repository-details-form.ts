@@ -27,7 +27,7 @@ export function useLocalBackupRepositoryDetailsForm(rawProxy: MaybeRefOrGetter<F
     path: useField('path', () => ({
       label: t('backup-repository-path'),
       required: true,
-      info: proxy ? t('path-must-be-absolute-on-proxy-host') : undefined,
+      info: proxy.value ? t('path-must-be-absolute-on-proxy-host') : undefined,
     })),
   })
 
