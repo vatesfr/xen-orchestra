@@ -24,13 +24,9 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
-  users: FrontXoUser[]
-}>()
-
 const { t } = useI18n()
 
-const { getUserById } = useXoUserCollection()
+const { users, getUserById } = useXoUserCollection()
 
 const alertDismissed = ref(false)
 
