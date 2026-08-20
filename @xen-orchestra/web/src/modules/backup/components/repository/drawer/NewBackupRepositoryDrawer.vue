@@ -46,9 +46,9 @@ async function handleConfirm() {
     await next()
   }
 
-  // const payload = await buildPayload()
+  const payload = await buildPayload()
 
-  // console.log('payload', payload)
+  console.log('payload', payload)
 }
 </script>
 
