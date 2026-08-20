@@ -26,6 +26,7 @@ import NewBackupRepositoryDetailsStep from '@/modules/backup/components/reposito
 import NewBackupRepositoryGeneralStep from '@/modules/backup/components/repository/form/new/steps/NewBackupRepositoryGeneralStep.vue'
 import NewBackupRepositoryReviewStep from '@/modules/backup/components/repository/form/new/steps/NewBackupRepositoryReviewStep.vue'
 import { useNewBackupRepositoryForm } from '@/modules/backup/form/use-new-backup-repository-form.ts'
+import type { NewBackupRepositoryPayload } from '@/modules/backup/jobs/xo-backup-repository-create.job.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
@@ -33,6 +34,7 @@ import UiStepper from '@core/components/ui/stepper/UiStepper.vue'
 import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
+  confirm: [payload: NewBackupRepositoryPayload]
   cancel: []
 }>()
 
@@ -44,11 +46,14 @@ const { general, details, currentStep, detailsStepLabel, currentStepIndex, steps
 async function handleConfirm() {
   if (currentStep.value !== 'review') {
     await next()
+    return
   }
 
   const payload = await buildPayload()
 
-  console.log('payload', payload)
+  if (payload !== undefined) {
+    emit('confirm', payload)
+  }
 }
 </script>
 

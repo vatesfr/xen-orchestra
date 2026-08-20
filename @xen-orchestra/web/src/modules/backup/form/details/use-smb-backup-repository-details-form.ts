@@ -24,6 +24,8 @@ export function useSmbBackupRepositoryDetailsForm() {
     errors: {
       onSubmit: () => ({
         pathOnShare: { required },
+        username: { required },
+        password: { required },
       }),
     },
   })
@@ -40,8 +42,8 @@ export function useSmbBackupRepositoryDetailsForm() {
       prefix: '\\',
       info: t('smb-subfolder-sample'),
     })),
-    username: useField('username', () => ({ label: t('username') })),
-    password: useField('password', () => ({ label: t('password') })),
+    username: useField('username', () => ({ label: t('username'), required: true })),
+    password: useField('password', () => ({ label: t('password'), required: true })),
     domain: useField('domain', () => ({
       label: t('domain'),
       placeholder: SMB_DEFAULT_DOMAIN,
