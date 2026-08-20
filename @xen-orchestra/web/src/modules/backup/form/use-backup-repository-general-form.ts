@@ -1,5 +1,8 @@
 import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
-import type { BackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
+import type {
+  BackupRepositoryOptions,
+  BackupRepositoryType,
+} from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { regex, required, requiredIf, withMessage } from '@core/packages/form-validation'
@@ -115,5 +118,12 @@ export function useBackupRepositoryGeneralForm() {
     })),
   })
 
-  return { formData, bindings, validate }
+  function buildUrlOptions(): BackupRepositoryOptions {
+    return {
+      ...(formData.encrypted && formData.encryptionKey !== '' && { encryptionKey: formData.encryptionKey }),
+      ...(formData.backupFormat === 'block' && { useVhdDirectory: true }),
+    }
+  }
+
+  return { formData, bindings, validate, buildUrlOptions }
 }
