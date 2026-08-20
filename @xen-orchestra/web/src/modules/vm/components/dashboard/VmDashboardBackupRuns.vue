@@ -22,7 +22,7 @@
         size="small"
         variant="tertiary"
         class="button"
-        @click="openProtectionHelpModal()"
+        @click="openVmProtectedInfoModal()"
       >
         {{ t('what-does-protected-mean?') }}
       </UiButton>
@@ -84,7 +84,7 @@ const { t } = useI18n()
 
 const { getBackupJobById, areBackupJobsReady, hasBackupJobFetchError } = useXoBackupJobCollection()
 
-const { open: openProtectionHelpModal } = useVmProtectedInfoModal()
+const { open: openVmProtectedInfoModal } = useVmProtectedInfoModal()
 
 const lastRuns = computed(() => vmDashboard?.backupsInfo?.lastRuns)
 
