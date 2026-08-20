@@ -1,5 +1,5 @@
 <template>
-  <UiDrawer class="new-backup-repository-drawer" @confirm="next()" @dismiss="emit('cancel')">
+  <UiDrawer class="new-backup-repository-drawer" @confirm="handleConfirm()" @dismiss="emit('cancel')">
     <template #title>
       {{ t('create-new-br') }}
     </template>
@@ -38,8 +38,18 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { general, details, currentStep, detailsStepLabel, currentStepIndex, steps, next, back, goToStep } =
+const { general, details, currentStep, detailsStepLabel, currentStepIndex, steps, next, back, goToStep, buildPayload } =
   useNewBackupRepositoryForm()
+
+async function handleConfirm() {
+  if (currentStep.value !== 'review') {
+    await next()
+  }
+
+  const payload = await buildPayload()
+
+  // console.log('payload', payload)
+}
 </script>
 
 <style lang="postcss" scoped>
