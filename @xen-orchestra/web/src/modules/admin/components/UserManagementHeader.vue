@@ -8,6 +8,11 @@
         {{ t('users') }}
       </TabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/admin/user-management/groups' }" custom>
+      <TabItem :active="isExactActive" :href tag="a">
+        {{ t('groups') }}
+      </TabItem>
+    </RouterLink>
   </TabList>
 </template>
 
