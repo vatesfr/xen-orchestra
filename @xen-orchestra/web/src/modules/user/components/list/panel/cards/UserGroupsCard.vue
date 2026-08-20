@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoGroupCollection } from '@/modules/group/remote-ressources/use-xo-group-collection.ts'
+import { useXoGroupCollection } from '@/modules/group/remote-resources/use-xo-group-collection.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
