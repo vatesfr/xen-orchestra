@@ -426,7 +426,8 @@ const methods = {
       get: vm => +vm.memory_dynamic_max,
       preprocess: parseSize,
       set(memory, vm) {
-        return vm.$call('set_memory_limits', vm.memory_static_min, memory, memory, memory)
+        const staticMin = Math.min(vm.memory_static_min, memory)
+        return vm.$call('set_memory_limits', staticMin, memory, memory, memory)
       },
     },
 
