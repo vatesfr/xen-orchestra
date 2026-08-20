@@ -4,11 +4,11 @@ import { useNfsBackupRepositoryDetailsForm } from '@/modules/backup/form/details
 import { useS3BackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-s3-backup-repository-details-form.ts'
 import { useSmbBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-smb-backup-repository-details-form.ts'
 import { useBackupRepositoryGeneralForm } from '@/modules/backup/form/use-backup-repository-general-form.ts'
-import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
 import type { NewBackupRepositoryPayload } from '@/modules/backup/jobs/xo-backup-repository-create.job.ts'
+import { formatBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
+import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { formatBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 
 const STEPS = ['general', 'details', 'review']
 
