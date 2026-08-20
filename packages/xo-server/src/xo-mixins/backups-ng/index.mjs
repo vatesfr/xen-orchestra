@@ -698,8 +698,13 @@ export default class BackupNg {
       }))
     } else {
       backupsByVm = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
-        const vmBackups =
-          vmId === undefined ? await adapter.listAllVmBackups() : { [vmId]: await adapter.listVmBackups(vmId) }
+        let vmBackups
+        if (vmId !== undefined) {
+          vmBackups = { [vmId]: await adapter.listVmBackups(vmId) }
+        } else {
+          vmBackups = await adapter.listAllVmBackups()
+        }
+
         return formatVmBackups(vmBackups, remote.id)
       })
     }
