@@ -5,7 +5,7 @@ import type { XoGroup } from '@vates/types'
 
 export type FrontXoGroup = Pick<XoGroup, (typeof groupFields)[number]>
 
-const groupFields = ['id', 'name'] as const satisfies readonly (keyof XoGroup)[]
+const groupFields = ['id', 'name', 'provider', 'users', 'aclRoleIds'] as const satisfies readonly (keyof XoGroup)[]
 
 export const useXoGroupCollection = defineRemoteResource({
   url: `${BASE_URL}/groups?fields=${groupFields.join(',')}`,
