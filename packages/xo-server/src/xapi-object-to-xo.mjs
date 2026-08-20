@@ -417,8 +417,6 @@ const TRANSFORMS = {
       }
     }
 
-    // Build a { taskId → operation } map instead of forwarding the
-    // { taskRef → operation } map directly
     const currentOperations = getCurrentOperations(obj)
 
     const { creation } = xoData.extract(obj) ?? {}
