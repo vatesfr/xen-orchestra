@@ -43,7 +43,7 @@ export function useNfsBackupRepositoryDetailsForm() {
       urlInfo: {
         type: 'nfs',
         host: formData.host,
-        ...(formData.port !== '' && { port: formData.port }),
+        port: formData.port !== '' ? formData.port : NFS_DEFAULT_PORT,
         path: formData.path,
       },
       ...(formData.customOptions !== '' && { options: formData.customOptions }),
