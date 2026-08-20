@@ -3,7 +3,15 @@
 ```
 
 ```vue-script
-import VtsLegendGroup, { type LegendGroupProps } from '@core/components/legend/VtsLegendGroup.vue'
+import VtsLegendGroup, { type LegendGroupProps } from '@core/components/legend-group/VtsLegendGroup.vue'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+
+const { open: openLegendModal } = useOverlay({
+  component: () => import('./LegendInfoModal.vue'),
+  events: {
+    onClose: true,
+  },
+})
 
 const items: LegendGroupProps['items'] = [
   {
@@ -14,16 +22,16 @@ const items: LegendGroupProps['items'] = [
   },
   {
     label: 'Second segment',
-    accent: 'neutral',
+    accent: 'secondary',
     value: 58,
     unit: '%',
-    modalInfo: true,
+    onInfoClick: () => openLegendModal(),
   },
 ]
 
 const title: LegendGroupProps['title'] = {
   label: 'Legend Title',
   icon: 'fa:info-circle',
-  iconTooltip: 'This is a tooltip'
+  iconTooltip: 'This is a tooltip',
 }
 ```

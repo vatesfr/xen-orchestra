@@ -16,7 +16,7 @@
           left-icon="status:info-circle"
           size="small"
           variant="tertiary"
-          @click="openVmProtectedModal()"
+          @click="openVmProtectedInfoModal()"
         >
           {{ t('what-does-protected-mean?') }}
         </UiButton>
@@ -45,7 +45,7 @@ const { vms } = useXoVmCollection()
 
 const { t } = useI18n()
 
-const { open: openVmProtectedModal } = useVmProtectedInfoModal()
+const { open: openVmProtectedInfoModal } = useVmProtectedInfoModal()
 
 const dashboardBackups = computed(() => dashboard.value.backups)
 
