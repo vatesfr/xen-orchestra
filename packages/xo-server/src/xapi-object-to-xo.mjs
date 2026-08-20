@@ -195,11 +195,10 @@ const isVmVulnerable_XSA468 = vm => {
 const TRANSFORMS = {
   pool(obj) {
     const cpuInfo = obj.cpu_info
-    const currentOperations = getCurrentOperations(obj)
     return {
       auto_poweron: obj.other_config.auto_poweron === 'true',
       crashDumpSr: link(obj, 'crash_dump_SR'),
-      current_operations: currentOperations,
+      current_operations: getCurrentOperations(obj),
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),
       haRebootVmOnInternalShutdown: obj.ha_reboot_vm_on_internal_shutdown ?? true,
@@ -269,7 +268,7 @@ const TRANSFORMS = {
     }
 
     const cpuInfo = obj.cpu_info
-    const currentOperations = getCurrentOperations(obj)
+
     return {
       // Deprecated
       CPUs: cpuInfo,
@@ -286,7 +285,7 @@ const TRANSFORMS = {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
       },
-      current_operations: currentOperations,
+      current_operations: getCurrentOperations(obj),
       hostname: obj.hostname,
       iscsiIqn: obj.iscsi_iqn ?? otherConfig.iscsi_iqn ?? '',
       zstdSupported: obj.license_params.restrict_zstd_export === 'false',
@@ -417,8 +416,6 @@ const TRANSFORMS = {
       }
     }
 
-    const currentOperations = getCurrentOperations(obj)
-
     const { creation } = xoData.extract(obj) ?? {}
 
     let $container
@@ -466,7 +463,7 @@ const TRANSFORMS = {
         number: isRunning && metrics && xenTools ? +metrics.VCPUs_number : +obj.VCPUs_at_startup,
       },
       creation,
-      current_operations: currentOperations,
+      current_operations: getCurrentOperations(obj),
       docker: (function () {
         const monitor = otherConfig['xscontainer-monitor']
         if (!monitor) {
