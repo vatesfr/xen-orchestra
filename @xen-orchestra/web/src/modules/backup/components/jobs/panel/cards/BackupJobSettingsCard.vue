@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="backup-job-settings-card">
     <UiCardTitle>
       {{ t('settings') }}
     </UiCardTitle>
@@ -102,7 +102,7 @@
         accent="info"
       />
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -110,9 +110,9 @@ import { useXoBackupJobSettingsUtils } from '@/modules/backup/composables/backup
 import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
@@ -134,9 +134,11 @@ const {
 </script>
 
 <style scoped lang="postcss">
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
+.backup-job-settings-card {
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+  }
 }
 </style>

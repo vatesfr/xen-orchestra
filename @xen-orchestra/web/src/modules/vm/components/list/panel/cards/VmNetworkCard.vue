@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="vm-network-card">
     <UiCardTitle>
       {{ t('networks') }}
       <UiLink v-if="ipAddresses.length > 0" size="medium" :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }">
@@ -23,7 +23,7 @@
         <template #key>{{ t('ip-addresses') }}</template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -32,9 +32,9 @@ import { getVmIpAddresses } from '@/modules/vm/utils/xo-vm.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -48,9 +48,7 @@ const ipAddresses = computed(() => getVmIpAddresses(vm))
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.vm-network-card {
   .content {
     display: flex;
     flex-direction: column;

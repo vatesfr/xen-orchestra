@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="vm-info-card">
     <VtsCardObjectTitle
       :id="vm.id"
       :label="vm.name_label"
@@ -137,7 +137,7 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -154,8 +154,8 @@ import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObject
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -206,9 +206,7 @@ const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay }
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.vm-info-card {
   .content {
     display: flex;
     flex-direction: column;

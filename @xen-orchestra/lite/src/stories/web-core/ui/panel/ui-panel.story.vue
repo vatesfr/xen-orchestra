@@ -11,9 +11,9 @@
   >
     <UiPanel v-bind="properties">
       <template v-if="settings.showHeader" #header>{{ settings.headerContent }}</template>
-      <UiCard>
+      <UiPanelCard>
         <div>Card content</div>
-      </UiCard>
+      </UiPanelCard>
     </UiPanel>
   </ComponentStory>
 </template>
@@ -22,6 +22,6 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting, slot } from '@/libs/story/story-param'
 import { boolean, text } from '@/libs/story/story-widget'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 </script>
