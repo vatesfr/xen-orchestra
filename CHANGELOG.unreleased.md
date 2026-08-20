@@ -53,6 +53,7 @@
 - [XO6] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
 - [XO6] Export VDI as vmdk (PR [#10591](https://github.com/vatesfr/xen-orchestra/pull/10591))
 - [XO5] Improve event handling (PR [#10568](https://github.com/vatesfr/xen-orchestra/pull/10568))
+- [XO6/Groups] Add a groups list in the user management page (PR [#10272](https://github.com/vatesfr/xen-orchestra/pull/10272))
 
 ### Bug fixes
 
