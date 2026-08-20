@@ -1,7 +1,7 @@
 <template>
   <div class="groups">
     <UiAlert v-if="isInfoVisible" accent="info" close @close="hideInfo">
-      <span class="typo-body-bold">{{ t('group:what-is-a-group') }}</span>
+      <span class="typo-body-bold">{{ t('group:what-is-a-group?') }}</span>
       <template #description>
         <span class="typo-body-regular">{{ t('group:what-is-a-group-description') }}</span>
       </template>
