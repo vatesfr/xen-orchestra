@@ -2,7 +2,7 @@
   <VtsTreeItem
     v-if="host !== undefined"
     :expanded="isExpanded"
-    :has-children="vmCount > 0 ? true : undefined"
+    has-children
     class="infra-host-item"
     :node-id="`host:${host.uuid}`"
   >
