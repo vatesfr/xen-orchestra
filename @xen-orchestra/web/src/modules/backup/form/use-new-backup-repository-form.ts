@@ -26,7 +26,7 @@ export function useNewBackupRepositoryForm() {
     nfs: useNfsBackupRepositoryDetailsForm(),
     smb: useSmbBackupRepositoryDetailsForm(),
     s3: useS3BackupRepositoryDetailsForm(),
-    azure: useAzureBackupRepositoryDetailsForm(general.formData.type),
+    azure: useAzureBackupRepositoryDetailsForm(() => general.formData.type),
   }
 
   const currentDetailsForm = computed(() => {
