@@ -61,7 +61,7 @@ export type BackupRepositoryInfo =
   | AzureBackupRepositoryInfo
 
 export type BackupRepositoryInfoInput = BackupRepositoryOptions & {
-  type: BackupRepositoryType | 'local'
+  type: BackupRepositoryType
   host?: string
   port?: string
   path?: string

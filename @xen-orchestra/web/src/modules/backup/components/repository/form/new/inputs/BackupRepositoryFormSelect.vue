@@ -1,0 +1,37 @@
+<template>
+  <VtsInputWrapper :label :message="error" :learn-more-url="learnMoreUrl">
+    <VtsSelect :id accent="brand">
+      <template v-if="slots.option" #default="slotProps">
+        <slot name="option" v-bind="slotProps" />
+      </template>
+    </VtsSelect>
+  </VtsInputWrapper>
+</template>
+
+<script lang="ts" setup>
+import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import type { FormOption, FormSelectId } from '@core/packages/form-select'
+import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
+
+export type BackupRepositoryFormSelectOption = FormOption<{ hint?: string }>
+
+defineProps<{
+  id: FormSelectId
+  label: string
+  error?: InputWrapperMessage
+  learnMoreUrl?: string
+}>()
+
+const slots = defineSlots<{
+  option?(props: { option: BackupRepositoryFormSelectOption }): any
+}>()
+</script>
+
+<style lang="postcss" scoped>
+.vts-input-wrapper {
+  :deep(.ui-link) {
+    white-space: nowrap;
+  }
+}
+</style>
