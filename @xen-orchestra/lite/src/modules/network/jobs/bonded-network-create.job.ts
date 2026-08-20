@@ -1,5 +1,5 @@
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
-import { payloadsArg } from '@/modules/network/jobs/network-create-bonded-args.ts'
+import { payloadsArg } from '@/modules/network/jobs/bonded-network-create-args.ts'
 import type { BaseNewNetworkPayload } from '@/modules/network/jobs/network-create.job.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'

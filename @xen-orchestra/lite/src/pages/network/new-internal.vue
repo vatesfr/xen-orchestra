@@ -82,8 +82,8 @@ async function createNetwork(newPayload: NewInternalNetworkPayload) {
     }
 
     redirectAfterSuccess(promiseCreateResult.value)
-  } catch (_error) {
-    error.value = _error as Error
+  } catch (rawError) {
+    error.value = rawError as Error
   }
 }
 

@@ -22,12 +22,7 @@
       </PoolNetworksTable>
       <PoolHostInternalNetworksTable :networks="networksWithoutPifs">
         <template #title-actions>
-          <UiLink
-            class="new-internal-network-link"
-            :to="{ name: '/network/new-internal' }"
-            icon="fa:plus"
-            size="medium"
-          >
+          <UiLink :to="{ name: '/network/new-internal' }" icon="fa:plus" size="medium">
             {{ t('new') }}
           </UiLink>
         </template>
@@ -53,7 +48,12 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useI18n } from 'vue-i18n'
 
+defineSlots<{
+  'title-actions'(): any
+}>()
+
 const { t } = useI18n()
+
 usePageTitleStore().setTitle(t('network'))
 
 const { getByUuid, networksWithPifs, networksWithoutPifs, isReady, hasError } = useNetworkStore().subscribe()
