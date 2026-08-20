@@ -22,6 +22,7 @@ export const useXoBackupRepositoryCreateJob = defineJob('br.create', [payloadsAr
     run(payloads): Promise<PromiseSettledResult<FrontXoBackupRepository['id']>[]> {
       return Promise.allSettled(
         payloads.map(async payload => {
+          console.log('dans le job')
           const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`backup-repository`, payload)
           const { id } = await monitorTask<{ id: FrontXoBackupRepository['id'] }>(taskId)
           return id
