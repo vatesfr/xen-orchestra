@@ -47,6 +47,10 @@ const { networks } = defineProps<{
   networks: XenApiNetwork[]
 }>()
 
+defineSlots<{
+  'title-actions'(): any
+}>()
+
 const { isReady, hasError } = useNetworkStore().subscribe()
 
 const { t } = useI18n()
