@@ -11,7 +11,7 @@
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
-      <VtsDonutChartWithLegend icon="object:host" :segments class="chart" @open-modal="openDisableHostModal()" />
+      <VtsDonutChartWithLegend icon="object:host" :segments class="chart" />
       <UiCardNumbers :label="t('total')" :value="hostsStatus?.total" size="small" />
     </template>
   </UiCard>
@@ -19,6 +19,7 @@
 
 <script lang="ts" setup>
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
+import { useDisabledHostInfoModal } from '@/shared/composables/modals/use-disabled-host-info-modal.ts'
 import type { DonutChartWithLegendProps } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsDonutChartWithLegend from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -26,7 +27,6 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { useModal } from '@core/packages/modal/use-modal'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -34,16 +34,7 @@ const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const openDisableHostModal = useModal({
-  component: import('@core/components/modal/VtsModal.vue'),
-  props: {
-    accent: 'info',
-    icon: 'status:info-picto',
-    dismissible: true,
-    title: t('what-is-disable-host?'),
-    content: t('disable-host-helper'),
-  },
-})
+const { open: openDisabledHostInfoModal } = useDisabledHostInfoModal()
 
 const hostsStatus = computed(() => dashboard.value.hostsStatus)
 
@@ -59,7 +50,7 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     label: t('host:status:disabled', 2),
     value: hostsStatus.value?.disabled ?? 0,
     accent: 'muted',
-    modalInfo: true,
+    onInfoClick: () => openDisabledHostInfoModal(),
   },
   {
     label: t('host:status:halted', 2),

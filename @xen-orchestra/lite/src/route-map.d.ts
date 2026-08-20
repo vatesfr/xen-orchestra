@@ -247,6 +247,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/overlay': RouteRecordInfo<
+      '/story/overlay',
+      '/story/overlay',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/power-state-icon': RouteRecordInfo<
       '/story/power-state-icon',
       '/story/power-state-icon',
@@ -397,6 +404,27 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/object-icon/vts-object-icon': RouteRecordInfo<
       '/story/web-core/object-icon/vts-object-icon',
       '/story/web-core/object-icon/vts-object-icon',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/overlay/vts-overlay-button': RouteRecordInfo<
+      '/story/web-core/overlay/vts-overlay-button',
+      '/story/web-core/overlay/vts-overlay-button',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/overlay/vts-overlay-cancel-button': RouteRecordInfo<
+      '/story/web-core/overlay/vts-overlay-cancel-button',
+      '/story/web-core/overlay/vts-overlay-cancel-button',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/overlay/vts-overlay-confirm-button': RouteRecordInfo<
+      '/story/web-core/overlay/vts-overlay-confirm-button',
+      '/story/web-core/overlay/vts-overlay-confirm-button',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1212,6 +1240,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/overlay.story.vue': {
+      routes:
+        | '/story/overlay'
+      views:
+        | never
+    }
     'src/stories/power-state-icon.story.vue': {
       routes:
         | '/story/power-state-icon'
@@ -1341,6 +1375,24 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/object-icon/vts-object-icon.story.vue': {
       routes:
         | '/story/web-core/object-icon/vts-object-icon'
+      views:
+        | never
+    }
+    'src/stories/web-core/overlay/vts-overlay-button.story.vue': {
+      routes:
+        | '/story/web-core/overlay/vts-overlay-button'
+      views:
+        | never
+    }
+    'src/stories/web-core/overlay/vts-overlay-cancel-button.story.vue': {
+      routes:
+        | '/story/web-core/overlay/vts-overlay-cancel-button'
+      views:
+        | never
+    }
+    'src/stories/web-core/overlay/vts-overlay-confirm-button.story.vue': {
+      routes:
+        | '/story/web-core/overlay/vts-overlay-confirm-button'
       views:
         | never
     }

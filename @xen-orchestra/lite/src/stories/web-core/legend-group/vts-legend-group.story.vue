@@ -3,7 +3,7 @@
     v-slot="{ properties }"
     :params="[prop('items').required().preset(items), prop('title').preset(title)]"
   >
-    <VtsLegendGroup v-bind="properties" @open-modal="openLegendModal()" />
+    <VtsLegendGroup v-bind="properties" />
   </ComponentStory>
 </template>
 
@@ -11,16 +11,12 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop } from '@/libs/story/story-param'
 import VtsLegendGroup, { type LegendGroupProps } from '@core/components/legend-group/VtsLegendGroup.vue'
-import { useModal } from '@core/packages/modal/use-modal'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 
-const openLegendModal = useModal({
-  component: import('@core/components/modal/VtsModal.vue'),
-  props: {
-    accent: 'info',
-    icon: 'status:info-picto',
-    dismissible: true,
-    title: 'legend modal',
-    content: 'this is an modal',
+const { open: openLegendModal } = useOverlay({
+  component: () => import('@/stories/web-core/ui/legend/LegendInfoModal.vue'),
+  events: {
+    onClose: true,
   },
 })
 
@@ -36,7 +32,7 @@ const items: LegendGroupProps['items'] = [
     accent: 'secondary',
     value: 58,
     unit: '%',
-    modalInfo: true,
+    onInfoClick: () => openLegendModal(),
   },
 ]
 

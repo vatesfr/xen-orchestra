@@ -1,25 +1,25 @@
-<!-- v7 -->
+<!-- v6 -->
 <template>
   <li :class="classNames" class="ui-legend">
     <VtsIcon name="fa:circle" size="current" class="circle-icon" />
     <span class="label typo-body-regular-small"><slot /></span>
     <UiButtonIcon
-      v-if="modalInfo"
+      v-if="onInfoClick"
       v-tooltip="t('more-information')"
-      class="modal-info"
+      class="info-button"
       accent="brand"
       icon="fa:info-circle"
       size="small"
-      @click="emit('openModal')"
+      @click="onInfoClick()"
     />
-    <span v-if="valueLabel" class="value-and-unit typo-caption-int-small">{{ valueLabel }}</span>
+    <span v-if="valueLabel" class="value-and-unit typo-caption-small">{{ valueLabel }}</span>
   </li>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -30,14 +30,10 @@ export type LegendItemProps = {
   accent: LegendItemAccent
   value?: number | string
   unit?: string
-  modalInfo?: boolean
+  onInfoClick?: () => void
 }
 
 const { value, unit, accent } = defineProps<LegendItemProps>()
-
-const emit = defineEmits<{
-  openModal: []
-}>()
 
 defineSlots<{
   default(): any
@@ -52,18 +48,15 @@ const classNames = computed(() => toVariants({ accent }))
 
 <style lang="postcss" scoped>
 .ui-legend {
-  align-items: baseline;
   display: flex;
   gap: 0.8rem;
+  align-items: center;
 
   .circle-icon {
     font-size: 0.8rem;
   }
 
-  .modal-info {
-    height: 2.4rem;
-    display: flex;
-    align-items: center;
+  .info-button {
     color: var(--color-info-item-base);
   }
 

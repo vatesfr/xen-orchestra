@@ -1,7 +1,7 @@
 <template>
   <div class="vts-donut-chart-with-legend">
     <UiDonutChart :icon :segments />
-    <VtsLegendGroup :items="segments" :title @open-modal="label => emit('openModal', label)" />
+    <VtsLegendGroup :items="segments" :title />
   </div>
 </template>
 
@@ -16,10 +16,6 @@ export type DonutChartWithLegendProps = {
 }
 
 defineProps<DonutChartWithLegendProps>()
-
-const emit = defineEmits<{
-  openModal: [label: string]
-}>()
 </script>
 
 <style lang="postcss" scoped>

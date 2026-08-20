@@ -8,18 +8,14 @@
     <template v-else>
       <VtsDonutChartWithLegend :segments="poolsSegments" :title="poolsTitle" class="chart" />
       <VtsDivider type="stretch" />
-      <VtsDonutChartWithLegend
-        :segments="hostsSegments"
-        :title="hostsTitle"
-        class="chart"
-        @open-modal="openEolModal()"
-      />
+      <VtsDonutChartWithLegend :segments="hostsSegments" :title="hostsTitle" class="chart" />
     </template>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
+import { useEolHostInfoModal } from '@/shared/composables/modals/use-eol-host-info-modal.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
@@ -27,7 +23,6 @@ import VtsDonutChartWithLegend, {
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { useModal } from '@core/packages/modal/use-modal'
 import { isDefined } from '@vueuse/shared'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -36,16 +31,7 @@ const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const openEolModal = useModal({
-  component: import('@core/components/modal/VtsModal.vue'),
-  props: {
-    accent: 'info',
-    icon: 'status:info-picto',
-    dismissible: true,
-    title: t('What-is-an-eol-host?'),
-    content: t('eol-host-helper'),
-  },
-})
+const { open: openEolHostInfoModal } = useEolHostInfoModal()
 
 const dashboardMissingPatches = computed(() => dashboard.value.missingPatches)
 
@@ -108,7 +94,7 @@ const hostsSegments = computed(() => {
       value: missingPatches.value.nHostsEol,
       accent: 'danger',
       label: t('eol'),
-      modalInfo: true,
+      onInfoClick: () => openEolHostInfoModal(),
     })
   }
 
