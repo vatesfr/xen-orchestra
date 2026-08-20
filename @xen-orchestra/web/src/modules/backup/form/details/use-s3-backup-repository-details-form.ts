@@ -1,4 +1,4 @@
-import type { BackupRepositoryDetailsPayload } from '@/modules/backup/types/new-backup-repository-type.type.ts'
+import type { BackupRepositoryDetailsPayload } from '@/modules/backup/types/new-backup-repository.type.ts'
 import { required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive, watch } from 'vue'

@@ -5,8 +5,10 @@ import { useS3BackupRepositoryDetailsForm } from '@/modules/backup/form/details/
 import { useSmbBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-smb-backup-repository-details-form.ts'
 import { useBackupRepositoryGeneralForm } from '@/modules/backup/form/use-backup-repository-general-form.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
+import type { NewBackupRepositoryPayload } from '@/modules/backup/jobs/xo-backup-repository-create.job.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { formatBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 
 const STEPS = ['general', 'details', 'review']
 
@@ -24,7 +26,7 @@ export function useNewBackupRepositoryForm() {
     nfs: useNfsBackupRepositoryDetailsForm(),
     smb: useSmbBackupRepositoryDetailsForm(),
     s3: useS3BackupRepositoryDetailsForm(),
-    azure: useAzureBackupRepositoryDetailsForm(),
+    azure: useAzureBackupRepositoryDetailsForm(general.formData.type),
   }
 
   const currentDetailsForm = computed(() => {
@@ -97,6 +99,30 @@ export function useNewBackupRepositoryForm() {
     }
   }
 
+  async function buildPayload(): Promise<NewBackupRepositoryPayload | undefined> {
+    const detailForm = currentDetailsForm.value
+
+    if (detailForm === undefined) {
+      return undefined
+    }
+
+    const isGeneralValid = await general.validate()
+    const areDetailsValid = await detailForm.validate()
+
+    if (!isGeneralValid || !areDetailsValid) {
+      return undefined
+    }
+
+    const { urlInfo, options } = detailForm.buildPayload()
+
+    return {
+      name: general.formData.name,
+      url: formatBackupRepositoryUrl({ ...urlInfo, ...general.buildUrlOptions() }),
+      ...(options !== undefined && { options }),
+      ...(general.formData.proxy !== undefined && { proxy: general.formData.proxy }),
+    }
+  }
+
   return {
     general,
     details,
@@ -107,5 +133,6 @@ export function useNewBackupRepositoryForm() {
     goToStep,
     next,
     back,
+    buildPayload,
   }
 }
