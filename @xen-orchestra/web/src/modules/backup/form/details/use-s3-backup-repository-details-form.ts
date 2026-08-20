@@ -1,3 +1,4 @@
+import type { BackupRepositoryDetailsPayload } from '@/modules/backup/types/new-backup-repository-type.type.ts'
 import { required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive, watch } from 'vue'
@@ -55,5 +56,20 @@ export function useS3BackupRepositoryDetailsForm() {
     pathInBucket: useField('pathInBucket', () => ({ label: t('path-in-bucket') })),
   })
 
-  return { formData, bindings, validate }
+  function buildPayload(): BackupRepositoryDetailsPayload {
+    return {
+      urlInfo: {
+        type: 's3',
+        protocol: formData.useHttps ? 'https' : 'http',
+        host: formData.endpoint,
+        path: `${formData.bucket}/${formData.pathInBucket}`,
+        region: formData.region,
+        username: formData.accessKeyId,
+        password: formData.secret,
+        ...(formData.allowUnauthorized && { allowUnauthorized: true }),
+      },
+    }
+  }
+
+  return { formData, bindings, validate, buildPayload }
 }

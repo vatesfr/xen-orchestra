@@ -1,3 +1,4 @@
+import type { BackupRepositoryDetailsPayload } from '@/modules/backup/types/new-backup-repository-type.type.ts'
 import { required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive } from 'vue'
@@ -49,5 +50,19 @@ export function useSmbBackupRepositoryDetailsForm() {
     customOptions: useField('customOptions', () => ({ label: t('custom-options') })),
   })
 
-  return { formData, bindings, validate }
+  function buildPayload(): BackupRepositoryDetailsPayload {
+    return {
+      urlInfo: {
+        type: 'smb',
+        host: formData.pathOnShare,
+        path: formData.subfolder,
+        domain: formData.domain !== '' ? formData.domain : SMB_DEFAULT_DOMAIN,
+        username: formData.username,
+        password: formData.password,
+      },
+      ...(formData.customOptions !== '' && { options: formData.customOptions }),
+    }
+  }
+
+  return { formData, bindings, validate, buildPayload }
 }
