@@ -9,6 +9,16 @@ export interface Vdi {
   size: number
   sr: XoSr['id'] | undefined
   userdevice?: string
+  destroy?: boolean
+}
+
+export interface VdiToSend {
+  name_label?: string
+  name_description?: string
+  size?: number
+  sr?: XoSr['id'] | undefined
+  userdevice?: string
+  destroy?: boolean
 }
 
 export interface Vif {

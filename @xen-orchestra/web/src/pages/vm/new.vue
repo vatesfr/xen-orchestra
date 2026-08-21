@@ -194,6 +194,7 @@
               :vm-state
               @add="addStorageEntry()"
               @remove="index => deleteItem(vmState.vdis, index)"
+              @remove-existing="index => removeExistingVdi(index)"
             />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
@@ -260,7 +261,7 @@ import {
   type FrontXoVmTemplate,
   useXoVmTemplateCollection,
 } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
+import type { Vdi, VdiToSend, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
@@ -460,6 +461,22 @@ const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
 }
 
+const removeExistingVdi = (index: number) => {
+  const vdi = vmState.existingVdis[index]
+  if (vdi) {
+    vdi.destroy = true
+  }
+}
+
+const destroyedExistingVdis = computed(() => {
+  return vmState.existingVdis
+    .filter(vdi => vdi.destroy === true)
+    .map(vdi => ({
+      userdevice: vdi.userdevice,
+      destroy: true,
+    }))
+})
+
 const addSshKey = () => {
   const sshKey = vmState.ssh_key.trim()
 
@@ -652,6 +669,10 @@ function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
 
 const modifiedExistingVdis = computed(() => {
   return vmState.existingVdis.reduce<Partial<Vdi>[]>((acc, vdi, index) => {
+    if (vdi.destroy === true) {
+      return acc
+    }
+
     const defaultVdi = defaultExistingVdis.value[index]
     const changes = getExistingVdisDiff(defaultVdi, vdi)
 
@@ -729,15 +750,41 @@ const vifsToSend = computed(() => {
   return result
 })
 
+const vdisToSend = computed(() => {
+  const result: VdiToSend[] = []
+
+  // Handle new VDIs
+  vmState.vdis.forEach(vdi => {
+    result.push({
+      name_label: vdi.name_label,
+      name_description: vdi.name_description,
+      size: vdi.size,
+      sr: vdi.sr,
+    })
+  })
+
+  // Handle modified existing VDIs
+  modifiedExistingVdis.value.forEach(vdi => {
+    result.push(vdi)
+  })
+
+  // Handle destroyed existing VDIs
+  destroyedExistingVdis.value.forEach(vdi => {
+    result.push(vdi)
+  })
+
+  return result
+})
+
 const vmData = computed(() => {
-  const vdisToSend = [...vmState.vdis, ...modifiedExistingVdis.value].map(vdi => ({
+  const vdisToSendFormatted = vdisToSend.value.map(vdi => ({
     ...vdi,
     ...(vdi.size && { size: giBToBytes(vdi.size) }),
   }))
 
   const optionalFields = Object.assign(
     {},
-    vdisToSend.length > 0 && { vdis: vdisToSend },
+    vdisToSendFormatted.length > 0 && { vdis: vdisToSendFormatted },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
     vmState.installMode !== 'no-config' &&
