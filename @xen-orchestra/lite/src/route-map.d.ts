@@ -744,6 +744,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/link-list/ui-link-list': RouteRecordInfo<
+      '/story/web-core/ui/link-list/ui-link-list',
+      '/story/web-core/ui/link-list/ui-link-list',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/log-entry-viewer/ui-log-entry-viewer': RouteRecordInfo<
       '/story/web-core/ui/log-entry-viewer/ui-log-entry-viewer',
       '/story/web-core/ui/log-entry-viewer/ui-log-entry-viewer',
@@ -1642,6 +1649,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/link/ui-link.story.vue': {
       routes:
         | '/story/web-core/ui/link/ui-link'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/link-list/ui-link-list.story.vue': {
+      routes:
+        | '/story/web-core/ui/link-list/ui-link-list'
       views:
         | never
     }
