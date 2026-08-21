@@ -1,6 +1,6 @@
 <template>
   <UiHeadBar icon="fa:plus">
-    {{ t('new-network:add-bonded') }}
+    {{ t('new-network:add-internal') }}
   </UiHeadBar>
 
   <div class="card-container">
@@ -8,7 +8,7 @@
 
     <VtsOperationErrorCard
       v-else-if="hasNetworkCreationError && error"
-      :title="t('unable-to-create-new-bonded-network')"
+      :title="t('unable-to-create-new-internal-network')"
       :error
       :error-message="t('new-network:error-message')"
     >
@@ -21,18 +21,18 @@
 
     <UiCard v-show="canDisplayForm">
       <UiTitle>{{ t('configuration') }}</UiTitle>
-      <NewBondedNetworkForm :cancel-to="cancelRoute" @create="createNetwork" />
+      <NewInternalNetworkForm :cancel-to="cancelRoute" @create="createNetwork" />
     </UiCard>
   </div>
 </template>
 
 <script lang="ts" setup>
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
-import NewBondedNetworkForm from '@/modules/network/components/form/new/NewBondedNetworkForm.vue'
+import NewInternalNetworkForm from '@/modules/network/components/form/new/NewInternalNetworkForm.vue'
 import {
-  type NewBondedNetworkPayload,
-  useBondedNetworkCreateJob,
-} from '@/modules/network/jobs/bonded-network-create.job.ts'
+  type NewInternalNetworkPayload,
+  useInternalNetworkCreateJob,
+} from '@/modules/network/jobs/internal-network-create.job.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/network.util.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
@@ -50,16 +50,24 @@ const { t } = useI18n()
 const router = useRouter()
 const { pool } = usePoolStore().subscribe()
 
-const formPayload = ref<NewBondedNetworkPayload>()
-
 const error = ref<Error | undefined>()
 const hasNetworkCreationError = computed(() => error.value !== undefined)
 
-const { canRun, run: create, isRunning } = useBondedNetworkCreateJob(formPayload)
+const formPayload = ref<NewInternalNetworkPayload>()
+
+const { canRun, run: create, isRunning } = useInternalNetworkCreateJob(formPayload)
 
 const canDisplayForm = computed(() => !isRunning.value && !hasNetworkCreationError.value)
 
-async function createNetwork(newPayload: NewBondedNetworkPayload) {
+const cancelRoute = computed(() => {
+  if (pool.value === undefined) {
+    return { name: '/' as const }
+  }
+
+  return getPoolNetworkRoute(pool.value.uuid)
+})
+
+async function createNetwork(newPayload: NewInternalNetworkPayload) {
   formPayload.value = newPayload
 
   if (!canRun.value) {
@@ -78,14 +86,6 @@ async function createNetwork(newPayload: NewBondedNetworkPayload) {
     error.value = rawError as Error
   }
 }
-
-const cancelRoute = computed(() => {
-  if (pool.value === undefined) {
-    return { name: '/' as const }
-  }
-
-  return getPoolNetworkRoute(pool.value.uuid)
-})
 
 function handleGoBack() {
   error.value = undefined
