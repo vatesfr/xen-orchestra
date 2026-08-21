@@ -27,6 +27,7 @@
 
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
 - [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
+- [REST API] Add `vms/:id/actions/eject_cd` and `vms/:id/actions/insert_cd` endpoints (PR [#XXXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXXX))
 
 ### Bug fixes
 
