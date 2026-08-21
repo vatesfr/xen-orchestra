@@ -19,7 +19,7 @@
     </template>
     <template v-if="network" #default>
       <UiPanelCard>
-        <VtsCardObjectTitle :id="network.uuid" :label="network.name_label" />
+        <UiPanelCardTitle :id="network.uuid" size="medium" :label="network.name_label" />
         <div class="content">
           <!-- DESCRIPTION -->
           <VtsCardRowKeyValue truncate align-top>
@@ -98,7 +98,6 @@ import PifRow from '@/components/pif/PifRow.vue'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -106,6 +105,7 @@ import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useClipboard } from '@vueuse/core'
 import { computed } from 'vue'

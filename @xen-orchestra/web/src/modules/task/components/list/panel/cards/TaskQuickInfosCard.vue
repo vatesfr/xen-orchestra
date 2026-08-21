@@ -11,7 +11,7 @@
         {{ task.properties.name }}
       </UiLink>
     </UiCardTitle>
-    <VtsCardObjectTitle :id="task.id" />
+    <UiPanelCardTitle :id="task.id" size="medium" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('task-type') }}</template>
@@ -70,7 +70,6 @@ import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-co
 import { getTaskAccents } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
@@ -78,6 +77,7 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
