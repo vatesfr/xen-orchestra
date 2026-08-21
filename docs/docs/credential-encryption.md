@@ -1,4 +1,4 @@
-# Credential Database Encryption
+# Credential database encryption
 
 Xen Orchestra stores its records (server connections, backup jobs and remotes, schedules, users, groups, authentication tokens, ACLs, tags, cloud configs, proxy registrations and plugin configurations) in Redis. When credential encryption is enabled, every record is encrypted at rest with AES-256-GCM (encrypted values carry an `enc:` prefix), and index keys are replaced with HMAC-SHA256 blind indexes so indexed field values (emails, hostnames, etc.) are never stored as plaintext. The performance impact is negligible for typical deployments.
 

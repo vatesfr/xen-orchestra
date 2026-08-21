@@ -2,7 +2,7 @@
 sidebar_label: Incremental replication (CR)
 ---
 
-# Incremental Replication
+# Incremental replication
 
 :::note
 **Incremental replication** is the current name of the job type formerly called **Continuous Replication (CR)**. Both names describe the same thing, and you will still meet the old one: XO 6 labels this mode **Incremental replication**, while the XO 5 interface still labels it **Continuous Replication**, and replicas keep a `Continuous Replication` tag.

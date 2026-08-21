@@ -1,10 +1,6 @@
----
-sidebar_label: Backups in XO 6
----
+# Backups in XO 6
 
-# Backups
-
-XO 6 puts backup health where you look every day: on the dashboards. This page covers what you can see and follow from XO 6; creating and editing backup jobs is currently done in XO 5 (see [XO 6 vs. XO 5](xo6vsxo5.md)).
+XO 6 puts backup health where you look every day: on the dashboards. This page covers what you can see and follow from XO 6; creating and editing backup jobs is currently done in XO 5 (see [XO 6 and XO 5](xo6vsxo5.md)).
 
 ## Backup health on the dashboard
 
