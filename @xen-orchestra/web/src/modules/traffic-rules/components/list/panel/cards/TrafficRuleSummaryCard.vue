@@ -1,11 +1,6 @@
 <template>
   <UiPanelCard class="traffic-rule-summary-card">
-    <UiCardTitle>
-      <VtsIcon name="fa:traffic-rule" size="medium" />
-      <UiLink size="medium" disabled>
-        {{ t('traffic-rule') }}
-      </UiLink>
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('traffic-rule')" icon="fa:traffic-rule" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>
@@ -63,11 +58,10 @@ import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-colle
 import { RULE_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 import type { TrafficRule } from '@vates/types'
 import { toLower } from 'lodash-es'
