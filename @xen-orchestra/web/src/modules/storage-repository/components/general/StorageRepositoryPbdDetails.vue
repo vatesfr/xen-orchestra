@@ -4,20 +4,19 @@
       {{ t('pbd-details') }}
     </UiTitle>
     <VtsStateHero v-if="!arePbdsReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="!pbds" type="no-data" format="card" horizontal size="extra-small">
+    <VtsStateHero v-else-if="pbds.length === 0" type="no-data" format="card" horizontal size="extra-small">
       {{ t('no-pbd-attached') }}
     </VtsStateHero>
     <div v-else>
-      <template v-for="pbd in pbds" :key="pbd.id">
-        <UiLogEntryViewer
-          v-if="pbd.device_config"
-          class="log-viewer"
-          :content="pbd.device_config"
-          :label="t('device-config')"
-          size="small"
-          accent="info"
-        />
-      </template>
+      <UiLogEntryViewer
+        v-for="pbd in pbds"
+        :key="pbd.id"
+        class="log-viewer"
+        :content="pbd.device_config"
+        :label="t('device-config')"
+        size="small"
+        accent="info"
+      />
     </div>
   </UiCard>
 </template>
@@ -40,7 +39,7 @@ const { t } = useI18n()
 
 const { pbdsBySr, arePbdsReady } = useXoPbdCollection()
 
-const pbds = computed(() => pbdsBySr.value.get(sr.id))
+const pbds = computed(() => pbdsBySr.value.get(sr.id) ?? [])
 </script>
 
 <style scoped lang="postcss">

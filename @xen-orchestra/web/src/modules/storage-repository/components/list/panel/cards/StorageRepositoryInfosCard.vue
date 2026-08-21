@@ -1,6 +1,6 @@
 <template>
-  <UiPanelCard class="storage-repository-infos-card">
-    <VtsCardObjectTitle :id="sr.id" :label="sr.name_label" :href :icon="srStatusIcon" />
+  <UiCard class="card-container">
+    <VtsCardObjectTitle :id="sr.id" :label="sr.name_label" :to="srRoute" :icon="srStatusIcon" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
@@ -52,16 +52,15 @@
         <template #value><VtsStatus :status="isHaSr" /></template>
       </VtsCardRowKeyValue>
     </div>
-  </UiPanelCard>
+  </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import { getSrPageLocation, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
@@ -80,8 +79,7 @@ const { sr, scope } = defineProps<{
 
 const { t } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
-const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
+const srRoute = computed(() => getSrPageLocation(sr, scope))
 
 const { isHighAvailabilitySr } = useXoSrCollection()
 
