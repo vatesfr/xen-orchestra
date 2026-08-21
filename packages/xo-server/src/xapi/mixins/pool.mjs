@@ -332,9 +332,11 @@ const methods = {
       }
     })
 
-    // Start with the last host since it's the emptiest one after the rolling
-    // update
-    ;[hosts[0], hosts[hosts.length - 1]] = [hosts[hosts.length - 1], hosts[0]]
+    // Not all users need VMs migrated back to their original hosts
+    // e.g. if load-balancer plugin is running it would be just a waste of time
+    if (this.pool.other_config['xo:RPU_RPR_Migrate_VMs_back'] !== 'false') {
+    // Reverse host order to improve chances of successful relocation of VMs to their original host in one step
+    hosts.reverse()
 
     const migrationsSubtask = new Task({ properties: { name: `Migrate VMs back`, progress: 0 } })
     await migrationsSubtask.run(async () => {
@@ -405,6 +407,7 @@ const methods = {
         throw error
       }
     })
+    }
     // in case task progress has not been incremented properly
     setProgress(parentTask, 100)
   },
