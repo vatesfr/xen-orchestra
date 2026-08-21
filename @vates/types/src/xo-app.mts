@@ -291,7 +291,7 @@ export type XoApp = {
     >
   >
   getAllSchedules(): Promise<XoSchedule[]>
-  getAllUsers(): Promise<XoUser[]>
+  getAllUsers(opts?: { obfuscatePassword?: boolean }): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
   getBackupNgLogs(): Promise<Record<string, AnyXoLog>>
@@ -312,7 +312,7 @@ export type XoApp = {
   ) => Record<T['id'], T> | undefined
   getTotalBackupSizeOnRemote(id: XoBackupRepository['id']): Promise<{ onDisk: number }>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
-  getUser: (id: XoUser['id']) => Promise<XoUser>
+  getUser: (id: XoUser['id'], opts?: { obfuscatePassword?: boolean }) => Promise<XoUser>
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(
@@ -322,6 +322,7 @@ export type XoApp = {
   getXapiPoolStats(poolId: XoPool['id'], granularity?: XapiStatsGranularity): Promise<XapiPoolStats>
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
+  getXoEventEmitterByType(type: string): EventEmitter
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
   listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{

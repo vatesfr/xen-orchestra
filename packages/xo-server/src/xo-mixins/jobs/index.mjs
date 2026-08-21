@@ -73,6 +73,7 @@ export default class Jobs {
         indexes: ['user_id', 'key'],
         crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', { collection: jobsDb, type: 'job', decorate: this.#normalizeJob.bind(this) })
 
       app.addConfigManager(
         'jobs',
@@ -112,14 +113,18 @@ export default class Jobs {
     }
   }
 
+  #normalizeJob(job) {
+    job.runId = this._runningJobs[job.id]
+
+    return job
+  }
+
   async getAllJobs(type) {
     const jobs = await this._jobs.get()
-    const runningJobs = this._runningJobs
     const result = []
     jobs.forEach(job => {
       if (type === undefined || job.type === type) {
-        job.runId = runningJobs[job.id]
-        result.push(job)
+        result.push(this.#normalizeJob(job))
       }
     })
     return result
@@ -131,9 +136,7 @@ export default class Jobs {
       throw noSuchObject(id, 'job')
     }
 
-    job.runId = this._runningJobs[id]
-
-    return job
+    return this.#normalizeJob(job)
   }
 
   createJob(job) {
@@ -372,7 +375,7 @@ export default class Jobs {
       delete schedulesByJobId[job.id]
     }
   }
-  
+
   backupGuard(poolId) {
     return backupGuard.call(this._app, poolId)
   }

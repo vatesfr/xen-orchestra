@@ -8,11 +8,14 @@ import { PingListener, Subscriber, SubscriberManager, XoListener } from './event
 import type { ListenerType, SubscriberId, XoListenerType } from './event.type.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
+import { XAPI_TYPES, type XapiXoRecord } from '@vates/types'
+import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
 
 export class EventService {
   #alarmService: AlarmService
+  #backupJobService: BackupJobService
   #restApi: RestApi
   #listeners: Map<string, Listener | Listener<XoListenerType>> = new Map()
   #subscriberManager = new SubscriberManager()
@@ -27,6 +30,7 @@ export class EventService {
 
     this.#restApi = restApi
     this.#alarmService = restApi.ioc.get(AlarmService)
+    this.#backupJobService = restApi.ioc.get(BackupJobService)
   }
 
   #getListener<Type extends ListenerType>(type: Type): Listener | Listener<XoListenerType> {
@@ -38,18 +42,26 @@ export class EventService {
     if (type === 'ping') {
       listener = new PingListener()
     } else {
+      const isBackupJob = type === 'backup-job'
       const isMessage = type === 'alarm' || type === 'message'
 
       let eventEmitter: EventEmitter
       if (type === 'task') {
         eventEmitter = this.#restApi.xoApp.tasks
-      } else {
+      } else if (XAPI_TYPES.includes(isMessage ? 'message' : type)) {
         // alarm is purely XO-related; it doesn't exist at the XAPI level.
         // alarm is a message with parsed values. So, in the case of an alarm listener, it listens for message collection.
-        eventEmitter = this.#restApi.xoApp.objects.allIndexes.type.getEventEmitterByType(isMessage ? 'message' : type)
+        eventEmitter = this.#restApi.xoApp.objects.allIndexes.type.getEventEmitterByType(
+          isMessage ? 'message' : (type as XapiXoRecord['type'])
+        )
+      } else {
+        eventEmitter = this.#restApi.xoApp.getXoEventEmitterByType(isBackupJob ? 'job' : type)
       }
 
-      listener = new XoListener(type, eventEmitter, isMessage ? this.#alarmService : undefined)
+      listener = new XoListener(type, eventEmitter, {
+        alarmService: isMessage ? this.#alarmService : undefined,
+        backupJobService: isBackupJob ? this.#backupJobService : undefined,
+      })
     }
 
     this.#listeners.set(type, listener)

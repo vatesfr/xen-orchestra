@@ -769,3 +769,29 @@ type BaseTrafficRule = RawTrafficRule & {
 export type TrafficRule =
   | (BaseTrafficRule & { type: XoVif['type']; sourceId: XoVif['id'] })
   | (BaseTrafficRule & { type: XoNetwork['type']; sourceId: XoNetwork['id'] })
+
+export const XAPI_TYPES: readonly string[] = [
+  'network',
+  'VIF',
+  'message',
+  'gpuGroup',
+  'host',
+  'PBD',
+  'PCI',
+  'PGPU',
+  'PIF',
+  'pool',
+  'SR',
+  'VBD',
+  'VDI',
+  'VDI-snapshot',
+  'VDI-unmanaged',
+  'vgpu',
+  'vgpuType',
+  'VM',
+  'VM-controller',
+  'VM-snapshot',
+  'VM-template',
+  'VTPM',
+  'SM',
+]

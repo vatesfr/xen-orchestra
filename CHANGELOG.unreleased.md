@@ -27,6 +27,7 @@
 
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
 - [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
+- [REST API] SSE support now Non XAPI objects (user, group, acl-privilege, acl-role, proxy, server, backup-repository, backup-job, schedule) (PR [#10278](https://github.com/vatesfr/xen-orchestra/pull/10278))
 
 ### Bug fixes
 
@@ -56,7 +57,7 @@
 
 <!--packages-start-->
 
-- @vates/types patch
+- @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/async-map patch
 - @xen-orchestra/backups patch
@@ -69,7 +70,7 @@
 - xen-api minor
 - xo-cli patch
 - xo-common minor
-- xo-server patch
+- xo-server minor
 - xo-server-ipmi-sensors minor
 - xo-server-netbox patch
 - xo-web patch
