@@ -9,7 +9,7 @@
     <template v-if="vif" #default>
       <!-- VIF -->
       <UiPanelCard>
-        <VtsCardObjectTitle :id="vif.id" :to="vifTo" :label="t('vif')" icon="object:vif" />
+        <UiPanelCardTitle :id="vif.id" size="medium" :to="vifTo" :label="t('vif')" icon="object:vif" />
         <div class="content">
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
@@ -139,7 +139,6 @@ import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-colle
 import { getVifTrafficRoute } from '@/modules/vif/utils/xo-vif.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
@@ -147,6 +146,7 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
