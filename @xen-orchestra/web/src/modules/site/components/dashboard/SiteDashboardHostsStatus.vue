@@ -19,6 +19,7 @@
 
 <script lang="ts" setup>
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
+import { useDisabledHostInfoModal } from '@/shared/composables/modals/use-disabled-host-info-modal.ts'
 import type { DonutChartWithLegendProps } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsDonutChartWithLegend from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -33,6 +34,8 @@ const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
+const { open: openDisabledHostInfoModal } = useDisabledHostInfoModal()
+
 const hostsStatus = computed(() => dashboard.value.hostsStatus)
 
 const areHostsStatusReady = computed(() => hostsStatus.value !== undefined)
@@ -43,11 +46,11 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     value: hostsStatus.value?.running ?? 0,
     accent: 'success',
   },
-  // TODO instead of tooltips for disabled , we need to add a modal with a button
   {
     label: t('host:status:disabled', 2),
     value: hostsStatus.value?.disabled ?? 0,
     accent: 'muted',
+    onInfoClick: () => openDisabledHostInfoModal(),
   },
   {
     label: t('host:status:halted', 2),

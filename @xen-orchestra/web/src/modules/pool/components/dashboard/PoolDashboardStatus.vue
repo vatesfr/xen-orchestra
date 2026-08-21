@@ -28,6 +28,7 @@
 
 <script setup lang="ts">
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { useDisabledHostInfoModal } from '@/shared/composables/modals/use-disabled-host-info-modal.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
@@ -49,6 +50,8 @@ const areVmsStatusReady = computed(() => poolDashboard?.vms?.status !== undefine
 
 const { t } = useI18n()
 
+const { open: openDisabledHostInfoModal } = useDisabledHostInfoModal()
+
 const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('host:status:running', 2),
@@ -56,9 +59,10 @@ const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
     accent: 'success',
   },
   {
-    label: t('disabled', 2),
+    label: t('host:status:disabled', 2),
     value: poolDashboard?.hosts?.status?.disabled ?? 0,
     accent: 'muted',
+    onInfoClick: () => openDisabledHostInfoModal(),
   },
   {
     label: t('host:status:halted', 2),
@@ -81,7 +85,7 @@ const vmsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('vm:status:suspended', 2),
     value: poolDashboard?.vms?.status?.suspended ?? 0,
-    accent: 'neutral',
+    accent: 'secondary',
   },
   {
     label: t('vm:status:halted', 2),
