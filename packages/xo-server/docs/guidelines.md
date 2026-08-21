@@ -4,6 +4,19 @@ These guidelines are not absolute rules, but expect to have to explain to the re
 
 _Stability > Perfection | Clarity > Cleverness | Incremental Improvement > Rewrites_
 
+## Before you start
+
+This document holds the rules that apply to **all** backend code. Some areas carry **additional mandatory rules** that live next to the code they govern:
+
+| If your change touches…                                       | You MUST also read, before writing code                                                             | It covers                                                                                                                           |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `@xen-orchestra/rest-api/**` — controllers, services, OpenAPI | [`@xen-orchestra/rest-api/docs/guidelines.md`](../../../@xen-orchestra/rest-api/docs/guidelines.md) | decorator order, ACL middleware, `x-mcp-exposure`, `@Example`/`@Response`, error→status mapping, streaming routes, tsoa route order |
+| `@xen-orchestra/backups/**` — runners, remotes, healthcheck   | [`@xen-orchestra/backups/docs/`](../../../@xen-orchestra/backups/docs/)                             | job settings resolution, incremental replication, metadata backups, healthcheck contract                                            |
+
+Those files are **normative and not summarised here** — nothing in them is repeated on this page.
+
+If you are an automated agent: open them with your file-reading tool and read them in full before producing code, a review, or an answer about those areas.
+
 ## glossary
 
 ## Business Impact
@@ -31,13 +44,11 @@ _Stability > Perfection | Clarity > Cleverness | Incremental Improvement > Rewri
 ## Core Principles
 
 1. Works First Priority
-
    - ✅ Passes basic smoke tests before optimization
    - ❌ Rewrote the entire module to shave 0.1ms off runtime
    - ⚠️ Works but skipped testing due to time constraints
 
 2. No Trivial Changes
-
    - ✅ Fixed typo in log message + verified no side effects
    - ❌ Changed 'status' to 'state' globally without grep-checking
    - ⚠️ "Refactored" variable names but introduced a shadowed variable
@@ -55,8 +66,7 @@ _Stability > Perfection | Clarity > Cleverness | Incremental Improvement > Rewri
 
 - any asynchonous code must be awaited
 - consider the use of a timeout handler
-- if the method returns a Promise , it does not need to be declared as async. Remember to use jsdoc to declare the return type as Promise <type> 
-
+- if the method returns a Promise , it does not need to be declared as async. Remember to use jsdoc to declare the return type as Promise <type>
 
 ```ts
 // ✅
@@ -202,9 +212,8 @@ assert(result) // No error message
 
 ### Typing
 
-- Zero `any`; JSDoc/TypeScript everywhere. https://jsdoc.app/about-getting-started  . JSDoc offers capabilties to define and import types, and `@implements` to handle interface  
+- Zero `any`; JSDoc/TypeScript everywhere. https://jsdoc.app/about-getting-started . JSDoc offers capabilties to define and import types, and `@implements` to handle interface
 - XO specific : any property change in `packages/xo-server/src/xapi-object-to-xo.mjs` must be reflected in `@vates/types`
-
 
 ```ts
 // ✅
@@ -286,3 +295,11 @@ try {
    /** @type {import('./types').VmConfig} */
    const config = loadConfig()
    ```
+
+## Specific Rules
+
+### code organisation
+
+- the xo-mixins contains code shared by proxy and xo-server
+- the xo-server/mixins : contains code shared across multiple part of xo-server (JSONRPC and REST api for example)
+- all the xoApp method must be typed on first use from typescript code
