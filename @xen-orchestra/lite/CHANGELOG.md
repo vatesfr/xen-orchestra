@@ -2,6 +2,7 @@
 
 ## **next**
 
+- Fix VDI storage used space calculation to include entire parent chain when snapshots present (PR [#10116](https://github.com/vatesfr/xen-orchestra/pull/10116))
 - [Pool/networks] Add the possibility to create new network or bonded network (PR [#10145](https://github.com/vatesfr/xen-orchestra/pull/10145))
 - [Host/Network] Add ability to rescan physical network interfaces (PIFs) (PR [#10147](https://github.com/vatesfr/xen-orchestra/pull/10147))
 - Fix inconsistent spacing in side panel cards (PR [#10279](https://github.com/vatesfr/xen-orchestra/pull/10279))
