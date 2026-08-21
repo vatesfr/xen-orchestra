@@ -1,9 +1,6 @@
 <template>
   <UiPanelCard>
-    <UiCardTitle>
-      {{ t('backup-targets') }}
-      <UiCounter :value="backupTargetsCount" accent="neutral" size="small" variant="primary" />
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('backup-targets')" :counter="backupTargetsCount" />
     <BackupJobTargetsSection
       v-if="backupRepositoryTargets.length > 0"
       :targets="backupRepositoryTargets"
@@ -23,9 +20,8 @@ import BackupJobTargetsSection from '@/modules/backup/components/panel/card-item
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

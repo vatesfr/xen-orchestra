@@ -89,8 +89,8 @@ function mountInfoCard(vm: FrontXoVm = createVm()) {
 it('renders the name and the id of the VM as the card title', () => {
   const wrapper = mountInfoCard(createVm({ name_label: 'Web server', id: 'vm-42' as FrontXoVm['id'] }))
 
-  expect(wrapper.get('.vts-card-object-title').text()).toContain('Web server')
-  expect(wrapper.get('.vts-card-object-title').text()).toContain('vm-42')
+  expect(wrapper.get('.ui-panel-card-title').text()).toContain('Web server')
+  expect(wrapper.get('.ui-panel-card-title').text()).toContain('vm-42')
 })
 
 it('lists every row of the card, in order', () => {
