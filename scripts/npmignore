@@ -36,4 +36,10 @@ __snapshots__/
 
 /docs/
 /src/
+*.stories.js
+*.stories.ts
 eslint.config.mjs
+vite.config.ts
+vitest.config.ts
+vitest.shims.d.ts
+/.storybook/

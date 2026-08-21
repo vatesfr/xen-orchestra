@@ -42,3 +42,6 @@ coverage/
 
 # https://node-tap.org/dot-tap-folder/
 .tap/
+
+*storybook.log
+storybook-static

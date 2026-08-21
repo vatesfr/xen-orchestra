@@ -1,7 +1,14 @@
 'use strict'
 
 module.exports = {
-  extends: ['plugin:eslint-comments/recommended', 'plugin:n/recommended', 'standard', 'standard-jsx', 'prettier'],
+  extends: [
+    'plugin:eslint-comments/recommended',
+    'plugin:n/recommended',
+    'standard',
+    'standard-jsx',
+    'prettier',
+    'plugin:storybook/recommended',
+  ],
   globals: {
     __DEV__: true,
     $Dict: true,
@@ -359,7 +366,7 @@ module.exports = {
     },
   ],
 
-  ignorePatterns: ['@vates/fatfs/'],
+  ignorePatterns: ['@vates/fatfs/', '@xen-orchestra/web-core/stories/'],
 
   parserOptions: {
     ecmaVersion: 13,
