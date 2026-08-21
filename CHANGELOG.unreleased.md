@@ -35,6 +35,7 @@
 - [Backup/File restore, Backup/Health] An unreachable backup repository no longer slows down every listing: it is skipped after a delay and retried with an increasing backoff (PR [#10205](https://github.com/vatesfr/xen-orchestra/pull/10205))
 - [REST API] Fix `/users/:id/authentication_tokens` sometimes did not return the token used to make the request (PR [#10233](https://github.com/vatesfr/xen-orchestra/pull/10233))
 - [XO server] Fix a random behavior regarding `coresPerSocket` update (PR [#10201](https://github.com/vatesfr/xen-orchestra/pull/10201))
+- [XO server] Fix current_operations format on host and pool objects (PR [#10283](https://github.com/vatesfr/xen-orchestra/pull/10283))
 - [Warm migration] Fix `Vm target of warm migration not found` error at the end of a migration (PR [#10210](https://github.com/vatesfr/xen-orchestra/pull/10210))
 - [XO6] Fix inconsistent spacing in side panel cards (PR [#10279](https://github.com/vatesfr/xen-orchestra/pull/10279))
 - **XO 5**:
