@@ -1447,6 +1447,7 @@ export async function importFromEsxi({
   user,
   vm,
   workDirRemote,
+  storageHost,
 }) {
   return importMultipleFromEsxi.call(this, {
     host,
@@ -1458,6 +1459,7 @@ export async function importFromEsxi({
     template,
     user,
     vms: [vm],
+    storageHost,
   })
 }
 
@@ -1472,6 +1474,7 @@ importFromEsxi.params = {
   template: { type: 'string' },
   vm: { type: 'string' },
   workDirRemote: { type: 'string', optional: true },
+  storageHost: { type: 'string', optional: true },
 }
 
 /**
@@ -1491,6 +1494,7 @@ export async function importMultipleFromEsxi({
   template,
   user,
   vms,
+  storageHost,
 }) {
   const task = await this.tasks.create({ name: `importing vms ${vms.join(',')}` })
   let done = 0
@@ -1515,6 +1519,7 @@ export async function importMultipleFromEsxi({
                 network,
                 stopSource,
                 template,
+                storageHost,
               })
               result[vm] = vmUuid
             } finally {
@@ -1575,6 +1580,7 @@ importMultipleFromEsxi.params = {
     uniqueItems: true,
   },
   workDirRemote: { type: 'string', optional: true },
+  storageHost: { type: 'string', optional: true },
 }
 
 // -------------------------------------------------------------------
