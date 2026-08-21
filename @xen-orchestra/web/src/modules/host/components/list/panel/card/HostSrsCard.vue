@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('connected-srs') }}
+      {{ t('connected-sr') }}
       <UiCounter :value="srs.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
     <UiCollapsibleList v-if="srs.length > 0" tag="ul" :total-items="srs.length">
@@ -20,7 +20,7 @@
       </li>
     </UiCollapsibleList>
     <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
-      {{ t('no-srs-connected') }}
+      {{ t('no-sr-connected') }}
     </VtsStateHero>
   </UiCard>
 </template>
