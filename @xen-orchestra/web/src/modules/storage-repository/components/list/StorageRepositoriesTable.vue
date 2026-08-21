@@ -28,12 +28,17 @@
 import { useSrConnectModal } from '@/modules/storage-repository/composables/use-sr-connect-modal.composable.ts'
 import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
 import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
-import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import {
+  getSrPageLocation,
+  useGetPbdsInScope,
+  useXoSrUtils,
+} from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -46,7 +51,6 @@ import { icon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
-import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
@@ -117,7 +121,7 @@ const { HeadCells, BodyCells } = useSrColumns({
   body: (sr: FrontXoSr) => {
     const rightIcon = computed(() => getPrimaryIcon(sr))
 
-    const { srStatusIcon } = useXoSrUtils(sr, () => scope)
+    const { srStatusIcon, getSrAccessModeLabel } = useXoSrUtils(sr, () => scope)
 
     const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
 
@@ -159,17 +163,13 @@ const { HeadCells, BodyCells } = useSrColumns({
       storageRepository: r =>
         r({
           label: sr.name_label,
-          to: {
-            name: '/sr/[id]',
-            params: { id: sr.id },
-            query: { from: scope.type, ...(scope.type === SR_SCOPE_TYPE.HOST && { host: scope.hostId }) },
-          },
+          to: getSrPageLocation(sr, scope),
           icon: srStatusIcon.value,
           rightIcon: rightIcon.value,
         }),
       description: r => r(sr.name_description),
       storageFormat: r => r(sr.SR_type),
-      accessMode: r => r(sr.shared ? t('shared') : t('local')),
+      accessMode: r => r(getSrAccessModeLabel(sr)),
       usedSpace: r => r(sr.physical_usage, sr.size),
       actions: r =>
         r({

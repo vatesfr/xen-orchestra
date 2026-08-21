@@ -6,13 +6,7 @@ import type { XoSm } from '@vates/types'
 
 export type FrontXoSm = Pick<XoSm, (typeof smFields)[number]>
 
-const smFields = [
-  'id',
-  'name_label',
-  '$pool',
-  'SM_type',
-  'supported_image_formats',
-] as const satisfies readonly (keyof XoSm)[]
+const smFields = ['id', '$pool', 'SM_type', 'supported_image_formats'] as const satisfies readonly (keyof XoSm)[]
 
 export const useXoSmCollection = defineRemoteResource({
   url: `${BASE_URL}/sms?fields=${smFields.join(',')}&ndjson=true`,

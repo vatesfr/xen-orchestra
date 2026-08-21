@@ -9,7 +9,7 @@
         {{ t('storage') }}
       </UiLink>
       <span class="sr-name">
-        <VtsObjectIcon type="sr" :state="srConnectionStatus" size="current" />
+        <VtsObjectIcon type="sr" :state="srIconState" size="current" />
         {{ sr.name_label }}
       </span>
     </UiBreadcrumb>
@@ -22,7 +22,13 @@
         {{ t('storage') }}
       </UiLink>
       <span class="sr-name">
-        <VtsObjectIcon type="sr" :state="srConnectionStatus" size="current" />
+        <VtsObjectIcon type="sr" :state="srIconState" size="current" />
+        {{ sr.name_label }}
+      </span>
+    </UiBreadcrumb>
+    <UiBreadcrumb v-else :size>
+      <span class="sr-name">
+        <VtsObjectIcon type="sr" :state="srIconState" size="current" />
         {{ sr.name_label }}
       </span>
     </UiBreadcrumb>
@@ -31,6 +37,7 @@
 
 <script setup lang="ts">
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
@@ -44,7 +51,7 @@ import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { sr } = defineProps<{ sr: FrontXoSr; host?: FrontXoHost; fromContext?: SrScope }>()
+const { sr, fromContext } = defineProps<{ sr: FrontXoSr; host?: FrontXoHost; fromContext?: SrScope }>()
 
 const { t } = useI18n()
 
@@ -53,10 +60,14 @@ const uiStore = useUiStore()
 const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
 
 const { useGetPoolById } = useXoPoolCollection()
-
 const pool = useGetPoolById(() => sr.$pool)
 
-const { srConnectionStatus } = useXoSrUtils(() => sr)
+const { arePbdsReady } = useXoPbdCollection()
+const { srConnectionStatus } = useXoSrUtils(
+  () => sr,
+  () => fromContext ?? { type: SR_SCOPE_TYPE.POOL }
+)
+const srIconState = computed(() => (arePbdsReady.value ? srConnectionStatus.value : undefined))
 </script>
 
 <style lang="postcss" scoped>

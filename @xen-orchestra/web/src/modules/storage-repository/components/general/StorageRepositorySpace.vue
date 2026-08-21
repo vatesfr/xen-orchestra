@@ -75,7 +75,7 @@ const srUsageAlert = computed(() => {
   }
   return undefined
 })
-const vdiAllocatedSpaceWarning = computed(() => isWritableSr.value && sr.usage > sr.size - sr.physical_usage)
+const vdiAllocatedSpaceWarning = computed(() => isWritableSr.value && sr.usage > sr.size)
 </script>
 
 <style scoped lang="postcss">
