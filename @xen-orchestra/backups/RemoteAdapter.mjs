@@ -132,12 +132,7 @@ export class RemoteAdapter {
         let done = 0
 
         await asyncEach(dirs, async dir => {
-          await this.cleanVm(dir, {
-            remove: true,
-            merge: true,
-            logInfo: Task.info,
-            logWarn: Task.warning,
-          })
+          await this.#mergeOneDir(dir)
           done++
           Task.set('progress', Math.round((done / dirs.size) * 100))
         })
@@ -147,6 +142,20 @@ export class RemoteAdapter {
     return dirs
   }
 
+  // single-dir merge, no task of its own — runs inside the parent task
+  // created by #mergeVmDirsAfterDelete
+  async #mergeOneDir(dir) {
+    try {
+      await this.cleanVm(dir, {
+        remove: true,
+        merge: true,
+        logInfo: Task.info,
+        logWarn: Task.warning,
+      })
+    } catch (error) {
+      Task.warning('failed to merge VM backup chain after immediate delete', { error, path: dir })
+    }
+  }
   async deleteMetadataBackup(backupId) {
     const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
     const metadataDirReg = 'xo-(config|pool-metadata)-backups'
