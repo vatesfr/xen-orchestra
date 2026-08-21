@@ -1,4 +1,4 @@
-import type { AnyXoBackupJob, XoBackupRepository } from '@vates/types'
+import type { AnyXoBackupJob, XoBackupRepository, AnyXoJob } from '@vates/types'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { inject } from 'inversify'
@@ -13,7 +13,12 @@ import { ApiError } from '../helpers/error.helper.mjs'
 export interface ReclaimSpaceResult {
   vmUuid: string
   success: boolean
+  merge?: boolean
+  size?: number
   error?: string
+}
+type JobWithRunId = AnyXoJob & {
+  runId?: string
 }
 
 export class BackupRepositoryService {
@@ -54,6 +59,11 @@ export class BackupRepositoryService {
   }
 
   async reclaimSpace(backupRepositoryId: XoBackupRepository['id'], vmUuid?: string) {
+    const jobs = await this.#restApi.xoApp.getAllJobs()
+    const runningJobs = jobs.filter(job => (job as JobWithRunId).runId !== undefined)
+    if (Object.keys(runningJobs).length > 0) {
+      throw new ApiError('cannot reclaim space while a backup job is running', 409)
+    }
     const remote = await this.#restApi.xoApp.getRemote(backupRepositoryId)
 
     let results: ReclaimSpaceResult[]
