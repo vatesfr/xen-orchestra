@@ -11,6 +11,7 @@ import groupBy from 'lodash/groupBy.js'
 import pickBy from 'lodash/pickBy.js'
 import reduce from 'lodash/reduce.js'
 import zlib from 'zlib'
+import { Task } from '@vates/task'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
 import { VmBackupDirectory } from '@xen-orchestra/backup-archive'
@@ -99,15 +100,62 @@ export class RemoteAdapter {
     )
   }
 
-  async deleteDeltaVmBackups(backups) {
+  async deleteDeltaVmBackups(backups, { immediate = false } = {}) {
     const handler = this._handler
 
     // this will delete the json, unused VHDs will be detected by `cleanVm`
     await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
 
     await this.#removeVmBackupsFromCache(backups)
+
+    if (immediate) {
+      return this.#mergeVmDirsAfterDelete(backups)
+    }
+
+    return new Set()
   }
 
+  // group by VM backup dir so multiple disks/backups deleted for the same
+  // VM in one call trigger a single merge, not one per backup
+  async #mergeVmDirsAfterDelete(backups) {
+    const dirs = new Set(backups.map(({ _filename }) => dirname(_filename)))
+
+    await Task.run(
+      {
+        properties: {
+          name: 'merge VM backup chains',
+          total: dirs.size,
+        },
+      },
+      async () => {
+        Task.set('total', dirs.size)
+        let done = 0
+
+        await asyncEach(dirs, async dir => {
+          await this.#mergeOneDir(dir)
+          done++
+          Task.set('progress', Math.round((done / dirs.size) * 100))
+        })
+      }
+    )
+
+    return dirs
+  }
+
+  // single-dir merge, no task of its own — runs inside the parent task
+  // created by #mergeVmDirsAfterDelete
+  async #mergeOneDir(dir) {
+    try {
+      await this.cleanVm(dir, {
+        remove: true,
+        merge: true,
+        logInfo: Task.info,
+        logWarn: Task.warning,
+      })
+    } catch (error) {
+      Task.warning('failed to merge VM backup chain after immediate delete', { error, path: dir })
+    }
+  }
   async deleteMetadataBackup(backupId) {
     const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
     const metadataDirReg = 'xo-(config|pool-metadata)-backups'
@@ -154,7 +202,7 @@ export class RemoteAdapter {
     return this.deleteVmBackups([file])
   }
 
-  async deleteVmBackups(files) {
+  async deleteVmBackups(files, { immediate = true } = {}) {
     const metadataOrNull = await asyncMap(files, async file => {
       try {
         return await this.readVmBackupMetadata(file)
@@ -185,8 +233,10 @@ export class RemoteAdapter {
       throw new Error('no deleter for backup modes: ' + unsupportedModes.join(', '))
     }
     const promises = []
+    let deltaBackupDirsPromise = Promise.resolve(new Set())
     if (delta !== undefined) {
-      promises.push(this.deleteDeltaVmBackups(delta))
+      deltaBackupDirsPromise = this.deleteDeltaVmBackups(delta, { immediate })
+      promises.push(deltaBackupDirsPromise)
     }
     if (full !== undefined) {
       promises.push(this.deleteFullVmBackups(full))
@@ -196,12 +246,16 @@ export class RemoteAdapter {
     }
     await Promise.all(promises)
 
-    await asyncMap(new Set(files.map(file => dirname(file))), dir =>
-      // - don't merge in main process, unused VHDs will be merged in the next backup run
-      // - don't error in case this fails:
-      //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
-      //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
-      this.cleanVm(dir, { remove: true, logWarn: warn }).catch(noop)
+    const deltaBackupDirs = await deltaBackupDirsPromise
+
+    await asyncMap(
+      new Set(files.map(file => dirname(file))).filter(dir => !deltaBackupDirs.has(dir)),
+      dir =>
+        // - don't merge in main process, unused VHDs will be merged in the next backup run
+        // - don't error in case this fails:
+        //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
+        //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
+        this.cleanVm(dir, { remove: true, logWarn: warn }).catch(noop)
     )
   }
 
