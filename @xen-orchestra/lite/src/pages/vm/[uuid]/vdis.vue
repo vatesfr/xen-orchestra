@@ -1,16 +1,16 @@
 <template>
   <VtsContentSidePanel class="vdis">
     <UiCard class="container">
-      <VmVdisTable v-if="vm" :vdis :vbds />
+      <VdisTable v-if="vm" :vdis :vbds />
     </UiCard>
-    <VmVdiSidePanel :vdi="selectedVdi" :vbd="selectedVbd" @close="selectedVdi = undefined" />
+    <VdiSidePanel :vdi="selectedVdi" :vbd="selectedVbd" @close="selectedVdi = undefined" />
   </VtsContentSidePanel>
 </template>
 
 <script lang="ts" setup>
-import VmVdiSidePanel from '@/components/vm/vdis/VmVdiSidePanel.vue'
-import VmVdisTable from '@/components/vm/vdis/VmVdisTable.vue'
 import type { XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import VdiSidePanel from '@/modules/vdi/components/list/panel/VdiSidePanel.vue'
+import VdisTable from '@/modules/vdi/components/list/VdisTable.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVbdStore } from '@/stores/xen-api/vbd.store'
 import { useVdiStore } from '@/stores/xen-api/vdi.store'

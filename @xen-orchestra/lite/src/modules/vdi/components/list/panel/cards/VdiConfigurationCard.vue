@@ -4,38 +4,45 @@
       {{ t('configuration') }}
     </UiCardTitle>
     <div class="content">
+      <VdiFormatCardItem :format="vdi.sm_config['image-format']" />
       <VtsCardRowKeyValue>
-        <template #key>{{ t('format') }}</template>
-        <template #value>{{ vdiFormat }}</template>
-        <template #addons>
-          <VtsCopyButton :value="vdiFormat" />
+        <template #key>
+          {{ t('storage') }}
         </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('storage') }}</template>
         <template #value>
-          <div v-if="sr" class="storage">
-            <!-- TODO: Add :to prop when SR page exists in XO Lite -->
+          <div v-if="vdiSr" class="storage">
+            <!-- TODO: add the `to` prop once the SR page exists in XO Lite -->
             <UiLink size="small" icon="object:sr">
-              {{ sr.name_label }}
+              {{ vdiSr.name_label }}
             </UiLink>
           </div>
-          <span v-else class="value" />
         </template>
-        <template v-if="sr?.name_label" #addons>
-          <VtsCopyButton :value="sr.name_label" />
+        <template v-if="vdiSr" #addons>
+          <VtsCopyButton :value="vdiSr.name_label" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
-        <template #key>{{ t('change-block-tracking') }}</template>
+        <template #key>
+          {{ t('read-only') }}
+        </template>
         <template #value>
-          <VtsStatus :status="vdi.cbt_enabled ? 'enabled' : 'disabled'" />
+          <VtsStatus :status="isReadOnly" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="vbd">
-        <template #key>{{ t('bootable') }}</template>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ t('change-block-tracking') }}
+        </template>
         <template #value>
-          <VtsStatus :status="vbd.bootable ? 'enabled' : 'disabled'" />
+          <VtsStatus :status="vdi.cbt_enabled" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ t('bootable') }}
+        </template>
+        <template #value>
+          <VtsStatus :status="isBootable" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -43,8 +50,10 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiVdi, XenApiVbd } from '@/libs/xen-api/xen-api.types.ts'
-import { useSrStore } from '@/stores/xen-api/sr.store'
+import { VBD_MODE } from '@/libs/xen-api/xen-api.enums.ts'
+import type { XenApiVbd, XenApiVdi } from '@/libs/xen-api/xen-api.types.ts'
+import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
+import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -53,49 +62,28 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-
 const { vdi, vbd } = defineProps<{
   vdi: XenApiVdi
   vbd?: XenApiVbd
 }>()
-
 const { t } = useI18n()
-
 const { getByOpaqueRef: getSrByOpaqueRef } = useSrStore().subscribe()
-
-const sr = computed(() => getSrByOpaqueRef(vdi.SR))
-
-const vdiFormat = computed(() => {
-  if (vdi.type === 'user') return 'VHD'
-  if (vdi.type === 'system') return 'RAW'
-
-  if (vdi.sm_config) {
-    const type = vdi.sm_config.type || vdi.sm_config['vhd-type']
-    if (type === 'vhd') return 'VHD'
-    if (type === 'raw') return 'RAW'
-  }
-
-  return 'VHD'
-})
+const vdiSr = computed(() => getSrByOpaqueRef(vdi.SR))
+const isReadOnly = computed(() => vbd?.mode === VBD_MODE.RO)
+const isBootable = computed(() => vbd?.bootable ?? false)
 </script>
 
 <style scoped lang="postcss">
 .card-container {
   gap: 1.6rem;
-
   .content {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
   }
-
   .storage {
     display: flex;
     gap: 0.8rem;
-  }
-
-  .value:empty::before {
-    content: '-';
   }
 }
 </style>

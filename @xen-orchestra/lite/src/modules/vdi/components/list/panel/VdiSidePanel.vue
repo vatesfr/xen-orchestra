@@ -1,7 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!vdi" @close="emit('close')">
     <template v-if="vdi" #default>
-      <VdiInfoCard :vdi :vbd />
+      <VdiInfosCard :vdi :vbd />
       <VdiSpaceCard :vdi />
       <VdiConfigurationCard :vdi :vbd />
     </template>
@@ -9,17 +9,15 @@
 </template>
 
 <script setup lang="ts">
-import VdiConfigurationCard from '@/components/vm/vdis/panel/VdiConfigurationCard.vue'
-import VdiInfoCard from '@/components/vm/vdis/panel/VdiInfoCard.vue'
-import VdiSpaceCard from '@/components/vm/vdis/panel/VdiSpaceCard.vue'
-import type { XenApiVdi, XenApiVbd } from '@/libs/xen-api/xen-api.types.ts'
+import type { XenApiVbd, XenApiVdi } from '@/libs/xen-api/xen-api.types.ts'
+import VdiConfigurationCard from '@/modules/vdi/components/list/panel/cards/VdiConfigurationCard.vue'
+import VdiInfosCard from '@/modules/vdi/components/list/panel/cards/VdiInfosCard.vue'
+import VdiSpaceCard from '@/modules/vdi/components/list/panel/cards/VdiSpaceCard.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-
-const { vdi, vbd } = defineProps<{
+defineProps<{
   vdi?: XenApiVdi
   vbd?: XenApiVbd
 }>()
-
 const emit = defineEmits<{
   close: []
 }>()

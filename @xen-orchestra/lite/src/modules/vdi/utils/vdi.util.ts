@@ -19,3 +19,7 @@ export function getVbdsForVdi(
 ): XenApiVbd[] {
   return vdi.VBDs.map(ref => getVbdByOpaqueRef(ref)).filter((vbd): vbd is XenApiVbd => vbd !== undefined)
 }
+
+export function getVdiFormat(format: string | undefined): string {
+  return format !== undefined ? format.toUpperCase() : 'VHD'
+}
