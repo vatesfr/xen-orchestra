@@ -59,6 +59,7 @@
 - @vates/types patch
 - @xen-orchestra/acl minor
 - @xen-orchestra/async-map patch
+- @xen-orchestra/backups patch
 - @xen-orchestra/proxy-cli patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/upload-ova patch
