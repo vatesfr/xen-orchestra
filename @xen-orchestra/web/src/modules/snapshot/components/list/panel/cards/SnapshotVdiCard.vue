@@ -1,9 +1,6 @@
 <template>
   <UiPanelCard v-if="vmSnapshotVdis.length > 0" class="snapshot-vdi-card">
-    <UiCardTitle>
-      {{ t('vdis') }}
-      <UiCounter :value="vmSnapshotVdis.length" accent="neutral" size="small" variant="primary" />
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('vdis')" :counter="vmSnapshotVdis.length" />
     <div class="content">
       <div v-for="(vmSnapshotVdi, index) in vmSnapshotVdis" :key="vmSnapshotVdi.id" class="content">
         <SnapshotVdiLinkCardItem :vdi="vmSnapshotVdi" />
@@ -36,9 +33,8 @@ import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/Vd
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 const { snapshot } = defineProps<{ snapshot: FrontXoVmSnapshot }>()
