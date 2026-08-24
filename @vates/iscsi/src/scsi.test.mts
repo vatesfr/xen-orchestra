@@ -93,6 +93,17 @@ describe('decodeCdb', () => {
     assert.equal(decodeCdb(cdb(0x9e, 0x12)).kind, 'unsupported')
   })
 
+  it('clamps an out-of-range 64-bit LBA instead of throwing', () => {
+    // Past 2^53 an LBA no longer fits a JS number — and is past any capacity we
+    // can serve, so it must come back as an unservable LBA the range check
+    // rejects, not as an error that would tear the connection down.
+    const buffer = Buffer.alloc(16)
+    buffer[0] = 0x88
+    buffer.writeBigUInt64BE(0xffffffffffffffffn, 2)
+    buffer.writeUInt32BE(1, 10)
+    assert.deepEqual(decodeCdb(buffer), { kind: 'read', lba: Number.MAX_SAFE_INTEGER, blocks: 1 })
+  })
+
   it('maps unknown opcodes to unsupported', () => {
     assert.deepEqual(decodeCdb(cdb(0xff)), { kind: 'unsupported', opcode: 0xff })
   })

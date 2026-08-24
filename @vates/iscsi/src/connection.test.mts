@@ -171,6 +171,16 @@ const cdb10 = (opcode: number, lba: number, blocks: number): Buffer => {
 const read10 = (lba: number, blocks: number) => cdb10(0x28, lba, blocks)
 const write10 = (lba: number, blocks: number) => cdb10(0x2a, lba, blocks)
 
+const cdb16 = (opcode: number, lba: bigint, blocks: number): Buffer => {
+  const cdb = Buffer.alloc(16)
+  cdb[0] = opcode
+  cdb.writeBigUInt64BE(lba, 2)
+  cdb.writeUInt32BE(blocks, 10)
+  return cdb
+}
+const read16 = (lba: bigint, blocks: number) => cdb16(0x88, lba, blocks)
+const write16 = (lba: bigint, blocks: number) => cdb16(0x8a, lba, blocks)
+
 const inquiry = (allocationLength: number): Buffer => {
   const cdb = Buffer.alloc(16)
   cdb[0] = 0x12
@@ -668,4 +678,35 @@ describe('Data-In chunking', () => {
       )
     })
   })
+})
+
+describe('unservable CDBs', () => {
+  // An LBA above 2^53 cannot be held exactly by a JS number. Decoding it must
+  // not throw: the error would unwind out of the dispatch loop and destroy the
+  // socket, turning one bogus CDB — a buggy or hostile initiator's — into the
+  // loss of the whole session and every command in flight on it.
+  for (const [name, cdb] of [
+    ['READ(16)', read16(0xffffffffffffffffn, 1)],
+    ['WRITE(16)', write16(0xffffffffffffffffn, 1)],
+  ] as const) {
+    it(`answers a ${name} past the addressable range with CHECK CONDITION, keeping the session`, async () => {
+      await withSession(async harness => {
+        harness.socket.deliver(scsiCommandPdu({ itt: 31, cmdSN: 1, cdb }))
+
+        const [, response] = await harness.untilSent(2)
+        assert.equal(response.opcode, TargetOpcode.SCSI_RESPONSE)
+        assert.equal(response.readU8(3), ScsiStatus.CHECK_CONDITION)
+        assert.equal(senseKey(response), SenseKey.ILLEGAL_REQUEST)
+        assert.equal(
+          harness.sent.some(pdu => pdu.opcode === TargetOpcode.R2T),
+          false
+        )
+
+        // the connection is still serving: a following command is answered
+        harness.socket.deliver(scsiCommandPdu({ itt: 32, cmdSN: 2, cdb: inquiry(36) }))
+        const [, , dataIn] = await harness.untilSent(3)
+        assert.equal(dataIn.opcode, TargetOpcode.SCSI_DATA_IN)
+      })
+    })
+  }
 })

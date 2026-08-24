@@ -20,18 +20,26 @@ export type ScsiRequest =
 /** Largest LBA representable as a safe JS integer; guards 64-bit CDB decoding. */
 const MAX_SAFE_LBA = Number.MAX_SAFE_INTEGER
 
+/**
+ * Read a 64-bit LBA, clamped to what a JS number holds exactly.
+ *
+ * An LBA above that is past the capacity of any device we can serve, so the
+ * clamp cannot collide with an addressable block: the caller's
+ * `lba + blocks > blockCount` check rejects it with LBA OUT OF RANGE, which is
+ * the answer SCSI wants anyway. Throwing here instead would take the whole
+ * connection down (the error unwinds to `serve()`, which destroys the socket)
+ * over a single bogus CDB.
+ */
 function readLba64(cdb: Buffer, offset: number): number {
   const lba = cdb.readBigUInt64BE(offset)
-  if (lba > BigInt(MAX_SAFE_LBA)) {
-    throw new Error(`LBA ${lba} exceeds the supported range`)
-  }
-  return Number(lba)
+  return lba > BigInt(MAX_SAFE_LBA) ? MAX_SAFE_LBA : Number(lba)
 }
 
 /**
  * Decode a SCSI CDB into a {@link ScsiRequest}. Unknown opcodes (and READ
  * CAPACITY(16)'s sibling service actions we do not implement) map to
- * `{ kind: 'unsupported' }` so the caller can return CHECK CONDITION.
+ * `{ kind: 'unsupported' }` so the caller can return CHECK CONDITION. Never
+ * throws: every 16-byte CDB decodes to something the caller can answer.
  */
 export function decodeCdb(cdb: Buffer): ScsiRequest {
   const opcode = cdb[0]
