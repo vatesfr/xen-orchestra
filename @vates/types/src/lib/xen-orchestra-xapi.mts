@@ -180,6 +180,7 @@ export interface Xapi {
   disconnectVif(vifId: XoVif['id']): Promise<void>
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
   emergencyShutdownHost(hostId: XoHost['id']): Promise<void>
+  ejectCdFromVm(vmId: XoVm['id']): Promise<void>
   ejectHostFromPool(hostId: XoHost['id']): Promise<void>
   host_smartReboot(
     hostRef: XenApiHost['$ref'],
@@ -199,6 +200,7 @@ export interface Xapi {
       bypassAssert?: boolean
     }
   ): Promise<void>
+  insertCdIntoVm(cdId: XoVdi['id'], vmId: XoVm['id'], opts?: { bootable?: boolean; force?: boolean }): Promise<void>
   joinPool(masterAddress: string, masterUsername: string, masterPassword: string, force?: boolean): Promise<void>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
