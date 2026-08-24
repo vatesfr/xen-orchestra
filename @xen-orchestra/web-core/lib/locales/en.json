@@ -839,6 +839,7 @@
   "no-storage-repository-detected": "No storage repositories detected",
   "no-task": "No tasks",
   "no-task-detected": "No tasks detected",
+  "no-user-attached": "No users attached",
   "no-user-detected": "No users detected",
   "no-vdi-attached": "No VDIs attached",
   "no-vdi-detected": "No VDIs detected",

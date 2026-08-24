@@ -1,22 +1,18 @@
 <template>
   <UiPanelCard class="user-groups-card">
-    <UiCardTitle>
-      <div class="title">
-        {{ t('groups') }}
-        <UiCounter :value="userGroups.length" accent="neutral" size="small" variant="primary" />
-      </div>
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('groups')" :counter="userGroups.length" />
 
-    <div v-if="userGroups.length > 0">
-      <template v-for="group in userGroups" :key="group.id">
-        <div class="group-list">
-          <VtsIcon size="medium" name="table:group" />
-          <UiLink :href="xo5GroupsHref" size="small">
-            {{ group.name }}
-          </UiLink>
-        </div>
-      </template>
-    </div>
+    <UiLinkList v-if="userGroups.length > 0" variant="vertical">
+      <UiLink
+        v-for="group in userGroups"
+        :key="group.id"
+        icon="table:group"
+        size="small"
+        :to="{ name: '/admin/user-management/groups', query: { id: group.id } }"
+      >
+        {{ group.name }}
+      </UiLink>
+    </UiLinkList>
 
     <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
       {{ t('no-group-attached') }}
@@ -27,43 +23,20 @@
 <script lang="ts" setup>
 import { useXoGroupCollection } from '@/modules/group/remote-resources/use-xo-group-collection.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiLinkList from '@core/components/ui/link-list/UiLinkList.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
-import { computed } from 'vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 const { user } = defineProps<{
   user: FrontXoUser
 }>()
 
+const { t } = useI18n()
+
 const { useGetGroupsByIds } = useXoGroupCollection()
 
-const { buildXo5Route } = useXoRoutes()
-
-const xo5GroupsHref = computed(() => buildXo5Route('/settings/groups'))
-
 const userGroups = useGetGroupsByIds(() => user.groups)
-
-const { t } = useI18n()
 </script>
-
-<style scoped lang="postcss">
-.user-groups-card {
-  .title {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-  }
-
-  .group-list {
-    display: flex;
-    gap: 0.6rem;
-    margin-block: 0.6rem;
-  }
-}
-</style>
