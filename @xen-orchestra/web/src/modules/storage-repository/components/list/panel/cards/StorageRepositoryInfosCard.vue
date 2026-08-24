@@ -1,6 +1,6 @@
 <template>
-  <UiPanelCard class="storage-repository-infos-card">
-    <VtsCardObjectTitle :id="sr.id" :label="sr.name_label" :href :icon="srStatusIcon" />
+  <UiPanelCard class="card-container">
+    <VtsCardObjectTitle :id="sr.id" :label="sr.name_label" :to="srRoute" :icon="srStatusIcon" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
@@ -61,7 +61,7 @@ import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import { getSrPageLocation } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
@@ -80,21 +80,18 @@ const { sr, scope } = defineProps<{
 
 const { t } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
-const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
+const srRoute = computed(() => getSrPageLocation(sr, scope))
 
 const { isHighAvailabilitySr } = useXoSrCollection()
 
-const { srConnectionStatus, srStatusIcon } = useXoSrUtils(
+const { srConnectionStatus, srStatusIcon, getSrAccessModeLabel, getSrProvisioningLabel } = useXoSrUtils(
   () => sr,
   () => scope
 )
 
-const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
+const isSrSharedI18nValue = computed(() => getSrAccessModeLabel(sr))
 
-const allocationStrategy = computed(() => {
-  return sr.allocationStrategy ?? t('unknown')
-})
+const allocationStrategy = computed(() => getSrProvisioningLabel(sr))
 
 const isHaSr = isHighAvailabilitySr(() => sr)
 </script>

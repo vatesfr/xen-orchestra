@@ -4,6 +4,8 @@
       {{ t('space') }}
     </UiCardTitle>
 
+    <slot name="alert" />
+
     <div class="content">
       <VtsProgressBar no-ruler :current="used" :total :label legend-type="percent" class="progress" />
 
@@ -53,6 +55,10 @@ const { used, total } = defineProps<{
   total: number
   label: string
   totalSizeLabel?: string
+}>()
+
+defineSlots<{
+  alert?(): any
 }>()
 
 const { t } = useI18n()
