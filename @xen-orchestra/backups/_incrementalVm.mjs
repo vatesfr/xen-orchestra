@@ -307,9 +307,16 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   })
 
   // 3.5. Destroy old VDIs that are no longer attached to the VM.
-  // Uses ignoreErrors because some storage backends refuse to destroy a VDI that still has snapshot children;
-  // those VDIs will become truly orphaned once the old snapshot VMs are cleaned up by _deleteOldEntries.
-  await asyncMap([...oldVdiRefs], ref => ignoreErrors.call(xapi.call('VDI.destroy', ref)))
+  // Some storage backends refuse to destroy a VDI that still has snapshot children.
+  // Log it and leave it for later cleanup.
+  await asyncMap([...oldVdiRefs], ref =>
+    xapi.call('VDI.destroy', ref).catch(error =>
+      Task.warning('failed to destroy orphaned VDI', {
+        vdi: xapi.getObject(ref, undefined)?.uuid ?? ref,
+        error,
+      })
+    )
+  )
 
   // 4. For updates, destroy existing VIFs before recreating them.
   if (isUpdate) {
