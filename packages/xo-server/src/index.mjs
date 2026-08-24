@@ -167,6 +167,12 @@ const DEFAULT_HELMET_CONFIG = {
 // allowlist above, so it gets a more permissive CSP instead of none,
 // `/v5/netdata` self-proxies to `/netdata` (see config.toml)
 const CSP_EXEMPT_PREFIXES = ['/v5/netdata', '/netdata']
+
+// Matches the prefix or a sub-path of it (e.g. `/netdata/v1/info`)
+// but not an unrelated route that starts with the same characters
+// (e.g. `/netdata-test`)
+const isCspExemptPath = path => CSP_EXEMPT_PREFIXES.some(prefix => path === prefix || path.startsWith(prefix + '/'))
+
 const CSP_EXEMPT_DIRECTIVES = {
   directives: {
     'default-src': ["'self'"],
@@ -201,9 +207,7 @@ async function createExpressApp(config) {
 
     const csp = helmet.contentSecurityPolicy(contentSecurityPolicy)
     const relaxedCsp = helmet.contentSecurityPolicy(CSP_EXEMPT_DIRECTIVES)
-    app.use((req, res, next) =>
-      (CSP_EXEMPT_PREFIXES.some(prefix => req.url.startsWith(prefix)) ? relaxedCsp : csp)(req, res, next)
-    )
+    app.use((req, res, next) => (isCspExemptPath(req.path) ? relaxedCsp : csp)(req, res, next))
   }
 
   app.use(compression())
