@@ -190,12 +190,13 @@ async function createExpressApp(config) {
     Array.isArray(dst) ? dst.concat(src) : undefined
   )
 
-  if (isDev) {
+  const { contentSecurityPolicy, ...restHelmetConfig } = helmetConfig
+
+  if (isDev || contentSecurityPolicy === false) {
     app.use(helmet(helmetConfig))
   } else {
     // CSP picked separately by path, other
     // helmet headers stay the same
-    const { contentSecurityPolicy, ...restHelmetConfig } = helmetConfig
     app.use(helmet({ ...restHelmetConfig, contentSecurityPolicy: false }))
 
     const csp = helmet.contentSecurityPolicy(contentSecurityPolicy)
