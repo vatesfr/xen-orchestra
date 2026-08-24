@@ -46,7 +46,15 @@ Old traces are garbage-collected on mtime (`rpu.tracesRetention`, 31 days by def
 
    A step that shows up here but has no matching `"type":"end"` line was still running when the run died. The interrupted task in the XO tasks view shows the same thing per subtask.
 
-4. For a `failure`, the root `end` event has the error. `journalctl` is not reliable for this: the UI polls `listMissingPatches` during the run and produces the exact same `updater plugin is busy` stack traces as a real failure.
+4. A run can end in `success` and still have left VMs on another host. List them:
+
+   ```bash
+   grep '"name":"strandedVms"' <trace>.ndjson
+   ```
+
+   Each entry names the VM, the host it should be running on, and why its last migration was rejected, usually `HOST_NOT_ENOUGH_FREE_MEMORY`. Nothing is broken and the VMs are running; move them back once the pool has room.
+
+5. For a `failure`, the root `end` event has the error. `journalctl` is not reliable for this: the UI polls `listMissingPatches` during the run and produces the exact same `updater plugin is busy` stack traces as a real failure.
 
 ### Failure signatures seen in the field
 
@@ -91,9 +99,15 @@ task.start({ name: 'Rolling pool reboot', poolId: string, poolName: string })
 |  |  ├─ task.start({ name: `Migrating VM ${vmId} back to host ${hostId}`, hostId: string, hostName: string, vmId: string, vmName: string })
 │  │  │  └─ task.end
 │  │  └─ task.end
+|  ├─ task.start({ name: 'Retry migrating VMs back', total: number })
+|  |  ├─ task.start({ name: `Migrating VM ${vmId} back to host ${hostId}`, hostId: string, hostName: string, vmId: string, vmName: string })
+│  │  │  └─ task.end
+│  │  └─ task.end
 │  └─ task.end
 └─ task.end
 ```
+
+`Migrate VMs back` is best effort. The per-host pass brings each VM back to the host it was running on before the reboot. A VM rejected because that host is still full is retried in a `Retry migrating VMs back` pass, which repeats as long as a pass moves at least one VM, so there are zero to n of them, each carrying the number of VMs it tried in its `total`. Whatever is left after that does not fail the run: those VMs are running, only not where they started. They are listed on the `strandedVms` property of `Migrate VMs back`, one entry per VM with `vmId`, `vmName`, `hostId`, `hostName` and the XAPI `code`/`message` of the last rejection, and logged as `could not migrate all the VMs back to their host`.
 
 ### Rolling pool update
 
@@ -128,6 +142,10 @@ task.start({ name: 'Rolling pool update', poolId: string, poolName: string })
 │  │  └─ task.end
 │  ├─ task.start({ name: 'Migrate VMs back' })
 │  |  ├─ task.start({ name: `Migrating VMs back to host ${hostId}`, hostId: string, hostName: string })
+│  |  |  ├─ task.start({ name: `Migrating VM ${vmId} back to host ${hostId}`, hostId: string, hostName: string, vmId: string, vmName: string })
+│  │  │  │  └─ task.end
+│  │  │  └─ task.end
+│  |  ├─ task.start({ name: 'Retry migrating VMs back', total: number })
 │  |  |  ├─ task.start({ name: `Migrating VM ${vmId} back to host ${hostId}`, hostId: string, hostName: string, vmId: string, vmName: string })
 │  │  │  │  └─ task.end
 │  │  │  └─ task.end
