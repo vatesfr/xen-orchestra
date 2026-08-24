@@ -47,6 +47,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
   #maxPartNumber
   #minPartSize
 
+  getConfig(key) {
+    if (key === 'useVhdDirectory') {
+      return true // compatibility layer
+    }
+    return super.getConfig(key)
+  }
+
   constructor(remote, _opts) {
     super(remote, _opts)
     const {
@@ -490,9 +497,5 @@ export default class S3Handler extends RemoteHandlerAbstract {
         throw error
       }
     }
-  }
-
-  useVhdDirectory() {
-    return true
   }
 }

@@ -47,14 +47,10 @@ const createSafeReaddir = (handler, methodName) => (path, options) =>
   })
 
 export class RemoteAdapter {
-  constructor(
-    handler,
-    { debounceResource = res => res, dirMode, vhdDirectoryCompression, useGetDiskLegacy = false } = {}
-  ) {
+  constructor(handler, { debounceResource = res => res, dirMode, useGetDiskLegacy = false } = {}) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler
-    this._vhdDirectoryCompression = vhdDirectoryCompression
     this._readCacheListVmBackups = synchronized.withKey()(this._readCacheListVmBackups)
     this._useGetDiskLegacy = useGetDiskLegacy
   }
@@ -71,10 +67,7 @@ export class RemoteAdapter {
   // a requirement here.
   async isMergeableParent(packedParentUid, path) {
     return await Disposable.use(openDisposableDisk({ handler: this.handler, path, ignoreBlockIndexes: true }), disk =>
-      disk.isMergeableParent(stringify(packedParentUid), {
-        useVhdDirectory: this.useVhdDirectory(),
-        compressionType: this.#getCompressionType(),
-      })
+      disk.isMergeableParent(stringify(packedParentUid))
     )
   }
 
@@ -203,13 +196,8 @@ export class RemoteAdapter {
     )
   }
 
-  #getCompressionType() {
-    const compressionType = this.handler.vhdDirectoryCompression() ?? this._vhdDirectoryCompression
-    return compressionType === 'none' ? undefined : compressionType
-  }
-
   useVhdDirectory() {
-    return this.handler.useVhdDirectory()
+    return this.handler.getConfig('useVhdDirectory')
   }
 
   #useAlias() {
@@ -459,7 +447,7 @@ export class RemoteAdapter {
           path,
           concurrency: writeBlockConcurrency,
           validator,
-          compression: this.#getCompressionType(),
+          compression: handler.getConfig('compressionType') ?? 'brotli', // compatibility layer
           uuid,
           parentUuid,
           parentPath,

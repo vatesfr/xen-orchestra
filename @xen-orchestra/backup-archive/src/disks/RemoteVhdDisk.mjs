@@ -450,17 +450,15 @@ export class RemoteVhdDisk extends RemoteDisk {
    * sub-format (VHD directory vs plain) and, for directories, the compression codec
    * must match what this remote would write for a new disk.
    * @param {string} parentUuid
-   * @param {Object} referenceDiskConfig
-   * @param {boolean} referenceDiskConfig.useVhdDirectory
-   * @param {string} [referenceDiskConfig.compressionType]
    * @returns {Promise<boolean>}
    */
-  async isMergeableParent(parentUuid, referenceDiskConfig) {
-    if (!(await super.isMergeableParent(parentUuid, referenceDiskConfig))) {
+  async isMergeableParent(parentUuid) {
+    if (!(await super.isMergeableParent(parentUuid))) {
       return false
     }
 
-    const { useVhdDirectory, compressionType } = referenceDiskConfig
+    const useVhdDirectory = this.#handler.getConfig('useVhdDirectory') ?? false
+    const compressionType = this.#handler.getConfig('compressionType') ?? 'brotli'
     const isDirectory = await this.isDirectory()
     return isDirectory ? useVhdDirectory && this.#getCompressionType() === compressionType : !useVhdDirectory
   }

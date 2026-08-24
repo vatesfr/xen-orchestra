@@ -246,10 +246,9 @@ export class RemoteDisk extends RandomAccessDisk {
    * compression, ...) — calling `super.isMergeableParent()` first.
    *
    * @param {string} parentUuid
-   * @param {Object} referenceDiskConfig - describes what this remote would write for a new disk
    * @returns {Promise<boolean>}
    */
-  async isMergeableParent(parentUuid, referenceDiskConfig) {
+  async isMergeableParent(parentUuid) {
     return this.getUuid() === parentUuid
   }
 
