@@ -162,7 +162,8 @@ export abstract class RemoteHandlerAbstract {
   abstract lock(path: string): Promise<LockDisposer>
   abstract test(): Promise<TestResult>
   abstract isImmutable(): boolean
-  abstract useVhdDirectory(): boolean
-  abstract vhdDirectoryCompression(): string | undefined
+  abstract getConfig(key: 'useVhdDirectory'): boolean | undefined
+  abstract getConfig(key: 'compressionType'): string | undefined
+  abstract getConfig(key: string): unknown
   abstract addPrefix(prefix: string): RemoteHandlerAbstract
 }

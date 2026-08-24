@@ -58,13 +58,13 @@ describe('closeFile()', () => {
   })
 })
 
-describe('vhdDirectoryCompression()', () => {
+describe('getConfig()', () => {
   it('is undefined when not set on the remote', () => {
-    assert.equal(new TestHandler().vhdDirectoryCompression(), undefined)
+    assert.equal(new TestHandler().getConfig('compressionType'), undefined)
   })
 
   it('reads the remote-level compressionType override', () => {
-    assert.equal(new TestHandler({ compressionType: 'brotli' }).vhdDirectoryCompression(), 'brotli')
+    assert.equal(new TestHandler({ compressionType: 'brotli' }).getConfig('compressionType'), 'brotli')
   })
 })
 
