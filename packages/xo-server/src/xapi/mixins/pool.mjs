@@ -332,13 +332,24 @@ const methods = {
       }
     })
 
-    // Reverse host order to guarantee successful relocation of VMs to their original host in one step
+    // Handle the hosts in the reverse order of their reboot: the last rebooted
+    // one is the emptiest, and serving it frees memory on the ones still to come
     hosts.reverse()
+
+    const migrateVmBack = async (vmRef, host) => {
+      const hostId = host.uuid
+      const hostName = host.name_label
+      const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
+      await Task.run(
+        { properties: { name: `Migrating VM ${vmId} back to host ${hostId}`, hostId, hostName, vmId, vmName } },
+        () => this.migrateVm(vmId, this, hostId)
+      )
+    }
 
     const migrationsSubtask = new Task({ properties: { name: `Migrate VMs back`, progress: 0 } })
     await migrationsSubtask.run(async () => {
       let done = 0
-      let error
+      let pendingVms = []
       for (const host of hosts) {
         const hostId = host.uuid
         const hostName = host.name_label
@@ -376,19 +387,9 @@ const methods = {
             }
 
             try {
-              const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
-              await Task.run(
-                {
-                  properties: { name: `Migrating VM ${vmId} back to host ${hostId}`, hostId, hostName, vmId, vmName },
-                },
-                async () => {
-                  await this.migrateVm(vmId, this, hostId)
-                }
-              )
-            } catch (err) {
-              if (error === undefined) {
-                error = err
-              }
+              await migrateVmBack(vmRef, host)
+            } catch (error) {
+              pendingVms.push({ error, host, vmRef })
             }
             done++
             setProgress(oneHostMigrationsTask, (100 * done) / vmRefs.length)
@@ -399,9 +400,44 @@ const methods = {
         rprProgress += progressStepPerHost
         setProgress(parentTask, rprProgress)
       }
-      // making the migration task fail if any of the migrations failed
-      if (error !== undefined) {
-        throw error
+
+      // a VM may have been rejected only because its host was still hosting the
+      // VMs of a host handled later: retry as long as a pass moves at least one
+      while (pendingVms.length > 0) {
+        const failedVms = await Task.run({ properties: { name: `Retry migrating VMs back` } }, async () => {
+          const failedVms = []
+          for (const pendingVm of pendingVms) {
+            try {
+              await migrateVmBack(pendingVm.vmRef, pendingVm.host)
+            } catch (error) {
+              failedVms.push({ ...pendingVm, error })
+            }
+          }
+          return failedVms
+        })
+
+        if (failedVms.length === pendingVms.length) {
+          break
+        }
+        pendingVms = failedVms
+      }
+
+      // a VM left on another host is not worth failing the whole run: it is
+      // running, only not where it started, and an operator has to move it back
+      if (pendingVms.length > 0) {
+        const strandedVms = pendingVms.map(({ error, host, vmRef }) => {
+          const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
+          return {
+            code: error.code,
+            hostId: host.uuid,
+            hostName: host.name_label,
+            message: error.message,
+            vmId,
+            vmName,
+          }
+        })
+        migrationsSubtask.set('strandedVms', strandedVms)
+        log.warn('could not migrate all the VMs back to their host', { pool: this.pool.uuid, strandedVms })
       }
     })
     // in case task progress has not been incremented properly
