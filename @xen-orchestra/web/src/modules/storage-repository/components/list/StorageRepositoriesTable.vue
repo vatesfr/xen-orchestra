@@ -27,15 +27,12 @@
 <script setup lang="ts">
 import { useSrConnection } from '@/modules/storage-repository/composables/use-sr-connection.composable.ts'
 import { useSrDelete } from '@/modules/storage-repository/composables/use-sr-delete.composable.ts'
-import {
-  getSrPageLocation,
-  useGetPbdsInScope,
-  useXoSrUtils,
-} from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { getSrPageLocation } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'

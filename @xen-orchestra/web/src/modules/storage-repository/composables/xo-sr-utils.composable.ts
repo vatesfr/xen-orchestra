@@ -7,7 +7,6 @@ import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationRaw } from 'vue-router'
 
 export function useGetPbdsInScope() {
   const { getPbdsByIds } = useXoPbdCollection()
@@ -54,14 +53,6 @@ export function useGetPbdsInScope() {
     getDetachedPbdsInScope,
     getSrPbdsSignature,
     isPartiallyConnectedInScope,
-  }
-}
-
-export function getSrPageLocation(sr: FrontXoSr, scope: SrScope): RouteLocationRaw {
-  return {
-    name: '/sr/[id]',
-    params: { id: sr.id },
-    query: { from: scope.type, ...(scope.type === SR_SCOPE_TYPE.HOST && { host: scope.hostId }) },
   }
 }
 

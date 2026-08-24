@@ -56,11 +56,12 @@
 </template>
 
 <script lang="ts" setup>
-import { getSrPageLocation, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { getSrPageLocation } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
