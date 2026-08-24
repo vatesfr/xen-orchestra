@@ -59,8 +59,12 @@ export class BackupRepositoryService {
   }
 
   async reclaimSpace(backupRepositoryId: XoBackupRepository['id'], vmUuid?: string) {
+    const referencingJobs = await this.getReferencingJobs(backupRepositoryId)
     const jobs = await this.#restApi.xoApp.getAllJobs()
-    const runningJobs = jobs.filter(job => (job as JobWithRunId).runId !== undefined)
+    const runningJobs = jobs.filter(
+      job => (job as JobWithRunId).runId !== undefined && referencingJobs.includes(job.id)
+    )
+
     if (Object.keys(runningJobs).length > 0) {
       throw new ApiError('cannot reclaim space while a backup job is running', 409)
     }
