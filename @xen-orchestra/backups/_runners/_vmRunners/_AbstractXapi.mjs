@@ -21,6 +21,7 @@ import {
   resetVmOtherConfig,
   setVmOtherConfig,
   setVmSnapshotContentKeys,
+  markExportSuccessfull,
 } from '../../_otherConfig.mjs'
 
 const { warn, info } = createLogger('xo:backups:AbstractXapi')
@@ -657,6 +658,10 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
       if (this._writers.size !== 0) {
         await this._copy()
+      }
+      // not the case if offlineBackup
+      if (this._exportedVm.is_a_snapshot) {
+        await markExportSuccessfull(this._xapi, this._exportedVm.$ref)
       }
     } finally {
       if (startAfter) {
