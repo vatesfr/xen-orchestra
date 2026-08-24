@@ -34,6 +34,8 @@ const pifFields = [
   'bondSlaves',
   'physical',
   'type',
+  'ipv6Mode',
+  'primaryAddressType',
 ] as const satisfies readonly (keyof XoPif)[]
 
 export const useXoPifCollection = defineRemoteResource({

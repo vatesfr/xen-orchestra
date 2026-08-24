@@ -19,7 +19,7 @@ export const usePifColumns = defineColumns(() => {
     ip: useAddressColumn({ headerLabel: () => t('ip-address') }),
     mac: useAddressColumn({ headerLabel: () => t('mac-address') }),
     mode: useTextColumn({ headerLabel: () => t('mode') }),
-    actions: useActionColumn({}),
     selectItem: useSelectItemColumn(),
+    actions: useActionColumn({}),
   }
 })

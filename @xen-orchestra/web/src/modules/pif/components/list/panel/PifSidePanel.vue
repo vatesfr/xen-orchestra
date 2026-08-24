@@ -1,22 +1,11 @@
 <template>
   <VtsSidePanel :has-selection="!!pif" class="pif-side-panel" @close="emit('close')">
     <template v-if="pif" #actions>
-      <UiButton
-        v-tooltip="!canReconfigureManagement && reconfigureManagementErrorMessage"
-        size="medium"
-        variant="tertiary"
-        accent="brand"
-        :disabled="!canReconfigureManagement"
-        left-icon="status:primary-circle"
-        :busy="isReconfiguringManagement"
-        @click="openManagementReconfigureModal()"
-      >
-        {{ t('action:set-management') }}
-      </UiButton>
+      <PifSetManagementButton :pif />
     </template>
     <template v-if="pif">
       <!-- PIF -->
-      <UiPanelCard>
+      <UiCard class="card">
         <VtsCardObjectTitle :id="pif.id" :label="pif.isBondMaster ? t('bond') : t('pif')" />
         <div class="content">
           <!-- NETWORK -->
@@ -26,7 +15,7 @@
             </template>
             <template #value>
               <UiLink v-if="network" size="medium" :to="networkTo" icon="object:network">
-                {{ network.name_label }}
+                <span v-tooltip class="text-ellipsis">{{ network.name_label }}</span>
               </UiLink>
             </template>
             <template v-if="network" #addons>
@@ -89,9 +78,9 @@
             </template>
           </VtsCardRowKeyValue>
         </div>
-      </UiPanelCard>
+      </UiCard>
       <!-- NETWORK INFORMATION -->
-      <UiPanelCard>
+      <UiCard class="card">
         <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
         <div class="content">
           <!-- IP ADDRESSES -->
@@ -192,9 +181,9 @@
             </VtsCardRowKeyValue>
           </div>
         </div>
-      </UiPanelCard>
+      </UiCard>
       <!-- PROPERTIES -->
-      <UiPanelCard>
+      <UiCard class="card">
         <UiCardTitle>{{ t('properties') }}</UiCardTitle>
         <div class="content">
           <!-- MTU -->
@@ -231,16 +220,15 @@
             </template>
           </VtsCardRowKeyValue>
         </div>
-      </UiPanelCard>
+      </UiCard>
     </template>
   </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
-import { usePifManagementReconfigureModal } from '@/modules/pif/composables/use-pif-management-reconfigure-modal.composable.ts'
+import PifSetManagementButton from '@/modules/pif/components/actions/set-management/PifSetManagementButton.vue'
 import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
@@ -250,10 +238,9 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
@@ -271,21 +258,8 @@ const emit = defineEmits<{
 
 const { useGetNetworkById } = useXoNetworkCollection()
 const { getBondsDevices } = useXoPifCollection()
-const { useGetHostById } = useXoHostCollection()
 
 const { t } = useI18n()
-
-const host = useGetHostById(() => pif?.$host)
-
-const {
-  openModal: openManagementReconfigureModal,
-  canRun: canReconfigureManagement,
-  isRunning: isReconfiguringManagement,
-  errorMessage: reconfigureManagementErrorMessage,
-} = usePifManagementReconfigureModal(
-  () => pif,
-  () => host.value
-)
 
 const ipAddresses = computed(() => {
   if (pif === undefined) {
@@ -343,7 +317,9 @@ const speed = computed(() => {
 </script>
 
 <style scoped lang="postcss">
-.pif-side-panel {
+.card {
+  gap: 1.6rem;
+
   .content {
     display: flex;
     flex-direction: column;

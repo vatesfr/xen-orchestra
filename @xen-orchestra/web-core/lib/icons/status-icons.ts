@@ -203,6 +203,17 @@ export const statusIcons = defineIconPack({
       size: 10,
     },
   ],
+  'primary-circle-disabled': [
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-txt-secondary)',
+    },
+    {
+      icon: faStar,
+      color: 'var(--color-info-txt-item)',
+      size: 10,
+    },
+  ],
   'force-circle': [
     {
       icon: faCircle,
