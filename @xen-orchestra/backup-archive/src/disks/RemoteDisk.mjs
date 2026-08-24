@@ -230,14 +230,6 @@ export class RemoteDisk extends RandomAccessDisk {
   }
 
   /**
-   * Abstract
-   * @returns {Promise<boolean>}
-   */
-  async isDirectory() {
-    throw new Error(`isDirectory must be implemented`)
-  }
-
-  /**
    * Checks whether this disk (or chain) can act as the merge-target parent for a disk
    * about to be written with the given reference configuration.
    *
