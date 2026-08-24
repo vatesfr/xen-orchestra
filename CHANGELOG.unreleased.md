@@ -19,6 +19,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [OpenMetrics] The Prometheus secret no longer changes on every xo-server restart: it is now generated once and saved in the plugin configuration (PR [#10290](https://github.com/vatesfr/xen-orchestra/pull/10290))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
