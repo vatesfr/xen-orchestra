@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="card-container">
     <VtsCardObjectTitle :id="sr.id" :label="sr.name_label" :to="srRoute" :icon="srStatusIcon" />
     <div class="content">
       <VtsCardRowKeyValue>
@@ -52,7 +52,7 @@
         <template #value><VtsStatus :status="isHaSr" /></template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
