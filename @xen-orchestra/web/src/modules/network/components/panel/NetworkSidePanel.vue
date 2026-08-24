@@ -1,7 +1,7 @@
 <template>
-  <VtsSidePanel :has-selection="!!network" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!network" class="network-side-panel" @close="emit('close')">
     <template v-if="network" #actions>
-      <VtsDeleteButton :busy="isDeletingNetwork" @click="openDeleteModal()" />
+      <VtsDeleteButton :busy="isDeletingNetworks" @click="deleteNetworks()" />
     </template>
     <template v-if="network" #default>
       <UiPanelCard>
@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import NetworkPifsInfoCard from '@/modules/network/components/panel/cards/NetworkPifsInfoCard.vue'
-import { useNetworkDeleteModal } from '@/modules/network/composables/use-network-delete-modal.composable.ts'
+import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -68,7 +68,7 @@ import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObject
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -80,9 +80,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { openModal: openDeleteModal, isRunning: isDeletingNetwork } = useNetworkDeleteModal(() =>
-  network !== undefined ? [network] : []
-)
+const { deleteNetworks, isDeletingNetworks } = useNetworkDelete(() => (network !== undefined ? [network] : []))
 
 const { buildXo5Route } = useXoRoutes()
 
@@ -110,11 +108,7 @@ const networkDefaultLockingMode = computed(() => (network?.defaultIsLocked ? t('
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-
+.network-side-panel {
   .content {
     display: flex;
     flex-direction: column;
