@@ -70,7 +70,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
         icon: 'status:halted-circle',
         value: t('action:install-guest-tools'),
         tooltip: !vm.value.managementAgentDetected ? t('management-agent-not-detected') : t('no-xen-tools-detected'),
-      }
+      } as const
     }
 
     const value = vm.value.pvDriversVersion || t('installed')
@@ -81,7 +81,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
         icon: 'status:warning-circle',
         value,
         tooltip: t('guest-tools-out-of-date'),
-      }
+      } as const
     }
 
     if (vm.value.pvDriversUpToDate === undefined) {
@@ -90,7 +90,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
         icon: 'status:info-circle',
         value,
         tooltip: t('guest-tools-status-unknown'),
-      }
+      } as const
     }
 
     return {
@@ -98,7 +98,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       icon: 'status:success-circle',
       value,
       tooltip: t('installed'),
-    }
+    } as const
   })
 
   const isChangingState = computed(() => isVmOperationPending(vm.value, CHANGING_STATE_OPERATIONS))
