@@ -37,6 +37,7 @@
 
 - @xen-orchestra/web minor
 - xo-server minor
+- xo-server-openmetrics patch
 - xo-web minor
 
 <!--packages-end-->
