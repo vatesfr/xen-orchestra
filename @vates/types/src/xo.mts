@@ -156,6 +156,15 @@ export type XoBackupLog = BaseXoLog & {
 export type XoRestoreLog = BaseXoLog & {
   message: 'restore'
 }
+export type XoBackupDiskPartition = {
+  id: Branded<'xo-backup-disk-partition'>
+  name?: string
+  size: number
+  start: number
+  /** number for MBR, string for GPT partition */
+  type: string | number
+}
+
 export type XoVmBackupArchive = {
   id: Branded<'vm-backup-archive'>
   type: 'xo-vm-backup'
