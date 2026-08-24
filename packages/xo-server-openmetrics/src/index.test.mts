@@ -22,7 +22,7 @@ describe('ensureSecret', () => {
       persisted.push(configuration)
     })
 
-    assert.match(secret, /^[0-9a-f]{16}$/)
+    assert.match(secret, /^[0-9a-f]{64}$/)
     assert.deepEqual(persisted, [{ secret }])
   })
 
@@ -32,7 +32,7 @@ describe('ensureSecret', () => {
       persisted.push(configuration)
     })
 
-    assert.match(secret, /^[0-9a-f]{16}$/)
+    assert.match(secret, /^[0-9a-f]{64}$/)
     assert.deepEqual(persisted, [{ secret }])
   })
 

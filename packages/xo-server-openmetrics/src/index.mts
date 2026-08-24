@@ -25,7 +25,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { fork, type ChildProcess } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { getRandomValues } from 'node:crypto'
+import { randomBytes } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
 import v8 from 'node:v8'
 
@@ -509,7 +509,7 @@ export async function ensureSecret(
     return secret
   }
 
-  const generated = Buffer.from(getRandomValues(new Uint32Array(8))).toString('hex')
+  const generated = randomBytes(32).toString('hex')
   await persist({ secret: generated })
   return generated
 }
