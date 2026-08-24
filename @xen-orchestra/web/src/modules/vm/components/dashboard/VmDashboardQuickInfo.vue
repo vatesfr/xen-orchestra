@@ -55,7 +55,7 @@
       <VtsKeyValueRow :label="t('virtualization-type')" :value="virtualizationType" />
       <VtsKeyValueRow :label="t('guest-tools')">
         <template #value>
-          <VmGuestToolsStatus :guest-tools-display="guestToolsDisplay" :guest-tools-icon="guestToolsIcon" />
+          <VmGuestToolsStatus :guest-tools-display="guestToolsDisplay" />
         </template>
       </VtsKeyValueRow>
     </VtsKeyValueList>
@@ -104,9 +104,7 @@ const { useGetPoolById } = useXoPoolCollection()
 const { getVmHost } = useXoVmCollection()
 const { isMasterHost } = useXoHostCollection()
 
-const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay, guestToolsIcon } = useXoVmUtils(
-  () => vm
-)
+const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useXoVmUtils(() => vm)
 
 const { user } = useXoUserResource({}, () => vm.creation?.user)
 

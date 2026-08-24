@@ -76,7 +76,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('guest-tools') }}</template>
         <template #value>
-          <VmGuestToolsStatus :guest-tools-display="guestToolsDisplay" :guest-tools-icon="guestToolsIcon" />
+          <VmGuestToolsStatus :guest-tools-display="guestToolsDisplay" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -188,9 +188,7 @@ const hostPowerState = computed(() =>
   host.value ? toLower(host.value.power_state) : toLower(HOST_POWER_STATE.UNKNOWN)
 )
 
-const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay, guestToolsIcon } = useXoVmUtils(
-  () => vm
-)
+const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useXoVmUtils(() => vm)
 </script>
 
 <style scoped lang="postcss">

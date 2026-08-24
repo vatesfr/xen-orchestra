@@ -19,7 +19,7 @@
       <VtsTabularKeyValueRow :label="t('management-agent-version')" :value="vm.pvDriversVersion" />
       <VtsTabularKeyValueRow :label="t('guest-tools')">
         <template #value>
-          <VmGuestToolsStatus :guest-tools-display="guestToolsDisplay" :guest-tools-icon="guestToolsIcon" />
+          <VmGuestToolsStatus :guest-tools-display="guestToolsDisplay" />
         </template>
       </VtsTabularKeyValueRow>
     </VtsTabularKeyValueList>
@@ -42,5 +42,5 @@ const { vm } = defineProps<{ vm: FrontXoVm }>()
 
 const { t } = useI18n()
 
-const { guestToolsDisplay, guestToolsIcon } = useXoVmUtils(() => vm)
+const { guestToolsDisplay } = useXoVmUtils(() => vm)
 </script>
