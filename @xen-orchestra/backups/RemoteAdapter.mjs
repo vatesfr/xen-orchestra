@@ -145,7 +145,7 @@ export class RemoteAdapter {
   // VM in one call trigger a single merge, not one per backup
   async #mergeVmDirsAfterDelete(backups) {
     const dirs = new Set(backups.map(({ _filename }) => dirname(_filename)))
-
+    const mergedDirs = new Set()
     await Task.run(
       {
         properties: {
@@ -158,30 +158,26 @@ export class RemoteAdapter {
         let done = 0
 
         await asyncEach(dirs, async dir => {
-          await this.#mergeOneDir(dir)
+          try {
+            await this.cleanVm(dir, {
+              remove: true,
+              merge: true,
+              logInfo: Task.info,
+              logWarn: Task.warning,
+            })
+            mergedDirs.add(dir)
+          } catch (error) {
+            Task.warning('failed to merge VM backup chain after immediate delete', { error, path: dir })
+          }
           done++
           Task.set('progress', Math.round((done / dirs.size) * 100))
         })
       }
     )
 
-    return dirs
+    return mergedDirs
   }
 
-  // single-dir merge, no task of its own — runs inside the parent task
-  // created by #mergeVmDirsAfterDelete
-  async #mergeOneDir(dir) {
-    try {
-      await this.cleanVm(dir, {
-        remove: true,
-        merge: true,
-        logInfo: Task.info,
-        logWarn: Task.warning,
-      })
-    } catch (error) {
-      Task.warning('failed to merge VM backup chain after immediate delete', { error, path: dir })
-    }
-  }
   async deleteMetadataBackup(backupId) {
     await deleteMetadataBackupFiles(this._handler, backupId)
   }
