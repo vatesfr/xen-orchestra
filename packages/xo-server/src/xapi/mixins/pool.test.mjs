@@ -122,7 +122,8 @@ class FakeXapi {
     this._nReboots++
   }
 
-  // host.evacuate: pack each VM onto the emptiest host with enough memory
+  // host.evacuate. XAPI does its own placement, this is an approximation: pack
+  // each VM onto the emptiest host with enough memory
   async clearHost(host) {
     for (const vm of this._residentVms(host)) {
       const target = this.hosts
@@ -147,6 +148,9 @@ class FakeXapi {
     vm.$resident_on = target
   }
 }
+
+// the mixin reaches its own methods through `this`
+Object.setPrototypeOf(FakeXapi.prototype, poolMethods)
 
 const rollingPoolReboot = async xapi => {
   const events = []
