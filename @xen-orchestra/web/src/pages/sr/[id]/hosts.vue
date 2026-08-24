@@ -1,7 +1,7 @@
 <template>
   <VtsContentSidePanel class="hosts">
     <UiCard class="container">
-      <HostsTable :hosts :busy="!isReady" :error="hasError" />
+      <HostsTable :hosts :sr :busy="!isReady" :error="hasError" />
     </UiCard>
     <HostSidePanel :host="selectedHost" @close="selectedHost = undefined" />
   </VtsContentSidePanel>

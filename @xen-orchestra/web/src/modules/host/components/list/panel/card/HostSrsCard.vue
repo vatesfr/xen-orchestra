@@ -4,15 +4,19 @@
       {{ t('connected-sr') }}
       <UiCounter :value="srs.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
-    <UiCollapsibleList v-if="srs.length > 0" tag="ul" :total-items="srs.length">
+    <VtsStateHero v-if="!isReady" format="card" type="busy" size="extra-small" />
+    <VtsStateHero v-else-if="hasFetchError" format="card" type="error" horizontal size="extra-small">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
+    <UiCollapsibleList v-else-if="srs.length > 0" tag="ul" :total-items="srs.length">
       <li v-for="sr in srs" :key="sr.id" v-tooltip class="text-ellipsis">
         <UiLink
           size="small"
-          :icon="srIconById.get(sr.id)"
+          :icon="getSrStatusIcon(sr)"
           :to="{
             name: '/sr/[id]/general',
             params: { id: sr.id },
-            query: toSrScopeQuery({ type: SR_SCOPE_TYPE.HOST, hostId: host.id }),
+            query: toSrScopeQuery(scope),
           }"
         >
           {{ sr.name_label }}
@@ -26,10 +30,10 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostSrs } from '@/modules/host/composables/use-host-srs.composable.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
-import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { toSrScopeQuery } from '@/modules/storage-repository/utils/sr-scope.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -38,8 +42,8 @@ import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibl
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { objectIcon, type IconName } from '@core/icons'
-import { SR_SCOPE_TYPE } from '@core/types/storage-repository.type.ts'
+import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
+import { logicAnd, logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -49,18 +53,23 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { srs, hostPbds } = useHostSrs(() => host.id)
+const { srsByHost, areSrsReady, hasSrFetchError } = useXoSrCollection()
+const { arePbdsReady, hasPbdFetchError } = useXoPbdCollection()
 
-const srIconById = computed(() => {
-  const iconById = new Map<FrontXoSr['id'], IconName>()
+const isReady = logicAnd(areSrsReady, arePbdsReady)
 
-  srs.value.forEach(sr => {
-    const pbds = hostPbds.value.filter(pbd => pbd.SR === sr.id)
+const hasFetchError = logicOr(hasSrFetchError, hasPbdFetchError)
 
-    iconById.set(sr.id, objectIcon('sr', getPbdsConnectionStatus(pbds)))
-  })
+const scope = computed<SrScope>(() => ({ type: SR_SCOPE_TYPE.HOST, hostId: host.id }))
 
-  return iconById
+const { isConnectedInScope } = useGetPbdsInScope()
+
+const { getSrStatusIcon } = useXoSrUtils(undefined, scope)
+
+const srs = computed(() => {
+  const hostSrs = srsByHost.value.get(host.id) ?? []
+
+  return hostSrs.filter(sr => isConnectedInScope(sr, scope.value))
 })
 </script>
 
