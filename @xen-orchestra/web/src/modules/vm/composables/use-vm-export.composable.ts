@@ -1,8 +1,8 @@
 import type { VmExportFormValues } from '@/modules/vm/components/drawer/VmExportDrawer.vue'
-import { useXoVmExportJob, type VmExportCompression, type VmExportType } from '@/modules/vm/jobs/xo-vm-export.job'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection'
+import { useXoVmExportJob, type VmExportCompression, type VmExportType } from '@/modules/vm/jobs/xo-vm-export.job.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
-import { toComputed } from '@core/utils/to-computed.util'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import { ref, type MaybeRefOrGetter } from 'vue'
 
 export function useVmExport(rawVm: MaybeRefOrGetter<FrontXoVm>) {

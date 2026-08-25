@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import { IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util'
+import { IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util.ts'
 import { computed, inject, provide, ref } from 'vue'
 
 defineSlots<{

@@ -4,8 +4,8 @@ import UiButtonIcon, {
 } from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import type { IconName } from '@core/icons'
-import { defineColumn } from '@core/packages/table/define-column'
-import { renderHeadCell } from '@core/tables/helpers/render-head-cell'
+import { defineColumn } from '@core/packages/table/define-column.ts'
+import { renderHeadCell } from '@core/tables/helpers/render-head-cell.ts'
 import type { HeaderConfig } from '@core/tables/types.ts'
 import { h, type MaybeRefOrGetter, toValue } from 'vue'
 

@@ -18,7 +18,7 @@
 <script lang="ts" setup>
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { useDisabled } from '@core/composables/disabled.composable'
+import { useDisabled } from '@core/composables/disabled.composable.ts'
 
 const props = defineProps<{
   busy?: boolean

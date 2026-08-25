@@ -1,6 +1,6 @@
-import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
-import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
-import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
+import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config.ts'
+import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { defineStore } from 'pinia'
 
 export const useVmRawStore = defineStore('xen-api-vm-raw', () => {

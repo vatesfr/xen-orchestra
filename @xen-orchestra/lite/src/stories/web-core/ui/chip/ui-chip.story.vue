@@ -15,6 +15,6 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { event, prop, setting, slot } from '@/libs/story/story-param'
+import { event, prop, setting, slot } from '@/libs/story/story-param.ts'
 import UiChip from '@core/components/ui/chip/UiChip.vue'
 </script>

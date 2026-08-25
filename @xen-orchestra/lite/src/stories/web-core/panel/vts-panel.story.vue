@@ -51,8 +51,8 @@
 
 <script setup lang="ts">
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { event, iconProp, prop, setting, slot } from '@/libs/story/story-param'
-import { boolean, choice, text } from '@/libs/story/story-widget'
+import { event, iconProp, prop, setting, slot } from '@/libs/story/story-param.ts'
+import { boolean, choice, text } from '@/libs/story/story-widget.ts'
 import VtsPanel from '@core/components/panel/VtsPanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'

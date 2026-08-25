@@ -22,7 +22,7 @@
 import UiActionButton from '@/components/ui/UiActionButton.vue'
 import UiFilter from '@/components/ui/UiFilter.vue'
 import UiFilterGroup from '@/components/ui/UiFilterGroup.vue'
-import type { ActiveSorts, Sorts } from '@/types/sort'
+import type { ActiveSorts, Sorts } from '@/types/sort.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { useI18n } from 'vue-i18n'

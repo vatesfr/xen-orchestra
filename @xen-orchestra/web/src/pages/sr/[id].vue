@@ -18,7 +18,7 @@ import {
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
-import { useUiStore } from '@core/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

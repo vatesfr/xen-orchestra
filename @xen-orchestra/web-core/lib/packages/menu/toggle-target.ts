@@ -1,5 +1,5 @@
 import type { MenuToggleTrigger } from '@core/packages/menu'
-import { toComputed } from '@core/utils/to-computed.util'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import { autoUpdate, flip, type Placement, shift, useFloating, type UseFloatingReturn } from '@floating-ui/vue'
 import { unrefElement } from '@vueuse/core'
 import { computed, reactive, ref, type Ref, type UnwrapRef } from 'vue'

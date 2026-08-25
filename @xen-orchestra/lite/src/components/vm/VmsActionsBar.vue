@@ -30,11 +30,11 @@ import VmActionExportItems from '@/components/vm/VmActionItems/VmActionExportIte
 import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateItem.vue'
 import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import { useUiStore } from '@core/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

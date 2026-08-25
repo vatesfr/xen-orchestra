@@ -16,9 +16,9 @@
 <script setup lang="ts">
 import VtsStatus, { type Status } from '@core/components/status/VtsStatus.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
-import type { MaybeArray } from '@core/types/utility.type'
-import { toArray } from '@core/utils/to-array.utils'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import type { MaybeArray } from '@core/types/utility.type.ts'
+import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 
 export type StatusCellProps = {

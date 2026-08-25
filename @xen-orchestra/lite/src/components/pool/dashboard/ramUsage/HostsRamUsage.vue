@@ -12,12 +12,12 @@
 </template>
 
 <script lang="ts" setup>
-import { useStatStatus } from '@/composables/stat-status.composable'
-import { parseRamUsage } from '@/libs/utils'
+import { useStatStatus } from '@/composables/stat-status.composable.ts'
+import { parseRamUsage } from '@/libs/utils.ts'
 import { N_ITEMS } from '@/pages/pool/[uuid]/dashboard.vue'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { IK_HOST_STATS } from '@/types/injection-keys'
-import type { StatData } from '@/types/stat'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { IK_HOST_STATS } from '@/types/injection-keys.ts'
+import type { StatData } from '@/types/stat.ts'
 import VtsProgressBarGroup from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'

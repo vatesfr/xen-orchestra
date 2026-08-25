@@ -16,8 +16,8 @@
 
 <script lang="ts" setup>
 import HostPatchesTable from '@/components/HostPatchesTable.vue'
-import { useHostPatches } from '@/composables/host-patches.composable'
-import { useHostStore } from '@/stores/xen-api/host.store'
+import { useHostPatches } from '@/composables/host-patches.composable.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useI18n } from 'vue-i18n'

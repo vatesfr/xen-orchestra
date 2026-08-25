@@ -9,7 +9,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { setting, slot } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import { setting, slot } from '@/libs/story/story-param.ts'
+import { text } from '@/libs/story/story-widget.ts'
 import UiActionsTitle from '@core/components/ui/actions-title/UiActionsTitle.vue'
 </script>

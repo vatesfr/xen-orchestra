@@ -10,8 +10,8 @@
 
 <script lang="ts" setup>
 import TasksTable from '@/components/tasks/TasksTable.vue'
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { useTaskStore } from '@/stores/xen-api/task.store'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
+import { useTaskStore } from '@/stores/xen-api/task.store.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

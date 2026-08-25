@@ -24,7 +24,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper'
-import { toVariants } from '@core/utils/to-variants.util'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 
 type ToasterAccent = 'info' | 'success' | 'warning' | 'danger'
 

@@ -8,8 +8,8 @@
 
 <script lang="ts" setup>
 import InfraVmItem from '@/components/infra/InfraVmItem.vue'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
-import { useVmStore } from '@/stores/xen-api/vm.store'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsTreeItemError from '@core/components/tree/VtsTreeItemError.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
 import { computed } from 'vue'

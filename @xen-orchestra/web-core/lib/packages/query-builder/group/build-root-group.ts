@@ -1,4 +1,4 @@
-import { createQueryBuilderGroup } from '@core/packages/query-builder/group/create-query-builder-group'
+import { createQueryBuilderGroup } from '@core/packages/query-builder/group/create-query-builder-group.ts'
 import type { QueryBuilderNode, QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 
 export function buildRootGroup(rootNode: QueryBuilderNode, schema: QueryBuilderSchema) {

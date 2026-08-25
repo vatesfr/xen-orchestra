@@ -24,8 +24,8 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import { useDisabled } from '@core/composables/disabled.composable'
-import { toVariants } from '@core/utils/to-variants.util'
+import { useDisabled } from '@core/composables/disabled.composable.ts'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed, type LabelHTMLAttributes, useAttrs } from 'vue'
 
 type CheckboxAccent = 'brand' | 'warning' | 'danger'

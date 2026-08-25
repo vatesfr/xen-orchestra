@@ -10,7 +10,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { slot } from '@/libs/story/story-param'
+import { slot } from '@/libs/story/story-param.ts'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 </script>
 

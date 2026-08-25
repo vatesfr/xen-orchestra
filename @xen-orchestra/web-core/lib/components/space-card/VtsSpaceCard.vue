@@ -46,7 +46,7 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
-import { formatSize } from '@core/utils/size.util'
+import { formatSize } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -225,10 +225,10 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
-import { usePifStore } from '@/stores/xen-api/pif.store'
+import type { XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
+import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store.ts'
+import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
@@ -240,7 +240,7 @@ import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -1,6 +1,6 @@
 import { payloadsArg } from '@/modules/network/jobs/xo-network-create-args.ts'
-import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable'
-import { fetchPost } from '@/shared/utils/fetch.util'
+import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import type { XoNetwork, XoPif, XoPool, XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'

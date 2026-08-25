@@ -13,7 +13,7 @@
 
 <script lang="ts" setup>
 import TabItem from '@core/components/tab/TabItem.vue'
-import { useDisabled } from '@core/composables/disabled.composable'
+import { useDisabled } from '@core/composables/disabled.composable.ts'
 import type { RouteLocationRaw } from 'vue-router'
 
 const props = defineProps<{

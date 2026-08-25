@@ -20,7 +20,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { model, prop, setting, slot } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import { model, prop, setting, slot } from '@/libs/story/story-param.ts'
+import { text } from '@/libs/story/story-widget.ts'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 </script>

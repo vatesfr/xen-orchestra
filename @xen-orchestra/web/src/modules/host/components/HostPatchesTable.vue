@@ -17,8 +17,8 @@
 import type { MissingPatch } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import { useTableState } from '@core/composables/table-state.composable'
-import { usePatchColumns } from '@core/tables/column-sets/patch-columns'
+import { useTableState } from '@core/composables/table-state.composable.ts'
+import { usePatchColumns } from '@core/tables/column-sets/patch-columns.ts'
 import { useI18n } from 'vue-i18n'
 
 const { patches } = defineProps<{

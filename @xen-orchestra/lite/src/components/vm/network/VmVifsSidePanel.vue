@@ -109,9 +109,9 @@
 <script setup lang="ts">
 import type { XenApiVif } from '@/libs/xen-api/xen-api.types.ts'
 import VifConnectionToggleButton from '@/modules/vif/components/actions/connection/VifConnectionToggleButton.vue'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
-import { useVmStore } from '@/stores/xen-api/vm.store'
+import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
+import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'

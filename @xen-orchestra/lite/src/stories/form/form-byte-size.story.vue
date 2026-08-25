@@ -10,5 +10,5 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import FormByteSize from '@/components/form/FormByteSize.vue'
-import { model } from '@/libs/story/story-param'
+import { model } from '@/libs/story/story-param.ts'
 </script>
