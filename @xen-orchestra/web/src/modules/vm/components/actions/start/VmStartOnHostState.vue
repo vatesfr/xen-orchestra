@@ -12,7 +12,7 @@ import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 
-const { host } = defineProps<{
+defineProps<{
   host: FrontXoHost
 }>()
 const { isMasterHost } = useXoHostCollection()

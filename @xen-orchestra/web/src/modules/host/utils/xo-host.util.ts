@@ -3,10 +3,9 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { getVmsPendingOperation } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { VtsLinkCellProps } from '@core/components/table/cells/VtsLinkCell.vue'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
-import { type HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE } from '@vates/types'
 import { castArray } from 'lodash-es'
 
-export type XoHostState = 'running' | 'disabled' | 'halted' | 'unknown'
+export type XoHostState = Lowercase<HOST_POWER_STATE> | 'disabled'
 
 const RUNNING_CHANGING_STATE_OPERATIONS: Partial<HOST_ALLOWED_OPERATIONS>[] = [
   HOST_ALLOWED_OPERATIONS.SHUTDOWN,
