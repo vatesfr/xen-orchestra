@@ -32,12 +32,14 @@
     "uuid": "^9.0.0",
     "promise-toolbox": "^0.21.0",
     "@vates/async-each": "^1.0.1",
-    "vhd-lib": "^4.14.7"
+    "vhd-lib": "^4.14.7",
+    "compare-versions": "6.1.1"
   },
   "scripts": {
     "build": "yarn run clean && tsc",
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
+    "test": "yarn run clean && tsc && node --test dist/**/*.test.mjs",
     "test-integration": "yarn run clean && tsc && node --test **/*.integ.mjs",
     "clean": "rimraf dist/"
   },
