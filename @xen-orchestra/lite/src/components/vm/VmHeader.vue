@@ -2,7 +2,13 @@
   <UiHeadBar icon="object:vm">
     {{ vm?.name_label }}
     <template #icon>
-      <VtsObjectIcon size="medium" :state="toLower(vm?.power_state)" type="vm" />
+      <VtsObjectIcon
+        size="medium"
+        :state="toLower(vm?.power_state)"
+        type="vm"
+        :busy="isChangingState"
+        :busy-tooltip="currentOperation"
+      />
     </template>
     <template #actions>
       <MenuList v-if="vm !== undefined" placement="bottom-start">
@@ -40,6 +46,7 @@ import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateIt
 import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useVmUtils } from '@/modules/vm/composables/vm-utils.composable.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -58,4 +65,6 @@ const { getByUuid: getVmByUuid } = useVmStore().subscribe()
 const route = useRoute<'/vm/[uuid]'>()
 
 const vm = computed(() => getVmByUuid(route.params.uuid as XenApiVm['uuid']))
+
+const { isChangingState, currentOperation } = useVmUtils(vm)
 </script>
