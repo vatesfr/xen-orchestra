@@ -17,7 +17,7 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { computed } from 'vue'
 
-const { vdi } = defineProps<{
+const { vm, vdi } = defineProps<{
   vm: FrontXoVm
   vdi: FrontXoVdi
 }>()
@@ -26,5 +26,5 @@ const { useGetVbdsByIds } = useXoVbdCollection()
 
 const vbds = useGetVbdsByIds(() => vdi.$VBDs)
 
-const vbd = computed(() => vbds.value.find(vbd => vbd.attached) ?? vbds.value[0])
+const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
 </script>

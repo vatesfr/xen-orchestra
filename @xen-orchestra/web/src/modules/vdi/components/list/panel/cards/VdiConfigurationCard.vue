@@ -64,7 +64,7 @@ import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdi } = defineProps<{
+const { vdi, vm } = defineProps<{
   vdi: FrontXoVdi
   vm?: FrontXoVm
 }>()
@@ -82,7 +82,9 @@ const srHref = computed(() => (vdiSr.value ? buildXo5Route(`/srs/${vdiSr.value.i
 
 const vbds = useGetVbdsByIds(() => vdi.$VBDs)
 
-const vbd = computed(() => vbds.value.find(vbd => vbd.attached) ?? vbds.value[0])
+const vbd = computed(() =>
+  vm ? vbds.value.find(vbd => vbd.VM === vm.id) : (vbds.value.find(vbd => vbd.attached) ?? vbds.value[0])
+)
 
 const isReadOnly = computed(() => vbd.value?.read_only ?? false)
 
