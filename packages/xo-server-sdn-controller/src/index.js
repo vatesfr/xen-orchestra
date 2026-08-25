@@ -615,7 +615,7 @@ class SDNController extends EventEmitter {
           {
             endpoint: '/networks/{id}/actions/update_traffic_rule',
             description:
-              'Update a rule on a network, needs the exact old rule fields.\n\nRequired privilege:\n - resource: network, action: update:other_config',
+              'Update a rule on a network: the old rule is deleted and replaced by the new one, both rules must be given in full.\n\nRequired privilege:\n - resource: network, action: update:other_config',
 
             method: 'post',
             tags: ['sdn-controller'],
@@ -639,10 +639,10 @@ class SDNController extends EventEmitter {
               newRule: {
                 type: 'object',
                 fields: {
-                  allow: { type: 'boolean', example: true, optional: true },
-                  direction: { type: 'string', example: 'to', optional: true },
-                  ipRange: { type: 'string', example: '10.0.0.0/8', optional: true },
-                  protocol: { type: 'string', example: 'tcp', optional: true },
+                  allow: { type: 'boolean', example: true },
+                  direction: { type: 'string', example: 'to' },
+                  ipRange: { type: 'string', example: '10.0.0.0/8' },
+                  protocol: { type: 'string', example: 'tcp' },
                   port: { type: 'number', example: 80, optional: true },
                 },
               },
@@ -664,7 +664,7 @@ class SDNController extends EventEmitter {
             callback: ({ req, createAction }) => {
               return createAction(
                 async () => {
-                  const { oldRule, newRule: partialNewRule } = req.body
+                  const { oldRule, newRule } = req.body
                   const networkId = req.params.id
                   const network = this._xo.getObject(networkId, 'network')
                   const networkRules = JSON.parse(network.other_config[SDN_CONTROLLER_OF_RULES_KEY] || '[]').map(
@@ -682,8 +682,6 @@ class SDNController extends EventEmitter {
                   ) {
                     throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
                   }
-                  const newRule = { ...oldRule, ...partialNewRule }
-
                   await this._deleteNetworkOfRule({ ...oldRule, networkId })
                   await this._addNetworkRule({ ...newRule, networkId })
                 },
@@ -703,7 +701,7 @@ class SDNController extends EventEmitter {
           {
             endpoint: '/vifs/{id}/actions/update_traffic_rule',
             description:
-              'Update a rule on a VIF, needs the exact old rule fields.\n\nRequired privilege:\n - resource: vif, action: update:other_config',
+              'Update a rule on a VIF: the old rule is deleted and replaced by the new one, both rules must be given in full.\n\nRequired privilege:\n - resource: vif, action: update:other_config',
             method: 'post',
             tags: ['sdn-controller'],
             params: {
@@ -726,10 +724,10 @@ class SDNController extends EventEmitter {
               newRule: {
                 type: 'object',
                 fields: {
-                  allow: { type: 'boolean', example: true, optional: true },
-                  direction: { type: 'string', example: 'to', optional: true },
-                  ipRange: { type: 'string', example: '10.0.0.0/8', optional: true },
-                  protocol: { type: 'string', example: 'tcp', optional: true },
+                  allow: { type: 'boolean', example: true },
+                  direction: { type: 'string', example: 'to' },
+                  ipRange: { type: 'string', example: '10.0.0.0/8' },
+                  protocol: { type: 'string', example: 'tcp' },
                   port: { type: 'number', example: 80, optional: true },
                 },
               },
@@ -752,7 +750,7 @@ class SDNController extends EventEmitter {
             callback: ({ req, createAction }) => {
               return createAction(
                 async () => {
-                  const { oldRule, newRule: partialNewRule } = req.body
+                  const { oldRule, newRule } = req.body
                   const vifId = req.params.id
                   const vif = this._xo.getObject(vifId, 'VIF')
                   const rawVifRules = vif.other_config[SDN_CONTROLLER_OF_RULES_KEY]
@@ -770,7 +768,6 @@ class SDNController extends EventEmitter {
                     throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
                   }
 
-                  const newRule = { ...oldRule, ...partialNewRule }
                   await this._deleteRule({ ...oldRule, vifId })
                   await this._addRule({ ...newRule, vifId })
                 },

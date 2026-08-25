@@ -42,6 +42,7 @@
 - [VIF] Preserve other_config, rate limit, MTU and device when changing a VIF's MAC address (PR [#10284](https://github.com/vatesfr/xen-orchestra/pull/10284))
 - **XO 5**:
   - [VM/Console] Fix the page header and tab navigation disappearing permanently in the console tab (PR [#10007](https://github.com/vatesfr/xen-orchestra/pull/10007))
+- [sdn-controller] Updating a traffic rule now replaces the old rule with exactly the `newRule` given, so a field such as the port can be removed (PR [#10307](https://github.com/vatesfr/xen-orchestra/pull/10307))
 - [xo-server] Disconnect user stalling task result and using too much memory (PR [#10237](https://github.com/vatesfr/xen-orchestra/pull/10237))
 - [XO5/tasks] Show a task when a user is disconnected because its task flow is stalled (PR [#10237](https://github.com/vatesfr/xen-orchestra/pull/10237))
 
@@ -78,6 +79,7 @@
 - xo-server patch
 - xo-server-ipmi-sensors minor
 - xo-server-netbox patch
+- xo-server-sdn-controller major
 - xo-web minor
 
 <!--packages-end-->
