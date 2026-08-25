@@ -80,7 +80,7 @@ describe('MultiNbdClient.readBlock eviction', () => {
     )
   })
 
-  it('evicting the same dead client from two concurrent failed reads is idempotent', async () => {
+  it('evicting the same dead client from concurrent failed reads is idempotent', async () => {
     const { client, fakes } = await connectWithFakes(2)
     const [dead, alive] = fakes
     dead.readBlock = async () => {
@@ -94,12 +94,37 @@ describe('MultiNbdClient.readBlock eviction', () => {
       dead.disconnected = true
     }
 
-    // both indices route to `dead` initially (0 % 2 === 0, 2 % 2 === 0), so both fail and race
-    // to evict the same client concurrently
-    const [data0, data2] = await Promise.all([client.readBlock(0), client.readBlock(2)])
+    // routing is round-robin by call order (0, 1, 0) over a 2-client pool: the 1st and 3rd
+    // calls both land on `dead` before either failure has been handled, so they race to evict
+    // the same client. The exact interleaving isn't guaranteed, only that eviction is safe
+    // either way and every read still completes.
+    const [data0, data1, data2] = await Promise.all([client.readBlock(10), client.readBlock(11), client.readBlock(12)])
 
-    assert.deepStrictEqual(data0, Buffer.from([0]))
-    assert.deepStrictEqual(data2, Buffer.from([2]))
+    assert.deepStrictEqual(data0, Buffer.from([10]))
+    assert.deepStrictEqual(data1, Buffer.from([11]))
+    assert.deepStrictEqual(data2, Buffer.from([12]))
     assert.strictEqual(disconnectCalls, 1, 'the dead client must only be evicted/disconnected once')
+  })
+})
+
+describe('MultiNbdClient.readBlock routing', () => {
+  it('distributes reads round-robin by call order, not by index residue', async () => {
+    const { client, fakes } = await connectWithFakes(4)
+    const readsPerClient = fakes.map(() => 0)
+    fakes.forEach((fake, i) => {
+      fake.readBlock = async index => {
+        readsPerClient[i]++
+        return Buffer.from([index])
+      }
+    })
+
+    // a CBT-style changed-block set striding by exactly `nbdConcurrency`: under the old
+    // `index % clients.length` routing this would collapse entirely onto a single client
+    const stridedIndexes = Array.from({ length: 20 }, (_, i) => i * 4)
+    for (const index of stridedIndexes) {
+      await client.readBlock(index)
+    }
+
+    assert.deepStrictEqual(readsPerClient, [5, 5, 5, 5])
   })
 })

@@ -7,6 +7,7 @@ const { warn } = createLogger('vates:nbd-client:multi')
 export default class MultiNbdClient {
   #clients = []
   #nbdConcurrency
+  #nextClient = 0
   #options
   #readAhead
   #settings
@@ -97,7 +98,7 @@ export default class MultiNbdClient {
    * @returns {Promise<Buffer>}
    */
   async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
-    const clientId = index % this.#clients.length
+    const clientId = this.#nextClient++ % this.#clients.length
     const client = this.#clients[clientId]
     try {
       return await client.readBlock(index, size)
