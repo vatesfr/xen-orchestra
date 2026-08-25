@@ -13,6 +13,11 @@
         {{ t('groups') }}
       </TabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/admin/user-management/roles' }" custom>
+      <TabItem :active="isExactActive" :href tag="a">
+        {{ t('roles') }}
+      </TabItem>
+    </RouterLink>
   </TabList>
 </template>
 
