@@ -15,6 +15,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backup/NBD] Better behaviour with a stalled NBD client, and respect global export timeout (PR [#10306](https://github.com/vatesfr/xen-orchestra/pull/10306))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -31,4 +33,6 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client patch
+- @xen-orchestra/xapi patch
 <!--packages-end-->
