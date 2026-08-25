@@ -936,6 +936,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example body  {"server": "192.168.1.1", "nfsVersion": "4"}
    */
+  @Example(taskLocation)
   @Example(nfsExport)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_nfs')
@@ -945,7 +946,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async probeNfs(
+  probeNfs(
     @Path() id: string,
     @Body()
     body: {
@@ -978,6 +979,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   //TODO: add @Example when we have a host using a zfs SR
+  @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_zfs')
   @Middlewares(acl({ resource: 'host', action: 'probe:zfs', objectId: 'params.id' }))
@@ -986,7 +988,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async probeZfs(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<Record<string, unknown>> {
+  probeZfs(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<Record<string, unknown>> {
     const hostId = id as XoHost['id']
     const action = () => {
       return this.#hostService.probeZfs(hostId)
@@ -1010,6 +1012,7 @@ export class HostController extends XapiXoController<XoHost> {
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
+  @Example(taskLocation)
   @Example(hbaExport)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_hba')
@@ -1019,7 +1022,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async probeHba(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<XoSrHbaExport[]> {
+  probeHba(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<XoSrHbaExport[]> {
     const hostId = id as XoHost['id']
 
     const action = () => {
@@ -1044,8 +1047,9 @@ export class HostController extends XapiXoController<XoHost> {
    * - resource: host, action: probe:iscsiiqn
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
-   * @example body {"targetIp": "", "port": "", "chapUser": "", "chapPassword": ""}
+   * @example body {"targetIp": "192.168.1.100", "port": 3260, "chapUser": "chapUser", "chapPassword": "chapPassword"}
    */
+  @Example(taskLocation)
   @Example(iscsiIqnExport)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_iscsi_iqns')
@@ -1055,7 +1059,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async probeIscsiIqns(
+  probeIscsiIqns(
     @Path() id: string,
     @Body()
     body: {
@@ -1088,8 +1092,9 @@ export class HostController extends XapiXoController<XoHost> {
    * - resource: host, action: probe:iscsilun
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
-   * @example body  {"targetIp": "", "targetIqn": "", "port": "", "chapUser": "", "chapPassword": "" }
+   * @example body  {"targetIp": "192.168.1.100", "targetIqn": "iqn.2018-01.com.example:storage.lun0", "port": 3260, "chapUser": "chapUser", "chapPassword": "chapPassword" }
    */
+  @Example(taskLocation)
   @Example(iscsiLunExport)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_iscsi_luns')
@@ -1099,7 +1104,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async probeIscsiLuns(
+  probeIscsiLuns(
     @Path() id: string,
     @Body()
     body: {
@@ -1141,8 +1146,9 @@ export class HostController extends XapiXoController<XoHost> {
    * - resource: host, action: probe:iscsi-exists
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
-   * @example body  {"targetIp": "", "targetIqn": "", "scsiId": "", "port": "", "chapUser": "", "chapPassword": "" }
+   * @example body  {"targetIp": "192.168.1.100", "targetIqn": "iqn.2018-01.com.example:storage.lun0", "port": 3260, "chapUser": "chapUser", "chapPassword": "chapPassword" }
    */
+  @Example(taskLocation)
   @Example(srUuids)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_iscsi_exists')
@@ -1152,7 +1158,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async probeIscsiExists(
+  probeIscsiExists(
     @Path() id: string,
     @Body()
     body: {
@@ -1180,7 +1186,7 @@ export class HostController extends XapiXoController<XoHost> {
 
     return this.createAction<string[]>(action, {
       sync,
-      statusCode: asynchronousActionResp.status,
+      statusCode: 200,
       taskProperties: {
         name: 'probe ISCSI-EXISTS',
         objectId: hostId,
@@ -1196,8 +1202,9 @@ export class HostController extends XapiXoController<XoHost> {
    * - resource: host, action: probe:hba-exists
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
-   * @example body  {"scsiId": ""}
+   * @example body  {"scsiId": "360014050023c9f066c030d1185f8e7e2"}
    */
+  @Example(taskLocation)
   @Example(srUuids)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_hba_exists')
@@ -1237,6 +1244,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example body  {"server": "192.168.1.1", "serverPath": "/srv/nfs", "nfsVersion": "4"}
    */
+  @Example(taskLocation)
   @Example(srUuids)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/probe_nfs_exists')
