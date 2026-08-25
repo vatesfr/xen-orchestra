@@ -1,6 +1,6 @@
 <template>
   <MenuItem
-    v-tooltip="!canForgetHost && forgetHostErrorMessage"
+    v-tooltip="forgetHostDisabledMessage"
     class="forget"
     :disabled="!canForgetHost || isRestartingToolstack"
     icon="action:forget"
@@ -20,6 +20,7 @@ import { useRedirectAfterDelete } from '@/shared/composables/redirect-after-dele
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -43,6 +44,14 @@ const {
 } = useXoHostForgetJob(() => host)
 
 const { open: openActionModal } = useActionModal()
+
+const forgetHostDisabledMessage = computed(() => {
+  if (isRestartingToolstack.value) {
+    return t('job:host-restart-toolstack:in-progress')
+  }
+
+  return canForgetHost.value ? undefined : forgetHostErrorMessage.value
+})
 
 const { redirect: redirectAfterForgetHost } = useRedirectAfterDelete({
   isOnObjectPage: () => route.params.id === host.id,

@@ -50,7 +50,7 @@ const { isRunning: isRestartingToolstack } = useXoHostRestartToolstackJob(() => 
 
 const isHostHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
 
-const displayDisableButton = computed(() => host.enabled || isHostHalted || isRestartingToolstack)
+const displayDisableButton = computed(() => host.enabled || isHostHalted.value || isRestartingToolstack.value)
 </script>
 
 <style lang="postcss" scoped>

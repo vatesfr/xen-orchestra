@@ -1,6 +1,6 @@
 <template>
   <MenuItem
-    v-tooltip="!canShutdownHost && shutdownHostErrorMessage"
+    v-tooltip="shutdownHostDisabledMessage"
     :disabled="!canShutdownHost || isRestartingToolstack"
     icon="action:shutdown"
     :busy="isShuttingDownHost"
@@ -17,6 +17,7 @@ import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-co
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -33,6 +34,14 @@ const {
   isRunning: isShuttingDownHost,
   errorMessage: shutdownHostErrorMessage,
 } = useXoHostShutdownJob(() => host)
+
+const shutdownHostDisabledMessage = computed(() => {
+  if (isRestartingToolstack.value) {
+    return t('job:host-restart-toolstack:in-progress')
+  }
+
+  return canShutdownHost.value ? undefined : shutdownHostErrorMessage.value
+})
 
 const { open: openActionModal } = useActionModal()
 
