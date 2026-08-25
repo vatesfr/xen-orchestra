@@ -2,6 +2,7 @@ import type XenApi from '@/libs/xen-api/xen-api.ts'
 import type { XenApiHost, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
 import type { MaybeArray } from '@core/types/utility.type.ts'
 import { toArray } from '@core/utils/to-array.utils.ts'
+import { OPAQUE_REF } from '@vates/types/common'
 
 export function createPifOperations(xenApi: XenApi) {
   return {
@@ -9,7 +10,7 @@ export function createPifOperations(xenApi: XenApi) {
     forget: (pifs: MaybeArray<XenApiPif>) =>
       Promise.all(
         toArray(pifs).map(async pif => {
-          if (pif.VLAN_master_of !== 'OpaqueRef:NULL') {
+          if (pif.VLAN_master_of !== OPAQUE_REF.EMPTY) {
             return xenApi.call('VLAN.destroy', [pif.VLAN_master_of])
           }
 
