@@ -55,6 +55,9 @@ const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
     },
     async getField(type, ref, field) {
       calls.push(['getField', type, ref, field])
+      if (type === 'host' && field === 'address') {
+        return '10.20.30.40' // the host's own management address, as XAPI reports it
+      }
       return 'sr-uuid'
     },
     async getRecord(type, ref) {
@@ -66,15 +69,19 @@ const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
   }
 }
 
-const makeMixin = ({ diskOpenError, listenError } = {}) => {
+const makeMixin = ({ diskOpenError, listenError, advertisedAddress = '192.168.1.8' } = {}) => {
   const hooks = new EventEmitter()
+  const detectAddressCalls = []
   const app = {
     config: {
-      get: path => {
-        assert.equal(path, 'iscsi.advertisedAddress')
-        return '192.168.1.8'
+      getOptional: path => {
+        if (path === 'iscsi.advertisedAddress') {
+          // `null` (as opposed to the default) simulates an unset config key
+          return advertisedAddress === null ? undefined : advertisedAddress
+        }
+        assert.equal(path, 'iscsi.bindAddress')
+        return undefined
       },
-      getOptional: () => undefined,
     },
     hooks,
   }
@@ -111,9 +118,13 @@ const makeMixin = ({ diskOpenError, listenError } = {}) => {
       target.options = options
       return target
     },
+    detectAddress: async hostAddress => {
+      detectAddressCalls.push(hostAddress)
+      return '203.0.113.7'
+    },
   })
 
-  return { app, disk, hooks, mixin, target }
+  return { app, detectAddressCalls, disk, hooks, mixin, target }
 }
 
 const mountDisk = (mixin, xapi, params) =>
@@ -226,6 +237,20 @@ describe('mountDisk', () => {
     await assert.rejects(mountDisk(mixin, makeXapi()), /EADDRINUSE/)
 
     assert.equal(disk.closed, true)
+  })
+
+  it('auto-detects the address when iscsi.advertisedAddress is not configured', async () => {
+    const { mixin, detectAddressCalls } = makeMixin({ advertisedAddress: null })
+    const xapi = makeXapi()
+
+    const result = await mountDisk(mixin, xapi)
+
+    assert.equal(result.address, '203.0.113.7')
+    // detected by routing towards the target host's own address, not guessed blindly
+    assert.deepEqual(detectAddressCalls, ['10.20.30.40'])
+    assert.ok(
+      xapi.calls.some(([method, , ref, field]) => method === 'getField' && ref === HOST_REF && field === 'address')
+    )
   })
 })
 
