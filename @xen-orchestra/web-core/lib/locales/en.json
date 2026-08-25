@@ -495,6 +495,7 @@
   "job:connect:in-progress": "Connect in progress…",
   "job:create:in-progress": "Create in progress…",
   "job:delete:in-progress": "Delete in progress…",
+  "job:backup-repository-health:in-progress": "Repository health check in progress…",
   "job:disable:in-progress": "Disable in progress…",
   "job:disconnect:in-progress": "Disconnect in progress…",
   "job:enable:in-progress": "Enable in progress…",

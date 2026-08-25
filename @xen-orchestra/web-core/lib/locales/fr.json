@@ -517,6 +517,7 @@
   "https": "HTTPS",
   "path": "Chemin",
   "review-and-confirm": "Vérifier et confirmer",
+  "job:backup-repository-health:in-progress": "Vérification de l'état du dépôt en cours…",
   "unauthorized": "Non autorisé",
   "create": "Créer",
   "domain": "Domaine",
