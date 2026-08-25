@@ -12,7 +12,7 @@
   </div>
   <UiHeadBar>
     <template #icon>
-      <VtsIcon name="object:backup-job" size="large" />
+      <VtsIcon name="object:backup-job" size="current" />
     </template>
     {{ backupJob.name }}
   </UiHeadBar>
