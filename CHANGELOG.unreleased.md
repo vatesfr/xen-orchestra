@@ -88,6 +88,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-cli patch
 - @xen-orchestra/fs patch
+- @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
