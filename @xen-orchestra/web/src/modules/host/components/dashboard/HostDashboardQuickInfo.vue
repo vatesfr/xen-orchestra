@@ -73,8 +73,9 @@ const { host } = defineProps<{
 const { t, locale } = useI18n()
 
 const { getMasterHostByPoolId, isMasterHost, areHostsReady } = useXoHostCollection()
+const { getHostStatus } = useXoHostUtils()
 
-const powerState = computed(() => getStatus(getHostState(host)))
+const powerState = computed(() => getHostStatus(getHostState(host)))
 
 const date = computed(() => (host.startTime === null ? undefined : new Date(parseDateTime(host.startTime * 1000))))
 

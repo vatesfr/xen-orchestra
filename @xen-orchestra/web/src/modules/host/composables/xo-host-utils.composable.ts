@@ -18,7 +18,7 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
 
   const { vmsByHost } = useXoVmCollection()
 
-  const getStatus = createMapper<XoHostState, { text: string; icon: IconName | undefined }>(
+  const getHostStatus = createMapper<XoHostState, { text: string; icon: IconName | undefined }>(
     {
       running: { text: t('host:status:running'), icon: 'status:running-circle' },
       halted: { text: t('host:status:halted'), icon: 'status:halted-circle' },
@@ -59,7 +59,7 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
   )
 
   return {
-    getStatus,
+    getHostStatus,
     getRelativeStartTime,
     isChangingState,
     currentOperation,
