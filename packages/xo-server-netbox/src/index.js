@@ -876,9 +876,9 @@ class Netbox {
               log.error('Cannot parse range', { error, range })
               return
             }
-            if (parsedRange.kind() === ipKind && parsedIp.match(parsedRange, bits) && bits > highestBits) {
+            if (parsedRange.kind() === ipKind && parsedIp.match(parsedRange, bits) && Number(bits) > highestBits) {
               smallestPrefix = prefix
-              highestBits = bits
+              highestBits = Number(bits)
             }
           })
 
@@ -898,7 +898,7 @@ class Netbox {
               log.error('Cannot parse IP address', { error, ip })
               return false
             }
-            return nbCompactIp === xoCompactIp && bits === highestBits
+            return nbCompactIp === xoCompactIp && Number(bits) === highestBits
           })
           if (nbIp !== undefined) {
             // IP is up to date, don't do anything with it
