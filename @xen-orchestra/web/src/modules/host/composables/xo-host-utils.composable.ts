@@ -1,3 +1,4 @@
+import { useXoHostRestartToolstackJob } from '@/modules/host/jobs/xo-host-restart-toolstack.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostPendingStateOperation, getHostSmartRebootVmOperation } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -16,6 +17,8 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
   const host = toComputed(rawHost)
 
   const { vmsByHost } = useXoVmCollection()
+
+  const { isRunning: isRestartingToolstack } = useXoHostRestartToolstackJob(() => host.value)
 
   const getPowerState = createMapper<HOST_POWER_STATE, { text: string; icon: IconName | undefined }>(
     {
@@ -38,9 +41,9 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
       getHostSmartRebootVmOperation(host.value, vmsByHost.value.get(host.value.id) ?? [])
   )
 
-  const isChangingState = computed(() => pendingStateOperation.value !== undefined)
+  const isChangingState = computed(() => pendingStateOperation.value !== undefined || isRestartingToolstack.value)
 
-  const currentOperation = useMapper<string, string>(
+  const pendingOperationLabel = useMapper<string, string>(
     () => pendingStateOperation.value,
     {
       power_on: t('operation:start'),
@@ -54,6 +57,10 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
       unknown: '',
     },
     'unknown'
+  )
+
+  const currentOperation = computed(() =>
+    isRestartingToolstack.value ? t('operation:restart-toolstack') : pendingOperationLabel.value
   )
 
   return {

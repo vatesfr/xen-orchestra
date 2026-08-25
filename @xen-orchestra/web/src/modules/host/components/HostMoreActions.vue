@@ -9,6 +9,7 @@
     <HostPowerStateActions :host />
     <VtsDivider type="stretch" />
   </div>
+  <HostRestartToolstackButton :host />
   <template v-if="host.enabled || isHostHalted">
     <HostDisableButton :host />
     <HostDisableAndEvacuateVmsButton :host />
@@ -26,6 +27,7 @@ import HostDownloadButton from '@/modules/host/components/actions/download/HostD
 import HostEnableButton from '@/modules/host/components/actions/enable/HostEnableButton.vue'
 import HostForgetButton from '@/modules/host/components/actions/forget/HostForgetButton.vue'
 import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
+import HostRestartToolstackButton from '@/modules/host/components/actions/restart-toolstack/HostRestartToolstackButton.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
