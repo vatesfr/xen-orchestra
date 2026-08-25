@@ -1,8 +1,9 @@
 ---
 slug: project
+sidebar_label: About
 ---
 
-# About
+# About Xen Orchestra
 
 Xen Orchestra is an Open Source project with more than 15 years of history. Originated by [Olivier Lambert](https://www.linkedin.com/in/olivier-lambert-22316b26/), co-founder of [Vates](https://vates.tech), it quickly became a collective effort: today a dedicated team of around 20 people designs, develops and maintains it full time at Vates, alongside a worldwide community of users and contributors.
 

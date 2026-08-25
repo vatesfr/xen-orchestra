@@ -2,7 +2,7 @@
 sidebar_label: Mirror backups
 ---
 
-# Mirror Backups
+# Mirror backups
 
 The goal is to replicate a backup from one backup repository (BR, formerly called remote) to another. For instance, you make your backup to in-house NFS storage, and then replicate to bigger, slower and cheaper storage with a longer retention.
 

@@ -86,7 +86,7 @@ Note that `xo-server` only needs to reach the **master** of each pool: the maste
 
 ## XOA
 
-The _Xen Orchestra Appliance_ (XOA) is a VM with the whole stack pre-installed, configured and QA validated. It is the way we recommend and support running XO: see [Installation](installation.md).
+The _Xen Orchestra Appliance_ (XOA) is a VM with the whole stack pre-installed, configured and QA validated. It is the way we recommend and support running XO: see [Installing XOA](installation.md).
 
 ## xo-server
 
@@ -173,7 +173,7 @@ Two web UIs currently ship with Xen Orchestra, served by `xo-server` and talking
 
 <UiShot light="/img/xo6/dashboard-light.png" dark="/img/xo6/dashboard-dark.png" alt="XO 6, the new default web interface" url="https://your-xo/v6/#/dashboard" />
 
-Both run against the same server and the same data at the same time: see [XO 6 vs. XO 5](xo6/xo6vsxo5.md).
+Both run against the same server and the same data at the same time: see [XO 6 and XO 5](xo6/xo6vsxo5.md).
 
 ## xo-cli
 

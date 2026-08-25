@@ -1,9 +1,4 @@
----
-id: xo6vsxo5
-title: XO 6 vs. XO 5
----
-
-# XO 6 vs. XO 5
+# XO 6 and XO 5
 
 XO 6 and XO 5 are two interfaces to the same Xen Orchestra. They run side by side, on the same server, against the same data: a VM started in one is instantly running in the other, a backup job created in XO 5 immediately shows its health in XO 6. There is no migration step and nothing to synchronize.
 
