@@ -1,10 +1,8 @@
 import { payloadsArg } from '@/modules/backup/jobs/xo-backup-repository-create-args.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import type { XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export type NewBackupRepositoryPayload = {
@@ -15,16 +13,13 @@ export type NewBackupRepositoryPayload = {
 }
 
 export const useXoBackupRepositoryCreateJob = defineJob('br.create', [payloadsArg], () => {
-  const { monitorTask } = useXoTaskUtils()
   const { t } = useI18n()
 
   return {
     run(payloads): Promise<PromiseSettledResult<FrontXoBackupRepository['id']>[]> {
       return Promise.allSettled(
         payloads.map(async payload => {
-          console.log('dans le job')
-          const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`backup-repository`, payload)
-          const { id } = await monitorTask<{ id: FrontXoBackupRepository['id'] }>(taskId)
+          const { id } = await fetchPost<{ id: FrontXoBackupRepository['id'] }>(`backup-repositories`, payload)
           return id
         })
       )
