@@ -572,6 +572,25 @@ export const subscribeXoTasks = (() => {
     }
   }, 100)
 
+  // Surfaces a lost tasks stream in the UI: the subscription retries silently,
+  // which used to leave the list frozen with no indication that it was no
+  // longer live. This entry is dropped by the `cache.clear()` below as soon as
+  // the stream is successfully reestablished.
+  const DISCONNECTED_ID = 'xo:tasks-stream-disconnected'
+  function notifyDisconnected(error) {
+    const now = Date.now()
+    cache.set(DISCONNECTED_ID, {
+      id: DISCONNECTED_ID,
+      name: 'XO tasks stream disconnected, retrying…',
+      properties: { name: 'XO tasks stream disconnected, retrying…' },
+      start: now,
+      end: now,
+      status: 'failure',
+      error: error === undefined ? undefined : String(error?.message ?? error),
+    })
+    notify()
+  }
+
   async function run() {
     if (abortController !== undefined) {
       return
@@ -584,39 +603,76 @@ export const subscribeXoTasks = (() => {
         // starts watching collection
         const resWatch = await fetch(basePath + '&ndjson=true&watch=true', { signal: abortController.signal })
 
-        // fetches existing objects
-        const response = await fetch(basePath, { signal: abortController.signal })
-        const objects = await response.json()
-        cache.clear()
-        for (const object of objects) {
-          cache.set(object.id, object)
+        const applyEvent = ([event, object]) => {
+          if (event === 'remove') {
+            cache.delete(object.id)
+          } else {
+            cache.set(object.id, object)
+          }
         }
-        notify()
 
-        // handles events
-        let buf = ''
-        for await (const chunk of resWatch.body) {
-          buf += String.fromCharCode(...chunk)
+        // events received before the existing objects have been fetched cannot
+        // be applied yet: the fetched collection would override them
+        let ready = false
+        const queuedEvents = []
 
-          let i
-          while ((i = buf.indexOf('\n')) !== -1) {
-            const line = buf.slice(0, i)
-            buf = buf.slice(i + 1)
-            const [event, object] = JSON.parse(line)
-            if (event === 'remove') {
-              cache.delete(object.id)
-            } else {
-              cache.set(object.id, object)
+        // this stream must be consumed as soon as possible: events not read are
+        // buffered by the server, which closes the connection when too many of
+        // them pile up
+        const watching = (async () => {
+          // eslint-disable-next-line n/no-unsupported-features/node-builtins
+          const decoder = new TextDecoder()
+          let buf = ''
+          for await (const chunk of resWatch.body) {
+            buf += decoder.decode(chunk, { stream: true })
+
+            let i
+            while ((i = buf.indexOf('\n')) !== -1) {
+              const line = buf.slice(0, i)
+              buf = buf.slice(i + 1)
+              const event = JSON.parse(line)
+              if (ready) {
+                applyEvent(event)
+              } else {
+                queuedEvents.push(event)
+              }
+            }
+            if (ready) {
+              notify()
             }
           }
+        })()
+
+        // fetches existing objects
+        const fetching = (async () => {
+          const response = await fetch(basePath, { signal: abortController.signal })
+          const objects = await response.json()
+          cache.clear()
+          for (const object of objects) {
+            cache.set(object.id, object)
+          }
+
+          for (const event of queuedEvents) {
+            applyEvent(event)
+          }
+          queuedEvents.length = 0
+          ready = true
+
           notify()
-        }
+        })()
+
+        // `Promise.all()` also ensures none of these rejections is unhandled
+        await Promise.all([fetching, watching])
+
+        // the iteration ended without an error: the server closed the stream
+        notifyDisconnected()
       } catch (error) {
         if (error === 'abort') {
           break
         }
 
         console.error('monitor XO tasks', error)
+        notifyDisconnected(error)
       }
 
       await new Promise(resolve => setTimeout(resolve, 10e3))
