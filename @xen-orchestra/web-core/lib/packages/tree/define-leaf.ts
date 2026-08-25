@@ -1,5 +1,5 @@
-import { LeafDefinition } from '@core/packages/tree/leaf-definition'
-import type { Identifiable, Labeled, TreeNodeOptions } from '@core/packages/tree/types'
+import { LeafDefinition } from '@core/packages/tree/leaf-definition.ts'
+import type { Identifiable, Labeled, TreeNodeOptions } from '@core/packages/tree/types.ts'
 
 export function defineLeaf<TData extends Identifiable & Labeled, const TDiscriminator>(
   treeId: string,

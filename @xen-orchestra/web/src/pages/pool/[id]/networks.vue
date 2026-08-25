@@ -56,7 +56,7 @@ import MenuList from '@core/components/menu/MenuList.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

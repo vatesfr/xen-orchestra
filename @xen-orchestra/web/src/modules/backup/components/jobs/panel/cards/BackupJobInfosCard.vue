@@ -36,7 +36,7 @@ import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObject
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

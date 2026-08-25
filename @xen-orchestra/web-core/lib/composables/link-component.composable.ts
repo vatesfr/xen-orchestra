@@ -1,4 +1,4 @@
-import { toComputed } from '@core/utils/to-computed.util'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 import { computed } from 'vue'
 import type { RouteLocationAsPathGeneric, RouteLocationAsRelativeGeneric, RouteLocationAsString } from 'vue-router'

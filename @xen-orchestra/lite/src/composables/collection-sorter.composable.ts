@@ -1,5 +1,5 @@
-import { getFirst } from '@/libs/utils'
-import type { ActiveSorts, InitialSorts, SortConfig } from '@/types/sort'
+import { getFirst } from '@/libs/utils.ts'
+import type { ActiveSorts, InitialSorts, SortConfig } from '@/types/sort.ts'
 import { computed, ref, watch } from 'vue'
 import { type LocationQueryValue, useRoute, useRouter } from 'vue-router'
 

@@ -1,5 +1,5 @@
-import { useVmRawStore } from '@/stores/xen-api/vm-raw.store'
-import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
+import { useVmRawStore } from '@/stores/xen-api/vm-raw.store.ts'
+import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util.ts'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 

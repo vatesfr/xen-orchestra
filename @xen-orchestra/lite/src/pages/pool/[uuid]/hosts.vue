@@ -19,18 +19,18 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
-import { useHostStore } from '@/stores/xen-api/host.store'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@core/composables/pagination.composable'
-import { useTableState } from '@core/composables/table-state.composable'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
 import { objectIcon } from '@core/icons'
-import { useHostColumns } from '@core/tables/column-sets/host-columns'
+import { useHostColumns } from '@core/tables/column-sets/host-columns.ts'
 import { logicNot } from '@vueuse/math'
 import { useI18n } from 'vue-i18n'
 

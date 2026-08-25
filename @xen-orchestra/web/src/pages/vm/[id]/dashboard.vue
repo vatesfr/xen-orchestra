@@ -45,7 +45,7 @@ import VmDashboardRamUsageChart from '@/modules/vm/components/dashboard/VmDashbo
 import VmDashboardVdiUsageChart from '@/modules/vm/components/dashboard/VmDashboardVdiUsageChart.vue'
 import { useXoVmAlarmsCollection } from '@/modules/vm/remote-resources/use-xo-vm-alarms-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useXoVmDashboard } from '@/modules/vm/remote-resources/use-xo-vm-dashboard'
+import { useXoVmDashboard } from '@/modules/vm/remote-resources/use-xo-vm-dashboard.ts'
 import { useFetchStats } from '@/shared/composables/fetch-stats.composable.ts'
 import { GRANULARITY } from '@/shared/utils/rest-api-stats.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'

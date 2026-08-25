@@ -11,13 +11,13 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

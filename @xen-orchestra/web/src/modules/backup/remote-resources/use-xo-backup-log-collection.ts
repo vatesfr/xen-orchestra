@@ -1,6 +1,6 @@
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { safePushInMap } from '@/shared/utils/map.util'
+import { safePushInMap } from '@/shared/utils/map.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoBackupLog } from '@vates/types'
 import { useSorted } from '@vueuse/core'

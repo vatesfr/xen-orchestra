@@ -14,8 +14,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop } from '@/libs/story/story-param'
-import type { LinearChartData } from '@core/types/chart'
+import { prop } from '@/libs/story/story-param.ts'
+import type { LinearChartData } from '@core/types/chart.ts'
 import VtsLinearChart from '@core/components/linear-chart/VtsLinearChart.vue'
 // eslint-disable-next-line import/no-named-as-default
 import humanFormat from 'human-format'

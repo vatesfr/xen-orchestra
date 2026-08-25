@@ -10,8 +10,8 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { type LinkOptions, useLinkComponent } from '@core/composables/link-component.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { type LinkOptions, useLinkComponent } from '@core/composables/link-component.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
 import { computed } from 'vue'
 

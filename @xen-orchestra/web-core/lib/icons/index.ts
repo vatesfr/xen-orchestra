@@ -1,6 +1,6 @@
 import { defineIconPack, ICON_SYMBOL } from '@core/packages/icon'
 import { actionIcons } from './action-icons.ts'
-import { faIcons } from './fa-icons'
+import { faIcons } from './fa-icons.ts'
 import { objectIcons } from './object-icons.ts'
 import { statusIcons } from './status-icons.ts'
 import { tableIcons } from './table-icons.ts'

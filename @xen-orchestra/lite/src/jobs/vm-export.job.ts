@@ -1,7 +1,7 @@
 import { useVmExport } from '@/composables/vm-export.composable.ts'
-import { vmsArg } from '@/jobs/args'
-import { areSomeVmOperationAllowed, isVmOperationPending } from '@/libs/vm'
-import { VM_COMPRESSION_TYPE, VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
+import { vmsArg } from '@/jobs/args.ts'
+import { areSomeVmOperationAllowed, isVmOperationPending } from '@/libs/vm.ts'
+import { VM_COMPRESSION_TYPE, VM_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
 import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 

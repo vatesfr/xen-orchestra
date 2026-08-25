@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import { type AcceptedLanguage, highlight } from '@/libs/highlight'
+import { type AcceptedLanguage, highlight } from '@/libs/highlight.ts'
 import { computed } from 'vue'
 
 const props = withDefaults(

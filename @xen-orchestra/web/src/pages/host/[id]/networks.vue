@@ -19,7 +19,7 @@ import PifsTable from '@/modules/pif/components/list/PifsTable.vue'
 import { useXoPifCollection, type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed } from 'vue'
 
 const { host } = defineProps<{

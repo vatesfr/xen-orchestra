@@ -1,5 +1,5 @@
-import type { RawObjectType, XenApiMessage } from '@/libs/xen-api/xen-api.types'
-import type { XenApiAlarm, XenApiAlarmType } from '@/types/xen-api'
+import type { RawObjectType, XenApiMessage } from '@/libs/xen-api/xen-api.types.ts'
+import type { XenApiAlarm, XenApiAlarmType } from '@/types/xen-api.ts'
 
 const parseXml = (xml: string) => {
   const parser = new DOMParser()

@@ -1,6 +1,6 @@
 import { hostArg } from '@/modules/host/jobs/host-args.ts'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
-import { useXenApiStore } from '@/stores/xen-api.store'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 

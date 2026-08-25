@@ -33,8 +33,8 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { useTableState } from '@core/composables/table-state.composable'
-import { useBackupLogsColumns } from '@core/tables/column-sets/backup-log-columns'
+import { useTableState } from '@core/composables/table-state.composable.ts'
+import { useBackupLogsColumns } from '@core/tables/column-sets/backup-log-columns.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

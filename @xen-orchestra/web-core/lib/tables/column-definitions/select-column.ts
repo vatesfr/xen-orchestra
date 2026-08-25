@@ -1,8 +1,8 @@
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import type { FormSelectId } from '@core/packages/form-select/types.ts'
 import { defineColumn } from '@core/packages/table/define-column.ts'
-import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
-import { renderHeadCell } from '@core/tables/helpers/render-head-cell'
+import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
+import { renderHeadCell } from '@core/tables/helpers/render-head-cell.ts'
 import type { HeaderConfig } from '@core/tables/types.ts'
 import { h } from 'vue'
 
