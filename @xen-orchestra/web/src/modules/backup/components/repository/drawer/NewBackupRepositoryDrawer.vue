@@ -52,6 +52,7 @@ async function handleConfirm() {
   const payload = await buildPayload()
 
   if (payload !== undefined) {
+    console.log('dans le drawer', payload)
     emit('confirm', payload)
   }
 }
