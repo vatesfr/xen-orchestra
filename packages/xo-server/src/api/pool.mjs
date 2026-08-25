@@ -33,6 +33,7 @@ export async function set({
   backupNetwork,
   migrationCompression,
   migrationNetwork,
+  rpuMigrateVmsBack,
   suspendSr,
   crashDumpSr,
 }) {
@@ -45,6 +46,7 @@ export async function set({
     migrationCompression !== undefined && pool.set_migration_compression(migrationCompression),
     migrationNetwork !== undefined && pool.update_other_config('xo:migrationNetwork', migrationNetwork),
     backupNetwork !== undefined && pool.update_other_config('xo:backupNetwork', backupNetwork),
+    rpuMigrateVmsBack !== undefined && pool.update_other_config('xo:rpuMigrateVmsBack', String(rpuMigrateVmsBack)),
     suspendSr !== undefined && pool.$call('set_suspend_image_SR', suspendSr === null ? Ref.EMPTY : suspendSr._xapiRef),
     crashDumpSr !== undefined &&
       pool.$call('set_crash_dump_SR', crashDumpSr === null ? Ref.EMPTY : crashDumpSr._xapiRef),
@@ -78,6 +80,13 @@ set.params = {
   },
   migrationNetwork: {
     type: ['string', 'null'],
+    optional: true,
+  },
+
+  // whether a rolling pool update or reboot brings the VMs back to the host
+  // they were running on, defaults to true
+  rpuMigrateVmsBack: {
+    type: 'boolean',
     optional: true,
   },
   suspendSr: {

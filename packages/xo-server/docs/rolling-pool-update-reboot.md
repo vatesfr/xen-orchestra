@@ -109,6 +109,8 @@ task.start({ name: 'Rolling pool reboot', poolId: string, poolName: string })
 
 `Migrate VMs back` is best effort. The per-host pass brings each VM back to the host it was running on before the reboot. A VM rejected because that host is still full is retried in a `Retry migrating VMs back` pass, which repeats as long as a pass moves at least one VM, so there are zero to n of them, each carrying the number of VMs it tried in its `total`. Whatever is left after that does not fail the run: those VMs are running, only not where they started. They are listed on the `strandedVms` property of `Migrate VMs back`, one entry per VM with `vmId`, `vmName`, `hostId`, `hostName` and the XAPI `code`/`message` of the last rejection, and logged as `could not migrate all the VMs back to their host`.
 
+A pool can opt out of that phase entirely by setting `xo:rpuMigrateVmsBack` to `false` in its `other_config`, with `xo-cli pool.set id=<pool> rpuMigrateVmsBack=false` or with `xe pool-param-set uuid=<pool> other-config:xo:rpuMigrateVmsBack=false`. The run then ends after the reboots and leaves the VMs where the successive `host.evacuate` calls put them, which halves the migrations of the run. `Migrate VMs back` is replaced by a `Skip migrating VMs back` task, so a trace still tells a disabled phase apart from a run which died before reaching it. Without a load balancer to rebalance the pool afterwards, the placement stays scrambled and the host rebooted last stays empty.
+
 ### Rolling pool update
 
 ```

@@ -28,6 +28,7 @@
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
 - [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
 - [XO6/SR] Add dedicated Storage Repository page with general information, space usage, PBD details, custom fields (PR [#10100](https://github.com/vatesfr/xen-orchestra/pull/10100))
+- [Rolling pool update/reboot] A pool can now skip the phase which brings the VMs back to the host they were running on, which halves the migrations of the run (PR [#10295](https://github.com/vatesfr/xen-orchestra/pull/10295))
 
 ### Bug fixes
 
@@ -72,7 +73,7 @@
 - xen-api minor
 - xo-cli patch
 - xo-common minor
-- xo-server patch
+- xo-server minor
 - xo-server-ipmi-sensors minor
 - xo-server-netbox patch
 - xo-web patch

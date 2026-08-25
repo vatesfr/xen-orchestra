@@ -53,6 +53,10 @@ const methods = {
     parentTask,
     { beforeEvacuateVms, beforeRebootHost, ignoreHost, shutdownPinnedVms = false } = {}
   ) {
+    // migrating the VMs back to their host doubles the migrations of the run: a
+    // pool can opt out of that phase by setting this key to `false`
+    const migrateVmsBack = this.pool.other_config['xo:rpuMigrateVmsBack'] !== 'false'
+
     if (this.pool.ha_enabled) {
       const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
       const haConfig = this.pool.ha_configuration
@@ -136,8 +140,9 @@ const methods = {
       }
     })
 
-    // Steps in the RPR : Evacuate hosts, reboot hosts, migrate VMs back, and potentially updateHosts (beforeEvacuateVms and beforeRebootHost)
-    const nSteps = 3 + Number(beforeEvacuateVms !== undefined) + Number(beforeRebootHost !== undefined)
+    // Steps in the RPR : Evacuate hosts, reboot hosts, and potentially migrate VMs back and updateHosts (beforeEvacuateVms and beforeRebootHost)
+    const nSteps =
+      2 + Number(migrateVmsBack) + Number(beforeEvacuateVms !== undefined) + Number(beforeRebootHost !== undefined)
 
     const progressStep = 100 / nSteps
     const progressStepPerHost = progressStep / hosts.length
@@ -332,14 +337,20 @@ const methods = {
       }
     })
 
-    // Handle the hosts in the reverse order of their reboot: the last rebooted
-    // one is the emptiest, and serving it frees memory on the ones still to come
-    hosts.reverse()
+    if (migrateVmsBack) {
+      // Handle the hosts in the reverse order of their reboot: the last rebooted
+      // one is the emptiest, and serving it frees memory on the ones still to come
+      hosts.reverse()
 
-    await this._migrateVmsBack(hosts, vmRefsByHost, ignoreHost, () => {
-      rprProgress += progressStepPerHost
-      setProgress(parentTask, rprProgress)
-    })
+      await this._migrateVmsBack(hosts, vmRefsByHost, ignoreHost, () => {
+        rprProgress += progressStepPerHost
+        setProgress(parentTask, rprProgress)
+      })
+    } else {
+      await Task.run({ properties: { name: `Skip migrating VMs back` } }, () => {
+        log.info('migrating the VMs back is disabled on this pool', { pool: this.pool.uuid })
+      })
+    }
 
     // in case task progress has not been incremented properly
     setProgress(parentTask, 100)
