@@ -70,6 +70,9 @@ class FakeXapi {
 
     this._memoryTakenByHost = memoryTakenByHostAfterReboots
     this._nReboots = 0
+
+    // migrations back, the evacuations go through clearHost
+    this.nMigrations = 0
   }
 
   _find(key) {
@@ -137,6 +140,7 @@ class FakeXapi {
   }
 
   async migrateVm(vmId, xapi, hostId) {
+    this.nMigrations++
     const vm = this._find(vmId)
     const target = this._find(hostId)
     if (this._free(target) < vm.memory) {
@@ -169,7 +173,8 @@ const rollingPoolReboot = async xapi => {
   })
 
   const strandedVms = events.findLast(_ => _.type === 'property' && _.name === 'strandedVms')?.value ?? []
-  return { error, strandedVms }
+  const taskNames = events.filter(_ => _.type === 'start').map(_ => _.properties.name)
+  return { error, strandedVms, taskNames }
 }
 
 describe('rollingPoolReboot', function () {
@@ -219,5 +224,26 @@ describe('rollingPoolReboot', function () {
       assert.equal(strandedVm.code, 'HOST_NOT_ENOUGH_FREE_MEMORY')
       assert.equal(strandedVm.hostId, xapi.homeOf.get(strandedVm.vmId))
     }
+  })
+
+  it('does not migrate the VMs back when the pool opted out', async function () {
+    const xapi = new FakeXapi([
+      [30, 30],
+      [30, 30],
+      [30, 30],
+      [30, 30],
+    ])
+    xapi.pool.other_config['xo:rpuMigrateVmsBack'] = 'false'
+
+    const { error, taskNames } = await rollingPoolReboot(xapi)
+
+    assert.equal(error, undefined)
+    assert.equal(xapi.nMigrations, 0)
+    assert.notDeepEqual(xapi.strayedVms(), [])
+
+    // the skipped phase leaves a trace, otherwise it cannot be told apart from
+    // a run which died before reaching it
+    assert.ok(taskNames.includes('Skip migrating VMs back'))
+    assert.ok(!taskNames.includes('Migrate VMs back'))
   })
 })
