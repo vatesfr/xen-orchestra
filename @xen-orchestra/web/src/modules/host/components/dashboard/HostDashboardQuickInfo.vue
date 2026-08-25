@@ -20,14 +20,7 @@
             <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
             {{ t('this-host') }}
           </template>
-          <UiLink
-            v-else-if="masterHost !== undefined"
-            :to="{ name: '/host/[id]/dashboard', params: { id: masterHost.id } }"
-            size="medium"
-            :icon="`object:host:${getHostState(masterHost)}`"
-          >
-            {{ masterHost.name_label }}
-          </UiLink>
+          <HostLink v-else-if="masterHost" :host="masterHost" size="medium" />
         </template>
       </VtsKeyValueRow>
     </VtsKeyValueList>
@@ -55,6 +48,7 @@
 </template>
 
 <script lang="ts" setup>
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
@@ -63,7 +57,6 @@ import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue
 import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'

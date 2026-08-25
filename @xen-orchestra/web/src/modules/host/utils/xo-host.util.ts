@@ -2,6 +2,7 @@ import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-co
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { getVmsPendingOperation } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { VtsLinkCellProps } from '@core/components/table/cells/VtsLinkCell.vue'
+import { objectIcon } from '@core/icons'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { castArray } from 'lodash-es'
 
@@ -70,4 +71,8 @@ export function getHostState(host: FrontXoHost | undefined): XoHostState {
   }
 
   return host.enabled ? 'running' : 'disabled'
+}
+
+export function getHostIcon(host: FrontXoHost | undefined) {
+  return objectIcon('host', getHostState(host))
 }
