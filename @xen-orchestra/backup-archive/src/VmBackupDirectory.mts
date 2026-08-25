@@ -18,6 +18,7 @@ import { cleanOrphanDiskDirs } from '@xen-orchestra/backup-archive/disks'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { readBackupCache, writeBackupCache } from './BackupCache.mjs'
+import { unlinkTolerant } from './_unlinkTolerant.mjs'
 
 const { info: logInfo, warn: logWarn } = createLogger('xo:backup-archive')
 
@@ -204,31 +205,30 @@ export class VmBackupDirectory implements VmBackupInterface {
 
   async #checkCacheCount(): Promise<void> {
     const cachePath = `${this.rootPath}/cache.json.gz`
-    const existingCache = await this.#readCache(cachePath)
-    this.#cacheExisted = existingCache !== undefined
+
+    this.#cacheExisted = false
+    this.#cacheOutOfSync = false
+
+    if (!this.files.includes(normalize(cachePath))) {
+      return
+    }
 
     if (this.handler.isImmutable()) {
-      if (existingCache !== undefined) {
-        // RemoteAdapter never creates cache.json.gz on immutable repositories
-        try {
-          await this.handler.unlink(cachePath)
-        } catch (error) {
-          if (error?.code !== 'ENOENT') {
-            this.opts.logWarn('failed to remove erroneous cache on immutable remote', { error, path: cachePath })
-          }
-        }
-      }
-      // never regenerate cache.json.gz on an immutable remote, whether or not the leftover was removed
-      this.#cacheOutOfSync = false
-      this.#cacheExisted = false
+      // RemoteAdapter never creates cache.json.gz on immutable repositories: remove the
+      // leftover, readable or not, and never regenerate it.
+      await unlinkTolerant(this.handler, cachePath, ['ENOENT', 'EPERM'])
       return
     }
 
+    const existingCache = await this.#readCache(cachePath)
     if (existingCache === undefined) {
-      this.#cacheOutOfSync = false
+      // present but unreadable: drop it, RemoteAdapter will recreate a valid one
+      this.opts.logWarn('removing unreadable backup cache', { path: cachePath })
+      await unlinkTolerant(this.handler, cachePath)
       return
     }
 
+    this.#cacheExisted = true
     const actual = Object.keys(existingCache).length
     const expected = this.backupArchives.size
     this.#cacheOutOfSync = actual !== expected

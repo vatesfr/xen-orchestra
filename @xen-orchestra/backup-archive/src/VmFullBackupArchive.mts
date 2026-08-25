@@ -11,6 +11,7 @@ import {
   DEFAULT_REMOVE_CONCURRENCY,
 } from './VmBackup.types.mjs'
 import { asyncEach } from '@vates/async-each'
+import { unlinkTolerant } from './_unlinkTolerant.mjs'
 
 const COMPRESSED_MAGIC_NUMBERS: Buffer[] = [
   // https://tools.ietf.org/html/rfc1952.html#page-5
@@ -81,17 +82,6 @@ export async function isValidXva(
 
 const noop = (): void => {}
 
-async function unlinkTolerant(handler: RemoteHandlerAbstract, path: string): Promise<void> {
-  try {
-    await handler.unlink(path)
-  } catch (error) {
-    if (error?.code !== 'ENOENT') {
-      error.path ??= path
-      throw error
-    }
-  }
-}
-
 /**
  * Deletes a full VM backup's metadata json and, when provided, its xva and checksum.
  * `xva` is the path as stored in the metadata, i.e. relative to the metadata file.
@@ -111,7 +101,7 @@ export async function deleteFullVmBackups(
         await unlinkTolerant(handler, `${xvaPath}.checksum`)
       }
     },
-    { concurrency: DEFAULT_REMOVE_CONCURRENCY }
+    { concurrency: DEFAULT_REMOVE_CONCURRENCY, stopOnError: false }
   )
 }
 
