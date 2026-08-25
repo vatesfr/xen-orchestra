@@ -2,6 +2,7 @@ import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-co
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { getVmsPendingOperation } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { VtsLinkCellProps } from '@core/components/table/cells/VtsLinkCell.vue'
+import { objectIcon } from '@core/icons'
 import { formatSizeRaw, type SizeInfo } from '@core/utils/size.util.ts'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { castArray } from 'lodash-es'
@@ -93,4 +94,8 @@ export function getHostRamProvisioning(host: FrontXoHost): { total: SizeInfo; us
     used: formatSizeRaw(usage, 0),
     free: formatSizeRaw(size - usage, 0),
   }
+}
+
+export function getHostIcon(host: FrontXoHost | undefined) {
+  return objectIcon('host', getHostState(host))
 }
