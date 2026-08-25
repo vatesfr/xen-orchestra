@@ -5,6 +5,7 @@ import { defer } from 'golike-defer'
 import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { randomBytes } from 'node:crypto'
 
+import { detectLocalAddress } from './_address.mjs'
 import { createChapCredentials, probeScsiId } from './_target.mjs'
 import { forgetSr, introduceSr, introduceVdi } from './_sr.mjs'
 
@@ -39,16 +40,25 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
 export default class LiveMount {
   #app
   #createTarget
+  #detectAddress
   #openDisk
 
   // mount id -> mount record
   #mounts = new Map()
 
-  // `openDisk`/`createTarget` are injectable for tests only, like xo-server's
-  // crypto-credentials mixin does with xenStore/fsPromises
-  constructor(app, { openDisk = openDiskChain, createTarget = options => new IscsiTarget(options) } = {}) {
+  // `openDisk`/`createTarget`/`detectAddress` are injectable for tests only,
+  // like xo-server's crypto-credentials mixin does with xenStore/fsPromises
+  constructor(
+    app,
+    {
+      openDisk = openDiskChain,
+      createTarget = options => new IscsiTarget(options),
+      detectAddress = detectLocalAddress,
+    } = {}
+  ) {
     this.#app = app
     this.#createTarget = createTarget
+    this.#detectAddress = detectAddress
     this.#openDisk = openDisk
 
     app.hooks.on('stop', () =>
@@ -88,7 +98,16 @@ export default class LiveMount {
 
   #createDiskMount = defer(async ($defer, { handler, diskPath, xapi, hostRef, nameLabel, release }) => {
     const config = this.#app.config
-    const address = config.get('iscsi.advertisedAddress')
+    // `iscsi.advertisedAddress` overrides auto-detection; unset, the address
+    // reachable *from* the target host is guessed by asking the OS which
+    // local address it would route through to reach it — usually right, but
+    // not guaranteed to be reachable *back* from the host (NAT, asymmetric
+    // routing), which is what the override is for.
+    let address = config.getOptional('iscsi.advertisedAddress')
+    if (address === undefined) {
+      const hostAddress = await xapi.getField('host', hostRef, 'address')
+      address = await this.#detectAddress(hostAddress)
+    }
 
     const id = randomBytes(16).toString('hex')
     const iqn = `iqn.2026-07.tech.vates.xo:live-mount-${id}`

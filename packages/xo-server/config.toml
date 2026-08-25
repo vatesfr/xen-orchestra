@@ -208,7 +208,12 @@ requestTimeout = 0
 [iscsi]
 # Address this appliance is reachable at *from the hosts*: it is handed to them
 # as the iSCSI portal when a backup disk is mounted, so a value they cannot
-# reach makes the mount fail. Required to mount a backup disk.
+# reach makes the mount fail.
+#
+# When unset, it is auto-detected per mount (the local address the OS would
+# route through to reach the target host) — usually correct, but not
+# guaranteed if this appliance is behind NAT or asymmetric routing. Set this
+# explicitly if mounts fail to connect despite auto-detection.
 #advertisedAddress = '192.168.0.1'
 
 # Address the iSCSI targets bind to. Unset means all interfaces.
