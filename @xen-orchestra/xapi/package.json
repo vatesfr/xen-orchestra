@@ -40,7 +40,7 @@
     "promise-toolbox": "^0.21.0",
     "undici": "^6.26.0",
     "vhd-lib": "^4.16.1",
-    "xo-common": "^0.10.0"
+    "xo-common": "^0.11.0"
   },
   "private": false,
   "license": "AGPL-3.0-or-later",
