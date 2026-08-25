@@ -38,7 +38,6 @@
     "build": "tsc",
     "clean": "rimraf dist/",
     "dev": "tsc --watch",
-    "postversion": "npm publish --access public",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
     "test": "tsc && node --test \"dist/**/*.test.mjs\"",
