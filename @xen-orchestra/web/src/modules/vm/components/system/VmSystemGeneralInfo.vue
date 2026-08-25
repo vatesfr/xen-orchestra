@@ -19,7 +19,7 @@
       <VtsTabularKeyValueRow :label="t('management-agent-version')" :value="vm.pvDriversVersion" />
       <VtsTabularKeyValueRow :label="t('guest-tools')">
         <template #value>
-          <VmGuestToolsStatus :guest-tools-display="guestToolsDisplay" />
+          <VmGuestToolsStatus :guest-tools-display />
         </template>
       </VtsTabularKeyValueRow>
     </VtsTabularKeyValueList>

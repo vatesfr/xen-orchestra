@@ -55,7 +55,7 @@
       <VtsKeyValueRow :label="t('virtualization-type')" :value="virtualizationType" />
       <VtsKeyValueRow :label="t('guest-tools')">
         <template #value>
-          <VmGuestToolsStatus :guest-tools-display="guestToolsDisplay" />
+          <VmGuestToolsStatus :guest-tools-display />
         </template>
       </VtsKeyValueRow>
     </VtsKeyValueList>

@@ -76,7 +76,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('guest-tools') }}</template>
         <template #value>
-          <VmGuestToolsStatus :guest-tools-display="guestToolsDisplay" />
+          <VmGuestToolsStatus :guest-tools-display />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
