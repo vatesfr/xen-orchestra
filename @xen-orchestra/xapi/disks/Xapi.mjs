@@ -82,7 +82,7 @@ export class XapiDiskSource extends DiskPassthrough {
    * Create a disk source using stream export + NBD.
    * On failure, fall back to a full export.
    *
-   * @returns {Promise<Disk|RandomAccessDisk>}
+   * @returns {Promise<Disk>}
    */
   async #openNbdStream() {
     const xapi = this.#xapi
@@ -126,11 +126,14 @@ export class XapiDiskSource extends DiskPassthrough {
     }
     this.#useNbd = true
     const readAhead = new ReadAhead(source)
-    source = new TimeoutDisk(source, this.#timeout)
     const label = await xapi.getField('VDI', vdiRef, 'name_label')
     // manually create an export task for NBD since xapi xan't do it automatically
     readAhead.addProgressHandler(new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD`))
-    return readAhead
+    // wraps the ReadAhead's block generator, not the raw NBD source: a stalled NBD read (bad
+    // connection, dead reconnect loop) blocks each `next()` on the generator, which is exactly
+    // what this timeout bounds. TimeoutDisk only implements the streaming Disk interface, so it
+    // must sit outside ReadAhead (which still needs the source's random-access readBlock).
+    return new TimeoutDisk(readAhead, this.#timeout)
   }
 
   async #getPreferedExportFormat() {
@@ -229,15 +232,16 @@ export class XapiDiskSource extends DiskPassthrough {
       await source.init()
       this.#useNbd = true
       this.#useCbt = true
-      const readAhead = new ReadAhead(source)
-      source = new TimeoutDisk(source, this.#timeout)
       if (source.getBlockSize() < this.#blockSize) {
         source = new DiskLargerBlock(source, this.#blockSize)
       }
+      const readAhead = new ReadAhead(source)
       const label = await xapi.getField('VDI', vdiRef, 'name_label')
       // manually create an export task for NBD since xapi xan't do it automatically
       readAhead.addProgressHandler(new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD+CBT`))
-      return readAhead
+      // wraps the ReadAhead's block generator, not the raw NBD source: see #openNbdStream for why
+      // TimeoutDisk must sit outside ReadAhead.
+      return new TimeoutDisk(readAhead, this.#timeout)
     } catch (error) {
       if (error.code !== 'CBT_DISABLED') {
         info('Error in openNbdCBT', error)
