@@ -174,6 +174,28 @@ export type PoolRollingUpdateRecoveryBlocked = {
 
 export type PoolRollingUpdateRecovery = PoolRollingUpdateRecoveryRun | PoolRollingUpdateRecoveryBlocked
 
+/** A disk of a backup archive currently served as a read-only iSCSI LUN */
+export type BackupArchiveDiskMount = {
+  /** Handle to pass to `unmountBackupArchiveDisk` */
+  id: string
+  /** UUID of the SR introduced on the host */
+  srUuid: string
+  /** UUID of the read-only VDI exposing the backup disk */
+  vdiUuid: string
+  /** IQN of the target serving the disk */
+  iqn: string
+  /** Address of the portal, as advertised to the host */
+  address: string
+  /** Port of the portal (ephemeral, one target per mount) */
+  port: number
+}
+
+/** A live mount, as listed by `listMountedBackupArchiveDisks` */
+export type MountedBackupArchiveDisk = BackupArchiveDiskMount & {
+  /** Path of the mounted disk on its backup repository */
+  diskPath: string
+}
+
 export type XoApp = {
   hooks: EventEmitter
   _redis: {
