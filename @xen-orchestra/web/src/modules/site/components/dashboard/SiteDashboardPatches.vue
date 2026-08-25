@@ -15,6 +15,7 @@
 
 <script lang="ts" setup>
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
+import { useEolHostInfoModal } from '@/shared/composables/modals/use-eol-host-info-modal.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
@@ -29,6 +30,8 @@ import { useI18n } from 'vue-i18n'
 const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
+
+const { open: openEolHostInfoModal } = useEolHostInfoModal()
 
 const dashboardMissingPatches = computed(() => dashboard.value.missingPatches)
 
@@ -86,13 +89,12 @@ const hostsSegments = computed(() => {
     { value: missingPatches.value.nHostsWithMissingPatches, accent: 'warning', label: t('missing-patches') },
   ]
 
-  // TODO instead of tooltips for nHostsEol , we need to add a modal with a button
   if (typeof missingPatches.value.nHostsEol === 'number') {
     segments.push({
       value: missingPatches.value.nHostsEol,
       accent: 'danger',
       label: t('eol'),
-      tooltip: t('end-of-life'),
+      onInfoClick: () => openEolHostInfoModal(),
     })
   }
 

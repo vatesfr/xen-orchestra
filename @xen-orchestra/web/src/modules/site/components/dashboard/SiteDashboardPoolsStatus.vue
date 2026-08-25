@@ -19,6 +19,7 @@
 
 <script lang="ts" setup>
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
+import { useUnreachablePoolModal } from '@/shared/composables/modals/use-unreachable-pool-modal.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
@@ -33,6 +34,8 @@ import { useI18n } from 'vue-i18n'
 const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
+
+const { open: openUnreachablePoolModal } = useUnreachablePoolModal()
 
 const poolsStatus = computed(() => dashboard.value.poolsStatus)
 
@@ -49,12 +52,11 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     value: poolsStatus.value?.disconnected ?? 0,
     accent: 'muted',
   },
-  // TODO instead of tooltips for unreachable , we need to add a modal with a button
   {
     label: t('pool:status:unreachable', 2),
     value: poolsStatus.value?.unreachable ?? 0,
     accent: 'danger',
-    tooltip: t('pool:status:unreachable:tooltip'),
+    onInfoClick: () => openUnreachablePoolModal(),
   },
 ])
 </script>

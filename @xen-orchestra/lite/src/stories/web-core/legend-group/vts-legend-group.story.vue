@@ -11,6 +11,14 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop } from '@/libs/story/story-param'
 import VtsLegendGroup, { type LegendGroupProps } from '@core/components/legend-group/VtsLegendGroup.vue'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+
+const { open: openLegendModal } = useOverlay({
+  component: () => import('@/stories/web-core/ui/legend/LegendInfoModal.vue'),
+  events: {
+    onClose: true,
+  },
+})
 
 const items: LegendGroupProps['items'] = [
   {
@@ -21,10 +29,10 @@ const items: LegendGroupProps['items'] = [
   },
   {
     label: 'Second segment',
-    accent: 'neutral',
+    accent: 'secondary',
     value: 58,
     unit: '%',
-    tooltip: 'This is another tooltip',
+    onInfoClick: () => openLegendModal(),
   },
 ]
 
