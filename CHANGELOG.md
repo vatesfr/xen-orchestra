@@ -1,5 +1,68 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [XO6/Pool] Add forget action on page Site (PR [#10130](https://github.com/vatesfr/xen-orchestra/pull/10130))
+- [XO6/Host] Add possibility to shut down and start an host (PR [#10088](https://github.com/vatesfr/xen-orchestra/pull/10088))
+- [XO6/Host] Add possibility to scan PIFs directly from the host (PR [#10191](https://github.com/vatesfr/xen-orchestra/pull/10191))
+- [XO6/Host] Add possibility to forget a host (PR [#10089](https://github.com/vatesfr/xen-orchestra/pull/10089))
+- [XO6/Host] Add possibility to disable a host an evacuate its VMs (PR [#10090](https://github.com/vatesfr/xen-orchestra/pull/10090))
+- [XO6/Host] Add possibility to reboot a host (PR [#10141](https://github.com/vatesfr/xen-orchestra/pull/10141))
+- [XO6/Host] Add possibility to force reboot a host (PR [#10175](https://github.com/vatesfr/xen-orchestra/pull/10175))
+- [XO6/Host] Add possibility to smart reboot a host (PR [#10177](https://github.com/vatesfr/xen-orchestra/pull/10177))
+- [XO6/VM] Add guest tools status on the VM Dashboard, VM System tab and VM Side panel (PR [#10077](https://github.com/vatesfr/xen-orchestra/pull/10077))
+- [XO6/SR] Add dedicated Storage Repository page with general information, space usage, PBD details, custom fields (PR [#10100](https://github.com/vatesfr/xen-orchestra/pull/10100))
+- [REST API] Add `hosts/:id/actions/scan_pifs` endpoint (PR [#10187](https://github.com/vatesfr/xen-orchestra/pull/10187))
+- [Docs] Improve doc, rename titles, and refactor menu (PR [#10212](https://github.com/vatesfr/xen-orchestra/pull/10212))
+- [Pool/Traffic rules] Add an error message and disable the ability to create a network-type traffic rule depending on the method used (PR [#10202](https://github.com/vatesfr/xen-orchestra/pull/10202))
+- [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
+- [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
+- [XO5/Backups] Add `Synchronize snapshots` checkbox to backup jobs to get consistent restore points (PR [#10136](https://github.com/vatesfr/xen-orchestra/pull/10136))
+
+### Bug fixes
+
+- [Backup/File restore, Backup/Health] An unreachable backup repository no longer slows down every listing: it is skipped after a delay and retried with an increasing backoff (PR [#10205](https://github.com/vatesfr/xen-orchestra/pull/10205))
+- [REST API] Fix `/users/:id/authentication_tokens` sometimes did not return the token used to make the request (PR [#10233](https://github.com/vatesfr/xen-orchestra/pull/10233))
+- [XO server] Fix a random behavior regarding `coresPerSocket` update (PR [#10201](https://github.com/vatesfr/xen-orchestra/pull/10201))
+- [Warm migration] Fix `Vm target of warm migration not found` error at the end of a migration (PR [#10210](https://github.com/vatesfr/xen-orchestra/pull/10210))
+- [XO6] Fix inconsistent spacing in side panel cards (PR [#10279](https://github.com/vatesfr/xen-orchestra/pull/10279))
+- [VIF] Preserve other_config, rate limit, MTU and device when changing a VIF's MAC address (PR [#10284](https://github.com/vatesfr/xen-orchestra/pull/10284))
+- [xo-server] Disconnect user stalling task result and using too much memory (PR [#10237](https://github.com/vatesfr/xen-orchestra/pull/10237))
+- **XO 5**:
+  - [VM/Console] Fix the page header and tab navigation disappearing permanently in the console tab (PR [#10007](https://github.com/vatesfr/xen-orchestra/pull/10007))
+  - [Tasks] Show a task when a user is disconnected because its task flow is stalled (PR [#10237](https://github.com/vatesfr/xen-orchestra/pull/10237))
+
+### Released packages
+
+- @xen-orchestra/async-map 0.1.4
+- xo-common 0.11.0
+- xen-api 4.9.0
+- @vates/types 1.30.2
+- @xen-orchestra/acl 1.6.0
+- @xen-orchestra/xapi 8.10.3
+- @xen-orchestra/backups 0.74.0
+- @xen-orchestra/backups-cli 1.1.14
+- @xen-orchestra/disk-cli 2.2.1
+- @xen-orchestra/immutable-backups 3.0.5
+- @xen-orchestra/web-core 0.59.0
+- @xen-orchestra/mixins 0.20.2
+- @xen-orchestra/proxy 0.31.7
+- @xen-orchestra/proxy-cli 0.3.3
+- @xen-orchestra/qa-test 1.2.0
+- @xen-orchestra/rest-api 0.38.0
+- @xen-orchestra/upload-ova 0.1.9
+- @xen-orchestra/web 0.58.0
+- xo-acl-resolver 0.5.4
+- xo-cli 0.32.4
+- xo-server 5.207.3
+- xo-server-audit 0.15.2
+- xo-server-ipmi-sensors 2.1.0
+- xo-server-netbox 1.13.2
+- xo-server-sdn-controller 1.4.1
+- xo-web 5.202.0
+
 ## **6.7.1** (2026-08-04)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
