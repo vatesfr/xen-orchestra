@@ -10,6 +10,12 @@
     </UiBreadcrumb>
     <UiLink :size :href="newBackupRoute">{{ t('configure-in-xo-5') }}</UiLink>
   </div>
+  <UiHeadBar>
+    <template #icon>
+      <VtsIcon name="object:backup-job" size="large" />
+    </template>
+    {{ backupJob.name }}
+  </UiHeadBar>
   <TabList>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/backup/[id]/runs', params: { id: backupJob.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
@@ -50,6 +56,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
+import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
