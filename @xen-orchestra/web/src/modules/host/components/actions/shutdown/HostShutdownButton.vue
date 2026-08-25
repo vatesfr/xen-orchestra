@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canShutdownHost && shutdownHostErrorMessage"
-    :disabled="!canShutdownHost"
+    :disabled="!canShutdownHost || isRestartingToolstack"
     icon="action:shutdown"
     :busy="isShuttingDownHost"
     @click="shutdownHost()"
@@ -11,6 +11,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoHostRestartToolstackJob } from '@/modules/host/jobs/xo-host-restart-toolstack.job.ts'
 import { useXoHostShutdownJob } from '@/modules/host/jobs/xo-host-shutdown.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
@@ -23,6 +24,8 @@ const { host } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { isRunning: isRestartingToolstack } = useXoHostRestartToolstackJob(() => host)
 
 const {
   run,

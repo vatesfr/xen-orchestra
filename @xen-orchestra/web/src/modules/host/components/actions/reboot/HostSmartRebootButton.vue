@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canSmartRebootHost && smartRebootHostErrorMessage"
-    :disabled="!canSmartRebootHost"
+    :disabled="!canSmartRebootHost || isRestartingToolstack"
     icon="action:smart-reboot"
     :busy="isSmartRebootingHost"
     @click="smartRebootHost()"
@@ -11,6 +11,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoHostRestartToolstackJob } from '@/modules/host/jobs/xo-host-restart-toolstack.job.ts'
 import { useXoHostSmartRebootJob } from '@/modules/host/jobs/xo-host-smart-reboot.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
@@ -23,6 +24,8 @@ const { host } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { isRunning: isRestartingToolstack } = useXoHostRestartToolstackJob(() => host)
 
 const {
   run,

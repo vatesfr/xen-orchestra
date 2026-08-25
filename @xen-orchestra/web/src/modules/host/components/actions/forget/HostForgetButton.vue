@@ -2,7 +2,7 @@
   <MenuItem
     v-tooltip="!canForgetHost && forgetHostErrorMessage"
     class="forget"
-    :disabled="!canForgetHost"
+    :disabled="!canForgetHost || isRestartingToolstack"
     icon="action:forget"
     :busy="isForgettingHost"
     @click="forgetHost()"
@@ -13,6 +13,7 @@
 
 <script lang="ts" setup>
 import { useXoHostForgetJob } from '@/modules/host/jobs/xo-host-forget.job.ts'
+import { useXoHostRestartToolstackJob } from '@/modules/host/jobs/xo-host-restart-toolstack.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useRedirectAfterDelete } from '@/shared/composables/redirect-after-delete.composable.ts'
@@ -31,6 +32,8 @@ const { t } = useI18n()
 const { hasPoolById } = useXoPoolCollection()
 
 const route = useRoute<'/host/[id]'>()
+
+const { isRunning: isRestartingToolstack } = useXoHostRestartToolstackJob(() => host)
 
 const {
   run,
