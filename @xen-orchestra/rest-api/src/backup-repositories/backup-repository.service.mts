@@ -58,7 +58,12 @@ export class BackupRepositoryService {
     return referencingJobs
   }
 
-  async reclaimSpace(backupRepositoryId: XoBackupRepository['id'], vmUuid?: string) {
+  async reclaimSpace(
+    backupRepositoryId: XoBackupRepository['id'],
+    vmUuid?: string,
+    mergeParam?: boolean,
+    remove?: boolean
+  ) {
     const referencingJobs = await this.getReferencingJobs(backupRepositoryId)
     const jobs = await this.#restApi.xoApp.getAllJobs()
     const runningJobs = jobs.filter(
@@ -71,6 +76,7 @@ export class BackupRepositoryService {
     const remote = await this.#restApi.xoApp.getRemote(backupRepositoryId)
 
     let results: ReclaimSpaceResult[]
+
     try {
       results = await Disposable.use(getSyncedHandler(remote), async handler => {
         const adapter = new RemoteAdapter(handler)
@@ -85,11 +91,11 @@ export class BackupRepositoryService {
           vmUuids,
           async uuid => {
             try {
-              await Task.run({ name: `Clean VM ${uuid}`, data: { type: 'VM', id: uuid } }, () =>
+              const { merge, size } = await Task.run({ name: `Clean VM ${uuid}`, data: { type: 'VM', id: uuid } }, () =>
                 adapter.cleanVm(`${BACKUP_DIR}/${uuid}`, {
                   lock: true,
-                  remove: true,
-                  merge: true,
+                  remove: remove ?? true,
+                  merge: mergeParam ?? true,
                   logInfo: Task.info,
                   logWarn: Task.warning,
                 })
@@ -98,6 +104,8 @@ export class BackupRepositoryService {
               results.push({
                 vmUuid: uuid,
                 success: true,
+                merge: merge,
+                size: size,
               })
             } catch (error: any) {
               throw new ApiError(`failed to reclaim space for VM ${uuid}, error: ${error.message}`, 400)

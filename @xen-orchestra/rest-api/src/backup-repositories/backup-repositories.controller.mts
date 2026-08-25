@@ -324,7 +324,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    * - resource: backup-repository, action: reclaim-space
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
-   * @example body  {"vmuuid": "9d0d04f7-bb1f-8292-3294-17c6371827c5"}
+   * @example body  {"vmuuid": "9d0d04f7-bb1f-8292-3294-17c6371827c5", "merge": true, "remove": true}
    */
   @Example(taskLocation)
   @Example(backupRepositoryReclaimSpaceResults)
@@ -347,14 +347,14 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @Response(502, 'Backup repository unreachable')
   reclaimSpaceBackupRepository(
     @Path() id: string,
-    @Body() body?: { vmuuid?: string },
+    @Body() body?: { vmuuid?: string; merge?: boolean; remove?: boolean },
     @Query() sync?: boolean
   ): CreateActionReturnType<ReclaimSpaceResult[]> {
     const backupRepositoryId = id as XoBackupRepository['id']
     const vmUuid = body?.vmuuid
 
     const action = () => {
-      return this.#backupRepositoryService.reclaimSpace(backupRepositoryId, vmUuid)
+      return this.#backupRepositoryService.reclaimSpace(backupRepositoryId, vmUuid, body?.merge, body?.remove)
     }
 
     return this.createAction<ReclaimSpaceResult[]>(action, {

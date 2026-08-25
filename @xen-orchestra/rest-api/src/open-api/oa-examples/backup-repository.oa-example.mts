@@ -1,3 +1,5 @@
+import { merge } from 'lodash'
+
 export const backupRepositoryIds = [
   '/rest/v0/backup-repositories/7497c970-6780-4462-a452-fcb8a406ee64',
   '/rest/v0/backup-repositories/f681cef1-617e-4650-ac31-ffdaead076bf',
@@ -46,5 +48,7 @@ export const backupRepositoryReclaimSpaceResults = [
   {
     vmUuid: '9d0d04f7-bb1f-8292-3294-17c6371827x5',
     success: true,
+    merge: true,
+    size: 0,
   },
 ]
