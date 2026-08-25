@@ -28,6 +28,7 @@
 - [XO6/SR] Add dedicated Storage Repository page with general information, space usage, PBD details, custom fields (PR [#10100](https://github.com/vatesfr/xen-orchestra/pull/10100))
 - [XO5/Backups] Add `Synchronize snapshots` checkbox to backup jobs to get consistent restore points (PR [#10136](https://github.com/vatesfr/xen-orchestra/pull/10136))
 - [XO6/Host] Add possibility to smart reboot a host (PR [#10177](https://github.com/vatesfr/xen-orchestra/pull/10177))
+- [XO6/VM] Add guest tools status on the VM Dashboard, VM System tab and VM Side panel (PR [#10077](https://github.com/vatesfr/xen-orchestra/pull/10077))
 
 ### Bug fixes
 
