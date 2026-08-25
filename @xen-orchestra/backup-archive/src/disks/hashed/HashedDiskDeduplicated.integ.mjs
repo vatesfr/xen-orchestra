@@ -6,7 +6,7 @@ import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 import { rimraf } from 'rimraf'
 
-import { HashedDiskDeduplicated } from './HashedDiskDeduplicated.mjs'
+import { HashedDiskDeduplicated } from './HashedDiskDeduplicated.mts'
 
 const BLOCK_SIZE = 2 * 1024 * 1024
 const BLOCK_COUNT = 100

@@ -7,7 +7,7 @@ import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 import { rimraf } from 'rimraf'
 
-import { HashedDiskDeduplicated } from './HashedDiskDeduplicated.mjs'
+import { HashedDiskDeduplicated } from './HashedDiskDeduplicated.mts'
 import {
   asBlockHash,
   BlockAllocationTable,
@@ -21,7 +21,7 @@ import {
   HBD_MAGIC,
   parseBlockHeader,
   sha256hex,
-} from './hbdPaths.mjs'
+} from './hbdPaths.mts'
 
 const { beforeEach, afterEach, describe } = test
 
