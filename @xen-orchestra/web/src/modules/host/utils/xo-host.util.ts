@@ -1,6 +1,8 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { getVmsPendingOperation } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { VtsLinkCellProps } from '@core/components/table/cells/VtsLinkCell.vue'
-import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE } from '@vates/types'
+import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { castArray } from 'lodash-es'
 
 const RUNNING_CHANGING_STATE_OPERATIONS: Partial<HOST_ALLOWED_OPERATIONS>[] = [
@@ -11,6 +13,12 @@ const RUNNING_CHANGING_STATE_OPERATIONS: Partial<HOST_ALLOWED_OPERATIONS>[] = [
 ]
 
 const NOT_RUNNING_CHANGING_STATE_OPERATIONS: Partial<HOST_ALLOWED_OPERATIONS>[] = [HOST_ALLOWED_OPERATIONS.POWER_ON]
+
+const SMART_REBOOT_SUSPENDING_VM_OPERATIONS: Partial<VM_OPERATIONS>[] = [
+  VM_OPERATIONS.SUSPEND,
+  VM_OPERATIONS.CLEAN_SHUTDOWN,
+  VM_OPERATIONS.HARD_SHUTDOWN,
+]
 
 export function isHostOperationPending(
   host: FrontXoHost,
@@ -37,6 +45,13 @@ export function getHostPendingStateOperation(host: FrontXoHost) {
       ? RUNNING_CHANGING_STATE_OPERATIONS
       : NOT_RUNNING_CHANGING_STATE_OPERATIONS
   )
+}
+
+export function getHostSmartRebootVmOperation(host: FrontXoHost, residentVms: FrontXoVm[]) {
+  if (host.enabled) {
+    return undefined
+  }
+  return getVmsPendingOperation(residentVms, SMART_REBOOT_SUSPENDING_VM_OPERATIONS)
 }
 
 export function getHostInfo(host: FrontXoHost | undefined): VtsLinkCellProps & { label: string } {
