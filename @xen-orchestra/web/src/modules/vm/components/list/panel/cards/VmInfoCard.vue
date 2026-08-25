@@ -51,15 +51,7 @@
         <template #key>{{ t('host') }}</template>
         <template #value>
           <div v-if="host" class="value">
-            <UiLink
-              :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-              size="small"
-              :icon="`object:host:${getHostState(host)}`"
-              :is-primary="isMaster"
-              :primary-tooltip="t('master')"
-            >
-              {{ host.name_label }}
-            </UiLink>
+            <HostLink :host="host" size="medium" />
           </div>
         </template>
         <template v-if="host" #addons>
@@ -128,8 +120,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
@@ -162,7 +153,6 @@ const { buildXo5Route } = useXoRoutes()
 
 const { useGetPoolById } = useXoPoolCollection()
 const { getVmHost } = useXoVmCollection()
-const { isMasterHost } = useXoHostCollection()
 
 const { user } = useXoUserResource({}, () => vm.creation?.user)
 
@@ -183,8 +173,6 @@ const xo5VmTemplateHref = computed(() =>
 const pool = useGetPoolById(() => vm.$pool)
 
 const host = computed(() => getVmHost(vm))
-
-const isMaster = computed(() => (host.value !== undefined ? isMasterHost(host.value.id) : false))
 
 const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useXoVmUtils(() => vm)
 </script>

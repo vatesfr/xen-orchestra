@@ -20,7 +20,7 @@
             <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
             {{ t('this-host') }}
           </template>
-          <HostLink v-else-if="masterHost" :host="masterHost" size="medium" />
+          <HostLink v-else-if="masterHost !== undefined" :host="masterHost" size="medium" />
         </template>
       </VtsKeyValueRow>
     </VtsKeyValueList>

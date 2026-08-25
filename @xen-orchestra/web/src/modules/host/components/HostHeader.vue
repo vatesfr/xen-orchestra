@@ -8,7 +8,6 @@
         }"
         size="medium"
         type="host"
-        :state="toLower(host.power_state)"
         :state="getHostState(host)"
       />
     </template>
@@ -126,4 +125,5 @@ const xo5HostStatsHref = computed(() => buildXo5Route(`/hosts/${host.id}/stats`)
 const { isMasterHost } = useXoHostCollection()
 
 const isMaster = computed(() => isMasterHost(host.id))
+const hostState = computed(() => getHostState(host))
 </script>

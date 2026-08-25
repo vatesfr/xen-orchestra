@@ -33,16 +33,7 @@
       </VtsKeyValueRow>
       <VtsKeyValueRow :label="t('host')">
         <template #value>
-          <UiLink
-            v-if="host"
-            :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-            size="medium"
-            :icon="`object:host:${getHostState(host)}`"
-            :is-primary="isMaster"
-            :primary-tooltip="t('master')"
-          >
-            {{ host.name_label }}
-          </UiLink>
+          <HostLink v-if="host" :host="host" size="medium" />
           <template v-else>
             {{ t('none') }}
           </template>
@@ -74,8 +65,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
@@ -101,7 +91,6 @@ const { t } = useI18n()
 const { areVmsReady } = useXoVmCollection()
 const { useGetPoolById } = useXoPoolCollection()
 const { getVmHost } = useXoVmCollection()
-const { isMasterHost } = useXoHostCollection()
 
 const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useXoVmUtils(() => vm)
 
@@ -118,8 +107,6 @@ const virtualizationType = computed(() =>
 )
 
 const host = computed(() => getVmHost(vm))
-
-const isMaster = computed(() => (host.value !== undefined ? isMasterHost(host.value.id) : false))
 </script>
 
 <style lang="postcss" scoped>

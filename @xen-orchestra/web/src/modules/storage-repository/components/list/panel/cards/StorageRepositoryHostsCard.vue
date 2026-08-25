@@ -8,13 +8,7 @@
     </UiCardTitle>
     <UiCollapsibleList v-if="hosts.length > 0" tag="ul" :total-items="hosts.length">
       <li v-for="host in hosts" :key="host.id" v-tooltip class="text-ellipsis">
-        <UiLink
-          size="small"
-          :icon="`object:host:${getHostState(host)}`"
-          :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-        >
-          {{ host.name_label }}
-        </UiLink>
+        <HostLink :host="host" size="medium" />
       </li>
     </UiCollapsibleList>
     <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
@@ -24,8 +18,8 @@
 </template>
 
 <script lang="ts" setup>
+import HostLink from '@/modules/host/components/HostLink.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
