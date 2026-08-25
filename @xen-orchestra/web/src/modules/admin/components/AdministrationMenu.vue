@@ -52,7 +52,7 @@ const sections = computed<AdminMenuSection[]>(() => [
     items: [
       { label: t('users'), href: undefined, to: { name: '/admin/user-management' } },
       { label: t('groups'), href: undefined, to: { name: '/admin/user-management/groups' } },
-      { label: t('roles'), href: buildXo5Route('/settings/acls'), to: undefined },
+      { label: t('roles'), href: undefined, to: { name: '/admin/user-management/roles' } },
       {
         label: t('ldap-auth-providers'),
         href: buildXo5Route('/settings/plugins?s=name%3A%2F%5Eauth-%2F'),
