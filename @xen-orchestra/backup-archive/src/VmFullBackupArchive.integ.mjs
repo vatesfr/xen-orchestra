@@ -129,13 +129,26 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
 
   test('clean() preserves cache.json.gz', async () => {
     await createFullBackupMetadata('backup1.json', 'backup1.xva')
-    await handler.writeFile(`${rootPath}/cache.json.gz`, 'cache')
+    await handler.writeFile(
+      `${rootPath}/cache.json.gz`,
+      await gzip(JSON.stringify({ [`/${rootPath}/backup1.json`]: {} }))
+    )
 
     await VmBackupDirectory.cleanVm(handler, rootPath)
 
     const remainingFiles = await handler.list(rootPath)
     assert.equal(remainingFiles.length, 3)
     assert.ok(remainingFiles.includes('cache.json.gz'))
+  })
+
+  test('clean() removes an unreadable cache.json.gz', async () => {
+    await createFullBackupMetadata('backup1.json', 'backup1.xva')
+    await handler.writeFile(`${rootPath}/cache.json.gz`, 'not gzipped json')
+
+    await VmBackupDirectory.cleanVm(handler, rootPath, { logWarn: () => {} })
+
+    const remainingFiles = await handler.list(rootPath)
+    assert.ok(!remainingFiles.includes('cache.json.gz'), 'an unreadable cache.json.gz should be removed, not kept')
   })
 
   test('clean() on an immutable remote never creates cache.json.gz', async () => {
@@ -158,6 +171,36 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
 
     const remainingFiles = await handler.list(rootPath)
     assert.ok(!remainingFiles.includes('cache.json.gz'), 'erroneous cache.json.gz should be removed, not rewritten')
+  })
+
+  test('clean() removes an unreadable leftover cache.json.gz found on an immutable remote', async () => {
+    await createFullBackupMetadata('backup1.json', 'backup1.xva')
+    await handler.writeFile(`${rootPath}/cache.json.gz`, 'not gzipped json')
+    handler.isImmutable = () => true
+
+    await VmBackupDirectory.cleanVm(handler, rootPath)
+
+    const remainingFiles = await handler.list(rootPath)
+    assert.ok(
+      !remainingFiles.includes('cache.json.gz'),
+      'an unreadable cache.json.gz should be removed from an immutable remote'
+    )
+  })
+
+  test('clean() tolerates an EPERM while removing the cache of an immutable remote', async () => {
+    await createFullBackupMetadata('backup1.json', 'backup1.xva')
+    await handler.writeFile(`${rootPath}/cache.json.gz`, await gzip(JSON.stringify({})))
+    handler.isImmutable = () => true
+    handler.unlink = () => {
+      const error = new Error('EPERM: operation not permitted')
+      error.code = 'EPERM'
+      throw error
+    }
+
+    await VmBackupDirectory.cleanVm(handler, rootPath)
+
+    const remainingFiles = await handler.list(rootPath)
+    assert.ok(remainingFiles.includes('cache.json.gz'), 'the immutable cache.json.gz could not be removed')
   })
 
   test('clean() keeps maintaining a pre-existing cache.json.gz across a remove', async () => {
