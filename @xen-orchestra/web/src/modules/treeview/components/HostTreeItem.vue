@@ -4,7 +4,7 @@
       {{ branch.data.name_label }}
       <template #icon>
         <VtsObjectIcon
-          v-tooltip="branch.data.power_state"
+          v-tooltip="getHostState(branch.data)"
           type="host"
           size="medium"
           :state="getHostState(branch.data)"
