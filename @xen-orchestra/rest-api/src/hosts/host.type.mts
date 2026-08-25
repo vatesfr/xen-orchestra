@@ -28,7 +28,7 @@ export type XoSrIscsiLunsExport = {
   id: string
   vendor: string
   serial: string
-  size: string
+  size?: string
   scsiId: string
 }
 

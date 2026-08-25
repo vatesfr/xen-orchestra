@@ -221,7 +221,7 @@ export class HostService {
     }
 
     try {
-      await xapi.call('SR.probe', xapiHost.$ref, deviceConfig, 'nfs', {})
+      await xapi.callAsync('SR.probe', xapiHost.$ref, deviceConfig, 'nfs', {})
 
       throw new Error('the call above should have thrown an error')
     } catch (error: any) {
@@ -245,7 +245,7 @@ export class HostService {
     const xapiHost = this.#restApi.getXapiObject<XoHost>(id, 'host')
     const xapi = xapiHost.$xapi
     try {
-      const result = (await xapi.call('host.call_plugin', xapiHost.$ref, 'zfs.py', 'list_zfs_pools', {})) as string
+      const result = (await xapi.callAsync('host.call_plugin', xapiHost.$ref, 'zfs.py', 'list_zfs_pools', {})) as string
       return JSON.parse(result)
     } catch (error: any) {
       if (error.code === 'XENAPI_MISSING_PLUGIN' || error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
@@ -263,7 +263,7 @@ export class HostService {
     let xml: ReturnType<typeof parseXml>
 
     try {
-      await xapi.call('SR.probe', xapiHost.$ref, {}, 'lvmohba', {})
+      await xapi.callAsync('SR.probe', xapiHost.$ref, {}, 'lvmohba', {})
 
       throw new Error('the call above should have thrown an error')
     } catch (error: any) {
@@ -321,7 +321,7 @@ export class HostService {
     let xml: ReturnType<typeof parseXml>
 
     try {
-      await xapi.call('SR.probe', xapiHost.$ref, deviceConfig, 'lvmoiscsi', {})
+      await xapi.callAsync('SR.probe', xapiHost.$ref, deviceConfig, 'lvmoiscsi', {})
 
       throw new Error('the call above should have thrown an error')
     } catch (error: any) {
@@ -381,7 +381,7 @@ export class HostService {
     let xml: ReturnType<typeof parseXml>
 
     try {
-      await xapi.call('SR.probe', xapiHost.$ref, deviceConfig, 'lvmoiscsi', {})
+      await xapi.callAsync('SR.probe', xapiHost.$ref, deviceConfig, 'lvmoiscsi', {})
 
       throw new Error('the call above should have thrown an error')
     } catch (error: any) {
@@ -439,7 +439,7 @@ export class HostService {
       deviceConfig.port = String(port)
     }
 
-    const xml = parseXml(await xapi.call('SR.probe', xapiHost.$ref, deviceConfig, 'lvmoiscsi', {}))
+    const xml = parseXml(await xapi.callAsync('SR.probe', xapiHost.$ref, deviceConfig, 'lvmoiscsi', {}))
 
     // UUIDs of the SRs connected to this LUN
     const srs: string[] = ensureArray(xml.SRlist.SR).map(sr => sr.UUID.trim())
@@ -455,7 +455,7 @@ export class HostService {
       SCSIid: scsiId,
     }
 
-    const xml = parseXml(await xapi.call('SR.probe', xapiHost.$ref, deviceConfig, 'lvmohba', {}))
+    const xml = parseXml(await xapi.callAsync('SR.probe', xapiHost.$ref, deviceConfig, 'lvmohba', {}))
 
     // get the UUID of SR connected to this LUN
     const srs: string[] = ensureArray(xml.SRlist.SR).map(sr => sr.UUID.trim())
@@ -473,7 +473,7 @@ export class HostService {
       serverpath: serverPath,
     }
 
-    const xml = parseXml(await xapi.call('SR.probe', xapiHost.$ref, deviceConfig, 'nfs', {}))
+    const xml = parseXml(await xapi.callAsync('SR.probe', xapiHost.$ref, deviceConfig, 'nfs', {}))
 
     const srs: string[] = ensureArray(xml.SRlist.SR).map(sr => sr.UUID.trim())
 
