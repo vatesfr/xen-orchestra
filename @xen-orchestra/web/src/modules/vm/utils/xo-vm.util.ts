@@ -3,26 +3,6 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { castArray } from 'lodash-es'
 
-export const CHANGING_STATE_OPERATIONS: Partial<VM_OPERATIONS>[] = [
-  VM_OPERATIONS.START,
-  VM_OPERATIONS.START_ON,
-  VM_OPERATIONS.PAUSE,
-  VM_OPERATIONS.UNPAUSE,
-  VM_OPERATIONS.RESUME,
-  VM_OPERATIONS.SUSPEND,
-  VM_OPERATIONS.CLEAN_REBOOT,
-  VM_OPERATIONS.HARD_REBOOT,
-  VM_OPERATIONS.SHUTDOWN,
-  VM_OPERATIONS.CLEAN_SHUTDOWN,
-  VM_OPERATIONS.HARD_SHUTDOWN,
-  VM_OPERATIONS.SNAPSHOT,
-  VM_OPERATIONS.DESTROY,
-  VM_OPERATIONS.CLONE,
-  VM_OPERATIONS.COPY,
-  VM_OPERATIONS.EXPORT,
-  VM_OPERATIONS.IMPORT,
-]
-
 export function isVmOperationPending(vm: FrontXoVm, operations: VM_OPERATIONS[] | VM_OPERATIONS) {
   const currentOperations = Object.values(vm.current_operations)
 

@@ -46,13 +46,13 @@ import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateIt
 import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
-import { useVmUtils } from '@/modules/vm/composables/vm-utils.composable.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import { useVmOperation } from '@core/composables/vm-operation.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
@@ -66,5 +66,5 @@ const route = useRoute<'/vm/[uuid]'>()
 
 const vm = computed(() => getVmByUuid(route.params.uuid as XenApiVm['uuid']))
 
-const { isChangingState, currentOperation } = useVmUtils(vm)
+const { isChangingState, currentOperation } = useVmOperation(vm)
 </script>

@@ -1,8 +1,8 @@
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { CHANGING_STATE_OPERATIONS, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import type { IconName } from '@core/icons'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
+import { useVmOperation } from '@core/composables/vm-operation.composable.ts'
 import { useMapper } from '@core/packages/mapper'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -101,31 +101,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     } as const
   })
 
-  const isChangingState = computed(() => isVmOperationPending(vm.value, CHANGING_STATE_OPERATIONS))
-
-  const currentOperation = useMapper<string, string>(
-    () => Object.values(vm.value.current_operations)[0],
-    {
-      start: t('operation:start'),
-      start_on: t('operation:start-on-host'),
-      pause: t('operation:pause'),
-      unpause: t('operation:unpause'),
-      suspend: t('operation:suspend'),
-      resume: t('operation:resume'),
-      clean_reboot: t('operation:clean-reboot'),
-      hard_reboot: t('operation:force-reboot'),
-      clean_shutdown: t('operation:clean-shutdown'),
-      hard_shutdown: t('operation:force-shutdown'),
-      destroy: t('operation:destroy'),
-      snapshot: t('operation:snapshot'),
-      clone: t('operation:duplicate'),
-      copy: t('operation:duplicate'),
-      export: t('operation:duplicate'),
-      import: t('operation:duplicate'),
-      unknown: '',
-    },
-    'unknown'
-  )
+  const { isChangingState, currentOperation } = useVmOperation(vm)
 
   const { buildXo5Route } = useXoRoutes()
 

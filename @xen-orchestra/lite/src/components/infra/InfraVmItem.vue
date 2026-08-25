@@ -8,12 +8,15 @@
       <template #addons>
         <UiLoader v-if="isChangingState" v-tooltip="{ placement: 'top', content: currentOperation }" />
         <MenuList placement="bottom-start">
-          <template #trigger="{ open, isOpen }">
+          <template #trigger="{ open }">
             <UiButtonIcon
-              accent="brand"
+              v-tooltip="{
+                placement: 'top',
+                content: t('quick-actions'),
+              }"
               icon="action:more-actions"
+              accent="brand"
               size="small"
-              :selected="isOpen"
               @click="open($event)"
             />
           </template>
@@ -28,7 +31,6 @@
 import type { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import VmTreeActions from '@/modules/vm/components/actions/VmTreeActions.vue'
-import { useVmUtils } from '@/modules/vm/composables/vm-utils.composable.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -36,13 +38,17 @@ import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
+import { useVmOperation } from '@core/composables/vm-operation.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useIntersectionObserver } from '@vueuse/core'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { vmOpaqueRef } = defineProps<{
   vmOpaqueRef: XenApiVm['$ref']
 }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef } = useVmStore().subscribe()
 const vm = computed(() => getByOpaqueRef(vmOpaqueRef))
@@ -58,5 +64,5 @@ const { stop } = useIntersectionObserver(rootElement, ([entry]) => {
 
 const vmPowerState = computed(() => vm.value?.power_state.toLowerCase() as Lowercase<VM_POWER_STATE> | undefined)
 
-const { isChangingState, currentOperation } = useVmUtils(vm)
+const { isChangingState, currentOperation } = useVmOperation(vm)
 </script>
