@@ -4,7 +4,7 @@
       :id="host.id"
       :label="host.name_label"
       :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-      :icon="`object:host:${getHostState(host)}`"
+      :icon="`object:host:${hostState}`"
     />
     <div class="content">
       <VtsCardRowKeyValue>
@@ -118,7 +118,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getStatus, getRelativeStartTime } = useXoHostUtils(() => host)
+const { getHostStatus, getRelativeStartTime } = useXoHostUtils(() => host)
 
 const { useGetPoolById } = useXoPoolCollection()
 
@@ -136,7 +136,9 @@ const nMissingPatches = computed(() => missingPatches.value.length)
 
 const noMissingPatches = computed(() => nMissingPatches.value === 0)
 
-const powerState = computed(() => getStatus(getHostState(host)))
+const powerState = computed(() => getHostStatus(getHostState(host)))
+
+const hostState = computed(() => getHostState(host))
 
 const relativeStartTime = computed(() => (host.startTime ? getRelativeStartTime(host.startTime) : undefined))
 </script>
