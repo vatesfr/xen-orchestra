@@ -61,15 +61,7 @@
             {{ t('this-host') }}
           </div>
           <div v-else-if="masterHost !== undefined" class="value">
-            <UiLink
-              :to="{ name: '/host/[id]/dashboard', params: { id: masterHost.id } }"
-              size="small"
-              :icon="`object:host:${getHostState(masterHost)}`"
-              is-primary
-              :primary-tooltip="t('master')"
-            >
-              {{ masterHost.name_label }}
-            </UiLink>
+            <HostLink :host="masterHost" size="medium" />
           </div>
         </template>
         <template v-if="masterHost !== undefined" #addons>
@@ -100,6 +92,7 @@
 </template>
 
 <script lang="ts" setup>
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoHostMissingPatchesCollection } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'

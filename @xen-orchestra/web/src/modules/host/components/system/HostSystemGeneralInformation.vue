@@ -32,14 +32,7 @@
             <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
             {{ t('this-host') }}
           </template>
-          <UiLink
-            v-else-if="masterHost !== undefined"
-            size="medium"
-            :to="{ name: '/host/[id]/dashboard', params: { id: masterHost.id } }"
-            :icon="`object:host:${getHostState(masterHost)}`"
-          >
-            {{ masterHost.name_label }}
-          </UiLink>
+          <HostLink v-else-if="masterHost !== undefined" :host="masterHost" size="medium" />
         </template>
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('started')">
@@ -57,8 +50,8 @@
 </template>
 
 <script setup lang="ts">
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'

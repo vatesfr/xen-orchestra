@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <VtsObjectIcon type="host" :state="getHostState(host)" size="medium" />
+    <VtsObjectIcon type="host" :state="hostState" size="medium" />
     {{ host.name_label }}
     <VtsIcon v-if="isMasterHost(host.id)" name="status:primary-circle" size="medium" />
   </div>
@@ -11,11 +11,14 @@ import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-res
 import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
+import { computed } from 'vue'
 
-defineProps<{
+const { host } = defineProps<{
   host: FrontXoHost
 }>()
+
 const { isMasterHost } = useXoHostCollection()
+const hostState = computed(() => getHostState(host))
 </script>
 
 <style scoped lang="postcss">
