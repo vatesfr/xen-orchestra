@@ -18,8 +18,6 @@ export function useNewBackupRepository() {
 
         const [result] = await run()
 
-        console.log('result', result)
-
         if (result.status === 'rejected') {
           console.error('Failed to create backup repository', result.reason)
         }
