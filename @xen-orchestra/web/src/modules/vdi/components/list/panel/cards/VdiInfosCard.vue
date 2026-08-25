@@ -1,11 +1,6 @@
 <template>
   <UiPanelCard class="vdi-infos-card">
-    <VtsCardObjectTitle
-      :id="vdi.id"
-      :label="vdi.name_label"
-      :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } }"
-      :icon="vdiIcon"
-    />
+    <VtsCardObjectTitle :id="vdi.id" :label="vdi.name_label" :to="vdiGeneralRoute" :icon="vdiIcon" />
     <div class="content">
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
@@ -70,6 +65,12 @@ const { vdi, vm } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const vdiGeneralRoute = computed(() => ({
+  name: '/vdi/[id]/general' as const,
+  params: { id: vdi.id },
+  query: { from: VDI_PAGE_CONTEXT.VM },
+}))
 
 const vbdsAttachmentStatus = useVbdsStatus(() => vdi.$VBDs)
 
