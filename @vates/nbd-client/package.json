@@ -34,6 +34,6 @@
   "scripts": {
     "postversion": "npm publish --access public",
     "test": "node --experimental-test-module-mocks --test",
-    "test-integration": "tap --allow-incomplete-coverage"
+    "test-integration": "tap --allow-incomplete-coverage tests/*.integ.mjs"
   }
 }
