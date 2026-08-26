@@ -168,22 +168,6 @@ const DEFAULT_HELMET_CONFIG = {
 // `/v5/netdata` self-proxies to `/netdata` (see config.toml)
 const CSP_EXEMPT_PREFIXES = ['/v5/netdata', '/netdata']
 
-// Matches the prefix or a sub-path of it (e.g. `/netdata/v1/info`)
-// but not an unrelated route that starts with the same characters
-// (e.g. `/netdata-test`)
-const isCspExemptPath = path => CSP_EXEMPT_PREFIXES.some(prefix => path === prefix || path.startsWith(prefix + '/'))
-
-const CSP_EXEMPT_DIRECTIVES = {
-  directives: {
-    'default-src': ["'self'"],
-    'connect-src': ["'self'"],
-    'script-src': ["'self'", "'unsafe-inline'"],
-    'style-src': ["'self'", "'unsafe-inline'"],
-    'img-src': ["'self'", 'data:'],
-    'object-src': ["'none'"],
-  },
-}
-
 async function createExpressApp(config) {
   const app = createExpress()
 
@@ -195,19 +179,19 @@ async function createExpressApp(config) {
   const helmetConfig = mergeWith({}, isDev ? {} : DEFAULT_HELMET_CONFIG, config.http.helmet, (dst, src) =>
     Array.isArray(dst) ? dst.concat(src) : undefined
   )
+  app.use(helmet(helmetConfig))
 
-  const { contentSecurityPolicy, ...restHelmetConfig } = helmetConfig
-
-  if (isDev || contentSecurityPolicy === false) {
-    app.use(helmet(helmetConfig))
-  } else {
-    // CSP picked separately by path, other
-    // helmet headers stay the same
-    app.use(helmet({ ...restHelmetConfig, contentSecurityPolicy: false }))
-
-    const csp = helmet.contentSecurityPolicy(contentSecurityPolicy)
-    const relaxedCsp = helmet.contentSecurityPolicy(CSP_EXEMPT_DIRECTIVES)
-    app.use((req, res, next) => (isCspExemptPath(req.path) ? relaxedCsp : csp)(req, res, next))
+  const { contentSecurityPolicy } = helmetConfig
+  if (!isDev && contentSecurityPolicy !== false) {
+    app.use(
+      CSP_EXEMPT_PREFIXES,
+      helmet.contentSecurityPolicy({
+        directives: {
+          ...contentSecurityPolicy.directives,
+          'script-src': ["'self'", "'unsafe-inline'"],
+        },
+      })
+    )
   }
 
   app.use(compression())
