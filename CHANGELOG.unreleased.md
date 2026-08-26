@@ -23,8 +23,6 @@
 - [XO6/Host] Add possibility to force reboot a host (PR [#10175](https://github.com/vatesfr/xen-orchestra/pull/10175))
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
 - [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
-- [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
-- [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
 - [XO6/SR] Add dedicated Storage Repository page with general information, space usage, PBD details, custom fields (PR [#10100](https://github.com/vatesfr/xen-orchestra/pull/10100))
 - [XO5/Backups] Add `Synchronize snapshots` checkbox to backup jobs to get consistent restore points (PR [#10136](https://github.com/vatesfr/xen-orchestra/pull/10136))
 - [XO6/Host] Add possibility to smart reboot a host (PR [#10177](https://github.com/vatesfr/xen-orchestra/pull/10177))
@@ -41,10 +39,10 @@
 - [XO6] Fix inconsistent spacing in side panel cards (PR [#10279](https://github.com/vatesfr/xen-orchestra/pull/10279))
 - [VIF] Preserve other_config, rate limit, MTU and device when changing a VIF's MAC address (PR [#10284](https://github.com/vatesfr/xen-orchestra/pull/10284))
 - **XO 5**:
-  - [VM/Console] Fix the page header and tab navigation disappearing permanently in the console tab (PR [#10007](https://github.com/vatesfr/xen-orchestra/pull/10007))
-- [sdn-controller] Fix `update_traffic_rule` keeping the previous port: `newRule` is a partial update and a field sent as `null` is now removed from the rule (PR [#10307](https://github.com/vatesfr/xen-orchestra/pull/10307))
+- [VM/Console] Fix the page header and tab navigation disappearing permanently in the console tab (PR [#10007](https://github.com/vatesfr/xen-orchestra/pull/10007))
 - [xo-server] Disconnect user stalling task result and using too much memory (PR [#10237](https://github.com/vatesfr/xen-orchestra/pull/10237))
 - [XO5/tasks] Show a task when a user is disconnected because its task flow is stalled (PR [#10237](https://github.com/vatesfr/xen-orchestra/pull/10237))
+- [sdn-controller] Fix `update_traffic_rule` keeping the previous port: `newRule` is a partial update and a field sent as `null` is now removed from the rule (PR [#10307](https://github.com/vatesfr/xen-orchestra/pull/10307))
 
 ### Packages to release
 
