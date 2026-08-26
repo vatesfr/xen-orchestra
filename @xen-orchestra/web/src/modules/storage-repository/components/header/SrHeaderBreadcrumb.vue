@@ -1,18 +1,12 @@
 <template>
-  <div class="sr-header-breadcrumb">
-    <UiBreadcrumb v-if="parent" :size>
+  <div v-if="parent" class="sr-header-breadcrumb">
+    <UiBreadcrumb :size>
       <UiLink :size :to="parent.dashboardTo" :icon="parent.icon">
         {{ parent.label }}
       </UiLink>
       <UiLink :size :to="parent.storageTo">
         {{ t('storage') }}
       </UiLink>
-      <span class="sr-name">
-        <VtsObjectIcon type="sr" :state="srIconState" size="current" />
-        {{ sr.name_label }}
-      </span>
-    </UiBreadcrumb>
-    <UiBreadcrumb v-else :size>
       <span class="sr-name">
         <VtsObjectIcon type="sr" :state="srIconState" size="current" />
         {{ sr.name_label }}

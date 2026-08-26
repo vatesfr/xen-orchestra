@@ -1,7 +1,7 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard>
     <UiCardTitle>
-      {{ t('connected-sr') }}
+      {{ t('connected-srs') }}
       <UiCounter :value="srs.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
     <VtsStateHero v-if="!isReady" format="card" type="busy" size="extra-small" />
@@ -26,7 +26,7 @@
     <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
       {{ t('no-sr-connected') }}
     </VtsStateHero>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -36,11 +36,11 @@ import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/co
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { toSrScopeQuery } from '@/modules/storage-repository/utils/sr-scope.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { logicAnd, logicOr } from '@vueuse/math'
@@ -72,9 +72,3 @@ const srs = computed(() => {
   return hostSrs.filter(sr => isConnectedInScope(sr, scope.value))
 })
 </script>
-
-<style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-}
-</style>
