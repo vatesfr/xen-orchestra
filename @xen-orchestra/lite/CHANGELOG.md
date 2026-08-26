@@ -1,7 +1,6 @@
 # ChangeLog
 
 ## **next**
-
 - [Host] Add possibility to reboot a host (PR [#10250](https://github.com/vatesfr/xen-orchestra/pull/10250))
 
 ## **0.25.0** (2026-08-31)
