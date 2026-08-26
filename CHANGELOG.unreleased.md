@@ -31,4 +31,7 @@
 
 <!--packages-start-->
 
+- @vates/types major
+- @xen-orchestra/rest-api major
+
 <!--packages-end-->

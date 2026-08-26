@@ -2,7 +2,6 @@ import {
   getMissingPrivileges,
   type AnyPrivilegeOnParam,
   type AnyPrivilege,
-  type SupportedActionsByResource,
   type SupportedActions,
   type SupportedResource,
 } from '@xen-orchestra/acl'
@@ -11,7 +10,7 @@ import type { Response, NextFunction } from 'express'
 import type { AuthenticatedRequest, MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
-import type { Branded, NonXapiXoRecord, XoApp, XapiXoRecord, XoRecord, XoAclBasePrivilege } from '@vates/types'
+import type { Branded, NonXapiXoRecord, XapiXoRecord, XoRecord } from '@vates/types'
 import { ServiceIdentifier, ValidateError } from 'tsoa'
 import { ApiError } from '../helpers/error.helper.mjs'
 
@@ -66,8 +65,6 @@ export function autoBindService<Service extends object, Method extends keyof Ser
   }
 }
 
-type RestNonXapiXoRecord = NonXapiXoRecord<SupportedActionsByResource, SupportedResource> | AnyPrivilege
-
 export type AclEntry = {
   [Resource in SupportedResource]: {
     resource: Resource
@@ -89,13 +86,13 @@ export type AclEntry = {
       | {
           objectIds: string[] | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => XoRecord['id'][])
           getObject?:
-            | ((opts: { restApi: RestApi }) => (id: Branded<any>) => Promise<RestNonXapiXoRecord | XoAclBasePrivilege>)
+            | ((opts: { restApi: RestApi }) => (id: Branded<any>) => Promise<NonXapiXoRecord>)
             | ((opts: { restApi: RestApi }) => (id: Branded<any>) => XapiXoRecord)
         }
       | {
           objectId: string | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => XoRecord['id'])
           getObject?:
-            | ((opts: { restApi: RestApi }) => (id: Branded<any>) => Promise<RestNonXapiXoRecord | XoAclBasePrivilege>)
+            | ((opts: { restApi: RestApi }) => (id: Branded<any>) => Promise<NonXapiXoRecord>)
             | ((opts: { restApi: RestApi }) => (id: Branded<any>) => XapiXoRecord)
         }
       | {
