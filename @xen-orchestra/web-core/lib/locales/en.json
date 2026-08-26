@@ -281,7 +281,7 @@
   "confirm-vm-revert": "Confirm VM revert",
   "connect": "Connect",
   "connected": "Connected",
-  "connected-sr": "Connected SRs",
+  "connected-srs": "Connected SRs",
   "connected-to-ip": "Connected to {ip}",
   "connecting": "Connecting",
   "connection": "Connection",

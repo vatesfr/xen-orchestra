@@ -281,7 +281,7 @@
   "confirm-vm-revert": "Confirmer la restauration de la VM à l'instantané",
   "connect": "Se connecter",
   "connected": "Connecté",
-  "connected-sr": "SRs connectés",
+  "connected-srs": "SRs connectés",
   "connected-to-ip": "Connecté à {ip}",
   "connecting": "Connexion en cours",
   "connection": "Connexion",
