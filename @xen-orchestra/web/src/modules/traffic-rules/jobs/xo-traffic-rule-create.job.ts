@@ -20,7 +20,7 @@ export type TrafficRulePayload = {
   direction: TrafficRuleDirection
   protocol: TrafficRuleProtocol
   ipRange: string
-  port?: number
+  port: number | null
 }
 
 export const useXoTrafficRuleCreateJob = defineJob('traffic-rule.create', [payloadsArg], () => {
