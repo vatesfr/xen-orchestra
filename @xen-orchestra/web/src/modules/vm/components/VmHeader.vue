@@ -3,14 +3,11 @@
     {{ vm.name_label }}
     <template #icon>
       <VtsObjectIcon
-        v-tooltip="{
-          placement: 'top',
-          content: currentOperation ? currentOperation : '',
-        }"
         size="medium"
         :state="toLower(vm.power_state)"
         type="vm"
         :busy="isChangingState"
+        :busy-tooltip="currentOperation"
       />
     </template>
     <template #actions>

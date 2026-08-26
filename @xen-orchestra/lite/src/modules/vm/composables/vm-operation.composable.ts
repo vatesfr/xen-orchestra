@@ -1,42 +1,21 @@
+import { isVmOperationPending } from '@/libs/vm.ts'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { CHANGING_STATE_OPERATIONS } from '@/modules/vm/utils/vm.util.ts'
 import { useMapper } from '@core/packages/mapper'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export const CHANGING_STATE_OPERATIONS = [
-  'start',
-  'start_on',
-  'pause',
-  'unpause',
-  'resume',
-  'suspend',
-  'clean_reboot',
-  'hard_reboot',
-  'shutdown',
-  'clean_shutdown',
-  'hard_shutdown',
-  'snapshot',
-  'destroy',
-  'clone',
-  'copy',
-  'export',
-  'import',
-]
-
-type VmWithOperations = {
-  current_operations: Record<string, string>
-}
-
-export function useVmOperation(vm: MaybeRefOrGetter<VmWithOperations | undefined>) {
+export function useVmOperation(vm: MaybeRefOrGetter<XenApiVm | undefined>) {
   const { t } = useI18n()
 
-  const currentOperations = computed(() => Object.values(toValue(vm)?.current_operations ?? {}))
+  const _vm = toValue(vm)
 
-  const isChangingState = computed(() =>
-    currentOperations.value.some(operation => CHANGING_STATE_OPERATIONS.includes(operation))
-  )
+  const isChangingState = computed(() => {
+    return _vm !== undefined && isVmOperationPending(_vm, CHANGING_STATE_OPERATIONS)
+  })
 
   const currentOperation = useMapper<string, string>(
-    () => currentOperations.value[0],
+    () => Object.values(_vm?.current_operations ?? {})[0],
     {
       start: t('operation:start'),
       start_on: t('operation:start-on-host'),
