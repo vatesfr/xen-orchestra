@@ -32,7 +32,7 @@ export type BaseTrafficRulePayload = {
   allow: boolean
   direction: TrafficRuleDirection
   protocol: TrafficRuleProtocol
-  port?: number
+  port: number | null
   ipRange: string
 }
 
@@ -107,7 +107,7 @@ export function useTrafficRuleFormBase<T extends BaseTrafficRuleFormData>(
       direction: formData.direction,
       protocol: formData.protocol,
       ipRange: formData.ipRange,
-      ...(protocolHasPort(formData.protocol) && typeof formData.port === 'number' && { port: formData.port }),
+      port: protocolHasPort(formData.protocol) && typeof formData.port === 'number' ? formData.port : null,
     }
   }
 
