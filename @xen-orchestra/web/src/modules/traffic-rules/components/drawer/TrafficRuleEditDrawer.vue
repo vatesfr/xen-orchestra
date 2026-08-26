@@ -1,5 +1,10 @@
 <template>
-  <UiDrawer class="traffic-rule-edit-drawer" :on-dismiss="() => emit('cancel')" @dismiss="emit('cancel')">
+  <UiDrawer
+    class="traffic-rule-edit-drawer"
+    :on-dismiss="() => emit('cancel')"
+    @dismiss="emit('cancel')"
+    @confirm="onConfirm()"
+  >
     <template #title>{{ t('action:edit-traffic-rule') }}</template>
 
     <template #content>
@@ -9,12 +14,12 @@
 
       <span class="typo-body-regular-small required-hint">{{ t('field:required') }}</span>
 
-      <EditTrafficRuleForm ref="form" class="form" :rule @confirm="emit('confirm', $event)" />
+      <EditTrafficRuleForm ref="form" class="form" :rule />
     </template>
 
     <template #buttons>
       <VtsOverlayCancelButton @click="emit('cancel')" />
-      <VtsOverlayConfirmButton :on-click="() => form?.submit()">
+      <VtsOverlayConfirmButton>
         {{ t('action:save') }}
       </VtsOverlayConfirmButton>
     </template>
@@ -38,16 +43,20 @@ defineProps<{
 
 const emit = defineEmits<{
   cancel: []
-  confirm: [payload: TrafficRulePayload]
+  confirm: [payload: TrafficRulePayload | undefined]
 }>()
 
 const { t } = useI18n()
 
 const form = useTemplateRef('form')
+
+async function onConfirm() {
+  emit('confirm', await form.value?.validate())
+}
 </script>
 
 <style lang="postcss" scoped>
-.container {
+.traffic-rule-edit-drawer {
   .section-title {
     margin-block-end: 2.4rem;
   }

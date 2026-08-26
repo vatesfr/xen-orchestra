@@ -1,5 +1,5 @@
 <template>
-  <VtsForm class="edit-traffic-rule-form" @submit="onSubmit()">
+  <div class="edit-traffic-rule-form">
     <div class="row">
       <TrafficRuleFormSelect v-bind="allowSelectBindings">
         <template #option="{ option }">
@@ -46,7 +46,7 @@
         </template>
       </TrafficRuleFormSelect>
     </div>
-  </VtsForm>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -54,8 +54,6 @@ import TrafficRuleFormNumberInput from '@/modules/traffic-rules/components/form/
 import TrafficRuleFormSelect from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormSelect.vue'
 import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormTextInput.vue'
 import { useEditTrafficRuleForm } from '@/modules/traffic-rules/form/edit/use-edit-traffic-rule-form.ts'
-import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
-import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -64,10 +62,6 @@ import { useI18n } from 'vue-i18n'
 
 const { rule } = defineProps<{
   rule: TrafficRule
-}>()
-
-const emit = defineEmits<{
-  confirm: [payload: TrafficRulePayload]
 }>()
 
 const { t } = useI18n()
@@ -86,16 +80,8 @@ const {
   validateAndBuildPayload,
 } = useEditTrafficRuleForm(() => rule)
 
-async function onSubmit() {
-  const payload = await validateAndBuildPayload()
-
-  if (payload !== undefined) {
-    emit('confirm', payload)
-  }
-}
-
 defineExpose({
-  submit: onSubmit,
+  validate: validateAndBuildPayload,
 })
 </script>
 

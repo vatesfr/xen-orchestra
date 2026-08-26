@@ -1,5 +1,6 @@
 import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { useXoTrafficRuleEditJob } from '@/modules/traffic-rules/jobs/xo-traffic-rule-edit.job.ts'
+import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { TrafficRule } from '@vates/types'
@@ -21,7 +22,11 @@ export function useTrafficRuleEdit(rawTrafficRule: MaybeRefOrGetter<TrafficRule>
   const { open } = useOverlay({
     component: () => import('@/modules/traffic-rules/components/drawer/TrafficRuleEditDrawer.vue'),
     events: {
-      onConfirm: async (payload: TrafficRulePayload) => {
+      onConfirm: async (payload: TrafficRulePayload | undefined) => {
+        if (payload === undefined) {
+          return KEEP_OVERLAY_OPEN
+        }
+
         newRulePayload.value = payload
 
         try {
