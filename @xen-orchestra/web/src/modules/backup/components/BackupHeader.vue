@@ -1,9 +1,12 @@
 <template>
   <div class="breadcrumb-container">
     <UiBreadcrumb :size>
-      <UiLink :size :to="{ name: '/(site)/dashboard' }" icon="fa:satellite">{{ XOA_NAME }}</UiLink>
+      <span class="breadcrumb-item">
+        <VtsIcon name="fa:satellite" size="current" />
+        <UiLink :size :to="{ name: '/(site)/dashboard' }">{{ XOA_NAME }}</UiLink>
+      </span>
       <UiLink :size :to="{ name: '/(site)/backups' }">{{ t('backups') }}</UiLink>
-      <span class="backup-job-name">
+      <span class="breadcrumb-item">
         <VtsIcon name="object:backup-job" size="current" />
         {{ backupJob.name }}
       </span>
@@ -85,7 +88,7 @@ const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
   justify-content: space-between;
   overflow-y: auto;
 
-  .backup-job-name {
+  .breadcrumb-item {
     display: flex;
     align-items: center;
     gap: 0.8rem;
