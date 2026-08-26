@@ -1,11 +1,16 @@
 // @ts-check
 /**
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
- * @typedef {import('@xen-orchestra/disk-transform').RandomAccessDisk} RandomAccessDisk
  * @typedef {import('@xen-orchestra/disk-transform').Disk} Disk
  */
 
-import { DiskLargerBlock, DiskPassthrough, RandomAccessDisk, ReadAhead, TimeoutDisk } from '@xen-orchestra/disk-transform'
+import {
+  DiskLargerBlock,
+  DiskPassthrough,
+  RandomAccessDisk,
+  ReadAhead,
+  TimeoutDisk,
+} from '@xen-orchestra/disk-transform'
 import { createLogger } from '@xen-orchestra/log'
 import { Task } from '@vates/task'
 import { XapiVhdCbtSource } from './XapiVhdCbt.mjs'
@@ -108,7 +113,7 @@ export class XapiDiskSource extends DiskPassthrough {
 
       return await this.#formatSourceDisk(source, 'NBT')
     } catch (err) {
-      if (err.code === 'NO_NBD_AVAILABLE') {
+      if (/** @type {NodeJS.ErrnoException} */ (err).code === 'NO_NBD_AVAILABLE') {
         const warningMessage = `can't connect through NBD, fall back to stream export`
         // @ts-ignore Task.warning is a static alias set up dynamically, not visible to TS
         Task.warning(warningMessage)
@@ -257,7 +262,7 @@ export class XapiDiskSource extends DiskPassthrough {
       this.#useCbt = true
       return await this.#formatSourceDisk(source, 'NBT+CBT')
     } catch (error) {
-      if (error.code !== 'CBT_DISABLED') {
+      if (/** @type {NodeJS.ErrnoException} */ (error).code !== 'CBT_DISABLED') {
         info('Error in openNbdCBT', error)
       }
       // init probaby failed, so nothing to close , but better safe than sorry
