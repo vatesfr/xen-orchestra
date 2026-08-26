@@ -10,7 +10,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { XoSr } from '@vates/types'
 import { reactify, useSorted } from '@vueuse/core'
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 
 export type FrontXoSr = Pick<XoSr, (typeof srFields)[number]>
 
@@ -54,10 +54,12 @@ export const useXoSrCollection = defineRemoteResource({
 
     const vdiIsosBySrName = ref<Record<FrontXoSr['name_label'], FrontXoVdi[]>>({})
     const srsByPool = ref(new Map<FrontXoPool['id'], FrontXoSr[]>())
+    const srsByHost = ref(new Map<FrontXoHost['id'], FrontXoSr[]>())
 
-    watch(sortedSrs, srs => {
+    watch([sortedSrs, pbdsBySr], ([srs, pbdsBySrValue]) => {
       const tmpVdiIsosBySrName: Record<FrontXoSr['name_label'], FrontXoVdi[]> = {}
       const tmpSrsByPool = new Map<FrontXoPool['id'], FrontXoSr[]>()
+      const tmpSrsByHost = new Map<FrontXoHost['id'], FrontXoSr[]>()
 
       srs.forEach(sr => {
         if (sr.SR_type === 'iso') {
@@ -74,22 +76,15 @@ export const useXoSrCollection = defineRemoteResource({
         }
 
         safePushInMap(tmpSrsByPool, sr.$pool, sr)
-      })
 
-      vdiIsosBySrName.value = tmpVdiIsosBySrName
-      srsByPool.value = tmpSrsByPool
-    })
-
-    const srsByHost = computed(() => {
-      const tmpSrsByHost = new Map<FrontXoHost['id'], FrontXoSr[]>()
-
-      sortedSrs.value.forEach(sr => {
-        pbdsBySr.value.get(sr.id)?.forEach(pbd => {
+        pbdsBySrValue.get(sr.id)?.forEach(pbd => {
           safePushInMap(tmpSrsByHost, pbd.host, sr)
         })
       })
 
-      return tmpSrsByHost
+      vdiIsosBySrName.value = tmpVdiIsosBySrName
+      srsByPool.value = tmpSrsByPool
+      srsByHost.value = tmpSrsByHost
     })
 
     const isDefaultSr = (sr: FrontXoSr) => getPoolById(sr.$pool)?.default_SR === sr.id

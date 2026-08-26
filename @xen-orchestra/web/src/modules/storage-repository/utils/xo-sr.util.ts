@@ -1,5 +1,6 @@
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
+import { toSrScopeQuery } from '@/modules/storage-repository/utils/sr-scope.util.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
 import type { RouteLocationRaw } from 'vue-router'
 
 export function isSrWritable(sr: FrontXoSr) {
@@ -10,7 +11,7 @@ export function getSrPageLocation(sr: FrontXoSr, scope: SrScope): RouteLocationR
   return {
     name: '/sr/[id]',
     params: { id: sr.id },
-    query: { from: scope.type, ...(scope.type === SR_SCOPE_TYPE.HOST && { host: scope.hostId }) },
+    query: toSrScopeQuery(scope),
   }
 }
 

@@ -432,7 +432,6 @@
   "host-internal-networks": "Réseaux internes de l'hôte",
   "host-not-running": "Hôte non démarré",
   "host-off": "L’hôte est éteint",
-  "host-uptime": "Uptime de l'hôte",
   "host:status:active": "@:status:active",
   "host:status:disabled": "@:status:disabled",
   "host:status:halted": "@:status:halted",

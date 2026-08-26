@@ -1,5 +1,9 @@
 <template>
   <VtsSidePanel :has-selection="!!vdi" @close="emit('close')">
+    <template v-if="vbd && vm" #actions>
+      <VbdConnectButton v-if="!vbd.attached" :vbd :vm />
+      <VbdDisconnectButton v-else :vbd :vm />
+    </template>
     <template v-if="vdi" #more-actions>
       <VmVdiActions v-if="vm" :vdi :vm />
       <VdiActions v-else :vdi />
@@ -13,6 +17,10 @@
 </template>
 
 <script setup lang="ts">
+import VbdConnectButton from '@/modules/vbd/components/actions/connect/VbdConnectButton.vue'
+import VbdDisconnectButton from '@/modules/vbd/components/actions/disconnect/VbdDisconnectButton.vue'
+import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { findScopedVbd } from '@/modules/vbd/utils/xo-vbd.util.ts'
 import VdiActions from '@/modules/vdi/components/actions/VdiActions.vue'
 import VmVdiActions from '@/modules/vdi/components/actions/VmVdiActions.vue'
 import VdiConfigurationCard from '@/modules/vdi/components/list/panel/cards/VdiConfigurationCard.vue'
@@ -21,6 +29,7 @@ import VdiSpaceCard from '@/modules/vdi/components/list/panel/cards/VdiSpaceCard
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import { computed } from 'vue'
 
 const { vdi, vm } = defineProps<{
   vdi?: FrontXoVdi
@@ -30,4 +39,10 @@ const { vdi, vm } = defineProps<{
 const emit = defineEmits<{
   close: []
 }>()
+
+const { useGetVbdsByIds } = useXoVbdCollection()
+
+const vbds = useGetVbdsByIds(() => vdi?.$VBDs ?? [])
+
+const vbd = computed(() => findScopedVbd(vbds.value, vm))
 </script>
