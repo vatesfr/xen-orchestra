@@ -1,4 +1,4 @@
-import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums'
+import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { castArray } from 'lodash-es'
 

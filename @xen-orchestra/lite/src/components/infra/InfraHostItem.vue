@@ -13,13 +13,7 @@
     >
       {{ host.name_label || '(Host)' }}
       <template #addons>
-        <UiLoader
-          v-if="isChangingState"
-          v-tooltip="{
-            placement: 'top',
-            content: currentOperation,
-          }"
-        />
+        <UiLoader v-if="isChangingState" v-tooltip="currentOperation" />
         <VtsIcon v-if="isPoolMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
         <UiCounter
           v-if="isReady"

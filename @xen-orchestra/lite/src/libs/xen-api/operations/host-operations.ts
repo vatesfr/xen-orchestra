@@ -1,5 +1,5 @@
-import type XenApi from '@/libs/xen-api/xen-api'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import type XenApi from '@/libs/xen-api/xen-api.ts'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 
 export function createHostOperations(xenApi: XenApi) {
   type HostRef = XenApiHost['$ref']
@@ -14,13 +14,9 @@ export function createHostOperations(xenApi: XenApi) {
 
   return {
     disable,
-
     enable,
-
     evacuate,
-
     reboot,
-
     cleanReboot: async (hostRef: HostRef) => {
       await disable(hostRef)
 

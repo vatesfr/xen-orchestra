@@ -4,7 +4,7 @@
     :busy="isRebootingHost"
     :disabled="!canRebootHost"
     icon="action:reboot"
-    @click="openRebootHostModal()"
+    @click="rebootHost()"
   >
     {{ t('action:reboot') }}
   </MenuItem>
@@ -27,17 +27,14 @@ const { t } = useI18n()
 const { open: openActionModal } = useActionModal()
 
 const {
-  run: rebootHost,
+  run,
   canRun: canRebootHost,
   isRunning: isRebootingHost,
   errorMessage: rebootHostErrorMessage,
 } = useHostRebootJob(() => host)
 
-function openRebootHostModal() {
-  return openActionModal({
-    events: {
-      onConfirm: () => rebootHost(),
-    },
+async function rebootHost() {
+  const { event } = await openActionModal({
     props: {
       accent: 'info',
       action: 'reboot',
@@ -46,5 +43,11 @@ function openRebootHostModal() {
       icon: 'status:info-picto',
     },
   })
+
+  if (event !== 'onConfirm') {
+    return
+  }
+
+  await run()
 }
 </script>
