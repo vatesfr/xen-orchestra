@@ -24,3 +24,7 @@ Each module typically contains:
 - A `/composables` subdirectory for Vue composables that encapsulate logic related to that module.
 - A `/utils` subdirectory for utility functions that are specific to that module.
 - Other directories as needed for that module's functionality.
+
+## Testing
+
+See [tests.md](./tests.md) for the unit-testing conventions used across modules (Vitest setup, factories, mocking, and how to test utilities and composables).
