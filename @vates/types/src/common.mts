@@ -755,9 +755,9 @@ export type TrafficRuleDirection = 'from' | 'to' | 'from/to'
 
 export type RawTrafficRule = {
   allow: boolean
-  protocol: string
+  protocol: TrafficRuleProtocol
   ipRange: string
-  direction: string
+  direction: TrafficRuleDirection
   port?: string
 }
 

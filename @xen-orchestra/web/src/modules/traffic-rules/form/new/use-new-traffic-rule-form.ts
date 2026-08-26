@@ -2,9 +2,16 @@ import {
   type FrontXoNetwork,
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { TargetOption } from '@/modules/traffic-rules/form/target-option.util.ts'
+import {
+  networkToTargetOption,
+  vifToTargetOption,
+  vmToTargetOption,
+} from '@/modules/traffic-rules/form/target-option.util.ts'
 import { getNetworkIcon } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import {
   type BaseTrafficRuleFormData,
@@ -12,13 +19,13 @@ import {
 } from '@/modules/traffic-rules/form/use-traffic-rule-form-base.ts'
 import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { isNetworkRuleSupported } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
+import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { type IconName, objectIcon } from '@core/icons'
 import { type FormValidationConfig, required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { TrafficRuleTargetType } from '@vates/types'
-import { toLower } from 'lodash-es'
 import { computed, type MaybeRefOrGetter, reactive, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -121,13 +128,7 @@ export function useNewTrafficRuleForm(
     poolVms.value.map(vm => {
       const hasVifs = vm.VIFs.length > 0
 
-      return {
-        id: vm.id,
-        label: vm.name_label,
-        value: vm.id,
-        icon: objectIcon('vm', toLower(vm.power_state)),
-        disabled: !hasVifs,
-      }
+      return vmToTargetOption(vm, hasVifs)
     })
   )
 

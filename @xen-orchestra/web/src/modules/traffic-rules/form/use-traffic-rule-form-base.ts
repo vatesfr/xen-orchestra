@@ -28,7 +28,7 @@ export type BaseTrafficRuleFormData = {
   ipRange: string
 }
 
-export type BaseNewTrafficRulePayload = {
+export type BaseTrafficRulePayload = {
   allow: boolean
   direction: TrafficRuleDirection
   protocol: TrafficRuleProtocol
@@ -101,7 +101,7 @@ export function useTrafficRuleFormBase<T extends BaseTrafficRuleFormData>(
 
   const hasPort = computed(() => protocolHasPort(formData.protocol))
 
-  function buildBaseRulePayload(): BaseNewTrafficRulePayload {
+  function buildBaseRulePayload(): BaseTrafficRulePayload {
     return {
       allow: formData.allow,
       direction: formData.direction,
