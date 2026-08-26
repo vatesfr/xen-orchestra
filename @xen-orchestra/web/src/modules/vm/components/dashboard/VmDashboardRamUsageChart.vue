@@ -11,16 +11,17 @@
     <VtsStateHero v-else-if="ramUsage.length === 0" format="card" type="no-data" size="medium">
       {{ t('no-data-to-calculate') }}
     </VtsStateHero>
-    <VtsLinearChart v-else :data="ramUsage" :max-value :value-formatter="byteFormatter" />
+    <VtsLinearChart v-else :data="ramUsage" :max-value :value-formatter="formatChartBytes" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
+import { buildVmRamUsageSeries, getVmRamUsageMaxValue } from '@/modules/vm/utils/xo-vm-dashboard.util.ts'
+import { formatChartBytes } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { formatSizeRaw } from '@core/utils/size.util.ts'
 import type { XapiVmStats } from '@vates/types/common'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -35,56 +36,20 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t } = useI18n()
 
+const ramUsageSeries = computed(() => buildVmRamUsageSeries(data))
+
 const ramUsage = computed<LinearChartData>(() => {
-  if (!data?.stats.memory || !data?.stats.memoryFree) {
+  if (ramUsageSeries.value.length === 0) {
     return []
   }
 
-  const ramTotalValues = data.stats.memory
-
-  const ramFreeValues = data.stats.memoryFree
-
-  const result = new Map<number, { timestamp: number; value: number }>()
-
-  const timestampStart = data.endTimestamp - data.interval * (ramTotalValues.length - 1)
-
-  for (let hourIndex = 0; hourIndex < ramTotalValues.length; hourIndex++) {
-    const timestamp = (timestampStart + hourIndex * data.interval) * 1000
-
-    const ramTotal = ramTotalValues[hourIndex]
-
-    const ramFree = ramFreeValues[hourIndex]
-
-    const ramUsed = (ramTotal ?? NaN) - (ramFree ?? NaN)
-
-    result.set(timestamp, {
-      timestamp,
-      value: ramUsed,
-    })
-  }
   return [
     {
       label: t('stacked-ram-usage'),
-      data: Array.from(result.values()),
+      data: ramUsageSeries.value,
     },
   ]
 })
 
-const maxValue = computed(() => {
-  if (!data?.stats.memory?.length) {
-    return 1024 * 1024 * 1024 // 1 GB as fallback
-  }
-
-  return Math.max(...data.stats.memory.map(memoryValue => memoryValue || 0), 0)
-})
-
-const byteFormatter = (value: number | null) => {
-  if (value === null) {
-    return ''
-  }
-
-  const size = formatSizeRaw(value, 1)
-
-  return `${size.value} ${size.prefix}`
-}
+const maxValue = computed(() => getVmRamUsageMaxValue(data))
 </script>
