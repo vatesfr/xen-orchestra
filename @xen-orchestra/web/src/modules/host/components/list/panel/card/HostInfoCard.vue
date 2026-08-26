@@ -136,9 +136,9 @@ const nMissingPatches = computed(() => missingPatches.value.length)
 
 const noMissingPatches = computed(() => nMissingPatches.value === 0)
 
-const powerState = computed(() => getHostStatus(getHostState(host)))
-
 const hostState = computed(() => getHostState(host))
+
+const powerState = computed(() => getHostStatus(hostState.value))
 
 const relativeStartTime = computed(() => (host.startTime ? getRelativeStartTime(host.startTime) : undefined))
 </script>
