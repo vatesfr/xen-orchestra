@@ -71,12 +71,15 @@ function toTimestamp(date) {
   }
 }
 
-// Builds a { taskId -> operation } map from a XAPI object's raw
-// current_operations ({ OpaqueRef -> operation }), dropping any entry
-// whose task is no longer present in the local cache (e.g. it finished
-// and was collected). This lets consumers know an operation is truly
-// over once it disappears from the map, instead of seeing a stale entry
-// forever.
+/**
+ * Builds a `{ taskId -> operation }` map from an XAPI object's raw
+ * `current_operations` (`{ OpaqueRef -> operation }`), dropping any entry
+ * whose task is no longer present in the local cache (e.g. it finished and
+ * was collected).
+ *
+ * This lets consumers know an operation is truly over once it disappears
+ * from the map, instead of seeing a stale entry forever.
+ */
 function getCurrentOperations(obj) {
   const currentOperations = {}
   const { $xapi } = obj
