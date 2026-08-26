@@ -1,7 +1,7 @@
-import assert, { strictEqual } from 'node:assert'
+import assert from 'node:assert'
 import { test } from 'node:test'
 import { DiskLargerBlock } from './DiskLargerBlock.mjs'
-import { RandomAccessDisk, DiskBlock, Disk } from './Disk.mjs'
+import { RandomAccessDisk, DiskBlock } from './Disk.mjs'
 
 // Mock implementation of RandomAccessDisk for testing
 class MockDisk extends RandomAccessDisk {
@@ -68,29 +68,25 @@ function createPatternBuffer(size: number, pattern: string): Buffer {
   return buf
 }
 
-// Test suite
-test('constructor and initialization', async () => {
+// DiskLargerBlock never calls source.init() itself (see its constructor's JSDoc): the source
+// must already be initialized before being wrapped, matching how every real caller uses it.
+// These tests initialize the source directly and never call .init() on the DiskLargerBlock
+// instance, so they don't depend on init() cascading through the wrapper.
+
+test('constructor validates block size', () => {
   const source = new MockDisk(512, 1024 * 1024)
+
+  // blockSize must be a multiple of the source blockSize
+  assert.throws(() => new DiskLargerBlock(source, 513), { message: /must be a multiple/ })
+  // blockSize must be bigger than the source blockSize
+  assert.throws(() => new DiskLargerBlock(source, 128), { message: /bigger/ })
+})
+
+test('getBlockSize and getVirtualSize reflect target size and source size', async () => {
+  const source = new MockDisk(512, 1024 * 1024)
+  await source.init()
+
   const disk = new DiskLargerBlock(source, 1024)
-
-  // Test that blockSize must be a multiple of source blockSize
-  await assert.rejects(
-    async () => {
-      const invalidDisk = new DiskLargerBlock(source, 513)
-      await invalidDisk.init()
-    },
-    { message: /must be a multiple/ }
-  )
-  // Test that blockSize must be bigger than source blockSize
-  await assert.rejects(
-    async () => {
-      const invalidDisk = new DiskLargerBlock(source, 128)
-      await invalidDisk.init()
-    },
-    { message: /bigger/ }
-  )
-
-  await disk.init()
   assert.strictEqual(disk.getBlockSize(), 1024)
   assert.strictEqual(disk.getVirtualSize(), 1024 * 1024)
 })
@@ -106,7 +102,6 @@ test('readBlock with simple block mapping', async () => {
   await source.init()
 
   const disk = new DiskLargerBlock(source, 1024)
-  await disk.init()
 
   // Read the combined block (should be block1 + block2)
   const result = await disk.readBlock(0)
@@ -132,7 +127,6 @@ test('readBlock at index > 0 places source data at block-relative offsets', asyn
   await source.init()
 
   const disk = new DiskLargerBlock(source, 1024) // blockRatio = 2, so large block 1 = source blocks 2 & 3
-  await disk.init()
 
   const result = await disk.readBlock(1)
   assert.strictEqual(result.index, 1)
@@ -149,7 +143,6 @@ test('hasBlock behavior', async () => {
   await source.init()
 
   const disk = new DiskLargerBlock(source, 1024)
-  await disk.init()
 
   // Block 0 in disk (1024) covers blocks 0-1 in source (512)
   // Only block 0 exists in source, so hasBlock(0) should return true
@@ -171,7 +164,6 @@ test('getBlockIndexes', async () => {
   await source.init()
 
   const disk = new DiskLargerBlock(source, 1024)
-  await disk.init()
 
   // Should return indexes where at least one source block exists in the range
   const indexes = disk.getBlockIndexes()
@@ -188,7 +180,6 @@ test('partial block handling', async () => {
   await source.init()
 
   const disk = new DiskLargerBlock(source, 1024)
-  await disk.init()
 
   // First block is complete (blocks 0-1)
   const block0 = await disk.readBlock(0)
@@ -218,7 +209,6 @@ test('differencing disk behavior', async () => {
   await diff.init()
 
   const disk = new DiskLargerBlock(diff, 1024)
-  await disk.init()
 
   // Block 0 should combine parent block 0 and diff block 1
   const result = await disk.readBlock(0)
@@ -232,11 +222,11 @@ test('close propagation', async () => {
   await source.init()
 
   const disk = new DiskLargerBlock(source, 1024)
-  await disk.init()
 
   await disk.close()
   assert.strictEqual(source.closed, true)
 })
+
 test('getBlockIndexesCount', async () => {
   const block = createPatternBuffer(512, 'BLOCK')
   let source = new MockDisk(512, 4096, [
@@ -246,7 +236,6 @@ test('getBlockIndexesCount', async () => {
   await source.init()
 
   let disk = new DiskLargerBlock(source, 1024)
-  await disk.init()
   assert.strictEqual(disk.getBlockIndexesCount(), 1)
   assert.strictEqual(disk.getBlockIndexesCount(), disk.getBlockIndexes().length)
 
@@ -259,7 +248,6 @@ test('getBlockIndexesCount', async () => {
   await source.init()
 
   disk = new DiskLargerBlock(source, 1024)
-  await disk.init()
   assert.strictEqual(disk.getBlockIndexesCount(), 2)
   assert.strictEqual(disk.getBlockIndexesCount(), disk.getBlockIndexes().length)
 
@@ -271,7 +259,6 @@ test('generator', async () => {
   await source.init()
 
   const disk = new DiskLargerBlock(source, 1024)
-  await disk.init()
   for await (const block of disk.diskBlocks()) {
     assert.strictEqual(block.data.length, 1024)
   }
@@ -292,7 +279,6 @@ test('readblock missing block throws', async () => {
   await source.init()
 
   const disk = new DiskLargerBlock(source, 1024)
-  await disk.init()
   assert.strictEqual(disk.getBlockIndexesCount(), 1)
   for await (const block of disk.diskBlocks()) {
     assert.strictEqual(block.index, 1)
