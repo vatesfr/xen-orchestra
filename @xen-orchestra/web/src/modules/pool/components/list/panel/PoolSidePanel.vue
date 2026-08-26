@@ -141,9 +141,7 @@
             {{ t('no-data') }}
           </VtsStateHero>
           <template v-else>
-            <li v-for="host in hosts" :key="host.id" v-tooltip class="text-ellipsis">
-              <HostLink :host="host" size="small" />
-            </li>
+            <HostLink v-for="host in hosts" :key="host.id" :host="host" size="small" />
           </template>
         </UiPanelCard>
         <UiPanelCard v-if="server.error">

@@ -73,7 +73,7 @@ const { host } = defineProps<{
 const { t, locale } = useI18n()
 
 const { getMasterHostByPoolId, isMasterHost, areHostsReady } = useXoHostCollection()
-const { getHostStatus } = useXoHostUtils()
+const { getHostStatus } = useXoHostUtils(() => host)
 
 const powerState = computed(() => getHostStatus(getHostState(host)))
 

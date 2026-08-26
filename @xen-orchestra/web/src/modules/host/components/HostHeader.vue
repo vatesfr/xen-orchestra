@@ -1,5 +1,6 @@
 <template>
   <UiHeadBar>
+    {{ host.name_label }}
     <template #icon>
       <VtsObjectIcon
         v-tooltip="{
@@ -8,10 +9,10 @@
         }"
         size="medium"
         type="host"
-        :state="getHostState(host)"
+        :busy="isChangingState"
+        :state="hostState"
       />
     </template>
-    {{ host.name_label }}
     <template v-if="isMaster" #status>
       <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
     </template>
@@ -105,7 +106,6 @@ import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

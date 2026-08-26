@@ -61,7 +61,7 @@
             {{ t('this-host') }}
           </div>
           <div v-else-if="masterHost !== undefined" class="value">
-            <HostLink :host="masterHost" size="medium" />
+            <HostLink :host="masterHost" size="small" />
           </div>
         </template>
         <template v-if="masterHost !== undefined" #addons>
