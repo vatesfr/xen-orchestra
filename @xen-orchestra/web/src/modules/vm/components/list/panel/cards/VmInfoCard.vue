@@ -51,7 +51,7 @@
         <template #key>{{ t('host') }}</template>
         <template #value>
           <div v-if="host" class="value">
-            <HostLink :host="host" size="medium" />
+            <HostLink :host="host" size="small" />
           </div>
         </template>
         <template v-if="host" #addons>
@@ -137,8 +137,6 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { HOST_POWER_STATE } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
