@@ -17,7 +17,7 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "dependencies": {
     "@vates/async-each": "^1.0.3",

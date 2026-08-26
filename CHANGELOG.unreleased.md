@@ -31,4 +31,5 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/qa-test major
 <!--packages-end-->
