@@ -1,5 +1,5 @@
 <template>
-  <VtsDrawer class="container" dismissible @dismiss="emit('cancel')">
+  <UiDrawer class="traffic-rule-edit-drawer" :on-dismiss="() => emit('cancel')" @dismiss="emit('cancel')">
     <template #title>{{ t('action:edit-traffic-rule') }}</template>
 
     <template #content>
@@ -13,20 +13,20 @@
     </template>
 
     <template #buttons>
-      <VtsDrawerCancelButton />
-      <VtsDrawerConfirmButton :on-click="() => form?.submit()">
+      <VtsOverlayCancelButton @click="emit('cancel')" />
+      <VtsOverlayConfirmButton :on-click="() => form?.submit()">
         {{ t('action:save') }}
-      </VtsDrawerConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsDrawer>
+  </UiDrawer>
 </template>
 
 <script setup lang="ts">
 import EditTrafficRuleForm from '@/modules/traffic-rules/components/form/edit/EditTrafficRuleForm.vue'
 import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
-import VtsDrawer from '@core/components/drawer/VtsDrawer.vue'
-import VtsDrawerCancelButton from '@core/components/drawer/VtsDrawerCancelButton.vue'
-import VtsDrawerConfirmButton from '@core/components/drawer/VtsDrawerConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import type { TrafficRule } from '@vates/types'
 import { useTemplateRef } from 'vue'

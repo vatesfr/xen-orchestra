@@ -52,7 +52,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import { useTrafficRuleDelete } from '@/modules/traffic-rules/composables/use-traffic-rule-delete.composable.ts'
-import { useTrafficRuleEditDrawer } from '@/modules/traffic-rules/composables/use-traffic-rule-edit-drawer.composable.ts'
+import { useTrafficRuleEdit } from '@/modules/traffic-rules/composables/use-traffic-rule-edit.composable.ts'
 import type { EnrichedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import { XO_LINKS } from '@/shared/constants.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
@@ -155,11 +155,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
     const { deleteTrafficRules, canDeleteTrafficRules, isDeletingTrafficRules, deleteTrafficRulesErrorMessage } =
       useTrafficRuleDelete(() => [rule])
 
-    const {
-      openDrawer: openTrafficRuleEditDrawer,
-      isRunning: isEditingTrafficRule,
-      canRun: canEditTrafficRule,
-    } = useTrafficRuleEditDrawer(() => rule)
+    const { editTrafficRule, canEditTrafficRule, isEditingTrafficRule } = useTrafficRuleEdit(() => rule)
 
     return {
       order: r => r(rule.order),
@@ -176,7 +172,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
             {
               label: t('action:edit'),
               icon: 'action:edit',
-              onClick: () => openTrafficRuleEditDrawer(),
+              onClick: () => editTrafficRule(),
               busy: isEditingTrafficRule.value,
               disabled: !canEditTrafficRule.value,
             },
