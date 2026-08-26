@@ -194,7 +194,7 @@
               :vm-state
               @add="addStorageEntry()"
               @remove="index => deleteItem(vmState.vdis, index)"
-              @remove-existing="index => removeExistingVdi(index)"
+              @remove-existing="index => markExistingVdiForDestruction(index)"
             />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
@@ -212,11 +212,7 @@
               <VtsResource icon="object:vm" count="1" :label="t('vm')" />
               <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpus')" />
               <VtsResource icon="fa:memory" :count="`${ramFormatted} GB`" :label="t('ram')" />
-              <VtsResource
-                icon="object:sr"
-                :count="vmState.existingVdis.length + vmState.vdis.length"
-                :label="t('vdis')"
-              />
+              <VtsResource icon="object:sr" :count="totalVdiCountForSummary" :label="t('vdis')" />
               <VtsResource icon="object:network" :count="vmState.vifs.length" :label="t('interfaces')" />
             </VtsResources>
           </div>
@@ -461,11 +457,24 @@ const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
 }
 
-const removeExistingVdi = (index: number) => {
-  const vdi = vmState.existingVdis[index]
-  if (vdi) {
-    vdi.destroy = true
+const totalVdiCountForSummary = computed(() => {
+  const activeExisting = vmState.existingVdis.filter(vdi => vdi.destroy !== true).length
+  return activeExisting + vmState.vdis.length
+})
+
+const markExistingVdiForDestruction = (index: number): boolean => {
+  if (index < 0 || index >= vmState.existingVdis.length) {
+    return false
   }
+
+  const vdi = vmState.existingVdis[index]
+
+  if (!vdi?.userdevice) {
+    return false
+  }
+
+  vdi.destroy = true
+  return true
 }
 
 const destroyedExistingVdis = computed(() => {
@@ -763,12 +772,10 @@ const vdisToSend = computed(() => {
     })
   })
 
-  // Handle modified existing VDIs
   modifiedExistingVdis.value.forEach(vdi => {
     result.push(vdi)
   })
 
-  // Handle destroyed existing VDIs
   destroyedExistingVdis.value.forEach(vdi => {
     result.push(vdi)
   })
@@ -776,15 +783,23 @@ const vdisToSend = computed(() => {
   return result
 })
 
-const vmData = computed(() => {
-  const vdisToSendFormatted = vdisToSend.value.map(vdi => ({
-    ...vdi,
-    ...(vdi.size && { size: giBToBytes(vdi.size) }),
-  }))
+const vdisToSendFormatted = computed(() => {
+  return vdisToSend.value.map(vdi => {
+    if (vdi.destroy === true || vdi.size === undefined) {
+      return vdi
+    }
 
+    return {
+      ...vdi,
+      size: giBToBytes(vdi.size),
+    }
+  })
+})
+
+const vmData = computed(() => {
   const optionalFields = Object.assign(
     {},
-    vdisToSendFormatted.length > 0 && { vdis: vdisToSendFormatted },
+    vdisToSendFormatted.value.length > 0 && { vdis: vdisToSendFormatted.value },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
     vmState.installMode !== 'no-config' &&
