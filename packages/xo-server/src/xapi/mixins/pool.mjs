@@ -366,7 +366,16 @@ const methods = {
     const migrateVmBack = async (vmRef, host) => {
       const hostId = host.uuid
       const hostName = host.name_label
-      const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
+
+      // the VM may have been destroyed since its host was evacuated: there is
+      // nothing left to migrate back, and it must not abort the whole phase
+      const vm = this.getObject(vmRef, undefined)
+      if (vm === undefined) {
+        log.info('a VM to migrate back no longer exists', { pool: this.pool.uuid, vmRef })
+        return
+      }
+
+      const { uuid: vmId, name_label: vmName } = vm
       try {
         await Task.run(
           { properties: { name: `Migrating VM ${vmId} back to host ${hostId}`, hostId, hostName, vmId, vmName } },

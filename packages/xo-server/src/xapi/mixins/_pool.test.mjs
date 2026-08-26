@@ -15,7 +15,10 @@ class FakeXapi {
   //
   // memoryTakenByHostAfterReboots: memory each host loses to something else
   // once the whole pool has rebooted, ie during the migrate back phase
-  constructor(vmMemoriesByHost, memoryTakenByHostAfterReboots = []) {
+  //
+  // vmsDestroyedAfterReboots: VMs which disappear once the whole pool has
+  // rebooted, as if an operator had destroyed them during the run
+  constructor(vmMemoriesByHost, memoryTakenByHostAfterReboots = [], vmsDestroyedAfterReboots = []) {
     this.hosts = []
     this.vms = []
     vmMemoriesByHost.forEach((memories, i) => {
@@ -69,6 +72,7 @@ class FakeXapi {
     this._vmShutdownTimeout = 60e3
 
     this._memoryTakenByHost = memoryTakenByHostAfterReboots
+    this._vmsDestroyedAfterReboots = vmsDestroyedAfterReboots
     this._nReboots = 0
 
     // migrations back, the evacuations go through clearHost
@@ -76,11 +80,7 @@ class FakeXapi {
   }
 
   _find(key) {
-    const object = [...this.hosts, ...this.vms].find(_ => _.uuid === key || _.$ref === key)
-    if (object === undefined) {
-      throw new Error(`no such object ${key}`)
-    }
-    return object
+    return this.getObject(key)
   }
 
   _residentVms(host) {
@@ -97,8 +97,13 @@ class FakeXapi {
     return this.vms.filter(vm => vm.$resident_on.uuid !== this.homeOf.get(vm.uuid)).map(vm => vm.uuid)
   }
 
-  getObject(key) {
-    return this._find(key)
+  // same contract as xen-api: only throws when no default value is passed
+  getObject(key, defaultValue) {
+    const object = [...this.hosts, ...this.vms].find(_ => _.uuid === key || _.$ref === key)
+    if (object === undefined && arguments.length < 2) {
+      throw new Error(`no such object ${key}`)
+    }
+    return object ?? defaultValue
   }
 
   async getField(type, ref, field) {
@@ -123,6 +128,9 @@ class FakeXapi {
       throw new Error(`unexpected callAsync ${method}`)
     }
     this._nReboots++
+    if (this._nReboots === this.hosts.length) {
+      this.vms = this.vms.filter(vm => !this._vmsDestroyedAfterReboots.includes(vm.uuid))
+    }
   }
 
   // host.evacuate. XAPI does its own placement, this is an approximation: pack
@@ -224,6 +232,25 @@ describe('rollingPoolReboot', function () {
       assert.equal(strandedVm.code, 'HOST_NOT_ENOUGH_FREE_MEMORY')
       assert.equal(strandedVm.hostId, xapi.homeOf.get(strandedVm.vmId))
     }
+  })
+
+  it('skips the VMs destroyed while the pool was rebooting', async function () {
+    const xapi = new FakeXapi(
+      [
+        [30, 30],
+        [30, 30],
+        [30, 30],
+        [30, 30],
+      ],
+      [],
+      ['vm-a2']
+    )
+
+    const { error, strandedVms } = await rollingPoolReboot(xapi)
+
+    assert.equal(error, undefined)
+    assert.deepEqual(strandedVms, [])
+    assert.deepEqual(xapi.strayedVms(), [])
   })
 
   it('does not migrate the VMs back when the pool opted out', async function () {
