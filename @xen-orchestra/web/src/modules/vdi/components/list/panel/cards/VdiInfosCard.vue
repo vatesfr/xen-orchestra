@@ -43,6 +43,7 @@
 <script lang="ts" setup>
 import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { findScopedVbd } from '@/modules/vbd/utils/xo-vbd.util.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
@@ -69,7 +70,7 @@ const { t } = useI18n()
 const vdiGeneralRoute = computed(() => ({
   name: '/vdi/[id]/general' as const,
   params: { id: vdi.id },
-  query: { from: VDI_PAGE_CONTEXT.VM },
+  query: { from: vm ? VDI_PAGE_CONTEXT.VM : VDI_PAGE_CONTEXT.SR },
 }))
 
 const vbdsAttachmentStatus = useVbdsStatus(() => vdi.$VBDs)
@@ -101,7 +102,7 @@ const vbds = useGetVbdsByIds(() => vdi.$VBDs)
 const vdiDevice = computed(() => {
   const notCdDriveVbds = vbds.value.filter(vbd => !vbd.is_cd_drive)
 
-  return (vm ? notCdDriveVbds.find(vbd => vbd.VM === vm.id) : notCdDriveVbds[0])?.device ?? ''
+  return findScopedVbd(notCdDriveVbds, vm)?.device ?? ''
 })
 </script>
 

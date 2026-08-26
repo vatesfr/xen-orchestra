@@ -1,6 +1,6 @@
 <template>
-  <div v-if="parent" class="sr-header-breadcrumb">
-    <UiBreadcrumb :size>
+  <div class="sr-header-breadcrumb">
+    <UiBreadcrumb v-if="parent" :size>
       <UiLink :size :to="parent.dashboardTo" :icon="parent.icon">
         {{ parent.label }}
       </UiLink>
@@ -9,6 +9,12 @@
       </UiLink>
       <span class="sr-name">
         <VtsObjectIcon type="sr" :state="srConnectionState" size="current" />
+        {{ sr.name_label }}
+      </span>
+    </UiBreadcrumb>
+    <UiBreadcrumb v-else :size>
+      <span class="sr-name">
+        <VtsObjectIcon type="sr" :state="srIconState" size="current" />
         {{ sr.name_label }}
       </span>
     </UiBreadcrumb>

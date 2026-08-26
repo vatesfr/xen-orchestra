@@ -1,5 +1,4 @@
 <template>
-  <VbdConnectionToggleButton v-if="vbd" :vbd :vm />
   <VdiMigrateButton :vdi />
   <VdiImportExportMenu :vdi />
   <VbdDeleteButton v-if="vbd" :vbd :vm />
@@ -7,7 +6,6 @@
 </template>
 
 <script lang="ts" setup>
-import VbdConnectionToggleButton from '@/modules/vbd/components/actions/connection/VbdConnectionToggleButton.vue'
 import VbdDeleteButton from '@/modules/vbd/components/actions/delete/VbdDeleteButton.vue'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiDeleteButton from '@/modules/vdi/components/actions/delete/VdiDeleteButton.vue'

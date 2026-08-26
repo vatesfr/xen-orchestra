@@ -28,6 +28,7 @@
 import { useVbdConnection } from '@/modules/vbd/composables/use-vbd-connection.composable.ts'
 import { useVbdDelete } from '@/modules/vbd/composables/use-vbd-delete.composable.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { findScopedVbd } from '@/modules/vbd/utils/xo-vbd.util.ts'
 import VdiActions from '@/modules/vdi/components/actions/VdiActions.vue'
 import VmVdiActions from '@/modules/vdi/components/actions/VmVdiActions.vue'
 import { useVdiDelete } from '@/modules/vdi/composables/use-vdi-delete.composable.ts'
@@ -92,9 +93,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
-    const vbd = computed(() =>
-      vm ? vbds.value.find(vbd => vbd.VM === vm.id) : (vbds.value.find(vbd => vbd.attached) ?? vbds.value[0])
-    )
+    const vbd = computed(() => findScopedVbd(vbds.value, vm))
 
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))

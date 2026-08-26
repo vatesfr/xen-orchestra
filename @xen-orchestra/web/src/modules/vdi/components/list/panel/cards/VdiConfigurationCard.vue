@@ -51,6 +51,7 @@
 <script setup lang="ts">
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { findScopedVbd } from '@/modules/vbd/utils/xo-vbd.util.ts'
 import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -82,9 +83,7 @@ const srHref = computed(() => (vdiSr.value ? buildXo5Route(`/srs/${vdiSr.value.i
 
 const vbds = useGetVbdsByIds(() => vdi.$VBDs)
 
-const vbd = computed(() =>
-  vm ? vbds.value.find(vbd => vbd.VM === vm.id) : (vbds.value.find(vbd => vbd.attached) ?? vbds.value[0])
-)
+const vbd = computed(() => findScopedVbd(vbds.value, vm))
 
 const isReadOnly = computed(() => vbd.value?.read_only ?? false)
 
