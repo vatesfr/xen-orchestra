@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canDisableHostAndEvacuateVMs && disableHostAndEvacuateVMsErrorMessage"
-    :disabled="!canDisableHostAndEvacuateVMs"
+    :disabled="!canDisableHostAndEvacuateVMs || isRestartingToolstack"
     icon="action:disable-and-evacuate"
     :busy="isDisablingHostAndEvacuatingVMs"
     @click="disableHostAndEvacuateVms()"
@@ -12,6 +12,7 @@
 
 <script lang="ts" setup>
 import { useXoHostDisableJob } from '@/modules/host/jobs/xo-host-disable.job.ts'
+import { useXoHostRestartToolstackJob } from '@/modules/host/jobs/xo-host-restart-toolstack.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
@@ -32,6 +33,8 @@ const {
 } = useXoHostDisableJob(() => host, true)
 
 const { open: openActionModal } = useActionModal()
+
+const { isRunning: isRestartingToolstack } = useXoHostRestartToolstackJob(() => host)
 
 function disableHostAndEvacuateVms() {
   openActionModal({

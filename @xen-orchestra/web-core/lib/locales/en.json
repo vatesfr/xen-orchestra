@@ -517,7 +517,7 @@
   "job:host-reboot:in-progress": "Host reboot in progress…",
   "job:host-reboot:missing-host": "No host to reboot",
   "job:host-restart-toolstack:bad-power-state": "Host is not running",
-  "job:host-restart-toolstack:in-progress": "Host restart toolstack in progress…",
+  "job:host-restart-toolstack:in-progress": "Host toolstack restart in progress…",
   "job:host-restart-toolstack:missing-host": "No host to restart toolstack on",
   "job:host-scan-pifs:bad-power-state": "Host is not running",
   "job:host-scan-pifs:in-progress": "@:scan-pifs in progress…",
