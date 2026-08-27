@@ -6,7 +6,7 @@ import { describe, it } from 'node:test'
 // like `index.mts` does
 import '../open-api/routes/routes.js'
 
-import { coerceQueryParams } from './external-router.mjs'
+import { buildZodSchema, coerceQueryParams } from './external-router.mjs'
 import type { RouteDefinition } from './types.mjs'
 
 const def: RouteDefinition['query'] = {
@@ -45,5 +45,21 @@ describe('coerceQueryParams', () => {
 
   it('leaves strings and undeclared params untouched', () => {
     assert.deepEqual(coerce({ str: '42', other: 'true' }), { str: '42', other: 'true' })
+  })
+})
+
+describe('buildZodSchema', () => {
+  it('accepts a value, `null` and an absent value for a nullable optional field', () => {
+    const schema = buildZodSchema({ port: { type: 'number', optional: true, nullable: true } })
+
+    assert.deepEqual(schema.parse({ port: 42 }), { port: 42 })
+    assert.deepEqual(schema.parse({ port: null }), { port: null })
+    assert.deepEqual(schema.parse({}), {})
+  })
+
+  it('rejects `null` for a field which is only optional', () => {
+    const schema = buildZodSchema({ port: { type: 'number', optional: true } })
+
+    assert.throws(() => schema.parse({ port: null }))
   })
 })

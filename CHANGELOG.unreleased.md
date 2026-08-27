@@ -17,6 +17,9 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [sdn-controller] Fix `update_traffic_rule` keeping the previous port: `newRule` is a partial update and a field sent as `null` is now removed from the rule (PR [#10307](https://github.com/vatesfr/xen-orchestra/pull/10307))
+
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -37,5 +40,6 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server-sdn-controller minor
 
 <!--packages-end-->
