@@ -28,9 +28,9 @@ export function usePifForgetModal(rawPifs: MaybeRefOrGetter<XenApiPif[]>) {
 
     return openForgetModal({
       props: {
-        subject: t('n-pifs', { count }),
-        description: t('pif-forget-info', { count }),
-        confirmLabel: t('action:forget-n-pifs', { count }),
+        subject: t('n-pifs', { n: count }),
+        description: t('pif-forget-info', { n: count }),
+        confirmLabel: t('action:forget-n-pifs', { n: count }),
       },
       events: {
         onConfirm: async () => {
