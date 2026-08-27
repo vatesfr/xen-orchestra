@@ -966,6 +966,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe NFS exports',
         objectId: hostId,
+        params: body,
       },
     })
   }
@@ -1081,6 +1082,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe iSCSI IQNs',
         objectId: hostId,
+        params: { ...body, chapPassword: '***obfuscated***' },
       },
     })
   }
@@ -1134,6 +1136,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe iSCSI LUNs',
         objectId: hostId,
+        params: { ...body, chapPassword: '***obfuscated***' },
       },
     })
   }
@@ -1190,6 +1193,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe iSCSI SR existence',
         objectId: hostId,
+        params: { ...body, chapPassword: '***obfuscated***' },
       },
     })
   }
@@ -1230,6 +1234,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe HBA SR existence',
         objectId: hostId,
+        params: body,
       },
     })
   }
@@ -1275,6 +1280,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe NFS SR existence',
         objectId: hostId,
+        params: body,
       },
     })
   }
