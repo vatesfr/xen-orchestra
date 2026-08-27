@@ -1,11 +1,6 @@
 <template>
   <UiPanelCard class="vdi-infos-card">
-    <VtsCardObjectTitle
-      :id="vdi.id"
-      :label="vdi.name_label"
-      :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } }"
-      :icon="vdiIcon"
-    />
+    <VtsCardObjectTitle :id="vdi.id" :label="vdi.name_label" :to="vdiGeneralRoute" :icon="vdiIcon" />
     <div class="content">
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
@@ -47,8 +42,9 @@
 
 <script lang="ts" setup>
 import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
+import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { findScopedVbd } from '@/modules/vbd/utils/xo-vbd.util.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import type { IconName } from '@core/icons'
@@ -66,10 +62,16 @@ import { useI18n } from 'vue-i18n'
 
 const { vdi, vm } = defineProps<{
   vdi: FrontXoVdi
-  vm: FrontXoVm
+  vm?: FrontXoVm
 }>()
 
 const { t } = useI18n()
+
+const vdiGeneralRoute = computed(() => ({
+  name: '/vdi/[id]/general' as const,
+  params: { id: vdi.id },
+  query: { from: vm ? VDI_PAGE_CONTEXT.VM : VDI_PAGE_CONTEXT.SR },
+}))
 
 const vbdsAttachmentStatus = useVbdsStatus(() => vdi.$VBDs)
 
@@ -93,9 +95,15 @@ const vbdsStatus = useMapper<VbdAttachmentStatus, (typeof CONNECTION_STATUS)[key
   'noneAttached'
 )
 
-const { notCdDriveVbds } = useXoVmVbdsUtils(() => vm)
+const { useGetVbdsByIds } = useXoVbdCollection()
 
-const vdiDevice = computed(() => notCdDriveVbds.value.find(vbd => vbd.VDI === vdi.id)?.device ?? '')
+const vbds = useGetVbdsByIds(() => vdi.$VBDs)
+
+const vdiDevice = computed(() => {
+  const notCdDriveVbds = vbds.value.filter(vbd => !vbd.is_cd_drive)
+
+  return findScopedVbd(notCdDriveVbds, vm)?.device ?? ''
+})
 </script>
 
 <style scoped lang="postcss">

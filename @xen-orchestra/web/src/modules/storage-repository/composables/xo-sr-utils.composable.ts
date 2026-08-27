@@ -10,10 +10,10 @@ import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export function useGetPbdsInScope() {
-  const { getPbdsByIds } = useXoPbdCollection()
+  const { pbdsBySr } = useXoPbdCollection()
 
   function getPbdsInScope(sr: FrontXoSr, scope: SrScope): FrontXoPbd[] {
-    const pbds = getPbdsByIds(sr.$PBDs)
+    const pbds = pbdsBySr.value.get(sr.id) ?? []
 
     if (scope.type === SR_SCOPE_TYPE.POOL) {
       return pbds
