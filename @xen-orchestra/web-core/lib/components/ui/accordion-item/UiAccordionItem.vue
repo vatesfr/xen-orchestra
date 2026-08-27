@@ -1,19 +1,21 @@
 <!-- v7 -->
 <template>
   <div class="ui-accordion-item" :class="className">
-    <button
-      :id="`header-${uid}`"
-      type="button"
-      class="header"
-      :class="fontClass"
-      :aria-expanded="isExpanded"
-      :aria-controls="`panel-${uid}`"
-      :disabled="isDisabled"
-      @click="toggle()"
-    >
-      {{ title }}
-      <VtsIcon :name="isExpanded ? 'fa:angle-up' : 'fa:angle-down'" :size="iconSize" />
-    </button>
+    <div class="header-heading" role="heading" :aria-level="headingLevel">
+      <button
+        :id="`header-${uid}`"
+        type="button"
+        class="header"
+        :class="fontClass"
+        :aria-expanded="isExpanded"
+        :aria-controls="`panel-${uid}`"
+        :disabled="isDisabled"
+        @click="toggle()"
+      >
+        {{ title }}
+        <VtsIcon :name="isExpanded ? 'fa:angle-up' : 'fa:angle-down'" :size="iconSize" />
+      </button>
+    </div>
     <div class="divider-wrapper" :class="{ visible: isExpanded || size === 'small' }">
       <div class="divider-inner">
         <VtsDivider type="stretch" />
@@ -45,11 +47,16 @@ import { IK_ACCORDION } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed, inject, ref, useId } from 'vue'
 
-const { size, disabled } = defineProps<{
+const {
+  size,
+  disabled,
+  headingLevel = 3,
+} = defineProps<{
   size: 'small' | 'large'
   title: string
   content?: string
   disabled?: boolean
+  headingLevel?: number
 }>()
 
 defineSlots<{
@@ -110,6 +117,10 @@ const iconSize = computed<IconSize>(() => (size === 'small' ? 'medium' : 'large'
   display: flex;
   flex-direction: column;
 
+  .header-heading {
+    display: contents;
+  }
+
   .header {
     display: flex;
     justify-content: space-between;
@@ -169,7 +180,7 @@ const iconSize = computed<IconSize>(() => (size === 'small' ? 'medium' : 'large'
     border-radius: 0.4rem;
     padding: 1.6rem;
 
-    .header:has(+ .divider-wrapper.visible) {
+    .header-heading:has(+ .divider-wrapper.visible) .header {
       margin-bottom: 1.2rem;
     }
   }
