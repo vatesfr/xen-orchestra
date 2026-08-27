@@ -212,7 +212,7 @@
               <VtsResource icon="object:vm" count="1" :label="t('vm')" />
               <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpus')" />
               <VtsResource icon="fa:memory" :count="`${ramFormatted} GB`" :label="t('ram')" />
-              <VtsResource icon="object:sr" :count="totalVdiCountForSummary" :label="t('vdis')" />
+              <VtsResource icon="object:sr" :count="totalVdiCount" :label="t('vdis')" />
               <VtsResource icon="object:network" :count="vmState.vifs.length" :label="t('interfaces')" />
             </VtsResources>
           </div>
@@ -457,7 +457,7 @@ const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
 }
 
-const totalVdiCountForSummary = computed(() => {
+const totalVdiCount = computed(() => {
   const activeExisting = vmState.existingVdis.filter(vdi => vdi.destroy !== true).length
   return activeExisting + vmState.vdis.length
 })
