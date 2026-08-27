@@ -194,7 +194,7 @@ describe('VmBackupsCache', () => {
     assert.deepEqual(await cache.get(REPOSITORY), {})
   })
 
-  it('ignores an event on a missing backup and an unsupported event', async t => {
+  it('ignores an event on a transient backup and an unsupported event', async t => {
     const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
     const cache = new VmBackupsCache(repository.useAdapter, { minRefreshDelay: 60e3 })
@@ -211,6 +211,48 @@ describe('VmBackupsCache', () => {
     const backups = await cache.get(REPOSITORY)
 
     assert.deepEqual(filenames(backups), [filenameOf(VM, '20260811T090000')])
+    assert.equal(repository.nMetadataReads, 0, 'a backup deleted before the replay must not be read')
+  })
+
+  it('reads the metadata of a backup once, whatever the number of events on it', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const metadata = metadataOf(VM, '20260811T090000')
+    const repository = new Repository([metadata])
+    const cache = new VmBackupsCache(repository.useAdapter, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+
+    // a merge rewrites the metadata of the same backup several times
+    repository.change({ ...metadata, size: 1 }, Date.now())
+    repository.change({ ...metadata, size: 2 }, Date.now())
+    repository.change({ ...metadata, size: 3 }, Date.now())
+
+    const backups = await cache.get(REPOSITORY)
+
+    assert.equal(repository.nMetadataReads, 1, 'the three events must cost a single read')
+    assert.equal(backups[VM][metadata._filename].size, 3, 'the last event wins')
+  })
+
+  it('removes a backup whose metadata has been deleted without being journaled', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const metadata = metadataOf(VM, '20260811T090000')
+    const other = metadataOf(OTHER_VM, '20260811T093000')
+    const repository = new Repository([metadata, other])
+    const cache = new VmBackupsCache(repository.useAdapter, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+
+    // a user or a third party tool deleted the backup directly on the repository: the journal
+    // only holds the `change` event of a previous mutation
+    repository.journal.push({ event: 'change', filename: metadata._filename, vmUuid: VM, date: Date.now() })
+    repository.metadataByFilename.delete(metadata._filename)
+
+    const backups = await cache.get(REPOSITORY)
+
+    assert.equal(backups[VM], undefined, 'the deletion must be reflected at once')
+    assert.deepEqual(filenames(backups), [other._filename])
   })
 
   it('replays the events of the previous minutes, to tolerate the clock skew of the writers', async t => {
