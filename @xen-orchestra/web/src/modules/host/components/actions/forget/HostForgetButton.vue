@@ -1,8 +1,8 @@
 <template>
   <MenuItem
-    v-tooltip="forgetHostDisabledMessage"
+    v-tooltip="!canForgetHost && forgetHostErrorMessage"
     class="forget"
-    :disabled="!canForgetHost || isRestartingToolstack"
+    :disabled="!canForgetHost"
     icon="action:forget"
     :busy="isForgettingHost"
     @click="forgetHost()"
@@ -13,14 +13,12 @@
 
 <script lang="ts" setup>
 import { useXoHostForgetJob } from '@/modules/host/jobs/xo-host-forget.job.ts'
-import { useXoHostRestartToolstackJob } from '@/modules/host/jobs/xo-host-restart-toolstack.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useRedirectAfterDelete } from '@/shared/composables/redirect-after-delete.composable.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -34,8 +32,6 @@ const { hasPoolById } = useXoPoolCollection()
 
 const route = useRoute<'/host/[id]'>()
 
-const { isRunning: isRestartingToolstack } = useXoHostRestartToolstackJob(() => host)
-
 const {
   run,
   canRun: canForgetHost,
@@ -44,14 +40,6 @@ const {
 } = useXoHostForgetJob(() => host)
 
 const { open: openActionModal } = useActionModal()
-
-const forgetHostDisabledMessage = computed(() => {
-  if (isRestartingToolstack.value) {
-    return t('job:host-restart-toolstack:in-progress')
-  }
-
-  return canForgetHost.value ? undefined : forgetHostErrorMessage.value
-})
 
 const { redirect: redirectAfterForgetHost } = useRedirectAfterDelete({
   isOnObjectPage: () => route.params.id === host.id,

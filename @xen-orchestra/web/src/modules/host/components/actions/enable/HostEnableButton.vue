@@ -4,7 +4,7 @@
     size="medium"
     variant="tertiary"
     accent="brand"
-    :disabled="!canEnableHost || isRestartingToolstack"
+    :disabled="!canEnableHost"
     icon="status:success-circle"
     :busy="isEnablingHost"
     @click="openEnableHostModal()"
@@ -15,7 +15,6 @@
 
 <script lang="ts" setup>
 import { useXoHostEnableJob } from '@/modules/host/jobs/xo-host-enable.job.ts'
-import { useXoHostRestartToolstackJob } from '@/modules/host/jobs/xo-host-restart-toolstack.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
@@ -36,8 +35,6 @@ const {
 } = useXoHostEnableJob(() => host)
 
 const { open: openActionModal } = useActionModal()
-
-const { isRunning: isRestartingToolstack } = useXoHostRestartToolstackJob(() => host)
 
 function openEnableHostModal() {
   return openActionModal({

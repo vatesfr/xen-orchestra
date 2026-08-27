@@ -22,6 +22,7 @@ export const useXoHostRestartToolstackJob = defineJob('host.restart-toolstack', 
         throw new JobError(t('job:host-restart-toolstack:missing-host'))
       }
 
+      // For now, the only loader we have for the restart toolstack action is this one. A fix is in progress on the backend side to show the loader on the other buttons, the treeview, etc.
       if (isRunning) {
         throw new JobRunningError(t('job:host-restart-toolstack:in-progress'))
       }
