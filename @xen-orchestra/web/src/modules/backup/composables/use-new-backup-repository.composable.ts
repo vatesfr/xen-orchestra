@@ -27,8 +27,6 @@ export function useNewBackupRepository() {
           // Force reload while waiting for reactivity to be implemented for XO objects (XO-1013)
           $context.forceReload()
         }
-
-        return result
       },
       onCancel: true,
     },

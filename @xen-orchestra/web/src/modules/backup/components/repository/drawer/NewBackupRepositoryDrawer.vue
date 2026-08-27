@@ -1,5 +1,5 @@
 <template>
-  <UiDrawer class="new-backup-repository-drawer" @confirm="handleConfirm()" @dismiss="emit('cancel')">
+  <UiDrawer @confirm="handleConfirm()" @dismiss="emit('cancel')">
     <template #title>
       {{ t('create-new-br') }}
     </template>
@@ -15,7 +15,7 @@
     <template #buttons>
       <VtsOverlayCancelButton v-if="currentStep === 'general'" @click="emit('cancel')" />
       <VtsOverlayCancelButton v-else @click="back()">{{ t('back') }}</VtsOverlayCancelButton>
-      <VtsOverlayConfirmButton v-if="currentStep === 'review'">{{ t('create') }}</VtsOverlayConfirmButton>
+      <VtsOverlayConfirmButton v-if="currentStep === 'review'">{{ t('action:create') }}</VtsOverlayConfirmButton>
       <VtsOverlayConfirmButton v-else>{{ t('continue') }}</VtsOverlayConfirmButton>
     </template>
   </UiDrawer>
@@ -66,14 +66,3 @@ async function handleConfirm() {
   }
 }
 </script>
-
-<style lang="postcss" scoped>
-.new-backup-repository-drawer {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 2.4rem;
-    text-align: left;
-  }
-}
-</style>
