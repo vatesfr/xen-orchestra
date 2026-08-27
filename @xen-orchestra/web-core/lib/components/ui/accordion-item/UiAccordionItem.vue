@@ -103,7 +103,7 @@ const className = computed(() => {
   return [
     toVariants({
       size,
-      muted: isDisabled.value ?? false,
+      muted: isDisabled.value,
       expanded: isExpanded.value,
     }),
   ]
