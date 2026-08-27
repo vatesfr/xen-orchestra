@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      slot().help('A list of ui-accordion-item'),
+      slot().help('A list of ui-accordion-list-item'),
       prop('unique').bool().default(false).widget().help('Defined if only one of the items can be opened at a time.'),
       prop('size')
         .type(`'small' | 'large'`)
@@ -10,7 +10,7 @@
         .required()
         .preset('large')
         .widget()
-        .help('Control the size prop of accordion item'),
+        .help('Control the size prop of accordion-list item'),
     ]"
   >
     <UiAccordionList v-bind="properties">
@@ -28,8 +28,8 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, slot } from '@/libs/story/story-param.ts'
-import UiAccordionList from '@core/components/ui/accordion/UiAccordionList.vue'
 import UiAccordionItem from '@core/components/ui/accordion-item/UiAccordionItem.vue'
+import UiAccordionList from '@core/components/ui/accordion-list/UiAccordionList.vue'
 import { ref } from 'vue'
 
 const tabs = ref([
