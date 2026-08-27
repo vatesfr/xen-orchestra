@@ -33,8 +33,8 @@ const {
 
 const { open: openActionModal } = useActionModal()
 
-async function restartToolstack() {
-  const { event } = await openActionModal({
+function restartToolstack() {
+  return openActionModal({
     props: {
       accent: 'info',
       action: 'restart-toolstack',
@@ -42,12 +42,11 @@ async function restartToolstack() {
       hostName: host.name_label,
       icon: 'status:info-picto',
     },
+    events: {
+      onConfirm: async () => {
+        void run()
+      },
+    },
   })
-
-  if (event !== 'onConfirm') {
-    return
-  }
-
-  await run()
 }
 </script>
