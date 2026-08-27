@@ -553,6 +553,7 @@
   "job:pbd-unplug:missing-pbd": "Aucun PBD à déconnecter",
   "job:pbd-unplug:pbd-disconnected": "Un ou plusieurs PBDs sont déjà déconnectés",
   "job:pif-management-reconfigure:already-management": "Ce PIF est déjà l'interface de gestion",
+  "job:pif-management-reconfigure:bad-power-state": "L'hôte n'est pas lancé",
   "job:pif-management-reconfigure:current-pif": "PIF actuel",
   "job:pif-management-reconfigure:in-progress": "Reconfiguration de l'interface de gestion en cours…",
   "job:pif-management-reconfigure:missing-ip": "Le PIF cible n'a pas d'adresse IP configurée",

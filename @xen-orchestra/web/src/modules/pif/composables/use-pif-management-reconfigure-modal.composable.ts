@@ -17,20 +17,21 @@ export function usePifManagementReconfigureModal(rawPif: MaybeRefOrGetter<FrontX
     },
   })
 
-  async function openModal() {
-    const { event } = await open({
+  function openModal() {
+    return open({
       props: {
         device: pif.value?.device ?? '',
       },
+      events: {
+        onConfirm: async () => {
+          try {
+            void run()
+          } catch (error) {
+            console.error('Error when reconfiguring PIF management interface:', error)
+          }
+        },
+      },
     })
-    if (event !== 'onConfirm') {
-      return
-    }
-    try {
-      await run()
-    } catch (error) {
-      console.error('Error when reconfiguring PIF management interface:', error)
-    }
   }
   return { openModal, canRun, isRunning, errorMessage }
 }
