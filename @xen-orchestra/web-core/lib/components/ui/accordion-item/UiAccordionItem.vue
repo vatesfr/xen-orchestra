@@ -25,6 +25,7 @@
         role="region"
         :aria-labelledby="`header-${uid}`"
         :aria-hidden="!isExpanded"
+        :inert="!isExpanded"
         class="panel-inner"
       >
         <slot name="content">
@@ -38,7 +39,7 @@
 <script setup lang="ts">
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsIcon, { type IconSize } from '@core/components/icon/VtsIcon.vue'
-import { useDisabled } from '@core/composables/disabled.composable'
+import { useDisabled } from '@core/composables/disabled.composable.ts'
 import { useMapper } from '@core/packages/mapper'
 import { IK_ACCORDION } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
