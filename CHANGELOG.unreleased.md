@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [i18n] Add Arabic and update Czech, Dutch, Finnish, Portuguese (Brasil), Slovak and Swedish translations (PR [#10181](https://github.com/vatesfr/xen-orchestra/pull/10181))
+- [XO6/Backups] Add header title on backup job detail page (PR [#10303](https://github.com/vatesfr/xen-orchestra/pull/10303))
 
 ### Bug fixes
 
