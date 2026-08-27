@@ -71,8 +71,7 @@ async function addProxyVersion(proxy) {
 
 async function addProxyLicense(proxy) {
   try {
-    const license = await this.getProxyLicense(proxy.id)
-    proxy.license = license
+    proxy.license = await this.getProxyLicense(proxy.id)
   } catch (error) {
     log.debug('addProxyLicense', { error, proxy })
   }
@@ -230,6 +229,10 @@ export default class Proxy {
 
     patch(proxy, { address, authenticationToken, name, vmUuid })
     await this._db.update(proxy)
+
+    if (vmUuid !== undefined) {
+      this.getProxyLicense(REMOVE_CACHE_ENTRY, id)
+    }
 
     await populateProxy.call(this, proxy)
     return proxy
