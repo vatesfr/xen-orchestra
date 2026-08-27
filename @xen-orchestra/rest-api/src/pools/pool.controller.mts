@@ -81,13 +81,13 @@ import type {
   CreateVmBody,
   CreateVmParams,
   PoolDashboard,
+  RollingPoolActionBody,
 } from './pool.type.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
-import { BASE_URL } from '../index.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { PoolService } from './pool.service.mjs'
-import { escapeUnsafeComplexMatcher, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
+import { BASE_URL, escapeUnsafeComplexMatcher, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { NetworkService } from '../networks/network.service.mjs'
@@ -365,7 +365,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * with an `incorrect state` error listing their UUIDs.
    *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
-   * @example body { "shutdownPinnedVms": true }
+   * @example body { "bypassBackupCheck": false, "shutdownPinnedVms": true }
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
@@ -379,14 +379,13 @@ export class PoolController extends XapiXoController<XoPool> {
   @Response(incorrectStateResp.status, incorrectStateResp.description)
   rollingReboot(
     @Path() id: string,
-    @Body() body?: { shutdownPinnedVms?: boolean },
+    @Body() body?: RollingPoolActionBody,
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const poolId = id as XoPool['id']
-    const shutdownPinnedVms = body?.shutdownPinnedVms ?? false
     const action = async (task: VatesTask) => {
       const pool = this.getObject(poolId)
-      await this.restApi.xoApp.rollingPoolReboot(pool, { parentTask: task, shutdownPinnedVms })
+      await this.restApi.xoApp.rollingPoolReboot(pool, { ...body, parentTask: task })
     }
 
     return this.createAction<void>(action, {
@@ -395,6 +394,7 @@ export class PoolController extends XapiXoController<XoPool> {
       taskProperties: {
         name: 'rolling pool reboot',
         objectId: poolId,
+        params: body,
         progress: 0,
       },
     })
@@ -409,7 +409,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * with an `incorrect state` error listing their UUIDs.
    *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
-   * @example body { "shutdownPinnedVms": true }
+   * @example body { "bypassBackupCheck": false, "shutdownPinnedVms": true }
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
@@ -423,14 +423,13 @@ export class PoolController extends XapiXoController<XoPool> {
   @Response(incorrectStateResp.status, incorrectStateResp.description)
   rollingUpdate(
     @Path() id: string,
-    @Body() body?: { shutdownPinnedVms?: boolean },
+    @Body() body?: RollingPoolActionBody,
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const poolId = id as XoPool['id']
-    const shutdownPinnedVms = body?.shutdownPinnedVms ?? false
     const action = async (task: VatesTask) => {
       const pool = this.getObject(poolId)
-      await this.restApi.xoApp.rollingPoolUpdate(pool, { parentTask: task, shutdownPinnedVms })
+      await this.restApi.xoApp.rollingPoolUpdate(pool, { ...body, parentTask: task })
     }
 
     return this.createAction<void>(action, {
@@ -439,6 +438,7 @@ export class PoolController extends XapiXoController<XoPool> {
       taskProperties: {
         name: 'rolling pool update',
         objectId: poolId,
+        params: body,
         progress: 0,
       },
     })

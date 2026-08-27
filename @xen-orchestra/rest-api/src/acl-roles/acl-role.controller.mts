@@ -38,9 +38,8 @@ import {
   unauthorizedResp,
   Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { BASE_URL } from '../index.mjs'
 import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
-import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import { BASE_URL, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -462,14 +461,14 @@ export class AclRoleController extends XoController<XoAclRole> {
       'isTemplate' in role
         ? []
         : await Promise.all(
-          role.userIds.map(userId =>
-            this.#userService.getUser(userId).catch(err => {
-              log.warn(`cannot resolve user: ${userId}`, err)
-              // if the user is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
-              return { id: userId } as XoUser
-            })
+            role.userIds.map(userId =>
+              this.#userService.getUser(userId).catch(err => {
+                log.warn(`cannot resolve user: ${userId}`, err)
+                // if the user is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
+                return { id: userId } as XoUser
+              })
+            )
           )
-        )
 
     return this.sendObjects(limitAndFilterArray(users, { filter }), req, {
       path: 'users',
@@ -508,14 +507,14 @@ export class AclRoleController extends XoController<XoAclRole> {
       'isTemplate' in role
         ? []
         : await Promise.all(
-          role.groupIds.map(groupId =>
-            this.restApi.xoApp.getGroup(groupId).catch(err => {
-              log.warn(`cannot resolve group: ${groupId}`, err)
-              // if the group is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
-              return { id: groupId } as XoGroup
-            })
+            role.groupIds.map(groupId =>
+              this.restApi.xoApp.getGroup(groupId).catch(err => {
+                log.warn(`cannot resolve group: ${groupId}`, err)
+                // if the group is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
+                return { id: groupId } as XoGroup
+              })
+            )
           )
-        )
 
     return this.sendObjects(limitAndFilterArray(groups, { filter }), req, {
       path: 'groups',

@@ -900,12 +900,25 @@ export default class XenServers {
     })
   }
 
-  async rollingPoolUpdate($defer, pool, { rebootVm, parentTask, shutdownPinnedVms } = {}) {
+  /**
+   * Updates the hosts of the pool one at a time, the backup schedules of the pool are disabled meanwhile.
+   *
+   * @param {Function} $defer - Injected by the `defer` decorator
+   * @param {object} pool - XO pool object
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassBackupCheck] - Skip the backup guard, the bypass is logged
+   * @param {boolean} [opts.rebootVm] - Accept the VM reboots required by the update guidances (XenServer 8.4+),
+   *   otherwise such an update is refused with an `incorrectState` error
+   * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
+   * @param {boolean} [opts.shutdownPinnedVms] - Shut down the VMs that cannot be migrated before their host reboots
+   * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool
+   */
+  async rollingPoolUpdate($defer, pool, { bypassBackupCheck, rebootVm, parentTask, shutdownPinnedVms } = {}) {
     const app = this._app
-    await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
-    const [schedules, jobs] = await Promise.all([app.getAllSchedules(), app.getAllJobs('backup')])
-
     const poolId = pool.id
+    await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
+    await app.backupGuard(poolId, { bypassBackupCheck, operation: 'rollingPoolUpdate' })
+    const [schedules, jobs] = await Promise.all([app.getAllSchedules(), app.getAllJobs('backup')])
 
     $defer(acquireRpuGuard(poolId, 'rollingPoolUpdate'))
 
