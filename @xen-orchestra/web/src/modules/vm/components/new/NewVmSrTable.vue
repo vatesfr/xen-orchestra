@@ -6,8 +6,8 @@
       </tr>
     </thead>
     <tbody>
-      <VtsRow v-for="vdi in vmState.existingVdis" :key="vdi.id">
-        <BodyCells :item="{ vdi }" />
+      <VtsRow v-for="(vdi, index) in vmState.existingVdis" :key="vdi.id">
+        <BodyCells :item="{ vdi, onRemove: () => emit('removeExisting', index) }" />
       </VtsRow>
       <VtsRow v-for="(vdi, index) in vmState.vdis" :key="index">
         <BodyCells :item="{ vdi, onRemove: () => emit('remove', index) }" />
@@ -44,6 +44,7 @@ const { vmState, srs } = defineProps<{
 const emit = defineEmits<{
   add: []
   remove: [index: number]
+  removeExisting: [index: number]
 }>()
 
 const { t } = useI18n()

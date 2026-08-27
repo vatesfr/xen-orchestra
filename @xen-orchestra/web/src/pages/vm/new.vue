@@ -194,6 +194,7 @@
               :vm-state
               @add="addStorageEntry()"
               @remove="index => deleteItem(vmState.vdis, index)"
+              @remove-existing="index => markExistingVdiForDestruction(index)"
             />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
@@ -211,11 +212,7 @@
               <VtsResource icon="object:vm" count="1" :label="t('vm')" />
               <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpus')" />
               <VtsResource icon="fa:memory" :count="`${ramFormatted} GB`" :label="t('ram')" />
-              <VtsResource
-                icon="object:sr"
-                :count="vmState.existingVdis.length + vmState.vdis.length"
-                :label="t('vdis')"
-              />
+              <VtsResource icon="object:sr" :count="totalVdiCount" :label="t('vdis')" />
               <VtsResource icon="object:network" :count="vmState.vifs.length" :label="t('interfaces')" />
             </VtsResources>
           </div>
@@ -260,7 +257,7 @@ import {
   type FrontXoVmTemplate,
   useXoVmTemplateCollection,
 } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
+import type { Vdi, VdiToSend, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
@@ -460,6 +457,35 @@ const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
 }
 
+const totalVdiCount = computed(() => {
+  const activeExisting = vmState.existingVdis.filter(vdi => vdi.destroy !== true).length
+  return activeExisting + vmState.vdis.length
+})
+
+const markExistingVdiForDestruction = (index: number): boolean => {
+  if (index < 0 || index >= vmState.existingVdis.length) {
+    return false
+  }
+
+  const vdi = vmState.existingVdis[index]
+
+  if (!vdi?.userdevice) {
+    return false
+  }
+
+  vdi.destroy = true
+  return true
+}
+
+const destroyedExistingVdis = computed(() => {
+  return vmState.existingVdis
+    .filter(vdi => vdi.destroy === true)
+    .map(vdi => ({
+      userdevice: vdi.userdevice,
+      destroy: true,
+    }))
+})
+
 const addSshKey = () => {
   const sshKey = vmState.ssh_key.trim()
 
@@ -652,6 +678,10 @@ function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
 
 const modifiedExistingVdis = computed(() => {
   return vmState.existingVdis.reduce<Partial<Vdi>[]>((acc, vdi, index) => {
+    if (vdi.destroy === true) {
+      return acc
+    }
+
     const defaultVdi = defaultExistingVdis.value[index]
     const changes = getExistingVdisDiff(defaultVdi, vdi)
 
@@ -729,15 +759,47 @@ const vifsToSend = computed(() => {
   return result
 })
 
-const vmData = computed(() => {
-  const vdisToSend = [...vmState.vdis, ...modifiedExistingVdis.value].map(vdi => ({
-    ...vdi,
-    ...(vdi.size && { size: giBToBytes(vdi.size) }),
-  }))
+const vdisToSend = computed(() => {
+  const result: VdiToSend[] = []
 
+  // Handle new VDIs
+  vmState.vdis.forEach(vdi => {
+    result.push({
+      name_label: vdi.name_label,
+      name_description: vdi.name_description,
+      size: vdi.size,
+      sr: vdi.sr,
+    })
+  })
+
+  modifiedExistingVdis.value.forEach(vdi => {
+    result.push(vdi)
+  })
+
+  destroyedExistingVdis.value.forEach(vdi => {
+    result.push(vdi)
+  })
+
+  return result
+})
+
+const vdisToSendFormatted = computed(() => {
+  return vdisToSend.value.map(vdi => {
+    if (vdi.destroy === true || vdi.size === undefined) {
+      return vdi
+    }
+
+    return {
+      ...vdi,
+      size: giBToBytes(vdi.size),
+    }
+  })
+})
+
+const vmData = computed(() => {
   const optionalFields = Object.assign(
     {},
-    vdisToSend.length > 0 && { vdis: vdisToSend },
+    vdisToSendFormatted.value.length > 0 && { vdis: vdisToSendFormatted.value },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
     vmState.installMode !== 'no-config' &&
