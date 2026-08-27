@@ -964,7 +964,7 @@ export class HostController extends XapiXoController<XoHost> {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe NFS',
+        name: 'probe NFS exports',
         objectId: hostId,
       },
     })
@@ -998,7 +998,7 @@ export class HostController extends XapiXoController<XoHost> {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe ZFS',
+        name: 'probe ZFS pools',
         objectId: hostId,
       },
     })
@@ -1033,7 +1033,7 @@ export class HostController extends XapiXoController<XoHost> {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe HBA',
+        name: 'probe HBA devices',
         objectId: hostId,
       },
     })
@@ -1079,7 +1079,7 @@ export class HostController extends XapiXoController<XoHost> {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe ISCSIIQN',
+        name: 'probe iSCSI IQNs',
         objectId: hostId,
       },
     })
@@ -1132,7 +1132,7 @@ export class HostController extends XapiXoController<XoHost> {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe ISCSILUN',
+        name: 'probe iSCSI LUNs',
         objectId: hostId,
       },
     })
@@ -1188,7 +1188,7 @@ export class HostController extends XapiXoController<XoHost> {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe ISCSI-EXISTS',
+        name: 'probe iSCSI SR existence',
         objectId: hostId,
       },
     })
@@ -1228,7 +1228,7 @@ export class HostController extends XapiXoController<XoHost> {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe HBA-EXISTS',
+        name: 'probe HBA SR existence',
         objectId: hostId,
       },
     })
@@ -1273,7 +1273,7 @@ export class HostController extends XapiXoController<XoHost> {
       sync,
       statusCode: 200,
       taskProperties: {
-        name: 'probe NFS-EXISTS',
+        name: 'probe NFS SR existence',
         objectId: hostId,
       },
     })
