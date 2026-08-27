@@ -166,16 +166,26 @@ export class VmBackupDirectory implements VmBackupInterface {
 
     // Let each archive clean its own files (e.g. remove metadata for incomplete backups)
     // and update metadata with merged sizes if applicable
+    const goneArchives: string[] = []
     await asyncEach(
-      Array.from(this.backupArchives.values()),
-      async (archive: VmBackupInterface) => {
+      Array.from(this.backupArchives.entries()),
+      async ([metadataPath, archive]: [string, VmBackupInterface]) => {
         const { removedFiles } = await archive.clean({ remove, mergedSizes: allMergedSizes })
         if (removedFiles.length > 0) {
           cacheNeedsRegen = true
         }
+        if (removedFiles.includes(metadataPath)) {
+          goneArchives.push(metadataPath)
+        }
       },
       { concurrency: 2 }
     )
+
+    // an archive whose metadata has just been deleted is not a backup anymore: it must not be
+    // advertised by the regenerated cache
+    for (const metadataPath of goneArchives) {
+      this.backupArchives.delete(metadataPath)
+    }
 
     if (this.#cacheExisted && (allMergedSizes.size > 0 || cacheNeedsRegen || this.#cacheOutOfSync)) {
       await this.#regenerateCache()
