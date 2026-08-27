@@ -16,7 +16,7 @@
       <MenuItem
         v-for="(action, index) of actions"
         :key="index"
-        :class="{ danger: action.accent === 'danger' }"
+        :class="actionClassName(action)"
         :icon="action.icon"
         :disabled="action.disabled"
         :busy="action.busy"
@@ -28,7 +28,7 @@
           <MenuItem
             v-for="(child, childIndex) of action.children"
             :key="childIndex"
-            :class="{ danger: child.accent === 'danger' }"
+            :class="actionClassName(child)"
             :icon="child.icon"
             :disabled="child.disabled"
             :busy="child.busy"
@@ -50,6 +50,7 @@ import type { ButtonIconSize } from '@core/components/ui/button-icon/UiButtonIco
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { useI18n } from 'vue-i18n'
 
 const { size = 'small', actions = [] } = defineProps<{
@@ -87,10 +88,14 @@ export type ActionItem = LeafActionItem | GroupActionItem
 function isGroupAction(action: ActionItem): action is GroupActionItem {
   return 'children' in action
 }
+
+function actionClassName(action: BaseActionItem) {
+  return toVariants({ accent: action.accent })
+}
 </script>
 
 <style lang="postcss" scoped>
-.danger {
+.accent--danger {
   color: var(--color-danger-item-base);
 }
 </style>
