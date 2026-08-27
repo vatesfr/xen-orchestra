@@ -17,11 +17,6 @@ const toggle = (key: string) => {
   expandedKey.value = expandedKey.value === key ? null : key
 }
 
-export type UiAccordionController = {
-  readonly expandedKey: string | null
-  toggle: (key: string) => void
-}
-
 const controller = {
   get expandedKey() {
     return expandedKey.value
