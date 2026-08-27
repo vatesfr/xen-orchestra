@@ -5,17 +5,17 @@ import { useMapper } from '@core/packages/mapper'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useVmOperation(vm: MaybeRefOrGetter<XenApiVm | undefined>) {
+export function useVmOperation(rawVm: MaybeRefOrGetter<XenApiVm | undefined>) {
   const { t } = useI18n()
 
-  const _vm = toValue(vm)
+  const vm = toValue(rawVm)
 
   const isChangingState = computed(() => {
-    return _vm !== undefined && isVmOperationPending(_vm, CHANGING_STATE_OPERATIONS)
+    return vm !== undefined && isVmOperationPending(vm, CHANGING_STATE_OPERATIONS)
   })
 
   const currentOperation = useMapper<string, string>(
-    () => Object.values(_vm?.current_operations ?? {})[0],
+    () => Object.values(vm?.current_operations ?? {})[0],
     {
       start: t('operation:start'),
       start_on: t('operation:start-on-host'),
