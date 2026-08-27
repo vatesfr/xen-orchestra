@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      slot().help('A list of ui-accordion-list-item'),
+      slot().help('A list of ui-accordion-item'),
       prop('unique').bool().default(false).widget().help('Defined if only one of the items can be opened at a time.'),
       prop('size')
         .type(`'small' | 'large'`)
@@ -10,7 +10,7 @@
         .required()
         .preset('large')
         .widget()
-        .help('Control the size prop of accordion-list item'),
+        .help('Control the size prop of accordion item'),
     ]"
   >
     <UiAccordionList v-bind="properties">
