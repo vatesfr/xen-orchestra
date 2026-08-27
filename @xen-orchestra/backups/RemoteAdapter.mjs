@@ -3,7 +3,7 @@ import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { VhdDirectory, VhdSynthetic } from 'vhd-lib'
 import { decorateMethodsWith } from '@vates/decorate-with'
-import { dirname, join, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import { synchronized } from 'decorator-synchronized'
 import Disposable from 'promise-toolbox/Disposable'
 import groupBy from 'lodash/groupBy.js'
@@ -22,6 +22,7 @@ import {
 import { fileRestoreDecorators, fileRestoreMethods } from './_fileRestore.mjs'
 import { formatFilenameDate } from './_filenameDate.mjs'
 import { isMetadataFile } from './_backupType.mjs'
+import { readBackupJournal, writeBackupJournalEntries, writeBackupJournalEntry } from './_backupJournal.mjs'
 import { isValidXva } from './_isValidXva.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
@@ -83,7 +84,15 @@ export class RemoteAdapter {
     })
   }
 
-  async #removeVmBackupsFromCache(backups) {
+  // Single funnel for all the backup deletions triggered by a user or by retention: forgets them
+  // from `cache.json.gz` and records them in the journal.
+  /**
+   * @param {{ _filename: string, jobId?: string, scheduleId?: string }[]} backups the metadata of
+   * the deleted backups, or `{ _filename }` alone when it could not be read
+   * @param {import('./_backupJournal.mjs').BackupJournalReason} reason
+   * @returns {Promise<void>}
+   */
+  async #forgetVmBackups(backups, reason) {
     await asyncEach(
       Object.entries(
         groupBy(
@@ -100,16 +109,35 @@ export class RemoteAdapter {
           }
         })
     )
+
+    // will not reject
+    await writeBackupJournalEntries(
+      this._handler,
+      backups.map(({ _filename, jobId, scheduleId }) => ({
+        event: 'del',
+        vmUuid: basename(dirname(_filename)),
+        filename: _filename,
+        who: jobId === undefined ? undefined : { jobId, scheduleId },
+        reason,
+      })),
+      { dirMode: this._dirMode }
+    )
   }
 
-  async deleteDeltaVmBackups(backups) {
+  /**
+   * @param {object[]} backups metadata of the backups to delete
+   * @param {object} [opts]
+   * @param {import('./_backupJournal.mjs').BackupJournalReason} [opts.reason] what triggered the
+   * deletion, as recorded in the journal
+   */
+  async deleteDeltaVmBackups(backups, { reason = 'retention' } = {}) {
     // this will delete the json, unused VHDs will be detected by `cleanVm`
     await deleteDeltaVmBackupFiles(
       this._handler,
       backups.map(({ _filename }) => ({ metadataPath: _filename }))
     )
 
-    await this.#removeVmBackupsFromCache(backups)
+    await this.#forgetVmBackups(backups, reason)
   }
 
   async deleteMetadataBackup(backupId) {
@@ -124,7 +152,13 @@ export class RemoteAdapter {
     await asyncMapSettled(list, timestamp => handler.rmtree(`${dir}/${timestamp}`))
   }
 
-  async deleteFullVmBackups(backups) {
+  /**
+   * @param {object[]} backups metadata of the backups to delete
+   * @param {object} [opts]
+   * @param {import('./_backupJournal.mjs').BackupJournalReason} [opts.reason] what triggered the
+   * deletion, as recorded in the journal
+   */
+  async deleteFullVmBackups(backups, { reason = 'retention' } = {}) {
     await asyncMapSettled(backups, async ({ _filename, xva }) => {
       try {
         await deleteFullVmBackupFiles(this._handler, [{ metadataPath: _filename, xva }])
@@ -134,7 +168,7 @@ export class RemoteAdapter {
       }
     })
 
-    await this.#removeVmBackupsFromCache(backups)
+    await this.#forgetVmBackups(backups, reason)
   }
 
   deleteVmBackup(file) {
@@ -173,13 +207,13 @@ export class RemoteAdapter {
     }
     const promises = []
     if (delta !== undefined) {
-      promises.push(this.deleteDeltaVmBackups(delta))
+      promises.push(this.deleteDeltaVmBackups(delta, { reason: 'user' }))
     }
     if (full !== undefined) {
-      promises.push(this.deleteFullVmBackups(full))
+      promises.push(this.deleteFullVmBackups(full, { reason: 'user' }))
     }
     if (missingFiles.length) {
-      promises.push(this.#removeVmBackupsFromCache(missingFiles))
+      promises.push(this.#forgetVmBackups(missingFiles, 'user'))
     }
     await Promise.all(promises)
 
@@ -291,6 +325,12 @@ export class RemoteAdapter {
   _updateCache = synchronized.withKey()(this._updateCache)
   // eslint-disable-next-line no-dupe-class-members
   async _updateCache(path, fn) {
+    // immutable remote can't use any caching
+    // since the cache file may be non modifiable, and would then stay billed forever
+    if (this._handler.isImmutable()) {
+      return
+    }
+
     const cache = await this._readCache(path)
     if (cache !== undefined) {
       fn(cache)
@@ -408,12 +448,35 @@ export class RemoteAdapter {
     return backups.sort(compareTimestamp)
   }
 
+  // read the backup events which happened on this remote after `since` (timestamp in ms),
+  // oldest first
+  /**
+   * @param {number} [since] timestamp in ms, exclusive
+   * @returns {Promise<import('./_backupJournal.mjs').BackupJournalEntry[]>}
+   */
+  async readBackupJournal(since) {
+    return readBackupJournal(this._handler, since)
+  }
+
   async writeVmBackupMetadata(vmUuid, metadata) {
     const path = `/${BACKUP_DIR}/${vmUuid}/${formatFilenameDate(metadata.timestamp)}.json`
 
     await this.handler.outputFile(path, JSON.stringify(metadata), {
       dirMode: this._dirMode,
     })
+
+    // will not throw
+    await writeBackupJournalEntry(
+      this._handler,
+      {
+        event: 'add',
+        vmUuid,
+        filename: path,
+        who: { jobId: metadata.jobId, scheduleId: metadata.scheduleId },
+        reason: 'backup',
+      },
+      { dirMode: this._dirMode }
+    )
 
     // will not throw
     await this._updateCache(this.#getVmBackupsCache(vmUuid), backups => {
@@ -618,15 +681,51 @@ export class RemoteAdapter {
   }
 }
 
+// journal the metadata files `cleanVm` removed and rewrote
+//
+// `removedFiles` also lists the files which would have been removed if `remove` were set, and files
+// which are not backup metadata (stray xva, checksums, …), hence the filtering.
+/**
+ * @param {RemoteAdapter} adapter
+ * @param {string} vmBackupPath directory of the cleaned VM, e.g. `xo-vm-backups/<vmUuid>`
+ * @param {object} cleanOpts the options `cleanVm()` ran with
+ * @param {boolean} [cleanOpts.remove] whether the removals were actually applied
+ * @param {object} result the result of `cleanVm()`
+ * @param {string[]} [result.removedFiles]
+ * @param {string[]} [result.changedFiles]
+ * @returns {Promise<void>}
+ */
+async function journalCleanVm(adapter, vmBackupPath, { remove }, { removedFiles = [], changedFiles = [] }) {
+  const dir = resolve('/', vmBackupPath)
+  const vmUuid = basename(dir)
+  const isVmMetadata = file => isMetadataFile(file) && dirname(resolve('/', file)) === dir
+
+  const entries = []
+  if (remove) {
+    for (const filename of new Set(removedFiles.filter(isVmMetadata))) {
+      entries.push({ event: 'del', vmUuid, filename, reason: 'clean-vm' })
+    }
+  }
+  for (const filename of new Set(changedFiles.filter(isVmMetadata))) {
+    entries.push({ event: 'change', vmUuid, filename, reason: 'merge' })
+  }
+
+  // will not reject
+  await writeBackupJournalEntries(adapter._handler, entries, { dirMode: adapter._dirMode })
+}
+
 Object.assign(RemoteAdapter.prototype, {
   cleanVm(vmBackupPath, opts = {}) {
     const { lock = true, ...cleanOpts } = opts
+    const run = async () => {
+      const result = await VmBackupDirectory.cleanVm(this._handler, vmBackupPath, cleanOpts)
+      await journalCleanVm(this, vmBackupPath, cleanOpts, result)
+      return result
+    }
     if (lock) {
-      return Disposable.use(this._handler.lock(vmBackupPath), () => {
-        return VmBackupDirectory.cleanVm(this._handler, vmBackupPath, cleanOpts)
-      })
+      return Disposable.use(this._handler.lock(vmBackupPath), run)
     } else {
-      return VmBackupDirectory.cleanVm(this._handler, vmBackupPath, cleanOpts)
+      return run()
     }
   },
   isValidXva,

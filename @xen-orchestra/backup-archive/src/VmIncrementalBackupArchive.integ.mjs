@@ -889,7 +889,7 @@ test('it regenerates a pre-existing cache after a merge', async () => {
     await gzip(JSON.stringify({ [`/${rootPath}metadata.json`]: { size: 12000 } }))
   )
 
-  await VmBackupDirectory.cleanVm(handler, rootPath, {
+  const result = await VmBackupDirectory.cleanVm(handler, rootPath, {
     remove: true,
     merge: true,
     logInfo: () => {},
@@ -898,6 +898,7 @@ test('it regenerates a pre-existing cache after a merge', async () => {
 
   const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
   assert.notEqual(metadata.size, 12000, 'metadata.size should be updated after merge')
+  assert.deepEqual(result.changedFiles, [`/${rootPath}metadata.json`], 'the rewritten metadata should be reported')
 
   const cache = JSON.parse((await gunzip(await handler.readFile(`${rootPath}/cache.json.gz`))).toString())
   assert.equal(Object.keys(cache).length, 1)
