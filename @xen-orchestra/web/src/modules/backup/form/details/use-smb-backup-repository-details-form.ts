@@ -8,19 +8,25 @@ export const SMB_DEFAULT_DOMAIN = 'WORKGROUP'
 
 export type SmbBackupRepositoryDetailsForm = ReturnType<typeof useSmbBackupRepositoryDetailsForm>
 
+const INITIAL_FORM_DATA = {
+  pathOnShare: '',
+  subfolder: '',
+  username: '',
+  password: '',
+  domain: '',
+  customOptions: '',
+}
+
 export function useSmbBackupRepositoryDetailsForm() {
   const { t } = useI18n()
 
-  const formData = reactive({
-    pathOnShare: '',
-    subfolder: '',
-    username: '',
-    password: '',
-    domain: '',
-    customOptions: '',
-  })
+  const formData = reactive({ ...INITIAL_FORM_DATA })
 
-  const { useField, validate } = useValidatedForm(formData, {
+  const {
+    useField,
+    validate,
+    reset: resetValidation,
+  } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
         pathOnShare: { required },
@@ -43,7 +49,7 @@ export function useSmbBackupRepositoryDetailsForm() {
       info: t('smb-subfolder-sample'),
     })),
     username: useField('username', () => ({ label: t('username'), required: true })),
-    password: useField('password', () => ({ label: t('password'), required: true })),
+    password: useField('password', () => ({ label: t('password'), required: true, type: 'password' })),
     domain: useField('domain', () => ({
       label: t('domain'),
       placeholder: SMB_DEFAULT_DOMAIN,
@@ -66,5 +72,10 @@ export function useSmbBackupRepositoryDetailsForm() {
     }
   }
 
-  return { formData, bindings, validate, buildPayload }
+  function reset() {
+    Object.assign(formData, INITIAL_FORM_DATA)
+    resetValidation()
+  }
+
+  return { formData, bindings, validate, buildPayload, reset }
 }

@@ -8,19 +8,25 @@ import { useI18n } from 'vue-i18n'
 
 export type AzureBackupRepositoryDetailsForm = ReturnType<typeof useAzureBackupRepositoryDetailsForm>
 
+const INITIAL_FORM_DATA = {
+  hostName: '',
+  useHttps: true,
+  accountName: '',
+  key: '',
+  containerName: '',
+  pathInContainer: '',
+}
+
 export function useAzureBackupRepositoryDetailsForm(rawType: MaybeRefOrGetter<BackupRepositoryType | undefined>) {
   const { t } = useI18n()
 
-  const formData = reactive({
-    hostName: '',
-    useHttps: true,
-    accountName: '',
-    key: '',
-    containerName: '',
-    pathInContainer: '',
-  })
+  const formData = reactive({ ...INITIAL_FORM_DATA })
 
-  const { useField, validate } = useValidatedForm(formData, {
+  const {
+    useField,
+    validate,
+    reset: resetValidation,
+  } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
         hostName: { required },
@@ -35,7 +41,7 @@ export function useAzureBackupRepositoryDetailsForm(rawType: MaybeRefOrGetter<Ba
     hostName: useField('hostName', () => ({ label: t('host-name'), required: true })),
     useHttps: useField('useHttps', () => ({ label: t('use-https') })),
     accountName: useField('accountName', () => ({ label: t('account-name'), required: true })),
-    key: useField('key', () => ({ label: t('key'), required: true })),
+    key: useField('key', () => ({ label: t('key'), required: true, type: 'password' })),
     containerName: useField('containerName', () => ({ label: t('container-name'), required: true })),
     pathInContainer: useField('pathInContainer', () => ({ label: t('path-in-container') })),
   })
@@ -53,5 +59,10 @@ export function useAzureBackupRepositoryDetailsForm(rawType: MaybeRefOrGetter<Ba
     }
   }
 
-  return { formData, bindings, validate, buildPayload }
+  function reset() {
+    Object.assign(formData, INITIAL_FORM_DATA)
+    resetValidation()
+  }
+
+  return { formData, bindings, validate, buildPayload, reset }
 }

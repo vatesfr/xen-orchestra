@@ -71,7 +71,7 @@
         <template v-else-if="type === 'smb'">
           <VtsTabularKeyValueRow :label="t('path-on-share')" :value="smbPath" />
           <VtsTabularKeyValueRow :label="t('username')" :value="details.smb.formData.username" />
-          <VtsTabularKeyValueRow :label="t('password')" :value="mask(details.smb.formData.password)" />
+          <VtsTabularKeyValueRow :label="t('password')" :value="maskedSmbPassword" />
           <VtsTabularKeyValueRow :label="t('domain')" :value="smbDomain" />
           <VtsTabularKeyValueRow :label="t('custom-options')" :value="details.smb.formData.customOptions" />
         </template>
@@ -90,7 +90,7 @@
           </VtsTabularKeyValueRow>
           <VtsTabularKeyValueRow :label="t('region')" :value="details.s3.formData.region" />
           <VtsTabularKeyValueRow :label="t('access-key-id')" :value="details.s3.formData.accessKeyId" />
-          <VtsTabularKeyValueRow :label="t('secret')" :value="mask(details.s3.formData.secret)" />
+          <VtsTabularKeyValueRow :label="t('secret')" :value="maskedS3Secret" />
           <VtsTabularKeyValueRow :label="t('bucket-name')" :value="details.s3.formData.bucket" />
           <VtsTabularKeyValueRow :label="t('path-in-bucket')" :value="details.s3.formData.pathInBucket" />
         </template>
@@ -103,7 +103,7 @@
             </template>
           </VtsTabularKeyValueRow>
           <VtsTabularKeyValueRow :label="t('account-name')" :value="details.azure.formData.accountName" />
-          <VtsTabularKeyValueRow :label="t('key')" :value="mask(details.azure.formData.key)" />
+          <VtsTabularKeyValueRow :label="t('key')" :value="maskedAzureKey" />
           <VtsTabularKeyValueRow :label="t('container-name')" :value="details.azure.formData.containerName" />
           <VtsTabularKeyValueRow :label="t('path')" :value="details.azure.formData.pathInContainer" />
         </template>
@@ -162,6 +162,10 @@ const smbPath = computed(() => {
 function mask(value: string): string {
   return value !== '' ? MASKED_VALUE : ''
 }
+
+const maskedSmbPassword = computed(() => mask(details.smb.formData.password))
+const maskedS3Secret = computed(() => mask(details.s3.formData.secret))
+const maskedAzureKey = computed(() => mask(details.azure.formData.key))
 </script>
 
 <style lang="postcss" scoped>

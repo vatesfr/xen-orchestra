@@ -40,8 +40,18 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { general, details, currentStep, detailsStepLabel, currentStepIndex, steps, next, back, goToStep, buildPayload } =
-  useNewBackupRepositoryForm()
+const {
+  general,
+  details,
+  currentStep,
+  detailsStepLabel,
+  currentStepIndex,
+  steps,
+  next,
+  back,
+  goToStep,
+  validateAndBuildPayload,
+} = useNewBackupRepositoryForm()
 
 async function handleConfirm() {
   if (currentStep.value !== 'review') {
@@ -49,7 +59,7 @@ async function handleConfirm() {
     return
   }
 
-  const payload = await buildPayload()
+  const payload = await validateAndBuildPayload()
 
   if (payload !== undefined) {
     emit('confirm', payload)

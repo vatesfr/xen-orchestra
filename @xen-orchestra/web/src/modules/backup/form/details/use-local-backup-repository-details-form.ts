@@ -8,15 +8,21 @@ import { useI18n } from 'vue-i18n'
 
 export type LocalBackupRepositoryDetailsForm = ReturnType<typeof useLocalBackupRepositoryDetailsForm>
 
+const INITIAL_FORM_DATA = {
+  path: '',
+}
+
 export function useLocalBackupRepositoryDetailsForm(rawProxy: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>) {
   const proxy = toComputed(rawProxy)
   const { t } = useI18n()
 
-  const formData = reactive({
-    path: '',
-  })
+  const formData = reactive({ ...INITIAL_FORM_DATA })
 
-  const { useField, validate } = useValidatedForm(formData, {
+  const {
+    useField,
+    validate,
+    reset: resetValidation,
+  } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
         path: { required },
@@ -41,5 +47,10 @@ export function useLocalBackupRepositoryDetailsForm(rawProxy: MaybeRefOrGetter<F
     }
   }
 
-  return { formData, bindings, validate, buildPayload }
+  function reset() {
+    Object.assign(formData, INITIAL_FORM_DATA)
+    resetValidation()
+  }
+
+  return { formData, bindings, validate, buildPayload, reset }
 }
