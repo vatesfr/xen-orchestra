@@ -12,7 +12,7 @@ import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
 import { VhdFile, Constants } from 'vhd-lib'
 import { rimraf } from 'rimraf'
 
-import { BACKUP_JOURNAL_DIR, formatJournalDate } from './_backupJournal.mjs'
+import { BACKUP_JOURNAL_DIR, formatJournalDate, formatJournalDay } from './_backupJournal.mjs'
 import { formatFilenameDate } from './_filenameDate.mjs'
 
 const { beforeEach, afterEach, describe } = test
@@ -45,7 +45,25 @@ afterEach(async () => {
 const uniqueId = () => uuid.v1()
 const uniqueIdBuffer = () => uuid.v1({}, Buffer.alloc(16))
 
-const listJournal = () => handler.list(`/${BACKUP_JOURNAL_DIR}`, { ignoreMissing: true })
+const listJournalDays = () => handler.list(`/${BACKUP_JOURNAL_DIR}`, { ignoreMissing: true })
+
+// paths of the journal entries of every day, oldest first
+async function listJournal() {
+  const paths = []
+  for (const day of (await listJournalDays()).filter(name => /^\d{8}$/.test(name))) {
+    paths.push(...(await handler.list(`/${BACKUP_JOURNAL_DIR}/${day}`, { prependDir: true })))
+  }
+  return paths.sort()
+}
+
+// writes a journal entry the way a past run would have, i.e. in the directory of its own day
+function writeJournalEntryAt(timestamp, entry) {
+  const date = formatJournalDate(timestamp)
+  return handler.outputFile(
+    `/${BACKUP_JOURNAL_DIR}/${formatJournalDay(timestamp)}/${date}-000000-${entry.event}-${entry.vmUuid}-${entry.filename.split('/').pop()}`,
+    JSON.stringify({ ...entry, timestamp })
+  )
+}
 
 // journal entries are stamped with the writer's clock, therefore a watermark used in an assertion
 // must be strictly between the entries written before it and the ones written after it
@@ -122,14 +140,17 @@ describe('backup journal', { concurrency: 1 }, () => {
       reason: 'backup',
     })
     assert.equal(date.getTime(), timestamp)
-    assert.equal(_filename, `/${BACKUP_JOURNAL_DIR}/${(await listJournal())[0]}`)
+    assert.equal(_filename, (await listJournal())[0])
   })
 
-  test('the entry filename carries the date, the event and the backup it is about', async () => {
+  test('the entry is stored in the directory of its day, named after the date, the event and the backup', async () => {
     const path = await writeFullBackup()
 
-    const [name] = await listJournal()
+    const [entryPath] = await listJournal()
     const { timestamp } = (await adapter.readBackupJournal(0))[0]
+
+    const name = entryPath.split('/').pop()
+    assert.equal(entryPath, `/${BACKUP_JOURNAL_DIR}/${formatJournalDay(timestamp)}/${name}`)
     assert.equal(name.slice(0, 20), formatJournalDate(timestamp))
     assert.ok(name.endsWith(`-add-${vmUuid}-${path.split('/').pop()}`), name)
   })
@@ -250,6 +271,50 @@ describe('backup journal', { concurrency: 1 }, () => {
 })
 
 describe('readBackupJournal()', { concurrency: 1 }, () => {
+  const DAY = 24 * 60 * 60 * 1e3
+
+  test('returns nothing on a repository without a journal', async () => {
+    assert.deepEqual(await adapter.readBackupJournal(0), [])
+  })
+
+  test('replays the days since `since`, oldest first', async () => {
+    const old = `/${rootPath}/old.json`
+    const twoDaysAgo = Date.now() - 2 * DAY
+    await writeJournalEntryAt(twoDaysAgo, { event: 'add', vmUuid, filename: old, reason: 'backup' })
+    const recent = await writeFullBackup()
+
+    assert.deepEqual(
+      (await adapter.readBackupJournal(twoDaysAgo - 1000)).map(_ => _.filename),
+      [old, recent]
+    )
+  })
+
+  test('does not read the days older than `since`', async () => {
+    await writeJournalEntryAt(Date.now() - 2 * DAY, {
+      event: 'add',
+      vmUuid,
+      filename: `/${rootPath}/old.json`,
+      reason: 'backup',
+    })
+    const recent = await writeFullBackup()
+
+    const listed = []
+    const list = handler.list.bind(handler)
+    handler.list = (dir, ...rest) => {
+      listed.push(dir)
+      return list(dir, ...rest)
+    }
+
+    const since = Date.now() - 60e3
+    assert.deepEqual(
+      (await adapter.readBackupJournal(since)).map(_ => _.filename),
+      [recent]
+    )
+
+    // only the journal root and today's directory, whatever the number of days the journal holds
+    assert.deepEqual(listed, [`/${BACKUP_JOURNAL_DIR}`, `/${BACKUP_JOURNAL_DIR}/${formatJournalDay(since)}`])
+  })
+
   test('returns the entries stamped after `since`, oldest first', async () => {
     const first = await writeFullBackup(Date.now() - 2000)
     const since = await mark()
@@ -268,14 +333,17 @@ describe('readBackupJournal()', { concurrency: 1 }, () => {
 
   test('skips truncated entries and unrecognized filenames without hiding their siblings', async () => {
     const path = await writeFullBackup()
-    const [name] = await listJournal()
+    const [entryPath] = await listJournal()
+    const day = formatJournalDay(Date.now())
 
     // a partially written entry
     await handler.writeFile(
-      `/${BACKUP_JOURNAL_DIR}/${formatJournalDate(Date.now())}-000000-add-${vmUuid}-truncated.json`,
+      `/${BACKUP_JOURNAL_DIR}/${day}/${formatJournalDate(Date.now())}-000000-add-${vmUuid}-truncated.json`,
       '{"ev'
     )
     // a file which is not a journal entry at all
+    await handler.writeFile(`/${BACKUP_JOURNAL_DIR}/${day}/README`, 'hello')
+    // a stray file where only day directories are expected
     await handler.writeFile(`/${BACKUP_JOURNAL_DIR}/README`, 'hello')
 
     const entries = await adapter.readBackupJournal(0)
@@ -283,7 +351,7 @@ describe('readBackupJournal()', { concurrency: 1 }, () => {
       entries.map(_ => _.filename),
       [path]
     )
-    assert.equal(entries[0]._filename, `/${BACKUP_JOURNAL_DIR}/${name}`)
+    assert.equal(entries[0]._filename, entryPath)
   })
 })
 
@@ -306,8 +374,9 @@ describe('backup journal on an encrypted remote', { concurrency: 1 }, () => {
         timestamp: Date.now(),
       })
 
-      const [name] = await encryptedHandler.list(`/${BACKUP_JOURNAL_DIR}`)
-      const raw = await fs.readFile(`${encryptedDir}/${BACKUP_JOURNAL_DIR}/${name}`)
+      const [day] = await encryptedHandler.list(`/${BACKUP_JOURNAL_DIR}`)
+      const [name] = await encryptedHandler.list(`/${BACKUP_JOURNAL_DIR}/${day}`)
+      const raw = await fs.readFile(`${encryptedDir}/${BACKUP_JOURNAL_DIR}/${day}/${name}`)
       assert.equal(JSON.parse(String(raw)).event, 'add')
     } finally {
       await encryptedHandler.forget()
