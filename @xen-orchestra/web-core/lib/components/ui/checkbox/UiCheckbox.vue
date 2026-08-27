@@ -1,24 +1,29 @@
-<!-- v5 -->
+<!-- v8 -->
 <template>
-  <label :class="classNames" class="ui-checkbox" v-bind="wrapperAttrs">
-    <input
-      v-model="checkboxModel"
-      :class="{ indeterminate: isIndeterminate }"
-      :disabled="isDisabled"
-      class="input"
-      type="checkbox"
-      v-bind="attrs"
-    />
-    <span class="fake-checkbox">
-      <VtsIcon :name="icon" size="medium" class="icon" />
-    </span>
-    <span v-if="slots.default" class="typo-body-regular">
-      <slot />
-    </span>
-  </label>
-  <UiInfo v-if="slots.info" :accent="accent === 'brand' ? 'info' : accent">
-    <slot name="info" />
-  </UiInfo>
+  <div class="ui-checkbox">
+    <label :class="classNames" class="checkbox-label" v-bind="wrapperAttrs">
+      <input
+        v-model="checkboxModel"
+        :class="{ indeterminate: isIndeterminate }"
+        :disabled="isDisabled"
+        class="input"
+        type="checkbox"
+        v-bind="attrs"
+      />
+      <span class="fake-checkbox">
+        <VtsIcon :name="icon" size="medium" class="icon" />
+      </span>
+      <span v-if="slots.default" class="typo-body-regular">
+        <slot />
+      </span>
+    </label>
+    <UiInfo v-if="slots.info" accent="info">
+      <slot name="info" />
+    </UiInfo>
+    <UiInfo v-if="slots.message && accent !== 'brand'" :accent>
+      <slot name="message" />
+    </UiInfo>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -43,6 +48,7 @@ const checkboxModel = defineModel<boolean | undefined | string[]>({ default: und
 const slots = defineSlots<{
   default?(): any
   info?(): any
+  message?(): any
 }>()
 
 const isDisabled = useDisabled(() => disabled)
@@ -63,234 +69,240 @@ const attrs = useAttrs()
 
 <style lang="postcss" scoped>
 .ui-checkbox {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 
-  .fake-checkbox {
+  .checkbox-label {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    height: 1.6rem;
-    width: 1.6rem;
-    transition:
-      background-color 0.125s ease-in-out,
-      border-color 0.125s ease-in-out;
-    border: 0.2rem solid transparent;
-    border-radius: 0.2rem;
-    flex-shrink: 0;
+    gap: 0.4rem;
 
-    .icon {
-      font-size: 0.75rem;
-      color: var(--color-info-txt-item);
-      transition: opacity 0.125s ease-in-out;
-    }
-  }
+    .fake-checkbox {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 1.6rem;
+      width: 1.6rem;
+      transition:
+        background-color 0.125s ease-in-out,
+        border-color 0.125s ease-in-out;
+      border: 0.2rem solid transparent;
+      border-radius: 0.2rem;
+      flex-shrink: 0;
 
-  .input {
-    font-size: inherit;
-    position: absolute;
-    pointer-events: none;
-    opacity: 0;
-
-    &.indeterminate + .fake-checkbox > .icon {
-      opacity: 1;
-      color: var(--color-info-txt-item);
+      .icon {
+        font-size: 0.75rem;
+        color: var(--color-neutral-background-primary);
+        transition: opacity 0.125s ease-in-out;
+      }
     }
 
-    & + .fake-checkbox > .icon {
+    .input {
+      font-size: inherit;
+      position: absolute;
+      pointer-events: none;
       opacity: 0;
-    }
 
-    &:checked + .fake-checkbox > .icon {
-      opacity: 1;
-    }
-
-    &:focus-visible + .fake-checkbox {
-      outline: none;
-
-      &::before {
-        content: '';
-        position: absolute;
-        inset: -0.5rem;
-        border-radius: 0.4rem;
-        border-width: 0.2rem;
-        border-style: solid;
-      }
-    }
-  }
-
-  &.accent--brand {
-    .input:not(:disabled) {
-      & + .fake-checkbox {
-        border-color: var(--color-brand-item-base);
+      &.indeterminate + .fake-checkbox > .icon {
+        opacity: 1;
+        color: var(--color-neutral-background-primary);
       }
 
-      &.indeterminate + .fake-checkbox {
-        background-color: var(--color-brand-item-base);
+      & + .fake-checkbox > .icon {
+        opacity: 0;
+      }
 
-        &:hover {
+      &:checked + .fake-checkbox > .icon {
+        opacity: 1;
+      }
+
+      &:focus-visible + .fake-checkbox {
+        outline: none;
+
+        &::before {
+          content: '';
+          position: absolute;
+          inset: -0.5rem;
+          border-radius: 0.4rem;
+          border-width: 0.2rem;
+          border-style: solid;
+        }
+      }
+    }
+
+    &.accent--brand {
+      .input:not(:disabled) {
+        & + .fake-checkbox {
+          border-color: var(--color-brand-txt-base);
+        }
+
+        &.indeterminate + .fake-checkbox {
+          background-color: var(--color-brand-txt-base);
+
+          &:hover {
+            border-color: transparent;
+            background-color: var(--color-brand-txt-hover);
+          }
+
+          &:active {
+            background-color: var(--color-brand-txt-active);
+          }
+        }
+
+        &.indeterminate:hover + .fake-checkbox {
           border-color: transparent;
-          background-color: var(--color-brand-item-hover);
+          background-color: var(--color-brand-txt-hover);
         }
 
-        &:active {
-          background-color: var(--color-brand-item-active);
+        &:hover + .fake-checkbox {
+          border-color: var(--color-brand-txt-hover);
         }
-      }
 
-      &.indeterminate:hover + .fake-checkbox {
-        border-color: transparent;
-        background-color: var(--color-brand-item-hover);
-      }
+        &:focus-visible + .fake-checkbox::before {
+          border: 0.2rem solid var(--color-brand-txt-base);
+        }
 
-      &:hover + .fake-checkbox {
-        border-color: var(--color-brand-item-hover);
-      }
+        &:active + .fake-checkbox {
+          border-color: var(--color-brand-txt-active);
+        }
 
-      &:focus-visible + .fake-checkbox::before {
-        border: 0.2rem solid var(--color-brand-txt-base);
-      }
-
-      &:active + .fake-checkbox {
-        border-color: var(--color-brand-item-active);
-      }
-
-      &:checked + .fake-checkbox {
-        border-color: transparent;
-        background-color: var(--color-brand-item-base);
-      }
-
-      &:checked:hover + .fake-checkbox {
-        background-color: var(--color-brand-item-hover);
-      }
-
-      &:checked:active + .fake-checkbox {
-        background-color: var(--color-brand-item-active);
-      }
-    }
-  }
-
-  &.accent--warning {
-    .input:not(:disabled) {
-      & + .fake-checkbox {
-        border-color: var(--color-warning-item-base);
-      }
-
-      &.indeterminate + .fake-checkbox {
-        background-color: var(--color-warning-item-base);
-
-        &:hover {
+        &:checked + .fake-checkbox {
           border-color: transparent;
-          background-color: var(--color-warning-item-hover);
+          background-color: var(--color-brand-txt-base);
         }
 
-        &:active {
-          background-color: var(--color-warning-item-active);
+        &:checked:hover + .fake-checkbox {
+          background-color: var(--color-brand-txt-hover);
         }
-      }
 
-      &.indeterminate:hover + .fake-checkbox {
-        border-color: transparent;
-        background-color: var(--color-warning-item-hover);
-      }
-
-      &:hover + .fake-checkbox {
-        border-color: var(--color-warning-item-hover);
-      }
-
-      &:focus-visible + .fake-checkbox::before {
-        border: 0.2rem solid var(--color-brand-txt-base);
-      }
-
-      &:active + .fake-checkbox {
-        border-color: var(--color-warning-item-active);
-      }
-
-      &:checked + .fake-checkbox {
-        border-color: transparent;
-        background-color: var(--color-warning-item-base);
-      }
-
-      &:checked:hover + .fake-checkbox {
-        background-color: var(--color-warning-item-hover);
-      }
-
-      &:checked:active + .fake-checkbox {
-        background-color: var(--color-warning-item-active);
+        &:checked:active + .fake-checkbox {
+          background-color: var(--color-brand-txt-active);
+        }
       }
     }
-  }
 
-  &.accent--danger {
-    .input:not(:disabled) {
+    &.accent--warning {
+      .input:not(:disabled) {
+        & + .fake-checkbox {
+          border-color: var(--color-warning-txt-base);
+        }
+
+        &.indeterminate + .fake-checkbox {
+          background-color: var(--color-warning-txt-base);
+
+          &:hover {
+            border-color: transparent;
+            background-color: var(--color-warning-txt-hover);
+          }
+
+          &:active {
+            background-color: var(--color-warning-txt-active);
+          }
+        }
+
+        &.indeterminate:hover + .fake-checkbox {
+          border-color: transparent;
+          background-color: var(--color-warning-txt-hover);
+        }
+
+        &:hover + .fake-checkbox {
+          border-color: var(--color-warning-txt-hover);
+        }
+
+        &:focus-visible + .fake-checkbox::before {
+          border: 0.2rem solid var(--color-brand-txt-base);
+        }
+
+        &:active + .fake-checkbox {
+          border-color: var(--color-warning-txt-active);
+        }
+
+        &:checked + .fake-checkbox {
+          border-color: transparent;
+          background-color: var(--color-warning-txt-base);
+        }
+
+        &:checked:hover + .fake-checkbox {
+          background-color: var(--color-warning-txt-hover);
+        }
+
+        &:checked:active + .fake-checkbox {
+          background-color: var(--color-warning-txt-active);
+        }
+      }
+    }
+
+    &.accent--danger {
+      .input:not(:disabled) {
+        & + .fake-checkbox {
+          border-color: var(--color-danger-txt-base);
+
+          > .icon {
+            color: var(--color-danger-txt-item);
+          }
+        }
+
+        &.indeterminate + .fake-checkbox {
+          background-color: var(--color-danger-txt-base);
+
+          &:hover {
+            border-color: transparent;
+            background-color: var(--color-danger-txt-hover);
+          }
+
+          &:active {
+            background-color: var(--color-danger-txt-active);
+          }
+        }
+
+        &.indeterminate:hover + .fake-checkbox {
+          border-color: transparent;
+          background-color: var(--color-danger-txt-hover);
+        }
+
+        &:hover + .fake-checkbox {
+          border-color: var(--color-danger-txt-hover);
+        }
+
+        &:focus-visible + .fake-checkbox::before {
+          border: 0.2rem solid var(--color-brand-txt-base);
+        }
+
+        &:active + .fake-checkbox {
+          border-color: var(--color-danger-txt-active);
+        }
+
+        &:checked + .fake-checkbox {
+          border-color: transparent;
+          background-color: var(--color-danger-txt-base);
+        }
+
+        &:checked:hover + .fake-checkbox {
+          background-color: var(--color-danger-txt-hover);
+        }
+
+        &:checked:active + .fake-checkbox {
+          background-color: var(--color-danger-txt-active);
+        }
+      }
+    }
+
+    .input:disabled {
       & + .fake-checkbox {
-        border-color: var(--color-danger-item-base);
+        cursor: not-allowed;
+        border-color: var(--color-neutral-txt-secondary);
 
         > .icon {
-          color: var(--color-danger-txt-item);
+          color: var(--color-neutral-background-disabled);
         }
       }
 
+      &:checked + .fake-checkbox,
       &.indeterminate + .fake-checkbox {
-        background-color: var(--color-danger-item-base);
-
-        &:hover {
-          border-color: transparent;
-          background-color: var(--color-danger-item-hover);
-        }
-
-        &:active {
-          background-color: var(--color-danger-item-active);
-        }
-      }
-
-      &.indeterminate:hover + .fake-checkbox {
         border-color: transparent;
-        background-color: var(--color-danger-item-hover);
+        background-color: var(--color-neutral-txt-secondary);
       }
-
-      &:hover + .fake-checkbox {
-        border-color: var(--color-danger-item-hover);
-      }
-
-      &:focus-visible + .fake-checkbox::before {
-        border: 0.2rem solid var(--color-brand-txt-base);
-      }
-
-      &:active + .fake-checkbox {
-        border-color: var(--color-danger-item-active);
-      }
-
-      &:checked + .fake-checkbox {
-        border-color: transparent;
-        background-color: var(--color-danger-item-base);
-      }
-
-      &:checked:hover + .fake-checkbox {
-        background-color: var(--color-danger-item-hover);
-      }
-
-      &:checked:active + .fake-checkbox {
-        background-color: var(--color-danger-item-active);
-      }
-    }
-  }
-
-  .input:disabled {
-    & + .fake-checkbox {
-      cursor: not-allowed;
-      border-color: var(--color-neutral-txt-secondary);
-
-      > .icon {
-        color: var(--color-neutral-background-disabled);
-      }
-    }
-
-    &:checked + .fake-checkbox,
-    &.indeterminate + .fake-checkbox {
-      border-color: transparent;
-      background-color: var(--color-neutral-txt-secondary);
     }
   }
 }
