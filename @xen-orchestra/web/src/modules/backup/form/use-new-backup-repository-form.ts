@@ -7,12 +7,10 @@ import { useBackupRepositoryGeneralForm } from '@/modules/backup/form/use-backup
 import type { NewBackupRepositoryPayload } from '@/modules/backup/jobs/xo-backup-repository-create.job.ts'
 import { formatBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
-import { computed, ref } from 'vue'
-import { watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const STEPS = ['general', 'details', 'review']
-
+const STEPS = ['general', 'details', 'review'] as const
 type Step = (typeof STEPS)[number]
 
 export type NewBackupRepositoryDetailsForms = ReturnType<typeof useNewBackupRepositoryForm>['details']

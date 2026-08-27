@@ -2,8 +2,8 @@ import type { BackupRepositoryDetailsPayload } from '@/modules/backup/types/new-
 import type { BackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import { required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
-import { reactive, toValue } from 'vue'
-import type { MaybeRefOrGetter } from 'vue'
+import { toComputed } from '@core/utils/to-computed.util.ts'
+import { type MaybeRefOrGetter, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type AzureBackupRepositoryDetailsForm = ReturnType<typeof useAzureBackupRepositoryDetailsForm>
@@ -19,6 +19,8 @@ const INITIAL_FORM_DATA = {
 
 export function useAzureBackupRepositoryDetailsForm(rawType: MaybeRefOrGetter<BackupRepositoryType | undefined>) {
   const { t } = useI18n()
+
+  const type = toComputed(rawType)
 
   const formData = reactive({ ...INITIAL_FORM_DATA })
 
@@ -49,7 +51,7 @@ export function useAzureBackupRepositoryDetailsForm(rawType: MaybeRefOrGetter<Ba
   function buildPayload(): BackupRepositoryDetailsPayload {
     return {
       urlInfo: {
-        type: toValue(rawType) === 'azurite' ? 'azurite' : 'azure',
+        type: type.value === 'azurite' ? 'azurite' : 'azure',
         protocol: formData.useHttps ? 'https' : 'http',
         host: formData.hostName,
         path: `${formData.containerName}/${formData.pathInContainer}`,
