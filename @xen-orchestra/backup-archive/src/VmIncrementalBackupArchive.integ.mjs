@@ -6,10 +6,13 @@ import fs from 'fs-extra'
 import * as uuid from 'uuid'
 import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
-// eslint-disable-next-line n/no-missing-import
+// `dist/` is built by the `test-integration` script, which starts by removing it: these imports
+// cannot be resolved when linting a working tree that has not been built yet
+/* eslint-disable n/no-missing-import */
 import { VmBackupDirectory } from '../dist/VmBackupDirectory.mjs'
 import { RemoteVhdDisk } from '../dist/disks/RemoteVhdDisk.mjs'
 import { MergeRemoteDisk } from '../dist/disks/MergeRemoteDisk.mjs'
+/* eslint-enable n/no-missing-import */
 import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { dirname, basename } from 'node:path'
@@ -897,7 +900,8 @@ test('it regenerates a pre-existing cache after a merge', async () => {
   })
 
   const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
-  assert.notEqual(metadata.size, 12000, 'metadata.size should be updated after merge')
+  // size of child + grandchild after orphan has been merged into child
+  assert.equal(metadata.size, 4299776, 'metadata.size should be updated after merge')
 
   const cache = JSON.parse((await gunzip(await handler.readFile(`${rootPath}/cache.json.gz`))).toString())
   assert.equal(Object.keys(cache).length, 1)
@@ -927,4 +931,54 @@ test('it regenerates a pre-existing cache when its entry count is out of sync, e
 
   const cache = JSON.parse((await gunzip(await handler.readFile(`${rootPath}/cache.json.gz`))).toString())
   assert.equal(Object.keys(cache).length, 1, 'cache should be regenerated to match the archives on disk')
+})
+
+test('it regenerates a pre-existing cache after a metadata removal', async () => {
+  // two backups, each on its own VDI directory, so removing one does not touch the other's disks
+  await generateVhd(`${basePath}/diskA1.vhd`)
+  await handler.writeFile(
+    `${rootPath}/metadata1.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/diskA1.vhd`] })
+  )
+  // metadata2 references a vhd missing from disk: clean() removes it
+  await handler.writeFile(
+    `${rootPath}/metadata2.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath2}/deleted.vhd`] })
+  )
+
+  // a cache with the expected number of entries: only the removal can trigger the regeneration
+  await handler.writeFile(
+    `${rootPath}/cache.json.gz`,
+    await gzip(
+      JSON.stringify({
+        [`/${rootPath}metadata1.json`]: { stale: true },
+        [`/${rootPath}metadata2.json`]: { stale: true },
+      })
+    )
+  )
+
+  const logged = []
+  await VmBackupDirectory.cleanVm(handler, rootPath, {
+    remove: true,
+    merge: false,
+    logInfo: () => {},
+    logWarn: message => logged.push(message),
+  })
+
+  const rootFiles = await handler.list(rootPath)
+  assert.ok(rootFiles.includes('metadata1.json'), 'the complete backup must survive')
+  assert.ok(!rootFiles.includes('metadata2.json'), 'the backup with a missing vhd must be removed')
+  assert.ok(rootFiles.includes('cache.json.gz'), 'an existing cache.json.gz must not be dropped by a remove')
+  assert.ok(
+    !logged.includes('unexpected number of entries in backup cache'),
+    'the cache matched the archives before the clean: the removal alone must trigger the regeneration'
+  )
+
+  const cache = JSON.parse((await gunzip(await handler.readFile(`${rootPath}/cache.json.gz`))).toString())
+  assert.deepEqual(
+    Object.keys(cache),
+    [`/${rootPath}metadata1.json`],
+    'the removed backup must be gone from the regenerated cache'
+  )
+  assert.equal(cache[`/${rootPath}metadata1.json`].stale, undefined, 'the entry must come from the archive on disk')
 })

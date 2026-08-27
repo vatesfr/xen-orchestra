@@ -231,10 +231,12 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
     assert.ok(remainingFiles.includes('cache.json.gz'), 'an existing cache.json.gz must not be dropped by a remove')
 
     const cache = JSON.parse((await gunzip(await handler.readFile(cachePath))).toString())
-    assert.ok(
-      Object.values(cache).every(entry => entry.stale === undefined),
-      'cache.json.gz should have been regenerated, not left untouched'
+    assert.deepEqual(
+      Object.keys(cache),
+      [`/${rootPath}/backup1.json`],
+      'cache.json.gz should have been regenerated with the surviving backup only'
     )
+    assert.equal(cache[`/${rootPath}/backup1.json`].stale, undefined, 'the entry must come from the archive on disk')
   })
 
   test('clean() removes an orphan XVA checksum file (no matching metadata or XVA)', async () => {
