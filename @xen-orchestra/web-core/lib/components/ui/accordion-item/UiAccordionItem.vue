@@ -119,6 +119,7 @@ const iconSize = computed<IconSize>(() => (size === 'small' ? 'medium' : 'large'
     border: none;
     padding: 0;
     cursor: pointer;
+    position: relative;
 
     &::after {
       content: '';
