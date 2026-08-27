@@ -1,4 +1,5 @@
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup/types/new-backup-repository.type.ts'
+import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive } from 'vue'
@@ -49,7 +50,7 @@ export function useSmbBackupRepositoryDetailsForm() {
       info: t('smb-subfolder-sample'),
     })),
     username: useField('username', () => ({ label: t('username'), required: true })),
-    password: useField('password', () => ({ label: t('password'), required: true, type: 'password' })),
+    password: useField('password', () => ({ label: t('password'), required: true, type: 'password' as InputType })),
     domain: useField('domain', () => ({
       label: t('domain'),
       placeholder: SMB_DEFAULT_DOMAIN,

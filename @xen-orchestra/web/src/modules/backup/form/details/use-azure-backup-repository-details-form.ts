@@ -1,5 +1,6 @@
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup/types/new-backup-repository.type.ts'
 import type { BackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
+import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -43,7 +44,7 @@ export function useAzureBackupRepositoryDetailsForm(rawType: MaybeRefOrGetter<Ba
     hostName: useField('hostName', () => ({ label: t('host-name'), required: true })),
     useHttps: useField('useHttps', () => ({ label: t('use-https') })),
     accountName: useField('accountName', () => ({ label: t('account-name'), required: true })),
-    key: useField('key', () => ({ label: t('key'), required: true, type: 'password' })),
+    key: useField('key', () => ({ label: t('key'), required: true, type: 'password' as InputType })),
     containerName: useField('containerName', () => ({ label: t('container-name'), required: true })),
     pathInContainer: useField('pathInContainer', () => ({ label: t('path-in-container') })),
   })

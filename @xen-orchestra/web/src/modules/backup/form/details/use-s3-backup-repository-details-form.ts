@@ -1,4 +1,5 @@
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup/types/new-backup-repository.type.ts'
+import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive, watch } from 'vue'
@@ -57,7 +58,7 @@ export function useS3BackupRepositoryDetailsForm() {
     allowUnauthorized: useField('allowUnauthorized', () => ({ label: t('allow-unauthorized') })),
     region: useField('region', () => ({ label: t('region'), required: true })),
     accessKeyId: useField('accessKeyId', () => ({ label: t('access-key-id'), required: true })),
-    secret: useField('secret', () => ({ label: t('secret'), required: true, type: 'password' })),
+    secret: useField('secret', () => ({ label: t('secret'), required: true, type: 'password' as InputType })),
     bucket: useField('bucket', () => ({ label: t('bucket-name'), required: true })),
     pathInBucket: useField('pathInBucket', () => ({ label: t('path-in-bucket') })),
   })
