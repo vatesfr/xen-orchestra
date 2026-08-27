@@ -8,7 +8,7 @@
         {{ t('storage') }}
       </UiLink>
       <span class="sr-name">
-        <VtsObjectIcon type="sr" :state="srIconState" size="current" />
+        <VtsObjectIcon type="sr" :state="srConnectionState" size="current" />
         {{ sr.name_label }}
       </span>
     </UiBreadcrumb>
@@ -91,7 +91,7 @@ const { srConnectionStatus } = useXoSrUtils(
   () => scope
 )
 
-const srIconState = computed(() => (arePbdsReady.value ? srConnectionStatus.value : undefined))
+const srConnectionState = computed(() => (arePbdsReady.value ? srConnectionStatus.value : undefined))
 </script>
 
 <style lang="postcss" scoped>
