@@ -1,3 +1,4 @@
+import { asyncEach } from '@vates/async-each'
 import { compareTimestamp } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 import { createLogger } from '@xen-orchestra/log'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackups.mjs'
@@ -29,6 +30,20 @@ const format = (metadata, backupRepositoryId, filename) =>
   formatVmBackup({ ...metadata, _filename: filename, backupRepositoryId, id: filename })
 
 const isSameRepository = (entry, repository) => entry.url === repository.url && entry.options === repository.options
+
+// forgets a backup, and the VM it belonged to when it was its last one
+const removeBackup = (backupsByVm, vmUuid, key) => {
+  const backups = backupsByVm[vmUuid]
+  if (backups === undefined) {
+    return
+  }
+
+  delete backups[key]
+  if (Object.keys(backups).length === 0) {
+    // `RemoteAdapter#listAllVmBackups` skips the VMs without backups
+    delete backupsByVm[vmUuid]
+  }
+}
 
 /**
  * Turns the backups of a repository into the shape expected by the API:
@@ -207,37 +222,46 @@ export class VmBackupsCache {
     let nEvents = 0
     await this.#useAdapter(repository, async adapter => {
       const events = await adapter.readBackupJournal(since)
+
+      // `readBackupJournal()` returns the events oldest first, therefore the last event of a
+      // backup is its current state: a backup which was written then deleted costs no read at
+      // all, and one which was rewritten several times costs a single one
+      const lastEventByKey = new Map()
       for (const { event, filename, vmUuid } of events) {
         nEvents++
-        const key = normalizeFilename(filename)
 
-        if (event === 'add' || event === 'change') {
-          let metadata
-          try {
-            metadata = await adapter.readVmBackupMetadata(key)
-          } catch (error) {
-            if (error.code === 'ENOENT') {
-              // the backup has already been deleted, its `del` event is either in this batch or will
-              // be in a next one
-              debug('ignoring event on a missing backup', { event, filename })
-              continue
-            }
-            throw error
-          }
-          ;(backupsByVm[vmUuid] ??= {})[key] = format(metadata, repository.id, key)
-        } else if (event === 'del') {
-          const backups = backupsByVm[vmUuid]
-          if (backups !== undefined) {
-            delete backups[key]
-            if (Object.keys(backups).length === 0) {
-              // `RemoteAdapter#listAllVmBackups` skips the VMs without backups
-              delete backupsByVm[vmUuid]
-            }
-          }
-        } else {
+        if (event !== 'add' && event !== 'change' && event !== 'del') {
           warn('ignoring unsupported journal event', { event, filename })
+          continue
         }
+
+        lastEventByKey.set(normalizeFilename(filename), { event, vmUuid })
       }
+
+      await asyncEach(lastEventByKey, async ([key, { event, vmUuid }]) => {
+        if (event === 'del') {
+          removeBackup(backupsByVm, vmUuid, key)
+          return
+        }
+
+        let metadata
+        try {
+          metadata = await adapter.readVmBackupMetadata(key)
+        } catch (error) {
+          if (error.code === 'ENOENT') {
+            // the metadata is gone while its last event says it should be there: it was deleted
+            // without being journaled, e.g. by a user or a third party tool directly on the
+            // repository. Reflect it now instead of waiting for the next full rebuild.
+            debug('removing a backup whose metadata is missing', { event, filename: key })
+            removeBackup(backupsByVm, vmUuid, key)
+            return
+          }
+          throw error
+        }
+
+        const backups = (backupsByVm[vmUuid] ??= {})
+        backups[key] = format(metadata, repository.id, key)
+      })
     })
 
     debug('entry replayed', { repositoryId: repository.id, nEvents })
