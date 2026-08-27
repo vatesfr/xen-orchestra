@@ -34,7 +34,7 @@
 
 <!--packages-start-->
 
-- @vates/types patch
+- @vates/types major
 - @xen-orchestra/rest-api minor
 - xo-server-sdn-controller minor
 
