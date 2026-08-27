@@ -1137,7 +1137,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe iSCSI IQNs',
         objectId: hostId,
-        params: { ...body, chapPassword: '***obfuscated***' },
+        params: body?.chapPassword !== undefined ? { ...body, chapPassword: '***obfuscated***' } : body,
       },
     })
   }
@@ -1191,7 +1191,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe iSCSI LUNs',
         objectId: hostId,
-        params: { ...body, chapPassword: '***obfuscated***' },
+        params: body?.chapPassword !== undefined ? { ...body, chapPassword: '***obfuscated***' } : body,
       },
     })
   }
@@ -1248,7 +1248,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe iSCSI SR existence',
         objectId: hostId,
-        params: { ...body, chapPassword: '***obfuscated***' },
+        params: body?.chapPassword !== undefined ? { ...body, chapPassword: '***obfuscated***' } : body,
       },
     })
   }
