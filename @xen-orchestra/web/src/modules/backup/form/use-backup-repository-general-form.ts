@@ -64,8 +64,16 @@ export function useBackupRepositoryGeneralForm() {
 
   const isBackupFormatLocked = computed(() => formData.type !== undefined && BLOCK_ONLY_TYPES.includes(formData.type))
 
+  const isEncryptionAvailable = computed(() => formData.backupFormat === 'block')
+
   watch(isBackupFormatLocked, isLocked => {
     formData.backupFormat = isLocked ? 'block' : undefined
+  })
+
+  watch(isEncryptionAvailable, isAvailable => {
+    if (!isAvailable) {
+      formData.encrypted = false
+    }
   })
 
   const typeOptions = computed(() => [
@@ -110,6 +118,7 @@ export function useBackupRepositoryGeneralForm() {
     encrypted: useField('encrypted', () => ({
       label: t('encrypted'),
       warning: t('encryption-key-loss-warning'),
+      disabled: !isEncryptionAvailable.value,
     })),
     encryptionKey: useField('encryptionKey', () => ({
       label: t('key'),
