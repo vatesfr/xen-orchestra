@@ -8,17 +8,23 @@ export const NFS_DEFAULT_PORT = '2049'
 
 export type NfsBackupRepositoryDetailsForm = ReturnType<typeof useNfsBackupRepositoryDetailsForm>
 
+const INITIAL_FORM_DATA = {
+  host: '',
+  port: '',
+  path: '',
+  customOptions: '',
+}
+
 export function useNfsBackupRepositoryDetailsForm() {
   const { t } = useI18n()
 
-  const formData = reactive({
-    host: '',
-    port: '',
-    path: '',
-    customOptions: '',
-  })
+  const formData = reactive({ ...INITIAL_FORM_DATA })
 
-  const { useField, validate } = useValidatedForm(formData, {
+  const {
+    useField,
+    validate,
+    reset: resetValidation,
+  } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
         host: { required },
@@ -50,5 +56,10 @@ export function useNfsBackupRepositoryDetailsForm() {
     }
   }
 
-  return { formData, bindings, validate, buildPayload }
+  function reset() {
+    Object.assign(formData, INITIAL_FORM_DATA)
+    resetValidation()
+  }
+
+  return { formData, bindings, validate, buildPayload, reset }
 }

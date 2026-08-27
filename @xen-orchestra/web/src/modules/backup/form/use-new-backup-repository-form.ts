@@ -8,6 +8,7 @@ import type { NewBackupRepositoryPayload } from '@/modules/backup/jobs/xo-backup
 import { formatBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
 import { computed, ref } from 'vue'
+import { watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const STEPS = ['general', 'details', 'review']
@@ -68,6 +69,13 @@ export function useNewBackupRepositoryForm() {
     { label: t('review-and-confirm') },
   ])
 
+  watch(
+    () => general.formData.type,
+    () => {
+      currentDetailsForm.value?.reset()
+    }
+  )
+
   async function validateCurrentStep(): Promise<boolean> {
     switch (currentStep.value) {
       case 'general':
@@ -99,7 +107,7 @@ export function useNewBackupRepositoryForm() {
     }
   }
 
-  async function buildPayload(): Promise<NewBackupRepositoryPayload | undefined> {
+  async function validateAndBuildPayload(): Promise<NewBackupRepositoryPayload | undefined> {
     const detailForm = currentDetailsForm.value
 
     if (detailForm === undefined) {
@@ -133,6 +141,6 @@ export function useNewBackupRepositoryForm() {
     goToStep,
     next,
     back,
-    buildPayload,
+    validateAndBuildPayload,
   }
 }

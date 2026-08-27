@@ -27,11 +27,3 @@ const slots = defineSlots<{
   option?(props: { option: BackupRepositoryFormSelectOption }): any
 }>()
 </script>
-
-<style lang="postcss" scoped>
-.vts-input-wrapper {
-  :deep(.ui-link) {
-    white-space: nowrap;
-  }
-}
-</style>

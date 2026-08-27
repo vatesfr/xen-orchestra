@@ -7,7 +7,7 @@
         accent="brand"
         size="medium"
         left-icon="fa:plus"
-        @click="openNewBackupRepositoryDrawer"
+        @click="openNewBackupRepositoryDrawer()"
       >
         {{ t('new') }}
       </UiButton>

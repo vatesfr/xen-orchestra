@@ -1,7 +1,7 @@
 import { payloadsArg } from '@/modules/backup/jobs/xo-backup-repository-create-args.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { fetchPost, fetchGet } from '@/shared/utils/fetch.util.ts'
+import { fetchGet, fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
@@ -21,7 +21,6 @@ export const useXoBackupRepositoryCreateJob = defineJob('br.create', [payloadsAr
         payloads.map(async payload => {
           const { id } = await fetchPost<{ id: FrontXoBackupRepository['id'] }>(`backup-repositories`, payload)
 
-          //
           await fetchGet(`backup-repositories/${id}/health`).catch(() => {})
 
           return id

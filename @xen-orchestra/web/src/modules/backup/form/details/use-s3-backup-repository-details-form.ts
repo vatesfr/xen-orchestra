@@ -6,21 +6,27 @@ import { useI18n } from 'vue-i18n'
 
 export type S3BackupRepositoryDetailsForm = ReturnType<typeof useS3BackupRepositoryDetailsForm>
 
+const INITIAL_FORM_DATA = {
+  endpoint: '',
+  useHttps: false,
+  allowUnauthorized: false,
+  region: '',
+  accessKeyId: '',
+  secret: '',
+  bucket: '',
+  pathInBucket: '',
+}
+
 export function useS3BackupRepositoryDetailsForm() {
   const { t } = useI18n()
 
-  const formData = reactive({
-    endpoint: '',
-    useHttps: false,
-    allowUnauthorized: false,
-    region: '',
-    accessKeyId: '',
-    secret: '',
-    bucket: '',
-    pathInBucket: '',
-  })
+  const formData = reactive({ ...INITIAL_FORM_DATA })
 
-  const { useField, validate } = useValidatedForm(formData, {
+  const {
+    useField,
+    validate,
+    reset: resetValidation,
+  } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
         endpoint: { required },
@@ -51,7 +57,7 @@ export function useS3BackupRepositoryDetailsForm() {
     allowUnauthorized: useField('allowUnauthorized', () => ({ label: t('allow-unauthorized') })),
     region: useField('region', () => ({ label: t('region'), required: true })),
     accessKeyId: useField('accessKeyId', () => ({ label: t('access-key-id'), required: true })),
-    secret: useField('secret', () => ({ label: t('secret'), required: true })),
+    secret: useField('secret', () => ({ label: t('secret'), required: true, type: 'password' })),
     bucket: useField('bucket', () => ({ label: t('bucket-name'), required: true })),
     pathInBucket: useField('pathInBucket', () => ({ label: t('path-in-bucket') })),
   })
@@ -71,5 +77,10 @@ export function useS3BackupRepositoryDetailsForm() {
     }
   }
 
-  return { formData, bindings, validate, buildPayload }
+  function reset() {
+    Object.assign(formData, INITIAL_FORM_DATA)
+    resetValidation()
+  }
+
+  return { formData, bindings, validate, buildPayload, reset }
 }
