@@ -59,7 +59,7 @@ const error = computed(() => type === 'error')
 const success = computed(() => type === 'all-good' || type === 'all-done')
 
 const imageSrc = computed(() => {
-  if (type === 'busy' || type === 'offline') {
+  if (type === 'busy') {
     return undefined
   }
 
