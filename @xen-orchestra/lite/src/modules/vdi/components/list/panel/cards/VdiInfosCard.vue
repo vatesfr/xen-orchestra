@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="card-container">
     <UiPanelCardTitle :id="vdi.uuid" size="medium" :label="vdi.name_label" :icon="vdiIcon" />
     <div class="content">
       <VtsCardRowKeyValue truncate align-top>
@@ -37,7 +37,7 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -48,7 +48,7 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useMapper } from '@core/packages/mapper'
@@ -82,7 +82,6 @@ const vbdsStatus = useMapper<VbdAttachmentStatus, (typeof CONNECTION_STATUS)[key
 
 <style scoped lang="postcss">
 .card-container {
-  gap: 1.6rem;
   .content {
     display: flex;
     flex-direction: column;
