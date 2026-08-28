@@ -20,6 +20,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [sdn-controller] Fix `update_traffic_rule` keeping the previous port: `newRule` is a partial update and a field sent as `null` is now removed from the rule (PR [#10307](https://github.com/vatesfr/xen-orchestra/pull/10307))
+- [Backup/NBD] Better behaviour with a stalled NBD client, and respect global export timeout (PR [#10306](https://github.com/vatesfr/xen-orchestra/pull/10306))
 
 ### Packages to release
 
@@ -37,10 +38,12 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client patch
 - @vates/types major
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
 - xo-server-sdn-controller minor
 
 <!--packages-end-->
