@@ -123,29 +123,37 @@ export class RemoteAdapter {
     await Task.run(
       {
         properties: {
-          name: 'merge VM backup chains',
+          name: 'clean VM',
           total: dirs.size,
         },
       },
       async () => {
-        Task.set('total', dirs.size)
         let done = 0
 
         await asyncEach(
           dirs,
           async dir => {
-            try {
-              await this.cleanVm(dir, {
-                remove: true,
-                merge: true,
-                logInfo: Task.info,
-                logWarn: Task.warning,
-              })
-              mergedDirs.add(dir)
-            } catch (error) {
-              Task.warning('failed to merge VM backup chain after immediate delete', { error, path: dir })
-              throw error
-            }
+            await Task.run(
+              {
+                properties: {
+                  name: `clean VM dir: ${dir}`,
+                },
+              },
+              async () => {
+                try {
+                  await this.cleanVm(dir, {
+                    remove: true,
+                    merge: true,
+                    logInfo: Task.info,
+                    logWarn: Task.warning,
+                  })
+                  mergedDirs.add(dir)
+                } catch (error) {
+                  Task.warning('failed to merge VM backup chain after immediate delete', { error, path: dir })
+                  throw error
+                }
+              }
+            )
             done++
             Task.set('progress', Math.round((done / dirs.size) * 100))
           },
