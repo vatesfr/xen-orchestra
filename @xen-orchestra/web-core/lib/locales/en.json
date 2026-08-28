@@ -859,7 +859,6 @@
   "operation:force-shutdown": "Force shutting down",
   "operation:import": "Importing",
   "operation:pause": "Pausing",
-  "operation:restart-toolstack": "Restarting toolstack",
   "operation:resume": "Resuming",
   "operation:shutdown": "Shutting down",
   "operation:snapshot": "Snapshotting",
