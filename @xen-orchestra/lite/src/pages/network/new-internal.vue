@@ -43,7 +43,7 @@ import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { type RouteLocationRaw, useRouter } from 'vue-router'
 
 const { t } = useI18n()
 
@@ -59,9 +59,9 @@ const { canRun, run: create, isRunning } = useInternalNetworkCreateJob(formPaylo
 
 const canDisplayForm = computed(() => !isRunning.value && !hasNetworkCreationError.value)
 
-const cancelRoute = computed(() => {
+const cancelRoute = computed<RouteLocationRaw>(() => {
   if (pool.value === undefined) {
-    return { name: '/' as const }
+    return { name: '/' }
   }
 
   return getPoolNetworkRoute(pool.value.uuid)
