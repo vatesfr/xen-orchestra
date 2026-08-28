@@ -211,7 +211,7 @@ export class RemoteAdapter {
     return this.deleteVmBackups([file])
   }
 
-  async deleteVmBackups(files, { immediate = true } = {}) {
+  async deleteVmBackups(files, { immediate = false } = {}) {
     const metadataOrNull = await asyncMap(files, async file => {
       try {
         return await this.readVmBackupMetadata(file)
@@ -256,13 +256,45 @@ export class RemoteAdapter {
     await Promise.all(promises)
 
     const deltaBackupDirs = await deltaBackupDirsPromise
+    const otherBackupDirs = new Set(files.map(file => dirname(file)).filter(dir => !deltaBackupDirs.has(dir)))
 
-    await asyncMap(new Set(files.map(file => dirname(file)).filter(dir => !deltaBackupDirs.has(dir))), dir =>
-      // - don't merge in main process, unused VHDs will be merged in the next backup run
-      // - don't error in case this fails:
-      //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
-      //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
-      this.cleanVm(dir, { remove: true, logWarn: warn }).catch(noop)
+    await Task.run(
+      {
+        properties: {
+          name: 'clean VM other backups dirs',
+          total: otherBackupDirs.size,
+        },
+      },
+      async () => {
+        let processed = 0
+        await asyncEach(
+          otherBackupDirs,
+          async dir => {
+            await Task.run(
+              {
+                properties: {
+                  name: `clean VM dir: ${dir}`,
+                },
+              },
+              async () => {
+                // - don't merge in main process, unused VHDs will be merged in the next backup run
+                // - don't error in case this fails:
+                //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
+                //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
+                try {
+                  await this.cleanVm(dir, { remove: true, logWarn: warn })
+                } catch (error) {
+                  Task.warning('failed to remove VM backup', { error, path: dir })
+                  throw error
+                }
+              }
+            )
+            processed++
+            Task.set('progress', Math.round((processed / otherBackupDirs.size) * 100))
+          },
+          { concurrency: 2, stopOnError: false }
+        )
+      }
     )
   }
 
