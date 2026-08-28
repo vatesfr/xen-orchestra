@@ -18,7 +18,7 @@
 
 <script lang="ts" setup>
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
-import { toVariants } from '@core/utils/to-variants.util'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
 export type UiLinkListProps =
