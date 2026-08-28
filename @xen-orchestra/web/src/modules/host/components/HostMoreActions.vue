@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts" setup>
-import HostDetachButton from '@/modules/host/components/actions/detach/hostDetachButton.vue'
+import HostDetachButton from '@/modules/host/components/actions/detach/HostDetachButton.vue'
 import HostDisableButton from '@/modules/host/components/actions/disable/HostDisableButton.vue'
 import HostDisableAndEvacuateVmsButton from '@/modules/host/components/actions/disable-and-evacuate-vms/HostDisableAndEvacuateVmsButton.vue'
 import HostDownloadButton from '@/modules/host/components/actions/download/HostDownloadButton.vue'
