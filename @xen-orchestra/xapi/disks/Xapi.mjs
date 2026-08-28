@@ -93,12 +93,12 @@ export class XapiDiskSource extends DiskPassthrough {
     const xapi = this.#xapi
     const vdiRef = this.#vdiRef
     /**
-     * @type {XapiStreamNbdSource}
+     * @type {XapiStreamNbdSource|undefined}
      */
     let source
     let streamSource
     try {
-      streamSource = await this.#openExportStream()
+      streamSource = await this.#openExportStream({ onlyListChangedBlocks: true })
       if (streamSource === undefined) {
         throw new Error(`Can't open stream source`)
       }
@@ -113,18 +113,17 @@ export class XapiDiskSource extends DiskPassthrough {
 
       return await this.#formatSourceDisk(source, 'NBT')
     } catch (err) {
+      // init probaby failed, so nothing to close , but better safe than sorry
+      await source?.close().catch(warn)
+
       if (/** @type {NodeJS.ErrnoException} */ (err).code === 'NO_NBD_AVAILABLE') {
         const warningMessage = `can't connect through NBD, fall back to stream export`
         // @ts-ignore Task.warning is a static alias set up dynamically, not visible to TS
         Task.warning(warningMessage)
         warn(warningMessage, err)
-        if (streamSource === undefined) {
-          throw new Error(`Can't open stream source`)
-        }
-        return streamSource
+        // reopen the stream with the block data
+        return this.#openExportStream()
       }
-      // init probaby failed, so nothing to close , but better safe than sorry
-      await source?.close().catch(warn)
       throw err
     }
   }
@@ -164,7 +163,7 @@ export class XapiDiskSource extends DiskPassthrough {
    *
    * @returns {Promise<Disk>}
    */
-  async #openExportStream() {
+  async #openExportStream({ onlyListChangedBlocks = false } = {}) {
     const xapi = this.#xapi
     const baseRef = this.#baseRef
     const vdiRef = this.#vdiRef
@@ -181,7 +180,11 @@ export class XapiDiskSource extends DiskPassthrough {
       }
       await source.init()
       if (source.getBlockSize() < this.#blockSize) {
-        if (baseRef !== undefined) {
+        if (!onlyListChangedBlocks && baseRef !== undefined) {
+          // enlarging blocks needs to fill gaps from the parent chain (see DiskLargerBlock's
+          // isDifferencing branch), but XapiQcow2StreamSource doesn't implement instantiateParent()
+          // yet: safe when onlyListChangedBlocks (readBlock() is never called, only used for
+          // hasBlock/getBlockIndexes metadata by XapiStreamNbdSource), unsafe otherwise.
           throw new Error(`Can't change the block size of a differencing disk through xapi export`)
         }
         if (!(source instanceof RandomAccessDisk)) {
