@@ -3,17 +3,17 @@ import { DiskBlock, RandomAccessDisk } from './Disk.mjs'
 import { RandomDiskPassthrough } from './DiskPassthrough.mjs'
 import { DiskChain } from './DiskChain.mjs'
 
-export class DiskLargerBlock extends RandomDiskPassthrough {
+export class DiskLargerBlock extends RandomAccessDisk {
   #blockSize
+  #source: RandomAccessDisk
   #parent?: RandomAccessDisk
+  get source(): RandomAccessDisk {
+    return this.#source
+  }
 
-  /**
-   * @param source Must already be initialized: DiskLargerBlock never calls source.init() itself,
-   * it relies on RandomDiskPassthrough's default init(), which only opens a source that wasn't
-   * already provided via this constructor.
-   */
   constructor(source: RandomAccessDisk, blockSize: number) {
-    super(source)
+    super()
+    this.#source = source
     assert.ok(
       blockSize >= source.getBlockSize(),
       `target block size ${blockSize} must be bigger than the source block size ${source.getBlockSize()} `
@@ -100,5 +100,18 @@ export class DiskLargerBlock extends RandomDiskPassthrough {
       }
     }
     return false
+  }
+
+  getVirtualSize(): number {
+    return this.source.getVirtualSize()
+  }
+  init(): Promise<void> {
+    return this.source.init()
+  }
+  close(): Promise<void> {
+    return this.source.close()
+  }
+  isDifferencing(): boolean {
+    return this.source.isDifferencing()
   }
 }
