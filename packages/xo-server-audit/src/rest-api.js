@@ -27,6 +27,26 @@ const RECORD_FIELDS_ARRAY = {
   items: { type: 'object', fields: RECORD_FIELDS },
 }
 
+function makeRecordMapper(req) {
+  const href = record => `${req.baseUrl}${req.path}/${record.id}`
+  const { fields } = req.query
+
+  if (fields === '*') {
+    return record => ({ ...record, href: href(record) })
+  }
+  if (typeof fields === 'string') {
+    const keys = fields.split(',')
+    return record => {
+      const picked = {}
+      for (const key of keys) {
+        if (key in record) picked[key] = record[key]
+      }
+      return { ...picked, href: href(record) }
+    }
+  }
+  return href
+}
+
 export function createRestRoutes(plugin) {
   return [
     {
@@ -38,12 +58,14 @@ export function createRestRoutes(plugin) {
         from: { type: 'string', optional: true, example: 'FYUYLGWX0uUv6uKyDpc6ftAJhrEB7iuf/BYefEbBLYc=' },
         limit: { type: 'number', optional: true, example: 100 },
         filter: { type: 'string', optional: true, example: 'event:apiCall' },
+        fields: { type: 'string', optional: true, example: '*' },
       },
       responses: [{ status: 200, description: 'The list of audit records', schema: RECORD_FIELDS_ARRAY }],
       callback: async function* ({ req }) {
         const { query } = req
         const limit = query.limit === undefined ? Infinity : +query.limit
         const filter = query.filter === undefined ? () => true : CM.parse(query.filter).createPredicate()
+        const mapRecord = makeRecordMapper(req)
 
         let i = 0
         for await (const record of plugin._auditCore.getFrom(query.from)) {
@@ -52,7 +74,7 @@ export function createRestRoutes(plugin) {
           }
 
           if (filter(record)) {
-            yield record
+            yield mapRecord(record)
           }
         }
       },

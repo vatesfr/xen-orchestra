@@ -16,7 +16,14 @@ const RULE_FIELDS = {
 
 const BODY_ADD_RULE = RULE_FIELDS
 
-const BODY_DELETE_RULE = RULE_FIELDS
+// delete matches rules on (direction, ipRange, port, protocol) only, like
+// OpenVSwitch does — `allow` is not part of the match and isn't required
+const BODY_DELETE_RULE = {
+  direction: RULE_FIELDS.direction,
+  ipRange: RULE_FIELDS.ipRange,
+  protocol: RULE_FIELDS.protocol,
+  port: RULE_FIELDS.port,
+}
 
 const BODY_UPDATE_RULE = {
   oldRule: { type: 'object', fields: RULE_FIELDS },
@@ -83,15 +90,13 @@ function applyRulePatch(oldRule, patch) {
   return rule
 }
 
-function ruleFromBody(req, idKey, withAllow) {
+function ruleFromBody(req, idKey) {
   const rule = {
+    allow: req.body.allow,
     direction: req.body.direction,
     ipRange: req.body.ipRange,
     protocol: req.body.protocol,
     [idKey]: req.params.id,
-  }
-  if (withAllow) {
-    rule.allow = req.body.allow
   }
   if (req.body.port != null) {
     rule.port = req.body.port
@@ -114,7 +119,7 @@ function addRuleRoute(controller, resource) {
     ],
     middlewares: jsonAndAcl(resource.acl),
     callback: ({ req, createAction }) => {
-      const rule = ruleFromBody(req, resource.idKey, true)
+      const rule = ruleFromBody(req, resource.idKey)
       return createAction(() => resource.addRule(controller, rule), {
         sync: req.query.sync ?? false,
         statusCode: 204,
@@ -143,7 +148,7 @@ function deleteRuleRoute(controller, resource) {
     ],
     middlewares: jsonAndAcl(resource.acl),
     callback: ({ req, createAction }) => {
-      const rule = ruleFromBody(req, resource.idKey, false)
+      const rule = ruleFromBody(req, resource.idKey)
       return createAction(() => resource.deleteRule(controller, rule), {
         sync: req.query.sync ?? false,
         statusCode: 204,
