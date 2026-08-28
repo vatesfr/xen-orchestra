@@ -1,4 +1,4 @@
-import { flatMap, mapValues } from 'lodash'
+import { flatMap } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { SDN_CONTROLLER_OF_RULES_KEY } from '@vates/types'
 
@@ -22,7 +22,13 @@ const BODY_UPDATE_RULE = {
   oldRule: { type: 'object', fields: RULE_FIELDS },
   newRule: {
     type: 'object',
-    fields: mapValues(RULE_FIELDS, field => ({ ...field, optional: true })),
+    fields: {
+      allow: { type: 'boolean', example: true, optional: true },
+      direction: { type: 'string', example: 'to', optional: true },
+      ipRange: { type: 'string', example: '10.0.0.0/8', optional: true },
+      protocol: { type: 'string', example: 'tcp', optional: true },
+      port: { type: 'number', example: 80, optional: true, nullable: true },
+    },
   },
 }
 
@@ -62,6 +68,19 @@ function rulesEqual(a, b) {
     a.port === b.port &&
     a.protocol.toLowerCase() === b.protocol.toLowerCase()
   )
+}
+
+// Apply a partial update on a rule: a `null` value removes the field
+function applyRulePatch(oldRule, patch) {
+  const rule = { ...oldRule }
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === null) {
+      delete rule[key]
+    } else if (value !== undefined) {
+      rule[key] = value
+    }
+  }
+  return rule
 }
 
 function ruleFromBody(req, idKey, withAllow) {
@@ -141,7 +160,7 @@ function deleteRuleRoute(controller, resource) {
 function updateRuleRoute(controller, resource) {
   return {
     endpoint: `/${resource.collection}/{id}/actions/update_traffic_rule`,
-    description: `Update a rule on a ${resource.type}, needs the exact old rule fields.\n\nRequired privilege:\n - resource: ${resource.acl}, action: update:other_config`,
+    description: `Update a rule on a ${resource.type}: \`oldRule\` identifies the rule to update and must be given in full, \`newRule\` is a partial update where a field set to \`null\` is removed from the rule.\n\nRequired privilege:\n - resource: ${resource.acl}, action: update:other_config`,
     method: 'post',
     tags: ['sdn-controller'],
     params: PARAMS_ID,
@@ -162,11 +181,8 @@ function updateRuleRoute(controller, resource) {
           if (!rules.some(rule => rulesEqual(rule, oldRule))) {
             throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
           }
-          const newRule = { ...oldRule, ...partialNewRule }
-          // remove the port field if it is undefined, to avoid keeping the old value in the new rule when updating a rule with no port needed
-          if (partialNewRule.port === undefined) {
-            delete newRule.port
-          }
+          const newRule = applyRulePatch(oldRule, partialNewRule)
+
           await resource.deleteRule(controller, { ...oldRule, [resource.idKey]: id })
           await resource.addRule(controller, { ...newRule, [resource.idKey]: id })
         },
