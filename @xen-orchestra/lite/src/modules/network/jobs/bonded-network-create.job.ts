@@ -1,5 +1,5 @@
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
-import { payloadsArg } from '@/modules/network/jobs/bonded-network-create-args.ts'
+import { payloadArg } from '@/modules/network/jobs/bonded-network-create-args.ts'
 import type { BaseNewNetworkPayload } from '@/modules/network/jobs/network-create.job.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
@@ -11,50 +11,44 @@ export type NewBondedNetworkPayload = BaseNewNetworkPayload & {
   bondMode: BOND_MODE
 }
 
-export const useBondedNetworkCreateJob = defineJob('bonded-network.create', [payloadsArg], () => {
+export const useBondedNetworkCreateJob = defineJob('bonded-network.create', [payloadArg], () => {
   const xapi = useXenApiStore().getXapi()
   const { t } = useI18n()
 
   return {
-    run(payloads): Promise<PromiseSettledResult<XenApiNetwork['uuid']>[]> {
-      return Promise.allSettled(
-        payloads.map(async payload => {
-          const networkRef = await xapi.network.createBonded({
-            nameLabel: payload.name,
-            nameDescription: payload.description,
-            mtu: payload.mtu,
-            pifRefs: payload.pifRefs,
-            bondMode: payload.bondMode,
-            nbd: payload.nbd,
-          })
+    async run(payload): Promise<XenApiNetwork['uuid']> {
+      const networkRef = await xapi.network.createBonded({
+        nameLabel: payload.name,
+        nameDescription: payload.description,
+        mtu: payload.mtu,
+        pifRefs: payload.pifRefs,
+        bondMode: payload.bondMode,
+        nbd: payload.nbd,
+      })
 
-          return xapi.getField<XenApiNetwork['uuid']>('network', networkRef, 'uuid')
-        })
-      )
+      return xapi.getField<XenApiNetwork['uuid']>('network', networkRef, 'uuid')
     },
 
-    validate(isRunning, payloads) {
+    validate(isRunning, payload) {
       if (isRunning) {
         throw new JobRunningError(t('job:create:in-progress'))
       }
 
-      if (payloads.length === 0) {
+      if (payload === undefined) {
         throw new JobError(t('job:arg:missing-payload'))
       }
 
-      payloads.forEach(payload => {
-        if (payload.name.length === 0) {
-          throw new JobError(t('job:arg:name-required'))
-        }
+      if (payload.name.length === 0) {
+        throw new JobError(t('job:arg:name-required'))
+      }
 
-        if (payload.pifRefs.length === 0) {
-          throw new JobError(t('job:arg:pif-ids-required'))
-        }
+      if (payload.pifRefs.length === 0) {
+        throw new JobError(t('job:arg:pif-ids-required'))
+      }
 
-        if (payload.bondMode === undefined) {
-          throw new JobError(t('job:arg:bond-mode-required'))
-        }
-      })
+      if (payload.bondMode === undefined) {
+        throw new JobError(t('job:arg:bond-mode-required'))
+      }
     },
   }
 })

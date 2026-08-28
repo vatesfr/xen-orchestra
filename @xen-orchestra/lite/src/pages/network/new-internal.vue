@@ -75,13 +75,9 @@ async function createNetwork(newPayload: NewInternalNetworkPayload) {
   }
 
   try {
-    const [promiseCreateResult] = await create()
+    const networkId = await create()
 
-    if (promiseCreateResult.status === 'rejected') {
-      throw promiseCreateResult.reason
-    }
-
-    redirectAfterSuccess(promiseCreateResult.value)
+    redirectAfterSuccess(networkId)
   } catch (rawError) {
     error.value = rawError as Error
   }

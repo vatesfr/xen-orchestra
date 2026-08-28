@@ -48,10 +48,6 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useI18n } from 'vue-i18n'
 
-defineSlots<{
-  'title-actions'(): any
-}>()
-
 const { t } = useI18n()
 
 usePageTitleStore().setTitle(t('network'))
