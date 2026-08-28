@@ -7,7 +7,7 @@
     :busy="isDetachingHost"
     @click="detachHost()"
   >
-    {{ t('action:detach-host') }}
+    {{ t('action:detach') }}
   </MenuItem>
 </template>
 
