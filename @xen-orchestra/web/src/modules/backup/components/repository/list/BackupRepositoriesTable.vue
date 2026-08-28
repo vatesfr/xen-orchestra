@@ -1,6 +1,17 @@
 <template>
   <UiTitle>
     {{ t('backup-repositories') }}
+    <template #action>
+      <UiButton
+        variant="primary"
+        accent="brand"
+        size="medium"
+        left-icon="fa:plus"
+        @click="openNewBackupRepositoryDrawer()"
+      >
+        {{ t('new') }}
+      </UiButton>
+    </template>
   </UiTitle>
   <VtsQueryBuilder v-model="filter" :schema />
 
@@ -19,11 +30,13 @@
 </template>
 
 <script setup lang="ts">
+import { useNewBackupRepository } from '@/modules/backup/composables/use-new-backup-repository.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import VtsQueryBuilder from '@xen-orchestra/web-core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@xen-orchestra/web-core/components/table/VtsRow.vue'
 import VtsTable from '@xen-orchestra/web-core/components/table/VtsTable.vue'
@@ -47,6 +60,8 @@ const { t } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 
 const { useGetProxyById } = useXoProxyCollection()
+
+const { openNewBackupRepositoryDrawer } = useNewBackupRepository()
 
 const { items: filteredBrs, filter } = useQueryBuilderFilter('backup-repositories', () => brs)
 

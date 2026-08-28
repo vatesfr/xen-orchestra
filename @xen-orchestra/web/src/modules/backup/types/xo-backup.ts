@@ -5,6 +5,8 @@ export type ReportWhen = 'always' | 'failure' | 'error' | 'never'
 
 export type XoBackupReportTemplate = 'compactMjml' | 'mjml'
 
+export type XoBackupFormat = 'block' | 'vhd'
+
 export type XoBackupJobSettings = Partial<{
   compression: FrontXoVmBackupJob['compression']
   proxy: XoProxy['id']
