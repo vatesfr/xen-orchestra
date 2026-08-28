@@ -32,7 +32,9 @@ import type { SmbBackupRepositoryDetailsForm } from '@/modules/backup/form/detai
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{ bindings: SmbBackupRepositoryDetailsForm['bindings'] }>()
+defineProps<{
+  bindings: SmbBackupRepositoryDetailsForm['bindings']
+}>()
 
 const { t } = useI18n()
 </script>

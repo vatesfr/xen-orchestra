@@ -16,26 +16,16 @@ defineSlots<{
 
 <style lang="postcss" scoped>
 .backup-repository-form-row {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 2.4rem;
 
   & > * {
-    width: 100%;
-    min-width: 0;
+    width: auto;
   }
 
-  @media (--medium-or-large) {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-
-    & > * {
-      width: auto;
-    }
-
-    &.wide {
-      grid-template-columns: 1fr;
-    }
+  &.wide {
+    grid-template-columns: 1fr;
   }
 }
 </style>

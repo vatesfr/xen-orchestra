@@ -2,7 +2,7 @@
   <div class="backup-repository-azure-fields">
     <BackupRepositoryFormRow>
       <BackupRepositoryFormTextInput v-bind="bindings.hostName" />
-      <BackupRepositoryFormCheckbox v-if="isAzurite" v-bind="bindings.useHttps" class="use-https" />
+      <BackupRepositoryFormCheckbox v-if="isAzurite" v-bind="bindings.useHttps" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow>
@@ -37,11 +37,5 @@ defineProps<{
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
-
-  .use-https {
-    @media (--medium-or-large) {
-      margin-block-start: 0.4rem;
-    }
-  }
 }
 </style>
