@@ -40,7 +40,7 @@
 
 - @vates/types major
 - @xen-orchestra/backup-archive minor
-- @xen-orchestra/backups patch
+- @xen-orchestra/backups minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
