@@ -1,8 +1,12 @@
 import type XenApi from '@/libs/xen-api/xen-api.ts'
 import type { XenApiHost, XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import type { MaybeArray } from '@core/types/utility.type.ts'
+import { toArray } from '@core/utils/to-array.utils.ts'
 import type { BOND_MODE } from '@vates/types'
 
 export function createNetworkOperations(xenApi: XenApi) {
+  type NetworkRefs = MaybeArray<XenApiNetwork['$ref']>
+
   type BaseNetworkCreateParams = {
     nameLabel: string
     nameDescription?: string
@@ -93,5 +97,8 @@ export function createNetworkOperations(xenApi: XenApi) {
 
       return networkRef
     },
+
+    delete: (networkRefs: NetworkRefs) =>
+      Promise.all(toArray(networkRefs).map(networkRef => xenApi.call('network.destroy', [networkRef]))),
   }
 }

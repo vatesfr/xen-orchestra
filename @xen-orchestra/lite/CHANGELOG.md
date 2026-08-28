@@ -2,6 +2,7 @@
 
 ## **next**
 
+- [Pool/Network] Add the possibility to delete host internal networks
 - [Treeview] Add VM tree actions (PR [#10304](https://github.com/vatesfr/xen-orchestra/pull/10304))
 - [Pool/networks] Add the possibility to create new network or bonded network (PR [#10145](https://github.com/vatesfr/xen-orchestra/pull/10145))
 - [VM] Add VDIs page with table and side panel (PR [#10269](https://github.com/vatesfr/xen-orchestra/pull/10269))

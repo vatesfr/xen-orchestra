@@ -535,6 +535,7 @@
   "job:migrate:in-progress": "Migrate in progess…",
   "job:network-delete:has-n-physical-pif-connected": "The network has one physical PIF connected | The network has {n} physical PIFs connected",
   "job:network-delete:has-n-vif-attached": "The network has one VIF attached | The network has {n} VIFs attached",
+  "job:network-delete:missing-network": "No networks to delete",
   "job:pbd-plug:missing-pbd": "No PBDs to connect",
   "job:pbd-plug:pbd-connected": "One or several PBDs are already connected",
   "job:pbd-unplug:missing-pbd": "No PBDs to disconnect",

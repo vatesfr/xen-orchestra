@@ -27,6 +27,7 @@
 
 <script setup lang="ts">
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
+import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -80,14 +81,34 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useNetworkColumns({
-  exclude: ['status', 'vlan', 'actions'],
-  body: (network: XenApiNetwork) => ({
-    network: r => r({ label: network.name_label }),
-    description: r => r(network.name_description),
-    mtu: r => r(network.MTU),
-    defaultLockingMode: r => r(getLockingMode(network.default_locking_mode)),
-    selectItem: r => r(() => (selectedNetworkId.value = network.uuid)),
-  }),
+  exclude: ['status', 'vlan', 'selectItem'],
+  body: (network: XenApiNetwork) => {
+    const { deleteNetworks, canDeleteNetworks, isDeletingNetworks, deleteNetworksErrorMessage } = useNetworkDelete(
+      () => [network]
+    )
+
+    return {
+      network: r => r({ label: network.name_label }),
+      description: r => r(network.name_description),
+      mtu: r => r(network.MTU),
+      defaultLockingMode: r => r(getLockingMode(network.default_locking_mode)),
+      actions: r =>
+        r({
+          onClick: () => (selectedNetworkId.value = network.uuid),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              danger: true,
+              onClick: () => deleteNetworks(),
+              busy: isDeletingNetworks.value,
+              disabled: !canDeleteNetworks.value,
+              hint: deleteNetworksErrorMessage.value,
+            },
+          ],
+        }),
+    }
+  },
 })
 </script>
 

@@ -15,6 +15,7 @@
         <MenuItem icon="action:copy" :disabled="!isClipboardSupported" @click="copy()">
           {{ t('action:copy-info-json') }}
         </MenuItem>
+        <NetworkDeleteMenuItem v-if="pifsCount === 0" :network />
       </MenuList>
     </template>
     <template v-if="network" #default>
@@ -96,6 +97,7 @@
 <script setup lang="ts">
 import PifRow from '@/components/pif/PifRow.vue'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
+import NetworkDeleteMenuItem from '@/modules/network/components/actions/delete/NetworkDeleteMenuItem.vue'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
