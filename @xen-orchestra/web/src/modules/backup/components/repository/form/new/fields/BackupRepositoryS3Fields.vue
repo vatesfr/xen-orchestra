@@ -43,28 +43,15 @@ defineProps<{ bindings: S3BackupRepositoryDetailsForm['bindings'] }>()
   gap: 2.4rem;
 
   .endpoint-row {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    align-items: start;
     gap: 2.4rem;
-
-    @media (--medium-or-large) {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      align-items: start;
-    }
-
-    .endpoint {
-      min-width: 0;
-    }
 
     .checkboxes {
       display: flex;
       flex-direction: column;
       gap: 0.8rem;
-
-      @media (--medium-or-large) {
-        margin-block-start: 0.4rem;
-      }
     }
   }
 }
