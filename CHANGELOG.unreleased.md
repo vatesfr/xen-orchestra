@@ -11,16 +11,9 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [i18n] Add Arabic and update Czech, Dutch, Finnish, Portuguese (Brasil), Slovak and Swedish translations (PR [#10181](https://github.com/vatesfr/xen-orchestra/pull/10181))
-- [XO6/Backups] Add header title on backup job detail page (PR [#10303](https://github.com/vatesfr/xen-orchestra/pull/10303))
-- [XO6/Host] Add possibility to restart a host toolstack (PR [#10178](https://github.com/vatesfr/xen-orchestra/pull/10178))
-
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
-
-- [sdn-controller] Fix `update_traffic_rule` keeping the previous port: `newRule` is a partial update and a field sent as `null` is now removed from the rule (PR [#10307](https://github.com/vatesfr/xen-orchestra/pull/10307))
-- [Backup/NBD] Better behaviour with a stalled NBD client, and respect global export timeout (PR [#10306](https://github.com/vatesfr/xen-orchestra/pull/10306))
 
 ### Packages to release
 
@@ -37,13 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @vates/nbd-client patch
-- @vates/types major
-- @xen-orchestra/rest-api minor
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
-- @xen-orchestra/xapi patch
-- xo-server-sdn-controller minor
 
 <!--packages-end-->
