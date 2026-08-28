@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="card-container">
     <UiCardTitle>
       {{ t('configuration') }}
     </UiCardTitle>
@@ -46,7 +46,7 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script setup lang="ts">
@@ -57,9 +57,9 @@ import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { vdi, vbd } = defineProps<{
@@ -75,7 +75,6 @@ const isBootable = computed(() => vbd?.bootable ?? false)
 
 <style scoped lang="postcss">
 .card-container {
-  gap: 1.6rem;
   .content {
     display: flex;
     flex-direction: column;
