@@ -55,7 +55,9 @@ import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{ bindings: BackupRepositoryGeneralForm['bindings'] }>()
+defineProps<{
+  bindings: BackupRepositoryGeneralForm['bindings']
+}>()
 
 const { t } = useI18n()
 </script>
@@ -77,7 +79,6 @@ const { t } = useI18n()
 
 .option-content {
   display: inline-flex;
-  align-items: baseline;
   gap: 0.8rem;
 
   .hint {
