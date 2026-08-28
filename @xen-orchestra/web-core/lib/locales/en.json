@@ -507,6 +507,7 @@
   "job:enable:in-progress": "Enable in progress…",
   "job:export:in-progress": "Export in progress…",
   "job:host-detach:in-progress": "Host detach in progress…",
+  "job:host-detach:master-host": "Master host cannot be detached",
   "job:host-detach:missing-host": "No host to detach",
   "job:host-disable:bad-power-state": "Host is not running",
   "job:host-disable:missing-host": "Host is missing",

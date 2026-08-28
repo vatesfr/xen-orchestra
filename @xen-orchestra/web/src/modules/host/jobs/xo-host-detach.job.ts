@@ -30,6 +30,10 @@ export const useXoHostDetachJob = defineJob('host.detach', [xoHostArg], () => {
       if (isRunning || (pool && isPoolOperationPending(pool, POOL_ALLOWED_OPERATIONS.EJECT))) {
         throw new JobRunningError(t('job:host-detach:in-progress'))
       }
+
+      if (pool?.master === host.id) {
+        throw new JobError(t('job:host-detach:master-host'))
+      }
     },
   }
 })
