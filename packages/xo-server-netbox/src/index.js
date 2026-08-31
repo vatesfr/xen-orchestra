@@ -892,6 +892,7 @@ class Netbox {
           const xoCompactIp = parsedIp.toString() // use compact notation (e.g. ::1) before ===-comparison
           const nbIp = find(nbIpsToCheck, nbIp => {
             const [ip, bitsStr] = nbIp.address.split('/')
+            const bits = Number(bitsStr)
             let nbCompactIp
             try {
               nbCompactIp = ipaddr.parse(ip).toString()
@@ -899,7 +900,7 @@ class Netbox {
               log.error('Cannot parse IP address', { error, ip })
               return false
             }
-            return nbCompactIp === xoCompactIp && Number(bitsStr) === highestBits
+            return nbCompactIp === xoCompactIp && bits === highestBits
           })
           if (nbIp !== undefined) {
             // IP is up to date, don't do anything with it
