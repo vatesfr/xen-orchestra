@@ -236,7 +236,7 @@ export const objectIcons = defineIconPack({
     },
   ],
   'network:connected': [constructIcon(faNetworkWired), ...constructCircleStatus('success-circle')],
-  'network:warning': [constructIcon(faNetworkWired), ...constructCircleStatus('warning-circle')],
+  'network:partially-connected': [constructIcon(faNetworkWired), ...constructCircleStatus('warning-circle')],
   'network:disconnected': [constructIcon(faNetworkWired), ...constructCircleStatus('danger-circle')],
   br: constructIcon(faBoxesStacked),
   'br:unknown': [

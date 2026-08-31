@@ -31,6 +31,8 @@
 <script lang="ts" setup>
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store.ts'
+import { useNetworkUtils } from '@/modules/network/composables/network-utils.composable.ts'
+import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -54,7 +56,7 @@ defineSlots<{
 }>()
 
 const { records: pifs } = usePifStore().subscribe()
-const { getPifCarrier } = usePifMetricsStore().subscribe()
+const { getNetworkStatus } = useNetworkUtils()
 
 const { t } = useI18n()
 
@@ -66,25 +68,6 @@ const getNetworkVlan = (network: XenApiNetwork) => {
   if (networkPIFs.length > 0) {
     return networkPIFs[0].VLAN !== -1 ? networkPIFs[0].VLAN.toString() : t('none')
   }
-}
-
-const getNetworkStatus = (network: XenApiNetwork) => {
-  const networkPIFs = pifs.value.filter(pif => network.PIFs?.includes(pif.$ref))
-
-  if (networkPIFs.length === 0) {
-    return 'disconnected'
-  }
-
-  const isConnected = networkPIFs.map(pif => pif.currently_attached && getPifCarrier(pif))
-  if (isConnected.every(Boolean)) {
-    return 'connected'
-  }
-
-  if (isConnected.some(Boolean)) {
-    return 'partially-connected'
-  }
-
-  return 'disconnected'
 }
 
 const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
@@ -136,7 +119,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
 })
 </script>
 
-<style lang="postcss" scoped>
+<style scoped lang="postcss">
 .pool-networks-table,
 .container {
   display: flex;
