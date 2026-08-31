@@ -11,15 +11,9 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [XO6/Host] Add possibility to detach an host (PR [#10179](https://github.com/vatesfr/xen-orchestra/pull/10179))
-- [XO5/New VM] Ability to add the VM to a resource set and to share it during creation (PR [#10259](https://github.com/vatesfr/xen-orchestra/pull/10259))
-
-
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
-
-- [OpenMetrics] The Prometheus secret no longer changes on every xo-server restart: it is now generated once and saved in the plugin configuration (PR [#10290](https://github.com/vatesfr/xen-orchestra/pull/10290))
 
 ### Packages to release
 
@@ -36,10 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/web minor
-- xo-server minor
-- xo-server-openmetrics patch
-- xo-web minor
 
 <!--packages-end-->
