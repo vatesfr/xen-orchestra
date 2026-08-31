@@ -261,7 +261,7 @@ export class RemoteAdapter {
     await Task.run(
       {
         properties: {
-          name: 'clean VM other backups dirs',
+          name: 'clean VM of non-delta backups(full backups, ...) dirs',
           total: otherBackupDirs.size,
         },
       },
