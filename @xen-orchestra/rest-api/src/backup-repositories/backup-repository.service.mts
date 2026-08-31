@@ -43,6 +43,7 @@ export class BackupRepositoryService {
     const allJobs = await this.#restApi.xoApp.getAllJobs()
     const referencingJobs: AnyXoBackupJob['id'][] = []
 
+    // checks if a backup job related to this backup repository is running
     for (const job of allJobs) {
       if (job.type === 'backup' || job.type === 'metadataBackup') {
         if (this.isBackupRepositoryReferenced(job.remotes, repositoryId)) {
@@ -117,7 +118,7 @@ export class BackupRepositoryService {
             results.push({
               vmUuid: uuid,
               success: false,
-              error: error.message,
+              error: error instanceof Error ? error.message : String(error),
             })
           } finally {
             done++
