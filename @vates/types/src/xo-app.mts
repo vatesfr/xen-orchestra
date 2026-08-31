@@ -468,6 +468,10 @@ export type XoApp = {
   >
   /** Detach a disk mounted by `mountBackupArchiveDisk` and stop serving it */
   unmountBackupArchiveDisk(id: BackupArchiveDiskMount['id']): Promise<void>
+  reclaimSpace(
+    remoteId: XoBackupRepository['id'],
+    opts?: { vmUuid?: XoVm['id']; merge?: boolean; remove?: boolean }
+  ): Promise<{ vmUuid: string; success: boolean; merge?: boolean; size?: number; error?: string }[]>
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
   updateUser(
