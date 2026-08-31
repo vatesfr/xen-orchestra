@@ -59,7 +59,6 @@
 - xo-server-audit 0.15.2
 - xo-server-netbox 1.13.2
 - @vates/nbd-client 3.5.1
-- @vates/types 2.0.0
 - @xen-orchestra/acl 1.6.1
 - @xen-orchestra/backup-archive 1.1.2
 - @xen-orchestra/xapi 8.10.4
@@ -70,10 +69,11 @@
 - @xen-orchestra/rest-api 0.39.0
 - xo-server-ipmi-sensors 2.1.1
 - xo-server-sdn-controller 1.5.0
-- @xen-orchestra/web 0.60.0
-- xo-server 5.208.0
 - xo-server-openmetrics 1.9.2
 - xo-web 5.203.0
+- @vates/types 2.0.1
+- @xen-orchestra/web 0.60.1
+- xo-server 5.208.1
 
 ## **6.7.1** (2026-08-04)
 
