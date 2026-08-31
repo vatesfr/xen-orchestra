@@ -868,7 +868,8 @@ class Netbox {
           let smallestPrefix
           let highestBits = 0
           nbPrefixes.forEach(({ prefix }) => {
-            const [range, bits] = prefix.split('/')
+            const [range, bitsStr] = prefix.split('/')
+            const bits = Number(bitsStr)
             let parsedRange
             try {
               parsedRange = ipaddr.parse(range)
@@ -876,9 +877,9 @@ class Netbox {
               log.error('Cannot parse range', { error, range })
               return
             }
-            if (parsedRange.kind() === ipKind && parsedIp.match(parsedRange, bits) && Number(bits) > highestBits) {
+            if (parsedRange.kind() === ipKind && parsedIp.match(parsedRange, bits) && bits > highestBits) {
               smallestPrefix = prefix
-              highestBits = Number(bits)
+              highestBits = bits
             }
           })
 
@@ -890,7 +891,7 @@ class Netbox {
 
           const xoCompactIp = parsedIp.toString() // use compact notation (e.g. ::1) before ===-comparison
           const nbIp = find(nbIpsToCheck, nbIp => {
-            const [ip, bits] = nbIp.address.split('/')
+            const [ip, bitsStr] = nbIp.address.split('/')
             let nbCompactIp
             try {
               nbCompactIp = ipaddr.parse(ip).toString()
@@ -898,7 +899,7 @@ class Netbox {
               log.error('Cannot parse IP address', { error, ip })
               return false
             }
-            return nbCompactIp === xoCompactIp && Number(bits) === highestBits
+            return nbCompactIp === xoCompactIp && Number(bitsStr) === highestBits
           })
           if (nbIp !== undefined) {
             // IP is up to date, don't do anything with it
