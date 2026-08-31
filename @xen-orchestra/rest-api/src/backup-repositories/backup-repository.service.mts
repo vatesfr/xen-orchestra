@@ -4,7 +4,7 @@ import { provide } from 'inversify-binding-decorators'
 import { inject } from 'inversify'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 import { BACKUP_DIR } from '@xen-orchestra/backups/_getVmBackupDir.mjs'
-import { getSyncedHandler } from '@xen-orchestra/fs'
+import { getSyncedHandler, HandlerDisposable } from '@xen-orchestra/fs'
 import { Disposable } from 'promise-toolbox'
 import { Task } from '@vates/task'
 import { asyncEach } from '@vates/async-each'
@@ -75,52 +75,59 @@ export class BackupRepositoryService {
     }
     const remote = await this.#restApi.xoApp.getRemote(backupRepositoryId)
 
-    let results: ReclaimSpaceResult[]
-
+    let handler: HandlerDisposable
     try {
-      results = await Disposable.use(getSyncedHandler(remote), async handler => {
-        const adapter = new RemoteAdapter(handler)
-        const vmUuids: string[] = vmUuid !== undefined ? [vmUuid] : await adapter.listAllVms()
+      handler = await getSyncedHandler(remote)
+    } catch (error) {
+      throw new ApiError('Backup repository unreachable', 502, { data: { cause: String(error) } })
+    }
 
-        Task.set('total', vmUuids.length)
-        let done = 0
+    const results = await Disposable.use(handler, async handler => {
+      const adapter = new RemoteAdapter(handler)
+      const vmUuids: string[] = vmUuid !== undefined ? [vmUuid] : await adapter.listAllVms()
+      Task.set('total', vmUuids.length)
+      let done = 0
 
-        const results: ReclaimSpaceResult[] = []
-
-        await asyncEach(
-          vmUuids,
-          async uuid => {
-            try {
-              const { merge, size } = await Task.run({ name: `Clean VM ${uuid}`, data: { type: 'VM', id: uuid } }, () =>
-                adapter.cleanVm(`${BACKUP_DIR}/${uuid}`, {
+      const results: ReclaimSpaceResult[] = []
+      await asyncEach(
+        vmUuids,
+        async uuid => {
+          try {
+            const { merge, size } = await Task.run(
+              {
+                properties: { name: `Clean VM ${uuid}`, data: { type: 'VM', id: uuid } },
+              },
+              async () =>
+                await adapter.cleanVm(`${BACKUP_DIR}/${uuid}`, {
                   lock: true,
                   remove: remove ?? true,
                   merge: mergeParam ?? true,
                   logInfo: Task.info,
                   logWarn: Task.warning,
                 })
-              )
+            )
 
-              results.push({
-                vmUuid: uuid,
-                success: true,
-                merge: merge,
-                size: size,
-              })
-            } catch (error: any) {
-              throw new ApiError(`failed to reclaim space for VM ${uuid}, error: ${error.message}`, 400)
-            } finally {
-              done++
-              Task.set('progress', Math.round((done / vmUuids.length) * 100))
-            }
-          },
-          { concurrency: 2 }
-        )
-        return results
-      })
-    } catch (error) {
-      throw new ApiError(`${error}`, 502)
-    }
+            results.push({
+              vmUuid: uuid,
+              success: true,
+              merge: merge,
+              size: size,
+            })
+          } catch (error: any) {
+            results.push({
+              vmUuid: uuid,
+              success: false,
+              error: error.message,
+            })
+          } finally {
+            done++
+            Task.set('progress', Math.round((done / vmUuids.length) * 100))
+          }
+        },
+        { concurrency: 2, stopOnError: false }
+      )
+      return results
+    })
 
     const failures = results.filter(r => !r.success)
     if (failures.length === results.length && results.length > 0) {
