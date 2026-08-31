@@ -13,10 +13,6 @@ export function createHostOperations(xenApi: XenApi) {
   const reboot = (hostRef: HostRef) => xenApi.call('host.reboot', [hostRef])
 
   return {
-    disable,
-    enable,
-    evacuate,
-    reboot,
     cleanReboot: async (hostRef: HostRef) => {
       await disable(hostRef)
 

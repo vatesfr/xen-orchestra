@@ -33,8 +33,8 @@ const {
   errorMessage: rebootHostErrorMessage,
 } = useHostRebootJob(() => host)
 
-async function rebootHost() {
-  const { event } = await openActionModal({
+function rebootHost() {
+  return openActionModal({
     props: {
       accent: 'info',
       action: 'reboot',
@@ -42,12 +42,11 @@ async function rebootHost() {
       hostName: host.name_label,
       icon: 'status:info-picto',
     },
+    events: {
+      onConfirm: async () => {
+        void run()
+      },
+    },
   })
-
-  if (event !== 'onConfirm') {
-    return
-  }
-
-  await run()
 }
 </script>
