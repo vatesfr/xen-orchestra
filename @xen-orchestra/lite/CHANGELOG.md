@@ -8,6 +8,7 @@
 - [Host/Network] Add ability to rescan physical network interfaces (PIFs) (PR [#10147](https://github.com/vatesfr/xen-orchestra/pull/10147))
 - Fix inconsistent spacing in side panel cards (PR [#10279](https://github.com/vatesfr/xen-orchestra/pull/10279))
 - Fix missing collapse buttons on pools and hosts in the tree sidebar (added `hasChildren` prop) (PR [#10244](https://github.com/vatesfr/xen-orchestra/pull/10244))
+- [Pool/networks] Add the possibility to create new internal network (PR [#10235](https://github.com/vatesfr/xen-orchestra/pull/10235))
 
 ## **0.24.0** (2026-07-30)
 

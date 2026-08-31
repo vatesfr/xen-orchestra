@@ -20,7 +20,13 @@
           </MenuList>
         </template>
       </PoolNetworksTable>
-      <PoolHostInternalNetworksTable :networks="networksWithoutPifs" />
+      <PoolHostInternalNetworksTable :networks="networksWithoutPifs">
+        <template #title-actions>
+          <UiLink :to="{ name: '/network/new-internal' }" icon="fa:plus" size="medium">
+            {{ t('new') }}
+          </UiLink>
+        </template>
+      </PoolHostInternalNetworksTable>
     </UiCard>
     <PoolNetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
   </VtsContentSidePanel>
@@ -43,6 +49,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
+
 usePageTitleStore().setTitle(t('network'))
 
 const { getByUuid, networksWithPifs, networksWithoutPifs, isReady, hasError } = useNetworkStore().subscribe()

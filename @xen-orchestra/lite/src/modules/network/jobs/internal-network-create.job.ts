@@ -1,33 +1,22 @@
-import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
-import { payloadArg } from '@/modules/network/jobs/network-create-args.ts'
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
+import { payloadArg } from '@/modules/network/jobs/internal-network-create-args.ts'
+import type { BaseNewNetworkPayload } from '@/modules/network/jobs/network-create.job.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
-export type BaseNewNetworkPayload = {
-  name: string
-  description?: string
-  mtu?: number
-  nbd?: boolean
-}
+export type NewInternalNetworkPayload = BaseNewNetworkPayload
 
-export type NewNetworkPayload = BaseNewNetworkPayload & {
-  pifRef: XenApiPif['$ref']
-  vlan?: number
-}
-
-export const useNetworkCreateJob = defineJob('network.create', [payloadArg], () => {
+export const useInternalNetworkCreateJob = defineJob('internal-network.create', [payloadArg], () => {
   const xapi = useXenApiStore().getXapi()
   const { t } = useI18n()
 
   return {
     async run(payload): Promise<XenApiNetwork['uuid']> {
-      const networkRef = await xapi.network.create({
+      const networkRef = await xapi.network.createInternal({
         nameLabel: payload.name,
         nameDescription: payload.description,
         mtu: payload.mtu,
-        vlan: payload.vlan,
-        pifRef: payload.pifRef,
         nbd: payload.nbd,
       })
 
@@ -45,10 +34,6 @@ export const useNetworkCreateJob = defineJob('network.create', [payloadArg], () 
 
       if (payload.name.length === 0) {
         throw new JobError(t('job:arg:name-required'))
-      }
-
-      if (payload.pifRef === undefined) {
-        throw new JobError(t('job:arg:pif-id-required'))
       }
     },
   }
