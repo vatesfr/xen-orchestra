@@ -13,6 +13,7 @@
 - [XO6/Host] Add possibility to force reboot a host (PR [#10175](https://github.com/vatesfr/xen-orchestra/pull/10175))
 - [XO6/Host] Add possibility to smart reboot a host (PR [#10177](https://github.com/vatesfr/xen-orchestra/pull/10177))
 - [XO6/Host] Add possibility to restart a host toolstack (PR [#10178](https://github.com/vatesfr/xen-orchestra/pull/10178))
+- [XO6/Host] Add possibility to detach an host (PR [#10179](https://github.com/vatesfr/xen-orchestra/pull/10179))
 - [XO6/VM] Add guest tools status on the VM Dashboard, VM System tab and VM Side panel (PR [#10077](https://github.com/vatesfr/xen-orchestra/pull/10077))
 - [XO6/SR] Add dedicated Storage Repository page with general information, space usage, PBD details, custom fields (PR [#10100](https://github.com/vatesfr/xen-orchestra/pull/10100))
 - [XO6/Backups] Add header title on backup job detail page (PR [#10303](https://github.com/vatesfr/xen-orchestra/pull/10303))
@@ -22,6 +23,7 @@
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
 - [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
 - [XO5/Backups] Add `Synchronize snapshots` checkbox to backup jobs to get consistent restore points (PR [#10136](https://github.com/vatesfr/xen-orchestra/pull/10136))
+- [XO5/New VM] Ability to add the VM to a resource set and to share it during creation (PR [#10259](https://github.com/vatesfr/xen-orchestra/pull/10259))
 - [i18n] Add Arabic and update Czech, Dutch, Finnish, Portuguese (Brasil), Slovak and Swedish translations (PR [#10181](https://github.com/vatesfr/xen-orchestra/pull/10181))
 
 ### Bug fixes
@@ -35,6 +37,7 @@
 - [xo-server] Disconnect user stalling task result and using too much memory (PR [#10237](https://github.com/vatesfr/xen-orchestra/pull/10237))
 - [sdn-controller] Fix `update_traffic_rule` keeping the previous port: `newRule` is a partial update and a field sent as `null` is now removed from the rule (PR [#10307](https://github.com/vatesfr/xen-orchestra/pull/10307))
 - [Backup/NBD] Better behaviour with a stalled NBD client, and respect global export timeout (PR [#10306](https://github.com/vatesfr/xen-orchestra/pull/10306))
+- [OpenMetrics] The Prometheus secret no longer changes on every xo-server restart: it is now generated once and saved in the plugin configuration (PR [#10290](https://github.com/vatesfr/xen-orchestra/pull/10290))
 - **XO 5**:
   - [VM/Console] Fix the page header and tab navigation disappearing permanently in the console tab (PR [#10007](https://github.com/vatesfr/xen-orchestra/pull/10007))
   - [Tasks] Show a task when a user is disconnected because its task flow is stalled (PR [#10237](https://github.com/vatesfr/xen-orchestra/pull/10237))
@@ -55,7 +58,6 @@
 - xo-cli 0.32.4
 - xo-server-audit 0.15.2
 - xo-server-netbox 1.13.2
-- xo-web 5.202.0
 - @vates/nbd-client 3.5.1
 - @vates/types 2.0.0
 - @xen-orchestra/acl 1.6.1
@@ -66,11 +68,12 @@
 - @xen-orchestra/mcp 1.4.2
 - @xen-orchestra/proxy 0.31.8
 - @xen-orchestra/rest-api 0.39.0
-- @xen-orchestra/web 0.59.0
-- xo-server 5.207.4
 - xo-server-ipmi-sensors 2.1.1
-- xo-server-openmetrics 1.9.1
 - xo-server-sdn-controller 1.5.0
+- @xen-orchestra/web 0.60.0
+- xo-server 5.208.0
+- xo-server-openmetrics 1.9.2
+- xo-web 5.203.0
 
 ## **6.7.1** (2026-08-04)
 
