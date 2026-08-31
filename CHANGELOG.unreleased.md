@@ -13,7 +13,7 @@
 
 - [XO6/Host] Add possibility to detach an host (PR [#10179](https://github.com/vatesfr/xen-orchestra/pull/10179))
 - [XO5/New VM] Ability to add the VM to a resource set and to share it during creation (PR [#10259](https://github.com/vatesfr/xen-orchestra/pull/10259))
-
+- [XO6/lite] Add possibility to add new Vif from VM > Network in XOLite, several repercussions on xo6 (PR [#10216](https://github.com/vatesfr/xen-orchestra/pull/10216))
 
 ### Bug fixes
 
