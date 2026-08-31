@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.25.0** (2026-08-31)
 
 - [Treeview] Add VM tree actions (PR [#10304](https://github.com/vatesfr/xen-orchestra/pull/10304))
 - [Pool/networks] Add the possibility to create new network or bonded network (PR [#10145](https://github.com/vatesfr/xen-orchestra/pull/10145))
