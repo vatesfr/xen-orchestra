@@ -12,6 +12,8 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [XO6/Host] Add possibility to detach an host (PR [#10179](https://github.com/vatesfr/xen-orchestra/pull/10179))
+- [XO5/New VM] Ability to add the VM to a resource set and to share it during creation (PR [#10259](https://github.com/vatesfr/xen-orchestra/pull/10259))
+
 
 ### Bug fixes
 
@@ -34,5 +36,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/web minor
+- xo-server minor
+- xo-web minor
 
 <!--packages-end-->
