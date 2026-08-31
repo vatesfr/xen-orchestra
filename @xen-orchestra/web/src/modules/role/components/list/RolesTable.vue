@@ -22,7 +22,9 @@
 </template>
 
 <script setup lang="ts">
+import { useXoGroupCollection } from '@/modules/group/remote-resources/use-xo-group-collection.ts'
 import type { FrontXoRole } from '@/modules/role/remote-resources/use-xo-role-collection.ts'
+import { getRoleUserIds } from '@/modules/role/utils/xo-role.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -56,11 +58,13 @@ const {
 
 const { t } = useI18n()
 
+const { getGroupsByIds } = useXoGroupCollection()
+
 const filterableRoles = computed<FilterableRole[]>(() =>
   rawRoles.map(role => ({
     ...role,
     description: role.description ?? '',
-    usersCount: role.userIds.length,
+    usersCount: getRoleUserIds(role, getGroupsByIds(role.groupIds)).length,
     groupsCount: role.groupIds.length,
     privilegesCount: role.privilegeIds.length,
   }))
