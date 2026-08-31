@@ -37,11 +37,11 @@ function openDisableHostModal() {
   return openActionModal({
     events: { onConfirm: () => disableHost() },
     props: {
-      accent: 'warning',
+      accent: 'info',
       action: 'disable',
       object: 'host',
       hostName: host.name_label,
-      icon: 'status:warning-picto',
+      icon: 'status:info-picto',
     },
   })
 }

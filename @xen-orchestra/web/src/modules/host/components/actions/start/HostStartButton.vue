@@ -39,11 +39,11 @@ function startHost() {
       onConfirm: () => run(),
     },
     props: {
-      accent: 'warning',
+      accent: 'info',
       action: 'start',
       object: 'host',
       hostName: host.name_label,
-      icon: 'status:warning-picto',
+      icon: 'status:info-picto',
     },
   })
 }
