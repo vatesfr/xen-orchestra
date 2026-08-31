@@ -4,12 +4,15 @@ import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'xo-remote-parser'
 import { DEFAULT_ENCRYPTION_ALGORITHM, getHandler, isLegacyEncryptionAlgorithm } from '@xen-orchestra/fs'
 import { ignoreErrors, timeout, TimeoutError } from 'promise-toolbox'
-import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
+import { invalidParameters, noSuchObject, incorrectState } from 'xo-common/api-errors.js'
 import { synchronized } from 'decorator-synchronized'
-
 import patch from '../patch.mjs'
 import { Remotes } from '../models/remote.mjs'
 import Disposable from 'promise-toolbox/Disposable'
+import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
+import { BACKUP_DIR } from '@xen-orchestra/backups/_getVmBackupDir.mjs'
+import { Task } from '@vates/task'
+import { asyncEach } from '@vates/async-each'
 
 // ===================================================================
 
@@ -191,6 +194,83 @@ export default class {
     }
 
     return result
+  }
+
+  // checks if a job referencing this remote is currently running
+  async #isReferencedByRunningJob(remoteId) {
+    const jobs = await this._app.getAllJobs()
+    return jobs.some(job => {
+      if (job.runId === undefined) {
+        return false
+      }
+      if (job.type === 'backup' || job.type === 'metadataBackup') {
+        return this.#isRemoteReferenced(job.remotes, remoteId)
+      }
+      if (job.type === 'mirrorBackup') {
+        return job.sourceRemote === remoteId || this.#isRemoteReferenced(job.remotes, remoteId)
+      }
+      return false
+    })
+  }
+
+  #isRemoteReferenced(idsToCheck, remoteId) {
+    if (idsToCheck === undefined) {
+      return false
+    }
+    const { id } = idsToCheck
+    const ids = typeof id === 'string' ? [id] : id.__or
+    return ids.includes(remoteId)
+  }
+
+  async reclaimSpace(remoteId, { vmUuid, merge = true, remove = true } = {}) {
+    if (await this.#isReferencedByRunningJob(remoteId)) {
+      throw incorrectState({ actual: 'running', expected: 'idle', object: 'backup job referencing this remote' })
+    }
+
+    // validates enabled + S3 feature auth, and gives real (unobfuscated) credentials
+    await this.getRemoteWithCredentials(remoteId)
+
+    // throws if remote.proxy is set — merge must run in this (main) process,
+    // which isn't possible for a proxied remote
+    const handler = await this.getRemoteHandler(remoteId)
+    const adapter = new RemoteAdapter(handler)
+
+    const vmUuids = vmUuid !== undefined ? [vmUuid] : await adapter.listAllVms()
+    Task.set('total', vmUuids.length)
+    let done = 0
+
+    const results = []
+    await asyncEach(
+      vmUuids,
+      async uuid => {
+        try {
+          const { merge: didMerge, size } = await Task.run(
+            { properties: { name: `Clean VM ${uuid}`, data: { type: 'VM', id: uuid } } },
+            () =>
+              adapter.cleanVm(`${BACKUP_DIR}/${uuid}`, {
+                remove,
+                merge,
+                logInfo: Task.info,
+                logWarn: Task.warning,
+              })
+          )
+          results.push({ vmUuid: uuid, success: true, merge: didMerge, size })
+        } catch (error) {
+          results.push({ vmUuid: uuid, success: false, error: error instanceof Error ? error.message : String(error) })
+        } finally {
+          done++
+          Task.set('progress', Math.round((done / vmUuids.length) * 100))
+        }
+      },
+      { concurrency: 2, stopOnError: false }
+    )
+
+    const failures = results.filter(r => !r.success)
+    if (failures.length === results.length && results.length > 0) {
+      throw new Error('reclaim space failed for all VMs')
+    }
+
+    return results
   }
 
   async getAllRemotesInfo() {

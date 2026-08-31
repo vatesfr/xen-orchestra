@@ -357,6 +357,10 @@ export type XoApp = {
     | { success: true; readRate: number; writeRate: number }
     | { success: false; step: string; file: string; error: unknown }
   >
+  reclaimSpace(
+    remoteId: XoBackupRepository['id'],
+    opts?: { vmUuid?: XoVm['id']; merge?: boolean; remove?: boolean }
+  ): Promise<{ vmUuid: string; success: boolean; merge?: boolean; size?: number; error?: string }[]>
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
   updateUser(
