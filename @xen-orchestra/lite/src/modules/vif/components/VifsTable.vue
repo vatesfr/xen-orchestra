@@ -1,12 +1,13 @@
 <template>
-  <div class="vm-vifs-table">
+  <div class="vifs-table">
     <UiTitle>
       {{ t('vifs') }}
+      <template #action>
+        <slot name="title-actions" />
+      </template>
     </UiTitle>
+    <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-      </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -48,6 +49,10 @@ import { useI18n } from 'vue-i18n'
 const { vifs, vm } = defineProps<{
   vifs: XenApiVif[]
   vm: XenApiVm
+}>()
+
+defineSlots<{
+  'title-actions'(): any
 }>()
 
 const { isReady, hasError } = useVifStore().subscribe()
@@ -152,7 +157,7 @@ const { HeadCells, BodyCells } = useVifColumns({
 </script>
 
 <style scoped lang="postcss">
-.vm-vifs-table {
+.vifs-table {
   display: flex;
   flex-direction: column;
   gap: 2.4rem;

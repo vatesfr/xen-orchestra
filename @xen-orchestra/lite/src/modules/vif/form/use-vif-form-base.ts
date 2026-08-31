@@ -1,4 +1,4 @@
-import type { BaseVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
+import type { BaseVifPayload } from '@/modules/vif/jobs/vif-create.job.ts'
 import {
   type FormValidationConfig,
   ipAddresses,
@@ -8,6 +8,7 @@ import {
   withMessage,
 } from '@core/packages/form-validation'
 import { type IpAddress, isIpv6, parseIpList } from '@core/utils/ip-address.utils.ts'
+import { VIF_LOCKING_MODE } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export type BaseVifFormData = {
@@ -47,7 +48,7 @@ export function buildBaseVifPayload(formData: BaseVifFormData): BaseVifPayload {
     ...(ipv4.length > 0 && { ipv4_allowed: ipv4 }),
     ...(ipv6.length > 0 && { ipv6_allowed: ipv6 }),
     // allowed IPs are only enforced when the locking mode is `locked`
-    ...(allowedIps.length > 0 && { locking_mode: 'locked' }),
+    ...(allowedIps.length > 0 && { locking_mode: VIF_LOCKING_MODE.LOCKED }),
     ...(typeof formData.rateLimit === 'number' && {
       qos_algorithm_type: 'ratelimit',
       qos_algorithm_params: { kbps: String(formData.rateLimit) },
