@@ -15,7 +15,6 @@ import {
 import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { objectIcon } from '@core/icons'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { TrafficRule, TrafficRuleTargetType } from '@vates/types'
 import { computed, type MaybeRefOrGetter, reactive, watchEffect } from 'vue'
@@ -68,18 +67,6 @@ export function useEditTrafficRuleForm(rawRule: MaybeRefOrGetter<TrafficRule>) {
     if (ruleVm.value) {
       const hasVifs = ruleVm.value.VIFs.length > 0
       return [vmToTargetOption(ruleVm.value, hasVifs)]
-    }
-
-    const missingVmId = ruleVif.value?.$VM
-    if (missingVmId) {
-      return [
-        {
-          id: missingVmId,
-          label: t('unknown'),
-          value: missingVmId,
-          icon: objectIcon('vm', 'unknown'),
-        },
-      ]
     }
     return []
   })
