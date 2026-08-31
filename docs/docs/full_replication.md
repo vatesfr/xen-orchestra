@@ -2,7 +2,7 @@
 sidebar_label: Full replication (DR)
 ---
 
-# Full Replication
+# Full replication
 
 :::note
 **Full replication** is the current name of the job type formerly called **Disaster Recovery (DR)**. Both names describe the same thing, and you will still meet the old one: XO 6 labels this mode **Full replication**, while the XO 5 interface still labels it **Disaster Recovery**, and replicas keep a `Disaster Recovery` tag.

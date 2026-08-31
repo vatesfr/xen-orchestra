@@ -106,6 +106,20 @@ declare module 'vue-router/auto-routes' {
       { uuid: ParamValue<false> },
       | never
     >,
+    '/network/new': RouteRecordInfo<
+      '/network/new',
+      '/network/new',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/network/new-bonded': RouteRecordInfo<
+      '/network/new-bonded',
+      '/network/new-bonded',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/object-not-found': RouteRecordInfo<
       '/object-not-found',
       '/object-not-found',
@@ -793,6 +807,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/panel-card/ui-panel-card': RouteRecordInfo<
+      '/story/web-core/ui/panel-card/ui-panel-card',
+      '/story/web-core/ui/panel-card/ui-panel-card',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/progress-bar/ui-progress-bar': RouteRecordInfo<
       '/story/web-core/ui/progress-bar/ui-progress-bar',
       '/story/web-core/ui/progress-bar/ui-progress-bar',
@@ -959,6 +980,7 @@ declare module 'vue-router/auto-routes' {
       | '/vm/[uuid]/stats'
       | '/vm/[uuid]/system'
       | '/vm/[uuid]/tasks'
+      | '/vm/[uuid]/vdis'
     >,
     '/vm/[uuid]/alarms': RouteRecordInfo<
       '/vm/[uuid]/alarms',
@@ -1005,6 +1027,13 @@ declare module 'vue-router/auto-routes' {
     '/vm/[uuid]/tasks': RouteRecordInfo<
       '/vm/[uuid]/tasks',
       '/vm/:uuid/tasks',
+      { uuid: ParamValue<true> },
+      { uuid: ParamValue<false> },
+      | never
+    >,
+    '/vm/[uuid]/vdis': RouteRecordInfo<
+      '/vm/[uuid]/vdis',
+      '/vm/:uuid/vdis',
       { uuid: ParamValue<true> },
       { uuid: ParamValue<false> },
       | never
@@ -1100,6 +1129,18 @@ declare module 'vue-router/auto-routes' {
     'src/pages/host/[uuid]/vms.vue': {
       routes:
         | '/host/[uuid]/vms'
+      views:
+        | never
+    }
+    'src/pages/network/new.vue': {
+      routes:
+        | '/network/new'
+      views:
+        | never
+    }
+    'src/pages/network/new-bonded.vue': {
+      routes:
+        | '/network/new-bonded'
       views:
         | never
     }
@@ -1694,6 +1735,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/ui/panel-card/ui-panel-card.story.vue': {
+      routes:
+        | '/story/web-core/ui/panel-card/ui-panel-card'
+      views:
+        | never
+    }
     'src/stories/web-core/ui/progress-bar/ui-progress-bar.story.vue': {
       routes:
         | '/story/web-core/ui/progress-bar/ui-progress-bar'
@@ -1836,6 +1883,7 @@ declare module 'vue-router/auto-routes' {
         | '/vm/[uuid]/stats'
         | '/vm/[uuid]/system'
         | '/vm/[uuid]/tasks'
+        | '/vm/[uuid]/vdis'
       views:
         | 'default'
     }
@@ -1878,6 +1926,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vm/[uuid]/tasks.vue': {
       routes:
         | '/vm/[uuid]/tasks'
+      views:
+        | never
+    }
+    'src/pages/vm/[uuid]/vdis.vue': {
+      routes:
+        | '/vm/[uuid]/vdis'
       views:
         | never
     }

@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
 import { useI18n } from 'vue-i18n'
 

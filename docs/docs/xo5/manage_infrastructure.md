@@ -1,4 +1,4 @@
-# Infrastructure management
+# Management in XO 5
 
 <InterfaceNote>This page describes infrastructure management in the XO 5 interface. XO 6 already covers inspection of pools, hosts, networks and storage, host power actions, network and VIF creation.</InterfaceNote>
 
@@ -441,6 +441,12 @@ You can create a snapshot with one click. It will be named automatically. After 
 
 :::tip
 By default, XOA will try to make a snapshot with quiesce. If the VM does not support it, it will fall back to the default snapshot system.
+:::
+
+:::note
+Reverting to a snapshot restores the VM's metadata as well as its disk state, so fields like
+the creation date get rolled back to match the snapshot too. If you rely on the creation date
+to track a VM's history, keep that in mind before reverting.
 :::
 
 ## VM import and export

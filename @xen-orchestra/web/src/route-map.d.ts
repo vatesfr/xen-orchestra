@@ -234,10 +234,10 @@ declare module 'vue-router/auto-routes' {
       | '/pool/[id]/dashboard'
       | '/pool/[id]/hosts'
       | '/pool/[id]/networks'
-      | '/pool/[id]/security'
       | '/pool/[id]/storage'
       | '/pool/[id]/system'
       | '/pool/[id]/tasks'
+      | '/pool/[id]/traffic-rules'
       | '/pool/[id]/vms'
     >,
     '/pool/[id]/dashboard': RouteRecordInfo<
@@ -257,13 +257,6 @@ declare module 'vue-router/auto-routes' {
     '/pool/[id]/networks': RouteRecordInfo<
       '/pool/[id]/networks',
       '/pool/:id/networks',
-      { id: ParamValue<true> },
-      { id: ParamValue<false> },
-      | never
-    >,
-    '/pool/[id]/security': RouteRecordInfo<
-      '/pool/[id]/security',
-      '/pool/:id/security',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -289,6 +282,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/pool/[id]/traffic-rules': RouteRecordInfo<
+      '/pool/[id]/traffic-rules',
+      '/pool/:id/traffic-rules',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/pool/[id]/vms': RouteRecordInfo<
       '/pool/[id]/vms',
       '/pool/:id/vms',
@@ -308,6 +308,20 @@ declare module 'vue-router/auto-routes' {
       '/settings',
       Record<never, never>,
       Record<never, never>,
+      | never
+    >,
+    '/sr/[id]': RouteRecordInfo<
+      '/sr/[id]',
+      '/sr/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/sr/[id]/general'
+    >,
+    '/sr/[id]/general': RouteRecordInfo<
+      '/sr/[id]/general',
+      '/sr/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
       | never
     >,
     '/traffic-rule/new': RouteRecordInfo<
@@ -651,10 +665,10 @@ declare module 'vue-router/auto-routes' {
         | '/pool/[id]/dashboard'
         | '/pool/[id]/hosts'
         | '/pool/[id]/networks'
-        | '/pool/[id]/security'
         | '/pool/[id]/storage'
         | '/pool/[id]/system'
         | '/pool/[id]/tasks'
+        | '/pool/[id]/traffic-rules'
         | '/pool/[id]/vms'
       views:
         | 'default'
@@ -677,12 +691,6 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/pool/[id]/security.vue': {
-      routes:
-        | '/pool/[id]/security'
-      views:
-        | never
-    }
     'src/pages/pool/[id]/storage.vue': {
       routes:
         | '/pool/[id]/storage'
@@ -701,6 +709,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/pool/[id]/traffic-rules.vue': {
+      routes:
+        | '/pool/[id]/traffic-rules'
+      views:
+        | never
+    }
     'src/pages/pool/[id]/vms.vue': {
       routes:
         | '/pool/[id]/vms'
@@ -716,6 +730,19 @@ declare module 'vue-router/auto-routes' {
     'src/pages/settings.vue': {
       routes:
         | '/settings'
+      views:
+        | never
+    }
+    'src/pages/sr/[id].vue': {
+      routes:
+        | '/sr/[id]'
+        | '/sr/[id]/general'
+      views:
+        | 'default'
+    }
+    'src/pages/sr/[id]/general.vue': {
+      routes:
+        | '/sr/[id]/general'
       views:
         | never
     }

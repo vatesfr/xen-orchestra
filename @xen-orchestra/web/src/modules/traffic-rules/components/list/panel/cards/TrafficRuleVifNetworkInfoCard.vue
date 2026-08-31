@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="traffic-rule-vif-network-info-card">
     <UiCardTitle>{{ t('vif-network-info') }}</UiCardTitle>
     <div class="content">
       <template v-if="ipAddresses.length">
@@ -34,7 +34,7 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script setup lang="ts">
@@ -43,8 +43,8 @@ import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-colle
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -63,17 +63,15 @@ const ipAddresses = computed(() => {
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.traffic-rule-vif-network-info-card {
   .content {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-  }
-}
 
-.value:empty::before {
-  content: '-';
+    .value:empty::before {
+      content: '-';
+    }
+  }
 }
 </style>

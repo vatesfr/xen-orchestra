@@ -15,8 +15,8 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
-import type { LinkOptions } from '@core/composables/link-component.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import type { LinkOptions } from '@core/composables/link-component.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
 
 export type VtsLinkCellProps = LinkOptions & {

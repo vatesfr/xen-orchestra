@@ -13,7 +13,7 @@
     "url": "https://vates.fr"
   },
   "license": "ISC",
-  "version": "3.5.0",
+  "version": "3.5.1",
   "engines": {
     "node": ">=14.0"
   },
@@ -21,11 +21,11 @@
   "dependencies": {
     "@vates/async-each": "^1.0.3",
     "@vates/read-chunk": "^1.2.1",
-    "@xen-orchestra/async-map": "^0.1.3",
+    "@xen-orchestra/async-map": "^0.1.4",
     "@xen-orchestra/disk-transform": "^1.3.3",
     "@xen-orchestra/log": "^0.7.2",
     "promise-toolbox": "^0.21.0",
-    "xen-api": "^4.8.0"
+    "xen-api": "^4.9.0"
   },
   "devDependencies": {
     "tap": "^18.7.0",
@@ -33,6 +33,7 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test-integration": "tap --allow-incomplete-coverage"
+    "test": "node --experimental-test-module-mocks --test",
+    "test-integration": "tap --allow-incomplete-coverage tests/*.integ.mjs"
   }
 }

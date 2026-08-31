@@ -1,4 +1,4 @@
-import type { EmptyObject } from '@core/types/utility.type'
+import type { EmptyObject } from '@core/types/utility.type.ts'
 import type { WritableComputedRef } from 'vue'
 
 export type Options = {

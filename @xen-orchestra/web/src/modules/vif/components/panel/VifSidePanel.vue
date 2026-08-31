@@ -1,5 +1,5 @@
 <template>
-  <VtsSidePanel :has-selection="!!vif" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!vif" class="vif-side-panel" @close="emit('close')">
     <template v-if="vif" #actions>
       <VifConnectionToggleButton :vif :vm />
     </template>
@@ -8,7 +8,7 @@
     </template>
     <template v-if="vif" #default>
       <!-- VIF -->
-      <UiCard class="card">
+      <UiPanelCard>
         <VtsCardObjectTitle :id="vif.id" :to="vifTo" :label="t('vif')" icon="object:vif" />
         <div class="content">
           <!-- NETWORK -->
@@ -86,9 +86,9 @@
             </template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
+      </UiPanelCard>
       <!-- NETWORK INFORMATION -->
-      <UiCard class="card">
+      <UiPanelCard>
         <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
         <div class="content">
           <!-- IP ADDRESSES -->
@@ -125,7 +125,7 @@
             </template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
+      </UiPanelCard>
     </template>
   </VtsSidePanel>
 </template>
@@ -144,9 +144,9 @@ import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMe
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
@@ -188,9 +188,7 @@ const status = computed(() => (vif?.attached ? CONNECTION_STATUS.CONNECTED : CON
 </script>
 
 <style scoped lang="postcss">
-.card {
-  gap: 1.6rem;
-
+.vif-side-panel {
   .content {
     display: flex;
     flex-direction: column;

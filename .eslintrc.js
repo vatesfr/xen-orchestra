@@ -85,6 +85,21 @@ module.exports = {
         XO_LITE_GIT_HEAD: true,
       },
       rules: {
+        'import/extensions': [
+          'error',
+          'ignorePackages',
+          {
+            pattern: { ts: 'always', vue: 'always' },
+            checkTypeImports: true,
+            // '@core/*' and '@/*' look like scoped packages to the plugin, which 'ignorePackages' would skip
+            pathGroupOverrides: [
+              { pattern: '@core/packages/*', action: 'ignore' }, // barrel files
+              { pattern: '@core/icons', action: 'ignore' },
+              { pattern: '@core/**', action: 'enforce' },
+              { pattern: '@/**', action: 'enforce' },
+            ],
+          },
+        ],
         'import/order': [
           'error',
           {
@@ -254,6 +269,7 @@ module.exports = {
               'zh-Hans',
               'sk',
               'pt',
+              'ar',
             ],
           },
         ],

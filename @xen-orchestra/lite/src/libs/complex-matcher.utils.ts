@@ -1,5 +1,5 @@
-import { escapeRegExp } from '@/libs/utils'
-import type { FilterComparisonType } from '@/types/filter'
+import { escapeRegExp } from '@/libs/utils.ts'
+import type { FilterComparisonType } from '@/types/filter.ts'
 import type { ComparisonOperator, Node } from 'complex-matcher'
 import * as CM from 'complex-matcher'
 

@@ -20,7 +20,7 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
 
 defineProps<{

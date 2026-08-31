@@ -80,14 +80,14 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
 
     const sizeContainer = watchStreamSize(stream)
 
-    const timestamp = Date.now()
+    const transferStart = Date.now()
     await this._callWriters(
       writer =>
         writer.run({
           maxStreamLength,
           sizeContainer,
           stream: forkStreamUnpipe(stream),
-          timestamp,
+          timestamp: this.timestamp,
           vm,
           vmSnapshot: exportedVm,
         }),
@@ -95,8 +95,7 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
     )
 
     const { size } = sizeContainer
-    const end = Date.now()
-    const duration = end - timestamp
+    const duration = Date.now() - transferStart
     debug('transfer complete', {
       duration,
       speed: duration !== 0 ? (size * 1e3) / 1024 / 1024 / duration : 0,

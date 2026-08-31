@@ -88,6 +88,35 @@
   }
   ```
 
+## Imports of TypeScript files MUST include the `.ts` extension
+
+Enforced by the `import/extensions` ESLint rule.
+
+❌ Bad
+
+```ts
+import { toVariants } from '@core/utils/to-variants.util'
+import { useUiStore } from '@core/stores/ui.store'
+```
+
+✅ Good
+
+```ts
+import { toVariants } from '@core/utils/to-variants.util.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
+```
+
+Barrel files are the exception — the import points to a directory, which resolves to its `index.ts`.
+The rule only exempts the existing ones (web-core's packages and icons):
+
+```ts
+import { useJob } from '@core/packages/job'
+import type { IconName } from '@core/icons'
+```
+
+Adding a barrel outside `@core/packages/*` or `@core/icons` requires extending
+`pathGroupOverrides` in `.eslintrc.js`.
+
 ## Use "_early return_" pattern when possible
 
 When possible, use "_early return_" pattern to improve readability and avoid unnecessary code nesting.

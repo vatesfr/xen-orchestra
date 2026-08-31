@@ -1,8 +1,8 @@
 <template>
-  <VtsSidePanel :has-selection="!!server" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!server" class="pool-side-panel" @close="emit('close')">
     <template v-if="server" #actions>
       <PoolConnectionToggleButton :server-id="server.id" />
-      <MenuList v-if="server.poolId !== undefined" placement="bottom-end">
+      <MenuList placement="bottom-end">
         <template #trigger="{ open }">
           <UiButtonIcon
             v-tooltip="{ placement: 'left', content: t('more-actions') }"
@@ -12,13 +12,14 @@
             @click="open($event)"
           />
         </template>
-        <PoolDownloadButton :pool-id="server.poolId" />
+        <PoolDownloadButton v-if="server.poolId !== undefined" :pool-id="server.poolId" />
+        <PoolForgetButton :server />
       </MenuList>
     </template>
     <template v-if="server">
       <VtsStateHero v-if="!arePoolsReady" format="panel" type="busy" size="medium" />
       <template v-else>
-        <UiCard v-if="server.error === undefined" class="card-container">
+        <UiPanelCard v-if="server.error === undefined">
           <VtsCardObjectTitle :id="server.id" :label="server.label" icon="object:pool" />
           <div class="content">
             <!-- Pool -->
@@ -59,14 +60,14 @@
               </template>
             </VtsCardRowKeyValue>
           </div>
-        </UiCard>
+        </UiPanelCard>
         <UiAlert v-else accent="danger">
           {{ t('connection-failed') }}
           <template #description>
             {{ t('unable-to-connect-to-the-pool') }}
           </template>
         </UiAlert>
-        <UiCard class="card-container">
+        <UiPanelCard>
           <UiCardTitle>
             {{ t('connection') }}
           </UiCardTitle>
@@ -137,8 +138,8 @@
               <VtsStatus :status="server.allowUnauthorized" />
             </template>
           </VtsCardRowKeyValue>
-        </UiCard>
-        <UiCard v-if="hosts !== undefined">
+        </UiPanelCard>
+        <UiPanelCard v-if="hosts !== undefined">
           <UiCardTitle>
             <span>
               {{ t('hosts') }}
@@ -160,14 +161,14 @@
               <VtsIcon v-if="primaryHost?.id === host.id" accent="info" name="status:primary-circle" size="medium" />
             </UiLink>
           </template>
-        </UiCard>
-        <UiCard v-if="server.error">
+        </UiPanelCard>
+        <UiPanelCard v-if="server.error">
           <UiCardTitle>
             {{ t('error') }}
             <UiCounter :value="1" accent="danger" size="small" variant="primary" />
           </UiCardTitle>
           <UiLogEntryViewer accent="danger" :label="t('api-error-details')" size="small" :content="server.error" />
-        </UiCard>
+        </UiPanelCard>
       </template>
     </template>
   </VtsSidePanel>
@@ -177,6 +178,7 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import PoolConnectionToggleButton from '@/modules/pool/components/actions/connection/PoolConnectionToggleButton.vue'
 import PoolDownloadButton from '@/modules/pool/components/actions/download/PoolDownloadButton.vue'
+import PoolForgetButton from '@/modules/pool/components/actions/forget/PoolForgetButton.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -190,12 +192,12 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
@@ -232,11 +234,7 @@ const connectionStatus = useMapper(
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-
+.pool-side-panel {
   .content {
     display: flex;
     flex-direction: column;

@@ -153,7 +153,13 @@ CYu1Xn/FVPx1HoRgWc7E8wFhDcA/P3SJtfIQWHB9FzSaBflKGR4t8WCE2eE8+cTB
       nbdServer = await spawnNbdKit(path)
     }
   }
-  assert.rejects(() => client.readBlock(100, CHUNK_SIZE))
+  // reading past the end of the export must reject: a single client so the failure isn't
+  // multiplied by nbdConcurrency evicting and retrying on every other (equally healthy, equally
+  // unable to satisfy this out-of-range request) client
+  const singleClient = new MultiNbdClient(connectionSettings, { nbdConcurrency: 1, readAhead: 2 })
+  await singleClient.connect()
+  await assert.rejects(() => singleClient.readBlock(100, CHUNK_SIZE))
+  await singleClient.disconnect()
 
   await client.disconnect()
   // double disconnection shouldn't pose any problem

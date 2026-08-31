@@ -288,11 +288,6 @@ For instance, if an hourly incremental replication is configured on a VM, if the
 In order to use this functionality, the CPU of the host the VM is restored on should be the same or more recent than the CPU of the host the VM was originally running on.
 :::
 
-### Future of RAM enabled backup
-
-- Better analysis of compatible CPUs to avoid manual compatibility checks
-- RAM snapshot using Xen copy-on-write memory capabilities (time to snapshot reduced to almost 0)
-
 ## Consistent backup
 
 :::warning

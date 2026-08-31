@@ -10,8 +10,8 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useSrStore } from '@/stores/xen-api/sr.store'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

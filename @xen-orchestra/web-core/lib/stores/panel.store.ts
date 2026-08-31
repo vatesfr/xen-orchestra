@@ -1,4 +1,4 @@
-import { useUiStore } from '@core/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { useLocalStorage } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { computed, watch } from 'vue'

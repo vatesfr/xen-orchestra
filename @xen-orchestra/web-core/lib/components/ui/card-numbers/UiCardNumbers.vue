@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { toVariants } from '@core/utils/to-variants.util'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -10,6 +10,17 @@ import { VM_POWER_STATE } from '@vates/types'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+export type GuestToolsDisplay =
+  | {
+      type: 'missing' | 'outdated' | 'up-to-date' | 'unknown'
+      icon: IconName
+      value: string
+      tooltip: string
+    }
+  | {
+      type: 'not-applicable'
+      value: '-'
+    }
 export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const { t, locale } = useI18n()
 
@@ -48,24 +59,46 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     return vm.managementAgentDetected && vm.pvDriversDetected
   }
 
-  const guestToolsDisplay = computed(() => {
+  const guestToolsDisplay = computed<GuestToolsDisplay>(() => {
     if (vm.value.power_state !== VM_POWER_STATE.RUNNING) {
-      return { type: 'text', value: '-' }
+      return { type: 'not-applicable', value: '-' } as const
     }
 
     if (!hasGuestTools(vm.value)) {
       return {
-        type: 'link',
+        type: 'missing',
+        icon: 'status:halted-circle',
         value: t('action:install-guest-tools'),
         tooltip: !vm.value.managementAgentDetected ? t('management-agent-not-detected') : t('no-xen-tools-detected'),
-      }
+      } as const
+    }
+
+    const value = vm.value.pvDriversVersion || t('installed')
+
+    if (vm.value.pvDriversUpToDate === false) {
+      return {
+        type: 'outdated',
+        icon: 'status:warning-circle',
+        value,
+        tooltip: t('guest-tools-out-of-date'),
+      } as const
+    }
+
+    if (vm.value.pvDriversUpToDate === undefined) {
+      return {
+        type: 'unknown',
+        icon: 'status:info-circle',
+        value,
+        tooltip: t('guest-tools-status-unknown'),
+      } as const
     }
 
     return {
-      type: 'text',
-      value: vm.value.pvDriversVersion || t('installed'),
+      type: 'up-to-date',
+      icon: 'status:success-circle',
+      value,
       tooltip: t('installed'),
-    }
+    } as const
   })
 
   const isChangingState = computed(() => isVmOperationPending(vm.value, CHANGING_STATE_OPERATIONS))
@@ -81,14 +114,15 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       resume: t('operation:resume'),
       clean_reboot: t('operation:clean-reboot'),
       hard_reboot: t('operation:force-reboot'),
+      shutdown: t('operation:shutdown'),
       clean_shutdown: t('operation:clean-shutdown'),
       hard_shutdown: t('operation:force-shutdown'),
       destroy: t('operation:destroy'),
       snapshot: t('operation:snapshot'),
       clone: t('operation:duplicate'),
       copy: t('operation:duplicate'),
-      export: t('operation:duplicate'),
-      import: t('operation:duplicate'),
+      export: t('operation:export'),
+      import: t('operation:import'),
       unknown: '',
     },
     'unknown'

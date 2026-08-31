@@ -8,7 +8,7 @@
 
 <script lang="ts" setup>
 import InfraHostItem from '@/components/infra/InfraHostItem.vue'
-import { useHostStore } from '@/stores/xen-api/host.store'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import VtsTreeItemError from '@core/components/tree/VtsTreeItemError.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
 import { useI18n } from 'vue-i18n'

@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiPool } from '@/libs/xen-api/xen-api.types'
+import type { XenApiPool } from '@/libs/xen-api/xen-api.types.ts'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'

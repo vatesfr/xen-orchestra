@@ -10,7 +10,7 @@
 <script lang="ts" setup>
 import StoryMenu from '@/components/component-story/StoryMenu.vue'
 import InfraPoolList from '@/components/infra/InfraPoolList.vue'
-import { useNavigationStore } from '@/stores/navigation.store'
+import { useNavigationStore } from '@/stores/navigation.store.ts'
 import { onClickOutside, tryOnMounted, useTimeoutFn, watchImmediate } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { ref, watch } from 'vue'

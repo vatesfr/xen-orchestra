@@ -1,10 +1,10 @@
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { safePushInMap } from '@/shared/utils/map.util'
+import { safePushInMap } from '@/shared/utils/map.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { VM_POWER_STATE, type XoVm } from '@vates/types'
@@ -54,6 +54,7 @@ const vmFields = [
   'startTime',
   'installTime',
   'pvDriversDetected',
+  'pvDriversUpToDate',
   'managementAgentDetected',
   'type',
   '$VBDs',

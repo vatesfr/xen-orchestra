@@ -1,5 +1,5 @@
-import type { TooltipDirectiveContent } from '@core/directives/tooltip.directive'
-import { uniqueId } from '@core/utils/unique-id.util'
+import type { TooltipDirectiveContent } from '@core/directives/tooltip.directive.ts'
+import { uniqueId } from '@core/utils/unique-id.util.ts'
 import { useEventListener, type WindowEventName } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import type { Options } from 'placement.js'

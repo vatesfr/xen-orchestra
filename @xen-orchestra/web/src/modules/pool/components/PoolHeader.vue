@@ -28,9 +28,9 @@
         {{ t('network') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/security', params: { id: pool.id } }" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/traffic-rules', params: { id: pool.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
-        {{ t('security') }}
+        {{ t('traffic-rules') }}
       </TabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/storage', params: { id: pool.id } }" custom>

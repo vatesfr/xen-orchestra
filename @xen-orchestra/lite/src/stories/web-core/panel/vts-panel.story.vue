@@ -41,9 +41,9 @@
       </template>
       <template #default>
         <VtsStateHero v-if="settings.showHero" format="card" :type="settings.heroType" size="medium" />
-        <UiCard v-else>
+        <UiPanelCard v-else>
           <div>Card Content</div>
-        </UiCard>
+        </UiPanelCard>
       </template>
     </VtsPanel>
   </ComponentStory>
@@ -51,13 +51,13 @@
 
 <script setup lang="ts">
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { event, iconProp, prop, setting, slot } from '@/libs/story/story-param'
-import { boolean, choice, text } from '@/libs/story/story-widget'
+import { event, iconProp, prop, setting, slot } from '@/libs/story/story-param.ts'
+import { boolean, choice, text } from '@/libs/story/story-widget.ts'
 import VtsPanel from '@core/components/panel/VtsPanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { STATE_HERO_TYPES } from '@core/types/state-hero.type.ts'
 </script>
 

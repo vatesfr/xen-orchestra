@@ -22,6 +22,6 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop } from '@/libs/story/story-param'
+import { iconProp, prop } from '@/libs/story/story-param.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 </script>

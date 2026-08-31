@@ -1,6 +1,6 @@
-import { defineColumn } from '@core/packages/table/define-column'
-import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
-import { renderHeadCell } from '@core/tables/helpers/render-head-cell'
+import { defineColumn } from '@core/packages/table/define-column.ts'
+import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
+import { renderHeadCell } from '@core/tables/helpers/render-head-cell.ts'
 import type { HeaderConfig } from '@core/tables/types.ts'
 
 export const useLiteralColumn = defineColumn((config?: HeaderConfig) => ({

@@ -1,5 +1,5 @@
-import { TreeNodeDefinitionBase } from '@core/packages/tree/tree-node-definition-base'
-import type { TreeNodeDefinition, TreeNodeOptions } from '@core/packages/tree/types'
+import { TreeNodeDefinitionBase } from '@core/packages/tree/tree-node-definition-base.ts'
+import type { TreeNodeDefinition, TreeNodeOptions } from '@core/packages/tree/types.ts'
 
 export class BranchDefinition<
   TData extends object = any,

@@ -6,8 +6,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useDisabled } from '@core/composables/disabled.composable'
-import { useUiStore } from '@core/stores/ui.store'
+import { useDisabled } from '@core/composables/disabled.composable.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 
 const props = withDefaults(

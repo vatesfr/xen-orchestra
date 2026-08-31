@@ -17,7 +17,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { slot, setting } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import { slot, setting } from '@/libs/story/story-param.ts'
+import { text } from '@/libs/story/story-widget.ts'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
 </script>

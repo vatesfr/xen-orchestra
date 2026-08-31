@@ -93,6 +93,10 @@ export const locales: Locales = {
     code: 'pt',
     name: 'Português',
   },
+  ar: {
+    code: 'ar',
+    name: 'العربية',
+  },
 }
 
 export default createI18n({

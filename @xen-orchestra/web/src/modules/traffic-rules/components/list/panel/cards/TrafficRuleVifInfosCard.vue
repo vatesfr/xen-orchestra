@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="traffic-rule-vif-infos-card">
     <UiCardTitle>{{ t('vif') }}</UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
@@ -116,7 +116,7 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script setup lang="ts">
@@ -130,9 +130,9 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { objectIcon } from '@core/icons'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import type { TrafficRule } from '@vates/types'
@@ -178,9 +178,7 @@ const vifDevice = computed(() => `${t('vif')}${vif.device}`)
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.traffic-rule-vif-infos-card {
   .content {
     display: flex;
     flex-direction: column;

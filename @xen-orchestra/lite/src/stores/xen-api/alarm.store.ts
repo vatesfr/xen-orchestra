@@ -1,6 +1,6 @@
-import { messageToAlarm } from '@/libs/alarm'
-import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
-import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
+import { messageToAlarm } from '@/libs/alarm.ts'
+import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config.ts'
+import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util.ts'
 import { defineStore } from 'pinia'
 
 export const useAlarmStore = defineStore('xen-api-alarm', () => {

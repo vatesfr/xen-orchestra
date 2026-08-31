@@ -24,7 +24,7 @@
 
 <script lang="ts" setup>
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useClipboard } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 

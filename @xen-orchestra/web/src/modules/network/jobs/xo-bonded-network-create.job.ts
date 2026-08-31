@@ -1,6 +1,6 @@
 import type { BaseNetworkPayload } from '@/modules/network/form/use-network-form-base.ts'
-import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable'
-import { fetchPost } from '@/shared/utils/fetch.util'
+import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
 import type { BOND_MODE, XoNetwork, XoPif, XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'

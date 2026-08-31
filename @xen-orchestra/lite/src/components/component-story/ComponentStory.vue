@@ -87,7 +87,7 @@ import {
   isSlotParam,
   ModelParam,
   type Param,
-} from '@/libs/story/story-param'
+} from '@/libs/story/story-param.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
