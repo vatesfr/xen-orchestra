@@ -5,12 +5,6 @@ import { type IconName, objectIcon } from '@core/icons'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import type { RouteLocationAsRelative } from 'vue-router'
 
-const NETWORK_STATE_BY_STATUS = {
-  [CONNECTION_STATUS.CONNECTED]: 'connected',
-  [CONNECTION_STATUS.PARTIALLY_CONNECTED]: 'warning',
-  [CONNECTION_STATUS.DISCONNECTED]: 'disconnected',
-} as const
-
 export const NETWORK_TYPE = {
   BONDED: 'bonded',
   INTERNAL: 'internal',
@@ -53,7 +47,7 @@ export function getNetworkStatus(pifs: FrontXoPif[]) {
 }
 
 export function getNetworkIcon(pifs: FrontXoPif[]): IconName {
-  return objectIcon('network', NETWORK_STATE_BY_STATUS[getNetworkStatus(pifs)])
+  return objectIcon('network', getNetworkStatus(pifs))
 }
 
 export function getNetworkType(network: FrontXoNetwork): NetworkType {
