@@ -4,6 +4,7 @@
 - [Host] Add possibility to reboot a host (PR [#10250](https://github.com/vatesfr/xen-orchestra/pull/10250))
 - [Web-Core/TabItem] Update the component to remove uppercase for better readability (PR [#10338](https://github.com/vatesfr/xen-orchestra/pull/10338))
 - [Host] Add possibility to force reboot a host (PR [#10311](https://github.com/vatesfr/xen-orchestra/pull/10311))
+- [Host] Add possibility to shut down and start a host (PR [#10314](https://github.com/vatesfr/xen-orchestra/pull/10314))
 
 ## **0.25.0** (2026-08-31)
 
