@@ -71,22 +71,22 @@ const { t } = useI18n()
 const textMappingsByObject: TextMappingByObject = {
   vm: {
     'force-reboot': {
-      title: t('modal:confirm-vm-force-reboot', { vm: vmName }),
+      title: t('modal:confirm-vm-force-reboot?', { vm: vmName }),
       message: t('modal:vm-force-reboot-message'),
       action: t('modal:action:vm-force-reboot'),
     },
     'force-shutdown': {
-      title: t('modal:confirm-vm-force-shutdown', { vm: vmName }),
+      title: t('modal:confirm-vm-force-shutdown?', { vm: vmName }),
       message: t('modal:vm-force-shutdown-message'),
       action: t('modal:action:vm-force-shutdown'),
     },
     reboot: {
-      title: t('modal:confirm-vm-reboot', { vm: vmName }),
+      title: t('modal:confirm-vm-reboot?', { vm: vmName }),
       message: t('modal:vm-reboot-message'),
       action: t('modal:action:vm-reboot'),
     },
     shutdown: {
-      title: t('modal:confirm-vm-shutdown', { vm: vmName }),
+      title: t('modal:confirm-vm-shutdown?', { vm: vmName }),
       message: t('modal:vm-shutdown-message'),
       action: t('modal:action:vm-shutdown'),
     },

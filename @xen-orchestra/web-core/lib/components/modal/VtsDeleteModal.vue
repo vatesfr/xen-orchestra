@@ -36,9 +36,3 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 </script>
-
-<style lang="postcss" scoped>
-.n-delete {
-  color: var(--color-warning-item-base);
-}
-</style>
