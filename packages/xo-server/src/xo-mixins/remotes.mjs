@@ -222,6 +222,7 @@ export default class {
     return ids.includes(remoteId)
   }
 
+  // The caller of this function have to create a parent Task
   async reclaimSpace(remoteId, { vmUuid, merge = true, remove = true } = {}) {
     if (await this.#isReferencedByRunningJob(remoteId)) {
       throw incorrectState({ actual: 'running', expected: 'idle', object: 'backup job referencing this remote' })
