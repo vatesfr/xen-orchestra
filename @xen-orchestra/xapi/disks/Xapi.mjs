@@ -98,7 +98,8 @@ export class XapiDiskSource extends DiskPassthrough {
     let source
     let streamSource
     try {
-      streamSource = await this.#openExportStream()
+      // we will only use the stream for bloc list
+      streamSource = await this.#openExportStream({ onlyListChangedBlocks: true })
       if (streamSource === undefined) {
         throw new Error(`Can't open stream source`)
       }
@@ -163,7 +164,7 @@ export class XapiDiskSource extends DiskPassthrough {
    *
    * @returns {Promise<Disk>}
    */
-  async #openExportStream() {
+  async #openExportStream({ onlyListChangedBlocks = this.#onlyListChangedBlocks } = {}) {
     const xapi = this.#xapi
     const baseRef = this.#baseRef
     const vdiRef = this.#vdiRef
@@ -180,7 +181,7 @@ export class XapiDiskSource extends DiskPassthrough {
       }
       await source.init()
       if (source.getBlockSize() < this.#blockSize) {
-        if (!this.#onlyListChangedBlocks && baseRef !== undefined) {
+        if (!onlyListChangedBlocks && baseRef !== undefined) {
           // enlarging blocks needs to fill gaps from the parent chain (see DiskLargerBlock's
           // isDifferencing branch), but XapiQcow2StreamSource doesn't implement instantiateParent()
           // yet: safe when onlyListChangedBlocks (readBlock() is never called, only used for
