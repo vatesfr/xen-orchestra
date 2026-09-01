@@ -4,9 +4,6 @@
       {{ t('networks') }}
       <template #action>
         <slot name="title-actions" />
-        <UiDropdownButton v-tooltip="t('coming-soon!')" size="medium" disabled>
-          {{ t('new') }}
-        </UiDropdownButton>
       </template>
     </UiTitle>
     <div class="container">
