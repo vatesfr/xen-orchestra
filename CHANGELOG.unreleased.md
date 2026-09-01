@@ -51,7 +51,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
-- xo-server patch
+- xo-server minor
 - xo-server-load-balancer patch
 
 <!--packages-end-->
