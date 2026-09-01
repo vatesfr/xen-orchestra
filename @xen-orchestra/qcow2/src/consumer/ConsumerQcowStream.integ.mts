@@ -83,7 +83,7 @@ describe('QCOW2 Stream Generation', () => {
 
       try {
         // Generate and write the QCOW2 file
-        const stream = await toQcow2Stream(disk)
+        const stream = toQcow2Stream(disk)
         const file = await fs.open(tmpFile, 'w')
         await new Promise((resolve, reject) => {
           const writeStream = file.createWriteStream()
@@ -127,7 +127,7 @@ describe('QCOW2 Stream Generation', () => {
 
     try {
       // Generate and write the QCOW2 file
-      const stream = await toQcow2Stream(disk)
+      const stream = toQcow2Stream(disk)
       const file = await fs.open(tmpFile, 'w')
       await new Promise((resolve, reject) => {
         const writeStream = file.createWriteStream()
@@ -168,7 +168,7 @@ describe('QCOW2 Stream Generation', () => {
     )
     const tmpFile = join(tmpdir(), `test-large-${Date.now()}.qcow2`)
     try {
-      const stream = await toQcow2Stream(disk)
+      const stream = toQcow2Stream(disk)
       const file = await fs.open(tmpFile, 'w')
       await new Promise((resolve, reject) => {
         const writeStream = file.createWriteStream()
@@ -200,7 +200,7 @@ describe('QCOW2 Stream Generation', () => {
     const controller = new AbortController()
     controller.abort()
 
-    const stream = await toQcow2Stream(disk, { signal: controller.signal })
+    const stream = toQcow2Stream(disk, { signal: controller.signal })
     await assert.rejects(
       async () => {
         for await (const _chunk of stream) {
@@ -223,7 +223,7 @@ describe('QCOW2 Stream Generation', () => {
     )
     const controller = new AbortController()
 
-    const stream = await toQcow2Stream(disk, { signal: controller.signal })
+    const stream = toQcow2Stream(disk, { signal: controller.signal })
     let chunksReceived = 0
 
     await assert.rejects(
@@ -255,7 +255,7 @@ describe('QCOW2 Stream Generation', () => {
     )
     const tmpFile = join(tmpdir(), `test-unaligned-${Date.now()}.qcow2`)
     try {
-      const stream = await toQcow2Stream(disk)
+      const stream = toQcow2Stream(disk)
       const file = await fs.open(tmpFile, 'w')
       await new Promise((resolve, reject) => {
         const writeStream = file.createWriteStream()
