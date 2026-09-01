@@ -111,7 +111,7 @@ export class XapiDiskSource extends DiskPassthrough {
       await source.init()
       this.#useNbd = true
 
-      return await this.#formatSourceDisk(source, 'NBT')
+      return await this.#formatSourceDisk(source, 'NBD')
     } catch (err) {
       // init probaby failed, so nothing to close , but better safe than sorry
       await source?.close().catch(warn)
@@ -263,7 +263,7 @@ export class XapiDiskSource extends DiskPassthrough {
       await source.init()
       this.#useNbd = true
       this.#useCbt = true
-      return await this.#formatSourceDisk(source, 'NBT+CBT')
+      return await this.#formatSourceDisk(source, 'NBD+CBT')
     } catch (error) {
       if (/** @type {NodeJS.ErrnoException} */ (error).code !== 'CBT_DISABLED') {
         info('Error in openNbdCBT', error)
