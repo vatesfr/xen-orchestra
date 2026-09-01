@@ -22,7 +22,7 @@
   "dependencies": {
     "@vates/async-each": "^1.0.3",
     "@vates/read-chunk": "^1.2.1",
-    "@xen-orchestra/backups": "^0.74.1",
+    "@xen-orchestra/backups": "^0.74.2",
     "@xen-orchestra/fs": "^4.9.3",
     "@xen-orchestra/log": "^0.7.2",
     "@xen-orchestra/vmware-explorer": "^0.15.0",
