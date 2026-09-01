@@ -16,6 +16,7 @@ import ms from 'ms'
 import once from 'lodash/once.js'
 import proxyAddr from 'proxy-addr'
 import proxyConsole from './proxy-console.mjs'
+import { getProxyTargetUrl } from './_getProxyTargetUrl.mjs'
 import pw from 'pw'
 import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
@@ -685,36 +686,6 @@ const setUpProxies = (express, opts, xo) => {
       })
     })
 
-  /**
-   *
-   * @param {string} url
-   * @param {'ws:' | 'http:'} protocol
-   * @returns {URL} targetUrl
-   */
-  function getTargetUrl(url, protocol) {
-    let target = url
-
-    if (target.includes('[port]')) {
-      target = target.replace(/\[port\]/g, userHttpConfig.port)
-    }
-    let dynamicProtocol = false
-    if (target.includes('[protocol]')) {
-      dynamicProtocol = true
-      target = target.replace(/\[protocol\]/g, protocol)
-    }
-
-    const targetUrl = new URL(target)
-    if (dynamicProtocol && isSecure) {
-      targetUrl.protocol = targetUrl.protocol === 'ws:' ? 'wss:' : 'https:'
-    }
-
-    if (userHttpConfig.hostname !== undefined && targetUrl.hostname === 'localhost') {
-      targetUrl.hostname = userHttpConfig.hostname
-    }
-
-    return targetUrl
-  }
-
   // TODO: sort proxies by descending prefix length.
 
   // HTTP request proxy.
@@ -723,11 +694,11 @@ const setUpProxies = (express, opts, xo) => {
 
     for (const prefix in opts) {
       if (url.startsWith(prefix)) {
-        const target = getTargetUrl(opts[prefix], 'http:')
+        const { targetUrl, isLocal } = getProxyTargetUrl(opts[prefix], 'http:', userHttpConfig)
 
         proxy.web(req, res, {
-          agent: target.hostname === 'localhost' ? undefined : xo.httpAgent,
-          target: target.href + url.slice(prefix.length),
+          agent: isLocal ? undefined : xo.httpAgent,
+          target: targetUrl.href + url.slice(prefix.length),
         })
 
         return
@@ -748,11 +719,11 @@ const setUpProxies = (express, opts, xo) => {
 
     for (const prefix in opts) {
       if (url.startsWith(prefix)) {
-        const target = getTargetUrl(opts[prefix], 'ws:')
+        const { targetUrl, isLocal } = getProxyTargetUrl(opts[prefix], 'ws:', userHttpConfig)
 
         proxy.ws(req, socket, head, {
-          agent: new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
-          target: target.href + url.slice(prefix.length),
+          agent: isLocal ? undefined : xo.httpAgent,
+          target: targetUrl.href + url.slice(prefix.length),
         })
 
         return
