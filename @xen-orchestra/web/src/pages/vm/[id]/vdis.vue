@@ -5,7 +5,9 @@
         <template #title-actions>
           <MenuList placement="bottom-end">
             <template #trigger="{ open }">
-              <UiDropdownButton icon="action:add" @click="open($event)">{{ t('action:add') }}</UiDropdownButton>
+              <UiDropdownButton size="medium" icon="action:add" @click="open($event)">
+                {{ t('action:add') }}
+              </UiDropdownButton>
             </template>
             <MenuItem>
               <UiLink

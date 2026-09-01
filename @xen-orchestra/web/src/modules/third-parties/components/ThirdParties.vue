@@ -1,7 +1,7 @@
 <template>
   <MenuList placement="bottom-end">
     <template #trigger="{ open }">
-      <UiDropdownButton @click="open($event)">{{ t('third-parties') }}</UiDropdownButton>
+      <UiDropdownButton size="small" @click="open($event)">{{ t('third-parties') }}</UiDropdownButton>
     </template>
     <VtsDropdownTitle>
       <EasyVirtLogo class="logo" />{{ t('provider-solutions', { provider: 'EasyVirt' }) }}
