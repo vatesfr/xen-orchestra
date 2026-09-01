@@ -15,7 +15,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [Backups] Fix slow replication startup and fallback to full on qcow2 (PR [#10201](https://github.com/vatesfr/xen-orchestra/pull/10201))
+- [Backups] Fix slow replication startup and fallback to full on qcow2 (PR [#10319](https://github.com/vatesfr/xen-orchestra/pull/10319))
 
 ### Packages to release
 
