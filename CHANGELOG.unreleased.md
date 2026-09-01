@@ -123,6 +123,7 @@
 - xo-server minor
 - xo-server-audit patch
 - xo-server-auth-ldap patch
+- xo-server-load-balancer patch
 - xo-server-netbox patch
 - xo-server-openmetrics patch
 - xo-server-sdn-controller patch
