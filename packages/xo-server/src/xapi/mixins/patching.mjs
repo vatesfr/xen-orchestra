@@ -15,6 +15,7 @@ import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import ensureArray from '../../_ensureArray.mjs'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
+import { noopRpuRecorder } from '../../_rpuRecovery.mjs'
 import { forEach, mapFilter, parseXml } from '../../utils.mjs'
 
 import { useUpdateSystem } from '../utils.mjs'
@@ -732,7 +733,7 @@ const methods = {
   async rollingPoolUpdate(
     $defer,
     parentTask,
-    { xsCredentials, force = false, rebootVm = force, shutdownPinnedVms = false } = {}
+    { xsCredentials, force = false, rebootVm = force, shutdownPinnedVms = false, recorder = noopRpuRecorder } = {}
   ) {
     if (some(this.objects.indexes.type.SR, { type: 'linstor' })) {
       await this._updateLinstorPackages()
@@ -742,6 +743,8 @@ const methods = {
     const isXcp = _isXcp(master)
     const isXsWithCdnUpdates = _isXsWithCdnUpdates(master)
     const hosts = Object.values(this.objects.indexes.type.host)
+
+    recorder.setVariant(isXcp ? 'xcp' : isXsWithCdnUpdates ? 'xs-cdn' : 'xs-legacy')
 
     let xsHash
 
@@ -793,11 +796,13 @@ const methods = {
         subtask.set('progress', Math.round((done * 100) / hosts.length))
       })
     })
+    recorder.setPatchInventory(hasMissingPatchesByHost)
 
     await Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
       await this.rollingPoolReboot(parentTask, {
         xsCredentials,
         shutdownPinnedVms,
+        recorder,
         beforeEvacuateVms: () => {
           // On XS < 8.4 and CH, start by installing patches on all hosts
           if (!isXcp && !isXsWithCdnUpdates) {
@@ -808,11 +813,17 @@ const methods = {
         },
         beforeRebootHost: host => {
           if (isXcp || isXsWithCdnUpdates) {
+            recorder.stepRunning(host.uuid, 'update')
             return Task.run(
               { properties: { name: `Installing patches`, hostId: host.uuid, hostName: host.name_label } },
               () => this.installPatches({ hosts: [host], xsHash })
-            )
+            ).then(result => {
+              recorder.stepObserved(host.uuid, 'update')
+              return result
+            })
           }
+          // XS legacy: patches were installed pool-wide before the first evacuation
+          recorder.stepNotNeeded(host.uuid, 'update')
         },
         ignoreHost: host => {
           return !hasMissingPatchesByHost[host.uuid]

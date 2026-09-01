@@ -969,6 +969,10 @@ export default class XenServers {
 
     $defer(acquireRpuGuard(poolId, 'rollingPoolUpdate'))
 
+    // strict write before any side effect: if the record cannot be persisted,
+    // an interruption could not be reported, so the run must not start
+    const recorder = await app.startRpuRecoveryRun(poolId, { rebootVm, bypassBackupCheck, shutdownPinnedVms })
+
     const jobsOfthePool = []
     jobs.forEach(({ id: jobId, vms }) => {
       if (vms.id !== undefined) {
@@ -992,6 +996,8 @@ export default class XenServers {
         }
       }
     })
+
+    recorder.markRunning()
 
     // Disable schedules
     await Promise.all(
@@ -1029,13 +1035,22 @@ export default class XenServers {
     }
     const task = parentTask === undefined ? app.tasks.create(properties) : new Task({ properties })
     trace?.attach(task)
-    await task.run(async () =>
-      this.getXapi(pool).rollingPoolUpdate(task, {
-        xsCredentials: app.apiContext.user.preferences.xsCredentials,
-        rebootVm,
-        shutdownPinnedVms,
-      })
-    )
+    recorder.setTaskId(task.id)
+    try {
+      await task.run(async () =>
+        this.getXapi(pool).rollingPoolUpdate(task, {
+          xsCredentials: app.apiContext.user.preferences.xsCredentials,
+          rebootVm,
+          shutdownPinnedVms,
+          recorder,
+        })
+      )
+    } catch (error) {
+      await recorder.fail(error)
+      throw error
+    }
+    // a successful run needs no recovery
+    await recorder.delete()
   }
 }
 
