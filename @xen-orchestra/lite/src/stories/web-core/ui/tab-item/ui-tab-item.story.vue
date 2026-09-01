@@ -11,10 +11,10 @@
     ]"
   >
     <TabList>
-      <TabItem v-bind="properties">
+      <UiTabItem v-bind="properties">
         {{ settings.label }}
         <UiCounter v-if="settings.counter" :value="settings.counter" accent="info" variant="primary" size="small" />
-      </TabItem>
+      </UiTabItem>
     </TabList>
   </ComponentStory>
 </template>
@@ -23,7 +23,7 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting, slot } from '@/libs/story/story-param.ts'
 import { text } from '@/libs/story/story-widget.ts'
-import TabItem from '@core/components/tab/TabItem.vue'
-import TabList from '@core/components/tab/TabList.vue'
+import TabList from '@core/components/tab-list/TabList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 </script>

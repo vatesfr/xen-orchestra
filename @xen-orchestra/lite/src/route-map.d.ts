@@ -492,16 +492,9 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/story/web-core/tab/tab-item': RouteRecordInfo<
-      '/story/web-core/tab/tab-item',
-      '/story/web-core/tab/tab-item',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/story/web-core/tab/tab-list': RouteRecordInfo<
-      '/story/web-core/tab/tab-list',
-      '/story/web-core/tab/tab-list',
+    '/story/web-core/tab-list/tab-list': RouteRecordInfo<
+      '/story/web-core/tab-list/tab-list',
+      '/story/web-core/tab-list/tab-list',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -873,6 +866,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/subtitle/ui-subtitle': RouteRecordInfo<
       '/story/web-core/ui/subtitle/ui-subtitle',
       '/story/web-core/ui/subtitle/ui-subtitle',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/tab-item/ui-tab-item': RouteRecordInfo<
+      '/story/web-core/ui/tab-item/ui-tab-item',
+      '/story/web-core/ui/tab-item/ui-tab-item',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1472,15 +1472,9 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/stories/web-core/tab/tab-item.story.vue': {
+    'src/stories/web-core/tab-list/tab-list.story.vue': {
       routes:
-        | '/story/web-core/tab/tab-item'
-      views:
-        | never
-    }
-    'src/stories/web-core/tab/tab-list.story.vue': {
-      routes:
-        | '/story/web-core/tab/tab-list'
+        | '/story/web-core/tab-list/tab-list'
       views:
         | never
     }
@@ -1799,6 +1793,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/subtitle/ui-subtitle.story.vue': {
       routes:
         | '/story/web-core/ui/subtitle/ui-subtitle'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/tab-item/ui-tab-item.story.vue': {
+      routes:
+        | '/story/web-core/ui/tab-item/ui-tab-item'
       views:
         | never
     }
