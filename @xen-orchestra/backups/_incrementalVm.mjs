@@ -16,42 +16,15 @@ import { toQcow2Stream } from '@xen-orchestra/qcow2'
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
-const orderedMemoryLimits = ['memory_static_min', 'memory_dynamic_min', 'memory_dynamic_max', 'memory_static_max']
-
 // The dynamic memory range MUST respect this inequality at any moment: static_min <= dynamic_min <= dynamic_max <= static_max.
-// We must update these properties in the right order to avoid XAPI error.
-// The order depends on the values. It can be an increase, a decrease or a mix of both, so any order could be required.
+// VM.set_memory_limits sets all four fields atomically, so there is no intermediate state for XAPI to reject
 export async function updateMemoryFields(xapi, targetVm, vmRecord) {
-  const memoryValues = {}
-  for (const key of orderedMemoryLimits) {
-    memoryValues[key] = {
-      currentValue: targetVm[key],
-      newValue: vmRecord[key] ?? targetVm[key],
-    }
-  }
+  const staticMin = vmRecord.memory_static_min ?? targetVm.memory_static_min
+  const staticMax = vmRecord.memory_static_max ?? targetVm.memory_static_max
+  const dynamicMin = vmRecord.memory_dynamic_min ?? targetVm.memory_dynamic_min
+  const dynamicMax = vmRecord.memory_dynamic_max ?? targetVm.memory_dynamic_max
 
-  while (await updateNextMemoryField(xapi, memoryValues, targetVm.$ref)) {
-    /* execute until all memory fields are updated */
-  }
-}
-
-// Update one more memory field if needed, then return a boolean describing if a field was updated or if all fields are up to date
-async function updateNextMemoryField(xapi, memoryValues, vmRef) {
-  for (let i = 0; i < orderedMemoryLimits.length; i++) {
-    const currentField = memoryValues[orderedMemoryLimits[i]]
-    const nextField = i === orderedMemoryLimits.length - 1 ? undefined : memoryValues[orderedMemoryLimits[i + 1]]
-    if (
-      currentField.newValue !== currentField.currentValue &&
-      (nextField === undefined || currentField.newValue <= nextField.currentValue)
-    ) {
-      // no need to check that previousField.currentValue <= currentField.newValue, as we can deduce it
-      await xapi.setField('VM', vmRef, orderedMemoryLimits[i], currentField.newValue)
-      await xapi.barrier()
-      currentField.currentValue = currentField.newValue
-      return true
-    }
-  }
-  return false
+  await xapi.call('VM.set_memory_limits', targetVm.$ref, staticMin, staticMax, dynamicMin, dynamicMax)
 }
 
 export async function exportIncrementalVm(

@@ -1,4 +1,8 @@
-# Installation
+---
+sidebar_label: Installation
+---
+
+# Installing XOA
 
 Deploying Xen Orchestra takes a few minutes: you deploy the **Xen Orchestra Appliance (XOA)**, a pre-built VM with everything configured, directly on one of your hosts. Nothing is installed on the hosts themselves, and nothing changes in your infrastructure: XOA is just another VM.
 

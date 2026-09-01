@@ -1,4 +1,4 @@
-import type { RawObjectType, XenApiMessage } from '@/libs/xen-api/xen-api.types'
+import type { RawObjectType, XenApiMessage } from '@/libs/xen-api/xen-api.types.ts'
 
 export type XenApiAlarmType =
   | 'cpu_usage'

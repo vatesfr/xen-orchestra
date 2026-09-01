@@ -24,15 +24,15 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiSr } from '@/libs/xen-api/xen-api.types'
-import type { Vdi, VmState } from '@/types/new-vm'
+import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
+import type { Vdi, VmState } from '@/types/new-vm.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { useNewVmSrColumns } from '@core/tables/column-sets/new-vm-sr-columns'
-import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
+import { useNewVmSrColumns } from '@core/tables/column-sets/new-vm-sr-columns.ts'
+import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -1,4 +1,4 @@
-# Metadata backup
+# Metadata backups
 
 Every XCP-ng or XenServer pool keeps a database, the XAPI database, describing everything that isn't the data itself: VMs and their settings, storage repositories, networks, and how they all fit together. Xen Orchestra has an equivalent of its own: its configuration, holding users, authorizations and resource sets, backup jobs, and plugin settings.
 

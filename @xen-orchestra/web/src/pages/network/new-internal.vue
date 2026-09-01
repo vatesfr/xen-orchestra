@@ -43,8 +43,8 @@ import {
   useXoInternalNetworkCreateJob,
 } from '@/modules/network/jobs/xo-internal-network-create.job.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
-import { type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection'
-import type { ApiError } from '@/shared/error/api.error'
+import { type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { ApiError } from '@/shared/error/api.error.ts'
 import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
 import VtsOperationPendingCard from '@core/components/operation-pending-card/VtsOperationPendingCard.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'

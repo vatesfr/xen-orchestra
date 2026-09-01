@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/backup-archive",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Helper to handle generic backup archives",
   "license": "ISC",
   "author": "",
@@ -21,7 +21,7 @@
     "tar-stream": "^3.1.8",
     "@types/tar-stream": "^3.1.4",
     "tmp": "^0.2.1",
-    "@vates/types": "^1.30.1"
+    "@vates/types": "^2.0.1"
   },
   "dependencies": {
     "@xen-orchestra/log": "^0.7.1",

@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xen-api",
-  "version": "4.8.0",
+  "version": "4.9.0",
   "license": "ISC",
   "description": "Connector to the Xen API",
   "keywords": [
@@ -53,7 +53,7 @@
     "pw": "0.0.4",
     "undici": "^6.2.1",
     "xo-collection": "^0.6.1",
-    "xo-common": "^0.10.0"
+    "xo-common": "^0.11.0"
   },
   "devDependencies": {
     "getopts": "^2.3.0",

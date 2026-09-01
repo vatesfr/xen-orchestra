@@ -35,9 +35,9 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
-import { useDisabled } from '@core/composables/disabled.composable'
+import { useDisabled } from '@core/composables/disabled.composable.ts'
 import type { IconName } from '@core/icons'
-import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util'
+import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util.ts'
 import { computed, inject, ref } from 'vue'
 
 const props = defineProps<{

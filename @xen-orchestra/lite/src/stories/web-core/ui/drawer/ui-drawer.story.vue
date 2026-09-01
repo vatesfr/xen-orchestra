@@ -26,8 +26,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { event, prop, setting, slot } from '@/libs/story/story-param'
-import { boolean, text } from '@/libs/story/story-widget'
+import { event, prop, setting, slot } from '@/libs/story/story-param.ts'
+import { boolean, text } from '@/libs/story/story-widget.ts'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 </script>

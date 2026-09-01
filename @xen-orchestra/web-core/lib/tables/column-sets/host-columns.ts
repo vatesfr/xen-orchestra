@@ -1,9 +1,9 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useAddressColumn } from '@core/tables/column-definitions/address-column.ts'
-import { useLinkColumn } from '@core/tables/column-definitions/link-column'
-import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column'
+import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
+import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column.ts'
 import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
-import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column'
+import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column.ts'
 import { useI18n } from 'vue-i18n'
 
 export const useHostColumns = defineColumns(() => {

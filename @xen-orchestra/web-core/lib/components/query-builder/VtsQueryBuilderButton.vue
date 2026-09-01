@@ -16,10 +16,10 @@
 <script setup lang="ts">
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
-import type { QueryBuilderGroup } from '@core/packages/query-builder/types'
+import type { QueryBuilderGroup } from '@core/packages/query-builder/types.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

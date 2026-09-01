@@ -42,8 +42,8 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiPool } from '@/libs/xen-api/xen-api.types'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
+import type { XenApiPool } from '@/libs/xen-api/xen-api.types.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'

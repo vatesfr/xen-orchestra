@@ -190,4 +190,4 @@ The search bar at the top covers docs.xen-orchestra.com, docs.xcp-ng.org and doc
 
 ## Two interfaces, one product
 
-Xen Orchestra currently ships two web interfaces on the same server and the same data: **XO 6**, the new default interface, and **XO 5**, which remains available for the operations XO 6 does not cover yet. Read [XO 6 vs. XO 5](xo6/xo6vsxo5.md) to see what lives where.
+Xen Orchestra currently ships two web interfaces on the same server and the same data: **XO 6**, the new default interface, and **XO 5**, which remains available for the operations XO 6 does not cover yet. Read [XO 6 and XO 5](xo6/xo6vsxo5.md) to see what lives where.

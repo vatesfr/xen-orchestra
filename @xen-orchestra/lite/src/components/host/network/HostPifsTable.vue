@@ -2,6 +2,9 @@
   <div class="host-pif-table">
     <UiTitle>
       {{ t('pifs') }}
+      <template #action>
+        <slot name="title-actions" />
+      </template>
     </UiTitle>
     <div class="container">
       <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
@@ -22,24 +25,28 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { usePifStore } from '@/stores/xen-api/pif.store'
+import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
+import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@core/composables/pagination.composable'
-import { useRouteQuery } from '@core/composables/route-query.composable'
-import { useTableState } from '@core/composables/table-state.composable'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
-import { usePifColumns } from '@core/tables/column-sets/pif-columns'
+import { usePifColumns } from '@core/tables/column-sets/pif-columns.ts'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pifs } = defineProps<{
   pifs: XenApiPif[]
+}>()
+
+defineSlots<{
+  'title-actions'(): any
 }>()
 
 const { isReady, hasError } = usePifStore().subscribe()

@@ -19,7 +19,7 @@ import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-x
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import TrafficRulesSidePanel from '@/modules/traffic-rules/components/list/panel/TrafficRulesSidePanel.vue'
 import TrafficRulesTable from '@/modules/traffic-rules/components/TrafficRulesTable.vue'
-import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rules.composable'
+import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rules.composable.ts'
 import { isNetworkRuleSupported } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'

@@ -30,8 +30,8 @@
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import { useUiStore } from '@core/stores/ui.store'
-import { uniqueId } from '@core/utils/unique-id.util'
+import { useUiStore } from '@core/stores/ui.store.ts'
+import { uniqueId } from '@core/utils/unique-id.util.ts'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

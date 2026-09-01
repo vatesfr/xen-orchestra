@@ -11,7 +11,7 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import ProgressCircle from '@/components/ProgressCircle.vue'
-import { prop } from '@/libs/story/story-param'
+import { prop } from '@/libs/story/story-param.ts'
 
 const presets = {
   'Half of 500': {

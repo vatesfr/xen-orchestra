@@ -1,4 +1,4 @@
-import { buildNodes } from '@core/packages/tree/build-nodes'
+import { buildNodes } from '@core/packages/tree/build-nodes.ts'
 import type {
   DefinitionToTreeNode,
   FlatTreeNode,
@@ -7,7 +7,7 @@ import type {
   TreeNodeDefinition,
   TreeNodeId,
   UseTreeOptions,
-} from '@core/packages/tree/types'
+} from '@core/packages/tree/types.ts'
 import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
 
 export function useTree<

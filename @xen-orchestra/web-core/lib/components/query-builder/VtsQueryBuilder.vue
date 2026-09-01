@@ -47,9 +47,9 @@ import VtsQueryBuilderButton from '@core/components/query-builder/VtsQueryBuilde
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import type { QueryBuilderSchema } from '@core/packages/query-builder/types'
-import { useQueryBuilder } from '@core/packages/query-builder/use-query-builder'
-import { useUiStore } from '@core/stores/ui.store'
+import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
+import { useQueryBuilder } from '@core/packages/query-builder/use-query-builder.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { onMounted, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 

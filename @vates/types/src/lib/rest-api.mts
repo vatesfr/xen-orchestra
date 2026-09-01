@@ -4,40 +4,34 @@ import type { XoApp } from '../xo-app.mjs'
 
 export type SecurityName = '*' | 'token' | 'basic' | 'none'
 
-export type FieldDefinition =
+export type FieldDefinition = { optional?: boolean; nullable?: boolean } & (
   | {
       type: 'string'
       example?: string
-      optional?: boolean
     }
   | {
       type: 'boolean'
       example?: boolean
-      optional?: boolean
     }
   | {
       type: 'number'
       example?: number
-      optional?: boolean
     }
   | {
       type: 'enum'
       enum: string[]
       example?: string
-      optional?: boolean
     }
   | {
       type: 'object'
       fields: Record<string, FieldDefinition>
-      optional?: boolean
     }
   | {
       type: 'array'
       items: FieldDefinition
       example?: unknown[]
-      optional?: boolean
     }
-
+)
 export type ParamFieldDefinition = Exclude<
   FieldDefinition,
   { type: 'boolean' } | { type: 'object' } | { type: 'array' }

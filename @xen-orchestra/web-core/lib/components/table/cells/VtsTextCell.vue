@@ -10,7 +10,7 @@
 <script setup lang="ts">
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
 
 export type TextCellProps = {

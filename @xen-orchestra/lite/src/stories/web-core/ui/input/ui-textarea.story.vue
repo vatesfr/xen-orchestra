@@ -30,8 +30,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { model, prop, setting, slot } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import { model, prop, setting, slot } from '@/libs/story/story-param.ts'
+import { text } from '@/libs/story/story-widget.ts'
 import UiCharacterLimit from '@core/components/ui/character-limit/UiCharacterLimit.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 </script>

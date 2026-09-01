@@ -9,7 +9,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop } from '@/libs/story/story-param'
+import { prop } from '@/libs/story/story-param.ts'
 import VtsLegendGroup, { type LegendGroupProps } from '@core/components/legend-group/VtsLegendGroup.vue'
 
 const items: LegendGroupProps['items'] = [

@@ -18,10 +18,10 @@
 <script lang="ts" setup>
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
-import type { PaginationBindings } from '@core/composables/pagination.composable'
+import type { PaginationBindings } from '@core/composables/pagination.composable.ts'
 import type { StateHeroType, StateHeroSize } from '@core/types/state-hero.type.ts'
-import { hasEllipsis } from '@core/utils/has-ellipsis.util'
-import { toVariants } from '@core/utils/to-variants.util'
+import { hasEllipsis } from '@core/utils/has-ellipsis.util.ts'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { useResizeObserver, useScroll } from '@vueuse/core'
 import { computed, ref, useTemplateRef } from 'vue'
 

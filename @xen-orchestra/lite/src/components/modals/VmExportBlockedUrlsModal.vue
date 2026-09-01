@@ -24,8 +24,8 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useVmStore } from '@/stores/xen-api/vm.store'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { computed } from 'vue'

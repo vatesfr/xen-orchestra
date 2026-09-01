@@ -1,8 +1,14 @@
 # ChangeLog
 
-## **next**
+## **0.25.0** (2026-08-31)
 
+- [Treeview] Add VM tree actions (PR [#10304](https://github.com/vatesfr/xen-orchestra/pull/10304))
 - [Pool/networks] Add the possibility to create new network or bonded network (PR [#10145](https://github.com/vatesfr/xen-orchestra/pull/10145))
+- [VM] Add VDIs page with table and side panel (PR [#10269](https://github.com/vatesfr/xen-orchestra/pull/10269))
+- [Host/Network] Add ability to rescan physical network interfaces (PIFs) (PR [#10147](https://github.com/vatesfr/xen-orchestra/pull/10147))
+- Fix inconsistent spacing in side panel cards (PR [#10279](https://github.com/vatesfr/xen-orchestra/pull/10279))
+- Fix missing collapse buttons on pools and hosts in the tree sidebar (added `hasChildren` prop) (PR [#10244](https://github.com/vatesfr/xen-orchestra/pull/10244))
+- [Pool/networks] Add the possibility to create new internal network (PR [#10235](https://github.com/vatesfr/xen-orchestra/pull/10235))
 
 ## **0.24.0** (2026-07-30)
 

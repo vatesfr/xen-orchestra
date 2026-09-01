@@ -1,5 +1,5 @@
 import type { ThresholdConfig, ThresholdResult } from '@core/packages/threshold/type.ts'
-import { toComputed } from '@core/utils/to-computed.util'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type ComputedRef, type MaybeRefOrGetter } from 'vue'
 
 export function useThreshold<TPayload>(

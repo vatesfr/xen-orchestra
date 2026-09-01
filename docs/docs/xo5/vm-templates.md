@@ -1,4 +1,4 @@
-# VM Templates
+# VM templates
 
 <InterfaceNote />
 

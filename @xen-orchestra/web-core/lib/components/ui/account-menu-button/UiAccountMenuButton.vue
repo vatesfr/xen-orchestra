@@ -7,7 +7,7 @@
 
 <script lang="ts" setup>
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
-import { useDisabled } from '@core/composables/disabled.composable'
+import { useDisabled } from '@core/composables/disabled.composable.ts'
 
 defineProps<{
   size: 'extra-small' | 'small' | 'medium'

@@ -32,8 +32,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop, setting, slot } from '@/libs/story/story-param'
-import { boolean, text } from '@/libs/story/story-widget'
+import { iconProp, prop, setting, slot } from '@/libs/story/story-param.ts'
+import { boolean, text } from '@/libs/story/story-widget.ts'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import UiDropdownList from '@core/components/ui/dropdown/UiDropdownList.vue'
 </script>

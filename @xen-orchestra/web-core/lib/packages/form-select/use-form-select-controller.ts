@@ -1,4 +1,4 @@
-import { ifElse } from '@core/utils/if-else.utils'
+import { ifElse } from '@core/utils/if-else.utils.ts'
 import { autoUpdate, flip, type MaybeElement, shift, size, useFloating } from '@floating-ui/vue'
 import { clamp, onClickOutside, useEventListener, useFocusWithin, whenever } from '@vueuse/core'
 import { logicOr } from '@vueuse/math'

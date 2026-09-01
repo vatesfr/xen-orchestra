@@ -1,6 +1,5 @@
 ---
-id: whatsnew
-title: What's new
+sidebar_label: What's new
 ---
 
 # What's new in XO 6
@@ -22,6 +21,6 @@ XO 6 is a complete redesign of the Xen Orchestra interface, built as a modern we
 
 ## An interface that grows release by release
 
-XO 6 reached its first official release with a deliberately focused scope, and new capabilities are added continuously: more actions on objects, user management, backup features and more. The [XO 6 vs. XO 5](xo6vsxo5.md) page tracks what lives where today, and the best way to see what is new is simply to keep your Xen Orchestra up to date.
+XO 6 reached its first official release with a deliberately focused scope, and new capabilities are added continuously: more actions on objects, user management, backup features and more. The [XO 6 and XO 5](xo6vsxo5.md) page tracks what lives where today, and the best way to see what is new is simply to keep your Xen Orchestra up to date.
 
-To explore the interface, start with [Getting started](gettingstarted.md).
+To explore the interface, start with [XO 6 at a glance](gettingstarted.md).

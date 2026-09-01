@@ -10,8 +10,8 @@
 <script lang="ts" setup>
 import PoolHeader from '@/components/pool/PoolHeader.vue'
 import PoolTabBar from '@/components/pool/PoolTabBar.vue'
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 
 useDefaultTab('/pool/[uuid]', 'dashboard')

@@ -35,11 +35,11 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, setting, slot } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import { prop, setting, slot } from '@/libs/story/story-param.ts'
+import { text } from '@/libs/story/story-widget.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiStepper, { type StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
-import { useStepper } from '@core/composables/stepper.composable'
+import { useStepper } from '@core/composables/stepper.composable.ts'
 
 const steps: StepDefinition[] = [{ label: 'General information' }, { label: 'information' }, { label: 'Review' }]
 

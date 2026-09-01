@@ -2,7 +2,7 @@
 
 <InterfaceNote />
 
-This section is dedicated to all others Xen Orchestra "advanced features".
+This section is dedicated to all other Xen Orchestra features.
 
 ## Live Telemetry
 
@@ -403,14 +403,14 @@ The OpenMetrics plugin exposes a `/metrics` endpoint that Prometheus can scrape 
 2. Find and enable the **OpenMetrics** plugin.
 3. Configure the following options:
 
-| Option                | Default    | Description                                               |
-| --------------------- | ---------- | --------------------------------------------------------- |
-| **Prometheus secret** | (required) | Bearer token for authentication - you must set this value |
+| Option                | Default     | Description                                                                |
+| --------------------- | ----------- | -------------------------------------------------------------------------- |
+| **Prometheus secret** | (generated) | Bearer token for authentication - generated on first load if left empty |
 
 4. Save and load the plugin.
 
-:::warning
-You must set a **Prometheus secret** before loading the plugin. Without a valid secret, the metrics endpoint authentication is ineffective, potentially exposing sensitive infrastructure data (host resources, VM configurations, network details) to unauthorized access. Use a strong, random string (e.g., generated with `openssl rand -hex 32`).
+:::tip
+If you leave the **Prometheus secret** empty, one is generated the first time the plugin is loaded and saved in the plugin configuration, where you can read it back to configure Prometheus. You can also set your own strong, random string (e.g., generated with `openssl rand -hex 32`). Either way the secret is kept across xo-server restarts.
 :::
 
 ### Prometheus Configuration

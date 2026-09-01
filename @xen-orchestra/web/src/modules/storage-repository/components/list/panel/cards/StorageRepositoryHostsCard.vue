@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="storage-repository-hosts-card">
     <UiCardTitle>
       <div class="title">
         {{ t('hosts') }}
@@ -20,17 +20,17 @@
     <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
       {{ t('no-host-attached') }}
     </VtsStateHero>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { toLower } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
@@ -43,9 +43,7 @@ const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.storage-repository-hosts-card {
   .title {
     display: flex;
     align-items: center;

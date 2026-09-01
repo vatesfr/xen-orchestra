@@ -13,7 +13,7 @@ import HostSidePanel from '@/modules/host/components/list/panel/HostSidePanel.vu
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 
 const { hosts, getHostById, hasHostFetchError, areHostsReady } = useXoHostCollection()
 

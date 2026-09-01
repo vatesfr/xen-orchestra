@@ -1,5 +1,5 @@
-import type { Branch } from '@core/packages/tree/branch'
-import type { Identifiable, Labeled, TreeContext, TreeNodeId, TreeNodeOptions } from '@core/packages/tree/types'
+import type { Branch } from '@core/packages/tree/branch.ts'
+import type { Identifiable, Labeled, TreeContext, TreeNodeId, TreeNodeOptions } from '@core/packages/tree/types.ts'
 
 export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = any> {
   abstract readonly isBranch: boolean

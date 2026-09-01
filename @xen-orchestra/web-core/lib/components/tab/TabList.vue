@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useDisabled } from '@core/composables/disabled.composable'
+import { useDisabled } from '@core/composables/disabled.composable.ts'
 
 const props = defineProps<{
   disabled?: boolean

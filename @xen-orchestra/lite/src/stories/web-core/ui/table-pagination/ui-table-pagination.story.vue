@@ -25,7 +25,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { event, model, prop } from '@/libs/story/story-param'
+import { event, model, prop } from '@/libs/story/story-param.ts'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 
 const presets = {

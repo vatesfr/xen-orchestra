@@ -36,8 +36,8 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import StoryExampleComponent from '@/components/component-story/StoryExampleComponent.vue'
-import { event, model, prop, setting, slot } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import { event, model, prop, setting, slot } from '@/libs/story/story-param.ts'
+import { text } from '@/libs/story/story-widget.ts'
 import { ref } from 'vue'
 
 const defaultModel = ref('')

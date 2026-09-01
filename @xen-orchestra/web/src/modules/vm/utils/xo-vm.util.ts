@@ -33,6 +33,17 @@ export function areVmsOperationPending(vms: FrontXoVm[], operations: VM_OPERATIO
   return vms.some(vm => isVmOperationPending(vm, operations))
 }
 
+export function getVmsPendingOperation(vms: FrontXoVm[], operations: VM_OPERATIONS[] | VM_OPERATIONS) {
+  for (const vm of vms) {
+    const currentOperations = Object.values(vm.current_operations)
+    const currentOperation = castArray(operations).find(operation => currentOperations.includes(operation))
+
+    if (currentOperation !== undefined) {
+      return currentOperation
+    }
+  }
+}
+
 export function areAllVmsHavingPowerState(vms: FrontXoVm[], powerStates: VM_POWER_STATE[]) {
   return vms.every(vm => powerStates.includes(vm.power_state))
 }

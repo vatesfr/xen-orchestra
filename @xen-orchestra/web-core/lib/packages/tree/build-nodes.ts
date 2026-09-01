@@ -1,6 +1,6 @@
-import { Branch } from '@core/packages/tree/branch'
-import { Leaf } from '@core/packages/tree/leaf'
-import type { DefinitionToTreeNode, TreeContext, TreeNode, TreeNodeDefinition } from '@core/packages/tree/types'
+import { Branch } from '@core/packages/tree/branch.ts'
+import { Leaf } from '@core/packages/tree/leaf.ts'
+import type { DefinitionToTreeNode, TreeContext, TreeNode, TreeNodeDefinition } from '@core/packages/tree/types.ts'
 
 export function buildNodes<TDefinition extends TreeNodeDefinition, TTreeNode extends DefinitionToTreeNode<TDefinition>>(
   definitions: TDefinition[],

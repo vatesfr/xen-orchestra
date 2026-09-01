@@ -24,7 +24,7 @@
 
 <script lang="ts" setup>
 import { N_ITEMS } from '@/pages/pool/[uuid]/dashboard.vue'
-import { useSrStore } from '@/stores/xen-api/sr.store'
+import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import VtsProgressBarGroup, {
   type ProgressBarGroupItem,
 } from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'

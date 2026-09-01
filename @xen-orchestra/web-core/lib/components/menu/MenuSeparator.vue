@@ -4,7 +4,7 @@
 </template>
 
 <script lang="ts" setup>
-import { IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util'
+import { IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util.ts'
 import { computed, inject } from 'vue'
 
 const horizontal = inject(

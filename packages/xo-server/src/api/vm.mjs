@@ -167,7 +167,9 @@ export const create = defer(async function ($defer, params) {
   let checkLimits
 
   if (resourceSet) {
-    await this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
+    // an admin can add the created VM to a resource set even if the objects it
+    // uses (template, SRs, networks) are not part of this resource set
+    await this.checkResourceSetConstraints(resourceSet, user.id, user.permission === 'admin' ? undefined : objectIds)
     checkLimits = async limits2 => {
       const _limits = assignWith({}, limits, limits2, (l1 = 0, l2) => l1 + l2)
       await this.allocateLimitsInResourceSet(_limits, resourceSet)

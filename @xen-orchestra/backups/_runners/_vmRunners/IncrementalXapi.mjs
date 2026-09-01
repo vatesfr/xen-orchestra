@@ -13,7 +13,6 @@ import {
   DELTA_CHAIN_LENGTH,
   EXPORTED_SUCCESSFULLY,
   setVmDeltaChainLength,
-  markExportSuccessfull,
 } from '../../_otherConfig.mjs'
 import { ThrottledDisk, SynchronizedDisk } from '@xen-orchestra/disk-transform'
 import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
@@ -68,7 +67,6 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
 
     // @todo : reimplement throttle
 
-    const timestamp = Date.now()
     await this._callWriters(
       writer =>
         writer.transfer({
@@ -78,7 +76,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
           // clean; the tip's flag lets the next run skip re-probing
           includeNonNbdQcow2Fix: true,
           isVhdDifferencing,
-          timestamp,
+          timestamp: this.timestamp,
           vm,
           vmSnapshot: exportedVm,
         }),
@@ -89,11 +87,6 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       await setVmDeltaChainLength(this._xapi, exportedVm.$ref, 0)
     } else {
       await setVmDeltaChainLength(this._xapi, exportedVm.$ref, (this._deltaChainLength ?? 0) + 1)
-    }
-
-    // not the case if offlineBackup
-    if (exportedVm.is_a_snapshot) {
-      await markExportSuccessfull(this._xapi, exportedVm.$ref)
     }
 
     await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')

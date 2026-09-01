@@ -278,11 +278,11 @@ import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioBu
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useFormSelect } from '@core/packages/form-select'
 import { useMapper } from '@core/packages/mapper'
-import { useUiStore } from '@core/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoPool } from '@vates/types'
 
 import { computed, reactive, ref, toRef, watch } from 'vue'

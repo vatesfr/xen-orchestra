@@ -40,7 +40,7 @@ import HostDashboardVmsStatus from '@/components/host/dashboard/HostDashboardVms
 import useFetchStats from '@/composables/fetch-stats.composable.ts'
 import { GRANULARITY } from '@/libs/xapi-stats.ts'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
-import { usePageTitleStore } from '@/stores/page-title.store'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'

@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="backup-log-infos-card">
     <VtsCardObjectTitle :id="backupLog.id" :label="backupLog.id" icon="object:backup-run" />
     <div class="content">
       <VtsCardRowKeyValue>
@@ -42,7 +42,7 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -52,8 +52,8 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -74,11 +74,7 @@ const transferSize = computed(() => getTransferSize(backupLog))
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-
+.backup-log-infos-card {
   .content {
     display: flex;
     flex-direction: column;

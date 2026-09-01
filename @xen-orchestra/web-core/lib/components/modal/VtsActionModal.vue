@@ -129,6 +129,21 @@ const textMappingsByObject: TextMappingByObject = {
       message: t('modal:host-force-reboot-message'),
       action: t('action:force-reboot-host'),
     },
+    'smart-reboot': {
+      title: t('modal:confirm-host-smart-reboot?', { host: hostName }),
+      message: t('modal:host-smart-reboot-message'),
+      action: t('action:smart-reboot-host'),
+    },
+    'restart-toolstack': {
+      title: t('modal:confirm-host-restart-toolstack?', { host: hostName }),
+      message: t('modal:host-restart-toolstack-message'),
+      action: t('action:restart-toolstack'),
+    },
+    detach: {
+      title: t('modal:confirm-host-detach?', { host: hostName }),
+      message: t('modal:host-detach-message'),
+      action: t('action:detach'),
+    },
   },
 }
 

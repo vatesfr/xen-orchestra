@@ -1,11 +1,11 @@
 <template>
-  <VtsSidePanel :has-selection="!!vif" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!vif" class="vm-vifs-side-panel" @close="emit('close')">
     <template v-if="vif" #actions>
       <VifConnectionToggleButton v-if="vm" :vif :vm />
     </template>
     <template v-if="vif" #default>
       <!-- VIF -->
-      <UiCard class="card">
+      <UiPanelCard>
         <VtsCardObjectTitle :id="vif.uuid" :label="t('vif')" />
         <div class="content">
           <!-- NETWORK -->
@@ -62,9 +62,9 @@
           </VtsCardRowKeyValue>
           <!-- TODO Need to add TX Checksumming -->
         </div>
-      </UiCard>
+      </UiPanelCard>
       <!-- VIF NETWORK INFORMATION -->
-      <UiCard class="card">
+      <UiPanelCard>
         <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
         <div class="content">
           <!-- IP ADDRESSES -->
@@ -101,7 +101,7 @@
             </template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
+      </UiPanelCard>
     </template>
   </VtsSidePanel>
 </template>
@@ -109,17 +109,17 @@
 <script setup lang="ts">
 import type { XenApiVif } from '@/libs/xen-api/xen-api.types.ts'
 import VifConnectionToggleButton from '@/modules/vif/components/actions/connection/VifConnectionToggleButton.vue'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
-import { useVmStore } from '@/stores/xen-api/vm.store'
+import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
+import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -159,9 +159,7 @@ const status = computed(() => (vif?.currently_attached ? 'connected' : 'disconne
 </script>
 
 <style scoped lang="postcss">
-.card {
-  gap: 1.6rem;
-
+.vm-vifs-side-panel {
   .content {
     display: flex;
     flex-direction: column;

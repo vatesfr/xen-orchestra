@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts" setup>
-import { toVariants } from '@core/utils/to-variants.util'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
 type CounterAccent = 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'muted'

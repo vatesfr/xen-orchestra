@@ -2,7 +2,7 @@
 sidebar_label: Incremental backups
 ---
 
-# Incremental Backups
+# Incremental backups
 
 > **_NOTE:_** Formerly known as Continuous Delta backups
 

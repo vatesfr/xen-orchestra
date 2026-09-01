@@ -16,8 +16,8 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import PowerStateIcon from '@/components/PowerStateIcon.vue'
-import { prop } from '@/libs/story/story-param'
-import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
+import { prop } from '@/libs/story/story-param.ts'
+import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
 </script>
 
 <style lang="postcss" scoped>

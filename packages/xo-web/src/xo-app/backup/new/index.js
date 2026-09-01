@@ -713,6 +713,11 @@ const New = decorate([
           mergeBackupsSynchronously,
         })
       },
+      setSynchronizedSnapshot({ setGlobalSettings }, synchronizedSnapshot) {
+        setGlobalSettings({
+          synchronizedSnapshot,
+        })
+      },
       setDistributeBackups({ setGlobalSettings }, distributeBackups) {
         setGlobalSettings({
           distributeBackups,
@@ -741,6 +746,7 @@ const New = decorate([
       inputNbdConcurrency: generateId,
       inputNRetriesVmBackupFailures: generateId,
       inputPreferNbd: generateId,
+      inputSynchronizedSnapshot: generateId,
       inputDistributeBackups: generateId,
       inputDistributeReplications: generateId,
       inputTimeoutId: generateId,
@@ -864,6 +870,7 @@ const New = decorate([
       preferNbd,
       reportRecipients,
       reportWhen = 'failure',
+      synchronizedSnapshot,
       distributeBackups = false,
       distributeReplications = false,
       timeout,
@@ -1316,6 +1323,21 @@ const New = decorate([
                           name='mergeBackupsSynchronously'
                           value={mergeBackupsSynchronously}
                           onChange={effects.setMergeBackupsSynchronously}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputSynchronizedSnapshot}>
+                          <strong>{_('synchronizedSnapshot')}</strong>
+                        </label>{' '}
+                        <Tooltip content={_('synchronizedSnapshotTooltip')}>
+                          <Icon icon='info' />
+                        </Tooltip>
+                        <Toggle
+                          className='pull-right'
+                          id={state.inputSynchronizedSnapshot}
+                          name='synchronizedSnapshot'
+                          value={synchronizedSnapshot === true}
+                          onChange={effects.setSynchronizedSnapshot}
                         />
                       </FormGroup>
                     </div>

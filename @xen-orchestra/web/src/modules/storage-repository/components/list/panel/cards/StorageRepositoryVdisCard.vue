@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="storage-repository-vdis-card">
     <UiCardTitle>
       <div class="title">
         {{ t('vdis') }}
@@ -56,7 +56,7 @@
     <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
       {{ t('no-vdi-attached') }}
     </VtsStateHero>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -67,11 +67,11 @@ import { getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -86,9 +86,7 @@ const { getVbdsByIds } = useXoVbdCollection()
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.storage-repository-vdis-card {
   .title {
     display: flex;
     align-items: center;

@@ -1,7 +1,7 @@
 <template>{{ t('loading') }}</template>
 
 <script lang="ts" setup>
-import { usePoolStore } from '@/stores/xen-api/pool.store'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { whenever } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

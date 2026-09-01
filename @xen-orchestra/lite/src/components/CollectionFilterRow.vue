@@ -19,8 +19,8 @@
 
 <script lang="ts" setup>
 import UiActionButton from '@/components/ui/UiActionButton.vue'
-import { buildComplexMatcherNode } from '@/libs/complex-matcher.utils'
-import type { Filter, FilterComparisons, FilterComparisonType, Filters, FilterType, NewFilter } from '@/types/filter'
+import { buildComplexMatcherNode } from '@/libs/complex-matcher.utils.ts'
+import type { Filter, FilterComparisons, FilterComparisonType, Filters, FilterType, NewFilter } from '@/types/filter.ts'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useFormSelect } from '@core/packages/form-select'

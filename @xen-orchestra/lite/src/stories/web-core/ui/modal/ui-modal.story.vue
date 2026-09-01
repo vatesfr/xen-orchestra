@@ -34,8 +34,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop, event, slot, setting } from '@/libs/story/story-param'
-import { text, boolean } from '@/libs/story/story-widget'
+import { iconProp, prop, event, slot, setting } from '@/libs/story/story-param.ts'
+import { text, boolean } from '@/libs/story/story-widget.ts'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiModal from '@core/components/ui/modal/UiModal.vue'
 </script>

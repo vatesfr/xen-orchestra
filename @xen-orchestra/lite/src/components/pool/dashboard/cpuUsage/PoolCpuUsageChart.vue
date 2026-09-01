@@ -18,10 +18,10 @@
 </template>
 
 <script lang="ts" setup>
-import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
-import type { LinearChartData, ValueFormatter } from '@core/types/chart'
+import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys.ts'
+import type { LinearChartData, ValueFormatter } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

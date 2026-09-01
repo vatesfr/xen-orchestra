@@ -10,5 +10,5 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import UiBadge from '@/components/ui/UiBadge.vue'
-import { iconProp, setting, slot } from '@/libs/story/story-param'
+import { iconProp, setting, slot } from '@/libs/story/story-param.ts'
 </script>

@@ -12,6 +12,6 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { setting, slot } from '@/libs/story/story-param'
+import { setting, slot } from '@/libs/story/story-param.ts'
 import UiSubtitle from '@core/components/ui/subtitle/UiSubtitle.vue'
 </script>

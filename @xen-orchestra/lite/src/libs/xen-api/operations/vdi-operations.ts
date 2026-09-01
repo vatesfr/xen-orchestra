@@ -1,7 +1,7 @@
-import type XenApi from '@/libs/xen-api/xen-api'
-import type { XenApiSr, XenApiVdi } from '@/libs/xen-api/xen-api.types'
-import type { MaybeArray } from '@core/types/utility.type'
-import { toArray } from '@core/utils/to-array.utils'
+import type XenApi from '@/libs/xen-api/xen-api.ts'
+import type { XenApiSr, XenApiVdi } from '@/libs/xen-api/xen-api.types.ts'
+import type { MaybeArray } from '@core/types/utility.type.ts'
+import { toArray } from '@core/utils/to-array.utils.ts'
 import { VDI_TYPE } from '@vates/types/common'
 
 export function createVdiOperations(xenApi: XenApi) {

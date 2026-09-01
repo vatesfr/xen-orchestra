@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts" setup>
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useClipboard } from '@vueuse/core'
 
 type ColorGroup = 'neutral' | 'normal' | 'success' | 'warning' | 'danger'

@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="backup-job-infos-card">
     <VtsCardObjectTitle
       :id="backupJob.id"
       :to="{ name: `/backup/[id]/runs`, params: { id: backupJob.id } }"
@@ -25,7 +25,7 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -35,8 +35,8 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -52,11 +52,7 @@ const backupJobModes = computed(() => getModeLabels(backupJob).filter(mode => mo
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-
+.backup-job-infos-card {
   .content {
     display: flex;
     flex-direction: column;

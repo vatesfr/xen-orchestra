@@ -43,6 +43,6 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop, setting } from '@/libs/story/story-param'
+import { iconProp, prop, setting } from '@/libs/story/story-param.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 </script>

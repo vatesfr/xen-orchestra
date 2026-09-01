@@ -2,7 +2,7 @@
 slug: backup
 ---
 
-# Introduction to backups
+# Backup overview
 
 Xen Orchestra ships a complete, **agentless** backup engine for your whole infrastructure: nothing to install inside your VMs, everything managed from one place, from quick rolling snapshots to cross-site disaster recovery.
 

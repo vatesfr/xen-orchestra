@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import markdown from '@/libs/markdown'
+import markdown from '@/libs/markdown.ts'
 import { useEventListener } from '@vueuse/core'
 import { computed, type Ref, ref } from 'vue'
 

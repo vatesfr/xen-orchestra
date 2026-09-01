@@ -1,4 +1,4 @@
-import { uniqueId } from '@core/utils/unique-id.util'
+import { uniqueId } from '@core/utils/unique-id.util.ts'
 import { useEventListener } from '@vueuse/core'
 import { type Ref, ref } from 'vue'
 

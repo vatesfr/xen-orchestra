@@ -31,7 +31,7 @@ export function useXoTaskNameResolver() {
 
     const sr = getSrById(uuid as XoSr['id'])
     if (sr) {
-      return { text: sr.name_label }
+      return { text: sr.name_label, to: { name: '/sr/[id]/general', params: { id: uuid } } }
     }
 
     return undefined

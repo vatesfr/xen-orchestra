@@ -23,10 +23,10 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop, slot } from '@/libs/story/story-param'
+import { iconProp, prop, slot } from '@/libs/story/story-param.ts'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
-import { IK_TREE_ITEM_HAS_CHILDREN } from '@core/utils/injection-keys.util'
+import { IK_TREE_ITEM_HAS_CHILDREN } from '@core/utils/injection-keys.util.ts'
 import { computed, provide } from 'vue'
 
 provide(

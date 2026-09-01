@@ -40,11 +40,11 @@ function openEnableHostModal() {
   return openActionModal({
     events: { onConfirm: () => enableHost() },
     props: {
-      accent: 'warning',
+      accent: 'info',
       action: 'enable',
       object: 'host',
       hostName: host.name_label,
-      icon: 'status:warning-picto',
+      icon: 'status:info-picto',
     },
   })
 }

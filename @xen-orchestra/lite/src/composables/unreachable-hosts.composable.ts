@@ -1,5 +1,5 @@
-import { ipToHostname } from '@/libs/utils'
-import { useHostStore } from '@/stores/xen-api/host.store'
+import { ipToHostname } from '@/libs/utils.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { reactiveComputed, whenever } from '@vueuse/core'
 import { difference } from 'lodash-es'

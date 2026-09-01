@@ -1,4 +1,4 @@
-import { type AcceptedLanguage, highlight } from '@/libs/highlight'
+import { type AcceptedLanguage, highlight } from '@/libs/highlight.ts'
 import HLJS from 'highlight.js/lib/core'
 import { marked } from 'marked'
 

@@ -9,7 +9,7 @@
 
 <script lang="ts" setup>
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import { useUiStore } from '@core/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store.ts'
 
 defineSlots<{
   default(): any

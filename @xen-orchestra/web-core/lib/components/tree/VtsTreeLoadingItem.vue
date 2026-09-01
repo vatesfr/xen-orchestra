@@ -16,7 +16,7 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTreeLine from '@core/components/tree/VtsTreeLine.vue'
 import type { IconName } from '@core/icons'
-import { IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util'
+import { IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util.ts'
 import { inject, ref } from 'vue'
 
 defineProps<{

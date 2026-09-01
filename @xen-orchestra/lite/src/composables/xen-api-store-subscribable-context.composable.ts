@@ -1,7 +1,7 @@
-import type { SubscriberDependencies } from '@/composables/subscriber.composable'
-import { useXenApiStoreBaseContext } from '@/composables/xen-api-store-base-context.composable'
-import { useXenApiStoreSubscriber } from '@/composables/xen-api-store-subscriber.composable'
-import type { ObjectType, ObjectTypeToRecord } from '@/libs/xen-api/xen-api.types'
+import type { SubscriberDependencies } from '@/composables/subscriber.composable.ts'
+import { useXenApiStoreBaseContext } from '@/composables/xen-api-store-base-context.composable.ts'
+import { useXenApiStoreSubscriber } from '@/composables/xen-api-store-subscriber.composable.ts'
+import type { ObjectType, ObjectTypeToRecord } from '@/libs/xen-api/xen-api.types.ts'
 
 export const useXenApiStoreSubscribableContext = <Type extends ObjectType, XRecord extends ObjectTypeToRecord<Type>>(
   type: Type,

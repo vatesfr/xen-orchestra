@@ -1,7 +1,7 @@
-import type { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
-import { useXenApiStore } from '@/stores/xen-api.store'
-import type { XenApiPatch } from '@/types/xen-api'
+import type { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
+import type { XenApiPatch } from '@/types/xen-api.ts'
 import { castArray } from 'lodash-es'
 
 export async function fetchMissingHostPatches(hostRef: XenApiHost['$ref']): Promise<XenApiPatch[]> {

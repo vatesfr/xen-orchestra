@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard>
     <UiCardTitle>
       {{ t('hosts') }}
       <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
@@ -18,18 +18,18 @@
     <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
       {{ t('no-host-attached') }}
     </VtsStateHero>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -45,9 +45,3 @@ function getHostPowerState(host: XenApiHost) {
   return isHostRunning(host) ? 'running' : 'halted'
 }
 </script>
-
-<style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-}
-</style>

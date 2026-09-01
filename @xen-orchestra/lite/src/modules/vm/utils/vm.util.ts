@@ -1,4 +1,25 @@
+import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiVmGuestMetrics } from '@/libs/xen-api/xen-api.types.ts'
+
+export const CHANGING_STATE_OPERATIONS: VM_OPERATION[] = [
+  VM_OPERATION.START,
+  VM_OPERATION.START_ON,
+  VM_OPERATION.PAUSE,
+  VM_OPERATION.UNPAUSE,
+  VM_OPERATION.RESUME,
+  VM_OPERATION.SUSPEND,
+  VM_OPERATION.CLEAN_REBOOT,
+  VM_OPERATION.HARD_REBOOT,
+  VM_OPERATION.SHUTDOWN,
+  VM_OPERATION.CLEAN_SHUTDOWN,
+  VM_OPERATION.HARD_SHUTDOWN,
+  VM_OPERATION.SNAPSHOT,
+  VM_OPERATION.DESTROY,
+  VM_OPERATION.CLONE,
+  VM_OPERATION.COPY,
+  VM_OPERATION.EXPORT,
+  VM_OPERATION.IMPORT,
+]
 
 /**
  * Adapted from `getVmGuestToolsProps` in xo-server (`packages/xo-server/src/xapi-object-to-xo.mjs`),

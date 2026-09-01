@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="backup-log-results-card">
     <UiCardTitle>
       {{ cardMetadata.title }}
       <UiCounter :value="results.length" size="small" :accent="cardMetadata.accent" variant="primary" />
@@ -24,7 +24,7 @@
         <VtsDivider v-if="results.length > 1 && index < results.length - 1" class="divider" type="stretch" />
       </template>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -32,10 +32,10 @@ import type { BackupLogResult } from '@/modules/task/utils/xo-task.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { useMapper } from '@core/packages/mapper'
 import { useI18n } from 'vue-i18n'
 
@@ -72,11 +72,7 @@ const cardMetadata = useMapper(
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-
+.backup-log-results-card {
   .content {
     display: flex;
     flex-direction: column;

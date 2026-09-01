@@ -28,8 +28,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, setting, slot } from '@/libs/story/story-param'
-import { boolean } from '@/libs/story/story-widget'
+import { iconProp, setting, slot } from '@/libs/story/story-param.ts'
+import { boolean } from '@/libs/story/story-widget.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'

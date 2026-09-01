@@ -27,9 +27,9 @@
 </template>
 
 <script lang="ts" setup>
-import { useXenApiStore } from '@/stores/xen-api.store'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useSessionStorage } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 

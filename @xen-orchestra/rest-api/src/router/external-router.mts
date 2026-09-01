@@ -287,13 +287,16 @@ function buildZodField(field: FieldDefinition): z.ZodTypeAny {
 
   if ('example' in field && field.example !== undefined) schema = schema.meta({ example: field.example })
 
+  if (field.nullable) schema = schema.nullable()
+
   if (field.optional) schema = schema.optional()
 
   return schema
 }
 
 // Build zod schema to allow easy input validation
-function buildZodSchema(def: Record<string, FieldDefinition>): z.ZodObject<Record<string, z.ZodTypeAny>> {
+// Exported for testing
+export function buildZodSchema(def: Record<string, FieldDefinition>): z.ZodObject<Record<string, z.ZodTypeAny>> {
   const shape: Record<string, z.ZodTypeAny> = {}
 
   for (const [key, field] of Object.entries(def)) {

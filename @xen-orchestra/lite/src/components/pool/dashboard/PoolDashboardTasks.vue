@@ -16,7 +16,7 @@
 
 <script lang="ts" setup>
 import TasksTable from '@/components/tasks/TasksTable.vue'
-import { useTaskStore } from '@/stores/xen-api/task.store'
+import { useTaskStore } from '@/stores/xen-api/task.store.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'

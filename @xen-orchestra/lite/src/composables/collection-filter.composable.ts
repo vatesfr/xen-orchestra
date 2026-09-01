@@ -1,4 +1,4 @@
-import { getFirst } from '@/libs/utils'
+import { getFirst } from '@/libs/utils.ts'
 import * as CM from 'complex-matcher'
 import { computed, ref, watch } from 'vue'
 import { type LocationQueryValue, useRoute, useRouter } from 'vue-router'

@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="backup-job-backed-up-vms-card">
     <UiCardTitle>
       {{ t('backed-up-vms') }}
       <UiCounter :value="backedUpVmsCount" accent="neutral" size="small" variant="primary" />
@@ -67,7 +67,7 @@
         </UiCollapsibleList>
       </template>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -79,11 +79,11 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { toLower } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
 
@@ -98,7 +98,7 @@ const { backedUpVms, backedUpVmsCount, smartModePools, smartModePowerState, smar
 </script>
 
 <style scoped lang="postcss">
-.card-container {
+.backup-job-backed-up-vms-card {
   .divider {
     margin-block: 1.6rem;
   }

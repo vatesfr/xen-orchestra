@@ -1,4 +1,4 @@
-import type { StringKeyOf } from '@core/types/utility.type'
+import type { StringKeyOf } from '@core/types/utility.type.ts'
 import type { ComputedRef, UnwrapRef } from 'vue'
 
 export type CompareFn<TValue, TCompareReturn> = (a: TValue, b: TValue) => TCompareReturn

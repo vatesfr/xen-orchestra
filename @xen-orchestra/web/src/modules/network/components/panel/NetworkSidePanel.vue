@@ -1,10 +1,10 @@
 <template>
-  <VtsSidePanel :has-selection="!!network" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!network" class="network-side-panel" @close="emit('close')">
     <template v-if="network" #actions>
       <VtsDeleteButton :busy="isDeletingNetworks" @click="deleteNetworks()" />
     </template>
     <template v-if="network" #default>
-      <UiCard class="card-container">
+      <UiPanelCard>
         <VtsCardObjectTitle :id="network.id" :label="network.name_label" icon="object:network" :href="networkHref" />
         <div class="content">
           <!-- DESCRIPTION -->
@@ -51,7 +51,7 @@
             <template #value>{{ networkDefaultLockingMode }}</template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
+      </UiPanelCard>
       <NetworkPifsInfoCard :network />
     </template>
   </VtsSidePanel>
@@ -68,7 +68,7 @@ import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObject
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -108,11 +108,7 @@ const networkDefaultLockingMode = computed(() => (network?.defaultIsLocked ? t('
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-
+.network-side-panel {
   .content {
     display: flex;
     flex-direction: column;

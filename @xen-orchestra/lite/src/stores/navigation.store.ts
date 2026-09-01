@@ -1,4 +1,4 @@
-import { useUiStore } from '@core/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { useEventListener, whenever } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'

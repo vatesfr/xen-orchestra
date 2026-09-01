@@ -7,7 +7,7 @@
 </template>
 
 <script generic="T extends XenApiRecord<ObjectType>, I extends T['uuid']" lang="ts" setup>
-import type { ObjectType, XenApiRecord } from '@/libs/xen-api/xen-api.types'
+import type { ObjectType, XenApiRecord } from '@/libs/xen-api/xen-api.types.ts'
 import ObjectNotFoundView from '@/pages/object-not-found.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { computed } from 'vue'

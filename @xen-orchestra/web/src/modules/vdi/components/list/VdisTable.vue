@@ -89,6 +89,7 @@ const state = useTableState({
 const { pageRecords: paginatedVdis, paginationBindings } = usePagination('vdis', filteredVdis)
 
 const { HeadCells, BodyCells } = useVdiColumns({
+  exclude: ['selectItem'],
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 

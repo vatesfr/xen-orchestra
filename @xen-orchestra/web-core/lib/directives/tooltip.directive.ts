@@ -1,5 +1,5 @@
-import type { TooltipEvents, TooltipOptions } from '@core/stores/tooltip.store'
-import { useTooltipStore } from '@core/stores/tooltip.store'
+import type { TooltipEvents, TooltipOptions } from '@core/stores/tooltip.store.ts'
+import { useTooltipStore } from '@core/stores/tooltip.store.ts'
 import { isObject } from 'lodash-es'
 import type { Options } from 'placement.js'
 import type { Directive } from 'vue'

@@ -1,7 +1,11 @@
 <template>
   <VtsContentSidePanel class="network">
     <UiCard class="container">
-      <HostPifsTable :pifs />
+      <HostPifsTable :pifs>
+        <template #title-actions>
+          <HostScanPifsButton :host />
+        </template>
+      </HostPifsTable>
     </UiCard>
     <HostPifSidePanel :pif="selectedPif" @close="selectedPif = undefined" />
   </VtsContentSidePanel>
@@ -10,30 +14,33 @@
 <script lang="ts" setup>
 import HostPifSidePanel from '@/components/host/network/HostPifSidePanel.vue'
 import HostPifsTable from '@/components/host/network/HostPifsTable.vue'
-import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { usePifStore } from '@/stores/xen-api/pif.store'
+import type { XenApiHost, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import HostScanPifsButton from '@/modules/host/components/actions/scan-pifs/HostScanPifsButton.vue'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const { records } = usePifStore().subscribe()
-const { getByOpaqueRef: getHostOpaqueRef } = useHostStore().subscribe()
+const { getByOpaqueRef: getHostOpaqueRef, getByUuid: getHostByUuid } = useHostStore().subscribe()
 
 const route = useRoute<'/host/[uuid]/network'>()
 
 const { t } = useI18n()
 usePageTitleStore().setTitle(t('network'))
 
+const host = computed(() => getHostByUuid(route.params.uuid as XenApiHost['uuid']))
+
 const pifs = computed(() => {
   return records.value.filter(pif => {
-    const host = getHostOpaqueRef(pif.host)
+    const pifHost = getHostOpaqueRef(pif.host)
 
-    return host?.uuid === route.params.uuid
+    return pifHost?.uuid === route.params.uuid
   })
 })
 

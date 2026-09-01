@@ -1,5 +1,5 @@
-import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
-import type { Filter } from '@/types/filter'
+import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
+import type { Filter } from '@/types/filter.ts'
 import type { IconName } from '@core/icons'
 import format from 'human-format'
 import { find, forEach, round, size, sum } from 'lodash-es'

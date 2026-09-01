@@ -283,6 +283,9 @@ dashboardCacheTimeout = '1 min'
 # Allow to set a limit of memory per SSE client
 # before destroying the client. In MiB
 maxRamAllocatedPerSseClient = 20
+# Allow to set a limit of events queued for a client watching the tasks
+# collection (`GET /rest/v0/tasks?watch=true`) before destroying the client
+maxEventsQueuedPerWatchClient = 1000
 
 [jsonrpc-api]
 xvaImportFromUrlTimeout = '6s'

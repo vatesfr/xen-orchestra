@@ -1,5 +1,5 @@
 <template>
-  <UiCard v-if="vmSnapshotVdis.length > 0" class="card-container">
+  <UiPanelCard v-if="vmSnapshotVdis.length > 0" class="snapshot-vdi-card">
     <UiCardTitle>
       {{ t('vdis') }}
       <UiCounter :value="vmSnapshotVdis.length" accent="neutral" size="small" variant="primary" />
@@ -24,7 +24,7 @@
         <VtsDivider v-if="index < vmSnapshotVdis.length - 1" class="divider" type="stretch" />
       </div>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script setup lang="ts">
@@ -36,9 +36,9 @@ import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/Vd
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { useI18n } from 'vue-i18n'
 
 const { snapshot } = defineProps<{ snapshot: FrontXoVmSnapshot }>()
@@ -49,9 +49,7 @@ const { vmSnapshotVdis } = useXoVmSnapshotVdiCollection({}, () => snapshot.id)
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.snapshot-vdi-card {
   .content {
     display: flex;
     flex-direction: column;
