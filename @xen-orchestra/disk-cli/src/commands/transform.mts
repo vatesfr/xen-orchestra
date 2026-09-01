@@ -59,7 +59,7 @@ export async function transformCommand(handlerUrl: string, diskPath: string, ext
       } else if (format === 'vhd') {
         stream = await toVhdStream(disk)
       } else {
-        stream = await toQcow2Stream(disk)
+        stream = toQcow2Stream(disk)
       }
 
       await pipeline(stream, process.stdout, { end: false })
