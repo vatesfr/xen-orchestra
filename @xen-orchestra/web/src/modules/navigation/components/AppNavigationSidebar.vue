@@ -2,7 +2,7 @@
   <VtsLayoutSidebar :side class="app-navigation-sidebar">
     <template #header>
       <TabList class="sidebar-tabs">
-        <TabItem
+        <UiTabItem
           :active="activeSidebarPanel === SIDEBAR_PANEL.TREEVIEW"
           tag="button"
           type="button"
@@ -10,8 +10,8 @@
           @click="activeSidebarPanel = SIDEBAR_PANEL.TREEVIEW"
         >
           {{ t('treeview') }}
-        </TabItem>
-        <TabItem
+        </UiTabItem>
+        <UiTabItem
           :active="activeSidebarPanel === SIDEBAR_PANEL.ADMINISTRATION"
           tag="button"
           type="button"
@@ -19,7 +19,7 @@
           @click="activeSidebarPanel = SIDEBAR_PANEL.ADMINISTRATION"
         >
           {{ t('administration') }}
-        </TabItem>
+        </UiTabItem>
       </TabList>
     </template>
     <template v-if="activeSidebarPanel === SIDEBAR_PANEL.TREEVIEW" #subheader>
@@ -48,10 +48,10 @@ import SiteTreeList from '@/modules/treeview/components/SiteTreeList.vue'
 import type { SidebarSide } from '@core/packages/sidebar'
 import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import TabItem from '@core/components/tab/TabItem.vue'
-import TabList from '@core/components/tab/TabList.vue'
+import TabList from '@core/components/tab-list/TabList.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
+import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { useSseStore } from '@core/packages/remote-resource/sse.store.ts'
 import { watchImmediate } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
