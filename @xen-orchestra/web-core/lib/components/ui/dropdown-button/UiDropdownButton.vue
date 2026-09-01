@@ -13,7 +13,7 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useDisabled } from '@core/composables/disabled.composable.ts'
 import type { IconName } from '@core/icons'
-import { toVariants } from '@core/utils/to-variants.util'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
 const { disabled, selected, icon, size } = defineProps<{
