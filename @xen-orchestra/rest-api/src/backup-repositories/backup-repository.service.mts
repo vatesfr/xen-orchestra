@@ -1,6 +1,7 @@
 import type { AnyXoBackupJob, XoBackupRepository, AnyXoJob, XoVm } from '@vates/types'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { inject } from 'inversify'
+import { ApiError } from '../helpers/error.helper.mjs'
 
 export interface ReclaimSpaceResult {
   vmUuid: string
@@ -57,11 +58,21 @@ export class BackupRepositoryService {
     mergeParam?: boolean,
     remove?: boolean
   ) {
-    const vmuuid = vmUuid as XoVm['id']
-    return await this.#restApi.xoApp.reclaimSpace(backupRepositoryId, {
-      vmUuid: vmuuid,
-      merge: mergeParam,
-      remove: remove,
-    })
+    try {
+      const vmuuid = vmUuid as XoVm['id']
+      return await this.#restApi.xoApp.reclaimSpace(backupRepositoryId, {
+        vmUuid: vmuuid,
+        merge: mergeParam,
+        remove: remove,
+      })
+    } catch (error: any) {
+      // mixin throws incorrectState (xo-common api-error) when a referencing
+      // job is running — surface that as a 409, everything else as 502
+      console.log(error?.message)
+      if (error?.code === 25 || error?.message === 'incorrect state') {
+        throw new ApiError('cannot reclaim space while a backup job is running', 409)
+      }
+      throw new ApiError('Backup repository unreachable', 502, { data: { cause: String(error) } })
+    }
   }
 }
