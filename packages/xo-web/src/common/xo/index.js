@@ -501,6 +501,19 @@ subscribeHostMissingPatches.forceRefresh = host => {
   }
 }
 
+const rollingUpdateRecoveryByPool = {}
+export const subscribeRollingUpdateRecovery = (pool, cb) => {
+  const poolId = resolveId(pool)
+
+  if (rollingUpdateRecoveryByPool[poolId] == null) {
+    rollingUpdateRecoveryByPool[poolId] = createSubscription(() =>
+      _call('pool.getRollingUpdateRecovery', { pool: poolId }).catch(() => undefined)
+    )
+  }
+
+  return rollingUpdateRecoveryByPool[poolId](cb)
+}
+
 const proxiesApplianceUpdaterState = {}
 export const subscribeProxyApplianceUpdaterState = (proxyId, cb) => {
   if (proxiesApplianceUpdaterState[proxyId] === undefined) {

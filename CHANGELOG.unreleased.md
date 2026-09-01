@@ -31,4 +31,9 @@
 
 <!--packages-start-->
 
+- @vates/types minor
+- @xen-orchestra/rest-api minor
+- xo-server minor
+- xo-web minor
+
 <!--packages-end-->
