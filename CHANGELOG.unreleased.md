@@ -30,6 +30,7 @@
 - [XO server] Fix current_operations format on host and pool objects (PR [#10283](https://github.com/vatesfr/xen-orchestra/pull/10283))
 - [Web-core] Fix "no data" illustration stars color (PR [#10327](https://github.com/vatesfr/xen-orchestra/pull/10327))
 - [Backup] Fix `uncaught exception AssertionError: assert(!this.paused)` in the logs, when a host closes a transfer while XO is writing to a slower destination (PR [#10282](https://github.com/vatesfr/xen-orchestra/pull/10282))
+- [xo-server] If an HTTP proxy was configured, internal routes (`/openmetrics`, `/v5`) were wrongly routed through it when xo-server listened on a wildcard address (PR [#10335](https://github.com/vatesfr/xen-orchestra/pull/10335))
 
 ### Packages to release
 
