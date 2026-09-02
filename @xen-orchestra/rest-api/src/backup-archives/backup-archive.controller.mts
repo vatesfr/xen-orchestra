@@ -168,12 +168,19 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Post('{id}/actions/mountLiveDisk')
   @Middlewares([
     json(),
-    acl({
-      resource: 'backup-archive',
-      action: 'mount-live-disk',
-      objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-    }),
+    acl([
+      {
+        resource: 'host',
+        action: 'mount-live-disk',
+        objectId: 'body.hostId',
+      },
+      {
+        resource: 'backup-archive',
+        action: 'mount-live-disk',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+    ]),
   ])
   @Tags('srs')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -216,12 +223,19 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Post('{id}/actions/unmountLiveDisk')
   @Middlewares([
     json(),
-    acl({
-      resource: 'backup-archive',
-      action: 'unmount-live-disk',
-      objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-    }),
+    acl([
+      {
+        resource: 'host',
+        action: 'unmount-live-disk',
+        objectId: ({ req, restApi }) => restApi.xoApp.getBackupArchiveDiskMountOwner(req.body?.mountId).hostId,
+      },
+      {
+        resource: 'backup-archive',
+        action: 'unmount-live-disk',
+        objectId: ({ req, restApi }) => restApi.xoApp.getBackupArchiveDiskMountOwner(req.body?.mountId).archiveId,
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+    ]),
   ])
   @Tags('srs')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)

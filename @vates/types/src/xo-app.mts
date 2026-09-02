@@ -316,6 +316,11 @@ export type XoApp = {
   getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
+  /** Archive/host a live-mounted disk belongs to, as recorded by `mountBackupArchiveDisk` */
+  getBackupArchiveDiskMountOwner(id: BackupArchiveDiskMount['id']): {
+    archiveId: XoVmBackupArchive['id']
+    hostId: XoHost['id']
+  }
   getBackupNgLogs(): Promise<Record<string, AnyXoLog>>
   getBackupNgLogs(id: AnyXoLog['id']): Promise<AnyXoLog>
   getBackupNgLogsSorted(opts: {
