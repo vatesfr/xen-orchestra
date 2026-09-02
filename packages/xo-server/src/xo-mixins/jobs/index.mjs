@@ -373,7 +373,7 @@ export default class Jobs {
     }
   }
 
-  backupGuard(poolId, opts) {
-    return backupGuard.call(this._app, poolId, opts)
+  backupGuard(objectId, opts) {
+    return backupGuard.call(this._app, objectId, opts)
   }
 }

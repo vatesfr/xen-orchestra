@@ -10,23 +10,26 @@ const transport = createMemoryTransport()
 configure({ level: 'WARN', transport })
 
 const POOL_ID = 'pool-1'
+const HOST_ID = 'host-1'
 
-// a job with a `runId` is currently running, `vm-1` belongs to the pool, `vm-gone` was deleted
+// a job with a `runId` is currently running, `host-1` and `vm-1` belong to the pool, `vm-gone` was deleted
 const createApp = jobs => ({
   apiContext: { user: { id: 'user-1' } },
   getAllJobs: async () => jobs,
   hasObject: id => id !== 'vm-gone',
-  getObject: id => ({ $poolId: id === 'vm-1' ? POOL_ID : 'pool-2' }),
+  getObject: id => ({ $pool: id === 'vm-2' ? 'pool-2' : POOL_ID }),
 })
 
 describe('backupGuard', function () {
-  it('refuses the operation while a backup job runs on the pool', async function () {
+  it('refuses the operation while a backup job runs on the pool of the object', async function () {
     const app = createApp([{ runId: 'run-1', vms: { id: 'vm-1' } }])
+    await assert.rejects(backupGuard.call(app, HOST_ID), forbiddenOperation.is)
+    // the object may be the pool itself
     await assert.rejects(backupGuard.call(app, POOL_ID), forbiddenOperation.is)
   })
 
   it('lets the operation through when no backup job runs on the pool', async function () {
-    await backupGuard.call(createApp([{ vms: { id: 'vm-1' } }, { runId: 'run-2', vms: { id: 'vm-2' } }]), POOL_ID)
+    await backupGuard.call(createApp([{ vms: { id: 'vm-1' } }, { runId: 'run-2', vms: { id: 'vm-2' } }]), HOST_ID)
   })
 
   it('ignores the VMs of a running job that no longer exist', async function () {
@@ -43,11 +46,11 @@ describe('backupGuard', function () {
     await assert.rejects(backupGuard.call(running({ power_state: 'Running' }), POOL_ID), forbiddenOperation.is)
   })
 
-  it('skips the check and logs who bypassed it when bypassBackupCheck is set', async function () {
+  it('skips the check and logs who bypassed it on which object when bypassBackupCheck is set', async function () {
     const app = createApp([{ runId: 'run-1', vms: { id: 'vm-1' } }])
-    await backupGuard.call(app, POOL_ID, { bypassBackupCheck: true, operation: 'rollingPoolUpdate' })
+    await backupGuard.call(app, HOST_ID, { bypassBackupCheck: true, operation: 'host.restart' })
     const [log] = transport.logs.filter(({ message }) => message.includes('bypassBackupCheck'))
-    assert.match(log.message, /^rollingPoolUpdate /)
-    assert.deepEqual(log.data, { poolId: POOL_ID, userId: 'user-1' })
+    assert.match(log.message, /^host\.restart /)
+    assert.deepEqual(log.data, { objectId: HOST_ID, poolId: POOL_ID, userId: 'user-1' })
   })
 })
