@@ -125,6 +125,28 @@ type License = {
   bundleInfo?: { name: string; id: string }
 }
 
+/** A disk of a backup archive currently served as a read-only iSCSI LUN */
+export type BackupArchiveDiskMount = {
+  /** Handle to pass to `unmountBackupArchiveDisk` */
+  id: string
+  /** UUID of the SR introduced on the host */
+  srUuid: string
+  /** UUID of the read-only VDI exposing the backup disk */
+  vdiUuid: string
+  /** IQN of the target serving the disk */
+  iqn: string
+  /** Address of the portal, as advertised to the host */
+  address: string
+  /** Port of the portal (ephemeral, one target per mount) */
+  port: number
+}
+
+/** A live mount, as listed by `listMountedBackupArchiveDisks` */
+export type MountedBackupArchiveDisk = BackupArchiveDiskMount & {
+  /** Path of the mounted disk on its backup repository */
+  diskPath: string
+}
+
 export type XoApp = {
   hooks: EventEmitter
   _redis: {
@@ -294,6 +316,11 @@ export type XoApp = {
   getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
+  /** Archive/host a live-mounted disk belongs to, as recorded by `mountBackupArchiveDisk` */
+  getBackupArchiveDiskMountOwner(id: BackupArchiveDiskMount['id']): {
+    archiveId: XoVmBackupArchive['id']
+    hostId: XoHost['id']
+  }
   getBackupNgLogs(): Promise<Record<string, AnyXoLog>>
   getBackupNgLogs(id: AnyXoLog['id']): Promise<AnyXoLog>
   getBackupNgLogsSorted(opts: {
@@ -328,10 +355,21 @@ export type XoApp = {
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
     pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
   }>
+  listMountedBackupArchiveDisks(): MountedBackupArchiveDisk[]
   listVmBackupsNg(
     backupRepositoryIds: XoBackupRepository['id'][],
     opts?: { _forceRefresh?: boolean; vmId: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]>>>
+  /**
+   * Serve one disk of a backup archive as a read-only iSCSI LUN and attach it to
+   * `host` as an SR. Undone by `unmountBackupArchiveDisk`.
+   */
+  mountBackupArchiveDisk(params: {
+    archiveId: XoVmBackupArchive['id']
+    /** One of the archive's `disks[].id` */
+    diskId: string
+    hostId: XoHost['id']
+  }): Promise<BackupArchiveDiskMount>
   pingRemote(id: XoBackupRepository['id']): Promise<{ success: true }>
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(
@@ -357,6 +395,8 @@ export type XoApp = {
     | { success: true; readRate: number; writeRate: number }
     | { success: false; step: string; file: string; error: unknown }
   >
+  /** Detach a disk mounted by `mountBackupArchiveDisk` and stop serving it */
+  unmountBackupArchiveDisk(id: BackupArchiveDiskMount['id']): Promise<void>
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
   updateUser(

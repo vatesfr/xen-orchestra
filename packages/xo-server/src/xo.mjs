@@ -5,6 +5,7 @@ import HttpProxy from '@xen-orchestra/mixins/HttpProxy.mjs'
 import includes from 'lodash/includes.js'
 import isEmpty from 'lodash/isEmpty.js'
 import iteratee from 'lodash/iteratee.js'
+import LiveMount from '@xen-orchestra/mixins/live-mount/index.mjs'
 import mixin from '@xen-orchestra/mixin'
 import mixinLegacy from '@xen-orchestra/mixin/legacy.js'
 import once from 'lodash/once.js'
@@ -34,7 +35,7 @@ export default class Xo extends EventEmitter {
   constructor(opts) {
     super()
 
-    mixin(this, { Config, Hooks, HttpProxy, SslCertificate, Tasks }, [opts])
+    mixin(this, { Config, Hooks, HttpProxy, LiveMount, SslCertificate, Tasks }, [opts])
     // a lot of mixins adds listener for start/stop/… events
     this.hooks.setMaxListeners(0)
 
