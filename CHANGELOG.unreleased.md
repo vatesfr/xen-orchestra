@@ -12,11 +12,12 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [XO6/Traffic rules] Add possibility of editing a traffic rule (PR [#10056](https://github.com/vatesfr/xen-orchestra/pull/10056))
-- [XO-WEB] Disabl restart toolstack button for the hosts that belongs to a HA pools (PR [#10340](https://github.com/vatesfr/xen-orchestra/pull/10340))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
+
+- [XO-WEB] Disabl restart toolstack button for the hosts that belongs to a HA pools (PR [#10340](https://github.com/vatesfr/xen-orchestra/pull/10340))
 
 ### Packages to release
 
