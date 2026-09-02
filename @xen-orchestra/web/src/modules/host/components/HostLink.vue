@@ -1,5 +1,11 @@
 <template>
-  <UiLink :to :size :icon :is-primary="isMaster" :primary-tooltip="t('master')">
+  <UiLink
+    :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+    :size
+    :icon
+    :is-primary="isMaster"
+    :primary-tooltip="t('master')"
+  >
     <slot>{{ host.name_label }}</slot>
   </UiLink>
 </template>
@@ -21,6 +27,5 @@ const { t } = useI18n()
 const { isMasterHost } = useXoHostCollection()
 
 const icon = computed(() => getHostIcon(host))
-const to = computed(() => ({ name: '/host/[id]/dashboard', params: { id: host.id } }) as const)
 const isMaster = computed(() => isMasterHost(host.id))
 </script>
