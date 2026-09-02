@@ -107,6 +107,7 @@ function getManagementIcon(pif: FrontXoPif) {
 }
 
 const { HeadCells, BodyCells } = usePifColumns({
+  exclude: ['selectItem'],
   body: (pif: FrontXoPif) => {
     const status = computed(() => getPifStatus(pif))
     const vlan = computed(() => getVlanData(pif.vlan))
@@ -128,7 +129,6 @@ const { HeadCells, BodyCells } = usePifColumns({
     } = usePifManagementReconfigureModal(() => pif)
 
     return {
-      selectItem: r => r(() => (selectedPifId.value = pif.id)),
       network: r =>
         network.value
           ? r({

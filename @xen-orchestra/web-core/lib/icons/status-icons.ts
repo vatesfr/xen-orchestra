@@ -210,7 +210,7 @@ export const statusIcons = defineIconPack({
     },
     {
       icon: faStar,
-      color: 'var(--color-info-txt-item)',
+      color: 'var(--color-neutral-background-primary)',
       size: 10,
     },
   ],

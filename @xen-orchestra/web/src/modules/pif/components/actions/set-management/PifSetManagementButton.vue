@@ -6,7 +6,6 @@
     accent="brand"
     :disabled="!canReconfigureManagement"
     :left-icon="canReconfigureManagement ? 'status:primary-circle' : 'status:primary-circle-disabled'"
-    full-size-icon
     :busy="isReconfiguringManagement"
     @click="openManagementReconfigureModal()"
   >
