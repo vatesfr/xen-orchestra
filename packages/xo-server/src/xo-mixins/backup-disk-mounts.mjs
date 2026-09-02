@@ -13,6 +13,11 @@ const getBackupRepositoryId = archiveId => archiveId.split('/')[0]
 export default class BackupDiskMountsResolver {
   #app
 
+  // mount id -> { archiveId, hostId }, so a mount id can be resolved back to
+  // the archive/host it actually belongs to, e.g. for ACL checks that must
+  // not trust a caller-supplied archive/host id
+  #mountOwners = new Map()
+
   constructor(app) {
     this.#app = app
   }
@@ -41,7 +46,7 @@ export default class BackupDiskMountsResolver {
     const remote = await app.getRemoteWithCredentials(getBackupRepositoryId(archiveId))
     const adapter = await app.getBackupsRemoteAdapter(remote)
     try {
-      return await app.liveMount.mountDisk({
+      const mount = await app.liveMount.mountDisk({
         diskPath: diskId,
         handler: adapter.value.handler,
         hostRef: host._xapiRef,
@@ -49,6 +54,8 @@ export default class BackupDiskMountsResolver {
         release: () => adapter.dispose(),
         xapi: app.getXapi(host),
       })
+      this.#mountOwners.set(mount.id, { archiveId, hostId })
+      return mount
     } catch (error) {
       await adapter.dispose()
       throw error
@@ -56,9 +63,24 @@ export default class BackupDiskMountsResolver {
   }
 
   /**
+   * Archive/host a mount actually belongs to, so callers (e.g. the REST API's
+   * ACL checks) don't have to trust a caller-supplied archive/host id.
+   *
+   * @param {string} id - identifier returned by `mountBackupArchiveDisk`
+   */
+  getBackupArchiveDiskMountOwner(id) {
+    const owner = this.#mountOwners.get(id)
+    if (owner === undefined) {
+      throw noSuchObject(id, 'backup-archive-disk-mount')
+    }
+    return owner
+  }
+
+  /**
    * @param {string} id - identifier returned by `mountBackupArchiveDisk`
    */
   unmountBackupArchiveDisk(id) {
+    this.#mountOwners.delete(id)
     return this.#app.liveMount.unmountDisk(id)
   }
 
