@@ -75,6 +75,15 @@ export function useBackupRepositoryGeneralForm() {
     }
   })
 
+  watch(
+    () => formData.encrypted,
+    encrypted => {
+      if (!encrypted) {
+        formData.encryptionKey = ''
+      }
+    }
+  )
+
   const typeOptions = computed(() => [
     { id: 'file', label: t('local'), value: 'file' },
     { id: 'nfs', label: t('nfs'), value: 'nfs' },
