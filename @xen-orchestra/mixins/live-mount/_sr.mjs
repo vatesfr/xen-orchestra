@@ -114,5 +114,6 @@ export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath, readOn
     }
     return vdi.uuid
   }
-  warn('no VDI found for the introduced LUN', { SCSIid, srRef })
+  warn('no VDI found for the introduced LUN', { SCSIid, srRef, diskPath })
+  throw new Error(`no VDI found for the introduced LUN when tryng to mount ${diskPath}`)
 }
