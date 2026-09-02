@@ -2170,6 +2170,12 @@ const messages = {
   chooseSrForEachVdisModalMainSr: 'Select main SR…',
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',
+  vdiTargetSelectAction: 'For each VDI, choose what to do (optional)',
+  vdiTargetActionLabel: 'Action',
+  vdiTargetDestinationLabel: 'Destination',
+  vdiTargetRestore: 'Restore',
+  vdiTargetLiveMount: 'Live mount (read only)',
+  vdiTargetIgnore: 'Do not restore',
   deleteJobsModalTitle: 'Delete job{nJobs, plural, one {} other {s}}',
   deleteJobsModalMessage: 'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?',
   deleteVbdsModalTitle: 'Delete VBD{nVbds, plural, one {} other {s}}',
@@ -2240,7 +2246,6 @@ const messages = {
     'This VM contains a duplicate MAC address or has the same MAC address as another running VM. Do you want to continue?',
   vmsWithDuplicatedMacAddressesMessage:
     '{nVms, number} VM{nVms, plural, one {} other {s}} contain{nVms, plural, one {s} other {}} duplicate MAC addresses or {nVms, plural, one {has} other {have}} the same MAC addresses as other running VMs. Do you want to continue?',
-  ignoreVdi: 'Ignore this VDI',
   selectDestinationSr: 'Select a destination SR',
 
   // ----- Servers -----
