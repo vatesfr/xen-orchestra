@@ -112,13 +112,15 @@ class GenericModal extends Component {
   }
 }
 
-export const chooseAction = ({ body, buttons, icon, title }) => {
+// `size` is a Bootstrap modal size (e.g. `large`), for a body which does not fit the default width
+export const chooseAction = ({ body, buttons, icon, size, title }) => {
   return new Promise((resolve, reject) => {
     modal(
       <GenericModal buttons={buttons} icon={icon} reject={reject} resolve={resolve} title={title}>
         {body}
       </GenericModal>,
-      reject
+      reject,
+      { bsSize: size }
     )
   })
 }
@@ -225,7 +227,7 @@ export const alert = (title, body) =>
 
 const CONFIRM_BUTTONS = [{ btnStyle: 'primary', label: _('confirmOk') }]
 
-export const confirm = ({ body, icon = 'alarm', title, strongConfirm }) =>
+export const confirm = ({ body, icon = 'alarm', size, title, strongConfirm }) =>
   strongConfirm
     ? new Promise((resolve, reject) => {
         modal(
@@ -237,13 +239,15 @@ export const confirm = ({ body, icon = 'alarm', title, strongConfirm }) =>
             strongConfirm={strongConfirm}
             title={title}
           />,
-          reject
+          reject,
+          { bsSize: size }
         )
       })
     : chooseAction({
         body,
         buttons: CONFIRM_BUTTONS,
         icon,
+        size,
         title,
       })
 
