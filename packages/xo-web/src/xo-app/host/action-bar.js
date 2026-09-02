@@ -14,7 +14,12 @@ const hostActionBarByState = {
   Running: ({ host, pool }) => (
     <ActionBar display='icon' handlerParam={host}>
       <Action handler={stopHost} icon='host-stop' label={_('stopHostLabel')} />
-      {pool.HA_enabled ? <Action handler={restartHostAgent} disabled icon='host-restart-agent' label={_('cantRestartHostAgent')} /> : <Action handler={restartHostAgent} icon='host-restart-agent' label={_('restartHostAgent')} />}
+      <Action
+        handler={restartHostAgent}
+        disabled={pool?.HA_enabled}
+        icon='host-restart-agent'
+        label={pool?.HA_enabled ? _('highAvailabilityNotDisabledTooltip') : _('restartHostAgent')}
+      />
       <Action handler={emergencyShutdownHost} icon='host-emergency-shutdown' label={_('emergencyModeLabel')} />
       <Action handler={restartHost} icon='host-reboot' label={_('rebootHostLabel')} />
     </ActionBar>

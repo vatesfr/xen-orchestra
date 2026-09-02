@@ -1107,7 +1107,6 @@ const messages = {
   enableHostLabel: 'Enable',
   disableHostLabel: 'Disable',
   restartHostAgent: 'Restart toolstack',
-  cantRestartHostAgent: 'HA is enabled for this pool, restarting the toolstack on its hosts is not allowed',
   smartRebootBypassCurrentVmCheck:
     'As the XOA is hosted on the host that is scheduled for a reboot, it will also be restarted. Consequently, XO won\'t be able to resume VMs, and VMs with the "Protect from accidental shutdown" option enabled will not have this option reactivated automatically.',
   smartRebootHostLabel: 'Smart reboot',
