@@ -51,7 +51,7 @@ const isRunning = host => host && host.power_state === 'Running'
   const getHost = createGetObject()
 
   const getPool = createGetObject((state, props) => getHost(state, props).$pool)
-
+  
   const getVmController = createGetObjectsOfType('VM-controller').find(
     createSelector(
       getHost,
@@ -275,7 +275,7 @@ export default class Host extends Component {
           </Col>
           <Col mediumSize={6}>
             <div className='text-xs-center'>
-              <HostActionBar host={host} />
+              <HostActionBar host={host} pool={pool} />
             </div>
           </Col>
         </Row>
