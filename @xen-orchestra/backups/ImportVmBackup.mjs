@@ -10,6 +10,7 @@ import { dirname, join } from 'node:path'
 import pickBy from 'lodash/pickBy.js'
 import { defer } from 'golike-defer'
 import { NegativeDisk } from '@xen-orchestra/disk-transform'
+import { normalizeVdiRestoreTargets } from './_vdiRestoreTargets.mjs'
 import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { resetVmOtherConfig } from './_otherConfig.mjs'
 
@@ -25,18 +26,43 @@ async function resolveUuid(xapi, cache, uuid, type) {
   return cache.get(uuid)
 }
 export class ImportVmBackup {
+  // ids of the live mounts created by this restore, so a failure can release them
+  #liveMountIds = []
+
+  /**
+   * @param {object} params
+   * @param {object} params.adapter - remote adapter of the backup repository
+   * @param {object} params.metadata - metadata of the backup to restore
+   * @param {string} params.srUuid - SR the disks are restored to, unless a per disk target says otherwise
+   * @param {object} params.xapi - XAPI connection of the pool owning `srUuid`
+   * @param {object} [params.liveMount] - how to serve a disk from the backup repository instead of
+   * copying it, injected by the caller since a live mount outlives the restore and cannot be run
+   * from this package
+   * @param {({ diskPath, hostId }) => Promise<{ id: string, vdiUuid: string }>} params.liveMount.mountDisk
+   * @param {(id: string) => Promise<void>} params.liveMount.unmountDisk
+   * @param {object} [params.settings]
+   */
   constructor({
     adapter,
+    liveMount,
     metadata,
     srUuid,
     xapi,
     settings: { additionalVmTag, newMacAddresses, mapVdisSrs = {}, useDifferentialRestore = false } = {},
   }) {
     this._adapter = adapter
-    this._importIncrementalVmSettings = { additionalVmTag, newMacAddresses, mapVdisSrs, useDifferentialRestore }
+    this._importIncrementalVmSettings = { additionalVmTag, newMacAddresses, useDifferentialRestore }
+    this._liveMount = liveMount
     this._metadata = metadata
     this._srUuid = srUuid
+    this._vdiRestoreTargets = normalizeVdiRestoreTargets(mapVdisSrs, { useDifferentialRestore })
     this._xapi = xapi
+  }
+
+  /** SR a disk must be restored to, the restore's default one unless its target names another */
+  #getTargetSrUuid(vdiUuid) {
+    const target = this._vdiRestoreTargets.get(vdiUuid)
+    return (target.type === 'restore' ? target.sr : undefined) ?? this._srUuid
   }
 
   async #getPathOfVdiSnapshot(snapshotUuid) {
@@ -57,13 +83,13 @@ export class ImportVmBackup {
     return this._pathToVdis.get(snapshotUuid)
   }
 
-  async _reuseNearestSnapshot($defer, ignoredVdis) {
+  async _reuseNearestSnapshot($defer, excludedVdiUuids) {
     const metadata = this._metadata
-    const { mapVdisSrs } = this._importIncrementalVmSettings
     const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
     const disks = {}
     const metadataDir = dirname(metadata._filename)
-    const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
+    const vdis =
+      excludedVdiUuids === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !excludedVdiUuids.has(vdi.uuid))
 
     for (const [vdiRef, vdi] of Object.entries(vdis)) {
       const vhdPath = join(metadataDir, vhds[vdiRef])
@@ -100,8 +126,11 @@ export class ImportVmBackup {
             debug('no backup linked to this snapshot')
             continue
           }
-          if (snapshot.$SR.uuid !== (mapVdisSrs[vdi.$snapshot_of$uuid] ?? this._srUuid)) {
-            debug('not restored on the same SR', { snapshotSr: snapshot.$SR.uuid, mapVdisSrs, srUuid: this._srUuid })
+          // reusing a snapshot means cloning it, and a clone lands on the SR of its source: a
+          // snapshot which is not on the SR this disk is restored to is not a usable base
+          const targetSrUuid = this.#getTargetSrUuid(vdi.uuid)
+          if (snapshot.$SR.uuid !== targetSrUuid) {
+            debug('not restored on the same SR', { snapshotSr: snapshot.$SR.uuid, targetSrUuid })
             continue
           }
 
@@ -194,38 +223,108 @@ export class ImportVmBackup {
     }
   }
 
-  async #decorateIncrementalVmMetadata() {
-    const { additionalVmTag, mapVdisSrs, useDifferentialRestore } = this._importIncrementalVmSettings
+  async _decorateIncrementalVmMetadata() {
+    const { additionalVmTag, useDifferentialRestore } = this._importIncrementalVmSettings
+    const targets = this._vdiRestoreTargets
 
-    const ignoredVdis = new Set(
-      Object.entries(mapVdisSrs)
-        .filter(([_, srUuid]) => srUuid === null)
-        .map(([vdiUuid]) => vdiUuid)
-    )
+    // a live mounted disk stays on the backup repository and is served from there, so it is left
+    // out of the disks to read, exactly like an ignored one, then added back below
+    const liveMountedVdiUuids = targets.getLiveMountedVdiUuids()
+    const excludedVdiUuids = new Set([...targets.getIgnoredVdiUuids(), ...liveMountedVdiUuids])
+
     let backup
     if (useDifferentialRestore) {
-      backup = await this._reuseNearestSnapshot(ignoredVdis)
+      backup = await this._reuseNearestSnapshot(excludedVdiUuids)
     } else {
-      backup = await this._adapter.readIncrementalVmBackup(this._metadata, ignoredVdis)
+      backup = await this._adapter.readIncrementalVmBackup(this._metadata, excludedVdiUuids)
     }
     const xapi = this._xapi
 
     const cache = new Map()
-    const mapVdisSrRefs = {}
     if (additionalVmTag !== undefined) {
       backup.vm.tags.push(additionalVmTag)
     }
-    for (const [vdiUuid, srUuid] of Object.entries(mapVdisSrs)) {
-      mapVdisSrRefs[vdiUuid] = await resolveUuid(xapi, cache, srUuid, 'SR')
+    for (const vdi of Object.values(backup.vdis)) {
+      vdi.SR = await resolveUuid(xapi, cache, this.#getTargetSrUuid(vdi.uuid), 'SR')
     }
-    const srRef = await resolveUuid(xapi, cache, this._srUuid, 'SR')
-    Object.values(backup.vdis).forEach(vdi => {
-      vdi.SR = mapVdisSrRefs[vdi.uuid] ?? srRef
-    })
+
+    // after the SR resolution: a live mounted VDI already exists, it is not created on any SR
+    await this.#addLiveMountedVdis(backup)
+
     return backup
   }
 
-  async run() {
+  /**
+   * Mount every disk whose target asks for it and add it to the backup to import, as an existing
+   * VDI to attach instead of a disk to transfer.
+   */
+  async #addLiveMountedVdis(backup) {
+    const vdiUuids = this._vdiRestoreTargets.getLiveMountedVdiUuids()
+    if (vdiUuids.size === 0) {
+      return
+    }
+
+    const liveMount = this._liveMount
+    if (liveMount === undefined) {
+      throw new Error('live mounting a disk during a restore is not supported here')
+    }
+
+    const xapi = this._xapi
+    const metadata = this._metadata
+    const metadataDir = dirname(metadata._filename)
+    // validates that they all use the same host, since each mount is attached to a single one
+    const hostId = this._vdiRestoreTargets.getLiveMountHost()
+
+    for (const [vdiRef, vdi] of Object.entries(metadata.vdis)) {
+      if (!vdiUuids.has(vdi.uuid)) {
+        continue
+      }
+
+      const diskPath = join(metadataDir, metadata.vhds[vdiRef])
+      const mount = await liveMount.mountDisk({ diskPath, hostId })
+      this.#liveMountIds.push(mount.id)
+      info('disk live mounted', { diskPath, hostId, mountId: mount.id, vdiUuid: vdi.uuid })
+
+      const record = { ...vdi, liveMountedVdiRef: await xapi.call('VDI.get_by_uuid', mount.vdiUuid) }
+      // it is attached as is: there is nothing to clone it from, nothing to transfer into it, and
+      // no SR to create it on — `SR` still holds the ref it had on the backed up pool
+      delete record.baseVdi
+      delete record.SR
+      backup.vdis[vdiRef] = record
+    }
+  }
+
+  /**
+   * Point the restored VM at the host serving its live mounted disks.
+   *
+   * Their SR is plugged on that host only, so the VM can run nowhere else.
+   */
+  async #setLiveMountAffinity(vmRef) {
+    if (this.#liveMountIds.length === 0) {
+      return
+    }
+    const xapi = this._xapi
+    const hostId = this._vdiRestoreTargets.getLiveMountHost()
+    await xapi.call('VM.set_affinity', vmRef, await xapi.call('host.get_by_uuid', hostId))
+  }
+
+  /**
+   * Release the live mounts created by this restore.
+   *
+   * Best effort: this runs while a restore is already failing, and a mount left behind must not
+   * hide the error which caused it.
+   */
+  async #releaseLiveMounts() {
+    for (const id of this.#liveMountIds.splice(0)) {
+      try {
+        await this._liveMount.unmountDisk(id)
+      } catch (error) {
+        warn('failed to unmount a live mounted disk', { error, mountId: id })
+      }
+    }
+  }
+
+  async run($defer) {
     const adapter = this._adapter
     const metadata = this._metadata
     const isFull = metadata.mode === 'full'
@@ -234,12 +333,19 @@ export class ImportVmBackup {
     const { newMacAddresses } = this._importIncrementalVmSettings
     let backup
     if (isFull) {
+      if (this._vdiRestoreTargets.getLiveMountedVdiUuids().size > 0) {
+        // a full backup is a single XVA stream: there is no per disk handling at all
+        throw new Error('live mounting a disk is only supported when restoring an incremental backup')
+      }
       backup = await adapter.readFullVmBackup(metadata)
       watchStreamSize(backup, sizeContainer)
     } else {
       assert.strictEqual(metadata.mode, 'delta')
 
-      backup = await this.#decorateIncrementalVmMetadata()
+      // the mounts are created here, before the import, and outlive this restore: only a failure
+      // releases them, a successful one hands their ids back to the caller
+      $defer.onFailure(() => this.#releaseLiveMounts())
+      backup = await this._decorateIncrementalVmMetadata()
     }
 
     return Task.run(
@@ -280,15 +386,17 @@ export class ImportVmBackup {
           ),
           xapi.call('VM.set_name_description', vmRef, desc),
           resetVmOtherConfig(xapi, vmRef),
+          this.#setLiveMountAffinity(vmRef),
         ])
 
         return {
           size,
           id: await xapi.getField('VM', vmRef, 'uuid'),
+          liveMountIds: [...this.#liveMountIds],
         }
       }
     )
   }
 }
 
-decorateClass(ImportVmBackup, { _reuseNearestSnapshot: defer })
+decorateClass(ImportVmBackup, { _reuseNearestSnapshot: defer, run: defer })

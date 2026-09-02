@@ -40,6 +40,7 @@
 
 - @vates/types minor
 - @xen-orchestra/acl minor
+- @xen-orchestra/backups minor
 - @xen-orchestra/mixins minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
