@@ -1414,6 +1414,10 @@ export default {
   // Original text: "Restart toolstack"
   restartHostAgent: 'Redémarrer la toolstack',
 
+  // Original text: "HA is enabled for this pool, restarting the toolstack on its hosts is not allowed"
+  cantRestartHostAgent:
+    'La haute disponibilité (HA) est activée pour ce pool, le redémarrage du toolstack sur ses hôtes n’est pas autorisé',
+
   // Original text: "Force reboot"
   forceRebootHostLabel: 'Forcer un redémarrage',
 
