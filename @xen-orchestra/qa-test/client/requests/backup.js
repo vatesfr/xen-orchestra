@@ -182,6 +182,54 @@ export class BackupRequest extends AbstractRequest {
     }
   }
 
+  /**
+   * Runs a backup health check on a backup (backupNg.checkBackup).
+   *
+   * @param {string} backupId - Backup ID as returned by `listVmBackups`
+   * @param {string} srId - Storage Repository the check restores to
+   * @param {Object} [settings={}]
+   * @returns {Promise<void>}
+   */
+  async checkBackup(backupId, srId, settings = {}) {
+    this._ensureConnected()
+
+    return this.dispatchClient.xoClient.call('backupNg.checkBackup', { id: backupId, sr: srId, settings })
+  }
+
+  /**
+   * Serves one disk of a backup archive as a read-only iSCSI LUN attached to a host.
+   *
+   * @param {string} archiveId - `<backup repository id>/<metadata path>`, i.e. a backup id
+   * @param {string} diskId - id of one of the archive's disks, as listed in `backup.disks`
+   * @param {string} hostId - host the disk is attached to
+   * @returns {Promise<{id: string, srUuid: string, vdiUuid: string}>} the mount, whose `id` is the
+   * handle to pass to `unmountLiveDisk`
+   */
+  async mountLiveDisk(archiveId, diskId, hostId) {
+    this._ensureConnected()
+
+    return this.#liveDiskAction(archiveId, 'mountLiveDisk', { diskId, hostId })
+  }
+
+  /**
+   * Detaches a disk mounted by `mountLiveDisk`, or by a restore which live mounted it.
+   *
+   * @param {string} archiveId - archive the mount belongs to
+   * @param {string} mountId - identifier of the mount
+   * @returns {Promise<void>}
+   */
+  async unmountLiveDisk(archiveId, mountId) {
+    this._ensureConnected()
+
+    return this.#liveDiskAction(archiveId, 'unmountLiveDisk', { mountId })
+  }
+
+  // a backup archive id contains slashes, so it has to be encoded to stay a single path segment
+  #liveDiskAction(archiveId, action, body) {
+    const endpoint = `/rest/v0/backup-archives/${encodeURIComponent(archiveId)}/actions/${action}?sync=true`
+    return this.dispatchClient.restApiClient.post(endpoint, body)
+  }
+
   // ===========================================================================
   // Mirror Backup operations (mirrorBackup.* API)
   // ===========================================================================
