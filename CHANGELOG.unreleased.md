@@ -15,7 +15,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [Backups/Encryption] New error thrown when encryption key is removed from an encrypted remote url (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
+- [Backups/Encryption] New error thrown when encryption key is removed from an encrypted remote url (PR [#10339](https://github.com/vatesfr/xen-orchestra/pull/10339))
 
 ### Packages to release
 
