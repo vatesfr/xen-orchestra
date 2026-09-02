@@ -206,7 +206,7 @@ export async function restart({
     }
   }
 
-  await this.backupGuard(host.$poolId, { bypassBackupCheck, operation: 'host.restart' })
+  await this.backupGuard(host.id, { bypassBackupCheck, operation: 'host.restart' })
 
   const xapi = this.getXapi(host)
   return suspendResidentVms
@@ -251,7 +251,7 @@ restart.resolve = {
 // -------------------------------------------------------------------
 
 export async function restartAgent({ bypassBackupCheck, host }) {
-  await this.backupGuard(host.$poolId, { bypassBackupCheck, operation: 'host.restartAgent' })
+  await this.backupGuard(host.id, { bypassBackupCheck, operation: 'host.restartAgent' })
   return this.getXapiObject(host).$restartAgent()
 }
 
@@ -306,7 +306,7 @@ start.resolve = {
 // -------------------------------------------------------------------
 
 export async function stop({ bypassBackupCheck, host, bypassEvacuate }) {
-  await this.backupGuard(host.$poolId, { bypassBackupCheck, operation: 'host.stop' })
+  await this.backupGuard(host.id, { bypassBackupCheck, operation: 'host.stop' })
   return this.getXapi(host).shutdownHost(host._xapiId, { bypassEvacuate })
 }
 

@@ -1048,7 +1048,7 @@ disableMaintenanceMode.resolve = {
 // -------------------------------------------------------------------
 
 export async function reclaimSpace({ sr, bypassBackupCheck }) {
-  await this.backupGuard(sr.$pool, { bypassBackupCheck, operation: 'sr.reclaimSpace' })
+  await this.backupGuard(sr.id, { bypassBackupCheck, operation: 'sr.reclaimSpace' })
   await this.getXapiObject(sr).$reclaimSpace()
 }
 

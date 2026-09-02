@@ -101,9 +101,7 @@ export class HostService {
       bypassEvacuate?: boolean
     } = {}
   ): Promise<void> {
-    const host = this.#restApi.getObject<XoHost>(hostId)
-
-    await this.#restApi.xoApp.backupGuard(host.$pool, {
+    await this.#restApi.xoApp.backupGuard(hostId, {
       bypassBackupCheck: opts.bypassBackupCheck,
       operation: 'host.clean_shutdown',
     })
@@ -146,9 +144,7 @@ export class HostService {
       bypassBackupCheck?: boolean
     } = {}
   ): Promise<void> {
-    const host = this.#restApi.getObject<XoHost>(hostId)
-
-    await this.#restApi.xoApp.backupGuard(host.$pool, {
+    await this.#restApi.xoApp.backupGuard(hostId, {
       bypassBackupCheck: opts.bypassBackupCheck,
       operation: 'host.restartAgent',
     })
@@ -168,7 +164,7 @@ export class HostService {
     const poolId = host.$pool
     const xapi = xapiHost.$xapi
 
-    await this.#restApi.xoApp.backupGuard(poolId, {
+    await this.#restApi.xoApp.backupGuard(hostId, {
       bypassBackupCheck: opts.bypassBackupCheck,
       operation: 'host.reboot',
     })
