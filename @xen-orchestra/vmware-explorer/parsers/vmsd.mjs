@@ -1,5 +1,9 @@
 // the vmsd file contain the snapshot history of the VM , and their chaining
 
+// reserved names that would let an untrusted vmsd line pollute Object.prototype
+// (e.g. "snapshot0.__proto__.polluted = "x"") instead of just setting a data property
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+
 function set(obj, keyPath, val) {
   const [key, ...other] = keyPath
 
@@ -26,6 +30,9 @@ function set(obj, keyPath, val) {
       obj[label][index] = val
     }
   } else {
+    if (UNSAFE_KEYS.has(key)) {
+      return
+    }
     if (other.length) {
       // an object
       if (!obj[key]) {

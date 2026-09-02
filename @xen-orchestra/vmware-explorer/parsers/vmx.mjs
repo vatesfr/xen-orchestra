@@ -1,5 +1,9 @@
 // the VMX file contains the VM  metadata
 
+// reserved names that would let an untrusted VMX line pollute Object.prototype
+// (e.g. "__proto__.permission = "admin"") instead of just setting a data property
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+
 function set(obj, keyPath, val) {
   let [key, ...other] = keyPath
 
@@ -7,6 +11,9 @@ function set(obj, keyPath, val) {
     // it's an array
     let index
     ;[key, index] = key.split(':')
+    if (UNSAFE_KEYS.has(key)) {
+      return
+    }
     index = parseInt(index)
     if (!obj[key]) {
       // first time on this array
@@ -29,6 +36,9 @@ function set(obj, keyPath, val) {
     }
   } else {
     // it's an object
+    if (UNSAFE_KEYS.has(key)) {
+      return
+    }
     if (!other.length) {
       // without descendant
       obj[key] = val
