@@ -22,27 +22,7 @@
 
       <div class="main-content">
         <div class="content-left">
-          <div v-if="task.nameParts || task.name" class="task-name">
-            <template v-if="task.to">
-              <UiLink size="small" display-inline :to="task.to">
-                <template v-if="task.nameParts">
-                  <template v-for="(part, index) in task.nameParts" :key="index">
-                    {{ part.text }}
-                  </template>
-                </template>
-                <template v-else>{{ task.name }}</template>
-              </UiLink>
-            </template>
-            <template v-else>
-              <template v-if="task.nameParts">
-                <template v-for="(part, index) in task.nameParts" :key="index">
-                  <UiLink v-if="part.to" size="small" display-inline :to="part.to">{{ part.text }}</UiLink>
-                  <UiLink v-else display-inline size="small">{{ part.text }}</UiLink>
-                </template>
-              </template>
-              <UiLink v-else display-inline size="small">{{ task.name }}</UiLink>
-            </template>
-          </div>
+          <VtsTaskName :task size="small" />
 
           <div v-if="shouldShowInfos || hasSubTasks" class="infos">
             <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="brand" variant="secondary" size="small" />
@@ -72,11 +52,11 @@
 </template>
 
 <script lang="ts" setup>
+import VtsTaskName from '@core/components/task/VtsTaskName.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import type { LinkOptions } from '@core/composables/link-component.composable.ts'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
@@ -109,7 +89,7 @@ export type Task = {
   warnings?: { data: unknown; message: string }[]
 }
 
-const { task, showEyeIcon = true } = defineProps<{
+const { task, showEyeIcon = false } = defineProps<{
   task: Task
   depth: number
   expanded?: boolean
@@ -228,10 +208,6 @@ const progress = computed(() => {
       color: var(--color-neutral-txt-secondary);
       word-break: break-word;
 
-      .task-name {
-        line-height: 1;
-      }
-
       .infos {
         display: flex;
         align-items: center;
@@ -254,6 +230,10 @@ const progress = computed(() => {
       .actions {
         display: flex;
         gap: 1.6rem;
+      }
+
+      .progress:not(:has(+ .actions)) {
+        margin-inline-end: 4rem;
       }
     }
   }
