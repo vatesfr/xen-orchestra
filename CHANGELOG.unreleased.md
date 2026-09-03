@@ -50,6 +50,7 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-cli patch
