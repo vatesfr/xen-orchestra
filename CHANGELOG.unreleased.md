@@ -34,6 +34,5 @@
 <!--packages-start-->
 
 - @xen-orchestra/proxy patch
-- xo-server patch
 
 <!--packages-end-->
