@@ -63,34 +63,69 @@ export class QcowStreamGenerator {
   }
 
   /**
-   * Computes the size and structure of the L1/L2 addressing tables
-   * @returns Object containing total size and number of L1 entries
+   * Scans every block index once, building a per-block presence bitmap and a per-L2-group
+   * "has any allocated block" summary, so the rest of the generator never needs to call
+   * `disk.hasBlock()` again. Yields back to the event loop periodically (time-budgeted, not a
+   * fixed count) so a huge virtual disk doesn't block Node for seconds at a stretch — this was
+   * previously done as three separate synchronous full scans (one per caller below), each one
+   * capable of blocking the event loop on its own.
    * @private
    */
-  #computeAddressingSpace(): { size: number; nbL1Entries: number } {
+  async #buildBlockPresenceIndex(): Promise<{
+    bitmap: Uint8Array
+    groupHasData: Uint8Array
+    nbBlocks: number
+    nbL1Entries: number
+  }> {
     const disk = this.#disk
     const nbBlocks = Math.ceil(disk.getVirtualSize() / disk.getBlockSize())
     const nbL2PerL1Entry = CLUSTER_SIZE / L2_ADDRESS_ENTRY_SIZE
     const nbL1Entries = Math.ceil(nbBlocks / nbL2PerL1Entry)
 
-    // L1 table size (aligned to cluster size)
-    let size = Math.ceil((nbL1Entries * 8) / CLUSTER_SIZE) * CLUSTER_SIZE
+    const bitmap = new Uint8Array(Math.ceil(nbBlocks / 8))
+    const groupHasData = new Uint8Array(nbL1Entries)
 
-    // Add size for each L2 table that contains at least one allocated block
-    for (let i = 0; i < nbL1Entries; i++) {
-      for (let j = 0; j < nbL2PerL1Entry; j++) {
-        const blockIndex = i * nbL2PerL1Entry + j
-        if (blockIndex >= nbBlocks) {
-          break // Last L2 table
-        }
-        if (disk.hasBlock(blockIndex)) {
-          size += CLUSTER_SIZE // Each L2 table takes one cluster
-          break // We only need to know if this L2 table has any blocks
+    let lastYield = process.hrtime.bigint()
+    for (let i = 0; i < nbBlocks; i++) {
+      if (disk.hasBlock(i)) {
+        bitmap[i >> 3] |= 1 << (i & 7)
+        groupHasData[Math.floor(i / nbL2PerL1Entry)] = 1
+      }
+      // check the clock every 65536 blocks: cheap enough to not affect throughput, frequent
+      // enough to keep a single stretch of synchronous work under ~15ms
+      if ((i & 0xffff) === 0) {
+        const now = process.hrtime.bigint()
+        if (Number(now - lastYield) / 1e6 > 15) {
+          await new Promise(resolve => setImmediate(resolve))
+          lastYield = process.hrtime.bigint()
         }
       }
     }
 
-    return { size, nbL1Entries }
+    return { bitmap, groupHasData, nbBlocks, nbL1Entries }
+  }
+
+  /**
+   * Computes the size and structure of the L1/L2 addressing tables
+   * @param groupHasData Per-L2-group "has any allocated block" summary from #buildBlockPresenceIndex
+   * @param nbL1Entries Number of L1 entries (= number of possible L2 groups)
+   * @returns Object containing total size
+   * @private
+   */
+  #computeAddressingSpace(groupHasData: Uint8Array, nbL1Entries: number): { size: number } {
+    // L1 table size (aligned to cluster size)
+    let size = Math.ceil((nbL1Entries * 8) / CLUSTER_SIZE) * CLUSTER_SIZE
+
+    // Add size for each L2 table that contains at least one allocated block. Just reading the
+    // precomputed summary — no more per-block hasBlock() calls, so this stays fast regardless
+    // of virtual disk size.
+    for (let i = 0; i < nbL1Entries; i++) {
+      if (groupHasData[i]) {
+        size += CLUSTER_SIZE // Each L2 table takes one cluster
+      }
+    }
+
+    return { size }
   }
 
   /**
@@ -173,7 +208,13 @@ export class QcowStreamGenerator {
   }
 
   /**
-   * Generates the L1/L2 addressing tables
+   * Generates the L1/L2 addressing tables from the precomputed presence bitmap/summary — no
+   * more per-block hasBlock() scanning here, pass 2's inner loop only ever runs for groups
+   * that #buildBlockPresenceIndex already found to have data.
+   * @param bitmap Per-block presence bitmap from #buildBlockPresenceIndex
+   * @param groupHasData Per-L2-group "has any allocated block" summary from #buildBlockPresenceIndex
+   * @param nbBlocks Total number of blocks in the virtual disk
+   * @param nbL1Entries Number of L1 entries
    * @private
    *
    * Based on QCOW2 spec:
@@ -181,13 +222,15 @@ export class QcowStreamGenerator {
    * - L2 tables contain offsets to data clusters
    * - The COPIED flag (bit 63) indicates the cluster is allocated
    */
-  *#yieldAddressingTables(): Generator<Buffer, void, unknown> {
-    const disk = this.#disk
+  *#yieldAddressingTables(
+    bitmap: Uint8Array,
+    groupHasData: Uint8Array,
+    nbBlocks: number,
+    nbL1Entries: number
+  ): Generator<Buffer, void, unknown> {
     const QCOW_OFLAG_COPIED = 1n << 63n // Flag indicating cluster is allocated
-
-    const nbBlocks = Math.ceil(disk.getVirtualSize() / disk.getBlockSize())
     const nbEntriesPerL2Table = CLUSTER_SIZE / 8
-    const nbL1Entries = Math.ceil(nbBlocks / nbEntriesPerL2Table)
+    const hasBlock = (index: number) => (bitmap[index >> 3] & (1 << (index & 7))) !== 0
 
     // Generate L1 table
     const l1Table = getAlignedBuffer(nbL1Entries * 8)
@@ -195,24 +238,20 @@ export class QcowStreamGenerator {
 
     // First pass: determine which L2 tables are needed
     for (let i = 0; i < nbL1Entries; i++) {
-      for (let j = 0; j < nbEntriesPerL2Table; j++) {
-        const blockIndex = i * nbEntriesPerL2Table + j
-        if (blockIndex >= nbBlocks) {
-          break // Last L2 table
-        }
-        if (disk.hasBlock(blockIndex)) {
-          l1Table.writeBigUint64BE(BigInt(l2Offset) | QCOW_OFLAG_COPIED, i * 8)
-          l2Offset += CLUSTER_SIZE
-          break // We only need to know if this L2 table has any blocks
-        }
+      if (groupHasData[i]) {
+        l1Table.writeBigUint64BE(BigInt(l2Offset) | QCOW_OFLAG_COPIED, i * 8)
+        l2Offset += CLUSTER_SIZE
       }
     }
     yield* this.#trackAndYield(l1Table)
 
-    // Second pass: generate L2 tables
+    // Second pass: generate L2 tables — only visits groups already known to have data
     let dataClusterOffset = l2Offset
     for (let i = 0; i < nbL1Entries; i++) {
-      let l2Table: Buffer | undefined
+      if (!groupHasData[i]) {
+        continue
+      }
+      const l2Table = getAlignedBuffer(1) // One cluster per L2 table
 
       for (let j = 0; j < nbEntriesPerL2Table; j++) {
         const blockIndex = i * nbEntriesPerL2Table + j
@@ -220,19 +259,14 @@ export class QcowStreamGenerator {
           break // Last L2 table
         }
 
-        if (disk.hasBlock(blockIndex)) {
-          if (l2Table === undefined) {
-            l2Table = getAlignedBuffer(1) // One cluster per L2 table
-          }
+        if (hasBlock(blockIndex)) {
           // Write cluster offset with COPIED flag
           l2Table.writeBigUint64BE(BigInt(dataClusterOffset) | QCOW_OFLAG_COPIED, j * 8)
           dataClusterOffset += CLUSTER_SIZE
         }
       }
 
-      if (l2Table !== undefined) {
-        yield* this.#trackAndYield(l2Table)
-      }
+      yield* this.#trackAndYield(l2Table)
     }
   }
 
@@ -241,12 +275,15 @@ export class QcowStreamGenerator {
    * @param signal Optional AbortSignal to cancel the stream
    * @returns Readable stream with optional length property
    */
-  stream(signal?: AbortSignal): WithLength<Readable> {
+  async stream(signal?: AbortSignal): Promise<WithLength<Readable>> {
     const disk = this.#disk
     const nbAllocatedBlocks = this.#nbAllocatedBlocks
     const nbTotalBlock = Math.ceil(disk.getVirtualSize() / disk.getBlockSize())
+    // Single cooperative pass over every block: builds the presence bitmap/summary reused by
+    // both the size computation below and the addressing tables generated inside the stream.
+    const { bitmap, groupHasData, nbBlocks, nbL1Entries } = await this.#buildBlockPresenceIndex()
     // Compute table sizes
-    const { size: addressTableSize, nbL1Entries } = this.#computeAddressingSpace()
+    const { size: addressTableSize } = this.#computeAddressingSpace(groupHasData, nbL1Entries)
     const { refCountL1Size, refCountL2Size } = this.#computeRefCountSize(addressTableSize)
 
     // Generate QCOW2 header (spec: The first cluster contains the file header)
@@ -276,7 +313,7 @@ export class QcowStreamGenerator {
       assert.strictEqual(self.#offset, CLUSTER_SIZE, 'header aligned')
       yield* self.#yieldRefCounts(expectedStreamLength / CLUSTER_SIZE)
       assert.strictEqual(self.#offset, CLUSTER_SIZE + refCountL1Size + refCountL2Size, 'refcounts aligned')
-      yield* self.#yieldAddressingTables()
+      yield* self.#yieldAddressingTables(bitmap, groupHasData, nbBlocks, nbL1Entries)
       assert.strictEqual(
         self.#offset,
         CLUSTER_SIZE + refCountL1Size + refCountL2Size + addressTableSize,
@@ -330,7 +367,7 @@ export class QcowStreamGenerator {
  * @param options.signal Optional AbortSignal to cancel the stream
  * @returns Readable stream of QCOW2 data
  */
-export function toQcow2Stream(disk: Disk, { signal }: { signal?: AbortSignal } = {}): Readable {
+export async function toQcow2Stream(disk: Disk, { signal }: { signal?: AbortSignal } = {}): Promise<Readable> {
   const generator = new QcowStreamGenerator(disk)
-  return generator.stream(signal)
+  return await generator.stream(signal)
 }

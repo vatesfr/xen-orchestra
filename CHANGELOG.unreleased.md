@@ -32,6 +32,7 @@
 - [Web-core] Fix "no data" illustration stars color (PR [#10327](https://github.com/vatesfr/xen-orchestra/pull/10327))
 - [Backup] Fix `uncaught exception AssertionError: assert(!this.paused)` in the logs, when a host closes a transfer while XO is writing to a slower destination (PR [#10282](https://github.com/vatesfr/xen-orchestra/pull/10282))
 - [xo-server] If an HTTP proxy was configured, internal routes (`/openmetrics`, `/v5`) were wrongly routed through it when xo-server listened on a wildcard address. `localhost` targets are now always reached directly, bypassing the HTTP proxy, whether the configured listen address is a wildcard (`0.0.0.0`, `::`) or a specific one (PR [#10335](https://github.com/vatesfr/xen-orchestra/pull/10335))
+- [Backups] Fix slow replication startup and fallback to full on qcow2 (PR [#10319](https://github.com/vatesfr/xen-orchestra/pull/10319))
 
 ### Packages to release
 
@@ -51,10 +52,11 @@
 
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
+- @xen-orchestra/qcow2 patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
 - xen-api major
 - xo-server minor
 - xo-web minor
-
 <!--packages-end-->
