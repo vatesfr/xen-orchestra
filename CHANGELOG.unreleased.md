@@ -15,6 +15,10 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backup/Proxy] No longer fail a backup job after one minute when the proxy is slow to start it
+- [Backup] Report the underlying cause of network errors in job logs instead of a bare `fetch failed`
+- [Proxy] Fix `MaxListenersExceededWarning` when several updater state checks overlap (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +34,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server patch
+- @xen-orchestra/proxy patch
 
 <!--packages-end-->
