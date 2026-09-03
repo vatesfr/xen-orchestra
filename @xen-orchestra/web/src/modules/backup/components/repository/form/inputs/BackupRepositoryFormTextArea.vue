@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
+import UiTextarea from '@xen-orchestra/web-core/components/ui/text-area/UiTextarea.vue'
 
 defineProps<{
   label: string

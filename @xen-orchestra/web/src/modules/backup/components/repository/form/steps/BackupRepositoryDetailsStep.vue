@@ -18,8 +18,8 @@ import BackupRepositoryLocalFields from '@/modules/backup/components/repository/
 import BackupRepositoryNfsFields from '@/modules/backup/components/repository/form/fields/BackupRepositoryNfsFields.vue'
 import BackupRepositoryS3Fields from '@/modules/backup/components/repository/form/fields/BackupRepositoryS3Fields.vue'
 import BackupRepositorySmbFields from '@/modules/backup/components/repository/form/fields/BackupRepositorySmbFields.vue'
-import type { NewBackupRepositoryDetailsForms } from '@/modules/backup/form/use-new-backup-repository-form.js'
-import type { BackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.util.js'
+import type { NewBackupRepositoryDetailsForms } from '@/modules/backup/form/use-new-backup-repository-form.ts'
+import type { BackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 
 defineProps<{
   type: BackupRepositoryType | undefined

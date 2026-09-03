@@ -21,10 +21,10 @@
 </template>
 
 <script lang="ts" setup>
-import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/new/BackupRepositoryFormRow.vue'
-import BackupRepositoryFormCheckbox from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormCheckbox.vue'
-import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextInput.vue'
-import type { AzureBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-azure-backup-repository-details-form.ts'
+import BackupRepositoryFormCheckbox from '@/modules/backup/components/repository/form/inputs/BackupRepositoryFormCheckbox.vue'
+import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/inputs/BackupRepositoryFormTextInput.vue'
+import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/BackupRepositoryFormRow.vue'
+import type { AzureBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-azure-backup-repository-details-form.js'
 
 defineProps<{
   bindings: AzureBackupRepositoryDetailsForm['bindings']

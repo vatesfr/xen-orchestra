@@ -1,5 +1,18 @@
 <template>
   <VtsSidePanel :has-selection="!!br" @close="emit('close')">
+    <template v-if="br" #actions>
+      <UiButton
+        size="medium"
+        variant="tertiary"
+        accent="brand"
+        left-icon="action:edit"
+        :disabled="!canEditBr"
+        :busy="isEdittingBr"
+        @click="editBr()"
+      >
+        {{ t('action:edit') }}
+      </UiButton>
+    </template>
     <template v-if="br" #default>
       <VtsStateHero v-if="!areBrsReady" format="panel" type="busy" size="medium" />
       <template v-else>
@@ -22,7 +35,9 @@ import {
 import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { br } = defineProps<{
   br?: FrontXoBackupRepository
@@ -31,6 +46,8 @@ const { br } = defineProps<{
 const emit = defineEmits<{
   close: []
 }>()
+
+const { t } = useI18n()
 
 const { areBackupRepositoriesReady: areBrsReady } = useXoBackupRepositoryCollection()
 
