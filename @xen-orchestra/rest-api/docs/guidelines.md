@@ -105,14 +105,16 @@ In order not to pollute important decorators, all example structures should be i
 REST API actions are reserved to user actions that won't fit the REST API. The REST API actions must use the `this.createAction` method to handle correctly synchronous and asynchronous mode.
 
 If your action endpoint includes a request body, don't forget to add `params` to the `taskProperties` property (obfuscate sensitive params such as passwords)
+
 ```js
-createAction(action,  {
- //...
- taskProperties: {
-   // ...
-  params: body
- }
+createAction(action, {
+  //...
+  taskProperties: {
+    // ...
+    params: body,
+  },
 })
+```
 
 On the caller side, action calls are asynchronous by default; the caller can add `sync=true` on any action call to force the synchronous mode.
 
