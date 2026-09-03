@@ -1,8 +1,8 @@
 <template>
-  <MenuItem v-if="canRunVmOnHost || isRunning" icon="object:host" :busy="isRunning">
+  <MenuItem v-if="canRunVmOnHost || isRunning" accent="brand" icon="object:host" :busy="isRunning">
     {{ t('action:start-on-host') }}
     <template #submenu>
-      <MenuItem v-for="host in hosts" :key="host.id" @click="startOn(host)">
+      <MenuItem v-for="host in hosts" :key="host.id" accent="brand" @click="startOn(host)">
         <VmStartOnHostState :host />
       </MenuItem>
     </template>

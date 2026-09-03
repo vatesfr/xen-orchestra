@@ -7,9 +7,11 @@
           <template #trigger="{ open }">
             <UiButtonIcon size="medium" accent="brand" icon="fa:ellipsis" @click="open" />
           </template>
-          <MenuItem @click="emit('duplicate')">{{ t('action:duplicate') }}</MenuItem>
-          <MenuItem @click="emit('remove', true)">{{ t('action:move-filters-to-parent-group') }}</MenuItem>
-          <MenuItem @click="emit('remove')">{{ t('action:delete-group') }}</MenuItem>
+          <MenuItem accent="brand" @click="emit('duplicate')">{{ t('action:duplicate') }}</MenuItem>
+          <MenuItem accent="brand" @click="emit('remove', true)">
+            {{ t('action:move-filters-to-parent-group') }}
+          </MenuItem>
+          <MenuItem accent="brand" @click="emit('remove')">{{ t('action:delete-group') }}</MenuItem>
         </MenuList>
       </div>
       <div class="content">

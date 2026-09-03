@@ -1,12 +1,16 @@
 <template>
-  <MenuItem icon="fa:file-export">
+  <MenuItem accent="brand" icon="fa:file-export">
     {{ t('action:export') }}
     <template #submenu>
       <VmActionExportItem :vm-refs="vmRefs" />
-      <MenuItem icon="fa:code" @click="exportVmsAsJsonFile(vms, `vms_${new Date().toISOString()}.json`)">
+      <MenuItem accent="brand" icon="fa:code" @click="exportVmsAsJsonFile(vms, `vms_${new Date().toISOString()}.json`)">
         {{ t('action:export-table-to', { type: '.json' }) }}
       </MenuItem>
-      <MenuItem icon="fa:file-csv" @click="exportVmsAsCsvFile(vms, `vms_${new Date().toISOString()}.csv`)">
+      <MenuItem
+        accent="brand"
+        icon="fa:file-csv"
+        @click="exportVmsAsCsvFile(vms, `vms_${new Date().toISOString()}.csv`)"
+      >
         {{ t('action:export-table-to', { type: '.csv' }) }}
       </MenuItem>
     </template>

@@ -9,13 +9,13 @@
       />
     </template>
 
-    <MenuItem v-for="(link, index) in links" :key="index">
+    <MenuItem v-for="(link, index) in links" :key="index" accent="brand">
       <UiLink size="small" class="link" v-bind="link.props">
         {{ link.label }}
       </UiLink>
     </MenuItem>
 
-    <MenuItem class="icon" icon="fa:arrow-right-from-bracket" @click="logout()">
+    <MenuItem accent="brand" class="icon" icon="fa:arrow-right-from-bracket" @click="logout()">
       <span class="link">{{ t('action:log-out') }}</span>
     </MenuItem>
   </MenuList>

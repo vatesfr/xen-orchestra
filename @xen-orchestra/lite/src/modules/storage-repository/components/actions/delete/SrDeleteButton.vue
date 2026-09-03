@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canDeleteSrs && deleteSrsErrorMessage"
+    accent="brand"
     icon="action:delete"
     :disabled="!canDeleteSrs"
     :busy="isDeletingSrs"

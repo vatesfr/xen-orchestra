@@ -1,5 +1,5 @@
 <template>
-  <MenuItem class="change-state" icon="action:change-state">
+  <MenuItem accent="brand" class="change-state" icon="action:change-state">
     {{ t('action:change-state') }}
     <template #submenu>
       <VmActionPowerStateItems :vm-refs />

@@ -1,5 +1,12 @@
 <template>
-  <MenuItem v-if="canDisplay" :disabled="!canSuspend" icon="fa:moon" :busy="isRunning" @click="suspendJob()">
+  <MenuItem
+    v-if="canDisplay"
+    accent="brand"
+    :disabled="!canSuspend"
+    icon="fa:moon"
+    :busy="isRunning"
+    @click="suspendJob()"
+  >
     {{ t('action:suspend') }}
     <i v-if="!canSuspend" class="em-dash-prefix">{{ t('vm-tools-missing') }}</i>
   </MenuItem>

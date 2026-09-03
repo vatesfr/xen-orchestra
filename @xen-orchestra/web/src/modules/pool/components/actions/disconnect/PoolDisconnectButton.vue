@@ -1,5 +1,6 @@
 <template>
   <MenuItem
+    accent="brand"
     icon="action:disconnect"
     class="disconnect typo-body-bold-small"
     :busy="isDisconnectingServer"

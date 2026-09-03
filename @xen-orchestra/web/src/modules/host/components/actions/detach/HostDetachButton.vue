@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canDetachHost && detachHostErrorMessage"
+    accent="brand"
     class="detach"
     :disabled="!canDetachHost"
     icon="action:detach"
