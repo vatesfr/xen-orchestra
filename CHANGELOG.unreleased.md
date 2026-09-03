@@ -15,7 +15,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [XAPI] disable restart toolstack for HA enabled Pools (PR [#10344] (https://github.com/vatesfr/xen-orchestra/pull/10344))
+- [Host] disable restart toolstack for HA enabled Pools (PR [#10344](https://github.com/vatesfr/xen-orchestra/pull/10344))
 
 ### Packages to release
 
