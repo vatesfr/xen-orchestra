@@ -51,7 +51,7 @@ const isRunning = host => host && host.power_state === 'Running'
   const getHost = createGetObject()
 
   const getPool = createGetObject((state, props) => getHost(state, props).$pool)
-  
+
   const getVmController = createGetObjectsOfType('VM-controller').find(
     createSelector(
       getHost,
