@@ -1,8 +1,7 @@
-// `@xen-orchestra/xapi` is plain JS without published typings:
-// only the parts used by the REST API are declared here
+// `@xen-orchestra/xapi` is plain JS without published typings: this only binds the names used by
+// the REST API to the shapes declared in `@vates/types`
 declare module '@xen-orchestra/xapi' {
-  import { DiskPassthrough } from '@xen-orchestra/disk-transform'
-  import type { Xapi, XenApiVdi } from '@vates/types'
+  import type { ParseDateTime, XapiDiskSource, XapiDiskSourceOptions } from '@vates/types'
 
   /**
    * Biggest disk size that can be represented in a VHD file.
@@ -12,28 +11,7 @@ declare module '@xen-orchestra/xapi' {
    */
   export const VHD_MAX_SIZE: number
 
-  /**
-   * @returns a Unix timestamp in seconds, or `null` if the field is empty (as encoded by XAPI)
-   */
-  export function parseDateTime(input: string | number | Date): number | null
+  export const parseDateTime: ParseDateTime
 
-  /**
-   * Disk source handling the fallback logic of a VDI export: NBD + CBT, then
-   * NBD + stream export for the block list, then plain stream export.
-   */
-  export class XapiDiskSource extends DiskPassthrough {
-    constructor(params: {
-      xapi: Xapi
-      vdiRef: XenApiVdi['$ref']
-      baseRef?: XenApiVdi['$ref']
-      preferNbd?: boolean
-      nbdConcurrency?: number
-      blockSize?: number
-      timeout?: number
-      onlyListChangedBlocks?: boolean
-    })
-
-    useNbd(): boolean
-    useCbt(): boolean
-  }
+  export const XapiDiskSource: new (params: XapiDiskSourceOptions) => XapiDiskSource
 }

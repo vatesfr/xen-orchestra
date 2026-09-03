@@ -33,6 +33,8 @@
 
 <!--packages-start-->
 
+- @vates/types minor
+- @xen-orchestra/disk-cli patch
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 

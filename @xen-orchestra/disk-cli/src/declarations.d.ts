@@ -29,9 +29,9 @@ declare module '@xen-orchestra/fs' {
 }
 
 declare module 'vhd-lib/disk-consumer/index.mjs' {
-  import type { Readable } from 'node:stream'
-  import type { RandomAccessDisk } from '@xen-orchestra/disk-transform'
-  export function toVhdStream(disk: RandomAccessDisk): Promise<Readable>
+  import type { ToVhdStream } from '@vates/types'
+
+  export const toVhdStream: ToVhdStream
 }
 
 declare module '@xen-orchestra/backup-archive/disks/openDiskChain.mjs' {
