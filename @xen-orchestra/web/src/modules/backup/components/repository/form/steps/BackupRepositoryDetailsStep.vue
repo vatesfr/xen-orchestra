@@ -13,13 +13,13 @@
 </template>
 
 <script lang="ts" setup>
-import BackupRepositoryAzureFields from '@/modules/backup/components/repository/form/new/fields/BackupRepositoryAzureFields.vue'
-import BackupRepositoryLocalFields from '@/modules/backup/components/repository/form/new/fields/BackupRepositoryLocalFields.vue'
-import BackupRepositoryNfsFields from '@/modules/backup/components/repository/form/new/fields/BackupRepositoryNfsFields.vue'
-import BackupRepositoryS3Fields from '@/modules/backup/components/repository/form/new/fields/BackupRepositoryS3Fields.vue'
-import BackupRepositorySmbFields from '@/modules/backup/components/repository/form/new/fields/BackupRepositorySmbFields.vue'
-import type { NewBackupRepositoryDetailsForms } from '@/modules/backup/form/use-new-backup-repository-form.ts'
-import type { BackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
+import BackupRepositoryAzureFields from '@/modules/backup/components/repository/form/fields/BackupRepositoryAzureFields.vue'
+import BackupRepositoryLocalFields from '@/modules/backup/components/repository/form/fields/BackupRepositoryLocalFields.vue'
+import BackupRepositoryNfsFields from '@/modules/backup/components/repository/form/fields/BackupRepositoryNfsFields.vue'
+import BackupRepositoryS3Fields from '@/modules/backup/components/repository/form/fields/BackupRepositoryS3Fields.vue'
+import BackupRepositorySmbFields from '@/modules/backup/components/repository/form/fields/BackupRepositorySmbFields.vue'
+import type { NewBackupRepositoryDetailsForms } from '@/modules/backup/form/use-new-backup-repository-form.js'
+import type { BackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.util.js'
 
 defineProps<{
   type: BackupRepositoryType | undefined
