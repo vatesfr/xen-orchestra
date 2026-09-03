@@ -59,6 +59,15 @@ curl -X POST -u admin@admin.net:admin https://xo.example.org/rest/v0/users/me/au
 If you don't know your user ID, use the `me` alias, as above. Tokens expire (see the `expiration` timestamp): before that happens, renew by calling the same endpoint with your existing token to create a fresh one.
 :::
 
+#### Maximum token validity
+
+The maximum validity period for authentication tokens is controlled by the `maxTokenValidity` setting in the XO configuration file (`config.toml`):
+
+```
+[authentication]
+maxTokenValidity = '0.5 year'
+```
+
 ## Reading a collection {#collections-request}
 
 Every object type lives in a collection at `/rest/v0/<name>` (e.g. `/rest/v0/vms`, `/rest/v0/hosts`, `/rest/v0/srs`). A plain `GET` returns the objects' URLs, and the following query parameters shape the result:
