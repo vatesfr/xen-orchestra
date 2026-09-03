@@ -1,11 +1,14 @@
 import { createLogger } from '@xen-orchestra/log'
+import { toQcow2Stream } from '@xen-orchestra/qcow2'
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { VHD_MAX_SIZE, XapiDiskSource } from '@xen-orchestra/xapi'
+import type { Disk } from '@xen-orchestra/disk-transform'
 import type { XoVdi, XoVdiSnapshot } from '@vates/types'
 import type { Readable } from 'node:stream'
 
 import { ApiError } from '../helpers/error.helper.mjs'
+import type { MaybePromise } from '../helpers/helper.type.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
 const log = createLogger('xo:rest-api:vdi-service')
@@ -20,21 +23,16 @@ export class VdiService {
   }
 
   /**
-   * Rebuild the VHD from a `XapiDiskSource` instead of relying on the VHD export of the XAPI:
-   * this uses NBD when it is available and can export a qcow2 backed VDI,
-   * it also fixes some edge case of the xapi ( content length/missing task )
+   * Open a `XapiDiskSource` on the VDI and let `toStream` rebuild the wanted format
+   * from its blocks, instead of relying on the export of the XAPI: this uses NBD when
+   * it is available, whatever the format the VDI is stored in, and gives the exact
+   * size of the export in advance.
    */
-  async #exportContentAsVhd<Vdi extends XoVdi | XoVdiSnapshot>(
+  async #exportContentFromDiskSource<Vdi extends XoVdi | XoVdiSnapshot>(
     id: Vdi['id'],
-    type: Vdi['type']
+    type: Vdi['type'],
+    toStream: (disk: Disk) => MaybePromise<ExportedContentStream>
   ): Promise<ExportedContentStream> {
-    const { size } = this.#restApi.getObject<Vdi>(id, type)
-    if (size > VHD_MAX_SIZE) {
-      throw new ApiError(`a VDI of ${size} bytes is too large to be exported as VHD`, 422, {
-        data: { maxSize: VHD_MAX_SIZE, size },
-      })
-    }
-
     const { $ref: vdiRef, $xapi: xapi } = this.#restApi.getXapiObject<Vdi>(id, type)
     const disk = new XapiDiskSource({ xapi, vdiRef })
     await disk.init()
@@ -43,7 +41,7 @@ export class VdiService {
       disk.close().catch(error => log.warn('failed to close the disk source', { error, vdiId: id }))
 
     try {
-      const stream = await toVhdStream(disk)
+      const stream = await toStream(disk)
 
       // the block generator of the disk closes it when it ends, but it is never
       // started if the stream is destroyed before being consumed
@@ -66,7 +64,18 @@ export class VdiService {
     { format }: { format: SUPPORTED_VDI_FORMAT }
   ): Promise<ExportedContentStream> {
     if (format === SUPPORTED_VDI_FORMAT.vhd) {
-      return this.#exportContentAsVhd<Vdi>(id, type)
+      const { size } = this.#restApi.getObject<Vdi>(id, type)
+      if (size > VHD_MAX_SIZE) {
+        throw new ApiError(`a VDI of ${size} bytes is too large to be exported as VHD`, 422, {
+          data: { maxSize: VHD_MAX_SIZE, size },
+        })
+      }
+
+      return this.#exportContentFromDiskSource<Vdi>(id, type, disk => toVhdStream(disk))
+    }
+
+    if (format === SUPPORTED_VDI_FORMAT.qcow2) {
+      return this.#exportContentFromDiskSource<Vdi>(id, type, disk => toQcow2Stream(disk))
     }
 
     const xapiVdi = this.#restApi.getXapiObject<Vdi>(id, type)

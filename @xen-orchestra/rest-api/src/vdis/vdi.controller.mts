@@ -133,7 +133,7 @@ export class VdiController extends XapiXoController<XoVdi> {
   async exportVdiContent(
     @Request() req: ExRequest,
     @Path() id: string,
-    @Path() format: Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
+    @Path() format: SUPPORTED_VDI_FORMAT
   ): Promise<Readable> {
     const stream = await this.#vdiService.exportContent(id as XoVdi['id'], 'VDI', { format })
 
