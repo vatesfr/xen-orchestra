@@ -1,0 +1,52 @@
+import assert from 'node:assert/strict'
+import { describe, it } from 'node:test'
+import { Readable } from 'node:stream'
+import { VHD_MAX_SIZE } from '@xen-orchestra/xapi'
+
+import { ApiError } from '../helpers/error.helper.mjs'
+import { VdiService } from './vdi.service.mjs'
+import type { RestApi } from '../rest-api/rest-api.mjs'
+import type { XoVdi } from '@vates/types'
+
+const VDI_ID = 'c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e' as XoVdi['id']
+
+describe('VdiService.exportContent', () => {
+  it('exports a non VHD format through the XAPI', async () => {
+    // `length` is only exposed to the controllers, which turn it into a content-length
+    const stream = Object.assign(Readable.from(['content']), { length: 42 })
+    let exportContentArgs: unknown[] | undefined
+
+    const restApi = {
+      getXapiObject: () => ({
+        $ref: 'OpaqueRef:vdi-1',
+        $xapi: {
+          VDI_exportContent: async (...args: unknown[]) => {
+            exportContentArgs = args
+            return stream
+          },
+        },
+      }),
+    } as unknown as RestApi
+
+    const exported = await new VdiService(restApi).exportContent(VDI_ID, 'VDI', { format: 'raw' })
+
+    assert.strictEqual(exported, stream)
+    assert.strictEqual(exported.length, 42)
+    assert.deepStrictEqual(exportContentArgs, ['OpaqueRef:vdi-1', { format: 'raw' }])
+  })
+
+  it('rejects a VHD export of a VDI larger than the VHD max size', async () => {
+    const size = VHD_MAX_SIZE + 1
+    const restApi = {
+      getObject: () => ({ id: VDI_ID, size }),
+      getXapiObject: () => assert.fail('the disk must not be opened when the size is not supported'),
+    } as unknown as RestApi
+
+    await assert.rejects(new VdiService(restApi).exportContent(VDI_ID, 'VDI', { format: 'vhd' }), (error: unknown) => {
+      assert(error instanceof ApiError)
+      assert.strictEqual(error.status, 422)
+      assert.deepStrictEqual(error.data, { maxSize: VHD_MAX_SIZE, size })
+      return true
+    })
+  })
+})
