@@ -18,14 +18,17 @@ export function useNewBackupRepository() {
     events: {
       onConfirm: async (newPayload: NewBackupRepositoryPayload) => {
         payload.value = newPayload
+        try {
+          const [result] = await run()
 
-        const [result] = await run()
-
-        if (result.status === 'rejected') {
-          console.error('Failed to create backup repository', result.reason)
-        } else {
-          // Force reload while waiting for reactivity to be implemented for XO objects (XO-1013)
-          $context.forceReload()
+          if (result.status === 'rejected') {
+            console.error('Failed to create backup repository', result.reason)
+          } else {
+            // Force reload while waiting for reactivity to be implemented for XO objects (XO-1013)
+            $context.forceReload()
+          }
+        } catch (error) {
+          console.error('Error when create backup repository', error)
         }
       },
       onCancel: true,

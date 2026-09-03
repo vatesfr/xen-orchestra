@@ -1,5 +1,6 @@
-export type BackupRepositoryType = 'file' | 'nfs' | 'smb' | 's3' | 'azure' | 'azurite'
+export const BACKUP_REPOSITORY_TYPES = ['file', 'nfs', 'smb', 's3', 'azure', 'azurite'] as const
 
+export type BackupRepositoryType = (typeof BACKUP_REPOSITORY_TYPES)[number]
 export type BackupRepositoryProtocol = 'http' | 'https'
 
 // Serialized options in the URL query string
