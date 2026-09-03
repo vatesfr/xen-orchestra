@@ -45,14 +45,14 @@
 </template>
 
 <script lang="ts" setup>
-import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/new/BackupRepositoryFormRow.vue'
-import BackupRepositoryFormCheckbox from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormCheckbox.vue'
-import BackupRepositoryFormSelect from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormSelect.vue'
-import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextInput.vue'
-import type { BackupRepositoryGeneralForm } from '@/modules/backup/form/use-backup-repository-general-form.ts'
-import VtsOption from '@core/components/select/VtsOption.vue'
-import UiAlert from '@core/components/ui/alert/UiAlert.vue'
-import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/BackupRepositoryFormRow.vue'
+import BackupRepositoryFormCheckbox from '@/modules/backup/components/repository/form/inputs/BackupRepositoryFormCheckbox.vue'
+import BackupRepositoryFormSelect from '@/modules/backup/components/repository/form/inputs/BackupRepositoryFormSelect.vue'
+import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/inputs/BackupRepositoryFormTextInput.vue'
+import type { BackupRepositoryGeneralForm } from '@/modules/backup/form/use-backup-repository-general-form.js'
+import VtsOption from '@xen-orchestra/web-core/components/select/VtsOption.vue'
+import UiAlert from '@xen-orchestra/web-core/components/ui/alert/UiAlert.vue'
+import UiTitle from '@xen-orchestra/web-core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
