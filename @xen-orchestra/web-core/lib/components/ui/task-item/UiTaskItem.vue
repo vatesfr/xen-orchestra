@@ -255,6 +255,10 @@ const progress = computed(() => {
         display: flex;
         gap: 1.6rem;
       }
+
+      .progress:not(:has(+ .actions)) {
+        margin-inline-end: 4rem;
+      }
     }
   }
 
