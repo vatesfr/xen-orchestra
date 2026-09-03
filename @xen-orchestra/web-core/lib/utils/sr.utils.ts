@@ -19,6 +19,7 @@ export function getSrAccessMode(srs: { shared: boolean }[]): SrAccessMode {
   if (hasShared && hasLocal) {
     return SR_ACCESS_MODE.MIXED
   }
+
   if (hasShared) {
     return SR_ACCESS_MODE.SHARED
   }
@@ -32,12 +33,15 @@ export function getSrModalInfoVariant(scope: SrScope, accessMode: SrAccessMode):
   if (scope.type === SR_SCOPE_TYPE.HOST) {
     return 'host'
   }
+
   if (accessMode === SR_ACCESS_MODE.LOCAL) {
     return 'pool-local'
   }
+
   if (accessMode === SR_ACCESS_MODE.MIXED) {
     return 'pool-mixed'
   }
+
   return 'pool-shared'
 }
 
@@ -99,14 +103,6 @@ export const SR_TYPE_META: Record<
   },
 }
 
-export const SR_CREATE_TYPE_LABEL_KEYS: Record<SrType, string> = {
-  lvm: 'sr-type-lvm',
-  ext: 'sr-type-ext',
-  smb: 'sr-type-smb',
-  local: 'sr-type-local',
-  smbiso: 'sr-type-smbiso',
-}
-
 export function getAvailableSrTypes(accessMode: SrAccessMode): SrType[] {
   const shared = accessMode === SR_ACCESS_MODE.SHARED
   return (Object.keys(SR_TYPE_META) as SrType[]).filter(srType => SR_TYPE_META[srType].shared === shared)
@@ -114,8 +110,8 @@ export function getAvailableSrTypes(accessMode: SrAccessMode): SrType[] {
 
 export function groupSrTypesByContent(types: SrType[]) {
   return {
-    vdi: types.filter(t => SR_TYPE_META[t].group === SR_CONTENT_GROUP.VDI),
-    iso: types.filter(t => SR_TYPE_META[t].group === SR_CONTENT_GROUP.ISO),
+    vdi: types.filter(type => SR_TYPE_META[type].group === SR_CONTENT_GROUP.VDI),
+    iso: types.filter(type => SR_TYPE_META[type].group === SR_CONTENT_GROUP.ISO),
   }
 }
 

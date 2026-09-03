@@ -33,7 +33,7 @@ function getAuthFields(form: NewSrFormData): { username?: string; password?: str
   return auth
 }
 
-export function buildNewSrInput(form: NewSrFormData & { type: SrType }, resolvedHostId: string): NewSrInput {
+export function buildNewSrInput(form: NewSrFormData & { type: SrType }, resolvedHostId: FrontXoHost['id']): NewSrInput {
   const base = {
     hostId: resolvedHostId,
     name: form.name,
