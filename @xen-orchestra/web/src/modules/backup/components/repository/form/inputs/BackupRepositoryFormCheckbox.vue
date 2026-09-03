@@ -10,9 +10,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import type { InputWrapperMessage } from '@xen-orchestra/web-core/components/input-wrapper/VtsInputWrapper.vue'
+import UiCheckbox from '@xen-orchestra/web-core/components/ui/checkbox/UiCheckbox.vue'
+import UiInfo from '@xen-orchestra/web-core/components/ui/info/UiInfo.vue'
 import { computed } from 'vue'
 
 const { warning } = defineProps<{

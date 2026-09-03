@@ -16,10 +16,10 @@
 </template>
 
 <script lang="ts" setup>
-import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/new/BackupRepositoryFormRow.vue'
-import BackupRepositoryFormTextArea from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextArea.vue'
-import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/new/inputs/BackupRepositoryFormTextInput.vue'
-import type { NfsBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-nfs-backup-repository-details-form.ts'
+import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/BackupRepositoryFormRow.vue'
+import BackupRepositoryFormTextArea from '@/modules/backup/components/repository/form/inputs/BackupRepositoryFormTextArea.vue'
+import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/inputs/BackupRepositoryFormTextInput.vue'
+import type { NfsBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-nfs-backup-repository-details-form.js'
 
 defineProps<{ bindings: NfsBackupRepositoryDetailsForm['bindings'] }>()
 </script>

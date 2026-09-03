@@ -1,3 +1,4 @@
+import { useXoBackupRepositoryUtils } from '@/modules/backup/composables/xo-backup-repository-utils.composable.ts'
 import { useAzureBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-azure-backup-repository-details-form.ts'
 import { useLocalBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-local-backup-repository-details-form.ts'
 import { useNfsBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-nfs-backup-repository-details-form.ts'
@@ -19,6 +20,8 @@ export function useNewBackupRepositoryForm() {
   const { t } = useI18n()
 
   const general = useBackupRepositoryGeneralForm()
+
+  const { getTypeLabel } = useXoBackupRepositoryUtils()
 
   const details = {
     file: useLocalBackupRepositoryDetailsForm(() => general.formData.proxy),
@@ -43,22 +46,9 @@ export function useNewBackupRepositoryForm() {
   const currentStep = computed(() => STEPS[currentStepIndex.value])
 
   const detailsStepLabel = computed(() => {
-    switch (general.formData.type) {
-      case 'file':
-        return t('local-details')
-      case 'nfs':
-        return t('nfs-details')
-      case 'smb':
-        return t('smb-details')
-      case 's3':
-        return t('s3-details')
-      case 'azure':
-        return t('azure-details')
-      case 'azurite':
-        return t('azurite-details')
-      default:
-        return ''
-    }
+    return general.formData.type === undefined
+      ? ''
+      : t('br-type-details', { type: getTypeLabel(general.formData.type) })
   })
 
   const steps = computed<StepDefinition[]>(() => [
