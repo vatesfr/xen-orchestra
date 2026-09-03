@@ -6,24 +6,25 @@
 
     <template #content>
       <UiStepper :steps :current-step="currentStepIndex">
-        <NewBackupRepositoryGeneralStep v-if="currentStep === 'general'" :bindings="general.bindings" />
-        <NewBackupRepositoryDetailsStep v-else-if="currentStep === 'details'" :type="general.formData.type" :details />
+        <BackupRepositoryGeneralStep v-if="currentStep === 'general'" :bindings="general.bindings" />
+        <BackupRepositoryDetailsStep v-else-if="currentStep === 'details'" :type="general.formData.type" :details />
         <NewBackupRepositoryReviewStep v-else :general :details :details-title="detailsStepLabel" @edit="goToStep" />
       </UiStepper>
     </template>
 
     <template #buttons>
-      <VtsOverlayCancelButton v-if="currentStep === 'general'" @click="emit('cancel')" />
-      <VtsOverlayCancelButton v-else @click="back()">{{ t('back') }}</VtsOverlayCancelButton>
-      <VtsOverlayConfirmButton v-if="currentStep === 'review'">{{ t('action:create') }}</VtsOverlayConfirmButton>
-      <VtsOverlayConfirmButton v-else>{{ t('continue') }}</VtsOverlayConfirmButton>
+      <VtsOverlayCancelButton v-if="currentStep !== 'general'" @click="back()">{{ t('back') }}</VtsOverlayCancelButton>
+      <VtsOverlayCancelButton v-else @click="emit('cancel')" />
+      <VtsOverlayConfirmButton>
+        {{ currentStep === 'review' ? t('action:create') : t('continue') }}
+      </VtsOverlayConfirmButton>
     </template>
   </UiDrawer>
 </template>
 
 <script lang="ts" setup>
-import NewBackupRepositoryDetailsStep from '@/modules/backup/components/repository/form/steps/BackupRepositoryDetailsStep.vue'
-import NewBackupRepositoryGeneralStep from '@/modules/backup/components/repository/form/steps/BackupRepositoryGeneralStep.vue'
+import BackupRepositoryDetailsStep from '@/modules/backup/components/repository/form/steps/BackupRepositoryDetailsStep.vue'
+import BackupRepositoryGeneralStep from '@/modules/backup/components/repository/form/steps/BackupRepositoryGeneralStep.vue'
 import NewBackupRepositoryReviewStep from '@/modules/backup/components/repository/form/steps/NewBackupRepositoryReviewStep.vue'
 import { useNewBackupRepositoryForm } from '@/modules/backup/form/use-new-backup-repository-form.ts'
 import type { NewBackupRepositoryPayload } from '@/modules/backup/jobs/xo-backup-repository-create.job.ts'

@@ -1,4 +1,5 @@
 export * from './custom-rules/out-of-range.rule.ts'
+export * from './custom-rules/port.rule.ts'
 export * from './custom-rules/ipv4-or-cidr.rule.ts'
 export * from './custom-rules/ip-addresses.rule.ts'
 export * from './custom-rules/ip.regex.ts'

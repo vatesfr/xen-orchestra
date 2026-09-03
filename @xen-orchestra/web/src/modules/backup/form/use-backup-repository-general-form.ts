@@ -1,8 +1,10 @@
+import { useXoBackupRepositoryUtils } from '@/modules/backup/composables/xo-backup-repository-utils.composable.ts'
 import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
 import type {
   BackupRepositoryOptions,
   BackupRepositoryType,
 } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
+import { BACKUP_REPOSITORY_TYPES } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { regex, required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
@@ -31,6 +33,8 @@ export function useBackupRepositoryGeneralForm() {
   const { t } = useI18n()
 
   const { proxies } = useXoProxyCollection()
+
+  const { getTypeLabel } = useXoBackupRepositoryUtils()
 
   const formData = reactive<BackupRepositoryGeneralFormData>({
     name: '',
@@ -84,14 +88,9 @@ export function useBackupRepositoryGeneralForm() {
     }
   )
 
-  const typeOptions = computed(() => [
-    { id: 'file', label: t('local'), value: 'file' },
-    { id: 'nfs', label: t('nfs'), value: 'nfs' },
-    { id: 'smb', label: t('smb'), value: 'smb' },
-    { id: 's3', label: t('s3'), value: 's3' },
-    { id: 'azure', label: t('azure'), value: 'azure' },
-    { id: 'azurite', label: t('azurite'), value: 'azurite' },
-  ])
+  const typeOptions = computed(() =>
+    BACKUP_REPOSITORY_TYPES.map(type => ({ id: type, label: getTypeLabel(type), value: type }))
+  )
 
   const { id: typeSelectId } = useFormSelect('type', typeOptions, {
     required: true,
