@@ -1,5 +1,11 @@
 <template>
-  <MenuItem icon="action:disconnect" :disabled="!canDisconnectSrs" :busy="isDisconnectingSrs" @click="disconnectSrs()">
+  <MenuItem
+    accent="brand"
+    icon="action:disconnect"
+    :disabled="!canDisconnectSrs"
+    :busy="isDisconnectingSrs"
+    @click="disconnectSrs()"
+  >
     {{ t('action:disconnect') }}
     <UiCounter
       v-if="shouldShowTargetCount(scope, disconnectionTargetCount)"

@@ -7,7 +7,7 @@
             <template #trigger="{ open }">
               <UiDropdownButton @click="open($event)">{{ t('new') }}</UiDropdownButton>
             </template>
-            <MenuItem>
+            <MenuItem accent="brand">
               <UiLink
                 class="new-network-link"
                 :to="{ name: '/network/new', query: { poolid: pool.id } }"
@@ -17,7 +17,7 @@
                 {{ t('action:create-network') }}
               </UiLink>
             </MenuItem>
-            <MenuItem>
+            <MenuItem accent="brand">
               <UiLink
                 class="new-network-link"
                 :to="{ name: '/network/new-bonded', query: { poolid: pool.id } }"

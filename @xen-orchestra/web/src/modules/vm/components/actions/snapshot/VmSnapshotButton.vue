@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:snapshot" :busy="isRunning" @click="snapshotJob()">
+  <MenuItem accent="brand" icon="action:snapshot" :busy="isRunning" @click="snapshotJob()">
     {{ t('snapshot') }}
   </MenuItem>
 </template>

@@ -1,5 +1,6 @@
 <template>
   <MenuItem
+    accent="brand"
     icon="action:download"
     :busy="areHostsFetching"
     :disabled="(areHostsReady && host === undefined) || hasHostFetchError"

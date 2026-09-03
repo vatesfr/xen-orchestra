@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:import-export">
+  <MenuItem accent="brand" icon="action:import-export">
     {{ t('action:import-export') }}
     <template #submenu>
       <VdiExportButton :vdi />

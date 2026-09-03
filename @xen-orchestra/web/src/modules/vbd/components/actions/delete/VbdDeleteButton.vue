@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:detach" :disabled="!canDeleteVbds" :busy="isDeletingVbds" @click="deleteVbds()">
+  <MenuItem accent="brand" icon="action:detach" :disabled="!canDeleteVbds" :busy="isDeletingVbds" @click="deleteVbds()">
     {{ t('action:detach-vdi') }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>

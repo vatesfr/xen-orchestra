@@ -1,5 +1,10 @@
 <template>
-  <MenuItem v-if="showChangeStateButton && !uiStore.isSmall" icon="action:change-state" class="change-state">
+  <MenuItem
+    v-if="showChangeStateButton && !uiStore.isSmall"
+    accent="brand"
+    icon="action:change-state"
+    class="change-state"
+  >
     {{ t('action:change-state') }}
     <template #submenu>
       <HostPowerStateActions :host />
