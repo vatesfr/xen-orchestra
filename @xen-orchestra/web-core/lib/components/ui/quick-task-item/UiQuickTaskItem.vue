@@ -5,27 +5,7 @@
       <UiButtonIcon accent="brand" :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'" size="small" />
     </div>
     <div class="content">
-      <div v-if="task.nameParts || task.name">
-        <template v-if="task.to">
-          <UiLink size="medium" display-inline :to="task.to">
-            <template v-if="task.nameParts">
-              <template v-for="(part, index) in task.nameParts" :key="index">
-                {{ part.text }}
-              </template>
-            </template>
-            <template v-else>{{ task.name }}</template>
-          </UiLink>
-        </template>
-        <template v-else>
-          <template v-if="task.nameParts">
-            <template v-for="(part, index) in task.nameParts" :key="index">
-              <UiLink v-if="part.to" size="medium" display-inline :to="part.to">{{ part.text }}</UiLink>
-              <UiLink v-else display-inline size="medium">{{ part.text }}</UiLink>
-            </template>
-          </template>
-          <UiLink v-else display-inline size="medium">{{ task.name }}</UiLink>
-        </template>
-      </div>
+      <VtsTaskName :task size="medium" />
       <div class="informations">
         <div class="line-1">
           <UiTag v-if="task.tag" accent="neutral" variant="primary">{{ task.tag }}</UiTag>
@@ -50,8 +30,8 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickTaskList from '@core/components/task/VtsQuickTaskList.vue'
+import VtsTaskName from '@core/components/task/VtsTaskName.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { useToggle } from '@vueuse/core'
