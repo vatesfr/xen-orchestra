@@ -1,4 +1,5 @@
-import { payloadsArg } from '@/modules/storage-repository/jobs/xo-sr-create-args.ts'
+import { payloadArg } from '@/modules/storage-repository/jobs/xo-sr-create-args.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import type { NewSrPayload, SrContentType } from '@core/types/storage-repository.type.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
@@ -13,7 +14,7 @@ export type NewSrRestPayload = {
   content_type?: SrContentType
 }
 
-export function buildNewSrPayload(payload: NewSrPayload): NewSrRestPayload {
+export function buildNewSrRestPayload(payload: NewSrPayload): NewSrRestPayload {
   const restPayload: NewSrRestPayload = {
     hostId: payload.hostId,
     name_label: payload.nameLabel,
@@ -29,45 +30,35 @@ export function buildNewSrPayload(payload: NewSrPayload): NewSrRestPayload {
   return restPayload
 }
 
-export const useXoSrCreateJob = defineJob('sr.create', [payloadsArg], () => {
+export const useXoSrCreateJob = defineJob('sr.create', [payloadArg], () => {
   const { t } = useI18n()
 
   return {
-    async run(payloads) {
-      const results = await Promise.allSettled(
-        payloads.map(async payload => {
-          const { id } = await fetchPost<{ id: string }>('srs', payload)
-          return id
-        })
-      )
-
-      results.forEach((result, index) => {
-        if (result.status === 'rejected') {
-          console.error(`Failed to create SR ${payloads[index]?.name_label}:`, result.reason)
-        }
-      })
-
-      return results
+    async run(payload: NewSrRestPayload): Promise<FrontXoSr['id']> {
+      const { id } = await fetchPost<{ id: FrontXoSr['id'] }>('srs', payload)
+      return id
     },
 
-    validate(isRunning, payloads) {
+    validate(isRunning, payload?: NewSrRestPayload) {
       if (isRunning) {
         throw new JobRunningError(t('job:create:in-progress'))
       }
 
-      if (payloads.length === 0) {
+      if (!payload) {
         throw new JobError(t('job:arg:missing-payload'))
       }
 
-      payloads.forEach(payload => {
-        if (!payload.hostId) {
-          throw new JobError(t('job:arg:host-required'))
-        }
+      if (!payload.hostId) {
+        throw new JobError(t('job:arg:host-required'))
+      }
 
-        if (!payload.name_label) {
-          throw new JobError(t('job:arg:name-required'))
-        }
-      })
+      if (!payload.name_label) {
+        throw new JobError(t('job:arg:name-required'))
+      }
+
+      if (!payload.SR_type) {
+        throw new JobError(t('job:arg:sr-type-required'))
+      }
     },
   }
 })

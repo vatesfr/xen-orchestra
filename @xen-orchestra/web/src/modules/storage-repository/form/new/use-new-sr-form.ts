@@ -1,25 +1,16 @@
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { buildNewSrInput, type NewSrFormData } from '@/modules/storage-repository/form/new/sr-form.types.ts'
-import {
-  buildNewSrPayload as buildNewSrRestPayload,
-  type NewSrRestPayload,
-} from '@/modules/storage-repository/jobs/xo-sr-create.job.ts'
+import { buildNewSrRestPayload, type NewSrRestPayload } from '@/modules/storage-repository/jobs/xo-sr-create.job.ts'
 import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { objectIcon, type IconName } from '@core/icons'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { SR_ACCESS_MODE, SR_PREFERRED_IMAGE_FORMATS, type SrType } from '@core/types/storage-repository.type.ts'
-import {
-  buildNewSrPayload,
-  getAvailableSrTypes,
-  groupSrTypesByContent,
-  SR_CREATE_TYPE_LABEL_KEYS,
-  SR_TYPE_META,
-} from '@core/utils/sr.utils.ts'
+import { buildNewSrPayload, getAvailableSrTypes, groupSrTypesByContent, SR_TYPE_META } from '@core/utils/sr.utils.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { toLower } from 'lodash-es'
-import { computed, type MaybeRefOrGetter, reactive, toRef, toValue, watch } from 'vue'
+import { computed, type MaybeRefOrGetter, reactive, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export function useNewSrForm(
@@ -29,10 +20,9 @@ export function useNewSrForm(
   const { t } = useI18n()
 
   const contextPoolId = toComputed(rawPoolId)
-  const contextHostId = computed(() => (rawHostId !== undefined ? toValue(rawHostId) : undefined))
+  const contextHostId = toComputed(rawHostId)
 
-  const defaultAccessMode =
-    rawHostId !== undefined && toValue(rawHostId) !== undefined ? SR_ACCESS_MODE.LOCAL : SR_ACCESS_MODE.SHARED
+  const defaultAccessMode = contextHostId.value !== undefined ? SR_ACCESS_MODE.LOCAL : SR_ACCESS_MODE.SHARED
 
   const formData = reactive<NewSrFormData>({
     poolId: undefined,
@@ -50,7 +40,7 @@ export function useNewSrForm(
     preferredImageFormats: '',
   })
 
-  const { pools } = useXoPoolCollection()
+  const { pools, getPoolById } = useXoPoolCollection()
 
   const { hostsByPool } = useXoHostCollection()
 
@@ -62,10 +52,22 @@ export function useNewSrForm(
 
   const availableSrTypes = computed(() => getAvailableSrTypes(formData.accessMode))
 
+  const srTypeLabels = computed(
+    () =>
+      ({
+        lvm: t('lvm'),
+        ext: t('ext'),
+        smb: t('smb'),
+        local: t('local'),
+        smbiso: t('smbiso'),
+      }) satisfies Record<SrType, string>
+  )
+
   const typeGroups = computed(() => groupSrTypesByContent(availableSrTypes.value))
 
   const typeOptions = computed(() => {
     const groups = typeGroups.value
+
     const result: Array<{
       id: SrType
       label: string
@@ -79,7 +81,7 @@ export function useNewSrForm(
       groups[group].forEach((srType, index) => {
         result.push({
           id: srType,
-          label: t(SR_CREATE_TYPE_LABEL_KEYS[srType]),
+          label: srTypeLabels.value[srType],
           value: srType,
           icon: 'object:sr',
           group,
@@ -134,25 +136,16 @@ export function useNewSrForm(
       onSubmit: () => ({
         poolId: { required: withMessage(required, () => t('pool-required')) },
         hostId: { required: withMessage(required, () => t('host-required')) },
-        type: { required: withMessage(required, () => t('form:error:required')) },
+        type: { required },
         name: { required },
         device: {
-          requiredIf: withMessage(
-            requiredIf(() => formData.type === 'lvm' || formData.type === 'ext'),
-            () => t('form:error:required')
-          ),
+          requiredIf: requiredIf(() => formData.type === 'lvm' || formData.type === 'ext'),
         },
         server: {
-          requiredIf: withMessage(
-            requiredIf(() => formData.type === 'smb' || formData.type === 'smbiso'),
-            () => t('form:error:required')
-          ),
+          requiredIf: requiredIf(() => formData.type === 'smb' || formData.type === 'smbiso'),
         },
         path: {
-          requiredIf: withMessage(
-            requiredIf(() => formData.type === 'local'),
-            () => t('form:error:required')
-          ),
+          requiredIf: requiredIf(() => formData.type === 'local'),
         },
       }),
     },
@@ -229,7 +222,7 @@ export function useNewSrForm(
       return
     }
 
-    const masterHostId = pools.value.find(pool => pool.id === formData.poolId)?.master
+    const masterHostId = getPoolById(formData.poolId)?.master
 
     if (masterHostId !== undefined) {
       formData.hostId = masterHostId
@@ -244,12 +237,12 @@ export function useNewSrForm(
         return
       }
 
-      formData.poolId = pools.value.find(pool => pool.id === contextPoolId.value)?.id
+      formData.poolId = getPoolById(contextPoolId.value)?.id
     },
     { immediate: true }
   )
 
-  /** Select pool master host on init, pool change, switch to shared access mode, or when pools are loaded */
+  /** Select the pool's master host on init, pool change, switch to shared access mode, or when pools are loaded */
   watch(
     [() => formData.poolId, isLocalAccessMode, pools],
     () => {
@@ -280,7 +273,7 @@ export function useNewSrForm(
   )
 
   /**
-   * Select pool master host when the pool changes
+   * Select the pool's master host when the pool changes
    * Skip if there was no previous pool selection (on form init)
    * Skip if shared access mode: selectPoolMaster already called by the shared access mode watcher
    */
@@ -346,7 +339,6 @@ export function useNewSrForm(
     accessModeInputBindings,
     poolSelectBindings,
     hostSelectBindings,
-    isLocalAccessMode,
     typeSelectBindings,
     type: toRef(formData, 'type'),
     deviceInputBindings,
