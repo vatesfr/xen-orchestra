@@ -187,6 +187,7 @@ const { HeadCells, BodyCells } = useSrColumns({
               onClick: () => deleteSrs(),
               disabled: !canDeleteSrs.value,
               busy: isDeletingSrs.value,
+              accent: 'danger',
             },
           ],
         }),
