@@ -33,8 +33,6 @@ const className = computed(() => toVariants({ size }))
 .ui-dropdown-item {
   display: inline-flex;
   align-items: center;
-  padding-block: 1.2rem;
-  padding-inline: 1.6rem;
   gap: 0.8rem;
   background: var(--color-neutral-background-primary);
   border: 0.1rem solid var(--color-brand-item-base);
