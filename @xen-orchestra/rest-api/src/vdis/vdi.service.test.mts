@@ -11,7 +11,7 @@ import type { XoVdi } from '@vates/types'
 const VDI_ID = 'c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e' as XoVdi['id']
 
 describe('VdiService.exportContent', () => {
-  it('exports a non VHD format through the XAPI', async () => {
+  it('exports the raw format through the XAPI', async () => {
     // `length` is only exposed to the controllers, which turn it into a content-length
     const stream = Object.assign(Readable.from(['content']), { length: 42 })
     let exportContentArgs: unknown[] | undefined

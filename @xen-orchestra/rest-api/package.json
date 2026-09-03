@@ -41,6 +41,7 @@
     "@xen-orchestra/acl": "^1.6.1",
     "@xen-orchestra/backups": "^0.74.2",
     "@xen-orchestra/log": "^0.7.2",
+    "@xen-orchestra/qcow2": "^1.3.1",
     "@xen-orchestra/xapi": "^8.10.5",
     "complex-matcher": "^1.1.1",
     "golike-defer": "^0.5.1",
