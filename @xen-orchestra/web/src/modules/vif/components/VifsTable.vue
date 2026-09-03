@@ -179,6 +179,7 @@ const { HeadCells, BodyCells } = useVifNetworkColumns({
               onClick: () => deleteVifs(),
               disabled: !canDeleteVifs.value,
               busy: isDeletingVifs.value,
+              accent: 'danger',
             },
           ],
         }),
