@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="canDisplay" icon="fa:pause" :busy="isRunning" @click="pauseJob()">
+  <MenuItem v-if="canDisplay" accent="brand" icon="fa:pause" :busy="isRunning" @click="pauseJob()">
     {{ t('pause') }}
   </MenuItem>
 </template>

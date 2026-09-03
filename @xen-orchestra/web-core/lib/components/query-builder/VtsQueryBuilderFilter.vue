@@ -20,9 +20,11 @@
           </UiButton>
           <UiButtonIcon v-else icon="fa:ellipsis" size="medium" accent="brand" @click="open" />
         </template>
-        <MenuItem icon="fa:clone" @click="emit('duplicate')">{{ t('action:duplicate') }}</MenuItem>
-        <MenuItem icon="fa:layer-group" @click="emit('convertToGroup')">{{ t('action:turn-into-group') }}</MenuItem>
-        <MenuItem icon="fa:trash" @click="emit('remove')">{{ t('action:delete-filter') }}</MenuItem>
+        <MenuItem accent="brand" icon="fa:clone" @click="emit('duplicate')">{{ t('action:duplicate') }}</MenuItem>
+        <MenuItem accent="brand" icon="fa:layer-group" @click="emit('convertToGroup')">
+          {{ t('action:turn-into-group') }}
+        </MenuItem>
+        <MenuItem accent="brand" icon="fa:trash" @click="emit('remove')">{{ t('action:delete-filter') }}</MenuItem>
       </MenuList>
     </div>
   </div>

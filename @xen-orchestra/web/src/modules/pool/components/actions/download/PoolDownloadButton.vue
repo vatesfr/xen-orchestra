@@ -1,5 +1,12 @@
 <template>
-  <MenuItem icon="action:download" class="typo-body-bold-small" :busy="isBusy" :disabled="isDisabled" @click="download">
+  <MenuItem
+    accent="brand"
+    icon="action:download"
+    class="typo-body-bold-small"
+    :busy="isBusy"
+    :disabled="isDisabled"
+    @click="download"
+  >
     {{ t('action:download-bugtools-archive') }}
   </MenuItem>
 </template>

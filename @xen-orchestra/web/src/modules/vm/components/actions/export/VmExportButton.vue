@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:download" @click="exportVm()">
+  <MenuItem accent="brand" icon="action:download" @click="exportVm()">
     {{ t('action:export') }}
   </MenuItem>
 </template>

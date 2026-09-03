@@ -19,6 +19,7 @@
         :icon="action.icon"
         :disabled="action.disabled"
         :busy="action.busy"
+        :accent="action.accent ?? 'brand'"
         :on-click="action.onClick"
       >
         {{ action.label }}
@@ -30,6 +31,7 @@
             :icon="child.icon"
             :disabled="child.disabled"
             :busy="child.busy"
+            :accent="child.accent ?? 'brand'"
             :on-click="child.onClick"
           >
             {{ child.label }}
@@ -42,6 +44,7 @@
 </template>
 
 <script setup lang="ts">
+import type { MenuItemAccent } from '@core/components/menu/MenuItem.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import type { ButtonIconSize } from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -67,6 +70,7 @@ type BaseActionItem = {
   icon?: IconName
   disabled?: boolean
   busy?: boolean
+  accent?: MenuItemAccent
 }
 
 export type LeafActionItem = BaseActionItem & {

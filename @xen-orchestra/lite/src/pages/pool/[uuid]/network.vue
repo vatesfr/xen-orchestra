@@ -7,12 +7,12 @@
             <template #trigger="{ open }">
               <UiDropdownButton @click="open($event)">{{ t('new') }}</UiDropdownButton>
             </template>
-            <MenuItem>
+            <MenuItem accent="brand">
               <UiLink class="new-network-link" :to="{ name: '/network/new' }" icon="fa:plus" size="medium">
                 {{ t('action:create-network') }}
               </UiLink>
             </MenuItem>
-            <MenuItem>
+            <MenuItem accent="brand">
               <UiLink class="new-network-link" :to="{ name: '/network/new-bonded' }" icon="fa:plus" size="medium">
                 {{ t('action:create-bonded-network') }}
               </UiLink>
