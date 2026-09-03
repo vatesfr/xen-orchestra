@@ -63,6 +63,10 @@ const {
   error?: boolean
 }>()
 
+defineSlots<{
+  'title-actions'(): any
+}>()
+
 const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()

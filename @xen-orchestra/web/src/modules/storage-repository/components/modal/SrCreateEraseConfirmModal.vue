@@ -5,11 +5,7 @@
     </template>
 
     <template #content>
-      <I18nT keypath="sr-create-erase-confirm" scope="global">
-        <template #device>
-          <span class="device">{{ device }}</span>
-        </template>
-      </I18nT>
+      {{ t('sr-create-erase-confirm', { device }) }}
     </template>
 
     <template #buttons>
@@ -36,10 +32,3 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 </script>
-
-<style lang="postcss" scoped>
-.device {
-  font-family: 'Courier New', Courier, monospace;
-  color: var(--color-warning-txt-base);
-}
-</style>

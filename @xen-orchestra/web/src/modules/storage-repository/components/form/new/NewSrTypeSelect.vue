@@ -5,7 +5,7 @@
         v-if="option.properties.isFirstInGroup && option.properties.group"
         :icon="option.properties.icon"
       >
-        {{ t(GROUP_LABEL_KEYS[option.properties.group]) }}
+        {{ groupLabels[option.properties.group] }}
       </VtsDropdownTitle>
       <VtsOption :option />
     </template>
@@ -18,6 +18,8 @@ import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInpu
 import type { FormSelectId } from '@core/packages/form-select'
 import VtsDropdownTitle from '@core/components/dropdown/VtsDropdownTitle.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
+import { SR_CONTENT_GROUP, type SrContentGroup } from '@core/types/storage-repository.type.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
@@ -29,10 +31,10 @@ const props = defineProps<{
   error?: InputWrapperMessage
 }>()
 
-const GROUP_LABEL_KEYS = {
-  vdi: 'sr-group-vdi',
-  iso: 'sr-group-iso',
-} as const
-
 const { t } = useI18n()
+
+const groupLabels = computed<Record<SrContentGroup, string>>(() => ({
+  [SR_CONTENT_GROUP.VDI]: t('sr-group-vdi'),
+  [SR_CONTENT_GROUP.ISO]: t('sr-group-iso'),
+}))
 </script>

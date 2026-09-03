@@ -11,25 +11,20 @@ export type CreateSrDrawerContext = {
 }
 
 export function useCreateSrDrawer() {
-  const payload = ref<NewSrRestPayload>()
+  const restPayload = ref<NewSrRestPayload>()
 
-  const { run, isRunning, errorMessage, canRun } = useXoSrCreateJob(payload)
+  const { run, isRunning, errorMessage, canRun } = useXoSrCreateJob(restPayload)
 
   const { open: openDrawer } = useOverlay({
     component: () => import('@/modules/storage-repository/components/drawer/StorageRepositoryCreateDrawer.vue'),
     events: {
-      onConfirm: async (restPayload: NewSrRestPayload) => {
-        payload.value = restPayload
+      onConfirm: async (payload: NewSrRestPayload) => {
+        restPayload.value = payload
 
         try {
-          const [result] = await run()
-
-          if (!result || result.status === 'rejected') {
-            console.error(`Failed to create SR ${restPayload.name_label}`)
-            return KEEP_OVERLAY_OPEN
-          }
+          await run()
         } catch (error) {
-          console.error('Error when creating SR:', error)
+          console.error(`Failed to create SR ${payload.name_label}: ${error}`)
           return KEEP_OVERLAY_OPEN
         }
       },

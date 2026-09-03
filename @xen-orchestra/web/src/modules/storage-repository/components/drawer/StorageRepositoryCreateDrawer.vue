@@ -3,7 +3,7 @@
     <template #title>{{ t('action:create-sr') }}</template>
 
     <template #content>
-      <NewStorageRepositoryForm ref="formRef" :pool-id="poolId" :host-id="hostId" />
+      <NewStorageRepositoryForm ref="formRef" :pool-id :host-id />
     </template>
 
     <template #buttons>
@@ -39,14 +39,10 @@ const { t } = useI18n()
 
 const formRef = useTemplateRef('formRef')
 
-const { open: openModal } = useOverlay({
+const { open: openEraseConfirmModal } = useOverlay({
   component: () => import('@/modules/storage-repository/components/modal/SrCreateEraseConfirmModal.vue'),
   events: { onConfirm: true, onCancel: true },
 })
-
-function openEraseConfirmModal(device: string) {
-  return openModal({ props: { device } })
-}
 
 async function handleConfirm() {
   const restPayload = await formRef.value?.validateAndBuildPayload()
@@ -56,7 +52,7 @@ async function handleConfirm() {
   }
 
   if (formRef.value?.requiresEraseConfirm) {
-    const response = await openEraseConfirmModal(restPayload.device_config.device ?? '')
+    const response = await openEraseConfirmModal({ props: { device: restPayload.device_config.device ?? '' } })
 
     if (response.event !== 'onConfirm') {
       return

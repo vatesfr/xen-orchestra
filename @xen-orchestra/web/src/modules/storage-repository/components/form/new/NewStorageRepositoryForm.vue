@@ -1,5 +1,5 @@
 <template>
-  <VtsForm class="new-sr-form">
+  <div class="new-storage-repository-form">
     <UiTitle>{{ t('general-information') }}</UiTitle>
     <div class="row">
       <NewSrFormTextInput v-bind="nameInputBindings" />
@@ -52,8 +52,6 @@
 
       <!-- LOCAL -->
       <NewSrFormTextInput v-else-if="type === 'local'" v-bind="pathInputBindings" />
-
-      <div v-else />
     </div>
 
     <!-- SMB or SMBISO with auth -->
@@ -65,9 +63,8 @@
     <!-- PREFERRED IMAGE FORMATS -->
     <div v-if="supportsPreferredImageFormats" class="row">
       <NewSrFormSelect v-bind="preferredImageFormatsSelectBindings" />
-      <div />
     </div>
-  </VtsForm>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -79,7 +76,6 @@ import NewSrFormTextInput from '@/modules/storage-repository/components/form/new
 import NewSrAccessModeSelector from '@/modules/storage-repository/components/form/new/NewSrAccessModeSelector.vue'
 import NewSrTypeSelect from '@/modules/storage-repository/components/form/new/NewSrTypeSelect.vue'
 import { useNewSrForm } from '@/modules/storage-repository/form/new/use-new-sr-form.ts'
-import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
@@ -120,7 +116,7 @@ defineExpose({ requiresEraseConfirm, validateAndBuildPayload })
 </script>
 
 <style lang="postcss" scoped>
-.new-sr-form {
+.new-storage-repository-form {
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
@@ -140,6 +136,10 @@ defineExpose({ requiresEraseConfirm, validateAndBuildPayload })
       flex-direction: row;
       gap: 2.4rem;
       max-width: 88rem;
+
+      & > * {
+        width: calc(50% - 1.2rem);
+      }
     }
   }
 
