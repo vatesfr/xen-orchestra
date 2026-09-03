@@ -11,13 +11,14 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import type { ButtonSize } from '@core/components/ui/button/UiButton.vue'
 import { useDisabled } from '@core/composables/disabled.composable.ts'
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
 const { disabled, selected, icon, size } = defineProps<{
-  size: 'small' | 'medium'
+  size: ButtonSize
   disabled?: boolean
   selected?: boolean
   icon?: IconName
