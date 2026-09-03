@@ -17,7 +17,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [XO-WEB] Disable restart toolstack button for the hosts that belongs to a HA pools (PR [#10340](https://github.com/vatesfr/xen-orchestra/pull/10340))
+- [XO-WEB] Disable restart toolstack button for the hosts that belongs to a HA pools, Introduced by 7a8ca2f0689811045936f1f5653a2c52dc34a2fe (PR [#10340](https://github.com/vatesfr/xen-orchestra/pull/10340))
 
 ### Packages to release
 
