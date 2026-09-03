@@ -31,6 +31,7 @@
 
 <script setup lang="ts">
 import { useNewBackupRepository } from '@/modules/backup/composables/use-new-backup-repository.composable.ts'
+import { useXoBackupRepositoryUtils } from '@/modules/backup/composables/xo-backup-repository-utils.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/backup/utils/xo-backup-repository.util.ts'
@@ -63,6 +64,8 @@ const { useGetProxyById } = useXoProxyCollection()
 
 const { openNewBackupRepositoryDrawer } = useNewBackupRepository()
 
+const { getTypeLabel } = useXoBackupRepositoryUtils()
+
 const { items: filteredBrs, filter } = useQueryBuilderFilter('backup-repositories', () => brs)
 
 const schema = useQueryBuilderSchema<FrontXoBackupRepository>({
@@ -88,14 +91,12 @@ const state = useTableState({
 
 const { HeadCells, BodyCells } = useBackupRepositoryColumns({
   body: (br: FrontXoBackupRepository) => {
+    const proxy = useGetProxyById(() => br.proxy)
     return {
       backupRepository: r => r({ label: br.name, icon: getBackupRepositoryIcon(br), href: xo5BrsHref.value }),
       status: r => r(getBackupRepositoryStatus(br)),
-      type: r => r(parseBackupRepositoryUrl(br.url)?.type ?? ''),
-      proxy: r => {
-        const proxyName = useGetProxyById(() => br.proxy).value?.name
-        return proxyName ? r(proxyName, { leftIcon: { icon: 'object:proxy' } }) : r('')
-      },
+      type: r => r(getTypeLabel(parseBackupRepositoryUrl(br.url)?.type)),
+      proxy: r => (proxy.value ? r(proxy.value.name, { leftIcon: { icon: 'object:proxy' } }) : r('')),
       selectItem: r => r(() => (selectedBrId.value = br.id)),
     }
   },

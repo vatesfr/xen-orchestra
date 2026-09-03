@@ -6,8 +6,8 @@
 
 <script lang="ts" setup>
 import type { InputWrapperMessage } from '@xen-orchestra/web-core/components/input-wrapper/VtsInputWrapper.vue'
-import type { InputType } from '@xen-orchestra/web-core/components/ui/input/UiInput.vue'
 import VtsInputWrapper from '@xen-orchestra/web-core/components/input-wrapper/VtsInputWrapper.vue'
+import type { InputType } from '@xen-orchestra/web-core/components/ui/input/UiInput.vue'
 import UiInput from '@xen-orchestra/web-core/components/ui/input/UiInput.vue'
 import { computed } from 'vue'
 

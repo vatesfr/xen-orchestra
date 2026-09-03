@@ -9,6 +9,7 @@ import {
   faBoxesStacked,
   faCamera,
   faCircle,
+  faCircleNodes,
   faCity,
   faClock,
   faDatabase,
@@ -24,7 +25,6 @@ import {
   faUsers,
   type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
-import { faCircleNodes } from '@fortawesome/free-solid-svg-icons'
 
 function constructCircleStatus(status: keyof typeof statusIcons): any {
   return [

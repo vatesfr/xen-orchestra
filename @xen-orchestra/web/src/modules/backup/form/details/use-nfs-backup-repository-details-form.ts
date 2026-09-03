@@ -1,6 +1,7 @@
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup/types/new-backup-repository.type.ts'
-import { required } from '@core/packages/form-validation'
+import { required, port } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
+import { withMessage } from '@regle/rules'
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -26,6 +27,9 @@ export function useNfsBackupRepositoryDetailsForm() {
     reset: resetValidation,
   } = useValidatedForm(formData, {
     errors: {
+      onBlur: () => ({
+        port: { port: withMessage(port, () => t('invalid-port')) },
+      }),
       onSubmit: () => ({
         host: { required },
         path: { required },
@@ -60,8 +64,6 @@ export function useNfsBackupRepositoryDetailsForm() {
     Object.assign(formData, INITIAL_FORM_DATA)
     resetValidation()
   }
-
-  function hydrate()
 
   return { formData, bindings, validate, buildPayload, reset }
 }
