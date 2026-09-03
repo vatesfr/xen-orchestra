@@ -5,6 +5,8 @@ import assert from 'node:assert'
 // only way to control individual connections from a unit test is to replace that module with a
 // fake before importing multi.mjs.
 const created = []
+// connect() failures scripted per address by the tests; an empty map means every connect succeeds
+const connectErrors = new Map()
 class FakeNbdClient {
   constructor(nbdInfo) {
     this.nbdInfo = nbdInfo
@@ -16,7 +18,12 @@ class FakeNbdClient {
     created.push(this)
   }
 
-  async connect() {}
+  async connect() {
+    const error = connectErrors.get(this.nbdInfo.address)
+    if (error !== undefined) {
+      throw error
+    }
+  }
 
   async disconnect() {
     this.disconnected = true
@@ -126,5 +133,47 @@ describe('MultiNbdClient.readBlock routing', () => {
     }
 
     assert.deepStrictEqual(readsPerClient, [5, 5, 5, 5])
+  })
+})
+
+describe('MultiNbdClient.connect failure reporting', () => {
+  it('names every attempted server, its port and why it failed', async () => {
+    connectErrors.set('10.0.0.1', new Error('operation timed out'))
+    connectErrors.set('10.0.0.2', new Error('connect ECONNREFUSED'))
+    try {
+      const client = new MultiNbdClient([{ address: '10.0.0.1' }, { address: '10.0.0.2', port: 1234 }], {
+        nbdConcurrency: 2,
+      })
+
+      const error = await client.connect().then(
+        () => assert.fail('connect() should have rejected'),
+        error => error
+      )
+
+      assert.strictEqual(error.code, 'NO_NBD_AVAILABLE')
+      assert.strictEqual(
+        error.message,
+        'could not connect to any NBD server, attempted 10.0.0.1:10809 (operation timed out), 10.0.0.2:1234 (connect ECONNREFUSED)'
+      )
+      assert.deepStrictEqual(error.attempts, [
+        { address: '10.0.0.1', port: 10809, error: 'operation timed out' },
+        { address: '10.0.0.2', port: 1234, error: 'connect ECONNREFUSED' },
+      ])
+      // the individual failure must stay reachable programmatically
+      assert.ok(error.cause instanceof Error)
+    } finally {
+      connectErrors.clear()
+    }
+  })
+
+  it('succeeds as long as one server answers', async () => {
+    connectErrors.set('10.0.0.1', new Error('operation timed out'))
+    try {
+      const client = new MultiNbdClient([{ address: '10.0.0.1' }, { address: '10.0.0.2' }], { nbdConcurrency: 2 })
+
+      await client.connect()
+    } finally {
+      connectErrors.clear()
+    }
   })
 })

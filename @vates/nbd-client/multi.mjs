@@ -1,5 +1,5 @@
 import { asyncEach } from '@vates/async-each'
-import { NBD_DEFAULT_BLOCK_SIZE } from './constants.mjs'
+import { NBD_DEFAULT_BLOCK_SIZE, NBD_DEFAULT_PORT } from './constants.mjs'
 import NbdClient from './index.mjs'
 import { createLogger } from '@xen-orchestra/log'
 
@@ -36,6 +36,9 @@ export default class MultiNbdClient {
    */
   async connect() {
     const candidates = [...this.#settings]
+    // keyed by address: a candidate is removed from `candidates` on its first failure, so it is
+    // attempted at most once and this keeps the reason of that single attempt
+    const errorByAddress = new Map()
 
     const baseOptions = this.#options
     const _connect = async () => {
@@ -53,6 +56,7 @@ export default class MultiNbdClient {
         this.#clients.push(client)
       } catch (err) {
         client.disconnect().catch(() => {})
+        errorByAddress.set(nbdInfo.address, err)
         // do not hammer unreachable hosts, once failed, remove from the list
         const candidateIndex = candidates.findIndex(({ address }) => address === nbdInfo.address)
         if (candidateIndex >= 0) {
@@ -60,7 +64,11 @@ export default class MultiNbdClient {
           candidates.splice(candidateIndex, 1)
         }
 
-        warn(`can't connect to one nbd client`, { err })
+        warn(`can't connect to one nbd client`, {
+          address: nbdInfo.address,
+          port: nbdInfo.port ?? NBD_DEFAULT_PORT,
+          err,
+        })
         // retry with another candidate (if available)
         return _connect()
       }
@@ -71,8 +79,22 @@ export default class MultiNbdClient {
       await _connect()
     }
     if (this.#clients.length === 0) {
-      const error = new Error(`Fail to connect to any Nbd client`, { nbdInfos: this.#settings })
+      // `#settings` order is kept so the report matches what the caller asked for. Reaching this
+      // point means every candidate was attempted: `_connect` recurses until the list is empty
+      const attempts = this.#settings.map(({ address, port = NBD_DEFAULT_PORT }) => ({
+        address,
+        port,
+        error: errorByAddress.get(address)?.message ?? 'unknown error',
+      }))
+      const error = new Error(
+        `could not connect to any NBD server, attempted ${attempts
+          .map(({ address, port, error }) => `${address}:${port} (${error})`)
+          .join(', ')}`,
+        // all the servers usually fail for the same reason, keep the first one reachable
+        { cause: errorByAddress.values().next().value }
+      )
       error.code = 'NO_NBD_AVAILABLE'
+      error.attempts = attempts
       throw error
     }
     if (this.#clients.length < this.#nbdConcurrency) {
