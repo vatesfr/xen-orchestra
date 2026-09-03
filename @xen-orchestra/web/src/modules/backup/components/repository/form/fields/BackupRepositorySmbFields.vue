@@ -25,10 +25,10 @@
 </template>
 
 <script lang="ts" setup>
+import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/BackupRepositoryFormRow.vue'
 import BackupRepositoryFormTextArea from '@/modules/backup/components/repository/form/inputs/BackupRepositoryFormTextArea.vue'
 import BackupRepositoryFormTextInput from '@/modules/backup/components/repository/form/inputs/BackupRepositoryFormTextInput.vue'
-import BackupRepositoryFormRow from '@/modules/backup/components/repository/form/BackupRepositoryFormRow.vue'
-import type { SmbBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-smb-backup-repository-details-form.js'
+import type { SmbBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-smb-backup-repository-details-form.ts'
 import UiAlert from '@xen-orchestra/web-core/components/ui/alert/UiAlert.vue'
 import { useI18n } from 'vue-i18n'
 
