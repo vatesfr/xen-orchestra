@@ -22,9 +22,9 @@
 </template>
 
 <script lang="ts" setup>
-import NewBackupRepositoryDetailsStep from '@/modules/backup/components/repository/form/new/steps/NewBackupRepositoryDetailsStep.vue'
-import NewBackupRepositoryGeneralStep from '@/modules/backup/components/repository/form/new/steps/NewBackupRepositoryGeneralStep.vue'
-import NewBackupRepositoryReviewStep from '@/modules/backup/components/repository/form/new/steps/NewBackupRepositoryReviewStep.vue'
+import NewBackupRepositoryDetailsStep from '@/modules/backup/components/repository/form/steps/BackupRepositoryDetailsStep.vue'
+import NewBackupRepositoryGeneralStep from '@/modules/backup/components/repository/form/steps/BackupRepositoryGeneralStep.vue'
+import NewBackupRepositoryReviewStep from '@/modules/backup/components/repository/form/steps/NewBackupRepositoryReviewStep.vue'
 import { useNewBackupRepositoryForm } from '@/modules/backup/form/use-new-backup-repository-form.ts'
 import type { NewBackupRepositoryPayload } from '@/modules/backup/jobs/xo-backup-repository-create.job.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
