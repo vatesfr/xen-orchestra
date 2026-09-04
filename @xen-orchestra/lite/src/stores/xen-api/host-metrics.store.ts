@@ -22,10 +22,15 @@ export const useHostMetricsStore = defineStore('xen-api-host-metrics', () => {
     return baseContext.getByOpaqueRef(host.metrics)?.live === true
   }
 
+  const isHostHalted = (host: XenApiHost) => {
+    return baseContext.getByOpaqueRef(host.metrics)?.live === false
+  }
+
   const context = {
     ...baseContext,
     getHostMemory,
     isHostRunning,
+    isHostHalted,
   }
 
   return createSubscribableStoreContext({ context, ...configRest }, {})
