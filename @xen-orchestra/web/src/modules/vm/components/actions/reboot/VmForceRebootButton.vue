@@ -44,7 +44,7 @@ const openModal = () => {
 
   openRebootModal({
     events: { onConfirm: () => forceReboot() },
-    props: { accent: 'info', action: 'force-reboot', object: 'vm', icon: 'status:info-picto' },
+    props: { accent: 'info', action: 'force-reboot', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
   })
 }
 </script>
