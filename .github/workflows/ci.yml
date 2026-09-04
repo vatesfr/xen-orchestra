@@ -10,7 +10,7 @@ jobs:
       - name: Install packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl qemu-utils python3-vmdkstream git libxml2-utils libfuse2 nbdkit
+          sudo apt-get install -y curl qemu-utils python3-vmdkstream git libxml2-utils libfuse2 nbdkit open-iscsi
 
       # https://turbo.build/repo/docs/guides/ci-vendors/github-actions#caching-with-github-actionscache
       - name: Cache Turbo
