@@ -38,8 +38,8 @@
 </template>
 
 <script lang="ts" setup>
-import { type NfsBackupRepositoryInfo } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import { formatMountOptions } from '@/modules/backup/utils/xo-backup-repository.util.ts'
+import { type NfsBackupRepositoryInfo } from '@/modules/backup/utils/xo-parse-backup-repository-url.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

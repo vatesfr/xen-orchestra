@@ -62,7 +62,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { formatSpeedRaw } from '@core/utils/speed.util.ts'
+import { formatSpeed } from '@core/utils/speed.util.ts'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -77,12 +77,6 @@ const storedBenchmark = computed(() => br.benchmarks?.at(-1))
 const manualBenchmark = ref<{ readRate: number; writeRate: number } | undefined>()
 
 const displayedBenchmark = computed(() => manualBenchmark.value ?? storedBenchmark.value)
-
-const formatSpeed = (bytesPerSecond: number) => {
-  const { value, prefix } = formatSpeedRaw(bytesPerSecond, { maxDecimals: 2 })
-
-  return `${value} ${prefix}`
-}
 
 const readSpeed = computed(() =>
   displayedBenchmark.value === undefined ? undefined : formatSpeed(displayedBenchmark.value.readRate)
