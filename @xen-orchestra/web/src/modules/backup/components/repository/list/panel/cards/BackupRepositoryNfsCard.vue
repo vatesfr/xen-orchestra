@@ -1,8 +1,8 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="card-container">
     <UiCardTitle>{{ t('nfs') }}</UiCardTitle>
     <div class="content">
-      <VtsCardRowKeyValue truncate align-top>
+      <VtsCardRowKeyValue>
         <template #key>{{ t('host') }}</template>
         <template #value>{{ nfs.host }}</template>
         <template #addons>
@@ -10,7 +10,7 @@
         </template>
       </VtsCardRowKeyValue>
 
-      <VtsCardRowKeyValue v-if="nfs.port" truncate align-top>
+      <VtsCardRowKeyValue>
         <template #key>{{ t('port') }}</template>
         <template #value>{{ nfs.port }}</template>
         <template #addons>
@@ -18,7 +18,7 @@
         </template>
       </VtsCardRowKeyValue>
 
-      <VtsCardRowKeyValue truncate align-top>
+      <VtsCardRowKeyValue>
         <template #key>{{ t('path-on-share') }}</template>
         <template #value>{{ nfs.path }}</template>
         <template #addons>
@@ -26,15 +26,15 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
 import { type NfsBackupRepositoryInfo } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -46,8 +46,6 @@ const { t } = useI18n()
 
 <style scoped lang="postcss">
 .card-container {
-  gap: 1.6rem;
-
   .content {
     display: flex;
     flex-direction: column;

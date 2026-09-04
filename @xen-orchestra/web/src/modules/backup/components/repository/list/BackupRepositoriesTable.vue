@@ -24,22 +24,24 @@ import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repos
 import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import VtsQueryBuilder from '@xen-orchestra/web-core/components/query-builder/VtsQueryBuilder.vue'
-import VtsRow from '@xen-orchestra/web-core/components/table/VtsRow.vue'
-import VtsTable from '@xen-orchestra/web-core/components/table/VtsTable.vue'
-import UiTitle from '@xen-orchestra/web-core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@xen-orchestra/web-core/composables/pagination.composable.ts'
-import { useRouteQuery } from '@xen-orchestra/web-core/composables/route-query.composable.ts'
-import { useTableState } from '@xen-orchestra/web-core/composables/table-state.composable.ts'
-import { useQueryBuilderSchema } from '@xen-orchestra/web-core/packages/query-builder/schema/use-query-builder-schema.ts'
-import { useQueryBuilderFilter } from '@xen-orchestra/web-core/packages/query-builder/use-query-builder-filter.ts'
-import { useBackupRepositoryColumns } from '@xen-orchestra/web-core/tables/column-sets/backup-repository-columns.ts'
-import { useStringSchema } from '@xen-orchestra/web-core/utils/query-builder/use-string-schema.ts'
+import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
+import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
+import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
+import { useBackupRepositoryColumns } from '@core/tables/column-sets/backup-repository-columns.ts'
+import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { brs } = defineProps<{
+const { brs, busy, error } = defineProps<{
   brs: FrontXoBackupRepository[]
+  busy: boolean
+  error: boolean
 }>()
 
 const { t } = useI18n()
@@ -63,6 +65,8 @@ const xo5BrsHref = computed(() => buildXo5Route('/settings/remotes'))
 const { pageRecords: paginatedBrs, paginationBindings } = usePagination('brs', filteredBrs)
 
 const state = useTableState({
+  busy: () => busy,
+  error: () => error,
   empty: () =>
     brs.length === 0
       ? t('no-backup-repository-detected')
@@ -73,12 +77,13 @@ const state = useTableState({
 
 const { HeadCells, BodyCells } = useBackupRepositoryColumns({
   body: (br: FrontXoBackupRepository) => {
+    const proxy = useGetProxyById(() => br.proxy)
     return {
       backupRepository: r => r({ label: br.name, icon: getBackupRepositoryIcon(br), href: xo5BrsHref.value }),
       status: r => r(getBackupRepositoryStatus(br)),
       type: r => r(parseBackupRepositoryUrl(br.url)?.type ?? ''),
       proxy: r => {
-        const proxyName = useGetProxyById(() => br.proxy).value?.name
+        const proxyName = proxy.value?.name
         return proxyName ? r(proxyName, { leftIcon: { icon: 'object:proxy' } }) : r('')
       },
       selectItem: r => r(() => (selectedBrId.value = br.id)),

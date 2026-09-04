@@ -40,7 +40,7 @@ export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<Front
   )
 
   const maxExportRate = computed<Info<humanFormat.Scale<'B/s' | 'KiB/s' | 'MiB/s' | 'GiB/s' | 'TiB/s'>> | undefined>(
-    () => (settings.maxExportRate ? formatSpeedRaw(settings.maxExportRate, 2) : undefined)
+    () => (settings.maxExportRate ? formatSpeedRaw(settings.maxExportRate, { maxDecimals: 2 }) : undefined)
   )
 
   const formattedTimeout = computed(() =>
