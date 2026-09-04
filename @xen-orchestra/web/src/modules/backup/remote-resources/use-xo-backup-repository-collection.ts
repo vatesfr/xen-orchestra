@@ -5,7 +5,15 @@ import type { XoBackupRepository } from '@vates/types'
 
 export type FrontXoBackupRepository = Pick<XoBackupRepository, (typeof backupRepositoryFields)[number]>
 
-const backupRepositoryFields = ['id', 'name', 'enabled'] as const satisfies readonly (keyof XoBackupRepository)[]
+const backupRepositoryFields = [
+  'id',
+  'name',
+  'enabled',
+  'error',
+  'url',
+  'proxy',
+  'benchmarks',
+] as const satisfies readonly (keyof XoBackupRepository)[]
 
 export const useXoBackupRepositoryCollection = defineRemoteResource({
   url: `${BASE_URL}/backup-repositories?fields=${backupRepositoryFields.join(',')}`,
