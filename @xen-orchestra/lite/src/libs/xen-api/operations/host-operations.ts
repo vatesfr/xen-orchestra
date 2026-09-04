@@ -24,6 +24,7 @@ export function createHostOperations(xenApi: XenApi) {
 
           throw error
         }
+        console.error(`Host evacuation failed, forcing reboot of ${hostRef}:`, error)
       }
 
       await reboot(hostRef)
