@@ -18,6 +18,7 @@ import { get } from '@xen-orchestra/defined'
 import { getLicenses, selfBindLicense, subscribePlugins, subscribeProxies, subscribeSelfLicenses } from 'xo'
 
 import Proxies from './proxies'
+import UploadAirgapDataPack from './upload-airgap-data-pack'
 import Xostor from './xostor'
 
 // -----------------------------------------------------------------------------
@@ -330,6 +331,11 @@ export default class Licenses extends Component {
             <ActionButton btnStyle='primary' className='ml-1' icon='refresh' handler={this._updateLicenses}>
               {_('refreshLicenses')}
             </ActionButton>
+          </Col>
+        </Row>
+        <Row className='mb-1 mt-3'>
+          <Col>
+            <UploadAirgapDataPack />
           </Col>
         </Row>
         <Row>
