@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canForgetHost && forgetHostErrorMessage"
+    accent="brand"
     class="forget"
     :disabled="!canForgetHost"
     icon="action:forget"

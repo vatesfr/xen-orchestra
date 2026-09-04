@@ -7,7 +7,7 @@
             <template #trigger="{ open }">
               <UiDropdownButton icon="action:add" @click="open($event)">{{ t('action:add') }}</UiDropdownButton>
             </template>
-            <MenuItem>
+            <MenuItem accent="brand">
               <UiLink
                 class="add-vdi-link"
                 :to="{ name: '/vdi/new', query: { vmid: vm.id } }"
@@ -17,7 +17,7 @@
                 {{ t('action:create-vdi') }}
               </UiLink>
             </MenuItem>
-            <MenuItem>
+            <MenuItem accent="brand">
               <UiLink
                 class="add-vdi-link"
                 :to="{ name: '/vdi/attach', query: { vmid: vm.id } }"

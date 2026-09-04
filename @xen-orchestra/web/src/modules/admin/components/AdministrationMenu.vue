@@ -3,7 +3,7 @@
     <section v-for="section in sections" :key="section.titleKey" class="menu-section">
       <div class="section-title typo-h6">{{ t(section.titleKey) }}</div>
       <ul class="links">
-        <MenuItem v-for="item in section.items" :key="item.labelKey">
+        <MenuItem v-for="item in section.items" :key="item.labelKey" accent="brand">
           <UiLink size="small" class="link" :href="item.href" :to="item.to">
             {{ t(item.labelKey) }}
           </UiLink>

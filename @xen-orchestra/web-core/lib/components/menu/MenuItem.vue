@@ -1,6 +1,6 @@
 <!-- v1.0 -->
 <template>
-  <li class="menu-item">
+  <li class="menu-item" :class="className">
     <MenuTrigger
       v-if="!$slots.submenu"
       :active="isBusy"
@@ -38,25 +38,37 @@ import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 import { useDisabled } from '@core/composables/disabled.composable.ts'
 import type { IconName } from '@core/icons'
 import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util.ts'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed, inject, ref } from 'vue'
 
-const props = defineProps<{
+export type MenuItemAccent = 'brand' | 'danger'
+
+const {
+  icon,
+  onClick,
+  disabled,
+  busy,
+  accent = 'brand',
+} = defineProps<{
   icon?: IconName
   onClick?: () => any
   disabled?: boolean
   busy?: boolean
+  accent: MenuItemAccent
 }>()
+
+const className = computed(() => toVariants({ accent }))
 
 const isParentHorizontal = inject(
   IK_MENU_HORIZONTAL,
   computed(() => false)
 )
-const isDisabled = useDisabled(() => props.disabled)
+const isDisabled = useDisabled(() => disabled)
 
 const submenuIcon = computed((): IconName => (isParentHorizontal.value ? 'fa:angle-down' : 'fa:angle-right'))
 
 const isHandlingClick = ref(false)
-const isBusy = computed(() => isHandlingClick.value || props.busy === true)
+const isBusy = computed(() => isHandlingClick.value || busy === true)
 const closeMenu = inject(IK_CLOSE_MENU, undefined)
 
 const handleClick = async () => {
@@ -66,7 +78,7 @@ const handleClick = async () => {
 
   isHandlingClick.value = true
   try {
-    await props.onClick?.()
+    await onClick?.()
     closeMenu?.()
   } finally {
     isHandlingClick.value = false
@@ -76,7 +88,13 @@ const handleClick = async () => {
 
 <style lang="postcss" scoped>
 .menu-item {
-  color: var(--color-neutral-txt-primary);
+  &.accent--brand {
+    color: var(--color-neutral-txt-primary);
+  }
+
+  &.accent--danger {
+    color: var(--color-danger-item-base);
+  }
 }
 
 .submenu-icon {

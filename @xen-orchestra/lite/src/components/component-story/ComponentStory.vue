@@ -20,7 +20,7 @@
           Presets
         </TabItem>
       </template>
-      <MenuItem v-for="(preset, label) in presets" :key="label" @click="applyPreset(preset)">
+      <MenuItem v-for="(preset, label) in presets" :key="label" accent="brand" @click="applyPreset(preset)">
         {{ label }}
       </MenuItem>
     </MenuList>

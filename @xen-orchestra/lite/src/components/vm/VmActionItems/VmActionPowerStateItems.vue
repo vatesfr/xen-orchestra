@@ -1,11 +1,23 @@
 <template>
-  <MenuItem :busy="areVmsBusyToStart" :disabled="!areVmsHalted" icon="fa:play" @click="xenApi.vm.start(vmRefs)">
+  <MenuItem
+    accent="brand"
+    :busy="areVmsBusyToStart"
+    :disabled="!areVmsHalted"
+    icon="fa:play"
+    @click="xenApi.vm.start(vmRefs)"
+  >
     {{ t('action:start') }}
   </MenuItem>
-  <MenuItem :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" icon="object:host">
+  <MenuItem accent="brand" :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" icon="object:host">
     {{ t('action:start-on-host') }}
     <template #submenu>
-      <MenuItem v-for="host in hosts" :key="host.$ref" icon="object:host" @click="xenApi.vm.startOn(vmRefs, host.$ref)">
+      <MenuItem
+        v-for="host in hosts"
+        :key="host.$ref"
+        accent="brand"
+        icon="object:host"
+        @click="xenApi.vm.startOn(vmRefs, host.$ref)"
+      >
         <div class="wrapper">
           {{ host.name_label }}
           <div>
@@ -16,13 +28,26 @@
       </MenuItem>
     </template>
   </MenuItem>
-  <MenuItem :busy="areVmsBusyToPause" :disabled="!areVmsRunning" icon="fa:pause" @click="xenApi.vm.pause(vmRefs)">
+  <MenuItem
+    accent="brand"
+    :busy="areVmsBusyToPause"
+    :disabled="!areVmsRunning"
+    icon="fa:pause"
+    @click="xenApi.vm.pause(vmRefs)"
+  >
     {{ t('pause') }}
   </MenuItem>
-  <MenuItem :busy="areVmsBusyToSuspend" :disabled="!areVmsRunning" icon="fa:moon" @click="xenApi.vm.suspend(vmRefs)">
+  <MenuItem
+    accent="brand"
+    :busy="areVmsBusyToSuspend"
+    :disabled="!areVmsRunning"
+    icon="fa:moon"
+    @click="xenApi.vm.suspend(vmRefs)"
+  >
     {{ t('action:suspend') }}
   </MenuItem>
   <MenuItem
+    accent="brand"
     :busy="areVmsBusyToResume"
     :disabled="!areVmsSuspended && !areVmsPaused"
     icon="fa:play"
@@ -31,6 +56,7 @@
     {{ t('action:resume') }}
   </MenuItem>
   <MenuItem
+    accent="brand"
     :busy="areVmsBusyToReboot"
     :disabled="!areVmsRunning"
     icon="action:reboot"
@@ -39,6 +65,7 @@
     {{ t('action:reboot') }}
   </MenuItem>
   <MenuItem
+    accent="brand"
     :busy="areVmsBusyToForceReboot"
     :disabled="!areVmsRunning && !areVmsPaused"
     icon="action:force-reboot"
@@ -47,6 +74,7 @@
     {{ t('action:force-reboot') }}
   </MenuItem>
   <MenuItem
+    accent="brand"
     :busy="areVmsBusyToShutdown"
     :disabled="!areVmsRunning"
     icon="action:shutdown"
@@ -55,6 +83,7 @@
     {{ t('action:shutdown') }}
   </MenuItem>
   <MenuItem
+    accent="brand"
     :busy="areVmsBusyToForceShutdown"
     :disabled="!areVmsRunning && !areVmsSuspended && !areVmsPaused"
     icon="action:force-shutdown"

@@ -1,10 +1,10 @@
 <template>
   <MenuItem
     v-tooltip="!canDeleteSrs && deleteSrsErrorMessage"
+    accent="danger"
     icon="action:delete"
     :disabled="!canDeleteSrs"
     :busy="isDeletingSrs"
-    class="delete"
     @click="deleteSrs()"
   >
     {{ t('action:delete') }}

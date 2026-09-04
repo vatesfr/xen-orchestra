@@ -1,5 +1,12 @@
 <template>
-  <MenuItem v-if="canDisplay" :disabled="!canReboot" icon="action:reboot" :busy="isRunning" @click="openModal()">
+  <MenuItem
+    v-if="canDisplay"
+    accent="brand"
+    :disabled="!canReboot"
+    icon="action:reboot"
+    :busy="isRunning"
+    @click="openModal()"
+  >
     {{ t('action:reboot') }}
     <i v-if="!canReboot" class="em-dash-prefix">{{ t('vm-tools-missing') }}</i>
   </MenuItem>

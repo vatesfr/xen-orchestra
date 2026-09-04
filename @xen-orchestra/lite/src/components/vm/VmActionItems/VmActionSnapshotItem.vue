@@ -1,5 +1,11 @@
 <template>
-  <MenuItem :busy="areSomeVmsSnapshotting" :disabled="isDisabled" icon="fa:camera" @click="handleSnapshot">
+  <MenuItem
+    accent="brand"
+    :busy="areSomeVmsSnapshotting"
+    :disabled="isDisabled"
+    icon="fa:camera"
+    @click="handleSnapshot"
+  >
     {{ t('snapshot') }}
   </MenuItem>
 </template>

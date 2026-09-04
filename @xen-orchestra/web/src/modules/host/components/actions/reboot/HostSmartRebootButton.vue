@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canSmartRebootHost && smartRebootHostErrorMessage"
+    accent="brand"
     :disabled="!canSmartRebootHost"
     icon="action:smart-reboot"
     :busy="isSmartRebootingHost"

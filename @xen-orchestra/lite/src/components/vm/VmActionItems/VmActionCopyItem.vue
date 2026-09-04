@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!areAllSelectedVmsHalted && t(isSingleAction ? 'vm-is-running' : 'selected-vms-in-execution')"
+    accent="brand"
     :busy="areSomeSelectedVmsCloning"
     :disabled="isDisabled"
     icon="action:duplicate"
