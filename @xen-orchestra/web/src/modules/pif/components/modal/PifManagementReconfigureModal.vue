@@ -23,10 +23,6 @@ import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmB
 import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
-  device: string
-}>()
-
 const emit = defineEmits<{
   confirm: []
   cancel: []

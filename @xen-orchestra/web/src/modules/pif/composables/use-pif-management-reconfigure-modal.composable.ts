@@ -19,9 +19,6 @@ export function usePifManagementReconfigureModal(rawPif: MaybeRefOrGetter<FrontX
 
   function openModal() {
     return open({
-      props: {
-        device: pif.value?.device ?? '',
-      },
       events: {
         onConfirm: async () => {
           try {
