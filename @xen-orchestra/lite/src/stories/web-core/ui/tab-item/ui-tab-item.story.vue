@@ -4,7 +4,8 @@
     :params="[
       prop('disabled').bool().widget().ctx(),
       prop('active').bool().widget(),
-      prop('tag').str().default('span'),
+      prop('tag').str().default('span').widget(),
+      prop('href').str().widget(),
       slot(),
       setting('label').widget(text()).preset('Foobar'),
       setting('counter').widget(text()),
