@@ -235,7 +235,19 @@ export default class XenServers {
 
     // an enabled server must not stay disconnected without retries, e.g. after
     // the user fixed its credentials or address
-    if (server.enabled && !this._connectingXenServers.has(id) && this._getXenServerStatus(id) === 'disconnected') {
+    //
+    // only an update which can actually change the outcome of a connection may
+    // (re-)arm the loop: `_connectXenServer` writes `{ error }` on every failed
+    // attempt, and that bookkeeping write must not restart a loop which just
+    // stopped on a permanent error (e.g. PoolAlreadyConnected), which would
+    // retry forever, at full speed since each loop restarts its own backoff
+    const canFixConnection = properties.enabled === true || connectionIdentityChanged
+    if (
+      canFixConnection &&
+      server.enabled &&
+      !this._connectingXenServers.has(id) &&
+      this._getXenServerStatus(id) === 'disconnected'
+    ) {
       this._autoReconnectXenServer(id)
     }
   }
