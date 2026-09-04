@@ -25,7 +25,7 @@ import { getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 import XapiStats from '../xapi-stats.mjs'
 import { autoReconnect } from '../_xenServerAutoReconnect.mjs'
-import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils.mjs'
+import { camelToSnakeCase, forEach, isEmpty, popProperty, serializeError } from '../utils.mjs'
 import { Servers } from '../models/server.mjs'
 
 // ===================================================================
@@ -654,10 +654,12 @@ export default class XenServers {
       delete this._xapis[server.id]
       xapi.disconnect()::ignoreErrors()
 
+      const serializedError = serializeError(error)
+
       // avoid a database write per auto-reconnect attempt when the error did not change
       const previousError = server.error
-      if (previousError?.code !== error?.code || previousError?.message !== error?.message) {
-        this.updateXenServer(id, { error })::ignoreErrors()
+      if (previousError?.code !== serializedError.code || previousError?.message !== serializedError.message) {
+        this.updateXenServer(id, { error: serializedError })::ignoreErrors()
       }
 
       // permanent errors: retrying is pointless, do not start the loop
