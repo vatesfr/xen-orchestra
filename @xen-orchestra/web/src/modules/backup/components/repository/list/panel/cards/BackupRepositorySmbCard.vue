@@ -43,8 +43,8 @@
 </template>
 
 <script lang="ts" setup>
-import { type SmbBackupRepositoryInfo } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
-import { MASKED_SECRET, formatMountOptions } from '@/modules/backup/utils/xo-backup-repository.util.ts'
+import { formatMountOptions, MASKED_SECRET } from '@/modules/backup/utils/xo-backup-repository.util.ts'
+import { type SmbBackupRepositoryInfo } from '@/modules/backup/utils/xo-parse-backup-repository-url.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

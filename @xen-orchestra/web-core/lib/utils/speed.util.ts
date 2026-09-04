@@ -16,3 +16,9 @@ export function formatSpeedRaw(
     scale,
   })
 }
+
+export function formatSpeed(bytesPerSecond: number): string {
+  const { value, prefix } = formatSpeedRaw(bytesPerSecond, { maxDecimals: 2 })
+
+  return `${value} ${prefix}`
+}
