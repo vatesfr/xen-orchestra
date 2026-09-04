@@ -927,6 +927,10 @@ export class HostController extends XapiXoController<XoHost> {
     })
   }
 
+  #sanitizeProbeBody<T extends { chapPassword?: string }>(body: T): T {
+    return body.chapPassword !== undefined ? { ...body, chapPassword: '***obfuscated***' } : body
+  }
+
   /**
    * Detects all NFS shares (exports) on a NFS server and returns a table of exports with their paths and ACLs
    *
@@ -1082,7 +1086,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe iSCSI IQNs',
         objectId: hostId,
-        params: body?.chapPassword !== undefined ? { ...body, chapPassword: '***obfuscated***' } : body,
+        params: this.#sanitizeProbeBody(body),
       },
     })
   }
@@ -1136,7 +1140,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe iSCSI LUNs',
         objectId: hostId,
-        params: body?.chapPassword !== undefined ? { ...body, chapPassword: '***obfuscated***' } : body,
+        params: this.#sanitizeProbeBody(body),
       },
     })
   }
@@ -1193,7 +1197,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe iSCSI SR existence',
         objectId: hostId,
-        params: body?.chapPassword !== undefined ? { ...body, chapPassword: '***obfuscated***' } : body,
+        params: this.#sanitizeProbeBody(body),
       },
     })
   }
