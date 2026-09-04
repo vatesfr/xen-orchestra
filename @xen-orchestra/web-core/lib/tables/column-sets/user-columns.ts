@@ -1,5 +1,5 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
-import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column.ts'
+import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column.ts'
 import { useUserNameColumn } from '@core/tables/column-definitions/user-name-column.ts'
 import { useI18n } from 'vue-i18n'
@@ -11,6 +11,6 @@ export const useUserColumns = defineColumns(() => {
     username: useUserNameColumn({ headerLabel: () => t('username') }),
     email: useTruncatedTextColumn({ headerLabel: () => t('email') }),
     providers: useTruncatedTextColumn({ headerLabel: () => t('providers') }),
-    selectItem: useSelectItemColumn(),
+    actions: useActionColumn({}),
   }
 })
