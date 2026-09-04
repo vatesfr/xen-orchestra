@@ -192,6 +192,8 @@
             <NewVmSrTable
               :srs="filteredSrs"
               :vm-state
+              :can-resize-existing-disks="canResizeExistingDisks"
+              :default-existing-vdis="defaultExistingVdis"
               @add="addStorageEntry()"
               @remove="index => deleteItem(vmState.vdis, index)"
             />
@@ -634,26 +636,32 @@ const redirectToPool = (poolId: XoPool['id']) => {
   router.push({ name: '/pool/[id]/dashboard', params: { id: poolId } })
 }
 
-function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
-  const changes: Record<string, unknown> = {}
-  let hasChanged = false
+function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi, canResizeExistingDisks: boolean = false) {
+  const changes: Partial<Vdi> = {}
 
-  for (const _key in vdi1) {
-    const key = _key as keyof Vdi
-
-    if (vdi1[key] !== vdi2[key]) {
-      hasChanged = true
-      changes[key] = vdi2[key]
-    }
+  if (vdi1.name_label !== vdi2.name_label) {
+    changes.name_label = vdi2.name_label
   }
 
-  return hasChanged ? (changes as Partial<Vdi>) : undefined
+  if (vdi1.name_description !== vdi2.name_description) {
+    changes.name_description = vdi2.name_description
+  }
+
+  if (canResizeExistingDisks && vdi1.size !== vdi2.size) {
+    changes.size = vdi2.size
+  }
+
+  return Object.keys(changes).length > 0 ? changes : undefined
 }
+
+const canResizeExistingDisks = computed(() => {
+  return vmState.installMode !== 'no-config'
+})
 
 const modifiedExistingVdis = computed(() => {
   return vmState.existingVdis.reduce<Partial<Vdi>[]>((acc, vdi, index) => {
     const defaultVdi = defaultExistingVdis.value[index]
-    const changes = getExistingVdisDiff(defaultVdi, vdi)
+    const changes = getExistingVdisDiff(defaultVdi, vdi, canResizeExistingDisks.value)
 
     if (changes) {
       acc.push({ ...changes, userdevice: vdi.userdevice })
