@@ -1,7 +1,7 @@
 <template>
   <VtsContentSidePanel class="storage">
     <UiCard class="container">
-      <StorageRepositoriesTable :srs :busy="!isReady" :error="hasSrFetchError" :scope />
+      <StorageRepositoriesTable :srs :busy="!isReady" :error="hasFetchError" :scope />
     </UiCard>
     <StorageRepositorySidePanel :sr="selectedSr" :scope @close="selectedSr = undefined" />
   </VtsContentSidePanel>
@@ -20,34 +20,21 @@ import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
-import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
-import { logicAnd } from '@vueuse/math'
+import { logicAnd, logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 
 const { host } = defineProps<{
   host: FrontXoHost
 }>()
 
-const { hasSrFetchError, getSrById, areSrsReady } = useXoSrCollection()
-const { pbdsByHost, arePbdsReady } = useXoPbdCollection()
+const { srsByHost, getSrById, areSrsReady, hasSrFetchError } = useXoSrCollection()
+const { arePbdsReady, hasPbdFetchError } = useXoPbdCollection()
 
 const isReady = logicAnd(areSrsReady, arePbdsReady)
 
-const srs = computed(() => {
-  const hostPbds = pbdsByHost.value.get(host.id) ?? []
+const hasFetchError = logicOr(hasSrFetchError, hasPbdFetchError)
 
-  return hostPbds
-    .reduce<FrontXoSr[]>((acc, pbd) => {
-      const sr = getSrById(pbd.SR)
-
-      if (sr !== undefined) {
-        acc.push(sr)
-      }
-
-      return acc
-    }, [])
-    .sort((sr1, sr2) => sortByNameLabel(sr1, sr2))
-})
+const srs = computed(() => srsByHost.value.get(host.id) ?? [])
 
 const selectedSr = useRouteQuery<FrontXoSr | undefined>('id', {
   toData: id => getSrById(id as FrontXoSr['id']),

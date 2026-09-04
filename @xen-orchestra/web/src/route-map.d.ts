@@ -316,10 +316,18 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | '/sr/[id]/general'
+      | '/sr/[id]/hosts'
     >,
     '/sr/[id]/general': RouteRecordInfo<
       '/sr/[id]/general',
       '/sr/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/sr/[id]/hosts': RouteRecordInfo<
+      '/sr/[id]/hosts',
+      '/sr/:id/hosts',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -737,12 +745,19 @@ declare module 'vue-router/auto-routes' {
       routes:
         | '/sr/[id]'
         | '/sr/[id]/general'
+        | '/sr/[id]/hosts'
       views:
         | 'default'
     }
     'src/pages/sr/[id]/general.vue': {
       routes:
         | '/sr/[id]/general'
+      views:
+        | never
+    }
+    'src/pages/sr/[id]/hosts.vue': {
+      routes:
+        | '/sr/[id]/hosts'
       views:
         | never
     }
