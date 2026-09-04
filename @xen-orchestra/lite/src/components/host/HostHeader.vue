@@ -20,7 +20,6 @@
         </template>
         <HostPowerStateActions :host />
       </MenuList>
-
       <MenuList placement="bottom-end">
         <template #trigger="{ open }">
           <UiButtonIcon
