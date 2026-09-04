@@ -225,4 +225,17 @@ describe('encryption', () => {
       Disposable.use(getSyncedHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd91"` }), noop)
     )
   })
+
+  it('sync should fail with a clear error when the key is removed from a non empty remote', async () => {
+    const encryptor = _getEncryptor(DEFAULT_ENCRYPTION_ALGORITHM, '73c1838d7d8a6088ca2317fb5f29cd91')
+
+    await fs.writeFile(`${dir}/encryption.json`, `{"algorithm": "${DEFAULT_ENCRYPTION_ALGORITHM}"}`)
+    await fs.writeFile(`${dir}/metadata.json`, encryptor.encryptData(`{"random": "NOTSORANDOM"}`))
+    await fs.writeFile(`${dir}/nonempty.json`, 'content')
+
+    // no encryptionKey in the url => must not fall back to NULL_ENCRYPTOR
+    await assert.rejects(Disposable.use(getSyncedHandler({ url: `file://${dir}` }), noop), {
+      code: 'MISSING_ENCRYPTION_KEY',
+    })
+  })
 })
