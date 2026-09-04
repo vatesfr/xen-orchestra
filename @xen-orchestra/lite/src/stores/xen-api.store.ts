@@ -102,5 +102,6 @@ export const useXenApiStore = defineStore('xen-api', () => {
     getXapiStats,
     currentSessionId,
     resetPoolMasterIp,
+    hostUrl: hostUrl.origin,
   }
 })
