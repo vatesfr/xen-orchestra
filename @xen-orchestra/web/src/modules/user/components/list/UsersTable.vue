@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import { useUserDelete } from '@/modules/user/composables/use-user-delete.composable.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -72,6 +73,8 @@ const state = useTableState({
 
 const { HeadCells, BodyCells } = useUserColumns({
   body: (user: FrontXoUser) => {
+    const { deleteUsers, canDeleteUsers, isDeletingUsers, deleteUsersErrorMessage } = useUserDelete(() => [user])
+
     return {
       username: r => r(user.name ?? '', { href: xo5UsersHref.value }),
       email: r => r(user.email),
@@ -79,7 +82,20 @@ const { HeadCells, BodyCells } = useUserColumns({
         const providers = Object.keys(user.authProviders ?? {})
         return r(providers.length === 0 ? t('local') : providers.join(', '))
       },
-      selectItem: r => r(() => (selectedUserId.value = user.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedUserId.value = user.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => deleteUsers(),
+              disabled: !canDeleteUsers.value,
+              busy: isDeletingUsers.value,
+              hint: deleteUsersErrorMessage.value,
+            },
+          ],
+        }),
     }
   },
 })
