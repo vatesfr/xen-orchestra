@@ -28,7 +28,7 @@ import { invalidParameters } from 'xo-common/api-errors.js'
 
 import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
-import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
+import { BASE_URL, escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
   asynchronousActionResp,
@@ -42,7 +42,6 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { BASE_URL } from '../index.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'

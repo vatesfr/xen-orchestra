@@ -1,7 +1,7 @@
 import pick from 'lodash/pick.js'
 import { Request } from 'express'
 
-import { BASE_URL } from '../index.mjs'
+import { BASE_URL } from './utils.helper.mjs'
 import type { XoRecord } from '@vates/types/xo'
 import type { WithHref } from './helper.type.mjs'
 

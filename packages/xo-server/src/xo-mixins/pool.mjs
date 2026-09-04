@@ -205,9 +205,20 @@ export default class Pools {
     )
   }
 
-  async rollingPoolReboot(pool, { parentTask, shutdownPinnedVms } = {}) {
+  /**
+   * Reboots the hosts of the pool one at a time.
+   *
+   * @param {object} pool - XO pool object
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassBackupCheck] - Skip the backup guard, the bypass is logged
+   * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
+   * @param {boolean} [opts.shutdownPinnedVms] - Shut down the VMs that cannot be migrated before their host reboots
+   * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool
+   */
+  async rollingPoolReboot(pool, { bypassBackupCheck, parentTask, shutdownPinnedVms } = {}) {
     const { _app } = this
     await _app.checkFeatureAuthorization('ROLLING_POOL_REBOOT')
+    await _app.backupGuard(pool.id, { bypassBackupCheck, operation: 'rollingPoolReboot' })
     const releaseGuard = acquireRpuGuard(pool.id, 'rollingPoolReboot')
     const trace = openRpuTrace({ dir: getRpuTracesConfig(_app).dir, kind: 'rpr', poolId: pool.id })
     try {

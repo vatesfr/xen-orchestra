@@ -751,7 +751,7 @@ export class HostController extends XapiXoController<XoHost> {
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const opts = {
-      bypassBackupCheck: body?.bypassBackupCheck ?? false,
+      bypassBackupCheck: body?.bypassBackupCheck,
       bypassVersionCheck: body?.bypassVersionCheck ?? false,
       bypassBlockedSuspend: body?.bypassBlockedSuspend ?? false,
       bypassCurrentVmCheck: body?.bypassCurrentVmCheck ?? false,

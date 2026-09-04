@@ -201,7 +201,7 @@ export type XoApp = {
     userData?: { ip?: string },
     opts?: { bypassOtp?: boolean; bypassTaskCreation?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
-  backupGuard(poolId: XoPool['id']): Promise<void>
+  backupGuard(objectId: XapiXoRecord['id'], opts?: { bypassBackupCheck?: boolean; operation: string }): Promise<void>
   /* Throw if no authorization */
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
   /* validate, apply and persist the configuration of a plugin */
@@ -344,10 +344,13 @@ export type XoApp = {
       readOnly?: XoServer['readOnly']
     }
   ): Promise<XoServer>
-  rollingPoolReboot(pool: XoPool, opts?: { parentTask?: VatesTask; shutdownPinnedVms?: boolean }): Promise<void>
+  rollingPoolReboot(
+    pool: XoPool,
+    opts?: { bypassBackupCheck?: boolean; parentTask?: VatesTask; shutdownPinnedVms?: boolean }
+  ): Promise<void>
   rollingPoolUpdate(
     pool: XoPool,
-    opts?: { rebootVm?: boolean; parentTask?: VatesTask; shutdownPinnedVms?: boolean }
+    opts?: { bypassBackupCheck?: boolean; rebootVm?: boolean; parentTask?: VatesTask; shutdownPinnedVms?: boolean }
   ): Promise<void>
   setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
   shareVmResourceSet(vmId: XoVm['id']): Promise<void>
