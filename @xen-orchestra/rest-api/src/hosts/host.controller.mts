@@ -935,6 +935,10 @@ export class HostController extends XapiXoController<XoHost> {
     })
   }
 
+  #sanitizeProbeBody<T extends { chapPassword?: string }>(body: T): T {
+    return body.chapPassword !== undefined ? { ...body, chapPassword: '***obfuscated***' } : body
+  }
+
   /**
    * Required privilege:
    * - resource: host, action: scan-pifs
@@ -1137,7 +1141,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe iSCSI IQNs',
         objectId: hostId,
-        params: body?.chapPassword !== undefined ? { ...body, chapPassword: '***obfuscated***' } : body,
+        params: this.#sanitizeProbeBody(body),
       },
     })
   }
@@ -1191,7 +1195,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe iSCSI LUNs',
         objectId: hostId,
-        params: body?.chapPassword !== undefined ? { ...body, chapPassword: '***obfuscated***' } : body,
+        params: this.#sanitizeProbeBody(body),
       },
     })
   }
@@ -1248,7 +1252,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'probe iSCSI SR existence',
         objectId: hostId,
-        params: body?.chapPassword !== undefined ? { ...body, chapPassword: '***obfuscated***' } : body,
+        params: this.#sanitizeProbeBody(body),
       },
     })
   }
