@@ -36,11 +36,11 @@ const {
 function shutdownHost() {
   return openActionModal({
     props: {
-      accent: 'warning',
+      accent: 'info',
       action: 'shutdown',
       object: 'host',
       hostName: host.name_label,
-      icon: 'status:warning-picto',
+      icon: 'status:info-picto',
     },
     events: {
       onConfirm: async () => {
