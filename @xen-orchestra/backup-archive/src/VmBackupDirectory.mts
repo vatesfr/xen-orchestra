@@ -17,11 +17,8 @@ import {
 import { cleanOrphanDiskDirs } from '@xen-orchestra/backup-archive/disks'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
-import { promisify } from 'node:util'
-import zlib from 'node:zlib'
-
-const gzip = promisify(zlib.gzip)
-const gunzip = promisify(zlib.gunzip)
+import { readBackupCache, writeBackupCache } from './BackupCache.mjs'
+import { unlinkTolerant } from './_unlinkTolerant.mjs'
 
 const { info: logInfo, warn: logWarn } = createLogger('xo:backup-archive')
 
@@ -30,7 +27,7 @@ const FILES_TO_KEEP = ['cache.json.gz', 'vdis']
 export class VmBackupDirectory implements VmBackupInterface {
   handler: RemoteHandlerAbstract
   rootPath: string
-  files: Array<string> = new Array()
+  files: Array<string> = []
   orphans: Set<string> = new Set()
   backupArchives: Map<string, VmBackupInterface> = new Map()
   opts: ResolvedBackupCleanOptions
@@ -42,6 +39,9 @@ export class VmBackupDirectory implements VmBackupInterface {
   // Set by #checkCacheCount(): the on-disk cache did not match the archives found
   // on disk, so clean() must regenerate it even when nothing was merged/removed.
   #cacheOutOfSync = false
+
+  // Set by #checkCacheCount(): whether cache.json.gz existed at the start of the run.
+  #cacheExisted = false
 
   constructor(
     handler: RemoteHandlerAbstract,
@@ -67,21 +67,11 @@ export class VmBackupDirectory implements VmBackupInterface {
   }
 
   async #readCache(path: string): Promise<Record<string, unknown> | undefined> {
-    try {
-      return JSON.parse((await gunzip(await this.handler.readFile(path))).toString())
-    } catch (error) {
-      if (error?.code !== 'ENOENT') {
-        logWarn('failed to read cache', { error, path })
-      }
-    }
+    return readBackupCache(this.handler, path, logWarn)
   }
 
   async #writeCache(path: string, data: Record<string, unknown>): Promise<void> {
-    try {
-      await this.handler.writeFile(path, await gzip(JSON.stringify(data)), { flags: 'w' })
-    } catch (error) {
-      logWarn('failed to write cache', { error, path })
-    }
+    return writeBackupCache(this.handler, path, data, logWarn)
   }
 
   async init() {
@@ -90,7 +80,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     this.#uniqueLineages = new Map()
 
     for (const fullPath of this.files.filter(path => path.endsWith('.json'))) {
-      let metadata: PartialBackupMetadata | undefined = undefined
+      let metadata: PartialBackupMetadata | undefined
       try {
         metadata = JSON.parse(await this.handler.readFile(fullPath)) satisfies PartialBackupMetadata
       } catch (error) {
@@ -176,18 +166,28 @@ export class VmBackupDirectory implements VmBackupInterface {
 
     // Let each archive clean its own files (e.g. remove metadata for incomplete backups)
     // and update metadata with merged sizes if applicable
+    const goneArchives: string[] = []
     await asyncEach(
-      Array.from(this.backupArchives.values()),
-      async (archive: VmBackupInterface) => {
+      Array.from(this.backupArchives.entries()),
+      async ([metadataPath, archive]: [string, VmBackupInterface]) => {
         const { removedFiles } = await archive.clean({ remove, mergedSizes: allMergedSizes })
         if (removedFiles.length > 0) {
           cacheNeedsRegen = true
+        }
+        if (removedFiles.includes(metadataPath)) {
+          goneArchives.push(metadataPath)
         }
       },
       { concurrency: 2 }
     )
 
-    if (allMergedSizes.size > 0 || cacheNeedsRegen || this.#cacheOutOfSync) {
+    // an archive whose metadata has just been deleted is not a backup anymore: it must not be
+    // advertised by the regenerated cache
+    for (const metadataPath of goneArchives) {
+      this.backupArchives.delete(metadataPath)
+    }
+
+    if (this.#cacheExisted && (allMergedSizes.size > 0 || cacheNeedsRegen || this.#cacheOutOfSync)) {
       await this.#regenerateCache()
     }
 
@@ -215,8 +215,31 @@ export class VmBackupDirectory implements VmBackupInterface {
 
   async #checkCacheCount(): Promise<void> {
     const cachePath = `${this.rootPath}/cache.json.gz`
+
+    this.#cacheExisted = false
+    this.#cacheOutOfSync = false
+
+    if (!this.files.includes(normalize(cachePath))) {
+      return
+    }
+
+    if (this.handler.isImmutable()) {
+      // RemoteAdapter never creates cache.json.gz on immutable repositories: remove the
+      // leftover, readable or not, and never regenerate it.
+      await unlinkTolerant(this.handler, cachePath, ['ENOENT', 'EPERM'])
+      return
+    }
+
     const existingCache = await this.#readCache(cachePath)
-    const actual = existingCache === undefined ? 0 : Object.keys(existingCache).length
+    if (existingCache === undefined) {
+      // present but unreadable: drop it, RemoteAdapter will recreate a valid one
+      this.opts.logWarn('removing unreadable backup cache', { path: cachePath })
+      await unlinkTolerant(this.handler, cachePath)
+      return
+    }
+
+    this.#cacheExisted = true
+    const actual = Object.keys(existingCache).length
     const expected = this.backupArchives.size
     this.#cacheOutOfSync = actual !== expected
     if (this.#cacheOutOfSync) {
