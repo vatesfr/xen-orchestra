@@ -26,8 +26,8 @@
 
 <script setup lang="ts">
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+import { getBackupRepositoryIcon } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import type { IconName } from '@core/icons'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -76,10 +76,6 @@ const { pageRecords: paginatedRepositories, paginationBindings } = usePagination
   'backup-repositories-targets',
   filteredRepositories
 )
-
-function getBackupRepositoryIcon(backupRepository: FrontXoBackupRepository): IconName {
-  return backupRepository.enabled ? 'object:br:connected' : 'object:br:disconnected'
-}
 
 const useColumns = defineColumns(() => {
   const { t } = useI18n()

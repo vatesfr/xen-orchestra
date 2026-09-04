@@ -19,7 +19,7 @@ export const useXoBackupRepositoryBenchmarkJob = defineJob(
           `backup-repositories/${br.id}/actions/benchmark`
         )
 
-        await monitorTask(taskId)
+        return monitorTask<{ readRate: number; writeRate: number }>(taskId)
       },
 
       validate: (isRunning, br: FrontXoBackupRepository | undefined) => {
