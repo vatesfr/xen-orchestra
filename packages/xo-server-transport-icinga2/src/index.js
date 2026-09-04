@@ -40,6 +40,24 @@ Example:
 \`host.name=="xoa.example.com" && service.name=="xo-backup"\`
       `.trim(),
     },
+
+    filters: {
+      type: 'array',
+      title: 'filters',
+      description: `
+an array of filters with id backup and icinga filter'
+
+Example:
+\`172f809e-5e1a-409e-a26e-95af840b81e1|host.name=="xoa.example.com" && service.name=="xo-backup"\`
+      `.trim(),
+
+      items: {
+        type: 'string',
+      },
+      minItems: 1,
+
+    },
+
     acceptUnauthorized: {
       type: 'boolean',
       description: 'Accept unauthorized certificates',
@@ -82,6 +100,10 @@ class XoServerIcinga2 {
     serverUrl.pathname = '/v1/actions/process-check-result'
     this._url = serverUrl.href
 
+    //
+    this._filters = configuration.filters
+    //
+
     this._filter = configuration.filter !== undefined ? configuration.filter : ''
     this._acceptUnauthorized = configuration.acceptUnauthorized
   }
@@ -106,6 +128,34 @@ class XoServerIcinga2 {
   _sendIcinga2Status({ message, status }) {
     const icinga2Status = STATUS_MAP[status]
     assert(icinga2Status !== undefined, `Invalid icinga2 status: ${status}`)
+    var id_backup = ""
+    var result
+    var filter_split
+    var filter_id_backup
+    var filter
+    result = message.indexOf("**Job ID**:")
+    result = result + 12
+    id_backup = message.substr(result, 36)
+
+    if (!(this._filters === undefined || this._filters.length === 0)) {
+        for (let i=0; i < this._filters.length; i++) {
+            filter_split = this._filters[i].split("|");
+            if(filter_split.length == 2 && filter_split[0] == id_backup){
+                filter_id_backup = filter_split[0]
+                filter = filter_split[1]
+                break
+            } else {
+                filter_id_backup = ""
+                filter = ""
+            }
+        }
+    }
+
+    if ( filter_id_backup && filter && id_backup ) {
+        this._filter = filter
+    }
+
+
     return this._xo
       .httpRequest(this._url, {
         method: 'POST',
