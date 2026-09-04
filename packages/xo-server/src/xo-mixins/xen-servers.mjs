@@ -1,5 +1,4 @@
 import assert from 'assert'
-import findKey from 'lodash/findKey.js'
 import pick from 'lodash/pick.js'
 import { asyncEach } from '@vates/async-each'
 import { BaseError } from 'make-error'
@@ -25,7 +24,7 @@ import { getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 import XapiStats from '../xapi-stats.mjs'
 import { autoReconnect } from '../_xenServerAutoReconnect.mjs'
-import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils.mjs'
+import { camelToSnakeCase, forEach, isEmpty, popProperty, serializeError } from '../utils.mjs'
 import { Servers } from '../models/server.mjs'
 
 // ===================================================================
@@ -235,7 +234,19 @@ export default class XenServers {
 
     // an enabled server must not stay disconnected without retries, e.g. after
     // the user fixed its credentials or address
-    if (server.enabled && !this._connectingXenServers.has(id) && this._getXenServerStatus(id) === 'disconnected') {
+    //
+    // only an update which can actually change the outcome of a connection may
+    // (re-)arm the loop: `_connectXenServer` writes `{ error }` on every failed
+    // attempt, and that bookkeeping write must not restart a loop which just
+    // stopped on a permanent error (e.g. PoolAlreadyConnected), which would
+    // retry forever, at full speed since each loop restarts its own backoff
+    const canFixConnection = properties.enabled === true || connectionIdentityChanged
+    if (
+      canFixConnection &&
+      server.enabled &&
+      !this._connectingXenServers.has(id) &&
+      this._getXenServerStatus(id) === 'disconnected'
+    ) {
       this._autoReconnectXenServer(id)
     }
   }
@@ -275,8 +286,7 @@ export default class XenServers {
     forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
       // handle pool UUID change
       if (xapiObject.$type === 'pool' && serverIdsByPool[xapiObject.$id] === undefined) {
-        const obsoletePoolId = findKey(serverIdsByPool, serverId => serverId === conId)
-        delete serverIdsByPool[obsoletePoolId]
+        self._forgetXenServerPool(conId)
         serverIdsByPool[xapiObject.$id] = conId
       }
 
@@ -630,7 +640,7 @@ export default class XenServers {
       xapi.once('disconnected', () => {
         xapi.xo.uninstall()
         delete this._xapis[server.id]
-        delete this._serverIdsByPool[poolId]
+        this._forgetXenServerPool(server.id)
         this._app.emit('server:disconnected', { server, xapi })
 
         // deliberate disconnections set `enabled` to false beforehand, in
@@ -642,10 +652,12 @@ export default class XenServers {
       delete this._xapis[server.id]
       xapi.disconnect()::ignoreErrors()
 
+      const serializedError = serializeError(error)
+
       // avoid a database write per auto-reconnect attempt when the error did not change
       const previousError = server.error
-      if (previousError?.code !== error?.code || previousError?.message !== error?.message) {
-        this.updateXenServer(id, { error })::ignoreErrors()
+      if (previousError?.code !== serializedError.code || previousError?.message !== serializedError.message) {
+        this.updateXenServer(id, { error: serializedError })::ignoreErrors()
       }
 
       // permanent errors: retrying is pointless, do not start the loop
@@ -654,6 +666,21 @@ export default class XenServers {
       }
 
       throw error
+    }
+  }
+
+  // Removes every pool this server is registered as the connection of.
+  //
+  // The pool is looked up by server instead of by identifier because a pool
+  // UUID can change during the life of a connection (see `_onXenAdd`): a
+  // mapping left behind would make every subsequent connection to that pool
+  // fail with `PoolAlreadyConnected`, including the ones of this very server.
+  _forgetXenServerPool(serverId) {
+    const serverIdsByPool = this._serverIdsByPool
+    for (const poolId of Object.keys(serverIdsByPool)) {
+      if (serverIdsByPool[poolId] === serverId) {
+        delete serverIdsByPool[poolId]
+      }
     }
   }
 
@@ -678,11 +705,7 @@ export default class XenServers {
     const xapi = this._xapis[id]
     delete this._xapis[id]
 
-    const serverIdsByPool = this._serverIdsByPool
-    const poolId = findKey(serverIdsByPool, _ => _ === xapi)
-    if (poolId !== undefined) {
-      delete serverIdsByPool[id]
-    }
+    this._forgetXenServerPool(id)
 
     return xapi?.disconnect()
   }

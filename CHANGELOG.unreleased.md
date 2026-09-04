@@ -16,6 +16,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [Backups] Fix error `fetch failed` on backup with proxies (PR [#10346](https://github.com/vatesfr/xen-orchestra/pull/10346))
+- [Servers] Fix endless connection attempts to a pool which is already connected through another server entry (PR [#10355](https://github.com/vatesfr/xen-orchestra/pull/10355))
 
 ### Packages to release
 
