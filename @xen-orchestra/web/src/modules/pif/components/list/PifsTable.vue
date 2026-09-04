@@ -27,6 +27,7 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import { usePifManagementReconfigureModal } from '@/modules/pif/composables/use-pif-management-reconfigure-modal.composable.ts'
 import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -106,6 +107,7 @@ function getManagementIcon(pif: FrontXoPif) {
 }
 
 const { HeadCells, BodyCells } = usePifColumns({
+  exclude: ['selectItem'],
   body: (pif: FrontXoPif) => {
     const status = computed(() => getPifStatus(pif))
     const vlan = computed(() => getVlanData(pif.vlan))
@@ -118,6 +120,13 @@ const { HeadCells, BodyCells } = usePifColumns({
     const poolNetworkRoute = computed(() =>
       network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
     )
+
+    const {
+      openModal: openManagementReconfigureModal,
+      canRun: canReconfigureManagement,
+      isRunning: isReconfiguringManagement,
+      errorMessage: reconfigureManagementErrorMessage,
+    } = usePifManagementReconfigureModal(() => pif)
 
     return {
       network: r =>
@@ -134,7 +143,20 @@ const { HeadCells, BodyCells } = usePifColumns({
       ip: r => r(ip.value),
       mac: r => r(pif.mac),
       mode: r => r(mode.value),
-      selectItem: r => r(() => (selectedPifId.value = pif.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedPifId.value = pif.id),
+          actions: [
+            {
+              label: t('action:set-pif-management'),
+              hint: reconfigureManagementErrorMessage.value,
+              icon: canReconfigureManagement.value ? 'status:primary-circle' : 'status:primary-circle-disabled',
+              onClick: () => openManagementReconfigureModal(),
+              disabled: !canReconfigureManagement.value,
+              busy: isReconfiguringManagement.value,
+            },
+          ],
+        }),
     }
   },
 })
