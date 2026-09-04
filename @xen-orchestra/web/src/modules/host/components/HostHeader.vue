@@ -9,8 +9,8 @@
         }"
         size="medium"
         type="host"
-        :state="toLower(host.power_state)"
         :busy="isChangingState"
+        :state="hostState"
       />
     </template>
     <template v-if="isMaster" #status>
@@ -93,6 +93,7 @@ import HostPowerStateActions from '@/modules/host/components/actions/HostPowerSt
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -105,7 +106,6 @@ import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -125,4 +125,5 @@ const xo5HostStatsHref = computed(() => buildXo5Route(`/hosts/${host.id}/stats`)
 const { isMasterHost } = useXoHostCollection()
 
 const isMaster = computed(() => isMasterHost(host.id))
+const hostState = computed(() => getHostState(host))
 </script>

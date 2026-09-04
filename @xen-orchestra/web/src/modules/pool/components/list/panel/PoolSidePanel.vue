@@ -84,16 +84,7 @@
           <VtsCardRowKeyValue>
             <template #key>{{ t('master') }}</template>
             <template #value>
-              <UiLink
-                v-if="primaryHost !== undefined"
-                :icon="`object:host:${toLower(primaryHost.power_state)}`"
-                size="small"
-                :to="{ name: '/host/[id]/dashboard', params: { id: primaryHost.id } }"
-                is-primary
-                :primary-tooltip="t('master')"
-              >
-                {{ primaryHost.name_label }}
-              </UiLink>
+              <HostLink v-if="primaryHost" :host="primaryHost" size="small" />
             </template>
             <template v-if="primaryHost !== undefined" #addons>
               <VtsCopyButton :value="primaryHost.id" />
@@ -150,16 +141,7 @@
             {{ t('no-data') }}
           </VtsStateHero>
           <template v-else>
-            <UiLink
-              v-for="host in hosts"
-              :key="host.id"
-              :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-              :icon="`object:host:${toLower(host.power_state)}`"
-              size="small"
-            >
-              {{ host.name_label }}
-              <VtsIcon v-if="primaryHost?.id === host.id" accent="info" name="status:primary-circle" size="medium" />
-            </UiLink>
+            <HostLink v-for="host in hosts" :key="host.id" :host="host" size="small" />
           </template>
         </UiPanelCard>
         <UiPanelCard v-if="server.error">
@@ -175,6 +157,7 @@
 </template>
 
 <script setup lang="ts">
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import PoolConnectionToggleButton from '@/modules/pool/components/actions/connection/PoolConnectionToggleButton.vue'
 import PoolDownloadButton from '@/modules/pool/components/actions/download/PoolDownloadButton.vue'
@@ -184,7 +167,6 @@ import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-ser
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -201,7 +183,6 @@ import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -1,9 +1,11 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { getVmsPendingOperation } from '@/modules/vm/utils/xo-vm.util.ts'
-import type { VtsLinkCellProps } from '@core/components/table/cells/VtsLinkCell.vue'
+import { objectIcon } from '@core/icons'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { castArray } from 'lodash-es'
+
+export type XoHostState = Lowercase<HOST_POWER_STATE> | 'disabled'
 
 const RUNNING_CHANGING_STATE_OPERATIONS: Partial<HOST_ALLOWED_OPERATIONS>[] = [
   HOST_ALLOWED_OPERATIONS.SHUTDOWN,
@@ -54,6 +56,18 @@ export function getHostSmartRebootVmOperation(host: FrontXoHost, residentVms: Fr
   return getVmsPendingOperation(residentVms, SMART_REBOOT_SUSPENDING_VM_OPERATIONS)
 }
 
-export function getHostInfo(host: FrontXoHost | undefined): VtsLinkCellProps & { label: string } {
-  return host ? { label: host.name_label, to: `/host/${host.id}/dashboard` } : { label: '' }
+export function getHostState(host: FrontXoHost | undefined): XoHostState {
+  if (!host || host.power_state === HOST_POWER_STATE.UNKNOWN) {
+    return 'unknown'
+  }
+
+  if (host.power_state === HOST_POWER_STATE.HALTED) {
+    return 'halted'
+  }
+
+  return host.enabled ? 'running' : 'disabled'
+}
+
+export function getHostIcon(host: FrontXoHost | undefined) {
+  return objectIcon('host', getHostState(host))
 }
