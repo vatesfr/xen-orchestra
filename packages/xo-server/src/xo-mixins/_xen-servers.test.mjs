@@ -25,18 +25,21 @@ const createXapi = ({ $id = 'pool-1' } = {}) => ({
 
 // `_servers` is normally created on the `core started` hook, and
 // `_autoReconnectXenServer` would start a real reconnection loop
-const createXenServers = (server = SERVER) => {
+const createXenServers = (...servers) => {
   const xenServers = new XenServers(createMockApp(), { safeMode: true })
 
-  const stored = { ...server }
+  const stored = { __proto__: null }
+  for (const server of servers.length === 0 ? [SERVER] : servers) {
+    stored[server.id] = { ...server }
+  }
   const updates = []
   const reconnected = []
 
   xenServers._servers = {
-    first: async () => ({ ...stored }),
+    first: async id => (stored[id] === undefined ? undefined : { ...stored[id] }),
     update: async model => {
       updates.push({ ...model })
-      Object.assign(stored, model)
+      Object.assign(stored[model.id], model)
     },
   }
   xenServers._autoReconnectXenServer = id => reconnected.push(id)
@@ -127,6 +130,21 @@ describe('disconnectXenServer', function () {
     await xenServers.disconnectXenServer('server-1')
 
     assert.deepEqual({ ...xenServers._serverIdsByPool }, {})
+  })
+
+  it('does not drop the connection of the server holding the pool', async function () {
+    // a second entry registered on an already connected pool stays `enabled`
+    // but disconnected, with a `PoolAlreadyConnected` error: disconnecting or
+    // deleting it must not release the pool of the server which owns it
+    const { xenServers } = createXenServers(SERVER, { ...SERVER, id: 'server-2' })
+    connect(xenServers)
+    const xapi = xenServers._xapis['server-1']
+
+    await xenServers.disconnectXenServer('server-2')
+
+    assert.deepEqual({ ...xenServers._serverIdsByPool }, { 'pool-1': 'server-1' })
+    assert.equal(xenServers._xapis['server-1'], xapi)
+    assert.equal(xenServers._getXenServerStatus('server-1'), 'connected')
   })
 
   it('leaves the pools of the other servers alone', async function () {
