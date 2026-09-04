@@ -821,6 +821,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/panel-card-title/ui-panel-card-title': RouteRecordInfo<
+      '/story/web-core/ui/panel-card-title/ui-panel-card-title',
+      '/story/web-core/ui/panel-card-title/ui-panel-card-title',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/progress-bar/ui-progress-bar': RouteRecordInfo<
       '/story/web-core/ui/progress-bar/ui-progress-bar',
       '/story/web-core/ui/progress-bar/ui-progress-bar',
@@ -1751,6 +1758,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/panel-card/ui-panel-card.story.vue': {
       routes:
         | '/story/web-core/ui/panel-card/ui-panel-card'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/panel-card-title/ui-panel-card-title.story.vue': {
+      routes:
+        | '/story/web-core/ui/panel-card-title/ui-panel-card-title'
       views:
         | never
     }
