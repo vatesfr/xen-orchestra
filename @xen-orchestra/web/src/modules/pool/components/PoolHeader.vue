@@ -9,49 +9,49 @@
   </UiHeadBar>
   <TabList>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('dashboard') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
-    <TabItem>
+    <UiTabItem>
       <UiLink :href="xo5PoolStatsHref" size="medium">
         {{ t('stats') }}
       </UiLink>
-    </TabItem>
+    </UiTabItem>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/system', params: { id: pool.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('system') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/networks', params: { id: pool.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('network') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/traffic-rules', params: { id: pool.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('traffic-rules') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/storage', params: { id: pool.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('storage') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/tasks', params: { id: pool.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('tasks') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/hosts', params: { id: pool.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('hosts') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/vms', params: { id: pool.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('vms') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
   </TabList>
 </template>
@@ -59,10 +59,10 @@
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import TabItem from '@core/components/tab/TabItem.vue'
-import TabList from '@core/components/tab/TabList.vue'
+import TabList from '@core/components/tab-list/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
