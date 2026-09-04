@@ -25,15 +25,17 @@ export default class Esxi extends EventEmitter {
   #cookies
   #dcPaths // map datastore name => datacenter name
   #host
+  #storageHost
   #httpsAgent
   #user
   #password
   #ready = false
   #nbdServers = new Map()
 
-  constructor(host, user, password, sslVerify) {
+  constructor(host, user, password, sslVerify, storageHost = host) {
     super()
     this.#host = host.trim()
+    this.#storageHost = storageHost.trim()
     this.#user = user
     this.#password = password
     if (!sslVerify) {
@@ -547,7 +549,7 @@ export default class Esxi extends EventEmitter {
       const devnull = await fs.open('/dev/null')
       // ensure arguments are properly escaped
       const cert = await new Promise((resolve, reject) => {
-        const process = spawn('openssl', ['s_client', '-connect', `${this.#host}:443`])
+        const process = spawn('openssl', ['s_client', '-connect', `${this.#storageHost}:443`])
         let cert = ''
         let stderr = ''
         devnull.createReadStream().pipe(process.stdin)
@@ -611,7 +613,7 @@ export default class Esxi extends EventEmitter {
         'vddk', // the vddk plugin
         `compression=${compression}`,
         `thumbprint=${thumbprint}`,
-        `server=${this.#host}`,
+        `server=${this.#storageHost}`,
         `user=${this.#user}`,
         `password=+${passFile}`,
         `libdir=${VDDK_LIB_PATH}`,
