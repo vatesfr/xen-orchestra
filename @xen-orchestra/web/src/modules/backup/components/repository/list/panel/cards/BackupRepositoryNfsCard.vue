@@ -10,7 +10,7 @@
         </template>
       </VtsCardRowKeyValue>
 
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="nfs.port">
         <template #key>{{ t('port') }}</template>
         <template #value>{{ nfs.port }}</template>
         <template #addons>
