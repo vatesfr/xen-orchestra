@@ -1,28 +1,33 @@
 <template>
   <UiPanelCard class="card-container">
-    <UiCardTitle>{{ t('nfs') }}</UiCardTitle>
+    <UiCardTitle>{{ t('smb') }}</UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
-        <template #key>{{ t('host') }}</template>
-        <template #value>{{ nfs.host }}</template>
+        <template #key>{{ t('path-on-share') }}</template>
+        <template #value>{{ pathOnShare }}</template>
         <template #addons>
-          <VtsCopyButton :value="nfs.host" />
-        </template>
-      </VtsCardRowKeyValue>
-
-      <VtsCardRowKeyValue v-if="nfs.port">
-        <template #key>{{ t('port') }}</template>
-        <template #value>{{ nfs.port }}</template>
-        <template #addons>
-          <VtsCopyButton :value="nfs.port" />
+          <VtsCopyButton :value="pathOnShare" />
         </template>
       </VtsCardRowKeyValue>
 
       <VtsCardRowKeyValue>
-        <template #key>{{ t('path-on-share') }}</template>
-        <template #value>{{ nfs.path }}</template>
+        <template #key>{{ t('username') }}</template>
+        <template #value>{{ smb.username }}</template>
         <template #addons>
-          <VtsCopyButton :value="nfs.path" />
+          <VtsCopyButton :value="smb.username" />
+        </template>
+      </VtsCardRowKeyValue>
+
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('password') }}</template>
+        <template #value>{{ MASKED_SECRET }}</template>
+      </VtsCardRowKeyValue>
+
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('domain') }}</template>
+        <template #value>{{ smb.domain }}</template>
+        <template #addons>
+          <VtsCopyButton :value="smb.domain" />
         </template>
       </VtsCardRowKeyValue>
 
@@ -38,8 +43,8 @@
 </template>
 
 <script lang="ts" setup>
-import { type NfsBackupRepositoryInfo } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
-import { formatMountOptions } from '@/modules/backup/utils/xo-backup-repository.util.ts'
+import { type SmbBackupRepositoryInfo } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
+import { MASKED_SECRET, formatMountOptions } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -47,12 +52,14 @@ import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { options } = defineProps<{
-  nfs: NfsBackupRepositoryInfo
+const { smb, options } = defineProps<{
+  smb: SmbBackupRepositoryInfo
   options?: string
 }>()
 
 const { t } = useI18n()
+
+const pathOnShare = computed(() => `${smb.host}\\${smb.path}`)
 
 const formatedOptions = computed(() => formatMountOptions(options))
 </script>
