@@ -275,7 +275,7 @@ export default class Host extends Component {
           </Col>
           <Col mediumSize={6}>
             <div className='text-xs-center'>
-              <HostActionBar host={host} />
+              <HostActionBar host={host} pool={pool} />
             </div>
           </Col>
         </Row>
