@@ -1,5 +1,4 @@
 import assert from 'assert'
-import findKey from 'lodash/findKey.js'
 import pick from 'lodash/pick.js'
 import { asyncEach } from '@vates/async-each'
 import { BaseError } from 'make-error'
@@ -287,8 +286,7 @@ export default class XenServers {
     forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
       // handle pool UUID change
       if (xapiObject.$type === 'pool' && serverIdsByPool[xapiObject.$id] === undefined) {
-        const obsoletePoolId = findKey(serverIdsByPool, serverId => serverId === conId)
-        delete serverIdsByPool[obsoletePoolId]
+        self._forgetXenServerPool(conId)
         serverIdsByPool[xapiObject.$id] = conId
       }
 
@@ -642,7 +640,7 @@ export default class XenServers {
       xapi.once('disconnected', () => {
         xapi.xo.uninstall()
         delete this._xapis[server.id]
-        delete this._serverIdsByPool[poolId]
+        this._forgetXenServerPool(server.id)
         this._app.emit('server:disconnected', { server, xapi })
 
         // deliberate disconnections set `enabled` to false beforehand, in
@@ -671,6 +669,21 @@ export default class XenServers {
     }
   }
 
+  // Removes every pool this server is registered as the connection of.
+  //
+  // The pool is looked up by server instead of by identifier because a pool
+  // UUID can change during the life of a connection (see `_onXenAdd`): a
+  // mapping left behind would make every subsequent connection to that pool
+  // fail with `PoolAlreadyConnected`, including the ones of this very server.
+  _forgetXenServerPool(serverId) {
+    const serverIdsByPool = this._serverIdsByPool
+    for (const poolId of Object.keys(serverIdsByPool)) {
+      if (serverIdsByPool[poolId] === serverId) {
+        delete serverIdsByPool[poolId]
+      }
+    }
+  }
+
   async disconnectXenServer(id) {
     // throw no such object if the server does not exist
     const server = await this.getXenServer(id)
@@ -692,11 +705,7 @@ export default class XenServers {
     const xapi = this._xapis[id]
     delete this._xapis[id]
 
-    const serverIdsByPool = this._serverIdsByPool
-    const poolId = findKey(serverIdsByPool, _ => _ === xapi)
-    if (poolId !== undefined) {
-      delete serverIdsByPool[id]
-    }
+    this._forgetXenServerPool(id)
 
     return xapi?.disconnect()
   }

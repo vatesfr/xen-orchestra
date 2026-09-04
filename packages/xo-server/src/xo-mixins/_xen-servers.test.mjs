@@ -15,6 +15,14 @@ const createMockApp = () => ({
 
 const SERVER = { id: 'server-1', enabled: true, host: '192.0.2.1', password: 'secret', username: 'root' }
 
+// `poolId` defaults to the pool the connection was opened with, `$id` is the
+// one it currently reports (they differ after a pool UUID change)
+const createXapi = ({ $id = 'pool-1' } = {}) => ({
+  disconnect: async () => {},
+  getObjectByRef: () => ({ uuid: 'host-1' }),
+  pool: { $id, master: 'OpaqueRef:master', uuid: $id },
+})
+
 // `_servers` is normally created on the `core started` hook, and
 // `_autoReconnectXenServer` would start a real reconnection loop
 const createXenServers = (server = SERVER) => {
@@ -90,5 +98,44 @@ describe('updateXenServer', function () {
     await xenServers.updateXenServer('server-1', { enabled: true })
 
     assert.deepEqual(reconnected, [])
+  })
+})
+
+describe('disconnectXenServer', function () {
+  const connect = (xenServers, { poolId = 'pool-1', serverId = 'server-1' } = {}) => {
+    xenServers._xapis[serverId] = createXapi({ $id: poolId })
+    xenServers._serverIdsByPool[poolId] = serverId
+  }
+
+  it('forgets the pool of the server', async function () {
+    const { xenServers } = createXenServers()
+    connect(xenServers)
+
+    await xenServers.disconnectXenServer('server-1')
+
+    assert.deepEqual({ ...xenServers._serverIdsByPool }, {})
+    assert.equal(xenServers._xapis['server-1'], undefined)
+  })
+
+  it('forgets the pool of the server even after a pool UUID change', async function () {
+    const { xenServers } = createXenServers()
+    connect(xenServers, { poolId: 'pool-1' })
+    // `_onXenAdd` re-registers the server under the new identifier
+    delete xenServers._serverIdsByPool['pool-1']
+    xenServers._serverIdsByPool['pool-2'] = 'server-1'
+
+    await xenServers.disconnectXenServer('server-1')
+
+    assert.deepEqual({ ...xenServers._serverIdsByPool }, {})
+  })
+
+  it('leaves the pools of the other servers alone', async function () {
+    const { xenServers } = createXenServers()
+    connect(xenServers)
+    connect(xenServers, { poolId: 'pool-2', serverId: 'server-2' })
+
+    await xenServers.disconnectXenServer('server-1')
+
+    assert.deepEqual({ ...xenServers._serverIdsByPool }, { 'pool-2': 'server-2' })
   })
 })
