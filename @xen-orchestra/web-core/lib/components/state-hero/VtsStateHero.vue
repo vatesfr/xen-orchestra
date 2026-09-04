@@ -4,6 +4,7 @@
     class="vts-state-hero"
   >
     <UiLoader v-if="type === 'busy'" class="loader" />
+    <VtsOfflineIllustration v-else-if="type === 'offline'" class="image" />
     <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
     <div v-if="slots.default || success" :class="[typoClass, { mobile: isMobile }]" class="content">
       <div v-if="success">{{ t('all-good!') }}</div>
@@ -26,6 +27,7 @@ import type { StateHeroFormat, StateHeroSize, StateHeroType } from '@core/types/
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import VtsOfflineIllustration from './VtsOfflineIllustration.vue'
 import VtsIcon from '../icon/VtsIcon.vue'
 
 const { format, type, size, horizontal } = defineProps<{
