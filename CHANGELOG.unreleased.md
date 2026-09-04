@@ -17,6 +17,7 @@
 - [XO6/Roles] Add a roles list in the user management page (PR [#10301](https://github.com/vatesfr/xen-orchestra/pull/10301))
 - [XO6/Roles] Select a role in the list to see its details, its privileges and the users and groups it is assigned to, in a side panel (PR [#10330](https://github.com/vatesfr/xen-orchestra/pull/10330))
 - [XO6/Roles] Delete a role from its side panel in the user management page. A role assigned to users or groups cannot be deleted (PR [#10353](https://github.com/vatesfr/xen-orchestra/pull/10353))
+- [XO6/Roles] Delete a role directly from the roles list
 
 ### Bug fixes
 
