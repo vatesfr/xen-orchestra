@@ -1,6 +1,6 @@
 <!-- v7 -->
 <template>
-  <component :is="tag" :class="className" class="ui-tab-item">
+  <component :is="resolvedTag" :class="className" class="ui-tab-item" :href="resolvedHref">
     <slot />
   </component>
 </template>
@@ -11,18 +11,30 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 
 const {
-  tag = 'span',
+  tag: rawTag = 'span',
   disabled,
   active,
+  href: rawHref,
 } = defineProps<{
   disabled?: boolean
   active?: boolean
   tag?: string
+  href?: string
 }>()
 
 const uiStore = useUiStore()
 
 const isDisabled = useDisabled(() => disabled)
+
+const resolvedTag = computed(() => {
+  if (isDisabled.value || (rawTag === 'a' && !rawHref)) {
+    return 'span'
+  }
+
+  return rawTag
+})
+
+const resolvedHref = computed(() => (resolvedTag.value === 'a' ? rawHref : undefined))
 
 const className = computed(() => {
   return [
