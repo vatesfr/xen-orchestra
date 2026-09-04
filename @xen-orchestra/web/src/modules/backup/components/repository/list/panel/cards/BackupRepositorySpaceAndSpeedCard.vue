@@ -1,19 +1,19 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="card-container">
     <UiCardTitle>{{ t('space-and-speed') }}</UiCardTitle>
 
-    <div>
+    <div class="content">
       <span class="typo-body-bold-small subtitle">{{ t('space') }}</span>
       <div class="content">
-        <VtsCardRowKeyValue truncate align-top>
+        <VtsCardRowKeyValue>
           <template #key>{{ t('used-space-on-br') }}</template>
           <template #value />
         </VtsCardRowKeyValue>
-        <VtsCardRowKeyValue truncate align-top>
+        <VtsCardRowKeyValue>
           <template #key>{{ t('free-space-on-br') }}</template>
           <template #value />
         </VtsCardRowKeyValue>
-        <VtsCardRowKeyValue truncate align-top>
+        <VtsCardRowKeyValue>
           <template #key>{{ t('allocated-space') }}</template>
           <template #value />
         </VtsCardRowKeyValue>
@@ -22,36 +22,34 @@
 
     <VtsDivider type="stretch" />
 
-    <div>
+    <div class="content">
       <div class="typo-body-bold-small subtitle">
         {{ t('speed') }}
         <UiButtonIcon
-          v-tooltip="!canBenchmark && benchmarkErrorMessage"
+          v-tooltip="canBenchmark ? t('click-test-BR-speed') : benchmarkErrorMessage"
           :icon="isBenchmarking ? 'fa:spinner' : 'action:scan'"
           :disabled="!canBenchmark"
           accent="brand"
           size="small"
-          @click="benchmark()"
+          @click="runBenchmark()"
         />
       </div>
-      <div class="content">
-        <VtsCardRowKeyValue truncate align-top>
-          <template #key>{{ t('writing-speed') }}</template>
-          <template #value>{{ writeSpeed }}</template>
-          <template v-if="writeSpeed" #addons>
-            <VtsCopyButton :value="writeSpeed" />
-          </template>
-        </VtsCardRowKeyValue>
-        <VtsCardRowKeyValue truncate align-top>
-          <template #key>{{ t('reading-speed') }}</template>
-          <template #value>{{ readSpeed }}</template>
-          <template v-if="readSpeed" #addons>
-            <VtsCopyButton :value="readSpeed" />
-          </template>
-        </VtsCardRowKeyValue>
-      </div>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('writing-speed') }}</template>
+        <template #value>{{ writeSpeed }}</template>
+        <template v-if="writeSpeed" #addons>
+          <VtsCopyButton :value="writeSpeed" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('reading-speed') }}</template>
+        <template #value>{{ readSpeed }}</template>
+        <template v-if="readSpeed" #addons>
+          <VtsCopyButton :value="readSpeed" />
+        </template>
+      </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -61,11 +59,11 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatSpeedRaw } from '@core/utils/speed.util.ts'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { br } = defineProps<{
@@ -74,20 +72,24 @@ const { br } = defineProps<{
 
 const { t } = useI18n()
 
-const lastBenchmark = computed(() => br.benchmarks?.at(-1))
+const storedBenchmark = computed(() => br.benchmarks?.at(-1))
+
+const manualBenchmark = ref<{ readRate: number; writeRate: number } | undefined>()
+
+const displayedBenchmark = computed(() => manualBenchmark.value ?? storedBenchmark.value)
 
 const formatSpeed = (bytesPerSecond: number) => {
-  const { value, prefix } = formatSpeedRaw(bytesPerSecond, 2)
+  const { value, prefix } = formatSpeedRaw(bytesPerSecond, { maxDecimals: 2 })
 
   return `${value} ${prefix}`
 }
 
 const readSpeed = computed(() =>
-  lastBenchmark.value === undefined ? undefined : formatSpeed(lastBenchmark.value.readRate)
+  displayedBenchmark.value === undefined ? undefined : formatSpeed(displayedBenchmark.value.readRate)
 )
 
 const writeSpeed = computed(() =>
-  lastBenchmark.value === undefined ? undefined : formatSpeed(lastBenchmark.value.writeRate)
+  displayedBenchmark.value === undefined ? undefined : formatSpeed(displayedBenchmark.value.writeRate)
 )
 
 const {
@@ -96,12 +98,26 @@ const {
   isRunning: isBenchmarking,
   errorMessage: benchmarkErrorMessage,
 } = useXoBackupRepositoryBenchmarkJob(() => br)
+
+const runBenchmark = async () => {
+  const result = await benchmark()
+
+  manualBenchmark.value = {
+    readRate: result.readRate,
+    writeRate: result.writeRate,
+  }
+}
+
+watch(
+  () => br.id,
+  () => {
+    manualBenchmark.value = undefined
+  }
+)
 </script>
 
 <style scoped lang="postcss">
 .card-container {
-  gap: 1.6rem;
-
   .content {
     display: flex;
     flex-direction: column;
@@ -113,7 +129,6 @@ const {
     align-items: center;
     justify-content: space-between;
     color: var(--color-neutral-txt-primary);
-    margin-block-end: 1.6rem;
   }
 }
 </style>
