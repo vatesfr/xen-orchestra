@@ -20,7 +20,7 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node --test"
+    "test": "node --experimental-test-module-mocks --test"
   },
   "dependencies": {
     "@vates/async-each": "^1.0.3",

@@ -117,11 +117,15 @@ export class XapiDiskSource extends DiskPassthrough {
       // init probaby failed, so nothing to close , but better safe than sorry
       await source?.close().catch(warn)
 
-      if (/** @type {NodeJS.ErrnoException} */ (err).code === 'NO_NBD_AVAILABLE') {
-        const warningMessage = `can't connect through NBD, fall back to stream export`
+      const nbdError = /** @type {NodeJS.ErrnoException} */ (err)
+      if (nbdError.code === 'NO_NBD_AVAILABLE') {
+        // the message built by connectNbdClientIfPossible states which addresses were attempted
+        // and the state of the NBD enabled networks: include it, the task message is the only
+        // part of this error that reaches the backup report
+        const warningMessage = `can't connect through NBD, fall back to stream export: ${nbdError.message}`
         // @ts-ignore Task.warning is a static alias set up dynamically, not visible to TS
         Task.warning(warningMessage)
-        warn(warningMessage, err)
+        warn(warningMessage, { err })
         // reopen the stream with the block data
         return this.#openExportStream()
       }
@@ -199,7 +203,12 @@ export class XapiDiskSource extends DiskPassthrough {
       // init probaby failed, so nothing to close , but better safe than sorry
       await source?.close().catch(warn)
       if (baseRef !== undefined) {
-        const warningMessage = `can't compute delta ${vdiRef} from ${baseRef}, fall back to a full`
+        // without the cause, a report only says the delta was impossible: the reason matters, the
+        // base snapshot may for instance have had its data destroyed by CBT, in which case only
+        // NBD+CBT could have computed this delta
+        const warningMessage = `can't compute delta ${vdiRef} from ${baseRef}, fall back to a full: ${
+          /** @type {Error} */ (error).message
+        }`
         // @ts-ignore Task.warning is a static alias set up dynamically, not visible to TS
         Task.warning(warningMessage)
         warn(warningMessage, { error })
@@ -266,9 +275,14 @@ export class XapiDiskSource extends DiskPassthrough {
       this.#useCbt = true
       return await this.#formatSourceDisk(source, 'NBD+CBT')
     } catch (error) {
-      if (/** @type {NodeJS.ErrnoException} */ (error).code !== 'CBT_DISABLED') {
-        info('Error in openNbdCBT', error)
-      }
+      // reported as an info and not a warning: falling back to the stream is expected on a SR or
+      // a base without CBT, and the stream fallback warns on its own when it fails too. It still
+      // belongs to the task, it is the only trace of why the cheapest delta path was unusable
+      const cbtError = /** @type {NodeJS.ErrnoException} */ (error)
+      const message = `can't use NBD+CBT, fall back to stream export: ${cbtError.message}`
+      // @ts-ignore Task.info is a static alias set up dynamically, not visible to TS
+      Task.info(message)
+      info(message, { error })
       // init probaby failed, so nothing to close , but better safe than sorry
       await source?.close().catch(warn)
 

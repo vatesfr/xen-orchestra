@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Backup] Explain in the backup report why NBD could not be used: which addresses were tried, why each one failed, and the state of the NBD enabled networks of the pool. Also report why a delta could not be computed instead of only that it was not
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -30,5 +32,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @vates/nbd-client patch
+- @xen-orchestra/xapi patch
 
 <!--packages-end-->
