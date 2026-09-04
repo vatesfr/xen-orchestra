@@ -43,12 +43,10 @@
       <NewSrFormTextInput v-if="type === 'lvm' || type === 'ext'" v-bind="deviceInputBindings" />
 
       <!-- SMB or SMBISO -->
-      <template v-else-if="type === 'smb' || type === 'smbiso'">
-        <div>
-          <NewSrFormTextInput v-bind="serverInputBindings" />
-          <UiCheckbox v-model="useAuth" accent="brand">{{ t('with-auth') }}</UiCheckbox>
-        </div>
-      </template>
+      <div v-else-if="type === 'smb' || type === 'smbiso'">
+        <NewSrFormTextInput v-bind="serverInputBindings" />
+        <UiCheckbox v-model="useAuth" accent="brand">{{ t('with-auth') }}</UiCheckbox>
+      </div>
 
       <!-- LOCAL -->
       <NewSrFormTextInput v-else-if="type === 'local'" v-bind="pathInputBindings" />
@@ -134,7 +132,6 @@ defineExpose({ requiresEraseConfirm, validateAndBuildPayload })
 
     @media (--medium-or-large) {
       flex-direction: row;
-      gap: 2.4rem;
       max-width: 88rem;
 
       & > * {
