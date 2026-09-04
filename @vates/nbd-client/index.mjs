@@ -12,8 +12,10 @@ import {
   NBD_FLAG_FIXED_NEWSTYLE,
   NBD_FLAG_HAS_FLAGS,
   NBD_OPT_EXPORT_NAME,
+  NBD_OPT_NAMES,
   NBD_OPT_REPLY_MAGIC,
   NBD_OPT_STARTTLS,
+  NBD_REP_ERR_NAMES,
   NBD_REPLY_ACK,
   NBD_REPLY_MAGIC,
   NBD_REQUEST_MAGIC,
@@ -25,6 +27,8 @@ import { spawn } from 'node:child_process'
 const { warn } = createLogger('vates:nbd-client')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
+
+const MAX_OPT_REPLY_REASON_LENGTH = 4096
 
 export default class NbdClient {
   #serverAddress
@@ -63,7 +67,13 @@ export default class NbdClient {
     this.#serverAddress = address
     this.#serverPort = port
     this.#exportName = exportname
-    this.#serverCert = cert
+    // XAPI's `VDI.get_nbd_info` always carries a `cert` key: it is an empty string on a network
+    // whose purpose is `insecure_nbd`, which must be read as "this server has no TLS". Normalizing
+    // here keeps `#serverCert` the single source of truth: `undefined` means "stay in plain text",
+    // anything else is cert material usable by #tlsConnect.
+    // A whitespace-only value deliberately keeps the TLS path: better to fail loudly than to
+    // silently downgrade a secured network to plain text.
+    this.#serverCert = cert?.length > 0 ? cert : undefined
     this.#waitBeforeReconnect = waitBeforeReconnect
     this.#readBlockRetries = readBlockRetries
     this.#reconnectRetry = reconnectRetry
@@ -107,7 +117,16 @@ export default class NbdClient {
     // first we connect to the server without tls, and then we upgrade the connection
     // to tls during the handshake
     await this.#unsecureConnect()
-    await this.#handshake()
+    try {
+      await this.#handshake()
+    } catch (error) {
+      // disconnect() is a no-op until #connected, which is only set below, so nothing else would
+      // ever close this socket: the negotiation is stuck half way and the connection is unusable.
+      // destroy() without an argument does not emit 'error'.
+      this.#serverSocket.destroy()
+      this.#serverSocket = undefined
+      throw error
+    }
     this.#connected = true
     // reset internal state if we reconnected a nbd client
     this.#commandQueryBacklog = new Map()
@@ -174,11 +193,36 @@ export default class NbdClient {
     await this.#writeInt32(option)
     await this.#writeInt32(buffer.length)
     await this.#write(buffer)
-    assert.strictEqual(await this.#readInt64(), NBD_OPT_REPLY_MAGIC) // magic number everywhere
-    assert.strictEqual(await this.#readInt32(), option) // the option passed
-    assert.strictEqual(await this.#readInt32(), NBD_REPLY_ACK) // ACK
-    const length = await this.#readInt32()
-    assert.strictEqual(length, 0) // length
+
+    // an option reply is: 64b magic, 32b option echoed, 32b reply type, 32b length, length bytes.
+    // the assertions carry a message on purpose: MultiNbdClient puts this error's message in the
+    // backup report, and the one assert generates itself is multi line
+    assert.strictEqual(await this.#readInt64(), NBD_OPT_REPLY_MAGIC, 'invalid NBD option reply magic')
+    assert.strictEqual(await this.#readUInt32(), option, 'the NBD server replied to another option')
+    const replyType = await this.#readUInt32()
+    const length = await this.#readUInt32()
+
+    if (replyType !== NBD_REPLY_ACK) {
+      // a reply longer than this is not a human readable message anymore: read a bounded amount so
+      // a broken server can't make us allocate, the connection is dropped anyway.
+      // an error reply with an empty payload is legal, and #read(0) would throw a confusing
+      // `size > 0` assertion, hence the length test
+      let reason = ''
+      if (length > 0 && length <= MAX_OPT_REPLY_REASON_LENGTH) {
+        reason = (await this.#read(length)).toString('utf8').replace(/\s+/g, ' ').trim()
+      }
+      const code = NBD_REP_ERR_NAMES[replyType]
+      /** @type {NodeJS.ErrnoException} */
+      const error = new Error(
+        `NBD server refused ${NBD_OPT_NAMES[option] ?? `option ${option}`} with ${
+          code ?? `reply type 0x${replyType.toString(16)}`
+        }${reason === '' ? '' : `: ${reason}`}`
+      )
+      error.code = code ?? 'NBD_OPT_REFUSED'
+      throw error
+    }
+    // a payload on the ACK path would silently desync every following read
+    assert.strictEqual(length, 0, 'unexpected payload in the NBD option reply')
   }
 
   // we can use individual read/write from the socket here since there is only one handshake at once, no concurrency
@@ -238,9 +282,11 @@ export default class NbdClient {
     ])
   }
 
-  async #readInt32() {
+  // every 32 bit field of the handshake is unsigned: the option reply error types have the bit 31
+  // set, and would read as a negative number
+  async #readUInt32() {
     const buffer = await this.#read(4)
-    return buffer.readInt32BE(0)
+    return buffer.readUInt32BE(0)
   }
 
   async #readInt64() {

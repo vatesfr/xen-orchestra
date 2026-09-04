@@ -1,5 +1,6 @@
 import { asyncEach } from '@vates/async-each'
 import { NBD_DEFAULT_BLOCK_SIZE, NBD_DEFAULT_PORT } from './constants.mjs'
+import { formatAddress } from './formatAddress.mjs'
 import NbdClient from './index.mjs'
 import { createLogger } from '@xen-orchestra/log'
 
@@ -79,8 +80,18 @@ export default class MultiNbdClient {
       await _connect()
     }
     if (this.#clients.length === 0) {
-      // `#settings` order is kept so the report matches what the caller asked for. Reaching this
-      // point means every candidate was attempted: `_connect` recurses until the list is empty
+      if (errorByAddress.size === 0) {
+        // the loop above did not run a single iteration, or there was no candidate at all: no
+        // socket was ever opened, so claiming the servers were attempted and unreachable would be
+        // a lie. Report what actually happened instead of pre-validating the values.
+        const error = new Error(
+          `no NBD connection was attempted (${this.#settings.length} server(s), nbdConcurrency is ${this.#nbdConcurrency})`
+        )
+        error.code = 'NO_NBD_AVAILABLE'
+        throw error
+      }
+      // `#settings` order is kept so the report matches what the caller asked for. Every candidate
+      // was attempted: `_connect` recurses until the list is empty
       const attempts = this.#settings.map(({ address, port = NBD_DEFAULT_PORT }) => ({
         address,
         port,
@@ -88,7 +99,7 @@ export default class MultiNbdClient {
       }))
       const error = new Error(
         `could not connect to any NBD server, attempted ${attempts
-          .map(({ address, port, error }) => `${address}:${port} (${error})`)
+          .map(({ address, port, error }) => `${formatAddress(address, port)} (${error})`)
           .join(', ')}`,
         // all the servers usually fail for the same reason, keep the first one reachable
         { cause: errorByAddress.values().next().value }

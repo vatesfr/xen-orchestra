@@ -18,7 +18,7 @@ export async function connectNbdClientIfPossible(xapi, vdiRef, nbdConcurrency) {
   const advertisedServers = await xapi.call('VDI.get_nbd_info', vdiRef)
 
   if (advertisedServers.length === 0) {
-    throw noNbdAvailableError(
+    throw await noNbdAvailableError(
       `XAPI advertises no NBD server for this VDI (VDI.get_nbd_info returned an empty list): the hosts able to reach its SR must have an IP address on a network with the NBD purpose enabled`,
       { xapi, vdiRef }
     )
@@ -36,7 +36,7 @@ export async function connectNbdClientIfPossible(xapi, vdiRef, nbdConcurrency) {
 
     if (nbdInfos.length === 0) {
       const backupNetworkAddresses = addresses.filter(address => !!address)
-      throw noNbdAvailableError(
+      throw await noNbdAvailableError(
         `none of the NBD servers advertised for this VDI (${formatNbdServers(advertisedServers)}) is on the backup network ${poolBackupNetwork} (${
           backupNetworkAddresses.length > 0 ? backupNetworkAddresses.join(', ') : 'no host has an IP on it'
         }): enable the NBD purpose on the backup network, or unset the backup network of the pool`,
@@ -49,7 +49,7 @@ export async function connectNbdClientIfPossible(xapi, vdiRef, nbdConcurrency) {
   try {
     await nbdClient.connect()
   } catch (error) {
-    throw noNbdAvailableError(
+    throw await noNbdAvailableError(
       `${error.message}: these addresses are the IP of the hosts on the NBD enabled networks, they must be reachable from XO/the proxy`,
       { xapi, vdiRef, cause: error }
     )
