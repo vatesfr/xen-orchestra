@@ -65,8 +65,8 @@
 </template>
 
 <script lang="ts" setup>
-import { type S3BackupRepositoryInfo } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import { MASKED_SECRET } from '@/modules/backup/utils/xo-backup-repository.util.ts'
+import { type S3BackupRepositoryInfo } from '@/modules/backup/utils/xo-parse-backup-repository-url.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'

@@ -44,8 +44,8 @@
 
 <script lang="ts" setup>
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
-import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/backup/utils/xo-backup-repository.util.ts'
+import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-parse-backup-repository-url.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -68,17 +68,17 @@ const xo5BrHref = computed(() => buildXo5Route('/settings/remotes'))
 
 const { useGetProxyById } = useXoProxyCollection()
 
-const brInfo = computed(() => parseBackupRepositoryUrl(br.url))
+const parsedBrUrl = computed(() => parseBackupRepositoryUrl(br.url))
 
-const brType = computed(() => brInfo.value?.type)
+const brType = computed(() => parsedBrUrl.value?.type)
 
 const brIcon = computed(() => getBackupRepositoryIcon(br))
 
 const brStatus = computed(() => getBackupRepositoryStatus(br))
 
-const brStorageMode = computed(() => (brInfo.value?.useVhdDirectory ? t('block-based') : t('file-based')))
+const brStorageMode = computed(() => (parsedBrUrl.value?.useVhdDirectory ? t('block-based') : t('file-based')))
 
-const isEncrypted = computed(() => brInfo.value?.encryptionKey !== undefined)
+const isEncrypted = computed(() => parsedBrUrl.value?.encryptionKey !== undefined)
 
 const brProxy = useGetProxyById(() => br.proxy)
 </script>
