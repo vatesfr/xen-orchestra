@@ -723,7 +723,7 @@
   "modal:host-shutdown-message": "This will power off the host. Any VMs still running on it will be migrated to another running host.",
   "modal:host-smart-reboot-message": "All running VMs on this host will be suspended, the host will reboot, then the VMs will automatically resume. This causes temporary downtime. If Xen Orchestra itself runs on this host, VMs may not resume automatically.",
   "modal:pif-management-reconfigure-info": "Setting this PIF as the management PIF will make it the default PIF used for management traffic. Ensure this PIF is properly configured and reachable before proceeding.",
-  "modal:pif-management-reconfigure-title": "You are about to set {device} as the management PIF",
+  "modal:pif-management-reconfigure-title": "You are about to set this as the management PIF",
   "modal:pool-disconnect-message": "The pool will no longer be manageable from XO. You can reconnect it later.",
   "modal:vm-force-reboot-message": "This will immediately reboot the virtual machine without a clean shutdown. Data loss may occur and ongoing processes will be interrupted.",
   "modal:vm-force-shutdown-message": "This will immediately power off the virtual machine without a clean shutdown. Data loss may occur and ongoing processes will be interrupted.",
