@@ -29,7 +29,9 @@ const createXenServers = (...servers) => {
   const xenServers = new XenServers(createMockApp(), { safeMode: true })
 
   const stored = { __proto__: null }
-  for (const server of servers.length === 0 ? [SERVER] : servers) {
+  const serversToInitialize = servers.length === 0 ? [SERVER] : servers
+
+  for (const server of serversToInitialize) {
     stored[server.id] = { ...server }
   }
   const updates = []
