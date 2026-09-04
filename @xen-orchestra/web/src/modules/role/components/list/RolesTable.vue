@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 import { useXoGroupCollection } from '@/modules/group/remote-resources/use-xo-group-collection.ts'
+import { useRoleDelete } from '@/modules/role/composables/use-role-delete.composable.ts'
 import type { FrontXoRole } from '@/modules/role/remote-resources/use-xo-role-collection.ts'
 import { getRoleUserIds } from '@/modules/role/utils/xo-role.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
@@ -94,14 +95,31 @@ const state = useTableState({
 const { pageRecords: paginatedRoles, paginationBindings } = usePagination('roles', filteredRoles)
 
 const { HeadCells, BodyCells } = useRoleColumns({
-  body: (role: FilterableRole) => ({
-    name: r => r(role.name),
-    description: r => r(role.description),
-    users: r => r(role.usersCount),
-    groups: r => r(role.groupsCount),
-    privileges: r => r(role.privilegesCount),
-    selectItem: r => r(() => (selectedRoleId.value = role.id)),
-  }),
+  body: (role: FilterableRole) => {
+    const { deleteRoles, canDeleteRoles, isDeletingRoles, deleteRolesErrorMessage } = useRoleDelete(() => [role])
+
+    return {
+      name: r => r(role.name),
+      description: r => r(role.description),
+      users: r => r(role.usersCount),
+      groups: r => r(role.groupsCount),
+      privileges: r => r(role.privilegesCount),
+      actions: r =>
+        r({
+          onClick: () => (selectedRoleId.value = role.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => deleteRoles(),
+              disabled: !canDeleteRoles.value,
+              busy: isDeletingRoles.value,
+              hint: deleteRolesErrorMessage.value,
+            },
+          ],
+        }),
+    }
+  },
 })
 </script>
 
