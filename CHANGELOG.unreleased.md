@@ -15,8 +15,6 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [Backups] Fix error `fetch failed` on backup with proxies (PR [#10346](https://github.com/vatesfr/xen-orchestra/pull/10346))
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -33,6 +31,4 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/proxy patch
-- xo-server patch
 <!--packages-end-->
