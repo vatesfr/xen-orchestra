@@ -50,8 +50,8 @@
 </template>
 
 <script lang="ts" setup>
+import type { ParsedAzureBackupRepositoryUrl } from '@/modules/backup/types/xo-backup-repository.type.ts'
 import { MASKED_SECRET } from '@/modules/backup/utils/xo-backup-repository.util.ts'
-import { type AzureBackupRepositoryInfo } from '@/modules/backup/utils/xo-parse-backup-repository-url.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -61,7 +61,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { azure } = defineProps<{
-  azure: AzureBackupRepositoryInfo
+  azure: ParsedAzureBackupRepositoryUrl
 }>()
 
 const { t } = useI18n()
