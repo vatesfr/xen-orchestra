@@ -1,7 +1,7 @@
 <template>
   <UiModal accent="info" icon="status:info-picto" @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
-      {{ t('modal:pif-management-reconfigure-title') }}
+      {{ t('modal:pif-management-reconfigure-title', { device }) }}
     </template>
 
     <template #content>
