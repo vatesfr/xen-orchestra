@@ -13,6 +13,7 @@ const backupRepositoryFields = [
   'url',
   'proxy',
   'benchmarks',
+  'options',
 ] as const satisfies readonly (keyof XoBackupRepository)[]
 
 export const useXoBackupRepositoryCollection = defineRemoteResource({
