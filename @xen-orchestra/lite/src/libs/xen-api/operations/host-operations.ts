@@ -19,17 +19,17 @@ export function createHostOperations(xenApi: XenApi) {
   const clearHost = async (hostRef: HostRef, force: boolean) => {
     await disable(hostRef)
 
-      try {
-        await evacuate(hostRef)
-      } catch (error) {
-        if (!force) {
-          await enable(hostRef)
+    try {
+      await evacuate(hostRef)
+    } catch (error) {
+      if (!force) {
+        await enable(hostRef)
 
-          throw error
-        }
-        console.error(`Host evacuation failed, forcing reboot of ${hostRef}:`, error)
+        throw error
       }
+      console.error(`Host evacuation failed, forcing reboot of ${hostRef}:`, error)
     }
+  }
 
   return {
     powerOn,
@@ -38,7 +38,6 @@ export function createHostOperations(xenApi: XenApi) {
 
       await reboot(hostRef)
     },
-
     cleanShutdown: async (hostRef: HostRef) => {
       await clearHost(hostRef, false)
 
