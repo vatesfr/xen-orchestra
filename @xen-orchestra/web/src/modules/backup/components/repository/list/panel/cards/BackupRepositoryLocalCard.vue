@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import { type FileBackupRepositoryInfo } from '@/modules/backup/utils/xo-parse-backup-repository-url.util.ts'
+import type { ParsedFileBackupRepositoryUrl } from '@/modules/backup/types/xo-backup-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -22,7 +22,7 @@ import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  file: FileBackupRepositoryInfo
+  file: ParsedFileBackupRepositoryUrl
 }>()
 
 const { t } = useI18n()

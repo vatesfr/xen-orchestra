@@ -65,8 +65,8 @@
 </template>
 
 <script lang="ts" setup>
+import type { ParsedS3BackupRepositoryUrl } from '@/modules/backup/types/xo-backup-repository.type.ts'
 import { MASKED_SECRET } from '@/modules/backup/utils/xo-backup-repository.util.ts'
-import { type S3BackupRepositoryInfo } from '@/modules/backup/utils/xo-parse-backup-repository-url.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -76,7 +76,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { s3 } = defineProps<{
-  s3: S3BackupRepositoryInfo
+  s3: ParsedS3BackupRepositoryUrl
 }>()
 
 const ACCESS_KEY_ID_LIMIT = 20

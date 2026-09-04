@@ -43,8 +43,8 @@
 </template>
 
 <script lang="ts" setup>
+import type { ParsedSmbBackupRepositoryUrl } from '@/modules/backup/types/xo-backup-repository.type.ts'
 import { formatMountOptions, MASKED_SECRET } from '@/modules/backup/utils/xo-backup-repository.util.ts'
-import { type SmbBackupRepositoryInfo } from '@/modules/backup/utils/xo-parse-backup-repository-url.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -53,7 +53,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { smb, options } = defineProps<{
-  smb: SmbBackupRepositoryInfo
+  smb: ParsedSmbBackupRepositoryUrl
   options?: string
 }>()
 
