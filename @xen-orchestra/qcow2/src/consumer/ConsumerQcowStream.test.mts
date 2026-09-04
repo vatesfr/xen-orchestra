@@ -3,7 +3,6 @@ import { test } from 'node:test'
 import { DiskSmallerBlock, RandomAccessDisk, type DiskBlock } from '@xen-orchestra/disk-transform'
 import { toQcow2Stream } from './ConsumerQcowStream.mjs'
 
-
 class FullyAllocatedMockDisk extends RandomAccessDisk {
   private blockSize: number
   private virtualSize: number
@@ -72,5 +71,5 @@ test('does not throw RangeError: Invalid array length on large fully-allocated d
   const source = new FullyAllocatedMockDisk(VHD_BLOCK_SIZE, DISK_CAPACITY)
   await source.init()
   const disk = new DiskSmallerBlock(source, QCOW2_CLUSTER_SIZE)
-  assert.doesNotThrow(() => toQcow2Stream(disk))
+  await assert.doesNotReject(() => toQcow2Stream(disk))
 })
