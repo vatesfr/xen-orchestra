@@ -30,10 +30,16 @@ export class ImportVmBackup {
     metadata,
     srUuid,
     xapi,
-    settings: { additionalVmTag, newMacAddresses, mapVdisSrs = {}, useDifferentialRestore = false } = {},
+    settings: { additionalVmTag, newMacAddresses, mapVdisSrs = {}, useDifferentialRestore = false, vmNamePrefix } = {},
   }) {
     this._adapter = adapter
-    this._importIncrementalVmSettings = { additionalVmTag, newMacAddresses, mapVdisSrs, useDifferentialRestore }
+    this._importIncrementalVmSettings = {
+      additionalVmTag,
+      newMacAddresses,
+      mapVdisSrs,
+      useDifferentialRestore,
+      vmNamePrefix,
+    }
     this._metadata = metadata
     this._srUuid = srUuid
     this._xapi = xapi
@@ -231,7 +237,7 @@ export class ImportVmBackup {
     const isFull = metadata.mode === 'full'
 
     const sizeContainer = { size: 0 }
-    const { newMacAddresses } = this._importIncrementalVmSettings
+    const { newMacAddresses, vmNamePrefix } = this._importIncrementalVmSettings
     let backup
     if (isFull) {
       backup = await adapter.readFullVmBackup(metadata)
@@ -254,6 +260,7 @@ export class ImportVmBackup {
           ? await xapi.VM_import(backup, srRef)
           : await importIncrementalVm(backup, await xapi.getRecord('SR', srRef), {
               newMacAddresses,
+              vmNamePrefix,
             })
         let size = 0
         if (isFull) {
