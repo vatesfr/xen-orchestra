@@ -15,7 +15,7 @@ import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper'
 
 export type InfoAccent = 'info' | 'success' | 'warning' | 'danger' | 'muted'
-type Size = 'small' | 'medium'
+export type Size = 'small' | 'medium'
 
 const { accent, size = 'medium' } = defineProps<{
   accent: InfoAccent

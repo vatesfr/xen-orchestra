@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import BackupJobTargetBrItem from '@/modules/backup/components/panel/card-items/BackupJobTargetsBrItem.vue'
 import BackupJobTargetSrItem from '@/modules/backup/components/panel/card-items/BackupJobTargetsSrItem.vue'
-import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 
