@@ -20,7 +20,7 @@ import {
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
-import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
+import { json, type Request as ExRequest } from 'express'
 import type { SUPPORTED_VDI_FORMAT, Xapi, XoAlarm, XoMessage, XoSr, XoTask, XoVdi } from '@vates/types'
 
 import { SUPPORTED_ACTIONS_BY_RESOURCE, type SupportedActions } from '@xen-orchestra/acl'
@@ -133,10 +133,17 @@ export class VdiController extends XapiXoController<XoVdi> {
   async exportVdiContent(
     @Request() req: ExRequest,
     @Path() id: string,
-    @Path() format: Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
+    @Path() format: SUPPORTED_VDI_FORMAT
   ): Promise<Readable> {
-    const res = req.res as ExResponse
-    const stream = await this.#vdiService.exportContent(id as XoVdi['id'], 'VDI', { format, response: res })
+    const stream = await this.#vdiService.exportContent(id as XoVdi['id'], 'VDI', { format })
+
+    this.setHeader('content-disposition', `attachment; filename=${id}.${format}`)
+    this.setHeader('content-type', 'application/octet-stream')
+    if (stream.length !== undefined) {
+      // the size of an export is always known in advance, whatever its format
+      this.setHeader('content-length', String(stream.length))
+    }
+
     process.on('SIGTERM', () => req.destroy())
     req.on('close', () => stream.destroy())
     return stream
