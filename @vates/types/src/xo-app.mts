@@ -125,6 +125,48 @@ type License = {
   bundleInfo?: { name: string; id: string }
 }
 
+export type PoolRollingUpdateRecoveryStep = {
+  status: 'pending' | 'running' | 'observed-succeeded' | 'failed' | 'not-needed'
+  startedAt?: string
+  finishedAt?: string
+}
+
+export type PoolRollingUpdateRecoveryHost = {
+  status: 'pending' | 'running' | 'succeeded' | 'failed' | 'not-needed'
+  steps: Record<string, PoolRollingUpdateRecoveryStep>
+  lastError: unknown
+}
+
+export type PoolRollingUpdateRecoveryRun = {
+  runId: string
+  poolId: string
+  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'blocked' | 'cleaning'
+  attempt: number
+  startedAt: string
+  updatedAt: string
+  finishedAt?: string
+  interruptedAt?: string
+  taskId?: string
+  variant?: 'xcp' | 'xs-cdn' | 'xs-legacy'
+  hostOrder?: string[]
+  hosts: Record<string, PoolRollingUpdateRecoveryHost>
+  conflicts: unknown[]
+  planChanges: unknown[]
+  lastError: unknown
+  /** VM UUID -> UUID of the host it must be started on */
+  haltedPinnedVms: Record<string, string>
+}
+
+/** record unreadable or of an unknown schema version: recovery needs a human */
+export type PoolRollingUpdateRecoveryBlocked = {
+  poolId?: string
+  runId?: string
+  status: 'blocked'
+  blockedReason: string
+}
+
+export type PoolRollingUpdateRecovery = PoolRollingUpdateRecoveryRun | PoolRollingUpdateRecoveryBlocked
+
 export type XoApp = {
   hooks: EventEmitter
   _redis: {
@@ -347,8 +389,9 @@ export type XoApp = {
   rollingPoolReboot(pool: XoPool, opts?: { parentTask?: VatesTask; shutdownPinnedVms?: boolean }): Promise<void>
   rollingPoolUpdate(
     pool: XoPool,
-    opts?: { rebootVm?: boolean; parentTask?: VatesTask; shutdownPinnedVms?: boolean }
+    opts?: { rebootVm?: boolean; bypassBackupCheck?: boolean; parentTask?: VatesTask; shutdownPinnedVms?: boolean }
   ): Promise<void>
+  getRollingUpdateRecovery(poolId: XoPool['id']): Promise<PoolRollingUpdateRecovery | undefined>
   setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
   shareVmResourceSet(vmId: XoVm['id']): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>

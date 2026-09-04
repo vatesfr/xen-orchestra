@@ -523,3 +523,58 @@ export const poolMissingPatches = [
     description: 'An open source implementation of SSH protocol versions 1 and 2',
   },
 ]
+
+export const poolRollingUpdateRecovery = {
+  runId: '5cea4373-05a7-47ff-9bd8-fea54a37dd63',
+  poolId: '355ee47d-ff4c-4924-3db2-fd86ae629676',
+  status: 'interrupted',
+  attempt: 1,
+  startedAt: '2026-08-31T14:02:11.000Z',
+  updatedAt: '2026-08-31T14:20:03.000Z',
+  interruptedAt: '2026-08-31T14:18:47.000Z',
+  taskId: '0mf2gtitq',
+  variant: 'xcp',
+  hostOrder: ['b61a5c92-700e-4966-a13b-00633f03eea8', '46522969-d891-4c48-a839-316b767b7b7b'],
+  hosts: {
+    'b61a5c92-700e-4966-a13b-00633f03eea8': {
+      status: 'succeeded',
+      steps: {
+        evacuate: {
+          status: 'observed-succeeded',
+          startedAt: '2026-08-31T14:02:20.000Z',
+          finishedAt: '2026-08-31T14:04:01.000Z',
+        },
+        update: {
+          status: 'observed-succeeded',
+          startedAt: '2026-08-31T14:04:01.000Z',
+          finishedAt: '2026-08-31T14:07:12.000Z',
+        },
+        reboot: {
+          status: 'observed-succeeded',
+          startedAt: '2026-08-31T14:07:12.000Z',
+          finishedAt: '2026-08-31T14:12:44.000Z',
+        },
+        enable: { status: 'observed-succeeded', finishedAt: '2026-08-31T14:12:44.000Z' },
+        restoreVms: { status: 'pending' },
+      },
+      lastError: null,
+    },
+    '46522969-d891-4c48-a839-316b767b7b7b': {
+      status: 'running',
+      steps: {
+        evacuate: { status: 'running', startedAt: '2026-08-31T14:12:50.000Z' },
+        update: { status: 'pending' },
+        reboot: { status: 'pending' },
+        enable: { status: 'pending' },
+        restoreVms: { status: 'pending' },
+      },
+      lastError: null,
+    },
+  },
+  conflicts: [],
+  planChanges: [],
+  lastError: null,
+  haltedPinnedVms: {
+    '883b6265-6d54-c48b-6a24-4b0e6d88801f': 'b61a5c92-700e-4966-a13b-00633f03eea8',
+  },
+}

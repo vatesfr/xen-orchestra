@@ -250,7 +250,7 @@ export const rollingUpdate = async function ({ bypassBackupCheck = false, pool, 
     await backupGuard.call(this, poolId)
   }
 
-  await this.rollingPoolUpdate(pool, { rebootVm, shutdownPinnedVms })
+  await this.rollingPoolUpdate(pool, { rebootVm, bypassBackupCheck, shutdownPinnedVms })
 }
 
 rollingUpdate.params = {
@@ -274,6 +274,22 @@ rollingUpdate.params = {
 rollingUpdate.resolve = {
   pool: ['pool', 'pool', 'administrate'],
 }
+
+// -------------------------------------------------------------------
+
+export function getRollingUpdateRecovery({ pool }) {
+  return this.getRollingUpdateRecovery(pool.id)
+}
+
+getRollingUpdateRecovery.params = {
+  pool: { type: 'string' },
+}
+
+getRollingUpdateRecovery.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
+
+getRollingUpdateRecovery.description = 'Get the recovery status of an incomplete rolling pool update, if any'
 
 // -------------------------------------------------------------------
 
