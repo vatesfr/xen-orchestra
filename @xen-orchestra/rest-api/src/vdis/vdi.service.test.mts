@@ -11,14 +11,16 @@ import type { XoVdi } from '@vates/types'
 const VDI_ID = 'c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e' as XoVdi['id']
 
 describe('VdiService.exportContent', () => {
-  it('exports the raw format through the XAPI', async () => {
-    // `length` is only exposed to the controllers, which turn it into a content-length
-    const stream = Object.assign(Readable.from(['content']), { length: 42 })
+  it('exports the raw format through the XAPI, with the virtual size as length', async () => {
+    const size = 10 * 1024 * 1024 * 1024
+    // the XAPI does not announce the size of a raw export, XO computes it
+    const stream = Readable.from(['content']) as Readable & { length?: number }
     let exportContentArgs: unknown[] | undefined
 
     const restApi = {
       getXapiObject: () => ({
         $ref: 'OpaqueRef:vdi-1',
+        virtual_size: size,
         $xapi: {
           VDI_exportContent: async (...args: unknown[]) => {
             exportContentArgs = args
@@ -31,7 +33,8 @@ describe('VdiService.exportContent', () => {
     const exported = await new VdiService(restApi).exportContent(VDI_ID, 'VDI', { format: 'raw' })
 
     assert.strictEqual(exported, stream)
-    assert.strictEqual(exported.length, 42)
+    // `length` is only exposed to the controllers, which turn it into a content-length
+    assert.strictEqual(exported.length, size)
     assert.deepStrictEqual(exportContentArgs, ['OpaqueRef:vdi-1', { format: 'raw' }])
   })
 

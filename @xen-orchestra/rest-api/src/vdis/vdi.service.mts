@@ -55,8 +55,26 @@ export class VdiService {
   }
 
   /**
-   * `length` is set on the returned stream when the size of the export is known
-   * in advance, it's up to the caller to expose it as a `content-length`.
+   * A raw export is a byte for byte copy of the disk: its size is the virtual size of
+   * the VDI, even though the XAPI does not announce it.
+   */
+  async #exportContentAsRaw<Vdi extends XoVdi | XoVdiSnapshot>(
+    id: Vdi['id'],
+    type: Vdi['type']
+  ): Promise<ExportedContentStream> {
+    // `virtual_size` is read from the XAPI record, which is fetched anyway to get the
+    // ref: no extra object lookup, and no `VDI.get_virtual_size` call
+    const { $ref: vdiRef, $xapi: xapi, virtual_size: size } = this.#restApi.getXapiObject<Vdi>(id, type)
+
+    const stream = await xapi.VDI_exportContent(vdiRef, { format: SUPPORTED_VDI_FORMAT.raw })
+    stream.length = size
+
+    return stream
+  }
+
+  /**
+   * `length` is set on the returned stream: the size of the export is always known in
+   * advance, it's up to the caller to expose it as a `content-length`.
    */
   async exportContent<Vdi extends XoVdi | XoVdiSnapshot>(
     id: Vdi['id'],
@@ -78,7 +96,6 @@ export class VdiService {
       return this.#exportContentFromDiskSource<Vdi>(id, type, disk => toQcow2Stream(disk))
     }
 
-    const xapiVdi = this.#restApi.getXapiObject<Vdi>(id, type)
-    return xapiVdi.$xapi.VDI_exportContent(xapiVdi.$ref, { format })
+    return this.#exportContentAsRaw<Vdi>(id, type)
   }
 }
