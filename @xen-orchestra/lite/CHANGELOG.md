@@ -3,6 +3,7 @@
 ## **next**
 
 - [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
+- [Host] Add possibility to enable/disable a host (PR [#10337](https://github.com/vatesfr/xen-orchestra/pull/10337))
 
 ## **0.26.0** (2026-10-01)
 
