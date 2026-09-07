@@ -1,6 +1,6 @@
 <template>
   <MenuItem
-    accent="brand"
+    accent="neutral"
     :busy="areVmsBusyToStart"
     :disabled="!areVmsHalted"
     icon="fa:play"
@@ -8,13 +8,13 @@
   >
     {{ t('action:start') }}
   </MenuItem>
-  <MenuItem accent="brand" :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" icon="object:host">
+  <MenuItem accent="neutral" :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" icon="object:host">
     {{ t('action:start-on-host') }}
     <template #submenu>
       <MenuItem
         v-for="host in hosts"
         :key="host.$ref"
-        accent="brand"
+        accent="neutral"
         icon="object:host"
         @click="xenApi.vm.startOn(vmRefs, host.$ref)"
       >
@@ -29,7 +29,7 @@
     </template>
   </MenuItem>
   <MenuItem
-    accent="brand"
+    accent="neutral"
     :busy="areVmsBusyToPause"
     :disabled="!areVmsRunning"
     icon="fa:pause"
@@ -38,7 +38,7 @@
     {{ t('pause') }}
   </MenuItem>
   <MenuItem
-    accent="brand"
+    accent="neutral"
     :busy="areVmsBusyToSuspend"
     :disabled="!areVmsRunning"
     icon="fa:moon"
@@ -47,7 +47,7 @@
     {{ t('action:suspend') }}
   </MenuItem>
   <MenuItem
-    accent="brand"
+    accent="neutral"
     :busy="areVmsBusyToResume"
     :disabled="!areVmsSuspended && !areVmsPaused"
     icon="fa:play"
@@ -56,7 +56,7 @@
     {{ t('action:resume') }}
   </MenuItem>
   <MenuItem
-    accent="brand"
+    accent="neutral"
     :busy="areVmsBusyToReboot"
     :disabled="!areVmsRunning"
     icon="action:reboot"
@@ -65,7 +65,7 @@
     {{ t('action:reboot') }}
   </MenuItem>
   <MenuItem
-    accent="brand"
+    accent="neutral"
     :busy="areVmsBusyToForceReboot"
     :disabled="!areVmsRunning && !areVmsPaused"
     icon="action:force-reboot"
@@ -74,7 +74,7 @@
     {{ t('action:force-reboot') }}
   </MenuItem>
   <MenuItem
-    accent="brand"
+    accent="neutral"
     :busy="areVmsBusyToShutdown"
     :disabled="!areVmsRunning"
     icon="action:shutdown"
@@ -83,7 +83,7 @@
     {{ t('action:shutdown') }}
   </MenuItem>
   <MenuItem
-    accent="brand"
+    accent="neutral"
     :busy="areVmsBusyToForceShutdown"
     :disabled="!areVmsRunning && !areVmsSuspended && !areVmsPaused"
     icon="action:force-shutdown"

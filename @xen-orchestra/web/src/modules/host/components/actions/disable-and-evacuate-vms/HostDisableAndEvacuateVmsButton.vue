@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canDisableHostAndEvacuateVMs && disableHostAndEvacuateVMsErrorMessage"
-    accent="brand"
+    accent="neutral"
     :disabled="!canDisableHostAndEvacuateVMs"
     icon="action:disable-and-evacuate"
     :busy="isDisablingHostAndEvacuatingVMs"

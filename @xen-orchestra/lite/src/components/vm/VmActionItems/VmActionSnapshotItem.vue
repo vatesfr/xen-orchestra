@@ -1,6 +1,6 @@
 <template>
   <MenuItem
-    accent="brand"
+    accent="neutral"
     :busy="areSomeVmsSnapshotting"
     :disabled="isDisabled"
     icon="fa:camera"

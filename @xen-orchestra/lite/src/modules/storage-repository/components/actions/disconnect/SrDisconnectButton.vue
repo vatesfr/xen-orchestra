@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canDisconnectSrs && disconnectSrsErrorMessage"
-    accent="brand"
+    accent="neutral"
     icon="action:disconnect"
     :disabled="!canDisconnectSrs"
     :busy="isDisconnectingSrs"

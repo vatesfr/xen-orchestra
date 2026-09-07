@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-if="showChangeStateButton && !uiStore.isSmall"
-    accent="brand"
+    accent="neutral"
     icon="action:change-state"
     class="change-state"
   >

@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canRestartToolstack && restartToolstackErrorMessage"
-    accent="brand"
+    accent="neutral"
     :disabled="!canRestartToolstack"
     icon="action:reboot"
     :busy="isRestartingToolstack"

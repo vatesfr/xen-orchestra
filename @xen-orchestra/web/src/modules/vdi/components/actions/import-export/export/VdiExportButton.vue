@@ -1,5 +1,5 @@
 <template>
-  <MenuItem accent="brand" icon="action:download" :busy="isExportingVdi" @click="exportVdi()">
+  <MenuItem accent="neutral" icon="action:download" :busy="isExportingVdi" @click="exportVdi()">
     {{ t('action:export-content') }}
   </MenuItem>
 </template>

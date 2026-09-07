@@ -19,7 +19,7 @@
         :icon="action.icon"
         :disabled="action.disabled"
         :busy="action.busy"
-        :accent="action.accent ?? 'brand'"
+        :accent="action.accent ?? 'neutral'"
         :on-click="action.onClick"
       >
         {{ action.label }}
@@ -31,7 +31,7 @@
             :icon="child.icon"
             :disabled="child.disabled"
             :busy="child.busy"
-            :accent="child.accent ?? 'brand'"
+            :accent="child.accent ?? 'neutral'"
             :on-click="child.onClick"
           >
             {{ child.label }}

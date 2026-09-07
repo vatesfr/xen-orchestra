@@ -1,5 +1,5 @@
 <template>
-  <MenuItem accent="brand" class="change-state" icon="action:change-state">
+  <MenuItem accent="brand" icon="action:change-state">
     {{ t('action:change-state') }}
     <template #submenu>
       <VmActionPowerStateItems :vm-refs />
@@ -32,9 +32,3 @@ const { t } = useI18n()
 
 const vmRefs = computed(() => [vmOpaqueRef])
 </script>
-
-<style lang="postcss" scoped>
-.change-state {
-  color: var(--color-brand-txt-base);
-}
-</style>

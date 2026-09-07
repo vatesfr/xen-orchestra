@@ -1,6 +1,6 @@
 <template>
   <MenuItem
-    accent="brand"
+    accent="neutral"
     icon="action:download"
     class="typo-body-bold-small"
     :busy="isBusy"

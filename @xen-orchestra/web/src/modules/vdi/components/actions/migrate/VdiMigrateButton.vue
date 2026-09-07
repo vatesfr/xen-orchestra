@@ -1,6 +1,6 @@
 <template>
   <MenuItem
-    accent="brand"
+    accent="neutral"
     icon="action:migrate"
     :disabled="!canMigrateVdi"
     :busy="isMigratingVdi"
