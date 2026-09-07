@@ -7,6 +7,7 @@ import { Agent } from 'undici'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
+import { asArray, normalizeSoapValue } from './soap/normalize.mjs'
 import { VimClient } from './soap/VimClient.mjs'
 import xml2js from 'xml2js'
 import { exec, spawn } from 'node:child_process'
@@ -24,6 +25,7 @@ export default class Esxi extends EventEmitter {
   #connected
   #cookies
   #dcPaths // map datastore name => datacenter name
+  #fetchImpl
   #host
   #httpsAgent
   #user
@@ -37,10 +39,12 @@ export default class Esxi extends EventEmitter {
    * @param {string} password
    * @param {boolean} sslVerify
    * @param {object} [options]
+   * @param {typeof globalThis.fetch} [options.fetch] - injectable fetch implementation, for tests
    * @param {object} [options.vimClient] - injectable SOAP client, for tests
    */
-  constructor(host, user, password, sslVerify, { vimClient } = {}) {
+  constructor(host, user, password, sslVerify, { fetch: fetchImplementation, vimClient } = {}) {
     super()
+    this.#fetchImpl = fetchImplementation ?? globalThis.fetch
     this.#host = host.trim()
     this.#user = user
     this.#password = password
@@ -90,23 +94,26 @@ export default class Esxi extends EventEmitter {
   }
 
   async #computeDatacenters() {
-    this.#dcPaths = {}
-    // the datastore property is a collection of datastore id
-    const res = await this.search('Datacenter', ['name', 'datastore'])
-    await Promise.all(
-      Object.values(res).map(async ({ datastore, name }) => {
-        if (datastore.ManagedObjectReference === undefined) {
-          return
+    // the names of the datastores are read in one call instead of one per datastore: a host with
+    // many datastores used to issue as many requests, all in flight at the same time
+    const [datacenters, datastores] = await Promise.all([
+      // the datastore property is a collection of datastore ids
+      this.search('Datacenter', ['name', 'datastore']),
+      this.search('Datastore', ['name']),
+    ])
+
+    const dcPaths = {}
+    for (const { datastore, name: datacenterName } of Object.values(datacenters)) {
+      for (const reference of asArray(datastore?.ManagedObjectReference)) {
+        const datastoreName = datastores[reference.$value]?.name
+        if (datastoreName === undefined) {
+          warn('a datastore of a datacenter is not listed', { datacenterName, datastore: reference.$value })
+          continue
         }
-        await Promise.all(
-          datastore.ManagedObjectReference.map(async ({ $value }) => {
-            // get the datastore name
-            const res = await this.fetchProperty('Datastore', $value, 'name')
-            this.#dcPaths[res._] = name
-          })
-        )
-      })
-    )
+        dcPaths[datastoreName] = datacenterName
+      }
+    }
+    this.#dcPaths = dcPaths
   }
 
   #findDatacenter(dataStore) {
@@ -139,7 +146,7 @@ export default class Esxi extends EventEmitter {
     } else {
       headers.Authorization = 'Basic ' + Buffer.from(this.#user + ':' + this.#password).toString('base64')
     }
-    const res = await fetch(url, {
+    const res = await this.#fetchImpl(url, {
       dispatcher: this.#httpsAgent,
       method: 'GET',
       headers,
@@ -193,9 +200,18 @@ export default class Esxi extends EventEmitter {
   }
 
   // inspired from https://github.com/reedog117/node-vsphere-soap/blob/master/test/vsphere-soap.test.js#L95
-  async search(type, properties) {
-    // search types are limited to "ComputeResource", "Datacenter", "Datastore", "DistributedVirtualSwitch", "Folder", "HostSystem", "Network", "ResourcePool", "VirtualMachine"}
-    // from https://github.com/vmware/govmomi/issues/2595#issuecomment-966604502
+  /**
+   * Lists the objects of a type with the given properties.
+   *
+   * @param {string} type - "ComputeResource", "Datacenter", "Datastore", "DistributedVirtualSwitch",
+   * "Folder", "HostSystem", "Network", "ResourcePool" or "VirtualMachine"
+   * ( from https://github.com/vmware/govmomi/issues/2595#issuecomment-966604502 )
+   * @param {ReadonlyArray<string>} properties
+   * @param {object} [options]
+   * @param {number} [options.maxObjects] - objects per page
+   * @returns {Promise<Record<string, object>>} properties indexed by managed object reference
+   */
+  async search(type, properties, { maxObjects = 100 } = {}) {
     await this.#vimClient.connect()
     // get property collector
     const propertyCollector = this.#vimClient.serviceContent.propertyCollector
@@ -238,40 +254,50 @@ export default class Esxi extends EventEmitter {
       objectSet: [objectSpec],
     }
 
-    let token
     const objects = {}
-    do {
-      if (token !== undefined) {
-        result = await this.#exec('ContinueRetrievePropertiesEx', {
-          _this: propertyCollector,
-          token,
-        })
-      } else {
-        result = await this.#exec('RetrievePropertiesEx', {
-          _this: propertyCollector,
-          specSet: [propertyFilterSpec],
-          options: { attributes: { type: 'RetrieveOptions' } },
-        })
-      }
-
-      const returnObj = Array.isArray(result.returnval.objects) ? result.returnval.objects : [result.returnval.objects]
-      returnObj.forEach(({ obj, propSet }) => {
-        objects[obj.$value] = {}
-        propSet = Array.isArray(propSet) ? propSet : [propSet]
-        propSet.forEach(({ name, val }) => {
-          // don't care about the type for now
-          delete val.attributes
-          // a scalar value : simplify it
-          if (val.$value) {
-            objects[obj.$value][name] = val.$value
-          } else {
-            objects[obj.$value][name] = val
-          }
-        })
+    // the token of the page being retrieved, as long as it has not been consumed
+    let pendingToken
+    try {
+      result = await this.#exec('RetrievePropertiesEx', {
+        _this: propertyCollector,
+        specSet: [propertyFilterSpec],
+        options: { attributes: { 'xsi:type': 'RetrieveOptions' }, maxObjects },
       })
 
-      token = result.returnval.token
-    } while (token)
+      for (;;) {
+        // `returnval` is absent when no object matches
+        const returnval = result?.returnval
+        if (returnval === undefined) {
+          break
+        }
+
+        for (const { obj, propSet } of asArray(returnval.objects)) {
+          // an object can be split across pages
+          const objectProperties = (objects[obj.$value] ??= {})
+          // `propSet` is absent for an object with no readable property
+          for (const { name, val } of asArray(propSet)) {
+            objectProperties[name] = normalizeSoapValue(val)
+          }
+        }
+
+        pendingToken = returnval.token
+        if (pendingToken === undefined) {
+          break
+        }
+        result = await this.#exec('ContinueRetrievePropertiesEx', { _this: propertyCollector, token: pendingToken })
+      }
+    } finally {
+      if (pendingToken !== undefined) {
+        // the retrieval was not consumed entirely, the server keeps its results until then
+        await this.#exec('CancelRetrievePropertiesEx', { _this: propertyCollector, token: pendingToken }).catch(error =>
+          warn('failed to cancel the property retrieval', { error, token: pendingToken })
+        )
+      }
+      // a view is a server side resource: not destroying it leaks one per search
+      await this.#exec('DestroyView', { _this: containerView }).catch(error =>
+        warn('failed to destroy the container view', { error, type })
+      )
+    }
 
     return objects
   }
@@ -531,7 +557,7 @@ export default class Esxi extends EventEmitter {
     await this.#vimClient.connect()
     const url = new URL('https://localhost/sdk')
     url.host = this.#host
-    const res = await fetch(url, {
+    const res = await this.#fetchImpl(url, {
       method: 'POST',
       headers: {
         Cookie: this.#vimClient.authCookie.cookies,
