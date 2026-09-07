@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-if="canDisplay"
-    accent="brand"
+    accent="neutral"
     :disabled="!canReboot"
     icon="action:reboot"
     :busy="isRunning"

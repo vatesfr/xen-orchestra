@@ -7,7 +7,7 @@
       <EasyVirtLogo class="logo" />{{ t('provider-solutions', { provider: 'EasyVirt' }) }}
     </VtsDropdownTitle>
 
-    <MenuItem v-for="(easyVirtSolution, index) in easyVirtSolutions" :key="index" accent="brand">
+    <MenuItem v-for="(easyVirtSolution, index) in easyVirtSolutions" :key="index" accent="neutral">
       <UiLink class="link" size="small" :href="easyVirtSolution.href">
         {{ easyVirtSolution.label }}
       </UiLink>

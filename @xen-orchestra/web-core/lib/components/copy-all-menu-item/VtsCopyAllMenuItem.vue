@@ -13,7 +13,7 @@
         @click="open($event)"
       />
     </template>
-    <MenuItem accent="brand" icon="action:copy" @click="copy()">
+    <MenuItem accent="neutral" icon="action:copy" @click="copy()">
       {{ t('action:copy-all') }}
     </MenuItem>
   </MenuList>

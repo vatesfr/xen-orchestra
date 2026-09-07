@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-if="(isSuspended && canRun) || isRunning"
-    accent="brand"
+    accent="neutral"
     icon="fa:play"
     :busy="isRunning"
     @click="resumeJob()"

@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canForgetServer && forgetServerErrorMessage"
-    accent="brand"
+    accent="neutral"
     icon="action:forget"
     :disabled="!canForgetServer"
     :busy="isForgettingServer"
