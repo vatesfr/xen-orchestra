@@ -29,6 +29,7 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node --test"
+    "test": "node --test *.test.mjs parsers/*.test.mjs soap/*.test.mjs",
+    "test-integration": "node --test *.integ.mjs"
   }
 }

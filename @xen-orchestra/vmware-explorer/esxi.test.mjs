@@ -1,119 +1,9 @@
 import assert from 'node:assert/strict'
-import { createServer } from 'node:net'
 import { describe, it } from 'node:test'
-import { EventEmitter, once } from 'node:events'
-import { PassThrough } from 'node:stream'
+import { once } from 'node:events'
 
+import { connectedEsxi, DATACENTERS, FakeVimClient, moRef, page, response } from './esxi.fixtures.mjs'
 import Esxi from './esxi.mjs'
-
-const moRef = (type, value) => ({ attributes: { type }, $value: value })
-
-// a page of a RetrievePropertiesEx response
-const page = (objects, token) => ({ returnval: { objects, token } })
-
-// two datacenters and three datastores, shaped as the SOAP library returns them
-const DATACENTERS = [
-  {
-    obj: moRef('Datacenter', 'datacenter-1'),
-    propSet: [
-      { name: 'name', val: { $value: 'dc-main', attributes: { 'xsi:type': 'string' } } },
-      {
-        name: 'datastore',
-        val: {
-          attributes: { 'xsi:type': 'ArrayOfManagedObjectReference' },
-          ManagedObjectReference: [moRef('Datastore', 'datastore-11'), moRef('Datastore', 'datastore-12')],
-        },
-      },
-    ],
-  },
-  {
-    obj: moRef('Datacenter', 'datacenter-2'),
-    propSet: [
-      { name: 'name', val: { $value: 'dc-other' } },
-      // a single reference is not wrapped in an array
-      { name: 'datastore', val: { attributes: {}, ManagedObjectReference: moRef('Datastore', 'datastore-21') } },
-    ],
-  },
-]
-
-const DATASTORES = [
-  // a single property is not wrapped in an array either
-  { obj: moRef('Datastore', 'datastore-11'), propSet: { name: 'name', val: { $value: 'ds main' } } },
-  { obj: moRef('Datastore', 'datastore-12'), propSet: [{ name: 'name', val: { $value: 'ds2' } }] },
-  { obj: moRef('Datastore', 'datastore-21'), propSet: [{ name: 'name', val: { $value: 'ds3' } }] },
-]
-
-const INVENTORY_RESPONSES = {
-  CreateContainerView: () => ({ returnval: moRef('ContainerView', 'session[42]view-1') }),
-  DestroyView: () => ({}),
-  RetrievePropertiesEx: ({ specSet }) => page(specSet[0].propSet[0].type === 'Datacenter' ? DATACENTERS : DATASTORES),
-}
-
-/**
- * Records the calls made to the host and answers them with canned responses.
- *
- * A response is a function of the arguments of the call; an absent one answers `undefined`, as the
- * host does when nothing matches.
- */
-class FakeVimClient {
-  constructor(responses = INVENTORY_RESPONSES) {
-    this.calls = []
-    this.responses = responses
-    this.serviceContent = {
-      propertyCollector: moRef('PropertyCollector', 'propertyCollector'),
-      rootFolder: moRef('Folder', 'group-d1'),
-      viewManager: moRef('ViewManager', 'ViewManager'),
-    }
-    this.authCookie = { cookies: 'vmware_soap_session="42"' }
-    this.closed = false
-  }
-
-  async connect() {}
-
-  async call(method, args) {
-    this.calls.push({ method, args })
-    return this.responses[method]?.(args)
-  }
-
-  async close() {
-    this.closed = true
-  }
-
-  get methods() {
-    return this.calls.map(({ method }) => method)
-  }
-
-  callsTo(method) {
-    return this.calls.filter(call => call.method === method)
-  }
-}
-
-/** a minimal `fetch` response */
-const response = ({ status = 200, statusText = 'OK', headers = {}, body = '' } = {}) => {
-  const buffer = Buffer.isBuffer(body) ? body : Buffer.from(body)
-  return {
-    status,
-    statusText,
-    headers: new Headers({ 'content-length': String(buffer.length), ...headers }),
-    body: { cancel: async () => {} },
-    arrayBuffer: async () => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
-    text: async () => buffer.toString('utf8'),
-  }
-}
-
-/** connects with the inventory above, then hands the client over to the test */
-const connectedEsxi = async ({ responses, ...options } = {}) => {
-  const vimClient = new FakeVimClient()
-  const esxi = new Esxi('esxi.test', 'user', 'password', true, { ...options, vimClient })
-  await once(esxi, 'ready')
-
-  if (responses !== undefined) {
-    vimClient.responses = { ...INVENTORY_RESPONSES, ...responses }
-  }
-  vimClient.calls.length = 0
-
-  return { esxi, vimClient }
-}
 
 describe('search', function () {
   it('destroys the container view it created', async function () {
@@ -405,6 +295,21 @@ describe('download', function () {
     assert.equal(requests.length, 1)
   })
 
+  it('fails when the size of the answer to a range is unknown', async function () {
+    // a chunked answer cannot be checked, and `Number(null)` is 0: the whole file used to pass
+    const { esxi } = await downloadEsxi(() => ({
+      status: 200,
+      statusText: 'OK',
+      headers: new Headers(),
+      body: { cancel: async () => {} },
+      arrayBuffer: async () => new ArrayBuffer(4096),
+    }))
+
+    await assert.rejects(esxi.download('ds2', 'huge.vmdk', { range: '0-2047', retryDelay: 1 }), {
+      message: /^the range 0-2047 was ignored by the host \(status 200, null bytes\)/,
+    })
+  })
+
   it('accepts a whole file answered to a range which covers it', async function () {
     // what `/folder` does for a vmdk descriptor of a few hundred bytes read as `0-511`
     const { esxi } = await downloadEsxi(() => response({ status: 200, body: Buffer.alloc(293) }))
@@ -542,6 +447,42 @@ describe('tasks', function () {
     assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, 2)
   })
 
+  it('keeps polling a task through a transient failure', async function () {
+    let polls = 0
+    const { esxi, vimClient } = await connectedEsxi({
+      responses: {
+        RemoveAllSnapshots_Task: () => startedTask(),
+        RetrievePropertiesEx: () => {
+          if (++polls === 1) {
+            // the task keeps running on the host, reporting a failure would be a lie
+            const error = new Error('socket hang up')
+            error.code = 'ECONNRESET'
+            throw error
+          }
+          return taskInfo('success')
+        },
+      },
+    })
+
+    await esxi.removeAllSnapshots('vm-1')
+
+    assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, 2)
+  })
+
+  it('does not retry a poll which will not succeed', async function () {
+    const { esxi, vimClient } = await connectedEsxi({
+      responses: {
+        PowerOffVM_Task: () => startedTask(),
+        // the task object is gone
+        RetrievePropertiesEx: () => ({}),
+      },
+    })
+
+    await assert.rejects(esxi.powerOff('vm-1'), { code: 'NO_PROPERTY' })
+
+    assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, 1)
+  })
+
   it('reports a method which did not start a task', async function () {
     const { esxi } = await connectedEsxi({ responses: { ResetVM_Task: () => ({}) } })
 
@@ -558,238 +499,6 @@ describe('tasks', function () {
     })
 
     await assert.rejects(esxi.powerOff('vm-1'), { code: 'NO_PROPERTY' })
-  })
-})
-
-describe('nbdkit servers', function () {
-  /**
-   * Stands in for nbdkit: it listens on the port it is given, so that the readiness probe of the
-   * server under test is exercised for real.
-   */
-  const fakeNbdkit = ({ failWith } = {}) => {
-    const spawned = []
-    const spawn = (command, args) => {
-      const child = new EventEmitter()
-      child.exitCode = null
-      child.signalCode = null
-      child.stdout = new PassThrough()
-      child.stderr = new PassThrough()
-      child.kill = signal => {
-        child.signalCode = signal ?? 'SIGTERM'
-        child.exitCode = 0
-        entry.server?.close()
-        setImmediate(() => child.emit('exit', 0, child.signalCode))
-        return true
-      }
-
-      const port = Number(args.find(argument => argument.startsWith('--port=')).slice('--port='.length))
-      const entry = { args, child, command, port }
-      spawned.push(entry)
-
-      if (failWith !== undefined) {
-        setImmediate(() => child.emit('error', failWith))
-      } else {
-        entry.server = createServer()
-        entry.server.listen(port, '127.0.0.1')
-      }
-      return child
-    }
-    return { spawn, spawned }
-  }
-
-  const nbdkitEsxi = async options => {
-    const { spawn, spawned } = fakeNbdkit(options)
-    const { esxi } = await connectedEsxi({ spawn })
-    // the thumbprint is the only step of a spawn which needs the real host
-    esxi.getServerThumbprint = async () => 'AA:BB:CC'
-    return { esxi, spawned }
-  }
-
-  it('spawns one server per disk, and reuses it', async function () {
-    const { esxi, spawned } = await nbdkitEsxi()
-
-    const [first, second] = await Promise.all([
-      esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk'),
-      esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk'),
-    ])
-
-    // the promise is memoized: two concurrent calls used to spawn two servers, orphaning one
-    assert.equal(spawned.length, 1)
-    assert.equal(first, second)
-    assert.equal(first.nbdInfos.exportname, '[ds] vm/vm.vmdk')
-    assert.equal(first.nbdInfos.port, spawned[0].port)
-
-    await esxi.close()
-  })
-
-  it('spawns a new server after the previous one was killed', async function () {
-    const { esxi, spawned } = await nbdkitEsxi()
-
-    const first = await esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk')
-    await esxi.killNbdServer('vm-1', '[ds] vm/vm.vmdk')
-    const second = await esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk')
-
-    // the entry used to be left in the map, so this handed out the dead process of a closed port
-    assert.equal(spawned.length, 2)
-    assert.notEqual(first.nbdInfos.port, second.nbdInfos.port)
-    assert.equal(first.process.exitCode, 0)
-
-    await esxi.close()
-  })
-
-  it('forgets a server which died on its own', async function () {
-    const { esxi, spawned } = await nbdkitEsxi()
-
-    const first = await esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk')
-    spawned[0].server.close()
-    first.process.exitCode = 1
-    first.process.emit('exit', 1, null)
-    await first.died
-
-    await esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk')
-
-    assert.equal(spawned.length, 2)
-
-    await esxi.close()
-  })
-
-  it('reports a missing nbdkit instead of terminating the process', async function () {
-    const error = new Error('spawn nbdkit ENOENT')
-    error.code = 'ENOENT'
-    const { esxi, spawned } = await nbdkitEsxi({ failWith: error })
-
-    // without an 'error' listener on the child process, this used to be an uncaught event
-    await assert.rejects(esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk'), { code: 'ENOENT' })
-
-    // the failure is not memoized either
-    await assert.rejects(esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk'), { code: 'ENOENT' })
-    assert.equal(spawned.length, 2)
-  })
-
-  it('never passes the password on the command line', async function () {
-    const { esxi, spawned } = await nbdkitEsxi()
-
-    await esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk')
-
-    assert.equal(
-      spawned[0].args.some(argument => argument.includes('password')),
-      true
-    )
-    assert.equal(
-      spawned[0].args.some(argument => argument.includes('password=password')),
-      false
-    )
-
-    await esxi.close()
-  })
-
-  it('kills the remaining servers when closing', async function () {
-    const { esxi, spawned } = await nbdkitEsxi()
-
-    const server = await esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk')
-    await esxi.close()
-
-    assert.equal(server.process.exitCode, 0)
-    assert.equal(spawned.length, 1)
-  })
-})
-
-describe('getDataMap', function () {
-  const BLOCK_LENGTH = 4096 * 512
-
-  const DELTA_DESCRIPTOR = `# Disk DescriptorFile
-version=1
-CID=d7980f7a
-parentCID=aaaaaaaa
-createType="vmfsSparse"
-parentFileNameHint="vm.vmdk"
-
-RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
-`
-
-  const cowdExtent = ({ allocated = [0, 2], numGdEntries = 4 } = {}) => {
-    const header = Buffer.alloc(2048)
-    header.write('COWD', 0, 'ascii')
-    header.writeUInt32LE(1, 4) // version
-    header.writeUInt32LE(3, 8) // flags
-    header.writeUInt32LE((numGdEntries * BLOCK_LENGTH) / 512, 12) // capacity in sectors
-    header.writeUInt32LE(1, 16) // one sector per grain
-    header.writeUInt32LE(4, 20) // the grain directory follows the header
-    header.writeUInt32LE(numGdEntries, 24)
-
-    const grainDirectory = Buffer.alloc(numGdEntries * 4)
-    for (const index of allocated) {
-      // the sector of the grain table of the block, whatever it is
-      grainDirectory.writeUInt32LE(8 + index, index * 4)
-    }
-    return { grainDirectory, header }
-  }
-
-  it('falls back to reading the metadata of a COWD delta', async function () {
-    const { grainDirectory, header } = cowdExtent()
-    const ranges = []
-
-    const spawnError = new Error('spawn nbdkit ENOENT')
-    spawnError.code = 'ENOENT'
-    const { esxi } = await connectedEsxi({
-      // no nbdkit on this machine, which is what sends the code down the fallback
-      spawn: () => {
-        const child = new EventEmitter()
-        child.exitCode = null
-        child.signalCode = null
-        child.stdout = new PassThrough()
-        child.stderr = new PassThrough()
-        child.kill = () => true
-        setImmediate(() => child.emit('error', spawnError))
-        return child
-      },
-      fetch: async (url, options) => {
-        ranges.push([url.pathname, options.headers.Range])
-        if (url.pathname.endsWith('-delta.vmdk')) {
-          // the extent: its header, then its grain directory
-          return response({ status: 206, body: options.headers.Range === 'bytes=0-2047' ? header : grainDirectory })
-        }
-        return response({ status: 206, body: DELTA_DESCRIPTOR })
-      },
-    })
-    esxi.getServerThumbprint = async () => 'AA:BB:CC'
-
-    const dataMap = await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk')
-
-    assert.deepEqual(dataMap, [
-      { offset: 0, length: BLOCK_LENGTH, type: 0 },
-      { offset: 2 * BLOCK_LENGTH, length: BLOCK_LENGTH, type: 0 },
-    ])
-
-    // an HTTP range is inclusive: these used to ask for one byte too many, three times
-    assert.deepEqual(ranges, [
-      ['/folder/a.vm/vm-000001.vmdk', 'bytes=0-511'],
-      ['/folder/a.vm/vm-000001-delta.vmdk', 'bytes=0-2047'],
-      ['/folder/a.vm/vm-000001-delta.vmdk', 'bytes=2048-2063'],
-    ])
-  })
-
-  it('reports a delta which is not COWD with a code instead of an assertion', async function () {
-    const { header } = cowdExtent()
-    header.write('SESp', 0, 'ascii')
-
-    const { esxi } = await connectedEsxi({
-      spawn: () => {
-        const child = new EventEmitter()
-        child.exitCode = null
-        child.signalCode = null
-        child.stdout = new PassThrough()
-        child.stderr = new PassThrough()
-        child.kill = () => true
-        setImmediate(() => child.emit('error', new Error('no nbdkit')))
-        return child
-      },
-      fetch: async url =>
-        response({ status: 206, body: url.pathname.endsWith('-delta.vmdk') ? header : DELTA_DESCRIPTOR }),
-    })
-    esxi.getServerThumbprint = async () => 'AA:BB:CC'
-
-    await assert.rejects(esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk'), { code: 'NO_DATA_MAP' })
   })
 })
 
@@ -842,6 +551,35 @@ describe('getAllVmMetadata', function () {
       (await esxi.getAllVmMetadata()).map(({ id }) => id),
       ['vm-2']
     )
+  })
+
+  it('ignores a VM whose config is reported without its hardware', async function () {
+    // a VM being created: `config` is there, `config.hardware` is not yet
+    const { esxi } = await connectedEsxi({
+      responses: {
+        RetrievePropertiesEx: () =>
+          page([
+            vm('vm-1', [{ name: 'config', val: { attributes: {}, name: 'new vm' } }, STORAGE, RUNTIME]),
+            vm('vm-2', [CONFIG, STORAGE, RUNTIME]),
+          ]),
+      },
+    })
+
+    assert.deepEqual(
+      (await esxi.getAllVmMetadata()).map(({ id }) => id),
+      ['vm-2']
+    )
+  })
+
+  it('ignores a VM whose runtime is reported without its power state', async function () {
+    const { esxi } = await connectedEsxi({
+      responses: {
+        RetrievePropertiesEx: () =>
+          page([vm('vm-1', [CONFIG, STORAGE, { name: 'runtime', val: { attributes: {}, host: 'host-1' } }])]),
+      },
+    })
+
+    assert.deepEqual(await esxi.getAllVmMetadata(), [])
   })
 
   it('detects a disk whose extent is not listed', async function () {
@@ -1034,5 +772,87 @@ describe('fetchProperty', function () {
 
     // values wrapped in arrays: this is why `#retrieveProperty` exists
     assert.deepEqual(await esxi.fetchProperty('Task', 'task-1', 'info'), { state: ['success'] })
+  })
+})
+
+describe('getDataMap', function () {
+  const BLOCK_LENGTH = 4096 * 512
+
+  // the thumbprint is the first step of a spawn: failing it sends the code down the fallback
+  // without binding a port nor writing a temporary file
+  const failingThumbprint = async () => {
+    throw new Error('no vddk on this machine')
+  }
+
+  const DELTA_DESCRIPTOR = `# Disk DescriptorFile
+version=1
+CID=d7980f7a
+parentCID=aaaaaaaa
+createType="vmfsSparse"
+parentFileNameHint="vm.vmdk"
+
+RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
+`
+
+  const cowdExtent = ({ allocated = [0, 2], numGdEntries = 4 } = {}) => {
+    const header = Buffer.alloc(2048)
+    header.write('COWD', 0, 'ascii')
+    header.writeUInt32LE(1, 4) // version
+    header.writeUInt32LE(3, 8) // flags
+    header.writeUInt32LE((numGdEntries * BLOCK_LENGTH) / 512, 12) // capacity in sectors
+    header.writeUInt32LE(1, 16) // one sector per grain
+    header.writeUInt32LE(4, 20) // the grain directory follows the header
+    header.writeUInt32LE(numGdEntries, 24)
+
+    const grainDirectory = Buffer.alloc(numGdEntries * 4)
+    for (const index of allocated) {
+      // the sector of the grain table of the block, whatever it is
+      grainDirectory.writeUInt32LE(8 + index, index * 4)
+    }
+    return { grainDirectory, header }
+  }
+
+  it('falls back to reading the metadata of a COWD delta', async function () {
+    const { grainDirectory, header } = cowdExtent()
+    const ranges = []
+
+    const { esxi } = await connectedEsxi({
+      fetch: async (url, options) => {
+        ranges.push([url.pathname, options.headers.Range])
+        if (url.pathname.endsWith('-delta.vmdk')) {
+          // the extent: its header, then its grain directory
+          return response({ status: 206, body: options.headers.Range === 'bytes=0-2047' ? header : grainDirectory })
+        }
+        return response({ status: 206, body: DELTA_DESCRIPTOR })
+      },
+    })
+    esxi.getServerThumbprint = failingThumbprint
+
+    const dataMap = await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk')
+
+    assert.deepEqual(dataMap, [
+      { offset: 0, length: BLOCK_LENGTH, type: 0 },
+      { offset: 2 * BLOCK_LENGTH, length: BLOCK_LENGTH, type: 0 },
+    ])
+
+    // an HTTP range is inclusive: these used to ask for one byte too many, three times
+    assert.deepEqual(ranges, [
+      ['/folder/a.vm/vm-000001.vmdk', 'bytes=0-4095'],
+      ['/folder/a.vm/vm-000001-delta.vmdk', 'bytes=0-2047'],
+      ['/folder/a.vm/vm-000001-delta.vmdk', 'bytes=2048-2063'],
+    ])
+  })
+
+  it('reports a delta which is not COWD with a code instead of an assertion', async function () {
+    const { header } = cowdExtent()
+    header.write('SESp', 0, 'ascii')
+
+    const { esxi } = await connectedEsxi({
+      fetch: async url =>
+        response({ status: 206, body: url.pathname.endsWith('-delta.vmdk') ? header : DELTA_DESCRIPTOR }),
+    })
+    esxi.getServerThumbprint = failingThumbprint
+
+    await assert.rejects(esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk'), { code: 'NO_DATA_MAP' })
   })
 })
