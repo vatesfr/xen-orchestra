@@ -160,7 +160,7 @@ Configuration for a single icon.
 
 ```ts
 type IconSingleConfig = {
-  icon?: IconDefinition | SimpleIcon | IconSingle | IconStack
+  icon?: IconDefinition | IconSingle | IconStack
 } & IconTransforms
 ```
 
