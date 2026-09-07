@@ -17,6 +17,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backups] change the prefix name of vms during health checks from 'Importing...' to 'Health Check' to avoid confusion (PR [#10361](https://github.com/vatesfr/xen-orchestra/pull/10361))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -32,5 +34,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/backups patch
+- xo-server patch
 
 <!--packages-end-->
