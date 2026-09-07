@@ -36,9 +36,11 @@ import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vmState, srs } = defineProps<{
+const { vmState, srs, canResizeExistingDisks, defaultExistingVdis } = defineProps<{
   vmState: VmState
   srs: FrontXoSr[]
+  canResizeExistingDisks: boolean
+  defaultExistingVdis: Vdi[]
 }>()
 
 const emit = defineEmits<{
@@ -65,10 +67,19 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
     const size = toRef(vdi, 'size')
     const description = toRef(vdi, 'name_description')
 
+    const isExistingVdi = vmState.existingVdis.includes(vdi)
+    const defaultVdi = isExistingVdi ? defaultExistingVdis[vmState.existingVdis.indexOf(vdi)] : undefined
+    const isDisabled = isExistingVdi ? !canResizeExistingDisks : false
+    const minSize = defaultVdi?.size ?? 1
+
     return {
       sr: r => r(srSelectId),
       diskName: r => r(diskName),
-      size: r => r(size, { disabled: !onRemove }),
+      size: r =>
+        r(size, {
+          disabled: isDisabled,
+          min: minSize,
+        } as any),
       description: r => r(description),
       remove: r => (onRemove ? r(onRemove) : renderBodyCell()),
     }
