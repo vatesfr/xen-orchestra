@@ -22,7 +22,7 @@
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
-> 03865bc5fe854417522761b292ffec9de401f57b
+>
 > The format is the following: `- $packageName $releaseType`
 >
 > Where `$releaseType` is
