@@ -10,6 +10,8 @@ import { Agent } from 'undici'
 
 import { findFreePort, formatNbdkitArgs, waitForPort } from './_nbdkit.mjs'
 import { resolveDiskLocation } from './_paths.mjs'
+import { getCertificateThumbprint } from './_thumbprint.mjs'
+import { VDDK_LIB_PATH } from './_vddk.mjs'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
@@ -17,7 +19,7 @@ import { asArray, normalizeSoapValue } from './soap/normalize.mjs'
 import { moRef, objectSpec, propertyFilterSpec, propertySpec, retrieveOptions, traversalSpec } from './soap/specs.mjs'
 import { VimClient } from './soap/VimClient.mjs'
 import xml2js from 'xml2js'
-import { exec, spawn } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import NbdClient from '@vates/nbd-client'
 
 import { tmpdir } from 'node:os'
@@ -25,8 +27,7 @@ import fs from 'node:fs/promises'
 
 const { info, warn } = createLogger('xo:vmware-explorer:esxi')
 
-export const VDDK_LIB_DIR = '/usr/local/lib/vddk'
-export const VDDK_LIB_PATH = `${VDDK_LIB_DIR}/vmware-vix-disklib-distrib`
+export { VDDK_LIB_DIR, VDDK_LIB_PATH } from './_vddk.mjs'
 
 const DEFAULT_DOWNLOAD_RETRIES = 4
 // a vmdk descriptor is a small file, but the /folder endpoint of a host is not fast
@@ -942,61 +943,25 @@ export default class Esxi extends EventEmitter {
   }
 
   /**
-   * get the thumbprint of the certificate on the esxi. Extracted from vddk-remote code
+   * SHA-1 fingerprint of the certificate of the host, as the vddk library expects it.
+   *
+   * Memoized: it used to be computed again for every nbdkit server, with two openssl processes
+   * every time.
+   *
    * @returns {Promise<string>}
    */
   async getServerThumbprint() {
-    return (this.#thumbprint ??= this.#computeServerThumbprint())
+    return (this.#thumbprint ??= this.#computeServerThumbprint().catch(error => {
+      // a transient failure must not be memoized
+      this.#thumbprint = undefined
+      throw error
+    }))
   }
 
-  async #computeServerThumbprint() {
-    const tmpDir = await fs.mkdtemp(join(tmpdir(), 'xo-server'))
-    const certFile = join(tmpDir, 'cert')
-
-    try {
-      const devnull = await fs.open('/dev/null')
-      // ensure arguments are properly escaped
-      const cert = await new Promise((resolve, reject) => {
-        const process = spawn('openssl', ['s_client', '-connect', `${this.#host}:443`])
-        let cert = ''
-        let stderr = ''
-        devnull.createReadStream().pipe(process.stdin)
-        process.stdout.on('data', data => {
-          cert += data
-        })
-
-        process.stderr.on('data', data => {
-          stderr += data
-        })
-
-        process.on('close', code => {
-          if (code !== 0) {
-            reject(new Error(`cert got an error code ${code} ${stderr}`))
-          } else {
-            resolve(cert)
-          }
-        })
-      })
-      await fs.writeFile(certFile, cert)
-      const sha = await new Promise((resolve, reject) => {
-        exec(`openssl x509 -in ${certFile} -fingerprint -sha1 -noout`, (err, stdout, stderr) => {
-          if (err) {
-            return reject(err)
-          }
-          if (stdout) {
-            const matches = stdout.match(/sha1 Fingerprint=([0-9A-F:]+)/i)
-            if (matches === null) {
-              throw new Error(`Can't extract server finger print`, { stdout, stderr, cert })
-            }
-            return resolve(matches[1])
-          }
-          reject(new Error(`no answer in handling server thumbprint `))
-        })
-      })
-      return sha
-    } finally {
-      await fs.unlink(certFile).catch(() => {})
-    }
+  #computeServerThumbprint() {
+    // the host may carry a port, e.g. `esxi.example:8443`, since it is used as the host of an url
+    const { hostname, port } = new URL(`https://${this.#host}`)
+    return getCertificateThumbprint(hostname.replace(/^\[|\]$/g, ''), port === '' ? {} : { port: Number(port) })
   }
 
   /**
