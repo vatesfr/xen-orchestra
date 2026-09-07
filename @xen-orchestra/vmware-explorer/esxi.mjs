@@ -10,6 +10,7 @@ import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
 import { asArray, normalizeSoapValue } from './soap/normalize.mjs'
+import { moRef, objectSpec, propertyFilterSpec, propertySpec, retrieveOptions, traversalSpec } from './soap/specs.mjs'
 import { VimClient } from './soap/VimClient.mjs'
 import xml2js from 'xml2js'
 import { exec, spawn } from 'node:child_process'
@@ -244,30 +245,19 @@ export default class Esxi extends EventEmitter {
     // build all the data structures needed to query all the vm names
     const containerView = result.returnval
 
-    const objectSpec = {
-      attributes: { 'xsi:type': 'ObjectSpec' }, // setting attributes xsi:type is important or else the server may mis-recognize types!
-      obj: containerView,
-      skip: true,
-      selectSet: [
-        {
-          attributes: { 'xsi:type': 'TraversalSpec' },
-          name: 'traverseEntities',
-          type: 'ContainerView',
-          path: 'view',
-          skip: false,
-        },
+    // the specs are built in schema order, and the `xsi:type` are mandatory or else the server may
+    // mis-recognize the types
+    const filterSpec = propertyFilterSpec({
+      // every path has the same type, so one spec carries them all
+      propSet: [propertySpec({ type, pathSet: properties })],
+      objectSet: [
+        objectSpec({
+          obj: containerView,
+          skip: true,
+          selectSet: [traversalSpec({ name: 'traverseEntities', type: 'ContainerView', path: 'view', skip: false })],
+        }),
       ],
-    }
-
-    const propertyFilterSpec = {
-      attributes: { 'xsi:type': 'PropertyFilterSpec' },
-      propSet: properties.map(p => ({
-        attributes: { 'xsi:type': 'PropertySpec' },
-        type,
-        pathSet: [p],
-      })),
-      objectSet: [objectSpec],
-    }
+    })
 
     const objects = {}
     // the token of the page being retrieved, as long as it has not been consumed
@@ -275,8 +265,8 @@ export default class Esxi extends EventEmitter {
     try {
       result = await this.#exec('RetrievePropertiesEx', {
         _this: propertyCollector,
-        specSet: [propertyFilterSpec],
-        options: { attributes: { 'xsi:type': 'RetrieveOptions' }, maxObjects },
+        specSet: [filterSpec],
+        options: retrieveOptions({ maxObjects }),
       })
 
       for (;;) {
@@ -676,16 +666,13 @@ export default class Esxi extends EventEmitter {
       {
         _this: propertyCollector,
         specSet: [
-          {
-            attributes: { 'xsi:type': 'PropertyFilterSpec' },
-            propSet: [{ attributes: { 'xsi:type': 'PropertySpec' }, type, pathSet: [path] }],
+          propertyFilterSpec({
+            propSet: [propertySpec({ type, pathSet: [path] })],
             // the object itself, no container view to create and destroy
-            objectSet: [
-              { attributes: { 'xsi:type': 'ObjectSpec' }, obj: { attributes: { type }, $value: id }, skip: false },
-            ],
-          },
+            objectSet: [objectSpec({ obj: moRef(type, id), skip: false })],
+          }),
         ],
-        options: { attributes: { 'xsi:type': 'RetrieveOptions' } },
+        options: retrieveOptions({}),
       },
       { timeout }
     )
