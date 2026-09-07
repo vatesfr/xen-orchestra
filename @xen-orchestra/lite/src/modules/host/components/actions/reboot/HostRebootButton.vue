@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canRebootHost && rebootHostErrorMessage"
+    accent="info"
     :busy="isRebootingHost"
     :disabled="!canRebootHost"
     icon="action:reboot"
