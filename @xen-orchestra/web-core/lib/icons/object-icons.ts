@@ -2,6 +2,7 @@ import { slash } from '@core/icons/custom-icons.ts'
 import { statusIcons } from '@core/icons/status-icons.ts'
 import { defineIcon, type IconSingleConfig } from '@core/packages/icon'
 import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
+import { faFolderOpen } from '@fortawesome/free-regular-svg-icons'
 import {
   faArchive,
   faArrowLeft,
@@ -14,6 +15,7 @@ import {
   faDatabase,
   faDesktop,
   faHdd,
+  faHexagonNodes,
   faMapPin,
   faNetworkWired,
   faPlay,
@@ -22,6 +24,7 @@ import {
   faServer,
   faUserCircle,
   faUsers,
+  faXRay,
   type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -277,4 +280,9 @@ export const objectIcons = defineIconPack({
   account: constructIcon(faUserCircle),
   // on our version of fa, faUsers icon is reversed compared to the version of fa on fa website
   organization: constructIcon(faUsers),
+  kubernetes: constructIcon(faSatellite),
+  cluster: constructIcon(faHexagonNodes),
+  node: constructIcon(faDesktop),
+  namespace: constructIcon(faFolderOpen),
+  pod: constructIcon(faXRay),
 })
