@@ -19,6 +19,8 @@ import { BackupArchiveService } from '../backup-archives/backup-archive.service.
 import { SrService } from '../srs/sr.service.mjs'
 import { LicenseService } from '../licenses/license.service.mjs'
 import { BackupRepositoryService } from '../backup-repositories/backup-repository.service.mjs'
+import { KubernetesService } from '../kubernetes/kubernetes.service.mjs'
+import { KubernetesOpenApiService } from '../kubernetes/kubernetes.openapi.mjs'
 
 const iocContainer = new Container()
 
@@ -152,6 +154,22 @@ export function setupContainer(xoApp: XoApp) {
     .toDynamicValue(ctx => {
       const restApi = ctx.container.get(RestApi)
       return new BackupRepositoryService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(KubernetesService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new KubernetesService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(KubernetesOpenApiService)
+    .toDynamicValue(ctx => {
+      const kubernetesService = ctx.container.get(KubernetesService)
+      return new KubernetesOpenApiService(kubernetesService)
     })
     .inSingletonScope()
 }

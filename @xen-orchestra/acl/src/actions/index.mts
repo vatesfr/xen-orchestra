@@ -8,6 +8,7 @@ import { default as backupRepository } from './backup-repository.mjs'
 import { default as gpuGroup } from './gpuGroup.mjs'
 import { default as group } from './group.mjs'
 import { default as host } from './host.mjs'
+import { default as kubernetesCluster } from './kubernetes-cluster.mjs'
 import { default as message } from './message.mjs'
 import { default as network } from './network.mjs'
 import { default as pbd } from './pbd.mjs'
@@ -50,6 +51,7 @@ export const SUPPORTED_ACTIONS_BY_RESOURCE = {
   group,
   gpuGroup,
   host,
+  'kubernetes-cluster': kubernetesCluster,
   message,
   network,
   pbd,
