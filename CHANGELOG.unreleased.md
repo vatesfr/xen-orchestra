@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [XO6] Add Kubernetes objects to the TreeView (PR [#10366](https://github.com/vatesfr/xen-orchestra/pull/10366))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
