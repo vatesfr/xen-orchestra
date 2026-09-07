@@ -3,10 +3,12 @@ import { createLogger } from '@xen-orchestra/log'
 import { dirname, join } from 'node:path'
 import { EventEmitter } from 'node:events'
 import { parseFault } from '@vates/node-vsphere-soap'
+import { pTimeout } from 'promise-toolbox'
 import { setTimeout as delay } from 'node:timers/promises'
 import { strictEqual } from 'node:assert'
 import { Agent } from 'undici'
 
+import { findFreePort, formatNbdkitArgs, waitForPort } from './_nbdkit.mjs'
 import { resolveDiskLocation } from './_paths.mjs'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
@@ -25,7 +27,6 @@ const { info, warn } = createLogger('xo:vmware-explorer:esxi')
 
 export const VDDK_LIB_DIR = '/usr/local/lib/vddk'
 export const VDDK_LIB_PATH = `${VDDK_LIB_DIR}/vmware-vix-disklib-distrib`
-let nbdPort = 11000
 
 const DEFAULT_DOWNLOAD_RETRIES = 4
 // a vmdk descriptor is a small file, but the /folder endpoint of a host is not fast
@@ -36,6 +37,9 @@ const DEFAULT_RETRY_DELAY = 2e3
 const DEFAULT_TASK_TIMEOUT = 60e3
 const MAX_RETRY_DELAY = 30e3
 const MAX_TASK_POLL_DELAY = 5e3
+const NBDKIT_KILL_TIMEOUT = 10e3
+// connecting the vddk library to the host can be slow
+const NBDKIT_READY_TIMEOUT = 60e3
 
 // a failure which will not fix itself must not be retried: a missing file, a rejected
 // authentication or a programming error only delay the report of the real problem
@@ -70,6 +74,12 @@ function isRetryableError(error) {
   return error?.name === 'TimeoutError'
 }
 
+const noop = () => {}
+
+// the options change what the server exports, so they are part of its identity
+const nbdServerKey = (vmId, diskPath, { compression, singleLink, threads }) =>
+  JSON.stringify([vmId, diskPath, singleLink, threads, compression])
+
 const XML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }
 const escapeXml = value => String(value).replace(/[&<>"']/g, character => XML_ESCAPES[character])
 
@@ -87,6 +97,8 @@ export default class Esxi extends EventEmitter {
   #httpsAgent
   #user
   #password
+  #spawn
+  #thumbprint
   #vimClient
   #nbdServers = new Map()
 
@@ -97,11 +109,19 @@ export default class Esxi extends EventEmitter {
    * @param {boolean} sslVerify
    * @param {object} [options]
    * @param {typeof globalThis.fetch} [options.fetch] - injectable fetch implementation, for tests
+   * @param {typeof spawn} [options.spawn] - injectable process spawner, for tests
    * @param {object} [options.vimClient] - injectable SOAP client, for tests
    */
-  constructor(host, user, password, sslVerify, { fetch: fetchImplementation, vimClient } = {}) {
+  constructor(
+    host,
+    user,
+    password,
+    sslVerify,
+    { fetch: fetchImplementation, spawn: spawnImplementation, vimClient } = {}
+  ) {
     super()
     this.#fetchImpl = fetchImplementation ?? globalThis.fetch
+    this.#spawn = spawnImplementation ?? spawn
     this.#host = host.trim()
     this.#user = user
     this.#password = password
@@ -146,6 +166,8 @@ export default class Esxi extends EventEmitter {
    * @returns {Promise<void>}
    */
   async close() {
+    // the servers would only be reaped by `--exit-with-parent`, i.e. when this process ends
+    await asyncEach([...this.#nbdServers.keys()], key => this.#killNbdServerByKey(key), { concurrency: 4 })
     await this.#vimClient.close()
     await this.#httpsAgent?.close()
   }
@@ -923,7 +945,11 @@ export default class Esxi extends EventEmitter {
    * get the thumbprint of the certificate on the esxi. Extracted from vddk-remote code
    * @returns {Promise<string>}
    */
-  async #getServerThumbprint() {
+  async getServerThumbprint() {
+    return (this.#thumbprint ??= this.#computeServerThumbprint())
+  }
+
+  async #computeServerThumbprint() {
     const tmpDir = await fs.mkdtemp(join(tmpdir(), 'xo-server'))
     const certFile = join(tmpDir, 'cert')
 
@@ -973,73 +999,168 @@ export default class Esxi extends EventEmitter {
     }
   }
 
-  async spawnNbdKitProcess(vmId, diskPath, { singleLink = false, threads = 1, compression = 'fastlz' } = {}) {
-    const key = `${vmId}/${diskPath}/${singleLink}`
-    if (!this.#nbdServers.has(key)) {
-      const thumbprint = await this.#getServerThumbprint()
-      const port = nbdPort++
-      const tmpDir = await fs.mkdtemp(join(tmpdir(), 'xo-server'))
-      const passFile = join(tmpDir, 'params')
-      const outFd = await fs.open(join(tmpDir, 'stdout'), 'a')
-      const outFile = outFd.createWriteStream()
-      const errFd = await fs.open(join(tmpDir, 'stderr'), 'a')
-      const errFile = errFd.createWriteStream()
-      await fs.writeFile(passFile, this.#password)
-      const args = [
-        '-r', // readonly
-        '-v',
-        '-f',
-        '--exit-with-parent', // implies -f , ensure we don't leave orphans
-        `--threads=${threads}`,
-        `--port=${port}`,
-        'vddk', // the vddk plugin
-        `compression=${compression}`,
-        `thumbprint=${thumbprint}`,
-        `server=${this.#host}`,
-        `user=${this.#user}`,
-        `password=+${passFile}`,
-        `libdir=${VDDK_LIB_PATH}`,
-        `vm=moref=${vmId}`,
-        singleLink ? 'single-link=true' : '',
-        diskPath,
-      ]
-      try {
-        const nbdKitProcess = spawn('nbdkit', args, {
-          cwd: tmpDir,
-          env: {
-            ...process.env,
-            LD_LIBRARY_PATH: `${VDDK_LIB_PATH}/lib64`,
-          },
-        })
-        nbdKitProcess.stdout.pipe(outFile)
-        nbdKitProcess.stderr.pipe(errFile)
-        this.#nbdServers.set(key, {
-          process: nbdKitProcess,
-          nbdInfos: { address: '127.0.0.1', port, exportname: diskPath },
-        })
+  /**
+   * Starts an nbdkit server exporting a disk of a VM, or returns the one already serving it.
+   *
+   * @param {string} vmId
+   * @param {string} diskPath - `[datastore] dir/disk.vmdk`
+   * @param {object} [options]
+   * @param {string} [options.compression]
+   * @param {boolean} [options.singleLink] - export the top delta only
+   * @param {number} [options.threads]
+   * @returns {Promise<{ nbdInfos: object, process: object }>}
+   */
+  async spawnNbdKitProcess(vmId, diskPath, { compression = 'fastlz', singleLink = false, threads = 1 } = {}) {
+    const key = nbdServerKey(vmId, diskPath, { compression, singleLink, threads })
 
-        info(`nbdkit logs of ${diskPath} are in ${tmpDir}`)
+    let pending = this.#nbdServers.get(key)
+    if (pending === undefined) {
+      // the promise is memoized, not its result: the previous implementation had six await points
+      // between the check and the registration, so two concurrent calls spawned two servers and
+      // orphaned the first one
+      pending = this.#spawnNbdKitProcess(vmId, diskPath, { compression, singleLink, threads })
+      this.#nbdServers.set(key, pending)
 
-        nbdKitProcess.on('close', code => {
-          if (code !== 0) {
-            warn(`nbdkit server process exited with code ${code} ,detailed logs are in ${tmpDir}/stderr `)
-          }
-        })
-        // @todo find a better to wait for server ready
-        await new Promise(resolve => setTimeout(resolve, 2000))
-      } finally {
-        fs.unlink(passFile).catch(warn)
+      // neither a failed spawn nor a dead server must be handed out to the next caller
+      const forget = () => {
+        if (this.#nbdServers.get(key) === pending) {
+          this.#nbdServers.delete(key)
+        }
       }
+      pending.then(server => server.died.then(forget), forget)
     }
-    return this.#nbdServers.get(key)
+    return pending
   }
-  async killNbdServer(vmId, diskPath, { singleLink = false } = {}) {
-    const key = `${vmId}/${diskPath}/${singleLink}`
-    if (!this.#nbdServers.has(key)) {
-      warn(` process ${vmId}/${diskPath}/${singleLink} was already killed`)
-    } else {
-      this.#nbdServers.get(key).process.kill()
+
+  async #spawnNbdKitProcess(vmId, diskPath, { compression, singleLink, threads }) {
+    const thumbprint = await this.getServerThumbprint()
+    const port = await findFreePort()
+    const tmpDir = await fs.mkdtemp(join(tmpdir(), 'xo-server'))
+    const passFile = join(tmpDir, 'params')
+    const outFd = await fs.open(join(tmpDir, 'stdout'), 'a')
+    const errFd = await fs.open(join(tmpDir, 'stderr'), 'a')
+    // the file holds a password, and only the directory was protecting it
+    await fs.writeFile(passFile, this.#password, { mode: 0o600 })
+
+    const args = formatNbdkitArgs({
+      compression,
+      diskPath,
+      host: this.#host,
+      libdir: VDDK_LIB_PATH,
+      passFile,
+      port,
+      singleLink,
+      threads,
+      thumbprint,
+      user: this.#user,
+      vmId,
+    })
+
+    const nbdKitProcess = this.#spawn('nbdkit', args, {
+      cwd: tmpDir,
+      env: {
+        ...process.env,
+        LD_LIBRARY_PATH: `${VDDK_LIB_PATH}/lib64`,
+      },
+    })
+    nbdKitProcess.stdout.pipe(outFd.createWriteStream())
+    nbdKitProcess.stderr.pipe(errFd.createWriteStream())
+    info(`nbdkit logs of ${diskPath} are in ${tmpDir}`)
+
+    // `error` is emitted when the binary is missing: without a listener, it is an uncaught event
+    // which terminates the whole process
+    const died = new Promise(resolve => {
+      nbdKitProcess.once('error', error => resolve({ error }))
+      nbdKitProcess.once('exit', (code, signal) => resolve({ code, signal }))
+    })
+
+    died.then(async ({ code, error, signal }) => {
+      await Promise.all([outFd.close().catch(noop), errFd.close().catch(noop)])
+      if (error !== undefined) {
+        warn('nbdkit could not be started', { args, error, tmpDir })
+      } else if (code !== 0) {
+        warn(`nbdkit server process exited with code ${code} ,detailed logs are in ${tmpDir}/stderr `, { signal })
+      } else {
+        // nothing to look at, the logs would pile up in the temporary directory
+        await fs.rm(tmpDir, { force: true, recursive: true }).catch(noop)
+      }
+    })
+
+    // the readiness of the server and its death are racing: nbdkit exits on a bad thumbprint or a
+    // missing library, and waiting for the port would then burn the whole timeout
+    const failed = died.then(({ code, error }) => {
+      throw (
+        error ?? new Error(`nbdkit exited with code ${code} before being ready, detailed logs are in ${tmpDir}/stderr`)
+      )
+    })
+    failed.catch(noop) // the race is usually won by the readiness of the server
+
+    const readiness = new AbortController()
+    try {
+      await Promise.race([waitForPort(port, { signal: readiness.signal, timeout: NBDKIT_READY_TIMEOUT }), failed])
+    } catch (error) {
+      await this.#killNbdServer({ died, process: nbdKitProcess }, diskPath).catch(noop)
+      throw error
+    } finally {
+      // losing the race must not leave a probe running until its own timeout
+      readiness.abort()
+      // nbdkit reads the password once, while configuring its plugin, which is done by the time it
+      // listens
+      await fs.unlink(passFile).catch(error => warn('failed to remove the password file', { error, passFile }))
     }
+
+    return {
+      died,
+      nbdInfos: { address: '127.0.0.1', port, exportname: diskPath },
+      process: nbdKitProcess,
+    }
+  }
+
+  async #killNbdServer(server, label) {
+    const { died, process: nbdKitProcess } = server
+    if (nbdKitProcess.exitCode !== null || nbdKitProcess.signalCode !== null) {
+      return
+    }
+    nbdKitProcess.kill()
+    try {
+      await pTimeout.call(died, NBDKIT_KILL_TIMEOUT)
+    } catch (error) {
+      warn('nbdkit did not exit, killing it', { error, label, pid: nbdKitProcess.pid })
+      nbdKitProcess.kill('SIGKILL')
+      await died
+    }
+  }
+
+  /**
+   * Stops the nbdkit server exporting a disk, if any.
+   *
+   * @param {string} vmId
+   * @param {string} diskPath - `[datastore] dir/disk.vmdk`
+   * @param {object} [options] - must match the ones given to {@link spawnNbdKitProcess}
+   * @returns {Promise<void>}
+   */
+  async killNbdServer(vmId, diskPath, { compression = 'fastlz', singleLink = false, threads = 1 } = {}) {
+    return this.#killNbdServerByKey(nbdServerKey(vmId, diskPath, { compression, singleLink, threads }))
+  }
+
+  async #killNbdServerByKey(key) {
+    const pending = this.#nbdServers.get(key)
+    if (pending === undefined) {
+      warn(`nbdkit server ${key} was already killed`)
+      return
+    }
+    // the entry used to be left in place, so the next spawn handed out a dead process listening on
+    // nothing
+    this.#nbdServers.delete(key)
+
+    let server
+    try {
+      server = await pending
+    } catch {
+      // the spawn failed, there is nothing left to kill
+      return
+    }
+    await this.#killNbdServer(server, key)
   }
 
   async #getDataMapFromVddk(vmId, datastoreName, diskPath, signal) {
