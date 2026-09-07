@@ -25,9 +25,46 @@ export const VDDK_LIB_DIR = '/usr/local/lib/vddk'
 export const VDDK_LIB_PATH = `${VDDK_LIB_DIR}/vmware-vix-disklib-distrib`
 let nbdPort = 11000
 
+const DEFAULT_DOWNLOAD_RETRIES = 4
 const DEFAULT_FETCH_PROPERTY_TIMEOUT = 60e3
+const DEFAULT_HEADERS_TIMEOUT = 60e3
+const DEFAULT_RETRY_DELAY = 2e3
 const DEFAULT_TASK_TIMEOUT = 60e3
+const MAX_RETRY_DELAY = 30e3
 const MAX_TASK_POLL_DELAY = 5e3
+
+// a failure which will not fix itself must not be retried: a missing file, a rejected
+// authentication or a programming error only delay the report of the real problem
+const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504])
+const SESSION_EXPIRED = 'ESXI_SESSION_EXPIRED'
+const RETRYABLE_CODES = new Set([
+  SESSION_EXPIRED,
+  'ECONNABORTED',
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'EHOSTUNREACH',
+  'ENETUNREACH',
+  'ENOTFOUND',
+  'EPIPE',
+  'ETIMEDOUT',
+  'UND_ERR_BODY_TIMEOUT',
+  'UND_ERR_CONNECT_TIMEOUT',
+  'UND_ERR_HEADERS_TIMEOUT',
+  'UND_ERR_SOCKET',
+])
+
+function isRetryableError(error) {
+  // `fetch` reports a network failure as `TypeError: fetch failed`, with the real error as cause
+  if (RETRYABLE_CODES.has(error?.code) || RETRYABLE_CODES.has(error?.cause?.code)) {
+    return true
+  }
+  const status = error?.cause?.status
+  if (status !== undefined) {
+    return RETRYABLE_STATUS.has(status)
+  }
+  // the host did not send its response headers in time
+  return error?.name === 'TimeoutError'
+}
 
 const XML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }
 const escapeXml = value => String(value).replace(/[&<>"']/g, character => XML_ESCAPES[character])
@@ -156,31 +193,83 @@ export default class Esxi extends EventEmitter {
     return this.#vimClient.call(cmd, args, options)
   }
 
-  async #fetch(url, headers = {}, signal) {
-    if (this.#cookies) {
+  async #fetch(url, { range, signal, headersTimeout = DEFAULT_HEADERS_TIMEOUT } = {}) {
+    const headers = {}
+    if (this.#cookies !== undefined) {
       headers.cookie = this.#cookies
     } else {
       headers.Authorization = 'Basic ' + Buffer.from(this.#user + ':' + this.#password).toString('base64')
     }
-    const res = await this.#fetchImpl(url, {
-      dispatcher: this.#httpsAgent,
-      method: 'GET',
-      headers,
-      highWaterMark: 10 * 1024 * 1024,
-      signal,
-    })
+    if (range !== undefined) {
+      headers.Range = 'bytes=' + range
+    }
+
+    // the timeout covers the response headers only: the body of a disk legitimately takes hours,
+    // an abort signal outliving the headers would cut the stream in the middle
+    const controller = new AbortController()
+    const timer = setTimeout(() => {
+      controller.abort(new DOMException(`no response header after ${headersTimeout}ms`, 'TimeoutError'))
+    }, headersTimeout)
+
+    let res
+    try {
+      res = await this.#fetchImpl(url, {
+        dispatcher: this.#httpsAgent,
+        method: 'GET',
+        headers,
+        // the caller keeps the ability to abort the body
+        signal: signal === undefined ? controller.signal : AbortSignal.any([controller.signal, signal]),
+      })
+    } finally {
+      clearTimeout(timer)
+    }
+
     if (res.status < 200 || res.status >= 300) {
+      // the body must be consumed or the connection is never released, and it usually explains the
+      // failure better than the status alone
+      const body = await res.text().catch(() => undefined)
       const error = new Error(res.status + ' ' + res.statusText + ' ' + url)
-      error.cause = res
+      error.cause = { status: res.status, statusText: res.statusText, url: String(url), body: body?.slice(0, 2048) }
+      if ((res.status === 401 || res.status === 403) && headers.cookie !== undefined) {
+        // the session expired, which happens on an import lasting hours: forget it so that the
+        // next attempt authenticates again
+        this.#cookies = undefined
+        error.code = SESSION_EXPIRED
+      }
       throw error
     }
-    if (res.headers['set-cookie']) {
-      this.#cookies = res.headers['set-cookie'].map(cookie => cookie.split(';')[0]).join('; ')
+
+    if (range !== undefined && res.status !== 206) {
+      // A host answers the whole file when the range covers it entirely: `/folder` does it for a
+      // vmdk descriptor of a few hundred bytes read as `0-511`. That is harmless, since such an
+      // answer starts at the first byte and holds no more than what was asked.
+      //
+      // Anything else is not the requested range, and reading it as if it were would silently use
+      // the wrong offset, or as much memory as the file is big
+      const [start, end] = range.split('-').map(Number)
+      const rawLength = res.headers.get('content-length')
+      const length = Number(rawLength)
+      // an answer whose size is unknown ( chunked ) cannot be checked, and `Number(null)` is 0
+      if (start !== 0 || rawLength === null || !Number.isInteger(length) || length > end - start + 1) {
+        await res.body?.cancel()
+        const error = new Error(
+          `the range ${range} was ignored by the host (status ${res.status}, ${res.headers.get('content-length')} bytes) ${url}`
+        )
+        error.cause = { status: res.status, url: String(url), range, length }
+        throw error
+      }
     }
+
+    const cookies = res.headers.getSetCookie?.() ?? []
+    if (cookies.length > 0) {
+      // reusing the session saves a full authentication on every range request
+      this.#cookies = cookies.map(cookie => cookie.split(';')[0]).join('; ')
+    }
+
     return res
   }
 
-  async #download(dataStore, path, range, signal) {
+  async #download(dataStore, path, { range, signal } = {}) {
     // the datacenter of the datastore is only known once connected
     await this.#connected
     const url = new URL('https://localhost')
@@ -188,31 +277,43 @@ export default class Esxi extends EventEmitter {
     url.pathname = '/folder/' + path
     url.searchParams.set('dcPath', this.#findDatacenter(dataStore))
     url.searchParams.set('dsName', dataStore)
-    const headers = {}
-    if (range) {
-      headers['content-type'] = 'multipart/byteranges'
-      headers.Range = 'bytes=' + range
-    }
-    return this.#fetch(url, headers, signal)
+
+    return this.#fetch(url, { range, signal })
   }
 
-  async download(dataStore, path, range, signal) {
-    let tries = 5
-    let lastError
-    while (tries > 0) {
+  /**
+   * Downloads a file of a datastore, or a range of it.
+   *
+   * @param {string} dataStore - name of the datastore
+   * @param {string} path - path of the file in the datastore
+   * @param {object} [options]
+   * @param {string} [options.range] - inclusive byte range, e.g. `0-511`
+   * @param {number} [options.retries] - how many times a retryable failure is retried
+   * @param {number} [options.retryDelay] - in ms, doubled at every attempt
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<Response>}
+   */
+  async download(
+    dataStore,
+    path,
+    { range, retries = DEFAULT_DOWNLOAD_RETRIES, retryDelay = DEFAULT_RETRY_DELAY, signal } = {}
+  ) {
+    for (let attempt = 0; ; attempt++) {
       try {
-        const res = await this.#download(dataStore, path, range, signal)
-        return res
+        return await this.#download(dataStore, path, { range, signal })
       } catch (error) {
         signal?.throwIfAborted()
-        warn('got error , will retry in 2 seconds', { error })
-        lastError = error
+        // retrying a missing file or a rejected authentication only delays the failure
+        if (attempt >= retries || !isRetryableError(error)) {
+          throw error
+        }
+        const wait = Math.round(
+          Math.min(retryDelay * 2 ** attempt, MAX_RETRY_DELAY) * (0.5 + Math.random() / 2) // jitter
+        )
+        warn('download failed, will retry', { attempt: attempt + 1, dataStore, delay: wait, error, path, range })
+        await delay(wait, undefined, { signal })
       }
-      await new Promise(resolve => setTimeout(() => resolve(), 2000))
-      tries--
     }
-
-    throw lastError
   }
 
   // inspired from https://github.com/reedog117/node-vsphere-soap/blob/master/test/vsphere-soap.test.js#L95
@@ -925,7 +1026,7 @@ export default class Esxi extends EventEmitter {
   }
 
   async #getDataMapFromCowd(datastoreName, diskPath, signal) {
-    const descriptorResponse = await this.download(datastoreName, diskPath, '0-512', signal)
+    const descriptorResponse = await this.download(datastoreName, diskPath, { range: '0-512', signal })
     const descriptorBlob = await new Response(descriptorResponse.body).blob()
     const descriptorBytes = new Uint8Array(await descriptorBlob.arrayBuffer()).slice(0, 512)
 
@@ -934,7 +1035,7 @@ export default class Esxi extends EventEmitter {
     const diskPathArray = diskPath.split('/')
     const extentPath = diskPathArray.slice(0, -1).join('/') + '/' + parsedDescriptor.fileName
 
-    const extentHeaderResponse = await this.download(datastoreName, extentPath, `0-2048`, signal)
+    const extentHeaderResponse = await this.download(datastoreName, extentPath, { range: `0-2048`, signal })
     const extentHeaderBlob = await new Response(extentHeaderResponse.body).blob()
     const extentHeaderBuffer = Buffer.from(await extentHeaderBlob.arrayBuffer())
 
@@ -942,12 +1043,10 @@ export default class Esxi extends EventEmitter {
 
     const extentNumGdEntries = extentHeaderBuffer.readUInt32LE(24)
 
-    const extentGDResponse = await this.download(
-      datastoreName,
-      extentPath,
-      `2048-${2048 + extentNumGdEntries * 4}`,
-      signal
-    )
+    const extentGDResponse = await this.download(datastoreName, extentPath, {
+      range: `2048-${2048 + extentNumGdEntries * 4}`,
+      signal,
+    })
     const extentGDBlob = await new Response(extentGDResponse.body).blob()
     const extentGDBuffer = Buffer.from(await extentGDBlob.arrayBuffer())
 

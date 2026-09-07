@@ -86,6 +86,15 @@ class FakeVimClient {
   }
 }
 
+/** a minimal `fetch` response */
+const response = ({ status = 200, statusText = 'OK', headers = {}, body = '' } = {}) => ({
+  status,
+  statusText,
+  headers: new Headers(headers),
+  body: { cancel: async () => {} },
+  text: async () => body,
+})
+
 /** connects with the inventory above, then hands the client over to the test */
 const connectedEsxi = async ({ responses, ...options } = {}) => {
   const vimClient = new FakeVimClient()
@@ -235,11 +244,11 @@ describe('connection', function () {
     const { esxi } = await connectedEsxi({
       fetch: async (url, options) => {
         requests.push({ url, options })
-        return { status: 200, statusText: 'OK', headers: new Headers() }
+        return response({ status: 206 })
       },
     })
 
-    await esxi.download('ds main', 'vm/vm.vmdk', '0-511')
+    await esxi.download('ds main', 'vm/vm.vmdk', { range: '0-511' })
 
     const { url, options } = requests[0]
     assert.equal(url.host, 'esxi.test')
@@ -247,6 +256,8 @@ describe('connection', function () {
     assert.equal(url.searchParams.get('dsName'), 'ds main')
     assert.equal(url.searchParams.get('dcPath'), 'dc-main')
     assert.equal(options.headers.Range, 'bytes=0-511')
+    // a request body has no content type
+    assert.equal(options.headers['content-type'], undefined)
   })
 
   it('maps the datastores of every datacenter', async function () {
@@ -254,7 +265,7 @@ describe('connection', function () {
     const { esxi } = await connectedEsxi({
       fetch: async url => {
         requested.push(url.searchParams.get('dcPath'))
-        return { status: 200, statusText: 'OK', headers: new Headers() }
+        return response()
       },
     })
 
@@ -270,6 +281,122 @@ describe('connection', function () {
     await esxi.close()
 
     assert.equal(vimClient.closed, true)
+  })
+})
+
+describe('download', function () {
+  const downloadEsxi = async fetchImplementation => {
+    const requests = []
+    const { esxi } = await connectedEsxi({
+      fetch: async (url, options) => {
+        requests.push({ url, options })
+        return fetchImplementation(requests.length, options)
+      },
+    })
+    return { esxi, requests }
+  }
+
+  it('reuses the session cookie instead of authenticating on every request', async function () {
+    const { esxi, requests } = await downloadEsxi(() =>
+      response({ headers: { 'set-cookie': 'vmware_soap_session="42"; Path=/; HttpOnly' } })
+    )
+
+    await esxi.download('ds2', 'a.vmdk')
+    await esxi.download('ds2', 'a.vmdk')
+
+    assert.equal(requests[0].options.headers.Authorization?.startsWith('Basic '), true)
+    assert.equal(requests[1].options.headers.Authorization, undefined)
+    assert.equal(requests[1].options.headers.cookie, 'vmware_soap_session="42"')
+  })
+
+  it('authenticates again when the session expired', async function () {
+    const { esxi, requests } = await downloadEsxi((attempt, options) => {
+      if (attempt === 1) {
+        return response({ headers: { 'set-cookie': 'vmware_soap_session="42"' } })
+      }
+      // the host rejects the cookie of an expired session
+      return options.headers.cookie !== undefined
+        ? response({ status: 401, statusText: 'Unauthorized' })
+        : response({ headers: { 'set-cookie': 'vmware_soap_session="1337"' } })
+    })
+
+    await esxi.download('ds2', 'a.vmdk')
+    await esxi.download('ds2', 'a.vmdk', { retryDelay: 1 })
+
+    assert.equal(requests.length, 3)
+    assert.equal(requests[1].options.headers.cookie, 'vmware_soap_session="42"')
+    // the retry falls back to the credentials, and picks up the new session
+    assert.equal(requests[2].options.headers.Authorization?.startsWith('Basic '), true)
+  })
+
+  it('does not retry a missing file', async function () {
+    const { esxi, requests } = await downloadEsxi(() =>
+      response({ status: 404, statusText: 'Not Found', body: 'no such file' })
+    )
+
+    await assert.rejects(esxi.download('ds2', 'missing.vmdk'), error => {
+      assert.match(error.message, /^404 Not Found /)
+      assert.equal(error.cause.status, 404)
+      assert.equal(error.cause.body, 'no such file')
+      return true
+    })
+    assert.equal(requests.length, 1)
+  })
+
+  it('does not retry an unknown datastore', async function () {
+    const { esxi, requests } = await downloadEsxi(() => response())
+
+    await assert.rejects(esxi.download('not-a-datastore', 'a.vmdk'))
+
+    assert.equal(requests.length, 0)
+  })
+
+  it('retries a network failure', async function () {
+    const { esxi, requests } = await downloadEsxi(attempt => {
+      if (attempt < 3) {
+        const error = new TypeError('fetch failed')
+        error.cause = { code: 'ECONNRESET' }
+        throw error
+      }
+      return response()
+    })
+
+    await esxi.download('ds2', 'a.vmdk', { retryDelay: 1 })
+
+    assert.equal(requests.length, 3)
+  })
+
+  it('gives up after the last retry', async function () {
+    const { esxi, requests } = await downloadEsxi(() => response({ status: 503, statusText: 'Service Unavailable' }))
+
+    await assert.rejects(esxi.download('ds2', 'a.vmdk', { retries: 2, retryDelay: 1 }), { message: /^503 / })
+
+    assert.equal(requests.length, 3)
+  })
+
+  it('stops retrying when aborted', async function () {
+    const controller = new AbortController()
+    const { esxi, requests } = await downloadEsxi(() => {
+      controller.abort()
+      const error = new Error('socket hang up')
+      error.code = 'ECONNRESET'
+      throw error
+    })
+
+    await assert.rejects(esxi.download('ds2', 'a.vmdk', { retryDelay: 1, signal: controller.signal }), {
+      name: 'AbortError',
+    })
+    assert.equal(requests.length, 1)
+  })
+
+  it('fails when the host ignores the requested range', async function () {
+    // reading the answer as if it were the range would use as much memory as the file is big
+    const { esxi, requests } = await downloadEsxi(() => response({ status: 200 }))
+
+    await assert.rejects(esxi.download('ds2', 'a.vmdk', { range: '0-511', retryDelay: 1 }), {
+      message: /^the range 0-511 was ignored by the host \(status 200\)/,
+    })
+    assert.equal(requests.length, 1)
   })
 })
 
