@@ -262,7 +262,7 @@ import {
   type FrontXoVmTemplate,
   useXoVmTemplateCollection,
 } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
+import type { InstallMode, Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
@@ -655,7 +655,9 @@ function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi, canResizeExistingDisks: boole
 }
 
 const canResizeExistingDisks = computed(() => {
-  return vmState.installMode !== 'no-config'
+  const cloudInitModes: InstallMode[] = ['ssh-key', 'cloud-init-config']
+
+  return cloudInitModes.includes(vmState.installMode)
 })
 
 const modifiedExistingVdis = computed(() => {
