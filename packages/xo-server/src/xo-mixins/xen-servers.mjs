@@ -622,7 +622,9 @@ export default class XenServers {
       const onEventFetchingError = () => {
         const timeout = setTimeout(() => {
           xapi.xo.uninstall()
-          delete serverIdsByPool[poolId]
+
+          // switch server status from connected to connecting
+          this._forgetXenServerPool(server.id)
         }, this._xapiMarkDisconnectedDelay)
         xapi.once('eventFetchingSuccess', () => {
           xapi.once('eventFetchingError', onEventFetchingError)
