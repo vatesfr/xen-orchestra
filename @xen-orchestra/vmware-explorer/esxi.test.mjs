@@ -537,6 +537,196 @@ describe('tasks', function () {
   })
 })
 
+describe('getAllVmMetadata', function () {
+  const vm = (id, propSet) => ({ obj: moRef('VirtualMachine', id), propSet })
+
+  const CONFIG = {
+    name: 'config',
+    val: { attributes: {}, name: 'a vm', firmware: 'efi', hardware: { memoryMB: '2048', numCPU: '2' } },
+  }
+  const STORAGE = {
+    name: 'storage',
+    val: { attributes: {}, perDatastoreUsage: { committed: '1024', uncommitted: '2048' } },
+  }
+  const RUNTIME = { name: 'runtime', val: { attributes: {}, powerState: 'poweredOn' } }
+
+  it('reports the VMs of the host', async function () {
+    const { esxi } = await connectedEsxi({
+      responses: { RetrievePropertiesEx: () => page([vm('vm-1', [CONFIG, STORAGE, RUNTIME])]) },
+    })
+
+    assert.deepEqual(await esxi.getAllVmMetadata(), [
+      {
+        id: 'vm-1',
+        hasAllExtentsListed: true,
+        nameLabel: 'a vm',
+        memory: 2048 * 1024 * 1024,
+        nCpus: 2,
+        guestToolsInstalled: false,
+        firmware: 'uefi',
+        powerState: 'poweredOn',
+        storage: { used: 1024, free: 2048 },
+      },
+    ])
+  })
+
+  it('ignores a VM whose properties are incomplete instead of failing the listing', async function () {
+    const { esxi } = await connectedEsxi({
+      responses: {
+        RetrievePropertiesEx: () =>
+          page([
+            // a VM being created has no readable runtime
+            vm('vm-1', [CONFIG, STORAGE]),
+            vm('vm-2', [CONFIG, STORAGE, RUNTIME]),
+          ]),
+      },
+    })
+
+    assert.deepEqual(
+      (await esxi.getAllVmMetadata()).map(({ id }) => id),
+      ['vm-2']
+    )
+  })
+
+  it('detects a disk whose extent is not listed', async function () {
+    const layoutEx = files => ({ name: 'layoutEx', val: { attributes: {}, ...files } })
+    const { esxi } = await connectedEsxi({
+      responses: {
+        RetrievePropertiesEx: () =>
+          page([
+            vm('vm-1', [
+              CONFIG,
+              STORAGE,
+              RUNTIME,
+              // a single chain and a single file are not wrapped in arrays
+              layoutEx({
+                disk: { chain: { fileKey: ['1', '2'] } },
+                file: { key: '2', type: 'diskDescriptor' },
+              }),
+            ]),
+          ]),
+      },
+    })
+
+    assert.equal((await esxi.getAllVmMetadata())[0].hasAllExtentsListed, false)
+  })
+})
+
+describe('getTransferableVmMetadata', function () {
+  const VMX = `config.version = "8"
+scsi0.present = "TRUE"
+scsi0.virtualDev = "lsilogic"
+scsi0:1.present = "TRUE"
+scsi0:1.deviceType = "scsi-hardDisk"
+scsi0:1.fileName = "vm-000001.vmdk"
+ide0:0.present = "TRUE"
+ide0:0.deviceType = "cdrom-image"
+ethernet0.present = "TRUE"
+ethernet0.networkName = "VM Network"
+ethernet0.addressType = "generated"
+ethernet0.generatedAddress = "00:0c:29:00:00:01"
+`
+
+  const DESCRIPTOR = `# Disk DescriptorFile
+version=1
+CID=d7980f7a
+parentCID=ffffffff
+createType="vmfs"
+
+RW 67108864 VMFS "vm-000001-flat.vmdk"
+`
+
+  const CONFIG_RESPONSE = `<FetchResponse><returnval>
+    <name>a vm</name>
+    <guestId>ubuntu64Guest</guestId>
+    <guestFullName>Ubuntu Linux (64-bit)</guestFullName>
+    <firmware>efi</firmware>
+    <files><vmPathName>[ds main] a.vm/a.vm.vmx</vmPathName></files>
+    <hardware><memoryMB>2048</memoryMB><numCPU>2</numCPU></hardware>
+  </returnval></FetchResponse>`
+
+  const RUNTIME_RESPONSE = '<FetchResponse><returnval><powerState>poweredOn</powerState></returnval></FetchResponse>'
+
+  const DATASTORE_SUMMARIES = [
+    {
+      obj: moRef('Datastore', 'datastore-11'),
+      propSet: [{ name: 'summary', val: { attributes: {}, name: 'ds main', url: '/vmfs/volumes/uuid-1' } }],
+    },
+  ]
+
+  /**
+   * @param {object} [options]
+   * @param {number} [options.vmsdStatus] - status of the response to the vmsd request
+   */
+  const transferableEsxi = async ({ vmsdStatus = 404 } = {}) => {
+    const requested = []
+    const { esxi } = await connectedEsxi({
+      responses: {
+        // the datastores are listed through the property collector, the rest through `Fetch`
+        RetrievePropertiesEx: ({ specSet }) =>
+          specSet[0].propSet[0].type === 'Datastore' ? page(DATASTORE_SUMMARIES) : page(DATACENTERS),
+      },
+      fetch: async (url, options) => {
+        if (options.method === 'POST') {
+          return response({ body: options.body.includes('runtime') ? RUNTIME_RESPONSE : CONFIG_RESPONSE })
+        }
+        const path = url.pathname
+        requested.push(path)
+        if (path.endsWith('.vmx')) {
+          return response({ body: VMX })
+        }
+        if (path.endsWith('.vmsd')) {
+          return response({ status: vmsdStatus, statusText: 'Not Found', body: '' })
+        }
+        return response({ body: DESCRIPTOR })
+      },
+    })
+    return { esxi, requested }
+  }
+
+  it('labels a disk with its own channel index', async function () {
+    const { esxi } = await transferableEsxi()
+
+    const { disks } = await esxi.getTransferableVmMetadata('vm-1')
+
+    assert.equal(disks.length, 1)
+    // the channel holds no scsi0:0, the disk used to be labelled as such
+    assert.equal(disks[0].node, 'scsi0:1')
+    assert.equal(disks[0].datastore, 'ds main')
+    assert.equal(disks[0].diskPath, 'a.vm/vm-000001.vmdk')
+  })
+
+  it('unwraps every value of the config', async function () {
+    const { esxi } = await transferableEsxi()
+
+    const metadata = await esxi.getTransferableVmMetadata('vm-1')
+
+    assert.equal(metadata.name_label, 'a vm')
+    assert.equal(metadata.guestId, 'ubuntu64Guest')
+    // used to be returned as a one element array
+    assert.equal(metadata.guestFullName, 'Ubuntu Linux (64-bit)')
+    assert.equal(metadata.firmware, 'uefi')
+    assert.equal(metadata.powerState, 'poweredOn')
+    assert.equal(metadata.memory, 2048 * 1024 * 1024)
+    assert.equal(metadata.nCpus, 2)
+    assert.equal(metadata.cdrom, true)
+    assert.deepEqual(metadata.networks, [{ label: 'VM Network', macAddress: '00:0c:29:00:00:01', isGenerated: true }])
+  })
+
+  it('treats a missing vmsd as a VM without snapshot', async function () {
+    const { esxi } = await transferableEsxi()
+
+    assert.equal((await esxi.getTransferableVmMetadata('vm-1')).snapshots, undefined)
+  })
+
+  it('does not report an unreadable vmsd as a VM without snapshot', async function () {
+    // silently transferring a full disk instead of a delta is worse than failing
+    const { esxi } = await transferableEsxi({ vmsdStatus: 403 })
+
+    await assert.rejects(esxi.getTransferableVmMetadata('vm-1'), { message: /^403 / })
+  })
+})
+
 describe('fetchProperty', function () {
   const fetchPropertyEsxi = async fetchImplementation => {
     const requests = []

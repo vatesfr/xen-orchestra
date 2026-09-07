@@ -1,11 +1,13 @@
+import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { dirname, join } from 'node:path'
 import { EventEmitter } from 'node:events'
 import { parseFault } from '@vates/node-vsphere-soap'
 import { setTimeout as delay } from 'node:timers/promises'
-import { strictEqual, notStrictEqual } from 'node:assert'
+import { strictEqual } from 'node:assert'
 import { Agent } from 'undici'
 
+import { resolveDiskLocation } from './_paths.mjs'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
@@ -26,6 +28,8 @@ export const VDDK_LIB_PATH = `${VDDK_LIB_DIR}/vmware-vix-disklib-distrib`
 let nbdPort = 11000
 
 const DEFAULT_DOWNLOAD_RETRIES = 4
+// a vmdk descriptor is a small file, but the /folder endpoint of a host is not fast
+const DESCRIPTOR_CONCURRENCY = 4
 const DEFAULT_FETCH_PROPERTY_TIMEOUT = 60e3
 const DEFAULT_HEADERS_TIMEOUT = 60e3
 const DEFAULT_RETRY_DELAY = 2e3
@@ -170,14 +174,17 @@ export default class Esxi extends EventEmitter {
   }
 
   #findDatacenter(dataStore) {
-    try {
-      notStrictEqual(this.#dcPaths, undefined)
-      notStrictEqual(this.#dcPaths[dataStore], undefined)
-    } catch (error) {
+    const dcPath = this.#dcPaths?.[dataStore]
+    if (dcPath === undefined) {
       warn("can't find datacenter for datastore", { datacenters: this.#dcPaths, dataStore })
+      // an assertion error used to be thrown, naming neither the datastore nor the known ones
+      const error = new Error(`can't find the datacenter of the datastore ${dataStore}`)
+      error.code = 'DATACENTER_NOT_FOUND'
+      error.dataStore = dataStore
+      error.dataStores = Object.keys(this.#dcPaths ?? {})
       throw error
     }
-    return this.#dcPaths[dataStore]
+    return dcPath
   }
 
   /**
@@ -408,21 +415,15 @@ export default class Esxi extends EventEmitter {
     return objects
   }
 
-  async #inspectVmdk(dataStores, currentDataStore, currentPath, filePath) {
-    let diskDataStore, diskPath
-    if (filePath.startsWith('/')) {
-      // disk is on another datastore
-      Object.keys(dataStores).forEach(dataStoreUrl => {
-        if (filePath.startsWith(dataStoreUrl)) {
-          diskDataStore = dataStores[dataStoreUrl].name
-          diskPath = filePath.substring(dataStoreUrl.length + 1)
-        }
-      })
-    } else {
-      diskDataStore = currentDataStore
-      diskPath = currentPath + '/' + filePath
-    }
-    const vmdkRes = await this.download(diskDataStore, diskPath)
+  async #inspectVmdk(dataStores, currentDataStore, currentPath, filePath, { signal } = {}) {
+    const { dataStore: diskDataStore, path: diskPath } = resolveDiskLocation({
+      dataStores,
+      currentDataStore,
+      currentPath,
+      filePath,
+    })
+
+    const vmdkRes = await this.download(diskDataStore, diskPath, { signal })
     const text = await vmdkRes.text()
     const parsed = parseVmdk(text)
 
@@ -438,61 +439,82 @@ export default class Esxi extends EventEmitter {
   async getAllVmMetadata() {
     const datas = await this.search('VirtualMachine', ['config', 'storage', 'runtime', 'layoutEx'])
 
-    return Object.keys(datas)
-      .map(id => {
-        const { config, layoutEx, storage, runtime } = datas[id]
-        if (storage === undefined || config === undefined) {
-          return undefined
-        }
-        // vsan , maybe raw disk , that forbid access to a direct vmdk
-        // descriptor may exist though with a .vmdk extension
-        let hasAllExtentsListed = true
-
-        // structure of layoutEx is described in  https://developer.vmware.com/apis/1720/
-        layoutEx?.disk?.forEach(disk => {
-          // we can stop, even if only one disk is missing an extent
-          hasAllExtentsListed &&
-            disk.chain?.forEach(({ fileKey: fileKeys }) => {
-              // look for the disk extent data , not the descriptor
-              const fileExtent = layoutEx.file.find(file => {
-                return fileKeys.includes(file.key) && file.type === 'diskExtent'
-              })
-              hasAllExtentsListed = hasAllExtentsListed && fileExtent !== undefined
-            })
-        })
-        const perDatastoreUsage = Array.isArray(storage.perDatastoreUsage)
-          ? storage.perDatastoreUsage
-          : [storage.perDatastoreUsage]
-        return {
+    const metadata = []
+    for (const [id, { config, layoutEx, runtime, storage }] of Object.entries(datas)) {
+      // an incomplete VM, e.g. one being created: the fields below used to be dereferenced anyway,
+      // which failed the whole listing. `config` can be reported without its `hardware` yet
+      if (config?.hardware === undefined || runtime?.powerState === undefined || storage === undefined) {
+        warn('ignoring a VM whose properties are incomplete', {
           id,
-          hasAllExtentsListed,
-          nameLabel: config.name,
-          memory: +config.hardware.memoryMB * 1024 * 1024,
-          nCpus: +config.hardware.numCPU,
-          guestToolsInstalled: false,
-          firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
-          powerState: runtime.powerState,
-          storage: perDatastoreUsage.reduce(
-            (prev, curr) => {
-              return {
-                used: prev.used + +(curr?.committed ?? 0),
-                free: prev.free + +(curr?.uncommitted ?? 0),
-              }
-            },
-            { used: 0, free: 0 }
-          ),
+          missing: {
+            'config.hardware': config?.hardware === undefined,
+            'runtime.powerState': runtime?.powerState === undefined,
+            storage: storage === undefined,
+          },
+        })
+        continue
+      }
+
+      // vsan , maybe raw disk , that forbid access to a direct vmdk
+      // descriptor may exist though with a .vmdk extension
+      // structure of layoutEx is described in  https://developer.vmware.com/apis/1720/
+      const layoutFiles = asArray(layoutEx?.file)
+      let hasAllExtentsListed = true
+      for (const disk of asArray(layoutEx?.disk)) {
+        for (const link of asArray(disk.chain)) {
+          const fileKeys = asArray(link.fileKey)
+          // look for the disk extent data , not the descriptor
+          if (!layoutFiles.some(file => fileKeys.includes(file.key) && file.type === 'diskExtent')) {
+            hasAllExtentsListed = false
+            break
+          }
         }
+        // one disk missing an extent is enough
+        if (!hasAllExtentsListed) {
+          break
+        }
+      }
+
+      metadata.push({
+        id,
+        hasAllExtentsListed,
+        nameLabel: config.name,
+        memory: +config.hardware.memoryMB * 1024 * 1024,
+        nCpus: +config.hardware.numCPU,
+        guestToolsInstalled: false,
+        firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
+        powerState: runtime.powerState,
+        storage: asArray(storage.perDatastoreUsage).reduce(
+          (prev, curr) => {
+            return {
+              used: prev.used + +(curr?.committed ?? 0),
+              free: prev.free + +(curr?.uncommitted ?? 0),
+            }
+          },
+          { used: 0, free: 0 }
+        ),
       })
-      .filter(_ => _ !== undefined)
+    }
+    return metadata
   }
 
-  async getTransferableVmMetadata(vmId) {
+  async getTransferableVmMetadata(vmId, { signal } = {}) {
     const [config, runtime] = await Promise.all([
-      this.fetchProperty('VirtualMachine', vmId, 'config'),
-      this.fetchProperty('VirtualMachine', vmId, 'runtime'),
+      this.fetchProperty('VirtualMachine', vmId, 'config', { signal }),
+      this.fetchProperty('VirtualMachine', vmId, 'runtime', { signal }),
     ])
-    const [, dataStore, vmxPath] = config.files[0].vmPathName[0].match(/^\[(.*)\] (.+.vmx)$/)
-    const res = await this.download(dataStore, vmxPath)
+
+    const vmPathName = config.files[0].vmPathName[0]
+    const matches = vmPathName.match(/^\[(.*)\] (.+\.vmx)$/)
+    if (matches === null) {
+      // destructuring the null used to throw a TypeError naming nothing
+      const error = new Error(`can't parse the path of the vmx of the VM ${vmId}: ${vmPathName}`)
+      error.vmId = vmId
+      throw error
+    }
+    const [, dataStore, vmxPath] = matches
+
+    const res = await this.download(dataStore, vmxPath, { signal })
     const vmx = parseVmx(await res.text())
     // list datastores
     const dataStores = {}
@@ -500,21 +522,23 @@ export default class Esxi extends EventEmitter {
       dataStores[summary.url] = summary
     })
 
-    const disks = []
+    const diskReferences = []
     const networks = []
     let cdrom = false
 
     for (const key of Object.keys(vmx)) {
-      const matches = key.match(/^(scsi|ide|ethernet|sata)[0-9]+$/)
-      if (matches === null) {
+      const channelMatches = key.match(/^(scsi|ide|ethernet|sata)[0-9]+$/)
+      if (channelMatches === null) {
         continue
       }
-      const channelType = matches[1]
+      const channelType = channelMatches[1]
       if (channelType === 'ide' || channelType === 'scsi' || channelType === 'sata' /* cdrom */) {
         const diskChannel = vmx[key]
-        for (const diskIndex in Object.values(diskChannel)) {
-          const disk = diskChannel[diskIndex]
-          if (typeof disk !== 'object') {
+        // the indexes of the channel are its own: iterating the compacted values used to label a
+        // channel holding only `scsi0:1` as `scsi0:0`, and `node` is the disk identity used to
+        // build the chains and to order the VBDs
+        for (const [diskIndex, disk] of Object.entries(diskChannel)) {
+          if (typeof disk !== 'object' || disk === null) {
             continue
           }
           if (disk.deviceType?.match(/cdrom/i)) {
@@ -526,10 +550,7 @@ export default class Esxi extends EventEmitter {
             continue
           }
 
-          disks.push({
-            ...(await this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), disk.fileName)),
-            node: `${key}:${diskIndex}`,
-          })
+          diskReferences.push({ fileName: disk.fileName, node: `${key}:${diskIndex}` })
         }
       } else if (channelType === 'ethernet') {
         const ethernet = vmx[key]
@@ -541,31 +562,60 @@ export default class Esxi extends EventEmitter {
         })
       }
     }
+    const inspect = fileName => this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), fileName, { signal })
+
+    // one descriptor to download per disk: read serially, a long chain added a full round trip per
+    // snapshot and per disk
+    const disks = new Array(diskReferences.length)
+    await asyncEach(
+      diskReferences,
+      async ({ fileName, node }, index) => {
+        disks[index] = { ...(await inspect(fileName)), node }
+      },
+      { concurrency: DESCRIPTOR_CONCURRENCY, signal }
+    )
+
     let snapshots
     try {
-      const vmsd = await (await this.download(dataStore, vmxPath.replace(/\.vmx$/, '.vmsd'))).text()
-      snapshots = parseVmsd(vmsd)
+      const vmsd = await this.download(dataStore, vmxPath.replace(/\.vmx$/, '.vmsd'), { signal })
+      snapshots = parseVmsd(await vmsd.text())
+    } catch (error) {
+      if (error.cause?.status !== 404) {
+        // an unreadable vmsd used to be silently reported as "no snapshot", which turns a delta
+        // transfer into a full one without telling anybody
+        throw error
+      }
+      info('no vmsd file, the VM has no snapshot', { vmId })
+    }
 
-      for (const snapshotIndex in snapshots?.snapshots) {
-        const snapshot = snapshots.snapshots[snapshotIndex]
-        for (const diskIndex in snapshot.disks) {
-          const fileName = snapshot.disks[diskIndex].fileName
-          snapshot.disks[diskIndex] = {
-            node: snapshot.disks[diskIndex]?.node, // 'scsi0:0' , 'ide0:0', ...,
-            ...(await this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), fileName)),
-          }
+    if (snapshots !== undefined) {
+      const snapshotDisks = []
+      for (const snapshot of snapshots.snapshots ?? []) {
+        for (const diskIndex of Object.keys(snapshot.disks ?? {})) {
+          snapshotDisks.push({ disks: snapshot.disks, diskIndex })
         }
       }
-    } catch (error) {
-      // no vmsd file :fall back to a full without snapshots
+      await asyncEach(
+        snapshotDisks,
+        async ({ disks: chainDisks, diskIndex }) => {
+          const disk = chainDisks[diskIndex]
+          chainDisks[diskIndex] = {
+            node: disk?.node, // 'scsi0:0' , 'ide0:0', ...,
+            ...(await inspect(disk.fileName)),
+          }
+        },
+        { concurrency: DESCRIPTOR_CONCURRENCY, signal }
+      )
     }
+
     return {
       name_label: config.name[0],
       memory: +config.hardware[0].memoryMB[0] * 1024 * 1024,
       nCpus: +config.hardware[0].numCPU[0],
       guestToolsInstalled: false,
       guestId: config.guestId[0],
-      guestFullName: config.guestFullName,
+      // every sibling is unwrapped, this one used to be returned as a one element array
+      guestFullName: config.guestFullName[0],
       firmware: config.firmware[0] === 'efi' ? 'uefi' : config.firmware[0], // bios or uefi
       powerState: runtime.powerState[0],
       snapshots,
