@@ -30,7 +30,7 @@
     >
       {{ t('access-forum') }}
     </MenuItem>
-    <MenuItem accent="neutral" icon="fa:arrow-right-from-bracket" class="menu-item-logout" @click="logout">
+    <MenuItem accent="danger" icon="fa:arrow-right-from-bracket" @click="logout">
       {{ t('action:log-out') }}
     </MenuItem>
   </MenuList>
@@ -61,9 +61,3 @@ const openUrl = (url: string) => {
 }
 const openSettings = () => router.push({ name: '/settings' })
 </script>
-
-<style lang="postcss" scoped>
-.menu-item-logout {
-  color: var(--color-danger-txt-base);
-}
-</style>

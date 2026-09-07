@@ -1,6 +1,6 @@
 <template>
   <MenuItem
-    accent="neutral"
+    accent="danger"
     icon="action:delete"
     :disabled="!canDeleteVifs"
     :busy="isDeletingVifs"
