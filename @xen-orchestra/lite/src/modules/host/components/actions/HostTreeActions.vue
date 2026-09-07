@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:change-state" class="change-state">
+  <MenuItem accent="brand" icon="action:change-state" class="change-state">
     {{ t('action:change-state') }}
     <template #submenu>
       <HostPowerStateActions :host />
