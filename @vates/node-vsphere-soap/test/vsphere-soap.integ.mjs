@@ -9,12 +9,23 @@ import { describe, it } from 'node:test'
 
 import * as vc from '../lib/client.mjs'
 
-// eslint-disable-next-line n/no-missing-import
-import { vCenterTestCreds as TestCreds } from '../config-test.mjs'
+// these tests need a real vCenter or ESXi host: copy config-test.stub.mjs to config-test.mjs and
+// fill in your own credentials. Without it they are skipped, which is what happens in the CI
+let TestCreds
+try {
+  // eslint-disable-next-line n/no-missing-import
+  ;({ vCenterTestCreds: TestCreds } = await import('../config-test.mjs'))
+} catch (error) {
+  // the file is deliberately absent from the repository, it holds credentials
+}
 
-const VItest = new vc.Client(TestCreds.vCenterIP, TestCreds.vCenterUser, TestCreds.vCenterPassword, false)
+const skip = TestCreds === undefined && 'no ../config-test.mjs, see config-test.stub.mjs'
 
-describe('Client object initialization:', function () {
+const VItest = skip
+  ? undefined
+  : new vc.Client(TestCreds.vCenterIP, TestCreds.vCenterUser, TestCreds.vCenterPassword, false)
+
+describe('Client object initialization:', { skip }, function () {
   it('provides a successful login', { timeout: 5000 }, function (t, done) {
     VItest.once('ready', function () {
       assert.notEqual(VItest.userName, null)
@@ -32,7 +43,7 @@ describe('Client object initialization:', function () {
   })
 })
 
-describe('Client reconnection test:', function () {
+describe('Client reconnection test:', { skip }, function () {
   it('can successfully reconnect', { timeout: 5000 }, function (t, done) {
     VItest.runCommand('Logout', { _this: VItest.serviceContent.sessionManager })
       .once('result', function (result) {
@@ -53,7 +64,7 @@ describe('Client reconnection test:', function () {
 })
 
 // these tests don't work yet
-describe('Client tests - query commands:', function () {
+describe('Client tests - query commands:', { skip }, function () {
   it('retrieves current time', { timeout: 5000 }, function (t, done) {
     VItest.runCommand('CurrentTime', { _this: 'ServiceInstance' }).once('result', function (result) {
       assert(result.returnval instanceof Date)
