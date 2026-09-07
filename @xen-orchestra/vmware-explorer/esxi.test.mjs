@@ -89,13 +89,17 @@ class FakeVimClient {
 }
 
 /** a minimal `fetch` response */
-const response = ({ status = 200, statusText = 'OK', headers = {}, body = '' } = {}) => ({
-  status,
-  statusText,
-  headers: new Headers(headers),
-  body: { cancel: async () => {} },
-  text: async () => body,
-})
+const response = ({ status = 200, statusText = 'OK', headers = {}, body = '' } = {}) => {
+  const buffer = Buffer.isBuffer(body) ? body : Buffer.from(body)
+  return {
+    status,
+    statusText,
+    headers: new Headers({ 'content-length': String(buffer.length), ...headers }),
+    body: { cancel: async () => {} },
+    arrayBuffer: async () => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
+    text: async () => buffer.toString('utf8'),
+  }
+}
 
 /** connects with the inventory above, then hands the client over to the test */
 const connectedEsxi = async ({ responses, ...options } = {}) => {
@@ -391,14 +395,32 @@ describe('download', function () {
     assert.equal(requests.length, 1)
   })
 
-  it('fails when the host ignores the requested range', async function () {
+  it('fails when the host answers more than the requested range', async function () {
     // reading the answer as if it were the range would use as much memory as the file is big
-    const { esxi, requests } = await downloadEsxi(() => response({ status: 200 }))
+    const { esxi, requests } = await downloadEsxi(() => response({ status: 200, body: Buffer.alloc(4096) }))
 
     await assert.rejects(esxi.download('ds2', 'a.vmdk', { range: '0-511', retryDelay: 1 }), {
-      message: /^the range 0-511 was ignored by the host \(status 200\)/,
+      message: /^the range 0-511 was ignored by the host \(status 200, 4096 bytes\)/,
     })
     assert.equal(requests.length, 1)
+  })
+
+  it('accepts a whole file answered to a range which covers it', async function () {
+    // what `/folder` does for a vmdk descriptor of a few hundred bytes read as `0-511`
+    const { esxi } = await downloadEsxi(() => response({ status: 200, body: Buffer.alloc(293) }))
+
+    const res = await esxi.download('ds2', 'descriptor.vmdk', { range: '0-511' })
+
+    assert.equal((await res.arrayBuffer()).byteLength, 293)
+  })
+
+  it('fails when a range not starting at the first byte is answered with a 200', async function () {
+    // such an answer starts at the first byte, using it would read the wrong offset
+    const { esxi } = await downloadEsxi(() => response({ status: 200, body: Buffer.alloc(16) }))
+
+    await assert.rejects(esxi.download('ds2', 'a.vmdk', { range: '2048-2063', retryDelay: 1 }), {
+      message: /^the range 2048-2063 was ignored by the host/,
+    })
   })
 })
 
@@ -669,6 +691,105 @@ describe('nbdkit servers', function () {
 
     assert.equal(server.process.exitCode, 0)
     assert.equal(spawned.length, 1)
+  })
+})
+
+describe('getDataMap', function () {
+  const BLOCK_LENGTH = 4096 * 512
+
+  const DELTA_DESCRIPTOR = `# Disk DescriptorFile
+version=1
+CID=d7980f7a
+parentCID=aaaaaaaa
+createType="vmfsSparse"
+parentFileNameHint="vm.vmdk"
+
+RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
+`
+
+  const cowdExtent = ({ allocated = [0, 2], numGdEntries = 4 } = {}) => {
+    const header = Buffer.alloc(2048)
+    header.write('COWD', 0, 'ascii')
+    header.writeUInt32LE(1, 4) // version
+    header.writeUInt32LE(3, 8) // flags
+    header.writeUInt32LE((numGdEntries * BLOCK_LENGTH) / 512, 12) // capacity in sectors
+    header.writeUInt32LE(1, 16) // one sector per grain
+    header.writeUInt32LE(4, 20) // the grain directory follows the header
+    header.writeUInt32LE(numGdEntries, 24)
+
+    const grainDirectory = Buffer.alloc(numGdEntries * 4)
+    for (const index of allocated) {
+      // the sector of the grain table of the block, whatever it is
+      grainDirectory.writeUInt32LE(8 + index, index * 4)
+    }
+    return { grainDirectory, header }
+  }
+
+  it('falls back to reading the metadata of a COWD delta', async function () {
+    const { grainDirectory, header } = cowdExtent()
+    const ranges = []
+
+    const spawnError = new Error('spawn nbdkit ENOENT')
+    spawnError.code = 'ENOENT'
+    const { esxi } = await connectedEsxi({
+      // no nbdkit on this machine, which is what sends the code down the fallback
+      spawn: () => {
+        const child = new EventEmitter()
+        child.exitCode = null
+        child.signalCode = null
+        child.stdout = new PassThrough()
+        child.stderr = new PassThrough()
+        child.kill = () => true
+        setImmediate(() => child.emit('error', spawnError))
+        return child
+      },
+      fetch: async (url, options) => {
+        ranges.push([url.pathname, options.headers.Range])
+        if (url.pathname.endsWith('-delta.vmdk')) {
+          // the extent: its header, then its grain directory
+          return response({ status: 206, body: options.headers.Range === 'bytes=0-2047' ? header : grainDirectory })
+        }
+        return response({ status: 206, body: DELTA_DESCRIPTOR })
+      },
+    })
+    esxi.getServerThumbprint = async () => 'AA:BB:CC'
+
+    const dataMap = await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk')
+
+    assert.deepEqual(dataMap, [
+      { offset: 0, length: BLOCK_LENGTH, type: 0 },
+      { offset: 2 * BLOCK_LENGTH, length: BLOCK_LENGTH, type: 0 },
+    ])
+
+    // an HTTP range is inclusive: these used to ask for one byte too many, three times
+    assert.deepEqual(ranges, [
+      ['/folder/a.vm/vm-000001.vmdk', 'bytes=0-511'],
+      ['/folder/a.vm/vm-000001-delta.vmdk', 'bytes=0-2047'],
+      ['/folder/a.vm/vm-000001-delta.vmdk', 'bytes=2048-2063'],
+    ])
+  })
+
+  it('reports a delta which is not COWD with a code instead of an assertion', async function () {
+    const { header } = cowdExtent()
+    header.write('SESp', 0, 'ascii')
+
+    const { esxi } = await connectedEsxi({
+      spawn: () => {
+        const child = new EventEmitter()
+        child.exitCode = null
+        child.signalCode = null
+        child.stdout = new PassThrough()
+        child.stderr = new PassThrough()
+        child.kill = () => true
+        setImmediate(() => child.emit('error', new Error('no nbdkit')))
+        return child
+      },
+      fetch: async url =>
+        response({ status: 206, body: url.pathname.endsWith('-delta.vmdk') ? header : DELTA_DESCRIPTOR }),
+    })
+    esxi.getServerThumbprint = async () => 'AA:BB:CC'
+
+    await assert.rejects(esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk'), { code: 'NO_DATA_MAP' })
   })
 })
 

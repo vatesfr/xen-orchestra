@@ -5,13 +5,13 @@ import { EventEmitter } from 'node:events'
 import { parseFault } from '@vates/node-vsphere-soap'
 import { pTimeout } from 'promise-toolbox'
 import { setTimeout as delay } from 'node:timers/promises'
-import { strictEqual } from 'node:assert'
 import { Agent } from 'undici'
 
 import { findFreePort, formatNbdkitArgs, waitForPort } from './_nbdkit.mjs'
 import { resolveDiskLocation } from './_paths.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
 import { VDDK_LIB_PATH } from './_vddk.mjs'
+import { COWD_HEADER_LENGTH, grainDirectoryToDataMap, parseCowdHeader } from './parsers/cowd.mjs'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
@@ -30,6 +30,9 @@ const { info, warn } = createLogger('xo:vmware-explorer:esxi')
 export { VDDK_LIB_DIR, VDDK_LIB_PATH } from './_vddk.mjs'
 
 const DEFAULT_DOWNLOAD_RETRIES = 4
+// a vmdk descriptor is a text file of a few hundred bytes, but a long parentFileNameHint pushes
+// its extent line further
+const DESCRIPTOR_READ_LENGTH = 4096
 // a vmdk descriptor is a small file, but the /folder endpoint of a host is not fast
 const DESCRIPTOR_CONCURRENCY = 4
 const DEFAULT_FETCH_PROPERTY_TIMEOUT = 60e3
@@ -1154,64 +1157,69 @@ export default class Esxi extends EventEmitter {
 
       return dataMap
     } finally {
-      await nbdClient.disconnect()
-      await this.killNbdServer(vmId, `[${datastoreName}] ${diskPath}`, { singleLink: true }).catch(err =>
-        warn('error while stopping nbdkit server for the snapshot', err)
+      // the client is undefined when the spawn of the server failed: the `TypeError` of the
+      // previous `nbdClient.disconnect()` replaced the real error, and fed the fallback with a
+      // misleading cause
+      if (nbdClient !== undefined) {
+        await nbdClient.disconnect().catch(error => warn('error while disconnecting the nbd client', { error }))
+      }
+      await this.killNbdServer(vmId, `[${datastoreName}] ${diskPath}`, { singleLink: true }).catch(error =>
+        warn('error while stopping nbdkit server for the snapshot', { error })
       )
     }
   }
 
-  async #getDataMapFromCowd(datastoreName, diskPath, signal) {
-    const descriptorResponse = await this.download(datastoreName, diskPath, { range: '0-512', signal })
-    const descriptorBlob = await new Response(descriptorResponse.body).blob()
-    const descriptorBytes = new Uint8Array(await descriptorBlob.arrayBuffer()).slice(0, 512)
-
-    const parsedDescriptor = parseVmdk(new TextDecoder('utf-8').decode(descriptorBytes))
-
-    const diskPathArray = diskPath.split('/')
-    const extentPath = diskPathArray.slice(0, -1).join('/') + '/' + parsedDescriptor.fileName
-
-    const extentHeaderResponse = await this.download(datastoreName, extentPath, { range: `0-2048`, signal })
-    const extentHeaderBlob = await new Response(extentHeaderResponse.body).blob()
-    const extentHeaderBuffer = Buffer.from(await extentHeaderBlob.arrayBuffer())
-
-    strictEqual(extentHeaderBuffer.subarray(0, 4).toString('ascii'), 'COWD')
-
-    const extentNumGdEntries = extentHeaderBuffer.readUInt32LE(24)
-
-    const extentGDResponse = await this.download(datastoreName, extentPath, {
-      range: `2048-${2048 + extentNumGdEntries * 4}`,
-      signal,
-    })
-    const extentGDBlob = await new Response(extentGDResponse.body).blob()
-    const extentGDBuffer = Buffer.from(await extentGDBlob.arrayBuffer())
-
-    const dataMap = []
-    let offset = 0
-    for (let i = 0; i < extentNumGdEntries; i++) {
-      const extentGDE = extentGDBuffer.readUInt32LE(i * 4)
-      if (extentGDE !== 0) {
-        dataMap.push({
-          offset,
-          length: 4096 * 512,
-          type: 0,
-        })
-      }
-
-      // Number of grains in a grain table * size of a grain.
-      offset += 4096 * 512
-    }
-
-    return dataMap
+  async #readRange(datastoreName, path, start, length, signal) {
+    // an HTTP range is inclusive: asking for `0-512` reads 513 bytes
+    const res = await this.download(datastoreName, path, { range: `${start}-${start + length - 1}`, signal })
+    return Buffer.from(await res.arrayBuffer())
   }
 
+  async #getDataMapFromCowd(datastoreName, diskPath, signal) {
+    const descriptor = await this.#readRange(datastoreName, diskPath, 0, DESCRIPTOR_READ_LENGTH, signal)
+    let fileName
+    try {
+       fileName  = parseVmdk(descriptor.toString('utf8')).fileName
+    } catch (error) {
+      // this is the fallback of a failure: an assertion error here would hide the real problem
+      const wrapped = new Error(`can't read the descriptor of ${diskPath}`)
+      wrapped.code = 'NO_DATA_MAP'
+      wrapped.cause = error
+      throw wrapped
+    }
+
+    const extentPath = diskPath.split('/').slice(0, -1).concat(fileName).join('/')
+
+    const geometry = parseCowdHeader(await this.#readRange(datastoreName, extentPath, 0, COWD_HEADER_LENGTH, signal))
+    const { grainDirectoryOffset, numGdEntries } = geometry
+
+    const grainDirectory = await this.#readRange(
+      datastoreName,
+      extentPath,
+      grainDirectoryOffset,
+      numGdEntries * 4,
+      signal
+    )
+
+    return grainDirectoryToDataMap(grainDirectory, geometry)
+  }
+
+  /**
+   * Blocks of a disk which hold data, used to transfer a delta instead of the whole disk.
+   *
+   * @param {string} vmId
+   * @param {string} datastoreName
+   * @param {string} diskPath - path of the disk in its datastore
+   * @param {AbortSignal} [signal]
+   * @returns {Promise<Array<{ length: number, offset: number, type: number }>>}
+   */
   async getDataMap(vmId, datastoreName, diskPath, signal) {
     try {
       // We await the result of getDataMapFromVddk so we can catch errors and fallback to the direct metadata reading.
       return await this.#getDataMapFromVddk(vmId, datastoreName, diskPath, signal)
     } catch (error) {
       signal?.throwIfAborted()
-      warn('error while getting datamap from vddk, fall back to a direct metadata reading', error)
+      warn('error while getting datamap from vddk, fall back to a direct metadata reading', { error })
       return this.#getDataMapFromCowd(datastoreName, diskPath, signal)
     }
   }
