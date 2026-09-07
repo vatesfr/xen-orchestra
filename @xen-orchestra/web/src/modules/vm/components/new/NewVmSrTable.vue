@@ -69,17 +69,7 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
     const isExistingVdi = vmState.existingVdis.includes(vdi)
     const defaultVdi = isExistingVdi ? defaultExistingVdis[vmState.existingVdis.indexOf(vdi)] : undefined
     const isDisabled = isExistingVdi ? !canResizeExistingDisks : false
-
-    if (isExistingVdi && defaultVdi) {
-      watch(
-        () => vdi.size,
-        newValue => {
-          if (isExistingVdi && newValue < defaultVdi.size) {
-            vdi.size = defaultVdi.size
-          }
-        }
-      )
-    }
+    const minSize = defaultVdi?.size ?? 1
 
     return {
       sr: r => r(srSelectId),
