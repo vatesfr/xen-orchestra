@@ -663,6 +663,11 @@ const canResizeExistingDisks = computed(() => {
 const modifiedExistingVdis = computed(() => {
   return vmState.existingVdis.reduce<Partial<Vdi>[]>((acc, vdi, index) => {
     const defaultVdi = defaultExistingVdis.value[index]
+
+    if (!defaultVdi) {
+      return acc
+    }
+
     const changes = getExistingVdisDiff(defaultVdi, vdi, canResizeExistingDisks.value)
 
     if (changes) {
