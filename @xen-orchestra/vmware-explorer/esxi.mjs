@@ -1,4 +1,3 @@
-import { Client } from '@vates/node-vsphere-soap'
 import { createLogger } from '@xen-orchestra/log'
 import { dirname, join } from 'node:path'
 import { EventEmitter } from 'node:events'
@@ -8,6 +7,7 @@ import { Agent } from 'undici'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
+import { VimClient } from './soap/VimClient.mjs'
 import xml2js from 'xml2js'
 import { exec, spawn } from 'node:child_process'
 import NbdClient from '@vates/nbd-client'
@@ -21,17 +21,25 @@ export const VDDK_LIB_DIR = '/usr/local/lib/vddk'
 export const VDDK_LIB_PATH = `${VDDK_LIB_DIR}/vmware-vix-disklib-distrib`
 let nbdPort = 11000
 export default class Esxi extends EventEmitter {
-  #client
+  #connected
   #cookies
   #dcPaths // map datastore name => datacenter name
   #host
   #httpsAgent
   #user
   #password
-  #ready = false
+  #vimClient
   #nbdServers = new Map()
 
-  constructor(host, user, password, sslVerify) {
+  /**
+   * @param {string} host
+   * @param {string} user
+   * @param {string} password
+   * @param {boolean} sslVerify
+   * @param {object} [options]
+   * @param {object} [options.vimClient] - injectable SOAP client, for tests
+   */
+  constructor(host, user, password, sslVerify, { vimClient } = {}) {
     super()
     this.#host = host.trim()
     this.#user = user
@@ -44,22 +52,41 @@ export default class Esxi extends EventEmitter {
       })
     }
 
-    this.#client = new Client(host, user, password, sslVerify)
-    this.#client.once('ready', async () => {
-      try {
-        // this.#ready is set to true to allow the this.search query to go through
-        // this means that the server is connected and can answer API queries
-        // you won't be able to download a file as long a the 'ready' event is not emitted
-        this.#ready = true
-        await this.#computeDatacenters()
-        this.emit('ready')
-      } catch (error) {
-        this.emit('error', error)
-      }
-    })
-    this.#client.on('error', err => {
-      this.emit('error', err)
-    })
+    this.#vimClient =
+      vimClient ?? new VimClient(host, user, password, sslVerify, { onError: error => this.#onError(error) })
+
+    // every method awaits this promise, the event is kept for the callers relying on it
+    this.#connected = this.#connect()
+    this.#connected.then(
+      () => this.emit('ready'),
+      error => this.#onError(error)
+    )
+  }
+
+  async #connect() {
+    await this.#vimClient.connect()
+    // the datacenter of a datastore is needed to download a file from it
+    await this.#computeDatacenters()
+  }
+
+  #onError(error) {
+    // an 'error' event without any listener terminates the process, and a caller waiting for
+    // 'ready' has no reason to still be listening once connected
+    if (this.listenerCount('error') > 0) {
+      this.emit('error', error)
+    } else {
+      warn('esxi client error', { error, host: this.#host })
+    }
+  }
+
+  /**
+   * Closes the session on the host.
+   *
+   * @returns {Promise<void>}
+   */
+  async close() {
+    await this.#vimClient.close()
+    await this.#httpsAgent?.close()
   }
 
   async #computeDatacenters() {
@@ -93,19 +120,17 @@ export default class Esxi extends EventEmitter {
     return this.#dcPaths[dataStore]
   }
 
-  #exec(cmd, args) {
-    strictEqual(this.#ready, true)
-    const client = this.#client
-    return new Promise(function (resolve, reject) {
-      client.once('error', function (error) {
-        client.off('result', resolve)
-        reject(error)
-      })
-      client.runCommand(cmd, args).once('result', function () {
-        client.off('error', reject)
-        resolve(...arguments)
-      })
-    })
+  /**
+   * Runs a vim25 method.
+   *
+   * @param {string} cmd - name of the method, as exposed by the WSDL
+   * @param {object} [args] - arguments of the method, `_this` included
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @returns {Promise<object>}
+   */
+  #exec(cmd, args, options) {
+    return this.#vimClient.call(cmd, args, options)
   }
 
   async #fetch(url, headers = {}, signal) {
@@ -133,7 +158,8 @@ export default class Esxi extends EventEmitter {
   }
 
   async #download(dataStore, path, range, signal) {
-    strictEqual(this.#ready, true)
+    // the datacenter of the datastore is only known once connected
+    await this.#connected
     const url = new URL('https://localhost')
     url.host = this.#host
     url.pathname = '/folder/' + path
@@ -170,12 +196,13 @@ export default class Esxi extends EventEmitter {
   async search(type, properties) {
     // search types are limited to "ComputeResource", "Datacenter", "Datastore", "DistributedVirtualSwitch", "Folder", "HostSystem", "Network", "ResourcePool", "VirtualMachine"}
     // from https://github.com/vmware/govmomi/issues/2595#issuecomment-966604502
+    await this.#vimClient.connect()
     // get property collector
-    const propertyCollector = this.#client.serviceContent.propertyCollector
+    const propertyCollector = this.#vimClient.serviceContent.propertyCollector
     // get view manager
-    const viewManager = this.#client.serviceContent.viewManager
+    const viewManager = this.#vimClient.serviceContent.viewManager
     // get root folder
-    const rootFolder = this.#client.serviceContent.rootFolder
+    const rootFolder = this.#vimClient.serviceContent.rootFolder
     let result = await this.#exec('CreateContainerView', {
       _this: viewManager,
       container: rootFolder,
@@ -501,12 +528,13 @@ export default class Esxi extends EventEmitter {
   async fetchProperty(type, id, propertyName) {
     // the fetch method does not seems to be exposed by the wsdl
     // inspired by the pyvmomi implementation ( StubAdapterAccessorImpl.py / InvokeAccessor)
+    await this.#vimClient.connect()
     const url = new URL('https://localhost/sdk')
     url.host = this.#host
     const res = await fetch(url, {
       method: 'POST',
       headers: {
-        Cookie: this.#client.authCookie.cookies,
+        Cookie: this.#vimClient.authCookie.cookies,
         SOAPAction: '"urn:vim25/6.0"', // mandatory to have an answer when asking for httpNfcLease
       },
       dispatcher: this.#httpsAgent,
