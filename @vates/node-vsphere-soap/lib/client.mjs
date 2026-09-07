@@ -21,6 +21,9 @@ import { createLogger } from '@xen-orchestra/log'
 
 import { parseFault } from './_parseFault.mjs'
 
+// exposed for the consumers talking to the host outside of the WSDL, e.g. `Fetch`
+export { parseFault } from './_parseFault.mjs'
+
 const { warn } = createLogger('xo:node-vsphere-soap:client')
 class VmwareError extends Error {
   constructor(rawError) {

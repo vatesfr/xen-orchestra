@@ -1,6 +1,8 @@
 import { createLogger } from '@xen-orchestra/log'
 import { dirname, join } from 'node:path'
 import { EventEmitter } from 'node:events'
+import { parseFault } from '@vates/node-vsphere-soap'
+import { setTimeout as delay } from 'node:timers/promises'
 import { strictEqual, notStrictEqual } from 'node:assert'
 import { Agent } from 'undici'
 
@@ -21,6 +23,19 @@ const { info, warn } = createLogger('xo:vmware-explorer:esxi')
 export const VDDK_LIB_DIR = '/usr/local/lib/vddk'
 export const VDDK_LIB_PATH = `${VDDK_LIB_DIR}/vmware-vix-disklib-distrib`
 let nbdPort = 11000
+
+const DEFAULT_FETCH_PROPERTY_TIMEOUT = 60e3
+const DEFAULT_TASK_TIMEOUT = 60e3
+const MAX_TASK_POLL_DELAY = 5e3
+
+const XML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }
+const escapeXml = value => String(value).replace(/[&<>"']/g, character => XML_ESCAPES[character])
+
+// `TaskInfo.error` is a LocalizedMethodFault: the concrete fault type is the `xsi:type` of its
+// `fault` element, and the parser may expose it at either level depending on the response
+const taskFaultType = error => error?.fault?.attributes?.['xsi:type'] ?? error?.attributes?.['xsi:type']
+const taskFaultMessage = error => error?.localizedMessage ?? error?.fault?.localizedMessage
+
 export default class Esxi extends EventEmitter {
   #connected
   #cookies
@@ -470,37 +485,110 @@ export default class Esxi extends EventEmitter {
     }
   }
 
-  async #waitForTaskEnd(taskId) {
-    let state = 'running'
-    let info
-    for (let i = 0; i < 60; i++) {
-      // https://developer.vmware.com/apis/1720/
-      info = await this.fetchProperty('Task', taskId, 'info')
-      state = info.state[0]
-      if (state === 'success') {
-        break
-      }
-      await new Promise(resolve => setTimeout(resolve, 1000))
+  /**
+   * Extracts the id of the task started by a `*_Task` method.
+   *
+   * @param {object} result - result of the call
+   * @param {string} method
+   * @returns {string}
+   */
+  #taskIdOf(result, method) {
+    const taskId = result?.returnval?.$value
+    if (taskId === undefined) {
+      const error = new Error(`${method} did not return a task`)
+      error.cause = result
+      throw error
     }
-    if (state === 'success') {
-      return info
-    }
-    warn('task not ended successfull ', { taskId, state, info })
-    throw new Error('task execution failed')
+    return taskId
   }
 
-  async powerOff(vmId) {
+  /**
+   * Polls a task until it ends.
+   *
+   * @param {string} taskId
+   * @param {object} [options]
+   * @param {string} [options.method] - name of the method which started the task, for the messages
+   * @param {number} [options.timeout] - in ms, how long the task is given to complete
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<object>} the `info` of the successful task
+   */
+  async #waitForTaskEnd(taskId, { method = 'task', timeout = DEFAULT_TASK_TIMEOUT, signal } = {}) {
+    const start = Date.now()
+    let pollDelay = 500
+    for (;;) {
+      signal?.throwIfAborted()
+
+      let info
+      try {
+        // https://developer.vmware.com/apis/1720/
+        info = await this.#retrieveProperty('Task', taskId, 'info', { signal })
+      } catch (error) {
+        // the task keeps running on the host: a transient failure of a single poll must not fail
+        // an operation which legitimately lasts hours, and be reported as if nothing was running
+        if (!isRetryableError(error) || Date.now() - start >= timeout) {
+          throw error
+        }
+        warn('failed to read the state of a task, will poll again', { error, method, taskId })
+        await delay(pollDelay, undefined, { signal })
+        pollDelay = Math.min(pollDelay * 2, MAX_TASK_POLL_DELAY)
+        continue
+      }
+
+      const { state } = info
+
+      if (state === 'success') {
+        return info
+      }
+
+      if (state === 'error') {
+        // don't burn the whole timeout on a task which already failed
+        const error = new Error(`${method} failed: ${taskFaultMessage(info.error) ?? 'unknown fault'}`)
+        error.code = taskFaultType(info.error)
+        error.cause = info.error
+        warn('task ended in error', { taskId, method, state, error })
+        throw error
+      }
+
+      if (Date.now() - start >= timeout) {
+        const error = new Error(`${method} did not complete within ${Math.round(timeout / 1000)}s (state: ${state})`)
+        error.cause = info
+        warn('task timed out', { taskId, method, state })
+        throw error
+      }
+
+      await delay(pollDelay, undefined, { signal })
+      pollDelay = Math.min(pollDelay * 2, MAX_TASK_POLL_DELAY)
+    }
+  }
+
+  async powerOff(vmId, { signal, timeout = 5 * 60e3 } = {}) {
     const res = await this.#exec('PowerOffVM_Task', { _this: vmId })
-    const taskId = res.returnval.$value
     try {
-      return await this.#waitForTaskEnd(taskId)
+      return await this.#waitForTaskEnd(this.#taskIdOf(res, 'PowerOffVM_Task'), {
+        method: 'PowerOffVM_Task',
+        signal,
+        timeout,
+      })
     } catch (error) {
+      error.vmId = vmId
       warn('Fail to power off VM', { vmId, error })
       throw error
     }
   }
-  powerOn(vmId) {
-    return this.#exec('PowerOnVM_Task', { _this: vmId })
+
+  async powerOn(vmId, { signal, timeout = 5 * 60e3 } = {}) {
+    const res = await this.#exec('PowerOnVM_Task', { _this: vmId })
+    try {
+      return await this.#waitForTaskEnd(this.#taskIdOf(res, 'PowerOnVM_Task'), {
+        method: 'PowerOnVM_Task',
+        signal,
+        timeout,
+      })
+    } catch (error) {
+      error.vmId = vmId
+      warn('Fail to power on VM', { vmId, error })
+      throw error
+    }
   }
 
   /**
@@ -513,12 +601,16 @@ export default class Esxi extends EventEmitter {
    *
    * @param {string} vmId - id of the VM, must be powered on
    */
-  async reset(vmId) {
+  async reset(vmId, { signal, timeout = 5 * 60e3 } = {}) {
     const res = await this.#exec('ResetVM_Task', { _this: vmId })
-    const taskId = res.returnval.$value
     try {
-      return await this.#waitForTaskEnd(taskId)
+      return await this.#waitForTaskEnd(this.#taskIdOf(res, 'ResetVM_Task'), {
+        method: 'ResetVM_Task',
+        signal,
+        timeout,
+      })
     } catch (error) {
+      error.vmId = vmId
       warn('Fail to reset VM', { vmId, error })
       throw error
     }
@@ -529,61 +621,161 @@ export default class Esxi extends EventEmitter {
    *
    * @param {string} vmId - id of the VM
    */
-  async removeAllSnapshots(vmId) {
+  async removeAllSnapshots(vmId, { signal, timeout = 6 * 3600e3 } = {}) {
     const res = await this.#exec('RemoveAllSnapshots_Task', { _this: vmId, consolidate: true })
-    const taskId = res.returnval.$value
     try {
-      return await this.#waitForTaskEnd(taskId)
+      return await this.#waitForTaskEnd(this.#taskIdOf(res, 'RemoveAllSnapshots_Task'), {
+        method: 'RemoveAllSnapshots_Task',
+        signal,
+        // consolidating the deltas of a large disk takes as long as it takes
+        timeout,
+      })
     } catch (error) {
+      error.vmId = vmId
       warn('Fail to remove the snapshots of VM', { vmId, error })
       throw error
     }
   }
 
-  async snapshot(vmId, name, description) {
+  async snapshot(vmId, name, description, { signal, timeout = 30 * 60e3 } = {}) {
     const res = await this.#exec('CreateSnapshotEx_Task', { _this: vmId, name, description, memory: false })
-    const taskId = res.returnval.$value
     try {
-      return await this.#waitForTaskEnd(taskId)
+      return await this.#waitForTaskEnd(this.#taskIdOf(res, 'CreateSnapshotEx_Task'), {
+        method: 'CreateSnapshotEx_Task',
+        signal,
+        timeout,
+      })
     } catch (error) {
+      error.vmId = vmId
       warn('Fail to take a snapshot', { vmId, error })
       throw error
     }
   }
 
-  async fetchProperty(type, id, propertyName) {
+  /**
+   * Reads one property of one managed object.
+   *
+   * Unlike {@link fetchProperty} this goes through the WSDL, and returns the value in the same
+   * shape as {@link search}: this is the accessor new code should use.
+   *
+   * @param {string} type - type of the object, e.g. `VirtualMachine`
+   * @param {string} id - managed object reference of the object
+   * @param {string} path - property path, e.g. `config.hardware.device`
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<unknown>}
+   */
+  async #retrieveProperty(type, id, path, { timeout, signal } = {}) {
+    signal?.throwIfAborted()
+    await this.#vimClient.connect()
+    const propertyCollector = this.#vimClient.serviceContent.propertyCollector
+
+    const result = await this.#exec(
+      'RetrievePropertiesEx',
+      {
+        _this: propertyCollector,
+        specSet: [
+          {
+            attributes: { 'xsi:type': 'PropertyFilterSpec' },
+            propSet: [{ attributes: { 'xsi:type': 'PropertySpec' }, type, pathSet: [path] }],
+            // the object itself, no container view to create and destroy
+            objectSet: [
+              { attributes: { 'xsi:type': 'ObjectSpec' }, obj: { attributes: { type }, $value: id }, skip: false },
+            ],
+          },
+        ],
+        options: { attributes: { 'xsi:type': 'RetrieveOptions' } },
+      },
+      { timeout }
+    )
+
+    const returnval = result?.returnval
+    if (returnval?.token !== undefined) {
+      // a single property of a single object always fits in one page, but a retrieval left open
+      // would keep its results on the server
+      await this.#exec('CancelRetrievePropertiesEx', { _this: propertyCollector, token: returnval.token }).catch(
+        error => warn('failed to cancel the property retrieval', { error, token: returnval.token })
+      )
+    }
+
+    const property = asArray(asArray(returnval?.objects)[0]?.propSet).find(({ name }) => name === path)
+    if (property === undefined) {
+      // the object may have been deleted since it was listed
+      const error = new Error(`can't get ${path} of object ${id} (Type: ${type})`)
+      error.code = 'NO_PROPERTY'
+      throw error
+    }
+
+    return normalizeSoapValue(property.val)
+  }
+
+  /**
+   * Reads one property of one managed object through the undocumented `Fetch` method.
+   *
+   * @deprecated the values are wrapped in arrays by the XML parser, which is error prone. New code
+   * must use the private `#retrieveProperty`, whose shape matches {@link search}.
+   *
+   * @param {string} type - type of the object, e.g. `VirtualMachine`
+   * @param {string} id - managed object reference of the object
+   * @param {string} propertyName
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<object>}
+   */
+  async fetchProperty(type, id, propertyName, { timeout = DEFAULT_FETCH_PROPERTY_TIMEOUT, signal } = {}) {
     // the fetch method does not seems to be exposed by the wsdl
     // inspired by the pyvmomi implementation ( StubAdapterAccessorImpl.py / InvokeAccessor)
     await this.#vimClient.connect()
     const url = new URL('https://localhost/sdk')
     url.host = this.#host
+    const signals = [AbortSignal.timeout(timeout)]
+    if (signal !== undefined) {
+      signals.push(signal)
+    }
     const res = await this.#fetchImpl(url, {
       method: 'POST',
       headers: {
         Cookie: this.#vimClient.authCookie.cookies,
+        'content-type': 'text/xml; charset=utf-8',
         SOAPAction: '"urn:vim25/6.0"', // mandatory to have an answer when asking for httpNfcLease
       },
       dispatcher: this.#httpsAgent,
+      signal: AbortSignal.any(signals),
+      // the values are escaped: an id or a property path containing `<` or `&` would otherwise
+      // break the envelope, or inject elements into it
       body: `<?xml version="1.0" encoding="UTF-8"?>
-        <soapenv:Envelope 
-          xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" 
-          xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        <soapenv:Envelope
+          xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+          xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         >
           <soapenv:Body>
             <Fetch xmlns="urn:vim25">
-              <_this type="${type}">${id}</_this>
-              <prop >${propertyName}</prop>
+              <_this type="${escapeXml(type)}">${escapeXml(id)}</_this>
+              <prop >${escapeXml(propertyName)}</prop>
             </Fetch>
           </soapenv:Body>
         </soapenv:Envelope>`,
     })
     const text = await res.text()
+
     const matches = text.match(/<FetchResponse[^>]*>(.*)<\/FetchResponse>/s)
     if (matches === null) {
-      throw new Error(`can't get ${propertyName} of object ${id} (Type: ${type})`)
+      // a fault does not contain a FetchResponse: report what the host complained about instead of
+      // a generic message
+      const { code, faultstring, localizedMessage } = parseFault({ body: text })
+      const message = localizedMessage ?? faultstring
+      const error = new Error(
+        `can't get ${propertyName} of object ${id} (Type: ${type})${message !== undefined ? `: ${message}` : ''}`
+      )
+      error.code = code
+      error.cause = { status: res.status, statusText: res.statusText, body: text.slice(0, 2048) }
+      throw error
     }
+
     return new Promise((resolve, reject) => {
       xml2js.parseString(matches[1], (err, res) => (err ? reject(err) : resolve(res.returnval)))
     })

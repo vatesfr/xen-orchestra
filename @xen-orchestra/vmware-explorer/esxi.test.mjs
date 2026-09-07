@@ -272,3 +272,194 @@ describe('connection', function () {
     assert.equal(vimClient.closed, true)
   })
 })
+
+// a RetrievePropertiesEx response for a single object and a single property
+const propertyOf = (type, id, name, val) => ({
+  returnval: { objects: [{ obj: moRef(type, id), propSet: [{ name, val }] }] },
+})
+
+const taskInfo = (state, extra = {}) =>
+  propertyOf('Task', 'task-1', 'info', {
+    attributes: { 'xsi:type': 'TaskInfo' },
+    key: 'task-1',
+    state,
+    ...extra,
+  })
+
+const startedTask = () => ({ returnval: moRef('Task', 'task-1') })
+
+describe('tasks', function () {
+  it('resolves with the info of the successful task', async function () {
+    const { esxi, vimClient } = await connectedEsxi({
+      responses: {
+        PowerOffVM_Task: () => startedTask(),
+        RetrievePropertiesEx: () => taskInfo('success'),
+      },
+    })
+
+    // the info is not wrapped in arrays, unlike what `fetchProperty` returns
+    assert.deepEqual(await esxi.powerOff('vm-1'), { key: 'task-1', state: 'success' })
+
+    // the property is read on the task itself, no container view is involved
+    assert.deepEqual(vimClient.methods, ['PowerOffVM_Task', 'RetrievePropertiesEx'])
+    const { specSet } = vimClient.callsTo('RetrievePropertiesEx')[0].args
+    assert.deepEqual(specSet[0].objectSet[0].obj, { attributes: { type: 'Task' }, $value: 'task-1' })
+    assert.deepEqual(specSet[0].propSet[0].pathSet, ['info'])
+  })
+
+  it('fails as soon as the task is in error, with the fault of the host', async function () {
+    const { esxi, vimClient } = await connectedEsxi({
+      responses: {
+        PowerOffVM_Task: () => startedTask(),
+        RetrievePropertiesEx: () =>
+          taskInfo('error', {
+            error: {
+              attributes: { 'xsi:type': 'LocalizedMethodFault' },
+              fault: { attributes: { 'xsi:type': 'InvalidPowerState' } },
+              localizedMessage: 'The attempted operation cannot be performed in the current state (Powered off).',
+            },
+          }),
+      },
+    })
+
+    await assert.rejects(esxi.powerOff('vm-1'), error => {
+      assert.match(error.message, /^PowerOffVM_Task failed: The attempted operation cannot be performed/)
+      assert.equal(error.code, 'InvalidPowerState')
+      assert.equal(error.vmId, 'vm-1')
+      return true
+    })
+
+    // a failed task is not polled until the timeout
+    assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, 1)
+  })
+
+  it('gives up when the task takes longer than its timeout', async function () {
+    const { esxi } = await connectedEsxi({
+      responses: {
+        RemoveAllSnapshots_Task: () => startedTask(),
+        RetrievePropertiesEx: () => taskInfo('running'),
+      },
+    })
+
+    await assert.rejects(esxi.removeAllSnapshots('vm-1', { timeout: 0 }), {
+      message: 'RemoveAllSnapshots_Task did not complete within 0s (state: running)',
+    })
+  })
+
+  it('stops polling when aborted', async function () {
+    const controller = new AbortController()
+    const { esxi, vimClient } = await connectedEsxi({
+      responses: {
+        CreateSnapshotEx_Task: () => startedTask(),
+        RetrievePropertiesEx: () => {
+          controller.abort()
+          return taskInfo('running')
+        },
+      },
+    })
+
+    await assert.rejects(esxi.snapshot('vm-1', 'name', 'description', { signal: controller.signal }), {
+      name: 'AbortError',
+    })
+    assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, 1)
+  })
+
+  it('waits for the completion of a power on', async function () {
+    const { esxi, vimClient } = await connectedEsxi({
+      responses: {
+        PowerOnVM_Task: () => startedTask(),
+        RetrievePropertiesEx: () => taskInfo('success'),
+      },
+    })
+
+    await esxi.powerOn('vm-1')
+
+    assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, 1)
+  })
+
+  it('polls again while the task is running', async function () {
+    let polls = 0
+    const { esxi, vimClient } = await connectedEsxi({
+      responses: {
+        PowerOffVM_Task: () => startedTask(),
+        RetrievePropertiesEx: () => taskInfo(++polls === 1 ? 'running' : 'success'),
+      },
+    })
+
+    await esxi.powerOff('vm-1')
+
+    assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, 2)
+  })
+
+  it('reports a method which did not start a task', async function () {
+    const { esxi } = await connectedEsxi({ responses: { ResetVM_Task: () => ({}) } })
+
+    await assert.rejects(esxi.reset('vm-1'), { message: 'ResetVM_Task did not return a task' })
+  })
+
+  it('reports a task which disappeared', async function () {
+    const { esxi } = await connectedEsxi({
+      responses: {
+        PowerOffVM_Task: () => startedTask(),
+        // the object is gone: no property is returned
+        RetrievePropertiesEx: () => ({}),
+      },
+    })
+
+    await assert.rejects(esxi.powerOff('vm-1'), { code: 'NO_PROPERTY' })
+  })
+})
+
+describe('fetchProperty', function () {
+  const fetchPropertyEsxi = async fetchImplementation => {
+    const requests = []
+    const { esxi } = await connectedEsxi({
+      fetch: async (url, options) => {
+        requests.push({ url, options })
+        return fetchImplementation(options)
+      },
+    })
+    return { esxi, requests }
+  }
+
+  it('escapes the values it interpolates in the envelope', async function () {
+    const { esxi, requests } = await fetchPropertyEsxi(() => ({
+      status: 200,
+      statusText: 'OK',
+      text: async () => '<FetchResponse><returnval>ok</returnval></FetchResponse>',
+    }))
+
+    await esxi.fetchProperty('VirtualMachine', 'vm-1" & <injected/>', 'config')
+
+    const { body } = requests[0].options
+    assert.ok(!body.includes('<injected/>'), body)
+    assert.ok(body.includes('vm-1&quot; &amp; &lt;injected/&gt;'), body)
+  })
+
+  it('reports the fault of the host instead of a generic message', async function () {
+    const { esxi } = await fetchPropertyEsxi(() => ({
+      status: 500,
+      statusText: 'Internal Server Error',
+      text: async () =>
+        `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body><soapenv:Fault><faultcode>ServerFaultCode</faultcode><faultstring>The object &apos;vim.VirtualMachine:vm-42&apos; has already been deleted</faultstring><detail><ManagedObjectNotFoundFault xmlns="urn:vim25" xsi:type="ManagedObjectNotFound"/></detail></soapenv:Fault></soapenv:Body></soapenv:Envelope>`,
+    }))
+
+    await assert.rejects(esxi.fetchProperty('VirtualMachine', 'vm-42', 'config'), error => {
+      assert.match(error.message, /has already been deleted$/)
+      assert.equal(error.code, 'ManagedObjectNotFound')
+      assert.equal(error.cause.status, 500)
+      return true
+    })
+  })
+
+  it('still returns the legacy shape', async function () {
+    const { esxi } = await fetchPropertyEsxi(() => ({
+      status: 200,
+      statusText: 'OK',
+      text: async () => '<FetchResponse><returnval><state>success</state></returnval></FetchResponse>',
+    }))
+
+    // values wrapped in arrays: this is why `#retrieveProperty` exists
+    assert.deepEqual(await esxi.fetchProperty('Task', 'task-1', 'info'), { state: ['success'] })
+  })
+})
