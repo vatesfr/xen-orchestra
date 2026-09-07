@@ -745,7 +745,7 @@ export default class XenServers {
       lastEventFetchedTimestamp !== undefined &&
       Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay
     ) {
-      server.error = xapis[server.id].watchEventsError
+      server.error = serializeError(xapis[server.id].watchEventsError)
     }
     server.status = this._getXenServerStatus(server.id)
     if (server.status === 'connected') {
