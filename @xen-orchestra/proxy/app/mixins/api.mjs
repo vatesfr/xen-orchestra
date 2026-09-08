@@ -68,6 +68,15 @@ export default class Api {
       // not be enough for the API.
       ctx.req.setTimeout(0)
 
+      // Compression is disabled for the whole API.
+      //
+      // A compressor buffers its input, so a streamed response would not reach the
+      // client as it is produced. With brotli — which `fetch` negotiates by default
+      // over HTTPS — nothing at all is emitted before its window fills, not even the
+      // response headers, and the client times out waiting for them.
+      //
+      ctx.compress = false
+
       const profile = await app.authentication.findProfile({
         token: ctx.cookies.get('authenticationToken'),
       })

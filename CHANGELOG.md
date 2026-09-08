@@ -1,8 +1,19 @@
 # ChangeLog
 
-## **6.8.1** (2026-09-02)
+## **6.8.2** (2026-09-04)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Backups] Fix error `fetch failed` on backup with proxies (PR [#10346](https://github.com/vatesfr/xen-orchestra/pull/10346))
+
+### Released packages
+
+- @xen-orchestra/proxy 0.31.10
+- xo-server 5.208.3
+
+## **6.8.1** (2026-09-02)
 
 ### Enhancements
 
