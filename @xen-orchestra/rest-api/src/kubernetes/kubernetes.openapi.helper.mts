@@ -29,6 +29,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 /**
  * Turns a CAPI path into the path XO REST API path
+ *
+ * `/api/kubernetes/clusters/` -> `/kubernetes/clusters`
  */
 export function CAPIPathToXoPath(path: string): string {
   const xoPath = path.startsWith(CAPI_PATH_PREFIX) ? path.slice(CAPI_PATH_PREFIX.length) : path
