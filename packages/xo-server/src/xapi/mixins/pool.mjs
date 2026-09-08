@@ -371,7 +371,7 @@ const methods = {
       // nothing left to migrate back, and it must not abort the whole phase
       const vm = this.getObject(vmRef, undefined)
       if (vm === undefined) {
-        log.info('a VM to migrate back no longer exists', { pool: this.pool.uuid, vmRef })
+        log.warn('a VM to migrate back no longer exists', { pool: this.pool.uuid, vmRef })
         return
       }
 
