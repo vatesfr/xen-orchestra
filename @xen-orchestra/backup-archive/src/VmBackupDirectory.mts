@@ -224,7 +224,9 @@ export class VmBackupDirectory implements VmBackupInterface {
     }
 
     if (this.handler.isImmutable()) {
-      //Best effort: some remotes (e.g. S3) may not normalize a permission error to EPERM, so tolerate any error.
+      // RemoteAdapter never creates cache.json.gz on immutable repositories: remove the
+      // leftover, readable or not, and never regenerate it. Best effort: some remotes
+      // (e.g. S3) may not normalize a permission error to EPERM, so tolerate any error.
       try {
         await this.handler.unlink(cachePath)
       } catch (error) {
