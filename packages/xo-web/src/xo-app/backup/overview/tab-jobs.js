@@ -407,7 +407,7 @@ class JobsTable extends React.Component {
         icon: 'preview',
       },
       {
-        handler: (job, { goTo, goToNewTab, main }) => (main ? goTo : goToNewTab)(`/backup/${job.id}/edit`),
+        handler: (job, { goTo }) => goTo(`/backup/${job.id}/edit`),
         label: _('formEdit'),
         icon: 'edit',
         level: 'primary',
@@ -434,10 +434,6 @@ class JobsTable extends React.Component {
     this.context.router.push(path)
   }
 
-  _goToNewTab = path => {
-    window.open(this.context.router.createHref(path))
-  }
-
   _getCollection = createFilter(
     createSelector(
       () => this.props.jobs,
@@ -455,8 +451,6 @@ class JobsTable extends React.Component {
         actions={this._getActions()}
         collection={this._getCollection()}
         data-goTo={this._goTo}
-        data-goToNewTab={this._goToNewTab}
-        data-main={this.props.main}
         data-schedulesByJob={this.props.schedulesByJob}
         data-scrollIntoLogs={this.props.scrollIntoLogs}
         stateUrlParam='s'
