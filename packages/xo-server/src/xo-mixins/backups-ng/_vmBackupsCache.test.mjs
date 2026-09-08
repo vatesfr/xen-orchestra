@@ -29,6 +29,7 @@ class Repository {
   journal = []
 
   nListings = 0
+  nOneVmListings = 0
   nMetadataReads = 0
   nJournalReads = 0
 
@@ -71,6 +72,11 @@ class Repository {
           ;(result[vmUuid] ??= []).push(metadata)
         }
         return result
+      },
+      listVmBackups: async vmUuid => {
+        this.#mayFail()
+        this.nOneVmListings++
+        return [...this.metadataByFilename.values()].filter(metadata => metadata.vm.uuid === vmUuid)
       },
       readVmBackupMetadata: async path => {
         this.#mayFail()
@@ -370,6 +376,70 @@ describe('VmBackupsCache', () => {
     repository.failWith = undefined
     await cache.get(REPOSITORY)
     assert.equal(repository.nListings, 2)
+  })
+
+  describe('getOneVm()', () => {
+    it('lists a single VM instead of the whole repository on a cold entry', async t => {
+      mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+      const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(OTHER_VM, '20260811T093000')])
+      const cache = new VmBackupsCache(repository.useAdapter, { minRefreshDelay: 60e3 })
+
+      const backups = await cache.getOneVm(REPOSITORY, VM)
+
+      assert.deepEqual(filenames(backups), [filenameOf(VM, '20260811T090000')])
+      assert.equal(repository.nOneVmListings, 1, 'the answer must come from a single-VM listing')
+    })
+
+    it('returns no entry for a VM without backups', async t => {
+      mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+      const repository = new Repository([metadataOf(OTHER_VM, '20260811T093000')])
+      const cache = new VmBackupsCache(repository.useAdapter, { minRefreshDelay: 60e3 })
+
+      assert.deepEqual(await cache.getOneVm(REPOSITORY, VM), {})
+    })
+
+    it('warms the whole entry in the background, for the callers which want every VM', async t => {
+      mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+      const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(OTHER_VM, '20260811T093000')])
+      const cache = new VmBackupsCache(repository.useAdapter, { minRefreshDelay: 60e3 })
+
+      await cache.getOneVm(REPOSITORY, VM)
+      const backups = await cache.get(REPOSITORY)
+
+      assert.equal(repository.nListings, 1)
+      assert.deepEqual(
+        filenames(backups).sort(),
+        [filenameOf(VM, '20260811T090000'), filenameOf(OTHER_VM, '20260811T093000')].sort()
+      )
+
+      // the background build already served every VM: no need to list again
+      await cache.get(REPOSITORY)
+      assert.equal(repository.nListings, 1)
+    })
+
+    it('reuses the entry instead of listing a single VM once it is built', async t => {
+      mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+      const repository = new Repository([metadataOf(VM, '20260811T090000')])
+      const cache = new VmBackupsCache(repository.useAdapter, { minRefreshDelay: 60e3 })
+
+      await cache.get(REPOSITORY)
+      const backups = await cache.getOneVm(REPOSITORY, VM)
+
+      assert.deepEqual(filenames(backups), [filenameOf(VM, '20260811T090000')])
+      assert.equal(repository.nOneVmListings, 0)
+    })
+
+    it('reuses an ongoing build instead of listing a single VM again', async t => {
+      mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+      const repository = new Repository([metadataOf(VM, '20260811T090000')])
+      const cache = new VmBackupsCache(repository.useAdapter, { minRefreshDelay: 60e3 })
+
+      const [, backups] = await Promise.all([cache.get(REPOSITORY), cache.getOneVm(REPOSITORY, VM)])
+
+      assert.deepEqual(filenames(backups), [filenameOf(VM, '20260811T090000')])
+      assert.equal(repository.nListings, 1)
+      assert.equal(repository.nOneVmListings, 0)
+    })
   })
 })
 
