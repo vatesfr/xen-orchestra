@@ -98,6 +98,7 @@ export class XapiDiskSource extends DiskPassthrough {
     let source
     let streamSource
     try {
+      // we will only use the stream for bloc list
       streamSource = await this.#openExportStream({ onlyListChangedBlocks: true })
       if (streamSource === undefined) {
         throw new Error(`Can't open stream source`)
@@ -111,7 +112,7 @@ export class XapiDiskSource extends DiskPassthrough {
       await source.init()
       this.#useNbd = true
 
-      return await this.#formatSourceDisk(source, 'NBT')
+      return await this.#formatSourceDisk(source, 'NBD')
     } catch (err) {
       // init probaby failed, so nothing to close , but better safe than sorry
       await source?.close().catch(warn)
@@ -163,7 +164,7 @@ export class XapiDiskSource extends DiskPassthrough {
    *
    * @returns {Promise<Disk>}
    */
-  async #openExportStream({ onlyListChangedBlocks = false } = {}) {
+  async #openExportStream({ onlyListChangedBlocks = this.#onlyListChangedBlocks } = {}) {
     const xapi = this.#xapi
     const baseRef = this.#baseRef
     const vdiRef = this.#vdiRef
@@ -263,7 +264,7 @@ export class XapiDiskSource extends DiskPassthrough {
       await source.init()
       this.#useNbd = true
       this.#useCbt = true
-      return await this.#formatSourceDisk(source, 'NBT+CBT')
+      return await this.#formatSourceDisk(source, 'NBD+CBT')
     } catch (error) {
       if (/** @type {NodeJS.ErrnoException} */ (error).code !== 'CBT_DISABLED') {
         info('Error in openNbdCBT', error)

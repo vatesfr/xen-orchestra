@@ -1,0 +1,8 @@
+{
+    "label": "Backups and DR",
+    "position": 5,
+    "link": {
+      "type": "generated-index",
+      "description": "Detailed information on backups and disaster recovery"
+    }
+  }

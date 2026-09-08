@@ -1,6 +1,34 @@
 # ChangeLog
 
+## **6.8.2** (2026-09-04)
+
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Backups] Fix error `fetch failed` on backup with proxies (PR [#10346](https://github.com/vatesfr/xen-orchestra/pull/10346))
+
+### Released packages
+
+- @xen-orchestra/proxy 0.31.10
+- xo-server 5.208.3
+
+## **6.8.1** (2026-09-02)
+
+### Enhancements
+
+- [XO6/Traffic rules] Add possibility of editing a traffic rule (PR [#10056](https://github.com/vatesfr/xen-orchestra/pull/10056))
+
+### Bug fixes
+
+- [Backups] Fix slow replication startup and fallback to full on qcow2 (PR [#10319](https://github.com/vatesfr/xen-orchestra/pull/10319))
+
+### Released packages
+
+- @xen-orchestra/xapi 8.10.5
+- @xen-orchestra/backups 0.74.2
+- @xen-orchestra/proxy 0.31.9
+- xo-server 5.208.2
 
 ## **6.8.0** (2026-08-31)
 
