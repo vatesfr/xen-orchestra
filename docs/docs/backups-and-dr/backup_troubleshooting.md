@@ -1,3 +1,7 @@
+---
+sidebar_position: 8
+---
+
 # Backup troubleshooting
 
 This page lists the most common errors you can meet with XO backups, what they mean and how to fix them.

@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # REST API
 
 The Xen Orchestra REST API is the modern, public way to automate your infrastructure. We built it from scratch, next to [our historical JSON-RPC API](../getting-started/architecture.md#apis), to be [REST-like](https://en.wikipedia.org/wiki/Representational_state_transfer) and usable with a plain `curl` command. It is now almost complete: nearly all of Xen Orchestra's capabilities are exposed through it, and it is ready to be used in production. It is also the API we are building the future of Xen Orchestra on, so it is the right choice for any new automation.

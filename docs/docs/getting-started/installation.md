@@ -1,5 +1,6 @@
 ---
 sidebar_label: Installation
+sidebar_position: 3
 ---
 
 # Installing XOA

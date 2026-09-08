@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # Management in XO 6
 
 This page walks through day-to-day management in XO 6: pools, hosts and VMs. For the general layout and navigation, start with [XO 6 at a glance](../discover-xen-orchestra/gettingstarted.md).

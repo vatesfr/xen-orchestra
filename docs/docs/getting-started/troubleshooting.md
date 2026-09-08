@@ -1,3 +1,7 @@
+---
+sidebar_position: 8
+---
+
 # Troubleshooting
 
 This page covers the problems you may encounter with your XOA, and how to get out of them.

@@ -1,3 +1,7 @@
+---
+sidebar_position: 5
+---
+
 # SDN controller
 
 <InterfaceNote>Private networks are currently created and managed from XO 5. Traffic rules moved ahead in [XO 6](../manage-your-infrastructure/management.md#traffic-rules), with more capabilities than the XO 5 equivalent.</InterfaceNote>
