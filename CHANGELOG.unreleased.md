@@ -20,6 +20,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [Web-core] Fix "console offline" illustration sparks color (PR [#10309](https://github.com/vatesfr/xen-orchestra/pull/10309))
+- [Web-core] Fix 404 illustration color (PR [#10325](https://github.com/vatesfr/xen-orchestra/pull/10325))
 
 ### Packages to release
 
