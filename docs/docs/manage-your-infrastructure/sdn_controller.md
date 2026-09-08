@@ -1,6 +1,6 @@
 # SDN controller
 
-<InterfaceNote>Private networks are currently created and managed from XO 5. Traffic rules moved ahead in [XO 6](../xo6/management.md#traffic-rules), with more capabilities than the XO 5 equivalent.</InterfaceNote>
+<InterfaceNote>Private networks are currently created and managed from XO 5. Traffic rules moved ahead in [XO 6](../manage-your-infrastructure/management.md#traffic-rules), with more capabilities than the XO 5 equivalent.</InterfaceNote>
 
 :::tip
 Be sure to enable the plugin on only one XOA instance.
@@ -100,7 +100,7 @@ In the network creation view:
 
 ### Configuration
 
-Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](../architecture.md#plugins).
+Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](../getting-started/architecture.md#plugins).
 
 The plugin's configuration contains:
 
@@ -136,7 +136,7 @@ At this time, the two options are covered until we can fully deprecate the older
 Where the UI lives:
 
 - **XO 5**: per-VIF rules only, from the VM **Network** tab (described [below](#openflow-protocol))
-- **XO 6**: the full experience, network-wide **and** per-VIF rules, with a consolidated pool view: see [Traffic rules in XO 6](../xo6/management.md#traffic-rules). It requires the XAPI plugin backend.
+- **XO 6**: the full experience, network-wide **and** per-VIF rules, with a consolidated pool view: see [Traffic rules in XO 6](./management.md#traffic-rules). It requires the XAPI plugin backend.
 
 ### OpenFlow Protocol
 
@@ -175,11 +175,11 @@ A few caveats:
 
 - This is still in BETA and should not be used in production yet.
 - This will only work on XCP-ng, not on XenServer hosts.
-- This is not enabled by default, and requires a configuration change for `xo-server`. See [the configuration page](../configuration.md#sdn-controller-mode) to know more.
+- This is not enabled by default, and requires a configuration change for `xo-server`. See [the configuration page](../getting-started/configuration.md#sdn-controller-mode) to know more.
   :::
 
 :::tip
-This is the backend used by the [XO 6 traffic rules UI](../xo6/management.md#traffic-rules) (since XO 6.5): network-wide and per-VIF rules, with a consolidated view in the pool **Traffic rules** tab. The rules can also be managed through the [REST API](../automation/restapi.md), including in-place updates (since XO 6.7).
+This is the backend used by the [XO 6 traffic rules UI](./management.md#traffic-rules) (since XO 6.5): network-wide and per-VIF rules, with a consolidated view in the pool **Traffic rules** tab. The rules can also be managed through the [REST API](../automation/restapi.md), including in-place updates (since XO 6.7).
 :::
 
 - Works on any network:
@@ -191,7 +191,7 @@ This is the backend used by the [XO 6 traffic rules UI](../xo6/management.md#tra
 
 To setup a per-VIF rule using the UI, follow the [openflow instructions](#openflow-protocol) above, as the UI is the same and only the backend changes.
 
-Here, we describe how to use `xo-cli` to configure rules. First, make sure to register xo-cli to your XOA instance as documented in [its documentation](../architecture.md#xo-cli).
+Here, we describe how to use `xo-cli` to configure rules. First, make sure to register xo-cli to your XOA instance as documented in [its documentation](../getting-started/architecture.md#xo-cli).
 
 - Add per-VIF rules: `xo-cli sdnController.addRule vifId=<VIF_UUID> <parameters>`
 - Delete per-VIF rules: `xo-cli sdnController.deleteRule vifId=<VIF_UUID> <parameters>`

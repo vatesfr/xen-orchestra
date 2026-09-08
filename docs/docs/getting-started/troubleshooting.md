@@ -3,7 +3,7 @@
 This page covers the problems you may encounter with your XOA, and how to get out of them.
 
 :::warning
-If you have issues with an XO installed [from the sources](install-from-sources.md), please go through the [community support checklist](community.md) first.
+If you have issues with an XO installed [from the sources](install-from-sources.md), please go through the [community support checklist](../support-and-licencing/community.md) first.
 :::
 
 ## First reflex: `xoa check`
@@ -204,7 +204,7 @@ You can then log in again with `admin@admin.net` / `admin`.
 
 ## Backup issues
 
-Backups have their own page: [Backup troubleshooting](xo5/backup_troubleshooting.md).
+Backups have their own page: [Backup troubleshooting](../backups-and-dr/backup_troubleshooting.md).
 
 ## Still stuck?
 

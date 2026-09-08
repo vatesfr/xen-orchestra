@@ -13,8 +13,8 @@ The two replication job types now have clearer names, but the XO 5 screens below
 
 | Current name                                                       | Former name, still shown in XO 5 |
 | ------------------------------------------------------------------ | -------------------------------- |
-| [Full replication](../full_replication.md)                          | Disaster Recovery (DR)           |
-| [Incremental replication](incremental_replication.md)               | Continuous Replication (CR)      |
+| [Full replication](./backup-types/full_replication.md)                          | Disaster Recovery (DR)           |
+| [Incremental replication](./backup-types/incremental_replication.md)               | Continuous Replication (CR)      |
 
 Nothing changed in behaviour: only the labels differ. XO 6 uses the current names, and the tags XO puts on replicas (`Disaster Recovery`, `Continuous Replication`) kept the former ones.
 :::
@@ -321,7 +321,7 @@ Supported backup repository types:
 
 - The initial "/" or "\\" is automatically added.
 - For disks larger than **2 TiB**, store backups on **block-based backup repositories**. Since QCOW2 reached general availability in XCP-ng, a single disk can grow up to **16 TiB**, so this matters more than ever.
-- For **qcow2** disks, enable [NBD](./incremental_backups.md#nbd-enabled-backups) for incremental backups: without it, each run falls back to a full backup.
+- For **qcow2** disks, enable [NBD](./backup-types/incremental_backups.md#nbd-enabled-backups) for incremental backups: without it, each run falls back to a full backup.
 
 :::
 
@@ -370,7 +370,7 @@ Xen Orchestra supports Amazon S3 storage and other S3-compatible providers, so y
 
 :::warning
 
-- Not all S3-compatible providers adhere perfectly to Amazon S3 standards. Check the [supported object storage providers](../object-storage-support.md) list and its support tiers, and test your setup before trusting it with critical backups.
+- Not all S3-compatible providers adhere perfectly to Amazon S3 standards. Check the [supported object storage providers](./scale-and-security/object-storage-support.md) list and its support tiers, and test your setup before trusting it with critical backups.
 - Losing your encryption key means your backups will be permanently inaccessible. If you enable encryption, make sure your key is stored securely, and outside of the backed up infrastructure, as there's no way to recover your data without it.
 
 :::
@@ -468,7 +468,7 @@ You can also restore specific files and directories inside a VM. It works with a
 
 :::warning
 
-- File level restore **is only possible on incremental backups**. Also, due to some technical limitations, you won't be able to do file level restore if you have a chain longer than 99 (ie retention longer than 99 records without any full between). Take a look at the [key backup interval section](./incremental_backups.md#key-backup-interval) to set this correctly.
+- File level restore **is only possible on incremental backups**. Also, due to some technical limitations, you won't be able to do file level restore if you have a chain longer than 99 (ie retention longer than 99 records without any full between). Take a look at the [key backup interval section](./backup-types/incremental_backups.md#key-backup-interval) to set this correctly.
 - File level restore **is only possible on a single VDI**, it does not support LVM Volume Groups that span multiple VDIs.
 - The following Microsoft solutions are **not supported**:
   - [Data Deduplication](https://learn.microsoft.com/en-us/windows-server/storage/data-deduplication/overview)

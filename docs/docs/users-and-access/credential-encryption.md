@@ -9,7 +9,7 @@ Xen Orchestra stores its records (server connections, backup jobs and remotes, s
 
 ## Enabling Encryption
 
-Add the following to your [configuration file](configuration.md):
+Add the following to your [configuration file](../getting-started/configuration.md):
 
 ```toml
 [redis]
@@ -55,7 +55,7 @@ The export contains the decrypted credential data (hence the mandatory passphras
 xo-cli xo.importConfig passphrase=<your-passphrase> @=/path/to/xo-config.bin
 `}</Terminal>
 
-See also [Back up XO metadata](./backup_howto.md#specific-steps-for-the-xoa-vm).
+See also [Back up XO metadata](../backups-and-dr/backup_howto.md#specific-steps-for-the-xo).
 
 :::tip
 Always export a fresh config backup after enabling encryption and store it securely.

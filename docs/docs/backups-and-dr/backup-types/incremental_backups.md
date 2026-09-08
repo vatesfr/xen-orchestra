@@ -51,7 +51,7 @@ You can, for example, run the initial key backup during a weekend, then only del
 - they are small and quick to create
 - restores are simple: XO reads the whole chain and rebuilds the VM automatically
 
-If you want to roll back a VM to a previous state, the cost is only one snapshot on your SR (far less than the [rolling snapshot](../rolling_snapshots.md) mechanism). And even if you lose your whole SR or VM, XOA will restore the VM entirely and automatically, at any backup date.
+If you want to roll back a VM to a previous state, the cost is only one snapshot on your SR (far less than the [rolling snapshot](./rolling_snapshots.md) mechanism). And even if you lose your whole SR or VM, XOA will restore the VM entirely and automatically, at any backup date.
 
 You can even use this to back up more often: deltas stay small, and they will **always be deltas**.
 
@@ -201,6 +201,6 @@ Sometimes, you might notice that incremental backups are surprisingly large, alm
 - Look out for cron jobs, log rotations, or background tasks that might be active during backup times.
 - Ensure your VM has enough memory to prevent excessive paging.
 - Create a separated disk with `[NOBAK]` in its name to handle temporary files. This disk won't be transferred.
-  To know more on excluding disks from backup jobs, check out the [Exclude disks](./backups.md#exclude-disks) section.
+  To know more on excluding disks from backup jobs, check out the [Exclude disks](../backup-features-and-settings.md#exclude-disks) section.
 - For disks larger than **2 TB**, store backups on a backup repository in **block mode**.
 - For **qcow2** disks, [enable NBD](#nbd-enabled-backups): without it, each incremental run falls back to a full backup.

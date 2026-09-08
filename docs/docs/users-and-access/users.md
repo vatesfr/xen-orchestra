@@ -4,9 +4,9 @@
 
 Xen Orchestra involves three distinct notions of "user account". Make sure you are looking at the right one:
 
-- **XOA system accounts**: the Linux accounts (`xoa`, `root`) of the appliance itself, used for SSH and console access. See [First login](../installation.md#first-login).
+- **XOA system accounts**: the Linux accounts (`xoa`, `root`) of the appliance itself, used for SSH and console access. See [First login](../getting-started//installation.md#first-login).
 - **XO application users**: the accounts inside the Xen Orchestra web application. This is what this page is about.
-- **XO 6 / REST API roles**: XO 6 introduces a new RBAC model with roles and fine-grained privileges. See the [RBAC page](../rbac.md).
+- **XO 6 / REST API roles**: XO 6 introduces a new RBAC model with roles and fine-grained privileges. See the [RBAC page](./rbac.md).
 
 There are 2 types of XO users:
 
@@ -474,7 +474,7 @@ You can now connect with your Google account in the login page.
 ACLs are permissions that apply to preexisting objects, like users and groups.
 
 :::note
-This section describes the original ACLs, used by the XO 5 interface. The REST API and XO 6 use a broader model: see [RBAC](../rbac.md).
+This section describes the original ACLs, used by the XO 5 interface. The REST API and XO 6 use a broader model: see [RBAC](./rbac.md).
 :::
 
 ### Who can manage ACLs?
@@ -628,7 +628,7 @@ Finally, if a user has been granted access to multiple resource sets, they can b
 
 ### Toward the Cloud
 
-Self-service is a major step in the Cloud. Combine it with our [Cloudinit compatible VM creation](vm-templates.md#cloud-init) for a full experience:
+Self-service is a major step in the Cloud. Combine it with our [Cloudinit compatible VM creation](../manage-your-infrastructure/vm-templates.md#cloud-init) for a full experience:
 
 - create a Cloud ready template
 - create a set and put Cloud templates inside
@@ -666,4 +666,4 @@ Now, the audit plugin will record users' actions and upload the last record in t
 
 ## Debugging
 
-If you can't log in, please [check the logs of `xo-server`](../troubleshooting.md#logs).
+If you can't log in, please [check the logs of `xo-server`](../getting-started/troubleshooting.md#logs).

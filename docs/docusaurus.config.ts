@@ -337,7 +337,7 @@ export default {
             },
             {
               label: 'Installation',
-              href: '/installation',
+              href: '/getting-started/installation',
             },
           ],
         },

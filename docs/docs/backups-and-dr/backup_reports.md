@@ -127,7 +127,7 @@ Xen Orchestra is able to send backup reports to Slack or Mattermost. Both are ha
 
 ### Plugin configuration
 
-Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](../architecture.md#plugins). The plugin needs:
+Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](../getting-started/architecture.md#plugins). The plugin needs:
 
 - **Webhook URI**: the Mattermost or Slack webhook URL (see below to generate it)
 - **Channel**: the channel, private group or IM channel to send the message to
@@ -319,4 +319,4 @@ Backup results are mapped to the standard Icinga 2 states: `OK` for a success, `
 
 ## Web hooks
 
-You can also configure web hooks to be sent to a custom server before and/or after a backup job runs. This won't send a formatted report but raw JSON data that you can use in custom scripts on your side. Follow the [web-hooks plugin documentation](./advanced#web-hooks) to configure it.
+You can also configure web hooks to be sent to a custom server before and/or after a backup job runs. This won't send a formatted report but raw JSON data that you can use in custom scripts on your side. Follow the [web-hooks plugin documentation](../manage-your-infrastructure/advanced#web-hooks) to configure it.

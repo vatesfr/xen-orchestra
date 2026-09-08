@@ -7,14 +7,14 @@ sidebar_label: RBAC
 RBAC is the access control system for the Xen Orchestra [REST API](automation/restapi.md) and the XO 6 interface. It lets you define exactly what each user or group can see and do, down to individual objects, without granting them full administrator access.
 
 :::note Where RBAC applies, and why it was once called "ACL v2"
-RBAC covers the **[REST API](automation/restapi.md)** and **XO 6**. The JSON-RPC API behind the XO 5 interface keeps the original [ACL system](xo5/users.md#acls), and those ACLs are not available on the REST API.
+RBAC covers the **[REST API](automation/restapi.md)** and **XO 6**. The JSON-RPC API behind the XO 5 interface keeps the original [ACL system](./users.md#acls), and those ACLs are not available on the REST API.
 
 You may still come across this feature under the name **ACL v2**. That was only a working name while it was being built. It is a full rewrite of the original ACLs into a much broader model, so it is now called by what it actually is: RBAC. Same feature, current name.
 :::
 
 ## What changed from the original ACLs
 
-The original [ACL system](xo5/users.md#acls) allowed granting access to individual objects (a VM, an SR…). Simple, but limited: there was no way to say _"this user can shutdown only VMs tagged `qa`"_. It also only covered **XAPI objects**: VMs, hosts, SRs, networks. Users, groups, backups, schedules, and jobs were out of scope.
+The original [ACL system](./users.md#acls) allowed granting access to individual objects (a VM, an SR…). Simple, but limited: there was no way to say _"this user can shutdown only VMs tagged `qa`"_. It also only covered **XAPI objects**: VMs, hosts, SRs, networks. Users, groups, backups, schedules, and jobs were out of scope.
 
 RBAC introduces a full role-based model with effects, selectors, and an action hierarchy, covering the entire infrastructure including XO management objects.
 
@@ -54,7 +54,7 @@ A privilege defines:
 - **resource**: the type of object (e.g. `vm`, `backup-job`, `sr`)
 - **action**: what operation is allowed or denied (e.g. `read`, `start`, `delete`)
 - **effect**: whether the privilege grants (`allow`) or blocks (`deny`) the action
-- **selector** _(optional)_: a filter expression to restrict the privilege to a subset of objects ([complex-matcher format](xo5/manage_infrastructure.md#filter-syntax))
+- **selector** _(optional)_: a filter expression to restrict the privilege to a subset of objects ([complex-matcher format](../manage-your-infrastructure/manage_infrastructure.md#filter-syntax))
 
 ### Action hierarchy
 
@@ -304,7 +304,7 @@ Everything shown in the walkthrough (and more) is available as plain REST calls,
 | `GET` / `POST /acl-privileges`                 | List privileges / create a privilege inside a role             |
 | `GET` / `PATCH` / `DELETE /acl-privileges/:id` | Read, update or delete a privilege                             |
 
-In the XO 6 interface, the **Administration** section of the sidebar covers users and groups; role and privilege management itself currently happens through the REST API, as shown above. See [Users and administration](xo6/management.md#users-and-administration).
+In the XO 6 interface, the **Administration** section of the sidebar covers users and groups; role and privilege management itself currently happens through the REST API, as shown above. See [Users and administration](../manage-your-infrastructure/management.md#users-and-administration).
 
 <UiShot light="/img/xo6/administration-light.png" dark="/img/xo6/administration-dark.png" alt="The Administration section in XO 6, where users and groups are managed" url="https://your-xo/v6/#/admin/user-management/users" />
 
@@ -312,7 +312,7 @@ In the XO 6 interface, the **Administration** section of the sidebar covers user
 
 ## Selectors
 
-By default, a privilege applies to **all** objects of the given resource type. The optional `selector` field narrows it down using the [complex-matcher](xo5/manage_infrastructure.md#filter-syntax) syntax, the same filter syntax used in the XO UI.
+By default, a privilege applies to **all** objects of the given resource type. The optional `selector` field narrows it down using the [complex-matcher](../manage-your-infrastructure/manage_infrastructure.md#filter-syntax) syntax, the same filter syntax used in the XO UI.
 
 A selector is evaluated against each object's properties. If it matches, the privilege applies; otherwise it does not.
 

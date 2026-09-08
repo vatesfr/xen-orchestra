@@ -1,6 +1,6 @@
 # Releases
 
-Xen Orchestra is distributed in two ways: as a turnkey virtual appliance (**XOA**) and **from the sources** on GitHub. Both contain the same Xen Orchestra, including its two web interfaces ([XO 6 and XO 5](xo6/xo6vsxo5.md)), the REST API and the backup engine.
+Xen Orchestra is distributed in two ways: as a turnkey virtual appliance (**XOA**) and **from the sources** on GitHub. Both contain the same Xen Orchestra, including its two web interfaces ([XO 6 and XO 5](../discover-xen-orchestra/xo6vsxo5.md)), the REST API and the backup engine.
 
 ## XOA, the appliance
 

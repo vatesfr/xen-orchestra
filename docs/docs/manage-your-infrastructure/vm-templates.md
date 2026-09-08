@@ -144,7 +144,7 @@ This means that you can easily customize your VM when you create it from a compa
 
 As of release 5.101, Xen Orchestra also supports Cloudbase-init. This tool provides equivalent functionality to Cloud-init but is specifically designed for Windows virtual machines.
 
-To build such a template, follow the dedicated [Windows templates with Cloudbase-init](../windows-templates.md) guide.
+To build such a template, follow the dedicated [Windows templates with Cloudbase-init](../guides/windows-templates.md) guide.
 
 ### Requirements
 
@@ -157,7 +157,7 @@ In XOA 5.31, we changed the Cloud-init config drive type from [OpenStack](https:
 
 ### Example: How to create a Cloudbase-init template with Windows Server?
 
-Refer to the [Windows templates with Cloudbase-init](../windows-templates.md) guide for complete instructions.
+Refer to the [Windows templates with Cloudbase-init](../guides/windows-templates.md) guide for complete instructions.
 
 ### Example: How to create a Cloud-init template with Ubuntu 22.04 LTS?
 
