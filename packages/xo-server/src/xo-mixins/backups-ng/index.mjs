@@ -624,8 +624,8 @@ export default class BackupNg {
     function () {
       return this._app.config.getDuration('backups.listingDebounce')
     },
-    function keyFn(remoteId) {
-      return [this, remoteId]
+    function keyFn(remoteId, { vmId } = {}) {
+      return [this, remoteId, vmId]
     }
   )
   /**
@@ -681,6 +681,8 @@ export default class BackupNg {
         // the proxy omits the repositories it failed to list
         throw new Error(`the proxy failed to list the backup repository ${remoteId}`)
       }
+    } else if (vmId !== undefined) {
+      backupsByVm = await this.#vmBackupsCache.getOneVm(remote, vmId)
     } else {
       backupsByVm = await this.#vmBackupsCache.get(remote)
     }
