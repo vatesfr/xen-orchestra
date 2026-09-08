@@ -181,6 +181,8 @@ To prevent this:
 1. Migrate the disk to another storage. This will reset the disk state.
 2. Disable **purge snapshot data** on the backup.
 
+Neither step helps if NBD was never enabled on the transfer network. The purge is gated on the job's **Use NBD to transfer disk** preference, not on whether the transfer actually used NBD, so the snapshot data is destroyed even when the export falls back to the regular path, and every later run is full. Confirm in the backup log which path the run took.
+
 :::
 
 ## Understanding large deltas
