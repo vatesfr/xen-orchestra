@@ -52,6 +52,8 @@ const vdis = computed(() => [...vmState.existingVdis, ...vmState.vdis])
 const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
   body: ({ vdi, onRemove }: { vdi: Vdi; onRemove: () => void }) => {
     const { id: srSelectId } = useFormSelect(() => srs, {
+  body: ({ vdi, onRemove }: { vdi: Vdi; onRemove?: () => void }) => {
+    const { id: srSelectId } = useFormSelect(() => props.srs, {
       model: toRef(vdi, 'sr'),
       option: {
         label: sr => {
@@ -66,9 +68,8 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
     const size = toRef(vdi, 'size')
     const description = toRef(vdi, 'name_description')
 
-    const isExistingVdi = vmState.existingVdis.includes(vdi)
-    const defaultVdi = isExistingVdi ? defaultExistingVdis[vmState.existingVdis.indexOf(vdi)] : undefined
-    const isDisabled = isExistingVdi ? !canResizeExistingDisks : false
+    const defaultVdi = props.defaultExistingVdis.find(d => d.id === vdi.id)
+    const isExistingVdi = defaultVdi !== undefined
     const minSize = defaultVdi?.size ?? 1
 
     return {
@@ -76,7 +77,7 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
       diskName: r => r(diskName),
       size: r =>
         r(size, {
-          disabled: vdi.id !== undefined,
+          disabled: vdi.id !== undefined ? !props.canResizeExistingDisks : false,
           min: defaultVdi?.size ?? 1,
         } as any),
       description: r => r(description),
