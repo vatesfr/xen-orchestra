@@ -27,17 +27,12 @@ export const useVdiStore = defineStore('xen-api-vdi', () => {
 
   const config = createXapiStoreConfig('vdi', {
     beforeAdd: vdi => {
-      if (vdi.is_a_snapshot || vdi.snapshot_of !== undefined) {
-        return vdi
-      }
-
-      if (!vdi.managed) {
-        return vdi
-      }
+      const chainPhysicalUsage =
+        vdi.is_a_snapshot || vdi.snapshot_of !== undefined || !vdi.managed ? 0 : calculateVdiChainPhysicalUsage(vdi)
 
       return {
         ...vdi,
-        chainPhysicalUsage: calculateVdiChainPhysicalUsage(vdi),
+        chainPhysicalUsage,
       }
     },
   })
