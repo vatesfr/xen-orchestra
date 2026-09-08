@@ -23,6 +23,7 @@ export async function deleteDeltaVmBackups(
 ): Promise<void> {
   await asyncEach(backups, ({ metadataPath }) => handler.unlink(metadataPath), {
     concurrency: DEFAULT_REMOVE_CONCURRENCY,
+    stopOnError: false,
   })
 }
 

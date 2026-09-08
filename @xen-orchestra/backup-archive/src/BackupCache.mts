@@ -28,6 +28,9 @@ export async function readBackupCache(
 /**
  * Writes data as a gzip-compressed JSON cache file.
  * Shared with the legacy @xen-orchestra/backups RemoteAdapter.
+ *
+ * No-op on immutable remotes: the cache file may not be modifiable there,
+ * and callers should be regenerating/reading the data directly instead.
  */
 export async function writeBackupCache(
   handler: RemoteHandlerAbstract,
@@ -35,6 +38,9 @@ export async function writeBackupCache(
   data: Record<string, unknown>,
   logWarn: LogWarn
 ): Promise<void> {
+  if (handler.isImmutable()) {
+    return
+  }
   try {
     await handler.writeFile(path, await gzip(JSON.stringify(data)), { flags: 'w' })
   } catch (error) {

@@ -224,9 +224,12 @@ export class VmBackupDirectory implements VmBackupInterface {
     }
 
     if (this.handler.isImmutable()) {
-      // RemoteAdapter never creates cache.json.gz on immutable repositories: remove the
-      // leftover, readable or not, and never regenerate it.
-      await unlinkTolerant(this.handler, cachePath, ['ENOENT', 'EPERM'])
+      //Best effort: some remotes (e.g. S3) may not normalize a permission error to EPERM, so tolerate any error.
+      try {
+        await this.handler.unlink(cachePath)
+      } catch (error) {
+        this.opts.logWarn('error while deleting leftover backup cache', { path: cachePath, error })
+      }
       return
     }
 
