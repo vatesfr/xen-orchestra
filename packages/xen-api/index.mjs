@@ -282,6 +282,13 @@ export class Xapi extends EventEmitter {
     // interceptor. This matters when talking to a slave, which answers a 302 to
     // the pool master. Calls that handle redirections themselves (`getResource`)
     // keep opting out with a per-request `maxRedirections: 0`.
+    //
+    // Warning: since undici 7, this interceptor follows the fetch spec and
+    // rewrites a redirected POST into a bodyless GET, which would strip the
+    // payload of an RPC call. Harmless for now because XAPI only redirects
+    // GETs (`/export`, `/export_raw_vdi`, `/vm_rrd`) and PUTs (`/import`,
+    // `/import_raw_vdi`, `/messages`, `/rrd_put`), and answers a
+    // `HOST_IS_SLAVE` error instead of a redirection on the RPC endpoints
     this._undiciDispatcher = this._undiciDispatcher.compose(interceptors.redirect({ maxRedirections: 3 }))
     this._setUrl(url)
 
