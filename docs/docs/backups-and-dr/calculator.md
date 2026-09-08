@@ -1,5 +1,6 @@
 ---
 sidebar_label: Retention calculator
+sidebar_position: 9
 ---
 
 # Backup retention calculator

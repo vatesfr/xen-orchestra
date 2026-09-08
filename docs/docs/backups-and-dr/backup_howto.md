@@ -1,3 +1,7 @@
+---
+sidebar_position: 2
+---
+
 # Backup strategy guide
 
 This guide explains how to design and implement a backup strategy in Xen Orchestra.

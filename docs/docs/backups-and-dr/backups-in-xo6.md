@@ -1,3 +1,7 @@
+---
+sidebar_position: 3
+---
+
 # Backups in XO 6
 
 XO 6 puts backup health where you look every day: on the dashboards. This page covers what you can see and follow from XO 6; creating and editing backup jobs is currently done in XO 5 (see [XO 6 and XO 5](../discover-xen-orchestra/xo6vsxo5.md)).

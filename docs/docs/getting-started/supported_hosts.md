@@ -1,3 +1,7 @@
+---
+sidebar_position: 2
+---
+
 # Host compatibility list
 
 Xen Orchestra connects to hosts running [XCP-ng](https://xcp-ng.org/) or [XenServer](https://www.xenserver.com/) (formerly Citrix Hypervisor), and only those: XO is **agent-less** and talks to the XAPI toolstack directly, so a Xen hypervisor installed from a regular Linux distribution will not work (see the [architecture section](architecture.md)).

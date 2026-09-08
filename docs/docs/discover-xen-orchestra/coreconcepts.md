@@ -1,5 +1,6 @@
 ---
 sidebar_label: Core concepts
+sidebar_position: 4
 ---
 
 # How XO 6 is organized

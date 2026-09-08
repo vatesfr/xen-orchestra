@@ -1,5 +1,6 @@
 ---
 sidebar_label: First steps
+sidebar_position: 3
 ---
 
 # XO 6 at a glance

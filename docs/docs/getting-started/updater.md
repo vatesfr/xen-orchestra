@@ -1,5 +1,6 @@
 ---
 sidebar_label: Updates
+sidebar_position: 6
 ---
 
 # Updating XOA

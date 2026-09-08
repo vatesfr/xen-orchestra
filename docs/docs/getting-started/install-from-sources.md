@@ -1,5 +1,6 @@
 ---
 sidebar_label: From source
+sidebar_position: 4
 ---
 
 # Installing XO from source

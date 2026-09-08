@@ -1,3 +1,7 @@
+---
+sidebar_position: 2
+---
+
 # Management in XO 5
 
 <InterfaceNote>This page describes infrastructure management in the XO 5 interface. XO 6 already covers inspection of pools, hosts, networks and storage, host power actions, network and VIF creation.</InterfaceNote>

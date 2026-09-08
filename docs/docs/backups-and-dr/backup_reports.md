@@ -1,3 +1,7 @@
+---
+sidebar_position: 7
+---
+
 # Backup reports
 
 At the end of a backup job, Xen Orchestra can send you a report through the channel of your choice: email, XMPP, Slack or Mattermost, and even straight into your Nagios or Icinga 2 monitoring.

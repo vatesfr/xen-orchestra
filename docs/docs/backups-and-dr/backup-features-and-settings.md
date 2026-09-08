@@ -1,5 +1,6 @@
 ---
 sidebar_label: Features and settings
+sidebar_position: 5
 ---
 
 # Backup features and settings

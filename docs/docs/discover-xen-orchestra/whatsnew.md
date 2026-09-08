@@ -1,5 +1,6 @@
 ---
 sidebar_label: What's new
+sidebar_position: 1
 ---
 
 # What's new in XO 6
