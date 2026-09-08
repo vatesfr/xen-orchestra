@@ -120,9 +120,11 @@ Never apply a lifecycle rule to the **current** versions of a BR's objects. XO i
 
 ## Retention and lock duration {#retention-and-lock-duration}
 
-The lock duration has to sit between two bounds. Both are enforced by the [retention calculator](../calculator.md), which is worth running before you commit to a configuration.
+Retention is applied **per object version**, from the moment that version is uploaded. A locked bucket therefore does not mean "my backups are protected": the objects of a single restore point were written at different times and stop being protected at different times, and a chain always loses its protection starting from its oldest object, which is its base full backup. A restore point is only genuinely protected while **every** object it depends on still is.
 
-- **Not shorter than one backup chain.** A restore point is only usable if its base full backup is present. Locking deltas whose base full has already aged out leaves you with protected but useless objects. With a full backup interval of `1`, a chain is a single restore point, so this bound is satisfied by any duration — one more reason to prefer that setting.
+That is what the two bounds below are about. Both are enforced by the [retention calculator](../calculator.md), which is worth running before you commit to a configuration.
+
+- **Not shorter than one backup chain.** A restore point is only usable if its base full backup is present. Once the full falls out of its retention, the deltas stacked on top of it are still locked but no longer restore anything: you are paying for protected objects that protect nothing. With a full backup interval of `1`, a chain is a single restore point, so this bound is satisfied by any duration — one more reason to prefer that setting.
 - **Shorter than the retention window.** The oldest restore point must be deletable by the time retention wants to rotate it out. If the lock duration covers the whole retention window, XO keeps deleting backups that keep piling up as retained versions.
 
 ## Performance and cost {#performance-and-cost}
@@ -135,7 +137,7 @@ Detecting a locked bucket changes how XO talks to it:
 
 ## Limitations {#limitations}
 
-- **XO does not show which backups are protected.** XO does detect Object Lock when it connects to the bucket, which is what disables the backup list cache and enables the Content-MD5 headers. The padlock displayed next to each backup in the restore view, however, is computed from a marker file written by the on-prem service, so it never appears for an object-locked bucket, even when every object is properly protected. Verify protection on the storage side instead.
+- **XO does not show which backups are protected.** The padlock displayed next to each backup in the restore view is computed from a marker file written by the on-prem service, so it never appears for an object-locked bucket. XO does detect Object Lock when it connects to the bucket, which is what disables the backup list cache and enables the Content-MD5 headers, but that is a property of the bucket, not of a backup: as explained in [Retention and lock duration](#retention-and-lock-duration), a bucket can be locked while a given restore point is already unprotected. Reporting a padlock from the bucket configuration alone would claim a protection that may not exist, so XO reports nothing. Verify protection on the storage side, per object.
 - **XO cannot restore an object version.** Recovering a backup deleted by a compromised XO is a manual operation, see below.
 - **Provider behaviour varies.** S3-compatible implementations differ on lifecycle-versus-lock precedence and on delete-marker handling. Test your provider before trusting it, and check its tier in [Object storage support](./object-storage-support.md).
 
