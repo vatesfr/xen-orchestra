@@ -1026,7 +1026,7 @@ async function _installXenGuestAgent(xapi, vm, networkConfig) {
         ['xenstore-write', readyKey, 'true'],
       ],
     })
-  await xapi.VM_createCloudInitConfig(vm.$ref, cloudConfig, YAML.stringify(networkConfig))
+  const cloudConfigVdiUuid = await xapi.VM_createCloudInitConfig(vm.$ref, cloudConfig, YAML.stringify(networkConfig))
 
   try {
     await xapi.startVm(vm.$id)
@@ -1064,5 +1064,15 @@ async function _installXenGuestAgent(xapi, vm, networkConfig) {
 
   if (installError !== undefined) {
     throw installError
+  }
+
+  // Remove the cloud config vdi
+  try {
+    const cloudConfigVdi = await xapi._getOrWaitObject(cloudConfigVdiUuid)
+    await cloudConfigVdi.$destroy()
+  } catch (error) {
+    throw new Error('Failed to destroy Xen Guest Agent cloud-init disk after template VM shutdown', {
+      cause: error,
+    })
   }
 }
