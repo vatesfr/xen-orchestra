@@ -6,12 +6,12 @@ import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-ser
  */
 export function createServer(overrides: Partial<FrontXoServer> = {}): FrontXoServer {
   return {
-    id: 'server-123',
+    id: 'server-123' as FrontXoServer['id'],
     label: 'Test Server',
-    poolId: 'pool-789',
+    poolId: 'pool-789' as FrontXoServer['poolId'],
     poolNameLabel: 'Test Pool',
     poolNameDescription: 'A test pool',
-    master: 'host-456',
+    master: 'host-456' as FrontXoServer['master'],
     host: '192.168.1.1',
     httpProxy: undefined,
     username: 'admin',
@@ -20,5 +20,5 @@ export function createServer(overrides: Partial<FrontXoServer> = {}): FrontXoSer
     status: 'connected',
     error: undefined,
     ...overrides,
-  } as FrontXoServer
+  }
 }

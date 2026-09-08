@@ -4,6 +4,7 @@ import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { t } from '@/test/i18n.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
@@ -47,15 +48,15 @@ it('lists every tab of the VM, in order', async () => {
   const wrapper = await mountHeader()
 
   expect(findTabs(wrapper).map(tab => tab.text())).toEqual([
-    'Dashboard',
-    'Console',
-    'Backups',
-    'Stats',
-    'System',
-    'Network',
-    'VDIs',
-    'Snapshots',
-    'Tasks',
+    t('dashboard'),
+    t('console'),
+    t('backups'),
+    t('stats'),
+    t('system'),
+    t('network'),
+    t('vdis'),
+    t('snapshots'),
+    t('tasks'),
   ])
 })
 
@@ -81,7 +82,7 @@ it('points every in-app tab at the page of that VM', async () => {
 it('sends the stats tab to XO 5 rather than to an in-app page', async () => {
   const wrapper = await mountHeader()
 
-  const statsTab = findTabs(wrapper).find(tab => tab.text() === 'Stats')!
+  const statsTab = findTabs(wrapper).find(tab => tab.text() === t('stats'))!
 
   expect(statsTab.element.tagName).not.toBe('A')
   expect(statsTab.get('a').attributes('href')).toBe('https://xo5.example.com/#/vms/vm-42/stats')
@@ -94,7 +95,7 @@ it('marks the tab of the current route as the active one', async () => {
     .filter(tab => tab.classes('active'))
     .map(tab => tab.text())
 
-  expect(activeTabs).toEqual(['System'])
+  expect(activeTabs).toEqual([t('system')])
 })
 
 it('marks no tab as active while no VM page is open', async () => {
@@ -112,7 +113,7 @@ it('links to the XO 5 page managing the lifecycle of the VM', async () => {
 it('offers the state-change and more-actions menus', async () => {
   const wrapper = await mountHeader()
 
-  expect(wrapper.get('.ui-head-bar .actions').text()).toContain('Change state')
+  expect(wrapper.get('.ui-head-bar .actions').text()).toContain(t('action:change-state'))
   expect(wrapper.find('.ui-head-bar .actions button.ui-button-icon').exists()).toBe(true)
 })
 

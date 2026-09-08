@@ -6,6 +6,7 @@ Components run in the same `unit` project as everything else: `@vue/test-utils` 
 import VmSystemGraphics from '@/modules/vm/components/system/VmSystemGraphics.vue'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
 
 function mountGraphics(vm = createVm()) {
@@ -18,7 +19,7 @@ function mountGraphics(vm = createVm()) {
 it('shows VGA as enabled when the VM uses the "std" adapter', () => {
   const wrapper = mountGraphics(createVm({ vga: 'std' }))
 
-  expect(wrapper.text()).toContain('Enabled')
+  expect(wrapper.text()).toContain(t('enabled'))
 })
 ```
 
@@ -49,16 +50,16 @@ Step 4 is selective. A test that only exercised the logic now living in the util
 
 ```typescript
 // every card title, in order
-expect(wrapper.findAll('.ui-title').map(title => title.text())).toEqual(['Graphics & Display'])
+expect(wrapper.findAll('.ui-title').map(title => title.text())).toEqual([t('graphics-display')])
 
 // a key/value row: the markup is semantic, so label and value are addressable
 const rows = wrapper.findAll('.vts-tabular-key-value-row')
 const labelledValues = Object.fromEntries(rows.map(row => [row.get('dt.label').text(), row.get('dd.value').text()]))
 
-expect(labelledValues).toEqual({ VGA: 'Disabled', 'Video RAM': '8 B' })
+expect(labelledValues).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
 ```
 
-Prefer this shape: one assertion covering every row a user sees, in their real translated wording, and it fails loudly when a value lands under the wrong label. Assert against **class names and semantic elements**, never a positional chain of child indexes.
+Prefer this shape: one assertion covering every row a user sees, and it fails loudly when a value lands under the wrong label. Assert against **class names and semantic elements**, never a positional chain of child indexes.
 
 `src/test/find-labelled-values.ts` does exactly that reduction, so a card test does not re-roll it:
 
@@ -68,7 +69,7 @@ Prefer this shape: one assertion covering every row a user sees, in their real t
 | `findCardLabelledValues` | every `VtsCardRowKeyValue` of a side-panel card            |
 
 ```typescript
-expect(findLabelledValues(wrapper)).toEqual({ VGA: 'Disabled', 'Video RAM': '8 B' })
+expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
 ```
 
 Both collapse rows that share a label into one entry — a list repeating the same label (an address list labelling only its first row) is queried directly instead:
@@ -81,6 +82,30 @@ expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.value').t
 ```
 
 When a card mixes deterministic values with environment-derived ones (a relative start time, a locale-formatted date), pin the deterministic rows with `toMatchObject` and cover the composition separately by asserting the **list of labels, in order** — the formatted values themselves belong in the test of the composable that derives them.
+
+### Never spell out a translation
+
+A rendered label or a translated value is wording the component does not own, so [asserting behaviour](./assert-behaviour.md) means naming the **key**, not the English string. `src/test/i18n.ts` exposes the `t` and `d` of the very instance `createGlobalTestConfig()` installs:
+
+```typescript
+// ✗ rewording the translation breaks the test although the component still picks the same key
+expect(findLabelledValues(wrapper)).toEqual({ 'Suspend storage repository': 'None' })
+
+// ✓ asserts the decision: the suspend-SR row, falling back to the "none" wording
+expect(findLabelledValues(wrapper)).toEqual({ [t('suspend-storage-repository')]: t('none') })
+```
+
+A mistyped key does not pass quietly — `t` returns a `⟨key⟩` marker for a key the locale has no entry for, which matches no rendered text.
+
+Where the line falls:
+
+| Value                                                      | Assert as                                          |
+| ---------------------------------------------------------- | -------------------------------------------------- |
+| a label, or a value that is itself a translation           | `t('key')` — including a plural, `t('n-vcpus', 2)` |
+| a locale-formatted date                                    | `d(timestamp, { …the component's options })`       |
+| a string the component composes from several translations  | a template literal of those `t(…)` calls           |
+| data reaching the component (a name, an id, an IP, a tag)  | the literal — it is the test's own input           |
+| a number the component formats (`'8 B'`, `'4 GiB'`, `'2'`) | the literal — deriving it would copy the template  |
 
 ## Routing
 
@@ -104,7 +129,7 @@ expect(
     .findAll('.tab-item')
     .filter(tab => tab.classes('active'))
     .map(tab => tab.text())
-).toEqual(['System'])
+).toEqual([t('system')])
 ```
 
 Pushing before mounting is what makes the active tab assertable; without a push the router sits at its start location and nothing is active.

@@ -7,6 +7,7 @@ import { createVdi } from '@/test/create-vdi.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
 
 const { getVbdsByIds } = vi.hoisted(() => ({
@@ -49,7 +50,7 @@ function attachVdis(...sizes: number[]) {
 it('renders the card title', () => {
   const wrapper = mountResourcesCard()
 
-  expect(wrapper.get('.ui-card-title .title').text()).toBe('Resources')
+  expect(wrapper.get('.ui-card-title .title').text()).toBe(t('resources'))
 })
 
 it('shows the vCPU count, the formatted RAM and the summed disk space of the VM', () => {
@@ -64,11 +65,11 @@ it('shows the vCPU count, the formatted RAM and the summed disk space of the VM'
   )
 
   expect(findCardLabelledValues(wrapper)).toEqual({
-    vCPUs: '2',
-    RAM: '4 GiB',
-    'Disk space': '3 GiB',
-    VDIs: '2',
-    Snapshots: '1',
+    [t('vcpus')]: '2',
+    [t('ram')]: '4 GiB',
+    [t('disk-space')]: '3 GiB',
+    [t('vdis')]: '2',
+    [t('snapshots')]: '1',
   })
 })
 
@@ -79,11 +80,15 @@ it('ignores the VBDs whose VDI cannot be resolved when summing the disk space', 
   ])
   getVdiById.mockImplementation((id: string) => (id === 'vdi-a' ? createVdi({ size: 1073741824 }) : undefined))
 
-  expect(findCardLabelledValues(mountResourcesCard())).toMatchObject({ 'Disk space': '1 GiB' })
+  expect(findCardLabelledValues(mountResourcesCard())).toMatchObject({ [t('disk-space')]: '1 GiB' })
 })
 
 it('leaves the VDI and snapshot counts empty when the VM has none', () => {
   const wrapper = mountResourcesCard(createVm({ $VBDs: [], snapshots: [] }))
 
-  expect(findCardLabelledValues(wrapper)).toMatchObject({ VDIs: '', Snapshots: '', 'Disk space': '0 B' })
+  expect(findCardLabelledValues(wrapper)).toMatchObject({
+    [t('vdis')]: '',
+    [t('snapshots')]: '',
+    [t('disk-space')]: '0 B',
+  })
 })

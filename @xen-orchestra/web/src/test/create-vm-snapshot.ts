@@ -7,8 +7,8 @@ import { VM_POWER_STATE } from '@vates/types'
  */
 export function createVmSnapshot(overrides: Partial<FrontXoVmSnapshot> = {}): FrontXoVmSnapshot {
   return {
-    id: 'snapshot-123',
-    $snapshot_of: 'vm-123',
+    id: 'snapshot-123' as FrontXoVmSnapshot['id'],
+    $snapshot_of: 'vm-123' as FrontXoVmSnapshot['$snapshot_of'],
     name_label: 'Test snapshot',
     name_description: 'A test snapshot',
     snapshot_time: 1660000000,
@@ -23,5 +23,5 @@ export function createVmSnapshot(overrides: Partial<FrontXoVmSnapshot> = {}): Fr
     creation: {},
     $VBDs: [],
     ...overrides,
-  } as FrontXoVmSnapshot
+  }
 }

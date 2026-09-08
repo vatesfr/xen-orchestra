@@ -7,13 +7,13 @@ import { HOST_POWER_STATE } from '@vates/types'
  */
 export function createHost(overrides: Partial<FrontXoHost> = {}): FrontXoHost {
   return {
-    id: 'host-456',
+    id: 'host-456' as FrontXoHost['id'],
     name_label: 'Test Host',
     name_description: 'A test host',
     power_state: HOST_POWER_STATE.RUNNING,
-    controlDomain: 'vm-controller-123',
+    controlDomain: 'vm-controller-123' as FrontXoHost['controlDomain'],
     residentVms: [],
-    $pool: 'pool-789',
+    $pool: 'pool-789' as FrontXoHost['$pool'],
     current_operations: {},
     address: '192.168.1.1',
     startTime: 1660000000000,
@@ -34,5 +34,5 @@ export function createHost(overrides: Partial<FrontXoHost> = {}): FrontXoHost {
     PGPUs: [],
     type: 'host',
     ...overrides,
-  } as FrontXoHost
+  }
 }

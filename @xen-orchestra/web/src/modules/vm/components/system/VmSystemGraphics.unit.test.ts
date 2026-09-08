@@ -1,6 +1,7 @@
 import VmSystemGraphics from '@/modules/vm/components/system/VmSystemGraphics.vue'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
 
 function mountGraphics(vm = createVm()) {
@@ -13,19 +14,19 @@ function mountGraphics(vm = createVm()) {
 it('renders the card title', () => {
   const wrapper = mountGraphics()
 
-  expect(wrapper.text()).toContain('Graphics & Display')
+  expect(wrapper.text()).toContain(t('graphics-display'))
 })
 
 it('shows VGA as enabled when the VM uses the "std" adapter', () => {
   const wrapper = mountGraphics(createVm({ vga: 'std' }))
 
-  expect(wrapper.text()).toContain('Enabled')
+  expect(wrapper.text()).toContain(t('enabled'))
 })
 
 it('shows VGA as disabled for any other adapter', () => {
   const wrapper = mountGraphics(createVm({ vga: 'qxl' }))
 
-  expect(wrapper.text()).toContain('Disabled')
+  expect(wrapper.text()).toContain(t('disabled'))
 })
 
 it('formats the video RAM with its unit', () => {

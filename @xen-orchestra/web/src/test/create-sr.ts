@@ -6,11 +6,11 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
  */
 export function createSr(overrides: Partial<FrontXoSr> = {}): FrontXoSr {
   return {
-    id: 'sr-123',
+    id: 'sr-123' as FrontXoSr['id'],
     name_label: 'Test SR',
     name_description: 'A test storage repository',
-    $pool: 'pool-789',
-    $container: 'host-456',
+    $pool: 'pool-789' as FrontXoSr['$pool'],
+    $container: 'host-456' as FrontXoSr['$container'],
     content_type: 'user',
     physical_usage: 1073741824,
     usage: 1073741824,
@@ -25,5 +25,5 @@ export function createSr(overrides: Partial<FrontXoSr> = {}): FrontXoSr {
     allocationStrategy: 'thin',
     $PBDs: [],
     ...overrides,
-  } as FrontXoSr
+  }
 }

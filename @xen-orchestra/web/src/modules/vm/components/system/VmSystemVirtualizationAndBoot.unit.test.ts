@@ -3,6 +3,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createVm } from '@/test/create-vm.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
 
 function mountVirtualizationAndBoot(vm: FrontXoVm = createVm()) {
@@ -15,7 +16,7 @@ function mountVirtualizationAndBoot(vm: FrontXoVm = createVm()) {
 it('renders the card title', () => {
   const wrapper = mountVirtualizationAndBoot()
 
-  expect(wrapper.get('.ui-title').text()).toBe('Virtualization & boot settings')
+  expect(wrapper.get('.ui-title').text()).toBe(t('virtualization-boot-settings'))
 })
 
 it('shows every enabled virtualization and boot setting', () => {
@@ -32,13 +33,13 @@ it('shows every enabled virtualization and boot setting', () => {
   )
 
   expect(findLabelledValues(wrapper)).toEqual({
-    'Virtualization mode': 'pv',
-    'Secure boot': 'Enabled',
-    'Boot firmware': 'uefi',
-    'Virtual TPM (VTPM)': 'vtpm-1, vtpm-2',
-    Viridian: 'Enabled',
-    'Manage citrix PV drivers via Windows Update': 'Enabled',
-    'Nested virtualization': 'Enabled',
+    [t('virtualization-mode')]: 'pv',
+    [t('secure-boot')]: t('enabled'),
+    [t('boot-firmware')]: 'uefi',
+    [t('virtual-tpm')]: 'vtpm-1, vtpm-2',
+    [t('viridian')]: t('enabled'),
+    [t('manage-citrix-pv-drivers-via-windows-update')]: t('enabled'),
+    [t('nested-virtualization')]: t('enabled'),
   })
 })
 
@@ -56,12 +57,12 @@ it('shows every disabled setting and falls back for the missing values', () => {
   )
 
   expect(findLabelledValues(wrapper)).toEqual({
-    'Virtualization mode': 'hvm',
-    'Secure boot': 'Disabled',
-    'Boot firmware': '',
-    'Virtual TPM (VTPM)': 'None',
-    Viridian: 'Disabled',
-    'Manage citrix PV drivers via Windows Update': 'Disabled',
-    'Nested virtualization': 'Disabled',
+    [t('virtualization-mode')]: 'hvm',
+    [t('secure-boot')]: t('disabled'),
+    [t('boot-firmware')]: '',
+    [t('virtual-tpm')]: t('none'),
+    [t('viridian')]: t('disabled'),
+    [t('manage-citrix-pv-drivers-via-windows-update')]: t('disabled'),
+    [t('nested-virtualization')]: t('disabled'),
   })
 })

@@ -4,6 +4,7 @@ import VmSnapshotCard from '@/modules/vm/components/snapshot/cards/VmSnapshotCar
 import { createVmSnapshot } from '@/test/create-vm-snapshot.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { d, t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
 
 const { buildXo5VmSnapshotRoute } = vi.hoisted(() => ({
@@ -35,10 +36,14 @@ it('renders the title it is given', () => {
 })
 
 it('shows the name and the creation date of the snapshot', () => {
-  const labelledValues = findLabelledValues(mountSnapshotCard(createVmSnapshot({ name_label: 'Before upgrade' })))
+  const snapshot = createVmSnapshot({ name_label: 'Before upgrade' })
 
-  expect(labelledValues.Snapshot).toBe('Before upgrade')
-  expect(labelledValues['Snapshot created on']).not.toBe('')
+  const labelledValues = findLabelledValues(mountSnapshotCard(snapshot))
+
+  expect(labelledValues[t('snapshot')]).toBe('Before upgrade')
+  expect(labelledValues[t('snapshot-created-on')]).toBe(
+    d(snapshot.snapshot_time * 1000, { dateStyle: 'short', timeStyle: 'medium' })
+  )
 })
 
 it('links the snapshot to its XO 5 page', () => {
@@ -63,13 +68,13 @@ it('offers to copy the snapshot name', () => {
 it('leaves both rows empty and offers no copy when there is no snapshot', () => {
   const wrapper = mountSnapshotCard(undefined)
 
-  expect(findLabelledValues(wrapper)).toEqual({ Snapshot: '', 'Snapshot created on': '' })
+  expect(findLabelledValues(wrapper)).toEqual({ [t('snapshot')]: '', [t('snapshot-created-on')]: '' })
   expect(wrapper.find('.copy-button').exists()).toBe(false)
 })
 
 it('shows no name and no copy button for an unnamed snapshot', () => {
   const wrapper = mountSnapshotCard(createVmSnapshot({ name_label: '' }))
 
-  expect(findLabelledValues(wrapper).Snapshot).toBe('')
+  expect(findLabelledValues(wrapper)[t('snapshot')]).toBe('')
   expect(wrapper.find('.copy-button').exists()).toBe(false)
 })

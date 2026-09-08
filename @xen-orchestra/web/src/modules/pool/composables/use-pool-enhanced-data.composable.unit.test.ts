@@ -3,6 +3,7 @@ import { usePoolEnhancedData } from '@/modules/pool/composables/use-pool-enhance
 import { createEnhancedDataHelpers } from '@/test/create-enhanced-data-helpers.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createServer } from '@/test/create-server.ts'
+import { objectIcon } from '@core/icons'
 import { HOST_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
 
@@ -88,8 +89,8 @@ describe('getDisplayData', () => {
 
     const displayData = mountFirstDisplayData()
 
-    expect(displayData.hostIcon).toBe('object:host:running')
-    expect(displayData.primaryHostIcon).toBe('object:host:running')
+    expect(displayData.hostIcon).toBe(objectIcon('host', 'running'))
+    expect(displayData.primaryHostIcon).toBe(objectIcon('host', 'running'))
   })
 
   it('leaves the host icons undefined when the master host is unknown', () => {
@@ -108,7 +109,7 @@ describe('getDisplayData', () => {
 
     const displayData = mountFirstDisplayData()
 
-    expect(displayData.hostIcon).toBe('object:host:halted')
+    expect(displayData.hostIcon).toBe(objectIcon('host', 'halted'))
   })
 
   it('shows the primary-circle icon when the master host leads its pool', () => {

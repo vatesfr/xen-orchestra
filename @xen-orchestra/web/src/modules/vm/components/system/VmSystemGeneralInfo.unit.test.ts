@@ -3,6 +3,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createVm } from '@/test/create-vm.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { t } from '@/test/i18n.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
@@ -16,7 +17,7 @@ function mountGeneralInfo(vm: FrontXoVm = createVm()) {
 it('renders the card title', () => {
   const wrapper = mountGeneralInfo()
 
-  expect(wrapper.get('.ui-title').text()).toBe('General information')
+  expect(wrapper.get('.ui-title').text()).toBe(t('general-information'))
 })
 
 it('shows the identity, operating system and guest tools of the VM', () => {
@@ -36,21 +37,21 @@ it('shows the identity, operating system and guest tools of the VM', () => {
   )
 
   expect(findLabelledValues(wrapper)).toEqual({
-    Name: 'Web server',
-    ID: 'vm-42',
-    Description: 'Serves the website',
-    Tags: 'production',
-    'OS name': 'Debian Bookworm',
-    'OS kernel': '6.1.0-18-amd64',
-    'Management agent version': '7.5.0',
-    'Guest tools': '7.5.0',
+    [t('name')]: 'Web server',
+    [t('id')]: 'vm-42',
+    [t('description')]: 'Serves the website',
+    [t('tags')]: 'production',
+    [t('os-name')]: 'Debian Bookworm',
+    [t('os-kernel')]: '6.1.0-18-amd64',
+    [t('management-agent-version')]: '7.5.0',
+    [t('guest-tools')]: '7.5.0',
   })
 })
 
 it('leaves the operating system rows empty when the VM reports no OS version', () => {
   const wrapper = mountGeneralInfo(createVm({ os_version: null }))
 
-  expect(findLabelledValues(wrapper)).toMatchObject({ 'OS name': '', 'OS kernel': '' })
+  expect(findLabelledValues(wrapper)).toMatchObject({ [t('os-name')]: '', [t('os-kernel')]: '' })
 })
 
 it('renders one tag per VM tag', () => {
@@ -63,11 +64,11 @@ it('renders no tag when the VM has none', () => {
   const wrapper = mountGeneralInfo(createVm({ tags: [] }))
 
   expect(wrapper.find('.ui-tag').exists()).toBe(false)
-  expect(findLabelledValues(wrapper)).toMatchObject({ Tags: '' })
+  expect(findLabelledValues(wrapper)).toMatchObject({ [t('tags')]: '' })
 })
 
 it('shows the guest tools as not applicable when the VM is not running', () => {
   const wrapper = mountGeneralInfo(createVm({ power_state: VM_POWER_STATE.HALTED }))
 
-  expect(findLabelledValues(wrapper)).toMatchObject({ 'Guest tools': '-' })
+  expect(findLabelledValues(wrapper)).toMatchObject({ [t('guest-tools')]: '-' })
 })

@@ -7,6 +7,7 @@ import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { d, t } from '@/test/i18n.ts'
 import { objectIcon } from '@core/icons'
 import { mount } from '@vue/test-utils'
 import { computed, ref } from 'vue'
@@ -62,7 +63,7 @@ function mountReplication(vmDashboard: XoVmDashboard | undefined, hasError = fal
 it('renders the card title', () => {
   const wrapper = mountReplication(createDashboard(createReplication()))
 
-  expect(wrapper.get('.ui-card-title').text()).toBe('Last replication')
+  expect(wrapper.get('.ui-card-title').text()).toBe(t('backup:last-replication'))
 })
 
 it('shows a loader while the dashboard has not reported any replication yet', () => {
@@ -82,7 +83,7 @@ it('shows a loader while the storage repositories are still loading', () => {
 it('shows an error message when the dashboard failed', () => {
   const wrapper = mountReplication(createDashboard(createReplication()), true)
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe("Error, can't collect data.")
+  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
 })
 
 it('shows an error message when the storage repositories failed to load', () => {
@@ -90,29 +91,32 @@ it('shows an error message when the storage repositories failed to load', () => 
 
   const wrapper = mountReplication(createDashboard(createReplication()))
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe("Error, can't collect data.")
+  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
 })
 
 it('reports that the VM is not replicated when the replication is empty', () => {
   const wrapper = mountReplication(createDashboard({} as VmReplication))
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(
-    'This VM isn’t being replicated. Configure a replication job to enable it.'
-  )
+  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-replicated-vm'))
 })
 
 it('shows the replicated VM, its date and its storage repository', () => {
   getVmById.mockReturnValue(createVm({ name_label: 'Web server' }))
   getSrById.mockReturnValue(createSr({ name_label: 'Backup SR' }))
 
-  const wrapper = mountReplication(createDashboard(createReplication({ sr: 'sr-1' as VmReplication['sr'] })))
+  const replication = createReplication({ sr: 'sr-1' as VmReplication['sr'] })
 
-  expect(findLabelledValues(wrapper)).toMatchObject({ VM: 'Web server', 'Storage repository': 'Backup SR' })
-  expect(findLabelledValues(wrapper).Date).not.toBe('')
+  const wrapper = mountReplication(createDashboard(replication))
+
+  expect(findLabelledValues(wrapper)).toMatchObject({
+    [t('vm')]: 'Web server',
+    [t('date')]: d(replication.timestamp, { dateStyle: 'short', timeStyle: 'medium' }),
+    [t('storage-repository')]: 'Backup SR',
+  })
 })
 
 it('leaves the VM and storage repository rows empty when neither can be resolved', () => {
   const wrapper = mountReplication(createDashboard(createReplication()))
 
-  expect(findLabelledValues(wrapper)).toMatchObject({ VM: '', 'Storage repository': '' })
+  expect(findLabelledValues(wrapper)).toMatchObject({ [t('vm')]: '', [t('storage-repository')]: '' })
 })

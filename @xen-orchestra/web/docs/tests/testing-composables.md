@@ -5,15 +5,21 @@ A composable that relies on a Vue context (`useI18n`, `inject`, an effect scope,
 ```typescript
 import { mountComposable } from '@/test/mount-composable.ts'
 
-const { wrapper } = mountComposable(() => useXoVmUtils(createVm({ power_state: VM_POWER_STATE.RUNNING })))
+const { wrapper } = mountComposable(() => {
+  const { t } = useI18n()
+
+  return { ...useXoVmUtils(createVm({ power_state: VM_POWER_STATE.RUNNING })), t }
+})
 
 expect(wrapper.vm.powerState.icon).toBe('status:running-circle')
-expect(wrapper.vm.powerState.text).toBe('Running')
+expect(wrapper.vm.powerState.text).toBe(wrapper.vm.t('vm:status:running'))
 ```
 
 The composable result becomes the component state, so `wrapper.vm` exposes it with refs **already unwrapped** — no `.value`. Read through `wrapper.vm` rather than destructuring it: a destructured value is a snapshot and stops following updates.
 
-Because the real i18n instance is installed, assertions check the **actual translated strings** (`'Running'`, `'Not running'`, `'Unknown'`).
+Because the real i18n instance is installed, translations resolve to actual strings. Return `t` from the `setup` callback so the assertion can build its expected label with it instead of hard-coding the wording — see [Assert behaviour](./assert-behaviour.md).
+
+The wrapper is unmounted after the test, so `onUnmounted` and `onScopeDispose` cleanup runs and no watcher of a previous test can re-fire in the next one.
 
 ## Reactivity
 

@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import { buildHostCpuUsageSeries, getHostCpuUsageMaxValue } from '@/modules/host/utils/xo-host-dashboard.util.ts'
+import { buildCpuUsageSeries, getCpuUsageMaxValue } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData, ValueFormatter } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -33,7 +33,7 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t, n } = useI18n()
 
-const cpuUsageSeries = computed(() => buildHostCpuUsageSeries(data))
+const cpuUsageSeries = computed(() => buildCpuUsageSeries(data))
 
 const cpuUsage = computed<LinearChartData>(() => {
   if (cpuUsageSeries.value.length === 0) {
@@ -48,7 +48,7 @@ const cpuUsage = computed<LinearChartData>(() => {
   ]
 })
 
-const maxValue = computed(() => getHostCpuUsageMaxValue(cpuUsageSeries.value))
+const maxValue = computed(() => getCpuUsageMaxValue(cpuUsageSeries.value))
 
 const valueFormatter: ValueFormatter = value => {
   if (value === null) {

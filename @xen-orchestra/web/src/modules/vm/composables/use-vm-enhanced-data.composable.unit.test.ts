@@ -5,6 +5,7 @@ import { createEnhancedDataHelpers } from '@/test/create-enhanced-data-helpers.t
 import { createVbd } from '@/test/create-vbd.ts'
 import { createVdi } from '@/test/create-vdi.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { objectIcon } from '@core/icons'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
@@ -111,12 +112,12 @@ describe('getDisplayData', () => {
   it('derives the VM icon from the lowercased power state', () => {
     const displayData = mountFirstDisplayData([createVm({ power_state: VM_POWER_STATE.RUNNING })])
 
-    expect(displayData.vmIcon).toBe('object:vm:running')
+    expect(displayData.vmIcon).toBe(objectIcon('vm', 'running'))
   })
 
   it('maps the VM icon to the halted state when the VM is halted', () => {
     const displayData = mountFirstDisplayData([createVm({ power_state: VM_POWER_STATE.HALTED })])
 
-    expect(displayData.vmIcon).toBe('object:vm:halted')
+    expect(displayData.vmIcon).toBe(objectIcon('vm', 'halted'))
   })
 })

@@ -24,6 +24,10 @@ This applies to **navigation into the result** too, not only to mounting. An exp
 
 The exception is a **reactivity** test: it must keep the live `wrapper` so it can re-read through `wrapper.vm` after reassigning the source ref. A helper returning a snapshot of the first item would defeat the test.
 
+## Unmounting
+
+`src/test/setup.ts` calls `enableAutoUnmount(afterEach)`, so every wrapper — `mount` or `mountComposable` — is unmounted after the test that created it. Never unmount by hand, and never mount in `beforeAll`: that wrapper would be torn down after the first test.
+
 ## Shared helpers: `use<X>EnhancedData`
 
 When several modules test the _same shape_ of composable, the helpers belong in `src/test/`, not copy-pasted per module. The `use<X>EnhancedData` family (`usePoolEnhancedData`, `useVmEnhancedData`, … each backing a `<X>sTable.vue`) all expose a `filterable<X>s` computed plus a `getDisplayData`, so `src/test/create-enhanced-data-helpers.ts` builds their three helpers once. Only the name of the filterable list varies, so it is passed as a getter:

@@ -13,6 +13,7 @@ import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { t } from '@/test/i18n.ts'
 import type { XoUser } from '@vates/types'
 import { HOST_POWER_STATE, VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
@@ -96,17 +97,17 @@ it('lists every row of the card, in order', () => {
   const wrapper = mountInfoCard()
 
   expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.key').text())).toEqual([
-    'State',
-    'Description',
-    'Tags',
-    'Pool',
-    'Host',
-    'OS name',
-    'Guest tools',
-    'Template',
-    'Created on',
-    'Created by',
-    'Started',
+    t('state'),
+    t('description'),
+    t('tags'),
+    t('pool'),
+    t('host'),
+    t('os-name'),
+    t('guest-tools'),
+    t('template'),
+    t('created-on'),
+    t('created-by'),
+    t('started'),
   ])
 })
 
@@ -120,9 +121,9 @@ it('shows the power state, description and OS name of the VM', () => {
   )
 
   expect(findCardLabelledValues(wrapper)).toMatchObject({
-    State: 'Halted',
-    Description: 'Serves the website',
-    'OS name': 'Debian Bookworm',
+    [t('state')]: t('vm:status:halted'),
+    [t('description')]: 'Serves the website',
+    [t('os-name')]: 'Debian Bookworm',
   })
 })
 
@@ -135,21 +136,21 @@ it('renders one tag per VM tag', () => {
 it('shows the name of the pool hosting the VM', () => {
   useGetPoolById.mockReturnValue(computed(() => createPool({ name_label: 'Production Pool' })))
 
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ Pool: 'Production Pool' })
+  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('pool')]: 'Production Pool' })
 })
 
 it('leaves the pool row empty when the pool is unknown', () => {
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ Pool: '' })
+  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('pool')]: '' })
 })
 
 it('shows the name of the host running the VM', () => {
   getVmHost.mockReturnValue(createHost({ name_label: 'Primary Host', power_state: HOST_POWER_STATE.RUNNING }))
 
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ Host: 'Primary Host' })
+  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('host')]: 'Primary Host' })
 })
 
 it('leaves the host row empty when the VM runs on no host', () => {
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ Host: '' })
+  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('host')]: '' })
 })
 
 it('shows the name of the template the VM was created from', () => {
@@ -162,7 +163,7 @@ it('shows the name of the template the VM was created from', () => {
     })
   )
 
-  expect(findCardLabelledValues(wrapper)).toMatchObject({ Template: 'Debian 12' })
+  expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('template')]: 'Debian 12' })
 })
 
 it('ignores a same-uuid template belonging to another pool', () => {
@@ -178,7 +179,7 @@ it('ignores a same-uuid template belonging to another pool', () => {
     })
   )
 
-  expect(findCardLabelledValues(wrapper)).toMatchObject({ Template: 'Debian 12 (removed)' })
+  expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('template')]: 'Debian 12 (removed)' })
 })
 
 it('shows the name of the user who created the VM', () => {
@@ -186,7 +187,7 @@ it('shows the name of the user who created the VM', () => {
     user: computed(() => ({ id: 'user-1', name: 'alice', email: 'alice@example.com' }) as XoUser),
   })
 
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ 'Created by': 'alice' })
+  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('created-by')]: 'alice' })
 })
 
 it('falls back to the email of the user who created the VM', () => {
@@ -194,9 +195,9 @@ it('falls back to the email of the user who created the VM', () => {
     user: computed(() => ({ id: 'user-1', name: '', email: 'alice@example.com' }) as XoUser),
   })
 
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ 'Created by': 'alice@example.com' })
+  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('created-by')]: 'alice@example.com' })
 })
 
 it('falls back to "Unknown" when the creator of the VM is not known', () => {
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ 'Created by': 'Unknown' })
+  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('created-by')]: t('unknown') })
 })

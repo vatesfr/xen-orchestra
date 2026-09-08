@@ -14,7 +14,8 @@
 </template>
 
 <script lang="ts" setup>
-import { buildHostLoadAverageSeries, getHostLoadAverageMaxValue } from '@/modules/host/utils/xo-host-dashboard.util.ts'
+import { buildHostLoadAverageSeries } from '@/modules/host/utils/xo-host-dashboard.util.ts'
+import { getChartMaxValue } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -48,5 +49,5 @@ const loadAverage = computed<LinearChartData>(() => {
   ]
 })
 
-const maxValue = computed(() => getHostLoadAverageMaxValue(loadAverageSeries.value))
+const maxValue = computed(() => getChartMaxValue(loadAverageSeries.value, { step: 5, fallback: 10 }))
 </script>

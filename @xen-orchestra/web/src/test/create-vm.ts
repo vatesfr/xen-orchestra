@@ -7,12 +7,12 @@ import { VM_POWER_STATE } from '@vates/types'
  */
 export function createVm(overrides: Partial<FrontXoVm> = {}): FrontXoVm {
   return {
-    id: 'vm-123',
+    id: 'vm-123' as FrontXoVm['id'],
     name_label: 'Test VM',
     name_description: 'A test virtual machine',
     power_state: VM_POWER_STATE.RUNNING,
-    $container: 'host-456',
-    $pool: 'pool-789',
+    $container: 'host-456' as FrontXoVm['$container'],
+    $pool: 'pool-789' as FrontXoVm['$pool'],
     other: {},
     current_operations: {},
     creation: {},
@@ -46,7 +46,8 @@ export function createVm(overrides: Partial<FrontXoVm> = {}): FrontXoVm {
     nicType: 'rtl8139',
     affinityHost: undefined,
     suspendSr: undefined,
-    blockedOperations: {},
+    // `XoVm` types this as a complete `Record<VM_OPERATIONS, string>`, while the API only sends the blocked ones
+    blockedOperations: {} as FrontXoVm['blockedOperations'],
     hasVendorDevice: false,
     startTime: 1660000000,
     installTime: 1659900000,
@@ -59,5 +60,5 @@ export function createVm(overrides: Partial<FrontXoVm> = {}): FrontXoVm {
     boot: { order: 'cdn' },
     parent: undefined,
     ...overrides,
-  } as FrontXoVm
+  }
 }

@@ -9,6 +9,7 @@ import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { t } from '@/test/i18n.ts'
 import type { XoUser } from '@vates/types'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
@@ -79,21 +80,21 @@ it('lists every row of the card, in order', () => {
   const wrapper = mountQuickInfo()
 
   expect(wrapper.findAll('.vts-key-value-row').map(row => row.get('dt.label').text())).toEqual([
-    'State',
-    'IP address',
-    'Created on',
-    'Created by',
-    'Started',
-    'UUID',
-    'Pool',
-    'Host',
-    'Description',
-    'OS name',
-    'Virtualization type',
-    'Guest tools',
-    'vCPUs',
-    'RAM',
-    'Tags',
+    t('state'),
+    t('ip-address'),
+    t('created-on'),
+    t('created-by'),
+    t('started'),
+    t('uuid'),
+    t('pool'),
+    t('host'),
+    t('description'),
+    t('os-name'),
+    t('virtualization-type'),
+    t('guest-tools'),
+    t('vcpus'),
+    t('ram'),
+    t('tags'),
   ])
 })
 
@@ -111,43 +112,46 @@ it('shows the identity, power state and resources of the VM', () => {
   )
 
   expect(findLabelledValues(wrapper)).toMatchObject({
-    State: 'Paused',
-    'IP address': '10.0.0.1',
-    UUID: 'vm-42',
-    Description: 'Serves the website',
-    'OS name': 'Debian Bookworm',
-    vCPUs: '2',
-    RAM: '4 GiB',
+    [t('state')]: t('vm:status:paused'),
+    [t('ip-address')]: '10.0.0.1',
+    [t('uuid')]: 'vm-42',
+    [t('description')]: 'Serves the website',
+    [t('os-name')]: 'Debian Bookworm',
+    [t('vcpus')]: '2',
+    [t('ram')]: '4 GiB',
   })
 })
 
 it('reports an HVM guest running the PV drivers as pvhvm', () => {
   const wrapper = mountQuickInfo(createVm({ virtualizationMode: 'hvm', pvDriversDetected: true }))
 
-  expect(findLabelledValues(wrapper)).toMatchObject({ 'Virtualization type': 'pvhvm' })
+  expect(findLabelledValues(wrapper)).toMatchObject({ [t('virtualization-type')]: 'pvhvm' })
 })
 
 it('reports the raw virtualization mode of an HVM guest without PV drivers', () => {
   const wrapper = mountQuickInfo(createVm({ virtualizationMode: 'hvm', pvDriversDetected: false }))
 
-  expect(findLabelledValues(wrapper)).toMatchObject({ 'Virtualization type': 'hvm' })
+  expect(findLabelledValues(wrapper)).toMatchObject({ [t('virtualization-type')]: 'hvm' })
 })
 
 it('reports the raw virtualization mode of a paravirtualized guest', () => {
   const wrapper = mountQuickInfo(createVm({ virtualizationMode: 'pv', pvDriversDetected: true }))
 
-  expect(findLabelledValues(wrapper)).toMatchObject({ 'Virtualization type': 'pv' })
+  expect(findLabelledValues(wrapper)).toMatchObject({ [t('virtualization-type')]: 'pv' })
 })
 
 it('shows the pool and the host of the VM', () => {
   useGetPoolById.mockReturnValue(computed(() => createPool({ name_label: 'Production Pool' })))
   getVmHost.mockReturnValue(createHost({ name_label: 'Primary Host' }))
 
-  expect(findLabelledValues(mountQuickInfo())).toMatchObject({ Pool: 'Production Pool', Host: 'Primary Host' })
+  expect(findLabelledValues(mountQuickInfo())).toMatchObject({
+    [t('pool')]: 'Production Pool',
+    [t('host')]: 'Primary Host',
+  })
 })
 
 it('falls back to "None" when the VM has neither a known pool nor a host', () => {
-  expect(findLabelledValues(mountQuickInfo())).toMatchObject({ Pool: 'None', Host: 'None' })
+  expect(findLabelledValues(mountQuickInfo())).toMatchObject({ [t('pool')]: t('none'), [t('host')]: t('none') })
 })
 
 it('shows the name of the user who created the VM', () => {
@@ -155,11 +159,11 @@ it('shows the name of the user who created the VM', () => {
     user: computed(() => ({ id: 'user-1', name: 'alice', email: 'alice@example.com' }) as XoUser),
   })
 
-  expect(findLabelledValues(mountQuickInfo())).toMatchObject({ 'Created by': 'alice' })
+  expect(findLabelledValues(mountQuickInfo())).toMatchObject({ [t('created-by')]: 'alice' })
 })
 
 it('falls back to "Unknown" when the creator of the VM is not known', () => {
-  expect(findLabelledValues(mountQuickInfo())).toMatchObject({ 'Created by': 'Unknown' })
+  expect(findLabelledValues(mountQuickInfo())).toMatchObject({ [t('created-by')]: t('unknown') })
 })
 
 it('renders one tag per VM tag', () => {

@@ -16,8 +16,7 @@
 </template>
 
 <script lang="ts" setup>
-import { buildVmNetworkUsageSeries, getVmNetworkUsageMaxValue } from '@/modules/vm/utils/xo-vm-dashboard.util.ts'
-import { formatChartBytes } from '@/shared/utils/chart-stats.util.ts'
+import { buildPairedUsageSeries, formatChartBytes, getPairedUsageMaxValue } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -36,10 +35,10 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t } = useI18n()
 
-const networkUsageSeries = computed(() => buildVmNetworkUsageSeries(data))
+const networkUsageSeries = computed(() => buildPairedUsageSeries(data, data?.stats.vifs?.rx, data?.stats.vifs?.tx))
 
 const networkUsage = computed<LinearChartData>(() => {
-  const { download, upload } = networkUsageSeries.value
+  const [download, upload] = networkUsageSeries.value
 
   if (download.length === 0 && upload.length === 0) {
     return []
@@ -57,5 +56,5 @@ const networkUsage = computed<LinearChartData>(() => {
   ]
 })
 
-const maxValue = computed(() => getVmNetworkUsageMaxValue(networkUsageSeries.value))
+const maxValue = computed(() => getPairedUsageMaxValue(networkUsageSeries.value, { step: 100 }))
 </script>

@@ -16,8 +16,7 @@
 </template>
 
 <script lang="ts" setup>
-import { buildVmRamUsageSeries, getVmRamUsageMaxValue } from '@/modules/vm/utils/xo-vm-dashboard.util.ts'
-import { formatChartBytes } from '@/shared/utils/chart-stats.util.ts'
+import { buildRamUsageSeries, formatChartBytes, getRamUsageMaxValue } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -36,7 +35,7 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t } = useI18n()
 
-const ramUsageSeries = computed(() => buildVmRamUsageSeries(data))
+const ramUsageSeries = computed(() => buildRamUsageSeries(data))
 
 const ramUsage = computed<LinearChartData>(() => {
   if (ramUsageSeries.value.length === 0) {
@@ -51,5 +50,5 @@ const ramUsage = computed<LinearChartData>(() => {
   ]
 })
 
-const maxValue = computed(() => getVmRamUsageMaxValue(data))
+const maxValue = computed(() => getRamUsageMaxValue(data))
 </script>

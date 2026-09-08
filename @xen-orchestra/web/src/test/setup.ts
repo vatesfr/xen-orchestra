@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { enableAutoUnmount } from '@vue/test-utils'
 
 // Composables that rely on remote resources (e.g. `useXoRoutes`) call `fetch`
 // as soon as they are used. In unit tests we never want to hit the network, so
@@ -9,3 +9,5 @@ vi.stubGlobal(
   'fetch',
   vi.fn(() => new Promise(() => {}))
 )
+
+enableAutoUnmount(afterEach)

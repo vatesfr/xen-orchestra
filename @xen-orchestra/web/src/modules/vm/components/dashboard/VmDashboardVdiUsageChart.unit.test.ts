@@ -1,6 +1,7 @@
 import VmDashboardVdiUsageChart from '@/modules/vm/components/dashboard/VmDashboardVdiUsageChart.vue'
 import { createVmStats } from '@/test/create-vm-stats.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { t } from '@/test/i18n.ts'
 import type { XapiVmStats } from '@vates/types/common'
 import { mount } from '@vue/test-utils'
 
@@ -16,8 +17,8 @@ const statsWithSamples = createVmStats({ stats: { xvds: { r: { xvda: [10, 20] },
 it('renders the card title and the period it covers', () => {
   const wrapper = mountChart({ data: statsWithSamples })
 
-  expect(wrapper.get('.ui-card-title').text()).toContain('VDI throughput')
-  expect(wrapper.get('.ui-card-title').text()).toContain('Last week')
+  expect(wrapper.get('.ui-card-title').text()).toContain(t('vdi-throughput'))
+  expect(wrapper.get('.ui-card-title').text()).toContain(t('last-week'))
 })
 
 it('shows a loader while the stats are loading', () => {
@@ -29,29 +30,35 @@ it('shows a loader while the stats are loading', () => {
 it('shows an error message when the stats could not be fetched', () => {
   const wrapper = mountChart({ data: null, error: true })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe("Error, can't collect data.")
+  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
 })
 
 it('prefers the error message over the missing stats', () => {
   const wrapper = mountChart({ data: statsWithSamples, error: true })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe("Error, can't collect data.")
+  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
 })
 
 it('reports that there is nothing to plot when the VM has no disk sample', () => {
   const wrapper = mountChart({ data: createVmStats() })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe('No data to calculate')
+  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
 })
 
 it('reports that there is nothing to plot for null stats', () => {
   const wrapper = mountChart({ data: null })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe('No data to calculate')
+  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
 })
 
 it('plots the chart once the stats hold samples', () => {
   const wrapper = mountChart({ data: statsWithSamples })
+
+  expect(wrapper.find('.vts-state-hero').exists()).toBe(false)
+})
+
+it('plots the chart for a VM reporting writes but no read', () => {
+  const wrapper = mountChart({ data: createVmStats({ stats: { xvds: { w: { xvda: [10, 20] } } } }) })
 
   expect(wrapper.find('.vts-state-hero').exists()).toBe(false)
 })

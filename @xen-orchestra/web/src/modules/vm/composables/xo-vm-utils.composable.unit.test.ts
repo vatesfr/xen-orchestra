@@ -21,7 +21,11 @@ beforeEach(() => {
 })
 
 function mountVmUtils(overrides: Partial<FrontXoVm> = {}) {
-  return mountComposable(() => useXoVmUtils(createVm(overrides))).wrapper.vm
+  return mountComposable(() => {
+    const { t } = useI18n()
+
+    return { ...useXoVmUtils(createVm(overrides)), t }
+  }).wrapper.vm
 }
 
 describe('powerState', () => {
@@ -29,58 +33,62 @@ describe('powerState', () => {
     const result = mountVmUtils({ power_state: VM_POWER_STATE.RUNNING })
 
     expect(result.powerState.icon).toBe('status:running-circle')
-    expect(result.powerState.text).toBe('Running')
+    expect(result.powerState.text).toBe(result.t('vm:status:running'))
   })
 
   it('reacts to changes of the source VM', () => {
     const vm = ref(createVm({ power_state: VM_POWER_STATE.RUNNING }))
-    const { wrapper } = mountComposable(() => useXoVmUtils(vm))
+    const { wrapper } = mountComposable(() => {
+      const { t } = useI18n()
+
+      return { ...useXoVmUtils(vm), t }
+    })
 
     expect(wrapper.vm.powerState.icon).toBe('status:running-circle')
 
     vm.value = createVm({ power_state: VM_POWER_STATE.HALTED })
 
     expect(wrapper.vm.powerState.icon).toBe('status:halted-circle')
-    expect(wrapper.vm.powerState.text).toBe('Halted')
+    expect(wrapper.vm.powerState.text).toBe(wrapper.vm.t('vm:status:halted'))
   })
 })
 
 describe('relativeStartTime', () => {
-  it('returns "Not running" when the VM is halted', () => {
+  it('returns the "not running" label when the VM is halted', () => {
     const result = mountVmUtils({ power_state: VM_POWER_STATE.HALTED })
 
-    expect(result.relativeStartTime).toBe('Not running')
+    expect(result.relativeStartTime).toBe(result.t('not-running'))
   })
 
   it('returns a relative time when the VM is running with a start time', () => {
     const result = mountVmUtils({ power_state: VM_POWER_STATE.RUNNING, startTime: 1660000000 })
 
-    expect(result.relativeStartTime).not.toBe('Not running')
+    expect(result.relativeStartTime).not.toBe(result.t('not-running'))
     expect(result.relativeStartTime).not.toBe('')
   })
 })
 
 describe('installDateFormatted', () => {
-  it('returns "Unknown" when there is no install time', () => {
+  it('returns the "unknown" label when there is no install time', () => {
     const result = mountVmUtils({ installTime: undefined })
 
-    expect(result.installDateFormatted).toBe('Unknown')
+    expect(result.installDateFormatted).toBe(result.t('unknown'))
   })
 
   it('formats the install date with the current locale', () => {
     const installTime = 1660000000
     const { wrapper } = mountComposable(() => {
-      const { locale } = useI18n()
+      const { locale, t } = useI18n()
       const { installDateFormatted } = useXoVmUtils(createVm({ installTime }))
       const expected = new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(
         new Date(parseDateTime(installTime * 1000))
       )
 
-      return { installDateFormatted, expected }
+      return { installDateFormatted, expected, t }
     })
 
     expect(wrapper.vm.installDateFormatted).toBe(wrapper.vm.expected)
-    expect(wrapper.vm.installDateFormatted).not.toBe('Unknown')
+    expect(wrapper.vm.installDateFormatted).not.toBe(wrapper.vm.t('unknown'))
   })
 })
 

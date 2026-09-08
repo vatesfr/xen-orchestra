@@ -16,8 +16,7 @@
 </template>
 
 <script lang="ts" setup>
-import { buildVmVdiUsageSeries, getVmVdiUsageMaxValue } from '@/modules/vm/utils/xo-vm-dashboard.util.ts'
-import { formatChartBytes } from '@/shared/utils/chart-stats.util.ts'
+import { buildPairedUsageSeries, formatChartBytes, getPairedUsageMaxValue } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -36,10 +35,10 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t } = useI18n()
 
-const vdiUsageSeries = computed(() => buildVmVdiUsageSeries(data))
+const vdiUsageSeries = computed(() => buildPairedUsageSeries(data, data?.stats.xvds?.r, data?.stats.xvds?.w))
 
 const vdiUsage = computed<LinearChartData>(() => {
-  const { read, write } = vdiUsageSeries.value
+  const [read, write] = vdiUsageSeries.value
 
   if (read.length === 0 && write.length === 0) {
     return []
@@ -57,5 +56,5 @@ const vdiUsage = computed<LinearChartData>(() => {
   ]
 })
 
-const maxValue = computed(() => getVmVdiUsageMaxValue(vdiUsageSeries.value))
+const maxValue = computed(() => getPairedUsageMaxValue(vdiUsageSeries.value, { step: 100 }))
 </script>
