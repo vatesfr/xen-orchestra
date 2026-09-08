@@ -217,6 +217,118 @@ describe('_removeUnusedSnapshots() in the synchronized batch pre-snapshot state'
   })
 })
 
+describe('_removeUnusedSnapshots() after a failed transfer', () => {
+  const BASE_DATETIME = '20260902T090100Z'
+  const FAILED_DATETIME = '20260902T092200Z'
+
+  const makeFailedRunRunner = ({ baseExported = true, freshExported = false } = {}) => {
+    const destroyed = []
+
+    const snapshotVm = $ref => ({
+      $ref,
+      name_label: $ref,
+      is_control_domain: false,
+      $snapshot_of: 'live-vm-ref',
+      other_config: {},
+    })
+    const baseSnapshotVm = snapshotVm('vm-base')
+    const freshSnapshotVm = snapshotVm('vm-failed')
+
+    const vdi = ($ref, datetime, snapshotVmRecord, isExported) => ({
+      $ref,
+      other_config: {
+        [DATETIME]: datetime,
+        [SCHEDULE_ID]: 'schedule-1',
+        ...(isExported ? { [EXPORTED_SUCCESSFULLY]: 'true' } : {}),
+      },
+      $VBDs: [{ $VM: snapshotVmRecord }],
+    })
+    // the base of the last successful run and the snapshot of the run that just failed
+    const baseVdi = vdi('vdi-base', BASE_DATETIME, baseSnapshotVm, baseExported)
+    const freshVdi = vdi('vdi-failed', FAILED_DATETIME, freshSnapshotVm, freshExported)
+
+    const registry = { 'vdi-base': baseVdi, 'vdi-failed': freshVdi }
+
+    const runner = makeRunner({
+      // no synchronized snapshot: this is a plain incremental replication job
+      _synchronizedSnapshotTimestamp: undefined,
+      _vm: { uuid: 'live-uuid', $snapshots: [] },
+      _baseSettings: { snapshotRetention: 0 },
+      _jobSnapshotVdis: [baseVdi, freshVdi],
+      _disklessJobSnapshotVms: [],
+      job: { mode: 'delta', settings: {} },
+      _xapi: {
+        barrier: async () => {},
+        getObject: ref => registry[ref],
+        VM_destroy: async ref => {
+          destroyed.push(ref)
+        },
+        VDI_destroy: async ref => {
+          destroyed.push(ref)
+        },
+      },
+    })
+
+    return { runner, destroyed }
+  }
+
+  it('keeps the last successfully exported snapshot as the delta base', async () => {
+    const { runner, destroyed } = makeFailedRunRunner()
+
+    await runner._removeUnusedSnapshots()
+
+    assert.equal(
+      destroyed.includes('vm-base'),
+      false,
+      'the last exported snapshot is the only usable delta base: destroying it forces a full on the next run'
+    )
+  })
+
+  it('reclaims the snapshot of the failed run (never exported, retention 0)', async () => {
+    const { runner, destroyed } = makeFailedRunRunner()
+
+    await runner._removeUnusedSnapshots()
+
+    assert.deepEqual(destroyed, ['vm-failed'], 'only the never-exported snapshot should be removed')
+  })
+
+  it('keeps the most recent snapshot once the transfer succeeded', async () => {
+    const { runner, destroyed } = makeFailedRunRunner({ freshExported: true })
+
+    await runner._removeUnusedSnapshots()
+
+    assert.deepEqual(destroyed, ['vm-base'], 'the newly exported snapshot should replace the previous base')
+  })
+
+  it('keeps the newest exported snapshot even when several runs failed in a row', async () => {
+    const { runner, destroyed } = makeFailedRunRunner()
+    // a second consecutive failure adds another never-exported snapshot
+    const secondFailedVm = {
+      $ref: 'vm-failed-2',
+      name_label: 'vm-failed-2',
+      is_control_domain: false,
+      $snapshot_of: 'live-vm-ref',
+      other_config: {},
+    }
+    const secondFailedVdi = {
+      $ref: 'vdi-failed-2',
+      other_config: { [DATETIME]: '20260902T092600Z', [SCHEDULE_ID]: 'schedule-1' },
+      $VBDs: [{ $VM: secondFailedVm }],
+    }
+    runner._jobSnapshotVdis.push(secondFailedVdi)
+    const getObject = runner._xapi.getObject
+    runner._xapi.getObject = ref => (ref === 'vdi-failed-2' ? secondFailedVdi : getObject(ref))
+
+    await runner._removeUnusedSnapshots()
+
+    assert.deepEqual(
+      destroyed.sort(),
+      ['vm-failed', 'vm-failed-2'],
+      'both failed snapshots should be reclaimed and the exported base kept'
+    )
+  })
+})
+
 describe('_removeUnusedSnapshots() reclaims orphan / CBT snapshot VDIs (no attached VM)', () => {
   // Guards the `else` branch: snapshot VDIs that are not attached to any user VM
   // (e.g. CBT metadata, orphans) must be reclaimed via VDI_destroy, not VM_destroy.

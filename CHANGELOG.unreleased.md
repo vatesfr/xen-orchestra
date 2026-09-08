@@ -23,6 +23,7 @@
 - [Web-core] Fix "console offline" illustration sparks color (PR [#10309](https://github.com/vatesfr/xen-orchestra/pull/10309))
 - [Web-core] Fix 404 illustration color (PR [#10325](https://github.com/vatesfr/xen-orchestra/pull/10325))
 - [Backup-archive] No longer create a `cache.json.gz` file on immutable/S3 remote during cleanup, which could not be deleted afterwards and stayed billed forever (PR [#10243](https://github.com/vatesfr/xen-orchestra/pull/10243))
+- [Backups] Fix orphaned VM on target after failed transfer (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
 - [Servers] Fix endless connection attempts to a pool which is already connected through another server entry (PR [#10355](https://github.com/vatesfr/xen-orchestra/pull/10355))
 - [Servers] fix a mishandling in the grace period before marking a pool disconnected, this will keep the ui in sync AND not redownload all the xapi object for a transient issue (PR [#10355](https://github.com/vatesfr/xen-orchestra/pull/10355))
 - [Rolling pool update/reboot] VMs are brought back to the host they were running on more reliably, and a VM that cannot be moved back no longer fails the whole operation (PR [#10295](https://github.com/vatesfr/xen-orchestra/pull/10295))

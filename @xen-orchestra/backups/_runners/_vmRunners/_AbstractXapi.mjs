@@ -436,8 +436,14 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       disklessVmSnapshots = disklessVmSnapshots.filter(vm => !isInFlightSyncSnapshot(vm))
     }
 
-    // get the datetime of the most recent snapshot across both VDI and diskless VM snapshots
-    const lastSnapshotDateTime = [...this._jobSnapshotVdis, ...disklessVmSnapshots]
+    const isExported = ({ other_config, $VBDs }) =>
+      other_config[EXPORTED_SUCCESSFULLY] !== undefined ||
+      // for VDI snapshots the flag may only have been written on the VM snapshot
+      $VBDs?.some(({ $VM }) => $VM?.other_config?.[EXPORTED_SUCCESSFULLY] !== undefined) === true
+
+    // get the datetime of the most recent exported snapshot across both VDI and diskless VM snapshots
+    const lastExportedSnapshotDateTime = [...this._jobSnapshotVdis, ...disklessVmSnapshots]
+      .filter(isExported)
       .map(({ other_config }) => other_config[DATETIME])
       .sort()
       .pop()
@@ -457,9 +463,9 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       }
       const retention = settings.snapshotRetention ?? 0
       await asyncMap(getOldEntries(retention, datetimes), async datetime => {
-        // keep the last snapshot across all schedules for delta
+        // keep the last exported snapshot across all schedules for delta
         // since we'll need it to compute delta for next backup
-        if (this.job.mode === 'delta' && datetime === lastSnapshotDateTime) {
+        if (this.job.mode === 'delta' && datetime === lastExportedSnapshotDateTime) {
           return
         }
         const vdis = snapshotPerDatetime[datetime]
@@ -529,7 +535,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
         const retention = settings.snapshotRetention ?? 0
         await asyncEach(getOldEntries(retention, datetimes), async datetime => {
-          if (this.job.mode === 'delta' && datetime === lastSnapshotDateTime) {
+          if (this.job.mode === 'delta' && datetime === lastExportedSnapshotDateTime) {
             return
           }
 
