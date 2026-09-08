@@ -6,14 +6,19 @@ import type { XoApp } from '@vates/types/xo-app'
 import genericErrorHandler from './middlewares/generic-error-handler.middleware.mjs'
 import tsoaToXoErrorHandler from './middlewares/tsoa-to-xo-error.middleware.mjs'
 import { RegisterRoutes } from './open-api/routes/routes.js'
-import { setupContainer } from './ioc/ioc.mjs'
+import { iocContainer, setupContainer } from './ioc/ioc.mjs'
 import { setupApiContext } from './middlewares/authentication.middleware.mjs'
 import { logMiddleware } from './middlewares/log.middleware.mjs'
 import { mcpGateMiddleware } from './middlewares/mcp-gate.middleware.mjs'
 import { type OpenAPIV3 } from 'openapi-types'
 import { createExternalRouter, sendObjects } from './router/external-router.mjs'
+import { KUBERNETES_WILDCARD_ENDPOINT, kubernetesRoutes } from './kubernetes/kubernetes.routes.mjs'
+import { KubernetesOpenApiService } from './kubernetes/kubernetes.openapi.mjs'
+import { createLogger } from '@xen-orchestra/log'
 
 export { sendObjects }
+
+const log = createLogger('xo:rest-api')
 
 // Avoid using "import from" to import a json file as this requires assert/with and will break compatibility with recent node versions
 // https://github.com/nodejs/node/issues/51622
@@ -53,6 +58,11 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
   // Create dynamic router so it can be used by plugin to register rest routes
   const { mountExternalRoute, externalRouter } = createExternalRouter(swaggerOpenApiSpec)
 
+  kubernetesRoutes.forEach(kubernetesRoute => {
+    mountExternalRoute(kubernetesRoute)
+  })
+  delete swaggerOpenApiSpec.paths[KUBERNETES_WILDCARD_ENDPOINT]
+
   express.use(BASE_URL, setupApiContext(xoApp))
   express.use(BASE_URL, logMiddleware)
   express.use(BASE_URL, mcpGateMiddleware)
@@ -61,7 +71,12 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
 
   express.use(BASE_URL, externalRouter)
 
-  express.get(`${BASE_URL}/docs/swagger.json`, (_req, res) => {
+  express.get(`${BASE_URL}/docs/swagger.json`, async (_req, res) => {
+    try {
+      await iocContainer.get(KubernetesOpenApiService).apply(swaggerOpenApiSpec)
+    } catch (error) {
+      log.warn('An error occured while fetching the CAPI schema', { error })
+    }
     res.setHeader('Content-Type', 'application/json')
     res.json(swaggerOpenApiSpec)
   })
