@@ -32,4 +32,13 @@ describe('getHostCoreSocketInfo', () => {
 
 ## Do not import from `vitest`
 
-`globals: true` (in `vite.config.ts`) together with `"types": ["vitest/globals"]` (in `tsconfig.app.json`) make `describe`, `it`, `expect`, `vi` and `beforeEach` available globally. **Never** add `import { ... } from 'vitest'`.
+`globals: true` (in `vite.config.ts`) together with `"types": ["vitest/globals"]` make `describe`, `it`, `expect`, `vi` and `beforeEach` available globally. **Never** add `import { ... } from 'vitest'`.
+
+Those types are declared in `tsconfig.vitest.json`, not in `tsconfig.app.json`, so they are ambient in test files only. A `expect()` left behind in production code is a type error rather than a runtime `ReferenceError` in the browser.
+
+The two projects split on the file name:
+
+| Project                | Covers                                                | Test globals |
+| ---------------------- | ----------------------------------------------------- | ------------ |
+| `tsconfig.app.json`    | everything **except** `*.unit.test.ts` and `setup.ts` | no           |
+| `tsconfig.vitest.json` | everything, tests included                            | yes          |

@@ -8,7 +8,7 @@
     "../web-core/lib/**/*",
     "../web-core/lib/**/*.vue"
   ],
-  "exclude": ["./src/**/__tests__/*"],
+  "exclude": ["./src/**/*.unit.test.ts", "./src/**/*.unit.spec.ts", "./src/test/setup.ts"],
   "compilerOptions": {
     "composite": true,
     "noEmit": true,
@@ -16,7 +16,6 @@
     "paths": {
       "@/*": ["./src/*"],
       "@core/*": ["../web-core/lib/*"]
-    },
-    "types": ["vitest/globals"]
+    }
   }
 }
