@@ -174,6 +174,39 @@ export class VmBackupsCache {
     }
   }
 
+  /**
+   * Returns the up-to-date backups of a single VM, without paying for a listing of every VM on
+   * the repository when the entry is still cold.
+   *
+   * Delegates to `get()` whenever an entry already exists or is being built or replayed, since a
+   * dedicated read would not save anything there; otherwise reads just this VM and lets `get()`
+   * build the full entry in the background, for the callers which do want every VM.
+   */
+  async getOneVm(repository, vmUuid) {
+    const { id } = repository
+
+    if (this.#entries.has(id) || this.#pending.has(id)) {
+      const backupsByVm = await this.get(repository)
+      return backupsByVm[vmUuid] === undefined ? {} : { [vmUuid]: backupsByVm[vmUuid] }
+    }
+
+    const backups = await this.#useAdapter(repository, adapter => adapter.listVmBackups(vmUuid))
+
+    // warms the entry in the background for the callers which want every VM
+    this.get(repository).catch(() => {})
+
+    if (backups.length === 0) {
+      return {}
+    }
+
+    const byFilename = {}
+    for (const backup of backups) {
+      const key = normalizeFilename(backup._filename)
+      byFilename[key] = format(backup, id, key)
+    }
+    return { [vmUuid]: byFilename }
+  }
+
   async #build(repository) {
     const { id } = repository
 
