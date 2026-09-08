@@ -1,3 +1,7 @@
+---
+unlisted: true
+---
+
 # Airgap support and deployment
 
 :::tip
