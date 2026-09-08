@@ -18,6 +18,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+// TODO: refactor to use the same component as HostsRamUsage.vue
 const { topFiveRam } = defineProps<{
   topFiveRam: NonNullable<NonNullable<XoPoolDashboard['vms']>['topFiveUsage']>['ram'] | undefined
   hasError?: boolean

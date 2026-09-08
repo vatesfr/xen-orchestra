@@ -19,6 +19,7 @@ import { cpuProgressThresholds } from '@core/utils/progress.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+// TODO: refactor to use the same component as VmsCpuUsage.vue
 const { topFiveCpu } = defineProps<{
   topFiveCpu: NonNullable<NonNullable<XoPoolDashboard['hosts']>['topFiveUsage']>['cpu'] | undefined
   hasError?: boolean
