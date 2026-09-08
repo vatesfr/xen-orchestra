@@ -40,7 +40,7 @@ The **search field** filters the whole tree as you type, which is the fastest wa
 
 <UiShot light="/img/xo6/treeview-search-light.png" dark="/img/xo6/treeview-search-dark.png" alt="Filtering the tree view" url="https://your-xo/v6/#/dashboard" />
 
-Next to the tree view, the **Administration** tab of the sidebar gives access to user management (see [Users and administration](../manage-your-infrastructure/management.md#users-and-administratio)).
+Next to the tree view, the **Administration** tab of the sidebar gives access to user management (see [Users and administration](../manage-your-infrastructure/management.md#users-and-administration)).
 
 ## Your first tour
 

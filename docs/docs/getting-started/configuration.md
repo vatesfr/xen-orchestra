@@ -153,7 +153,7 @@ useDirectChannel = false
 
 Changing the mode is only supported forward : from direct OpenFlow Protocol channel to XAPI Plugin communication.
 A migration script is provided to automatically convert the traffic rules.
-See [SDN Controller: OpenFlow rules](../manage-your-infrastructure/sdn_controller.md#migration-pat) for details.
+See [SDN Controller: OpenFlow rules](../manage-your-infrastructure/sdn_controller.md#migration-path) for details.
 
 ## Custom certificate authority
 

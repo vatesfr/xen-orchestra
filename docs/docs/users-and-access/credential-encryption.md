@@ -55,7 +55,7 @@ The export contains the decrypted credential data (hence the mandatory passphras
 xo-cli xo.importConfig passphrase=<your-passphrase> @=/path/to/xo-config.bin
 `}</Terminal>
 
-See also [Back up XO metadata](../backups-and-dr/backup_howto.md#specific-steps-for-the-xo).
+See also [Back up XO metadata](../backups-and-dr/backup_howto.md#specific-steps-for-the-xoa-vm).
 
 :::tip
 Always export a fresh config backup after enabling encryption and store it securely.
