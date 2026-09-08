@@ -38,6 +38,9 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backup-archive patch
+- @xen-orchestra/backups patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+
 <!--packages-end-->
