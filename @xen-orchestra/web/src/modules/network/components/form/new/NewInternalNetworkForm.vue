@@ -1,5 +1,5 @@
 <template>
-  <form class="new-internal-network-form" @submit.prevent="onSubmit()">
+  <VtsForm class="new-internal-network-form" @submit="onSubmit()">
     <NetworkFormSelect v-bind="poolSelectBindings" class="pool" />
     <div class="row">
       <div class="column">
@@ -12,7 +12,7 @@
       <NewNetworkNbdCheckbox v-bind="nbdCheckboxBindings" />
     </div>
     <NewNetworkButtonsSection :cancel-to :submit-label="t('action:create-internal-network')" />
-  </form>
+  </VtsForm>
 </template>
 
 <script lang="ts" setup>
@@ -25,6 +25,7 @@ import NewNetworkButtonsSection from '@/modules/network/components/form/new/NewN
 import { useNewInternalNetworkForm } from '@/modules/network/form/new-internal/use-new-internal-network-form.ts'
 import type { NewInternalNetworkPayload } from '@/modules/network/jobs/xo-internal-network-create.job.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import VtsForm from '@core/components/form/VtsForm.vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 

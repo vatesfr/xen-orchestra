@@ -1,8 +1,14 @@
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useFormBindings } from '@core/packages/form-bindings'
-import { useFormSelect } from '@core/packages/form-select'
+import {
+  type FormValidationConfig,
+  mergeValidationConfigs,
+  outOfRange,
+  required,
+  withMessage,
+} from '@core/packages/form-validation'
+import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { type MaybeRefOrGetter, toRef, watch } from 'vue'
+import { type MaybeRefOrGetter, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type BaseNetworkFormData = {
@@ -23,15 +29,42 @@ export type BaseNetworkPayload = {
 
 export function useNetworkFormBase<T extends BaseNetworkFormData>(
   _poolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>,
-  formData: T
+  formData: T,
+  extraConfig?: FormValidationConfig<T>
 ) {
   const poolId = toComputed(_poolId)
   const { pools, useGetPoolById } = useXoPoolCollection()
 
-  const { id: poolSelectId } = useFormSelect(pools, {
+  const { t } = useI18n()
+
+  const mtuRange = { min: 1280, max: 9000 }
+
+  const baseConfig: FormValidationConfig<BaseNetworkFormData> = {
+    errors: {
+      onSubmit: () => ({
+        pool: { required: withMessage(required, () => t('pool-required')) },
+        name: { required: withMessage(required, () => t('name-required')) },
+      }),
+    },
+    warnings: {
+      onBlur: () => ({
+        mtu: {
+          outOfRange: withMessage(outOfRange(mtuRange.min, mtuRange.max), () =>
+            t('network-create:warning:mtu-out-of-range', mtuRange)
+          ),
+        },
+      }),
+    },
+  }
+
+  const { useField, useSelect, useFormSelect, validate } = useValidatedForm(
+    formData,
+    mergeValidationConfigs(baseConfig, extraConfig)
+  )
+
+  const { id: poolSelectId } = useFormSelect('pool', pools, {
     searchable: true,
     required: true,
-    model: toRef(formData, 'pool'),
     option: {
       label: 'name_label',
       value: 'id',
@@ -52,10 +85,6 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
 
   const selectedPool = useGetPoolById(() => formData.pool)
 
-  const { t } = useI18n()
-
-  const { useField, useSelect } = useFormBindings(formData)
-
   function buildBasePayload(): BaseNetworkPayload {
     return {
       poolId: formData.pool!,
@@ -68,6 +97,10 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
 
   return {
     selectedPool,
+    validate,
+    useField,
+    useFormSelect,
+    useSelect,
     buildBasePayload,
     poolSelectBindings: useSelect(poolSelectId, () => ({ label: t('pool') })),
     nameInputBindings: useField('name', () => ({ label: t('name'), required: true })),
