@@ -43,7 +43,7 @@ import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { IP_CONFIGURATION_MODE } from '@vates/types'
 import { useSorted } from '@vueuse/core'
-import { logicNot } from '@vueuse/math'
+import { logicNot, logicOr } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -56,7 +56,7 @@ defineSlots<{
 }>()
 
 const { arePifsReady, hasPifFetchError } = useXoPifCollection()
-const { useGetNetworkById, getNetworkById } = useXoNetworkCollection()
+const { useGetNetworkById, getNetworkById, areNetworksReady } = useXoNetworkCollection()
 
 const { t } = useI18n()
 
@@ -74,7 +74,7 @@ const filteredPifs = computed(() => {
 })
 
 const state = useTableState({
-  busy: logicNot(arePifsReady),
+  busy: logicOr(logicNot(arePifsReady), logicNot(areNetworksReady)),
   error: hasPifFetchError,
   empty: () =>
     rawPifs.length === 0 ? t('no-pif-detected') : filteredPifs.value.length === 0 ? { type: 'no-result' } : false,
@@ -95,16 +95,9 @@ const getIpConfigurationMode = (ipMode: IP_CONFIGURATION_MODE) => {
   }
 }
 
-const sortedPifs = useSorted(filteredPifs, (pif1, pif2) => {
-  const network1 = getNetworkById(pif1.$network)
-  const network2 = getNetworkById(pif2.$network)
-
-  if (network1 === undefined || network2 === undefined) {
-    return Number(network1 === undefined) - Number(network2 === undefined)
-  }
-
-  return sortByNameLabel(network1, network2)
-})
+const sortedPifs = useSorted(filteredPifs, (pif1, pif2) =>
+  sortByNameLabel(getNetworkById(pif1.$network)!, getNetworkById(pif2.$network)!)
+)
 
 const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', sortedPifs)
 
