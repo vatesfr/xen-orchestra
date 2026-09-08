@@ -4,8 +4,10 @@ import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { vmsByHost } = vi.hoisted(() => ({
   vmsByHost: { value: new Map<string, unknown[]>() },
@@ -24,44 +26,61 @@ function setResidentVms(hostId: FrontXoHost['id'], vms: FrontXoVm[]) {
 }
 
 function mountHostUtils(overrides: Partial<FrontXoHost> = {}) {
-  return mountComposable(() => useXoHostUtils(createHost(overrides))).wrapper.vm
+  return mountComposable(() => {
+    const { t } = useI18n()
+
+    return { ...useXoHostUtils(createHost(overrides)), t }
+  }).wrapper.vm
 }
 
 describe('getPowerState', () => {
   it('maps the running state to its label and running-circle icon', () => {
-    const { getPowerState } = mountHostUtils()
+    const { getPowerState, t } = mountHostUtils()
 
-    expect(getPowerState(HOST_POWER_STATE.RUNNING)).toEqual({ text: 'Running', icon: 'status:running-circle' })
+    expect(getPowerState(HOST_POWER_STATE.RUNNING)).toEqual({
+      text: t('host:status:running'),
+      icon: 'status:running-circle',
+    })
   })
 
   it('maps the halted state to its label and halted-circle icon', () => {
-    const { getPowerState } = mountHostUtils()
+    const { getPowerState, t } = mountHostUtils()
 
-    expect(getPowerState(HOST_POWER_STATE.HALTED)).toEqual({ text: 'Halted', icon: 'status:halted-circle' })
+    expect(getPowerState(HOST_POWER_STATE.HALTED)).toEqual({
+      text: t('host:status:halted'),
+      icon: 'status:halted-circle',
+    })
   })
 
   it('maps the unknown state to its label and no icon', () => {
-    const { getPowerState } = mountHostUtils()
+    const { getPowerState, t } = mountHostUtils()
 
-    expect(getPowerState(HOST_POWER_STATE.UNKNOWN)).toEqual({ text: 'Unknown', icon: undefined })
+    expect(getPowerState(HOST_POWER_STATE.UNKNOWN)).toEqual({ text: t('host:status:unknown'), icon: undefined })
   })
 
   it('falls back to the unknown entry for an out-of-range value', () => {
-    const { getPowerState } = mountHostUtils()
+    const { getPowerState, t } = mountHostUtils()
 
     const outOfRangeState = 'Suspended' as HOST_POWER_STATE
 
-    expect(getPowerState(outOfRangeState)).toEqual({ text: 'Unknown', icon: undefined })
+    expect(getPowerState(outOfRangeState)).toEqual({ text: t('host:status:unknown'), icon: undefined })
   })
 })
 
 describe('getRelativeStartTime', () => {
-  it('returns a computed whose value is a string', () => {
-    const { wrapper } = mountComposable(() => ({
-      relativeStartTime: useXoHostUtils(createHost()).getRelativeStartTime(1660000000),
-    }))
+  it('reports the start time relative to now, reading it as seconds', () => {
+    const startTimeInSeconds = 1660000000
 
-    expect(typeof wrapper.vm.relativeStartTime).toBe('string')
+    const { wrapper } = mountComposable(() => {
+      const { locale } = useI18n()
+
+      return {
+        relativeStartTime: useXoHostUtils(createHost()).getRelativeStartTime(startTimeInSeconds),
+        expectedRelativeTime: getRelativeTime(new Date(startTimeInSeconds * 1000), locale.value),
+      }
+    })
+
+    expect(wrapper.vm.relativeStartTime).toBe(wrapper.vm.expectedRelativeTime)
   })
 })
 
@@ -133,20 +152,20 @@ describe('isChangingState', () => {
 
 describe('currentOperation', () => {
   it('maps the pending host operation to a translated label', () => {
-    const { currentOperation } = mountHostUtils({
+    const { currentOperation, t } = mountHostUtils({
       current_operations: { 'task-1': HOST_ALLOWED_OPERATIONS.REBOOT },
     })
 
-    expect(currentOperation).toBe('Rebooting')
+    expect(currentOperation).toBe(t('operation:clean-reboot'))
   })
 
   it('maps the power-on operation of a halted host to a translated label', () => {
-    const { currentOperation } = mountHostUtils({
+    const { currentOperation, t } = mountHostUtils({
       power_state: HOST_POWER_STATE.HALTED,
       current_operations: { 'task-1': HOST_ALLOWED_OPERATIONS.POWER_ON },
     })
 
-    expect(currentOperation).toBe('Starting')
+    expect(currentOperation).toBe(t('operation:start'))
   })
 
   it('maps the smart-reboot VM operation to a translated label', () => {
@@ -154,9 +173,13 @@ describe('currentOperation', () => {
 
     setResidentVms(host.id, [createVm({ current_operations: { 'task-1': VM_OPERATIONS.HARD_SHUTDOWN } })])
 
-    const { wrapper } = mountComposable(() => useXoHostUtils(host))
+    const { wrapper } = mountComposable(() => {
+      const { t } = useI18n()
 
-    expect(wrapper.vm.currentOperation).toBe('VMs hard shutting down')
+      return { ...useXoHostUtils(host), t }
+    })
+
+    expect(wrapper.vm.currentOperation).toBe(wrapper.vm.t('operation:vm-hard-shutdown'))
   })
 
   it('falls back to an empty label when there is no pending operation', () => {

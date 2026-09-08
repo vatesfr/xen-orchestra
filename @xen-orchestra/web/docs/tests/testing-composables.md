@@ -41,13 +41,22 @@ expect(wrapper.vm.powerState.icon).toBe('status:halted-circle')
 `useI18n()` must be called synchronously during a component `setup()`. If a composable returns a function that _itself_ calls `useI18n` (e.g. `useXoHostUtils(host).getRelativeStartTime`), you cannot call that function from the test body after `mountComposable` has returned — it throws `Must be called at the top of a 'setup' function`. Invoke it **inside** the `mountComposable` callback instead:
 
 ```typescript
-const { wrapper } = mountComposable(() => ({
-  relativeStartTime: useXoHostUtils(createHost()).getRelativeStartTime(1660000000),
-}))
+const startTimeInSeconds = 1660000000
 
-expect(typeof wrapper.vm.relativeStartTime).toBe('string')
+const { wrapper } = mountComposable(() => {
+  const { locale } = useI18n()
+
+  return {
+    relativeStartTime: useXoHostUtils(createHost()).getRelativeStartTime(startTimeInSeconds),
+    expectedRelativeTime: getRelativeTime(new Date(startTimeInSeconds * 1000), locale.value),
+  }
+})
+
+expect(wrapper.vm.relativeStartTime).toBe(wrapper.vm.expectedRelativeTime)
 ```
 
-Note the object literal: `setup()` returns the component **bindings**, so the callback must hand back an object. A lone ref is not component state and would not surface on `wrapper.vm`.
+Note the object literal: `setup()` returns the component **bindings**, so the callback must hand back an object. A lone ref is not component state and would not surface on `wrapper.vm`. Anything the assertion needs — the `t`, a `locale`, an expected value — is returned alongside, which is why the callback body is a block rather than a bare object.
+
+The expected value is **derived the way production derives it** ([Assert behaviour](./assert-behaviour.md)): `getRelativeTime` owns the wording, and what the composable decides is which date to hand it. `expect(typeof …).toBe('string')` would pass for any string, including one built from a start time read as milliseconds instead of seconds — it asserts the type, not the behaviour. Where a value is environment-dependent, name the helper production uses and call it with the same input; never assert merely that the value is non-empty or differs from some other label.
 
 Functions that only touch refs/computed (e.g. `getPowerState`) can be called on the returned object as usual.

@@ -11,12 +11,12 @@
     <VtsStateHero v-else-if="ramUsage.length === 0" format="card" type="no-data" size="medium">
       {{ t('no-data-to-calculate') }}
     </VtsStateHero>
-    <VtsLinearChart v-else :data="ramUsage" :max-value="maxValue" :value-formatter="formatChartBytes" />
+    <VtsLinearChart v-else :data="ramUsage" :max-value :value-formatter="formatChartBytes" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { buildStackedTimeSeries, getHostsStats } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
+import { buildStackedRamUsageSeries, getStackedRamUsageMaxValue } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
 import { formatChartBytes } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -35,47 +35,20 @@ const { data, loading } = defineProps<{
 const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linear-chart/VtsLinearChart.vue'))
 const { t } = useI18n()
 
+const ramUsageSeries = computed(() => buildStackedRamUsageSeries(data))
+
 const ramUsage = computed<LinearChartData>(() => {
-  if (!data) {
+  if (ramUsageSeries.value.length === 0) {
     return []
   }
-
-  const hostsStats = getHostsStats(data, host => !!host.stats?.memory && !!host.stats?.memoryFree)
-
-  if (hostsStats.length === 0) {
-    return []
-  }
-
-  const dataLength = hostsStats[0].stats.memory?.length ?? 0
-
-  const ramUsageSeries = buildStackedTimeSeries(hostsStats, dataLength, (host, index) => {
-    const memoryTotal = host.stats.memory?.[index] ?? NaN
-    const memoryFree = host.stats.memoryFree?.[index] ?? NaN
-
-    return memoryTotal - memoryFree
-  })
 
   return [
     {
       label: t('stacked-ram-usage'),
-      data: ramUsageSeries,
+      data: ramUsageSeries.value,
     },
   ]
 })
 
-const maxValue = computed(() => {
-  if (!data) {
-    return 1024 * 1024 * 1024 // 1 GB fallback
-  }
-
-  const hostsStats = getHostsStats(data, host => !!host.stats?.memory)
-
-  const totalMemory = hostsStats.reduce((sum, host) => {
-    const maxMemory = Math.max(...(host.stats.memory?.map(value => value || 0) ?? [0]))
-
-    return sum + maxMemory
-  }, 0)
-
-  return totalMemory || 1024 * 1024 * 1024
-})
+const maxValue = computed(() => getStackedRamUsageMaxValue(data))
 </script>

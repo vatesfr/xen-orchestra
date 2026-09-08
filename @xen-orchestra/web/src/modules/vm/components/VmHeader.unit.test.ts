@@ -5,8 +5,9 @@ import { createTestRouter } from '@/test/create-test-router.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
-import { mount } from '@vue/test-utils'
+import { mount, type DOMWrapper } from '@vue/test-utils'
 
 const { buildXo5Route } = vi.hoisted(() => ({
   buildXo5Route: vi.fn(),
@@ -36,6 +37,22 @@ async function mountHeader(vm: FrontXoVm = createVm({ id: 'vm-42' as FrontXoVm['
 
 function findTabs(wrapper: Awaited<ReturnType<typeof mountHeader>>) {
   return wrapper.findAll('.tab-item')
+}
+
+/**
+ * An icon renders as bare `<svg>` paths, so the only way to name the one a
+ * component picked is to compare it with a reference render of the icon it was
+ * meant to pick — the rendering counterpart of asserting `objectIcon(…)`.
+ */
+function findIconPaths(wrapper: { findAll: (selector: string) => DOMWrapper<Element>[] }) {
+  return wrapper.findAll('.icon-path').map(path => path.attributes('d'))
+}
+
+function mountVmStateIcon(state: 'running' | 'paused' | 'halted' | 'suspended') {
+  return mount(VtsObjectIcon, {
+    props: { type: 'vm' as const, state, size: 'medium' as const },
+    global: createGlobalTestConfig(),
+  })
 }
 
 it('shows the name of the VM', async () => {
@@ -120,8 +137,10 @@ it('offers the state-change and more-actions menus', async () => {
 it('shows the icon matching the power state of the VM', async () => {
   const wrapper = await mountHeader(createVm({ power_state: VM_POWER_STATE.PAUSED, current_operations: {} }))
 
-  // the rendered <svg> carries path data only, so the state reaching the icon is the sole observable form
-  expect(wrapper.findComponent({ name: 'VtsObjectIcon' }).props()).toMatchObject({ type: 'vm', state: 'paused' })
+  expect(findIconPaths(wrapper.get('.ui-head-bar .label-wrapper'))).toEqual(findIconPaths(mountVmStateIcon('paused')))
+  expect(findIconPaths(wrapper.get('.ui-head-bar .label-wrapper'))).not.toEqual(
+    findIconPaths(mountVmStateIcon('running'))
+  )
   expect(wrapper.find('.ui-head-bar .label-wrapper .ui-loader').exists()).toBe(false)
 })
 

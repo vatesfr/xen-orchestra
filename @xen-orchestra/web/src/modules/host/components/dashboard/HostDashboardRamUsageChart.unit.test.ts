@@ -1,19 +1,21 @@
-import VmDashboardRamUsageChart from '@/modules/vm/components/dashboard/VmDashboardRamUsageChart.vue'
-import { createVmStats } from '@/test/create-vm-stats.ts'
+import HostDashboardRamUsageChart from '@/modules/host/components/dashboard/HostDashboardRamUsageChart.vue'
+import { createHostStats } from '@/test/create-host-stats.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { findLinearChart, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
-import type { XapiVmStats } from '@vates/types/common'
+import type { XapiHostStats } from '@vates/types/common'
 import { mount } from '@vue/test-utils'
 
-function mountChart(props: { data: XapiVmStats | null; loading?: boolean; error?: boolean }) {
-  return mount(VmDashboardRamUsageChart, {
+function mountChart(props: { data: XapiHostStats | null; loading?: boolean; error?: boolean }) {
+  return mount(HostDashboardRamUsageChart, {
     props: { loading: false, ...props },
     global: { ...createGlobalTestConfig(), stubs: { VtsLinearChart: VtsLinearChartStub } },
   })
 }
 
-const statsWithSamples = createVmStats({ stats: { memory: [1000, 2000], memoryFree: [400, 500] } })
+const statsWithSamples = createHostStats({
+  stats: { memory: [2048, 4096], memoryFree: [1024, 2048] },
+})
 
 it('renders the card title and the period it covers', () => {
   const wrapper = mountChart({ data: statsWithSamples })
@@ -28,46 +30,46 @@ it('shows a loader while the stats are loading', () => {
   expect(wrapper.find('.ui-loader').exists()).toBe(true)
 })
 
-it('shows an error message when the stats could not be fetched', () => {
-  const wrapper = mountChart({ data: null, error: true })
+it('shows a loader while the stats have not arrived yet', () => {
+  const wrapper = mountChart({ data: null })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(wrapper.find('.ui-loader').exists()).toBe(true)
 })
 
-it('prefers the error message over the missing stats', () => {
+it('shows an error message when the stats could not be fetched', () => {
   const wrapper = mountChart({ data: statsWithSamples, error: true })
 
   expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
 })
 
-it('reports that there is nothing to plot when the VM has no memory sample', () => {
-  const wrapper = mountChart({ data: createVmStats() })
+it('reports that there is nothing to plot when the host has no memory sample', () => {
+  const wrapper = mountChart({ data: createHostStats() })
 
   expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
 })
 
-it('reports that there is nothing to plot for null stats', () => {
-  const wrapper = mountChart({ data: null })
+it('reports that there is nothing to plot when the free memory is missing', () => {
+  const wrapper = mountChart({ data: createHostStats({ stats: { memory: [2048, 4096] } }) })
 
   expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
 })
 
-it('plots the memory the VM actually uses', () => {
+it('plots the memory the host actually uses', () => {
   const wrapper = mountChart({ data: statsWithSamples })
 
   expect(findLinearChart(wrapper).props('data')).toEqual([
     {
       label: t('stacked-ram-usage'),
       data: [
-        { timestamp: 990_000, value: 600 },
-        { timestamp: 1_000_000, value: 1500 },
+        { timestamp: 990_000, value: 1024 },
+        { timestamp: 1_000_000, value: 2048 },
       ],
     },
   ])
 })
 
-it('scales the axis to the memory allocated to the VM', () => {
+it('scales the axis to the total memory of the host', () => {
   const wrapper = mountChart({ data: statsWithSamples })
 
-  expect(findLinearChart(wrapper).props('maxValue')).toBe(2000)
+  expect(findLinearChart(wrapper).props('maxValue')).toBe(4096)
 })

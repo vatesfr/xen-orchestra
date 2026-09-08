@@ -107,6 +107,62 @@ Where the line falls:
 | data reaching the component (a name, an id, an IP, a tag)  | the literal — it is the test's own input           |
 | a number the component formats (`'8 B'`, `'4 GiB'`, `'2'`) | the literal — deriving it would copy the template  |
 
+## Chart cards
+
+A dashboard chart card loads its `VtsLinearChart` asynchronously, and the real chart cannot mount here: ECharts needs a canvas and a `ResizeObserver`. `src/test/linear-chart-stub.ts` stands in for it, with the props declared so they stay readable:
+
+```typescript
+function mountChart(props: { data: XapiHostStats | null; loading?: boolean; error?: boolean }) {
+  return mount(HostDashboardLoadAverageChart, {
+    props: { loading: false, ...props },
+    global: { ...createGlobalTestConfig(), stubs: { VtsLinearChart: VtsLinearChartStub } },
+  })
+}
+
+it('plots the load average of the host', () => {
+  const wrapper = mountChart({ data: createHostStats({ stats: { load: [1.234, 2.567] } }) })
+
+  expect(findLinearChart(wrapper).props('data')).toEqual([
+    {
+      label: t('load-average'),
+      data: [
+        { timestamp: 990_000, value: 1.23 },
+        { timestamp: 1_000_000, value: 2.57 },
+      ],
+    },
+  ])
+})
+```
+
+Stubbing with `true` instead would push the props into attributes, where they arrive stringified.
+
+Assert the plotted series, not the absence of a state hero. Every card guards on the series it built, so an empty series does reach the "no data" hero — but a hero-only test still passes over a series plotting the wrong samples. That is how the pool CPU card came to size its series off `stats.memory` unnoticed.
+
+The `maxValue` is worth its own assertion: it is where the card's own axis choice lives (`{ step: 5, fallback: 10 }` for the host load average, `step: 50` for host network throughput, `headroom: 1.2` for the stacked pool cpu usage), and nothing else covers it.
+
+## Legend cards
+
+A donut card and a progress-bar card both render their values through `UiLegend`, which keeps the label and the value addressable:
+
+```typescript
+function findLegends(wrapper: VueWrapper) {
+  return wrapper
+    .findAll('.ui-legend')
+    .map(legend => [legend.get('.label').text(), legend.get('.value-and-unit').text()])
+}
+
+expect(findLegends(wrapper)).toEqual([
+  [t('vm:status:running', 2), '2'],
+  [t('vm:status:halted', 2), '1'],
+])
+```
+
+Three things shape those assertions:
+
+- `VtsProgressBarGroup` sorts **descending by default**, so the expected order is the busiest first, not the order the payload listed.
+- A card holding several legend groups — `PoolDashboardStatus` shows one for its hosts and one for its VMs — is queried per group (`wrapper.findAll('.vts-donut-chart-with-legend')`, then the legends inside each). A flat `findAll('.ui-legend')` collapses the groups into one list, and an assertion on it no longer says which group a value landed in.
+- `VtsStateHero` renders its own wording ahead of the slot: an `all-done` hero reads `'All good!Patches up to date'`. Assert the part the component owns with `toContain`.
+
 ## Routing
 
 `createGlobalTestConfig()` installs a router on **every** mount, built by `src/test/create-test-router.ts` over the **real generated routes** on an in-memory history. Two unrelated things need it:
@@ -141,7 +197,7 @@ There is no layout engine, and Vitest's `css` option is off, so component styles
 - `toBeVisible()` and anything depending on real visibility — assert presence/absence instead (`expect(wrapper.find('.foo').exists()).toBe(false)`)
 - `getComputedStyle` assertions on design tokens (colour, padding, `flex-direction`)
 - real event dispatch — `trigger()` simulates events
-- canvas (ECharts), `ResizeObserver`, `IntersectionObserver`
+- canvas (ECharts), `ResizeObserver`, `IntersectionObserver` — for a chart card, stub the chart (see [Chart cards](#chart-cards))
 
 `happy-dom` also **lacks some browser APIs entirely**. `EventSource` is one: mounting a component that reaches a remote-resource collection opens an SSE subscription and throws `ReferenceError: EventSource is not defined`. It surfaces as an _unhandled rejection_, so Vitest **exits non-zero while reporting every test as passed** — do not read a green test list as success. Mock the collection ([Mocking dependencies](./mocking.md)) so the subscription is never opened.
 

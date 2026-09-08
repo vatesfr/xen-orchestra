@@ -3,6 +3,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
@@ -60,11 +61,22 @@ describe('relativeStartTime', () => {
     expect(result.relativeStartTime).toBe(result.t('not-running'))
   })
 
-  it('returns a relative time when the VM is running with a start time', () => {
-    const result = mountVmUtils({ power_state: VM_POWER_STATE.RUNNING, startTime: 1660000000 })
+  it('reports the start time relative to now, reading it as seconds', () => {
+    const startTimeInSeconds = 1660000000
 
-    expect(result.relativeStartTime).not.toBe(result.t('not-running'))
-    expect(result.relativeStartTime).not.toBe('')
+    const { wrapper } = mountComposable(() => {
+      const { locale } = useI18n()
+      const { relativeStartTime } = useXoVmUtils(
+        createVm({ power_state: VM_POWER_STATE.RUNNING, startTime: startTimeInSeconds })
+      )
+
+      return {
+        relativeStartTime,
+        expectedRelativeTime: getRelativeTime(new Date(startTimeInSeconds * 1000), locale.value),
+      }
+    })
+
+    expect(wrapper.vm.relativeStartTime).toBe(wrapper.vm.expectedRelativeTime)
   })
 })
 
@@ -88,7 +100,6 @@ describe('installDateFormatted', () => {
     })
 
     expect(wrapper.vm.installDateFormatted).toBe(wrapper.vm.expected)
-    expect(wrapper.vm.installDateFormatted).not.toBe(wrapper.vm.t('unknown'))
   })
 })
 
@@ -131,7 +142,7 @@ describe('guestToolsDisplay', () => {
       pvDriversDetected: false,
     })
 
-    expect(result.guestToolsDisplay).toMatchObject({ type: 'missing', tooltip: 'No Xen tools detected' })
+    expect(result.guestToolsDisplay).toMatchObject({ type: 'missing', tooltip: result.t('no-xen-tools-detected') })
   })
 
   it('reports up-to-date guest tools with their version', () => {
@@ -194,7 +205,7 @@ describe('guestToolsDisplay', () => {
       pvDriversVersion: '',
     })
 
-    expect(result.guestToolsDisplay).toMatchObject({ type: 'up-to-date', value: 'Installed' })
+    expect(result.guestToolsDisplay).toMatchObject({ type: 'up-to-date', value: result.t('installed') })
   })
 })
 
@@ -216,7 +227,7 @@ describe('currentOperation', () => {
   it('maps the pending operation to a translated label', () => {
     const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.SNAPSHOT } })
 
-    expect(result.currentOperation).toBe('Snapshotting')
+    expect(result.currentOperation).toBe(result.t('operation:snapshot'))
   })
 
   it('falls back to an empty label for an unknown operation', () => {

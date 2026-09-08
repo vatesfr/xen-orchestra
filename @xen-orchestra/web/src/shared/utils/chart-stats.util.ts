@@ -1,3 +1,4 @@
+import { ONE_GB } from '@/shared/constants.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 
 export type ChartPoint = { timestamp: number; value: number }
@@ -12,16 +13,28 @@ type StatsWindow = { endTimestamp: number; interval: number }
 
 type CpuStats = StatsWindow & { stats: { cpus?: StatValuesRecord } }
 
-type MemoryStats = StatsWindow & { stats: { memory?: StatValues; memoryFree?: StatValues } }
+type MemorySamples = { memory?: StatValues; memoryFree?: StatValues }
+
+type MemoryStats = StatsWindow & { stats: MemorySamples }
 
 type ChartMaxOptions = { step: number; fallback: number; headroom?: number }
 
-function sumAtIndex(records: StatValuesRecord, index: number): number {
-  return Object.values(records).reduce((sum, values) => sum + (values[index] ?? NaN), 0)
+export const RAM_CHART_MAX_FALLBACK = ONE_GB
+
+export function sumAtIndex(records: StatValuesRecord | undefined, index: number): number {
+  return Object.values(records ?? {}).reduce((sum, values) => sum + (values[index] ?? NaN), 0)
 }
 
-function countSamples(records: StatValuesRecord | undefined): number {
+export function countSamples(records: StatValuesRecord | undefined): number {
   return Object.values(records ?? {})[0]?.length ?? 0
+}
+
+export function getMaxSample(values: StatValues | undefined): number {
+  return Math.max(...(values ?? []).map(value => value || 0), 0)
+}
+
+export function getUsedMemoryAtIndex(stats: MemorySamples, index: number): number {
+  return (stats.memory?.[index] ?? NaN) - (stats.memoryFree?.[index] ?? NaN)
 }
 
 export function buildTimestamps(stats: StatsWindow, dataLength: number): number[] {
@@ -51,13 +64,11 @@ export function buildRamUsageSeries(data: MemoryStats | null): ChartPoint[] {
     return []
   }
 
-  const memory = data.stats.memory
-  const memoryFree = data.stats.memoryFree
-  const timestamps = buildTimestamps(data, memory.length)
+  const timestamps = buildTimestamps(data, data.stats.memory.length)
 
   return timestamps.map((timestamp, index) => ({
     timestamp,
-    value: (memory[index] ?? NaN) - (memoryFree[index] ?? NaN),
+    value: getUsedMemoryAtIndex(data.stats, index),
   }))
 }
 
@@ -74,8 +85,8 @@ export function buildPairedUsageSeries(
   const timestamps = buildTimestamps(stats, sampleCount)
 
   return [
-    timestamps.map((timestamp, index) => ({ timestamp, value: sumAtIndex(firstRecords ?? {}, index) })),
-    timestamps.map((timestamp, index) => ({ timestamp, value: sumAtIndex(secondRecords ?? {}, index) })),
+    timestamps.map((timestamp, index) => ({ timestamp, value: sumAtIndex(firstRecords, index) })),
+    timestamps.map((timestamp, index) => ({ timestamp, value: sumAtIndex(secondRecords, index) })),
   ]
 }
 
@@ -99,11 +110,7 @@ export function getCpuUsageMaxValue(series: ChartPoint[]): number {
 }
 
 export function getRamUsageMaxValue(data: MemoryStats | null): number {
-  if (!data?.stats.memory?.length) {
-    return 1024 ** 3
-  }
-
-  return Math.max(...data.stats.memory.map(value => value || 0), 0)
+  return getMaxSample(data?.stats.memory) || RAM_CHART_MAX_FALLBACK
 }
 
 export function getPairedUsageMaxValue(

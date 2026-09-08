@@ -2,13 +2,14 @@ import VmDashboardVdiUsageChart from '@/modules/vm/components/dashboard/VmDashbo
 import { createVmStats } from '@/test/create-vm-stats.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { findLinearChart, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
 import type { XapiVmStats } from '@vates/types/common'
 import { mount } from '@vue/test-utils'
 
 function mountChart(props: { data: XapiVmStats | null; loading?: boolean; error?: boolean }) {
   return mount(VmDashboardVdiUsageChart, {
     props: { loading: false, ...props },
-    global: createGlobalTestConfig(),
+    global: { ...createGlobalTestConfig(), stubs: { VtsLinearChart: VtsLinearChartStub } },
   })
 }
 
@@ -51,14 +52,49 @@ it('reports that there is nothing to plot for null stats', () => {
   expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
 })
 
-it('plots the chart once the stats hold samples', () => {
+it('plots the reads above the writes', () => {
   const wrapper = mountChart({ data: statsWithSamples })
 
-  expect(wrapper.find('.vts-state-hero').exists()).toBe(false)
+  expect(findLinearChart(wrapper).props('data')).toEqual([
+    {
+      label: t('read'),
+      data: [
+        { timestamp: 990_000, value: 10 },
+        { timestamp: 1_000_000, value: 20 },
+      ],
+    },
+    {
+      label: t('write'),
+      data: [
+        { timestamp: 990_000, value: 30 },
+        { timestamp: 1_000_000, value: 40 },
+      ],
+    },
+  ])
 })
 
-it('plots the chart for a VM reporting writes but no read', () => {
+it('sums the throughput of every disk of the VM', () => {
+  const wrapper = mountChart({
+    data: createVmStats({ stats: { xvds: { r: { xvda: [10, 20], xvdb: [1, 2] }, w: { xvda: [30, 40] } } } }),
+  })
+
+  expect(findLinearChart(wrapper).props('data')[0].data).toEqual([
+    { timestamp: 990_000, value: 11 },
+    { timestamp: 1_000_000, value: 22 },
+  ])
+})
+
+it('rounds the axis up to the next hundred bytes, with headroom above the peak', () => {
+  const wrapper = mountChart({ data: statsWithSamples })
+
+  expect(findLinearChart(wrapper).props('maxValue')).toBe(100)
+})
+
+it('plots a flat read for a VM reporting writes but no read', () => {
   const wrapper = mountChart({ data: createVmStats({ stats: { xvds: { w: { xvda: [10, 20] } } } }) })
 
-  expect(wrapper.find('.vts-state-hero').exists()).toBe(false)
+  expect(findLinearChart(wrapper).props('data')[0].data).toEqual([
+    { timestamp: 990_000, value: 0 },
+    { timestamp: 1_000_000, value: 0 },
+  ])
 })

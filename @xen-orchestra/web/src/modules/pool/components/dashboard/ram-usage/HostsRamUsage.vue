@@ -12,29 +12,18 @@
 
 <script lang="ts" setup>
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import VtsProgressBarGroup, {
-  type ProgressBarGroupItem,
-} from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
+import { buildHostsRamProgressItems } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
+import VtsProgressBarGroup from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { topFiveRam = [] } = defineProps<{
+const { topFiveRam } = defineProps<{
   topFiveRam: NonNullable<NonNullable<XoPoolDashboard['hosts']>['topFiveUsage']>['ram'] | undefined
   hasError?: boolean
 }>()
 
 const { t } = useI18n()
 
-const progressBarItems = computed(() =>
-  topFiveRam.map(
-    ram =>
-      ({
-        id: ram.id,
-        label: ram.name_label,
-        current: ram.usage,
-        total: ram.size,
-      }) satisfies ProgressBarGroupItem
-  )
-)
+const progressBarItems = computed(() => buildHostsRamProgressItems(topFiveRam ?? []))
 </script>

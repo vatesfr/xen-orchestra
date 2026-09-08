@@ -14,8 +14,18 @@ Domain objects are created through factories in `src/test/`, one per object type
 | `createVmSnapshot` | `FrontXoVmSnapshot` |
 | `createHostStats`  | `XapiHostStats`     |
 | `createVmStats`    | `XapiVmStats`       |
+| `createPoolStats`  | `XapiPoolStats`     |
 
-Shared _helper_ factories live there too — `mount-composable.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts` and `find-labelled-values.ts`.
+`createPoolStats` composes `createHostStats`, since pool stats are one entry per host: pass a `Partial<XapiHostStats>` per host id, or an `{ error }` entry for a host whose stats the pool could not fetch.
+
+```typescript
+const poolStats = createPoolStats({
+  'host-1': { stats: { cpus: { '0': [10, 20] } } },
+  'host-2': { error: { code: 'boom' } },
+})
+```
+
+Shared _helper_ factories live there too — `mount-composable.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts`, `find-labelled-values.ts`, `i18n.ts` and `linear-chart-stub.ts`.
 
 Each factory returns a **fully-populated** object of the real front-end type and accepts a `Partial<T>` of overrides, spread last, so a test only states the fields relevant to its case:
 

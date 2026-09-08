@@ -16,8 +16,8 @@
 </template>
 
 <script lang="ts" setup>
-import { buildStackedTimeSeries, getHostsStats } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
-import { formatChartBytes, roundUpChartMax } from '@/shared/utils/chart-stats.util.ts'
+import { buildStackedNetworkUsageSeries } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
+import { formatChartBytes, getPairedUsageMaxValue } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -36,41 +36,26 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t } = useI18n()
 
+const networkUsageSeries = computed(() => buildStackedNetworkUsageSeries(data))
+
 const networkUsage = computed<LinearChartData>(() => {
-  if (!data) {
+  const [download, upload] = networkUsageSeries.value
+
+  if (download.length === 0 && upload.length === 0) {
     return []
   }
-
-  const hostsStats = getHostsStats(data, host => !!host.stats?.pifs)
-  if (hostsStats.length === 0) {
-    return []
-  }
-
-  const dataLength = Object.values(hostsStats[0].stats.pifs?.rx ?? {})[0].length
-
-  const txSeries = buildStackedTimeSeries(hostsStats, dataLength, (host, index) =>
-    Object.values(host.stats.pifs?.tx ?? {}).reduce((sum, values) => sum + (values[index] ?? NaN), 0)
-  )
-
-  const rxSeries = buildStackedTimeSeries(hostsStats, dataLength, (host, index) =>
-    Object.values(host.stats.pifs?.rx ?? {}).reduce((sum, values) => sum + (values[index] ?? NaN), 0)
-  )
 
   return [
     {
       label: t('network-upload'),
-      data: txSeries,
+      data: upload,
     },
     {
       label: t('network-download'),
-      data: rxSeries,
+      data: download,
     },
   ]
 })
 
-const maxValue = computed(() => {
-  const values = networkUsage.value.flatMap(series => series.data.map(item => item.value || 0))
-
-  return roundUpChartMax(values, { step: 50, fallback: 100, headroom: 1.2 })
-})
+const maxValue = computed(() => getPairedUsageMaxValue(networkUsageSeries.value, { step: 50 }))
 </script>

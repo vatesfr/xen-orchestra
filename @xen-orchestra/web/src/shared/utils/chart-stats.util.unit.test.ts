@@ -1,17 +1,118 @@
+import { ONE_GB } from '@/shared/constants.ts'
 import {
   buildCpuUsageSeries,
   buildPairedUsageSeries,
   buildRamUsageSeries,
   buildTimestamps,
+  countSamples,
   formatChartBytes,
   getChartMaxValue,
   getCpuUsageMaxValue,
+  getMaxSample,
   getPairedUsageMaxValue,
   getRamUsageMaxValue,
+  getUsedMemoryAtIndex,
   roundUpChartMax,
+  sumAtIndex,
   type PairedUsageSeries,
 } from '@/shared/utils/chart-stats.util.ts'
 import { createHostStats } from '@/test/create-host-stats.ts'
+
+describe('sumAtIndex', () => {
+  it('sums the sample every record holds at that index', () => {
+    expect(sumAtIndex({ '0': [10, 20], '1': [30, 40] }, 1)).toBe(60)
+  })
+
+  it('reports the sample itself for a single record', () => {
+    expect(sumAtIndex({ '0': [10, 20] }, 0)).toBe(10)
+  })
+
+  it('reports NaN when a record is missing the sample', () => {
+    expect(sumAtIndex({ '0': [10, 20], '1': [30] }, 1)).toBeNaN()
+  })
+
+  it('reports NaN for a null sample, which the host sends for a gap in its window', () => {
+    expect(sumAtIndex({ '0': [10, null] }, 1)).toBeNaN()
+  })
+
+  it('reports NaN past the end of the window', () => {
+    expect(sumAtIndex({ '0': [10, 20] }, 5)).toBeNaN()
+  })
+
+  it('reports zero for an empty record set', () => {
+    expect(sumAtIndex({}, 0)).toBe(0)
+  })
+
+  it('reports zero for records the host did not send', () => {
+    expect(sumAtIndex(undefined, 0)).toBe(0)
+  })
+})
+
+describe('countSamples', () => {
+  it('reports how many samples the records hold', () => {
+    expect(countSamples({ '0': [10, 20, 30] })).toBe(3)
+  })
+
+  it('reads the count off the first record, as every record covers the same window', () => {
+    expect(countSamples({ '0': [10, 20, 30], '1': [40, 50, 60] })).toBe(3)
+  })
+
+  it('reports no sample for a record set holding none', () => {
+    expect(countSamples({ '0': [] })).toBe(0)
+  })
+
+  it('reports no sample for an empty record set', () => {
+    expect(countSamples({})).toBe(0)
+  })
+
+  it('reports no sample for records the host did not send', () => {
+    expect(countSamples(undefined)).toBe(0)
+  })
+})
+
+describe('getMaxSample', () => {
+  it('reports the highest sample of the window', () => {
+    expect(getMaxSample([1000, 3000, 2000])).toBe(3000)
+  })
+
+  it('treats a null sample, which the host sends for a gap in its window, as zero', () => {
+    expect(getMaxSample([null, 500])).toBe(500)
+  })
+
+  it('reports zero when every sample is zero', () => {
+    expect(getMaxSample([0, 0])).toBe(0)
+  })
+
+  it('reports zero for a window holding no sample', () => {
+    expect(getMaxSample([])).toBe(0)
+  })
+
+  it('reports zero for samples the host did not send', () => {
+    expect(getMaxSample(undefined)).toBe(0)
+  })
+})
+
+describe('getUsedMemoryAtIndex', () => {
+  it('subtracts the free memory from the total memory at that index', () => {
+    expect(getUsedMemoryAtIndex({ memory: [1000, 2000], memoryFree: [400, 500] }, 1)).toBe(1500)
+  })
+
+  it('reports NaN when the total memory is missing the sample', () => {
+    expect(getUsedMemoryAtIndex({ memory: [1000], memoryFree: [400, 500] }, 1)).toBeNaN()
+  })
+
+  it('reports NaN when the free memory is missing the sample', () => {
+    expect(getUsedMemoryAtIndex({ memory: [1000, 2000], memoryFree: [400] }, 1)).toBeNaN()
+  })
+
+  it('reports NaN for a null sample, which the host sends for a gap in its window', () => {
+    expect(getUsedMemoryAtIndex({ memory: [1000, null], memoryFree: [400, 500] }, 1)).toBeNaN()
+  })
+
+  it('reports NaN for memory the host did not send', () => {
+    expect(getUsedMemoryAtIndex({}, 0)).toBeNaN()
+  })
+})
 
 describe('buildTimestamps', () => {
   it('returns evenly spaced millisecond timestamps ending at the end timestamp', () => {
@@ -233,12 +334,16 @@ describe('getRamUsageMaxValue', () => {
     expect(getRamUsageMaxValue(createHostStats({ stats: { memory: [null, 500] } }))).toBe(500)
   })
 
+  it('falls back to 1 GiB when every memory sample is zero, which would flatten the axis', () => {
+    expect(getRamUsageMaxValue(createHostStats({ stats: { memory: [0, 0] } }))).toBe(ONE_GB)
+  })
+
   it('falls back to 1 GiB when the memory holds no sample', () => {
-    expect(getRamUsageMaxValue(createHostStats({ stats: { memory: [] } }))).toBe(1024 ** 3)
+    expect(getRamUsageMaxValue(createHostStats({ stats: { memory: [] } }))).toBe(ONE_GB)
   })
 
   it('falls back to 1 GiB for null data', () => {
-    expect(getRamUsageMaxValue(null)).toBe(1024 ** 3)
+    expect(getRamUsageMaxValue(null)).toBe(ONE_GB)
   })
 })
 

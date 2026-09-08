@@ -5,7 +5,7 @@
     <template v-else>
       <VtsProgressBar
         :label="t('vcpus')"
-        :total="cpusCount ?? vCpusCount"
+        :total="provisioningTotal"
         :thresholds="cpuProgressThresholds(t('cpu-provisioning-warning'))"
         :current="vCpusCount"
         legend-type="percent"
@@ -52,6 +52,8 @@ const cpusCount = computed(() => host.cpus.cores ?? 0)
 const runningVms = computed(() => hostVms.value.filter(vm => vm.power_state === VM_POWER_STATE.RUNNING))
 
 const vCpusCount = useArrayReduce(runningVms, (total, vm) => total + vm.CPUs.number, 0)
+
+const provisioningTotal = computed(() => host.cpus.cores ?? vCpusCount.value)
 </script>
 
 <style lang="postcss" scoped>

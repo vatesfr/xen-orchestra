@@ -35,7 +35,7 @@
 
 <script lang="ts" setup>
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import { buildStoragesProgressItems, getStoragesUsageTotals } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
+import { buildPercentProgressItems, getStoragesUsageTotals } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
 import VtsProgressBarGroup from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -61,7 +61,7 @@ const totals = computed(() => getStoragesUsageTotals(topFiveUsage.value))
 const formattedTotalUsage = computed(() => formatSizeRaw(totals.value.totalUsage, 0))
 const formattedTotalSizeFree = computed(() => formatSizeRaw(totals.value.totalSize - totals.value.totalUsage, 0))
 
-const progressBarItems = computed(() => buildStoragesProgressItems(topFiveUsage.value))
+const progressBarItems = computed(() => buildPercentProgressItems(topFiveUsage.value))
 </script>
 
 <style lang="postcss" scoped>
