@@ -127,7 +127,7 @@ export class RemoteAdapter {
   async deleteFullVmBackups(backups) {
     await deleteFullVmBackupFiles(
       this._handler,
-      backups.map(({ _filename }) => ({ metadataPath: _filename }))
+      backups.map(({ _filename, xva }) => ({ metadataPath: _filename, xva }))
     )
     await this.#removeVmBackupsFromCache(backups)
   }
