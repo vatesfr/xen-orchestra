@@ -10,6 +10,7 @@ export function createPool(overrides: Partial<FrontXoPool> = {}): FrontXoPool {
     name_label: 'Test Pool',
     name_description: 'A test pool',
     master: 'host-456' as FrontXoPool['master'],
+    current_operations: {},
     default_SR: 'sr-123' as FrontXoPool['default_SR'],
     tags: [],
     otherConfig: {},
