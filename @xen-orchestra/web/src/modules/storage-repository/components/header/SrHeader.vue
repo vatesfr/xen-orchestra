@@ -24,9 +24,9 @@
       :to="{ name: '/sr/[id]/hosts', params: { id: sr.id }, query: scopeQuery }"
       custom
     >
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('hosts') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
   </TabList>
 </template>
