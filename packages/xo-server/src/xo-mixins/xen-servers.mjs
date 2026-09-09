@@ -973,70 +973,72 @@ export default class XenServers {
     // an interruption could not be reported, so the run must not start
     const recorder = await app.startRpuRecoveryRun(poolId, { rebootVm, bypassBackupCheck, shutdownPinnedVms })
 
-    const jobsOfthePool = []
-    jobs.forEach(({ id: jobId, vms }) => {
-      if (vms.id !== undefined) {
-        for (const vmId of extractIdsFromSimplePattern(vms)) {
-          // try/catch to avoid `no such object`
-          try {
-            if (app.getObject(vmId).$poolId === poolId) {
-              jobsOfthePool.push(jobId)
-              break
-            }
-          } catch {}
-        }
-      } else {
-        // Smart mode
-        // For smart mode, we take a simplified approach:
-        // - if smart mode is explicitly 'resident' or 'not resident' on pools, we
-        //   check if it concerns this pool
-        // - if not, the job may concern this pool so we add it to `jobsOfThePool`
-        if (vms.$pool === undefined || createPredicate(vms.$pool)(poolId)) {
-          jobsOfthePool.push(jobId)
-        }
-      }
-    })
-
-    recorder.markRunning()
-
-    // Disable schedules
-    await Promise.all(
-      schedules
-        .filter(schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled)
-        .map(async schedule => {
-          await app.updateSchedule({ ...schedule, enabled: false })
-          $defer(() => app.updateSchedule({ ...schedule, enabled: true }))
-        })
-    )
-
-    // Disable load balancer
-    await this._suspendRpuLoadBalancer($defer, pool)
-
-    const xapi = this.getXapi(pool)
-    if (await xapi.getField('pool', pool._xapiRef, 'wlb_enabled')) {
-      await xapi.call('pool.set_wlb_enabled', pool._xapiRef, false)
-      $defer(() => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true))
-    }
-
-    const trace = openRpuTrace({ dir: getRpuTracesConfig(app).dir, kind: 'rpu', poolId })
-    $defer(() => trace?.stop())
-    if (trace !== undefined) {
-      log.info(`rolling pool update of pool ${poolId}: trace in ${trace.traceFile}`)
-    }
-
-    const properties = {
-      name: 'Rolling pool update',
-      objectId: poolId,
-      poolId,
-      poolName: pool.name_label,
-      progress: 0,
-      type: 'pool.rolling_update',
-      ...(trace !== undefined && { traceFile: trace.traceFile }),
-    }
-    const task = parentTask === undefined ? app.tasks.create(properties) : new Task({ properties })
-    trace?.attach(task)
-    recorder.setTaskId(task.id)
+    // every failure from here on is persisted before the caller sees it: the
+    // pool state starts changing below (schedules, load balancer, WLB)
     try {
+      const jobsOfthePool = []
+      jobs.forEach(({ id: jobId, vms }) => {
+        if (vms.id !== undefined) {
+          for (const vmId of extractIdsFromSimplePattern(vms)) {
+            // try/catch to avoid `no such object`
+            try {
+              if (app.getObject(vmId).$poolId === poolId) {
+                jobsOfthePool.push(jobId)
+                break
+              }
+            } catch {}
+          }
+        } else {
+          // Smart mode
+          // For smart mode, we take a simplified approach:
+          // - if smart mode is explicitly 'resident' or 'not resident' on pools, we
+          //   check if it concerns this pool
+          // - if not, the job may concern this pool so we add it to `jobsOfThePool`
+          if (vms.$pool === undefined || createPredicate(vms.$pool)(poolId)) {
+            jobsOfthePool.push(jobId)
+          }
+        }
+      })
+
+      recorder.markRunning()
+
+      // Disable schedules
+      await Promise.all(
+        schedules
+          .filter(schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled)
+          .map(async schedule => {
+            await app.updateSchedule({ ...schedule, enabled: false })
+            $defer(() => app.updateSchedule({ ...schedule, enabled: true }))
+          })
+      )
+
+      // Disable load balancer
+      await this._suspendRpuLoadBalancer($defer, pool)
+
+      const xapi = this.getXapi(pool)
+      if (await xapi.getField('pool', pool._xapiRef, 'wlb_enabled')) {
+        await xapi.call('pool.set_wlb_enabled', pool._xapiRef, false)
+        $defer(() => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true))
+      }
+
+      const trace = openRpuTrace({ dir: getRpuTracesConfig(app).dir, kind: 'rpu', poolId })
+      $defer(() => trace?.stop())
+      if (trace !== undefined) {
+        log.info(`rolling pool update of pool ${poolId}: trace in ${trace.traceFile}`)
+      }
+
+      const properties = {
+        name: 'Rolling pool update',
+        objectId: poolId,
+        poolId,
+        poolName: pool.name_label,
+        progress: 0,
+        type: 'pool.rolling_update',
+        ...(trace !== undefined && { traceFile: trace.traceFile }),
+      }
+      const task = parentTask === undefined ? app.tasks.create(properties) : new Task({ properties })
+      trace?.attach(task)
+      recorder.setTaskId(task.id)
       await task.run(async () =>
         this.getXapi(pool).rollingPoolUpdate(task, {
           xsCredentials: app.apiContext.user.preferences.xsCredentials,
@@ -1045,12 +1047,13 @@ export default class XenServers {
           recorder,
         })
       )
+      // a successful run needs no recovery: the record must be gone, or the
+      // run would be reported as interrupted at the next restart
+      await recorder.delete()
     } catch (error) {
       await recorder.fail(error)
       throw error
     }
-    // a successful run needs no recovery
-    await recorder.delete()
   }
 }
 

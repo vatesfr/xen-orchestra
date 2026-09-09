@@ -507,7 +507,7 @@ export const subscribeRollingUpdateRecovery = (pool, cb) => {
 
   if (rollingUpdateRecoveryByPool[poolId] == null) {
     rollingUpdateRecoveryByPool[poolId] = createSubscription(() =>
-      _call('pool.getRollingUpdateRecovery', { pool: poolId }).catch(() => undefined)
+      _call('pool.getRollingUpdateRecovery', { pool: poolId })
     )
   }
 

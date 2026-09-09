@@ -528,7 +528,6 @@ export const poolRollingUpdateRecovery = {
   runId: '5cea4373-05a7-47ff-9bd8-fea54a37dd63',
   poolId: '355ee47d-ff4c-4924-3db2-fd86ae629676',
   status: 'interrupted',
-  attempt: 1,
   startedAt: '2026-08-31T14:02:11.000Z',
   updatedAt: '2026-08-31T14:20:03.000Z',
   interruptedAt: '2026-08-31T14:18:47.000Z',
@@ -537,7 +536,7 @@ export const poolRollingUpdateRecovery = {
   hostOrder: ['b61a5c92-700e-4966-a13b-00633f03eea8', '46522969-d891-4c48-a839-316b767b7b7b'],
   hosts: {
     'b61a5c92-700e-4966-a13b-00633f03eea8': {
-      status: 'succeeded',
+      status: 'running',
       steps: {
         evacuate: {
           status: 'observed-succeeded',
@@ -571,8 +570,6 @@ export const poolRollingUpdateRecovery = {
       lastError: null,
     },
   },
-  conflicts: [],
-  planChanges: [],
   lastError: null,
   haltedPinnedVms: {
     '883b6265-6d54-c48b-6a24-4b0e6d88801f': 'b61a5c92-700e-4966-a13b-00633f03eea8',

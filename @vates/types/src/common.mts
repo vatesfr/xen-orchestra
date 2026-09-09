@@ -795,3 +795,8 @@ export const XAPI_TYPES: readonly string[] = [
   'VTPM',
   'SM',
 ] satisfies readonly XapiXoRecord['type'][]
+
+/** steps of a rolling pool update on one host, in execution order */
+export const RPU_RECOVERY_STEP_NAMES = ['evacuate', 'update', 'reboot', 'enable', 'restoreVms'] as const
+
+export type RPU_RECOVERY_STEP_NAME = (typeof RPU_RECOVERY_STEP_NAMES)[number]

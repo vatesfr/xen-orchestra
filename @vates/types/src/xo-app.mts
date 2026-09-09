@@ -21,6 +21,7 @@ import type {
 } from './xo.mjs'
 import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
+import type { RPU_RECOVERY_STEP_NAME } from './common.mjs'
 import {
   Xapi,
   XapiHostStats,
@@ -131,17 +132,25 @@ export type PoolRollingUpdateRecoveryStep = {
   finishedAt?: string
 }
 
+/** error serialized by the recovery recorder: secret-looking keys are redacted */
+export type PoolRollingUpdateRecoveryError = {
+  name?: string
+  message?: string
+  stack?: string
+  code?: string | number
+  [key: string]: unknown
+}
+
 export type PoolRollingUpdateRecoveryHost = {
   status: 'pending' | 'running' | 'succeeded' | 'failed' | 'not-needed'
-  steps: Record<string, PoolRollingUpdateRecoveryStep>
-  lastError: unknown
+  steps: Record<RPU_RECOVERY_STEP_NAME, PoolRollingUpdateRecoveryStep>
+  lastError: PoolRollingUpdateRecoveryError | null
 }
 
 export type PoolRollingUpdateRecoveryRun = {
   runId: string
   poolId: string
-  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'blocked' | 'cleaning'
-  attempt: number
+  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'cleaning'
   startedAt: string
   updatedAt: string
   finishedAt?: string
@@ -150,9 +159,7 @@ export type PoolRollingUpdateRecoveryRun = {
   variant?: 'xcp' | 'xs-cdn' | 'xs-legacy'
   hostOrder?: string[]
   hosts: Record<string, PoolRollingUpdateRecoveryHost>
-  conflicts: unknown[]
-  planChanges: unknown[]
-  lastError: unknown
+  lastError: PoolRollingUpdateRecoveryError | null
   /** VM UUID -> UUID of the host it must be started on */
   haltedPinnedVms: Record<string, string>
 }

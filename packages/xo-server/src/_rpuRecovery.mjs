@@ -1,4 +1,5 @@
 import { createLogger } from '@xen-orchestra/log'
+import { RPU_RECOVERY_STEP_NAMES } from '@vates/types/common'
 import { randomUUID } from 'node:crypto'
 import stringify from 'json-stringify-safe'
 
@@ -12,8 +13,6 @@ export const RPU_RECOVERY_SCHEMA_VERSION = 1
 // to `interrupted` at boot
 const LIVE_RUN_STATUSES = new Set(['preparing', 'running', 'resuming', 'cleaning'])
 
-const STEP_NAMES = ['evacuate', 'update', 'reboot', 'enable', 'restoreVms']
-
 const noop = () => {}
 const asyncNoop = async () => {}
 
@@ -21,20 +20,30 @@ const asyncNoop = async () => {}
  * Serializes an error through the RPU observability replacer: secret-looking
  * keys are scrubbed and the result only contains JSON-safe values.
  *
+ * Never throws: a value that cannot be serialized (throwing getter or
+ * `toJSON`) is reduced to its string form, and non-object values are wrapped
+ * so the result is always an object.
+ *
  * @param {any} error
- * @returns {any} JSON-safe representation, `null` for nullish errors
+ * @returns {object | null} JSON-safe representation, `null` for nullish errors
  */
 export function filterError(error) {
-  return error == null ? null : JSON.parse(stringify(error, replacer))
+  if (error == null) {
+    return null
+  }
+  let filtered
+  try {
+    filtered = JSON.parse(stringify(error, replacer))
+  } catch (serializationError) {
+    log.warn('could not serialize an error for the RPU recovery record', { error: serializationError })
+    filtered = String(error)
+  }
+  return typeof filtered === 'object' && filtered !== null ? filtered : { message: String(filtered) }
 }
 
 /**
  * Creates the initial `version 1` recovery record of an RPU run: status
  * `preparing`, nothing done yet.
- *
- * `conflicts`, `planChanges`, `original` and `changedByRun` are declared but
- * left empty: they are filled by the conflict detection and settings
- * restoration work built on top of this record.
  *
  * @param {object} params
  * @param {string} params.poolId
@@ -49,22 +58,17 @@ export function createRpuRecoveryRecord({ poolId, options }) {
     runId: randomUUID(),
     poolId,
     status: 'preparing',
-    attempt: 1,
     startedAt: now,
     updatedAt: now,
     options,
     hosts: {},
     haltedPinnedVms: {},
     lastError: null,
-    conflicts: [],
-    planChanges: [],
-    original: {},
-    changedByRun: [],
   }
 }
 
 function deriveHostStatus(steps) {
-  const statuses = STEP_NAMES.map(name => steps[name]?.status ?? 'pending')
+  const statuses = RPU_RECOVERY_STEP_NAMES.map(name => steps[name]?.status ?? 'pending')
   if (statuses.includes('failed')) {
     return 'failed'
   }
@@ -86,11 +90,11 @@ function deriveHostStatus(steps) {
 
 /**
  * Projects a readable record onto its public view: run identity and status,
- * dates, current task, per-host steps, conflicts, plan changes, last filtered
- * error and halted pinned VMs.
+ * dates, current task, per-host steps, last filtered error and halted pinned
+ * VMs.
  *
- * Never exposes the raw intent: options, initial VM placement, original
- * settings and agent times stay in the record.
+ * Never exposes the raw intent: options, initial VM placement and agent times
+ * stay in the record.
  *
  * A record of an unknown schema version is reported as `blocked`: acting on a
  * record this version of the code cannot understand would be unsafe.
@@ -112,7 +116,7 @@ export function buildRpuRecoveryView(record) {
   for (const hostId of record.hostOrder ?? Object.keys(record.hosts ?? {})) {
     const { steps = {}, lastError } = record.hosts?.[hostId] ?? {}
     const viewSteps = {}
-    for (const name of STEP_NAMES) {
+    for (const name of RPU_RECOVERY_STEP_NAMES) {
       const { status = 'pending', startedAt, finishedAt } = steps[name] ?? {}
       viewSteps[name] = { status, startedAt, finishedAt }
     }
@@ -127,7 +131,6 @@ export function buildRpuRecoveryView(record) {
     runId: record.runId,
     poolId: record.poolId,
     status: record.status,
-    attempt: record.attempt,
     startedAt: record.startedAt,
     updatedAt: record.updatedAt,
     finishedAt: record.finishedAt,
@@ -136,8 +139,6 @@ export function buildRpuRecoveryView(record) {
     variant: record.variant,
     hostOrder: record.hostOrder,
     hosts,
-    conflicts: record.conflicts ?? [],
-    planChanges: record.planChanges ?? [],
     lastError: record.lastError ?? null,
     haltedPinnedVms: record.haltedPinnedVms ?? {},
   }
@@ -163,8 +164,7 @@ export const noopRpuRecorder = Object.freeze({
   setTaskId: noop,
   setVariant: noop,
   setPatchInventory: noop,
-  setVmHome: noop,
-  setHostOrder: noop,
+  setPlan: noop,
   hostStarting: noop,
   hostSkipped: noop,
   hostFailed: noop,
@@ -246,12 +246,11 @@ export function createRpuRecoveryRecorder({ store, record }) {
       record.hasMissingPatchesByHost = hasMissingPatchesByHost
       write()
     },
-    setVmHome(vmHomeById) {
+    // one write for the biggest part of the record, right before the first
+    // host is handled
+    setPlan({ hostOrder, vmHomeById }) {
+      record.hostOrder = hostOrder
       record.vmHomeById = vmHomeById
-      write()
-    },
-    setHostOrder(hostIds) {
-      record.hostOrder = hostIds
       write()
     },
     hostStarting(hostId, agentStartTime) {
@@ -259,7 +258,7 @@ export function createRpuRecoveryRecorder({ store, record }) {
       write()
     },
     hostSkipped(hostId) {
-      for (const name of STEP_NAMES) {
+      for (const name of RPU_RECOVERY_STEP_NAMES) {
         setStep(hostId, name, { status: 'not-needed' })
       }
       write()
@@ -268,7 +267,7 @@ export function createRpuRecoveryRecorder({ store, record }) {
     // path for everything thrown while handling one host
     hostFailed(hostId, error) {
       const steps = hostEntry(hostId).steps
-      const runningStep = STEP_NAMES.find(name => steps[name]?.status === 'running')
+      const runningStep = RPU_RECOVERY_STEP_NAMES.find(name => steps[name]?.status === 'running')
       if (runningStep !== undefined) {
         setStep(hostId, runningStep, { status: 'failed', finishedAt: new Date().toISOString() })
       }
@@ -310,14 +309,11 @@ export function createRpuRecoveryRecorder({ store, record }) {
       record.finishedAt = new Date().toISOString()
       await enqueueWrite().catch(warnOnce)
     },
-    // a successful run leaves no record behind
+    // a successful run leaves no record behind: strict, a record left on disk
+    // would report the run as interrupted at the next restart
     async delete() {
       await chain
-      try {
-        await store.del(record.poolId)
-      } catch (error) {
-        log.warn('failed to delete the RPU recovery record after a successful run', { error, poolId: record.poolId })
-      }
+      await store.del(record.poolId)
     },
   }
 }
@@ -347,32 +343,34 @@ export async function startRpuRecoveryRun({ store, poolId, options }) {
  * a running operation anymore since xo-server just started, flip it to
  * `interrupted`. `interruptedAt` keeps the last time the run was known alive.
  *
- * Unreadable or unknown-version records are left untouched: they are reported
- * as `blocked` at read time and the raw value is evidence.
+ * Unknown-version records are left untouched: they are reported as `blocked`
+ * at read time and the raw value is evidence.
  *
- * Never throws: errors are logged and the remaining records are still
- * processed.
+ * Never throws: errors are logged.
  *
  * @param {object} store - LevelDB sublevel, keyed by pool id
  * @returns {Promise<void>}
  */
 export async function reconcileRpuRecoveryAtBoot(store) {
   try {
-    for await (const poolId of store.createKeyStream()) {
-      try {
-        const record = await store.get(poolId)
-        if (record?.schemaVersion === RPU_RECOVERY_SCHEMA_VERSION && LIVE_RUN_STATUSES.has(record.status)) {
-          record.interruptedAt = record.updatedAt
-          record.status = 'interrupted'
-          record.updatedAt = new Date().toISOString()
-          await store.put(poolId, record)
-          log.info(`interrupted rolling pool update detected on pool ${record.poolId}`)
-        }
-      } catch (error) {
-        log.warn('could not reconcile an RPU recovery record, it will be reported as blocked', { error, poolId })
+    for await (const { key: poolId, value: record } of store.createReadStream()) {
+      if (record?.schemaVersion === RPU_RECOVERY_SCHEMA_VERSION && LIVE_RUN_STATUSES.has(record.status)) {
+        const { runId, status, taskId, startedAt } = record
+        record.interruptedAt = record.updatedAt
+        record.status = 'interrupted'
+        record.updatedAt = new Date().toISOString()
+        await store.put(poolId, record)
+        log.info('interrupted rolling pool update detected', {
+          poolId,
+          runId,
+          taskId,
+          status,
+          startedAt,
+          interruptedAt: record.interruptedAt,
+        })
       }
     }
   } catch (error) {
-    log.warn('could not list the RPU recovery records for reconciliation', { error })
+    log.warn('could not reconcile the RPU recovery records', { error })
   }
 }

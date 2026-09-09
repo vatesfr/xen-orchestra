@@ -34,8 +34,8 @@ function makeFakeStore() {
     async del(key) {
       data.delete(key)
     },
-    createKeyStream() {
-      return Readable.from([...data.keys()])
+    createReadStream() {
+      return Readable.from([...data].map(([key, value]) => ({ key, value })))
     },
   }
 }
@@ -43,22 +43,17 @@ function makeFakeStore() {
 const OPTIONS = { rebootVm: true, bypassBackupCheck: false, shutdownPinnedVms: true }
 
 describe('createRpuRecoveryRecord()', () => {
-  it('creates a preparing v1 record with declared empty future fields', () => {
+  it('creates a preparing v1 record', () => {
     const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
 
     assert.equal(record.schemaVersion, RPU_RECOVERY_SCHEMA_VERSION)
     assert.equal(typeof record.runId, 'string')
     assert.equal(record.poolId, 'pool1')
     assert.equal(record.status, 'preparing')
-    assert.equal(record.attempt, 1)
     assert.deepEqual(record.options, OPTIONS)
     assert.deepEqual(record.hosts, {})
     assert.deepEqual(record.haltedPinnedVms, {})
     assert.equal(record.lastError, null)
-    assert.deepEqual(record.conflicts, [])
-    assert.deepEqual(record.planChanges, [])
-    assert.deepEqual(record.original, {})
-    assert.deepEqual(record.changedByRun, [])
   })
 })
 
@@ -77,6 +72,22 @@ describe('filterError()', () => {
   it('returns null for nullish errors', () => {
     assert.equal(filterError(undefined), null)
     assert.equal(filterError(null), null)
+  })
+
+  it('never throws: an unserializable error is reduced to its string form', () => {
+    const error = new Error('boom')
+    error.details = {
+      toJSON() {
+        throw new Error('nope')
+      },
+    }
+
+    assert.deepEqual(filterError(error), { message: 'Error: boom' })
+  })
+
+  it('wraps non-object values so the result is always an object', () => {
+    assert.deepEqual(filterError('boom'), { message: 'boom' })
+    assert.deepEqual(filterError(42), { message: '42' })
   })
 })
 
@@ -112,20 +123,15 @@ describe('buildRpuRecoveryView()', () => {
 
     assert.equal(view.runId, record.runId)
     assert.equal(view.status, 'preparing')
-    assert.equal(view.attempt, 1)
     assert.equal(view.taskId, 'task1')
     assert.equal(view.variant, 'xcp')
     assert.deepEqual(view.hostOrder, ['h1', 'h2'])
     assert.deepEqual(view.haltedPinnedVms, { vm2: 'h1' })
-    assert.deepEqual(view.conflicts, [])
-    assert.deepEqual(view.planChanges, [])
     assert.equal(view.lastError, null)
 
     // raw intent is never exposed
     assert.equal(view.options, undefined)
     assert.equal(view.vmHomeById, undefined)
-    assert.equal(view.original, undefined)
-    assert.equal(view.changedByRun, undefined)
     assert.equal(view.hasMissingPatchesByHost, undefined)
     assert.equal(view.hosts.h1.agentStartedAtBeforeUpdate, undefined)
 
@@ -203,8 +209,7 @@ describe('createRpuRecoveryRecorder()', () => {
     recorder.setTaskId('task1')
     recorder.setVariant('xcp')
     recorder.setPatchInventory({ h1: true })
-    recorder.setVmHome({ vm1: 'h1' })
-    recorder.setHostOrder(['h1'])
+    recorder.setPlan({ hostOrder: ['h1'], vmHomeById: { vm1: 'h1' } })
     recorder.hostStarting('h1', '123')
     recorder.stepRunning('h1', 'evacuate')
     recorder.stepObserved('h1', 'evacuate')
@@ -303,13 +308,13 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(store.data.has('pool1'), false)
   })
 
-  it('delete does not throw when the store fails', async () => {
+  it('delete is strict: rejects when the store fails', async () => {
     const { store, recorder } = await makeRecorder()
     store.del = async () => {
       throw new Error('disk error')
     }
 
-    await recorder.delete()
+    await assert.rejects(recorder.delete(), /disk error/)
   })
 })
 
@@ -322,7 +327,6 @@ describe('reconcileRpuRecoveryAtBoot()', () => {
       ['resuming', 'resuming'],
       ['cleaning', 'cleaning'],
       ['failed', 'failed'],
-      ['blocked', 'blocked'],
       ['interrupted', 'interrupted'],
     ]) {
       const record = createRpuRecoveryRecord({ poolId, options: OPTIONS })
@@ -338,30 +342,23 @@ describe('reconcileRpuRecoveryAtBoot()', () => {
       assert.equal(record.status, 'interrupted', poolId)
       assert.equal(typeof record.interruptedAt, 'string')
     }
-    for (const poolId of ['failed', 'blocked', 'interrupted']) {
+    for (const poolId of ['failed', 'interrupted']) {
       assert.equal(store.data.get(poolId).status, poolId)
     }
     // unknown version left untouched: blocked at read time, the value is evidence
     assert.deepEqual(store.data.get('unknown-version'), { schemaVersion: 42, status: 'running' })
   })
 
-  it('an unreadable record does not stop the reconciliation of the others', async () => {
+  it('a failing store is logged, not thrown', async () => {
     const store = makeFakeStore()
-    const live = createRpuRecoveryRecord({ poolId: 'pool2', options: OPTIONS })
-    live.status = 'running'
-    await store.put('pool1', 'whatever')
-    await store.put('pool2', live)
-    const innerGet = store.get.bind(store)
-    store.get = async key => {
-      if (key === 'pool1') {
-        throw new SyntaxError('Unexpected token')
-      }
-      return innerGet(key)
-    }
+    store.createReadStream = () =>
+      Readable.from(
+        (async function* () {
+          throw new Error('corrupt')
+        })()
+      )
 
     await reconcileRpuRecoveryAtBoot(store)
-
-    assert.equal(store.data.get('pool2').status, 'interrupted')
   })
 })
 

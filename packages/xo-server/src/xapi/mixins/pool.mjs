@@ -9,8 +9,6 @@ import { noopRpuRecorder } from '../../_rpuRecovery.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import filter from 'lodash/filter.js'
-import groupBy from 'lodash/groupBy.js'
-import mapValues from 'lodash/mapValues.js'
 
 const log = createLogger('xo:xapi')
 
@@ -159,37 +157,20 @@ const methods = {
       rprProgress += progressStep
       setProgress(parentTask, rprProgress)
     }
-    // Remember on which hosts the running VMs are
-    const vmRefsByHost = mapValues(
-      groupBy(
-        filter(this.objects.all, {
-          $type: 'VM',
-          power_state: 'Running',
-          is_control_domain: false,
-        }),
-        vm => {
-          const hostId = vm.$resident_on?.$id
+    // Remember on which hosts the running VMs are: to migrate them back after
+    // the reboots, and for the recovery record (not reconstructible once the
+    // evacuations have started)
+    const vmRefsByHost = {}
+    const vmHomeById = {}
+    for (const vm of filter(this.objects.all, { $type: 'VM', power_state: 'Running', is_control_domain: false })) {
+      const hostId = vm.$resident_on?.$id
 
-          if (hostId === undefined) {
-            throw new Error('Could not find host of all running VMs')
-          }
-
-          return hostId
-        }
-      ),
-      vms => vms.map(vm => vm.$ref)
-    )
-
-    {
-      // initial VM placement, needed to bring VMs back to their host after a
-      // resume: not reconstructible once the evacuations have started
-      const vmHomeById = {}
-      for (const [hostId, vmRefs] of Object.entries(vmRefsByHost)) {
-        for (const vmRef of vmRefs) {
-          vmHomeById[this.getObject(vmRef).uuid] = hostId
-        }
+      if (hostId === undefined) {
+        throw new Error('Could not find host of all running VMs')
       }
-      recorder.setVmHome(vmHomeById)
+
+      ;(vmRefsByHost[hostId] ??= []).push(vm.$ref)
+      vmHomeById[vm.uuid] = hostId
     }
 
     // Put master in first position to restart it first
@@ -199,7 +180,9 @@ const methods = {
     }
     ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
 
-    recorder.setHostOrder(hosts.map(host => host.uuid))
+    // last write before the first host is handled: the host order and the VM
+    // placement are the biggest part of the record, written once
+    recorder.setPlan({ hostOrder: hosts.map(host => host.uuid), vmHomeById })
 
     // Restart all the hosts one by one
     const restartSubtask = new Task({ properties: { name: `Restarting hosts`, progress: 0 } })
