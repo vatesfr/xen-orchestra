@@ -1,5 +1,6 @@
 import PoolDashboardStoragesUsage from '@/modules/pool/components/dashboard/PoolDashboardStoragesUsage.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { findCardNumbers } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -26,10 +27,6 @@ function mountStoragesUsage(props: { poolDashboard?: XoPoolDashboard; hasError?:
 
 function withStorages(topFiveUsage: StorageUsage[]): XoPoolDashboard {
   return { srs: { topFiveUsage } }
-}
-
-function findNumbers(wrapper: ReturnType<typeof mountStoragesUsage>) {
-  return wrapper.findAll('.ui-card-numbers').map(card => [card.get('.label').text(), card.get('.values').text()])
 }
 
 it('renders the card title and the number of storages it covers', () => {
@@ -82,7 +79,7 @@ it('sums the usage and the free space across the storages', () => {
     ]),
   })
 
-  expect(findNumbers(wrapper)).toEqual([
+  expect(findCardNumbers(wrapper)).toEqual([
     [t('total-used'), '3 GiB'],
     [t('total-free'), '5 GiB'],
   ])

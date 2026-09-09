@@ -1,5 +1,6 @@
 import HostsRamUsage from '@/modules/pool/components/dashboard/ram-usage/HostsRamUsage.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { findLegends } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -22,12 +23,6 @@ function mountRamUsage(props: { topFiveRam?: HostRamUsage[]; hasError?: boolean 
     props: { topFiveRam: undefined, ...props },
     global: createGlobalTestConfig(),
   })
-}
-
-function findLegends(wrapper: ReturnType<typeof mountRamUsage>) {
-  return wrapper
-    .findAll('.ui-legend')
-    .map(legend => [legend.get('.label').text(), legend.get('.value-and-unit').text()])
 }
 
 it('reports that there is nothing to show while the usage has not arrived yet', () => {

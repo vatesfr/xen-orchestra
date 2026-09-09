@@ -1,16 +1,12 @@
 import VmDashboardVdiUsageChart from '@/modules/vm/components/dashboard/VmDashboardVdiUsageChart.vue'
 import { createVmStats } from '@/test/create-vm-stats.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { findLinearChart, formatChartValue, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
+import { findLinearChart, formatChartValue } from '@/test/linear-chart-stub.ts'
+import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
 import type { XapiVmStats } from '@vates/types/common'
-import { mount } from '@vue/test-utils'
 
-function mountChart(props: { data: XapiVmStats | null; loading?: boolean; error?: boolean }) {
-  return mount(VmDashboardVdiUsageChart, {
-    props: { loading: false, ...props },
-    global: { ...createGlobalTestConfig(), stubs: { VtsLinearChart: VtsLinearChartStub } },
-  })
+function mountChart(props: ChartCardProps<XapiVmStats>) {
+  return mountChartCard(VmDashboardVdiUsageChart, props)
 }
 
 const statsWithSamples = createVmStats({ stats: { xvds: { r: { xvda: [10, 20] }, w: { xvda: [30, 40] } } } })

@@ -24,3 +24,27 @@ export function findCardLabelledValues(wrapper: QueryableWrapper): Record<string
 
   return Object.fromEntries(rows.map(row => [row.get('.key').text(), row.get('.value').text()]))
 }
+
+/**
+ * Reads every `UiLegend` of a mounted component as ordered `[label, value]`
+ * pairs — the donut and progress-bar cards render their values through it.
+ *
+ * Pairs rather than a record: a card may legend the same label twice, and the
+ * order it lists them in is part of what a user reads.
+ */
+export function findLegends(wrapper: QueryableWrapper): [string, string][] {
+  const legends = wrapper.findAll('.ui-legend')
+
+  return legends.map(legend => [legend.get('.label').text(), legend.get('.value-and-unit').text()])
+}
+
+/**
+ * Same as {@link findLegends}, for the `UiCardNumbers` a dashboard card lays out
+ * next to its progress bar or donut. `.values` holds the number and, when the
+ * card passes a `max`, the percentage above it.
+ */
+export function findCardNumbers(wrapper: QueryableWrapper): [string, string][] {
+  const cards = wrapper.findAll('.ui-card-numbers')
+
+  return cards.map(card => [card.get('.label').text(), card.get('.values').text()])
+}

@@ -1,6 +1,7 @@
 import HostDashboardRamProvisioning from '@/modules/host/components/dashboard/HostDashboardRamProvisioning.vue'
 import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
+import { findCardNumbers } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -24,10 +25,6 @@ function mountProvisioning(host: FrontXoHost = createHost({ memory: { size: 4294
   })
 }
 
-function findNumbers(wrapper: ReturnType<typeof mountProvisioning>) {
-  return wrapper.findAll('.ui-card-numbers').map(card => [card.get('.label').text(), card.get('.values').text()])
-}
-
 it('renders the card title', () => {
   const wrapper = mountProvisioning()
 
@@ -40,13 +37,13 @@ it('shows a loader instead of the provisioning while the hosts are still loading
   const wrapper = mountProvisioning()
 
   expect(wrapper.find('.ui-loader').exists()).toBe(true)
-  expect(findNumbers(wrapper)).toEqual([])
+  expect(findCardNumbers(wrapper)).toEqual([])
 })
 
 it('splits the memory of the host between what is assigned and what is left', () => {
   const wrapper = mountProvisioning()
 
-  expect(findNumbers(wrapper)).toEqual([
+  expect(findCardNumbers(wrapper)).toEqual([
     [t('total-assigned'), '1 GiB'],
     [t('total-free'), '3 GiB'],
   ])

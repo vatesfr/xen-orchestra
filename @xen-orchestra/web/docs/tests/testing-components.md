@@ -109,14 +109,11 @@ Where the line falls:
 
 ## Chart cards
 
-A dashboard chart card loads its `VtsLinearChart` asynchronously, and the real chart cannot mount here: ECharts needs a canvas and a `ResizeObserver`. `src/test/linear-chart-stub.ts` stands in for it, with the props declared so they stay readable:
+A dashboard chart card loads its `VtsLinearChart` asynchronously, and the real chart cannot mount here: ECharts needs a canvas and a `ResizeObserver`. `src/test/linear-chart-stub.ts` stands in for it, with the props declared so they stay readable. `mountChartCard` from `src/test/mount-chart-card.ts` wires that stub in and defaults `loading` to `false`, so a card test only names its component and its stats type:
 
 ```typescript
-function mountChart(props: { data: XapiHostStats | null; loading?: boolean; error?: boolean }) {
-  return mount(HostDashboardLoadAverageChart, {
-    props: { loading: false, ...props },
-    global: { ...createGlobalTestConfig(), stubs: { VtsLinearChart: VtsLinearChartStub } },
-  })
+function mountChart(props: ChartCardProps<XapiHostStats>) {
+  return mountChartCard(HostDashboardLoadAverageChart, props)
 }
 
 it('plots the load average of the host', () => {
@@ -134,7 +131,7 @@ it('plots the load average of the host', () => {
 })
 ```
 
-Stubbing with `true` instead would push the props into attributes, where they arrive stringified.
+Stubbing with `true` instead would push the props into attributes, where they arrive stringified — which is why `mountChartCard` owns that wiring rather than each test repeating it.
 
 Assert the plotted series, not the absence of a state hero. Every card guards on the series it built, so an empty series does reach the "no data" hero — but a hero-only test still passes over a series plotting the wrong samples. That is how the pool CPU card came to size its series off `stats.memory` unnoticed.
 

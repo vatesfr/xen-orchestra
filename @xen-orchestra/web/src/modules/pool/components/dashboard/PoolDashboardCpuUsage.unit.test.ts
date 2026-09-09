@@ -2,9 +2,10 @@ import HostsCpuUsage from '@/modules/pool/components/dashboard/cpu-usage/HostsCp
 import VmsCpuUsage from '@/modules/pool/components/dashboard/cpu-usage/VmsCpuUsage.vue'
 import PoolDashboardCpuUsage from '@/modules/pool/components/dashboard/PoolDashboardCpuUsage.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { findLegends } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 
 type TopFiveUsage = NonNullable<NonNullable<XoPoolDashboard['hosts']>['topFiveUsage']>
 
@@ -21,12 +22,6 @@ function mountCpuUsage(props: { poolDashboard?: XoPoolDashboard; hasError?: bool
     props: { poolDashboard: createPoolDashboard(), ...props },
     global: createGlobalTestConfig(),
   })
-}
-
-function findLegends(section: VueWrapper) {
-  return section
-    .findAll('.ui-legend')
-    .map(legend => [legend.get('.label').text(), legend.get('.value-and-unit').text()])
 }
 
 it('renders the card title', () => {

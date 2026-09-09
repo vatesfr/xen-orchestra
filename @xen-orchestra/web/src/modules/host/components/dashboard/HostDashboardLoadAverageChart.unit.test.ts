@@ -1,16 +1,12 @@
 import HostDashboardLoadAverageChart from '@/modules/host/components/dashboard/HostDashboardLoadAverageChart.vue'
 import { createHostStats } from '@/test/create-host-stats.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { findLinearChart, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
+import { findLinearChart } from '@/test/linear-chart-stub.ts'
+import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
 import type { XapiHostStats } from '@vates/types/common'
-import { mount } from '@vue/test-utils'
 
-function mountChart(props: { data: XapiHostStats | null; loading?: boolean; error?: boolean }) {
-  return mount(HostDashboardLoadAverageChart, {
-    props: { loading: false, ...props },
-    global: { ...createGlobalTestConfig(), stubs: { VtsLinearChart: VtsLinearChartStub } },
-  })
+function mountChart(props: ChartCardProps<XapiHostStats>) {
+  return mountChartCard(HostDashboardLoadAverageChart, props)
 }
 
 const statsWithSamples = createHostStats({ stats: { load: [1.5, 2.5] } })

@@ -3,6 +3,7 @@ import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-res
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findLegends } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { VM_POWER_STATE } from '@vates/types'
@@ -51,12 +52,6 @@ function mountVmsStatus() {
     props: { host },
     global: createGlobalTestConfig(),
   })
-}
-
-function findLegends(wrapper: ReturnType<typeof mountVmsStatus>) {
-  return wrapper
-    .findAll('.ui-legend')
-    .map(legend => [legend.get('.label').text(), legend.get('.value-and-unit').text()])
 }
 
 it('renders the card title', () => {

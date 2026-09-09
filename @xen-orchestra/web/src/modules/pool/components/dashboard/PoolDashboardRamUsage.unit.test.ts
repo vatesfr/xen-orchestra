@@ -2,9 +2,10 @@ import PoolDashboardRamUsage from '@/modules/pool/components/dashboard/PoolDashb
 import HostsRamUsage from '@/modules/pool/components/dashboard/ram-usage/HostsRamUsage.vue'
 import VmsRamUsage from '@/modules/pool/components/dashboard/ram-usage/VmsRamUsage.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { findLegends } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 
 type HostsTopFiveUsage = NonNullable<NonNullable<XoPoolDashboard['hosts']>['topFiveUsage']>
 
@@ -26,12 +27,6 @@ function mountRamUsage(props: { poolDashboard?: XoPoolDashboard; hasError?: bool
     props: { poolDashboard: createPoolDashboard(), ...props },
     global: createGlobalTestConfig(),
   })
-}
-
-function findLegends(section: VueWrapper) {
-  return section
-    .findAll('.ui-legend')
-    .map(legend => [legend.get('.label').text(), legend.get('.value-and-unit').text()])
 }
 
 it('renders the card title', () => {

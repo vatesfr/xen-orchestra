@@ -1,16 +1,12 @@
 import PoolDashboardCpuChart from '@/modules/pool/components/dashboard/chart-usage/PoolDashboardCpuChart.vue'
 import { createPoolStats } from '@/test/create-pool-stats.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { n, t } from '@/test/i18n.ts'
-import { findLinearChart, formatChartValue, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
+import { findLinearChart, formatChartValue } from '@/test/linear-chart-stub.ts'
+import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
 import type { XapiPoolStats } from '@vates/types/common'
-import { mount } from '@vue/test-utils'
 
-function mountChart(props: { data: XapiPoolStats | null; loading?: boolean; error?: boolean }) {
-  return mount(PoolDashboardCpuChart, {
-    props: { loading: false, ...props },
-    global: { ...createGlobalTestConfig(), stubs: { VtsLinearChart: VtsLinearChartStub } },
-  })
+function mountChart(props: ChartCardProps<XapiPoolStats>) {
+  return mountChartCard(PoolDashboardCpuChart, props)
 }
 
 const statsWithSamples = createPoolStats({

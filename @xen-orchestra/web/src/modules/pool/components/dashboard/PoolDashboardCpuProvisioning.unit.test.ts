@@ -1,5 +1,6 @@
 import PoolDashboardCpuProvisioning from '@/modules/pool/components/dashboard/PoolDashboardCpuProvisioning.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { findCardNumbers } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -17,10 +18,6 @@ function mountProvisioning(props: { poolDashboard?: XoPoolDashboard; hasError?: 
   })
 }
 
-function findNumbers(wrapper: ReturnType<typeof mountProvisioning>) {
-  return wrapper.findAll('.ui-card-numbers').map(card => [card.get('.label').text(), card.get('.values').text()])
-}
-
 it('renders the card title', () => {
   const wrapper = mountProvisioning()
 
@@ -31,7 +28,7 @@ it('shows a loader while the dashboard has not arrived yet', () => {
   const wrapper = mountProvisioning({ poolDashboard: undefined })
 
   expect(wrapper.find('.ui-loader').exists()).toBe(true)
-  expect(findNumbers(wrapper)).toEqual([])
+  expect(findCardNumbers(wrapper)).toEqual([])
 })
 
 it('shows a loader while the provisioning is missing from the dashboard', () => {
@@ -49,7 +46,7 @@ it('shows an error message when the dashboard could not be fetched', () => {
 it('splits the CPUs of the pool between what is assigned and what it holds', () => {
   const wrapper = mountProvisioning()
 
-  expect(findNumbers(wrapper)).toEqual([
+  expect(findCardNumbers(wrapper)).toEqual([
     [t('vcpus-assigned'), '6'],
     [t('total-cpus'), '8'],
   ])
@@ -70,7 +67,7 @@ it('labels the progress bar with the share of the CPUs assigned', () => {
 it('reports no CPU for a pool provisioning nothing', () => {
   const wrapper = mountProvisioning({ poolDashboard: withCpuProvisioning({ assigned: 0, total: 0, percent: 0 }) })
 
-  expect(findNumbers(wrapper)).toEqual([
+  expect(findCardNumbers(wrapper)).toEqual([
     [t('vcpus-assigned'), '0'],
     [t('total-cpus'), '0'],
   ])
