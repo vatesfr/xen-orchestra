@@ -28,7 +28,6 @@
 <script lang="ts" setup>
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useVmProtectedInfoModal } from '@/shared/composables/modals/use-vm-protected-info-modal.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
@@ -36,6 +35,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -45,7 +45,16 @@ const { vms } = useXoVmCollection()
 
 const { t } = useI18n()
 
-const { open: openVmProtectedInfoModal } = useVmProtectedInfoModal()
+const { open: openInfoModal } = useInfoModal()
+
+function openVmProtectedInfoModal() {
+  openInfoModal({
+    props: {
+      title: t('what-does-protected-mean?'),
+      content: t('what-does-protected-mean-content'),
+    },
+  })
+}
 
 const dashboardBackups = computed(() => dashboard.value.backups)
 

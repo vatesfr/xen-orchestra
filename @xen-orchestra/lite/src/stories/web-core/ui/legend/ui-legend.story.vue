@@ -33,7 +33,7 @@ import UiLegend from '@core/components/ui/legend/UiLegend.vue'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 
 const { open: openLegendModal } = useOverlay({
-  component: () => import('@/stories/web-core/ui/legend/LegendInfoModal.vue'),
+  component: () => import('@/stories/overlay/DemoLegendInfoModal.vue'),
   events: {
     onClose: true,
   },

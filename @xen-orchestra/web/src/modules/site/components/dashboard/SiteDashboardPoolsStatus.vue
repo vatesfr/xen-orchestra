@@ -19,7 +19,6 @@
 
 <script lang="ts" setup>
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
-import { useUnreachablePoolModal } from '@/shared/composables/modals/use-unreachable-pool-modal.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
@@ -28,6 +27,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -35,7 +35,7 @@ const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const { open: openUnreachablePoolModal } = useUnreachablePoolModal()
+const { open: openInfoModal } = useInfoModal()
 
 const poolsStatus = computed(() => dashboard.value.poolsStatus)
 
@@ -56,7 +56,14 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     label: t('pool:status:unreachable', 2),
     value: poolsStatus.value?.unreachable ?? 0,
     accent: 'danger',
-    onInfoClick: () => openUnreachablePoolModal(),
+    onInfoClick: () =>
+      openInfoModal({
+        props: {
+          title: t('unreachable-pools'),
+          content: t('unreachable-pools-content'),
+          tip: t('unreachable-pools-tip'),
+        },
+      }),
   },
 ])
 </script>

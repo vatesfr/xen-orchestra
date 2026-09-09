@@ -28,7 +28,6 @@
 
 <script setup lang="ts">
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import { useDisabledHostInfoModal } from '@/shared/composables/modals/use-disabled-host-info-modal.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
@@ -37,6 +36,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -50,7 +50,7 @@ const areVmsStatusReady = computed(() => poolDashboard?.vms?.status !== undefine
 
 const { t } = useI18n()
 
-const { open: openDisabledHostInfoModal } = useDisabledHostInfoModal()
+const { open: openInfoModal } = useInfoModal()
 
 const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
@@ -62,7 +62,10 @@ const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
     label: t('host:status:disabled', 2),
     value: poolDashboard?.hosts?.status?.disabled ?? 0,
     accent: 'muted',
-    onInfoClick: () => openDisabledHostInfoModal(),
+    onInfoClick: () =>
+      openInfoModal({
+        props: { title: t('what-is-a-disabled-host?'), content: t('what-is-a-disabled-host-content') },
+      }),
   },
   {
     label: t('host:status:halted', 2),
