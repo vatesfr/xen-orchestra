@@ -37,3 +37,23 @@ export function listReplicatedVms(xapi, scheduleOrJobId, srUuid, vmUuid) {
 
   return Object.values(vms).sort(compareReplicatedVmDatetime)
 }
+
+/**
+ * Keep, out of the entries returned by {@link listReplicatedVms}, the ones retention must
+ * consider.
+ *
+ * In the snapshot-based flow a live target VM coexists with its snapshots, one per
+ * transfer. Destroying that VM would destroy the snapshots it holds, so it is spared as
+ * long as it still has any. It becomes an ordinary entry once its last snapshot has been
+ * reaped, which is how a target VM abandoned by a chain reset is eventually collected.
+ *
+ * Old-style entries (one non-snapshot VM per transfer, hence no snapshots) are always
+ * kept in the list.
+ *
+ * @param {Array<XoVm>} entries
+ * @returns {Array<XoVm>}
+ */
+export function filterRetentionEntries(entries) {
+  const vmRefsWithSnapshots = new Set(entries.filter(_ => _.is_a_snapshot).map(_ => _.snapshot_of))
+  return entries.filter(_ => _.is_a_snapshot || !vmRefsWithSnapshots.has(_.$ref))
+}

@@ -10,7 +10,7 @@ import { importIncrementalVm } from '../../_incrementalVm.mjs'
 
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
-import { compareReplicatedVmDatetime, listReplicatedVms } from './_listReplicatedVms.mjs'
+import { compareReplicatedVmDatetime, filterRetentionEntries, listReplicatedVms } from './_listReplicatedVms.mjs'
 import {
   COPY_OF,
   setVmOtherConfig,
@@ -344,16 +344,13 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const scheduleId = this._schedule.id
 
     // delete previous interrupted copies
-    ignoreErrors.call(asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vmUuid), vm => vm.$destroy))
+    ignoreErrors.call(
+      asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vmUuid), vm =>
+        vm.$destroy({ bypassBlockedOperation: true })
+      )
+    )
 
-    const allEntries = listReplicatedVms(xapi, scheduleId, srUuid, vmUuid)
-
-    // In the snapshot-based flow a non-snapshot VM (the live target) coexists with its
-    // snapshots (one per transfer). That VM must not be subject to retention — only its
-    // snapshots are. Build the set of VM refs that already have snapshots in the list so
-    // we can exclude them, while keeping old-style non-snapshot VMs (no snapshots).
-    const vmRefsWithSnapshots = new Set(allEntries.filter(e => e.is_a_snapshot).map(e => e.snapshot_of))
-    const retentionEntries = allEntries.filter(e => e.is_a_snapshot || !vmRefsWithSnapshots.has(e.$ref))
+    const retentionEntries = filterRetentionEntries(listReplicatedVms(xapi, scheduleId, srUuid, vmUuid))
     retentionEntries.sort(compareReplicatedVmDatetime)
     this._oldEntries = getOldEntries(settings.copyRetention - 1, retentionEntries)
 
@@ -471,7 +468,9 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         await xapi.VM_snapshot(targetVmRef, {
           name_label: `${vm.name_label} - ${job.name} / ${schedule.name} ${formatFilenameDate(timestamp)}`,
         })
-        await resetVmOtherConfig(xapi, targetVmRef)
+        // keep the job/schedule/VM/datetime tags on the target VM: they are what makes it
+        // collectable by retention if a later run has to import into a new VM instead
+        await resetVmOtherConfig(xapi, targetVmRef, { isReplicationTarget: true })
       })
 
       return {

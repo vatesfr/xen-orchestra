@@ -84,26 +84,43 @@ export async function getVmDeltaChainLength(xapi, vmRef) {
  *
  * Reset the other_config field related to backups of a VM and its VDIs
  *
- *
  * @param {Xapi} xapi
  * @param {String} vmRef
+ * @param {Object} [options]
+ * @param {Boolean} [options.isReplicationTarget] - keep replica specific keys on the VM itself
+ *
+ * The live target VM of an incremental replication is not a restore point — its snapshots
+ * are — so it must lose the content and chain markers, which would otherwise make it a
+ * candidate base for the next run. It must however stay findable by `listReplicatedVms`:
+ * when a run cannot chain onto it and imports into a new VM instead, an untagged target
+ * VM becomes an orphan that retention can never collect, and replicas pile up on the SR
+ * whatever the retention is set to.
+ *
+ * Its VDIs are still reset entirely: only the snapshot VDIs, taken before this call, need
+ * to carry the markers `checkBaseVdis` looks for.
+ *
  * @returns {Promise}
  */
-export function resetVmOtherConfig(xapi, vmRef) {
+export function resetVmOtherConfig(xapi, vmRef, { isReplicationTarget = false } = {}) {
   return applyToVmAndVdis(xapi, vmRef, (type, ref) => {
-    return xapi.setFieldEntries(type, ref, 'other_config', {
+    const otherConfig = {
       [CONTENT_KEY]: null,
       [COPY_OF]: null,
-      [DATETIME]: null,
       [DELTA_CHAIN_LENGTH]: null,
       [EXPORTED_SUCCESSFULLY]: null,
       [INCLUDE_NON_NBD_QCOW2_FIX]: null,
-      [JOB_ID]: null,
-      [SCHEDULE_ID]: null,
-      [VM_UUID]: null,
 
       // REPLICATED_TO_SR_UUID is not reset since we can replicate a replication
-    })
+    }
+
+    if (!(isReplicationTarget && type === 'VM')) {
+      otherConfig[DATETIME] = null
+      otherConfig[JOB_ID] = null
+      otherConfig[SCHEDULE_ID] = null
+      otherConfig[VM_UUID] = null
+    }
+
+    return xapi.setFieldEntries(type, ref, 'other_config', otherConfig)
   })
 }
 

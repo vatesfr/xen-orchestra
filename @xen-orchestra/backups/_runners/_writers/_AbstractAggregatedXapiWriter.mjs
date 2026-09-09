@@ -1,6 +1,6 @@
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { createLogger } from '@xen-orchestra/log'
-import { compareReplicatedVmDatetime, listReplicatedVms } from './_listReplicatedVms.mjs'
+import { compareReplicatedVmDatetime, filterRetentionEntries, listReplicatedVms } from './_listReplicatedVms.mjs'
 import { asyncMapSettled } from '@xen-orchestra/async-map'
 
 const { debug } = createLogger('xo:backups:AbstractAggregatedXapiWriter')
@@ -67,7 +67,9 @@ export class AbstractAggregatedXapiWriter {
 
     const replicatedVms = this.#storageRepositories
       .map(sr => {
-        return listReplicatedVms(sr.$xapi, scheduleId, sr.uuid, vmUuid)
+        // per SR: a live target VM must only be spared by the snapshots living on that
+        // same SR, so the filtering cannot be done on the concatenated list
+        return filterRetentionEntries(listReplicatedVms(sr.$xapi, scheduleId, sr.uuid, vmUuid))
       })
       .flat(1)
       .filter(_ => !!_)
