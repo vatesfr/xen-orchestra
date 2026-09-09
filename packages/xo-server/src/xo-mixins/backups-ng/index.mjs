@@ -778,7 +778,7 @@ export default class BackupNg {
 
     await asyncEach(remotes, async remoteId => {
       if (_forceRefresh) {
-        backupsByVmByRemote[remoteId] = this.invalidateVmBackupsListing(remoteId)
+        this.invalidateVmBackupsListing(remoteId)
       }
 
       const { backupsByVm, error } = await this._listVmBackupsWithBackoff(remoteId, { vmId })
@@ -821,8 +821,8 @@ export default class BackupNg {
       })
   }
   /**
-   * drops the cached listings of a backup repository, whole and per-VM, so that it is listed again
-   * on the next call instead of waiting for the current backoff delay
+   * drops the cached listings of a backup repository, whole and per-VM, and its retry state
+   * so that it is listed again on the next call instead of waiting for the current backoff delay
    *
    * the outcome of a listing which is still running is ignored: it no longer represents the
    * current state of the repository
