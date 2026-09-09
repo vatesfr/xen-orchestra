@@ -140,6 +140,18 @@ Assert the plotted series, not the absence of a state hero. Every card guards on
 
 The `maxValue` is worth its own assertion: it is where the card's own axis choice lives (`{ step: 5, fallback: 10 }` for the host load average, `step: 50` for host network throughput, `headroom: 1.2` for the stacked pool cpu usage), and nothing else covers it.
 
+So is the `valueFormatter`, which decides whether the axis and the tooltips read `1 KiB` or `1024%`. `formatChartValue(wrapper, value)` runs a value through the formatter the card handed over, and returns `undefined` when it handed none — so one assertion covers both the choice of formatter and the wiring:
+
+```typescript
+it('formats the plotted values as bytes', () => {
+  const wrapper = mountChart({ data: statsWithSamples })
+
+  expect(formatChartValue(wrapper, 1024)).toBe('1 KiB')
+})
+```
+
+Keep it to one representative value: how the formatter handles the whole range, `null` included, belongs to the formatter's own test — `chart-stats.util.unit.test.ts` for `formatChartBytes`, `chart-percent-formatter.composable.unit.test.ts` for `useChartPercentFormatter`.
+
 ## Legend cards
 
 A donut card and a progress-bar card both render their values through `UiLegend`, which keeps the label and the value addressable:

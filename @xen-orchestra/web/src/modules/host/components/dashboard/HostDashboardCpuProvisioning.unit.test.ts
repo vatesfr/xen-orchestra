@@ -154,14 +154,14 @@ it('overprovisions past the cores of the host', () => {
   ])
 })
 
-it('scales the progress bar by the assigned vCPUs when the host does not report its cores', () => {
+it('leaves the progress bar empty and the core count unknown when the host does not report its cores', () => {
   givenHostVms([createRunningVm('vm-1', 2), createRunningVm('vm-2', 4)])
 
   const wrapper = mountProvisioning(createHost({ id: host.id, cpus: { sockets: 2 } }))
 
-  expect(wrapper.get('.ui-progress-bar .fill').attributes('style')).toBe('width: 100%;')
+  expect(wrapper.get('.ui-progress-bar .fill').attributes('style')).toBe('width: 0%;')
   expect(findNumbers(wrapper)).toEqual([
     [t('vcpus-assigned'), '6'],
-    [t('total-cpus'), '0'],
+    [t('total-cpus'), '-'],
   ])
 })

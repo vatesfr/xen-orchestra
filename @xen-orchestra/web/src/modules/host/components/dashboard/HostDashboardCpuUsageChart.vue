@@ -14,8 +14,9 @@
 </template>
 
 <script lang="ts" setup>
+import { useChartPercentFormatter } from '@/shared/composables/chart-percent-formatter.composable.ts'
 import { buildCpuUsageSeries, getCpuUsageMaxValue } from '@/shared/utils/chart-stats.util.ts'
-import type { LinearChartData, ValueFormatter } from '@core/types/chart.ts'
+import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -31,7 +32,9 @@ const { data } = defineProps<{
 
 const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linear-chart/VtsLinearChart.vue'))
 
-const { t, n } = useI18n()
+const { t } = useI18n()
+
+const valueFormatter = useChartPercentFormatter()
 
 const cpuUsageSeries = computed(() => buildCpuUsageSeries(data))
 
@@ -49,12 +52,4 @@ const cpuUsage = computed<LinearChartData>(() => {
 })
 
 const maxValue = computed(() => getCpuUsageMaxValue(cpuUsageSeries.value))
-
-const valueFormatter: ValueFormatter = value => {
-  if (value === null) {
-    return ''
-  }
-
-  return n(value / 100, 'percent')
-}
 </script>

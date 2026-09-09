@@ -1,8 +1,8 @@
 import HostDashboardCpuUsageChart from '@/modules/host/components/dashboard/HostDashboardCpuUsageChart.vue'
 import { createHostStats } from '@/test/create-host-stats.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { t } from '@/test/i18n.ts'
-import { findLinearChart, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
+import { n, t } from '@/test/i18n.ts'
+import { findLinearChart, formatChartValue, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
 import type { XapiHostStats } from '@vates/types/common'
 import { mount } from '@vue/test-utils'
 
@@ -70,4 +70,10 @@ it('rounds the axis up to the next hundred percent', () => {
   const wrapper = mountChart({ data: createHostStats({ stats: { cpus: { '0': [10, 120] } } }) })
 
   expect(findLinearChart(wrapper).props('maxValue')).toBe(200)
+})
+
+it('formats the plotted values as percentages', () => {
+  const wrapper = mountChart({ data: statsWithSamples })
+
+  expect(formatChartValue(wrapper, 4200)).toBe(n(42, 'percent'))
 })

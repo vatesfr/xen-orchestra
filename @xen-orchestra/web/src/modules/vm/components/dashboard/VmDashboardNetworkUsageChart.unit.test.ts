@@ -2,7 +2,7 @@ import VmDashboardNetworkUsageChart from '@/modules/vm/components/dashboard/VmDa
 import { createVmStats } from '@/test/create-vm-stats.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { findLinearChart, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
+import { findLinearChart, formatChartValue, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
 import type { XapiVmStats } from '@vates/types/common'
 import { mount } from '@vue/test-utils'
 
@@ -97,4 +97,10 @@ it('plots a flat download for a VM reporting transmissions but no reception', ()
     { timestamp: 990_000, value: 0 },
     { timestamp: 1_000_000, value: 0 },
   ])
+})
+
+it('formats the plotted values as bytes', () => {
+  const wrapper = mountChart({ data: statsWithSamples })
+
+  expect(formatChartValue(wrapper, 1024)).toBe('1 KiB')
 })

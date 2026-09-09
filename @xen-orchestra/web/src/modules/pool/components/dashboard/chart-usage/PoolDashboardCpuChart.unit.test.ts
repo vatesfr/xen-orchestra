@@ -1,8 +1,8 @@
 import PoolDashboardCpuChart from '@/modules/pool/components/dashboard/chart-usage/PoolDashboardCpuChart.vue'
 import { createPoolStats } from '@/test/create-pool-stats.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { t } from '@/test/i18n.ts'
-import { findLinearChart, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
+import { n, t } from '@/test/i18n.ts'
+import { findLinearChart, formatChartValue, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
 import type { XapiPoolStats } from '@vates/types/common'
 import { mount } from '@vue/test-utils'
 
@@ -89,4 +89,10 @@ it('scales the axis above the peak of the stacked usage', () => {
   const wrapper = mountChart({ data: createPoolStats({ 'host-1': { stats: { cpus: { '0': [10, 90] } } } }) })
 
   expect(findLinearChart(wrapper).props('maxValue')).toBe(200)
+})
+
+it('formats the plotted values as percentages', () => {
+  const wrapper = mountChart({ data: statsWithSamples })
+
+  expect(formatChartValue(wrapper, 4200)).toBe(n(42, 'percent'))
 })

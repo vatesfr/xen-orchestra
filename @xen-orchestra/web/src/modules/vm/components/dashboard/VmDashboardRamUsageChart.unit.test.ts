@@ -2,7 +2,7 @@ import VmDashboardRamUsageChart from '@/modules/vm/components/dashboard/VmDashbo
 import { createVmStats } from '@/test/create-vm-stats.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { findLinearChart, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
+import { findLinearChart, formatChartValue, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
 import type { XapiVmStats } from '@vates/types/common'
 import { mount } from '@vue/test-utils'
 
@@ -70,4 +70,10 @@ it('scales the axis to the memory allocated to the VM', () => {
   const wrapper = mountChart({ data: statsWithSamples })
 
   expect(findLinearChart(wrapper).props('maxValue')).toBe(2000)
+})
+
+it('formats the plotted values as bytes', () => {
+  const wrapper = mountChart({ data: statsWithSamples })
+
+  expect(formatChartValue(wrapper, 1024)).toBe('1 KiB')
 })

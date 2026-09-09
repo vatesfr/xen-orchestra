@@ -2,7 +2,7 @@ import PoolDashboardNetworkChart from '@/modules/pool/components/dashboard/chart
 import { createPoolStats } from '@/test/create-pool-stats.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { findLinearChart, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
+import { findLinearChart, formatChartValue, VtsLinearChartStub } from '@/test/linear-chart-stub.ts'
 import type { XapiPoolStats } from '@vates/types/common'
 import { mount } from '@vue/test-utils'
 
@@ -96,4 +96,10 @@ it('rounds the axis up to the next fifty bytes, with headroom above the peak', (
   const wrapper = mountChart({ data: statsWithSamples })
 
   expect(findLinearChart(wrapper).props('maxValue')).toBe(50)
+})
+
+it('formats the plotted values as bytes', () => {
+  const wrapper = mountChart({ data: statsWithSamples })
+
+  expect(formatChartValue(wrapper, 1024)).toBe('1 KiB')
 })
