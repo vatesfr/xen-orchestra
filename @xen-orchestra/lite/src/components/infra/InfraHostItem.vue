@@ -33,7 +33,7 @@
               @click="open($event)"
             />
           </template>
-          <HostTreeActions :host />
+          <HostMoreActions :host show-change-state-button />
         </MenuList>
       </template>
     </UiTreeItemLabel>
@@ -48,7 +48,7 @@
 <script lang="ts" setup>
 import InfraVmItems from '@/components/infra/InfraVmItems.vue'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
-import HostTreeActions from '@/modules/host/components/actions/HostTreeActions.vue'
+import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
