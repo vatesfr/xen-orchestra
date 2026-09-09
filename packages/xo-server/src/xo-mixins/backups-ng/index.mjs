@@ -621,8 +621,6 @@ export default class BackupNg {
     function () {
       return this._app.config.getDuration('backups.listingDebounce')
     },
-    // a listing of a single VM is not a listing of the whole repository: it must have its own
-    // cache entry, or it would be served to a caller which asked for every VM
     function keyFn(remoteId, opts) {
       const keys = [this, remoteId]
       if (opts?.vmId !== undefined) {
@@ -780,19 +778,17 @@ export default class BackupNg {
 
     await asyncEach(remotes, async remoteId => {
       if (_forceRefresh) {
-        this.invalidateVmBackupsListing(remoteId)
+        backupsByVmByRemote[remoteId] = this.invalidateVmBackupsListing(remoteId)
       }
 
       const { backupsByVm, error } = await this._listVmBackupsWithBackoff(remoteId, { vmId })
 
       // `null` = the listing failed, an empty object = this repository has no backups
-      backupsByVmByRemote[remoteId] =
-        error !== undefined
-          ? null
-          : vmId === undefined
-            ? backupsByVm
-            : // a VM without any backup is not listed at all
-              { [vmId]: backupsByVm[vmId] ?? [] }
+      if (error !== undefined) {
+        backupsByVmByRemote[remoteId] = null
+      } else {
+        backupsByVmByRemote[remoteId] = vmId === undefined ? backupsByVm : { [vmId]: backupsByVm[vmId] ?? [] }
+      }
     })
 
     return backupsByVmByRemote
@@ -825,8 +821,8 @@ export default class BackupNg {
       })
   }
   /**
-   * drops the cached listings of a backup repository, whole and per-VM alike, and its retry state,
-   * so that it is listed again on the next call instead of waiting for the current backoff delay
+   * drops the cached listings of a backup repository, whole and per-VM, so that it is listed again
+   * on the next call instead of waiting for the current backoff delay
    *
    * the outcome of a listing which is still running is ignored: it no longer represents the
    * current state of the repository
@@ -839,7 +835,6 @@ export default class BackupNg {
   invalidateVmBackupsListing(remoteId) {
     this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
 
-    // per-VM listings have their own cache entry, which the call above does not reach
     const vmIds = this._backupsListingVmIds[remoteId]
     if (vmIds !== undefined) {
       for (const vmId of vmIds) {
