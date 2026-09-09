@@ -8,6 +8,7 @@ import { Readable } from 'node:stream'
 const REFCOUNT_BYTES = 2 // Size of a reference count entry (spec: refcount_bits=16 default)
 const CLUSTER_SIZE = 64 * 1024 // Standard cluster size (must be power of 2 between 512 and 2M)
 const L2_ADDRESS_ENTRY_SIZE = 8 // Size of L2 table entries (64 bits)
+const NB_L2_ENTRIES_PER_CLUSTER = CLUSTER_SIZE / L2_ADDRESS_ENTRY_SIZE
 
 /**
  * Creates a buffer aligned to cluster size boundaries, initialized with a value
@@ -74,22 +75,21 @@ export class QcowStreamGenerator {
   async #buildBlockPresenceIndex(): Promise<{
     bitmap: Uint8Array
     groupHasData: Uint8Array
-    nbBlocks: number
+    nbTotalBlocks: number
     nbL1Entries: number
   }> {
     const disk = this.#disk
-    const nbBlocks = Math.ceil(disk.getVirtualSize() / disk.getBlockSize())
-    const nbL2PerL1Entry = CLUSTER_SIZE / L2_ADDRESS_ENTRY_SIZE
-    const nbL1Entries = Math.ceil(nbBlocks / nbL2PerL1Entry)
+    const nbTotalBlocks = Math.ceil(disk.getVirtualSize() / disk.getBlockSize())
+    const nbL1Entries = Math.ceil(nbTotalBlocks / NB_L2_ENTRIES_PER_CLUSTER)
 
-    const bitmap = new Uint8Array(Math.ceil(nbBlocks / 8))
+    const bitmap = new Uint8Array(Math.ceil(nbTotalBlocks / 8))
     const groupHasData = new Uint8Array(nbL1Entries)
 
     let lastYield = process.hrtime.bigint()
-    for (let i = 0; i < nbBlocks; i++) {
+    for (let i = 0; i < nbTotalBlocks; i++) {
       if (disk.hasBlock(i)) {
         bitmap[i >> 3] |= 1 << (i & 7)
-        groupHasData[Math.floor(i / nbL2PerL1Entry)] = 1
+        groupHasData[Math.floor(i / NB_L2_ENTRIES_PER_CLUSTER)] = 1
       }
       // check the clock every 65536 blocks: cheap enough to not affect throughput, frequent
       // enough to keep a single stretch of synchronous work under ~15ms
@@ -102,7 +102,7 @@ export class QcowStreamGenerator {
       }
     }
 
-    return { bitmap, groupHasData, nbBlocks, nbL1Entries }
+    return { bitmap, groupHasData, nbTotalBlocks, nbL1Entries }
   }
 
   /**
@@ -229,7 +229,6 @@ export class QcowStreamGenerator {
     nbL1Entries: number
   ): Generator<Buffer, void, unknown> {
     const QCOW_OFLAG_COPIED = 1n << 63n // Flag indicating cluster is allocated
-    const nbEntriesPerL2Table = CLUSTER_SIZE / 8
     const hasBlock = (index: number) => (bitmap[index >> 3] & (1 << (index & 7))) !== 0
 
     // Generate L1 table
@@ -253,8 +252,8 @@ export class QcowStreamGenerator {
       }
       const l2Table = getAlignedBuffer(1) // One cluster per L2 table
 
-      for (let j = 0; j < nbEntriesPerL2Table; j++) {
-        const blockIndex = i * nbEntriesPerL2Table + j
+      for (let j = 0; j < NB_L2_ENTRIES_PER_CLUSTER; j++) {
+        const blockIndex = i * NB_L2_ENTRIES_PER_CLUSTER + j
         if (blockIndex >= nbBlocks) {
           break // Last L2 table
         }
@@ -278,10 +277,9 @@ export class QcowStreamGenerator {
   async stream(signal?: AbortSignal): Promise<WithLength<Readable>> {
     const disk = this.#disk
     const nbAllocatedBlocks = this.#nbAllocatedBlocks
-    const nbTotalBlock = Math.ceil(disk.getVirtualSize() / disk.getBlockSize())
     // Single cooperative pass over every block: builds the presence bitmap/summary reused by
     // both the size computation below and the addressing tables generated inside the stream.
-    const { bitmap, groupHasData, nbBlocks, nbL1Entries } = await this.#buildBlockPresenceIndex()
+    const { bitmap, groupHasData, nbTotalBlocks, nbL1Entries } = await this.#buildBlockPresenceIndex()
     // Compute table sizes
     const { size: addressTableSize } = this.#computeAddressingSpace(groupHasData, nbL1Entries)
     const { refCountL1Size, refCountL2Size } = this.#computeRefCountSize(addressTableSize)
@@ -293,7 +291,7 @@ export class QcowStreamGenerator {
     header.writeBigUint64BE(0n, 8) // backing_file_offset (none)
     header.writeUInt32BE(0, 16) // backing_file_size (none)
     header.writeUInt32BE(Math.log2(CLUSTER_SIZE), 20) // cluster_bits
-    header.writeBigUInt64BE(BigInt(nbTotalBlock * disk.getBlockSize()), 24) //aligned size
+    header.writeBigUInt64BE(BigInt(nbTotalBlocks * disk.getBlockSize()), 24) //aligned size
     header.writeUInt32BE(0, 32) // crypt_method: none
     header.writeUInt32BE(nbL1Entries, 36) // l1_size
     header.writeBigUInt64BE(BigInt(header.length + refCountL1Size + refCountL2Size), 40) // l1_table_offset
@@ -313,7 +311,7 @@ export class QcowStreamGenerator {
       assert.strictEqual(self.#offset, CLUSTER_SIZE, 'header aligned')
       yield* self.#yieldRefCounts(expectedStreamLength / CLUSTER_SIZE)
       assert.strictEqual(self.#offset, CLUSTER_SIZE + refCountL1Size + refCountL2Size, 'refcounts aligned')
-      yield* self.#yieldAddressingTables(bitmap, groupHasData, nbBlocks, nbL1Entries)
+      yield* self.#yieldAddressingTables(bitmap, groupHasData, nbTotalBlocks, nbL1Entries)
       assert.strictEqual(
         self.#offset,
         CLUSTER_SIZE + refCountL1Size + refCountL2Size + addressTableSize,
