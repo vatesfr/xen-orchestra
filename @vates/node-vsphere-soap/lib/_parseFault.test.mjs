@@ -11,6 +11,15 @@ const MANAGED_OBJECT_NOT_FOUND = `<?xml version="1.0" encoding="UTF-8"?>
 </soapenv:Body>
 </soapenv:Envelope>`
 
+// not what a vSphere host sends — SOAP 1.1 requires these children to be unqualified — but a body
+// which node-soap failed to parse can come from anything sitting in front of vCenter
+const NAMESPACE_PREFIXED = `<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:vim25="urn:vim25" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<soapenv:Body>
+<soapenv:Fault><soapenv:faultcode>ServerFaultCode</soapenv:faultcode><soapenv:faultstring>Unable to access file since it is locked</soapenv:faultstring><soapenv:detail xmlns="urn:vim25"><vim25:FileLockedFault xsi:type="FileLocked"><vim25:localizedMessage>Unable to access file [ds1] vm/vm.vmdk since it is locked</vim25:localizedMessage></vim25:FileLockedFault></soapenv:detail></soapenv:Fault>
+</soapenv:Body>
+</soapenv:Envelope>`
+
 describe('parseFault', function () {
   it('reads the fault from the envelope parsed by node-soap', function () {
     const { code, faultcode, faultstring, localizedMessage } = parseFault({
@@ -57,6 +66,17 @@ describe('parseFault', function () {
     // entities are decoded
     assert.match(faultstring, /^The object 'vim\.VirtualMachine:vm-42' has already been deleted/)
     assert.equal(body, MANAGED_OBJECT_NOT_FOUND)
+  })
+
+  it('reads a namespace prefixed fault from the raw body', function () {
+    const { code, faultcode, faultstring, localizedMessage } = parseFault({
+      response: { data: NAMESPACE_PREFIXED },
+    })
+
+    assert.equal(code, 'FileLocked')
+    assert.equal(faultcode, 'ServerFaultCode')
+    assert.equal(faultstring, 'Unable to access file since it is locked')
+    assert.equal(localizedMessage, 'Unable to access file [ds1] vm/vm.vmdk since it is locked')
   })
 
   it('handles a `$value` wrapped text node', function () {

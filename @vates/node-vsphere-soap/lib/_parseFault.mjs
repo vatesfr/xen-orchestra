@@ -21,6 +21,18 @@ const valueOf = node => {
 
 const faultTypeOfElementName = name => name.replace(/^.*:/, '').replace(/Fault$/, '')
 
+// SOAP 1.1 requires the children of `Fault` to be unqualified, and that is what ESXi and vCenter
+// send, but the raw body is only read when node-soap failed to parse the response: it can then be
+// anything, e.g. an error emitted by a reverse proxy in front of vCenter. Hence the tolerance to a
+// namespace prefix and to attributes on the element
+const textOfElement = name =>
+  new RegExp(`<(?:[\\w.-]+:)?${name}(?:\\s[^>]*)?>([\\s\\S]*?)</(?:[\\w.-]+:)?${name}>`, 'i')
+
+const FAULTCODE_RE = textOfElement('faultcode')
+const FAULTSTRING_RE = textOfElement('faultstring')
+const LOCALIZED_MESSAGE_RE = textOfElement('localizedMessage')
+const DETAIL_CHILD_RE = /<(?:[\w.-]+:)?detail(?:\s[^>]*)?>\s*<([^\s/>]+)/i
+
 /**
  * Extracts the vim25 fault of a failed SOAP call.
  *
@@ -61,25 +73,25 @@ export function parseFault(rawError) {
 
   if (body !== undefined) {
     if (faultstring === undefined) {
-      const matches = body.match(/<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i)
+      const matches = body.match(FAULTSTRING_RE)
       if (matches !== null) {
         faultstring = unescapeXml(matches[1])
       }
     }
     if (faultcode === undefined) {
-      const matches = body.match(/<faultcode[^>]*>([\s\S]*?)<\/faultcode>/i)
+      const matches = body.match(FAULTCODE_RE)
       if (matches !== null) {
         faultcode = unescapeXml(matches[1])
       }
     }
     if (code === undefined) {
-      const matches = body.match(/<detail>\s*<([^\s/>]+)/i)
+      const matches = body.match(DETAIL_CHILD_RE)
       if (matches !== null) {
         code = faultTypeOfElementName(matches[1])
       }
     }
     if (localizedMessage === undefined) {
-      const matches = body.match(/<localizedMessage[^>]*>([\s\S]*?)<\/localizedMessage>/i)
+      const matches = body.match(LOCALIZED_MESSAGE_RE)
       if (matches !== null) {
         localizedMessage = unescapeXml(matches[1])
       }
