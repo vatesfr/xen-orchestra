@@ -27,6 +27,7 @@ export function useHostUtils(rawHost: MaybeRefOrGetter<XenApiHost | undefined>) 
   const currentOperation = useMapper<string, string>(
     () => pendingStateOperation.value,
     {
+      [HOST_OPERATION.ENABLE]: t('operation:enable'),
       [HOST_OPERATION.EVACUATE]: t('operation:evacuate'),
       [HOST_OPERATION.POWER_ON]: t('operation:start'),
       [HOST_OPERATION.REBOOT]: t('operation:clean-reboot'),
