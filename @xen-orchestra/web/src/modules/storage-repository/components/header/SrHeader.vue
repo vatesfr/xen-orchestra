@@ -15,18 +15,18 @@
       :to="{ name: '/sr/[id]/general', params: { id: sr.id }, query: scopeQuery }"
       custom
     >
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('general') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink
       v-slot="{ isActive, href }"
       :to="{ name: '/sr/[id]/hosts', params: { id: sr.id }, query: scopeQuery }"
       custom
     >
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('hosts') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
   </TabList>
 </template>
@@ -41,9 +41,9 @@ import { toSrScopeQuery } from '@/modules/storage-repository/utils/sr-scope.util
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
-import TabItem from '@core/components/tab/TabItem.vue'
-import TabList from '@core/components/tab/TabList.vue'
+import TabList from '@core/components/tab-list/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

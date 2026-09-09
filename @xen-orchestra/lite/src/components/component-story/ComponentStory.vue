@@ -1,7 +1,7 @@
 <template>
   <TabList>
-    <TabItem v-bind="tab(TAB.PROPS, propParams)">Props</TabItem>
-    <TabItem class="event-tab" v-bind="tab(TAB.EVENTS, eventParams)">
+    <UiTabItem v-bind="tab(TAB.PROPS, propParams)">Props</UiTabItem>
+    <UiTabItem class="event-tab" v-bind="tab(TAB.EVENTS, eventParams)">
       Events
       <UiCounter
         v-if="unreadEventsCount > 0"
@@ -10,15 +10,15 @@
         variant="primary"
         size="small"
       />
-    </TabItem>
-    <TabItem v-bind="tab(TAB.SLOTS, slotParams)">Slots</TabItem>
-    <TabItem v-bind="tab(TAB.SETTINGS, settingParams)">Settings</TabItem>
+    </UiTabItem>
+    <UiTabItem v-bind="tab(TAB.SLOTS, slotParams)">Slots</UiTabItem>
+    <UiTabItem v-bind="tab(TAB.SETTINGS, settingParams)">Settings</UiTabItem>
     <MenuList placement="bottom">
       <template #trigger="{ open, isOpen }">
-        <TabItem :active="isOpen" :disabled="presets === undefined" class="preset-tab" @click="open">
+        <UiTabItem :active="isOpen" :disabled="presets === undefined" class="preset-tab" @click="open">
           <VtsIcon name="fa:sliders" size="medium" />
           Presets
-        </TabItem>
+        </UiTabItem>
       </template>
       <MenuItem v-for="(preset, label) in presets" :key="label" @click="applyPreset(preset)">
         {{ label }}
@@ -91,12 +91,12 @@ import {
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
-import TabItem from '@core/components/tab/TabItem.vue'
-import TabList from '@core/components/tab/TabList.vue'
+import TabList from '@core/components/tab-list/TabList.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import 'highlight.js/styles/github-dark.css'
 import { uniqueId, upperFirst } from 'lodash-es'
 import { computed, onBeforeMount, reactive, ref, watch, watchEffect } from 'vue'
