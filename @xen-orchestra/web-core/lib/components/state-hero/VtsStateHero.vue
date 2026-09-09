@@ -6,6 +6,7 @@
     <UiLoader v-if="type === 'busy'" class="loader" />
     <OfflineIllustration v-else-if="type === 'offline'" class="image" />
     <NotFoundIllustration v-else-if="type === 'not-found'" class="image" />
+    <NoDataIllustration v-else-if="type === 'no-data'" class="image" />
     <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
     <div v-if="slots.default || success" :class="[typoClass, { mobile: isMobile }]" class="content">
       <div v-if="success">{{ t('all-good!') }}</div>
@@ -22,6 +23,7 @@
 </template>
 
 <script lang="ts" setup>
+import NoDataIllustration from '@core/components/state-hero/NoDataIllustration.vue'
 import NotFoundIllustration from '@core/components/state-hero/NotFoundIllustration.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -61,7 +63,7 @@ const error = computed(() => type === 'error')
 const success = computed(() => type === 'all-good' || type === 'all-done')
 
 const imageSrc = computed(() => {
-  if (type === 'busy' || type === 'not-found') {
+  if (type === 'busy' || type === 'not-found'|| type === 'no-data') {
     return undefined
   }
 
