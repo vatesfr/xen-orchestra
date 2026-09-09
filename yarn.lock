@@ -19220,6 +19220,11 @@ undici@^7.8.0:
   resolved "https://registry.yarnpkg.com/undici/-/undici-7.27.2.tgz#f8fae968ee68377cfc61713d9cd152773716804f"
   integrity sha512-uZsKNuzQxDMUY6M3pIMvy5tvlGmtq8XJ2oLAkfRKGNu+1VQAIvLy2xIVG5ATZl5wDXl/tddByAWCizRbOme+TA==
 
+undici@^8.10.0:
+  version "8.10.0"
+  resolved "https://registry.yarnpkg.com/undici/-/undici-8.10.0.tgz#67ed7c4087f0f40fba7bef3a46f2be80572f2473"
+  integrity sha512-HvltHd7avK13QIw/oLe4qoOLyoVSoafqJ2jYOrtMRBkbYT31eiBQ8O0ehRKZiEZCMEyLFQNIADpgCWC5fALvYQ==
+
 unicode-canonical-property-names-ecmascript@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/unicode-canonical-property-names-ecmascript/-/unicode-canonical-property-names-ecmascript-2.0.1.tgz#cb3173fe47ca743e228216e4a3ddc4c84d628cc2"
