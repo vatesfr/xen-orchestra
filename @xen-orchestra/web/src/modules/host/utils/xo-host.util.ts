@@ -2,6 +2,7 @@ import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-co
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { getVmsPendingOperation } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { VtsLinkCellProps } from '@core/components/table/cells/VtsLinkCell.vue'
+import { formatSizeRaw, type SizeInfo } from '@core/utils/size.util.ts'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { castArray } from 'lodash-es'
 
@@ -56,4 +57,26 @@ export function getHostSmartRebootVmOperation(host: FrontXoHost, residentVms: Fr
 
 export function getHostInfo(host: FrontXoHost | undefined): VtsLinkCellProps & { label: string } {
   return host ? { label: host.name_label, to: `/host/${host.id}/dashboard` } : { label: '' }
+}
+
+export function getHostCoreSocketInfo(host: FrontXoHost): string {
+  return `${host.cpus.cores ?? 0} (${host.cpus.sockets ?? 0})`
+}
+
+export function getHostManufacturerInfo(host: FrontXoHost): string {
+  const manufacturer = host.bios_strings['system-manufacturer'] ?? ''
+  const productName = host.bios_strings['system-product-name']
+
+  return manufacturer + (productName ? ` (${productName})` : '')
+}
+
+export function getHostRamProvisioning(host: FrontXoHost): { total: SizeInfo; used: SizeInfo; free: SizeInfo } {
+  const size = host.memory.size
+  const usage = host.memory.usage
+
+  return {
+    total: formatSizeRaw(size, 0),
+    used: formatSizeRaw(usage, 0),
+    free: formatSizeRaw(size - usage, 0),
+  }
 }
