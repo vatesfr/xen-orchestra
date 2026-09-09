@@ -36,7 +36,7 @@ async function mountHeader(vm: FrontXoVm = createVm({ id: 'vm-42' as FrontXoVm['
 }
 
 function findTabs(wrapper: Awaited<ReturnType<typeof mountHeader>>) {
-  return wrapper.findAll('.tab-item')
+  return wrapper.findAll('.ui-tab-item')
 }
 
 /**
