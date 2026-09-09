@@ -2,11 +2,13 @@
 
 [Object Lock](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html) is the immutability mechanism of S3-compatible object storage. This page explains what it actually protects when Xen Orchestra writes to a locked bucket, how to configure the bucket, and which backup settings are compatible with it.
 
+:::tip
 If your backup repository (BR) is a local filesystem, NFS or SMB share, you want the [on-prem immutability service](./immutability.md) instead. The two mechanisms serve the same purpose but behave very differently in practice, so do not transpose the advice from one page to the other.
+:::
 
 ## Object Lock is not the on-prem model {#not-the-on-prem-model}
 
-The on-prem service makes files genuinely read-only: any attempt to modify or delete a protected backup fails with a permission error, which XO logs. Object Lock works on **object versions**, and it does not block the operations XO performs:
+The on-prem service makes files genuinely read-only: any attempt to modify or delete a protected backup fails with a permission error, which XO logs. Object Lock works on **object versions**, and does not block the operations XO performs:
 
 - **Overwriting** an object creates a new version. The write succeeds, and the previous version stays locked.
 - **Deleting** an object (without naming a version) creates a _delete marker_. The object disappears from listings, and every version underneath stays locked.
@@ -89,14 +91,14 @@ Configure a **default retention** on the bucket (`Object Lock` → `Default rete
 
 XO also never sets nor clears a **legal hold**. If you place one, XO can never release it, and the objects stay billable indefinitely.
 
-### 3. Prefer governance mode {#prefer-governance-mode}
+### 3. Prefer Governance mode {#prefer-governance-mode}
 
 Object Lock offers two retention modes:
 
 - **Governance**: a user holding `s3:BypassGovernanceRetention` can delete a protected version. XO never sends the bypass header, so XO itself is still unable to touch a protected version.
 - **Compliance**: nobody can delete a protected version before it expires, not even the account root.
 
-Unless a regulation requires compliance mode, choose **governance**. It matches the model recommended for [on-prem immutability](./immutability.md#on-prem-immmutability): an administrator with direct access to the storage keeps control, and a misconfigured job that fills the bucket with retained versions can still be cleaned up. In compliance mode, that storage is unrecoverable, and billable, until the retention expires.
+Unless a regulation requires compliance mode, choose **governance**. It matches the model recommended for [on-prem immutability](./immutability.md#on-prem-immmutability): an administrator with direct access to the storage keeps control, and a misconfigured job that fills the bucket with retained versions can still be cleaned up. In compliance mode, that storage is unrecoverable and billable, until the retention expires.
 
 ### 4. Grant the right permissions {#grant-permissions}
 
@@ -143,7 +145,7 @@ Detecting a locked bucket changes how XO talks to it:
 
 ## Recovering deleted backups {#recovering-deleted-backups}
 
-If backups were deleted, by a compromised XO or by mistake, the data is still in the bucket as non-current versions. Recovery is done entirely with your provider's tooling, not from XO:
+If backups were deleted (by a compromised XO or by mistake) the data is still in the bucket as non-current versions. Recovery is done entirely with your provider's tooling, not from XO:
 
 1. Stop the backup jobs targeting that BR, so XO does not write over what you are about to recover.
 2. List the object versions and the delete markers for the affected VM's prefix.
