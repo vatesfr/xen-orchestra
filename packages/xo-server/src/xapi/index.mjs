@@ -1324,7 +1324,7 @@ export default class Xapi extends XapiBase {
       preferNbd,
     })
     await disk.init()
-    const stream = toQcow2Stream(disk)
+    const stream = await toQcow2Stream(disk)
     return stream
   }
 

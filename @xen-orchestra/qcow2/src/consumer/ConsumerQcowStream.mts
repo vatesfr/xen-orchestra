@@ -32,7 +32,6 @@ type WithLength<T> = T & { length?: number }
 export class QcowStreamGenerator {
   #disk: Disk
   #offset = 0
-  #nbAllocatedBlocks = 0
 
   /**
    * Creates a new QCOW2 stream generator
@@ -50,7 +49,6 @@ export class QcowStreamGenerator {
       this.#disk = disk
     }
     assert.strictEqual(this.#disk.getBlockSize(), CLUSTER_SIZE)
-    this.#nbAllocatedBlocks = this.#disk.getBlockIndexesCount()
   }
 
   /**
@@ -64,17 +62,24 @@ export class QcowStreamGenerator {
   }
 
   /**
-   * Scans every block index once, building a per-block presence bitmap and a per-L2-group
-   * "has any allocated block" summary, so the rest of the generator never needs to call
-   * `disk.hasBlock()` again. Yields back to the event loop periodically (time-budgeted, not a
-   * fixed count) so a huge virtual disk doesn't block Node for seconds at a stretch — this was
-   * previously done as three separate synchronous full scans (one per caller below), each one
-   * capable of blocking the event loop on its own.
+   * Scans every block index once, building a per-block presence bitmap, a per-L2-group
+   * "has any allocated block" summary and the total allocated block count, so the rest of the
+   * generator never needs to call `disk.hasBlock()` again. Yields back to the event loop
+   * periodically (time-budgeted, not a fixed count) so a huge virtual disk doesn't block Node
+   * for seconds at a stretch — this was previously done as several separate synchronous full
+   * scans (one per caller below, plus `getBlockIndexesCount()`), each one capable of blocking
+   * the event loop on its own.
+   *
+   * Counting here rather than through `disk.getBlockIndexesCount()` matters: on a
+   * `DiskLargerBlock` — which this class instantiates itself for sub-cluster sources — that
+   * method is a full synchronous rescan calling `hasBlock()` on every cluster, and on a plain
+   * `Disk` the default implementation materializes the whole index array.
    * @private
    */
   async #buildBlockPresenceIndex(): Promise<{
     bitmap: Uint8Array
     groupHasData: Uint8Array
+    nbAllocatedBlocks: number
     nbTotalBlocks: number
     nbL1Entries: number
   }> {
@@ -84,12 +89,14 @@ export class QcowStreamGenerator {
 
     const bitmap = new Uint8Array(Math.ceil(nbTotalBlocks / 8))
     const groupHasData = new Uint8Array(nbL1Entries)
+    let nbAllocatedBlocks = 0
 
     let lastYield = process.hrtime.bigint()
     for (let i = 0; i < nbTotalBlocks; i++) {
       if (disk.hasBlock(i)) {
         bitmap[i >> 3] |= 1 << (i & 7)
         groupHasData[Math.floor(i / NB_L2_ENTRIES_PER_CLUSTER)] = 1
+        nbAllocatedBlocks++
       }
       // check the clock every 65536 blocks: cheap enough to not affect throughput, frequent
       // enough to keep a single stretch of synchronous work under ~15ms
@@ -102,7 +109,7 @@ export class QcowStreamGenerator {
       }
     }
 
-    return { bitmap, groupHasData, nbTotalBlocks, nbL1Entries }
+    return { bitmap, groupHasData, nbAllocatedBlocks, nbTotalBlocks, nbL1Entries }
   }
 
   /**
@@ -131,6 +138,7 @@ export class QcowStreamGenerator {
   /**
    * Computes the size of the reference count tables
    * @param addressTableSize Total size of L1/L2 tables
+   * @param nbAllocatedBlocks Number of allocated blocks, from #buildBlockPresenceIndex
    * @returns Object containing sizes for L1 and L2 refcount tables
    * @private
    *
@@ -139,12 +147,12 @@ export class QcowStreamGenerator {
    * - Each entry in the refcount table points to a refcount block
    * - Each refcount block contains (cluster_size / refcount_entry_size) entries
    */
-  #computeRefCountSize(addressTableSize: number): { refCountL1Size: number; refCountL2Size: number } {
-    const disk = this.#disk
-    const nbBlocks = this.#nbAllocatedBlocks
-
+  #computeRefCountSize(
+    addressTableSize: number,
+    nbAllocatedBlocks: number
+  ): { refCountL1Size: number; refCountL2Size: number } {
     // Total clusters needed (header + addressing tables + data clusters)
-    let nbAllocatedClusters = 1 /* header */ + addressTableSize / CLUSTER_SIZE + nbBlocks
+    let nbAllocatedClusters = 1 /* header */ + addressTableSize / CLUSTER_SIZE + nbAllocatedBlocks
 
     // Refcount structure parameters
     const refCountsPerL2Table = Math.floor(CLUSTER_SIZE / 8) // Each L2 refcount table entry is 8 bytes
@@ -276,13 +284,14 @@ export class QcowStreamGenerator {
    */
   async stream(signal?: AbortSignal): Promise<WithLength<Readable>> {
     const disk = this.#disk
-    const nbAllocatedBlocks = this.#nbAllocatedBlocks
-    // Single cooperative pass over every block: builds the presence bitmap/summary reused by
-    // both the size computation below and the addressing tables generated inside the stream.
-    const { bitmap, groupHasData, nbTotalBlocks, nbL1Entries } = await this.#buildBlockPresenceIndex()
+    // Single cooperative pass over every block: builds the presence bitmap/summary and the
+    // allocated block count, reused by both the size computations below and the addressing
+    // tables generated inside the stream.
+    const { bitmap, groupHasData, nbAllocatedBlocks, nbTotalBlocks, nbL1Entries } =
+      await this.#buildBlockPresenceIndex()
     // Compute table sizes
     const { size: addressTableSize } = this.#computeAddressingSpace(groupHasData, nbL1Entries)
-    const { refCountL1Size, refCountL2Size } = this.#computeRefCountSize(addressTableSize)
+    const { refCountL1Size, refCountL2Size } = this.#computeRefCountSize(addressTableSize, nbAllocatedBlocks)
 
     // Generate QCOW2 header (spec: The first cluster contains the file header)
     const header = getAlignedBuffer(1)
@@ -365,7 +374,10 @@ export class QcowStreamGenerator {
  * @param options.signal Optional AbortSignal to cancel the stream
  * @returns Readable stream of QCOW2 data
  */
-export async function toQcow2Stream(disk: Disk, { signal }: { signal?: AbortSignal } = {}): Promise<Readable> {
+export async function toQcow2Stream(
+  disk: Disk,
+  { signal }: { signal?: AbortSignal } = {}
+): Promise<WithLength<Readable>> {
   const generator = new QcowStreamGenerator(disk)
   return await generator.stream(signal)
 }
