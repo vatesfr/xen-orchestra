@@ -1,8 +1,8 @@
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 
-export function useEolHostInfoModal() {
+export function useInfoModal() {
   return useOverlay({
-    component: () => import('@/shared/components/modals/EolHostInfoModal.vue'),
+    component: () => import('@core/components/modal/VtsInfoModal.vue'),
     events: {
       onClose: true,
     },
