@@ -15,7 +15,6 @@
 
 <script lang="ts" setup>
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
-import { useEolHostInfoModal } from '@/shared/composables/modals/use-eol-host-info-modal.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
@@ -23,6 +22,7 @@ import VtsDonutChartWithLegend, {
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
 import { isDefined } from '@vueuse/shared'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -31,7 +31,7 @@ const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const { open: openEolHostInfoModal } = useEolHostInfoModal()
+const { open: openInfoModal } = useInfoModal()
 
 const dashboardMissingPatches = computed(() => dashboard.value.missingPatches)
 
@@ -94,7 +94,10 @@ const hostsSegments = computed(() => {
       value: missingPatches.value.nHostsEol,
       accent: 'danger',
       label: t('eol'),
-      onInfoClick: () => openEolHostInfoModal(),
+      onInfoClick: () =>
+        openInfoModal({
+          props: { title: t('what-is-an-eol-host?'), content: t('what-is-an-eol-host-content') },
+        }),
     })
   }
 

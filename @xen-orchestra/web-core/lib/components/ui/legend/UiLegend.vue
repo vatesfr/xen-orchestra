@@ -8,7 +8,7 @@
       v-tooltip="t('more-information')"
       class="info-button"
       accent="brand"
-      icon="fa:info-circle"
+      icon="status:info-circle"
       size="small"
       @click="onInfoClick()"
     />
@@ -57,7 +57,7 @@ const classNames = computed(() => toVariants({ accent }))
   }
 
   .info-button {
-    color: var(--color-info-item-base);
+    font-size: 1.4rem;
   }
 
   .label {
