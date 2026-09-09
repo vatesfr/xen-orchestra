@@ -37,10 +37,11 @@ export function getCertificateThumbprint(host, { port = 443, timeout = 10e3 } = 
 
     socket.once('secureConnect', () => {
       const { fingerprint } = socket.getPeerCertificate()
-      socket.end()
       if (typeof fingerprint !== 'string' || fingerprint.length === 0) {
-        return reject(new Error(`the host ${host}:${port} did not present any certificate`))
+        // nothing to wait for on this path, drop the socket instead of half closing it
+        return fail(new Error(`the host ${host}:${port} did not present any certificate`))
       }
+      socket.end()
       resolve(fingerprint)
     })
     socket.once('timeout', () => {
