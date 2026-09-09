@@ -34,8 +34,8 @@ function makeFakeStore() {
     async del(key) {
       data.delete(key)
     },
-    createReadStream() {
-      return Readable.from([...data].map(([key, value]) => ({ key, value })))
+    createKeyStream() {
+      return Readable.from([...data.keys()])
     },
   }
 }
@@ -349,9 +349,28 @@ describe('reconcileRpuRecoveryAtBoot()', () => {
     assert.deepEqual(store.data.get('unknown-version'), { schemaVersion: 42, status: 'running' })
   })
 
+  it('an unreadable record does not stop the reconciliation of the others', async () => {
+    const store = makeFakeStore()
+    const live = createRpuRecoveryRecord({ poolId: 'pool2', options: OPTIONS })
+    live.status = 'running'
+    await store.put('pool1', 'whatever')
+    await store.put('pool2', live)
+    const innerGet = store.get.bind(store)
+    store.get = async key => {
+      if (key === 'pool1') {
+        throw new SyntaxError('Unexpected token')
+      }
+      return innerGet(key)
+    }
+
+    await reconcileRpuRecoveryAtBoot(store)
+
+    assert.equal(store.data.get('pool2').status, 'interrupted')
+  })
+
   it('a failing store is logged, not thrown', async () => {
     const store = makeFakeStore()
-    store.createReadStream = () =>
+    store.createKeyStream = () =>
       Readable.from(
         (async function* () {
           throw new Error('corrupt')

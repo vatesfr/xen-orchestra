@@ -343,34 +343,42 @@ export async function startRpuRecoveryRun({ store, poolId, options }) {
  * a running operation anymore since xo-server just started, flip it to
  * `interrupted`. `interruptedAt` keeps the last time the run was known alive.
  *
- * Unknown-version records are left untouched: they are reported as `blocked`
- * at read time and the raw value is evidence.
+ * Unreadable or unknown-version records are left untouched: they are reported
+ * as `blocked` at read time and the raw value is evidence.
  *
- * Never throws: errors are logged.
+ * Never throws: errors are logged and the remaining records are still
+ * processed.
  *
  * @param {object} store - LevelDB sublevel, keyed by pool id
  * @returns {Promise<void>}
  */
 export async function reconcileRpuRecoveryAtBoot(store) {
   try {
-    for await (const { key: poolId, value: record } of store.createReadStream()) {
-      if (record?.schemaVersion === RPU_RECOVERY_SCHEMA_VERSION && LIVE_RUN_STATUSES.has(record.status)) {
-        const { runId, status, taskId, startedAt } = record
-        record.interruptedAt = record.updatedAt
-        record.status = 'interrupted'
-        record.updatedAt = new Date().toISOString()
-        await store.put(poolId, record)
-        log.info('interrupted rolling pool update detected', {
-          poolId,
-          runId,
-          taskId,
-          status,
-          startedAt,
-          interruptedAt: record.interruptedAt,
-        })
+    // one read per key rather than createReadStream(): a value that fails to
+    // decode would error the whole stream, here it only skips that record
+    for await (const poolId of store.createKeyStream()) {
+      try {
+        const record = await store.get(poolId)
+        if (record?.schemaVersion === RPU_RECOVERY_SCHEMA_VERSION && LIVE_RUN_STATUSES.has(record.status)) {
+          const { runId, status, taskId, startedAt } = record
+          record.interruptedAt = record.updatedAt
+          record.status = 'interrupted'
+          record.updatedAt = new Date().toISOString()
+          await store.put(poolId, record)
+          log.info('interrupted rolling pool update detected', {
+            poolId,
+            runId,
+            taskId,
+            status,
+            startedAt,
+            interruptedAt: record.interruptedAt,
+          })
+        }
+      } catch (error) {
+        log.warn('could not reconcile an RPU recovery record, it will be reported as blocked', { error, poolId })
       }
     }
   } catch (error) {
-    log.warn('could not reconcile the RPU recovery records', { error })
+    log.warn('could not list the RPU recovery records for reconciliation', { error })
   }
 }
