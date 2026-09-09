@@ -193,8 +193,8 @@ describe('listVmBackupsNg()', () => {
       remote: { vmWithoutBackups: [] },
     })
 
-    // the listing of the whole repository answers for any VM: neither of them was listed again
-    assert.deepEqual(calls, ['*'])
+    // a listing of the whole repository has its own cache entry: each VM is listed on its own
+    assert.deepEqual(calls, ['*', 'vmWithBackups', 'vmWithoutBackups'])
   })
 
   it('lists a VM alone when the repository has not been listed as a whole', async () => {
@@ -307,12 +307,15 @@ describe('invalidateVmBackupsListing()', () => {
 
     await backupNg.listVmBackupsNg(['remote'])
     await backupNg.listVmBackupsNg(['remote'], { vmId: 'vm' })
-    assert.deepEqual(calls, ['*'])
+    assert.deepEqual(calls, ['*', 'vm'])
 
     backupNg.invalidateVmBackupsListing('remote')
 
+    // both entries are gone: the per-VM one has its own cache key, which is not reached by
+    // dropping the entry of the repository
+    await backupNg.listVmBackupsNg(['remote'])
     await backupNg.listVmBackupsNg(['remote'], { vmId: 'vm' })
-    assert.deepEqual(calls, ['*', 'vm'])
+    assert.deepEqual(calls, ['*', 'vm', '*', 'vm'])
   })
 
   it('ignores the outcome of a listing which is still running', async () => {

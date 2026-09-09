@@ -6,6 +6,7 @@ import merge from 'lodash/merge.js'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
+import { decorateWith } from '@vates/decorate-with'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
@@ -15,6 +16,7 @@ import { timeout } from 'promise-toolbox'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.mjs'
 import { Task } from '@vates/task'
 
+import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { waitAll } from '../../_waitAll.mjs'
@@ -30,7 +32,6 @@ const logger = createLogger('xo:xo-mixins:backups-ng')
  * @typedef {{ backupsByVm?: BackupsByVm, error?: Error }} RemoteListingResult
  * @typedef {{ _forceRefresh?: boolean, vmId?: XoVm['id'] }} ListVmBackupsOpts
  * @typedef {{ attempt: number, nextAttemptAt: number, error: Error }} ListingRetryState
- * @typedef {{ all?: Promise<BackupsByVm>, byVm: Record<XoVm['id'], Promise<BackupsByVm>> }} RepositoryListings
  */
 
 // a remote whose listing failed is not listed again before this delay
@@ -104,8 +105,8 @@ export default class BackupNg {
     this._backupsListingRetry = { __proto__: null }
     /** @type {Record<XoBackupRepository['id'], Promise<BackupsByVm>>} */
     this._trackedBackupsListings = { __proto__: null }
-    /** @type {Record<XoBackupRepository['id'], RepositoryListings>} */
-    this._backupsListings = { __proto__: null }
+    /** @type {Record<XoBackupRepository['id'], Set<XoVm['id']>>} */
+    this._backupsListingVmIds = { __proto__: null }
 
     app.hooks.on('start', async () => {
       const executor = async ({
@@ -615,65 +616,43 @@ export default class BackupNg {
     }
   }
 
-  /**
-   * caches a listing for `backups.listingDebounce`
-   *
-   * @param {XoBackupRepository['id']} remoteId
-   * @param {Record<string, Promise<BackupsByVm>>} container
-   * @param {'all' | XoVm['id']} key 'all' caches the listing of the whole repository
-   * @returns {Promise<BackupsByVm>}
-   */
-  _cacheListing(remoteId, container, key) {
-    const cached = container[key]
-    if (cached !== undefined) {
-      return cached
+  @decorateWith(
+    debounceWithKey,
+    function () {
+      return this._app.config.getDuration('backups.listingDebounce')
+    },
+    // a listing of a single VM is not a listing of the whole repository: it must have its own
+    // cache entry, or it would be served to a caller which asked for every VM
+    function keyFn(remoteId, opts) {
+      const keys = [this, remoteId]
+      if (opts?.vmId !== undefined) {
+        keys.push(opts.vmId)
+      }
+      return keys
     }
-
-    const opts = key === 'all' ? undefined : { vmId: key }
-    const promise = timeout.call(this._listVmBackupsOnRemoteUncached(remoteId, opts), LISTING_TIMEOUT)
-    container[key] = promise
-
-    const expiresAt = Date.now() + this._app.config.getDuration('backups.listingDebounce')
-    const scheduleRemoval = () =>
-      setTimeout(
-        () => {
-          if (container[key] === promise) {
-            delete container[key]
-          }
-        },
-        Math.max(0, expiresAt - Date.now())
-      )
-    promise.then(scheduleRemoval, scheduleRemoval)
-
-    return promise
-  }
-
+  )
   /**
    * rejects when the listing failed, `_listVmBackupsWithBackoff()` is in charge of handling it
    *
-   * a listing of the whole repository answers for any VM: a VM which is absent from it simply has
-   * no backup. The converse is not true: a per-VM listing must never be reused for another VM,
-   * nor for a caller which asked for the whole repository.
+   * the timeout must be *inside* the debounced call: a listing which never settles (it can happen
+   * on NFS/SMB) would otherwise stay cached forever and each caller would pay `LISTING_TIMEOUT`
+   * again
    *
    * @param {XoBackupRepository['id']} remoteId
    * @param {{ vmId?: XoVm['id'] }} [opts]
    * @returns {Promise<BackupsByVm>}
    */
-  _listVmBackupsOnRemote(remoteId, { vmId } = {}) {
-    let listings = this._backupsListings[remoteId]
-    if (listings === undefined) {
-      listings = this._backupsListings[remoteId] = { all: undefined, byVm: { __proto__: null } }
+  _listVmBackupsOnRemote(remoteId, opts) {
+    const vmId = opts?.vmId
+    if (vmId !== undefined) {
+      let vmIds = this._backupsListingVmIds[remoteId]
+      if (vmIds === undefined) {
+        vmIds = this._backupsListingVmIds[remoteId] = new Set()
+      }
+      vmIds.add(vmId)
     }
 
-    if (listings.all !== undefined) {
-      return listings.all
-    }
-
-    if (vmId === undefined) {
-      return this._cacheListing(remoteId, listings, 'all')
-    } else {
-      return this._cacheListing(remoteId, listings.byVm, vmId)
-    }
+    return timeout.call(this._listVmBackupsOnRemoteUncached(remoteId, opts), LISTING_TIMEOUT)
   }
 
   /**
@@ -788,8 +767,8 @@ export default class BackupNg {
    * a backup repository whose listing failed is reported as `null` so that a slow or unreachable
    * one does not prevent the others from being listed
    *
-   * `vmId` narrows down the result: the repository is listed for this VM only, unless it has
-   * already been listed as a whole, in which case that listing is reused
+   * `vmId` narrows down the result: the repository is listed for this VM only, and cached
+   * apart from the listing of the whole repository
    *
    * @param {XoBackupRepository['id'][]} remotes
    * @param {ListVmBackupsOpts} [opts]
@@ -858,7 +837,17 @@ export default class BackupNg {
    * @param {XoBackupRepository['id']} remoteId
    */
   invalidateVmBackupsListing(remoteId) {
-    delete this._backupsListings[remoteId]
+    this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
+
+    // per-VM listings have their own cache entry, which the call above does not reach
+    const vmIds = this._backupsListingVmIds[remoteId]
+    if (vmIds !== undefined) {
+      for (const vmId of vmIds) {
+        this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId, { vmId })
+      }
+      delete this._backupsListingVmIds[remoteId]
+    }
+
     delete this._trackedBackupsListings[remoteId]
     delete this._backupsListingRetry[remoteId]
   }
