@@ -1,7 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!rule" @close="emit('close')">
     <template v-if="rule" #actions>
-      <TrafficRuleActions :rule class="delete-button" />
+      <TrafficRuleActions :rule />
     </template>
 
     <template v-if="rule" #default>

@@ -1,5 +1,7 @@
 ---
 slug: /
+sidebar_position: 1
+sidebar_label: Introduction
 ---
 
 # Xen Orchestra in a nutshell
@@ -157,21 +159,21 @@ the parked standby. */}
 ## Start here
 
 <CardGrid>
-<LinkCard title="Deploy Xen Orchestra" href="/installation">Get the turnkey appliance (XOA) running in minutes, or install from the sources.</LinkCard>
-<LinkCard title="Discover XO 6" href="/xo6/gettingstarted">Tour the new interface: tree view, dashboards, consoles.</LinkCard>
-<LinkCard title="Set up backups" href="/backup">Rolling snapshots, incremental backups, replication and more.</LinkCard>
-<LinkCard title="Migrate from VMware" href="/xo5/v2v-migration-guide">Import your ESXi VMs directly into your pools with V2V.</LinkCard>
+<LinkCard title="Deploy Xen Orchestra" href="/getting-started/installation">Get the turnkey appliance (XOA) running in minutes, or install from the sources.</LinkCard>
+<LinkCard title="Discover XO 6" href="/discover-xen-orchestra/gettingstarted">Tour the new interface: tree view, dashboards, consoles.</LinkCard>
+<LinkCard title="Set up backups" href="/backups-and-dr/backup">Rolling snapshots, incremental backups, replication and more.</LinkCard>
+<LinkCard title="Migrate from VMware" href="/guides/v2v-migration-guide">Import your ESXi VMs directly into your pools with V2V.</LinkCard>
 <LinkCard title="Automate everything" href="/automation/restapi">REST API, CLI, Terraform, Ansible, Pulumi and more.</LinkCard>
-<LinkCard title="Get support" href="/support">Professional support by the Vates team, or community help.</LinkCard>
+<LinkCard title="Get support" href="/support-and-licencing/support">Professional support by the Vates team, or community help.</LinkCard>
 </CardGrid>
 
 ## What XO does for you
 
-- **Administration**: complete control of your pools, hosts, VMs, storage and networks, from a [modern web interface](xo6/gettingstarted.md) or from XO 5.
-- **Backup and disaster recovery**: rolling snapshots, full and incremental backups, replication, mirroring and immutability, toward S3, NFS, SMB or Azure targets. See [Backups](xo6/backups.md).
-- **Migration from VMware**: [V2V](xo5/v2v-migration-guide.md) imports your ESXi VMs directly into your pools.
+- **Administration**: complete control of your pools, hosts, VMs, storage and networks, from a [modern web interface](/discover-xen-orchestra/gettingstarted.md) or from XO 5.
+- **Backup and disaster recovery**: rolling snapshots, full and incremental backups, replication, mirroring and immutability, toward S3, NFS, SMB or Azure targets. See [Backups](/backups-and-dr/backups-in-xo6.md).
+- **Migration from VMware**: [V2V](/guides/v2v-migration-guide.md) imports your ESXi VMs directly into your pools.
 - **Automation**: a [REST API](automation/restapi.md), a CLI, and first-class providers for [Terraform](automation/terraform-provider.md), [Ansible](automation/ansible.md), [Pulumi](automation/pulumi-provider.md), [Packer](automation/packer-provider.md) and [PowerShell](automation/powershell-module.md), plus [Kubernetes cluster recipes](automation/kubernetes.md).
-- **Delegation**: users, groups and [RBAC](rbac.md) to give each team exactly the access it needs.
+- **Delegation**: users, groups and [RBAC](/users-and-access/rbac.md) to give each team exactly the access it needs.
 - **Scale**: one XO manages any number of pools on any number of sites, over LAN or WAN.
 
 ## XO in the Vates VMS stack
@@ -190,4 +192,4 @@ The search bar at the top covers docs.xen-orchestra.com, docs.xcp-ng.org and doc
 
 ## Two interfaces, one product
 
-Xen Orchestra currently ships two web interfaces on the same server and the same data: **XO 6**, the new default interface, and **XO 5**, which remains available for the operations XO 6 does not cover yet. Read [XO 6 and XO 5](xo6/xo6vsxo5.md) to see what lives where.
+Xen Orchestra currently ships two web interfaces on the same server and the same data: **XO 6**, the new default interface, and **XO 5**, which remains available for the operations XO 6 does not cover yet. Read [XO 6 and XO 5](/discover-xen-orchestra/xo6vsxo5.md) to see what lives where.

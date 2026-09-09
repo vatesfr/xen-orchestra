@@ -153,3 +153,10 @@ If the translation in your language for this new key is the same as an already e
 ```
 
 This provides the option to override the `save-changes` translation in some locales if needed, while keeping the same translation as `save` by default.
+
+Some translations use modifiers on linked translations, such as `@.lower:<key>` (lowercase) or `@.capitalize:<key>`.
+
+These modifiers automatically transform the casing of the referenced translation.
+
+> [!IMPORTANT]
+> When translating a key that is referenced with a modifier, keep in mind that the output will be automatically transformed. Make sure the result is correct in your language, and override the referencing key with a direct translation if needed.
