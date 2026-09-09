@@ -428,7 +428,6 @@
   "job:arg:sr-vdi-required": "SR VDI krävs",
   "job:arg:template-uuid-required": "Mall UUID krävs",
   "job:arg:username-required": "Användarnamn krävs",
-  "job:arg:vlan-required": "VLAN krävs",
   "job:connect:in-progress": "Anslutning pågår…",
   "job:create:in-progress": "Skapande pågår…",
   "job:delete:in-progress": "Radering pågår…",

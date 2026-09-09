@@ -479,7 +479,6 @@
   "job:arg:template-uuid-required": "Sjabloon UUID is vereist",
   "job:arg:username-required": "Gebruikersnaam is vereist",
   "job:arg:vdi-id-required": "VDI-ID is vereist",
-  "job:arg:vlan-required": "VLAN is vereist",
   "job:arg:vm-id-required": "VM-ID is vereist",
   "job:connect:in-progress": "Wordt verbonden…",
   "job:create:in-progress": "Aan het maken…",
