@@ -97,11 +97,11 @@ const handleClick = async () => {
   }
 
   &.accent--danger {
-    color: var(--color-danger-item-base);
+    color: var(--color-danger-txt-base);
   }
 
   &.accent--warning {
-    color: var(--color-warning-item-base);
+    color: var(--color-warning-txt-base);
   }
 
   &.accent--info {

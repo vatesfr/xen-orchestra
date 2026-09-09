@@ -1,6 +1,6 @@
 <!-- v1.0 -->
 <template>
-  <div :class="{ active, disabled }" class="menu-trigger">
+  <div :class="[{ active, disabled }, className]" class="menu-trigger">
     <VtsIcon :name="icon" size="medium" :busy />
     <slot />
   </div>
@@ -8,14 +8,20 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import type { MenuItemAccent } from '@core/components/menu/MenuItem.vue'
 import type { IconName } from '@core/icons'
+import { toVariants } from '@core/utils/to-variants.util.ts'
+import { computed } from 'vue'
 
-defineProps<{
+const { accent } = defineProps<{
+  accent?: MenuItemAccent
   active?: boolean
   busy?: boolean
   disabled?: boolean
   icon?: IconName
 }>()
+
+const className = computed(() => toVariants({ accent }))
 </script>
 
 <style lang="postcss" scoped>
@@ -41,6 +47,28 @@ defineProps<{
     &:active,
     &.active {
       background-color: var(--color-brand-background-active);
+    }
+
+    &.accent--danger {
+      &:hover {
+        background-color: var(--color-danger-background-hover);
+      }
+
+      &:active,
+      &.active {
+        background-color: var(--color-danger-background-active);
+      }
+    }
+
+    &.accent--warning {
+      &:hover {
+        background-color: var(--color-warning-background-hover);
+      }
+
+      &:active,
+      &.active {
+        background-color: var(--color-warning-background-active);
+      }
     }
   }
 }
