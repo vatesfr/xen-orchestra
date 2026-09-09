@@ -393,7 +393,6 @@
   "job:arg:sr-vdi-required": "SR VDI ist erforderlich",
   "job:arg:template-uuid-required": "Template UUID ist erforderlich",
   "job:arg:username-required": "Benutzername ist erforderlich",
-  "job:arg:vlan-required": "VLAN ist erforderlich",
   "job:connect:in-progress": "Verbinde…",
   "job:create:in-progress": "Erstellung läuft…",
   "job:delete:in-progress": "Löschung läuft…",

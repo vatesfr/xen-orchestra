@@ -479,7 +479,6 @@
   "job:arg:template-uuid-required": "Je zapotřebí UUID šablony",
   "job:arg:username-required": "Je zapotřebí uživatelské jméno",
   "job:arg:vdi-id-required": "Je zapotřebí identif. obrazu virt. disku",
-  "job:arg:vlan-required": "Je třeba zadat VLAN",
   "job:arg:vm-id-required": "Je zapotřebí identifikátor virt. stroje",
   "job:connect:in-progress": "Probíhá připojování…",
   "job:create:in-progress": "Probíhá vytváření…",

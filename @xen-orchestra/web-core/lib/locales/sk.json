@@ -479,7 +479,6 @@
   "job:arg:template-uuid-required": "Vyžaduje sa UUID šablóny",
   "job:arg:username-required": "Vyžaduje sa používateľské meno",
   "job:arg:vdi-id-required": "Je potrebný identif. obrazu virt. disku",
-  "job:arg:vlan-required": "Je potrebné zadať VLAN",
   "job:arg:vm-id-required": "Je potrebný identifikátor virt. stroje",
   "job:connect:in-progress": "Prebieha pripájanie…",
   "job:create:in-progress": "Prebieha vytváranie…",

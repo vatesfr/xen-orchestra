@@ -433,7 +433,6 @@
   "job:arg:template-uuid-required": "请选择虚拟机模板",
   "job:arg:username-required": "请输入用户名",
   "job:arg:vdi-id-required": "VDI ID为必填项",
-  "job:arg:vlan-required": "请填写VLAN编号",
   "job:arg:vm-id-required": "虚拟机ID为必填项",
   "job:connect:in-progress": "正在连接.…",
   "job:create:in-progress": "正在创建.…",
