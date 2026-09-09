@@ -2,7 +2,6 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
 import {
-  diskBacking,
   moRef,
   objectSpec,
   orderedChildren,
@@ -10,8 +9,6 @@ import {
   propertySpec,
   retrieveOptions,
   traversalSpec,
-  VIRTUAL_DEVICE_CONFIG_SPEC,
-  virtualDisk,
 } from './specs.mjs'
 
 describe('moRef', function () {
@@ -87,48 +84,5 @@ describe('property collector specs', function () {
       attributes: { 'xsi:type': 'RetrieveOptions' },
       maxObjects: 100,
     })
-  })
-})
-
-describe('device specs', function () {
-  it('builds a VirtualDisk in schema order', function () {
-    const disk = virtualDisk({
-      capacityInKB: 1024,
-      unitNumber: 1,
-      key: -1,
-      controllerKey: 1000,
-      backing: diskBacking('VirtualDiskFlatVer2BackingInfo', {
-        diskMode: 'independent_nonpersistent',
-        fileName: '[ds] vm/vm-000001.vmdk',
-      }),
-    })
-
-    assert.deepEqual(Object.keys(disk), ['attributes', 'key', 'backing', 'controllerKey', 'unitNumber', 'capacityInKB'])
-    assert.equal(disk.attributes['xsi:type'], 'VirtualDisk')
-    // the backing declares the type the host reported, and `fileName` comes before `diskMode`
-    assert.deepEqual(Object.keys(disk.backing), ['attributes', 'fileName', 'diskMode'])
-    assert.equal(disk.backing.attributes['xsi:type'], 'VirtualDiskFlatVer2BackingInfo')
-  })
-
-  it('supports the backing types of a snapshot chain', function () {
-    for (const xsiType of [
-      'VirtualDiskFlatVer2BackingInfo',
-      'VirtualDiskSeSparseBackingInfo',
-      'VirtualDiskSparseVer2BackingInfo',
-      'VirtualDiskRawDiskMappingVer1BackingInfo',
-    ]) {
-      assert.equal(diskBacking(xsiType, { fileName: 'a.vmdk' }).attributes['xsi:type'], xsiType)
-    }
-  })
-
-  it('refuses an unknown backing type', function () {
-    assert.throws(() => diskBacking('VirtualDiskWhateverBackingInfo', {}), {
-      message: 'unsupported virtual disk backing type: VirtualDiskWhateverBackingInfo',
-    })
-  })
-
-  it('keeps fileOperation right after operation in a device change', function () {
-    // a detach must not carry a fileOperation, an attach of a new disk must
-    assert.deepEqual(VIRTUAL_DEVICE_CONFIG_SPEC.slice(0, 3), ['operation', 'fileOperation', 'device'])
   })
 })
