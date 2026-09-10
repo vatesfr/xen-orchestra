@@ -47,6 +47,7 @@
 - [V2V] Fix xo-server stopping when `nbdkit` is not installed, or when the connection to the source host is lost during a migration (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 - [V2V] Listing the VMs of a host no longer fails entirely when one of them is incomplete, e.g. while being created (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 - [V2V] The credentials are no longer sent again on every read of a disk, and a session expiring during a long import is renewed (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
+- [V2V] The session opened on the source host is now closed when a listing, a migration or a disk export ends, instead of piling up until it expires — a host only accepts a limited number of them (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 - [V2V] Report what the source host complained about, instead of `task execution failed` or an assertion error, when an operation fails (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 
 ### Packages to release

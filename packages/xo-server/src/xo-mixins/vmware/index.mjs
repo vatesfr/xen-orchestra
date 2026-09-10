@@ -23,14 +23,31 @@ export default class MigrateVm {
   #connectToEsxi(host, user, password, sslVerify) {
     return Task.run({ properties: { name: `connecting to ${host}` } }, async () => {
       const esxi = new Esxi(host, user, password, sslVerify)
-      await fromEvent(esxi, 'ready')
+      try {
+        await fromEvent(esxi, 'ready')
+      } catch (error) {
+        // the login may have succeeded even though connecting did not, e.g. when it is listing the
+        // datacenters which failed: that session would linger on the host until it expires
+        await this.#closeEsxi(esxi, host)
+        throw error
+      }
       return esxi
     })
   }
 
+  // a session is not released when this process ends, it lingers on the host until it expires, and
+  // a host only accepts a limited number of them. Failing to close is not worth failing a job
+  #closeEsxi(esxi, host) {
+    return esxi.close().catch(error => warn('failed to close the ESXi session', { error, host }))
+  }
+
   async connectToEsxiAndList({ host, user, password, sslVerify }) {
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
-    return esxi.getAllVmMetadata()
+    try {
+      return await esxi.getAllVmMetadata()
+    } finally {
+      await this.#closeEsxi(esxi, host)
+    }
   }
 
   async #findBaseVM(xapi, metadata) {
@@ -199,6 +216,8 @@ export default class MigrateVm {
   ) {
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
+    // every transfer is awaited below, nothing is left reading from the host when this returns
+    $defer(() => this.#closeEsxi(esxi, host))
     const sr = app.getXapiObject(srId)
     const template = app.getXapiObject(templateId)
     const xapi = sr.$xapi
@@ -275,6 +294,7 @@ export default class MigrateVm {
     }
     const disk = chain.pop()
     const stream = new PassThrough()
+    // the transfer outlives this call, so the session cannot be released before the stream is done
     importStream({ esxi, disk, vmId, format }, source => {
       stream.length = source.length
       source.pipe(stream)
@@ -286,10 +306,14 @@ export default class MigrateVm {
           error ? reject(error) : resolve()
         })
       })
-    }).catch(error => {
-      warn('Error while reading the disk from esxi', warn)
-      throw error
     })
+      .catch(error => {
+        // rethrowing was an unhandled rejection: nothing awaits this promise. Whoever reads the
+        // stream is the one which has to learn about the failure
+        warn('error while reading the disk from esxi', { diskId, error, vmId })
+        stream.destroy(error)
+      })
+      .finally(() => this.#closeEsxi(esxi, host))
     return stream
   }
 
