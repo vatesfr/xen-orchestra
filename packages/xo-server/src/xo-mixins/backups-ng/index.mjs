@@ -110,6 +110,10 @@ export default class BackupNg {
     this._backupsListingRetry = { __proto__: null }
     /** @type {Record<XoBackupRepository['id'], Promise<BackupsByVm>>} */
     this._trackedBackupsListings = { __proto__: null }
+    // remoteId → Set of the `vmId` (possibly `undefined`, for a full listing) debounced for this
+    // remote, so that every one of them can be dropped when the listing state is reset
+    /** @type {Record<XoBackupRepository['id'], Set<XoVm['id'] | undefined>>} */
+    this._trackedVmIdsByRemote = { __proto__: null }
 
     app.hooks.on('start', async () => {
       const executor = async ({
@@ -644,7 +648,7 @@ export default class BackupNg {
   }
 
   // proxies don't expose the journal of their repositories yet: they are still listed in full
-  async _listVmBackupsOnProxy(remoteId, remote) {
+  async _listVmBackupsOnProxy(remoteId, remote, vmId) {
     const { [remoteId]: backupsByVm } = await this._app.callProxyMethod(remote.proxy, 'backup.listVmBackups', {
       remotes: {
         [remoteId]: {
@@ -652,6 +656,7 @@ export default class BackupNg {
           options: remote.options,
         },
       },
+      vmId,
     })
     return backupsByVm
   }
@@ -676,7 +681,7 @@ export default class BackupNg {
 
     let backupsByVm
     if (remote.proxy !== undefined) {
-      backupsByVm = await this._listVmBackupsOnProxy(remoteId, remote)
+      backupsByVm = await this._listVmBackupsOnProxy(remoteId, remote, vmId)
       if (backupsByVm === undefined) {
         // the proxy omits the repositories it failed to list
         throw new Error(`the proxy failed to list the backup repository ${remoteId}`)
@@ -727,6 +732,8 @@ export default class BackupNg {
       // report the failure which put this remote in its retry delay
       return Promise.resolve({ error: state.error })
     }
+
+    ;(this._trackedVmIdsByRemote[remoteId] ??= new Set()).add(vmId)
 
     const promise = this._listVmBackupsOnRemote(remoteId, { vmId })
 
@@ -818,7 +825,13 @@ export default class BackupNg {
    * @param {XoBackupRepository['id']} remoteId
    */
   #resetVmBackupsListingState(remoteId) {
-    this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
+    const vmIds = this._trackedVmIdsByRemote[remoteId]
+    if (vmIds !== undefined) {
+      for (const vmId of vmIds) {
+        this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId, { vmId })
+      }
+      delete this._trackedVmIdsByRemote[remoteId]
+    }
     delete this._trackedBackupsListings[remoteId]
     delete this._backupsListingRetry[remoteId]
   }
