@@ -49,6 +49,7 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/web minor
