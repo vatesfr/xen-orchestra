@@ -18,7 +18,7 @@ npm install --save @xen-orchestra/rest-api
 
 REST API to manage your XOA.
 
-The user-facing documentation is available at [docs.xen-orchestra.com](https://docs.xen-orchestra.com/automation/restapi).
+The user-facing documentation is available at [docs.xen-orchestra.com](https://docs.xen-orchestra.com/rest_api).
 
 ## Development guidelines
 
