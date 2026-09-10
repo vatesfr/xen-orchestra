@@ -136,18 +136,20 @@ You have the option to use the NBD network protocol for data transfer instead of
 
 ### Network requirements {#nbd-network-requirements}
 
-NBD is a direct connection from the machine running the backup (XOA, or the xo-proxy the job is delegated to) to the **host currently running the VM** — not to the pool master, and not through the XAPI. The backup runner must therefore have **at least one network** that meets **all** of these conditions:
+NBD is a direct connection from the machine running the backup (XOA, or the xo-proxy the job is delegated to) to the **host currently running the VM** — not to the pool master, and not through XAPI. The backup runner must therefore have **at least one network** that meets **all** of these conditions:
 
-- **NBD is enabled on it.** Select the pool, navigate to the Network tab and enable NBD on the network. Data is then transferred over an encrypted (TLS) NBD connection.
+- **NBD is enabled on it.** Select the pool, navigate to the **Network** tab and enable NBD on the network. Data is then transferred over an encrypted (TLS) NBD connection.
 - **It is routable from the backup runner to the host running the VM.** Routing and firewalling must allow the runner to open a connection to that host on this network.
-- **Both ends have a valid IPv4 address on it.** The host's PIF must have an IPv4 address configured, and the backup runner must have an IPv4 address able to reach it. **NBD only uses IPv4**: an IPv6-only network cannot be used for the transfer.
+:::note
+NBD only uses IPv4. An IPv6-only network cannot be used for the transfer.
+:::
 
 <UiDetail src="/img/xo5/nbd-connection.png" alt="Enable NBD on the transfer network, in the pool's Network tab" width={700} />
 
 Because a VM can be started on — or migrated to — any host of the pool, **every host that may run a backed-up VM** has to meet these conditions. Otherwise NBD will work for some VMs and silently fall back for others, depending on where they run at backup time.
 
 :::warning
-If a **Backup network** is set on the pool (pool view → Advanced tab), then **only that network is considered**, for every VM of that pool. NBD must be enabled on that specific network, and the three conditions above must be met on it: any other NBD-enabled network of the pool is ignored, and the job falls back to the VHD export handler.
+If a Backup network is configured for the pool (**Pool** view → **Advanced** tab), only that network is used for every VM in the pool. NBD must be enabled on that network, and all three conditions above must be met. Any other NBD-enabled network in the pool is ignored, and the job falls back to the VHD export handler.
 :::
 
 ### Enable NBD in the backup job
@@ -163,7 +165,9 @@ After the job has run, always verify in the backup log that NBD was actually use
 :::warning
 **Incremental backups of qcow2 disks require NBD.** qcow2 disks are used for VDIs larger than 2 TiB and on storage repositories that store their disks in the qcow2 format.
 
-Enabling **Use NBD to transfer disk** in the job's Advanced settings is not sufficient on its own: the [network requirements](#nbd-network-requirements) must also be satisfied on **every** pool involved. If these conditions are not met, the job **falls back with a warning** to a non-NBD transfer: no qcow2 delta can be produced, so each run transfers a full backup instead. Always confirm NBD was actually used in the backup log after the first run.
+Enabling **Use NBD to transfer disk** in the job's Advanced settings is not sufficient on its own: the [network requirements](#nbd-network-requirements) must also be satisfied on **every** pool involved. If these conditions are not met, the job **falls back with a warning** to a non-NBD transfer: no qcow2 delta can be produced, so each run transfers a full backup instead. 
+
+Always confirm NBD was actually used in the backup log after the first run.
 :::
 
 To learn more about the evolution of this feature across various XO releases, check out our blog posts for versions [5.76](https://xen-orchestra.com/blog/xen-orchestra-5-76/), [5.81](https://xen-orchestra.com/blog/xen-orchestra-5-81/), [5.82](https://xen-orchestra.com/blog/xen-orchestra-5-82/), and [5.86](https://xen-orchestra.com/blog/xen-orchestra-5-86/).
