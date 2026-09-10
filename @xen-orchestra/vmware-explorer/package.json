@@ -11,8 +11,7 @@
     "@xen-orchestra/log": "^0.7.2",
     "promise-toolbox": "^0.21.0",
     "semver": "^7.7.2",
-    "undici": "^7.8.0",
-    "xml2js": "^0.6.2"
+    "undici": "^7.8.0"
   },
   "engines": {
     "node": ">=20.18.1"

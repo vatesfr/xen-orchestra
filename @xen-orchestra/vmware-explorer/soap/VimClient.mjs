@@ -49,11 +49,6 @@ export class VimClient {
     return this.#client.serviceContent
   }
 
-  /** cookies of the authenticated session, needed to talk to the host outside of the WSDL */
-  get authCookie() {
-    return this.#client.authCookie
-  }
-
   get status() {
     return this.#client.status
   }

@@ -64,7 +64,6 @@ export class FakeVimClient {
       rootFolder: moRef('Folder', 'group-d1'),
       viewManager: moRef('ViewManager', 'ViewManager'),
     }
-    this.authCookie = { cookies: 'vmware_soap_session="42"' }
     this.closed = false
   }
 

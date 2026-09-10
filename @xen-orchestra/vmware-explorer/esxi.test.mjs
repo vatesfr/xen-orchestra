@@ -356,7 +356,7 @@ describe('tasks', function () {
       },
     })
 
-    // the info is not wrapped in arrays, unlike what `fetchProperty` returns
+    // the info comes back unwrapped, in the same shape as `search`
     assert.deepEqual(await esxi.powerOff('vm-1'), { key: 'task-1', state: 'success' })
 
     // the property is read on the task itself, no container view is involved
@@ -651,16 +651,17 @@ createType="vmfs"
 RW 67108864 VMFS "vm-000001-flat.vmdk"
 `
 
-  const configResponse = vmPathName => `<FetchResponse><returnval>
-    <name>a vm</name>
-    <guestId>ubuntu64Guest</guestId>
-    <guestFullName>Ubuntu Linux (64-bit)</guestFullName>
-    <firmware>efi</firmware>
-    <files><vmPathName>${vmPathName}</vmPathName></files>
-    <hardware><memoryMB>2048</memoryMB><numCPU>2</numCPU></hardware>
-  </returnval></FetchResponse>`
+  const config = vmPathName => ({
+    attributes: { 'xsi:type': 'VirtualMachineConfigInfo' },
+    name: 'a vm',
+    guestId: 'ubuntu64Guest',
+    guestFullName: 'Ubuntu Linux (64-bit)',
+    firmware: 'efi',
+    files: { vmPathName },
+    hardware: { memoryMB: '2048', numCPU: '2' },
+  })
 
-  const RUNTIME_RESPONSE = '<FetchResponse><returnval><powerState>poweredOn</powerState></returnval></FetchResponse>'
+  const RUNTIME = { attributes: { 'xsi:type': 'VirtualMachineRuntimeInfo' }, powerState: 'poweredOn' }
 
   const DATASTORE_SUMMARIES = [
     {
@@ -678,16 +679,21 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
     const requested = []
     const { esxi } = await connectedEsxi({
       responses: {
-        // the datastores are listed through the property collector, the rest through `Fetch`
-        RetrievePropertiesEx: ({ specSet }) =>
-          specSet[0].propSet[0].type === 'Datastore' ? page(DATASTORE_SUMMARIES) : page(DATACENTERS),
+        // every property is read through the property collector, only the files are downloaded
+        RetrievePropertiesEx: ({ specSet }) => {
+          const { pathSet, type } = specSet[0].propSet[0]
+          if (type === 'Datastore') {
+            return page(DATASTORE_SUMMARIES)
+          }
+          if (type !== 'VirtualMachine') {
+            return page(DATACENTERS)
+          }
+          return pathSet[0] === 'runtime'
+            ? propertyOf('VirtualMachine', 'vm-1', 'runtime', RUNTIME)
+            : propertyOf('VirtualMachine', 'vm-1', 'config', config(vmPathName))
+        },
       },
       fetch: async (url, options) => {
-        if (options.method === 'POST') {
-          return response({
-            body: options.body.includes('runtime') ? RUNTIME_RESPONSE : configResponse(vmPathName),
-          })
-        }
         const path = url.pathname
         requested.push(path)
         if (path.endsWith('.vmx')) {
@@ -756,71 +762,17 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
   })
 })
 
-describe('fetchProperty', function () {
-  const fetchPropertyEsxi = async fetchImplementation => {
-    const requests = []
-    const { esxi } = await connectedEsxi({
-      fetch: async (url, options) => {
-        requests.push({ url, options })
-        return fetchImplementation(options)
-      },
+describe('keepAlive', function () {
+  it('touches the session with the cheapest call there is', async function () {
+    const { esxi, vimClient } = await connectedEsxi({
+      responses: { CurrentTime: () => ({ returnval: new Date(0) }) },
     })
-    return { esxi, requests }
-  }
 
-  it('escapes the values it interpolates in the envelope', async function () {
-    const { esxi, requests } = await fetchPropertyEsxi(() => ({
-      status: 200,
-      statusText: 'OK',
-      text: async () => '<FetchResponse><returnval>ok</returnval></FetchResponse>',
-    }))
+    await esxi.keepAlive()
 
-    await esxi.fetchProperty('VirtualMachine', 'vm-1" & <injected/>', 'config')
-
-    const { body } = requests[0].options
-    assert.ok(!body.includes('<injected/>'), body)
-    assert.ok(body.includes('vm-1&quot; &amp; &lt;injected/&gt;'), body)
-  })
-
-  it('reports a body which holds no readable fault', async function () {
-    const { esxi } = await fetchPropertyEsxi(() => ({
-      status: 503,
-      statusText: 'Service Unavailable',
-      // something in front of the host, not a vim25 fault
-      text: async () => '<html><body>gateway is down</body></html>',
-    }))
-
-    await assert.rejects(esxi.fetchProperty('VirtualMachine', 'vm-42', 'config'), {
-      code: 'NO_PROPERTY',
-      message: "can't get config of object vm-42 (Type: VirtualMachine)",
-    })
-  })
-
-  it('reports the fault of the host instead of a generic message', async function () {
-    const { esxi } = await fetchPropertyEsxi(() => ({
-      status: 500,
-      statusText: 'Internal Server Error',
-      text: async () =>
-        `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body><soapenv:Fault><faultcode>ServerFaultCode</faultcode><faultstring>The object &apos;vim.VirtualMachine:vm-42&apos; has already been deleted</faultstring><detail><ManagedObjectNotFoundFault xmlns="urn:vim25" xsi:type="ManagedObjectNotFound"/></detail></soapenv:Fault></soapenv:Body></soapenv:Envelope>`,
-    }))
-
-    await assert.rejects(esxi.fetchProperty('VirtualMachine', 'vm-42', 'config'), error => {
-      assert.match(error.message, /has already been deleted$/)
-      assert.equal(error.code, 'ManagedObjectNotFound')
-      assert.equal(error.cause.status, 500)
-      return true
-    })
-  })
-
-  it('still returns the legacy shape', async function () {
-    const { esxi } = await fetchPropertyEsxi(() => ({
-      status: 200,
-      statusText: 'OK',
-      text: async () => '<FetchResponse><returnval><state>success</state></returnval></FetchResponse>',
-    }))
-
-    // values wrapped in arrays: this is why `#retrieveProperty` exists
-    assert.deepEqual(await esxi.fetchProperty('Task', 'task-1', 'info'), { state: ['success'] })
+    // reading the whole `config` of a VM used to be the keep-alive
+    assert.deepEqual(vimClient.methods, ['CurrentTime'])
+    assert.deepEqual(vimClient.callsTo('CurrentTime')[0].args, { _this: 'ServiceInstance' })
   })
 })
 

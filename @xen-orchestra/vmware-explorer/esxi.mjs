@@ -2,7 +2,6 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { dirname, join } from 'node:path'
 import { EventEmitter } from 'node:events'
-import { parseFault } from '@vates/node-vsphere-soap'
 import { pTimeout } from 'promise-toolbox'
 import { setTimeout as delay } from 'node:timers/promises'
 import { Agent } from 'undici'
@@ -18,7 +17,6 @@ import parseVmx from './parsers/vmx.mjs'
 import { asArray, normalizeSoapValue } from './soap/normalize.mjs'
 import { moRef, objectSpec, propertyFilterSpec, propertySpec, retrieveOptions, traversalSpec } from './soap/specs.mjs'
 import { VimClient } from './soap/VimClient.mjs'
-import xml2js from 'xml2js'
 import { spawn } from 'node:child_process'
 import NbdClient from '@vates/nbd-client'
 
@@ -35,7 +33,6 @@ const DEFAULT_DOWNLOAD_RETRIES = 4
 const DESCRIPTOR_READ_LENGTH = 4096
 // a vmdk descriptor is a small file, but the /folder endpoint of a host is not fast
 const DESCRIPTOR_CONCURRENCY = 4
-const DEFAULT_FETCH_PROPERTY_TIMEOUT = 60e3
 const DEFAULT_HEADERS_TIMEOUT = 60e3
 const DEFAULT_RETRY_DELAY = 2e3
 // every caller of `#waitForTaskEnd` passes its own deadline, this is only the guardrail for the
@@ -85,9 +82,6 @@ const noop = () => {}
 // the options change what the server exports, so they are part of its identity
 const nbdServerKey = (vmId, diskPath, { compression, singleLink, threads }) =>
   JSON.stringify([vmId, diskPath, singleLink, threads, compression])
-
-const XML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }
-const escapeXml = value => String(value).replace(/[&<>"']/g, character => XML_ESCAPES[character])
 
 // `TaskInfo.error` is a LocalizedMethodFault: the concrete fault type is the `xsi:type` of its
 // `fault` element, and the parser may expose it at either level depending on the response
@@ -529,11 +523,11 @@ export default class Esxi extends EventEmitter {
 
   async getTransferableVmMetadata(vmId, { signal } = {}) {
     const [config, runtime] = await Promise.all([
-      this.fetchProperty('VirtualMachine', vmId, 'config', { signal }),
-      this.fetchProperty('VirtualMachine', vmId, 'runtime', { signal }),
+      this.#retrieveProperty('VirtualMachine', vmId, 'config', { signal }),
+      this.#retrieveProperty('VirtualMachine', vmId, 'runtime', { signal }),
     ])
 
-    const vmPathName = config.files[0].vmPathName[0]
+    const vmPathName = config.files.vmPathName
     const matches = vmPathName.match(/^\[(.*)\] (.+\.vmx)$/)
     if (matches === null) {
       // destructuring the null used to throw a TypeError naming nothing
@@ -639,15 +633,14 @@ export default class Esxi extends EventEmitter {
     }
 
     return {
-      name_label: config.name[0],
-      memory: +config.hardware[0].memoryMB[0] * 1024 * 1024,
-      nCpus: +config.hardware[0].numCPU[0],
+      name_label: config.name,
+      memory: +config.hardware.memoryMB * 1024 * 1024,
+      nCpus: +config.hardware.numCPU,
       guestToolsInstalled: false,
-      guestId: config.guestId[0],
-      // every sibling is unwrapped, this one used to be returned as a one element array
-      guestFullName: config.guestFullName[0],
-      firmware: config.firmware[0] === 'efi' ? 'uefi' : config.firmware[0], // bios or uefi
-      powerState: runtime.powerState[0],
+      guestId: config.guestId,
+      guestFullName: config.guestFullName,
+      firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
+      powerState: runtime.powerState,
       snapshots,
       cdrom,
       disks,
@@ -841,8 +834,7 @@ export default class Esxi extends EventEmitter {
   /**
    * Reads one property of one managed object.
    *
-   * Unlike {@link fetchProperty} this goes through the WSDL, and returns the value in the same
-   * shape as {@link search}: this is the accessor new code should use.
+   * Goes through the WSDL, and returns the value in the same shape as {@link search}.
    *
    * @param {string} type - type of the object, e.g. `VirtualMachine`
    * @param {string} id - managed object reference of the object
@@ -894,76 +886,22 @@ export default class Esxi extends EventEmitter {
   }
 
   /**
-   * Reads one property of one managed object through the undocumented `Fetch` method.
+   * Touches the session on the host so that it does not expire.
    *
-   * @deprecated the values are wrapped in arrays by the XML parser, which is error prone. New code
-   * must use the private `#retrieveProperty`, whose shape matches {@link search}.
+   * A vim25 session is dropped after 30 minutes without a call by default, and an import spends
+   * hours moving data outside of the WSDL. `CurrentTime` is the cheapest call which refreshes it:
+   * the keep-alive used to read the whole `config` of a VM instead.
    *
-   * @param {string} type - type of the object, e.g. `VirtualMachine`
-   * @param {string} id - managed object reference of the object
-   * @param {string} propertyName
+   * Only the session of the WSDL is concerned. The HTTP session used to download from a datastore
+   * carries its own cookies, and recovers on its own: a 401 drops them and the retry authenticates
+   * again.
+   *
    * @param {object} [options]
    * @param {number} [options.timeout] - in ms
-   * @param {AbortSignal} [options.signal]
-   * @returns {Promise<object>}
+   * @returns {Promise<void>}
    */
-  async fetchProperty(type, id, propertyName, { timeout = DEFAULT_FETCH_PROPERTY_TIMEOUT, signal } = {}) {
-    // the fetch method does not seems to be exposed by the wsdl
-    // inspired by the pyvmomi implementation ( StubAdapterAccessorImpl.py / InvokeAccessor)
-    await this.#vimClient.connect()
-    const url = new URL('https://localhost/sdk')
-    url.host = this.#host
-    const signals = [AbortSignal.timeout(timeout)]
-    if (signal !== undefined) {
-      signals.push(signal)
-    }
-    const res = await this.#fetchImpl(url, {
-      method: 'POST',
-      headers: {
-        Cookie: this.#vimClient.authCookie.cookies,
-        'content-type': 'text/xml; charset=utf-8',
-        SOAPAction: '"urn:vim25/6.0"', // mandatory to have an answer when asking for httpNfcLease
-      },
-      dispatcher: this.#httpsAgent,
-      signal: AbortSignal.any(signals),
-      // the values are escaped: an id or a property path containing `<` or `&` would otherwise
-      // break the envelope, or inject elements into it
-      body: `<?xml version="1.0" encoding="UTF-8"?>
-        <soapenv:Envelope
-          xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
-          xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-        >
-          <soapenv:Body>
-            <Fetch xmlns="urn:vim25">
-              <_this type="${escapeXml(type)}">${escapeXml(id)}</_this>
-              <prop >${escapeXml(propertyName)}</prop>
-            </Fetch>
-          </soapenv:Body>
-        </soapenv:Envelope>`,
-    })
-    const text = await res.text()
-
-    const matches = text.match(/<FetchResponse[^>]*>(.*)<\/FetchResponse>/s)
-    if (matches === null) {
-      // a fault does not contain a FetchResponse: report what the host complained about instead of
-      // a generic message
-      const { code, faultstring, localizedMessage } = parseFault({ body: text })
-      const message = localizedMessage ?? faultstring
-      const error = new Error(
-        `can't get ${propertyName} of object ${id} (Type: ${type})${message !== undefined ? `: ${message}` : ''}`
-      )
-      // the fault type when the body held a parseable one, otherwise the same code as
-      // `#retrieveProperty` reports for a property which could not be read
-      error.code = code ?? 'NO_PROPERTY'
-      error.cause = { status: res.status, statusText: res.statusText, body: text.slice(0, 2048) }
-      throw error
-    }
-
-    return new Promise((resolve, reject) => {
-      xml2js.parseString(matches[1], (err, res) => (err ? reject(err) : resolve(res.returnval)))
-    })
+  async keepAlive({ timeout } = {}) {
+    await this.#vimClient.call('CurrentTime', { _this: 'ServiceInstance' }, { timeout })
   }
 
   /**

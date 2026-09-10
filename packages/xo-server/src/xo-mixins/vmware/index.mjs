@@ -156,10 +156,9 @@ export default class MigrateVm {
     })
     // ensure the vmware session stays alive
     const interval = setInterval(
-      async () => {
-        try {
-          await esxi.fetchProperty('VirtualMachine', vmId, 'config')
-        } catch (_) {}
+      () => {
+        // a failure here is not fatal: the client logs in again when a call finds the session gone
+        esxi.keepAlive().catch(error => warn('failed to keep the ESXi session alive', { error, vmId }))
       },
       15 * 60 * 1000
     )
