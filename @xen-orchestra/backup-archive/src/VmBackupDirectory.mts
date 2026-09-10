@@ -166,17 +166,24 @@ export class VmBackupDirectory implements VmBackupInterface {
 
     // Let each archive clean its own files (e.g. remove metadata for incomplete backups)
     // and update metadata with merged sizes if applicable
+    const archiveRemovedFiles = new Set<string>()
+    const changedFiles = new Set<string>()
     const goneArchives: string[] = []
     await asyncEach(
       Array.from(this.backupArchives.entries()),
       async ([metadataPath, archive]: [string, VmBackupInterface]) => {
-        const { removedFiles } = await archive.clean({ remove, mergedSizes: allMergedSizes })
+        const { removedFiles, changedFiles: archiveChangedFiles } = await archive.clean({
+          remove,
+          mergedSizes: allMergedSizes,
+        })
         if (removedFiles.length > 0) {
           cacheNeedsRegen = true
+          removedFiles.forEach(file => archiveRemovedFiles.add(file))
         }
         if (removedFiles.includes(metadataPath)) {
           goneArchives.push(metadataPath)
         }
+        archiveChangedFiles?.forEach(file => changedFiles.add(file))
       },
       { concurrency: 2 }
     )
@@ -210,7 +217,16 @@ export class VmBackupDirectory implements VmBackupInterface {
       )
     }
     const size = [...allMergedSizes.values()].reduce((total, merged) => total + merged, 0)
-    return { removedFiles: orphans, merge: someLineageMergedOrShouldBe, size: size }
+    // `removedFiles` lists the files this run removed, or would have removed if `remove` were set:
+    // root-level orphans plus the files each archive deemed removable (e.g. the metadata of an
+    // incomplete backup). Callers acting on it must therefore check `remove` themselves.
+    orphans.forEach(orphan => archiveRemovedFiles.add(orphan))
+    return {
+      removedFiles: Array.from(archiveRemovedFiles),
+      changedFiles: Array.from(changedFiles),
+      merge: someLineageMergedOrShouldBe,
+      size: size,
+    }
   }
 
   async #checkCacheCount(): Promise<void> {
@@ -224,7 +240,9 @@ export class VmBackupDirectory implements VmBackupInterface {
     }
 
     if (this.handler.isImmutable()) {
-      //Best effort: some remotes (e.g. S3) may not normalize a permission error to EPERM, so tolerate any error.
+      // RemoteAdapter never creates cache.json.gz on immutable repositories: remove the
+      // leftover, readable or not, and never regenerate it. Best effort: some remotes
+      // (e.g. S3) may not normalize a permission error to EPERM, so tolerate any error.
       try {
         await this.handler.unlink(cachePath)
       } catch (error) {
@@ -309,7 +327,6 @@ export class VmBackupDirectory implements VmBackupInterface {
     const dir = new VmBackupDirectory(handler, vmBackupPath, cleanOpts)
     await dir.init()
     await dir.check()
-    const { merge, size } = await dir.clean({ remove: cleanOpts.remove, merge: cleanOpts.merge })
-    return { merge, size }
+    return await dir.clean({ remove: cleanOpts.remove, merge: cleanOpts.merge })
   }
 }
