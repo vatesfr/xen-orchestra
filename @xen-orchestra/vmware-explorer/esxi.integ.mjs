@@ -57,19 +57,27 @@ describe('nbdkit servers', function () {
     return { esxi, spawned }
   }
 
-  it('spawns one server per disk, and reuses it', async function () {
+  it('spawns one server per disk, and shares it', async function () {
     const { esxi, spawned } = await nbdkitEsxi()
 
     const [first, second] = await Promise.all([
-      esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk'),
-      esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk'),
+      esxi.getNbdServer('vm-1', '[ds] vm/vm.vmdk'),
+      esxi.getNbdServer('vm-1', '[ds] vm/vm.vmdk'),
     ])
 
     // the promise is memoized: two concurrent calls used to spawn two servers, orphaning one
     assert.equal(spawned.length, 1)
-    assert.equal(first, second)
-    assert.equal(first.nbdInfos.exportname, '[ds] vm/vm.vmdk')
-    assert.equal(first.nbdInfos.port, spawned[0].port)
+    assert.equal(first.value, second.value)
+    const server = first.value
+    assert.equal(server.nbdInfos.exportname, '[ds] vm/vm.vmdk')
+    assert.equal(server.nbdInfos.port, spawned[0].port)
+
+    // the server belongs to both of them: the first to let go must not stop it
+    await first.dispose()
+    assert.equal(server.process.exitCode, null)
+
+    await second.dispose()
+    assert.equal(server.process.exitCode, 0)
 
     await esxi.close()
   })
@@ -77,14 +85,15 @@ describe('nbdkit servers', function () {
   it('spawns a new server after the previous one was killed', async function () {
     const { esxi, spawned } = await nbdkitEsxi()
 
-    const first = await esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk')
-    await esxi.killNbdServer('vm-1', '[ds] vm/vm.vmdk')
-    const second = await esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk')
+    const first = await esxi.getNbdServer('vm-1', '[ds] vm/vm.vmdk')
+    const firstServer = first.value
+    await first.dispose()
+    const second = await esxi.getNbdServer('vm-1', '[ds] vm/vm.vmdk')
 
     // the entry used to be left in the map, so this handed out the dead process of a closed port
     assert.equal(spawned.length, 2)
-    assert.notEqual(first.nbdInfos.port, second.nbdInfos.port)
-    assert.equal(first.process.exitCode, 0)
+    assert.notEqual(firstServer.nbdInfos.port, second.value.nbdInfos.port)
+    assert.equal(firstServer.process.exitCode, 0)
 
     await esxi.close()
   })
@@ -92,13 +101,13 @@ describe('nbdkit servers', function () {
   it('forgets a server which died on its own', async function () {
     const { esxi, spawned } = await nbdkitEsxi()
 
-    const first = await esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk')
+    const first = await esxi.getNbdServer('vm-1', '[ds] vm/vm.vmdk')
     spawned[0].server.close()
-    first.process.exitCode = 1
-    first.process.emit('exit', 1, null)
-    await first.died
+    first.value.process.exitCode = 1
+    first.value.process.emit('exit', 1, null)
+    await first.value.died
 
-    await esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk')
+    await esxi.getNbdServer('vm-1', '[ds] vm/vm.vmdk')
 
     assert.equal(spawned.length, 2)
 
@@ -111,10 +120,10 @@ describe('nbdkit servers', function () {
     const { esxi, spawned } = await nbdkitEsxi({ failWith: error })
 
     // without an 'error' listener on the child process, this used to be an uncaught event
-    await assert.rejects(esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk'), { code: 'ENOENT' })
+    await assert.rejects(esxi.getNbdServer('vm-1', '[ds] vm/vm.vmdk'), { code: 'ENOENT' })
 
     // the failure is not memoized either
-    await assert.rejects(esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk'), { code: 'ENOENT' })
+    await assert.rejects(esxi.getNbdServer('vm-1', '[ds] vm/vm.vmdk'), { code: 'ENOENT' })
     assert.equal(spawned.length, 2)
   })
 
@@ -122,7 +131,7 @@ describe('nbdkit servers', function () {
     const { esxi, spawned } = await nbdkitEsxi({ exitWith: 1 })
 
     // waiting for the port would otherwise burn the whole readiness timeout
-    await assert.rejects(esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk'), {
+    await assert.rejects(esxi.getNbdServer('vm-1', '[ds] vm/vm.vmdk'), {
       code: 'NBDKIT_EXITED',
       message: /^nbdkit exited with code 1 before being ready/,
     })
@@ -134,7 +143,7 @@ describe('nbdkit servers', function () {
   it('never passes the password on the command line', async function () {
     const { esxi, spawned } = await nbdkitEsxi()
 
-    await esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk')
+    await esxi.getNbdServer('vm-1', '[ds] vm/vm.vmdk')
 
     assert.equal(
       spawned[0].args.some(argument => argument.includes('password')),
@@ -151,10 +160,15 @@ describe('nbdkit servers', function () {
   it('kills the remaining servers when closing', async function () {
     const { esxi, spawned } = await nbdkitEsxi()
 
-    const server = await esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk')
+    // never disposed: closing is the safety net for a caller which leaked its disposable
+    const disposable = await esxi.getNbdServer('vm-1', '[ds] vm/vm.vmdk')
+    const server = disposable.value
     await esxi.close()
 
     assert.equal(server.process.exitCode, 0)
     assert.equal(spawned.length, 1)
+
+    // disposing after the close has nothing left to do, and must not throw
+    await disposable.dispose()
   })
 })

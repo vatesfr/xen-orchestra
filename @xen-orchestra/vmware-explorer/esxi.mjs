@@ -2,7 +2,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { dirname, join } from 'node:path'
 import { EventEmitter } from 'node:events'
-import { pTimeout } from 'promise-toolbox'
+import { Disposable, pTimeout } from 'promise-toolbox'
 import { setTimeout as delay } from 'node:timers/promises'
 import { Agent } from 'undici'
 
@@ -927,7 +927,11 @@ export default class Esxi extends EventEmitter {
   }
 
   /**
-   * Starts an nbdkit server exporting a disk of a VM, or returns the one already serving it.
+   * Starts an nbdkit server exporting a disk of a VM, or shares the one already serving it.
+   *
+   * The server is stopped when the disposable is disposed, and a server shared by several callers
+   * survives until the last of them disposes: the caller no longer has to name it again, with the
+   * exact same options, to stop it.
    *
    * @param {string} vmId
    * @param {string} diskPath - `[datastore] dir/disk.vmdk`
@@ -935,28 +939,48 @@ export default class Esxi extends EventEmitter {
    * @param {string} [options.compression]
    * @param {boolean} [options.singleLink] - export the top delta only
    * @param {number} [options.threads]
-   * @returns {Promise<{ nbdInfos: object, process: object }>}
+   * @returns {Promise<Disposable<{ died: Promise<object>, nbdInfos: object, process: object }>>}
    */
-  async spawnNbdKitProcess(vmId, diskPath, { compression = 'fastlz', singleLink = false, threads = 1 } = {}) {
+  async getNbdServer(vmId, diskPath, { compression = 'fastlz', singleLink = false, threads = 1 } = {}) {
     const key = nbdServerKey(vmId, diskPath, { compression, singleLink, threads })
 
-    let pending = this.#nbdServers.get(key)
-    if (pending === undefined) {
+    let entry = this.#nbdServers.get(key)
+    if (entry === undefined) {
       // the promise is memoized, not its result: the previous implementation had six await points
       // between the check and the registration, so two concurrent calls spawned two servers and
       // orphaned the first one
-      pending = this.#spawnNbdKitProcess(vmId, diskPath, { compression, singleLink, threads })
-      this.#nbdServers.set(key, pending)
+      entry = { pending: this.#spawnNbdKitProcess(vmId, diskPath, { compression, singleLink, threads }), users: 0 }
+      this.#nbdServers.set(key, entry)
 
       // neither a failed spawn nor a dead server must be handed out to the next caller
       const forget = () => {
-        if (this.#nbdServers.get(key) === pending) {
+        if (this.#nbdServers.get(key) === entry) {
           this.#nbdServers.delete(key)
         }
       }
-      pending.then(server => server.died.then(forget), forget)
+      entry.pending.then(server => server.died.then(forget), forget)
     }
-    return pending
+
+    entry.users += 1
+
+    let server
+    try {
+      server = await entry.pending
+    } catch (error) {
+      entry.users -= 1
+      throw error
+    }
+
+    // `Disposable` refuses a second disposal itself, so this runs exactly once per caller
+    const dispose = async () => {
+      entry.users -= 1
+      // `close()` stops every server left, a disposal after it has nothing to do
+      if (entry.users === 0 && this.#nbdServers.get(key) === entry) {
+        await this.#killNbdServerByKey(key)
+      }
+    }
+
+    return new Disposable(dispose, server)
   }
 
   async #spawnNbdKitProcess(vmId, diskPath, { compression, singleLink, threads }) {
@@ -1065,21 +1089,9 @@ export default class Esxi extends EventEmitter {
     }
   }
 
-  /**
-   * Stops the nbdkit server exporting a disk, if any.
-   *
-   * @param {string} vmId
-   * @param {string} diskPath - `[datastore] dir/disk.vmdk`
-   * @param {object} [options] - must match the ones given to {@link spawnNbdKitProcess}
-   * @returns {Promise<void>}
-   */
-  async killNbdServer(vmId, diskPath, { compression = 'fastlz', singleLink = false, threads = 1 } = {}) {
-    return this.#killNbdServerByKey(nbdServerKey(vmId, diskPath, { compression, singleLink, threads }))
-  }
-
   async #killNbdServerByKey(key) {
-    const pending = this.#nbdServers.get(key)
-    if (pending === undefined) {
+    const entry = this.#nbdServers.get(key)
+    if (entry === undefined) {
       warn(`nbdkit server ${key} was already killed`)
       return
     }
@@ -1089,7 +1101,7 @@ export default class Esxi extends EventEmitter {
 
     let server
     try {
-      server = await pending
+      server = await entry.pending
     } catch {
       // the spawn failed, there is nothing left to kill
       return
@@ -1098,41 +1110,34 @@ export default class Esxi extends EventEmitter {
   }
 
   async #getDataMapFromVddk(vmId, datastoreName, diskPath, signal) {
-    let nbdClient
-    try {
-      const start = Date.now()
+    return Disposable.use(
+      this.getNbdServer(vmId, `[${datastoreName}] ${diskPath}`, { singleLink: true }),
+      async ({ nbdInfos }) => {
+        const start = Date.now()
+        info('nbd server for data map spawned')
+        signal?.throwIfAborted()
 
-      const nbdInfoSpawn = await this.spawnNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`, {
-        singleLink: true,
-      })
+        // the client is built here, and not before the server: a spawn which failed used to leave
+        // it undefined, and the `TypeError` of `nbdClient.disconnect()` replaced the real error,
+        // feeding the fallback with a misleading cause
+        const nbdClient = new NbdClient(nbdInfos)
+        try {
+          await nbdClient.connect()
 
-      info(`nbd server for data map spawned`)
-      signal?.throwIfAborted()
+          info('nbd client for data map connected')
 
-      nbdClient = new NbdClient(nbdInfoSpawn.nbdInfos)
+          const dataMap = await nbdClient.getMap(signal)
 
-      await nbdClient.connect()
+          info(
+            `got the data map of the single disk in ${Math.round((Date.now() - start) / 1000)} seconds ,${dataMap.length} blocks`
+          )
 
-      info(`nbd client for data map connected`)
-
-      const dataMap = await nbdClient.getMap(signal)
-
-      info(
-        `got the data map of the single disk in ${Math.round((Date.now() - start) / 1000)} seconds ,${dataMap.length} blocks`
-      )
-
-      return dataMap
-    } finally {
-      // the client is undefined when the spawn of the server failed: the `TypeError` of the
-      // previous `nbdClient.disconnect()` replaced the real error, and fed the fallback with a
-      // misleading cause
-      if (nbdClient !== undefined) {
-        await nbdClient.disconnect().catch(error => warn('error while disconnecting the nbd client', { error }))
+          return dataMap
+        } finally {
+          await nbdClient.disconnect().catch(error => warn('error while disconnecting the nbd client', { error }))
+        }
       }
-      await this.killNbdServer(vmId, `[${datastoreName}] ${diskPath}`, { singleLink: true }).catch(error =>
-        warn('error while stopping nbdkit server for the snapshot', { error })
-      )
-    }
+    )
   }
 
   async #readRange(datastoreName, path, start, length, signal) {
