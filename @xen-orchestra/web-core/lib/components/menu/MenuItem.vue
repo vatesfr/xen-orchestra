@@ -3,6 +3,7 @@
   <li class="menu-item" :class="className">
     <MenuTrigger
       v-if="!$slots.submenu"
+      :accent
       :active="isBusy"
       :busy="isBusy"
       :disabled="isDisabled"
@@ -15,6 +16,7 @@
     <MenuList v-else :disabled="isDisabled">
       <template #trigger="{ open, isOpen }">
         <MenuTrigger
+          :accent
           :active="isOpen"
           :busy="isBusy"
           :disabled="isDisabled"
