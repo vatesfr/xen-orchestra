@@ -7,6 +7,8 @@
     <OfflineIllustration v-else-if="type === 'offline'" class="image" />
     <NotFoundIllustration v-else-if="type === 'not-found'" class="image" />
     <NoDataIllustration v-else-if="type === 'no-data'" class="image" />
+    <ErrorIllustration v-else-if="type === 'error'" class="image" />
+    <UnderConstructionIllustration v-else-if="type === 'under-construction'" class="image" />
     <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
     <div v-if="slots.default || success" :class="[typoClass, { mobile: isMobile }]" class="content">
       <div v-if="success">{{ t('all-good!') }}</div>
@@ -23,8 +25,10 @@
 </template>
 
 <script lang="ts" setup>
+import ErrorIllustration from '@core/components/state-hero/ErrorIllustration.vue'
 import NoDataIllustration from '@core/components/state-hero/NoDataIllustration.vue'
 import NotFoundIllustration from '@core/components/state-hero/NotFoundIllustration.vue'
+import UnderConstructionIllustration from '@core/components/state-hero/UnderConstructionIllustration.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { StateHeroFormat, StateHeroSize, StateHeroType } from '@core/types/state-hero.type.ts'
@@ -63,7 +67,13 @@ const error = computed(() => type === 'error')
 const success = computed(() => type === 'all-good' || type === 'all-done')
 
 const imageSrc = computed(() => {
-  if (type === 'busy' || type === 'not-found'|| type === 'no-data') {
+  if (
+    type === 'busy' ||
+    type === 'not-found' ||
+    type === 'no-data' ||
+    type === 'error' ||
+    type === 'under-construction'
+  ) {
     return undefined
   }
 
