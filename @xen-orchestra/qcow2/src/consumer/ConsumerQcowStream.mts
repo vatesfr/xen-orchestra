@@ -23,7 +23,7 @@ function getAlignedBuffer(length: number): Buffer {
 /**
  * Extended Readable stream type that may include a length property
  */
-type WithLength<T> = T & { length?: number }
+export type WithLength<T> = T & { length?: number }
 
 /**
  * Generates a valid QCOW2 stream from a Disk.
@@ -373,7 +373,7 @@ export class QcowStreamGenerator {
  * @param disk The disk to convert
  * @param options Optional options
  * @param options.signal Optional AbortSignal to cancel the stream
- * @returns Readable stream of QCOW2 data
+ * @returns Readable stream of QCOW2 data, `length` is the exact size of the generated file
  */
 export async function toQcow2Stream(
   disk: Disk,
