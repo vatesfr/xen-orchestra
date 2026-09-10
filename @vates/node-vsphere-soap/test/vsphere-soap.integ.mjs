@@ -9,17 +9,18 @@ import { describe, it } from 'node:test'
 
 import * as vc from '../lib/client.mjs'
 
-// these tests need a real vCenter or ESXi host: copy config-test.stub.mjs to config-test.mjs and
-// fill in your own credentials. Without it they are skipped, which is what happens in the CI
+// these tests need a real vCenter or ESXi host: copy config-test.stub.mjs next to it as
+// config-test.mjs and fill in your own credentials. Without it they are skipped, which is what
+// happens in the CI
 let TestCreds
 try {
   // eslint-disable-next-line n/no-missing-import
-  ;({ vCenterTestCreds: TestCreds } = await import('../config-test.mjs'))
+  ;({ vCenterTestCreds: TestCreds } = await import('./config-test.mjs'))
 } catch (error) {
   // the file is deliberately absent from the repository, it holds credentials
 }
 
-const skip = TestCreds === undefined && 'no ../config-test.mjs, see config-test.stub.mjs'
+const skip = TestCreds === undefined && 'no test/config-test.mjs, see test/config-test.stub.mjs'
 
 const VItest = skip
   ? undefined

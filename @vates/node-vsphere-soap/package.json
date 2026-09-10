@@ -32,6 +32,7 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node --test lib/*.test.mjs"
+    "test": "node --test lib/*.test.mjs",
+    "test-integration": "node --test test/*.integ.mjs"
   }
 }

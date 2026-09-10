@@ -65,9 +65,8 @@
 
 <!--packages-start-->
 
-- @vates/types minor
 - @vates/node-vsphere-soap minor
-- @xen-orchestra/vmware-explorer major
+- @vates/types minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-cli patch
