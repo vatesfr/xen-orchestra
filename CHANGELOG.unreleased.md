@@ -30,9 +30,7 @@
 - [Backup/Restore] Faster reading of the files of a remote, like the full backups (10 MiB chunks instead of 64 KiB) (PR [#10537](https://github.com/vatesfr/xen-orchestra/pull/10537))
 - [Mirror] The full mirrors between unencrypted remotes reuse the checksum of the source instead of computing it again (PR [#10537](https://github.com/vatesfr/xen-orchestra/pull/10537))
 - [SDN Controller] Fix events listening and stale objects on server reconnection (PR [#10440](https://github.com/vatesfr/xen-orchestra/pull/10440))
-
 - Host Probe SR REST API Endpoints:
-
   - `POST /rest/v0/hosts/:id/actions/probe_nfs` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
   - `POST /rest/v0/hosts/:id/actions/probe_zfs` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
   - `POST /rest/v0/hosts/:id/actions/probe_hba` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
@@ -41,8 +39,9 @@
   - `POST /rest/v0/hosts/:id/actions/probe_iscsi_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
   - `POST /rest/v0/hosts/:id/actions/probe_hba_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
   - `POST /rest/v0/hosts/:id/actions/probe_nfs_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
- - [XO5/Host/Patches] Warn when installing patches on a host while its pool master is not up to date (PR [#10523](https://github.com/vatesfr/xen-orchestra/pull/10523))
+- [XO5/Host/Patches] Warn when installing patches on a host while its pool master is not up to date (PR [#10523](https://github.com/vatesfr/xen-orchestra/pull/10523))
 - [XO6] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
+- [XO6/SR] Add SR creation form on Host/Pool Storage tabs for LVM, EXT, SMB, local ISO, SMB ISO types (PR [#10251](https://github.com/vatesfr/xen-orchestra/pull/10251))
 
 ### Bug fixes
 
