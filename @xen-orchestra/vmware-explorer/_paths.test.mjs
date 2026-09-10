@@ -51,6 +51,20 @@ describe('resolveDiskLocation', function () {
     })
   })
 
+  it('skips a datastore whose url is empty', function () {
+    // an empty prefix matches every absolute path: listed first, it used to shadow every real
+    // datastore
+    const withEmpty = {
+      dataStores: { '': { name: 'ds unmounted' }, 'ds:///': { name: 'ds unmounted too' }, ...dataStores },
+      currentDataStore: 'ds main',
+      currentPath: 'vm',
+    }
+    assert.deepEqual(resolveDiskLocation({ ...withEmpty, filePath: '/vmfs/volumes/uuid-1/other/disk.vmdk' }), {
+      dataStore: 'ds main',
+      path: 'other/disk.vmdk',
+    })
+  })
+
   it('reports an absolute reference on no known datastore', function () {
     assert.throws(
       () => resolveDiskLocation({ ...relative, filePath: '/vmfs/volumes/uuid-3/vm/disk.vmdk' }),

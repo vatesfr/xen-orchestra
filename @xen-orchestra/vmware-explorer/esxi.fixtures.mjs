@@ -2,8 +2,11 @@
 import { once } from 'node:events'
 
 import Esxi from './esxi.mjs'
+import { moRef } from './soap/specs.mjs'
 
-export const moRef = (type, value) => ({ attributes: { type }, $value: value })
+// re-exported: building the fixtures with the same helper as the production code means they cannot
+// drift from the shape the tests are supposed to assert on
+export { moRef }
 
 // a page of a RetrievePropertiesEx response
 export const page = (objects, token) => ({ returnval: { objects, token } })

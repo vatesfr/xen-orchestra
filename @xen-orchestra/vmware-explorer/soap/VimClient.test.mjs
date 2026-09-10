@@ -164,6 +164,40 @@ describe('VimClient', function () {
       assert.equal(client.calls.length, 0)
     })
 
+    it('waits for a login in flight before logging out', async function () {
+      const { client, vimClient } = makeClient({ status: 'connecting' })
+      const connecting = vimClient.connect()
+
+      // this used to return early on a status which was not 'ready' yet: the login then completed
+      // afterwards and its session lingered on the server until it expired
+      const closing = vimClient.close()
+      await flush()
+      assert.deepEqual(client.calls, [])
+
+      client.status = 'ready'
+      client.emit('ready')
+      await connecting
+
+      await flush()
+      assert.equal(client.lastCall.command, 'Logout')
+      client.lastCall.emitter.emit('result', {})
+
+      await closing
+    })
+
+    it('does not log out when the login it waited for failed', async function () {
+      const { client, vimClient } = makeClient({ status: 'connecting' })
+      const connecting = vimClient.connect()
+      const closing = vimClient.close()
+
+      client.emit('error', new Error('login failed'))
+      await assert.rejects(connecting, /login failed/)
+
+      // the failure belongs to the caller of `connect`, closing has nothing to report
+      await closing
+      assert.deepEqual(client.calls, [])
+    })
+
     it('does not throw when the logout fails', async function () {
       const { client, vimClient } = makeClient()
       const promise = vimClient.close()

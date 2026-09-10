@@ -271,7 +271,9 @@ Client.prototype._close = function () {
 // Errors are only emitted on `emitter`, the emitter of the failed call: throwing from here would
 // be an uncaught exception since we are always in an async callback, and emitting on the client
 // would reject unrelated concurrent calls.
-function _soapErrorHandler(self, emitter, command, args, err) {
+//
+// Exported for the unit tests: building a `Client` connects to a host.
+export function _soapErrorHandler(self, emitter, command, args, err) {
   err = err || { body: 'general error' }
 
   const vErr = new VmwareError(err)
@@ -289,17 +291,42 @@ function _soapErrorHandler(self, emitter, command, args, err) {
     return
   }
 
-  self.status = 'disconnected'
-  self._unregisterExitHook()
-  self.reconnectCount += 1
-  self
-    .runCommand(command, args)
-    .once('result', function (result, raw, soapHeader) {
-      emitter.emit('result', result, raw, soapHeader)
-    })
-    .once('error', function (retryError) {
-      emitter.emit('error', retryError)
-    })
+  // The call is replayed only once a new session is ready. Handing it straight to `runCommand`
+  // would send it right away while the status is 'connecting' — i.e. on the very session which
+  // just expired — and the failure of that replay would land back here.
+  const onConnectionError = function (error) {
+    self.off('ready', onReady)
+    emitter.emit('error', error)
+  }
+  const onReady = function () {
+    self.off('error', onConnectionError)
+    self
+      .runCommand(command, args)
+      .once('result', function (result, raw, soapHeader) {
+        emitter.emit('result', result, raw, soapHeader)
+      })
+      .once('error', function (retryError) {
+        emitter.emit('error', retryError)
+      })
+  }
+  self.once('ready', onReady)
+  self.once('error', onConnectionError)
+
+  // A whole wave of calls can fail on the same expired session, e.g. during an import. Only the
+  // first one to notice drops it and pays for a retry: the others ride the reconnect it started,
+  // instead of each burning one of the 10 and of resetting the status under a `_connect` already
+  // in flight — which used to start a second `soap.createClient` and replace `self.client` under
+  // the first one.
+  if (self.status === 'ready') {
+    self.status = 'disconnected'
+    self._unregisterExitHook()
+    self.reconnectCount += 1
+  }
+  if (self.status === 'disconnected') {
+    // no reconnect in flight: either this call is the first to notice, or the previous attempt
+    // already failed
+    self.emit('connect')
+  }
 }
 
 // end

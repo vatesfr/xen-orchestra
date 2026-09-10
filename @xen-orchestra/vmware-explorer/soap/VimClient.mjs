@@ -4,9 +4,11 @@ import { pTimeout } from 'promise-toolbox'
 
 const { warn } = createLogger('xo:vmware-explorer:soap')
 
+const noop = () => {}
+
 // a vim25 call either answers or fails fast: the long running work is always delegated to a Task,
 // whose completion is polled separately
-export const DEFAULT_CALL_TIMEOUT = 60e3
+const DEFAULT_CALL_TIMEOUT = 60e3
 
 /**
  * Promise interface over `@vates/node-vsphere-soap`.
@@ -136,6 +138,11 @@ export class VimClient {
    * @returns {Promise<void>}
    */
   async close() {
+    // a close racing the login used to return early and let the login complete afterwards, leaving
+    // the session open until it expires. The outcome of the connection is not the business of this
+    // method: it is already reported to whoever awaited `connect()`
+    await this.#connected?.catch(noop)
+
     if (this.#client.status !== 'ready') {
       return
     }

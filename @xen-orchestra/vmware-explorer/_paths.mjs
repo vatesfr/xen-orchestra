@@ -34,6 +34,11 @@ export function resolveDiskLocation({ dataStores, currentDataStore, currentPath,
   const normalizedFilePath = normalizeDatastorePath(filePath)
   for (const [dataStoreUrl, dataStore] of Object.entries(dataStores)) {
     const prefix = normalizeDatastorePath(dataStoreUrl)
+    if (prefix === '') {
+      // a datastore whose `summary.url` is empty or is only `ds:///` would match every absolute
+      // path, and the first one wins: the disk would be looked for on the wrong datastore
+      continue
+    }
     if (normalizedFilePath.startsWith(prefix + '/')) {
       return { dataStore: dataStore.name, path: normalizedFilePath.substring(prefix.length + 1) }
     }

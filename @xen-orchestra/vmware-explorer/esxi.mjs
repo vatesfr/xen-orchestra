@@ -38,6 +38,8 @@ const DESCRIPTOR_CONCURRENCY = 4
 const DEFAULT_FETCH_PROPERTY_TIMEOUT = 60e3
 const DEFAULT_HEADERS_TIMEOUT = 60e3
 const DEFAULT_RETRY_DELAY = 2e3
+// every caller of `#waitForTaskEnd` passes its own deadline, this is only the guardrail for the
+// next one: the timeout is compared against, so an undefined one would poll for ever
 const DEFAULT_TASK_TIMEOUT = 60e3
 const MAX_RETRY_DELAY = 30e3
 const MAX_TASK_POLL_DELAY = 5e3
@@ -170,10 +172,20 @@ export default class Esxi extends EventEmitter {
    * @returns {Promise<void>}
    */
   async close() {
-    // the servers would only be reaped by `--exit-with-parent`, i.e. when this process ends
-    await asyncEach([...this.#nbdServers.keys()], key => this.#killNbdServerByKey(key), { concurrency: 4 })
-    await this.#vimClient.close()
-    await this.#httpsAgent?.close()
+    try {
+      // the servers would only be reaped by `--exit-with-parent`, i.e. when this process ends
+      await asyncEach([...this.#nbdServers.keys()], key => this.#killNbdServerByKey(key), {
+        concurrency: 4,
+        // every server must be tried: `asyncEach` stops on the first error by default, which would
+        // leave the other ones running
+        stopOnError: false,
+      })
+    } finally {
+      // a server refusing to die must not leave the session open on the host, nor the sockets of
+      // the agent
+      await this.#vimClient.close()
+      await this.#httpsAgent?.close()
+    }
   }
 
   async #computeDatacenters() {
@@ -1179,7 +1191,7 @@ export default class Esxi extends EventEmitter {
     const descriptor = await this.#readRange(datastoreName, diskPath, 0, DESCRIPTOR_READ_LENGTH, signal)
     let fileName
     try {
-       fileName  = parseVmdk(descriptor.toString('utf8')).fileName
+      fileName = parseVmdk(descriptor.toString('utf8')).fileName
     } catch (error) {
       // this is the fallback of a failure: an assertion error here would hide the real problem
       const wrapped = new Error(`can't read the descriptor of ${diskPath}`)
