@@ -12,12 +12,11 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [XO6] Allow changing which PIF a host uses for its management interface, without deleting and recreating the network config (PR [#10110](https://github.com/vatesfr/xen-orchestra/pull/10110))
+- [Backups] change the prefix name of vms during health checks from 'Importing...' to 'Health Check' to avoid confusion (PR [#10361](https://github.com/vatesfr/xen-orchestra/pull/10361))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
-
-- [Backups] change the prefix name of vms during health checks from 'Importing...' to 'Health Check' to avoid confusion (PR [#10361](https://github.com/vatesfr/xen-orchestra/pull/10361))
 
 ### Packages to release
 
