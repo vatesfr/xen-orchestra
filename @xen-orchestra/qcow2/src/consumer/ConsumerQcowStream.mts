@@ -76,7 +76,7 @@ export class QcowStreamGenerator {
    * `Disk` the default implementation materializes the whole index array.
    * @private
    */
-  async #buildBlockPresenceIndex(): Promise<{
+  async #buildBlockPresenceIndex(signal?: AbortSignal): Promise<{
     bitmap: Uint8Array
     groupHasData: Uint8Array
     nbAllocatedBlocks: number
@@ -105,6 +105,7 @@ export class QcowStreamGenerator {
         if (Number(now - lastYield) / 1e6 > 15) {
           await new Promise(resolve => setImmediate(resolve))
           lastYield = process.hrtime.bigint()
+          signal?.throwIfAborted()
         }
       }
     }
@@ -288,7 +289,7 @@ export class QcowStreamGenerator {
     // allocated block count, reused by both the size computations below and the addressing
     // tables generated inside the stream.
     const { bitmap, groupHasData, nbAllocatedBlocks, nbTotalBlocks, nbL1Entries } =
-      await this.#buildBlockPresenceIndex()
+      await this.#buildBlockPresenceIndex(signal)
     // Compute table sizes
     const { size: addressTableSize } = this.#computeAddressingSpace(groupHasData, nbL1Entries)
     const { refCountL1Size, refCountL2Size } = this.#computeRefCountSize(addressTableSize, nbAllocatedBlocks)
