@@ -740,34 +740,54 @@ export default class Esxi extends EventEmitter {
     }
   }
 
-  async powerOff(vmId, { signal, timeout = 5 * 60e3 } = {}) {
-    const res = await this.#exec('PowerOffVM_Task', { _this: vmId })
+  /**
+   * Starts a vim25 method which returns a Task, and waits for that task to end.
+   *
+   * @param {string} method - name of the method, as exposed by the WSDL, e.g. `PowerOffVM_Task`
+   * @param {object} args - arguments of the method. `_this` names the VM the task runs on, and is
+   * attached to a failure. The schema declares them as a sequence, so they are sent in the order
+   * they are given in here
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms, how long the task is given to complete
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<object>} the `info` of the successful task
+   */
+  async #runTask(method, args, { signal, timeout } = {}) {
+    const vmId = args._this
+    const res = await this.#exec(method, args)
     try {
-      return await this.#waitForTaskEnd(this.#taskIdOf(res, 'PowerOffVM_Task'), {
-        method: 'PowerOffVM_Task',
-        signal,
-        timeout,
-      })
+      return await this.#waitForTaskEnd(this.#taskIdOf(res, method), { method, signal, timeout })
     } catch (error) {
       error.vmId = vmId
-      warn('Fail to power off VM', { vmId, error })
+      warn('a task on a VM failed', { error, method, vmId })
       throw error
     }
   }
 
+  /**
+   * Powers off a VM, and waits for it to be off.
+   *
+   * @param {string} vmId - id of the VM
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<object>} the `info` of the successful task
+   */
+  async powerOff(vmId, { signal, timeout = 5 * 60e3 } = {}) {
+    return this.#runTask('PowerOffVM_Task', { _this: vmId }, { signal, timeout })
+  }
+
+  /**
+   * Powers on a VM, and waits for the hypervisor to have started it.
+   *
+   * @param {string} vmId - id of the VM
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<object>} the `info` of the successful task
+   */
   async powerOn(vmId, { signal, timeout = 5 * 60e3 } = {}) {
-    const res = await this.#exec('PowerOnVM_Task', { _this: vmId })
-    try {
-      return await this.#waitForTaskEnd(this.#taskIdOf(res, 'PowerOnVM_Task'), {
-        method: 'PowerOnVM_Task',
-        signal,
-        timeout,
-      })
-    } catch (error) {
-      error.vmId = vmId
-      warn('Fail to power on VM', { vmId, error })
-      throw error
-    }
+    return this.#runTask('PowerOnVM_Task', { _this: vmId }, { signal, timeout })
   }
 
   /**
@@ -779,56 +799,46 @@ export default class Esxi extends EventEmitter {
    * identity of the disks of the chain.
    *
    * @param {string} vmId - id of the VM, must be powered on
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<object>} the `info` of the successful task
    */
   async reset(vmId, { signal, timeout = 5 * 60e3 } = {}) {
-    const res = await this.#exec('ResetVM_Task', { _this: vmId })
-    try {
-      return await this.#waitForTaskEnd(this.#taskIdOf(res, 'ResetVM_Task'), {
-        method: 'ResetVM_Task',
-        signal,
-        timeout,
-      })
-    } catch (error) {
-      error.vmId = vmId
-      warn('Fail to reset VM', { vmId, error })
-      throw error
-    }
+    return this.#runTask('ResetVM_Task', { _this: vmId }, { signal, timeout })
   }
 
   /**
    * Removes every snapshot of a VM, consolidating their content into the base disks.
    *
    * @param {string} vmId - id of the VM
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms, consolidating the deltas of a large disk takes as
+   * long as it takes
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<object>} the `info` of the successful task
    */
   async removeAllSnapshots(vmId, { signal, timeout = 6 * 3600e3 } = {}) {
-    const res = await this.#exec('RemoveAllSnapshots_Task', { _this: vmId, consolidate: true })
-    try {
-      return await this.#waitForTaskEnd(this.#taskIdOf(res, 'RemoveAllSnapshots_Task'), {
-        method: 'RemoveAllSnapshots_Task',
-        signal,
-        // consolidating the deltas of a large disk takes as long as it takes
-        timeout,
-      })
-    } catch (error) {
-      error.vmId = vmId
-      warn('Fail to remove the snapshots of VM', { vmId, error })
-      throw error
-    }
+    return this.#runTask('RemoveAllSnapshots_Task', { _this: vmId, consolidate: true }, { signal, timeout })
   }
 
+  /**
+   * Takes a snapshot of a VM, without its memory.
+   *
+   * @param {string} vmId - id of the VM
+   * @param {string} name
+   * @param {string} description
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<object>} the `info` of the successful task
+   */
   async snapshot(vmId, name, description, { signal, timeout = 30 * 60e3 } = {}) {
-    const res = await this.#exec('CreateSnapshotEx_Task', { _this: vmId, name, description, memory: false })
-    try {
-      return await this.#waitForTaskEnd(this.#taskIdOf(res, 'CreateSnapshotEx_Task'), {
-        method: 'CreateSnapshotEx_Task',
-        signal,
-        timeout,
-      })
-    } catch (error) {
-      error.vmId = vmId
-      warn('Fail to take a snapshot', { vmId, error })
-      throw error
-    }
+    return this.#runTask(
+      'CreateSnapshotEx_Task',
+      { _this: vmId, name, description, memory: false },
+      { signal, timeout }
+    )
   }
 
   /**
