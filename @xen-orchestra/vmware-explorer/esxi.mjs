@@ -225,19 +225,6 @@ export default class Esxi extends EventEmitter {
     return dcPath
   }
 
-  /**
-   * Runs a vim25 method.
-   *
-   * @param {string} cmd - name of the method, as exposed by the WSDL
-   * @param {object} [args] - arguments of the method, `_this` included
-   * @param {object} [options]
-   * @param {number} [options.timeout] - in ms
-   * @returns {Promise<object>}
-   */
-  #exec(cmd, args, options) {
-    return this.#vimClient.call(cmd, args, options)
-  }
-
   async #fetch(url, { range, signal, headersTimeout = DEFAULT_HEADERS_TIMEOUT } = {}) {
     const headers = {}
     if (this.#cookies !== undefined) {
@@ -381,7 +368,7 @@ export default class Esxi extends EventEmitter {
     const viewManager = this.#vimClient.serviceContent.viewManager
     // get root folder
     const rootFolder = this.#vimClient.serviceContent.rootFolder
-    let result = await this.#exec('CreateContainerView', {
+    let result = await this.#vimClient.call('CreateContainerView', {
       _this: viewManager,
       container: rootFolder,
       type: [type],
@@ -409,7 +396,7 @@ export default class Esxi extends EventEmitter {
     // the token of the page being retrieved, as long as it has not been consumed
     let pendingToken
     try {
-      result = await this.#exec('RetrievePropertiesEx', {
+      result = await this.#vimClient.call('RetrievePropertiesEx', {
         _this: propertyCollector,
         specSet: [filterSpec],
         options: retrieveOptions({ maxObjects }),
@@ -435,19 +422,22 @@ export default class Esxi extends EventEmitter {
         if (pendingToken === undefined) {
           break
         }
-        result = await this.#exec('ContinueRetrievePropertiesEx', { _this: propertyCollector, token: pendingToken })
+        result = await this.#vimClient.call('ContinueRetrievePropertiesEx', {
+          _this: propertyCollector,
+          token: pendingToken,
+        })
       }
     } finally {
       if (pendingToken !== undefined) {
         // the retrieval was not consumed entirely, the server keeps its results until then
-        await this.#exec('CancelRetrievePropertiesEx', { _this: propertyCollector, token: pendingToken }).catch(error =>
-          warn('failed to cancel the property retrieval', { error, token: pendingToken })
-        )
+        await this.#vimClient
+          .call('CancelRetrievePropertiesEx', { _this: propertyCollector, token: pendingToken })
+          .catch(error => warn('failed to cancel the property retrieval', { error, token: pendingToken }))
       }
       // a view is a server side resource: not destroying it leaks one per search
-      await this.#exec('DestroyView', { _this: containerView }).catch(error =>
-        warn('failed to destroy the container view', { error, type })
-      )
+      await this.#vimClient
+        .call('DestroyView', { _this: containerView })
+        .catch(error => warn('failed to destroy the container view', { error, type }))
     }
 
     return objects
@@ -754,7 +744,7 @@ export default class Esxi extends EventEmitter {
    */
   async #runTask(method, args, { signal, timeout } = {}) {
     const vmId = args._this
-    const res = await this.#exec(method, args)
+    const res = await this.#vimClient.call(method, args)
     try {
       return await this.#waitForTaskEnd(this.#taskIdOf(res, method), { method, signal, timeout })
     } catch (error) {
@@ -860,7 +850,7 @@ export default class Esxi extends EventEmitter {
     await this.#vimClient.connect()
     const propertyCollector = this.#vimClient.serviceContent.propertyCollector
 
-    const result = await this.#exec(
+    const result = await this.#vimClient.call(
       'RetrievePropertiesEx',
       {
         _this: propertyCollector,
@@ -880,9 +870,9 @@ export default class Esxi extends EventEmitter {
     if (returnval?.token !== undefined) {
       // a single property of a single object always fits in one page, but a retrieval left open
       // would keep its results on the server
-      await this.#exec('CancelRetrievePropertiesEx', { _this: propertyCollector, token: returnval.token }).catch(
-        error => warn('failed to cancel the property retrieval', { error, token: returnval.token })
-      )
+      await this.#vimClient
+        .call('CancelRetrievePropertiesEx', { _this: propertyCollector, token: returnval.token })
+        .catch(error => warn('failed to cancel the property retrieval', { error, token: returnval.token }))
     }
 
     const property = asArray(asArray(returnval?.objects)[0]?.propSet).find(({ name }) => name === path)
