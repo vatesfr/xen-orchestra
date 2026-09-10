@@ -1,6 +1,6 @@
 <template>
   <MenuItem
-    accent="danger"
+    accent="neutral"
     icon="action:detach"
     :disabled="!canDeleteVbds"
     :busy="isDeletingVbds"
