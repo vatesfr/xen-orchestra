@@ -1,6 +1,6 @@
 <template>
   <MenuItem
-    accent="danger"
+    accent="neutral"
     icon="action:disconnect"
     :disabled="!canDisconnectSrs"
     :busy="isDisconnectingSrs"

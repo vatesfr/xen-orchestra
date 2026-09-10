@@ -43,15 +43,9 @@ import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.ut
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed, inject, ref } from 'vue'
 
-export type MenuItemAccent = 'neutral' | 'brand' | 'danger' | 'warning' | 'info'
+export type MenuItemAccent = 'neutral' | 'brand' | 'danger' | 'warning'
 
-const {
-  icon,
-  onClick,
-  disabled,
-  busy,
-  accent = 'neutral',
-} = defineProps<{
+const { icon, onClick, disabled, busy, accent } = defineProps<{
   icon?: IconName
   onClick?: () => any
   disabled?: boolean
@@ -104,10 +98,6 @@ const handleClick = async () => {
 
   &.accent--warning {
     color: var(--color-warning-txt-base);
-  }
-
-  &.accent--info {
-    color: var(--color-info-item-base);
   }
 }
 
