@@ -290,6 +290,7 @@ describe('download', function () {
     const { esxi, requests } = await downloadEsxi(() => response({ status: 200, body: Buffer.alloc(4096) }))
 
     await assert.rejects(esxi.download('ds2', 'a.vmdk', { range: '0-511', retryDelay: 1 }), {
+      code: 'RANGE_IGNORED',
       message: /^the range 0-511 was ignored by the host \(status 200, 4096 bytes\)/,
     })
     assert.equal(requests.length, 1)
@@ -306,6 +307,7 @@ describe('download', function () {
     }))
 
     await assert.rejects(esxi.download('ds2', 'huge.vmdk', { range: '0-2047', retryDelay: 1 }), {
+      code: 'RANGE_IGNORED',
       message: /^the range 0-2047 was ignored by the host \(status 200, null bytes\)/,
     })
   })
@@ -324,6 +326,7 @@ describe('download', function () {
     const { esxi } = await downloadEsxi(() => response({ status: 200, body: Buffer.alloc(16) }))
 
     await assert.rejects(esxi.download('ds2', 'a.vmdk', { range: '2048-2063', retryDelay: 1 }), {
+      code: 'RANGE_IGNORED',
       message: /^the range 2048-2063 was ignored by the host/,
     })
   })
@@ -389,6 +392,20 @@ describe('tasks', function () {
     assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, 1)
   })
 
+  it('falls back to a code of its own when the host names no fault type', async function () {
+    const { esxi } = await connectedEsxi({
+      responses: {
+        PowerOffVM_Task: () => startedTask(),
+        RetrievePropertiesEx: () => taskInfo('error', { error: { localizedMessage: 'it did not work' } }),
+      },
+    })
+
+    await assert.rejects(esxi.powerOff('vm-1'), {
+      code: 'TASK_FAILED',
+      message: 'PowerOffVM_Task failed: it did not work',
+    })
+  })
+
   it('gives up when the task takes longer than its timeout', async function () {
     const { esxi } = await connectedEsxi({
       responses: {
@@ -398,6 +415,7 @@ describe('tasks', function () {
     })
 
     await assert.rejects(esxi.removeAllSnapshots('vm-1', { timeout: 0 }), {
+      code: 'TASK_TIMEOUT',
       message: 'RemoveAllSnapshots_Task did not complete within 0s (state: running)',
     })
   })
@@ -486,7 +504,10 @@ describe('tasks', function () {
   it('reports a method which did not start a task', async function () {
     const { esxi } = await connectedEsxi({ responses: { ResetVM_Task: () => ({}) } })
 
-    await assert.rejects(esxi.reset('vm-1'), { message: 'ResetVM_Task did not return a task' })
+    await assert.rejects(esxi.reset('vm-1'), {
+      code: 'NO_TASK',
+      message: 'ResetVM_Task did not return a task',
+    })
   })
 
   it('reports a task which disappeared', async function () {
@@ -630,12 +651,12 @@ createType="vmfs"
 RW 67108864 VMFS "vm-000001-flat.vmdk"
 `
 
-  const CONFIG_RESPONSE = `<FetchResponse><returnval>
+  const configResponse = vmPathName => `<FetchResponse><returnval>
     <name>a vm</name>
     <guestId>ubuntu64Guest</guestId>
     <guestFullName>Ubuntu Linux (64-bit)</guestFullName>
     <firmware>efi</firmware>
-    <files><vmPathName>[ds main] a.vm/a.vm.vmx</vmPathName></files>
+    <files><vmPathName>${vmPathName}</vmPathName></files>
     <hardware><memoryMB>2048</memoryMB><numCPU>2</numCPU></hardware>
   </returnval></FetchResponse>`
 
@@ -650,9 +671,10 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
 
   /**
    * @param {object} [options]
+   * @param {string} [options.vmPathName] - `files.vmPathName` reported for the VM
    * @param {number} [options.vmsdStatus] - status of the response to the vmsd request
    */
-  const transferableEsxi = async ({ vmsdStatus = 404 } = {}) => {
+  const transferableEsxi = async ({ vmPathName = '[ds main] a.vm/a.vm.vmx', vmsdStatus = 404 } = {}) => {
     const requested = []
     const { esxi } = await connectedEsxi({
       responses: {
@@ -662,7 +684,9 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
       },
       fetch: async (url, options) => {
         if (options.method === 'POST') {
-          return response({ body: options.body.includes('runtime') ? RUNTIME_RESPONSE : CONFIG_RESPONSE })
+          return response({
+            body: options.body.includes('runtime') ? RUNTIME_RESPONSE : configResponse(vmPathName),
+          })
         }
         const path = url.pathname
         requested.push(path)
@@ -713,6 +737,17 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
     assert.equal((await esxi.getTransferableVmMetadata('vm-1')).snapshots, undefined)
   })
 
+  it('reports a vmx path it cannot parse', async function () {
+    // destructuring the null match used to throw a TypeError naming nothing
+    const { esxi } = await transferableEsxi({ vmPathName: 'a.vm/a.vm.vmx' })
+
+    await assert.rejects(esxi.getTransferableVmMetadata('vm-1'), {
+      code: 'BAD_VMX_PATH',
+      message: "can't parse the path of the vmx of the VM vm-1: a.vm/a.vm.vmx",
+      vmId: 'vm-1',
+    })
+  })
+
   it('does not report an unreadable vmsd as a VM without snapshot', async function () {
     // silently transferring a full disk instead of a delta is worse than failing
     const { esxi } = await transferableEsxi({ vmsdStatus: 403 })
@@ -745,6 +780,20 @@ describe('fetchProperty', function () {
     const { body } = requests[0].options
     assert.ok(!body.includes('<injected/>'), body)
     assert.ok(body.includes('vm-1&quot; &amp; &lt;injected/&gt;'), body)
+  })
+
+  it('reports a body which holds no readable fault', async function () {
+    const { esxi } = await fetchPropertyEsxi(() => ({
+      status: 503,
+      statusText: 'Service Unavailable',
+      // something in front of the host, not a vim25 fault
+      text: async () => '<html><body>gateway is down</body></html>',
+    }))
+
+    await assert.rejects(esxi.fetchProperty('VirtualMachine', 'vm-42', 'config'), {
+      code: 'NO_PROPERTY',
+      message: "can't get config of object vm-42 (Type: VirtualMachine)",
+    })
   })
 
   it('reports the fault of the host instead of a generic message', async function () {

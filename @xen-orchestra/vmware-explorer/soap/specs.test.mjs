@@ -34,6 +34,7 @@ describe('orderedChildren', function () {
 
   it('refuses an unknown element', function () {
     assert.throws(() => orderedChildren(ORDER, 'SomeType', { frist: 1 }), {
+      code: 'BAD_VIM25_SPEC',
       message: 'unknown element(s) for this type: frist',
     })
   })

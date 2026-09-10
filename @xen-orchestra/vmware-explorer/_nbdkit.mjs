@@ -99,6 +99,7 @@ export async function waitForPort(port, { host = '127.0.0.1', probeDelay = 50, s
     } catch (error) {
       if (Date.now() - start >= timeout) {
         const wrapped = new Error(`nothing is listening on ${host}:${port} after ${timeout}ms`)
+        wrapped.code = 'NBDKIT_NOT_LISTENING'
         wrapped.cause = error
         throw wrapped
       }

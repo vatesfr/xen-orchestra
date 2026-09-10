@@ -43,7 +43,10 @@ export function orderedChildren(order, xsiType, values) {
   const unknown = Object.keys(values).filter(name => values[name] !== undefined && !order.includes(name))
   if (unknown.length > 0) {
     // a typo in a field name would otherwise be silently dropped from the request
-    throw new Error(`unknown element(s) for this type: ${unknown.join(', ')}`)
+    const error = new Error(`unknown element(s) for this type: ${unknown.join(', ')}`)
+    // this spec is built here, not by the host: such a failure is a bug of this package
+    error.code = 'BAD_VIM25_SPEC'
+    throw error
   }
 
   // the attributes are not an element, but the library expects them first

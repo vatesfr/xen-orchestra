@@ -12,7 +12,7 @@ describe('nbdkit servers', function () {
    * Stands in for nbdkit: it listens on the port it is given, so that the readiness probe of the
    * server under test is exercised for real.
    */
-  const fakeNbdkit = ({ failWith } = {}) => {
+  const fakeNbdkit = ({ exitWith, failWith } = {}) => {
     const spawned = []
     const spawn = (command, args) => {
       const child = new EventEmitter()
@@ -34,6 +34,12 @@ describe('nbdkit servers', function () {
 
       if (failWith !== undefined) {
         setImmediate(() => child.emit('error', failWith))
+      } else if (exitWith !== undefined) {
+        // nbdkit exits on a bad thumbprint or a missing vddk library, without ever listening
+        setImmediate(() => {
+          child.exitCode = exitWith
+          child.emit('exit', exitWith, null)
+        })
       } else {
         entry.server = createServer()
         entry.server.listen(port, '127.0.0.1')
@@ -110,6 +116,19 @@ describe('nbdkit servers', function () {
     // the failure is not memoized either
     await assert.rejects(esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk'), { code: 'ENOENT' })
     assert.equal(spawned.length, 2)
+  })
+
+  it('reports an nbdkit which exited before being ready', async function () {
+    const { esxi, spawned } = await nbdkitEsxi({ exitWith: 1 })
+
+    // waiting for the port would otherwise burn the whole readiness timeout
+    await assert.rejects(esxi.spawnNbdKitProcess('vm-1', '[ds] vm/vm.vmdk'), {
+      code: 'NBDKIT_EXITED',
+      message: /^nbdkit exited with code 1 before being ready/,
+    })
+    assert.equal(spawned.length, 1)
+
+    await esxi.close()
   })
 
   it('never passes the password on the command line', async function () {

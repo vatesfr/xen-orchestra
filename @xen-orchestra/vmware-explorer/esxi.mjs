@@ -287,6 +287,7 @@ export default class Esxi extends EventEmitter {
         const error = new Error(
           `the range ${range} was ignored by the host (status ${res.status}, ${res.headers.get('content-length')} bytes) ${url}`
         )
+        error.code = 'RANGE_IGNORED'
         error.cause = { status: res.status, url: String(url), range, length }
         throw error
       }
@@ -537,6 +538,7 @@ export default class Esxi extends EventEmitter {
     if (matches === null) {
       // destructuring the null used to throw a TypeError naming nothing
       const error = new Error(`can't parse the path of the vmx of the VM ${vmId}: ${vmPathName}`)
+      error.code = 'BAD_VMX_PATH'
       error.vmId = vmId
       throw error
     }
@@ -665,6 +667,7 @@ export default class Esxi extends EventEmitter {
     const taskId = result?.returnval?.$value
     if (taskId === undefined) {
       const error = new Error(`${method} did not return a task`)
+      error.code = 'NO_TASK'
       error.cause = result
       throw error
     }
@@ -712,7 +715,8 @@ export default class Esxi extends EventEmitter {
       if (state === 'error') {
         // don't burn the whole timeout on a task which already failed
         const error = new Error(`${method} failed: ${taskFaultMessage(info.error) ?? 'unknown fault'}`)
-        error.code = taskFaultType(info.error)
+        // the fault type when the host named one, so that a caller can branch on it
+        error.code = taskFaultType(info.error) ?? 'TASK_FAILED'
         error.cause = info.error
         warn('task ended in error', { taskId, method, state, error })
         throw error
@@ -720,6 +724,9 @@ export default class Esxi extends EventEmitter {
 
       if (Date.now() - start >= timeout) {
         const error = new Error(`${method} did not complete within ${Math.round(timeout / 1000)}s (state: ${state})`)
+        // the task keeps running on the host: this is not retryable, starting a second one would
+        // not make the first go away
+        error.code = 'TASK_TIMEOUT'
         error.cause = info
         warn('task timed out', { taskId, method, state })
         throw error
@@ -947,7 +954,9 @@ export default class Esxi extends EventEmitter {
       const error = new Error(
         `can't get ${propertyName} of object ${id} (Type: ${type})${message !== undefined ? `: ${message}` : ''}`
       )
-      error.code = code
+      // the fault type when the body held a parseable one, otherwise the same code as
+      // `#retrieveProperty` reports for a property which could not be read
+      error.code = code ?? 'NO_PROPERTY'
       error.cause = { status: res.status, statusText: res.statusText, body: text.slice(0, 2048) }
       throw error
     }
@@ -1069,9 +1078,16 @@ export default class Esxi extends EventEmitter {
     // the readiness of the server and its death are racing: nbdkit exits on a bad thumbprint or a
     // missing library, and waiting for the port would then burn the whole timeout
     const failed = died.then(({ code, error }) => {
-      throw (
-        error ?? new Error(`nbdkit exited with code ${code} before being ready, detailed logs are in ${tmpDir}/stderr`)
+      if (error !== undefined) {
+        // the spawn itself failed, and its own code already says why, e.g. `ENOENT` when nbdkit is
+        // not installed
+        throw error
+      }
+      const exited = new Error(
+        `nbdkit exited with code ${code} before being ready, detailed logs are in ${tmpDir}/stderr`
       )
+      exited.code = 'NBDKIT_EXITED'
+      throw exited
     })
     failed.catch(noop) // the race is usually won by the readiness of the server
 

@@ -39,6 +39,7 @@ describe('waitForPort', function () {
 
     await assert.rejects(waitForPort(port, { probeDelay: 1, timeout: 20 }), error => {
       assert.match(error.message, /nothing is listening on 127\.0\.0\.1:/)
+      assert.equal(error.code, 'NBDKIT_NOT_LISTENING')
       assert.equal(error.cause.code, 'ECONNREFUSED')
       return true
     })

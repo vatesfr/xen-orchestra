@@ -3,6 +3,7 @@
   "private": false,
   "version": "0.15.0",
   "name": "@xen-orchestra/vmware-explorer",
+  "description": "Reads the VMs and the disks of an ESXi host or a vCenter",
   "dependencies": {
     "@vates/async-each": "^1.0.3",
     "@vates/nbd-client": "^3.5.1",
