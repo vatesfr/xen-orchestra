@@ -376,11 +376,23 @@ In Xen Orchestra, recipes are ready-to-use automation templates that make it eas
 
 With just a few clicks, you can launch a complete multi-VM environment, where all nodes are automatically set up and connected.
 
-:::tip
-Currently, the only available recipe is for Kubernetes clusters. [This guide](../automation/kubernetes.md) will walk you through creating one.
+### Available recipes
 
-Coming soon: We’ll expand the Recipes feature to include EasyVirt DC Scope deployment.
+Recipes are currently available for:
+
+- [Kubernetes clusters](../automation/kubernetes.md)
+- EasyVirt DC Scope (an infrastructure monitoring and optimization solution) 
+- EasyVirt DC NetScope (a network observability and traffic analysis solution)
+
+:::tip
+For more information on the integration between Vates and EasyVirt, refer to the dedicated page on the [Vates VMS documentation](https://docs.vates.tech/compatible-solutions/monitoring-optimization#dc-scope-and-dc-netscope-easyvirt), or our [dedicated blog post](https://vates.tech/blog/expanding-the-vates-ecosystem-with-easyvirt/).
 :::
+
+![List of recipes available in XO 5. Includes Kubernetes and EasyVirt solutions.](../../static/img/xo5/k8s-easyvirt-recipes.png)
+
+Each recipe guides you through the deployment process and automatically creates and configures the required infrastructure:
+
+![Creation form, from the EasyVirt VM recipe](../../static/img/xo5/easyvirt-recipe-form.png)
 
 ## OpenMetrics / Prometheus Integration
 
