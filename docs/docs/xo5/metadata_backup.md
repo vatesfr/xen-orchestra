@@ -71,9 +71,9 @@ This matters most in the situation the feature exists for: rebuilding a host aft
 where a fresh install from the current ISO is usually several XAPI releases ahead of the
 backup.
 
-The backup itself records the version it was taken from, in its `XAPI_Build` field.
+The backup records the XAPI version it was created with in its `XAPI_Build` field.
 
-To restore onto a rebuilt host:
+To restore a backup onto a rebuilt host:
 
 1. Reinstall XCP-ng.
 2. Bring the host to the XAPI level the backup was taken at. If the backup is at the XAPI
