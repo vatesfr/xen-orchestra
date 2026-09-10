@@ -26,10 +26,6 @@
     "./lib/complex-matcher": {
       "default": "./dist/lib/complex-matcher.mjs",
       "type": "./dist/lib/complex-matcher.d.mts"
-    },
-    "./lib/vhd-lib": {
-      "default": "./dist/lib/vhd-lib.mjs",
-      "type": "./dist/lib/vhd-lib.d.mts"
     }
   },
   "type": "module",
