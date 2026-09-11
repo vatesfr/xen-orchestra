@@ -40,6 +40,15 @@
 - [REST API/SDN Controller] Fix deleting a non-existent traffic rule wrongly returning success instead of a 404 (PR [#9895](https://github.com/vatesfr/xen-orchestra/pull/9895))
 - [xo-server] Fix a memory leak when a client stops reading a proxied response, e.g. a Prometheus scrape of `/openmetrics` reaching its timeout: the request to the proxied service was never closed and its whole response stayed in memory, which could end up in the appliance being OOM-killed (PR [#10388](https://github.com/vatesfr/xen-orchestra/pull/10388))
 - [REST API] Rolling pool update and rolling pool reboot are now refused while a backup job runs on the pool, like their JSON-RPC counterparts, unless `bypassBackupCheck` is set in the request body (PR [#10313](https://github.com/vatesfr/xen-orchestra/pull/10313))
+- [V2V] Consolidating or removing the snapshots of a VM no longer fails with `task execution failed` after one minute: an operation is now given the time it needs (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
+- [V2V] Fix a failure to read the snapshots of a VM silently transferring the whole disk instead of a delta (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
+- [V2V] Fix a VM whose controller has no disk on its first slot being imported with a duplicated disk, or in full instead of a delta (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
+- [V2V] Fix a second import, or the final pass of a warm migration, failing on a disk export server which had already been stopped (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
+- [V2V] Fix xo-server stopping when `nbdkit` is not installed, or when the connection to the source host is lost during a migration (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
+- [V2V] Listing the VMs of a host no longer fails entirely when one of them is incomplete, e.g. while being created (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
+- [V2V] The credentials are no longer sent again on every read of a disk, and a session expiring during a long import is renewed (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
+- [V2V] The session opened on the source host is now closed when a listing, a migration or a disk export ends, instead of piling up until it expires — a host only accepts a limited number of them (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
+- [V2V] Report what the source host complained about, instead of `task execution failed` or an assertion error, when an operation fails (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 
 ### Packages to release
 
@@ -57,12 +66,14 @@
 
 <!--packages-start-->
 
+- @vates/node-vsphere-soap minor
 - @vates/types minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-cli patch
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/vmware-explorer major
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
