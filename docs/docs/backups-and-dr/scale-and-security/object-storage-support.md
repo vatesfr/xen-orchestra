@@ -6,6 +6,8 @@ Xen Orchestra is compatible with a wide range of S3-compatible object storage so
 
 To configure an S3-compatible backup repository, see [Backup repositories](../backup-features-and-settings.md#amazon-s3).
 
+To make an S3 backup repository immutable, see [S3 Object Lock](./object-lock.md).
+
 ## Storage tiers explained
 
 - **Tier 1** providers are extensively tested in our labs. We ensure Xen Orchestra aligns with their implementation and performs reliably, even at scale.
