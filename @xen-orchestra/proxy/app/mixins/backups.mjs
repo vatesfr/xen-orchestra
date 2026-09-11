@@ -311,31 +311,23 @@ export default class Backups {
           },
         ],
         listVmBackupsJournal: [
-          async ({ remote, remoteId, since }) => {
-            // stamped by this process, which is also the one which stamps the journal entries, so
-            // that the caller never compares its watermark with another clock
-            //
-            // without `since`, the caller has no listing to bring up to date yet and only wants
-            // that watermark: don't even open a handler
-            if (since === undefined) {
-              return { events: [], lastJournalRead: Date.now() }
-            }
-
+          async ({ remote, remoteId, cursor, mustExist }) => {
             // unlike `listVmBackups`, a repository which could not be read must reject: the caller
             // purges its cache on failure, and would otherwise keep serving a listing it has no
             // way to refresh
-            const { events, lastJournalRead } = await Disposable.use(this.getAdapter(remote), adapter =>
-              adapter.readBackupJournalEvents(since)
+            const { events, cursor: nextCursor } = await Disposable.use(this.getAdapter(remote), adapter =>
+              adapter.readBackupJournalEvents(cursor, { mustExist })
             )
 
-            return { events: formatJournalEvents(events, remoteId), lastJournalRead }
+            return { events: formatJournalEvents(events, remoteId), cursor: nextCursor }
           },
           {
             description: 'read the backup journal of a remote, with the added and changed backups resolved',
             params: {
               remote: { type: 'object' },
               remoteId: { type: 'string' },
-              since: { type: 'number', optional: true },
+              cursor: { type: 'string', optional: true },
+              mustExist: { type: 'boolean', optional: true },
             },
           },
         ],

@@ -151,18 +151,15 @@ declare namespace backup {
     [remoteId: string]: { [vmUuid: string]: object[] }
   }
 
-  // Reads the backup events which happened on the remote after `since`, reduced to the last event
+  // Reads the backup events which happened on the remote after `cursor`, reduced to the last event
   // of each backup, with the added and changed ones resolved to their current value.
   //
-  // `lastJournalRead` is the watermark to pass as `since` on the next call. It is stamped by the
-  // proxy, which is also the process which stamps the entries it writes, so that the caller never
-  // compares it with its own clock.
-  //
-  // Call without `since` to get that watermark alone, without reading the journal: this is what a
-  // caller does before its first listing of the remote.
-  function listVmBackupsJournal(_: { remote: Remote; remoteId: string; since?: number }): {
+  // `cursor` is the opaque position to pass back on the next call; it is unchanged when nothing new
+  // was read. `mustExist` makes a missing journal directory reject instead of returning no events,
+  // for a caller which has already read real entries from it before.
+  function listVmBackupsJournal(_: { remote: Remote; remoteId: string; cursor?: string; mustExist?: boolean }): {
     events: { event: 'add' | 'change' | 'del'; vmUuid: string; filename: string; backup?: object }[]
-    lastJournalRead: number
+    cursor?: string
   }
 
   function listXoMetadataBackups(_: { remotes: { [id: string]: Remote } }): { [remoteId: string]: object[] }
