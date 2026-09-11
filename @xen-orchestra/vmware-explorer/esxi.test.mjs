@@ -829,7 +829,9 @@ RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
     })
     esxi.getServerThumbprint = failingThumbprint
 
-    const dataMap = await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk')
+    const dataMap = await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', {
+      baseDiskPath: 'a.vm/vm.vmdk',
+    })
 
     assert.deepEqual(dataMap, [
       { offset: 0, length: BLOCK_LENGTH, type: 0 },
@@ -854,6 +856,273 @@ RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
     })
     esxi.getServerThumbprint = failingThumbprint
 
-    await assert.rejects(esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk'), { code: 'NO_DATA_MAP' })
+    await assert.rejects(esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', { baseDiskPath: 'a.vm/vm.vmdk' }), {
+      code: 'NO_DATA_MAP',
+    })
+  })
+
+  // the change tracking of the host answers a delta without an nbdkit server nor the vddk
+  describe('from the change tracking', function () {
+    const CAPACITY = 16 * 1024 * 1024 * 1024
+    const ACTIVE = '[ds main] a.vm/vm-000001.vmdk'
+    const BASE = '[ds main] a.vm/vm.vmdk'
+    const CHANGE_ID = '52 e3 b3 e3 20 78 92 1c-c0 52 92 c9 d7 e8 54 3e/2'
+
+    const virtualDisk = ({ backing, key = 2000 }) => ({
+      attributes: { 'xsi:type': 'VirtualDisk' },
+      key,
+      capacityInKB: CAPACITY / 1024,
+      backing,
+    })
+
+    // a VM whose active disk is `ACTIVE`, snapshotted while it was using `BASE`
+    const cbtResponses = ({
+      changedArea = [{ start: 0, length: 65536 }],
+      changeId = CHANGE_ID,
+      powerState = 'poweredOff',
+      queryChangedDiskAreas,
+    } = {}) => {
+      const properties = {
+        'VirtualMachine:config.hardware.device': {
+          attributes: { 'xsi:type': 'ArrayOfVirtualDevice' },
+          VirtualDevice: [
+            // a controller, which is a device but not a disk
+            { attributes: { 'xsi:type': 'VirtualLsiLogicController' }, key: 1000 },
+            virtualDisk({ backing: { fileName: ACTIVE, parent: { fileName: BASE } } }),
+          ],
+        },
+        'VirtualMachine:runtime.powerState': { $value: powerState },
+        'VirtualMachine:snapshot': {
+          currentSnapshot: moRef('VirtualMachineSnapshot', 'snapshot-2'),
+          rootSnapshotList: [
+            {
+              snapshot: moRef('VirtualMachineSnapshot', 'snapshot-1'),
+              // the tree is walked, the disk of a child can be the one which was imported
+              childSnapshotList: [{ snapshot: moRef('VirtualMachineSnapshot', 'snapshot-2') }],
+            },
+          ],
+        },
+        // the snapshot holds the disks as they were when it was taken: `BASE`, and its changeId
+        'VirtualMachineSnapshot:snapshot-1:config.hardware.device': {
+          VirtualDevice: [virtualDisk({ backing: { fileName: '[ds main] a.vm/other.vmdk' } })],
+        },
+        'VirtualMachineSnapshot:snapshot-2:config.hardware.device': {
+          // `null` stands for a disk which was not tracked when it was snapshotted: it carries no
+          // changeId at all
+          VirtualDevice: [
+            virtualDisk({ backing: changeId === null ? { fileName: BASE } : { changeId, fileName: BASE } }),
+          ],
+        },
+      }
+
+      return {
+        RetrievePropertiesEx: ({ specSet }) => {
+          const { type, pathSet } = specSet[0].propSet[0]
+          const id = specSet[0].objectSet[0].obj.$value
+          const val = properties[`${type}:${id}:${pathSet[0]}`] ?? properties[`${type}:${pathSet[0]}`]
+          if (val === undefined) {
+            // a property the object does not carry is simply absent from the answer
+            return page([{ obj: moRef(type, id), propSet: [] }])
+          }
+          return page([{ obj: moRef(type, id), propSet: [{ name: pathSet[0], val }] }])
+        },
+        QueryChangedDiskAreas:
+          queryChangedDiskAreas ?? (() => ({ returnval: { startOffset: 0, length: CAPACITY, changedArea } })),
+      }
+    }
+
+    const cbtEsxi = async options => {
+      const { esxi, vimClient } = await connectedEsxi({
+        responses: cbtResponses(options),
+        // both fallbacks fail fast: what a CBT test asserts on is what the host was asked, and a
+        // fallback which reaches the network would answer with a DNS failure a few seconds later
+        fetch: async () => response({ status: 206, body: 'not a vmdk descriptor' }),
+      })
+      // the vddk and the metadata reading must never be reached by a successful CBT query
+      esxi.getServerThumbprint = failingThumbprint
+      return { esxi, vimClient }
+    }
+
+    it('asks the host for the blocks changed since the disk which was already imported', async function () {
+      const { esxi, vimClient } = await cbtEsxi({
+        changedArea: [
+          { start: 0, length: 65536 },
+          { start: 3 * 65536, length: 2 * 65536 },
+        ],
+      })
+
+      const dataMap = await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', {
+        baseDiskPath: 'a.vm/vm.vmdk',
+      })
+
+      assert.deepEqual(dataMap, [
+        { offset: 0, length: 65536, type: 0 },
+        { offset: 3 * 65536, length: 2 * 65536, type: 0 },
+      ])
+
+      const queries = vimClient.callsTo('QueryChangedDiskAreas')
+      assert.equal(queries.length, 1)
+      // the deviceKey is resolved from the file the caller already names, and the changeId from
+      // the snapshot which was using the disk of the previous import
+      assert.deepEqual(queries[0].args, {
+        _this: 'vm-1',
+        deviceKey: 2000,
+        startOffset: 0,
+        changeId: CHANGE_ID,
+      })
+    })
+
+    it('names the snapshot to read when the VM is running', async function () {
+      const { esxi, vimClient } = await cbtEsxi({ powerState: 'poweredOn' })
+
+      await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', { baseDiskPath: 'a.vm/vm.vmdk' })
+
+      // without it the host answers the same FileFault as a disk which is not tracked at all
+      assert.deepEqual(Object.keys(vimClient.callsTo('QueryChangedDiskAreas')[0].args), [
+        '_this',
+        'snapshot',
+        'deviceKey',
+        'startOffset',
+        'changeId',
+      ])
+      assert.deepEqual(
+        vimClient.callsTo('QueryChangedDiskAreas')[0].args.snapshot,
+        moRef('VirtualMachineSnapshot', 'snapshot-2')
+      )
+    })
+
+    it('asks again until the answers cover the whole disk', async function () {
+      const half = CAPACITY / 2
+      const { esxi, vimClient } = await cbtEsxi({
+        queryChangedDiskAreas: ({ startOffset }) => ({
+          returnval: {
+            startOffset,
+            length: half,
+            changedArea: [{ start: startOffset, length: 65536 }],
+          },
+        }),
+      })
+
+      const dataMap = await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', {
+        baseDiskPath: 'a.vm/vm.vmdk',
+      })
+
+      assert.equal(vimClient.callsTo('QueryChangedDiskAreas').length, 2)
+      assert.deepEqual(
+        vimClient.callsTo('QueryChangedDiskAreas').map(({ args }) => args.startOffset),
+        [0, half]
+      )
+      assert.deepEqual(dataMap, [
+        { offset: 0, length: 65536, type: 0 },
+        { offset: half, length: 65536, type: 0 },
+      ])
+    })
+
+    it('reports a disk which did not change as an empty map, not as a failure', async function () {
+      // a delta of nothing is a legitimate answer: falling back here would read the whole disk
+      const { esxi, vimClient } = await cbtEsxi({ changedArea: [] })
+
+      assert.deepEqual(
+        await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', { baseDiskPath: 'a.vm/vm.vmdk' }),
+        []
+      )
+      assert.equal(vimClient.callsTo('QueryChangedDiskAreas').length, 1)
+    })
+
+    it('falls back when no snapshot recorded a changeId for the disk of the previous import', async function () {
+      const { esxi, vimClient } = await cbtEsxi({ changeId: null })
+
+      // the vddk then the metadata reading, which has nothing to read from the fake responses
+      await assert.rejects(
+        esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', { baseDiskPath: 'a.vm/vm.vmdk' }),
+        { code: 'NO_DATA_MAP' }
+      )
+      // the host was never asked: without a changeId there is nothing to ask
+      assert.equal(vimClient.callsTo('QueryChangedDiskAreas').length, 0)
+    })
+
+    it('asks for every used block of the chain when there is nothing to compare to', async function () {
+      const { esxi, vimClient } = await cbtEsxi()
+
+      const dataMap = await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk')
+
+      assert.deepEqual(dataMap, [{ offset: 0, length: 65536, type: 0 }])
+      // the tracking of a disk is seeded from its parent when a snapshot is taken, so this is the
+      // whole chain, not only the link being written
+      assert.equal(vimClient.callsTo('QueryChangedDiskAreas')[0].args.changeId, '*')
+    })
+
+    it('names the snapshot which holds the state being read, not only the live disk', async function () {
+      const { esxi, vimClient } = await cbtEsxi({ powerState: 'poweredOn' })
+
+      // the pass which reads a running VM up to its last snapshot asks for the disk of that
+      // snapshot, which is not the one the VM is writing to
+      await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm.vmdk')
+
+      const { args } = vimClient.callsTo('QueryChangedDiskAreas')[0]
+      assert.deepEqual(args.snapshot, moRef('VirtualMachineSnapshot', 'snapshot-2'))
+      assert.equal(args.changeId, '*')
+    })
+
+    it('reads the disk itself when nothing can describe a whole disk', async function () {
+      const fetched = []
+      const { esxi } = await connectedEsxi({
+        fetch: async url => {
+          fetched.push(url.pathname)
+          return response({ status: 206, body: 'not a vmdk descriptor' })
+        },
+      })
+      esxi.getServerThumbprint = failingThumbprint
+
+      // the vddk and the metadata reading both describe a single link of the chain: handing one
+      // over as the map of a whole disk would drop everything its parents hold
+      assert.equal(await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk'), undefined)
+      assert.deepEqual(fetched, [])
+    })
+
+    it('reads what it is addressed by once for every disk of a VM', async function () {
+      const { esxi, vimClient } = await cbtEsxi()
+
+      const changeTracking = await esxi.getChangeTracking('vm-1')
+      // the devices, the power state, the snapshot tree, then the devices of the two snapshots
+      const reads = vimClient.callsTo('RetrievePropertiesEx').length
+      assert.equal(reads, 5)
+
+      await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', { changeTracking })
+      await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', { changeTracking })
+
+      // none of it is per disk: resolving it per disk used to issue the same calls, at the same
+      // time, once per disk of the VM
+      assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, reads)
+      assert.equal(vimClient.callsTo('QueryChangedDiskAreas').length, 2)
+    })
+
+    it('refuses a map which does not fit the disk', async function () {
+      const { esxi } = await cbtEsxi({
+        changedArea: [
+          { start: 0, length: 2 * 65536 },
+          // overlaps the previous one: read out of order, `NbdDisk` would throw mid-transfer
+          { start: 65536, length: 65536 },
+        ],
+      })
+
+      await assert.rejects(
+        esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', { baseDiskPath: 'a.vm/vm.vmdk' }),
+        { code: 'NO_DATA_MAP' }
+      )
+    })
+
+    it('refuses an answer which does not move forward', async function () {
+      const { esxi, vimClient } = await cbtEsxi({
+        // a host answering a zero length would otherwise be asked until the cap
+        queryChangedDiskAreas: () => ({ returnval: { startOffset: 0, length: 0, changedArea: [] } }),
+      })
+
+      await assert.rejects(
+        esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', { baseDiskPath: 'a.vm/vm.vmdk' }),
+        { code: 'NO_DATA_MAP' }
+      )
+      assert.equal(vimClient.callsTo('QueryChangedDiskAreas').length, 1)
+    })
   })
 })
