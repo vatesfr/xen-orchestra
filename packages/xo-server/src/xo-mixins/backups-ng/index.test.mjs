@@ -386,9 +386,20 @@ class Repository {
         this.nListings++
         return { [VM]: [...this.metadataByFilename.values()] }
       },
-      readBackupJournal: async cursor =>
-        cursor === undefined ? this.journal.slice() : this.journal.filter(_ => _._filename > cursor),
-      readVmBackupMetadata: async filename => this.metadataByFilename.get(filename),
+      readBackupJournalEvents: async cursor => {
+        const entries = cursor === undefined ? this.journal.slice() : this.journal.filter(_ => _._filename > cursor)
+        if (entries.length > 0) {
+          cursor = entries[entries.length - 1]._filename
+        }
+        return {
+          cursor,
+          events: entries.map(({ event, filename, vmUuid }) => {
+            const metadata = this.metadataByFilename.get(filename)
+            // a backup which is gone is reported as deleted, whatever its last event says
+            return metadata === undefined ? { event: 'del', vmUuid, filename } : { event, vmUuid, filename, metadata }
+          }),
+        }
+      },
     }
   }
 }

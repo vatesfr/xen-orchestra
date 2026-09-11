@@ -544,23 +544,27 @@ export class RemoteAdapter {
   // The metadata is read back from the repository instead of being carried by the journal, so that
   // the result always reflects the current content of the file, e.g. the size a merge updated.
   /**
-   * @param {number} [since] timestamp in ms, exclusive
+   * @param {string} [cursor] path of the last entry already read, exclusive
+   * @param {object} [opts]
+   * @param {boolean} [opts.mustExist] whether a missing journal directory should throw
    * @returns {Promise<{
    *   events: import('./formatVmBackups.mjs').ResolvedJournalEvent[]
-   *   lastJournalRead: number
-   * }>} the watermark to pass as `since` on the next call, stamped by this process, which is also
-   * the one which stamps the entries it writes
+   *   cursor: string | undefined
+   * }>} the cursor to pass on the next call: unchanged when nothing new was read
    */
-  async readBackupJournalEvents(since) {
-    // stamped before the read, so that the events which happen during it are returned by the next
-    // call
-    const lastJournalRead = Date.now()
+  async readBackupJournalEvents(cursor, opts) {
+    const entries = await this.readBackupJournal(cursor, opts)
+
+    // the entries are oldest first: the last one is the cursor for the next call
+    if (entries.length > 0) {
+      cursor = entries[entries.length - 1]._filename
+    }
 
     // the entries are oldest first, therefore the last event of a backup is its current state: a
     // backup which was written then deleted costs no metadata read at all, and one which was
     // rewritten several times costs a single one
     const lastEventByFilename = new Map()
-    for (const { event, filename, vmUuid } of await this.readBackupJournal(since)) {
+    for (const { event, filename, vmUuid } of entries) {
       if (event !== 'add' && event !== 'change' && event !== 'del') {
         warn('ignoring unsupported journal event', { event, filename })
         continue
@@ -597,7 +601,7 @@ export class RemoteAdapter {
       events.push({ event, vmUuid, filename, metadata })
     })
 
-    return { events, lastJournalRead }
+    return { events, cursor }
   }
 
   async writeVmBackupMetadata(vmUuid, metadata) {
