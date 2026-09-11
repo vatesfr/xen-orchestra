@@ -6,6 +6,39 @@ import { createLogger } from '@xen-orchestra/log'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackups.mjs'
 import { resolve } from 'node:path'
 
+/** @typedef {import('@xen-orchestra/backups/RemoteAdapter.mjs').RemoteAdapter} RemoteAdapter */
+
+/**
+ * A backup repository, as required by `VmBackupsCache`.
+ *
+ * @typedef {object} Repository
+ * @property {string} id
+ * @property {string} url
+ * @property {object} [options]
+ */
+
+/**
+ * A backup, as formatted by `formatVmBackup()`.
+ *
+ * @typedef {object} FormattedBackup
+ * @property {string} id
+ */
+
+/**
+ * The formatted backups of a repository, keyed by VM UUID then metadata filename.
+ *
+ * @typedef {Record<string, Record<string, FormattedBackup>>} BackupsByVm
+ */
+
+/**
+ * @typedef {object} Entry
+ * @property {BackupsByVm} backupsByVm
+ * @property {number} lastJournalRead
+ * @property {object} [options]
+ * @property {boolean} stale
+ * @property {string} url
+ */
+
 const { debug, warn } = createLogger('xo:xo-mixins:backups-ng:vmBackupsCache')
 
 // Journal entries are stamped with the clock of the process which wrote them, which is not
@@ -24,16 +57,38 @@ const utcDay = timestamp => Math.floor(timestamp / MS_PER_DAY)
 //
 // the leading slash is the form `RemoteAdapter` produces, both when it lists a repository
 // (`handler.list()` prepends the normalized dir) and when it writes a metadata
+/**
+ * @param {string} filename
+ * @returns {string}
+ */
 const normalizeFilename = filename => resolve('/', filename)
 
 // `formatVmBackup` expects the metadata as `RemoteAdapter#listVmBackups` returns it, i.e. with the
 // `id` which the on-repository cache injects
+/**
+ * @param {object} metadata
+ * @param {string} backupRepositoryId
+ * @param {string} filename
+ * @returns {FormattedBackup}
+ */
 const format = (metadata, backupRepositoryId, filename) =>
   formatVmBackup({ ...metadata, _filename: filename, backupRepositoryId, id: filename })
 
+/**
+ * @param {Entry} entry
+ * @param {Repository} repository
+ * @returns {boolean}
+ */
 const isSameRepository = (entry, repository) => entry.url === repository.url && entry.options === repository.options
 
-// forgets a backup, and the VM it belonged to when it was its last one
+/**
+ * forgets a backup, and the VM it belonged to when it was its last one
+ *
+ * @param {BackupsByVm} backupsByVm
+ * @param {string} vmUuid
+ * @param {string} key
+ * @returns {void}
+ */
 const removeBackup = (backupsByVm, vmUuid, key) => {
   const backups = backupsByVm[vmUuid]
   if (backups === undefined) {
@@ -53,8 +108,14 @@ const removeBackup = (backupsByVm, vmUuid, key) => {
  *
  * `backupsByVm` maps each VM to its backups, either as an array (as a proxy returns them) or keyed by
  * metadata filename (as `VmBackupsCache` stores them).
+ *
+ * @param {Record<string, FormattedBackup[] | Record<string, FormattedBackup>>} backupsByVm
+ * @param {string} remoteId
+ * @param {string} [vmId]
+ * @returns {Record<string, FormattedBackup[]>}
  */
 export function serveVmBackups(backupsByVm, remoteId, vmId) {
+  /** @type {Record<string, FormattedBackup[]>} */
   const result = {}
   for (const vmUuid of vmId === undefined ? Object.keys(backupsByVm) : [vmId]) {
     const backups = backupsByVm[vmUuid]
@@ -86,17 +147,21 @@ export function serveVmBackups(backupsByVm, remoteId, vmId) {
  */
 export class VmBackupsCache {
   // repository id → { backupsByVm, lastJournalRead, options, stale, url }
+  /** @type {Map<string, Entry>} */
   #entries = new Map()
 
+  /** @type {number} */
   #minRefreshDelay
 
   // repository id → promise of the ongoing build or replay, to coalesce concurrent listings
+  /** @type {Map<string, Promise<BackupsByVm>>} */
   #pending = new Map()
 
+  /** @type {(repository: Repository, fn: (adapter: RemoteAdapter) => Promise<any>) => Promise<any>} */
   #useAdapter
 
   /**
-   * @param {(repository: object, fn: (adapter: object) => Promise<any>) => Promise<any>} useAdapter
+   * @param {(repository: Repository, fn: (adapter: RemoteAdapter) => Promise<any>) => Promise<any>} useAdapter
    * @param {object} [options]
    * @param {number} [options.minRefreshDelay] minimum delay between two journal reads of the same
    * repository, in milliseconds
@@ -111,6 +176,9 @@ export class VmBackupsCache {
    *
    * To call when the repository itself is gone or has been reconfigured, or when the caller has a
    * reason to distrust the journal.
+   *
+   * @param {Repository['id']} repositoryId
+   * @returns {void}
    */
   delete(repositoryId) {
     if (this.#entries.delete(repositoryId)) {
@@ -123,6 +191,9 @@ export class VmBackupsCache {
    * end of the current refresh window.
    *
    * To call after a mutation triggered by this process, so that its effect is visible at once.
+   *
+   * @param {Repository['id']} repositoryId
+   * @returns {void}
    */
   refresh(repositoryId) {
     const entry = this.#entries.get(repositoryId)
@@ -135,6 +206,9 @@ export class VmBackupsCache {
    * Returns the up-to-date backups of a repository.
    *
    * The returned value is the cache itself: it must not be mutated by the caller.
+   *
+   * @param {Repository} repository
+   * @returns {Promise<BackupsByVm>}
    */
   async get(repository) {
     const { id } = repository
@@ -149,6 +223,10 @@ export class VmBackupsCache {
     return pending
   }
 
+  /**
+   * @param {Repository} repository
+   * @returns {Promise<BackupsByVm>}
+   */
   async #refresh(repository) {
     const { id } = repository
     const entry = this.#entries.get(id)
@@ -183,6 +261,10 @@ export class VmBackupsCache {
    * Delegates to `get()` whenever an entry already exists or is being built or replayed, since a
    * dedicated read would not save anything there; otherwise reads just this VM and lets `get()`
    * build the full entry in the background, for the callers which do want every VM.
+   *
+   * @param {Repository} repository
+   * @param {string} vmUuid
+   * @returns {Promise<BackupsByVm>}
    */
   async getOneVm(repository, vmUuid) {
     const { id } = repository
@@ -201,6 +283,7 @@ export class VmBackupsCache {
       return {}
     }
 
+    /** @type {Record<string, FormattedBackup>} */
     const byFilename = {}
     for (const backup of backups) {
       const key = normalizeFilename(backup._filename)
@@ -209,6 +292,10 @@ export class VmBackupsCache {
     return { [vmUuid]: byFilename }
   }
 
+  /**
+   * @param {Repository} repository
+   * @returns {Promise<BackupsByVm>}
+   */
   async #build(repository) {
     const { id } = repository
 
@@ -227,6 +314,7 @@ export class VmBackupsCache {
     this.#entries.set(id, entry)
 
     const backupsByVm = await this.#useAdapter(repository, async adapter => {
+      /** @type {BackupsByVm} */
       const result = {}
       for (const [vmUuid, backups] of Object.entries(await adapter.listAllVmBackups())) {
         const byFilename = (result[vmUuid] = {})
@@ -244,6 +332,11 @@ export class VmBackupsCache {
     return backupsByVm
   }
 
+  /**
+   * @param {Repository} repository
+   * @param {Entry} entry
+   * @returns {Promise<void>}
+   */
   async #replay(repository, entry) {
     const { backupsByVm } = entry
 
