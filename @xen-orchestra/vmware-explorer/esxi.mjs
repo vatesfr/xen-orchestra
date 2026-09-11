@@ -15,7 +15,15 @@ import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
 import { asArray, normalizeSoapValue } from './soap/normalize.mjs'
-import { moRef, objectSpec, propertyFilterSpec, propertySpec, retrieveOptions, traversalSpec } from './soap/specs.mjs'
+import {
+  moRef,
+  objectSpec,
+  propertyFilterSpec,
+  propertySpec,
+  queryChangedDiskAreasArgs,
+  retrieveOptions,
+  traversalSpec,
+} from './soap/specs.mjs'
 import { VimClient } from './soap/VimClient.mjs'
 import { spawn } from 'node:child_process'
 import NbdClient from '@vates/nbd-client'
@@ -38,6 +46,10 @@ const DEFAULT_RETRY_DELAY = 2e3
 // every caller of `#waitForTaskEnd` passes its own deadline, this is only the guardrail for the
 // next one: the timeout is compared against, so an undefined one would poll for ever
 const DEFAULT_TASK_TIMEOUT = 60e3
+// one CBT answer covers a range of the disk, and a fragmented one needs several. The cap only
+// exists so that a host answering without ever moving forward cannot loop for ever, the progress
+// of every answer is checked as well
+const MAX_CBT_QUERIES = 1024
 const MAX_RETRY_DELAY = 30e3
 const MAX_TASK_POLL_DELAY = 5e3
 const NBDKIT_KILL_TIMEOUT = 10e3
@@ -82,6 +94,23 @@ const noop = () => {}
 // the options change what the server exports, so they are part of its identity
 const nbdServerKey = (vmId, diskPath, { compression, singleLink, threads }) =>
   JSON.stringify([vmId, diskPath, singleLink, threads, compression])
+
+// the snapshots of a VM are a tree, and a `changeId` can be held by any of them
+function collectSnapshotIds(rootList, ids = []) {
+  for (const node of asArray(rootList)) {
+    // the tree carries managed object references, which are not normalized: only the value of the
+    // property that was read is
+    const id = node.snapshot?.$value ?? node.snapshot
+    if (id !== undefined) {
+      ids.push(id)
+    }
+    collectSnapshotIds(node.childSnapshotList, ids)
+  }
+  return ids
+}
+
+// a device of `config.hardware.device` is a VirtualDisk only through its declared type
+const isVirtualDisk = device => device?.attributes?.['xsi:type'] === 'VirtualDisk'
 
 // `TaskInfo.error` is a LocalizedMethodFault: the concrete fault type is the `xsi:type` of its
 // `fault` element, and the parser may expose it at either level depending on the response
@@ -1109,6 +1138,271 @@ export default class Esxi extends EventEmitter {
     await this.#killNbdServer(server, key)
   }
 
+  /**
+   * Runs one `QueryChangedDiskAreas`.
+   *
+   * @param {string} vmId
+   * @param {object} options
+   * @param {string} options.changeId - `*` for every block the host has ever seen written, or the
+   * `changeId` of the snapshot the delta is computed from
+   * @param {number} options.deviceKey - key of the VirtualDisk
+   * @param {number} options.startOffset - in bytes, where the answer must start
+   * @param {string} [options.snapshotId] - the state to read, mandatory when the VM is powered on
+   * @returns {Promise<{ changedArea: unknown, length: unknown, startOffset: unknown }>} the
+   * `DiskChangeInfo` of the host, its numbers still unchecked
+   */
+  async #queryChangedDiskAreas(vmId, { changeId, deviceKey, snapshotId, startOffset }) {
+    const result = await this.#vimClient.call(
+      'QueryChangedDiskAreas',
+      queryChangedDiskAreasArgs({
+        _this: vmId,
+        snapshot: snapshotId === undefined ? undefined : moRef('VirtualMachineSnapshot', snapshotId),
+        deviceKey,
+        startOffset,
+        changeId,
+      })
+    )
+
+    const returnval = result?.returnval
+    if (returnval === undefined) {
+      // every other outcome is a fault, this one would silently become an empty map
+      const error = new Error(`QueryChangedDiskAreas answered nothing for the disk ${deviceKey} of ${vmId}`)
+      error.code = 'NO_DATA_MAP'
+      throw error
+    }
+    return returnval
+  }
+
+  /**
+   * Every changed area of a disk, asking again until the answers cover its whole capacity.
+   *
+   * @param {string} vmId
+   * @param {object} options
+   * @param {number} options.capacity - of the disk, in bytes
+   * @param {string} options.changeId
+   * @param {number} options.deviceKey
+   * @param {string} [options.snapshotId]
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<Array<{ length: number, offset: number, type: number }>>}
+   */
+  async #getChangedAreas(vmId, { capacity, changeId, deviceKey, signal, snapshotId }) {
+    const areas = []
+    let covered = 0
+
+    for (let query = 0; covered < capacity; query++) {
+      signal?.throwIfAborted()
+
+      if (query >= MAX_CBT_QUERIES) {
+        const error = new Error(`the host did not describe the whole disk ${deviceKey} of ${vmId} in ${query} queries`)
+        error.code = 'NO_DATA_MAP'
+        throw error
+      }
+
+      const answer = await this.#queryChangedDiskAreas(vmId, {
+        changeId,
+        deviceKey,
+        snapshotId,
+        startOffset: covered,
+      })
+
+      const length = Number(answer.length)
+      // an answer which does not move forward would loop until the cap, and one which moves
+      // backwards would describe a region twice: both would build a map which is not the disk
+      if (!(length > 0)) {
+        const error = new Error(`the host described ${length} byte of the disk ${deviceKey} of ${vmId}`)
+        error.code = 'NO_DATA_MAP'
+        throw error
+      }
+
+      for (const area of asArray(answer.changedArea)) {
+        const offset = Number(area.start)
+        const areaLength = Number(area.length)
+        // the areas are sorted and disjoint, and `NbdDisk` relies on it: a map which is not would
+        // be read out of order, or twice
+        const previous = areas[areas.length - 1]
+        const overlaps = previous !== undefined && offset < previous.offset + previous.length
+        if (!(areaLength > 0) || offset < 0 || offset + areaLength > capacity || overlaps) {
+          const error = new Error(
+            `the host described the area [${offset}, ${offset + areaLength}) of the disk ${deviceKey} of ${vmId}, which does not fit a disk of ${capacity} bytes`
+          )
+          error.code = 'NO_DATA_MAP'
+          throw error
+        }
+        areas.push({ offset, length: areaLength, type: 0 })
+      }
+
+      covered = Number(answer.startOffset) + length
+    }
+
+    return areas
+  }
+
+  /**
+   * The VirtualDisk of a VM which is backed by a given file.
+   *
+   * The file is what the caller already names, so no new argument has to be threaded through the
+   * chain to reach the `deviceKey` the change tracking is addressed by.
+   *
+   * @param {unknown} devices - value of `config.hardware.device`
+   * @param {string} fileName - e.g. `[datastore1] vm/vm-000001.vmdk`
+   * @returns {object | undefined}
+   */
+  #findDiskBackedBy(devices, fileName) {
+    return asArray(devices?.VirtualDevice).find(
+      device => isVirtualDisk(device) && device.backing?.fileName === fileName
+    )
+  }
+
+  /**
+   * Everything the change tracking of a VM is addressed by, read once for all of its disks.
+   *
+   * None of it is per disk: resolving it inside {@link getDataMap} meant one round trip per disk
+   * and per snapshot, all issued at the same time, for answers which are identical. A caller
+   * importing several disks reads it once and hands it over.
+   *
+   * @param {string} vmId
+   * @param {object} [options]
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<object>} opaque, to be handed back to {@link getDataMap}
+   */
+  async getChangeTracking(vmId, { signal } = {}) {
+    const [devices, powerState, snapshotInfo] = await Promise.all([
+      this.#retrieveProperty('VirtualMachine', vmId, 'config.hardware.device', { signal }),
+      this.#retrieveProperty('VirtualMachine', vmId, 'runtime.powerState', { signal }),
+      // a VM without any snapshot has no such property
+      this.#retrieveProperty('VirtualMachine', vmId, 'snapshot', { signal }).catch(error => {
+        if (error.code !== 'NO_PROPERTY') {
+          throw error
+        }
+      }),
+    ])
+
+    const snapshotIds = collectSnapshotIds(snapshotInfo?.rootSnapshotList)
+    const snapshotDevices = new Map()
+    await asyncEach(
+      snapshotIds,
+      async snapshotId => {
+        // a snapshot holds the disks as they were when it was taken, which is both where a
+        // changeId is published and how a state older than the live disk is named
+        snapshotDevices.set(
+          snapshotId,
+          await this.#retrieveProperty('VirtualMachineSnapshot', snapshotId, 'config.hardware.device', { signal })
+        )
+      },
+      { concurrency: DESCRIPTOR_CONCURRENCY, signal }
+    )
+
+    return {
+      currentSnapshotId: snapshotInfo?.currentSnapshot?.$value ?? snapshotInfo?.currentSnapshot,
+      devices,
+      powerState,
+      snapshotDevices,
+      snapshotIds,
+    }
+  }
+
+  /**
+   * Blocks of a disk to read, from the change tracking of the host.
+   *
+   * Needs no nbdkit server, no vddk library and no nbdinfo: one call answers from the `-ctk.vmdk`
+   * the host maintains. Two questions, the same call:
+   * - without `baseDiskPath`, every block the disk has ever used, across the whole chain
+   * - with it, only the blocks written since the disk a previous import already read
+   *
+   * @param {string} vmId
+   * @param {string} datastoreName
+   * @param {string} diskPath - path of the disk being read, in its datastore
+   * @param {object} [options]
+   * @param {string} [options.baseDiskPath] - path of the disk a previous import read
+   * @param {object} [options.changeTracking] - from {@link getChangeTracking}, read here when the
+   * caller has none
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<Array<{ length: number, offset: number, type: number }>>}
+   */
+  async #getDataMapFromCbt(vmId, datastoreName, diskPath, { baseDiskPath, changeTracking, signal } = {}) {
+    const { currentSnapshotId, devices, powerState, snapshotDevices, snapshotIds } =
+      changeTracking ?? (await this.getChangeTracking(vmId, { signal }))
+
+    // the disk to describe, and the state it must be described at
+    const fileName = `[${datastoreName}] ${diskPath}`
+    let disk = this.#findDiskBackedBy(devices, fileName)
+    let snapshotId
+    if (disk !== undefined) {
+      // the live disk of the VM. A powered on VM is only described through a snapshot: without one
+      // the host answers the same FileFault as a disk which is not tracked at all
+      if (powerState !== 'poweredOff') {
+        snapshotId = currentSnapshotId
+        if (snapshotId === undefined) {
+          const error = new Error(`the VM ${vmId} is ${powerState} and has no current snapshot to read`)
+          error.code = 'NO_DATA_MAP'
+          throw error
+        }
+      }
+    } else {
+      // an older state of the chain, e.g. the pass which reads a running VM up to its last
+      // snapshot: that snapshot is both where the disk is named and what the host must describe
+      for (const id of snapshotIds) {
+        const found = this.#findDiskBackedBy(snapshotDevices.get(id), fileName)
+        if (found !== undefined) {
+          disk = found
+          snapshotId = id
+          break
+        }
+      }
+    }
+
+    if (disk === undefined) {
+      const error = new Error(`no disk of the VM ${vmId}, nor of its snapshots, is backed by ${diskPath}`)
+      error.code = 'NO_DATA_MAP'
+      throw error
+    }
+
+    const deviceKey = Number(disk.key)
+    const capacity = Number(disk.capacityInKB) * 1024
+    if (!(capacity > 0)) {
+      // the loop would have nothing to compare its progress to, and would answer a map of a disk
+      // whose size it does not know
+      const error = new Error(`the disk ${deviceKey} of the VM ${vmId} reports a capacity of ${capacity} bytes`)
+      error.code = 'NO_DATA_MAP'
+      throw error
+    }
+
+    let changeId = '*'
+    if (baseDiskPath !== undefined) {
+      const baseFileName = `[${datastoreName}] ${baseDiskPath}`
+      for (const id of snapshotIds) {
+        // a disk which was not tracked when the snapshot was taken carries no changeId at all,
+        // which is exactly the precondition of a delta
+        const recorded = this.#findDiskBackedBy(snapshotDevices.get(id), baseFileName)?.backing?.changeId
+        if (recorded !== undefined) {
+          changeId = recorded
+          break
+        }
+      }
+      if (changeId === '*') {
+        // `*` here would answer the whole disk, and the caller asked for what changed since a
+        // point in time it already imported: silently transferring everything is not that
+        const error = new Error(`no changeId was recorded for ${baseDiskPath}, it was not tracked when snapshotted`)
+        error.code = 'NO_CHANGE_ID'
+        throw error
+      }
+    }
+
+    const start = Date.now()
+    const areas = await this.#getChangedAreas(vmId, { capacity, changeId, deviceKey, signal, snapshotId })
+
+    info('got the data map from the change tracking of the host', {
+      blocks: areas.length,
+      bytes: areas.reduce((total, { length }) => total + length, 0),
+      diskPath,
+      full: baseDiskPath === undefined,
+      seconds: Math.round((Date.now() - start) / 1000),
+      vmId,
+    })
+
+    return areas
+  }
+
   async #getDataMapFromVddk(vmId, datastoreName, diskPath, signal) {
     return Disposable.use(
       this.getNbdServer(vmId, `[${datastoreName}] ${diskPath}`, { singleLink: true }),
@@ -1176,15 +1470,42 @@ export default class Esxi extends EventEmitter {
   }
 
   /**
-   * Blocks of a disk which hold data, used to transfer a delta instead of the whole disk.
+   * Blocks of a disk which hold data, used to read only what the disk uses.
+   *
+   * The change tracking of the host answers both questions and is asked first: it is a documented
+   * call every backup product has leaned on for years, where the map read through the vddk needs
+   * an nbdkit server, the vddk library and nbdinfo, all version-coupled.
    *
    * @param {string} vmId
    * @param {string} datastoreName
    * @param {string} diskPath - path of the disk in its datastore
-   * @param {AbortSignal} [signal]
-   * @returns {Promise<Array<{ length: number, offset: number, type: number }>>}
+   * @param {object} [options]
+   * @param {string} [options.baseDiskPath] - path of the disk a previous import already read. With
+   * it the answer is the delta since that point in time, without it every block the disk uses
+   * @param {object} [options.changeTracking] - from {@link getChangeTracking}. A caller importing
+   * several disks of the same VM reads it once, this method reads its own otherwise
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<Array<{ length: number, offset: number, type: number }> | undefined>}
+   * `undefined` when no map could be built for a whole disk, the caller then reads it to find out
    */
-  async getDataMap(vmId, datastoreName, diskPath, signal) {
+  async getDataMap(vmId, datastoreName, diskPath, { baseDiskPath, changeTracking, signal } = {}) {
+    try {
+      return await this.#getDataMapFromCbt(vmId, datastoreName, diskPath, { baseDiskPath, changeTracking, signal })
+    } catch (error) {
+      signal?.throwIfAborted()
+      // the host answers the same FileFault whether the disk is not tracked, the changeId is
+      // unknown or the tracking was reset: none of them can be told apart, and all of them are
+      // answered by reading the disk itself
+      warn('error while getting the data map from the change tracking', { baseDiskPath, diskPath, error, vmId })
+    }
+
+    if (baseDiskPath === undefined) {
+      // the other two sources describe a single link of the chain, which is not the disk being
+      // read: handing one of them over as the map of a whole disk would drop everything the
+      // parents hold. Reading the disk is the only other answer
+      return undefined
+    }
+
     try {
       // We await the result of getDataMapFromVddk so we can catch errors and fallback to the direct metadata reading.
       return await this.#getDataMapFromVddk(vmId, datastoreName, diskPath, signal)
