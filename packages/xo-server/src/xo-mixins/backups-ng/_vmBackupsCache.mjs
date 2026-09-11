@@ -51,18 +51,23 @@ import { journalCursorAt } from '@xen-orchestra/backups/_backupJournal.mjs'
  * @typedef {object} Source
  * @property {(repository: Repository) => Promise<BackupsByVm>} listAll
  * @property {(repository: Repository, vmUuid: string) => Promise<Backups>} listOneVm
- * @property {(repository: Repository, cursor: string | undefined, opts: { mustExist: boolean }) => Promise<JournalRead>} readJournal
+ * @property {(repository: Repository, cursor: string | undefined, opts: { mustExist: boolean }) => Promise<JournalRead | undefined>} readJournal
+ * `undefined` when this repository cannot be replayed at all, e.g. it is attached to a proxy which
+ * does not expose its journal
  */
 
 /**
  * @typedef {object} Entry
  * @property {BackupsByVm} [backupsByVm] set once the initial listing has completed
- * @property {string} cursor path bounding the next journal read, see `readBackupJournal()`
+ * @property {string} cursor opaque watermark owned by the source, only ever passed back to it: it is
+ * stamped by the process which reads the journal, which is not necessarily this one, and must
+ * therefore never be compared with this process' clock
  * @property {boolean} [journalConfirmed] whether the journal directory has already been read
  * successfully once, i.e. whether it disappearing on the next replay is anomalous rather than benign
- * @property {number} lastJournalRead this process' clock, for the day-rollover and refresh-window
- * checks only: it is never passed to the source, which owns the cursor
  * @property {Repository['options']} [options]
+ * @property {string} [proxy]
+ * @property {number} refreshedAt when this process last brought the entry up to date, i.e. the only
+ * field which may be compared with its clock
  * @property {boolean} stale
  * @property {string} url
  */
@@ -88,7 +93,8 @@ const utcDay = timestamp => Math.floor(timestamp / MS_PER_DAY)
  * @param {Repository} repository
  * @returns {boolean}
  */
-const isSameRepository = (entry, repository) => entry.url === repository.url && entry.options === repository.options
+const isSameRepository = (entry, repository) =>
+  entry.url === repository.url && entry.options === repository.options && entry.proxy === repository.proxy
 
 /**
  * forgets a backup, and the VM it belonged to when it was its last one
@@ -153,12 +159,12 @@ export function serveVmBackups(backupsByVm, remoteId, vmId) {
  *
  * Entries are rebuilt from scratch when they cross a UTC day, which bounds the drift accumulated
  * from the events which could not be journaled, or which are not journaled at all (e.g. the
- * `immutable-backups` daemon lifting the immutability of a backup), and when the remote is
- * re-pointed or reconfigured, which the entry detects by itself from the `url` and the `options` it
- * was built from.
+ * `immutable-backups` daemon lifting the immutability of a backup), when the remote is re-pointed,
+ * reconfigured or moved to another proxy, which the entry detects by itself from what it was built
+ * from, and when the source turns out not to be able to replay the repository at all.
  */
 export class VmBackupsCache {
-  // repository id → { backupsByVm, lastJournalRead, options, stale, url }
+  // repository id → { backupsByVm, cursor, journalConfirmed, options, proxy, refreshedAt, stale, url }
   /** @type {Map<string, Entry>} */
   #entries = new Map()
 
@@ -254,26 +260,31 @@ export class VmBackupsCache {
     const { id } = repository
     const entry = this.#entries.get(id)
     const now = Date.now()
-    // `#build()` installs its own entry, and removes it itself if the listing fails: an entry which
-    // is not the one this call started from must not be touched here
-    if (entry === undefined || !isSameRepository(entry, repository) || utcDay(entry.lastJournalRead) !== utcDay(now)) {
-      return await this.#build(repository)
-    }
-    if (entry.stale || now - entry.lastJournalRead >= this.#minRefreshDelay) {
-      try {
-        await this.#replay(repository, entry)
-      } catch (error) {
-        // the repository is probably unreachable: don't keep serving a listing which cannot be
-        // refreshed anymore, unless a newer build has already replaced this entry
-        if (this.#entries.get(id) === entry) {
-          this.#entries.delete(id)
-          debug('entry deleted', { repositoryId: id })
-        }
-        throw error
+
+    try {
+      if (entry === undefined || !isSameRepository(entry, repository) || utcDay(entry.refreshedAt) !== utcDay(now)) {
+        return await this.#build(repository)
       }
+
+      if (
+        (entry.stale || now - entry.refreshedAt >= this.#minRefreshDelay) &&
+        !(await this.#replay(repository, entry))
+      ) {
+        // the source cannot replay this repository, e.g. it is attached to a proxy which does not
+        // expose its journal: the only way to bring the entry up to date is to list it again
+        return await this.#build(repository)
+      }
+
+      // populated: this branch is only reached for an entry `#build()` has already completed
+      return /** @type {BackupsByVm} */ (entry.backupsByVm)
+    } catch (error) {
+      // the repository is probably unreachable: don't keep serving a listing which cannot be
+      // refreshed anymore
+      if (this.#entries.get(id) === entry) {
+        this.delete(id)
+      }
+      throw error
     }
-    // populated: this branch is only reached for an entry `#build()` has already completed
-    return /** @type {BackupsByVm} */ (entry.backupsByVm)
   }
 
   /**
@@ -320,8 +331,9 @@ export class VmBackupsCache {
     const entry = {
       backupsByVm: undefined,
       cursor: journalCursorAt(now - CLOCK_SKEW_TOLERANCE),
-      lastJournalRead: now,
       options: repository.options,
+      proxy: repository.proxy,
+      refreshedAt: now,
       stale: false,
       url: repository.url,
     }
@@ -349,31 +361,28 @@ export class VmBackupsCache {
   /**
    * @param {Repository} repository
    * @param {Entry} entry
-   * @returns {Promise<void>}
+   * @returns {Promise<boolean>} whether the entry could be brought up to date from the journal
    */
   async #replay(repository, entry) {
     // populated: `#replay()` is only called for an entry `#build()` has already completed
     const backupsByVm = /** @type {BackupsByVm} */ (entry.backupsByVm)
 
-    // reset before the journal read, so that a mutation which happens during it is not missed by
-    // the next one
-    entry.lastJournalRead = Date.now()
+    // taken and cleared before the journal read, so that a mutation or a `refresh()` which happens
+    // during it is not swallowed and the next listing replays again
+    //
+    // this is also why they are left as they are when the source turns out not to be replayable: the
+    // rebuild which follows is at least as fresh as the replay would have been
+    const refreshedAt = Date.now()
     entry.stale = false
 
-    const { events, cursor } = await this.#source.readJournal(repository, entry.cursor, {
-      mustExist: entry.journalConfirmed,
-    })
-
-    if (events.length > 0) {
-      entry.cursor = cursor
-      // the journal has now actually been observed to exist: it disappearing on a later replay is
-      // anomalous rather than a repository which has simply never been written to
-      entry.journalConfirmed = true
+    const read = await this.#source.readJournal(repository, entry.cursor, { mustExist: entry.journalConfirmed })
+    if (read === undefined) {
+      return false
     }
 
     // the source reduced the events to the last one of each backup, therefore they are independent
     // and the order they are applied in does not matter
-    for (const { vmUuid, filename, backup } of events) {
+    for (const { vmUuid, filename, backup } of read.events) {
       if (backup === undefined) {
         removeBackup(backupsByVm, vmUuid, filename)
       } else {
@@ -381,6 +390,16 @@ export class VmBackupsCache {
       }
     }
 
-    debug('entry replayed', { repositoryId: repository.id, nEvents: events.length })
+    if (read.events.length > 0) {
+      entry.cursor = /** @type {string} */ (read.cursor)
+      // the journal has now actually been observed to exist: it disappearing on a later replay is
+      // anomalous rather than a repository which has simply never been written to
+      entry.journalConfirmed = true
+    }
+    entry.refreshedAt = refreshedAt
+
+    debug('entry replayed', { repositoryId: repository.id, nEvents: read.events.length })
+
+    return true
   }
 }

@@ -95,7 +95,7 @@ export class VmBackupsSource {
    * @param {string | undefined} cursor
    * @param {object} [opts]
    * @param {boolean} [opts.mustExist] whether a missing journal directory should throw
-   * @returns {Promise<JournalRead>}
+   * @returns {Promise<JournalRead>} the local repository can always be replayed
    */
   async readJournal(repository, cursor, opts) {
     const { events, cursor: nextCursor } = await this.#useAdapter(repository, adapter =>
