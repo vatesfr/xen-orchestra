@@ -38,6 +38,10 @@ function createXenServers({ backupRunning = false } = {}) {
       return []
     },
     async getOptionalPlugin() {},
+    async startRpuRecoveryRun(poolId, options) {
+      calls.push(['startRpuRecoveryRun', poolId, options])
+      return { markRunning() {}, setTaskId() {}, async delete() {}, async fail() {} }
+    },
   }
   // the constructor arms a timeout that rejects if the `core started` hook,
   // never fired here, does not set up the server collection in time
@@ -71,6 +75,7 @@ describe('XenServers.rollingPoolUpdate', function () {
     assert.deepEqual(calls, [
       ['backupGuard', 'pool-1', { bypassBackupCheck: true, operation: 'rollingPoolUpdate' }],
       ['getAllJobs'],
+      ['startRpuRecoveryRun', 'pool-1', { bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: false }],
       ['xapi.rollingPoolUpdate', { rebootVm: true, shutdownPinnedVms: false }],
     ])
   })
