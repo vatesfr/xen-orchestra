@@ -9,6 +9,7 @@ import { resolveDiskLocation } from './_paths.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
 import { formatVecturaArgs, VECTURA_BIN } from './_vectura.mjs'
 import { COWD_HEADER_LENGTH, grainDirectoryToDataMap, parseCowdHeader } from './parsers/cowd.mjs'
+import { UNSAFE_KEYS } from './parsers/utils.mjs'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
@@ -418,10 +419,18 @@ export default class Esxi extends EventEmitter {
         }
 
         for (const { obj, propSet } of asArray(returnval.objects)) {
+          // `obj.$value` and `name` come from the SOAP response, and are used as keys: a reserved
+          // one would repoint the prototype of `objects` instead of holding a data property
+          if (UNSAFE_KEYS.has(obj.$value)) {
+            continue
+          }
           // an object can be split across pages
           const objectProperties = (objects[obj.$value] ??= {})
           // `propSet` is absent for an object with no readable property
           for (const { name, val } of asArray(propSet)) {
+            if (UNSAFE_KEYS.has(name)) {
+              continue
+            }
             objectProperties[name] = normalizeSoapValue(val)
           }
         }

@@ -1,8 +1,6 @@
 // the VMX file contains the VM  metadata
 
-// reserved names that would let an untrusted VMX line pollute Object.prototype
-// (e.g. "__proto__.permission = "admin"") instead of just setting a data property
-const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+import { UNSAFE_KEYS } from './utils.mjs'
 
 function set(obj, keyPath, val) {
   let [key, ...other] = keyPath
