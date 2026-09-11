@@ -63,7 +63,9 @@ async function generateVhd(path, opts = {}) {
   let vhd
 
   let dataPath = path
-  if (opts.mode === 'directory') {
+  const { mode = 'file' } = opts
+  assert.ok(mode === 'file' || mode === 'directory', `unknown mode ${mode}`)
+  if (mode === 'directory') {
     dataPath = dirname(path) + '/data/' + basename(path)
     await handler.mkdir(dirname(path) + '/data/')
     await handler.mkdir(dataPath)
@@ -82,7 +84,7 @@ async function generateVhd(path, opts = {}) {
     vhd.footer.diskType = Constants.DISK_TYPES.DYNAMIC
   }
 
-  if (opts.mode === 'directory') {
+  if (mode === 'directory') {
     await VhdAbstract.createAlias(handler, path + '.alias.vhd', dataPath)
   }
 
@@ -143,7 +145,7 @@ describe('RemoteAdapter#isMergeableParent', { concurrency: 1 }, () => {
             const targetUuid = uniqueIdBuffer()
 
             await generateVhd(`${basePath}/disk.vhd`, {
-              mode: diskIsDirectory ? 'directory' : 'plain',
+              mode: diskIsDirectory ? 'directory' : 'file',
               compression: diskIsDirectory ? (compressionMatches ? targetCompression : 'gzip') : undefined,
               uuid: uuidMatches ? targetUuid : uniqueIdBuffer(),
             })
