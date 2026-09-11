@@ -44,11 +44,11 @@ export default {
           },
           {
             to: '/users-and-access/rbac',
-            from: '/xo6/acl-v2',
+            from: ['/xo6/acl-v2', '/rbac'],
           },
           {
             to: '/manage-your-infrastructure/advanced',
-            from: '/advanced',
+            from: ['/advanced', '/xo5/advanced'],
           },
           {
             to: '/manage-your-infrastructure/advanced#alerts',
@@ -60,7 +60,7 @@ export default {
           },
           {
             to: '/getting-started/architecture',
-            from: '/xo5/architecture',
+            from: ['/xo5/architecture', 'architecture'],
           },
           {
             to: '/getting-started/architecture#plugins',
@@ -68,59 +68,63 @@ export default {
           },
           {
             to: '/backups-and-dr/backup_howto',
-            from: '/xo5/backup_howto',
+            from: ['/xo5/backup_howto', 'backup_howto'],
           },
           {
             to: '/backups-and-dr/calculator',
-            from: '/xo5/calculator',
+            from: ['/xo5/calculator', '/calculator'],
           },
           {
             to: '/backups-and-dr/backup_reports',
-            from: '/backup_reports',
+            from: ['/backup_reports', '/xo5/backup_reports'],
           },
           {
             to: '/backups-and-dr/backup_troubleshooting',
-            from: '/backup_troubleshooting',
+            from: ['/backup_troubleshooting', '/xo5/backup_troubleshooting'],
           },
           {
             to: '/backups-and-dr/backup-features-and-settings',
-            from: '/backups',
+            from: ['/backups', '/xo6/backups', '/xo5/backups'],
           },
           {
             to: '/support-and-licencing/community',
-            from: '/xo6/community',
+            from: ['/xo6/community', '/community'],
           },
           {
             to: '/getting-started/configuration',
-            from: '/xo5/configuration',
+            from: ['/xo5/configuration', 'configuration'],
           },
           {
             to: '/users-and-access/credential-encryption',
-            from: '/xo5/credential-encryption',
+            from: ['/xo5/credential-encryption', '/credential-encryption'],
           },
           {
             to: '/backups-and-dr/backup-types/full_backups',
-            from: '/xo5/full_backups',
+            from: ['/xo5/full_backups', '/full_backups'],
           },
           {
             to: '/backups-and-dr/backup-types/full_replication',
-            from: '/xo5/full_replication',
+            from: ['/xo5/full_replication', '/full_replication'],
           },
           {
             to: '/backups-and-dr/scale-and-security/immutability',
-            from: '/xo5/immutability',
+            from: ['/xo5/immutability', '/immutability'],
           },
           {
             to: '/backups-and-dr/backup-types/incremental_backups',
-            from: '/incremental_backups',
+            from: ['/incremental_backups', '/xo5/incremental_backups'],
           },
           {
             to: '/backups-and-dr/backup-types/incremental_replication',
-            from: '/incremental_replication',
+            from: ['/incremental_replication', '/xo5/incremental_replication'],
           },
           {
             to: '/getting-started/installation',
-            from: '/xo5/installation',
+            from: ['/xoa', '/xo5/xoa', 'installation', '/xo5/installation'],
+          },
+          {
+            to: '/getting-started/install-from-sources',
+            from: 'install-from-sources',
           },
           {
             to: '/backups-and-dr/backup-features-and-settings',
@@ -128,11 +132,11 @@ export default {
           },
           {
             to: '/support-and-licencing/support',
-            from: ['/license_management', '/xo5/license_management', '/xo6/support'],
+            from: ['/license_management', '/xo5/license_management', '/xo6/support', '/support'],
           },
           {
             to: '/manage-your-infrastructure/load_balancing',
-            from: '/load_balancing',
+            from: ['/load_balancing', '/xo5/load_balancing'],
           },
           {
             to: '/manage-your-infrastructure/manage_infrastructure',
@@ -148,7 +152,7 @@ export default {
           },
           {
             to: '/backups-and-dr/backup-types/metadata_backup',
-            from: '/metadata_backup',
+            from: ['/metadata_backup', '/xo5/metadata_backup'],
           },
           {
             to: '/getting-started/migrate_to_new_xoa',
@@ -156,15 +160,15 @@ export default {
           },
           {
             to: '/backups-and-dr/backup-types/mirror_backup',
-            from: '/xo5/mirror_backup',
+            from: ['/xo5/mirror_backup', '/mirror_backup'],
           },
           {
             to: '/backups-and-dr/scale-and-security/object-storage-support',
-            from: '/xo5/object-storage-support',
+            from: ['/xo5/object-storage-support', '/object-storage-support'],
           },
           {
             to: '/backups-and-dr/scale-and-security/proxy',
-            from: '/proxy',
+            from: ['/proxy', '/xo5/proxy'],
           },
           {
             to: '/support-and-licencing/support#licensing',
@@ -204,11 +208,11 @@ export default {
           },
           {
             to: '/backups-and-dr/backup-types/rolling_snapshots',
-            from: '/xo5/rolling_snapshots',
+            from: ['/xo5/rolling_snapshots', '/rolling_snapshots'],
           },
           {
             to: '/manage-your-infrastructure/sdn_controller',
-            from: '/sdn_controller',
+            from: ['/sdn_controller', '/xo5/sdn_controller'],
           },
           {
             to: '/getting-started/supported_hosts',
@@ -224,19 +228,71 @@ export default {
           },
           {
             to: '/users-and-access/users',
-            from: '/users',
+            from: ['/users', '/xo5/users'],
           },
           {
             to: '/guides/v2v-migration-guide',
-            from: '/v2v-migration-guide',
+            from: ['/v2v-migration-guide', '/xo5/v2v-migration-guide'],
+          },
+          {
+            to: '/guides/windows-templates',
+            from: ['/windows-templates'],
           },
           {
             to: '/manage-your-infrastructure/vm-templates',
-            from: '/vm-templates',
+            from: ['/vm-templates', '/xo5/vm-templates'],
           },
           {
-            to: '/getting-started/installation',
-            from: ['/xoa', '/xo5/xoa'],
+            to: '/discover-xen-orchestra/whatsnew',
+            from: '/xo6/whatsnew',
+          },
+          {
+            to: '/discover-xen-orchestra/xo6vsxo5',
+            from: '/xo6/xo6vsxo5',
+          },
+          {
+            to: '/discover-xen-orchestra/gettingstarted',
+            from: '/xo6/gettingstarted',
+          },
+          {
+            to: '/discover-xen-orchestra/coreconcepts',
+            from: '/xo6/coreconcepts',
+          },
+          {
+            to: '/manage-your-infrastructure/management',
+            from: '/xo6/management',
+          },
+          {
+            to: '/manage-your-infrastructure/manage_infrastructure',
+            from: '/xo5/manage_infrastructure',
+          },
+          {
+            to: '/manage-your-infrastructure/ipmi-plugin',
+            from: '/xo5/ipmi-plugin',
+          },
+          {
+            to: '/backups-and-dr/backup',
+            from: '/backup',
+          },
+          {
+            to: '/backups-and-dr/scale-and-security/distributed_backups',
+            from: '/distributed_backups',
+          },
+          {
+            to: '/project/project',
+            from: '/project',
+          },
+          {
+            to: '/project/contributing',
+            from: '/contributing',
+          },
+          {
+            to: '/project/licenses',
+            from: '/licenses',
+          },
+          {
+            to: '/project/glossary',
+            from: '/glossary',
           },
         ],
       },
