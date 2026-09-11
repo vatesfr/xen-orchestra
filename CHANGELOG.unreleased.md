@@ -35,6 +35,7 @@
 - [Backup] Fix `uncaught exception AssertionError: assert(!this.paused)` in the logs, when a host closes a transfer while XO is writing to a slower destination (PR [#10282](https://github.com/vatesfr/xen-orchestra/pull/10282))
 - [xo-server] If an HTTP proxy was configured, internal routes (`/openmetrics`, `/v5`) were wrongly routed through it when xo-server listened on a wildcard address. `localhost` targets are now always reached directly, bypassing the HTTP proxy, whether the configured listen address is a wildcard (`0.0.0.0`, `::`) or a specific one (PR [#10335](https://github.com/vatesfr/xen-orchestra/pull/10335))
 - [Backups] Fix slow replication startup and fallback to full on qcow2 (PR [#10333](https://github.com/vatesfr/xen-orchestra/pull/10333))
+- [xo-server] Fix a memory leak when a client stops reading a proxied response, e.g. a Prometheus scrape of `/openmetrics` reaching its timeout: the request to the proxied service was never closed and its whole response stayed in memory, which could end up in the appliance being OOM-killed (PR [#10388](https://github.com/vatesfr/xen-orchestra/pull/10388))
 
 ### Packages to release
 
