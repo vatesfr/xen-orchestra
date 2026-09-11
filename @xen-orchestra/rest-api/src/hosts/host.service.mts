@@ -101,13 +101,10 @@ export class HostService {
       bypassEvacuate?: boolean
     } = {}
   ): Promise<void> {
-    const host = this.#restApi.getObject<XoHost>(hostId)
-
-    if (opts?.bypassBackupCheck) {
-      log.warn('host clean_shutdown called with argument "bypassBackupCheck" set to true', { hostId })
-    } else {
-      await this.#restApi.xoApp.backupGuard(host.$pool)
-    }
+    await this.#restApi.xoApp.backupGuard(hostId, {
+      bypassBackupCheck: opts.bypassBackupCheck,
+      operation: 'host.clean_shutdown',
+    })
 
     await this.#restApi.getXapiObject(hostId, 'host').$xapi.shutdownHost(hostId, opts)
   }
@@ -116,7 +113,7 @@ export class HostService {
     hostId: XoHost['id'],
     opts: {
       force: boolean
-      bypassBackupCheck: boolean
+      bypassBackupCheck?: boolean
       bypassVersionCheck: boolean
     }
   ): Promise<void> {
@@ -128,7 +125,7 @@ export class HostService {
   async smartRebootHost(
     hostId: XoHost['id'],
     opts: {
-      bypassBackupCheck: boolean
+      bypassBackupCheck?: boolean
       bypassVersionCheck: boolean
       bypassBlockedSuspend: boolean
       bypassCurrentVmCheck: boolean
@@ -147,13 +144,10 @@ export class HostService {
       bypassBackupCheck?: boolean
     } = {}
   ): Promise<void> {
-    const host = this.#restApi.getObject<XoHost>(hostId)
-
-    if (opts?.bypassBackupCheck) {
-      log.warn('host.restartAgent called with argument "bypassBackupCheck" set to true', { hostId })
-    } else {
-      await this.#restApi.xoApp.backupGuard(host.$pool)
-    }
+    await this.#restApi.xoApp.backupGuard(hostId, {
+      bypassBackupCheck: opts.bypassBackupCheck,
+      operation: 'host.restartAgent',
+    })
 
     await this.#restApi.getXapiObject<XoHost>(hostId, 'host').$restartAgent()
   }
@@ -161,7 +155,7 @@ export class HostService {
   async #rebootChecks(
     hostId: XoHost['id'],
     opts: {
-      bypassBackupCheck: boolean
+      bypassBackupCheck?: boolean
       bypassVersionCheck: boolean
     }
   ): Promise<{ xapi: Xapi; xapiHost: XenApiHostWrapped }> {
@@ -170,11 +164,10 @@ export class HostService {
     const poolId = host.$pool
     const xapi = xapiHost.$xapi
 
-    if (opts.bypassBackupCheck) {
-      log.warn('host.reboot called with "bypassBackupCheck" set to true', { hostId })
-    } else {
-      await this.#restApi.xoApp.backupGuard(poolId)
-    }
+    await this.#restApi.xoApp.backupGuard(hostId, {
+      bypassBackupCheck: opts.bypassBackupCheck,
+      operation: 'host.reboot',
+    })
 
     if (opts.bypassVersionCheck) {
       log.warn('host.reboot called with "bypassVersionCheck" set to true', { hostId })

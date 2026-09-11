@@ -8,7 +8,6 @@ import type { VatesTask } from '@vates/types/lib/vates/task'
 import type { XapiXoRecord, XoRecord, XoTask } from '@vates/types/xo'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
-import { BASE_URL } from '../index.mjs'
 import { makeMarkdownTable } from '../helpers/markdown.helper.mjs'
 import { makeNdJsonStream } from '../helpers/stream.helper.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -16,7 +15,7 @@ import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import type { Response as ExResponse } from 'express'
 import { invalidParameters } from 'xo-common/api-errors.js'
-import { NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import { BASE_URL, NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 const noop = () => {}
 

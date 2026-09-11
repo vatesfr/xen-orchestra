@@ -38,9 +38,8 @@ import {
   unauthorizedResp,
   Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { BASE_URL } from '../index.mjs'
 import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
-import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import { BASE_URL, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
