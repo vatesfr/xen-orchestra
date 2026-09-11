@@ -10,6 +10,7 @@ import { createLogger } from '@xen-orchestra/log'
  * @property {string} id
  * @property {string} url
  * @property {object} [options]
+ * @property {string} [proxy] id of the proxy this repository is attached to, if any
  */
 
 /**
@@ -63,6 +64,9 @@ import { createLogger } from '@xen-orchestra/log'
  * it as `since`: it is stamped by the process which reads the journal, which is not necessarily
  * this one, and must therefore never be compared with this process' clock
  * @property {object} [options]
+ * @property {string} [proxy]
+ * @property {number} refreshedAt when this process last brought the entry up to date, i.e. the only
+ * field which may be compared with its clock
  * @property {boolean} stale
  * @property {string} url
  */
@@ -85,7 +89,8 @@ const utcDay = timestamp => Math.floor(timestamp / MS_PER_DAY)
  * @param {Repository} repository
  * @returns {boolean}
  */
-const isSameRepository = (entry, repository) => entry.url === repository.url && entry.options === repository.options
+const isSameRepository = (entry, repository) =>
+  entry.url === repository.url && entry.options === repository.options && entry.proxy === repository.proxy
 
 /**
  * forgets a backup, and the VM it belonged to when it was its last one
@@ -150,12 +155,12 @@ export function serveVmBackups(backupsByVm, remoteId, vmId) {
  *
  * Entries are rebuilt from scratch when they cross a UTC day, which bounds the drift accumulated
  * from the events which could not be journaled, or which are not journaled at all (e.g. the
- * `immutable-backups` daemon lifting the immutability of a backup), and when the remote is
- * re-pointed or reconfigured, which the entry detects by itself from the `url` and the `options` it
- * was built from.
+ * `immutable-backups` daemon lifting the immutability of a backup), when the remote is re-pointed,
+ * reconfigured or moved to another proxy, which the entry detects by itself from what it was built
+ * from, and when the source turns out not to be able to replay the repository at all.
  */
 export class VmBackupsCache {
-  // repository id → { backupsByVm, lastJournalRead, options, stale, url }
+  // repository id → { backupsByVm, lastJournalRead, options, proxy, refreshedAt, stale, url }
   /** @type {Map<string, Entry>} */
   #entries = new Map()
 
@@ -242,16 +247,17 @@ export class VmBackupsCache {
     const now = Date.now()
 
     try {
-      if (
-        entry === undefined ||
-        !isSameRepository(entry, repository) ||
-        utcDay(entry.lastJournalRead) !== utcDay(now)
-      ) {
+      if (entry === undefined || !isSameRepository(entry, repository) || utcDay(entry.refreshedAt) !== utcDay(now)) {
         return await this.#build(repository)
       }
 
-      if (entry.stale || now - entry.lastJournalRead >= this.#minRefreshDelay) {
-        await this.#replay(repository, entry)
+      if (
+        (entry.stale || now - entry.refreshedAt >= this.#minRefreshDelay) &&
+        !(await this.#replay(repository, entry))
+      ) {
+        // the source cannot replay this repository, e.g. it is attached to a proxy which does not
+        // expose its journal: the only way to bring the entry up to date is to list it again
+        return await this.#build(repository)
       }
 
       return entry.backupsByVm
@@ -303,6 +309,8 @@ export class VmBackupsCache {
       backupsByVm: undefined,
       lastJournalRead: undefined,
       options: repository.options,
+      proxy: repository.proxy,
+      refreshedAt: Date.now(),
       stale: false,
       url: repository.url,
     }
@@ -325,22 +333,29 @@ export class VmBackupsCache {
   /**
    * @param {Repository} repository
    * @param {Entry} entry
-   * @returns {Promise<void>}
+   * @returns {Promise<boolean>} whether the entry could be brought up to date from the journal
    */
   async #replay(repository, entry) {
     const { backupsByVm } = entry
 
     const since = entry.lastJournalRead - CLOCK_SKEW_TOLERANCE
 
-    // cleared before the journal read, so that a `refresh()` which happens during it is not
-    // swallowed and the next listing replays again
+    // taken and cleared before the journal read, so that a mutation or a `refresh()` which happens
+    // during it is not swallowed and the next listing replays again
+    //
+    // this is also why they are left as they are when the source turns out not to be replayable:
+    // the rebuild which follows is at least as fresh as the replay would have been
+    const refreshedAt = Date.now()
     entry.stale = false
 
-    const { events, lastJournalRead } = await this.#source.readJournal(repository, since)
+    const read = await this.#source.readJournal(repository, since)
+    if (read === undefined) {
+      return false
+    }
 
     // the source reduced the events to the last one of each backup, therefore they are independent
     // and the order they are applied in does not matter
-    for (const { vmUuid, filename, backup } of events) {
+    for (const { vmUuid, filename, backup } of read.events) {
       if (backup === undefined) {
         removeBackup(backupsByVm, vmUuid, filename)
       } else {
@@ -348,8 +363,11 @@ export class VmBackupsCache {
       }
     }
 
-    entry.lastJournalRead = lastJournalRead
+    entry.lastJournalRead = read.lastJournalRead
+    entry.refreshedAt = refreshedAt
 
-    debug('entry replayed', { repositoryId: repository.id, nEvents: events.length })
+    debug('entry replayed', { repositoryId: repository.id, nEvents: read.events.length })
+
+    return true
   }
 }
