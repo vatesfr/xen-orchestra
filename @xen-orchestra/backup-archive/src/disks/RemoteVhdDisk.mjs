@@ -17,7 +17,7 @@ import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 import { stringify } from 'uuid'
 import { dirname, join } from 'node:path'
 import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
-import { normalize } from '@xen-orchestra/fs/path'
+import { isInDir, normalize } from '@xen-orchestra/fs/path'
 
 export class RemoteVhdDisk extends RemoteDisk {
   /**
@@ -572,18 +572,15 @@ export class RemoteVhdDisk extends RemoteDisk {
    * @returns {Promise<string[]>}
    */
   async listAssociatedFiles(dir) {
-    const prefix = normalize(dir.endsWith('/') ? dir : dir + '/')
-    const isInDir = /** @param {string} p */ p => p === dir || p.startsWith(prefix)
-
     const files = []
-    if (isInDir(this.#path)) {
+    if (isInDir(this.#path, dir)) {
       files.push(this.#path)
     }
 
     if (isVhdAlias(this.#path)) {
       try {
         const resolved = await resolveVhdAlias(this.#handler, this.#path)
-        if (isInDir(resolved)) {
+        if (isInDir(resolved, dir)) {
           files.push(resolved)
         }
       } catch {
