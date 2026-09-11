@@ -235,7 +235,6 @@ export class ImportVmBackup {
     const adapter = this._adapter
     const metadata = this._metadata
     const isFull = metadata.mode === 'full'
-
     const sizeContainer = { size: 0 }
     const { newMacAddresses, vmNamePrefix } = this._importIncrementalVmSettings
     let backup
@@ -257,7 +256,11 @@ export class ImportVmBackup {
         const srRef = await xapi.call('SR.get_by_uuid', this._srUuid)
 
         const vmRef = isFull
-          ? await xapi.VM_import(backup, srRef)
+          ? await xapi.VM_import(
+              backup,
+              srRef,
+              vmNamePrefix === undefined ? null : vm => vm.set_name_label(vmNamePrefix + metadata.vm.name_label)
+            )
           : await importIncrementalVm(backup, await xapi.getRecord('SR', srRef), {
               newMacAddresses,
               vmNamePrefix,
