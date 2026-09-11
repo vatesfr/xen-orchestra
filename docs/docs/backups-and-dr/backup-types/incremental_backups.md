@@ -134,9 +134,25 @@ Migrating the VDIs of a VM to another SR will trigger a full export at the next 
 
 You have the option to use the NBD network protocol for data transfer instead of the VHD export handler exposed by the XAPI. NBD-enabled backups are generally faster, as the load on the Dom0 is reduced.
 
-NBD must first be enabled on the network used to transfer the backups: select the relevant pool, and navigate to the Network tab to modify the parameter. Data is then transferred from the host to XOA over an encrypted (TLS) NBD connection.
+### Network requirements {#nbd-network-requirements}
+
+NBD is a direct connection from the machine running the backup (XOA, or the xo-proxy the job is delegated to) to the **host currently running the VM** — not to the pool master, and not through XAPI. The backup runner must therefore have **at least one network** that meets **all** of these conditions:
+
+- **NBD is enabled on it.** Select the pool, navigate to the **Network** tab and enable NBD on the network. Data is then transferred over an encrypted (TLS) NBD connection.
+- **It is routable from the backup runner to the host running the VM.** Routing and firewalling must allow the runner to open a connection to that host on this network.
+:::note
+NBD only uses IPv4. An IPv6-only network cannot be used for the transfer.
+:::
 
 <UiDetail src="/img/xo5/nbd-connection.png" alt="Enable NBD on the transfer network, in the pool's Network tab" width={700} />
+
+Because a VM can be started on — or migrated to — any host of the pool, **every host that may run a backed-up VM** has to meet these conditions. Otherwise NBD will work for some VMs and silently fall back for others, depending on where they run at backup time.
+
+:::warning
+If a Backup network is configured for the pool (**Pool** view → **Advanced** tab), only that network is used for every VM in the pool. NBD must be enabled on that network, and all three conditions above must be met. Any other NBD-enabled network in the pool is ignored, and the job falls back to the VHD export handler.
+:::
+
+### Enable NBD in the backup job
 
 When creating or editing an incremental backup or replication job for this pool, you can then enable **Use NBD to transfer disk** in the Advanced settings, and raise the number of NBD connections per disk to parallelize the transfer:
 
@@ -149,7 +165,9 @@ After the job has run, always verify in the backup log that NBD was actually use
 :::warning
 **Incremental backups of qcow2 disks require NBD.** qcow2 disks are used for VDIs larger than 2 TiB and on storage repositories that store their disks in the qcow2 format.
 
-Enabling **Use NBD to transfer disk** in the job's Advanced settings is not sufficient on its own. NBD must also be enabled on at least one network of **every** pool involved, and XOA (or the proxy running the backup) must be able to reach those networks. If a default backup network is set, NBD must be enabled on it. If these conditions are not met, the job **falls back with a warning** to a non-NBD transfer: no qcow2 delta can be produced, so each run transfers a full backup instead. Always confirm NBD was actually used in the backup log after the first run.
+Enabling **Use NBD to transfer disk** in the job's Advanced settings is not sufficient on its own: the [network requirements](#nbd-network-requirements) must also be satisfied on **every** pool involved. If these conditions are not met, the job **falls back with a warning** to a non-NBD transfer: no qcow2 delta can be produced, so each run transfers a full backup instead. 
+
+Always confirm NBD was actually used in the backup log after the first run.
 :::
 
 To learn more about the evolution of this feature across various XO releases, check out our blog posts for versions [5.76](https://xen-orchestra.com/blog/xen-orchestra-5-76/), [5.81](https://xen-orchestra.com/blog/xen-orchestra-5-81/), [5.82](https://xen-orchestra.com/blog/xen-orchestra-5-82/), and [5.86](https://xen-orchestra.com/blog/xen-orchestra-5-86/).
@@ -168,7 +186,7 @@ The benefit: the reference snapshot no longer uses any notable space on the SR, 
 
 Requirements and limitations:
 
-- NBD is required: **Use NBD to transfer disk** must be enabled in the job, and NBD must be [enabled on the network](#nbd-enabled-backups).
+- NBD is required: **Use NBD to transfer disk** must be enabled in the job, and the [network requirements](#nbd-network-requirements) must be met.
 - It is not compatible with rolling snapshots: the job's snapshot retention must be 0.
 - Since the purged snapshot only keeps metadata, it is not shown in the UI and can't be used for a rollback or a differential restore.
 - Reverting to an XO version without CBT support will trigger a full backup on the next run.
