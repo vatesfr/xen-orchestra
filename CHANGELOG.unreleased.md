@@ -20,6 +20,7 @@
 - [REST API] VDI can now be exported in qcow2 format, and the VHD export uses NBD when available. Both formats work whatever the format the disk is stored in. Every export format, raw included, now provides the size of the download (PR [#10350](https://github.com/vatesfr/xen-orchestra/pull/10350))
 - [REST API] SSE now supports Non XAPI objects (user, group, acl-privilege, acl-role, proxy, server, backup-repository, backup-job, schedule) (PR [#10278](https://github.com/vatesfr/xen-orchestra/pull/10278))
 - [REST API/SDN Controller, Audit] Traffic rule and audit record routes are now documented in the Swagger/OpenAPI spec (PR [#9895](https://github.com/vatesfr/xen-orchestra/pull/9895))
+- [LDAP] Release plugin for LDAP multidomain management (PR [#10015](https://github.com/vatesfr/xen-orchestra/pull/10015))
 
 ### Bug fixes
 
@@ -67,6 +68,7 @@
 - xen-api major
 - xo-server minor
 - xo-server-audit patch
+- xo-server-auth-ldap patch
 - xo-server-sdn-controller patch
 - xo-web minor
 
