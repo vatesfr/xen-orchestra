@@ -8,29 +8,29 @@
         @click="open($event)"
       />
     </template>
-    <MenuItem accent="neutral" icon="fa:gear" @click="openSettings">{{ t('settings') }}</MenuItem>
+    <MenuItem accent="brand" icon="fa:gear" @click="openSettings">{{ t('settings') }}</MenuItem>
     <MenuItem
-      accent="neutral"
+      accent="brand"
       icon="fa:book"
       @click="openUrl('https://docs.xcp-ng.org?utm_campaign=xolite&utm_term=xcpdoc')"
     >
       {{ t('documentation-name', { name: 'XCP-ng' }) }}
     </MenuItem>
     <MenuItem
-      accent="neutral"
+      accent="brand"
       icon="fa:headset"
       @click="openUrl('https://vates.tech/pricing-and-support?utm_campaign=xolite&utm_term=pricing')"
     >
       {{ t('professional-support') }}
     </MenuItem>
     <MenuItem
-      accent="neutral"
+      accent="brand"
       icon="fa:comments"
       @click="openUrl('https://xcp-ng.org/forum/topic/4731/xen-orchestra-lite?utm_campaign=xolite&utm_term=forum')"
     >
       {{ t('access-forum') }}
     </MenuItem>
-    <MenuItem accent="danger" icon="fa:arrow-right-from-bracket" @click="logout">
+    <MenuItem accent="brand" icon="fa:arrow-right-from-bracket" @click="logout">
       {{ t('action:log-out') }}
     </MenuItem>
   </MenuList>
