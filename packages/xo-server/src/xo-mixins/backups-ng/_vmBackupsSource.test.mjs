@@ -30,6 +30,33 @@ const createSource = adapter =>
     },
   })
 
+const PROXY = 'a-proxy-id'
+const PROXIED_REPOSITORY = { ...REPOSITORY, proxy: PROXY }
+
+const methodNotFound = method =>
+  // what `callProxyMethod()` throws back: the deserialized payload, not an `Error`
+  ({ code: -32601, message: `method not found: ${method}`, data: method })
+
+// records every call and answers them from `handlers`
+const createProxiedSource = handlers => {
+  const calls = []
+  const source = new VmBackupsSource({
+    async callProxyMethod(proxyId, method, params) {
+      assert.equal(proxyId, PROXY)
+      calls.push({ method, params })
+      const handler = handlers[method]
+      if (handler === undefined) {
+        throw methodNotFound(method)
+      }
+      return handler(params)
+    },
+  })
+  return { calls, source }
+}
+
+// a backup as a proxy returns it, i.e. already formatted
+const formattedOf = name => ({ id: filenameOf(name), backupRepository: REPOSITORY.id, timestamp: 1 })
+
 describe('listAll()', () => {
   it('keys the backups of each VM by the name of their metadata', async () => {
     const metadata = metadataOf('20260811T090000')
@@ -83,5 +110,114 @@ describe('readJournal()', () => {
     assert.equal(events[0].backup.backupRepository, REPOSITORY.id)
     assert.equal(events[1].backup, undefined, 'a deletion carries no backup')
     assert.equal(events[1].filename, filenameOf('20260811T093000'))
+  })
+})
+
+describe('on a repository attached to a proxy', () => {
+  it('keys the backups the proxy formatted', async () => {
+    const backup = formattedOf('20260811T090000')
+    const { calls, source } = createProxiedSource({
+      'backup.listVmBackups': () => ({ [REPOSITORY.id]: { [VM]: [backup] } }),
+    })
+
+    const backupsByVm = await source.listAll(PROXIED_REPOSITORY)
+
+    assert.deepEqual(backupsByVm, { [VM]: { [backup.id]: backup } })
+    assert.deepEqual(
+      calls.map(_ => _.method),
+      ['backup.listVmBackups']
+    )
+  })
+
+  it('fails the listing when the proxy could not read the repository', async () => {
+    const { source } = createProxiedSource({
+      // the proxy omits the repositories it failed to list
+      'backup.listVmBackups': () => ({}),
+    })
+
+    await assert.rejects(source.listAll(PROXIED_REPOSITORY), /failed to list the backup repository/)
+  })
+
+  it('reads the journal of the proxy', async () => {
+    const backup = formattedOf('20260811T090000')
+    const { calls, source } = createProxiedSource({
+      'backup.listVmBackupsJournal': () => ({
+        events: [{ event: 'add', vmUuid: VM, filename: backup.id, backup }],
+        cursor: 'the-next-cursor',
+      }),
+    })
+
+    const read = await source.readJournal(PROXIED_REPOSITORY, 'a-cursor', { mustExist: true })
+
+    assert.equal(read.cursor, 'the-next-cursor')
+    assert.deepEqual(read.events[0].backup, backup)
+    assert.deepEqual(calls[0].params, {
+      remote: { url: REPOSITORY.url, options: undefined },
+      remoteId: REPOSITORY.id,
+      cursor: 'a-cursor',
+      mustExist: true,
+    })
+  })
+
+  it('reports a proxy which does not expose its journal as unreplayable, and warns once', async () => {
+    const { calls, source } = createProxiedSource({
+      'backup.listVmBackups': () => ({ [REPOSITORY.id]: {} }),
+    })
+
+    assert.equal(await source.readJournal(PROXIED_REPOSITORY, 'a-cursor'), undefined)
+    assert.equal(await source.readJournal(PROXIED_REPOSITORY, 'a-cursor'), undefined)
+
+    // an old proxy can still be listed in full
+    await source.listAll(PROXIED_REPOSITORY)
+
+    // the method is still called every time, so a proxy which gets upgraded is replayed at once
+    assert.equal(calls.filter(_ => _.method === 'backup.listVmBackupsJournal').length, 2)
+  })
+
+  it('lets an error other than a missing method fail the read', async () => {
+    const { source } = createProxiedSource({
+      'backup.listVmBackupsJournal': () => {
+        throw new Error('the proxy is unreachable')
+      },
+    })
+
+    await assert.rejects(source.readJournal(PROXIED_REPOSITORY, 'a-cursor'), /unreachable/)
+  })
+
+  it('lists a single VM through the proxy', async () => {
+    const backup = formattedOf('20260811T090000')
+    const { calls, source } = createProxiedSource({
+      'backup.listVmBackups': ({ vmId }) => ({ [REPOSITORY.id]: vmId === VM ? { [VM]: [backup] } : {} }),
+    })
+
+    assert.deepEqual(await source.listOneVm(PROXIED_REPOSITORY, VM), { [backup.id]: backup })
+    assert.equal(calls[0].params.vmId, VM)
+  })
+
+  it('lists every VM when the proxy does not know how to list a single one', async () => {
+    const backup = formattedOf('20260811T090000')
+    const { calls, source } = createProxiedSource({
+      'backup.listVmBackups': ({ vmId }) => {
+        if (vmId !== undefined) {
+          // what a proxy older than the `vmId` parameter answers
+          throw Object.assign(new Error('invalid parameters'), { code: 10 })
+        }
+        return { [REPOSITORY.id]: { [VM]: [backup] } }
+      },
+    })
+
+    assert.deepEqual(await source.listOneVm(PROXIED_REPOSITORY, VM), { [backup.id]: backup })
+    assert.deepEqual(
+      calls.map(_ => _.params.vmId),
+      [VM, undefined]
+    )
+  })
+
+  it('returns nothing for a VM the proxy has no backup of', async () => {
+    const { source } = createProxiedSource({
+      'backup.listVmBackups': () => ({ [REPOSITORY.id]: {} }),
+    })
+
+    assert.deepEqual(await source.listOneVm(PROXIED_REPOSITORY, VM), {})
   })
 })
