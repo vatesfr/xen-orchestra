@@ -224,8 +224,16 @@ class Repository {
         this.nListings++
         return { [VM]: [...this.metadataByFilename.values()] }
       },
-      readBackupJournal: async since => this.journal.filter(_ => _.date > since),
-      readVmBackupMetadata: async filename => this.metadataByFilename.get(filename),
+      readBackupJournalEvents: async since => ({
+        lastJournalRead: Date.now(),
+        events: this.journal
+          .filter(_ => _.date > since)
+          .map(({ event, filename, vmUuid }) => {
+            const metadata = this.metadataByFilename.get(filename)
+            // a backup which is gone is reported as deleted, whatever its last event says
+            return metadata === undefined ? { event: 'del', vmUuid, filename } : { event, vmUuid, filename, metadata }
+          }),
+      }),
     }
   }
 }
