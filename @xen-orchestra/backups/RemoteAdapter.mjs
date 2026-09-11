@@ -555,29 +555,28 @@ export class RemoteAdapter {
   async readBackupJournalEvents(cursor, opts) {
     const entries = await this.readBackupJournal(cursor, opts)
 
-    // the entries are oldest first: the last one is the cursor for the next call
-    if (entries.length > 0) {
-      cursor = entries[entries.length - 1]._filename
-    }
-
     // the entries are oldest first, therefore the last event of a backup is its current state: a
     // backup which was written then deleted costs no metadata read at all, and one which was
     // rewritten several times costs a single one
     const lastEventByFilename = new Map()
-    for (const { event, filename, vmUuid } of entries) {
+    entries.forEach(({ event, filename, vmUuid }, index) => {
       if (event !== 'add' && event !== 'change' && event !== 'del') {
         warn('ignoring unsupported journal event', { event, filename })
-        continue
+        return
       }
 
       // the entries are written by several code paths which don't agree on the leading slash
-      lastEventByFilename.set(normalize(filename), { event, vmUuid })
-    }
+      lastEventByFilename.set(normalize(filename), { event, index, vmUuid })
+    })
+
+    // the index, in `entries`, of the earliest one whose metadata could not be read: the cursor is
+    // clamped to just before it, so that the next call retries it instead of skipping it
+    let minFailedIndex = entries.length
 
     // there is at most one event per backup left, therefore they can be resolved concurrently and
     // the order `asyncEach` returns them in does not matter
     const events = []
-    await asyncEach(lastEventByFilename, async ([filename, { event, vmUuid }]) => {
+    await asyncEach(lastEventByFilename, async ([filename, { event, index, vmUuid }]) => {
       if (event === 'del') {
         events.push({ event, vmUuid, filename })
         return
@@ -595,11 +594,29 @@ export class RemoteAdapter {
           events.push({ event: 'del', vmUuid, filename })
           return
         }
-        throw error
+
+        // One unreadable metadata must not fail the whole read: the caller would forget the
+        // repository and list it in full on every call for as long as the file stays unreadable,
+        // which is much more expensive than what this read costs.
+        //
+        // Its event is kept behind the cursor instead of being dropped, so that the next read
+        // tries it again: a transient failure costs nothing, and a permanent one only widens the
+        // window of a journal read, until the caller rebuilds from scratch anyway.
+        warn(`can't read the metadata of a backup an event is about`, { error, event, filename })
+        if (index < minFailedIndex) {
+          minFailedIndex = index
+        }
+        return
       }
 
       events.push({ event, vmUuid, filename, metadata })
     })
+
+    // advance the cursor up to the last successfully read entry, oldest first: unchanged when the
+    // very first entry already failed
+    if (entries.length > 0 && minFailedIndex > 0) {
+      cursor = entries[minFailedIndex - 1]._filename
+    }
 
     return { events, cursor }
   }
