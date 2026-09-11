@@ -60,7 +60,7 @@ export default {
           },
           {
             to: '/getting-started/architecture',
-            from: ['/xo5/architecture', 'architecture'],
+            from: ['/xo5/architecture', '/architecture'],
           },
           {
             to: '/getting-started/architecture#plugins',
@@ -68,7 +68,7 @@ export default {
           },
           {
             to: '/backups-and-dr/backup_howto',
-            from: ['/xo5/backup_howto', 'backup_howto'],
+            from: ['/xo5/backup_howto', '/backup_howto'],
           },
           {
             to: '/backups-and-dr/calculator',
@@ -92,7 +92,7 @@ export default {
           },
           {
             to: '/getting-started/configuration',
-            from: ['/xo5/configuration', 'configuration'],
+            from: ['/xo5/configuration', '/configuration'],
           },
           {
             to: '/users-and-access/credential-encryption',
@@ -120,11 +120,11 @@ export default {
           },
           {
             to: '/getting-started/installation',
-            from: ['/xoa', '/xo5/xoa', 'installation', '/xo5/installation'],
+            from: ['/xoa', '/xo5/xoa', '/installation', '/xo5/installation'],
           },
           {
             to: '/getting-started/install-from-sources',
-            from: 'install-from-sources',
+            from: '/install-from-sources',
           },
           {
             to: '/backups-and-dr/backup-features-and-settings',
