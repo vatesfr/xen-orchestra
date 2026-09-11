@@ -95,9 +95,12 @@ const getIpConfigurationMode = (ipMode: IP_CONFIGURATION_MODE) => {
   }
 }
 
-const sortedPifs = useSorted(filteredPifs, (pif1, pif2) =>
-  sortByNameLabel(getNetworkById(pif1.$network)!, getNetworkById(pif2.$network)!)
-)
+const sortedPifs = useSorted(filteredPifs, (pif1, pif2) => {
+  const network1 = getNetworkById(pif1.$network)
+  const network2 = getNetworkById(pif2.$network)
+
+  return network1 && network2 ? sortByNameLabel(network1, network2) : 0
+})
 
 const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', sortedPifs)
 
