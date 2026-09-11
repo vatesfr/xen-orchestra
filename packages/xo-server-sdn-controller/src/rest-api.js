@@ -134,21 +134,32 @@ function deleteRuleRoute(controller, resource) {
     body: RULE_FIELDS,
     responses: [
       { status: 204, description: 'Rule deleted successfully' },
-      { status: 404, description: `No ${resource.type} found for this ID` },
+      { status: 404, description: `No ${resource.type} found for this ID, or rule not found` },
     ],
     middlewares: jsonAndAcl(resource.acl),
     callback: ({ req, createAction }) => {
       const rule = ruleFromBody(req, resource.idKey)
-      return createAction(() => resource.deleteRule(controller, rule), {
-        sync: req.query.sync ?? false,
-        statusCode: 204,
-        taskProperties: {
-          name: `delete ${resource.acl} traffic rule`,
-          objectId: rule[resource.idKey],
-          objectType: resource.type,
-          params: req.body,
+      const id = req.params.id
+      return createAction(
+        async () => {
+          const object = controller._xo.getObject(id, resource.type)
+          const rules = parseRules(object.other_config[SDN_CONTROLLER_OF_RULES_KEY])
+          if (!rules.some(r => rulesEqual(r, rule))) {
+            throw noSuchObject(JSON.stringify(rule), 'traffic-rule')
+          }
+          await resource.deleteRule(controller, rule)
         },
-      })
+        {
+          sync: req.query.sync ?? false,
+          statusCode: 204,
+          taskProperties: {
+            name: `delete ${resource.acl} traffic rule`,
+            objectId: rule[resource.idKey],
+            objectType: resource.type,
+            params: req.body,
+          },
+        }
+      )
     },
   }
 }
