@@ -18,6 +18,7 @@ import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
+import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
@@ -101,10 +102,9 @@ export default class BackupNg {
   constructor(app) {
     this._app = app
     this._runningRestores = new Set()
-    this.#vmBackupsCache = new VmBackupsCache(
-      (repository, fn) => Disposable.use(app.getBackupsRemoteAdapter(repository), fn),
-      { minRefreshDelay: app.config.getDuration('backups.listingDebounce') }
-    )
+    this.#vmBackupsCache = new VmBackupsCache(new VmBackupsSource(app), {
+      minRefreshDelay: app.config.getDuration('backups.listingDebounce'),
+    })
 
     /** @type {Record<XoBackupRepository['id'], ListingRetryState>} */
     this._backupsListingRetry = { __proto__: null }
@@ -647,20 +647,6 @@ export default class BackupNg {
     return timeout.call(this._listVmBackupsOnRemoteUncached(remoteId, opts), LISTING_TIMEOUT)
   }
 
-  // proxies don't expose the journal of their repositories yet: they are still listed in full
-  async _listVmBackupsOnProxy(remoteId, remote, vmId) {
-    const { [remoteId]: backupsByVm } = await this._app.callProxyMethod(remote.proxy, 'backup.listVmBackups', {
-      remotes: {
-        [remoteId]: {
-          url: remote.url,
-          options: remote.options,
-        },
-      },
-      vmId,
-    })
-    return backupsByVm
-  }
-
   // the next listing of this repository will replay its journal instead of waiting for the end of the
   // current refresh window
   //
@@ -676,21 +662,10 @@ export default class BackupNg {
    * @returns {Promise<BackupsByVm>}
    */
   async _listVmBackupsOnRemoteUncached(remoteId, { vmId } = {}) {
-    const app = this._app
-    const remote = await app.getRemoteWithCredentials(remoteId)
+    const remote = await this._app.getRemoteWithCredentials(remoteId)
 
-    let backupsByVm
-    if (remote.proxy !== undefined) {
-      backupsByVm = await this._listVmBackupsOnProxy(remoteId, remote, vmId)
-      if (backupsByVm === undefined) {
-        // the proxy omits the repositories it failed to list
-        throw new Error(`the proxy failed to list the backup repository ${remoteId}`)
-      }
-    } else if (vmId !== undefined) {
-      backupsByVm = await this.#vmBackupsCache.getOneVm(remote, vmId)
-    } else {
-      backupsByVm = await this.#vmBackupsCache.get(remote)
-    }
+    const backupsByVm =
+      vmId !== undefined ? await this.#vmBackupsCache.getOneVm(remote, vmId) : await this.#vmBackupsCache.get(remote)
 
     return serveVmBackups(backupsByVm, remoteId, vmId)
   }

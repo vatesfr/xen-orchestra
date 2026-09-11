@@ -7,7 +7,7 @@ import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
 import { DurablePartition } from '@xen-orchestra/backups/DurablePartition.mjs'
 import { execFile } from 'child_process'
-import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
+import { formatJournalEvents, formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { JsonRpcError } from 'json-rpc-protocol'
@@ -316,6 +316,35 @@ export default class Backups {
                 additionalProperties: { type: 'object' },
               },
               vmId: { type: 'string', optional: true },
+            },
+          },
+        ],
+        listVmBackupsJournal: [
+          async ({ remote, remoteId, since }) => {
+            // stamped by this process, which is also the one which stamps the journal entries, so
+            // that the caller never compares its watermark with another clock
+            //
+            // without `since`, the caller has no listing to bring up to date yet and only wants
+            // that watermark: don't even open a handler
+            if (since === undefined) {
+              return { events: [], lastJournalRead: Date.now() }
+            }
+
+            // unlike `listVmBackups`, a repository which could not be read must reject: the caller
+            // purges its cache on failure, and would otherwise keep serving a listing it has no
+            // way to refresh
+            const { events, lastJournalRead } = await Disposable.use(this.getAdapter(remote), adapter =>
+              adapter.readBackupJournalEvents(since)
+            )
+
+            return { events: formatJournalEvents(events, remoteId), lastJournalRead }
+          },
+          {
+            description: 'read the backup journal of a remote, with the added and changed backups resolved',
+            params: {
+              remote: { type: 'object' },
+              remoteId: { type: 'string' },
+              since: { type: 'number', optional: true },
             },
           },
         ],
