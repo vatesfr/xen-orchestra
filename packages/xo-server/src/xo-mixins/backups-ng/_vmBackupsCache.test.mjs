@@ -45,6 +45,9 @@ class Repository {
 
   failWith
 
+  // set to make the source report that it cannot replay this repository
+  cannotReplay = false
+
   constructor(metadata = []) {
     metadata.forEach(_ => this.metadataByFilename.set(_._filename, _))
   }
@@ -108,6 +111,10 @@ class Repository {
       readJournal: async (repository, cursor, { mustExist = false } = {}) => {
         this.#mayFail()
         this.nJournalReads++
+
+        if (this.cannotReplay) {
+          return undefined
+        }
 
         if (this.journalDirMissing) {
           if (mustExist) {
@@ -316,9 +323,13 @@ describe('VmBackupsCache', () => {
     await cache.get({ ...REPOSITORY, url: 'nfs://new', options: 'another-option' })
     assert.equal(repository.nListings, 3)
 
+    // moved to a proxy: same url, same options, but not read the same way anymore
+    await cache.get({ ...REPOSITORY, url: 'nfs://new', options: 'another-option', proxy: 'a-proxy-id' })
+    assert.equal(repository.nListings, 4)
+
     // unchanged: still served from the entry, without even reading the journal
-    await cache.get({ ...REPOSITORY, url: 'nfs://new', options: 'another-option' })
-    assert.equal(repository.nListings, 3)
+    await cache.get({ ...REPOSITORY, url: 'nfs://new', options: 'another-option', proxy: 'a-proxy-id' })
+    assert.equal(repository.nListings, 4)
     assert.equal(repository.nJournalReads, 0)
   })
 
@@ -350,6 +361,29 @@ describe('VmBackupsCache', () => {
 
     assert.equal(repository.nListings, 2)
     assert.equal(repository.nJournalReads, 0)
+  })
+
+  it('lists the repository again when the source cannot replay it', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    repository.cannotReplay = true
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+
+    const added = metadataOf(VM, '20260811T100000')
+    repository.add(added, Date.now())
+
+    const backups = await cache.get(REPOSITORY)
+
+    assert.equal(repository.nListings, 2)
+    assert.ok(filenames(backups).includes(added._filename))
+
+    // the entry was not purged: it is still served for the rest of the window
+    tick(30e3)
+    await cache.get(REPOSITORY)
+    assert.equal(repository.nListings, 2)
   })
 
   it('forgets a repository which cannot be read anymore', async t => {
