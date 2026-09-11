@@ -68,8 +68,8 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
     const size = toRef(vdi, 'size')
     const description = toRef(vdi, 'name_description')
 
-    const defaultVdi = props.defaultExistingVdis.find(d => d.id === vdi.id)
-    const isExistingVdi = defaultVdi !== undefined
+    const isExistingVdi = vmState.existingVdis.includes(vdi)
+    const defaultVdi = isExistingVdi ? defaultExistingVdis[vmState.existingVdis.indexOf(vdi)] : undefined
     const minSize = defaultVdi?.size ?? 1
 
     return {
