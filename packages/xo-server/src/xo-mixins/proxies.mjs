@@ -71,6 +71,7 @@ async function addProxyVersion(proxy) {
 async function populateProxy(proxy) {
   addProxyUrl.call(this, proxy)
   await addProxyVersion.call(this, proxy)
+  return proxy
 }
 
 export default class Proxy {
@@ -94,6 +95,7 @@ export default class Proxy {
         namespace: 'proxy',
         crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', { collection: db, type: 'proxy', decorate: populateProxy.bind(this) })
 
       return app.addConfigManager(
         'proxies',
@@ -474,13 +476,19 @@ export default class Proxy {
     const proxy = await this._getProxy(id)
 
     const url = new URL('https://localhost/api/v1')
-
+    const headers = {
+      'Content-Type': 'application/json',
+      Cookie: cookie.serialize('authenticationToken', proxy.authenticationToken),
+    }
+    if (assertType !== 'scalar') {
+      // the proxy streams ndjson and binary responses incrementally; a compressor
+      // buffers them (brotli emits nothing until its window fills), so the response
+      // headers are never flushed and `headersTimeout` fires
+      headers['Accept-Encoding'] = 'identity'
+    }
     const request = {
       body: format.request(0, method, params),
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: cookie.serialize('authenticationToken', proxy.authenticationToken),
-      },
+      headers,
       method: 'POST',
       dispatcher: this._getAgent(timeout),
     }

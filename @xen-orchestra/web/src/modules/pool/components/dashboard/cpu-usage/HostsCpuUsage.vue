@@ -12,30 +12,20 @@
 
 <script lang="ts" setup>
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import VtsProgressBarGroup, {
-  type ProgressBarGroupItem,
-} from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
+import { buildPercentProgressItems } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
+import VtsProgressBarGroup from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { cpuProgressThresholds } from '@core/utils/progress.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { topFiveCpu = [] } = defineProps<{
+// TODO: refactor to use the same component as VmsCpuUsage.vue
+const { topFiveCpu } = defineProps<{
   topFiveCpu: NonNullable<NonNullable<XoPoolDashboard['hosts']>['topFiveUsage']>['cpu'] | undefined
   hasError?: boolean
 }>()
 
-const progressBarItems = computed(() =>
-  topFiveCpu.map(
-    cpu =>
-      ({
-        id: cpu.id,
-        label: cpu.name_label,
-        current: cpu.percent,
-        total: 100,
-      }) satisfies ProgressBarGroupItem
-  )
-)
+const progressBarItems = computed(() => buildPercentProgressItems(topFiveCpu ?? []))
 
 const { t } = useI18n()
 </script>

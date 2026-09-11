@@ -91,6 +91,8 @@ export enum ON_NORMAL_EXIT {
 }
 
 export enum HOST_OPERATION {
+  EVACUATE = 'evacuate',
+  REBOOT = 'reboot',
   SHUTDOWN = 'shutdown',
 }
 

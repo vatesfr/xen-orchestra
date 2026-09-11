@@ -49,7 +49,6 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import type { UpdateUserRequestBody } from './user.type.mjs'
-import { UserService } from './user.service.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
@@ -58,6 +57,10 @@ import { aclPrivilegeIds, partialAclPrivileges } from '../open-api/oa-examples/a
 import type { AnyPrivilege } from '@xen-orchestra/acl'
 
 const log = createLogger('xo:rest-api:user-controller')
+const aclMiddlewareGetUser =
+  ({ restApi }) =>
+  (id: XoUser['id']) =>
+    restApi.xoApp.getUser(id, { obfuscatePassword: true })
 
 @Route('users')
 @Security('*')
@@ -67,20 +70,17 @@ const log = createLogger('xo:rest-api:user-controller')
 @Tags('users')
 @provide(UserController)
 export class UserController extends XoController<XoUser> {
-  #userService: UserService
-
-  constructor(@inject(RestApi) restApi: RestApi, @inject(UserService) userService: UserService) {
+  constructor(@inject(RestApi) restApi: RestApi) {
     super('user', restApi)
-    this.#userService = userService
   }
 
   // --- abstract methods
   async getAllCollectionObjects(): Promise<XoUser[]> {
-    return this.#userService.getUsers()
+    return this.restApi.xoApp.getAllUsers({ obfuscatePassword: true })
   }
 
   async getCollectionObject(id: XoUser['id']): Promise<XoUser> {
-    return this.#userService.getUser(id)
+    return this.restApi.xoApp.getUser(id, { obfuscatePassword: true })
   }
 
   /**
@@ -125,7 +125,7 @@ export class UserController extends XoController<XoUser> {
       resource: 'user',
       action: actionIfNotSelfUser('read'),
       objectId: 'params.id',
-      getObject: ({ restApi }) => restApi.xoApp.getUser,
+      getObject: aclMiddlewareGetUser,
     })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -160,7 +160,7 @@ export class UserController extends XoController<XoUser> {
       resource: 'user',
       actions: actionsFromBody(['update:name', 'update:password', 'update:permission', 'update:preferences']),
       objectId: 'params.id',
-      getObject: ({ restApi }) => restApi.xoApp.getUser,
+      getObject: aclMiddlewareGetUser,
     }),
   ])
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -222,7 +222,7 @@ export class UserController extends XoController<XoUser> {
       resource: 'user',
       action: 'delete',
       objectId: 'params.id',
-      getObject: ({ restApi }) => restApi.xoApp.getUser,
+      getObject: aclMiddlewareGetUser,
     })
   )
   @SuccessResponse(noContentResp.status, noContentResp.description)

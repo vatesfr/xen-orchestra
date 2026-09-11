@@ -653,10 +653,10 @@ const messages = {
   editJobNotFound: "The job you're trying to edit wasn't found",
   preferNbd: 'Use NBD to transfer disk if available',
   preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled.',
-  distributeBackups: 'Distribute backups accross backup repositories',
+  distributeBackups: 'Distribute backups across backup repositories',
   distributeBackupsInformation:
     'This will write exactly one backup archive of each VM instead of writing one per backup repository',
-  distributeReplications: 'Distribute replications accross the storage repositories',
+  distributeReplications: 'Distribute replications across the storage repositories',
   distributeReplicationsInformation:
     'This will write exactly one replication of each VM backup instead of writing one per storage repository',
   nbdConcurrency: 'Number of NBD connection per disk',

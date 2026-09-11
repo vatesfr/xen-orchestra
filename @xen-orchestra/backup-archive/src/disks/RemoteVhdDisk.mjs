@@ -434,6 +434,36 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Returns the compression codec id. Only meaningful for VHD directories;
+   * undefined for plain VHDs.
+   * @returns {string | undefined}
+   */
+  #getCompressionType() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't check compressionType of a RemoteVhdDisk before init`)
+    }
+    return this.#vhd instanceof VhdDirectory ? this.#vhd.compressionType : undefined
+  }
+
+  /**
+   * Adds VHD-specific compatibility checks on top of the uuid check: the storage
+   * sub-format (VHD directory vs plain) and, for directories, the compression codec
+   * must match what this remote would write for a new disk.
+   * @param {string} parentUuid
+   * @returns {Promise<boolean>}
+   */
+  async isMergeableParent(parentUuid) {
+    if (!(await super.isMergeableParent(parentUuid))) {
+      return false
+    }
+
+    const useVhdDirectory = this.#handler.getConfig('useVhdDirectory') ?? false
+    const compressionType = this.#handler.getConfig('compressionType') ?? 'brotli'
+    const isDirectory = await this.isDirectory()
+    return isDirectory ? useVhdDirectory && this.#getCompressionType() === compressionType : !useVhdDirectory
+  }
+
+  /**
    * Rename alias/disk
    * @param {string} newPath
    */

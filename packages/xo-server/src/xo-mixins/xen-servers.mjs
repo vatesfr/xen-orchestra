@@ -1,5 +1,4 @@
 import assert from 'assert'
-import findKey from 'lodash/findKey.js'
 import pick from 'lodash/pick.js'
 import { asyncEach } from '@vates/async-each'
 import { BaseError } from 'make-error'
@@ -25,7 +24,7 @@ import { getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 import XapiStats from '../xapi-stats.mjs'
 import { autoReconnect } from '../_xenServerAutoReconnect.mjs'
-import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils.mjs'
+import { camelToSnakeCase, forEach, isEmpty, popProperty, serializeError } from '../utils.mjs'
 import { Servers } from '../models/server.mjs'
 
 // ===================================================================
@@ -44,15 +43,6 @@ const MAX_TIMER_DELAY = 2 ** 31 - 1
 const DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY = 30 * 60 * 1000 // 30 minutes, same as config.toml
 const synchronizedLoadBalancerOperation = synchronized()(operation => operation())
 
-// Server is disconnected:
-// - _xapis[server.id] is undefined
-
-// Server is connecting:
-// - _xapis[server.id] is defined
-
-// Server is connected:
-// - _xapis[server.id] id defined
-// - _serverIdsByPool[xapi.pool.$id] is server.id
 export default class XenServers {
   constructor(app, { safeMode }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
@@ -82,18 +72,38 @@ export default class XenServers {
         }
       }
     }
-    app.hooks.on('core started', () => {
+    let timeoutId
+    let promiseSetupServersStatus = new Promise((_resolve, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error('unable to setup the server collection. Timed out'))
+      }, 1000)
+    })
+    app.hooks.on('core started', async () => {
       const serversDb = (this._servers = new Servers({
         connection: app._redis,
         namespace: 'server',
         indexes: ['host'],
         crypto: app.cryptoCredentials,
       }))
+      // at XO startup, set all servers as disconnected
+      clearTimeout(timeoutId)
+      promiseSetupServersStatus = (async () => {
+        const servers = await serversDb.get()
+        await serversDb.update(servers.map(server => ({ ...server, status: 'disconnected' })))
+      })()
+      await promiseSetupServersStatus
+
+      app.hooks.emit('registerCollection', {
+        collection: serversDb,
+        type: 'server',
+        decorate: this._decorateXenServer.bind(this),
+      })
 
       app.addConfigManager(
         'xenServers',
         () => serversDb.get(),
-        servers => serversDb.update(servers).then(connectServers)
+        // when importing an XO config, set all servers as disconnected
+        servers => serversDb.update(servers.map(server => ({ ...server, status: 'disconnected' }))).then(connectServers)
       )
     })
     app.hooks.on('start', async () => {
@@ -110,6 +120,7 @@ export default class XenServers {
       }
 
       if (!safeMode) {
+        await promiseSetupServersStatus
         await connectServers()
       }
     })
@@ -137,6 +148,7 @@ export default class XenServers {
       password,
       readOnly,
       username,
+      status: 'disconnected',
     })
 
     return server
@@ -181,6 +193,7 @@ export default class XenServers {
       'poolNameDescription',
       'poolNameLabel',
       'username',
+      'status',
     ]) {
       let value = properties[key]
       if (value !== undefined) {
@@ -235,7 +248,19 @@ export default class XenServers {
 
     // an enabled server must not stay disconnected without retries, e.g. after
     // the user fixed its credentials or address
-    if (server.enabled && !this._connectingXenServers.has(id) && this._getXenServerStatus(id) === 'disconnected') {
+    //
+    // only an update which can actually change the outcome of a connection may
+    // (re-)arm the loop: `_connectXenServer` writes `{ error }` on every failed
+    // attempt, and that bookkeeping write must not restart a loop which just
+    // stopped on a permanent error (e.g. PoolAlreadyConnected), which would
+    // retry forever, at full speed since each loop restarts its own backoff
+    const canFixConnection = properties.enabled === true || connectionIdentityChanged
+    if (
+      canFixConnection &&
+      server.enabled &&
+      !this._connectingXenServers.has(id) &&
+      server.status === 'disconnected'
+    ) {
       this._autoReconnectXenServer(id)
     }
   }
@@ -275,8 +300,7 @@ export default class XenServers {
     forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
       // handle pool UUID change
       if (xapiObject.$type === 'pool' && serverIdsByPool[xapiObject.$id] === undefined) {
-        const obsoletePoolId = findKey(serverIdsByPool, serverId => serverId === conId)
-        delete serverIdsByPool[obsoletePoolId]
+        self._forgetXenServerPool(conId)
         serverIdsByPool[xapiObject.$id] = conId
       }
 
@@ -387,7 +411,6 @@ export default class XenServers {
       connect: id => this.connectXenServer(id, { enable: false }),
       delay: pDelay,
       getServer: id => this.getXenServer(id),
-      getStatus: id => this._getXenServerStatus(id),
       isFatal: error => error instanceof PoolAlreadyConnected,
       isGone: error => noSuchObject.is(error),
       log,
@@ -405,7 +428,7 @@ export default class XenServers {
 
   async connectXenServer(id, { enable = true } = {}) {
     const server = await this.getXenServerWithCredentials(id)
-    const serverStatus = this._getXenServerStatus(id)
+    const serverStatus = server.status
     // `_connectingXenServers` also guards against a concurrent connection
     // attempt for the same server, which would overwrite `_xapis[id]` and leak
     // a live connection
@@ -427,9 +450,7 @@ export default class XenServers {
   }
 
   async _connectXenServer(id, server, { enable }) {
-    if (enable) {
-      await this.updateXenServer(id, { enabled: true })
-    }
+    await this.updateXenServer(id, { status: 'connecting', enabled: enable ? true : undefined })
 
     const { config } = this._app
 
@@ -463,7 +484,8 @@ export default class XenServers {
 
       // requesting disconnection on the connecting server
       if (this._xapis[server.id] === undefined) {
-        xapi.disconnect()::ignoreErrors()
+        await xapi.disconnect()::ignoreErrors()
+        await this.updateXenServer(id, { status: 'disconnected' })
         return
       }
 
@@ -607,45 +629,60 @@ export default class XenServers {
       xapi.xo.install()
       xapi.watchEvents()
 
-      this.updateXenServer(id, { error: null })::ignoreErrors()
+      const _updateXenServer = (id, props) => {
+        this.updateXenServer(id, props)::ignoreErrors()
+      }
 
-      xapi.once('eventFetchingError', function eventFetchingErrorListener() {
+      const onEventFetchingError = () => {
         const timeout = setTimeout(() => {
           xapi.xo.uninstall()
 
           // switch server status from connected to connecting
-          delete serverIdsByPool[poolId]
+          this._forgetXenServerPool(server.id)
+          _updateXenServer(server.id, { status: 'connecting' })
         }, this._xapiMarkDisconnectedDelay)
         xapi.once('eventFetchingSuccess', () => {
-          xapi.once('eventFetchingError', eventFetchingErrorListener)
+          xapi.once('eventFetchingError', onEventFetchingError)
           if (serverIdsByPool[poolId] === undefined) {
+            // the pool may now be known under another identifier, `install()`
+            // replays the pool object which registers it under the right one
             serverIdsByPool[poolId] = server.id
             xapi.xo.install()
+            _updateXenServer(server.id, { error: null, status: 'connected' })
           } else {
             clearTimeout(timeout)
           }
         })
-      })
+      }
+      xapi.once('eventFetchingError', onEventFetchingError)
 
-      xapi.once('disconnected', () => {
+      xapi.once('disconnected', async () => {
         xapi.xo.uninstall()
         delete this._xapis[server.id]
-        delete this._serverIdsByPool[poolId]
+        this._forgetXenServerPool(server.id)
         this._app.emit('server:disconnected', { server, xapi })
+        const _server = await this.getXenServerWithCredentials(id)
+        if (_server.status !== 'disconnected') {
+          await this.updateXenServer(server.id, { status: 'disconnected' })
+        }
 
         // deliberate disconnections set `enabled` to false beforehand, in
         // which case the loop stops on its own
         this._autoReconnectXenServer(server.id)
       })
       this._app.emit('server:connected', { server, xapi })
+      await this.updateXenServer(id, { error: null, status: 'connected' })::ignoreErrors()
     } catch (error) {
       delete this._xapis[server.id]
-      xapi.disconnect()::ignoreErrors()
+      await xapi.disconnect()::ignoreErrors()
+      await this.updateXenServer(id, { status: 'disconnected' })
+
+      const serializedError = serializeError(error)
 
       // avoid a database write per auto-reconnect attempt when the error did not change
       const previousError = server.error
-      if (previousError?.code !== error?.code || previousError?.message !== error?.message) {
-        this.updateXenServer(id, { error })::ignoreErrors()
+      if (previousError?.code !== serializedError.code || previousError?.message !== serializedError.message) {
+        await this.updateXenServer(id, { error: serializedError })::ignoreErrors()
       }
 
       // permanent errors: retrying is pointless, do not start the loop
@@ -657,10 +694,25 @@ export default class XenServers {
     }
   }
 
+  // Removes every pool this server is registered as the connection of.
+  //
+  // The pool is looked up by server instead of by identifier because a pool
+  // UUID can change during the life of a connection (see `_onXenAdd`): a
+  // mapping left behind would make every subsequent connection to that pool
+  // fail with `PoolAlreadyConnected`, including the ones of this very server.
+  _forgetXenServerPool(serverId) {
+    const serverIdsByPool = this._serverIdsByPool
+    for (const poolId of Object.keys(serverIdsByPool)) {
+      if (serverIdsByPool[poolId] === serverId) {
+        delete serverIdsByPool[poolId]
+      }
+    }
+  }
+
   async disconnectXenServer(id) {
     // throw no such object if the server does not exist
     const server = await this.getXenServer(id)
-    const status = this._getXenServerStatus(id)
+    const status = server.status
     if (status === 'disconnected' && !server.enabled) {
       throw incorrectState({
         actual: status,
@@ -669,7 +721,11 @@ export default class XenServers {
         property: 'status',
       })
     }
-    await this.updateXenServer(id, { enabled: false })
+
+    await this.updateXenServer(id, {
+      enabled: false,
+      status: status === 'disconnected' ? undefined : 'disconnecting',
+    })
 
     /**
      * if the server is enabled but disconnected, xapi is undefined
@@ -678,13 +734,12 @@ export default class XenServers {
     const xapi = this._xapis[id]
     delete this._xapis[id]
 
-    const serverIdsByPool = this._serverIdsByPool
-    const poolId = findKey(serverIdsByPool, _ => _ === xapi)
-    if (poolId !== undefined) {
-      delete serverIdsByPool[id]
-    }
+    this._forgetXenServerPool(id)
 
-    return xapi?.disconnect()
+    await xapi?.disconnect()
+    if (status !== 'disconnected') {
+      await this.updateXenServer(id, { status: 'disconnected' })
+    }
   }
 
   getAllXapis() {
@@ -702,15 +757,6 @@ export default class XenServers {
     return this.getXapi(xoObject).getObjectByRef(xoObject._xapiRef)
   }
 
-  _getXenServerStatus(id) {
-    const xapi = this._xapis[id]
-    return xapi === undefined
-      ? 'disconnected'
-      : this._serverIdsByPool[xapi.pool?.$id] === id
-        ? 'connected'
-        : 'connecting'
-  }
-
   _decorateXenServer(server) {
     const xapis = this._xapis
 
@@ -719,11 +765,10 @@ export default class XenServers {
       lastEventFetchedTimestamp !== undefined &&
       Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay
     ) {
-      server.error = xapis[server.id].watchEventsError
+      server.error = serializeError(xapis[server.id].watchEventsError)
     }
-    server.status = this._getXenServerStatus(server.id)
-    if (server.status === 'connected') {
-      const xapi = xapis[server.id]
+    const xapi = xapis[server.id]
+    if (server.status === 'connected' && xapi !== undefined) {
       server.poolId = xapi.pool.uuid
       try {
         server.master = xapi.getObjectByRef(xapi.pool.master).uuid
@@ -740,6 +785,8 @@ export default class XenServers {
 
     // Do not expose password.
     delete server.password
+
+    return server
   }
 
   async getAllXenServers() {

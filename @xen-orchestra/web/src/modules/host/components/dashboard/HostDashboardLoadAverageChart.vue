@@ -14,6 +14,8 @@
 </template>
 
 <script lang="ts" setup>
+import { buildHostLoadAverageSeries } from '@/modules/host/utils/xo-host-dashboard.util.ts'
+import { getChartMaxValue } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -32,41 +34,20 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t } = useI18n()
 
+const loadAverageSeries = computed(() => buildHostLoadAverageSeries(data))
+
 const loadAverage = computed<LinearChartData>(() => {
-  if (!data?.stats.load) {
+  if (loadAverageSeries.value.length === 0) {
     return []
-  }
-
-  const loadValues = data.stats.load
-  const result = new Map<number, { timestamp: number; value: number }>()
-  const timestampStart = data.endTimestamp - data.interval * (loadValues.length - 1)
-
-  for (let hourIndex = 0; hourIndex < loadValues.length; hourIndex++) {
-    const timestamp = (timestampStart + hourIndex * data.interval) * 1000
-    const load = loadValues[hourIndex]
-
-    result.set(timestamp, {
-      timestamp,
-      value: Number(load?.toFixed(2)),
-    })
   }
 
   return [
     {
       label: t('load-average'),
-      data: Array.from(result.values()),
+      data: loadAverageSeries.value,
     },
   ]
 })
 
-const maxValue = computed(() => {
-  const values = loadAverage.value[0]?.data.map(item => item.value || 0) ?? []
-  if (values.length === 0) {
-    return 10
-  }
-
-  const maxLoad = Math.max(...values)
-
-  return Math.ceil(maxLoad / 5) * 5
-})
+const maxValue = computed(() => getChartMaxValue(loadAverageSeries.value, { step: 5, fallback: 10 }))
 </script>

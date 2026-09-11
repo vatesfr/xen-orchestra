@@ -1,7 +1,7 @@
 <template>
   <template v-if="server">
     <UiButton
-      v-if="server.status === 'connected'"
+      v-if="server.status === 'connected' || server.status === 'connecting'"
       v-tooltip="!canDisconnectServer ? disconnectServerErrorMessage : undefined"
       left-icon="action:disconnect"
       variant="tertiary"

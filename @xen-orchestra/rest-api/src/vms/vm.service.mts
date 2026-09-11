@@ -303,6 +303,10 @@ export class VmService {
     for (const id in snapshotReplicas) {
       const snapshot = snapshotReplicas[id as XoVmSnapshot['id']]
       const timestamp = parseDateTime(snapshot.other['xo:backup:datetime'])
+      if (timestamp === null) {
+        // the snapshot has no backup date, it can't be the last replication
+        continue
+      }
 
       if (lastTimestamp === undefined || lastTimestamp < timestamp) {
         lastTimestamp = timestamp
