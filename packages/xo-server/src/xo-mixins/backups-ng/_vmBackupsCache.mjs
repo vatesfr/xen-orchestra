@@ -1,3 +1,5 @@
+// @ts-check
+
 import { asyncEach } from '@vates/async-each'
 import { compareTimestamp } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 import { createLogger } from '@xen-orchestra/log'
