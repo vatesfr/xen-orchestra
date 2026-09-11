@@ -1,5 +1,6 @@
 import PoolDashboardHostsPatches from '@/modules/pool/components/dashboard/PoolDashboardHostsPatches.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { findTableRows } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -24,10 +25,6 @@ function mountPatches(props: { poolDashboard?: XoPoolDashboard; hasError?: boole
   })
 }
 
-function findPatchRows(wrapper: ReturnType<typeof mountPatches>) {
-  return wrapper.findAll('tbody tr').map(row => row.text())
-}
-
 it('renders the card title', () => {
   const wrapper = mountPatches()
 
@@ -38,7 +35,7 @@ it('shows a loader while the dashboard has not arrived yet', () => {
   const wrapper = mountPatches({ poolDashboard: undefined })
 
   expect(wrapper.find('.ui-loader').exists()).toBe(true)
-  expect(findPatchRows(wrapper)).toEqual([])
+  expect(findTableRows(wrapper)).toEqual([])
 })
 
 it('shows a loader while the missing patches are missing from the dashboard', () => {
@@ -66,7 +63,10 @@ it('lists one row per missing patch', () => {
     ]),
   })
 
-  expect(findPatchRows(wrapper)).toEqual(['XSAPATCH-11.0', 'XSAPATCH-22.0'])
+  expect(findTableRows(wrapper)).toEqual([
+    ['XSAPATCH-1', '1.0'],
+    ['XSAPATCH-2', '2.0'],
+  ])
 })
 
 it('reports the pool as up to date when its hosts miss no patch', () => {
@@ -80,5 +80,5 @@ it('reports the pool as up to date when the patches cannot be listed without a l
   const wrapper = mountPatches({ poolDashboard: withMissingPatches({ hasAuthorization: false }) })
 
   expect(wrapper.get('.vts-state-hero').text()).toContain(t('patches-up-to-date'))
-  expect(findPatchRows(wrapper)).toEqual([])
+  expect(findTableRows(wrapper)).toEqual([])
 })

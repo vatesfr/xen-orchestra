@@ -3,11 +3,11 @@ import {
   buildStackedCpuUsageSeries,
   buildStackedNetworkUsageSeries,
   buildStackedRamUsageSeries,
-  buildHostsRamProgressItems,
-  buildPercentProgressItems,
-  buildVmsRamProgressItems,
   getStackedRamUsageMaxValue,
   getStoragesUsageTotals,
+  toHostRamProgressItem,
+  toPercentProgressItem,
+  toVmRamProgressItem,
 } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
 import { ONE_GB } from '@/shared/constants.ts'
 import { createPoolStats } from '@/test/create-pool-stats.ts'
@@ -243,62 +243,50 @@ describe('getStoragesUsageTotals', () => {
   })
 })
 
-describe('buildPercentProgressItems', () => {
-  it('maps each usage to a progress bar item out of 100', () => {
-    const storages = [
-      createStorageUsage({ id: 'sr-1' as StorageUsage['id'], name_label: 'Local storage', percent: 30 }),
-      createStorageUsage({ id: 'sr-2' as StorageUsage['id'], name_label: 'Shared storage', percent: 70 }),
-    ]
+describe('toPercentProgressItem', () => {
+  it('maps a usage to a progress bar item out of 100', () => {
+    const storage = createStorageUsage({ id: 'sr-1' as StorageUsage['id'], name_label: 'Local storage', percent: 30 })
 
-    expect(buildPercentProgressItems(storages)).toEqual([
-      { id: 'sr-1', label: 'Local storage', current: 30, total: 100 },
-      { id: 'sr-2', label: 'Shared storage', current: 70, total: 100 },
-    ])
+    expect(toPercentProgressItem(storage)).toEqual({ id: 'sr-1', label: 'Local storage', current: 30, total: 100 })
   })
 
   it('keeps a fractional share as it is reported', () => {
-    expect(buildPercentProgressItems([{ id: 'host-1', name_label: 'Host 1', percent: 12.5 }])).toEqual([
-      { id: 'host-1', label: 'Host 1', current: 12.5, total: 100 },
-    ])
-  })
-
-  it('returns an empty array for an empty input', () => {
-    expect(buildPercentProgressItems([])).toEqual([])
-  })
-})
-
-describe('buildHostsRamProgressItems', () => {
-  it('maps each host to the memory it uses out of the memory it holds', () => {
-    const usages = [
-      { id: 'host-1', name_label: 'Host 1', usage: 400, size: 1000 },
-      { id: 'host-2', name_label: 'Host 2', usage: 750, size: 1000 },
-    ]
-
-    expect(buildHostsRamProgressItems(usages)).toEqual([
-      { id: 'host-1', label: 'Host 1', current: 400, total: 1000 },
-      { id: 'host-2', label: 'Host 2', current: 750, total: 1000 },
-    ])
-  })
-
-  it('returns an empty array for an empty input', () => {
-    expect(buildHostsRamProgressItems([])).toEqual([])
+    expect(toPercentProgressItem({ id: 'host-1', name_label: 'Host 1', percent: 12.5 })).toEqual({
+      id: 'host-1',
+      label: 'Host 1',
+      current: 12.5,
+      total: 100,
+    })
   })
 })
 
-describe('buildVmsRamProgressItems', () => {
+describe('toHostRamProgressItem', () => {
+  it('maps a host to the memory it uses out of the memory it holds', () => {
+    expect(toHostRamProgressItem({ id: 'host-1', name_label: 'Host 1', usage: 400, size: 1000 })).toEqual({
+      id: 'host-1',
+      label: 'Host 1',
+      current: 400,
+      total: 1000,
+    })
+  })
+})
+
+describe('toVmRamProgressItem', () => {
   it('derives the memory a VM uses by taking its free memory off its total', () => {
-    const usages = [{ id: 'vm-1', name_label: 'VM 1', memory: 1000, memoryFree: 400 }]
-
-    expect(buildVmsRamProgressItems(usages)).toEqual([{ id: 'vm-1', label: 'VM 1', current: 600, total: 1000 }])
+    expect(toVmRamProgressItem({ id: 'vm-1', name_label: 'VM 1', memory: 1000, memoryFree: 400 })).toEqual({
+      id: 'vm-1',
+      label: 'VM 1',
+      current: 600,
+      total: 1000,
+    })
   })
 
   it('reports no memory used for a VM whose memory is entirely free', () => {
-    const usages = [{ id: 'vm-1', name_label: 'VM 1', memory: 1000, memoryFree: 1000 }]
-
-    expect(buildVmsRamProgressItems(usages)).toEqual([{ id: 'vm-1', label: 'VM 1', current: 0, total: 1000 }])
-  })
-
-  it('returns an empty array for an empty input', () => {
-    expect(buildVmsRamProgressItems([])).toEqual([])
+    expect(toVmRamProgressItem({ id: 'vm-1', name_label: 'VM 1', memory: 1000, memoryFree: 1000 })).toEqual({
+      id: 'vm-1',
+      label: 'VM 1',
+      current: 0,
+      total: 1000,
+    })
   })
 })
