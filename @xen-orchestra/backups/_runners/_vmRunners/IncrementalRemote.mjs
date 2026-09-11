@@ -2,13 +2,12 @@ import { createLogger } from '@xen-orchestra/log'
 
 import { asyncEach } from '@vates/async-each'
 import assert from 'node:assert'
-import * as UUID from 'uuid'
 
 import { AbstractRemote } from './_AbstractRemote.mjs'
 import { forkDeltaExport } from './_forkDeltaExport.mjs'
 import { IncrementalRemoteWriter } from '../_writers/IncrementalRemoteWriter.mjs'
 import { Disposable } from 'promise-toolbox'
-import { openVhd } from 'vhd-lib'
+import { openDisposableDisk } from '@xen-orchestra/backup-archive/disks'
 import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 import { SynchronizedDisk, ThrottledDisk } from '@xen-orchestra/disk-transform'
 import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
@@ -44,9 +43,12 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
         const vmDir = getVmBackupDir(metadata.vm.uuid)
         const path = `${vmDir}/${metadata.vhds[id]}`
         // don't catch error : we can't recover if the source vhd are missing
-        await Disposable.use(openVhd(this._sourceRemoteAdapter._handler, path), vhd => {
-          baseUuidToSrcVdi.set(UUID.stringify(vhd.header.parentUuid), vdi.$snapshot_of$uuid)
-        })
+        await Disposable.use(
+          openDisposableDisk({ handler: this._sourceRemoteAdapter._handler, path, ignoreBlockIndexes: true }),
+          disk => {
+            baseUuidToSrcVdi.set(disk.getParentUuid(), vdi.$snapshot_of$uuid)
+          }
+        )
       }
     })
 
