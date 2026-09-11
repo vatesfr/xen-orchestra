@@ -413,7 +413,7 @@ describe('readBackupJournalEvents()', { concurrency: 1 }, () => {
     await writeJournalEntryAt(now + 2000, { event: 'change', vmUuid, filename: path, reason: 'merge' })
 
     const reads = watchMetadataReads()
-    const { events } = await adapter.readBackupJournalEvents(0)
+    const { events } = await adapter.readBackupJournalEvents()
 
     assert.deepEqual(reads, [path])
     // the last event of a backup is its current state
@@ -428,7 +428,7 @@ describe('readBackupJournalEvents()', { concurrency: 1 }, () => {
     await adapter.deleteVmBackup(path)
 
     const reads = watchMetadataReads()
-    const { events } = await adapter.readBackupJournalEvents(0)
+    const { events } = await adapter.readBackupJournalEvents()
 
     assert.deepEqual(reads, [])
     assert.deepEqual(
@@ -442,7 +442,7 @@ describe('readBackupJournalEvents()', { concurrency: 1 }, () => {
     const path = await writeFullBackup()
     await handler.unlink(path)
 
-    const { events } = await adapter.readBackupJournalEvents(0)
+    const { events } = await adapter.readBackupJournalEvents()
     assert.deepEqual(events, [{ event: 'del', vmUuid, filename: path }])
   })
 
@@ -455,7 +455,7 @@ describe('readBackupJournalEvents()', { concurrency: 1 }, () => {
       reason: 'merge',
     })
 
-    const { events } = await adapter.readBackupJournalEvents(0)
+    const { events } = await adapter.readBackupJournalEvents()
 
     // both entries are about the same backup, therefore they must reduce to a single event
     assert.equal(events.length, 1)
@@ -470,29 +470,37 @@ describe('readBackupJournalEvents()', { concurrency: 1 }, () => {
       filename: `/${rootPath}/other.json`,
     })
 
-    const { events } = await adapter.readBackupJournalEvents(0)
+    const { events } = await adapter.readBackupJournalEvents()
     assert.deepEqual(
       events.map(_ => _.filename),
       [path]
     )
   })
 
-  test('returns the watermark to start from on the next call', async () => {
+  test('returns the cursor to start from on the next call', async () => {
     await writeFullBackup(Date.now() - 2000)
 
-    const { events: first, lastJournalRead } = await adapter.readBackupJournalEvents(0)
+    const { events: first, cursor } = await adapter.readBackupJournalEvents()
     assert.equal(first.length, 1)
 
     await sleep(5)
     const path = await writeDeltaBackup()
 
-    // the watermark is stamped before the read, therefore an event which happened during it is
-    // returned by the next call rather than skipped
-    const { events } = await adapter.readBackupJournalEvents(lastJournalRead)
+    const { events } = await adapter.readBackupJournalEvents(cursor)
     assert.deepEqual(
       events.map(_ => _.filename),
       [path]
     )
+  })
+
+  test('keeps the same cursor when nothing new was read', async () => {
+    await writeFullBackup(Date.now() - 2000)
+
+    const { cursor } = await adapter.readBackupJournalEvents()
+    const { events, cursor: next } = await adapter.readBackupJournalEvents(cursor)
+
+    assert.deepEqual(events, [])
+    assert.equal(next, cursor)
   })
 })
 
