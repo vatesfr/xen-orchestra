@@ -19,7 +19,7 @@
 - [Web-Core/TabItem] Update the component to remove uppercase for better readability (PR [#10338](https://github.com/vatesfr/xen-orchestra/pull/10338))
 - [REST API] VDI can now be exported in qcow2 format, and the VHD export uses NBD when available. Both formats work whatever the format the disk is stored in. Every export format, raw included, now provides the size of the download (PR [#10350](https://github.com/vatesfr/xen-orchestra/pull/10350))
 - [REST API] SSE now supports Non XAPI objects (user, group, acl-privilege, acl-role, proxy, server, backup-repository, backup-job, schedule) (PR [#10278](https://github.com/vatesfr/xen-orchestra/pull/10278))
-- [LDAP] Release plugin for LDAP multidomain management (PR [#10383](https://github.com/vatesfr/xen-orchestra/pull/10383))
+- [LDAP] Release plugin for LDAP multidomain management (PR [#10015](https://github.com/vatesfr/xen-orchestra/pull/10015))
 
 ### Bug fixes
 
