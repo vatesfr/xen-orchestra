@@ -96,7 +96,7 @@ XO also never sets nor clears a **legal hold**. If you place one, XO can never r
 Object Lock offers two retention modes:
 
 - **Governance**: a user holding `s3:BypassGovernanceRetention` can delete a protected version. XO never sends the bypass header, so XO itself is still unable to touch a protected version.
-- **Compliance**: nobody can delete a protected version before it expires, not even the account root.
+- **Compliance**: nobody can delete a protected version before it expires, not even the root account.
 
 Unless a regulation requires compliance mode, choose **governance**. It matches the model recommended for [on-prem immutability](./immutability.md#on-prem-immmutability): an administrator with direct access to the storage keeps control, and a misconfigured job that fills the bucket with retained versions can still be cleaned up. In compliance mode, that storage is unrecoverable and billable, until the retention expires.
 
@@ -109,7 +109,7 @@ Add `s3:GetBucketObjectLockConfiguration` to the credentials used by the BR. XO 
 Lifecycle rules operate outside XO, on data XO believes it owns. A rule that removes or moves an object XO still needs will produce **unrecoverable disks**: XO has no way to detect it, and the failure only surfaces when you try to restore.
 
 :::danger
-Never apply a lifecycle rule to the **current** versions of a BR's objects. XO is the only component that may decide when a backup is no longer needed.
+Never apply a lifecycle rule to the **current** versions of a BR's objects. XO is the only component that may decide when a backup is no longer needed. External tool deleting or modifying an incremental chain can break how XO internally handle an incremental backup chain, potentially making it irrecoverable.
 :::
 
 | Rule                                                             | Verdict         | Why                                                                                                                                                                                                            |
