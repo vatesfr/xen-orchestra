@@ -19,6 +19,11 @@ export const PROPERTY_FILTER_SPEC = Object.freeze(['propSet', 'objectSet', 'repo
 
 export const RETRIEVE_OPTIONS = Object.freeze(['maxObjects'])
 
+// not a complex type but the parameter sequence of a method, which the schema orders just the same:
+// sending `snapshot` after `startOffset` makes the host answer `Required parameter changeId is
+// missing`, naming a parameter which was in fact sent
+export const QUERY_CHANGED_DISK_AREAS = Object.freeze(['_this', 'snapshot', 'deviceKey', 'startOffset', 'changeId'])
+
 /**
  * A managed object reference.
  *
@@ -78,4 +83,16 @@ export function propertyFilterSpec(values) {
 
 export function retrieveOptions(values) {
   return orderedChildren(RETRIEVE_OPTIONS, 'RetrieveOptions', values)
+}
+
+/**
+ * Arguments of `QueryChangedDiskAreas`.
+ *
+ * The arguments of a method are elements too, and carry no `xsi:type`.
+ *
+ * @param {object} values
+ * @returns {object}
+ */
+export function queryChangedDiskAreasArgs(values) {
+  return orderedChildren(QUERY_CHANGED_DISK_AREAS, undefined, values)
 }

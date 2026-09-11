@@ -65,7 +65,7 @@ export async function importStream({ esxi, dataMap, disk, vmId, format }, consum
 // any block size conversion for transfer to VHD
 const READ_BLOCK_SIZE = VHD_BLOCK_SIZE
 
-async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) {
+async function importDiskChain({ esxi, sr, vm, chainByNode, changeTracking, userdevice, vmId }) {
   if (chainByNode.length === 0) {
     Task.info('Empty chain')
     return
@@ -88,7 +88,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
 
   Task.info(`Importing disk in ${format} format, with block of ${blockSize} bytes`)
 
-  let dataMap
+  let baseDiskPath
   const previouslyImportedIndex = findPreviouslyImportedIndex(existingVdis, chainByNode)
   let existingVdi
   if (previouslyImportedIndex === chainByNode.length - 1) {
@@ -107,10 +107,20 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
     existingVdi = diskIsAlreadyImported(existingVdis, existingDisk)
     Task.info(`found a previous import`, { vdiRef: existingVdi.$ref })
 
-    dataMap = await esxi.getDataMap(vmId, datastoreName, diskPath, Task.abortSignal)
+    // the disk the previous import read is the point in time the delta is computed from
+    baseDiskPath = existingDisk.diskPath
   } else {
     Task.info(`no reference disk found, fall back a full import`)
   }
+
+  // asked in both cases: the blocks written since `baseDiskPath`, or every block the disk uses.
+  // `undefined` when the host cannot answer for a whole disk, and the disk is then read to find
+  // out, as it always was
+  const dataMap = await esxi.getDataMap(vmId, datastoreName, diskPath, {
+    baseDiskPath,
+    changeTracking,
+    signal: Task.abortSignal,
+  })
   try {
     if (!existingVdi) {
       Task.info(`create a new VDI for ${diskPath}`)
@@ -170,6 +180,16 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
 }
 
 export const importDisksFromDatastore = async function importDisksFromDatastore({ esxi, vm, vmId, chainsByNodes, sr }) {
+  // what the change tracking of the host is addressed by is the same for every disk of a VM:
+  // reading it here costs a few calls once, where every disk used to issue the same ones at the
+  // same time. A VM the host cannot answer for simply imports as it did before
+  const changeTracking = await esxi.getChangeTracking(vmId, { signal: Task.abortSignal }).catch(error => {
+    warn('could not read the change tracking of the VM, its disks will be read to find their blocks', {
+      error,
+      vmId,
+    })
+  })
+
   return await Promise.all(
     Object.keys(chainsByNodes).map(async (node, userdevice) =>
       Task.run({ properties: { name: `Import of disks ${node}` } }, async () => {
@@ -178,6 +198,7 @@ export const importDisksFromDatastore = async function importDisksFromDatastore(
           esxi,
           vm,
           chainByNode,
+          changeTracking,
           userdevice,
           sr,
           vmId,
