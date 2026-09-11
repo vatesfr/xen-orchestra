@@ -1,3 +1,5 @@
+// @ts-check
+
 import { asyncEach } from '@vates/async-each'
 import { basename, normalize } from '@xen-orchestra/fs/path'
 import { createLogger } from '@xen-orchestra/log'
