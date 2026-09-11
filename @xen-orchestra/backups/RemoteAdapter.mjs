@@ -1,7 +1,7 @@
 import { asyncEach } from '@vates/async-each'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
-import { VhdDirectory, VhdSynthetic } from 'vhd-lib'
+import { stringify } from 'uuid'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { basename, dirname, join, resolve } from 'node:path'
 import { synchronized } from 'decorator-synchronized'
@@ -26,7 +26,7 @@ import { readBackupJournal, writeBackupJournalEntries, writeBackupJournalEntry }
 import { isValidXva } from './_isValidXva.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
-import { RemoteVhdDisk, openDiskChain } from '@xen-orchestra/backup-archive/disks'
+import { RemoteVhdDisk, openDiskChain, openDisposableDisk } from '@xen-orchestra/backup-archive/disks'
 import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
 
@@ -51,14 +51,10 @@ const createSafeReaddir = (handler, methodName) => (path, options) =>
   })
 
 export class RemoteAdapter {
-  constructor(
-    handler,
-    { debounceResource = res => res, dirMode, vhdDirectoryCompression, useGetDiskLegacy = false } = {}
-  ) {
+  constructor(handler, { debounceResource = res => res, dirMode, useGetDiskLegacy = false } = {}) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler
-    this._vhdDirectoryCompression = vhdDirectoryCompression
     this._readCacheListVmBackups = synchronized.withKey()(this._readCacheListVmBackups)
     this._useGetDiskLegacy = useGetDiskLegacy
   }
@@ -69,19 +65,14 @@ export class RemoteAdapter {
 
   // check if we will be allowed to merge a vhd created in this adapter
   // with the vhd at path `path`
+  //
+  // only the candidate disk itself is checked (no ancestor walk): mergeBlock() already
+  // degrades gracefully when parent/child formats differ, so chain-wide uniformity isn't
+  // a requirement here.
   async isMergeableParent(packedParentUid, path) {
-    return await Disposable.use(VhdSynthetic.fromVhdChain(this.handler, path), vhd => {
-      // this baseUuid is not linked with this vhd
-      if (!vhd.footer.uuid.equals(packedParentUid)) {
-        return false
-      }
-
-      // check if all the chain is composed of vhd directory
-      const isVhdDirectory = vhd.checkVhdsClass(VhdDirectory)
-      return isVhdDirectory
-        ? this.useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
-        : !this.useVhdDirectory()
-    })
+    return await Disposable.use(openDisposableDisk({ handler: this.handler, path, ignoreBlockIndexes: true }), disk =>
+      disk.isMergeableParent(stringify(packedParentUid))
+    )
   }
 
   // Single funnel for all the backup deletions triggered by a user or by retention: forgets them
@@ -226,12 +217,8 @@ export class RemoteAdapter {
     )
   }
 
-  #getCompressionType() {
-    return this._vhdDirectoryCompression
-  }
-
   useVhdDirectory() {
-    return this.handler.useVhdDirectory()
+    return this.handler.getConfig('useVhdDirectory')
   }
 
   #useAlias() {
@@ -504,7 +491,7 @@ export class RemoteAdapter {
           path,
           concurrency: writeBlockConcurrency,
           validator,
-          compression: 'brotli',
+          compression: handler.getConfig('compressionType') ?? 'brotli', // compatibility layer
           uuid,
           parentUuid,
           parentPath,
