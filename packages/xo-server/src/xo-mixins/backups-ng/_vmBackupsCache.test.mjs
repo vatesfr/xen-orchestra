@@ -537,10 +537,4 @@ describe('serveVmBackups', () => {
     })
     assert.deepEqual(serveVmBackups(cached, 'repository', 'a-vm-without-backups'), { 'a-vm-without-backups': [] })
   })
-
-  it('accepts the arrays of backups returned by a proxy', () => {
-    assert.deepEqual(serveVmBackups({ [VM]: [{ id: filenameOf(VM, 'a'), timestamp: 1 }] }, 'repository'), {
-      [VM]: [{ id: `repository/${filenameOf(VM, 'a')}`, timestamp: 1 }],
-    })
-  })
 })

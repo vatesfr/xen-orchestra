@@ -117,10 +117,7 @@ const removeBackup = (backupsByVm, vmUuid, key) => {
  * Turns the backups of a repository into the shape expected by the API:
  * `{ [vmUuid]: <backups sorted by timestamp> }`, restricted to `vmId` when it is given.
  *
- * `backupsByVm` maps each VM to its backups, either as an array (as a proxy returns them) or keyed by
- * metadata filename (as `VmBackupsCache` stores them).
- *
- * @param {Record<string, FormattedBackup[] | Record<string, FormattedBackup>>} backupsByVm
+ * @param {BackupsByVm} backupsByVm
  * @param {string} remoteId
  * @param {string} [vmId]
  * @returns {Record<string, FormattedBackup[]>}
