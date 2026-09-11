@@ -1,3 +1,5 @@
+// @ts-check
+
 import mapValues from 'lodash/mapValues.js'
 import { dirname } from 'node:path'
 
