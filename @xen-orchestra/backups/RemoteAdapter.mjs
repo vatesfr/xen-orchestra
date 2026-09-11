@@ -4,6 +4,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { VhdDirectory, VhdSynthetic } from 'vhd-lib'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { basename, dirname, join, resolve } from 'node:path'
+import { normalize } from '@xen-orchestra/fs/path'
 import { synchronized } from 'decorator-synchronized'
 import Disposable from 'promise-toolbox/Disposable'
 import groupBy from 'lodash/groupBy.js'
@@ -456,6 +457,69 @@ export class RemoteAdapter {
    */
   async readBackupJournal(since) {
     return readBackupJournal(this._handler, since)
+  }
+
+  // Same as `readBackupJournal()`, with the current metadata of the added and changed backups
+  // attached, so that a listing can be brought up to date from the result alone, in a single
+  // round-trip for a caller which is not on this host.
+  //
+  // The metadata is read back from the repository instead of being carried by the journal, so that
+  // the result always reflects the current content of the file, e.g. the size a merge updated.
+  /**
+   * @param {number} [since] timestamp in ms, exclusive
+   * @returns {Promise<{
+   *   events: import('./formatVmBackups.mjs').ResolvedJournalEvent[]
+   *   lastJournalRead: number
+   * }>} the watermark to pass as `since` on the next call, stamped by this process, which is also
+   * the one which stamps the entries it writes
+   */
+  async readBackupJournalEvents(since) {
+    // stamped before the read, so that the events which happen during it are returned by the next
+    // call
+    const lastJournalRead = Date.now()
+
+    // the entries are oldest first, therefore the last event of a backup is its current state: a
+    // backup which was written then deleted costs no metadata read at all, and one which was
+    // rewritten several times costs a single one
+    const lastEventByFilename = new Map()
+    for (const { event, filename, vmUuid } of await this.readBackupJournal(since)) {
+      if (event !== 'add' && event !== 'change' && event !== 'del') {
+        warn('ignoring unsupported journal event', { event, filename })
+        continue
+      }
+
+      // the entries are written by several code paths which don't agree on the leading slash
+      lastEventByFilename.set(normalize(filename), { event, vmUuid })
+    }
+
+    // there is at most one event per backup left, therefore they can be resolved concurrently and
+    // the order `asyncEach` returns them in does not matter
+    const events = []
+    await asyncEach(lastEventByFilename, async ([filename, { event, vmUuid }]) => {
+      if (event === 'del') {
+        events.push({ event, vmUuid, filename })
+        return
+      }
+
+      let metadata
+      try {
+        metadata = await this.readVmBackupMetadata(filename)
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          // the metadata is gone while its last event says it should be there: it was deleted
+          // without being journaled, e.g. by a user or a third party tool directly on the
+          // repository. Report it as a deletion instead of waiting for the next full rebuild.
+          debug('reporting a backup whose metadata is missing as deleted', { event, filename })
+          events.push({ event: 'del', vmUuid, filename })
+          return
+        }
+        throw error
+      }
+
+      events.push({ event, vmUuid, filename, metadata })
+    })
+
+    return { events, lastJournalRead }
   }
 
   async writeVmBackupMetadata(vmUuid, metadata) {
