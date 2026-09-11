@@ -57,7 +57,6 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-cli patch
-- @xen-orchestra/proxy patch
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
