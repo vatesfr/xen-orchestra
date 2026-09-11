@@ -1,13 +1,8 @@
 // @ts-check
 
-import { asyncEach } from '@vates/async-each'
 import { compareTimestamp } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 import { createLogger } from '@xen-orchestra/log'
-import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackups.mjs'
 import { journalCursorAt } from '@xen-orchestra/backups/_backupJournal.mjs'
-import { resolve } from 'node:path'
-
-/** @typedef {import('@xen-orchestra/backups/RemoteAdapter.mjs').RemoteAdapter} RemoteAdapter */
 
 /**
  * A backup repository, as required by `VmBackupsCache`.
@@ -22,9 +17,41 @@ import { resolve } from 'node:path'
  */
 
 /**
+ * The backups of a VM, keyed by the name of their metadata.
+ *
+ * @typedef {Record<string, FormattedBackup>} Backups
+ */
+
+/**
  * The formatted backups of a repository, keyed by VM UUID then metadata filename.
  *
- * @typedef {Record<string, Record<string, FormattedBackup>>} BackupsByVm
+ * @typedef {Record<string, Backups>} BackupsByVm
+ */
+
+/**
+ * What happened to a backup since the previous read, as the source reports it: `backup` is its
+ * current value, or `undefined` when it is gone.
+ *
+ * @typedef {object} JournalEvent
+ * @property {string} vmUuid
+ * @property {string} filename name of the metadata, as the listing keys it
+ * @property {FormattedBackup} [backup]
+ */
+
+/**
+ * @typedef {object} JournalRead
+ * @property {JournalEvent[]} events
+ * @property {string} [cursor] path bounding the next journal read, see `readBackupJournal()`;
+ * unchanged from the cursor passed in when nothing new was read
+ */
+
+/**
+ * Reads the backups of a repository. See `VmBackupsSource`.
+ *
+ * @typedef {object} Source
+ * @property {(repository: Repository) => Promise<BackupsByVm>} listAll
+ * @property {(repository: Repository, vmUuid: string) => Promise<Backups>} listOneVm
+ * @property {(repository: Repository, cursor: string | undefined, opts: { mustExist: boolean }) => Promise<JournalRead>} readJournal
  */
 
 /**
@@ -33,7 +60,8 @@ import { resolve } from 'node:path'
  * @property {string} cursor path bounding the next journal read, see `readBackupJournal()`
  * @property {boolean} [journalConfirmed] whether the journal directory has already been read
  * successfully once, i.e. whether it disappearing on the next replay is anomalous rather than benign
- * @property {number} lastJournalRead
+ * @property {number} lastJournalRead this process' clock, for the day-rollover and refresh-window
+ * checks only: it is never passed to the source, which owns the cursor
  * @property {Repository['options']} [options]
  * @property {boolean} stale
  * @property {string} url
@@ -55,40 +83,12 @@ const MS_PER_DAY = 24 * 60 * 60 * 1e3
 
 const utcDay = timestamp => Math.floor(timestamp / MS_PER_DAY)
 
-// journal entries and cache keys don't necessarily agree on the leading slash, they must be keyed
-// by the same name for a replayed event to hit the entry the listing built
-//
-// the leading slash is the form `RemoteAdapter` produces, both when it lists a repository
-// (`handler.list()` prepends the normalized dir) and when it writes a metadata
-/**
- * @param {string} filename
- * @returns {string}
- */
-const normalizeFilename = filename => resolve('/', filename)
-
-// `formatVmBackup` expects the metadata as `RemoteAdapter#listVmBackups` returns it, i.e. with the
-// `id` which the on-repository cache injects
-/**
- * @param {object} metadata
- * @param {string} backupRepositoryId
- * @param {string} filename
- * @returns {FormattedBackup}
- */
-const format = (metadata, backupRepositoryId, filename) =>
-  /** @type {FormattedBackup} */ (
-    formatVmBackup({ ...metadata, _filename: filename, backupRepositoryId, id: filename })
-  )
-
 /**
  * @param {Entry} entry
  * @param {Repository} repository
  * @returns {boolean}
  */
 const isSameRepository = (entry, repository) => entry.url === repository.url && entry.options === repository.options
-
-/**
- * @typedef {<T>(repository: Repository, fn: (adapter: RemoteAdapter) => Promise<T>) => Promise<T>} UseAdapter
- */
 
 /**
  * forgets a backup, and the VM it belonged to when it was its last one
@@ -148,6 +148,9 @@ export function serveVmBackups(backupsByVm, remoteId, vmId) {
  * re-listing it, an entry is brought up to date by replaying the events its journal recorded since
  * the previous read (see `@xen-orchestra/backups/_backupJournal.mjs`).
  *
+ * How a repository is read is `VmBackupsSource`'s business: this class only decides *when* to list
+ * it, when to replay it, and what to serve in the meantime.
+ *
  * Entries are rebuilt from scratch when they cross a UTC day, which bounds the drift accumulated
  * from the events which could not be journaled, or which are not journaled at all (e.g. the
  * `immutable-backups` daemon lifting the immutability of a backup), and when the remote is
@@ -166,17 +169,17 @@ export class VmBackupsCache {
   /** @type {Map<string, Promise<BackupsByVm>>} */
   #pending = new Map()
 
-  /** @type {UseAdapter} */
-  #useAdapter
+  /** @type {Source} */
+  #source
 
   /**
-   * @param {UseAdapter} useAdapter
+   * @param {Source} source
    * @param {object} [options]
    * @param {number} [options.minRefreshDelay] minimum delay between two journal reads of the same
    * repository, in milliseconds
    */
-  constructor(useAdapter, { minRefreshDelay = 0 } = {}) {
-    this.#useAdapter = useAdapter
+  constructor(source, { minRefreshDelay = 0 } = {}) {
+    this.#source = source
     this.#minRefreshDelay = minRefreshDelay
   }
 
@@ -293,24 +296,15 @@ export class VmBackupsCache {
       return backupsByVm[vmUuid] === undefined ? {} : { [vmUuid]: backupsByVm[vmUuid] }
     }
 
-    const backups = await this.#useAdapter(repository, adapter => adapter.listVmBackups(vmUuid))
+    const backups = await this.#source.listOneVm(repository, vmUuid)
 
     // warms the entry in the background for the callers which want every VM
     this.get(repository).catch(error => {
       warn('failed to warm the entry', { repositoryId: id, error })
     })
 
-    if (backups.length === 0) {
-      return {}
-    }
-
-    /** @type {Record<string, FormattedBackup>} */
-    const byFilename = {}
-    for (const backup of backups) {
-      const key = normalizeFilename(backup._filename)
-      byFilename[key] = format(backup, id, key)
-    }
-    return { [vmUuid]: byFilename }
+    // `RemoteAdapter#listAllVmBackups` skips the VMs without backups
+    return Object.keys(backups).length === 0 ? {} : { [vmUuid]: backups }
   }
 
   /**
@@ -320,8 +314,8 @@ export class VmBackupsCache {
   async #build(repository) {
     const { id } = repository
 
-    // the watermark is taken before the listing, so that the events which happen during the listing
-    // are replayed on the next read
+    // the cursor is bootstrapped from this process' clock before the listing, so that the events
+    // which happen during it are replayed on the next read
     const now = Date.now()
     const entry = {
       backupsByVm: undefined,
@@ -336,18 +330,7 @@ export class VmBackupsCache {
     // resurrected, only this call sees the result
     this.#entries.set(id, entry)
 
-    const backupsByVm = await this.#useAdapter(repository, async adapter => {
-      /** @type {BackupsByVm} */
-      const result = {}
-      for (const [vmUuid, backups] of Object.entries(await adapter.listAllVmBackups())) {
-        const byFilename = (result[vmUuid] = {})
-        for (const backup of backups) {
-          const key = normalizeFilename(backup._filename)
-          byFilename[key] = format(backup, id, key)
-        }
-      }
-      return result
-    })
+    const backupsByVm = await this.#source.listAll(repository)
 
     debug('entry built', { repositoryId: id, nVms: Object.keys(backupsByVm).length })
 
@@ -364,64 +347,32 @@ export class VmBackupsCache {
     // populated: `#replay()` is only called for an entry `#build()` has already completed
     const backupsByVm = /** @type {BackupsByVm} */ (entry.backupsByVm)
 
-    // both are reset before the journal read, so that a mutation which happens during the replay is
-    // not missed by the next one
+    // reset before the journal read, so that a mutation which happens during it is not missed by
+    // the next one
     entry.lastJournalRead = Date.now()
     entry.stale = false
 
-    let nEvents = 0
-    await this.#useAdapter(repository, async adapter => {
-      const events = await adapter.readBackupJournal(entry.cursor, { mustExist: entry.journalConfirmed })
-
-      // `readBackupJournal()` returns the events oldest first: the last one is the cursor for the
-      // next replay, and the last event of a given backup is its current state, so a backup which
-      // was written then deleted costs no read at all, and one rewritten several times costs a
-      // single one
-      if (events.length > 0) {
-        entry.cursor = events[events.length - 1]._filename
-        // the journal has now actually been observed to exist: it disappearing on a later replay is
-        // anomalous rather than a repository which has simply never been written to
-        entry.journalConfirmed = true
-      }
-
-      const lastEventByKey = new Map()
-      for (const { event, filename, vmUuid } of events) {
-        nEvents++
-
-        if (event !== 'add' && event !== 'change' && event !== 'del') {
-          warn('ignoring unsupported journal event', { event, filename })
-          continue
-        }
-
-        lastEventByKey.set(normalizeFilename(filename), { event, vmUuid })
-      }
-
-      await asyncEach(lastEventByKey, async ([key, { event, vmUuid }]) => {
-        if (event === 'del') {
-          removeBackup(backupsByVm, vmUuid, key)
-          return
-        }
-
-        let metadata
-        try {
-          metadata = await adapter.readVmBackupMetadata(key)
-        } catch (error) {
-          if (error.code === 'ENOENT') {
-            // the metadata is gone while its last event says it should be there: it was deleted
-            // without being journaled, e.g. by a user or a third party tool directly on the
-            // repository. Reflect it now instead of waiting for the next full rebuild.
-            debug('removing a backup whose metadata is missing', { event, filename: key })
-            removeBackup(backupsByVm, vmUuid, key)
-            return
-          }
-          throw error
-        }
-
-        const backups = (backupsByVm[vmUuid] ??= {})
-        backups[key] = format(metadata, repository.id, key)
-      })
+    const { events, cursor } = await this.#source.readJournal(repository, entry.cursor, {
+      mustExist: entry.journalConfirmed,
     })
 
-    debug('entry replayed', { repositoryId: repository.id, nEvents })
+    if (events.length > 0) {
+      entry.cursor = cursor
+      // the journal has now actually been observed to exist: it disappearing on a later replay is
+      // anomalous rather than a repository which has simply never been written to
+      entry.journalConfirmed = true
+    }
+
+    // the source reduced the events to the last one of each backup, therefore they are independent
+    // and the order they are applied in does not matter
+    for (const { vmUuid, filename, backup } of events) {
+      if (backup === undefined) {
+        removeBackup(backupsByVm, vmUuid, filename)
+      } else {
+        ;(backupsByVm[vmUuid] ??= {})[filename] = backup
+      }
+    }
+
+    debug('entry replayed', { repositoryId: repository.id, nEvents: events.length })
   }
 }

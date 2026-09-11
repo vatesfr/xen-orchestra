@@ -18,6 +18,7 @@ import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
+import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
@@ -101,10 +102,9 @@ export default class BackupNg {
   constructor(app) {
     this._app = app
     this._runningRestores = new Set()
-    this.#vmBackupsCache = new VmBackupsCache(
-      (repository, fn) => Disposable.use(app.getBackupsRemoteAdapter(repository), fn),
-      { minRefreshDelay: app.config.getDuration('backups.listingDebounce') }
-    )
+    this.#vmBackupsCache = new VmBackupsCache(new VmBackupsSource(app), {
+      minRefreshDelay: app.config.getDuration('backups.listingDebounce'),
+    })
 
     /** @type {Record<XoBackupRepository['id'], ListingRetryState>} */
     this._backupsListingRetry = { __proto__: null }
