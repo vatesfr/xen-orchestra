@@ -127,6 +127,7 @@ function addRuleRoute(controller, resource) {
           name: `add ${resource.acl} traffic rule`,
           objectId: rule[resource.idKey],
           objectType: resource.type,
+          params: req.body,
         },
       })
     },
@@ -156,6 +157,7 @@ function deleteRuleRoute(controller, resource) {
           name: `delete ${resource.acl} traffic rule`,
           objectId: rule[resource.idKey],
           objectType: resource.type,
+          params: req.body,
         },
       })
     },
