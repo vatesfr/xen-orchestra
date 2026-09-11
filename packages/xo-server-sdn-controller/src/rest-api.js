@@ -14,17 +14,6 @@ const RULE_FIELDS = {
   port: { type: 'number', example: 443, optional: true },
 }
 
-const BODY_ADD_RULE = RULE_FIELDS
-
-// delete matches rules on (direction, ipRange, port, protocol) only, like
-// OpenVSwitch does — `allow` is not part of the match and isn't required
-const BODY_DELETE_RULE = {
-  direction: RULE_FIELDS.direction,
-  ipRange: RULE_FIELDS.ipRange,
-  protocol: RULE_FIELDS.protocol,
-  port: RULE_FIELDS.port,
-}
-
 const BODY_UPDATE_RULE = {
   oldRule: { type: 'object', fields: RULE_FIELDS },
   newRule: {
@@ -112,7 +101,7 @@ function addRuleRoute(controller, resource) {
     tags: ['sdn-controller'],
     params: PARAMS_ID,
     query: QUERY_SYNC,
-    body: BODY_ADD_RULE,
+    body: RULE_FIELDS,
     responses: [
       { status: 204, description: 'Rule added successfully' },
       { status: 404, description: `No ${resource.type} found for this ID` },
@@ -142,7 +131,7 @@ function deleteRuleRoute(controller, resource) {
     tags: ['sdn-controller'],
     params: PARAMS_ID,
     query: QUERY_SYNC,
-    body: BODY_DELETE_RULE,
+    body: RULE_FIELDS,
     responses: [
       { status: 204, description: 'Rule deleted successfully' },
       { status: 404, description: `No ${resource.type} found for this ID` },
