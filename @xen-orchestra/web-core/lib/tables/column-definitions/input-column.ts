@@ -12,7 +12,7 @@ type InputConfig = {
 
 export const useInputColumn = defineColumn((config?: HeaderConfig & InputConfig) => ({
   renderHead: () => renderHeadCell(config?.headerLabel),
-  renderBody: (model: Ref<string | number | undefined>, inputProps?: { disabled?: boolean }) =>
+  renderBody: (model: Ref<string | number | undefined>, inputProps?: { disabled?: boolean; min?: number }) =>
     renderBodyCell(() =>
       h(UiInput, {
         accent: 'brand',

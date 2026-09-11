@@ -36,7 +36,7 @@ import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { vmState, srs, canResizeExistingDisks, defaultExistingVdis } = defineProps<{
   vmState: VmState
   srs: FrontXoSr[]
   canResizeExistingDisks: boolean
@@ -52,7 +52,7 @@ const { t } = useI18n()
 
 const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
   body: ({ vdi, onRemove }: { vdi: Vdi; onRemove?: () => void }) => {
-    const { id: srSelectId } = useFormSelect(() => props.srs, {
+    const { id: srSelectId } = useFormSelect(() => srs, {
       model: toRef(vdi, 'sr'),
       option: {
         label: sr => {
@@ -67,8 +67,8 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
     const size = toRef(vdi, 'size')
     const description = toRef(vdi, 'name_description')
 
-    const defaultVdi = props.defaultExistingVdis.find(d => d.id === vdi.id)
-    const isExistingVdi = defaultVdi !== undefined
+    const isExistingVdi = vmState.existingVdis.includes(vdi)
+    const defaultVdi = isExistingVdi ? defaultExistingVdis[vmState.existingVdis.indexOf(vdi)] : undefined
     const minSize = defaultVdi?.size ?? 1
 
     return {
@@ -76,9 +76,9 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
       diskName: r => r(diskName),
       size: r =>
         r(size, {
-          disabled: isExistingVdi ? !props.canResizeExistingDisks : false,
+          disabled: isExistingVdi ? !canResizeExistingDisks : false,
           min: minSize,
-        } as any),
+        }),
       description: r => r(description),
       remove: r => (onRemove ? r(onRemove) : renderBodyCell()),
     }

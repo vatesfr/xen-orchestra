@@ -636,27 +636,29 @@ const redirectToPool = (poolId: XoPool['id']) => {
   router.push({ name: '/pool/[id]/dashboard', params: { id: poolId } })
 }
 
-function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi, canResizeExistingDisks: boolean = false) {
-  const changes: Partial<Vdi> = {}
+function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi, canResizeExistingDisks: boolean) {
+  const changes: Record<string, unknown> = {}
 
-  if (vdi1.name_label !== vdi2.name_label) {
-    changes.name_label = vdi2.name_label
+  for (const _key in vdi1) {
+    const key = _key as keyof Vdi
+
+    if (key === 'size') {
+      if (canResizeExistingDisks && vdi1[key] !== vdi2[key]) {
+        changes[key] = vdi2[key]
+      }
+      continue
+    }
+
+    if (vdi1[key] !== vdi2[key]) {
+      changes[key] = vdi2[key]
+    }
   }
-
-  if (vdi1.name_description !== vdi2.name_description) {
-    changes.name_description = vdi2.name_description
-  }
-
-  if (canResizeExistingDisks && vdi1.size !== vdi2.size) {
-    changes.size = vdi2.size
-  }
-
   return Object.keys(changes).length > 0 ? changes : undefined
 }
 
-const canResizeExistingDisks = computed(() => {
-  const cloudInitModes: InstallMode[] = ['ssh-key', 'cloud-init-config']
+const cloudInitModes: InstallMode[] = ['ssh-key', 'cloud-init-config']
 
+const canResizeExistingDisks = computed(() => {
   return cloudInitModes.includes(vmState.installMode)
 })
 
