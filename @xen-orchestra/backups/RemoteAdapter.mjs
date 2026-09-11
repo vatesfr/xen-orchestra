@@ -476,26 +476,26 @@ export class RemoteAdapter {
   async readBackupJournalEvents(since) {
     // stamped before the read, so that the events which happen during it are returned by the next
     // call
-    const lastJournalRead = Date.now()
+    let lastJournalRead = Date.now()
 
     // the entries are oldest first, therefore the last event of a backup is its current state: a
     // backup which was written then deleted costs no metadata read at all, and one which was
     // rewritten several times costs a single one
     const lastEventByFilename = new Map()
-    for (const { event, filename, vmUuid } of await this.readBackupJournal(since)) {
+    for (const { event, filename, timestamp, vmUuid } of await this.readBackupJournal(since)) {
       if (event !== 'add' && event !== 'change' && event !== 'del') {
         warn('ignoring unsupported journal event', { event, filename })
         continue
       }
 
       // the entries are written by several code paths which don't agree on the leading slash
-      lastEventByFilename.set(normalize(filename), { event, vmUuid })
+      lastEventByFilename.set(normalize(filename), { event, timestamp, vmUuid })
     }
 
     // there is at most one event per backup left, therefore they can be resolved concurrently and
     // the order `asyncEach` returns them in does not matter
     const events = []
-    await asyncEach(lastEventByFilename, async ([filename, { event, vmUuid }]) => {
+    await asyncEach(lastEventByFilename, async ([filename, { event, timestamp, vmUuid }]) => {
       if (event === 'del') {
         events.push({ event, vmUuid, filename })
         return
@@ -513,7 +513,17 @@ export class RemoteAdapter {
           events.push({ event: 'del', vmUuid, filename })
           return
         }
-        throw error
+
+        // One unreadable metadata must not fail the whole read: the caller would forget the
+        // repository and list it in full on every call for as long as the file stays unreadable,
+        // which is much more expensive than what this read costs.
+        //
+        // Its event is kept behind the watermark instead of being dropped, so that the next read
+        // tries it again: a transient failure costs nothing, and a permanent one only widens the
+        // window of a journal read, until the caller rebuilds from scratch anyway.
+        warn(`can't read the metadata of a backup an event is about`, { error, event, filename })
+        lastJournalRead = Math.min(lastJournalRead, timestamp - 1)
+        return
       }
 
       events.push({ event, vmUuid, filename, metadata })

@@ -461,6 +461,35 @@ describe('readBackupJournalEvents()', { concurrency: 1 }, () => {
     )
   })
 
+  test('keeps an unreadable metadata behind the watermark instead of failing the whole read', async () => {
+    const readable = await writeFullBackup(Date.now() - 2000)
+    const unreadable = await writeDeltaBackup(Date.now() - 1000)
+
+    const readFile = handler.readFile.bind(handler)
+    handler.readFile = async (path, ...rest) => {
+      if (path === unreadable) {
+        throw Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' })
+      }
+      return readFile(path, ...rest)
+    }
+
+    const { events, lastJournalRead } = await adapter.readBackupJournalEvents(0)
+
+    // the backups which could be read are still brought up to date
+    assert.deepEqual(
+      events.map(_ => _.filename),
+      [readable]
+    )
+
+    // and the one which could not is read again on the next call
+    handler.readFile = readFile
+    const { events: retried } = await adapter.readBackupJournalEvents(lastJournalRead)
+    assert.deepEqual(
+      retried.map(_ => _.filename),
+      [unreadable]
+    )
+  })
+
   test('returns the watermark to start from on the next call', async () => {
     await writeFullBackup(Date.now() - 2000)
 
