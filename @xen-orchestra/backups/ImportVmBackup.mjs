@@ -286,7 +286,7 @@ export class ImportVmBackup {
           xapi.call(
             'VM.set_name_label',
             vmRef,
-            `${vmNamePrefix === undefined ? null : vmNamePrefix + ' '}${metadata.vm.name_label} (${formatFilenameDate(metadata.timestamp)})`
+            `${vmNamePrefix ?? ''}${metadata.vm.name_label} (${formatFilenameDate(metadata.timestamp)})`
           ),
           xapi.call('VM.set_name_description', vmRef, desc),
           resetVmOtherConfig(xapi, vmRef),
