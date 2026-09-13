@@ -84,7 +84,11 @@ export default {
           },
           {
             to: '/backups-and-dr/backup-features-and-settings',
-            from: ['/backups', '/xo6/backups', '/xo5/backups'],
+            from: ['/backups', '/xo5/backups'],
+          },
+          {
+            to: '/backups-and-dr/backups-in-xo6', 
+            from: '/xo6/backups',
           },
           {
             to: '/support-and-licencing/community',
@@ -127,7 +131,7 @@ export default {
             from: '/install-from-sources',
           },
           {
-            to: '/backups-and-dr/backup-features-and-settings',
+            to: '/backups-and-dr/backup',
             from: '/xo5/backup',
           },
           {
@@ -140,11 +144,7 @@ export default {
           },
           {
             to: '/manage-your-infrastructure/manage_infrastructure',
-            from: ['/manage', '/xo5/manage'],
-          },
-          {
-            to: '/manage-your-infrastructure/manage_infrastructure',
-            from: '/manage_infrastructure',
+            from: ['/manage', '/xo5/manage', '/manage_infrastructure'],
           },
           {
             to: '/automation/mcp',
@@ -220,7 +220,7 @@ export default {
           },
           {
             to: '/getting-started/troubleshooting',
-            from: ['/general-troubleshooting', '/xo5/troubleshooting'],
+            from: ['/general-troubleshooting', '/xo5/troubleshooting', '/troubleshooting'],
           },
           {
             to: '/getting-started/updater',
@@ -236,7 +236,7 @@ export default {
           },
           {
             to: '/guides/windows-templates',
-            from: ['/windows-templates'],
+            from: '/windows-templates',
           },
           {
             to: '/manage-your-infrastructure/vm-templates',
