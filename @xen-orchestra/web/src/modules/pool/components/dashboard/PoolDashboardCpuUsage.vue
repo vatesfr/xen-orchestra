@@ -9,31 +9,37 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsStateHero v-if="!areHostsCpuUsageReady" format="card" type="busy" size="medium" />
-    <template v-else>
-      <HostsCpuUsage :top-five-cpu="poolDashboard?.hosts?.topFiveUsage?.cpu" :has-error />
-    </template>
+    <VtsStatefulProgressBarGroup
+      :items="hostsCpuItems ?? []"
+      :thresholds="cpuThresholds"
+      :has-error
+      :busy="hostsCpuItems === undefined"
+      legend-type="percent"
+    />
     <UiCardSubtitle>
       {{ t('vms') }}
       <template #info>
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsStateHero v-if="!areVmsCpuUsageReady" format="card" type="busy" size="medium" />
-    <template v-else>
-      <VmsCpuUsage :top-five-cpu="poolDashboard?.vms?.topFiveUsage?.cpu" :has-error />
-    </template>
+    <VtsStatefulProgressBarGroup
+      :items="vmsCpuItems ?? []"
+      :thresholds="cpuThresholds"
+      :has-error
+      :busy="vmsCpuItems === undefined"
+      legend-type="percent"
+    />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import HostsCpuUsage from '@/modules/pool/components/dashboard/cpu-usage/HostsCpuUsage.vue'
-import VmsCpuUsage from '@/modules/pool/components/dashboard/cpu-usage/VmsCpuUsage.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { toPercentProgressItem } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
+import VtsStatefulProgressBarGroup from '@core/components/stateful-progress-bar-group/VtsStatefulProgressBarGroup.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { cpuProgressThresholds } from '@core/utils/progress.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -42,9 +48,11 @@ const { poolDashboard } = defineProps<{
   hasError?: boolean
 }>()
 
-const areHostsCpuUsageReady = computed(() => poolDashboard?.hosts?.topFiveUsage?.cpu !== undefined)
+const cpuThresholds = cpuProgressThresholds()
 
-const areVmsCpuUsageReady = computed(() => poolDashboard?.vms?.topFiveUsage?.cpu !== undefined)
+const hostsCpuItems = computed(() => poolDashboard?.hosts?.topFiveUsage?.cpu?.map(toPercentProgressItem))
+
+const vmsCpuItems = computed(() => poolDashboard?.vms?.topFiveUsage?.cpu?.map(toPercentProgressItem))
 
 const { t } = useI18n()
 </script>

@@ -2,19 +2,20 @@
 
 Domain objects are created through factories in `src/test/`, one per object type:
 
-| Factory            | Builds              |
-| ------------------ | ------------------- |
-| `createVm`         | `FrontXoVm`         |
-| `createHost`       | `FrontXoHost`       |
-| `createServer`     | `FrontXoServer`     |
-| `createPool`       | `FrontXoPool`       |
-| `createSr`         | `FrontXoSr`         |
-| `createVbd`        | `FrontXoVbd`        |
-| `createVdi`        | `FrontXoVdi`        |
-| `createVmSnapshot` | `FrontXoVmSnapshot` |
-| `createHostStats`  | `XapiHostStats`     |
-| `createVmStats`    | `XapiVmStats`       |
-| `createPoolStats`  | `XapiPoolStats`     |
+| Factory                           | Builds                                     |
+| --------------------------------- | ------------------------------------------ |
+| `createVm`                        | `FrontXoVm`                                |
+| `createHost`                      | `FrontXoHost`                              |
+| `createServer`                    | `FrontXoServer`                            |
+| `createPool`                      | `FrontXoPool`                              |
+| `createSr`                        | `FrontXoSr`                                |
+| `createVbd`                       | `FrontXoVbd`                               |
+| `createVdi`                       | `FrontXoVdi`                               |
+| `createVmSnapshot`                | `FrontXoVmSnapshot`                        |
+| `createHostStats`                 | `XapiHostStats`                            |
+| `createVmStats`                   | `XapiVmStats`                              |
+| `createPoolStats`                 | `XapiPoolStats`                            |
+| `createPoolDashboardTopFiveUsage` | `XoPoolDashboard` (top-five usage section) |
 
 `createPoolStats` composes `createHostStats`, since pool stats are one entry per host: pass a `Partial<XapiHostStats>` per host id, or an `{ error }` entry for a host whose stats the pool could not fetch.
 
@@ -25,7 +26,13 @@ const poolStats = createPoolStats({
 })
 ```
 
-Shared _helper_ factories live there too — `mount-composable.ts`, `mount-chart-card.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts`, `find-labelled-values.ts`, `i18n.ts` and `linear-chart-stub.ts`.
+`createPoolDashboardTopFiveUsage` builds the `hosts` and `vms` top-five usage sections of an `XoPoolDashboard`. Both metrics of a section default to empty, so a card test fills in only the one it exercises:
+
+```typescript
+const dashboard = createPoolDashboardTopFiveUsage({ cpu: [createHostCpuUsage()] }, { cpu: [createVmCpuUsage()] })
+```
+
+Shared _helper_ factories live there too — `mount-composable.ts`, `mount-chart-card.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts`, `find-rendered-values.ts`, `i18n.ts` and `linear-chart-stub.ts`.
 
 Each factory returns a **fully-populated** object of the real front-end type and accepts a `Partial<T>` of overrides, spread last, so a test only states the fields relevant to its case:
 

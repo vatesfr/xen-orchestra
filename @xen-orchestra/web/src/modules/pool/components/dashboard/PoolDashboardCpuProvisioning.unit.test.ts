@@ -1,6 +1,6 @@
 import PoolDashboardCpuProvisioning from '@/modules/pool/components/dashboard/PoolDashboardCpuProvisioning.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import { findCardNumbers } from '@/test/find-labelled-values.ts'
+import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -61,7 +61,7 @@ it('fills the progress bar with the share of the CPUs assigned', () => {
 it('labels the progress bar with the share of the CPUs assigned', () => {
   const wrapper = mountProvisioning()
 
-  expect(wrapper.get('.ui-legend').text()).toBe(`${t('vcpus')}75%`)
+  expect(findLegends(wrapper)).toEqual([[t('vcpus'), '75%']])
 })
 
 it('reports no CPU for a pool provisioning nothing', () => {

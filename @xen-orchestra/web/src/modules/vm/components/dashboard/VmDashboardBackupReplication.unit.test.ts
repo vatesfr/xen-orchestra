@@ -5,7 +5,7 @@ import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-
 import type { XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { d, t } from '@/test/i18n.ts'
 import { objectIcon } from '@core/icons'

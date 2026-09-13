@@ -1,7 +1,7 @@
 import VmSystemGeneralInfo from '@/modules/vm/components/system/VmSystemGeneralInfo.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { VM_POWER_STATE } from '@vates/types'
@@ -57,13 +57,13 @@ it('leaves the operating system rows empty when the VM reports no OS version', (
 it('renders one tag per VM tag', () => {
   const wrapper = mountGeneralInfo(createVm({ tags: ['production', 'billing'] }))
 
-  expect(wrapper.findAll('.ui-tag').map(tag => tag.text())).toEqual(['production', 'billing'])
+  expect(findTags(wrapper)).toEqual(['production', 'billing'])
 })
 
 it('renders no tag when the VM has none', () => {
   const wrapper = mountGeneralInfo(createVm({ tags: [] }))
 
-  expect(wrapper.find('.ui-tag').exists()).toBe(false)
+  expect(findTags(wrapper)).toEqual([])
   expect(findLabelledValues(wrapper)).toMatchObject({ [t('tags')]: '' })
 })
 

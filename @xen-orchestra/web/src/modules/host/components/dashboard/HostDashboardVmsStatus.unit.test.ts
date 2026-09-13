@@ -3,7 +3,7 @@ import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-res
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findLegends } from '@/test/find-labelled-values.ts'
+import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { VM_POWER_STATE } from '@vates/types'
@@ -102,7 +102,7 @@ it('totals the VMs of the host', () => {
 
   const wrapper = mountVmsStatus()
 
-  expect(wrapper.get('.ui-card-numbers').text()).toBe(`${t('total')}2`)
+  expect(findCardNumbers(wrapper)).toEqual([[t('total'), '2']])
 })
 
 it('keeps every power state in the legend for a host without VM', () => {
@@ -121,7 +121,7 @@ it('leaves out the VMs running on another host', () => {
 
   const wrapper = mountVmsStatus()
 
-  expect(wrapper.get('.ui-card-numbers').text()).toBe(`${t('total')}0`)
+  expect(findCardNumbers(wrapper)).toEqual([[t('total'), '0']])
 })
 
 it('follows the VMs of the host as the collection changes', async () => {
@@ -140,5 +140,5 @@ it('follows the VMs of the host as the collection changes', async () => {
     [t('vm:status:suspended', 2), '0'],
     [t('vm:status:halted', 2), '1'],
   ])
-  expect(wrapper.get('.ui-card-numbers').text()).toBe(`${t('total')}2`)
+  expect(findCardNumbers(wrapper)).toEqual([[t('total'), '2']])
 })
