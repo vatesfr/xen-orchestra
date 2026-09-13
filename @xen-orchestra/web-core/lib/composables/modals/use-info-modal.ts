@@ -1,8 +1,8 @@
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 
-export function useVmProtectedInfoModal() {
+export function useInfoModal() {
   return useOverlay({
-    component: () => import('@/shared/components/modals/VmProtectedInfoModal.vue'),
+    component: () => import('@core/components/modal/VtsInfoModal.vue'),
     events: {
       onClose: true,
     },

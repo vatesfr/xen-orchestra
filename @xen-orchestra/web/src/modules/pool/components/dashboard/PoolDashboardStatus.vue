@@ -36,6 +36,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -49,6 +50,8 @@ const areVmsStatusReady = computed(() => poolDashboard?.vms?.status !== undefine
 
 const { t } = useI18n()
 
+const { open: openInfoModal } = useInfoModal()
+
 const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('host:status:running', 2),
@@ -56,9 +59,13 @@ const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
     accent: 'success',
   },
   {
-    label: t('disabled', 2),
+    label: t('host:status:disabled', 2),
     value: poolDashboard?.hosts?.status?.disabled ?? 0,
     accent: 'muted',
+    onInfoClick: () =>
+      openInfoModal({
+        props: { title: t('what-is-a-disabled-host?'), content: t('what-is-a-disabled-host-content') },
+      }),
   },
   {
     label: t('host:status:halted', 2),
@@ -81,7 +88,7 @@ const vmsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('vm:status:suspended', 2),
     value: poolDashboard?.vms?.status?.suspended ?? 0,
-    accent: 'neutral',
+    accent: 'secondary',
   },
   {
     label: t('vm:status:halted', 2),
