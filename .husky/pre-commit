@@ -1,4 +1,21 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Check for dev routes in route-map.d.ts
+ROUTE_MAP="@xen-orchestra/web/src/route-map.d.ts"
+if git diff --cached --name-only | grep -qF "$ROUTE_MAP"; then
+  if git diff --cached -- "$ROUTE_MAP" | grep -qE "^\+.*(/dev/|src/pages/dev/)"; then
+    echo ""
+    echo "Warning: route-map.d.ts contains staged dev routes (/dev/*)."
+    echo "These are development-only routes and should not be committed."
+    printf "Commit anyway? [y/N] "
+    read REPLY </dev/tty
+    case "$REPLY" in
+      [yY][eE][sS]|[yY]) ;;
+      *) echo "Aborted. Use --no-verify to bypass this check."; exit 1 ;;
+    esac
+    echo ""
+  fi
+fi
+
 npx lint-staged
