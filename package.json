@@ -69,6 +69,7 @@
     "dev": "scripts/run-script.js --parallel --concurrency 0 --verbose dev",
     "prepare": "husky install",
     "prettify": "prettier --ignore-unknown --write .",
+    "sbom": "scripts/gen-sbom.js",
     "test": "npm run test-lint && npm run test-unit",
     "test-integration": "scripts/run-script.js --parallel test-integration",
     "test-lint": "eslint --ignore-path .gitignore --ignore-pattern packages/xo-web .",
