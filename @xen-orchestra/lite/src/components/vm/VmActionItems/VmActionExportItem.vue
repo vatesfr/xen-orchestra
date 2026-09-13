@@ -3,6 +3,7 @@
     v-tooltip="
       vmRefs.length > 0 && !isSomeExportable && t(isSingleAction ? 'vm-is-running' : 'no-selected-vm-can-be-exported')
     "
+    accent="neutral"
     :disabled="isDisabled"
     icon="action:download"
     @click="openExportModal()"

@@ -1,7 +1,8 @@
 <template>
   <MenuItem
+    accent="danger"
     icon="action:disconnect"
-    class="disconnect typo-body-bold-small"
+    class="typo-body-bold-small"
     :busy="isDisconnectingServer"
     :disabled="!canDisconnectServer"
     @click="disconnectServer()"
@@ -29,9 +30,3 @@ const serverId = computed(() => serverByPool.value.get(poolId)?.[0]?.id ?? ('' a
 
 const { disconnectServer, canDisconnectServer, isDisconnectingServer } = useServerDisconnect(serverId)
 </script>
-
-<style lang="postcss" scoped>
-.disconnect {
-  color: var(--color-danger-item-base);
-}
-</style>

@@ -140,6 +140,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
               icon: 'action:delete',
               onClick: () => deleteNetworks(),
               busy: isDeletingNetworks.value,
+              accent: 'danger',
             },
           ],
         }),

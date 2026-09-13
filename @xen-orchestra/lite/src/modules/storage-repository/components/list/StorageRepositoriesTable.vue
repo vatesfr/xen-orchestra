@@ -178,6 +178,7 @@ const { HeadCells, BodyCells } = useSrColumns({
               busy: isDeletingSrs.value,
               disabled: !canDeleteSrs.value,
               hint: deleteSrsErrorMessage.value,
+              accent: 'danger',
             },
           ],
         }),

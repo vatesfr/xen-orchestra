@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canStartHost && startHostErrorMessage"
+    accent="neutral"
     :disabled="!canStartHost"
     icon="fa:play"
     :busy="isStartingHost"

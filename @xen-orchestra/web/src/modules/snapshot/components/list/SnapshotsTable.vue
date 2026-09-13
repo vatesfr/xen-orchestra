@@ -143,6 +143,7 @@ const { HeadCells, BodyCells } = useSnapshotColumns({
               onClick: () => deleteVmSnapshots(),
               disabled: !canDeleteVmSnapshots.value || isRevertingVmSnapshot.value,
               busy: isDeletingVmSnapshots.value,
+              accent: 'danger',
             },
           ],
         }),

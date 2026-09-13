@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="areSomeVmsInExecution && t('selected-vms-in-execution')"
+    accent="danger"
     :disabled="isDisabled"
     icon="fa:trash"
     @click="openDeleteModal()"

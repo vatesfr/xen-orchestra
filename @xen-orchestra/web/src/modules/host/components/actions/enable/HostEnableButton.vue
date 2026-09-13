@@ -3,7 +3,7 @@
     v-tooltip="!canEnableHost && enableHostErrorMessage"
     size="medium"
     variant="tertiary"
-    accent="brand"
+    accent="neutral"
     :disabled="!canEnableHost"
     icon="status:success-circle"
     :busy="isEnablingHost"

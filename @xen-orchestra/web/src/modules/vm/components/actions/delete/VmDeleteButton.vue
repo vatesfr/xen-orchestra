@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:delete" :busy="isRunning" class="delete" @click="openModal()">
+  <MenuItem icon="action:delete" :busy="isRunning" accent="danger" @click="openModal()">
     {{ t('action:delete') }}
   </MenuItem>
 </template>
@@ -76,9 +76,3 @@ function openModal() {
   })
 }
 </script>
-
-<style lang="postcss" scoped>
-.delete {
-  color: var(--color-danger-item-base);
-}
-</style>
