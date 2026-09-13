@@ -5,11 +5,10 @@ import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { incorrectState } from 'xo-common/api-errors.js'
 import { isHostRunning } from '../utils.mjs'
+import { noopRpuRecorder } from '../../_rpuRecovery.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import filter from 'lodash/filter.js'
-import groupBy from 'lodash/groupBy.js'
-import mapValues from 'lodash/mapValues.js'
 
 const log = createLogger('xo:xapi')
 
@@ -51,7 +50,7 @@ const methods = {
   async rollingPoolReboot(
     $defer,
     parentTask,
-    { beforeEvacuateVms, beforeRebootHost, ignoreHost, shutdownPinnedVms = false } = {}
+    { beforeEvacuateVms, beforeRebootHost, ignoreHost, shutdownPinnedVms = false, recorder = noopRpuRecorder } = {}
   ) {
     // migrating the VMs back to their host doubles the migrations of the run: a
     // pool can opt out of that phase by setting this key to `false`
@@ -134,6 +133,11 @@ const methods = {
       for (const [vmRef, hostRef] of haltedPinnedVms) {
         try {
           await this.callAsync('VM.start_on', vmRef, hostRef, false, false)
+          try {
+            recorder.forgetHaltedPinnedVm(this.getObject(vmRef).uuid)
+          } catch (error) {
+            log.warn('could not resolve a restarted pinned VM, leaving it in the recovery record', { vmRef, error })
+          }
         } catch (error) {
           log.warn('failed to restart pinned VM after an aborted rolling pool reboot', { vmRef, error })
         }
@@ -153,26 +157,21 @@ const methods = {
       rprProgress += progressStep
       setProgress(parentTask, rprProgress)
     }
-    // Remember on which hosts the running VMs are
-    const vmRefsByHost = mapValues(
-      groupBy(
-        filter(this.objects.all, {
-          $type: 'VM',
-          power_state: 'Running',
-          is_control_domain: false,
-        }),
-        vm => {
-          const hostId = vm.$resident_on?.$id
+    // Remember on which hosts the running VMs are: to migrate them back after
+    // the reboots, and for the recovery record (not reconstructible once the
+    // evacuations have started)
+    const vmRefsByHost = {}
+    const vmHomeById = {}
+    for (const vm of filter(this.objects.all, { $type: 'VM', power_state: 'Running', is_control_domain: false })) {
+      const hostId = vm.$resident_on?.$id
 
-          if (hostId === undefined) {
-            throw new Error('Could not find host of all running VMs')
-          }
+      if (hostId === undefined) {
+        throw new Error('Could not find host of all running VMs')
+      }
 
-          return hostId
-        }
-      ),
-      vms => vms.map(vm => vm.$ref)
-    )
+      ;(vmRefsByHost[hostId] ??= []).push(vm.$ref)
+      vmHomeById[vm.uuid] = hostId
+    }
 
     // Put master in first position to restart it first
     const indexOfMaster = hosts.findIndex(host => host.$ref === this.pool.master)
@@ -180,6 +179,10 @@ const methods = {
       throw new Error('Could not find pool master')
     }
     ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
+
+    // last write before the first host is handled: the host order and the VM
+    // placement are the biggest part of the record, written once
+    recorder.setPlan({ hostOrder: hosts.map(host => host.uuid), vmHomeById })
 
     // Restart all the hosts one by one
     const restartSubtask = new Task({ properties: { name: `Restarting hosts`, progress: 0 } })
@@ -193,6 +196,9 @@ const methods = {
         const hostName = host.name_label
 
         if (!ignoreHost || !ignoreHost(host)) {
+          // agent_start_time before the update: after a crash, comparing it to
+          // the current value tells whether this host actually rebooted
+          recorder.hostStarting(hostId, host.other_config.agent_start_time)
           await Task.run({ properties: { name: `Restarting host ${hostId}`, hostId, hostName } }, async () => {
             // This is an old metrics reference from before the pool master restart.
             // The references don't seem to change but it's not guaranteed.
@@ -202,6 +208,10 @@ const methods = {
             await this._waitObjectState(metricsRef, metrics => metrics.live)
 
             const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref)) * 1e3
+
+            // covers everything up to the host being clear: pinned VM shutdown,
+            // evacuation precondition and the evacuation itself
+            recorder.stepRunning(hostId, 'evacuate')
 
             let pinnedVmRefs = []
             if (shutdownPinnedVms) {
@@ -218,6 +228,10 @@ const methods = {
                     pinnedVmRefs,
                     async vmRef => {
                       const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
+                      // strict write: the record must know about this VM before
+                      // it goes down, or a crash would leave it halted with
+                      // nothing to restart it
+                      await recorder.recordHaltedPinnedVm(vmId, hostId)
                       await Task.run(
                         { properties: { name: `Shutting down VM ${vmId}`, hostId, hostName, vmId, vmName } },
                         async () => {
@@ -247,6 +261,7 @@ const methods = {
             await Task.run({ properties: { name: `Evacuate`, hostId, hostName } }, async () => {
               await this.clearHost(host)
             })
+            recorder.stepObserved(hostId, 'evacuate')
             rprProgress += progressStepPerHost
             setProgress(parentTask, rprProgress)
             subtaskProgress += subtaskProgressStep
@@ -261,6 +276,7 @@ const methods = {
             }
 
             const rebootTime = await getServerTime()
+            recorder.stepRunning(hostId, 'reboot')
             await Task.run({ properties: { name: `Restart`, hostId, hostName } }, async () => {
               await this.callAsync('host.reboot', host.$ref)
             })
@@ -303,6 +319,10 @@ const methods = {
                 new Error(`Host ${hostId} took too long to restart`)
               )
             })
+            // both observed at once: the wait above checks agent_start_time
+            // (actual reboot) and host.enabled together
+            recorder.stepObserved(hostId, 'reboot')
+            recorder.stepObserved(hostId, 'enable')
 
             if (pinnedVmRefs.length > 0) {
               await Task.run({ properties: { name: `Restart pinned VMs`, hostId, hostName } }, async () => {
@@ -318,6 +338,7 @@ const methods = {
                       () => this.callAsync('VM.start_on', vmRef, host.$ref, false, false)
                     )
                     haltedPinnedVms.delete(vmRef)
+                    recorder.forgetHaltedPinnedVm(vmId)
                   },
                   { concurrency: PINNED_VM_START_CONCURRENCY, stopOnError: false }
                 )
@@ -327,8 +348,14 @@ const methods = {
             setProgress(parentTask, rprProgress)
             subtaskProgress += subtaskProgressStep
             setProgress(restartSubtask, subtaskProgress)
+          }).catch(error => {
+            // single failure path for this host: mark whichever step was
+            // running when it broke
+            recorder.hostFailed(hostId, error)
+            throw error
           })
         } else {
+          recorder.hostSkipped(hostId)
           rprProgress += progressStepPerHost * nStepsSubtask
           setProgress(parentTask, rprProgress)
           subtaskProgress += subtaskProgressStep * nStepsSubtask
@@ -342,13 +369,22 @@ const methods = {
       // one is the emptiest, and serving it frees memory on the ones still to come
       hosts.reverse()
 
-      await this._migrateVmsBack(hosts, vmRefsByHost, ignoreHost, () => {
-        rprProgress += progressStepPerHost
-        setProgress(parentTask, rprProgress)
-      })
+      await this._migrateVmsBack(
+        hosts,
+        vmRefsByHost,
+        ignoreHost,
+        () => {
+          rprProgress += progressStepPerHost
+          setProgress(parentTask, rprProgress)
+        },
+        recorder
+      )
     } else {
       await Task.run({ properties: { name: `Skip migrating VMs back` } }, () => {
         log.info('migrating the VMs back is disabled on this pool', { pool: this.pool.uuid })
+        for (const host of hosts) {
+          recorder.stepNotNeeded(host.uuid, 'restoreVms')
+        }
       })
     }
 
@@ -360,7 +396,7 @@ const methods = {
   //
   // onHostDone is called once per host, whether its VMs moved or not, so that
   // the caller can advance the progress of the whole rolling operation.
-  async _migrateVmsBack(hosts, vmRefsByHost, ignoreHost, onHostDone) {
+  async _migrateVmsBack(hosts, vmRefsByHost, ignoreHost, onHostDone, recorder = noopRpuRecorder) {
     // returns a report entry instead of throwing: a rejected migration is
     // queued for the retry passes below, it aborts nothing
     const migrateVmBack = async (vmRef, host) => {
@@ -408,9 +444,11 @@ const methods = {
         const vmRefs = vmRefsByHost[hostId]
 
         if (vmRefs === undefined) {
+          recorder.stepNotNeeded(hostId, 'restoreVms')
           hostDone()
           continue
         }
+        recorder.stepRunning(hostId, 'restoreVms')
         const oneHostMigrationsTask = new Task({
           properties: { name: `Migrating VMs back to host ${hostId}`, hostId, hostName, progress: 0 },
         })
@@ -435,6 +473,9 @@ const methods = {
             setProgress(oneHostMigrationsTask, (100 * done) / vmRefs.length)
           }
         })
+        // optimistic: a VM still pending is only a failure once the retry
+        // passes below have given up on it
+        recorder.stepObserved(hostId, 'restoreVms')
         hostDone()
       }
 
@@ -468,6 +509,9 @@ const methods = {
         // host and vmRef have no place in a task property
         const strandedVms = pendingVms.map(({ host, vmRef, ...strandedVm }) => strandedVm)
         migrationsSubtask.set('strandedVms', strandedVms)
+        for (const { hostId, message, vmId } of strandedVms) {
+          recorder.stepFailed(hostId, 'restoreVms', new Error(`could not migrate VM ${vmId} back: ${message}`))
+        }
         log.warn('could not migrate all the VMs back to their host', { pool: this.pool.uuid, strandedVms })
       }
     })

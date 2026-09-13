@@ -277,6 +277,22 @@ rollingUpdate.resolve = {
 
 // -------------------------------------------------------------------
 
+export function getRollingUpdateRecovery({ pool }) {
+  return this.getRollingUpdateRecovery(pool.id)
+}
+
+getRollingUpdateRecovery.params = {
+  pool: { type: 'string' },
+}
+
+getRollingUpdateRecovery.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
+
+getRollingUpdateRecovery.description = 'Get the recovery status of an incomplete rolling pool update, if any'
+
+// -------------------------------------------------------------------
+
 export async function rollingReboot({ bypassBackupCheck, pool, shutdownPinnedVms }) {
   await this.rollingPoolReboot(pool, { bypassBackupCheck, shutdownPinnedVms })
 }
