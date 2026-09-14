@@ -26,3 +26,18 @@ for (const [method, orchestrator, params] of [
     })
   })
 }
+
+describe('pool.getRollingUpdateRecovery', function () {
+  // the JSON-RPC layer turns an undefined result into `true`, which clients
+  // would take for a record: the absence of a record must be an explicit null
+  it('returns null, not undefined, when the pool has no record', async function () {
+    const app = { getRollingUpdateRecovery: async () => undefined }
+    assert.equal(await handlers.getRollingUpdateRecovery.call(app, { pool }), null)
+  })
+
+  it('returns the view when the pool has a record', async function () {
+    const view = { poolId: pool.id, status: 'interrupted' }
+    const app = { getRollingUpdateRecovery: async () => view }
+    assert.equal(await handlers.getRollingUpdateRecovery.call(app, { pool }), view)
+  })
+})
