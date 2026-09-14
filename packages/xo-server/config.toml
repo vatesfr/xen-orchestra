@@ -205,6 +205,20 @@ requestTimeout = 0
 '/v5/netdata' = '[protocol]//localhost:[port]/netdata'
 '/v5/rest' = '[protocol]//localhost:[port]/rest'
 
+[iscsi]
+# Address this appliance is reachable at *from the hosts*: it is handed to them
+# as the iSCSI portal when a backup disk is mounted, so a value they cannot
+# reach makes the mount fail.
+#
+# When unset, it is auto-detected per mount (the local address the OS would
+# route through to reach the target host) — usually correct, but not
+# guaranteed if this appliance is behind NAT or asymmetric routing. Set this
+# explicitly if mounts fail to connect despite auto-detection.
+#advertisedAddress = '192.168.0.1'
+
+# Address the iSCSI targets bind to. Unset means all interfaces.
+#bindAddress = '0.0.0.0'
+
 [logs]
 # Display all logs matching this filter, regardless of their level
 #filter = 'xo:load-balancer'
