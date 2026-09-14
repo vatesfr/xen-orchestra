@@ -84,7 +84,7 @@
           <VtsCardRowKeyValue>
             <template #key>{{ t('master') }}</template>
             <template #value>
-              <HostLink v-if="primaryHost" :host="primaryHost" size="small" />
+              <HostLink v-if="primaryHost !== undefined" :host="primaryHost" size="small" />
             </template>
             <template v-if="primaryHost !== undefined" #addons>
               <VtsCopyButton :value="primaryHost.id" />

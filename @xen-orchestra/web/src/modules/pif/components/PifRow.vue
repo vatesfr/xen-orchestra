@@ -2,7 +2,7 @@
   <tr class="pif-row" :class="{ clickable: pifHost }" @click="pifHost?.redirect()">
     <td v-tooltip class="typo-body-regular-small text-ellipsis host-container">
       <div v-if="pifHost" class="host">
-        <VtsObjectIcon :state="pifHost.powerState" type="host" size="small" />
+        <VtsObjectIcon :state="pifHost.state" type="host" size="small" />
         <span v-tooltip class="typo-body-regular-small text-ellipsis host-name">
           {{ pifHost.label }}
         </span>
@@ -55,7 +55,7 @@ const pifHost = computed(() => {
 
   return {
     label: host.name_label,
-    powerState: getHostState(host),
+    state: getHostState(host),
     redirect() {
       router.push({
         name: '/host/[id]/networks',

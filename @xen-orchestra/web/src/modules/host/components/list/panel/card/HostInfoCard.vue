@@ -4,7 +4,7 @@
       :id="host.id"
       :label="host.name_label"
       :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-      :icon="`object:host:${hostState}`"
+      :icon="hostIcon"
     />
     <div class="content">
       <VtsCardRowKeyValue>
@@ -97,6 +97,7 @@ import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composa
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoHostMissingPatchesCollection } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
 import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
+import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
@@ -139,6 +140,8 @@ const noMissingPatches = computed(() => nMissingPatches.value === 0)
 const hostState = computed(() => getHostState(host))
 
 const powerState = computed(() => getHostStatus(hostState.value))
+
+const hostIcon = computed(() => getHostIcon(host))
 
 const relativeStartTime = computed(() => (host.startTime ? getRelativeStartTime(host.startTime) : undefined))
 </script>
