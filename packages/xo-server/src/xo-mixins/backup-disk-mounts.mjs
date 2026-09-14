@@ -1,6 +1,19 @@
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 
-// a backup archive id is `<backup repository id>/<metadata path>`
+/**
+ * @typedef {import('@vates/types').XoApp} XoApp
+ * @typedef {import('@vates/types').BackupArchiveDiskMount} BackupArchiveDiskMount
+ * @typedef {import('@vates/types').XoBackupRepository} XoBackupRepository
+ * @typedef {import('@vates/types').XoHost} XoHost
+ * @typedef {import('@vates/types').XoVmBackupArchive} XoVmBackupArchive
+ */
+
+/**
+ * a backup archive id is `<backup repository id>/<metadata path>`
+ *
+ * @param {XoVmBackupArchive['id']} archiveId
+ * @returns {XoBackupRepository['id']}
+ */
 const getBackupRepositoryId = archiveId => archiveId.split('/')[0]
 
 /**
@@ -11,13 +24,16 @@ const getBackupRepositoryId = archiveId => archiveId.split('/')[0]
  * future feature that mounts a disk from somewhere other than a backup.
  */
 export default class BackupDiskMountsResolver {
+  /** @type {XoApp} */
   #app
 
   // mount id -> { archiveId, hostId }, so a mount id can be resolved back to
-  // the archive/host it actually belongs to, e.g. for ACL checks that must
-  // not trust a caller-supplied archive/host id
+  // the archive/host it actually belongs to, and a caller-supplied archive id
+  // can be checked against the one the mount was created for
+  /** @type {Map<BackupArchiveDiskMount['id'], { archiveId: XoVmBackupArchive['id'], hostId: XoHost['id'] }>} */
   #mountOwners = new Map()
 
+  /** @param {XoApp} app */
   constructor(app) {
     this.#app = app
   }
@@ -27,9 +43,10 @@ export default class BackupDiskMountsResolver {
    * a host as an SR.
    *
    * @param {object} params
-   * @param {string} params.archiveId - `<backup repository id>/<metadata path>`
-   * @param {string} params.diskId - id of one of the archive's disks
-   * @param {string} params.hostId - id of the host the disk is attached to
+   * @param {XoVmBackupArchive['id']} params.archiveId - `<backup repository id>/<metadata path>`
+   * @param {string} params.diskId - id of one of the archive's disks, a path on the backup repository
+   * @param {XoHost['id']} params.hostId - id of the host the disk is attached to
+   * @returns {Promise<BackupArchiveDiskMount>}
    */
   async mountBackupArchiveDisk({ archiveId, diskId, hostId }) {
     const app = this.#app
@@ -66,7 +83,8 @@ export default class BackupDiskMountsResolver {
    * Archive/host a mount actually belongs to, so callers (e.g. the REST API's
    * ACL checks) don't have to trust a caller-supplied archive/host id.
    *
-   * @param {string} id - identifier returned by `mountBackupArchiveDisk`
+   * @param {BackupArchiveDiskMount['id']} id - identifier returned by `mountBackupArchiveDisk`
+   * @returns {{ archiveId: XoVmBackupArchive['id'], hostId: XoHost['id'] }}
    */
   getBackupArchiveDiskMountOwner(id) {
     const owner = this.#mountOwners.get(id)
@@ -77,17 +95,23 @@ export default class BackupDiskMountsResolver {
   }
 
   /**
-   * @param {string} id - identifier returned by `mountBackupArchiveDisk`
+   * @param {BackupArchiveDiskMount['id']} id - identifier returned by `mountBackupArchiveDisk`
+   * @returns {Promise<void>}
    */
   unmountBackupArchiveDisk(id) {
     this.#mountOwners.delete(id)
     return this.#app.liveMount.unmountDisk(id)
   }
 
+  /** @returns {import('@vates/types').MountedBackupArchiveDisk[]} */
   listMountedBackupArchiveDisks() {
     return this.#app.liveMount.listMountedDisks()
   }
 
+  /**
+   * @param {XoVmBackupArchive['id']} archiveId
+   * @returns {Promise<XoVmBackupArchive>}
+   */
   async #getArchive(archiveId) {
     const backupRepositoryId = getBackupRepositoryId(archiveId)
     const backupsByVm = (await this.#app.listVmBackupsNg([backupRepositoryId]))[backupRepositoryId] ?? {}
