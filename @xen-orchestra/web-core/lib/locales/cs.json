@@ -276,7 +276,7 @@
   "configure-for-protected": "Abyste zajistili ochranu svých virt. strojů, zvažte nastavení {backup-job}",
   "configure-in-xo-5": "Nastavit v XO 5",
   "confirm-cancel?": "Opravdu chcete zrušit?",
-  "confirm-delete": "Chystáte se smazat {0}",
+  "confirm-delete": "Chystáte se smazat {name}",
   "confirm-disconnect": "Chystáte se odpojit {0}",
   "confirm-vm-revert": "Potvrďte navrácení virt. stroje do předchozího stavu",
   "connect": "Připojit",
