@@ -62,6 +62,9 @@ const aclMiddlewareGetUser =
   (id: XoUser['id']) =>
     restApi.xoApp.getUser(id, { obfuscatePassword: true })
 
+// fields synchronized users should not be able to modify
+const NO_EDIT_FIELDS = ['name', 'password', 'firstname', 'lastname', 'username']
+
 @Route('users')
 @Security('*')
 @Middlewares(redirectMeAlias)
@@ -187,12 +190,14 @@ export class UserController extends XoController<XoUser> {
 
     const user = await this.getObject(id as XoUser['id'])
 
-    if (
-      user.authProviders !== undefined &&
-      Object.keys(user.authProviders).length > 0 &&
-      (body.name !== undefined || body.password !== undefined)
-    ) {
-      throw forbiddenOperation('update user', 'cannot change name or password of synchronized user')
+    if (user.authProviders !== undefined && Object.keys(user.authProviders).length > 0) {
+      const unallowedEdits = NO_EDIT_FIELDS.filter(key => body[key] !== undefined)
+      if (unallowedEdits.length > 0) {
+        throw forbiddenOperation(
+          'update user',
+          `cannot change name ${unallowedEdits.join(' or ')} password of synchronized user`
+        )
+      }
     }
 
     await this.restApi.xoApp.updateUser(user.id, body)
