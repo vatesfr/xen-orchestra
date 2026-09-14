@@ -95,8 +95,9 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
         { concurrency }
       )
       await Promise.all([vhd.writeFooter(), vhd.writeHeader(), vhd.writeBlockAllocationTable()])
-      await validator(dataPath)
+      // a VHD directory can only be opened through its alias.
       await VhdAbstract.createAlias(handler, path, dataPath)
+      await validator(path)
       // this will return VHD metadata size + block size, even for disk bigger than bigger than 2TB
       return vhd.streamSize()
     } catch (err) {
