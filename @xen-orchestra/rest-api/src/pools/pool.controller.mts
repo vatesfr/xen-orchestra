@@ -84,6 +84,7 @@ import type {
   CreateVmParams,
   PoolDashboard,
   RollingPoolActionBody,
+  RollingPoolUpdateBody,
 } from './pool.type.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
@@ -410,6 +411,11 @@ export class PoolController extends XapiXoController<XoPool> {
    * before their host reboots and start them again on it afterwards. Without it, such VMs make the action fail
    * with an `incorrect state` error listing their UUIDs.
    *
+   * A pool whose master is already up to date while another host is not was left partially updated, for example
+   * by an interrupted rolling pool update: set `acceptCurrentStateAsBaseline` to `true` to start from that state,
+   * otherwise the action fails with an `incorrect state` error listing the outdated hosts. A pool whose previous
+   * rolling pool update is still running or was left incomplete is refused with an `incorrect state` error as well.
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    * @example body { "bypassBackupCheck": false, "shutdownPinnedVms": true }
    */
@@ -425,7 +431,7 @@ export class PoolController extends XapiXoController<XoPool> {
   @Response(incorrectStateResp.status, incorrectStateResp.description)
   rollingUpdate(
     @Path() id: string,
-    @Body() body?: RollingPoolActionBody,
+    @Body() body?: RollingPoolUpdateBody,
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const poolId = id as XoPool['id']

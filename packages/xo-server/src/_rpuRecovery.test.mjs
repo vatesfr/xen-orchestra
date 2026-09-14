@@ -1,12 +1,14 @@
 import assert from 'assert/strict'
 import test from 'node:test'
 import { Readable } from 'node:stream'
+import { incorrectState } from 'xo-common/api-errors.js'
 
 import {
   buildRpuRecoveryView,
   createRpuRecoveryRecord,
   filterError,
   noopRpuRecorder,
+  readRpuRecoveryView,
   reconcileRpuRecoveryAtBoot,
   RPU_RECOVERY_SCHEMA_VERSION,
   startRpuRecoveryRun,
@@ -172,10 +174,36 @@ describe('unreadableRpuRecoveryView()', () => {
   })
 })
 
-describe('startRpuRecoveryRun()', () => {
-  it('persists the record before returning and overwrites any previous record', async () => {
+describe('readRpuRecoveryView()', () => {
+  it('returns undefined when the pool has no record', async () => {
+    assert.equal(await readRpuRecoveryView(makeFakeStore(), 'pool1'), undefined)
+  })
+
+  it('projects a stored record onto its view', async () => {
     const store = makeFakeStore()
-    await store.put('pool1', { schemaVersion: 42, status: 'blocked' })
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    await store.put('pool1', record)
+
+    const view = await readRpuRecoveryView(store, 'pool1')
+
+    assert.equal(view.runId, record.runId)
+    assert.equal(view.status, 'preparing')
+    assert.equal(view.options, undefined)
+  })
+
+  it('reports a value it cannot decode as blocked', async () => {
+    const store = makeFakeStore()
+    store.get = async () => {
+      throw new SyntaxError('Unexpected token')
+    }
+
+    assert.equal((await readRpuRecoveryView(store, 'pool1')).status, 'blocked')
+  })
+})
+
+describe('startRpuRecoveryRun()', () => {
+  it('persists the record before returning', async () => {
+    const store = makeFakeStore()
 
     const recorder = await startRpuRecoveryRun({ store, poolId: 'pool1', options: OPTIONS })
 
@@ -183,6 +211,39 @@ describe('startRpuRecoveryRun()', () => {
     assert.equal(stored.schemaVersion, RPU_RECOVERY_SCHEMA_VERSION)
     assert.equal(stored.status, 'preparing')
     assert.equal(stored.runId, recorder.runId)
+  })
+
+  it('refuses a new run while a record exists, whatever its status', async () => {
+    for (const status of ['running', 'interrupted', 'failed']) {
+      const store = makeFakeStore()
+      const previous = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+      previous.status = status
+      await store.put('pool1', previous)
+
+      await assert.rejects(startRpuRecoveryRun({ store, poolId: 'pool1', options: OPTIONS }), error => {
+        assert.ok(incorrectState.is(error, { property: 'rollingUpdateRecovery' }), status)
+        assert.equal(error.data.actual, status)
+        assert.equal(error.data.object, 'pool1')
+        return true
+      })
+      // the previous record is the evidence of what happened: left untouched
+      assert.equal(store.data.get('pool1').runId, previous.runId)
+    }
+  })
+
+  it('refuses a new run over a record it cannot read', async () => {
+    const store = makeFakeStore()
+    await store.put('pool1', 'corrupt')
+    store.get = async () => {
+      throw new SyntaxError('Unexpected token')
+    }
+
+    await assert.rejects(startRpuRecoveryRun({ store, poolId: 'pool1', options: OPTIONS }), error => {
+      assert.ok(incorrectState.is(error, { property: 'rollingUpdateRecovery' }))
+      assert.equal(error.data.actual, 'blocked')
+      return true
+    })
+    assert.equal(store.data.get('pool1'), 'corrupt')
   })
 
   it('rejects when the record cannot be written', async () => {
@@ -297,6 +358,38 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(record.lastError.message, 'agent never came back')
     assert.equal(record.status, 'failed')
     assert.equal(typeof record.finishedAt, 'string')
+  })
+
+  it('fail before the first host was handled drops the record: nothing to recover', async () => {
+    const { store, recorder } = await makeRecorder()
+
+    recorder.markRunning()
+    recorder.setVariant('xcp')
+    recorder.setPatchInventory({ h1: true })
+    recorder.setPlan({ hostOrder: ['h1'], vmHomeById: {} })
+    await recorder.fail(new Error('pinned VMs'))
+
+    assert.equal(store.data.has('pool1'), false)
+  })
+
+  it('fail once a host was handled keeps the record, even a skipped host', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    recorder.hostSkipped('h1')
+    await recorder.fail(new Error('boom'))
+
+    assert.equal(stored().status, 'failed')
+  })
+
+  it('fail never throws, even when the record cannot be dropped', async () => {
+    const { store, recorder } = await makeRecorder()
+    store.del = async () => {
+      throw new Error('disk error')
+    }
+
+    await recorder.fail(new Error('boom'))
+
+    assert.equal(store.data.get('pool1').status, 'preparing')
   })
 
   it('delete removes the record after a successful run', async () => {

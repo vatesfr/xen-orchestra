@@ -733,7 +733,14 @@ const methods = {
   async rollingPoolUpdate(
     $defer,
     parentTask,
-    { xsCredentials, force = false, rebootVm = force, shutdownPinnedVms = false, recorder = noopRpuRecorder } = {}
+    {
+      xsCredentials,
+      acceptCurrentStateAsBaseline = false,
+      force = false,
+      rebootVm = force,
+      shutdownPinnedVms = false,
+      recorder = noopRpuRecorder,
+    } = {}
   ) {
     if (some(this.objects.indexes.type.SR, { type: 'linstor' })) {
       await this._updateLinstorPackages()
@@ -797,6 +804,21 @@ const methods = {
       })
     })
     recorder.setPatchInventory(hasMissingPatchesByHost)
+
+    // a current master over outdated members is a pool left half updated, by
+    // an interrupted run or by hand: the operator must accept that state as
+    // the baseline of this run rather than have it silently completed
+    if (!acceptCurrentStateAsBaseline && !hasMissingPatchesByHost[master.uuid]) {
+      const outdatedHosts = Object.keys(pickBy(hasMissingPatchesByHost))
+      if (outdatedHosts.length > 0) {
+        throw incorrectState({
+          actual: outdatedHosts,
+          expected: [],
+          object: this.pool.uuid,
+          property: 'partiallyUpdatedPool',
+        })
+      }
+    }
 
     await Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
       await this.rollingPoolReboot(parentTask, {
