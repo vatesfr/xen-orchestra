@@ -23,6 +23,7 @@ import {
 } from 'xo'
 import filter from 'lodash/filter.js'
 import isEmpty from 'lodash/isEmpty.js'
+import map from 'lodash/map.js'
 import size from 'lodash/size.js'
 import some from 'lodash/some.js'
 import { isXsHostWithCdnPatches } from 'xo/utils'
@@ -227,11 +228,6 @@ const INSTALLED_PATCH_COLUMNS = [
   },
 ]
 
-@addSubscriptions(({ master, pool }) => ({
-  missingPatches: cb => subscribeHostMissingPatches(master, cb),
-  rollingUpdateRecovery: cb => subscribeRollingUpdateRecovery(pool, cb),
-  userPreferences: cb => subscribeCurrentUser(user => cb(user.preferences)),
-}))
 @connectStore(() => {
   const getSrs = createGetObjectsOfType('SR')
   const getPoolSrs = (state, props) =>
@@ -261,6 +257,24 @@ const INSTALLED_PATCH_COLUMNS = [
     poolSrs: getPoolSrs,
   }
 })
+// below the store connection: the subscriptions need the hosts of the pool
+@addSubscriptions(({ master, pool, poolHosts }) => ({
+  // the rolling pool update looks at every host: a current master over
+  // outdated members is still a pool to update
+  hasMissingPatchesByHost: cb => {
+    const byHost = {}
+    const unsubscribes = map(poolHosts, host =>
+      subscribeHostMissingPatches(host, patches => {
+        byHost[host.id] = !isEmpty(patches)
+        cb({ ...byHost })
+      })
+    )
+    return () => unsubscribes.forEach(unsubscribe => unsubscribe())
+  },
+  missingPatches: cb => subscribeHostMissingPatches(master, cb),
+  rollingUpdateRecovery: cb => subscribeRollingUpdateRecovery(pool, cb),
+  userPreferences: cb => subscribeCurrentUser(user => cb(user.preferences)),
+}))
 export default class TabPatches extends Component {
   getNVmsRunningOnLocalStorage = createSelector(
     () => this.props.runningVms,
@@ -280,6 +294,7 @@ export default class TabPatches extends Component {
 
   render() {
     const {
+      hasMissingPatchesByHost = {},
       hostPatches,
       master: { productBrand, version },
       missingPatches = [],
@@ -297,6 +312,9 @@ export default class TabPatches extends Component {
 
     const hasMultipleVmsRunningOnLocalStorage = this.getNVmsRunningOnLocalStorage() > 0
 
+    // xo-server refuses a new run as long as the previous one left a record
+    const hasIncompleteRun = rollingUpdateRecovery != null
+
     return (
       <Upgrade place='poolPatches' required={2}>
         <Container>
@@ -306,19 +324,26 @@ export default class TabPatches extends Component {
               {ROLLING_POOL_UPDATES_AVAILABLE && (
                 <TabButton
                   btnStyle='primary'
-                  disabled={isEmpty(missingPatches) || hasMultipleVmsRunningOnLocalStorage || isSingleHost}
+                  disabled={
+                    !some(hasMissingPatchesByHost) ||
+                    hasMultipleVmsRunningOnLocalStorage ||
+                    isSingleHost ||
+                    hasIncompleteRun
+                  }
                   handler={rollingPoolUpdate}
                   handlerParam={pool.id}
                   icon='pool-rolling-update'
                   labelId='rollingPoolUpdate'
                   tooltip={
-                    hasMultipleVmsRunningOnLocalStorage
-                      ? _('nVmsRunningOnLocalStorage', {
-                          nVms: this.getNVmsRunningOnLocalStorage(),
-                        })
-                      : isSingleHost
-                        ? _('multiHostPoolUpdate')
-                        : undefined
+                    hasIncompleteRun
+                      ? _('rpuRecoveryRecordExists')
+                      : hasMultipleVmsRunningOnLocalStorage
+                        ? _('nVmsRunningOnLocalStorage', {
+                            nVms: this.getNVmsRunningOnLocalStorage(),
+                          })
+                        : isSingleHost
+                          ? _('multiHostPoolUpdate')
+                          : undefined
                   }
                 />
               )}

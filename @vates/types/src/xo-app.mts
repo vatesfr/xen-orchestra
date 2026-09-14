@@ -400,7 +400,13 @@ export type XoApp = {
   ): Promise<void>
   rollingPoolUpdate(
     pool: XoPool,
-    opts?: { bypassBackupCheck?: boolean; rebootVm?: boolean; parentTask?: VatesTask; shutdownPinnedVms?: boolean }
+    opts?: {
+      acceptCurrentStateAsBaseline?: boolean
+      bypassBackupCheck?: boolean
+      rebootVm?: boolean
+      parentTask?: VatesTask
+      shutdownPinnedVms?: boolean
+    }
   ): Promise<void>
   getRollingUpdateRecovery(poolId: XoPool['id']): Promise<PoolRollingUpdateRecovery | undefined>
   setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>

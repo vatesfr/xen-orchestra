@@ -948,14 +948,22 @@ export default class XenServers {
    * @param {Function} $defer - Injected by the `defer` decorator
    * @param {object} pool - XO pool object
    * @param {object} [opts]
+   * @param {boolean} [opts.acceptCurrentStateAsBaseline] - Start even though the master is already up to date while
+   *   another host is not, ie from a partially updated pool, otherwise such an update is refused with an
+   *   `incorrectState` error (property `partiallyUpdatedPool`)
    * @param {boolean} [opts.bypassBackupCheck] - Skip the backup guard, the bypass is logged
    * @param {boolean} [opts.rebootVm] - Accept the VM reboots required by the update guidances (XenServer 8.4+),
    *   otherwise such an update is refused with an `incorrectState` error
    * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
    * @param {boolean} [opts.shutdownPinnedVms] - Shut down the VMs that cannot be migrated before their host reboots
    * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool
+   * @throws {Error} `incorrectState` (property `rollingUpdateRecovery`) if a previous run left a recovery record
    */
-  async rollingPoolUpdate($defer, pool, { bypassBackupCheck, rebootVm, parentTask, shutdownPinnedVms } = {}) {
+  async rollingPoolUpdate(
+    $defer,
+    pool,
+    { acceptCurrentStateAsBaseline, bypassBackupCheck, rebootVm, parentTask, shutdownPinnedVms } = {}
+  ) {
     const app = this._app
     const poolId = pool.id
     await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
@@ -1037,6 +1045,7 @@ export default class XenServers {
       await task.run(async () =>
         this.getXapi(pool).rollingPoolUpdate(task, {
           xsCredentials: app.apiContext.user.preferences.xsCredentials,
+          acceptCurrentStateAsBaseline,
           rebootVm,
           shutdownPinnedVms,
           recorder,

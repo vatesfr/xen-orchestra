@@ -1524,9 +1524,9 @@ export const rollingPoolUpdate = async poolId => {
     icon: 'pool-rolling-update',
   })
 
-  const rpu = async ({ bypassBackupCheck = false, rebootVm = false, shutdownPinnedVms = false } = {}) => {
+  const rpu = async (options = {}) => {
     try {
-      await _call('pool.rollingUpdate', { pool: poolId, bypassBackupCheck, rebootVm, shutdownPinnedVms })
+      await _call('pool.rollingUpdate', { pool: poolId, ...options })
       subscribeHostMissingPatches.forceRefresh()
     } catch (err) {
       if (forbiddenOperation.is(err)) {
@@ -1539,7 +1539,7 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        return rpu({ bypassBackupCheck: true, rebootVm, shutdownPinnedVms })
+        return rpu({ ...options, bypassBackupCheck: true })
       }
       if (incorrectState.is(err, { property: 'guidance' })) {
         await confirm({
@@ -1551,7 +1551,7 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        return rpu({ bypassBackupCheck, rebootVm: true, shutdownPinnedVms })
+        return rpu({ ...options, rebootVm: true })
       }
       if (incorrectState.is(err, { property: 'pinnedVms' })) {
         await confirm({
@@ -1570,7 +1570,26 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        return rpu({ bypassBackupCheck, rebootVm, shutdownPinnedVms: true })
+        return rpu({ ...options, shutdownPinnedVms: true })
+      }
+      if (incorrectState.is(err, { property: 'partiallyUpdatedPool' })) {
+        await confirm({
+          body: (
+            <div className='text-warning'>
+              <p>
+                <Icon icon='alarm' /> {_('rpuPartiallyUpdatedPool')}
+              </p>
+              <ul>
+                {err.data.actual.map(hostId => (
+                  <li key={hostId}>{renderXoItemFromId(hostId)}</li>
+                ))}
+              </ul>
+            </div>
+          ),
+          title: _('rollingPoolUpdate'),
+          icon: 'pool-rolling-update',
+        })
+        return rpu({ ...options, acceptCurrentStateAsBaseline: true })
       }
       throw err
     }
