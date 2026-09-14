@@ -448,14 +448,15 @@ export class RemoteAdapter {
     return backups.sort(compareTimestamp)
   }
 
-  // read the backup events which happened on this remote after `since` (timestamp in ms),
-  // oldest first
+  // read the backup events which happened on this remote after `cursor`, oldest first
   /**
-   * @param {number} [since] timestamp in ms, exclusive
+   * @param {string} [cursor] path of the last entry already read, exclusive
+   * @param {object} [opts]
+   * @param {boolean} [opts.mustExist] whether a missing journal directory should throw
    * @returns {Promise<import('./_backupJournal.mjs').BackupJournalEntry[]>}
    */
-  async readBackupJournal(since) {
-    return readBackupJournal(this._handler, since)
+  async readBackupJournal(cursor, opts) {
+    return readBackupJournal(this._handler, cursor, opts)
   }
 
   async writeVmBackupMetadata(vmUuid, metadata) {
