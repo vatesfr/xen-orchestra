@@ -840,6 +840,8 @@ export default class BackupNg {
   invalidateVmBackupsListing(remoteId) {
     this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
 
+    // the call above only drops the listing of the whole repository: each VM which has been
+    // listed on its own has its own cache entry
     for (const vmId of this._backupsListingVmIds[remoteId] ?? []) {
       this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId, { vmId })
     }
