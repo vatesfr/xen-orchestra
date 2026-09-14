@@ -50,6 +50,7 @@
     "report": "node --env-file-if-exists=.env scripts/run-and-report.mjs",
     "report:smtp-test": "node --env-file-if-exists=.env scripts/run-and-report.mjs --smtp-test",
     "qa:backup:file-restore": "node --env-file-if-exists=.env --test tests/backup.file-restore.test.js",
+    "qa:backup:restore-targets": "node --env-file-if-exists=.env --test tests/backup.restore-targets.test.js",
     "qa:import:esxi": "node --env-file-if-exists=.env --test --test-force-exit tests/import.esxi.test.js",
     "qa:load:backup:delta": "node --env-file-if-exists=.env scripts/backup-load-delta.mjs"
   }
