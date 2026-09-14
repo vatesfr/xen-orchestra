@@ -36,6 +36,8 @@
 - [Backup] Fix `uncaught exception AssertionError: assert(!this.paused)` in the logs, when a host closes a transfer while XO is writing to a slower destination (PR [#10282](https://github.com/vatesfr/xen-orchestra/pull/10282))
 - [xo-server] If an HTTP proxy was configured, internal routes (`/openmetrics`, `/v5`) were wrongly routed through it when xo-server listened on a wildcard address. `localhost` targets are now always reached directly, bypassing the HTTP proxy, whether the configured listen address is a wildcard (`0.0.0.0`, `::`) or a specific one (PR [#10335](https://github.com/vatesfr/xen-orchestra/pull/10335))
 - [Backups] Fix slow replication startup and fallback to full on qcow2 (PR [#10333](https://github.com/vatesfr/xen-orchestra/pull/10333))
+- [Backup/Restore] Fix listing backups sometimes mixing the results of two different VM listings (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
+- [Backup/Restore] Better handling of a backup repository the proxy fails to list, instead of silently returning nothing (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
 
 ### Packages to release
 
