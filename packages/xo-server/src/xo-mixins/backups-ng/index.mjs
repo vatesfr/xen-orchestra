@@ -840,13 +840,10 @@ export default class BackupNg {
   invalidateVmBackupsListing(remoteId) {
     this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
 
-    const vmIds = this._backupsListingVmIds[remoteId]
-    if (vmIds !== undefined) {
-      for (const vmId of vmIds) {
-        this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId, { vmId })
-      }
-      delete this._backupsListingVmIds[remoteId]
+    for (const vmId of this._backupsListingVmIds[remoteId] ?? []) {
+      this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId, { vmId })
     }
+    delete this._backupsListingVmIds[remoteId]
 
     delete this._trackedBackupsListings[remoteId]
     delete this._backupsListingRetry[remoteId]
