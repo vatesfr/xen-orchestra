@@ -31,24 +31,32 @@ class XapiError extends Error {
 
 const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
   const calls = []
+  // `call` and `callAsync` answer the same way: which one a method goes through
+  // is xen-api's concern, the assertions below only care that it was called
+  const handle = (method, ...args) => {
+    calls.push([method, ...args])
+    switch (method) {
+      case 'SR.probe':
+        throw probeError ?? new XapiError('SR_BACKEND_FAILURE_107', ['', '', LUN_LIST_XML])
+      case 'SR.introduce':
+        return SR_REF
+      case 'PBD.create':
+        return 'OpaqueRef:pbd'
+      case 'SR.get_VDIs':
+        return ['OpaqueRef:vdi']
+      case 'SR.get_PBDs':
+        return ['OpaqueRef:pbd']
+      default:
+        return undefined
+    }
+  }
   return {
     calls,
     async call(method, ...args) {
-      calls.push([method, ...args])
-      switch (method) {
-        case 'SR.probe':
-          throw probeError ?? new XapiError('SR_BACKEND_FAILURE_107', ['', '', LUN_LIST_XML])
-        case 'SR.introduce':
-          return SR_REF
-        case 'PBD.create':
-          return 'OpaqueRef:pbd'
-        case 'SR.get_VDIs':
-          return ['OpaqueRef:vdi']
-        case 'SR.get_PBDs':
-          return ['OpaqueRef:pbd']
-        default:
-          return undefined
-      }
+      return handle(method, ...args)
+    },
+    async callAsync(method, ...args) {
+      return handle(method, ...args)
     },
     async setFieldEntry(...args) {
       calls.push(['setFieldEntry', ...args])
@@ -279,7 +287,7 @@ describe('unmountDisk', () => {
     const xapi = makeXapi()
     let released = false
     const { id } = await mountDisk(mixin, xapi, { release: async () => (released = true) })
-    xapi.call = async () => {
+    xapi.call = xapi.callAsync = async () => {
       throw new Error('SR_HAS_NO_PBDS')
     }
 

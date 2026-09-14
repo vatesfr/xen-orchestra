@@ -42,7 +42,9 @@ export async function introduceSr($defer, { xapi, hostRef, deviceConfig, id, nam
   $defer.onFailure(() => xapi.call('SR.forget', srRef))
 
   const pbdRef = await xapi.call('PBD.create', { host: hostRef, SR: srRef, device_config: deviceConfig })
-  await xapi.call('PBD.plug', pbdRef)
+  // plugging logs the initiator in and rescans the SCSI bus, which is well past
+  // what the synchronous call timeout allows
+  await xapi.callAsync('PBD.plug', pbdRef)
   $defer.onFailure(() => forgetSr(xapi, srRef))
 
   await xapi.setFieldEntry('SR', srRef, 'other_config', OC_MOUNT, id)
@@ -57,7 +59,7 @@ export async function introduceSr($defer, { xapi, hostRef, deviceConfig, id, nam
 // SR.forget rather than SR.destroy: the LUN content must not be touched
 export async function forgetSr(xapi, srRef) {
   const pbdRefs = await xapi.call('SR.get_PBDs', srRef)
-  await asyncEach(pbdRefs, pbdRef => xapi.call('PBD.unplug', pbdRef), { stopOnError: false })
+  await asyncEach(pbdRefs, pbdRef => xapi.callAsync('PBD.unplug', pbdRef), { stopOnError: false })
   await xapi.call('SR.forget', srRef)
 }
 
