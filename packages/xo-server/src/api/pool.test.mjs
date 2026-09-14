@@ -6,7 +6,11 @@ import * as handlers from './pool.mjs'
 const pool = { id: 'pool-1' }
 
 for (const [method, orchestrator, params] of [
-  ['rollingUpdate', 'rollingPoolUpdate', { rebootVm: true, shutdownPinnedVms: false }],
+  [
+    'rollingUpdate',
+    'rollingPoolUpdate',
+    { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: false },
+  ],
   ['rollingReboot', 'rollingPoolReboot', { shutdownPinnedVms: true }],
 ]) {
   describe(`pool.${method}`, function () {
