@@ -59,9 +59,9 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     onInfoClick: () =>
       openInfoModal({
         props: {
-          title: t('unreachable-pools'),
-          content: t('unreachable-pools-content'),
-          tip: t('unreachable-pools-tip'),
+          title: t('what-is-an-unreachable-pools?'),
+          content: t('what-is-an-unreachable-pools-content'),
+          tip: t('what-is-an-unreachable-pools-tip'),
         },
       }),
   },
