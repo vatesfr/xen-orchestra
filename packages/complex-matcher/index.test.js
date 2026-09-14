@@ -118,10 +118,14 @@ describe('setPropertyClause', () => {
     assert.equal(setPropertyClause(parse('foo:|(baz plop)'), 'foo', 'bar').toString(), 'foo:bar')
   })
 
-  it('removes the property clause if no chid is passed', () => {
+  it('removes the property clause if undefined is passed', () => {
     assert.equal(setPropertyClause(parse('foo bar:baz qux'), 'bar', undefined).toString(), 'foo qux')
 
     assert.equal(setPropertyClause(parse('foo bar:baz qux'), 'baz', undefined).toString(), 'foo bar:baz qux')
+  })
+
+  it('keeps the property clause for empty string or other falsy values', () => {
+    assert.equal(setPropertyClause(parse('foo bar:baz qux'), 'bar', '').toString(), 'foo qux bar:""')
   })
 })
 
