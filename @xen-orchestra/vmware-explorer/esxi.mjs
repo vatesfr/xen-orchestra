@@ -95,7 +95,29 @@ const noop = () => {}
 const nbdServerKey = (vmId, diskPath, { compression, singleLink, threads }) =>
   JSON.stringify([vmId, diskPath, singleLink, threads, compression])
 
-// the snapshots of a VM are a tree, and a `changeId` can be held by any of them
+/**
+ * Everything the change tracking of a VM is addressed by, as {@link Esxi#getChangeTracking} reads
+ * it. Opaque to its caller, which reads it once and hands it back to {@link Esxi#getDataMap}.
+ *
+ * @typedef {object} ChangeTracking
+ * @property {string} [currentSnapshotId] - the snapshot a running VM has to be described through,
+ * absent when it has none
+ * @property {unknown} devices - `config.hardware.device` of the VM
+ * @property {string} powerState
+ * @property {Map<string, unknown>} snapshotDevices - `config.hardware.device` of each snapshot, by
+ * managed object reference: a snapshot holds the disks as they were when it was taken
+ * @property {string[]} snapshotIds
+ */
+
+/**
+ * Every snapshot of a tree, walked down.
+ *
+ * The snapshots of a VM are a tree, and a `changeId` can be held by any of them.
+ *
+ * @param {unknown} rootList - a `rootSnapshotList`, or the `childSnapshotList` of the recursion
+ * @param {string[]} [ids] - accumulator of the recursion
+ * @returns {string[]} the managed object reference of each snapshot of the tree
+ */
 function collectSnapshotIds(rootList, ids = []) {
   for (const node of asArray(rootList)) {
     // the tree carries managed object references, which are not normalized: only the value of the
@@ -1263,7 +1285,7 @@ export default class Esxi extends EventEmitter {
    * @param {string} vmId
    * @param {object} [options]
    * @param {AbortSignal} [options.signal]
-   * @returns {Promise<object>} opaque, to be handed back to {@link getDataMap}
+   * @returns {Promise<ChangeTracking>} opaque, to be handed back to {@link getDataMap}
    */
   async getChangeTracking(vmId, { signal } = {}) {
     const [devices, powerState, snapshotInfo] = await Promise.all([
@@ -1314,9 +1336,9 @@ export default class Esxi extends EventEmitter {
    * @param {string} diskPath - path of the disk being read, in its datastore
    * @param {object} [options]
    * @param {string} [options.baseDiskPath] - path of the disk a previous import read
-   * @param {object | null} [options.changeTracking] - from {@link getChangeTracking}, read here when
-   * the caller has none. `null` when the caller read it itself and the host did not answer: asking
-   * again, once per disk, would only repeat the same failure
+   * @param {ChangeTracking | null} [options.changeTracking] - from {@link getChangeTracking}, read
+   * here when the caller has none. `null` when the caller read it itself and the host did not
+   * answer: asking again, once per disk, would only repeat the same failure
    * @param {AbortSignal} [options.signal]
    * @returns {Promise<Array<{ length: number, offset: number, type: number }>>}
    */
@@ -1489,9 +1511,9 @@ export default class Esxi extends EventEmitter {
    * @param {object} [options]
    * @param {string} [options.baseDiskPath] - path of the disk a previous import already read. With
    * it the answer is the delta since that point in time, without it every block the disk uses
-   * @param {object | null} [options.changeTracking] - from {@link getChangeTracking}. A caller
-   * importing several disks of the same VM reads it once, this method reads its own otherwise, and
-   * `null` says the caller already found that the host does not answer
+   * @param {ChangeTracking | null} [options.changeTracking] - from {@link getChangeTracking}. A
+   * caller importing several disks of the same VM reads it once, this method reads its own
+   * otherwise, and `null` says the caller already found that the host does not answer
    * @param {AbortSignal} [options.signal]
    * @returns {Promise<Array<{ length: number, offset: number, type: number }> | undefined>}
    * `undefined` when no map could be built for a whole disk, the caller then reads it to find out
