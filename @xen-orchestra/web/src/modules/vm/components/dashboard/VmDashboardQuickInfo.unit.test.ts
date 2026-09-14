@@ -7,7 +7,7 @@ import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { XoUser } from '@vates/types'
@@ -169,5 +169,5 @@ it('falls back to "Unknown" when the creator of the VM is not known', () => {
 it('renders one tag per VM tag', () => {
   const wrapper = mountQuickInfo(createVm({ tags: ['production', 'billing'] }))
 
-  expect(wrapper.findAll('.ui-tag').map(tag => tag.text())).toEqual(['production', 'billing'])
+  expect(findTags(wrapper)).toEqual(['production', 'billing'])
 })
