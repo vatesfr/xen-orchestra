@@ -1097,6 +1097,17 @@ RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
       assert.equal(vimClient.callsTo('QueryChangedDiskAreas').length, 2)
     })
 
+    it('does not ask the host again when the caller already found it does not answer', async function () {
+      const { esxi, vimClient } = await cbtEsxi()
+
+      // `null` is a caller which read it itself and failed: every disk asking again would only
+      // repeat the same failing reads before falling back
+      assert.equal(await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', { changeTracking: null }), undefined)
+
+      assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, 0)
+      assert.equal(vimClient.callsTo('QueryChangedDiskAreas').length, 0)
+    })
+
     it('refuses a map which does not fit the disk', async function () {
       const { esxi } = await cbtEsxi({
         changedArea: [

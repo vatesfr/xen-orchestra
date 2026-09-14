@@ -188,6 +188,9 @@ export const importDisksFromDatastore = async function importDisksFromDatastore(
       error,
       vmId,
     })
+    // `null`, and not `undefined`: the host was already asked and did not answer, every disk asking
+    // it again would only repeat the same failing reads before falling back
+    return null
   })
 
   return await Promise.all(

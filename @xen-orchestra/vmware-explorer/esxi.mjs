@@ -1314,12 +1314,19 @@ export default class Esxi extends EventEmitter {
    * @param {string} diskPath - path of the disk being read, in its datastore
    * @param {object} [options]
    * @param {string} [options.baseDiskPath] - path of the disk a previous import read
-   * @param {object} [options.changeTracking] - from {@link getChangeTracking}, read here when the
-   * caller has none
+   * @param {object | null} [options.changeTracking] - from {@link getChangeTracking}, read here when
+   * the caller has none. `null` when the caller read it itself and the host did not answer: asking
+   * again, once per disk, would only repeat the same failure
    * @param {AbortSignal} [options.signal]
    * @returns {Promise<Array<{ length: number, offset: number, type: number }>>}
    */
   async #getDataMapFromCbt(vmId, datastoreName, diskPath, { baseDiskPath, changeTracking, signal } = {}) {
+    if (changeTracking === null) {
+      const error = new Error(`the change tracking of the VM ${vmId} could not be read`)
+      error.code = 'NO_DATA_MAP'
+      throw error
+    }
+
     const { currentSnapshotId, devices, powerState, snapshotDevices, snapshotIds } =
       changeTracking ?? (await this.getChangeTracking(vmId, { signal }))
 
@@ -1482,8 +1489,9 @@ export default class Esxi extends EventEmitter {
    * @param {object} [options]
    * @param {string} [options.baseDiskPath] - path of the disk a previous import already read. With
    * it the answer is the delta since that point in time, without it every block the disk uses
-   * @param {object} [options.changeTracking] - from {@link getChangeTracking}. A caller importing
-   * several disks of the same VM reads it once, this method reads its own otherwise
+   * @param {object | null} [options.changeTracking] - from {@link getChangeTracking}. A caller
+   * importing several disks of the same VM reads it once, this method reads its own otherwise, and
+   * `null` says the caller already found that the host does not answer
    * @param {AbortSignal} [options.signal]
    * @returns {Promise<Array<{ length: number, offset: number, type: number }> | undefined>}
    * `undefined` when no map could be built for a whole disk, the caller then reads it to find out
