@@ -717,6 +717,9 @@ export type XoUser = {
   groups: XoGroup['id'][]
   id: Branded<'user'>
   lastname?: string
+  /**
+   * @deprecated use username instead
+   */
   name?: string
   permission: 'none' | 'admin'
   pw_hash?: string
