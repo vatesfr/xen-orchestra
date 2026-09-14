@@ -1,5 +1,4 @@
 > This file contains all changes that have not been released yet.
->
 > Keep in mind the changelog is addressed to **users** and should be
 > understandable by them.
 
@@ -11,6 +10,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [XO6/StateHero] Update StateHero illustrations SVG to match current design system (PR [#10380](https://github.com/vatesfr/xen-orchestra/pull/10380))
 - [XO6/Vm] Add the VM name to VM related actions that open a modal (PR [#10310](https://github.com/vatesfr/xen-orchestra/pull/10310))
 - [XO6] Allow changing which PIF a host uses for its management interface, without deleting and recreating the network config (PR [#10110](https://github.com/vatesfr/xen-orchestra/pull/10110))
 - [XO6/SR] Add dedicated Storage Repository page hosts sidepanel (PR [#10140](https://github.com/vatesfr/xen-orchestra/pull/10140))
