@@ -12,7 +12,7 @@ const pool = { id: 'pool-1', name_label: 'pool 1', _xapiRef: 'OpaqueRef:pool-1' 
 const tracesDir = mkdtempSync(join(tmpdir(), 'xo-rpu-test-'))
 after(() => rmSync(tracesDir, { recursive: true, force: true }))
 
-function createXenServers({ backupRunning = false } = {}) {
+function createXenServers({ backupRunning = false, deleteRecord = async () => {} } = {}) {
   const calls = []
   const app = {
     apiContext: { user: { preferences: {} } },
@@ -40,7 +40,7 @@ function createXenServers({ backupRunning = false } = {}) {
     async getOptionalPlugin() {},
     async startRpuRecoveryRun(poolId, options) {
       calls.push(['startRpuRecoveryRun', poolId, options])
-      return { markRunning() {}, setTaskId() {}, async delete() {}, async fail() {} }
+      return { markRunning() {}, setTaskId() {}, delete: deleteRecord, async fail() {} }
     },
   }
   // the constructor arms a timeout that rejects if the `core started` hook,
@@ -78,5 +78,15 @@ describe('XenServers.rollingPoolUpdate', function () {
       ['startRpuRecoveryRun', 'pool-1', { bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: false }],
       ['xapi.rollingPoolUpdate', { rebootVm: true, shutdownPinnedVms: false }],
     ])
+  })
+
+  it('succeeds even if the recovery record cannot be deleted afterwards', async function () {
+    const { calls, xenServers } = createXenServers({
+      deleteRecord: async () => {
+        throw new Error('store unavailable')
+      },
+    })
+    await xenServers.rollingPoolUpdate(pool)
+    assert.equal(calls.at(-1)[0], 'xapi.rollingPoolUpdate')
   })
 })

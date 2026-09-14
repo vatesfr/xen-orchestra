@@ -255,12 +255,7 @@ export default class XenServers {
     // stopped on a permanent error (e.g. PoolAlreadyConnected), which would
     // retry forever, at full speed since each loop restarts its own backoff
     const canFixConnection = properties.enabled === true || connectionIdentityChanged
-    if (
-      canFixConnection &&
-      server.enabled &&
-      !this._connectingXenServers.has(id) &&
-      server.status === 'disconnected'
-    ) {
+    if (canFixConnection && server.enabled && !this._connectingXenServers.has(id) && server.status === 'disconnected') {
       this._autoReconnectXenServer(id)
     }
   }
@@ -1047,12 +1042,19 @@ export default class XenServers {
           recorder,
         })
       )
-      // a successful run needs no recovery: the record must be gone, or the
-      // run would be reported as interrupted at the next restart
-      await recorder.delete()
     } catch (error) {
       await recorder.fail(error)
       throw error
+    }
+
+    // a successful run needs no recovery: the record must be gone, or the
+    // run would be reported as interrupted at the next restart. That report
+    // is the only consequence of a failed delete, so it must not fail an RPU
+    // that succeeded: log it and let the operator dismiss the record
+    try {
+      await recorder.delete()
+    } catch (error) {
+      log.warn('failed to delete the recovery record after a successful rolling pool update', { error, poolId })
     }
   }
 }
