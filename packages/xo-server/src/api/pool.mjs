@@ -289,8 +289,9 @@ rollingUpdate.resolve = {
 
 // -------------------------------------------------------------------
 
-export function getRollingUpdateRecovery({ pool }) {
-  return this.getRollingUpdateRecovery(pool.id)
+export async function getRollingUpdateRecovery({ pool }) {
+  // explicit null: the JSON-RPC layer would turn an undefined result into `true`
+  return (await this.getRollingUpdateRecovery(pool.id)) ?? null
 }
 
 getRollingUpdateRecovery.params = {
