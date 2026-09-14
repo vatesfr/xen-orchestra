@@ -102,8 +102,8 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
       return vhd.streamSize()
     } catch (err) {
       await this.source.close().catch(() => {}) // close this disk in error
-      await handler.rmtree(dataPath).catch(() => {}) // data
       await handler.unlink(path).catch(() => {}) // alias
+      await handler.rmtree(dataPath).catch(() => {}) // data
       throw err
     }
   }
