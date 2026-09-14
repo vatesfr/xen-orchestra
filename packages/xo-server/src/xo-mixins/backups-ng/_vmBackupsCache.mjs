@@ -4,6 +4,7 @@ import { asyncEach } from '@vates/async-each'
 import { compareTimestamp } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 import { createLogger } from '@xen-orchestra/log'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackups.mjs'
+import { journalCursorAt } from '@xen-orchestra/backups/_backupJournal.mjs'
 import { resolve } from 'node:path'
 
 /** @typedef {import('@xen-orchestra/backups/RemoteAdapter.mjs').RemoteAdapter} RemoteAdapter */
@@ -11,17 +12,13 @@ import { resolve } from 'node:path'
 /**
  * A backup repository, as required by `VmBackupsCache`.
  *
- * @typedef {object} Repository
- * @property {string} id
- * @property {string} url
- * @property {object} [options]
+ * @typedef {import('@vates/types').XoBackupRepository} Repository
  */
 
 /**
  * A backup, as formatted by `formatVmBackup()`.
  *
- * @typedef {object} FormattedBackup
- * @property {string} id
+ * @typedef {import('@vates/types').XoVmBackupArchive} FormattedBackup
  */
 
 /**
@@ -32,9 +29,12 @@ import { resolve } from 'node:path'
 
 /**
  * @typedef {object} Entry
- * @property {BackupsByVm} backupsByVm
+ * @property {BackupsByVm} [backupsByVm] set once the initial listing has completed
+ * @property {string} cursor path bounding the next journal read, see `readBackupJournal()`
+ * @property {boolean} [journalConfirmed] whether the journal directory has already been read
+ * successfully once, i.e. whether it disappearing on the next replay is anomalous rather than benign
  * @property {number} lastJournalRead
- * @property {object} [options]
+ * @property {Repository['options']} [options]
  * @property {boolean} stale
  * @property {string} url
  */
@@ -42,7 +42,10 @@ import { resolve } from 'node:path'
 const { debug, warn } = createLogger('xo:xo-mixins:backups-ng:vmBackupsCache')
 
 // Journal entries are stamped with the clock of the process which wrote them, which is not
-// necessarily this one: read a bit before the watermark of the previous read.
+// necessarily this one. There is no journal entry to anchor the very first replay of an entry on, so
+// its cursor is bootstrapped from this process' clock instead, read a bit before the listing's
+// watermark to cover the gap between the two clocks; every replay after that chains on the cursor of
+// the previous one, which is immune to clock skew.
 //
 // Replaying an entry twice is harmless: `add`/`change` are upserts and `del` is an idempotent
 // removal.
@@ -72,7 +75,9 @@ const normalizeFilename = filename => resolve('/', filename)
  * @returns {FormattedBackup}
  */
 const format = (metadata, backupRepositoryId, filename) =>
-  formatVmBackup({ ...metadata, _filename: filename, backupRepositoryId, id: filename })
+  /** @type {FormattedBackup} */ (
+    formatVmBackup({ ...metadata, _filename: filename, backupRepositoryId, id: filename })
+  )
 
 /**
  * @param {Entry} entry
@@ -80,6 +85,10 @@ const format = (metadata, backupRepositoryId, filename) =>
  * @returns {boolean}
  */
 const isSameRepository = (entry, repository) => entry.url === repository.url && entry.options === repository.options
+
+/**
+ * @typedef {<T>(repository: Repository, fn: (adapter: RemoteAdapter) => Promise<T>) => Promise<T>} UseAdapter
+ */
 
 /**
  * forgets a backup, and the VM it belonged to when it was its last one
@@ -124,7 +133,7 @@ export function serveVmBackups(backupsByVm, remoteId, vmId) {
         ? []
         : Object.values(backups)
             // inject the remote id on the backup which is needed for importVmBackupNg()
-            .map(backup => ({ ...backup, id: `${remoteId}/${backup.id}` }))
+            .map(backup => /** @type {FormattedBackup} */ ({ ...backup, id: `${remoteId}/${backup.id}` }))
             .sort(compareTimestamp)
   }
   return result
@@ -157,11 +166,11 @@ export class VmBackupsCache {
   /** @type {Map<string, Promise<BackupsByVm>>} */
   #pending = new Map()
 
-  /** @type {(repository: Repository, fn: (adapter: RemoteAdapter) => Promise<any>) => Promise<any>} */
+  /** @type {UseAdapter} */
   #useAdapter
 
   /**
-   * @param {(repository: Repository, fn: (adapter: RemoteAdapter) => Promise<any>) => Promise<any>} useAdapter
+   * @param {UseAdapter} useAdapter
    * @param {object} [options]
    * @param {number} [options.minRefreshDelay] minimum delay between two journal reads of the same
    * repository, in milliseconds
@@ -177,6 +186,10 @@ export class VmBackupsCache {
    * To call when the repository itself is gone or has been reconfigured, or when the caller has a
    * reason to distrust the journal.
    *
+   * Also drops a build or replay still in flight for this repository, if any: a caller of `get()`
+   * arriving after `delete()` must not be served the outcome of an operation which started before it,
+   * e.g. against a since-reconfigured repository.
+   *
    * @param {Repository['id']} repositoryId
    * @returns {void}
    */
@@ -184,6 +197,7 @@ export class VmBackupsCache {
     if (this.#entries.delete(repositoryId)) {
       debug('entry deleted', { repositoryId })
     }
+    this.#pending.delete(repositoryId)
   }
 
   /**
@@ -245,7 +259,8 @@ export class VmBackupsCache {
         await this.#replay(repository, entry)
       }
 
-      return entry.backupsByVm
+      // populated: this branch is only reached for an entry `#build()` has already completed
+      return /** @type {BackupsByVm} */ (entry.backupsByVm)
     } catch (error) {
       // the repository is probably unreachable: don't keep serving a listing which cannot be
       // refreshed anymore
@@ -277,7 +292,9 @@ export class VmBackupsCache {
     const backups = await this.#useAdapter(repository, adapter => adapter.listVmBackups(vmUuid))
 
     // warms the entry in the background for the callers which want every VM
-    this.get(repository).catch(() => {})
+    this.get(repository).catch(error => {
+      warn('failed to warm the entry', { repositoryId: id, error })
+    })
 
     if (backups.length === 0) {
       return {}
@@ -301,9 +318,11 @@ export class VmBackupsCache {
 
     // the watermark is taken before the listing, so that the events which happen during the listing
     // are replayed on the next read
+    const now = Date.now()
     const entry = {
       backupsByVm: undefined,
-      lastJournalRead: Date.now(),
+      cursor: journalCursorAt(now - CLOCK_SKEW_TOLERANCE),
+      lastJournalRead: now,
       options: repository.options,
       stale: false,
       url: repository.url,
@@ -338,9 +357,8 @@ export class VmBackupsCache {
    * @returns {Promise<void>}
    */
   async #replay(repository, entry) {
-    const { backupsByVm } = entry
-
-    const since = entry.lastJournalRead - CLOCK_SKEW_TOLERANCE
+    // populated: `#replay()` is only called for an entry `#build()` has already completed
+    const backupsByVm = /** @type {BackupsByVm} */ (entry.backupsByVm)
 
     // both are reset before the journal read, so that a mutation which happens during the replay is
     // not missed by the next one
@@ -349,11 +367,19 @@ export class VmBackupsCache {
 
     let nEvents = 0
     await this.#useAdapter(repository, async adapter => {
-      const events = await adapter.readBackupJournal(since)
+      const events = await adapter.readBackupJournal(entry.cursor, { mustExist: entry.journalConfirmed })
 
-      // `readBackupJournal()` returns the events oldest first, therefore the last event of a
-      // backup is its current state: a backup which was written then deleted costs no read at
-      // all, and one which was rewritten several times costs a single one
+      // `readBackupJournal()` returns the events oldest first: the last one is the cursor for the
+      // next replay, and the last event of a given backup is its current state, so a backup which
+      // was written then deleted costs no read at all, and one rewritten several times costs a
+      // single one
+      if (events.length > 0) {
+        entry.cursor = events[events.length - 1]._filename
+        // the journal has now actually been observed to exist: it disappearing on a later replay is
+        // anomalous rather than a repository which has simply never been written to
+        entry.journalConfirmed = true
+      }
+
       const lastEventByKey = new Map()
       for (const { event, filename, vmUuid } of events) {
         nEvents++
