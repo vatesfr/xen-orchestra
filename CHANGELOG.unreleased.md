@@ -83,6 +83,7 @@
 
 <!--packages-start-->
 
+- @vates/iscsi minor
 - @vates/node-vsphere-soap minor
 - @vates/types minor
 - @xen-orchestra/backup-archive patch
