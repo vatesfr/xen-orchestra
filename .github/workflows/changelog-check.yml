@@ -18,6 +18,11 @@ jobs:
           # the whole history is required to compute the merge base with `master`
           fetch-depth: 0
 
+          # the check only needs commits and trees: `git diff --name-only
+          # --no-renames` compares tree entries and never reads file contents,
+          # skipping the historical blobs halves the fetch (~112 MiB → ~53 MiB)
+          filter: blob:none
+
       # https://github.com/actions/setup-node
       - name: Setup Node environment
         uses: actions/setup-node@v4
