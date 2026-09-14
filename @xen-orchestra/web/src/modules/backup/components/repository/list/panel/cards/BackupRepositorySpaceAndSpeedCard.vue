@@ -4,20 +4,18 @@
 
     <div class="content">
       <span class="typo-body-bold-small subtitle">{{ t('space') }}</span>
-      <div class="content">
-        <VtsCardRowKeyValue>
-          <template #key>{{ t('used-space-on-br') }}</template>
-          <template #value />
-        </VtsCardRowKeyValue>
-        <VtsCardRowKeyValue>
-          <template #key>{{ t('free-space-on-br') }}</template>
-          <template #value />
-        </VtsCardRowKeyValue>
-        <VtsCardRowKeyValue>
-          <template #key>{{ t('allocated-space') }}</template>
-          <template #value />
-        </VtsCardRowKeyValue>
-      </div>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('used-space-on-br') }}</template>
+        <template #value />
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('free-space-on-br') }}</template>
+        <template #value />
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('allocated-space') }}</template>
+        <template #value />
+      </VtsCardRowKeyValue>
     </div>
 
     <VtsDivider type="stretch" />
