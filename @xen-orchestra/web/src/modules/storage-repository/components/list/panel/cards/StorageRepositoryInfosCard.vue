@@ -1,6 +1,6 @@
 <template>
   <UiPanelCard class="card-container">
-    <VtsCardObjectTitle :id="sr.id" :label="sr.name_label" :to="srRoute" :icon="srStatusIcon" />
+    <UiPanelCardTitle :id="sr.id" size="medium" :label="sr.name_label" :to="srRoute" :icon="srStatusIcon" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
@@ -64,11 +64,11 @@ import {
 import { getSrPageLocation } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
