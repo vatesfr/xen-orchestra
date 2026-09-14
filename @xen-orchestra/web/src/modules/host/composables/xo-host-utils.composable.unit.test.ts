@@ -1,5 +1,6 @@
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { XoHostState } from '@/modules/host/utils/xo-host.util.ts'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
@@ -70,9 +71,9 @@ describe('getHostStatus', () => {
   it('falls back to the unknown entry for an out-of-range value', () => {
     const { getHostStatus, t } = mountHostUtils()
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    expect(getHostStatus('Suspended')).toEqual({ text: t('host:status:unknown'), icon: undefined })
+    const outOfRangeState = 'Suspended' as XoHostState
+
+    expect(getHostStatus(outOfRangeState)).toEqual({ text: t('host:status:unknown'), icon: undefined })
   })
 })
 
