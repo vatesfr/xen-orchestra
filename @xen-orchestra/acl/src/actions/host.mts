@@ -25,6 +25,4 @@ export default {
   update: {
     tags: true,
   },
-  'mount-live-disk': true,
-  'unmount-live-disk': true,
 }
