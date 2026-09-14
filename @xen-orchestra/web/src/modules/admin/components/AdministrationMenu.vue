@@ -1,11 +1,11 @@
 <template>
   <nav class="administration-menu" :aria-label="t('administration')">
-    <section v-for="section in sections" :key="section.titleKey" class="menu-section">
-      <div class="section-title typo-h6">{{ t(section.titleKey) }}</div>
+    <section v-for="(section, index) in sections" :key="index" class="menu-section">
+      <div class="section-title typo-h6">{{ section.titleKey }}</div>
       <ul class="links">
-        <MenuItem v-for="item in section.items" :key="item.labelKey">
+        <MenuItem v-for="(item, itemIndex) in section.items" :key="itemIndex">
           <UiLink size="small" class="link" :href="item.href" :to="item.to">
-            {{ t(item.labelKey) }}
+            {{ item.labelKey }}
           </UiLink>
         </MenuItem>
       </ul>
@@ -35,26 +35,26 @@ const { buildXo5Route } = useXoRoutes()
 
 const sections = computed<AdminMenuSection[]>(() => [
   {
-    titleKey: 'backup-and-replication',
+    titleKey: t('backup-and-replication'),
     items: [
-      { labelKey: 'jobs', href: buildXo5Route('/backup/overview'), to: undefined },
-      { labelKey: 'backup-repositories', href: undefined, to: { name: '/admin/backup-and-replication' } },
-      { labelKey: 'archives', href: buildXo5Route('/backup/restore'), to: undefined },
+      { labelKey: t('jobs'), href: buildXo5Route('/backup/overview'), to: undefined },
+      { labelKey: t('backup-repositories'), href: undefined, to: { name: '/admin/backup-and-replication' } },
+      { labelKey: t('archives'), href: buildXo5Route('/backup/restore'), to: undefined },
       {
-        labelKey: 'logs',
+        labelKey: t('logs'),
         href: buildXo5Route('/backup/overview'),
         to: undefined,
       },
     ],
   },
   {
-    titleKey: 'user-management',
+    titleKey: t('user-management'),
     items: [
-      { labelKey: 'users', href: undefined, to: { name: '/admin/user-management' } },
-      { labelKey: 'groups', href: buildXo5Route('/settings/groups'), to: undefined },
-      { labelKey: 'roles', href: buildXo5Route('/settings/acls'), to: undefined },
+      { labelKey: t('users'), href: undefined, to: { name: '/admin/user-management' } },
+      { labelKey: t('groups'), href: buildXo5Route('/settings/groups'), to: undefined },
+      { labelKey: t('roles'), href: buildXo5Route('/settings/acls'), to: undefined },
       {
-        labelKey: 'ldap-auth-providers',
+        labelKey: t('ldap-auth-providers'),
         href: buildXo5Route('/settings/plugins?s=name%3A%2F%5Eauth-%2F'),
         to: undefined,
       },
