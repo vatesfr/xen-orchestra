@@ -510,6 +510,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
 
         if (vm?.$ref !== undefined) {
+          this._forgetExportedVm(vm.$ref)
           return xapi.VM_destroy(vm.$ref)
         } else {
           return asyncMap(
@@ -535,10 +536,15 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
         const retention = settings.snapshotRetention ?? 0
         await asyncEach(getOldEntries(retention, datetimes), async datetime => {
-          if (this.job.mode === 'delta' && datetime === lastExportedSnapshotDateTime) {
+          if (
+            this.job.mode === 'delta' &&
+            lastExportedSnapshotDateTime !== undefined &&
+            datetime === lastExportedSnapshotDateTime
+          ) {
             return
           }
 
+          this._forgetExportedVm(snapshotPerDatetime[datetime])
           await xapi.VM_destroy(snapshotPerDatetime[datetime])
         })
       })
@@ -548,6 +554,15 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     // makesnapshot and update_other_config
     const snapshots = this._vm.$snapshots.filter(_ => !!_).filter(({ name_label }) => name_label === TEMP_SNAPSHOT_NAME)
     await asyncEach(snapshots, snapshot => snapshot.$destroy())
+  }
+
+  // _exportedVm is the VM (usually a snapshot) this run exported. Retention may destroy
+  // it in the same run and everything reading it would then operate on a destroyed VM.
+  // Forget it as soon as it is reclaimed.
+  _forgetExportedVm(vmRef) {
+    if (vmRef === this._exportedVm?.$ref) {
+      this._exportedVm = undefined
+    }
   }
 
   async _removeSnapshotData() {
@@ -656,7 +671,6 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       await vm.$callAsync('clean_shutdown')
     }
 
-    let exported = false
     try {
       await this._snapshot()
       if (startAfter === 'snapshot') {
@@ -669,7 +683,6 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       // not the case if offlineBackup
       if (this._exportedVm.is_a_snapshot) {
         await markExportSuccessfull(this._xapi, this._exportedVm.$ref)
-        exported = true
       }
     } finally {
       if (startAfter) {
@@ -678,12 +691,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
       await this._fetchJobSnapshots()
       await this._removeUnusedSnapshots()
-      // only a snapshot that has been exported is worth purging: the snapshot of a
-      // failed run has just been reclaimed by _removeUnusedSnapshots() and
-      // _exportedVm is now a stale reference to a destroyed VM
-      if (exported) {
-        await this._removeSnapshotData()
-      }
+      await this._removeSnapshotData()
     }
     await this._healthCheck()
   }

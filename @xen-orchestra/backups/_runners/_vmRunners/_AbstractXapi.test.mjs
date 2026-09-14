@@ -219,7 +219,7 @@ describe('_removeUnusedSnapshots() after a failed transfer', () => {
   const BASE_DATETIME = '20260902T090100Z'
   const FAILED_DATETIME = '20260902T092200Z'
 
-  const makeFailedRunRunner = ({ baseExported = true, freshExported = false } = {}) => {
+  const makeFailedRunRunner = ({ freshExported = false } = {}) => {
     const destroyed = []
 
     const snapshotVm = $ref => ({
@@ -242,7 +242,7 @@ describe('_removeUnusedSnapshots() after a failed transfer', () => {
       $VBDs: [{ $VM: snapshotVmRecord }],
     })
     // the base of the last successful run and the snapshot of the run that just failed
-    const baseVdi = vdi('vdi-base', BASE_DATETIME, baseSnapshotVm, baseExported)
+    const baseVdi = vdi('vdi-base', BASE_DATETIME, baseSnapshotVm, true)
     const freshVdi = vdi('vdi-failed', FAILED_DATETIME, freshSnapshotVm, freshExported)
 
     const registry = { 'vdi-base': baseVdi, 'vdi-failed': freshVdi }
@@ -436,17 +436,141 @@ describe('_removeUnusedSnapshots() diskless VM snapshots', () => {
   })
 })
 
-describe('run() only purges snapshot data for an exported snapshot', () => {
-  // `_removeSnapshotData()` destroys `_exportedVm` and data_destroys its VDIs. It runs
-  // from the `finally` of run(), right after `_removeUnusedSnapshots()` — which now
-  // reclaims the snapshot of a failed run. Calling it then would operate on a stale
-  // reference to a destroyed VM and throw from the `finally`, masking the real error.
-  const makeRunRunner = ({ copyFails = false, isSnapshot = true } = {}) => {
-    const calls = { removeUnusedSnapshots: 0, removeSnapshotData: 0, markExportSuccessfull: 0 }
+describe('_removeUnusedSnapshots() forgets the exported snapshot when it reclaims it', () => {
+  // `_exportedVm` is read after retention has run (by `_removeSnapshotData()`), so it must
+  // not survive the destruction of the VM it points at.
+  const BASE_DATETIME = '20260902T090100Z'
+  const SYNC_TIMESTAMP = 1717200000000
+
+  const makeRunner_ = ({ freshDatetime, freshExported = false, synchronized = false, exportedVmRef }) => {
+    const destroyed = []
+
+    const snapshotVm = $ref => ({
+      $ref,
+      name_label: $ref,
+      is_control_domain: false,
+      $snapshot_of: 'live-vm-ref',
+      other_config: {},
+    })
+    const baseSnapshotVm = snapshotVm('vm-base')
+    const freshSnapshotVm = snapshotVm('vm-fresh')
+
+    const vdi = ($ref, datetime, snapshotVmRecord, isExported) => ({
+      $ref,
+      other_config: {
+        [DATETIME]: datetime,
+        [SCHEDULE_ID]: 'schedule-1',
+        ...(isExported ? { [EXPORTED_SUCCESSFULLY]: 'true' } : {}),
+      },
+      $VBDs: [{ $VM: snapshotVmRecord }],
+    })
+    const baseVdi = vdi('vdi-base', BASE_DATETIME, baseSnapshotVm, true)
+    const freshVdi = vdi('vdi-fresh', freshDatetime, freshSnapshotVm, freshExported)
+
+    const registry = { 'vdi-base': baseVdi, 'vdi-fresh': freshVdi }
+    const vms = { 'vm-base': baseSnapshotVm, 'vm-fresh': freshSnapshotVm }
+
+    const runner = makeRunner({
+      _synchronizedSnapshotTimestamp: synchronized ? SYNC_TIMESTAMP : undefined,
+      _exportedVm: vms[exportedVmRef],
+      _vm: { uuid: 'live-uuid', $snapshots: [] },
+      _baseSettings: { snapshotRetention: 0 },
+      _jobSnapshotVdis: [baseVdi, freshVdi],
+      _disklessJobSnapshotVms: [],
+      job: { mode: 'delta', settings: {} },
+      _xapi: {
+        barrier: async () => {},
+        getObject: ref => registry[ref],
+        VM_destroy: async ref => {
+          destroyed.push(ref)
+        },
+        VDI_destroy: async ref => {
+          destroyed.push(ref)
+        },
+      },
+    })
+
+    return { runner, destroyed }
+  }
+
+  it('clears _exportedVm when the snapshot of the failed run is reclaimed', async () => {
+    const { runner, destroyed } = makeRunner_({ freshDatetime: '20260902T092200Z', exportedVmRef: 'vm-fresh' })
+
+    await runner._removeUnusedSnapshots()
+
+    assert.deepEqual(destroyed, ['vm-fresh'], 'the never-exported snapshot should be reclaimed')
+    assert.equal(runner._exportedVm, undefined, '_exportedVm must not outlive the VM it points at')
+  })
+
+  it('keeps _exportedVm when the snapshot survives retention (synchronized snapshot)', async () => {
+    // the in-flight synchronized snapshot is hidden from retention, so it is still
+    // there afterwards and its data must still be purgeable
+    const { runner, destroyed } = makeRunner_({
+      freshDatetime: formatDateTime(SYNC_TIMESTAMP),
+      synchronized: true,
+      exportedVmRef: 'vm-fresh',
+    })
+
+    await runner._removeUnusedSnapshots()
+
+    assert.deepEqual(destroyed, [], 'the in-flight synchronized snapshot must be kept')
+    assert.notEqual(runner._exportedVm, undefined, '_exportedVm should be kept while the snapshot exists')
+  })
+
+  it('keeps _exportedVm when another snapshot is reclaimed', async () => {
+    // nominal run: the fresh snapshot has been exported, the previous base ages out
+    const { runner, destroyed } = makeRunner_({
+      freshDatetime: '20260902T092200Z',
+      freshExported: true,
+      exportedVmRef: 'vm-fresh',
+    })
+
+    await runner._removeUnusedSnapshots()
+
+    assert.deepEqual(destroyed, ['vm-base'], 'only the previous base should be reclaimed')
+    assert.notEqual(runner._exportedVm, undefined, 'the exported snapshot is untouched')
+  })
+
+  it('clears _exportedVm when a reclaimed diskless snapshot is the exported one', async () => {
+    const destroyed = []
+    const oldSnap = { $ref: 'dl-old', other_config: { [DATETIME]: '20240101T000000Z', [SCHEDULE_ID]: 'schedule-1' } }
+    const registry = { 'dl-old': oldSnap }
+
+    const runner = makeRunner({
+      _exportedVm: oldSnap,
+      _vm: { uuid: 'live-uuid', $snapshots: [] },
+      _baseSettings: { snapshotRetention: 0 },
+      _jobSnapshotVdis: [],
+      _disklessJobSnapshotVms: [oldSnap],
+      job: { mode: 'full', settings: {} },
+      _xapi: {
+        barrier: async () => {},
+        getObject: ref => registry[ref],
+        VM_destroy: async ref => {
+          destroyed.push(ref)
+        },
+        VDI_destroy: async () => {},
+      },
+    })
+
+    await runner._removeUnusedSnapshots()
+
+    assert.deepEqual(destroyed, ['dl-old'], 'the diskless snapshot should be reclaimed')
+    assert.equal(runner._exportedVm, undefined, '_exportedVm must not outlive the VM it points at')
+  })
+})
+
+describe('run() purges the snapshot data only while the snapshot exists', () => {
+  // `_removeSnapshotData()` runs from the `finally` of run(), right after
+  // `_removeUnusedSnapshots()`. Whether it acts is decided by `_exportedVm` alone: the
+  // snapshot of a failed run is reclaimed (nothing to purge), but a synchronized snapshot
+  // is hidden from retention and survives, so its data must still be reclaimed.
+  const makeRunRunner = ({ copyFails = false, isSnapshot = true, snapshotReclaimed = copyFails } = {}) => {
+    const calls = { markExportSuccessfull: 0, vmDestroyed: [], dataDestroyed: [] }
 
     const runner = makeRunner({
       _healthCheckSr: undefined,
-      // cbtDestroySnapshotData is the only configuration in which _removeSnapshotData() acts
+      // the only configuration in which _removeSnapshotData() acts
       _settings: { offlineBackup: false, snapshotRetention: 0, preferNbd: true, cbtDestroySnapshotData: true },
       _vm: {
         uuid: 'live-uuid',
@@ -457,41 +581,61 @@ describe('run() only purges snapshot data for an exported snapshot', () => {
       },
       _writers: new Set([{ beforeBackup: async () => {}, afterBackup: async () => {} }]),
       _xapi: {
-        // used by markExportSuccessfull()
         VM_getDisks: async () => ['vdi-ref'],
+        // used by markExportSuccessfull()
         setFieldEntry: async () => {
           calls.markExportSuccessfull++
+        },
+        call: async (method, ref) => {
+          calls.vmDestroyed.push(`${method}:${ref}`)
+        },
+        VDI_dataDestroy: async ref => {
+          calls.dataDestroyed.push(ref)
         },
       },
       _cleanMetadata: async () => {},
       _fetchJobSnapshots: async () => {},
       _selectBaseVm: async () => {},
-      _removeUnusedSnapshots: async () => {
-        calls.removeUnusedSnapshots++
+      _removeUnusedSnapshots: async function () {
+        if (snapshotReclaimed) {
+          this._forgetExportedVm(this._exportedVm?.$ref)
+        }
       },
       _snapshot: async function () {
-        this._exportedVm = { $ref: 'snapshot-ref', is_a_snapshot: isSnapshot }
+        this._exportedVm = {
+          $ref: 'snapshot-ref',
+          is_a_snapshot: isSnapshot,
+          // a snapshot of the live VM; undefined for an offline backup, where the live VM is exported
+          $snapshot_of: isSnapshot ? 'live-vm-ref' : undefined,
+        }
       },
       _copy: async () => {
         if (copyFails) {
           throw new Error('transfer failed: target unreachable')
         }
       },
-      _removeSnapshotData: async () => {
-        calls.removeSnapshotData++
-      },
     })
 
     return { runner, calls }
   }
 
-  it('does not purge the snapshot data when the transfer failed', async () => {
+  it('does not purge anything when the failed run snapshot has been reclaimed', async () => {
     const { runner, calls } = makeRunRunner({ copyFails: true })
 
     await assert.rejects(runner.run(), /transfer failed/)
 
-    assert.equal(calls.removeSnapshotData, 0, 'the snapshot has just been reclaimed: it must not be purged again')
-    assert.equal(calls.removeUnusedSnapshots, 2, 'retention must still run before the snapshot and in the finally')
+    assert.deepEqual(calls.vmDestroyed, [], 'the snapshot is already destroyed: nothing to purge')
+    assert.deepEqual(calls.dataDestroyed, [], 'no VDI to data_destroy either')
+  })
+
+  it('purges the snapshot data of a failed run whose snapshot survived retention', async () => {
+    // synchronized snapshot: hidden from retention, so it is still holding its data
+    const { runner, calls } = makeRunRunner({ copyFails: true, snapshotReclaimed: false })
+
+    await assert.rejects(runner.run(), /transfer failed/)
+
+    assert.deepEqual(calls.vmDestroyed, ['VM.destroy:snapshot-ref'], 'the surviving snapshot should be destroyed')
+    assert.deepEqual(calls.dataDestroyed, ['vdi-ref'], 'its data should be reclaimed, as before this fix')
   })
 
   it('purges the snapshot data when the transfer succeeded', async () => {
@@ -500,15 +644,16 @@ describe('run() only purges snapshot data for an exported snapshot', () => {
     await runner.run()
 
     assert.equal(calls.markExportSuccessfull, 2, 'the exported snapshot and its VDIs should be marked')
-    assert.equal(calls.removeSnapshotData, 1, 'the exported snapshot data should be purged')
+    assert.deepEqual(calls.vmDestroyed, ['VM.destroy:snapshot-ref'], 'the exported snapshot should be purged')
+    assert.deepEqual(calls.dataDestroyed, ['vdi-ref'], 'its data should be reclaimed')
   })
 
-  it('does not purge the snapshot data when the live VM was exported (offline backup)', async () => {
+  it('does not purge anything when the live VM was exported (offline backup)', async () => {
     const { runner, calls } = makeRunRunner({ isSnapshot: false })
 
     await runner.run()
 
     assert.equal(calls.markExportSuccessfull, 0, 'the live VM is not marked as exported')
-    assert.equal(calls.removeSnapshotData, 0, 'there is no snapshot to purge')
+    assert.deepEqual(calls.vmDestroyed, [], 'the live VM must never be destroyed')
   })
 })
