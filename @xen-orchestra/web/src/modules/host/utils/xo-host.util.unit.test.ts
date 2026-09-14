@@ -1,6 +1,5 @@
 import {
   getHostCoreSocketInfo,
-  getHostInfo,
   getHostManufacturerInfo,
   getHostRamProvisioning,
   isHostOperationPending,
@@ -32,18 +31,6 @@ describe('isHostOperationPending', () => {
     const host = createHost({ current_operations: {} })
 
     expect(isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.REBOOT)).toBe(false)
-  })
-})
-
-describe('getHostInfo', () => {
-  it('returns the host name label and its dashboard link when a host is provided', () => {
-    const host = createHost({ name_label: 'Primary Host' })
-
-    expect(getHostInfo(host)).toEqual({ label: 'Primary Host', to: `/host/${host.id}/dashboard` })
-  })
-
-  it('returns an empty label when no host is provided', () => {
-    expect(getHostInfo(undefined)).toEqual({ label: '' })
   })
 })
 

@@ -20,7 +20,6 @@
 <script setup lang="ts">
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getHostIpAddresses } from '@/modules/pif/utils/xo-pif.util.ts'

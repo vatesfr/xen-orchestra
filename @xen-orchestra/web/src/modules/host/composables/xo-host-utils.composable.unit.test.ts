@@ -33,37 +33,46 @@ function mountHostUtils(overrides: Partial<FrontXoHost> = {}) {
   }).wrapper.vm
 }
 
-describe('getPowerState', () => {
+describe('getHostStatus', () => {
   it('maps the running state to its label and running-circle icon', () => {
-    const { getPowerState, t } = mountHostUtils()
+    const { getHostStatus, t } = mountHostUtils()
 
-    expect(getPowerState(HOST_POWER_STATE.RUNNING)).toEqual({
+    expect(getHostStatus('running')).toEqual({
       text: t('host:status:running'),
       icon: 'status:running-circle',
     })
   })
 
   it('maps the halted state to its label and halted-circle icon', () => {
-    const { getPowerState, t } = mountHostUtils()
+    const { getHostStatus, t } = mountHostUtils()
 
-    expect(getPowerState(HOST_POWER_STATE.HALTED)).toEqual({
+    expect(getHostStatus('halted')).toEqual({
       text: t('host:status:halted'),
       icon: 'status:halted-circle',
     })
   })
 
-  it('maps the unknown state to its label and no icon', () => {
-    const { getPowerState, t } = mountHostUtils()
+  it('maps the disabled state to its label and disabled-circle icon', () => {
+    const { getHostStatus, t } = mountHostUtils()
 
-    expect(getPowerState(HOST_POWER_STATE.UNKNOWN)).toEqual({ text: t('host:status:unknown'), icon: undefined })
+    expect(getHostStatus('disabled')).toEqual({
+      text: t('host:status:disabled'),
+      icon: 'status:host-disabled-circle',
+    })
+  })
+
+  it('maps the unknown state to its label and no icon', () => {
+    const { getHostStatus, t } = mountHostUtils()
+
+    expect(getHostStatus('unknown')).toEqual({ text: t('host:status:unknown'), icon: undefined })
   })
 
   it('falls back to the unknown entry for an out-of-range value', () => {
-    const { getPowerState, t } = mountHostUtils()
+    const { getHostStatus, t } = mountHostUtils()
 
-    const outOfRangeState = 'Suspended' as HOST_POWER_STATE
-
-    expect(getPowerState(outOfRangeState)).toEqual({ text: t('host:status:unknown'), icon: undefined })
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    expect(getHostStatus('Suspended')).toEqual({ text: t('host:status:unknown'), icon: undefined })
   })
 })
 
