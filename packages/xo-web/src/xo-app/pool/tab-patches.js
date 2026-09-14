@@ -1,4 +1,5 @@
 import _ from 'intl'
+import Icon from 'icon'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
@@ -9,6 +10,7 @@ import { Col, Container, Row } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { getXoaPlan, ENTERPRISE } from 'xoa-plans'
+import { renderXoItemFromId } from 'render-xo-item'
 import {
   installAllPatchesOnPool,
   installPatches,
@@ -17,6 +19,7 @@ import {
   rollingPoolUpdate,
   subscribeCurrentUser,
   subscribeHostMissingPatches,
+  subscribeRollingUpdateRecovery,
 } from 'xo'
 import filter from 'lodash/filter.js'
 import isEmpty from 'lodash/isEmpty.js'
@@ -135,6 +138,63 @@ const INDIVIDUAL_ACTIONS_XCP = [
   },
 ]
 
+// an incomplete update only warrants a warning in these statuses: live
+// statuses mean a run is in progress, absence of record means nothing to do
+const RPU_RECOVERY_VISIBLE_STATUSES = ['blocked', 'failed', 'interrupted']
+
+const RpuRecoveryBanner = ({ recovery }) => {
+  if (recovery == null || !RPU_RECOVERY_VISIBLE_STATUSES.includes(recovery.status)) {
+    return null
+  }
+
+  const { blockedReason, hostOrder = [], hosts = {}, haltedPinnedVms = {}, lastError, status } = recovery
+  const haltedVmIds = Object.keys(haltedPinnedVms)
+
+  return (
+    <Row>
+      <Col>
+        <div className='alert alert-warning'>
+          <h4>
+            <Icon icon='alarm' /> {_('rpuRecoveryIncompleteTitle')}
+          </h4>
+          <p>
+            {status === 'interrupted'
+              ? _('rpuRecoveryInterrupted')
+              : status === 'failed'
+                ? _('rpuRecoveryFailed')
+                : _('rpuRecoveryBlocked')}
+          </p>
+          {blockedReason !== undefined && <p>{blockedReason}</p>}
+          {hostOrder.length > 0 && (
+            <ul>
+              {hostOrder.map(hostId => (
+                <li key={hostId}>
+                  {renderXoItemFromId(hostId)} — {hosts[hostId]?.status}
+                </li>
+              ))}
+            </ul>
+          )}
+          {lastError != null && (
+            <p>
+              <strong>{_('rpuRecoveryLastError')}</strong> {lastError.message ?? String(lastError)}
+            </p>
+          )}
+          {haltedVmIds.length > 0 && (
+            <div>
+              <strong>{_('rpuRecoveryHaltedPinnedVms')}</strong>
+              <ul>
+                {haltedVmIds.map(vmId => (
+                  <li key={vmId}>{renderXoItemFromId(vmId)}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </Col>
+    </Row>
+  )
+}
+
 const INSTALLED_PATCH_COLUMNS = [
   {
     name: _('patchNameLabel'),
@@ -167,8 +227,9 @@ const INSTALLED_PATCH_COLUMNS = [
   },
 ]
 
-@addSubscriptions(({ master }) => ({
+@addSubscriptions(({ master, pool }) => ({
   missingPatches: cb => subscribeHostMissingPatches(master, cb),
+  rollingUpdateRecovery: cb => subscribeRollingUpdateRecovery(pool, cb),
   userPreferences: cb => subscribeCurrentUser(user => cb(user.preferences)),
 }))
 @connectStore(() => {
@@ -224,6 +285,7 @@ export default class TabPatches extends Component {
       missingPatches = [],
       pool,
       poolHosts,
+      rollingUpdateRecovery,
       userPreferences,
     } = this.props
 
@@ -238,6 +300,7 @@ export default class TabPatches extends Component {
     return (
       <Upgrade place='poolPatches' required={2}>
         <Container>
+          <RpuRecoveryBanner recovery={rollingUpdateRecovery} />
           <Row>
             <Col className='text-xs-right'>
               {ROLLING_POOL_UPDATES_AVAILABLE && (

@@ -1292,6 +1292,14 @@ const messages = {
   rollingPoolUpdateHaWarning: 'High Availability is enabled. This will automatically disable it during the update.',
   rollingPoolUpdateLoadBalancerWarning:
     'Load Balancer plugin is running. This will automatically pause it during the update.',
+  rpuRecoveryIncompleteTitle: 'Incomplete rolling pool update',
+  rpuRecoveryInterrupted:
+    'The last rolling pool update was interrupted by an xo-server restart. Some hosts may not be updated and some VMs may not be on their original host.',
+  rpuRecoveryFailed:
+    'The last rolling pool update failed before completing. Some hosts may not be updated and some VMs may not be on their original host.',
+  rpuRecoveryBlocked: 'The state of the last rolling pool update could not be read. Manual review is required.',
+  rpuRecoveryLastError: 'Last error:',
+  rpuRecoveryHaltedPinnedVms: 'VMs shut down for the update and not started again yet:',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
