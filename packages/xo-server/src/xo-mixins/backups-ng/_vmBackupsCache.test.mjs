@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
+import { BACKUP_JOURNAL_DIR, formatJournalDay, formatJournalTime } from '@xen-orchestra/backups/_backupJournal.mjs'
+
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 
 const REPOSITORY = { id: 'repository' }
@@ -23,10 +25,17 @@ const metadataOf = (vmUuid, name, props) => ({
 
 const enoent = () => Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
 
+// a real, sortable path, like the one a real journal entry would get: the cursor bootstrapped by
+// `#build()` is in this same day/time format, and comparisons between the two must make sense
+let journalSeq = 0
+const journalEntryPath = date =>
+  `/${BACKUP_JOURNAL_DIR}/${formatJournalDay(date)}/${formatJournalTime(date)}-${String(journalSeq++).padStart(6, '0')}`
+
 // mock of the subset of `RemoteAdapter` used by `VmBackupsCache`
 class Repository {
   metadataByFilename = new Map()
   journal = []
+  journalDirMissing = false
 
   nListings = 0
   nOneVmListings = 0
@@ -42,23 +51,25 @@ class Repository {
   // records an event as `RemoteAdapter` would have, i.e. after the mutation
   add(metadata, timestamp) {
     this.metadataByFilename.set(metadata._filename, metadata)
-    this.journal.push({ event: 'add', filename: metadata._filename, vmUuid: metadata.vm.uuid, date: timestamp })
+    this.pushEvent('add', metadata._filename, metadata.vm.uuid, timestamp)
   }
 
   // journaled without the leading slash, to check the entry is keyed by the normalized name
   change(metadata, timestamp) {
     this.metadataByFilename.set(metadata._filename, metadata)
-    this.journal.push({
-      event: 'change',
-      filename: metadata._filename.slice(1),
-      vmUuid: metadata.vm.uuid,
-      date: timestamp,
-    })
+    this.pushEvent('change', metadata._filename.slice(1), metadata.vm.uuid, timestamp)
   }
 
   del(metadata, timestamp) {
     this.metadataByFilename.delete(metadata._filename)
-    this.journal.push({ event: 'del', filename: metadata._filename, vmUuid: metadata.vm.uuid, date: timestamp })
+    this.pushEvent('del', metadata._filename, metadata.vm.uuid, timestamp)
+  }
+
+  // appends a journal entry with a real, sortable `_filename`; `add()`/`change()`/`del()` cover the
+  // usual cases, this is for the tests which need an event they cannot express, e.g. an unsupported
+  // one or a `change` without a prior write
+  pushEvent(event, filename, vmUuid, timestamp) {
+    this.journal.push({ event, filename, vmUuid, date: timestamp, _filename: journalEntryPath(timestamp) })
   }
 
   get adapter() {
@@ -87,10 +98,16 @@ class Repository {
         }
         return metadata
       },
-      readBackupJournal: async since => {
+      readBackupJournal: async (cursor, { mustExist = false } = {}) => {
         this.#mayFail()
         this.nJournalReads++
-        return this.journal.filter(_ => _.date > since)
+        if (this.journalDirMissing) {
+          if (mustExist) {
+            throw enoent()
+          }
+          return []
+        }
+        return cursor === undefined ? this.journal.slice() : this.journal.filter(_ => _._filename > cursor)
       },
     }
   }
@@ -212,7 +229,7 @@ describe('VmBackupsCache', () => {
     const transient = metadataOf(VM, '20260811T100000')
     repository.add(transient, Date.now())
     repository.del(transient, Date.now())
-    repository.journal.push({ event: 'from-a-future-version', filename: 'whatever', vmUuid: VM, date: Date.now() })
+    repository.pushEvent('from-a-future-version', 'whatever', VM, Date.now())
 
     const backups = await cache.get(REPOSITORY)
 
@@ -252,7 +269,7 @@ describe('VmBackupsCache', () => {
 
     // a user or a third party tool deleted the backup directly on the repository: the journal
     // only holds the `change` event of a previous mutation
-    repository.journal.push({ event: 'change', filename: metadata._filename, vmUuid: VM, date: Date.now() })
+    repository.pushEvent('change', metadata._filename, VM, Date.now())
     repository.metadataByFilename.delete(metadata._filename)
 
     const backups = await cache.get(REPOSITORY)
@@ -374,6 +391,40 @@ describe('VmBackupsCache', () => {
 
     // the listing is not served anymore, the next read starts from scratch
     repository.failWith = undefined
+    await cache.get(REPOSITORY)
+    assert.equal(repository.nListings, 2)
+  })
+
+  it('tolerates a journal directory which has never existed', async t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const cache = new VmBackupsCache(repository.useAdapter, { minRefreshDelay: 0 })
+
+    repository.journalDirMissing = true
+    await cache.get(REPOSITORY)
+    // a repository which is never written to keeps replaying a journal directory which never gets
+    // created, this must stay tolerated however many times it is read
+    await cache.get(REPOSITORY)
+    await cache.get(REPOSITORY)
+
+    assert.equal(repository.nListings, 1)
+  })
+
+  it('forces a rebuild when the journal directory disappears after an entry has been read from it', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const cache = new VmBackupsCache(repository.useAdapter, { minRefreshDelay: 0 })
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+    repository.add(metadataOf(OTHER_VM, '20260811T100000'), Date.now())
+    await cache.get(REPOSITORY) // replays the `add`, confirming the journal directory exists
+
+    repository.journalDirMissing = true
+    await assert.rejects(cache.get(REPOSITORY), /ENOENT/)
+
+    // the listing is not served anymore, the next read starts from scratch
+    repository.journalDirMissing = false
     await cache.get(REPOSITORY)
     assert.equal(repository.nListings, 2)
   })
