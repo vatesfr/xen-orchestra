@@ -66,6 +66,8 @@
 - [backup/restore] Fix backups of a repository randomly disappearing from the list after visiting a VM (PR [#10277](https://github.com/vatesfr/xen-orchestra/pull/10277))
 - **XO 5**:
   - [Netdata] Fix `You must enable Javascript` error due to CSP blocking Netdata's inline scripts (PR [#10275](https://github.com/vatesfr/xen-orchestra/pull/10275))
+- [Backup/Restore] Fix listing backups sometimes mixing the results of two different VM listings (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
+- [Backup/Restore] Better handling of a backup repository the proxy fails to list, instead of silently returning nothing (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
 
 ### Packages to release
 
