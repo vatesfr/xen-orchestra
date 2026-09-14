@@ -72,7 +72,7 @@
   "action:duplicate-n-vms": "Zduplikovat 1 virt. stroj | Zduplikovat {n} virt. stroje | Zduplikovat {n} virt. strojů",
   "action:edit": "Upravit",
   "action:edit-config": "Upravit nastavení",
-  "action:edit-traffic-rule": "@:action:upravit @.lower:traffic-rule",
+  "action:edit-traffic-rule": "@:action:edit @.lower:traffic-rule",
   "action:enable": "Povolit",
   "action:enable-host": "Povolit hostitele",
   "action:enable-light-mode": "Zapnout světlý režim",
