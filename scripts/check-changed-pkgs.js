@@ -37,7 +37,10 @@ const IGNORED_PACKAGES = new Set([
 // are limited to them does not need to be released
 const IGNORED_FILES = [
   // tests
-  /(?:^|\/)__snapshots__\//,
+  //
+  // both `test/` and `tests/` are in use in this repository, they hold test
+  // files, fixtures and helpers which are never shipped
+  /(?:^|\/)(?:__snapshots__|tests?)\//,
   /\.(?:integ|load|spec|test)\.[cm]?[jt]sx?$/,
 
   // docs and repository metadata

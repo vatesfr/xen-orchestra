@@ -16,12 +16,17 @@ const changedPackageNames = changedFiles => Array.from(changedPackages(changedFi
 
 describe('isIgnoredFile', function () {
   for (const file of [
+    '@vates/nbd-client/tests/ca-cert.pem',
+    // a test file which does not follow the `*.test.*` naming
+    '@vates/xml/test/parse.js',
     '@xen-orchestra/backups/_runners/_vmRunners/__snapshots__/IncrementalXapi.mjs.snap',
     '@xen-orchestra/backups/RemoteAdapter.integ.mjs',
     '@xen-orchestra/backups/RemoteAdapter.test.mjs',
     '@xen-orchestra/backups/docs/design.md',
     '@xen-orchestra/backups/README.md',
     '@xen-orchestra/web-core/src/composables/foo.spec.ts',
+    // a test directory nested in the package sources
+    '@xen-orchestra/web/src/test/create-vm.ts',
     'packages/xo-cli/.USAGE.md',
     'packages/xo-server/.npmignore',
     'packages/xo-server/perf.load.mjs',
@@ -38,8 +43,9 @@ describe('isIgnoredFile', function () {
     '@xen-orchestra/backups/package.json',
     // not a test file, only a file *about* tests
     '@xen-orchestra/backups/testUtils.mjs',
-    // `docs` as a file name, not as a directory
+    // `docs` and `test` as file names, not as directories
     'packages/xo-server/docs.md',
+    'packages/xo-server/test.mjs',
     'packages/xo-web/src/common/index.js',
   ]) {
     it(`does not ignore ${file}`, function () {
@@ -98,7 +104,14 @@ describe('getChangedPackages', function () {
   })
 
   it('ignores a package whose changes are limited to ignored files', function () {
-    assert.deepEqual(changedPackageNames(['@xen-orchestra/backups/README.md', '@vates/types/types.test.mts']), [])
+    assert.deepEqual(
+      changedPackageNames([
+        '@xen-orchestra/backups/README.md',
+        '@xen-orchestra/backups/tests/fixture.json',
+        '@vates/types/types.test.mts',
+      ]),
+      []
+    )
   })
 
   it('handles an empty list of changed files', function () {
