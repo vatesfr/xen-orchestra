@@ -1,8 +1,11 @@
 'use strict'
 
-const escapeRegExp = require('lodash/escapeRegExp')
 const fs = require('fs').promises
 const joinPath = require('path').join
+
+// this module is used by `check-changed-pkgs.js`, which runs in the CI without
+// `yarn install`, it must therefore only depend on Node builtins
+const escapeRegExp = string => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 const CHANGELOG_PATH = joinPath(__dirname, '../CHANGELOG.unreleased.md')
 const START_TAG = '<!--packages-start-->'

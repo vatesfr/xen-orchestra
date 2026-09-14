@@ -6,9 +6,6 @@ jobs:
     steps:
       # https://github.com/actions/checkout
       - uses: actions/checkout@v4
-        with:
-          # the whole history is required to compute the merge base with `master`
-          fetch-depth: 0
 
       - name: Install packages
         run: |
@@ -36,9 +33,6 @@ jobs:
 
       - name: Ensure packages are sorted in CHANGELOG.unreleased.md
         run: ./scripts/gen-deps-list.js --check-order > /dev/null
-
-      - name: Ensure changed packages are listed in CHANGELOG.unreleased.md
-        run: ./scripts/check-changed-pkgs.js
 
       - name: Ensure yarn.lock is up-to-date
         run: git diff --exit-code yarn.lock

@@ -1,0 +1,29 @@
+name: Changelog
+
+# only pull requests targeting `master`: the check compares the branch to
+# `origin/master`, it would report unrelated packages on a PR based on another
+# branch
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  changed-packages:
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@v4
+        with:
+          # the whole history is required to compute the merge base with `master`
+          fetch-depth: 0
+
+      # https://github.com/actions/setup-node
+      - name: Setup Node environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '>=22.12'
+
+      # the script only uses Node builtins, no `yarn install` necessary
+      - name: Ensure changed packages are listed in CHANGELOG.unreleased.md
+        run: ./scripts/check-changed-pkgs.js

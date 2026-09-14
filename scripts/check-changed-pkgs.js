@@ -4,13 +4,15 @@
 // `Packages to release` section of `CHANGELOG.unreleased.md`.
 //
 // Meant to run in the CI, on a branch already rebased on `master`.
+//
+// Only depends on Node builtins so that it can run without `yarn install`.
 
 'use strict'
 
 const { execFileSync } = require('child_process')
+const { existsSync, readdirSync } = require('fs')
 const joinPath = require('path').join
 
-const { getPackages } = require('./utils')
 const { CHANGELOG_PATH, readChangelogPackages } = require('./_readChangelogPackages.js')
 
 const ROOT_DIR = joinPath(__dirname, '..')
@@ -82,6 +84,30 @@ function getChangedPackages(changedFiles, packageNamesByDir) {
   return changedPackages
 }
 
+/**
+ * Mirrors `getPackages()` from `./utils`, without its dependencies
+ *
+ * @returns {Map<string, string>} A mapping of package directories (e.g. `@vates/types`) to package names
+ */
+function getPackageNamesByDir() {
+  const packageNamesByDir = new Map()
+
+  for (const scope of [undefined, '@vates', '@xen-orchestra']) {
+    const scopeDir = scope ?? 'packages'
+
+    for (const entry of readdirSync(joinPath(ROOT_DIR, scopeDir))) {
+      const relativeDir = `${scopeDir}/${entry}`
+
+      // a directory without a `package.json` is not a package
+      if (existsSync(joinPath(ROOT_DIR, relativeDir, 'package.json'))) {
+        packageNamesByDir.set(relativeDir, scope === undefined ? entry : `${scope}/${entry}`)
+      }
+    }
+  }
+
+  return packageNamesByDir
+}
+
 function git(...args) {
   return execFileSync('git', args, { cwd: ROOT_DIR, encoding: 'utf8', maxBuffer: 1e8 }).trimEnd()
 }
@@ -108,9 +134,8 @@ function getChangedFiles() {
 }
 
 async function main() {
-  const packageNamesByDir = new Map((await getPackages(true)).map(({ name, relativeDir }) => [relativeDir, name]))
+  const changedPackages = getChangedPackages(getChangedFiles(), getPackageNamesByDir())
 
-  const changedPackages = getChangedPackages(getChangedFiles(), packageNamesByDir)
   const listedPackages = await readChangelogPackages()
 
   const missing = Array.from(changedPackages.keys())
