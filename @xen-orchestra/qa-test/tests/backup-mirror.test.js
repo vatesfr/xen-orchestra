@@ -143,7 +143,8 @@ describe('Mirror Backup - Full Remote', () => {
     const setupResult = await setup()
     dispatchClient = setupResult.dispatchClient
     tracker = setupResult.tracker
-    vm = setupResult.vm
+    // Only using one VM
+    vm = setupResult.vms[0]
 
     assert.ok(vm, 'Setup should provide a test VM')
     log.debug('Using test VM', { name: vm.name_label, uuid: vm.uuid })

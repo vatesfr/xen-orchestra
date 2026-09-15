@@ -11,7 +11,7 @@
 <script lang="ts" setup>
 import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import UiTertiaryTag from '@core/components/ui/tag/UiTertiaryTag.vue'
-import { parseTag } from '@core/utils/parse-tag.util'
+import { parseTag } from '@core/utils/parse-tag.util.ts'
 import { computed } from 'vue'
 
 type TagVariant = 'primary' | 'secondary'

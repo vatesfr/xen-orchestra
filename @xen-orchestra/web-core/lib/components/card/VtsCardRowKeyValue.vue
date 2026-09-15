@@ -28,7 +28,7 @@
 
 <script lang="ts" setup>
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { calculateLineCount } from '@core/utils/line-height.util.ts'
 import { useStyleTag } from '@vueuse/core'
 import { useToggle } from '@vueuse/shared'

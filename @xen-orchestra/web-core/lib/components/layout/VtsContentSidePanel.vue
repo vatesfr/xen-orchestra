@@ -11,8 +11,8 @@
 </template>
 
 <script setup lang="ts">
-import { usePanelStore } from '@core/stores/panel.store'
-import { useUiStore } from '@core/stores/ui.store'
+import { usePanelStore } from '@core/stores/panel.store.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 
 const panelStore = usePanelStore()

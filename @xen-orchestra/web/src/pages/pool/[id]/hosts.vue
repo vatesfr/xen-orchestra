@@ -14,7 +14,7 @@ import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-res
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed } from 'vue'
 
 const { pool } = defineProps<{

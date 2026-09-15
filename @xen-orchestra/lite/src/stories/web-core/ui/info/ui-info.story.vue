@@ -17,8 +17,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, setting, slot } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import { prop, setting, slot } from '@/libs/story/story-param.ts'
+import { text } from '@/libs/story/story-widget.ts'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 </script>
 

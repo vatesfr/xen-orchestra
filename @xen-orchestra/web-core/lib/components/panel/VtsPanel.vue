@@ -35,7 +35,7 @@
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

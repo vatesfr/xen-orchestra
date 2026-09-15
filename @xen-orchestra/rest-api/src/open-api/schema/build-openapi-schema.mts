@@ -24,7 +24,13 @@ function buildOpenApiField(field: FieldDefinition): OpenAPIV3.SchemaObject {
   return property
 }
 
-export function buildOpenApiSchema(def: Record<string, FieldDefinition>): OpenAPIV3.SchemaObject {
+export function buildOpenApiSchema(def: Record<string, FieldDefinition> | FieldDefinition): OpenAPIV3.SchemaObject {
+  // A single FieldDefinition (e.g. a top-level array response) has a string `type`,
+  // whereas a fields map holds FieldDefinition objects as values.
+  if (typeof def.type === 'string') {
+    return buildOpenApiField(def)
+  }
+
   const schema: OpenAPIV3.SchemaObject = {
     type: 'object',
     properties: {},

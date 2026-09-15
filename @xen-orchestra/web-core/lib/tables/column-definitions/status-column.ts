@@ -1,6 +1,6 @@
 import VtsStatusCell, { type StatusCellProps } from '@core/components/table/cells/VtsStatusCell.vue'
-import { defineColumn } from '@core/packages/table/define-column'
-import { renderHeadCell } from '@core/tables/helpers/render-head-cell'
+import { defineColumn } from '@core/packages/table/define-column.ts'
+import { renderHeadCell } from '@core/tables/helpers/render-head-cell.ts'
 import type { HeaderConfig } from '@core/tables/types.ts'
 import { h } from 'vue'
 import { useI18n } from 'vue-i18n'

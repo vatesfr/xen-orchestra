@@ -1,5 +1,5 @@
-import type { FetchedStats, Stat } from '@/composables/fetch-stats.composable'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import type { FetchedStats, Stat } from '@/composables/fetch-stats.composable.ts'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import type { XapiHostStatsRaw, XapiVmStatsRaw } from '@vates/types/common'
 import type { ComputedRef, InjectionKey } from 'vue'
 

@@ -14,6 +14,12 @@ import { Task } from '@vates/task'
 
 import { acquireRpuGuard } from '../_rpuGuard.mjs'
 import { gcRpuTraces, getRpuTracesConfig, openRpuTrace, reconcileRpuTraces } from '../_rpuObservability.mjs'
+import {
+  buildRpuRecoveryView,
+  reconcileRpuRecoveryAtBoot,
+  startRpuRecoveryRun as startRpuRecoveryRunInStore,
+  unreadableRpuRecoveryView,
+} from '../_rpuRecovery.mjs'
 
 const log = createLogger('xo:xo-mixins:pool')
 
@@ -73,6 +79,32 @@ export default class Pools {
     // a heartbeat left pending on disk after a restart belongs to an
     // interrupted run: stamp it so the disk alone is unambiguous
     app.hooks.on('start', () => reconcileRpuTraces(getRpuTracesConfig(app).dir))
+
+    // a recovery record left in a live status belongs to a run killed by the
+    // restart: flip it to `interrupted` before serving any client
+    app.hooks.on('start', async () => {
+      this._rpuRecoveryStore = await app.getStore('rpuRecovery')
+      await reconcileRpuRecoveryAtBoot(this._rpuRecoveryStore)
+    })
+  }
+
+  startRpuRecoveryRun(poolId, options) {
+    return startRpuRecoveryRunInStore({ store: this._rpuRecoveryStore, poolId, options })
+  }
+
+  async getRollingUpdateRecovery(poolId) {
+    let record
+    try {
+      record = await this._rpuRecoveryStore.get(poolId)
+    } catch (error) {
+      if (error.notFound) {
+        return undefined
+      }
+      // undecodable value: report blocked, leave the raw value on disk as evidence
+      log.warn('unreadable RPU recovery record', { error, poolId })
+      return unreadableRpuRecoveryView(poolId)
+    }
+    return buildRpuRecoveryView(record)
   }
 
   async mergeInto($defer, { sources: sourceIds, target, force }) {
@@ -205,9 +237,20 @@ export default class Pools {
     )
   }
 
-  async rollingPoolReboot(pool, { parentTask, shutdownPinnedVms } = {}) {
+  /**
+   * Reboots the hosts of the pool one at a time.
+   *
+   * @param {object} pool - XO pool object
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassBackupCheck] - Skip the backup guard, the bypass is logged
+   * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
+   * @param {boolean} [opts.shutdownPinnedVms] - Shut down the VMs that cannot be migrated before their host reboots
+   * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool
+   */
+  async rollingPoolReboot(pool, { bypassBackupCheck, parentTask, shutdownPinnedVms } = {}) {
     const { _app } = this
     await _app.checkFeatureAuthorization('ROLLING_POOL_REBOOT')
+    await _app.backupGuard(pool.id, { bypassBackupCheck, operation: 'rollingPoolReboot' })
     const releaseGuard = acquireRpuGuard(pool.id, 'rollingPoolReboot')
     const trace = openRpuTrace({ dir: getRpuTracesConfig(_app).dir, kind: 'rpr', poolId: pool.id })
     try {

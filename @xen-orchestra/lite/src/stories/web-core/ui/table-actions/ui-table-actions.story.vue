@@ -34,8 +34,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, setting, slot } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import { prop, setting, slot } from '@/libs/story/story-param.ts'
+import { text } from '@/libs/story/story-widget.ts'
 import type { IconName } from '@core/icons'
 import UiActionsTitle from '@core/components/ui/actions-title/UiActionsTitle.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'

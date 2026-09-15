@@ -21,7 +21,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { event, prop } from '@/libs/story/story-param'
+import { event, prop } from '@/libs/story/story-param.ts'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { computed, ref } from 'vue'
 

@@ -58,9 +58,9 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiPool, XenApiSr } from '@/libs/xen-api/xen-api.types'
-import { useSrStore } from '@/stores/xen-api/sr.store'
-import { useVdiStore } from '@/stores/xen-api/vdi.store'
+import type { XenApiPool, XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
+import { useSrStore } from '@/stores/xen-api/sr.store.ts'
+import { useVdiStore } from '@/stores/xen-api/vdi.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'

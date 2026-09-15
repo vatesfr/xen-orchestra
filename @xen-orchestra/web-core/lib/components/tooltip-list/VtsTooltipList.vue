@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import UiTooltip from '@core/components/ui/tooltip/UiTooltip.vue'
-import { useTooltipStore } from '@core/stores/tooltip.store'
+import { useTooltipStore } from '@core/stores/tooltip.store.ts'
 import { storeToRefs } from 'pinia'
 
 const tooltipStore = useTooltipStore()

@@ -1,5 +1,5 @@
-import { createQueryBuilderGroup } from '@core/packages/query-builder/group/create-query-builder-group'
-import { handleNode } from '@core/packages/query-builder/node/handle-node'
+import { createQueryBuilderGroup } from '@core/packages/query-builder/group/create-query-builder-group.ts'
+import { handleNode } from '@core/packages/query-builder/node/handle-node.ts'
 import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import { And as AndNode, Or as OrNode, Property as PropertyNode } from 'complex-matcher'
 

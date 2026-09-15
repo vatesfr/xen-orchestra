@@ -29,7 +29,7 @@ const {
   canRun: canRebootHost,
   isRunning: isRebootingHost,
   errorMessage: rebootHostErrorMessage,
-} = useXoHostRebootJob(() => host)
+} = useXoHostRebootJob(() => host, false)
 
 const { open: openActionModal } = useActionModal()
 

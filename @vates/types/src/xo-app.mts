@@ -21,6 +21,7 @@ import type {
 } from './xo.mjs'
 import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
+import type { RPU_RECOVERY_STEP_NAME } from './common.mjs'
 import {
   Xapi,
   XapiHostStats,
@@ -125,6 +126,54 @@ type License = {
   bundleInfo?: { name: string; id: string }
 }
 
+export type PoolRollingUpdateRecoveryStep = {
+  status: 'pending' | 'running' | 'observed-succeeded' | 'failed' | 'not-needed'
+  startedAt?: string
+  finishedAt?: string
+}
+
+/** error serialized by the recovery recorder: secret-looking keys are redacted */
+export type PoolRollingUpdateRecoveryError = {
+  name?: string
+  message?: string
+  stack?: string
+  code?: string | number
+  [key: string]: unknown
+}
+
+export type PoolRollingUpdateRecoveryHost = {
+  status: 'pending' | 'running' | 'succeeded' | 'failed' | 'not-needed'
+  steps: Record<RPU_RECOVERY_STEP_NAME, PoolRollingUpdateRecoveryStep>
+  lastError: PoolRollingUpdateRecoveryError | null
+}
+
+export type PoolRollingUpdateRecoveryRun = {
+  runId: string
+  poolId: string
+  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'cleaning'
+  startedAt: string
+  updatedAt: string
+  finishedAt?: string
+  interruptedAt?: string
+  taskId?: string
+  variant?: 'xcp' | 'xs-cdn' | 'xs-legacy'
+  hostOrder?: string[]
+  hosts: Record<string, PoolRollingUpdateRecoveryHost>
+  lastError: PoolRollingUpdateRecoveryError | null
+  /** VM UUID -> UUID of the host it must be started on */
+  haltedPinnedVms: Record<string, string>
+}
+
+/** record unreadable or of an unknown schema version: recovery needs a human */
+export type PoolRollingUpdateRecoveryBlocked = {
+  poolId?: string
+  runId?: string
+  status: 'blocked'
+  blockedReason: string
+}
+
+export type PoolRollingUpdateRecovery = PoolRollingUpdateRecoveryRun | PoolRollingUpdateRecoveryBlocked
+
 export type XoApp = {
   hooks: EventEmitter
   _redis: {
@@ -201,9 +250,11 @@ export type XoApp = {
     userData?: { ip?: string },
     opts?: { bypassOtp?: boolean; bypassTaskCreation?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
-  backupGuard(poolId: XoPool['id']): Promise<void>
+  backupGuard(objectId: XapiXoRecord['id'], opts?: { bypassBackupCheck?: boolean; operation: string }): Promise<void>
   /* Throw if no authorization */
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
+  /* validate, apply and persist the configuration of a plugin */
+  configurePlugin(id: string, configuration: unknown, mergeWithExisting?: boolean): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
   // TODO: replace all XoAclBasePrivilege with a more strict type. (discriminate union)
@@ -291,7 +342,7 @@ export type XoApp = {
     >
   >
   getAllSchedules(): Promise<XoSchedule[]>
-  getAllUsers(): Promise<XoUser[]>
+  getAllUsers(opts?: { obfuscatePassword?: boolean }): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
   getBackupNgLogs(): Promise<Record<string, AnyXoLog>>
@@ -312,7 +363,7 @@ export type XoApp = {
   ) => Record<T['id'], T> | undefined
   getTotalBackupSizeOnRemote(id: XoBackupRepository['id']): Promise<{ onDisk: number }>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
-  getUser: (id: XoUser['id']) => Promise<XoUser>
+  getUser: (id: XoUser['id'], opts?: { obfuscatePassword?: boolean }) => Promise<XoUser>
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(
@@ -322,6 +373,7 @@ export type XoApp = {
   getXapiPoolStats(poolId: XoPool['id'], granularity?: XapiStatsGranularity): Promise<XapiPoolStats>
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
+  getXoEventEmitterByType(type: string): EventEmitter
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
   listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{
@@ -342,11 +394,15 @@ export type XoApp = {
       readOnly?: XoServer['readOnly']
     }
   ): Promise<XoServer>
-  rollingPoolReboot(pool: XoPool, opts?: { parentTask?: VatesTask; shutdownPinnedVms?: boolean }): Promise<void>
+  rollingPoolReboot(
+    pool: XoPool,
+    opts?: { bypassBackupCheck?: boolean; parentTask?: VatesTask; shutdownPinnedVms?: boolean }
+  ): Promise<void>
   rollingPoolUpdate(
     pool: XoPool,
-    opts?: { rebootVm?: boolean; parentTask?: VatesTask; shutdownPinnedVms?: boolean }
+    opts?: { bypassBackupCheck?: boolean; rebootVm?: boolean; parentTask?: VatesTask; shutdownPinnedVms?: boolean }
   ): Promise<void>
+  getRollingUpdateRecovery(poolId: XoPool['id']): Promise<PoolRollingUpdateRecovery | undefined>
   setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
   shareVmResourceSet(vmId: XoVm['id']): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>

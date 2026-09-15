@@ -11,11 +11,11 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { event } from '@/libs/story/story-param'
+import { event } from '@/libs/story/story-param.ts'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import { useTreeFilter } from '@core/composables/tree-filter.composable'
-import { defineTree } from '@core/packages/tree/define-tree'
-import { useTree } from '@core/packages/tree/use-tree'
+import { useTreeFilter } from '@core/composables/tree-filter.composable.ts'
+import { defineTree } from '@core/packages/tree/define-tree.ts'
+import { useTree } from '@core/packages/tree/use-tree.ts'
 
 const data = [
   {

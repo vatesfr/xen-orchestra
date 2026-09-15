@@ -1,43 +1,52 @@
 <template>
   <div class="breadcrumb-container">
     <UiBreadcrumb :size>
-      <UiLink :size :to="{ name: '/(site)/dashboard' }" icon="fa:satellite">{{ XOA_NAME }}</UiLink>
+      <span class="breadcrumb-item">
+        <VtsIcon name="fa:satellite" size="current" />
+        <UiLink :size :to="{ name: '/(site)/dashboard' }">{{ XOA_NAME }}</UiLink>
+      </span>
       <UiLink :size :to="{ name: '/(site)/backups' }">{{ t('backups') }}</UiLink>
-      <span class="backup-job-name">
+      <span class="breadcrumb-item">
         <VtsIcon name="object:backup-job" size="current" />
         {{ backupJob.name }}
       </span>
     </UiBreadcrumb>
     <UiLink :size :href="newBackupRoute">{{ t('configure-in-xo-5') }}</UiLink>
   </div>
+  <UiHeadBar>
+    <template #icon>
+      <VtsIcon name="object:backup-job" size="current" />
+    </template>
+    {{ backupJob.name }}
+  </UiHeadBar>
   <TabList>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/backup/[id]/runs', params: { id: backupJob.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('runs') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink
       v-slot="{ isActive, href }"
       :to="{ name: '/backup/[id]/configuration', params: { id: backupJob.id } }"
       custom
     >
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('configuration') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink
       v-slot="{ isActive, href }"
       :to="{ name: '/backup/[id]/backed-up-vms', params: { id: backupJob.id } }"
       custom
     >
-      <TabItem :active="isActive" :href tag="a" :disabled="backupJob.type !== 'backup'">
+      <UiTabItem :active="isActive" :href tag="a" :disabled="backupJob.type !== 'backup'">
         {{ t('backed-up-vms') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/backup/[id]/targets', params: { id: backupJob.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('backup-targets') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
   </TabList>
 </template>
@@ -47,10 +56,11 @@ import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-
 import { XOA_NAME } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import TabItem from '@core/components/tab/TabItem.vue'
-import TabList from '@core/components/tab/TabList.vue'
+import TabList from '@core/components/tab-list/TabList.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
+import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -78,7 +88,7 @@ const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
   justify-content: space-between;
   overflow-y: auto;
 
-  .backup-job-name {
+  .breadcrumb-item {
     display: flex;
     align-items: center;
     gap: 0.8rem;

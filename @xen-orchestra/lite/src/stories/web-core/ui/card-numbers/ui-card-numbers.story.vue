@@ -15,6 +15,6 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop } from '@/libs/story/story-param'
+import { prop } from '@/libs/story/story-param.ts'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 </script>

@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiError } from '@/libs/xen-api/xen-api.types'
+import type { XenApiError } from '@/libs/xen-api/xen-api.types.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useI18n } from 'vue-i18n'
 

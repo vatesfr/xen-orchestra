@@ -21,14 +21,14 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
-import type { NetworkInterface, VmState } from '@/types/new-vm'
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
+import type { NetworkInterface, VmState } from '@/types/new-vm.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { useNewVmNetworkColumns } from '@core/tables/column-sets/new-vm-network-columns'
+import { useNewVmNetworkColumns } from '@core/tables/column-sets/new-vm-network-columns.ts'
 import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 

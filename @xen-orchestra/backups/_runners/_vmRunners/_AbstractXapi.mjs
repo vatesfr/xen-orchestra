@@ -7,6 +7,7 @@ import { asyncEach } from '@vates/async-each'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { Task } from '@vates/task'
+import { formatDateTime } from '@xen-orchestra/xapi'
 
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { Abstract } from './_Abstract.mjs'
@@ -16,9 +17,11 @@ import {
   JOB_ID,
   SCHEDULE_ID,
   VM_UUID,
+  EXPORTED_SUCCESSFULLY,
   resetVmOtherConfig,
   setVmOtherConfig,
   setVmSnapshotContentKeys,
+  markExportSuccessfull,
 } from '../../_otherConfig.mjs'
 
 const { warn, info } = createLogger('xo:backups:AbstractXapi')
@@ -36,6 +39,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     schedule,
     settings,
     srs,
+    synchronizedSnapshotTimestamp,
     throttleGenerator,
     throttleStream,
     vm,
@@ -63,9 +67,9 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     // VM (snapshot) that is really exported
     this._exportedVm = undefined
+    this._synchronizedSnapshotTimestamp = synchronizedSnapshotTimestamp
     this._vm = vm
 
-    this._baseVdis = undefined
     this._getSnapshotNameLabel = getSnapshotNameLabel
     this._isIncremental = job.mode === 'delta'
     this._healthCheckSr = healthCheckSr
@@ -180,6 +184,27 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   }
 
   async _snapshot() {
+    if (this._synchronizedSnapshotTimestamp !== undefined) {
+      const datetime = formatDateTime(this._synchronizedSnapshotTimestamp)
+      const candidates = this._vm.$snapshots.filter(
+        snapshot =>
+          snapshot?.other_config[JOB_ID] === this._jobId &&
+          snapshot?.other_config[DATETIME] === datetime &&
+          !snapshot.other_config[EXPORTED_SUCCESSFULLY]
+      )
+      if (candidates.length === 1) {
+        this._exportedVm = candidates[0]
+        this.timestamp = this._synchronizedSnapshotTimestamp
+        return
+      }
+
+      warn('expected exactly one synchronized snapshot to reuse, taking a fresh one', {
+        vm: this._vm.uuid,
+        datetime,
+        count: candidates.length,
+      })
+    }
+
     const vm = this._vm
     const xapi = this._xapi
 
@@ -396,7 +421,20 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     await xapi.barrier()
     // ensure cached object are up to date
     this._jobSnapshotVdis = this._jobSnapshotVdis.map(vdi => xapi.getObject(vdi.$ref))
-    const disklessVmSnapshots = this._disklessJobSnapshotVms.map(vm => xapi.getObject(vm.$ref))
+    let disklessVmSnapshots = this._disklessJobSnapshotVms.map(vm => xapi.getObject(vm.$ref))
+
+    // The synchronized snapshot for this run is taken up-front by the batch
+    // phase but transferred later. Until it has been exported, hide it from
+    // retention so it is neither reclaimed nor allowed to steal the delta
+    // base's "most recent" protection. This makes the pre-transfer pass behave
+    // like a normal run, where the snapshot does not exist yet.
+    if (this._synchronizedSnapshotTimestamp !== undefined) {
+      const datetime = formatDateTime(this._synchronizedSnapshotTimestamp)
+      const isInFlightSyncSnapshot = ({ other_config }) =>
+        other_config[DATETIME] === datetime && !other_config[EXPORTED_SUCCESSFULLY]
+      this._jobSnapshotVdis = this._jobSnapshotVdis.filter(vdi => !isInFlightSyncSnapshot(vdi))
+      disklessVmSnapshots = disklessVmSnapshots.filter(vm => !isInFlightSyncSnapshot(vm))
+    }
 
     // get the datetime of the most recent snapshot across both VDI and diskless VM snapshots
     const lastSnapshotDateTime = [...this._jobSnapshotVdis, ...disklessVmSnapshots]
@@ -464,6 +502,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
             vm = vdiVm
           }
         }
+
         if (vm?.$ref !== undefined) {
           return xapi.VM_destroy(vm.$ref)
         } else {
@@ -493,6 +532,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           if (this.job.mode === 'delta' && datetime === lastSnapshotDateTime) {
             return
           }
+
           await xapi.VM_destroy(snapshotPerDatetime[datetime])
         })
       })
@@ -549,6 +589,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
   async _selectBaseVm() {
     throw new Error('Not implemented')
+  }
+
+  async _prepareAndSnapshot() {
+    await this._cleanMetadata()
+    await this._snapshot()
   }
 
   async run($defer) {
@@ -613,6 +658,10 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
       if (this._writers.size !== 0) {
         await this._copy()
+      }
+      // not the case if offlineBackup
+      if (this._exportedVm.is_a_snapshot) {
+        await markExportSuccessfull(this._xapi, this._exportedVm.$ref)
       }
     } finally {
       if (startAfter) {

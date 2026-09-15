@@ -15,8 +15,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useDisabled } from '@core/composables/disabled.composable'
-import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL, IK_MENU_TELEPORTED } from '@core/utils/injection-keys.util'
+import { useDisabled } from '@core/composables/disabled.composable.ts'
+import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL, IK_MENU_TELEPORTED } from '@core/utils/injection-keys.util.ts'
 import { onClickOutside, unrefElement, whenever } from '@vueuse/core'
 import placementJs, { type Options } from 'placement.js'
 import { computed, inject, nextTick, provide, ref, useSlots } from 'vue'

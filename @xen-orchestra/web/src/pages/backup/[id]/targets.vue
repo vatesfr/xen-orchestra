@@ -15,7 +15,7 @@ import StorageRepositoriesTargetsTable from '@/modules/backup/components/targets
 import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util'
+import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import type { XoBackupRepository, XoSr } from '@vates/types'
 import { computed } from 'vue'

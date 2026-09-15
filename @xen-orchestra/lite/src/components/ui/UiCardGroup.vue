@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import { IK_CARD_GROUP_VERTICAL } from '@/types/injection-keys'
+import { IK_CARD_GROUP_VERTICAL } from '@/types/injection-keys.ts'
 import { inject, provide } from 'vue'
 
 const vertical = inject(IK_CARD_GROUP_VERTICAL, false)

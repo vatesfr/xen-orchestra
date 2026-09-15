@@ -3,8 +3,8 @@
 </template>
 
 <script lang="ts" setup>
-import useRelativeTime from '@core/composables/relative-time.composable'
-import { parseDateTime } from '@core/utils/time.util'
+import useRelativeTime from '@core/composables/relative-time.composable.ts'
+import { parseDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 
 const props = defineProps<{

@@ -38,16 +38,18 @@ type TextMappingByObject = {
 type VtsActionModalVmProps = {
   object: 'vm'
   action: VmActions
+  vmName: string
   hostName?: never
 }
 
 type VtsActionModalHostProps = {
   object: 'host'
   action: HostActions
+  vmName?: never
   hostName: string
 }
 
-const { action, object, hostName } = defineProps<
+const { action, object, vmName, hostName } = defineProps<
   (VtsActionModalVmProps | VtsActionModalHostProps) & {
     accent: ModalAccent
     icon: IconName
@@ -69,22 +71,22 @@ const { t } = useI18n()
 const textMappingsByObject: TextMappingByObject = {
   vm: {
     'force-reboot': {
-      title: t('modal:confirm-vm-force-reboot'),
+      title: t('modal:confirm-vm-force-reboot?', { vm: vmName }),
       message: t('modal:vm-force-reboot-message'),
       action: t('modal:action:vm-force-reboot'),
     },
     'force-shutdown': {
-      title: t('modal:confirm-vm-force-shutdown'),
+      title: t('modal:confirm-vm-force-shutdown?', { vm: vmName }),
       message: t('modal:vm-force-shutdown-message'),
       action: t('modal:action:vm-force-shutdown'),
     },
     reboot: {
-      title: t('modal:confirm-vm-reboot'),
+      title: t('modal:confirm-vm-reboot?', { vm: vmName }),
       message: t('modal:vm-reboot-message'),
       action: t('modal:action:vm-reboot'),
     },
     shutdown: {
-      title: t('modal:confirm-vm-shutdown'),
+      title: t('modal:confirm-vm-shutdown?', { vm: vmName }),
       message: t('modal:vm-shutdown-message'),
       action: t('modal:action:vm-shutdown'),
     },
@@ -101,12 +103,12 @@ const textMappingsByObject: TextMappingByObject = {
       action: t('action:disable-host'),
     },
     shutdown: {
-      title: t('modal:confirm-host-shutdown', { host: hostName }),
+      title: t('modal:confirm-host-shutdown?', { host: hostName }),
       message: t('modal:host-shutdown-message'),
       action: t('action:shutdown-host'),
     },
     start: {
-      title: t('modal:confirm-host-start', { host: hostName }),
+      title: t('modal:confirm-host-start?', { host: hostName }),
       action: t('action:start-host'),
     },
     forget: {
@@ -123,6 +125,26 @@ const textMappingsByObject: TextMappingByObject = {
       title: t('modal:confirm-host-reboot?', { host: hostName }),
       message: t('modal:host-reboot-message'),
       action: t('action:reboot-host'),
+    },
+    'force-reboot': {
+      title: t('modal:confirm-host-force-reboot?', { host: hostName }),
+      message: t('modal:host-force-reboot-message'),
+      action: t('action:force-reboot-host'),
+    },
+    'smart-reboot': {
+      title: t('modal:confirm-host-smart-reboot?', { host: hostName }),
+      message: t('modal:host-smart-reboot-message'),
+      action: t('action:smart-reboot-host'),
+    },
+    'restart-toolstack': {
+      title: t('modal:confirm-host-restart-toolstack?', { host: hostName }),
+      message: t('modal:host-restart-toolstack-message'),
+      action: t('action:restart-toolstack'),
+    },
+    detach: {
+      title: t('modal:confirm-host-detach?', { host: hostName }),
+      message: t('modal:host-detach-message'),
+      action: t('action:detach'),
     },
   },
 }

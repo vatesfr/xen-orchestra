@@ -43,7 +43,7 @@ const openModal = () => {
 
   openForceShutdownModal({
     events: { onConfirm: () => forceShutdown() },
-    props: { accent: 'info', action: 'force-shutdown', object: 'vm', icon: 'status:info-picto' },
+    props: { accent: 'info', action: 'force-shutdown', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
   })
 }
 </script>

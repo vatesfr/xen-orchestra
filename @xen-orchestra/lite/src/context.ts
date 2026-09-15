@@ -1,5 +1,5 @@
-import { createContext } from '@/composables/context.composable'
-import type { Color } from '@/types'
+import { createContext } from '@/composables/context.composable.ts'
+import type { Color } from '@/types/index.ts'
 import { computed } from 'vue'
 
 export const ColorContext = createContext('info' as Color, color => ({

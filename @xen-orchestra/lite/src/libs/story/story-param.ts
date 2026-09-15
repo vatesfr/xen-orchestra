@@ -1,6 +1,6 @@
-import mixin, { type MixinAbstractConstructor } from '@/libs/mixin'
-import type { Widget } from '@/libs/story/story-widget'
-import { boolean, choice, number, object, text } from '@/libs/story/story-widget'
+import mixin, { type MixinAbstractConstructor } from '@/libs/mixin.ts'
+import type { Widget } from '@/libs/story/story-widget.ts'
+import { boolean, choice, number, object, text } from '@/libs/story/story-widget.ts'
 import { icons } from '@core/icons'
 
 function WithType(Base: MixinAbstractConstructor<BaseParam>) {

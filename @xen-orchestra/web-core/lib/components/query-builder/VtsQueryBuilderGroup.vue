@@ -54,7 +54,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import type { QueryBuilderGroup } from '@core/packages/query-builder/types'
+import type { QueryBuilderGroup } from '@core/packages/query-builder/types.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

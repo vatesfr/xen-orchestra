@@ -1,8 +1,8 @@
-import type { JobArg, JobIdentity } from '@core/packages/job/define-job-arg'
-import { JobError, JobRunningError } from '@core/packages/job/job-error'
-import { useJobStore } from '@core/packages/job/use-job-store'
-import type { MaybeArray } from '@core/types/utility.type'
-import { toArray as convertToArray } from '@core/utils/to-array.utils'
+import type { JobArg, JobIdentity } from '@core/packages/job/define-job-arg.ts'
+import { JobError, JobRunningError } from '@core/packages/job/job-error.ts'
+import { useJobStore } from '@core/packages/job/use-job-store.ts'
+import type { MaybeArray } from '@core/types/utility.type.ts'
+import { toArray as convertToArray } from '@core/utils/to-array.utils.ts'
 import { computed, type ComputedRef, type MaybeRefOrGetter, toValue } from 'vue'
 
 export type JobRunArgs<TJobArgs> = TJobArgs extends [infer TJobArg, ...infer TRest]

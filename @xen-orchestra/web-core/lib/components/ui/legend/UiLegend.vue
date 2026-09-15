@@ -10,8 +10,8 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
-import { toVariants } from '@core/utils/to-variants.util'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
 export type LegendItemAccent = 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'muted'

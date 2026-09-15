@@ -18,5 +18,5 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import FormInput from '@/components/form/FormInput.vue'
 import FormSection from '@/components/form/FormSection.vue'
-import { model, prop, slot } from '@/libs/story/story-param'
+import { model, prop, slot } from '@/libs/story/story-param.ts'
 </script>

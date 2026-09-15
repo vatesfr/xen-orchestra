@@ -13,7 +13,7 @@
 
 <script lang="ts" setup>
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
-import { useDisabled } from '@core/composables/disabled.composable'
+import { useDisabled } from '@core/composables/disabled.composable.ts'
 
 const { busy, disabled } = defineProps<{
   disabled?: boolean

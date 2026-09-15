@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 
 defineProps<{
   label?: string

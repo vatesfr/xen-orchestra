@@ -1,4 +1,4 @@
-import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 
 export function useSortRouteQuery(id: string) {
   return useRouteQuery(id, {

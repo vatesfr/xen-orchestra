@@ -33,7 +33,7 @@ import VtsQueryBuilderFilter from '@core/components/query-builder/VtsQueryBuilde
 import VtsQueryBuilderGroup from '@core/components/query-builder/VtsQueryBuilderGroup.vue'
 import VtsQueryBuilderTreeLine from '@core/components/query-builder/VtsQueryBuilderTreeLine.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import type { QueryBuilderNode } from '@core/packages/query-builder/types'
+import type { QueryBuilderNode } from '@core/packages/query-builder/types.ts'
 
 defineProps<{
   index: number

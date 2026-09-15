@@ -1,5 +1,5 @@
-import type { SortRouteQuery } from '@core/composables/sort-route-query.composable'
-import type { CompareFn, SortingDefinition } from '@core/composables/table/type'
+import type { SortRouteQuery } from '@core/composables/sort-route-query.composable.ts'
+import type { CompareFn, SortingDefinition } from '@core/composables/table/type.ts'
 import { computed } from 'vue'
 
 export function createSortingDefinition<TCompareReturn extends number | unknown>(

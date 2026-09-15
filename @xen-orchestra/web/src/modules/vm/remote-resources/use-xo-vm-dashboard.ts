@@ -1,5 +1,5 @@
-import type { XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type'
-import { BASE_URL } from '@/shared/utils/fetch.util'
+import type { XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type.ts'
+import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { Ref } from 'vue'
 

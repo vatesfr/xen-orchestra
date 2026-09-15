@@ -19,7 +19,7 @@
 import UiActionButton from '@/components/ui/UiActionButton.vue'
 import UiFilter from '@/components/ui/UiFilter.vue'
 import UiFilterGroup from '@/components/ui/UiFilterGroup.vue'
-import type { Filters } from '@/types/filter'
+import type { Filters } from '@/types/filter.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { useI18n } from 'vue-i18n'
 

@@ -12,7 +12,7 @@
 
 <script lang="ts" setup>
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
-import { toVariants } from '@core/utils/to-variants.util'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { type RouteLocationRaw } from 'vue-router'
 
 defineProps<{

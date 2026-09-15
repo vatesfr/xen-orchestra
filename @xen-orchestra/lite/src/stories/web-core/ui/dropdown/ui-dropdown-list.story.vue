@@ -11,7 +11,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { slot } from '@/libs/story/story-param'
+import { slot } from '@/libs/story/story-param.ts'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import UiDropdownList from '@core/components/ui/dropdown/UiDropdownList.vue'
 </script>

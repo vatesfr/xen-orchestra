@@ -1,5 +1,5 @@
 <template>
-  <VtsSidePanel :has-selection="!!network" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!network" class="pool-network-side-panel" @close="emit('close')">
     <template v-if="network" #actions>
       <MenuList placement="bottom-end">
         <template #trigger="{ open, isOpen }">
@@ -18,7 +18,7 @@
       </MenuList>
     </template>
     <template v-if="network" #default>
-      <UiCard class="card-container">
+      <UiPanelCard>
         <VtsCardObjectTitle :id="network.uuid" :label="network.name_label" />
         <div class="content">
           <!-- DESCRIPTION -->
@@ -63,8 +63,8 @@
             <template #value>{{ networkDefaultLockingMode }}</template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
-      <UiCard v-if="pifsCount && pifsCount > 0" class="card-container">
+      </UiPanelCard>
+      <UiPanelCard v-if="pifsCount && pifsCount > 0">
         <div class="typo-body-bold">
           {{ t('pifs') }}
           <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
@@ -88,7 +88,7 @@
             <PifRow v-for="pif in pifs" :key="pif.uuid" :pif />
           </tbody>
         </table>
-      </UiCard>
+      </UiPanelCard>
     </template>
   </VtsSidePanel>
 </template>
@@ -104,8 +104,8 @@ import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useClipboard } from '@vueuse/core'
 import { computed } from 'vue'
@@ -147,11 +147,7 @@ const { copy, copied, isSupported: isClipboardSupported } = useClipboard({ sourc
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-
+.pool-network-side-panel {
   .content {
     display: flex;
     flex-direction: column;

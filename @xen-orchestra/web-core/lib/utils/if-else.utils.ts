@@ -1,5 +1,5 @@
-import type { MaybeArray, VoidFunction } from '@core/types/utility.type'
-import { toArray } from '@core/utils/to-array.utils'
+import type { MaybeArray, VoidFunction } from '@core/types/utility.type.ts'
+import { toArray } from '@core/utils/to-array.utils.ts'
 import { watch, type WatchOptions, type WatchSource } from 'vue'
 
 export interface IfElseOptions extends Pick<WatchOptions, 'immediate' | 'flush'> {}
