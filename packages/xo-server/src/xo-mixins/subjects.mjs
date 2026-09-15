@@ -178,7 +178,7 @@ export default class {
     if (lastname !== undefined) {
       user.lastname = lastname
     }
-    if (username !== undefined) {
+    if (username) {
       user.username = username
     }
     if (permission) {
