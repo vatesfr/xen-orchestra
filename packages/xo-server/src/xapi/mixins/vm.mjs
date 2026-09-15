@@ -380,6 +380,28 @@ const methods = {
       set: [
         'VCPUs_at_startup',
         (value, vm) => isVmRunning(vm) && vm.$xapi.call('VM.set_VCPUs_number_live', vm.$ref, String(value)),
+        (value, vm, { coresPerSocket }) => {
+          if (coresPerSocket !== undefined) {
+            // if coresPerSocket was explicitly passed as arguments
+            // to _editVm, ignore the topology compatibilty check
+            return
+          }
+
+          const currentCoresPerSocket = vm.platform['cores-per-socket']
+          if (Number.isSafeInteger(value / currentCoresPerSocket)) {
+            return
+          }
+
+          log.warn(
+            "CPU topology set to 1 core per socket because the new CPU value doesn't match the current CPU topology",
+            {
+              vmId: vm.uuid,
+              newCpu: value,
+              oldTopology: `${currentCoresPerSocket} cores per socket`,
+            }
+          )
+          return vm.update_platform('cores-per-socket', '1')
+        },
       ],
     },
 
