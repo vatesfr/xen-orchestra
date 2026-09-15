@@ -265,8 +265,8 @@ describe('parse (unrecognized input)', () => {
     assert.deepEqual(parse('ftp://192.168.100.225/backup'), {})
   })
 
-  it('returns an empty object on unparsable SMB url', () => {
-    assert.deepEqual(parse('smb://not-a-valid-smb-url'), {})
+  it('returns an error on unparsable SMB url', () => {
+    assert.throws(() => parse('smb://not-a-valid-smb-url'), /Invalid SMB url/)
   })
 
   it('keeps a non-JSON option value as a string', () => {
