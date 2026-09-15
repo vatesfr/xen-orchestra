@@ -115,8 +115,8 @@ the calibration of the grains change.
 `layout: 'streaming'` (default) is the canonical one: nothing is padded, but the size of the output
 is only known once it is fully generated, so the stream carries no `length`.
 
-`layout: 'seekable'` writes the block of tables right after the descriptor, and stores every grain
-in a slot of a fixed size:
+`layout: 'withLength'` writes exactly the same grains, then pads the data in one block so that the
+file reaches a length computed before anything was generated. The budget of a grain is one slot:
 
 ```
 slot = ceil((12 + compressBound(grainSize)) / 512) sectors
@@ -128,17 +128,37 @@ incompressible data — a random 64KiB grain compresses to about 65562 bytes —
 `compressedGrains` flag leaves no way to store a grain uncompressed, even a _stored_ deflate block
 carries the zlib header and its Adler-32.
 
-The offset of a grain is then `overHead + rank × slot`, where `rank` is the position of the grain
-among the allocated ones: the tables only depend on the allocation bitmap, so they can be written
-before any data, and the exact size of the file is known in advance:
+No grain can exceed its budget, so the total is an upper bound reachable by padding:
 
 ```
-512 + descriptor + tables + nbAllocatedGrains × slot + 3 × 512
+512 + descriptor + nbAllocatedGrains × slot + tables + 3 × 512
 ```
 
-Such a file can be read back with random access, and also as a stream since all of its metadata
-comes before its data. It weights the uncompressed size of its allocated grains, plus 0.78%. In this
-layout a grain is written even when it is full of zeros: its slot is reserved either way.
+which is what lets the stream be handed to a consumer demanding a `Content-Length` — vSphere's
+`HttpNfcLease` among them, which refuses a chunked upload. The file weights the uncompressed size of
+its allocated grains, plus 0.78%, whatever the content compresses to.
+
+**The padding is a single block between the last grain and the tables**, never a gap inside a grain.
+A sequential reader jumps from one grain to the next by `roundToSector(12 + size)`, so padding a
+grain individually would leave such a reader on a zeroed sector — which reads exactly as an `EOS`
+marker, ending the file for it and losing every later grain. Gathering the padding after the last
+grain keeps every grain reachable; the reader simply stops on the padding instead of the tables,
+having already seen all the data. This is what `generateVmdkData` of `xo-vmdk-to-vhd` has always
+produced, and what vSphere has always accepted.
+
+### What vSphere accepts, measured against an ESXi 8
+
+- **tables before the data**: refused, `Error on read` — even though every grain does reach the
+  datastore and `qemu-img` reads the file back. This is why both layouts write them at the end;
+- **a gap of zeros inside a grain's slot**: accepted with HTTP 201 and **only the first grain
+  imported**, `HttpNfcLeaseComplete` reporting success. Silent data loss, hence the single padding
+  block;
+- **a grain whose compressed size exceeds the grain size**: accepted, so an incompressible grain is
+  not a problem in itself;
+- **uncompressed grains**, `compressAlgorithm = none` and the `compressedGrains` flag cleared:
+  refused, `Not a supported disk format (uncompressed disk)`;
+- **a stream with no `Content-Length`**: refused by the lease before a byte is read, which is what
+  makes the `withLength` layout the only one usable for an import.
 
 ## COWD, the `vmfsSparse` delta of ESXi
 
@@ -208,9 +228,9 @@ Three accessors:
 | browser             | the `File`s attached to a form | `Blob.slice()` + `arrayBuffer()`, sibling files resolved by base name, the write methods of the interface throw            |
 
 The stream accessor requires **all the metadata to come before the data**. That is the case of a
-`monolithicSparse`, and of what this package writes with `layout: 'seekable'`. It is _not_ the case
-of a stream optimized disk written by ESXi, whose tables are at the end: that one is covered by a
-dedicated marker driven sequential reader.
+`monolithicSparse`. It is _not_ the case of a stream optimized disk, whose tables are at the end —
+neither the ones written by ESXi nor the ones this package writes, in either layout: those are
+covered by a dedicated marker driven sequential reader.
 
 The sources all extend `RandomAccessDisk` and follow the contract of `Disk`: `hasBlock()` describes
 **local data only**, `isDifferencing()` tells whether a parent exists, `instantiateParent()` opens

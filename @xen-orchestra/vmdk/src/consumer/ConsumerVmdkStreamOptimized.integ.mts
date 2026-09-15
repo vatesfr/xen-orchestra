@@ -44,7 +44,7 @@ describe(
   'ConsumerVmdkStreamOptimized',
   { concurrency: 1, skip: hasQemuImg ? false : 'qemu-img is not available' },
   () => {
-    for (const layout of ['streaming', 'seekable'] as VmdkLayout[]) {
+    for (const layout of ['streaming', 'withLength'] as VmdkLayout[]) {
       test(`generates a valid vmdk from a qcow2 stream, ${layout} layout`, async () => {
         const dir = await mkdtemp(join(tmpdir(), 'xo-vmdk-'))
         try {
@@ -61,7 +61,7 @@ describe(
           await pipeline(stream, createWriteStream(vmdkPath))
 
           const { size } = await stat(vmdkPath)
-          if (layout === 'seekable') {
+          if (layout === 'withLength') {
             assert.equal(announcedLength, size, 'the announced length is the size of the file')
           } else {
             assert.equal(announcedLength, undefined, 'the size of a streaming vmdk is not known in advance')

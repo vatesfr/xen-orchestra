@@ -5,7 +5,14 @@ import { inflateSync } from 'node:zlib'
 import { DiskBlock, RandomAccessDisk } from '@xen-orchestra/disk-transform'
 
 import { ConsumerVmdkStreamOptimized, toVmdkStream, type VmdkLayout } from './ConsumerVmdkStreamOptimized.mjs'
-import { GRAIN_DIRECTORY_AT_END, MARKER_EOS, MARKER_FOOTER, SECTOR_SIZE } from '../_constants.mjs'
+import {
+  GRAIN_DIRECTORY_AT_END,
+  GRAIN_MARKER_HEADER_SIZE,
+  MARKER_EOS,
+  MARKER_FOOTER,
+  MARKER_GT,
+  SECTOR_SIZE,
+} from '../_constants.mjs'
 import { unpackSparseHeader } from '../_header.mjs'
 
 const GRAIN_SIZE = 64 * 1024
@@ -125,7 +132,7 @@ async function generate(disk: MockDisk, layout: VmdkLayout) {
 }
 
 describe('ConsumerVmdkStreamOptimized', { concurrency: 1 }, () => {
-  for (const layout of ['streaming', 'seekable'] as VmdkLayout[]) {
+  for (const layout of ['streaming', 'withLength'] as VmdkLayout[]) {
     describe(layout, () => {
       test('generates the content of a sparse disk', async () => {
         const disk = new MockDisk({ virtualSize: 64 * GRAIN_SIZE, indexes: [0, 1, 17, 63] })
@@ -136,6 +143,31 @@ describe('ConsumerVmdkStreamOptimized', { concurrency: 1 }, () => {
           const grain = raw.subarray(i * GRAIN_SIZE, (i + 1) * GRAIN_SIZE)
           const expected = disk.hasBlock(i) ? Buffer.alloc(GRAIN_SIZE, fillValue(i)) : Buffer.alloc(GRAIN_SIZE)
           assert.ok(grain.equals(expected), `grain ${i}`)
+        }
+      })
+
+      test('is walkable by a sequential reader, which is what a stream optimized consumer is', async () => {
+        const indexes = [0, 1, 42]
+        const disk = new MockDisk({ virtualSize: 64 * GRAIN_SIZE, indexes })
+        const { file, header, leadingHeader } = await generate(disk, layout)
+
+        // such a reader knows nothing of the tables: it jumps from one grain to the next by the
+        // length its marker declares, and stops on the first sector it reads as a marker with no
+        // size. Every grain has to come before that point - a grain sitting after a sector of zeros
+        // is silently lost, which is exactly what ESXi 8 does with one.
+        const visited: number[] = []
+        let offset = leadingHeader.overheadSectors * SECTOR_SIZE
+        let size = file.readUInt32LE(offset + 8)
+        while (size !== 0) {
+          visited.push(Number(file.readBigUInt64LE(offset)) / header.grainSizeSectors)
+          offset += Math.ceil((GRAIN_MARKER_HEADER_SIZE + size) / SECTOR_SIZE) * SECTOR_SIZE
+          size = file.readUInt32LE(offset + 8)
+        }
+        assert.deepEqual(visited, indexes)
+
+        // nothing is padded in `streaming`, so the walk lands on the tables themselves
+        if (layout === 'streaming') {
+          assert.equal(file.readUInt32LE(offset + 12), MARKER_GT)
         }
       })
 
@@ -222,24 +254,32 @@ describe('ConsumerVmdkStreamOptimized', { concurrency: 1 }, () => {
     assert.ok(blankResult.file.length < filledResult.file.length)
   })
 
-  test('seekable announces the exact length and puts every grain at a computable offset', async () => {
+  test('withLength announces a length the content cannot change', async () => {
     const indexes = [0, 1, 42]
-    const disk = new MockDisk({ virtualSize: 64 * GRAIN_SIZE, indexes })
-    const { file, announcedLength, leadingHeader, grainOffsets } = await generate(disk, 'seekable')
-
-    assert.equal(announcedLength, file.length)
-    assert.ok(leadingHeader.grainDirectoryOffsetSectors > 0, 'the tables are before the data')
-    assert.equal(
-      leadingHeader.overheadSectors * SECTOR_SIZE + indexes.length * GRAIN_SLOT_SIZE + 3 * SECTOR_SIZE,
-      file.length
-    )
-
-    indexes.forEach((grainIndex, rank) => {
-      assert.equal(grainOffsets.get(grainIndex), leadingHeader.overheadSectors * SECTOR_SIZE + rank * GRAIN_SLOT_SIZE)
+    const compressible = new MockDisk({ virtualSize: 64 * GRAIN_SIZE, indexes })
+    const incompressible = new MockDisk({
+      virtualSize: 64 * GRAIN_SIZE,
+      indexes,
+      fill: () => randomBytes(GRAIN_SIZE),
     })
+
+    const packed = await generate(compressible, 'withLength')
+    const dense = await generate(incompressible, 'withLength')
+
+    assert.equal(packed.announcedLength, packed.file.length)
+    assert.equal(dense.announcedLength, dense.file.length)
+    // one slot per allocated grain is a budget, not a placement: the same disk weights the same
+    // however well its content compresses, which is the whole point of the layout
+    assert.equal(packed.file.length, dense.file.length)
+
+    // like `streaming`, the tables come after the data: a stream optimized reader refuses a file
+    // whose metadata it meets first
+    assert.equal(packed.leadingHeader.grainDirectoryOffsetSectors, GRAIN_DIRECTORY_AT_END)
+    const tablesStart = packed.leadingHeader.overheadSectors * SECTOR_SIZE + indexes.length * GRAIN_SLOT_SIZE
+    assert.equal(packed.file.readUInt32LE(tablesStart + 12), MARKER_GT, 'the tables start right after the budget')
   })
 
-  test('seekable fits incompressible grains in their slot and still announces the exact length', async () => {
+  test('withLength fits incompressible grains in their budget and still announces the exact length', async () => {
     const data = new Map<number, Buffer>()
     const indexes = [0, 1, 2, 3]
     const disk = new MockDisk({
@@ -254,7 +294,7 @@ describe('ConsumerVmdkStreamOptimized', { concurrency: 1 }, () => {
         return buffer
       },
     })
-    const { file, announcedLength, raw } = await generate(disk, 'seekable')
+    const { file, announcedLength, raw } = await generate(disk, 'withLength')
 
     assert.equal(announcedLength, file.length)
     for (const index of indexes) {
@@ -271,14 +311,14 @@ describe('ConsumerVmdkStreamOptimized', { concurrency: 1 }, () => {
     const disk = new MockDisk({ virtualSize: 8 * GRAIN_SIZE, indexes: [1, 2] })
     // hasBlock() sees one more block than the generator will yield
     disk.getBlockIndexes = () => [1]
-    await assert.rejects(() => generate(disk, 'seekable'), /disagree/)
+    await assert.rejects(() => generate(disk, 'withLength'), /disagree/)
   })
 
   test('exposes the same result through the class and the function', async () => {
     const disk = new MockDisk({ virtualSize: 4 * GRAIN_SIZE, indexes: [0] })
-    const fromClass = await collect(await new ConsumerVmdkStreamOptimized(disk, { layout: 'seekable' }).stream())
+    const fromClass = await collect(await new ConsumerVmdkStreamOptimized(disk, { layout: 'withLength' }).stream())
     const fromFunction = await collect(
-      await toVmdkStream(new MockDisk({ virtualSize: 4 * GRAIN_SIZE, indexes: [0] }), { layout: 'seekable' })
+      await toVmdkStream(new MockDisk({ virtualSize: 4 * GRAIN_SIZE, indexes: [0] }), { layout: 'withLength' })
     )
     assert.equal(fromClass.length, fromFunction.length)
   })

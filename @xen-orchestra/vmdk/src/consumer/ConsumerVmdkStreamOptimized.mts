@@ -36,22 +36,25 @@ function compressBound(length: number): number {
   return length + (length >> 12) + (length >> 14) + (length >> 25) + 13
 }
 
-/** 129 sectors for a 64KiB grain: a grain always fits in its slot, whatever its content */
+/** 129 sectors for a 64KiB grain: the budget of one grain, which no content can exceed */
 const GRAIN_SLOT_SIZE = roundToSector(GRAIN_MARKER_HEADER_SIZE + compressBound(GRAIN_SIZE))
 
 export type WithLength<T> = T & { length?: number }
 
 /**
- * - `streaming`: the grain directory and the grain tables are written after the data, like any
- *   stream optimized disk. Nothing is padded, but the size of the output is only known once it is
- *   fully generated.
- * - `seekable`: the tables are written before the data and every grain is stored in a slot of a
- *   fixed size, so the offset of a grain only depends on the block index. The size of the output is
- *   known in advance and the file can be read back with random access - or as a stream, since all
- *   of its metadata comes before its data. It weights the uncompressed size of the allocated
- *   grains, plus 0.78%.
+ * Both layouts write the same thing: deflated grains packed one after the other, then the grain
+ * tables and the grain directory, then the footer. A stream optimized reader walks the file from
+ * marker to marker and refuses one whose tables it meets first.
+ *
+ * - `streaming` (default): nothing else. The output is as small as the content compresses to, but
+ *   its size is only known once it is fully generated, so the stream carries no `length`.
+ * - `withLength`: the data is padded up to the budget of one fixed size slot per allocated grain,
+ *   which is an upper bound whatever the content compresses to. The size of the output is therefore
+ *   known before the first byte is generated, which is what lets it be streamed to a consumer
+ *   demanding a `Content-Length` - vSphere's `HttpNfcLease` among them, which refuses a chunked
+ *   upload. It weights the uncompressed size of the allocated grains, plus 0.78%.
  */
-export type VmdkLayout = 'streaming' | 'seekable'
+export type VmdkLayout = 'streaming' | 'withLength'
 
 export interface ConsumerVmdkStreamOptimizedOptions {
   /** name of the extent, as written in the descriptor */
@@ -63,22 +66,19 @@ export interface ConsumerVmdkStreamOptimizedOptions {
 
 /** everything the generator needs, computed before the first byte is emitted */
 interface GenerationContext {
-  readonly seekable: boolean
+  readonly withLength: boolean
   readonly capacitySectors: number
   readonly nbTotalGrains: number
   readonly nbGrainTables: number
   readonly grainDirectorySize: number
   readonly descriptor: Buffer
-  /** offset of the block of tables in the `seekable` layout, end of the descriptor in both */
-  readonly beforeTables: number
+  /** end of the descriptor, where the data starts */
+  readonly afterDescriptor: number
   readonly tablesSize: number
   readonly tailSize: number
   readonly overheadSectors: number
-  /** only meaningful in the `seekable` layout, where the tables come before the data */
-  readonly rGrainDirectoryOffset: number
-  readonly grainDirectoryOffset: number
   readonly expectedStreamLength?: number
-  /** allocated grains of the disk, only built for the `seekable` layout */
+  /** allocated grains of the disk, only built for the `withLength` layout */
   readonly bitmap?: Uint8Array
   /** grain tables of a `streaming` disk, filled while the grains are generated */
   readonly grainTables: Map<number, Buffer>
@@ -139,7 +139,7 @@ export class ConsumerVmdkStreamOptimized {
 
   /**
    * Scans every grain index once to build the presence bitmap and the allocated grain count, used
-   * by the `seekable` layout to compute the tables - and the length of the output - before
+   * by the `withLength` layout to compute the tables - and the length of the output - before
    * generating anything. Yields back to the event loop periodically so that a huge virtual disk
    * does not block Node for seconds at a stretch, like `ConsumerQcowStream` does.
    */
@@ -184,16 +184,10 @@ export class ConsumerVmdkStreamOptimized {
     return buffer
   }
 
-  /**
-   * @param slotSize pad the grain to this size instead of the next sector boundary
-   */
-  async #createGrain(grainIndex: number, data: Buffer, slotSize?: number): Promise<Buffer> {
+  async #createGrain(grainIndex: number, data: Buffer): Promise<Buffer> {
     assert.strictEqual(data.length, GRAIN_SIZE)
     const compressed = await deflateAsync(data, { level: constants.Z_BEST_SPEED })
-    const used = GRAIN_MARKER_HEADER_SIZE + compressed.length
-    const length = slotSize ?? roundToSector(used)
-    assert.ok(used <= length, `a grain of ${used} bytes does not fit in a slot of ${length} bytes`)
-    const buffer = Buffer.alloc(length)
+    const buffer = Buffer.alloc(roundToSector(GRAIN_MARKER_HEADER_SIZE + compressed.length))
     // the logical address of the grain in the virtual disk, in sectors
     buffer.writeBigUInt64LE(BigInt(grainIndex * DEFAULT_GRAIN_SIZE_SECTORS), 0)
     buffer.writeUInt32LE(compressed.length, 8)
@@ -228,29 +222,26 @@ export class ConsumerVmdkStreamOptimized {
   }
 
   *#yieldGrainTables(context: GenerationContext): Generator<Buffer, void, unknown> {
-    if (!context.seekable) {
-      const empty = Buffer.alloc(GRAIN_TABLE_SIZE)
-      for (let i = 0; i < context.nbGrainTables; i++) {
-        yield* this.#trackAndYield(context.grainTables.get(i) ?? empty)
-      }
-      return
-    }
-
-    // every allocated grain uses a slot of the same size, in the order of the grain indexes, so
-    // their offsets are known before generating any data
-    const firstDataSector = (context.beforeTables + context.tablesSize) / SECTOR_SIZE
-    const slotSectors = GRAIN_SLOT_SIZE / SECTOR_SIZE
-    let rank = 0
+    const empty = Buffer.alloc(GRAIN_TABLE_SIZE)
     for (let i = 0; i < context.nbGrainTables; i++) {
-      const table = Buffer.alloc(GRAIN_TABLE_SIZE)
-      for (let j = 0; j < DEFAULT_NB_GRAIN_TABLE_ENTRIES; j++) {
-        const grainIndex = i * DEFAULT_NB_GRAIN_TABLE_ENTRIES + j
-        if (grainIndex < context.nbTotalGrains && this.#hasGrain(context, grainIndex)) {
-          table.writeUInt32LE(firstDataSector + rank * slotSectors, j * GRAIN_TABLE_ENTRY_SIZE)
-          rank++
-        }
-      }
-      yield* this.#trackAndYield(table)
+      yield* this.#trackAndYield(context.grainTables.get(i) ?? empty)
+    }
+  }
+
+  /**
+   * Fills the gap between the packed grains and the tables, so that the file reaches the length
+   * announced before the first byte was generated.
+   */
+  *#yieldPadding(length: number): Generator<Buffer, void, unknown> {
+    assert.ok(length >= 0, `the grains are ${-length} bytes longer than the announced length`)
+    const chunk = Buffer.alloc(Math.min(length, 1024 * 1024))
+    let remaining = length
+    while (remaining > chunk.length) {
+      yield* this.#trackAndYield(chunk)
+      remaining -= chunk.length
+    }
+    if (remaining > 0) {
+      yield* this.#trackAndYield(Buffer.alloc(remaining))
     }
   }
 
@@ -269,15 +260,11 @@ export class ConsumerVmdkStreamOptimized {
         context.emitted.gd = directorySector
       }
     }
-    if (context.seekable) {
-      assert.strictEqual(context.emitted.rgd, context.rGrainDirectoryOffset / SECTOR_SIZE, 'redundant grain directory')
-      assert.strictEqual(context.emitted.gd, context.grainDirectoryOffset / SECTOR_SIZE, 'grain directory')
-    }
   }
 
   async *#yieldGrains(context: GenerationContext, signal?: AbortSignal): AsyncGenerator<Buffer, void, unknown> {
-    const { seekable } = context
-    // index of the next allocated grain, only used by the `seekable` layout to check that the block
+    const { withLength } = context
+    // index of the next allocated grain, only used by the `withLength` layout to check that the block
     // generator agrees with the block indexes the presence index was built from
     let cursor = 0
     const nextAllocatedGrain = () => {
@@ -306,7 +293,7 @@ export class ConsumerVmdkStreamOptimized {
       }
       const grain = data.length === GRAIN_SIZE ? data : Buffer.concat([data], GRAIN_SIZE)
 
-      if (seekable) {
+      if (withLength) {
         const expected = nextAllocatedGrain()
         if (index !== expected) {
           throw new Error(
@@ -314,10 +301,8 @@ export class ConsumerVmdkStreamOptimized {
           )
         }
         cursor++
-        // the slot is reserved whatever the content of the grain, there is nothing to gain by
-        // skipping a grain full of zeros
-        yield* this.#trackAndYield(await this.#createGrain(index, grain, GRAIN_SLOT_SIZE))
-      } else if (!grain.equals(ZERO_GRAIN)) {
+      }
+      if (!grain.equals(ZERO_GRAIN)) {
         // a grain full of zeros is simply not referenced by the grain table
         const tableIndex = Math.floor(index / DEFAULT_NB_GRAIN_TABLE_ENTRIES)
         let table = context.grainTables.get(tableIndex)
@@ -333,7 +318,7 @@ export class ConsumerVmdkStreamOptimized {
       }
     }
 
-    if (seekable) {
+    if (withLength) {
       const remaining = nextAllocatedGrain()
       if (remaining !== context.nbTotalGrains) {
         throw new Error(
@@ -344,33 +329,23 @@ export class ConsumerVmdkStreamOptimized {
   }
 
   async *#generate(context: GenerationContext, signal?: AbortSignal): AsyncGenerator<Buffer, void, unknown> {
-    const { seekable } = context
+    const { withLength } = context
     signal?.throwIfAborted()
-    // a reader of a `streaming` disk has to look for the header at `fileSize - 1024` to know where
-    // the tables are
-    yield* this.#trackAndYield(
-      this.#packHeader(
-        context,
-        seekable
-          ? {
-              gd: context.grainDirectoryOffset / SECTOR_SIZE,
-              rgd: context.rGrainDirectoryOffset / SECTOR_SIZE,
-            }
-          : { gd: GRAIN_DIRECTORY_AT_END, rgd: 0 }
-      )
-    )
+    // the tables come after the data in both layouts, so a reader has to look for the copy of the
+    // header at `fileSize - 1024` to know where they are. Writing them first is what a stream
+    // optimized reader refuses: ESXi 8 answers `Error on read` on such a file, even though every
+    // grain reaches the datastore and `qemu-img` reads it back.
+    yield* this.#trackAndYield(this.#packHeader(context, { gd: GRAIN_DIRECTORY_AT_END, rgd: 0 }))
     yield* this.#trackAndYield(context.descriptor)
-    assert.strictEqual(this.#offset, context.beforeTables, 'descriptor aligned')
+    assert.strictEqual(this.#offset, context.afterDescriptor, 'descriptor aligned')
 
-    if (seekable) {
-      yield* this.#yieldTables(context)
-      assert.strictEqual(this.#offset, context.beforeTables + context.tablesSize, 'tables aligned')
-      yield* this.#yieldGrains(context, signal)
-      assert.strictEqual(this.#offset, context.expectedStreamLength! - context.tailSize, 'grains aligned')
-    } else {
-      yield* this.#yieldGrains(context, signal)
-      yield* this.#yieldTables(context)
+    yield* this.#yieldGrains(context, signal)
+    if (withLength) {
+      const beforeTables = context.expectedStreamLength! - context.tablesSize - context.tailSize
+      yield* this.#yieldPadding(beforeTables - this.#offset)
+      assert.strictEqual(this.#offset, beforeTables, 'grains aligned')
     }
+    yield* this.#yieldTables(context)
 
     yield* this.#trackAndYield(this.#createMetadataMarker(MARKER_FOOTER))
     yield* this.#trackAndYield(this.#packHeader(context, { gd: context.emitted.gd!, rgd: context.emitted.rgd! }))
@@ -383,7 +358,7 @@ export class ConsumerVmdkStreamOptimized {
 
   async stream(signal?: AbortSignal): Promise<WithLength<Readable>> {
     const disk = this.#disk
-    const seekable = this.#layout === 'seekable'
+    const withLength = this.#layout === 'withLength'
 
     const virtualSize = disk.getVirtualSize()
     const capacitySectors = Math.ceil(virtualSize / SECTOR_SIZE)
@@ -403,17 +378,14 @@ export class ConsumerVmdkStreamOptimized {
     // marker, copy of the header, end of stream marker
     const tailSize = 3 * SECTOR_SIZE
 
-    const beforeTables = SPARSE_HEADER_SIZE + descriptor.length
-    const rGrainDirectoryOffset = beforeTables + SECTOR_SIZE + nbGrainTables * GRAIN_TABLE_SIZE + SECTOR_SIZE
-    const grainDirectoryOffset =
-      rGrainDirectoryOffset + grainDirectorySize + SECTOR_SIZE + nbGrainTables * GRAIN_TABLE_SIZE + SECTOR_SIZE
+    const afterDescriptor = SPARSE_HEADER_SIZE + descriptor.length
 
     let bitmap: Uint8Array | undefined
     let expectedStreamLength: number | undefined
-    if (seekable) {
+    if (withLength) {
       const index = await this.#buildGrainPresenceIndex(nbTotalGrains, signal)
       bitmap = index.bitmap
-      expectedStreamLength = beforeTables + tablesSize + index.nbAllocatedGrains * GRAIN_SLOT_SIZE + tailSize
+      expectedStreamLength = afterDescriptor + tablesSize + index.nbAllocatedGrains * GRAIN_SLOT_SIZE + tailSize
       assert.ok(
         expectedStreamLength <= MAX_ADDRESSABLE_FILE_SIZE,
         `a VMDK addresses its grains with 32 bits sector offsets, a ${expectedStreamLength} bytes file is past the ${MAX_ADDRESSABLE_FILE_SIZE} bytes limit`
@@ -421,20 +393,18 @@ export class ConsumerVmdkStreamOptimized {
     }
 
     const context: GenerationContext = {
-      beforeTables,
+      afterDescriptor,
       bitmap,
       capacitySectors,
       descriptor,
       emitted: {},
       expectedStreamLength,
-      grainDirectoryOffset,
       grainDirectorySize,
       grainTables: new Map(),
       nbGrainTables,
       nbTotalGrains,
-      overheadSectors: (seekable ? beforeTables + tablesSize : beforeTables) / SECTOR_SIZE,
-      rGrainDirectoryOffset,
-      seekable,
+      overheadSectors: afterDescriptor / SECTOR_SIZE,
+      withLength,
       tablesSize,
       tailSize,
     }
@@ -451,7 +421,7 @@ export class ConsumerVmdkStreamOptimized {
 /**
  * Creates a stream optimized VMDK stream from a Disk
  *
- * @returns a Readable of the VMDK data. With the `seekable` layout, `length` is the exact size of
+ * @returns a Readable of the VMDK data. With the `withLength` layout, `length` is the exact size of
  * the generated file; with the default `streaming` layout it is left undefined, the size of the
  * compressed grains is only known once they are generated.
  */
