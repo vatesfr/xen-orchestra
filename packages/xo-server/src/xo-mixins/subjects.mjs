@@ -45,7 +45,7 @@ export default class {
       const usersDb = (this._users = new Users({
         connection: redis,
         namespace: 'user',
-        indexes: ['email'],
+        indexes: ['email', 'username'],
         crypto: app.cryptoCredentials,
       }))
       app.hooks.emit('registerCollection', {
@@ -230,18 +230,7 @@ export default class {
     user.email = user.name
     delete user.name
 
-    try {
-      await this._users.update(user)
-    } catch (error) {
-      if (error.message === `the user ${user.email} already exists`) {
-        const existingUser = await this._users.first({ email: user.email })
-        throw objectAlreadyExists({
-          objectId: existingUser.id,
-          objectType: 'user',
-        })
-      }
-      throw error
-    }
+    await this._users.update(user)
   }
 
   // Merge this method in getUser() when plain objects.
