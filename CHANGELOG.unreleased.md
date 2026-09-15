@@ -63,6 +63,7 @@
 - @xen-orchestra/disk-cli patch
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/vmdk major
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
