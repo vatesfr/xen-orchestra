@@ -62,6 +62,12 @@ describe('getHostState', () => {
     expect(getHostState(host)).toBe('unknown')
   })
 
+  it('reports an unknown power state as unknown even when the host is not enabled', () => {
+    const host = createHost({ power_state: HOST_POWER_STATE.UNKNOWN, enabled: false })
+
+    expect(getHostState(host)).toBe('unknown')
+  })
+
   it('reports a missing host as unknown', () => {
     expect(getHostState(undefined)).toBe('unknown')
   })
