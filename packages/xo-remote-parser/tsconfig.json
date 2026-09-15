@@ -8,7 +8,9 @@
     "removeComments": true,
     "sourceMap": true,
     "strictNullChecks": true,
-    "target": "es2015",
+    "target": "es2022",
+    "types": ["node"]
   },
-  "includes": "src/**/*",
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
