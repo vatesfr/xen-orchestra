@@ -25,12 +25,10 @@
     "url-parse": "^1.4.7"
   },
   "devDependencies": {
-    "@babel/cli": "^7.29.0",
-    "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.0",
+    "@types/node": "^22.3.0",
     "cross-env": "^7.0.2",
-    "deep-freeze": "^0.0.1",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "typescript": "^5.0.3"
   },
   "scripts": {
     "build": "tsc",
@@ -39,6 +37,6 @@
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build",
     "postversion": "npm publish",
-    "test": "node --test"
+    "test": "tsc && cd dist && node --test"
   }
 }
