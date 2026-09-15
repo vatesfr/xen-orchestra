@@ -235,7 +235,7 @@ export const makeEditObject = specs => {
         }
       }
 
-      const cb = () => spec.set.call(this, value, object, { values })
+      const cb = () => spec.set.call(this, value, object, { ...values })
 
       const { constraints } = spec
       if (constraints) {
