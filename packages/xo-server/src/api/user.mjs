@@ -80,8 +80,12 @@ export async function set({ id, email, firstname, lastname, password, permission
   }
 
   const user = await this.getUser(id)
-  if (!isEmpty(user.authProviders) && (email !== undefined || password !== undefined)) {
-    throw forbiddenOperation('set password', 'cannot change the email or password of synchronized user')
+  if (!isEmpty(user.authProviders)) {
+    const identityFields = { email, firstname, lastname, password, username }
+    const unallowedEdits = Object.keys(identityFields).filter(key => identityFields[key] !== undefined)
+    if (unallowedEdits.length > 0) {
+      throw forbiddenOperation('update user', `cannot change ${unallowedEdits.join(' or ')} of synchronized user`)
+    }
   }
 
   await this.updateUser(id, { email, firstname, lastname, password, permission, preferences, username })
