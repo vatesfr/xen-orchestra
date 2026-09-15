@@ -33,7 +33,7 @@
     "rimraf": "^6.0.1"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "build": "tsc",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
