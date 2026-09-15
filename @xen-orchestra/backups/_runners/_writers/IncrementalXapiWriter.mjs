@@ -392,6 +392,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     vm.other_config[JOB_ID] = job.id
     vm.other_config[SCHEDULE_ID] = scheduleId
     vm.other_config[REPLICATED_TO_SR_UUID] = sr.uuid
+    vm.other_config[VM_UUID] = this._vmUuid
     // set the timestamp in the past to ensure any incomplete VM will be deleted on next run
     vm.other_config[DATETIME] = formatFilenameDate(0)
 
@@ -413,7 +414,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       vdi.other_config[JOB_ID] = job.id
       vdi.other_config[SCHEDULE_ID] = scheduleId
       vdi.other_config[REPLICATED_TO_SR_UUID] = sr.uuid
-      vdi.other_config[VM_UUID] = vm.uuid
+      vdi.other_config[VM_UUID] = this._vmUuid
 
       const baseDeltaVdiUuid = vdi.other_config[BASE_DELTA_VDI]
       if (baseDeltaVdiUuid !== undefined) {
