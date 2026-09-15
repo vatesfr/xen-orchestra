@@ -32,6 +32,7 @@
 - [Backups] Fix backup logs transfer size including health check restores and every backup target, which made it much bigger than in XO5 [Forum#12486](https://xcp-ng.org/forum/topic/12486) (PR [#10448](https://github.com/vatesfr/xen-orchestra/pull/10448))
 - [Network] Fix reactivity of PIF metrics (e.g. `carrier`) (PR [#10438](https://github.com/vatesfr/xen-orchestra/pull/10438))
 - [Host] Disable restart toolstack for HA enabled Pools (PR [#10344](https://github.com/vatesfr/xen-orchestra/pull/10344))
+- [Backups] Prevent continuous replication failed transfer to accumulate replicas (PR [#10404](https://github.com/vatesfr/xen-orchestra/pull/10404))
 
 
 ### Packages to release
