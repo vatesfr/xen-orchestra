@@ -4,7 +4,6 @@ import { BaseController, type BaseControllerType } from './base-controller.mjs'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { limitAndFilterArray, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
-import * as CM from 'complex-matcher'
 
 export abstract class XoController<T extends NonXapiXoRecord> extends BaseController<T, false> {
   abstract getAllCollectionObjects(opts: Record<string, unknown>): Promise<T[]>

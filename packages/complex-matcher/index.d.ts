@@ -75,7 +75,7 @@ export class TruthyProperty extends BaseNode {
 }
 
 export class Resolve extends BaseNode {
-  constructor(child: BaseNode, mode: 'some' | 'every' = 'some')
+  constructor(child: BaseNode, mode?: 'some' | 'every')
   child: BaseNode
   mode: 'some' | 'every'
 }
@@ -86,6 +86,6 @@ export function getPropertyClausesStrings(node: Node): {
   [key: string]: string[]
 }
 
-export function getResolveFields(node: Node): { path: [string]; resolveNode: Resolve }[]
+export function getResolveFields(node: Node): { path: string[]; resolveNode: Resolve }[]
 
 export function setPropertyClause(node: Node | undefined, name: string, child: Node | string): Node

@@ -17,7 +17,7 @@ import { createClient as createRedisClient } from 'redis'
 import { createDebounceResource } from '@vates/disposable/debounceResource.js'
 import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
-import { noSuchObject } from 'xo-common/api-errors.js'
+import { featureUnauthorized, noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { pipeline } from 'node:stream'
 import { UniqueIndex as XoUniqueIndex } from 'xo-collection/unique-index.js'
@@ -143,30 +143,37 @@ export default class Xo extends EventEmitter {
   }
 
   async getAnyObject(id) {
+    // We do getObject first because it covers all XAPI object,
+    // then the cheap getters, then the logs and archives.
+    //
+    // Keep the order as is.
     const getters = [
-      Promise.resolve().then(() => this.getObject(id)),
-      this.getUser(id),
-      this.getGroup(id),
-      this.getProxy(id),
-      this.getSchedule(id),
-      this.getJob(id),
-      this.getAclV2Role(id),
-      this.getAclV2Privilege(id),
+      () => this.getObject(id),
+      () => this.getAclV2Privilege(id),
+      () => this.getAclV2Role(id),
+      () => this.getGroup(id),
+      () => this.getJob(id),
+      () => this.getProxy(id),
+      () => this.getRemote(id),
+      () => this.getSchedule(id),
+      () => this.tasks.get(id),
+      () => this.getUser(id),
+      () => this.getXenServer(id),
+      () => this.getBackupNgLogs(id),
+      () => this.getVmBackupArchive(id),
     ]
 
-    return Promise.all(
-      getters.map(promise =>
-        promise.then(
-          value => Promise.reject(value),
-          error => error
-        )
-      )
-    ).then(
-      () => {
-        throw noSuchObject(id)
-      },
-      value => value
-    )
+    for (const getter of getters) {
+      try {
+        return await getter()
+      } catch (error) {
+        if (!noSuchObject.is(error) && !featureUnauthorized.is(error)) {
+          throw error
+        }
+      }
+    }
+
+    throw noSuchObject(id)
   }
 
   hasObject(key, type) {
