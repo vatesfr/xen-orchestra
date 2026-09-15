@@ -16,6 +16,8 @@ export type BackupRepositoryUrlOptions = {
   allowUnauthorized?: boolean
   encryptionKey?: string
   useVhdDirectory?: boolean
+  compressionType?: string
+  [key: string]: unknown
 }
 
 export type ParsedFileBackupRepositoryUrl = BackupRepositoryUrlOptions & {
@@ -62,12 +64,18 @@ export type ParsedAzureBackupRepositoryUrl = BackupRepositoryUrlOptions & {
   password: string
 }
 
+// Unrecognized scheme: parse returns {} because xo-server destructures its result unchecked.
+export type UnknownParsedBackupRepositoryUrl = BackupRepositoryUrlOptions & {
+  type?: undefined
+}
+
 export type ParsedBackupRepositoryUrl =
   | ParsedFileBackupRepositoryUrl
   | ParsedNfsBackupRepositoryUrl
   | ParsedSmbBackupRepositoryUrl
   | ParsedS3BackupRepositoryUrl
   | ParsedAzureBackupRepositoryUrl
+  | UnknownParsedBackupRepositoryUrl
 
 export type BackupRepositoryUrlInput = BackupRepositoryUrlOptions & {
   type: BackupRepositoryType | 'local'
