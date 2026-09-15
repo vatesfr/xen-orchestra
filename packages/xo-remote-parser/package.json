@@ -17,6 +17,7 @@
   },
   "preferGlobal": false,
   "main": "dist/",
+  "types": "dist/index.d.ts",
   "engines": {
     "node": ">=20"
   },
@@ -32,9 +33,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "dev": "tsc --watch",
     "prebuild": "rimraf dist/",
-    "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build",
     "postversion": "npm publish",
     "test": "tsc && cd dist && node --test"
