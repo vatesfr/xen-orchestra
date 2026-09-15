@@ -182,10 +182,11 @@ async function createExpressApp(config) {
   app.use(helmet(helmetConfig))
 
   const { contentSecurityPolicy } = helmetConfig
-  if (!isDev && contentSecurityPolicy !== false) {
+  if (contentSecurityPolicy) {
     app.use(
       CSP_EXEMPT_PREFIXES,
       helmet.contentSecurityPolicy({
+        ...contentSecurityPolicy,
         directives: {
           ...contentSecurityPolicy.directives,
           'script-src': ["'self'", "'unsafe-inline'"],
