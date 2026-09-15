@@ -413,6 +413,7 @@ const methods = {
 
     memoryMin: {
       constraints: {
+        _memoryStaticMin: lte,
         memoryMax: gte,
       },
       get: vm => +vm.memory_dynamic_min,
@@ -420,9 +421,22 @@ const methods = {
       set: 'memory_dynamic_min',
     },
 
+    // Read-only
+    _memoryStaticMin: {
+      get: vm => +vm.memory_static_min,
+      set(value, vm) {
+        throw invalidParameters(
+          `memory (${value}) must be greater than or equal to this VM's minimum memory (${vm.memory_static_min})`
+        )
+      },
+    },
+
     _memory: {
       addToLimits: true,
       limitName: 'memory',
+      constraints: {
+        _memoryStaticMin: lte,
+      },
       get: vm => +vm.memory_dynamic_max,
       preprocess: parseSize,
       set(memory, vm) {
@@ -442,6 +456,9 @@ const methods = {
     memoryMax: {
       addToLimits: true,
       limitName: 'memory',
+      constraints: {
+        _memoryStaticMin: lte,
+      },
       get: vm => +vm.memory_dynamic_max,
       preprocess: parseSize,
       set(dynamicMax, vm) {
@@ -457,7 +474,7 @@ const methods = {
           )
         }
 
-        const staticMin = Math.min(vm.memory_static_min, dynamicMax)
+        const staticMin = vm.memory_static_min
         return this.call(
           'VM.set_memory_limits',
           $ref,
