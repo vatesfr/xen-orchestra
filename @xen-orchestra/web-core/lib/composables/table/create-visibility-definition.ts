@@ -1,5 +1,5 @@
-import type { HideRouteQuery } from '@core/composables/hide-route-query.composable'
-import type { VisibilityDefinition } from '@core/composables/table/type'
+import type { HideRouteQuery } from '@core/composables/hide-route-query.composable.ts'
+import type { VisibilityDefinition } from '@core/composables/table/type.ts'
 import { computed } from 'vue'
 
 export function createVisibilityDefinition<THideable extends boolean | undefined>(

@@ -39,6 +39,9 @@ import type { CreateActionReturnType } from '../abstract-classes/base-controller
 import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { AnyPrivilege, hasPrivilegeOn } from '@xen-orchestra/acl'
+import { createLogger } from '@xen-orchestra/log'
+
+const { warn } = createLogger('xo:rest-api:task-controller')
 
 @Route('tasks')
 @Security('*')
@@ -94,23 +97,46 @@ export class TaskController extends XoController<XoTask> {
       }
 
       const userFilter = filter === undefined ? undefined : safeParseComplexMatcher(filter).createPredicate()
+      const mapper = makeObjectMapper(req)
       const stream = new Transform({
         objectMode: true,
+        // in object mode this is a number of queued events, see `safeWrite()`
+        highWaterMark: this.restApi.xoApp.config.get<number>('rest-api.maxEventsQueuedPerWatchClient'),
         transform([event, object], encoding, callback) {
-          const mapper = makeObjectMapper(req)
           callback(null, JSON.stringify([event, mapper(object)]) + '\n')
         },
       })
 
+      // The producer is an event emitter shared by the whole application, it
+      // cannot be slowed down: a client which stops consuming this stream — a
+      // dropped connection, a sleeping laptop — would otherwise have its events
+      // queued forever, and each of them retains a whole task log.
+      //
+      // Destroy such a client instead, like SSE subscribers are: it reconnects
+      // and refetches the whole collection, so no state is lost.
+      const safeWrite = (event: ['update', XoTask] | ['remove', { id: XoTask['id'] }]) => {
+        if (!stream.write(event)) {
+          warn('too many events queued for this client, the connection is going to be destroyed', {
+            queued: stream.writableLength,
+          })
+          req.destroy()
+        }
+      }
+
+      const onSigTerm = () => {
+        req.destroy()
+      }
+
       stream.on('close', () => {
         this.restApi.tasks.off('update', update).off('remove', remove)
+        // this listener would otherwise retain `req` — and through it this
+        // stream and everything it has buffered — for the whole process life
+        process.off('SIGTERM', onSigTerm)
       })
       req.on('close', () => {
         stream.destroy()
       })
-      process.on('SIGTERM', () => {
-        req.destroy()
-      })
+      process.on('SIGTERM', onSigTerm)
 
       const userId = this.restApi.getCurrentUser().id
       const update = async (task: XoTask) => {
@@ -124,7 +150,7 @@ export class TaskController extends XoController<XoTask> {
           hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
           (userFilter === undefined || userFilter(task))
         ) {
-          stream.write(['update', task])
+          safeWrite(['update', task])
         }
       }
       const remove = async (task: XoTask) => {
@@ -138,7 +164,7 @@ export class TaskController extends XoController<XoTask> {
           hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
           (userFilter === undefined || userFilter(task))
         ) {
-          stream.write(['remove', { id: task.id }])
+          safeWrite(['remove', { id: task.id }])
         }
       }
 

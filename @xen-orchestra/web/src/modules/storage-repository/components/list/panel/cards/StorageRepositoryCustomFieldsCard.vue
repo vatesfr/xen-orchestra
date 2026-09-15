@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="storage-repository-custom-fields-card">
     <UiCardTitle>
       {{ t('custom-fields') }}
     </UiCardTitle>
@@ -15,14 +15,14 @@
       </VtsStateHero>
       <VtsLabelValueList v-else :fields="customFields" />
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
 import VtsLabelValueList from '@core/components/label-value-list/VtsLabelValueList.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -33,9 +33,7 @@ const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.storage-repository-custom-fields-card {
   .content {
     display: flex;
     flex-direction: column;

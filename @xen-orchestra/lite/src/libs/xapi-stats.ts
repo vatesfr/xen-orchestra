@@ -1,5 +1,5 @@
-import type XenApi from '@/libs/xen-api/xen-api'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import type XenApi from '@/libs/xen-api/xen-api.ts'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import type { XapiHostStatsRaw, XapiVmStatsRaw } from '@vates/types'
 import { synchronized } from 'decorator-synchronized'
 // eslint-disable-next-line import/default -- https://github.com/json5/json5/issues/287

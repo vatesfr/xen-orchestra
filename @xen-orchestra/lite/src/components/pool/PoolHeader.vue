@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-import { usePoolStore } from '@/stores/xen-api/pool.store'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'

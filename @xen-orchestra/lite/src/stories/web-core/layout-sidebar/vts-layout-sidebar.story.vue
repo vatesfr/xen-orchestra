@@ -94,14 +94,14 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, setting, slot } from '@/libs/story/story-param'
-import { boolean } from '@/libs/story/story-widget'
+import { prop, setting, slot } from '@/libs/story/story-param.ts'
+import { boolean } from '@/libs/story/story-widget.ts'
 import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { type SidebarSide, useLeftSidebarStore, useRightSidebarStore } from '@core/packages/sidebar'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'

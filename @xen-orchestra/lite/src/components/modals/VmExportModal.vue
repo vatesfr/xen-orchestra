@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts" setup>
-import { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
+import { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'

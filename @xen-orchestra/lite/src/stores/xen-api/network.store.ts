@@ -1,7 +1,7 @@
-import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
-import { usePifStore } from '@/stores/xen-api/pif.store'
-import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
-import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
+import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config.ts'
+import { usePifStore } from '@/stores/xen-api/pif.store.ts'
+import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 

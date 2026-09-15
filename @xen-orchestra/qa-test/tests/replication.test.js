@@ -36,7 +36,7 @@ describe('Incremental Replication', () => {
     const setupResult = await setup()
     dispatchClient = setupResult.dispatchClient
     tracker = setupResult.tracker
-    vm = setupResult.vm
+    vm = setupResult.vms[0]
 
     assert.ok(vm, 'Setup should provide a test VM')
 

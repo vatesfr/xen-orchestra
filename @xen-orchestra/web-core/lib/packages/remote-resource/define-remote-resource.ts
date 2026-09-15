@@ -3,7 +3,7 @@ import {
   type THandlePost,
   type THandleWatching,
   useSseStore,
-} from '@core/packages/remote-resource/sse.store'
+} from '@core/packages/remote-resource/sse.store.ts'
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
 import type { VoidFunction } from '@core/types/utility.type.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'

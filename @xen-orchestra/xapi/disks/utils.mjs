@@ -20,6 +20,7 @@ export async function connectNbdClientIfPossible(xapi, vdiRef, nbdConcurrency) {
   }
 
   if (nbdInfos.length === 0) {
+    /** @type {NodeJS.ErrnoException} */
     const error = new Error(`can't connect to any nbd client`)
     error.code = 'NO_NBD_AVAILABLE'
     throw error

@@ -1,6 +1,8 @@
 import { ipToHostname } from '@/libs/utils.ts'
+import { createHostOperations } from '@/libs/xen-api/operations/host-operations.ts'
 import { createNetworkOperations } from '@/libs/xen-api/operations/network-operations.ts'
 import { createPbdOperations } from '@/libs/xen-api/operations/pbd-operations.ts'
+import { createPifOperations } from '@/libs/xen-api/operations/pif-operations.ts'
 import { createSrOperations } from '@/libs/xen-api/operations/sr-operations.ts'
 import { createVbdOperations } from '@/libs/xen-api/operations/vbd-operations.ts'
 import { createVdiOperations } from '@/libs/xen-api/operations/vdi-operations.ts'
@@ -260,6 +262,10 @@ export default class XenApi {
     return this._sessionId
   }
 
+  get pif() {
+    return createPifOperations(this)
+  }
+
   get vm() {
     return createVmOperations(this)
   }
@@ -290,5 +296,9 @@ export default class XenApi {
 
   get network() {
     return createNetworkOperations(this)
+  }
+
+  get host() {
+    return createHostOperations(this)
   }
 }

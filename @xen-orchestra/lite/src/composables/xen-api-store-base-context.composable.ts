@@ -1,4 +1,4 @@
-import type { XenApiRecord } from '@/libs/xen-api/xen-api.types'
+import type { XenApiRecord } from '@/libs/xen-api/xen-api.types.ts'
 import { computed, ref, shallowReactive } from 'vue'
 
 export const useXenApiStoreBaseContext = <XRecord extends XenApiRecord<any>>() => {

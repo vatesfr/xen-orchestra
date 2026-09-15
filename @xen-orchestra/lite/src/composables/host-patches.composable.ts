@@ -1,6 +1,6 @@
-import { fetchMissingHostPatches } from '@/libs/host'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
-import type { XenApiPatch } from '@/types/xen-api'
+import { fetchMissingHostPatches } from '@/libs/host.ts'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import type { XenApiPatch } from '@/types/xen-api.ts'
 import { type Pausable, useTimeoutPoll, watchArray } from '@vueuse/core'
 import { computed, type MaybeRefOrGetter, reactive, toValue } from 'vue'
 

@@ -1,0 +1,8 @@
+{
+    "label": "Users and access",
+    "position": 6,
+    "link": {
+      "type": "generated-index",
+      "description": "Detailed information on how to manage users, groups and access rights"
+    }
+  }

@@ -93,5 +93,22 @@ export function createNetworkOperations(xenApi: XenApi) {
 
       return networkRef
     },
+
+    createInternal: async (params: BaseNetworkCreateParams): Promise<XenApiNetwork['$ref']> => {
+      const { nameLabel, nameDescription = '', mtu = 1500, nbd } = params
+
+      const networkRef = await createEmptyNetwork(nameLabel, nameDescription, mtu)
+
+      if (nbd) {
+        try {
+          await xenApi.call('network.add_purpose', [networkRef, 'nbd'])
+        } catch (error) {
+          await xenApi.call('network.destroy', [networkRef])
+          throw error
+        }
+      }
+
+      return networkRef
+    },
   }
 }

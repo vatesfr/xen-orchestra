@@ -1,7 +1,7 @@
 import type { TablePaginationSize } from '@core/components/ui/table-pagination/UiTablePagination.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { toComputed } from '@core/utils/to-computed.util'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import { clamp, useLocalStorage } from '@vueuse/core'
 import { computed, type MaybeRefOrGetter } from 'vue'
 

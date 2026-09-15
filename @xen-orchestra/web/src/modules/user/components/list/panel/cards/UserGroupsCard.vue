@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="user-groups-card">
     <UiCardTitle>
       <div class="title">
         {{ t('groups') }}
@@ -21,7 +21,7 @@
     <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
       {{ t('no-group-attached') }}
     </VtsStateHero>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -30,10 +30,10 @@ import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-co
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -53,9 +53,7 @@ const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.user-groups-card {
   .title {
     display: flex;
     align-items: center;

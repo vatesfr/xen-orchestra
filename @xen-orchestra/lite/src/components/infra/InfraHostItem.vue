@@ -1,5 +1,11 @@
 <template>
-  <VtsTreeItem v-if="host !== undefined" :expanded="isExpanded" class="infra-host-item" :node-id="`host:${host.uuid}`">
+  <VtsTreeItem
+    v-if="host !== undefined"
+    :expanded="isExpanded"
+    has-children
+    class="infra-host-item"
+    :node-id="`host:${host.uuid}`"
+  >
     <UiTreeItemLabel
       :route="{ name: '/host/[uuid]', params: { uuid: host.uuid } }"
       icon="object:host"
@@ -7,6 +13,7 @@
     >
       {{ host.name_label || '(Host)' }}
       <template #addons>
+        <UiLoader v-if="isChangingState" v-tooltip="currentOperation" />
         <VtsIcon v-if="isPoolMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
         <UiCounter
           v-if="isReady"
@@ -26,7 +33,7 @@
               @click="open($event)"
             />
           </template>
-          <HostTreeActions :host-opaque-ref="hostOpaqueRef" />
+          <HostTreeActions :host />
         </MenuList>
       </template>
     </UiTreeItemLabel>
@@ -40,19 +47,21 @@
 
 <script lang="ts" setup>
 import InfraVmItems from '@/components/infra/InfraVmItems.vue'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import HostTreeActions from '@/modules/host/components/actions/HostTreeActions.vue'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
-import { useVmStore } from '@/stores/xen-api/vm.store'
+import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useToggle } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -68,6 +77,8 @@ const host = computed(() => getByOpaqueRef(hostOpaqueRef))
 
 const { pool } = usePoolStore().subscribe()
 const isPoolMaster = computed(() => pool.value?.master === hostOpaqueRef)
+
+const { isChangingState, currentOperation } = useHostUtils(host)
 
 const { runningVms, isReady } = useVmStore().subscribe()
 

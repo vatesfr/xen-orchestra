@@ -21,8 +21,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { model, prop, setting } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import { model, prop, setting } from '@/libs/story/story-param.ts'
+import { text } from '@/libs/story/story-widget.ts'
 import UiRichRadioButton from '@core/components/ui/rich-radio-button/UiRichRadioButton.vue'
 import { ref } from 'vue'
 import imageUrl from '../../../../assets/color-mode-dark.svg'

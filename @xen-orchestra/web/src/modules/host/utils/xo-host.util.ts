@@ -1,7 +1,12 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { VtsLinkCellProps } from '@core/components/table/cells/VtsLinkCell.vue'
-import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE } from '@vates/types'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { getVmsPendingOperation } from '@/modules/vm/utils/xo-vm.util.ts'
+import { objectIcon } from '@core/icons'
+import { formatSizeRaw, type SizeInfo } from '@core/utils/size.util.ts'
+import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { castArray } from 'lodash-es'
+
+export type XoHostState = Lowercase<HOST_POWER_STATE> | 'disabled'
 
 const RUNNING_CHANGING_STATE_OPERATIONS: Partial<HOST_ALLOWED_OPERATIONS>[] = [
   HOST_ALLOWED_OPERATIONS.SHUTDOWN,
@@ -11,6 +16,12 @@ const RUNNING_CHANGING_STATE_OPERATIONS: Partial<HOST_ALLOWED_OPERATIONS>[] = [
 ]
 
 const NOT_RUNNING_CHANGING_STATE_OPERATIONS: Partial<HOST_ALLOWED_OPERATIONS>[] = [HOST_ALLOWED_OPERATIONS.POWER_ON]
+
+const SMART_REBOOT_SUSPENDING_VM_OPERATIONS: Partial<VM_OPERATIONS>[] = [
+  VM_OPERATIONS.SUSPEND,
+  VM_OPERATIONS.CLEAN_SHUTDOWN,
+  VM_OPERATIONS.HARD_SHUTDOWN,
+]
 
 export function isHostOperationPending(
   host: FrontXoHost,
@@ -39,6 +50,47 @@ export function getHostPendingStateOperation(host: FrontXoHost) {
   )
 }
 
-export function getHostInfo(host: FrontXoHost | undefined): VtsLinkCellProps & { label: string } {
-  return host ? { label: host.name_label, to: `/host/${host.id}/dashboard` } : { label: '' }
+export function getHostSmartRebootVmOperation(host: FrontXoHost, residentVms: FrontXoVm[]) {
+  if (host.enabled) {
+    return undefined
+  }
+  return getVmsPendingOperation(residentVms, SMART_REBOOT_SUSPENDING_VM_OPERATIONS)
+}
+
+export function getHostState(host: FrontXoHost | undefined): XoHostState {
+  if (!host || host.power_state === HOST_POWER_STATE.UNKNOWN) {
+    return 'unknown'
+  }
+
+  if (host.power_state === HOST_POWER_STATE.HALTED) {
+    return 'halted'
+  }
+
+  return host.enabled ? 'running' : 'disabled'
+}
+
+export function getHostCoreSocketInfo(host: FrontXoHost): string {
+  return `${host.cpus.cores ?? 0} (${host.cpus.sockets ?? 0})`
+}
+
+export function getHostManufacturerInfo(host: FrontXoHost): string {
+  const manufacturer = host.bios_strings['system-manufacturer'] ?? ''
+  const productName = host.bios_strings['system-product-name']
+
+  return manufacturer + (productName ? ` (${productName})` : '')
+}
+
+export function getHostRamProvisioning(host: FrontXoHost): { total: SizeInfo; used: SizeInfo; free: SizeInfo } {
+  const size = host.memory.size
+  const usage = host.memory.usage
+
+  return {
+    total: formatSizeRaw(size, 0),
+    used: formatSizeRaw(usage, 0),
+    free: formatSizeRaw(size - usage, 0),
+  }
+}
+
+export function getHostIcon(host: FrontXoHost | undefined) {
+  return objectIcon('host', getHostState(host))
 }

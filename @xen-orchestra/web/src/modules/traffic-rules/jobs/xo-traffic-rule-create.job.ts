@@ -13,14 +13,14 @@ import {
 } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export type NewTrafficRulePayload = {
+export type TrafficRulePayload = {
   targetType: TrafficRuleTargetType
   targetId: XoNetwork['id'] | XoVif['id']
   allow: boolean
   direction: TrafficRuleDirection
   protocol: TrafficRuleProtocol
   ipRange: string
-  port?: number
+  port: number | null
 }
 
 export const useXoTrafficRuleCreateJob = defineJob('traffic-rule.create', [payloadsArg], () => {

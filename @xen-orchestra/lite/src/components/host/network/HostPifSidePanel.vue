@@ -1,8 +1,8 @@
 <template>
-  <VtsSidePanel :has-selection="!!pif" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!pif" class="host-pif-side-panel" @close="emit('close')">
     <template v-if="pif" #default>
       <!-- PIF -->
-      <UiCard class="card">
+      <UiPanelCard>
         <VtsCardObjectTitle :id="pif.uuid" :label="isBond ? t('bond') : t('pif')" />
         <div class="content">
           <!-- NETWORK -->
@@ -75,9 +75,9 @@
             </template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
+      </UiPanelCard>
       <!-- NETWORK INFORMATION -->
-      <UiCard class="card">
+      <UiPanelCard>
         <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
         <div class="content">
           <!-- IP ADDRESSES -->
@@ -180,9 +180,9 @@
             </VtsCardRowKeyValue>
           </div>
         </div>
-      </UiCard>
+      </UiPanelCard>
       <!-- PROPERTIES -->
-      <UiCard class="card">
+      <UiPanelCard>
         <UiCardTitle>{{ t('properties') }}</UiCardTitle>
         <div class="content">
           <!-- MTU -->
@@ -219,16 +219,16 @@
             </template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
+      </UiPanelCard>
     </template>
   </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
-import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
-import { usePifStore } from '@/stores/xen-api/pif.store'
+import type { XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
+import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store.ts'
+import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
@@ -237,10 +237,10 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -317,9 +317,7 @@ const speed = computed(() => {
 </script>
 
 <style scoped lang="postcss">
-.card {
-  gap: 1.6rem;
-
+.host-pif-side-panel {
   .content {
     display: flex;
     flex-direction: column;

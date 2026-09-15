@@ -10,6 +10,9 @@ export type HostActions =
   | 'disable-and-evacuate-vms'
   | 'reboot'
   | 'force-reboot'
+  | 'smart-reboot'
+  | 'restart-toolstack'
+  | 'detach'
 
 export type VmBlockedOperations =
   | 'clean_shutdown'

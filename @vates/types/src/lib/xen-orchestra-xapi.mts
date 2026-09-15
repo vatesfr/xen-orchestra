@@ -24,6 +24,7 @@ import type {
   VIF_LOCKING_MODE,
   VM_OPERATIONS,
 } from '../common.mjs'
+import type { DiskPassthrough } from '@xen-orchestra/disk-transform'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
   XapiXoRecord,
@@ -476,3 +477,42 @@ export interface Xapi {
     }
   }
 }
+
+/**
+ * Parameters accepted by the `XapiDiskSource` constructor.
+ *
+ * `baseRef` turns the export into a differencing one: leaving it out exports the whole disk.
+ * `preferNbd` only expresses a preference, {@link XapiDiskSource} silently falls back to a plain
+ * stream export — and, when `baseRef` can't be used as a base, to a full one.
+ */
+export interface XapiDiskSourceOptions {
+  baseRef?: XenApiVdi['$ref']
+  blockSize?: number
+  nbdConcurrency?: number
+  /** When true, only `getBlockIndexes()` may be called: `readBlock()` throws. */
+  onlyListChangedBlocks?: boolean
+  preferNbd?: boolean
+  timeout?: number
+  vdiRef: XenApiVdi['$ref']
+  xapi: Xapi
+}
+
+/**
+ * Disk source handling the fallback logic of a VDI export: NBD + CBT, then NBD + stream export
+ * for the block list, then plain stream export.
+ *
+ * {@link XapiDiskSourceOptions.preferNbd} is a preference, not a guarantee: call
+ * {@link XapiDiskSource.useNbd} and {@link XapiDiskSource.useCbt} after `init()` to know what the
+ * export actually used.
+ */
+export interface XapiDiskSource extends DiskPassthrough {
+  useCbt(): boolean
+  useNbd(): boolean
+}
+
+/**
+ * Signature of `@xen-orchestra/xapi`'s `parseDateTime`.
+ *
+ * Returns a Unix timestamp in seconds, or `null` if the field is empty (as encoded by XAPI).
+ */
+export type ParseDateTime = (input: string | number | Date) => number | null

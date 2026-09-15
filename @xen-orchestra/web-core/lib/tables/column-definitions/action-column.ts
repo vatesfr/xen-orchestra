@@ -1,8 +1,8 @@
 import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsActionCell from '@core/components/table/cells/VtsActionCell.vue'
-import { defineColumn } from '@core/packages/table/define-column'
+import { defineColumn } from '@core/packages/table/define-column.ts'
 import type { ButtonIconConfig } from '@core/tables/column-definitions/button-icon-column.ts'
-import { renderHeadCell } from '@core/tables/helpers/render-head-cell'
+import { renderHeadCell } from '@core/tables/helpers/render-head-cell.ts'
 import type { HeaderConfig } from '@core/tables/types.ts'
 import { type Component, h, toValue } from 'vue'
 

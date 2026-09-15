@@ -1,5 +1,5 @@
 import { BaseItem, type Menu, type MenuLike, parseConfigHolder } from '@core/packages/menu'
-import { toComputed } from '@core/utils/to-computed.util'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter, reactive, ref } from 'vue'
 
 export interface MenuActionConfig {

@@ -6,13 +6,13 @@
  * @typedef {import('@vates/nbd-client/multi.mjs').default} MultiNbdClient
  */
 
-import { DiskPassthrough } from '@xen-orchestra/disk-transform'
+import { RandomDiskPassthrough } from '@xen-orchestra/disk-transform'
 import { createLogger } from '@xen-orchestra/log'
 import { connectNbdClientIfPossible } from './utils.mjs'
 
 const { warn } = createLogger('xo:xapi:XapiStreamNbd')
 
-export class XapiStreamNbdSource extends DiskPassthrough {
+export class XapiStreamNbdSource extends RandomDiskPassthrough {
   /** @type {MultiNbdClient|undefined} */
   #nbdClient
   /** @type {number } */
@@ -42,6 +42,10 @@ export class XapiStreamNbdSource extends DiskPassthrough {
     if (streamSourceDisk === undefined) {
       throw new Error(`A stream source must be given`)
     }
+    // streamSourceDisk is only ever used here for its plain-Disk metadata (getBlockSize,
+    // getBlockIndexes, getVirtualSize, close) — readBlock is fully overridden below to go
+    // through NBD instead, so it never needs streamSourceDisk to be a RandomAccessDisk
+    // @ts-ignore
     super(streamSourceDisk)
     this.#nbdConcurrency = nbdConcurrency
     this.#vdiRef = vdiRef

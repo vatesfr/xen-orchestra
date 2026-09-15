@@ -17,16 +17,16 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-br-collection'
-import type { VmDashboardBackupArchive, XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes'
+import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
+import type { VmDashboardBackupArchive, XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { useTableState } from '@core/composables/table-state.composable'
-import { useBackupArchiveColumns } from '@core/tables/column-sets/vm-backup-archive-columns'
-import { formatSizeRaw } from '@core/utils/size.util'
+import { useTableState } from '@core/composables/table-state.composable.ts'
+import { useBackupArchiveColumns } from '@core/tables/column-sets/vm-backup-archive-columns.ts'
+import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -120,6 +120,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/network/new-internal': RouteRecordInfo<
+      '/network/new-internal',
+      '/network/new-internal',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/object-not-found': RouteRecordInfo<
       '/object-not-found',
       '/object-not-found',
@@ -485,16 +492,9 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/story/web-core/tab/tab-item': RouteRecordInfo<
-      '/story/web-core/tab/tab-item',
-      '/story/web-core/tab/tab-item',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/story/web-core/tab/tab-list': RouteRecordInfo<
-      '/story/web-core/tab/tab-list',
-      '/story/web-core/tab/tab-list',
+    '/story/web-core/tab-list/tab-list': RouteRecordInfo<
+      '/story/web-core/tab-list/tab-list',
+      '/story/web-core/tab-list/tab-list',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -807,6 +807,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/panel-card/ui-panel-card': RouteRecordInfo<
+      '/story/web-core/ui/panel-card/ui-panel-card',
+      '/story/web-core/ui/panel-card/ui-panel-card',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/progress-bar/ui-progress-bar': RouteRecordInfo<
       '/story/web-core/ui/progress-bar/ui-progress-bar',
       '/story/web-core/ui/progress-bar/ui-progress-bar',
@@ -859,6 +866,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/subtitle/ui-subtitle': RouteRecordInfo<
       '/story/web-core/ui/subtitle/ui-subtitle',
       '/story/web-core/ui/subtitle/ui-subtitle',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/tab-item/ui-tab-item': RouteRecordInfo<
+      '/story/web-core/ui/tab-item/ui-tab-item',
+      '/story/web-core/ui/tab-item/ui-tab-item',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -973,6 +987,7 @@ declare module 'vue-router/auto-routes' {
       | '/vm/[uuid]/stats'
       | '/vm/[uuid]/system'
       | '/vm/[uuid]/tasks'
+      | '/vm/[uuid]/vdis'
     >,
     '/vm/[uuid]/alarms': RouteRecordInfo<
       '/vm/[uuid]/alarms',
@@ -1019,6 +1034,13 @@ declare module 'vue-router/auto-routes' {
     '/vm/[uuid]/tasks': RouteRecordInfo<
       '/vm/[uuid]/tasks',
       '/vm/:uuid/tasks',
+      { uuid: ParamValue<true> },
+      { uuid: ParamValue<false> },
+      | never
+    >,
+    '/vm/[uuid]/vdis': RouteRecordInfo<
+      '/vm/[uuid]/vdis',
+      '/vm/:uuid/vdis',
       { uuid: ParamValue<true> },
       { uuid: ParamValue<false> },
       | never
@@ -1126,6 +1148,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/network/new-bonded.vue': {
       routes:
         | '/network/new-bonded'
+      views:
+        | never
+    }
+    'src/pages/network/new-internal.vue': {
+      routes:
+        | '/network/new-internal'
       views:
         | never
     }
@@ -1444,15 +1472,9 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/stories/web-core/tab/tab-item.story.vue': {
+    'src/stories/web-core/tab-list/tab-list.story.vue': {
       routes:
-        | '/story/web-core/tab/tab-item'
-      views:
-        | never
-    }
-    'src/stories/web-core/tab/tab-list.story.vue': {
-      routes:
-        | '/story/web-core/tab/tab-list'
+        | '/story/web-core/tab-list/tab-list'
       views:
         | never
     }
@@ -1720,6 +1742,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/ui/panel-card/ui-panel-card.story.vue': {
+      routes:
+        | '/story/web-core/ui/panel-card/ui-panel-card'
+      views:
+        | never
+    }
     'src/stories/web-core/ui/progress-bar/ui-progress-bar.story.vue': {
       routes:
         | '/story/web-core/ui/progress-bar/ui-progress-bar'
@@ -1765,6 +1793,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/subtitle/ui-subtitle.story.vue': {
       routes:
         | '/story/web-core/ui/subtitle/ui-subtitle'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/tab-item/ui-tab-item.story.vue': {
+      routes:
+        | '/story/web-core/ui/tab-item/ui-tab-item'
       views:
         | never
     }
@@ -1862,6 +1896,7 @@ declare module 'vue-router/auto-routes' {
         | '/vm/[uuid]/stats'
         | '/vm/[uuid]/system'
         | '/vm/[uuid]/tasks'
+        | '/vm/[uuid]/vdis'
       views:
         | 'default'
     }
@@ -1904,6 +1939,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vm/[uuid]/tasks.vue': {
       routes:
         | '/vm/[uuid]/tasks'
+      views:
+        | never
+    }
+    'src/pages/vm/[uuid]/vdis.vue': {
+      routes:
+        | '/vm/[uuid]/vdis'
       views:
         | never
     }

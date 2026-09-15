@@ -28,7 +28,7 @@ import {
   isSelectWidget,
   isTextWidget,
   type Widget,
-} from '@/libs/story/story-widget'
+} from '@/libs/story/story-widget.ts'
 import { useFormSelect } from '@core/packages/form-select'
 import { computed, defineAsyncComponent } from 'vue'
 

@@ -37,8 +37,10 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
 
   before(async () => {
     const sdnVmId = process.env.SDN_CONTROLLER_VM_ID
-
-    ;({ dispatchClient, tracker, vm } = await setup({ referenceVmId: sdnVmId }))
+    let vms
+    ;({ dispatchClient, tracker, vms } = await setup({ referenceVmId: sdnVmId }))
+    // Only using one VM
+    vm = vms[0]
 
     const vmDetails = await dispatchClient.restApiClient.get(`/rest/v0/vms/${vm.uuid}`)
     if (!(vmDetails.VIFs?.length > 0)) {

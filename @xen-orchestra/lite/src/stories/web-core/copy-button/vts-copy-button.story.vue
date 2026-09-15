@@ -9,6 +9,6 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop } from '@/libs/story/story-param'
+import { prop } from '@/libs/story/story-param.ts'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 </script>

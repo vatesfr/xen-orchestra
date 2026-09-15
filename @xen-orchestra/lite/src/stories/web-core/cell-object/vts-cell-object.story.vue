@@ -22,6 +22,6 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, setting, slot } from '@/libs/story/story-param'
+import { prop, setting, slot } from '@/libs/story/story-param.ts'
 import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
 </script>

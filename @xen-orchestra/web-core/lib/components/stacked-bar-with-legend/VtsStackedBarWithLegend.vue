@@ -20,7 +20,7 @@
 import VtsLegendList from '@core/components/legend-list/VtsLegendList.vue'
 import UiLegend, { type LegendItemProps } from '@core/components/ui/legend/UiLegend.vue'
 import UiStackedBar, { type StackedBarProps } from '@core/components/ui/stacked-bar/UiStackedBar.vue'
-import { useUiStore } from '@core/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store.ts'
 
 type Segment = StackedBarProps['segments'][number] & LegendItemProps & { label: string }
 

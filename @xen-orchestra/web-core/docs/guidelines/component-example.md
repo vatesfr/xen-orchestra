@@ -28,7 +28,7 @@ Here is a fake `UiComponent.vue` component that uses most of the guidelines docu
 
 <script lang="ts" setup>
 import SquareIcon from '@core/components/ui/button/SquareIcon.vue'
-import { toVariants } from '@core/utils/to-variants.util'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
 export type ButtonAccent = 'info' | 'success' // Export type, if used in another component

@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import VmsPageContent from '@/components/vm/VmsPageContent.vue'
-import { useVmStore } from '@/stores/xen-api/vm.store'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 
 const { records: vms, isReady, hasError } = useVmStore().subscribe()
 </script>

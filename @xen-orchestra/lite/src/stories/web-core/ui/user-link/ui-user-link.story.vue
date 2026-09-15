@@ -13,6 +13,6 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop } from '@/libs/story/story-param'
+import { prop } from '@/libs/story/story-param.ts'
 import UiUserLink from '@core/components/ui/user-link/UiUserLink.vue'
 </script>

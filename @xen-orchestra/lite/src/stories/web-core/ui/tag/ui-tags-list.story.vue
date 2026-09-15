@@ -26,7 +26,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { setting, slot } from '@/libs/story/story-param'
+import { setting, slot } from '@/libs/story/story-param.ts'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTertiaryTag from '@core/components/ui/tag/UiTertiaryTag.vue'
