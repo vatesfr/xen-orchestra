@@ -150,7 +150,7 @@ export type PoolRollingUpdateRecoveryHost = {
 export type PoolRollingUpdateRecoveryRun = {
   runId: string
   poolId: string
-  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'cleaning'
+  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'cleaning' | 'succeeded'
   startedAt: string
   updatedAt: string
   finishedAt?: string

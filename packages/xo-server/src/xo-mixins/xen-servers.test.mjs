@@ -83,7 +83,11 @@ describe('XenServers.rollingPoolUpdate', function () {
     assert.deepEqual(calls, [
       ['backupGuard', 'pool-1', { bypassBackupCheck: true, operation: 'rollingPoolUpdate' }],
       ['getAllJobs'],
-      ['startRpuRecoveryRun', 'pool-1', { bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: false }],
+      [
+        'startRpuRecoveryRun',
+        'pool-1',
+        { acceptCurrentStateAsBaseline: true, bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: false },
+      ],
       ['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: false }],
     ])
   })
