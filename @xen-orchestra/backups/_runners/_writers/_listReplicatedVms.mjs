@@ -22,7 +22,8 @@ export function listReplicatedVms(xapi, scheduleOrJobId, srUuid, vmUuid) {
     const object = all[key]
     const oc = object.other_config
     // a snapshot on the target, not on the source VM
-    const isReplicationSnapshot = object.is_a_snapshot && object.$snapshot_of?.uuid !== vmUuid
+    const isReplicationSnapshot =
+      object.is_a_snapshot && object.$snapshot_of !== undefined && object.$snapshot_of.uuid !== vmUuid
     // a replicated full VM
     const isOldStyleReplica = !object.is_a_snapshot && 'start' in object.blocked_operations
     if (
