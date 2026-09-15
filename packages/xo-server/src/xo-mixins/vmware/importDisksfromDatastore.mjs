@@ -1,3 +1,4 @@
+import { Disposable } from 'promise-toolbox'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { QCOW2_CLUSTER_SIZE, VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VHD_BLOCK_SIZE, VHD_MAX_SIZE } from '@xen-orchestra/xapi'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
@@ -19,37 +20,42 @@ export async function importStream({ esxi, dataMap, disk, vmId, format }, consum
   const signal = Task.abortSignal
   const { datastore: datastoreName, diskPath } = disk
 
-  let vmdk
-  let stream
   try {
+    // the server is stopped whatever happens here: it used to be killed by a `finally` which had
+    // to name the disk and repeat the exact spawn options
     // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
-    const { nbdInfos } = await esxi.spawnNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
-    signal?.throwIfAborted()
-    vmdk = new NbdDisk(nbdInfos, READ_BLOCK_SIZE, { dataMap })
+    return await Disposable.use(esxi.getNbdServer(vmId, `[${datastoreName}] ${diskPath}`), async ({ nbdInfos }) => {
+      let vmdk
+      let stream
+      try {
+        signal?.throwIfAborted()
+        vmdk = new NbdDisk(nbdInfos, READ_BLOCK_SIZE, { dataMap })
 
-    await vmdk.init()
-    signal?.throwIfAborted()
-    vmdk = new ReadAhead(vmdk)
+        await vmdk.init()
+        signal?.throwIfAborted()
+        vmdk = new ReadAhead(vmdk)
 
-    vmdk.addProgressHandler(new TaskProgressHandler())
+        vmdk.addProgressHandler(new TaskProgressHandler())
 
-    if (format === VDI_FORMAT_QCOW2) {
-      stream = await toQcow2Stream(vmdk, { signal })
-    } else {
-      stream = await toVhdStream(vmdk, { signal })
-    }
-    Task.info(`got source stream for ${diskPath}`)
-    await consumerCallback(stream)
-    return Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
+        if (format === VDI_FORMAT_QCOW2) {
+          stream = await toQcow2Stream(vmdk, { signal })
+        } else {
+          stream = await toVhdStream(vmdk, { signal })
+        }
+        Task.info(`got source stream for ${diskPath}`)
+        await consumerCallback(stream)
+        return Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
+      } catch (err) {
+        stream?.destroy(err)
+        throw err
+      } finally {
+        await vmdk?.close().catch(err => warn('error while closing source vmdk', err))
+      }
+    })
   } catch (err) {
-    stream?.destroy(err)
+    // a failure to start the server belongs in the report too, e.g. nbdkit not being installed
     Task.warning(err)
     throw err
-  } finally {
-    await vmdk?.close().catch(err => warn('error while closing source vmdk', err))
-    await esxi
-      .killNbdServer(vmId, `[${datastoreName}] ${diskPath}`)
-      .catch(err => warn('error while stopping nbdkit server', err))
   }
 }
 

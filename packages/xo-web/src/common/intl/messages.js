@@ -653,10 +653,10 @@ const messages = {
   editJobNotFound: "The job you're trying to edit wasn't found",
   preferNbd: 'Use NBD to transfer disk if available',
   preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled.',
-  distributeBackups: 'Distribute backups accross backup repositories',
+  distributeBackups: 'Distribute backups across backup repositories',
   distributeBackupsInformation:
     'This will write exactly one backup archive of each VM instead of writing one per backup repository',
-  distributeReplications: 'Distribute replications accross the storage repositories',
+  distributeReplications: 'Distribute replications across the storage repositories',
   distributeReplicationsInformation:
     'This will write exactly one replication of each VM backup instead of writing one per storage repository',
   nbdConcurrency: 'Number of NBD connection per disk',
@@ -1292,6 +1292,14 @@ const messages = {
   rollingPoolUpdateHaWarning: 'High Availability is enabled. This will automatically disable it during the update.',
   rollingPoolUpdateLoadBalancerWarning:
     'Load Balancer plugin is running. This will automatically pause it during the update.',
+  rpuRecoveryIncompleteTitle: 'Incomplete rolling pool update',
+  rpuRecoveryInterrupted:
+    'The last rolling pool update was interrupted by an xo-server restart. Some hosts may not be updated and some VMs may not be on their original host.',
+  rpuRecoveryFailed:
+    'The last rolling pool update failed before completing. Some hosts may not be updated and some VMs may not be on their original host.',
+  rpuRecoveryBlocked: 'The state of the last rolling pool update could not be read. Manual review is required.',
+  rpuRecoveryLastError: 'Last error:',
+  rpuRecoveryHaltedPinnedVms: 'VMs shut down for the update and not started again yet:',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',

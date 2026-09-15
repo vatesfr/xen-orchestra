@@ -19,7 +19,7 @@ export default function InterfaceNote({ children }: { children?: React.ReactNode
             <strong>XO 5</strong> link in the top-right corner of XO 6.
           </>
         )}{' '}
-        <Link to='/xo6/xo6vsxo5'>See what lives where</Link>.
+        <Link to='/discover-xen-orchestra/xo6vsxo5'>See what lives where</Link>.
       </div>
     </div>
   )

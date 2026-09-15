@@ -6,7 +6,7 @@ import ms from 'ms'
 import map from 'lodash/map.js'
 import noop from 'lodash/noop.js'
 import Obfuscate from '@vates/obfuscate'
-import { Agent, ProxyAgent, request } from 'undici'
+import { Agent, interceptors, ProxyAgent, request } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { compose } from '@vates/compose'
@@ -241,9 +241,13 @@ export class Xapi extends EventEmitter {
     const { httpProxy } = opts
     this._allowUnauthorized = opts.allowUnauthorized
     const dispatcherOpts = {
+      // XAPI speaks HTTP/1.1 only; undici >= 8 offers h2 during ALPN by default,
+      // which buys us nothing here and changes how the TLS handshake looks to
+      // XAPI and to whatever sits in front of it (stunnel, reverse proxies).
+      allowH2: false,
+
       bodyTimeout: this._httpInactivityTimeout,
       headersTimeout: this._httpInactivityTimeout,
-      maxRedirections: 3,
     }
     const tlsOpts = {
       minVersion: 'TLSv1',
@@ -272,6 +276,20 @@ export class Xapi extends EventEmitter {
         connect: tlsOpts,
       })
     }
+
+    // Redirects used to be handled by the dispatcher's `maxRedirections` option,
+    // which undici >= 8 silently ignores: it must now be an explicit
+    // interceptor. This matters when talking to a slave, which answers a 302 to
+    // the pool master. Calls that handle redirections themselves (`getResource`)
+    // keep opting out with a per-request `maxRedirections: 0`.
+    //
+    // Warning: since undici 7, this interceptor follows the fetch spec and
+    // rewrites a redirected POST into a bodyless GET, which would strip the
+    // payload of an RPC call. Harmless for now because XAPI only redirects
+    // GETs (`/export`, `/export_raw_vdi`, `/vm_rrd`) and PUTs (`/import`,
+    // `/import_raw_vdi`, `/messages`, `/rrd_put`), and answers a
+    // `HOST_IS_SLAVE` error instead of a redirection on the RPC endpoints
+    this._undiciDispatcher = this._undiciDispatcher.compose(interceptors.redirect({ maxRedirections: 3 }))
     this._setUrl(url)
 
     // Addresses of known pool members, used to fail over to a surviving host

@@ -14,7 +14,7 @@ import { getOldEntries } from '../../_getOldEntries.mjs'
 
 import { MixinRemoteWriter } from './_MixinRemoteWriter.mjs'
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
-import { checkVhd } from './_checkVhd.mjs'
+import { checkDisk } from './_checkDisk.mjs'
 import { packUuid } from './_packUuid.mjs'
 import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { VDI_FORMAT_QCOW2 } from '@xen-orchestra/xapi'
@@ -274,7 +274,10 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
           }
 
           const transferred = await adapter.writeVhd(path, disk, {
-            validator: tmpPath => checkVhd(handler, tmpPath),
+            // no checksum for VHDs, because they will be invalidated by
+            // merges and chains
+            checksum: false,
+            validator: tmpPath => checkDisk(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
             uuid: packUuid(vdi.uuid),
             parentUuid,

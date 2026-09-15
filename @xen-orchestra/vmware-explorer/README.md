@@ -1,0 +1,72 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# @xen-orchestra/vmware-explorer
+
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/vmware-explorer)](https://npmjs.org/package/@xen-orchestra/vmware-explorer) ![License](https://badgen.net/npm/license/@xen-orchestra/vmware-explorer) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/vmware-explorer)](https://bundlephobia.com/result?p=@xen-orchestra/vmware-explorer) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/vmware-explorer)](https://npmjs.org/package/@xen-orchestra/vmware-explorer)
+
+> Reads the VMs and the disks of an ESXi host or a vCenter
+
+## Install
+
+Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/vmware-explorer):
+
+```sh
+npm install --save @xen-orchestra/vmware-explorer
+```
+
+## Usage
+
+Reads the inventory, the metadata and the disks of an ESXi host or a vCenter, over vim25 SOAP and
+the `/folder` HTTP endpoint, and exports the content of a disk through an `nbdkit` server.
+
+### Errors
+
+Every error raised by this package carries a `code`, so that a caller can branch on a failure
+without matching its message. There are three families.
+
+**Faults of the host** are passed through verbatim, as the vim25 fault type: `FileLocked`,
+`InvalidPowerState`, `ManagedObjectNotFound`, `NotAuthenticated`, `InvalidDeviceSpec`… These are the
+codes to branch on whenever the host itself refused an operation, and they are documented in the
+[vim25 API reference](https://developer.broadcom.com/xapis/vsphere-web-services-api/latest/). A task
+which failed without the host naming a fault type reports `TASK_FAILED` instead.
+
+**Failures of the transport** keep the code of the error underneath: `ECONNREFUSED`, `ECONNRESET`,
+`EHOSTUNREACH`, `ENOTFOUND`, `ETIMEDOUT`, `ENOENT` when a binary is missing, and the
+`UND_ERR_*` codes of [undici](https://github.com/nodejs/undici).
+
+**Failures of this package** use the codes below.
+
+| code                   | meaning                                                                                                                                                                                       |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BAD_VIM25_SPEC`       | A vim25 spec was built with an element the schema does not declare. This one is a bug of this package, not a problem of the host.                                                             |
+| `BAD_VMX_PATH`         | The `files.vmPathName` of a VM is not `[datastore] dir/vm.vmx`. Carries `vmId`.                                                                                                               |
+| `DATACENTER_NOT_FOUND` | No datacenter holds the named datastore, and a file cannot be downloaded without one. Carries `dataStore` and the `dataStores` which are known.                                               |
+| `DATASTORE_NOT_FOUND`  | An absolute disk reference of a vmx or a vmsd is on no known datastore. Carries `filePath` and `dataStoreUrls`.                                                                               |
+| `ESXI_SESSION_EXPIRED` | The session of the HTTP endpoint was refused (401 or 403), which happens on an import lasting hours. Retried after authenticating again.                                                      |
+| `NBDKIT_EXITED`        | The `nbdkit` server exited before it started listening, e.g. on a wrong thumbprint or a missing vddk library. Its logs are named in the message.                                              |
+| `NBDKIT_NOT_LISTENING` | The `nbdkit` server is running, but never started listening on its port.                                                                                                                      |
+| `NO_DATA_MAP`          | The allocated ranges of a disk could not be read: an unreadable vmdk descriptor, or a delta in a format which is not supported. The disk has to be transferred in full instead of as a delta. |
+| `NO_PROPERTY`          | The host returned no value for the property which was read, e.g. because the object is gone.                                                                                                  |
+| `NO_TASK`              | A `*_Task` method answered without a task to wait for.                                                                                                                                        |
+| `RANGE_IGNORED`        | The host answered something else than the byte range which was requested. Reading it would use the wrong offset, or as much memory as the file is big.                                        |
+| `TASK_FAILED`          | A task ended in error, and the host named no fault type for it.                                                                                                                               |
+| `TASK_TIMEOUT`         | A task did not complete within its deadline. It keeps running on the host, so it is **not** retried: starting a second one would not make the first go away.                                  |
+
+`ESXI_SESSION_EXPIRED` and the transport failures are transient, and are retried inside the package
+— while downloading from a datastore, and while polling a task. Every other code is reported to the
+caller on the first occurrence.
+
+## Contributions
+
+Contributions are _very_ welcomed, either on the documentation or on
+the code.
+
+You may:
+
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
+  you've encountered;
+- fork and create a pull request.
+
+## License
+
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

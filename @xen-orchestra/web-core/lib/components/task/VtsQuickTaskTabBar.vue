@@ -1,6 +1,6 @@
 <template>
   <TabList :disabled="loading">
-    <TabItem v-bind="tabs.pending.bindings">
+    <UiTabItem v-bind="tabs.pending.bindings">
       {{ t('in-progress') }}
       <UiCounter
         v-if="pendingCount !== undefined"
@@ -9,8 +9,8 @@
         variant="primary"
         size="small"
       />
-    </TabItem>
-    <TabItem v-bind="tabs.success.bindings">
+    </UiTabItem>
+    <UiTabItem v-bind="tabs.success.bindings">
       {{ t('done') }}
       <UiCounter
         v-if="successCount !== undefined"
@@ -19,8 +19,8 @@
         variant="primary"
         size="small"
       />
-    </TabItem>
-    <TabItem v-bind="tabs.failure.bindings">
+    </UiTabItem>
+    <UiTabItem v-bind="tabs.failure.bindings">
       {{ t('failed') }}
       <UiCounter
         v-if="failureCount !== undefined"
@@ -29,11 +29,11 @@
         variant="primary"
         size="small"
       />
-    </TabItem>
+    </UiTabItem>
     <VtsDivider type="tab" />
-    <TabItem v-bind="tabs.all.bindings">
+    <UiTabItem v-bind="tabs.all.bindings">
       {{ t('all') }}
-    </TabItem>
+    </UiTabItem>
     <!--
     TODO
     <UiButton :right-icon="faAngleRight" class="see-all" level="tertiary" size="extra-small">
@@ -45,9 +45,9 @@
 
 <script lang="ts" setup>
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import TabItem from '@core/components/tab/TabItem.vue'
-import TabList from '@core/components/tab/TabList.vue'
+import TabList from '@core/components/tab-list/TabList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { useTabList } from '@core/composables/tab-list.composable.ts'
 import type { TaskStatus } from '@core/types/task.type.ts'
 import { useI18n } from 'vue-i18n'
