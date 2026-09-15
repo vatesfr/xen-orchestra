@@ -23,6 +23,7 @@
 - [LDAP] Release plugin for LDAP multidomain management (PR [#10015](https://github.com/vatesfr/xen-orchestra/pull/10015))
 - [RPU] Keep track of an interrupted rolling pool update across xo-server restarts: the pool's Patches tab now shows which hosts were updated, the last error, and the VMs that were shut down for the update and not started again (PR [#10331](https://github.com/vatesfr/xen-orchestra/pull/10331))
 - [i18n] Add Turkish and update Czech, Dutch, Slovak and Swedish translations (PR [#10316](https://github.com/vatesfr/xen-orchestra/pull/10316))
+- [XO6/Host] Add icon for disabled host (PR [#10188](https://github.com/vatesfr/xen-orchestra/pull/10188))
 
 ### Bug fixes
 
