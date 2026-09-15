@@ -13,14 +13,14 @@ export function isLegacyEncryptionAlgorithm(algorithm) {
 }
 
 function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
+  if (key === undefined && algorithm !== UNENCRYPTED_ALGORITHM) {
+    const error = new Error(
+      `This remote is encrypted with ${algorithm} but no encryption key is configured. Data cannot be read.`
+    )
+    error.code = 'MISSING_ENCRYPTION_KEY'
+    throw error
+  }
   if (key === undefined) {
-    if (algorithm !== UNENCRYPTED_ALGORITHM) {
-      const error = new Error(
-        `This remote is encrypted with ${algorithm} but no encryption key is configured. Data cannot be read.`
-      )
-      error.code = 'MISSING_ENCRYPTION_KEY'
-      throw error
-    }
     return {
       id: 'NULL_ENCRYPTOR',
       algorithm: 'none',
