@@ -42,7 +42,12 @@ function makeFakeStore() {
   }
 }
 
-const OPTIONS = { rebootVm: true, bypassBackupCheck: false, shutdownPinnedVms: true }
+const OPTIONS = {
+  acceptCurrentStateAsBaseline: false,
+  rebootVm: true,
+  bypassBackupCheck: false,
+  shutdownPinnedVms: true,
+}
 
 describe('createRpuRecoveryRecord()', () => {
   it('creates a preparing v1 record', () => {
@@ -408,6 +413,12 @@ describe('createRpuRecoveryRecorder()', () => {
     }
 
     await assert.rejects(recorder.delete(), /disk error/)
+    // the record left behind is terminal: not flipped to interrupted at boot
+    const record = store.data.get('pool1')
+    assert.equal(record.status, 'succeeded')
+    assert.equal(typeof record.finishedAt, 'string')
+    await reconcileRpuRecoveryAtBoot(store)
+    assert.equal(store.data.get('pool1').status, 'succeeded')
   })
 })
 
@@ -421,6 +432,7 @@ describe('reconcileRpuRecoveryAtBoot()', () => {
       ['cleaning', 'cleaning'],
       ['failed', 'failed'],
       ['interrupted', 'interrupted'],
+      ['succeeded', 'succeeded'],
     ]) {
       const record = createRpuRecoveryRecord({ poolId, options: OPTIONS })
       record.status = status
@@ -435,7 +447,7 @@ describe('reconcileRpuRecoveryAtBoot()', () => {
       assert.equal(record.status, 'interrupted', poolId)
       assert.equal(typeof record.interruptedAt, 'string')
     }
-    for (const poolId of ['failed', 'interrupted']) {
+    for (const poolId of ['failed', 'interrupted', 'succeeded']) {
       assert.equal(store.data.get(poolId).status, poolId)
     }
     // unknown version left untouched: blocked at read time, the value is evidence

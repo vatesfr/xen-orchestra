@@ -974,7 +974,12 @@ export default class XenServers {
 
     // strict write before any side effect: if the record cannot be persisted,
     // an interruption could not be reported, so the run must not start
-    const recorder = await app.startRpuRecoveryRun(poolId, { rebootVm, bypassBackupCheck, shutdownPinnedVms })
+    const recorder = await app.startRpuRecoveryRun(poolId, {
+      acceptCurrentStateAsBaseline,
+      rebootVm,
+      bypassBackupCheck,
+      shutdownPinnedVms,
+    })
 
     // every failure from here on is persisted before the caller sees it: the
     // pool state starts changing below (schedules, load balancer, WLB)
@@ -1056,10 +1061,10 @@ export default class XenServers {
       throw error
     }
 
-    // a successful run needs no recovery: the record must be gone, or the
-    // run would be reported as interrupted at the next restart. That report
-    // is the only consequence of a failed delete, so it must not fail an RPU
-    // that succeeded: log it and let the operator dismiss the record
+    // a successful run needs no recovery: the record must be gone. If the
+    // delete fails, the recorder has stamped the record `succeeded` so the
+    // run is not reported as interrupted at the next restart; a stale record
+    // must not fail an RPU that succeeded: log it
     try {
       await recorder.delete()
     } catch (error) {

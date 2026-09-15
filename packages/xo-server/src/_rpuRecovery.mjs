@@ -48,8 +48,8 @@ export function filterError(error) {
  *
  * @param {object} params
  * @param {string} params.poolId
- * @param {object} params.options - Operator-consented options (`rebootVm`,
- *   `bypassBackupCheck`, `shutdownPinnedVms`), impossible to reconstruct later
+ * @param {object} params.options - Operator-consented options (`acceptCurrentStateAsBaseline`,
+ *   `rebootVm`, `bypassBackupCheck`, `shutdownPinnedVms`), impossible to reconstruct later
  * @returns {object}
  */
 export function createRpuRecoveryRecord({ poolId, options }) {
@@ -237,6 +237,19 @@ export function createRpuRecoveryRecorder({ store, record }) {
     await chain
     await store.del(record.poolId)
   }
+  // a record that survives a successful run must not be reported as
+  // interrupted at the next restart: it is stamped `succeeded` (best effort)
+  // before the delete failure is rethrown
+  const deleteOrSucceed = async () => {
+    try {
+      await deleteRecord()
+    } catch (error) {
+      record.status = 'succeeded'
+      record.finishedAt = new Date().toISOString()
+      await enqueueWrite().catch(warnOnce)
+      throw error
+    }
+  }
   const hostEntry = hostId => (record.hosts[hostId] ??= { steps: {} })
   // `failed` is sticky: the first failure of a step is never downgraded
   const setStep = (hostId, name, patch) => {
@@ -348,7 +361,7 @@ export function createRpuRecoveryRecorder({ store, record }) {
     },
     // a successful run leaves no record behind: strict, a record left on disk
     // would report the run as interrupted at the next restart
-    delete: deleteRecord,
+    delete: deleteOrSucceed,
   }
 }
 
