@@ -42,8 +42,12 @@ export function format(info: BackupRepositoryUrlInput): string {
     case 'azurite':
       url = `${protocol === 'https' ? 'azurite' : 'azurite+http'}://${credentials}`
       break
-    default:
+    case 'file':
+    case 'local':
       url = 'file://'
+      break
+    default:
+      throw new Error(`invalid backup repository type: ${type}`)
   }
 
   const sanitized = sanitizePath(path)

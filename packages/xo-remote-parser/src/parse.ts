@@ -72,11 +72,11 @@ function parseNfsUrl(rest: string): ParsedNfsBackupRepositoryUrl {
   return { ...parseOptions(search), type: 'nfs', host, port, path: withLeadingSlash(path) }
 }
 
-function parseSmbUrl(rest: string): ParsedSmbBackupRepositoryUrl | undefined {
+function parseSmbUrl(rest: string): ParsedSmbBackupRepositoryUrl {
   const matches = SMB_RE.exec(rest)
 
   if (matches === null) {
-    return undefined
+    throw new Error('Invalid SMB url')
   }
 
   // matches[0] is the complete match
@@ -124,7 +124,7 @@ export function parse(url: string): ParsedBackupRepositoryUrl {
     case 'nfs':
       return parseNfsUrl(rest)
     case 'smb':
-      return parseSmbUrl(rest) ?? {}
+      return parseSmbUrl(rest)
     case 's3':
       return parseS3Url(url, 'https')
     case 's3+http':
