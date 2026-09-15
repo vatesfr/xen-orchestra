@@ -17,6 +17,7 @@
 import { createServer, type Server } from 'node:http'
 import { Agent, request as undiciRequest } from 'undici'
 import { asyncEach } from '@vates/async-each'
+import { coalesceCalls } from '@vates/coalesce-calls'
 import { createLogger } from '@xen-orchestra/log'
 
 import { parseRrdResponse, type ParsedRrdData } from './rrd-parser.mjs'
@@ -779,13 +780,7 @@ async function collectMetrics(): Promise<string> {
  * metric instead of piling up, each pulling full payloads from
  * the parent over IPC until the parent ran out of memory.
  */
-let inFlightCollection: Promise<string> | undefined
-function collectMetricsShared(): Promise<string> {
-  inFlightCollection ??= collectMetrics().finally(() => {
-    inFlightCollection = undefined
-  })
-  return inFlightCollection
-}
+const collectMetricsShared = coalesceCalls(collectMetrics)
 
 async function startServer(): Promise<void> {
   if (configuration === undefined) {
