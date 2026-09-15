@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import filter from 'lodash/filter.js'
+import uniqBy from 'lodash/uniqBy.js'
 import { createLogger } from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
@@ -7,7 +8,7 @@ import { invalidCredentials, noSuchObject, objectAlreadyExists } from 'xo-common
 
 import * as XenStore from '../_XenStore.mjs'
 import { Groups } from '../models/group.mjs'
-import { Users } from '../models/user.mjs'
+import { UNIQUE_FIELDS, Users } from '../models/user.mjs'
 import { forEach, isEmpty, lightSet } from '../utils.mjs'
 
 /**
@@ -60,16 +61,21 @@ export default class {
         groups => groupsDb.update(groups),
         ['users']
       )
+      const findConflictUsers = async user => {
+        const matches = await Promise.all(
+          UNIQUE_FIELDS.filter(field => user[field] != null).map(field => usersDb.get({ [field]: user[field] }))
+        )
+        return uniqBy(matches.flat(), 'id').filter(({ id }) => id !== user.id)
+      }
       app.addConfigManager(
         'users',
         () => usersDb.get(),
         users =>
           Promise.all(
             users.map(async user => {
-              const userId = user.id
-              const conflictUsers = await usersDb.get({ email: user.email })
+              const conflictUsers = await findConflictUsers(user)
               if (!isEmpty(conflictUsers)) {
-                await Promise.all(conflictUsers.map(({ id }) => id !== userId && this.deleteUser(id)))
+                await Promise.all(conflictUsers.map(({ id }) => this.deleteUser(id)))
               }
               return usersDb.update(user)
             })
