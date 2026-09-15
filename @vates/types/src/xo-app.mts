@@ -476,6 +476,7 @@ export type XoApp = EventEmitter & {
     diskId: string
     hostId: XoHost['id']
   }): Promise<BackupArchiveDiskMount>
+  getVmBackupArchive(id: XoVmBackupArchive['id']): Promise<XoVmBackupArchive>
   pingRemote(id: XoBackupRepository['id']): Promise<{ success: true }>
   /**
    * Record the live mounts a proxy created by itself, while running a restore: they never went
