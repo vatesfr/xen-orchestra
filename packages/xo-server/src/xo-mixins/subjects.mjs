@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import filter from 'lodash/filter.js'
+import uniqBy from 'lodash/uniqBy.js'
 import { createLogger } from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
@@ -7,7 +8,7 @@ import { invalidCredentials, noSuchObject, objectAlreadyExists } from 'xo-common
 
 import * as XenStore from '../_XenStore.mjs'
 import { Groups } from '../models/group.mjs'
-import { Users } from '../models/user.mjs'
+import { UNIQUE_FIELDS, Users } from '../models/user.mjs'
 import { forEach, isEmpty, lightSet } from '../utils.mjs'
 
 /**
@@ -45,7 +46,7 @@ export default class {
       const usersDb = (this._users = new Users({
         connection: redis,
         namespace: 'user',
-        indexes: ['email'],
+        indexes: ['email', 'username'],
         crypto: app.cryptoCredentials,
       }))
       app.hooks.emit('registerCollection', {
@@ -60,16 +61,21 @@ export default class {
         groups => groupsDb.update(groups),
         ['users']
       )
+      const findConflictUsers = async user => {
+        const matches = await Promise.all(
+          UNIQUE_FIELDS.filter(field => user[field] != null).map(field => usersDb.get({ [field]: user[field] }))
+        )
+        return uniqBy(matches.flat(), 'id').filter(({ id }) => id !== user.id)
+      }
       app.addConfigManager(
         'users',
         () => usersDb.get(),
         users =>
           Promise.all(
             users.map(async user => {
-              const userId = user.id
-              const conflictUsers = await usersDb.get({ email: user.email })
+              const conflictUsers = await findConflictUsers(user)
               if (!isEmpty(conflictUsers)) {
-                await Promise.all(conflictUsers.map(({ id }) => id !== userId && this.deleteUser(id)))
+                await Promise.all(conflictUsers.map(({ id }) => this.deleteUser(id)))
               }
               return usersDb.update(user)
             })
@@ -158,16 +164,28 @@ export default class {
       email,
 
       authProviders,
+      firstname,
+      lastname,
       name = email,
       password,
       permission,
       preferences,
+      username,
     }
   ) {
     const user = await this.getUser(id)
 
     if (name) {
       user.name = name
+    }
+    if (firstname !== undefined) {
+      user.firstname = firstname
+    }
+    if (lastname !== undefined) {
+      user.lastname = lastname
+    }
+    if (username) {
+      user.username = username
     }
     if (permission) {
       user.permission = permission
@@ -218,18 +236,7 @@ export default class {
     user.email = user.name
     delete user.name
 
-    try {
-      await this._users.update(user)
-    } catch (error) {
-      if (error.message === `the user ${user.email} already exists`) {
-        const existingUser = await this._users.first({ email: user.email })
-        throw objectAlreadyExists({
-          objectId: existingUser.id,
-          objectType: 'user',
-        })
-      }
-      throw error
-    }
+    await this._users.update(user)
   }
 
   // Merge this method in getUser() when plain objects.

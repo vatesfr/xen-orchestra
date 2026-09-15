@@ -1,4 +1,5 @@
 import isEmpty from 'lodash/isEmpty.js'
+import { objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import Collection from '../collection/redis.mjs'
 
@@ -6,16 +7,31 @@ import { parseProp } from './utils.mjs'
 
 // ===================================================================
 
+export const UNIQUE_FIELDS = ['email', 'username']
+
 export class Users extends Collection {
-  async _beforeAdd({ email }) {
-    if (await this.exists({ email })) {
-      throw new Error(`the user ${email} already exists`)
+  async _checkUnique(field, value) {
+    if (value == null) {
+      return
+    }
+
+    const existingUser = await this.first({ [field]: value })
+    if (existingUser !== undefined) {
+      throw objectAlreadyExists({ objectId: existingUser.id, objectType: 'user' })
     }
   }
 
-  _beforeUpdate(user, previous) {
-    if (user.email !== previous.email) {
-      return this._beforeAdd(user)
+  async _beforeAdd(user) {
+    for (const field of UNIQUE_FIELDS) {
+      await this._checkUnique(field, user[field])
+    }
+  }
+
+  async _beforeUpdate(user, previous) {
+    for (const field of UNIQUE_FIELDS) {
+      if (user[field] !== previous[field]) {
+        await this._checkUnique(field, user[field])
+      }
     }
   }
 
