@@ -7,7 +7,7 @@ import type {
   ParsedNfsBackupRepositoryUrl,
   ParsedS3BackupRepositoryUrl,
   ParsedSmbBackupRepositoryUrl,
-} from '@/modules/backup/types/xo-backup-repository.type.ts'
+} from './types'
 
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:?]+)(\?[^?]*)?$/
 const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0?]+)(?:\0([^?]*))?(\?[^?]*)?$/
@@ -115,7 +115,7 @@ function parseAzureUrl(
   return { ...parseOptions(search), type, protocol, host, port, path, username, password }
 }
 
-export function parseBackupRepositoryUrl(url: string): ParsedBackupRepositoryUrl | undefined {
+export function parse(url: string): ParsedBackupRepositoryUrl {
   const [scheme, rest = ''] = url.split('://')
 
   switch (scheme) {
@@ -124,7 +124,7 @@ export function parseBackupRepositoryUrl(url: string): ParsedBackupRepositoryUrl
     case 'nfs':
       return parseNfsUrl(rest)
     case 'smb':
-      return parseSmbUrl(rest)
+      return parseSmbUrl(rest) ?? {}
     case 's3':
       return parseS3Url(url, 'https')
     case 's3+http':
@@ -136,6 +136,6 @@ export function parseBackupRepositoryUrl(url: string): ParsedBackupRepositoryUrl
     case 'azurite+http':
       return parseAzureUrl(url, 'azurite', 'http')
     default:
-      return undefined
+      return {}
   }
 }

@@ -1,7 +1,4 @@
-import type {
-  BackupRepositoryUrlOptions,
-  BackupRepositoryUrlInput,
-} from '@/modules/backup/types/xo-backup-repository.type.ts'
+import type { BackupRepositoryUrlInput, BackupRepositoryUrlOptions } from './types'
 
 const sanitizePath = (path: string | undefined) =>
   (path ?? '')
@@ -22,7 +19,7 @@ function formatOptions(options: BackupRepositoryUrlOptions): string {
   return search.toString()
 }
 
-export function formatBackupRepositoryUrl(info: BackupRepositoryUrlInput): string {
+export function format(info: BackupRepositoryUrlInput): string {
   const { type, host, path, port, username, password, domain, protocol = type, region, ...options } = info
 
   const credentials = `${encodeURIComponent(username ?? '')}:${encodeURIComponent(password ?? '')}@${host}`
