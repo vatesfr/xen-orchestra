@@ -21,6 +21,11 @@ export function listReplicatedVms(xapi, scheduleOrJobId, srUuid, vmUuid) {
   for (const key in all) {
     const object = all[key]
     const oc = object.other_config
+    // a snapshot on the target, not on the source VM
+    const isReplicationSnapshot =
+      object.is_a_snapshot && object.$snapshot_of !== undefined && object.$snapshot_of.uuid !== vmUuid
+    // a replicated full VM
+    const isOldStyleReplica = !object.is_a_snapshot && 'start' in object.blocked_operations
     if (
       object.$type === 'VM' &&
       !object.is_a_template &&
@@ -29,7 +34,12 @@ export function listReplicatedVms(xapi, scheduleOrJobId, srUuid, vmUuid) {
       oc[VM_UUID] === vmUuid &&
       // Old-style replication: one VM per transfer (non-snapshot, start blocked)
       // New-style replication: snapshots of the target VM represent each transfer
-      (!object.is_a_snapshot ? 'start' in object.blocked_operations : true)
+      //
+      // A snapshot of the VM designated by VM_UUID is the backup snapshot taken by the
+      // job on the source VM, never a replication entry: a replication snapshot is a
+      // snapshot of a replica. Without this, a job replicating to an SR of the source
+      // pool destroys its own rolling snapshots.
+      (isOldStyleReplica || isReplicationSnapshot)
     ) {
       vms[object.$id] = object
     }
