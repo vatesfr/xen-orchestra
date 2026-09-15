@@ -121,6 +121,7 @@
   "action:revert-to-snapshot": "Revert to snapshot",
   "action:revert-vm-here": "Revert VM here",
   "action:save": "Save",
+  "job:host-change-state:in-progress": "Host change state in progress…",
   "action:search": "Search",
   "action:search-treeview": "Search in treeview",
   "action:see-all": "See all",
