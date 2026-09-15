@@ -16,6 +16,7 @@ import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type
 import type { Response as ExResponse } from 'express'
 import { invalidParameters } from 'xo-common/api-errors.js'
 import { BASE_URL, NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import * as CM from 'complex-matcher'
 
 const noop = () => {}
 
@@ -57,6 +58,20 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
         : []
     ) as AnyPrivilege[]
 
+    const nodes: CM.Node[] = []
+    userPrivileges.forEach(userPrivilege => {
+      if (userPrivilege.selector) {
+        nodes.push(CM.parse(userPrivilege.selector))
+      }
+    })
+
+    let resolver: (id: string) => object | undefined
+    if (nodes.length > 0) {
+      resolver = await this.restApi.buildResolver(objects, new CM.And(nodes))
+    } else {
+      resolver = this.restApi.resolver
+    }
+
     let limit = opts?.limit ?? Infinity
     for (const object of objects) {
       if (limit === 0) {
@@ -65,7 +80,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
 
       if (
         opts?.privilege !== undefined &&
-        !hasPrivilegeOn({ user, userPrivileges, objects: object, ...opts.privilege })
+        !hasPrivilegeOn({ user, userPrivileges, objects: object, ...opts.privilege }, resolver)
       ) {
         continue
       }
@@ -105,15 +120,20 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     const objectFilter = (task: XoTask) =>
       task.properties.objectId === object.id || task.properties.params?.id === object.id
 
-    let userFilter: (task: XoTask) => boolean = () => true
-    if (filter !== undefined) {
-      userFilter = typeof filter === 'string' ? safeParseComplexMatcher(filter).createPredicate() : filter
+    const objectTasks: XoTask[] = []
+    for await (const task of this.restApi.tasks.list({ filter: objectFilter })) {
+      objectTasks.push(task)
     }
 
-    for await (const task of this.restApi.tasks.list({ filter: objectFilter })) {
-      if (limit === 0) {
-        break
-      }
+    let userFilter: (task: XoTask) => boolean = () => true
+    if (filter !== undefined) {
+      const parsedFilter = safeParseComplexMatcher(filter)
+      userFilter = parsedFilter.createPredicate(await this.restApi.buildResolver(objectTasks, parsedFilter))
+    }
+
+    for (const task of objectTasks) {
+      if (limit === 0) break
+
       if (userFilter(task)) {
         tasks[task.id] = task
         limit--

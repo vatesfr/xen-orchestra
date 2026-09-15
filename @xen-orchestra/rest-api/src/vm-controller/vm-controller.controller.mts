@@ -169,7 +169,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVdi>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmController['id'], 'VM-controller')
-    return this.sendObjects(limitAndFilterArray(vdis, { filter }), req, {
+    return this.sendObjects(limitAndFilterArray(vdis, { filter }, this.restApi.resolver), req, {
       path: obj => obj.type.toLowerCase() + 's',
       limit,
       privilege: { action: 'read', resource: 'vdi' },

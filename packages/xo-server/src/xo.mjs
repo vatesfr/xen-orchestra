@@ -142,6 +142,33 @@ export default class Xo extends EventEmitter {
     return obj
   }
 
+  async getAnyObject(id) {
+    const getters = [
+      Promise.resolve().then(() => this.getObject(id)),
+      this.getUser(id),
+      this.getGroup(id),
+      this.getProxy(id),
+      this.getSchedule(id),
+      this.getJob(id),
+      this.getAclV2Role(id),
+      this.getAclV2Privilege(id),
+    ]
+
+    return Promise.all(
+      getters.map(promise =>
+        promise.then(
+          value => Promise.reject(value),
+          error => error
+        )
+      )
+    ).then(
+      () => {
+        throw noSuchObject(id)
+      },
+      value => value
+    )
+  }
+
   hasObject(key, type) {
     try {
       return this.getObject(key, type) !== undefined

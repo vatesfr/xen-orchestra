@@ -11,6 +11,7 @@ import type {
   XoPool,
   XoPoolBackupArchive,
   XoProxy,
+  XoRecord,
   XoSchedule,
   XoServer,
   XoTask,
@@ -462,6 +463,7 @@ export type XoApp = {
   ): Promise<XoBackupRepository>
   getAllXapis(): Record<string, Xapi>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
+  getAnyObject(id: XoRecord['id']): Promise<XoRecord>
   getLicenses(params?: { productType?: LicenseProductType }): Promise<License[]>
   bindLicense(params: { licenseId: string; boundObjectId: string }): Promise<License>
   unbindLicense(params: {

@@ -1,6 +1,7 @@
 import { createLogger } from '@xen-orchestra/log'
-import { invalidCredentials } from 'xo-common/api-errors.js'
-import type { XapiXoRecord, XoApp, XoUser } from '@vates/types'
+import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
+import type { XapiXoRecord, XoApp, XoRecord, XoUser } from '@vates/types'
+import * as CM from 'complex-matcher'
 
 import type { Container } from 'inversify'
 import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
@@ -50,12 +51,73 @@ export class RestApi {
     return this.#xoApp.getObject(id, type)
   }
 
+  resolver = (id: string): object | undefined => {
+    try {
+      return this.#xoApp.getObject(id as XapiXoRecord['id'])
+    } catch {
+      return undefined
+    }
+  }
+
+  async buildResolver(objects: object | object[], filterNode: CM.Node): Promise<(id: string) => object | undefined> {
+    let objectArray: object[]
+    if (!Array.isArray(objects)) {
+      objectArray = [objects]
+    } else {
+      objectArray = objects
+    }
+
+    const anyObjects: Map<string, object> = new Map()
+    const process = async (objectsToProcess: object[], node: CM.Node) => {
+      const fields = CM.getResolveFields(node)
+
+      for (const field of fields) {
+        const objectIds: XoRecord['id'][] = []
+        for (const objectToProcess of objectsToProcess) {
+          const ids = field.path.reduce((object, path) => object?.[path], objectToProcess)
+          if (ids !== undefined) {
+            for (const id of Array.isArray(ids) ? ids : [ids]) {
+              if (!anyObjects.has(id) && !objectIds.includes(id)) {
+                objectIds.push(id)
+              }
+            }
+          }
+        }
+
+        const fetchedObjects: object[] = []
+        for (const objectId of objectIds) {
+          let fetchedObject
+          try {
+            fetchedObject = await this.#xoApp.getAnyObject(objectId)
+          } catch (error) {
+            if (!noSuchObject.is(error)) {
+              throw error
+            }
+          }
+
+          if (fetchedObject !== undefined) {
+            anyObjects.set(objectId, fetchedObject)
+            fetchedObjects.push(fetchedObject)
+          }
+        }
+
+        if (fetchedObjects.length > 0) {
+          await process(fetchedObjects, field.resolveNode.child)
+        }
+      }
+    }
+
+    await process(objectArray, filterNode)
+
+    return (id: string) => anyObjects.get(id) ?? this.resolver(id)
+  }
+
   getObjectsByType<T extends XapiXoRecord>(
     type: T['type'],
     { filter, ...opts }: { filter?: string | ((obj: T) => boolean); limit?: number } = {}
   ): Record<T['id'], T> {
     if (filter !== undefined && typeof filter === 'string') {
-      filter = safeParseComplexMatcher(filter).createPredicate()
+      filter = safeParseComplexMatcher(filter).createPredicate(this.resolver)
     }
     return this.#xoApp.getObjectsByType(type, { filter, ...opts }) ?? ({} as Record<T['id'], T>)
   }

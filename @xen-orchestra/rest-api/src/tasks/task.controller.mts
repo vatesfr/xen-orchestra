@@ -96,7 +96,8 @@ export class TaskController extends XoController<XoTask> {
         throw new ApiError('watch=true requires ndjson=true', 400)
       }
 
-      const userFilter = filter === undefined ? undefined : safeParseComplexMatcher(filter).createPredicate()
+      const userFilter =
+        filter === undefined ? undefined : safeParseComplexMatcher(filter).createPredicate(this.restApi.resolver)
       const mapper = makeObjectMapper(req)
       const stream = new Transform({
         objectMode: true,
@@ -147,7 +148,10 @@ export class TaskController extends XoController<XoTask> {
             : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
         if (
-          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
+          hasPrivilegeOn(
+            { user, userPrivileges, action: 'read', resource: 'task', objects: task },
+            this.restApi.resolver
+          ) &&
           (userFilter === undefined || userFilter(task))
         ) {
           safeWrite(['update', task])
@@ -161,7 +165,10 @@ export class TaskController extends XoController<XoTask> {
             : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
         if (
-          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
+          hasPrivilegeOn(
+            { user, userPrivileges, action: 'read', resource: 'task', objects: task },
+            this.restApi.resolver
+          ) &&
           (userFilter === undefined || userFilter(task))
         ) {
           safeWrite(['remove', { id: task.id }])
@@ -231,7 +238,12 @@ export class TaskController extends XoController<XoTask> {
 
     const deletePromises: Promise<void>[] = []
     for await (const task of this.restApi.tasks.list()) {
-      if (hasPrivilegeOn({ user, userPrivileges, resource: 'task', action: 'delete', objects: task })) {
+      if (
+        hasPrivilegeOn(
+          { user, userPrivileges, resource: 'task', action: 'delete', objects: task },
+          this.restApi.resolver
+        )
+      ) {
         deletePromises.push(this.restApi.tasks.deleteLog(task.id))
       }
     }
