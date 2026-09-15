@@ -51,7 +51,7 @@
 - [V2V] The credentials are no longer sent again on every read of a disk, and a session expiring during a long import is renewed (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 - [V2V] The session opened on the source host is now closed when a listing, a migration or a disk export ends, instead of piling up until it expires — a host only accepts a limited number of them (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 - [V2V] Report what the source host complained about, instead of `task execution failed` or an assertion error, when an operation fails (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
-- [xo-server] Set the VM topology to `1 core per socket` when a VM update attempts to apply a CPU configuration that is incompatible with the VM topology (PR [#10398](https://github.com/vatesfr/xen-orchestra/pull/10398))
+- [xo-server] Set the VM topology to `1 core per socket` when a VM update attempts to apply a CPU static max configuration that is incompatible with the VM topology (PR [#10398](https://github.com/vatesfr/xen-orchestra/pull/10398))
 
 ### Packages to release
 
