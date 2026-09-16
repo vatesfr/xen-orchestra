@@ -257,6 +257,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
   /**
    * Purely additive: the previous hash at this index keeps its block file until
    * flushMetadata notices no BAT entry references it any more.
+   * TODO: phase 3
    */
   async writeBlock({ index, data }: DiskBlock): Promise<number> {
     const blockSize = this.getBlockSize()
