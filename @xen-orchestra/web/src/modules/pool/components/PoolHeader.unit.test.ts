@@ -2,7 +2,8 @@ import PoolHeader from '@/modules/pool/components/PoolHeader.vue'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createPool } from '@/test/create-pool.ts'
-import { createTestRouter } from '@/test/create-test-router.ts'
+import { createTestRouterAt } from '@/test/create-test-router.ts'
+import { findActiveTabLabels, findInAppTabHrefs, findTab, findTabLabels } from '@/test/find-tabs.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -24,20 +25,10 @@ async function mountHeader(
   pool: FrontXoPool = createPool({ id: 'pool-42' as FrontXoPool['id'] }),
   initialPath?: string
 ) {
-  const router = createTestRouter()
-
-  if (initialPath !== undefined) {
-    await router.push(initialPath)
-  }
-
   return mount(PoolHeader, {
     props: { pool },
-    global: createGlobalTestConfig({ router }),
+    global: createGlobalTestConfig({ router: await createTestRouterAt(initialPath) }),
   })
-}
-
-function findTabs(wrapper: Awaited<ReturnType<typeof mountHeader>>) {
-  return wrapper.findAll('.ui-tab-item')
 }
 
 it('shows the name of the pool', async () => {
@@ -49,7 +40,7 @@ it('shows the name of the pool', async () => {
 it('lists every tab of the pool, in order', async () => {
   const wrapper = await mountHeader()
 
-  expect(findTabs(wrapper).map(tab => tab.text())).toEqual([
+  expect(findTabLabels(wrapper)).toEqual([
     t('dashboard'),
     t('stats'),
     t('system'),
@@ -65,11 +56,7 @@ it('lists every tab of the pool, in order', async () => {
 it('points every in-app tab at the page of that pool', async () => {
   const wrapper = await mountHeader()
 
-  const inAppHrefs = findTabs(wrapper)
-    .filter(tab => tab.element.tagName === 'A')
-    .map(tab => tab.attributes('href'))
-
-  expect(inAppHrefs).toEqual([
+  expect(findInAppTabHrefs(wrapper)).toEqual([
     '/pool/pool-42/dashboard',
     '/pool/pool-42/system',
     '/pool/pool-42/networks',
@@ -84,7 +71,7 @@ it('points every in-app tab at the page of that pool', async () => {
 it('sends the stats tab to XO 5 rather than to an in-app page', async () => {
   const wrapper = await mountHeader()
 
-  const statsTab = findTabs(wrapper).find(tab => tab.text() === t('stats'))!
+  const statsTab = findTab(wrapper, t('stats'))
 
   expect(statsTab.element.tagName).not.toBe('A')
   expect(statsTab.get('a').attributes('href')).toBe('https://xo5.example.com/#/pools/pool-42/stats')
@@ -93,17 +80,13 @@ it('sends the stats tab to XO 5 rather than to an in-app page', async () => {
 it('marks the tab of the current route as the active one', async () => {
   const wrapper = await mountHeader(createPool({ id: 'pool-42' as FrontXoPool['id'] }), '/pool/pool-42/system')
 
-  const activeTabs = findTabs(wrapper)
-    .filter(tab => tab.classes('active'))
-    .map(tab => tab.text())
-
-  expect(activeTabs).toEqual([t('system')])
+  expect(findActiveTabLabels(wrapper)).toEqual([t('system')])
 })
 
 it('marks no tab as active while no pool page is open', async () => {
   const wrapper = await mountHeader()
 
-  expect(findTabs(wrapper).filter(tab => tab.classes('active'))).toHaveLength(0)
+  expect(findActiveTabLabels(wrapper)).toEqual([])
 })
 
 it('offers to create a VM on that pool', async () => {

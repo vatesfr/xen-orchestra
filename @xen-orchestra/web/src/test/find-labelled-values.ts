@@ -16,6 +16,24 @@ export function findLabelledValues(wrapper: QueryableWrapper): Record<string, st
 }
 
 /**
+ * Same as {@link findLabelledValues}, reading the href of the rows whose value
+ * is a link rather than their text. Rows without a link are left out, so the
+ * result names *which* rows link somewhere instead of relying on the position
+ * of the linked one.
+ */
+export function findLabelledLinks(wrapper: QueryableWrapper): Record<string, string | undefined> {
+  const rows = wrapper.findAll('.vts-tabular-key-value-row, .vts-key-value-row')
+
+  return Object.fromEntries(
+    rows.flatMap(row => {
+      const link = row.find('dd.value a')
+
+      return link.exists() ? [[row.get('dt.label').text(), link.attributes('href')]] : []
+    })
+  )
+}
+
+/**
  * Same as {@link findLabelledValues}, for the `VtsCardRowKeyValue` rows used by
  * the side-panel cards.
  */

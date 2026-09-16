@@ -63,10 +63,11 @@ Prefer this shape: one assertion covering every row a user sees, and it fails lo
 
 `src/test/find-labelled-values.ts` does exactly that reduction, so a card test does not re-roll it:
 
-| Helper                   | Reads                                                      |
-| ------------------------ | ---------------------------------------------------------- |
-| `findLabelledValues`     | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card |
-| `findCardLabelledValues` | every `VtsCardRowKeyValue` of a side-panel card            |
+| Helper                   | Reads                                                           |
+| ------------------------ | --------------------------------------------------------------- |
+| `findLabelledValues`     | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card      |
+| `findLabelledLinks`      | the same rows, as `{ label: href }`, skipping the unlinked ones |
+| `findCardLabelledValues` | every `VtsCardRowKeyValue` of a side-panel card                 |
 
 ```typescript
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
@@ -181,23 +182,26 @@ Three things shape those assertions:
 
 Because the routes are the real ones, `href` assertions are real paths (`/vm/vm-42/system`) rather than a stub's echo of its own prop. Page components are swapped for an empty one: a test never renders a page, and installing a router runs an initial navigation that would otherwise import the whole page module graph.
 
-A test that needs to navigate builds its own router and pushes before mounting:
+A test that needs to navigate takes a router already pushed to that path, from `createTestRouterAt`:
 
 ```typescript
-const router = createTestRouter()
-await router.push('/vm/vm-42/system')
+const router = await createTestRouterAt('/vm/vm-42/system')
 
 const wrapper = mount(VmHeader, { props: { vm }, global: createGlobalTestConfig({ router }) })
 
-expect(
-  wrapper
-    .findAll('.tab-item')
-    .filter(tab => tab.classes('active'))
-    .map(tab => tab.text())
-).toEqual([t('system')])
+expect(findActiveTabLabels(wrapper)).toEqual([t('system')])
 ```
 
 Pushing before mounting is what makes the active tab assertable; without a push the router sits at its start location and nothing is active.
+
+Every header renders the same tab bar, so `src/test/find-tabs.ts` reads it instead of each header test re-rolling the queries:
+
+| Helper                | Reads                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------------- |
+| `findTabLabels`       | the label of every tab, in order                                                       |
+| `findInAppTabHrefs`   | the href of the tabs navigating inside XO 6                                            |
+| `findActiveTabLabels` | the label of the tabs marked active                                                    |
+| `findTab`             | one tab by its label — reaches a tab whose link leaves for XO 5, which the others skip |
 
 ## What `happy-dom` cannot do
 

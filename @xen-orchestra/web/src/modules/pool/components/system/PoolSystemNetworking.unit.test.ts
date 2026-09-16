@@ -5,7 +5,7 @@ import type {
 import PoolSystemNetworking from '@/modules/pool/components/system/PoolSystemNetworking.vue'
 import { createNetwork } from '@/test/create-network.ts'
 import { createPool } from '@/test/create-pool.ts'
-import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findLabelledLinks, findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -50,7 +50,7 @@ it('shows a busy state instead of the rows while the networks are loading', () =
   const wrapper = mountNetworking()
 
   expect(wrapper.find('.vts-state-hero').exists()).toBe(true)
-  expect(wrapper.findAll('.vts-tabular-key-value-row')).toHaveLength(0)
+  expect(findLabelledValues(wrapper)).toEqual({})
 })
 
 it('links the backup network row to the networks page of the pool owning that network', () => {
@@ -65,7 +65,7 @@ it('links the backup network row to the networks page of the pool owning that ne
   const wrapper = mountNetworking('network-1')
 
   expect(findLabelledValues(wrapper)).toEqual({ [t('backup-network')]: 'Backup Network' })
-  expect(wrapper.get('.vts-tabular-key-value-row a').attributes('href')).toBe('/pool/pool-1/networks?id=network-1')
+  expect(findLabelledLinks(wrapper)).toEqual({ [t('backup-network')]: '/pool/pool-1/networks?id=network-1' })
 })
 
 it('looks the backup network up by the id the pool configured', () => {

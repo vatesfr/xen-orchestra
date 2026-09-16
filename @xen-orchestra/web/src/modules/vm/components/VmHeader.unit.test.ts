@@ -1,8 +1,9 @@
 import VmHeader from '@/modules/vm/components/VmHeader.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import { createTestRouter } from '@/test/create-test-router.ts'
+import { createTestRouterAt } from '@/test/create-test-router.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findActiveTabLabels, findInAppTabHrefs, findTab, findTabLabels } from '@/test/find-tabs.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -23,20 +24,10 @@ beforeEach(() => {
 })
 
 async function mountHeader(vm: FrontXoVm = createVm({ id: 'vm-42' as FrontXoVm['id'] }), initialPath?: string) {
-  const router = createTestRouter()
-
-  if (initialPath !== undefined) {
-    await router.push(initialPath)
-  }
-
   return mount(VmHeader, {
     props: { vm },
-    global: createGlobalTestConfig({ router }),
+    global: createGlobalTestConfig({ router: await createTestRouterAt(initialPath) }),
   })
-}
-
-function findTabs(wrapper: Awaited<ReturnType<typeof mountHeader>>) {
-  return wrapper.findAll('.ui-tab-item')
 }
 
 /**
@@ -64,7 +55,7 @@ it('shows the name of the VM', async () => {
 it('lists every tab of the VM, in order', async () => {
   const wrapper = await mountHeader()
 
-  expect(findTabs(wrapper).map(tab => tab.text())).toEqual([
+  expect(findTabLabels(wrapper)).toEqual([
     t('dashboard'),
     t('console'),
     t('backups'),
@@ -80,11 +71,7 @@ it('lists every tab of the VM, in order', async () => {
 it('points every in-app tab at the page of that VM', async () => {
   const wrapper = await mountHeader()
 
-  const inAppHrefs = findTabs(wrapper)
-    .filter(tab => tab.element.tagName === 'A')
-    .map(tab => tab.attributes('href'))
-
-  expect(inAppHrefs).toEqual([
+  expect(findInAppTabHrefs(wrapper)).toEqual([
     '/vm/vm-42/dashboard',
     '/vm/vm-42/console',
     '/vm/vm-42/backups',
@@ -99,7 +86,7 @@ it('points every in-app tab at the page of that VM', async () => {
 it('sends the stats tab to XO 5 rather than to an in-app page', async () => {
   const wrapper = await mountHeader()
 
-  const statsTab = findTabs(wrapper).find(tab => tab.text() === t('stats'))!
+  const statsTab = findTab(wrapper, t('stats'))
 
   expect(statsTab.element.tagName).not.toBe('A')
   expect(statsTab.get('a').attributes('href')).toBe('https://xo5.example.com/#/vms/vm-42/stats')
@@ -108,17 +95,13 @@ it('sends the stats tab to XO 5 rather than to an in-app page', async () => {
 it('marks the tab of the current route as the active one', async () => {
   const wrapper = await mountHeader(createVm({ id: 'vm-42' as FrontXoVm['id'] }), '/vm/vm-42/system')
 
-  const activeTabs = findTabs(wrapper)
-    .filter(tab => tab.classes('active'))
-    .map(tab => tab.text())
-
-  expect(activeTabs).toEqual([t('system')])
+  expect(findActiveTabLabels(wrapper)).toEqual([t('system')])
 })
 
 it('marks no tab as active while no VM page is open', async () => {
   const wrapper = await mountHeader()
 
-  expect(findTabs(wrapper).filter(tab => tab.classes('active'))).toHaveLength(0)
+  expect(findActiveTabLabels(wrapper)).toEqual([])
 })
 
 it('links to the XO 5 page managing the lifecycle of the VM', async () => {

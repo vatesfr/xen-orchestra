@@ -53,7 +53,7 @@ it('shows a busy state instead of the rows while the servers are loading', () =>
   const wrapper = mountConnections()
 
   expect(wrapper.find('.vts-state-hero').exists()).toBe(true)
-  expect(wrapper.findAll('.vts-tabular-key-value-row')).toHaveLength(0)
+  expect(findLabelledValues(wrapper)).toEqual({})
 })
 
 it('shows the connection settings of the server of the pool', () => {

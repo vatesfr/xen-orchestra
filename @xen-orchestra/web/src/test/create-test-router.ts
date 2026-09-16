@@ -33,3 +33,18 @@ const testRoutes = routes.map(withoutPageComponents)
 export function createTestRouter() {
   return createRouter({ history: createMemoryHistory(), routes: testRoutes })
 }
+
+/**
+ * A test router already navigated to `initialPath`, which is what makes the
+ * active route assertable — mounting before the navigation settles would read
+ * the initial `/` instead.
+ */
+export async function createTestRouterAt(initialPath?: string) {
+  const router = createTestRouter()
+
+  if (initialPath !== undefined) {
+    await router.push(initialPath)
+  }
+
+  return router
+}

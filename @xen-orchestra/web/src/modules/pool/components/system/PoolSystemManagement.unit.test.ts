@@ -3,7 +3,7 @@ import PoolSystemManagement from '@/modules/pool/components/system/PoolSystemMan
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
-import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findLabelledLinks, findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -48,7 +48,7 @@ it('shows a busy state instead of the rows while the hosts are loading', () => {
   const wrapper = mountManagement()
 
   expect(wrapper.find('.vts-state-hero').exists()).toBe(true)
-  expect(wrapper.findAll('.vts-tabular-key-value-row')).toHaveLength(0)
+  expect(findLabelledValues(wrapper)).toEqual({})
 })
 
 it('links the master row to the dashboard of the primary host', () => {
@@ -59,14 +59,14 @@ it('links the master row to the dashboard of the primary host', () => {
   const wrapper = mountManagement(createPool({ master: 'host-1' as FrontXoPool['master'] }))
 
   expect(findLabelledValues(wrapper)).toMatchObject({ [t('master')]: 'Primary' })
-  expect(wrapper.get('.vts-tabular-key-value-row a').attributes('href')).toBe('/host/host-1/dashboard')
+  expect(findLabelledLinks(wrapper)).toEqual({ [t('master')]: '/host/host-1/dashboard' })
 })
 
 it('falls back to "None" when the primary host of the pool is unknown', () => {
   const wrapper = mountManagement()
 
   expect(findLabelledValues(wrapper)).toMatchObject({ [t('master')]: t('none') })
-  expect(wrapper.find('.vts-tabular-key-value-row a').exists()).toBe(false)
+  expect(findLabelledLinks(wrapper)).toEqual({})
 })
 
 it('shows every pool setting the pool has turned on as enabled', () => {

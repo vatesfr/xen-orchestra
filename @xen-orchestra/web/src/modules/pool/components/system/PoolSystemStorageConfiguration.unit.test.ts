@@ -74,7 +74,7 @@ it('shows a busy state instead of the rows while the storage repositories are lo
   const wrapper = mountStorageConfiguration(createPoolWithoutSrs())
 
   expect(wrapper.find('.vts-state-hero').exists()).toBe(true)
-  expect(wrapper.findAll('.vts-tabular-key-value-row')).toHaveLength(0)
+  expect(findLabelledValues(wrapper)).toEqual({})
 })
 
 it('names the storage repository the pool configured for each purpose', () => {
