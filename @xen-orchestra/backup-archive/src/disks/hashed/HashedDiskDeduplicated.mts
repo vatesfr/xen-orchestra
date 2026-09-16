@@ -109,15 +109,6 @@ export class HashedDiskDeduplicated extends HashedDisk {
     return normalize(join(this.#resolve(this.#loadedMetadata.localBlocksPath), blockRelPath(hash)))
   }
 
-  /**
-   * handler.readFile resolves to a Buffer, but @xen-orchestra/fs declares it as
-   * Promise<string> (see its types/fs.mts). Kept in one place so the cast
-   * disappears if that declaration is ever corrected.
-   */
-  async #readFileAsBuffer(path: string): Promise<Buffer> {
-    return (await this.#handler.readFile(path)) as unknown as Buffer
-  }
-
   // ---------------------------------------------------------------- lifecycle
 
   /**
@@ -131,7 +122,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
 
     let metadata: HashedDiskMetadata
     try {
-      metadata = JSON.parse(await this.#handler.readFile(this.#path))
+      metadata = JSON.parse((await this.#handler.readFile(this.#path)).toString())
       checkVersion(metadata.version)
 
       const { blockSize, virtualSize } = metadata
@@ -150,7 +141,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
     const hashesPath = this.#resolve(metadata.hashesPath)
     try {
       this.#bat = BlockAllocationTable.fromBuffer(
-        await this.#readFileAsBuffer(hashesPath),
+        await this.#handler.readFile(hashesPath),
         this.getMaxBlockCount(),
         options.force
       )
@@ -261,7 +252,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
 
     // reads the whole file: that is exactly header + payload, and unlike a
     // positional read it also works on an encrypted remote
-    const buffer = await this.#readFileAsBuffer(this.#blockPath(hash))
+    const buffer = await this.#handler.readFile(this.#blockPath(hash))
     const { payload } = decodeBlock(buffer, this.getBlockSize(), hash)
 
     return { index, data: payload }
