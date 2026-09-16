@@ -11,6 +11,16 @@ export { basename, dirname, join }
 // - no duplicate slashes
 export const normalize = path => resolve('/', path)
 
+// true if `path` is `dir` itself, or is contained in `dir`
+export function isInDir(path, dir) {
+  const normalizedDir = normalize(dir)
+  const normalizedPath = normalize(path)
+
+  return (
+    normalizedPath === normalizedDir || normalizedPath.startsWith(normalizedDir === '/' ? '/' : normalizedDir + '/')
+  )
+}
+
 export function split(path) {
   const parts = normalize(path).split(sep)
 

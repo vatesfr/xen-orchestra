@@ -2,7 +2,7 @@ import type { DiskBlock } from '@xen-orchestra/disk-transform'
 import type { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { createLogger } from '@xen-orchestra/log'
 import { dirname, join } from 'node:path'
-import { normalize } from '@xen-orchestra/fs/path'
+import { isInDir, normalize } from '@xen-orchestra/fs/path'
 
 import { HashedDisk } from './HashedDisk.mjs'
 import {
@@ -346,16 +346,13 @@ export class HashedDiskDeduplicated extends HashedDisk {
    * files from orphans.
    */
   async listAssociatedFiles(dir: string): Promise<Array<string>> {
-    const prefix = normalize(dir.endsWith('/') ? dir : dir + '/')
-    const isInDir = (p: string) => p === dir || p.startsWith(prefix)
-
     const bat = this.#loadedBat
     const files = [this.#path, this.#resolve(this.#loadedMetadata.hashesPath)]
     for (const index of bat.indexes()) {
       files.push(this.#blockPath(bat.get(index)))
     }
 
-    return files.filter(isInDir)
+    return files.filter(p => isInDir(p, dir))
   }
 
   async unlink(): Promise<void> {
