@@ -277,3 +277,13 @@ describe('parse (unrecognized input)', () => {
     })
   })
 })
+
+describe('format (path sanitizing)', () => {
+  it('trims spaces around path segments', () => {
+    assert.equal(format({ type: 'file', path: 'test/    with-space' }), 'file:///test/with-space')
+  })
+
+  it('drops empty segments', () => {
+    assert.equal(format({ type: 'file', path: '  /another  //  test-with-space  ' }), 'file:///another/test-with-space')
+  })
+})
