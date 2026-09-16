@@ -19,6 +19,7 @@
 
 - [Backup] Fix replication never cleaning up a VM left behind by an interrupted transfer, which could keep accumulating on the target SR (PR [#10436](https://github.com/vatesfr/xen-orchestra/pull/10436))
 - [Plugin/perf-alert] Fix `test plugin` button (PR [#10407](https://github.com/vatesfr/xen-orchestra/pull/10407))
+- [Plugin/perf-alert] Fix SR dead link (PR [#10407](https://github.com/vatesfr/xen-orchestra/pull/10407))
 
 ### Packages to release
 
