@@ -37,6 +37,7 @@ const COMPRESSORS = {
     )(promisify(zlib.brotliCompress)),
     decompress: promisify(zlib.brotliDecompress),
   },
+  none: NULL_COMPRESSOR,
 }
 
 // inject identifiers

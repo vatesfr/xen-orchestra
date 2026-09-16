@@ -1,3 +1,4 @@
+import { Disposable } from 'promise-toolbox'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { QCOW2_CLUSTER_SIZE, VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VHD_BLOCK_SIZE, VHD_MAX_SIZE } from '@xen-orchestra/xapi'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
@@ -19,37 +20,42 @@ export async function importStream({ esxi, dataMap, disk, vmId, format }, consum
   const signal = Task.abortSignal
   const { datastore: datastoreName, diskPath } = disk
 
-  let vmdk
-  let stream
   try {
+    // the server is stopped whatever happens here: it used to be killed by a `finally` which had
+    // to name the disk and repeat the exact spawn options
     // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
-    const { nbdInfos } = await esxi.spawnNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
-    signal?.throwIfAborted()
-    vmdk = new NbdDisk(nbdInfos, READ_BLOCK_SIZE, { dataMap })
+    return await Disposable.use(esxi.getNbdServer(vmId, `[${datastoreName}] ${diskPath}`), async ({ nbdInfos }) => {
+      let vmdk
+      let stream
+      try {
+        signal?.throwIfAborted()
+        vmdk = new NbdDisk(nbdInfos, READ_BLOCK_SIZE, { dataMap })
 
-    await vmdk.init()
-    signal?.throwIfAborted()
-    vmdk = new ReadAhead(vmdk)
+        await vmdk.init()
+        signal?.throwIfAborted()
+        vmdk = new ReadAhead(vmdk)
 
-    vmdk.addProgressHandler(new TaskProgressHandler())
+        vmdk.addProgressHandler(new TaskProgressHandler())
 
-    if (format === VDI_FORMAT_QCOW2) {
-      stream = await toQcow2Stream(vmdk, { signal })
-    } else {
-      stream = await toVhdStream(vmdk, { signal })
-    }
-    Task.info(`got source stream for ${diskPath}`)
-    await consumerCallback(stream)
-    return Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
+        if (format === VDI_FORMAT_QCOW2) {
+          stream = await toQcow2Stream(vmdk, { signal })
+        } else {
+          stream = await toVhdStream(vmdk, { signal })
+        }
+        Task.info(`got source stream for ${diskPath}`)
+        await consumerCallback(stream)
+        return Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
+      } catch (err) {
+        stream?.destroy(err)
+        throw err
+      } finally {
+        await vmdk?.close().catch(err => warn('error while closing source vmdk', err))
+      }
+    })
   } catch (err) {
-    stream?.destroy(err)
+    // a failure to start the server belongs in the report too, e.g. nbdkit not being installed
     Task.warning(err)
     throw err
-  } finally {
-    await vmdk?.close().catch(err => warn('error while closing source vmdk', err))
-    await esxi
-      .killNbdServer(vmId, `[${datastoreName}] ${diskPath}`)
-      .catch(err => warn('error while stopping nbdkit server', err))
   }
 }
 
@@ -59,7 +65,7 @@ export async function importStream({ esxi, dataMap, disk, vmId, format }, consum
 // any block size conversion for transfer to VHD
 const READ_BLOCK_SIZE = VHD_BLOCK_SIZE
 
-async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) {
+async function importDiskChain({ esxi, sr, vm, chainByNode, changeTracking, userdevice, vmId }) {
   if (chainByNode.length === 0) {
     Task.info('Empty chain')
     return
@@ -82,7 +88,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
 
   Task.info(`Importing disk in ${format} format, with block of ${blockSize} bytes`)
 
-  let dataMap
+  let baseDiskPath
   const previouslyImportedIndex = findPreviouslyImportedIndex(existingVdis, chainByNode)
   let existingVdi
   if (previouslyImportedIndex === chainByNode.length - 1) {
@@ -101,10 +107,20 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
     existingVdi = diskIsAlreadyImported(existingVdis, existingDisk)
     Task.info(`found a previous import`, { vdiRef: existingVdi.$ref })
 
-    dataMap = await esxi.getDataMap(vmId, datastoreName, diskPath, Task.abortSignal)
+    // the disk the previous import read is the point in time the delta is computed from
+    baseDiskPath = existingDisk.diskPath
   } else {
     Task.info(`no reference disk found, fall back a full import`)
   }
+
+  // asked in both cases: the blocks written since `baseDiskPath`, or every block the disk uses.
+  // `undefined` when the host cannot answer for a whole disk, and the disk is then read to find
+  // out, as it always was
+  const dataMap = await esxi.getDataMap(vmId, datastoreName, diskPath, {
+    baseDiskPath,
+    changeTracking,
+    signal: Task.abortSignal,
+  })
   try {
     if (!existingVdi) {
       Task.info(`create a new VDI for ${diskPath}`)
@@ -164,6 +180,19 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
 }
 
 export const importDisksFromDatastore = async function importDisksFromDatastore({ esxi, vm, vmId, chainsByNodes, sr }) {
+  // what the change tracking of the host is addressed by is the same for every disk of a VM:
+  // reading it here costs a few calls once, where every disk used to issue the same ones at the
+  // same time. A VM the host cannot answer for simply imports as it did before
+  const changeTracking = await esxi.getChangeTracking(vmId, { signal: Task.abortSignal }).catch(error => {
+    warn('could not read the change tracking of the VM, its disks will be read to find their blocks', {
+      error,
+      vmId,
+    })
+    // `null`, and not `undefined`: the host was already asked and did not answer, every disk asking
+    // it again would only repeat the same failing reads before falling back
+    return null
+  })
+
   return await Promise.all(
     Object.keys(chainsByNodes).map(async (node, userdevice) =>
       Task.run({ properties: { name: `Import of disks ${node}` } }, async () => {
@@ -172,6 +201,7 @@ export const importDisksFromDatastore = async function importDisksFromDatastore(
           esxi,
           vm,
           chainByNode,
+          changeTracking,
           userdevice,
           sr,
           vmId,

@@ -1,4 +1,4 @@
-import type { XoHost, XoNetwork, XoVif } from './xo.mjs'
+import type { XapiXoRecord, XoHost, XoNetwork, XoVif } from './xo.mjs'
 
 declare const __brand: unique symbol
 
@@ -769,3 +769,34 @@ type BaseTrafficRule = RawTrafficRule & {
 export type TrafficRule =
   | (BaseTrafficRule & { type: XoVif['type']; sourceId: XoVif['id'] })
   | (BaseTrafficRule & { type: XoNetwork['type']; sourceId: XoNetwork['id'] })
+
+export const XAPI_TYPES: readonly string[] = [
+  'network',
+  'VIF',
+  'message',
+  'gpuGroup',
+  'host',
+  'PBD',
+  'PCI',
+  'PGPU',
+  'PIF',
+  'pool',
+  'SR',
+  'VBD',
+  'VDI',
+  'VDI-snapshot',
+  'VDI-unmanaged',
+  'vgpu',
+  'vgpuType',
+  'VM',
+  'VM-controller',
+  'VM-snapshot',
+  'VM-template',
+  'VTPM',
+  'SM',
+] satisfies readonly XapiXoRecord['type'][]
+
+/** steps of a rolling pool update on one host, in execution order */
+export const RPU_RECOVERY_STEP_NAMES = ['evacuate', 'update', 'reboot', 'enable', 'restoreVms'] as const
+
+export type RPU_RECOVERY_STEP_NAME = (typeof RPU_RECOVERY_STEP_NAMES)[number]

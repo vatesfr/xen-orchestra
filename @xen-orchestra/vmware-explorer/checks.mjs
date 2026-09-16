@@ -2,6 +2,8 @@ import { exec } from 'node:child_process'
 import semver from 'semver'
 import fs from 'node:fs/promises'
 
+import { VDDK_LIB_DIR, VDDK_LIB_FILE } from './_vddk.mjs'
+
 /**
  *
  * @returns {Promise<Object>}
@@ -91,12 +93,11 @@ async function nbdKit() {
  */
 async function vddk() {
   try {
-    await fs.stat('/usr/local/lib/vddk/vmware-vix-disklib-distrib/lib64/libvixDiskLib.so')
+    await fs.stat(VDDK_LIB_FILE)
   } catch (error) {
     return {
       status: 'error',
-      error:
-        'Vddk library is not present or accessible in /usr/local/lib/vddk/ it can be downloaded from https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/latest',
+      error: `Vddk library is not present or accessible in ${VDDK_LIB_DIR}/ it can be downloaded from https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/latest`,
     }
   }
   return { status: 'success' }

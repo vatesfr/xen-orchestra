@@ -138,3 +138,9 @@ export type PoolDashboard = {
     percent: number
   }
 }
+
+export type RollingPoolActionBody = {
+  /** Skip the backup safety check before rebooting the hosts. Defaults to false. */
+  bypassBackupCheck?: boolean
+  shutdownPinnedVms?: boolean
+}

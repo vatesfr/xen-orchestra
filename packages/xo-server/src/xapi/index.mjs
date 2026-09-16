@@ -949,8 +949,8 @@ export default class Xapi extends XapiBase {
     const host = hostXapi.getObject(hostId)
     const targetPool = hostXapi.getObject(host.$pool)
 
-    const accrossPools = vm.$pool !== host.$pool
-    const useStorageMotion = accrossPools || sr !== undefined || !isEmpty(mapVifsNetworks) || !isEmpty(mapVdisSrs)
+    const acrossPools = vm.$pool !== host.$pool
+    const useStorageMotion = acrossPools || sr !== undefined || !isEmpty(mapVifsNetworks) || !isEmpty(mapVdisSrs)
 
     const defaultMigrationNetworkId = targetPool.other_config['xo:migrationNetwork']
     const migrationNetwork =
@@ -1324,7 +1324,7 @@ export default class Xapi extends XapiBase {
       preferNbd,
     })
     await disk.init()
-    const stream = toQcow2Stream(disk)
+    const stream = await toQcow2Stream(disk)
     return stream
   }
 

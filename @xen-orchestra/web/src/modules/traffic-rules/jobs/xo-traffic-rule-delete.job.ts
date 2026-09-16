@@ -19,6 +19,7 @@ export const useXoTrafficRuleDeleteJob = defineJob('traffic-rule.delete', [xoTra
               : `plugins/sdn-controller/networks/${rule.networkId}/actions/delete_traffic_rule`
 
           const body: Record<string, unknown> = {
+            allow: rule.allow,
             direction: rule.direction,
             ipRange: rule.ipRange,
             protocol: rule.protocol,

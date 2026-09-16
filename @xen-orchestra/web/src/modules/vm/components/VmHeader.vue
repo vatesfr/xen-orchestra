@@ -39,49 +39,49 @@
   </UiHeadBar>
   <TabList>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('dashboard') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/console', params: { id: vm.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('console') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/backups', params: { id: vm.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('backups') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
-    <TabItem>
+    <UiTabItem>
       <UiLink :href="xo5VmStatsHref" size="medium">
         {{ t('stats') }}
       </UiLink>
-    </TabItem>
+    </UiTabItem>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/system', params: { id: vm.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('system') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('network') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/vdis', params: { id: vm.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('vdis') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: `/vm/[id]/snapshots`, params: { id: vm.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('snapshots') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/tasks', params: { id: vm.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('tasks') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
   </TabList>
 </template>
@@ -94,12 +94,12 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
-import TabItem from '@core/components/tab/TabItem.vue'
-import TabList from '@core/components/tab/TabList.vue'
+import TabList from '@core/components/tab-list/TabList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
