@@ -409,7 +409,7 @@ const methods = {
           }
 
           const currentCoresPerSocket = vm.platform['cores-per-socket']
-          if (Number.isSafeInteger(value / currentCoresPerSocket)) {
+          if (currentCoresPerSocket > 0 && Number.isSafeInteger(value / currentCoresPerSocket)) {
             return
           }
 
