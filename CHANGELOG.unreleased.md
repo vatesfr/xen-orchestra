@@ -24,6 +24,8 @@
 - [RPU] Keep track of an interrupted rolling pool update across xo-server restarts: the pool's Patches tab now shows which hosts were updated, the last error, and the VMs that were shut down for the update and not started again (PR [#10331](https://github.com/vatesfr/xen-orchestra/pull/10331))
 - [i18n] Add Turkish and update Czech, Dutch, Slovak and Swedish translations (PR [#10316](https://github.com/vatesfr/xen-orchestra/pull/10316))
 - [XO6/Host] Add icon for disabled host (PR [#10188](https://github.com/vatesfr/xen-orchestra/pull/10188))
+- [V2V] When a VM has Changed Block Tracking enabled on the source host, a migration now asks the host which blocks it has to read — the blocks a disk uses for a full transfer, the blocks written since the previous pass for a delta — instead of scanning the disk through the VDDK. Faster to start on large disks, and one less moving part. VMs without CBT are migrated exactly as before (PR [#10384](https://github.com/vatesfr/xen-orchestra/pull/10384))
+- [Proxy] Check proxy licenses at XOA level instead of blocking backups on it (PR [#10280](https://github.com/vatesfr/xen-orchestra/pull/10280))
 
 ### Bug fixes
 
@@ -54,6 +56,8 @@
 - [V2V] The session opened on the source host is now closed when a listing, a migration or a disk export ends, instead of piling up until it expires — a host only accepts a limited number of them (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 - [V2V] Report what the source host complained about, instead of `task execution failed` or an assertion error, when an operation fails (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 - [OpenMetrics] Share metrics collection between requests to avoid filling up XOA memory (PR [10401](https://github.com/vatesfr/xen-orchestra/pull/10401))
+- [Netbox] Fix IP addresses synced with an incorrect, less specific prefix (e.g. `/8` instead of `/24`) when a shorter container prefix also matched [#10240](https://github.com/vatesfr/xen-orchestra/issues/10240) (PR [#10297](https://github.com/vatesfr/xen-orchestra/pull/10297))
+- [backup/restore] Fix backups of a repository randomly disappearing from the list after visiting a VM (PR [#10277](https://github.com/vatesfr/xen-orchestra/pull/10277))
 
 ### Packages to release
 
@@ -77,6 +81,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-cli patch
 - @xen-orchestra/fs patch
+- @xen-orchestra/proxy minor
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer major
@@ -88,6 +93,7 @@
 - xo-server-audit patch
 - xo-server-auth-ldap patch
 - xo-server-openmetrics patch
+- xo-server-netbox patch
 - xo-server-sdn-controller patch
 - xo-web minor
 

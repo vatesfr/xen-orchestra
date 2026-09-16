@@ -10,7 +10,6 @@ import { execFile } from 'child_process'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
-import { JsonRpcError } from 'json-rpc-protocol'
 import { Readable } from 'stream'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.mjs'
@@ -105,14 +104,6 @@ export default class Backups {
         }
       }
     })(run)
-    run = (run =>
-      async function () {
-        const license = await app.appliance.getSelfLicense()
-        if (license === undefined) {
-          throw new JsonRpcError('no valid proxy license')
-        }
-        return run.apply(this, arguments)
-      })(run)
 
     run = (run => async (params, onLog) => {
       if (onLog === undefined || !app.config.get('backups').disableWorkers) {

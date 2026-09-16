@@ -47,3 +47,14 @@ yarn && yarn build
 :::warning
 There is no community support for source installations that are not up to date with `master`.
 :::
+
+## Supported versions for security updates
+
+Security fixes are provided for the following versions of Xen Orchestra:
+
+| Version | Security updates |
+| --- | --- |
+| XOA on the `latest` channel | Yes |
+| XOA on the `stable` channel | Yes |
+| Source installations using the `master` branch | Yes |
+| Other versions | No |
