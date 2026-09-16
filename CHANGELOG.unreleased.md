@@ -107,9 +107,10 @@
 - @xen-orchestra/acl minor
 - @xen-orchestra/async-map patch
 - @xen-orchestra/backup-archive patch
-- @xen-orchestra/backups minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/disk-cli patch
 - @xen-orchestra/fs patch
+- @xen-orchestra/immutable-backups patch
 - @xen-orchestra/mcp patch
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
