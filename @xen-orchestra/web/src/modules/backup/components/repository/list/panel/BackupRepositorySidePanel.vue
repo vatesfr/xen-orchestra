@@ -1,7 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!br" @close="emit('close')">
     <template v-if="br" #default>
-      <BackupRepositoryInfosCard :br />
+      <BackupRepositoryInfosCard :br :parsed-br-url />
       <BackupRepositorySpaceAndSpeedCard :br />
       <BackupRepositoryLocalCard v-if="parsedBrUrl?.type === 'file'" :file="parsedBrUrl" />
       <BackupRepositoryNfsCard v-else-if="parsedBrUrl?.type === 'nfs'" :nfs="parsedBrUrl" :options="br.options" />

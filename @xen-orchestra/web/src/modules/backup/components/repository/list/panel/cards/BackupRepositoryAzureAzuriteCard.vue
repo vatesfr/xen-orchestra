@@ -1,6 +1,7 @@
 <template>
   <UiPanelCard class="card-container">
-    <UiCardTitle>{{ t(azure.type) }}</UiCardTitle>
+    <UiCardTitle v-if="azure.type === 'azure'">{{ t('azure') }}</UiCardTitle>
+    <UiCardTitle v-else>{{ t('azurite') }}</UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('host') }}</template>
