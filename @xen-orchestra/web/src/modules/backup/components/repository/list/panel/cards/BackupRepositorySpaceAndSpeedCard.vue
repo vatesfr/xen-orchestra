@@ -24,7 +24,7 @@
       <div class="typo-body-bold-small subtitle">
         {{ t('speed') }}
         <UiButtonIcon
-          v-tooltip="canBenchmark ? t('click-test-BR-speed') : benchmarkErrorMessage"
+          v-tooltip="canBenchmark ? t('click-test-br-speed') : benchmarkErrorMessage"
           :icon="isBenchmarking ? 'fa:spinner' : 'action:scan'"
           :disabled="!canBenchmark"
           accent="brand"
@@ -92,11 +92,15 @@ const {
 } = useXoBackupRepositoryBenchmarkJob(() => br)
 
 const runBenchmark = async () => {
-  const result = await benchmark()
+  try {
+    const result = await benchmark()
 
-  manualBenchmark.value = {
-    readRate: result.readRate,
-    writeRate: result.writeRate,
+    manualBenchmark.value = {
+      readRate: result.readRate,
+      writeRate: result.writeRate,
+    }
+  } catch (error) {
+    console.error('Error when benchmarking backup repository:', error)
   }
 }
 
