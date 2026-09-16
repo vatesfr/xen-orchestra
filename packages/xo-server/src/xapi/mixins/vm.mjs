@@ -399,7 +399,31 @@ const methods = {
         cpus: lte,
       },
       get: vm => +vm.VCPUs_max,
-      set: 'VCPUs_max',
+      set: [
+        'VCPUs_max',
+        (value, vm, { coresPerSocket }) => {
+          if (coresPerSocket !== undefined) {
+            // if coresPerSocket was explicitly passed as arguments
+            // to _editVm, ignore the topology compatibilty check
+            return
+          }
+
+          const currentCoresPerSocket = vm.platform['cores-per-socket']
+          if (currentCoresPerSocket > 0 && Number.isSafeInteger(value / currentCoresPerSocket)) {
+            return
+          }
+
+          log.warn(
+            "CPU topology set to 1 core per socket because the new CPU static max value doesn't match the current CPU topology",
+            {
+              vmId: vm.uuid,
+              newCpuStaticMax: value,
+              oldTopology: `${currentCoresPerSocket} cores per socket`,
+            }
+          )
+          return vm.update_platform('cores-per-socket', '1')
+        },
+      ],
     },
 
     cpuWeight: {
