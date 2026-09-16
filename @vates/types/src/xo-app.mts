@@ -216,6 +216,12 @@ export type XoApp = {
     }
   }
 
+  /**
+   * the VM backup archives of the backup repositories, as a collection: `add`, `update` and
+   * `remove` events carrying the archive and its previous value
+   */
+  vmBackupArchives: EventEmitter
+
   tasks: EventEmitter & {
     abort(id: XoTask['id'], reason?: string): Promise<void>
     clearLogs(): Promise<void>
