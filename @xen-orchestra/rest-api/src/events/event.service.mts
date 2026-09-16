@@ -48,6 +48,9 @@ export class EventService {
       let eventEmitter: EventEmitter
       if (type === 'task') {
         eventEmitter = this.#restApi.xoApp.tasks
+      } else if (type === 'backup-archive') {
+        // the backup archives are not a registered collection: the backups cache is the emitter itself
+        eventEmitter = this.#restApi.xoApp.vmBackupArchives
       } else if (XAPI_TYPES.includes(isMessage ? 'message' : type)) {
         // alarm is purely XO-related; it doesn't exist at the XAPI level.
         // alarm is a message with parsed values. So, in the case of an alarm listener, it listens for message collection.
