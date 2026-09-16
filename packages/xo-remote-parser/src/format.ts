@@ -47,6 +47,7 @@ export function format(info: BackupRepositoryUrlInput): string {
       url = 'file://'
       break
     default:
+      // silently produced 'undefined:///' before, which xo-server stored as a valid url
       throw new Error(`invalid backup repository type: ${type}`)
   }
 

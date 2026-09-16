@@ -3980,6 +3980,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/url-parse@^1.4.11":
+  version "1.4.11"
+  resolved "https://registry.yarnpkg.com/@types/url-parse/-/url-parse-1.4.11.tgz#01f8faa7b8bfd438e5f5efb8337a74513a15602b"
+  integrity sha512-FKvKIqRaykZtd4n47LbK/W/5fhQQ1X7cxxzG9A48h0BGN+S04NH7ervcCjM8tyR0lyGru83FAHSmw2ObgKoESg==
+
 "@types/uuid@>=9":
   version "11.0.0"
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-11.0.0.tgz#f4fa34bbf2af941148ef1973c4361fc43617971c"
