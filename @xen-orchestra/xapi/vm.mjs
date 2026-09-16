@@ -650,7 +650,7 @@ class Vm {
         task: taskRef,
       })
       if (onVmCreation != null) {
-        ignoreErrors.call(this.getRecord('VM', ref).then(onVmCreation))
+        await ignoreErrors.call(this.getRecord('VM', ref).then(onVmCreation))
       }
       return ref
     } catch (error) {
