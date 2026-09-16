@@ -63,6 +63,17 @@ class VdiRestoreTargets {
     return this.#targets.get(vdiUuid) ?? this.#default
   }
 
+  /**
+   * The explicitly mapped VDIs, as `[vdiUuid, target]` pairs.
+   *
+   * A VDI absent from it is not untargeted: it simply uses the default target.
+   *
+   * @returns {IterableIterator<[string, VdiRestoreTarget]>}
+   */
+  entries() {
+    return this.#targets.entries()
+  }
+
   /** uuids of the VDIs that must not be restored at all */
   getIgnoredVdiUuids() {
     return this.#uuidsOfType('ignore')

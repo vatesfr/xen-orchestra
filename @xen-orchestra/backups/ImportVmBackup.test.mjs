@@ -56,10 +56,16 @@ function makeAdapter(metadata) {
   }
 }
 
-const makeXapi = () => ({
+// `unknownUuids` are refused exactly like XAPI refuses a uuid of another pool
+const makeXapi = ({ unknownUuids = [] } = {}) => ({
   call(method, uuid) {
     const [type, getter] = method.split('.')
     assert.equal(getter, 'get_by_uuid')
+    if (unknownUuids.includes(uuid)) {
+      const error = new Error(`UUID_INVALID(${type}, ${uuid})`)
+      error.code = 'UUID_INVALID'
+      throw error
+    }
     return `${type}_REF:${uuid}`
   },
 })
@@ -79,7 +85,7 @@ function makeLiveMount() {
   }
 }
 
-function makeImporter({ mapVdisSrs, useDifferentialRestore = false, withoutLiveMount = false } = {}) {
+function makeImporter({ mapVdisSrs, unknownUuids, useDifferentialRestore = false, withoutLiveMount = false } = {}) {
   const liveMount = withoutLiveMount ? undefined : makeLiveMount()
   const metadata = makeMetadata()
   const importer = new ImportVmBackup({
@@ -88,7 +94,7 @@ function makeImporter({ mapVdisSrs, useDifferentialRestore = false, withoutLiveM
     metadata,
     settings: { mapVdisSrs, useDifferentialRestore },
     srUuid: DEFAULT_SR,
-    xapi: makeXapi(),
+    xapi: makeXapi({ unknownUuids }),
   })
   return { importer, liveMount, metadata }
 }
@@ -170,6 +176,35 @@ describe('ImportVmBackup#_decorateIncrementalVmMetadata()', () => {
 
       await assert.rejects(() => importer._decorateIncrementalVmMetadata(), /not supported here/)
     })
+
+    it('rejects a live mount of a disk which is not in this backup', async () => {
+      const { importer, liveMount } = makeImporter({
+        mapVdisSrs: { 'not-in-this-backup': { type: 'live-mount', host: HOST } },
+      })
+
+      await assert.rejects(
+        () => importer._decorateIncrementalVmMetadata(),
+        /cannot be live mounted, they are not in this backup: not-in-this-backup/
+      )
+      assert.deepEqual(liveMount.mounted, [])
+    })
+
+    it('rejects a host which is not on the pool the VM is restored to', async () => {
+      const { importer, liveMount } = makeImporter({ mapVdisSrs, unknownUuids: [HOST] })
+
+      await assert.rejects(() => importer._decorateIncrementalVmMetadata(), /does not belong to the pool/)
+      // the host is resolved first, so nothing is left mounted behind
+      assert.deepEqual(liveMount.mounted, [])
+    })
+  })
+
+  it('still restores when a disk of `mapVdisSrs` is not in this backup', async () => {
+    // a stale mapping must not break a restore which used to work
+    const { importer } = makeImporter({ mapVdisSrs: { 'not-in-this-backup': OTHER_SR } })
+
+    const backup = await importer._decorateIncrementalVmMetadata()
+
+    assert.deepEqual(Object.keys(backup.vdis), [SYSTEM.ref, DATA.ref])
   })
 })
 

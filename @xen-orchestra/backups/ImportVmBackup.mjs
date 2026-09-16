@@ -29,6 +29,9 @@ export class ImportVmBackup {
   // ids of the live mounts created by this restore, so a failure can release them
   #liveMountIds = []
 
+  // ref of the host serving the live mounts, resolved once on the destination pool
+  #liveMountHostRef
+
   /**
    * @param {object} params
    * @param {object} params.adapter - remote adapter of the backup repository
@@ -232,6 +235,8 @@ export class ImportVmBackup {
     const { additionalVmTag, useDifferentialRestore } = this._importIncrementalVmSettings
     const targets = this._vdiRestoreTargets
 
+    this.#checkTargetsMatchBackup()
+
     // a live mounted disk stays on the backup repository and is served from there, so it is left
     // out of the disks to read, exactly like an ignored one, then added back below
     const liveMountedVdiUuids = targets.getLiveMountedVdiUuids()
@@ -260,6 +265,67 @@ export class ImportVmBackup {
   }
 
   /**
+   * Reject a restore whose targets name disks this backup does not contain.
+   *
+   * An unknown uuid is a mistake in every case — a stale `mapVdisSrs`, a uuid taken from the
+   * running VM instead of the backup — but it is only fatal for a live mount: that target is new,
+   * and silently restoring the disk the usual way would copy the very data the caller asked not
+   * to. The historical targets keep their lenient behavior, so a restore which used to work still
+   * does, and say so in the logs.
+   */
+  #checkTargetsMatchBackup() {
+    const backedUpVdiUuids = new Set(Object.values(this._metadata.vdis ?? {}).map(vdi => vdi.uuid))
+
+    const unknownLiveMounted = []
+    for (const [vdiUuid, target] of this._vdiRestoreTargets.entries()) {
+      if (backedUpVdiUuids.has(vdiUuid)) {
+        continue
+      }
+      if (target.type === 'live-mount') {
+        unknownLiveMounted.push(vdiUuid)
+      } else {
+        warn('restore target of a disk which is not in this backup, ignoring it', {
+          type: target.type,
+          vdiUuid,
+        })
+      }
+    }
+
+    if (unknownLiveMounted.length !== 0) {
+      throw new Error(
+        `these disks cannot be live mounted, they are not in this backup: ${unknownLiveMounted.join(', ')}`
+      )
+    }
+  }
+
+  /**
+   * Ref, on the pool the VM is restored to, of the host serving the live mounts.
+   *
+   * A live mount plugs its SR into a single host, which therefore has to belong to that pool: the
+   * uuid is resolved here, once and before anything is mounted, so a host picked on another pool
+   * is rejected with an explicit message instead of a bare `UUID_INVALID` raised halfway through
+   * the restore.
+   */
+  async #resolveLiveMountHostRef() {
+    if (this.#liveMountHostRef === undefined) {
+      // also validates that every live mount of this restore uses the same host
+      const hostId = this._vdiRestoreTargets.getLiveMountHost()
+      try {
+        this.#liveMountHostRef = await this._xapi.call('host.get_by_uuid', hostId)
+      } catch (error) {
+        if (error?.code !== 'UUID_INVALID') {
+          throw error
+        }
+        throw new Error(
+          `host ${hostId} cannot live mount a disk of this restore: it does not belong to the pool the VM is restored to`,
+          { cause: error }
+        )
+      }
+    }
+    return this.#liveMountHostRef
+  }
+
+  /**
    * Mount every disk whose target asks for it and add it to the backup to import, as an existing
    * VDI to attach instead of a disk to transfer.
    */
@@ -277,10 +343,13 @@ export class ImportVmBackup {
     const xapi = this._xapi
     const metadata = this._metadata
     const metadataDir = dirname(metadata._filename)
-    // validates that they all use the same host, since each mount is attached to a single one
+    // before the first mount, so a host which cannot serve them leaves nothing behind
+    await this.#resolveLiveMountHostRef()
     const hostId = this._vdiRestoreTargets.getLiveMountHost()
 
     for (const [vdiRef, vdi] of Object.entries(metadata.vdis)) {
+      // a disk of the backup which is restored the usual way, or not at all; a target naming a
+      // disk absent from the backup has already been rejected by `#checkTargetsMatchBackup`
       if (!vdiUuids.has(vdi.uuid)) {
         continue
       }
@@ -308,9 +377,7 @@ export class ImportVmBackup {
     if (this.#liveMountIds.length === 0) {
       return
     }
-    const xapi = this._xapi
-    const hostId = this._vdiRestoreTargets.getLiveMountHost()
-    await xapi.call('VM.set_affinity', vmRef, await xapi.call('host.get_by_uuid', hostId))
+    await this._xapi.call('VM.set_affinity', vmRef, await this.#resolveLiveMountHostRef())
   }
 
   /**
