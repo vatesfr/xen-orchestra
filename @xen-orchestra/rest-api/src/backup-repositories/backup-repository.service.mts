@@ -54,16 +54,18 @@ export class BackupRepositoryService {
 
   async reclaimSpace(
     backupRepositoryId: XoBackupRepository['id'],
-    vmUuid?: string,
-    mergeParam?: boolean,
-    remove?: boolean
+    body?: {
+      vmUuid?: string
+      merge?: boolean
+      remove?: boolean
+    }
   ) {
     try {
-      const vmuuid = vmUuid as XoVm['id']
+      const vmUuid = body?.vmUuid as XoVm['id']
       return await this.#restApi.xoApp.reclaimSpace(backupRepositoryId, {
-        vmUuid: vmuuid,
-        merge: mergeParam,
-        remove: remove,
+        vmUuid: vmUuid,
+        merge: body?.merge,
+        remove: body?.remove,
       })
     } catch (error: any) {
       // mixin throws incorrectState (xo-common api-error) when a referencing
