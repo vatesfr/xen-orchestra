@@ -1,16 +1,19 @@
-import { isDefaultTemplate, parseDateTime } from '@xen-orchestra/xapi'
+// POC: verbatim copy of packages/xo-server/src/xapi-object-to-xo.mjs except for
+// this import block and the `cores-per-socket` write flagged further down.
+// Every rewritten import points at a local copy of the same pure helper; each
+// copy's header says why the original module could not be imported as-is.
 import Obfuscate from '@vates/obfuscate'
 
-import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
+import * as xoData from './_xoData.mjs'
 import ensureArray from './_ensureArray.mjs'
 import normalizeVmNetworks from './_normalizeVmNetworks.mjs'
 import semver from 'semver'
 import { compareVersions, validate as validateVersion } from 'compare-versions'
-import { createLogger } from '@xen-orchestra/log'
+import { createLogger } from './_log.mjs'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks.mjs'
-import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.mjs'
-import { getVmDomainType, isHostRunning, isVmRunning } from './xapi/index.mjs'
-import { useUpdateSystem } from './xapi/utils.mjs'
+import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './_utils.mjs'
+import { getVmDomainType, isHostRunning, isVmRunning, useUpdateSystem } from './_xapiUtils.mjs'
+import { isDefaultTemplate, parseDateTime } from './_xapiHelpers.mjs'
 
 const { debug, warn } = createLogger('xo:server:xapi-objects-to-xo')
 
@@ -583,6 +586,11 @@ const TRANSFORMS = {
     const coresPerSocket = obj.platform['cores-per-socket']
     if (coresPerSocket !== undefined) {
       vm.coresPerSocket = +coresPerSocket
+    } else if (typeof obj.update_platform !== 'function') {
+      // POC FINDING: the transform is NOT pure — it issues a XAPI write here.
+      // A read-only consumer (or a fixture) has no `update_platform`, so this
+      // guard is what lets the translation run at all outside xo-server.
+      warn(`cores-per-socket write skipped for VM ${obj.$id}: no update_platform on this object`)
     } else {
       // https://github.com/vatesfr/xen-orchestra/issues/9111
       // TODO: Remove when correctly handled by XCP-ng

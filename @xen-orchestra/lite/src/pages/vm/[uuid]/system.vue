@@ -4,7 +4,9 @@
   </VtsStateHero>
   <VtsColumns v-else extra-space-around>
     <VtsColumn>
-      <VmGeneralInfo :vm />
+      <!-- POC: these two consume an XO object, the others still take the raw record -->
+      <VmGeneralInfo v-if="xoVm !== undefined" :vm="xoVm" />
+      <VmPocPowerActions v-if="xoVm !== undefined" :vm="xoVm" />
       <VmSystemNetworking :vm />
       <VmStorageConfig :vm />
       <VmResource :vm />
@@ -21,16 +23,19 @@
 import VmGeneralInfo from '@/components/vm/system/VmGeneralInfo.vue'
 import VmGraphics from '@/components/vm/system/VmGraphics.vue'
 import VmManagement from '@/components/vm/system/VmManagement.vue'
+import VmPocPowerActions from '@/components/vm/system/VmPocPowerActions.vue'
 import VmResource from '@/components/vm/system/VmResource.vue'
 import VmStorageConfig from '@/components/vm/system/VmStorageConfig.vue'
 import VmSystemNetworking from '@/components/vm/system/VmSystemNetworking.vue'
 import VmVirtualizationAndBoot from '@/components/vm/system/VmVirtualizationAndBoot.vue'
+import { useXoObjectGraph } from '@/composables/xo-object-graph.composable.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { usePageTitleStore } from '@/stores/page-title.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import type { XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -44,4 +49,8 @@ usePageTitleStore().setTitle(useI18n().t('system'))
 
 const id = computed(() => route.params.uuid as XenApiVm['uuid'])
 const vm = computed(() => getByUuid(id.value))
+
+// POC: same VM, translated through xo-server's xapi-object-to-xo
+const { getXoObject } = useXoObjectGraph()
+const xoVm = computed(() => (vm.value === undefined ? undefined : (getXoObject(vm.value.$ref) as XoVm | undefined)))
 </script>

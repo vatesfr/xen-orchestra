@@ -1,0 +1,35 @@
+{
+  "private": true,
+  "name": "@xen-orchestra/xapi-object-to-xo",
+  "version": "0.0.0",
+  "license": "AGPL-3.0-or-later",
+  "description": "POC — XAPI record to XO object translation, runnable in a browser",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.mjs"
+    },
+    "./browser": {
+      "types": "./browser/index.d.ts",
+      "default": "./browser/index.mjs"
+    }
+  },
+  "dependencies": {
+    "@vates/obfuscate": "^0.1.0",
+    "compare-versions": "^6.1.0",
+    "d3-time-format": "^4.1.0",
+    "fast-xml-parser": "^4.3.4",
+    "lodash": "^4.17.21",
+    "semver": "^7.5.4"
+  },
+  "devDependencies": {
+    "happy-dom": "^20.0.0",
+    "vite": "^8.0.0",
+    "vitest": "^4.0.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "build-poc-bundle": "vite build --config test/bundle/vite.config.mjs"
+  }
+}

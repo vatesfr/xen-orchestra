@@ -29,6 +29,7 @@
     "@types/node": "^18.19.80",
     "@vates/types": "^2.3.0",
     "@vitejs/plugin-vue": "^6.0.0",
+    "@xen-orchestra/xapi-object-to-xo": "^0.0.0",
     "@vue/tsconfig": "^0.9.0",
     "@vueuse/core": "^14.0.0",
     "@vueuse/math": "^14.0.0",

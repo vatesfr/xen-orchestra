@@ -1,4 +1,4 @@
-import xapiObjectToXo from '../xapi-object-to-xo.mjs'
+import { xapiObjectToXo } from '@xen-orchestra/xapi-object-to-xo'
 
 const RFC_MINIMUM_MTU = 68 // see RFC 791
 

@@ -1,5 +1,8 @@
 # POC — running `xapi-object-to-xo` in the browser
 
+> **Done — results in [POC-FINDINGS.md](./POC-FINDINGS.md).** Ran fixture-only (no host).
+> Steps 6–7 were implemented and statically verified, not clicked through.
+
 **Goal:** answer the feasibility questions. Throwaway code. Nothing ships.
 **Representative object:** VM (283 of the 1169 lines, links to host/pool/VBD/VDI/SR/VIF/VTPM/VGPU/metrics/guest_metrics).
 

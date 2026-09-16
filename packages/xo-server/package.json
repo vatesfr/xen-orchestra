@@ -65,6 +65,7 @@
     "@xen-orchestra/template": "^0.1.1",
     "@xen-orchestra/vmware-explorer": "^1.0.2",
     "@xen-orchestra/xapi": "^9.0.1",
+    "@xen-orchestra/xapi-object-to-xo": "^0.0.0",
     "@xen-orchestra/xva": "^1.0.3",
     "ajv": "^8.0.3",
     "app-conf": "^3.0.0",
