@@ -51,6 +51,7 @@ which failed without the host naming a fault type reports `TASK_FAILED` instead.
 | `RANGE_IGNORED`        | The host answered something else than the byte range which was requested. Reading it would use the wrong offset, or as much memory as the file is big.                                        |
 | `TASK_FAILED`          | A task ended in error, and the host named no fault type for it.                                                                                                                               |
 | `TASK_TIMEOUT`         | A task did not complete within its deadline. It keeps running on the host, so it is **not** retried: starting a second one would not make the first go away.                                  |
+| `NO_CHANGE_ID`         | Asked for changed block, but change block  was not tracked when snapshotted                                                                                                                   |
 
 `ESXI_SESSION_EXPIRED` and the transport failures are transient, and are retried inside the package
 — while downloading from a datastore, and while polling a task. Every other code is reported to the

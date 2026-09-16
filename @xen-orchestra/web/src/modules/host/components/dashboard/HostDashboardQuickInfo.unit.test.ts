@@ -66,7 +66,7 @@ it('lists every row of the card, in order', () => {
   ])
 })
 
-it('shows the identity, power state and resources of the host', () => {
+it('shows the identity, state and resources of the host', () => {
   const wrapper = mountQuickInfo(
     createHost({
       id: 'host-42' as FrontXoHost['id'],
@@ -90,6 +90,18 @@ it('shows the identity, power state and resources of the host', () => {
     [t('cores-with-sockets')]: '16 (2)',
     [t('ram')]: '4 GiB',
   })
+})
+
+it('shows a running host that is not enabled as disabled', () => {
+  const wrapper = mountQuickInfo(createHost({ power_state: HOST_POWER_STATE.RUNNING, enabled: false }))
+
+  expect(findLabelledValues(wrapper)).toMatchObject({ [t('state')]: t('host:status:disabled') })
+})
+
+it('shows a host of unknown power state as unknown', () => {
+  const wrapper = mountQuickInfo(createHost({ power_state: HOST_POWER_STATE.UNKNOWN, enabled: true }))
+
+  expect(findLabelledValues(wrapper)).toMatchObject({ [t('state')]: t('host:status:unknown') })
 })
 
 it('leaves the hardware row empty for a host reporting no BIOS string', () => {

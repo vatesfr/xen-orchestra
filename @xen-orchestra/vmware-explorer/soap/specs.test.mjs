@@ -7,6 +7,7 @@ import {
   orderedChildren,
   propertyFilterSpec,
   propertySpec,
+  queryChangedDiskAreasArgs,
   retrieveOptions,
   traversalSpec,
 } from './specs.mjs'
@@ -85,5 +86,34 @@ describe('property collector specs', function () {
       attributes: { 'xsi:type': 'RetrieveOptions' },
       maxObjects: 100,
     })
+  })
+})
+
+describe('queryChangedDiskAreasArgs', function () {
+  it('emits the parameters in schema order', function () {
+    // built in the order which reads naturally, which is not the order of the schema
+    const args = queryChangedDiskAreasArgs({
+      _this: 'vm-8',
+      changeId: '*',
+      deviceKey: 2000,
+      snapshot: moRef('VirtualMachineSnapshot', '8-snapshot-7'),
+      startOffset: 0,
+    })
+
+    // sending `snapshot` after `startOffset` makes the host answer `Required parameter changeId is
+    // missing`, naming a parameter which was in fact sent
+    assert.deepEqual(Object.keys(args), ['_this', 'snapshot', 'deviceKey', 'startOffset', 'changeId'])
+  })
+
+  it('omits the snapshot of a powered off VM, and keeps a zero offset', function () {
+    const args = queryChangedDiskAreasArgs({ _this: 'vm-8', deviceKey: 2000, startOffset: 0, changeId: '*' })
+
+    assert.deepEqual(args, { _this: 'vm-8', deviceKey: 2000, startOffset: 0, changeId: '*' })
+  })
+
+  it('carries no xsi:type, the arguments of a method are not a complex type', function () {
+    const args = queryChangedDiskAreasArgs({ _this: 'vm-8', deviceKey: 2000, startOffset: 0, changeId: '*' })
+
+    assert.equal(args.attributes, undefined)
   })
 })

@@ -18,7 +18,8 @@
 </template>
 
 <script setup lang="ts">
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getHostIpAddresses } from '@/modules/pif/utils/xo-pif.util.ts'
@@ -31,7 +32,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
-import { icon, objectIcon } from '@core/icons'
+import { icon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useHostColumns } from '@core/tables/column-sets/host-columns.ts'
@@ -40,7 +41,6 @@ import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { logicAnd, logicNot, logicOr } from '@vueuse/math'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -115,7 +115,7 @@ const { HeadCells, BodyCells } = useHostColumns({
   exclude: sr === undefined ? ['srStatus'] : [],
   body: (host: FrontXoHost) => {
     const ipAddresses = computed(() => getHostIpAddresses(host.address, pifsByHost.value.get(host.id)))
-    const hostIcon = computed(() => objectIcon('host', toLower(host.power_state)))
+    const hostIcon = computed(() => getHostIcon(host))
     const rightIcon = computed(() => getMasterIcon(host))
     const srConnectionStatus = computed(() =>
       sr === undefined ? CONNECTION_STATUS.DISCONNECTED : getSrConnectionStatus(sr, host)
