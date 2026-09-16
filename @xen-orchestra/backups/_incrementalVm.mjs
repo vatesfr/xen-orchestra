@@ -135,7 +135,12 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   $defer,
   incrementalVm,
   sr,
-  { cancelToken = CancelToken.none, newMacAddresses = false, targetRef = undefined } = {}
+  {
+    cancelToken = CancelToken.none,
+    newMacAddresses = false,
+    targetRef = undefined,
+    vmNamePrefix = '[Importing…] ',
+  } = {}
 ) {
   const { version } = incrementalVm
   if (compareVersions(version, '1.0.0') < 0) {
@@ -224,7 +229,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         },
         ha_always_run: false,
         is_a_template: false,
-        name_label: '[Importing…] ' + vmRecord.name_label,
+        name_label: vmNamePrefix + vmRecord.name_label,
       },
       {
         bios_strings: vmRecord.bios_strings,

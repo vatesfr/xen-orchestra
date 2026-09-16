@@ -812,6 +812,7 @@ export default class BackupNg {
         const restoredId = await this.importVmBackupNg(backupId, srId, {
           ...settings,
           additionalVmTag: 'xo:no-bak=Health Check',
+          vmNamePrefix: '[Health Check] ',
         })
 
         const restoredVm = xapi.getObject(restoredId)
