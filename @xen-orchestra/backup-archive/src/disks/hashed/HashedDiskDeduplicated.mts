@@ -323,8 +323,9 @@ export class HashedDiskDeduplicated extends HashedDisk {
       }
     }
 
-    metadata.hashesPath = hashesPath
-    await this.#handler.outputFile(this.#path, JSON.stringify(metadata), { flags: 'w' })
+    const newMetadata = { ...metadata, hashesPath }
+    await this.#handler.outputFile(this.#path, JSON.stringify(newMetadata), { flags: 'w' })
+    this.#metadata = newMetadata
 
     this.#dirty = false
   }
