@@ -42,7 +42,7 @@
 - [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
 - [REST API] Add an endpoint to reclaim space per vm or backup repository: `POST /rest/V0/backup-repositories/:id/actions/reclaim-space` (PR [#10262](https://github.com/vatesfr/xen-orchestra/pull/10262))
 - [XO6/Host] Sort the networks table by network name (PR [#10367](https://github.com/vatesfr/xen-orchestra/pull/10367))
-- [XO5/XO Config Cloud Backup] Warn about backup deletion when disabling
+- [XO5/XO Config Cloud Backup] Require an acknowledgment to enable and warn about backup deletion when disabling (PR [#10457](https://github.com/vatesfr/xen-orchestra/pull/10457))
 
 ### Bug fixes
 
