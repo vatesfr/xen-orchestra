@@ -23,6 +23,7 @@
 - [XO6] All objects displayed in the UI are now updated in real time, except backup logs and backup archives which are still refreshed every 30 seconds (PR [#10450](https://github.com/vatesfr/xen-orchestra/pull/10450))
 - [REST API] Event subscriptions (`/rest/v0/events`) now support `authentication_token`: each user only receives events about their own tokens (PR [#10450](https://github.com/vatesfr/xen-orchestra/pull/10450))
 - [XO6/Side panels] Harmonize card titles across side panels (PR [#10289](https://github.com/vatesfr/xen-orchestra/pull/10289))
+- [REST API/Backup repositories] Free, used and total space are now available on backup repositories (PR [#10406](https://github.com/vatesfr/xen-orchestra/pull/10406))
 
 ### Bug fixes
 
