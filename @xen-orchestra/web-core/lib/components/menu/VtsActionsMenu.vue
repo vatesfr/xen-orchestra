@@ -1,5 +1,5 @@
 <template>
-  <MenuList placement="bottom-start">
+  <MenuList placement="bottom-end">
     <template #trigger="{ open }">
       <UiButtonIcon
         v-tooltip="{

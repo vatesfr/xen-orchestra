@@ -13,9 +13,9 @@ import tmp from 'tmp'
 const TIMEOUT = 12e5
 
 class TestHandler extends AbstractHandler {
-  constructor() {
+  constructor(remoteOverrides = {}) {
     const options = { timeout: TIMEOUT, withRetry: [] }
-    super({ url: 'test://' }, options)
+    super({ url: 'test://', ...remoteOverrides }, options)
     Object.defineProperty(this, 'isEncrypted', {
       get: () => false, // encryption is tested separately
     })
@@ -55,6 +55,16 @@ describe('closeFile()', () => {
     const promise = testHandler.closeFile({ fd: undefined, path: '' })
     clock.tick(TIMEOUT)
     await assert.rejects(promise, new TimeoutError())
+  })
+})
+
+describe('getConfig()', () => {
+  it('is undefined when not set on the remote', () => {
+    assert.equal(new TestHandler().getConfig('compressionType'), undefined)
+  })
+
+  it('reads the remote-level compressionType override', () => {
+    assert.equal(new TestHandler({ compressionType: 'brotli' }).getConfig('compressionType'), 'brotli')
   })
 })
 
@@ -224,5 +234,18 @@ describe('encryption', () => {
     await assert.rejects(
       Disposable.use(getSyncedHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd91"` }), noop)
     )
+  })
+
+  it('sync should fail with a clear error when the key is removed from a non empty remote', async () => {
+    const encryptor = _getEncryptor(DEFAULT_ENCRYPTION_ALGORITHM, '73c1838d7d8a6088ca2317fb5f29cd91')
+
+    await fs.writeFile(`${dir}/encryption.json`, `{"algorithm": "${DEFAULT_ENCRYPTION_ALGORITHM}"}`)
+    await fs.writeFile(`${dir}/metadata.json`, encryptor.encryptData(`{"random": "NOTSORANDOM"}`))
+    await fs.writeFile(`${dir}/nonempty.json`, 'content')
+
+    // no encryptionKey in the url => must not fall back to NULL_ENCRYPTOR
+    await assert.rejects(Disposable.use(getSyncedHandler({ url: `file://${dir}` }), noop), {
+      code: 'MISSING_ENCRYPTION_KEY',
+    })
   })
 })

@@ -25,7 +25,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { fork, type ChildProcess } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { getRandomValues } from 'node:crypto'
+import { randomBytes } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
 import v8 from 'node:v8'
 
@@ -415,6 +415,9 @@ const __dirname = dirname(__filename)
 
 const logger = createLogger('xo:xo-server-openmetrics')
 
+/** Id under which xo-server registers this plugin (directory name minus the `xo-server-` prefix) */
+const PLUGIN_ID = 'openmetrics'
+
 /** Default port for the OpenMetrics HTTP server */
 const DEFAULT_PORT = 9004
 
@@ -481,10 +484,34 @@ export const configurationSchema = {
       type: 'string',
       title: 'Prometheus secret',
       description: 'Add this secret to http_config > authorization > credentials, and set type to Bearer',
-      default: Buffer.from(getRandomValues(new Uint32Array(8))).toString('hex'),
     },
   },
   additionalProperties: false,
+}
+
+/**
+ * Return the Prometheus bearer token, generating and persisting one on first use.
+ *
+ * The secret must survive an xo-server restart. It used to be a random
+ * `default` in `configurationSchema`: that expression is re-evaluated every
+ * time the module is loaded, and xo-server never saves the values it fills in
+ * from schema defaults, so each restart silently invalidated the token
+ * Prometheus was configured with.
+ *
+ * Exported for testability.
+ */
+export async function ensureSecret(
+  configuration: PluginConfiguration | undefined,
+  persist: (configuration: PluginConfiguration) => Promise<void>
+): Promise<string> {
+  const secret = configuration?.secret
+  if (secret !== undefined && secret !== '') {
+    return secret
+  }
+
+  const generated = randomBytes(32).toString('hex')
+  await persist({ secret: generated })
+  return generated
 }
 
 // ============================================================================
@@ -779,11 +806,15 @@ class OpenMetricsPlugin {
       return
     }
 
+    const secret = await ensureSecret(this.#configuration, configuration =>
+      this.#xo.configurePlugin(PLUGIN_ID, configuration, true)
+    )
+
     // Port and bindAddress are fixed for security (server is behind xo-server proxy)
     const serverConfig: ServerConfiguration = {
       port: DEFAULT_PORT,
       bindAddress: DEFAULT_BIND_ADDRESS,
-      secret: this.#configuration?.secret ?? '',
+      secret,
     }
 
     logger.info('Starting OpenMetrics server', {

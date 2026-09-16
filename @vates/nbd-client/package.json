@@ -13,7 +13,7 @@
     "url": "https://vates.fr"
   },
   "license": "ISC",
-  "version": "3.5.0",
+  "version": "3.5.1",
   "engines": {
     "node": ">=14.0"
   },
@@ -33,6 +33,7 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test-integration": "tap --allow-incomplete-coverage"
+    "test": "node --experimental-test-module-mocks --test",
+    "test-integration": "tap --allow-incomplete-coverage tests/*.integ.mjs"
   }
 }

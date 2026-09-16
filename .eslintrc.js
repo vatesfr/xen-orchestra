@@ -269,6 +269,8 @@ module.exports = {
               'zh-Hans',
               'sk',
               'pt',
+              'ar',
+              'tr',
             ],
           },
         ],

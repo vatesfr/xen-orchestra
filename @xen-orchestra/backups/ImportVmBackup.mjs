@@ -30,10 +30,16 @@ export class ImportVmBackup {
     metadata,
     srUuid,
     xapi,
-    settings: { additionalVmTag, newMacAddresses, mapVdisSrs = {}, useDifferentialRestore = false } = {},
+    settings: { additionalVmTag, newMacAddresses, mapVdisSrs = {}, useDifferentialRestore = false, vmNamePrefix } = {},
   }) {
     this._adapter = adapter
-    this._importIncrementalVmSettings = { additionalVmTag, newMacAddresses, mapVdisSrs, useDifferentialRestore }
+    this._importIncrementalVmSettings = {
+      additionalVmTag,
+      newMacAddresses,
+      mapVdisSrs,
+      useDifferentialRestore,
+      vmNamePrefix,
+    }
     this._metadata = metadata
     this._srUuid = srUuid
     this._xapi = xapi
@@ -229,9 +235,8 @@ export class ImportVmBackup {
     const adapter = this._adapter
     const metadata = this._metadata
     const isFull = metadata.mode === 'full'
-
     const sizeContainer = { size: 0 }
-    const { newMacAddresses } = this._importIncrementalVmSettings
+    const { newMacAddresses, vmNamePrefix, additionalVmTag } = this._importIncrementalVmSettings
     let backup
     if (isFull) {
       backup = await adapter.readFullVmBackup(metadata)
@@ -250,10 +255,20 @@ export class ImportVmBackup {
         const xapi = this._xapi
         const srRef = await xapi.call('SR.get_by_uuid', this._srUuid)
 
+        const onVmCreation =
+          vmNamePrefix === undefined && additionalVmTag === undefined
+            ? null
+            : vm =>
+                Promise.all([
+                  vmNamePrefix !== undefined && vm.set_name_label(vmNamePrefix + metadata.vm.name_label),
+                  additionalVmTag !== undefined && vm.add_tags(additionalVmTag),
+                ])
+
         const vmRef = isFull
-          ? await xapi.VM_import(backup, srRef)
+          ? await xapi.VM_import(backup, srRef, onVmCreation)
           : await importIncrementalVm(backup, await xapi.getRecord('SR', srRef), {
               newMacAddresses,
+              vmNamePrefix,
             })
         let size = 0
         if (isFull) {
@@ -276,7 +291,7 @@ export class ImportVmBackup {
           xapi.call(
             'VM.set_name_label',
             vmRef,
-            `${metadata.vm.name_label} (${formatFilenameDate(metadata.timestamp)})`
+            `${vmNamePrefix ?? ''}${metadata.vm.name_label} (${formatFilenameDate(metadata.timestamp)})`
           ),
           xapi.call('VM.set_name_description', vmRef, desc),
           resetVmOtherConfig(xapi, vmRef),

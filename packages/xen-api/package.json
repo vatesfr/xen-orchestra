@@ -28,7 +28,7 @@
     "xen-api": "./cli.mjs"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.19"
   },
   "dependencies": {
     "@vates/coalesce-calls": "^0.1.0",
@@ -51,7 +51,7 @@
     "proxy-agent": "^6.3.1",
     "promise-toolbox": "^0.21.0",
     "pw": "0.0.4",
-    "undici": "^6.2.1",
+    "undici": "^8.10.0",
     "xo-collection": "^0.6.1",
     "xo-common": "^0.11.0"
   },
@@ -72,6 +72,6 @@
   "scripts": {
     "plot": "gnuplot -p memory-test.gnu",
     "postversion": "npm publish",
-    "test": "tap --allow-incomplete-coverage"
+    "test": "tap --allow-incomplete-coverage *.spec.mjs && node --test"
   }
 }

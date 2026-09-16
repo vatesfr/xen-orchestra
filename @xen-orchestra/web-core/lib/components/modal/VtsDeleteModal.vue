@@ -1,11 +1,7 @@
 <template>
   <UiModal accent="warning" icon="status:warning-picto" @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
-      <I18nT keypath="confirm-delete" scope="global" tag="div">
-        <span class="n-delete">
-          {{ subject }}
-        </span>
-      </I18nT>
+      {{ t('confirm-delete', { name: subject }) }}
     </template>
 
     <template #content>
@@ -40,9 +36,3 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 </script>
-
-<style lang="postcss" scoped>
-.n-delete {
-  color: var(--color-warning-item-base);
-}
-</style>

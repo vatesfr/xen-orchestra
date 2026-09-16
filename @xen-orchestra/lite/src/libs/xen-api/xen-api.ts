@@ -1,4 +1,5 @@
 import { ipToHostname } from '@/libs/utils.ts'
+import { createHostOperations } from '@/libs/xen-api/operations/host-operations.ts'
 import { createNetworkOperations } from '@/libs/xen-api/operations/network-operations.ts'
 import { createPbdOperations } from '@/libs/xen-api/operations/pbd-operations.ts'
 import { createPifOperations } from '@/libs/xen-api/operations/pif-operations.ts'
@@ -295,5 +296,9 @@ export default class XenApi {
 
   get network() {
     return createNetworkOperations(this)
+  }
+
+  get host() {
+    return createHostOperations(this)
   }
 }

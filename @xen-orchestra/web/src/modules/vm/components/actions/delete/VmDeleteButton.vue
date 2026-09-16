@@ -70,7 +70,7 @@ function openModal() {
       },
     },
     props: {
-      subject: t('n-vms', { n: 1 }),
+      subject: vm.name_label,
       confirmLabel: t('action:delete-n-vms', { n: 1 }),
     },
   })

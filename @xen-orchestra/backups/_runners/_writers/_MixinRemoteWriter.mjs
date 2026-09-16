@@ -112,6 +112,7 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
             xapi,
             settings: {
               additionalVmTag: 'xo:no-bak=Health Check',
+              vmNamePrefix: '[Health Check] ',
             },
           }).run()
           let restoredVm
