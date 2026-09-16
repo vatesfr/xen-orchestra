@@ -100,6 +100,16 @@ export default class BackupNg {
     return this._runningRestores
   }
 
+  /**
+   * the VM backup archives of the backup repositories, as a collection: `add`, `update` and
+   * `remove` events carrying the archive and its previous value
+   *
+   * @returns {import('node:events').EventEmitter}
+   */
+  get vmBackupArchives() {
+    return this.#vmBackupsCache
+  }
+
   constructor(app) {
     this._app = app
     this._runningRestores = new Set()
@@ -843,12 +853,24 @@ export default class BackupNg {
    * next listing, instead of being brought up to date from its journal
    *
    * public because it is also called by the remotes mixin when a backup repository is updated
-   * or removed
    *
    * @param {XoBackupRepository['id']} remoteId
    */
   invalidateVmBackupsListing(remoteId) {
     this.#vmBackupsCache.delete(remoteId)
+    this.#resetVmBackupsListingState(remoteId)
+  }
+
+  /**
+   * forgets a backup repository which will not be listed again — it has been removed or disabled —
+   * and announces that its archives are gone with it
+   *
+   * public because it is called by the remotes mixin
+   *
+   * @param {XoBackupRepository['id']} remoteId
+   */
+  forgetVmBackupRepository(remoteId) {
+    this.#vmBackupsCache.remove(remoteId)
     this.#resetVmBackupsListingState(remoteId)
   }
 }
