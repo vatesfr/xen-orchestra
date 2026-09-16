@@ -1,12 +1,11 @@
 import type { DiskBlock } from '@xen-orchestra/disk-transform'
 import type { RemoteHandlerAbstract } from '@xen-orchestra/fs'
-import { createLogger } from '@xen-orchestra/log'
 import { dirname, join } from 'node:path'
 import { isInDir, normalize } from '@xen-orchestra/fs/path'
 
 import { HashedDisk } from './HashedDisk.mjs'
+import { BlockAllocationTable } from './BlockAllocationTable.mjs'
 import {
-  BlockAllocationTable,
   blockRelPath,
   buildBlockHeader,
   checkVersion,
@@ -17,8 +16,6 @@ import {
   type BlockHash,
   type HashedDiskMetadata,
 } from './hbdPaths.mjs'
-
-const { warn } = createLogger('xo:backup-archive:hbd')
 
 /**
  * Content addressed disk: block index -> SHA-256 of the block payload, kept in a
@@ -34,7 +31,10 @@ export class HashedDiskDeduplicated extends HashedDisk {
   constructor({ handler, path }: { handler: RemoteHandlerAbstract; path: string }) {
     super()
     this.#handler = handler
-    this.#path = path
+    // normalized once here so every path this disk hands out or derives has the
+    // same shape: callers match them against paths listed from the handler, and
+    // an unnormalized one silently fails to compare equal
+    this.#path = normalize(path)
   }
 
   /**
@@ -206,10 +206,6 @@ export class HashedDiskDeduplicated extends HashedDisk {
     return this.#loadedMetadata.parentUuid !== undefined
   }
 
-  async isDirectory(): Promise<boolean> {
-    return true
-  }
-
   /** block files are independent, nothing is shared inside a single disk */
   async canMergeConcurently(): Promise<boolean> {
     return true
@@ -240,18 +236,6 @@ export class HashedDiskDeduplicated extends HashedDisk {
         throw error
       }
       // already stored, by another index of this disk or by a previous run
-    }
-  }
-
-  /** drops this disk's reference to `hash`, tolerating an already absent block */
-  async #releaseBlock(hash: BlockHash): Promise<void> {
-    try {
-      await this.#handler.unlink(this.#blockPath(hash))
-    } catch (error: any) {
-      if (error?.code !== 'ENOENT') {
-        throw error
-      }
-      warn('releasing an already absent block', { hash, path: this.#path })
     }
   }
 
@@ -341,25 +325,32 @@ export class HashedDiskDeduplicated extends HashedDisk {
   }
 
   /**
-   * Every file this disk claims inside `dir`: the hbd file, the current hashes
-   * file, and every block file. Used by lineage and remote cleanup to tell owned
-   * files from orphans.
+   * What this disk claims inside `dir`: the hbd file, and its data directory as
+   * a whole. Used by lineage and remote cleanup to tell owned files from orphans.
+   *
+   * The data directory stands for its entire subtree rather than being expanded:
+   * under PER_DISK nothing else may write there, so listing it would enumerate
+   * one path per block — millions on a large disk, each in its own leaf
+   * directory, which the caller then stats one by one. Claiming the directory
+   * answers the same question in two entries.
+   *
+   * What this does not do, by design, is spot orphans *inside* that subtree:
+   * unreferenced blocks are collected by flushMetadata, and what a crash leaks
+   * is left to a repository wide GC.
    */
   async listAssociatedFiles(dir: string): Promise<Array<string>> {
-    const bat = this.#loadedBat
-    const files = [this.#path, this.#resolve(this.#loadedMetadata.hashesPath)]
-    for (const index of bat.indexes()) {
-      files.push(this.#blockPath(bat.get(index)))
-    }
+    const files = [this.#path, this.#dataDir]
 
     return files.filter(p => isInDir(p, dir))
   }
 
-  async unlink(): Promise<void> {
-    const metadata = this.#loadedMetadata
+  /** holds the blocks and every hashes file, current and orphaned */
+  get #dataDir(): string {
+    return dirname(this.#resolve(this.#loadedMetadata.hashesPath))
+  }
 
-    // holds the blocks and every hashes file, current and orphaned
-    await this.#handler.rmtree(dirname(this.#resolve(metadata.hashesPath)))
+  async unlink(): Promise<void> {
+    await this.#handler.rmtree(this.#dataDir)
     await this.#handler.unlink(this.#path)
 
     this.#metadata = undefined

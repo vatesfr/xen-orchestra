@@ -174,7 +174,7 @@ describe('HashedDiskDeduplicated', () => {
     assert.equal(disk.getVirtualSize(), VIRTUAL_SIZE)
     assert.equal(disk.getBlockSize(), BLOCK_SIZE)
     assert.equal(disk.getMaxBlockCount(), 10)
-    assert.equal(disk.getPath(), diskPath)
+    assert.equal(disk.getPath(), `/${diskPath}`, 'paths are normalized on the way in')
     assert.equal(disk.isDifferencing(), false)
     assert.deepEqual(disk.getBlockIndexes(), [])
     assert.equal(disk.getSizeOnDisk(), 0)
@@ -248,6 +248,19 @@ describe('HashedDiskDeduplicated', () => {
     assert.equal(hashesFiles.length, 2, 'the file the hbd used to point at is left for check()')
   })
 
+  test('overwriting an index leaves the block it dropped on the remote', async () => {
+    const disk = await createDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await disk.flushMetadata()
+
+    await disk.writeBlock({ index: 0, data: block(0xbb) })
+    await disk.flushMetadata()
+
+    // releasing it needs the store's link counts: Phase 3, not implemented here
+    assert.equal(await countBlockFiles(), 2)
+    assert.ok((await disk.readBlock(0)).data.equals(block(0xbb)))
+  })
+
   test('a corrupted block file is detected on read', async () => {
     const disk = await createDisk()
     await disk.writeBlock({ index: 0, data: block(0xaa) })
@@ -258,6 +271,25 @@ describe('HashedDiskDeduplicated', () => {
     await handler.writeFile(blockFile, buffer, { flags: 'w' })
 
     await assert.rejects(() => disk.readBlock(0), /block corruption on read/)
+  })
+
+  test('listAssociatedFiles claims the data dir as a whole, not one entry per block', async () => {
+    const disk = await createDisk()
+    for (let index = 0; index < 5; index++) {
+      await disk.writeBlock({ index, data: block(index) })
+    }
+
+    const claimed = await disk.listAssociatedFiles('xo-vm-backups')
+
+    // 5 blocks on disk, still 2 claims: the hbd and the directory holding them
+    assert.deepEqual(claimed, [`/${diskPath}`, `/${diskDir}/data/disk-uuid`])
+  })
+
+  test('listAssociatedFiles drops what falls outside the requested dir', async () => {
+    const disk = await createDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+
+    assert.deepEqual(await disk.listAssociatedFiles('/somewhere/else'), [])
   })
 
   test('unlink removes every file of the disk', async () => {

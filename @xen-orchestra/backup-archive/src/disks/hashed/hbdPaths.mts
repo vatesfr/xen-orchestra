@@ -1,7 +1,7 @@
 // Offset  Size  Field
 //      0     4  magic: 0x48424400 ("HBD\0")
 //      4     1  codec: 0x00 = raw (no compression),0x01= brotli compression  ,  reserved for future codecs,
-//      5     3  reserved (zero)
+//      5     3  reserved for compression flags (zero)
 //      8     8  verified_at: Unix timestamp in milliseconds of last successful hash check (0 = never)
 //     16    32  payload_hash: SHA-256 of the raw (uncompressed, unencrypted) payload — redundant with
 //               the store path but enables self-contained verification without path context
@@ -29,7 +29,6 @@ const OFFSET_PAYLOAD_HASH = 16
 export const CODEC_RAW = 0x00
 export const CODEC_BROTLI = 0x01
 
-const ZERO_ENTRY = Buffer.alloc(HASH_SIZE)
 const HASH_HEX_LENGTH = HASH_SIZE * 2 // chars, in memory
 const HASH_PATH_DEPTH = 4
 const HASH_PATH_SEGMENT = HASH_HEX_LENGTH / HASH_PATH_DEPTH
@@ -164,72 +163,4 @@ export function hashesFileName(date: Date): string {
 export function sha256hex(data: Buffer): BlockHash {
   const hash = crypto.createHash('sha256')
   return hash.update(data).digest('hex') as BlockHash
-}
-
-export class BlockAllocationTable {
-  #bat: Buffer
-  #maxBlockCount: number
-
-  static allocate(maxBlockCount: number): BlockAllocationTable {
-    return new BlockAllocationTable(Buffer.alloc(maxBlockCount * HASH_SIZE), maxBlockCount)
-  }
-
-  static fromBuffer(buffer: Buffer, maxBlockCount: number, force = false): BlockAllocationTable {
-    const expected = maxBlockCount * HASH_SIZE
-    if (buffer.length !== expected) {
-      const message = `unexpected hashes file size: ${buffer.length} instead of ${expected},`
-      if (force) {
-        warn(message)
-        maxBlockCount = Math.min(maxBlockCount, Math.floor(buffer.length / HASH_SIZE))
-      } else {
-        throw new Error(message)
-      }
-    }
-    return new BlockAllocationTable(buffer, maxBlockCount)
-  }
-
-  private constructor(bat: Buffer, maxBlockCount: number) {
-    this.#bat = bat
-    this.#maxBlockCount = maxBlockCount
-  }
-
-  #entry(index: number): Buffer {
-    if (index < 0 || index >= this.#maxBlockCount) {
-      throw new Error(`block index ${index} out of range [0, ${this.#maxBlockCount})`)
-    }
-    const offset = index * HASH_SIZE
-    return this.#bat.subarray(offset, offset + HASH_SIZE)
-  }
-
-  get(index: number): BlockHash {
-    return this.#entry(index).toString('hex') as BlockHash
-  }
-
-  set(index: number, hash: BlockHash) {
-    this.#entry(index).write(hash, 'hex')
-  }
-
-  isEmpty(index: number): boolean {
-    return this.#entry(index).equals(ZERO_ENTRY)
-  }
-
-  countAllocated(): number {
-    let total = 0
-    for (let idx = 0; idx < this.#maxBlockCount; idx++) {
-      if (!this.isEmpty(idx)) total++
-    }
-    return total
-  }
-
-  indexes(): Array<number> {
-    const res = new Array<number>()
-    for (let idx = 0; idx < this.#maxBlockCount; idx++) {
-      if (!this.isEmpty(idx)) res.push(idx)
-    }
-    return res
-  }
-
-  toBuffer(): Buffer {
-    return this.#bat
-  }
 }
