@@ -49,6 +49,7 @@
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/immutable-backups patch
+- @xen-orchestra/proxy minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
