@@ -202,6 +202,7 @@ export type XoPoolBackupArchive = XoMetadataBackupArchive & {
 }
 
 export type XoBackupRepository = {
+  available?: number
   benchmarks?: { readRate: number; timestamp: number; writeRate: number }[]
   enabled: boolean
   error?: Record<string, unknown>
@@ -209,7 +210,9 @@ export type XoBackupRepository = {
   name: string
   options?: string
   proxy?: XoProxy['id']
+  size?: number
   url: string
+  used?: number
 }
 
 export type XoGpuGroup = BaseXapiXo & {
