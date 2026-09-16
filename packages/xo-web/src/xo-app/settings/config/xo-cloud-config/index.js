@@ -61,7 +61,13 @@ const CloudConfig = decorate([
         () =>
         async (state, { cloudXoConfig }) => {
           let passphrase
-          if (!cloudXoConfig?.enabled) {
+          if (cloudXoConfig?.enabled) {
+            await confirm({
+              icon: 'alarm',
+              title: _('xoConfigCloudBackup'),
+              body: _('disableXoConfigCloudBackupConfirm'),
+            })
+          } else {
             const params = await confirm({
               icon: 'backup',
               title: _('xoConfigCloudBackup'),
