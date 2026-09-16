@@ -2645,6 +2645,8 @@ const messages = {
 
   // ----- XO cloud config -----
   backedUpXoConfigs: 'Backed up XO Configs',
+  disableXoConfigCloudBackupConfirm:
+    'XO config backups on Vates servers will be deleted. Ensure you export the XO config to your own environment',
   manageXoConfigCloudBackup: 'Manage XO Config Cloud Backup',
   selectXoConfig: 'Select XO config',
   xoConfigCloudBackup: 'XO Config Cloud Backup',
