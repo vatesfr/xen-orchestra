@@ -139,9 +139,8 @@ class PerfAlertXoPlugin {
         return isV6 ? `${baseUrl}#/vm/${uuid}/dashboard` : `${baseUrl}v5/#/vms/${uuid}/stats`
       case 'host':
         return isV6 ? `${baseUrl}#/host/${uuid}/dashboard` : `${baseUrl}v5/#/hosts/${uuid}/stats`
-      case 'sr':
-        // SRs are not supported in v6 yet, correct this when they are
-        return `${baseUrl}v5/#/srs/${uuid}/general`
+      case 'SR':
+        return isV6 ? `${baseUrl}#/sr/${uuid}/general` : `${baseUrl}v5/#/srs/${uuid}/general`
       default:
         return `unknown type ${type}`
     }
