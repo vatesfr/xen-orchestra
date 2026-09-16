@@ -18,6 +18,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [Backup] Fix replication never cleaning up a VM left behind by an interrupted transfer, which could keep accumulating on the target SR (PR [#10436](https://github.com/vatesfr/xen-orchestra/pull/10436))
+- [Plugin/perf-alert] Fix `test plugin` button (PR [#10407](https://github.com/vatesfr/xen-orchestra/pull/10407))
 
 ### Packages to release
 
@@ -39,4 +40,6 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server patch
+- xo-server-perf-alert patch
+
 <!--packages-end-->
