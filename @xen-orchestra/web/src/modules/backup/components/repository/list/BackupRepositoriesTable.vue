@@ -78,12 +78,14 @@ const state = useTableState({
 const { HeadCells, BodyCells } = useBackupRepositoryColumns({
   body: (br: FrontXoBackupRepository) => {
     const proxy = useGetProxyById(() => br.proxy)
+
     return {
       backupRepository: r => r({ label: br.name, icon: getBackupRepositoryIcon(br), href: xo5BrsHref.value }),
       status: r => r(getBackupRepositoryStatus(br)),
       type: r => r(parseBackupRepositoryUrl(br.url)?.type ?? ''),
       proxy: r => {
         const proxyName = proxy.value?.name
+
         return proxyName ? r(proxyName, { leftIcon: { icon: 'object:proxy' } }) : r('')
       },
       selectItem: r => r(() => (selectedBrId.value = br.id)),

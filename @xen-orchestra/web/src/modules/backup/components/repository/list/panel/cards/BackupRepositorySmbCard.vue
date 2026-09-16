@@ -33,9 +33,9 @@
 
       <VtsCardRowKeyValue>
         <template #key>{{ t('custom-options') }}</template>
-        <template #value>{{ formatedOptions }}</template>
-        <template v-if="formatedOptions" #addons>
-          <VtsCopyButton :value="formatedOptions" />
+        <template #value>{{ formattedOptions }}</template>
+        <template v-if="formattedOptions" #addons>
+          <VtsCopyButton :value="formattedOptions" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -61,7 +61,7 @@ const { t } = useI18n()
 
 const pathOnShare = computed(() => `${smb.host}\\${smb.path}`)
 
-const formatedOptions = computed(() => formatMountOptions(options))
+const formattedOptions = computed(() => formatMountOptions(options))
 </script>
 
 <style scoped lang="postcss">
