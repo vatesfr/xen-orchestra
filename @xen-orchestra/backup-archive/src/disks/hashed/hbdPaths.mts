@@ -55,6 +55,15 @@ export interface HashedDiskMetadata {
   hashesPath: string //relative to this file
 }
 
+export class HbdFileError extends Error {
+  path: string
+
+  constructor(message: string, path: string, cause?: unknown) {
+    super(`${message} (in ${path})`, { cause })
+    this.path = path
+  }
+}
+
 export function checkVersion(version: string) {
   if (compareVersions(version, VERSION) > 0) {
     throw new Error(`Unsupported hbd version ${version}, expected: ${VERSION}`)

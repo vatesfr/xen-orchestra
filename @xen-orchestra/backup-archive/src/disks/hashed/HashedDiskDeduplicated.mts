@@ -11,6 +11,7 @@ import {
   checkVersion,
   decodeBlock,
   hashesFileName,
+  HbdFileError,
   sha256hex,
   VERSION,
   type BlockHash,
@@ -128,23 +129,35 @@ export class HashedDiskDeduplicated extends HashedDisk {
       return
     }
 
-    const metadata: HashedDiskMetadata = JSON.parse(await this.#handler.readFile(this.#path))
-    checkVersion(metadata.version)
+    let metadata: HashedDiskMetadata
+    try {
+      metadata = JSON.parse(await this.#handler.readFile(this.#path))
+      checkVersion(metadata.version)
 
-    const { blockSize, virtualSize } = metadata
-    if (!Number.isInteger(blockSize) || blockSize <= 0) {
-      throw new Error(`invalid blockSize ${blockSize} in ${this.#path}`)
-    }
-    if (!Number.isInteger(virtualSize) || virtualSize < 0) {
-      throw new Error(`invalid virtualSize ${virtualSize} in ${this.#path}`)
+      const { blockSize, virtualSize } = metadata
+      if (!Number.isInteger(blockSize) || blockSize <= 0) {
+        throw new Error(`invalid blockSize ${blockSize}`)
+      }
+      if (!Number.isInteger(virtualSize) || virtualSize < 0) {
+        throw new Error(`invalid virtualSize ${virtualSize}`)
+      }
+    } catch (error: any) {
+      throw new HbdFileError(error.message, this.#path, error)
     }
 
     this.#metadata = metadata
-    this.#bat = BlockAllocationTable.fromBuffer(
-      await this.#readFileAsBuffer(this.#resolve(metadata.hashesPath)),
-      this.getMaxBlockCount(),
-      options.force
-    )
+
+    const hashesPath = this.#resolve(metadata.hashesPath)
+    try {
+      this.#bat = BlockAllocationTable.fromBuffer(
+        await this.#readFileAsBuffer(hashesPath),
+        this.getMaxBlockCount(),
+        options.force
+      )
+    } catch (error: any) {
+      this.#metadata = undefined
+      throw new HbdFileError(error.message, hashesPath, error)
+    }
   }
 
   async close(): Promise<void> {

@@ -16,7 +16,7 @@ export class BlockAllocationTable {
   static fromBuffer(buffer: Buffer, maxBlockCount: number, force = false): BlockAllocationTable {
     const expected = maxBlockCount * HASH_SIZE
     if (buffer.length !== expected) {
-      const message = `unexpected hashes file size: ${buffer.length} instead of ${expected},`
+      const message = `unexpected hashes file size: ${buffer.length} instead of ${expected}`
       if (force) {
         warn(message)
         maxBlockCount = Math.min(maxBlockCount, Math.floor(buffer.length / HASH_SIZE))

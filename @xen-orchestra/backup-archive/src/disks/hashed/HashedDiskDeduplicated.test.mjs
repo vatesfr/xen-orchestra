@@ -222,6 +222,64 @@ describe('HashedDiskDeduplicated', () => {
     await assert.rejects(() => disk.readBlock(0), /no block at index 0/)
   })
 
+  test('every init failure names the file it is about', async () => {
+    const disk = await createDisk()
+    const { hashesPath } = disk.getMetadata()
+    const reopen = () => new HashedDiskDeduplicated({ handler, path: diskPath }).init()
+    const writeHbd = metadata => handler.writeFile(diskPath, JSON.stringify(metadata), { flags: 'w' })
+
+    // the odd one out: the offending file is the hashes file, not the hbd
+    await handler.writeFile(`${diskDir}/${hashesPath}`, Buffer.alloc(HASH_SIZE), { flags: 'w' })
+    await assert.rejects(reopen, error => {
+      assert.equal(error.path, `/${diskDir}/${hashesPath}`)
+      assert.match(error.message, /unexpected hashes file size/)
+      return true
+    })
+
+    await writeHbd({ ...disk.getMetadata(), version: '99.0.0' })
+    await assert.rejects(reopen, error => {
+      assert.equal(error.path, `/${diskPath}`)
+      assert.match(error.message, /Unsupported hbd version 99\.0\.0/)
+      return true
+    })
+
+    await writeHbd({ ...disk.getMetadata(), blockSize: 0 })
+    await assert.rejects(reopen, error => {
+      assert.equal(error.path, `/${diskPath}`)
+      assert.match(error.message, /invalid blockSize 0/)
+      return true
+    })
+
+    await handler.writeFile(diskPath, '{ not json', { flags: 'w' })
+    await assert.rejects(reopen, error => {
+      assert.equal(error.path, `/${diskPath}`)
+      assert.ok(error.cause instanceof SyntaxError, 'the original error is kept as the cause')
+      return true
+    })
+
+    await assert.rejects(
+      () => new HashedDiskDeduplicated({ handler, path: `${diskDir}/absent.hbd` }).init(),
+      error => error.path === `/${diskDir}/absent.hbd`
+    )
+  })
+
+  test('a failed init leaves the disk closed, so a retry really retries', async () => {
+    const disk = await createDisk()
+    const { hashesPath } = disk.getMetadata()
+    const truncated = await handler.readFile(`${diskDir}/${hashesPath}`)
+
+    await handler.writeFile(`${diskDir}/${hashesPath}`, Buffer.alloc(HASH_SIZE), { flags: 'w' })
+    const reopened = new HashedDiskDeduplicated({ handler, path: diskPath })
+    await assert.rejects(() => reopened.init(), /unexpected hashes file size/)
+
+    // the disk must not consider itself open: fix the file, init again
+    await handler.writeFile(`${diskDir}/${hashesPath}`, truncated, { flags: 'w' })
+    await reopened.init()
+
+    assert.equal(reopened.getMaxBlockCount(), 10)
+    assert.deepEqual(reopened.getBlockIndexes(), [])
+  })
+
   test('close flushes, and a reopened disk sees the same blocks', async () => {
     const disk = await createDisk()
     const data = block(0xaa)
