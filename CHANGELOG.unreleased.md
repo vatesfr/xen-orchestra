@@ -45,6 +45,7 @@
 <!--packages-start-->
 
 - @vates/nbd-client minor
+- @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/immutable-backups patch
