@@ -1,13 +1,13 @@
 import { xoHostArg } from '@/modules/host/jobs/xo-host-args.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { isHostOperationPending } from '@/modules/host/utils/xo-host.util.ts'
+import { getHostPendingStateOperation } from '@/modules/host/utils/xo-host.util.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { areVmsOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
+import { HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useXoHostSmartRebootJob = defineJob('host.smart-reboot', [xoHostArg], () => {
@@ -28,7 +28,7 @@ export const useXoHostSmartRebootJob = defineJob('host.smart-reboot', [xoHostArg
 
       const residentVms = vmsByHost.value.get(host.id) ?? []
 
-      if (isRunning || isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.REBOOT)) {
+      if (isRunning) {
         throw new JobRunningError(t('job:host-smart-reboot:in-progress'))
       }
 
@@ -42,6 +42,10 @@ export const useXoHostSmartRebootJob = defineJob('host.smart-reboot', [xoHostArg
 
       if (areVmsOperationPending(residentVms, VM_OPERATIONS.HARD_SHUTDOWN)) {
         throw new JobRunningError(t('job:host-smart-reboot:vm-hard-shutdown-in-progress'))
+      }
+
+      if (getHostPendingStateOperation(host) !== undefined) {
+        throw new JobError(t('job:host-change-state:in-progress'))
       }
 
       if (host.power_state !== HOST_POWER_STATE.RUNNING) {

@@ -1,5 +1,6 @@
 import { xoHostArg } from '@/modules/host/jobs/xo-host-args.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostPendingStateOperation } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { isPoolOperationPending } from '@/modules/pool/utils/xo-pool.util.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
@@ -29,6 +30,10 @@ export const useXoHostDetachJob = defineJob('host.detach', [xoHostArg], () => {
 
       if (isRunning || (pool && isPoolOperationPending(pool, POOL_ALLOWED_OPERATIONS.EJECT))) {
         throw new JobRunningError(t('job:host-detach:in-progress'))
+      }
+
+      if (getHostPendingStateOperation(host) !== undefined) {
+        throw new JobError(t('job:host-change-state:in-progress'))
       }
 
       if (pool?.master === host.id) {

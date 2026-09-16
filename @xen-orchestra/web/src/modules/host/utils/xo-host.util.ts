@@ -42,6 +42,13 @@ export function getHostPendingStateOperation(host: FrontXoHost) {
   return getHostPendingOperation(host, CHANGING_STATE_OPERATIONS)
 }
 
+export function getHostBlockingStateOperation(host: FrontXoHost, ownOperation?: HOST_ALLOWED_OPERATIONS) {
+  return getHostPendingOperation(
+    host,
+    CHANGING_STATE_OPERATIONS.filter(operation => operation !== ownOperation)
+  )
+}
+
 export function getHostSmartRebootVmOperation(host: FrontXoHost, residentVms: FrontXoVm[]) {
   if (host.enabled) {
     return undefined

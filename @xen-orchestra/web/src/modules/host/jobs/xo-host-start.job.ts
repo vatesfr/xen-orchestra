@@ -5,7 +5,7 @@ import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-co
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE } from '@vates/types'
+import { HOST_POWER_STATE } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useXoHostStartJob = defineJob('host.start', [xoHostArg], () => {
@@ -23,14 +23,12 @@ export const useXoHostStartJob = defineJob('host.start', [xoHostArg], () => {
         throw new JobError(t('job:host-start:missing-host'))
       }
 
-      const pendingOperations = getHostPendingStateOperation(host)
-
-      if (isRunning || pendingOperations === HOST_ALLOWED_OPERATIONS.POWER_ON) {
+      if (isRunning) {
         throw new JobRunningError(t('job:host-start:in-progress'))
       }
 
-      if (pendingOperations !== undefined) {
-        throw new JobRunningError(t('job:host-change-state:in-progress'))
+      if (getHostPendingStateOperation(host) !== undefined) {
+        throw new JobError(t('job:host-change-state:in-progress'))
       }
 
       if (host.power_state === HOST_POWER_STATE.RUNNING) {

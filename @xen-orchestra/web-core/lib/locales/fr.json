@@ -257,6 +257,7 @@
   "bytes:ki": "Kio",
   "bytes:mi": "Mio",
   "cancel": "Annuler",
+  "job:host-change-state:in-progress": "Changement d'état de l'hôte en cours…",
   "cbt-destroy-snapshot-data": "Supprimer les données de l'instantané quand CBT est utilisé",
   "change-block-tracking": "Change block tracking (CBT)",
   "character-limit": "{count}/{max} caractère | {count}/{max} caractères",

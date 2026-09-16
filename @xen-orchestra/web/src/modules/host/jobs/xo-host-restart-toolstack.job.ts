@@ -1,5 +1,6 @@
 import { xoHostArg } from '@/modules/host/jobs/xo-host-args.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostPendingStateOperation } from '@/modules/host/utils/xo-host.util.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
@@ -22,9 +23,12 @@ export const useXoHostRestartToolstackJob = defineJob('host.restart-toolstack', 
         throw new JobError(t('job:host-restart-toolstack:missing-host'))
       }
 
-      // For now, the only loader we have for the restart toolstack action is this one. A fix is in progress on the backend side to show the loader on the other buttons, the treeview, etc.
       if (isRunning) {
         throw new JobRunningError(t('job:host-restart-toolstack:in-progress'))
+      }
+
+      if (getHostPendingStateOperation(host) !== undefined) {
+        throw new JobError(t('job:host-change-state:in-progress'))
       }
 
       if (host.power_state !== HOST_POWER_STATE.RUNNING) {
