@@ -7,14 +7,7 @@
     <VtsTabularKeyValueList v-else>
       <VtsTabularKeyValueRow :label="t('master')">
         <template #value>
-          <UiLink
-            v-if="primaryHost"
-            icon="object:host"
-            :to="{ name: '/host/[id]/dashboard', params: { id: pool.master } }"
-            size="medium"
-          >
-            {{ primaryHost.name_label }}
-          </UiLink>
+          <HostLink v-if="primaryHost" :host="primaryHost" size="medium" />
           <template v-else>
             {{ t('none') }}
           </template>
@@ -45,6 +38,7 @@
 </template>
 
 <script setup lang="ts">
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -52,7 +46,6 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
