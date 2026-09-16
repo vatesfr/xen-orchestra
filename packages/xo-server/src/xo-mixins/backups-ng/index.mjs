@@ -658,20 +658,6 @@ export default class BackupNg {
    * @returns {Promise<BackupsByVm>}
    */
   _listVmBackupsOnRemote(remoteId, opts) {
-    const vmId = opts?.vmId
-    if (vmId !== undefined) {
-      // this listing has its own cache entry, keyed `[this, remoteId, vmId]`, which
-      // `REMOVE_CACHE_ENTRY` does not reach when it is called with the sole `remoteId`
-      //
-      // keep track of it so that `invalidateVmBackupsListing()` can drop it as well
-      let vmIds = this._backupsListingVmIds[remoteId]
-      if (vmIds === undefined) {
-        vmIds = new Set()
-        this._backupsListingVmIds[remoteId] = vmIds
-      }
-      vmIds.add(vmId)
-    }
-
     return timeout.call(this._listVmBackupsOnRemoteUncached(remoteId, opts), LISTING_TIMEOUT)
   }
 
