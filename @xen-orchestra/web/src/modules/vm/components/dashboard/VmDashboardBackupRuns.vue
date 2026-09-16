@@ -67,7 +67,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
+import { useVmProtectedInfoModal } from '@core/composables/modals/use-vm-protected-info-modal.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useMapper } from '@core/packages/mapper'
 import { useBackupRunColumns } from '@core/tables/column-sets/vm-backup-run-colums.ts'
@@ -84,16 +84,7 @@ const { t } = useI18n()
 
 const { getBackupJobById, areBackupJobsReady, hasBackupJobFetchError } = useXoBackupJobCollection()
 
-const { open: openInfoModal } = useInfoModal()
-
-function openVmProtectedInfoModal() {
-  openInfoModal({
-    props: {
-      title: t('what-does-protected-mean?'),
-      content: t('what-does-protected-mean-content'),
-    },
-  })
-}
+const { open: openVmProtectedInfoModal } = useVmProtectedInfoModal()
 
 const lastRuns = computed(() => vmDashboard?.backupsInfo?.lastRuns)
 

@@ -35,7 +35,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
+import { useVmProtectedInfoModal } from '@core/composables/modals/use-vm-protected-info-modal.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -45,16 +45,7 @@ const { vms } = useXoVmCollection()
 
 const { t } = useI18n()
 
-const { open: openInfoModal } = useInfoModal()
-
-function openVmProtectedInfoModal() {
-  openInfoModal({
-    props: {
-      title: t('what-does-protected-mean?'),
-      content: t('what-does-protected-mean-content'),
-    },
-  })
-}
+const { open: openVmProtectedInfoModal } = useVmProtectedInfoModal()
 
 const dashboardBackups = computed(() => dashboard.value.backups)
 
