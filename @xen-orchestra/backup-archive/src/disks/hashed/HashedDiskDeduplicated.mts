@@ -203,7 +203,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
   }
 
   getMetadata(): HashedDiskMetadata {
-    return this.#loadedMetadata
+    return { ...this.#loadedMetadata }
   }
 
   isDifferencing(): boolean {
