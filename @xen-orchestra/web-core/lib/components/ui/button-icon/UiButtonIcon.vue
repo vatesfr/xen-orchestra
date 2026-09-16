@@ -13,7 +13,7 @@ import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
-export type ButtonIconAccent = 'brand' | 'warning' | 'danger'
+export type ButtonIconAccent = 'brand' | 'info' | 'warning' | 'danger'
 
 export type ButtonIconSize = 'small' | 'medium' | 'large'
 
@@ -110,6 +110,37 @@ const classNames = computed(() => {
     &.selected {
       color: var(--color-brand-txt-base);
       background-color: var(--color-brand-background-selected);
+    }
+
+    &.muted {
+      color: var(--color-neutral-txt-secondary);
+      background-color: transparent;
+    }
+  }
+
+  &.accent--info {
+    & {
+      color: var(--color-info-txt-base);
+      background-color: transparent;
+    }
+
+    &:hover {
+      color: var(--color-info-txt-hover);
+      background-color: var(--color-info-background-hover);
+    }
+
+    &:focus-visible::before {
+      border-color: var(--color-brand-txt-base);
+    }
+
+    &:active {
+      color: var(--color-info-txt-active);
+      background-color: var(--color-info-background-active);
+    }
+
+    &.selected {
+      color: var(--color-info-txt-base);
+      background-color: var(--color-info-background-selected);
     }
 
     &.muted {
