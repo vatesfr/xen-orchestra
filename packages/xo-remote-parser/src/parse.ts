@@ -8,6 +8,7 @@ import type {
   ParsedS3BackupRepositoryUrl,
   ParsedSmbBackupRepositoryUrl,
 } from './types'
+import urlParser from 'url-parse'
 
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:?]+)(\?[^?]*)?$/
 const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0?]+)(?:\0([^?]*))?(\?[^?]*)?$/
@@ -34,16 +35,16 @@ function parseOptions(search: string): BackupRepositoryUrlOptions {
 }
 
 function parseCredentialsUrl(url: string) {
-  const parsed = new URL(url)
+  const parsed = urlParser(url, false)
 
   return {
     hash: parsed.hash,
     host: parsed.host,
     port: parsed.port,
-    path: decodeURIComponent(parsed.pathname),
+    path: parsed.pathname,
     username: decodeURIComponent(parsed.username),
     password: decodeURIComponent(parsed.password),
-    search: parsed.search,
+    search: parsed.query,
   }
 }
 
@@ -99,7 +100,7 @@ function parseS3Url(url: string, protocol: BackupRepositoryProtocol): ParsedS3Ba
     protocol,
     host,
     path,
-    region: hash === '' ? undefined : hash.slice(1),
+    region: hash.length < 2 ? undefined : hash.slice(1),
     username,
     password,
   }

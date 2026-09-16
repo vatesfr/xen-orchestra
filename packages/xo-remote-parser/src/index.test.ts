@@ -278,12 +278,30 @@ describe('parse (unrecognized input)', () => {
   })
 })
 
-describe('format (path sanitizing)', () => {
+describe('format path sanitizing', () => {
+  it('keeps spaces inside a path segment', () => {
+    assert.equal(format({ type: 'file', path: '/backups/toto tata' }), 'file:///backups/toto tata')
+  })
+
   it('trims spaces around path segments', () => {
-    assert.equal(format({ type: 'file', path: 'test/    with-space' }), 'file:///test/with-space')
+    assert.equal(format({ type: 'file', path: '/backups/  toto tata  ' }), 'file:///backups/toto tata')
   })
 
   it('drops empty segments', () => {
-    assert.equal(format({ type: 'file', path: '  /another  //  test-with-space  ' }), 'file:///another/test-with-space')
+    assert.equal(format({ type: 'file', path: '//backups///dir/' }), 'file:///backups/dir')
+  })
+
+  it('sanitizes the path of every type', () => {
+    assert.equal(format({ type: 'nfs', host: 'h', path: ' /a b / c ' }), 'nfs://h:/a b/c')
+    assert.equal(
+      format({ type: 's3', host: 'h', username: 'u', password: 'p', protocol: 'https', path: ' /a b / c ' }),
+      's3://u:p@h/a b/c'
+    )
+  })
+
+  it('round-trips a path with an inner space', () => {
+    const url = format({ type: 'file', path: '/backups/toto tata' })
+
+    assert.deepEqual(parse(url), { type: 'file', path: '/backups/toto tata' })
   })
 })
