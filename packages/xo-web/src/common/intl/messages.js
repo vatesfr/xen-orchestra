@@ -2652,6 +2652,8 @@ const messages = {
   xoConfigCloudBackup: 'XO Config Cloud Backup',
   xoConfigCloudBackupTips:
     'Your encrypted configuration is securely stored inside your Vates account and backed up once a day',
+  xoCloudConfigAcknowledgment:
+    'I acknowledge that XO Config Cloud Backup is an optional feature outside the scope of my Vates VMS contract and does not replace my responsibility to maintain my own configuration backups. I enable it voluntarily, at my sole risk.',
   xoCloudConfigEnterPassphrase: 'Passphrase is required to encrypt backups',
   xoCloudConfigRestoreEnterPassphrase: 'Enter the passphrase:',
 

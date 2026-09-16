@@ -28,6 +28,7 @@
 - [V2V] When a VM has Changed Block Tracking enabled on the source host, a migration now asks the host which blocks it has to read — the blocks a disk uses for a full transfer, the blocks written since the previous pass for a delta — instead of scanning the disk through the VDDK. Faster to start on large disks, and one less moving part. VMs without CBT are migrated exactly as before (PR [#10384](https://github.com/vatesfr/xen-orchestra/pull/10384))
 - [Proxy] Check proxy licenses at XOA level instead of blocking backups on it (PR [#10280](https://github.com/vatesfr/xen-orchestra/pull/10280))
 - [XO5/XO Config Cloud Backup] Ask for confirmation before disabling the XO config backup to Vates servers, warning that the backups stored there will be deleted
+- [XO5/XO Config Cloud Backup] Enabling the backup to Vates servers now requires acknowledging that the feature is optional, outside the scope of the Vates VMS contract, and does not replace maintaining your own configuration backups
 
 ### Bug fixes
 
