@@ -4,13 +4,15 @@ import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoPci } from '@vates/types'
 
+export type FrontXoPci = Pick<XoPci, (typeof pciFields)[number]>
+
 const pciFields = ['id', 'device_name', 'type'] as const satisfies readonly (keyof XoPci)[]
 
 export const useXoPciCollection = defineRemoteResource({
   url: `${BASE_URL}/pcis?fields=${pciFields.join(',')}&ndjson=true`,
   stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'PCI', fields: pciFields }),
-  initialData: () => [] as Pick<XoPci, (typeof pciFields)[number]>[],
+  initialData: () => [] as FrontXoPci[],
   state: (pcis, context) =>
     useXoCollectionState(pcis, {
       context,

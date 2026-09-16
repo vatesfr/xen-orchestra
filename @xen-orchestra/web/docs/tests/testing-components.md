@@ -69,6 +69,8 @@ Prefer this shape: one assertion covering every row a user sees, and it fails lo
 | `findLabelledLinks`      | the same rows, as `{ label: href }`, skipping the unlinked ones |
 | `findCardLabelledValues` | every `VtsCardRowKeyValue` of a side-panel card                 |
 
+`src/test/find-tags.ts` reads the `VtsTag`s a card lists, as `findTagLabels(wrapper)` — an empty array when the object carries no tag.
+
 ```typescript
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
 ```
@@ -97,6 +99,16 @@ expect(findLabelledValues(wrapper)).toEqual({ [t('suspend-storage-repository')]:
 ```
 
 A mistyped key does not pass quietly — `t` returns a `⟨key⟩` marker for a key the locale has no entry for, which matches no rendered text.
+
+A row rendering a `VtsRelativeTime` is worded relative to _now_ and locale-formatted, so neither end of the comparison can be a literal. `src/test/i18n.ts` builds the expected wording the way the component does, with `relativeTime(date)` — pass the date in **milliseconds**, the way the component does after scaling the seconds a host reports:
+
+```typescript
+const startTimeInSeconds = 1660000000
+
+expect(findLabelledValues(wrapper)).toMatchObject({
+  [t('started')]: relativeTime(startTimeInSeconds * 1000),
+})
+```
 
 Where the line falls:
 
@@ -182,12 +194,10 @@ Three things shape those assertions:
 
 Because the routes are the real ones, `href` assertions are real paths (`/vm/vm-42/system`) rather than a stub's echo of its own prop. Page components are swapped for an empty one: a test never renders a page, and installing a router runs an initial navigation that would otherwise import the whole page module graph.
 
-A test that needs to navigate takes a router already pushed to that path, from `createTestRouterAt`:
+A test that needs to navigate mounts on a router already pushed to that path, with `createGlobalTestConfigAt`:
 
 ```typescript
-const router = await createTestRouterAt('/vm/vm-42/system')
-
-const wrapper = mount(VmHeader, { props: { vm }, global: createGlobalTestConfig({ router }) })
+const wrapper = mount(VmHeader, { props: { vm }, global: await createGlobalTestConfigAt('/vm/vm-42/system') })
 
 expect(findActiveTabLabels(wrapper)).toEqual([t('system')])
 ```
@@ -202,6 +212,29 @@ Every header renders the same tab bar, so `src/test/find-tabs.ts` reads it inste
 | `findInAppTabHrefs`   | the href of the tabs navigating inside XO 6                                            |
 | `findActiveTabLabels` | the label of the tabs marked active                                                    |
 | `findTab`             | one tab by its label — reaches a tab whose link leaves for XO 5, which the others skip |
+
+The head bar above it is shared the same way, by `src/test/find-head-bar.ts`:
+
+| Helper                        | Reads                                                                        |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| `findHeadBarLabel`            | the name of the object the header is about                                   |
+| `findHeadBarIconPaths`        | the object icon, to compare with `findObjectIconPaths` (see below)           |
+| `isHeadBarIconBusy`           | whether the icon was replaced by a loader, i.e. the object is changing state |
+| `findHeadBarActionLink`       | the first action offered as a link rather than as a menu                     |
+| `findHeadBarActionsText`      | every action, as the text a user reads                                       |
+| `hasHeadBarMoreActionsButton` | whether the more-actions menu is offered                                     |
+| `hasHeadBarStatus`            | whether the status slot renders, i.e. the object leads its pool              |
+
+### Naming the icon a component picked
+
+An icon renders as bare `<svg>` paths, so the only way to name the one a component picked is to compare it with a reference render of the icon it was meant to pick — the rendering counterpart of asserting `objectIcon(…)`, which [cannot fail](./assert-behaviour.md). `src/test/find-icon-paths.ts` does both halves:
+
+```typescript
+expect(findHeadBarIconPaths(wrapper)).toEqual(findObjectIconPaths('host', 'halted'))
+expect(findHeadBarIconPaths(wrapper)).not.toEqual(findObjectIconPaths('host', 'running'))
+```
+
+The negative assertion matters: two states rendering the same paths would let the positive one pass on a broken mapping.
 
 ## What `happy-dom` cannot do
 

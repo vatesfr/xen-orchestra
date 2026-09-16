@@ -2,6 +2,7 @@ import PoolSystemGeneralInfo from '@/modules/pool/components/system/PoolSystemGe
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findTagLabels } from '@/test/find-tags.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -16,7 +17,7 @@ function mountGeneralInfo(pool: FrontXoPool = createPool()) {
 function mountTags(tags: string[]) {
   const wrapper = mountGeneralInfo(createPool({ tags }))
 
-  return wrapper.findAll('.ui-tags-list .ui-tag').map(tag => tag.text())
+  return findTagLabels(wrapper)
 }
 
 it('renders the card title', () => {

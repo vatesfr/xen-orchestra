@@ -8,6 +8,7 @@ import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findTagLabels } from '@/test/find-tags.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { XoUser } from '@vates/types'
@@ -169,5 +170,5 @@ it('falls back to "Unknown" when the creator of the VM is not known', () => {
 it('renders one tag per VM tag', () => {
   const wrapper = mountQuickInfo(createVm({ tags: ['production', 'billing'] }))
 
-  expect(wrapper.findAll('.ui-tag').map(tag => tag.text())).toEqual(['production', 'billing'])
+  expect(findTagLabels(wrapper)).toEqual(['production', 'billing'])
 })

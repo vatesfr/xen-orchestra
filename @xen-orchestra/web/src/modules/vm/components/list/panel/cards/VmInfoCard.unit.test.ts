@@ -12,6 +12,7 @@ import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardLabelledValues } from '@/test/find-labelled-values.ts'
+import { findTagLabels } from '@/test/find-tags.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { XoUser } from '@vates/types'
@@ -130,7 +131,7 @@ it('shows the power state, description and OS name of the VM', () => {
 it('renders one tag per VM tag', () => {
   const wrapper = mountInfoCard(createVm({ tags: ['production', 'billing'] }))
 
-  expect(wrapper.findAll('.ui-tag').map(tag => tag.text())).toEqual(['production', 'billing'])
+  expect(findTagLabels(wrapper)).toEqual(['production', 'billing'])
 })
 
 it('shows the name of the pool hosting the VM', () => {

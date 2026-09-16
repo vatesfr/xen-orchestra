@@ -1,3 +1,4 @@
+import { resetViewport } from '@/test/viewport.ts'
 import { enableAutoUnmount } from '@vue/test-utils'
 
 // Composables that rely on remote resources (e.g. `useXoRoutes`) call `fetch`
@@ -11,3 +12,7 @@ vi.stubGlobal(
 )
 
 enableAutoUnmount(afterEach)
+
+// A test resizing the window to reach a responsive branch must not leave the
+// next one on that width.
+afterEach(resetViewport)

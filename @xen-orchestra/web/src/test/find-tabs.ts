@@ -19,6 +19,11 @@ export function findTabLabels(wrapper: QueryableWrapper): string[] {
  * Hrefs of the tabs navigating inside XO 6. A tab leaving for XO 5 renders its
  * link *inside* the item instead of on it, so it is not an `<a>` itself and is
  * left out here — {@link findTab} reaches it.
+ *
+ * That `<a>` filter is not ours: it leans on web-core's `UiTabItem` falling back
+ * to a `<span>` when given `tag="a"` with no `href`. `@xen-orchestra/web-core`
+ * has no tests, so nothing guards that fallback — changing it turns every header
+ * test red at once, and none of them names it.
  */
 export function findInAppTabHrefs(wrapper: QueryableWrapper) {
   return findTabs(wrapper)

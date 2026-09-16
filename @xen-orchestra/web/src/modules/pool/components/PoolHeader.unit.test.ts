@@ -2,9 +2,9 @@ import PoolHeader from '@/modules/pool/components/PoolHeader.vue'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createPool } from '@/test/create-pool.ts'
-import { createTestRouterAt } from '@/test/create-test-router.ts'
+import { findHeadBarActionLink, findHeadBarLabel } from '@/test/find-head-bar.ts'
 import { findActiveTabLabels, findInAppTabHrefs, findTab, findTabLabels } from '@/test/find-tabs.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { createGlobalTestConfigAt } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
 
@@ -27,14 +27,14 @@ async function mountHeader(
 ) {
   return mount(PoolHeader, {
     props: { pool },
-    global: createGlobalTestConfig({ router: await createTestRouterAt(initialPath) }),
+    global: await createGlobalTestConfigAt(initialPath),
   })
 }
 
 it('shows the name of the pool', async () => {
   const wrapper = await mountHeader(createPool({ name_label: 'Production' }))
 
-  expect(wrapper.get('.ui-head-bar .label').text()).toBe('Production')
+  expect(findHeadBarLabel(wrapper)).toBe('Production')
 })
 
 it('lists every tab of the pool, in order', async () => {
@@ -92,7 +92,7 @@ it('marks no tab as active while no pool page is open', async () => {
 it('offers to create a VM on that pool', async () => {
   const wrapper = await mountHeader()
 
-  const newVmLink = wrapper.get('.ui-head-bar .actions a')
+  const newVmLink = findHeadBarActionLink(wrapper)
 
   expect(newVmLink.text()).toBe(t('new-vm'))
   expect(newVmLink.attributes('href')).toBe('/vm/new?poolid=pool-42')

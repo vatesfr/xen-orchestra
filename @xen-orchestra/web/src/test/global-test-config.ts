@@ -14,11 +14,26 @@ import type { Router } from 'vue-router'
  * reaching that store (`VtsStateHero`, `VtsKeyValueRow`, `TabItem`…) needs one —
  * without it the injections miss, and reading `uiStore.hasUi` would throw.
  *
- * Pass a `router` to navigate before mounting, which is what makes an active
- * route assertable.
+ * A test asserting the active route mounts on an already-navigated router, which
+ * is what {@link createGlobalTestConfigAt} builds.
  */
-export function createGlobalTestConfig({ router = createTestRouter() }: { router?: Router } = {}) {
+export function createGlobalTestConfig(router: Router = createTestRouter()) {
   const plugins: Plugin[] = [i18n, createPinia(), router]
 
   return { plugins }
+}
+
+/**
+ * Same configuration, over a router already navigated to `initialPath`, which
+ * is what makes the active route assertable — mounting before the navigation
+ * settles would read the initial `/` instead.
+ */
+export async function createGlobalTestConfigAt(initialPath?: string) {
+  const router = createTestRouter()
+
+  if (initialPath !== undefined) {
+    await router.push(initialPath)
+  }
+
+  return createGlobalTestConfig(router)
 }

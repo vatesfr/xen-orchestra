@@ -73,11 +73,19 @@ export function getHostCoreSocketInfo(host: FrontXoHost): string {
   return `${host.cpus.cores ?? 0} (${host.cpus.sockets ?? 0})`
 }
 
-export function getHostManufacturerInfo(host: FrontXoHost): string {
-  const manufacturer = host.bios_strings['system-manufacturer'] ?? ''
-  const productName = host.bios_strings['system-product-name']
+function formatBiosPair(host: FrontXoHost, nameKey: string, detailKey: string): string {
+  const name = host.bios_strings[nameKey] ?? ''
+  const detail = host.bios_strings[detailKey]
 
-  return manufacturer + (productName ? ` (${productName})` : '')
+  return name + (detail ? ` (${detail})` : '')
+}
+
+export function getHostManufacturerInfo(host: FrontXoHost): string {
+  return formatBiosPair(host, 'system-manufacturer', 'system-product-name')
+}
+
+export function getHostBiosInfo(host: FrontXoHost): string {
+  return formatBiosPair(host, 'bios-vendor', 'bios-version')
 }
 
 export function getHostRamProvisioning(host: FrontXoHost): { total: SizeInfo; used: SizeInfo; free: SizeInfo } {
