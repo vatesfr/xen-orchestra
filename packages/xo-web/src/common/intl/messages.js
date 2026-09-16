@@ -2675,6 +2675,8 @@ const messages = {
 
   // ----- XO cloud config -----
   backedUpXoConfigs: 'Backed up XO Configs',
+  disableXoConfigCloudBackupConfirm:
+    'XO config backups on Vates servers will be deleted after their expiration period (100 days). Ensure you export the XO config to your own environment',
   manageXoConfigCloudBackup: 'Manage XO Config Cloud Backup',
   selectXoConfig: 'Select XO config',
   xoConfigCloudBackup: 'XO Config Cloud Backup',
