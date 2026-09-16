@@ -1,13 +1,15 @@
 import {
   getHostCoreSocketInfo,
-  getHostInfo,
+  getHostIcon,
   getHostManufacturerInfo,
   getHostRamProvisioning,
+  getHostState,
   isHostOperationPending,
 } from '@/modules/host/utils/xo-host.util.ts'
 import { createHost } from '@/test/create-host.ts'
+import { objectIcon } from '@core/icons'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { HOST_ALLOWED_OPERATIONS } from '@vates/types'
+import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE } from '@vates/types'
 
 describe('isHostOperationPending', () => {
   it('matches a single operation', () => {
@@ -35,15 +37,39 @@ describe('isHostOperationPending', () => {
   })
 })
 
-describe('getHostInfo', () => {
-  it('returns the host name label and its dashboard link when a host is provided', () => {
-    const host = createHost({ name_label: 'Primary Host' })
+describe('getHostState', () => {
+  it('reports a running host as running', () => {
+    const host = createHost({ power_state: HOST_POWER_STATE.RUNNING, enabled: true })
 
-    expect(getHostInfo(host)).toEqual({ label: 'Primary Host', to: `/host/${host.id}/dashboard` })
+    expect(getHostState(host)).toBe('running')
   })
 
-  it('returns an empty label when no host is provided', () => {
-    expect(getHostInfo(undefined)).toEqual({ label: '' })
+  it('reports a running host that is not enabled as disabled', () => {
+    const host = createHost({ power_state: HOST_POWER_STATE.RUNNING, enabled: false })
+
+    expect(getHostState(host)).toBe('disabled')
+  })
+
+  it('reports a halted host as halted even when it is not enabled', () => {
+    const host = createHost({ power_state: HOST_POWER_STATE.HALTED, enabled: false })
+
+    expect(getHostState(host)).toBe('halted')
+  })
+
+  it('reports an unknown power state as unknown', () => {
+    const host = createHost({ power_state: HOST_POWER_STATE.UNKNOWN })
+
+    expect(getHostState(host)).toBe('unknown')
+  })
+
+  it('reports an unknown power state as unknown even when the host is not enabled', () => {
+    const host = createHost({ power_state: HOST_POWER_STATE.UNKNOWN, enabled: false })
+
+    expect(getHostState(host)).toBe('unknown')
+  })
+
+  it('reports a missing host as unknown', () => {
+    expect(getHostState(undefined)).toBe('unknown')
   })
 })
 
@@ -101,5 +127,29 @@ describe('getHostRamProvisioning', () => {
     const host = createHost({ memory: { size, usage: size } })
 
     expect(getHostRamProvisioning(host).free).toEqual(formatSizeRaw(0, 0))
+  })
+})
+
+describe('getHostIcon', () => {
+  it('picks the host disabled icon', () => {
+    const host = createHost({ power_state: HOST_POWER_STATE.RUNNING, enabled: false })
+
+    expect(getHostIcon(host)).toBe(objectIcon('host', 'disabled'))
+  })
+
+  it('picks the host running icon', () => {
+    const host = createHost({ power_state: HOST_POWER_STATE.RUNNING, enabled: true })
+
+    expect(getHostIcon(host)).toBe(objectIcon('host', 'running'))
+  })
+
+  it('picks the host halted icon', () => {
+    const host = createHost({ power_state: HOST_POWER_STATE.HALTED, enabled: false })
+
+    expect(getHostIcon(host)).toBe(objectIcon('host', 'halted'))
+  })
+
+  it('falls back to the unknown host icon when no host is provided', () => {
+    expect(getHostIcon(undefined)).toBe(objectIcon('host', 'unknown'))
   })
 })

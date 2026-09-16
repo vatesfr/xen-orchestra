@@ -81,12 +81,13 @@ export class RemoteVhdDisk extends RemoteDisk {
         })
         this.#vhd = value
 
+        this.#dispose = dispose
+
         if ((await this.isDirectory()) && !isVhdAlias(this.#path)) {
           this.#vhd = undefined
           throw Object.assign(new Error("Can't init vhd directory without using alias"), { code: 'NOT_SUPPORTED' })
         }
 
-        this.#dispose = dispose
         if (!options.ignoreBlockIndexes) {
           await this.#vhd.readBlockAllocationTable()
         }

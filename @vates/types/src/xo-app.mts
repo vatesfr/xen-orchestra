@@ -21,6 +21,7 @@ import type {
 } from './xo.mjs'
 import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
+import type { RPU_RECOVERY_STEP_NAME } from './common.mjs'
 import {
   Xapi,
   XapiHostStats,
@@ -124,6 +125,54 @@ type License = {
   productTypes?: LicenseProductType[]
   bundleInfo?: { name: string; id: string }
 }
+
+export type PoolRollingUpdateRecoveryStep = {
+  status: 'pending' | 'running' | 'observed-succeeded' | 'failed' | 'not-needed'
+  startedAt?: string
+  finishedAt?: string
+}
+
+/** error serialized by the recovery recorder: secret-looking keys are redacted */
+export type PoolRollingUpdateRecoveryError = {
+  name?: string
+  message?: string
+  stack?: string
+  code?: string | number
+  [key: string]: unknown
+}
+
+export type PoolRollingUpdateRecoveryHost = {
+  status: 'pending' | 'running' | 'succeeded' | 'failed' | 'not-needed'
+  steps: Record<RPU_RECOVERY_STEP_NAME, PoolRollingUpdateRecoveryStep>
+  lastError: PoolRollingUpdateRecoveryError | null
+}
+
+export type PoolRollingUpdateRecoveryRun = {
+  runId: string
+  poolId: string
+  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'cleaning'
+  startedAt: string
+  updatedAt: string
+  finishedAt?: string
+  interruptedAt?: string
+  taskId?: string
+  variant?: 'xcp' | 'xs-cdn' | 'xs-legacy'
+  hostOrder?: string[]
+  hosts: Record<string, PoolRollingUpdateRecoveryHost>
+  lastError: PoolRollingUpdateRecoveryError | null
+  /** VM UUID -> UUID of the host it must be started on */
+  haltedPinnedVms: Record<string, string>
+}
+
+/** record unreadable or of an unknown schema version: recovery needs a human */
+export type PoolRollingUpdateRecoveryBlocked = {
+  poolId?: string
+  runId?: string
+  status: 'blocked'
+  blockedReason: string
+}
+
+export type PoolRollingUpdateRecovery = PoolRollingUpdateRecoveryRun | PoolRollingUpdateRecoveryBlocked
 
 export type XoApp = {
   hooks: EventEmitter
@@ -353,6 +402,7 @@ export type XoApp = {
     pool: XoPool,
     opts?: { bypassBackupCheck?: boolean; rebootVm?: boolean; parentTask?: VatesTask; shutdownPinnedVms?: boolean }
   ): Promise<void>
+  getRollingUpdateRecovery(poolId: XoPool['id']): Promise<PoolRollingUpdateRecovery | undefined>
   setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
   shareVmResourceSet(vmId: XoVm['id']): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>

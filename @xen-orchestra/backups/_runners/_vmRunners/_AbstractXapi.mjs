@@ -425,8 +425,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     // The synchronized snapshot for this run is taken up-front by the batch
     // phase but transferred later. Until it has been exported, hide it from
-    // retention so it is neither reclaimed nor allowed to steal the delta
-    // base's "most recent" protection. This makes the pre-transfer pass behave
+    // retention so it is not reclaimed. This makes the pre-transfer pass behave
     // like a normal run, where the snapshot does not exist yet.
     if (this._synchronizedSnapshotTimestamp !== undefined) {
       const datetime = formatDateTime(this._synchronizedSnapshotTimestamp)
@@ -436,8 +435,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       disklessVmSnapshots = disklessVmSnapshots.filter(vm => !isInFlightSyncSnapshot(vm))
     }
 
-    // get the datetime of the most recent snapshot across both VDI and diskless VM snapshots
-    const lastSnapshotDateTime = [...this._jobSnapshotVdis, ...disklessVmSnapshots]
+    const isExported = ({ other_config }) => EXPORTED_SUCCESSFULLY in other_config
+
+    // get the datetime of the most recent exported snapshot across both VDI and diskless VM snapshots
+    const lastExportedSnapshotDateTime = [...this._jobSnapshotVdis, ...disklessVmSnapshots]
+      .filter(isExported)
       .map(({ other_config }) => other_config[DATETIME])
       .sort()
       .pop()
@@ -457,9 +459,13 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       }
       const retention = settings.snapshotRetention ?? 0
       await asyncMap(getOldEntries(retention, datetimes), async datetime => {
-        // keep the last snapshot across all schedules for delta
+        // keep the last exported snapshot across all schedules for delta
         // since we'll need it to compute delta for next backup
-        if (this.job.mode === 'delta' && datetime === lastSnapshotDateTime) {
+        if (
+          this.job.mode === 'delta' &&
+          lastExportedSnapshotDateTime !== undefined &&
+          datetime === lastExportedSnapshotDateTime
+        ) {
           return
         }
         const vdis = snapshotPerDatetime[datetime]
@@ -504,6 +510,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
 
         if (vm?.$ref !== undefined) {
+          this._forgetExportedVm(vm.$ref)
           return xapi.VM_destroy(vm.$ref)
         } else {
           return asyncMap(
@@ -529,10 +536,15 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
         const retention = settings.snapshotRetention ?? 0
         await asyncEach(getOldEntries(retention, datetimes), async datetime => {
-          if (this.job.mode === 'delta' && datetime === lastSnapshotDateTime) {
+          if (
+            this.job.mode === 'delta' &&
+            lastExportedSnapshotDateTime !== undefined &&
+            datetime === lastExportedSnapshotDateTime
+          ) {
             return
           }
 
+          this._forgetExportedVm(snapshotPerDatetime[datetime])
           await xapi.VM_destroy(snapshotPerDatetime[datetime])
         })
       })
@@ -542,6 +554,15 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     // makesnapshot and update_other_config
     const snapshots = this._vm.$snapshots.filter(_ => !!_).filter(({ name_label }) => name_label === TEMP_SNAPSHOT_NAME)
     await asyncEach(snapshots, snapshot => snapshot.$destroy())
+  }
+
+  // _exportedVm is the VM (usually a snapshot) this run exported. Retention may destroy
+  // it in the same run and everything reading it would then operate on a destroyed VM.
+  // Forget it as soon as it is reclaimed.
+  _forgetExportedVm(vmRef) {
+    if (vmRef === this._exportedVm?.$ref) {
+      this._exportedVm = undefined
+    }
   }
 
   async _removeSnapshotData() {

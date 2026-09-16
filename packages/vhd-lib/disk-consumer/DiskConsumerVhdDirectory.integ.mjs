@@ -7,6 +7,7 @@ import { Disposable, pFromCallback } from 'promise-toolbox'
 import { RandomAccessDisk } from '@xen-orchestra/disk-transform'
 
 import { openVhd } from '../index.js'
+import { resolveVhdAlias } from '../aliases.js'
 import computeGeometryForSize from '../_computeGeometryForSize.js'
 import { writeToVhdDirectory } from './index.mjs'
 
@@ -90,7 +91,8 @@ describe('DiskConsumerVhdDirectory', () => {
     }
   })
 
-  it('calls the validator on the data path before creating the alias', async () => {
+  it('calls the validator on the alias path (regression test)', async () => {
+    // a VHD directory can only be opened through its alias
     const tempDir = await pFromCallback(cb => tmp.dir(cb))
     try {
       await Disposable.use(async function* () {
@@ -105,15 +107,14 @@ describe('DiskConsumerVhdDirectory', () => {
             handler,
             path: aliasPath,
             concurrency: 1,
-            validator: async dataPath => {
-              validatedPath = dataPath
-              // alias must not exist yet: validator runs before it is created
-              assert.equal(await handler.list('.', { filter: f => f === aliasPath }).then(l => l.length), 0)
+            validator: async path => {
+              validatedPath = path
+              assert.equal(await resolveVhdAlias(handler, path), 'data/disk.vhd')
             },
           },
         })
 
-        assert.equal(validatedPath, './data/disk.vhd')
+        assert.equal(validatedPath, aliasPath)
       })
     } finally {
       await rimraf(tempDir)

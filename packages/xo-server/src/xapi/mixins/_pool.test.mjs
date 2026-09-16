@@ -3,6 +3,7 @@ import test from 'node:test'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import poolMethods from './pool.mjs'
+import { noopRpuRecorder } from '../../_rpuRecovery.mjs'
 
 const { describe, it } = test
 
@@ -164,7 +165,21 @@ class FakeXapi {
 // the mixin reaches its own methods through `this`
 Object.setPrototypeOf(FakeXapi.prototype, poolMethods)
 
-const rollingPoolReboot = async xapi => {
+// records only the step transitions, the rest of the recorder is a no-op
+const stepSpyRecorder = () => {
+  const steps = []
+  const record = status => (hostId, name) => steps.push({ status, hostId, name })
+  return {
+    ...noopRpuRecorder,
+    steps,
+    stepRunning: record('running'),
+    stepObserved: record('observed'),
+    stepNotNeeded: record('not-needed'),
+    stepFailed: record('failed'),
+  }
+}
+
+const rollingPoolReboot = async (xapi, options) => {
   const events = []
   const parentTask = new Task({
     properties: { name: 'rolling pool reboot', progress: 0 },
@@ -174,7 +189,7 @@ const rollingPoolReboot = async xapi => {
   let error
   await parentTask.run(async () => {
     try {
-      await poolMethods.rollingPoolReboot.call(xapi, parentTask)
+      await poolMethods.rollingPoolReboot.call(xapi, parentTask, options)
     } catch (err) {
       error = err
     }
@@ -224,7 +239,8 @@ describe('rollingPoolReboot', function () {
       [0, 45]
     )
 
-    const { error, strandedVms } = await rollingPoolReboot(xapi)
+    const recorder = stepSpyRecorder()
+    const { error, strandedVms } = await rollingPoolReboot(xapi, { recorder })
 
     assert.equal(error, undefined)
     assert.deepEqual(strandedVms.map(_ => _.vmId).sort(), ['vm-a2', 'vm-b1', 'vm-b2'])
@@ -232,6 +248,11 @@ describe('rollingPoolReboot', function () {
       assert.equal(strandedVm.code, 'HOST_NOT_ENOUGH_FREE_MEMORY')
       assert.equal(strandedVm.hostId, xapi.homeOf.get(strandedVm.vmId))
     }
+
+    // the recovery record must show the hosts whose VMs are not back, and only
+    // once the retry passes have given up on them
+    const failed = recorder.steps.filter(_ => _.status === 'failed' && _.name === 'restoreVms')
+    assert.deepEqual([...new Set(failed.map(_ => _.hostId))].sort(), ['host-A', 'host-B'])
   })
 
   it('skips the VMs destroyed while the pool was rebooting', async function () {
@@ -262,7 +283,8 @@ describe('rollingPoolReboot', function () {
     ])
     xapi.pool.other_config['xo:rpuMigrateVmsBack'] = 'false'
 
-    const { error, taskNames } = await rollingPoolReboot(xapi)
+    const recorder = stepSpyRecorder()
+    const { error, taskNames } = await rollingPoolReboot(xapi, { recorder })
 
     assert.equal(error, undefined)
     assert.equal(xapi.nMigrations, 0)
@@ -272,5 +294,13 @@ describe('rollingPoolReboot', function () {
     // a run which died before reaching it
     assert.ok(taskNames.includes('Skip migrating VMs back'))
     assert.ok(!taskNames.includes('Migrate VMs back'))
+
+    // a skipped phase must not leave `restoreVms` pending, otherwise the
+    // recovery record shows a finished run as still running
+    const notNeeded = recorder.steps.filter(_ => _.status === 'not-needed' && _.name === 'restoreVms')
+    assert.deepEqual(
+      notNeeded.map(_ => _.hostId).sort(),
+      xapi.hosts.map(_ => _.uuid)
+    )
   })
 })

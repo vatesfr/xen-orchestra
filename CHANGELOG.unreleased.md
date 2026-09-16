@@ -21,14 +21,21 @@
 - [REST API] SSE now supports Non XAPI objects (user, group, acl-privilege, acl-role, proxy, server, backup-repository, backup-job, schedule) (PR [#10278](https://github.com/vatesfr/xen-orchestra/pull/10278))
 - [REST API/SDN Controller, Audit] Traffic rule and audit record routes are now documented in the Swagger/OpenAPI spec (PR [#9895](https://github.com/vatesfr/xen-orchestra/pull/9895))
 - [LDAP] Release plugin for LDAP multidomain management (PR [#10015](https://github.com/vatesfr/xen-orchestra/pull/10015))
+- [RPU] Keep track of an interrupted rolling pool update across xo-server restarts: the pool's Patches tab now shows which hosts were updated, the last error, and the VMs that were shut down for the update and not started again (PR [#10331](https://github.com/vatesfr/xen-orchestra/pull/10331))
+- [i18n] Add Turkish and update Czech, Dutch, Slovak and Swedish translations (PR [#10316](https://github.com/vatesfr/xen-orchestra/pull/10316))
+- [XO6/Host] Add icon for disabled host (PR [#10188](https://github.com/vatesfr/xen-orchestra/pull/10188))
+- [V2V] When a VM has Changed Block Tracking enabled on the source host, a migration now asks the host which blocks it has to read — the blocks a disk uses for a full transfer, the blocks written since the previous pass for a delta — instead of scanning the disk through the VDDK. Faster to start on large disks, and one less moving part. VMs without CBT are migrated exactly as before (PR [#10384](https://github.com/vatesfr/xen-orchestra/pull/10384))
+- [Proxy] Check proxy licenses at XOA level instead of blocking backups on it (PR [#10280](https://github.com/vatesfr/xen-orchestra/pull/10280))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backups/Encryption] New error thrown when encryption key is removed from an encrypted remote url (PR [#10339](https://github.com/vatesfr/xen-orchestra/pull/10339))
 - [Web-core] Fix "console offline" illustration sparks color (PR [#10309](https://github.com/vatesfr/xen-orchestra/pull/10309))
 - [Web-core] Fix 404 illustration color (PR [#10325](https://github.com/vatesfr/xen-orchestra/pull/10325))
 - [Backup-archive] No longer create a `cache.json.gz` file on immutable/S3 remote during cleanup, which could not be deleted afterwards and stayed billed forever (PR [#10243](https://github.com/vatesfr/xen-orchestra/pull/10243))
+- [Backups] Fix orphaned VM on target after failed transfer (PR [#10369](https://github.com/vatesfr/xen-orchestra/pull/10369))
 - [Servers] Fix endless connection attempts to a pool which is already connected through another server entry (PR [#10355](https://github.com/vatesfr/xen-orchestra/pull/10355))
 - [Servers] fix a mishandling in the grace period before marking a pool disconnected, this will keep the ui in sync AND not redownload all the xapi object for a transient issue (PR [#10355](https://github.com/vatesfr/xen-orchestra/pull/10355))
 - [Rolling pool update/reboot] VMs are brought back to the host they were running on more reliably, and a VM that cannot be moved back no longer fails the whole operation (PR [#10295](https://github.com/vatesfr/xen-orchestra/pull/10295))
@@ -50,6 +57,9 @@
 - [V2V] The session opened on the source host is now closed when a listing, a migration or a disk export ends, instead of piling up until it expires — a host only accepts a limited number of them (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 - [V2V] Report what the source host complained about, instead of `task execution failed` or an assertion error, when an operation fails (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 - [Backup] Fix a job combining Rolling Snapshot with Disaster Recovery to an SR of the source VM's pool destroying its own snapshots: the job reported a success but kept fewer snapshots than the configured snapshot retention, usually none (PR [#10395](https://github.com/vatesfr/xen-orchestra/pull/10395))
+- [OpenMetrics] Share metrics collection between requests to avoid filling up XOA memory (PR [10401](https://github.com/vatesfr/xen-orchestra/pull/10401))
+- [Netbox] Fix IP addresses synced with an incorrect, less specific prefix (e.g. `/8` instead of `/24`) when a shorter container prefix also matched [#10240](https://github.com/vatesfr/xen-orchestra/issues/10240) (PR [#10297](https://github.com/vatesfr/xen-orchestra/pull/10297))
+- [backup/restore] Fix backups of a repository randomly disappearing from the list after visiting a VM (PR [#10277](https://github.com/vatesfr/xen-orchestra/pull/10277))
 
 ### Packages to release
 
@@ -72,6 +82,8 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-cli patch
+- @xen-orchestra/fs patch
+- @xen-orchestra/proxy minor
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer major
@@ -82,6 +94,8 @@
 - xo-server minor
 - xo-server-audit patch
 - xo-server-auth-ldap patch
+- xo-server-netbox patch
+- xo-server-openmetrics patch
 - xo-server-sdn-controller patch
 - xo-web minor
 
