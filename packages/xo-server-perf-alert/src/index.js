@@ -1,5 +1,5 @@
 /**
- * @import {XoHost, XoSr, XoVm} from "@vates/types"
+ * @import {XoHost, XoSr, XoVm, XoApp} from "@vates/types"
  * @import {AlarmChanges, MonitorStrategy} from "./Strategy.js"
  */
 
@@ -7,6 +7,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { MonitorRuleSet } from './Rules.js'
 
 import templates from './templates/index.js'
+import { Alarm } from './Strategy.js'
 import { HybridStrategy } from './HybridStrategy.js'
 export { configurationSchema } from './schema.js'
 
@@ -29,15 +30,20 @@ class PerfAlertXoPlugin {
   #strategy
 
   constructor(xo) {
+    /**
+     * @type {XoApp}
+     */
     this._xo = xo
   }
 
   /**
    *
    * @param {AlarmChanges} param0
+   * @param {object} [opts]
+   * @param {string} [opts.subjectPrefix]
    * @returns
    */
-  async sendAlarmChange({ newAlarms, closedAlarms, activeAlarms }) {
+  async sendAlarmChange({ newAlarms, closedAlarms, activeAlarms }, { subjectPrefix = '' } = {}) {
     if (newAlarms.size === 0 && closedAlarms.size === 0) {
       // don't send anything is the alarms didn't change
       return
@@ -92,7 +98,7 @@ class PerfAlertXoPlugin {
     }
     const { html } = await templates.mjml.transform(templates.mjml.$newAlarms({ byRules }))
     const text = await templates.markdown.$newAlarms({ byRules })
-    return this._sendAlertEmail(subject, html, text)
+    return this._sendAlertEmail(`${subjectPrefix}${subject}`, html, text)
   }
 
   async load() {
@@ -141,7 +147,40 @@ class PerfAlertXoPlugin {
     }
   }
 
-  async test() {}
+  async test() {
+    const ruleSet = this.#monitorRuleSet
+    if (ruleSet === undefined || ruleSet.rules.size === 0) {
+      throw new Error('no monitor is configured')
+    }
+
+    /**
+     * @type {AlarmChanges}
+     */
+    const changes = { newAlarms: new Map(), activeAlarms: new Map(), closedAlarms: new Map() }
+    const alarmType = Object.keys(changes)
+
+    for (const rule of this.#monitorRuleSet.rules) {
+      const affectedObjects = this._xo.getObjectsByType(rule.objectType, {
+        filter: object => rule.isObjectAffected(object),
+      })
+      // for each rule, get same number of object as number of different alarms type (to cover all alarms possibility)
+      const objects = Object.values(affectedObjects).slice(0, alarmType.length)
+      if (objects.length === 0) {
+        objects.push({ name_label: '[FAKE object] no object matches this rule' })
+      }
+      objects.forEach((object, index) => {
+        const delta = 2 + index * 3
+        const alarm = new Alarm({
+          rule,
+          target: object,
+          value: rule.comparator === '>' ? rule.triggerLevel + delta : rule.triggerLevel - delta,
+        })
+        changes[alarmType[index]].set(alarm.id, alarm)
+      })
+    }
+
+    await this.sendAlarmChange(changes, { subjectPrefix: '[TEST] - ' })
+  }
 
   /**
    *
