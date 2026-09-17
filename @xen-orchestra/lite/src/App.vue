@@ -6,7 +6,7 @@
     <AppHeader v-if="uiStore.hasUi" />
     <div class="container">
       <AppNavigation v-if="uiStore.hasUi" />
-      <main class="main" :class="{ 'no-ui': !uiStore.hasUi }">
+      <main class="main">
         <RouterView />
       </main>
     </div>
@@ -78,16 +78,12 @@ useUnreachableHosts()
 
 .container {
   display: flex;
+  min-height: 0;
 }
 
 .main {
-  overflow: auto;
   flex: 1;
-  height: calc(100vh - 5.5rem);
+  overflow: auto;
   background-color: var(--color-neutral-background-secondary);
-
-  &.no-ui {
-    height: 100vh;
-  }
 }
 </style>

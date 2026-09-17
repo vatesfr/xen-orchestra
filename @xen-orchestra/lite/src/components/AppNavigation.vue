@@ -1,12 +1,10 @@
 <template>
-  <Transition name="slide">
-    <nav v-if="isOpen" ref="navElement" class="app-navigation">
-      <div v-if="route.meta.hasStoryNav" class="story-menu">
-        <StoryMenu />
-      </div>
-      <PoolTreeView v-else />
-    </nav>
-  </Transition>
+  <nav ref="navElement" :class="{ collapsed: !isOpen }" class="app-navigation">
+    <div v-if="route.meta.hasStoryNav" class="story-menu">
+      <StoryMenu />
+    </div>
+    <PoolTreeView v-else />
+  </nav>
 </template>
 
 <script lang="ts" setup>
@@ -50,12 +48,18 @@ watch(
 .app-navigation {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   overflow: hidden;
   width: 37rem;
   max-width: 37rem;
-  height: calc(100vh - 5.5rem);
+  height: 100%;
   border-right: 1px solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-secondary);
+  transition: margin-inline 0.25s;
+
+  &.collapsed {
+    margin-inline-start: -37rem;
+  }
 }
 
 .story-menu {
