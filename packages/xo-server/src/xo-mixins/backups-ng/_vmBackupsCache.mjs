@@ -515,8 +515,13 @@ export class VmBackupsCache extends EventEmitter {
       }
     }
 
-    if (read.events.length > 0) {
-      entry.cursor = /** @type {string} */ (read.cursor)
+    // the cursor, not the events, is what says whether the journal moved forward: the entries it
+    // covers may all have resolved to no event at all, e.g. they are of a kind this version does
+    // not support, and reading them again on every replay would widen the read a bit more every
+    // minute, until the next rebuild
+    const { cursor } = read
+    if (cursor !== undefined && cursor !== entry.cursor) {
+      entry.cursor = cursor
       // the journal has now actually been observed to exist: it disappearing on a later replay is
       // anomalous rather than a repository which has simply never been written to
       entry.journalConfirmed = true
