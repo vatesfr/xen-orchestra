@@ -230,7 +230,9 @@ export class VmBackupsCache {
     let pending = this.#pending.get(id)
     if (pending === undefined) {
       pending = this.#refresh(repository).finally(() => {
-        this.#pending.delete(id)
+        if (this.#pending.get(id) === pending) {
+          this.#pending.delete(id)
+        }
       })
       this.#pending.set(id, pending)
     }
@@ -264,7 +266,9 @@ export class VmBackupsCache {
     } catch (error) {
       // the repository is probably unreachable: don't keep serving a listing which cannot be
       // refreshed anymore
-      this.delete(id)
+      if (this.#entries.get(id) === entry) {
+        this.delete(id)
+      }
       throw error
     }
   }
