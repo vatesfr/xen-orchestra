@@ -1,4 +1,4 @@
-import type { AnyXoBackupJob, XoBackupRepository, AnyXoJob, XoVm } from '@vates/types'
+import type { AnyXoBackupJob, XoBackupRepository, XoVm } from '@vates/types'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { inject } from 'inversify'
 import { ApiError } from '../helpers/error.helper.mjs'
@@ -9,9 +9,6 @@ export interface ReclaimSpaceResult {
   merge?: boolean
   size?: number
   error?: string
-}
-type JobWithRunId = AnyXoJob & {
-  runId?: string
 }
 
 export class BackupRepositoryService {
