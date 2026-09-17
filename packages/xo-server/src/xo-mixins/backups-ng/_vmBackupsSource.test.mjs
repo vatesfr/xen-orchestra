@@ -33,9 +33,13 @@ const createSource = adapter =>
 const PROXY = 'a-proxy-id'
 const PROXIED_REPOSITORY = { ...REPOSITORY, proxy: PROXY }
 
-const methodNotFound = method =>
-  // what `callProxyMethod()` throws back: the deserialized payload, not an `Error`
-  ({ code: -32601, message: `method not found: ${method}`, data: method })
+// what `callProxyMethod()` throws back: the payload of the JSON-RPC error as it was deserialized,
+// which is a plain object and not an `Error`
+const methodNotFound = method => ({ code: -32601, message: `method not found: ${method}`, data: method })
+
+// a proxy validates the params of a method against a schema which refuses the properties it does not
+// declare, and answers the failures of that schema
+const invalidParameters = errors => ({ code: 10, message: 'invalid parameters', data: { errors } })
 
 // records every call and answers them from `handlers`
 const createProxiedSource = handlers => {
@@ -199,8 +203,11 @@ describe('on a repository attached to a proxy', () => {
     const { calls, source } = createProxiedSource({
       'backup.listVmBackups': ({ vmId }) => {
         if (vmId !== undefined) {
-          // what a proxy older than the `vmId` parameter answers
-          throw Object.assign(new Error('invalid parameters'), { code: 10 })
+          // what a proxy older than the `vmId` parameter answers: its schema does not declare it,
+          // so it is rejected as an unknown property
+          throw invalidParameters([
+            { instancePath: '', keyword: 'additionalProperties', params: { additionalProperty: 'vmId' } },
+          ])
         }
         return { [REPOSITORY.id]: { [VM]: [backup] } }
       },
