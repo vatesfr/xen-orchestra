@@ -113,6 +113,7 @@
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/async-map patch
 - @xen-orchestra/backups minor
+- @xen-orchestra/proxy minor
 - @xen-orchestra/proxy-cli patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer major
