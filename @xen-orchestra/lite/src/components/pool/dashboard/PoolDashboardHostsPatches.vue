@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="pool-dashboard-hosts-patches">
+  <UiCard>
     <UiCardTitle>
       {{ t('patches') }}
       <template v-if="areAllLoaded && count > 0" #info>
@@ -30,10 +30,6 @@ const { count, patches, areAllLoaded, areSomeLoaded } = useHostPatches(hosts)
 </script>
 
 <style lang="postcss" scoped>
-.pool-dashboard-hosts-patches {
-  min-width: 43.8rem;
-}
-
 .patches-title {
   color: var(--color-danger-txt-base);
 }
