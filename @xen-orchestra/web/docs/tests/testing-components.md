@@ -68,6 +68,9 @@ Prefer this shape: one assertion covering every row a user sees, and it fails lo
 | `findLabelledValues`     | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card      |
 | `findLabelledLinks`      | the same rows, as `{ label: href }`, skipping the unlinked ones |
 | `findCardLabelledValues` | every `VtsCardRowKeyValue` of a side-panel card                 |
+| `findCardLabels`         | the label of every `VtsCardRowKeyValue`, in order               |
+| `findCardLabelledList`   | the values a card lists under one label (see below)             |
+| `findCardValue`          | one row's value element, by label, to query inside it           |
 
 `src/test/find-tags.ts` reads the `VtsTag`s a card lists, as `findTagLabels(wrapper)` — an empty array when the object carries no tag.
 
@@ -75,14 +78,13 @@ Prefer this shape: one assertion covering every row a user sees, and it fails lo
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
 ```
 
-Both collapse rows that share a label into one entry — a list repeating the same label (an address list labelling only its first row) is queried directly instead:
+The first three collapse rows that share a label into one entry, so a **list** — whose rows label only the first — is read with `findCardLabelledList` instead:
 
 ```typescript
-expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.value').text())).toEqual([
-  '10.0.0.1',
-  '10.0.0.2',
-])
+expect(findCardLabelledList(wrapper, t('ip-addresses'))).toEqual(['10.0.0.1', '10.0.0.2'])
 ```
+
+It stops at the next labelled row, so a card laying out several lists (a PIF side panel lists its addresses, then its bonded devices) reads each one on its own. `findCardLabels` covers the complementary assertion — that a row is _there_, and where — which the collapsed record cannot express.
 
 When a card mixes deterministic values with environment-derived ones (a relative start time, a locale-formatted date), pin the deterministic rows with `toMatchObject` and cover the composition separately by asserting the **list of labels, in order** — the formatted values themselves belong in the test of the composable that derives them.
 
@@ -119,6 +121,36 @@ Where the line falls:
 | a string the component composes from several translations  | a template literal of those `t(…)` calls           |
 | data reaching the component (a name, an id, an IP, a tag)  | the literal — it is the test's own input           |
 | a number the component formats (`'8 B'`, `'4 GiB'`, `'2'`) | the literal — deriving it would copy the template  |
+
+## Tables
+
+A table is read by column **label**, never by counting `td`s, with `src/test/find-table-rows.ts`:
+
+| Helper          | Reads                                                       |
+| --------------- | ----------------------------------------------------------- |
+| `findTableRows` | every body row as a `{ column label: value }` record        |
+| `findTableCell` | one cell, by row index and column label, to query inside it |
+
+```typescript
+expect(findTableRows(wrapper)).toEqual([
+  {
+    [t('network')]: 'Management network',
+    [t('device')]: 'eth0',
+    [t('status')]: t('connected'),
+    '': '', // the actions column carries no label
+  },
+])
+```
+
+One assertion covers a whole row and fails loudly when a value lands under the wrong column. Columns sharing a label — the unlabelled ones — collapse into one entry, so an actions or select column is reached with `findTableCell`, which is also how a test gets _inside_ a cell:
+
+```typescript
+const cell = findTableCell(wrapper, { row: 0, column: t('ip-address') })
+
+await cell.get('.more').trigger('click') // a `VtsCollapsedListCell` shows only its first item until expanded
+
+expect(cell.findAll('li').map(item => item.text())).toEqual(['10.0.0.1', '2001:db8::1'])
+```
 
 ## Chart cards
 
@@ -235,6 +267,13 @@ expect(findHeadBarIconPaths(wrapper)).not.toEqual(findObjectIconPaths('host', 'r
 ```
 
 The negative assertion matters: two states rendering the same paths would let the positive one pass on a broken mapping.
+
+`findNamedIconPaths` is the same reference render for an icon a component picks **by name** rather than from an object and its state — a status marker on a row, an action glyph. Scope the read to the element the icon belongs to, or the addons beside it (a copy button) are counted too:
+
+```typescript
+expect(findIconPaths(findCardValue(wrapper, t('device')))).toEqual(findNamedIconPaths('status:primary-circle'))
+expect(findIconPaths(findCardValue(wrapper, t('device')))).toEqual([]) // an unmarked row
+```
 
 ## What `happy-dom` cannot do
 

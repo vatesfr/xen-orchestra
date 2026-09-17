@@ -1,6 +1,7 @@
 import VmNetworkCard from '@/modules/vm/components/list/panel/cards/VmNetworkCard.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findCardLabelledList, findCardLabels } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -12,10 +13,6 @@ function mountNetworkCard(vm: FrontXoVm = createVm()) {
   })
 }
 
-function findIpAddresses(wrapper: ReturnType<typeof mountNetworkCard>) {
-  return wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.value').text())
-}
-
 it('renders the card title', () => {
   const wrapper = mountNetworkCard(createVm({ addresses: undefined }))
 
@@ -25,20 +22,20 @@ it('renders the card title', () => {
 it('lists the IP addresses of the VM sorted alphabetically', () => {
   const wrapper = mountNetworkCard(createVm({ addresses: { '0/ipv4/0': '10.0.0.2', '0/ipv4/1': '10.0.0.1' } }))
 
-  expect(findIpAddresses(wrapper)).toEqual(['10.0.0.1', '10.0.0.2'])
+  expect(findCardLabelledList(wrapper, t('ip-addresses'))).toEqual(['10.0.0.1', '10.0.0.2'])
 })
 
 it('labels only the first address row', () => {
   const wrapper = mountNetworkCard(createVm({ addresses: { '0/ipv4/0': '10.0.0.1', '0/ipv4/1': '10.0.0.2' } }))
 
-  expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.key').text())).toEqual([t('ip-addresses'), ''])
+  expect(findCardLabels(wrapper)).toEqual([t('ip-addresses'), ''])
 })
 
 it('shows an empty address row when the VM has no IP address', () => {
   const wrapper = mountNetworkCard(createVm({ addresses: undefined }))
 
-  expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.key').text())).toEqual([t('ip-addresses')])
-  expect(findIpAddresses(wrapper)).toEqual([''])
+  expect(findCardLabels(wrapper)).toEqual([t('ip-addresses')])
+  expect(findCardLabelledList(wrapper, t('ip-addresses'))).toEqual([''])
 })
 
 it('links to the networks page when the VM has at least one IP address', () => {

@@ -11,7 +11,7 @@ import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findCardLabelledValues } from '@/test/find-labelled-values.ts'
+import { findCardLabels, findCardLabelledValues } from '@/test/find-labelled-values.ts'
 import { findTagLabels } from '@/test/find-tags.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -97,7 +97,7 @@ it('renders the name and the id of the VM as the card title', () => {
 it('lists every row of the card, in order', () => {
   const wrapper = mountInfoCard()
 
-  expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.key').text())).toEqual([
+  expect(findCardLabels(wrapper)).toEqual([
     t('state'),
     t('description'),
     t('tags'),

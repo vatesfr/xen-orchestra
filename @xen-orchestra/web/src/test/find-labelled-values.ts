@@ -44,6 +44,44 @@ export function findCardLabelledValues(wrapper: QueryableWrapper): Record<string
 }
 
 /**
+ * The label of every `VtsCardRowKeyValue` a card lays out, in order — which is
+ * what says a row is *there*, and where, when {@link findCardLabelledValues}
+ * collapses the rows a list repeats under one label.
+ */
+export function findCardLabels(wrapper: QueryableWrapper): string[] {
+  return wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.key').text())
+}
+
+/**
+ * The values a card lists under `label`: that row and the unlabelled ones that
+ * follow it, since a list labels only its first row. Stops at the next labelled
+ * row, so a card laying out several lists reads each one on its own.
+ */
+export function findCardLabelledList(wrapper: QueryableWrapper, label: string): string[] {
+  const rows = wrapper.findAll('.vts-card-row-key-value')
+  const firstIndex = rows.findIndex(row => row.get('.key').text() === label)
+
+  if (firstIndex === -1) {
+    return []
+  }
+
+  const lastIndex = rows.findIndex((row, index) => index > firstIndex && row.get('.key').text() !== '')
+
+  return rows.slice(firstIndex, lastIndex === -1 ? undefined : lastIndex).map(row => row.get('.value').text())
+}
+
+/**
+ * The value element of the `VtsCardRowKeyValue` labelled `label`, so a test can
+ * query inside it — an icon, a link — without reaching the copy buttons and
+ * other addons the row lays out beside it.
+ */
+export function findCardValue(wrapper: QueryableWrapper, label: string) {
+  const rows = wrapper.findAll('.vts-card-row-key-value')
+
+  return rows[rows.findIndex(row => row.get('.key').text() === label)].get('.value')
+}
+
+/**
  * Reads every `UiLegend` of a mounted component as ordered `[label, value]`
  * pairs — the donut and progress-bar cards render their values through it.
  *

@@ -10,6 +10,7 @@ Domain objects are created through factories in `src/test/`, one per object type
 | `createPool`         | `FrontXoPool`         |
 | `createSr`           | `FrontXoSr`           |
 | `createPbd`          | `FrontXoPbd`          |
+| `createPif`          | `FrontXoPif`          |
 | `createVbd`          | `FrontXoVbd`          |
 | `createVdi`          | `FrontXoVdi`          |
 | `createVmSnapshot`   | `FrontXoVmSnapshot`   |
@@ -30,7 +31,7 @@ const poolStats = createPoolStats({
 })
 ```
 
-Shared _helper_ factories live there too — `mount-composable.ts`, `mount-chart-card.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts`, `find-labelled-values.ts`, `find-tabs.ts`, `find-head-bar.ts`, `find-icon-paths.ts`, `find-tags.ts`, `i18n.ts` and `linear-chart-stub.ts`.
+Shared _helper_ factories live there too — `mount-composable.ts`, `mount-chart-card.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts`, `find-labelled-values.ts`, `find-table-rows.ts`, `find-tabs.ts`, `find-head-bar.ts`, `find-icon-paths.ts`, `find-tags.ts`, `i18n.ts` and `linear-chart-stub.ts`.
 
 Each factory returns a **fully-populated** object of the real front-end type and accepts a `Partial<T>` of overrides, spread last, so a test only states the fields relevant to its case:
 

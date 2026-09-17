@@ -14,25 +14,16 @@ export function getPifStatus(pif: FrontXoPif): Status {
   return CONNECTION_STATUS.CONNECTED
 }
 
+export function getPifIpAddresses(pif: FrontXoPif): string[] {
+  return [pif.ip, ...(pif.ipv6 ?? [])].filter(ip => ip)
+}
+
 export function getPifsIpAddresses(pifs?: FrontXoPif[]): string[] {
-  if (!pifs) {
-    return []
-  }
-
-  return pifs.reduce((acc, pif) => {
-    if (pif.ip) {
-      acc.push(pif.ip)
-    }
-
-    if (pif.ipv6) {
-      acc.push(...pif.ipv6.filter(ip => ip))
-    }
-
-    return acc
-  }, [] as string[])
+  return pifs?.flatMap(getPifIpAddresses) ?? []
 }
 
 export function getHostIpAddresses(managementIp: string, pifs?: FrontXoPif[]): string[] {
   const others = getPifsIpAddresses(pifs).filter(ip => ip !== managementIp)
+
   return managementIp ? [managementIp, ...others] : others
 }

@@ -230,6 +230,7 @@ import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-x
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import PifSetManagementButton from '@/modules/pif/components/actions/set-management/PifSetManagementButton.vue'
 import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { getPifIpAddresses } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
@@ -266,7 +267,7 @@ const ipAddresses = computed(() => {
     return []
   }
 
-  return [pif.ip, ...pif.ipv6].filter(ip => ip)
+  return getPifIpAddresses(pif)
 })
 
 const network = useGetNetworkById(() => pif?.$network)

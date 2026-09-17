@@ -29,7 +29,7 @@ import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-x
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { usePifManagementReconfigureModal } from '@/modules/pif/composables/use-pif-management-reconfigure-modal.composable.ts'
 import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
+import { getPifIpAddresses, getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -80,8 +80,6 @@ const state = useTableState({
 
 const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
 
-const getIpAddresses = (pif: FrontXoPif) => [pif.ip, ...pif.ipv6].filter(ip => ip)
-
 const getIpConfigurationMode = (ipMode: IP_CONFIGURATION_MODE) => {
   switch (ipMode) {
     case 'Static':
@@ -111,7 +109,7 @@ const { HeadCells, BodyCells } = usePifColumns({
   body: (pif: FrontXoPif) => {
     const status = computed(() => getPifStatus(pif))
     const vlan = computed(() => getVlanData(pif.vlan))
-    const ip = computed(() => getIpAddresses(pif))
+    const ip = computed(() => getPifIpAddresses(pif))
     const mode = computed(() => getIpConfigurationMode(pif.mode))
     const rightIcon = computed(() => getManagementIcon(pif))
 

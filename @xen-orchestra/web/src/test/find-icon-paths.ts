@@ -1,5 +1,6 @@
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import type { ObjectState, ObjectType } from '@core/icons'
+import type { IconName, ObjectState, ObjectType } from '@core/icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import { mount, type DOMWrapper } from '@vue/test-utils'
 
@@ -21,6 +22,19 @@ export function findIconPaths(wrapper: QueryableWrapper) {
 export function findObjectIconPaths<TType extends ObjectType>(type: TType, state: ObjectState<TType>) {
   const wrapper = mount(VtsObjectIcon, {
     props: { type, state, size: 'medium' as const },
+    global: createGlobalTestConfig(),
+  })
+
+  return findIconPaths(wrapper)
+}
+
+/**
+ * Same reference render for an icon a component picks **by name** rather than
+ * from an object and its state — a status marker, an action glyph.
+ */
+export function findNamedIconPaths(name: IconName) {
+  const wrapper = mount(VtsIcon, {
+    props: { name, size: 'medium' as const },
     global: createGlobalTestConfig(),
   })
 
