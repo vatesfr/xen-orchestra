@@ -282,11 +282,6 @@ export default class {
         { concurrency: 2, stopOnError: false }
       )
 
-      const failures = results.filter(r => !r.success)
-      if (failures.length === results.length && results.length > 0) {
-        throw new Error('reclaim space failed for all VMs')
-      }
-
       return results
     })
   }
