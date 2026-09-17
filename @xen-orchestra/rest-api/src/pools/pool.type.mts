@@ -144,3 +144,12 @@ export type RollingPoolActionBody = {
   bypassBackupCheck?: boolean
   shutdownPinnedVms?: boolean
 }
+
+export type RollingPoolUpdateBody = RollingPoolActionBody & {
+  /**
+   * Start the update even though the master is already up to date while another host is not, ie from a pool left
+   * partially updated. Without it, such a pool is refused with an `incorrect state` error listing the outdated hosts.
+   * Defaults to false.
+   */
+  acceptCurrentStateAsBaseline?: boolean
+}
