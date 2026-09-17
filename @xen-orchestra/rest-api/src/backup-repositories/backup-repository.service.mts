@@ -1,15 +1,6 @@
-import type { AnyXoBackupJob, XoBackupRepository, XoVm } from '@vates/types'
+import type { AnyXoBackupJob, XoBackupRepository, XoVm, XoApp } from '@vates/types'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { inject } from 'inversify'
-import { ApiError } from '../helpers/error.helper.mjs'
-
-export interface ReclaimSpaceResult {
-  vmUuid: string
-  success: boolean
-  merge?: boolean
-  size?: number
-  error?: string
-}
 
 export class BackupRepositoryService {
   #restApi: RestApi
@@ -56,7 +47,7 @@ export class BackupRepositoryService {
       merge?: boolean
       remove?: boolean
     }
-  ) {
+  ): Promise<ReturnType<XoApp['reclaimSpace']>> {
     const vmUuid = body?.vmUuid as XoVm['id']
     return await this.#restApi.xoApp.reclaimSpace(backupRepositoryId, {
       vmUuid: vmUuid,

@@ -50,7 +50,6 @@ import { BackupRepositoryService } from './backup-repository.service.mjs'
 import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
-import type { ReclaimSpaceResult } from './backup-repository.service.mjs'
 
 type BenchmarkRepositoryResult = Awaited<ReturnType<XoApp['testRemote']>>
 
@@ -349,14 +348,14 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
     @Path() id: string,
     @Body() body?: { vmUuid?: string; merge?: boolean; remove?: boolean },
     @Query() sync?: boolean
-  ): CreateActionReturnType<ReclaimSpaceResult[]> {
+  ): CreateActionReturnType<ReturnType<XoApp['reclaimSpace']>> {
     const backupRepositoryId = id as XoBackupRepository['id']
     const vmUuid = body?.vmUuid
     const action = () => {
       return this.#backupRepositoryService.reclaimSpace(backupRepositoryId, body)
     }
 
-    return this.createAction<ReclaimSpaceResult[]>(action, {
+    return this.createAction<ReturnType<XoApp['reclaimSpace']>>(action, {
       sync,
       statusCode: 200,
       taskProperties: {
