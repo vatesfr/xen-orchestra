@@ -244,7 +244,11 @@ export default class {
     }
 
     return Disposable.use(this._app.getBackupsRemoteAdapter(remote), async adapter => {
-      const vmUuids = vmUuid !== undefined ? [vmUuid] : await adapter.listAllVms()
+      const allVms = await adapter.listAllVms()
+      if (vmUuid !== undefined && !allVms.includes(vmUuid)) {
+        throw noSuchObject(vmUuid, 'VM')
+      }
+      const vmUuids = vmUuid !== undefined ? [vmUuid] : allVms
       Task.set('total', vmUuids.length)
       let done = 0
 

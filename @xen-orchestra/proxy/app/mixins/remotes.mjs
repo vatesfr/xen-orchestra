@@ -6,6 +6,7 @@ import { getHandler } from '@xen-orchestra/fs'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 import { asyncEach } from '@vates/async-each'
 import { BACKUP_DIR } from '@xen-orchestra/backups/_getVmBackupDir.mjs'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
 export default class Remotes {
   constructor(app) {
@@ -65,7 +66,11 @@ export default class Remotes {
                 debounceResource: app.debounceResource.bind(app),
               })
 
-              const vmUuids = vmUuid !== undefined ? [vmUuid] : await remoteAdapter.listAllVms()
+              const allVms = await remoteAdapter.listAllVms()
+              if (vmUuid !== undefined && !allVms.includes(vmUuid)) {
+                throw noSuchObject(vmUuid, 'VM')
+              }
+              const vmUuids = vmUuid !== undefined ? [vmUuid] : allVms
 
               const results = []
               await asyncEach(
