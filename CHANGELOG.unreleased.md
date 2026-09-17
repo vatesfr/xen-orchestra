@@ -28,6 +28,7 @@
 - [V2V] When a VM has Changed Block Tracking enabled on the source host, a migration now asks the host which blocks it has to read — the blocks a disk uses for a full transfer, the blocks written since the previous pass for a delta — instead of scanning the disk through the VDDK. Faster to start on large disks, and one less moving part. VMs without CBT are migrated exactly as before (PR [#10384](https://github.com/vatesfr/xen-orchestra/pull/10384))
 - [Proxy] Check proxy licenses at XOA level instead of blocking backups on it (PR [#10280](https://github.com/vatesfr/xen-orchestra/pull/10280))
 - [RPU] A rolling pool update is now refused while a previous one is still in progress or was left incomplete, and asks for confirmation when the master is already up to date but other hosts are not (PR [#10394](https://github.com/vatesfr/xen-orchestra/pull/10394))
+- [RPU] An incomplete rolling pool update can now be closed from the pool's Patches tab, or with `pool.finalizeRollingUpdate` and the REST route `POST /rest/v0/pools/{id}/actions/finalize_rolling_update`. The closing is refused while the update left something it had changed unrestored (HA, WLB, load balancer, backup schedules, disabled hosts, displaced or halted VMs); forcing it lists the abandoned items in the task and changes nothing in the pool (PR [#10418](https://github.com/vatesfr/xen-orchestra/pull/10418))
 
 ### Bug fixes
 
