@@ -52,6 +52,7 @@
 - @xen-orchestra/acl minor
 - @xen-orchestra/async-map patch
 - @xen-orchestra/backups minor
+- @xen-orchestra/proxy minor
 - @xen-orchestra/proxy-cli patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/upload-ova patch
@@ -64,6 +65,6 @@
 - xo-server patch
 - xo-server-ipmi-sensors minor
 - xo-server-netbox patch
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
