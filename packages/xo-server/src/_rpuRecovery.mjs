@@ -2,7 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { RPU_RECOVERY_STEP_NAMES } from '@vates/types/common'
 import { randomUUID } from 'node:crypto'
 import stringify from 'json-stringify-safe'
-import { incorrectState } from 'xo-common/api-errors.js'
+import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
 
 import { replacer } from './_rpuObservability.mjs'
 
@@ -179,6 +179,113 @@ export async function readRpuRecoveryView(store, poolId) {
 }
 
 /**
+ * Reads the record of a pool in order to close it.
+ *
+ * @param {object} store - LevelDB sublevel, keyed by pool id
+ * @param {string} poolId
+ * @returns {Promise<object | null>} the record, `null` when its stored value cannot be decoded
+ * @throws {Error} `noSuchObject` when the pool has no record
+ * @throws {Error} `incorrectState` (property `status`) when the record belongs to a live run
+ */
+export async function readClosableRpuRecoveryRecord(store, poolId) {
+  let record
+  try {
+    record = await store.get(poolId)
+  } catch (error) {
+    if (error.notFound) {
+      throw noSuchObject(poolId, 'rollingUpdateRecovery')
+    }
+    log.warn('unreadable RPU recovery record', { error, poolId })
+    return null
+  }
+  if (record?.schemaVersion === RPU_RECOVERY_SCHEMA_VERSION && LIVE_RUN_STATUSES.has(record.status)) {
+    throw incorrectState({
+      actual: record.status,
+      expected: ['interrupted', 'failed', 'succeeded'],
+      object: poolId,
+      property: 'status',
+    })
+  }
+  return record
+}
+
+/**
+ * Lists what the run changed and did not restore, from the record (intent)
+ * and the live state of the pool: an item is listed only when the record says
+ * the run changed it and the pool still shows it changed.
+ *
+ * Flat list, in restore order: pool settings (HA, auto power-on, WLB, load
+ * balancer), backup schedules, disabled hosts, running VMs away from their
+ * home host, pinned VMs shut down by the run. Objects that no longer exist are
+ * skipped: there is nothing left to restore. Displaced VMs are not listed when
+ * the pool opted out of the migrate back.
+ *
+ * @param {object | undefined} record
+ * @param {object} live
+ * @param {object} live.pool - XAPI pool object
+ * @param {boolean} live.loadBalancerLoaded
+ * @param {(id: string) => object | undefined} live.getHost
+ * @param {(id: string) => object | undefined} live.getVm
+ * @param {(id: string) => object | undefined} live.getSchedule
+ * @returns {Array<{ type: string, id: string, name?: string }> | null} `null` when the record cannot be read
+ */
+export function listUnrestoredItems(record, { pool, loadBalancerLoaded, getHost, getVm, getSchedule }) {
+  if (record === null || typeof record !== 'object' || record.schemaVersion !== RPU_RECOVERY_SCHEMA_VERSION) {
+    return null
+  }
+  const { poolId, changedByRun = {} } = record
+  const items = []
+
+  if (changedByRun.ha && !pool.ha_enabled) {
+    items.push({ type: 'ha', id: poolId })
+  }
+  if (changedByRun.autoPowerOn && pool.other_config?.auto_poweron !== 'true') {
+    items.push({ type: 'autoPowerOn', id: poolId })
+  }
+  if (changedByRun.wlb && !pool.wlb_enabled) {
+    items.push({ type: 'wlb', id: poolId })
+  }
+  if (changedByRun.loadBalancer && !loadBalancerLoaded) {
+    items.push({ type: 'loadBalancer', id: 'load-balancer' })
+  }
+  for (const scheduleId of changedByRun.schedules ?? []) {
+    const schedule = getSchedule(scheduleId)
+    if (schedule !== undefined && !schedule.enabled) {
+      items.push({ type: 'schedule', id: scheduleId, name: schedule.name })
+    }
+  }
+
+  for (const hostId of record.hostOrder ?? Object.keys(record.hosts ?? {})) {
+    const { enabledBeforeUpdate, steps = {} } = record.hosts?.[hostId] ?? {}
+    // the run disables a host when it starts evacuating it, and enables it
+    // again as its last step
+    const disabledByRun =
+      enabledBeforeUpdate === true && steps.evacuate !== undefined && steps.enable?.status !== 'observed-succeeded'
+    const host = disabledByRun ? getHost(hostId) : undefined
+    if (host !== undefined && host.enabled === false) {
+      items.push({ type: 'host', id: hostId, name: host.name_label })
+    }
+  }
+
+  if (pool.other_config?.['xo:rpuMigrateVmsBack'] !== 'false') {
+    for (const [vmId, homeHostId] of Object.entries(record.vmHomeById ?? {})) {
+      const vm = getVm(vmId)
+      if (vm !== undefined && vm.power_state === 'Running' && vm.$resident_on?.$id !== homeHostId) {
+        items.push({ type: 'vm', id: vmId, name: vm.name_label })
+      }
+    }
+  }
+  for (const vmId of Object.keys(record.haltedPinnedVms ?? {})) {
+    const vm = getVm(vmId)
+    if (vm !== undefined && vm.power_state === 'Halted') {
+      items.push({ type: 'haltedPinnedVm', id: vmId, name: vm.name_label })
+    }
+  }
+
+  return items
+}
+
+/**
  * Recorder used when a run does not track recovery (rolling pool reboot):
  * every method is a no-op.
  */
@@ -195,6 +302,7 @@ export const noopRpuRecorder = Object.freeze({
   stepObserved: noop,
   stepNotNeeded: noop,
   stepFailed: noop,
+  settingChangedByRun: asyncNoop,
   recordHaltedPinnedVm: asyncNoop,
   forgetHaltedPinnedVm: noop,
   fail: asyncNoop,
@@ -205,10 +313,10 @@ export const noopRpuRecorder = Object.freeze({
 /**
  * Creates the recorder tracking one RPU run into its recovery record.
  *
- * Intent writes are strict (`recordHaltedPinnedVm` rejects on write failure so
- * the run aborts before the corresponding side effect), tracking writes are
- * best effort (a write failure is logged once, the run goes on). Writes are
- * chained so they reach the store in order.
+ * Intent writes are strict (`settingChangedByRun` and `recordHaltedPinnedVm`
+ * reject on write failure so the run aborts before the corresponding side
+ * effect), tracking writes are best effort (a write failure is logged once,
+ * the run goes on). Writes are chained so they reach the store in order.
  *
  * @param {object} params
  * @param {object} params.store - LevelDB sublevel, keyed by pool id
@@ -294,8 +402,12 @@ export function createRpuRecoveryRecorder({ store, record }) {
       record.vmHomeById = vmHomeById
       write()
     },
-    hostStarting(hostId, agentStartTime) {
-      hostEntry(hostId).agentStartedAtBeforeUpdate = agentStartTime
+    // `enabled` before the run touches the host: a host the operator had
+    // already disabled is not a change of the run
+    hostStarting(hostId, agentStartTime, enabled) {
+      const entry = hostEntry(hostId)
+      entry.agentStartedAtBeforeUpdate = agentStartTime
+      entry.enabledBeforeUpdate = enabled
       write()
     },
     hostSkipped(hostId) {
@@ -331,6 +443,18 @@ export function createRpuRecoveryRecorder({ store, record }) {
       setStep(hostId, name, { status: 'failed', finishedAt: new Date().toISOString() })
       setLastError(hostId, error)
       write()
+    },
+    /**
+     * Strict: a setting the run is about to change must be on disk before the
+     * change, otherwise a crash would leave it changed and nothing would know.
+     *
+     * @param {'ha' | 'autoPowerOn' | 'wlb' | 'loadBalancer' | 'schedules'} name
+     * @param {boolean | string[]} [value=true] - Ids of the disabled schedules for `schedules`
+     * @returns {Promise<void>}
+     */
+    async settingChangedByRun(name, value = true) {
+      ;(record.changedByRun ??= {})[name] = value
+      await enqueueWrite()
     },
     // strict: the entry must be on disk before the VM is shut down, otherwise
     // a crash would leave a halted VM nothing knows about

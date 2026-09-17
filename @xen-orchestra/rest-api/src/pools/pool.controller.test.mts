@@ -21,6 +21,7 @@ function createController() {
     getObject: () => pool,
     tasks: { create: (properties: unknown) => ({ id: 'task-1', properties, run: (fn: () => unknown) => fn() }) },
     xoApp: {
+      finalizeRollingUpdate: record('finalizeRollingUpdate'),
       rollingPoolReboot: record('rollingPoolReboot'),
       rollingPoolUpdate: record('rollingPoolUpdate'),
     },
@@ -49,3 +50,17 @@ for (const [method, orchestrator] of [
     })
   })
 }
+
+describe('PoolController.finalizeRollingUpdate', () => {
+  it('forwards force from the body to the orchestrator', async () => {
+    const { calls, controller } = createController()
+
+    await controller.finalizeRollingUpdate('pool-1', undefined, true)
+    await controller.finalizeRollingUpdate('pool-1', { force: true }, true)
+
+    assert.deepEqual(calls, [
+      { orchestrator: 'finalizeRollingUpdate', parentTask: 'task-1' },
+      { orchestrator: 'finalizeRollingUpdate', parentTask: 'task-1', force: true },
+    ])
+  })
+})
