@@ -235,12 +235,17 @@ export default class {
     const remote = await this.getRemoteWithCredentials(remoteId)
 
     if (remote.proxy !== undefined) {
-      return this._app.callProxyMethod(remote.proxy, 'remote.reclaimSpace', {
-        remote,
-        vmUuid,
-        merge,
-        remove,
-      })
+      return this._app.callProxyMethod(
+        remote.proxy,
+        'remote.reclaimSpace',
+        {
+          remote,
+          vmUuid,
+          merge,
+          remove,
+        },
+        { timeout: 600e3 }
+      ) // by default in config file it's 1 min, now it's 10 min
     }
 
     return Disposable.use(this._app.getBackupsRemoteAdapter(remote), async adapter => {
