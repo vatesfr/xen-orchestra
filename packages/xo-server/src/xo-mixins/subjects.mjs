@@ -175,6 +175,7 @@ export default class {
   ) {
     const user = await this.getUser(id)
 
+    name = name?.trim()
     if (name) {
       user.name = name
     }
@@ -184,6 +185,7 @@ export default class {
     if (lastname !== undefined) {
       user.lastname = lastname
     }
+    username = username?.trim()
     if (username) {
       user.username = username
     }
@@ -390,6 +392,12 @@ export default class {
     }
 
     return true
+  }
+
+  // fields synchronized users should not be able to modify
+  getUserIdentityFields() {
+    // returning both name and email for convenience though they are the same value
+    return ['email', 'firstname', 'lastname', 'name', 'password', 'username']
   }
 
   // -----------------------------------------------------------------
