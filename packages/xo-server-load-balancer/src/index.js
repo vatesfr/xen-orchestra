@@ -82,7 +82,7 @@ export const configurationSchema = {
 
           affinityTags: {
             type: 'array',
-            title: 'Affinity tags',
+            title: 'VM-to-VM Affinity tags',
             description: 'list of VM tags to force place VMs on same hosts',
 
             items: {
@@ -93,7 +93,7 @@ export const configurationSchema = {
 
           antiAffinityTags: {
             type: 'array',
-            title: 'Anti-affinity tags',
+            title: 'VM-to-VM Anti-affinity tags',
             description: 'list of VM tags to force place VMs on different hosts',
 
             items: {
