@@ -306,7 +306,14 @@ export type XoApp = {
     proxy?: XoProxy['id']
     url: string
   }): Promise<XoBackupRepository>
-  createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
+  createUser(params: {
+    firstname?: string
+    lastname?: string
+    name?: string
+    password?: string
+    username?: string
+    [key: string]: unknown
+  }): Promise<XoUser>
   deleteAclV2GroupRole(
     groupId: XoGroup['id'],
     roleId: XoAclRole['id'],
@@ -391,6 +398,7 @@ export type XoApp = {
   getTotalBackupSizeOnRemote(id: XoBackupRepository['id']): Promise<{ onDisk: number }>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
   getUser: (id: XoUser['id'], opts?: { obfuscatePassword?: boolean }) => Promise<XoUser>
+  getUserIdentityFields(): string[]
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(
@@ -465,15 +473,18 @@ export type XoApp = {
   updateUser(
     id: XoUser['id'],
     updates: {
+      email?: string
+      authProviders?: Record<string, string>
+      firstname?: string
+      lastname?: string
       /**
        * @deprecated
        */
-      email?: string
-      authProviders?: Record<string, string>
       name?: string
       password?: string
       permission?: string
       preferences?: Record<string, string>
+      username?: string
     }
   ): Promise<void>
   updateAclV2Privilege(

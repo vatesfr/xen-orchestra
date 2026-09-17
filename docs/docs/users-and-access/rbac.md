@@ -192,12 +192,12 @@ Actions are written using the exact string you pass in a privilege. A parent act
 
 ### User management resources
 
-| Resource        | Available actions                                                                                       |
-| --------------- | ------------------------------------------------------------------------------------------------------- |
-| `user`          | `read`, `create`, `delete`, `update:name`, `update:password`, `update:permission`, `update:preferences` |
-| `group`         | `read`, `create`, `delete`, `update:name`, `update:users`                                               |
-| `acl-role`      | `read`, `create`, `delete`, `update:name`, `update:description`, `update:users`, `update:groups`        |
-| `acl-privilege` | `read`, `create`, `delete`, `update:action`, `update:effect`, `update:resource`, `update:selector`      |
+| Resource        | Available actions                                                                                                                                                 |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `user`          | `read`, `create`, `delete`, `update:firstname`, `update:lastname`, `update:name`, `update:password`, `update:permission`, `update:preferences`, `update:username` |
+| `group`         | `read`, `create`, `delete`, `update:name`, `update:users`                                                                                                         |
+| `acl-role`      | `read`, `create`, `delete`, `update:name`, `update:description`, `update:users`, `update:groups`                                                                  |
+| `acl-privilege` | `read`, `create`, `delete`, `update:action`, `update:effect`, `update:resource`, `update:selector`                                                                |
 
 Note the last two rows: RBAC configuration is itself covered by the model. You do not need to be a full administrator to manage roles and privileges; a user holding the right `acl-role` and `acl-privilege` privileges can delegate access in turn, through the REST API.
 

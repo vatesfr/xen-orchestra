@@ -86,6 +86,7 @@
 - @vates/iscsi minor
 - @vates/node-vsphere-soap minor
 - @vates/types minor
+- @xen-orchestra/acl minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/disk-cli patch
