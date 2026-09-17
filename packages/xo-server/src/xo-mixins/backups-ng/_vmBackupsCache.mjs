@@ -475,6 +475,35 @@ export class VmBackupsCache extends EventEmitter {
   }
 
   /**
+   * Applies one journal event to the backups of a repository, and announces what it changed.
+   *
+   * @param {string} repositoryId
+   * @param {BackupsByVm} backupsByVm backups to bring up to date, mutated in place
+   * @param {JournalEvent} journalEvent
+   * @param {boolean} announce whether these backups are still the ones announced for the repository
+   * @returns {void}
+   */
+  #applyEvent(repositoryId, backupsByVm, journalEvent, announce) {
+    const { vmUuid, filename } = journalEvent
+    const previous = backupsByVm[vmUuid]?.[filename]
+
+    if (journalEvent.event === 'del') {
+      removeBackup(backupsByVm, vmUuid, filename)
+      if (announce && previous !== undefined) {
+        this.#emit('remove', repositoryId, undefined, previous)
+      }
+      return
+    }
+
+    const { backup } = journalEvent
+    const backups = (backupsByVm[vmUuid] ??= {})
+    backups[filename] = backup
+    if (announce && !isEqual(previous, backup)) {
+      this.#emit(previous === undefined ? 'add' : 'update', repositoryId, backup, previous)
+    }
+  }
+
+  /**
    * @param {Repository} repository
    * @param {Entry} entry
    * @returns {Promise<boolean>} whether the entry could be brought up to date from the journal
@@ -504,21 +533,7 @@ export class VmBackupsCache extends EventEmitter {
     // the source reduced the events to the last one of each backup, therefore they are independent
     // and the order they are applied in does not matter
     for (const journalEvent of read.events) {
-      const { vmUuid, filename } = journalEvent
-      const previous = backupsByVm[vmUuid]?.[filename]
-      if (journalEvent.event === 'del') {
-        removeBackup(backupsByVm, vmUuid, filename)
-        if (announced && previous !== undefined) {
-          this.#emit('remove', repository.id, undefined, previous)
-        }
-      } else {
-        const { backup } = journalEvent
-        const backups = (backupsByVm[vmUuid] ??= {})
-        backups[filename] = backup
-        if (announced && !isEqual(previous, backup)) {
-          this.#emit(previous === undefined ? 'add' : 'update', repository.id, backup, previous)
-        }
-      }
+      this.#applyEvent(repository.id, backupsByVm, journalEvent, announced)
     }
 
     // the cursor, not the events, is what says whether the journal moved forward: the entries it
