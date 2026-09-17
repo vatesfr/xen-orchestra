@@ -1,5 +1,5 @@
 import { isExcludedRoute } from './route-filter.mjs'
-import { proxyFetch, type FetchFn, type FetchInit } from '../utils/proxy.mjs'
+import type { FetchFn } from '../utils/proxy.mjs'
 
 const FETCH_TIMEOUT_MS = 10_000
 const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const
@@ -73,13 +73,13 @@ export interface ParseOptions {
 export async function fetchSwaggerSpec(
   baseUrl: string,
   authHeaders: Record<string, string>,
-  fetchFn: FetchFn = proxyFetch
+  fetchFn: FetchFn
 ): Promise<OpenApiSpec> {
   const url = `${baseUrl}/rest/v0/docs/swagger.json`
 
   let response: Response
   try {
-    const init: FetchInit = {
+    const init: RequestInit = {
       headers: { ...authHeaders, Accept: 'application/json' },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     }

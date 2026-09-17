@@ -207,4 +207,53 @@ describe('XoClient', () => {
       await client.apiRequest('POST', '/vms', { body: { name: 'new' } })
     })
   })
+
+  describe('assertMcpEnabled', () => {
+    it('probes the status endpoint with the MCP client header', async () => {
+      let seenUrl = ''
+      let seenHeaders: Record<string, string> = {}
+      await XoClient.assertMcpEnabled('http://xo.local:9000/', async (url, init) => {
+        seenUrl = url
+        seenHeaders = init?.headers as Record<string, string>
+        return new Response('{}', { status: 200 })
+      })
+      assert.strictEqual(seenUrl, 'http://xo.local:9000/rest/v0/mcp/status')
+      assert.strictEqual(seenHeaders['X-XO-Client'], 'mcp')
+    })
+
+    it('throws when the admin disabled MCP', async () => {
+      const body = JSON.stringify({ error: 'MCP is disabled', data: { error: 'mcp_disabled' } })
+      await assert.rejects(
+        () => XoClient.assertMcpEnabled('http://xo.local:9000', async () => new Response(body, { status: 503 })),
+        { message: 'MCP disabled by admin' }
+      )
+    })
+
+    it('reports other HTTP errors with their status', async () => {
+      await assert.rejects(
+        () =>
+          XoClient.assertMcpEnabled(
+            'http://xo.local:9000',
+            async () => new Response('boom', { status: 500, statusText: 'Internal Server Error' })
+          ),
+        { message: /HTTP 500.*boom/ }
+      )
+    })
+
+    it('wraps network errors and keeps the cause', async () => {
+      const cause = new Error('ECONNREFUSED')
+      await assert.rejects(
+        () =>
+          XoClient.assertMcpEnabled('http://xo.local:9000', async () => {
+            throw cause
+          }),
+        (error: unknown) => {
+          assert.ok(error instanceof Error)
+          assert.match(error.message, /Unable to reach XO server at http:\/\/xo\.local:9000/)
+          assert.strictEqual(error.cause, cause)
+          return true
+        }
+      )
+    })
+  })
 })

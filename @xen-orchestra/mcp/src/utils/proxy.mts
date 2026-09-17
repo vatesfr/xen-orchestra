@@ -1,12 +1,7 @@
 import { EnvHttpProxyAgent, fetch, type Dispatcher } from 'undici'
 
-/**
- * `RequestInit` augmented with undici's `dispatcher` field.
- */
-export type FetchInit = RequestInit & { dispatcher?: Dispatcher }
-
 /** Signature used for dependency injection in tests (defaults to {@link proxyFetch}). */
-export type FetchFn = (url: string, init?: FetchInit) => Promise<Response>
+export type FetchFn = (url: string, init?: RequestInit) => Promise<Response>
 
 let cachedDispatcher: Dispatcher | undefined
 
@@ -38,10 +33,8 @@ export function getProxyDispatcher(): Dispatcher {
  * (Blob / ReadableStream generics), so the boundary is cast here — the members
  * actually used (headers, signal, ok, status, text, json) are runtime-compatible.
  */
-export function proxyFetch(url: string, init: FetchInit = {}): Promise<Response> {
-  return fetch(url, { ...init, dispatcher: init.dispatcher ?? getProxyDispatcher() } as Parameters<
-    typeof fetch
-  >[1]) as Promise<Response>
+export function proxyFetch(url: string, init: RequestInit = {}): Promise<Response> {
+  return fetch(url, { ...init, dispatcher: getProxyDispatcher() } as Parameters<typeof fetch>[1]) as Promise<Response>
 }
 
 /** Test-only: drop the cached dispatcher so the next call re-reads env vars. */

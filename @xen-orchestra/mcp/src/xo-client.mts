@@ -1,4 +1,4 @@
-import { proxyFetch, type FetchFn, type FetchInit } from './utils/proxy.mjs'
+import { proxyFetch, type FetchFn } from './utils/proxy.mjs'
 
 const REQUEST_TIMEOUT_MS = 30_000
 const BOOT_CHECK_TIMEOUT_MS = 10_000
@@ -18,7 +18,8 @@ export class XoClient {
   private readonly baseUrl: string
   private readonly authHeaders: Record<string, string>
   private readonly authMode: 'token' | 'basic'
-  private readonly fetchFn: FetchFn
+  /** Transport shared by every outbound request of the process (XO API, OpenAPI spec, docs). */
+  readonly fetchFn: FetchFn
 
   /**
    * Probes the XO server's `/rest/v0/mcp/status` endpoint to verify that the
@@ -30,7 +31,7 @@ export class XoClient {
 
     let response: Response
     try {
-      const init: FetchInit = {
+      const init: RequestInit = {
         headers: { ...MCP_CLIENT_HEADER },
         signal: AbortSignal.timeout(BOOT_CHECK_TIMEOUT_MS),
       }
@@ -83,7 +84,7 @@ export class XoClient {
 
     let response: Response
     try {
-      const init: FetchInit = {
+      const init: RequestInit = {
         ...options,
         headers: { ...MCP_CLIENT_HEADER, ...this.authHeaders, ...options.headers },
         signal: options.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),

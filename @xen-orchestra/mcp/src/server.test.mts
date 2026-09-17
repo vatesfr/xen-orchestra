@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { describe, it, beforeEach, afterEach } from 'node:test'
+import { describe, it, afterEach } from 'node:test'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { createServer, validateEnv, fetchDocumentation } from './index.mjs'
@@ -37,14 +37,16 @@ function createMockClient(overrides: Record<string, unknown> = {}): XoClient {
     apiRequest: async () => '| id | name_label |\n| --- | --- |\n| mock1 | Mock 1 |',
     getAuthHeaders: () => ({ cookie: 'authenticationToken=test' }),
     getBaseUrl: () => 'http://xo.test',
+    fetchFn: mockFetchFn(),
     ...overrides,
   } as unknown as XoClient
 }
 
-let originalFetch: typeof globalThis.fetch
-
-/** DI fetch for `createServer` — serves the mock OpenAPI spec (the only network call at bootstrap). */
-function mockFetchFn(): FetchFn {
+/**
+ * Transport of the mock client — serves the mock OpenAPI spec (the only
+ * network call at bootstrap) and whatever `extra` handles (e.g. the docs site).
+ */
+function mockFetchFn(extra?: (url: string) => Response | undefined): FetchFn {
   return async url => {
     if (url.includes('/rest/v0/docs/swagger.json')) {
       return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
@@ -52,13 +54,15 @@ function mockFetchFn(): FetchFn {
         headers: { 'content-type': 'application/json' },
       })
     }
+    const response = extra?.(url)
+    if (response !== undefined) return response
     throw new Error(`Unexpected fetch in test: ${url}`)
   }
 }
 
 async function setupTestServer(mockClient?: XoClient) {
   const client = mockClient ?? createMockClient()
-  const server = await createServerDirect(() => client, mockFetchFn())
+  const server = await createServerDirect(() => client)
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
   const mcpClient = new Client({ name: 'test-client', version: '1.0.0' })
 
@@ -197,20 +201,17 @@ describe('createServer (dynamic bootstrap)', () => {
   })
 
   describe('search_documentation tool', () => {
-    it('fetches and returns documentation', async () => {
-      const prevFetch = globalThis.fetch
-      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = typeof input === 'string' ? input : input.toString()
-        if (url.includes('docs.xen-orchestra.com')) {
-          return new Response('<h1>Installation Guide</h1><p>Install XO here.</p>', {
-            status: 200,
-            headers: { 'content-type': 'text/html' },
-          })
-        }
-        return prevFetch(input, init)
-      }
+    it('fetches and returns documentation through the client transport', async () => {
+      const fetchFn = mockFetchFn(url =>
+        url.includes('docs.xen-orchestra.com')
+          ? new Response('<h1>Installation Guide</h1><p>Install XO here.</p>', {
+              status: 200,
+              headers: { 'content-type': 'text/html' },
+            })
+          : undefined
+      )
 
-      const { mcpClient } = await setupTestServer()
+      const { mcpClient } = await setupTestServer(createMockClient({ fetchFn }))
       const result = await mcpClient.callTool({ name: 'search_documentation', arguments: { topic: 'installation' } })
       const text = (result.content as Array<{ text: string }>)[0].text
       assert.ok(text.includes('Installation Guide'))
@@ -218,16 +219,13 @@ describe('createServer (dynamic bootstrap)', () => {
     })
 
     it('returns error when documentation fetch fails', async () => {
-      const prevFetch = globalThis.fetch
-      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = typeof input === 'string' ? input : input.toString()
-        if (url.includes('docs.xen-orchestra.com')) {
-          return new Response('Not Found', { status: 404, statusText: 'Not Found' })
-        }
-        return prevFetch(input, init)
-      }
+      const fetchFn = mockFetchFn(url =>
+        url.includes('docs.xen-orchestra.com')
+          ? new Response('Not Found', { status: 404, statusText: 'Not Found' })
+          : undefined
+      )
 
-      const { mcpClient } = await setupTestServer()
+      const { mcpClient } = await setupTestServer(createMockClient({ fetchFn }))
       const result = await mcpClient.callTool({ name: 'search_documentation', arguments: { topic: 'installation' } })
       const text = (result.content as Array<{ text: string }>)[0].text
       assert.ok(text.includes('Failed to fetch documentation'))
@@ -243,7 +241,7 @@ describe('module structure', () => {
 
   it('direct server module creates server with dynamic tools', async () => {
     const client = createMockClient()
-    const server = await createServerDirect(() => client, mockFetchFn())
+    const server = await createServerDirect(() => client)
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
     const mcpClient = new Client({ name: 'test-client', version: '1.0.0' })
     await Promise.all([server.connect(serverTransport), mcpClient.connect(clientTransport)])
@@ -334,21 +332,13 @@ describe('validateEnv', () => {
 })
 
 describe('fetchDocumentation', () => {
-  beforeEach(() => {
-    originalFetch = globalThis.fetch
-  })
-
-  afterEach(() => {
-    globalThis.fetch = originalFetch
-  })
-
   it('strips HTML and returns clean text', async () => {
-    globalThis.fetch = async () =>
+    const fetchFn: FetchFn = async () =>
       new Response('<html><body><h1>Title</h1><p>Content here.</p><script>evil()</script></body></html>', {
         status: 200,
         headers: { 'content-type': 'text/html' },
       })
-    const text = await fetchDocumentation('/test')
+    const text = await fetchDocumentation('/test', fetchFn)
     assert.ok(text.includes('## Title'))
     assert.ok(text.includes('Content here.'))
     assert.ok(!text.includes('evil()'))
@@ -356,12 +346,12 @@ describe('fetchDocumentation', () => {
   })
 
   it('decodes HTML entities', async () => {
-    globalThis.fetch = async () =>
+    const fetchFn: FetchFn = async () =>
       new Response('<p>&quot;quoted&quot; &amp; it&#39;s &mdash; a &ndash; test&hellip;</p>', {
         status: 200,
         headers: { 'content-type': 'text/html' },
       })
-    const text = await fetchDocumentation('/test')
+    const text = await fetchDocumentation('/test', fetchFn)
     assert.ok(text.includes('"quoted"'))
     assert.ok(text.includes("it's"))
     assert.ok(text.includes('—'))
@@ -370,14 +360,14 @@ describe('fetchDocumentation', () => {
   })
 
   it('throws on HTTP error', async () => {
-    globalThis.fetch = async () => new Response('Not Found', { status: 404, statusText: 'Not Found' })
-    await assert.rejects(() => fetchDocumentation('/test'), { message: /404/ })
+    const fetchFn: FetchFn = async () => new Response('Not Found', { status: 404, statusText: 'Not Found' })
+    await assert.rejects(() => fetchDocumentation('/test', fetchFn), { message: /404/ })
   })
 
   it('throws on network error', async () => {
-    globalThis.fetch = async () => {
+    const fetchFn: FetchFn = async () => {
       throw new Error('Network failure')
     }
-    await assert.rejects(() => fetchDocumentation('/test'), { message: /Cannot reach documentation server/ })
+    await assert.rejects(() => fetchDocumentation('/test', fetchFn), { message: /Cannot reach documentation server/ })
   })
 })

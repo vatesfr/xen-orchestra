@@ -66,7 +66,7 @@
 - [backup/restore] Fix backups of a repository randomly disappearing from the list after visiting a VM (PR [#10277](https://github.com/vatesfr/xen-orchestra/pull/10277))
 - **XO 5**:
   - [Netdata] Fix `You must enable Javascript` error due to CSP blocking Netdata's inline scripts (PR [#10275](https://github.com/vatesfr/xen-orchestra/pull/10275))
-- [MCP] Fix the MCP server crashing at startup on Node 26 with `fetch failed` (PR [#10413](https://github.com/vatesfr/xen-orchestra/pull/10413))
+- [MCP] Fix the MCP server crashing at startup on Node 26 with `fetch failed`, and make `search_documentation` honour `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` like the other requests (PR [#10413](https://github.com/vatesfr/xen-orchestra/pull/10413))
 
 ### Packages to release
 
