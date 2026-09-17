@@ -165,13 +165,14 @@ export default class Backups {
           },
         ],
         deleteVmBackups: [
-          ({ filenames, remote }) =>
-            Disposable.use(this.getAdapter(remote), adapter => adapter.deleteVmBackups(filenames)),
+          ({ filenames, remote, immediate }) =>
+            Disposable.use(this.getAdapter(remote), adapter => adapter.deleteVmBackups(filenames, { immediate })),
           {
             description: 'delete VM backups',
             params: {
               filenames: { type: 'array', items: { type: 'string' } },
               remote: { type: 'object' },
+              immediate: { type: 'boolean', optional: true },
             },
           },
         ],
