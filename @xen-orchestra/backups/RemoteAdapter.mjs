@@ -254,6 +254,10 @@ export class RemoteAdapter {
     return vmsUuids
   }
 
+  /**
+   * @returns {Promise<Record<string, object[]>>} the metadata of the backups of every VM, keyed by
+   * VM UUID; the result is built on a null prototype, which is why it cannot be inferred
+   */
   async listAllVmBackups() {
     const vmsUuids = await this.listAllVms()
     const backups = { __proto__: null }
