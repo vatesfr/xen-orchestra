@@ -512,6 +512,10 @@ export class VmBackupsCache extends EventEmitter {
       }
     }
 
+    // the cursor, not the events, is what says whether the journal moved forward: the entries it
+    // covers may all have resolved to no event at all, e.g. they are of a kind this version does
+    // not support, and reading them again on every replay would widen the read a bit more every
+    // minute, until the next rebuild
     if (read.cursor !== undefined && read.cursor !== entry.cursor) {
       entry.cursor = /** @type {string} */ (read.cursor)
       // the journal has now actually been observed to exist: it disappearing on a later replay is

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { formatVmBackupAt } from '@xen-orchestra/backups/formatVmBackups.mjs'
+import { isKnownJournalEvent } from '@xen-orchestra/backups/_backupJournal.mjs'
 import { normalize } from '@xen-orchestra/fs/path'
 
 import { filenameOf, journalEntryPath, metadataOf, OTHER_VM, VM } from './_vmBackupsFixtures.mjs'
@@ -19,6 +20,9 @@ class Repository {
   nListings = 0
   nOneVmListings = 0
   nJournalReads = 0
+
+  // the cursor of each journal read, in order
+  cursors = []
 
   failWith
 
@@ -89,6 +93,7 @@ class Repository {
       readJournal: async (repository, cursor, { mustExist = false } = {}) => {
         this.#mayFail()
         this.nJournalReads++
+        this.cursors.push(cursor)
 
         if (this.cannotReplay) {
           return undefined
@@ -106,15 +111,18 @@ class Repository {
           cursor = entries[entries.length - 1]._filename
         }
 
-        // `VmBackupsSource` hands the cache the current value of each backup an event is about, or
-        // nothing at all when the backup is gone
-        const events = entries.map(({ event, filename, vmUuid }) => {
-          const key = normalize(filename)
-          const metadata = this.metadataByFilename.get(key)
-          return metadata === undefined
-            ? { event, vmUuid, filename: key }
-            : { event, vmUuid, filename: key, backup: this.#format(metadata) }
-        })
+        // `VmBackupsSource` ignores the events it does not know how to resolve, and hands the cache
+        // the current value of each backup the others are about, or nothing at all when the backup
+        // is gone
+        const events = entries
+          .filter(({ event }) => isKnownJournalEvent(event))
+          .map(({ event, filename, vmUuid }) => {
+            const key = normalize(filename)
+            const metadata = this.metadataByFilename.get(key)
+            return metadata === undefined
+              ? { event, vmUuid, filename: key }
+              : { event, vmUuid, filename: key, backup: this.#format(metadata) }
+          })
         return { events, cursor }
       },
     }
@@ -412,6 +420,40 @@ describe('VmBackupsCache', () => {
     repository.journalDirMissing = false
     await cache.get(REPOSITORY)
     assert.equal(repository.nListings, 2)
+  })
+
+  it('advances the cursor past the entries which resolved to no event', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+
+    // an event of a kind this version does not support, e.g. written by a newer one: it is consumed
+    // by the source, which reports no event at all
+    tick(60e3)
+    repository.pushEvent('an-unsupported-event', filenameOf(VM, '20260811T100000'), VM, Date.now())
+    await cache.get(REPOSITORY)
+
+    tick(60e3)
+    await cache.get(REPOSITORY)
+
+    // the entry is behind the cursor: the next read does not cover it again
+    assert.equal(repository.cursors[1], repository.journal[0]._filename)
+    assert.equal(repository.nListings, 1)
+  })
+
+  it('confirms the journal directory even when its entries resolved to no event', async t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 0 })
+
+    await cache.get(REPOSITORY)
+    repository.pushEvent('an-unsupported-event', filenameOf(VM, '20260811T100000'), VM, Date.now())
+    await cache.get(REPOSITORY) // reads the entry, confirming the journal directory exists
+
+    repository.journalDirMissing = true
+    await assert.rejects(cache.get(REPOSITORY), /ENOENT/)
   })
 
   describe('getOneVm()', () => {
