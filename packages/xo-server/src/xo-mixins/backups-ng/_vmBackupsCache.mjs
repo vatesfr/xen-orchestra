@@ -243,34 +243,34 @@ export class VmBackupsCache {
    * @param {Repository} repository
    * @returns {Promise<BackupsByVm>}
    */
+  /**
+   * @param {Repository} repository
+   * @returns {Promise<BackupsByVm>}
+   */
   async #refresh(repository) {
     const { id } = repository
     const entry = this.#entries.get(id)
     const now = Date.now()
-
-    try {
-      if (
-        entry === undefined ||
-        !isSameRepository(entry, repository) ||
-        utcDay(entry.lastJournalRead) !== utcDay(now)
-      ) {
-        return await this.#build(repository)
-      }
-
-      if (entry.stale || now - entry.lastJournalRead >= this.#minRefreshDelay) {
-        await this.#replay(repository, entry)
-      }
-
-      // populated: this branch is only reached for an entry `#build()` has already completed
-      return /** @type {BackupsByVm} */ (entry.backupsByVm)
-    } catch (error) {
-      // the repository is probably unreachable: don't keep serving a listing which cannot be
-      // refreshed anymore
-      if (this.#entries.get(id) === entry) {
-        this.delete(id)
-      }
-      throw error
+    // `#build()` installs its own entry, and removes it itself if the listing fails: an entry which
+    // is not the one this call started from must not be touched here
+    if (entry === undefined || !isSameRepository(entry, repository) || utcDay(entry.lastJournalRead) !== utcDay(now)) {
+      return await this.#build(repository)
     }
+    if (entry.stale || now - entry.lastJournalRead >= this.#minRefreshDelay) {
+      try {
+        await this.#replay(repository, entry)
+      } catch (error) {
+        // the repository is probably unreachable: don't keep serving a listing which cannot be
+        // refreshed anymore, unless a newer build has already replaced this entry
+        if (this.#entries.get(id) === entry) {
+          this.#entries.delete(id)
+          debug('entry deleted', { repositoryId: id })
+        }
+        throw error
+      }
+    }
+    // populated: this branch is only reached for an entry `#build()` has already completed
+    return /** @type {BackupsByVm} */ (entry.backupsByVm)
   }
 
   /**
@@ -335,24 +335,31 @@ export class VmBackupsCache {
     // registered before the listing: if the entry is deleted while it is being built, it is not
     // resurrected, only this call sees the result
     this.#entries.set(id, entry)
-
-    const backupsByVm = await this.#useAdapter(repository, async adapter => {
-      /** @type {BackupsByVm} */
-      const result = {}
-      for (const [vmUuid, backups] of Object.entries(await adapter.listAllVmBackups())) {
-        const byFilename = (result[vmUuid] = {})
-        for (const backup of backups) {
-          const key = normalizeFilename(backup._filename)
-          byFilename[key] = format(backup, id, key)
+    try {
+      const backupsByVm = await this.#useAdapter(repository, async adapter => {
+        /** @type {BackupsByVm} */
+        const result = {}
+        for (const [vmUuid, backups] of Object.entries(await adapter.listAllVmBackups())) {
+          const byFilename = (result[vmUuid] = {})
+          for (const backup of backups) {
+            const key = normalizeFilename(backup._filename)
+            byFilename[key] = format(backup, id, key)
+          }
         }
+        return result
+      })
+
+      debug('entry built', { repositoryId: id, nVms: Object.keys(backupsByVm).length })
+
+      entry.backupsByVm = backupsByVm
+      return backupsByVm
+    } catch (error) {
+      // don't leave a half-built entry behind, but don't wipe one a newer build has published
+      if (this.#entries.get(id) === entry) {
+        this.#entries.delete(id)
       }
-      return result
-    })
-
-    debug('entry built', { repositoryId: id, nVms: Object.keys(backupsByVm).length })
-
-    entry.backupsByVm = backupsByVm
-    return backupsByVm
+      throw error
+    }
   }
 
   /**
