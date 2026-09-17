@@ -1,5 +1,5 @@
 import { isExcludedRoute } from './route-filter.mjs'
-import { getProxyDispatcher, type FetchInit } from '../utils/proxy.mjs'
+import { proxyFetch, type FetchFn, type FetchInit } from '../utils/proxy.mjs'
 
 const FETCH_TIMEOUT_MS = 10_000
 const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const
@@ -70,7 +70,11 @@ export interface ParseOptions {
   includeConfirm?: boolean
 }
 
-export async function fetchSwaggerSpec(baseUrl: string, authHeaders: Record<string, string>): Promise<OpenApiSpec> {
+export async function fetchSwaggerSpec(
+  baseUrl: string,
+  authHeaders: Record<string, string>,
+  fetchFn: FetchFn = proxyFetch
+): Promise<OpenApiSpec> {
   const url = `${baseUrl}/rest/v0/docs/swagger.json`
 
   let response: Response
@@ -78,9 +82,8 @@ export async function fetchSwaggerSpec(baseUrl: string, authHeaders: Record<stri
     const init: FetchInit = {
       headers: { ...authHeaders, Accept: 'application/json' },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-      dispatcher: getProxyDispatcher(),
     }
-    response = await fetch(url, init)
+    response = await fetchFn(url, init)
   } catch (cause) {
     throw new Error(`Failed to fetch OpenAPI spec from ${url}. Is the XO server running?`, { cause })
   }

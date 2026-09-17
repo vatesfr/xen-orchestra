@@ -6,6 +6,7 @@ import { createServer, validateEnv, fetchDocumentation } from './index.mjs'
 import { createServer as createServerDirect } from './server.mjs'
 import { formatToolError } from './helpers/tool-error.mjs'
 import type { XoClient } from './xo-client.mjs'
+import type { FetchFn } from './utils/proxy.mjs'
 
 const MOCK_SWAGGER_SPEC = {
   openapi: '3.0.0',
@@ -42,27 +43,22 @@ function createMockClient(overrides: Record<string, unknown> = {}): XoClient {
 
 let originalFetch: typeof globalThis.fetch
 
-function mockSwaggerFetch() {
-  originalFetch = globalThis.fetch
-  globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = typeof input === 'string' ? input : input.toString()
+/** DI fetch for `createServer` — serves the mock OpenAPI spec (the only network call at bootstrap). */
+function mockFetchFn(): FetchFn {
+  return async url => {
     if (url.includes('/rest/v0/docs/swagger.json')) {
       return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
         status: 200,
         headers: { 'content-type': 'application/json' },
       })
     }
-    return originalFetch(input, init)
+    throw new Error(`Unexpected fetch in test: ${url}`)
   }
-}
-
-function restoreFetch() {
-  globalThis.fetch = originalFetch
 }
 
 async function setupTestServer(mockClient?: XoClient) {
   const client = mockClient ?? createMockClient()
-  const server = await createServerDirect(() => client)
+  const server = await createServerDirect(() => client, mockFetchFn())
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
   const mcpClient = new Client({ name: 'test-client', version: '1.0.0' })
 
@@ -72,9 +68,6 @@ async function setupTestServer(mockClient?: XoClient) {
 }
 
 describe('createServer (dynamic bootstrap)', () => {
-  beforeEach(mockSwaggerFetch)
-  afterEach(restoreFetch)
-
   describe('tool listing', () => {
     it('registers dynamic query tools from swagger + utility tools', async () => {
       const { mcpClient } = await setupTestServer()
@@ -208,12 +201,6 @@ describe('createServer (dynamic bootstrap)', () => {
       const prevFetch = globalThis.fetch
       globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = typeof input === 'string' ? input : input.toString()
-        if (url.includes('/rest/v0/docs/swagger.json')) {
-          return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
-            status: 200,
-            headers: { 'content-type': 'application/json' },
-          })
-        }
         if (url.includes('docs.xen-orchestra.com')) {
           return new Response('<h1>Installation Guide</h1><p>Install XO here.</p>', {
             status: 200,
@@ -234,12 +221,6 @@ describe('createServer (dynamic bootstrap)', () => {
       const prevFetch = globalThis.fetch
       globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = typeof input === 'string' ? input : input.toString()
-        if (url.includes('/rest/v0/docs/swagger.json')) {
-          return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
-            status: 200,
-            headers: { 'content-type': 'application/json' },
-          })
-        }
         if (url.includes('docs.xen-orchestra.com')) {
           return new Response('Not Found', { status: 404, statusText: 'Not Found' })
         }
@@ -255,9 +236,6 @@ describe('createServer (dynamic bootstrap)', () => {
 })
 
 describe('module structure', () => {
-  beforeEach(mockSwaggerFetch)
-  afterEach(restoreFetch)
-
   it('createServer is accessible from both index and server module', () => {
     assert.strictEqual(typeof createServer, 'function')
     assert.strictEqual(typeof createServerDirect, 'function')
@@ -265,7 +243,7 @@ describe('module structure', () => {
 
   it('direct server module creates server with dynamic tools', async () => {
     const client = createMockClient()
-    const server = await createServerDirect(() => client)
+    const server = await createServerDirect(() => client, mockFetchFn())
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
     const mcpClient = new Client({ name: 'test-client', version: '1.0.0' })
     await Promise.all([server.connect(serverTransport), mcpClient.connect(clientTransport)])

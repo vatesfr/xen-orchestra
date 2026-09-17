@@ -1,4 +1,4 @@
-import { getProxyDispatcher, type FetchInit } from './utils/proxy.mjs'
+import { proxyFetch, type FetchFn, type FetchInit } from './utils/proxy.mjs'
 
 const REQUEST_TIMEOUT_MS = 30_000
 const BOOT_CHECK_TIMEOUT_MS = 10_000
@@ -10,19 +10,22 @@ export const MCP_CLIENT_HEADER: Readonly<Record<string, string>> = Object.freeze
 // Wire-level error code returned by xo-server when the MCP kill-switch is on.
 const MCP_DISABLED_ERROR = 'mcp_disabled'
 
-export type XoClientConfig = { url: string; username: string; password: string } | { url: string; token: string }
+export type XoClientConfig =
+  | { url: string; username: string; password: string; fetch?: FetchFn }
+  | { url: string; token: string; fetch?: FetchFn }
 
 export class XoClient {
   private readonly baseUrl: string
   private readonly authHeaders: Record<string, string>
   private readonly authMode: 'token' | 'basic'
+  private readonly fetchFn: FetchFn
 
   /**
    * Probes the XO server's `/rest/v0/mcp/status` endpoint to verify that the
    * MCP kill-switch is not engaged. Throws with a human-readable error when
    * the server is unreachable or when MCP has been disabled by the admin.
    */
-  static async assertMcpEnabled(xoUrl: string): Promise<void> {
+  static async assertMcpEnabled(xoUrl: string, fetchFn: FetchFn = proxyFetch): Promise<void> {
     const url = `${xoUrl.replace(/\/$/, '')}/rest/v0/mcp/status`
 
     let response: Response
@@ -30,9 +33,8 @@ export class XoClient {
       const init: FetchInit = {
         headers: { ...MCP_CLIENT_HEADER },
         signal: AbortSignal.timeout(BOOT_CHECK_TIMEOUT_MS),
-        dispatcher: getProxyDispatcher(),
       }
-      response = await fetch(url, init)
+      response = await fetchFn(url, init)
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause)
       throw new Error(`Unable to reach XO server at ${xoUrl} to verify MCP status: ${message}`, { cause })
@@ -64,6 +66,7 @@ export class XoClient {
 
   constructor(config: XoClientConfig) {
     this.baseUrl = config.url.replace(/\/$/, '')
+    this.fetchFn = config.fetch ?? proxyFetch
 
     if ('token' in config) {
       this.authHeaders = { cookie: `authenticationToken=${config.token}` }
@@ -84,9 +87,8 @@ export class XoClient {
         ...options,
         headers: { ...MCP_CLIENT_HEADER, ...this.authHeaders, ...options.headers },
         signal: options.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        dispatcher: getProxyDispatcher(),
       }
-      response = await fetch(url, init)
+      response = await this.fetchFn(url, init)
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause)
       if (message.includes('ECONNREFUSED') || message.includes('fetch failed')) {

@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { XoClient } from './xo-client.mjs'
 
 import { fetchSwaggerSpec, parseSwagger, type ParseOptions } from './bootstrap/swagger.mjs'
+import { proxyFetch, type FetchFn } from './utils/proxy.mjs'
 import { registerDomainTools } from './bootstrap/tool-generator.mjs'
 import { registerCheckConnection } from './tools/utility/check-connection.mjs'
 import { registerSearchDocs } from './tools/utility/search-docs.mjs'
@@ -19,11 +20,11 @@ function parseEnvOverrides(): ParseOptions {
   return opts
 }
 
-export async function createServer(getClient: () => XoClient): Promise<McpServer> {
+export async function createServer(getClient: () => XoClient, fetchFn: FetchFn = proxyFetch): Promise<McpServer> {
   const server = new McpServer({ name: 'xo-mcp-server', version: '1.0.0' })
 
   const client = getClient()
-  const spec = await fetchSwaggerSpec(client.getBaseUrl(), client.getAuthHeaders())
+  const spec = await fetchSwaggerSpec(client.getBaseUrl(), client.getAuthHeaders(), fetchFn)
   const domains = parseSwagger(spec, parseEnvOverrides())
 
   for (const domain of domains.values()) {
