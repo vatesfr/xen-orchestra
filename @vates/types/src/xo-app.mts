@@ -427,13 +427,13 @@ export type XoApp = {
   updateUser(
     id: XoUser['id'],
     updates: {
-      /**
-       * @deprecated
-       */
       email?: string
       authProviders?: Record<string, string>
       firstname?: string
       lastname?: string
+      /**
+       * @deprecated
+       */
       name?: string
       password?: string
       permission?: string

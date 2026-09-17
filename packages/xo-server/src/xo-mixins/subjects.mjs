@@ -46,7 +46,7 @@ export default class {
       const usersDb = (this._users = new Users({
         connection: redis,
         namespace: 'user',
-        indexes: ['email', 'username'],
+        indexes: UNIQUE_FIELDS,
         crypto: app.cryptoCredentials,
       }))
       app.hooks.emit('registerCollection', {
@@ -160,12 +160,11 @@ export default class {
   async updateUser(
     id,
     {
-      // TODO: remove
       email,
-
       authProviders,
       firstname,
       lastname,
+      // kept for historical reasons
       name = email,
       password,
       permission,
@@ -234,7 +233,6 @@ export default class {
       throw new Error('current user cannot be without password and auth providers')
     }
 
-    // TODO: remove
     user.email = user.name
     delete user.name
 
@@ -266,8 +264,6 @@ export default class {
       normalizedUser.pw_hash = '***obfuscated***'
     }
 
-    // TODO: remove when no longer the email property has been
-    // completely eradicated.
     if (!('name' in user)) {
       normalizedUser.name = user.email
     }
@@ -283,9 +279,8 @@ export default class {
     })
   }
 
-  async getUserByName(username, returnNullIfMissing) {
-    // TODO: change `email` by `username`.
-    const user = await this._users.first({ email: username })
+  async getUserByName(name, returnNullIfMissing) {
+    const user = await this._users.first({ email: name })
     if (user !== undefined) {
       return this.#normalizeUser(user)
     }
@@ -294,7 +289,7 @@ export default class {
       return null
     }
 
-    throw noSuchObject(username, 'user')
+    throw noSuchObject(name, 'user')
   }
 
   async registerUser() {
@@ -318,15 +313,15 @@ export default class {
     // Get the XO user bound to the provider's user
     let user = users.find(user => user.authProviders?.[providerId]?.id === id)
 
-    // If that XO user doesn't exist or doesn't have the correct username, there
-    // is a chance that there is another XO user that already has that username
+    // If that XO user doesn't exist or doesn't have the correct name, there
+    // is a chance that there is another XO user that already has that name
     let conflictingUser
     if (user?.email !== name) {
       conflictingUser = users.find(user => user.email === name)
 
       if (conflictingUser !== undefined) {
         if (!this._app.config.get('authentication.mergeProvidersUsers')) {
-          throw new Error(`User with username ${name} already exists`)
+          throw new Error(`User with name ${name} already exists`)
         }
         if (user !== undefined) {
           // TODO: merge `conflictingUser` into `user` and delete
@@ -351,7 +346,7 @@ export default class {
         authProviders: { [providerId]: { id, data } },
       })
     } else {
-      // If the user has more than 1 auth provider: don't update the username to
+      // If the user has more than 1 auth provider: don't update the name to
       // avoid conflicts
       await this.updateUser(user.id, {
         name:

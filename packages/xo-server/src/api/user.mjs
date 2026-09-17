@@ -71,17 +71,17 @@ getAuthenticationTokens.description = 'returns authentication tokens of the curr
 
 export async function set({ id, email, firstname, lastname, password, permission, preferences, username }) {
   const isAdmin = this.apiContext.permission === 'admin'
+  const noEditFields = this.getUserIdentityFields()
   if (isAdmin) {
     if (permission && id === this.apiContext.user.id) {
       throw invalidParameters('a user cannot change its own permission')
     }
-  } else if (email || firstname || lastname || password || permission || username) {
+  } else if ([...noEditFields, 'permission'].some(key => arguments[0][key])) {
     throw invalidParameters('this property can only be changed by an administrator')
   }
 
   const user = await this.getUser(id)
   if (!isEmpty(user.authProviders)) {
-    const noEditFields = this.getUserIdentityFields()
     const unallowedEdits = noEditFields.filter(key => arguments[0][key] !== undefined)
     if (unallowedEdits.length > 0) {
       throw forbiddenOperation('update user', `cannot change ${unallowedEdits.join(' or ')} of synchronized user`)
