@@ -183,6 +183,9 @@ export class VmBackupsCache extends EventEmitter {
   //
   // it outlives the entry so that a repository which is read from scratch again only announces what
   // really changed in the meantime, instead of removing then re-adding everything it holds
+  //
+  // therefore only `remove()` releases it: it is the call which says that a repository is not coming
+  // back, while `delete()` keeps it for the listing which is going to compare itself against it
   /** @type {Map<string, BackupsByVm>} */
   #announced = new Map()
 
@@ -227,7 +230,12 @@ export class VmBackupsCache extends EventEmitter {
    * e.g. against a since-reconfigured repository.
    *
    * Announces nothing: the repository is going to be read again, and the listing which does it only
-   * announces what actually changed. See `remove()` for a repository which is gone for good.
+   * announces what actually changed — the archives last announced for it are kept for that
+   * comparison, and are only released by `remove()`.
+   *
+   * A repository which is not going to be listed again must therefore go through `remove()` instead:
+   * after this call, its archives stay in the collection, and in memory, for as long as the process
+   * lives.
    *
    * @param {Repository['id']} repositoryId
    * @returns {void}

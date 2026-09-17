@@ -852,6 +852,10 @@ export default class BackupNg {
    * forgets everything known about a backup repository: its backups are read from scratch on the
    * next listing, instead of being brought up to date from its journal
    *
+   * its archives stay in the collection until that listing says what changed, so a repository which
+   * will not be listed again must go through `forgetVmBackupRepository()` instead, otherwise they
+   * are never removed from it
+   *
    * public because it is also called by the remotes mixin when a backup repository is updated
    *
    * @param {XoBackupRepository['id']} remoteId
