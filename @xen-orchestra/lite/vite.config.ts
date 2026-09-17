@@ -96,6 +96,11 @@ export default defineConfig({
     target: 'es2020',
   },
   optimizeDeps: {
-    include: ['complex-matcher'],
+    // `@vates/obfuscate` is CJS and, as a symlinked workspace package, is not
+    // pre-bundled by default: the dev server serves its bare `exports.x =` as
+    // ESM, so `import Obfuscate from ...` fails with "does not provide an
+    // export named 'default'". The production build is unaffected — rollup
+    // does the CJS interop itself.
+    include: ['complex-matcher', '@vates/obfuscate'],
   },
 })

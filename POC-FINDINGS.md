@@ -17,6 +17,7 @@ Fixture-only (no host available). Everything below is reproducible from this wor
 |---|---|
 | `@xen-orchestra/xapi-object-to-xo` unit tests (happy-dom) | **26 pass** |
 | Built bundle run in a bare `node:vm` sandbox, no `process`/`Buffer`/`require`/`module` | **pass** |
+| Translation run in a real browser against the Vite **dev** server | **pass** — 61-key frozen `XoVm`, console clean |
 | Vite bundle, no polyfills, no externals | 213 modules, **52 kB gzip** |
 | Node builtins in the bundle | **none** |
 | XO Lite `type-check` (`vue-tsc`) | **clean** |
@@ -60,6 +61,7 @@ Two divergences were required, both mechanical: drop the `addMethods` prototype 
 | **1169 untyped JS lines become shared** | Hand-written `.d.ts`, `xapiObjectToXo` returns `unknown` |
 | **All-or-nothing payload** | 52 kB gzip covers all 23 transforms; Lite needs a handful |
 | **Missing stores** | Lite has no `vgpu`/`vgpu_type`/`gpu_group`/`sm`/`host_patch`; links resolve to `undefined` |
+| **CJS deps break the dev server only** | `@vates/obfuscate` is CJS and symlinked, so Vite does not pre-bundle it and dev serves bare `exports.x =` as ESM → `does not provide an export named 'default'`. The production build is fine, so this class of breakage does not show up in CI. Fixed by listing it in Lite's `optimizeDeps.include` |
 
 ## 6. Recommendation
 
