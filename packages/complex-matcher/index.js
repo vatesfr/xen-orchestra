@@ -315,11 +315,10 @@ class TruthyProperty extends Node {
 exports.TruthyProperty = TruthyProperty
 
 class Resolve extends Node {
-  constructor(child, mode = 'some') {
+  constructor(child) {
     super()
 
     this.child = child
-    this.mode = mode
   }
 
   match(value, resolver) {
@@ -331,36 +330,52 @@ class Resolve extends Node {
       return false
     }
 
-    if (Array.isArray(value)) {
-      if (this.mode === 'some') {
-        return value.some(id => {
-          const obj = resolver(id)
-          return obj != null && this.child.match(obj, resolver)
-        })
-      } else if (this.mode === 'every') {
-        return value.every(id => {
-          const obj = resolver(id)
-          return obj != null && this.child.match(obj, resolver)
-        })
+    const ids = Array.isArray(value) ? value : [value]
+    const objects = []
+    for (const id of ids) {
+      const obj = resolver(id)
+      if (obj != null) {
+        objects.push(obj)
       }
-
-      throw new Error(`${this.mode} mode not supported by resolve`)
     }
 
-    const obj = resolver(value)
-    return obj != null && this.child.match(obj, resolver)
+    return this.child.match(objects, resolver)
   }
 
   toString() {
-    if (this.mode === 'some') {
-      return `[resolve]:${this.child.toString(true)}`
-    } else if (this.mode === 'every') {
-      return `[resolve:all]:${this.child.toString(true)}`
-    }
-    throw new Error(`${this.mode} mode not supported by resolve`)
+    return `[resolve]:${this.child.toString(true)}`
   }
 }
 exports.Resolve = Resolve
+
+class Quantifier extends Node {
+  constructor(child, mode = 'some', implicit = false) {
+    super()
+
+    this.child = child
+    this.mode = mode
+    this.implicit = implicit
+  }
+
+  match(values, resolver) {
+    const array = Array.isArray(values) ? values : [values]
+
+    if (this.mode === 'some') {
+      return array.some(value => this.child.match(value, resolver))
+    } else if (this.mode === 'every') {
+      // nothing resolved means nothing matches
+      return array.length > 0 && array.every(value => this.child.match(value, resolver))
+    }
+
+    throw new Error(`${this.mode} quantifier not supported`)
+  }
+
+  toString(isNested) {
+    // an implicit 'some' is not re-emitted so that toString still round-trips
+    return this.implicit ? this.child.toString(isNested) : `[${this.mode}]:${this.child.toString(true)}`
+  }
+}
+exports.Quantifier = Quantifier
 
 // -------------------------------------------------------------------
 
@@ -581,8 +596,11 @@ const parser = P.grammar({
       P.seq(P.regex(/[<>]=?/), r.rawString).map(([op, val]) => {
         return new Comparison(op, +val)
       }),
-      P.seq(P.text('[resolve]'), P.text(':'), r.ws, r.term).map(_ => new Resolve(_[3], 'some')),
-      P.seq(P.text('[resolve:all]'), P.text(':'), r.ws, r.term).map(_ => new Resolve(_[3], 'every')),
+      P.seq(P.text('[resolve]'), P.text(':'), r.ws, r.term).map(
+        _ => new Resolve(_[3] instanceof Quantifier ? _[3] : new Quantifier(_[3], 'some', true))
+      ),
+      P.seq(P.text('[some]'), P.text(':'), r.ws, r.term).map(_ => new Quantifier(_[3], 'some')),
+      P.seq(P.text('[every]'), P.text(':'), r.ws, r.term).map(_ => new Quantifier(_[3], 'every')),
       P.seq(r.property, r.ws, P.text(':'), r.ws, r.term).map(_ => new Property(_[0], _[4])),
       P.seq(r.property, P.text('?')).map(_ => new TruthyProperty(_[0])),
       r.value
@@ -685,7 +703,7 @@ exports.getResolveFields = function getResolveFields(node, prefix = []) {
     node.children.forEach(childNode => {
       result.push(...getResolveFields(childNode, prefix))
     })
-  } else if (node instanceof Not) {
+  } else if (node instanceof Not || node instanceof Quantifier) {
     result.push(...getResolveFields(node.child, prefix))
   }
 
