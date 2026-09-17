@@ -34,8 +34,8 @@ const {
 
 const { open: openActionModal } = useActionModal()
 
-async function smartRebootHost() {
-  const { event } = await openActionModal({
+function smartRebootHost() {
+  return openActionModal({
     props: {
       accent: 'info',
       action: 'smart-reboot',
@@ -43,12 +43,11 @@ async function smartRebootHost() {
       hostName: host.name_label,
       icon: 'status:info-picto',
     },
+    events: {
+      onConfirm: async () => {
+        void run()
+      },
+    },
   })
-
-  if (event !== 'onConfirm') {
-    return
-  }
-
-  await run()
 }
 </script>

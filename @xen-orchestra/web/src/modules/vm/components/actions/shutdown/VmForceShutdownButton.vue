@@ -41,9 +41,13 @@ const openModal = () => {
     return openBlockedModal({ props: { blockedOperation: 'hard_shutdown', href: xo5VmAdvancedHref.value } })
   }
 
-  openForceShutdownModal({
-    events: { onConfirm: () => forceShutdown() },
+  return openForceShutdownModal({
     props: { accent: 'info', action: 'force-shutdown', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
+    events: {
+      onConfirm: async () => {
+        void forceShutdown()
+      },
+    },
   })
 }
 </script>
