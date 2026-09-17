@@ -13,5 +13,8 @@ exports.ast = new CM.And([
   new CM.Property('age', new CM.NumberOrStringNode('32')),
   new CM.GlobPattern('chi*go'),
   new CM.RegExp('^foo/bar\\.', 'i'),
-  new CM.Property('object', new CM.Resolve(new CM.Property('tags', new CM.String('tag')))),
+  new CM.Property(
+    'object',
+    new CM.Resolve(new CM.Quantifier(new CM.Property('tags', new CM.String('tag')), 'some', true))
+  ),
 ])

@@ -236,24 +236,79 @@ describe('resolve', () => {
   })
 })
 
-describe('resolve:all', () => {
-  const allMatch = { objects: ['object-1', 'object-2'] }
-  const someMatch = { objects: ['object-1', 'object-3'] }
+describe('resolve quantifiers', () => {
   const store = {
     'object-1': { tags: ['tag'] },
     'object-2': { tags: ['tag'] },
     'object-3': { tags: ['other'] },
   }
+  const resolver = id => store[id]
 
-  it('matches when all resolved objects satisfy the predicate', () => {
-    assert(parse('objects:[resolve:all]:tags:tag').createPredicate(id => store[id])(allMatch))
+  const allResolve = { objects: ['object-1', 'object-2'] }
+  const someFail = { objects: ['object-1', 'object-3'] }
+  const oneUnresolvable = { objects: ['object-1', 'object-2', 'ghost'] }
+  const allUnresolvable = { objects: ['ghost-1', 'ghost-2'] }
+  const emptyArray = { objects: [] }
+  const scalar = { objects: 'object-1' }
+
+  const every = 'objects:[resolve]:[every]:tags:tag'
+  const some = 'objects:[resolve]:[some]:tags:tag'
+
+  it('[every] matches when all resolved objects satisfy the predicate', () => {
+    assert(parse(every).createPredicate(resolver)(allResolve))
   })
 
-  it("doesn't match when only some resolved objects satisfy the predicate", () => {
-    assert(!parse('objects:[resolve:all]:tags:tag').createPredicate(id => store[id])(someMatch))
+  it("[every] doesn't match when only some resolved objects satisfy the predicate", () => {
+    assert(!parse(every).createPredicate(resolver)(someFail))
   })
 
-  it('toString round-trips correctly', () => {
-    assert.equal(parse('objects:[resolve:all]:tags:tag').toString(), 'objects:[resolve:all]:tags:tag')
+  it('[every] ignores ids which cannot be resolved', () => {
+    assert(parse(every).createPredicate(resolver)(oneUnresolvable))
+  })
+
+  it("[every] doesn't match when nothing could be resolved", () => {
+    assert(!parse(every).createPredicate(resolver)(allUnresolvable))
+  })
+
+  it("[every] doesn't match an empty collection", () => {
+    assert(!parse(every).createPredicate(resolver)(emptyArray))
+  })
+
+  it('[some] matches when at least one resolved object satisfies the predicate', () => {
+    assert(parse(some).createPredicate(resolver)(someFail))
+  })
+
+  it("[some] doesn't match when nothing could be resolved", () => {
+    assert(!parse(some).createPredicate(resolver)(allUnresolvable))
+  })
+
+  it("[some] doesn't match an empty collection", () => {
+    assert(!parse(some).createPredicate(resolver)(emptyArray))
+  })
+
+  it('both quantifiers agree on a single id', () => {
+    assert(parse(every).createPredicate(resolver)(scalar))
+    assert(parse(some).createPredicate(resolver)(scalar))
+  })
+
+  it('[resolve] without a quantifier behaves as [some]', () => {
+    assert(parse('objects:[resolve]:tags:tag').createPredicate(resolver)(someFail))
+  })
+
+  it('toString round-trips an explicit quantifier', () => {
+    assert.equal(parse(every).toString(), every)
+  })
+
+  it('toString does not emit the implicit [some]', () => {
+    assert.equal(parse('objects:[resolve]:tags:tag').toString(), 'objects:[resolve]:tags:tag')
+  })
+
+  it('getResolveFields walks through a quantifier', () => {
+    const [field] = getResolveFields(parse('a:[resolve]:[every]:b:[resolve]:c:d'))
+    assert.deepEqual(field.path, ['a'])
+    assert.deepEqual(
+      getResolveFields(field.resolveNode.child).map(_ => _.path),
+      [['b']]
+    )
   })
 })
