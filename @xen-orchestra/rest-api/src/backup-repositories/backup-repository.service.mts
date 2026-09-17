@@ -57,21 +57,11 @@ export class BackupRepositoryService {
       remove?: boolean
     }
   ) {
-    try {
-      const vmUuid = body?.vmUuid as XoVm['id']
-      return await this.#restApi.xoApp.reclaimSpace(backupRepositoryId, {
-        vmUuid: vmUuid,
-        merge: body?.merge,
-        remove: body?.remove,
-      })
-    } catch (error: any) {
-      // mixin throws incorrectState (xo-common api-error) when a referencing
-      // job is running — surface that as a 409, everything else as 502
-      console.log(error?.message)
-      if (error?.code === 25 || error?.message === 'incorrect state') {
-        throw new ApiError('cannot reclaim space while a backup job is running', 409)
-      }
-      throw new ApiError('Backup repository unreachable', 502, { data: { cause: String(error) } })
-    }
+    const vmUuid = body?.vmUuid as XoVm['id']
+    return await this.#restApi.xoApp.reclaimSpace(backupRepositoryId, {
+      vmUuid: vmUuid,
+      merge: body?.merge,
+      remove: body?.remove,
+    })
   }
 }
