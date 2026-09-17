@@ -23,8 +23,7 @@ defineProps<{
   .tree-line-vertical {
     width: 0.1rem;
     background: var(--color-brand-txt-base);
-    height: calc(100% + 0.7rem);
-    transform: translateY(calc(0.7rem * -1));
+    height: calc(100% + 0.2rem);
   }
 
   .tree-line-horizontal {
@@ -42,7 +41,7 @@ defineProps<{
   > .ui-tree-item-label {
     .tree-line-half-height {
       align-self: start;
-      height: calc(50% + 0.7rem);
+      height: calc(50% + 0.2rem);
     }
   }
 }
