@@ -2037,6 +2037,7 @@ const messages = {
   deleteVmBackupsTitle: 'Delete {vm} backups',
   deleteBackupsSelect: 'Select backups to delete:',
   deleteVmBackupsSelectAll: 'All',
+  deleteVmBackupsImmediate: 'Free delta disk space now',
   deleteVmBackupsBulkTitle: 'Delete backups',
   deleteVmBackupsBulkMessage:
     'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?',
