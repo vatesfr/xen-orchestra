@@ -1302,6 +1302,23 @@ const messages = {
   rpuRecoveryHaltedPinnedVms: 'VMs shut down for the update and not started again yet:',
   rpuRecoveryRecordExists:
     'A rolling pool update is in progress or was left incomplete. It must be resolved before a new one can start.',
+  rpuRecoverySucceeded:
+    'The last rolling pool update completed but its record could not be removed. A new one cannot start until it is finalized.',
+  rpuRecoveryFinalize: 'Finalize',
+  rpuRecoveryFinalizeConfirm:
+    'Finalize the last rolling pool update? Its record will be removed and a new rolling pool update will be allowed. This is refused if the update changed something it did not restore.',
+  rpuRecoveryForceFinalizeConfirm:
+    'The update changed the following and did not restore them. Finalize anyway? Nothing will be restored: these items are abandoned and listed in the task.',
+  rpuRecoveryForceFinalizeUnknownConfirm:
+    'The record of the update could not be read, so what it changed and did not restore is unknown. Finalize anyway? Nothing will be restored: whatever the update left is abandoned, and the task records that the list is unknown.',
+  rpuUnrestoredHa: 'High Availability disabled',
+  rpuUnrestoredAutoPowerOn: 'Auto power on disabled',
+  rpuUnrestoredWlb: 'Workload Balancing disabled',
+  rpuUnrestoredLoadBalancer: 'Load balancer plugin unloaded',
+  rpuUnrestoredSchedule: 'Backup schedule disabled',
+  rpuUnrestoredHost: 'Host disabled',
+  rpuUnrestoredVm: 'VM away from its original host',
+  rpuUnrestoredHaltedPinnedVm: 'VM shut down for the update and not started again',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',

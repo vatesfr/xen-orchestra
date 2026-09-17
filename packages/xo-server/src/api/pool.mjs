@@ -306,6 +306,29 @@ getRollingUpdateRecovery.description = 'Get the recovery status of an incomplete
 
 // -------------------------------------------------------------------
 
+export async function finalizeRollingUpdate({ force, pool }) {
+  await this.finalizeRollingUpdate(pool, { force })
+}
+
+finalizeRollingUpdate.params = {
+  // close even though the update left items unrestored (or its record cannot
+  // be read): they are abandoned and listed in the task, nothing is restored
+  force: {
+    optional: true,
+    type: 'boolean',
+  },
+  pool: { type: 'string' },
+}
+
+finalizeRollingUpdate.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
+
+finalizeRollingUpdate.description =
+  'Close the record of an incomplete rolling pool update once the pool has been reviewed'
+
+// -------------------------------------------------------------------
+
 export async function rollingReboot({ bypassBackupCheck, pool, shutdownPinnedVms }) {
   await this.rollingPoolReboot(pool, { bypassBackupCheck, shutdownPinnedVms })
 }
