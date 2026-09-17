@@ -690,6 +690,47 @@ describe('VmBackupsCache collection', () => {
     ])
   })
 
+  it('does not fail a listing because a listener threw', async t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(OTHER_VM, '20260811T093000')])
+    const cache = new VmBackupsCache(repository.source)
+    const events = recordEvents(cache)
+    cache.on('add', () => {
+      throw new Error('a broken consumer')
+    })
+
+    const backupsByVm = await cache.get(REPOSITORY)
+
+    // the listing itself succeeded, and the archives after the throwing one were still announced
+    assert.deepEqual(
+      filenames(backupsByVm).sort(),
+      [filenameOf(VM, '20260811T090000'), filenameOf(OTHER_VM, '20260811T093000')].sort()
+    )
+    assert.deepEqual(summarize(events), [
+      { event: 'add', id: archiveIdOf(VM, '20260811T090000') },
+      { event: 'add', id: archiveIdOf(OTHER_VM, '20260811T093000') },
+    ])
+  })
+
+  it('removes every archive of a repository even when a listener throws', async t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(OTHER_VM, '20260811T093000')])
+    const cache = new VmBackupsCache(repository.source)
+
+    await cache.get(REPOSITORY)
+    const events = recordEvents(cache)
+    cache.on('remove', () => {
+      throw new Error('a broken consumer')
+    })
+
+    cache.remove(REPOSITORY.id)
+
+    assert.deepEqual(summarize(events), [
+      { event: 'remove', id: archiveIdOf(VM, '20260811T090000') },
+      { event: 'remove', id: archiveIdOf(OTHER_VM, '20260811T093000') },
+    ])
+  })
+
   it('announces nothing for a repository which is already gone', async t => {
     mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
