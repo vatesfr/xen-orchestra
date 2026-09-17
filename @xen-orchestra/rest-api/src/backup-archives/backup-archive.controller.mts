@@ -1,6 +1,5 @@
 import {
   Body,
-  Delete,
   Example,
   Extension,
   Get,
@@ -156,7 +155,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    * content is readable without being restored. Nothing is copied: the disk is read from the backup
    * repository on demand.
    *
-   * The returned `id` is the `liveDiskId` to pass to `DELETE {id}/live_disks/{liveDiskId}`.
+   * The returned `id` is the `liveDiskId` to pass to `POST {id}/live_disks/{liveDiskId}/actions/unmount`.
    *
    * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
    * @example body {
@@ -166,7 +165,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
-  @Post('{id}/live_disks')
+  @Post('{id}/actions/mount_live_disk')
   @Middlewares(json())
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response<BackupArchiveDiskMount>(createdResp.status, createdResp.description, backupArchiveDiskMount)
@@ -197,7 +196,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   /**
    * Restricted to administrators.
    *
-   * Detach a disk mounted by `POST {id}/live_disks`: the SR is unplugged and forgotten, and the
+   * Detach a disk mounted by `POST {id}/actions/mount_live_disk`: the SR is unplugged and forgotten, and the
    * iSCSI target is stopped.
    *
    * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
@@ -205,7 +204,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
-  @Delete('{id}/live_disks/{liveDiskId}')
+  @Post('{id}/live_disks/{liveDiskId}/actions/unmount')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)

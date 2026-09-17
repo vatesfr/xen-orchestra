@@ -28,7 +28,7 @@
 - [V2V] When a VM has Changed Block Tracking enabled on the source host, a migration now asks the host which blocks it has to read — the blocks a disk uses for a full transfer, the blocks written since the previous pass for a delta — instead of scanning the disk through the VDDK. Faster to start on large disks, and one less moving part. VMs without CBT are migrated exactly as before (PR [#10384](https://github.com/vatesfr/xen-orchestra/pull/10384))
 - [Proxy] Check proxy licenses at XOA level instead of blocking backups on it (PR [#10280](https://github.com/vatesfr/xen-orchestra/pull/10280))
 - [RPU] A rolling pool update is now refused while a previous one is still in progress or was left incomplete, and asks for confirmation when the master is already up to date but other hosts are not (PR [#10394](https://github.com/vatesfr/xen-orchestra/pull/10394))
-- [REST API/Backup] Add `POST backup-archives/:id/live_disks` and `DELETE backup-archives/:id/live_disks/:liveDiskId` endpoints (administrators only): attach a disk of a backup to a host as a read-only SR, to read its content without restoring it. This XO's address reachable from the hosts is auto-detected, or can be set explicitly with `iscsi.advertisedAddress`
+- [REST API/Backup] Add `POST backup-archives/:id/actions/mount_live_disk` and `POST backup-archives/:id/live_disks/:liveDiskId/actions/unmount` endpoints (administrators only): attach a disk of a backup to a host as a read-only SR, to read its content without restoring it. This XO's address reachable from the hosts is auto-detected, or can be set explicitly with `iscsi.advertisedAddress`
 
 ### Bug fixes
 
