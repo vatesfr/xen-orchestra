@@ -4,12 +4,13 @@ import { isHostOperationPending } from '@/modules/host/utils/host.util.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { HOST_POWER_STATE } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useHostStartJob = defineJob('host.start', [hostArg], () => {
   const xapi = useXenApiStore().getXapi()
   const { t } = useI18n()
-  const { isHostRunning, isHostHalted } = useHostMetricsStore().subscribe()
+  const { getHostPowerState } = useHostMetricsStore().subscribe()
 
   return {
     run: host => xapi.host.powerOn(host.$ref),
@@ -19,11 +20,13 @@ export const useHostStartJob = defineJob('host.start', [hostArg], () => {
         throw new JobError(t('job:host-start:missing-host'))
       }
 
-      if (isHostRunning(host)) {
+      const powerState = getHostPowerState(host)
+
+      if (powerState === HOST_POWER_STATE.RUNNING) {
         throw new JobError(t('job:host-start:bad-power-state'))
       }
 
-      if (!isHostHalted(host)) {
+      if (powerState !== HOST_POWER_STATE.HALTED) {
         throw new JobError(t('job:host-start:bad-power-state-not-halted'))
       }
 
