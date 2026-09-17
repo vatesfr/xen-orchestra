@@ -47,7 +47,7 @@ export class BackupRepositoryService {
       merge?: boolean
       remove?: boolean
     }
-  ): Promise<ReturnType<XoApp['reclaimSpace']>> {
+  ): Promise<Awaited<ReturnType<XoApp['reclaimSpace']>>> {
     const vmUuid = body?.vmUuid as XoVm['id']
     return await this.#restApi.xoApp.reclaimSpace(backupRepositoryId, {
       vmUuid: vmUuid,
