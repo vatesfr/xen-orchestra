@@ -1415,8 +1415,62 @@ export default class Plan {
   async _processVmToHostAffinityForHosts(allHosts) {
     const idToHost = keyBy(allHosts, 'id')
 
-    // 1 - Check that every tagged VM has a preferred host sharing the same tag, otherwise assign one
-    // this will prevent VMs from booting on a host on which they're not supposed to be
+    // 1 - Check that every tagged VM has a preferred host sharing the same tag, otherwise assign one.
+    // This will prevent VMs from booting on a host on which they're not supposed to be.
+    await this._updateVmPreferredHost(allHosts, idToHost)
+
+    // 2 - get list of VMs which have a tag and are not on the right hosts
+    const misplacedVms = filter(this._getAllRunningVms(), vm => {
+      if (!(vm.$container in idToHost)) {
+        return false
+      }
+
+      const vmTags = intersection(vm.tags, this._vmToHostAffinityTags)
+      if (vmTags.length === 0) {
+        return false
+      }
+
+      const currentHost = idToHost[vm.$container]
+      return !vmTags.some(tag => currentHost.tags.includes(tag))
+    })
+
+    if (misplacedVms.length === 0) {
+      return []
+    }
+
+    debugVmToHostAffinity(`Misplaced VMs: ${inspect(mapToArray(misplacedVms, 'id'), { depth: null })}`)
+
+    // 3 - Migrate misplaced VMs if possible.
+    const allVms = filter(this._getAllRunningVms(), vm => vm.$container in idToHost)
+    const vmsAverages = await this._getVmsAverages(allVms, idToHost)
+    const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts: allHosts })
+
+    const taggedHosts = this._getTaggedHosts({
+      hosts: allHosts,
+      tagList: this._vmToHostAffinityTags,
+      vms: allVms,
+      includeUntaggedVms: true,
+    })
+    const hostStructById = keyBy(taggedHosts.hosts, 'id')
+
+    const promises = []
+    for (const vm of misplacedVms) {
+      promises.push(
+        ...(await this._vmToHostAffinityMigrateMisplacedVm(vm, {
+          allHosts,
+          hostStructById,
+          hostsAverages,
+          idToHost,
+          taggedHosts,
+          vmsAverages,
+        }))
+      )
+    }
+
+    return promises
+  }
+
+  async _updateVmPreferredHost(allHosts, idToHost) {
     const taggedVms = filter(
       this._getAllRunningVms(),
       vm => vm.$container in idToHost && intersection(vm.tags, this._vmToHostAffinityTags).length > 0
@@ -1473,120 +1527,90 @@ export default class Plan {
         errors: failures.map(({ result }) => result.reason),
       })
     }
+  }
 
-    // 2 - get list of VMs which have a tag and are not on the right hosts
-    const misplacedVms = filter(this._getAllRunningVms(), vm => {
-      if (!(vm.$container in idToHost)) {
-        return false
-      }
-
-      const vmTags = intersection(vm.tags, this._vmToHostAffinityTags)
-      if (vmTags.length === 0) {
-        return false
-      }
-
-      const currentHost = idToHost[vm.$container]
-      return !vmTags.some(tag => currentHost.tags.includes(tag))
-    })
-
-    if (misplacedVms.length === 0) {
-      return []
-    }
-
-    debugVmToHostAffinity(`Misplaced VMs: ${inspect(mapToArray(misplacedVms, 'id'), { depth: null })}`)
-
-    // 3 - Migrate misplaced VMs if possible.
-    const allVms = filter(this._getAllRunningVms(), vm => vm.$container in idToHost)
-    const vmsAverages = await this._getVmsAverages(allVms, idToHost)
-    const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts: allHosts })
-
-    const taggedHosts = this._getTaggedHosts({
-      hosts: allHosts,
-      tagList: this._vmToHostAffinityTags,
-      vms: allVms,
-      includeUntaggedVms: true,
-    })
-    const hostStructById = keyBy(taggedHosts.hosts, 'id')
-
+  async _vmToHostAffinityMigrateMisplacedVm(
+    vm,
+    { allHosts, hostStructById, hostsAverages, idToHost, taggedHosts, vmsAverages }
+  ) {
     const promises = []
-    for (const vm of misplacedVms) {
-      if (!vm.xenTools) {
-        debugVmToHostAffinity(`VM (${vm.id} "${vm.name_label}") does not support pool migration.`)
-        continue
-      }
-      if (this._isVmInCooldown(vm)) {
-        debugVmToHostAffinity(`VM (${vm.id} "${vm.name_label}") is in cooldown, skipping.`)
-        continue
-      }
 
-      const vmTags = intersection(vm.tags, this._vmToHostAffinityTags)
-      let eligibleHosts = allHosts.filter(host => vmTags.some(tag => host.tags.includes(tag)))
-      // preferring hosts matching more tags, then hosts with more free resources
-      eligibleHosts = sortBy(eligibleHosts, [
-        host => -vmTags.filter(tag => host.tags.includes(tag)).length,
-        host => -hostsAverages[host.id].memoryFree,
-        host => hostsAverages[host.id].cpu,
-      ])
-      if (eligibleHosts.length === 0) {
-        debugVmToHostAffinity(`No eligible host found for misplaced VM (${vm.id} "${vm.name_label}").`)
-        continue
-      }
-
-      const vmAverages = vmsAverages[vm.id]
-
-      // try to find an eligible host with enough free memory and CPU to receive the VM
-      let destinationHost = eligibleHosts.find(host => {
-        const destinationAverages = hostsAverages[host.id]
-        return (
-          destinationAverages.cpu + vmAverages.cpu <= this._thresholds.cpu.critical &&
-          destinationAverages.memoryFree - vmAverages.memory >= this._thresholds.memoryFree.critical
-        )
-      })
-
-      if (destinationHost === undefined) {
-        // no eligible host currently has enough room: try to free up space on the best candidate
-        const crowdedHost = eligibleHosts[0]
-        debugVmToHostAffinity(
-          `No eligible host has enough resources for VM (${vm.id} "${vm.name_label}"), trying to free up space on Host (${crowdedHost.id} "${crowdedHost.name_label}").`
-        )
-
-        const { promises: otherMigrationPromises, success } = await this._migrateOtherVms({
-          crowdedHost: hostStructById[crowdedHost.id],
-          hostsAverages,
-          vmsAverages,
-          idToHost,
-          taggedHosts,
-          memoryNeeded: vmAverages.memory,
-          reason: `to free up resources on host to later migrate VM-to-host-affinity-tagged VMs to it (${vmTags.join(', ')})`,
-        })
-        promises.push(...otherMigrationPromises)
-
-        if (!success) {
-          debugVmToHostAffinity(
-            `Could not free enough resources for VM (${vm.id} "${vm.name_label}"), leaving it on its current host.`
-          )
-          continue
-        }
-        // not a real race: destinationHost is a per-iteration local not touched by _migrateOtherVms or any concurrent call
-        // eslint-disable-next-line require-atomic-updates
-        destinationHost = crowdedHost
-      }
-
-      const matchingTags = vmTags.filter(tag => destinationHost.tags.includes(tag))
-
-      promises.push(
-        this._migrateVmAndUpdateInfos({
-          destination: idToHost[destinationHost.id],
-          source: idToHost[vm.$container],
-          sourceHost: hostStructById[vm.$container],
-          destinationHost: hostStructById[destinationHost.id],
-          vm,
-          hostsAverages,
-          vmAverages,
-          reason: `to satisfy VM-to-host affinity of tag(s) ${matchingTags.join(', ')}`,
-        })
-      )
+    if (!vm.xenTools) {
+      debugVmToHostAffinity(`VM (${vm.id} "${vm.name_label}") does not support pool migration.`)
+      return promises
     }
+    if (this._isVmInCooldown(vm)) {
+      debugVmToHostAffinity(`VM (${vm.id} "${vm.name_label}") is in cooldown, skipping.`)
+      return promises
+    }
+
+    const vmTags = intersection(vm.tags, this._vmToHostAffinityTags)
+    let eligibleHosts = allHosts.filter(host => vmTags.some(tag => host.tags.includes(tag)))
+    // preferring hosts matching more tags, then hosts with more free resources
+    eligibleHosts = sortBy(eligibleHosts, [
+      host => -vmTags.filter(tag => host.tags.includes(tag)).length,
+      host => -hostsAverages[host.id].memoryFree,
+      host => hostsAverages[host.id].cpu,
+    ])
+    if (eligibleHosts.length === 0) {
+      debugVmToHostAffinity(`No eligible host found for misplaced VM (${vm.id} "${vm.name_label}").`)
+      return promises
+    }
+
+    const vmAverages = vmsAverages[vm.id]
+
+    // try to find an eligible host with enough free memory and CPU to receive the VM
+    let destinationHost = eligibleHosts.find(host => {
+      const destinationAverages = hostsAverages[host.id]
+      return (
+        destinationAverages.cpu + vmAverages.cpu <= this._thresholds.cpu.critical &&
+        destinationAverages.memoryFree - vmAverages.memory >= this._thresholds.memoryFree.critical
+      )
+    })
+
+    if (destinationHost === undefined) {
+      // no eligible host currently has enough room: try to free up space on the best candidate
+      const crowdedHost = eligibleHosts[0]
+      debugVmToHostAffinity(
+        `No eligible host has enough resources for VM (${vm.id} "${vm.name_label}"), trying to free up space on Host (${crowdedHost.id} "${crowdedHost.name_label}").`
+      )
+
+      const { promises: otherMigrationPromises, success } = await this._migrateOtherVms({
+        crowdedHost: hostStructById[crowdedHost.id],
+        hostsAverages,
+        vmsAverages,
+        idToHost,
+        taggedHosts,
+        memoryNeeded: vmAverages.memory,
+        reason: `to free up resources on host to later migrate VM-to-host-affinity-tagged VMs to it (${vmTags.join(', ')})`,
+      })
+      promises.push(...otherMigrationPromises)
+
+      if (!success) {
+        debugVmToHostAffinity(
+          `Could not free enough resources for VM (${vm.id} "${vm.name_label}"), leaving it on its current host.`
+        )
+        return promises
+      }
+      // not a real race: destinationHost is a per-iteration local not touched by _migrateOtherVms or any concurrent call
+      // eslint-disable-next-line require-atomic-updates
+      destinationHost = crowdedHost
+    }
+
+    const matchingTags = vmTags.filter(tag => destinationHost.tags.includes(tag))
+
+    promises.push(
+      this._migrateVmAndUpdateInfos({
+        destination: idToHost[destinationHost.id],
+        source: idToHost[vm.$container],
+        sourceHost: hostStructById[vm.$container],
+        destinationHost: hostStructById[destinationHost.id],
+        vm,
+        hostsAverages,
+        vmAverages,
+        reason: `to satisfy VM-to-host affinity of tag(s) ${matchingTags.join(', ')}`,
+      })
+    )
 
     return promises
   }
