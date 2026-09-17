@@ -53,7 +53,7 @@ import { journalCursorAt } from '@xen-orchestra/backups/_backupJournal.mjs'
  * @typedef {object} Source
  * @property {(repository: Repository) => Promise<BackupsByVm>} listAll
  * @property {(repository: Repository, vmUuid: string) => Promise<Backups>} listOneVm
- * @property {(repository: Repository, cursor: string | undefined, opts: { mustExist: boolean }) => Promise<JournalRead | undefined>} readJournal
+ * @property {(repository: Repository, cursor: string | undefined, opts: { mustExist?: boolean }) => Promise<JournalRead | undefined>} readJournal
  * `undefined` when this repository cannot be replayed at all, e.g. it is attached to a proxy which
  * does not expose its journal
  */
