@@ -134,6 +134,10 @@ declare namespace backup {
     url: string
   }
 
+  // `mapVdisSrs` gives a target per disk, keyed by the uuid the disk has in the backup:
+  // `{ type: 'restore', sr?: string }`, `{ type: 'ignore' }`, or an SR uuid / `null` for the
+  // same two, in the legacy shape. `{ type: 'live-mount' }` is *not* supported here: a live
+  // mount is served by the appliance which created it, and a proxy has none.
   function importVmBackup(_: {
     backupId: string
     remote: Remote
