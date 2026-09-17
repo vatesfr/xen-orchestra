@@ -1598,6 +1598,61 @@ export const rollingPoolUpdate = async poolId => {
   await rpu()
 }
 
+const RPU_UNRESTORED_ITEM_LABELS = {
+  autoPowerOn: 'rpuUnrestoredAutoPowerOn',
+  ha: 'rpuUnrestoredHa',
+  haltedPinnedVm: 'rpuUnrestoredHaltedPinnedVm',
+  host: 'rpuUnrestoredHost',
+  loadBalancer: 'rpuUnrestoredLoadBalancer',
+  schedule: 'rpuUnrestoredSchedule',
+  vm: 'rpuUnrestoredVm',
+  wlb: 'rpuUnrestoredWlb',
+}
+
+export const finalizeRollingPoolUpdate = async poolId => {
+  await confirm({
+    body: _('rpuRecoveryFinalizeConfirm'),
+    title: _('rpuRecoveryFinalize'),
+    icon: 'pool-rolling-update',
+  })
+
+  try {
+    await _call('pool.finalizeRollingUpdate', { pool: poolId })
+  } catch (err) {
+    if (!incorrectState.is(err, { property: 'unrestoredItems' })) {
+      throw err
+    }
+    // what the update changed and did not restore, or null when its record
+    // cannot be read: a second confirmation abandons them
+    const items = err.data.actual
+    await confirm({
+      body: (
+        <div className='text-warning'>
+          <p>
+            <Icon icon='alarm' /> {_('rpuRecoveryForceFinalizeConfirm')}
+          </p>
+          {items === null ? (
+            <p>{_('rpuRecoveryUnrestoredUnknown')}</p>
+          ) : (
+            <ul>
+              {items.map(({ type, id, name }) => (
+                <li key={type + id}>
+                  {_(RPU_UNRESTORED_ITEM_LABELS[type])}
+                  {name !== undefined && `: ${name}`}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ),
+      title: _('rpuRecoveryFinalize'),
+      icon: 'pool-rolling-update',
+    })
+    await _call('pool.finalizeRollingUpdate', { pool: poolId, force: true })
+  }
+  rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
+}
+
 export const installSupplementalPack = (host, file) => {
   info(_('supplementalPackInstallStartedTitle'), _('supplementalPackInstallStartedMessage'))
 
