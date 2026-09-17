@@ -209,6 +209,9 @@ export class VmBackupsCache extends EventEmitter {
   constructor(source, { minRefreshDelay = 0 } = {}) {
     super()
 
+    // process-wide collection: the number of consumers subscribing to it is not bounded by 10
+    this.setMaxListeners(0)
+
     this.#source = source
     this.#minRefreshDelay = minRefreshDelay
   }
@@ -375,11 +378,17 @@ export class VmBackupsCache extends EventEmitter {
    * @returns {void}
    */
   #emit(event, repositoryId, backup, previous) {
-    this.emit(
-      event,
-      backup === undefined ? undefined : archiveOf(backup, repositoryId),
-      previous === undefined ? undefined : archiveOf(previous, repositoryId)
-    )
+    // the listeners run synchronously inside the listing path: a consumer which throws must not fail
+    // the listing which announced the change, nor the changes announced after it
+    try {
+      this.emit(
+        event,
+        backup === undefined ? undefined : archiveOf(backup, repositoryId),
+        previous === undefined ? undefined : archiveOf(previous, repositoryId)
+      )
+    } catch (error) {
+      warn('a listener failed', { event, repositoryId, error })
+    }
   }
 
   /**
