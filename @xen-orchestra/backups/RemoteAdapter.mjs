@@ -293,9 +293,6 @@ export class RemoteAdapter {
               },
               async () => {
                 // - don't merge in main process, unused VHDs will be merged in the next backup run
-                // - don't error in case this fails:
-                //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
-                //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
                 try {
                   await this.cleanVm(dir, { remove: true, logWarn: warn })
                 } catch (error) {
