@@ -82,6 +82,7 @@ import type {
   CreateNetworkBody,
   CreateVmBody,
   CreateVmParams,
+  FinalizeRollingUpdateBody,
   PoolDashboard,
   RollingPoolActionBody,
   RollingPoolUpdateBody,
@@ -737,6 +738,52 @@ export class PoolController extends XapiXoController<XoPool> {
       throw noSuchObject(id, 'rollingUpdateRecovery')
     }
     return recovery
+  }
+
+  /**
+   * Close the record of an incomplete rolling pool update, once the pool has been reviewed.
+   *
+   * Refused with an `incorrect state` error listing what the update changed and did not restore (HA, auto power-on,
+   * WLB, load balancer, backup schedules, disabled hosts, displaced or halted VMs) while any item remains, or when
+   * the record cannot be read. Set `force` to `true` to close it anyway: the items are abandoned and listed in the
+   * task, nothing is restored nor changed in the pool. 404 when the pool has no record.
+   *
+   * Required privilege:
+   * - resource: pool, action: rolling-update
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example body { "force": false }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/finalize_rolling_update')
+  @Middlewares([json(), acl({ resource: 'pool', action: 'rolling-update', objectId: 'params.id' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  finalizeRollingUpdate(
+    @Path() id: string,
+    @Body() body?: FinalizeRollingUpdateBody,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const poolId = id as XoPool['id']
+    const action = async (task: VatesTask) => {
+      const pool = this.getObject(poolId)
+      await this.restApi.xoApp.finalizeRollingUpdate(pool, { ...body, parentTask: task })
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'finalize rolling pool update',
+        objectId: poolId,
+        params: body,
+        progress: 0,
+      },
+    })
   }
 
   /**

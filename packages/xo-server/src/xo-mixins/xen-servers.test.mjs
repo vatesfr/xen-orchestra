@@ -15,20 +15,30 @@ after(() => rmSync(tracesDir, { recursive: true, force: true }))
 function createXenServers({
   backupRunning = false,
   deleteRecord = async () => {},
+  intentRefused = false,
+  loadBalancerLoaded = false,
   recordRefused = false,
   updateRefused = false,
   withSchedule = false,
+  wlbEnabled = false,
 } = {}) {
   const calls = []
+  const taskNames = []
   const app = {
     apiContext: { user: { preferences: {} } },
     hooks: { on() {} },
     config: {
+      getDuration: () => 0,
       getOptional: key => (key === 'rpu.tracesDir' ? tracesDir : undefined),
       getOptionalDuration: () => undefined,
       watchDuration() {},
     },
-    tasks: { create: properties => new Task({ properties }) },
+    tasks: {
+      create(properties) {
+        taskNames.push(properties.name)
+        return new Task({ properties })
+      },
+    },
     async checkFeatureAuthorization() {},
     async backupGuard(poolId, opts) {
       calls.push(['backupGuard', poolId, opts])
@@ -47,7 +57,13 @@ function createXenServers({
     async updateSchedule({ id, enabled }) {
       calls.push(['updateSchedule', id, enabled])
     },
-    async getOptionalPlugin() {},
+    async getOptionalPlugin() {
+      return loadBalancerLoaded ? { loaded: true, autoload: false } : undefined
+    },
+    async loadPlugin() {},
+    async unloadPlugin(id) {
+      calls.push(['unloadPlugin', id])
+    },
     async startRpuRecoveryRun(poolId, options) {
       calls.push(['startRpuRecoveryRun', poolId, options])
       if (recordRefused) {
@@ -56,6 +72,12 @@ function createXenServers({
       return {
         markRunning() {},
         setTaskId() {},
+        async settingChangedByRun(name, value) {
+          calls.push(['recorder.settingChangedByRun', name, value])
+          if (intentRefused) {
+            throw new Error('store unavailable')
+          }
+        },
         delete: deleteRecord,
         async fail() {
           calls.push(['recorder.fail'])
@@ -73,8 +95,11 @@ function createXenServers({
   mock.timers.reset()
   // no server is registered in the test: stub the XAPI lookup
   xenServers.getXapi = () => ({
-    async getField() {
-      return false
+    async getField(type, ref, field) {
+      return field === 'wlb_enabled' && wlbEnabled
+    },
+    async call(method, ref, value) {
+      calls.push(['xapi.call', method, value])
     },
     async rollingPoolUpdate(task, { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms }) {
       calls.push(['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms }])
@@ -83,7 +108,7 @@ function createXenServers({
       }
     },
   })
-  return { calls, xenServers }
+  return { calls, taskNames, xenServers }
 }
 
 describe('XenServers.rollingPoolUpdate', function () {
@@ -113,6 +138,30 @@ describe('XenServers.rollingPoolUpdate', function () {
       ],
       ['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: false }],
     ])
+  })
+
+  it('persists each setting it changes before changing it', async function () {
+    const { calls, xenServers } = createXenServers({ loadBalancerLoaded: true, withSchedule: true, wlbEnabled: true })
+    await xenServers.rollingPoolUpdate(pool)
+    assert.deepEqual(calls.slice(3, 10), [
+      ['recorder.settingChangedByRun', 'schedules', ['schedule-1']],
+      ['updateSchedule', 'schedule-1', false],
+      ['recorder.settingChangedByRun', 'loadBalancer', undefined],
+      ['unloadPlugin', 'load-balancer'],
+      ['recorder.settingChangedByRun', 'wlb', undefined],
+      ['xapi.call', 'pool.set_wlb_enabled', false],
+      [
+        'xapi.rollingPoolUpdate',
+        { acceptCurrentStateAsBaseline: undefined, rebootVm: undefined, shutdownPinnedVms: undefined },
+      ],
+    ])
+  })
+
+  it('leaves the load balancer alone when its change cannot be recorded', async function () {
+    const { calls, taskNames, xenServers } = createXenServers({ intentRefused: true, loadBalancerLoaded: true })
+    await assert.rejects(xenServers.rollingPoolUpdate(pool), { message: 'store unavailable' })
+    assert.ok(!calls.some(([name]) => name === 'unloadPlugin'))
+    assert.deepEqual(taskNames, [])
   })
 
   it('is refused before touching the pool when a recovery record exists', async function () {

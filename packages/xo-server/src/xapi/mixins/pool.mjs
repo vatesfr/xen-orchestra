@@ -59,12 +59,14 @@ const methods = {
     if (this.pool.ha_enabled) {
       const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
       const haConfig = this.pool.ha_configuration
+      await recorder.settingChangedByRun('ha')
       await this.call('pool.disable_ha')
       $defer(() => this.call('pool.enable_ha', haSrs, haConfig))
     }
 
     if (this.pool.other_config.auto_poweron === 'true') {
       log.info(`temporarily disabling auto power on during the rolling reboot of pool ${this.pool.uuid}`)
+      await recorder.settingChangedByRun('autoPowerOn')
       await this.pool.update_other_config('auto_poweron', 'false')
       $defer(() => this.pool.update_other_config('auto_poweron', 'true'))
     }
@@ -196,9 +198,12 @@ const methods = {
         const hostName = host.name_label
 
         if (!ignoreHost || !ignoreHost(host)) {
-          // agent_start_time before the update: after a crash, comparing it to
-          // the current value tells whether this host actually rebooted
-          recorder.hostStarting(hostId, host.other_config.agent_start_time)
+          // live values right before the run touches the host, `hosts` is a
+          // snapshot from the start of the run: after a crash, comparing
+          // agent_start_time to the current value tells whether this host
+          // actually rebooted, and `enabled` tells whether the run disabled it
+          const { enabled, other_config } = this.getObject(hostId)
+          recorder.hostStarting(hostId, other_config.agent_start_time, enabled)
           await Task.run({ properties: { name: `Restarting host ${hostId}`, hostId, hostName } }, async () => {
             // This is an old metrics reference from before the pool master restart.
             // The references don't seem to change but it's not guaranteed.
