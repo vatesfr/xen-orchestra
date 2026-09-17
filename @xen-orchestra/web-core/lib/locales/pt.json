@@ -58,6 +58,7 @@
   "action:detach-vdi": "Desanexar VDI",
   "action:disable": "Desativar",
   "action:disable-and-evacuate-vms": "Desativar e evacuar VMs",
+  "action:disable-host": "Desativar host",
   "action:duplicate": "Duplicar",
   "action:edit": "Editar",
   "action:edit-config": "Editar configuração",
