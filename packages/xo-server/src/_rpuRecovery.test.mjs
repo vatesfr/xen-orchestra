@@ -365,7 +365,17 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(typeof record.finishedAt, 'string')
   })
 
-  it('fail before the first host was handled drops the record: nothing to recover', async () => {
+  it('fail persists the failure details, even before the first host was handled', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    recorder.markRunning()
+    await recorder.fail(new Error('pinned VMs'))
+
+    assert.equal(stored().status, 'failed')
+    assert.equal(stored().lastError.message, 'pinned VMs')
+  })
+
+  it('dropIfNothingToRecover drops the record when no host was handled', async () => {
     const { store, recorder } = await makeRecorder()
 
     recorder.markRunning()
@@ -373,28 +383,31 @@ describe('createRpuRecoveryRecorder()', () => {
     recorder.setPatchInventory({ h1: true })
     recorder.setPlan({ hostOrder: ['h1'], vmHomeById: {} })
     await recorder.fail(new Error('pinned VMs'))
+    await recorder.dropIfNothingToRecover()
 
     assert.equal(store.data.has('pool1'), false)
   })
 
-  it('fail once a host was handled keeps the record, even a skipped host', async () => {
+  it('dropIfNothingToRecover keeps the record once a host was handled, even a skipped host', async () => {
     const { recorder, stored } = await makeRecorder()
 
     recorder.hostSkipped('h1')
     await recorder.fail(new Error('boom'))
+    await recorder.dropIfNothingToRecover()
 
     assert.equal(stored().status, 'failed')
   })
 
-  it('fail never throws, even when the record cannot be dropped', async () => {
+  it('dropIfNothingToRecover never throws: the record stays failed when it cannot be dropped', async () => {
     const { store, recorder } = await makeRecorder()
     store.del = async () => {
       throw new Error('disk error')
     }
 
     await recorder.fail(new Error('boom'))
+    await recorder.dropIfNothingToRecover()
 
-    assert.equal(store.data.get('pool1').status, 'preparing')
+    assert.equal(store.data.get('pool1').status, 'failed')
   })
 
   it('delete removes the record after a successful run', async () => {
@@ -493,6 +506,7 @@ describe('noopRpuRecorder', () => {
     noopRpuRecorder.hostFailed('h1', new Error('boom'))
     await noopRpuRecorder.recordHaltedPinnedVm('vm1', 'h1')
     await noopRpuRecorder.fail(new Error('boom'))
+    await noopRpuRecorder.dropIfNothingToRecover()
     await noopRpuRecorder.delete()
   })
 })

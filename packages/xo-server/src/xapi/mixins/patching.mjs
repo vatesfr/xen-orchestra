@@ -742,10 +742,6 @@ const methods = {
       recorder = noopRpuRecorder,
     } = {}
   ) {
-    if (some(this.objects.indexes.type.SR, { type: 'linstor' })) {
-      await this._updateLinstorPackages()
-    }
-
     const master = this.pool.$master
     const isXcp = _isXcp(master)
     const isXsWithCdnUpdates = _isXsWithCdnUpdates(master)
@@ -818,6 +814,14 @@ const methods = {
           property: 'partiallyUpdatedPool',
         })
       }
+    }
+
+    // the LINSTOR packages are updated on every host and the XOSTOR services
+    // restarted before the first reboot. That restart must not happen for a
+    // run refused by one of the guards above, nor when no host needs an update
+    const needsUpdate = some(hasMissingPatchesByHost)
+    if (needsUpdate && some(this.objects.indexes.type.SR, { type: 'linstor' })) {
+      await this._updateLinstorPackages()
     }
 
     await Task.run({ properties: { name: `Updating and rebooting` } }, async () => {

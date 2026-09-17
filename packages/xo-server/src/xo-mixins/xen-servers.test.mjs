@@ -12,7 +12,13 @@ const pool = { id: 'pool-1', name_label: 'pool 1', _xapiRef: 'OpaqueRef:pool-1' 
 const tracesDir = mkdtempSync(join(tmpdir(), 'xo-rpu-test-'))
 after(() => rmSync(tracesDir, { recursive: true, force: true }))
 
-function createXenServers({ backupRunning = false, deleteRecord = async () => {}, recordRefused = false } = {}) {
+function createXenServers({
+  backupRunning = false,
+  deleteRecord = async () => {},
+  recordRefused = false,
+  updateRefused = false,
+  withSchedule = false,
+} = {}) {
   const calls = []
   const app = {
     apiContext: { user: { preferences: {} } },
@@ -32,10 +38,14 @@ function createXenServers({ backupRunning = false, deleteRecord = async () => {}
     },
     async getAllJobs() {
       calls.push(['getAllJobs'])
-      return []
+      // smart mode without a pool filter: may concern this pool
+      return withSchedule ? [{ id: 'job-1', vms: {} }] : []
     },
     async getAllSchedules() {
-      return []
+      return withSchedule ? [{ id: 'schedule-1', jobId: 'job-1', enabled: true }] : []
+    },
+    async updateSchedule({ id, enabled }) {
+      calls.push(['updateSchedule', id, enabled])
     },
     async getOptionalPlugin() {},
     async startRpuRecoveryRun(poolId, options) {
@@ -43,7 +53,17 @@ function createXenServers({ backupRunning = false, deleteRecord = async () => {}
       if (recordRefused) {
         throw incorrectState({ actual: 'failed', expected: null, object: poolId, property: 'rollingUpdateRecovery' })
       }
-      return { markRunning() {}, setTaskId() {}, delete: deleteRecord, async fail() {} }
+      return {
+        markRunning() {},
+        setTaskId() {},
+        delete: deleteRecord,
+        async fail() {
+          calls.push(['recorder.fail'])
+        },
+        async dropIfNothingToRecover() {
+          calls.push(['recorder.dropIfNothingToRecover'])
+        },
+      }
     },
   }
   // the constructor arms a timeout that rejects if the `core started` hook,
@@ -58,6 +78,9 @@ function createXenServers({ backupRunning = false, deleteRecord = async () => {}
     },
     async rollingPoolUpdate(task, { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms }) {
       calls.push(['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms }])
+      if (updateRefused) {
+        throw incorrectState({ actual: ['host-B'], expected: [], object: 'pool-1', property: 'partiallyUpdatedPool' })
+      }
     },
   })
   return { calls, xenServers }
@@ -98,6 +121,23 @@ describe('XenServers.rollingPoolUpdate', function () {
       incorrectState.is(error, { property: 'rollingUpdateRecovery' })
     )
     assert.equal(calls.at(-1)[0], 'startRpuRecoveryRun')
+  })
+
+  it('persists a refused run, restores the pool, then drops the record', async function () {
+    const { calls, xenServers } = createXenServers({ updateRefused: true, withSchedule: true })
+    await assert.rejects(xenServers.rollingPoolUpdate(pool), error =>
+      incorrectState.is(error, { property: 'partiallyUpdatedPool' })
+    )
+    assert.deepEqual(calls.slice(-5), [
+      ['updateSchedule', 'schedule-1', false],
+      [
+        'xapi.rollingPoolUpdate',
+        { acceptCurrentStateAsBaseline: undefined, rebootVm: undefined, shutdownPinnedVms: undefined },
+      ],
+      ['recorder.fail'],
+      ['updateSchedule', 'schedule-1', true],
+      ['recorder.dropIfNothingToRecover'],
+    ])
   })
 
   it('succeeds even if the recovery record cannot be deleted afterwards', async function () {

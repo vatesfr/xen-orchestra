@@ -198,6 +198,7 @@ export const noopRpuRecorder = Object.freeze({
   recordHaltedPinnedVm: asyncNoop,
   forgetHaltedPinnedVm: noop,
   fail: asyncNoop,
+  dropIfNothingToRecover: asyncNoop,
   delete: asyncNoop,
 })
 
@@ -343,21 +344,24 @@ export function createRpuRecoveryRecorder({ store, record }) {
     },
     // persists the failure before the caller rethrows; never throws so the
     // original error is not masked
-    //
-    // A failure before the first host was handled leaves nothing to recover:
-    // the orchestrator restores what it changed (schedules, HA, load balancer)
-    // on its way out. Such a record is dropped instead, otherwise a refused
-    // precondition (a guidance to accept, a pinned VM to shut down...) would
-    // block the retry with the option the operator just consented to.
     async fail(error) {
-      if (Object.keys(record.hosts).length === 0) {
-        await deleteRecord().catch(warnOnce)
-        return
-      }
       record.status = 'failed'
       record.lastError = filterError(error)
       record.finishedAt = new Date().toISOString()
       await enqueueWrite().catch(warnOnce)
+    },
+    // A failure before the first host was handled leaves nothing to recover
+    // once the orchestrator has restored what it changed (schedules, load
+    // balancer, WLB): such a record is dropped, otherwise a refused
+    // precondition (a guidance to accept, a pinned VM to shut down...) would
+    // block the retry with the option the operator just consented to. Meant
+    // to run after those restorations, so that a record still on disk means
+    // some of them may not have happened; never throws, the record then
+    // simply stays `failed`
+    async dropIfNothingToRecover() {
+      if (Object.keys(record.hosts).length === 0) {
+        await deleteRecord().catch(warnOnce)
+      }
     },
     // a successful run leaves no record behind: strict, a record left on disk
     // would report the run as interrupted at the next restart

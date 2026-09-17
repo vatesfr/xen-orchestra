@@ -8,10 +8,10 @@ import patchingMethods from './patching.mjs'
 const { describe, it } = test
 
 // Fake XAPI modelling an XCP-ng pool with only what the start of a rolling
-// pool update depends on: which hosts have missing patches. The first host is
-// the master.
+// pool update depends on: which hosts have missing patches, whether the pool
+// has a LINSTOR SR. The first host is the master.
 class FakeXapi {
-  constructor(nMissingPatchesByHost) {
+  constructor(nMissingPatchesByHost, { linstor = false } = {}) {
     this.hosts = nMissingPatchesByHost.map((nMissingPatches, i) => {
       const letter = String.fromCharCode(65 + i)
       return {
@@ -24,12 +24,19 @@ class FakeXapi {
       }
     })
     this.objects = {
-      indexes: { type: { host: Object.fromEntries(this.hosts.map(host => [host.$ref, host])), SR: {}, VM: {} } },
+      indexes: {
+        type: {
+          host: Object.fromEntries(this.hosts.map(host => [host.$ref, host])),
+          SR: linstor ? { 'OpaqueRef:sr-linstor': { $type: 'SR', type: 'linstor' } } : {},
+          VM: {},
+        },
+      },
     }
     this.pool = { uuid: 'pool-1', $master: this.hosts[0] }
 
-    // hosts handled by each rolling pool reboot, ie not ignored
-    this.rebootedHosts = []
+    // pool-wide steps in order: 'linstor' for a LINSTOR packages update, the
+    // hosts handled (ie not ignored) for a rolling pool reboot
+    this.steps = []
   }
 
   async listMissingPatches(hostUuid) {
@@ -37,8 +44,12 @@ class FakeXapi {
     return Array.from({ length: nMissingPatches }, (_, i) => ({ name: `patch-${i}` }))
   }
 
+  async _updateLinstorPackages() {
+    this.steps.push('linstor')
+  }
+
   async rollingPoolReboot(parentTask, { ignoreHost }) {
-    this.rebootedHosts.push(this.hosts.filter(host => !ignoreHost(host)).map(host => host.uuid))
+    this.steps.push(this.hosts.filter(host => !ignoreHost(host)).map(host => host.uuid))
   }
 }
 
@@ -68,7 +79,7 @@ describe('rollingPoolUpdate', function () {
     assert.ok(incorrectState.is(error, { property: 'partiallyUpdatedPool' }), error)
     assert.deepEqual(error.data.actual, ['host-B'])
     assert.equal(error.data.object, 'pool-1')
-    assert.deepEqual(xapi.rebootedHosts, [])
+    assert.deepEqual(xapi.steps, [])
   })
 
   it('updates the outdated hosts once the current state is accepted as the baseline', async function () {
@@ -77,7 +88,7 @@ describe('rollingPoolUpdate', function () {
     const error = await rollingPoolUpdate(xapi, { acceptCurrentStateAsBaseline: true })
 
     assert.equal(error, undefined)
-    assert.deepEqual(xapi.rebootedHosts, [['host-B']])
+    assert.deepEqual(xapi.steps, [['host-B']])
   })
 
   it('needs no acknowledgement when the master is outdated too', async function () {
@@ -86,6 +97,33 @@ describe('rollingPoolUpdate', function () {
     const error = await rollingPoolUpdate(xapi)
 
     assert.equal(error, undefined)
-    assert.deepEqual(xapi.rebootedHosts, [['host-A', 'host-B']])
+    assert.deepEqual(xapi.steps, [['host-A', 'host-B']])
+  })
+
+  it('leaves the LINSTOR packages alone when the run is refused', async function () {
+    const xapi = new FakeXapi([0, 2, 0], { linstor: true })
+
+    const error = await rollingPoolUpdate(xapi)
+
+    assert.ok(incorrectState.is(error, { property: 'partiallyUpdatedPool' }), error)
+    assert.deepEqual(xapi.steps, [])
+  })
+
+  it('leaves the LINSTOR packages alone when no host needs an update', async function () {
+    const xapi = new FakeXapi([0, 0, 0], { linstor: true })
+
+    const error = await rollingPoolUpdate(xapi)
+
+    assert.equal(error, undefined)
+    assert.deepEqual(xapi.steps, [[]])
+  })
+
+  it('updates the LINSTOR packages once the guards passed, before the first reboot', async function () {
+    const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+
+    const error = await rollingPoolUpdate(xapi)
+
+    assert.equal(error, undefined)
+    assert.deepEqual(xapi.steps, ['linstor', ['host-A', 'host-B']])
   })
 })

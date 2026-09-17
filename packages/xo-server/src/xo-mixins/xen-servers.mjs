@@ -981,6 +981,11 @@ export default class XenServers {
       shutdownPinnedVms,
     })
 
+    // a failure before the first host was handled leaves nothing to recover
+    // once the restorations deferred below (schedules, load balancer, WLB)
+    // have run: registered before them, this runs after them
+    $defer.onFailure(() => recorder.dropIfNothingToRecover())
+
     // every failure from here on is persisted before the caller sees it: the
     // pool state starts changing below (schedules, load balancer, WLB)
     try {
