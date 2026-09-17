@@ -21,6 +21,7 @@ import {
   faEdit,
   faEllipsis,
   faEraser,
+  faExclamation,
   faFillDrip,
   faHeart,
   faLightbulb,
@@ -227,4 +228,25 @@ export const actionIcons = defineIconPack({
   download: constructIcon(faDownload),
   'health-check': constructIcon(faHeart),
   evacuate: constructIcon(faArrowCircleRight),
+  'emergency-shutdown': [
+    constructIcon(faSquare),
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-background-primary)',
+      translate: [7, 5.5],
+      size: 13,
+    },
+    {
+      icon: faCircle,
+      color: 'currentColor',
+      translate: [7, 5.5],
+      size: 10,
+    },
+    {
+      icon: faExclamation,
+      color: 'var(--color-neutral-background-primary)',
+      translate: [7, 5.5],
+      size: 6,
+    },
+  ],
 })
