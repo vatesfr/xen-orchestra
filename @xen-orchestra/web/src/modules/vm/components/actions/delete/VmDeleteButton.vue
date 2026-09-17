@@ -45,6 +45,18 @@ const { open: openDeleteModal } = useDeleteModal()
 
 const { open: openBlockedModal } = useBlockedModal()
 
+async function deleteVmAndRedirect() {
+  let result
+
+  try {
+    result = await deleteVM()
+  } catch (error) {
+    console.error('Error when deleting VM:', error)
+  }
+
+  await redirectIfOnObjectPage(result)
+}
+
 function openModal() {
   if (!canRun.value) {
     return openBlockedModal({
@@ -55,23 +67,15 @@ function openModal() {
     })
   }
 
-  openDeleteModal({
-    events: {
-      onConfirm: async () => {
-        let result
-
-        try {
-          result = await deleteVM()
-        } catch (error) {
-          console.error('Error when deleting VM:', error)
-        }
-
-        await redirectIfOnObjectPage(result)
-      },
-    },
+  return openDeleteModal({
     props: {
       subject: vm.name_label,
       confirmLabel: t('action:delete-n-vms', { n: 1 }),
+    },
+    events: {
+      onConfirm: async () => {
+        void deleteVmAndRedirect()
+      },
     },
   })
 }

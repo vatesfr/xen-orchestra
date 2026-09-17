@@ -45,9 +45,13 @@ const openModal = () => {
     })
   }
 
-  openRebootModal({
-    events: { onConfirm: () => reboot() },
+  return openRebootModal({
     props: { accent: 'info', action: 'reboot', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
+    events: {
+      onConfirm: async () => {
+        void reboot()
+      },
+    },
   })
 }
 </script>
