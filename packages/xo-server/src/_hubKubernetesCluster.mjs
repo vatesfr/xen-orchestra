@@ -1,3 +1,4 @@
+import { defer } from 'golike-defer'
 import map from 'lodash/map.js'
 import range from 'lodash/range.js'
 import { invalidParameters } from 'xo-common/api-errors.js'
@@ -643,124 +644,108 @@ export async function createCluster({
  * @param {*} networkConfig
  * @returns template VM to use for the cluster creation
  */
-async function _createTemplate(ctx, xapi, sr, networkId, networkConfig) {
-  const templateId = '07d91aaa-43f7-430a-bf84-0edb6714df0f' // Debian 13 Trixie
-  const createParamsVM = {
-    name_label: 'kubernetes template for recipe',
-    vifs: [{ network: networkId }],
-  }
-  const VDIName = 'kubernetesRecipeTemplateDisk'
-
-  // Download and import the base VDI
+export async function _createTemplate(ctx, xapi, sr, networkId, networkConfig) {
   let vdi
-  try {
-    vdi = await _downloadBaseVDI(xapi, sr, VDIName)
-  } catch (error) {
-    throw new Error('Failed to download and import the base VDI: ' + error.message)
-  }
-
-  // Create the template VM
   let vm
   try {
-    vm = await xapi.createVm(templateId, createParamsVM)
-  } catch (error) {
-    throw await _cleanTemplateError('Failed to create template VM', error, [{ type: 'VDI', resource: vdi }])
-  }
-
-  // Delete all disks associated to the VM before attaching the imported base disk.
-  try {
-    vm = await xapi.barrier(vm.$ref) // Reload vm object to ensure we have the VBDs updated after attaching the temporary VDI
-    const vbdsRef = vm.VBDs
-    await Promise.all(
-      map(vbdsRef, async vbdRef => {
-        try {
-          const vbd = await xapi._getOrWaitObject(vbdRef)
-          const vdiRef = await vbd.VDI
-          const vdi = await xapi._getOrWaitObject(vdiRef)
-          await vdi.$destroy()
-        } catch (error) {
-          throw new Error(`Failed to destroy VDI of VBD ${vbdRef} while cleaning template VM disks: ${error.message}`)
-        }
-      })
-    )
-  } catch (error) {
-    throw await _cleanTemplateError('Failed to destroy all disks of the template VM', error, [
-      { type: 'VM', resource: vm },
-      { type: 'VDI', resource: vdi },
-    ])
-  }
-
-  // Attach the VDI to the template VM
-  try {
-    await _attachVDIToVM(xapi, vm, vdi, sr) // Error handling ?
-  } catch (error) {
-    throw await _cleanTemplateError('Failed to attach VDI to VM', error, [
-      { type: 'VM', resource: vm },
-      { type: 'VDI', resource: vdi },
-    ])
-  }
-
-  // Install Xen Guest Agent
-  try {
-    await _installXenGuestAgent(xapi, vm, networkConfig)
-  } catch (error) {
-    throw await _cleanTemplateError('Failed to install Xen Guest Agent', error, [
-      { type: 'VM', resource: vm },
-      { type: 'VDI', resource: vdi },
-    ])
-  }
-
-  // Transform the VM into a template
-  try {
-    await vm.set_is_a_template(true)
-  } catch (error) {
-    throw await _cleanTemplateError('Failed to set VM as template', error, [
-      { type: 'VM', resource: vm },
-      { type: 'VDI', resource: vdi },
-    ])
-  }
-
-  return xapi.barrier(vm.$ref)
-}
-
-/**
- * Clean up resources and return a new error with the cleanup errors if any.
- * @param {string} message - The error message to use for the new error.
- * @param {Error} error - The original error that occurred.
- * @param {Array} resourcesToClean - The resources to clean up.
- * @param {Array} cleanupErrors - The errors that occurred during cleanup.
- */
-async function _cleanTemplateError(message, error, resourcesToClean = [], cleanupErrors = []) {
-  cleanupErrors = cleanupErrors.concat(await _cleanupResources(resourcesToClean))
-
-  const cleanupMessage = cleanupErrors.length === 0 ? '' : ` Cleanup also failed: ${cleanupErrors.join('; ')}.`
-
-  return new Error(`${message}: ${error.message}.${cleanupMessage}`, {
-    cause: error,
-  })
-}
-
-/**
- * Clean use of .$destroy() for the given resources and collect any errors that occur during cleanup.
- * @param {Array} resourcesToClean - The resources to clean up. Each item should be an object with a 'type' string and a 'resource' object that has a .$destroy() method.
- * @returns {Array} An array of error messages from the cleanup process.
- */
-async function _cleanupResources(resourcesToClean) {
-  const cleanupErrors = []
-
-  for (const { type, resource } of resourcesToClean) {
-    if (resource === undefined) {
-      continue
+    const templateId = '07d91aaa-43f7-430a-bf84-0edb6714df0f' // Debian 13 Trixie
+    const createParamsVM = {
+      name_label: 'kubernetes template for recipe',
+      vifs: [{ network: networkId }],
     }
+    const VDIName = 'kubernetesRecipeTemplateDisk'
 
+    // Download and import the base VDI
     try {
-      await resource.$destroy()
+      vdi = await _downloadBaseVDI(xapi, sr, VDIName)
     } catch (error) {
-      cleanupErrors.push(`${type} destroy failed: ${error.message}`)
+      throw new Error('Failed to download and import the base VDI: ' + error.message, { cause: error })
     }
-  }
 
-  return cleanupErrors
+    // Create the template VM
+    try {
+      vm = await xapi.createVm(templateId, createParamsVM)
+    } catch (error) {
+      throw new Error(`Failed to create template VM: ${error.message}`, { cause: error })
+    }
+
+    // Delete all disks associated to the VM before attaching the imported base disk.
+    try {
+      vm = await xapi.barrier(vm.$ref) // Reload vm object to ensure we have the VBDs updated after attaching the temporary VDI
+      const vbdsRef = vm.VBDs
+      await Promise.all(
+        map(vbdsRef, async vbdRef => {
+          try {
+            const vbd = await xapi._getOrWaitObject(vbdRef)
+            const vdiRef = await vbd.VDI
+            const vdi = await xapi._getOrWaitObject(vdiRef)
+            await vdi.$destroy()
+          } catch (error) {
+            throw new Error(
+              `Failed to destroy VDI of VBD ${vbdRef} while cleaning template VM disks: ${error.message}`,
+              { cause: error }
+            )
+          }
+        })
+      )
+    } catch (error) {
+      throw new Error(`Failed to destroy all disks of the template VM: ${error.message}`, { cause: error })
+    }
+
+    // Attach the VDI to the template VM
+    try {
+      await _attachVDIToVM(xapi, vm, vdi, sr) // Error handling ?
+    } catch (error) {
+      throw new Error(`Failed to attach VDI to VM: ${error.message}`, { cause: error })
+    }
+
+    // Install Xen Guest Agent
+    try {
+      await _installXenGuestAgent(xapi, vm, networkConfig)
+    } catch (error) {
+      throw new Error(`Failed to install Xen Guest Agent: ${error.message}`, { cause: error })
+    }
+
+    // Transform the VM into a template
+    try {
+      await vm.set_is_a_template(true)
+    } catch (error) {
+      throw new Error(`Failed to set VM as template: ${error.message}`, { cause: error })
+    }
+
+    return await xapi.barrier(vm.$ref)
+  } catch (error) {
+    const cleanupErrors = []
+    if (vm !== undefined) await _destroyTemplateResource('VM', vm, cleanupErrors)
+    if (vdi !== undefined) await _destroyTemplateResource('VDI', vdi, cleanupErrors)
+    _throwCleanupErrors(cleanupErrors, error)
+    throw error
+  }
+}
+
+/**
+ * Report cleanup failures while retaining the original operation error and every cleanup error.
+ */
+function _throwCleanupErrors(cleanupErrors, operationError) {
+  if (cleanupErrors.length === 0) return
+
+  const cleanupMessage = cleanupErrors.map(error => error.message).join('; ')
+  const error = new Error(
+    operationError === undefined
+      ? `Cleanup failed: ${cleanupMessage}`
+      : `${operationError.message} Cleanup also failed: ${cleanupMessage}`,
+    { cause: operationError ?? cleanupErrors[0] }
+  )
+  error.errors = cleanupErrors
+  throw error
+}
+
+async function _destroyTemplateResource(type, resource, cleanupErrors) {
+  try {
+    await resource.$destroy()
+  } catch (error) {
+    cleanupErrors.push(new Error(`${type} destroy failed: ${error.message}`, { cause: error }))
+  }
 }
 
 /**
@@ -770,7 +755,7 @@ async function _cleanupResources(resourcesToClean) {
  * @param {string} vdiName - The name of the VDI.
  * @returns VDI object of the downloaded and imported base disk
  */
-async function _downloadBaseVDI(xapi, sr, vdiName) {
+export async function _downloadBaseVDI(xapi, sr, vdiName) {
   const hash = createHash('sha512')
   const baseUrl = 'https://cloud.debian.org/images/cloud/trixie/20260601-2496'
   const baseDiskName = 'debian-13-genericcloud-amd64-20260601-2496.raw'
@@ -783,74 +768,90 @@ async function _downloadBaseVDI(xapi, sr, vdiName) {
   const cancelTokenSource = CancelToken.source()
   let baseDiskResponse
   let nodeStream
+  let downloadError
+
+  let vdiRef
+  try {
+    vdiRef = await xapi.VDI_create({
+      name_label: vdiName,
+      SR: sr._xapiRef,
+      virtual_size: vdiSize,
+    })
+  } catch (error) {
+    throw new Error('Failed to create VDI: ' + error.message, { cause: error })
+  }
 
   try {
-    vdi = await xapi._getOrWaitObject(
-      await xapi.VDI_create({
-        name_label: vdiName,
-        SR: sr._xapiRef,
-        virtual_size: vdiSize,
-      })
-    )
+    try {
+      vdi = await xapi._getOrWaitObject(vdiRef)
+    } catch (error) {
+      throw new Error('Failed to get created VDI: ' + error.message, { cause: error })
+    }
+
+    downloadController.signal.addEventListener('abort', () => {
+      cancelTokenSource.cancel()
+    })
+
+    try {
+      await _withTimeout(
+        _downloadAndImportBaseDisk({
+          baseDiskUrl,
+          cancelToken: cancelTokenSource.token,
+          hash,
+          signal: downloadController.signal,
+          vdi,
+          onResponse(response) {
+            baseDiskResponse = response
+          },
+          onStreamCreated(stream) {
+            nodeStream = stream
+          },
+        }),
+        FETCH_TIMEOUT,
+        downloadTimeoutMessage
+      )
+    } catch (error) {
+      downloadError = error
+
+      throw new Error(`Failed to download base disk: ${error.message}`, { cause: error })
+    }
+
+    const computedChecksum = hash.digest('hex')
+    let remoteChecksum
+    try {
+      remoteChecksum = await _getRemoteChecksum(checksumUrl, baseDiskName)
+    } catch (error) {
+      throw new Error(`Failed to get remote checksum: ${error.message}`, { cause: error })
+    }
+
+    if (!computedChecksum) {
+      throw new Error('Import finished before stream checksum was computed')
+    }
+
+    if (computedChecksum !== remoteChecksum) {
+      throw new Error(`Checksum mismatch for the downloaded disk: expected ${remoteChecksum}, got ${computedChecksum}`)
+    }
+
+    return vdi
   } catch (error) {
-    throw new Error('Failed to create VDI: ' + error.message)
+    const cleanupErrors = []
+    if (downloadError !== undefined) {
+      try {
+        downloadController.abort(downloadError)
+        nodeStream?.destroy(downloadError)
+        baseDiskResponse?.body?.cancel?.().catch(() => undefined)
+      } catch (cleanupError) {
+        cleanupErrors.push(cleanupError)
+      }
+    }
+    try {
+      await xapi.call('VDI.destroy', vdiRef)
+    } catch (cleanupError) {
+      cleanupErrors.push(new Error(`VDI destroy failed: ${cleanupError.message}`, { cause: cleanupError }))
+    }
+    _throwCleanupErrors(cleanupErrors, error)
+    throw error
   }
-
-  downloadController.signal.addEventListener('abort', () => {
-    cancelTokenSource.cancel()
-  })
-
-  try {
-    await _withTimeout(
-      _downloadAndImportBaseDisk({
-        baseDiskUrl,
-        cancelToken: cancelTokenSource.token,
-        hash,
-        signal: downloadController.signal,
-        vdi,
-        onResponse(response) {
-          baseDiskResponse = response
-        },
-        onStreamCreated(stream) {
-          nodeStream = stream
-        },
-      }),
-      FETCH_TIMEOUT,
-      downloadTimeoutMessage
-    )
-  } catch (error) {
-    downloadController.abort(error)
-    nodeStream?.destroy(error)
-    baseDiskResponse?.body?.cancel?.().catch(() => undefined)
-
-    throw await _cleanTemplateError('Failed to download base disk', error, [{ type: 'VDI', resource: vdi }])
-  }
-
-  const computedChecksum = hash.digest('hex')
-  let remoteChecksum
-  try {
-    remoteChecksum = await _getRemoteChecksum(checksumUrl, baseDiskName)
-  } catch (error) {
-    throw await _cleanTemplateError('Failed to get remote checksum', error, [{ type: 'VDI', resource: vdi }])
-  }
-
-  if (!computedChecksum) {
-    throw await _cleanTemplateError(
-      'Import finished before stream checksum was computed',
-      new Error('Missing computed checksum'),
-      [{ type: 'VDI', resource: vdi }]
-    )
-  }
-
-  if (computedChecksum !== remoteChecksum) {
-    throw await _cleanTemplateError(
-      'Checksum mismatch for the downloaded disk',
-      new Error(`expected ${remoteChecksum}, got ${computedChecksum}`),
-      [{ type: 'VDI', resource: vdi }]
-    )
-  }
-
-  return vdi
 }
 
 /**
@@ -1003,7 +1004,21 @@ async function _attachVDIToVM(xapi, vm, vdi, sr) {
  * @param {*} vm - The VM object.
  * @param {*} networkConfig - The network configuration to use for the VM, in cloud-init format.
  */
-async function _installXenGuestAgent(xapi, vm, networkConfig) {
+export async function _installXenGuestAgent(xapi, vm, networkConfig) {
+  const cleanupErrors = []
+  const install = defer.onError(error => cleanupErrors.push(error))(_runXenGuestAgentInstallation)
+  let operationError
+  try {
+    await install(xapi, vm, networkConfig)
+  } catch (error) {
+    operationError = error
+    throw error
+  } finally {
+    _throwCleanupErrors(cleanupErrors, operationError)
+  }
+}
+
+async function _runXenGuestAgentInstallation($defer, xapi, vm, networkConfig) {
   const packageURL = 'https://gitlab.com/api/v4/projects/xen-project%252Fxen-guest-agent/packages/generic/deb-amd64/'
   const packageName = 'xen-guest-agent'
   const readyKey = 'vm-data/xen-guest-agent-ready'
@@ -1026,17 +1041,30 @@ async function _installXenGuestAgent(xapi, vm, networkConfig) {
         ['xenstore-write', readyKey, 'true'],
       ],
     })
-  await xapi.VM_createCloudInitConfig(vm.$ref, cloudConfig, YAML.stringify(networkConfig))
+  const cloudConfigVdiUuid = await xapi.VM_createCloudInitConfig(vm.$ref, cloudConfig, YAML.stringify(networkConfig))
+  $defer(async () => {
+    try {
+      const cloudConfigVdi = await xapi._getOrWaitObject(cloudConfigVdiUuid)
+      await cloudConfigVdi.$destroy()
+    } catch (error) {
+      throw new Error('Failed to destroy Xen Guest Agent cloud-init disk during cleanup', { cause: error })
+    }
+  })
 
   try {
     await xapi.startVm(vm.$id)
   } catch (error) {
-    throw new Error('Failed to start template VM for Xen Guest Agent installation', {
-      cause: error,
-    })
+    throw new Error('Failed to start template VM for Xen Guest Agent installation', { cause: error })
   }
 
-  let installError
+  // Deferred callbacks run in reverse order: stop the VM before destroying its cloud-init disk.
+  $defer(async () => {
+    try {
+      await xapi.shutdownVm(vm.$id)
+    } catch (error) {
+      throw new Error('Failed to shutdown template VM after Xen Guest Agent installation', { cause: error })
+    }
+  })
 
   try {
     await _withTimeout(
@@ -1045,24 +1073,6 @@ async function _installXenGuestAgent(xapi, vm, networkConfig) {
       `Timed out waiting for Xen Guest Agent readiness after ${_formatDuration(XEN_GUEST_AGENT_READY_TIMEOUT)}`
     )
   } catch (error) {
-    installError = new Error('Failed while waiting for Xen Guest Agent readiness', {
-      cause: error,
-    })
-  }
-
-  try {
-    await xapi.shutdownVm(vm.$id)
-  } catch (error) {
-    if (installError !== undefined) {
-      throw await _cleanTemplateError(installError.message, installError, [], [`VM shutdown failed: ${error.message}`])
-    }
-
-    throw new Error('Failed to shutdown template VM after Xen Guest Agent installation', {
-      cause: error,
-    })
-  }
-
-  if (installError !== undefined) {
-    throw installError
+    throw new Error('Failed while waiting for Xen Guest Agent readiness', { cause: error })
   }
 }

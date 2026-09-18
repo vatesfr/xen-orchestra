@@ -35,6 +35,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [Backups/Encryption] New error thrown when encryption key is removed from an encrypted remote url (PR [#10339](https://github.com/vatesfr/xen-orchestra/pull/10339))
+- [Hub/Kubernetes] Prevent newly created cluster VMs from keeping an extra cloud-init disk used to install the Xen guest agent (PR [#10371](https://github.com/vatesfr/xen-orchestra/pull/10371))
 - [Web-core] Fix "console offline" illustration sparks color (PR [#10309](https://github.com/vatesfr/xen-orchestra/pull/10309))
 - [Web-core] Fix 404 illustration color (PR [#10325](https://github.com/vatesfr/xen-orchestra/pull/10325))
 - [Backup-archive] No longer create a `cache.json.gz` file on immutable/S3 remote during cleanup, which could not be deleted afterwards and stayed billed forever (PR [#10243](https://github.com/vatesfr/xen-orchestra/pull/10243))
