@@ -2,7 +2,7 @@ import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-res
 import type { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'
 import VmSnapshotCard from '@/modules/vm/components/snapshot/cards/VmSnapshotCard.vue'
 import { createVmSnapshot } from '@/test/create-vm-snapshot.ts'
-import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { d, t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
