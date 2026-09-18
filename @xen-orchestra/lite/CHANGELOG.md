@@ -8,6 +8,7 @@
 - [Host] Add possibility to shut down and start a host (PR [#10314](https://github.com/vatesfr/xen-orchestra/pull/10314))
 - Use `MenuItem`'s `accent` prop to color menu actions instead of custom CSS classes (PR [#10348](https://github.com/vatesfr/xen-orchestra/pull/10348))
 - [Host] Add possibility to forget a host (PR [#10315](https://github.com/vatesfr/xen-orchestra/pull/10315))
+- [Treeview] Add a search bar and virtualize the tree (PR [#10414](https://github.com/vatesfr/xen-orchestra/pull/10414))
 
 ## **0.25.0** (2026-08-31)
 

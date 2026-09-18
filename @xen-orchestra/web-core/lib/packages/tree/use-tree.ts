@@ -93,7 +93,7 @@ export function useTree<
 
   function findNodeByObjectId(nodes: TreeNode[], objectId: string | number): TreeNode | undefined {
     for (const node of nodes) {
-      if (node && node.dataId !== undefined && String(node.dataId) === String(objectId)) {
+      if (node && node.data !== undefined && String(node.dataId) === String(objectId)) {
         return node
       }
       if (node && node.isBranch && node.hasChildren) {

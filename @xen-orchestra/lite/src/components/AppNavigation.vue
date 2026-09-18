@@ -55,9 +55,12 @@ watch(
   height: 100%;
   border-right: 1px solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-secondary);
-  transition: margin-inline 0.25s;
+  transition:
+    margin-inline 0.25s,
+    visibility 0.25s;
 
   &.collapsed {
+    visibility: hidden;
     margin-inline-start: -37rem;
   }
 }

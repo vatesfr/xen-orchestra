@@ -57,11 +57,11 @@ const { branch } = defineProps<{
 const { t } = useI18n()
 
 const { isMasterHost } = usePoolStore().subscribe()
-const { runningVms } = useVmStore().subscribe()
+const { runningVmsCountByHostRef } = useVmStore().subscribe()
 
 const { isChangingState, currentOperation } = useHostUtils(() => branch.data)
 
 const isMaster = computed(() => isMasterHost(branch.data.$ref))
 
-const runningVmsCount = computed(() => runningVms.value.filter(vm => vm.resident_on === branch.data.$ref).length)
+const runningVmsCount = computed(() => runningVmsCountByHostRef.value.get(branch.data.$ref) ?? 0)
 </script>

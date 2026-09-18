@@ -78,6 +78,7 @@ useUnreachableHosts()
 
 .container {
   display: flex;
+  flex: 1;
   min-height: 0;
 }
 
