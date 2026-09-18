@@ -80,9 +80,9 @@ async function writeMergeState(parent, { chain, step = 'mergeBlocks' }) {
   return statePath
 }
 
-async function cleanLineage({ activeDisks = [] } = {}) {
+async function cleanLineage({ activeDisks = [], lineageDir = vdiDir } = {}) {
   const warnings = []
-  const lineage = new RemoteDiskLineage(handler, vdiDir, {
+  const lineage = new RemoteDiskLineage(handler, lineageDir, {
     remove: true,
     merge: false,
     logInfo: () => {},
@@ -162,5 +162,21 @@ describe('RemoteDiskLineage.clean() interrupted merges', { concurrency: 1 }, () 
     assert.equal(await exists(base.aliasPath), true, 'base should be kept')
     assert.equal(await exists(child.aliasPath), true, 'child should be kept')
     assert.deepEqual(warnings, [], 'a resumable merge should not warn')
+  })
+
+  test('behaves the same when built with a non-normalized VDI directory', async () => {
+    const base = await generateDisk('base')
+    const child = await generateDisk('child', { parent: base })
+    const statePath = await writeMergeState(base, { chain: ['base', 'child'] })
+
+    // the constructor must normalize: otherwise #cleanOrphanDataFiles fails to exclude the VDI
+    // directory from the data directories it sweeps and deletes every unclaimed file in it,
+    // starting with the merge state
+    const { warnings } = await cleanLineage({ activeDisks: [child], lineageDir: vdiDir.replace(/^\//, '') })
+
+    assert.equal(await exists(statePath), true, 'merge state should be kept')
+    assert.equal(await exists(base.aliasPath), true, 'base should be kept')
+    assert.equal(await exists(child.aliasPath), true, 'child should be kept')
+    assert.deepEqual(warnings, [], 'nothing should be reported as orphaned')
   })
 })
