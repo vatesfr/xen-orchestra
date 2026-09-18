@@ -3,21 +3,12 @@ import ActionButton from 'action-button'
 import Button from 'button'
 import Collapse from 'collapse'
 import Component from 'base-component'
-import Dropzone from 'dropzone'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import { connectStore, resolveId } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import {
-  esxiCheckInstall,
-  esxiListVms,
-  importVddkLib,
-  importVmsFromEsxi,
-  installNbdInfo,
-  installNbdKit,
-  isSrWritable,
-} from 'xo'
+import { esxiCheckInstall, esxiListVms, importVmsFromEsxi, installVectura, isSrWritable } from 'xo'
 import { find, forEach, isEmpty, keyBy, map, pick } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Input } from 'debounce-input-decorator'
@@ -72,7 +63,6 @@ class EsxiImport extends Component {
     stopOnError: true,
     template: undefined,
     user: window.localStorage.getItem('esxi_user') ?? '',
-    vddkFile: undefined,
     esxiCheck: undefined,
     esxiCheckError: undefined,
     rememberConnection: !!window.localStorage.getItem('esxi_host'),
@@ -87,26 +77,13 @@ class EsxiImport extends Component {
       this.setState({ esxiCheck })
     })
   }
-  _handleDropVddk = files => {
-    this.setState({ vddkFile: files?.[0] })
-  }
-  _handleImportVddk = async () => {
+  _installVectura = async () => {
     this.setState({ installingEsxiLib: true })
     try {
-      await importVddkLib({ file: this.state.vddkFile })
+      await installVectura()
     } catch (error) {
       this.setState({ esxiCheckError: error })
     }
-    return this._esxiCheck()
-  }
-  _installNbdInfo = async () => {
-    this.setState({ installingEsxiLib: true })
-    await installNbdInfo()
-    return this._esxiCheck()
-  }
-  _installNbKit = async () => {
-    this.setState({ installingEsxiLib: true })
-    await installNbdKit()
     return this._esxiCheck()
   }
   _getDefaultNetwork = createSelector(
@@ -278,7 +255,6 @@ class EsxiImport extends Component {
       stopSource,
       stopOnError,
       user,
-      vddkFile,
       vms,
       vmsById,
     } = this.state
@@ -287,71 +263,37 @@ class EsxiImport extends Component {
       return <div>checking</div>
     }
 
-    // cehck nbdkit, nbdinfo, nbdkit plugin vddk
-    for (const [library, fn] of [
-      ['nbdinfo', this._installNbdInfo],
-      ['nbdkit', this._installNbKit],
-      ['nbdkitPluginVddk', this._installNbKit],
-    ]) {
-      const check = esxiCheck[library]
-      if (check.status !== 'success') {
-        return (
-          <div>
-            <Row>
-              <EsxiCheckResults esxiCheck={esxiCheck} />
-            </Row>
-            {check.version === undefined && (
-              <div>
-                <div className='mt-1 form-group pull-right'>
-                  <ActionButton btnStyle='primary' className='mr-1' handler={fn} icon='import'>
-                    {_('esxiLibraryAutoInstall', { library })}
-                  </ActionButton>
-                  {installingEsxiLib && (
-                    <p>
-                      {_('esxiLibraryInstalling', { library })}
-                      <Link to='/tasks?s_xo=1_3_desc-status%3Apending+esxi.install' target='_blank'>
-                        {_('esxiProgressLinkText')}
-                      </Link>
-                    </p>
-                  )}
-                  {!installingEsxiLib && <p>{_('esxiLibraryManualInstall')}</p>}
-                </div>
-              </div>
-            )}
-            {check.version !== undefined && (
-              <p>
-                {_('esxiLibraryOutdated', { library, expectedVersion: check.expectedVersion, version: check.version })}
-              </p>
-            )}
-          </div>
-        )
-      }
-    }
-
-    if (esxiCheck.vddk?.status === 'error') {
+    // vectura is the only prerequisite: one binary, shipped as a debian package with xo-server
+    const vecturaCheck = esxiCheck.vectura
+    if (vecturaCheck.status !== 'success') {
       return (
         <div>
           <Row>
             <EsxiCheckResults esxiCheck={esxiCheck} />
           </Row>
-          <p>
-            {_('esxiLibraryInfo')} :{' '}
-            <a
-              href='https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/9.0'
-              target='_blank'
-              rel='noreferrer'
-            >
-              {_('esxiLibraryLink')}
-            </a>
-          </p>
-          <Dropzone multiple={false} onDrop={this._handleDropVddk} message={_('esxiVddkLibrary')} accept='.tar.gz' />
-          {vddkFile && (
-            <div className='form-group pull-right'>
-              <ActionButton btnStyle='primary' className='mr-1' handler={this._handleImportVddk} icon='import'>
-                {_('esxiVddkLibraryImport')}
-              </ActionButton>
-            </div>
-          )}
+          {vecturaCheck.version !== undefined ? (
+            <p>
+              {_('esxiLibraryOutdated', {
+                library: 'vectura',
+                expectedVersion: vecturaCheck.expectedVersion,
+                version: vecturaCheck.version,
+              })}
+            </p>
+          ) : null}
+          <div className='mt-1 form-group pull-right'>
+            <ActionButton btnStyle='primary' className='mr-1' handler={this._installVectura} icon='import'>
+              {_('esxiLibraryAutoInstall', { library: 'vectura' })}
+            </ActionButton>
+            {installingEsxiLib && (
+              <p>
+                {_('esxiLibraryInstalling', { library: 'vectura' })}
+                <Link to='/tasks?s_xo=1_3_desc-status%3Apending+esxi.install' target='_blank'>
+                  {_('esxiProgressLinkText')}
+                </Link>
+              </p>
+            )}
+            {!installingEsxiLib && <p>{_('esxiLibraryManualInstall')}</p>}
+          </div>
         </div>
       )
     }

@@ -2,10 +2,28 @@ import assert from 'node:assert/strict'
 import { createServer } from 'node:net'
 import { describe, it } from 'node:test'
 
-import { findFreePort } from './_nbdkit.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
 
 const noop = () => {}
+
+/**
+ * Reserves a port by letting the system pick a free one.
+ *
+ * The port is released before being handed out, so a concurrent process could take it in the
+ * meantime — which is fine here, every test using it wants a port nothing answers on.
+ *
+ * @returns {Promise<number>}
+ */
+function findFreePort() {
+  return new Promise((resolve, reject) => {
+    const server = createServer()
+    server.once('error', reject)
+    server.listen(0, '127.0.0.1', () => {
+      const { port } = server.address()
+      server.close(error => (error != null ? reject(error) : resolve(port)))
+    })
+  })
+}
 
 // the successful path needs a certificate, so it is only exercised against a real host: what is
 // covered here are the two failures which used to freeze or terminate the process

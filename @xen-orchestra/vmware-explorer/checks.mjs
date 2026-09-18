@@ -1,116 +1,64 @@
 import { exec } from 'node:child_process'
-import semver from 'semver'
-import fs from 'node:fs/promises'
 
-import { VDDK_LIB_DIR, VDDK_LIB_FILE } from './_vddk.mjs'
+import { getBundledPackage } from './_vectura.mjs'
 
 /**
+ * Version of the vectura binary on this machine.
  *
- * @returns {Promise<Object>}
+ * @returns {Promise<string>} rejects when it is not installed or not runnable
  */
-/* async */ function nbdInfo() {
+/* async */ function getVecturaVersion() {
   return new Promise(function (resolve, reject) {
-    const expectedVersion = '1.23.4'
-    exec('nbdinfo --version', (error, stdout, stderr) => {
+    exec('vectura --version', (error, stdout) => {
       if (error) {
-        return resolve({
-          error: `exit code ${error.code}`,
-          status: 'error',
-        })
+        return reject(error)
       }
-      const matches = stdout.match(/nbdinfo ([0-9.]+)/)
-      const version = matches?.[1] ?? ''
-      resolve({
-        installed: true,
-        version,
-        status: semver.satisfies(version, `>=${expectedVersion}`) ? 'success' : 'alarm',
-        expectedVersion,
-      })
+      const matches = stdout.match(/vectura ([0-9.]+)/)
+      if (matches === null) {
+        return reject(new Error(`can't read the version of vectura in ${JSON.stringify(stdout)}`))
+      }
+      resolve(matches[1])
     })
   })
 }
 
-async function getNbdKitVersion() {
-  return new Promise(function (resolve) {
-    exec('nbdkit --version', (error, stdout, stderr) => {
-      if (error) {
-        return resolve({
-          error: `exit code ${error.code}`,
-          status: 'error',
-        })
-      }
-      const matches = stdout.match(/nbdkit ([0-9.]+)/)
-      const version = matches?.[1] ?? ''
-      resolve(version)
-    })
-  })
-}
 /**
+ * Whether the installed vectura is the one shipped with this package.
+ *
+ * The two are compared for equality and not with a range: the package holds the binary xo-server is
+ * tested against, so anything else — older or newer — is worth reporting.
  *
  * @returns {Promise<Object>}
  */
-async function nbdKit() {
-  const expectedVersion = '1.42.5'
+async function vectura() {
+  const { version: expectedVersion } = await getBundledPackage()
+
+  let version
   try {
-    const version = await getNbdKitVersion()
+    version = await getVecturaVersion()
+  } catch (error) {
     return {
-      installed: true,
-      version,
-      status: semver.satisfies(version, `>=${expectedVersion}`) ? 'success' : 'alarm',
+      error: `vectura is not installed or not runnable: ${error.message}`,
       expectedVersion,
-    }
-  } catch (error) {
-    return {
-      error: `exit code ${error.code}`,
       status: 'error',
     }
   }
-}
 
-/**
- *
- * @returns {Promise<Object>}
- */
-/* async */ function nbdKitVddk() {
-  return new Promise(function (resolve) {
-    exec('nbdkit --dump-plugin vddk', (error, stdout, stderr) => {
-      if (error) {
-        return resolve({
-          error: stderr,
-          status: 'error',
-        })
-      }
-      resolve({
-        status: 'success',
-      })
-    })
-  })
-}
-
-/**
- *
- * @returns {Promise<Object>}
- */
-async function vddk() {
-  try {
-    await fs.stat(VDDK_LIB_FILE)
-  } catch (error) {
-    return {
-      status: 'error',
-      error: `Vddk library is not present or accessible in ${VDDK_LIB_DIR}/ it can be downloaded from https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/latest`,
-    }
-  }
-  return { status: 'success' }
-}
-/**
- *
- * @returns {Promise<Object>}
- */
-export async function checkVddkDependencies() {
   return {
-    nbdinfo: await nbdInfo(),
-    nbdkit: await nbdKit(),
-    nbdkitPluginVddk: await nbdKitVddk(),
-    vddk: await vddk(),
+    installed: true,
+    version,
+    status: version === expectedVersion ? 'success' : 'alarm',
+    expectedVersion,
+  }
+}
+
+/**
+ * Everything the import of a VM from an ESXi host needs on this machine.
+ *
+ * @returns {Promise<Object>}
+ */
+export async function checkDependencies() {
+  return {
+    vectura: await vectura(),
   }
 }

@@ -17,7 +17,7 @@ npm install --save @xen-orchestra/vmware-explorer
 ## Usage
 
 Reads the inventory, the metadata and the disks of an ESXi host or a vCenter, over vim25 SOAP and
-the `/folder` HTTP endpoint, and exports the content of a disk through an `nbdkit` server.
+the `/folder` HTTP endpoint, and exports the content of a disk through a `vectura` server.
 
 ### Errors
 
@@ -43,15 +43,14 @@ which failed without the host naming a fault type reports `TASK_FAILED` instead.
 | `DATACENTER_NOT_FOUND` | No datacenter holds the named datastore, and a file cannot be downloaded without one. Carries `dataStore` and the `dataStores` which are known.                                               |
 | `DATASTORE_NOT_FOUND`  | An absolute disk reference of a vmx or a vmsd is on no known datastore. Carries `filePath` and `dataStoreUrls`.                                                                               |
 | `ESXI_SESSION_EXPIRED` | The session of the HTTP endpoint was refused (401 or 403), which happens on an import lasting hours. Retried after authenticating again.                                                      |
-| `NBDKIT_EXITED`        | The `nbdkit` server exited before it started listening, e.g. on a wrong thumbprint or a missing vddk library. Its logs are named in the message.                                              |
-| `NBDKIT_NOT_LISTENING` | The `nbdkit` server is running, but never started listening on its port.                                                                                                                      |
+| `NBD_SERVER_EXITED`    | The `vectura` server exited, e.g. on a wrong thumbprint or a disk the host refuses to open. Raised by `NbdStdioClient`, which carries the tail of its stderr on the error.                    |
 | `NO_DATA_MAP`          | The allocated ranges of a disk could not be read: an unreadable vmdk descriptor, or a delta in a format which is not supported. The disk has to be transferred in full instead of as a delta. |
 | `NO_PROPERTY`          | The host returned no value for the property which was read, e.g. because the object is gone.                                                                                                  |
 | `NO_TASK`              | A `*_Task` method answered without a task to wait for.                                                                                                                                        |
 | `RANGE_IGNORED`        | The host answered something else than the byte range which was requested. Reading it would use the wrong offset, or as much memory as the file is big.                                        |
 | `TASK_FAILED`          | A task ended in error, and the host named no fault type for it.                                                                                                                               |
 | `TASK_TIMEOUT`         | A task did not complete within its deadline. It keeps running on the host, so it is **not** retried: starting a second one would not make the first go away.                                  |
-| `NO_CHANGE_ID`         | Asked for changed block, but change block  was not tracked when snapshotted                                                                                                                   |
+| `NO_CHANGE_ID`         | Asked for changed block, but change block was not tracked when snapshotted                                                                                                                    |
 
 `ESXI_SESSION_EXPIRED` and the transport failures are transient, and are retried inside the package
 — while downloading from a datastore, and while polling a task. Every other code is reported to the

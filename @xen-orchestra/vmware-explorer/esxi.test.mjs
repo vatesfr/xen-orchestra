@@ -779,12 +779,6 @@ describe('keepAlive', function () {
 describe('getDataMap', function () {
   const BLOCK_LENGTH = 4096 * 512
 
-  // the thumbprint is the first step of a spawn: failing it sends the code down the fallback
-  // without binding a port nor writing a temporary file
-  const failingThumbprint = async () => {
-    throw new Error('no vddk on this machine')
-  }
-
   const DELTA_DESCRIPTOR = `# Disk DescriptorFile
 version=1
 CID=d7980f7a
@@ -827,7 +821,6 @@ RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
         return response({ status: 206, body: DELTA_DESCRIPTOR })
       },
     })
-    esxi.getServerThumbprint = failingThumbprint
 
     const dataMap = await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', {
       baseDiskPath: 'a.vm/vm.vmdk',
@@ -854,14 +847,13 @@ RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
       fetch: async url =>
         response({ status: 206, body: url.pathname.endsWith('-delta.vmdk') ? header : DELTA_DESCRIPTOR }),
     })
-    esxi.getServerThumbprint = failingThumbprint
 
     await assert.rejects(esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', { baseDiskPath: 'a.vm/vm.vmdk' }), {
       code: 'NO_DATA_MAP',
     })
   })
 
-  // the change tracking of the host answers a delta without an nbdkit server nor the vddk
+  // the change tracking of the host answers a delta without exporting the disk at all
   describe('from the change tracking', function () {
     const CAPACITY = 16 * 1024 * 1024 * 1024
     const ACTIVE = '[ds main] a.vm/vm-000001.vmdk'
@@ -938,8 +930,7 @@ RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
         // fallback which reaches the network would answer with a DNS failure a few seconds later
         fetch: async () => response({ status: 206, body: 'not a vmdk descriptor' }),
       })
-      // the vddk and the metadata reading must never be reached by a successful CBT query
-      esxi.getServerThumbprint = failingThumbprint
+      // the metadata reading must never be reached by a successful CBT query
       return { esxi, vimClient }
     }
 
@@ -1032,7 +1023,7 @@ RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
     it('falls back when no snapshot recorded a changeId for the disk of the previous import', async function () {
       const { esxi, vimClient } = await cbtEsxi({ changeId: null })
 
-      // the vddk then the metadata reading, which has nothing to read from the fake responses
+      // the metadata reading, which has nothing to read from the fake responses
       await assert.rejects(
         esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk', { baseDiskPath: 'a.vm/vm.vmdk' }),
         { code: 'NO_DATA_MAP' }
@@ -1072,9 +1063,8 @@ RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
           return response({ status: 206, body: 'not a vmdk descriptor' })
         },
       })
-      esxi.getServerThumbprint = failingThumbprint
 
-      // the vddk and the metadata reading both describe a single link of the chain: handing one
+      // the metadata reading describes a single link of the chain: handing one
       // over as the map of a whole disk would drop everything its parents hold
       assert.equal(await esxi.getDataMap('vm-1', 'ds main', 'a.vm/vm-000001.vmdk'), undefined)
       assert.deepEqual(fetched, [])
@@ -1135,5 +1125,61 @@ RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
       )
       assert.equal(vimClient.callsTo('QueryChangedDiskAreas').length, 1)
     })
+  })
+})
+
+describe('getNbdServer', function () {
+  const vecturaEsxi = async () => {
+    const { esxi } = await connectedEsxi()
+    // the only step needing the real host
+    esxi.getServerThumbprint = async () => 'sha256:AA:BB:CC'
+    return esxi
+  }
+
+  it('builds the vectura command line of one disk', async function () {
+    const esxi = await vecturaEsxi()
+
+    const { args, command, exportname } = await esxi.getNbdServer('1', '[ds main] vm/vm.vmdk')
+
+    assert.equal(command, 'vectura')
+    assert.deepEqual(args, [
+      'serve',
+      '--host',
+      'esxi.test',
+      '--user',
+      'user',
+      '--vm-id',
+      '1',
+      '--disk',
+      '[ds main] vm/vm.vmdk',
+      '--thumbprint',
+      'sha256:AA:BB:CC',
+    ])
+    // vectura serves a single unnamed export
+    assert.equal(exportname, '')
+  })
+
+  it('passes the password through the environment and never on the command line', async function () {
+    const esxi = await vecturaEsxi()
+
+    const { args, env } = await esxi.getNbdServer('1', '[ds main] vm/vm.vmdk')
+
+    assert.equal(env.VECTURA_PASSWORD, 'password')
+    assert.equal(
+      args.some(argument => argument.includes('password')),
+      false
+    )
+  })
+
+  it('leaves compression and depth out unless they are asked for', async function () {
+    const esxi = await vecturaEsxi()
+
+    const { args } = await esxi.getNbdServer('1', '[ds main] vm/vm.vmdk', { compression: 'none', depth: 4 })
+
+    assert.deepEqual(args.slice(-4), ['--compression', 'none', '--depth', '4'])
+
+    const { args: bare } = await esxi.getNbdServer('1', '[ds main] vm/vm.vmdk')
+    assert.equal(bare.includes('--compression'), false)
+    assert.equal(bare.includes('--depth'), false)
   })
 })
