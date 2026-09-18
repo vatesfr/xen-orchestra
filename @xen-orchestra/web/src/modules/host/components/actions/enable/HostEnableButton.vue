@@ -38,13 +38,17 @@ const { open: openActionModal } = useActionModal()
 
 function openEnableHostModal() {
   return openActionModal({
-    events: { onConfirm: () => enableHost() },
     props: {
       accent: 'info',
       action: 'enable',
       object: 'host',
       hostName: host.name_label,
       icon: 'status:info-picto',
+    },
+    events: {
+      onConfirm: async () => {
+        void enableHost()
+      },
     },
   })
 }

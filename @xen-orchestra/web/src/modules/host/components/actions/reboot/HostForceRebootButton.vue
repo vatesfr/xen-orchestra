@@ -34,16 +34,18 @@ const {
 const { open: openActionModal } = useActionModal()
 
 function forceRebootHost() {
-  openActionModal({
-    events: {
-      onConfirm: () => run(),
-    },
+  return openActionModal({
     props: {
       accent: 'info',
       action: 'force-reboot',
       object: 'host',
       hostName: host.name_label,
       icon: 'status:info-picto',
+    },
+    events: {
+      onConfirm: async () => {
+        void run()
+      },
     },
   })
 }

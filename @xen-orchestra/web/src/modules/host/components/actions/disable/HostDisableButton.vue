@@ -35,13 +35,17 @@ const { open: openActionModal } = useActionModal()
 
 function openDisableHostModal() {
   return openActionModal({
-    events: { onConfirm: () => disableHost() },
     props: {
       accent: 'info',
       action: 'disable',
       object: 'host',
       hostName: host.name_label,
       icon: 'status:info-picto',
+    },
+    events: {
+      onConfirm: async () => {
+        void disableHost()
+      },
     },
   })
 }
