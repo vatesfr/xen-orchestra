@@ -170,6 +170,20 @@ It takes the `data` as first argument and will return:
 For basic filtering on label you can use the `useTreeFilter` composable which returns `filter` (`Ref<string>`) and a
 predefined `predicate` function (`(node: TreeNodeBase) => boolean | undefined`) which can be passed as an option.
 
+## Collapse state
+
+To persist which nodes are collapsed, use the `useTreeCollapse` composable and pass its result as the `collapsedIds`
+option. While a filter is active, collapsing is tracked separately and reset on every filter change, so searching never
+alters the user's own collapsed nodes.
+
+```ts
+const { filter, predicate, hasFilter } = useTreeFilter()
+
+const collapsedIds = useTreeCollapse('pool.collapsed', filter, hasFilter)
+
+const { nodes } = useTree(definitions, { collapsedIds })
+```
+
 ## `defineTree` helper
 
 The `defineTree` helper creates a collection of definitions in a more convenient way.
