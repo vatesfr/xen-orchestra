@@ -297,7 +297,21 @@ export class RemoteDiskLineage {
         }
 
         const existing = stateChain.filter(p => this.#diskPaths.has(p))
-        if (existing.length >= 2) chain = existing
+        if (existing.length >= 2) {
+          chain = existing
+        } else {
+          // fewer than 2 disks of the recorded chain are left, there is nothing to resume and
+          // the state would otherwise stay on disk forever.
+          //
+          // only done when the chain was read successfully: an undefined `stateChain` also
+          // covers a state file that is merely unreadable right now, which must be kept
+          this.#opts.logWarn('merge state without a resumable chain', { stateFilePath, parentPath })
+          if (remove) {
+            this.#opts.logInfo('deleting unresumable merge state', { stateFilePath })
+            await this.#handler.unlink(stateFilePath)
+          }
+          continue
+        }
       }
 
       if (chain !== undefined) {
