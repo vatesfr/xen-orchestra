@@ -183,6 +183,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
               disabled: !canDeleteTrafficRules.value,
               busy: isDeletingTrafficRules.value,
               hint: deleteTrafficRulesErrorMessage.value,
+              accent: 'danger',
             },
           ],
         }),

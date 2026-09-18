@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canDetachHost && detachHostErrorMessage"
-    class="detach"
+    accent="warning"
     :disabled="!canDetachHost"
     icon="action:detach"
     :busy="isDetachingHost"
@@ -72,9 +72,3 @@ async function detachHost() {
   await redirectAfterDetachHost()
 }
 </script>
-
-<style lang="postcss" scoped>
-.detach {
-  color: var(--color-warning-txt-base);
-}
-</style>
