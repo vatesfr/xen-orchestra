@@ -1,12 +1,12 @@
 <template>
   <MenuItem
-    v-tooltip="!canRebootHost && rebootHostErrorMessage"
-    :busy="isRebootingHost"
-    :disabled="!canRebootHost"
-    icon="action:reboot"
-    @click="rebootHost()"
+    v-tooltip="!canForceRebootHost && forceRebootHostErrorMessage"
+    :busy="isForceRebootingHost"
+    :disabled="!canForceRebootHost"
+    icon="action:force-reboot"
+    @click="forceRebootHost()"
   >
-    {{ t('action:reboot') }}
+    {{ t('action:force-reboot') }}
   </MenuItem>
 </template>
 
@@ -28,16 +28,16 @@ const { open: openActionModal } = useActionModal()
 
 const {
   run,
-  canRun: canRebootHost,
-  isRunning: isRebootingHost,
-  errorMessage: rebootHostErrorMessage,
-} = useHostRebootJob(() => host, false)
+  canRun: canForceRebootHost,
+  isRunning: isForceRebootingHost,
+  errorMessage: forceRebootHostErrorMessage,
+} = useHostRebootJob(() => host, true)
 
-function rebootHost() {
+function forceRebootHost() {
   return openActionModal({
     props: {
       accent: 'info',
-      action: 'reboot',
+      action: 'force-reboot',
       object: 'host',
       hostName: host.name_label,
       icon: 'status:info-picto',
