@@ -1,4 +1,4 @@
-import { EventEmitter } from 'node:stream'
+import { EventEmitter, Readable } from 'node:stream'
 import type {
   AnyXoJob,
   AnyXoLog,
@@ -51,6 +51,7 @@ import {
   XoGroupRole,
   XoUserRole,
 } from './index.mjs'
+import { IncomingHttpHeaders } from 'node:http'
 
 type FeatureCode =
   | 'BACKUP.DELTA'
@@ -411,6 +412,18 @@ export type XoApp = {
   getXoEventEmitterByType(type: string): EventEmitter
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
+  httpRequest(
+    url: string,
+    opts: {
+      auth?: string
+      body?: string | NodeJS.ArrayBufferView | Readable | null
+      bypassStatusCheck?: boolean
+      headers?: IncomingHttpHeaders
+      method: string
+      rejectUnauthorized?: boolean
+      timeout?: number
+    }
+  ): Promise<Response>
   listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
     pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
