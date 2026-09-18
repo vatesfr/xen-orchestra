@@ -1,9 +1,9 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type {
-  FrontXoKubernetesCluster,
-  GroupedFrontXoKubernetesNamespace,
-  GroupedFrontXoKubernetesNode,
-  GroupedFrontXoKubernetesPod,
+  XoKubernetesCluster,
+  XoKubernetesNamespace,
+  XoKubernetesNode,
+  XoKubernetesPod,
   XoKubernetesRoot,
 } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
@@ -20,18 +20,14 @@ export type PoolBranch = Branch<FrontXoPool, HostBranch | VmLeaf, 'pool'>
 
 export type SiteBranch = Branch<XoSite, PoolBranch, 'site'>
 
-export type KubernetesPodLeaf = Leaf<GroupedFrontXoKubernetesPod, 'kubernetes-pod'>
+export type KubernetesPodLeaf = Leaf<XoKubernetesPod, 'kubernetes-pod'>
 
-export type KubernetesNamespaceBranch = Branch<
-  GroupedFrontXoKubernetesNamespace,
-  KubernetesPodLeaf,
-  'kubernetes-namespace'
->
+export type KubernetesNamespaceBranch = Branch<XoKubernetesNamespace, KubernetesPodLeaf, 'kubernetes-namespace'>
 
-export type KubernetesNodeLeaf = Leaf<GroupedFrontXoKubernetesNode, 'kubernetes-node'>
+export type KubernetesNodeLeaf = Leaf<XoKubernetesNode, 'kubernetes-node'>
 
 export type KubernetesClusterBranch = Branch<
-  FrontXoKubernetesCluster,
+  XoKubernetesCluster,
   KubernetesNodeLeaf | KubernetesNamespaceBranch,
   'kubernetes-cluster'
 >

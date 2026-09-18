@@ -2,7 +2,7 @@
   <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.id" :has-children="branch.hasChildren">
     <UiTreeItemLabel
       icon="object:cluster"
-      :route="`/kubernetes/${encodeURIComponent(branch.id)}`"
+      :route="getKubernetesClusterRoute(branch.dataId)"
       @toggle="branch.toggleCollapse()"
     >
       {{ branch.data.name }}
@@ -11,6 +11,7 @@
 </template>
 
 <script lang="ts" setup>
+import { getKubernetesClusterRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
 import type { KubernetesClusterBranch } from '@/modules/treeview/types/tree.type.ts'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'

@@ -1,39 +1,54 @@
 export type XoKubernetesRoot = {
+  name: string
   type: 'kubernetes'
-  name: string
 }
 
-export type FrontXoKubernetesCluster = {
-  name: string
+export type XoKubernetesNodesStatus = {
+  availableReplicas: number
+  desiredReplicas: number
+  readyReplicas: number
+  replicas: number
+}
+
+export type XoKubernetesCluster = {
   controlPlaneEndpoint: string
+  controlPlaneStatus: XoKubernetesNodesStatus
+  createdAt: string
+  id: string
+  name: string
   phase: string
+  tags: Record<string, string> | null
+  type: 'kubernetes-cluster'
+  workerStatus: XoKubernetesNodesStatus
 }
 
-export type FrontXoKubernetesNode = {
-  name: string
+export type XoKubernetesNode = {
+  $cluster: string
   endpoint: string
+  id: string
+  kubernetesUid?: string
+  name: string
+  providerId?: string
   role: string
   status: string
+  type: 'kubernetes-node'
 }
 
-export type GroupedFrontXoKubernetesNode = FrontXoKubernetesNode & {
+export type XoKubernetesNamespace = {
   $cluster: string
-}
-
-export type FrontXoKubernetesNamespace = {
+  id: string
+  kubernetesUid?: string
   name: string
   phase?: string
+  type: 'kubernetes-namespace'
 }
 
-export type GroupedFrontXoKubernetesNamespace = FrontXoKubernetesNamespace & {
+export type XoKubernetesPod = {
   $cluster: string
-}
-
-export type FrontXoKubernetesPod = {
-  name: string
-  phase?: string
-}
-
-export type GroupedFrontXoKubernetesPod = FrontXoKubernetesPod & {
   $namespace: string
+  id: string
+  kubernetesUid?: string
+  name: string
+  phase?: string
+  type: 'kubernetes-pod'
 }
