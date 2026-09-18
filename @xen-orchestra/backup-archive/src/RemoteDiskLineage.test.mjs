@@ -10,12 +10,12 @@ import { rimraf } from 'rimraf'
 import { Constants, VhdAbstract, VhdDirectory } from 'vhd-lib'
 
 import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
-// `RemoteDiskLineage` is a `.mts` module, so it only exists as `.mjs` under `dist/`, which the
-// `test` script builds after removing it: this import cannot be resolved when linting a working
-// tree that has not been built yet. Going through `dist/` also keeps it resolvable from both the
-// `src/` and the `dist/` copy of this file, which `node --test **/*.test.mjs` both pick up.
+// `RemoteDiskLineage` is a `.mts` module: this is the TS ESM spelling of the sibling import, which
+// resolves at runtime because the `test` script runs the built `dist/` copy of this file. It must
+// NOT go through `../dist/`, which would make `tsc` pull the emitted declarations back in as
+// inputs (TS5055) — the `*.integ.mjs` files can only do that because tsconfig excludes them.
 /* eslint-disable n/no-missing-import */
-import { RemoteDiskLineage } from '../dist/RemoteDiskLineage.mjs'
+import { RemoteDiskLineage } from './RemoteDiskLineage.mjs'
 /* eslint-enable n/no-missing-import */
 
 const { beforeEach, afterEach, describe } = test
