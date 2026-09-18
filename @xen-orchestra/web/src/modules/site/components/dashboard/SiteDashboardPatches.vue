@@ -1,8 +1,8 @@
 <template>
-  <UiCard :has-error="isError">
+  <UiCard :has-error>
     <UiCardTitle>{{ t('patches') }}</UiCardTitle>
     <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="isError" format="card" type="error" size="small">
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="small">
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
@@ -14,6 +14,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useSiteDashboardSection } from '@/modules/site/composables/use-site-dashboard-section.composable.ts'
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
@@ -26,26 +27,17 @@ import { isDefined } from '@vueuse/shared'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { dashboard, hasError } = useXoSiteDashboard()
+const { dashboard, hasError: hasDashboardError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const dashboardMissingPatches = computed(() => dashboard.value.missingPatches)
+const { data: missingPatches, isLoading } = useSiteDashboardSection(() => dashboard.value.missingPatches, 'nPools')
 
-const isLoading = computed(() => dashboardMissingPatches.value === undefined)
-
-const missingPatches = computed(() => {
-  if (!dashboardMissingPatches.value || !('nPools' in dashboardMissingPatches.value)) {
-    return
-  }
-
-  return dashboardMissingPatches.value
-})
-
-const isError = computed(() => {
-  if (hasError.value) {
+const hasError = computed(() => {
+  if (hasDashboardError.value) {
     return true
   }
+
   if (isLoading.value || !isDefined(missingPatches.value)) {
     return false
   }

@@ -2,25 +2,27 @@
 
 Domain objects are created through factories in `src/test/`, one per object type:
 
-| Factory              | Builds                |
-| -------------------- | --------------------- |
-| `createVm`           | `FrontXoVm`           |
-| `createHost`         | `FrontXoHost`         |
-| `createServer`       | `FrontXoServer`       |
-| `createPool`         | `FrontXoPool`         |
-| `createSr`           | `FrontXoSr`           |
-| `createPbd`          | `FrontXoPbd`          |
-| `createPif`          | `FrontXoPif`          |
-| `createVbd`          | `FrontXoVbd`          |
-| `createVdi`          | `FrontXoVdi`          |
-| `createVmSnapshot`   | `FrontXoVmSnapshot`   |
-| `createVmController` | `FrontXoVmController` |
-| `createPci`          | `FrontXoPci`          |
-| `createPgpu`         | `FrontXoPgpu`         |
-| `createNetwork`      | `FrontXoNetwork`      |
-| `createHostStats`    | `XapiHostStats`       |
-| `createVmStats`      | `XapiVmStats`         |
-| `createPoolStats`    | `XapiPoolStats`       |
+| Factory               | Builds                |
+| --------------------- | --------------------- |
+| `createVm`            | `FrontXoVm`           |
+| `createHost`          | `FrontXoHost`         |
+| `createServer`        | `FrontXoServer`       |
+| `createPool`          | `FrontXoPool`         |
+| `createSr`            | `FrontXoSr`           |
+| `createPbd`           | `FrontXoPbd`          |
+| `createPif`           | `FrontXoPif`          |
+| `createVbd`           | `FrontXoVbd`          |
+| `createVdi`           | `FrontXoVdi`          |
+| `createVmSnapshot`    | `FrontXoVmSnapshot`   |
+| `createVmController`  | `FrontXoVmController` |
+| `createPci`           | `FrontXoPci`          |
+| `createPgpu`          | `FrontXoPgpu`         |
+| `createNetwork`       | `FrontXoNetwork`      |
+| `createHostStats`     | `XapiHostStats`       |
+| `createVmStats`       | `XapiVmStats`         |
+| `createPoolStats`     | `XapiPoolStats`       |
+| `createSiteDashboard` | `XoDashboard`         |
+| `createBackupIssue`   | `BackupIssue`         |
 
 `createPoolStats` composes `createHostStats`, since pool stats are one entry per host: pass a `Partial<XapiHostStats>` per host id, or an `{ error }` entry for a host whose stats the pool could not fetch.
 
@@ -31,7 +33,7 @@ const poolStats = createPoolStats({
 })
 ```
 
-Shared _helper_ factories live there too — `mount-composable.ts`, `mount-chart-card.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts`, `find-labelled-values.ts`, `find-table-rows.ts`, `find-tabs.ts`, `find-head-bar.ts`, `find-icon-paths.ts`, `find-tags.ts`, `i18n.ts` and `linear-chart-stub.ts`.
+Shared _helper_ factories live there too — `mount-composable.ts`, `mount-chart-card.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts`, `find-labelled-values.ts`, `find-card-heading.ts`, `find-table-rows.ts`, `find-tabs.ts`, `find-head-bar.ts`, `find-icon-paths.ts`, `find-tags.ts`, `i18n.ts`, `create-site-dashboard-mock.ts` and `linear-chart-stub.ts`.
 
 Each factory returns a **fully-populated** object of the real front-end type and accepts a `Partial<T>` of overrides, spread last, so a test only states the fields relevant to its case:
 

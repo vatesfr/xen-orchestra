@@ -71,6 +71,15 @@ Prefer this shape: one assertion covering every row a user sees, and it fails lo
 | `findCardLabels`         | the label of every `VtsCardRowKeyValue`, in order               |
 | `findCardLabelledList`   | the values a card lists under one label (see below)             |
 | `findCardValue`          | one row's value element, by label, to query inside it           |
+| `findLegends`            | every `UiLegend` of a donut or progress-bar card (see below)    |
+| `findLegendSections`     | the same, grouped per titled donut (see below)                  |
+| `findCardNumbers`        | every `UiCardNumbers` a dashboard card lays out                 |
+
+`src/test/find-card-heading.ts` reads what a `UiCardTitle` lays out — its `title`, the `info` beside it and the `description` under it, each left out when the card does not fill that slot, so one assertion covers the whole heading:
+
+```typescript
+expect(findCardHeading(wrapper)).toEqual({ title: t('pools-status'), info: t('action:see-all') })
+```
 
 `src/test/find-tags.ts` reads the `VtsTag`s a card lists, as `findTagLabels(wrapper)` — an empty array when the object carries no tag.
 
@@ -199,12 +208,6 @@ Keep it to one representative value: how the formatter handles the whole range, 
 A donut card and a progress-bar card both render their values through `UiLegend`, which keeps the label and the value addressable:
 
 ```typescript
-function findLegends(wrapper: VueWrapper) {
-  return wrapper
-    .findAll('.ui-legend')
-    .map(legend => [legend.get('.label').text(), legend.get('.value-and-unit').text()])
-}
-
 expect(findLegends(wrapper)).toEqual([
   [t('vm:status:running', 2), '2'],
   [t('vm:status:halted', 2), '1'],
@@ -214,7 +217,28 @@ expect(findLegends(wrapper)).toEqual([
 Three things shape those assertions:
 
 - `VtsProgressBarGroup` sorts **descending by default**, so the expected order is the busiest first, not the order the payload listed.
-- A card holding several legend groups — `PoolDashboardStatus` shows one for its hosts and one for its VMs — is queried per group (`wrapper.findAll('.vts-donut-chart-with-legend')`, then the legends inside each). A flat `findAll('.ui-legend')` collapses the groups into one list, and an assertion on it no longer says which group a value landed in.
+- A card holding several **titled** donuts — `PoolDashboardStatus` shows one for its hosts and one for its VMs, `SiteDashboardPatches` one for its pools and one for its hosts — reads with `findLegendSections`, which returns `[title, legends]` per donut. `findLegends` collapses them into one flat list, and an assertion on it no longer says which breakdown a value landed in.
+
+```typescript
+expect(findLegendSections(wrapper)).toEqual([
+  [
+    t('pools'),
+    [
+      [t('up-to-date'), '6'],
+      [t('missing-patches'), '4'],
+    ],
+  ],
+  [
+    t('hosts'),
+    [
+      [t('up-to-date'), '12'],
+      [t('missing-patches'), '8'],
+      [t('eol'), '3'],
+    ],
+  ],
+])
+```
+
 - `VtsStateHero` renders its own wording ahead of the slot: an `all-done` hero reads `'All good!Patches up to date'`. Assert the part the component owns with `toContain`.
 
 ## Routing

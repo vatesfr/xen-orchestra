@@ -1,4 +1,5 @@
 import type { FrontXoVmController } from '@/modules/vm/remote-resources/use-xo-vm-controller-collection.ts'
+import { ONE_GB } from '@/shared/constants.ts'
 import { VM_POWER_STATE } from '@vates/types'
 
 /**
@@ -12,9 +13,9 @@ export function createVmController(overrides: Partial<FrontXoVmController> = {})
     name_label: 'Control domain on host Test Host',
     power_state: VM_POWER_STATE.RUNNING,
     memory: {
-      dynamic: [2147483648, 2147483648],
-      size: 2147483648,
-      static: [1073741824, 2147483648],
+      dynamic: [2 * ONE_GB, 2 * ONE_GB],
+      size: 2 * ONE_GB,
+      static: [ONE_GB, 2 * ONE_GB],
     },
     $container: 'host-456' as FrontXoVmController['$container'],
     type: 'VM-controller',

@@ -1,4 +1,5 @@
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { ONE_GB } from '@/shared/constants.ts'
 import { VM_POWER_STATE } from '@vates/types'
 
 /**
@@ -27,9 +28,9 @@ export function createVm(overrides: Partial<FrontXoVm> = {}): FrontXoVm {
     viridian: true,
     isNestedVirtEnabled: false,
     memory: {
-      dynamic: [2147483648, 4294967296],
-      size: 4294967296,
-      static: [2147483648, 4294967296],
+      dynamic: [2 * ONE_GB, 4 * ONE_GB],
+      size: 4 * ONE_GB,
+      static: [2 * ONE_GB, 4 * ONE_GB],
     },
     VGPUs: [],
     high_availability: 'best-effort',

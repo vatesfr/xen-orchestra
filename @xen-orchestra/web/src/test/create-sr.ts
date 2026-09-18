@@ -1,4 +1,5 @@
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { ONE_GB } from '@/shared/constants.ts'
 
 /**
  * Builds a fully-populated `FrontXoSr` for use in tests. Pass `overrides` to
@@ -12,9 +13,9 @@ export function createSr(overrides: Partial<FrontXoSr> = {}): FrontXoSr {
     $pool: 'pool-789' as FrontXoSr['$pool'],
     $container: 'host-456' as FrontXoSr['$container'],
     content_type: 'user',
-    physical_usage: 1073741824,
-    usage: 1073741824,
-    size: 10737418240,
+    physical_usage: ONE_GB,
+    usage: ONE_GB,
+    size: 10 * ONE_GB,
     SR_type: 'lvm',
     VDIs: [],
     type: 'SR',

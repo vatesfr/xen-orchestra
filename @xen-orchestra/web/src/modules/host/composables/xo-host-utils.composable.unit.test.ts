@@ -4,8 +4,8 @@ import type { XoHostState } from '@/modules/host/utils/xo-host.util.ts'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { relativeTime } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -81,16 +81,11 @@ describe('getRelativeStartTime', () => {
   it('reports the start time relative to now, reading it as seconds', () => {
     const startTimeInSeconds = 1660000000
 
-    const { wrapper } = mountComposable(() => {
-      const { locale } = useI18n()
+    const { wrapper } = mountComposable(() => ({
+      relativeStartTime: useXoHostUtils(createHost()).getRelativeStartTime(startTimeInSeconds),
+    }))
 
-      return {
-        relativeStartTime: useXoHostUtils(createHost()).getRelativeStartTime(startTimeInSeconds),
-        expectedRelativeTime: getRelativeTime(new Date(startTimeInSeconds * 1000), locale.value),
-      }
-    })
-
-    expect(wrapper.vm.relativeStartTime).toBe(wrapper.vm.expectedRelativeTime)
+    expect(wrapper.vm.relativeStartTime).toBe(relativeTime(startTimeInSeconds * 1000))
   })
 })
 

@@ -1,4 +1,5 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { ONE_GB } from '@/shared/constants.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 
 /**
@@ -21,7 +22,7 @@ export function createHost(overrides: Partial<FrontXoHost> = {}): FrontXoHost {
     bios_strings: {},
     cpus: { cores: 8, sockets: 2 },
     CPUs: {},
-    memory: { size: 4294967296, usage: 2147483648 },
+    memory: { size: 4 * ONE_GB, usage: 2 * ONE_GB },
     tags: [],
     iscsiIqn: '',
     powerOnMode: '',

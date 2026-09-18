@@ -1,4 +1,5 @@
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { ONE_GB } from '@/shared/constants.ts'
 
 /**
  * Builds a fully-populated `FrontXoVdi` for use in tests. Pass `overrides` to
@@ -11,10 +12,10 @@ export function createVdi(overrides: Partial<FrontXoVdi> = {}): FrontXoVdi {
     name_description: 'A test virtual disk image',
     $VBDs: [],
     $SR: 'sr-1' as FrontXoVdi['$SR'],
-    size: 10737418240,
+    size: 10 * ONE_GB,
     $pool: 'pool-789' as FrontXoVdi['$pool'],
     type: 'VDI',
-    usage: 5368709120,
+    usage: 5 * ONE_GB,
     tags: [],
     uuid: 'vdi-uuid-1',
     cbt_enabled: false,

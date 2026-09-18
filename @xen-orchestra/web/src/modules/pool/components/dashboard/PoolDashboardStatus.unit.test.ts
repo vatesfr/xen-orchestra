@@ -1,6 +1,6 @@
 import PoolDashboardStatus from '@/modules/pool/components/dashboard/PoolDashboardStatus.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import { findCardNumbers } from '@/test/find-labelled-values.ts'
+import { findCardNumbers, findLegendSections } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -30,15 +30,6 @@ function mountStatus(props: { poolDashboard?: XoPoolDashboard; hasError?: boolea
     props: { poolDashboard: createPoolDashboard(), ...props },
     global: createGlobalTestConfig(),
   })
-}
-
-function findLegendSections(wrapper: ReturnType<typeof mountStatus>) {
-  return wrapper
-    .findAll('.vts-donut-chart-with-legend')
-    .map(section => [
-      section.get('.ui-legend-title').text(),
-      section.findAll('.ui-legend').map(legend => [legend.get('.label').text(), legend.get('.value-and-unit').text()]),
-    ])
 }
 
 it('renders the card title', () => {
@@ -115,19 +106,4 @@ it('reports that no VM was detected for a pool without VM, and still breaks down
   expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-vm-detected'))
   expect(findLegendSections(wrapper).map(([title]) => title)).toEqual([t('hosts')])
   expect(findCardNumbers(wrapper)).toEqual([[t('total'), '4']])
-})
-
-it('counts a status the pool does not report as zero', () => {
-  const wrapper = mountStatus({
-    poolDashboard: { hosts: { status: { running: 2, total: 2 } as HostsStatus }, vms: { status: createVmsStatus() } },
-  })
-
-  expect(findLegendSections(wrapper)[0]).toEqual([
-    t('hosts'),
-    [
-      [t('host:status:running', 2), '2'],
-      [t('disabled', 2), '0'],
-      [t('host:status:halted', 2), '0'],
-    ],
-  ])
 })

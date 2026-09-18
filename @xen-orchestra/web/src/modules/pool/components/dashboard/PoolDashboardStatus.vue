@@ -27,11 +27,11 @@
 </template>
 
 <script setup lang="ts">
+import { useHostStatusSegments } from '@/modules/host/composables/use-host-status-segments.composable.ts'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { useVmStatusSegments } from '@/modules/vm/composables/use-vm-status-segments.composable.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import VtsDonutChartWithLegend, {
-  type DonutChartWithLegendProps,
-} from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
+import VtsDonutChartWithLegend from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
@@ -49,44 +49,7 @@ const areVmsStatusReady = computed(() => poolDashboard?.vms?.status !== undefine
 
 const { t } = useI18n()
 
-const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
-  {
-    label: t('host:status:running', 2),
-    value: poolDashboard?.hosts?.status?.running ?? 0,
-    accent: 'success',
-  },
-  {
-    label: t('disabled', 2),
-    value: poolDashboard?.hosts?.status?.disabled ?? 0,
-    accent: 'muted',
-  },
-  {
-    label: t('host:status:halted', 2),
-    value: poolDashboard?.hosts?.status?.halted ?? 0,
-    accent: 'danger',
-  },
-])
+const hostsSegments = useHostStatusSegments(() => poolDashboard?.hosts?.status)
 
-const vmsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
-  {
-    label: t('vm:status:running', 2),
-    value: poolDashboard?.vms?.status?.running ?? 0,
-    accent: 'success',
-  },
-  {
-    label: t('vm:status:paused', 2),
-    value: poolDashboard?.vms?.status?.paused ?? 0,
-    accent: 'info',
-  },
-  {
-    label: t('vm:status:suspended', 2),
-    value: poolDashboard?.vms?.status?.suspended ?? 0,
-    accent: 'neutral',
-  },
-  {
-    label: t('vm:status:halted', 2),
-    value: poolDashboard?.vms?.status?.halted ?? 0,
-    accent: 'danger',
-  },
-])
+const vmsSegments = useVmStatusSegments(() => poolDashboard?.vms?.status)
 </script>

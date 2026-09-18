@@ -46,7 +46,7 @@ it('shows the memory of the control domain of the host', () => {
 
 it('rounds the memory of the control domain to two decimals', () => {
   getVmControllerById.mockReturnValue(
-    createVmController({ memory: { dynamic: [0, 0], size: 1.5 * 1024 ** 3, static: [0, 0] } })
+    createVmController({ memory: { dynamic: [0, 0], size: 1610612736, static: [0, 0] } })
   )
 
   const wrapper = mountResourceManagement(

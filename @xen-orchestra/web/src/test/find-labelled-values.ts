@@ -95,6 +95,21 @@ export function findLegends(wrapper: QueryableWrapper): [string, string][] {
 }
 
 /**
+ * Same as {@link findLegends}, for a card laying out several titled
+ * `VtsDonutChartWithLegend` — each section read as `[title, legends]`, so the
+ * assertion says which breakdown a value belongs to instead of running them all
+ * into one flat list.
+ *
+ * Only for donuts given a `title`: an untitled one has no `.ui-legend-title`,
+ * and a card holding a single donut reads with {@link findLegends}.
+ */
+export function findLegendSections(wrapper: QueryableWrapper): [string, [string, string][]][] {
+  const sections = wrapper.findAll('.vts-donut-chart-with-legend')
+
+  return sections.map(section => [section.get('.ui-legend-title').text(), findLegends(section)])
+}
+
+/**
  * Same as {@link findLegends}, for the `UiCardNumbers` a dashboard card lays out
  * next to its progress bar or donut. `.values` holds the number and, when the
  * card passes a `max`, the percentage above it.
