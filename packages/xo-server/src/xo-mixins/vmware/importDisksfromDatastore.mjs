@@ -1,9 +1,9 @@
-import { Disposable } from 'promise-toolbox'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { QCOW2_CLUSTER_SIZE, VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VHD_BLOCK_SIZE, VHD_MAX_SIZE } from '@xen-orchestra/xapi'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { NbdDisk } from '@vates/nbd-client/NbdDisk.mjs'
+import { NbdStdioClient } from '@vates/nbd-client'
 import { createLogger } from '@xen-orchestra/log'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
 import { TaskProgressHandler } from '@xen-orchestra/backups/_runners/_vmRunners/_TaskProgressHandler.mjs'
@@ -20,42 +20,39 @@ export async function importStream({ esxi, dataMap, disk, vmId, format }, consum
   const signal = Task.abortSignal
   const { datastore: datastoreName, diskPath } = disk
 
+  // nothing is started here: these are the settings of the vectura process, which `NbdStdioClient`
+  // spawns on connect and kills on disconnect
+  // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
+  const nbdSettings = await esxi.getNbdServer(vmId, `[${datastoreName}] ${diskPath}`)
+
+  let vmdk
+  let stream
   try {
-    // the server is stopped whatever happens here: it used to be killed by a `finally` which had
-    // to name the disk and repeat the exact spawn options
-    // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
-    return await Disposable.use(esxi.getNbdServer(vmId, `[${datastoreName}] ${diskPath}`), async ({ nbdInfos }) => {
-      let vmdk
-      let stream
-      try {
-        signal?.throwIfAborted()
-        vmdk = new NbdDisk(nbdInfos, READ_BLOCK_SIZE, { dataMap })
+    signal?.throwIfAborted()
+    vmdk = new NbdDisk(nbdSettings, READ_BLOCK_SIZE, { dataMap, ClientClass: NbdStdioClient })
 
-        await vmdk.init()
-        signal?.throwIfAborted()
-        vmdk = new ReadAhead(vmdk)
+    await vmdk.init()
+    signal?.throwIfAborted()
+    vmdk = new ReadAhead(vmdk)
 
-        vmdk.addProgressHandler(new TaskProgressHandler())
+    vmdk.addProgressHandler(new TaskProgressHandler())
 
-        if (format === VDI_FORMAT_QCOW2) {
-          stream = await toQcow2Stream(vmdk, { signal })
-        } else {
-          stream = await toVhdStream(vmdk, { signal })
-        }
-        Task.info(`got source stream for ${diskPath}`)
-        await consumerCallback(stream)
-        return Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
-      } catch (err) {
-        stream?.destroy(err)
-        throw err
-      } finally {
-        await vmdk?.close().catch(err => warn('error while closing source vmdk', err))
-      }
-    })
+    if (format === VDI_FORMAT_QCOW2) {
+      stream = await toQcow2Stream(vmdk, { signal })
+    } else {
+      stream = await toVhdStream(vmdk, { signal })
+    }
+    Task.info(`got source stream for ${diskPath}`)
+    await consumerCallback(stream)
+    return Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
   } catch (err) {
-    // a failure to start the server belongs in the report too, e.g. nbdkit not being installed
+    stream?.destroy(err)
+    // a failure to start the server belongs in the report too, e.g. vectura not being installed
     Task.warning(err)
     throw err
+  } finally {
+    // this is what stops the vectura process
+    await vmdk?.close().catch(err => warn('error while closing source vmdk', err))
   }
 }
 
@@ -98,7 +95,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, changeTracking, user
   if (previouslyImportedIndex !== -1) {
     if (previouslyImportedIndex < chainByNode.length - 2) {
       throw new Error(
-        'vddk import does not support importing multiple snapshots. Coalesce the non imported snapshot into one or force a full import'
+        'the import does not support importing multiple snapshots. Coalesce the non imported snapshot into one or force a full import'
       )
     }
 
@@ -114,13 +111,16 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, changeTracking, user
   }
 
   // asked in both cases: the blocks written since `baseDiskPath`, or every block the disk uses.
-  // `undefined` when the host cannot answer for a whole disk, and the disk is then read to find
-  // out, as it always was
-  const dataMap = await esxi.getDataMap(vmId, datastoreName, diskPath, {
+  // `undefined` when the host cannot answer for a whole disk
+  const dataMap = (await esxi.getDataMap(vmId, datastoreName, diskPath, {
     baseDiskPath,
     changeTracking,
     signal: Task.abortSignal,
-  })
+  })) ?? [
+    // vectura serves the disk and nothing else: there is no block map to fall back on, so the
+    // whole disk is read. `capacity` and not the aligned size, reading past the export would fail
+    { offset: 0, length: capacity, type: 0 },
+  ]
   try {
     if (!existingVdi) {
       Task.info(`create a new VDI for ${diskPath}`)

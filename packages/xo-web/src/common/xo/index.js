@@ -4363,36 +4363,13 @@ export const esxiListVms = (host, user, password, sslVerify) =>
 export const esxiCheckInstall = () => _call('esxi.checkInstall')
 export const importVmsFromEsxi = params => _call('vm.importMultipleFromEsxi', params)
 
-export const importVddkLib = file => {
-  return _call('esxi.installVddkLib').then(({ $sendTo }) => {
-    return post($sendTo, file.file)
-      .then(res => {
-        if (res.status !== 200) {
-          throw res.status
-        }
-        success('lib successfully installed')
-      })
-      .catch(err => {
-        error('fail to install vddk lib', err)
-      })
-  })
-}
-export const installNbdInfo = file => {
-  return _call('esxi.installNbdInfoFromSource')
+export const installVectura = () => {
+  return _call('esxi.installVectura')
     .then(() => {
-      success('nbdInfo successfullly installed successfully installed')
+      success('vectura successfully installed')
     })
     .catch(err => {
-      error('fail to install nbdInfo', err)
-    })
-}
-export const installNbdKit = file => {
-  return _call('esxi.installNbdKitFromSource')
-    .then(() => {
-      success('nbdkit successfullly installed successfully installed')
-    })
-    .catch(err => {
-      error('fail to install nbdkit', err)
+      error('fail to install vectura', err)
     })
 }
 // GitHub API ---------------------------------------------------------------
