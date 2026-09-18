@@ -1,5 +1,7 @@
+// @ts-check
+
 import { asyncEach } from '@vates/async-each'
-import { basename, normalize } from '@xen-orchestra/fs/path'
+import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
 import { createLogger } from '@xen-orchestra/log'
 import { randomBytes } from 'node:crypto'
 import { utcFormat, utcParse } from 'd3-time-format'
@@ -115,6 +117,20 @@ export const formatJournalDay = timestamp => dayOfDate(formatJournalDate(timesta
 export const formatJournalTime = timestamp => formatTime(new Date(timestamp))
 
 /**
+ * Builds a synthetic cursor for `readBackupJournal()`, pointing just before any entry which could
+ * have been written at `timestamp` or later.
+ *
+ * Only meant to bootstrap the cursor of a reader which has never read the journal before: every
+ * cursor after that should be the `_filename` of an entry actually read, which sorts correctly
+ * against other entries regardless of clock skew, unlike this one.
+ *
+ * @param {number} timestamp in ms
+ * @returns {string}
+ */
+export const journalCursorAt = timestamp =>
+  `/${BACKUP_JOURNAL_DIR}/${formatJournalDay(timestamp)}/${formatJournalTime(timestamp)}`
+
+/**
  * Reads back the date of a journal entry, from its day and the time part of its name.
  *
  * @param {string} date `YYYYMMDDTHHMMSS.mmmZ`, i.e. `<day>T<time>`
@@ -210,37 +226,47 @@ export async function writeBackupJournalEntries(handler, entries, opts) {
 }
 
 /**
- * Reads the journal entries stamped after `since`, oldest first.
+ * Reads the journal entries stamped after `cursor`, oldest first.
  *
- * Corrupt or partially written entries are skipped, they must not hide their siblings. Computing the
- * watermark to pass as `since` on the next call is the caller's responsibility.
+ * Corrupt or partially written entries are skipped, they must not hide their siblings. The `_filename`
+ * of the last entry returned is the cursor to pass on the next call (or `journalCursorAt()` to
+ * bootstrap the first one): comparing full entry names is immune to clock skew between the process
+ * which writes the journal and the one reading it, unlike comparing timestamps.
  *
- * `since` is exclusive: entries stamped exactly at `since` are not returned.
+ * `cursor` is exclusive: the entry it points to, if any, is not returned again.
+ *
+ * A missing journal directory is not an error unless `mustExist` is set: a repository which was never
+ * written to (or a bootstrap cursor guessed from the clock instead of an entry actually read) has no
+ * directory to find, which is benign. `mustExist` is for a caller which has already read real entries
+ * from that directory before, for which a disappearance is anomalous and worth failing loudly on
+ * instead of being silently treated as "no new entries".
  *
  * @param {RemoteHandler} handler
- * @param {number} [since] timestamp in ms
+ * @param {string} [cursor] path to bound the read; entries at or before it are not returned
+ * @param {object} [opts]
+ * @param {boolean} [opts.mustExist] whether a missing journal directory should throw
  * @returns {Promise<BackupJournalEntry[]>} oldest first
  */
-export async function readBackupJournal(handler, since = 0) {
-  const minDay = formatJournalDay(since)
-  const minTime = formatJournalTime(since)
+export async function readBackupJournal(handler, cursor, { mustExist = false } = {}) {
+  const minDay = cursor === undefined ? '' : basename(dirname(cursor))
+  const minName = cursor === undefined ? '' : basename(cursor)
 
-  // only the days which can hold entries newer than `since` are listed, therefore the cost of a read
+  // only the days which can hold entries newer than `cursor` are listed, therefore the cost of a read
   // does not grow with the whole history of the repository
   const days = (
     await handler.list(`/${BACKUP_JOURNAL_DIR}`, {
       filter: name => isDayName(name) && name >= minDay,
-      ignoreMissing: true,
+      ignoreMissing: !mustExist,
     })
   ).sort()
 
   /** @type {Array<{ day: string, path: string }>} */
   const found = []
   for (const day of days) {
-    // entries are named after their time only: `since` bounds the day it falls into, every later
+    // entries are named after their time only: `cursor` bounds the day it falls into, every later
     // day is taken whole
     const names = await handler.list(`/${BACKUP_JOURNAL_DIR}/${day}`, {
-      filter: day === minDay ? name => name.slice(0, TIME_LENGTH) > minTime : undefined,
+      filter: day === minDay ? name => name > minName : undefined,
       ignoreMissing: true,
     })
     for (const name of names) {
