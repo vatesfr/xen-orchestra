@@ -30,7 +30,7 @@
 - [Proxy] Check proxy licenses at XOA level instead of blocking backups on it (PR [#10280](https://github.com/vatesfr/xen-orchestra/pull/10280))
 - [RPU] A rolling pool update is now refused while a previous one is still in progress or was left incomplete, and asks for confirmation when the master is already up to date but other hosts are not (PR [#10394](https://github.com/vatesfr/xen-orchestra/pull/10394))
 - [REST API/Backup] Add `POST backup-archives/:id/actions/mount_live_disk` and `POST backup-archives/:id/live_disks/:liveDiskId/actions/unmount` endpoints (administrators only): attach a disk of a backup to a host as a read-only SR, to read its content without restoring it. This XO's address reachable from the hosts is auto-detected, or can be set explicitly with `iscsi.advertisedAddress`
-- [XO6] Add Kubernetes objects to the TreeView (PR [#10366](https://github.com/vatesfr/xen-orchestra/pull/10366))
+- [XO6/Kubernetes] Add Kubernetes in the treeview, Kubernetes page with clusters table and side-panel (PR [#10459](https://github.com/vatesfr/xen-orchestra/pull/10459))
 
 ### Bug fixes
 

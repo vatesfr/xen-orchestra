@@ -2,7 +2,7 @@
   <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.id" :has-children="branch.hasChildren">
     <UiTreeItemLabel
       icon="object:kubernetes"
-      :route="`/kubernetes/${encodeURIComponent(branch.id)}`"
+      :route="{ name: '/kubernetes/clusters' }"
       @toggle="branch.toggleCollapse()"
     >
       {{ branch.data.name }}
