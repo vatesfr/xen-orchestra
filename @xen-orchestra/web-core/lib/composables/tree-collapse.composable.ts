@@ -10,14 +10,5 @@ export function useTreeCollapse(storageKey: string, filter: Ref<string>, hasFilt
 
   watch(filter, () => collapseState.filtered.clear())
 
-  return computed({
-    get: () => (hasFilter.value ? collapseState.filtered : collapseState.default),
-    set: value => {
-      if (hasFilter.value) {
-        collapseState.filtered = value
-      } else {
-        collapseState.default = value
-      }
-    },
-  })
+  return computed(() => (hasFilter.value ? collapseState.filtered : collapseState.default))
 }

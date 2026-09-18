@@ -1,6 +1,6 @@
 <template>
   <div class="vts-tree-line">
-    <div :class="{ 'tree-line-half-height': halfHeight }" class="tree-line-vertical" />
+    <div class="tree-line-vertical" />
     <div :class="{ right }" class="tree-line-horizontal" />
   </div>
 </template>
@@ -33,15 +33,6 @@ defineProps<{
 
     &.right {
       background: var(--color-brand-txt-base);
-    }
-  }
-}
-
-.vts-tree-item:last-child {
-  > .ui-tree-item-label {
-    .tree-line-half-height {
-      align-self: start;
-      height: calc(50% + 0.2rem);
     }
   }
 }
