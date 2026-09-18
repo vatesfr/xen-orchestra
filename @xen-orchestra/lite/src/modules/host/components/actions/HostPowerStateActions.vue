@@ -1,5 +1,5 @@
 <template>
-  <template v-if="isRunning">
+  <template v-if="isHostRunning">
     <HostRebootButton :host />
     <HostForceRebootButton :host />
     <HostShutdownButton :host />
@@ -18,7 +18,7 @@ import { computed } from 'vue'
 
 const { host } = defineProps<{ host: XenApiHost }>()
 
-const { isHostRunning } = useHostMetricsStore().subscribe()
+const { isHostRunning: isHostRunningStore } = useHostMetricsStore().subscribe()
 
-const isRunning = computed(() => isHostRunning(host))
+const isHostRunning = computed(() => isHostRunningStore(host))
 </script>
