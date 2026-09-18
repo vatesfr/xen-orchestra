@@ -1300,6 +1300,8 @@ const messages = {
   rpuRecoveryBlocked: 'The state of the last rolling pool update could not be read. Manual review is required.',
   rpuRecoveryLastError: 'Last error:',
   rpuRecoveryHaltedPinnedVms: 'VMs shut down for the update and not started again yet:',
+  rpuRecoveryRecordExists:
+    'A rolling pool update is in progress or was left incomplete. It must be resolved before a new one can start.',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
@@ -2702,6 +2704,8 @@ const messages = {
   rpuRequireVmsReboot: 'To fully apply the patches, some VMs will reboot. Are you sure you want to continue?',
   rpuShutdownPinnedVms:
     'The following VMs use a host-bound device (PCI passthrough, vGPU, SR-IOV VIFs) and cannot be migrated. They will be shut down before their host reboots and started again on it afterwards. Are you sure you want to continue?',
+  rpuPartiallyUpdatedPool:
+    'The master is already up to date but the following hosts are not, for example after an interrupted rolling pool update. This update will start from that state and only update these hosts. Are you sure you want to continue?',
   selectDisks: 'Select disk(s)…',
   selectedDiskTypeIncompatibleXostor: 'Only disks of type "Disk" and "Raid" are accepted. Selected disk type: {type}.',
   setAsPreferred: 'Set as preferred',

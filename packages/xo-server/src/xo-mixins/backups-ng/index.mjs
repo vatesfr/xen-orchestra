@@ -8,6 +8,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
+import { hasLiveMountTarget } from '@xen-orchestra/backups/_vdiRestoreTargets.mjs'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
@@ -522,6 +523,11 @@ export default class BackupNg {
     try {
       let result
       if (remote.proxy !== undefined) {
+        if (hasLiveMountTarget(settings?.mapVdisSrs)) {
+          // a live mount is served by the appliance which created it, and a proxy has no LiveMount
+          throw invalidParameters('a disk cannot be live mounted from a backup repository handled by a proxy')
+        }
+
         // httpProxy is ignored when using XO Proxy
         const { allowUnauthorized, host, password, username } = await app.getXenServerWithCredentials(
           app.getXenServerIdByObject(sr.$id)
@@ -602,6 +608,14 @@ export default class BackupNg {
             async () =>
               new ImportVmBackup({
                 adapter,
+                // the mounts outlive this restore, so they get their own handler and their own
+                // lifecycle: `mountBackupArchiveDisk` already owns both, and validates the disk
+                // path against the archive
+                liveMount: {
+                  mountDisk: ({ diskPath, hostId }) =>
+                    app.mountBackupArchiveDisk({ archiveId: id, diskId: diskPath, hostId }),
+                  unmountDisk: mountId => app.unmountBackupArchiveDisk(mountId),
+                },
                 metadata,
                 settings,
                 srUuid: srId,
@@ -800,6 +814,11 @@ export default class BackupNg {
   }
 
   async checkVmBackupNg(backupId, srId, settings) {
+    if (hasLiveMountTarget(settings?.mapVdisSrs)) {
+      // the restored VM is destroyed at the end of the check, which would leave the mount behind
+      throw invalidParameters('a backup health check cannot live mount a disk')
+    }
+
     await this._app.tasks
       .create({
         name: 'VM Backup Health Check',
@@ -812,6 +831,7 @@ export default class BackupNg {
         const restoredId = await this.importVmBackupNg(backupId, srId, {
           ...settings,
           additionalVmTag: 'xo:no-bak=Health Check',
+          vmNamePrefix: '[Health Check] ',
         })
 
         const restoredVm = xapi.getObject(restoredId)

@@ -2,6 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { RPU_RECOVERY_STEP_NAMES } from '@vates/types/common'
 import { randomUUID } from 'node:crypto'
 import stringify from 'json-stringify-safe'
+import { incorrectState } from 'xo-common/api-errors.js'
 
 import { replacer } from './_rpuObservability.mjs'
 
@@ -47,8 +48,8 @@ export function filterError(error) {
  *
  * @param {object} params
  * @param {string} params.poolId
- * @param {object} params.options - Operator-consented options (`rebootVm`,
- *   `bypassBackupCheck`, `shutdownPinnedVms`), impossible to reconstruct later
+ * @param {object} params.options - Operator-consented options (`acceptCurrentStateAsBaseline`,
+ *   `rebootVm`, `bypassBackupCheck`, `shutdownPinnedVms`), impossible to reconstruct later
  * @returns {object}
  */
 export function createRpuRecoveryRecord({ poolId, options }) {
@@ -156,6 +157,28 @@ export function unreadableRpuRecoveryView(poolId) {
 }
 
 /**
+ * Reads the record of a pool and projects it onto its public view.
+ *
+ * @param {object} store - LevelDB sublevel, keyed by pool id
+ * @param {string} poolId
+ * @returns {Promise<object | undefined>} `undefined` when the pool has no record
+ */
+export async function readRpuRecoveryView(store, poolId) {
+  let record
+  try {
+    record = await store.get(poolId)
+  } catch (error) {
+    if (error.notFound) {
+      return undefined
+    }
+    // undecodable value: report blocked, leave the raw value on disk as evidence
+    log.warn('unreadable RPU recovery record', { error, poolId })
+    return unreadableRpuRecoveryView(poolId)
+  }
+  return buildRpuRecoveryView(record)
+}
+
+/**
  * Recorder used when a run does not track recovery (rolling pool reboot):
  * every method is a no-op.
  */
@@ -175,6 +198,7 @@ export const noopRpuRecorder = Object.freeze({
   recordHaltedPinnedVm: asyncNoop,
   forgetHaltedPinnedVm: noop,
   fail: asyncNoop,
+  dropIfNothingToRecover: asyncNoop,
   delete: asyncNoop,
 })
 
@@ -210,6 +234,23 @@ export function createRpuRecoveryRecorder({ store, record }) {
     return promise
   }
   const write = () => enqueueWrite().catch(warnOnce)
+  const deleteRecord = async () => {
+    await chain
+    await store.del(record.poolId)
+  }
+  // a record that survives a successful run must not be reported as
+  // interrupted at the next restart: it is stamped `succeeded` (best effort)
+  // before the delete failure is rethrown
+  const deleteOrSucceed = async () => {
+    try {
+      await deleteRecord()
+    } catch (error) {
+      record.status = 'succeeded'
+      record.finishedAt = new Date().toISOString()
+      await enqueueWrite().catch(warnOnce)
+      throw error
+    }
+  }
   const hostEntry = hostId => (record.hosts[hostId] ??= { steps: {} })
   // `failed` is sticky: the first failure of a step is never downgraded
   const setStep = (hostId, name, patch) => {
@@ -309,12 +350,22 @@ export function createRpuRecoveryRecorder({ store, record }) {
       record.finishedAt = new Date().toISOString()
       await enqueueWrite().catch(warnOnce)
     },
+    // A failure before the first host was handled leaves nothing to recover
+    // once the orchestrator has restored what it changed (schedules, load
+    // balancer, WLB): such a record is dropped, otherwise a refused
+    // precondition (a guidance to accept, a pinned VM to shut down...) would
+    // block the retry with the option the operator just consented to. Meant
+    // to run after those restorations, so that a record still on disk means
+    // some of them may not have happened; never throws, the record then
+    // simply stays `failed`
+    async dropIfNothingToRecover() {
+      if (Object.keys(record.hosts).length === 0) {
+        await deleteRecord().catch(warnOnce)
+      }
+    },
     // a successful run leaves no record behind: strict, a record left on disk
     // would report the run as interrupted at the next restart
-    async delete() {
-      await chain
-      await store.del(record.poolId)
-    },
+    delete: deleteOrSucceed,
   }
 }
 
@@ -323,16 +374,27 @@ export function createRpuRecoveryRecorder({ store, record }) {
  * recorder.
  *
  * Strict write: a failure rejects and must abort the RPU before any side
- * effect. An existing record for this pool is overwritten: refusing would
- * deadlock the pool as long as there is no explicit close operation.
+ * effect.
+ *
+ * A pool which still has a record, whatever its status, refuses a new run:
+ * that record is the only trace of what the previous run left behind, and it
+ * must be dealt with first. The caller holds the RPU guard of the pool, which
+ * makes this check-then-write safe.
  *
  * @param {object} params
  * @param {object} params.store - LevelDB sublevel, keyed by pool id
  * @param {string} params.poolId
  * @param {object} params.options
  * @returns {Promise<object>} the recorder
+ * @throws {Error} `incorrectState` (property `rollingUpdateRecovery`, actual: the status of the record) if the
+ *   pool still has a record
  */
 export async function startRpuRecoveryRun({ store, poolId, options }) {
+  const previous = await readRpuRecoveryView(store, poolId)
+  if (previous !== undefined) {
+    throw incorrectState({ actual: previous.status, expected: null, object: poolId, property: 'rollingUpdateRecovery' })
+  }
+
   const record = createRpuRecoveryRecord({ poolId, options })
   await store.put(poolId, record)
   return createRpuRecoveryRecorder({ store, record })

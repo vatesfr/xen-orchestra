@@ -150,7 +150,7 @@ export type PoolRollingUpdateRecoveryHost = {
 export type PoolRollingUpdateRecoveryRun = {
   runId: string
   poolId: string
-  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'cleaning'
+  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'cleaning' | 'succeeded'
   startedAt: string
   updatedAt: string
   finishedAt?: string
@@ -173,6 +173,28 @@ export type PoolRollingUpdateRecoveryBlocked = {
 }
 
 export type PoolRollingUpdateRecovery = PoolRollingUpdateRecoveryRun | PoolRollingUpdateRecoveryBlocked
+
+/** A disk of a backup archive currently served as a read-only iSCSI LUN */
+export type BackupArchiveDiskMount = {
+  /** Handle to pass to `unmountBackupArchiveDisk` */
+  id: string
+  /** UUID of the SR introduced on the host */
+  srUuid: string
+  /** UUID of the read-only VDI exposing the backup disk */
+  vdiUuid: string
+  /** IQN of the target serving the disk */
+  iqn: string
+  /** Address of the portal, as advertised to the host */
+  address: string
+  /** Port of the portal (ephemeral, one target per mount) */
+  port: number
+}
+
+/** A live mount, as listed by `listMountedBackupArchiveDisks` */
+export type MountedBackupArchiveDisk = BackupArchiveDiskMount & {
+  /** Path of the mounted disk on its backup repository */
+  diskPath: string
+}
 
 export type XoApp = {
   hooks: EventEmitter
@@ -284,7 +306,14 @@ export type XoApp = {
     proxy?: XoProxy['id']
     url: string
   }): Promise<XoBackupRepository>
-  createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
+  createUser(params: {
+    firstname?: string
+    lastname?: string
+    name?: string
+    password?: string
+    username?: string
+    [key: string]: unknown
+  }): Promise<XoUser>
   deleteAclV2GroupRole(
     groupId: XoGroup['id'],
     roleId: XoAclRole['id'],
@@ -345,6 +374,11 @@ export type XoApp = {
   getAllUsers(opts?: { obfuscatePassword?: boolean }): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
+  /** Archive/host a live-mounted disk belongs to, as recorded by `mountBackupArchiveDisk` */
+  getBackupArchiveDiskMountOwner(id: BackupArchiveDiskMount['id']): {
+    archiveId: XoVmBackupArchive['id']
+    hostId: XoHost['id']
+  }
   getBackupNgLogs(): Promise<Record<string, AnyXoLog>>
   getBackupNgLogs(id: AnyXoLog['id']): Promise<AnyXoLog>
   getBackupNgLogsSorted(opts: {
@@ -364,6 +398,7 @@ export type XoApp = {
   getTotalBackupSizeOnRemote(id: XoBackupRepository['id']): Promise<{ onDisk: number }>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
   getUser: (id: XoUser['id'], opts?: { obfuscatePassword?: boolean }) => Promise<XoUser>
+  getUserIdentityFields(): string[]
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(
@@ -380,11 +415,22 @@ export type XoApp = {
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
     pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
   }>
+  listMountedBackupArchiveDisks(): MountedBackupArchiveDisk[]
   /** `null` when the listing of a backup repository failed */
   listVmBackupsNg(
     backupRepositoryIds: XoBackupRepository['id'][],
     opts?: { _forceRefresh?: boolean; vmId?: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]> | null>>
+  /**
+   * Serve one disk of a backup archive as a read-only iSCSI LUN and attach it to
+   * `host` as an SR. Undone by `unmountBackupArchiveDisk`.
+   */
+  mountBackupArchiveDisk(params: {
+    archiveId: XoVmBackupArchive['id']
+    /** One of the archive's `disks[].id` */
+    diskId: string
+    hostId: XoHost['id']
+  }): Promise<BackupArchiveDiskMount>
   pingRemote(id: XoBackupRepository['id']): Promise<{ success: true }>
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(
@@ -400,7 +446,13 @@ export type XoApp = {
   ): Promise<void>
   rollingPoolUpdate(
     pool: XoPool,
-    opts?: { bypassBackupCheck?: boolean; rebootVm?: boolean; parentTask?: VatesTask; shutdownPinnedVms?: boolean }
+    opts?: {
+      acceptCurrentStateAsBaseline?: boolean
+      bypassBackupCheck?: boolean
+      rebootVm?: boolean
+      parentTask?: VatesTask
+      shutdownPinnedVms?: boolean
+    }
   ): Promise<void>
   getRollingUpdateRecovery(poolId: XoPool['id']): Promise<PoolRollingUpdateRecovery | undefined>
   setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
@@ -414,20 +466,25 @@ export type XoApp = {
     | { success: true; readRate: number; writeRate: number }
     | { success: false; step: string; file: string; error: unknown }
   >
+  /** Detach a disk mounted by `mountBackupArchiveDisk` and stop serving it */
+  unmountBackupArchiveDisk(id: BackupArchiveDiskMount['id']): Promise<void>
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
   updateUser(
     id: XoUser['id'],
     updates: {
+      email?: string
+      authProviders?: Record<string, string>
+      firstname?: string
+      lastname?: string
       /**
        * @deprecated
        */
-      email?: string
-      authProviders?: Record<string, string>
       name?: string
       password?: string
       permission?: string
       preferences?: Record<string, string>
+      username?: string
     }
   ): Promise<void>
   updateAclV2Privilege(

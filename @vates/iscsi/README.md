@@ -1,0 +1,279 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# @vates/iscsi
+
+[![Package Version](https://badgen.net/npm/v/@vates/iscsi)](https://npmjs.org/package/@vates/iscsi) ![License](https://badgen.net/npm/license/@vates/iscsi) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@vates/iscsi)](https://bundlephobia.com/result?p=@vates/iscsi) [![Node compatibility](https://badgen.net/npm/node/@vates/iscsi)](https://npmjs.org/package/@vates/iscsi)
+
+> Minimal iSCSI target and initiator: expose or read a single LUN, with one-way CHAP
+
+## Install
+
+Installation of the [npm package](https://npmjs.org/package/@vates/iscsi):
+
+```sh
+npm install --save @vates/iscsi
+```
+
+## Usage
+
+A small, dependency-light iSCSI **target** (server) written in TypeScript. It
+exposes exactly one read/write LUN backed by a pluggable byte-range
+`BlockDevice`, and interoperates with the standard Linux **open-iscsi**
+initiator (the same one XCP-ng/XAPI uses to attach an `lvmoiscsi` SR).
+
+### Scope
+
+The target drives login negotiation onto a single, fixed code path:
+
+- single initiator, **`MaxConnections=1`**, **`ErrorRecoveryLevel=0`**
+- no header/data digests (`HeaderDigest=None`, `DataDigest=None`)
+- all writes are R2T-solicited (`InitialR2T=Yes`, `ImmediateData=No`)
+- one LUN (LUN 0)
+
+It implements SendTargets discovery, login (`AuthMethod=None` or one-way
+**CHAP** — see [Authentication](#authentication-chap)), the ~10 SCSI
+commands a Linux initiator issues to attach and use a block device
+(`INQUIRY` + VPD `0x00`/`0x80`/`0x83`, `REPORT LUNS`, `READ CAPACITY 10/16`,
+`READ`/`WRITE 10/16`, `TEST UNIT READY`, `REQUEST SENSE`, `MODE SENSE`,
+`SYNCHRONIZE CACHE`), the full R2T / Data-Out write path, NOP keepalive replies,
+and Logout. Commands may be outstanding concurrently (Data-Out PDUs are routed
+by Initiator Task Tag), so it does not stall under real guest I/O.
+
+The package also ships a userspace **initiator** (`IscsiInitiator`) and an
+`IscsiDisk` adapter that exposes a remote LUN as an `@xen-orchestra/disk-transform`
+`RandomAccessDisk` — see [Initiator](#initiator).
+
+Not implemented (yet): mutual (two-way) CHAP, Task Management (abort/reset),
+target-initiated NOP keepalives, multiple connections/LUNs.
+
+### CLI
+
+The package ships a `vates-iscsi` binary that serves a file as a LUN:
+
+```sh
+> vates-iscsi /srv/lun.img
+> vates-iscsi /srv/lun.img --serial MYSERIAL01 --port 3260
+> vates-iscsi /srv/new.img --size 10G          # create/grow the backing file first
+```
+
+```
+Usage: vates-iscsi <file> [options]
+
+Options:
+  --serial <serial>       LUN serial number (default: derived from the IQN).
+  --size <bytes>          Create/grow the backing file (suffixes K, M, G, T).
+  --iqn <iqn>             Target IQN (default: iqn.2024-01.tech.vates:<file>).
+  --host <host>           Listen address (default: 0.0.0.0).
+  --port <port>           Listen port (default: 3260).
+  --block-size <bytes>    Logical block size (default: 512).
+  -h, --help              Show this help.
+```
+
+### Library
+
+```js
+import { IscsiTarget, FileBlockDevice } from '@vates/iscsi'
+
+// The backing file must already exist and be sized to the LUN capacity,
+// e.g. `fs.truncate('/srv/lun.img', 10 * 1024 ** 3)`.
+const target = new IscsiTarget({
+  iqn: 'iqn.2024-01.tech.vates:lun0',
+  host: '0.0.0.0',
+  port: 3260,
+  lun: new FileBlockDevice({ path: '/srv/lun.img', blockSize: 512 }),
+})
+
+await target.listen()
+// ... target is now discoverable and attachable by open-iscsi ...
+await target.close()
+```
+
+#### Adding a target backend
+
+A "backend" is whatever stores the LUN's bytes. The protocol layer translates
+SCSI `READ`/`WRITE` CDBs (LBA + block count) into byte offsets/lengths against a
+single small interface, so a backend only has to provide flat random access — it
+never sees a PDU. `FileBlockDevice` (a sparse file) is the built-in one; implement
+`BlockDevice` to expose anything else (a raw device, an object store, an
+`@xen-orchestra/disk-transform` `RandomAccessDisk`, …):
+
+```ts
+interface BlockDevice {
+  open?(): Promise<void> // optional, awaited once before serving I/O
+  getSize(): number // total capacity in bytes; MUST be a multiple of getBlockSize()
+  getBlockSize(): number // logical block size, typically 512
+  read(offset: number, length: number): Promise<Buffer> // exactly `length` bytes at byte `offset`
+  write(offset: number, data: Buffer): Promise<void> // write `data.length` bytes at byte `offset`
+  flush(): Promise<void> // SYNCHRONIZE CACHE — persist any buffering
+  close(): Promise<void> // release resources
+}
+```
+
+Contract to respect:
+
+- **`getSize()` must be a multiple of `getBlockSize()`** and stable for the life of
+  the device. `open()` is the place to compute it (e.g. `stat` the file).
+- **`read` must return exactly `length` bytes** — never short. Zero-fill a sparse
+  or past-EOF tail rather than returning fewer bytes; the SCSI layer already
+  bounds `offset + length` to the capacity.
+- `offset` and `length` are always block-aligned (multiples of `getBlockSize()`).
+- `read`/`write` may be **called concurrently** (commands are interleaved), so the
+  backend must be safe under overlapping calls; honour back-pressure and don't
+  buffer unboundedly.
+- Throwing from `read`/`write`/`flush` tears the connection down; fail fast and
+  attach context to the error.
+
+Minimal example — expose a read-only `RandomAccessDisk` (VHD / qcow2 / raw / a
+remote NBD or iSCSI LUN) as a target LUN by mapping byte reads onto block reads:
+
+```js
+import { IscsiTarget } from '@vates/iscsi'
+
+class RandomAccessDiskLun {
+  // `disk` is an initialized @xen-orchestra/disk-transform RandomAccessDisk.
+  constructor(disk) {
+    this.disk = disk
+    this.blockSize = disk.getBlockSize()
+  }
+  getSize() {
+    return this.disk.getVirtualSize()
+  }
+  getBlockSize() {
+    return this.blockSize
+  }
+  async read(offset, length) {
+    const out = Buffer.alloc(length) // pre-zeroed: sparse/holes read as zeros
+    const first = Math.floor(offset / this.blockSize)
+    const last = Math.floor((offset + length - 1) / this.blockSize)
+    for (let index = first; index <= last; index++) {
+      if (!this.disk.hasBlock(index)) {
+        continue // unallocated: leave zeros
+      }
+      const { data } = await this.disk.readBlock(index)
+      const blockStart = index * this.blockSize
+      const from = Math.max(0, offset - blockStart)
+      const to = Math.min(this.blockSize, offset + length - blockStart)
+      data.copy(out, blockStart + from - offset, from, to)
+    }
+    return out
+  }
+  write() {
+    throw new Error('read-only LUN')
+  }
+  async flush() {}
+  async close() {
+    await this.disk.close()
+  }
+}
+
+const target = new IscsiTarget({ iqn: 'iqn.2024-01.tech.vates:disk0', lun: new RandomAccessDiskLun(disk) })
+await target.listen()
+```
+
+For a writable backend, implement `write(offset, data)` symmetrically and make
+`flush()` durable (e.g. `fsync`), as `FileBlockDevice` does.
+
+### Initiator
+
+`IscsiInitiator` is a minimal userspace iSCSI **client**: it connects to one
+target portal, logs in, and reads the LUN. `IscsiDisk` wraps it as an
+`@xen-orchestra/disk-transform` `RandomAccessDisk`, so a remote LUN drops straight
+into the backup/transform pipeline (the iSCSI counterpart of `@vates/nbd-client`'s
+`NbdDisk`). It is **read-only**, single-connection, digests off.
+
+```js
+import { IscsiInitiator, IscsiDisk } from '@vates/iscsi'
+
+// Low-level byte reads:
+const initiator = new IscsiInitiator({
+  host: '10.0.0.10',
+  port: 3260,
+  targetIqn: 'iqn.2024-01.tech.vates:lun0',
+  chap: { user: 'alice', secret: 's3cr3t' }, // optional, see Authentication
+})
+await initiator.connect()
+console.log(initiator.getSize(), initiator.getBlockSize())
+const bytes = await initiator.read(/* offset */ 0, /* length */ 1024 * 1024)
+await initiator.close()
+
+// …or as a RandomAccessDisk (blockSize must be a multiple of the LUN block size):
+const disk = new IscsiDisk(
+  { host: '10.0.0.10', targetIqn: 'iqn.2024-01.tech.vates:lun0' },
+  { blockSize: 2 * 1024 * 1024 }
+)
+await disk.init()
+// disk.getVirtualSize(), disk.getBlockIndexes(), await disk.readBlock(i), …
+await disk.close()
+```
+
+First-cut `IscsiDisk` treats the LUN as fully allocated (every block reported as
+present, like `RawDisk`); a changed-block map (e.g. a Pure "Volume Difference")
+can narrow it later.
+
+### Authentication (CHAP)
+
+The target and initiator support **one-way CHAP** (MD5) in opposite roles; mutual
+(two-way) CHAP is not yet implemented.
+
+**Target as authenticator.** Pass `chap` to require each _data_ session to prove a
+credential; the target challenges the initiator and rejects the login (Login
+Response status-class _Initiator Error_ / _authentication failure_) on a mismatch:
+
+```js
+const target = new IscsiTarget({
+  iqn: 'iqn.2024-01.tech.vates:lun0',
+  lun,
+  chap: { user: 'alice', secret: 's3cr3t' },
+})
+```
+
+This interoperates with the Linux **open-iscsi** initiator (the one XCP-ng uses);
+configure its node record's incoming credential:
+
+```sh
+iscsiadm -m node -T <iqn> -p <portal> -o update -n node.session.auth.authmethod -v CHAP
+iscsiadm -m node -T <iqn> -p <portal> -o update -n node.session.auth.username   -v alice
+iscsiadm -m node -T <iqn> -p <portal> -o update -n node.session.auth.password   -v s3cr3t
+```
+
+CHAP is enforced only on **Normal (data) sessions**; **Discovery** sessions (which
+can only run SendTargets and never reach the LUN) stay unauthenticated, so plain
+`iscsiadm -m discovery` keeps working. open-iscsi requires the secret to be 12–16
+characters.
+
+**Initiator as responder.** Pass `chap` to `IscsiInitiator`/`IscsiDisk` to answer a
+target's challenge (e.g. a Pure array acting as authenticator). If the target
+_requires_ mutual CHAP the login is cleanly rejected (we never challenge back).
+
+### Security
+
+iSCSI has no data-path encryption of its own. CHAP authenticates the login only;
+with no digests, **CDBs and data remain cleartext**. Anyone who can reach an
+unauthenticated port can read/write the LUN, and a CHAP-protected one is still
+exposed to eavesdropping and tampering on the wire. Expose targets only on a
+trusted, isolated storage network, and use **IPsec** (the RFC-specified mechanism)
+or equivalent if confidentiality is required.
+
+### Testing
+
+- `yarn test` — fast unit tests (PDU framing, SCSI encoders/decoders, login
+  negotiation, sequence-number arithmetic).
+- `yarn test-integration` — a self-contained loopback test (an in-process
+  minimal initiator drives discovery, identity, write/read-back, and command
+  interleaving), plus an open-iscsi interop test that **requires root and
+  `iscsiadm`** and skips gracefully otherwise.
+
+## Contributions
+
+Contributions are _very_ welcomed, either on the documentation or on
+the code.
+
+You may:
+
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
+  you've encountered;
+- fork and create a pull request.
+
+## License
+
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

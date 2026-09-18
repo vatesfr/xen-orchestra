@@ -3,7 +3,7 @@ import { after, describe, it, mock } from 'node:test'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { forbiddenOperation } from 'xo-common/api-errors.js'
+import { forbiddenOperation, incorrectState } from 'xo-common/api-errors.js'
 import { Task } from '@vates/task'
 
 import XenServers from './xen-servers.mjs'
@@ -12,7 +12,13 @@ const pool = { id: 'pool-1', name_label: 'pool 1', _xapiRef: 'OpaqueRef:pool-1' 
 const tracesDir = mkdtempSync(join(tmpdir(), 'xo-rpu-test-'))
 after(() => rmSync(tracesDir, { recursive: true, force: true }))
 
-function createXenServers({ backupRunning = false, deleteRecord = async () => {} } = {}) {
+function createXenServers({
+  backupRunning = false,
+  deleteRecord = async () => {},
+  recordRefused = false,
+  updateRefused = false,
+  withSchedule = false,
+} = {}) {
   const calls = []
   const app = {
     apiContext: { user: { preferences: {} } },
@@ -32,15 +38,32 @@ function createXenServers({ backupRunning = false, deleteRecord = async () => {}
     },
     async getAllJobs() {
       calls.push(['getAllJobs'])
-      return []
+      // smart mode without a pool filter: may concern this pool
+      return withSchedule ? [{ id: 'job-1', vms: {} }] : []
     },
     async getAllSchedules() {
-      return []
+      return withSchedule ? [{ id: 'schedule-1', jobId: 'job-1', enabled: true }] : []
+    },
+    async updateSchedule({ id, enabled }) {
+      calls.push(['updateSchedule', id, enabled])
     },
     async getOptionalPlugin() {},
     async startRpuRecoveryRun(poolId, options) {
       calls.push(['startRpuRecoveryRun', poolId, options])
-      return { markRunning() {}, setTaskId() {}, delete: deleteRecord, async fail() {} }
+      if (recordRefused) {
+        throw incorrectState({ actual: 'failed', expected: null, object: poolId, property: 'rollingUpdateRecovery' })
+      }
+      return {
+        markRunning() {},
+        setTaskId() {},
+        delete: deleteRecord,
+        async fail() {
+          calls.push(['recorder.fail'])
+        },
+        async dropIfNothingToRecover() {
+          calls.push(['recorder.dropIfNothingToRecover'])
+        },
+      }
     },
   }
   // the constructor arms a timeout that rejects if the `core started` hook,
@@ -53,8 +76,11 @@ function createXenServers({ backupRunning = false, deleteRecord = async () => {}
     async getField() {
       return false
     },
-    async rollingPoolUpdate(task, { rebootVm, shutdownPinnedVms }) {
-      calls.push(['xapi.rollingPoolUpdate', { rebootVm, shutdownPinnedVms }])
+    async rollingPoolUpdate(task, { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms }) {
+      calls.push(['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms }])
+      if (updateRefused) {
+        throw incorrectState({ actual: ['host-B'], expected: [], object: 'pool-1', property: 'partiallyUpdatedPool' })
+      }
     },
   })
   return { calls, xenServers }
@@ -69,14 +95,48 @@ describe('XenServers.rollingPoolUpdate', function () {
     ])
   })
 
-  it('forwards bypassBackupCheck to the backup guard, then runs', async function () {
+  it('forwards the options to the backup guard, the record and the update, then runs', async function () {
     const { calls, xenServers } = createXenServers()
-    await xenServers.rollingPoolUpdate(pool, { bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: false })
+    await xenServers.rollingPoolUpdate(pool, {
+      acceptCurrentStateAsBaseline: true,
+      bypassBackupCheck: true,
+      rebootVm: true,
+      shutdownPinnedVms: false,
+    })
     assert.deepEqual(calls, [
       ['backupGuard', 'pool-1', { bypassBackupCheck: true, operation: 'rollingPoolUpdate' }],
       ['getAllJobs'],
-      ['startRpuRecoveryRun', 'pool-1', { bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: false }],
-      ['xapi.rollingPoolUpdate', { rebootVm: true, shutdownPinnedVms: false }],
+      [
+        'startRpuRecoveryRun',
+        'pool-1',
+        { acceptCurrentStateAsBaseline: true, bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: false },
+      ],
+      ['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: false }],
+    ])
+  })
+
+  it('is refused before touching the pool when a recovery record exists', async function () {
+    const { calls, xenServers } = createXenServers({ recordRefused: true })
+    await assert.rejects(xenServers.rollingPoolUpdate(pool), error =>
+      incorrectState.is(error, { property: 'rollingUpdateRecovery' })
+    )
+    assert.equal(calls.at(-1)[0], 'startRpuRecoveryRun')
+  })
+
+  it('persists a refused run, restores the pool, then drops the record', async function () {
+    const { calls, xenServers } = createXenServers({ updateRefused: true, withSchedule: true })
+    await assert.rejects(xenServers.rollingPoolUpdate(pool), error =>
+      incorrectState.is(error, { property: 'partiallyUpdatedPool' })
+    )
+    assert.deepEqual(calls.slice(-5), [
+      ['updateSchedule', 'schedule-1', false],
+      [
+        'xapi.rollingPoolUpdate',
+        { acceptCurrentStateAsBaseline: undefined, rebootVm: undefined, shutdownPinnedVms: undefined },
+      ],
+      ['recorder.fail'],
+      ['updateSchedule', 'schedule-1', true],
+      ['recorder.dropIfNothingToRecover'],
     ])
   })
 
