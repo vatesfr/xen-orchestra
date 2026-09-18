@@ -426,7 +426,7 @@ const methods = {
       get: vm => +vm.memory_static_min,
       set(value, vm) {
         throw invalidParameters(
-          `memory (${value}) must be greater than or equal to this VM's minimum memory (${vm.memory_static_min})`
+          `memory (${value}) must be greater than or equal to this VM's static minimum memory (${vm.memory_static_min}), which is a readonly property`
         )
       },
     },
