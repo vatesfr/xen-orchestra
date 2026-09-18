@@ -116,6 +116,11 @@ export default class Jobs {
   #normalizeJob(job) {
     job.runId = this._runningJobs[job.id]
 
+    if (this.isJobSequence(job)) {
+      job.created_by ??= job.userId
+      job.updated_by ??= job.userId
+    }
+
     return job
   }
 
