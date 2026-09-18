@@ -156,7 +156,7 @@
   "configuration": "Konfigurasjon",
   "configure-in-xo-5": "Konfigurer i XO 5",
   "confirm-cancel?": "Er du sikker på at du vil avbryte?",
-  "confirm-delete": "Du er i ferd med å slette {0}",
+  "confirm-delete": "Du er i ferd med å slette {name}",
   "connect": "Koble til",
   "connected": "Tilkoblet",
   "connected-to-ip": "Tilkoblet til {ip}",
