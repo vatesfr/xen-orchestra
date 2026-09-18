@@ -20,12 +20,12 @@ export const useHostRebootJob = defineJob('host.reboot', [hostArg, hostBooleanAr
         throw new JobError(t('job:host-reboot:missing-host'))
       }
 
-      if (isRunning || isHostOperationPending(host, HOST_OPERATION.REBOOT)) {
-        throw new JobRunningError(t('job:host-reboot:in-progress'))
-      }
-
       if (isHostOperationPending(host, HOST_OPERATION.EVACUATE)) {
         throw new JobRunningError(t('job:host-reboot:evacuate-in-progress'))
+      }
+
+      if (isRunning || isHostOperationPending(host, [HOST_OPERATION.REBOOT, HOST_OPERATION.SHUTDOWN])) {
+        throw new JobRunningError(t('job:host-reboot:in-progress'))
       }
 
       if (!isHostRunning(host)) {
