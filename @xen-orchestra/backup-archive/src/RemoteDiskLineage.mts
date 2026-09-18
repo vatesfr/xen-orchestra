@@ -42,8 +42,9 @@ export class RemoteDiskLineage {
   #childOf: Map<string, string> = new Map()
   // Disk paths declared active by their owning archives (accumulated across all referencing archives)
   #activeDiskPaths: Set<string> = new Set()
-  // Interrupted merges: normalized parent path { stateFilePath, chain }
-  #interruptedMerges: Map<string, { stateFilePath: string; chain?: string[] }> = new Map()
+  // Interrupted merges: normalized parent path { stateFilePath, chain, step }
+  #interruptedMerges: Map<string, { stateFilePath: string; chain?: string[]; step?: 'mergeBlocks' | 'cleanup' }> =
+    new Map()
 
   constructor(handler: RemoteHandlerAbstract, vdiDir: string, opts: ResolvedBackupCleanOptions) {
     this.#handler = handler
@@ -267,7 +268,7 @@ export class RemoteDiskLineage {
     }
 
     // Process interrupted merges first so their disks are protected from the orphan loop
-    for (const [parentPath, { stateFilePath, chain: stateChain }] of this.#interruptedMerges) {
+    for (const [parentPath, { stateFilePath, chain: stateChain, step }] of this.#interruptedMerges) {
       if (!this.#diskPaths.has(parentPath)) {
         this.#opts.logWarn('orphan merge state', { stateFilePath, missingDisk: parentPath })
         if (remove) {
@@ -279,6 +280,22 @@ export class RemoteDiskLineage {
 
       let chain: string[] | undefined
       if (stateChain !== undefined) {
+        const missing = stateChain.filter(p => !this.#diskPaths.has(p))
+
+        // A merge only removes disks during its cleanup step, so outside of it every disk of the
+        // recorded chain must still be there. Merging what is left would fold the surviving
+        // children into the parent and then rename it onto the chain tip, silently dropping the
+        // blocks of the disks that went missing. Refuse, and leave the state as evidence.
+        if (missing.length > 0 && step !== 'cleanup') {
+          this.#opts.logWarn('merge chain lost disks before its cleanup step, refusing to resume', {
+            stateFilePath,
+            parentPath,
+            step,
+            missing,
+          })
+          continue
+        }
+
         const existing = stateChain.filter(p => this.#diskPaths.has(p))
         if (existing.length >= 2) chain = existing
       }
