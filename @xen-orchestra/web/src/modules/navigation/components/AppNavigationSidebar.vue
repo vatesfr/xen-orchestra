@@ -78,7 +78,17 @@ type SidebarPanel = (typeof SIDEBAR_PANEL)[keyof typeof SIDEBAR_PANEL]
 
 const { treeItems, treeItemIndexById, isReady, filter, isSearching, expandToNode } = useNavigationTree()
 
-const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
+const route = useRoute<
+  | '/pool/[id]'
+  | '/host/[id]'
+  | '/vm/[id]'
+  | '/kubernetes'
+  | '/kubernetes/clusters'
+  | '/kubernetes/cluster/[id]'
+  | '/kubernetes/node/[id]'
+  | '/kubernetes/namespace/[id]'
+  | '/kubernetes/pod/[id]'
+>()
 
 const activeSidebarPanel = ref<SidebarPanel>(SIDEBAR_PANEL.TREEVIEW)
 
@@ -95,19 +105,43 @@ const isDevPage = computed(() => route.path.startsWith('/dev'))
 
 let scrolledToId: string | undefined
 
-async function scrollToActiveNode() {
-  const paramId = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
+function getRouteParamId() {
+  if (!('id' in route.params)) {
+    return undefined
+  }
 
-  if (!paramId) {
+  const paramId = route.params.id
+
+  return Array.isArray(paramId) ? paramId[0] : paramId
+}
+
+function getTreeNodeIdFromRoute() {
+  const paramId = getRouteParamId()
+
+  if (paramId !== undefined) {
+    return paramId
+  }
+
+  if (route.path === '/kubernetes' || route.path === '/kubernetes/clusters') {
+    return 'kubernetes-root'
+  }
+
+  return undefined
+}
+
+async function scrollToActiveNode() {
+  const treeNodeId = getTreeNodeIdFromRoute()
+
+  if (treeNodeId === undefined) {
     scrolledToId = undefined
     return
   }
 
-  if (paramId === scrolledToId) {
+  if (treeNodeId === scrolledToId) {
     return
   }
 
-  const node = expandToNode(paramId)
+  const node = expandToNode(treeNodeId)
   if (!node) {
     return
   }
@@ -117,7 +151,7 @@ async function scrollToActiveNode() {
     return
   }
 
-  scrolledToId = paramId
+  scrolledToId = treeNodeId
 
   await nextTick()
 
@@ -125,7 +159,7 @@ async function scrollToActiveNode() {
 }
 
 watch(
-  [() => route.params.id, isReady, treeItems],
+  [() => route.path, getRouteParamId, isReady, treeItems],
   () => {
     if (isReady.value) {
       scrollToActiveNode()

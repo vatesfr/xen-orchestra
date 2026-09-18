@@ -1,4 +1,4 @@
-import { useXoKubernetesTreeData } from '@/modules/kubernetes/composables/xo-kubernetes-tree-data.composable.ts'
+import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
 import type { XoKubernetesRoot } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { KUBERNETES_NAME } from '@/shared/constants.ts'
 import type { TreeNodeBase } from '@core/packages/tree/tree-node-base.ts'
@@ -6,8 +6,7 @@ import { defineTree } from '@core/packages/tree/define-tree.ts'
 import { computed } from 'vue'
 
 export function useXoKubernetesTreeDefinitions(predicate: (node: TreeNodeBase) => boolean | undefined) {
-  const { clusters, nodesByCluster, namespacesByCluster, podsByNamespace, areKubernetesObjectsReady } =
-    useXoKubernetesTreeData()
+  const { clusters, areClustersReady } = useXoKubernetesClusterCollection()
 
   const kubernetesRoot: XoKubernetesRoot = {
     type: 'kubernetes',
@@ -35,30 +34,19 @@ export function useXoKubernetesTreeDefinitions(predicate: (node: TreeNodeBase) =
             predicate,
             discriminator: 'kubernetes-cluster',
           },
-          cluster => [
-            ...defineTree('nodes', nodesByCluster.value.get(cluster.name) ?? [], {
+          () => [
+            ...defineTree('nodes', [], {
               getId: node => `${node.$cluster}/${node.name}`,
               getLabel: 'name',
               predicate,
               discriminator: 'kubernetes-node',
             }),
-            ...defineTree(
-              'namespaces',
-              namespacesByCluster.value.get(cluster.name) ?? [],
-              {
-                getId: namespace => `${namespace.$cluster}/${namespace.name}`,
-                getLabel: 'name',
-                predicate,
-                discriminator: 'kubernetes-namespace',
-              },
-              namespace =>
-                defineTree('pods', podsByNamespace.value.get(`${cluster.name}/${namespace.name}`) ?? [], {
-                  getId: pod => `${pod.$namespace}/${pod.name}`,
-                  getLabel: 'name',
-                  predicate,
-                  discriminator: 'kubernetes-pod',
-                })
-            ),
+            ...defineTree('namespaces', [], {
+              getId: namespace => `${namespace.$cluster}/${namespace.name}`,
+              getLabel: 'name',
+              predicate,
+              discriminator: 'kubernetes-namespace',
+            }),
           ]
         )
     )
@@ -66,6 +54,6 @@ export function useXoKubernetesTreeDefinitions(predicate: (node: TreeNodeBase) =
 
   return {
     definitions,
-    isReady: areKubernetesObjectsReady,
+    isReady: areClustersReady,
   }
 }
