@@ -16,6 +16,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [Servers] Fix servers stuck in `Connecting` state when using an HTTPS proxy that support HTTP/2 ([Forum#12502](https://xcp-ng.org/forum/topic/12502/xoa-6.9-update)) (PR [#10507](https://github.com/vatesfr/xen-orchestra/pull/10507))
+- [Modal] Update modal events to handle confirm actions correctly (PR [#10417](https://github.com/vatesfr/xen-orchestra/pull/10417))
 
 ### Packages to release
 
@@ -34,5 +35,6 @@
 <!--packages-start-->
 
 - xen-api patch
+- @xen-orchestra/web patch
 
 <!--packages-end-->
