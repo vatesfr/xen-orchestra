@@ -73,6 +73,18 @@ export const useVmStore = defineStore('xen-api-vm', () => {
     return undefined
   }
 
+  const runningVmsCountByHostRef = computed(() => {
+    const countByHostRef = new Map<XenApiHost['$ref'], number>()
+
+    runningVms.value.forEach(vm => {
+      if (vm.resident_on) {
+        countByHostRef.set(vm.resident_on, (countByHostRef.get(vm.resident_on) ?? 0) + 1)
+      }
+    })
+
+    return countByHostRef
+  })
+
   const recordsByHostRef = computed(() => {
     const vmsByHostOpaqueRef = new Map<XenApiHost['$ref'], XenApiVm[]>()
 
@@ -146,6 +158,7 @@ export const useVmStore = defineStore('xen-api-vm', () => {
     records,
     templates,
     runningVms,
+    runningVmsCountByHostRef,
     recordsByHostRef,
     getStats,
     getVmHost,
