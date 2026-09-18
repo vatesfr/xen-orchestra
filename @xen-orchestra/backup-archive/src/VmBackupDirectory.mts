@@ -82,7 +82,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     for (const fullPath of this.files.filter(path => path.endsWith('.json'))) {
       let metadata: PartialBackupMetadata | undefined
       try {
-        metadata = JSON.parse(await this.handler.readFile(fullPath)) satisfies PartialBackupMetadata
+        metadata = JSON.parse((await this.handler.readFile(fullPath)).toString()) satisfies PartialBackupMetadata
       } catch (error) {
         this.opts.logWarn(`Issue loading ${basename(fullPath)}`)
       }
