@@ -5,7 +5,6 @@ import _ from 'intl'
 import ActionButton from './action-button'
 import Component from './base-component'
 import Icon from 'icon'
-import LocalIso from './local-iso'
 import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { isAdmin } from 'selectors'
@@ -97,37 +96,34 @@ export default class IsoDevice extends Component {
     const SelectVdi = useResourceSet ? SelectResourceSetsVdi : SelectAnyVdi
 
     return (
-      <div>
-        <div className='input-group'>
-          <SelectVdi
-            onChange={this._handleInsert}
-            predicate={vdiPredicate}
-            resourceSet={useResourceSet ? resourceSet : undefined}
-            srPredicate={this._getSrPredicate()}
-            value={mountedIso}
-          />
-          {!useResourceSet && (
-            <span className='input-group-btn'>
-              <ActionButton
-                disabled={isEmpty(isoSrs)}
-                handler={this._rescanIsoSrs}
-                icon='refresh'
-                tooltip={_('rescanIsoSrs')}
-              />
-            </span>
-          )}
+      <div className='input-group'>
+        <SelectVdi
+          onChange={this._handleInsert}
+          predicate={vdiPredicate}
+          resourceSet={useResourceSet ? resourceSet : undefined}
+          srPredicate={this._getSrPredicate()}
+          value={mountedIso}
+        />
+        {!useResourceSet && (
           <span className='input-group-btn'>
-            <ActionButton disabled={!mountedIso} handler={this._handleEject} icon='vm-eject' />
+            <ActionButton
+              disabled={isEmpty(isoSrs)}
+              handler={this._rescanIsoSrs}
+              icon='refresh'
+              tooltip={_('rescanIsoSrs')}
+            />
           </span>
-          {mountedIso && !cdDrive.device && (
-            <Tooltip content={_('cdDriveNotInstalled')}>
-              <a className='text-warning btn btn-link' onClick={this._showWarning}>
-                <Icon icon='alarm' size='lg' />
-              </a>
-            </Tooltip>
-          )}
-        </div>
-        {isAdmin && <LocalIso vm={this.props.vm} />}
+        )}
+        <span className='input-group-btn'>
+          <ActionButton disabled={!mountedIso} handler={this._handleEject} icon='vm-eject' />
+        </span>
+        {mountedIso && !cdDrive.device && (
+          <Tooltip content={_('cdDriveNotInstalled')}>
+            <a className='text-warning btn btn-link' onClick={this._showWarning}>
+              <Icon icon='alarm' size='lg' />
+            </a>
+          </Tooltip>
+        )}
       </div>
     )
   }
