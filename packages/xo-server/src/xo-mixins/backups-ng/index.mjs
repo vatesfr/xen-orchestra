@@ -19,6 +19,7 @@ import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
+import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
@@ -99,13 +100,22 @@ export default class BackupNg {
     return this._runningRestores
   }
 
+  /**
+   * the VM backup archives of the backup repositories, as a collection: `add`, `update` and
+   * `remove` events carrying the archive and its previous value
+   *
+   * @returns {import('node:events').EventEmitter}
+   */
+  get vmBackupArchives() {
+    return this.#vmBackupsCache
+  }
+
   constructor(app) {
     this._app = app
     this._runningRestores = new Set()
-    this.#vmBackupsCache = new VmBackupsCache(
-      (repository, fn) => Disposable.use(app.getBackupsRemoteAdapter(repository), fn),
-      { minRefreshDelay: app.config.getDuration('backups.listingDebounce') }
-    )
+    this.#vmBackupsCache = new VmBackupsCache(new VmBackupsSource(app), {
+      minRefreshDelay: app.config.getDuration('backups.listingDebounce'),
+    })
 
     /** @type {Record<XoBackupRepository['id'], ListingRetryState>} */
     this._backupsListingRetry = { __proto__: null }
@@ -661,20 +671,6 @@ export default class BackupNg {
     return timeout.call(this._listVmBackupsOnRemoteUncached(remoteId, opts), LISTING_TIMEOUT)
   }
 
-  // proxies don't expose the journal of their repositories yet: they are still listed in full
-  async _listVmBackupsOnProxy(remoteId, remote, vmId) {
-    const { [remoteId]: backupsByVm } = await this._app.callProxyMethod(remote.proxy, 'backup.listVmBackups', {
-      remotes: {
-        [remoteId]: {
-          url: remote.url,
-          options: remote.options,
-        },
-      },
-      vmId,
-    })
-    return backupsByVm
-  }
-
   // the next listing of this repository will replay its journal instead of waiting for the end of the
   // current refresh window
   //
@@ -690,21 +686,10 @@ export default class BackupNg {
    * @returns {Promise<BackupsByVm>}
    */
   async _listVmBackupsOnRemoteUncached(remoteId, { vmId } = {}) {
-    const app = this._app
-    const remote = await app.getRemoteWithCredentials(remoteId)
+    const remote = await this._app.getRemoteWithCredentials(remoteId)
 
-    let backupsByVm
-    if (remote.proxy !== undefined) {
-      backupsByVm = await this._listVmBackupsOnProxy(remoteId, remote, vmId)
-      if (backupsByVm === undefined) {
-        // the proxy omits the repositories it failed to list
-        throw new Error(`the proxy failed to list the backup repository ${remoteId}`)
-      }
-    } else if (vmId !== undefined) {
-      backupsByVm = await this.#vmBackupsCache.getOneVm(remote, vmId)
-    } else {
-      backupsByVm = await this.#vmBackupsCache.get(remote)
-    }
+    const backupsByVm =
+      vmId !== undefined ? await this.#vmBackupsCache.getOneVm(remote, vmId) : await this.#vmBackupsCache.get(remote)
 
     return serveVmBackups(backupsByVm, remoteId, vmId)
   }
@@ -867,13 +852,29 @@ export default class BackupNg {
    * forgets everything known about a backup repository: its backups are read from scratch on the
    * next listing, instead of being brought up to date from its journal
    *
+   * its archives stay in the collection until that listing says what changed, so a repository which
+   * will not be listed again must go through `forgetVmBackupRepository()` instead, otherwise they
+   * are never removed from it
+   *
    * public because it is also called by the remotes mixin when a backup repository is updated
-   * or removed
    *
    * @param {XoBackupRepository['id']} remoteId
    */
   invalidateVmBackupsListing(remoteId) {
     this.#vmBackupsCache.delete(remoteId)
+    this.#resetVmBackupsListingState(remoteId)
+  }
+
+  /**
+   * forgets a backup repository which will not be listed again — it has been removed or disabled —
+   * and announces that its archives are gone with it
+   *
+   * public because it is called by the remotes mixin
+   *
+   * @param {XoBackupRepository['id']} remoteId
+   */
+  forgetVmBackupRepository(remoteId) {
+    this.#vmBackupsCache.remove(remoteId)
     this.#resetVmBackupsListingState(remoteId)
   }
 }

@@ -393,6 +393,146 @@ describe('readBackupJournal()', { concurrency: 1 }, () => {
   })
 })
 
+describe('readBackupJournalEvents()', { concurrency: 1 }, () => {
+  // records the paths whose metadata is read from now on, to check a replay does not re-read the
+  // same backup once per event
+  function watchMetadataReads() {
+    const read = adapter.readVmBackupMetadata.bind(adapter)
+    const paths = []
+    adapter.readVmBackupMetadata = path => {
+      paths.push(path)
+      return read(path)
+    }
+    return paths
+  }
+
+  test('reads the metadata of a backup once, whatever the number of events on it', async () => {
+    const path = await writeFullBackup()
+    const now = Date.now()
+    await writeJournalEntryAt(now + 1000, { event: 'change', vmUuid, filename: path, reason: 'merge' })
+    await writeJournalEntryAt(now + 2000, { event: 'change', vmUuid, filename: path, reason: 'merge' })
+
+    const reads = watchMetadataReads()
+    const { events } = await adapter.readBackupJournalEvents()
+
+    assert.deepEqual(reads, [path])
+    // the last event of a backup is its current state
+    assert.equal(events.length, 1)
+    assert.equal(events[0].event, 'change')
+    assert.equal(events[0].filename, path)
+    assert.equal(events[0].metadata._filename, path)
+  })
+
+  test('costs no metadata read at all for a backup which was added then deleted', async () => {
+    const path = await writeFullBackup()
+    await adapter.deleteVmBackup(path)
+
+    const reads = watchMetadataReads()
+    const { events } = await adapter.readBackupJournalEvents()
+
+    assert.deepEqual(reads, [])
+    assert.deepEqual(
+      events.filter(_ => _.filename === path),
+      [{ event: 'del', vmUuid, filename: path }]
+    )
+  })
+
+  test('reports a backup whose metadata is gone as deleted', async () => {
+    // deleted directly on the repository by a user or a third party tool, therefore not journaled
+    const path = await writeFullBackup()
+    await handler.unlink(path)
+
+    const { events } = await adapter.readBackupJournalEvents()
+    assert.deepEqual(events, [{ event: 'del', vmUuid, filename: path }])
+  })
+
+  test('names the backups the way a listing does, whatever the leading slash of the entry', async () => {
+    const path = await writeFullBackup()
+    await writeJournalEntryAt(Date.now() + 1000, {
+      event: 'change',
+      vmUuid,
+      filename: path.slice(1),
+      reason: 'merge',
+    })
+
+    const { events } = await adapter.readBackupJournalEvents()
+
+    // both entries are about the same backup, therefore they must reduce to a single event
+    assert.equal(events.length, 1)
+    assert.equal(events[0].filename, path)
+  })
+
+  test('ignores the event kinds it does not know', async () => {
+    const path = await writeFullBackup()
+    await writeJournalEntryAt(Date.now() + 1000, {
+      event: 'a-future-event',
+      vmUuid,
+      filename: `/${rootPath}/other.json`,
+    })
+
+    const { events } = await adapter.readBackupJournalEvents()
+    assert.deepEqual(
+      events.map(_ => _.filename),
+      [path]
+    )
+  })
+
+  test('keeps an unreadable metadata behind the cursor instead of failing the whole read', async () => {
+    const readable = await writeFullBackup(Date.now() - 2000)
+    const unreadable = await writeDeltaBackup(Date.now() - 1000)
+
+    const readFile = handler.readFile.bind(handler)
+    handler.readFile = async (path, ...rest) => {
+      if (path === unreadable) {
+        throw Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' })
+      }
+      return readFile(path, ...rest)
+    }
+
+    const { events, cursor } = await adapter.readBackupJournalEvents()
+
+    // the backups which could be read are still brought up to date
+    assert.deepEqual(
+      events.map(_ => _.filename),
+      [readable]
+    )
+
+    // and the one which could not is read again on the next call
+    handler.readFile = readFile
+    const { events: retried } = await adapter.readBackupJournalEvents(cursor)
+    assert.deepEqual(
+      retried.map(_ => _.filename),
+      [unreadable]
+    )
+  })
+
+  test('returns the cursor to start from on the next call', async () => {
+    await writeFullBackup(Date.now() - 2000)
+
+    const { events: first, cursor } = await adapter.readBackupJournalEvents()
+    assert.equal(first.length, 1)
+
+    await sleep(5)
+    const path = await writeDeltaBackup()
+
+    const { events } = await adapter.readBackupJournalEvents(cursor)
+    assert.deepEqual(
+      events.map(_ => _.filename),
+      [path]
+    )
+  })
+
+  test('keeps the same cursor when nothing new was read', async () => {
+    await writeFullBackup(Date.now() - 2000)
+
+    const { cursor } = await adapter.readBackupJournalEvents()
+    const { events, cursor: next } = await adapter.readBackupJournalEvents(cursor)
+
+    assert.deepEqual(events, [])
+    assert.equal(next, cursor)
+  })
+})
+
 describe('backup journal on an encrypted remote', { concurrency: 1 }, () => {
   test('entries are readable without the encryption key', async () => {
     const encryptedDir = await pFromCallback(cb => tmp.dir(cb))
