@@ -907,6 +907,7 @@
   "vcpus": "vCPUs",
   "vcpus-assigned": "vCPUs asignados",
   "vdi": "VDI",
+  "vdi-snpashot-time": "Fecha del Snapshot",
   "vdi-throughput": "Rendimiento de VDI",
   "vdis": "VDIs",
   "version": "Versión",
