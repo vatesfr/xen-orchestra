@@ -6,8 +6,10 @@ export const XO_LINKS = {
   BLOG: 'https://xen-orchestra.com/blog/',
   COMMUNITY: 'https://xcp-ng.org/forum/category/12/xen-orchestra',
   DOC: 'https://docs.xen-orchestra.com',
-  DOC_SDN_CONTROLLER_MIGRATION: 'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#migration-path',
-  DOC_SDN_CONTROLLER_XAPI_PLUGIN: 'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#xapi-plugin',
+  DOC_SDN_CONTROLLER_MIGRATION:
+    'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#migration-path',
+  DOC_SDN_CONTROLLER_XAPI_PLUGIN:
+    'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#xapi-plugin',
   TRANSLATION: 'https://translate.vates.tech/engage/xen-orchestra/',
 }
 
@@ -25,6 +27,8 @@ export const RULE_STATUS = {
 } as const
 
 export const ONE_GB = 1024 ** 3
+
+export const ONE_TB = 1024 ** 4
 
 export const VDI_SOURCE = {
   EMPTY: 'empty',

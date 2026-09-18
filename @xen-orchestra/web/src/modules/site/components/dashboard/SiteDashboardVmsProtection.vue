@@ -1,11 +1,11 @@
 <template>
-  <UiCard :has-error="isError">
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('backups:vms-protection') }}
       <template #description>{{ t('in-last-three-runs') }}</template>
     </UiCardTitle>
     <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="isError" format="card" type="error" size="extra-small" horizontal>
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
@@ -26,6 +26,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useSiteDashboardSection } from '@/modules/site/composables/use-site-dashboard-section.composable.ts'
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useVmProtectedInfoModal } from '@/shared/composables/modals/use-vm-protected-info-modal.ts'
@@ -39,7 +40,7 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { dashboard, hasError } = useXoSiteDashboard()
+const { dashboard } = useXoSiteDashboard()
 
 const { vms } = useXoVmCollection()
 
@@ -47,21 +48,9 @@ const { t } = useI18n()
 
 const { open: openVmProtectedModal } = useVmProtectedInfoModal()
 
-const dashboardBackups = computed(() => dashboard.value.backups)
+const { data: backups, isLoading, hasError } = useSiteDashboardSection(() => dashboard.value.backups, 'vmsProtection')
 
-const isLoading = computed(() => dashboardBackups.value === undefined)
-
-const isError = computed(
-  () => hasError.value || (dashboardBackups.value !== undefined && 'error' in dashboardBackups.value)
-)
-
-const vmsProtection = computed(() => {
-  if (!dashboardBackups.value || !('vmsProtection' in dashboardBackups.value)) {
-    return
-  }
-
-  return dashboardBackups.value?.vmsProtection
-})
+const vmsProtection = computed(() => backups.value?.vmsProtection)
 
 const vmsProtectionSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {

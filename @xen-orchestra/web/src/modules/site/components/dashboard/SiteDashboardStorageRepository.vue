@@ -1,13 +1,16 @@
 <template>
-  <UiCard :has-error="isError">
+  <UiCard :has-error>
     <div class="site-dashboard-storage-repository">
       <UiCardTitle>
         {{ t('storage-repository') }}
         <template #description>{{ t('for-replication') }}</template>
       </UiCardTitle>
       <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
-      <VtsStateHero v-if="isEmpty" format="card" type="no-data" size="extra-small" horizontal>
+      <VtsStateHero v-else-if="isEmpty" format="card" type="no-data" size="extra-small" horizontal>
         {{ t('no-data-to-calculate') }}
+      </VtsStateHero>
+      <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
+        {{ t('error-no-data') }}
       </VtsStateHero>
       <template v-else>
         <VtsStackedBarWithLegend :max-value :segments />
@@ -37,6 +40,7 @@
 </template>
 
 <script setup lang="ts">
+import { useSiteDashboardSection } from '@/modules/site/composables/use-site-dashboard-section.composable.ts'
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import VtsStackedBarWithLegend, {
   type StackedBarWithLegendProps,
@@ -48,29 +52,16 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { storageRepositoriesFormatted, hasError } = useXoSiteDashboard()
+const { storageRepositoriesFormatted } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const isLoading = computed(() => storageRepositoriesFormatted.value === undefined)
-
-const isError = computed(
-  () =>
-    hasError.value ||
-    (storageRepositoriesFormatted.value !== undefined && 'error' in storageRepositoriesFormatted.value)
-)
-
-const isEmpty = computed(
-  () => storageRepositoriesFormatted.value !== undefined && 'isEmpty' in storageRepositoriesFormatted.value
-)
-
-const storageRepositories = computed(() => {
-  if (!storageRepositoriesFormatted.value || !('other' in storageRepositoriesFormatted.value)) {
-    return
-  }
-
-  return storageRepositoriesFormatted.value
-})
+const {
+  data: storageRepositories,
+  isLoading,
+  isEmpty,
+  hasError,
+} = useSiteDashboardSection(storageRepositoriesFormatted, 'other')
 
 const segments: ComputedRef<StackedBarWithLegendProps['segments']> = computed(() => [
   {

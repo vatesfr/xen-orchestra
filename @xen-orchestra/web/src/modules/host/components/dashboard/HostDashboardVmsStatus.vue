@@ -11,10 +11,9 @@
 
 <script lang="ts" setup>
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useVmStatusSegments } from '@/modules/vm/composables/use-vm-status-segments.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import VtsDonutChartWithLegend, {
-  type DonutChartWithLegendProps,
-} from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
+import VtsDonutChartWithLegend from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
@@ -47,26 +46,5 @@ const vmsStatuses = useItemCounter(hostVms, {
 
 const total = useSum(() => Object.values(vmsStatuses.value))
 
-const segments = computed<DonutChartWithLegendProps['segments']>(() => [
-  {
-    label: t('vm:status:running', 2),
-    value: vmsStatuses.value.running,
-    accent: 'success',
-  },
-  {
-    label: t('vm:status:paused', 2),
-    value: vmsStatuses.value.paused,
-    accent: 'info',
-  },
-  {
-    label: t('vm:status:suspended', 2),
-    value: vmsStatuses.value.suspended,
-    accent: 'neutral',
-  },
-  {
-    label: t('vm:status:halted', 2),
-    value: vmsStatuses.value.halted,
-    accent: 'danger',
-  },
-])
+const segments = useVmStatusSegments(vmsStatuses)
 </script>

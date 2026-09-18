@@ -1,9 +1,9 @@
 <template>
-  <UiCard :has-error="isError">
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('backups:jobs:issues') }}
       <UiCounter
-        v-if="hasBackupIssues || isError"
+        v-if="hasBackupIssues || hasError"
         :value="nBackupIssues"
         accent="danger"
         size="medium"
@@ -31,6 +31,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useSiteDashboardSection } from '@/modules/site/composables/use-site-dashboard-section.composable.ts'
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import type { BackupIssue } from '@/modules/site/types/xo-dashboard.type.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -45,27 +46,13 @@ import { useBackupIssueColumns } from '@core/tables/column-sets/backup-issue-col
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { dashboard, hasError } = useXoSiteDashboard()
+const { dashboard } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const dashboardBackups = computed(() => dashboard.value.backups)
+const { data: backups, isLoading, isEmpty, hasError } = useSiteDashboardSection(() => dashboard.value.backups, 'issues')
 
-const isLoading = computed(() => dashboardBackups.value === undefined)
-
-const isError = computed(
-  () => hasError.value || (dashboardBackups.value !== undefined && 'error' in dashboardBackups.value)
-)
-
-const isEmpty = computed(() => dashboardBackups.value !== undefined && 'isEmpty' in dashboardBackups.value)
-
-const backupIssues = computed(() => {
-  if (!dashboardBackups.value || !('issues' in dashboardBackups.value)) {
-    return
-  }
-
-  return dashboardBackups.value?.issues
-})
+const backupIssues = computed(() => backups.value?.issues)
 
 const nBackupIssues = computed(() => backupIssues.value?.length ?? 0)
 
@@ -73,7 +60,7 @@ const hasBackupIssues = computed(() => nBackupIssues.value > 0)
 
 const state = useTableState({
   busy: isLoading,
-  error: () => (isError.value ? { type: 'error', message: t('error-no-data'), size: 'extra-small' } : false),
+  error: () => (hasError.value ? { type: 'error', message: t('error-no-data'), size: 'extra-small' } : false),
   empty: () =>
     isEmpty.value
       ? { type: 'no-data', message: t('no-data-to-calculate'), size: 'extra-small' }

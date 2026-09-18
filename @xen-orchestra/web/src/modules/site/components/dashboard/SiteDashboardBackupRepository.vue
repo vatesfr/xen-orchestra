@@ -1,15 +1,15 @@
 <template>
-  <UiCard :has-error="isError">
+  <UiCard :has-error>
     <div class="site-dashboard-backup-repository">
       <UiCardTitle>
         {{ t('backup-repository-type') }}
         <template #description>{{ t('for-backup') }}</template>
       </UiCardTitle>
       <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
-      <VtsStateHero v-if="isEmpty" format="card" type="no-data" size="extra-small" horizontal>
+      <VtsStateHero v-else-if="isEmpty" format="card" type="no-data" size="extra-small" horizontal>
         {{ t('no-data-to-calculate') }}
       </VtsStateHero>
-      <VtsStateHero v-else-if="isError" format="card" type="error" size="extra-small" horizontal>
+      <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
         {{ t('error-no-data') }}
       </VtsStateHero>
       <template v-else>
@@ -40,6 +40,7 @@
 </template>
 
 <script setup lang="ts">
+import { useSiteDashboardSection } from '@/modules/site/composables/use-site-dashboard-section.composable.ts'
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import VtsStackedBarWithLegend, {
   type StackedBarWithLegendProps,
@@ -51,27 +52,16 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backupRepositoriesFormatted, hasError } = useXoSiteDashboard()
+const { backupRepositoriesFormatted } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const isLoading = computed(() => backupRepositoriesFormatted.value === undefined)
-
-const isError = computed(
-  () => hasError.value || (backupRepositoriesFormatted.value && 'error' in backupRepositoriesFormatted.value)
-)
-
-const isEmpty = computed(
-  () => backupRepositoriesFormatted.value !== undefined && 'isEmpty' in backupRepositoriesFormatted.value
-)
-
-const backupRepositories = computed(() => {
-  if (!backupRepositoriesFormatted.value || !('other' in backupRepositoriesFormatted.value)) {
-    return
-  }
-
-  return backupRepositoriesFormatted.value
-})
+const {
+  data: backupRepositories,
+  isLoading,
+  isEmpty,
+  hasError,
+} = useSiteDashboardSection(backupRepositoriesFormatted, 'other')
 
 const segments: ComputedRef<StackedBarWithLegendProps['segments']> = computed(() => {
   return [

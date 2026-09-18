@@ -1,4 +1,5 @@
 import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
+import { ONE_GB } from '@/shared/constants.ts'
 import { VM_POWER_STATE } from '@vates/types'
 
 /**
@@ -14,9 +15,9 @@ export function createVmSnapshot(overrides: Partial<FrontXoVmSnapshot> = {}): Fr
     snapshot_time: 1660000000,
     power_state: VM_POWER_STATE.HALTED,
     memory: {
-      dynamic: [2147483648, 4294967296],
-      size: 4294967296,
-      static: [2147483648, 4294967296],
+      dynamic: [2 * ONE_GB, 4 * ONE_GB],
+      size: 4 * ONE_GB,
+      static: [2 * ONE_GB, 4 * ONE_GB],
     },
     parent: undefined,
     other: {},

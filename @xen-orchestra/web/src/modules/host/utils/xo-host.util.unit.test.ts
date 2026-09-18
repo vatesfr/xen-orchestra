@@ -111,8 +111,8 @@ describe('getHostManufacturerInfo', () => {
 
 describe('getHostRamProvisioning', () => {
   it('formats total, used and free memory sizes', () => {
-    const size = 8 * 1024 ** 3
-    const usage = 3 * 1024 ** 3
+    const size = 8589934592
+    const usage = 3221225472
     const host = createHost({ memory: { size, usage } })
 
     expect(getHostRamProvisioning(host)).toEqual({
@@ -123,7 +123,7 @@ describe('getHostRamProvisioning', () => {
   })
 
   it('reports zero free memory when the host is fully used', () => {
-    const size = 4 * 1024 ** 3
+    const size = 4294967296
     const host = createHost({ memory: { size, usage: size } })
 
     expect(getHostRamProvisioning(host).free).toEqual(formatSizeRaw(0, 0))

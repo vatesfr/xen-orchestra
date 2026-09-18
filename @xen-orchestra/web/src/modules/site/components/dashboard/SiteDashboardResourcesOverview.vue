@@ -24,6 +24,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useSiteDashboardSection } from '@/modules/site/composables/use-site-dashboard-section.composable.ts'
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -33,25 +34,16 @@ import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { dashboard, hasError } = useXoSiteDashboard()
+const { dashboard } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const dashboardResourcesOverview = computed(() => dashboard.value.resourcesOverview)
-
-const isLoading = computed(() => dashboardResourcesOverview.value === undefined)
-
-const isEmpty = computed(
-  () => dashboardResourcesOverview.value !== undefined && 'isEmpty' in dashboardResourcesOverview.value
-)
-
-const resources = computed(() => {
-  if (!dashboardResourcesOverview.value || !('memorySize' in dashboardResourcesOverview.value)) {
-    return
-  }
-
-  return dashboardResourcesOverview.value
-})
+const {
+  data: resources,
+  isLoading,
+  isEmpty,
+  hasError,
+} = useSiteDashboardSection(() => dashboard.value.resourcesOverview, 'memorySize')
 
 const nCpus = computed(() => resources.value?.nCpus)
 

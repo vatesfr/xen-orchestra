@@ -1,5 +1,5 @@
 <template>
-  <UiCard :has-error="isError">
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('backups:jobs:status') }}
       <template v-if="!isEmpty" #info>
@@ -8,7 +8,7 @@
       <template v-if="!isEmpty" #description>{{ t('backups:jobs:last-seven-days') }}</template>
     </UiCardTitle>
     <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="isError" format="card" type="error" size="extra-small" horizontal>
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
       {{ t('error-no-data') }}
     </VtsStateHero>
     <UiAlert v-else-if="isEmpty" accent="warning">
@@ -31,6 +31,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useSiteDashboardSection } from '@/modules/site/composables/use-site-dashboard-section.composable.ts'
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
@@ -44,27 +45,13 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { dashboard, hasError } = useXoSiteDashboard()
+const { dashboard } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const dashboardBackups = computed(() => dashboard.value.backups)
+const { data: backups, isLoading, isEmpty, hasError } = useSiteDashboardSection(() => dashboard.value.backups, 'jobs')
 
-const isLoading = computed(() => dashboardBackups.value === undefined)
-
-const isError = computed(
-  () => hasError.value || (dashboardBackups.value !== undefined && 'error' in dashboardBackups.value)
-)
-
-const isEmpty = computed(() => dashboardBackups.value !== undefined && 'isEmpty' in dashboardBackups.value)
-
-const backupJobs = computed(() => {
-  if (!dashboardBackups.value || !('jobs' in dashboardBackups.value)) {
-    return
-  }
-
-  return dashboardBackups.value?.jobs
-})
+const backupJobs = computed(() => backups.value?.jobs)
 
 const jobsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
