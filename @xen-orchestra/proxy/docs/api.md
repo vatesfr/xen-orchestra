@@ -151,8 +151,19 @@ declare namespace backup {
     [remoteId: string]: { [poolUuid: string]: object[] }
   }
 
-  function listVmBackups(_: { remotes: { [remoteId: string]: Remote } }): {
+  function listVmBackups(_: { remotes: { [remoteId: string]: Remote }; vmId?: string }): {
     [remoteId: string]: { [vmUuid: string]: object[] }
+  }
+
+  // Reads the backup events which happened on the remote after `cursor`, reduced to the last event
+  // of each backup, with the added and changed ones resolved to their current value.
+  //
+  // `cursor` is the opaque position to pass back on the next call; it is unchanged when nothing new
+  // was read. `mustExist` makes a missing journal directory reject instead of returning no events,
+  // for a caller which has already read real entries from it before.
+  function listVmBackupsJournal(_: { remote: Remote; remoteId: string; cursor?: string; mustExist?: boolean }): {
+    events: { event: 'add' | 'change' | 'del'; vmUuid: string; filename: string; backup?: object }[]
+    cursor?: string
   }
 
   function listXoMetadataBackups(_: { remotes: { [id: string]: Remote } }): { [remoteId: string]: object[] }

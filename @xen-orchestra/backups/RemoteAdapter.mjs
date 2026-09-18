@@ -4,6 +4,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { stringify } from 'uuid'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { basename, dirname, join, resolve } from 'node:path'
+import { normalize } from '@xen-orchestra/fs/path'
 import { synchronized } from 'decorator-synchronized'
 import Disposable from 'promise-toolbox/Disposable'
 import groupBy from 'lodash/groupBy.js'
@@ -253,6 +254,10 @@ export class RemoteAdapter {
     return vmsUuids
   }
 
+  /**
+   * @returns {Promise<Record<string, object[]>>} the metadata of the backups of every VM, keyed by
+   * VM UUID; the result is built on a null prototype, which is why it cannot be inferred
+   */
   async listAllVmBackups() {
     const vmsUuids = await this.listAllVms()
     const backups = { __proto__: null }
@@ -435,14 +440,99 @@ export class RemoteAdapter {
     return backups.sort(compareTimestamp)
   }
 
-  // read the backup events which happened on this remote after `since` (timestamp in ms),
-  // oldest first
+  // read the backup events which happened on this remote after `cursor`, oldest first
   /**
-   * @param {number} [since] timestamp in ms, exclusive
+   * @param {string} [cursor] path of the last entry already read, exclusive
+   * @param {object} [opts]
+   * @param {boolean} [opts.mustExist] whether a missing journal directory should throw
    * @returns {Promise<import('./_backupJournal.mjs').BackupJournalEntry[]>}
    */
-  async readBackupJournal(since) {
-    return readBackupJournal(this._handler, since)
+  async readBackupJournal(cursor, opts) {
+    return readBackupJournal(this._handler, cursor, opts)
+  }
+
+  // Same as `readBackupJournal()`, with the current metadata of the added and changed backups
+  // attached, so that a listing can be brought up to date from the result alone, in a single
+  // round-trip for a caller which is not on this host.
+  //
+  // The metadata is read back from the repository instead of being carried by the journal, so that
+  // the result always reflects the current content of the file, e.g. the size a merge updated.
+  /**
+   * @param {string} [cursor] path of the last entry already read, exclusive
+   * @param {object} [opts]
+   * @param {boolean} [opts.mustExist] whether a missing journal directory should throw
+   * @returns {Promise<{
+   *   events: import('./formatVmBackups.mjs').ResolvedJournalEvent[]
+   *   cursor: string | undefined
+   * }>} the cursor to pass on the next call: unchanged when nothing new was read
+   */
+  async readBackupJournalEvents(cursor, opts) {
+    const entries = await this.readBackupJournal(cursor, opts)
+
+    // the entries are oldest first, therefore the last event of a backup is its current state: a
+    // backup which was written then deleted costs no metadata read at all, and one which was
+    // rewritten several times costs a single one
+    const lastEventByFilename = new Map()
+    entries.forEach(({ event, filename, vmUuid }, index) => {
+      if (event !== 'add' && event !== 'change' && event !== 'del') {
+        warn('ignoring unsupported journal event', { event, filename })
+        return
+      }
+
+      // the entries are written by several code paths which don't agree on the leading slash
+      lastEventByFilename.set(normalize(filename), { event, index, vmUuid })
+    })
+
+    // the index, in `entries`, of the earliest one whose metadata could not be read: the cursor is
+    // clamped to just before it, so that the next call retries it instead of skipping it
+    let minFailedIndex = entries.length
+
+    // there is at most one event per backup left, therefore they can be resolved concurrently and
+    // the order `asyncEach` returns them in does not matter
+    const events = []
+    await asyncEach(lastEventByFilename, async ([filename, { event, index, vmUuid }]) => {
+      if (event === 'del') {
+        events.push({ event, vmUuid, filename })
+        return
+      }
+
+      let metadata
+      try {
+        metadata = await this.readVmBackupMetadata(filename)
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          // the metadata is gone while its last event says it should be there: it was deleted
+          // without being journaled, e.g. by a user or a third party tool directly on the
+          // repository. Report it as a deletion instead of waiting for the next full rebuild.
+          debug('reporting a backup whose metadata is missing as deleted', { event, filename })
+          events.push({ event: 'del', vmUuid, filename })
+          return
+        }
+
+        // One unreadable metadata must not fail the whole read: the caller would forget the
+        // repository and list it in full on every call for as long as the file stays unreadable,
+        // which is much more expensive than what this read costs.
+        //
+        // Its event is kept behind the cursor instead of being dropped, so that the next read
+        // tries it again: a transient failure costs nothing, and a permanent one only widens the
+        // window of a journal read, until the caller rebuilds from scratch anyway.
+        warn(`can't read the metadata of a backup an event is about`, { error, event, filename })
+        if (index < minFailedIndex) {
+          minFailedIndex = index
+        }
+        return
+      }
+
+      events.push({ event, vmUuid, filename, metadata })
+    })
+
+    // advance the cursor up to the last successfully read entry, oldest first: unchanged when the
+    // very first entry already failed
+    if (entries.length > 0 && minFailedIndex > 0) {
+      cursor = entries[minFailedIndex - 1]._filename
+    }
+
+    return { events, cursor }
   }
 
   async writeVmBackupMetadata(vmUuid, metadata) {

@@ -346,9 +346,12 @@ export default class {
     }
 
     this._cancelRemoteInfoRetry(id)
-    this._app.invalidateVmBackupsListing(id)
     if (enabled === false) {
+      // it will not be listed again: its backups are no longer part of the collection
+      this._app.forgetVmBackupRepository(id)
       delete this._remotesInfo[id]
+    } else {
+      this._app.invalidateVmBackupsListing(id)
     }
 
     return this._updateRemote(id, {
@@ -380,7 +383,7 @@ export default class {
 
   async removeRemote(id) {
     this._cancelRemoteInfoRetry(id)
-    this._app.invalidateVmBackupsListing(id)
+    this._app.forgetVmBackupRepository(id)
     delete this._remotesInfo[id]
 
     const handlers = this._handlers
