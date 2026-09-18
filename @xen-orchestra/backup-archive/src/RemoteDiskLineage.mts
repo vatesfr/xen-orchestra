@@ -314,10 +314,29 @@ export class RemoteDiskLineage {
         }
       }
 
-      if (chain !== undefined) {
-        chain.forEach(p => visited.add(p))
-        toMerge.push({ chain, isResuming: true })
+      if (chain === undefined) {
+        // state file unreadable: leave it alone, the orphan loop below schedules a fresh merge
+        continue
       }
+
+      // Nothing downstream of the merge parent is still referenced by a backup: merging would
+      // write into a lineage nothing points at, and pinning it below would exempt it from the
+      // orphan loop forever. The walk already marked the whole lineage for deletion, so only
+      // the state file is left to drop.
+      //
+      // It walks the live lineage rather than `stateChain`, which is frozen at the retention
+      // boundary of the run that created it and can be shorter than the real chain.
+      if (getUsedChildChainOrDelete(parentPath) === undefined) {
+        this.#opts.logWarn('merge state on a fully orphaned lineage', { stateFilePath, parentPath })
+        if (remove) {
+          this.#opts.logInfo('deleting merge state of orphaned lineage', { stateFilePath })
+          await this.#handler.unlink(stateFilePath)
+        }
+        continue
+      }
+
+      chain.forEach(p => visited.add(p))
+      toMerge.push({ chain, isResuming: true })
     }
 
     for (const orphan of orphanDisks) {
