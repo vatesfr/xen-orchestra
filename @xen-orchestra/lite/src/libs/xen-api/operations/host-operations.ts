@@ -16,6 +16,8 @@ export function createHostOperations(xenApi: XenApi) {
 
   const shutdown = (hostRef: HostRef) => xenApi.call('host.shutdown', [hostRef])
 
+  const destroy = (hostRef: HostRef) => xenApi.call('host.destroy', [hostRef])
+
   const clearHost = async (hostRef: HostRef, force: boolean) => {
     await disable(hostRef)
 
@@ -33,6 +35,8 @@ export function createHostOperations(xenApi: XenApi) {
 
   return {
     powerOn,
+    shutdown,
+    destroy,
     cleanReboot: async (hostRef: HostRef, forceReboot: boolean) => {
       await clearHost(hostRef, forceReboot)
 
