@@ -383,6 +383,9 @@ export default class Plan {
   // allowed instead of requiring a conflict-free destination that may not exist.
   _wouldDeteriorateAntiAffinity({ vm, countsByHostId, sourceHostId, destinationHostId }) {
     const tags = intersection(vm.tags, this._antiAffinityTags)
+    if (tags.length === 0) {
+      return false
+    }
     return tags.some(tag => {
       const sourceOtherCount = countsByHostId[sourceHostId].tagCounts[tag] - 1
       const destinationCount = countsByHostId[destinationHostId].tagCounts[tag]
@@ -685,7 +688,7 @@ export default class Plan {
         warn(`anti-affinity: failed to process pool ${poolId}`, { poolId, error })
       }
     }
-    return Promise.all(promises)
+    return Promise.allSettled(promises)
   }
 
   async _processAntiAffinityForHosts(allHosts) {
@@ -1157,7 +1160,8 @@ export default class Plan {
         let loopCountdown = sortedHosts.length // a theoretically unnecessary safety against infinite while
         while (
           hostsAverages[destinationHost.id].memoryFree - vmsAverages[vm.id].memory <
-          this._thresholds.memoryFree.critical
+            this._thresholds.memoryFree.critical ||
+          hostsAverages[destinationHost.id].cpu + vmsAverages[vm.id].cpu > this._thresholds.cpu.critical
         ) {
           loopCountdown--
           debugAffinity(`Host ${sourceHost.id} is overcrowded`)
@@ -1169,6 +1173,7 @@ export default class Plan {
             idToHost,
             taggedHosts,
             memoryNeeded: vmsAverages[vm.id].memory,
+            cpuNeeded: vmsAverages[vm.id].cpu,
             reason: `to free up resources on host to later migrate affinity-tagged VMs to it (${tag})`,
           })
           promises.push(...otherMigrationPromises)
@@ -1207,7 +1212,16 @@ export default class Plan {
     return promises
   }
 
-  async _migrateOtherVms({ crowdedHost, hostsAverages, vmsAverages, idToHost, taggedHosts, memoryNeeded, reason }) {
+  async _migrateOtherVms({
+    crowdedHost,
+    hostsAverages,
+    vmsAverages,
+    idToHost,
+    taggedHosts,
+    memoryNeeded,
+    cpuNeeded,
+    reason,
+  }) {
     const promises = []
 
     // per-host counts of affinity/anti-affinity tagged VMs, to check whether a candidate destination
@@ -1282,12 +1296,16 @@ export default class Plan {
       this._adjustTagCounts(affinityCountsByHostId, affinityTags, crowdedHost.id, destinationHost.id)
       this._adjustTagCounts(antiAffinityCountsByHostId, antiAffinityTags, crowdedHost.id, destinationHost.id)
 
-      if (hostsAverages[crowdedHost.id].memoryFree - memoryNeeded > this._thresholds.memoryFree.critical) {
+      if (
+        hostsAverages[crowdedHost.id].memoryFree - memoryNeeded >= this._thresholds.memoryFree.critical &&
+        hostsAverages[crowdedHost.id].cpu + cpuNeeded <= this._thresholds.cpu.critical
+      ) {
         // wait for the freeing migrations to actually complete before reporting success: up to
         // `maxConcurrentMigrations` migrations can run concurrently, so callers relying on `success`
         // to migrate onto `crowdedHost` right away must not race the still-in-flight migrations
-        await Promise.allSettled(promises)
-        return { promises, success: true }
+        const results = await Promise.allSettled(promises)
+        const rejected = results.filter(result => result.status === 'rejected')
+        return { promises, success: rejected.length === 0 }
       }
     }
 
@@ -1582,6 +1600,7 @@ export default class Plan {
         idToHost,
         taggedHosts,
         memoryNeeded: vmAverages.memory,
+        cpuNeeded: vmAverages.cpu,
         reason: `to free up resources on host to later migrate VM-to-host-affinity-tagged VMs to it (${vmTags.join(', ')})`,
       })
       promises.push(...otherMigrationPromises)
