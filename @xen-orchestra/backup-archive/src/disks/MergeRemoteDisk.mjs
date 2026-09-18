@@ -331,7 +331,7 @@ export class MergeRemoteDisk {
    * @param {string[]} files - all file paths in vdiDir (prependDir: true)
    * @param {Map<string, string>} uuidToPath - diskUuid: normalized disk path
    * @param {Map<string, string>} childOf - parentPath: child path (from disk headers)
-   * @returns {Promise<Map<string, { stateFilePath: string, chain?: string[] }>>}
+   * @returns {Promise<Map<string, { stateFilePath: string, chain?: string[], step?: 'mergeBlocks' | 'cleanup' }>>}
    */
   static async findInterruptedMerges(handler, vdiDir, files, uuidToPath, childOf) {
     const STATE_FILE_RE = /^\.(.+)\.merge\.json$/
@@ -343,8 +343,12 @@ export class MergeRemoteDisk {
 
       const parentPath = normalize(vdiDir + '/' + match[1])
       let chain
+      let step
       try {
         const state = JSON.parse(await handler.readFile(filePath))
+        // disks are only removed during the cleanup step, so the caller needs the step to tell
+        // an expected gap in the chain from a lineage that lost data
+        step = state?.step ?? 'mergeBlocks'
         if (Array.isArray(state?.chain)) {
           chain = state.chain.map((/** @type {string} */ relPath) => normalize(resolveFromFile(filePath, relPath)))
         } else {
@@ -357,7 +361,7 @@ export class MergeRemoteDisk {
         warn("Merge state unreadable, can't restart merging.", error)
       }
 
-      result.set(parentPath, { stateFilePath: filePath, chain })
+      result.set(parentPath, { stateFilePath: filePath, chain, step })
     }
 
     return result
