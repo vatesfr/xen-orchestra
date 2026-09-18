@@ -12,22 +12,36 @@ export function createHostOperations(xenApi: XenApi) {
 
   const reboot = (hostRef: HostRef) => xenApi.call('host.reboot', [hostRef])
 
-  return {
-    cleanReboot: async (hostRef: HostRef, forceReboot = false) => {
-      await disable(hostRef)
+  const powerOn = (hostRef: HostRef) => xenApi.call('host.power_on', [hostRef])
 
-      try {
-        await evacuate(hostRef)
-      } catch (error) {
-        if (!forceReboot) {
-          await enable(hostRef)
+  const shutdown = (hostRef: HostRef) => xenApi.call('host.shutdown', [hostRef])
 
-          throw error
-        }
-        console.error(`Host evacuation failed, forcing reboot of ${hostRef}:`, error)
+  const clearHost = async (hostRef: HostRef, force: boolean) => {
+    await disable(hostRef)
+
+    try {
+      await evacuate(hostRef)
+    } catch (error) {
+      if (!force) {
+        await enable(hostRef)
+
+        throw error
       }
+      console.error(`Host evacuation failed, forcing reboot of ${hostRef}:`, error)
+    }
+  }
+
+  return {
+    powerOn,
+    cleanReboot: async (hostRef: HostRef, forceReboot: boolean) => {
+      await clearHost(hostRef, forceReboot)
 
       await reboot(hostRef)
+    },
+    cleanShutdown: async (hostRef: HostRef) => {
+      await clearHost(hostRef, false)
+
+      await shutdown(hostRef)
     },
   }
 }
