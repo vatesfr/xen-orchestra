@@ -51,7 +51,7 @@ const currentNodeId = computed(() => {
 
 let scrolledToId: string | undefined
 
-function scrollToCurrentNode() {
+async function scrollToCurrentNode() {
   const nodeId = currentNodeId.value
 
   if (nodeId === undefined) {
@@ -69,17 +69,17 @@ function scrollToCurrentNode() {
     return
   }
 
-  nextTick(() => {
-    const index = treeItemIndexById.value.get(node.id)
+  const index = treeItemIndexById.value.get(node.id)
 
-    if (index === undefined || poolTreeList.value === null) {
-      return
-    }
+  if (index === undefined) {
+    return
+  }
 
-    scrolledToId = nodeId
+  scrolledToId = nodeId
 
-    poolTreeList.value.scrollToItem(index)
-  })
+  await nextTick()
+
+  poolTreeList.value?.scrollToItem(index)
 }
 
 watch(
