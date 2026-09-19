@@ -2,22 +2,17 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { attach, create, disconnect } from './api/browser-media.mjs'
 
-function fixture({ failInsert = false } = {}) {
+function fixture({ failInsert = false, powerState = 'Running', vbds = ['cd'], affinity } = {}) {
   const calls = []
-  const session = {
-    id: 'session',
-    vm: 'vm',
-    name: 'boot.iso',
-    size: 32768,
-    readToken: 'read',
-    socket: { readyState: 1 },
-  }
+  const session = { id: 'session', vm: 'vm', name: 'boot.iso', size: 32768, socket: { readyState: 1 } }
   const xapi = {
     async call(method, ...args) {
       calls.push([method, ...args])
       switch (method) {
         case 'VM.get_record':
-          return { power_state: 'Running', resident_on: 'host', VBDs: ['cd'] }
+          return { power_state: powerState, resident_on: 'host', VBDs: vbds, affinity }
+        case 'VM.get_possible_hosts':
+          return ['host', 'preferred']
         case 'VBD.get_record':
           return { type: 'CD', empty: true, currently_attached: true }
         case 'VBD.insert':
@@ -27,26 +22,49 @@ function fixture({ failInsert = false } = {}) {
           return ['cd']
         case 'VBD.get_VDI':
           return 'vdi'
+        case 'SR.introduce':
+        case 'SR.get_by_uuid':
+          return 'sr'
+        case 'SR.get_VDIs':
+          return ['vdi']
         case 'SR.get_PBDs':
-          return ['pbd', 'pbd-2']
+          return ['pbd']
+        case 'PBD.create':
+          return 'pbd'
         case 'PBD.get_currently_attached':
           return true
         case 'VDI.get_uuid':
           return 'vdi-uuid'
       }
     },
-    async SR_create(opts) {
-      calls.push(['SR_create', opts])
-      return 'sr'
+    callAsync(method, ...args) {
+      return this.call(method, ...args)
     },
-    async VDI_create(opts) {
-      calls.push(['VDI_create', opts])
-      return 'vdi'
+    async VBD_create(opts) {
+      calls.push(['VBD_create', opts])
+      return 'cd'
     },
   }
   const media = {
-    origin: 'https://xo.example',
     get: () => session,
+    async createTarget() {
+      calls.push(['target.listen'])
+      return {
+        deviceConfig: {
+          target: '192.0.2.1',
+          port: '3269',
+          targetIQN: 'iqn.test',
+          chapuser: 'user',
+          chappassword: 'secret',
+        },
+        async close() {
+          calls.push(['target.close'])
+        },
+      }
+    },
+    release() {
+      calls.push(['release'])
+    },
     close(s) {
       if (s.closed) return
       s.closed = true
@@ -62,47 +80,52 @@ function fixture({ failInsert = false } = {}) {
   return { xo, xapi, session, calls }
 }
 
-test('attaches a read-only VDI on a shared SR and cleans up in dependency order', async () => {
+test('introduces a stock raw iSCSI LUN as a CD and forgets it without destroying the LUN', async () => {
   const { xo, calls } = fixture()
   assert.deepEqual(await attach.call(xo, { id: 'session' }), { vdi: 'vdi-uuid' })
-  const sr = calls.find(call => call[0] === 'SR_create')[1]
-  assert.equal(sr.host, 'host')
-  assert.equal(sr.type, 'browseriso')
-  assert.equal(sr.shared, true)
-  assert.equal(sr.sm_config['browser-media-session'], 'session')
-  assert.equal(calls.filter(call => call[0] === 'PBD.get_currently_attached').length, 2)
-  assert.equal(calls.find(call => call[0] === 'VDI_create')[1].read_only, true)
+  const sr = calls.find(call => call[0] === 'SR.introduce')
+  assert.equal(sr[4], 'iscsi')
+  assert.equal(sr[6], false)
+  assert.equal(calls.find(call => call[0] === 'PBD.create')[1].host, 'host')
+  const vdi = calls.find(call => call[0] === 'VDI.introduce')
+  assert.deepEqual(vdi[11], { LUNid: '0', type: 'raw' })
+  assert.equal(vdi[7], true)
   await disconnect.call(xo, { id: 'session' })
   const methods = calls.map(call => call[0])
-  assert.ok(methods.indexOf('VBD.eject') < methods.indexOf('VDI.destroy'))
-  assert.ok(methods.indexOf('VDI.destroy') < methods.indexOf('PBD.unplug'))
+  assert.ok(!methods.includes('VDI.destroy'))
+  assert.ok(!methods.includes('SR.destroy'))
+  assert.ok(methods.indexOf('VBD.eject') < methods.indexOf('PBD.unplug'))
   assert.ok(methods.indexOf('PBD.destroy') < methods.indexOf('SR.forget'))
+  assert.ok(methods.indexOf('SR.forget') < methods.indexOf('target.close'))
 })
 
-test('failed insertion rolls back resources', async () => {
+test('failed insertion rolls back resources and target', async () => {
   const { xo, session, calls } = fixture({ failInsert: true })
   await assert.rejects(attach.call(xo, { id: 'session' }), /insert failed/)
   await session.cleanup()
   assert.equal(session.closed, true)
   assert.ok(calls.some(call => call[0] === 'SR.forget'))
+  assert.ok(calls.some(call => call[0] === 'target.close'))
 })
 
-test('disconnect during attachment waits for resource creation then cleans up', async () => {
+test('disconnect during PBD plug waits for attachment then rolls back without inserting', async () => {
   const { xo, xapi, session, calls } = fixture()
-  let finish
-  let started
+  let finish, started
   const starting = new Promise(resolve => {
     started = resolve
   })
-  xapi.SR_create = () =>
-    new Promise(resolve => {
-      finish = resolve
-      started()
-    })
+  const callAsync = xapi.callAsync.bind(xapi)
+  xapi.callAsync = (method, ...args) =>
+    method === 'PBD.plug'
+      ? new Promise(resolve => {
+          finish = resolve
+          started()
+        })
+      : callAsync(method, ...args)
   const attaching = attach.call(xo, { id: 'session' })
   await starting
   const disconnected = disconnect.call(xo, { id: 'session' })
-  finish('sr')
+  finish()
   await assert.rejects(attaching, /disconnected/)
   await disconnected
   assert.ok(calls.some(call => call[0] === 'SR.forget'))
@@ -127,77 +150,71 @@ test('rejects initial connection to a suspended VM', () => {
   )
 })
 
-test('rolls back shared media when a pool PBD is unavailable', async () => {
+for (const method of ['PBD.plug', 'VDI.introduce']) {
+  test(`failed ${method} rolls back SR and closes target`, async () => {
+    const { xo, xapi, calls, session } = fixture()
+    const call = xapi.call
+    xapi.call = (m, ...args) => (m === method ? Promise.reject(new Error('injected failure')) : call(m, ...args))
+    await assert.rejects(attach.call(xo, { id: 'session' }), /injected failure/)
+    await session.cleanup()
+    assert.ok(!calls.some(call => call[0] === 'VBD.insert'))
+    assert.ok(calls.some(call => call[0] === 'SR.forget'))
+    assert.ok(calls.some(call => call[0] === 'target.close'))
+  })
+}
+
+test('recovers an SR introduced before a lost API response', async () => {
   const { xo, xapi, calls, session } = fixture()
   const call = xapi.call
   xapi.call = (method, ...args) =>
-    method === 'PBD.get_currently_attached' ? Promise.resolve(false) : call(method, ...args)
-  await assert.rejects(attach.call(xo, { id: 'session' }), /every pool host/)
+    method === 'SR.introduce' ? Promise.reject(new Error('lost response')) : call(method, ...args)
+  await assert.rejects(attach.call(xo, { id: 'session' }), /lost response/)
   await session.cleanup()
-  assert.ok(!calls.some(call => call[0] === 'VDI_create'))
+  assert.ok(calls.some(call => call[0] === 'SR.get_by_uuid'))
   assert.ok(calls.some(call => call[0] === 'SR.forget'))
 })
 
-test('recovers the SR reference if shared SR creation fails after creating metadata', async () => {
-  const { xo, xapi, calls, session } = fixture()
-  xapi.SR_create = async () => {
-    throw new Error('host attach failed')
-  }
-  const call = xapi.call
-  xapi.call = (method, ...args) =>
-    method === 'SR.get_all_records'
-      ? Promise.resolve({ sr: { sm_config: { 'browser-media-session': 'session' } } })
-      : call(method, ...args)
-  await assert.rejects(attach.call(xo, { id: 'session' }), /host attach failed/)
-  await session.cleanup()
-  assert.ok(calls.some(call => call[0] === 'SR.forget'))
-})
-
-test('attaches media while halted using the pool coordinator', async () => {
-  const { xo, xapi, calls } = fixture()
-  const call = xapi.call
-  xapi.call = (method, ...args) => {
-    if (method === 'VM.get_record')
-      return Promise.resolve({ power_state: 'Halted', resident_on: 'OpaqueRef:NULL', VBDs: ['cd'] })
-    if (method === 'pool.get_all') return Promise.resolve(['pool'])
-    if (method === 'pool.get_master') return Promise.resolve('coordinator')
-    return call(method, ...args)
-  }
+test('a failed detach retains the target and can be retried', async () => {
+  const { xo, xapi, session, calls } = fixture()
   await attach.call(xo, { id: 'session' })
-  assert.equal(calls.find(call => call[0] === 'SR_create')[1].host, 'coordinator')
-  assert.ok(calls.some(call => call[0] === 'VBD.insert'))
+  const call = xapi.call
+  xapi.call = (method, ...args) =>
+    method === 'PBD.unplug' ? Promise.reject(new Error('host offline')) : call(method, ...args)
+  await assert.rejects(disconnect.call(xo, { id: 'session' }), /host offline/)
+  assert.ok(!calls.some(call => call[0] === 'target.close'))
+  assert.ok(!calls.some(call => call[0] === 'SR.forget'))
+  xapi.call = call
+  await session.cleanup()
+  assert.ok(calls.some(call => call[0] === 'target.close'))
+})
+
+test('halted VM uses a possible host, preferring its affinity', async () => {
+  const { xo, calls } = fixture({ powerState: 'Halted', affinity: 'preferred' })
+  await attach.call(xo, { id: 'session' })
+  assert.equal(calls.find(call => call[0] === 'PBD.create')[1].host, 'preferred')
   await disconnect.call(xo, { id: 'session' })
 })
 
 for (const missing of [true, false]) {
-  test(`rejects a running VM with ${missing ? 'no' : 'an unattached'} CD drive before creating storage`, async () => {
-    const { xo, xapi, calls, session } = fixture()
+  test(`rejects a running VM with ${missing ? 'no' : 'an unattached'} CD before creating storage`, async () => {
+    const { xo, xapi, calls, session } = fixture({ vbds: missing ? [] : ['cd'] })
     const call = xapi.call
-    xapi.call = (method, ...args) => {
-      if (method === 'VM.get_record')
-        return Promise.resolve({ power_state: 'Running', resident_on: 'host', VBDs: missing ? [] : ['cd'] })
-      if (method === 'VBD.get_record') return Promise.resolve({ type: 'CD', empty: true, currently_attached: false })
-      return call(method, ...args)
-    }
+    xapi.call = (method, ...args) =>
+      method === 'VBD.get_record'
+        ? Promise.resolve({ type: 'CD', empty: true, currently_attached: false })
+        : call(method, ...args)
     await assert.rejects(attach.call(xo, { id: 'session' }), /Shut down the VM/)
     await session.cleanup()
-    assert.ok(!calls.some(call => call[0] === 'SR_create'))
+    assert.ok(!calls.some(call => call[0] === 'target.listen'))
   })
 }
 
-test('creates a missing CD drive while halted', async () => {
-  const { xo, xapi, calls } = fixture()
-  const call = xapi.call
-  xapi.call = (method, ...args) => {
-    if (method === 'VM.get_record') return Promise.resolve({ power_state: 'Halted', VBDs: [] })
-    if (method === 'pool.get_all') return Promise.resolve(['pool'])
-    if (method === 'pool.get_master') return Promise.resolve('coordinator')
-    return call(method, ...args)
-  }
-  xapi.VBD_create = async opts => calls.push(['VBD_create', opts])
+test('creates a missing read-only CD while halted', async () => {
+  const { xo, calls } = fixture({ powerState: 'Halted', vbds: [] })
   await attach.call(xo, { id: 'session' })
   const drive = calls.find(call => call[0] === 'VBD_create')[1]
   assert.equal(drive.type, 'CD')
+  assert.equal(drive.mode, 'RO')
   assert.equal(drive.VDI, 'vdi')
   await disconnect.call(xo, { id: 'session' })
 })

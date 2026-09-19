@@ -1,3 +1,4 @@
+import { createBrowserMediaTarget } from './browser-media-iscsi.mjs'
 import { registerBrowserMediaRest } from './browser-media-rest.mjs'
 import { randomBytes } from 'node:crypto'
 import { WebSocketServer } from 'ws'
@@ -6,9 +7,11 @@ const PREFIX = '/api/browser-media/'
 const MAX_READ = 1024 * 1024
 const token = () => randomBytes(32).toString('hex')
 
-// Session capabilities are deliberately separate: a host cannot impersonate the browser.
+// Only the authenticated session owner receives the one-use producer capability.
 export class BrowserMedia {
   sessions = new Map()
+  targets = new Set()
+  createTarget = session => createBrowserMediaTarget(this, session)
 
   constructor({ timeout = 30000 } = {}) {
     this.timeout = timeout
@@ -32,7 +35,6 @@ export class BrowserMedia {
     const session = {
       id: token(),
       browserToken: token(),
-      readToken: token(),
       owner,
       vm,
       name,
@@ -55,7 +57,7 @@ export class BrowserMedia {
   close(session) {
     if (session.closed) return
     session.closed = true
-    this.sessions.delete(session.id)
+    if (session.onClose === undefined) this.release(session)
     session.socket?.terminate()
     for (const pending of session.pending.values()) pending.reject(new Error('Media disconnected'))
     session.pending.clear()
@@ -123,103 +125,31 @@ export class BrowserMedia {
     })
   }
 
-  async http(req, res, next) {
-    if (!req.url.startsWith(PREFIX)) return next()
-    const session = [...this.sessions.values()].find(s => req.url === `${PREFIX}${s.readToken}/iso`)
-    if (session === undefined) {
-      res.writeHead(404).end()
-      return
-    }
-    if (session.socket?.readyState !== 1) {
-      res.writeHead(503).end()
-      return
-    }
-    const headers = {
-      'Accept-Ranges': 'bytes',
-      'Content-Type': 'application/octet-stream',
-      'Cache-Control': 'no-store, no-transform',
-      'Content-Length': session.size,
-    }
-    if (req.method === 'HEAD') {
-      res.writeHead(200, headers).end()
-      return
-    }
-    if (req.method !== 'GET') {
-      res.writeHead(405, { Allow: 'GET, HEAD' }).end()
-      return
-    }
-    const match = /^bytes=(\d+)-(\d*)$/.exec(req.headers.range ?? '')
-    const start = Number(match?.[1])
-    const requestedEnd = match?.[2] === '' ? session.size - 1 : Number(match?.[2])
-    const end = Math.min(requestedEnd, session.size - 1)
-    if (
-      !Number.isSafeInteger(start) ||
-      !Number.isSafeInteger(requestedEnd) ||
-      start < 0 ||
-      end < start ||
-      start >= session.size
-    ) {
-      res.writeHead(416, { 'Content-Range': `bytes */${session.size}` }).end()
-      return
-    }
-    try {
-      // Bound memory even when the NBD client requests a large range.
-      for (let offset = start; offset <= end && !res.destroyed; ) {
-        const length = Math.min(MAX_READ, end - offset + 1)
-        const data = await this.read(session, offset, length)
-        if (res.destroyed) return
-        if (!res.headersSent)
-          res.writeHead(206, {
-            ...headers,
-            'Content-Length': end - start + 1,
-            'Content-Range': `bytes ${start}-${end}/${session.size}`,
-          })
-        if (!res.write(data))
-          await new Promise(resolve => {
-            const done = () => {
-              res.off('drain', done)
-              res.off('close', done)
-              resolve()
-            }
-            res.once('drain', done).once('close', done)
-          })
-        offset += length
-      }
-      res.end()
-    } catch (_) {
-      if (res.headersSent) res.destroy()
-      else res.writeHead(503).end()
-    }
+  release(session) {
+    this.sessions.delete(session.id)
   }
 
-  stop() {
+  async stop() {
     clearInterval(this.timer)
     for (const session of this.sessions.values()) this.close(session)
     this.webSockets.close()
+    await Promise.allSettled([...this.targets].map(target => target.close()))
+    this.targets.clear()
   }
 }
 
-export function installBrowserMedia(webServer, express, xo) {
-  // Explicit opt-in until host integration has been validated on supported releases.
-  if (process.env.XO_BROWSER_MEDIA_ORIGIN === undefined) return
-  const origin = new URL(process.env.XO_BROWSER_MEDIA_ORIGIN)
-  const allowHttp = process.env.XO_BROWSER_MEDIA_ALLOW_HTTP === '1'
-  if (
-    (origin.protocol !== 'https:' && !(allowHttp && origin.protocol === 'http:')) ||
-    origin.pathname !== '/' ||
-    origin.search ||
-    origin.hash ||
-    origin.username ||
-    origin.password
-  ) {
-    throw new Error('XO_BROWSER_MEDIA_ORIGIN must be the HTTPS origin reachable by hosts')
+export function installBrowserMedia(webServer, xo) {
+  if (process.env.XO_BROWSER_MEDIA_ENABLED !== '1') return
+  const advertisedAddress = xo.config.getOptional('iscsi.advertisedAddress')
+  if (typeof advertisedAddress !== 'string' || advertisedAddress.length === 0) {
+    throw new Error('Browser media requires iscsi.advertisedAddress reachable from the XCP-ng hosts')
   }
   const media = new BrowserMedia()
-  media.origin = origin.origin
+  media.advertisedAddress = advertisedAddress
+  media.bindAddress = xo.config.getOptional('iscsi.bindAddress')
   xo.defineProperty('browserMedia', media)
   const unregisterRest = registerBrowserMediaRest(xo)
   xo.hooks.on('stop', unregisterRest)
-  express.use((req, res, next) => media.http(req, res, next))
   webServer.on('upgrade', (req, socket, head) => media.upgrade(req, socket, head))
   xo.hooks.on('stop', () => media.stop())
 }

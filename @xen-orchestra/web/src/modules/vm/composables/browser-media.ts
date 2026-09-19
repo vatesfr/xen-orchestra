@@ -97,7 +97,6 @@ export async function disconnectBrowserMedia(vmId: string) {
   const state = browserMediaSessions.get(vmId)
   if (state === undefined || state.disconnecting) return
   state.disconnecting = true
-  state.socket?.close()
   try {
     if (state.id !== undefined && state.status !== 'error' && state.status !== 'disconnected') {
       await fetchDelete(`browser-media/${state.id}`)
@@ -107,6 +106,7 @@ export async function disconnectBrowserMedia(vmId: string) {
     state.status = 'error'
     state.error = errorMessage(error)
   } finally {
+    state.socket?.close()
     state.disconnecting = false
   }
 }

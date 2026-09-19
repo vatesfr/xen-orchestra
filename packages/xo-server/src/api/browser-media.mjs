@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto'
+
 function service(xo) {
   if (xo.browserMedia === undefined) throw new Error('Browser media is not enabled on this XO server')
   return xo.browserMedia
@@ -27,8 +29,11 @@ export async function attach({ id }) {
   const resources = {}
   const cleanup = async () => {
     if (resources.findSr) {
-      const records = await xapi.call('SR.get_all_records')
-      resources.sr = Object.keys(records).find(ref => records[ref].sm_config['browser-media-session'] === session.id)
+      try {
+        resources.sr = await xapi.call('SR.get_by_uuid', resources.srUuid)
+      } catch (error) {
+        if (error.code !== 'UUID_INVALID') throw error
+      }
       delete resources.findSr
     }
     // Only eject our own medium; never eject a replacement inserted by another client.
@@ -36,20 +41,24 @@ export async function attach({ id }) {
       for (const vbd of await xapi.call('VDI.get_VBDs', resources.vdi)) {
         if ((await xapi.call('VBD.get_VDI', vbd)) === resources.vdi) await xapi.call('VBD.eject', vbd)
       }
-      await xapi.call('VDI.destroy', resources.vdi)
-      delete resources.vdi
     }
     if (resources.sr !== undefined) {
       for (const pbd of await xapi.call('SR.get_PBDs', resources.sr)) {
-        await xapi.call('PBD.unplug', pbd)
+        if (await xapi.call('PBD.get_currently_attached', pbd)) await xapi.callAsync('PBD.unplug', pbd)
         await xapi.call('PBD.destroy', pbd)
       }
       await xapi.call('SR.forget', resources.sr)
       delete resources.sr
+      delete resources.vdi
     }
+    if (resources.target !== undefined) {
+      await resources.target.close()
+      delete resources.target
+    }
+    media.release(session)
   }
-  // Retry cleanup after an unavailable host. The SR label also makes abandoned
-  // sessions discoverable after an XO restart; see the prototype runbook.
+  // Keep the target and resource references until detach succeeds, so a failed
+  // cleanup can be retried. Never destroy or format the raw LUN.
   let cleaning
   session.cleanup = () =>
     cleaning ??
@@ -64,46 +73,70 @@ export async function attach({ id }) {
   session.operation = (async () => {
     const record = await xapi.call('VM.get_record', vm._xapiRef)
     if (!['Running', 'Halted'].includes(record.power_state)) throw new Error('VM must be running or halted')
-    const host =
-      record.power_state === 'Running'
-        ? record.resident_on
-        : await xapi.call('pool.get_master', (await xapi.call('pool.get_all'))[0])
+    let host = record.resident_on
+    if (record.power_state === 'Halted') {
+      const hosts = await xapi.call('VM.get_possible_hosts', vm._xapiRef)
+      host = hosts.includes(record.affinity) ? record.affinity : hosts[0]
+      if (host === undefined) throw new Error('No host can start this VM')
+    }
     const vbds = await Promise.all(record.VBDs.map(ref => xapi.call('VBD.get_record', ref)))
     if (vbds.some(vbd => vbd.type === 'CD' && !vbd.empty)) throw new Error('Eject the current CD first')
     const cdIndex = vbds.findIndex(vbd => vbd.type === 'CD')
     if (record.power_state === 'Running' && (cdIndex === -1 || !vbds[cdIndex].currently_attached)) {
       throw new Error('Shut down the VM to initialize its CD drive, then connect the ISO before starting it')
     }
-    // SR.create can leave PBDs behind if a pool host fails to attach.
+    resources.target = await media.createTarget(session)
+    if (session.closed) throw new Error('Browser disconnected during attachment')
+    resources.srUuid = randomUUID()
     resources.findSr = true
-    resources.sr = await xapi.SR_create({
-      host,
-      name_label: `Browser media: ${session.name}`,
-      name_description: 'Ephemeral shared browser media prototype; migration is not yet validated',
-      type: 'browseriso',
-      content_type: 'iso',
-      shared: true,
-      sm_config: { 'browser-media-session': session.id },
-      device_config: {
-        url: `${media.origin}/api/browser-media/${session.readToken}/iso`,
-        size: String(session.size),
-        ...(media.origin.startsWith('http:') ? { allow_http: 'true' } : {}),
-      },
-    })
+    resources.sr = await xapi.call(
+      'SR.introduce',
+      resources.srUuid,
+      `Browser media: ${session.name}`,
+      'Ephemeral browser ISO; single host, no migration support',
+      'iscsi',
+      'user',
+      false,
+      {}
+    )
     delete resources.findSr
-    const pbds = await xapi.call('SR.get_PBDs', resources.sr)
-    const attached = await Promise.all(pbds.map(pbd => xapi.call('PBD.get_currently_attached', pbd)))
-    if (pbds.length === 0 || attached.some(value => !value)) {
-      throw new Error('Browser media must be reachable and the adapter installed on every pool host')
-    }
-    resources.vdi = await xapi.VDI_create({
+    await xapi.call('SR.add_to_other_config', resources.sr, 'xo:browser-media', session.id)
+    await xapi.call('SR.add_to_other_config', resources.sr, 'auto-scan', 'false')
+    const pbd = await xapi.call('PBD.create', {
+      host,
       SR: resources.sr,
-      name_label: session.name,
-      virtual_size: session.size,
-      type: 'user',
-      read_only: true,
-      sharable: false,
+      device_config: resources.target.deviceConfig,
     })
+    await xapi.callAsync('PBD.plug', pbd)
+    if (session.closed) throw new Error('Browser disconnected during attachment')
+    // As in live mount, introduce before any scan to retain the raw format.
+    // The stock driver derives its own UUID/SCSIid from LUN 0; SR.forget also
+    // removes that metadata if introduction fails after creating the VDI.
+    const uuid = randomUUID()
+    await xapi.call(
+      'VDI.introduce',
+      uuid,
+      session.name,
+      'Read-only browser ISO',
+      resources.sr,
+      'user',
+      false,
+      true,
+      {},
+      uuid,
+      {},
+      { LUNid: '0', type: 'raw' },
+      true,
+      String(session.size),
+      '0',
+      'OpaqueRef:NULL',
+      false,
+      '19700101T00:00:00Z',
+      'OpaqueRef:NULL'
+    )
+    const vdis = await xapi.call('SR.get_VDIs', resources.sr)
+    if (vdis.length !== 1) throw new Error('Expected one browser ISO LUN')
+    resources.vdi = vdis[0]
     if (session.closed) throw new Error('Browser disconnected during attachment')
     // Use the normal XAPI CD lifecycle. A fresh drive is bootable; existing drive
     // boot order is left to the VM's settings.
