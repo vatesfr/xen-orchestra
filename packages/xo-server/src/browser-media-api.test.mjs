@@ -253,3 +253,19 @@ test('records ownership before introducing the SR', async () => {
     calls.findIndex(([method]) => method === 'journal.remove') > calls.findIndex(([method]) => method === 'SR.forget')
   )
 })
+
+test('external VDI removal revokes the source instead of leaking its session', async t => {
+  t.mock.timers.enable({ apis: ['setInterval'] })
+  const { xo, xapi, session } = fixture()
+  await attach.call(xo, { id: 'session' })
+  const call = xapi.call.bind(xapi)
+  xapi.call = (method, ...args) => {
+    if (method === 'VDI.get_VBDs') throw Object.assign(new Error('VDI removed'), { code: 'HANDLE_INVALID' })
+    if (method === 'SR.get_by_uuid') throw Object.assign(new Error('SR removed'), { code: 'UUID_INVALID' })
+    return call(method, ...args)
+  }
+  t.mock.timers.tick(15000)
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(session.closed, true)
+  await session.cleanup()
+})

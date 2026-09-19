@@ -149,7 +149,8 @@ export async function attach({ id }) {
       checking = true
       try {
         if ((await this.getXapi(vm).call('VDI.get_VBDs', resources.vdi)).length === 0) media.close(session)
-      } catch (_) {
+      } catch (error) {
+        if (error.code === 'HANDLE_INVALID') media.close(session)
         // A temporary host outage does not revoke the browser session.
       } finally {
         // This guard is acquired synchronously before awaiting; only its owner clears it.

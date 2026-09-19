@@ -1,3 +1,4 @@
+import _ from 'intl'
 import React from 'react'
 import { createBrowserMedia, attachBrowserMedia, disconnectBrowserMedia, getBrowserMediaEnabled } from './xo'
 
@@ -8,7 +9,8 @@ const listeners = new Set()
 const changed = () => listeners.forEach(listener => listener())
 
 async function connect(vm, file) {
-  const state = { status: 'Connecting…' }
+  if (sessions.has(vm.id)) return
+  const state = { status: 'browserMediaConnecting', name: file.name }
   sessions.set(vm.id, state)
   changed()
   try {
@@ -18,9 +20,17 @@ async function connect(vm, file) {
     const socket = (state.socket = new window.WebSocket(url))
     socket.binaryType = 'arraybuffer'
     await new Promise((resolve, reject) => {
-      socket.onerror = () => reject(new Error('Cannot connect virtual media'))
+      const timer = setTimeout(() => {
+        reject(new Error('Connection timed out'))
+        socket.close()
+      }, 15000)
+      socket.onerror = () => {
+        clearTimeout(timer)
+        reject(new Error('Cannot connect virtual media'))
+      }
       socket.onclose = () => {
-        state.status = 'Media disconnected'
+        clearTimeout(timer)
+        if (state.error === undefined) state.status = 'browserMediaDisconnected'
         state.disconnected = true
         changed()
         reject(new Error('Media disconnected'))
@@ -29,6 +39,7 @@ async function connect(vm, file) {
         try {
           const request = JSON.parse(data)
           if (request.ready) {
+            clearTimeout(timer)
             resolve()
             return
           }
@@ -59,11 +70,12 @@ async function connect(vm, file) {
     })
     await attachBrowserMedia(state.id)
     if (socket.readyState !== window.WebSocket.OPEN) throw new Error('Media disconnected')
-    state.status = `${file.name} — keep this tab open`
+    state.status = 'browserMediaConnected'
   } catch (error) {
     state.socket?.close()
     if (state.id !== undefined) disconnectBrowserMedia(state.id).catch(() => {})
-    state.status = error.message
+    state.status = 'browserMediaFailed'
+    state.error = error.message
     state.disconnected = true
   }
   changed()
@@ -92,15 +104,20 @@ export default class LocalIso extends React.Component {
   }
   _disconnect = async () => {
     const state = sessions.get(this.props.vm.id)
+    if (state === undefined || state.disconnecting) return
+    state.disconnecting = true
+    changed()
     // Explicit API disconnect reports cleanup failures; socket close still makes
     // the ISO unavailable immediately and triggers server-side cleanup retries.
     try {
       if (state.id !== undefined && !state.disconnected) await disconnectBrowserMedia(state.id)
       sessions.delete(this.props.vm.id)
     } catch (error) {
-      state.status = `Disconnected; cleanup pending: ${error.message}`
+      state.status = 'browserMediaCleanupPending'
+      state.error = error.message
       state.disconnected = true
     } finally {
+      state.disconnecting = false
       state.socket?.close()
       changed()
     }
@@ -112,7 +129,7 @@ export default class LocalIso extends React.Component {
       <div className='m-t-1'>
         {state === undefined ? (
           <label>
-            Connect local ISO (experimental)
+            {_('browserMediaConnect')}
             <input
               type='file'
               accept='.iso'
@@ -122,10 +139,15 @@ export default class LocalIso extends React.Component {
           </label>
         ) : (
           <span>
-            <span role='status'>{state.status} </span>
+            <span role='status'>{_(state.status, { name: state.name, error: state.error })} </span>
             {state.id !== undefined || state.disconnected ? (
-              <button type='button' className='btn btn-secondary btn-sm' onClick={this._disconnect}>
-                {state.disconnected ? 'Dismiss' : 'Disconnect ISO'}
+              <button
+                type='button'
+                className='btn btn-secondary btn-sm'
+                disabled={state.disconnecting}
+                onClick={this._disconnect}
+              >
+                {_(state.disconnected ? 'browserMediaDismiss' : 'browserMediaDisconnect')}
               </button>
             ) : null}
           </span>

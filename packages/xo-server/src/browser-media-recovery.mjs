@@ -33,6 +33,8 @@ export async function forgetBrowserMediaSr(xapi, uuid, sessionId) {
 }
 
 export class BrowserMediaRecovery {
+  pending = new Map()
+
   constructor(xo, media) {
     this.xo = xo
     this.media = media
@@ -48,25 +50,28 @@ export class BrowserMediaRecovery {
     await this.xo._redis.hDel(KEY, srUuid)
   }
 
-  reconcile() {
-    return (this.running ??= this._reconcile().finally(() => {
-      this.running = undefined
-    }))
+  async reconcile() {
+    const entries = await this.xo._redis.hGetAll(KEY)
+    await Promise.all(
+      Object.entries(entries).map(([uuid, serialized]) => {
+        if (this.pending.has(uuid)) return undefined
+        const pending = this._reconcile(uuid, serialized).finally(() => this.pending.delete(uuid))
+        this.pending.set(uuid, pending)
+        return pending
+      })
+    )
   }
 
-  async _reconcile() {
-    const entries = await this.xo._redis.hGetAll(KEY)
-    for (const [uuid, serialized] of Object.entries(entries)) {
-      try {
-        const { pool, session } = JSON.parse(serialized)
-        if (this.media.sessions.has(session)) continue
-        const xapi = Object.values(this.xo.getAllXapis()).find(xapi => xapi.pool?.uuid === pool)
-        if (xapi === undefined) continue
-        await forgetBrowserMediaSr(xapi, uuid, session)
-        await this.forget(uuid)
-      } catch (error) {
-        log.warn('could not reconcile browser media; will retry', { uuid, error })
-      }
+  async _reconcile(uuid, serialized) {
+    try {
+      const { pool, session } = JSON.parse(serialized)
+      if (this.media.stopping || this.media.sessions.has(session)) return
+      const xapi = Object.values(this.xo.getAllXapis()).find(xapi => xapi.pool?.uuid === pool)
+      if (xapi === undefined) return
+      await forgetBrowserMediaSr(xapi, uuid, session)
+      await this.forget(uuid)
+    } catch (error) {
+      log.warn('could not reconcile browser media; will retry', { uuid, error })
     }
   }
 }

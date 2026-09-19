@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { once } from 'node:events'
+import { EventEmitter, once } from 'node:events'
 import { createServer } from 'node:http'
 import { test } from 'node:test'
 import WebSocket from 'ws'
@@ -135,14 +135,14 @@ test('real CHAP iSCSI target reads the browser relay and reports disconnect as a
   await initiator.close()
 })
 
-test('opt-in requires an explicitly reachable iSCSI address', async t => {
+test('opt-in requires an explicitly reachable iSCSI address', t => {
   const previous = process.env.XO_BROWSER_MEDIA_ENABLED
   t.after(() => {
     if (previous === undefined) delete process.env.XO_BROWSER_MEDIA_ENABLED
     else process.env.XO_BROWSER_MEDIA_ENABLED = previous
   })
   process.env.XO_BROWSER_MEDIA_ENABLED = '1'
-  await assert.rejects(installBrowserMedia({}, { config: { getOptional: () => undefined } }), /iscsi.advertisedAddress/)
+  assert.throws(() => installBrowserMedia({}, { config: { getOptional: () => undefined } }), /iscsi.advertisedAddress/)
 })
 
 test('one VM cannot have competing sessions, including pending cleanup', async t => {
@@ -182,4 +182,29 @@ test('producer capabilities reject another origin and cannot be reused', async t
   await once(socket, 'message')
   t.after(() => socket.terminate())
   assert.equal(await rejected(base), 403)
+})
+
+test('recovery does not delay installing the HTTP/API service', async t => {
+  const previous = process.env.XO_BROWSER_MEDIA_ENABLED
+  process.env.XO_BROWSER_MEDIA_ENABLED = '1'
+  let releaseJournal
+  const xo = Object.assign(new EventEmitter(), {
+    config: { getOptional: key => (key === 'iscsi.advertisedAddress' ? '127.0.0.1' : undefined) },
+    _redis: { hGetAll: () => new Promise(resolve => (releaseJournal = resolve)) },
+    getAllXapis: () => ({}),
+    defineProperty(name, value) {
+      this[name] = value
+    },
+    registerRestRoutes: () => () => {},
+    hooks: new EventEmitter(),
+  })
+  t.after(async () => {
+    releaseJournal?.({})
+    await Promise.all(xo.hooks.listeners('stop').map(listener => listener()))
+    if (previous === undefined) delete process.env.XO_BROWSER_MEDIA_ENABLED
+    else process.env.XO_BROWSER_MEDIA_ENABLED = previous
+  })
+  assert.equal(installBrowserMedia(new EventEmitter(), xo), undefined)
+  assert.ok(xo.browserMedia instanceof BrowserMedia)
+  assert.equal(xo.listenerCount('server:connected'), 1)
 })

@@ -1079,7 +1079,7 @@ export default async function main(args) {
   // Must be set up before the API.
   express.use(xo._handleHttpRequest.bind(xo))
 
-  await installBrowserMedia(webServer, xo)
+  installBrowserMedia(webServer, xo)
 
   setUpStaticFiles(express, config.http.publicMounts)
 

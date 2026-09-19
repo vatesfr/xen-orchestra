@@ -54,7 +54,7 @@ export class BrowserIsoDevice {
 }
 
 export async function createBrowserMediaTarget(media, session) {
-  const chap = { user: `xo-${session.id.slice(0, 8)}`, secret: randomBytes(12).toString('hex').slice(0, 16) }
+  const chap = { user: `xo-${session.id.slice(0, 8)}`, secret: randomBytes(12).toString('base64') }
   const iqn = `iqn.2026-09.tech.vates.xo:browser-media-${session.id}`
   const target = new IscsiTarget({
     chap,

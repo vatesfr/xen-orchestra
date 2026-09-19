@@ -111,3 +111,33 @@ for (const replacement of [true, false]) {
     assert.ok(!calls.some(([method]) => method === 'VBD.eject' || method === 'SR.forget'))
   })
 }
+
+test('a stalled pool does not block another pool or duplicate its cleanup on a retry', async () => {
+  const { xo, media, xapi, journal, recovery } = fixture()
+  let unblock
+  const blocked = new Promise(resolve => {
+    unblock = resolve
+  })
+  let calls = 0
+  const stalled = {
+    pool: { uuid: 'stalled' },
+    async call() {
+      ++calls
+      await blocked
+      throw Object.assign(new Error('missing'), { code: 'UUID_INVALID' })
+    },
+  }
+  xo.getAllXapis = () => ({ stalled, xapi })
+  await recovery.remember({ id: 'stalled-session' }, stalled, 'stalled')
+  await recovery.remember({ id: 'session' }, xapi, 'working')
+  const first = recovery.reconcile()
+  const second = recovery.reconcile()
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(journal.working, undefined)
+  assert.ok(journal.stalled)
+  assert.equal(calls, 1)
+  unblock()
+  await Promise.all([first, second])
+  assert.deepEqual(journal, {})
+  assert.equal(media.sessions.size, 0)
+})

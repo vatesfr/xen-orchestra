@@ -158,7 +158,7 @@ export class BrowserMedia {
   }
 }
 
-export async function installBrowserMedia(webServer, xo) {
+export function installBrowserMedia(webServer, xo) {
   if (process.env.XO_BROWSER_MEDIA_ENABLED !== '1') return
   const advertisedAddress = xo.config.getOptional('iscsi.advertisedAddress')
   if (typeof advertisedAddress !== 'string' || advertisedAddress.length === 0) {
@@ -172,9 +172,10 @@ export async function installBrowserMedia(webServer, xo) {
     media.recovery.reconcile().catch(error => log.warn('browser media recovery failed', { error }))
   // Installation runs after the initial server connections; handle those now,
   // as well as reconnects and hosts returning after a temporary outage.
-  await reconcile()
   const recoveryTimer = setInterval(reconcile, 30000).unref()
   xo.on('server:connected', reconcile)
+  // Storage timeouts must not delay HTTP/API startup.
+  reconcile()
   xo.hooks.on('stop', () => {
     clearInterval(recoveryTimer)
     xo.removeListener('server:connected', reconcile)

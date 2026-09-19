@@ -105,3 +105,24 @@ The authenticated XO 6 Local ISO panel also attached the same file to the runnin
 - A non-admin account was denied all four browser-media JSON-RPC methods. The REST endpoint returned 401 without authentication and 403 for a non-admin token.
 
 The automated suites cover storage rollback, lost XAPI replies, retries across replacement XAPI connections, journal ordering, restart recovery, ownership mismatch, non-CD attachment protection, read-only data, bounded reads, browser timeout, malformed replies, session quotas, cross-origin rejection, and one-use producer capabilities. The recovery journal contains resource identifiers, not ISO data or browser capabilities. It only reconciles resources recorded by the same XO database.
+
+## Code and adversarial review (2026-09-19)
+
+The full PR was reviewed against the existing XO lifecycle hooks, API/REST authorization, translation conventions, React 15 compatibility, and storage cleanup patterns. A fresh check of all 185 open PRs found no competing browser-media implementation; Florent's #10018 still overlaps the shared iSCSI package. Its freshly fetched target and connection files are identical to the merged base, so they do not already fix the issue below. No shared iSCSI or live-mount code was changed during this review.
+
+### Fixed in this PR
+
+- Recovery ran synchronously during installation of the HTTP/API service and processed all journal entries serially. A stalled storage call could delay startup and cleanup on unrelated pools. Recovery now starts in the background and tracks work per SR, so repeated scans do not duplicate the same cleanup and unrelated pools can progress independently.
+- The CD monitor ignored a missing VDI just like a temporary connection failure. External removal could retain a source session and target unnecessarily. An invalid VDI handle now revokes the source and starts cleanup; transient connection errors still retain the source.
+- XO 5's local-ISO labels bypassed the translation system. They now use the existing message catalog, with French translations. Its connection handshake has the same 15-second deadline as XO 6, duplicate selection/disconnect actions are guarded, and a socket-close event no longer erases a cleanup error.
+- CHAP secrets previously truncated hexadecimal output to 16 characters, retaining only 64 bits from 12 random bytes. They now encode all 12 bytes as 16 Base64 characters, retaining 96 bits within the existing length limit.
+
+### Remaining blocker: pre-authentication iSCSI connection replacement
+
+The shared target's `IscsiTarget.#onConnection()` destroys its established connection immediately when another TCP connection arrives, before the replacement completes CHAP authentication. A localhost-only reproduction established an authenticated initiator and successfully read 512 bytes, then opened a second TCP socket without sending any login or credentials. The authenticated initiator lost its connection and its next read failed. This is an availability issue; the reproduction did not bypass authentication to read ISO data.
+
+A port probe or another unauthenticated peer able to reach the temporary listener can therefore interrupt an installation. The fix belongs in the shared iSCSI connection lifecycle: authenticate a candidate before allowing it to replace an established session, and bound unauthenticated candidate connections and login timeouts. Existing single-consumer/reconnect semantics and legitimate discovery connections need regression coverage there. Coordinate this fix with #10018 instead of maintaining a browser-media copy of the target. The feature should remain draft/opt-in until this dependency issue is resolved; CHAP alone does not prevent the demonstrated interruption.
+
+The final review validation passed 34 targeted tests (16 lifecycle, 12 relay/startup, and six recovery), lint, and builds of xo-server, XO 5, and XO 6.
+
+Other explicitly unvalidated areas remain shared-SR/migration/HA behavior, physical host power loss, backup/snapshot interactions, and performance across slow or unreliable WAN links. This review does not change those scope boundaries.
