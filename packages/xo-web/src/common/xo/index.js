@@ -4411,3 +4411,11 @@ const _callGithubApi = async (endpoint = '') => {
 export const getMasterCommit = () => _callGithubApi('/commits/master')
 
 export const compareCommits = (base, head) => _callGithubApi(`/compare/${base}...${head}`)
+
+// Experimental browser-backed CD media. Only administrators can create sessions.
+export const createBrowserMedia = (vm, file) =>
+  _call('browserMedia.create', { id: resolveId(vm), name: file.name, size: file.size })
+export const attachBrowserMedia = id => _call('browserMedia.attach', { id })
+export const disconnectBrowserMedia = id => _call('browserMedia.disconnect', { id })
+
+export const getBrowserMediaEnabled = () => _call('browserMedia.isEnabled')

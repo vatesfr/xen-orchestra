@@ -206,6 +206,13 @@ requestTimeout = 0
 '/v5/rest' = '[protocol]//localhost:[port]/rest'
 
 [iscsi]
+# Experimental local ISO streaming: set XO_BROWSER_MEDIA_ENABLED=1 in xo-server's
+# environment and configure advertisedAddress explicitly. Hosts use their stock
+# iscsi driver; no host packages or custom SM driver are required. Each session
+# opens a temporary TCP listener on an ephemeral port reachable by its host.
+# Browser media currently attaches to one host; migration is not supported.
+# CHAP authenticates the iSCSI link but does not encrypt it.
+#
 # Address this appliance is reachable at *from the hosts*: it is handed to them
 # as the iSCSI portal when a backup disk is mounted, so a value they cannot
 # reach makes the mount fail.

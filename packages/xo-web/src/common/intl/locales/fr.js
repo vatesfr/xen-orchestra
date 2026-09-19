@@ -8,6 +8,30 @@ addLocaleData(reactIntlData)
 // ===================================================================
 
 export default {
+  // Original text: "Connect local ISO (experimental)"
+  browserMediaConnect: 'Connecter une ISO locale (expérimental)',
+
+  // Original text: "Connecting…"
+  browserMediaConnecting: 'Connexion…',
+
+  // Original text: "{name} — keep this tab open"
+  browserMediaConnected: '{name} — gardez cet onglet ouvert',
+
+  // Original text: "Media disconnected"
+  browserMediaDisconnected: 'Média déconnecté',
+
+  // Original text: "Connection failed: {error}"
+  browserMediaFailed: 'Échec de la connexion : {error}',
+
+  // Original text: "Disconnected; cleanup pending: {error}"
+  browserMediaCleanupPending: 'Déconnecté ; nettoyage en attente : {error}',
+
+  // Original text: "Dismiss"
+  browserMediaDismiss: 'Fermer',
+
+  // Original text: "Disconnect ISO"
+  browserMediaDisconnect: 'Déconnecter l’ISO',
+
   // Original text: "{key}: {value}"
   keyValue: '{key} : {value}',
 
