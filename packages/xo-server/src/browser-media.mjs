@@ -1,8 +1,11 @@
+import { BrowserMediaRecovery } from './browser-media-recovery.mjs'
+import { createLogger } from '@xen-orchestra/log'
 import { createBrowserMediaTarget } from './browser-media-iscsi.mjs'
 import { registerBrowserMediaRest } from './browser-media-rest.mjs'
 import { randomBytes } from 'node:crypto'
 import { WebSocketServer } from 'ws'
 
+const log = createLogger('xo:browser-media')
 const PREFIX = '/api/browser-media/'
 const MAX_READ = 1024 * 1024
 const token = () => randomBytes(32).toString('hex')
@@ -31,6 +34,10 @@ export class BrowserMedia {
     if (!Number.isSafeInteger(size) || size < 32768 || size % 512 !== 0 || size > 128 * 1024 ** 3) {
       throw new Error('Select a sector-aligned ISO between 32 KiB and 128 GiB')
     }
+    if (this.stopping) throw new Error('Browser media is stopping')
+    if ([...this.sessions.values()].some(session => session.vm === vm)) {
+      throw new Error('This VM already has a local ISO session or pending cleanup')
+    }
     if (this.sessions.size >= 16) throw new Error('Too many virtual media sessions')
     const session = {
       id: token(),
@@ -48,9 +55,10 @@ export class BrowserMedia {
     return session
   }
 
-  get(id, owner) {
+  get(id, owner, allowClosed = false) {
     const session = this.sessions.get(id)
-    if (session === undefined || session.owner !== owner || session.closed) throw new Error('Media session unavailable')
+    if (session === undefined || session.owner !== owner || (session.closed && !allowClosed))
+      throw new Error('Media session unavailable')
     return session
   }
 
@@ -75,7 +83,7 @@ export class BrowserMedia {
     } catch (_) {
       sameOrigin = false
     }
-    if (session === undefined || session.socket !== undefined || !sameOrigin) {
+    if (session === undefined || session.closed || session.socket !== undefined || !sameOrigin) {
       socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n')
       return
     }
@@ -126,19 +134,31 @@ export class BrowserMedia {
   }
 
   release(session) {
+    clearTimeout(session.cleanupTimer)
     this.sessions.delete(session.id)
   }
 
   async stop() {
+    this.stopping = true
     clearInterval(this.timer)
     for (const session of this.sessions.values()) this.close(session)
     this.webSockets.close()
+    const cleanup = Promise.allSettled(
+      [...this.sessions.values()].map(async session => {
+        clearTimeout(session.cleanupTimer)
+        await session.operation?.catch(() => {})
+        await session.cleanup?.()
+      })
+    )
+    let timer
+    await Promise.race([cleanup, new Promise(resolve => (timer = setTimeout(resolve, 10000)))])
+    clearTimeout(timer)
     await Promise.allSettled([...this.targets].map(target => target.close()))
     this.targets.clear()
   }
 }
 
-export function installBrowserMedia(webServer, xo) {
+export async function installBrowserMedia(webServer, xo) {
   if (process.env.XO_BROWSER_MEDIA_ENABLED !== '1') return
   const advertisedAddress = xo.config.getOptional('iscsi.advertisedAddress')
   if (typeof advertisedAddress !== 'string' || advertisedAddress.length === 0) {
@@ -147,6 +167,18 @@ export function installBrowserMedia(webServer, xo) {
   const media = new BrowserMedia()
   media.advertisedAddress = advertisedAddress
   media.bindAddress = xo.config.getOptional('iscsi.bindAddress')
+  media.recovery = new BrowserMediaRecovery(xo, media)
+  const reconcile = () =>
+    media.recovery.reconcile().catch(error => log.warn('browser media recovery failed', { error }))
+  // Installation runs after the initial server connections; handle those now,
+  // as well as reconnects and hosts returning after a temporary outage.
+  await reconcile()
+  const recoveryTimer = setInterval(reconcile, 30000).unref()
+  xo.on('server:connected', reconcile)
+  xo.hooks.on('stop', () => {
+    clearInterval(recoveryTimer)
+    xo.removeListener('server:connected', reconcile)
+  })
   xo.defineProperty('browserMedia', media)
   const unregisterRest = registerBrowserMediaRest(xo)
   xo.hooks.on('stop', unregisterRest)

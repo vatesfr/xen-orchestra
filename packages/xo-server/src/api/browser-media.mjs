@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { forgetBrowserMediaSr } from '../browser-media-recovery.mjs'
 
 function service(xo) {
   if (xo.browserMedia === undefined) throw new Error('Browser media is not enabled on this XO server')
@@ -28,28 +29,10 @@ export async function attach({ id }) {
   const xapi = this.getXapi(vm)
   const resources = {}
   const cleanup = async () => {
-    if (resources.findSr) {
-      try {
-        resources.sr = await xapi.call('SR.get_by_uuid', resources.srUuid)
-      } catch (error) {
-        if (error.code !== 'UUID_INVALID') throw error
-      }
-      delete resources.findSr
-    }
-    // Only eject our own medium; never eject a replacement inserted by another client.
-    if (resources.vdi !== undefined) {
-      for (const vbd of await xapi.call('VDI.get_VBDs', resources.vdi)) {
-        if ((await xapi.call('VBD.get_VDI', vbd)) === resources.vdi) await xapi.call('VBD.eject', vbd)
-      }
-    }
-    if (resources.sr !== undefined) {
-      for (const pbd of await xapi.call('SR.get_PBDs', resources.sr)) {
-        if (await xapi.call('PBD.get_currently_attached', pbd)) await xapi.callAsync('PBD.unplug', pbd)
-        await xapi.call('PBD.destroy', pbd)
-      }
-      await xapi.call('SR.forget', resources.sr)
-      delete resources.sr
-      delete resources.vdi
+    if (resources.srUuid !== undefined) {
+      await forgetBrowserMediaSr(this.getXapi(vm), resources.srUuid, session.id)
+      await media.recovery?.forget(resources.srUuid)
+      delete resources.srUuid
     }
     if (resources.target !== undefined) {
       await resources.target.close()
@@ -67,7 +50,10 @@ export async function attach({ id }) {
     }))
   session.onClose = () => {
     clearInterval(session.monitor)
-    const attempt = () => session.cleanup().catch(() => setTimeout(attempt, 30000).unref())
+    const attempt = () =>
+      session.cleanup().catch(() => {
+        if (!media.stopping) session.cleanupTimer = setTimeout(attempt, 30000).unref()
+      })
     session.operation.catch(() => {}).then(attempt)
   }
   session.operation = (async () => {
@@ -88,7 +74,7 @@ export async function attach({ id }) {
     resources.target = await media.createTarget(session)
     if (session.closed) throw new Error('Browser disconnected during attachment')
     resources.srUuid = randomUUID()
-    resources.findSr = true
+    await media.recovery?.remember(session, xapi, resources.srUuid)
     resources.sr = await xapi.call(
       'SR.introduce',
       resources.srUuid,
@@ -97,9 +83,8 @@ export async function attach({ id }) {
       'iscsi',
       'user',
       false,
-      {}
+      { 'xo:browser-media': session.id }
     )
-    delete resources.findSr
     await xapi.call('SR.add_to_other_config', resources.sr, 'xo:browser-media', session.id)
     await xapi.call('SR.add_to_other_config', resources.sr, 'auto-scan', 'false')
     const pbd = await xapi.call('PBD.create', {
@@ -137,6 +122,8 @@ export async function attach({ id }) {
     const vdis = await xapi.call('SR.get_VDIs', resources.sr)
     if (vdis.length !== 1) throw new Error('Expected one browser ISO LUN')
     resources.vdi = vdis[0]
+    // The stock driver creates LUN metadata with its own name during introduction.
+    await xapi.call('VDI.set_name_label', resources.vdi, session.name)
     if (session.closed) throw new Error('Browser disconnected during attachment')
     // Use the normal XAPI CD lifecycle. A fresh drive is bootable; existing drive
     // boot order is left to the VM's settings.
@@ -161,7 +148,7 @@ export async function attach({ id }) {
       if (checking || session.closed) return
       checking = true
       try {
-        if ((await xapi.call('VDI.get_VBDs', resources.vdi)).length === 0) media.close(session)
+        if ((await this.getXapi(vm).call('VDI.get_VBDs', resources.vdi)).length === 0) media.close(session)
       } catch (_) {
         // A temporary host outage does not revoke the browser session.
       } finally {
@@ -184,7 +171,7 @@ attach.params = { id: { type: 'string' } }
 
 export async function disconnect({ id }) {
   const media = service(this)
-  const session = media.get(id, this.apiContext.user.id)
+  const session = media.get(id, this.apiContext.user.id, true)
   media.close(session)
   await session.operation?.catch(() => {})
   await session.cleanup?.()

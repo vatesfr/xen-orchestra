@@ -71,7 +71,7 @@ After restoration, `rpm -V sm` showed no modified SM code: only a pre-existing m
 
 ## Remaining work
 
-The custom host-adapter approach is superseded by this implementation. Remaining work includes automatic crash reconciliation, browser reconnection policy, shared-target hardening, broader UI coverage, and user-facing handling of the raw-iSCSI-backed CD. Existing ISO selectors and backup logic may assume `SR.content_type=iso`; those workflows need further review. A complete OS installation was not tested.
+The custom host-adapter approach is superseded by this implementation. The follow-up validation below adds persistent crash reconciliation, authenticated UI coverage, and a complete installation. Remaining work includes browser reconnection policy, shared-target hardening, and broader handling of the raw-iSCSI-backed CD. Existing ISO selectors and backup logic may assume `SR.content_type=iso`; those workflows need further review.
 
 The upstream target/live-mount design is single-consumer and the browser SR is non-shared. Migration and pool-wide use require separate work. The host must reach XO's temporary iSCSI listener; CHAP authenticates but does not encrypt that traffic. The browser path should use WSS in deployment (the isolated lab page used localhost WS).
 
@@ -82,3 +82,26 @@ An overlap check of all 185 open XO PRs identified Florent's [#10018](https://gi
 - [#10345: restore UI](https://github.com/vatesfr/xen-orchestra/pull/10345)
 - [#10302: live-mount backend and SR/VDI introduction](https://github.com/vatesfr/xen-orchestra/pull/10302)
 - [#10242: iSCSI library used unchanged for this test](https://github.com/vatesfr/xen-orchestra/pull/10242)
+
+## Authenticated UI and installation validation (2026-09-19)
+
+An isolated XO server built from the PR used its own temporary Redis-compatible database and Chrome profile. It connected to the lab host through an SSH-forwarded XAPI Unix socket. The existing user VM was left untouched. A new disposable VM had two vCPUs, 2 GiB RAM, a 12 GiB local disk, and a LAN interface. No XCP-ng storage-driver or timeout changes were made.
+
+The real XO 5 file picker attached the original Debian 13.5 netinst ISO while the VM was halted. Debian installed its base system and GRUB onto the disk with package mirrors disabled, using a configuration based on the [Debian preseeding guide](https://www.debian.org/releases/trixie/amd64/apb.en.html). Navigating from the Disks tab to the Console tab retained the browser source. After installation, Disconnect ISO removed the temporary SR; the VM then booted from disk to the Debian GNU/Linux 13 login prompt. The guest was provisioned with a disposable local account. The test automation needed corrections to boot-menu timing, shifted VNC keystrokes, and its completion callback; those were harness issues, not streaming failures.
+
+![Debian installed and booted from disk after disconnecting the ISO](docs/static/img/browser-media/debian-installed.png)
+
+The authenticated XO 6 Local ISO panel also attached the same file to the running installed guest. The stock driver preserved the atomic SR ownership marker. The raw VDI's label is now set after introduction so its metadata retains the ISO filename. XO 5 also exposes ISO controls on its halted Console page.
+
+![XO 6 streaming to the installed guest](docs/static/img/browser-media/xo6-connected.png)
+
+### Failure and authorization checks
+
+- Killing the isolated XO process with SIGKILL left its SR/PBD/VDI and persistent journal entry behind. Restarting XO automatically ejected the CD, unplugged and removed the PBD, forgot the SR/VDI metadata, and cleared the journal. The installed VM remained running. The stock driver's SCSI identification timed out after approximately 142 seconds before cleanup continued; no manual storage cleanup or host changes were required. A new XO 6 attachment then succeeded.
+- Disconnecting XO's management connection to the host, then reloading the source tab, retained the temporary resources while cleanup was unavailable. Reconnecting XO allowed the automatic retry to clean them using the new XAPI connection. This simulates loss of XO's management connection; it is not a physical host power-loss test.
+- Pausing only the isolated Chrome network service for 45 seconds caused the real heartbeat timeout to revoke its source. XO 6 displayed “Media disconnected” and the temporary SR was removed automatically. Chrome’s offline emulation alone did not interrupt the existing WebSocket and was not counted as a successful outage test.
+- Ordinary XO 6 Disconnect ISO removed its storage. The rebuilt XO 5 halted Console page attached the ISO successfully; closing that source tab also removed its temporary storage.
+- The real API rejected a second local ISO session for a VM that already had one.
+- A non-admin account was denied all four browser-media JSON-RPC methods. The REST endpoint returned 401 without authentication and 403 for a non-admin token.
+
+The automated suites cover storage rollback, lost XAPI replies, retries across replacement XAPI connections, journal ordering, restart recovery, ownership mismatch, non-CD attachment protection, read-only data, bounded reads, browser timeout, malformed replies, session quotas, cross-origin rejection, and one-use producer capabilities. The recovery journal contains resource identifiers, not ISO data or browser capabilities. It only reconciles resources recorded by the same XO database.

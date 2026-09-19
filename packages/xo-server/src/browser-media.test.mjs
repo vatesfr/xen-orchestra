@@ -107,8 +107,8 @@ test('cleanup-pending sessions still consume the session quota', async t => {
   const { media, session } = await fixture(t)
   session.onClose = () => {}
   media.close(session)
-  for (let i = 1; i < 16; ++i) media.create({ owner: 'admin', vm: 'vm', name: 'test.iso', size: 32768 })
-  assert.throws(() => media.create({ owner: 'admin', vm: 'vm', name: 'test.iso', size: 32768 }), /Too many/)
+  for (let i = 1; i < 16; ++i) media.create({ owner: 'admin', vm: `vm-${i}`, name: 'test.iso', size: 32768 })
+  assert.throws(() => media.create({ owner: 'admin', vm: 'overflow', name: 'test.iso', size: 32768 }), /Too many/)
   media.release(session)
   media.create({ owner: 'admin', vm: 'vm', name: 'test.iso', size: 32768 })
 })
@@ -135,12 +135,51 @@ test('real CHAP iSCSI target reads the browser relay and reports disconnect as a
   await initiator.close()
 })
 
-test('opt-in requires an explicitly reachable iSCSI address', t => {
+test('opt-in requires an explicitly reachable iSCSI address', async t => {
   const previous = process.env.XO_BROWSER_MEDIA_ENABLED
   t.after(() => {
     if (previous === undefined) delete process.env.XO_BROWSER_MEDIA_ENABLED
     else process.env.XO_BROWSER_MEDIA_ENABLED = previous
   })
   process.env.XO_BROWSER_MEDIA_ENABLED = '1'
-  assert.throws(() => installBrowserMedia({}, { config: { getOptional: () => undefined } }), /iscsi.advertisedAddress/)
+  await assert.rejects(installBrowserMedia({}, { config: { getOptional: () => undefined } }), /iscsi.advertisedAddress/)
+})
+
+test('one VM cannot have competing sessions, including pending cleanup', async t => {
+  const { media, session } = await fixture(t)
+  const options = { owner: 'admin', vm: 'vm', name: 'other.iso', size: 32768 }
+  assert.throws(() => media.create(options), /already has/)
+  session.onClose = () => {}
+  media.close(session)
+  assert.throws(() => media.create(options), /pending cleanup/)
+  assert.throws(() => media.get(session.id, 'admin'), /unavailable/)
+  assert.equal(media.get(session.id, 'admin', true), session)
+  assert.throws(() => media.get(session.id, 'other', true), /unavailable/)
+  media.release(session)
+  media.create(options)
+})
+
+test('producer capabilities reject another origin and cannot be reused', async t => {
+  const { media, base } = await fixture(t)
+  const session = media.create({ owner: 'admin', vm: 'other-vm', name: 'test.iso', size: 32768 })
+  const url = base.replace('http:', 'ws:') + `/api/browser-media/${session.browserToken}/socket`
+  const rejected = origin =>
+    new Promise((resolve, reject) => {
+      const socket = new WebSocket(url, { origin })
+      socket.on('error', () => {})
+      socket.once('open', () => {
+        socket.terminate()
+        reject(new Error('Unexpected producer accepted'))
+      })
+      socket.once('unexpected-response', (req, res) => {
+        resolve(res.statusCode)
+        res.resume()
+        req.destroy()
+      })
+    })
+  assert.equal(await rejected('https://another-origin.invalid'), 403)
+  const socket = new WebSocket(url, { origin: base })
+  await once(socket, 'message')
+  t.after(() => socket.terminate())
+  assert.equal(await rejected(base), 403)
 })

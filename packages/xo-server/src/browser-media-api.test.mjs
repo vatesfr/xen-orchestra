@@ -14,7 +14,7 @@ function fixture({ failInsert = false, powerState = 'Running', vbds = ['cd'], af
         case 'VM.get_possible_hosts':
           return ['host', 'preferred']
         case 'VBD.get_record':
-          return { type: 'CD', empty: true, currently_attached: true }
+          return { type: 'CD', empty: true, currently_attached: true, VDI: 'vdi' }
         case 'VBD.insert':
           if (failInsert) throw new Error('insert failed')
           break
@@ -25,6 +25,8 @@ function fixture({ failInsert = false, powerState = 'Running', vbds = ['cd'], af
         case 'SR.introduce':
         case 'SR.get_by_uuid':
           return 'sr'
+        case 'SR.get_record':
+          return { type: 'iscsi', sm_config: { 'xo:browser-media': session.id } }
         case 'SR.get_VDIs':
           return ['vdi']
         case 'SR.get_PBDs':
@@ -137,7 +139,8 @@ test('cleanup does not eject replacement media', async () => {
   const { xo, xapi, calls } = fixture()
   await attach.call(xo, { id: 'session' })
   const call = xapi.call
-  xapi.call = (method, ...args) => (method === 'VBD.get_VDI' ? Promise.resolve('replacement') : call(method, ...args))
+  xapi.call = (method, ...args) =>
+    method === 'VBD.get_record' ? Promise.resolve({ type: 'CD', VDI: 'replacement' }) : call(method, ...args)
   await disconnect.call(xo, { id: 'session' })
   assert.ok(!calls.some(call => call[0] === 'VBD.eject'))
 })
@@ -217,4 +220,36 @@ test('creates a missing read-only CD while halted', async () => {
   assert.equal(drive.mode, 'RO')
   assert.equal(drive.VDI, 'vdi')
   await disconnect.call(xo, { id: 'session' })
+})
+
+test('cleanup uses the replacement XAPI connection after a pool reconnects', async () => {
+  const { xo, xapi, calls } = fixture()
+  await attach.call(xo, { id: 'session' })
+  const replacement = { call: xapi.call, callAsync: xapi.callAsync }
+  xo.getXapi = () => replacement
+  xapi.call = () => {
+    throw new Error('stale disconnected connection')
+  }
+  await disconnect.call(xo, { id: 'session' })
+  assert.ok(calls.some(([method]) => method === 'SR.forget'))
+})
+
+test('records ownership before introducing the SR', async () => {
+  const { xo, session, calls } = fixture()
+  xo.browserMedia.recovery = {
+    async remember() {
+      calls.push(['journal.write'])
+    },
+    async forget() {
+      calls.push(['journal.remove'])
+    },
+  }
+  await attach.call(xo, { id: 'session' })
+  const methods = calls.map(([method]) => method)
+  assert.ok(methods.indexOf('journal.write') < methods.indexOf('SR.introduce'))
+  assert.deepEqual(calls.find(([method]) => method === 'SR.introduce')[7], { 'xo:browser-media': session.id })
+  await disconnect.call(xo, { id: 'session' })
+  assert.ok(
+    calls.findIndex(([method]) => method === 'journal.remove') > calls.findIndex(([method]) => method === 'SR.forget')
+  )
 })
