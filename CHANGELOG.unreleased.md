@@ -101,16 +101,14 @@
 <!--packages-start-->
 
 - @vates/iscsi minor
-- @vates/nbd-client minor
 - @vates/node-vsphere-soap minor
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/async-map patch
 - @xen-orchestra/backup-archive patch
-- @xen-orchestra/backups patch
+- @xen-orchestra/backups minor
 - @xen-orchestra/disk-cli patch
 - @xen-orchestra/fs patch
-- @xen-orchestra/immutable-backups patch
 - @xen-orchestra/mcp patch
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
@@ -125,7 +123,6 @@
 - xo-server minor
 - xo-server-audit patch
 - xo-server-auth-ldap patch
-- xo-server-load-balancer patch
 - xo-server-netbox patch
 - xo-server-openmetrics patch
 - xo-server-sdn-controller patch
