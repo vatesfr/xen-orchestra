@@ -36,6 +36,12 @@ export default class BackupDiskMountsResolver {
   /** @param {XoApp} app */
   constructor(app) {
     this.#app = app
+
+    // a mount also disappears on its own, when the VDI it serves is removed from the pool — e.g.
+    // when the VM it was attached to is deleted
+    app.liveMount.on('unmounted', id => {
+      this.#mountOwners.delete(id)
+    })
   }
 
   /**
