@@ -72,6 +72,7 @@
 - [OpenMetrics] A host whose IPMI controller does not answer no longer delays the `/openmetrics/metrics` response until Prometheus gives up with `context deadline exceeded`: power and XOSTOR metrics are served from the last collected values and refreshed in the background (PR [#10409](https://github.com/vatesfr/xen-orchestra/pull/10409))
 - [Backup/Restore] Fix listing backups sometimes mixing the results of two different VM listings (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
 - [Backup/Restore] Better handling of a backup repository the proxy fails to list, instead of silently returning nothing (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
+- [REST API] Change create_network `vlan` body property to be optionnal (PR [#10433](https://github.com/vatesfr/xen-orchestra/pull/10433))
 
 ### Packages to release
 
