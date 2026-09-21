@@ -52,18 +52,12 @@ export function useNetworkDelete(rawNetworks: MaybeRefOrGetter<FrontXoNetwork[]>
     }
 
     return openNetworkDeleteModal({
-      events: {
-        onConfirm: async () => {
-          try {
-            await run()
-          } catch (apiError) {
-            console.error('Error when deleting network:', apiError)
-          }
-        },
-      },
       props: {
         subject: subject.value,
         confirmLabel: t('action:delete-n-networks', { n: networks.value.length }),
+      },
+      events: {
+        onConfirm: () => run({ detached: true }),
       },
     })
   }

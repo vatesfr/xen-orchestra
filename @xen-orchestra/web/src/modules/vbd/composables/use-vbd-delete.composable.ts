@@ -22,15 +22,14 @@ export function useVbdDelete(options: { vbds: MaybeRefOrGetter<FrontXoVbd[]>; vm
   const { open } = useOverlay({
     component: () => import('@/modules/vbd/components/modal/VbdDeleteModal.vue'),
     events: {
-      onConfirm: async () => {
-        try {
-          await run()
-          // TODO need to be improve
-          selectedVdiId.value = ''
-        } catch (error) {
-          console.error('Error when deleting VBD:', error)
-        }
-      },
+      onConfirm: () =>
+        run({
+          detached: true,
+          onSuccess: () => {
+            // TODO need to be improve
+            selectedVdiId.value = ''
+          },
+        }),
       onCancel: true,
     },
   })
