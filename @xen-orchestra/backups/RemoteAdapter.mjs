@@ -9,7 +9,6 @@ import Disposable from 'promise-toolbox/Disposable'
 import groupBy from 'lodash/groupBy.js'
 import pickBy from 'lodash/pickBy.js'
 import reduce from 'lodash/reduce.js'
-import zlib from 'zlib'
 import { Task } from '@vates/task'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
@@ -124,8 +123,6 @@ export class RemoteAdapter {
    * deletion, as recorded in the journal
    */
   async deleteDeltaVmBackups(backups, { reason = 'retention', immediate = false } = {}) {
-    const handler = this._handler
-
     // this will delete the json, unused VHDs will be detected by `cleanVm`
     await deleteDeltaVmBackupFiles(
       this._handler,
