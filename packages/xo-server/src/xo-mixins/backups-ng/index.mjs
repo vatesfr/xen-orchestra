@@ -6,7 +6,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
-import { hasLiveMountTarget } from '@xen-orchestra/backups/_vdiRestoreTargets.mjs'
+import { hasLiveMountTarget, normalizeVdiRestoreTargets } from '@xen-orchestra/backups/_vdiRestoreTargets.mjs'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
@@ -521,6 +521,32 @@ export default class BackupNg {
     })
   }
 
+  /**
+   * Record the live mounts a proxy created while restoring a backup on its own.
+   *
+   * A restore delegated to a proxy mounts the disks *on the proxy*, out of reach of
+   * `mountBackupArchiveDisk`: the mounts it reports are recorded here, with the proxy serving
+   * them, so they can be listed and unmounted afterwards.
+   *
+   * @param {XoVmBackupArchive['id']} archiveId
+   * @param {string} proxyId
+   * @param {object} [settings] - restore settings, holding the per disk targets
+   * @param {{ liveMounts?: object[] }} [result] - result of the restore, as reported by the proxy
+   */
+  #registerProxyLiveMounts(archiveId, proxyId, settings, result) {
+    const mounts = result?.liveMounts
+    if (mounts === undefined || mounts.length === 0) {
+      return
+    }
+    this._app.registerProxyBackupArchiveDiskMounts({
+      archiveId,
+      // the restore itself rejects mounts spread over several hosts, so they all share this one
+      hostId: normalizeVdiRestoreTargets(settings?.mapVdisSrs).getLiveMountHost(),
+      mounts,
+      proxyId,
+    })
+  }
+
   async importVmBackupNg(id, srId, settings) {
     const app = this._app
     const xapi = app.getXapi(srId)
@@ -533,11 +559,6 @@ export default class BackupNg {
     try {
       let result
       if (remote.proxy !== undefined) {
-        if (hasLiveMountTarget(settings?.mapVdisSrs)) {
-          // a live mount is served by the appliance which created it, and a proxy has no LiveMount
-          throw invalidParameters('a disk cannot be live mounted from a backup repository handled by a proxy')
-        }
-
         // httpProxy is ignored when using XO Proxy
         const { allowUnauthorized, host, password, username } = await app.getXenServerWithCredentials(
           app.getXenServerIdByObject(sr.$id)
@@ -585,11 +606,17 @@ export default class BackupNg {
           }
         } catch (error) {
           if (invalidParameters.is(error)) {
+            // this proxy cannot stream the logs, and is therefore too old to live mount a disk:
+            // nothing to register below
             delete params.streamLogs
             return app.callProxyMethod(remote.proxy, 'backup.importVmBackup', params)
           }
           throw error
         }
+
+        // the proxy mounted the disks itself, on itself: without this, nothing here would know
+        // which proxy to ask to unmount them
+        this.#registerProxyLiveMounts(id, remote.proxy, settings, result)
       } else {
         result = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
           const metadata = await adapter.readVmBackupMetadata(metadataFilename)

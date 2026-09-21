@@ -135,9 +135,10 @@ declare namespace backup {
   }
 
   // `mapVdisSrs` gives a target per disk, keyed by the uuid the disk has in the backup:
-  // `{ type: 'restore', sr?: string }`, `{ type: 'ignore' }`, or an SR uuid / `null` for the
-  // same two, in the legacy shape. `{ type: 'live-mount' }` is *not* supported here: a live
-  // mount is served by the appliance which created it, and a proxy has none.
+  // `{ type: 'restore', sr?: string }`, `{ type: 'ignore' }`, `{ type: 'live-mount', host: string }`,
+  // or an SR uuid / `null` for the first two, in the legacy shape. A live mounted disk is served
+  // by this proxy, like `mountDisk` does, and outlives the restore: it is reported in `liveMounts`,
+  // and its `id` must be handed back to `unmountDisk`.
   function importVmBackup(_: {
     backupId: string
     remote: Remote
@@ -146,6 +147,40 @@ declare namespace backup {
     xapi: Xapi
     streamLogs: boolean = false
   }): string
+
+  interface MountedDisk {
+    // handle to pass to `unmountDisk`
+    id: string
+    // UUID of the SR introduced on the host
+    srUuid: string
+    // UUID of the read-only VDI exposing the disk
+    vdiUuid: string
+    // IQN of the target serving the disk
+    iqn: string
+    // address of the portal, as advertised to the host
+    address: string
+    // port of the portal, ephemeral: one target per mount
+    port: number
+  }
+
+  // Serve `disk` as a read-only iSCSI LUN and attach it, as an SR, to `host` — a host of the pool
+  // `xapi` points at. Nothing is copied: every read goes straight to the backup repository, and
+  // writes are refused. Undone by `unmountDisk`.
+  //
+  // The portal handed to the host is this proxy's address as seen from it, auto-detected unless
+  // `iscsi.advertisedAddress` is set in the proxy configuration.
+  //
+  // There is no method to list the mounts: a proxy is driven by a single XO, which is the one
+  // keeping track of them.
+  function mountDisk(_: {
+    disk: string
+    host: string
+    nameLabel?: string
+    remote: Remote
+    xapi: Xapi
+  }): MountedDisk
+
+  function unmountDisk(_: { id: string })
 
   function listPoolMetadataBackups(_: { remotes: { [id: string]: Remote } }): {
     [remoteId: string]: { [poolUuid: string]: object[] }
