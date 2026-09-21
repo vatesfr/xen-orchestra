@@ -17,7 +17,7 @@ export type BaseNewNetworkPayload = {
 // Payload that the REST API expects
 export type NewNetworkPayload = BaseNewNetworkPayload & {
   pif: XoPif['id']
-  vlan: number
+  vlan?: number
 }
 
 export const useXoNetworkCreateJob = defineJob('network.create', [payloadsArg], () => {
@@ -57,10 +57,6 @@ export const useXoNetworkCreateJob = defineJob('network.create', [payloadsArg], 
 
         if (payload.pif === undefined) {
           throw new JobError(t('job:arg:pif-id-required'))
-        }
-
-        if (payload.vlan === undefined) {
-          throw new JobError(t('job:arg:vlan-required'))
         }
       })
     },

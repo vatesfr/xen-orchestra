@@ -45,7 +45,7 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
     return {
       ...buildBasePayload(),
       pif: formData.pif!,
-      vlan: formData.vlan!,
+      ...(typeof formData.vlan === 'number' && { vlan: formData.vlan }),
     }
   }
 
@@ -56,7 +56,7 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
     mtuInputBindings,
     nbdCheckboxBindings,
     interfaceSelectBindings: useSelect(interfacesSelectId, () => ({ label: t('interface') })),
-    vlanInputBindings: useField('vlan', () => ({ label: t('vlan'), required: true })),
+    vlanInputBindings: useField('vlan', () => ({ label: t('vlan') })),
     validateAndBuildPayload,
   }
 }
