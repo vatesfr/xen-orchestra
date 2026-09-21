@@ -6,11 +6,17 @@ import NbdClient from '@vates/nbd-client'
  */
 
 /**
+ * any NBD client, whatever transport it uses
+ *
+ * @typedef {import('@vates/nbd-client').AbstractNbdClient} AbstractNbdClient
+ */
+
+/**
  * @extends {RandomAccessDisk}
  */
 export class NbdDisk extends RandomAccessDisk {
   #nbdInfos
-  /** @type {NbdClient|undefined} */
+  /** @type {AbstractNbdClient|undefined} */
   #nbdClient
 
   /** @type {Array<DataRange> | undefined} */
@@ -25,7 +31,7 @@ export class NbdDisk extends RandomAccessDisk {
   /** @type {number | undefined} */
   #hasBlockPreviousIndex
 
-  /** @type {typeof NbdClient} */
+  /** @type {typeof AbstractNbdClient} */
   #ClientClass
 
   /**
@@ -33,7 +39,7 @@ export class NbdDisk extends RandomAccessDisk {
    * @param {number} blockSize
    * @param {object} [options]
    * @param {Array<{offset: number, length: number, type: number}>} [options.dataMap] - computed through `getMap()` when not provided
-   * @param {typeof NbdClient} [options.ClientClass] - to talk to a NBD server through another transport
+   * @param {typeof AbstractNbdClient} [options.ClientClass] - to talk to a NBD server through another transport
    */
   constructor(nbdInfos, blockSize, { dataMap, ClientClass = NbdClient } = {}) {
     super()
