@@ -7,7 +7,6 @@
 
 <script lang="ts" setup>
 defineProps<{
-  halfHeight?: boolean
   right?: boolean
 }>()
 </script>
