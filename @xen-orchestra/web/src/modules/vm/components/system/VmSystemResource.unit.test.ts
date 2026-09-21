@@ -1,6 +1,7 @@
 import VmSystemResource from '@/modules/vm/components/system/VmSystemResource.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findTitleText } from '@/test/find-card-heading.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -16,7 +17,7 @@ function mountResource(vm: FrontXoVm = createVm()) {
 it('renders the card title', () => {
   const wrapper = mountResource()
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('resource-management'))
+  expect(findTitleText(wrapper)).toBe(t('resource-management'))
 })
 
 it('shows every CPU, memory and GPU resource of the VM', () => {

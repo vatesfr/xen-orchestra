@@ -3,7 +3,9 @@ import type { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-
 import type { BackupIssue, XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
 import { createBackupIssue } from '@/test/create-backup-issue.ts'
 import { createSiteDashboardMock } from '@/test/create-site-dashboard-mock.ts'
-import { findCardHeading } from '@/test/find-card-heading.ts'
+import { findCardHeading, findCardTitleHref } from '@/test/find-card-heading.ts'
+import { isLoading } from '@/test/find-loader.ts'
+import { findStateHeroText } from '@/test/find-state-hero.ts'
 import { findTableCell, findTableRows } from '@/test/find-table-rows.ts'
 import { t } from '@/test/i18n.ts'
 
@@ -38,27 +40,27 @@ it('names the card, counts the jobs in trouble and links to the backups page', (
     info: t('action:see-all'),
     description: t('in-last-three-runs'),
   })
-  expect(wrapper.get('.ui-card-title .info a').attributes('href')).toBe('/backups')
+  expect(findCardTitleHref(wrapper)).toBe('/backups')
 })
 
 it('shows a loader while the backups have not arrived', () => {
   const wrapper = mountBackupIssues({ backups: undefined })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
   expect(findTableRows(wrapper)).toEqual([])
 })
 
 it('reports the failure when the backups could not be fetched', () => {
   const wrapper = mountBackupIssues({ backups: { error: true } })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper)).toBe(t('error-no-data'))
   expect(findTableRows(wrapper)).toEqual([])
 })
 
 it('reports that there is nothing to compute when the site runs no backup', () => {
   const wrapper = mountBackupIssues({ backups: { isEmpty: true } })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-data-to-calculate'))
   expect(findTableRows(wrapper)).toEqual([])
 })
 
@@ -67,7 +69,7 @@ it('reports that every backup ran without a hitch when no job is in trouble', ()
     backups: createBackups([]),
   })
 
-  expect(wrapper.get('.vts-state-hero').text()).toContain(t('backups:jobs:issues-ran-without-hitch'))
+  expect(findStateHeroText(wrapper)).toContain(t('backups:jobs:issues-ran-without-hitch'))
   expect(findTableRows(wrapper)).toEqual([])
 })
 
@@ -76,8 +78,10 @@ it('drops the counter and the link when no job is in trouble', () => {
     backups: createBackups([]),
   })
 
-  expect(wrapper.find('.ui-card-title .ui-counter').exists()).toBe(false)
-  expect(wrapper.find('.ui-card-title .info').exists()).toBe(false)
+  expect(findCardHeading(wrapper)).toEqual({
+    title: t('backups:jobs:issues'),
+    description: t('in-last-three-runs'),
+  })
 })
 
 it('lists one row per backup job in trouble, under the columns it names', () => {

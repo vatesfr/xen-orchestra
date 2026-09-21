@@ -5,6 +5,7 @@ import type { FrontXoPgpu, useXoPgpuCollection } from '@/modules/pgpu/remote-res
 import { createHost } from '@/test/create-host.ts'
 import { createPci } from '@/test/create-pci.ts'
 import { createPgpu } from '@/test/create-pgpu.ts'
+import { findTitleText } from '@/test/find-card-heading.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -61,7 +62,7 @@ function mountHardwareSpecifications(host: FrontXoHost = createHost()) {
 it('renders the card title', () => {
   const wrapper = mountHardwareSpecifications()
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('hardware-specifications'))
+  expect(findTitleText(wrapper)).toBe(t('hardware-specifications'))
 })
 
 it('shows the manufacturer, the BIOS, the CPU model and the core layout of the host', () => {

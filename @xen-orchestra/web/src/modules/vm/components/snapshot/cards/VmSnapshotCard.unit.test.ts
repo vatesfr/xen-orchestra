@@ -2,6 +2,7 @@ import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-res
 import type { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'
 import VmSnapshotCard from '@/modules/vm/components/snapshot/cards/VmSnapshotCard.vue'
 import { createVmSnapshot } from '@/test/create-vm-snapshot.ts'
+import { findCardTitleText } from '@/test/find-card-heading.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { d, t } from '@/test/i18n.ts'
@@ -32,7 +33,7 @@ function mountSnapshotCard(snapshot: FrontXoVmSnapshot | undefined, title = 'Old
 it('renders the title it is given', () => {
   const wrapper = mountSnapshotCard(createVmSnapshot(), 'Latest snapshot')
 
-  expect(wrapper.get('.ui-card-title').text()).toBe('Latest snapshot')
+  expect(findCardTitleText(wrapper)).toBe('Latest snapshot')
 })
 
 it('shows the name and the creation date of the snapshot', () => {

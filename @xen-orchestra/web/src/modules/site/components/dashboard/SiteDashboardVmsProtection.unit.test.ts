@@ -7,6 +7,8 @@ import { createSiteDashboardMock } from '@/test/create-site-dashboard-mock.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardHeading } from '@/test/find-card-heading.ts'
 import { findLegends } from '@/test/find-labelled-values.ts'
+import { isLoading } from '@/test/find-loader.ts'
+import { findStateHeroText } from '@/test/find-state-hero.ts'
 import { t } from '@/test/i18n.ts'
 import { ref } from 'vue'
 
@@ -49,7 +51,7 @@ it('names the card and says which runs it covers', () => {
 it('shows a loader while the backups have not arrived', () => {
   const wrapper = mountVmsProtection({ backups: undefined })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
   expect(findLegends(wrapper)).toEqual([])
 })
 
@@ -58,7 +60,7 @@ it('shows an error message when the dashboard could not be fetched', () => {
 
   const wrapper = mountVmsProtection()
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper)).toBe(t('error-no-data'))
   expect(findLegends(wrapper)).toEqual([])
 })
 

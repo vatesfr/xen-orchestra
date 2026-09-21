@@ -7,6 +7,8 @@ import { ONE_TB } from '@/shared/constants.ts'
 import { createSiteDashboardMock } from '@/test/create-site-dashboard-mock.ts'
 import { findCardHeading } from '@/test/find-card-heading.ts'
 import { findCardNumbers, findLegends } from '@/test/find-labelled-values.ts'
+import { isLoading } from '@/test/find-loader.ts'
+import { findStateHeroText } from '@/test/find-state-hero.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
@@ -49,7 +51,7 @@ it('names the card and says what the storage it breaks down is for', () => {
 it('shows a loader alone while the backup repositories have not arrived', () => {
   const wrapper = mountBackupRepository()
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
   expect(findLegends(wrapper)).toEqual([])
   expect(findCardNumbers(wrapper)).toEqual([])
 })
@@ -57,7 +59,7 @@ it('shows a loader alone while the backup repositories have not arrived', () => 
 it('reports that there is nothing to compute when the site has no backup repository', () => {
   const wrapper = mountBackupRepository({ isEmpty: true })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-data-to-calculate'))
   expect(findLegends(wrapper)).toEqual([])
   expect(findCardNumbers(wrapper)).toEqual([])
 })
@@ -65,7 +67,7 @@ it('reports that there is nothing to compute when the site has no backup reposit
 it('shows an error message when the backup repositories could not be fetched', () => {
   const wrapper = mountBackupRepository({ error: true })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper)).toBe(t('error-no-data'))
   expect(wrapper.get('.ui-card').classes('has-error')).toBe(true)
   expect(findLegends(wrapper)).toEqual([])
 })
@@ -75,7 +77,7 @@ it('shows an error message when the dashboard could not be fetched', () => {
 
   const wrapper = mountBackupRepository(createBackupRepositories())
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper)).toBe(t('error-no-data'))
   expect(findLegends(wrapper)).toEqual([])
 })
 

@@ -1,6 +1,7 @@
 import HostSystemSoftwareTooling from '@/modules/host/components/system/HostSystemSoftwareTooling.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
+import { findTitleText } from '@/test/find-card-heading.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { relativeTime, t } from '@/test/i18n.ts'
@@ -17,7 +18,7 @@ function mountSoftwareTooling(host: FrontXoHost = createHost()) {
 it('renders the card title', () => {
   const wrapper = mountSoftwareTooling()
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('software-tooling'))
+  expect(findTitleText(wrapper)).toBe(t('software-tooling'))
 })
 
 it('shows the version and the build the host runs', () => {

@@ -1,6 +1,9 @@
 import PoolDashboardCpuProvisioning from '@/modules/pool/components/dashboard/PoolDashboardCpuProvisioning.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { findCardTitleText } from '@/test/find-card-heading.ts'
 import { findCardNumbers } from '@/test/find-labelled-values.ts'
+import { isLoading } from '@/test/find-loader.ts'
+import { findStateHeroText } from '@/test/find-state-hero.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -21,26 +24,26 @@ function mountProvisioning(props: { poolDashboard?: XoPoolDashboard; hasError?: 
 it('renders the card title', () => {
   const wrapper = mountProvisioning()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('cpu-provisioning'))
+  expect(findCardTitleText(wrapper)).toBe(t('cpu-provisioning'))
 })
 
 it('shows a loader while the dashboard has not arrived yet', () => {
   const wrapper = mountProvisioning({ poolDashboard: undefined })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
   expect(findCardNumbers(wrapper)).toEqual([])
 })
 
 it('shows a loader while the provisioning is missing from the dashboard', () => {
   const wrapper = mountProvisioning({ poolDashboard: {} })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
 })
 
 it('shows an error message when the dashboard could not be fetched', () => {
   const wrapper = mountProvisioning({ hasError: true })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper)).toBe(t('error-no-data'))
 })
 
 it('splits the CPUs of the pool between what is assigned and what it holds', () => {

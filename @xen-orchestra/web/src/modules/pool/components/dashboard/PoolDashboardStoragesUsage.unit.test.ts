@@ -1,6 +1,9 @@
 import PoolDashboardStoragesUsage from '@/modules/pool/components/dashboard/PoolDashboardStoragesUsage.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { findCardTitleText } from '@/test/find-card-heading.ts'
 import { findCardNumbers } from '@/test/find-labelled-values.ts'
+import { isLoading } from '@/test/find-loader.ts'
+import { findStateHeroText } from '@/test/find-state-hero.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -32,32 +35,32 @@ function withStorages(topFiveUsage: StorageUsage[]): XoPoolDashboard {
 it('renders the card title and the number of storages it covers', () => {
   const wrapper = mountStoragesUsage({ poolDashboard: withStorages([createStorageUsage()]) })
 
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('storage-usage'))
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('top-#', 5))
+  expect(findCardTitleText(wrapper)).toContain(t('storage-usage'))
+  expect(findCardTitleText(wrapper)).toContain(t('top-#', 5))
 })
 
 it('shows a loader while the dashboard has not arrived yet', () => {
   const wrapper = mountStoragesUsage()
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
 })
 
 it('shows a loader while the storage usage is missing from the dashboard', () => {
   const wrapper = mountStoragesUsage({ poolDashboard: { srs: {} } })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
 })
 
 it('shows an error message when the dashboard could not be fetched', () => {
   const wrapper = mountStoragesUsage({ poolDashboard: withStorages([createStorageUsage()]), hasError: true })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper)).toBe(t('error-no-data'))
 })
 
 it('reports that there is nothing to show when the pool has no storage', () => {
   const wrapper = mountStoragesUsage({ poolDashboard: withStorages([]) })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-data-to-calculate'))
 })
 
 it('shows one progress bar per storage, the fullest first', () => {

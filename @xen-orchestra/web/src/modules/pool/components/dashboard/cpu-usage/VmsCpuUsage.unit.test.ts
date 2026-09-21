@@ -1,6 +1,7 @@
 import VmsCpuUsage from '@/modules/pool/components/dashboard/cpu-usage/VmsCpuUsage.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
 import { findLegends } from '@/test/find-labelled-values.ts'
+import { findStateHeroText, hasStateHero } from '@/test/find-state-hero.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -26,13 +27,13 @@ function mountCpuUsage(props: { topFiveCpu?: VmCpuUsage[]; hasError?: boolean } 
 it('reports that there is nothing to show while the usage has not arrived yet', () => {
   const wrapper = mountCpuUsage()
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-data-to-calculate'))
 })
 
 it('shows an error message when the usage could not be fetched', () => {
   const wrapper = mountCpuUsage({ topFiveCpu: [createVmCpuUsage()], hasError: true })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper)).toBe(t('error-no-data'))
 })
 
 it('shows one progress bar per VM, the busiest first', () => {
@@ -53,5 +54,5 @@ it('shows an empty progress bar group for a pool without VM', () => {
   const wrapper = mountCpuUsage({ topFiveCpu: [] })
 
   expect(wrapper.findAll('.ui-progress-bar')).toEqual([])
-  expect(wrapper.find('.vts-state-hero').exists()).toBe(false)
+  expect(hasStateHero(wrapper)).toBe(false)
 })

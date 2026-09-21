@@ -7,7 +7,9 @@ import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-co
 import { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createPif } from '@/test/create-pif.ts'
+import { findTitleText } from '@/test/find-card-heading.ts'
 import { findIconPaths, findNamedIconPaths } from '@/test/find-icon-paths.ts'
+import { findStateHeroText, isStateHeroBusy } from '@/test/find-state-hero.ts'
 import { findTableCell, findTableRows } from '@/test/find-table-rows.ts'
 import { createGlobalTestConfig, createGlobalTestConfigAt } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -70,7 +72,7 @@ async function search(wrapper: ReturnType<typeof mountPifsTable>, query: string)
 it('shows what the table is about', () => {
   const wrapper = mountPifsTable()
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('pifs'))
+  expect(findTitleText(wrapper)).toBe(t('pifs'))
 })
 
 it('lays out one row per PIF, under the columns it lists', () => {
@@ -185,7 +187,7 @@ it('keeps only the PIFs matching the search', async () => {
 it('reports that no PIF was detected when the host has none', () => {
   const wrapper = mountPifsTable([])
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-pif-detected'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-pif-detected'))
 })
 
 it('reports no result when the search matches no PIF', async () => {
@@ -193,7 +195,7 @@ it('reports no result when the search matches no PIF', async () => {
 
   await search(wrapper, 'eth9')
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-result'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-result'))
 })
 
 it('waits while the PIFs are still being fetched', () => {
@@ -201,7 +203,7 @@ it('waits while the PIFs are still being fetched', () => {
 
   const wrapper = mountPifsTable()
 
-  expect(wrapper.find('.vts-state-hero .loader').exists()).toBe(true)
+  expect(isStateHeroBusy(wrapper)).toBe(true)
 })
 
 it('reports the failure when the PIFs could not be fetched', () => {
@@ -209,7 +211,7 @@ it('reports the failure when the PIFs could not be fetched', () => {
 
   const wrapper = mountPifsTable()
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper)).toBe(t('error-no-data'))
 })
 
 it('highlights the PIF the route points at', async () => {

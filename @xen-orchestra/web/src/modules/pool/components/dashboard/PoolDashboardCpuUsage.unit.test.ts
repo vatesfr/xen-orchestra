@@ -2,7 +2,10 @@ import HostsCpuUsage from '@/modules/pool/components/dashboard/cpu-usage/HostsCp
 import VmsCpuUsage from '@/modules/pool/components/dashboard/cpu-usage/VmsCpuUsage.vue'
 import PoolDashboardCpuUsage from '@/modules/pool/components/dashboard/PoolDashboardCpuUsage.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { findCardTitleText } from '@/test/find-card-heading.ts'
 import { findLegends } from '@/test/find-labelled-values.ts'
+import { isLoading } from '@/test/find-loader.ts'
+import { findStateHeroText } from '@/test/find-state-hero.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -27,7 +30,7 @@ function mountCpuUsage(props: { poolDashboard?: XoPoolDashboard; hasError?: bool
 it('renders the card title', () => {
   const wrapper = mountCpuUsage()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('cpu-usage'))
+  expect(findCardTitleText(wrapper)).toBe(t('cpu-usage'))
 })
 
 it('splits the card between the hosts and the VMs, each capped to the top five', () => {
@@ -42,7 +45,7 @@ it('splits the card between the hosts and the VMs, each capped to the top five',
 it('shows a loader in place of the hosts while their usage has not arrived yet', () => {
   const wrapper = mountCpuUsage({ poolDashboard: createPoolDashboard({ hosts: {} }) })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
   expect(wrapper.findComponent(HostsCpuUsage).exists()).toBe(false)
   expect(wrapper.findComponent(VmsCpuUsage).exists()).toBe(true)
 })
@@ -50,7 +53,7 @@ it('shows a loader in place of the hosts while their usage has not arrived yet',
 it('shows a loader in place of the VMs while their usage has not arrived yet', () => {
   const wrapper = mountCpuUsage({ poolDashboard: createPoolDashboard({ vms: {} }) })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
   expect(wrapper.findComponent(HostsCpuUsage).exists()).toBe(true)
   expect(wrapper.findComponent(VmsCpuUsage).exists()).toBe(false)
 })
@@ -80,6 +83,6 @@ it('plots the usage of the hosts and of the VMs in their own section', () => {
 it('passes the fetch error down to both sections', () => {
   const wrapper = mountCpuUsage({ hasError: true })
 
-  expect(wrapper.findComponent(HostsCpuUsage).get('.vts-state-hero').text()).toBe(t('error-no-data'))
-  expect(wrapper.findComponent(VmsCpuUsage).get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper.findComponent(HostsCpuUsage))).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper.findComponent(VmsCpuUsage))).toBe(t('error-no-data'))
 })

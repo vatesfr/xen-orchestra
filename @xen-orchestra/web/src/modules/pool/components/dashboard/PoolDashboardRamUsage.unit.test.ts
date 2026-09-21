@@ -2,7 +2,10 @@ import PoolDashboardRamUsage from '@/modules/pool/components/dashboard/PoolDashb
 import HostsRamUsage from '@/modules/pool/components/dashboard/ram-usage/HostsRamUsage.vue'
 import VmsRamUsage from '@/modules/pool/components/dashboard/ram-usage/VmsRamUsage.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { findCardTitleText } from '@/test/find-card-heading.ts'
 import { findLegends } from '@/test/find-labelled-values.ts'
+import { isLoading } from '@/test/find-loader.ts'
+import { findStateHeroText } from '@/test/find-state-hero.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -32,7 +35,7 @@ function mountRamUsage(props: { poolDashboard?: XoPoolDashboard; hasError?: bool
 it('renders the card title', () => {
   const wrapper = mountRamUsage()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('ram-usage'))
+  expect(findCardTitleText(wrapper)).toBe(t('ram-usage'))
 })
 
 it('splits the card between the hosts and the VMs, each capped to the top five', () => {
@@ -47,7 +50,7 @@ it('splits the card between the hosts and the VMs, each capped to the top five',
 it('shows a loader in place of the hosts while their usage has not arrived yet', () => {
   const wrapper = mountRamUsage({ poolDashboard: createPoolDashboard({ hosts: {} }) })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
   expect(wrapper.findComponent(HostsRamUsage).exists()).toBe(false)
   expect(wrapper.findComponent(VmsRamUsage).exists()).toBe(true)
 })
@@ -55,7 +58,7 @@ it('shows a loader in place of the hosts while their usage has not arrived yet',
 it('shows a loader in place of the VMs while their usage has not arrived yet', () => {
   const wrapper = mountRamUsage({ poolDashboard: createPoolDashboard({ vms: {} }) })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
   expect(wrapper.findComponent(HostsRamUsage).exists()).toBe(true)
   expect(wrapper.findComponent(VmsRamUsage).exists()).toBe(false)
 })
@@ -91,6 +94,6 @@ it('shows the memory of the hosts and of the VMs in their own section', () => {
 it('passes the fetch error down to both sections', () => {
   const wrapper = mountRamUsage({ hasError: true })
 
-  expect(wrapper.findComponent(HostsRamUsage).get('.vts-state-hero').text()).toBe(t('error-no-data'))
-  expect(wrapper.findComponent(VmsRamUsage).get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper.findComponent(HostsRamUsage))).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper.findComponent(VmsRamUsage))).toBe(t('error-no-data'))
 })

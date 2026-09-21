@@ -6,7 +6,9 @@ import type {
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
+import { findTitleText } from '@/test/find-card-heading.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { hasStateHero } from '@/test/find-state-hero.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -61,7 +63,7 @@ function createPoolWithoutSrs() {
 it('renders the card title', () => {
   const wrapper = mountStorageConfiguration(createPoolWithoutSrs())
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('storage-configuration'))
+  expect(findTitleText(wrapper)).toBe(t('storage-configuration'))
 })
 
 it('shows a busy state instead of the rows while the storage repositories are loading', () => {
@@ -73,7 +75,7 @@ it('shows a busy state instead of the rows while the storage repositories are lo
 
   const wrapper = mountStorageConfiguration(createPoolWithoutSrs())
 
-  expect(wrapper.find('.vts-state-hero').exists()).toBe(true)
+  expect(hasStateHero(wrapper)).toBe(true)
   expect(findLabelledValues(wrapper)).toEqual({})
 })
 

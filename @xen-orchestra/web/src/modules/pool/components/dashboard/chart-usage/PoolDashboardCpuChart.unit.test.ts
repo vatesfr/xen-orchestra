@@ -1,5 +1,8 @@
 import PoolDashboardCpuChart from '@/modules/pool/components/dashboard/chart-usage/PoolDashboardCpuChart.vue'
 import { createPoolStats } from '@/test/create-pool-stats.ts'
+import { findCardTitleText } from '@/test/find-card-heading.ts'
+import { isLoading } from '@/test/find-loader.ts'
+import { findStateHeroText } from '@/test/find-state-hero.ts'
 import { n, t } from '@/test/i18n.ts'
 import { findLinearChart, formatChartValue } from '@/test/linear-chart-stub.ts'
 import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
@@ -16,50 +19,50 @@ const statsWithSamples = createPoolStats({
 it('renders the card title and the period it covers', () => {
   const wrapper = mountChart({ data: statsWithSamples })
 
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('pool-cpu-usage'))
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('last-week'))
+  expect(findCardTitleText(wrapper)).toContain(t('pool-cpu-usage'))
+  expect(findCardTitleText(wrapper)).toContain(t('last-week'))
 })
 
 it('shows a loader while the stats are loading', () => {
   const wrapper = mountChart({ data: null, loading: true })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
 })
 
 it('shows a loader while the stats have not arrived yet', () => {
   const wrapper = mountChart({ data: null })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
 })
 
 it('shows an error message when the stats could not be fetched', () => {
   const wrapper = mountChart({ data: statsWithSamples, error: true })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper)).toBe(t('error-no-data'))
 })
 
 it('reports that there is nothing to plot for a pool without host', () => {
   const wrapper = mountChart({ data: createPoolStats() })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-data-to-calculate'))
 })
 
 it('reports that there is nothing to plot when no host reports its cpus', () => {
   const wrapper = mountChart({ data: createPoolStats({ 'host-1': { stats: { memory: [2048, 4096] } } }) })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-data-to-calculate'))
 })
 
 it('reports that there is nothing to plot when the cpus of every host hold no sample', () => {
   const wrapper = mountChart({ data: createPoolStats({ 'host-1': { stats: { cpus: { '0': [] } } } }) })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-data-to-calculate'))
 })
 
 it('reports that there is nothing to plot when the stats of every host failed', () => {
   const wrapper = mountChart({ data: createPoolStats({ 'host-1': { error: { code: 'boom' } } }) })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-data-to-calculate'))
 })
 
 it('plots the usage stacked across every host of the pool', () => {

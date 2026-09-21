@@ -1,6 +1,7 @@
 import VmNetworkCard from '@/modules/vm/components/list/panel/cards/VmNetworkCard.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findCardHeading, findCardTitleText } from '@/test/find-card-heading.ts'
 import { findCardLabelledList, findCardLabels } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -16,7 +17,7 @@ function mountNetworkCard(vm: FrontXoVm = createVm()) {
 it('renders the card title', () => {
   const wrapper = mountNetworkCard(createVm({ addresses: undefined }))
 
-  expect(wrapper.get('.ui-card-title .title').text()).toBe(t('networks'))
+  expect(findCardHeading(wrapper).title).toBe(t('networks'))
 })
 
 it('lists the IP addresses of the VM sorted alphabetically', () => {
@@ -41,11 +42,11 @@ it('shows an empty address row when the VM has no IP address', () => {
 it('links to the networks page when the VM has at least one IP address', () => {
   const wrapper = mountNetworkCard(createVm({ addresses: { '0/ipv4/0': '10.0.0.1' } }))
 
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('see-details'))
+  expect(findCardTitleText(wrapper)).toContain(t('see-details'))
 })
 
 it('hides the networks page link when the VM has no IP address', () => {
   const wrapper = mountNetworkCard(createVm({ addresses: undefined }))
 
-  expect(wrapper.get('.ui-card-title').text()).not.toContain(t('see-details'))
+  expect(findCardTitleText(wrapper)).not.toContain(t('see-details'))
 })

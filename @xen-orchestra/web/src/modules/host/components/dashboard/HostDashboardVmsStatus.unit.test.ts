@@ -3,7 +3,9 @@ import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-res
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findCardTitleText } from '@/test/find-card-heading.ts'
 import { findLegends } from '@/test/find-labelled-values.ts'
+import { isLoading } from '@/test/find-loader.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { VM_POWER_STATE } from '@vates/types'
@@ -57,7 +59,7 @@ function mountVmsStatus() {
 it('renders the card title', () => {
   const wrapper = mountVmsStatus()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('vms-status'))
+  expect(findCardTitleText(wrapper)).toBe(t('vms-status'))
 })
 
 it('shows a loader instead of the statuses while the hosts are still loading', () => {
@@ -65,7 +67,7 @@ it('shows a loader instead of the statuses while the hosts are still loading', (
 
   const wrapper = mountVmsStatus()
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
   expect(findLegends(wrapper)).toEqual([])
 })
 
@@ -74,7 +76,7 @@ it('shows a loader instead of the statuses while the VMs are still loading', () 
 
   const wrapper = mountVmsStatus()
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
   expect(findLegends(wrapper)).toEqual([])
 })
 

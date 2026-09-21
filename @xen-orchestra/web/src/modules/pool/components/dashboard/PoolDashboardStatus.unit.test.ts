@@ -1,6 +1,9 @@
 import PoolDashboardStatus from '@/modules/pool/components/dashboard/PoolDashboardStatus.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { findCardTitleText } from '@/test/find-card-heading.ts'
 import { findCardNumbers, findLegendSections } from '@/test/find-labelled-values.ts'
+import { isLoading } from '@/test/find-loader.ts'
+import { findStateHeroText } from '@/test/find-state-hero.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -35,32 +38,32 @@ function mountStatus(props: { poolDashboard?: XoPoolDashboard; hasError?: boolea
 it('renders the card title', () => {
   const wrapper = mountStatus()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('status'))
+  expect(findCardTitleText(wrapper)).toBe(t('status'))
 })
 
 it('shows a loader while the dashboard has not arrived yet', () => {
   const wrapper = mountStatus({ poolDashboard: undefined })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
   expect(findLegendSections(wrapper)).toEqual([])
 })
 
 it('shows a loader while the status of the hosts is missing from the dashboard', () => {
   const wrapper = mountStatus({ poolDashboard: { hosts: {}, vms: { status: createVmsStatus() } } })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
 })
 
 it('shows a loader while the status of the VMs is missing from the dashboard', () => {
   const wrapper = mountStatus({ poolDashboard: { hosts: { status: createHostsStatus() }, vms: {} } })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
 })
 
 it('shows an error message when the dashboard could not be fetched', () => {
   const wrapper = mountStatus({ hasError: true })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper)).toBe(t('error-no-data'))
 })
 
 it('breaks down the hosts and the VMs by status', () => {
@@ -103,7 +106,7 @@ it('reports that no VM was detected for a pool without VM, and still breaks down
     }),
   })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-vm-detected'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-vm-detected'))
   expect(findLegendSections(wrapper).map(([title]) => title)).toEqual([t('hosts')])
   expect(findCardNumbers(wrapper)).toEqual([[t('total'), '4']])
 })

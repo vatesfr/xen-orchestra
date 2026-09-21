@@ -1,7 +1,9 @@
 import HostDashboardRamProvisioning from '@/modules/host/components/dashboard/HostDashboardRamProvisioning.vue'
 import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
+import { findCardTitleText } from '@/test/find-card-heading.ts'
 import { findCardNumbers } from '@/test/find-labelled-values.ts'
+import { isLoading } from '@/test/find-loader.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -28,7 +30,7 @@ function mountProvisioning(host: FrontXoHost = createHost({ memory: { size: 4294
 it('renders the card title', () => {
   const wrapper = mountProvisioning()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('ram-provisioning'))
+  expect(findCardTitleText(wrapper)).toBe(t('ram-provisioning'))
 })
 
 it('shows a loader instead of the provisioning while the hosts are still loading', () => {
@@ -36,7 +38,7 @@ it('shows a loader instead of the provisioning while the hosts are still loading
 
   const wrapper = mountProvisioning()
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
   expect(findCardNumbers(wrapper)).toEqual([])
 })
 

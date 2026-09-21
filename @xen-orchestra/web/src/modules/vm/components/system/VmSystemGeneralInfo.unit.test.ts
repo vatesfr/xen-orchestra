@@ -1,6 +1,7 @@
 import VmSystemGeneralInfo from '@/modules/vm/components/system/VmSystemGeneralInfo.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findTitleText } from '@/test/find-card-heading.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { findTagLabels } from '@/test/find-tags.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -18,7 +19,7 @@ function mountGeneralInfo(vm: FrontXoVm = createVm()) {
 it('renders the card title', () => {
   const wrapper = mountGeneralInfo()
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('general-information'))
+  expect(findTitleText(wrapper)).toBe(t('general-information'))
 })
 
 it('shows the identity, operating system and guest tools of the VM', () => {

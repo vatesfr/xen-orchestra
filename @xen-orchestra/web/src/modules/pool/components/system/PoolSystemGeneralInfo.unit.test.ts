@@ -1,6 +1,7 @@
 import PoolSystemGeneralInfo from '@/modules/pool/components/system/PoolSystemGeneralInfo.vue'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { createPool } from '@/test/create-pool.ts'
+import { findTitleText } from '@/test/find-card-heading.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { findTagLabels } from '@/test/find-tags.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -23,7 +24,7 @@ function mountTags(tags: string[]) {
 it('renders the card title', () => {
   const wrapper = mountGeneralInfo()
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('general-information'))
+  expect(findTitleText(wrapper)).toBe(t('general-information'))
 })
 
 it('shows the name, uuid and description of the pool', () => {

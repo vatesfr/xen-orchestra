@@ -1,6 +1,7 @@
 import HostSystemNetworking from '@/modules/host/components/system/HostSystemNetworking.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
+import { findTitleText } from '@/test/find-card-heading.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -16,7 +17,7 @@ function mountNetworking(host: FrontXoHost = createHost()) {
 it('renders the card title', () => {
   const wrapper = mountNetworking()
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('networking'))
+  expect(findTitleText(wrapper)).toBe(t('networking'))
 })
 
 it('shows how the host is reached on the network', () => {

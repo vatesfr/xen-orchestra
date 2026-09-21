@@ -3,7 +3,9 @@ import PoolSystemManagement from '@/modules/pool/components/system/PoolSystemMan
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
+import { findTitleText } from '@/test/find-card-heading.ts'
 import { findLabelledLinks, findLabelledValues } from '@/test/find-labelled-values.ts'
+import { hasStateHero } from '@/test/find-state-hero.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -39,7 +41,7 @@ function mountManagement(pool: FrontXoPool = createPool()) {
 it('renders the card title', () => {
   const wrapper = mountManagement()
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('pool-management'))
+  expect(findTitleText(wrapper)).toBe(t('pool-management'))
 })
 
 it('shows a busy state instead of the rows while the hosts are loading', () => {
@@ -47,7 +49,7 @@ it('shows a busy state instead of the rows while the hosts are loading', () => {
 
   const wrapper = mountManagement()
 
-  expect(wrapper.find('.vts-state-hero').exists()).toBe(true)
+  expect(hasStateHero(wrapper)).toBe(true)
   expect(findLabelledValues(wrapper)).toEqual({})
 })
 

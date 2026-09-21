@@ -1,6 +1,7 @@
 import VmSystemNetworking from '@/modules/vm/components/system/VmSystemNetworking.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findTitleText } from '@/test/find-card-heading.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -16,7 +17,7 @@ function mountNetworking(vm: FrontXoVm = createVm()) {
 it('renders the card title', () => {
   const wrapper = mountNetworking()
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('networking'))
+  expect(findTitleText(wrapper)).toBe(t('networking'))
 })
 
 it('shows the NIC type of the VM', () => {

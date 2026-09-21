@@ -4,6 +4,8 @@ import type { XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
 import { createSiteDashboardMock } from '@/test/create-site-dashboard-mock.ts'
 import { findCardHeading } from '@/test/find-card-heading.ts'
 import { findCardNumbers } from '@/test/find-labelled-values.ts'
+import { isLoading } from '@/test/find-loader.ts'
+import { findStateHeroText } from '@/test/find-state-hero.ts'
 import { t } from '@/test/i18n.ts'
 
 // Read only when the card mounts, so the module-scope state is already initialized
@@ -29,14 +31,14 @@ it('names the card', () => {
 it('shows a loader while the overview has not arrived', () => {
   const wrapper = mountResourcesOverview({ resourcesOverview: undefined })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
   expect(findCardNumbers(wrapper)).toEqual([])
 })
 
 it('reports that there is nothing to compute when the site holds no resource', () => {
   const wrapper = mountResourcesOverview({ resourcesOverview: { isEmpty: true } })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-data-to-calculate'))
   expect(findCardNumbers(wrapper)).toEqual([])
 })
 
@@ -45,7 +47,7 @@ it('shows an error message when the dashboard could not be fetched', () => {
 
   const wrapper = mountResourcesOverview()
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper)).toBe(t('error-no-data'))
   expect(findCardNumbers(wrapper)).toEqual([])
 })
 
@@ -54,7 +56,7 @@ it('reports that there is nothing to compute rather than an error when both are 
 
   const wrapper = mountResourcesOverview({ resourcesOverview: { isEmpty: true } })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-data-to-calculate'))
 })
 
 it('sums up the memory, the CPUs and the storage of the site', () => {

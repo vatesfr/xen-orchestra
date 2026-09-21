@@ -5,7 +5,10 @@ import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-
 import type { XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findCardTitleText } from '@/test/find-card-heading.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { isLoading } from '@/test/find-loader.ts'
+import { findStateHeroText } from '@/test/find-state-hero.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { d, t } from '@/test/i18n.ts'
 import { objectIcon } from '@core/icons'
@@ -63,13 +66,13 @@ function mountReplication(vmDashboard: XoVmDashboard | undefined, hasError = fal
 it('renders the card title', () => {
   const wrapper = mountReplication(createDashboard(createReplication()))
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('backup:last-replication'))
+  expect(findCardTitleText(wrapper)).toBe(t('backup:last-replication'))
 })
 
 it('shows a loader while the dashboard has not reported any replication yet', () => {
   const wrapper = mountReplication(createDashboard(undefined))
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
 })
 
 it('shows a loader while the storage repositories are still loading', () => {
@@ -77,13 +80,13 @@ it('shows a loader while the storage repositories are still loading', () => {
 
   const wrapper = mountReplication(createDashboard(createReplication()))
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(isLoading(wrapper)).toBe(true)
 })
 
 it('shows an error message when the dashboard failed', () => {
   const wrapper = mountReplication(createDashboard(createReplication()), true)
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper)).toBe(t('error-no-data'))
 })
 
 it('shows an error message when the storage repositories failed to load', () => {
@@ -91,13 +94,13 @@ it('shows an error message when the storage repositories failed to load', () => 
 
   const wrapper = mountReplication(createDashboard(createReplication()))
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroText(wrapper)).toBe(t('error-no-data'))
 })
 
 it('reports that the VM is not replicated when the replication is empty', () => {
   const wrapper = mountReplication(createDashboard({} as VmReplication))
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-replicated-vm'))
+  expect(findStateHeroText(wrapper)).toBe(t('no-replicated-vm'))
 })
 
 it('shows the replicated VM, its date and its storage repository', () => {

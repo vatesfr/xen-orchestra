@@ -3,6 +3,7 @@ import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-res
 import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
+import { findTitleText } from '@/test/find-card-heading.ts'
 import { findLabelledLinks, findLabelledValues } from '@/test/find-labelled-values.ts'
 import { findTagLabels } from '@/test/find-tags.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -45,7 +46,7 @@ function mountGeneralInformation(host: FrontXoHost = createHost()) {
 it('renders the card title', () => {
   const wrapper = mountGeneralInformation()
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('general-information'))
+  expect(findTitleText(wrapper)).toBe(t('general-information'))
 })
 
 it('shows the name, uuid and description of the host', () => {

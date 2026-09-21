@@ -3,6 +3,7 @@ import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-co
 import type { useXoVmControllerCollection } from '@/modules/vm/remote-resources/use-xo-vm-controller-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVmController } from '@/test/create-vm-controller.ts'
+import { findTitleText } from '@/test/find-card-heading.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -31,7 +32,7 @@ function mountResourceManagement(host: FrontXoHost = createHost()) {
 it('renders the card title', () => {
   const wrapper = mountResourceManagement()
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('resource-management'))
+  expect(findTitleText(wrapper)).toBe(t('resource-management'))
 })
 
 it('shows the memory of the control domain of the host', () => {

@@ -5,6 +5,9 @@ import type {
   useXoHostMissingPatchesCollection,
 } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
 import { createHost } from '@/test/create-host.ts'
+import { findCardTitleText } from '@/test/find-card-heading.ts'
+import { isLoading } from '@/test/find-loader.ts'
+import { findStateHeroText } from '@/test/find-state-hero.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -47,7 +50,7 @@ function findPatchRows(wrapper: ReturnType<typeof mountPatches>) {
 it('renders the card title', () => {
   const wrapper = mountPatches()
 
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('patches'))
+  expect(findCardTitleText(wrapper)).toContain(t('patches'))
 })
 
 it('counts the missing patches next to the title', () => {
@@ -81,7 +84,7 @@ it('lists one row per missing patch', () => {
 it('reports the host as up to date when it misses no patch', () => {
   const wrapper = mountPatches()
 
-  expect(wrapper.get('.vts-state-hero').text()).toContain(t('patches-up-to-date'))
+  expect(findStateHeroText(wrapper)).toContain(t('patches-up-to-date'))
   expect(findPatchRows(wrapper)).toEqual([])
 })
 
@@ -90,6 +93,6 @@ it('reports the host as up to date while its patches are still loading', () => {
 
   const wrapper = mountPatches()
 
-  expect(wrapper.get('.vts-state-hero').text()).toContain(t('patches-up-to-date'))
-  expect(wrapper.find('.ui-loader').exists()).toBe(false)
+  expect(findStateHeroText(wrapper)).toContain(t('patches-up-to-date'))
+  expect(isLoading(wrapper)).toBe(false)
 })
