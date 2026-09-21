@@ -59,6 +59,9 @@
 - [OpenMetrics] Share metrics collection between requests to avoid filling up XOA memory (PR [10401](https://github.com/vatesfr/xen-orchestra/pull/10401))
 - [Netbox] Fix IP addresses synced with an incorrect, less specific prefix (e.g. `/8` instead of `/24`) when a shorter container prefix also matched [#10240](https://github.com/vatesfr/xen-orchestra/issues/10240) (PR [#10297](https://github.com/vatesfr/xen-orchestra/pull/10297))
 - [backup/restore] Fix backups of a repository randomly disappearing from the list after visiting a VM (PR [#10277](https://github.com/vatesfr/xen-orchestra/pull/10277))
+- [XO6/Host] On the System page, the hardware specifications no longer read `undefined` when the host does not report a product name or a BIOS version (PR [#TODO](https://github.com/vatesfr/xen-orchestra/pull/TODO))
+- [XO6/Dashboard] The backup repository and storage repository cards no longer draw an empty bar and blank totals under their loader while the data is still being fetched (PR [#TODO](https://github.com/vatesfr/xen-orchestra/pull/TODO))
+- [XO6/Dashboard] The storage repository card now reports that the data could not be fetched, instead of showing an empty bar and blank totals (PR [#TODO](https://github.com/vatesfr/xen-orchestra/pull/TODO))
 
 ### Packages to release
 
