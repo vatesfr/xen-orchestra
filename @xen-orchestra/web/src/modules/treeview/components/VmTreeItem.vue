@@ -19,7 +19,7 @@
           }"
         />
         <MenuList placement="bottom-start">
-          <template #trigger="{ open }">
+          <template #trigger="{ open, isOpen }">
             <UiButtonIcon
               v-tooltip="{
                 placement: 'top',
@@ -28,6 +28,7 @@
               icon="action:more-actions"
               accent="brand"
               size="small"
+              :selected="isOpen"
               @click="open($event)"
             />
           </template>

@@ -5,6 +5,7 @@
   <div v-else class="layout">
     <AppHeader v-if="uiStore.hasUi" />
     <div class="container">
+      <VtsBackdrop v-if="uiStore.hasUi && showBackdrop" @click="leftSidebar.toggleExpand(false)" />
       <AppNavigation v-if="uiStore.hasUi" />
       <main class="main">
         <RouterView />
@@ -22,9 +23,11 @@ import AppNavigation from '@/components/AppNavigation.vue'
 import { useUnreachableHosts } from '@/composables/unreachable-hosts.composable.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
+import VtsBackdrop from '@core/components/backdrop/VtsBackdrop.vue'
 import VtsOverlayList from '@core/components/overlay/VtsOverlayList.vue'
 import VtsTooltipList from '@core/components/tooltip-list/VtsTooltipList.vue'
 import { useChartTheme } from '@core/composables/chart-theme.composable.ts'
+import { useLeftSidebarStore } from '@core/packages/sidebar'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
@@ -39,6 +42,10 @@ const xenApiStore = useXenApiStore()
 const { pool } = usePoolStore().subscribe()
 
 const uiStore = useUiStore()
+const leftSidebar = useLeftSidebarStore()
+
+const showBackdrop = computed(() => leftSidebar.isExpanded && !leftSidebar.isLocked)
+
 useChartTheme()
 
 if (import.meta.env.DEV) {
@@ -77,9 +84,11 @@ useUnreachableHosts()
 }
 
 .container {
+  position: relative;
   display: flex;
   flex: 1;
   min-height: 0;
+  overflow-x: hidden;
 }
 
 .main {
