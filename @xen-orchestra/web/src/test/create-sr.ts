@@ -12,6 +12,7 @@ export function createSr(overrides: Partial<FrontXoSr> = {}): FrontXoSr {
     $pool: 'pool-789' as FrontXoSr['$pool'],
     $container: 'host-456' as FrontXoSr['$container'],
     content_type: 'user',
+    is_tools_sr: false,
     physical_usage: 1073741824,
     usage: 1073741824,
     size: 10737418240,
