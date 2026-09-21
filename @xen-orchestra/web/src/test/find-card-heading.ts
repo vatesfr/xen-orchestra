@@ -28,3 +28,29 @@ export function findCardHeading(wrapper: QueryableWrapper) {
     ...(description.exists() && { description: readText(description) }),
   }
 }
+
+/**
+ * Everything a `UiCardTitle` shows, as one string — its title, the info beside
+ * it and the description under it run together, the way `text()` concatenates a
+ * subtree.
+ *
+ * {@link findCardHeading} is the sharper read: it says which part a wording
+ * landed in. This one is for asserting a single wording is *somewhere* in the
+ * heading, with `toContain`.
+ */
+export function findCardTitleText(wrapper: QueryableWrapper) {
+  return readText(wrapper.get('.ui-card-title'))
+}
+
+/** Where the link a `UiCardTitle` puts beside its title navigates to. */
+export function findCardTitleHref(wrapper: QueryableWrapper) {
+  return wrapper.get('.ui-card-title .info a').attributes('href')
+}
+
+/**
+ * The heading a `UiTitle` shows — the plain section title a card uses instead of
+ * a `UiCardTitle` when it has nothing to put beside it.
+ */
+export function findTitleText(wrapper: QueryableWrapper) {
+  return readText(wrapper.get('.ui-title'))
+}

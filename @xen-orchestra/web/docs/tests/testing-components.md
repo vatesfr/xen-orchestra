@@ -81,7 +81,36 @@ Prefer this shape: one assertion covering every row a user sees, and it fails lo
 expect(findCardHeading(wrapper)).toEqual({ title: t('pools-status'), info: t('action:see-all') })
 ```
 
+The same file reads the heading in the coarser ways a card sometimes needs:
+
+| Helper              | Reads                                                                    |
+| ------------------- | ------------------------------------------------------------------------ |
+| `findCardHeading`   | the heading split into `title`, `info` and `description`                 |
+| `findCardTitleText` | the whole heading as one string, for a `toContain` on a single wording   |
+| `findCardTitleHref` | where the link a `UiCardTitle` puts beside its title navigates to        |
+| `findTitleText`     | the heading of a card using a plain `UiTitle` instead of a `UiCardTitle` |
+
+A counter renders **inside** the title, so `findCardHeading` is also how a test says a card dropped it — `{ title: t('backups:jobs:issues') }` rather than `${t('backups:jobs:issues')} 1`.
+
+`src/test/find-loader.ts` reads the other thing a component renders instead of its content: `isLoading(wrapper)`, whether a `UiLoader` is anywhere in the subtree. Where the loader sits somewhere nameable, prefer the helper that says so — `isStateHeroBusy` for a hero, `isHeadBarIconBusy` for a head bar.
+
 `src/test/find-tags.ts` reads the `VtsTag`s a card lists, as `findTagLabels(wrapper)` — an empty array when the object carries no tag.
+
+`src/test/find-state-hero.ts` reads the `VtsStateHero` a component falls back to instead of its content — every card, table and list states loading, error and empty that way:
+
+| Helper               | Reads                                                            |
+| -------------------- | ---------------------------------------------------------------- |
+| `findStateHeroText`  | the wording the hero shows (throws when there is no hero)        |
+| `hasStateHero`       | whether the component fell back to a hero at all                 |
+| `isStateHeroBusy`    | whether it is the busy hero, i.e. the component is still loading |
+| `findStateHeroTexts` | the wording of every hero, in order                              |
+
+```typescript
+expect(findStateHeroText(wrapper)).toBe(t('no-pbd-attached'))
+expect(hasStateHero(wrapper)).toBe(false)
+```
+
+A component nesting other components reads one of them by passing it in — `findStateHeroText(wrapper.findComponent(HostsRamUsage))` — which says _which_ section fell back, where a wrapper-wide read would answer for whichever hero comes first.
 
 ```typescript
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
@@ -239,7 +268,7 @@ expect(findLegendSections(wrapper)).toEqual([
 ])
 ```
 
-- `VtsStateHero` renders its own wording ahead of the slot: an `all-done` hero reads `'All good!Patches up to date'`. Assert the part the component owns with `toContain`.
+- `VtsStateHero` renders its own wording ahead of the slot: an `all-done` hero reads `'All good!Patches up to date'`. Assert the part the component owns with `toContain` on `findStateHeroText(wrapper)`.
 
 ## Routing
 
@@ -280,6 +309,14 @@ The head bar above it is shared the same way, by `src/test/find-head-bar.ts`:
 | `findHeadBarActionsText`      | every action, as the text a user reads                                       |
 | `hasHeadBarMoreActionsButton` | whether the more-actions menu is offered                                     |
 | `hasHeadBarStatus`            | whether the status slot renders, i.e. the object leads its pool              |
+
+A header walking back to the object its page hangs under renders a `UiBreadcrumb`, read by `src/test/find-breadcrumb.ts`:
+
+| Helper                | Reads                                                             |
+| --------------------- | ----------------------------------------------------------------- |
+| `findBreadcrumbLinks` | every linked step of the trail as `[label, href]` pairs, in order |
+
+The object the page is about closes the trail as plain text rather than as a link, so it is left out — assert it, and whatever the component renders beside its name, on the component's own element.
 
 ### Naming the icon a component picked
 
