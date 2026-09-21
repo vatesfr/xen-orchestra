@@ -103,6 +103,7 @@
 - @vates/node-vsphere-soap minor
 - @vates/types minor
 - @xen-orchestra/acl minor
+- @xen-orchestra/async-map patch
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/disk-cli patch
@@ -110,11 +111,8 @@
 - @xen-orchestra/mcp patch
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
-- @xen-orchestra/qcow2 minor
-- @xen-orchestra/async-map patch
-- @xen-orchestra/backups minor
-- @xen-orchestra/proxy minor
 - @xen-orchestra/proxy-cli patch
+- @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer major
 - @xen-orchestra/web minor
