@@ -44,9 +44,7 @@ function openDisableHostModal() {
       icon: 'status:info-picto',
     },
     events: {
-      onConfirm: async () => {
-        void disableHost()
-      },
+      onConfirm: () => disableHost({ detached: true }),
     },
   })
 }

@@ -46,9 +46,7 @@ function openEnableHostModal() {
       icon: 'status:info-picto',
     },
     events: {
-      onConfirm: async () => {
-        void enableHost()
-      },
+      onConfirm: () => enableHost({ detached: true }),
     },
   })
 }

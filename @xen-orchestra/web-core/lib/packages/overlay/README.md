@@ -101,6 +101,21 @@ events: {
 
 While a handler is running, any further event is ignored: a double-click, or a click on Cancel during a save, does nothing.
 
+This is meant for work the user is waiting for — validating a form, saving what the overlay itself
+is editing. An action that merely needs to be _started_ should not be awaited, otherwise the overlay
+stays in the way while it runs. Return nothing instead, and let the trigger report the progress:
+
+```ts
+events: {
+  // The overlay closes right away, the job keeps running and the button that
+  // opened the overlay shows its `isRunning` state
+  onConfirm: () => run({ detached: true }),
+}
+```
+
+A detached `run` comes from the job package, which also takes care of logging the failure. See its
+own README.
+
 ## Keeping the overlay open with `KEEP_OVERLAY_OPEN`
 
 Sometimes handling an event should _not_ close the overlay — a validation failure, a failed API call. Return `KEEP_OVERLAY_OPEN` for that:
