@@ -223,22 +223,24 @@ export default class {
         ? this._app.callProxyMethod(remote.proxy, 'remote.getInfo', { remote })
         : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
 
-    const wasTracked = remote.id in this._remotesInfo
-
     const info = { ...(await timeout.call(promise, 5e3)), encryption }
 
-    if (wasTracked && !(remote.id in this._remotesInfo)) {
+    const currentRemote = await this._remotes.first(remote.id).catch(() => undefined)
+    if (!currentRemote?.enabled) {
       return
     }
 
+    const prev = this._remotesInfo[remote.id]
     this._remotesInfo[remote.id] = info
 
     const { size, used, available } = info
-    this._updateRemote(remote.id, {
-      size: size ?? null,
-      used: used ?? null,
-      available: available ?? null,
-    }).catch(warn)
+    if (prev?.size !== size || prev?.used !== used || prev?.available !== available) {
+      this._updateRemote(remote.id, {
+        size: size ?? null,
+        used: used ?? null,
+        available: available ?? null,
+      }).catch(warn)
+    }
   }
 
   async _refreshRemoteInfo(remote) {
