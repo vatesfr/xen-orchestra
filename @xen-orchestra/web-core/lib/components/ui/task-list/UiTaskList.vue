@@ -30,7 +30,7 @@ const emit = defineEmits<{
 }>()
 
 const { items: tasksItems } = useCollection(() => tasks, {
-  flags: ['expanded'],
+  flags: { expanded: true },
 })
 </script>
 
