@@ -49,6 +49,11 @@ export default class AbstractNbdClient {
   /** @type {NbdTransport|undefined} */
   #transport
 
+  // incremented on each connection attempt: an attempt which is not the last
+  // one anymore has been superseded (its caller timed out on it) and must not
+  // publish itself
+  #connectGeneration = 0
+
   #waitBeforeReconnect
   #readBlockRetries
   #reconnectRetry
@@ -217,18 +222,28 @@ export default class AbstractNbdClient {
   }
 
   async #connect() {
-    const transport = await this._openTransport()
+    const generation = ++this.#connectGeneration
+    // the transport is kept local until the client is connected: connect() does
+    // not cancel on timeout, so a superseded attempt must not be able to use,
+    // replace or destroy the transport of the attempt which replaced it
+    let transport = await this._openTransport()
     this.#watchTransport(transport)
-    this.#transport = transport
     try {
       // the transport can be replaced during the handshake (TLS upgrade)
-      await this.#handshake()
+      transport = await this.#handshake(transport)
+
+      if (generation !== this.#connectGeneration) {
+        const error = new Error('this connection has been superseded by a newer one')
+        error.code = 'NBD_CONNECT_SUPERSEDED'
+        throw error
+      }
     } catch (error) {
       // don't leak the transport (a socket, a child process, ...): disconnect()
       // is a no-op as long as we're not connected, so nobody else will close it
-      this.#destroyCurrentTransport()
+      this.#destroyTransport(transport)
       throw error
     }
+    this.#transport = transport
     this.#connected = true
     // reset internal state if we reconnected a nbd client
     this.#commandQueryBacklog = new Map()
@@ -283,14 +298,6 @@ export default class AbstractNbdClient {
     }
   }
 
-  #destroyCurrentTransport() {
-    const transport = this.#transport
-    this.#transport = undefined
-    if (transport !== undefined) {
-      this.#destroyTransport(transport)
-    }
-  }
-
   #destroyTransport(transport) {
     try {
       this._destroyTransport(transport)
@@ -325,53 +332,75 @@ export default class AbstractNbdClient {
    * handshake
    * ------------------------------------------------------------------------- */
 
-  // we can use individual read/write from the transport here since there is no concurrency
-  //
-  // protected: subclasses need it to negotiate their own options (NBD_OPT_STARTTLS)
-  async _sendOption(option, buffer = Buffer.alloc(0)) {
-    await this.#write(OPTS_MAGIC)
-    await this.#writeInt32(option)
-    await this.#writeInt32(buffer.length)
-    await this.#write(buffer)
-    assert.strictEqual(await this.#readInt64(), NBD_OPT_REPLY_MAGIC) // magic number everywhere
-    assert.strictEqual(await this.#readInt32(), option) // the option passed
-    assert.strictEqual(await this.#readInt32(), NBD_REPLY_ACK) // ACK
-    const length = await this.#readInt32()
+  /**
+   * Send an option to the server and check it acknowledged it.
+   *
+   * We can use individual read/write from the transport here since there is no
+   * concurrency during the handshake.
+   *
+   * The transport is passed explicitly since the client is not connected yet:
+   * it is only published once the handshake succeeded.
+   *
+   * protected: subclasses need it to negotiate their own options (NBD_OPT_STARTTLS)
+   *
+   * @param {NbdTransport} transport
+   * @param {number} option
+   * @param {Buffer} [buffer] - the payload of the option
+   */
+  async _sendOption(transport, option, buffer = Buffer.alloc(0)) {
+    await this.#write(transport, OPTS_MAGIC)
+    await this.#writeInt32(transport, option)
+    await this.#writeInt32(transport, buffer.length)
+    await this.#write(transport, buffer)
+    assert.strictEqual(await this.#readInt64(transport), NBD_OPT_REPLY_MAGIC) // magic number everywhere
+    assert.strictEqual(await this.#readInt32(transport), option) // the option passed
+    assert.strictEqual(await this.#readInt32(transport), NBD_REPLY_ACK) // ACK
+    const length = await this.#readInt32(transport)
     assert.strictEqual(length, 0) // length
   }
 
   // we can use individual read/write from the transport here since there is only one handshake at once, no concurrency
-  async #handshake() {
-    assert((await this.#read(8)).equals(INIT_PASSWD))
-    assert((await this.#read(8)).equals(OPTS_MAGIC))
-    const flagsBuffer = await this.#read(2)
+  //
+  // it works on the transport it is given and returns the one to use for the
+  // transmission phase, which is not necessarily the same (TLS upgrade)
+  //
+  /**
+   * @param {NbdTransport} transport
+   * @returns {Promise<NbdTransport>}
+   */
+  async #handshake(transport) {
+    assert((await this.#read(transport, 8)).equals(INIT_PASSWD))
+    assert((await this.#read(transport, 8)).equals(OPTS_MAGIC))
+    const flagsBuffer = await this.#read(transport, 2)
     const flags = flagsBuffer.readInt16BE(0)
     assert.strictEqual(flags & NBD_FLAG_FIXED_NEWSTYLE, NBD_FLAG_FIXED_NEWSTYLE) // only FIXED_NEWSTYLE one is supported from the server options
-    await this.#writeInt32(NBD_FLAG_FIXED_NEWSTYLE) // client also support  NBD_FLAG_C_FIXED_NEWSTYLE
+    await this.#writeInt32(transport, NBD_FLAG_FIXED_NEWSTYLE) // client also support  NBD_FLAG_C_FIXED_NEWSTYLE
 
     // let the subclass upgrade the transport if it needs to (TLS)
-    const secured = await this._secureTransport(this.#transport)
-    if (secured !== this.#transport) {
+    const secured = await this._secureTransport(transport)
+    if (secured !== transport) {
       this.#watchTransport(secured)
-      this.#transport = secured
+      transport = secured
     }
 
     // send export name we want to access.
     // it's implicitly closing the negotiation phase.
-    await this.#write(OPTS_MAGIC)
-    await this.#writeInt32(NBD_OPT_EXPORT_NAME)
+    await this.#write(transport, OPTS_MAGIC)
+    await this.#writeInt32(transport, NBD_OPT_EXPORT_NAME)
     const exportNameBuffer = Buffer.from(this.#exportName)
-    await this.#writeInt32(exportNameBuffer.length)
-    await this.#write(exportNameBuffer)
+    await this.#writeInt32(transport, exportNameBuffer.length)
+    await this.#write(transport, exportNameBuffer)
 
     // 8 (export size ) + 2 (flags) + 124 zero = 134
     // must read all to ensure nothing stays in the  buffer
-    const answer = await this.#read(134)
+    const answer = await this.#read(transport, 134)
     this.#exportSize = answer.readBigUInt64BE(0)
     const transmissionFlags = answer.readInt16BE(8)
     assert.strictEqual(transmissionFlags & NBD_FLAG_HAS_FLAGS, NBD_FLAG_HAS_FLAGS, 'NBD_FLAG_HAS_FLAGS') // must always be 1 by the norm
 
     // note : xapi server always send NBD_FLAG_READ_ONLY (3) as a flag
+
+    return transport
   }
 
   /* ---------------------------------------------------------------------------
@@ -388,15 +417,15 @@ export default class AbstractNbdClient {
     return transport
   }
 
-  #read(length) {
-    const promise = readChunkStrict(this.#getTransport().readable, length)
+  #read(transport, length) {
+    const promise = readChunkStrict(transport.readable, length)
     return pTimeout.call(promise, this.#messageTimeout)
   }
 
-  #write(buffer) {
+  #write(transport, buffer) {
     let timeout
     const messageTimeout = this.#messageTimeout
-    const { writable } = this.#getTransport()
+    const { writable } = transport
     return Promise.race([
       new Promise((resolve, reject) => {
         timeout = setTimeout(() => {
@@ -412,20 +441,20 @@ export default class AbstractNbdClient {
     ])
   }
 
-  async #readInt32() {
-    const buffer = await this.#read(4)
+  async #readInt32(transport) {
+    const buffer = await this.#read(transport, 4)
     return buffer.readInt32BE(0)
   }
 
-  async #readInt64() {
-    const buffer = await this.#read(8)
+  async #readInt64(transport) {
+    const buffer = await this.#read(transport, 8)
     return buffer.readBigUInt64BE(0)
   }
 
-  #writeInt32(int) {
+  #writeInt32(transport, int) {
     const buffer = Buffer.alloc(4)
     buffer.writeInt32BE(int)
-    return this.#write(buffer)
+    return this.#write(transport, buffer)
   }
 
   /* ---------------------------------------------------------------------------
@@ -447,7 +476,8 @@ export default class AbstractNbdClient {
     }
     try {
       this.#waitingForResponse = true
-      const buffer = await this.#read(16)
+      const transport = this.#getTransport()
+      const buffer = await this.#read(transport, 16)
       const magic = buffer.readInt32BE(0)
 
       if (magic !== NBD_REPLY_MAGIC) {
@@ -466,7 +496,7 @@ export default class AbstractNbdClient {
         throw new Error(` no query associated with id ${blockQueryId}`)
       }
       this.#commandQueryBacklog.delete(blockQueryId)
-      const data = await this.#read(query.size)
+      const data = await this.#read(transport, query.size)
       query.resolve(data)
       this.#waitingForResponse = false
       if (this.#commandQueryBacklog.size > 0) {
@@ -521,7 +551,7 @@ export default class AbstractNbdClient {
         reject: decoratedReject,
       })
       // really send the command to the server
-      this.#write(buffer).catch(decoratedReject)
+      this.#write(this.#getTransport(), buffer).catch(decoratedReject)
 
       // #readBlockResponse never throws directly
       // but if it fails it will reject all the promises in the backlog

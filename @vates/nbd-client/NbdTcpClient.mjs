@@ -49,7 +49,7 @@ export default class NbdTcpClient extends AbstractNbdClient {
     if (this.#serverCert === undefined) {
       return transport
     }
-    await this._sendOption(NBD_OPT_STARTTLS)
+    await this._sendOption(transport, NBD_OPT_STARTTLS)
     const secured = await new Promise((resolve, reject) => {
       const socket = connect({
         socket: transport.writable,

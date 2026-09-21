@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { PassThrough } from 'node:stream'
+import { setTimeout as pSleep } from 'node:timers/promises'
 import { describe, it } from 'node:test'
 
 import AbstractNbdClient from './AbstractNbdClient.mjs'
@@ -51,6 +52,21 @@ class InMemoryNbdClient extends AbstractNbdClient {
   _destroyTransport(transport) {
     this.destroyedTransports.push(transport)
     super._destroyTransport(transport)
+  }
+}
+
+// the first connection is opened on a transport nobody ever answers on: its
+// handshake stalls until the message timeout, well after connect() gave up
+class StallingFirstConnectClient extends InMemoryNbdClient {
+  #openCalls = 0
+
+  async _openTransport() {
+    if (this.#openCalls++ === 0) {
+      const transport = { readable: new PassThrough(), writable: new PassThrough() }
+      this.transports.push(transport)
+      return transport
+    }
+    return super._openTransport()
   }
 }
 
@@ -122,6 +138,29 @@ describe('AbstractNbdClient', () => {
       await assert.rejects(client.readBlock(0, BLOCK_SIZE), /ERROR CODE/)
       // one transport for the initial connection, one for the retry
       assert.equal(client.transports.length, 2)
+    } finally {
+      await client.disconnect()
+    }
+  })
+
+  it('does not let a connection which timed out disturb the next one', async () => {
+    const client = new StallingFirstConnectClient({}, { connectTimeout: 50, messageTimeout: 150 })
+    await assert.rejects(client.connect())
+
+    // the previous attempt is still running: it must not publish itself, nor
+    // touch the transport of this one
+    await client.connect()
+    try {
+      // let the stalled handshake reach its message timeout
+      await pSleep(250)
+
+      assert.equal(client.connected, true)
+      assert.equal(client.transports.length, 2)
+      // only the stalled transport has been destroyed
+      assert.deepEqual(client.destroyedTransports, [client.transports[0]])
+
+      const block = await client.readBlock(0, BLOCK_SIZE)
+      assert.ok(block.equals(DATA.subarray(0, BLOCK_SIZE)))
     } finally {
       await client.disconnect()
     }
