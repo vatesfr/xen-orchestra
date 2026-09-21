@@ -124,8 +124,7 @@ class VdiRestoreTargets {
  * Whether a raw `mapVdisSrs` setting asks for at least one live mount.
  *
  * Kept separate from the normalization so the code paths that simply cannot honor a live mount
- * (backup health check, a remote handled by a proxy, a full backup) can reject it without
- * validating the rest of the setting.
+ * (backup health check, a full backup) can reject it without validating the rest of the setting.
  *
  * @param {object} [mapVdisSrs]
  * @returns {boolean}

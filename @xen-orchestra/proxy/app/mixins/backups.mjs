@@ -190,7 +190,28 @@ export default class Backups {
             } = await Disposable.all([this.getAdapter(remote), this.getXapi(xapiOpts)])
 
             const metadata = await adapter.readVmBackupMetadata(backupId)
-            const run = () => new ImportVmBackup({ adapter, metadata, settings, srUuid, xapi }).run()
+            const run = () =>
+              new ImportVmBackup({
+                adapter,
+                // a live mount outlives the restore which created it, so it cannot share the
+                // resources disposed at the end of this call: `#mountDisk` takes its own and
+                // releases them on unmount
+                liveMount: {
+                  mountDisk: ({ diskPath, hostId }) =>
+                    this.#mountDisk({
+                      diskPath,
+                      hostUuid: hostId,
+                      nameLabel: `[XO backup] ${metadata.vm.name_label}`,
+                      remote,
+                      xapi: xapiOpts,
+                    }),
+                  unmountDisk: mountId => app.liveMount.unmountDisk(mountId),
+                },
+                metadata,
+                settings,
+                srUuid,
+                xapi,
+              }).run()
 
             if (streamLogs) {
               return runWithLogs(
@@ -340,6 +361,20 @@ export default class Backups {
             },
           },
         ],
+        mountDisk: [
+          ({ disk, host, nameLabel, remote, xapi }) =>
+            this.#mountDisk({ diskPath: disk, hostUuid: host, nameLabel, remote, xapi }),
+          {
+            description: 'serve a disk of a backup repository as a read-only iSCSI LUN, attached to a host as an SR',
+            params: {
+              disk: { type: 'string' },
+              host: { type: 'string' },
+              nameLabel: { type: 'string', optional: true },
+              remote: { type: 'object' },
+              xapi: { type: 'object' },
+            },
+          },
+        ],
         restoreMetadataBackup: [
           ({ backupId, remote, xapi: xapiOptions }) =>
             Disposable.use(app.remotes.getHandler(remote), xapiOptions && this.getXapi(xapiOptions), (handler, xapi) =>
@@ -386,6 +421,15 @@ export default class Backups {
             },
           },
         ],
+        unmountDisk: [
+          ({ id }) => app.liveMount.unmountDisk(id),
+          {
+            description: 'detach a disk mounted by mountDisk and stop serving it',
+            params: {
+              id: { type: 'string' },
+            },
+          },
+        ],
       },
     })
 
@@ -417,6 +461,41 @@ export default class Backups {
         ],
       },
     })
+  }
+
+  /**
+   * Serve a disk of a backup repository as a read-only iSCSI LUN and attach it, as an SR, to a
+   * host of the pool `xapiOpts` points at.
+   *
+   * The adapter and the XAPI connection are acquired here but released by the unmount, not by the
+   * call which created the mount: the mount outlives it and needs both until it is torn down —
+   * the handler to serve every read, the XAPI connection to forget the SR.
+   *
+   * @param {object} params
+   * @param {string} params.diskPath - path of the disk on the backup repository
+   * @param {string} params.hostUuid - uuid of the host the disk is attached to
+   * @param {string} [params.nameLabel] - name of the created SR
+   * @param {object} params.remote - backup repository holding the disk
+   * @param {object} params.xapi - connection options of the pool owning `hostUuid`
+   */
+  async #mountDisk({ diskPath, hostUuid, nameLabel, remote, xapi: xapiOpts }) {
+    const {
+      dispose,
+      value: [adapter, xapi],
+    } = await Disposable.all([this.getAdapter(remote), this.getXapi(xapiOpts)])
+    try {
+      return await this._app.liveMount.mountDisk({
+        diskPath,
+        handler: adapter.handler,
+        hostRef: await xapi.call('host.get_by_uuid', hostUuid),
+        nameLabel,
+        release: dispose,
+        xapi,
+      })
+    } catch (error) {
+      await dispose()
+      throw error
+    }
   }
 
   *getAdapter(remote) {
