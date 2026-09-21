@@ -363,11 +363,14 @@ export default class Backups {
           },
         ],
         mountDisk: [
-          ({ disk, host, nameLabel, remote, xapi }) =>
-            this.#mountDisk({ diskPath: disk, hostUuid: host, nameLabel, remote, xapi }),
+          ({ cache, disk, host, nameLabel, remote, xapi }) =>
+            this.#mountDisk({ cache, diskPath: disk, hostUuid: host, nameLabel, remote, xapi }),
           {
             description: 'serve a disk of a backup repository as a read-only iSCSI LUN, attached to a host as an SR',
             params: {
+              // `true`, or `{ srUuid, hydrate }`: materialize the disk into a local VDI as it is
+              // read. Defaults to this proxy's `iscsi.cache` config key.
+              cache: { type: ['boolean', 'object'], optional: true },
               disk: { type: 'string' },
               host: { type: 'string' },
               nameLabel: { type: 'string', optional: true },
@@ -478,14 +481,17 @@ export default class Backups {
    * @param {string} [params.nameLabel] - name of the created SR
    * @param {object} params.remote - backup repository holding the disk
    * @param {object} params.xapi - connection options of the pool owning `hostUuid`
+   * @param {boolean | { srUuid?: string, hydrate?: boolean }} [params.cache] - materialize the disk
+   * into a local VDI as it is read; defaults to the `iscsi.cache` config key
    */
-  async #mountDisk({ diskPath, hostUuid, nameLabel, remote, xapi: xapiOpts }) {
+  async #mountDisk({ cache, diskPath, hostUuid, nameLabel, remote, xapi: xapiOpts }) {
     const {
       dispose,
       value: [adapter, xapi],
     } = await Disposable.all([this.getAdapter(remote), this.getXapi(xapiOpts)])
     try {
       return await this._app.liveMount.mountDisk({
+        cache,
         diskPath,
         handler: adapter.handler,
         hostRef: await xapi.call('host.get_by_uuid', hostUuid),

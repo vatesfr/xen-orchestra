@@ -72,7 +72,7 @@ export default class BackupDiskMountsResolver {
     // a mount also disappears on its own, when the VDI it serves is removed from the pool — e.g.
     // when the VM it was attached to is deleted
     app.liveMount.on('unmounted', id => {
-      this.#mountOwners.delete(id)
+      this.#mounts.delete(id)
     })
   }
 
@@ -84,9 +84,12 @@ export default class BackupDiskMountsResolver {
    * @param {XoVmBackupArchive['id']} params.archiveId - `<backup repository id>/<metadata path>`
    * @param {string} params.diskId - id of one of the archive's disks, a path on the backup repository
    * @param {XoHost['id']} params.hostId - id of the host the disk is attached to
+   * @param {boolean | { srUuid?: string, hydrate?: boolean }} [params.cache] - materialize the disk into a
+   * local VDI as it is read, so the backup repository is read at most once per block. Defaults to
+   * the `iscsi.cache` config key of whoever serves the mount, this appliance or the proxy.
    * @returns {Promise<BackupArchiveDiskMount>}
    */
-  async mountBackupArchiveDisk({ archiveId, diskId, hostId }) {
+  async mountBackupArchiveDisk({ archiveId, cache, diskId, hostId }) {
     const app = this.#app
 
     const archive = await this.#getArchive(archiveId)
@@ -104,8 +107,8 @@ export default class BackupDiskMountsResolver {
 
     const mount =
       proxyId === undefined
-        ? await this.#mountHere({ diskId, host, nameLabel, remote })
-        : await this.#mountOnProxy({ diskId, host, nameLabel, proxyId, remote })
+        ? await this.#mountHere({ cache, diskId, host, nameLabel, remote })
+        : await this.#mountOnProxy({ cache, diskId, host, nameLabel, proxyId, remote })
 
     this.#mounts.set(mount.id, { archiveId, hostId, mount: { ...mount, diskPath: diskId }, proxyId })
     return mount
@@ -170,11 +173,12 @@ export default class BackupDiskMountsResolver {
    *
    * @returns {Promise<BackupArchiveDiskMount>}
    */
-  async #mountHere({ diskId, host, nameLabel, remote }) {
+  async #mountHere({ cache, diskId, host, nameLabel, remote }) {
     const app = this.#app
     const adapter = await app.getBackupsRemoteAdapter(remote)
     try {
       return await app.liveMount.mountDisk({
+        cache,
         diskPath: diskId,
         handler: adapter.value.handler,
         hostRef: host._xapiRef,
@@ -195,7 +199,7 @@ export default class BackupDiskMountsResolver {
    *
    * @returns {Promise<BackupArchiveDiskMount>}
    */
-  async #mountOnProxy({ diskId, host, nameLabel, proxyId, remote }) {
+  async #mountOnProxy({ cache, diskId, host, nameLabel, proxyId, remote }) {
     const app = this.#app
     // httpProxy is ignored when using XO Proxy
     const {
@@ -207,6 +211,7 @@ export default class BackupDiskMountsResolver {
 
     try {
       return await app.callProxyMethod(proxyId, 'backup.mountDisk', {
+        cache,
         disk: diskId,
         host: host.uuid,
         nameLabel,
