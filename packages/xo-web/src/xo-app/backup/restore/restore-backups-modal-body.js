@@ -1,7 +1,7 @@
 import _ from 'intl'
 import Icon from 'icon'
 import React from 'react'
-import ChooseSrForEachVdisModal from 'xo/choose-sr-for-each-vdis-modal'
+import ChooseSrForEachVdisModal, { areVdiTargetsComplete } from 'xo/choose-sr-for-each-vdis-modal'
 import Component from 'base-component'
 import StateButton from 'state-button'
 import { createSelector } from 'selectors'
@@ -21,6 +21,12 @@ export default class RestoreBackupsModalBody extends Component {
 
   get value() {
     return this.state
+  }
+
+  // read by the modal to refuse the confirmation while a disk misses the destination its action
+  // needs, which the server could not guess
+  get isValid() {
+    return areVdiTargetsComplete(this.state.targetSrs, this._getDisks())
   }
 
   // every disk of the backup is listed, including the ones the user chose not to restore: that

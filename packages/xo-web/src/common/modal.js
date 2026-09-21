@@ -57,14 +57,20 @@ class GenericModal extends Component {
     title: PropTypes.node.isRequired,
   }
 
-  _getBodyValue = () => {
+  _getBodyInstance = () => {
     const { body } = this.refs
-    if (body !== undefined) {
-      return body.getWrappedInstance === undefined ? body.value : body.getWrappedInstance().value
-    }
+    return body !== undefined && body.getWrappedInstance !== undefined ? body.getWrappedInstance() : body
   }
 
+  _getBodyValue = () => this._getBodyInstance()?.value
+
   _resolve = (value = this._getBodyValue()) => {
+    // a body may expose `isValid` to refuse the confirmation while it is incomplete, in which case
+    // it is responsible for showing the user what is missing
+    if (this._getBodyInstance()?.isValid === false) {
+      return
+    }
+
     this.props.resolve(value)
     instance.close()
   }

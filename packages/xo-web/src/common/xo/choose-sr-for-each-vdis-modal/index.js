@@ -2,13 +2,16 @@ import Collapse from 'collapse'
 import Component from 'base-component'
 import PropTypes from 'prop-types'
 import React from 'react'
+import store from 'store'
 import { Container, Col } from 'grid'
-import { isEmpty, map } from 'lodash'
+import { every, isEmpty, map, mapValues } from 'lodash'
 import { isSrWritable } from 'xo'
 import { Vdi } from 'render-xo-item'
 
 import _ from '../../intl'
+import Icon from '../../icon'
 import SingleLineRow from '../../single-line-row'
+import { createSelector, getObject } from '../../selectors'
 import { Select } from '../../form'
 import { SelectHost, SelectSr } from '../../select-objects'
 
@@ -22,6 +25,49 @@ const VDI_TARGET_OPTIONS = [
   { label: _('vdiTargetLiveMount'), value: LIVE_MOUNT },
   { label: _('vdiTargetIgnore'), value: IGNORE },
 ]
+
+// the selectors hand back objects, but a default computed here is only known by its id
+const resolveObject = objectOrId =>
+  typeof objectOrId === 'string' ? getObject(store.getState(), objectOrId) : objectOrId
+
+// a live mounted disk is exposed to a single host as an iSCSI SR, so it is only usable together
+// with the disks being restored if that host can reach the SR they are restored to
+const getLiveMountHostPredicate = sr =>
+  sr == null ? undefined : sr.shared ? host => host.$pool === sr.$pool : host => host.id === sr.$container
+
+// a local SR is only reachable from its own host, a shared one from every host of its pool, where
+// the master is as good a default as any
+const getDefaultLiveMountHost = sr =>
+  sr == null ? undefined : sr.shared ? getObject(store.getState(), sr.$pool)?.master : sr.$container
+
+const isLiveMountHostAllowed = (host, predicate) => {
+  if (host == null) {
+    return false
+  }
+  if (predicate === undefined) {
+    return true
+  }
+  const object = resolveObject(host)
+  return object !== undefined && predicate(object)
+}
+
+// a disk target is complete once the destination its action needs is known: a host to live mount
+// on, or an SR to restore to, which is the main SR unless one is set for this disk
+const isVdiTargetComplete = (target, mainSr) => {
+  const type = target?.type ?? RESTORE
+  if (type === RESTORE) {
+    return (target?.sr ?? mainSr) != null
+  }
+  if (type === LIVE_MOUNT) {
+    return target.host != null
+  }
+  return true
+}
+
+// meant for the modal bodies embedding this component with `withVdiTargets`, to refuse a
+// confirmation which the server could not honor
+export const areVdiTargetsComplete = ({ mainSr, mapVdisSrs } = {}, vdis) =>
+  every(vdis, vdi => isVdiTargetComplete(mapVdisSrs?.[vdi.uuid], mainSr))
 
 const Collapsible = ({ collapsible, children, ...props }) =>
   collapsible ? (
@@ -64,7 +110,29 @@ export default class ChooseSrForEachVdisModal extends Component {
     })
   }
 
-  _onChangeMainSr = mainSr => this._onChange({ mainSr })
+  _getMainSr = createSelector(() => this.props.value.mainSr, resolveObject)
+
+  _getLiveMountHostPredicate = createSelector(this._getMainSr, getLiveMountHostPredicate)
+
+  // the destination SR drives which hosts can live mount a disk: one which cannot reach the new SR
+  // is not a valid destination any more and falls back to the default for that SR
+  _onChangeMainSr = mainSr => {
+    const { mapVdisSrs } = this.props.value
+    if (!this.props.withVdiTargets || mapVdisSrs === undefined) {
+      return this._onChange({ mainSr })
+    }
+
+    const sr = resolveObject(mainSr)
+    const predicate = getLiveMountHostPredicate(sr)
+    this._onChange({
+      mainSr,
+      mapVdisSrs: mapValues(mapVdisSrs, target =>
+        target?.type === LIVE_MOUNT && !isLiveMountHostAllowed(target.host, predicate)
+          ? { type: LIVE_MOUNT, host: getDefaultLiveMountHost(sr) }
+          : target
+      ),
+    })
+  }
 
   _onChangeVdiSr = (vdi, sr) =>
     this._onChange({
@@ -78,11 +146,20 @@ export default class ChooseSrForEachVdisModal extends Component {
       mapVdisSrs: { ...this.props.value.mapVdisSrs, [vdi.uuid]: target },
     })
 
+  // a live mount needs a host, which is pre-selected so the common case does not have to be filled
+  // in by hand
+  _onChangeVdiAction = (vdi, type) =>
+    this._onChangeVdiTarget(
+      vdi,
+      type === LIVE_MOUNT ? { type, host: getDefaultLiveMountHost(this._getMainSr()) } : { type }
+    )
+
   _renderVdiTarget(vdi, srPredicate) {
     // only targets written here are expected: a bare SR, as the legacy shape stores, would read as
     // a restore with no SR chosen
     const target = this.props.value.mapVdisSrs?.[vdi.uuid]
     const type = target?.type ?? RESTORE
+    const mainSr = this._getMainSr()
 
     return (
       <SingleLineRow key={vdi.uuid}>
@@ -90,7 +167,7 @@ export default class ChooseSrForEachVdisModal extends Component {
         <Col size={4}>
           <Select
             labelKey='label'
-            onChange={newType => this._onChangeVdiTarget(vdi, { type: newType })}
+            onChange={newType => this._onChangeVdiAction(vdi, newType)}
             options={VDI_TARGET_OPTIONS}
             required
             simpleValue
@@ -102,6 +179,7 @@ export default class ChooseSrForEachVdisModal extends Component {
           {type === RESTORE && (
             <SelectSr
               onChange={sr => this._onChangeVdiTarget(vdi, { type: RESTORE, sr: sr ?? undefined })}
+              placeholder={mainSr != null ? _('vdiTargetUseMainSr') : _('selectDestinationSr')}
               predicate={srPredicate}
               value={target?.sr}
             />
@@ -109,9 +187,15 @@ export default class ChooseSrForEachVdisModal extends Component {
           {type === LIVE_MOUNT && (
             <SelectHost
               onChange={host => this._onChangeVdiTarget(vdi, { type: LIVE_MOUNT, host: host ?? undefined })}
+              predicate={this._getLiveMountHostPredicate()}
               required
               value={target?.host}
             />
+          )}
+          {!isVdiTargetComplete(target, mainSr) && (
+            <span className='text-danger'>
+              {type === LIVE_MOUNT ? _('vdiTargetHostRequired') : _('vdiTargetSrRequired')}
+            </span>
           )}
         </Col>
       </SingleLineRow>
@@ -129,6 +213,9 @@ export default class ChooseSrForEachVdisModal extends Component {
       vdis,
       withVdiTargets = false,
     } = props
+
+    // the rows are collapsed by default, so what is missing in them has to be visible from outside
+    const incompleteTargets = withVdiTargets && !areVdiTargetsComplete(props.value, vdis)
 
     return (
       <div>
@@ -186,6 +273,11 @@ export default class ChooseSrForEachVdisModal extends Component {
               {!withVdiTargets && <i>{_('optionalEntry')}</i>}
             </Container>
           </Collapsible>
+        )}
+        {incompleteTargets && (
+          <p className='text-danger'>
+            <Icon icon='error' /> {_('vdiTargetIncompleteDestinations')}
+          </p>
         )}
       </div>
     )
