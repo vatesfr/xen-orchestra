@@ -167,6 +167,7 @@ export interface XenApiHost extends XenApiRecord<'host'> {
 
 export interface XenApiSr extends XenApiRecord<'sr'> {
   content_type: string
+  is_tools_sr: boolean
   name_description: string
   name_label: string
   other_config: Record<string, string>
