@@ -138,7 +138,11 @@ export default class NbdStdioClient extends AbstractNbdClient {
   }
 
   _destroyTransport(transport) {
-    const { child } = transport.state
+    const { state } = transport
+    const { child } = state
+    // we're the one tearing it down: the exit that follows is expected, not a
+    // crash, and destroying the streams can be enough to make the server quit
+    state.closing = true
     transport.readable.destroy()
     transport.writable.destroy()
     if (child.exitCode === null && child.signalCode === null) {
