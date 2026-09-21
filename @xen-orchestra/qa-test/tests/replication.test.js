@@ -4,6 +4,7 @@ import { createLogger } from '@xen-orchestra/log'
 
 import {
   assertFullOrDeltaForSr,
+  delay,
   findTaskByMessage,
   generateBackupJobName,
   getBackupTransferredBytes,
@@ -84,16 +85,27 @@ describe('Incremental Replication', () => {
    * Creates a delta replication job from sourceVm to targetSrUuid.
    * @param {{uuid: string, name_label: string}} sourceVm
    * @param {string} targetSrUuid
+   * @param {string} [baseName]
+   * @param {Object} [settingsOverride] - Overrides merged into the default job settings
+   *   (e.g. `{ copyRetention: 1, deleteFirst: true }`).
    * @returns {Promise<{jobId: string, scheduleKey: string}>}
    */
-  const createReplicationJob = async (sourceVm, targetSrUuid, baseName = '') => {
+  const createReplicationJob = async (sourceVm, targetSrUuid, baseName = '', settingsOverride = {}) => {
     const name = baseName + ' ' + generateBackupJobName()
     const schedule = getDefaultSchedule()
     const config = {
       name,
       mode: 'delta',
       schedules: { '': schedule },
-      settings: { '': { timezone: 'Europe/Paris', copyRetention: 3, preferNbd: true, bypassVdiChainsCheck: true } },
+      settings: {
+        '': {
+          timezone: 'Europe/Paris',
+          copyRetention: 3,
+          preferNbd: true,
+          bypassVdiChainsCheck: true,
+          ...settingsOverride,
+        },
+      },
       vms: { [sourceVm.uuid]: sourceVm },
       srs: { [targetSrUuid]: true },
     }
@@ -138,6 +150,19 @@ describe('Incremental Replication', () => {
       } catch (error) {
         log.warn('Failed to clean up VM', { uuid: vmUuid, error })
       }
+    }
+  }
+
+  /**
+   * @param {string} vmUuid
+   * @returns {Promise<boolean>} Whether the VM still exists.
+   */
+  const vmExists = async vmUuid => {
+    try {
+      await dispatchClient.vm.details(vmUuid)
+      return true
+    } catch {
+      return false
     }
   }
 
@@ -493,6 +518,178 @@ describe('Incremental Replication', () => {
       log.debug('Planned switch completed — delta transfer confirmed, source VM updated in place', {
         snapshotsBefore: snapshotsOnSourceBefore,
         snapshotsAfter: snapshotsOnSourceAfter,
+      })
+    })
+  })
+
+  // ===========================================================================
+  // deleteFirst — regression coverage for IncrementalXapiWriter
+  //
+  // `deleteFirst` is meant to delete the replicas that retention is about to
+  // prune *before* the new transfer starts, so the destination SR only ever
+  // has to hold `copyRetention` replicas worth of space at once instead of
+  // `copyRetention + 1`. A previous bug inverted the guard
+  // (`settings.deleteFirst && settings.skipDeleteOldEntries` instead of
+  // `!settings.skipDeleteOldEntries`), which silently disabled this behaviour
+  // for normal (non-distributed) replication jobs: the stale replica was only
+  // removed in `cleanup()`, *after* the new transfer had already completed —
+  // the opposite of what a space-constrained destination SR needs, and the
+  // cause of "not enough space" failures reported for this flag.
+  // ===========================================================================
+
+  describe('deleteFirst', () => {
+    /** @type {{uuid: string, name_label: string}} */
+    let destSr
+
+    before(async () => {
+      destSr = await dispatchClient.sr.details(REPLICATION_DESTINATION_SR_ID)
+      assert.ok(destSr, `Destination SR "${REPLICATION_DESTINATION_SR_ID}" not found`)
+      log.debug('deleteFirst destination SR', { name: destSr.name_label, uuid: destSr.uuid })
+    })
+
+    describe('copyRetention: 1 — frees space before the next transfer instead of after', () => {
+      const replicatedVmUuids = []
+
+      after(async () => cleanupVms(replicatedVmUuids))
+
+      it('never lets the previous replica coexist with the new one for the bulk of the transfer', async () => {
+        const { jobId, scheduleKey } = await createReplicationJob(vm, destSr.uuid, 'deleteFirst r1', {
+          copyRetention: 1,
+          deleteFirst: true,
+        })
+        const vmUuidsBefore = new Set((await dispatchClient.vm.list()).map(v => v.uuid))
+
+        // --- Run 1: creates the first replica (baseline usage) ---
+        const result1 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
+        assertBackupSuccess(result1, 'First replication')
+        assertFullOrDeltaForSr(result1, destSr.uuid, { mustBeFull: true })
+
+        const newUuids1 = await findNewVmUuids(vmUuidsBefore)
+        assert.strictEqual(newUuids1.length, 1, 'First replication should create exactly one replica VM')
+        const replicaA = newUuids1[0]
+        replicatedVmUuids.push(replicaA)
+
+        const usageAfterRun1 = (await dispatchClient.sr.details(destSr.uuid)).physical_usage
+        assert.ok(usageAfterRun1 > 0, 'Destination SR usage should be > 0 after the first replica is created')
+        log.debug('Destination SR usage after run 1', { usageAfterRun1 })
+
+        // --- Run 2: with copyRetention 1, replicaA is entirely "old" and must
+        // be removed by _prepare() *before* the transfer, not by cleanup()
+        // after it. Poll SR usage and replicaA's existence while the job runs:
+        // with the bug, replicaA survives until cleanup() and usage climbs
+        // towards ~2x during the transfer; with the fix it should stay close
+        // to a single replica's footprint throughout, and replicaA should be
+        // gone well before the run completes.
+        let polling = true
+        let peakUsage = 0
+        let sawReplicaADeletedDuringRun = false
+
+        const pollUsage = (async () => {
+          // eslint-disable-next-line no-unmodified-loop-condition
+          while (polling) {
+            try {
+              const [sr, replicaAStillThere] = await Promise.all([
+                dispatchClient.sr.details(destSr.uuid),
+                vmExists(replicaA),
+              ])
+              peakUsage = Math.max(peakUsage, sr.physical_usage)
+              if (!replicaAStillThere) {
+                sawReplicaADeletedDuringRun = true
+              }
+            } catch (error) {
+              log.warn('Polling error (ignored)', { error })
+            }
+            await delay(1_000)
+          }
+        })()
+
+        const result2 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
+        polling = false
+        await pollUsage
+
+        assertBackupSuccess(result2, 'Second replication')
+
+        // --- Assertions ---
+
+        // We must have observed replicaA gone at some point while polling
+        // during run 2 — i.e. it was deleted as part of *this* run's
+        // preparation, not left dangling until after the transfer.
+        assert.ok(
+          sawReplicaADeletedDuringRun,
+          'The previous replica should have been deleted before/during the second run, not only after it'
+        )
+
+        // The destination should never have needed to hold ~2 replicas' worth
+        // of data at once. Some slack is allowed for VM/VDI metadata overhead
+        // and the brief window it takes to issue the delete, but it must stay
+        // well under "old + new" (which would show up as usage close to 2x
+        // usageAfterRun1).
+        assert.ok(
+          peakUsage < usageAfterRun1 * 1.5,
+          `Destination SR usage peaked at ${peakUsage} bytes during the second run, ` +
+            `expected it to stay close to a single replica's footprint (~${usageAfterRun1} bytes). ` +
+            `A peak near ${usageAfterRun1 * 2} bytes would indicate the old replica was not freed first.`
+        )
+
+        // Never delete too much: exactly one replica must remain, never zero.
+        const newUuids2 = await findNewVmUuids(vmUuidsBefore)
+        assert.strictEqual(
+          newUuids2.length,
+          1,
+          `Expected exactly 1 replica to remain after run 2 with copyRetention: 1, got ${newUuids2.length}`
+        )
+        replicatedVmUuids.length = 0
+        replicatedVmUuids.push(newUuids2[0])
+
+        assert.strictEqual(
+          await vmExists(replicaA),
+          false,
+          'The first replica must have been destroyed by the end of the second run'
+        )
+      })
+    })
+
+    describe('copyRetention: 2 — must not delete the still-needed incremental base', () => {
+      const replicatedVmUuids = []
+
+      after(async () => cleanupVms(replicatedVmUuids))
+
+      it('keeps the base replica intact across a deleteFirst run when retention allows more than one copy', async () => {
+        const { jobId, scheduleKey } = await createReplicationJob(vm, destSr.uuid, 'deleteFirst r2', {
+          copyRetention: 2,
+          deleteFirst: true,
+        })
+        const vmUuidsBefore = new Set((await dispatchClient.vm.list()).map(v => v.uuid))
+
+        const result1 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
+        assertBackupSuccess(result1, 'First replication')
+        assertFullOrDeltaForSr(result1, destSr.uuid, { mustBeFull: true })
+
+        const newUuids1 = await findNewVmUuids(vmUuidsBefore)
+        assert.strictEqual(newUuids1.length, 1, 'First replication should create exactly one replica VM')
+        const replicaA = newUuids1[0]
+        replicatedVmUuids.push(replicaA)
+
+        // With copyRetention: 2 there is nothing yet to prune (only 1 entry
+        // exists), so deleteFirst must not touch replicaA — it is the
+        // mandatory base for the incremental transfer that follows.
+        const result2 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
+        assertBackupSuccess(result2, 'Second replication')
+        assertFullOrDeltaForSr(result2, destSr.uuid, { mustBeFull: false })
+
+        assert.strictEqual(
+          await vmExists(replicaA),
+          true,
+          'The base replica must still exist after a deleteFirst run that has nothing to prune yet'
+        )
+
+        const newUuids2 = await findNewVmUuids(vmUuidsBefore)
+        assert.strictEqual(
+          newUuids2.length,
+          1,
+          `deleteFirst must not have created an extra replica or lost the base one, got ${newUuids2.length} total`
+        )
+        assert.strictEqual(newUuids2[0], replicaA, 'The second run should reuse/extend the same base replica')
       })
     })
   })
