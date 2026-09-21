@@ -496,7 +496,7 @@ export default class BackupNg {
     return this.deleteVmBackupsNg([id])
   }
 
-  async deleteVmBackupsNg(ids) {
+  async deleteVmBackupsNg(ids, immediate) {
     const app = this._app
     const backupsByRemote = groupBy(ids.map(parseVmBackupId), 'remoteId')
     await asyncMapSettled(Object.entries(backupsByRemote), async ([remoteId, backups]) => {
@@ -509,9 +509,12 @@ export default class BackupNg {
             url: remote.url,
             options: remote.options,
           },
+          immediate,
         })
       } else {
-        await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteVmBackups(filenames))
+        await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter =>
+          adapter.deleteVmBackups(filenames, { immediate })
+        )
       }
 
       this._refreshVmBackupsCache(remoteId)

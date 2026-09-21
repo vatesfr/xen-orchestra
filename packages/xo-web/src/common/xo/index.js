@@ -3248,8 +3248,8 @@ export const checkBackup = (backup, sr, { mapVdisSrs = {} } = {}) => {
 
 export const deleteBackup = backup => _call('backupNg.deleteVmBackup', { id: resolveId(backup) })
 
-export const deleteBackups = async backups =>
-  _call('backupNg.deleteVmBackups', { ids: backups.map(backup => resolveId(backup)) })
+export const deleteBackups = async (backups, immediate) =>
+  _call('backupNg.deleteVmBackups', { ids: backups.map(backup => resolveId(backup)), immediate })
 
 export const createMetadataBackupJob = props =>
   _call('metadataBackup.createJob', props)
