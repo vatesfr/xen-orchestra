@@ -45,9 +45,7 @@ const openModal = () => {
   return openRebootModal({
     props: { accent: 'info', action: 'force-reboot', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
     events: {
-      onConfirm: async () => {
-        void forceReboot()
-      },
+      onConfirm: () => forceReboot({ detached: true }),
     },
   })
 }

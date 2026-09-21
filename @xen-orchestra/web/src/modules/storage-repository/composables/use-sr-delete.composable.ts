@@ -22,23 +22,21 @@ export function useSrDelete(rawSrs: MaybeRefOrGetter<FrontXoSr[]>) {
 
     // TODO Add a type-to-confirm input if count > 1
     return open({
-      events: {
-        onConfirm: async () => {
-          try {
-            await run()
-
-            if (srs.value.some(sr => sr.id === selectedSrId.value)) {
-              selectedSrId.value = ''
-            }
-          } catch (error) {
-            console.error('Error when deleting SR:', error)
-          }
-        },
-      },
       props: {
         subject: t('n-srs', { n: count }),
         description: t('sr-delete-info', { n: count }),
         confirmLabel: t('action:delete-n-srs', { n: count }),
+      },
+      events: {
+        onConfirm: () =>
+          run({
+            detached: true,
+            onSuccess: () => {
+              if (srs.value.some(sr => sr.id === selectedSrId.value)) {
+                selectedSrId.value = ''
+              }
+            },
+          }),
       },
     })
   }

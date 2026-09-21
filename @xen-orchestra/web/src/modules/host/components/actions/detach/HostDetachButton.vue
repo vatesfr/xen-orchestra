@@ -52,17 +52,6 @@ const { redirect: redirectAfterDetachHost } = useRedirectAfterDelete({
   },
 })
 
-async function detachHostAndRedirect() {
-  try {
-    await run()
-  } catch (error) {
-    console.error('Error when detaching host:', error)
-    return
-  }
-
-  await redirectAfterDetachHost()
-}
-
 function detachHost() {
   return openActionModal({
     props: {
@@ -73,9 +62,7 @@ function detachHost() {
       icon: 'status:warning-picto',
     },
     events: {
-      onConfirm: async () => {
-        void detachHostAndRedirect()
-      },
+      onConfirm: () => run({ detached: true, onSuccess: redirectAfterDetachHost }),
     },
   })
 }

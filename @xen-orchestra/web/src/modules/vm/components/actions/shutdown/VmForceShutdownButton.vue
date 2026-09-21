@@ -44,9 +44,7 @@ const openModal = () => {
   return openForceShutdownModal({
     props: { accent: 'info', action: 'force-shutdown', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
     events: {
-      onConfirm: async () => {
-        void forceShutdown()
-      },
+      onConfirm: () => forceShutdown({ detached: true }),
     },
   })
 }

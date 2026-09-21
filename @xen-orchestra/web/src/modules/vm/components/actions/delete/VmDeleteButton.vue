@@ -22,7 +22,7 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { run: deleteVM, canRun, isRunning } = useXoVmDeleteJob(() => [vm])
+const { run: deleteVm, canRun, isRunning } = useXoVmDeleteJob(() => [vm])
 
 const { xo5VmAdvancedHref } = useXoVmUtils(() => vm)
 
@@ -45,18 +45,6 @@ const { open: openDeleteModal } = useDeleteModal()
 
 const { open: openBlockedModal } = useBlockedModal()
 
-async function deleteVmAndRedirect() {
-  let result
-
-  try {
-    result = await deleteVM()
-  } catch (error) {
-    console.error('Error when deleting VM:', error)
-  }
-
-  await redirectIfOnObjectPage(result)
-}
-
 function openModal() {
   if (!canRun.value) {
     return openBlockedModal({
@@ -73,9 +61,7 @@ function openModal() {
       confirmLabel: t('action:delete-n-vms', { n: 1 }),
     },
     events: {
-      onConfirm: async () => {
-        void deleteVmAndRedirect()
-      },
+      onConfirm: () => deleteVm({ detached: true, onSuccess: redirectIfOnObjectPage }),
     },
   })
 }

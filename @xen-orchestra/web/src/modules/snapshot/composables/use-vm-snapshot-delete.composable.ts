@@ -18,19 +18,13 @@ export function useVmSnapshotDelete(rawSnapshots: MaybeRefOrGetter<FrontXoVmSnap
     const count = snapshots.value.length
 
     return open({
-      events: {
-        onConfirm: async () => {
-          try {
-            await run()
-          } catch (error) {
-            console.error('Error when deleting snapshot:', error)
-          }
-        },
-      },
       props: {
         subject: t('n-snapshots', { n: count }),
         description: t('snapshot-delete-warning', { n: count }),
         confirmLabel: t('action:delete-n-snapshots', { n: count }),
+      },
+      events: {
+        onConfirm: () => run({ detached: true }),
       },
     })
   }

@@ -53,13 +53,7 @@ export function useSrConnection(options: { srs: MaybeRefOrGetter<FrontXoSr[]>; s
         hostsCount: connectionTargetCount.value,
       },
       events: {
-        onConfirm: async () => {
-          try {
-            await runConnect()
-          } catch (error) {
-            console.error('Error when connecting SR:', error)
-          }
-        },
+        onConfirm: () => runConnect({ detached: true }),
       },
     })
   }
@@ -74,13 +68,7 @@ export function useSrConnection(options: { srs: MaybeRefOrGetter<FrontXoSr[]>; s
         hostsCount: disconnectionTargetCount.value,
       },
       events: {
-        onConfirm: async () => {
-          try {
-            await runDisconnect()
-          } catch (error) {
-            console.error('Error when disconnecting SR:', error)
-          }
-        },
+        onConfirm: () => runDisconnect({ detached: true }),
       },
     })
   }
