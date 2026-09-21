@@ -162,6 +162,8 @@ export default class Restore extends Component {
       title: _('restoreVmBackupsTitle', { vm: data.last.vm.name_label }),
       body: <RestoreBackupsModalBody data={data} />,
       icon: 'restore',
+      // a disk row holds an action and a destination selector side by side
+      size: 'large',
     })
       .then(({ backup, generateNewMacAddresses, targetSrs: { mainSr, mapVdisSrs }, start, useDifferentialRestore }) => {
         if (backup == null || mainSr == null) {
@@ -189,6 +191,7 @@ export default class Restore extends Component {
         />
       ),
       icon: 'restore',
+      size: 'large',
     })
       .then(({ backup, targetSrs: { mainSr, mapVdisSrs } }) => {
         if (backup == null || mainSr == null) {
