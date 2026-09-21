@@ -1,24 +1,17 @@
 <template>
-  <VtsTreeItem
-    v-if="host !== undefined"
-    :expanded="isExpanded"
-    has-children
-    class="infra-host-item"
-    :node-id="`host:${host.uuid}`"
-  >
+  <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.dataId" :has-children="branch.hasChildren">
     <UiTreeItemLabel
-      :route="{ name: '/host/[uuid]', params: { uuid: host.uuid } }"
+      :route="{ name: '/host/[uuid]', params: { uuid: branch.data.uuid } }"
       icon="object:host"
-      @toggle="toggle()"
+      @toggle="branch.toggleCollapse()"
     >
-      {{ host.name_label || '(Host)' }}
+      {{ branch.data.name_label || '(Host)' }}
       <template #addons>
         <UiLoader v-if="isChangingState" v-tooltip="currentOperation" />
-        <VtsIcon v-if="isPoolMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
+        <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
         <UiCounter
-          v-if="isReady"
-          v-tooltip="t('running-vm', { count: vmCount })"
-          :value="vmCount"
+          v-tooltip="t('running-vm', { count: runningVmsCount })"
+          :value="runningVmsCount"
           accent="brand"
           size="small"
           variant="secondary"
@@ -33,56 +26,42 @@
               @click="open($event)"
             />
           </template>
-          <HostTreeActions :host />
+          <HostTreeActions :host="branch.data" />
         </MenuList>
       </template>
     </UiTreeItemLabel>
-    <template #sublist>
-      <VtsTreeList>
-        <InfraVmItems :host-opaque-ref="hostOpaqueRef" />
-      </VtsTreeList>
-    </template>
   </VtsTreeItem>
 </template>
 
 <script lang="ts" setup>
-import InfraVmItems from '@/components/infra/InfraVmItems.vue'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import HostTreeActions from '@/modules/host/components/actions/HostTreeActions.vue'
 import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
-import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import type { HostBranch } from '@/modules/treeview/types/tree.type.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
-import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useToggle } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { hostOpaqueRef } = defineProps<{
-  hostOpaqueRef: XenApiHost['$ref']
+const { branch } = defineProps<{
+  branch: HostBranch
 }>()
 
 const { t } = useI18n()
 
-const { getByOpaqueRef } = useHostStore().subscribe()
-const host = computed(() => getByOpaqueRef(hostOpaqueRef))
+const { isMasterHost } = usePoolStore().subscribe()
+const { runningVmsCountByHostRef } = useVmStore().subscribe()
 
-const { pool } = usePoolStore().subscribe()
-const isPoolMaster = computed(() => pool.value?.master === hostOpaqueRef)
+const { isChangingState, currentOperation } = useHostUtils(() => branch.data)
 
-const { isChangingState, currentOperation } = useHostUtils(host)
+const isMaster = computed(() => isMasterHost(branch.data.$ref))
 
-const { runningVms, isReady } = useVmStore().subscribe()
-
-const vmCount = computed(() => runningVms.value.filter(vm => vm.resident_on === hostOpaqueRef)?.length ?? 0)
-
-const [isExpanded, toggle] = useToggle(true)
+const runningVmsCount = computed(() => runningVmsCountByHostRef.value.get(branch.data.$ref) ?? 0)
 </script>

@@ -2,6 +2,7 @@
 
 ## **next**
 
+- [Treeview] Add a search bar and virtualize the tree and use the shared sidebar layout (PR [#10414](https://github.com/vatesfr/xen-orchestra/pull/10414))
 - [Host] Add possibility to reboot a host (PR [#10250](https://github.com/vatesfr/xen-orchestra/pull/10250))
 - [Web-Core/TabItem] Update the component to remove uppercase for better readability (PR [#10338](https://github.com/vatesfr/xen-orchestra/pull/10338))
 - [Host] Add possibility to force reboot a host (PR [#10311](https://github.com/vatesfr/xen-orchestra/pull/10311))
