@@ -19,7 +19,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
-- [Modal] Update modal events to handle confirm actions correctly (PR [#10417](https://github.com/vatesfr/xen-orchestra/pull/10417))
+- [Host/VM] Fix the confirmation modal staying open and blocking the UI until the action was fully completed (PR #10417](https://github.com/vatesfr/xen-orchestra/pull/10417))
 
 ### Packages to release
 
