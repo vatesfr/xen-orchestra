@@ -24,9 +24,9 @@ import BackupRepositoryS3Card from '@/modules/backup/components/repository/list/
 import BackupRepositorySmbCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositorySmbCard.vue'
 import BackupRepositorySpaceAndSpeedCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositorySpaceAndSpeedCard.vue'
 import { type FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
-import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-parse-backup-repository-url.util.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import { computed } from 'vue'
+import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 const { br } = defineProps<{
   br?: FrontXoBackupRepository

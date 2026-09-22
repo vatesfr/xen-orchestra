@@ -21,7 +21,6 @@
 <script setup lang="ts">
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/backup/utils/xo-backup-repository.util.ts'
-import { parseBackupRepositoryUrl } from '@/modules/backup/utils/xo-parse-backup-repository-url.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
@@ -37,6 +36,7 @@ import { useBackupRepositoryColumns } from '@core/tables/column-sets/backup-repo
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 const { brs, busy, error } = defineProps<{
   brs: FrontXoBackupRepository[]
