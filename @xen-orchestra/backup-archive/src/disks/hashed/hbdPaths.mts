@@ -70,6 +70,15 @@ export function checkVersion(version: string) {
   }
 }
 
+/**
+ * Directory holding everything a disk owns (hashes files and blocks), relative
+ * to its hbd file. Derived from the uuid rather than read from the metadata, so
+ * it is the same directory whatever the metadata claims.
+ */
+export function dataDirName(uuid: string): string {
+  return `data/${uuid}`
+}
+
 export function blockRelPath(hash: BlockHash): string {
   return `${hash.slice(0, HASH_PATH_SEGMENT)}/${hash.slice(HASH_PATH_SEGMENT, HASH_PATH_SEGMENT * 2)}/${hash.slice(HASH_PATH_SEGMENT * 2, HASH_PATH_SEGMENT * 3)}/${hash.slice(HASH_PATH_SEGMENT * 3, HASH_PATH_SEGMENT * 4)}`
 }

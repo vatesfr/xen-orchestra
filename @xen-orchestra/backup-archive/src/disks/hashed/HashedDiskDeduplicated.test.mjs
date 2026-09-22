@@ -263,6 +263,31 @@ describe('HashedDiskDeduplicated', () => {
     )
   })
 
+  test('refuses to open a disk whose metadata points outside of its own data directory', async () => {
+    const disk = await createDisk()
+    const metadata = disk.getMetadata()
+    const reopen = () => new HashedDiskDeduplicated({ handler, path: diskPath }).init()
+    const writeHbd = patch => handler.writeFile(diskPath, JSON.stringify({ ...metadata, ...patch }), { flags: 'w' })
+    const escapes = dir => new RegExp(`escapes ${dir} \\(in `)
+
+    await writeHbd({ hashesPath: '../../../../hashes.1.hash' })
+    await assert.rejects(reopen, escapes(`/${diskDir}/data/disk-uuid`))
+
+    // inside the disk directory, but belonging to a sibling disk of the chain
+    await writeHbd({ hashesPath: 'data/other-uuid/hashes.1.hash' })
+    await assert.rejects(reopen, escapes(`/${diskDir}/data/disk-uuid`))
+
+    await writeHbd({ localBlocksPath: '../blocks/' })
+    await assert.rejects(reopen, escapes(`/${diskDir}/data/disk-uuid`))
+
+    await writeHbd({ uuid: '../../..' })
+    await assert.rejects(reopen, escapes(`/${diskDir}`))
+
+    // and the whole disk directory is still there
+    await writeHbd({})
+    await reopen()
+  })
+
   test('a failed init leaves the disk closed, so a retry really retries', async () => {
     const disk = await createDisk()
     const { hashesPath } = disk.getMetadata()

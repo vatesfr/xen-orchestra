@@ -9,6 +9,7 @@ import {
   blockRelPath,
   buildBlockHeader,
   checkVersion,
+  dataDirName,
   decodeBlock,
   hashesFileName,
   HbdFileError,
@@ -27,6 +28,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
   #path: string
   #metadata: HashedDiskMetadata | undefined
   #bat: BlockAllocationTable | undefined
+  #blocksDir: string | undefined
   #dirty = false
 
   constructor({ handler, path }: { handler: RemoteHandlerAbstract; path: string }) {
@@ -58,7 +60,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
     parentUuid?: string
     parentPath?: string
   }): Promise<HashedDiskDeduplicated> {
-    const dataDir = `data/${uuid}`
+    const dataDir = dataDirName(uuid)
     const hashesPath = join(dataDir, hashesFileName(new Date()))
 
     const metadata = {
@@ -74,10 +76,11 @@ export class HashedDiskDeduplicated extends HashedDisk {
     } satisfies HashedDiskMetadata
 
     const bat = BlockAllocationTable.allocate(Math.ceil(virtualSize / blockSize))
-    await handler.outputFile(normalize(join(dirname(path), hashesPath)), bat.toBuffer(), { flags: 'wx' })
-    await handler.outputFile(path, JSON.stringify(metadata), { flags: 'wx' })
 
     const disk = new HashedDiskDeduplicated({ handler, path })
+    await handler.outputFile(disk.#resolve(hashesPath), bat.toBuffer(), { flags: 'wx' })
+    await handler.outputFile(path, JSON.stringify(metadata), { flags: 'wx' })
+
     await disk.init()
     return disk
   }
@@ -86,9 +89,15 @@ export class HashedDiskDeduplicated extends HashedDisk {
     return dirname(this.#path)
   }
 
-  /** resolves a path stored in the metadata, which is relative to the hbd file */
-  #resolve(relativePath: string): string {
-    return normalize(join(this.#diskDir, relativePath))
+  /**
+   * Resolves a path stored in the metadata, which is relative to the hbd file.
+   */
+  #resolve(relativePath: string, container: string = this.#diskDir): string {
+    const resolved = normalize(join(this.#diskDir, relativePath))
+    if (!isInDir(resolved, container)) {
+      throw new Error(`path ${relativePath} escapes ${container}`)
+    }
+    return resolved
   }
 
   get #loadedMetadata(): HashedDiskMetadata {
@@ -106,7 +115,10 @@ export class HashedDiskDeduplicated extends HashedDisk {
   }
 
   #blockPath(hash: BlockHash): string {
-    return normalize(join(this.#resolve(this.#loadedMetadata.localBlocksPath), blockRelPath(hash)))
+    if (this.#blocksDir === undefined) {
+      throw new Error(`can't use a HashedDiskDeduplicated before init`)
+    }
+    return join(this.#blocksDir, blockRelPath(hash))
   }
 
   // ---------------------------------------------------------------- lifecycle
@@ -121,6 +133,8 @@ export class HashedDiskDeduplicated extends HashedDisk {
     }
 
     let metadata: HashedDiskMetadata
+    let hashesPath: string
+    let blocksDir: string
     try {
       metadata = JSON.parse((await this.#handler.readFile(this.#path)).toString())
       checkVersion(metadata.version)
@@ -132,13 +146,17 @@ export class HashedDiskDeduplicated extends HashedDisk {
       if (!Number.isInteger(virtualSize) || virtualSize < 0) {
         throw new Error(`invalid virtualSize ${virtualSize}`)
       }
+
+      const dataDir = this.#resolve(dataDirName(metadata.uuid))
+      hashesPath = this.#resolve(metadata.hashesPath, dataDir)
+      blocksDir = this.#resolve(metadata.localBlocksPath, dataDir)
     } catch (error: any) {
       throw new HbdFileError(error.message, this.#path, error)
     }
 
     this.#metadata = metadata
+    this.#blocksDir = blocksDir
 
-    const hashesPath = this.#resolve(metadata.hashesPath)
     try {
       this.#bat = BlockAllocationTable.fromBuffer(
         await this.#handler.readFile(hashesPath),
@@ -147,6 +165,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
       )
     } catch (error: any) {
       this.#metadata = undefined
+      this.#blocksDir = undefined
       throw new HbdFileError(error.message, hashesPath, error)
     }
   }
@@ -333,16 +352,6 @@ export class HashedDiskDeduplicated extends HashedDisk {
   /**
    * What this disk claims inside `dir`: the hbd file, and its data directory as
    * a whole. Used by lineage and remote cleanup to tell owned files from orphans.
-   *
-   * The data directory stands for its entire subtree rather than being expanded:
-   * under PER_DISK nothing else may write there, so listing it would enumerate
-   * one path per block — millions on a large disk, each in its own leaf
-   * directory, which the caller then stats one by one. Claiming the directory
-   * answers the same question in two entries.
-   *
-   * What this does not do, by design, is spot orphans *inside* that subtree:
-   * unreferenced blocks are collected by flushMetadata, and what a crash leaks
-   * is left to a repository wide GC.
    */
   async listAssociatedFiles(dir: string): Promise<Array<string>> {
     const files = [this.#path, this.#dataDir]
@@ -350,9 +359,11 @@ export class HashedDiskDeduplicated extends HashedDisk {
     return files.filter(p => isInDir(p, dir))
   }
 
-  /** holds the blocks and every hashes file, current and orphaned */
+  /**
+   * holds the blocks and every hashes file, current and orphaned
+   */
   get #dataDir(): string {
-    return dirname(this.#resolve(this.#loadedMetadata.hashesPath))
+    return this.#resolve(dataDirName(this.#loadedMetadata.uuid))
   }
 
   async unlink(): Promise<void> {
@@ -361,6 +372,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
 
     this.#metadata = undefined
     this.#bat = undefined
+    this.#blocksDir = undefined
     this.#dirty = false
   }
 }
