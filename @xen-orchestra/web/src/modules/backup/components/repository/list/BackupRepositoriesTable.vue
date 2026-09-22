@@ -20,7 +20,11 @@
 
 <script setup lang="ts">
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
-import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/backup/utils/xo-backup-repository.util.ts'
+import {
+  getBackupRepositoryIcon,
+  getBackupRepositoryStatus,
+  getBackupRepositoryTypeLabelKey,
+} from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
@@ -49,15 +53,6 @@ const { t } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 
 const { getProxyById } = useXoProxyCollection()
-
-const brTypeLabels: Record<string, string> = {
-  file: t('local'),
-  nfs: t('nfs'),
-  smb: t('smb'),
-  s3: t('s3'),
-  azure: t('azure'),
-  azurite: t('azurite'),
-}
 
 const { items: filteredBrs, filter } = useQueryBuilderFilter('brs', () => brs)
 
@@ -88,7 +83,7 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
   body: (br: FrontXoBackupRepository) => ({
     backupRepository: r => r({ label: br.name, icon: getBackupRepositoryIcon(br), href: xo5BrsHref.value }),
     status: r => r(getBackupRepositoryStatus(br)),
-    type: r => r(brTypeLabels[parseBackupRepositoryUrl(br.url).type ?? ''] ?? t('unknown')),
+    type: r => r(t(getBackupRepositoryTypeLabelKey(parseBackupRepositoryUrl(br.url).type))),
     proxy: r => {
       const proxyName = getProxyById(br.proxy)?.name
 
