@@ -35,7 +35,6 @@ export function createHostOperations(xenApi: XenApi) {
 
   return {
     powerOn,
-    shutdown,
     destroy,
     cleanReboot: async (hostRef: HostRef, forceReboot: boolean) => {
       await clearHost(hostRef, forceReboot)
