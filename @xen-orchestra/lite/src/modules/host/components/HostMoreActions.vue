@@ -22,6 +22,7 @@ import HostPowerStateActions from '@/modules/host/components/actions/HostPowerSt
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { HOST_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -32,9 +33,11 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isHostHalted } = useHostMetricsStore().subscribe()
+const { getHostPowerState } = useHostMetricsStore().subscribe()
 
-const displayDisableButton = computed(() => host.enabled || isHostHalted(host))
+const isHostHalted = computed(() => getHostPowerState(host) === HOST_POWER_STATE.HALTED)
+
+const displayDisableButton = computed(() => host.enabled || isHostHalted.value)
 </script>
 
 <style lang="postcss" scoped>
