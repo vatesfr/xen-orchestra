@@ -7,7 +7,7 @@ import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
 import { DurablePartition } from '@xen-orchestra/backups/DurablePartition.mjs'
 import { execFile } from 'child_process'
-import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
+import { formatJournalEvents, formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { Readable } from 'stream'
@@ -308,6 +308,27 @@ export default class Backups {
                 additionalProperties: { type: 'object' },
               },
               vmId: { type: 'string', optional: true },
+            },
+          },
+        ],
+        listVmBackupsJournal: [
+          async ({ remote, remoteId, cursor, mustExist }) => {
+            // unlike `listVmBackups`, a repository which could not be read must reject: the caller
+            // purges its cache on failure, and would otherwise keep serving a listing it has no
+            // way to refresh
+            const { events, cursor: nextCursor } = await Disposable.use(this.getAdapter(remote), adapter =>
+              adapter.readBackupJournalEvents(cursor, { mustExist })
+            )
+
+            return { events: formatJournalEvents(events, remoteId), cursor: nextCursor }
+          },
+          {
+            description: 'read the backup journal of a remote, with the added and changed backups resolved',
+            params: {
+              remote: { type: 'object' },
+              remoteId: { type: 'string' },
+              cursor: { type: 'string', optional: true },
+              mustExist: { type: 'boolean', optional: true },
             },
           },
         ],
