@@ -25,6 +25,7 @@ export function useCreateSrDrawer() {
           await run()
         } catch (error) {
           console.error(`Failed to create SR ${payload.name_label}: ${error}`)
+
           return KEEP_OVERLAY_OPEN
         }
       },

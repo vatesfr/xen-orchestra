@@ -7,7 +7,7 @@
         <UiTitle>{{ t('general-information') }}</UiTitle>
         <div class="row">
           <NewSrFormTextInput v-bind="nameInputBindings" />
-          <NewSrFormTextarea v-bind="descriptionInputBindings" />
+          <FormTextarea v-bind="descriptionInputBindings" />
         </div>
         <div class="row">
           <!-- ACCESS MODE -->
@@ -80,12 +80,12 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import NewSrFormSelect from '@/modules/storage-repository/components/form/new/inputs/NewSrFormSelect.vue'
-import NewSrFormTextarea from '@/modules/storage-repository/components/form/new/inputs/NewSrFormTextarea.vue'
 import NewSrFormTextInput from '@/modules/storage-repository/components/form/new/inputs/NewSrFormTextInput.vue'
 import NewSrAccessModeSelector from '@/modules/storage-repository/components/form/new/NewSrAccessModeSelector.vue'
 import NewSrTypeSelect from '@/modules/storage-repository/components/form/new/NewSrTypeSelect.vue'
 import { useNewSrForm } from '@/modules/storage-repository/form/new/use-new-sr-form.ts'
 import type { NewSrRestPayload } from '@/modules/storage-repository/jobs/xo-sr-create.job.ts'
+import FormTextarea from '@/shared/components/form/FormTextarea.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
