@@ -1,6 +1,7 @@
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { IconName } from '@core/icons'
+import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 export const MASKED_SECRET = '•'.repeat(12)
 
@@ -13,6 +14,10 @@ export function getBackupRepositoryStatus(br: FrontXoBackupRepository): Status {
 }
 
 export function getBackupRepositoryIcon(br: FrontXoBackupRepository): IconName {
+  if (parseBackupRepositoryUrl(br.url) === undefined) {
+    return 'object:br:unknown'
+  }
+
   if (!br.enabled) {
     return 'object:br:disabled'
   }

@@ -75,7 +75,13 @@ const brIcon = computed(() => getBackupRepositoryIcon(br))
 
 const brStatus = computed(() => getBackupRepositoryStatus(br))
 
-const brStorageMode = computed(() => (parsedBrUrl?.useVhdDirectory ? t('block-based') : t('file-based')))
+const brStorageMode = computed(() => {
+  if (parsedBrUrl?.type === undefined) {
+    return t('unknown')
+  }
+
+  return parsedBrUrl.useVhdDirectory ? t('block-based') : t('file-based')
+})
 
 const isEncrypted = computed(() => parsedBrUrl?.encryptionKey !== undefined)
 
