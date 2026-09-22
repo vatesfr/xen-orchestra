@@ -41,7 +41,7 @@ class JobsDb extends Collection {
         //
         // The issue has been introduced by
         // 48b2297bc151df582160be7c1bf1e8ee160320b8.
-        if (key === 'userId' && typeof value === 'number') {
+        if ((key === 'userId' || key === 'createdBy' || key === 'updatedBy') && typeof value === 'number') {
           job[key] = String(value)
         }
       } catch (_) {}
@@ -117,8 +117,8 @@ export default class Jobs {
     job.runId = this._runningJobs[job.id]
 
     if (this.isJobSequence(job)) {
-      job.created_by ??= job.userId
-      job.updated_by ??= job.userId
+      job.createdBy ??= job.userId
+      job.updatedBy ??= job.userId
     }
 
     return job

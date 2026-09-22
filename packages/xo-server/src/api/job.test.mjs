@@ -24,10 +24,10 @@ describe('sequence job ownership', () => {
     })
 
     assert.deepEqual(createdJob, {
-      created_by: 'user-1',
+      createdBy: 'user-1',
       method: 'schedule.runSequence',
       type: 'call',
-      updated_by: 'user-1',
+      updatedBy: 'user-1',
       userId: 'user-1',
     })
   })
@@ -37,11 +37,11 @@ describe('sequence job ownership', () => {
     const context = {
       apiContext: { user: { id: 'user-2' } },
       getJob: async () => ({
-        created_by: 'user-1',
+        createdBy: 'user-1',
         id: 'job-1',
         method: 'schedule.runSequence',
         type: 'call',
-        updated_by: 'user-1',
+        updatedBy: 'user-1',
         userId: 'user-1',
       }),
       updateJob: async job => {
@@ -52,10 +52,10 @@ describe('sequence job ownership', () => {
     await set.call(context, { job: { id: 'job-1', name: 'Updated sequence' } })
 
     assert.deepEqual(updatedJob, {
-      created_by: 'user-1',
+      createdBy: 'user-1',
       id: 'job-1',
       name: 'Updated sequence',
-      updated_by: 'user-2',
+      updatedBy: 'user-2',
       userId: 'user-2',
     })
   })
@@ -78,9 +78,9 @@ describe('sequence job ownership', () => {
     await set.call(context, { job: { id: 'job-1' } })
 
     assert.deepEqual(updatedJob, {
-      created_by: 'user-1',
+      createdBy: 'user-1',
       id: 'job-1',
-      updated_by: 'user-2',
+      updatedBy: 'user-2',
       userId: 'user-2',
     })
   })

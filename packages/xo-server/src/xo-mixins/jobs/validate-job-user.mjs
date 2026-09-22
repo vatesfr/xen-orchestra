@@ -8,8 +8,8 @@ import { noSuchObject } from 'xo-common/api-errors.js'
  * @property {string} [method]
  * @property {string} [type]
  * @property {string} [userId]
- * @property {string} [created_by]
- * @property {string} [updated_by]
+ * @property {string} [createdBy]
+ * @property {string} [updatedBy]
  */
 
 /**
