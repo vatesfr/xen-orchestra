@@ -1,13 +1,18 @@
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { buildNewSrInput, type NewSrFormData } from '@/modules/storage-repository/form/new/sr-form.types.ts'
-import { buildNewSrRestPayload, type NewSrRestPayload } from '@/modules/storage-repository/jobs/xo-sr-create.job.ts'
+import { buildNewSrInput, type NewSrFormData } from '@/modules/storage-repository/form/new/sr-form.type.ts'
+import type { NewSrRestPayload } from '@/modules/storage-repository/jobs/xo-sr-create.job.ts'
+import {
+  buildNewSrRestPayload,
+  getAvailableSrTypes,
+  groupSrTypesByContent,
+  SR_TYPE_META,
+} from '@/modules/storage-repository/utils/xo-sr-create.util.ts'
 import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { objectIcon, type IconName } from '@core/icons'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { SR_ACCESS_MODE, SR_PREFERRED_IMAGE_FORMATS, type SrType } from '@core/types/storage-repository.type.ts'
-import { buildNewSrPayload, getAvailableSrTypes, groupSrTypesByContent, SR_TYPE_META } from '@core/utils/sr.utils.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { toLower } from 'lodash-es'
 import { computed, type MaybeRefOrGetter, reactive, toRef, watch } from 'vue'
@@ -328,9 +333,8 @@ export function useNewSrForm(
     }
 
     const input = buildNewSrInput({ ...formData, type }, hostId)
-    const payload = buildNewSrPayload(input)
 
-    return buildNewSrRestPayload(payload)
+    return buildNewSrRestPayload(input)
   }
 
   return {

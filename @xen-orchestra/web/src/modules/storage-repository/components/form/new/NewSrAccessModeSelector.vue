@@ -10,16 +10,17 @@
 </template>
 
 <script lang="ts" setup>
+import type { NewSrAccessMode } from '@/modules/storage-repository/types/xo-sr-create.type.ts'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
-import { SR_ACCESS_MODE, type SrAccessMode } from '@core/types/storage-repository.type.ts'
+import { SR_ACCESS_MODE } from '@core/types/storage-repository.type.ts'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
   label?: string
 }>()
 
-const model = defineModel<SrAccessMode>({ required: true })
+const model = defineModel<NewSrAccessMode>({ required: true })
 
 const { t } = useI18n()
 </script>

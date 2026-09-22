@@ -441,7 +441,7 @@
   "host-missing": "Host is missing",
   "host-not-running": "Host not running",
   "host-off": "Host is powered off",
-  "host-required": "Host is required",
+  "host-required": "Host is required.",
   "host:status:active": "@:status:active",
   "host:status:disabled": "@:status:disabled",
   "host:status:halted": "@:status:halted",
