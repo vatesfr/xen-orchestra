@@ -125,4 +125,3 @@ describe('formatJournalEvents()', () => {
     assert.deepEqual(formatJournalEvents(events, REPOSITORY), events)
   })
 })
-})
