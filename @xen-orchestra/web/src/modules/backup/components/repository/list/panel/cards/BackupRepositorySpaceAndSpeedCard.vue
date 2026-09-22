@@ -6,15 +6,15 @@
       <span class="typo-body-bold-small subtitle">{{ t('space') }}</span>
       <VtsCardRowKeyValue>
         <template #key>{{ t('used-space-on-br') }}</template>
-        <template #value />
+        <template #value>{{ t('coming-soon!') }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('free-space-on-br') }}</template>
-        <template #value />
+        <template #value>{{ t('coming-soon!') }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('allocated-space') }}</template>
-        <template #value />
+        <template #value>{{ t('coming-soon!') }}</template>
       </VtsCardRowKeyValue>
     </div>
 

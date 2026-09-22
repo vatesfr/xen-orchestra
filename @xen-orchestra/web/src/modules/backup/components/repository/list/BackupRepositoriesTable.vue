@@ -48,9 +48,18 @@ const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
 
-const { useGetProxyById } = useXoProxyCollection()
+const { getProxyById } = useXoProxyCollection()
 
-const { items: filteredBrs, filter } = useQueryBuilderFilter('backup-repositories', () => brs)
+const brTypeLabels: Record<string, string> = {
+  file: t('local'),
+  nfs: t('nfs'),
+  smb: t('smb'),
+  s3: t('s3'),
+  azure: t('azure'),
+  azurite: t('azurite'),
+}
+
+const { items: filteredBrs, filter } = useQueryBuilderFilter('brs', () => brs)
 
 const schema = useQueryBuilderSchema<FrontXoBackupRepository>({
   '': useStringSchema(t('any-property')),
@@ -76,20 +85,16 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useBackupRepositoryColumns({
-  body: (br: FrontXoBackupRepository) => {
-    const proxy = useGetProxyById(() => br.proxy)
+  body: (br: FrontXoBackupRepository) => ({
+    backupRepository: r => r({ label: br.name, icon: getBackupRepositoryIcon(br), href: xo5BrsHref.value }),
+    status: r => r(getBackupRepositoryStatus(br)),
+    type: r => r(brTypeLabels[parseBackupRepositoryUrl(br.url).type ?? ''] ?? t('unknown')),
+    proxy: r => {
+      const proxyName = getProxyById(br.proxy)?.name
 
-    return {
-      backupRepository: r => r({ label: br.name, icon: getBackupRepositoryIcon(br), href: xo5BrsHref.value }),
-      status: r => r(getBackupRepositoryStatus(br)),
-      type: r => r(parseBackupRepositoryUrl(br.url)?.type ?? ''),
-      proxy: r => {
-        const proxyName = proxy.value?.name
-
-        return proxyName ? r(proxyName, { leftIcon: { icon: 'object:proxy' } }) : r('')
-      },
-      selectItem: r => r(() => (selectedBrId.value = br.id)),
-    }
-  },
+      return proxyName ? r(proxyName, { leftIcon: { icon: 'object:proxy' } }) : r('')
+    },
+    selectItem: r => r(() => (selectedBrId.value = br.id)),
+  }),
 })
 </script>
