@@ -1,6 +1,7 @@
 import type { DiskBlock } from '@xen-orchestra/disk-transform'
 import type { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { dirname, join } from 'node:path'
+import { Readable } from 'node:stream'
 import { isInDir, normalize } from '@xen-orchestra/fs/path'
 
 import { HashedDisk } from './HashedDisk.mjs'
@@ -343,7 +344,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
     }
 
     const newMetadata = { ...metadata, hashesPath }
-    await this.#handler.outputFile(this.#path, JSON.stringify(newMetadata), { flags: 'w' })
+    await this.#handler.outputStream(this.#path, Readable.from(JSON.stringify(newMetadata)), { checksum: false })
     this.#metadata = newMetadata
 
     this.#dirty = false
