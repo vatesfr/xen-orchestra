@@ -4480,19 +4480,19 @@ export const esxiCheckInstall = () => _call('esxi.checkInstall')
 export const importVmsFromEsxi = params => _call('vm.importMultipleFromEsxi', params)
 
 export const uploadAirgapDataPack = file =>
-  _call('xoa.licenses.uploadAirgapDataPack').then(({ $sendTo }) =>
-    post($sendTo, file.file)
-      .then(async res => {
+  _call('xoa.licenses.uploadAirgapDataPack')
+    .then(({ $sendTo }) =>
+      post($sendTo, file.file).then(async res => {
         if (!res.ok) {
           throw new Error(await res.text())
         }
         success(_('uploadAirgapDataPackSuccess'))
       })
-      .catch(err => {
-        error(_('uploadAirgapDataPackError'), err)
-        throw err
-      })
-  )
+    )
+    .catch(err => {
+      error(_('uploadAirgapDataPackError'), err)
+      throw err
+    })
 // GitHub API ---------------------------------------------------------------
 const _callGithubApi = async (endpoint = '') => {
   const url = new URL('https://api.github.com/repos/vatesfr/xen-orchestra')
