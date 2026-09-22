@@ -32,10 +32,7 @@ import { journalCursorAt } from '@xen-orchestra/backups/_backupJournal.mjs'
  * What happened to a backup since the previous read, as the source reports it: `backup` is its
  * current value, or `undefined` when it is gone.
  *
- * @typedef {object} JournalEvent
- * @property {string} vmUuid
- * @property {string} filename name of the metadata, as the listing keys it
- * @property {FormattedBackup} [backup]
+ * @typedef {import('@xen-orchestra/backups/formatVmBackups.mjs').FormattedJournalEvent} JournalEvent
  */
 
 /**
@@ -245,10 +242,6 @@ export class VmBackupsCache {
     return pending
   }
 
-  /**
-   * @param {Repository} repository
-   * @returns {Promise<BackupsByVm>}
-   */
   /**
    * @param {Repository} repository
    * @returns {Promise<BackupsByVm>}

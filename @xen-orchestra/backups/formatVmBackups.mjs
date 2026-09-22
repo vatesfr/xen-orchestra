@@ -22,7 +22,8 @@ import { normalize } from '@xen-orchestra/fs/path'
  * @property {string} event
  * @property {string} vmUuid
  * @property {string} filename normalized path of the backup metadata
- * @property {object} [backup] current value of the backup, on `add` and `change`
+ * @property {import('@vates/types').XoVmBackupArchive} [backup] current value of the backup, on
+ * `add` and `change`
  */
 
 export function formatVmBackup(backup) {

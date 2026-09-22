@@ -4,9 +4,8 @@ import test from 'node:test'
 import TimeoutError from 'promise-toolbox/TimeoutError'
 import { formatJournalEvents, formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
 
-import { BACKUP_JOURNAL_DIR, formatJournalDay, formatJournalTime } from '@xen-orchestra/backups/_backupJournal.mjs'
-
 import BackupNg, { backupsListingRetryDelay } from './index.mjs'
+import { filenameOf, journalEntryPath, metadataOf, VM } from './_vmBackupsFixtures.mjs'
 
 const { afterEach, beforeEach, describe, it, mock } = test
 
@@ -343,25 +342,6 @@ describe('invalidateVmBackupsListing()', () => {
 })
 
 const REMOTE_ID = 'a-remote-id'
-const VM = 'a-vm-uuid'
-
-// `RemoteAdapter` lists and writes the metadata with a leading slash
-const filenameOf = name => `/xo-vm-backups/${VM}/${name}.json`
-
-const metadataOf = name => ({
-  _filename: filenameOf(name),
-  jobId: 'a-job-id',
-  mode: 'full',
-  scheduleId: 'a-schedule-id',
-  size: 1,
-  timestamp: Date.parse(`${name}Z`),
-  vm: { uuid: VM, name_label: 'a VM', name_description: '', tags: [] },
-})
-
-// a real, sortable path, like the one a real journal entry would get, see `_vmBackupsCache.test.mjs`
-let journalSeq = 0
-const journalEntryPath = date =>
-  `/${BACKUP_JOURNAL_DIR}/${formatJournalDay(date)}/${formatJournalTime(date)}-${String(journalSeq++).padStart(6, '0')}`
 
 // mock of the subset of `RemoteAdapter` used to list and delete the backups
 class Repository {
@@ -459,31 +439,30 @@ const createBackupNgWithProxiedRepository = (repository, { journal = true, fails
 
 const idsOf = backupsByVmByRemote => backupsByVmByRemote[REMOTE_ID][VM].map(_ => _.id)
 
+// a backup as `listVmBackupsNg()` names it, i.e. prefixed with the repository it was read from
+const idOf = name => `${REMOTE_ID}/${filenameOf(VM, name)}`
+
 describe('deleteVmBackupsNg', () => {
   it('makes the deletion visible at once, without listing the repository again', async () => {
-    const repository = new Repository([metadataOf('20260811T090000'), metadataOf('20260811T093000')])
+    const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(VM, '20260811T093000')])
     const backupNg = createBackupNgWithRepository(repository)
 
     assert.deepEqual(idsOf(await backupNg.listVmBackupsNg([REMOTE_ID])), [
-      `${REMOTE_ID}/${filenameOf('20260811T090000')}`,
-      `${REMOTE_ID}/${filenameOf('20260811T093000')}`,
+      idOf('20260811T090000'),
+      idOf('20260811T093000'),
     ])
 
-    await backupNg.deleteVmBackupsNg([`${REMOTE_ID}/${filenameOf('20260811T093000')}`])
+    await backupNg.deleteVmBackupsNg([idOf('20260811T093000')])
 
     // the deletion is replayed from the journal, well before the end of the refresh window
-    assert.deepEqual(idsOf(await backupNg.listVmBackupsNg([REMOTE_ID])), [
-      `${REMOTE_ID}/${filenameOf('20260811T090000')}`,
-    ])
+    assert.deepEqual(idsOf(await backupNg.listVmBackupsNg([REMOTE_ID])), [idOf('20260811T090000')])
     assert.equal(repository.nListings, 1)
   })
 })
 
 describe('on a repository attached to a proxy', () => {
-  const idOf = name => `${REMOTE_ID}/${filenameOf(name)}`
-
   it('makes a deletion visible at once, without listing the repository again', async () => {
-    const repository = new Repository([metadataOf('20260811T090000'), metadataOf('20260811T093000')])
+    const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(VM, '20260811T093000')])
     const backupNg = createBackupNgWithProxiedRepository(repository)
 
     assert.deepEqual(idsOf(await backupNg.listVmBackupsNg([REMOTE_ID])), [
@@ -500,7 +479,7 @@ describe('on a repository attached to a proxy', () => {
   })
 
   it('lists a proxy which does not expose its journal again, instead of failing', async () => {
-    const repository = new Repository([metadataOf('20260811T090000')])
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
     const backupNg = createBackupNgWithProxiedRepository(repository, { journal: false })
 
     assert.deepEqual(idsOf(await backupNg.listVmBackupsNg([REMOTE_ID])), [idOf('20260811T090000')])
@@ -514,7 +493,7 @@ describe('on a repository attached to a proxy', () => {
   })
 
   it('reports a repository the proxy could not read as failing, and forgets it', async () => {
-    const repository = new Repository([metadataOf('20260811T090000')])
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
     const backupNg = createBackupNgWithProxiedRepository(repository, { failsToList: true })
 
     assert.deepEqual(await backupNg.listVmBackupsNg([REMOTE_ID]), { [REMOTE_ID]: null })
@@ -524,7 +503,7 @@ describe('on a repository attached to a proxy', () => {
 
 describe('invalidateVmBackupsListing() on a cached repository', () => {
   it('makes the next listing read the repository from scratch', async () => {
-    const repository = new Repository([metadataOf('20260811T090000')])
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
     const backupNg = createBackupNgWithRepository(repository)
 
     await backupNg.listVmBackupsNg([REMOTE_ID])

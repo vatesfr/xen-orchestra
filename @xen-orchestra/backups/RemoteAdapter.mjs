@@ -612,9 +612,9 @@ export class RemoteAdapter {
       events.push({ event, vmUuid, filename, metadata })
     })
 
-    // advance the cursor up to the last successfully read entry, oldest first: unchanged when the
-    // very first entry already failed
-    if (entries.length > 0 && minFailedIndex > 0) {
+    // advance the cursor up to the last successfully read entry, oldest first: unchanged when
+    // nothing was read at all, or when the very first entry already failed
+    if (minFailedIndex > 0) {
       cursor = entries[minFailedIndex - 1]._filename
     }
 
