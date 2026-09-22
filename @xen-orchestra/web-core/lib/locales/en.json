@@ -475,7 +475,7 @@
   "host-not-running": "Host is not running",
   "host-off": "Host is powered off",
   "host-or-ip-address": "Host or IP address",
-  "host-required": "Host is required",
+  "host-required": "Host is required.",
   "host:status:active": "@:status:active",
   "host:status:disabled": "@:status:disabled",
   "host:status:halted": "@:status:halted",

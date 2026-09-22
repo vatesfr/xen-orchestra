@@ -1,33 +1,17 @@
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { payloadArg } from '@/modules/storage-repository/jobs/xo-sr-create-args.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { SupportedSrType } from '@/modules/storage-repository/types/xo-sr-create.type.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
-import type { NewSrPayload, SrContentType } from '@core/types/storage-repository.type.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
 export type NewSrRestPayload = {
-  hostId: string
+  hostId: FrontXoHost['id']
   name_label: string
-  SR_type: string
+  SR_type: SupportedSrType
   device_config: Record<string, string>
   name_description?: string
-  content_type?: SrContentType
-}
-
-export function buildNewSrRestPayload(payload: NewSrPayload): NewSrRestPayload {
-  const restPayload: NewSrRestPayload = {
-    hostId: payload.hostId,
-    name_label: payload.nameLabel,
-    SR_type: payload.xapiType,
-    device_config: payload.deviceConfig,
-    content_type: payload.contentType,
-  }
-
-  if (payload.nameDescription !== undefined) {
-    restPayload.name_description = payload.nameDescription
-  }
-
-  return restPayload
 }
 
 export const useXoSrCreateJob = defineJob('sr.create', [payloadArg], () => {
@@ -36,6 +20,7 @@ export const useXoSrCreateJob = defineJob('sr.create', [payloadArg], () => {
   return {
     async run(payload: NewSrRestPayload): Promise<FrontXoSr['id']> {
       const { id } = await fetchPost<{ id: FrontXoSr['id'] }>('srs', payload)
+
       return id
     },
 

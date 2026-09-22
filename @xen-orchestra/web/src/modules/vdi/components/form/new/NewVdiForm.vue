@@ -7,7 +7,7 @@
 
       <div class="row">
         <VdiFormTextInput v-bind="nameInputBindings" />
-        <VdiFormTextarea v-bind="descriptionInputBindings" />
+        <FormTextarea v-bind="descriptionInputBindings" />
       </div>
 
       <div class="row">
@@ -57,6 +57,7 @@ import VdiFormSelect from '@/modules/vdi/components/form/shared/VdiFormSelect.vu
 import { useNewVdiForm } from '@/modules/vdi/form/new/use-new-vdi-form.ts'
 import type { NewVdiPayload } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import FormTextarea from '@/shared/components/form/FormTextarea.vue'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
@@ -66,7 +67,6 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
-import VdiFormTextarea from './inputs/VdiFormTextarea.vue'
 
 const { vm } = defineProps<{
   vm: FrontXoVm
