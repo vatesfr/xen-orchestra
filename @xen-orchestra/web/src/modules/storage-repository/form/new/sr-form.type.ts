@@ -1,11 +1,12 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { NewSrInput, SrAccessMode, SrPreferredImageFormats, SrType } from '@core/types/storage-repository.type.ts'
+import type { NewSrAccessMode, NewSrInput } from '@/modules/storage-repository/types/xo-sr-create.type.ts'
+import type { SrPreferredImageFormats, SrType } from '@core/types/storage-repository.type.ts'
 
 export type NewSrFormData = {
   poolId: FrontXoPool['id'] | undefined
   hostId: FrontXoHost['id'] | undefined
-  accessMode: SrAccessMode
+  accessMode: NewSrAccessMode
   type: SrType | undefined
   name: string
   description: string
@@ -21,13 +22,16 @@ export type NewSrFormData = {
 function getAuthFields(form: NewSrFormData): { username?: string; password?: string } {
   const auth: { username?: string; password?: string } = {}
 
-  if (form.useAuth) {
-    if (form.username !== '') {
-      auth.username = form.username
-    }
-    if (form.password !== '') {
-      auth.password = form.password
-    }
+  if (!form.useAuth) {
+    return auth
+  }
+
+  if (form.username !== '') {
+    auth.username = form.username
+  }
+
+  if (form.password !== '') {
+    auth.password = form.password
   }
 
   return auth
