@@ -343,10 +343,20 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const vmUuid = this._vmUuid
     const scheduleId = this._schedule.id
 
-    // delete previous interrupted copies
-    ignoreErrors.call(asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vmUuid), vm => vm.$destroy))
+    const entries = listReplicatedVms(xapi, scheduleId, srUuid, vmUuid)
 
-    const allEntries = listReplicatedVms(xapi, scheduleId, srUuid, vmUuid)
+    // delete previous interrupted copies: #decorateVmMetadata sets DATETIME to this sentinel
+    // before a transfer starts and only updates it to the real timestamp once the transfer
+    // completes, so any entry still carrying it is a leftover from a transfer that never finished.
+    // checkBaseVdis (which runs before _prepare) may already have validated this run's target
+    // VM as chainable despite the sentinel (e.g. the interrupted transfer never wrote any data),
+    // in which case it must survive to be reused, not be destroyed out from under this run.
+    const interruptedEntries = entries.filter(
+      e => e.other_config[DATETIME] === formatFilenameDate(0) && e.$ref !== this._targetVmRef
+    )
+    ignoreErrors.call(asyncMapSettled(interruptedEntries, vm => vm.$destroy({ bypassBlockedOperation: true })))
+
+    const allEntries = entries.filter(e => !interruptedEntries.includes(e))
 
     // In the snapshot-based flow a non-snapshot VM (the live target) coexists with its
     // snapshots (one per transfer). That VM must not be subject to retention — only its

@@ -16,6 +16,7 @@
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
+- [Backup] Fix replication never cleaning up a VM left behind by an interrupted transfer, which could keep accumulating on the target SR
 
 ### Packages to release
 
