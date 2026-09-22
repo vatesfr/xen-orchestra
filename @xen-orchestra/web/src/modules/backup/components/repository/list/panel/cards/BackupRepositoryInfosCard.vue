@@ -11,7 +11,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('type') }}</template>
         <template #value>{{ brType }}</template>
-        <template v-if="parsedBrUrl?.type && brType" #addons>
+        <template v-if="parsedBrUrl?.type" #addons>
           <VtsCopyButton :value="brType" />
         </template>
       </VtsCardRowKeyValue>
