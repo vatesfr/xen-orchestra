@@ -2879,6 +2879,8 @@ const messages = {
   newLicense: 'New license',
   refreshLicenses: 'Refresh',
   uploadAirgapDataPack: 'Upload',
+  uploadAirgapDataPackSuccess: 'Airgap data pack successfully uploaded',
+  uploadAirgapDataPackError: 'Failed to upload airgap data pack',
   dropFileHere: 'Drop your data file here',
   airgapDataPackFileRejected: 'File {name} is not a valid airgap data pack (expected a .tar.xz archive)',
   airgapDataPack: 'Airgap data pack',
