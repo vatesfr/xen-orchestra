@@ -14,7 +14,7 @@ export function getBackupRepositoryStatus(br: FrontXoBackupRepository): Status {
 }
 
 export function getBackupRepositoryIcon(br: FrontXoBackupRepository): IconName {
-  if (parseBackupRepositoryUrl(br.url) === undefined) {
+  if (parseBackupRepositoryUrl(br.url).type === undefined) {
     return 'object:br:unknown'
   }
 
@@ -23,6 +23,19 @@ export function getBackupRepositoryIcon(br: FrontXoBackupRepository): IconName {
   }
 
   return br.error ? 'object:br:disconnected' : 'object:br:connected'
+}
+
+const BACKUP_REPOSITORY_TYPE_LABEL_KEYS: Record<string, string> = {
+  file: 'local',
+  nfs: 'nfs',
+  smb: 'smb',
+  s3: 's3',
+  azure: 'azure',
+  azurite: 'azurite',
+}
+
+export function getBackupRepositoryTypeLabelKey(type: string | undefined): string {
+  return BACKUP_REPOSITORY_TYPE_LABEL_KEYS[type ?? ''] ?? 'unknown'
 }
 
 export function formatMountOptions(options: string | undefined): string {
