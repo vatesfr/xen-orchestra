@@ -1,37 +1,14 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { formatVmBackupAt } from '@xen-orchestra/backups/formatVmBackups.mjs'
-import { resolve } from 'node:path'
+import { normalize } from '@xen-orchestra/fs/path'
 
-import { BACKUP_JOURNAL_DIR, formatJournalDay, formatJournalTime } from '@xen-orchestra/backups/_backupJournal.mjs'
-
+import { filenameOf, journalEntryPath, metadataOf, OTHER_VM, VM } from './_vmBackupsFixtures.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 
 const REPOSITORY = { id: 'repository' }
-const VM = 'a-vm-uuid'
-const OTHER_VM = 'another-vm-uuid'
-
-// `RemoteAdapter` lists and writes the metadata with a leading slash
-const filenameOf = (vmUuid, name) => `/xo-vm-backups/${vmUuid}/${name}.json`
-
-const metadataOf = (vmUuid, name, props) => ({
-  _filename: filenameOf(vmUuid, name),
-  jobId: 'a-job-id',
-  mode: 'full',
-  scheduleId: 'a-schedule-id',
-  size: 1,
-  timestamp: Date.parse(`${name}Z`),
-  vm: { uuid: vmUuid, name_label: 'a VM', name_description: '', tags: [] },
-  ...props,
-})
 
 const enoent = () => Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
-
-// a real, sortable path, like the one a real journal entry would get: the cursor bootstrapped by
-// `#build()` is in this same day/time format, and comparisons between the two must make sense
-let journalSeq = 0
-const journalEntryPath = date =>
-  `/${BACKUP_JOURNAL_DIR}/${formatJournalDay(date)}/${formatJournalTime(date)}-${String(journalSeq++).padStart(6, '0')}`
 
 // mock of the `VmBackupsSource` the cache reads its repositories through
 class Repository {
@@ -131,7 +108,7 @@ class Repository {
         // `VmBackupsSource` hands the cache the current value of each backup an event is about, or
         // nothing at all when the backup is gone
         const events = entries.map(({ filename, vmUuid }) => {
-          const key = resolve('/', filename)
+          const key = normalize(filename)
           const metadata = this.metadataByFilename.get(key)
           return metadata === undefined
             ? { vmUuid, filename: key }

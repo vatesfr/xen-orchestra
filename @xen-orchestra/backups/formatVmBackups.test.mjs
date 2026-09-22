@@ -1,17 +1,15 @@
-import test from 'node:test'
-import { strict as assert } from 'node:assert'
+import assert from 'node:assert/strict'
+import { describe, it } from 'node:test'
 import { dirname, join } from 'node:path'
 
 import { formatJournalEvents, formatVmBackupAt, formatVmBackups } from './formatVmBackups.mjs'
 
-const { describe, it } = test
-
-const VM = 'a-vm-uuid'
-const VM_UUID = '6ef7c0e6-1a1f-4ba1-9b1a-9a4a2ed1c001'
+const VM = '6ef7c0e6-1a1f-4ba1-9b1a-9a4a2ed1c001'
 const REPOSITORY = 'a-repository-id'
 const JOB_ID = 'c3a4f6d2-0e5c-4c2b-9a5f-3d6c0b0e0002'
 
 const FILENAME = `/xo-vm-backups/${VM}/20260811T090000Z.json`
+const DELTA_FILENAME = `/xo-vm-backups/${VM}/20250801T080832Z.json`
 
 const metadataOf = props => ({
   jobId: 'a-job-id',
@@ -24,9 +22,9 @@ const metadataOf = props => ({
 })
 
 // shaped like what `IncrementalRemoteWriter` writes and `readVmBackupMetadata` reads back
-const metadata = {
-  _filename: `/xo-vm-backups/${VM_UUID}/20250801T080832Z.json`,
-  id: `/xo-vm-backups/${VM_UUID}/20250801T080832Z.json`,
+const metadata = metadataOf({
+  _filename: DELTA_FILENAME,
+  id: DELTA_FILENAME,
   jobId: JOB_ID,
   mode: 'delta',
   timestamp: 1754035712000,
@@ -38,8 +36,7 @@ const metadata = {
     'OpaqueRef:2f7a': `vdis/${JOB_ID}/live-vdi-uuid-1/20250801T080832Z.vhd`,
     'OpaqueRef:9c1b': `vdis/${JOB_ID}/live-vdi-uuid-2/20250801T080832Z.alias.vhd`,
   },
-  vm: { uuid: VM_UUID, name_label: 'a vm', name_description: '', tags: [] },
-}
+})
 
 describe('formatVmBackupAt()', () => {
   it('names a backup after the normalized path of its metadata', () => {
@@ -73,7 +70,7 @@ describe('formatVmBackupAt()', () => {
 })
 
 describe('formatVmBackups()', () => {
-  const [backup] = formatVmBackups({ [VM_UUID]: [metadata] }, 'backup-repository-id')[VM_UUID]
+  const [backup] = formatVmBackups({ [VM]: [metadata] }, 'backup-repository-id')[VM]
 
   it('exposes a disk per VHD, keyed by the uuid stored in the backup', () => {
     assert.deepEqual(
