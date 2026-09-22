@@ -120,6 +120,7 @@
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
 - xen-api major
+- xo-remote-parser major
 - xo-server minor
 - xo-server-audit patch
 - xo-server-auth-ldap patch
