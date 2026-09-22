@@ -1,4 +1,4 @@
-import { EnvHttpProxyAgent } from 'undici'
+import { EnvHttpProxyAgent, fetch } from 'undici'
 import { ProxyAgent } from 'proxy-agent'
 
 const { env } = process
