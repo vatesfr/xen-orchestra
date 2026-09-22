@@ -36,6 +36,7 @@ export default class Xo extends EventEmitter {
    * @type {Map<string, EventEmitter>}
    */
   #eeByType = new Map()
+  #collectionByType = new Map()
 
   constructor(opts) {
     super()
@@ -96,6 +97,7 @@ export default class Xo extends EventEmitter {
       )
 
       this.#eeByType.set(type, emitter)
+      this.#collectionByType.set(type, collection)
     })
     const debounceResource = createDebounceResource()
     debounceResource.defaultDelay = parseDuration(config.resourceCacheDelay)
@@ -119,6 +121,22 @@ export default class Xo extends EventEmitter {
     }
 
     return emitter
+  }
+
+  /**
+   * emit an `update` event for an object whose decorated representation
+   * depends on state outside of its own collection
+   */
+  async touchXoObject(type, id) {
+    const collection = this.#collectionByType.get(type)
+    if (collection === undefined) {
+      throw new Error(`collection ${type} not registered`)
+    }
+
+    const object = await collection.first(id)
+    if (object !== undefined) {
+      collection.emit('update', [object])
+    }
   }
 
   // Returns an object from its key or UUID.
