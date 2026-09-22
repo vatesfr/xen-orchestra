@@ -29,6 +29,7 @@
 - [backup] Properly detect a disk deleting while merging (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
 - [backup] Recover a deadlocked merge when the chain is out of retention (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
 - [Plugins/load balancer] Prevent inter-pool migrations triggered by affinity or anti-affinity (PR [#10207](https://github.com/vatesfr/xen-orchestra/pull/10207))
+- [SDN Controller] Fix events listening and stale objects on server reconnection (PR [#10440](https://github.com/vatesfr/xen-orchestra/pull/10440))
 
 ### Packages to release
 
@@ -54,6 +55,7 @@
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-server-load-balancer minor
+- xo-server-sdn-controller patch
 - xo-web minor
 
 <!--packages-end-->

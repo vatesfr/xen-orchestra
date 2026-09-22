@@ -306,7 +306,8 @@ class SDNController extends EventEmitter {
     this._tlsHelper = new TlsHelper()
 
     this._handledTasks = []
-    this._managed = []
+    // Set() of Xapi instances (whose object events are being watched).
+    this._managedXapis = new Set()
   }
 
   // ---------------------------------------------------------------------------
@@ -470,11 +471,13 @@ class SDNController extends EventEmitter {
     this._cleaners.forEach(cleaner => cleaner())
     this._cleaners = []
 
+    this._xapiCleaners.forEach(cleaner => cleaner())
+
     this.ovsdbClients = {}
     this.ofChannels = {}
 
     this._handledTasks = []
-    this._managed = []
+    this._managedXapis = new Set()
 
     this._unsetApiMethods()
   }
@@ -499,7 +502,7 @@ class SDNController extends EventEmitter {
         return
       }
 
-      this._cleaners.push(await this._manageXapi(xapi))
+      await this._manageXapi(xapi)
       const hosts = Object.values(xapi.objects.indexes.type.host ?? {})
       for (const host of hosts) {
         this._getOrCreateOvsdbClient(host)
@@ -628,6 +631,11 @@ class SDNController extends EventEmitter {
   _handleDisconnectedXapi(xapi) {
     log.debug('xapi disconnected', { id: xapi.pool.uuid })
     try {
+      // the Xapi instance is dead, a new one (same pool UUID, same XAPI
+      // object $refs) will be created on reconnection and must be managed
+      // again in _manageXapi
+      this._managedXapis.delete(xapi)
+
       forOwn(this.privateNetworks, privateNetwork => {
         privateNetwork.networks = omitBy(privateNetwork.networks, network => network.$pool.uuid === xapi.pool.uuid)
 
@@ -1005,8 +1013,8 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   async _manageXapi(xapi) {
-    if (this._managed.includes(xapi.pool.uuid)) {
-      return noop // pushed in _cleaners
+    if (this._managedXapis.has(xapi)) {
+      return
     }
 
     const { objects } = xapi
@@ -1017,9 +1025,10 @@ class SDNController extends EventEmitter {
     objects.on('remove', objectsRemovedXapi)
 
     await this._installCaCertificateIfNeeded(xapi)
-    this._managed.push(xapi.pool.uuid)
+    this._managedXapis.add(xapi)
 
     return () => {
+      this._managedXapis.delete(xapi)
       objects.removeListener('add', this._objectsAdded)
       objects.removeListener('update', this._objectsUpdated)
       objects.removeListener('remove', objectsRemovedXapi)
@@ -1315,7 +1324,7 @@ class SDNController extends EventEmitter {
         return this._setBridgeControllerForHost(host)
       })
     )
-    this._cleaners.push(await this._manageXapi(pool.$xapi))
+    await this._manageXapi(pool.$xapi)
   }
 
   _setBridgeControllerForHost(host) {
