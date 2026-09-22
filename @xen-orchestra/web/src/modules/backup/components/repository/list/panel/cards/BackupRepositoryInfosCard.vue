@@ -44,7 +44,6 @@
 
 <script lang="ts" setup>
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
-import type { ParsedBackupRepositoryUrl } from '@/modules/backup/types/xo-backup-repository.type.ts'
 import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -56,6 +55,7 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { ParsedBackupRepositoryUrl } from 'xo-remote-parser'
 
 const { br, parsedBrUrl } = defineProps<{
   br: FrontXoBackupRepository

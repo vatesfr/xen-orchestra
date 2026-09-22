@@ -14,12 +14,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { ParsedFileBackupRepositoryUrl } from '@/modules/backup/types/xo-backup-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { useI18n } from 'vue-i18n'
+import type { ParsedFileBackupRepositoryUrl } from 'xo-remote-parser'
 
 defineProps<{
   file: ParsedFileBackupRepositoryUrl

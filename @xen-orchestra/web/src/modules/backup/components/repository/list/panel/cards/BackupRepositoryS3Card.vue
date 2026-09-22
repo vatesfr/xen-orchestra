@@ -65,7 +65,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { ParsedS3BackupRepositoryUrl } from '@/modules/backup/types/xo-backup-repository.type.ts'
 import { MASKED_SECRET } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -74,6 +73,7 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { ParsedS3BackupRepositoryUrl } from 'xo-remote-parser'
 
 const { s3 } = defineProps<{
   s3: ParsedS3BackupRepositoryUrl
