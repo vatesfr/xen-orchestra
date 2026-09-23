@@ -11,9 +11,9 @@ import { defer } from 'golike-defer'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { fibonacci } from 'iterable-backoff'
 import { networkInterfaces } from 'os'
-import { noSuchObject, incorrectState } from 'xo-common/api-errors.js'
+import { noSuchObject, incorrectState, operationFailed } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
-import { pDelay, ignoreErrors } from 'promise-toolbox'
+import { pDelay, ignoreErrors, timeout, TimeoutError } from 'promise-toolbox'
 import { Task } from '@vates/task'
 import Disposable from 'promise-toolbox/Disposable'
 
@@ -667,6 +667,17 @@ export default class XenServers {
         // which case the loop stops on its own
         this._autoReconnectXenServer(server.id)
       })
+
+      try {
+        await timeout.call(xapi._interruptOnDisconnect(xapi.objectsFetched), this._xapiMarkDisconnectedDelay)
+      } catch (error) {
+        if (!(error instanceof TimeoutError)) {
+          throw error
+        }
+        log.warn('objects take too long to fetch', { id, xapiMarkDisconnectedDelay: this._xapiMarkDisconnectedDelay })
+        throw operationFailed({ objectId: id, code: 'TIMEOUT_CONNECT_SERVER' })
+      }
+
       this._app.emit('server:connected', { server, xapi })
       await this.updateXenServer(id, { error: null, status: 'connected' })::ignoreErrors()
     } catch (error) {
