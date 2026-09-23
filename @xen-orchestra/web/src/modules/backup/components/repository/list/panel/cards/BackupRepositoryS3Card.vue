@@ -47,17 +47,17 @@
 
       <VtsCardRowKeyValue>
         <template #key>{{ t('bucket-name') }}</template>
-        <template #value>{{ bucket }}</template>
+        <template #value>{{ splitPath.root }}</template>
         <template #addons>
-          <VtsCopyButton :value="bucket" />
+          <VtsCopyButton :value="splitPath.root" />
         </template>
       </VtsCardRowKeyValue>
 
       <VtsCardRowKeyValue>
         <template #key>{{ t('path-in-bucket') }}</template>
-        <template #value>{{ pathInBucket }}</template>
+        <template #value>{{ splitPath.subPath }}</template>
         <template #addons>
-          <VtsCopyButton :value="pathInBucket" />
+          <VtsCopyButton :value="splitPath.subPath" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -65,7 +65,7 @@
 </template>
 
 <script lang="ts" setup>
-import { MASKED_SECRET } from '@/modules/backup/utils/xo-backup-repository.util.ts'
+import { MASKED_SECRET, splitBackupRepositoryPath } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -83,9 +83,7 @@ const ACCESS_KEY_ID_LIMIT = 20
 
 const { t } = useI18n()
 
-const bucket = computed(() => s3.path.replace(/^\/+/, '').split('/')[0] ?? '')
-
-const pathInBucket = computed(() => `/${s3.path.replace(/^\/+/, '').split('/').slice(1).join('/')}`)
+const splitPath = computed(() => splitBackupRepositoryPath(s3.path))
 
 const truncatedAccessKeyId = computed(() =>
   s3.username.length > ACCESS_KEY_ID_LIMIT ? `${s3.username.slice(0, ACCESS_KEY_ID_LIMIT)}…` : s3.username

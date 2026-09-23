@@ -24,23 +24,19 @@ export function getBackupRepositoryIcon(br: FrontXoBackupRepository, type: strin
   return br.error ? 'object:br:disconnected' : 'object:br:connected'
 }
 
-const BACKUP_REPOSITORY_TYPE_LABEL_KEYS: Record<string, string> = {
-  file: 'local',
-  nfs: 'nfs',
-  smb: 'smb',
-  s3: 's3',
-  azure: 'azure',
-  azurite: 'azurite',
-}
-
-export function getBackupRepositoryTypeLabelKey(type: string | undefined): string {
-  return BACKUP_REPOSITORY_TYPE_LABEL_KEYS[type ?? ''] ?? 'unknown'
-}
-
 export function formatMountOptions(options: string | undefined): string {
   return (options ?? '')
     .split(',')
     .map(option => option.trim())
     .filter(Boolean)
     .join(', ')
+}
+
+export function splitBackupRepositoryPath(path: string): { root: string; subPath: string } {
+  const parts = path.replace(/^\/+/, '').split('/')
+
+  return {
+    root: parts[0] ?? '',
+    subPath: `/${parts.slice(1).join('/')}`,
+  }
 }

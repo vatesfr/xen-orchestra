@@ -20,12 +20,9 @@
 
 <script setup lang="ts">
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup/composables/use-xo-backup-repository-parsed-url.composable.ts'
+import { useXoBackupRepositoryTypeLabel } from '@/modules/backup/composables/use-xo-backup-repository-type-label.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
-import {
-  getBackupRepositoryIcon,
-  getBackupRepositoryStatus,
-  getBackupRepositoryTypeLabelKey,
-} from '@/modules/backup/utils/xo-backup-repository.util.ts'
+import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
@@ -82,12 +79,13 @@ const state = useTableState({
 const { HeadCells, BodyCells } = useBackupRepositoryColumns({
   body: (br: FrontXoBackupRepository) => {
     const parsedBrUrl = useXoBackupRepositoryParsedUrl(() => br)
+    const typeLabel = useXoBackupRepositoryTypeLabel(() => parsedBrUrl.value?.type)
 
     return {
       backupRepository: r =>
         r({ label: br.name, icon: getBackupRepositoryIcon(br, parsedBrUrl.value?.type), href: xo5BrsHref.value }),
       status: r => r(getBackupRepositoryStatus(br)),
-      type: r => r(t(getBackupRepositoryTypeLabelKey(parsedBrUrl.value?.type))),
+      type: r => r(typeLabel.value),
       proxy: r => {
         const proxyName = getProxyById(br.proxy)?.name
 
