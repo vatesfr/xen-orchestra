@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="card-container">
+  <UiPanelCard class="backup-repository-space-and-speed-card">
     <UiCardTitle>{{ t('space-and-speed') }}</UiCardTitle>
 
     <div class="content">
@@ -113,7 +113,7 @@ watch(
 </script>
 
 <style scoped lang="postcss">
-.card-container {
+.backup-repository-space-and-speed-card {
   .content {
     display: flex;
     flex-direction: column;

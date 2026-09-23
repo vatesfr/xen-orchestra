@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="card-container">
+  <UiPanelCard class="backup-repository-infos-card">
     <VtsCardObjectTitle :id="br.id" :label="br.name" :icon="brIcon" :href="xo5BrHref" />
     <div class="content">
       <VtsCardRowKeyValue>
@@ -93,7 +93,7 @@ const brProxy = useGetProxyById(() => br.proxy)
 </script>
 
 <style scoped lang="postcss">
-.card-container {
+.backup-repository-infos-card {
   .content {
     display: flex;
     flex-direction: column;

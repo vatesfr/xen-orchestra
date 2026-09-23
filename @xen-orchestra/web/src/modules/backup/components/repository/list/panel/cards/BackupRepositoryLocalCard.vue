@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="card-container">
+  <UiPanelCard class="backup-repository-local-card">
     <UiCardTitle>{{ t('local') }}</UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
@@ -29,7 +29,7 @@ const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">
-.card-container {
+.backup-repository-local-card {
   .content {
     display: flex;
     flex-direction: column;

@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="card-container">
+  <UiPanelCard class="backup-repository-nfs-card">
     <UiCardTitle>{{ t('nfs') }}</UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
@@ -58,7 +58,7 @@ const formattedOptions = computed(() => formatMountOptions(options))
 </script>
 
 <style scoped lang="postcss">
-.card-container {
+.backup-repository-nfs-card {
   .content {
     display: flex;
     flex-direction: column;
