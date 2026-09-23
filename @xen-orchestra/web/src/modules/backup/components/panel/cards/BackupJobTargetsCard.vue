@@ -20,7 +20,7 @@
 
 <script lang="ts" setup>
 import BackupJobTargetsSection from '@/modules/backup/components/panel/card-items/BackupJobTargetsSection.vue'
-import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
