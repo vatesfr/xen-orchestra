@@ -30,30 +30,22 @@ describe('getBackupRepositoryStatus', () => {
 })
 
 describe('getBackupRepositoryIcon', () => {
-  it('reports an unreadable url as unknown, even when the repository looks healthy', () => {
-    const br = createBr({ url: 'smb://not-a-valid-smb-url' })
-
-    expect(getBackupRepositoryIcon(br)).toBe(objectIcon('br', 'unknown'))
-  })
-
-  it('reports an unrecognized scheme as unknown', () => {
-    const br = createBr({ url: 'ftp://192.168.100.225/backup' })
-
-    expect(getBackupRepositoryIcon(br)).toBe(objectIcon('br', 'unknown'))
+  it('reports an unknown type as unknown, even when the repository looks healthy', () => {
+    expect(getBackupRepositoryIcon(createBr(), undefined)).toBe(objectIcon('br', 'unknown'))
   })
 
   it('reports a disabled repository as disabled', () => {
-    expect(getBackupRepositoryIcon(createBr({ enabled: false }))).toBe(objectIcon('br', 'disabled'))
+    expect(getBackupRepositoryIcon(createBr({ enabled: false }), 'nfs')).toBe(objectIcon('br', 'disabled'))
   })
 
   it('reports an enabled repository with an error as disconnected', () => {
     const br = createBr({ error: { code: 'ENOENT' } })
 
-    expect(getBackupRepositoryIcon(br)).toBe(objectIcon('br', 'disconnected'))
+    expect(getBackupRepositoryIcon(br, 'nfs')).toBe(objectIcon('br', 'disconnected'))
   })
 
   it('reports an enabled repository without error as connected', () => {
-    expect(getBackupRepositoryIcon(createBr())).toBe(objectIcon('br', 'connected'))
+    expect(getBackupRepositoryIcon(createBr(), 'nfs')).toBe(objectIcon('br', 'connected'))
   })
 })
 

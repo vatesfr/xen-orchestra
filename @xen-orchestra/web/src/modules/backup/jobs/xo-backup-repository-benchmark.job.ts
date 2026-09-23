@@ -4,7 +4,10 @@ import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-co
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import type { XoBackupRepositoryBenchmark } from '@vates/types'
 import { useI18n } from 'vue-i18n'
+
+export type BackupRepositoryBenchmarkResult = Omit<XoBackupRepositoryBenchmark, 'timestamp'>
 
 export const useXoBackupRepositoryBenchmarkJob = defineJob(
   'backup-repository.benchmark',
@@ -19,7 +22,7 @@ export const useXoBackupRepositoryBenchmarkJob = defineJob(
           `backup-repositories/${br.id}/actions/benchmark`
         )
 
-        return monitorTask<{ readRate: number; writeRate: number }>(taskId)
+        return monitorTask<BackupRepositoryBenchmarkResult>(taskId)
       },
 
       validate: (isRunning, br: FrontXoBackupRepository | undefined) => {

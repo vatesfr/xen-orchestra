@@ -7,7 +7,7 @@
       <BackupRepositoryNfsCard v-else-if="parsedBrUrl?.type === 'nfs'" :nfs="parsedBrUrl" :options="br.options" />
       <BackupRepositorySmbCard v-else-if="parsedBrUrl?.type === 'smb'" :smb="parsedBrUrl" :options="br.options" />
       <BackupRepositoryS3Card v-else-if="parsedBrUrl?.type === 's3'" :s3="parsedBrUrl" />
-      <BackupRepositoryAzureCard
+      <BackupRepositoryAzureAzuriteCard
         v-else-if="parsedBrUrl?.type === 'azure' || parsedBrUrl?.type === 'azurite'"
         :azure="parsedBrUrl"
       />
@@ -16,17 +16,16 @@
 </template>
 
 <script lang="ts" setup>
-import BackupRepositoryAzureCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositoryAzureAzuriteCard.vue'
+import BackupRepositoryAzureAzuriteCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositoryAzureAzuriteCard.vue'
 import BackupRepositoryInfosCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositoryInfosCard.vue'
 import BackupRepositoryLocalCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositoryLocalCard.vue'
 import BackupRepositoryNfsCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositoryNfsCard.vue'
 import BackupRepositoryS3Card from '@/modules/backup/components/repository/list/panel/cards/BackupRepositoryS3Card.vue'
 import BackupRepositorySmbCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositorySmbCard.vue'
 import BackupRepositorySpaceAndSpeedCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositorySpaceAndSpeedCard.vue'
+import { useXoBackupRepositoryParsedUrl } from '@/modules/backup/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import { type FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import { computed } from 'vue'
-import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 const { br } = defineProps<{
   br?: FrontXoBackupRepository
@@ -36,5 +35,5 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const parsedBrUrl = computed(() => (br === undefined ? undefined : parseBackupRepositoryUrl(br.url)))
+const parsedBrUrl = useXoBackupRepositoryParsedUrl(() => br)
 </script>

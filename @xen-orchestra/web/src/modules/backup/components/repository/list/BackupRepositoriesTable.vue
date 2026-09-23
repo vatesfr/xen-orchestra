@@ -19,6 +19,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoBackupRepositoryParsedUrl } from '@/modules/backup/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import {
   getBackupRepositoryIcon,
@@ -40,7 +41,6 @@ import { useBackupRepositoryColumns } from '@core/tables/column-sets/backup-repo
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 const { brs, busy, error } = defineProps<{
   brs: FrontXoBackupRepository[]
@@ -80,16 +80,21 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useBackupRepositoryColumns({
-  body: (br: FrontXoBackupRepository) => ({
-    backupRepository: r => r({ label: br.name, icon: getBackupRepositoryIcon(br), href: xo5BrsHref.value }),
-    status: r => r(getBackupRepositoryStatus(br)),
-    type: r => r(t(getBackupRepositoryTypeLabelKey(parseBackupRepositoryUrl(br.url).type))),
-    proxy: r => {
-      const proxyName = getProxyById(br.proxy)?.name
+  body: (br: FrontXoBackupRepository) => {
+    const parsedBrUrl = useXoBackupRepositoryParsedUrl(() => br)
 
-      return proxyName ? r(proxyName, { leftIcon: { icon: 'object:proxy' } }) : r('')
-    },
-    selectItem: r => r(() => (selectedBrId.value = br.id)),
-  }),
+    return {
+      backupRepository: r =>
+        r({ label: br.name, icon: getBackupRepositoryIcon(br, parsedBrUrl.value?.type), href: xo5BrsHref.value }),
+      status: r => r(getBackupRepositoryStatus(br)),
+      type: r => r(t(getBackupRepositoryTypeLabelKey(parsedBrUrl.value?.type))),
+      proxy: r => {
+        const proxyName = getProxyById(br.proxy)?.name
+
+        return proxyName ? r(proxyName, { leftIcon: { icon: 'object:proxy' } }) : r('')
+      },
+      selectItem: r => r(() => (selectedBrId.value = br.id)),
+    }
+  },
 })
 </script>
