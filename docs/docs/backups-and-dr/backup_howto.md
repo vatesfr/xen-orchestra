@@ -161,6 +161,13 @@ Not a backup type, but the way to chain the jobs above: a [sequence](./backup-fe
 
 - Restore a VM to the same host/pool or another location.
 - When restoring, Xen Orchestra can attempt a **differential restore**, which reuses the current VM disk to speed up the process.
+- For an incremental backup, [choose what to do with each disk](./backup-features-and-settings.md#restore-disk-targets): restore it, leave it out, or [live mount](./backup-features-and-settings.md#live-mount) it.
+
+### Live mount
+
+- Attach a disk of an incremental backup to the restored VM without copying it: read only, served straight from the BR.
+- Usable immediately whatever the disk size, but much slower than a restored disk, and unreliable with a slow or distant BR (S3 or Azure outside your network).
+- Temporary: released when the disk is deleted, and ended by a restart of XOA (or of the proxy serving it).
 
 ### File restore
 
