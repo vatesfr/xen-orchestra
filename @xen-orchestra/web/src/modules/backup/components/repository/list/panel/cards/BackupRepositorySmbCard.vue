@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="card-container">
+  <UiPanelCard class="backup-repository-smb-card">
     <UiCardTitle>{{ t('smb') }}</UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
@@ -65,7 +65,7 @@ const formattedOptions = computed(() => formatMountOptions(options))
 </script>
 
 <style scoped lang="postcss">
-.card-container {
+.backup-repository-smb-card {
   .content {
     display: flex;
     flex-direction: column;

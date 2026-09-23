@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="card-container">
+  <UiPanelCard class="backup-repository-azure-azurite-card">
     <UiCardTitle v-if="azure.type === 'azure'">{{ t('azure') }}</UiCardTitle>
     <UiCardTitle v-else>{{ t('azurite') }}</UiCardTitle>
     <div class="content">
@@ -73,7 +73,7 @@ const pathInContainer = computed(() => `/${azure.path.replace(/^\/+/, '').split(
 </script>
 
 <style scoped lang="postcss">
-.card-container {
+.backup-repository-azure-azurite-card {
   .content {
     display: flex;
     flex-direction: column;

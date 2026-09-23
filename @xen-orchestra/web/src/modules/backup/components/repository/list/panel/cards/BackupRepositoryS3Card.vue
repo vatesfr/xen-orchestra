@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="card-container">
+  <UiPanelCard class="backup-repository-s3-card">
     <UiCardTitle>{{ t('s3') }}</UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
@@ -93,7 +93,7 @@ const truncatedAccessKeyId = computed(() =>
 </script>
 
 <style scoped lang="postcss">
-.card-container {
+.backup-repository-s3-card {
   .content {
     display: flex;
     flex-direction: column;
