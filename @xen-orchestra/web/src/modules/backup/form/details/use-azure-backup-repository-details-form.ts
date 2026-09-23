@@ -1,11 +1,11 @@
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup/types/new-backup-repository.type.ts'
-import type { BackupRepositoryType } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
 import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { type MaybeRefOrGetter, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { BackupRepositoryType } from 'xo-remote-parser'
 
 export type AzureBackupRepositoryDetailsForm = ReturnType<typeof useAzureBackupRepositoryDetailsForm>
 

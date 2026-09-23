@@ -1,6 +1,6 @@
-import type { BackupRepositoryInfoInput } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
+import type { BackupRepositoryUrlInput } from 'xo-remote-parser'
 
 export type BackupRepositoryDetailsPayload = {
-  urlInfo: BackupRepositoryInfoInput
+  urlInfo: BackupRepositoryUrlInput
   options?: string
 }
