@@ -31,4 +31,6 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/async-map minor
+
 <!--packages-end-->
