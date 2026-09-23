@@ -1,5 +1,5 @@
 import { createLogger } from '@xen-orchestra/log'
-import { BlockHash, HASH_SIZE } from './hbdPaths.mjs'
+import { asBlockHash, BlockHash, HASH_SIZE } from './hbdPaths.mjs'
 
 const { warn } = createLogger('xo:backup-archive:bat')
 
@@ -45,7 +45,9 @@ export class BlockAllocationTable {
   }
 
   set(index: number, hash: BlockHash) {
-    this.#entry(index).write(hash, 'hex')
+    if (this.#entry(index).write(asBlockHash(hash), 'hex') !== HASH_SIZE) {
+      throw new Error(`incomplete write of block hash ${hash}`)
+    }
   }
 
   isEmpty(index: number): boolean {

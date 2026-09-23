@@ -151,8 +151,8 @@ export class HashedDiskDeduplicated extends HashedDisk {
       const dataDir = this.#resolve(dataDirName(metadata.uuid))
       hashesPath = this.#resolve(metadata.hashesPath, dataDir)
       blocksDir = this.#resolve(metadata.localBlocksPath, dataDir)
-    } catch (error: any) {
-      throw new HbdFileError(error.message, this.#path, error)
+    } catch (error: unknown) {
+      throw new HbdFileError((error as NodeJS.ErrnoException).message, this.#path, error)
     }
 
     this.#metadata = metadata
@@ -164,10 +164,10 @@ export class HashedDiskDeduplicated extends HashedDisk {
         this.getMaxBlockCount(),
         options.force
       )
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.#metadata = undefined
       this.#blocksDir = undefined
-      throw new HbdFileError(error.message, hashesPath, error)
+      throw new HbdFileError((error as NodeJS.ErrnoException).message, hashesPath, error)
     }
   }
 
@@ -255,8 +255,8 @@ export class HashedDiskDeduplicated extends HashedDisk {
       await this.#handler.outputFile(this.#blockPath(hash), Buffer.concat([buildBlockHeader(hash), data]), {
         flags: 'wx',
       })
-    } catch (error: any) {
-      if (error?.code !== 'EEXIST') {
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
         throw error
       }
       // already stored, by another index of this disk or by a previous run
@@ -335,8 +335,8 @@ export class HashedDiskDeduplicated extends HashedDisk {
       try {
         await this.#handler.outputFile(this.#resolve(hashesPath), this.#loadedBat.toBuffer(), { flags: 'wx' })
         break
-      } catch (error: any) {
-        if (error?.code !== 'EEXIST' || attempt >= 1000) {
+      } catch (error: unknown) {
+        if ((error as NodeJS.ErrnoException).code !== 'EEXIST' || attempt >= 1000) {
           throw error
         }
         date = new Date(date.getTime() + 1)

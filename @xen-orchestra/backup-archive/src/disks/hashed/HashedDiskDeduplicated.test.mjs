@@ -27,6 +27,7 @@ const { beforeEach, afterEach, describe } = test
 
 const BLOCK_SIZE = 4096
 const VIRTUAL_SIZE = BLOCK_SIZE * 10
+const DISK_UUID = '3a0c1f6e-2b7d-4e58-9f21-6c8d4b0a7e13'
 
 let tempDir, handler, diskDir, diskPath
 
@@ -49,7 +50,7 @@ const createDisk = (opts = {}) =>
     path: diskPath,
     virtualSize: VIRTUAL_SIZE,
     blockSize: BLOCK_SIZE,
-    uuid: 'disk-uuid',
+    uuid: DISK_UUID,
     ...opts,
   })
 
@@ -155,6 +156,19 @@ describe('hbdPaths', () => {
 
     assert.throws(() => bat.get(10), /out of range/)
     assert.throws(() => bat.get(-1), /out of range/)
+  })
+
+  test('BlockAllocationTable.set refuses a hash it would only write partially', () => {
+    const bat = BlockAllocationTable.allocate(2)
+    const hash = sha256hex(Buffer.from('x'))
+    bat.set(0, hash)
+
+    // a short or non-hex hash writes a prefix and leaves the rest of the entry
+    for (const bad of ['deadbeef', 'Z'.repeat(64), hash.toUpperCase(), hash + '00', '../../..']) {
+      assert.throws(() => bat.set(0, bad), /not a valid block hash/)
+    }
+
+    assert.equal(bat.get(0), hash, 'a rejected set leaves the entry untouched')
   })
 
   test('BlockAllocationTable.fromBuffer refuses a size mismatch unless forced', () => {
@@ -271,17 +285,21 @@ describe('HashedDiskDeduplicated', () => {
     const escapes = dir => new RegExp(`escapes ${dir} \\(in `)
 
     await writeHbd({ hashesPath: '../../../../hashes.1.hash' })
-    await assert.rejects(reopen, escapes(`/${diskDir}/data/disk-uuid`))
+    await assert.rejects(reopen, escapes(`/${diskDir}/data/${DISK_UUID}`))
 
     // inside the disk directory, but belonging to a sibling disk of the chain
-    await writeHbd({ hashesPath: 'data/other-uuid/hashes.1.hash' })
-    await assert.rejects(reopen, escapes(`/${diskDir}/data/disk-uuid`))
+    await writeHbd({ hashesPath: `data/${uuid.v4()}/hashes.1.hash` })
+    await assert.rejects(reopen, escapes(`/${diskDir}/data/${DISK_UUID}`))
 
     await writeHbd({ localBlocksPath: '../blocks/' })
-    await assert.rejects(reopen, escapes(`/${diskDir}/data/disk-uuid`))
+    await assert.rejects(reopen, escapes(`/${diskDir}/data/${DISK_UUID}`))
 
-    await writeHbd({ uuid: '../../..' })
-    await assert.rejects(reopen, escapes(`/${diskDir}`))
+    // `.` and `..` resolve back to a directory holding other disks, and a
+    // containment check accepts them: only the uuid format rules them out
+    for (const broken of ['../../..', '..', '.', 'not-a-uuid']) {
+      await writeHbd({ uuid: broken })
+      await assert.rejects(reopen, new RegExp(`not a valid uuid: ${broken.replace(/\./g, '\\.')} \\(in `))
+    }
 
     // and the whole disk directory is still there
     await writeHbd({})
@@ -365,7 +383,7 @@ describe('HashedDiskDeduplicated', () => {
     const claimed = await disk.listAssociatedFiles('xo-vm-backups')
 
     // 5 blocks on disk, still 2 claims: the hbd and the directory holding them
-    assert.deepEqual(claimed, [`/${diskPath}`, `/${diskDir}/data/disk-uuid`])
+    assert.deepEqual(claimed, [`/${diskPath}`, `/${diskDir}/data/${DISK_UUID}`])
   })
 
   test('listAssociatedFiles drops what falls outside the requested dir', async () => {

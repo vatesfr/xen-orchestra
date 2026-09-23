@@ -8,6 +8,7 @@
 //     48   464  reserved (zero)
 //    512     N  payload: raw block data (currently uncompressed, unencrypted; N = blockSize)
 import crypto from 'node:crypto'
+import { validate as validateUuid } from 'uuid'
 import type { Branded } from '@vates/types'
 import { compareVersions } from 'compare-versions'
 import { createLogger } from '@xen-orchestra/log'
@@ -76,6 +77,9 @@ export function checkVersion(version: string) {
  * it is the same directory whatever the metadata claims.
  */
 export function dataDirName(uuid: string): string {
+  if (!validateUuid(uuid)) {
+    throw new Error(`not a valid uuid: ${uuid}`)
+  }
   return `data/${uuid}`
 }
 

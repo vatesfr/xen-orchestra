@@ -42,7 +42,7 @@ test('a full disk round trips, and duplicate payloads are stored once', async ()
       path,
       virtualSize: BLOCK_SIZE * BLOCK_COUNT,
       blockSize: BLOCK_SIZE,
-      uuid: 'integ-disk-uuid',
+      uuid: '7d1e4c92-3f60-4a8b-b5c7-1e9f08d2a643',
     })
 
     for (let index = 0; index < BLOCK_COUNT; index++) {
