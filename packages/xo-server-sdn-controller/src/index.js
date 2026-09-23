@@ -308,6 +308,8 @@ class SDNController extends EventEmitter {
     this._handledTasks = []
     // Set() of Xapi instances (whose object events are being watched).
     this._managedXapis = new Set()
+    // Map(Xapi, cleaner) to stop watching its object events
+    this._xapiCleaners = new Map()
   }
 
   // ---------------------------------------------------------------------------
@@ -476,6 +478,7 @@ class SDNController extends EventEmitter {
 
     this._handledTasks = []
     this._managedXapis = new Set()
+    this._xapiCleaners = new Map()
 
     this._unsetApiMethods()
   }
@@ -631,8 +634,10 @@ class SDNController extends EventEmitter {
     try {
       // the Xapi instance is dead, a new one (same pool UUID, same XAPI
       // object $refs) will be created on reconnection and must be managed
-      // again in _manageXapi
-      this._managedXapis.delete(xapi)
+      // again in _manageXapi; run the per-Xapi cleaner to detach the event
+      // listeners (also drops the reference pinning the dead Xapi's object
+      // cache)
+      this._xapiCleaners.get(xapi)?.()
 
       forOwn(this.privateNetworks, privateNetwork => {
         privateNetwork.networks = omitBy(privateNetwork.networks, network => network.$pool.uuid === xapi.pool.uuid)
@@ -1025,12 +1030,16 @@ class SDNController extends EventEmitter {
     await this._installCaCertificateIfNeeded(xapi)
     this._managedXapis.add(xapi)
 
-    return () => {
+    const cleaner = () => {
       this._managedXapis.delete(xapi)
+      this._xapiCleaners.delete(xapi)
       objects.removeListener('add', this._objectsAdded)
       objects.removeListener('update', this._objectsUpdated)
       objects.removeListener('remove', objectsRemovedXapi)
     }
+    this._xapiCleaners.set(xapi, cleaner)
+
+    return cleaner
   }
 
   _objectsAdded(objects) {
