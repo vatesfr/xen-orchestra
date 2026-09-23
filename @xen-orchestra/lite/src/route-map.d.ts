@@ -884,9 +884,23 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/table-controls-bar/ui-table-controls-bar': RouteRecordInfo<
+      '/story/web-core/ui/table-controls-bar/ui-table-controls-bar',
+      '/story/web-core/ui/table-controls-bar/ui-table-controls-bar',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/table-pagination/ui-table-pagination': RouteRecordInfo<
       '/story/web-core/ui/table-pagination/ui-table-pagination',
       '/story/web-core/ui/table-pagination/ui-table-pagination',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/table-selection/ui-table-selection': RouteRecordInfo<
+      '/story/web-core/ui/table-selection/ui-table-selection',
+      '/story/web-core/ui/table-selection/ui-table-selection',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -943,13 +957,6 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/toggle/ui-toggle': RouteRecordInfo<
       '/story/web-core/ui/toggle/ui-toggle',
       '/story/web-core/ui/toggle/ui-toggle',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/story/web-core/ui/top-bottom-table/ui-top-bottom-table': RouteRecordInfo<
-      '/story/web-core/ui/top-bottom-table/ui-top-bottom-table',
-      '/story/web-core/ui/top-bottom-table/ui-top-bottom-table',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1808,9 +1815,21 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/ui/table-controls-bar/ui-table-controls-bar.story.vue': {
+      routes:
+        | '/story/web-core/ui/table-controls-bar/ui-table-controls-bar'
+      views:
+        | never
+    }
     'src/stories/web-core/ui/table-pagination/ui-table-pagination.story.vue': {
       routes:
         | '/story/web-core/ui/table-pagination/ui-table-pagination'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/table-selection/ui-table-selection.story.vue': {
+      routes:
+        | '/story/web-core/ui/table-selection/ui-table-selection'
       views:
         | never
     }
@@ -1859,12 +1878,6 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/toggle/ui-toggle.story.vue': {
       routes:
         | '/story/web-core/ui/toggle/ui-toggle'
-      views:
-        | never
-    }
-    'src/stories/web-core/ui/top-bottom-table/ui-top-bottom-table.story.vue': {
-      routes:
-        | '/story/web-core/ui/top-bottom-table/ui-top-bottom-table'
       views:
         | never
     }
