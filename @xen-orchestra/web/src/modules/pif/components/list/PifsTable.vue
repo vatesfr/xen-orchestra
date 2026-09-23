@@ -40,10 +40,8 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
-import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { IP_CONFIGURATION_MODE } from '@vates/types'
-import { useSorted } from '@vueuse/core'
-import { logicNot, logicOr } from '@vueuse/math'
+import { logicAnd, logicNot, logicOr } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -56,7 +54,11 @@ defineSlots<{
 }>()
 
 const { arePifsReady, hasPifFetchError } = useXoPifCollection()
-const { useGetNetworkById, getNetworkById, areNetworksReady } = useXoNetworkCollection()
+const { useGetNetworkById, areNetworksReady, hasNetworkFetchError } = useXoNetworkCollection()
+
+const isReady = logicAnd(arePifsReady, areNetworksReady)
+
+const hasError = logicOr(hasPifFetchError, hasNetworkFetchError)
 
 const { t } = useI18n()
 
@@ -74,8 +76,8 @@ const filteredPifs = computed(() => {
 })
 
 const state = useTableState({
-  busy: logicOr(logicNot(arePifsReady), logicNot(areNetworksReady)),
-  error: hasPifFetchError,
+  busy: logicNot(isReady),
+  error: hasError,
   empty: () =>
     rawPifs.length === 0 ? t('no-pif-detected') : filteredPifs.value.length === 0 ? { type: 'no-result' } : false,
 })
@@ -95,14 +97,7 @@ const getIpConfigurationMode = (ipMode: IP_CONFIGURATION_MODE) => {
   }
 }
 
-const sortedPifs = useSorted(filteredPifs, (pif1, pif2) => {
-  const network1 = getNetworkById(pif1.$network)
-  const network2 = getNetworkById(pif2.$network)
-
-  return network1 && network2 ? sortByNameLabel(network1, network2) : 0
-})
-
-const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', sortedPifs)
+const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', filteredPifs)
 
 function getManagementIcon(pif: FrontXoPif) {
   if (!pif.management) {
