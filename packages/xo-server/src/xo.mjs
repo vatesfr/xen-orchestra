@@ -69,7 +69,9 @@ export default class Xo extends EventEmitter {
     this.hooks.on('registerCollection', async ({ collection, type, decorate = obj => obj }) => {
       const cache = new Map()
       const emitter = new EventEmitter()
+      const queueById = new Map()
       const objects = await collection.get()
+
       await Promise.all(
         objects.map(async object => {
           // pass a copy of the object to avoid any mutation on the source object
@@ -77,23 +79,42 @@ export default class Xo extends EventEmitter {
         })
       )
 
-      const onAddOrUpdate = async objects => {
+      const serialize = (id, fn) => {
+        const current = (queueById.get(id) ?? Promise.resolve())
+          .then(fn)
+          .catch(error => log.warn(`error while handling a ${type} collection event`, { error, id }))
+          .finally(() => {
+            if (queueById.get(id) === current) {
+              queueById.delete(id)
+            }
+          })
+        queueById.set(id, current)
+      }
+
+      const onAddOrUpdate = objects => {
         for (const object of objects) {
-          const obj = await decorate({ ...object })
-          const previous = cache.get(obj.id)
-          cache.set(obj.id, obj)
-          emitter.emit(previous === undefined ? 'add' : 'update', obj, previous)
+          serialize(object.id, async () => {
+            const previous = cache.get(object.id)
+            const newEntry = previous === undefined
+            const obj = await decorate({ ...object })
+            cache.set(obj.id, obj)
+            emitter.emit(newEntry ? 'add' : 'update', obj, previous)
+          })
         }
       }
+      const onRemove = ids => {
+        for (const id of ids) {
+          serialize(id, () => {
+            const previous = cache.get(id)
+            cache.delete(id)
+            emitter.emit('remove', undefined, previous)
+          })
+        }
+      }
+
       collection.on('add', onAddOrUpdate)
       collection.on('update', onAddOrUpdate)
-      collection.on('remove', ids =>
-        ids.forEach(id => {
-          const previous = cache.get(id)
-          cache.delete(id)
-          emitter.emit('remove', undefined, previous)
-        })
-      )
+      collection.on('remove', onRemove)
 
       this.#eeByType.set(type, emitter)
     })
