@@ -312,16 +312,6 @@ class Vdi {
         })
       }
 
-      // TEST ONLY — no effect unless XO_TEST_FORCE_TRANSFER_FAILURE=true is set. Simulates a hard
-      // crash right before the transfer, so interrupted-transfer cleanup can be tested without
-      // relying on real timing (see IncrementalXapiWriter#_prepare's interrupted-copy cleanup).
-      // A thrown error would only reject this promise and let golike-defer clean up, defeating the
-      // point: a real crash must bypass that entirely.
-      if (process.env.XO_TEST_FORCE_TRANSFER_FAILURE === 'true') {
-        // eslint-disable-next-line n/no-process-exit
-        process.exit(1)
-      }
-
       await this.putResource(cancelToken, content, '/import_raw_vdi/', {
         query: {
           format,
