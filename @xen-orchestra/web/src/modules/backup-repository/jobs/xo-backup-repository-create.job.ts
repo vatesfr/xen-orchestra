@@ -22,6 +22,8 @@ export const useXoBackupRepositoryCreateJob = defineJob('br.create', [payloadsAr
         payloads.map(async payload => {
           const { id } = await fetchPost<{ id: FrontXoBackupRepository['id'] }>(`backup-repositories`, payload)
 
+          // Mount the BR once so the server records its initial status (error or not)
+          // A failure here must not fail the creation: the BR exists and its error is stored on it
           await fetchGet(`backup-repositories/${id}/health`).catch(() => {})
 
           return id

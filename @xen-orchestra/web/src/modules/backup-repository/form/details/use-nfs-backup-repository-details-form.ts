@@ -1,7 +1,6 @@
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup-repository/types/new-backup-repository.type.ts'
-import { required, port } from '@core/packages/form-validation'
+import { port, required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
-import { withMessage } from '@regle/rules'
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -1,14 +1,14 @@
 <template>
   <VtsInputWrapper :label :message="messages">
-    <UiInput v-model.trim="model" accent="brand" :type :required :placeholder :prefix />
+    <UiInput v-model.trim="model" accent="brand" :type :required :placeholder :prefix @blur="emit('blur')" />
   </VtsInputWrapper>
 </template>
 
 <script lang="ts" setup>
-import type { InputWrapperMessage } from '@xen-orchestra/web-core/components/input-wrapper/VtsInputWrapper.vue'
-import VtsInputWrapper from '@xen-orchestra/web-core/components/input-wrapper/VtsInputWrapper.vue'
-import type { InputType } from '@xen-orchestra/web-core/components/ui/input/UiInput.vue'
-import UiInput from '@xen-orchestra/web-core/components/ui/input/UiInput.vue'
+import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import type { InputType } from '@core/components/ui/input/UiInput.vue'
+import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import UiInput from '@core/components/ui/input/UiInput.vue'
 import { computed } from 'vue'
 
 const { info, error } = defineProps<{
@@ -20,6 +20,8 @@ const { info, error } = defineProps<{
   prefix?: string
   type?: InputType
 }>()
+
+const emit = defineEmits<{ blur: [] }>()
 
 const model = defineModel<string>({ required: true })
 

@@ -19,7 +19,7 @@
 import BackupRepositoryFormRow from '@/modules/backup-repository/components/form/BackupRepositoryFormRow.vue'
 import BackupRepositoryFormTextArea from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormTextArea.vue'
 import BackupRepositoryFormTextInput from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormTextInput.vue'
-import type { NfsBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-nfs-backup-repository-details-form.js'
+import type { NfsBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-nfs-backup-repository-details-form.ts'
 
 defineProps<{ bindings: NfsBackupRepositoryDetailsForm['bindings'] }>()
 </script>

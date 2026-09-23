@@ -31,16 +31,16 @@ import {
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBackupRepositoryColumns } from '@core/tables/column-sets/backup-repository-columns.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import VtsRow from '@xen-orchestra/web-core/components/table/VtsRow.vue'
-import VtsTable from '@xen-orchestra/web-core/components/table/VtsTable.vue'
-import UiTitle from '@xen-orchestra/web-core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@xen-orchestra/web-core/composables/pagination.composable.ts'
-import { useRouteQuery } from '@xen-orchestra/web-core/composables/route-query.composable.ts'
-import { useTableState } from '@xen-orchestra/web-core/composables/table-state.composable.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
@@ -52,7 +52,7 @@ const { brs, busy, error } = defineProps<{
 }>()
 
 defineSlots<{
-  'title-actions'(): any
+  'title-actions'?(): any
 }>()
 
 const { t } = useI18n()
