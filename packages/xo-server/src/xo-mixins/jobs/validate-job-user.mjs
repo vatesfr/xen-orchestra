@@ -1,24 +1,19 @@
 import { noSuchObject } from 'xo-common/api-errors.js'
 
 /** @typedef {import('@vates/types').XoApp} XoApp */
+/** @typedef {import('@vates/types').XoJob} XoJob */
 
 /**
- * @typedef {object} Job
- * @property {string} [id]
- * @property {string} [method]
- * @property {string} [type]
- * @property {string} [userId]
- * @property {string} [createdBy]
- * @property {string} [updatedBy]
+ * @typedef {XoJob & { userId?: string, createdBy?: string, updatedBy?: string }} Job
  */
 
 /**
- * @param {Pick<XoApp, 'getUser'>} app
- * @param {Job | undefined} job
+ * @param {Pick<XoApp, 'getUser' | 'isJobSequence'>} app
+ * @param {Job} job
  * @returns {Promise<void>}
  */
 export default async function validateJobUser(app, job) {
-  if (!job || job.type !== 'call' || job.method !== 'schedule.runSequence') {
+  if (!app.isJobSequence(job)) {
     return
   }
 

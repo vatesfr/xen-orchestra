@@ -26,7 +26,7 @@ get.params = {
 
 export async function create({ job }) {
   const userId = this.apiContext.user.id
-  if (job.type === 'call' && job.method === 'schedule.runSequence') {
+  if (this.isJobSequence(job)) {
     job = { ...job, createdBy: userId, updatedBy: userId, userId }
   } else if (!job.userId) {
     job = { ...job, userId }
@@ -66,11 +66,11 @@ create.params = {
 
 export async function set({ job }) {
   const currentJob = await this.getJob(job.id)
-  if (currentJob.type === 'call' && currentJob.method === 'schedule.runSequence') {
+  if (this.isJobSequence(currentJob)) {
     const userId = this.apiContext.user.id
     job = {
       ...job,
-      createdBy: currentJob.createdBy ?? currentJob.userId,
+      createdBy: currentJob.createdBy,
       updatedBy: userId,
       userId,
     }

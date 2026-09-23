@@ -7,11 +7,14 @@ import validateJobUser from './validate-job-user.mjs'
 
 const { describe, it } = test
 
+const isJobSequence = job => job.type === 'call' && job.method === 'schedule.runSequence'
+
 describe('validateJobUser()', () => {
   it('reports the sequence and preserves the missing-user error shape', async () => {
     await assert.rejects(
       validateJobUser(
         {
+          isJobSequence,
           getUser: async () => {
             noSuchObject('user-1', 'user')
           },
@@ -39,6 +42,7 @@ describe('validateJobUser()', () => {
     let calls = 0
     await validateJobUser(
       {
+        isJobSequence,
         getUser: async () => {
           calls++
         },
