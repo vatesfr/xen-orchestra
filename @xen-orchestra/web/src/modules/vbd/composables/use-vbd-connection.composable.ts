@@ -7,7 +7,10 @@ import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 
-export function useVbdConnection(options: { vbds: MaybeRefOrGetter<FrontXoVbd[]>; vm: MaybeRefOrGetter<FrontXoVm> }) {
+export function useVbdConnection(options: {
+  vbds: MaybeRefOrGetter<FrontXoVbd[]>
+  vm: MaybeRefOrGetter<FrontXoVm | undefined>
+}) {
   const vbds = toComputed(options.vbds)
   const vm = toComputed(options.vm)
 

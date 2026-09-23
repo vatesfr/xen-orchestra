@@ -3,7 +3,9 @@ export const SR_SCOPE_TYPE = {
   HOST: 'host',
 } as const
 
-export type SrScope = { type: typeof SR_SCOPE_TYPE.POOL } | { type: typeof SR_SCOPE_TYPE.HOST; hostId: string }
+export type SrScope<THostId extends string = string> =
+  | { type: typeof SR_SCOPE_TYPE.POOL }
+  | { type: typeof SR_SCOPE_TYPE.HOST; hostId: THostId }
 
 export const SR_ACCESS_MODE = {
   LOCAL: 'local',

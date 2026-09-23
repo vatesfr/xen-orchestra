@@ -15,7 +15,7 @@ export const useHostColumns = defineColumns(() => {
     description: useTruncatedTextColumn({ headerLabel: () => t('description') }),
     ipAddresses: useAddressColumn({ headerLabel: () => t('management-ip') }),
     tags: useTagColumn({ headerLabel: () => t('tags') }),
-    srStatus: useStatusColumn({ headerLabel: () => t('status') }),
+    connectionStatus: useStatusColumn({ headerLabel: () => t('status') }),
     selectItem: useSelectItemColumn(),
   }
 })

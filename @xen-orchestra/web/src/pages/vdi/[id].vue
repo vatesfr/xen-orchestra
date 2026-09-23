@@ -4,13 +4,15 @@
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
-    <VdiHeader v-if="uiStore.hasUi" :vdi :vm :vbds :vbd :sr :vdi-snapshot :from-context="fromContext" />
+    <VdiHeader v-if="uiStore.hasUi" :vdi :vm :vbds :vbd :sr :vdi-snapshot :from-context :host />
     <component :is="Component" :vdi :vbd :vm :sr :vdi-snapshot />
   </RouterView>
 </template>
 
 <script lang="ts" setup>
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { parseHostIdQuery } from '@/modules/storage-repository/utils/sr-scope.util.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiHeader from '@/modules/vdi/components/VdiHeader.vue'
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
@@ -36,6 +38,7 @@ const { useGetVbdsByIds } = useXoVbdCollection()
 const { useGetVmById } = useXoVmCollection()
 const { useGetSrById } = useXoSrCollection()
 const { useGetVdiSnapshotById, areVdiSnapshotsReady } = useXoVdiSnapshotCollection()
+const { useGetHostById } = useXoHostCollection()
 
 const vdi = useGetVdiById(() => route.params.id as FrontXoVdi['id'])
 
@@ -48,6 +51,8 @@ const vbd = computed(() => vbds.value.find(vbd => vbd.attached) ?? vbds.value[0]
 const vm = useGetVmById(() => vbd.value?.VM as XoVm['id'])
 
 const sr = useGetSrById(() => vdi.value?.$SR)
+
+const host = useGetHostById(() => parseHostIdQuery(route.query))
 
 const fromContext = computed(() => {
   if (route.query.from) {

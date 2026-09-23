@@ -4,9 +4,10 @@
 
 <script setup lang="ts">
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
 import VtsSpaceCard from '@core/components/space-card/VtsSpaceCard.vue'
 
 defineProps<{
-  vdi: FrontXoVdi
+  vdi: FrontXoVdi | FrontXoVdiSnapshot
 }>()
 </script>

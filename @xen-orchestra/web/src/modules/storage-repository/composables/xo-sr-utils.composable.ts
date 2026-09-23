@@ -1,7 +1,7 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection, type FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
+import { getPbdsConnectionStatus, type PbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { type IconName, objectIcon } from '@core/icons'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
@@ -10,10 +10,10 @@ import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export function useGetPbdsInScope() {
-  const { getPbdsByIds } = useXoPbdCollection()
+  const { pbdsBySr } = useXoPbdCollection()
 
   function getPbdsInScope(sr: FrontXoSr, scope: SrScope): FrontXoPbd[] {
-    const pbds = getPbdsByIds(sr.$PBDs)
+    const pbds = pbdsBySr.value.get(sr.id) ?? []
 
     if (scope.type === SR_SCOPE_TYPE.POOL) {
       return pbds
@@ -42,8 +42,12 @@ export function useGetPbdsInScope() {
     return scopedPbds.map(pbd => `${pbd.id}:${pbd.attached}`).join('|') || sr.id
   }
 
+  function getConnectionStatusInScope(sr: FrontXoSr, scope: SrScope): PbdsConnectionStatus {
+    return getPbdsConnectionStatus(getPbdsInScope(sr, scope))
+  }
+
   function isConnectedInScope(sr: FrontXoSr, scope: SrScope) {
-    return getPbdsInScope(sr, scope).some(pbd => pbd.attached)
+    return getAttachedPbdsInScope(sr, scope).length > 0
   }
 
   function isPartiallyConnectedInScope(sr: FrontXoSr, scope: SrScope) {
@@ -57,6 +61,7 @@ export function useGetPbdsInScope() {
     getAttachedPbdsInScope,
     getDetachedPbdsInScope,
     getSrPbdsSignature,
+    getConnectionStatusInScope,
     isConnectedInScope,
     isPartiallyConnectedInScope,
   }
@@ -95,10 +100,6 @@ export function useXoSrUtils(
 
   const srStatusIcon = computed<IconName>(() => objectIcon('sr', allPbdsConnectionStatus.value))
 
-  function getSrStatusIcon(sr: FrontXoSr): IconName {
-    return objectIcon('sr', getPbdsConnectionStatus(getPbdsInScope(sr, scope.value)))
-  }
-
   function getSrLocation(sr: FrontXoSr): string {
     if (sr.shared) {
       return t('shared')
@@ -125,7 +126,6 @@ export function useXoSrUtils(
     srConnectionStatus: allPbdsConnectionStatus,
     isPartiallyConnectedInScope,
     srStatusIcon,
-    getSrStatusIcon,
     getSrLocation,
     getSrAccessModeLabel,
     getSrProvisioningLabel,

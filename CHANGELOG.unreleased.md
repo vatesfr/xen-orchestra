@@ -41,6 +41,7 @@
 - [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
 - [REST API] Add an endpoint to reclaim space per vm or backup repository: `POST /rest/V0/backup-repositories/:id/actions/reclaim-space` (PR [#10262](https://github.com/vatesfr/xen-orchestra/pull/10262))
 - [XO6/Host] Sort the networks table by network name (PR [#10367](https://github.com/vatesfr/xen-orchestra/pull/10367))
+- [XO6/SR] Add dedicated Storage Repository page VDIs tab with side panel (PR [#10142](https://github.com/vatesfr/xen-orchestra/pull/10142))
 
 ### Bug fixes
 

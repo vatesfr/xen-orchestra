@@ -50,7 +50,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useHostColumns({
-  exclude: ['selectItem', 'srStatus'],
+  exclude: ['selectItem', 'connectionStatus'],
   body: (host: XenApiHost) => {
     const state = isHostRunning(host) ? 'running' : 'halted'
 

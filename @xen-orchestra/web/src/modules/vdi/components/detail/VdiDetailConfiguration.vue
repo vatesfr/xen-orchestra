@@ -9,7 +9,7 @@
         <template v-if="sr" #value>
           <UiLink
             size="small"
-            :href="srHref"
+            :to="srLocation"
             :icon="srStatusIcon"
             :is-primary="isDefaultSr(sr)"
             :primary-tooltip="t('default-storage-repository')"
@@ -37,7 +37,6 @@ import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-uti
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
@@ -52,7 +51,6 @@ const { vdi, vdiSnapshot } = defineProps<{ vdi?: FrontXoVdi; vdiSnapshot?: Front
 const { t } = useI18n()
 
 const { useGetSrById, isDefaultSr } = useXoSrCollection()
-const { buildXo5Route } = useXoRoutes()
 
 const displayedVdi = computed(() => vdi ?? vdiSnapshot)
 
@@ -60,7 +58,9 @@ const sr = useGetSrById(() => displayedVdi.value?.$SR)
 
 const { srStatusIcon } = useXoSrUtils(sr)
 
-const srHref = computed(() => (sr.value ? buildXo5Route(`/srs/${sr.value.id}/general`) : undefined))
+const srLocation = computed(() =>
+  sr.value ? { name: '/sr/[id]/general' as const, params: { id: sr.value.id } } : undefined
+)
 
 const isSnapshottingEnabled = computed(() => (displayedVdi.value ? !displayedVdi.value.tags.includes('NOSNAP') : false))
 </script>
