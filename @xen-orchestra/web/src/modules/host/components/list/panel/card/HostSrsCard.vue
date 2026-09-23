@@ -12,12 +12,8 @@
       <li v-for="sr in srs" :key="sr.id" v-tooltip class="text-ellipsis">
         <UiLink
           size="small"
-          :icon="getSrStatusIcon(sr)"
-          :to="{
-            name: '/sr/[id]/general',
-            params: { id: sr.id },
-            query: toSrScopeQuery(scope),
-          }"
+          :icon="connectedSrIcon"
+          :to="{ name: '/sr/[id]/general', params: { id: sr.id }, query: srScopeQuery }"
         >
           {{ sr.name_label }}
         </UiLink>
@@ -32,9 +28,9 @@
 <script lang="ts" setup>
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import { useGetPbdsInScope } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { toSrScopeQuery } from '@/modules/storage-repository/utils/sr-scope.util.ts'
+import { toSrScopeQuery, type XoSrScope } from '@/modules/storage-repository/utils/sr-scope.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
@@ -42,7 +38,9 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
+import { objectIcon } from '@core/icons'
+import { CONNECTION_STATUS } from '@core/types/connection.ts'
+import { SR_SCOPE_TYPE } from '@core/types/storage-repository.type.ts'
 import { logicAnd, logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -60,11 +58,14 @@ const isReady = logicAnd(areSrsReady, arePbdsReady)
 
 const hasFetchError = logicOr(hasSrFetchError, hasPbdFetchError)
 
-const scope = computed<SrScope>(() => ({ type: SR_SCOPE_TYPE.HOST, hostId: host.id }))
+const scope = computed<XoSrScope>(() => ({ type: SR_SCOPE_TYPE.HOST, hostId: host.id }))
 
 const { isConnectedInScope } = useGetPbdsInScope()
 
-const { getSrStatusIcon } = useXoSrUtils(undefined, scope)
+const srScopeQuery = computed(() => toSrScopeQuery(scope.value))
+
+// The list only contains SRs connected to this host, so they all share the same icon
+const connectedSrIcon = objectIcon('sr', CONNECTION_STATUS.CONNECTED)
 
 const srs = computed(() => {
   const hostSrs = srsByHost.value.get(host.id) ?? []

@@ -13,6 +13,19 @@
       </span>
     </UiBreadcrumb>
 
+    <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.SR && host && vdi" :size>
+      <UiLink :size :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }">
+        <VtsObjectIcon type="host" :state="toLower(host.power_state)" size="current" />
+        {{ host.name_label }}
+      </UiLink>
+      <UiLink :size :to="{ name: '/host/[id]/storage', params: { id: host.id } }">
+        {{ t('storage') }}
+      </UiLink>
+      <span>
+        {{ vdi.name_label }}
+      </span>
+    </UiBreadcrumb>
+
     <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.SR && pool && sr && vdi" :size>
       <UiLink :size :to="{ name: '/pool/[id]/dashboard', params: { id: sr.$pool } }">
         <VtsIcon name="object:pool" size="medium" />
@@ -62,6 +75,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
@@ -77,9 +91,10 @@ import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vm, sr, vdi, vdiSnapshot, fromContext } = defineProps<{
+const { vm, sr, host, vdi, vdiSnapshot, fromContext } = defineProps<{
   vm?: FrontXoVm
   sr?: FrontXoSr
+  host?: FrontXoHost
   vdi?: FrontXoVdi
   vdiSnapshot?: FrontXoVdiSnapshot
   fromContext?: VdiPageContext

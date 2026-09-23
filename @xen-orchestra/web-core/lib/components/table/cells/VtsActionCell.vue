@@ -9,7 +9,7 @@
         @click="emit('click')"
       />
       <VtsActionsMenu v-if="actions.length" :actions />
-      <VtsActionsMenu v-else>
+      <VtsActionsMenu v-else-if="slots.default">
         <slot />
       </VtsActionsMenu>
     </div>
@@ -38,8 +38,8 @@ const emit = defineEmits<{
   click: []
 }>()
 
-defineSlots<{
-  default(): any
+const slots = defineSlots<{
+  default?(): any
 }>()
 </script>
 

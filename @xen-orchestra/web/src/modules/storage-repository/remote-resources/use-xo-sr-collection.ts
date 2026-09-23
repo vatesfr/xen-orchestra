@@ -10,7 +10,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { XoSr } from '@vates/types'
 import { reactify, useSorted } from '@vueuse/core'
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 
 export type FrontXoSr = Pick<XoSr, (typeof srFields)[number]>
 
@@ -80,16 +80,18 @@ export const useXoSrCollection = defineRemoteResource({
       srsByPool.value = tmpSrsByPool
     })
 
-    const srsByHost = computed(() => {
+    const srsByHost = ref(new Map<FrontXoHost['id'], FrontXoSr[]>())
+
+    watch([sortedSrs, pbdsBySr], ([srs, pbdsBySrId]) => {
       const tmpSrsByHost = new Map<FrontXoHost['id'], FrontXoSr[]>()
 
-      sortedSrs.value.forEach(sr => {
-        pbdsBySr.value.get(sr.id)?.forEach(pbd => {
+      srs.forEach(sr => {
+        pbdsBySrId.get(sr.id)?.forEach(pbd => {
           safePushInMap(tmpSrsByHost, pbd.host, sr)
         })
       })
 
-      return tmpSrsByHost
+      srsByHost.value = tmpSrsByHost
     })
 
     const isDefaultSr = (sr: FrontXoSr) => getPoolById(sr.$pool)?.default_SR === sr.id

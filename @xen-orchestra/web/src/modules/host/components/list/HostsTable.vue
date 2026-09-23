@@ -18,13 +18,11 @@
 </template>
 
 <script setup lang="ts">
-import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
-import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getHostIpAddresses } from '@/modules/pif/utils/xo-pif.util.ts'
-import { useGetPbdsInScope } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
-import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { Status } from '@core/components/status/VtsStatus.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -36,8 +34,6 @@ import { icon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useHostColumns } from '@core/tables/column-sets/host-columns.ts'
-import { CONNECTION_STATUS } from '@core/types/connection.ts'
-import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { logicAnd, logicNot, logicOr } from '@vueuse/math'
@@ -48,12 +44,12 @@ const {
   busy,
   hosts: rawHosts,
   error,
-  sr,
+  getConnectionStatus,
 } = defineProps<{
   hosts: FrontXoHost[]
   busy?: boolean
   error?: boolean
-  sr?: FrontXoSr
+  getConnectionStatus?: (host: FrontXoHost) => Status
 }>()
 
 const { t } = useI18n()
@@ -92,14 +88,6 @@ const state = useTableState({
 
 const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', filteredHosts)
 
-const { getPbdsInScope } = useGetPbdsInScope()
-
-function getSrConnectionStatus(sr: FrontXoSr, host: FrontXoHost) {
-  const scope: SrScope = { type: SR_SCOPE_TYPE.HOST, hostId: host.id }
-
-  return getPbdsConnectionStatus(getPbdsInScope(sr, scope))
-}
-
 function getMasterIcon(host: FrontXoHost) {
   if (!isMasterHost(host.id)) {
     return undefined
@@ -112,14 +100,11 @@ function getMasterIcon(host: FrontXoHost) {
 }
 
 const { HeadCells, BodyCells } = useHostColumns({
-  exclude: sr === undefined ? ['srStatus'] : [],
+  exclude: getConnectionStatus === undefined ? ['connectionStatus'] : [],
   body: (host: FrontXoHost) => {
     const ipAddresses = computed(() => getHostIpAddresses(host.address, pifsByHost.value.get(host.id)))
     const hostIcon = computed(() => getHostIcon(host))
     const rightIcon = computed(() => getMasterIcon(host))
-    const srConnectionStatus = computed(() =>
-      sr === undefined ? CONNECTION_STATUS.DISCONNECTED : getSrConnectionStatus(sr, host)
-    )
 
     return {
       host: r =>
@@ -132,7 +117,7 @@ const { HeadCells, BodyCells } = useHostColumns({
       description: r => r(host.name_description),
       ipAddresses: r => r(ipAddresses.value),
       tags: r => r(host.tags),
-      srStatus: r => r(srConnectionStatus.value),
+      connectionStatus: r => r(getConnectionStatus?.(host) ?? []),
       selectItem: r => r(() => (selectedHostId.value = host.id)),
     }
   },

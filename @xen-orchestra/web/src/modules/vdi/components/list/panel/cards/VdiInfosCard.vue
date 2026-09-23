@@ -1,6 +1,6 @@
 <template>
   <UiPanelCard class="vdi-infos-card">
-    <VtsCardObjectTitle :id="vdi.id" :label="vdi.name_label" :to="vdiGeneralRoute" :icon="vdiIcon" />
+    <VtsCardObjectTitle :id="vdi.id" :label="vdi.name_label" :to="vdiPageLocation" :icon="vdiIcon" />
     <div class="content">
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
@@ -29,7 +29,7 @@
           <VtsCopyButton :value="vbdsStatus" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="vdiDevice !== undefined">
         <template #key>{{ t('device') }}</template>
         <template #value>{{ vdiDevice }}</template>
         <template v-if="vdiDevice" #addons>
@@ -42,12 +42,13 @@
 
 <script lang="ts" setup>
 import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
-import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import { findScopedVbd } from '@/modules/vbd/utils/xo-vbd.util.ts'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
+import { getVdiPageLocation } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import type { IconName } from '@core/icons'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -60,18 +61,16 @@ import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdi, vm } = defineProps<{
-  vdi: FrontXoVdi
+const { vdi, vm, vbd, srScope } = defineProps<{
+  vdi: FrontXoVdi | FrontXoVdiSnapshot
   vm?: FrontXoVm
+  vbd?: FrontXoVbd
+  srScope?: SrScope
 }>()
 
 const { t } = useI18n()
 
-const vdiGeneralRoute = computed(() => ({
-  name: '/vdi/[id]/general' as const,
-  params: { id: vdi.id },
-  query: { from: vm ? VDI_PAGE_CONTEXT.VM : VDI_PAGE_CONTEXT.SR },
-}))
+const vdiPageLocation = computed(() => getVdiPageLocation(vdi, { vm, srScope }))
 
 const vbdsAttachmentStatus = useVbdsStatus(() => vdi.$VBDs)
 
@@ -95,15 +94,7 @@ const vbdsStatus = useMapper<VbdAttachmentStatus, (typeof CONNECTION_STATUS)[key
   'noneAttached'
 )
 
-const { useGetVbdsByIds } = useXoVbdCollection()
-
-const vbds = useGetVbdsByIds(() => vdi.$VBDs)
-
-const vdiDevice = computed(() => {
-  const notCdDriveVbds = vbds.value.filter(vbd => !vbd.is_cd_drive)
-
-  return findScopedVbd(notCdDriveVbds, vm)?.device ?? ''
-})
+const vdiDevice = computed(() => (vbd === undefined || vbd.is_cd_drive ? undefined : (vbd.device ?? '')))
 </script>
 
 <style scoped lang="postcss">

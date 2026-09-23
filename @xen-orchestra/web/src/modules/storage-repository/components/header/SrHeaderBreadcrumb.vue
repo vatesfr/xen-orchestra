@@ -1,18 +1,12 @@
 <template>
-  <div class="sr-header-breadcrumb">
-    <UiBreadcrumb v-if="parent" :size>
+  <div v-if="parent" class="sr-header-breadcrumb">
+    <UiBreadcrumb :size>
       <UiLink :size :to="parent.dashboardTo" :icon="parent.icon">
         {{ parent.label }}
       </UiLink>
       <UiLink :size :to="parent.storageTo">
         {{ t('storage') }}
       </UiLink>
-      <span class="sr-name">
-        <VtsObjectIcon type="sr" :state="srConnectionState" size="current" />
-        {{ sr.name_label }}
-      </span>
-    </UiBreadcrumb>
-    <UiBreadcrumb v-else :size>
       <span class="sr-name">
         <VtsObjectIcon type="sr" :state="srIconState" size="current" />
         {{ sr.name_label }}
@@ -22,18 +16,18 @@
 </template>
 
 <script setup lang="ts">
-import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
-import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import type { PbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { XoSrScope } from '@/modules/storage-repository/utils/sr-scope.util.ts'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { type IconName } from '@core/icons'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
+import { SR_SCOPE_TYPE } from '@core/types/storage-repository.type.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
@@ -45,7 +39,11 @@ type SrBreadcrumbParent = {
   storageTo: RouteLocationRaw
 }
 
-const { sr, scope } = defineProps<{ sr: FrontXoSr; scope: SrScope }>()
+const { sr, scope } = defineProps<{
+  sr: FrontXoSr
+  scope: XoSrScope
+  srIconState?: PbdsConnectionStatus
+}>()
 
 const { t } = useI18n()
 
@@ -56,11 +54,9 @@ const { useGetPoolById } = useXoPoolCollection()
 
 const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
 
-const host = useGetHostById(() => (scope.type === SR_SCOPE_TYPE.HOST ? (scope.hostId as FrontXoHost['id']) : undefined))
+const host = useGetHostById(() => (scope.type === SR_SCOPE_TYPE.HOST ? scope.hostId : undefined))
 
 const pool = useGetPoolById(() => sr.$pool)
-
-const { arePbdsReady } = useXoPbdCollection()
 
 const parent = computed<SrBreadcrumbParent | undefined>(() => {
   if (scope.type === SR_SCOPE_TYPE.HOST) {
@@ -91,13 +87,6 @@ const parent = computed<SrBreadcrumbParent | undefined>(() => {
     storageTo: { name: '/pool/[id]/storage', params: { id: srPool.id } },
   }
 })
-
-const { srConnectionStatus } = useXoSrUtils(
-  () => sr,
-  () => scope
-)
-
-const srConnectionState = computed(() => (arePbdsReady.value ? srConnectionStatus.value : undefined))
 </script>
 
 <style lang="postcss" scoped>

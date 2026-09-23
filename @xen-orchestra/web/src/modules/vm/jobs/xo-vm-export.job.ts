@@ -1,7 +1,7 @@
 import { xoVmArg } from '@/modules/vm/jobs/xo-vm-args.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { defineJob, defineJobArg, JobRunningError } from '@core/packages/job'
+import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
 import { downloadFile } from '@core/utils/download-file.utils.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -22,7 +22,12 @@ export const useXoVmExportJob = defineJob('vm.export', [xoVmArg, xoVmExportTypeA
   const { t } = useI18n()
 
   return {
-    async run(vm: FrontXoVm, type: VmExportType, compression: VmExportCompression) {
+    async run(vm: FrontXoVm | undefined, type: VmExportType, compression: VmExportCompression) {
+      // `validate` already rejects a missing VM, this guard only narrows the type required by `xoVmArg`
+      if (vm === undefined) {
+        throw new JobError(t('job:vm-export:missing-vm'))
+      }
+
       const params = new URLSearchParams()
 
       if (type === 'xva' && compression !== 'none') {
@@ -35,7 +40,11 @@ export const useXoVmExportJob = defineJob('vm.export', [xoVmArg, xoVmExportTypeA
 
       downloadFile(url, fileName)
     },
-    validate(isRunning: boolean) {
+    validate(isRunning: boolean, vm: FrontXoVm | undefined) {
+      if (!vm) {
+        throw new JobError(t('job:vm-export:missing-vm'))
+      }
+
       if (isRunning) {
         throw new JobRunningError(t('job:vm-export:in-progress'))
       }

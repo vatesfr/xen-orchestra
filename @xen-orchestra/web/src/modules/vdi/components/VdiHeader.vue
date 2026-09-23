@@ -1,10 +1,11 @@
 <template>
-  <VdiHeaderBreadcrumbLink :vm :sr :vdi :vdi-snapshot :from-context />
+  <VdiHeaderBreadcrumbLink :vm :sr :host :vdi :vdi-snapshot :from-context />
   <VdiHeaderBar v-if="vdi" :vdi :vbds :vbd :vm />
   <VdiSnapshotHeaderBar v-if="vdiSnapshot" :vdi-snapshot />
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiHeaderBar from '@/modules/vdi/components/header/VdiHeaderBar.vue'
@@ -21,6 +22,7 @@ const { vdi, vm, vbds, vbd } = defineProps<{
   vbds?: FrontXoVbd[]
   vbd?: FrontXoVbd
   sr?: FrontXoSr
+  host?: FrontXoHost
   fromContext?: VdiPageContext
   vdiSnapshot?: FrontXoVdiSnapshot
 }>()
