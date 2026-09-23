@@ -43,12 +43,9 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoBackupRepositoryTypeLabel } from '@/modules/backup/composables/use-xo-backup-repository-type-label.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
-import {
-  getBackupRepositoryIcon,
-  getBackupRepositoryStatus,
-  getBackupRepositoryTypeLabelKey,
-} from '@/modules/backup/utils/xo-backup-repository.util.ts'
+import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -73,7 +70,7 @@ const xo5BrHref = computed(() => buildXo5Route('/settings/remotes'))
 
 const { useGetProxyById } = useXoProxyCollection()
 
-const brType = computed(() => t(getBackupRepositoryTypeLabelKey(parsedBrUrl?.type)))
+const brType = useXoBackupRepositoryTypeLabel(() => parsedBrUrl?.type)
 
 const brIcon = computed(() => getBackupRepositoryIcon(br, parsedBrUrl?.type))
 

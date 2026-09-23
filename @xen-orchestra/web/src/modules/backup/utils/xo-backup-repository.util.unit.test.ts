@@ -2,7 +2,7 @@ import {
   formatMountOptions,
   getBackupRepositoryIcon,
   getBackupRepositoryStatus,
-  getBackupRepositoryTypeLabelKey,
+  splitBackupRepositoryPath,
 } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import { createBr } from '@/test/create-br.ts'
 import { objectIcon } from '@core/icons'
@@ -49,22 +49,6 @@ describe('getBackupRepositoryIcon', () => {
   })
 })
 
-describe('getBackupRepositoryTypeLabelKey', () => {
-  it('labels a file repository as local', () => {
-    expect(getBackupRepositoryTypeLabelKey('file')).toBe('local')
-  })
-
-  it('labels a repository after its own type', () => {
-    expect(getBackupRepositoryTypeLabelKey('nfs')).toBe('nfs')
-    expect(getBackupRepositoryTypeLabelKey('s3')).toBe('s3')
-    expect(getBackupRepositoryTypeLabelKey('azurite')).toBe('azurite')
-  })
-
-  it('falls back to unknown when the type could not be parsed', () => {
-    expect(getBackupRepositoryTypeLabelKey(undefined)).toBe('unknown')
-  })
-})
-
 describe('formatMountOptions', () => {
   it('returns an empty string when there are no options', () => {
     expect(formatMountOptions(undefined)).toBe('')
@@ -72,5 +56,24 @@ describe('formatMountOptions', () => {
 
   it('trims each option and drops the empty ones', () => {
     expect(formatMountOptions('vers=3.0, ,soft,')).toBe('vers=3.0, soft')
+  })
+})
+
+describe('splitBackupRepositoryPath', () => {
+  it('splits the root from the sub path', () => {
+    expect(splitBackupRepositoryPath('/bucket/backups/xo')).toEqual({ root: 'bucket', subPath: '/backups/xo' })
+  })
+
+  it('ignores leading slashes', () => {
+    expect(splitBackupRepositoryPath('//bucket/backups')).toEqual({ root: 'bucket', subPath: '/backups' })
+    expect(splitBackupRepositoryPath('bucket/backups')).toEqual({ root: 'bucket', subPath: '/backups' })
+  })
+
+  it('returns / as sub path when there is only a root', () => {
+    expect(splitBackupRepositoryPath('/bucket')).toEqual({ root: 'bucket', subPath: '/' })
+  })
+
+  it('returns an empty root when the path is empty', () => {
+    expect(splitBackupRepositoryPath('')).toEqual({ root: '', subPath: '/' })
   })
 })

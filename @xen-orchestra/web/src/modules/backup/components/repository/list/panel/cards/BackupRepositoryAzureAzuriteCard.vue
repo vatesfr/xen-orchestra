@@ -33,17 +33,17 @@
 
       <VtsCardRowKeyValue>
         <template #key>{{ t('container-name') }}</template>
-        <template #value>{{ container }}</template>
+        <template #value>{{ splitPath.root }}</template>
         <template #addons>
-          <VtsCopyButton :value="container" />
+          <VtsCopyButton :value="splitPath.root" />
         </template>
       </VtsCardRowKeyValue>
 
       <VtsCardRowKeyValue>
         <template #key>{{ t('path') }}</template>
-        <template #value>{{ pathInContainer }}</template>
+        <template #value>{{ splitPath.subPath }}</template>
         <template #addons>
-          <VtsCopyButton :value="pathInContainer" />
+          <VtsCopyButton :value="splitPath.subPath" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -51,7 +51,7 @@
 </template>
 
 <script lang="ts" setup>
-import { MASKED_SECRET } from '@/modules/backup/utils/xo-backup-repository.util.ts'
+import { MASKED_SECRET, splitBackupRepositoryPath } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -67,9 +67,7 @@ const { azure } = defineProps<{
 
 const { t } = useI18n()
 
-const container = computed(() => azure.path.replace(/^\/+/, '').split('/')[0] ?? '')
-
-const pathInContainer = computed(() => `/${azure.path.replace(/^\/+/, '').split('/').slice(1).join('/')}`)
+const splitPath = computed(() => splitBackupRepositoryPath(azure.path))
 </script>
 
 <style scoped lang="postcss">
