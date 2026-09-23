@@ -911,7 +911,7 @@ export default class XenServers {
       })
   }
 
-  async _suspendRpuLoadBalancer($defer, pool) {
+  async _suspendRpuLoadBalancer($defer, pool, recorder) {
     const app = this._app
     const suspension = this._getRpuLoadBalancerSuspension()
     const state = suspension.value
@@ -934,6 +934,8 @@ export default class XenServers {
           })
           reEnableDelay = DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY
         }
+        // intent on disk first: a refused write must not leave a re-enabling pending
+        await recorder.settingChangedByRun('loadBalancer')
         state.autoload = plugin.autoload
         state.reEnableDelay = reEnableDelay
         state.shouldReEnable = true
@@ -1016,20 +1018,28 @@ export default class XenServers {
       recorder.markRunning()
 
       // Disable schedules
+      const schedulesToDisable = schedules.filter(
+        schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled
+      )
+      if (schedulesToDisable.length > 0) {
+        await recorder.settingChangedByRun(
+          'schedules',
+          schedulesToDisable.map(schedule => schedule.id)
+        )
+      }
       await Promise.all(
-        schedules
-          .filter(schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled)
-          .map(async schedule => {
-            await app.updateSchedule({ ...schedule, enabled: false })
-            $defer(() => app.updateSchedule({ ...schedule, enabled: true }))
-          })
+        schedulesToDisable.map(async schedule => {
+          await app.updateSchedule({ ...schedule, enabled: false })
+          $defer(() => app.updateSchedule({ ...schedule, enabled: true }))
+        })
       )
 
       // Disable load balancer
-      await this._suspendRpuLoadBalancer($defer, pool)
+      await this._suspendRpuLoadBalancer($defer, pool, recorder)
 
       const xapi = this.getXapi(pool)
       if (await xapi.getField('pool', pool._xapiRef, 'wlb_enabled')) {
+        await recorder.settingChangedByRun('wlb')
         await xapi.call('pool.set_wlb_enabled', pool._xapiRef, false)
         $defer(() => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true))
       }

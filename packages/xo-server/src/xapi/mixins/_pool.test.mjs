@@ -274,6 +274,46 @@ describe('rollingPoolReboot', function () {
     assert.deepEqual(xapi.strayedVms(), [])
   })
 
+  it('persists the settings it changes before changing them, and how each host was before', async function () {
+    const xapi = new FakeXapi([[30], [30]])
+    const events = []
+    xapi.pool.ha_enabled = true
+    xapi.pool.$ha_statefiles = []
+    xapi.pool.ha_configuration = {}
+    xapi.pool.other_config.auto_poweron = 'true'
+    xapi.pool.update_other_config = async (key, value) => events.push(['other_config', key, value])
+    // disabled by the operator before the run
+    xapi.hosts[1].enabled = false
+    const call = xapi.call.bind(xapi)
+    xapi.call = async (method, ...args) =>
+      method === 'pool.disable_ha' || method === 'pool.enable_ha'
+        ? events.push(['call', method])
+        : call(method, ...args)
+    const recorder = {
+      ...noopRpuRecorder,
+      async settingChangedByRun(name) {
+        events.push(['record', name])
+      },
+      hostStarting(hostId, agentStartTime, enabled) {
+        events.push(['hostStarting', hostId, enabled])
+      },
+    }
+
+    const { error } = await rollingPoolReboot(xapi, { recorder })
+
+    assert.equal(error, undefined)
+    assert.deepEqual(events, [
+      ['record', 'ha'],
+      ['call', 'pool.disable_ha'],
+      ['record', 'autoPowerOn'],
+      ['other_config', 'auto_poweron', 'false'],
+      ['hostStarting', 'host-A', true],
+      ['hostStarting', 'host-B', false],
+      ['other_config', 'auto_poweron', 'true'],
+      ['call', 'pool.enable_ha'],
+    ])
+  })
+
   it('does not migrate the VMs back when the pool opted out', async function () {
     const xapi = new FakeXapi([
       [30, 30],

@@ -41,3 +41,16 @@ describe('pool.getRollingUpdateRecovery', function () {
     assert.equal(await handlers.getRollingUpdateRecovery.call(app, { pool }), view)
   })
 })
+
+describe('pool.finalizeRollingUpdate', function () {
+  it('forwards force to the orchestrator', async function () {
+    const calls = []
+    const app = { finalizeRollingUpdate: async (pool, opts) => calls.push([pool, opts]) }
+    await handlers.finalizeRollingUpdate.call(app, { pool })
+    await handlers.finalizeRollingUpdate.call(app, { pool, force: true })
+    assert.deepEqual(calls, [
+      [pool, { force: undefined }],
+      [pool, { force: true }],
+    ])
+  })
+})
