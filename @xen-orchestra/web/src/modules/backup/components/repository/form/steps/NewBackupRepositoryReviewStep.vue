@@ -18,7 +18,7 @@
 
       <VtsTabularKeyValueList>
         <VtsTabularKeyValueRow :label="t('name')" :value="general.formData.name" />
-        <VtsTabularKeyValueRow :label="t('type')" :value="getTypeLabel(general.formData.type)" />
+        <VtsTabularKeyValueRow :label="t('type')" :value="t(getBackupRepositoryTypeLabelKey(general.formData.type))" />
         <VtsTabularKeyValueRow
           :label="t('storage-mode')"
           :value="general.formData.backupFormat === 'block' ? t('block-based') : t('vhd-file')"
@@ -110,11 +110,11 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoBackupRepositoryUtils } from '@/modules/backup/composables/xo-backup-repository-utils.composable.ts'
 import { NFS_DEFAULT_PORT } from '@/modules/backup/form/details/use-nfs-backup-repository-details-form.ts'
 import { SMB_DEFAULT_DOMAIN } from '@/modules/backup/form/details/use-smb-backup-repository-details-form.ts'
 import type { BackupRepositoryGeneralForm } from '@/modules/backup/form/use-backup-repository-general-form.ts'
 import type { NewBackupRepositoryDetailsForms } from '@/modules/backup/form/use-new-backup-repository-form.ts'
+import { getBackupRepositoryTypeLabelKey } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import VtsIcon from '@xen-orchestra/web-core/components/icon/VtsIcon.vue'
 import VtsStatus from '@xen-orchestra/web-core/components/status/VtsStatus.vue'
@@ -140,8 +140,6 @@ const MASKED_VALUE = '•'.repeat(12)
 const { t } = useI18n()
 
 const { useGetProxyById } = useXoProxyCollection()
-
-const { getTypeLabel } = useXoBackupRepositoryUtils()
 
 const proxy = useGetProxyById(() => general.formData.proxy)
 

@@ -1,4 +1,3 @@
-import { useXoBackupRepositoryUtils } from '@/modules/backup/composables/xo-backup-repository-utils.composable.ts'
 import { useAzureBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-azure-backup-repository-details-form.ts'
 import { useLocalBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-local-backup-repository-details-form.ts'
 import { useNfsBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-nfs-backup-repository-details-form.ts'
@@ -6,10 +5,11 @@ import { useS3BackupRepositoryDetailsForm } from '@/modules/backup/form/details/
 import { useSmbBackupRepositoryDetailsForm } from '@/modules/backup/form/details/use-smb-backup-repository-details-form.ts'
 import { useBackupRepositoryGeneralForm } from '@/modules/backup/form/use-backup-repository-general-form.ts'
 import type { NewBackupRepositoryPayload } from '@/modules/backup/jobs/xo-backup-repository-create.job.ts'
-import { formatBackupRepositoryUrl } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
+import { getBackupRepositoryTypeLabelKey } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { format as formatBackupRepositoryUrl } from 'xo-remote-parser'
 
 const STEPS = ['general', 'details', 'review'] as const
 type Step = (typeof STEPS)[number]
@@ -20,8 +20,6 @@ export function useNewBackupRepositoryForm() {
   const { t } = useI18n()
 
   const general = useBackupRepositoryGeneralForm()
-
-  const { getTypeLabel } = useXoBackupRepositoryUtils()
 
   const details = {
     file: useLocalBackupRepositoryDetailsForm(() => general.formData.proxy),
@@ -48,7 +46,7 @@ export function useNewBackupRepositoryForm() {
   const detailsStepLabel = computed(() => {
     return general.formData.type === undefined
       ? ''
-      : t('br-type-details', { type: getTypeLabel(general.formData.type) })
+      : t('br-type-details', { type: t(getBackupRepositoryTypeLabelKey(general.formData.type)) })
   })
 
   const steps = computed<StepDefinition[]>(() => [

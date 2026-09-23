@@ -1,15 +1,11 @@
-import { useXoBackupRepositoryUtils } from '@/modules/backup/composables/xo-backup-repository-utils.composable.ts'
 import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
-import type {
-  BackupRepositoryOptions,
-  BackupRepositoryType,
-} from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
-import { BACKUP_REPOSITORY_TYPES } from '@/modules/backup/utils/xo-backup-repository-url.util.ts'
+import { getBackupRepositoryTypeLabelKey } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { regex, required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { BACKUP_REPOSITORY_TYPE, type BackupRepositoryType, type BackupRepositoryUrlOptions } from 'xo-remote-parser'
 
 type BackupRepositoryGeneralFormData = {
   name: string
@@ -33,8 +29,6 @@ export function useBackupRepositoryGeneralForm() {
   const { t } = useI18n()
 
   const { proxies } = useXoProxyCollection()
-
-  const { getTypeLabel } = useXoBackupRepositoryUtils()
 
   const formData = reactive<BackupRepositoryGeneralFormData>({
     name: '',
@@ -89,7 +83,11 @@ export function useBackupRepositoryGeneralForm() {
   )
 
   const typeOptions = computed(() =>
-    BACKUP_REPOSITORY_TYPES.map(type => ({ id: type, label: getTypeLabel(type), value: type }))
+    Object.values(BACKUP_REPOSITORY_TYPE).map(type => ({
+      id: type,
+      label: t(getBackupRepositoryTypeLabelKey(type)),
+      value: type,
+    }))
   )
 
   const { id: typeSelectId } = useFormSelect('type', typeOptions, {
@@ -134,7 +132,7 @@ export function useBackupRepositoryGeneralForm() {
     })),
   })
 
-  function buildUrlOptions(): BackupRepositoryOptions {
+  function buildUrlOptions(): BackupRepositoryUrlOptions {
     return {
       ...(formData.encrypted && formData.encryptionKey !== '' && { encryptionKey: formData.encryptionKey }),
       ...(formData.backupFormat === 'block' && { useVhdDirectory: true }),
