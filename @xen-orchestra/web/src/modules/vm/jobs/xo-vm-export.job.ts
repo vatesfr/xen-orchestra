@@ -23,7 +23,6 @@ export const useXoVmExportJob = defineJob('vm.export', [xoVmArg, xoVmExportTypeA
 
   return {
     async run(vm: FrontXoVm | undefined, type: VmExportType, compression: VmExportCompression) {
-      // `validate` already rejects a missing VM, this guard only narrows the type required by `xoVmArg`
       if (vm === undefined) {
         throw new JobError(t('job:vm-export:missing-vm'))
       }

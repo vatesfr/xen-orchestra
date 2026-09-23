@@ -52,7 +52,6 @@ const vm = useGetVmById(() => vbd.value?.VM as XoVm['id'])
 
 const sr = useGetSrById(() => vdi.value?.$SR)
 
-// Set when coming from a host-scoped SR page, so the breadcrumb can lead back to that host
 const host = useGetHostById(() => parseHostIdQuery(route.query))
 
 const fromContext = computed(() => {

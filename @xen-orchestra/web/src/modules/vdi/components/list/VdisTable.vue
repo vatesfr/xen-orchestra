@@ -88,7 +88,6 @@ const { pageRecords: paginatedVdis, paginationBindings } = usePagination('vdis',
 const { HeadCells, BodyCells } = useVdiColumns({
   exclude: ['selectItem'],
   body: (vdi: FrontXoVdi | FrontXoVdiSnapshot) => {
-    // VDI snapshots have no VDI job to track nor action to run, so they only get a link and a selection button
     const actionableVdi = isVdiSnapshot(vdi) ? undefined : vdi
 
     const vbd = actionableVdi

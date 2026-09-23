@@ -41,7 +41,6 @@ const emit = defineEmits<{
   close: []
 }>()
 
-// VDI snapshots can't be migrated, exported or deleted through the VDI jobs
 const actionableVdi = computed(() => (vdi !== undefined && !isVdiSnapshot(vdi) ? vdi : undefined))
 
 const vbd = useVmVbd(

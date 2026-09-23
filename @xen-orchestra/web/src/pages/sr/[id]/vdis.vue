@@ -38,7 +38,6 @@ const { useGetVdiSnapshotsByIds, areVdiSnapshotsReady, hasVdiSnapshotFetchError 
 const isReady = logicAnd(areVdisReady, areVdiSnapshotsReady)
 const hasFetchError = logicOr(hasVdiFetchError, hasVdiSnapshotFetchError)
 
-// `sr.VDIs` holds both VDI and VDI snapshot ids, each collection only resolves its own
 const vdis = useGetVdisByIds(() => sr.VDIs as FrontXoVdi['id'][])
 const vdiSnapshots = useGetVdiSnapshotsByIds(() => sr.VDIs as FrontXoVdiSnapshot['id'][])
 

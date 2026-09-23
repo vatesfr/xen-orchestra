@@ -64,7 +64,6 @@ const { isConnectedInScope } = useGetPbdsInScope()
 
 const srScopeQuery = computed(() => toSrScopeQuery(scope.value))
 
-// The list only contains SRs connected to this host, so they all share the same icon
 const connectedSrIcon = objectIcon('sr', CONNECTION_STATUS.CONNECTED)
 
 const srs = computed(() => {
