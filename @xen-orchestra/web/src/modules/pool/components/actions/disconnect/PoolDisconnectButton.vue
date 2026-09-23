@@ -2,7 +2,6 @@
   <MenuItem
     accent="danger"
     icon="action:disconnect"
-    class="typo-body-bold-small"
     :busy="isDisconnectingServer"
     :disabled="!canDisconnectServer"
     @click="disconnectServer()"

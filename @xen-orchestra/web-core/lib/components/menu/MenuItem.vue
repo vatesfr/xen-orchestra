@@ -1,6 +1,6 @@
 <!-- v1.0 -->
 <template>
-  <li class="menu-item" :class="className">
+  <li class="menu-item">
     <MenuTrigger
       v-if="!$slots.submenu"
       :accent
@@ -40,20 +40,17 @@ import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 import { useDisabled } from '@core/composables/disabled.composable.ts'
 import type { IconName } from '@core/icons'
 import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util.ts'
-import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed, inject, ref } from 'vue'
 
 export type MenuItemAccent = 'neutral' | 'brand' | 'danger' | 'warning'
 
-const { icon, onClick, disabled, busy, accent } = defineProps<{
+const { onClick, disabled, busy } = defineProps<{
   icon?: IconName
   onClick?: () => any
   disabled?: boolean
   busy?: boolean
   accent: MenuItemAccent
 }>()
-
-const className = computed(() => toVariants({ accent }))
 
 const isParentHorizontal = inject(
   IK_MENU_HORIZONTAL,
@@ -84,21 +81,7 @@ const handleClick = async () => {
 
 <style lang="postcss" scoped>
 .menu-item {
-  &.accent--neutral {
-    color: var(--color-neutral-txt-primary);
-  }
-
-  &.accent--brand {
-    color: var(--color-brand-txt-base);
-  }
-
-  &.accent--danger {
-    color: var(--color-danger-txt-base);
-  }
-
-  &.accent--warning {
-    color: var(--color-warning-txt-base);
-  }
+  color: var(--color-neutral-txt-primary);
 }
 
 .submenu-icon {

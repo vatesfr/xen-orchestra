@@ -14,7 +14,7 @@ import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
 const { accent } = defineProps<{
-  accent?: MenuItemAccent
+  accent: MenuItemAccent
   active?: boolean
   busy?: boolean
   disabled?: boolean
@@ -49,24 +49,49 @@ const className = computed(() => toVariants({ accent }))
       background-color: var(--color-brand-background-active);
     }
 
-    &.accent--danger {
+    &.accent--neutral {
+      color: var(--color-neutral-txt-primary);
+    }
+
+    &.accent--brand {
+      color: var(--color-brand-txt-base);
+
       &:hover {
+        color: var(--color-brand-txt-hover);
+      }
+
+      &:active,
+      &.active {
+        color: var(--color-brand-txt-active);
+      }
+    }
+
+    &.accent--danger {
+      color: var(--color-danger-txt-base);
+
+      &:hover {
+        color: var(--color-danger-txt-hover);
         background-color: var(--color-danger-background-hover);
       }
 
       &:active,
       &.active {
+        color: var(--color-danger-txt-active);
         background-color: var(--color-danger-background-active);
       }
     }
 
     &.accent--warning {
+      color: var(--color-warning-txt-base);
+
       &:hover {
+        color: var(--color-warning-txt-hover);
         background-color: var(--color-warning-background-hover);
       }
 
       &:active,
       &.active {
+        color: var(--color-warning-txt-active);
         background-color: var(--color-warning-background-active);
       }
     }
