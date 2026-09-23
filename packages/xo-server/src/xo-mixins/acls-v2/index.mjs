@@ -14,6 +14,7 @@ import {
   VMS_ADMINISTRATOR,
   NETWORK_ADMINISTRATOR,
   STORAGE_ADMINISTRATOR,
+  BACKUP_ADMINISTRATOR,
 } from './template-roles.mjs'
 
 import { Roles } from '../../models/acls-v2/role.mjs'
@@ -64,6 +65,7 @@ const TEMPLATE_ROLES = [
   /** @type {RoleTemplate} */ (ADMINISTRATOR),
   /** @type {RoleTemplate} */ (NETWORK_ADMINISTRATOR),
   /** @type {RoleTemplate} */ (STORAGE_ADMINISTRATOR),
+  /** @type {RoleTemplate} */ (BACKUP_ADMINISTRATOR),
 ]
 
 export default class {
