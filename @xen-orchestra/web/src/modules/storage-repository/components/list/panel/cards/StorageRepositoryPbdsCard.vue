@@ -10,7 +10,7 @@
       <div class="content">
         <VtsStatus :status="srConnectionStatus" />
       </div>
-      <div v-if="areSomePbdsDisconnected" class="content">
+      <div v-if="disconnectedPbds.length > 0" class="content">
         <template v-for="(pbd, index) in disconnectedPbds" :key="pbd.id">
           <VtsDivider v-if="index > 0" class="divider" type="stretch" />
           <span class="typo-body-bold-small subtitle">{{ t('disconnected-pbd-number', { n: index + 1 }) }}</span>
@@ -64,7 +64,7 @@ const { pbdsInScope, srConnectionStatus } = useXoSrUtils(
   () => scope
 )
 
-const { areSomePbdsDisconnected, disconnectedPbds } = useXoPbdUtils(pbdsInScope)
+const { disconnectedPbds } = useXoPbdUtils(pbdsInScope)
 </script>
 
 <style scoped lang="postcss">
