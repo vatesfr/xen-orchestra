@@ -85,6 +85,7 @@
 - [Backup] Fixed disk space not being freed during delta backup deletion ( PR [#10273] (https://github.com/vatesfr/xen-orchestra/pull/10273))
 - [REST API] Keep collection events ordered per object (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
 - [REST API] Wait for the XAPI objects before making a server connected (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
+- [REST API] Do not record an server error when a connection attempt is aborted (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
 
 ### Packages to release
 

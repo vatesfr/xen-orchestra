@@ -674,6 +674,13 @@ export default class XenServers {
     } catch (error) {
       delete this._xapis[server.id]
       await xapi.disconnect()::ignoreErrors()
+
+      // `_interruptOnDisconnect` rejects the pending call when the connection is
+      // closed: the attempt was aborted, and the disconnection handles the status
+      if (error.message === 'disconnected') {
+        throw error
+      }
+
       await this.updateXenServer(id, { status: 'disconnected' })
 
       const serializedError = serializeError(error)
