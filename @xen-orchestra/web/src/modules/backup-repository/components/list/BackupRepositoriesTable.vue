@@ -1,6 +1,9 @@
 <template>
   <UiTitle>
     {{ t('backup-repositories') }}
+    <template #action>
+      <slot name="title-actions" />
+    </template>
   </UiTitle>
   <VtsQueryBuilder v-model="filter" :schema />
 
@@ -19,12 +22,12 @@
 </template>
 
 <script setup lang="ts">
-import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import {
   getBackupRepositoryIcon,
   getBackupRepositoryStatus,
   getBackupRepositoryTypeLabelKey,
-} from '@/modules/backup/utils/xo-backup-repository.util.ts'
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
@@ -46,6 +49,10 @@ const { brs, busy, error } = defineProps<{
   brs: FrontXoBackupRepository[]
   busy: boolean
   error: boolean
+}>()
+
+defineSlots<{
+  'title-actions'?(): any
 }>()
 
 const { t } = useI18n()

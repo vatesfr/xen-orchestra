@@ -1,4 +1,4 @@
-import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { IconName } from '@core/icons'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'

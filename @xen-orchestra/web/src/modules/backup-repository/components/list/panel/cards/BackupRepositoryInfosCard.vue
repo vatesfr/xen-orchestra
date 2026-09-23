@@ -43,12 +43,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import {
   getBackupRepositoryIcon,
   getBackupRepositoryStatus,
   getBackupRepositoryTypeLabelKey,
-} from '@/modules/backup/utils/xo-backup-repository.util.ts'
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'

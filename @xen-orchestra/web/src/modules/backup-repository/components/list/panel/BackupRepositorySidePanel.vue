@@ -16,14 +16,14 @@
 </template>
 
 <script lang="ts" setup>
-import BackupRepositoryAzureCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositoryAzureAzuriteCard.vue'
-import BackupRepositoryInfosCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositoryInfosCard.vue'
-import BackupRepositoryLocalCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositoryLocalCard.vue'
-import BackupRepositoryNfsCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositoryNfsCard.vue'
-import BackupRepositoryS3Card from '@/modules/backup/components/repository/list/panel/cards/BackupRepositoryS3Card.vue'
-import BackupRepositorySmbCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositorySmbCard.vue'
-import BackupRepositorySpaceAndSpeedCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositorySpaceAndSpeedCard.vue'
-import { type FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+import BackupRepositoryAzureCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryAzureAzuriteCard.vue'
+import BackupRepositoryInfosCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryInfosCard.vue'
+import BackupRepositoryLocalCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryLocalCard.vue'
+import BackupRepositoryNfsCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryNfsCard.vue'
+import BackupRepositoryS3Card from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryS3Card.vue'
+import BackupRepositorySmbCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositorySmbCard.vue'
+import BackupRepositorySpaceAndSpeedCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositorySpaceAndSpeedCard.vue'
+import { type FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import { computed } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'

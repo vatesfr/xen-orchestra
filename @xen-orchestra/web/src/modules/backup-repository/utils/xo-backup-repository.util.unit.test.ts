@@ -3,7 +3,7 @@ import {
   getBackupRepositoryIcon,
   getBackupRepositoryStatus,
   getBackupRepositoryTypeLabelKey,
-} from '@/modules/backup/utils/xo-backup-repository.util.ts'
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { createBr } from '@/test/create-br.ts'
 import { objectIcon } from '@core/icons'
 

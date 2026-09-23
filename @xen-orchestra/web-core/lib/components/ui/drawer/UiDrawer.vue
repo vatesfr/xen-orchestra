@@ -1,5 +1,5 @@
 <template>
-  <form class="ui-drawer" @click.self="emit('dismiss')" @submit.prevent="emit('confirm')">
+  <form novalidate class="ui-drawer" @click.self="emit('dismiss')" @submit.prevent="emit('confirm')">
     <aside
       :aria-labelledby="slots.title || title !== undefined ? titleId : undefined"
       aria-modal="true"
