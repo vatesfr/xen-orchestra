@@ -366,7 +366,7 @@
   "query-builder:operator:starts-with": "Incomincia con",
   "query-search-bar:label": "Motore di ricerca",
   "query-search-bar:placeholder": "@:query-builder:placeholder",
-  "query-search-bar:use-query-builder": "Usa il generatore di query",
+  "query-search-bar:use-query-builder": "@:query-builderUsa il generatore di query",
   "read-only": "Sola lettura",
   "relative-time:day": "1 giorno | {n} giorni",
   "relative-time:future": "Entro {str}",
