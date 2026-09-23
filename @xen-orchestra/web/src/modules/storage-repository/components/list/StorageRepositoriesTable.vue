@@ -3,6 +3,7 @@
     <UiTitle>
       {{ t('storage-repositories') }}
       <template #action>
+        <slot name="title-actions" />
         <UiLink size="medium" :href>{{ t('configure-in-xo-5') }}</UiLink>
       </template>
     </UiTitle>
@@ -63,6 +64,10 @@ const {
   scope: SrScope
   busy?: boolean
   error?: boolean
+}>()
+
+defineSlots<{
+  'title-actions'(): any
 }>()
 
 const { t } = useI18n()
