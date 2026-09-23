@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoBackupRepositoryParsedUrl } from '@/modules/backup/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import { getBackupRepositoryIcon } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -90,7 +91,8 @@ const { HeadCells, BodyCells } = useColumns({
     const { buildXo5Route } = useXoRoutes()
 
     const href = computed(() => buildXo5Route('/settings/remotes'))
-    const statusIcon = computed(() => getBackupRepositoryIcon(br))
+    const parsedBrUrl = useXoBackupRepositoryParsedUrl(() => br)
+    const statusIcon = computed(() => getBackupRepositoryIcon(br, parsedBrUrl.value?.type))
 
     return {
       backupRepository: r => r({ label: br.name, href: href.value, icon: statusIcon.value }),

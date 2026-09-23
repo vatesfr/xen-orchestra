@@ -51,7 +51,10 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup/jobs/xo-backup-repository-benchmark.job.ts'
+import {
+  type BackupRepositoryBenchmarkResult,
+  useXoBackupRepositoryBenchmarkJob,
+} from '@/modules/backup/jobs/xo-backup-repository-benchmark.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -72,7 +75,7 @@ const { t } = useI18n()
 
 const storedBenchmark = computed(() => br.benchmarks?.at(-1))
 
-const manualBenchmark = ref<{ readRate: number; writeRate: number } | undefined>()
+const manualBenchmark = ref<BackupRepositoryBenchmarkResult>()
 
 const displayedBenchmark = computed(() => manualBenchmark.value ?? storedBenchmark.value)
 

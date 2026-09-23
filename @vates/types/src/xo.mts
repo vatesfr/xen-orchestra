@@ -201,8 +201,14 @@ export type XoPoolBackupArchive = XoMetadataBackupArchive & {
   type: 'xo-pool-metadata-backup'
 }
 
+export type XoBackupRepositoryBenchmark = {
+  readRate: number
+  timestamp: number
+  writeRate: number
+}
+
 export type XoBackupRepository = {
-  benchmarks?: { readRate: number; timestamp: number; writeRate: number }[]
+  benchmarks?: XoBackupRepositoryBenchmark[]
   enabled: boolean
   error?: Record<string, unknown>
   id: Branded<'backup-repository'>

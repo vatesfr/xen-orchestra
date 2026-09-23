@@ -75,7 +75,7 @@ const { useGetProxyById } = useXoProxyCollection()
 
 const brType = computed(() => t(getBackupRepositoryTypeLabelKey(parsedBrUrl?.type)))
 
-const brIcon = computed(() => getBackupRepositoryIcon(br))
+const brIcon = computed(() => getBackupRepositoryIcon(br, parsedBrUrl?.type))
 
 const brStatus = computed(() => getBackupRepositoryStatus(br))
 
