@@ -28,6 +28,7 @@ import XapiStats from '../xapi-stats.mjs'
 import { autoReconnect } from '../_xenServerAutoReconnect.mjs'
 import { camelToSnakeCase, forEach, isEmpty, popProperty, serializeError } from '../utils.mjs'
 import { Servers } from '../models/server.mjs'
+import { DISCONNECTED_ERROR_CODE } from 'xen-api'
 
 // ===================================================================
 
@@ -683,6 +684,13 @@ export default class XenServers {
     } catch (error) {
       delete this._xapis[server.id]
       await xapi.disconnect()::ignoreErrors()
+
+      // `_interruptOnDisconnect` rejects the pending call when the connection is
+      // closed: the attempt was aborted, and the disconnection handles the status
+      if (error.code === DISCONNECTED_ERROR_CODE) {
+        throw error
+      }
+
       await this.updateXenServer(id, { status: 'disconnected' })
 
       const serializedError = serializeError(error)
