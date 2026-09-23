@@ -49,10 +49,10 @@ import BackupRepositoryFormRow from '@/modules/backup-repository/components/form
 import BackupRepositoryFormCheckbox from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormCheckbox.vue'
 import BackupRepositoryFormSelect from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormSelect.vue'
 import BackupRepositoryFormTextInput from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormTextInput.vue'
-import type { BackupRepositoryGeneralForm } from '@/modules/backup-repository/form/use-backup-repository-general-form.js'
-import VtsOption from '@xen-orchestra/web-core/components/select/VtsOption.vue'
-import UiAlert from '@xen-orchestra/web-core/components/ui/alert/UiAlert.vue'
-import UiTitle from '@xen-orchestra/web-core/components/ui/title/UiTitle.vue'
+import type { BackupRepositoryGeneralForm } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
+import VtsOption from '@core/components/select/VtsOption.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -74,15 +74,15 @@ const { t } = useI18n()
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
-  }
-}
 
-.option-content {
-  display: inline-flex;
-  gap: 0.8rem;
+    .option-content {
+      display: inline-flex;
+      gap: 0.8rem;
 
-  .hint {
-    color: var(--color-neutral-txt-secondary);
+      .hint {
+        color: var(--color-neutral-txt-secondary);
+      }
+    }
   }
 }
 </style>

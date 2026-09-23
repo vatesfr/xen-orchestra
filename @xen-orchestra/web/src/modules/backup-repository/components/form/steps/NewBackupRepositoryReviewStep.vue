@@ -102,7 +102,7 @@
           <VtsTabularKeyValueRow :label="t('account-name')" :value="details.azure.formData.accountName" />
           <VtsTabularKeyValueRow :label="t('key')" :value="maskedAzureKey" />
           <VtsTabularKeyValueRow :label="t('container-name')" :value="details.azure.formData.containerName" />
-          <VtsTabularKeyValueRow :label="t('path')" :value="details.azure.formData.pathInContainer" />
+          <VtsTabularKeyValueRow :label="t('path-in-container')" :value="details.azure.formData.pathInContainer" />
         </template>
       </VtsTabularKeyValueList>
     </div>
@@ -114,14 +114,17 @@ import { NFS_DEFAULT_PORT } from '@/modules/backup-repository/form/details/use-n
 import { SMB_DEFAULT_DOMAIN } from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
 import type { BackupRepositoryGeneralForm } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import type { NewBackupRepositoryDetailsForms } from '@/modules/backup-repository/form/use-new-backup-repository-form.ts'
-import { getBackupRepositoryTypeLabelKey } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import {
+  getBackupRepositoryTypeLabelKey,
+  MASKED_SECRET,
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import VtsIcon from '@xen-orchestra/web-core/components/icon/VtsIcon.vue'
-import VtsStatus from '@xen-orchestra/web-core/components/status/VtsStatus.vue'
-import VtsTabularKeyValueList from '@xen-orchestra/web-core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
-import VtsTabularKeyValueRow from '@xen-orchestra/web-core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
-import UiButton from '@xen-orchestra/web-core/components/ui/button/UiButton.vue'
-import UiTitle from '@xen-orchestra/web-core/components/ui/title/UiTitle.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -134,8 +137,6 @@ const { general, details } = defineProps<{
 const emit = defineEmits<{
   edit: [step: 'general' | 'details']
 }>()
-
-const MASKED_VALUE = '•'.repeat(12)
 
 const { t } = useI18n()
 
@@ -158,7 +159,7 @@ const smbPath = computed(() => {
 })
 
 function mask(value: string): string {
-  return value !== '' ? MASKED_VALUE : ''
+  return value !== '' ? MASKED_SECRET : ''
 }
 
 const maskedSmbPassword = computed(() => mask(details.smb.formData.password))

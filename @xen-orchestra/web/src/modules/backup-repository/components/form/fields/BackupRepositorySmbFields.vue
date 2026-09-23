@@ -29,7 +29,7 @@ import BackupRepositoryFormRow from '@/modules/backup-repository/components/form
 import BackupRepositoryFormTextArea from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormTextArea.vue'
 import BackupRepositoryFormTextInput from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormTextInput.vue'
 import type { SmbBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
-import UiAlert from '@xen-orchestra/web-core/components/ui/alert/UiAlert.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

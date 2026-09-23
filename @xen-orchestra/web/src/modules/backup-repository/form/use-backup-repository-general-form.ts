@@ -17,7 +17,7 @@ type BackupRepositoryGeneralFormData = {
 }
 
 const ENCRYPTION_KEY_LENGTH = 32
-const ENCRYPTION_KEY_REGEX = /^[0-9a-f]{32}$/i
+const ENCRYPTION_KEY_REGEX = new RegExp(`^[0-9a-f]{${ENCRYPTION_KEY_LENGTH}}$`, 'i')
 
 const BACKUP_FORMAT_DOC_URL = 'https://docs.xen-orchestra.com/xo5/incremental_backups'
 
