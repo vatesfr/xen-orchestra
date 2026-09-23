@@ -1,11 +1,6 @@
 <template>
   <UiPanelCard class="storage-repository-hosts-card">
-    <UiCardTitle>
-      <div class="title">
-        {{ t('hosts') }}
-        <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
-      </div>
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('hosts')" :counter="hosts.length" />
     <UiCollapsibleList v-if="hosts.length > 0" tag="ul" :total-items="hosts.length">
       <li v-for="host in hosts" :key="host.id" v-tooltip class="text-ellipsis">
         <HostLink :host="host" size="small" />
@@ -21,10 +16,9 @@
 import HostLink from '@/modules/host/components/HostLink.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -34,13 +28,3 @@ defineProps<{
 
 const { t } = useI18n()
 </script>
-
-<style scoped lang="postcss">
-.storage-repository-hosts-card {
-  .title {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-  }
-}
-</style>

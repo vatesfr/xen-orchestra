@@ -1,7 +1,8 @@
 <template>
   <UiPanelCard class="backup-job-infos-card">
-    <VtsCardObjectTitle
+    <UiPanelCardTitle
       :id="backupJob.id"
+      size="medium"
       :to="{ name: `/backup/[id]/runs`, params: { id: backupJob.id } }"
       :label="backupJob.name"
       icon="object:backup-job"
@@ -32,10 +33,10 @@
 import { useXoBackupUtils } from '@/modules/backup/composables/xo-backup-utils.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
