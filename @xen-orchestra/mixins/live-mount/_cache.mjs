@@ -1,68 +1,18 @@
 import { createLogger } from '@xen-orchestra/log'
 
 import { cacheLabel } from './_utils.mjs'
-import { resolveSelfVmRef } from './_self.mjs'
 
 const { info } = createLogger('xo:mixins:LiveMount')
-
-// what XAPI answers for a field holding no reference
-const NULL_REF = 'OpaqueRef:NULL'
 
 // identifies the VDIs we created, so a leftover after a hard kill is recognizable
 const OC_MOUNT = 'xo:live-mount'
 
 /**
- * What the caller asked for, merged with the configured defaults, or
- * `undefined` when this mount gets no cache at all.
+ * Create a VDI the size of the source disk, hot-plug it onto the appliance's VM
+ * and open it as a block device.
  *
- * @param {boolean | { srUuid?: string, hydrate?: boolean } | undefined} cache
- * @param {object} config - the app config, for the `iscsi.cache*` keys
- * @returns {undefined | { srUuid: string | undefined, hydrate: boolean }}
- */
-export function normalizeCacheOptions(cache, config) {
-  if (cache === undefined) {
-    cache = config.getOptional('iscsi.cache') ?? false
-  }
-  if (cache === false) {
-    return undefined
-  }
-  if (cache === true) {
-    cache = {}
-  }
-  return {
-    srUuid: cache.srUuid ?? config.getOptional('iscsi.cacheSr'),
-    hydrate: cache.hydrate ?? config.getOptional('iscsi.cacheHydrate') ?? false,
-  }
-}
-
-/**
- * The SR the cache VDI is created on: the one asked for, else the pool's
- * default.
- *
- * Whether it is actually reachable from the host this appliance runs on is not
- * checked here — that duplicates XAPI's own logic and gets it subtly wrong. It
- * surfaces as a plug failure instead, which names the SR.
- */
-export async function resolveCacheSr(xapi, srUuid) {
-  if (srUuid !== undefined) {
-    return xapi.call('SR.get_by_uuid', srUuid)
-  }
-  const [poolRef] = await xapi.call('pool.get_all')
-  const srRef = await xapi.call('pool.get_default_SR', poolRef)
-  if (srRef === undefined || srRef === NULL_REF) {
-    throw new Error('no SR to hold the live mount cache: this pool has no default SR, set iscsi.cacheSr')
-  }
-  return srRef
-}
-
-/**
- * Give this mount somewhere local to materialize the disk into: a VDI the size
- * of the source, hot-plugged onto this appliance's own VM, opened as the block
- * device it surfaces as.
- *
- * Everything it creates is registered on the caller's `$defer`, not on one of
- * its own, so a failure *later* in the mount — the SCSI probe, the SR, the VDI
- * introduced on the host — unwinds it too.
+ * Everything is registered on the caller's `$defer`, so a failure later in the
+ * mount unwinds it too.
  *
  * @param {object} $defer - the caller's golike-defer handle
  * @param {object} params
@@ -70,21 +20,15 @@ export async function resolveCacheSr(xapi, srUuid) {
  * @param {object} params.disk - the source disk, already opened
  * @param {string} params.diskPath - path of the source disk, for the labels
  * @param {string} params.id - id of the mount
- * @param {{ srUuid?: string }} params.cacheOptions - from {@link normalizeCacheOptions}
- * @param {() => Promise<string>} params.getSelfVmUuid
+ * @param {string} params.srUuid - SR holding the cache VDI
+ * @param {string} params.vmUuid - VM of this appliance, the cache VDI is plugged onto it
  * @param {(options: { path: string, size: number }) => object} params.createCacheDevice
- * @param {(xapi: object, vbdRef: string) => Promise<string>} params.waitForVbdDevice
  * @returns {Promise<{ device: object, vbdRef: string, vdiRef: string }>}
  */
-export async function createCache(
-  $defer,
-  { xapi, disk, diskPath, id, cacheOptions, getSelfVmUuid, createCacheDevice, waitForVbdDevice }
-) {
-  const vmRef = await resolveSelfVmRef(xapi, await getSelfVmUuid())
-  const srRef = await resolveCacheSr(xapi, cacheOptions.srUuid)
+export async function createCache($defer, { xapi, disk, diskPath, id, srUuid, vmUuid, createCacheDevice }) {
+  const vmRef = await xapi.call('VM.get_by_uuid', vmUuid)
+  const srRef = await xapi.call('SR.get_by_uuid', srUuid)
 
-  // XAPI rounds the size up to the SR's allocation quantum, which is fine: the
-  // cache only has to be *at least* as large as the disk
   const vdiRef = await xapi.VDI_create({
     name_description: `read cache of the live mount of ${diskPath}`,
     name_label: `[XO live mount cache] ${cacheLabel(diskPath)}`,
@@ -94,13 +38,7 @@ export async function createCache(
   })
   $defer.onFailure(() => xapi.VDI_destroy(vdiRef))
 
-  // `throwVbdPlug` because VBD_create otherwise only warns on a plug failure and
-  // still answers a ref, which would resurface as an unexplained wait for a
-  // device that is never going to appear.
-  //
-  // No `userdevice`: XAPI picks a free slot, and the path is read back from the
-  // VBD rather than derived from it — the `userdevice` to `xvd<letter>` mapping
-  // is a guest convention, not a guarantee.
+  // without `throwVbdPlug`, a plug failure is only logged
   const vbdRef = await xapi.VBD_create({
     mode: 'RW',
     throwVbdPlug: true,
@@ -111,11 +49,16 @@ export async function createCache(
   })
   $defer.onFailure(() => xapi.VBD_destroy(vbdRef))
 
-  const path = await waitForVbdDevice(xapi, vbdRef)
-  // read back what XAPI recorded rather than probing the device node: a block
-  // device's inode reports no size, and we are the ones who provisioned it
-  const size = Number(await xapi.getField('VDI', vdiRef, 'virtual_size'))
+  // the VBD is plugged, the barrier makes its `device` visible in the object cache
+  const { device: deviceName } = await xapi.barrier(vbdRef)
+  if (!/^[a-z0-9]+$/i.test(deviceName ?? '')) {
+    throw new Error(`unusable device name for the cache VBD ${vbdRef}: ${JSON.stringify(deviceName)}`)
+  }
+  const path = `/dev/${deviceName}`
+  // XAPI may have rounded the size up to the SR allocation quantum
+  const size = Number(xapi.getObjectByRef(vdiRef).virtual_size)
 
+  // the device node may lag behind the plug, `open()` retries until udev created it
   const device = createCacheDevice({ path, size })
   await device.open()
   $defer.onFailure(() => device.close())

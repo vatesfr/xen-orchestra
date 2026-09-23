@@ -170,20 +170,19 @@ declare namespace backup {
   // The portal handed to the host is this proxy's address as seen from it, auto-detected unless
   // `iscsi.advertisedAddress` is set in the proxy configuration.
   //
-  // With `cache`, each block read is kept in a VDI hot-plugged onto this proxy's own VM, so the
-  // backup repository is read at most once per block. That VDI is created with the mount and
-  // destroyed with it, and it requires this proxy to be a VM of `xapi`'s pool. `srUuid` picks the
-  // SR holding it (default: `iscsi.cacheSr`, else the pool's default SR), and `hydrate` pulls the
-  // whole disk in the background instead of only what is read. Defaults to `iscsi.cache`.
+  // With `cacheSr`, each block read is kept in a VDI of this SR, hot-plugged onto this proxy's own
+  // VM `vm`, so the backup repository is read at most once per block. That VDI is created with the
+  // mount and destroyed with it, and it requires this proxy to be a VM of `xapi`'s pool.
   //
   // There is no method to list the mounts: a proxy is driven by a single XO, which is the one
   // keeping track of them.
   function mountDisk(_: {
-    cache?: boolean | { srUuid?: string; hydrate?: boolean }
+    cacheSr?: string
     disk: string
     host: string
     nameLabel?: string
     remote: Remote
+    vm?: string
     xapi: Xapi
   }): MountedDisk
 

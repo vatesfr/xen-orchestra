@@ -58,23 +58,6 @@ port = 443
 # Address the iSCSI targets bind to. Unset means all interfaces.
 #bindAddress = '0.0.0.0'
 
-# Materialize each live-mounted disk into a local VDI as it is read, so a block
-# is only ever fetched from the backup repository once. Much faster on anything
-# read more than once, at the cost of a VDI: it is created when the disk is
-# mounted, and destroyed when it is unmounted — nothing is kept.
-#
-# Requires this appliance to be a VM of the pool the disk is mounted onto.
-#cache = false
-
-# SR holding those cache VDIs. Defaults to the pool's default SR. It must be
-# usable by the host this appliance runs on.
-#cacheSr = '00000000-0000-0000-0000-000000000000'
-
-# Pull the whole disk into the cache in the background, instead of only the
-# blocks that are read. Copies the entire disk from the backup repository, so it
-# is only worth it for a mount which will be read at random for a long time.
-#cacheHydrate = false
-
 [logs]
 # Display all logs matching this filter, regardless of their level
 #filter = 'xo:backups:*'

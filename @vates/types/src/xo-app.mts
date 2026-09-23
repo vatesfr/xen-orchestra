@@ -13,6 +13,7 @@ import type {
   XoProxy,
   XoSchedule,
   XoServer,
+  XoSr,
   XoTask,
   XoUser,
   XoVif,
@@ -432,6 +433,8 @@ export type XoApp = {
    */
   mountBackupArchiveDisk(params: {
     archiveId: XoVmBackupArchive['id']
+    /** SR of a local VDI caching the disk as it is read; unset, nothing is cached */
+    cacheSrId?: XoSr['id']
     /** One of the archive's `disks[].id` */
     diskId: string
     hostId: XoHost['id']

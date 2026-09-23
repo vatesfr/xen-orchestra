@@ -363,18 +363,27 @@ export default class Backups {
           },
         ],
         mountDisk: [
-          ({ cache, disk, host, nameLabel, remote, xapi }) =>
-            this.#mountDisk({ cache, diskPath: disk, hostUuid: host, nameLabel, remote, xapi }),
+          ({ cacheSr, disk, host, nameLabel, remote, vm, xapi }) =>
+            this.#mountDisk({
+              cacheSrUuid: cacheSr,
+              diskPath: disk,
+              hostUuid: host,
+              nameLabel,
+              remote,
+              vmUuid: vm,
+              xapi,
+            }),
           {
             description: 'serve a disk of a backup repository as a read-only iSCSI LUN, attached to a host as an SR',
             params: {
-              // `true`, or `{ srUuid, hydrate }`: materialize the disk into a local VDI as it is
-              // read. Defaults to this proxy's `iscsi.cache` config key.
-              cache: { type: ['boolean', 'object'], optional: true },
+              // uuid of the SR of a local cache VDI, requires `vm`
+              cacheSr: { type: 'string', optional: true },
               disk: { type: 'string' },
               host: { type: 'string' },
               nameLabel: { type: 'string', optional: true },
               remote: { type: 'object' },
+              // uuid of this proxy's own VM, the cache VDI is plugged onto it
+              vm: { type: 'string', optional: true },
               xapi: { type: 'object' },
             },
           },
@@ -481,22 +490,23 @@ export default class Backups {
    * @param {string} [params.nameLabel] - name of the created SR
    * @param {object} params.remote - backup repository holding the disk
    * @param {object} params.xapi - connection options of the pool owning `hostUuid`
-   * @param {boolean | { srUuid?: string, hydrate?: boolean }} [params.cache] - materialize the disk
-   * into a local VDI as it is read; defaults to the `iscsi.cache` config key
+   * @param {string} [params.cacheSrUuid] - SR of a local cache VDI, requires `vmUuid`
+   * @param {string} [params.vmUuid] - uuid of this proxy's own VM
    */
-  async #mountDisk({ cache, diskPath, hostUuid, nameLabel, remote, xapi: xapiOpts }) {
+  async #mountDisk({ cacheSrUuid, diskPath, hostUuid, nameLabel, remote, vmUuid, xapi: xapiOpts }) {
     const {
       dispose,
       value: [adapter, xapi],
     } = await Disposable.all([this.getAdapter(remote), this.getXapi(xapiOpts)])
     try {
       return await this._app.liveMount.mountDisk({
-        cache,
+        cacheSrUuid,
         diskPath,
         handler: adapter.handler,
         hostRef: await xapi.call('host.get_by_uuid', hostUuid),
         nameLabel,
         release: dispose,
+        vmUuid,
         xapi,
       })
     } catch (error) {

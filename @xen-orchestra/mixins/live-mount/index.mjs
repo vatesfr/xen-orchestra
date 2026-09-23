@@ -6,12 +6,10 @@ import { EventEmitter } from 'node:events'
 import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { randomBytes } from 'node:crypto'
 
-import { createCache, normalizeCacheOptions } from './_cache.mjs'
+import { createCache } from './_cache.mjs'
 import { createChapCredentials, probeScsiId } from './_target.mjs'
 import { detectLocalAddress } from './_address.mjs'
 import { forgetSr, introduceSr, introduceVdi } from './_sr.mjs'
-import { getSelfVmUuid } from './_self.mjs'
-import { waitForVbdDevice } from './_device.mjs'
 
 const { info, warn } = createLogger('xo:mixins:LiveMount')
 
@@ -19,15 +17,13 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * Serve a disk as a read-only iSCSI LUN and attach it, as an SR, to a host —
  * so its content is usable without copying it first.
  *
- * By default nothing is cached: every read goes straight to the source, and
- * writes are refused (the LUN is backed by `@vates/iscsi`'s `DiskBlockDevice`,
- * which is read-only). Since nothing needs to be plugged into this appliance's
- * own VM, such a mount can target any host reachable by the caller.
+ * Without a cache SR, nothing is cached: every read goes straight to the
+ * source, writes are refused, and the mount can target any host reachable by
+ * the caller.
  *
- * With a cache, the disk is instead materialized block by block into a VDI
- * hot-plugged onto this appliance's own VM, so the backup repository is read at
- * most once per block. That VDI lives and dies with the mount, and it ties the
- * mount to this appliance's own pool — which is the price of a local device.
+ * With one, the disk is materialized block by block into a VDI hot-plugged onto
+ * this appliance's own VM, which must then belong to the pool of the target
+ * host. That VDI lives and dies with the mount.
  *
  * Nothing app-specific is read from `app` apart from `config` and `hooks`: the
  * source disk, the XAPI connection and the target host are all passed in by
@@ -58,9 +54,7 @@ export default class LiveMount extends EventEmitter {
   #createCacheDevice
   #createTarget
   #detectAddress
-  #getSelfVmUuid
   #openDisk
-  #waitForVbdDevice
 
   // mount id -> mount record
   #mounts = new Map()
@@ -78,8 +72,6 @@ export default class LiveMount extends EventEmitter {
       createCacheDevice = options => new RawBlockDevice(options),
       createTarget = options => new IscsiTarget(options),
       detectAddress = detectLocalAddress,
-      getSelfVmUuid: injectedGetSelfVmUuid = getSelfVmUuid,
-      waitForVbdDevice: injectedWaitForVbdDevice = waitForVbdDevice,
     } = {}
   ) {
     super()
@@ -88,9 +80,7 @@ export default class LiveMount extends EventEmitter {
     this.#createCacheDevice = createCacheDevice
     this.#createTarget = createTarget
     this.#detectAddress = detectAddress
-    this.#getSelfVmUuid = injectedGetSelfVmUuid
     this.#openDisk = openDisk
-    this.#waitForVbdDevice = injectedWaitForVbdDevice
 
     app.hooks.on('stop', () =>
       asyncEach(
@@ -112,9 +102,9 @@ export default class LiveMount extends EventEmitter {
    * @param {string} params.hostRef - opaque ref of the host the disk is attached to as an SR
    * @param {string} [params.nameLabel] - name of the created SR
    * @param {() => Promise<void>} [params.release] - called on unmount, e.g. to dispose the remote handler
-   * @param {boolean | { srUuid?: string, hydrate?: boolean }} [params.cache] - materialize the disk into a
-   * local VDI as it is read, so the backup repository is read at most once per block. Defaults to the
-   * `iscsi.cache` config key. Requires this appliance to be a VM of `xapi`'s pool.
+   * @param {string} [params.cacheSrUuid] - SR of a local VDI the disk is materialized into as it is
+   * read, so the backup repository is read at most once per block. Unset, nothing is cached.
+   * @param {string} [params.vmUuid] - VM of this appliance, in `xapi`'s pool; required with `cacheSrUuid`
    * @returns {Promise<{ id: string, srUuid: string, vdiUuid: string, iqn: string, address: string, port: number }>}
    */
   async mountDisk(params) {
@@ -131,9 +121,12 @@ export default class LiveMount extends EventEmitter {
     }
   }
 
-  #createDiskMount = defer(async ($defer, { cache, handler, diskPath, xapi, hostRef, nameLabel, release }) => {
+  #createDiskMount = defer(async ($defer, params) => {
+    const { cacheSrUuid, diskPath, handler, hostRef, nameLabel, release, vmUuid, xapi } = params
+    if (cacheSrUuid !== undefined && vmUuid === undefined) {
+      throw new Error('vmUuid is required to create a live mount cache')
+    }
     const config = this.#app.config
-    const cacheOptions = normalizeCacheOptions(cache, config)
     // `iscsi.advertisedAddress` overrides auto-detection; unset, the address
     // reachable *from* the target host is guessed by asking the OS which
     // local address it would route through to reach it — usually right, but
@@ -154,22 +147,19 @@ export default class LiveMount extends EventEmitter {
     const disk = await this.#openDisk({ handler, path: diskPath })
     $defer.onFailure(() => disk.close())
 
-    // the cache is provisioned before the target, which opens the LUN and needs
-    // the store to be there — and on the caller's `$defer`, so a failure further
-    // down (the SCSI probe, the SR, the VDI) unwinds it too
+    // before the target, which opens the LUN
     let mountCache
     let lun
-    if (cacheOptions === undefined) {
+    if (cacheSrUuid === undefined) {
       lun = new DiskBlockDevice({ disk })
     } else {
       mountCache = await createCache($defer, {
-        cacheOptions,
         createCacheDevice: this.#createCacheDevice,
         disk,
         diskPath,
-        getSelfVmUuid: this.#getSelfVmUuid,
         id,
-        waitForVbdDevice: this.#waitForVbdDevice,
+        srUuid: cacheSrUuid,
+        vmUuid,
         xapi,
       })
       lun = new CachedDiskBlockDevice({ cache: mountCache.device, disk })
@@ -210,9 +200,9 @@ export default class LiveMount extends EventEmitter {
 
     const vdiUuid = await introduceVdi({ xapi, srRef, SCSIid, size: lun.getSize(), diskPath, readOnly: true })
 
-    info('mounted', { id, address, port, srUuid, vdiUuid, diskPath, cached: cacheOptions !== undefined })
+    info('mounted', { id, address, port, srUuid, vdiUuid, diskPath, cached: mountCache !== undefined })
 
-    const mount = {
+    return {
       address,
       cache: mountCache,
       disk,
@@ -228,35 +218,7 @@ export default class LiveMount extends EventEmitter {
       vdiUuid,
       xapi,
     }
-    if (cacheOptions?.hydrate) {
-      mount.hydration = this.#startHydration(mount)
-    }
-    return mount
   })
-
-  /**
-   * Pull the whole disk into the cache in the background, rather than only what
-   * is read.
-   *
-   * Off unless asked for: copying the entire disk from the backup repository is
-   * precisely what a live mount exists to avoid, and it is only worth it for a
-   * mount which will be read at random for a long time.
-   *
-   * Both outcomes are handled here rather than with a bare `.catch`, so an abort
-   * on unmount never surfaces as an unhandled rejection.
-   */
-  #startHydration({ diskPath, id, lun }) {
-    const controller = new AbortController()
-    const promise = lun.hydrate({ signal: controller.signal }).then(
-      () => info('hydration complete', { diskPath, id }),
-      error => {
-        if (!controller.signal.aborted) {
-          warn('hydration failed', { diskPath, error, id })
-        }
-      }
-    )
-    return { controller, promise }
-  }
 
   /**
    * Tear a mount down as soon as its VDI disappears from the pool.
@@ -320,10 +282,8 @@ export default class LiveMount extends EventEmitter {
    * socket, a disk chain, a VDI and an SR, and giving up halfway would leak
    * whatever came after.
    *
-   * Their order is load-bearing once there is a cache: the hydration must stop
-   * before anything closes, or a fetch in flight writes to a closed descriptor;
-   * and the device must be closed before its VBD is unplugged, or the kernel
-   * refuses to release it and the VDI is leaked instead.
+   * With a cache, the device must be closed before its VBD is unplugged, or the
+   * kernel refuses to release it and the VDI is leaked.
    *
    * @param {string} id - identifier returned by {@link LiveMount#mountDisk}
    */
@@ -339,7 +299,7 @@ export default class LiveMount extends EventEmitter {
     // not the deletion this mixin reacts to
     this.#unwatchVdi(mount)
 
-    const { cache, hydration, xapi, srRef, target, release } = mount
+    const { cache, xapi, srRef, target, release } = mount
 
     const errors = []
     const step = async (what, fn) => {
@@ -351,14 +311,6 @@ export default class LiveMount extends EventEmitter {
       }
     }
 
-    if (hydration !== undefined) {
-      // awaited, not just signalled: it rejects once the blocks in flight have settled, and those
-      // are the ones which would otherwise still be writing to the cache below
-      await step('stop the hydration', async () => {
-        hydration.controller.abort()
-        await hydration.promise
-      })
-    }
     await step('forget the SR', () => forgetSr(xapi, srRef))
     // stop serving first, so no I/O is left in flight
     await step('close the target', () => target.close())
@@ -388,13 +340,7 @@ export default class LiveMount extends EventEmitter {
     info('unmounted', { id, srUuid: mount.srUuid })
   }
 
-  /**
-   * Live disk mounts, in creation order.
-   *
-   * A cached mount also reports how much of the disk is local already, which is
-   * the only way to observe a warmup: polled from the LUN rather than pushed,
-   * since there is no task to report progress to.
-   */
+  /** Live disk mounts, in creation order; a cached one also reports how much of the disk is local. */
   listMountedDisks() {
     return [...this.#mounts.values()].map(({ id, srUuid, vdiUuid, diskPath, iqn, address, port, cache, lun }) => ({
       id,
