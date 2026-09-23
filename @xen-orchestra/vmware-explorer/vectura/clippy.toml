@@ -1,0 +1,4 @@
+# Clippy configuration. `doc_markdown` (pedantic) asks for backticks around
+# any CamelCase word in a doc comment; these are the product names the docs
+# use as prose, not identifiers. `..` keeps Clippy's own default list.
+doc-valid-idents = ["VMware", "ESXi", "vCenter", "vSphere", "OpenSSL", ".."]

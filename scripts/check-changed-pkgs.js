@@ -33,6 +33,10 @@ const IGNORED_PACKAGES = new Set([
   '@xen-orchestra/lite',
 ])
 
+// vectura is a Rust crate, released on its own: @xen-orchestra/vmware-explorer
+// bundles its Debian package and `gen-deps-list.js` releases it after vectura
+const VECTURA_DIR = '@xen-orchestra/vmware-explorer/vectura/'
+
 // files which don't change what is shipped to users: a package whose changes
 // are limited to them does not need to be released
 const IGNORED_FILES = [
@@ -72,7 +76,7 @@ function getChangedPackages(changedFiles, packageNamesByDir) {
       continue
     }
 
-    const name = packageNamesByDir.get(`${parts[0]}/${parts[1]}`)
+    const name = file.startsWith(VECTURA_DIR) ? 'vectura' : packageNamesByDir.get(`${parts[0]}/${parts[1]}`)
     if (name === undefined || IGNORED_PACKAGES.has(name) || isIgnoredFile(file)) {
       continue
     }

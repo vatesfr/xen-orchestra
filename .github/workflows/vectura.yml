@@ -1,0 +1,57 @@
+name: Vectura
+
+# only when vectura changes: the rest of the repository does not build it
+on:
+  push:
+    paths:
+      - '@xen-orchestra/vmware-explorer/vectura/**'
+      - .github/workflows/vectura.yml
+
+defaults:
+  run:
+    working-directory: '@xen-orchestra/vmware-explorer/vectura'
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@v4
+
+      # rustup, on the runner image, installs the toolchain rust-toolchain.toml
+      # names on the first cargo command
+      - run: cargo fmt --all --check
+      - run: cargo clippy --all-targets --locked -- -D warnings
+      - run: cargo test --locked
+
+      # https://github.com/taiki-e/install-action
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny@0.20.2,cargo-llvm-cov@0.8.5
+
+      - run: cargo deny --locked check
+      - run: cargo llvm-cov --locked --json --summary-only --output-path target/coverage.json
+      - name: Hold the coverage floor
+        run: cargo test --locked --test coverage -- --ignored
+
+  # builds the Debian package as a release does, then checks it and the one in
+  # git, which users install
+  deb:
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@v4
+
+      # https://github.com/mlugg/setup-zig
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+
+      # https://github.com/taiki-e/install-action
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild@0.23.4,cargo-deb@3.7.0
+
+      - run: scripts/build-deb.sh "$RUNNER_TEMP/deb"
+      - run: sudo scripts/check-deb.sh "$RUNNER_TEMP"/deb/vectura_*.deb
+      - run: sudo scripts/check-deb.sh vectura_*.deb

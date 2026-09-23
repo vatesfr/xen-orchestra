@@ -2,7 +2,8 @@
 'use strict'
 
 const semver = require('semver')
-const { getPackages } = require('./utils')
+const { join } = require('path')
+const { getPackages, readFile } = require('./utils')
 const { readChangelogPackages } = require('./_readChangelogPackages.js')
 const invert = require('lodash/invert')
 const keyBy = require('lodash/keyBy')
@@ -78,6 +79,16 @@ async function main(args, scriptName) {
   }
 
   allPackages = keyBy(await getPackages(true), 'name')
+
+  // vectura is a Rust crate, not an npm package: @xen-orchestra/vmware-explorer
+  // bundles its Debian package, so a vectura release is followed by one of
+  // vmware-explorer, as if it depended on this exact version
+  const vecturaVersion = /^version = "(.+)"$/m.exec(
+    await readFile(join(__dirname, '../@xen-orchestra/vmware-explorer/vectura/Cargo.toml'))
+  )[1]
+  allPackages.vectura = { name: 'vectura', package: { name: 'vectura', version: vecturaVersion } }
+  allPackages['@xen-orchestra/vmware-explorer'].package.dependencies.vectura = vecturaVersion
+
   const releaseOrder = computeDepOrder(allPackages)
 
   Object.entries(toRelease).forEach(([packageName, releaseType]) => {
