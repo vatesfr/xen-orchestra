@@ -9,6 +9,7 @@ import Disposable from 'promise-toolbox/Disposable'
 import groupBy from 'lodash/groupBy.js'
 import pickBy from 'lodash/pickBy.js'
 import reduce from 'lodash/reduce.js'
+import { Task } from '@vates/task'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
 import {
@@ -121,7 +122,7 @@ export class RemoteAdapter {
    * @param {import('./_backupJournal.mjs').BackupJournalReason} [opts.reason] what triggered the
    * deletion, as recorded in the journal
    */
-  async deleteDeltaVmBackups(backups, { reason = 'retention' } = {}) {
+  async deleteDeltaVmBackups(backups, { reason = 'retention', immediate = false } = {}) {
     // this will delete the json, unused VHDs will be detected by `cleanVm`
     await deleteDeltaVmBackupFiles(
       this._handler,
@@ -129,6 +130,62 @@ export class RemoteAdapter {
     )
 
     await this.#forgetVmBackups(backups, reason)
+
+    if (immediate) {
+      return this.#mergeVmDirsAfterDelete(backups)
+    }
+
+    return new Set()
+  }
+
+  // group by VM backup dir so multiple disks/backups deleted for the same
+  // VM in one call trigger a single merge, not one per backup
+  async #mergeVmDirsAfterDelete(backups) {
+    const dirs = new Set(backups.map(({ _filename }) => dirname(_filename)))
+    const mergedDirs = new Set()
+    await Task.run(
+      {
+        properties: {
+          name: 'clean VM',
+          total: dirs.size,
+        },
+      },
+      async () => {
+        let done = 0
+
+        await asyncEach(
+          dirs,
+          async dir => {
+            await Task.run(
+              {
+                properties: {
+                  name: `clean VM dir: ${dir}`,
+                },
+              },
+              async () => {
+                try {
+                  await this.cleanVm(dir, {
+                    remove: true,
+                    merge: true,
+                    logInfo: Task.info,
+                    logWarn: Task.warning,
+                  })
+                  mergedDirs.add(dir)
+                } catch (error) {
+                  Task.warning('failed to merge VM backup chain after immediate delete', { error, path: dir })
+                  throw error
+                }
+              }
+            )
+            done++
+            Task.set('progress', Math.round((done / dirs.size) * 100))
+          },
+          { concurrency: 2, stopOnError: false }
+        )
+      }
+    )
+
+    return mergedDirs
   }
 
   async deleteMetadataBackup(backupId) {
@@ -166,7 +223,7 @@ export class RemoteAdapter {
     return this.deleteVmBackups([file])
   }
 
-  async deleteVmBackups(files) {
+  async deleteVmBackups(files, { immediate = false } = {}) {
     const metadataOrNull = await asyncMap(files, async file => {
       try {
         return await this.readVmBackupMetadata(file)
@@ -197,8 +254,10 @@ export class RemoteAdapter {
       throw new Error('no deleter for backup modes: ' + unsupportedModes.join(', '))
     }
     const promises = []
+    let deltaBackupDirsPromise = Promise.resolve(new Set())
     if (delta !== undefined) {
-      promises.push(this.deleteDeltaVmBackups(delta, { reason: 'user' }))
+      deltaBackupDirsPromise = this.deleteDeltaVmBackups(delta, { reason: 'user', immediate })
+      promises.push(deltaBackupDirsPromise)
     }
     if (full !== undefined) {
       promises.push(this.deleteFullVmBackups(full, { reason: 'user' }))
@@ -208,12 +267,43 @@ export class RemoteAdapter {
     }
     await Promise.all(promises)
 
-    await asyncMap(new Set(files.map(file => dirname(file))), dir =>
-      // - don't merge in main process, unused VHDs will be merged in the next backup run
-      // - don't error in case this fails:
-      //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
-      //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
-      this.cleanVm(dir, { remove: true, logWarn: warn }).catch(noop)
+    const deltaBackupDirs = await deltaBackupDirsPromise
+    const otherBackupDirs = new Set(files.map(file => dirname(file)).filter(dir => !deltaBackupDirs.has(dir)))
+
+    await Task.run(
+      {
+        properties: {
+          name: 'clean VM of non-delta backups(full backups, ...) dirs',
+          total: otherBackupDirs.size,
+        },
+      },
+      async () => {
+        let processed = 0
+        await asyncEach(
+          otherBackupDirs,
+          async dir => {
+            await Task.run(
+              {
+                properties: {
+                  name: `clean VM dir: ${dir}`,
+                },
+              },
+              async () => {
+                // - don't merge in main process, unused VHDs will be merged in the next backup run
+                try {
+                  await this.cleanVm(dir, { remove: true, logWarn: warn })
+                } catch (error) {
+                  Task.warning('failed to remove VM backup', { error, path: dir })
+                  throw error
+                }
+              }
+            )
+            processed++
+            Task.set('progress', Math.round((processed / otherBackupDirs.size) * 100))
+          },
+          { concurrency: 2, stopOnError: false }
+        )
+      }
     )
   }
 
@@ -435,14 +525,15 @@ export class RemoteAdapter {
     return backups.sort(compareTimestamp)
   }
 
-  // read the backup events which happened on this remote after `since` (timestamp in ms),
-  // oldest first
+  // read the backup events which happened on this remote after `cursor`, oldest first
   /**
-   * @param {number} [since] timestamp in ms, exclusive
+   * @param {string} [cursor] path of the last entry already read, exclusive
+   * @param {object} [opts]
+   * @param {boolean} [opts.mustExist] whether a missing journal directory should throw
    * @returns {Promise<import('./_backupJournal.mjs').BackupJournalEntry[]>}
    */
-  async readBackupJournal(since) {
-    return readBackupJournal(this._handler, since)
+  async readBackupJournal(cursor, opts) {
+    return readBackupJournal(this._handler, cursor, opts)
   }
 
   async writeVmBackupMetadata(vmUuid, metadata) {

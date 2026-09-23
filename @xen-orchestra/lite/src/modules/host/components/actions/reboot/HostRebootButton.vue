@@ -31,7 +31,7 @@ const {
   canRun: canRebootHost,
   isRunning: isRebootingHost,
   errorMessage: rebootHostErrorMessage,
-} = useHostRebootJob(() => host)
+} = useHostRebootJob(() => host, false)
 
 function rebootHost() {
   return openActionModal({

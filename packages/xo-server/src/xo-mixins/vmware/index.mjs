@@ -76,10 +76,16 @@ export default class MigrateVm {
   async #updateVmMetadata(xapiVm, metadata) {
     // update memory, nb cpu, name, description
 
-    await xapiVm.$xapi.editVm(xapiVm.$ref, {
-      cpus: metadata.nCpus,
-      memory: metadata.memory,
-    })
+    const props = { cpus: metadata.nCpus }
+    if (metadata.memory >= xapiVm.memory_static_min) {
+      props.memory = metadata.memory
+    } else {
+      warn(
+        `cannot lower ${xapiVm.uuid}'s memory below its current minimum (${xapiVm.memory_static_min}), keeping it unchanged`
+      )
+    }
+
+    await xapiVm.$xapi.editVm(xapiVm.$ref, props)
     return xapiVm
   }
 
