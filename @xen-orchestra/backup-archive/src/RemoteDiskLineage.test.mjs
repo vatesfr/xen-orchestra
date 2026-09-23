@@ -80,20 +80,21 @@ async function writeMergeState(parent, { chain, step = 'mergeBlocks' }) {
   return statePath
 }
 
-async function cleanLineage({ activeDisks = [], lineageDir = vdiDir } = {}) {
+async function cleanLineage({ activeDisks = [], lineageDir = vdiDir, merge = false } = {}) {
   const warnings = []
+  const infos = []
   const lineage = new RemoteDiskLineage(handler, lineageDir, {
     remove: true,
-    merge: false,
-    logInfo: () => {},
+    merge,
+    logInfo: (message, data) => infos.push({ message, data }),
     logWarn: (message, data) => warnings.push({ message, data }),
   })
   await lineage.init()
   for (const disk of activeDisks) {
     lineage.addActiveDiskPath(disk.aliasPath)
   }
-  await lineage.clean({ remove: true, merge: false })
-  return { warnings }
+  await lineage.clean({ remove: true, merge })
+  return { warnings, infos }
 }
 
 const exists = path => handler.list(vdiDir).then(files => files.includes(path.slice(vdiDir.length + 1)))
@@ -123,9 +124,15 @@ describe('RemoteDiskLineage.clean() interrupted merges', { concurrency: 1 }, () 
     // and renaming onto the tip would silently drop its blocks
     const statePath = await writeMergeState(base, { chain: ['base', 'missing', 'child'] })
 
-    const { warnings } = await cleanLineage({ activeDisks: [child] })
+    // merge enabled: the orphan loop must not pick the refused chain up and merge it afresh
+    const { warnings, infos } = await cleanLineage({ activeDisks: [child], merge: true })
 
-    assert.equal(await exists(statePath), true, 'merge state should be kept as evidence')
+    assert.equal(
+      infos.some(({ message }) => message === 'Disk chain needs merging'),
+      false,
+      'no merge should be scheduled for a chain that was refused'
+    )
+    assert.equal(await exists(statePath), true, 'merge state should be kept while a backup uses the chain')
     assert.equal(await exists(base.aliasPath), true, 'base should be kept')
     assert.equal(await exists(child.aliasPath), true, 'child should be kept')
 
@@ -134,6 +141,32 @@ describe('RemoteDiskLineage.clean() interrupted merges', { concurrency: 1 }, () 
     )
     assert.notEqual(warning, undefined, 'the incomplete chain should be reported')
     assert.deepEqual(warning.data.missing, [`${vdiDir}/missing.alias.vhd`])
+  })
+
+  test('drops an unmergeable chain, state and disks, once nothing uses it', async () => {
+    const base = await generateDisk('base')
+    const missing = await generateDisk('missing', { parent: base })
+    const child = await generateDisk('child', { parent: missing })
+    const statePath = await writeMergeState(base, { chain: ['base', 'missing', 'child'] })
+    // the intermediate disk vanished mid-merge: child is now broken, so its backup is incomplete
+    // and never declares it active
+    await handler.unlink(missing.aliasPath)
+    await handler.rmtree(missing.dataPath)
+
+    const { warnings, infos } = await cleanLineage({ merge: true })
+
+    assert.equal(
+      infos.some(({ message }) => message === 'Disk chain needs merging'),
+      false,
+      'an unmergeable chain should not be merged'
+    )
+    assert.equal(await exists(statePath), false, 'merge state should be deleted')
+    assert.equal(await exists(base.aliasPath), false, 'base should be deleted')
+    assert.equal(await exists(child.aliasPath), false, 'child should be deleted')
+    assert.ok(
+      warnings.some(({ message }) => message === 'unmergeable merge chain on a fully orphaned lineage'),
+      'the dropped chain should be reported'
+    )
   })
 
   test('drops a merge state whose chain no longer has two disks to merge, during cleanup', async () => {

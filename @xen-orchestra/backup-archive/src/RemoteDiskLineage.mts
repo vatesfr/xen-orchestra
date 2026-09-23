@@ -267,6 +267,20 @@ export class RemoteDiskLineage {
       return undefined
     }
 
+    // Read-only walk toward the descendants: true if any of them is still referenced by a backup.
+    // Unlike getUsedChildChainOrDelete, it neither marks disks visited nor schedules deletions.
+    const hasUsedDescendant = (diskPath: string): boolean => {
+      // `seen` guards against a cycle in corrupted headers
+      const seen = new Set<string>()
+      for (let p: string | undefined = diskPath; p !== undefined && !seen.has(p); p = this.#childOf.get(p)) {
+        seen.add(p)
+        if (!orphanDisks.has(p)) {
+          return true
+        }
+      }
+      return false
+    }
+
     // Process interrupted merges first so their disks are protected from the orphan loop
     for (const [parentPath, { stateFilePath, chain: stateChain, step }] of this.#interruptedMerges) {
       if (!this.#diskPaths.has(parentPath)) {
@@ -285,14 +299,36 @@ export class RemoteDiskLineage {
         // A merge only removes disks during its cleanup step, so outside of it every disk of the
         // recorded chain must still be there. Merging what is left would fold the surviving
         // children into the parent and then rename it onto the chain tip, silently dropping the
-        // blocks of the disks that went missing. Refuse, and leave the state as evidence.
+        // blocks of the disks that went missing. Never resume such a chain.
         if (missing.length > 0 && step !== 'cleanup') {
-          this.#opts.logWarn('merge chain lost disks before its cleanup step, refusing to resume', {
+          // Each surviving disk is walked on its own: the missing disk breaks the `childOf` links,
+          // so a walk from the parent alone would stop at the gap.
+          const survivors = stateChain.filter(p => this.#diskPaths.has(p))
+          if (survivors.some(hasUsedDescendant)) {
+            // A backup still references a disk downstream: pin the chain so the orphan loop
+            // neither merges it afresh nor deletes it. It is dropped once nothing uses it anymore.
+            this.#opts.logWarn('merge chain lost disks before its cleanup step, refusing to resume', {
+              stateFilePath,
+              parentPath,
+              step,
+              missing,
+            })
+            survivors.forEach(p => visited.add(p))
+            continue
+          }
+
+          // Nothing uses the chain anymore (descendants of the missing disk are broken, so never
+          // active): drop the state, the orphan loop below deletes the disks.
+          this.#opts.logWarn('unmergeable merge chain on a fully orphaned lineage', {
             stateFilePath,
             parentPath,
             step,
             missing,
           })
+          if (remove) {
+            this.#opts.logInfo('deleting merge state of orphaned lineage', { stateFilePath })
+            await this.#handler.unlink(stateFilePath)
+          }
           continue
         }
 
