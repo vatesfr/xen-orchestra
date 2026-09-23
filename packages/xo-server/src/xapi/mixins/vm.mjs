@@ -399,7 +399,31 @@ const methods = {
         cpus: lte,
       },
       get: vm => +vm.VCPUs_max,
-      set: 'VCPUs_max',
+      set: [
+        'VCPUs_max',
+        (value, vm, { coresPerSocket }) => {
+          if (coresPerSocket !== undefined) {
+            // if coresPerSocket was explicitly passed as arguments
+            // to _editVm, ignore the topology compatibilty check
+            return
+          }
+
+          const currentCoresPerSocket = vm.platform['cores-per-socket']
+          if (currentCoresPerSocket > 0 && Number.isSafeInteger(value / currentCoresPerSocket)) {
+            return
+          }
+
+          log.warn(
+            "CPU topology set to 1 core per socket because the new CPU static max value doesn't match the current CPU topology",
+            {
+              vmId: vm.uuid,
+              newCpuStaticMax: value,
+              oldTopology: `${currentCoresPerSocket} cores per socket`,
+            }
+          )
+          return vm.update_platform('cores-per-socket', '1')
+        },
+      ],
     },
 
     cpuWeight: {
@@ -413,6 +437,7 @@ const methods = {
 
     memoryMin: {
       constraints: {
+        _memoryStaticMin: lte,
         memoryMax: gte,
       },
       get: vm => +vm.memory_dynamic_min,
@@ -420,9 +445,22 @@ const methods = {
       set: 'memory_dynamic_min',
     },
 
+    // Read-only
+    _memoryStaticMin: {
+      get: vm => +vm.memory_static_min,
+      set(value, vm) {
+        throw invalidParameters(
+          `memory (${value}) must be greater than or equal to this VM's static minimum memory (${vm.memory_static_min}), which is a readonly property`
+        )
+      },
+    },
+
     _memory: {
       addToLimits: true,
       limitName: 'memory',
+      constraints: {
+        _memoryStaticMin: lte,
+      },
       get: vm => +vm.memory_dynamic_max,
       preprocess: parseSize,
       set(memory, vm) {
@@ -442,6 +480,9 @@ const methods = {
     memoryMax: {
       addToLimits: true,
       limitName: 'memory',
+      constraints: {
+        _memoryStaticMin: lte,
+      },
       get: vm => +vm.memory_dynamic_max,
       preprocess: parseSize,
       set(dynamicMax, vm) {
@@ -457,7 +498,7 @@ const methods = {
           )
         }
 
-        const staticMin = Math.min(vm.memory_static_min, dynamicMax)
+        const staticMin = vm.memory_static_min
         return this.call(
           'VM.set_memory_limits',
           $ref,

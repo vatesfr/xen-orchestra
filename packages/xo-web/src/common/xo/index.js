@@ -12,7 +12,7 @@ import { createBackoff } from 'jsonrpc-websocket-client'
 import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, retry, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
-import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
+import { filter, forEach, get, includes, isEmpty, isEqual, map, mapValues, once, size, sortBy, throttle } from 'lodash'
 import {
   forbiddenOperation,
   incorrectState,
@@ -1524,9 +1524,9 @@ export const rollingPoolUpdate = async poolId => {
     icon: 'pool-rolling-update',
   })
 
-  const rpu = async ({ bypassBackupCheck = false, rebootVm = false, shutdownPinnedVms = false } = {}) => {
+  const rpu = async (options = {}) => {
     try {
-      await _call('pool.rollingUpdate', { pool: poolId, bypassBackupCheck, rebootVm, shutdownPinnedVms })
+      await _call('pool.rollingUpdate', { pool: poolId, ...options })
       subscribeHostMissingPatches.forceRefresh()
     } catch (err) {
       if (forbiddenOperation.is(err)) {
@@ -1539,7 +1539,7 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        return rpu({ bypassBackupCheck: true, rebootVm, shutdownPinnedVms })
+        return rpu({ ...options, bypassBackupCheck: true })
       }
       if (incorrectState.is(err, { property: 'guidance' })) {
         await confirm({
@@ -1551,7 +1551,7 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        return rpu({ bypassBackupCheck, rebootVm: true, shutdownPinnedVms })
+        return rpu({ ...options, rebootVm: true })
       }
       if (incorrectState.is(err, { property: 'pinnedVms' })) {
         await confirm({
@@ -1570,7 +1570,26 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        return rpu({ bypassBackupCheck, rebootVm, shutdownPinnedVms: true })
+        return rpu({ ...options, shutdownPinnedVms: true })
+      }
+      if (incorrectState.is(err, { property: 'partiallyUpdatedPool' })) {
+        await confirm({
+          body: (
+            <div className='text-warning'>
+              <p>
+                <Icon icon='alarm' /> {_('rpuPartiallyUpdatedPool')}
+              </p>
+              <ul>
+                {err.data.actual.map(hostId => (
+                  <li key={hostId}>{renderXoItemFromId(hostId)}</li>
+                ))}
+              </ul>
+            </div>
+          ),
+          title: _('rollingPoolUpdate'),
+          icon: 'pool-rolling-update',
+        })
+        return rpu({ ...options, acceptCurrentStateAsBaseline: true })
       }
       throw err
     }
@@ -3174,6 +3193,29 @@ export const runBackupNgJob = ({ force, ...params }) => {
 
 export const listVmBackups = remotes => _call('backupNg.listVmBackups', { remotes: resolveIds(remotes) })
 
+// Per disk restore target, from the objects the modal holds to the ids the server expects.
+//
+// `resolveIds` cannot do it: it is shallow, so it would leave the SR nested in a target untouched.
+// A legacy value, an SR object or `null` to skip the disk, still goes through as before.
+const resolveVdiRestoreTargets = mapVdisSrs =>
+  mapValues(mapVdisSrs, target => {
+    if (target === null || typeof target !== 'object' || target.type === undefined) {
+      return resolveId(target)
+    }
+
+    const { type } = target
+    if (type === 'restore') {
+      const sr = resolveId(target.sr)
+      // an SR which has been cleared must not be sent as `null`, which means "do not restore this
+      // disk": leaving it out is what makes the server fall back to the restore's main SR
+      return sr == null ? { type } : { type, sr }
+    }
+    if (type === 'live-mount') {
+      return { type, host: resolveId(target.host) }
+    }
+    return { type }
+  })
+
 export const restoreBackup = (
   backup,
   sr,
@@ -3181,7 +3223,11 @@ export const restoreBackup = (
 ) => {
   const promise = _call('backupNg.importVmBackup', {
     id: resolveId(backup),
-    settings: { mapVdisSrs: resolveIds(mapVdisSrs), newMacAddresses: generateNewMacAddresses, useDifferentialRestore },
+    settings: {
+      mapVdisSrs: resolveVdiRestoreTargets(mapVdisSrs),
+      newMacAddresses: generateNewMacAddresses,
+      useDifferentialRestore,
+    },
     sr: resolveId(sr),
   })
 
@@ -3195,15 +3241,15 @@ export const restoreBackup = (
 export const checkBackup = (backup, sr, { mapVdisSrs = {} } = {}) => {
   return _call('backupNg.checkBackup', {
     id: resolveId(backup),
-    settings: { mapVdisSrs: resolveIds(mapVdisSrs) },
+    settings: { mapVdisSrs: resolveVdiRestoreTargets(mapVdisSrs) },
     sr: resolveId(sr),
   })
 }
 
 export const deleteBackup = backup => _call('backupNg.deleteVmBackup', { id: resolveId(backup) })
 
-export const deleteBackups = async backups =>
-  _call('backupNg.deleteVmBackups', { ids: backups.map(backup => resolveId(backup)) })
+export const deleteBackups = async (backups, immediate) =>
+  _call('backupNg.deleteVmBackups', { ids: backups.map(backup => resolveId(backup)), immediate })
 
 export const createMetadataBackupJob = props =>
   _call('metadataBackup.createJob', props)

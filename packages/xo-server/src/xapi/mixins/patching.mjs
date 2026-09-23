@@ -733,12 +733,15 @@ const methods = {
   async rollingPoolUpdate(
     $defer,
     parentTask,
-    { xsCredentials, force = false, rebootVm = force, shutdownPinnedVms = false, recorder = noopRpuRecorder } = {}
+    {
+      xsCredentials,
+      acceptCurrentStateAsBaseline = false,
+      force = false,
+      rebootVm = force,
+      shutdownPinnedVms = false,
+      recorder = noopRpuRecorder,
+    } = {}
   ) {
-    if (some(this.objects.indexes.type.SR, { type: 'linstor' })) {
-      await this._updateLinstorPackages()
-    }
-
     const master = this.pool.$master
     const isXcp = _isXcp(master)
     const isXsWithCdnUpdates = _isXsWithCdnUpdates(master)
@@ -797,6 +800,29 @@ const methods = {
       })
     })
     recorder.setPatchInventory(hasMissingPatchesByHost)
+
+    // a current master over outdated members is a pool left half updated, by
+    // an interrupted run or by hand: the operator must accept that state as
+    // the baseline of this run rather than have it silently completed
+    if (!acceptCurrentStateAsBaseline && !hasMissingPatchesByHost[master.uuid]) {
+      const outdatedHosts = Object.keys(pickBy(hasMissingPatchesByHost))
+      if (outdatedHosts.length > 0) {
+        throw incorrectState({
+          actual: outdatedHosts,
+          expected: [],
+          object: this.pool.uuid,
+          property: 'partiallyUpdatedPool',
+        })
+      }
+    }
+
+    // the LINSTOR packages are updated on every host and the XOSTOR services
+    // restarted before the first reboot. That restart must not happen for a
+    // run refused by one of the guards above, nor when no host needs an update
+    const needsUpdate = some(hasMissingPatchesByHost)
+    if (needsUpdate && some(this.objects.indexes.type.SR, { type: 'linstor' })) {
+      await this._updateLinstorPackages()
+    }
 
     await Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
       await this.rollingPoolReboot(parentTask, {

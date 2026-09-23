@@ -1300,6 +1300,8 @@ const messages = {
   rpuRecoveryBlocked: 'The state of the last rolling pool update could not be read. Manual review is required.',
   rpuRecoveryLastError: 'Last error:',
   rpuRecoveryHaltedPinnedVms: 'VMs shut down for the update and not started again yet:',
+  rpuRecoveryRecordExists:
+    'A rolling pool update is in progress or was left incomplete. It must be resolved before a new one can start.',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
@@ -2048,6 +2050,7 @@ const messages = {
   deleteVmBackupsTitle: 'Delete {vm} backups',
   deleteBackupsSelect: 'Select backups to delete:',
   deleteVmBackupsSelectAll: 'All',
+  deleteVmBackupsImmediate: 'Free delta disk space now',
   deleteVmBackupsBulkTitle: 'Delete backups',
   deleteVmBackupsBulkMessage:
     'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?',
@@ -2181,6 +2184,16 @@ const messages = {
   chooseSrForEachVdisModalMainSr: 'Select main SR…',
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',
+  vdiTargetSelectAction: 'For each VDI, choose what to do (optional)',
+  vdiTargetActionLabel: 'Action',
+  vdiTargetDestinationLabel: 'Destination',
+  vdiTargetRestore: 'Restore',
+  vdiTargetLiveMount: 'Live mount (read only)',
+  vdiTargetIgnore: 'Do not restore',
+  vdiTargetUseMainSr: 'Use main SR',
+  vdiTargetSrRequired: 'Select an SR for this disk or a main SR',
+  vdiTargetHostRequired: 'Select a host to live mount this disk on',
+  vdiTargetIncompleteDestinations: 'Some disks have no destination yet',
   deleteJobsModalTitle: 'Delete job{nJobs, plural, one {} other {s}}',
   deleteJobsModalMessage: 'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?',
   deleteVbdsModalTitle: 'Delete VBD{nVbds, plural, one {} other {s}}',
@@ -2251,7 +2264,6 @@ const messages = {
     'This VM contains a duplicate MAC address or has the same MAC address as another running VM. Do you want to continue?',
   vmsWithDuplicatedMacAddressesMessage:
     '{nVms, number} VM{nVms, plural, one {} other {s}} contain{nVms, plural, one {s} other {}} duplicate MAC addresses or {nVms, plural, one {has} other {have}} the same MAC addresses as other running VMs. Do you want to continue?',
-  ignoreVdi: 'Ignore this VDI',
   selectDestinationSr: 'Select a destination SR',
 
   // ----- Servers -----
@@ -2702,6 +2714,8 @@ const messages = {
   rpuRequireVmsReboot: 'To fully apply the patches, some VMs will reboot. Are you sure you want to continue?',
   rpuShutdownPinnedVms:
     'The following VMs use a host-bound device (PCI passthrough, vGPU, SR-IOV VIFs) and cannot be migrated. They will be shut down before their host reboots and started again on it afterwards. Are you sure you want to continue?',
+  rpuPartiallyUpdatedPool:
+    'The master is already up to date but the following hosts are not, for example after an interrupted rolling pool update. This update will start from that state and only update these hosts. Are you sure you want to continue?',
   selectDisks: 'Select disk(s)…',
   selectedDiskTypeIncompatibleXostor: 'Only disks of type "Disk" and "Raid" are accepted. Selected disk type: {type}.',
   setAsPreferred: 'Set as preferred',

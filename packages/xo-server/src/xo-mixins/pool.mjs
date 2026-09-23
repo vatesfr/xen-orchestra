@@ -15,10 +15,9 @@ import { Task } from '@vates/task'
 import { acquireRpuGuard } from '../_rpuGuard.mjs'
 import { gcRpuTraces, getRpuTracesConfig, openRpuTrace, reconcileRpuTraces } from '../_rpuObservability.mjs'
 import {
-  buildRpuRecoveryView,
+  readRpuRecoveryView,
   reconcileRpuRecoveryAtBoot,
   startRpuRecoveryRun as startRpuRecoveryRunInStore,
-  unreadableRpuRecoveryView,
 } from '../_rpuRecovery.mjs'
 
 const log = createLogger('xo:xo-mixins:pool')
@@ -92,19 +91,8 @@ export default class Pools {
     return startRpuRecoveryRunInStore({ store: this._rpuRecoveryStore, poolId, options })
   }
 
-  async getRollingUpdateRecovery(poolId) {
-    let record
-    try {
-      record = await this._rpuRecoveryStore.get(poolId)
-    } catch (error) {
-      if (error.notFound) {
-        return undefined
-      }
-      // undecodable value: report blocked, leave the raw value on disk as evidence
-      log.warn('unreadable RPU recovery record', { error, poolId })
-      return unreadableRpuRecoveryView(poolId)
-    }
-    return buildRpuRecoveryView(record)
+  getRollingUpdateRecovery(poolId) {
+    return readRpuRecoveryView(this._rpuRecoveryStore, poolId)
   }
 
   async mergeInto($defer, { sources: sourceIds, target, force }) {

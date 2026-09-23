@@ -10,4 +10,5 @@ export default {
     proxy: true,
     url: true,
   },
+  'reclaim-space': true,
 }

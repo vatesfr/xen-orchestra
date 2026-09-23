@@ -548,7 +548,7 @@ Packages watched by `xcp_xostor_package_update_available`: `xcp-ng-linstor`, `xc
 
 All XOSTOR metrics carry `sr_uuid`, `pool_id` and `pool_name`. Per-host metrics also expose `host_uuid` and `host_name`; per-node metrics add the LINSTOR `node_name` (the host's hostname) plus `role` and `state`.
 
-The four collectors don't share a cache. Cluster status and alarms refresh every 60 s, SMART every 5 minutes, updates every hour.
+The four collectors don't share a cache. Cluster status and alarms refresh every 60 s, SMART every 5 minutes, updates every hour. Once a cache has expired, the scrape gets the previous values and the refresh runs in the background, so a slow host never delays the response: a value can lag by one scrape interval. The host power metric (IPMI) is cached and refreshed the same way, every 60 s.
 
 #### Storage technology label (`sr_type`)
 

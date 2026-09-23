@@ -249,11 +249,23 @@ installPatches.description = 'Install patches on hosts'
 
 // -------------------------------------------------------------------
 
-export const rollingUpdate = async function ({ bypassBackupCheck, pool, rebootVm, shutdownPinnedVms }) {
-  await this.rollingPoolUpdate(pool, { bypassBackupCheck, rebootVm, shutdownPinnedVms })
+export const rollingUpdate = async function ({
+  acceptCurrentStateAsBaseline,
+  bypassBackupCheck,
+  pool,
+  rebootVm,
+  shutdownPinnedVms,
+}) {
+  await this.rollingPoolUpdate(pool, { acceptCurrentStateAsBaseline, bypassBackupCheck, rebootVm, shutdownPinnedVms })
 }
 
 rollingUpdate.params = {
+  // start even though the master is up to date while another host is not:
+  // the pool was left partially updated and this run completes it
+  acceptCurrentStateAsBaseline: {
+    optional: true,
+    type: 'boolean',
+  },
   bypassBackupCheck: {
     optional: true,
     type: 'boolean',
@@ -277,8 +289,9 @@ rollingUpdate.resolve = {
 
 // -------------------------------------------------------------------
 
-export function getRollingUpdateRecovery({ pool }) {
-  return this.getRollingUpdateRecovery(pool.id)
+export async function getRollingUpdateRecovery({ pool }) {
+  // explicit null: the JSON-RPC layer would turn an undefined result into `true`
+  return (await this.getRollingUpdateRecovery(pool.id)) ?? null
 }
 
 getRollingUpdateRecovery.params = {
