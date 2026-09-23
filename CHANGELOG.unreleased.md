@@ -75,6 +75,7 @@
 - @vates/syslog minor
 - @vates/types minor
 - @xen-orchestra/acl minor
+- @xen-orchestra/async-map minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/log major
