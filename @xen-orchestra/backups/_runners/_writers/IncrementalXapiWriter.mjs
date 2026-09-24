@@ -363,11 +363,14 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         (e.is_a_snapshot || e.snapshots.length === 0)
     )
     await Task.run({ properties: { name: 'cleanup interrupted entries' } }, async () => {
-      try {
-        await asyncMapSettled(interruptedEntries, vm => vm.$destroy({ bypassBlockedOperation: true }))
-      } catch (error) {
-        warn('failed to cleanup interrupted entries', { error })
-      }
+      await asyncMapSettled(interruptedEntries, async vm => {
+        try {
+          await vm.$destroy({ bypassBlockedOperation: true })
+        } catch (error) {
+          warn('failed to cleanup interrupted entry', { error, vmUuid: vm.uuid })
+          Task.warning('failed to cleanup interrupted replication', { vmUuid: vm.uuid })
+        }
+      })
     })
     const allEntries = entries.filter(e => !interruptedEntries.includes(e))
 
