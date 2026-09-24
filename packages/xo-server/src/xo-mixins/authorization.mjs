@@ -53,7 +53,9 @@ const AUTHORIZATIONS = {
     SMART_BACKUP: ENTERPRISE,
     S3: STARTER,
   },
-  DOCKER: STARTER, // @todo  _doDockerAction in xen-orchestra/packages/xo-server/src/xapi/index.mjs
+  // @todo _doDockerAction in xen-orchestra/packages/xo-server/src/xapi/index.mjs (legacy xscontainer)
+  // @todo the Docker engines of the REST API: rest-api/src/middlewares/docker-feature.middleware.mts and docker-engines/docker-engine-raw.routes.mts
+  DOCKER: STARTER,
   EXPORT: {
     XVA: STARTER, // @todo handleExport in xen-orchestra/packages/xo-server/src/api/vm.mjs
   },
