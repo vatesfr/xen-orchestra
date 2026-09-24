@@ -36,6 +36,11 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
 
   if (error instanceof ApiError) {
     statusCode = error.status
+    if (error.headers !== undefined && !res.headersSent) {
+      for (const [name, value] of Object.entries(error.headers)) {
+        res.setHeader(name, value)
+      }
+    }
   } else if (noSuchObject.is(error)) {
     statusCode = 404
   } else if (unauthorized.is(error) || forbiddenOperation.is(error)) {

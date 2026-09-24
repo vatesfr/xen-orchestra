@@ -3,11 +3,20 @@ import { HttpStatusCodeLiteral } from 'tsoa'
 export class ApiError extends Error {
   #status: HttpStatusCodeLiteral
   #data?: Record<string, unknown>
+  #headers?: Record<string, string>
 
-  constructor(message: string, status: HttpStatusCodeLiteral, opts: { data?: Record<string, unknown> } = {}) {
+  /**
+   * @param opts.headers response headers, e.g. `Retry-After`
+   */
+  constructor(
+    message: string,
+    status: HttpStatusCodeLiteral,
+    opts: { data?: Record<string, unknown>; headers?: Record<string, string> } = {}
+  ) {
     super(message)
     this.#status = status
     this.#data = opts.data
+    this.#headers = opts.headers
   }
 
   get status() {
@@ -16,5 +25,9 @@ export class ApiError extends Error {
 
   get data() {
     return this.#data
+  }
+
+  get headers() {
+    return this.#headers
   }
 }
