@@ -1,12 +1,24 @@
-import { raw, Scale, type Info } from 'human-format'
+import { type Info, raw, Scale } from 'human-format'
 
 const scale = Scale.create(['B/s', 'KiB/s', 'MiB/s', 'GiB/s', 'TiB/s'], 1024)
 
+type FormatSpeedOptions = {
+  maxDecimals: number
+  milliseconds?: number
+}
+
 export function formatSpeedRaw(
   bytes: number,
-  milliseconds: number = 1000
+  { maxDecimals, milliseconds = 1000 }: FormatSpeedOptions
 ): Info<Scale<'B/s' | 'KiB/s' | 'MiB/s' | 'GiB/s' | 'TiB/s'>> {
   return raw((bytes * 1e3) / milliseconds, {
+    maxDecimals,
     scale,
   })
+}
+
+export function formatSpeed(bytesPerSecond: number): string {
+  const { value, prefix } = formatSpeedRaw(bytesPerSecond, { maxDecimals: 2 })
+
+  return `${value} ${prefix}`
 }

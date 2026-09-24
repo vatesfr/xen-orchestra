@@ -25,9 +25,10 @@
 </template>
 
 <script setup lang="ts">
-import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
+import { useXoBackupRepositoryParsedUrl } from '@/modules/backup/composables/use-xo-backup-repository-parsed-url.composable.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+import { getBackupRepositoryIcon } from '@/modules/backup/utils/xo-backup-repository.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import type { IconName } from '@core/icons'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -77,10 +78,6 @@ const { pageRecords: paginatedRepositories, paginationBindings } = usePagination
   filteredRepositories
 )
 
-function getBackupRepositoryIcon(backupRepository: FrontXoBackupRepository): IconName {
-  return backupRepository.enabled ? 'object:br:connected' : 'object:br:disconnected'
-}
-
 const useColumns = defineColumns(() => {
   const { t } = useI18n()
 
@@ -94,7 +91,8 @@ const { HeadCells, BodyCells } = useColumns({
     const { buildXo5Route } = useXoRoutes()
 
     const href = computed(() => buildXo5Route('/settings/remotes'))
-    const statusIcon = computed(() => getBackupRepositoryIcon(br))
+    const parsedBrUrl = useXoBackupRepositoryParsedUrl(() => br)
+    const statusIcon = computed(() => getBackupRepositoryIcon(br, parsedBrUrl.value?.type))
 
     return {
       backupRepository: r => r({ label: br.name, href: href.value, icon: statusIcon.value }),

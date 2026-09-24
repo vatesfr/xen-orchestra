@@ -7,6 +7,7 @@ import type {
   ParsedNfsBackupRepositoryUrl,
   ParsedS3BackupRepositoryUrl,
   ParsedSmbBackupRepositoryUrl,
+  UnknownParsedBackupRepositoryUrl,
 } from './types'
 import urlParser from 'url-parse'
 
@@ -73,11 +74,11 @@ function parseNfsUrl(rest: string): ParsedNfsBackupRepositoryUrl {
   return { ...parseOptions(search), type: 'nfs', host, port, path: withLeadingSlash(path) }
 }
 
-function parseSmbUrl(rest: string): ParsedSmbBackupRepositoryUrl {
+function parseSmbUrl(rest: string): ParsedSmbBackupRepositoryUrl | UnknownParsedBackupRepositoryUrl {
   const matches = SMB_RE.exec(rest)
 
   if (matches === null) {
-    throw new Error('Invalid SMB url')
+    return {}
   }
 
   // matches[0] is the complete match
