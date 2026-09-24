@@ -1,3 +1,4 @@
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import type { VueWrapper } from '@vue/test-utils'
 
 type QueryableWrapper = Pick<VueWrapper, 'findAll'>
@@ -23,6 +24,20 @@ export function findCardLabelledValues(wrapper: QueryableWrapper): Record<string
   const rows = wrapper.findAll('.vts-card-row-key-value')
 
   return Object.fromEntries(rows.map(row => [row.get('.key').text(), row.get('.value').text()]))
+}
+
+/**
+ * Reads the value each `VtsCopyButton` of the `VtsCardRowKeyValue` rows would copy, in
+ * order — so a card test asserts what is copyable, and what is left out (a secret, an
+ * empty value).
+ *
+ * Scoped to the rows: a `VtsCardObjectTitle` has a copy button of its own, for the id.
+ */
+export function findCardCopiedValues(wrapper: QueryableWrapper): unknown[] {
+  return wrapper
+    .findAll('.vts-card-row-key-value')
+    .flatMap(row => row.findAllComponents(VtsCopyButton))
+    .map(button => button.props('value'))
 }
 
 /**
