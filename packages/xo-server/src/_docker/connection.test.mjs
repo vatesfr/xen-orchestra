@@ -3,6 +3,7 @@ import { EventEmitter, once } from 'node:events'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { connect as netConnect } from 'node:net'
+import { Duplex } from 'node:stream'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
@@ -22,6 +23,7 @@ import {
   DOCKER_API_VERSION_UNSUPPORTED,
   DOCKER_SOCKET_UNREACHABLE,
   HOST_KEY_MISMATCH,
+  CONNECTION_CLOSED,
   HOST_KEY_UNKNOWN,
   SSH_AUTH_FAILED,
   TIMEOUT,
@@ -68,6 +70,12 @@ describe('host key fingerprint', () => {
         error.data.fingerprint === ED25519_FINGERPRINT &&
         error.data.algorithm === 'ssh-ed25519'
     )
+  })
+
+  it('verifyHostKey() treats a null fingerprint as missing', () => {
+    assert.throws(() => verifyHostKey(Buffer.from(ED25519_KEY, 'base64'), { expectedFingerprint: null }), {
+      code: HOST_KEY_UNKNOWN,
+    })
   })
 
   it('verifyHostKey() accepts an unknown key when asked to', () => {
@@ -142,14 +150,46 @@ describe('negotiateApiVersion()', () => {
  * Minimal stand-in for `ssh2.Client`: channels are plain connections to a
  * local Unix socket.
  */
+/**
+ * Mimic an ssh2 channel whose SSH connection is gone: writes are swallowed,
+ * nothing is ever received, and `destroy()` emits neither `close` nor `error`
+ * (like ssh2's Channel#destroy() once the connection is lost).
+ */
+function createDeadChannel() {
+  const channel = new Duplex({
+    read() {},
+    write(chunk, encoding, cb) {
+      cb()
+    },
+  })
+  channel.destroy = function () {
+    return this
+  }
+  return channel
+}
+
 class FakeSshClient extends EventEmitter {
+  channels = []
   channelsOpened = 0
   connectConfig
+  // host key presented to the host verifier (if any)
+  hostKey = Buffer.from(ED25519_KEY, 'base64')
+  deadChannels = false
+  // when false, end() does not emit close (unresponsive server)
+  endEmitsClose = true
   openError
+  _sock = { destroyed: false, destroy: () => (this._sock.destroyed = true) }
 
   connect(config) {
     this.connectConfig = config
-    process.nextTick(() => this.emit('ready'))
+    process.nextTick(() => {
+      if (config.hostVerifier !== undefined && !config.hostVerifier(this.hostKey)) {
+        this.emit('error', Object.assign(new Error('Host denied (verification failed)'), { level: 'handshake' }))
+        this.emit('close')
+        return
+      }
+      this.emit('ready')
+    })
     return this
   }
 
@@ -159,14 +199,40 @@ class FakeSshClient extends EventEmitter {
       return this
     }
     ++this.channelsOpened
+    if (this.deadChannels) {
+      process.nextTick(cb, undefined, createDeadChannel())
+      return this
+    }
     const socket = netConnect(socketPath)
+    this.channels.push(socket)
     socket.once('connect', () => cb(undefined, socket))
     socket.once('error', cb)
     return this
   }
 
+  // what ssh2 does to its channels when the connection is lost: they emit
+  // `close` but stay writable
+  simulateDrop() {
+    for (const channel of this.channels) {
+      channel.removeAllListeners('data')
+      channel.pause()
+      channel.write = (chunk, encoding, cb) => {
+        if (typeof encoding === 'function') cb = encoding
+        cb?.()
+        return true
+      }
+      channel.destroy = function () {
+        return this
+      }
+      channel.emit('close')
+    }
+    this.channels = []
+  }
+
   end() {
-    process.nextTick(() => this.emit('close'))
+    if (this.endEmitsClose) {
+      process.nextTick(() => this.emit('close'))
+    }
     return this
   }
 }
@@ -246,6 +312,177 @@ describe('DockerConnection (fake daemon)', () => {
     )
     return { client, connection }
   }
+
+  it('drops keep-alive channels closed by an SSH connection loss (still writable)', async () => {
+    const { client, connection } = createConnection()
+    await Promise.all([
+      connection.request({ path: '/containers/json' }),
+      connection.request({ path: '/containers/json' }),
+    ])
+    const opened = client.channelsOpened
+    client.simulateDrop()
+    const results = await Promise.all([
+      connection.request({ path: '/containers/json' }),
+      connection.request({ path: '/containers/json' }),
+    ])
+    for (const { statusCode } of results) {
+      assert.equal(statusCode, 200)
+    }
+    assert.ok(client.channelsOpened > opened)
+    await connection.close()
+  })
+
+  it('settles and releases the slot when a channel never emits close or error', async () => {
+    const { client, connection } = createConnection({ requestTimeout: 50 })
+    await connection.connect()
+    client.deadChannels = true
+    // the channel used by the negotiation is now dead too
+    client.simulateDrop()
+    // more than the max concurrency: leaked slots would make the last ones
+    // wait forever in the queue (they would still TIMEOUT, so check timing)
+    for (let i = 0; i < 10; ++i) {
+      const start = Date.now()
+      await assert.rejects(connection.request({ path: '/containers/json' }), { code: TIMEOUT })
+      assert.ok(Date.now() - start < 1e3)
+    }
+    client.deadChannels = false
+    connection.request({ path: '/containers/json' }).catch(() => {})
+    // a free slot is available immediately
+    const { statusCode } = await connection.request({ path: '/containers/json', signal: AbortSignal.timeout(1e3) })
+    assert.equal(statusCode, 200)
+    await connection.close()
+  })
+
+  it('close() destroys the SSH socket when the server does not close the connection', async () => {
+    const client = new FakeSshClient()
+    client.endEmitsClose = false
+    const connection = new DockerConnection(
+      { host: 'fake', username: 'user', hostKeyFingerprint: ED25519_FINGERPRINT, socketPath },
+      { createClient: () => client, closeTimeout: 50 }
+    )
+    await connection.connect()
+    await connection.close()
+    assert.equal(client._sock.destroyed, true)
+  })
+
+  it('close() rejects queued and in-flight requests with CONNECTION_CLOSED and does not reconnect', async () => {
+    handler = (req, res) =>
+      req.url === '/version' ? defaultHandler(req, res) : setTimeout(() => json(res, 200, {}), 300).unref()
+    let clients = 0
+    const connection = new DockerConnection(
+      { host: 'fake', username: 'user', hostKeyFingerprint: ED25519_FINGERPRINT, socketPath, requestTimeout: 5e3 },
+      {
+        createClient: () => {
+          ++clients
+          return new FakeSshClient()
+        },
+      }
+    )
+    await connection.connect()
+    const results = Array.from({ length: 12 }, () =>
+      connection.request({ path: '/slow' }).then(
+        () => 'ok',
+        error => error.code
+      )
+    )
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await connection.close()
+    assert.deepEqual(await Promise.all(results), Array(12).fill(CONNECTION_CLOSED))
+    assert.equal(clients, 1)
+    await connection.close()
+  })
+
+  it('pins the host key accepted via acceptUnknownHostKey', async () => {
+    const client = new FakeSshClient()
+    const connection = new DockerConnection(
+      { host: 'fake', username: 'user', socketPath, acceptUnknownHostKey: true, hostKeyFingerprint: null },
+      { createClient: () => client }
+    )
+    await connection.connect()
+    assert.equal(client.connectConfig.algorithms, undefined)
+    assert.equal(connection.observedHostKey.fingerprint, ED25519_FINGERPRINT)
+    await connection.close()
+
+    // reconnection: same key type requested, another key → mismatch
+    client.hostKey = Buffer.from(RSA_KEY, 'base64')
+    await assert.rejects(connection.connect(), {
+      code: HOST_KEY_MISMATCH,
+      data: { expected: ED25519_FINGERPRINT, actual: RSA_FINGERPRINT, algorithm: 'ssh-rsa' },
+    })
+    assert.deepEqual(client.connectConfig.algorithms, { serverHostKey: ['ssh-ed25519'] })
+
+    client.hostKey = Buffer.from(ED25519_KEY, 'base64')
+    await connection.connect()
+    await connection.close()
+  })
+
+  it('requests the configured host key algorithm', async () => {
+    const { client, connection } = createConnection({
+      hostKeyAlgorithm: 'ssh-rsa',
+      hostKeyFingerprint: RSA_FINGERPRINT,
+    })
+    client.hostKey = Buffer.from(RSA_KEY, 'base64')
+    await connection.connect()
+    assert.deepEqual(client.connectConfig.algorithms, { serverHostKey: ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa'] })
+    await connection.close()
+  })
+
+  it('maps a missing host key type to HOST_KEY_MISMATCH when the algorithm is pinned', async () => {
+    const { client, connection } = createConnection({
+      hostKeyAlgorithm: 'ssh-rsa',
+      hostKeyFingerprint: RSA_FINGERPRINT,
+    })
+    client.connect = function (config) {
+      this.connectConfig = config
+      process.nextTick(() => {
+        this.emit(
+          'error',
+          Object.assign(new Error('Handshake failed: no matching host key format'), { level: 'handshake' })
+        )
+        this.emit('close')
+      })
+      return this
+    }
+    await assert.rejects(connection.connect(), error => {
+      assert.equal(error.code, HOST_KEY_MISMATCH)
+      assert.equal(error.data.expectedAlgorithm, 'ssh-rsa')
+      return true
+    })
+  })
+
+  it('treats a null hostKeyFingerprint as missing (HOST_KEY_UNKNOWN)', async () => {
+    const { connection } = createConnection({ hostKeyFingerprint: null })
+    await assert.rejects(connection.connect(), error => {
+      assert.equal(error.code, HOST_KEY_UNKNOWN)
+      assert.equal(error.data.fingerprint, ED25519_FINGERPRINT)
+      return true
+    })
+  })
+
+  it('the caller signal interrupts a pending API version negotiation', async () => {
+    handler = () => {}
+    const { connection } = createConnection({ requestTimeout: 10e3 })
+    const start = Date.now()
+    await assert.rejects(connection.request({ path: '/info', signal: AbortSignal.timeout(100) }), { code: TIMEOUT })
+    assert.ok(Date.now() - start < 1e3)
+    await connection.close()
+  })
+
+  it('reports TIMEOUT (not DOCKER_API_ERROR) when aborted while reading an error body', async () => {
+    handler = (req, res) => {
+      if (req.url === '/version') {
+        return defaultHandler(req, res)
+      }
+      res.writeHead(500, { 'content-type': 'application/json' })
+      res.write('{"message":')
+      // never ends
+    }
+    const { connection } = createConnection({ requestTimeout: 200 })
+    await connection.connect()
+    await assert.rejects(connection.request({ path: '/info' }), { code: TIMEOUT })
+    await assert.rejects(connection.requestStream({ path: '/info' }), { code: TIMEOUT })
+    await connection.close()
+  })
 
   it('configures ssh2 as expected', async () => {
     const { client, connection } = createConnection()

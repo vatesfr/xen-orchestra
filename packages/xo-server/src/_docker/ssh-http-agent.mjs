@@ -28,6 +28,32 @@ export function decorateStream(stream) {
   stream.setTimeout = noop
   stream.ref = noop
   stream.unref = noop
+
+  // Addition to ssh2's version: once the SSH connection is lost,
+  // Channel#destroy() emits neither `close` nor `error`, the agent would then
+  // keep counting the channel as an active socket forever (and eventually
+  // hit `maxSockets`). Make sure the agent forgets a destroyed channel.
+  let closed = false
+  let removed = false
+  stream.once('close', () => {
+    closed = true
+  })
+  const { destroy } = stream
+  stream.destroy = function () {
+    const result = destroy.apply(this, arguments)
+    if (!removed) {
+      removed = true
+      // deferred: the agent may be iterating over its sockets (Agent#destroy())
+      process.nextTick(() => {
+        if (!closed) {
+          // handled by `installListeners()` in Node's lib/_http_agent.js
+          this.emit('agentRemove')
+        }
+      })
+    }
+    return result
+  }
+
   stream.destroySoon = stream.destroy
   return stream
 }
@@ -66,6 +92,27 @@ export class SshHttpAgent extends Agent {
     this.#connectTimeout = connectTimeout
     this.#getClient = getClient
     this.#socketPath = socketPath
+  }
+
+  /**
+   * `http.Agent#removeSocket()` only removes a socket from the free list when
+   * it is no longer writable, but an ssh2 channel closed because the SSH
+   * connection has been lost stays writable: it would be reused and requests
+   * sent on it would never complete. Always remove it from the free list.
+   */
+  removeSocket(socket, options) {
+    const name = this.getName(options)
+    const freeSockets = this.freeSockets[name]
+    if (freeSockets !== undefined) {
+      const index = freeSockets.indexOf(socket)
+      if (index !== -1) {
+        freeSockets.splice(index, 1)
+        if (freeSockets.length === 0) {
+          delete this.freeSockets[name]
+        }
+      }
+    }
+    return super.removeSocket(socket, options)
   }
 
   /**
