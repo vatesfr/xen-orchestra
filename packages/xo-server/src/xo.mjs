@@ -26,6 +26,10 @@ import { UniqueIndex as XoUniqueIndex } from 'xo-collection/unique-index.js'
 import mixins from './xo-mixins/index.mjs'
 import { generateToken, noop } from './utils.mjs'
 
+/**
+ * @typedef {import('@vates/types').NonXapiXoRecord} NonXapiXoRecord
+ */
+
 // ===================================================================
 
 const log = createLogger('xo:xo')
@@ -36,7 +40,10 @@ export default class Xo extends EventEmitter {
    * @type {Map<string, EventEmitter>}
    */
   #eeByType = new Map()
-  #collectionByType = new Map()
+  /**
+   * @type {Map<string, (id: NonXapiXoRecord['id']) => Promise<void>>}
+   */
+  #refreshByType = new Map()
 
   constructor(opts) {
     super()
@@ -97,7 +104,12 @@ export default class Xo extends EventEmitter {
       )
 
       this.#eeByType.set(type, emitter)
-      this.#collectionByType.set(type, collection)
+      this.#refreshByType.set(type, async id => {
+        const object = await collection.first(id)
+        if (object !== undefined) {
+          await onAddOrUpdate([object])
+        }
+      })
     })
     const debounceResource = createDebounceResource()
     debounceResource.defaultDelay = parseDuration(config.resourceCacheDelay)
@@ -124,19 +136,17 @@ export default class Xo extends EventEmitter {
   }
 
   /**
-   * emit an `update` event for an object whose decorated representation
-   * depends on state outside of its own collection
+   * Manually emit an `add/update` event for a non XAPI XO object
+   *
+   * @param {string} type
+   * @param {NonXapiXoRecord['id']} id
    */
   async touchXoObject(type, id) {
-    const collection = this.#collectionByType.get(type)
-    if (collection === undefined) {
+    const refresh = this.#refreshByType.get(type)
+    if (refresh === undefined) {
       throw new Error(`collection ${type} not registered`)
     }
-
-    const object = await collection.first(id)
-    if (object !== undefined) {
-      collection.emit('update', [object])
-    }
+    await refresh(id)
   }
 
   // Returns an object from its key or UUID.
