@@ -9,10 +9,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { IconName } from '@core/icons'
 import type { FormOption, FormSelectId } from '@core/packages/form-select'
-import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useI18n } from 'vue-i18n'
 
