@@ -25,24 +25,22 @@
 </template>
 
 <script setup lang="ts">
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import VifAllowedIpsTextarea from '@/modules/vif/components/form/new/inputs/VifAllowedIpsTextarea.vue'
 import VifMacInput from '@/modules/vif/components/form/new/inputs/VifMacInput.vue'
 import NewVifButtonsSection from '@/modules/vif/components/form/new/NewVifButtonsSection.vue'
 import { useNewVifForm } from '@/modules/vif/form/new/use-new-vif-form.ts'
-import type { NewVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { NewVifPayload } from '@/modules/vif/jobs/vif-create.job.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import type { RouteLocationRaw } from 'vue-router'
-import VifAllowedIpsTextarea from './inputs/VifAllowedIpsTextarea.vue'
 import VifNetworkSelect from './inputs/VifNetworkSelect.vue'
 import VifRateLimitInput from './inputs/VifRateLimitInput.vue'
 import VifTxChecksummingCheckbox from './inputs/VifTxChecksummingCheckbox.vue'
 
-const { vmId, poolId } = defineProps<{
-  vmId: FrontXoVm['id']
-  poolId: FrontXoPool['id']
+const { vmRef } = defineProps<{
+  vmRef: XenApiVm['$ref']
   cancelTo: RouteLocationRaw
 }>()
 
@@ -57,10 +55,7 @@ const {
   allowedIpsTextareaBindings,
   txChecksummingCheckboxBindings,
   validateAndBuildPayload,
-} = useNewVifForm(
-  () => vmId,
-  () => poolId
-)
+} = useNewVifForm(() => vmRef)
 
 async function onSubmit() {
   const payload = await validateAndBuildPayload()

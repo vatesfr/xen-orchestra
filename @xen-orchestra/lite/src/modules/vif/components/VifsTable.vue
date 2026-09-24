@@ -1,25 +1,24 @@
 <template>
-  <div class="vm-vifs-table">
+  <div class="vifs-table">
     <UiTitle>
       {{ t('vifs') }}
+      <template #action>
+        <slot name="title-actions" />
+      </template>
     </UiTitle>
-    <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-      </div>
-      <VtsTable :state :pagination-bindings sticky="right">
-        <thead>
-          <tr>
-            <HeadCells />
-          </tr>
-        </thead>
-        <tbody>
-          <VtsRow v-for="vif of paginatedVifs" :key="vif.uuid" :selected="selectedVifId === vif.uuid">
-            <BodyCells :item="vif" />
-          </VtsRow>
-        </tbody>
-      </VtsTable>
-    </div>
+    <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+    <VtsTable :state :pagination-bindings sticky="right">
+      <thead>
+        <tr>
+          <HeadCells />
+        </tr>
+      </thead>
+      <tbody>
+        <VtsRow v-for="vif of paginatedVifs" :key="vif.uuid" :selected="selectedVifId === vif.uuid">
+          <BodyCells :item="vif" />
+        </VtsRow>
+      </tbody>
+    </VtsTable>
   </div>
 </template>
 
@@ -48,6 +47,10 @@ import { useI18n } from 'vue-i18n'
 const { vifs, vm } = defineProps<{
   vifs: XenApiVif[]
   vm: XenApiVm
+}>()
+
+defineSlots<{
+  'title-actions'(): any
 }>()
 
 const { isReady, hasError } = useVifStore().subscribe()
@@ -152,16 +155,9 @@ const { HeadCells, BodyCells } = useVifColumns({
 </script>
 
 <style scoped lang="postcss">
-.vm-vifs-table {
+.vifs-table {
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
-
-  .container,
-  .table-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-  }
 }
 </style>
