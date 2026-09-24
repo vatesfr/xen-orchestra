@@ -22,7 +22,12 @@ export const useXoVmExportJob = defineJob('vm.export', [xoVmArg, xoVmExportTypeA
   const { t } = useI18n()
 
   return {
-    async run(vm: FrontXoVm, type: VmExportType, compression: VmExportCompression) {
+    async run(vm: FrontXoVm | undefined, type: VmExportType, compression: VmExportCompression) {
+      // Already rejected by validate, the guard only narrows the type
+      if (vm === undefined) {
+        return
+      }
+
       const params = new URLSearchParams()
 
       if (type === 'xva' && compression !== 'none') {
