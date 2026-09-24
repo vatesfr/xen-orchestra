@@ -225,7 +225,7 @@ export default class {
 
     const info = { ...(await timeout.call(promise, 5e3)), encryption }
 
-    const currentRemote = await this._remotes.first(remote.id).catch(() => undefined)
+    const currentRemote = await ignoreErrors.call(this._remotes.first(remote.id))
     if (!currentRemote?.enabled) {
       return
     }
