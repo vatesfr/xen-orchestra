@@ -131,6 +131,10 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     if (this.type === undefined || (object === undefined && previousObject === undefined)) {
       return
     }
+    if (this.type === 'authentication_token') {
+      log.warn('getAclEvent should not be called for authentication_token listener, ownership is checked in handleData')
+      return
+    }
 
     const restApi = iocContainer.get(RestApi)
     const user = await restApi.xoApp.getUser(userId)
@@ -142,7 +146,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     let resource: SupportedResource | undefined
 
     if (!XAPI_TYPES.includes(this.type)) {
-      resource = this.type as NonXapiListenerType
+      resource = this.type as Exclude<NonXapiListenerType, 'authentication_token'>
     } else {
       const resourceXapiType = Object.entries(XAPI_TYPE_BY_ACL_RESOURCE).find(([, xapiType]) => xapiType === this.type)
       if (resourceXapiType === undefined) {
