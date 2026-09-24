@@ -58,6 +58,7 @@
 
 <!--packages-start-->
 
+- @vates/obfuscate patch
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups minor

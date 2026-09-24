@@ -37,7 +37,7 @@ exports.merge = merge
 const obfuscate = value => replace(value, OBFUSCATED_VALUE)
 exports.obfuscate = obfuscate
 
-const SENSITIVE_PARAMS = ['token', 'passphrase', /password/i, 'encryptionKey']
+const SENSITIVE_PARAMS = ['token', 'passphrase', /password/i, /private_?key/i, 'encryptionKey']
 const isSensitiveParam = name =>
   SENSITIVE_PARAMS.some(pattern => (typeof pattern === 'string' ? pattern === name : pattern.test(name)))
 
