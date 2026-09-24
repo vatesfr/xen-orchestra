@@ -1,7 +1,10 @@
 // Pool of Docker connections, one per engine.
 //
 // - key = engine id + revision: bumping the revision (credential/host update)
-//   makes the pool open a new connection instead of reusing the old one
+//   makes the pool open a new connection instead of reusing the old one; the
+//   revision is opaque, e.g. a hash of the connection parameters, so that a
+//   connection can never serve other parameters than the ones it was opened
+//   with
 // - concurrent first uses of an engine share one SSH handshake
 // - idle connections are closed after `idleTimeout` by one shared, unref'd
 //   sweeper
@@ -26,6 +29,7 @@ import {
   POOL_EXHAUSTED,
   SSH_AUTH_FAILED,
   SSH_ERROR,
+  SSH_REFUSED_PENALTY,
   SSH_UNREACHABLE,
   STREAM_LOCAL_FORWARDING_DISABLED,
   STREAM_LOCAL_UNSUPPORTED,
@@ -51,6 +55,7 @@ const ENGINE_FAILURE_CODES = new Set([
   HOST_KEY_UNKNOWN,
   SSH_AUTH_FAILED,
   SSH_ERROR,
+  SSH_REFUSED_PENALTY,
   SSH_UNREACHABLE,
   STREAM_LOCAL_FORWARDING_DISABLED,
   STREAM_LOCAL_UNSUPPORTED,
@@ -154,7 +159,7 @@ export class DockerConnectionPool {
    * Passive state of an engine's connection, never connects.
    *
    * @param {string} id
-   * @param {number} [revision]
+   * @param {number | string} [revision]
    * @returns {{ status: 'idle' | 'connected' | 'error', error?: { code: string, message: string } }}
    */
   getState(id, revision) {
@@ -186,7 +191,7 @@ export class DockerConnectionPool {
    * The connection is considered busy (never evicted) while `fn` runs.
    *
    * @template T
-   * @param {{ id: string, revision?: number }} engine
+   * @param {{ id: string, revision?: number | string }} engine
    * @param {() => Promise<import('./connection.mjs').DockerConnection> | import('./connection.mjs').DockerConnection} createConnection returns a new, not yet connected, connection
    * @param {(connection: ReturnType<typeof createFacade>) => Promise<T>} fn
    * @returns {Promise<T>}
@@ -248,6 +253,7 @@ export class DockerConnectionPool {
     if (this.#entries.size >= this.#maxConnections) {
       this.#evictOne()
     }
+    this.#pruneFailures(id, key)
 
     const entry = {
       closed: false,
@@ -297,6 +303,16 @@ export class DockerConnectionPool {
 
   #setFailure(key, error) {
     this.#failures.set(key, { error, until: this.#now() + this.#failureTtl })
+  }
+
+  // the failures of the other revisions of an engine are stale: they would
+  // otherwise stay in memory until the engine is invalidated
+  #pruneFailures(id, key) {
+    for (const other of this.#failures.keys()) {
+      if (other !== key && other.startsWith(id + ':')) {
+        this.#failures.delete(other)
+      }
+    }
   }
 
   #evictOne() {

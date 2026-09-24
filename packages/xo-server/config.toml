@@ -162,6 +162,14 @@ requestTimeout = '30s'
 # hammering an offline guest, and its fail2ban).
 failureTtl = '30s'
 
+# After an SSH authentication failure, a refused host key or a handshake aborted
+# before authentication, new attempts (create, update, test) with the same
+# parameters are refused locally for this long (SSH_COOLDOWN, 429 + Retry-After
+# in the REST API): OpenSSH >= 9.8 (PerSourcePenalties) otherwise ends up
+# refusing every connection from XO's address. Changed parameters are tried
+# right away. 0 disables it.
+authFailureCooldown = '10s'
+
 # Container lists are cached for this long.
 cacheExpiresIn = '10s'
 cacheTimeout = '20s'
@@ -177,6 +185,11 @@ defaultLogsTail = 100
 maxLogsTail = 10000
 # Logs responses are cut (`truncated: true`) above this size.
 maxLogsSize = '5MiB'
+# Reading the logs stops after `logsTimeout` overall, or `logsIdleTimeout` without
+# data (`truncated: true, timedOut: true`, with what was read so far): a stalled
+# or trickling response would otherwise keep a pooled connection busy.
+logsTimeout = '30s'
+logsIdleTimeout = '10s'
 
 # Max engines a single GET /docker-containers may fan out to.
 maxListedEngines = 10
