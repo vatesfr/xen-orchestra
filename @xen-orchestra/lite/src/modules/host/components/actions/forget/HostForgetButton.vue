@@ -2,7 +2,7 @@
   <MenuItem
     v-tooltip="!canForgetHost && forgetHostErrorMessage"
     :busy="isForgettingHost"
-    class="host-forget-button"
+    accent="danger"
     :disabled="!canForgetHost"
     icon="action:forget"
     @click="forgetHost()"
@@ -51,9 +51,3 @@ function forgetHost() {
   })
 }
 </script>
-
-<style lang="postcss" scoped>
-.host-forget-button {
-  color: var(--color-danger-item-base);
-}
-</style>

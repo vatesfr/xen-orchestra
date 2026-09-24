@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="showChangeStateButton" icon="action:change-state" class="change-state">
+  <MenuItem v-if="showChangeStateButton" icon="action:change-state" accent="brand">
     {{ t('action:change-state') }}
     <template #submenu>
       <HostPowerStateActions :host />
@@ -26,9 +26,3 @@ defineProps<{
 
 const { t } = useI18n()
 </script>
-
-<style lang="postcss" scoped>
-.change-state {
-  color: var(--color-brand-txt-base);
-}
-</style>
