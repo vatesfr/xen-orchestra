@@ -17,12 +17,14 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { createServer } from 'node:net'
 import test from 'node:test'
+import { Client } from 'ssh2'
 
 import { DockerConnection, MAX_API_VERSION } from './connection.mjs'
 import {
   DOCKER_SOCKET_UNREACHABLE,
   HOST_KEY_MISMATCH,
   HOST_KEY_UNKNOWN,
+  CONNECTION_CLOSED,
   SSH_AUTH_FAILED,
   SSH_UNREACHABLE,
   TIMEOUT,
@@ -65,18 +67,21 @@ describe('DockerConnection (real SSH + dockerd)', { skip }, () => {
     await Promise.all(connections.map(connection => connection.close()))
   })
 
-  const createConnection = opts => {
-    const connection = new DockerConnection({
-      host,
-      port: Number(port),
-      username,
-      privateKey,
-      socketPath,
-      hostKeyFingerprint: fingerprint,
-      connectTimeout: 5e3,
-      requestTimeout: 10e3,
-      ...opts,
-    })
+  const createConnection = (opts, internals) => {
+    const connection = new DockerConnection(
+      {
+        host,
+        port: Number(port),
+        username,
+        privateKey,
+        socketPath,
+        hostKeyFingerprint: fingerprint,
+        connectTimeout: 5e3,
+        requestTimeout: 10e3,
+        ...opts,
+      },
+      internals
+    )
     connections.push(connection)
     return connection
   }
@@ -146,6 +151,62 @@ describe('DockerConnection (real SSH + dockerd)', { skip }, () => {
     controller.abort()
     const { statusCode } = await connection.request({ path: '/_ping' })
     assert.equal(statusCode, 200)
+  })
+
+  it('recovers from SSH connection losses (no reuse of dead keep-alive channels, no leaked slots)', async () => {
+    const clients = []
+    const connection = createConnection(
+      { requestTimeout: 2e3 },
+      {
+        createClient: () => {
+          const client = new Client()
+          clients.push(client)
+          return client
+        },
+      }
+    )
+    // more drops than the max number of free sockets and concurrent requests
+    for (let i = 0; i < 5; ++i) {
+      await Promise.all([connection.request({ path: '/_ping' }), connection.request({ path: '/_ping' })])
+      // simulate a network failure
+      clients.at(-1)._sock.destroy()
+      await new Promise(resolve => setTimeout(resolve, 100))
+      const start = Date.now()
+      const results = await Promise.all(
+        Array.from({ length: 3 }, () => connection.request({ path: '/_ping' }).then(({ statusCode }) => statusCode))
+      )
+      assert.deepEqual(results, [200, 200, 200])
+      assert.ok(Date.now() - start < 2e3)
+    }
+    assert.equal(clients.length, 6)
+  })
+
+  it('close() rejects queued requests with CONNECTION_CLOSED and does not reconnect', async () => {
+    const clients = []
+    const connection = createConnection(
+      {},
+      {
+        createClient: () => {
+          const client = new Client()
+          clients.push(client)
+          return client
+        },
+      }
+    )
+    await connection.connect()
+    const results = Array.from({ length: 20 }, () =>
+      connection.request({ path: '/containers/json', query: { all: 1 } }).then(
+        () => 'ok',
+        error => error.code
+      )
+    )
+    await connection.close()
+    for (const result of await Promise.all(results)) {
+      assert.equal(result, CONNECTION_CLOSED)
+    }
+    await new Promise(resolve => setTimeout(resolve, 200))
+    assert.equal(clients.length, 1)
+    assert.equal(clients[0]._sock.destroyed, true)
   })
 
   it('fails with HOST_KEY_MISMATCH on a wrong fingerprint', async () => {

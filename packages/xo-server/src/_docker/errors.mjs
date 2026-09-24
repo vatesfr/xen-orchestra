@@ -19,6 +19,8 @@ export const DOCKER_API_ERROR = 'DOCKER_API_ERROR'
 export const DOCKER_API_VERSION_UNSUPPORTED = 'DOCKER_API_VERSION_UNSUPPORTED'
 export const TIMEOUT = 'TIMEOUT'
 export const POOL_EXHAUSTED = 'POOL_EXHAUSTED'
+// the request was interrupted (or never sent) because `close()` was called
+export const CONNECTION_CLOSED = 'CONNECTION_CLOSED'
 
 // SSH_MSG_CHANNEL_OPEN_FAILURE reason codes (RFC 4254 § 5.1)
 export const SSH_OPEN_ADMINISTRATIVELY_PROHIBITED = 1
