@@ -106,6 +106,7 @@
 
 - @vates/iscsi minor
 - @vates/node-vsphere-soap minor
+- @vates/obfuscate patch
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/async-map patch
