@@ -598,13 +598,13 @@ export default class TabDisks extends Component {
     })
 
   _migrateVdis = vdis => {
-    const { resolvedResourceSet, vm } = this.props
+    const { isAdmin, resolvedResourceSet, vm } = this.props
     return confirm({
       title: _('vdiMigrate'),
       body: (
         <MigrateVdiModalBody
           pool={vm.$pool}
-          resourceSet={resolvedResourceSet}
+          resourceSet={isAdmin ? undefined : resolvedResourceSet}
           warningBeforeMigrate={this._getGenerateWarningBeforeMigrate()}
         />
       ),
