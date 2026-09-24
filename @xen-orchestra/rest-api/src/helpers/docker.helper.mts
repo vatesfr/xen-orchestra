@@ -15,6 +15,17 @@ export const isDockerError = (error: unknown): error is DockerErrorLike =>
 // the pool is full of busy connections: the client should retry soon
 const POOL_EXHAUSTED_RETRY_AFTER = '5'
 
+function getRetryAfter(error: DockerErrorLike): string | undefined {
+  switch (error.code) {
+    case 'POOL_EXHAUSTED':
+      return POOL_EXHAUSTED_RETRY_AFTER
+    case 'SSH_COOLDOWN': {
+      const retryAfter = error.data?.retryAfter
+      return String(typeof retryAfter === 'number' && retryAfter > 0 ? Math.ceil(retryAfter) : 1)
+    }
+  }
+}
+
 function getStatus(error: DockerErrorLike): HttpStatusCodeLiteral {
   switch (error.code) {
     case 'HOST_KEY_UNKNOWN':
@@ -22,6 +33,9 @@ function getStatus(error: DockerErrorLike): HttpStatusCodeLiteral {
       return 409
     case 'TIMEOUT':
       return 504
+    case 'SSH_COOLDOWN':
+      // refused locally: a recent attempt with the same parameters failed
+      return 429
     case 'POOL_EXHAUSTED':
     case 'CONNECTION_CLOSED':
       return 503
@@ -34,7 +48,8 @@ function getStatus(error: DockerErrorLike): HttpStatusCodeLiteral {
         : 502
     }
     default:
-      // SSH_*, STREAM_LOCAL_*, DOCKER_SOCKET_UNREACHABLE, DOCKER_API_VERSION_UNSUPPORTED…
+      // SSH_* (including SSH_REFUSED_PENALTY), STREAM_LOCAL_*, DOCKER_SOCKET_UNREACHABLE,
+      // DOCKER_API_VERSION_UNSUPPORTED…
       //
       // never 401 (`invalidCredentials`): the credentials rejected are the
       // Docker host's, not the XO user's, and a 401 would make the browser
@@ -55,9 +70,10 @@ export function toDockerApiError(error: unknown): unknown {
   if (!isDockerError(error)) {
     return error
   }
+  const retryAfter = getRetryAfter(error)
   const apiError = new ApiError(error.message, getStatus(error), {
     data: { ...error.data, code: error.code },
-    headers: error.code === 'POOL_EXHAUSTED' ? { 'Retry-After': POOL_EXHAUSTED_RETRY_AFTER } : undefined,
+    headers: retryAfter === undefined ? undefined : { 'Retry-After': retryAfter },
   })
   apiError.cause = error
   return apiError

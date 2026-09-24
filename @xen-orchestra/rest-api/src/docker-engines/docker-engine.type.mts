@@ -50,8 +50,8 @@ export interface UpdateDockerEngineBody {
   passphrase?: string | null
   socketPath?: string | null
   /**
-   * replaces the pinned key (verified on the next connection); `null` clears it:
-   * the host key is then checked like on creation
+   * replaces the pinned key, verified by connecting before saving; `null`
+   * clears it: the host key is then checked like on creation
    */
   hostKeyFingerprint?: string | null
   /** see the creation */
