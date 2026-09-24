@@ -1,4 +1,4 @@
-import BackupRepositorySpaceAndSpeedCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositorySpaceAndSpeedCard.vue'
+import BackupRepositorySpeedCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositorySpeedCard.vue'
 import type { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup/jobs/xo-backup-repository-benchmark.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
@@ -22,7 +22,6 @@ vi.mock(import('@/modules/backup/jobs/xo-backup-repository-benchmark.job.ts'), (
 }))
 
 beforeEach(() => {
-  vi.restoreAllMocks()
   useBenchmarkJob.mockReset()
   run.mockReset()
 
@@ -43,7 +42,7 @@ function createBenchmark(overrides: Partial<XoBackupRepositoryBenchmark> = {}): 
 }
 
 function mountCard(br: FrontXoBackupRepository = createBr()) {
-  return mount(BackupRepositorySpaceAndSpeedCard, {
+  return mount(BackupRepositorySpeedCard, {
     props: { br },
     global: createGlobalTestConfig(),
   })
@@ -67,17 +66,16 @@ function findBenchmarkButton(wrapper: ReturnType<typeof mountCard>) {
 it('renders the card title', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('space-and-speed'))
+  expect(wrapper.get('.ui-card-title').text()).toBe(t('speed'))
 })
 
-it('announces the space rows as coming soon', () => {
+it('lists the writing and reading speeds only', () => {
   const wrapper = mountCard()
 
-  expect(findCardLabelledValues(wrapper)).toMatchObject({
-    [t('used-space-on-br')]: t('coming-soon!'),
-    [t('free-space-on-br')]: t('coming-soon!'),
-    [t('allocated-space')]: t('coming-soon!'),
-  })
+  expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.key').text())).toEqual([
+    t('writing-speed'),
+    t('reading-speed'),
+  ])
 })
 
 it('leaves the speeds empty and not copyable when the repository was never benchmarked', () => {
@@ -109,34 +107,6 @@ it('shows the result of a benchmark run from the card in place of the stored one
   await flushPromises()
 
   expect(findSpeeds(wrapper)).toEqual({ write: formatSpeed(300_000_000), read: formatSpeed(400_000_000) })
-})
-
-it('keeps the displayed speeds when the benchmark fails', async () => {
-  vi.spyOn(console, 'error').mockImplementation(() => {})
-  run.mockRejectedValue(new Error('Backup repository unreachable'))
-  const wrapper = mountCard(createBr({ benchmarks: [createBenchmark()] }))
-
-  await findBenchmarkButton(wrapper).trigger('click')
-  await flushPromises()
-
-  expect(findSpeeds(wrapper)).toEqual({ write: formatSpeed(100_000_000), read: formatSpeed(200_000_000) })
-})
-
-it('drops the result of a benchmark run from the card when another repository is shown', async () => {
-  run.mockResolvedValue({ writeRate: 300_000_000, readRate: 400_000_000 })
-  const wrapper = mountCard(createBr({ benchmarks: [createBenchmark()] }))
-
-  await findBenchmarkButton(wrapper).trigger('click')
-  await flushPromises()
-
-  await wrapper.setProps({
-    br: createBr({
-      id: 'backup-repository-456' as FrontXoBackupRepository['id'],
-      benchmarks: [createBenchmark({ writeRate: 5_000_000, readRate: 6_000_000 })],
-    }),
-  })
-
-  expect(findSpeeds(wrapper)).toEqual({ write: formatSpeed(5_000_000), read: formatSpeed(6_000_000) })
 })
 
 it('disables the benchmark button when the job cannot run', () => {
