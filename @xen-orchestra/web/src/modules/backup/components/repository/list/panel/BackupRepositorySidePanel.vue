@@ -2,7 +2,7 @@
   <VtsSidePanel :has-selection="!!br" @close="emit('close')">
     <template v-if="br" #default>
       <BackupRepositoryInfosCard :br :parsed-br-url />
-      <BackupRepositorySpaceAndSpeedCard :br />
+      <BackupRepositorySpeedCard :br />
       <BackupRepositoryLocalCard v-if="parsedBrUrl?.type === 'file'" :file="parsedBrUrl" />
       <BackupRepositoryNfsCard v-else-if="parsedBrUrl?.type === 'nfs'" :nfs="parsedBrUrl" :options="br.options" />
       <BackupRepositorySmbCard v-else-if="parsedBrUrl?.type === 'smb'" :smb="parsedBrUrl" :options="br.options" />
@@ -22,7 +22,7 @@ import BackupRepositoryLocalCard from '@/modules/backup/components/repository/li
 import BackupRepositoryNfsCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositoryNfsCard.vue'
 import BackupRepositoryS3Card from '@/modules/backup/components/repository/list/panel/cards/BackupRepositoryS3Card.vue'
 import BackupRepositorySmbCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositorySmbCard.vue'
-import BackupRepositorySpaceAndSpeedCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositorySpaceAndSpeedCard.vue'
+import BackupRepositorySpeedCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositorySpeedCard.vue'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import { type FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
