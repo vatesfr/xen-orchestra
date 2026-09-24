@@ -523,6 +523,194 @@ describe('tasks', function () {
   })
 })
 
+describe('attachDisk / detachDisk', function () {
+  const FILE_NAME = '[ds main] other.vm/other.vmdk'
+  const scsi = (key, busNumber, extra = {}) => ({
+    attributes: { 'xsi:type': 'ParaVirtualSCSIController' },
+    key,
+    busNumber,
+    scsiCtlrUnitNumber: 7,
+    ...extra,
+  })
+  const disk = ({ key, controllerKey, unitNumber, fileName = '[ds main] a.vm/a.vmdk' }) => ({
+    attributes: { 'xsi:type': 'VirtualDisk' },
+    key,
+    controllerKey,
+    unitNumber,
+    capacityInKB: 1024,
+    backing: { attributes: { 'xsi:type': 'VirtualDiskFlatVer2BackingInfo' }, fileName },
+  })
+
+  // answers the devices of the VM, which the reconfiguration replaces with `after`
+  const reconfigEsxi = async ({ before, after = before }) => {
+    let reconfigured = false
+    const { esxi, vimClient } = await connectedEsxi({
+      responses: {
+        ReconfigVM_Task: () => {
+          reconfigured = true
+          return startedTask()
+        },
+        RetrievePropertiesEx: ({ specSet }) => {
+          const { type } = specSet[0].propSet[0]
+          if (type === 'Task') {
+            return taskInfo('success')
+          }
+          return propertyOf('VirtualMachine', 'vm-1', 'config.hardware.device', {
+            attributes: { 'xsi:type': 'ArrayOfVirtualDevice' },
+            VirtualDevice: reconfigured ? after : before,
+          })
+        },
+      },
+    })
+    return { esxi, vimClient }
+  }
+
+  const deviceChangeOf = vimClient => {
+    const [{ args }] = vimClient.callsTo('ReconfigVM_Task')
+    assert.equal(args._this, 'vm-1')
+    return args.spec.deviceChange[0]
+  }
+
+  it('attaches the disk in a mode which never writes to its file, on the first free SCSI unit', async function () {
+    const before = [
+      scsi(1001, 1),
+      scsi(1000, 0),
+      disk({ key: 2000, controllerKey: 1000, unitNumber: 0 }),
+      disk({ key: 2001, controllerKey: 1000, unitNumber: 1 }),
+    ]
+    const { esxi, vimClient } = await reconfigEsxi({
+      before,
+      after: [...before, disk({ key: 2002, controllerKey: 1000, unitNumber: 2, fileName: FILE_NAME })],
+    })
+
+    assert.deepEqual(await esxi.attachDisk('vm-1', FILE_NAME), { controllerKey: 1000, deviceKey: 2002, unitNumber: 2 })
+
+    const change = deviceChangeOf(vimClient)
+    assert.equal(change.operation, 'add')
+    // an existing file is used as is, `create` would make a new one
+    assert.equal(change.fileOperation, undefined)
+    assert.deepEqual(change.device, {
+      attributes: { 'xsi:type': 'VirtualDisk' },
+      key: -1,
+      backing: {
+        attributes: { 'xsi:type': 'VirtualDiskFlatVer2BackingInfo' },
+        fileName: FILE_NAME,
+        diskMode: 'independent_nonpersistent',
+      },
+      controllerKey: 1000,
+      unitNumber: 2,
+      capacityInKB: 0,
+    })
+    // the schema is a sequence: the order of the elements is the order of the keys
+    assert.deepEqual(Object.keys(change.device), [
+      'attributes',
+      'key',
+      'backing',
+      'controllerKey',
+      'unitNumber',
+      'capacityInKB',
+    ])
+  })
+
+  it('skips the unit of the controller itself', async function () {
+    const before = [
+      scsi(1000, 0),
+      ...[0, 1, 2, 3, 4, 5, 6].map(unitNumber => disk({ key: 2000 + unitNumber, controllerKey: 1000, unitNumber })),
+    ]
+    const { esxi, vimClient } = await reconfigEsxi({
+      before,
+      after: [...before, disk({ key: 2008, controllerKey: 1000, unitNumber: 8, fileName: FILE_NAME })],
+    })
+
+    assert.equal((await esxi.attachDisk('vm-1', FILE_NAME)).unitNumber, 8)
+    assert.equal(deviceChangeOf(vimClient).device.unitNumber, 8)
+  })
+
+  it('moves on to the next controller when one is full', async function () {
+    const full = Array.from({ length: 16 }, (_, unitNumber) => unitNumber)
+      .filter(unitNumber => unitNumber !== 7)
+      .map(unitNumber => disk({ key: 2000 + unitNumber, controllerKey: 1000, unitNumber }))
+    const before = [scsi(1000, 0), scsi(1001, 1), ...full]
+    const { esxi } = await reconfigEsxi({
+      before,
+      after: [...before, disk({ key: 2100, controllerKey: 1001, unitNumber: 0, fileName: FILE_NAME })],
+    })
+
+    assert.deepEqual(await esxi.attachDisk('vm-1', FILE_NAME), { controllerKey: 1001, deviceKey: 2100, unitNumber: 0 })
+  })
+
+  it('reports a VM without any free SCSI slot', async function () {
+    // an IDE controller is not a candidate
+    const { esxi, vimClient } = await reconfigEsxi({
+      before: [{ attributes: { 'xsi:type': 'VirtualIDEController' }, key: 200, busNumber: 0 }],
+    })
+
+    await assert.rejects(esxi.attachDisk('vm-1', FILE_NAME), { code: 'NO_FREE_SLOT', vmId: 'vm-1' })
+    assert.equal(vimClient.callsTo('ReconfigVM_Task').length, 0)
+  })
+
+  it('uses the slot named by the caller', async function () {
+    const before = [scsi(1000, 0)]
+    const { esxi, vimClient } = await reconfigEsxi({
+      before,
+      after: [...before, disk({ key: 16000, controllerKey: 15000, unitNumber: 3, fileName: FILE_NAME })],
+    })
+
+    assert.deepEqual(await esxi.attachDisk('vm-1', FILE_NAME, { controllerKey: 15000, unitNumber: 3 }), {
+      controllerKey: 15000,
+      deviceKey: 16000,
+      unitNumber: 3,
+    })
+    // the devices are only read once, after the reconfiguration
+    assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, 2)
+  })
+
+  it('refuses half a slot', async function () {
+    const { esxi, vimClient } = await reconfigEsxi({ before: [] })
+
+    await assert.rejects(esxi.attachDisk('vm-1', FILE_NAME, { controllerKey: 1000 }), { code: 'INVALID_SLOT' })
+    assert.equal(vimClient.calls.length, 0)
+  })
+
+  it('fails when the disk is not where it was attached', async function () {
+    const before = [scsi(1000, 0)]
+    const { esxi } = await reconfigEsxi({
+      before,
+      after: [...before, disk({ key: 2000, controllerKey: 1000, unitNumber: 0, fileName: '[ds main] else.vmdk' })],
+    })
+
+    await assert.rejects(esxi.attachDisk('vm-1', FILE_NAME), { code: 'DISK_NOT_ATTACHED', vmId: 'vm-1' })
+  })
+
+  it('detaches a disk without deleting its file', async function () {
+    const { esxi, vimClient } = await reconfigEsxi({
+      before: [scsi(1000, 0), disk({ key: 2002, controllerKey: 1000, unitNumber: 2, fileName: FILE_NAME })],
+    })
+
+    await esxi.detachDisk('vm-1', 2002)
+
+    const change = deviceChangeOf(vimClient)
+    assert.equal(change.operation, 'remove')
+    // `destroy` would delete the file from the datastore
+    assert.equal(change.fileOperation, undefined)
+    assert.deepEqual(change.device, {
+      attributes: { 'xsi:type': 'VirtualDisk' },
+      key: 2002,
+      controllerKey: 1000,
+      unitNumber: 2,
+      capacityInKB: 1024,
+    })
+  })
+
+  it('refuses to detach a device which is not a disk', async function () {
+    const { esxi, vimClient } = await reconfigEsxi({ before: [scsi(1000, 0)] })
+
+    await assert.rejects(esxi.detachDisk('vm-1', 1000), { code: 'NO_SUCH_DISK', vmId: 'vm-1' })
+    await assert.rejects(esxi.detachDisk('vm-1', 4242), { code: 'NO_SUCH_DISK' })
+    assert.equal(vimClient.callsTo('ReconfigVM_Task').length, 0)
+  })
+})
+
 describe('getAllVmMetadata', function () {
   const vm = (id, propSet) => ({ obj: moRef('VirtualMachine', id), propSet })
 
