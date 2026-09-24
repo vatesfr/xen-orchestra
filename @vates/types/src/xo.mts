@@ -579,6 +579,9 @@ export type XoJob = BaseXoJob & {
       [key: string]: unknown
     }[]
   }
+  userId?: XoUser['id']
+  createdBy?: XoUser['id']
+  updatedBy?: XoUser['id']
 }
 
 export type XoSchedule = {
