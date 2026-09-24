@@ -390,6 +390,7 @@ export type XoApp = {
   getGroup(id: XoGroup['id']): Promise<XoGroup>
   getHVSupportedVersions: undefined | (() => Promise<{ [key: XoHost['productBrand']]: string }>)
   getJob<T extends AnyXoJob>(id: T['id']): Promise<T>
+  isJobSequence(job: AnyXoJob): boolean
   getObject: <T extends XapiXoRecord>(id: T['id'], type?: T['type'] | T['type'][]) => T
   getObjectsByType: <T extends XapiXoRecord>(
     type: T['type'],

@@ -4,12 +4,8 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 /** @typedef {import('@vates/types').XoJob} XoJob */
 
 /**
- * @typedef {XoJob & { userId?: string, createdBy?: string, updatedBy?: string }} Job
- */
-
-/**
  * @param {Pick<XoApp, 'getUser' | 'isJobSequence'>} app
- * @param {Job} job
+ * @param {XoJob} job
  * @returns {Promise<void>}
  */
 export default async function validateJobUser(app, job) {
