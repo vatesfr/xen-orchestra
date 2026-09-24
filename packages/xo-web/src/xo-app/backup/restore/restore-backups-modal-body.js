@@ -1,10 +1,11 @@
 import _ from 'intl'
 import Icon from 'icon'
 import React from 'react'
-import ChooseSrForEachVdisModal from 'xo/choose-sr-for-each-vdis-modal'
+import ChooseSrForEachVdisModal, { areVdiTargetsComplete } from 'xo/choose-sr-for-each-vdis-modal'
 import Component from 'base-component'
 import StateButton from 'state-button'
 import { createSelector } from 'selectors'
+import { keyBy } from 'lodash'
 import { getRenderXoItemOfType } from 'render-xo-item'
 import { Select, Toggle } from 'form'
 import { SelectSr } from 'select-objects'
@@ -22,17 +23,17 @@ export default class RestoreBackupsModalBody extends Component {
     return this.state
   }
 
+  // read by the modal to refuse the confirmation while a disk misses the destination its action
+  // needs, which the server could not guess
+  get isValid() {
+    return areVdiTargetsComplete(this.state.targetSrs, this._getDisks())
+  }
+
+  // every disk of the backup is listed, including the ones the user chose not to restore: that
+  // choice is an action of its own now, and must stay visible and reversible
   _getDisks = createSelector(
     () => this.state.backup,
-    () => this.state.targetSrs.mapVdisSrs,
-    (backup, mapVdisSrs) =>
-      backup !== undefined && backup.mode === 'delta'
-        ? backup.disks.reduce(
-            (vdis, vdi) =>
-              mapVdisSrs !== undefined && mapVdisSrs[vdi.uuid] === null ? vdis : { ...vdis, [vdi.uuid]: vdi },
-            {}
-          )
-        : {}
+    backup => (backup !== undefined && backup.mode === 'delta' ? keyBy(backup.disks, 'uuid') : {})
   )
 
   render() {
@@ -60,12 +61,12 @@ export default class RestoreBackupsModalBody extends Component {
           <div>
             <div className='mb-1'>
               <ChooseSrForEachVdisModal
-                ignorableVdis
                 onChange={this.linkState('targetSrs')}
                 placeholder={_('importBackupModalSelectSr')}
                 required
                 value={this.state.targetSrs}
                 vdis={this._getDisks()}
+                withVdiTargets
               />
             </div>
             {this.props.showStartAfterBackup && (

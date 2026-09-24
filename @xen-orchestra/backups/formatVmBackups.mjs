@@ -1,7 +1,9 @@
+// @ts-check
+
 import mapValues from 'lodash/mapValues.js'
 import { dirname } from 'node:path'
 
-function formatVmBackup(backup) {
+export function formatVmBackup(backup) {
   const { isVhdDifferencing, vmSnapshot } = backup
 
   let differencingVhds

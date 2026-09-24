@@ -1,5 +1,11 @@
 <template>
-  <MenuItem icon="action:delete" :disabled="!canDeleteVifs" :busy="isDeletingVifs" @click="deleteVifs()">
+  <MenuItem
+    accent="danger"
+    icon="action:delete"
+    :disabled="!canDeleteVifs"
+    :busy="isDeletingVifs"
+    @click="deleteVifs()"
+  >
     {{ t('action:delete') }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>

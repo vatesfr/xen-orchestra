@@ -77,7 +77,6 @@
   "action:start": "Start",
   "action:start-on-host": "Start på en specifik host",
   "action:suspend": "Suspendere",
-  "action:unselect-all": "Fravælg alt",
   "action:update": "Opdater",
   "action:visit-pool-dashboard": "Besøg pool oversigtspanel",
   "admin-login": "Admin login",
