@@ -403,6 +403,7 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | '/vm/[id]/backups'
       | '/vm/[id]/console'
+      | '/vm/[id]/containers'
       | '/vm/[id]/dashboard'
       | '/vm/[id]/networks'
       | '/vm/[id]/snapshots'
@@ -420,6 +421,13 @@ declare module 'vue-router/auto-routes' {
     '/vm/[id]/console': RouteRecordInfo<
       '/vm/[id]/console',
       '/vm/:id/console',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/vm/[id]/containers': RouteRecordInfo<
+      '/vm/[id]/containers',
+      '/vm/:id/containers',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -823,6 +831,7 @@ declare module 'vue-router/auto-routes' {
         | '/vm/[id]'
         | '/vm/[id]/backups'
         | '/vm/[id]/console'
+        | '/vm/[id]/containers'
         | '/vm/[id]/dashboard'
         | '/vm/[id]/networks'
         | '/vm/[id]/snapshots'
@@ -841,6 +850,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vm/[id]/console.vue': {
       routes:
         | '/vm/[id]/console'
+      views:
+        | never
+    }
+    'src/pages/vm/[id]/containers.vue': {
+      routes:
+        | '/vm/[id]/containers'
       views:
         | never
     }

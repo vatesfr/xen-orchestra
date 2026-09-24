@@ -68,6 +68,11 @@
         {{ t('network') }}
       </UiTabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/containers', params: { id: vm.id } }" custom>
+      <UiTabItem :active="isActive" :href tag="a">
+        {{ t('containers') }}
+      </UiTabItem>
+    </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/vdis', params: { id: vm.id } }" custom>
       <UiTabItem :active="isActive" :href tag="a">
         {{ t('vdis') }}
