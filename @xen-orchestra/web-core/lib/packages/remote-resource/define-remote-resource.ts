@@ -25,7 +25,6 @@ import {
   shallowRef,
   toRef,
   toValue,
-  triggerRef,
   watch,
 } from 'vue'
 
@@ -310,13 +309,14 @@ export function defineRemoteResource<
     const sharedContext = { ...context, scope: stateScope }
 
     const data = shallowRef(buildData()) as Ref<TData>
-    // trigger reactivity on data when no more updates since 100ms or after 500ms
+
+    // create a new JS reference to ensure vueJS detect the change, even when
+    // the value is only compared by identity (e.g. a component prop)
     const flushData = useDebounceFn(
       () => {
         if (Array.isArray(data.value)) {
-          triggerRef(data)
+          data.value = data.value.slice() as TData
         } else if (data.value != null) {
-          // create a new JS reference to ensure vueJS detect the change
           data.value = { ...data.value }
         }
       },
