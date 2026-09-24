@@ -2,6 +2,7 @@ import { EventEmitter } from 'node:stream'
 import type {
   AnyXoJob,
   AnyXoLog,
+  NonXapiXoRecord,
   XapiXoRecord,
   XoAuthenticationToken,
   XoBackupRepository,
@@ -468,6 +469,7 @@ export type XoApp = {
     | { success: true; readRate: number; writeRate: number }
     | { success: false; step: string; file: string; error: unknown }
   >
+  touchXoObject(type: string, id: NonXapiXoRecord['id']): Promise<void>
   /** Detach a disk mounted by `mountBackupArchiveDisk` and stop serving it */
   unmountBackupArchiveDisk(id: BackupArchiveDiskMount['id']): Promise<void>
   reclaimSpace(
