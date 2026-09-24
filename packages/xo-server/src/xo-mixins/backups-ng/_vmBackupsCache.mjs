@@ -372,15 +372,15 @@ export class VmBackupsCache {
 
     // the source reduced the events to the last one of each backup, therefore they are independent
     // and the order they are applied in does not matter
-    for (const { vmUuid, filename, backup } of read.events) {
-      if (backup === undefined) {
+    for (const { event, vmUuid, filename, backup } of read.events) {
+      if (event === 'del') {
         removeBackup(backupsByVm, vmUuid, filename)
       } else {
         ;(backupsByVm[vmUuid] ??= {})[filename] = backup
       }
     }
 
-    if (read.events.length > 0) {
+    if (read.cursor !== undefined && read.cursor !== entry.cursor) {
       entry.cursor = /** @type {string} */ (read.cursor)
       // the journal has now actually been observed to exist: it disappearing on a later replay is
       // anomalous rather than a repository which has simply never been written to

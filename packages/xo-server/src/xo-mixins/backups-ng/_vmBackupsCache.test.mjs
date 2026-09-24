@@ -107,12 +107,12 @@ class Repository {
 
         // `VmBackupsSource` hands the cache the current value of each backup an event is about, or
         // nothing at all when the backup is gone
-        const events = entries.map(({ filename, vmUuid }) => {
+        const events = entries.map(({ event, filename, vmUuid }) => {
           const key = normalize(filename)
           const metadata = this.metadataByFilename.get(key)
           return metadata === undefined
-            ? { vmUuid, filename: key }
-            : { vmUuid, filename: key, backup: this.#format(metadata) }
+            ? { event, vmUuid, filename: key }
+            : { event, vmUuid, filename: key, backup: this.#format(metadata) }
         })
         return { events, cursor }
       },

@@ -76,9 +76,10 @@ export class VmBackupsSource {
   }
 
   /**
+   * @template T
    * @param {Repository} repository
-   * @param {(adapter: any) => Promise<any>} fn
-   * @returns {Promise<any>}
+   * @param {(adapter: import('@xen-orchestra/backups/RemoteAdapter.mjs').RemoteAdapter) => Promise<T>} fn
+   * @returns {Promise<T>}
    */
   #useAdapter(repository, fn) {
     return Disposable.use(this.#app.getBackupsRemoteAdapter(repository), fn)
