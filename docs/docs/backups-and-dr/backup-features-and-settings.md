@@ -434,7 +434,7 @@ When the selected backup is an incremental one, the restore modal lists every di
 | Action                                  | Destination                                                   | Result                                                                                                  |
 | --------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | **Restore** (default)                   | An SR, or nothing to use the main SR (shown as _Use main SR_) | The disk is copied to that SR, as in a regular restore.                                                 |
-| **Live mount (read only)**              | A host                                                        | The disk is not copied: it is attached to the VM read only, straight from the backup. See [Live mount a disk](#live-mount). |
+| **Live mount (read only)**              | A host                                                        | The disk is not copied: it is attached to the VM in read-only mode, straight from the backup. See [Live mount a disk](#live-mount). |
 | **Do not restore**                      | None                                                          | The disk is left out of the restored VM.                                                                |
 
 <UiDetail src="/img/xo5/restore-disk-targets.png" alt="The Restore VM modal with the per-disk panel expanded: one disk restored to the main SR, one live mounted on a host, one not restored" width={760} />
@@ -451,7 +451,7 @@ A full backup has no per-disk choice: the whole VM is restored to the main SR.
 
 ## Live mount a disk {#live-mount}
 
-A live mount attaches a disk from an incremental backup to the restored VM **without copying it**. Xen Orchestra serves the disk from the backup repository (BR) as a read-only iSCSI LUN, which host sees as a dedicated SR. Regardless of the disk size, it is usable as soon as the restore completes.
+A live mount attaches a disk from an incremental backup to the restored VM **without copying it**. Xen Orchestra serves the disk from the backup repository (BR) as a read-only iSCSI LUN, which the host sees as a dedicated SR. Regardless of the disk size, it is usable as soon as the restore completes.
 
 Typical uses:
 
@@ -461,7 +461,7 @@ Typical uses:
 ### How it works
 
 - Xen Orchestra (or the [proxy](./scale-and-security/proxy.md#live-mount) handling the BR) runs one iSCSI target per live mounted disk, protected by CHAP credentials generated for that mount.
-- An SR named `[XO backup] <VM name>` is introduced on the chosen host. It holds a single read-only VDI, attached read only to the restored VM.
+- An SR named `[XO backup] <VM name>` is introduced on the chosen host. It holds a single read-only VDI, attached in read-only mode to the restored VM.
 - Every read done by the VM goes through Xen Orchestra to the BR. Nothing is ever written: neither to the backup, nor to the SR.
 - The restored VM is pinned (affinity) to the host the disk is mounted on: the SR is plugged on that host only.
 
@@ -498,7 +498,7 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
 
 The restored VM then has the live mounted disk on the `[XO backup] <VM name>` SR:
 
-<UiDetail src="/img/xo5/live-mount-vm-disks.png" alt="The Disks tab of the restored VM: the live mounted disk sits on the [XO backup] SR and is attached read only" width={760} />
+<UiDetail src="/img/xo5/live-mount-vm-disks.png" alt="The Disks tab of the restored VM: the live mounted disk sits on the [XO backup] SR and is attached in read-only mode" width={760} />
 
 ### Release a live mount {#release-live-mount}
 

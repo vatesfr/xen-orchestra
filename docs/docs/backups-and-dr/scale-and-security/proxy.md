@@ -114,12 +114,12 @@ If you see this error: `The backup will not be run on this remote because it's n
 
 A disk can be [live mounted](../backup-features-and-settings.md#live-mount) from a BR handled by a proxy, just like from any other BR. Since only the proxy can read that BR, **the proxy serves the disk**, not the main XOA:
 
-- The hosts connect to the proxy over iSCSI, on a TCP port picked for each mount: a firewall between the hosts and the proxy must let the hosts open TCP connections to it.
+- The hosts connect to the proxy over iSCSI, on a TCP port picked for each mount. If a firewall sits between the hosts and the proxy, that firewall must allow TCP connections from the hosts to the proxy.
 - The address provided to the hosts is the proxy's automatically detected address. If the hosts cannot reach it, set the address in the `[iscsi]` section of the proxy configuration (`/etc/xo-proxy/config.toml`), using the same `advertisedAddress` and `bindAddress` settings as those configured for XOA.
 - The mount lasts as long as the proxy process: restarting or updating the proxy ends it.
 - Deleting the live mounted disk, or the VM with its disks, releases the mount, as without a proxy.
 
-A proxy too old to support it makes the restore fail with `the proxy … is too old to live mount a disk, upgrade it`: update the proxy.
+If the proxy is too old to support live mount, the restore fails with `the proxy … is too old to live mount a disk, upgrade it`. In that case, update the proxy.
 
 ## Enabling login to a proxy appliance
 
