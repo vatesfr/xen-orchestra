@@ -1,10 +1,10 @@
 <template>
   <MenuItem
     v-tooltip="!canForgetServer && forgetServerErrorMessage"
+    accent="danger"
     icon="action:forget"
     :disabled="!canForgetServer"
     :busy="isForgettingServer"
-    class="forget"
     @click="forgetServer()"
   >
     {{ t('action:forget') }}
@@ -27,9 +27,3 @@ const { forgetServer, canForgetServer, isForgettingServer, forgetServerErrorMess
   () => server.label
 )
 </script>
-
-<style lang="postcss" scoped>
-.forget {
-  color: var(--color-danger-item-base);
-}
-</style>
