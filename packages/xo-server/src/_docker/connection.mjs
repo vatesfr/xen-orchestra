@@ -793,6 +793,76 @@ export class DockerConnection {
   }
 
   /**
+   * Run a command on the SSH host through a session channel (not through the
+   * Docker socket).
+   *
+   * Only meant for diagnostics (e.g. probing the Docker socket when it cannot
+   * be opened), the output is truncated at `maxOutputSize` bytes per stream.
+   *
+   * @param {string} command
+   * @param {object} [opts]
+   * @param {AbortSignal} [opts.signal]
+   * @param {number} [opts.maxOutputSize]
+   * @returns {Promise<{ code: number | null, signal: string | undefined, stdout: string, stderr: string }>}
+   * @throws {DockerError}
+   */
+  async exec(command, { signal: callerSignal, maxOutputSize = 64 * 1024 } = {}) {
+    const signal = AbortSignal.any(
+      [AbortSignal.timeout(this.#requestTimeout), callerSignal].filter(signal => signal !== undefined)
+    )
+    const generation = this.#generation
+    try {
+      const client = await raceSignal(this.#getClient(), signal)
+      this.#assertNotClosedSince(generation)
+      return await new Promise((resolve, reject) => {
+        client.exec(command, (error, channel) => {
+          if (error) {
+            reject(error)
+            return
+          }
+          const onAbort = () => {
+            channel.destroy()
+            reject(signal.reason)
+          }
+          signal.addEventListener('abort', onAbort, { once: true })
+
+          const collect = chunks => {
+            let size = 0
+            return chunk => {
+              if (size < maxOutputSize) {
+                chunks.push(chunk.subarray(0, maxOutputSize - size))
+              }
+              size += chunk.length
+            }
+          }
+          const stdout = []
+          const stderr = []
+          channel.on('data', collect(stdout))
+          channel.stderr.on('data', collect(stderr))
+
+          let exitCode = null
+          let exitSignal
+          channel.on('exit', (code, signalName) => {
+            exitCode = code ?? null
+            exitSignal = signalName ?? undefined
+          })
+          channel.on('close', () => {
+            signal.removeEventListener('abort', onAbort)
+            resolve({
+              code: exitCode,
+              signal: exitSignal,
+              stdout: Buffer.concat(stdout).toString('utf8'),
+              stderr: Buffer.concat(stderr).toString('utf8'),
+            })
+          })
+        })
+      })
+    } catch (error) {
+      throw this.#wrapError(error, undefined, signal, generation)
+    }
+  }
+
+  /**
    * Close the SSH connection (and every channel on it).
    *
    * Pending and queued requests fail with CONNECTION_CLOSED. The instance can
