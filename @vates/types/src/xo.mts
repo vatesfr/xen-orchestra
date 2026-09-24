@@ -619,6 +619,7 @@ export type XoSr = BaseXapiXo & {
   current_operations: Record<string, STORAGE_OPERATIONS>
   id: Branded<'SR'>
   inMaintenanceMode: boolean
+  is_tools_sr: boolean
   name_description: string
   name_label: string
   other_config: Record<string, string>
