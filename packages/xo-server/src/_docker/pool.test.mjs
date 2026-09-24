@@ -280,6 +280,20 @@ describe('DockerConnectionPool', () => {
     await pool.destroy()
   })
 
+  it('prunes the failures of the other revisions of an engine (fixes)', async () => {
+    const pool = new DockerConnectionPool()
+    const error = new DockerError(SSH_AUTH_FAILED, 'nope')
+    await assert.rejects(
+      pool.use(engine('a', 'old'), () => new FakeConnection({ connectError: error }), idle),
+      { code: SSH_AUTH_FAILED }
+    )
+    assert.equal(pool.getState('a', 'old').status, 'error')
+    await pool.use(engine('a', 'new'), () => new FakeConnection(), idle)
+    assert.deepEqual(pool.getState('a', 'old'), { status: 'idle' })
+    assert.deepEqual(pool.getState('a', 'new'), { status: 'connected' })
+    await pool.destroy()
+  })
+
   it('invalidate() closes the connections of an engine and forgets its failure', async () => {
     const pool = new DockerConnectionPool()
     await pool.use(engine('a'), () => new FakeConnection(), idle)

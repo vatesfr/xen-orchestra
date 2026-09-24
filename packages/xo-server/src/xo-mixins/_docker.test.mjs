@@ -23,8 +23,12 @@ import { parseDuration } from '@vates/parse-duration'
 import { createClient } from 'redis'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
+import { Readable } from 'node:stream'
+
 import CryptoCredentials from './crypto-credentials.mjs'
 import Docker from './docker.mjs'
+import { DockerConnection } from '../_docker/connection.mjs'
+import { DockerError } from '../_docker/errors.mjs'
 import { DockerEngines } from '../models/docker-engine.mjs'
 
 const {
@@ -106,6 +110,9 @@ async function createDocker({ redis, crypto = null, config = {} }) {
       }
       return object
     },
+    addConfigManager(id, exp, imp) {
+      app.configManagers = { ...app.configManagers, [id]: { exp, imp } }
+    },
   }
   const emit = async event => {
     for (const listener of listeners.get(event) ?? []) {
@@ -143,25 +150,95 @@ const isCode = code => error => {
   return true
 }
 
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+/**
+ * Replaces the network part of `DockerConnection` while installed: `connect()`
+ * runs `fake.connect` (default: succeeds after `fake.delay` ms), the observed
+ * host key is `fake.observed`, the API version 1.43. `fake.connect = null`
+ * uses the real implementation.
+ */
+function installFakeConnections() {
+  const proto = DockerConnection.prototype
+  const original = {
+    connect: proto.connect,
+    request: proto.request,
+    observedHostKey: Object.getOwnPropertyDescriptor(proto, 'observedHostKey'),
+    apiVersion: Object.getOwnPropertyDescriptor(proto, 'apiVersion'),
+  }
+  const fake = {
+    connects: 0,
+    requests: 0,
+    delay: 0,
+    connect: undefined,
+    observed: { fingerprint: FINGERPRINT, algorithm: 'ssh-ed25519' },
+    reset() {
+      this.connects = 0
+      this.requests = 0
+      this.delay = 0
+      this.connect = async () => {}
+      this.observed = { fingerprint: FINGERPRINT, algorithm: 'ssh-ed25519' }
+    },
+    uninstall() {
+      proto.connect = original.connect
+      proto.request = original.request
+      Object.defineProperty(proto, 'observedHostKey', original.observedHostKey)
+      Object.defineProperty(proto, 'apiVersion', original.apiVersion)
+    },
+  }
+  proto.connect = async function () {
+    if (fake.connect === null) {
+      return original.connect.call(this)
+    }
+    ++fake.connects
+    await sleep(fake.delay)
+    return fake.connect.call(this)
+  }
+  // no Docker behind the fake connections
+  proto.request = async function (opts) {
+    if (fake.connect === null) {
+      return original.request.call(this, opts)
+    }
+    ++fake.requests
+    throw new DockerError('DOCKER_API_ERROR', 'fake connection', { data: { statusCode: 500 } })
+  }
+  Object.defineProperty(proto, 'observedHostKey', {
+    configurable: true,
+    get() {
+      return fake.connect === null ? original.observedHostKey.get.call(this) : fake.observed
+    },
+  })
+  Object.defineProperty(proto, 'apiVersion', {
+    configurable: true,
+    get() {
+      return fake.connect === null ? original.apiVersion.get.call(this) : '1.43'
+    },
+  })
+  fake.reset()
+  return fake
+}
+
 // ===================================================================
 
 describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () => {
-  let redis
+  let redis, fake
 
   before(async () => {
     redis = createClient({ url: redisUrl })
     await redis.connect()
     await redis.select(Number(redisDb))
+    fake = installFakeConnections()
   })
 
   after(async () => {
+    fake?.uninstall()
     await redis?.flushDb()
     await redis?.quit()
   })
 
   for (const encrypted of [false, true]) {
     describe(encrypted ? 'with redis.encryptCredentialDatabase' : 'without encryption', () => {
-      let docker, emit, seedDb
+      let crypto, docker, emit, seedDb
 
       // records written directly in the database, as the mixin would have
       // after a successful connection (pinned host key)
@@ -181,8 +258,9 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
         })
 
       beforeEach(async () => {
+        fake.reset()
         await redis.flushDb()
-        const crypto = encrypted ? await createCrypto() : null
+        crypto = encrypted ? await createCrypto() : null
         ;({ docker, emit } = await createDocker({ redis, crypto, config: { docker: { connectTimeout: '2s' } } }))
         seedDb = new DockerEngines({ connection: redis, namespace: NAMESPACE, indexes: ['vm'], crypto })
       })
@@ -264,6 +342,7 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
         it('keeps omitted secrets', async () => {
           const { id } = await seed({})
           await docker.updateDockerEngine(id, { label: 'renamed' })
+          assert.equal(fake.connects, 0, 'a label-only update does not connect')
           const raw = await readRaw(id)
           assert.equal(raw.password, 'secret-password')
           assert.equal(raw.privateKey, PRIVATE_KEY)
@@ -282,14 +361,26 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
           assert.equal(raw.privateKey, PRIVATE_KEY)
         })
 
-        it('replaces a secret and bumps the revision', async () => {
+        it('replaces a secret and bumps the revision (a new unique one, fixes)', async () => {
           const { id } = await seed({})
           await docker.updateDockerEngine(id, { privateKey: 'new-key' })
           const raw = await readRaw(id)
           assert.equal(raw.privateKey, 'new-key')
-          assert.equal(raw.revision, 1)
+          assert.match(raw.revision, /^[0-9a-f]{16}$/)
           await docker.updateDockerEngine(id, { host: '192.0.2.11' })
-          assert.equal((await readRaw(id)).revision, 2)
+          const { revision } = await readRaw(id)
+          assert.notEqual(revision, raw.revision)
+          assert.notEqual(revision, 0)
+          assert.equal(fake.connects, 2, 'identity changes connect')
+        })
+
+        it('clearing the private key also clears the passphrase (fixes)', async () => {
+          const { id } = await seed({})
+          await docker.updateDockerEngine(id, { privateKey: null })
+          const raw = await readRaw(id)
+          assert.equal('privateKey' in raw, false)
+          assert.equal('passphrase' in raw, false)
+          assert.equal(raw.password, 'secret-password')
         })
 
         it('refuses to clear the last credential', async () => {
@@ -307,11 +398,13 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
           await assert.rejects(docker.updateDockerEngine(id, { host: null }), { code: 10 })
         })
 
-        it('a pasted fingerprint replaces the pin and forgets the algorithm', async () => {
+        it('a pasted fingerprint is verified by connecting, then replaces the pin with the observed algorithm', async () => {
           const { id } = await seed({})
+          fake.observed = { fingerprint: WRONG_FINGERPRINT, algorithm: 'ssh-rsa' }
           const engine = await docker.updateDockerEngine(id, { hostKeyFingerprint: WRONG_FINGERPRINT.slice(7) })
+          assert.equal(fake.connects, 1)
           assert.equal(engine.hostKeyFingerprint, WRONG_FINGERPRINT)
-          assert.equal('hostKeyAlgorithm' in engine, false)
+          assert.equal(engine.hostKeyAlgorithm, 'ssh-rsa')
           await assert.rejects(docker.updateDockerEngine(id, { hostKeyFingerprint: 'SHA256:short' }), { code: 10 })
         })
 
@@ -388,6 +481,7 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
       it('info of an unreachable engine: status, never throws; the error is then exposed passively and fails fast', async () => {
         // password only: the fake private key cannot be parsed (→ SSH_AUTH_FAILED)
         const { id } = await seed({ host: '127.0.0.1', port: await getClosedPort(), privateKey: undefined })
+        fake.connect = null // real connections
         const info = await docker.getDockerEngineInfo(id)
         assert.equal(info.status, 'unreachable')
         assert.equal(info.error.code, 'SSH_UNREACHABLE')
@@ -401,10 +495,318 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
         assert.equal(again.status, 'unreachable')
         assert.equal(again.error.data.failFast, true)
 
-        // an update of the connection settings forgets the failure
+        // an update of the connection settings (which connects) forgets the failure
+        fake.reset()
         await docker.updateDockerEngine(id, { port: 2222 })
         assert.equal((await docker.getDockerEngine(id)).connectionStatus, 'idle')
         await emit('stop')
+      })
+
+      describe('concurrency and consistency (fixes)', () => {
+        const readRaw = id => seedDb.first(id)
+
+        it('concurrent updates are serialized: no lost update, distinct revisions', async () => {
+          const { id } = await seed({})
+          fake.delay = 50
+          const revisions = new Set()
+          const recordRevision = async () => revisions.add((await readRaw(id)).revision)
+          await Promise.all([
+            docker.updateDockerEngine(id, { password: 'pw-A' }).then(recordRevision),
+            docker.updateDockerEngine(id, { port: 2200 }).then(recordRevision),
+            docker.updateDockerEngine(id, { label: 'L' }),
+          ])
+          const raw = await readRaw(id)
+          assert.equal(raw.password, 'pw-A')
+          assert.equal(raw.port, 2200)
+          assert.equal(raw.label, 'L')
+          assert.equal(fake.connects, 2)
+          assert.equal(revisions.size, 2, 'two identities, two revisions')
+          assert.ok(!revisions.has(1))
+        })
+
+        it('an update racing a delete does not resurrect the engine', async () => {
+          const { id } = await seed({})
+          fake.delay = 100
+          const update = docker.updateDockerEngine(id, { password: 'late' })
+          await sleep(10)
+          await docker.deleteDockerEngine(id)
+          await update // it ran first, under the lock
+          assert.equal(await readRaw(id), undefined)
+          // queued after the delete: noSuchObject, nothing written
+          const { id: id2 } = await seed({})
+          const deleted = docker.deleteDockerEngine(id2)
+          const updated = docker.updateDockerEngine(id2, { label: 'late' })
+          await deleted
+          await assert.rejects(updated, noSuchObject.is)
+          assert.equal(await readRaw(id2), undefined)
+        })
+
+        it('one engine per VM: concurrent creates on the same VM, only one is saved', async () => {
+          fake.delay = 50
+          const results = await Promise.allSettled([
+            docker.createDockerEngine({ $VM: VM_ID, username: 'u', password: 'p', hostKeyFingerprint: FINGERPRINT }),
+            docker.createDockerEngine({ $VM: VM_ID, username: 'u', password: 'p', hostKeyFingerprint: FINGERPRINT }),
+          ])
+          assert.deepEqual(
+            results.map(_ => _.status),
+            ['fulfilled', 'rejected']
+          )
+          assert.equal(results[1].reason.code, 16)
+          assert.equal(fake.connects, 1, 'the second one fails before connecting')
+          assert.equal((await docker.getAllDockerEngines()).length, 1)
+        })
+
+        it('an identity update which fails to connect saves nothing', async () => {
+          const { id } = await seed({})
+          fake.connect = async () => {
+            throw new DockerError('SSH_AUTH_FAILED', 'SSH authentication failed')
+          }
+          await assert.rejects(docker.updateDockerEngine(id, { privateKey: 'wrong key' }), isCode('SSH_AUTH_FAILED'))
+          assert.equal((await readRaw(id)).privateKey, PRIVATE_KEY)
+          assert.equal((await readRaw(id)).revision, 0)
+        })
+
+        it('a stale record never gets the connection of other parameters (keyed on the parameters)', async () => {
+          const { id } = await seed({})
+          fake.connect = async function () {}
+          await docker.getDockerEngineInfo(id).catch(() => {})
+          const connects = fake.connects
+          // same record: the pooled connection is reused
+          await docker.getDockerEngineInfo(id).catch(() => {})
+          assert.equal(fake.connects, connects)
+          // other parameters, same revision (as a stale snapshot would have)
+          await seedDb.update({ ...(await readRaw(id)), port: 2201 })
+          await docker.getDockerEngineInfo(id).catch(() => {})
+          assert.equal(fake.connects, connects + 1)
+          await emit('stop')
+        })
+
+        it('#pinHostKey only writes the pin, over the latest record', async () => {
+          const lax = await createDocker({ redis, crypto, config: { docker: { strictHostKeyChecking: false } } })
+          try {
+            const { id } = await seed({ hostKeyFingerprint: undefined, hostKeyAlgorithm: undefined })
+            fake.delay = 50
+            const test = lax.docker.testDockerEngine(id)
+            await sleep(10)
+            await lax.docker.updateDockerEngine(id, { label: 'meanwhile' })
+            assert.equal((await test).ok, true)
+            const raw = await readRaw(id)
+            assert.equal(raw.label, 'meanwhile')
+            assert.equal(raw.hostKeyFingerprint, FINGERPRINT)
+            assert.equal(raw.hostKeyAlgorithm, 'ssh-ed25519')
+          } finally {
+            await lax.emit('stop')
+          }
+        })
+      })
+
+      describe('SSH cooldown (fixes)', () => {
+        const failWith = (code, causeMessage) => {
+          fake.connect = async () => {
+            throw new DockerError(code, code, {
+              cause: causeMessage === undefined ? undefined : new Error(causeMessage),
+            })
+          }
+        }
+
+        it('after an authentication failure, the same parameters are refused (test, update, create), others are tried', async () => {
+          const { id } = await seed({})
+          failWith('SSH_AUTH_FAILED')
+          assert.equal((await docker.testDockerEngine(id)).error.code, 'SSH_AUTH_FAILED')
+          assert.equal(fake.connects, 1)
+
+          await assert.rejects(docker.testDockerEngine(id), error => {
+            assert.equal(error.code, 'SSH_COOLDOWN')
+            assert.equal(error.data.lastCode, 'SSH_AUTH_FAILED')
+            assert.ok(error.data.retryAfter >= 1 && error.data.retryAfter <= 10)
+            return true
+          })
+          // the same address and parameters on create
+          await assert.rejects(
+            docker.createDockerEngine({
+              host: '192.0.2.10',
+              username: 'docker',
+              password: 'secret-password',
+              privateKey: PRIVATE_KEY,
+              passphrase: 'secret-passphrase',
+              hostKeyFingerprint: FINGERPRINT,
+            }),
+            isCode('SSH_COOLDOWN')
+          )
+          assert.equal(fake.connects, 1, 'refused without connecting')
+
+          // a label-only update does not connect: allowed
+          await docker.updateDockerEngine(id, { label: 'x' })
+          // changed parameters: tried
+          fake.reset()
+          await docker.updateDockerEngine(id, { privateKey: 'fixed key' })
+          assert.equal(fake.connects, 1)
+        })
+
+        it('the TOFU confirmation (acceptUnknownHostKey) is not refused after HOST_KEY_UNKNOWN', async () => {
+          const params = { host: '192.0.2.20', username: 'u', password: 'p' }
+          failWith('HOST_KEY_UNKNOWN')
+          await assert.rejects(docker.createDockerEngine(params), isCode('HOST_KEY_UNKNOWN'))
+          await assert.rejects(docker.createDockerEngine(params), isCode('SSH_COOLDOWN'))
+          fake.reset()
+          await docker.createDockerEngine({ ...params, acceptUnknownHostKey: true })
+        })
+
+        it('a handshake lost soon after failures → SSH_REFUSED_PENALTY', async () => {
+          const { id } = await seed({})
+          failWith('SSH_AUTH_FAILED')
+          await docker.testDockerEngine(id)
+          failWith('SSH_ERROR', 'Connection lost before handshake')
+          await assert.rejects(docker.updateDockerEngine(id, { password: 'other' }), error => {
+            assert.equal(error.code, 'SSH_REFUSED_PENALTY')
+            assert.match(error.message, /PerSourcePenalties/)
+            return true
+          })
+        })
+
+        it('authFailureCooldown = 0 disables it', async () => {
+          const off = await createDocker({ redis, crypto, config: { docker: { authFailureCooldown: '0s' } } })
+          const { id } = await seed({})
+          failWith('SSH_AUTH_FAILED')
+          await off.docker.testDockerEngine(id)
+          assert.equal((await off.docker.testDockerEngine(id)).error.code, 'SSH_AUTH_FAILED')
+          await off.emit('stop')
+        })
+      })
+
+      describe('logs are bounded in time (fixes)', () => {
+        let originalRequestStream
+        before(() => {
+          originalRequestStream = DockerConnection.prototype.requestStream
+        })
+        after(() => {
+          DockerConnection.prototype.requestStream = originalRequestStream
+        })
+
+        const frame = text => {
+          const payload = Buffer.from(text)
+          const header = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0])
+          header.writeUInt32BE(payload.length, 4)
+          return Buffer.concat([header, payload])
+        }
+
+        const stubBody = feed => {
+          DockerConnection.prototype.requestStream = async () => {
+            const body = new Readable({ read() {} })
+            body.headers = { 'content-type': 'application/vnd.docker.multiplexed-stream' }
+            feed(body)
+            return body
+          }
+        }
+
+        it('a trickling body: cut at logsTimeout, entries kept, the pooled connection released', async () => {
+          const short = await createDocker({
+            redis,
+            crypto,
+            config: { docker: { logsTimeout: '500ms', logsIdleTimeout: '10s', maxConnections: 1 } },
+          })
+          try {
+            const a = await seed({})
+            const b = await seed({ host: '192.0.2.11' })
+            let timer
+            stubBody(body => {
+              body.push(frame('2026-09-24T12:00:00Z first\n'))
+              timer = setInterval(() => body.push(frame('2026-09-24T12:00:01Z tick\n')), 100)
+            })
+            const start = Date.now()
+            const logs = await short.docker.getDockerContainerLogs(`${a.id}_${'a'.repeat(64)}`)
+            clearInterval(timer)
+            assert.ok(Date.now() - start < 2e3)
+            assert.equal(logs.timedOut, true)
+            assert.equal(logs.truncated, true)
+            assert.equal(logs.entries[0].message, 'first')
+            assert.ok(logs.entries.length >= 2)
+            // the only pool slot is free again: another engine can be used
+            stubBody(body => body.push(null))
+            const other = await short.docker.getDockerContainerLogs(`${b.id}_${'a'.repeat(64)}`)
+            assert.deepEqual(other.entries, [])
+          } finally {
+            await short.emit('stop')
+          }
+        })
+
+        it('a stalled body: cut at logsIdleTimeout', async () => {
+          const short = await createDocker({
+            redis,
+            crypto,
+            config: { docker: { logsTimeout: '10s', logsIdleTimeout: '300ms' } },
+          })
+          try {
+            const a = await seed({})
+            stubBody(body => body.push(frame('2026-09-24T12:00:00Z only\n')))
+            const start = Date.now()
+            const logs = await short.docker.getDockerContainerLogs(`${a.id}_${'a'.repeat(64)}`)
+            assert.ok(Date.now() - start < 2e3)
+            assert.deepEqual(
+              { timedOut: logs.timedOut, truncated: logs.truncated, messages: logs.entries.map(_ => _.message) },
+              { timedOut: true, truncated: true, messages: ['only'] }
+            )
+          } finally {
+            await short.emit('stop')
+          }
+        })
+
+        it('an invalid frame followed by more data fails instead of hanging', async () => {
+          const a = await seed({})
+          stubBody(body => {
+            body.push(frame('2026-09-24T12:00:00Z ok\n'))
+            setTimeout(() => body.push(Buffer.from([7, 0, 0, 0, 0, 0, 0, 1, 120])), 10)
+            setTimeout(() => body.push(frame('2026-09-24T12:00:01Z more\n')), 30)
+          })
+          await assert.rejects(docker.getDockerContainerLogs(`${a.id}_${'a'.repeat(64)}`), /unknown stream type 7/)
+          await emit('stop')
+        })
+
+        it('a complete body: timedOut false', async () => {
+          const a = await seed({})
+          stubBody(body => {
+            body.push(frame('2026-09-24T12:00:00Z done\n'))
+            body.push(null)
+          })
+          const logs = await docker.getDockerContainerLogs(`${a.id}_${'a'.repeat(64)}`)
+          assert.equal(logs.timedOut, false)
+          assert.equal(logs.truncated, false)
+          await emit('stop')
+        })
+      })
+
+      describe('config import (fixes)', () => {
+        const getImporter = app => app.configManagers.dockerEngines.imp
+
+        it('validates everything before writing, then writes with new revisions', async () => {
+          const { app, docker: d } = await createDocker({ redis, crypto, config: {} })
+          const existing = await seed({ vm: VM_ID })
+          const record = {
+            id: 'imported-1',
+            host: '192.0.2.30',
+            username: 'u',
+            password: 'p',
+            hostKeyFingerprint: FINGERPRINT,
+            revision: 0,
+          }
+          for (const invalid of [
+            [record, { ...record, id: 'imported-2', port: 'x' }],
+            [record, { id: 'imported-2', username: 'u' }],
+            [record, { ...record, id: 'imported-2', unknown: 1 }],
+            [record, record],
+          ]) {
+            await assert.rejects(getImporter(app)(invalid), { code: 10 })
+          }
+          // a VM taken by an engine which is not imported
+          await assert.rejects(getImporter(app)([record, { ...record, id: 'imported-2', vm: VM_ID }]), { code: 16 })
+          assert.equal((await d.getAllDockerEngines()).length, 1, 'nothing written')
+
+          await getImporter(app)([record, { ...existing, label: 'moved', vm: VM_ID }])
+          const imported = await seedDb.first('imported-1')
+          assert.match(imported.revision, /^[0-9a-f]{16}$/)
+          assert.equal(imported.port, 22)
+          assert.equal((await seedDb.first(existing.id)).label, 'moved')
+        })
       })
 
       describe('containers: parameters checked before any connection', () => {
@@ -463,6 +865,13 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
   const createTrusted = extra =>
     docker.createDockerEngine({ ...baseParams(), hostKeyFingerprint: fingerprint, ...extra })
 
+  // writes a record directly, bypassing the checks of updateDockerEngine()
+  // (which would refuse parameters it cannot connect with)
+  const writeRaw = async (id, props) => {
+    const db = new DockerEngines({ connection: redis, namespace: NAMESPACE, indexes: ['vm'] })
+    await db.update({ ...(await db.first(id)), ...props })
+  }
+
   before(async () => {
     privateKey = readFileSync(keyPath, 'utf8')
     badPrivateKey = readFileSync(badKeyPath, 'utf8')
@@ -473,7 +882,9 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
     await redis.flushDb()
     ;({ docker, emit } = await createDocker({
       redis,
-      config: { docker: { connectTimeout: '5s', requestTimeout: '15s' } },
+      // the cooldown is tested separately, it would make the failures of a
+      // test leak into the next ones
+      config: { docker: { connectTimeout: '5s', requestTimeout: '15s', authFailureCooldown: '0s' } },
     }))
   })
 
@@ -527,9 +938,19 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
       assert.equal(engine.hostKeyAlgorithm, 'ssh-ed25519')
     })
 
+    it('a wrong pasted fingerprint on update is refused, nothing saved (fixes)', async () => {
+      const { id } = await createTrusted()
+      await assert.rejects(docker.updateDockerEngine(id, { hostKeyFingerprint: WRONG_FINGERPRINT }), error => {
+        assert.equal(error.code, 'HOST_KEY_MISMATCH')
+        assert.equal(error.data.actual, fingerprint)
+        return true
+      })
+      assert.equal((await docker.getDockerEngine(id)).hostKeyFingerprint, fingerprint)
+    })
+
     it('a changed host key → info status host-key-mismatch', async () => {
       const { id } = await createTrusted()
-      await docker.updateDockerEngine(id, { hostKeyFingerprint: WRONG_FINGERPRINT })
+      await writeRaw(id, { hostKeyFingerprint: WRONG_FINGERPRINT })
       const info = await docker.getDockerEngineInfo(id)
       assert.equal(info.status, 'host-key-mismatch')
       assert.equal(info.error.code, 'HOST_KEY_MISMATCH')
@@ -550,7 +971,11 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
         const engine = await lax.docker.createDockerEngine(baseParams())
         assert.equal(engine.hostKeyFingerprint, fingerprint)
         // still pinned: a mismatch is refused
-        await lax.docker.updateDockerEngine(engine.id, { hostKeyFingerprint: WRONG_FINGERPRINT })
+        await assert.rejects(
+          lax.docker.updateDockerEngine(engine.id, { hostKeyFingerprint: WRONG_FINGERPRINT }),
+          isCode('HOST_KEY_MISMATCH')
+        )
+        await writeRaw(engine.id, { hostKeyFingerprint: WRONG_FINGERPRINT })
         assert.equal((await lax.docker.getDockerEngineInfo(engine.id)).status, 'host-key-mismatch')
       } finally {
         await lax.emit('stop')
@@ -638,7 +1063,7 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
 
     it('getDockerContainers(): partial results with per-engine errors', async () => {
       const broken = await createTrusted({ socketPath })
-      await docker.updateDockerEngine(broken.id, { privateKey: badPrivateKey })
+      await writeRaw(broken.id, { privateKey: badPrivateKey })
       const { containers, errors } = await docker.getDockerContainers({ engines: [engineId, broken.id] })
       assert.ok(containers.length >= 7)
       assert.ok(containers.every(_ => _.$engine === engineId))
@@ -673,8 +1098,9 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
       })
 
       it('xo-exited: multiplexed stream, timestamps', async () => {
-        const { entries, truncated, asOf } = await docker.getDockerContainerLogs(ids['xo-exited'])
+        const { entries, truncated, timedOut, asOf } = await docker.getDockerContainerLogs(ids['xo-exited'])
         assert.equal(truncated, false)
+        assert.equal(timedOut, false)
         assert.equal(typeof asOf, 'number')
         assert.equal(entries.length, 1)
         assert.equal(entries[0].stream, 'stdout')
@@ -821,9 +1247,19 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
   })
 
   describe('failures', () => {
+    it('a wrong new key on update: SSH_AUTH_FAILED, nothing saved; a label-only update does not connect (fixes)', async () => {
+      const { id } = await createTrusted()
+      await assert.rejects(docker.updateDockerEngine(id, { privateKey: badPrivateKey }), isCode('SSH_AUTH_FAILED'))
+      assert.equal((await docker.getDockerEngineInfo(id)).status, 'connected', 'the stored key is kept')
+      // an unreachable engine can still be renamed
+      await writeRaw(id, { port: await getClosedPort() })
+      assert.equal((await docker.updateDockerEngine(id, { label: 'renamed' })).label, 'renamed')
+      await docker.deleteDockerEngine(id)
+    })
+
     it('a wrong key: info status auth-failed, then exposed passively', async () => {
       const { id } = await createTrusted()
-      await docker.updateDockerEngine(id, { privateKey: badPrivateKey })
+      await writeRaw(id, { privateKey: badPrivateKey })
       const info = await docker.getDockerEngineInfo(id)
       assert.equal(info.status, 'auth-failed')
       assert.equal(info.error.code, 'SSH_AUTH_FAILED')
@@ -849,12 +1285,23 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
         engineId = (await createTrusted()).id
       })
 
+      // an update to a wrong socket fails with the diagnostic, then the test
+      // of a record with this socket gives the same one
       const diagnose = async path => {
-        await docker.updateDockerEngine(engineId, { socketPath: path })
+        let diagnostic
+        const previous = (await docker.getDockerEngine(engineId)).socketPath
+        await assert.rejects(docker.updateDockerEngine(engineId, { socketPath: path }), error => {
+          assert.equal(error.code, 'DOCKER_SOCKET_UNREACHABLE')
+          diagnostic = error.data.diagnostic
+          return true
+        })
+        assert.equal((await docker.getDockerEngine(engineId)).socketPath, previous, 'nothing saved')
+        await writeRaw(engineId, { socketPath: path })
         const result = await docker.testDockerEngine(engineId)
         assert.equal(result.ok, false)
         assert.equal(result.error.code, 'DOCKER_SOCKET_UNREACHABLE')
         assert.equal(result.fingerprint, fingerprint)
+        assert.deepEqual(result.diagnostic, diagnostic)
         return result.diagnostic
       }
 
@@ -907,6 +1354,24 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
         }
       )
     })
+  })
+
+  it('cooldown after an authentication failure: same parameters refused, fixed ones accepted (fixes)', async () => {
+    const instance = await createDocker({ redis, config: { docker: { authFailureCooldown: '3s' } } })
+    try {
+      const params = { ...baseParams(), hostKeyFingerprint: fingerprint, privateKey: badPrivateKey }
+      await assert.rejects(instance.docker.createDockerEngine(params), isCode('SSH_AUTH_FAILED'))
+      await assert.rejects(instance.docker.createDockerEngine(params), error => {
+        assert.equal(error.code, 'SSH_COOLDOWN')
+        assert.equal(error.data.lastCode, 'SSH_AUTH_FAILED')
+        assert.ok(error.data.retryAfter <= 3)
+        return true
+      })
+      const { id } = await instance.docker.createDockerEngine({ ...params, privateKey })
+      await instance.docker.deleteDockerEngine(id)
+    } finally {
+      await instance.emit('stop')
+    }
   })
 
   it('the stop hook closes the pooled connections', async () => {

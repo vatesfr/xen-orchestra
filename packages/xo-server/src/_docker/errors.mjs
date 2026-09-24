@@ -8,6 +8,14 @@ export const SSH_UNREACHABLE = 'SSH_UNREACHABLE'
 // generic SSH failure which does not fit in a more specific code (protocol
 // error, handshake failure, disconnection by the server…)
 export const SSH_ERROR = 'SSH_ERROR'
+// the SSH server closed the connection before the handshake shortly after
+// other failures from XO: probably OpenSSH's PerSourcePenalties (>= 9.8)
+// refusing XO's address for a while
+export const SSH_REFUSED_PENALTY = 'SSH_REFUSED_PENALTY'
+// refused locally, without connecting: a recent attempt with the same
+// parameters failed (authentication, host key, handshake), see
+// `docker.authFailureCooldown`; `data.retryAfter` is in seconds
+export const SSH_COOLDOWN = 'SSH_COOLDOWN'
 export const HOST_KEY_UNKNOWN = 'HOST_KEY_UNKNOWN'
 export const HOST_KEY_MISMATCH = 'HOST_KEY_MISMATCH'
 export const STREAM_LOCAL_FORWARDING_DISABLED = 'STREAM_LOCAL_FORWARDING_DISABLED'

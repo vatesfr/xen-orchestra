@@ -25,6 +25,9 @@ const HEADER_SIZE = 8
 // an attach/exec stream, its payload is the error message
 const STREAM_NAMES = ['stdin', 'stdout', 'stderr']
 const SYSTEM_ERR = 3
+// only the beginning of a systemErr payload is kept (it becomes an error
+// message), the rest is read and dropped
+export const MAX_SYSTEM_ERR_SIZE = 64 * 1024
 
 /**
  * Whether a logs/attach response body is multiplexed (8-byte frames) or raw.
@@ -84,6 +87,7 @@ export function createStdcopyDemuxer({ tty = false } = {}) {
   let stream // name of the stream of the current frame
   let remaining = 0 // payload bytes still expected for the current frame
   let systemErr // chunks of a systemErr frame, emitted as an error
+  let systemErrSize = 0
 
   const demuxer = new Transform({
     readableObjectMode: true,
@@ -107,6 +111,7 @@ export function createStdcopyDemuxer({ tty = false } = {}) {
           remaining = header.readUInt32BE(4)
           if (type === SYSTEM_ERR) {
             systemErr = []
+            systemErrSize = 0
           } else if (type < STREAM_NAMES.length) {
             stream = STREAM_NAMES[type]
           } else {
@@ -131,7 +136,11 @@ export function createStdcopyDemuxer({ tty = false } = {}) {
         offset += n
         remaining -= n
         if (systemErr !== undefined) {
-          systemErr.push(payload)
+          if (systemErrSize < MAX_SYSTEM_ERR_SIZE) {
+            const kept = payload.subarray(0, MAX_SYSTEM_ERR_SIZE - systemErrSize)
+            systemErr.push(kept)
+            systemErrSize += kept.length
+          }
           if (remaining === 0) {
             callback(systemError(systemErr))
             return
