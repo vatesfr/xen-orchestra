@@ -1,3 +1,4 @@
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
@@ -16,7 +17,8 @@ const userFields = [
 
 export const useXoUserCollection = defineRemoteResource({
   url: `${BASE_URL}/users?fields=${userFields.join(',')}`,
-
+  stream: true,
+  initWatchCollection: () => useWatchCollection({ resource: 'user', fields: userFields }),
   initialData: () => [] as FrontXoUser[],
   state: (users, context) => {
     return useXoCollectionState(users, {
