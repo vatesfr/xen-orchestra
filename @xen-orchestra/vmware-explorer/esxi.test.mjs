@@ -829,6 +829,105 @@ describe('checkDiskAttachable', function () {
   })
 })
 
+describe('listHostsAbleToAttach', function () {
+  const mount = (hostId, { mounted = true, accessible = true } = {}) => ({
+    key: moRef('HostSystem', hostId),
+    mountInfo: { mounted, accessible },
+  })
+  const SHARED = { accessible: true, multipleHostAccess: true, type: 'vsan' }
+
+  // `ds main` is datastore-11, `ds2` datastore-12 and `ds3` datastore-21
+  const hostsEsxi = async datastores => {
+    const fetched = []
+    const { esxi, vimClient } = await connectedEsxi({
+      fetch: async url => {
+        fetched.push(url)
+        return response({ status: 500 })
+      },
+      responses: {
+        RetrievePropertiesEx: ({ specSet }) => {
+          const { type, pathSet } = specSet[0].propSet[0]
+          const id = specSet[0].objectSet[0].obj.$value
+          if (type === 'HostSystem') {
+            return page([
+              { obj: moRef('HostSystem', 'host-1'), propSet: [{ name: 'name', val: 'esxi-1' }] },
+              { obj: moRef('HostSystem', 'host-2'), propSet: [{ name: 'name', val: 'esxi-2' }] },
+            ])
+          }
+          const { summary = SHARED, mounts } = datastores[id]
+          const val = pathSet[0] === 'summary' ? summary : { DatastoreHostMount: mounts }
+          return propertyOf(type, id, pathSet[0], val)
+        },
+      },
+    })
+    return { esxi, fetched, vimClient }
+  }
+
+  it('keeps the hosts which reach the datastore of every disk', async function () {
+    const { esxi, fetched, vimClient } = await hostsEsxi({
+      'datastore-11': { mounts: [mount('host-1'), mount('host-2'), mount('host-3')] },
+      // a local datastore of host-2
+      'datastore-12': { summary: { ...SHARED, multipleHostAccess: false }, mounts: mount('host-2') },
+    })
+
+    assert.deepEqual(
+      await esxi.listHostsAbleToAttach([
+        '[ds main] a.vm/a.vmdk',
+        '[ds2] b.vm/b.vmdk',
+        // a second disk on the same datastore
+        '[ds main] a.vm/a_1.vmdk',
+      ]),
+      ['host-2']
+    )
+    // each datastore is asked once, its summary and its mounts
+    assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, 4)
+    // the files are never read, it could take a lock of their own
+    assert.equal(fetched.length, 0)
+  })
+
+  it('leaves out a host which mounts a datastore but cannot reach it', async function () {
+    const { esxi } = await hostsEsxi({
+      'datastore-11': {
+        mounts: [mount('host-1', { accessible: false }), mount('host-2'), mount('host-3', { mounted: 'false' })],
+      },
+    })
+
+    assert.deepEqual(await esxi.listHostsAbleToAttach(['[ds main] a.vm/a.vmdk']), ['host-2'])
+  })
+
+  it('answers no host when a datastore is not accessible', async function () {
+    const { esxi } = await hostsEsxi({
+      'datastore-11': { mounts: [mount('host-1')] },
+      'datastore-21': { summary: { ...SHARED, accessible: 'false' }, mounts: [mount('host-1')] },
+    })
+
+    assert.deepEqual(await esxi.listHostsAbleToAttach(['[ds main] a.vmdk', '[ds3] b.vmdk']), [])
+  })
+
+  it('answers no host when no host reaches all the datastores', async function () {
+    const { esxi } = await hostsEsxi({
+      'datastore-11': { mounts: [mount('host-1')] },
+      'datastore-12': { mounts: [mount('host-2')] },
+    })
+
+    assert.deepEqual(await esxi.listHostsAbleToAttach(['[ds main] a.vmdk', '[ds2] b.vmdk']), [])
+  })
+
+  it('answers every host when there is no disk', async function () {
+    const { esxi } = await hostsEsxi({})
+
+    assert.deepEqual(await esxi.listHostsAbleToAttach([]), ['host-1', 'host-2'])
+  })
+
+  it('throws on a path it cannot place, without asking the host', async function () {
+    const { esxi, vimClient } = await hostsEsxi({})
+
+    await assert.rejects(esxi.listHostsAbleToAttach(['[ds main] a.vmdk', 'a.vmdk']), { code: 'INVALID_PATH' })
+    await assert.rejects(esxi.listHostsAbleToAttach(['[nope] a.vmdk']), { code: 'DATASTORE_NOT_FOUND' })
+    assert.equal(vimClient.calls.length, 0)
+  })
+})
+
 describe('getAllVmMetadata', function () {
   const vm = (id, propSet) => ({ obj: moRef('VirtualMachine', id), propSet })
 

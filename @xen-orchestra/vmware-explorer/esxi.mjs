@@ -45,6 +45,8 @@ const DEFAULT_DOWNLOAD_RETRIES = 4
 const DESCRIPTOR_READ_LENGTH = 4096
 // a vmdk descriptor is a small file, but the /folder endpoint of a host is not fast
 const DESCRIPTOR_CONCURRENCY = 4
+// each datastore is two small property reads
+const DATASTORE_CONCURRENCY = 4
 const DEFAULT_HEADERS_TIMEOUT = 60e3
 const DEFAULT_RETRY_DELAY = 2e3
 // every caller of `#waitForTaskEnd` passes its own deadline, this is only the guardrail for the
@@ -176,6 +178,26 @@ const DATASTORE_PATH_RE = /^\[([^\]]+)\] ?(.+)$/
  * @property {string} [datastoreType]
  * @property {boolean} [shared]
  */
+
+// the SOAP library does not always convert the booleans of the answer
+const isTrue = value => String(value) === 'true'
+
+/**
+ * The hosts which mount a datastore and can reach it.
+ *
+ * @param {unknown} mounts - value of the `host` property of the datastore
+ * @returns {Set<string>} managed object references of the hosts
+ */
+function reachingHostIds(mounts) {
+  const hostIds = new Set()
+  for (const { key, mountInfo } of asArray(mounts?.DatastoreHostMount)) {
+    if (isTrue(mountInfo?.mounted) && isTrue(mountInfo?.accessible)) {
+      // the references nested in the value are not normalized, only the value itself is
+      hostIds.add(key?.$value ?? key)
+    }
+  }
+  return hostIds
+}
 
 const isScsiController = device => SCSI_CONTROLLER_TYPES.has(device?.attributes?.['xsi:type'])
 
@@ -1081,21 +1103,21 @@ export default class Esxi extends EventEmitter {
     ])
 
     const datastoreType = summary?.type
-    // the SOAP library does not always convert the booleans of the answer
-    const shared = String(summary?.multipleHostAccess) === 'true'
+    const shared = isTrue(summary?.multipleHostAccess)
     const unattachable = (code, reason) => ({ attachable: false, code, reason, datastoreType, shared })
 
-    if (String(summary?.accessible) !== 'true') {
+    if (!isTrue(summary?.accessible)) {
       return unattachable(
         'DATASTORE_INACCESSIBLE',
         `the datastore ${datastoreName} is not accessible: ${summary?.inaccessibleReason ?? 'unknown reason'}`
       )
     }
 
-    // the references nested in the value are not normalized, only the value itself is
-    const hostMount = asArray(mounts?.DatastoreHostMount).find(({ key }) => (key?.$value ?? key) === hostId)
-    const mountInfo = hostMount?.mountInfo
-    if (String(mountInfo?.mounted) !== 'true' || String(mountInfo?.accessible) !== 'true') {
+    if (!reachingHostIds(mounts).has(hostId)) {
+      // the reason of a host which mounts the datastore but cannot reach it
+      const mountInfo = asArray(mounts?.DatastoreHostMount).find(
+        ({ key }) => (key?.$value ?? key) === hostId
+      )?.mountInfo
       return unattachable(
         'DATASTORE_NOT_MOUNTED',
         mountInfo === undefined
@@ -1105,6 +1127,66 @@ export default class Esxi extends EventEmitter {
     }
 
     return { attachable: true, datastoreType, shared }
+  }
+
+  /**
+   * The hosts on which a VM can be given every one of these disks by {@link attachDisk}.
+   *
+   * A host qualifies when it mounts, and can reach, the datastore of each disk. As in
+   * {@link checkDiskAttachable}, neither the files nor their locks are looked at. Whether the host is
+   * connected, or in maintenance, is not either: it only tells where the disks can be read from.
+   *
+   * @param {ReadonlyArray<string>} fileNames - datastore paths of the descriptors, e.g.
+   * `[datastore1] vm/vm.vmdk`
+   * @param {object} [options]
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<string[]>} managed object references of the hosts, e.g. `host-12`. Empty when
+   * no host reaches all the datastores, which includes a datastore which is not accessible
+   */
+  async listHostsAbleToAttach(fileNames, { signal } = {}) {
+    // the datastores are only known once connected
+    await this.#connected
+
+    const datastoreIds = new Set()
+    for (const fileName of fileNames) {
+      const datastoreName = DATASTORE_PATH_RE.exec(fileName)?.[1]
+      if (datastoreName === undefined) {
+        const error = new Error(`${fileName} is not a datastore path`)
+        error.code = 'INVALID_PATH'
+        throw error
+      }
+      const datastoreId = this.#datastoreIds[datastoreName]
+      if (datastoreId === undefined) {
+        // the paths come from the inventory: an unknown datastore is not an answer, it is a bug or a
+        // stale inventory
+        const error = new Error(`the datastore ${datastoreName} of ${fileName} is unknown to ${this.#host}`)
+        error.code = 'DATASTORE_NOT_FOUND'
+        throw error
+      }
+      // the disks of a VM usually share a few datastores, each is only asked once
+      datastoreIds.add(datastoreId)
+    }
+
+    if (datastoreIds.size === 0) {
+      // nothing to attach: any host will do
+      return Object.keys(await this.search('HostSystem', ['name']))
+    }
+
+    const reachingHostsByDatastore = []
+    await asyncEach(
+      datastoreIds,
+      async datastoreId => {
+        const [summary, mounts] = await Promise.all([
+          this.#retrieveProperty('Datastore', datastoreId, 'summary', { signal }),
+          this.#retrieveProperty('Datastore', datastoreId, 'host', { signal }),
+        ])
+        reachingHostsByDatastore.push(isTrue(summary?.accessible) ? reachingHostIds(mounts) : new Set())
+      },
+      { concurrency: DATASTORE_CONCURRENCY, signal }
+    )
+
+    const [first, ...others] = reachingHostsByDatastore
+    return [...first].filter(hostId => others.every(hostIds => hostIds.has(hostId)))
   }
 
   /**
