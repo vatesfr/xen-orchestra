@@ -415,9 +415,9 @@ It also works against a whole repository URL (including S3, Azure or encrypted o
 
 ## Restore a backup
 
-All your scheduled backups are accessible in the **Backup → Restore** view of Xen Orchestra.
+All your scheduled backups are accessible in Xen Orchestra's **Backup → Restore** view.
 
-1. Search the VM name and click the **Restore** icon (blue button with a white arrow) on its line.
+1. Search the VM name. On the line corresponding to your VM, click the **Restore** icon (the blue button with a white arrow).
 2. Choose the backup you want to restore.
 3. Select the SR where you want to restore it: this is the **main SR**, used by every disk that has no SR of its own.
 4. For an incremental backup, you can also [choose what to do with each disk](#restore-disk-targets).
@@ -429,7 +429,7 @@ You can restore your backup even on a brand new host/pool and on brand new hardw
 
 ### Choose what to do with each disk {#restore-disk-targets}
 
-When the selected backup is an incremental one, the restore modal lists every disk of the backup in a collapsed panel, **For each VDI, choose what to do (optional)**. Each disk has an **Action** and, depending on that action, a **Destination**:
+When the selected backup is an incremental one, the restore modal lists every disk of the backup in a collapsed panel. **For each VDI, choose what to do (optional)**. Each disk has an **Action** and, depending on that action, a **Destination**:
 
 | Action                                  | Destination                                                   | Result                                                                                                  |
 | --------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
@@ -441,7 +441,7 @@ When the selected backup is an incremental one, the restore modal lists every di
 
 Leaving the panel untouched restores every disk to the main SR, as before.
 
-You cannot confirm the restore while a disk is missing the destination its action needs (an SR for **Restore** when no main SR is selected, a host for **Live mount**). The row shows what is missing in red, and since the panel may be collapsed, a red **Some disks have no destination yet** line also appears under it:
+You cannot confirm the restore while a disk is missing the destination required for its action (an SR for **Restore** when no main SR is selected, a host for **Live mount**). The missing destination is shown in red in the corresponding row. Since the panel may be collapsed, a red line saying **Some disks have no destination yet** also appears under it:
 
 <UiDetail src="/img/xo5/restore-disk-targets-incomplete.png" alt="A live mounted disk without a host: the row says Select a host to live mount this disk on, and Some disks have no destination yet is shown under the panel" width={760} />
 
@@ -451,7 +451,7 @@ A full backup has no per-disk choice: the whole VM is restored to the main SR.
 
 ## Live mount a disk {#live-mount}
 
-A live mount attaches a disk of an incremental backup to the restored VM **without copying it**. Xen Orchestra serves the disk from the backup repository (BR) as a read-only iSCSI LUN, and the host sees it as a dedicated SR. Whatever the size of the disk, it is usable as soon as the restore ends.
+A live mount attaches a disk from an incremental backup to the restored VM **without copying it**. Xen Orchestra serves the disk from the backup repository (BR) as a read-only iSCSI LUN, which host sees as a dedicated SR. Regardless of the disk size, it is usable as soon as the restore completes.
 
 Typical uses:
 
@@ -460,7 +460,7 @@ Typical uses:
 
 ### How it works
 
-- Xen Orchestra, or the [proxy](./scale-and-security/proxy.md#live-mount) handling the BR, runs one iSCSI target per live mounted disk, protected by CHAP credentials generated for that mount.
+- Xen Orchestra (or the [proxy](./scale-and-security/proxy.md#live-mount) handling the BR) runs one iSCSI target per live mounted disk, protected by CHAP credentials generated for that mount.
 - An SR named `[XO backup] <VM name>` is introduced on the chosen host. It holds a single read-only VDI, attached read only to the restored VM.
 - Every read done by the VM goes through Xen Orchestra to the BR. Nothing is ever written: neither to the backup, nor to the SR.
 - The restored VM is pinned (affinity) to the host the disk is mounted on: the SR is plugged on that host only.
@@ -474,7 +474,7 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
 :::
 
 - **Incremental backups only.** Live mount is not available for full backups, nor in [backup health checks](#backup-health-check).
-- **Read only.** The VM sees a read-only disk. It is best suited for data disks: most operating systems need a writable system disk.
+- **Read-only.** The VM sees a read-only disk. It is best suited for data disks: most operating systems need a writable system disk.
 - **One host per restore.** All the disks live mounted by one restore use the same host, and that host must be able to reach the main SR: its own host for a local SR, any host of its pool for a shared SR. The host selector only offers these hosts, and the most likely one is pre-selected.
 - **Network.** The hosts connect to Xen Orchestra (or the proxy) over iSCSI, on a TCP port picked for each mount. A firewall between the hosts and Xen Orchestra must let the hosts open TCP connections to it. The address given to the hosts is auto-detected; if they cannot reach it (NAT, several networks), set it in the [configuration file](../getting-started/configuration.md), for example `/etc/xo-server/config.iscsi.toml`:
 
@@ -486,7 +486,7 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
   #bindAddress = '0.0.0.0'
   ```
 
-- **Temporary.** A live mount only lasts as long as the Xen Orchestra process serving it: restarting or updating XOA ends it, and the disk becomes unavailable to the VM. Stop using the disk before. If Xen Orchestra stopped unexpectedly, the `[XO backup] <VM name>` SR stays behind with nothing serving it: detach the disk from the VM and forget the SR.
+- **Temporary.** A live mount only lasts as long as the Xen Orchestra process serving it: restarting or updating XOA ends it, and the disk becomes unavailable to the VM. Stop using the disk before restarting or updating XOA. If Xen Orchestra stopped unexpectedly, the `[XO backup] <VM name>` SR stays behind with nothing serving it: detach the disk from the VM and forget the SR.
 
 ### Live mount a disk during a restore
 
@@ -502,7 +502,7 @@ The restored VM then has the live mounted disk on the `[XO backup] <VM name>` SR
 
 ### Release a live mount {#release-live-mount}
 
-A live mount stays after the restore, until it is released. Releasing it stops serving the disk and forgets its SR. The backup itself is never modified.
+A live mount remains active after the restore until you release it. Releasing the mount stops serving the disk and forgets its SR. The backup itself is never modified.
 
 Xen Orchestra releases a live mount on its own as soon as its disk is deleted:
 
@@ -511,10 +511,10 @@ Xen Orchestra releases a live mount on its own as soon as its disk is deleted:
 - **Delete the VM but keep its disks**: the mount stays, until the disk is deleted.
 
 :::tip
-Only deleting the disk releases the mount: detaching it from the VM keeps it.
+Only deleting the disk releases the mount. Detaching the disk from the VM does not.
 :::
 
-Administrators can also release a mount with the [REST API](../automation/restapi.md), with `POST /rest/v0/backup-archives/<backup id>/live_disks/<mount id>/actions/unmount`. The mount id is stored in the `xo:live-mount` entry of the SR `other_config`.
+Administrators can also release a mount using the [REST API](../automation/restapi.md), with `POST /rest/v0/backup-archives/<backup id>/live_disks/<mount id>/actions/unmount`. The mount ID is stored in the `xo:live-mount` entry of the SR `other_config`.
 
 ## Differential restore
 

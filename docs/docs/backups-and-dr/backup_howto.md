@@ -165,7 +165,7 @@ Not a backup type, but the way to chain the jobs above: a [sequence](./backup-fe
 
 ### Live mount
 
-- Attach a disk of an incremental backup to the restored VM without copying it: read only, served straight from the BR.
+- Attach a disk from an incremental backup to the restored VM without copying it: read only, served straight from the BR.
 - Usable immediately whatever the disk size, but much slower than a restored disk, and unreliable with a slow or distant BR (S3 or Azure outside your network).
 - Temporary: released when the disk is deleted, and ended by a restart of XOA (or of the proxy serving it).
 
