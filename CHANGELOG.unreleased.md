@@ -42,6 +42,7 @@
 - [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
 - [REST API] Add an endpoint to reclaim space per vm or backup repository: `POST /rest/V0/backup-repositories/:id/actions/reclaim-space` (PR [#10262](https://github.com/vatesfr/xen-orchestra/pull/10262))
 - [XO6/Host] Sort the networks table by network name (PR [#10367](https://github.com/vatesfr/xen-orchestra/pull/10367))
+- [RPU] Keeping track of an interrupted rolling pool update, refusing a new one until it is closed, and closing it from the pool's Patches tab only apply to XCP-ng and XenServer 8.4+ pools. Older XenServer and Citrix Hypervisor pools are updated as before (PR [#10447](https://github.com/vatesfr/xen-orchestra/pull/10447))
 
 ### Bug fixes
 
