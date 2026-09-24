@@ -102,6 +102,23 @@ describe('DockerEngines (redis)', { skip }, () => {
         }
       })
 
+      it('an update never re-creates a removed record, even concurrently (fixes)', async () => {
+        const record = await db.add(makeRecord())
+        const [removed, updated] = await Promise.allSettled([
+          db.remove(record.id),
+          db.update({ ...record, label: 'late' }),
+        ])
+        assert.equal(removed.status, 'fulfilled')
+        assert.equal(updated.status, 'rejected')
+        assert.equal(updated.reason.code, 1) // noSuchObject
+        assert.equal(await db.first(record.id), undefined)
+        assert.equal(await redis.sCard(`xo:${NAMESPACE}_ids`), 0)
+
+        // add with replace still upserts (config import)
+        await db.add({ ...record, label: 'imported' }, { replace: true })
+        assert.equal((await db.first(record.id)).label, 'imported')
+      })
+
       it('removes a record and its index entry', async () => {
         const { id } = await db.add(makeRecord())
         await db.remove(id)
@@ -120,6 +137,19 @@ describe('DockerEngines (redis)', { skip }, () => {
           // nothing left behind by the failed add
           assert.equal((await db.get()).length, 1)
           assert.equal(await redis.sCard(`xo:${NAMESPACE}_ids`), 1)
+        })
+
+        it('concurrent adds on the same VM: only one succeeds (fixes)', async () => {
+          const results = await Promise.allSettled([
+            db.add(makeRecord({ username: 'a' })),
+            db.add(makeRecord({ username: 'b' })),
+            db.add([makeRecord({ username: 'c' }), makeRecord({ username: 'd' })]),
+          ])
+          assert.deepEqual(
+            results.map(_ => _.status),
+            ['fulfilled', 'rejected', 'rejected']
+          )
+          assert.equal((await db.get({ vm: VM })).length, 1)
         })
 
         it('allows several engines without VM', async () => {

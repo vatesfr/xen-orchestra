@@ -6,11 +6,14 @@
 // `Docker`.
 
 import { asyncEach } from '@vates/async-each'
+import { createHmac, randomBytes } from 'node:crypto'
 import { once } from 'node:events'
 import { createLogger } from '@xen-orchestra/log'
+import { synchronized } from 'decorator-synchronized'
 import { invalidParameters, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import { compareApiVersions, DockerConnection, normalizeFingerprint } from '../_docker/connection.mjs'
+import { SshCooldown } from '../_docker/cooldown.mjs'
 import {
   DOCKER_API_ERROR,
   DOCKER_SOCKET_UNREACHABLE,
@@ -20,6 +23,7 @@ import {
   isDockerError,
   POOL_EXHAUSTED,
   SSH_AUTH_FAILED,
+  SSH_COOLDOWN,
   SSH_UNREACHABLE,
 } from '../_docker/errors.mjs'
 import { normalizeContainerInspect, normalizeContainerListEntry, normalizeEngineInfo } from '../_docker/normalize.mjs'
@@ -46,6 +50,9 @@ const DEFAULTS = {
   defaultLogsTail: 100,
   maxLogsTail: 10e3,
   maxLogsSize: 5 * 1024 * 1024,
+  logsTimeout: 30e3,
+  logsIdleTimeout: 10e3,
+  authFailureCooldown: 10e3,
 }
 
 const FINGERPRINT_RE = /^SHA256:[A-Za-z0-9+/]{43}$/
@@ -81,6 +88,27 @@ const IDENTITY_FIELDS = [
   'hostKeyAlgorithm',
 ]
 
+// stored properties which change the SSH connection itself: an update changing
+// one of them (or the address resolved from the VM) connects first, and is only
+// saved on success
+const CONNECTION_FIELDS = [
+  'host',
+  'port',
+  'username',
+  'password',
+  'privateKey',
+  'passphrase',
+  'socketPath',
+  'hostKeyFingerprint',
+  'hostKeyAlgorithm',
+]
+
+// stored properties accepted by the config import, see `#importEngines()`
+const STORED_FIELDS = new Set([...WRITABLE_FIELDS.values(), 'hostKeyAlgorithm', 'revision'])
+
+// unique, never reused: two different identities never share a revision
+const newRevision = () => randomBytes(8).toString('hex')
+
 // stored properties exposed as is by the API, secrets are NEVER in this list
 const PUBLIC_FIELDS = ['label', 'host', 'port', 'username', 'socketPath', 'hostKeyFingerprint', 'hostKeyAlgorithm']
 
@@ -111,12 +139,14 @@ const shQuote = value => `'${String(value).replaceAll("'", `'\\''`)}'`
 
 // run by `/bin/sh` whatever the login shell of the user is, the socket path is
 // passed as `$1`
+//
+// No `!`: the command line is first parsed by the login shell of the user,
+// and csh/tcsh expand `!` (history) even between single quotes.
 const SOCKET_PROBE_SCRIPT = [
-  'if [ ! -e "$1" ]; then echo missing',
-  'elif [ ! -S "$1" ]; then echo not-a-socket',
-  'elif [ ! -r "$1" ] || [ ! -w "$1" ]; then echo permission-denied',
-  'else echo ok',
-  'fi',
+  'test -e "$1" || { echo missing; exit 0; }',
+  'test -S "$1" || { echo not-a-socket; exit 0; }',
+  'test -r "$1" && test -w "$1" || { echo permission-denied; exit 0; }',
+  'echo ok',
 ].join('; ')
 
 const SOCKET_DIAGNOSTICS = {
@@ -210,8 +240,15 @@ export default class Docker {
   #app
   #cache
   #config
+  #cooldown
   /** @type {DockerEngines} */
   #db
+  // per process: the keys of the connections and caches are HMACs of the
+  // connection parameters (secrets included), never exposed
+  #keySecret = randomBytes(32)
+  // in-process mutexes: `engine:<id>` for every mutation of an engine,
+  // `vm:<id>` around the one-engine-per-VM check and the write
+  #lock = synchronized.withKey()((key, fn) => fn())
   #pool
 
   constructor(app) {
@@ -231,7 +268,11 @@ export default class Docker {
       defaultLogsTail: get('defaultLogsTail'),
       maxLogsTail: get('maxLogsTail'),
       maxLogsSize: get('maxLogsSize', parseSize),
+      logsTimeout: getDuration('logsTimeout'),
+      logsIdleTimeout: getDuration('logsIdleTimeout'),
     }
+
+    this.#cooldown = new SshCooldown({ cooldown: getDuration('authFailureCooldown') })
 
     this.#cache = new AsyncTtlCache({ expiresIn: getDuration('cacheExpiresIn') })
     this.#pool = new DockerConnectionPool({
@@ -253,10 +294,7 @@ export default class Docker {
       app.addConfigManager?.(
         'dockerEngines',
         () => db.get(),
-        async engines => {
-          await db.update(engines)
-          await Promise.all(engines.map(({ id }) => this.#invalidate(id)))
-        }
+        engines => this.#importEngines(engines)
       )
     })
     app.hooks.on('stop', () => this.#pool.destroy())
@@ -293,6 +331,10 @@ export default class Docker {
    * `docker.strictHostKeyChecking` is false): the observed key is then pinned
    * in the record.
    *
+   * After an authentication, host key or handshake failure, the same
+   * parameters are refused for `docker.authFailureCooldown` (DockerError
+   * `SSH_COOLDOWN`, `data.retryAfter` in seconds), see `_docker/cooldown.mjs`.
+   *
    * @param {object} params
    * @param {string} [params.$VM] VM running the engine, required without `host`
    * @param {string} [params.host] empty: resolved from the VM's addresses at connection time
@@ -306,63 +348,91 @@ export default class Docker {
    * @param {boolean} [params.acceptUnknownHostKey] transient, never stored
    * @param {string} [params.label]
    * @returns {Promise<object>} the new engine, without secrets
+   * @throws {DockerError} the connection errors (HOST_KEY_UNKNOWN, HOST_KEY_MISMATCH, SSH_AUTH_FAILED…), SSH_COOLDOWN
    */
   async createDockerEngine(params = {}) {
     const record = { port: DEFAULT_SSH_PORT, socketPath: DEFAULT_SOCKET_PATH }
     this.#applyProperties(record, params)
     validateRecord(record)
 
-    if (record.vm !== undefined) {
-      await this.#assertNoEngineForVm(record.vm)
+    const create = async () => {
+      if (record.vm !== undefined) {
+        await this.#assertNoEngineForVm(record.vm)
+      }
+      await this.#connectAndPin(record, { acceptUnknownHostKey: params.acceptUnknownHostKey === true })
+      record.revision = newRevision()
+      return this.#sanitize(await this.#db.add(record))
     }
-
-    await this.#connectAndPin(record, { acceptUnknownHostKey: params.acceptUnknownHostKey === true })
-    record.revision = 0
-
-    return this.#sanitize(await this.#db.add(record))
+    // the check, the connection and the write are atomic per VM
+    return record.vm === undefined ? create() : this.#withLocks([`vm:${record.vm}`], create)
   }
 
   /**
    * Partial update of an engine.
    *
    * - omitted (`undefined`) properties are kept, `null` or `''` clears them
-   *   (resets `port` and `socketPath` to their defaults)
-   * - changing a connection property (host, credentials…) closes the pooled
-   *   connection and evicts the caches
+   *   (resets `port` and `socketPath` to their defaults); clearing
+   *   `privateKey` also clears `passphrase`
+   * - changing a connection property (host, port, username, secrets,
+   *   socketPath, hostKeyFingerprint, or the address resolved from the VM)
+   *   connects first, verifying the host key with the new or the stored pin:
+   *   nothing is saved on failure, and the errors are the ones of
+   *   `createDockerEngine()` (HOST_KEY_UNKNOWN, HOST_KEY_MISMATCH,
+   *   SSH_AUTH_FAILED, SSH_COOLDOWN…); on success, the pooled connection is
+   *   closed and the caches evicted
    * - without `hostKeyFingerprint` after the update (e.g. it has been cleared
    *   with `null`), the TOFU flow of `createDockerEngine()` applies, with
    *   `acceptUnknownHostKey`
+   * - other changes (e.g. `label`) do not connect
+   *
+   * Serialized with the other mutations of the engine (update, delete, host
+   * key pinning, config import).
    *
    * @param {string} id
    * @param {object} properties see `createDockerEngine()`
    * @returns {Promise<object>} the updated engine, without secrets
    */
   async updateDockerEngine(id, properties = {}) {
-    const previous = await this.#getEngineWithCredentials(id)
-    const record = { ...previous }
-    this.#applyProperties(record, properties)
-    validateRecord(record)
-
-    if (record.vm !== undefined && record.vm !== previous.vm) {
-      await this.#assertNoEngineForVm(record.vm)
+    if (typeof id !== 'string') {
+      throw noSuchObject(id, 'docker-engine')
     }
+    return this.#withLocks([`engine:${id}`], async () => {
+      // read under the lock: sees the result of the previous mutations, and
+      // fails if the engine has been deleted meanwhile
+      const previous = await this.#getEngineWithCredentials(id)
+      const record = { ...previous }
+      this.#applyProperties(record, properties)
+      validateRecord(record)
 
-    if (record.hostKeyFingerprint === undefined) {
-      await this.#connectAndPin(record, { acceptUnknownHostKey: properties.acceptUnknownHostKey === true })
-    }
+      const update = async () => {
+        if (record.vm !== undefined && record.vm !== previous.vm) {
+          await this.#assertNoEngineForVm(record.vm)
+        }
 
-    const identityChanged = IDENTITY_FIELDS.some(key => record[key] !== previous[key])
-    const changed = Object.keys({ ...record, ...previous }).some(key => record[key] !== previous[key])
-    if (changed) {
-      if (identityChanged) {
-        record.revision = (previous.revision ?? 0) + 1
+        const connectionChanged =
+          CONNECTION_FIELDS.some(key => record[key] !== previous[key]) ||
+          this.#resolveHost(record) !== this.#resolveHost(previous)
+        if (connectionChanged || record.hostKeyFingerprint === undefined) {
+          await this.#connectAndPin(record, { acceptUnknownHostKey: properties.acceptUnknownHostKey === true })
+        }
+
+        const identityChanged = IDENTITY_FIELDS.some(key => record[key] !== previous[key])
+        const changed = Object.keys({ ...record, ...previous }).some(key => record[key] !== previous[key])
+        if (changed) {
+          if (identityChanged) {
+            record.revision = newRevision()
+          }
+          await this.#db.update(record)
+          if (identityChanged) {
+            await this.#invalidate(id)
+          }
+        }
+        return this.#sanitize(record)
       }
-      await this.#db.update(record)
-      if (identityChanged) {
-        await this.#invalidate(id)
-      }
-    }
-    return this.#sanitize(record)
+      return record.vm !== undefined && record.vm !== previous.vm
+        ? this.#withLocks([`vm:${record.vm}`], update)
+        : update()
+    })
   }
 
   /**
@@ -370,9 +440,14 @@ export default class Docker {
    * @returns {Promise<void>}
    */
   async deleteDockerEngine(id) {
-    await this.#getEngineWithCredentials(id)
-    await this.#db.remove(id)
-    await this.#invalidate(id)
+    if (typeof id !== 'string') {
+      throw noSuchObject(id, 'docker-engine')
+    }
+    await this.#withLocks([`engine:${id}`], async () => {
+      await this.#getEngineWithCredentials(id)
+      await this.#db.remove(id)
+      await this.#invalidate(id)
+    })
   }
 
   /**
@@ -384,13 +459,14 @@ export default class Docker {
    *
    * @param {string} id
    * @returns {Promise<{ ok: boolean, apiVersion?: string, engineVersion?: string, fingerprint?: string, algorithm?: string, error?: object, diagnostic?: { code: string, message: string } }>}
+   * @throws {DockerError} SSH_COOLDOWN (nothing attempted) shortly after an authentication, host key or handshake failure with the same parameters
    */
   async testDockerEngine(id) {
     const record = await this.#getEngineWithCredentials(id)
     const acceptUnknownHostKey = record.hostKeyFingerprint === undefined && !this.#config.strictHostKeyChecking
     let connection
     try {
-      connection = this.#createConnection(record, { acceptUnknownHostKey })
+      connection = this.#createConnection(record, { acceptUnknownHostKey, checkCooldown: true })
       await connection.connect()
       const { fingerprint, algorithm } = connection.observedHostKey ?? {}
       if (record.hostKeyFingerprint === undefined && fingerprint !== undefined) {
@@ -405,7 +481,7 @@ export default class Docker {
         algorithm,
       }
     } catch (error) {
-      if (!isDockerError(error)) {
+      if (!isDockerError(error) || error.code === SSH_COOLDOWN) {
         throw error
       }
       const { fingerprint, algorithm } = connection?.observedHostKey ?? {}
@@ -555,8 +631,10 @@ export default class Docker {
   }
 
   /**
-   * Logs of a container, bounded: at most `tail` lines, and the response is
-   * cut at `docker.maxLogsSize` bytes (`truncated: true`).
+   * Logs of a container, bounded: at most `tail` lines, the response is cut
+   * at `docker.maxLogsSize` bytes (`truncated: true`), and reading it stops
+   * after `docker.logsTimeout` overall, or `docker.logsIdleTimeout` without
+   * data (`truncated: true, timedOut: true`, with the entries read so far).
    *
    * @param {string} id composite id
    * @param {object} [opts]
@@ -566,13 +644,13 @@ export default class Docker {
    * @param {boolean} [opts.stdout]
    * @param {boolean} [opts.stderr]
    * @param {boolean} [opts.timestamps]
-   * @returns {Promise<{ entries: { timestamp?: string, stream: string, message: string }[], truncated: boolean, asOf: number }>}
+   * @returns {Promise<{ entries: { timestamp?: string, stream: string, message: string }[], truncated: boolean, timedOut: boolean, asOf: number }>}
    */
   async getDockerContainerLogs(
     id,
     { tail = this.#config.defaultLogsTail, since, until, stdout = true, stderr = true, timestamps = true } = {}
   ) {
-    const { maxLogsSize, maxLogsTail } = this.#config
+    const { logsIdleTimeout, logsTimeout, maxLogsSize, maxLogsTail } = this.#config
     if (!Number.isInteger(tail) || tail < 0 || tail > maxLogsTail) {
       throw invalidParameters(`tail must be an integer between 0 and ${maxLogsTail}`)
     }
@@ -612,54 +690,92 @@ export default class Docker {
 
       const asOf = Date.now()
       const controller = new AbortController()
+
+      // the body is bounded in time too: dockerd may stall or trickle, which
+      // would keep the pooled connection busy forever. On expiry, what has
+      // been read so far is returned (`truncated` and `timedOut`)
+      const TIMED_OUT = new Error('logs deadline')
+      let timedOut = false
       let response
-      try {
-        response = await connection.requestStream({ path: path + '/logs', query, signal: controller.signal })
-      } catch (error) {
-        throw isNotFound(error) ? noSuchObject(id, 'docker-container') : error
+      const expire = () => {
+        timedOut = true
+        if (response === undefined) {
+          controller.abort(new DOMException('Docker logs request timed out', 'TimeoutError'))
+        } else {
+          response.destroy(TIMED_OUT)
+        }
+      }
+      const deadline = setTimeout(expire, logsTimeout)
+      let idleTimer
+      const resetIdle = () => {
+        clearTimeout(idleTimer)
+        idleTimer = setTimeout(expire, logsIdleTimeout)
       }
 
-      const demuxer = createStdcopyDemuxer({
-        tty: !isMultiplexedStream(response.headers['content-type'], tty, connection.apiVersion),
-      })
-      const parser = createLogLineParser()
-      const entries = []
-      const streams = new Set([stdout && 'stdout', stderr && 'stderr'])
-      demuxer.pipe(parser)
-      demuxer.on('error', error => parser.destroy(error))
-      const collected = (async () => {
-        for await (const entry of parser) {
-          if (streams.has(entry.stream)) {
-            entries.push(timestamps ? entry : { ...entry, timestamp: undefined })
-          }
-        }
-      })()
-      // awaited below, avoids an unhandled rejection meanwhile
-      collected.catch(() => {})
-
-      let truncated = false
       try {
-        let size = 0
-        for await (const chunk of response) {
-          if (size + chunk.length > maxLogsSize) {
-            demuxer.write(chunk.subarray(0, maxLogsSize - size))
-            truncated = true
-            break
-          }
-          size += chunk.length
-          if (!demuxer.write(chunk)) {
-            // rejects if the demuxer fails (e.g. invalid frame)
-            await once(demuxer, 'drain')
-          }
+        try {
+          response = await connection.requestStream({ path: path + '/logs', query, signal: controller.signal })
+        } catch (error) {
+          throw isNotFound(error) ? noSuchObject(id, 'docker-container') : error
         }
+        resetIdle()
+
+        const demuxer = createStdcopyDemuxer({
+          tty: !isMultiplexedStream(response.headers['content-type'], tty, connection.apiVersion),
+        })
+        const parser = createLogLineParser()
+        const entries = []
+        const streams = new Set([stdout && 'stdout', stderr && 'stderr'])
+        demuxer.pipe(parser)
+        demuxer.on('error', error => {
+          parser.destroy(error)
+          // interrupts the read loop below
+          response.destroy(error)
+        })
+        const collected = (async () => {
+          for await (const entry of parser) {
+            if (streams.has(entry.stream)) {
+              entries.push(timestamps ? entry : { ...entry, timestamp: undefined })
+            }
+          }
+        })()
+        // awaited below, avoids an unhandled rejection meanwhile
+        collected.catch(() => {})
+
+        let truncated = false
+        try {
+          let size = 0
+          for await (const chunk of response) {
+            resetIdle()
+            if (size + chunk.length > maxLogsSize) {
+              demuxer.write(chunk.subarray(0, maxLogsSize - size))
+              truncated = true
+              break
+            }
+            size += chunk.length
+            if (!demuxer.write(chunk)) {
+              // rejects if the demuxer fails (e.g. invalid frame)
+              await once(demuxer, 'drain')
+            }
+          }
+        } catch (error) {
+          if (error !== TIMED_OUT) {
+            throw error
+          }
+        } finally {
+          clearTimeout(idleTimer)
+          // stops reading the response (and frees the channel) when truncated
+          // or timed out
+          response.destroy()
+          controller.abort()
+          demuxer.end()
+        }
+        await collected
+        return { entries, truncated: truncated || timedOut || demuxer.truncated, timedOut, asOf }
       } finally {
-        // stops reading the response (and frees the channel) when truncated
-        response.destroy()
-        controller.abort()
-        demuxer.end()
+        clearTimeout(deadline)
+        clearTimeout(idleTimer)
       }
-      await collected
-      return { entries, truncated: truncated || demuxer.truncated, asOf }
     })
   }
 
@@ -726,7 +842,43 @@ export default class Docker {
 
   // the cached lists of this engine are stale after a container change
   #evictContainers(record) {
-    this.#cache.deleteByPrefix(`${record.id}:${record.revision ?? 0}:containers:`)
+    this.#cache.deleteByPrefix(`${record.id}:${this.#connectionKey(record)}:containers:`)
+  }
+
+  /**
+   * Run `fn` holding the in-process mutexes of `keys`.
+   *
+   * Always acquired in the same order (`engine:*` before `vm:*`, then sorted)
+   * to avoid deadlocks; not reentrant.
+   */
+  #withLocks(keys, fn) {
+    const sorted = Array.from(new Set(keys)).sort((a, b) => {
+      const ka = a.startsWith('engine:') ? 0 : 1
+      const kb = b.startsWith('engine:') ? 0 : 1
+      return ka !== kb ? ka - kb : a < b ? -1 : a > b ? 1 : 0
+    })
+    return sorted.reduceRight(
+      (next, key) => () => this.#lock(key, next),
+      () => fn()
+    )()
+  }
+
+  #hmac(values) {
+    return createHmac('sha256', this.#keySecret).update(JSON.stringify(values)).digest('base64url')
+  }
+
+  /**
+   * Key of the pooled connection and of the caches of an engine: an HMAC of
+   * everything the connection depends on, so that a connection (or a cached
+   * list) can never serve other parameters than the ones it was made with,
+   * even with a stale record.
+   */
+  #connectionKey(record) {
+    return this.#hmac([
+      record.revision ?? 0,
+      this.#resolveHost(record) ?? null,
+      ...CONNECTION_FIELDS.map(key => record[key] ?? null),
+    ])
   }
 
   async #getEngineWithCredentials(id) {
@@ -735,6 +887,67 @@ export default class Docker {
       throw noSuchObject(id, 'docker-engine')
     }
     return record
+  }
+
+  /**
+   * Config import (`addConfigManager`): every record is validated before
+   * anything is written, then they are written under the locks of the engines
+   * and VMs involved.
+   */
+  async #importEngines(engines) {
+    if (!Array.isArray(engines)) {
+      throw invalidParameters('dockerEngines must be an array')
+    }
+    const ids = new Set()
+    const vms = new Map()
+    const records = engines.map(engine => {
+      if (engine === null || typeof engine !== 'object' || typeof engine.id !== 'string' || engine.id === '') {
+        throw invalidParameters('each Docker engine must be an object with an id')
+      }
+      const { id, ...properties } = engine
+      for (const key of Object.keys(properties)) {
+        if (!STORED_FIELDS.has(key)) {
+          throw invalidParameters(`Docker engine ${id}: unknown property ${key}`)
+        }
+      }
+      if (ids.has(id)) {
+        throw invalidParameters(`Docker engine ${id} is present twice`)
+      }
+      ids.add(id)
+      const record = { port: DEFAULT_SSH_PORT, socketPath: DEFAULT_SOCKET_PATH, ...properties }
+      try {
+        validateRecord(record)
+        if (record.hostKeyFingerprint !== undefined) {
+          record.hostKeyFingerprint = normalizeFingerprint(record.hostKeyFingerprint)
+        }
+      } catch (error) {
+        error.message = `Docker engine ${id}: ${error.message}`
+        throw error
+      }
+      if (record.vm !== undefined) {
+        if (vms.has(record.vm)) {
+          throw objectAlreadyExists({ objectId: vms.get(record.vm), objectType: 'docker-engine' })
+        }
+        vms.set(record.vm, id)
+      }
+      // a new revision: nothing cached for the previous parameters is reused
+      return { ...record, id, revision: newRevision() }
+    })
+
+    await this.#withLocks(
+      [...Array.from(ids, id => `engine:${id}`), ...Array.from(vms.keys(), vm => `vm:${vm}`)],
+      async () => {
+        // engines not in the import keep their VM
+        for (const vm of vms.keys()) {
+          const existing = await this.#db.first({ vm })
+          if (existing !== undefined && !ids.has(existing.id)) {
+            throw objectAlreadyExists({ objectId: existing.id, objectType: 'docker-engine' })
+          }
+        }
+        await this.#db.add(records, { replace: true })
+        await Promise.all(Array.from(ids, id => this.#invalidate(id)))
+      }
+    )
   }
 
   async #assertNoEngineForVm(vm) {
@@ -767,6 +980,9 @@ export default class Docker {
           delete record[key]
           if (key === 'hostKeyFingerprint') {
             delete record.hostKeyAlgorithm
+          } else if (key === 'privateKey') {
+            // the passphrase of a removed key is meaningless
+            delete record.passphrase
           }
         }
         continue
@@ -812,7 +1028,13 @@ export default class Docker {
     return vm?.mainIpAddress ?? Object.values(vm?.addresses ?? {})[0]
   }
 
-  #createConnection(record, { acceptUnknownHostKey = false } = {}) {
+  /**
+   * @param {object} record
+   * @param {object} [opts]
+   * @param {boolean} [opts.acceptUnknownHostKey]
+   * @param {boolean} [opts.checkCooldown] refuse (SSH_COOLDOWN) if the same parameters failed recently
+   */
+  #createConnection(record, { acceptUnknownHostKey = false, checkCooldown = false } = {}) {
     const host = this.#resolveHost(record)
     if (host === undefined) {
       throw new DockerError(
@@ -821,6 +1043,38 @@ export default class Docker {
         { data: { vm: record.vm } }
       )
     }
+
+    // cooldown of the attempts penalized by OpenSSH's PerSourcePenalties, per
+    // engine and per address (an unsaved engine only has the latter)
+    const cooldownKeys = [`target:${host}:${record.port}`]
+    if (record.id !== undefined) {
+      cooldownKeys.push(`engine:${record.id}`)
+    }
+    const identity = this.#hmac([
+      host,
+      // not the algorithm: it is derived from the observed key
+      ...CONNECTION_FIELDS.filter(key => key !== 'hostKeyAlgorithm').map(key => record[key] ?? null),
+      // the TOFU confirmation is a new attempt
+      acceptUnknownHostKey,
+    ])
+    if (checkCooldown) {
+      this.#cooldown.check(cooldownKeys, identity)
+    }
+
+    const connection = this.#newConnection(record, host, acceptUnknownHostKey)
+    const connect = connection.connect.bind(connection)
+    connection.connect = async () => {
+      try {
+        await connect()
+      } catch (error) {
+        throw this.#cooldown.onFailure(cooldownKeys, identity, error)
+      }
+      this.#cooldown.clear(cooldownKeys)
+    }
+    return connection
+  }
+
+  #newConnection(record, host, acceptUnknownHostKey) {
     const { connectTimeout, requestTimeout } = this.#config
     return new DockerConnection({
       host,
@@ -847,6 +1101,7 @@ export default class Docker {
   async #connectAndPin(record, { acceptUnknownHostKey }) {
     const connection = this.#createConnection(record, {
       acceptUnknownHostKey: acceptUnknownHostKey || !this.#config.strictHostKeyChecking,
+      checkCooldown: true,
     })
     try {
       await connection.connect()
@@ -868,13 +1123,22 @@ export default class Docker {
   }
 
   // used when a key has been accepted without strict host key checking
+  //
+  // Under the engine's lock, on a fresh read: only the pin is written, over
+  // whatever the other mutations did meanwhile
   async #pinHostKey(id, { fingerprint, algorithm }) {
-    const record = await this.#db.first(id)
-    if (record !== undefined && record.hostKeyFingerprint === undefined) {
-      record.hostKeyFingerprint = fingerprint
-      record.hostKeyAlgorithm = algorithm
-      await this.#db.update(record)
-    }
+    await this.#withLocks([`engine:${id}`], async () => {
+      const record = await this.#db.first(id)
+      if (record !== undefined && record.hostKeyFingerprint === undefined) {
+        record.hostKeyFingerprint = fingerprint
+        if (algorithm === undefined) {
+          delete record.hostKeyAlgorithm
+        } else {
+          record.hostKeyAlgorithm = algorithm
+        }
+        await this.#db.update(record)
+      }
+    })
   }
 
   /**
@@ -901,7 +1165,7 @@ export default class Docker {
   #withConnection(record, fn) {
     const acceptUnknownHostKey = record.hostKeyFingerprint === undefined && !this.#config.strictHostKeyChecking
     return this.#pool.use(
-      record,
+      { id: record.id, revision: this.#connectionKey(record) },
       () => this.#createConnection(record, { acceptUnknownHostKey }),
       async connection => {
         if (acceptUnknownHostKey && connection.observedHostKey !== undefined) {
@@ -937,7 +1201,7 @@ export default class Docker {
     }
     engine.hasPassword = record.password !== undefined
     engine.hasPrivateKey = record.privateKey !== undefined
-    const { status, error } = this.#pool.getState(record.id, record.revision)
+    const { status, error } = this.#pool.getState(record.id, this.#connectionKey(record))
     engine.connectionStatus = status
     if (error !== undefined) {
       engine.error = error
@@ -962,7 +1226,7 @@ export default class Docker {
   }
 
   #containersCacheKey(record, all) {
-    return `${record.id}:${record.revision ?? 0}:containers:${all ? 'all' : 'running'}`
+    return `${record.id}:${this.#connectionKey(record)}:containers:${all ? 'all' : 'running'}`
   }
 
   /**

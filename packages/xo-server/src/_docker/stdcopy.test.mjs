@@ -9,6 +9,7 @@ import {
   createLogLineParser,
   createStdcopyDemuxer,
   isMultiplexedStream,
+  MAX_SYSTEM_ERR_SIZE,
   MULTIPLEXED_STREAM_CONTENT_TYPE,
   RAW_STREAM_CONTENT_TYPE,
 } from './stdcopy.mjs'
@@ -164,6 +165,21 @@ describe('createStdcopyDemuxer()', () => {
     await assert.rejects(run(bytes(Buffer.concat([frame(1, 'ok'), frame(3, 'boom\n')])), createStdcopyDemuxer()), {
       code: DOCKER_API_ERROR,
       message: 'Docker stream error: boom',
+    })
+  })
+
+  it('keeps only the first MAX_SYSTEM_ERR_SIZE bytes of a systemErr payload', async () => {
+    const payload = 'x'.repeat(MAX_SYSTEM_ERR_SIZE) + 'DROPPED'.repeat(1e4)
+    const big = frame(3, payload)
+    // split in several chunks: the cap spans chunks
+    const chunks = []
+    for (let i = 0; i < big.length; i += 10e3) {
+      chunks.push(big.subarray(i, i + 10e3))
+    }
+    await assert.rejects(run(chunks, createStdcopyDemuxer()), error => {
+      assert.equal(error.code, DOCKER_API_ERROR)
+      assert.equal(error.message, 'Docker stream error: ' + 'x'.repeat(MAX_SYSTEM_ERR_SIZE))
+      return true
     })
   })
 
