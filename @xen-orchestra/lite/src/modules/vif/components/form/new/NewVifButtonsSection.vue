@@ -1,6 +1,6 @@
 <template>
   <div class="new-vif-buttons-section">
-    <UiLink size="medium" accent="brand" variant="secondary" :to="cancelTo">
+    <UiLink :to="cancelTo" size="medium">
       {{ t('cancel') }}
     </UiLink>
     <UiButton type="submit" size="medium" accent="brand" variant="primary">
@@ -25,7 +25,7 @@ const { t } = useI18n()
 <style lang="postcss" scoped>
 .new-vif-buttons-section {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   gap: 2.4rem;
   margin-block-start: 2.4rem;

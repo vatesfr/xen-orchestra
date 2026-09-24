@@ -25,7 +25,7 @@ const { t } = useI18n()
 <style lang="postcss" scoped>
 .buttons-container {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   gap: 2.4rem;
   margin-block-start: 2.4rem;
