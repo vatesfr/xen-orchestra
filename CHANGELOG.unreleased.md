@@ -29,4 +29,5 @@
 
 <!--packages-start-->
 
+- @vates/obfuscate patch
 <!--packages-end-->

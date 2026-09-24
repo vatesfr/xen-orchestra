@@ -203,7 +203,7 @@ export function isMissingValue(value: unknown): boolean {
 const SECRET_PROPERTY_NAMES = ['token', 'passphrase', 'encryptionKey']
 
 function isSecretPropertyName(name: string): boolean {
-  return SECRET_PROPERTY_NAMES.includes(name) || /password/i.test(name)
+  return SECRET_PROPERTY_NAMES.includes(name) || /password/i.test(name) || /private_?key/i.test(name)
 }
 
 // the REST API also obfuscates secrets of some plugins (e.g. `clientSecret`), which are only known by their value

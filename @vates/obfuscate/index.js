@@ -37,7 +37,7 @@ exports.merge = merge
 const obfuscate = value => replace(value, OBFUSCATED_VALUE)
 exports.obfuscate = obfuscate
 
-const SENSITIVE_PARAMS = ['token', 'passphrase', /password/i, 'encryptionKey']
+const SENSITIVE_PARAMS = ['token', 'passphrase', /password/i, /private_?key/i, 'encryptionKey']
 const isSensitiveParam = name =>
   SENSITIVE_PARAMS.some(pattern => (typeof pattern === 'string' ? pattern === name : pattern.test(name)))
 
@@ -83,7 +83,7 @@ const SMB_CREDENTIALS_RE = /^(smb:\/\/)[^\0]*@/i
 // URL encoded and end at the first `@`, see https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1
 const URL_CREDENTIALS_RE = /([a-z][a-z\d+.-]*:\/\/)[^\s/?#@]*@/gi
 
-// e.g. `?encryptionKey=` in a backup repository URL, same names as SENSITIVE_PARAMS
+// e.g. `?encryptionKey=` in a backup repository URL, same names as SENSITIVE_PARAMS (private keys aside: never in a URL)
 const SENSITIVE_QUERY_PARAM_RE = /([?&](?:encryptionKey|passphrase|token|[^=&#\s]*password[^=&#\s]*)=)[^&#\s]*/gi
 
 // replaces the credentials and the sensitive query parameters of the URLs in a string
