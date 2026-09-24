@@ -325,6 +325,10 @@ export default class TabPatches extends Component {
     // xo-server refuses a new run as long as the previous one left a record
     const hasIncompleteRun = rollingUpdateRecovery != null
 
+    // with recovery, xo-server updates each host from its own missing patches;
+    // older XenServer and CH install the master's missing patches pool-wide
+    const supportsRpuRecovery = productBrand === 'XCP-ng' || _isXsHostWithCdnPatches
+
     return (
       <Upgrade place='poolPatches' required={2}>
         <Container>
@@ -335,7 +339,7 @@ export default class TabPatches extends Component {
                 <TabButton
                   btnStyle='primary'
                   disabled={
-                    !some(hasMissingPatchesByHost) ||
+                    (supportsRpuRecovery ? !some(hasMissingPatchesByHost) : isEmpty(missingPatches)) ||
                     hasMultipleVmsRunningOnLocalStorage ||
                     isSingleHost ||
                     hasIncompleteRun

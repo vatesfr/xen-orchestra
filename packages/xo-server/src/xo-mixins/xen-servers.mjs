@@ -20,7 +20,9 @@ import Disposable from 'promise-toolbox/Disposable'
 import * as XenStore from '../_XenStore.mjs'
 import Xapi from '../xapi/index.mjs'
 import { acquireRpuGuard } from '../_rpuGuard.mjs'
+import { noopRpuRecorder } from '../_rpuRecovery.mjs'
 import { getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
+import { supportsRpuRecovery } from '../xapi/mixins/patching.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 import XapiStats from '../xapi-stats.mjs'
 import { autoReconnect } from '../_xenServerAutoReconnect.mjs'
@@ -952,14 +954,16 @@ export default class XenServers {
    * @param {object} [opts]
    * @param {boolean} [opts.acceptCurrentStateAsBaseline] - Start even though the master is already up to date while
    *   another host is not, ie from a partially updated pool, otherwise such an update is refused with an
-   *   `incorrectState` error (property `partiallyUpdatedPool`)
+   *   `incorrectState` error (property `partiallyUpdatedPool`). Only checked on XCP-ng and XenServer 8.4+: older
+   *   XenServer and CH pools are updated without this check
    * @param {boolean} [opts.bypassBackupCheck] - Skip the backup guard, the bypass is logged
    * @param {boolean} [opts.rebootVm] - Accept the VM reboots required by the update guidances (XenServer 8.4+),
    *   otherwise such an update is refused with an `incorrectState` error
    * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
    * @param {boolean} [opts.shutdownPinnedVms] - Shut down the VMs that cannot be migrated before their host reboots
    * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool
-   * @throws {Error} `incorrectState` (property `rollingUpdateRecovery`) if a previous run left a recovery record
+   * @throws {Error} `incorrectState` (property `rollingUpdateRecovery`) if a previous run left a recovery record, only on
+   *   XCP-ng and XenServer 8.4+ where a run keeps one
    */
   async rollingPoolUpdate(
     $defer,
@@ -975,13 +979,16 @@ export default class XenServers {
     $defer(acquireRpuGuard(poolId, 'rollingPoolUpdate'))
 
     // strict write before any side effect: if the record cannot be persisted,
-    // an interruption could not be reported, so the run must not start
-    const recorder = await app.startRpuRecoveryRun(poolId, {
-      acceptCurrentStateAsBaseline,
-      rebootVm,
-      bypassBackupCheck,
-      shutdownPinnedVms,
-    })
+    // an interruption could not be reported, so the run must not start. A pool
+    // without recovery runs without a record, as it did before recovery existed
+    const recorder = supportsRpuRecovery(this.getXapi(pool).pool.$master)
+      ? await app.startRpuRecoveryRun(poolId, {
+          acceptCurrentStateAsBaseline,
+          rebootVm,
+          bypassBackupCheck,
+          shutdownPinnedVms,
+        })
+      : noopRpuRecorder
 
     // a failure before the first host was handled leaves nothing to recover
     // once the restorations deferred below (schedules, load balancer, WLB)
