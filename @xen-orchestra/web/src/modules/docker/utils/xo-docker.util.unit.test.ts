@@ -32,9 +32,9 @@ describe('getVmSshCandidateAddresses', () => {
   })
 
   it('ignores an IPv6 main address', () => {
-    expect(
-      getVmSshCandidateAddresses({ mainIpAddress: 'fe80::1', addresses: { '0/ipv4/0': '192.168.1.10' } })
-    ).toEqual(['192.168.1.10'])
+    expect(getVmSshCandidateAddresses({ mainIpAddress: 'fe80::1', addresses: { '0/ipv4/0': '192.168.1.10' } })).toEqual(
+      ['192.168.1.10']
+    )
   })
 
   it('returns nothing when the VM reports no address', () => {
@@ -48,9 +48,7 @@ it('shortContainerId keeps the 12 first characters, like docker ps', () => {
 
 describe('formatPortMapping', () => {
   it('shows a published TCP port as public→private', () => {
-    expect(formatPortMapping({ privatePort: 8096, publicPort: 8080, protocol: 'tcp', ip: '0.0.0.0' })).toBe(
-      '8080→8096'
-    )
+    expect(formatPortMapping({ privatePort: 8096, publicPort: 8080, protocol: 'tcp', ip: '0.0.0.0' })).toBe('8080→8096')
   })
 
   it('shows the protocol of a published port which is not TCP', () => {
@@ -77,9 +75,9 @@ it('dedupePorts drops the IPv6 twin of a port published on all interfaces', () =
 
 describe('buildPublishedPortUrl', () => {
   it('opens a published TCP port on the address of the VM', () => {
-    expect(buildPublishedPortUrl({ privatePort: 80, publicPort: 8080, protocol: 'tcp', ip: '0.0.0.0' }, '10.0.0.2')).toBe(
-      'http://10.0.0.2:8080'
-    )
+    expect(
+      buildPublishedPortUrl({ privatePort: 80, publicPort: 8080, protocol: 'tcp', ip: '0.0.0.0' }, '10.0.0.2')
+    ).toBe('http://10.0.0.2:8080')
   })
 
   it('brackets an IPv6 host', () => {
