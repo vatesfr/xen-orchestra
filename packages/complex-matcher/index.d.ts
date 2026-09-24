@@ -1,8 +1,10 @@
 export type ComparisonOperator = '>' | '>=' | '<' | '<='
 
+export type Resolver = (id: string) => object | undefined
+
 declare class BaseNode {
-  createPredicate(resolver?: (id: string) => object | undefined): (value: any) => boolean
-  match(value: any, resolver?: (id: string) => object | undefined): boolean
+  createPredicate(resolver?: Resolver): (value: any) => boolean
+  match(value: any, resolver?: Resolver): boolean
   toString(isNested?: boolean): string
 }
 

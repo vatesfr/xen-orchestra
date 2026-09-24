@@ -16,6 +16,7 @@ export { SUPPORTED_ACTIONS_BY_RESOURCE }
 export type * from './generated/privilege-types.mjs'
 
 import { AnyPrivilege } from './generated/privilege-types.mjs'
+import { Resolver } from 'complex-matcher'
 
 export type AnyPrivilegeOnParam = {
   [Resource in SupportedResource]: {
@@ -40,7 +41,7 @@ export function hasPrivilegeOn<T extends SupportedResource>(
     objects: object | object[]
     userPrivileges: AnyPrivilege[]
   },
-  resolver?: (id: string) => object | undefined
+  resolver?: Resolver
 ) {
   // Function that will be called outside of the module
   // We cannot be sure types are respected
@@ -97,7 +98,7 @@ export function hasPrivilegeOn<T extends SupportedResource>(
 export function getMissingPrivileges(
   params: AnyPrivilegeOnParam[],
   userPrivileges: AnyPrivilege[],
-  resolver?: (id: string) => object | undefined
+  resolver?: Resolver
 ) {
   return params
     .filter(
@@ -142,11 +143,7 @@ export function getMissingPrivileges(
     })
 }
 
-export function hasPrivileges(
-  params: AnyPrivilegeOnParam[],
-  userPrivileges: AnyPrivilege[],
-  resolver?: (id: string) => object | undefined
-) {
+export function hasPrivileges(params: AnyPrivilegeOnParam[], userPrivileges: AnyPrivilege[], resolver?: Resolver) {
   return getMissingPrivileges(params, userPrivileges, resolver).length === 0
 }
 
@@ -158,7 +155,7 @@ export function filterObjectsWithPrivilege<Resource extends SupportedResource, O
     objects: Object[]
     userPrivileges: AnyPrivilege[]
   },
-  resolver?: (id: string) => object | undefined
+  resolver?: Resolver
 ) {
   return param.objects.filter(obj => hasPrivilegeOn({ ...param, objects: obj }, resolver))
 }

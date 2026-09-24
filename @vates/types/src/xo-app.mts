@@ -24,6 +24,7 @@ import type {
 import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
 import type { RPU_RECOVERY_STEP_NAME } from './common.mjs'
+import type { Node as CmNode, Resolver } from 'complex-matcher'
 import {
   Xapi,
   XapiHostStats,
@@ -582,6 +583,8 @@ export type XoApp = EventEmitter & {
   getAllXapis(): Record<string, Xapi>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
   getAnyObject(id: XoRecord['id']): Promise<XoRecord>
+  buildResolver(objects: object | object[], node: CmNode): Promise<Resolver>
+  xapiObjectResolver: Resolver
   getLicenses(params?: { productType?: LicenseProductType }): Promise<License[]>
   bindLicense(params: { licenseId: string; boundObjectId: string }): Promise<License>
   unbindLicense(params: {

@@ -212,7 +212,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   @Security('*', ['acl'])
   @Tags('vdis')
   @Response(notFoundResp.status, notFoundResp.description)
-  getVmSnapshotVdis(
+  async getVmSnapshotVdis(
     @Request() req: ExRequest,
     @Path() id: string,
     @Query() fields?: string,
@@ -220,9 +220,11 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): SendObjects<Partial<Unbrand<XoVdiSnapshot>>> {
+  ): Promise<SendObjects<Partial<Unbrand<XoVdiSnapshot>>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmSnapshot['id'], 'VM-snapshot')
-    return this.sendObjects(limitAndFilterArray(vdis, { filter }, this.restApi.resolver), req, {
+
+    const predicate = await this.restApi.applyUserFilter(vdis, filter)
+    return this.sendObjects(limitAndFilterArray(vdis, { filter: predicate }), req, {
       path: obj => obj.type.toLowerCase() + 's',
       limit,
       privilege: { action: 'read', resource: 'vdi' },

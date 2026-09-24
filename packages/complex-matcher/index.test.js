@@ -312,3 +312,50 @@ describe('resolve quantifiers', () => {
     )
   })
 })
+
+describe('resolve depth limit', () => {
+  // mirrors MAX_RESOLVE_DEPTH in index.js: update both together
+  const maxDepth = 5
+
+  // `a:[resolve]:b:[resolve]:…:tags:tag`
+  const nested = depth =>
+    Array.from({ length: depth }, (_, i) => `${String.fromCharCode(97 + i)}:[resolve]`).join(':') + ':tags:tag'
+
+  it('parses a filter nested up to the maximum depth', () => {
+    assert(parse(nested(maxDepth)) instanceof Property)
+  })
+
+  it('throws beyond the maximum depth', () => {
+    assert.throws(() => parse(nested(maxDepth + 1)), {
+      message: '[resolve] cannot be nested more than 5 levels',
+    })
+  })
+
+  it('counts nesting, not the number of [resolve]', () => {
+    const siblings = Array.from({ length: maxDepth + 1 }, (_, i) => `${String.fromCharCode(97 + i)}:[resolve]:tags:tag`)
+    assert.doesNotThrow(() => parse(siblings.join(' ')))
+  })
+
+  it('counts nesting through a quantifier', () => {
+    assert.throws(
+      () => parse('a:[resolve]:[every]:b:[resolve]:[some]:c:[resolve]:d:[resolve]:e:[resolve]:f:[resolve]:tags:tag'),
+      { message: '[resolve] cannot be nested more than 5 levels' }
+    )
+  })
+
+  it('throws if resolve does not follow a property', () => {
+    assert.throws(() => parse('[resolve]:tags:tag'), {
+      message: '[resolve] must follow a property',
+    })
+  })
+
+  it('throws if some/every does not follow a resolve', () => {
+    assert.throws(() => parse('a:[some]:tags:tag'), {
+      message: '[some]/[every] must follow a [resolve]',
+    })
+
+    assert.throws(() => parse('a:[every]:tags:tag'), {
+      message: '[some]/[every] must follow a [resolve]',
+    })
+  })
+})

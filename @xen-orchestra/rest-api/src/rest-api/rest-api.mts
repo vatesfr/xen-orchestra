@@ -1,10 +1,11 @@
 import { createLogger } from '@xen-orchestra/log'
-import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
-import type { XapiXoRecord, XoApp, XoRecord, XoUser } from '@vates/types'
-import * as CM from 'complex-matcher'
+import { invalidCredentials } from 'xo-common/api-errors.js'
+import type { XapiXoRecord, XoApp, XoUser, XoVmBackupJob } from '@vates/types'
 
 import type { Container } from 'inversify'
 import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import * as CM from 'complex-matcher'
+import { AnyPrivilege } from '@xen-orchestra/acl'
 
 const log = createLogger('xo:rest-api:error-handler')
 
@@ -29,6 +30,10 @@ export class RestApi {
     return this.#ioc
   }
 
+  get resolver(): XoApp['xapiObjectResolver'] {
+    return this.#xoApp.xapiObjectResolver
+  }
+
   authenticateUser(...args: Parameters<XoApp['authenticateUser']>) {
     return this.#xoApp.authenticateUser(...args)
   }
@@ -51,65 +56,32 @@ export class RestApi {
     return this.#xoApp.getObject(id, type)
   }
 
-  resolver = (id: string): object | undefined => {
-    try {
-      return this.#xoApp.getObject(id as XapiXoRecord['id'])
-    } catch {
-      return undefined
-    }
+  buildResolver(...args: Parameters<XoApp['buildResolver']>) {
+    return this.#xoApp.buildResolver(...args)
   }
 
-  async buildResolver(objects: object | object[], filterNode: CM.Node): Promise<(id: string) => object | undefined> {
-    let objectArray: object[]
-    if (!Array.isArray(objects)) {
-      objectArray = [objects]
-    } else {
-      objectArray = objects
-    }
-
-    const anyObjects: Map<string, object> = new Map()
-    const process = async (objectsToProcess: object[], node: CM.Node) => {
-      const fields = CM.getResolveFields(node)
-
-      for (const field of fields) {
-        const objectIds: XoRecord['id'][] = []
-        for (const objectToProcess of objectsToProcess) {
-          const ids = field.path.reduce((object, path) => object?.[path], objectToProcess)
-          if (ids !== undefined) {
-            for (const id of Array.isArray(ids) ? ids : [ids]) {
-              if (!anyObjects.has(id) && !objectIds.includes(id)) {
-                objectIds.push(id)
-              }
-            }
-          }
-        }
-
-        const fetchedObjects: object[] = []
-        for (const objectId of objectIds) {
-          let fetchedObject
-          try {
-            fetchedObject = await this.#xoApp.getAnyObject(objectId)
-          } catch (error) {
-            if (!noSuchObject.is(error)) {
-              throw error
-            }
-          }
-
-          if (fetchedObject !== undefined) {
-            anyObjects.set(objectId, fetchedObject)
-            fetchedObjects.push(fetchedObject)
-          }
-        }
-
-        if (fetchedObjects.length > 0) {
-          await process(fetchedObjects, field.resolveNode.child)
-        }
+  async buildPrivilegeResolver(objects: object[], userPrivileges: AnyPrivilege[]): Promise<CM.Resolver | undefined> {
+    const nodes: CM.Node[] = []
+    userPrivileges.forEach(userPrivilege => {
+      if (userPrivilege.selector) {
+        nodes.push(CM.parse(userPrivilege.selector))
       }
+    })
+
+    if (nodes.length === 0) {
+      return undefined
     }
 
-    await process(objectArray, filterNode)
+    return this.buildResolver(objects, new CM.And(nodes))
+  }
 
-    return (id: string) => anyObjects.get(id) ?? this.resolver(id)
+  async applyUserFilter<T>(array: T[], filter: string | undefined): Promise<((obj: T) => boolean) | undefined> {
+    if (filter !== undefined) {
+      const parsedFilter = safeParseComplexMatcher(filter)
+      return parsedFilter.createPredicate(await this.buildResolver(array, parsedFilter))
+    }
+
+    return undefined
   }
 
   getObjectsByType<T extends XapiXoRecord>(

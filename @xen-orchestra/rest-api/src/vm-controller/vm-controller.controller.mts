@@ -159,7 +159,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   @Security('*', ['acl'])
   @Tags('vdis')
   @Response(notFoundResp.status, notFoundResp.description)
-  getVmControllerVdis(
+  async getVmControllerVdis(
     @Request() req: ExRequest,
     @Path() id: string,
     @Query() fields?: string,
@@ -167,9 +167,11 @@ export class VmControllerController extends XapiXoController<XoVmController> {
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): SendObjects<Partial<Unbrand<XoVdi>>> {
+  ): Promise<SendObjects<Partial<Unbrand<XoVdi>>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmController['id'], 'VM-controller')
-    return this.sendObjects(limitAndFilterArray(vdis, { filter }, this.restApi.resolver), req, {
+
+    const predicate = await this.restApi.applyUserFilter(vdis, filter)
+    return this.sendObjects(limitAndFilterArray(vdis, { filter: predicate }), req, {
       path: obj => obj.type.toLowerCase() + 's',
       limit,
       privilege: { action: 'read', resource: 'vdi' },

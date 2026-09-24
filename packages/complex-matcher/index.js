@@ -14,6 +14,8 @@ const RAW_STRING_SYMBOLS = {
   $: true,
 }
 
+const MAX_RESOLVE_DEPTH = 5
+
 const isRawStringChar = c =>
   (c >= '0' && c <= '9') || c in RAW_STRING_SYMBOLS || !(c === c.toUpperCase() && c === c.toLowerCase())
 
@@ -616,7 +618,48 @@ const parser = P.grammar({
     ),
   ws: P.regex(/\s*/),
 }).default
-exports.parse = parser.parse.bind(parser)
+
+const _checkResolveConstraints = (node, parent) => {
+  let depth = 0
+
+  if (node instanceof Resolve && !(parent instanceof Property)) {
+    throw new Error(`[resolve] must follow a property`)
+  }
+
+  if (node instanceof Quantifier && !(parent instanceof Resolve)) {
+    throw new Error(`[some]/[every] must follow a [resolve]`)
+  }
+
+  if (node.children !== undefined) {
+    for (const child of node.children) {
+      const childDepth = _checkResolveConstraints(child, node)
+      if (childDepth > depth) {
+        depth = childDepth
+      }
+    }
+  } else if (node.child !== undefined) {
+    depth = _checkResolveConstraints(node.child, node)
+  }
+
+  if (node instanceof Resolve) {
+    depth += 1
+    if (depth > MAX_RESOLVE_DEPTH) {
+      throw new Error(`[resolve] cannot be nested more than ${MAX_RESOLVE_DEPTH} levels`)
+    }
+  }
+
+  return depth
+}
+
+const _parse = parser.parse.bind(parser)
+
+exports.parse = function parse(input) {
+  const node = _parse(input)
+
+  _checkResolveConstraints(node)
+
+  return node
+}
 
 // -------------------------------------------------------------------
 

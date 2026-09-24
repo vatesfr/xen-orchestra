@@ -5,6 +5,7 @@ import {
   XoMirrorBackupJob,
   AnyXoLog,
   XoBackupLog,
+  XoMessage,
 } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import { inject } from 'inversify'
@@ -38,7 +39,7 @@ import {
   Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { BASE_URL, limitAndFilterArray, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import { BASE_URL, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import type {
   UnbrandAnyXoBackupJob,
   UnbrandXoMetadataBackupJob,
@@ -59,6 +60,7 @@ import {
   vmBackupJobIds,
 } from '../open-api/oa-examples/backup-job.oa-example.mjs'
 import { BackupJobService } from './backup-job.service.mjs'
+import * as CM from 'complex-matcher'
 
 const log = createLogger('xo:rest-api:backupJob-controller')
 
@@ -218,7 +220,9 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Query() limit?: number
   ): SendObjects<Partial<UnbrandXoVmBackupJob>> {
     const vmBackupJobs = await this.restApi.xoApp.getAllJobs('backup')
-    return this.sendObjects(limitAndFilterArray(vmBackupJobs, { filter }, this.restApi.resolver), req, {
+
+    const predicate = await this.restApi.applyUserFilter(vmBackupJobs, filter)
+    return this.sendObjects(limitAndFilterArray(vmBackupJobs, { filter: predicate }), req, {
       path: 'backup-jobs',
       limit,
       privilege: { action: 'read', resource: 'backup-job' },
@@ -272,7 +276,9 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Query() limit?: number
   ): SendObjects<Partial<UnbrandXoMetadataBackupJob>> {
     const metadataBackupJobs = await this.restApi.xoApp.getAllJobs('metadataBackup')
-    return this.sendObjects(limitAndFilterArray(metadataBackupJobs, { filter }, this.restApi.resolver), req, {
+
+    const predicate = await this.restApi.applyUserFilter(metadataBackupJobs, filter)
+    return this.sendObjects(limitAndFilterArray(metadataBackupJobs, { filter: predicate }), req, {
       path: 'backup-jobs',
       limit,
       privilege: { action: 'read', resource: 'backup-job' },
@@ -316,7 +322,9 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Query() limit?: number
   ): SendObjects<Partial<UnbrandXoMirrorBackupJob>> {
     const mirrorBackupJobs = await this.restApi.xoApp.getAllJobs('mirrorBackup')
-    return this.sendObjects(limitAndFilterArray(mirrorBackupJobs, { filter }, this.restApi.resolver), req, {
+
+    const predicate = await this.restApi.applyUserFilter(mirrorBackupJobs, filter)
+    return this.sendObjects(limitAndFilterArray(mirrorBackupJobs, { filter: predicate }), req, {
       path: 'backup-jobs',
       limit,
       privilege: { action: 'read', resource: 'backup-job' },
@@ -359,18 +367,13 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoBackupLog>>> {
-    const userFilter =
-      filter === undefined ? () => true : safeParseComplexMatcher(filter).createPredicate(this.restApi.resolver)
+    const logs = (await this.restApi.xoApp.getBackupNgLogsSorted({
+      filter: (log: AnyXoLog) => this.#backupLogService.isBackupLog(log),
+    })) as XoBackupLog[]
 
-    const predicate = (log: AnyXoLog) => {
-      if (!this.#backupLogService.isBackupLog(log)) {
-        return false
-      }
+    const predicate = await this.restApi.applyUserFilter(logs, filter)
 
-      return userFilter(log)
-    }
-    const logs = (await this.restApi.xoApp.getBackupNgLogsSorted({ filter: predicate })) as XoBackupLog[]
-    return this.sendObjects(logs, req, {
+    return this.sendObjects(limitAndFilterArray(logs, { filter: predicate }), req, {
       path: 'backup-logs',
       limit,
       privilege: { action: 'read', resource: 'backup-log' },

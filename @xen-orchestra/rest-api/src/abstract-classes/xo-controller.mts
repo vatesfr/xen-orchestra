@@ -3,7 +3,7 @@ import type { NonXapiXoRecord } from '@vates/types/xo'
 import { BaseController, type BaseControllerType } from './base-controller.mjs'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { limitAndFilterArray, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 
 export abstract class XoController<T extends NonXapiXoRecord> extends BaseController<T, false> {
   abstract getAllCollectionObjects(opts: Record<string, unknown>): Promise<T[]>
@@ -18,14 +18,9 @@ export abstract class XoController<T extends NonXapiXoRecord> extends BaseContro
   ): Promise<Record<T['id'], T>> {
     let objects = await this.getAllCollectionObjects(opts)
 
-    let resolver: (id: string) => object | undefined
-    if (opts.filter) {
-      resolver = await this.restApi.buildResolver(objects, safeParseComplexMatcher(opts.filter))
-    } else {
-      resolver = this.restApi.resolver
-    }
+    const predicate = await this.restApi.applyUserFilter(objects, opts.filter)
 
-    objects = limitAndFilterArray(objects, opts, resolver)
+    objects = limitAndFilterArray(objects, { filter: predicate, limit: opts.limit })
 
     const objectById = {} as Record<T['id'], T>
 
