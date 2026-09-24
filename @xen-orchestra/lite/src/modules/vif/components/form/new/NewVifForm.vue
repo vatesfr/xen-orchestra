@@ -28,6 +28,9 @@
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import VifAllowedIpsTextarea from '@/modules/vif/components/form/new/inputs/VifAllowedIpsTextarea.vue'
 import VifMacInput from '@/modules/vif/components/form/new/inputs/VifMacInput.vue'
+import VifNetworkSelect from '@/modules/vif/components/form/new/inputs/VifNetworkSelect.vue'
+import VifRateLimitInput from '@/modules/vif/components/form/new/inputs/VifRateLimitInput.vue'
+import VifTxChecksummingCheckbox from '@/modules/vif/components/form/new/inputs/VifTxChecksummingCheckbox.vue'
 import NewVifButtonsSection from '@/modules/vif/components/form/new/NewVifButtonsSection.vue'
 import { useNewVifForm } from '@/modules/vif/form/new/use-new-vif-form.ts'
 import type { NewVifPayload } from '@/modules/vif/jobs/vif-create.job.ts'
@@ -35,9 +38,6 @@ import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import type { RouteLocationRaw } from 'vue-router'
-import VifNetworkSelect from './inputs/VifNetworkSelect.vue'
-import VifRateLimitInput from './inputs/VifRateLimitInput.vue'
-import VifTxChecksummingCheckbox from './inputs/VifTxChecksummingCheckbox.vue'
 
 const { vmRef } = defineProps<{
   vmRef: XenApiVm['$ref']
