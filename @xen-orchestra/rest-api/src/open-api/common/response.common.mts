@@ -81,3 +81,18 @@ export const incorrectStateResp = {
   status: 409,
   description: 'Incorrect state',
 } as const
+
+export const badGatewayResp = {
+  status: 502,
+  description: 'Bad gateway, a remote system (e.g. a Docker host) failed or cannot be reached',
+} as const
+
+export const serviceUnavailableResp = {
+  status: 503,
+  description: 'Service unavailable, retry later',
+} as const
+
+export const gatewayTimeoutResp = {
+  status: 504,
+  description: 'Gateway timeout, a remote system (e.g. a Docker host) did not answer in time',
+} as const
