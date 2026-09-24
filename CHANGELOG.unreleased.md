@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [i18n] Update Chinese (Simplified Han script), Czech, Dutch, Finnish, Italian, Norwegian, Persian, Portuguese, Russian, Slovak, Spanish and Turkish translations (PR [#10396](https://github.com/vatesfr/xen-orchestra/pull/10396))
+- [RPU] Keeping track of an interrupted rolling pool update, refusing a new one until it is closed, and closing it from the pool's Patches tab only apply to XCP-ng and XenServer 8.4+ pools. Older XenServer and Citrix Hypervisor pools are updated as before (PR [#10447](https://github.com/vatesfr/xen-orchestra/pull/10447))
 
 ### Bug fixes
 
@@ -37,11 +38,14 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/backups patch
+- @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - vhd-lib patch
-- xo-server patch
+- xo-server minor
 - xo-server-perf-alert patch
+- xo-web minor
 
 <!--packages-end-->
