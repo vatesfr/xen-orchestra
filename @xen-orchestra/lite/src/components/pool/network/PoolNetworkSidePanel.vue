@@ -1,6 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!network" class="pool-network-side-panel" @close="emit('close')">
     <template v-if="network" #actions>
+      <VtsDeleteButton v-if="network.PIFs.length === 0" :busy="isDeletingNetworks" @click="deleteNetworks()" />
       <MenuList placement="bottom-end">
         <template #trigger="{ open, isOpen }">
           <UiButtonIcon
@@ -15,7 +16,6 @@
         <MenuItem accent="neutral" icon="action:copy" :disabled="!isClipboardSupported" @click="copy()">
           {{ t('action:copy-info-json') }}
         </MenuItem>
-        <NetworkDeleteMenuItem v-if="pifsCount === 0" :network />
       </MenuList>
     </template>
     <template v-if="network" #default>
@@ -97,11 +97,12 @@
 <script setup lang="ts">
 import PifRow from '@/components/pif/PifRow.vue'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
-import NetworkDeleteMenuItem from '@/modules/network/components/actions/delete/NetworkDeleteMenuItem.vue'
+import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
@@ -124,6 +125,8 @@ const emit = defineEmits<{
 const { getPifsByNetworkRef } = usePifStore().subscribe()
 
 const { t } = useI18n()
+
+const { deleteNetworks, isDeletingNetworks } = useNetworkDelete(() => (network !== undefined ? [network] : []))
 
 const pifs = computed(() => (network !== undefined ? getPifsByNetworkRef(network.$ref) : []))
 

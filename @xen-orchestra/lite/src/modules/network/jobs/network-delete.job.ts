@@ -1,5 +1,4 @@
 import { networksArg } from '@/modules/network/jobs/network-delete-args.ts'
-import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import { useVifStore } from '@/stores/xen-api/vif.store.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
@@ -9,7 +8,6 @@ export const useNetworkDeleteJob = defineJob('network.delete', [networksArg], ()
   const xapi = useXenApiStore().getXapi()
   const { t } = useI18n()
   const { records: vifs } = useVifStore().subscribe()
-  const { getPifsByNetworkRef } = usePifStore().subscribe()
 
   return {
     run: networks => xapi.network.delete(networks.map(network => network.$ref)),
@@ -22,13 +20,10 @@ export const useNetworkDeleteJob = defineJob('network.delete', [networksArg], ()
         throw new JobRunningError(t('job:delete:in-progress'))
       }
 
-      const nPhysicalPifConnected = networks.reduce(
-        (count, network) => count + getPifsByNetworkRef(network.$ref).filter(pif => pif.physical).length,
-        0
-      )
+      const nPif = networks.reduce((count, network) => count + network.PIFs.length, 0)
 
-      if (nPhysicalPifConnected > 0) {
-        throw new JobError(t('job:network-delete:has-n-physical-pif-connected', { n: nPhysicalPifConnected }))
+      if (nPif > 0) {
+        throw new JobError(t('job:network-delete:has-n-pif-connected', { n: nPif }))
       }
 
       const networkRefs = networks.map(network => network.$ref)

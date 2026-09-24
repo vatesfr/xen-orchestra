@@ -1,12 +1,5 @@
 <template>
-  <MenuItem
-    v-tooltip="!canDeleteNetworks && deleteNetworksErrorMessage"
-    icon="action:delete"
-    :disabled="!canDeleteNetworks"
-    :busy="isDeletingNetworks"
-    accent="danger"
-    @click="deleteNetworks()"
-  >
+  <MenuItem icon="action:delete" :busy="isDeletingNetworks" accent="danger" @click="deleteNetworks()">
     {{ t('action:delete') }}
   </MenuItem>
 </template>
@@ -15,7 +8,6 @@
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
 import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const { network } = defineProps<{
@@ -24,8 +16,5 @@ const { network } = defineProps<{
 
 const { t } = useI18n()
 
-const { deleteNetworks, canDeleteNetworks, isDeletingNetworks, deleteNetworksErrorMessage } = useNetworkDelete(() => [
-  network,
-])
+const { deleteNetworks, isDeletingNetworks } = useNetworkDelete(() => [network])
 </script>
-

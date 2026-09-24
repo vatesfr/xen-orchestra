@@ -1,5 +1,5 @@
 <template>
-  <UiModal accent="warning" icon="status:warning-picto" @confirm="emit('confirm')" @dismiss="emit('cancel')">
+  <UiModal :accent :icon @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       {{ t('confirm-delete', { name: subject }) }}
     </template>
@@ -21,12 +21,22 @@
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiModal from '@core/components/ui/modal/UiModal.vue'
+import type { IconName } from '@core/icons'
+import { useMapper } from '@core/packages/mapper'
 import { useI18n } from 'vue-i18n'
 
-const { subject, description, confirmLabel } = defineProps<{
+type DeleteModalAccent = 'warning' | 'danger'
+
+const {
+  subject,
+  description,
+  confirmLabel,
+  accent = 'warning',
+} = defineProps<{
   subject: string
   confirmLabel: string
   description?: string
+  accent?: DeleteModalAccent
 }>()
 
 const emit = defineEmits<{
@@ -35,4 +45,13 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+const icon = useMapper<DeleteModalAccent, IconName>(
+  () => accent,
+  {
+    warning: 'status:warning-picto',
+    danger: 'status:danger-picto',
+  },
+  'warning'
+)
 </script>
