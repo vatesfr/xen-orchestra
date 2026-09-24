@@ -130,28 +130,82 @@ describe('DockerContainerController', () => {
       assert.deepEqual(calls, [])
     })
 
-    it('lists the designated engines, applies the whole filter, reports the failed engines', async () => {
+    const makeReq = (query: Record<string, string>, headers: Record<string, string> = {}) =>
+      ({
+        query,
+        path: '/rest/v0/docker-containers',
+        res: { setHeader: (name: string, value: string) => (headers[name] = value) },
+      }) as never
+
+    it('a plain array; applies the whole filter; failed engines in the x-docker-errors header (fixes)', async () => {
       const { calls, controller } = setup()
       const filter = `$pool:${POOL} state:running`
-      const req = { query: { fields: 'name,state', filter }, path: '/rest/v0/docker-containers' } as never
-      assert.deepEqual(await controller.getDockerContainers(req, filter), {
-        containers: [{ name: 'web', state: 'running', href: `/rest/v0/docker-containers/engine-1_${DOCKER_ID}` }],
-        errors: [{ $engine: 'engine-2', $VM: VM_2, code: 'SSH_AUTH_FAILED', message: 'SSH authentication failed' }],
-        asOf: 42,
-      })
+      const headers: Record<string, string> = {}
+      const req = makeReq({ fields: 'name,state', filter }, headers)
+      assert.deepEqual(await controller.getDockerContainers(req, filter), [
+        { name: 'web', state: 'running', href: `/rest/v0/docker-containers/engine-1_${DOCKER_ID}` },
+      ])
+      assert.deepEqual(JSON.parse(headers['x-docker-errors']), [{ engine: 'engine-2', code: 'SSH_AUTH_FAILED' }])
       assert.deepEqual(calls, [
-        { method: 'getDockerContainers', args: [{ engines: ['engine-1', 'engine-2'], all: true, stats: false }] },
+        {
+          method: 'getDockerContainers',
+          args: [{ engines: ['engine-1', 'engine-2'], all: true, stats: false, forceRefresh: false }],
+        },
       ])
     })
 
-    it('a scope designating no engines is valid', async () => {
+    it('hrefs by default, limit, force_refresh (fixes)', async () => {
       const { calls, controller } = setup()
-      const req = { query: {}, path: '/rest/v0/docker-containers' } as never
-      await controller.getDockerContainers(req, '$VM:c7b3b4bc-0000-4000-8000-00000000dead')
-      assert.deepEqual(calls, [{ method: 'getDockerContainers', args: [{ engines: [], all: true, stats: false }] }])
+      const filter = `$VM:${VM_1}`
+      const req = makeReq({ filter })
+      assert.deepEqual(await controller.getDockerContainers(req, filter, undefined, undefined, undefined, 1), [
+        `/rest/v0/docker-containers/engine-1_${DOCKER_ID}`,
+      ])
+      await controller.getDockerContainers(
+        req,
+        filter,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        true
+      )
+      assert.equal((calls[1].args[0] as { forceRefresh: boolean }).forceRefresh, true)
     })
 
-    it('ndjson: the containers only', async () => {
+    it('no x-docker-errors header without failures; a scope designating no engines is valid', async () => {
+      const { calls, controller } = setup()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(controller as any).restApi.xoApp.getDockerContainers = async (opts: unknown) => {
+        calls.push({ method: 'getDockerContainers', args: [opts] })
+        return { containers: [], errors: [], asOf: 42 }
+      }
+      const headers: Record<string, string> = {}
+      const req = makeReq({}, headers)
+      assert.deepEqual(await controller.getDockerContainers(req, '$VM:c7b3b4bc-0000-4000-8000-00000000dead'), [])
+      assert.deepEqual(headers, {})
+      assert.deepEqual(calls, [
+        { method: 'getDockerContainers', args: [{ engines: [], all: true, stats: false, forceRefresh: false }] },
+      ])
+    })
+
+    it('markdown: a table, the header is still set', async () => {
+      const { controller } = setup()
+      const headers: Record<string, string> = {}
+      const req = makeReq({ markdown: 'true', fields: 'name,state' }, headers)
+      const stream = (await controller.getDockerContainers(req, `$VM:${VM_1}`, 'name,state')) as AsyncIterable<unknown>
+      let text = ''
+      for await (const chunk of stream) {
+        text += String(chunk)
+      }
+      assert.match(text, /\| web +\| running +\|/)
+      assert.equal(headers['Content-Type'], 'text/markdown; charset=utf-8')
+      assert.ok('x-docker-errors' in headers)
+    })
+
+    it('ndjson: the containers, the header is still set', async () => {
       const { controller } = setup()
       const filter = `$VM:${VM_1}`
       const headers: Record<string, string> = {}
@@ -166,6 +220,7 @@ describe('DockerContainerController', () => {
         chunks.push(String(chunk))
       }
       assert.equal(headers['Content-Type'], 'application/x-ndjson')
+      assert.ok('x-docker-errors' in headers)
       assert.deepEqual(
         chunks
           .join('')

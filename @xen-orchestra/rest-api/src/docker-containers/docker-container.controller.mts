@@ -16,7 +16,7 @@ import {
 import type { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import type { XoDockerContainer, XoDockerContainerAction, XoDockerContainerListError, XoDockerLogs } from '@vates/types'
+import type { XoDockerContainer, XoDockerContainerAction, XoDockerLogs } from '@vates/types'
 
 import { DockerContainerService } from './docker-container.service.mjs'
 import { DockerEngineService } from '../docker-engines/docker-engine.service.mjs'
@@ -38,26 +38,19 @@ import {
   dockerContainer,
   dockerContainerIds,
   dockerContainerLogs,
-  dockerContainersWithErrors,
   partialDockerContainers,
 } from '../open-api/oa-examples/docker-container.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
-import type { NdjsonStream, WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 
 /**
- * JSON response of the scoped listing
+ * Header of the scoped listing which reports the engines which failed (JSON
+ * array of `{ engine, code }`), only present when there are some
  */
-export type DockerContainerListResponse = {
-  /** hrefs, or objects with `fields` */
-  containers: string[] | WithHref<Partial<Unbrand<XoDockerContainer>>>[]
-  /** engines which failed: their containers are missing */
-  errors: XoDockerContainerListError[]
-  /** ms since the epoch of the oldest fetch */
-  asOf: number
-}
+export const DOCKER_ERRORS_HEADER = 'x-docker-errors'
 
 // v1: no `acl` middleware, so every route is admin-only (see the README's
 // ACLs section). The `// ACLs v2:` comments give the middleware to add with the
@@ -171,10 +164,15 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * engines (default 10), else 422. The whole filter is then applied to the
    * containers.
    *
-   * Connects to the engines (results cached `docker.cacheExpiresIn`). An engine
-   * which fails does not fail the request: its containers are missing, and the
-   * JSON response lists it in `errors` (not reported with `ndjson` or
-   * `markdown`, which only stream the containers).
+   * Connects to the engines (results cached `docker.cacheExpiresIn`,
+   * `force_refresh=true` bypasses the cache). The response is a plain array,
+   * like every collection (`fields`, `limit`, `ndjson` and `markdown` behave
+   * as usual). An engine which fails does not fail the request: its
+   * containers are missing, and it is reported in the `x-docker-errors`
+   * response header, a JSON array of `{ engine, code }` (e.g.
+   * `[{"engine":"39a3cb1f-…","code":"SSH_AUTH_FAILED"}]`), only present when
+   * some engines failed. The details are in `GET /docker-engines/{id}/info`
+   * and in the engine's `connectionStatus` and `error`.
    *
    * Required privilege:
    * - admin (v2: resource: docker-container, action: read, per container)
@@ -183,11 +181,11 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * @example filter "$engine:39a3cb1f-02ef-48ad-bda6-a3baf33d458c state:running"
    * @example limit 42
    * @example all true
+   * @example force_refresh false
    */
   // ACLs v2: @Security('*', ['acl']) + sendObjects(…, { privilege: { action: 'read', resource: 'docker-container' } })
   @Example(dockerContainerIds)
   @Example(partialDockerContainers)
-  @Example(dockerContainersWithErrors)
   @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Response(invalidParameters.status, 'The filter does not designate engines, or too many')
@@ -202,16 +200,25 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
     /** include stopped containers, default true */
     @Query() all?: boolean,
     /** not supported yet (422) */
-    @Query() stats?: boolean
-  ): Promise<DockerContainerListResponse | NdjsonStream | string> {
+    @Query() stats?: boolean,
+    /** bypass the cache of the container lists */
+    @Query() force_refresh?: boolean
+  ): SendObjects<Partial<Unbrand<XoDockerContainer>>> {
     await this.#dockerEngineService.assertDockerFeature()
-    const { containers, errors, asOf } = await this.#dockerContainerService.list({ filter, all, stats })
-    const result = await this.sendObjects(containers, req, { limit })
-    if (typeof result === 'string' || !Array.isArray(result)) {
-      // ndjson or markdown
-      return result
+    const { containers, errors } = await this.#dockerContainerService.list({
+      filter,
+      all,
+      stats,
+      forceRefresh: force_refresh,
+    })
+    if (errors.length !== 0) {
+      // set on the response itself: also sent with ndjson and markdown
+      req.res?.setHeader(
+        DOCKER_ERRORS_HEADER,
+        JSON.stringify(errors.map(({ $engine, code }) => ({ engine: $engine, code })))
+      )
     }
-    return { containers: result as DockerContainerListResponse['containers'], errors, asOf }
+    return this.sendObjects(containers, req, { limit })
   }
 
   /**
