@@ -1,39 +1,39 @@
 // Real payloads, captured from xo-server run from the sources against a rootless
 // dockerd 29.8.1 reached through OpenSSH 10.0 (phase 3 end-to-end run of the
-// Docker integration). Lists are shortened.
+// Docker integration, rerun after the review fixes). Lists are shortened.
 
 export const dockerContainerIds = [
-  '/rest/v0/docker-containers/39a3cb1f-02ef-48ad-bda6-a3baf33d458c_40ce479c34637ad31b8ecd460d7d14aa0e2ed90dd73187afa6b284170418f1d5',
-  '/rest/v0/docker-containers/39a3cb1f-02ef-48ad-bda6-a3baf33d458c_e35120a9e4facc5f42d55f464be996b1f47cdaa7c433d6a045857aab28d45c4d',
+  '/rest/v0/docker-containers/8d834412-eb40-4328-a815-3fcc0989bd07_40ce479c34637ad31b8ecd460d7d14aa0e2ed90dd73187afa6b284170418f1d5',
+  '/rest/v0/docker-containers/8d834412-eb40-4328-a815-3fcc0989bd07_e35120a9e4facc5f42d55f464be996b1f47cdaa7c433d6a045857aab28d45c4d',
 ]
 
 export const partialDockerContainers = [
   {
     name: 'xo-redis',
     state: 'running',
-    status: 'Up 44 minutes',
+    status: 'Up 3 hours',
     image: 'redis:alpine',
-    href: '/rest/v0/docker-containers/39a3cb1f-02ef-48ad-bda6-a3baf33d458c_40ce479c34637ad31b8ecd460d7d14aa0e2ed90dd73187afa6b284170418f1d5',
+    href: '/rest/v0/docker-containers/8d834412-eb40-4328-a815-3fcc0989bd07_40ce479c34637ad31b8ecd460d7d14aa0e2ed90dd73187afa6b284170418f1d5',
   },
   {
     name: 'demo-web-1',
     state: 'running',
-    status: 'Up 2 hours',
+    status: 'Up 4 hours',
     image: 'nginx:alpine',
-    href: '/rest/v0/docker-containers/39a3cb1f-02ef-48ad-bda6-a3baf33d458c_e35120a9e4facc5f42d55f464be996b1f47cdaa7c433d6a045857aab28d45c4d',
+    href: '/rest/v0/docker-containers/8d834412-eb40-4328-a815-3fcc0989bd07_e35120a9e4facc5f42d55f464be996b1f47cdaa7c433d6a045857aab28d45c4d',
   },
   {
     name: 'demo-cache-1',
     state: 'running',
-    status: 'Up 2 hours (healthy)',
+    status: 'Up 4 hours (healthy)',
     image: 'redis:alpine',
-    href: '/rest/v0/docker-containers/39a3cb1f-02ef-48ad-bda6-a3baf33d458c_21c685423c29ddad1a7ba038fdc57f89f12a922310f65cd0f4fe2f2b245db8fa',
+    href: '/rest/v0/docker-containers/8d834412-eb40-4328-a815-3fcc0989bd07_21c685423c29ddad1a7ba038fdc57f89f12a922310f65cd0f4fe2f2b245db8fa',
   },
 ]
 
 export const dockerContainer = {
-  id: '39a3cb1f-02ef-48ad-bda6-a3baf33d458c_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e',
-  $engine: '39a3cb1f-02ef-48ad-bda6-a3baf33d458c',
+  id: '8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e',
+  $engine: '8d834412-eb40-4328-a815-3fcc0989bd07',
   dockerId: '1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e',
   name: 'xo-nginx',
   image: 'nginx:alpine',
@@ -41,7 +41,7 @@ export const dockerContainer = {
   command: "/docker-entrypoint.sh nginx -g 'daemon off;'",
   createdAt: 1790269461978,
   state: 'running',
-  status: 'Up About a minute',
+  status: 'Up 2 hours',
   ports: [
     {
       privatePort: 80,
@@ -61,8 +61,8 @@ export const dockerContainer = {
     },
   ],
   mounts: [],
-  startedAt: 1790276921786,
-  finishedAt: 1790276921040,
+  startedAt: 1790277033015,
+  finishedAt: 1790277031960,
   oomKilled: false,
   restartPolicy: {
     name: 'no',
@@ -78,31 +78,31 @@ export const dockerContainerLogs = {
   entries: [
     {
       stream: 'stderr',
-      timestamp: '2026-09-24T19:08:42.149710889Z',
-      message: '2026/09/24 19:08:42 [notice] 1#1: start worker process 25',
+      timestamp: '2026-09-24T19:10:33.469963395Z',
+      message: '2026/09/24 19:10:33 [notice] 1#1: start worker process 25',
     },
     {
       stream: 'stderr',
-      timestamp: '2026-09-24T19:08:42.149716587Z',
-      message: '2026/09/24 19:08:42 [notice] 1#1: start worker process 26',
+      timestamp: '2026-09-24T19:10:33.471748246Z',
+      message: '2026/09/24 19:10:33 [notice] 1#1: start worker process 26',
     },
     {
       stream: 'stderr',
-      timestamp: '2026-09-24T19:08:42.149721440Z',
-      message: '2026/09/24 19:08:42 [notice] 1#1: start worker process 27',
+      timestamp: '2026-09-24T19:10:33.471765867Z',
+      message: '2026/09/24 19:10:33 [notice] 1#1: start worker process 27',
     },
     {
       stream: 'stdout',
-      timestamp: '2026-09-24T19:08:44.169435284Z',
-      message: '172.17.0.1 - - [24/Sep/2026:19:08:44 +0000] "GET / HTTP/1.1" 200 896 "-" "curl/8.14.1" "-"',
+      timestamp: '2026-09-24T19:10:35.422548641Z',
+      message: '172.17.0.1 - - [24/Sep/2026:19:10:35 +0000] "GET / HTTP/1.1" 200 896 "-" "curl/8.14.1" "-"',
     },
     {
       stream: 'stdout',
-      timestamp: '2026-09-24T19:10:31.351689345Z',
-      message: '172.17.0.1 - - [24/Sep/2026:19:10:31 +0000] "GET / HTTP/1.1" 200 896 "-" "curl/8.14.1" "-"',
+      timestamp: '2026-09-24T21:29:31.366260426Z',
+      message: '172.17.0.1 - - [24/Sep/2026:21:29:31 +0000] "GET / HTTP/1.1" 200 896 "-" "curl/8.14.1" "-"',
     },
   ],
   truncated: false,
   timedOut: false,
-  asOf: 1790277031383,
+  asOf: 1790285371392,
 }

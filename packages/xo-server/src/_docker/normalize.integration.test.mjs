@@ -99,7 +99,8 @@ describe('logs and stats (real SSH + dockerd)', { skip }, () => {
     assert.ok(entries.length > 5)
     for (const { stream, timestamp, message } of entries) {
       assert.ok(stream === 'stdout' || stream === 'stderr')
-      assertTimestamp(timestamp, container.startedAt - 1e3)
+      // since its creation: it may have been restarted (e.g. by the REST proof)
+      assertTimestamp(timestamp, container.createdAt - 1e3)
       assert.equal(typeof message, 'string')
       assert.ok(!message.includes('\n'))
     }
