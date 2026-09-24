@@ -18,6 +18,7 @@ import { BackupArchiveService } from '../backup-archives/backup-archive.service.
 import { SrService } from '../srs/sr.service.mjs'
 import { LicenseService } from '../licenses/license.service.mjs'
 import { BackupRepositoryService } from '../backup-repositories/backup-repository.service.mjs'
+import { DockerContainerService } from '../docker-containers/docker-container.service.mjs'
 import { DockerEngineService } from '../docker-engines/docker-engine.service.mjs'
 
 const iocContainer = new Container()
@@ -152,6 +153,14 @@ export function setupContainer(xoApp: XoApp) {
     .toDynamicValue(ctx => {
       const restApi = ctx.container.get(RestApi)
       return new DockerEngineService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(DockerContainerService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new DockerContainerService(restApi)
     })
     .inSingletonScope()
 }
