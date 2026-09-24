@@ -16,6 +16,7 @@ export type NonXapiListenerType =
   | 'backup-repository'
   | 'backup-job'
   | 'schedule'
+  | 'authentication_token'
 
 export type XoListenerType = XapiListenerType | NonXapiListenerType
 
