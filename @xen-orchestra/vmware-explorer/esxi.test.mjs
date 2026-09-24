@@ -4,6 +4,7 @@ import { once } from 'node:events'
 
 import { connectedEsxi, DATACENTERS, FakeVimClient, moRef, page, response } from './esxi.fixtures.mjs'
 import Esxi from './esxi.mjs'
+import { VECTURA_BIN } from './_vectura.mjs'
 
 describe('search', function () {
   it('destroys the container view it created', async function () {
@@ -1141,7 +1142,7 @@ describe('getNbdServer', function () {
 
     const { args, command, exportname } = await esxi.getNbdServer('1', '[ds main] vm/vm.vmdk')
 
-    assert.equal(command, 'vectura')
+    assert.equal(command, VECTURA_BIN)
     assert.deepEqual(args, [
       'serve',
       '--host',

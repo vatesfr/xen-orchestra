@@ -1,4 +1,4 @@
-# The toolchain CI, scripts/build-deb.sh and a fresh clone use, through
+# The toolchain CI, scripts/build.sh and a fresh clone use, through
 # rustup. An exact version rather than "stable" because `cargo clippy -- -D
 # warnings` would turn every lint a newer Clippy ships into a red gate on a
 # pull request that touched nothing.

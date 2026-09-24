@@ -34,7 +34,7 @@ const IGNORED_PACKAGES = new Set([
 ])
 
 // vectura is a Rust crate, released on its own: @xen-orchestra/vmware-explorer
-// bundles its Debian package and `gen-deps-list.js` releases it after vectura
+// bundles its binary and `gen-deps-list.js` releases it after vectura
 const VECTURA_DIR = '@xen-orchestra/vmware-explorer/vectura/'
 
 // files which don't change what is shipped to users: a package whose changes

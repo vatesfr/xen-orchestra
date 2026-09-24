@@ -34,9 +34,9 @@ jobs:
       - name: Hold the coverage floor
         run: cargo test --locked --test coverage -- --ignored
 
-  # builds the Debian package as a release does, then checks it and the one in
-  # git, which users install
-  deb:
+  # builds the binary as a release does, then checks it and the one in git,
+  # which xo-server runs
+  binary:
     runs-on: ubuntu-latest
     steps:
       # https://github.com/actions/checkout
@@ -50,8 +50,8 @@ jobs:
       # https://github.com/taiki-e/install-action
       - uses: taiki-e/install-action@v2
         with:
-          tool: cargo-zigbuild@0.23.4,cargo-deb@3.7.0
+          tool: cargo-zigbuild@0.23.4
 
-      - run: scripts/build-deb.sh "$RUNNER_TEMP/deb"
-      - run: sudo scripts/check-deb.sh "$RUNNER_TEMP"/deb/vectura_*.deb
-      - run: sudo scripts/check-deb.sh vectura_*.deb
+      - run: scripts/build.sh "$RUNNER_TEMP/build"
+      - run: scripts/check-binary.sh "$RUNNER_TEMP/build/vectura"
+      - run: scripts/check-binary.sh vectura

@@ -11,15 +11,6 @@ license = "AGPL-3.0-or-later"
 publish = false
 # No `rust-version`: the toolchain pin lives in rust-toolchain.toml alone.
 
-[package.metadata.deb]
-# Read by cargo-deb (scripts/build-deb.sh) with the fields above. The
-# binary lands in /usr/bin, and the runtime dependencies are computed from
-# the linked libraries.
-maintainer = "Mathieu Piton <mathieu.piton@vates.tech>"
-copyright = "2026 Vates"
-section = "utils"
-priority = "optional"
-
 [dependencies]
 aws-lc-rs = "1.18.1"
 clap = { version = "4.6.6", features = ["derive"] }
@@ -33,6 +24,10 @@ thiserror = "2.0.20"
 [dev-dependencies]
 rcgen = { version = "0.14.10", default-features = false, features = ["aws_lc_rs"] }
 serde_json = "1.0.151"
+
+[profile.release]
+# The binary is committed and shipped in the npm package: no symbols.
+strip = true
 
 [lints.rust]
 # The whole crate is safe Rust. `forbid` cannot be overridden by an attribute

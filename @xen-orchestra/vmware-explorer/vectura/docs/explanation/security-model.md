@@ -76,7 +76,7 @@ ticket are still protected under `nfc`, the disk is not.
   dump or kept in a test fixture. The types that hold them print a
   placeholder, and a test checks that they do. The transcript shows the
   ticket as `<ticket>`.
-- The `.deb` and the binary carry no credential and no configuration.
+- The binary carries no credential and no configuration.
 
 A transcript or a bug report can therefore be shared as it is.
 

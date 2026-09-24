@@ -90,39 +90,20 @@ Performance gains can be significant, though results depend on the environment:
 
 ### Update Xen Orchestra
 
-Make sure your Xen Orchestra instance is up to date. The import page includes an automatic check that verifies that `vectura` is installed and matches the version shipped with your Xen Orchestra. Errors must be resolved before the migration can start.
+Make sure your Xen Orchestra instance is up to date. The import page includes an automatic check that verifies that `vectura`, shipped with your Xen Orchestra, runs on this system. Errors must be resolved before the migration can start.
 
 <UiDetail src="/img/xo5/v2v-prerequisite-check.png" alt="The prerequisite check on the import page, showing the status of vectura" width={480} />
 
 ### Dependencies
 
 The only dependency is `vectura`, a single binary that reads VMware disks over the NFC protocol. It
-is shipped with Xen Orchestra as a Debian package, so there is nothing to download from VMware or
-Broadcom, and nothing to compile.
+is shipped with Xen Orchestra and runs from there: there is nothing to install, nothing to download
+from VMware or Broadcom, and nothing to compile. It needs a Linux x86-64 system with glibc 2.34 or
+later, such as Debian 12 or Ubuntu 22.04.
 
-#### Installing `vectura`
+Go to the **Import → VM → From VMware** section. Once the check passes, a **transfer form** appears:
 
-:::warning
-The one-click install runs `dpkg` and therefore only works on a Debian based system, as root. On any
-other system, install the `vectura_*.deb` found in the `@xen-orchestra/vmware-explorer` module of
-your Xen Orchestra installation manually.
-:::
-
-1. Go to the **Import → VM → From VMware** section.
-2. Click the button called **install vectura (debian based system)**.
-
-   This installs the package shipped with your Xen Orchestra: the version installed is always the
-   one this release was tested against. A previous version, if any, is removed first.
-
-3. Keep an eye on the current page to make sure the install goes as planned. The **Tasks** screen
-   also shows the install task, with its name, start date, start time and status indicator.
-
-4. Once the installation finishes, the check runs again automatically and tells you whether
-   everything completed successfully.
-
-   The installation should take just a few seconds. Once it is done, a **transfer form** will appear:
-
-   <UiDetail src="/img/xo5/v2v-transfer-form.png" alt="The transfer form used to connect to VMware and import a VM into Xen Orchestra" width={620} />
+<UiDetail src="/img/xo5/v2v-transfer-form.png" alt="The transfer form used to connect to VMware and import a VM into Xen Orchestra" width={620} />
 
 :::warning
 Filling in this form and clicking the **Connect** button will start the VM import. Make sure your VMware environment is ready first!
@@ -138,7 +119,7 @@ Before starting the migration, make sure your VMware environment meets the follo
 
 #### Network
 
-XO must be able to connect to the ESXi host through the port running the web UI (default port: 443) and the NFC data port (default port: 902). At the time of writing, there is no way to select one network or another, so if possible, keep a single network path from XO to VMware.
+XO must be able to connect to the ESXi host, or to the vCenter, through the port running the web UI (default port: 443), and to the ESXi host holding the VM through the NFC data port (default port: 902), even when going through a vCenter. At the time of writing, there is no way to select one network or another, so if possible, keep a single network path from XO to VMware.
 
 #### VMware disk support
 
@@ -273,7 +254,7 @@ If you encounter problems during migration, try these steps to diagnose and reso
   Look for disk access errors in the VMware logs. These may point to issues with the source storage or VM configuration.
 
 - **Update software versions**\
-  Ensure the installed `vectura` matches the one shipped with your Xen Orchestra. The [prerequisite check](#update-xen-orchestra) on the import page flags a mismatch, and the install button reinstalls the bundled version.
+  Keep your Xen Orchestra up to date: `vectura` ships with it. The [prerequisite check](#update-xen-orchestra) on the import page tells whether it runs on this system.
 
 - **Remove active snapshots**\
   Make sure no active snapshots remain on the source VM. Snapshots can disrupt migration consistency.

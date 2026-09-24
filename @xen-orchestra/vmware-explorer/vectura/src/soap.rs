@@ -18,12 +18,6 @@ use rustls::Stream;
 use crate::tls;
 use crate::transcript::Transcript;
 
-/// The `apiType` an ESXi host reports in its service content.
-///
-/// A vCenter server reports `VirtualCenter` instead, and its NFC service does
-/// not hand out tickets for the host's disks, so it is refused before login.
-const HOST_AGENT: &str = "HostAgent";
-
 /// The managed object the service content is retrieved from.
 const SERVICE_INSTANCE: &str = "ServiceInstance";
 
@@ -76,14 +70,6 @@ pub enum Error {
         /// What was expected of it.
         reason: String,
     },
-    /// The management port belongs to a vCenter server, not an ESXi host.
-    #[error("{name} is not an ESXi host (apiType {api_type}); connect to the host directly")]
-    NotHost {
-        /// The product's full name, as the service content reports it.
-        name: String,
-        /// The `apiType` reported.
-        api_type: String,
-    },
     /// The `Login` response set no cookie to carry the session.
     #[error("Login: the host set no session cookie")]
     NoCookie,
@@ -128,6 +114,10 @@ impl fmt::Debug for Cookie {
 /// rendering never shows it.
 #[derive(Clone)]
 pub struct Ticket {
+    /// The host serving the data port, when it is not the one that issued the ticket.
+    ///
+    /// A vCenter names the ESXi host that owns the VM; an ESXi host leaves it out.
+    pub host: Option<String>,
     /// The data port to connect to.
     pub port: u16,
     /// The SHA-1 thumbprint of the certificate the data port presents.
@@ -139,6 +129,7 @@ pub struct Ticket {
 impl fmt::Debug for Ticket {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Ticket")
+            .field("host", &self.host)
             .field("port", &self.port)
             .field("thumbprint", &self.thumbprint)
             .field("secret", &"<redacted>")
@@ -158,11 +149,12 @@ pub struct Session {
 }
 
 impl Session {
-    /// Retrieves the service content, refuses a vCenter, and logs in.
+    /// Retrieves the service content and logs in.
+    ///
+    /// The host is an ESXi host or a vCenter server.
     ///
     /// # Errors
-    /// When a call fails, the host is not an ESXi host, or the host refuses
-    /// the credentials.
+    /// When a call fails or the host refuses the credentials.
     pub fn login(
         host: &str,
         port: u16,
@@ -311,21 +303,10 @@ fn this(kind: &str, reference: &str) -> String {
     format!("<_this type=\"{kind}\">{}</_this>", escape(reference))
 }
 
-/// Checks the service content describes an ESXi host and returns its session manager.
+/// Returns the session manager the service content names.
 fn service_content(content: &str) -> Result<String, Error> {
-    let call = "RetrieveServiceContent";
-    let api_type = element(content, "apiType").ok_or(Error::Missing {
-        call,
-        element: "apiType",
-    })?;
-    if api_type != HOST_AGENT {
-        return Err(Error::NotHost {
-            name: element(content, "fullName").unwrap_or_default(),
-            api_type,
-        });
-    }
     element(content, "sessionManager").ok_or(Error::Missing {
-        call,
+        call: "RetrieveServiceContent",
         element: "sessionManager",
     })
 }
@@ -341,6 +322,7 @@ fn ticket(reply: &str) -> Result<Ticket, Error> {
     let port = field("port")?;
     let thumbprint = field("sslThumbprint")?;
     Ok(Ticket {
+        host: element(reply, "host").filter(|host| !host.is_empty()),
         port: port.parse().map_err(|error| Error::Invalid {
             element: "port",
             text: port.clone(),
@@ -436,6 +418,19 @@ mod tests {
             "sha1:A9:99:3E:36:47:06:81:6A:BA:3E:25:71:78:50:C2:6C:9C:D0:D8:9D"
         );
         assert_eq!(ticket.secret, "00000000-mock-ticket-000000000000");
+        assert_eq!(ticket.host, None);
+    }
+
+    #[test]
+    fn a_ticket_from_a_vcenter_names_the_host_serving_the_data_port() {
+        let reply = TICKET.replace("<port>", "<host>esxi-02.test</host><port>");
+
+        assert_eq!(
+            ticket(&reply).unwrap().host.as_deref(),
+            Some("esxi-02.test")
+        );
+        let empty = TICKET.replace("<port>", "<host></host><port>");
+        assert_eq!(ticket(&empty).unwrap().host, None);
     }
 
     #[test]
@@ -483,31 +478,16 @@ mod tests {
     }
 
     #[test]
-    fn a_vcenter_service_content_is_refused_naming_the_product() {
+    fn a_vcenter_service_content_yields_its_session_manager() {
         let content = SERVICE_CONTENT
             .replace("HostAgent", "VirtualCenter")
-            .replace(
-                "VMware ESXi 8.0.1 build-21495797",
-                "VMware vCenter Server 8.0.1 build-1",
-            );
+            .replace("ha-sessionmgr", "SessionManager");
 
-        let error = service_content(&content).unwrap_err();
-
-        assert_eq!(
-            error.to_string(),
-            "VMware vCenter Server 8.0.1 build-1 is not an ESXi host (apiType VirtualCenter); \
-             connect to the host directly"
-        );
+        assert_eq!(service_content(&content).unwrap(), "SessionManager");
     }
 
     #[test]
-    fn a_service_content_without_an_api_type_or_session_manager_names_the_element() {
-        let error = service_content("<returnval/>").unwrap_err();
-        assert_eq!(
-            error.to_string(),
-            "RetrieveServiceContent: the reply has no apiType element"
-        );
-
+    fn a_service_content_without_a_session_manager_names_the_element() {
         let error = service_content("<about><apiType>HostAgent</apiType></about>").unwrap_err();
         assert_eq!(
             error.to_string(),

@@ -16,13 +16,13 @@ measurements taken on ESXi 7 and 8 hosts. No proprietary binary or
 header is opened, and no third-party reimplementation is read. It is
 slower to write; it is the only way the result can be shipped.
 
-## Why ESXi 7 and 8, directly, and nothing else
+## Why ESXi 7 and 8, and nothing else
 
-- **No vCenter.** The NFC ticket that opens a disk's files is issued by
-  the host that holds them. Going through vCenter adds a hop that
-  resolves to the same host and a second kind of session to manage.
-  Vectura asks for the host's address and refuses a vCenter's, with the
-  message saying so.
+- **vCenter as a relay.** The disk's files live on the ESXi host that
+  holds the virtual machine. A vCenter answers the management calls and
+  hands out a ticket that names that host; Vectura then opens the data
+  port on the named host, not on the vCenter. The management plane is the
+  same either way, so a vCenter needs no second kind of session.
 - **No ESXi 6.x.** Those hosts do not announce `SHA256 supported`, so the
   data port could not be confirmed by anything better than SHA-1, and
   their default TLS configuration is what a 2026 client should not

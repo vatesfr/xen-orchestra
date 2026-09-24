@@ -12,16 +12,17 @@ Port 443 is the management plane. It speaks SOAP over HTTPS, the same
 API vSphere clients use. Vectura makes four calls on it, hand-rolled
 HTTP/1.1 with a small XML body each:
 
-1. `RetrieveServiceContent`, to learn what it is talking to. A vCenter
-   answers with an `apiType` of `VirtualCenter` and is refused: the disk
-   files live on the host, and only the host's own `hostd` can hand out a
-   ticket for them.
+1. `RetrieveServiceContent`, to find the session manager. An ESXi host
+   and a vCenter answer alike.
 2. `Login`, with the user name and the password from `VECTURA_PASSWORD`.
    The host sets a session cookie.
 3. `RetrieveInternalContent`, to reach the NFC service.
 4. `NfcGetVmFiles`, with the virtual machine's managed object reference.
    The host answers with a ticket: an opaque string, the port to use, and
-   the SHA-1 thumbprint of the certificate that port presents.
+   the SHA-1 thumbprint of the certificate that port presents. A vCenter
+   also names the ESXi host that holds the virtual machine, and the data
+   port is opened on that host; an ESXi host leaves the name out, and the
+   data port is its own.
 
 At the end, `Logout` closes the session. Between the two, the management
 session is idle; the disk goes through the other port.

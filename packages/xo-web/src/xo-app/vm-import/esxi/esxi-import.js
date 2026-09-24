@@ -8,7 +8,7 @@ import Link from 'link'
 import React from 'react'
 import { connectStore, resolveId } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { esxiCheckInstall, esxiListVms, importVmsFromEsxi, installVectura, isSrWritable } from 'xo'
+import { esxiCheckInstall, esxiListVms, importVmsFromEsxi, isSrWritable } from 'xo'
 import { find, forEach, isEmpty, keyBy, map, pick } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Input } from 'debounce-input-decorator'
@@ -24,7 +24,7 @@ function EsxiCheckResults({ esxiCheck }) {
   return (
     <ul className='list-group'>
       {Object.entries(esxiCheck).map(([name, value]) => {
-        const { status, error, version, expectedVersion } = value
+        const { status, error } = value
         return (
           <li key={name}>
             <Icon icon={status} size='lg' fixedWidth />
@@ -33,7 +33,6 @@ function EsxiCheckResults({ esxiCheck }) {
             {status === 'error' && `"${error}"`}
             &nbsp;
             {status === 'error' && _('esxiCheckingPrerequisiteError')}
-            {version && status === 'alarm' && _('esxiCheckedPrerequisiteVersion', { version, expectedVersion })}
           </li>
         )
       })}
@@ -54,7 +53,6 @@ class EsxiImport extends Component {
   state = {
     concurrency: N_IMPORT_VMS_IN_PARALLEL,
     hostIp: window.localStorage.getItem('esxi_host') ?? '',
-    installingEsxiLib: false,
     importing: false,
     isConnected: false,
     password: window.localStorage.getItem('esxi_password') ?? '',
@@ -64,7 +62,6 @@ class EsxiImport extends Component {
     template: undefined,
     user: window.localStorage.getItem('esxi_user') ?? '',
     esxiCheck: undefined,
-    esxiCheckError: undefined,
     rememberConnection: !!window.localStorage.getItem('esxi_host'),
   }
 
@@ -72,19 +69,10 @@ class EsxiImport extends Component {
     this._esxiCheck()
   }
   _esxiCheck() {
-    this.setState({ esxiCheck: undefined, installingEsxiLib: false }, async () => {
+    this.setState({ esxiCheck: undefined }, async () => {
       const esxiCheck = await esxiCheckInstall()
       this.setState({ esxiCheck })
     })
-  }
-  _installVectura = async () => {
-    this.setState({ installingEsxiLib: true })
-    try {
-      await installVectura()
-    } catch (error) {
-      this.setState({ esxiCheckError: error })
-    }
-    return this._esxiCheck()
   }
   _getDefaultNetwork = createSelector(
     () => this.state.pool?.master,
@@ -243,7 +231,6 @@ class EsxiImport extends Component {
       concurrency,
       esxiCheck,
       hostIp,
-      installingEsxiLib,
       importing,
       isConnected,
       network = this._getDefaultNetwork(),
@@ -263,38 +250,12 @@ class EsxiImport extends Component {
       return <div>checking</div>
     }
 
-    // vectura is the only prerequisite: one binary, shipped as a debian package with xo-server
-    const vecturaCheck = esxiCheck.vectura
-    if (vecturaCheck.status !== 'success') {
+    // vectura is the only prerequisite: one binary, shipped with xo-server
+    if (esxiCheck.vectura.status !== 'success') {
       return (
-        <div>
-          <Row>
-            <EsxiCheckResults esxiCheck={esxiCheck} />
-          </Row>
-          {vecturaCheck.version !== undefined ? (
-            <p>
-              {_('esxiLibraryOutdated', {
-                library: 'vectura',
-                expectedVersion: vecturaCheck.expectedVersion,
-                version: vecturaCheck.version,
-              })}
-            </p>
-          ) : null}
-          <div className='mt-1 form-group pull-right'>
-            <ActionButton btnStyle='primary' className='mr-1' handler={this._installVectura} icon='import'>
-              {_('esxiLibraryAutoInstall', { library: 'vectura' })}
-            </ActionButton>
-            {installingEsxiLib && (
-              <p>
-                {_('esxiLibraryInstalling', { library: 'vectura' })}
-                <Link to='/tasks?s_xo=1_3_desc-status%3Apending+esxi.install' target='_blank'>
-                  {_('esxiProgressLinkText')}
-                </Link>
-              </p>
-            )}
-            {!installingEsxiLib && <p>{_('esxiLibraryManualInstall')}</p>}
-          </div>
-        </div>
+        <Row>
+          <EsxiCheckResults esxiCheck={esxiCheck} />
+        </Row>
       )
     }
 

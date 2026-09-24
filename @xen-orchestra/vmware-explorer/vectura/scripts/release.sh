@@ -2,8 +2,8 @@
 # Releases vectura: `scripts/bump-pkg vectura <patch|minor|major>`, at the
 # root of the repository, runs it for the `- vectura <type>` line of
 # CHANGELOG.unreleased.md. Bumps the version of the crate, rebuilds its
-# package in place of the previous one and commits both. See build-deb.sh
-# for the tools it needs.
+# binary in place of the previous one and commits both. See build.sh for the
+# tools it needs.
 set -eu
 
 case ${1-} in
@@ -39,10 +39,11 @@ awk -v new="$new" 'prev == "name = \"vectura\"" && /^version = / { $0 = "version
 mv Cargo.lock.tmp Cargo.lock
 
 tmp=$(mktemp -d)
-scripts/build-deb.sh "$tmp"
+scripts/build.sh "$tmp"
 
-git rm --quiet --ignore-unmatch -- 'vectura_*.deb'
-mv "$tmp"/vectura_*.deb .
+# mv keeps the mode build.sh set, which git records: the binary stays
+# executable in the npm package
+mv "$tmp/vectura" vectura
 rmdir "$tmp"
-git add -- Cargo.toml Cargo.lock "vectura_$new-1_amd64.deb"
+git add -- Cargo.toml Cargo.lock vectura
 git commit --message "feat(vectura): $new"

@@ -4363,15 +4363,6 @@ export const esxiListVms = (host, user, password, sslVerify) =>
 export const esxiCheckInstall = () => _call('esxi.checkInstall')
 export const importVmsFromEsxi = params => _call('vm.importMultipleFromEsxi', params)
 
-export const installVectura = () => {
-  return _call('esxi.installVectura')
-    .then(() => {
-      success('vectura successfully installed')
-    })
-    .catch(err => {
-      error('fail to install vectura', err)
-    })
-}
 // GitHub API ---------------------------------------------------------------
 const _callGithubApi = async (endpoint = '') => {
   const url = new URL('https://api.github.com/repos/vatesfr/xen-orchestra')

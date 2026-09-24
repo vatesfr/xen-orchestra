@@ -47,7 +47,7 @@ type Answer = (usize, disk::Chunk, Vec<u8>);
 /// What to serve and how to reach it.
 #[derive(Debug)]
 pub struct Target {
-    /// The host name or address.
+    /// The name or address of the ESXi host or vCenter server.
     pub host: String,
     /// The management port.
     pub port: u16,
@@ -134,7 +134,7 @@ fn export<R: Read + Send + 'static, W: Write>(
 ) -> Result<(), Error> {
     let ticket = session.ticket(&target.vm_id)?;
     let mut connection = nfc::Connection::establish(
-        &target.host,
+        ticket.host.as_deref().unwrap_or(&target.host),
         ticket.port,
         &ticket.secret,
         &ticket.thumbprint,

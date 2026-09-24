@@ -1,7 +1,7 @@
 # Vectura
 
 Vectura reads VMware virtual disks over the NFC protocol. It is one Linux
-binary, shipped as a Debian package, with two commands:
+binary with two commands:
 
 - `vectura serve` logs in to an ESXi host, opens one virtual disk and serves
   it read-only as an NBD export on its own standard input and output. The
@@ -11,22 +11,24 @@ binary, shipped as a Debian package, with two commands:
   on its management and data ports, so an operator can pin them before any
   credential is sent.
 
-Vectura targets ESXi 7.x and 8.x hosts reached directly. A vCenter address
-is refused before login; an ESXi 6.x host is refused at the data port's
-greeting. Certificate verification can be pinned or pointed at a CA bundle
-but never skipped, and the password is read from `VECTURA_PASSWORD` only.
+Vectura targets ESXi 7.x and 8.x hosts, reached directly or through a
+vCenter; with a vCenter, the disk is read from the ESXi host its ticket
+names. An ESXi 6.x host is refused at the data port's greeting. Certificate
+verification can be pinned or pointed at a CA bundle but never skipped, and
+the password is read from `VECTURA_PASSWORD` only.
 
 ## Install
 
-The package, `vectura_<version>-1_amd64.deb`, ships in this directory with
-`@xen-orchestra/vmware-explorer`, and xo-server installs it. To install it by
-hand on Debian 12, Ubuntu 22.04 or newer (amd64):
+The binary, `vectura`, ships in this directory with
+`@xen-orchestra/vmware-explorer`, and xo-server runs it from there. It runs
+on Debian 12, Ubuntu 22.04 or newer (amd64) and needs nothing but glibc. To
+use it by hand, copy it to a directory in `PATH`:
 
 ```sh
-sudo dpkg --install vectura_<version>-1_amd64.deb
+sudo install vectura /usr/local/bin/
 ```
 
-The package installs `/usr/bin/vectura`. To build from source, install the
+To build from source, install the
 `build-essential` package (the TLS library compiles C) and let `rustup`
 pick the pinned toolchain from `rust-toolchain.toml`:
 
@@ -79,7 +81,7 @@ Explanation, the reasoning:
 ## Development and release
 
 `.github/workflows/vectura.yml` runs `cargo fmt`, `cargo clippy`, the tests,
-`cargo deny`, the coverage floor and the package build on every push that
+`cargo deny`, the coverage floor and the binary build on every push that
 touches this directory. The pre-commit hook runs `cargo fmt --check` when a
 `.rs` file is staged.
 
@@ -92,15 +94,16 @@ A change to vectura needs its own line in the packages list of
 
 `scripts/gen-deps-list.js` then lists `./scripts/bump-pkg vectura <type>`,
 followed by a release of `@xen-orchestra/vmware-explorer`, which bundles the
-package. `bump-pkg` runs `scripts/release.sh`: it bumps the version in
-`Cargo.toml` and `Cargo.lock`, rebuilds the package in place of the previous
+binary. `bump-pkg` runs `scripts/release.sh`: it bumps the version in
+`Cargo.toml` and `Cargo.lock`, rebuilds the binary in place of the previous
 one and commits both as `feat(vectura): <version>`.
-`tests/bundled_package.rs` fails when the package and `Cargo.toml` disagree.
+`tests/bundled_binary.rs` fails when the binary and `Cargo.toml` disagree, or
+when the binary lost its executable bit.
 
 The build links against glibc 2.34 through zig, whatever the glibc of the
-machine, so the package installs on Debian 12 and Ubuntu 22.04. It needs
-[zig](https://ziglang.org/download/) (0.16.0 tested), `dpkg-dev` and:
+machine, so the binary runs on Debian 12 and Ubuntu 22.04. It needs
+[zig](https://ziglang.org/download/) (0.16.0 tested) and:
 
 ```sh
-cargo install --locked cargo-zigbuild@0.23.4 cargo-deb@3.7.0
+cargo install --locked cargo-zigbuild@0.23.4
 ```

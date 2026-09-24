@@ -11,13 +11,13 @@ transcript of the session.
 - A Debian 12 or Ubuntu 22.04 machine, or newer, on amd64, that reaches the
   ESXi host on ports 443 and 902.
 - An ESXi 7.x or 8.x host, reached directly by its own address. A vCenter
-  address does not work.
+  works too, as long as this machine also reaches the ESXi host on port 902.
 - An account on that host allowed to read the virtual machine's files.
   `root` works; a narrower account is fine as long as the host lets it
   obtain an NFC ticket for the virtual machine.
 - A virtual machine that is powered off. The disk a running virtual
   machine writes to cannot be opened; the section "Pick a disk" says why.
-- The Debian package of Vectura, `vectura_<version>-1_amd64.deb`, from
+- The Vectura binary, `vectura`, from
   `@xen-orchestra/vmware-explorer/vectura/` in Xen Orchestra.
 - `libnbd-bin`, which provides `nbdsh`, an NBD client that can start a
   server as a child process and talk to it over its pipes.
@@ -25,13 +25,13 @@ transcript of the session.
 ## 1. Install the tools
 
 ```sh
-sudo dpkg --install vectura_<version>-1_amd64.deb
+sudo install vectura /usr/local/bin/
 sudo apt install libnbd-bin
 vectura --version
 ```
 
 The last command prints `vectura` and the version. If it prints a usage
-message instead, the package did not install.
+message instead, the binary did not install.
 
 ## 2. Pin the host
 
@@ -127,8 +127,6 @@ If the command fails instead, the reason is on standard error with a
 - `VECTURA_PASSWORD is not set`: step 3 was run in another shell.
 - `certificate thumbprint mismatch`: the `--thumbprint` value is not the
   `443 sha256` line of step 2.
-- `... is not an ESXi host (apiType VirtualCenter)`: `--host` names a
-  vCenter; use the ESXi host's own address.
 - `the host reported error 11: ... permission check failed`: the path
   does not belong to the virtual machine `--vm-id` names, or the account
   may not read it.

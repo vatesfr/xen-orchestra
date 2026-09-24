@@ -81,7 +81,7 @@ async function main(args, scriptName) {
   allPackages = keyBy(await getPackages(true), 'name')
 
   // vectura is a Rust crate, not an npm package: @xen-orchestra/vmware-explorer
-  // bundles its Debian package, so a vectura release is followed by one of
+  // bundles its binary, so a vectura release is followed by one of
   // vmware-explorer, as if it depended on this exact version
   const vecturaVersion = /^version = "(.+)"$/m.exec(
     await readFile(join(__dirname, '../@xen-orchestra/vmware-explorer/vectura/Cargo.toml'))

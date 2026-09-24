@@ -80,7 +80,7 @@ struct Fingerprint {
 /// Arguments of `vectura serve`; the password comes from `VECTURA_PASSWORD`.
 #[derive(Debug, Args)]
 struct Serve {
-    /// Host name or address, with an optional management port (default 443).
+    /// ESXi host or vCenter name or address, with an optional management port (default 443).
     #[arg(long, value_parser = parse_host)]
     host: HostPort,
     /// User name to log in with.

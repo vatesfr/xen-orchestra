@@ -6,13 +6,13 @@ and the limits it imposes. Measurements were taken on ESXi 7.0.3 and
 
 ## The host
 
-| Requirement                                                  | Detail                                                                                                                                                                                              |
-| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ESXi 7.x or 8.x, reached directly                            | The management port must answer with `apiType HostAgent`. A vCenter answers `VirtualCenter` and is refused with `<host> is not an ESXi host (apiType VirtualCenter); connect to the host directly`. |
-| `SHA256 supported` in the data port's greeting               | The ticket dialogue confirms the data port's certificate by its SHA-256. ESXi 6.x does not announce it and is refused: `greeting: the host does not announce "SHA256 supported"`.                   |
-| `NFCSSL supported` in the greeting, for `--transport nfcssl` | Without it, only `--transport nfc` can run, in clear text. Every 7.x and 8.x host measured announces it.                                                                                            |
-| Port 443 and port 902 reachable                              | 443 for the management calls, 902 for the greeting, the ticket dialogue and the disk.                                                                                                               |
-| An account that may read the virtual machine's files         | The account logs in on port 443 and obtains the ticket; the ticket covers the files of the virtual machine `--vm-id` names.                                                                         |
+| Requirement                                                  | Detail                                                                                                                                                                            |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ESXi 7.x or 8.x, directly or through a vCenter               | With a vCenter, `--host` names the vCenter and the ticket names the ESXi host that holds the virtual machine; the data port is opened on that host.                               |
+| `SHA256 supported` in the data port's greeting               | The ticket dialogue confirms the data port's certificate by its SHA-256. ESXi 6.x does not announce it and is refused: `greeting: the host does not announce "SHA256 supported"`. |
+| `NFCSSL supported` in the greeting, for `--transport nfcssl` | Without it, only `--transport nfc` can run, in clear text. Every 7.x and 8.x host measured announces it.                                                                          |
+| Port 443 and port 902 reachable                              | 443 for the management calls, on the vCenter when there is one; 902 for the greeting, the ticket dialogue and the disk, always on the ESXi host.                                  |
+| An account that may read the virtual machine's files         | The account logs in on port 443 and obtains the ticket; the ticket covers the files of the virtual machine `--vm-id` names.                                                       |
 
 The greeting lines and their capability words are documented in Broadcom
 knowledge base articles 343952, 338286, 341384 and 417531.

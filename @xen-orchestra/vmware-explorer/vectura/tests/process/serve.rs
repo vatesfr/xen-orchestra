@@ -430,20 +430,19 @@ fn a_thumbprint_that_is_not_the_management_certificate_is_refused() {
 }
 
 #[test]
-fn a_vcenter_is_refused_before_login() {
-    let (host, output) = run_failing(Scenario {
-        api_type: "VirtualCenter",
+fn a_vcenter_serves_the_disk_from_the_host_its_ticket_names() {
+    // The data port listens on the ticket's host only, not on the vCenter's address.
+    let host = Host::start(Scenario {
+        vcenter: true,
         ..Scenario::default()
     });
+    let mut child = spawn(&host, Some(PASSWORD), &pin(&host));
+    negotiate(&mut child, true);
 
-    let stderr = failure(&output);
-    assert!(
-        stderr.contains(
-            "VMware vCenter Server 8.0.3 build-24022515 is not an ESXi host (apiType VirtualCenter)"
-        ),
-        "{stderr}"
-    );
-    assert_eq!(host.events(), vec![call("RetrieveServiceContent", None)]);
+    assert_eq!(read_at(&mut child, 0, 0, SECTOR), Ok(disk(0, SECTOR)));
+    let events = session_ends_cleanly(&host, child);
+
+    healthy_session(&events, 1);
 }
 
 #[test]

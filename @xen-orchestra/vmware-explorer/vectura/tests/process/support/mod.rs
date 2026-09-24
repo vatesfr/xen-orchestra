@@ -146,8 +146,11 @@ pub enum ReadFault {
 pub struct Scenario {
     /// What the data port does on connection.
     pub data: DataPort,
-    /// The `apiType` the service content reports.
-    pub api_type: &'static str,
+    /// Whether the management port plays a vCenter.
+    ///
+    /// It reports `VirtualCenter`, and its ticket names [`VCENTER_DATA_HOST`],
+    /// the only address the data port listens on.
+    pub vcenter: bool,
     /// Whether `Login` succeeds, or the fault string it fails with.
     pub login: Result<(), &'static str>,
     /// Whose SHA-1 thumbprint the ticket carries.
@@ -178,7 +181,7 @@ impl Default for Scenario {
     fn default() -> Scenario {
         Scenario {
             data: DataPort::Greeting(GREETING),
-            api_type: "HostAgent",
+            vcenter: false,
             login: Ok(()),
             ticket_thumbprint: Thumbprint::Own,
             announced_thumbprint: Thumbprint::Own,
@@ -319,8 +322,12 @@ impl Host {
                 .with_single_cert(vec![certificate.clone()], key)
                 .expect("the certificate and key match"),
         );
-        let (management_listener, management_port) = bind();
-        let (data_listener, data_port) = bind();
+        let (management_listener, management_port) = bind(LOOPBACK);
+        let (data_listener, data_port) = bind(if scenario.vcenter {
+            VCENTER_DATA_HOST
+        } else {
+            LOOPBACK
+        });
         let mock = Arc::new(Mock {
             scenario,
             config,
@@ -441,9 +448,15 @@ impl Mock {
     }
 }
 
-/// Binds a loopback port.
-fn bind() -> (TcpListener, u16) {
-    let listener = TcpListener::bind("127.0.0.1:0").expect("loopback is bindable");
+/// Where the mock listens, and where the client reaches it.
+const LOOPBACK: &str = "127.0.0.1";
+
+/// The ESXi host a vCenter ticket names: another loopback address, which Linux answers on.
+pub const VCENTER_DATA_HOST: &str = "127.0.0.2";
+
+/// Binds a port on the loopback `address`.
+fn bind(address: &str) -> (TcpListener, u16) {
+    let listener = TcpListener::bind((address, 0)).expect("loopback is bindable");
     let port = listener
         .local_addr()
         .expect("the listener has an address")
@@ -616,11 +629,13 @@ fn answer(mock: &Mock, request: &Request) -> (&'static str, String, String) {
     let ok = |inner: String| ("200 OK", String::new(), envelope(&inner));
     match name {
         "RetrieveServiceContent" => {
-            let api_type = mock.scenario.api_type;
-            let full_name = if api_type == "HostAgent" {
-                "VMware ESXi 8.0.3 build-24022510"
+            let (full_name, api_type) = if mock.scenario.vcenter {
+                (
+                    "VMware vCenter Server 8.0.3 build-24022515",
+                    "VirtualCenter",
+                )
             } else {
-                "VMware vCenter Server 8.0.3 build-24022515"
+                ("VMware ESXi 8.0.3 build-24022510", "HostAgent")
             };
             ok(format!(
                 "<RetrieveServiceContentResponse xmlns=\"urn:vim25\"><returnval>\
@@ -655,14 +670,22 @@ fn answer(mock: &Mock, request: &Request) -> (&'static str, String, String) {
         ),
         "NfcGetVmFiles" => {
             let sha1 = mock.thumbprint(&SHA1_FOR_LEGACY_USE_ONLY, mock.scenario.ticket_thumbprint);
+            let (host, data_host) = if mock.scenario.vcenter {
+                (
+                    format!("<host>{VCENTER_DATA_HOST}</host>"),
+                    VCENTER_DATA_HOST,
+                )
+            } else {
+                (String::new(), LOOPBACK)
+            };
+            let port = mock.data_port;
             ok(format!(
-                "<NfcGetVmFilesResponse xmlns=\"urn:vim25\"><returnval>\
+                "<NfcGetVmFilesResponse xmlns=\"urn:vim25\"><returnval>{host}\
                  <service>nfc</service><serviceVersion>1.1</serviceVersion>\
-                 <port>{}</port><sslThumbprint>{sha1}</sslThumbprint>\
+                 <port>{port}</port><sslThumbprint>{sha1}</sslThumbprint>\
                  <sessionId>{TICKET}</sessionId>\
-                 <url>nfc://127.0.0.1:{}/{TICKET}</url>\
-                 </returnval></NfcGetVmFilesResponse>",
-                mock.data_port, mock.data_port
+                 <url>nfc://{data_host}:{port}/{TICKET}</url>\
+                 </returnval></NfcGetVmFilesResponse>"
             ))
         }
         "Logout" => ok("<LogoutResponse xmlns=\"urn:vim25\"></LogoutResponse>".to_owned()),
