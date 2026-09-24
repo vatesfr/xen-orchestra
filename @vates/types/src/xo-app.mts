@@ -8,6 +8,8 @@ import type {
   XoAuthenticationToken,
   XoBackupRepository,
   XoConfigBackupArchive,
+  XoDockerContainer,
+  XoDockerEngine,
   XoGroup,
   XoHost,
   XoMetadataBackupJob,
@@ -32,6 +34,13 @@ import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
 import type { VmwareInventory } from './lib/xen-orchestra-vmware-explorer.mjs'
 import type { XoV2vStatus } from './lib/xen-orchestra-v2v.mjs'
+import type {
+  XoDockerContainerAction,
+  XoDockerContainerListError,
+  XoDockerEngineInfo,
+  XoDockerEngineTestResult,
+  XoDockerLogs,
+} from './lib/xen-orchestra-docker.mjs'
 import type { RPU_RECOVERY_STEP_NAME } from './common.mjs'
 import {
   Xapi,
@@ -219,6 +228,28 @@ export type EsxiConnectionParams = {
   sslVerify: boolean
 }
 
+/**
+ * Properties of a Docker engine, as accepted by `createDockerEngine` and
+ * `updateDockerEngine`
+ *
+ * On update, omitted properties are kept, `null` or `''` clears them (`port`
+ * and `socketPath` are reset to their defaults).
+ */
+export type XoDockerEngineProperties = {
+  $VM?: XoVm['id'] | null
+  label?: string | null
+  host?: string | null
+  port?: number | null
+  username?: string
+  password?: string | null
+  privateKey?: string | null
+  passphrase?: string | null
+  socketPath?: string | null
+  hostKeyFingerprint?: string | null
+  /** transient, never stored: pin the observed host key when there is no fingerprint */
+  acceptUnknownHostKey?: boolean
+}
+
 export type XoApp = EventEmitter & {
   hooks: EventEmitter
   _redis: {
@@ -339,6 +370,8 @@ export type XoApp = EventEmitter & {
     /** keyed by temporary IDs, which can be used as keys in `props.settings` */
     schedules: Record<string, Pick<XoSchedule, 'cron' | 'enabled' | 'name' | 'timezone'>>
   ): Promise<XoMetadataBackupJob>
+  /** connects first (TOFU: DockerError HOST_KEY_UNKNOWN without fingerprint), saves nothing on failure */
+  createDockerEngine(properties: XoDockerEngineProperties): Promise<XoDockerEngine>
   createAuthenticationToken(opts: {
     client?: {
       id?: string
@@ -377,6 +410,8 @@ export type XoApp = EventEmitter & {
   ): Promise<boolean>
   deleteAclV2Privilege(privilegeId: XoAclBasePrivilege['id'], options?: { force?: boolean }): Promise<boolean>
   deleteAclV2Role(roleId: XoAclRole['id'], options?: { force?: boolean }): Promise<boolean>
+  deleteDockerContainer(id: XoDockerContainer['id'], opts?: { force?: boolean; removeVolumes?: boolean }): Promise<void>
+  deleteDockerEngine(id: XoDockerEngine['id']): Promise<void>
   deleteGroup(id: XoGroup['id']): Promise<void>
   deleteSchedule(id: XoSchedule['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
@@ -407,6 +442,8 @@ export type XoApp = EventEmitter & {
     userId: XoUser['id'],
     opts?: { bypassAuthorization?: boolean; fromGroup?: boolean; fromUser?: boolean }
   ): Promise<XoAclRole[]>
+  /** never connects */
+  getAllDockerEngines(): Promise<XoDockerEngine[]>
   getAllGroups(): Promise<XoGroup[]>
   getAllProxies(): Promise<XoProxy[]>
   getAllJobs<T extends AnyXoJob['type']>(type: T): Promise<Extract<AnyXoJob, { type: T }>[]>
@@ -457,6 +494,29 @@ export type XoApp = EventEmitter & {
     filter: (log: AnyXoLog) => boolean
     limit?: number
   }): Promise<AnyXoLog[]>
+  getDockerContainer(id: XoDockerContainer['id']): Promise<XoDockerContainer>
+  getDockerContainerLogs(
+    id: XoDockerContainer['id'],
+    opts?: {
+      tail?: number
+      since?: number | string
+      until?: number | string
+      stdout?: boolean
+      stderr?: boolean
+      timestamps?: boolean
+    }
+  ): Promise<XoDockerLogs>
+  /** an engine which fails does not fail the list, see `errors` */
+  getDockerContainers(opts: {
+    engines: XoDockerEngine['id'][]
+    all?: boolean
+    stats?: boolean
+    forceRefresh?: boolean
+  }): Promise<{ containers: XoDockerContainer[]; errors: XoDockerContainerListError[]; asOf: number }>
+  /** never connects */
+  getDockerEngine(id: XoDockerEngine['id']): Promise<XoDockerEngine>
+  /** connects, never throws for connection problems (see `status`) */
+  getDockerEngineInfo(id: XoDockerEngine['id']): Promise<XoDockerEngineInfo>
   getGroup(id: XoGroup['id']): Promise<XoGroup>
   getHVSupportedVersions: undefined | (() => Promise<{ [key: XoHost['productBrand']]: string }>)
   getJob<T extends AnyXoJob>(id: T['id']): Promise<T>
@@ -597,8 +657,11 @@ export type XoApp = EventEmitter & {
   setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
   shareVmResourceSet(vmId: XoVm['id']): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
+  runDockerContainerAction(id: XoDockerContainer['id'], action: XoDockerContainerAction): Promise<void>
   runJob(job: AnyXoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>
+  /** new, non pooled, connection; never throws for connection problems */
+  testDockerEngine(id: XoDockerEngine['id']): Promise<XoDockerEngineTestResult>
   testPlugin(id: XoPlugin['id'], data?: unknown): Promise<void>
   testRemote(
     id: XoBackupRepository['id']
@@ -660,6 +723,7 @@ export type XoApp = EventEmitter & {
       force?: boolean
     }
   ): Promise<XoAclRole>
+  updateDockerEngine(id: XoDockerEngine['id'], properties: XoDockerEngineProperties): Promise<XoDockerEngine>
   updateGroup(
     id: XoGroup['id'],
     updates: {
