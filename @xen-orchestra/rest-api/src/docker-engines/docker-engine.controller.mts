@@ -126,7 +126,7 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    * Required privilege:
    * - admin (v2: resource: docker-engine, action: read)
    *
-   * @example id "39a3cb1f-02ef-48ad-bda6-a3baf33d458c"
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07"
    */
   // ACLs v2: acl({ resource: 'docker-engine', action: 'read', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerEngine })
   @Example(dockerEngineInfo)
@@ -148,7 +148,7 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    * Required privilege:
    * - admin (v2: resource: docker-engine, action: read)
    *
-   * @example id "39a3cb1f-02ef-48ad-bda6-a3baf33d458c"
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07"
    */
   // ACLs v2: acl({ resource: 'docker-engine', action: 'read', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerEngine })
   @Example(dockerEngine)
@@ -262,7 +262,7 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    * Required privilege:
    * - admin (v2: resource: docker-engine, action: update)
    *
-   * @example id "39a3cb1f-02ef-48ad-bda6-a3baf33d458c"
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07"
    * @example body { "label": "Web server (prod)" }
    */
   // ACLs v2: acl({ resource: 'docker-engine', action: 'update', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerEngine })
@@ -302,7 +302,7 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    * Required privilege:
    * - admin (v2: resource: docker-engine, action: delete)
    *
-   * @example id "39a3cb1f-02ef-48ad-bda6-a3baf33d458c"
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07"
    */
   // ACLs v2: acl({ resource: 'docker-engine', action: 'delete', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerEngine })
   @Extension('x-mcp-exposure', 'confirm')
@@ -338,7 +338,7 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    * Required privilege:
    * - admin (v2: resource: docker-engine, action: test)
    *
-   * @example id "39a3cb1f-02ef-48ad-bda6-a3baf33d458c"
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07"
    */
   // ACLs v2: acl({ resource: 'docker-engine', action: 'test', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerEngine })
   @Example(taskLocation)

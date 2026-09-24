@@ -96,7 +96,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * Required privilege:
    * - admin (v2: resource: docker-container, action: read-logs)
    *
-   * @example id "39a3cb1f-02ef-48ad-bda6-a3baf33d458c_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    * @example tail 100
    * @example since "2026-09-24T12:00:00Z"
    * @example until "1790265600000"
@@ -142,7 +142,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * Required privilege:
    * - admin (v2: resource: docker-container, action: read)
    *
-   * @example id "39a3cb1f-02ef-48ad-bda6-a3baf33d458c_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    */
   // ACLs v2: acl({ resource: 'docker-container', action: 'read', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(dockerContainer)
@@ -178,7 +178,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * - admin (v2: resource: docker-container, action: read, per container)
    *
    * @example fields "id,name,state,status,image"
-   * @example filter "$engine:39a3cb1f-02ef-48ad-bda6-a3baf33d458c state:running"
+   * @example filter "$engine:8d834412-eb40-4328-a815-3fcc0989bd07 state:running"
    * @example limit 42
    * @example all true
    * @example force_refresh false
@@ -225,7 +225,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * Required privilege:
    * - admin (v2: resource: docker-container, action: start)
    *
-   * @example id "39a3cb1f-02ef-48ad-bda6-a3baf33d458c_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    */
   // ACLs v2: acl({ resource: 'docker-container', action: 'start', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(taskLocation)
@@ -245,7 +245,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * Required privilege:
    * - admin (v2: resource: docker-container, action: stop)
    *
-   * @example id "39a3cb1f-02ef-48ad-bda6-a3baf33d458c_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    */
   // ACLs v2: acl({ resource: 'docker-container', action: 'stop', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(taskLocation)
@@ -265,7 +265,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * Required privilege:
    * - admin (v2: resource: docker-container, action: restart)
    *
-   * @example id "39a3cb1f-02ef-48ad-bda6-a3baf33d458c_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    */
   // ACLs v2: acl({ resource: 'docker-container', action: 'restart', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(taskLocation)
@@ -285,7 +285,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * Required privilege:
    * - admin (v2: resource: docker-container, action: pause)
    *
-   * @example id "39a3cb1f-02ef-48ad-bda6-a3baf33d458c_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    */
   // ACLs v2: acl({ resource: 'docker-container', action: 'pause', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(taskLocation)
@@ -306,7 +306,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * Required privilege:
    * - admin (v2: resource: docker-container, action: unpause)
    *
-   * @example id "39a3cb1f-02ef-48ad-bda6-a3baf33d458c_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    */
   // ACLs v2: acl({ resource: 'docker-container', action: 'unpause', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(taskLocation)
@@ -331,7 +331,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * Required privilege:
    * - admin (v2: resource: docker-container, action: delete)
    *
-   * @example id "39a3cb1f-02ef-48ad-bda6-a3baf33d458c_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    * @example force false
    * @example removeVolumes false
    */
