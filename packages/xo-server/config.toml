@@ -139,6 +139,51 @@ writeBlockConcurrency = 16
 enabled = false
 threshold = 1000
 
+[docker]
+# Expose the raw Docker Engine API passthrough at /rest/v0/docker-engines/{id}/_raw/*
+# Administrators only, and disabled by default: it grants unrestricted access to the
+# Docker daemon of the guest, which is equivalent to root on that guest.
+allowRawApi = false
+
+# Refuse to connect when the guest's SSH host key is unknown or has changed.
+#
+# When false, an unknown host key is accepted and pinned on the first connection
+# instead of being reported (HOST_KEY_UNKNOWN), a changed one is still refused.
+strictHostKeyChecking = true
+
+# SSH connections to Docker engines are pooled, closed after being idle for
+# `connectionIdleTimeout`, and at most `maxConnections` are open at once.
+maxConnections = 20
+connectionIdleTimeout = '5 min'
+connectTimeout = '15s'
+requestTimeout = '30s'
+
+# After a connection failure, the engine is not retried for this long (avoids
+# hammering an offline guest, and its fail2ban).
+failureTtl = '30s'
+
+# Container lists are cached for this long.
+cacheExpiresIn = '10s'
+cacheTimeout = '20s'
+
+statsIdleTimeout = '90s'
+maxStatsContainers = 100
+
+# Above this number of running containers, a list does not inspect each of them
+# (no precise uptime, restart count…).
+inspectThreshold = 200
+
+defaultLogsTail = 100
+maxLogsTail = 10000
+# Logs responses are cut (`truncated: true`) above this size.
+maxLogsSize = '5MiB'
+
+# Max engines a single GET /docker-containers may fan out to.
+maxListedEngines = 10
+
+maxRawRequestSize = '1MiB'
+maxRawResponseSize = '10MiB'
+
 [http]
 useForwardedHeaders = false
 
