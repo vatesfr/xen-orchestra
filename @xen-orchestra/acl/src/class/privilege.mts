@@ -26,7 +26,7 @@ export class Privilege<T extends SupportedResource> {
       resource: TPrivilege<T>['resource']
       effect: TPrivilege<T>['effect']
     },
-    resolver?: (id: string) => object | undefined
+    resolver?: CM.Resolver
   ) {
     Privilege.checkActionIsValid(resource, action)
 

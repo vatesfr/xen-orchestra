@@ -141,12 +141,10 @@ export function safeParseComplexMatcher(string: string) {
 
 export function limitAndFilterArray<T>(
   array: T[],
-  { filter, limit = Infinity }: { filter?: string | ((obj: T) => boolean); limit?: number } = {},
-  resolver?: (id: string) => object | undefined
+  { filter, limit = Infinity }: { filter?: (obj: T) => boolean; limit?: number } = {}
 ): T[] {
   if (filter !== undefined) {
-    const predicate = typeof filter === 'string' ? safeParseComplexMatcher(filter).createPredicate(resolver) : filter
-    array = array.filter(predicate)
+    array = array.filter(filter)
   }
 
   if (limit < array.length) {

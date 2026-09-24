@@ -13,7 +13,6 @@ import { iocContainer } from '../ioc/ioc.mjs'
 import type { Branded, NonXapiXoRecord, XapiXoRecord, XoRecord } from '@vates/types'
 import { ServiceIdentifier, ValidateError } from 'tsoa'
 import { ApiError } from '../helpers/error.helper.mjs'
-import * as CM from 'complex-matcher'
 
 export const ACL_MIDDLEWARE_NAME = '_aclMiddleware'
 
@@ -207,6 +206,7 @@ export function acl(acls: AclEntry | AclEntry[]) {
     }
     const invalidFields: { [key: string]: { message: string; value: unknown } } = {}
     const missingPrivilegeParams: AnyPrivilegeOnParam[] = []
+    const objectsToResolve: object[] = []
 
     for (const acl of _acls) {
       let objects: object[] = []
@@ -263,6 +263,8 @@ export function acl(acls: AclEntry | AclEntry[]) {
         }
       }
 
+      objectsToResolve.push(...objects)
+
       // We cast here to restore the discriminated union correlation between `resource` and `action`.
       // When rebuilding an object from individual properties of a discriminated union, TypeScript transform it into an union type
       //   { resource: SupportedResource, action: SupportedAction<SupportedResource> }
@@ -294,30 +296,9 @@ export function acl(acls: AclEntry | AclEntry[]) {
       return next(error)
     }
 
-    const objects: object[] = []
-    missingPrivilegeParams.forEach(missingPrivilegeParam => {
-      if (Array.isArray(missingPrivilegeParam.objects)) {
-        objects.push(...missingPrivilegeParam.objects)
-      } else {
-        objects.push(missingPrivilegeParam.objects)
-      }
-    })
+    const privilegeResolver = await restApi.buildPrivilegeResolver(objectsToResolve, userPrivileges)
 
-    const nodes: CM.Node[] = []
-    userPrivileges.forEach(userPrivilege => {
-      if (userPrivilege.selector) {
-        nodes.push(CM.parse(userPrivilege.selector))
-      }
-    })
-
-    let resolver: (id: string) => object | undefined
-    if (nodes.length > 0) {
-      resolver = await restApi.buildResolver(objects, new CM.And(nodes))
-    } else {
-      resolver = restApi.resolver
-    }
-
-    const missingPrivileges = getMissingPrivileges(missingPrivilegeParams, userPrivileges, resolver)
+    const missingPrivileges = getMissingPrivileges(missingPrivilegeParams, userPrivileges, privilegeResolver)
     if (missingPrivileges.length > 0) {
       return next(
         new ApiError('not enough privileges', 403, {

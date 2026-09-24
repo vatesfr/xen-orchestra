@@ -862,7 +862,7 @@ export class VmController extends XapiXoController<XoVm> {
   @Security('*', ['acl'])
   @Tags('vdis')
   @Response(notFoundResp.status, notFoundResp.description)
-  getVmVdis(
+  async getVmVdis(
     @Request() req: ExRequest,
     @Path() id: string,
     @Query() fields?: string,
@@ -870,9 +870,11 @@ export class VmController extends XapiXoController<XoVm> {
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): SendObjects<Partial<Unbrand<XoVdi>>> {
+  ): Promise<SendObjects<Partial<Unbrand<XoVdi>>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVm['id'], 'VM')
-    return this.sendObjects(limitAndFilterArray(vdis, { filter }, this.restApi.resolver), req, {
+
+    const predicate = await this.restApi.applyUserFilter(vdis, filter)
+    return this.sendObjects(limitAndFilterArray(vdis, { filter: predicate }), req, {
       path: obj => obj.type.toLowerCase() + 's',
       limit,
       privilege: { action: 'read', resource: 'vdi' },
@@ -913,7 +915,8 @@ export class VmController extends XapiXoController<XoVm> {
       }
     }
 
-    return this.sendObjects(limitAndFilterArray(vmBackupJobs, { filter }, this.restApi.resolver), req, {
+    const predicate = await this.restApi.applyUserFilter(vmBackupJobs, filter)
+    return this.sendObjects(limitAndFilterArray(vmBackupJobs, { filter: predicate }), req, {
       path: '/backup-jobs',
       limit,
       privilege: { action: 'read', resource: 'backup-job' },

@@ -1,7 +1,7 @@
 import { createLogger } from '@xen-orchestra/log'
 import type { EventEmitter } from 'node:events'
 import { AnyPrivilege, hasPrivilegeOn, SupportedResource } from '@xen-orchestra/acl'
-import { XAPI_TYPES, type XapiXoRecord, type XoUser } from '@vates/types'
+import { XAPI_TYPES, XoRecord, type XapiXoRecord, type XoUser } from '@vates/types'
 import type { CollectionEventType, EventType, NonXapiListenerType, XoListenerType } from '../events/event.type.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -124,7 +124,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     userId,
   }: {
     event: CollectionEventType
-    object: object | undefined
+    object: Partial<XoRecord> | undefined
     previousObject: object | undefined
     userId: XoUser['id']
   }): Promise<CollectionEventType | undefined> {
@@ -139,6 +139,11 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     }
 
     const userPrivileges = (await restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+    const privilegeResolver = await restApi.buildPrivilegeResolver(
+      [object, previousObject].filter(o => o !== undefined),
+      userPrivileges
+    )
+
     let resource: SupportedResource | undefined
 
     if (!XAPI_TYPES.includes(this.type)) {
@@ -158,7 +163,18 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
           return
         }
 
-        if (!hasPrivilegeOn({ user, userPrivileges, action: 'read', objects: object, resource }, restApi.resolver)) {
+        if (
+          !hasPrivilegeOn(
+            {
+              user,
+              userPrivileges,
+              action: 'read',
+              objects: object,
+              resource,
+            },
+            privilegeResolver
+          )
+        ) {
           return
         }
         return 'add'
@@ -173,7 +189,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
               objects: object,
               resource,
             },
-            restApi.resolver
+            privilegeResolver
           )
 
         const canSeePreviousObject =
@@ -186,7 +202,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
               objects: previousObject,
               resource,
             },
-            restApi.resolver
+            privilegeResolver
           )
 
         if (canSeeObject && canSeePreviousObject) {
@@ -213,7 +229,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
               objects: object ?? previousObject!,
               resource,
             },
-            restApi.resolver
+            privilegeResolver
           )
         ) {
           return
