@@ -35,16 +35,16 @@ const {
 const { open: openActionModal } = useActionModal()
 
 function rebootHost() {
-  openActionModal({
-    events: {
-      onConfirm: () => run(),
-    },
+  return openActionModal({
     props: {
       accent: 'info',
       action: 'reboot',
       object: 'host',
       hostName: host.name_label,
       icon: 'status:info-picto',
+    },
+    events: {
+      onConfirm: () => run({ detached: true }),
     },
   })
 }

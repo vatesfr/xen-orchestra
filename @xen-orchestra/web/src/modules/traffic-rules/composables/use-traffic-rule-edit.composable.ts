@@ -22,18 +22,14 @@ export function useTrafficRuleEdit(rawTrafficRule: MaybeRefOrGetter<TrafficRule>
   const { open } = useOverlay({
     component: () => import('@/modules/traffic-rules/components/drawer/TrafficRuleEditDrawer.vue'),
     events: {
-      onConfirm: async (payload: TrafficRulePayload | undefined) => {
+      onConfirm: (payload: TrafficRulePayload | undefined) => {
         if (payload === undefined) {
           return KEEP_OVERLAY_OPEN
         }
 
         newRulePayload.value = payload
 
-        try {
-          await run()
-        } catch (error) {
-          console.error('Error when updating traffic rule:', error)
-        }
+        run({ detached: true })
       },
       onCancel: true,
     },

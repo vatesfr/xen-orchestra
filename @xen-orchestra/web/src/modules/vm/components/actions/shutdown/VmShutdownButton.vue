@@ -48,9 +48,11 @@ const openModal = () => {
     return openBlockedModal({ props: { blockedOperation: 'clean_shutdown', href: xo5VmAdvancedHref.value } })
   }
 
-  openShutdownModal({
-    events: { onConfirm: () => shutdown() },
+  return openShutdownModal({
     props: { accent: 'info', action: 'shutdown', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
+    events: {
+      onConfirm: () => shutdown({ detached: true }),
+    },
   })
 }
 </script>
