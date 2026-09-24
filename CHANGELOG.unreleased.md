@@ -66,7 +66,7 @@
 - [backup/restore] Fix backups of a repository randomly disappearing from the list after visiting a VM (PR [#10277](https://github.com/vatesfr/xen-orchestra/pull/10277))
 - **XO 5**:
   - [Netdata] Fix `You must enable Javascript` error due to CSP blocking Netdata's inline scripts (PR [#10275](https://github.com/vatesfr/xen-orchestra/pull/10275))
-  - [tab-disks] VDI migration now shows all pool SRs for admins, even on VMs bound to a Resource Set  [Forum#107707](https://xcp-ng.org/forum/post/107707) (PR [#10422](https://github.com/vatesfr/xen-orchestra/pull/10422))
+  - [tab-disks] VDI migration now shows all pool SRs for admins, even on VMs bound to a Resource Set [Forum#107707](https://xcp-ng.org/forum/post/107707) (PR [#10422](https://github.com/vatesfr/xen-orchestra/pull/10422))
 
 ### Packages to release
 
