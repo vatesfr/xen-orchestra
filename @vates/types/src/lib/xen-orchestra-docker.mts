@@ -151,8 +151,10 @@ export type XoDockerLogEntry = {
 
 export type XoDockerLogs = {
   entries: XoDockerLogEntry[]
-  /** the logs have been cut at `docker.maxLogsSize` */
+  /** the logs have been cut: at `docker.maxLogsSize`, or when reading them timed out */
   truncated: boolean
+  /** reading stopped at `docker.logsTimeout` (overall) or `docker.logsIdleTimeout` (no data) */
+  timedOut: boolean
   asOf: number
 }
 

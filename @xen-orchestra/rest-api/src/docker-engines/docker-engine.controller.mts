@@ -34,6 +34,7 @@ import {
   noContentResp,
   notFoundResp,
   serviceUnavailableResp,
+  tooManyRequestsResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
@@ -175,6 +176,14 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    * `acceptUnknownHostKey: true` (without `hostKeyFingerprint`) trusts and
    * pins whatever key is presented: only for automation which cannot check it.
    *
+   * After an SSH authentication failure, a refused host key or an aborted
+   * handshake, the same parameters are refused for `docker.authFailureCooldown`
+   * (default 10 s): 429 `SSH_COOLDOWN` with `Retry-After`, without connecting.
+   * Changed parameters are tried right away. `SSH_REFUSED_PENALTY` (502) means
+   * that the SSH server closed the connection before the handshake soon after
+   * failures: it may be temporarily refusing XO's address (OpenSSH
+   * PerSourcePenalties).
+   *
    * The credentials are stored in the XO database, encrypted only if
    * `redis.encryptCredentialDatabase` is enabled. Access to the Docker socket
    * is equivalent to root on the Docker host.
@@ -206,6 +215,7 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
     dockerEngineHostKeyUnknown
   )
   @Response(invalidParameters.status, invalidParameters.description)
+  @Response(tooManyRequestsResp.status, 'SSH_COOLDOWN: the same parameters failed recently, see Retry-After')
   @Response(badGatewayResp.status, 'SSH or Docker socket failure (see data.code, data.diagnostic)')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async createDockerEngine(@Body() body: CreateDockerEngineBody): Promise<{ id: string }> {
@@ -230,13 +240,22 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   }
 
   /**
-   * Partial update: omitted properties are kept, `null` or `''` clears them.
+   * Partial update: omitted properties are kept, `null` or `''` clears them
+   * (clearing `privateKey` also clears `passphrase`).
    *
-   * Changing how to connect (host, credentials…) closes the pooled
-   * connection. A new `hostKeyFingerprint` replaces the pinned key, without
-   * connecting. Clearing it (`null`) checks the host key like on creation: 409
+   * Changing how to connect (host, port, username, password, privateKey,
+   * passphrase, socketPath, hostKeyFingerprint, or the VM when the address
+   * is resolved from it) connects first, verifying the host key with the new
+   * or the stored pin, and saves nothing on failure, with the errors of the
+   * creation: 409 `HOST_KEY_MISMATCH` (e.g. a wrong new `hostKeyFingerprint`),
+   * 502 `SSH_AUTH_FAILED` (e.g. a wrong new key), 502
+   * `DOCKER_SOCKET_UNREACHABLE` with `data.diagnostic`, 429 `SSH_COOLDOWN`…
+   * On success, the pooled connection is closed. Clearing
+   * `hostKeyFingerprint` (`null`) checks the host key like on creation: 409
    * `HOST_KEY_UNKNOWN` with the observed `fingerprint`, to send back as
-   * `hostKeyFingerprint`.
+   * `hostKeyFingerprint` (or `acceptUnknownHostKey: true`).
+   *
+   * Other changes (e.g. `label`) do not connect.
    *
    * Always synchronous.
    *
@@ -254,6 +273,7 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(409, 'Unknown or mismatching SSH host key (see data.fingerprint), or the VM already has an engine')
   @Response(invalidParameters.status, invalidParameters.description)
+  @Response(tooManyRequestsResp.status, 'SSH_COOLDOWN: the same parameters failed recently, see Retry-After')
   @Response(badGatewayResp.status, 'SSH or Docker socket failure (see data.code, data.diagnostic)')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async updateDockerEngine(@Path() id: string, @Body() body: UpdateDockerEngineBody): Promise<void> {
@@ -311,6 +331,10 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    * and `diagnostic` which tells apart the causes of a Docker socket which
    * cannot be opened (missing socket, permission, forwarding disabled).
    *
+   * Shortly after an authentication, host key or handshake failure of the
+   * engine, it is refused without connecting: 429 `SSH_COOLDOWN` with
+   * `Retry-After` (synchronous call).
+   *
    * Required privilege:
    * - admin (v2: resource: docker-engine, action: test)
    *
@@ -325,6 +349,7 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(200, 'Result of the test (synchronous call)')
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(tooManyRequestsResp.status, 'SSH_COOLDOWN: a recent attempt failed, see Retry-After (synchronous call)')
   testDockerEngine(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<XoDockerEngineTestResult> {
     const engineId = id as XoDockerEngine['id']
     return this.#withEngine(engineId, () =>

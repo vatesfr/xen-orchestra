@@ -83,7 +83,6 @@ export function getEngineScope(node: CM.Node): EnginePredicate | undefined {
 export type DockerContainerList = {
   containers: XoDockerContainer[]
   errors: XoDockerContainerListError[]
-  asOf: number
 }
 
 /**
@@ -127,11 +126,23 @@ export class DockerContainerService {
    *
    * An engine which fails does not fail the list: see `errors`.
    */
-  async list({ filter, all = true, stats = false }: { filter?: string; all?: boolean; stats?: boolean }) {
+  async list({
+    filter,
+    all = true,
+    stats = false,
+    forceRefresh = false,
+  }: {
+    filter?: string
+    all?: boolean
+    stats?: boolean
+    forceRefresh?: boolean
+  }): Promise<DockerContainerList> {
     const engines = await this.resolveEngines(filter)
-    const result = await withDockerErrors(() => this.#restApi.xoApp.getDockerContainers({ engines, all, stats }))
+    const { containers, errors } = await withDockerErrors(() =>
+      this.#restApi.xoApp.getDockerContainers({ engines, all, stats, forceRefresh })
+    )
     const predicate = safeParseComplexMatcher(filter!).createPredicate()
-    return { ...result, containers: result.containers.filter(predicate) } satisfies DockerContainerList
+    return { containers: containers.filter(predicate), errors }
   }
 
   /**

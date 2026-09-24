@@ -158,6 +158,29 @@ describe('DockerEngineController', () => {
       assert.deepEqual(tasks[0].properties.params, { privateKey: OBFUSCATED, passphrase: OBFUSCATED, password: null })
     })
 
+    it('update which fails to connect: the error of the creation, no secret (fixes)', async () => {
+      for (const [code, status] of [
+        ['SSH_AUTH_FAILED', 502],
+        ['HOST_KEY_MISMATCH', 409],
+        ['SSH_COOLDOWN', 429],
+      ] as const) {
+        const { controller, tasks } = setup({
+          xoApp: {
+            updateDockerEngine: async () => {
+              throw new DockerError(code, code, { retryAfter: 3 })
+            },
+          },
+        })
+        await assert.rejects(controller.updateDockerEngine(ENGINE_ID, { privateKey: SECRETS.privateKey }), error => {
+          assert.ok(error instanceof ApiError)
+          assert.equal(error.status, status)
+          assert.equal((error.data as { code: string }).code, code)
+          return true
+        })
+        assertNoSecrets(tasks)
+      }
+    })
+
     it('test', async () => {
       const { controller, tasks } = setup()
       assert.deepEqual(await controller.testDockerEngine(ENGINE_ID, true), { ok: true, fingerprint: 'SHA256:x' })
@@ -208,6 +231,8 @@ describe('toDockerApiError()', () => {
     assert.equal(statusOf('SSH_AUTH_FAILED'), 502)
     assert.equal(statusOf('SSH_UNREACHABLE'), 502)
     assert.equal(statusOf('SSH_ERROR'), 502)
+    assert.equal(statusOf('SSH_REFUSED_PENALTY'), 502)
+    assert.equal(statusOf('SSH_COOLDOWN', { retryAfter: 7 }), 429)
     assert.equal(statusOf('DOCKER_SOCKET_UNREACHABLE'), 502)
     assert.equal(statusOf('STREAM_LOCAL_UNSUPPORTED'), 502)
     assert.equal(statusOf('DOCKER_API_VERSION_UNSUPPORTED'), 502)
@@ -263,5 +288,22 @@ describe('toDockerApiError()', () => {
     assert.equal(status, 503)
     assert.deepEqual(headers, { 'Retry-After': '5' })
     assert.deepEqual(body, { error: 'too many connections', data: { code: 'POOL_EXHAUSTED' } })
+  })
+
+  it('SSH_COOLDOWN: 429 with Retry-After from data.retryAfter (fixes)', () => {
+    const error = toDockerApiError(
+      new DockerError('SSH_COOLDOWN', 'retry in 7 s', { retryAfter: 7, lastCode: 'SSH_AUTH_FAILED' })
+    ) as ApiError & { headers?: Record<string, string> }
+    assert.equal(error.status, 429)
+    assert.deepEqual(error.data, { code: 'SSH_COOLDOWN', retryAfter: 7, lastCode: 'SSH_AUTH_FAILED' })
+    const headers: Record<string, string> = {}
+    const res = {
+      headersSent: false,
+      setHeader: (name: string, value: string) => (headers[name] = value),
+      status: () => res,
+      json: () => {},
+    }
+    genericErrorHandler(error, { method: 'POST', path: '/docker-engines' } as never, res as never, () => {})
+    assert.deepEqual(headers, { 'Retry-After': '7' })
   })
 })

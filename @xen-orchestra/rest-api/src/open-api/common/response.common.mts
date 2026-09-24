@@ -92,6 +92,11 @@ export const serviceUnavailableResp = {
   description: 'Service unavailable, retry later',
 } as const
 
+export const tooManyRequestsResp = {
+  status: 429,
+  description: 'Too many requests, see the Retry-After header',
+} as const
+
 export const gatewayTimeoutResp = {
   status: 504,
   description: 'Gateway timeout, a remote system (e.g. a Docker host) did not answer in time',
