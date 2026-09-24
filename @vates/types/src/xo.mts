@@ -20,6 +20,16 @@ import type {
 } from './common.mjs'
 import type * as CMType from './lib/complex-matcher.mjs'
 import { XoAclBasePrivilege, XoAclRole } from './lib/xen-orchestra-acl.mjs'
+import type {
+  XoDockerCompose,
+  XoDockerContainerHealth,
+  XoDockerContainerState,
+  XoDockerHealthCheck,
+  XoDockerMount,
+  XoDockerNetwork,
+  XoDockerPort,
+  XoDockerRestartPolicy,
+} from './lib/xen-orchestra-docker.mjs'
 import type { XenApiHost, XenApiPool } from './xen-api.mjs'
 
 type BaseXapiXo = {
@@ -62,6 +72,11 @@ type BaseXoVm = BaseXapiXo & {
   cpuWeight?: number
   creation: Record<string, string>
   current_operations: Record<string, VM_OPERATIONS>
+  /**
+   * @deprecated legacy xscontainer data scraped from `other_config`, use the
+   * `XoDockerEngine`/`XoDockerContainer` records (`/rest/v0/docker-engines`,
+   * `/rest/v0/docker-containers`) instead
+   */
   docker?: {
     containers?: string[]
     enabled: boolean
@@ -215,6 +230,77 @@ export type XoBackupRepository = {
 export type XoGpuGroup = BaseXapiXo & {
   id: Branded<'gpu-group'>
   type: 'gpuGroup'
+}
+
+/**
+ * A Docker engine reached through SSH (`direct-streamlocal` to its socket)
+ *
+ * Secrets (password, private key, passphrase) are never included.
+ */
+export type XoDockerEngine = {
+  id: Branded<'docker-engine'>
+  /** VM running the engine, absent for an engine which is not a VM */
+  $VM?: XoVm['id']
+  /** pool of the VM, denormalized at read time */
+  $pool?: XoPool['id']
+  label?: string
+  /** absent: resolved from the addresses reported by the VM at connection time */
+  host?: string
+  resolvedHost?: string
+  port: number
+  username: string
+  socketPath: string
+  /** pinned SSH host key, `SHA256:…` as printed by `ssh-keygen -l` */
+  hostKeyFingerprint?: string
+  hostKeyAlgorithm?: string
+  hasPassword: boolean
+  hasPrivateKey: boolean
+  /** state of the pooled connection, reading it never connects */
+  connectionStatus: 'idle' | 'connected' | 'error'
+  /** last connection failure, if any */
+  error?: { code: string; message: string }
+}
+
+/**
+ * A container of a Docker engine, fetched live
+ *
+ * The fields after `mounts` come from an inspection: they are absent from the
+ * list entries of stopped containers (and above `docker.inspectThreshold`).
+ */
+export type XoDockerContainer = {
+  /** `<engine id>_<full Docker id>` */
+  id: Branded<'docker-container'>
+  $engine: XoDockerEngine['id']
+  $VM?: XoVm['id']
+  $pool?: XoPool['id']
+  dockerId: string
+  name?: string
+  image: string
+  imageId: string
+  command: string
+  createdAt?: number
+  state: XoDockerContainerState
+  /** human readable status, e.g. `Up 3 hours (healthy)` */
+  status?: string
+  exitCode?: number
+  health?: XoDockerContainerHealth
+  ports: XoDockerPort[]
+  labels: Record<string, string>
+  compose?: XoDockerCompose
+  networks: XoDockerNetwork[]
+  mounts: XoDockerMount[]
+
+  startedAt?: number
+  finishedAt?: number
+  oomKilled?: boolean
+  error?: string
+  healthCheck?: XoDockerHealthCheck
+  restartPolicy?: XoDockerRestartPolicy
+  restartCount?: number
+  tty?: boolean
+  hostname?: string
+  workingDir?: string
+  user?: string
 }
 
 export type XoGroup = {
@@ -689,6 +775,8 @@ export type XoTask = {
       | 'backup-job'
       | 'backup-log'
       | 'backup-repository'
+      | 'docker-container'
+      | 'docker-engine'
       | 'group'
       | 'proxy'
       | 'restore'
@@ -907,6 +995,8 @@ export type NonXapiXoRecord =
   | XoProxy
   | XoJob
   | XoBackupRepository
+  | XoDockerContainer
+  | XoDockerEngine
   | XoSchedule
   | XoServer
   | XoTask
