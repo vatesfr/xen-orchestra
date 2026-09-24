@@ -550,6 +550,7 @@
   "job:host-start:power-on-disabled": "Démarrage désactivé",
   "job:migrate:in-progress": "Migration en cours…",
   "job:network-delete:has-n-physical-pif-connected": "Le réseau a un PIF physique connecté | Le réseau a {n} PIFs physiques connectés",
+  "job:network-delete:has-n-pif-connected": "Le réseau a un PIF connecté | Le réseau a {n} PIFs connectés",
   "job:network-delete:has-n-vif-attached": "Le réseau a un VIF attaché | Le réseau a {n} VIFs attachés",
   "job:network-delete:missing-network": "Aucun réseau à supprimer",
   "job:pbd-plug:missing-pbd": "Aucun PBD à connecter",
