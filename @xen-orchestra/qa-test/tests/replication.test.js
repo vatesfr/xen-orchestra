@@ -552,7 +552,7 @@ describe('Incremental Replication', () => {
 
       after(async () => cleanupVms(replicatedVmUuids))
 
-      it('never lets the previous replica coexist with the new one for the bulk of the transfer', async () => {
+      it('frees the pruned snapshot before the second transfer instead of after it', async () => {
         const { jobId, scheduleKey } = await createReplicationJob(vm, destSr.uuid, 'deleteFirst r1', {
           copyRetention: 1,
           deleteFirst: true,
@@ -565,37 +565,45 @@ describe('Incremental Replication', () => {
         assertFullOrDeltaForSr(result1, destSr.uuid, { mustBeFull: true })
 
         const newUuids1 = await findNewVmUuids(vmUuidsBefore)
+        // Track before asserting the count, so a failed assertion can't leak
+        // a replica onto the destination SR.
+        replicatedVmUuids.push(...newUuids1)
         assert.strictEqual(newUuids1.length, 1, 'First replication should create exactly one replica VM')
-        const replicaA = newUuids1[0]
-        replicatedVmUuids.push(replicaA)
+        const replicaVmUuid = newUuids1[0]
+
+        // The target VM persists across runs — only its snapshots are subject
+        // to retention (see IncrementalXapiWriter._prepare). So the signal for
+        // "was the old copy freed first" is the snapshot count on this VM and
+        // the destination SR's usage, not whether the VM itself gets destroyed.
+        const snapshotsAfterRun1 = (await dispatchClient.vm.details(replicaVmUuid)).snapshots?.length ?? 0
+        assert.ok(snapshotsAfterRun1 > 0, 'The replica VM should have at least one snapshot after the first run')
+        log.debug('Replica snapshot count after run 1', { snapshotsAfterRun1 })
 
         const usageAfterRun1 = (await dispatchClient.sr.details(destSr.uuid)).physical_usage
         assert.ok(usageAfterRun1 > 0, 'Destination SR usage should be > 0 after the first replica is created')
         log.debug('Destination SR usage after run 1', { usageAfterRun1 })
 
-        // --- Run 2: with copyRetention 1, replicaA is entirely "old" and must
-        // be removed by _prepare() *before* the transfer, not by cleanup()
-        // after it. Poll SR usage and replicaA's existence while the job runs:
-        // with the bug, replicaA survives until cleanup() and usage climbs
-        // towards ~2x during the transfer; with the fix it should stay close
-        // to a single replica's footprint throughout, and replicaA should be
-        // gone well before the run completes.
-        let polling = true
+        // --- Run 2: with copyRetention 1, the run-1 snapshot is entirely
+        // "old" and must be destroyed by _prepare() *before* the transfer,
+        // not by cleanup() after it. Poll SR usage and the replica's snapshot
+        // count while the job runs: with the bug, the old snapshot survives
+        // until cleanup() and usage climbs towards ~2x during the transfer;
+        // with the fix, the old snapshot should be gone well before the run
+        // completes, and usage should stay close to a single replica's
+        // footprint throughout.
+        const pollState = { running: true }
         let peakUsage = 0
-        let sawReplicaADeletedDuringRun = false
+        let minSnapshotCountDuringRun = Infinity
 
         const pollUsage = (async () => {
-          // eslint-disable-next-line no-unmodified-loop-condition
-          while (polling) {
+          while (pollState.running) {
             try {
-              const [sr, replicaAStillThere] = await Promise.all([
+              const [sr, replicaVm] = await Promise.all([
                 dispatchClient.sr.details(destSr.uuid),
-                vmExists(replicaA),
+                dispatchClient.vm.details(replicaVmUuid),
               ])
               peakUsage = Math.max(peakUsage, sr.physical_usage)
-              if (!replicaAStillThere) {
-                sawReplicaADeletedDuringRun = true
-              }
+              minSnapshotCountDuringRun = Math.min(minSnapshotCountDuringRun, replicaVm.snapshots?.length ?? 0)
             } catch (error) {
               log.warn('Polling error (ignored)', { error })
             }
@@ -604,19 +612,23 @@ describe('Incremental Replication', () => {
         })()
 
         const result2 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
-        polling = false
+        pollState.running = false
         await pollUsage
 
         assertBackupSuccess(result2, 'Second replication')
 
         // --- Assertions ---
 
-        // We must have observed replicaA gone at some point while polling
-        // during run 2 — i.e. it was deleted as part of *this* run's
-        // preparation, not left dangling until after the transfer.
+        // We must have observed the snapshot count drop below its run-1 level
+        // at some point while polling during run 2 — i.e. the old snapshot
+        // was destroyed as part of *this* run's preparation, not left
+        // dangling until after the transfer (where it would instead briefly
+        // rise to run1 + 1 before being pruned back down by cleanup()).
         assert.ok(
-          sawReplicaADeletedDuringRun,
-          'The previous replica should have been deleted before/during the second run, not only after it'
+          minSnapshotCountDuringRun < snapshotsAfterRun1,
+          `Expected the replica's snapshot count to drop below ${snapshotsAfterRun1} at some point during ` +
+            `the second run (old snapshot freed first), but the minimum observed was ${minSnapshotCountDuringRun}. ` +
+            'This would indicate the old snapshot was only removed after the new transfer completed.'
         )
 
         // The destination should never have needed to hold ~2 replicas' worth
@@ -631,20 +643,25 @@ describe('Incremental Replication', () => {
             `A peak near ${usageAfterRun1 * 2} bytes would indicate the old replica was not freed first.`
         )
 
-        // Never delete too much: exactly one replica must remain, never zero.
+        // Never delete too much: the replica VM itself must still be there
+        // (it's reused, not recreated) and must still have exactly the
+        // retained snapshot count — never zero, never more than retention.
         const newUuids2 = await findNewVmUuids(vmUuidsBefore)
+        replicatedVmUuids.length = 0
+        replicatedVmUuids.push(...newUuids2)
         assert.strictEqual(
           newUuids2.length,
           1,
-          `Expected exactly 1 replica to remain after run 2 with copyRetention: 1, got ${newUuids2.length}`
+          `Expected exactly 1 replica VM after run 2 with copyRetention: 1, got ${newUuids2.length}`
         )
-        replicatedVmUuids.length = 0
-        replicatedVmUuids.push(newUuids2[0])
+        assert.strictEqual(newUuids2[0], replicaVmUuid, 'Run 2 should reuse the same replica VM, not create a new one')
 
+        const snapshotsAfterRun2 = (await dispatchClient.vm.details(replicaVmUuid)).snapshots?.length ?? 0
         assert.strictEqual(
-          await vmExists(replicaA),
-          false,
-          'The first replica must have been destroyed by the end of the second run'
+          snapshotsAfterRun2,
+          snapshotsAfterRun1,
+          `Expected the replica to end up with exactly ${snapshotsAfterRun1} snapshot(s) (copyRetention: 1) after ` +
+            `run 2, got ${snapshotsAfterRun2} — never delete too much (0) or too little (>${snapshotsAfterRun1}).`
         )
       })
     })
@@ -666,9 +683,9 @@ describe('Incremental Replication', () => {
         assertFullOrDeltaForSr(result1, destSr.uuid, { mustBeFull: true })
 
         const newUuids1 = await findNewVmUuids(vmUuidsBefore)
+        replicatedVmUuids.push(...newUuids1)
         assert.strictEqual(newUuids1.length, 1, 'First replication should create exactly one replica VM')
         const replicaA = newUuids1[0]
-        replicatedVmUuids.push(replicaA)
 
         // With copyRetention: 2 there is nothing yet to prune (only 1 entry
         // exists), so deleteFirst must not touch replicaA — it is the
