@@ -716,12 +716,18 @@ export type XoTask = {
 export type XoUser = {
   authProviders?: Record<string, string>
   email: string
+  firstname?: string
   groups: XoGroup['id'][]
   id: Branded<'user'>
+  lastname?: string
+  /**
+   * @deprecated use username instead
+   */
   name?: string
   permission: 'none' | 'admin'
   pw_hash?: string
   preferences: Record<string, string>
+  username?: string
 }
 
 export type XoAuthenticationToken = {

@@ -911,7 +911,7 @@ export default class XenServers {
       })
   }
 
-  async _suspendRpuLoadBalancer($defer, pool) {
+  async _suspendRpuLoadBalancer($defer, pool, recorder) {
     const app = this._app
     const suspension = this._getRpuLoadBalancerSuspension()
     const state = suspension.value
@@ -934,6 +934,8 @@ export default class XenServers {
           })
           reEnableDelay = DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY
         }
+        // intent on disk first: a refused write must not leave a re-enabling pending
+        await recorder.settingChangedByRun('loadBalancer')
         state.autoload = plugin.autoload
         state.reEnableDelay = reEnableDelay
         state.shouldReEnable = true
@@ -948,14 +950,22 @@ export default class XenServers {
    * @param {Function} $defer - Injected by the `defer` decorator
    * @param {object} pool - XO pool object
    * @param {object} [opts]
+   * @param {boolean} [opts.acceptCurrentStateAsBaseline] - Start even though the master is already up to date while
+   *   another host is not, ie from a partially updated pool, otherwise such an update is refused with an
+   *   `incorrectState` error (property `partiallyUpdatedPool`)
    * @param {boolean} [opts.bypassBackupCheck] - Skip the backup guard, the bypass is logged
    * @param {boolean} [opts.rebootVm] - Accept the VM reboots required by the update guidances (XenServer 8.4+),
    *   otherwise such an update is refused with an `incorrectState` error
    * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
    * @param {boolean} [opts.shutdownPinnedVms] - Shut down the VMs that cannot be migrated before their host reboots
    * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool
+   * @throws {Error} `incorrectState` (property `rollingUpdateRecovery`) if a previous run left a recovery record
    */
-  async rollingPoolUpdate($defer, pool, { bypassBackupCheck, rebootVm, parentTask, shutdownPinnedVms } = {}) {
+  async rollingPoolUpdate(
+    $defer,
+    pool,
+    { acceptCurrentStateAsBaseline, bypassBackupCheck, rebootVm, parentTask, shutdownPinnedVms } = {}
+  ) {
     const app = this._app
     const poolId = pool.id
     await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
@@ -966,7 +976,17 @@ export default class XenServers {
 
     // strict write before any side effect: if the record cannot be persisted,
     // an interruption could not be reported, so the run must not start
-    const recorder = await app.startRpuRecoveryRun(poolId, { rebootVm, bypassBackupCheck, shutdownPinnedVms })
+    const recorder = await app.startRpuRecoveryRun(poolId, {
+      acceptCurrentStateAsBaseline,
+      rebootVm,
+      bypassBackupCheck,
+      shutdownPinnedVms,
+    })
+
+    // a failure before the first host was handled leaves nothing to recover
+    // once the restorations deferred below (schedules, load balancer, WLB)
+    // have run: registered before them, this runs after them
+    $defer.onFailure(() => recorder.dropIfNothingToRecover())
 
     // every failure from here on is persisted before the caller sees it: the
     // pool state starts changing below (schedules, load balancer, WLB)
@@ -998,20 +1018,28 @@ export default class XenServers {
       recorder.markRunning()
 
       // Disable schedules
+      const schedulesToDisable = schedules.filter(
+        schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled
+      )
+      if (schedulesToDisable.length > 0) {
+        await recorder.settingChangedByRun(
+          'schedules',
+          schedulesToDisable.map(schedule => schedule.id)
+        )
+      }
       await Promise.all(
-        schedules
-          .filter(schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled)
-          .map(async schedule => {
-            await app.updateSchedule({ ...schedule, enabled: false })
-            $defer(() => app.updateSchedule({ ...schedule, enabled: true }))
-          })
+        schedulesToDisable.map(async schedule => {
+          await app.updateSchedule({ ...schedule, enabled: false })
+          $defer(() => app.updateSchedule({ ...schedule, enabled: true }))
+        })
       )
 
       // Disable load balancer
-      await this._suspendRpuLoadBalancer($defer, pool)
+      await this._suspendRpuLoadBalancer($defer, pool, recorder)
 
       const xapi = this.getXapi(pool)
       if (await xapi.getField('pool', pool._xapiRef, 'wlb_enabled')) {
+        await recorder.settingChangedByRun('wlb')
         await xapi.call('pool.set_wlb_enabled', pool._xapiRef, false)
         $defer(() => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true))
       }
@@ -1037,6 +1065,7 @@ export default class XenServers {
       await task.run(async () =>
         this.getXapi(pool).rollingPoolUpdate(task, {
           xsCredentials: app.apiContext.user.preferences.xsCredentials,
+          acceptCurrentStateAsBaseline,
           rebootVm,
           shutdownPinnedVms,
           recorder,
@@ -1047,10 +1076,10 @@ export default class XenServers {
       throw error
     }
 
-    // a successful run needs no recovery: the record must be gone, or the
-    // run would be reported as interrupted at the next restart. That report
-    // is the only consequence of a failed delete, so it must not fail an RPU
-    // that succeeded: log it and let the operator dismiss the record
+    // a successful run needs no recovery: the record must be gone. If the
+    // delete fails, the recorder has stamped the record `succeeded` so the
+    // run is not reported as interrupted at the next restart; a stale record
+    // must not fail an RPU that succeeded: log it
     try {
       await recorder.delete()
     } catch (error) {

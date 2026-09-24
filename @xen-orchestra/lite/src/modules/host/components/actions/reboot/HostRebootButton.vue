@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canRebootHost && rebootHostErrorMessage"
+    accent="neutral"
     :busy="isRebootingHost"
     :disabled="!canRebootHost"
     icon="action:reboot"
@@ -31,7 +32,7 @@ const {
   canRun: canRebootHost,
   isRunning: isRebootingHost,
   errorMessage: rebootHostErrorMessage,
-} = useHostRebootJob(() => host)
+} = useHostRebootJob(() => host, false)
 
 function rebootHost() {
   return openActionModal({

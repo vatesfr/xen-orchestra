@@ -28,5 +28,5 @@ const { pageRecords, paginationBindings } = usePagination('items', items)
   {{ item.name }}
 </div>
 
-<UiTablePagination v-bind="paginationBindings" />
+<UiTablePagination v-bind="paginationBindings" size="large" />
 ```

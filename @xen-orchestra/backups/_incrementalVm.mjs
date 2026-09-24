@@ -135,7 +135,12 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   $defer,
   incrementalVm,
   sr,
-  { cancelToken = CancelToken.none, newMacAddresses = false, targetRef = undefined } = {}
+  {
+    cancelToken = CancelToken.none,
+    newMacAddresses = false,
+    targetRef = undefined,
+    vmNamePrefix = '[Importing…] ',
+  } = {}
 ) {
   const { version } = incrementalVm
   if (compareVersions(version, '1.0.0') < 0) {
@@ -224,7 +229,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         },
         ha_always_run: false,
         is_a_template: false,
-        name_label: '[Importing…] ' + vmRecord.name_label,
+        name_label: vmNamePrefix + vmRecord.name_label,
       },
       {
         bios_strings: vmRecord.bios_strings,
@@ -255,7 +260,12 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
     const vdi = vdiRecords[vdiRef]
     let newVdi
 
-    if (vdi.baseVdi?.$ref !== undefined) {
+    const isLiveMounted = vdi.liveMountedVdiRef !== undefined
+    if (isLiveMounted) {
+      // the disk is served by a live mount: the VDI already exists and only has to be attached.
+      // No `$defer.onFailure` destroy here, it belongs to the mount and not to this import.
+      newVdi = await xapi.getRecord('VDI', vdi.liveMountedVdiRef)
+    } else if (vdi.baseVdi?.$ref !== undefined) {
       if (isUpdate) {
         // In update mode, reuse the existing target VDI directly — no clone needed.
         newVdi = vdi.baseVdi
@@ -284,6 +294,9 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       await asyncMap(Object.values(vdiVbds), vbd =>
         xapi.VBD_create({
           ...vbd,
+          // a live mount serves its disk read only: attach it as such, instead of letting the
+          // guest discover it through I/O errors on its first write
+          mode: isLiveMounted ? 'RO' : vbd.mode,
           VDI: newVdi.$ref,
           VM: vmRef,
         })

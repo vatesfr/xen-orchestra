@@ -13,7 +13,9 @@
 
 - [XO6/Vm] Add the VM name to VM related actions that open a modal (PR [#10310](https://github.com/vatesfr/xen-orchestra/pull/10310))
 - [XO6] Allow changing which PIF a host uses for its management interface, without deleting and recreating the network config (PR [#10110](https://github.com/vatesfr/xen-orchestra/pull/10110))
+- [Backups] change the prefix name of vms during health checks from 'Importing...' to 'Health Check' to avoid confusion (PR [#10361](https://github.com/vatesfr/xen-orchestra/pull/10361))
 - [XO6/SR] Add dedicated Storage Repository page hosts sidepanel (PR [#10140](https://github.com/vatesfr/xen-orchestra/pull/10140))
+- [Backup/Restore] Faster listing of the backups: a backup repository is now listed once, then kept up to date by replaying its journal instead of being listed again. Especially visible on S3 repositories with Object Lock, where nothing could be cached before (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
 - [Rolling pool update/reboot] A pool can now skip the phase which brings the VMs back to the host they were running on, which halves the migrations of the run (PR [#10295](https://github.com/vatesfr/xen-orchestra/pull/10295))
 - [XO5/Backups] Open the backup job edition form in the same tab when editing a backup job from the VM page (PR [#10342](https://github.com/vatesfr/xen-orchestra/pull/10342))
 - [Web-Core/TabItem] Update the component to remove uppercase for better readability (PR [#10338](https://github.com/vatesfr/xen-orchestra/pull/10338))
@@ -24,14 +26,33 @@
 - [RPU] Keep track of an interrupted rolling pool update across xo-server restarts: the pool's Patches tab now shows which hosts were updated, the last error, and the VMs that were shut down for the update and not started again (PR [#10331](https://github.com/vatesfr/xen-orchestra/pull/10331))
 - [i18n] Add Turkish and update Czech, Dutch, Slovak and Swedish translations (PR [#10316](https://github.com/vatesfr/xen-orchestra/pull/10316))
 - [REST API/Backup repositories] Free, used and total space are now available on backup repositories (PR [#10406](https://github.com/vatesfr/xen-orchestra/pull/10406))
+- [XO6/Host] Add icon for disabled host (PR [#10188](https://github.com/vatesfr/xen-orchestra/pull/10188))
+- [V2V] When a VM has Changed Block Tracking enabled on the source host, a migration now asks the host which blocks it has to read — the blocks a disk uses for a full transfer, the blocks written since the previous pass for a delta — instead of scanning the disk through the VDDK. Faster to start on large disks, and one less moving part. VMs without CBT are migrated exactly as before (PR [#10384](https://github.com/vatesfr/xen-orchestra/pull/10384))
+- [Proxy] Check proxy licenses at XOA level instead of blocking backups on it (PR [#10280](https://github.com/vatesfr/xen-orchestra/pull/10280))
+- [RPU] A rolling pool update is now refused while a previous one is still in progress or was left incomplete, and asks for confirmation when the master is already up to date but other hosts are not (PR [#10394](https://github.com/vatesfr/xen-orchestra/pull/10394))
+- [RPU] An incomplete rolling pool update can now be closed from the pool's Patches tab, or with `pool.finalizeRollingUpdate` and the REST route `POST /rest/v0/pools/{id}/actions/finalize_rolling_update`. The closing is refused while the update left something it had changed unrestored (HA, WLB, load balancer, backup schedules, disabled hosts, displaced or halted VMs); forcing it lists the abandoned items in the task and changes nothing in the pool (PR [#10418](https://github.com/vatesfr/xen-orchestra/pull/10418))
+- [REST API/Backup] Add `POST backup-archives/:id/actions/mount_live_disk` and `POST backup-archives/:id/live_disks/:liveDiskId/actions/unmount` endpoints (administrators only): attach a disk of a backup to a host as a read-only SR, to read its content without restoring it. This XO's address reachable from the hosts is auto-detected, or can be set explicitly with `iscsi.advertisedAddress`
+- [Backup/Restore] Choose what to do with each disk when restoring an incremental backup: restore it to an SR, live mount it read-only on a host so it is usable immediately without being copied, or not restore it at all (PR [#10345](https://github.com/vatesfr/xen-orchestra/pull/10345))
+- [XO6/Host] Add possibility to shut down and start an host (PR [#10088](https://github.com/vatesfr/xen-orchestra/pull/10088))
+- [REST API] Add `hosts/:id/actions/scan_pifs` endpoint (PR [#10187](https://github.com/vatesfr/xen-orchestra/pull/10187))
+- [XO6/Host] Add possibility to scan PIFs directly from the host (PR [#10191](https://github.com/vatesfr/xen-orchestra/pull/10191))
+- [Docs] Improve doc, rename titles, and refactor menu (PR [#10212](https://github.com/vatesfr/xen-orchestra/pull/10212))
+- [XO6/Host] Add possibility to forget a host (PR [#10089](https://github.com/vatesfr/xen-orchestra/pull/10089))
+
+- [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
+- [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
+- [REST API] Add an endpoint to reclaim space per vm or backup repository: `POST /rest/V0/backup-repositories/:id/actions/reclaim-space` (PR [#10262](https://github.com/vatesfr/xen-orchestra/pull/10262))
+- [XO6/Host] Sort the networks table by network name (PR [#10367](https://github.com/vatesfr/xen-orchestra/pull/10367))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backups/Encryption] New error thrown when encryption key is removed from an encrypted remote url (PR [#10339](https://github.com/vatesfr/xen-orchestra/pull/10339))
 - [Web-core] Fix "console offline" illustration sparks color (PR [#10309](https://github.com/vatesfr/xen-orchestra/pull/10309))
 - [Web-core] Fix 404 illustration color (PR [#10325](https://github.com/vatesfr/xen-orchestra/pull/10325))
 - [Backup-archive] No longer create a `cache.json.gz` file on immutable/S3 remote during cleanup, which could not be deleted afterwards and stayed billed forever (PR [#10243](https://github.com/vatesfr/xen-orchestra/pull/10243))
+- [Backups] Fix orphaned VM on target after failed transfer (PR [#10369](https://github.com/vatesfr/xen-orchestra/pull/10369))
 - [Servers] Fix endless connection attempts to a pool which is already connected through another server entry (PR [#10355](https://github.com/vatesfr/xen-orchestra/pull/10355))
 - [Servers] fix a mishandling in the grace period before marking a pool disconnected, this will keep the ui in sync AND not redownload all the xapi object for a transient issue (PR [#10355](https://github.com/vatesfr/xen-orchestra/pull/10355))
 - [Rolling pool update/reboot] VMs are brought back to the host they were running on more reliably, and a VM that cannot be moved back no longer fails the whole operation (PR [#10295](https://github.com/vatesfr/xen-orchestra/pull/10295))
@@ -52,6 +73,19 @@
 - [V2V] The credentials are no longer sent again on every read of a disk, and a session expiring during a long import is renewed (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 - [V2V] The session opened on the source host is now closed when a listing, a migration or a disk export ends, instead of piling up until it expires — a host only accepts a limited number of them (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 - [V2V] Report what the source host complained about, instead of `task execution failed` or an assertion error, when an operation fails (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
+- [xo-server] Set the VM topology to `1 core per socket` when a VM update attempts to apply a CPU static max configuration that is incompatible with the VM topology (PR [#10398](https://github.com/vatesfr/xen-orchestra/pull/10398))
+- [Backup] Fix a job combining Rolling Snapshot with Disaster Recovery to an SR of the source VM's pool destroying its own snapshots: the job reported a success but kept fewer snapshots than the configured snapshot retention, usually none (PR [#10395](https://github.com/vatesfr/xen-orchestra/pull/10395))
+- [OpenMetrics] Share metrics collection between requests to avoid filling up XOA memory (PR [10401](https://github.com/vatesfr/xen-orchestra/pull/10401))
+- [Netbox] Fix IP addresses synced with an incorrect, less specific prefix (e.g. `/8` instead of `/24`) when a shorter container prefix also matched [#10240](https://github.com/vatesfr/xen-orchestra/issues/10240) (PR [#10297](https://github.com/vatesfr/xen-orchestra/pull/10297))
+- [backup/restore] Fix backups of a repository randomly disappearing from the list after visiting a VM (PR [#10277](https://github.com/vatesfr/xen-orchestra/pull/10277))
+- **XO 5**:
+  - [Netdata] Fix `You must enable Javascript` error due to CSP blocking Netdata's inline scripts (PR [#10275](https://github.com/vatesfr/xen-orchestra/pull/10275))
+- [MCP] Fix the MCP server crashing at startup on Node 26 with `fetch failed`, and make `search_documentation` honour `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` like the other requests (PR [#10413](https://github.com/vatesfr/xen-orchestra/pull/10413))
+- [OpenMetrics] A host whose IPMI controller does not answer no longer delays the `/openmetrics/metrics` response until Prometheus gives up with `context deadline exceeded`: power and XOSTOR metrics are served from the last collected values and refreshed in the background (PR [#10409](https://github.com/vatesfr/xen-orchestra/pull/10409))
+- [Backup/Restore] Fix listing backups sometimes mixing the results of two different VM listings (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
+- [Backup/Restore] Better handling of a backup repository the proxy fails to list, instead of silently returning nothing (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
+  - [VM/Console] Fix the page header and tab navigation disappearing permanently in the console tab (PR [#10007](https://github.com/vatesfr/xen-orchestra/pull/10007))
+- [Backup] Fixed disk space not being freed during delta backup deletion ( PR [#10273] (https://github.com/vatesfr/xen-orchestra/pull/10273))
 
 ### Packages to release
 
@@ -69,11 +103,19 @@
 
 <!--packages-start-->
 
+- @vates/iscsi minor
 - @vates/node-vsphere-soap minor
 - @vates/types minor
+- @xen-orchestra/acl minor
+- @xen-orchestra/async-map patch
 - @xen-orchestra/backup-archive patch
-- @xen-orchestra/backups patch
+- @xen-orchestra/backups minor
 - @xen-orchestra/disk-cli patch
+- @xen-orchestra/fs patch
+- @xen-orchestra/mcp patch
+- @xen-orchestra/mixins minor
+- @xen-orchestra/proxy minor
+- @xen-orchestra/proxy-cli patch
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer major
@@ -81,9 +123,12 @@
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
 - xen-api major
+- xo-remote-parser major
 - xo-server minor
 - xo-server-audit patch
 - xo-server-auth-ldap patch
+- xo-server-netbox patch
+- xo-server-openmetrics patch
 - xo-server-sdn-controller patch
 - xo-web minor
 

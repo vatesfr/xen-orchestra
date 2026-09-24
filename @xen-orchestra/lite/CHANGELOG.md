@@ -1,9 +1,12 @@
 # ChangeLog
 
 ## **next**
-
 - [Host] Add possibility to reboot a host (PR [#10250](https://github.com/vatesfr/xen-orchestra/pull/10250))
 - [Web-Core/TabItem] Update the component to remove uppercase for better readability (PR [#10338](https://github.com/vatesfr/xen-orchestra/pull/10338))
+- [Host] Add possibility to force reboot a host (PR [#10311](https://github.com/vatesfr/xen-orchestra/pull/10311))
+- [Icons] Update FontAwesome, clean unused libraries (PR [#10365](https://github.com/vatesfr/xen-orchestra/pull/10365))
+- [Host] Add possibility to shut down and start a host (PR [#10314](https://github.com/vatesfr/xen-orchestra/pull/10314))
+- Use `MenuItem`'s `accent` prop to color menu actions instead of custom CSS classes (PR [#10348](https://github.com/vatesfr/xen-orchestra/pull/10348))
 
 ## **0.25.0** (2026-08-31)
 

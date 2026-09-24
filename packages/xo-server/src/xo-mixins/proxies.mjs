@@ -28,6 +28,7 @@ import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks.mjs'
 import { generateToken } from '../utils.mjs'
 
 const DEBOUNCE_TIME_PROXY_STATE = 60000
+const DEBOUNCE_TIME_PROXY_LICENSE = 24 * 60 * 60 * 1000
 
 const synchronizedWrite = synchronized()
 
@@ -68,9 +69,18 @@ async function addProxyVersion(proxy) {
   }
 }
 
+async function addProxyLicense(proxy) {
+  try {
+    proxy.license = await this.getProxyLicense(proxy.id)
+  } catch (error) {
+    log.debug('addProxyLicense', { error, proxy })
+  }
+}
+
 async function populateProxy(proxy) {
   addProxyUrl.call(this, proxy)
   await addProxyVersion.call(this, proxy)
+  await addProxyLicense.call(this, proxy)
   return proxy
 }
 
@@ -172,6 +182,7 @@ export default class Proxy {
           productId: this._app.config.get('xo-proxy.licenseProductId'),
         })
         .catch(log.warn)
+      this.getProxyLicense(REMOVE_CACHE_ENTRY, id)
     }
   }
 
@@ -220,6 +231,10 @@ export default class Proxy {
 
     patch(proxy, { address, authenticationToken, name, vmUuid })
     await this._db.update(proxy)
+
+    if (vmUuid !== undefined) {
+      this.getProxyLicense(REMOVE_CACHE_ENTRY, id)
+    }
 
     await populateProxy.call(this, proxy)
     return proxy
@@ -289,6 +304,16 @@ export default class Proxy {
     }
 
     return this.callProxyMethod(id, 'appliance.updater.getState')
+  }
+
+  @decorateWith(debounceWithKey, DEBOUNCE_TIME_PROXY_LICENSE, id => id, false)
+  async getProxyLicense(id) {
+    const { vmUuid } = await this._getProxy(id)
+    const licenses = await this._app.getLicenses?.()
+    return licenses?.find(
+      license =>
+        license.productId === this._app.config.get('xo-proxy.licenseProductId') && license.boundObjectId === vmUuid
+    )
   }
 
   @decorateWith(defer)
@@ -425,6 +450,7 @@ export default class Proxy {
         authenticationToken: proxyAuthenticationToken,
         vmUuid: vm.uuid,
       })
+      this.getProxyLicense(REMOVE_CACHE_ENTRY, proxyId)
     } else {
       proxyId = await this.registerProxy({
         authenticationToken: proxyAuthenticationToken,

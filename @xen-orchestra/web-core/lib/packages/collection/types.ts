@@ -1,5 +1,5 @@
 import type { ArrayFilterPredicate, KeyOfByValue } from '@core/types/utility.type.ts'
-import type { ComputedRef, MaybeRefOrGetter, Reactive } from 'vue'
+import type { ComputedRef, MaybeRef, Reactive } from 'vue'
 
 export type CollectionItem<
   TSource = unknown,
@@ -28,6 +28,15 @@ export type Collection<
   useSubset: (filter: ArrayFilterPredicate<$TItem>) => Collection<TSource, TFlag, TProperties, TId>
 }
 
+export type RootCollection<
+  TSource = unknown,
+  TFlag extends string = string,
+  TProperties extends CollectionItemProperties = CollectionItemProperties,
+  TId extends CollectionItemId = PickSourceId<TSource, 'id'>,
+> = Collection<TSource, TFlag, TProperties, TId> & {
+  clearFlag: (flag: TFlag) => void
+}
+
 export type CollectionItemProperties = Record<PropertyKey, unknown>
 
 export type CollectionItemId = string | number
@@ -47,10 +56,10 @@ export type ExtractSourceId<TSource, TGetId extends GetItemId<TSource>> = TGetId
       : PickSourceId<TSource, 'id'>
 
 export type FlagConfig = {
-  multiple?: MaybeRefOrGetter<boolean>
+  multiple?: MaybeRef<boolean>
 }
 
-export type CollectionConfigFlags<TFlag extends string> = TFlag[] | Record<TFlag, FlagConfig>
+export type CollectionConfigFlags<TFlag extends string> = Record<TFlag, true | FlagConfig>
 
 export type FlagRegistry<TId extends CollectionItemId, TFlag extends string> = {
   isFlagged: (id: TId, flag: TFlag) => boolean
@@ -74,6 +83,7 @@ export type UseFlagReturn<
   areAllOn: ComputedRef<boolean>
   areSomeOn: ComputedRef<boolean>
   areNoneOn: ComputedRef<boolean>
+  isOn: (id: TId) => boolean
   toggle: (id: TId, shouldBeFlagged?: boolean) => void
   toggleAll: (shouldBeFlagged?: boolean) => void
   useSubset: (filter: ArrayFilterPredicate<$TItem>) => Collection<TSource, TFlag, TProperties, TId>

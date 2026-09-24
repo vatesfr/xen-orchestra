@@ -41,7 +41,7 @@ import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import type { IP_CONFIGURATION_MODE } from '@vates/types'
-import { logicNot } from '@vueuse/math'
+import { logicAnd, logicNot, logicOr } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -54,7 +54,11 @@ defineSlots<{
 }>()
 
 const { arePifsReady, hasPifFetchError } = useXoPifCollection()
-const { useGetNetworkById } = useXoNetworkCollection()
+const { useGetNetworkById, areNetworksReady, hasNetworkFetchError } = useXoNetworkCollection()
+
+const isReady = logicAnd(arePifsReady, areNetworksReady)
+
+const hasError = logicOr(hasPifFetchError, hasNetworkFetchError)
 
 const { t } = useI18n()
 
@@ -72,8 +76,8 @@ const filteredPifs = computed(() => {
 })
 
 const state = useTableState({
-  busy: logicNot(arePifsReady),
-  error: hasPifFetchError,
+  busy: logicNot(isReady),
+  error: hasError,
   empty: () =>
     rawPifs.length === 0 ? t('no-pif-detected') : filteredPifs.value.length === 0 ? { type: 'no-result' } : false,
 })

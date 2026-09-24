@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import filter from 'lodash/filter.js'
+import uniqBy from 'lodash/uniqBy.js'
 import { createLogger } from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
@@ -7,7 +8,7 @@ import { invalidCredentials, noSuchObject, objectAlreadyExists } from 'xo-common
 
 import * as XenStore from '../_XenStore.mjs'
 import { Groups } from '../models/group.mjs'
-import { Users } from '../models/user.mjs'
+import { UNIQUE_FIELDS, Users } from '../models/user.mjs'
 import { forEach, isEmpty, lightSet } from '../utils.mjs'
 
 /**
@@ -45,7 +46,7 @@ export default class {
       const usersDb = (this._users = new Users({
         connection: redis,
         namespace: 'user',
-        indexes: ['email'],
+        indexes: UNIQUE_FIELDS,
         crypto: app.cryptoCredentials,
       }))
       app.hooks.emit('registerCollection', {
@@ -60,16 +61,21 @@ export default class {
         groups => groupsDb.update(groups),
         ['users']
       )
+      const findConflictUsers = async user => {
+        const matches = await Promise.all(
+          UNIQUE_FIELDS.filter(field => user[field] != null).map(field => usersDb.get({ [field]: user[field] }))
+        )
+        return uniqBy(matches.flat(), 'id').filter(({ id }) => id !== user.id)
+      }
       app.addConfigManager(
         'users',
         () => usersDb.get(),
         users =>
           Promise.all(
             users.map(async user => {
-              const userId = user.id
-              const conflictUsers = await usersDb.get({ email: user.email })
+              const conflictUsers = await findConflictUsers(user)
               if (!isEmpty(conflictUsers)) {
-                await Promise.all(conflictUsers.map(({ id }) => id !== userId && this.deleteUser(id)))
+                await Promise.all(conflictUsers.map(({ id }) => this.deleteUser(id)))
               }
               return usersDb.update(user)
             })
@@ -154,20 +160,33 @@ export default class {
   async updateUser(
     id,
     {
-      // TODO: remove
       email,
-
       authProviders,
+      firstname,
+      lastname,
+      // kept for historical reasons
       name = email,
       password,
       permission,
       preferences,
+      username,
     }
   ) {
     const user = await this.getUser(id)
 
+    name = name?.trim()
     if (name) {
       user.name = name
+    }
+    if (firstname !== undefined) {
+      user.firstname = firstname
+    }
+    if (lastname !== undefined) {
+      user.lastname = lastname
+    }
+    username = username?.trim()
+    if (username) {
+      user.username = username
     }
     if (permission) {
       user.permission = permission
@@ -214,22 +233,10 @@ export default class {
       throw new Error('current user cannot be without password and auth providers')
     }
 
-    // TODO: remove
     user.email = user.name
     delete user.name
 
-    try {
-      await this._users.update(user)
-    } catch (error) {
-      if (error.message === `the user ${user.email} already exists`) {
-        const existingUser = await this._users.first({ email: user.email })
-        throw objectAlreadyExists({
-          objectId: existingUser.id,
-          objectType: 'user',
-        })
-      }
-      throw error
-    }
+    await this._users.update(user)
   }
 
   // Merge this method in getUser() when plain objects.
@@ -257,8 +264,6 @@ export default class {
       normalizedUser.pw_hash = '***obfuscated***'
     }
 
-    // TODO: remove when no longer the email property has been
-    // completely eradicated.
     if (!('name' in user)) {
       normalizedUser.name = user.email
     }
@@ -274,9 +279,8 @@ export default class {
     })
   }
 
-  async getUserByName(username, returnNullIfMissing) {
-    // TODO: change `email` by `username`.
-    const user = await this._users.first({ email: username })
+  async getUserByName(name, returnNullIfMissing) {
+    const user = await this._users.first({ email: name })
     if (user !== undefined) {
       return this.#normalizeUser(user)
     }
@@ -285,7 +289,7 @@ export default class {
       return null
     }
 
-    throw noSuchObject(username, 'user')
+    throw noSuchObject(name, 'user')
   }
 
   async registerUser() {
@@ -309,15 +313,15 @@ export default class {
     // Get the XO user bound to the provider's user
     let user = users.find(user => user.authProviders?.[providerId]?.id === id)
 
-    // If that XO user doesn't exist or doesn't have the correct username, there
-    // is a chance that there is another XO user that already has that username
+    // If that XO user doesn't exist or doesn't have the correct name, there
+    // is a chance that there is another XO user that already has that name
     let conflictingUser
     if (user?.email !== name) {
       conflictingUser = users.find(user => user.email === name)
 
       if (conflictingUser !== undefined) {
         if (!this._app.config.get('authentication.mergeProvidersUsers')) {
-          throw new Error(`User with username ${name} already exists`)
+          throw new Error(`User with name ${name} already exists`)
         }
         if (user !== undefined) {
           // TODO: merge `conflictingUser` into `user` and delete
@@ -342,7 +346,7 @@ export default class {
         authProviders: { [providerId]: { id, data } },
       })
     } else {
-      // If the user has more than 1 auth provider: don't update the username to
+      // If the user has more than 1 auth provider: don't update the name to
       // avoid conflicts
       await this.updateUser(user.id, {
         name:
@@ -383,6 +387,12 @@ export default class {
     }
 
     return true
+  }
+
+  // fields synchronized users should not be able to modify
+  getUserIdentityFields() {
+    // returning both name and email for convenience though they are the same value
+    return ['email', 'firstname', 'lastname', 'name', 'password', 'username']
   }
 
   // -----------------------------------------------------------------
