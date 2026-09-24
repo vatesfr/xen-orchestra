@@ -156,7 +156,7 @@ export type PoolRollingUpdateRecoveryRun = {
   finishedAt?: string
   interruptedAt?: string
   taskId?: string
-  variant?: 'xcp' | 'xs-cdn' | 'xs-legacy'
+  variant?: 'xcp' | 'xs-cdn'
   hostOrder?: string[]
   hosts: Record<string, PoolRollingUpdateRecoveryHost>
   lastError: PoolRollingUpdateRecoveryError | null

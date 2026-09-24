@@ -56,6 +56,16 @@ const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
 const _isXs = host => host.software_version.product_brand === 'XenServer'
 const _isXsWithCdnUpdates = host => _isXs(host) && semver.gt(host.software_version.product_version, '8.3.0')
 
+/**
+ * Whether a rolling pool update keeps a recovery record: only when the pool's
+ * master runs XCP-ng or XenServer 8.4+, older XenServer and CH run it without
+ * one.
+ *
+ * @param {{ software_version: { product_brand: string, product_version: string } }} host - master of the pool
+ * @returns {boolean}
+ */
+export const supportsRpuRecovery = host => _isXcp(host) || _isXsWithCdnUpdates(host)
+
 export const isUpdaterBusyError = error =>
   error?.code === '-1' && typeof error.params?.[0] === 'string' && /plugin is busy/i.test(error.params[0])
 
@@ -745,9 +755,13 @@ const methods = {
     const master = this.pool.$master
     const isXcp = _isXcp(master)
     const isXsWithCdnUpdates = _isXsWithCdnUpdates(master)
+    const supportsRecovery = supportsRpuRecovery(master)
     const hosts = Object.values(this.objects.indexes.type.host)
 
-    recorder.setVariant(isXcp ? 'xcp' : isXsWithCdnUpdates ? 'xs-cdn' : 'xs-legacy')
+    // a pool without recovery runs with a no-op recorder: nothing to label
+    if (supportsRecovery) {
+      recorder.setVariant(isXcp ? 'xcp' : 'xs-cdn')
+    }
 
     let xsHash
 
@@ -803,8 +817,9 @@ const methods = {
 
     // a current master over outdated members is a pool left half updated, by
     // an interrupted run or by hand: the operator must accept that state as
-    // the baseline of this run rather than have it silently completed
-    if (!acceptCurrentStateAsBaseline && !hasMissingPatchesByHost[master.uuid]) {
+    // the baseline of this run rather than have it silently completed. A pool
+    // without recovery is not checked, as before recovery existed
+    if (supportsRecovery && !acceptCurrentStateAsBaseline && !hasMissingPatchesByHost[master.uuid]) {
       const outdatedHosts = Object.keys(pickBy(hasMissingPatchesByHost))
       if (outdatedHosts.length > 0) {
         throw incorrectState({
@@ -848,8 +863,6 @@ const methods = {
               return result
             })
           }
-          // XS legacy: patches were installed pool-wide before the first evacuation
-          recorder.stepNotNeeded(host.uuid, 'update')
         },
         ignoreHost: host => {
           return !hasMissingPatchesByHost[host.uuid]
