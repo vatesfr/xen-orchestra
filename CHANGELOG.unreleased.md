@@ -77,6 +77,7 @@
 - [OpenMetrics] Share metrics collection between requests to avoid filling up XOA memory (PR [10401](https://github.com/vatesfr/xen-orchestra/pull/10401))
 - [Netbox] Fix IP addresses synced with an incorrect, less specific prefix (e.g. `/8` instead of `/24`) when a shorter container prefix also matched [#10240](https://github.com/vatesfr/xen-orchestra/issues/10240) (PR [#10297](https://github.com/vatesfr/xen-orchestra/pull/10297))
 - [backup/restore] Fix backups of a repository randomly disappearing from the list after visiting a VM (PR [#10277](https://github.com/vatesfr/xen-orchestra/pull/10277))
+- [XO6/Backups] Fix backup logs transfer size including health check restores and every backup target, which made it much bigger than in XO5 [Forum#12486](https://xcp-ng.org/forum/topic/12486) (PR [#10448](https://github.com/vatesfr/xen-orchestra/pull/10448))
 - **XO 5**:
   - [Netdata] Fix `You must enable Javascript` error due to CSP blocking Netdata's inline scripts (PR [#10275](https://github.com/vatesfr/xen-orchestra/pull/10275))
 - [MCP] Fix the MCP server crashing at startup on Node 26 with `fetch failed`, and make `search_documentation` honour `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` like the other requests (PR [#10413](https://github.com/vatesfr/xen-orchestra/pull/10413))
@@ -84,7 +85,7 @@
 - [Backup/Restore] Fix listing backups sometimes mixing the results of two different VM listings (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
 - [Backup/Restore] Better handling of a backup repository the proxy fails to list, instead of silently returning nothing (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
   - [VM/Console] Fix the page header and tab navigation disappearing permanently in the console tab (PR [#10007](https://github.com/vatesfr/xen-orchestra/pull/10007))
-- [Backup] Fixed disk space not being freed during delta backup deletion ( PR [#10273] (https://github.com/vatesfr/xen-orchestra/pull/10273))
+- [Backup] Fixed disk space not being freed during delta backup deletion (PR [#10273] (https://github.com/vatesfr/xen-orchestra/pull/10273))
 
 ### Packages to release
 
