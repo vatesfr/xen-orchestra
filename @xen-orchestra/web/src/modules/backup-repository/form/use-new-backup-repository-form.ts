@@ -1,3 +1,4 @@
+import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import { useAzureBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-azure-backup-repository-details-form.ts'
 import { useLocalBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-local-backup-repository-details-form.ts'
 import { useNfsBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-nfs-backup-repository-details-form.ts'
@@ -5,7 +6,6 @@ import { useS3BackupRepositoryDetailsForm } from '@/modules/backup-repository/fo
 import { useSmbBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
 import { useBackupRepositoryGeneralForm } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import type { NewBackupRepositoryPayload } from '@/modules/backup-repository/jobs/xo-backup-repository-create.job.ts'
-import { getBackupRepositoryTypeLabelKey } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -20,6 +20,8 @@ export function useNewBackupRepositoryForm() {
   const { t } = useI18n()
 
   const general = useBackupRepositoryGeneralForm()
+
+  const typeLabel = useXoBackupRepositoryTypeLabel(() => general.formData.type)
 
   const details = {
     file: useLocalBackupRepositoryDetailsForm(() => general.formData.proxy),
@@ -44,9 +46,7 @@ export function useNewBackupRepositoryForm() {
   const currentStep = computed(() => STEPS[currentStepIndex.value])
 
   const detailsStepLabel = computed(() => {
-    return general.formData.type === undefined
-      ? ''
-      : t('br-type-details', { type: t(getBackupRepositoryTypeLabelKey(general.formData.type)) })
+    return general.formData.type === undefined ? '' : t('br-type-details', { type: typeLabel.value })
   })
 
   const steps = computed<StepDefinition[]>(() => [

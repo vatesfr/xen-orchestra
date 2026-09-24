@@ -1,5 +1,5 @@
 import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
-import { getBackupRepositoryTypeLabelKey } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { regex, required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
@@ -82,10 +82,15 @@ export function useBackupRepositoryGeneralForm() {
     }
   )
 
+  const typeLabels = Object.values(BACKUP_REPOSITORY_TYPE).map(type => ({
+    type,
+    label: useXoBackupRepositoryTypeLabel(type),
+  }))
+
   const typeOptions = computed(() =>
-    Object.values(BACKUP_REPOSITORY_TYPE).map(type => ({
+    typeLabels.map(({ type, label }) => ({
       id: type,
-      label: t(getBackupRepositoryTypeLabelKey(type)),
+      label: label.value,
       value: type,
     }))
   )
