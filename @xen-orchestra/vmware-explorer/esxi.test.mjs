@@ -711,6 +711,124 @@ describe('attachDisk / detachDisk', function () {
   })
 })
 
+describe('checkDiskAttachable', function () {
+  const FILE_NAME = '[ds main] other.vm/other.vmdk'
+
+  const mount = (hostId, { mounted = true, accessible = true, inaccessibleReason } = {}) => ({
+    attributes: { 'xsi:type': 'DatastoreHostMount' },
+    key: moRef('HostSystem', hostId),
+    mountInfo: { accessMode: 'readWrite', mounted, accessible, inaccessibleReason },
+  })
+
+  const checkEsxi = async ({
+    summary = { accessible: true, multipleHostAccess: true, type: 'vsan' },
+    mounts = [mount('host-1'), mount('host-2')],
+  } = {}) => {
+    const properties = {
+      'VirtualMachine:vm-1:runtime.host': moRef('HostSystem', 'host-2'),
+      'Datastore:datastore-11:summary': { attributes: { 'xsi:type': 'DatastoreSummary' }, ...summary },
+      'Datastore:datastore-11:host': {
+        attributes: { 'xsi:type': 'ArrayOfDatastoreHostMount' },
+        DatastoreHostMount: mounts,
+      },
+    }
+    const fetched = []
+    const { esxi, vimClient } = await connectedEsxi({
+      // the file is never read, it could take a lock of its own
+      fetch: async url => {
+        fetched.push(url)
+        return response({ status: 500 })
+      },
+      responses: {
+        RetrievePropertiesEx: ({ specSet }) => {
+          const { type, pathSet } = specSet[0].propSet[0]
+          const id = specSet[0].objectSet[0].obj.$value
+          return propertyOf(type, id, pathSet[0], properties[`${type}:${id}:${pathSet[0]}`])
+        },
+      },
+    })
+    return { esxi, fetched, vimClient }
+  }
+
+  it('accepts a disk on a datastore the host of the VM mounts', async function () {
+    const { esxi, fetched } = await checkEsxi()
+
+    assert.deepEqual(await esxi.checkDiskAttachable('vm-1', FILE_NAME), {
+      attachable: true,
+      datastoreType: 'vsan',
+      shared: true,
+    })
+    assert.equal(fetched.length, 0)
+  })
+
+  it('reads the booleans whether the SOAP library converted them or not', async function () {
+    const { esxi } = await checkEsxi({
+      summary: { accessible: 'true', multipleHostAccess: 'false', type: 'VMFS' },
+      mounts: [mount('host-2', { mounted: 'true', accessible: 'true' })],
+    })
+
+    assert.deepEqual(await esxi.checkDiskAttachable('vm-1', FILE_NAME), {
+      attachable: true,
+      datastoreType: 'VMFS',
+      shared: false,
+    })
+  })
+
+  it('refuses a local datastore of another host', async function () {
+    const { esxi, fetched } = await checkEsxi({
+      summary: { accessible: true, multipleHostAccess: false, type: 'VMFS' },
+      mounts: mount('host-1'),
+    })
+
+    assert.deepEqual(await esxi.checkDiskAttachable('vm-1', FILE_NAME), {
+      attachable: false,
+      code: 'DATASTORE_NOT_MOUNTED',
+      reason: 'the host host-2 of the VM vm-1 does not mount the datastore ds main',
+      datastoreType: 'VMFS',
+      shared: false,
+    })
+    assert.equal(fetched.length, 0)
+  })
+
+  it('refuses a datastore the host of the VM cannot reach', async function () {
+    const { esxi } = await checkEsxi({
+      summary: { accessible: true, multipleHostAccess: true, type: 'NFS' },
+      mounts: [mount('host-1'), mount('host-2', { accessible: false, inaccessibleReason: 'AllPathsDown_Start' })],
+    })
+
+    const result = await esxi.checkDiskAttachable('vm-1', FILE_NAME)
+    assert.equal(result.code, 'DATASTORE_NOT_MOUNTED')
+    assert.match(result.reason, /AllPathsDown_Start$/)
+  })
+
+  it('refuses an inaccessible datastore', async function () {
+    const { esxi } = await checkEsxi({
+      summary: { accessible: false, inaccessibleReason: 'lost', multipleHostAccess: true, type: 'NFS' },
+    })
+
+    const result = await esxi.checkDiskAttachable('vm-1', FILE_NAME)
+    assert.equal(result.attachable, false)
+    assert.equal(result.code, 'DATASTORE_INACCESSIBLE')
+  })
+
+  it('throws when the host cannot be asked, instead of answering about the disk', async function () {
+    const { esxi, vimClient } = await checkEsxi()
+    vimClient.responses.RetrievePropertiesEx = () => {
+      throw Object.assign(new Error('connection reset'), { code: 'ECONNRESET' })
+    }
+
+    await assert.rejects(esxi.checkDiskAttachable('vm-1', FILE_NAME), { code: 'ECONNRESET' })
+  })
+
+  it('refuses an unknown datastore or a path which is not a datastore path, without asking the host', async function () {
+    const { esxi, vimClient } = await checkEsxi()
+
+    assert.equal((await esxi.checkDiskAttachable('vm-1', '[nope] a.vmdk')).code, 'DATASTORE_NOT_FOUND')
+    assert.equal((await esxi.checkDiskAttachable('vm-1', 'a.vmdk')).code, 'INVALID_PATH')
+    assert.equal(vimClient.calls.length, 0)
+  })
+})
+
 describe('getAllVmMetadata', function () {
   const vm = (id, propSet) => ({ obj: moRef('VirtualMachine', id), propSet })
 

@@ -154,6 +154,29 @@ const DEFAULT_SCSI_CONTROLLER_UNIT = 7
 // independent disk is left out of the snapshots of the VM
 const READ_ONLY_DISK_MODE = 'independent_nonpersistent'
 
+// `[datastore1] vm/vm.vmdk`, the space after the datastore name is optional
+const DATASTORE_PATH_RE = /^\[([^\]]+)\] ?(.+)$/
+
+/**
+ * A disk {@link Esxi#checkDiskAttachable} found nothing against.
+ *
+ * @typedef {object} AttachableDisk
+ * @property {true} attachable
+ * @property {string} datastoreType - `VMFS`, `NFS`, `NFS41`, `vsan`, `VVOL`, `PMEM`…
+ * @property {boolean} shared - whether more than one host can mount the datastore
+ */
+
+/**
+ * A disk the VM cannot be given, and why.
+ *
+ * @typedef {object} UnattachableDisk
+ * @property {false} attachable
+ * @property {'DATASTORE_NOT_FOUND' | 'DATASTORE_INACCESSIBLE' | 'DATASTORE_NOT_MOUNTED' | 'INVALID_PATH'} code
+ * @property {string} reason
+ * @property {string} [datastoreType]
+ * @property {boolean} [shared]
+ */
+
 const isScsiController = device => SCSI_CONTROLLER_TYPES.has(device?.attributes?.['xsi:type'])
 
 /**
@@ -190,6 +213,7 @@ const taskFaultMessage = error => error?.localizedMessage ?? error?.fault?.local
 export default class Esxi extends EventEmitter {
   #connected
   #cookies
+  #datastoreIds // map datastore name => managed object reference
   #dcPaths // map datastore name => datacenter name
   #fetchImpl
   #host
@@ -302,6 +326,7 @@ export default class Esxi extends EventEmitter {
       }
     }
     this.#dcPaths = dcPaths
+    this.#datastoreIds = Object.fromEntries(Object.entries(datastores).map(([id, { name }]) => [name, id]))
   }
 
   #findDatacenter(dataStore) {
@@ -1011,6 +1036,75 @@ export default class Esxi extends EventEmitter {
     }
     info('disk attached', { fileName, vmId, ...slot })
     return { ...slot, deviceKey: Number(attached.key) }
+  }
+
+  /**
+   * Whether a vmdk can be given to a VM by {@link attachDisk}, on any kind of datastore: local, shared
+   * or vSAN all come down to whether the host the VM runs on mounts the datastore.
+   *
+   * What is checked:
+   * - the datastore is known and accessible
+   * - the host of the VM mounts it, and can reach it
+   *
+   * The file itself is not looked at: its path comes from the inventory, and reading it could take
+   * a lock of its own. Nor is its lock: a disk of a snapshot or of a stopped VM can always be
+   * opened. A failure to ask the host is thrown, it is not an answer about the disk.
+   *
+   * @param {string} vmId - id of the VM
+   * @param {string} fileName - datastore path of the descriptor, e.g. `[datastore1] vm/vm.vmdk`
+   * @param {object} [options]
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<AttachableDisk | UnattachableDisk>}
+   */
+  async checkDiskAttachable(vmId, fileName, { signal } = {}) {
+    const match = DATASTORE_PATH_RE.exec(fileName)
+    if (match === null) {
+      return { attachable: false, code: 'INVALID_PATH', reason: `${fileName} is not a datastore path` }
+    }
+    const [, datastoreName] = match
+
+    // the datastores are only known once connected
+    await this.#connected
+    const datastoreId = this.#datastoreIds[datastoreName]
+    if (datastoreId === undefined) {
+      return {
+        attachable: false,
+        code: 'DATASTORE_NOT_FOUND',
+        reason: `the datastore ${datastoreName} is unknown to ${this.#host}`,
+      }
+    }
+
+    const [hostId, summary, mounts] = await Promise.all([
+      this.#retrieveProperty('VirtualMachine', vmId, 'runtime.host', { signal }),
+      this.#retrieveProperty('Datastore', datastoreId, 'summary', { signal }),
+      this.#retrieveProperty('Datastore', datastoreId, 'host', { signal }),
+    ])
+
+    const datastoreType = summary?.type
+    // the SOAP library does not always convert the booleans of the answer
+    const shared = String(summary?.multipleHostAccess) === 'true'
+    const unattachable = (code, reason) => ({ attachable: false, code, reason, datastoreType, shared })
+
+    if (String(summary?.accessible) !== 'true') {
+      return unattachable(
+        'DATASTORE_INACCESSIBLE',
+        `the datastore ${datastoreName} is not accessible: ${summary?.inaccessibleReason ?? 'unknown reason'}`
+      )
+    }
+
+    // the references nested in the value are not normalized, only the value itself is
+    const hostMount = asArray(mounts?.DatastoreHostMount).find(({ key }) => (key?.$value ?? key) === hostId)
+    const mountInfo = hostMount?.mountInfo
+    if (String(mountInfo?.mounted) !== 'true' || String(mountInfo?.accessible) !== 'true') {
+      return unattachable(
+        'DATASTORE_NOT_MOUNTED',
+        mountInfo === undefined
+          ? `the host ${hostId} of the VM ${vmId} does not mount the datastore ${datastoreName}`
+          : `the host ${hostId} of the VM ${vmId} cannot reach the datastore ${datastoreName}: ${mountInfo.inaccessibleReason ?? 'unknown reason'}`
+      )
+    }
+
+    return { attachable: true, datastoreType, shared }
   }
 
   /**
