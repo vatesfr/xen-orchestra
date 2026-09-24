@@ -1,24 +1,24 @@
 // Real payloads, captured from xo-server run from the sources against a rootless
 // dockerd 29.8.1 reached through OpenSSH 10.0 (phase 3 end-to-end run of the
-// Docker integration). Lists are shortened.
+// Docker integration, rerun after the review fixes). Lists are shortened.
 
 export const dockerEngineId = {
-  id: '39a3cb1f-02ef-48ad-bda6-a3baf33d458c',
+  id: '8d834412-eb40-4328-a815-3fcc0989bd07',
 }
 
-export const dockerEngineIds = ['/rest/v0/docker-engines/39a3cb1f-02ef-48ad-bda6-a3baf33d458c']
+export const dockerEngineIds = ['/rest/v0/docker-engines/8d834412-eb40-4328-a815-3fcc0989bd07']
 
 export const partialDockerEngines = [
   {
-    id: '39a3cb1f-02ef-48ad-bda6-a3baf33d458c',
+    id: '8d834412-eb40-4328-a815-3fcc0989bd07',
     label: 'local rootless',
     connectionStatus: 'idle',
-    href: '/rest/v0/docker-engines/39a3cb1f-02ef-48ad-bda6-a3baf33d458c',
+    href: '/rest/v0/docker-engines/8d834412-eb40-4328-a815-3fcc0989bd07',
   },
 ]
 
 export const dockerEngine = {
-  id: '39a3cb1f-02ef-48ad-bda6-a3baf33d458c',
+  id: '8d834412-eb40-4328-a815-3fcc0989bd07',
   label: 'local rootless',
   host: '127.0.0.1',
   port: 2298,
@@ -34,7 +34,7 @@ export const dockerEngine = {
 
 export const dockerEngineInfo = {
   status: 'connected',
-  asOf: 1790277027889,
+  asOf: 1790285367714,
   daemonId: '00000000-0000-4000-8000-000000000000',
   name: 'docker-host',
   engineVersion: '29.8.1',
@@ -73,7 +73,7 @@ export const dockerEngineInfo = {
 
 export const dockerEngineInfoAuthFailed = {
   status: 'auth-failed',
-  asOf: 1790277038617,
+  asOf: 1790285380191,
   error: {
     code: 'SSH_AUTH_FAILED',
     message: 'SSH authentication failed',
