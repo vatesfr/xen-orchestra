@@ -297,6 +297,8 @@ describe('unmountDisk', () => {
     const { mixin, target } = makeMixin()
     const xapi = makeXapi()
     let released = false
+    const unmounted = []
+    mixin.on('unmounted', id => unmounted.push(id))
     const { id } = await mountDisk(mixin, xapi, { release: async () => (released = true) })
     xapi.call = xapi.callAsync = async () => {
       throw new Error('SR_HAS_NO_PBDS')
@@ -312,6 +314,8 @@ describe('unmountDisk', () => {
     assert.equal(released, true)
     // the mount is gone either way, a half-released mount must not be retried
     assert.deepEqual(mixin.listMountedDisks(), [])
+    // and whoever tracks it must hear about it
+    assert.deepEqual(unmounted, [id])
   })
 
   it('rejects an unknown mount', async () => {
