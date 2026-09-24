@@ -14,6 +14,7 @@ import assert from 'node:assert/strict'
 import { randomBytes } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { request as httpRequest } from 'node:http'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -425,6 +426,14 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
           }
         })
 
+        it('runDockerContainerAction() and deleteDockerContainer(): unknown action or container', async () => {
+          const { id } = await seed({})
+          const containerId = `${id}_${'a'.repeat(64)}`
+          await assert.rejects(docker.runDockerContainerAction(containerId, 'kill'), { code: 10 })
+          await assert.rejects(docker.runDockerContainerAction(`nope_${'a'.repeat(64)}`, 'start'), noSuchObject.is)
+          await assert.rejects(docker.deleteDockerContainer(`nope_${'a'.repeat(64)}`), noSuchObject.is)
+        })
+
         it('getDockerContainerLogs(): bounded tail, at least one stream', async () => {
           const { id } = await seed({})
           const containerId = `${id}_${'a'.repeat(64)}`
@@ -717,6 +726,97 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
       it('unknown container → noSuchObject', async () => {
         await assert.rejects(docker.getDockerContainerLogs(`${engineId}_${'0'.repeat(64)}`), noSuchObject.is)
       })
+    })
+  })
+
+  describe('container actions and removal', () => {
+    const NAME = 'xo-test-mixin-actions'
+    let engineId, containerId
+
+    // straight to the local Docker socket, to create the throwaway container
+    const dockerApi = (method, path, body) =>
+      new Promise((resolve, reject) => {
+        const req = httpRequest({ socketPath, method, path, headers: { 'content-type': 'application/json' } }, res => {
+          const chunks = []
+          res.on('data', chunk => chunks.push(chunk))
+          res.on('end', () => {
+            const text = Buffer.concat(chunks).toString()
+            resolve({ statusCode: res.statusCode, body: text === '' ? undefined : JSON.parse(text) })
+          })
+        })
+        req.on('error', reject)
+        req.end(body === undefined ? undefined : JSON.stringify(body))
+      })
+
+    const getState = async () => (await docker.getDockerContainer(containerId)).state
+
+    before(async () => {
+      engineId = (await createTrusted()).id
+      await dockerApi('DELETE', `/containers/${NAME}?force=1`)
+      const { statusCode, body } = await dockerApi('POST', `/containers/create?name=${NAME}`, {
+        Image: 'alpine',
+        Cmd: ['sleep', '1d'],
+        Labels: { 'xo-test': 'throwaway' },
+      })
+      assert.equal(statusCode, 201, JSON.stringify(body))
+      containerId = `${engineId}_${body.Id}`
+    })
+
+    after(async () => {
+      await dockerApi('DELETE', `/containers/${NAME}?force=1`)
+    })
+
+    it('start, stop, restart, pause, unpause; the cached list follows', async () => {
+      // warm the cache: the container is `created`
+      const listed = await docker.getDockerContainers({ engines: [engineId] })
+      assert.equal(listed.containers.find(_ => _.id === containerId).state, 'created')
+
+      await docker.runDockerContainerAction(containerId, 'start')
+      assert.equal(
+        (await docker.getDockerContainers({ engines: [engineId] })).containers.find(_ => _.id === containerId).state,
+        'running'
+      )
+      // already started: no-op (304)
+      await docker.runDockerContainerAction(containerId, 'start')
+
+      await docker.runDockerContainerAction(containerId, 'pause')
+      assert.equal(await getState(), 'paused')
+      // already paused: Docker answers 409
+      await assert.rejects(docker.runDockerContainerAction(containerId, 'pause'), error => {
+        assert.equal(error.code, 'DOCKER_API_ERROR')
+        assert.equal(error.data.statusCode, 409)
+        return true
+      })
+      await docker.runDockerContainerAction(containerId, 'unpause')
+      assert.equal(await getState(), 'running')
+
+      const { startedAt } = await docker.getDockerContainer(containerId)
+      await docker.runDockerContainerAction(containerId, 'restart')
+      const restarted = await docker.getDockerContainer(containerId)
+      assert.equal(restarted.state, 'running')
+      assert.ok(restarted.startedAt > startedAt)
+
+      await docker.runDockerContainerAction(containerId, 'stop')
+      assert.equal(await getState(), 'exited')
+      // already stopped: no-op (304)
+      await docker.runDockerContainerAction(containerId, 'stop')
+    })
+
+    it('deleteDockerContainer(): force needed while running, then gone', async () => {
+      await docker.runDockerContainerAction(containerId, 'start')
+      await assert.rejects(docker.deleteDockerContainer(containerId), error => {
+        assert.equal(error.code, 'DOCKER_API_ERROR')
+        assert.equal(error.data.statusCode, 409)
+        return true
+      })
+      await docker.deleteDockerContainer(containerId, { force: true, removeVolumes: true })
+      await assert.rejects(docker.getDockerContainer(containerId), noSuchObject.is)
+      assert.equal(
+        (await docker.getDockerContainers({ engines: [engineId] })).containers.some(_ => _.id === containerId),
+        false
+      )
+      await assert.rejects(docker.deleteDockerContainer(containerId), noSuchObject.is)
+      await assert.rejects(docker.runDockerContainerAction(containerId, 'start'), noSuchObject.is)
     })
   })
 

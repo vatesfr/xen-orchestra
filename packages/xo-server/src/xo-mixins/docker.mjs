@@ -88,6 +88,8 @@ const PUBLIC_FIELDS = ['label', 'host', 'port', 'username', 'socketPath', 'hostK
 // the list, see tier 2 in the plan
 const INSPECTED_STATES = new Set(['running', 'paused', 'restarting'])
 
+const CONTAINER_ACTIONS = new Set(['start', 'stop', 'restart', 'pause', 'unpause'])
+
 const INFO_STATUS_BY_CODE = {
   [SSH_AUTH_FAILED]: 'auth-failed',
   [HOST_KEY_MISMATCH]: 'host-key-mismatch',
@@ -661,9 +663,71 @@ export default class Docker {
     })
   }
 
+  /**
+   * Run a lifecycle action on a container.
+   *
+   * Starting a running container or stopping a stopped one is a no-op (Docker
+   * answers 304), other invalid transitions are Docker API errors (e.g. 409
+   * when pausing a paused container).
+   *
+   * @param {string} id composite id
+   * @param {'start' | 'stop' | 'restart' | 'pause' | 'unpause'} action
+   * @returns {Promise<void>}
+   */
+  async runDockerContainerAction(id, action) {
+    if (!CONTAINER_ACTIONS.has(action)) {
+      throw invalidParameters(`action must be one of ${Array.from(CONTAINER_ACTIONS).join(', ')}`)
+    }
+    const { record, dockerId } = await this.#resolveContainerId(id)
+    await this.#withConnection(record, async connection => {
+      try {
+        await connection.request({ method: 'POST', path: `/containers/${encodeURIComponent(dockerId)}/${action}` })
+      } catch (error) {
+        if (isNotFound(error)) {
+          throw noSuchObject(id, 'docker-container')
+        }
+        // not modified: already in the requested state
+        if (!(isDockerError(error) && error.code === DOCKER_API_ERROR && error.data?.statusCode === 304)) {
+          throw error
+        }
+      } finally {
+        this.#evictContainers(record)
+      }
+    })
+  }
+
+  /**
+   * @param {string} id composite id
+   * @param {object} [opts]
+   * @param {boolean} [opts.force] kill the container first if it is running
+   * @param {boolean} [opts.removeVolumes] also remove its anonymous volumes
+   * @returns {Promise<void>}
+   */
+  async deleteDockerContainer(id, { force = false, removeVolumes = false } = {}) {
+    const { record, dockerId } = await this.#resolveContainerId(id)
+    await this.#withConnection(record, async connection => {
+      try {
+        await connection.request({
+          method: 'DELETE',
+          path: `/containers/${encodeURIComponent(dockerId)}`,
+          query: { force: force ? 1 : 0, v: removeVolumes ? 1 : 0 },
+        })
+      } catch (error) {
+        throw isNotFound(error) ? noSuchObject(id, 'docker-container') : error
+      } finally {
+        this.#evictContainers(record)
+      }
+    })
+  }
+
   // ===================================================================
   // Internals
   // ===================================================================
+
+  // the cached lists of this engine are stale after a container change
+  #evictContainers(record) {
+    this.#cache.deleteByPrefix(`${record.id}:${record.revision ?? 0}:containers:`)
+  }
 
   async #getEngineWithCredentials(id) {
     const record = typeof id === 'string' ? await this.#db.first(id) : undefined
