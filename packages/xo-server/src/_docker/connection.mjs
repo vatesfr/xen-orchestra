@@ -5,6 +5,7 @@ import { Client } from 'ssh2'
 import { createLogger } from '@xen-orchestra/log'
 
 import {
+  CONNECTION_CLOSED,
   DOCKER_API_ERROR,
   DOCKER_API_VERSION_UNSUPPORTED,
   DockerError,
@@ -67,21 +68,45 @@ class RequestLimiter {
         })
       )
     }
+    if (signal.aborted) {
+      return Promise.reject(signal.reason)
+    }
     return new Promise((resolve, reject) => {
-      const onAbort = () => {
+      const remove = () => {
+        signal.removeEventListener('abort', onAbort)
         const index = this.#queue.indexOf(waiter)
         if (index !== -1) {
           this.#queue.splice(index, 1)
         }
+      }
+      const onAbort = () => {
+        remove()
         reject(signal.reason)
       }
-      const waiter = () => {
-        signal.removeEventListener('abort', onAbort)
-        resolve(this.#makeRelease())
+      const waiter = {
+        grant: () => {
+          signal.removeEventListener('abort', onAbort)
+          resolve(this.#makeRelease())
+        },
+        reject: error => {
+          remove()
+          reject(error)
+        },
       }
       signal.addEventListener('abort', onAbort, { once: true })
       this.#queue.push(waiter)
     })
+  }
+
+  /**
+   * Reject every queued (not yet granted) acquisition.
+   *
+   * @param {Error} error
+   */
+  rejectQueued(error) {
+    for (const waiter of this.#queue.slice()) {
+      waiter.reject(error)
+    }
   }
 
   #makeRelease() {
@@ -96,7 +121,7 @@ class RequestLimiter {
         --this.#active
       } else {
         // the slot is directly transferred
-        next()
+        next.grant()
       }
     }
   }
@@ -157,7 +182,7 @@ export function normalizeFingerprint(fingerprint) {
  */
 export function verifyHostKey(keyBlob, { expectedFingerprint, acceptUnknownHostKey = false }) {
   const observed = { fingerprint: computeFingerprint(keyBlob), algorithm: getKeyAlgorithm(keyBlob) }
-  if (expectedFingerprint === undefined || expectedFingerprint === '') {
+  if (expectedFingerprint == null || expectedFingerprint === '') {
     if (acceptUnknownHostKey) {
       return observed
     }
@@ -217,6 +242,33 @@ export function negotiateApiVersion({ ApiVersion, MinAPIVersion }) {
     throw new DockerError(DOCKER_API_VERSION_UNSUPPORTED, 'the Docker daemon is too recent', { data })
   }
   return compareApiVersions(ApiVersion, MAX_API_VERSION) < 0 ? ApiVersion : MAX_API_VERSION
+}
+
+// preferred `serverHostKey` algorithms for a given host key type
+const hostKeyAlgorithmsFor = keyType =>
+  keyType === 'ssh-rsa' ? ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa'] : [keyType]
+
+/**
+ * Wait for `promise` unless `signal` aborts first (the promise itself is not
+ * cancelled).
+ *
+ * @template T
+ * @param {Promise<T>} promise
+ * @param {AbortSignal} signal
+ * @returns {Promise<T>}
+ */
+function raceSignal(promise, signal) {
+  if (signal.aborted) {
+    return Promise.reject(signal.reason)
+  }
+  let onAbort
+  return Promise.race([
+    promise,
+    new Promise((resolve, reject) => {
+      onAbort = () => reject(signal.reason)
+      signal.addEventListener('abort', onAbort, { once: true })
+    }),
+  ]).finally(() => signal.removeEventListener('abort', onAbort))
 }
 
 const isJsonContentType = contentType => typeof contentType === 'string' && /[/+]json\b/i.test(contentType)
@@ -281,11 +333,15 @@ export class DockerConnection {
   #apiVersion
   #client
   #clientPromise
+  #closeTimeout
   #closedClients = new WeakSet()
   #connectTimeout
   #createClient
   #engineVersion
+  #generation = 0
+  #hostKeyAlgorithm
   #limiter
+  #pinnedHostKey
   #negotiation
   #observedHostKey
   #requestTimeout
@@ -302,11 +358,13 @@ export class DockerConnection {
    * @param {string} [opts.passphrase]
    * @param {string} [opts.socketPath] path of the Docker socket on the remote host
    * @param {string} [opts.hostKeyFingerprint] expected host key fingerprint (`SHA256:…`)
+   * @param {string} [opts.hostKeyAlgorithm] type of the expected host key (e.g. `ssh-ed25519`, as in `observedHostKey.algorithm`), makes the server present this key
    * @param {boolean} [opts.acceptUnknownHostKey] accept any host key when `hostKeyFingerprint` is missing, the observed one is then available in `observedHostKey`
    * @param {number} [opts.connectTimeout] max duration of the SSH connection (TCP + handshake + auth) and of a channel opening (ms)
    * @param {number} [opts.requestTimeout] max duration of an HTTP request, including reading the response (ms)
    * @param {object} [internals] for tests only
    * @param {() => import('ssh2').Client} [internals.createClient]
+   * @param {number} [internals.closeTimeout]
    */
   constructor(
     {
@@ -318,13 +376,16 @@ export class DockerConnection {
       passphrase,
       socketPath = '/var/run/docker.sock',
       hostKeyFingerprint,
+      hostKeyAlgorithm,
       acceptUnknownHostKey = false,
       connectTimeout = DEFAULT_CONNECT_TIMEOUT,
       requestTimeout = DEFAULT_REQUEST_TIMEOUT,
     },
-    { createClient = () => new Client() } = {}
+    { createClient = () => new Client(), closeTimeout = CLOSE_TIMEOUT } = {}
   ) {
     this.#acceptUnknownHostKey = acceptUnknownHostKey
+    this.#closeTimeout = closeTimeout
+    this.#hostKeyAlgorithm = hostKeyAlgorithm ?? undefined
     this.#connectTimeout = connectTimeout
     this.#createClient = createClient
     this.#requestTimeout = requestTimeout
@@ -338,7 +399,8 @@ export class DockerConnection {
       password,
       privateKey,
       passphrase,
-      hostKeyFingerprint,
+      // `null` (e.g. from a DB) is the same as missing
+      hostKeyFingerprint: hostKeyFingerprint ?? undefined,
     }
 
     this.#limiter = new RequestLimiter(MAX_CONCURRENT_REQUESTS, MAX_QUEUED_REQUESTS)
@@ -400,8 +462,15 @@ export class DockerConnection {
   }
 
   #openClient() {
-    const { host, port, username, password, privateKey, passphrase, hostKeyFingerprint } = this.#sshConfig
+    const { host, port, username, password, privateKey, passphrase } = this.#sshConfig
     const context = this.#context
+
+    // once a key has been accepted, it is pinned for the lifetime of this
+    // instance: reconnections must present the same key, even when the first
+    // one was accepted via `acceptUnknownHostKey`
+    const pinned = this.#pinnedHostKey
+    const expectedFingerprint = this.#sshConfig.hostKeyFingerprint ?? pinned?.fingerprint
+    const expectedAlgorithm = this.#hostKeyAlgorithm ?? pinned?.algorithm
 
     return new Promise((resolve, reject) => {
       const client = this.#createClient()
@@ -420,6 +489,7 @@ export class DockerConnection {
       client.on('ready', () => {
         ready = true
         settled = true
+        this.#pinnedHostKey ??= this.#observedHostKey
         debug('SSH connection ready', context)
         resolve(client)
       })
@@ -431,6 +501,17 @@ export class DockerConnection {
         }
         // the host verifier can only answer `false`: ssh2 then fails with a
         // generic handshake error, replace it with the precise one
+        if (
+          hostKeyError === undefined &&
+          expectedAlgorithm !== undefined &&
+          String(error?.message).includes('no matching host key format')
+        ) {
+          // the server no longer has a key of the expected type
+          hostKeyError = new DockerError(HOST_KEY_MISMATCH, 'the SSH server does not have the expected host key type', {
+            data: { ...context, expected: expectedFingerprint, expectedAlgorithm },
+            cause: error,
+          })
+        }
         fail(hostKeyError ?? fromSshError(error, context))
       })
       client.on('close', () => {
@@ -454,11 +535,13 @@ export class DockerConnection {
           readyTimeout: this.#connectTimeout,
           keepaliveInterval: 10e3,
           keepaliveCountMax: 3,
+          algorithms:
+            expectedAlgorithm === undefined ? undefined : { serverHostKey: hostKeyAlgorithmsFor(expectedAlgorithm) },
           // `hostHash` must not be set: the verifier receives the raw key blob
           hostVerifier: keyBlob => {
             try {
               this.#observedHostKey = verifyHostKey(keyBlob, {
-                expectedFingerprint: hostKeyFingerprint,
+                expectedFingerprint,
                 acceptUnknownHostKey: this.#acceptUnknownHostKey,
               })
               return true
@@ -520,11 +603,13 @@ export class DockerConnection {
    * @param {AbortSignal} signal
    * @returns {Promise<import('node:http').IncomingMessage>}
    */
-  async #send({ method = 'GET', path, query, body, headers = {}, versioned = true }, signal) {
+  async #send({ method = 'GET', path, query, body, headers = {}, versioned = true }, signal, generation) {
     if (versioned) {
-      await this.#negotiate()
+      // the negotiation is shared between requests: do not cancel it
+      await raceSignal(this.#negotiate(), signal)
     }
     signal.throwIfAborted()
+    this.#assertNotClosedSince(generation)
 
     let payload
     headers = { ...headers }
@@ -541,9 +626,30 @@ export class DockerConnection {
     const fullPath = (versioned ? `/v${this.#apiVersion}` : '') + path + buildQueryString(query)
 
     // acquired after the negotiation which needs a slot itself
-    const release = await this.#limiter.acquire(signal)
+    const releaseSlot = await this.#limiter.acquire(signal)
+    let onAbort
+    const release = () => {
+      signal.removeEventListener('abort', onAbort)
+      releaseSlot()
+    }
+    try {
+      this.#assertNotClosedSince(generation)
+    } catch (error) {
+      release()
+      throw error
+    }
 
     return new Promise((resolve, reject) => {
+      // Do not rely only on the request/response emitting `close` or `error`:
+      // when the SSH connection is lost, a channel may never emit anything
+      // after being destroyed (ssh2's Channel#destroy() does not emit them).
+      onAbort = () => {
+        release()
+        req.destroy(signal.reason)
+        reject(signal.reason)
+      }
+      signal.addEventListener('abort', onAbort, { once: true })
+
       const req = httpRequest({
         agent: this.#agent,
         host: 'docker',
@@ -571,9 +677,21 @@ export class DockerConnection {
     })
   }
 
-  #wrapError(error, path, signal) {
+  #assertNotClosedSince(generation) {
+    if (generation !== this.#generation) {
+      throw new DockerError(CONNECTION_CLOSED, 'the Docker connection has been closed', { data: this.#context })
+    }
+  }
+
+  #wrapError(error, path, signal, generation) {
     if (isDockerError(error)) {
       return error
+    }
+    if (generation !== this.#generation) {
+      return new DockerError(CONNECTION_CLOSED, 'the Docker connection has been closed', {
+        data: { ...this.#context, path },
+        cause: error,
+      })
     }
     // once the signal is aborted, the error can also be a generic socket
     // error (e.g. `ECONNRESET: aborted` while reading the body)
@@ -587,13 +705,14 @@ export class DockerConnection {
     return fromSshError(error, this.#context)
   }
 
-  async #throwApiError(response, path) {
+  async #throwApiError(response, path, signal) {
     let message
     try {
-      const body = parseBody(response, await readBody(response))
+      const body = parseBody(response, await raceSignal(readBody(response), signal))
       message = Buffer.isBuffer(body) ? body.toString('utf8').trim() : body?.message
     } catch (error) {
-      if (isDockerError(error) && error.code === TIMEOUT) {
+      // reported as TIMEOUT by #wrapError()
+      if (signal.aborted) {
         throw error
       }
     }
@@ -603,19 +722,20 @@ export class DockerConnection {
   }
 
   async #request(opts) {
+    const generation = this.#generation
     const signal = AbortSignal.any(
       [AbortSignal.timeout(this.#requestTimeout), opts.signal].filter(signal => signal !== undefined)
     )
     try {
-      const response = await this.#send(opts, signal)
+      const response = await this.#send(opts, signal, generation)
       const { statusCode, headers } = response
       if (statusCode < 200 || statusCode >= 300) {
-        await this.#throwApiError(response, opts.path)
+        await this.#throwApiError(response, opts.path, signal)
       }
-      const body = parseBody(response, await readBody(response))
+      const body = parseBody(response, await raceSignal(readBody(response), signal))
       return { statusCode, headers, body }
     } catch (error) {
-      throw this.#wrapError(error, opts.path, signal)
+      throw this.#wrapError(error, opts.path, signal, generation)
     }
   }
 
@@ -657,15 +777,16 @@ export class DockerConnection {
       controller.abort(new DOMException('Docker API request timed out', 'TimeoutError'))
     }, this.#requestTimeout)
     const signal = AbortSignal.any([controller.signal, callerSignal].filter(signal => signal !== undefined))
+    const generation = this.#generation
     try {
-      const response = await this.#send({ method, path, query, body, headers }, signal)
+      const response = await this.#send({ method, path, query, body, headers }, signal, generation)
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        await this.#throwApiError(response, path)
+        await this.#throwApiError(response, path, signal)
       }
       clearTimeout(timer)
       return response
     } catch (error) {
-      throw this.#wrapError(error, path, signal)
+      throw this.#wrapError(error, path, signal, generation)
     } finally {
       clearTimeout(timer)
     }
@@ -674,9 +795,16 @@ export class DockerConnection {
   /**
    * Close the SSH connection (and every channel on it).
    *
+   * Pending and queued requests fail with CONNECTION_CLOSED. The instance can
+   * still be used afterwards: a new request opens a new connection.
+   *
    * @returns {Promise<void>}
    */
   async close() {
+    ++this.#generation
+    this.#limiter.rejectQueued(
+      new DockerError(CONNECTION_CLOSED, 'the Docker connection has been closed', { data: this.#context })
+    )
     this.#agent.destroy()
     const clientPromise = this.#clientPromise
     this.#clientPromise = undefined
@@ -692,9 +820,12 @@ export class DockerConnection {
     await new Promise(resolve => {
       const timer = setTimeout(() => {
         warn('SSH connection did not close in time, destroying it', this.#context)
+        // Client#destroy() is a no-op once the socket is no longer writable,
+        // which is the case after Client#end(): destroy the socket itself
+        client._sock?.destroy()
         client.destroy?.()
         resolve()
-      }, CLOSE_TIMEOUT)
+      }, this.#closeTimeout)
       client.once('close', () => {
         clearTimeout(timer)
         resolve()
