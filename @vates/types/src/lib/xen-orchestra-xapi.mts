@@ -166,7 +166,7 @@ export interface Xapi {
           pifId: XoPif['id']
           mtu?: number
           /* between 0 and 4094 */
-          vlan: number
+          vlan?: number
         }
   ): Promise<XenApiNetworkWrapped>
   createBondedNetwork(params: {

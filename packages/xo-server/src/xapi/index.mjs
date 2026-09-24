@@ -1331,7 +1331,7 @@ export default class Xapi extends XapiBase {
   // =================================================================
 
   @decorateWith(deferrable)
-  async createNetwork($defer, { name, description = 'Created with Xen Orchestra', pifId, mtu, vlan }) {
+  async createNetwork($defer, { name, description = 'Created with Xen Orchestra', pifId, mtu, vlan = 0 }) {
     const networkRef = await this.call('network.create', {
       name_label: name,
       name_description: description,
