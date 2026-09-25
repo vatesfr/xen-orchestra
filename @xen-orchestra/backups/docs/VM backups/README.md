@@ -8,9 +8,9 @@
 - [Metadata backups](#metadata-backups)
 - [Backup journal](#backup-journal)
 - [Attributes](#attributes)
-  - [Of created snapshots](#of-created-snapshots)
-  - [Of created VMs and snapshots](#of-created-vms-and-snapshots)
-  - [Of created VMs](#of-created-vms)
+  - [Of created snapshots](#of-created-snapshots-vms-and-associated-vdis)
+  - [Of created VMs and snapshots](#of-created-vms-their-associated-vdis-and-snapshots)
+  - [Of created VMs](#of-created-vms-and-their-associated-vdis)
 - [Task logs](#task-logs)
   - [During backup](#during-backup)
   - [During restoration](#during-restoration)
@@ -29,7 +29,7 @@ All the dates in paths are formatted by `formatFilenameDate()`, i.e. UTC `%Y%m%d
 ```
 <remote>
 ├─ encryption.json // encryption algorithm descriptor, always written unencrypted
-├─ metadata.json // used to validate the encryption key, only used by @xen-orchestra/fs
+├─ metadata.json // used to validate the encryption key
 ├─ immutability.json // only on remotes protected by @xen-orchestra/immutable-backups
 ├─ xo-vm-backups // VM backups, both full and incremental
 ├─ xo-config-backups // XO config backups
@@ -44,8 +44,8 @@ A VM directory holds **both** the full and the incremental backups of that VM: t
 Transient entries, not listed in the trees below:
 
 - `xo-vm-backups/<VM UUID>.lock`, held for the duration of a job run on that VM. When listing VMs, entries starting with `.` and entries ending with `.lock` are ignored.
-- `xo-vm-backups/.queue/clean-vm/<YYYYMMDD>T<HHmmss>-<random>`, the merge worker queue, see [Orphans and merge](#orphans-and-merge).
-- `.<VHD file name>.merge.json`, in a VDI directory, see [Interrupted merges](#interrupted-merges).
+- `xo-vm-backups/.queue/clean-vm/<YYYYMMDD>T<HHmmss>-<random>`, the merge worker queue
+- `.<VHD file name>.merge.json`, in a VDI directory, interrupted merge states.
 
 ### with vhd files
 
@@ -179,7 +179,7 @@ Append-only log of what happened to the VM backup metadata.
   - `xo:backup:deltaChainLength` = n (number of delta copies/replicated since a full)
   - `xo:backup:exported` = 'true' (added at the end of the backup)
 
-### Of created VMs , their associated VDIs and snapshots
+### Of created VMs, their associated VDIs and snapshots
 
 - `other_config`:
   - `xo:backup:datetime`: format is UTC %Y%m%dT%H:%M:%SZ
