@@ -50,6 +50,9 @@ class SendToClipboard extends Component {
 
 export default class TabConsole extends Component {
   state = { clipboard: '', scale: 1 }
+  _setNoVnc = noVnc => {
+    this._noVnc = noVnc
+  }
 
   componentWillReceiveProps(props) {
     if (isVmRunning(this.props.vm) && !isVmRunning(props.vm) && props.collapsedHeader) {
@@ -69,7 +72,7 @@ export default class TabConsole extends Component {
       title: _('ctrlAltDelButtonLabel'),
       body: _('ctrlAltDelConfirmation'),
     })
-    this.refs.noVnc.sendCtrlAltDel()
+    this._noVnc.sendCtrlAltDel()
   }
 
   _getRemoteClipboard = clipboard => {
@@ -79,7 +82,7 @@ export default class TabConsole extends Component {
   _setRemoteClipboard = invoke(() => {
     const setRemoteClipboard = debounce(value => {
       this.setState({ clipboard: value })
-      this.refs.noVnc.setClipboard(value)
+      this._noVnc.setClipboard(value)
     }, 200)
     return event => setRemoteClipboard(getEventValue(event))
   })
@@ -132,6 +135,7 @@ export default class TabConsole extends Component {
       return (
         <Container>
           <p>Console is only available for running VMs.</p>
+          <IsoDevice vm={vm} />
         </Container>
       )
     }
@@ -268,7 +272,7 @@ export default class TabConsole extends Component {
             ) : (
               <NoVnc
                 onClipboardChange={this._getRemoteClipboard}
-                ref='noVnc'
+                ref={this._setNoVnc}
                 scale={scale}
                 url={resolveUrl(`consoles/${vm.id}`)}
               />

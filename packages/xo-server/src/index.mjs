@@ -1,3 +1,4 @@
+import { installBrowserMedia } from './browser-media.mjs'
 import appConf from 'app-conf'
 import assert from 'assert'
 import blocked from 'blocked-at'
@@ -1077,6 +1078,8 @@ export default async function main(args) {
 
   // Must be set up before the API.
   express.use(xo._handleHttpRequest.bind(xo))
+
+  installBrowserMedia(webServer, xo)
 
   setUpStaticFiles(express, config.http.publicMounts)
 

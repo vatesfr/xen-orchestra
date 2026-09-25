@@ -1,0 +1,210 @@
+import assert from 'node:assert/strict'
+import { EventEmitter, once } from 'node:events'
+import { createServer } from 'node:http'
+import { test } from 'node:test'
+import WebSocket from 'ws'
+import { IscsiInitiator } from '@vates/iscsi'
+import { BrowserMedia, installBrowserMedia } from './browser-media.mjs'
+import { BrowserIsoDevice } from './browser-media-iscsi.mjs'
+
+async function fixture(t, respond = true) {
+  const media = new BrowserMedia({ timeout: 1000 })
+  media.bindAddress = media.advertisedAddress = '127.0.0.1'
+  const server = createServer((req, res) => res.writeHead(404).end())
+  server.on('upgrade', (req, socket, head) => media.upgrade(req, socket, head))
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
+  const base = `http://127.0.0.1:${server.address().port}`
+  const source = Buffer.alloc(3 * 1024 * 1024)
+  for (let i = 0; i < source.length; ++i) source[i] = i % 251
+  const session = media.create({ owner: 'admin', vm: 'vm', name: 'test.iso', size: source.length })
+  const socket = new WebSocket(base.replace('http:', 'ws:') + `/api/browser-media/${session.browserToken}/socket`)
+  const reads = []
+  socket.on('message', data => {
+    const message = JSON.parse(data)
+    if (message.ready || !respond) return
+    reads.push(message)
+    const { id, offset, length } = message
+    const reply = Buffer.alloc(4 + length)
+    reply.writeUInt32BE(id)
+    source.copy(reply, 4, offset, offset + length)
+    socket.send(reply)
+  })
+  await once(socket, 'message')
+  t.after(async () => {
+    await media.stop()
+    socket.terminate()
+    server.closeAllConnections()
+    await new Promise(resolve => server.close(resolve))
+  })
+  return { media, session, socket, source, reads, base, device: new BrowserIsoDevice(media, session) }
+}
+
+test('random concurrent block reads reproduce browser bytes without a full upload', async t => {
+  const { source, reads, device } = await fixture(t)
+  assert.equal(device.getSize(), source.length)
+  assert.equal(device.getBlockSize(), 512)
+  assert.equal(reads.length, 0)
+  await Promise.all(
+    [
+      [2048, 8192],
+      [0, 512],
+      [source.length - 512, 512],
+    ].map(async ([start, length]) => {
+      assert.deepEqual(await device.read(start, length), source.subarray(start, start + length))
+    })
+  )
+  assert.equal(reads.length, 3)
+})
+
+test('large block commands are split into bounded browser reads', async t => {
+  const { source, reads, device } = await fixture(t)
+  assert.deepEqual(await device.read(0, source.length), source)
+  assert.equal(reads.length, 3)
+  assert.ok(reads.every(read => read.length <= 1024 * 1024))
+})
+
+test('invalid, unaligned, excessive and past-EOF reads fail before contacting the browser', async t => {
+  const { device, source, reads, media, session } = await fixture(t)
+  for (const [offset, length] of [
+    [-512, 512],
+    [1, 512],
+    [0, 513],
+    [source.length, 512],
+    [0, 16 * 1024 * 1024],
+    [Infinity, 512],
+  ]) {
+    await assert.rejects(device.read(offset, length), /Invalid/)
+  }
+  assert.deepEqual(await device.read(0, 0), Buffer.alloc(0))
+  await assert.rejects(device.write(0, Buffer.alloc(512)), /read-only/)
+  assert.throws(() => media.get(session.id, 'someone-else'))
+  assert.equal(reads.length, 0)
+})
+
+test('browser disconnect rejects an outstanding read and revokes the session', async t => {
+  const { media, socket, device } = await fixture(t, false)
+  const rejected = assert.rejects(device.read(0, 512), /disconnected/)
+  socket.close()
+  await rejected
+  assert.equal(media.sessions.size, 0)
+  await assert.rejects(device.read(0, 512), /disconnected/)
+})
+
+test('unresponsive browser has a bounded read timeout', async t => {
+  const { device, session } = await fixture(t, false)
+  await assert.rejects(device.read(0, 512), /disconnected/)
+  assert.equal(session.closed, true)
+})
+
+test('malformed browser data fails closed', async t => {
+  const { device, socket } = await fixture(t, false)
+  const pending = assert.rejects(device.read(0, 512), /disconnected/)
+  socket.send(Buffer.alloc(8))
+  await pending
+})
+
+test('cleanup-pending sessions still consume the session quota', async t => {
+  const { media, session } = await fixture(t)
+  session.onClose = () => {}
+  media.close(session)
+  for (let i = 1; i < 16; ++i) media.create({ owner: 'admin', vm: `vm-${i}`, name: 'test.iso', size: 32768 })
+  assert.throws(() => media.create({ owner: 'admin', vm: 'overflow', name: 'test.iso', size: 32768 }), /Too many/)
+  media.release(session)
+  media.create({ owner: 'admin', vm: 'vm', name: 'test.iso', size: 32768 })
+})
+
+test('real CHAP iSCSI target reads the browser relay and reports disconnect as a SCSI error', async t => {
+  const { media, session, source, socket } = await fixture(t)
+  const target = await media.createTarget(session)
+  const dc = target.deviceConfig
+  const initiator = new IscsiInitiator({
+    messageTimeoutMs: 1000,
+    host: dc.target,
+    port: Number(dc.port),
+    targetIqn: dc.targetIQN,
+    chap: { user: dc.chapuser, secret: dc.chappassword },
+  })
+  t.after(() => initiator.close())
+  await initiator.connect()
+  assert.equal(initiator.getSize(), source.length)
+  assert.deepEqual(await initiator.read(32768, 4096), source.subarray(32768, 36864))
+  assert.deepEqual(await initiator.read(source.length - 512, 512), source.subarray(-512))
+  socket.close()
+  await once(socket, 'close')
+  await assert.rejects(initiator.read(65536, 512), /SCSI command failed/)
+  await initiator.close()
+})
+
+test('opt-in requires an explicitly reachable iSCSI address', t => {
+  const previous = process.env.XO_BROWSER_MEDIA_ENABLED
+  t.after(() => {
+    if (previous === undefined) delete process.env.XO_BROWSER_MEDIA_ENABLED
+    else process.env.XO_BROWSER_MEDIA_ENABLED = previous
+  })
+  process.env.XO_BROWSER_MEDIA_ENABLED = '1'
+  assert.throws(() => installBrowserMedia({}, { config: { getOptional: () => undefined } }), /iscsi.advertisedAddress/)
+})
+
+test('one VM cannot have competing sessions, including pending cleanup', async t => {
+  const { media, session } = await fixture(t)
+  const options = { owner: 'admin', vm: 'vm', name: 'other.iso', size: 32768 }
+  assert.throws(() => media.create(options), /already has/)
+  session.onClose = () => {}
+  media.close(session)
+  assert.throws(() => media.create(options), /pending cleanup/)
+  assert.throws(() => media.get(session.id, 'admin'), /unavailable/)
+  assert.equal(media.get(session.id, 'admin', true), session)
+  assert.throws(() => media.get(session.id, 'other', true), /unavailable/)
+  media.release(session)
+  media.create(options)
+})
+
+test('producer capabilities reject another origin and cannot be reused', async t => {
+  const { media, base } = await fixture(t)
+  const session = media.create({ owner: 'admin', vm: 'other-vm', name: 'test.iso', size: 32768 })
+  const url = base.replace('http:', 'ws:') + `/api/browser-media/${session.browserToken}/socket`
+  const rejected = origin =>
+    new Promise((resolve, reject) => {
+      const socket = new WebSocket(url, { origin })
+      socket.on('error', () => {})
+      socket.once('open', () => {
+        socket.terminate()
+        reject(new Error('Unexpected producer accepted'))
+      })
+      socket.once('unexpected-response', (req, res) => {
+        resolve(res.statusCode)
+        res.resume()
+        req.destroy()
+      })
+    })
+  assert.equal(await rejected('https://another-origin.invalid'), 403)
+  const socket = new WebSocket(url, { origin: base })
+  await once(socket, 'message')
+  t.after(() => socket.terminate())
+  assert.equal(await rejected(base), 403)
+})
+
+test('recovery does not delay installing the HTTP/API service', async t => {
+  const previous = process.env.XO_BROWSER_MEDIA_ENABLED
+  process.env.XO_BROWSER_MEDIA_ENABLED = '1'
+  let releaseJournal
+  const xo = Object.assign(new EventEmitter(), {
+    config: { getOptional: key => (key === 'iscsi.advertisedAddress' ? '127.0.0.1' : undefined) },
+    _redis: { hGetAll: () => new Promise(resolve => (releaseJournal = resolve)) },
+    getAllXapis: () => ({}),
+    defineProperty(name, value) {
+      this[name] = value
+    },
+    registerRestRoutes: () => () => {},
+    hooks: new EventEmitter(),
+  })
+  t.after(async () => {
+    releaseJournal?.({})
+    await Promise.all(xo.hooks.listeners('stop').map(listener => listener()))
+    if (previous === undefined) delete process.env.XO_BROWSER_MEDIA_ENABLED
+    else process.env.XO_BROWSER_MEDIA_ENABLED = previous
+  })
+  assert.equal(installBrowserMedia(new EventEmitter(), xo), undefined)
+  assert.ok(xo.browserMedia instanceof BrowserMedia)
+  assert.equal(xo.listenerCount('server:connected'), 1)
+})

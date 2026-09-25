@@ -4,6 +4,15 @@
 const forEach = require('lodash/forEach')
 
 const messages = {
+  browserMediaConnect: 'Connect local ISO (experimental)',
+  browserMediaConnecting: 'Connecting…',
+  browserMediaConnected: '{name} — keep this tab open',
+  browserMediaDisconnected: 'Media disconnected',
+  browserMediaFailed: 'Connection failed: {error}',
+  browserMediaCleanupPending: 'Disconnected; cleanup pending: {error}',
+  browserMediaDismiss: 'Dismiss',
+  browserMediaDisconnect: 'Disconnect ISO',
+
   alpha: 'Alpha',
   alerts: 'Alerts',
   connected: 'Connected',

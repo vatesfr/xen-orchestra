@@ -1354,5 +1354,17 @@
   "xoa-ssh-password-confirm-different": "La confirmation du mot de passe SSH est différente",
   "xva": "XVA",
   "you-are-currently-on": "Vous êtes actuellement sur : {0}",
-  "zstd": "ZSTD"
+  "zstd": "ZSTD",
+  "browser-media:title": "ISO locale",
+  "browser-media:experimental": "Expérimental",
+  "browser-media:description": "Diffusez une ISO directement depuis cet ordinateur, sans téléversement préalable ni bibliothèque ISO.",
+  "browser-media:connecting": "Connexion…",
+  "browser-media:connected": "Connectée · diffusion depuis ce navigateur",
+  "browser-media:disconnected": "Média déconnecté",
+  "browser-media:error": "Échec de la connexion",
+  "browser-media:keep-open": "Gardez cet onglet ouvert pendant l’installation. Le fermer ou le recharger déconnecte l’ISO.",
+  "browser-media:connect": "Connecter une ISO locale",
+  "browser-media:disconnect": "Déconnecter l’ISO",
+  "browser-media:dismiss": "Fermer",
+  "browser-media:before-start": "Vous pouvez connecter l’ISO avant de démarrer la VM. Éjectez d’abord tout CD déjà inséré."
 }
