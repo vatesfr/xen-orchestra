@@ -1,7 +1,7 @@
 {
   "license": "ISC",
   "private": false,
-  "version": "0.15.0",
+  "version": "1.0.0",
   "name": "@xen-orchestra/vmware-explorer",
   "description": "Reads the VMs and the disks of an ESXi host or a vCenter",
   "dependencies": {
