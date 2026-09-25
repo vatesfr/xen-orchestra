@@ -58,10 +58,10 @@
             </template>
           </VtsCardRowKeyValue>
           <!-- COMMAND -->
-          <VtsCardRowKeyValue>
+          <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('command') }}</template>
             <template #value>
-              <VtsCodeSnippet :content="container.command" />
+              <code class="command">{{ container.command }}</code>
             </template>
             <template v-if="container.command" #addons>
               <VtsCopyButton :value="container.command" />
@@ -305,6 +305,11 @@ const portToOpen = computed(() =>
   }
 
   .mount {
+    overflow-wrap: anywhere;
+  }
+
+  .command {
+    font-family: 'Courier New', Courier, monospace;
     overflow-wrap: anywhere;
   }
 
