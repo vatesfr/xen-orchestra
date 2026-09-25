@@ -37,6 +37,7 @@ import type { XoV2vStatus } from './lib/xen-orchestra-v2v.mjs'
 import type {
   XoDockerContainerAction,
   XoDockerContainerListError,
+  XoDockerContainerStats,
   XoDockerEngineInfo,
   XoDockerEngineTestResult,
   XoDockerLogs,
@@ -329,6 +330,20 @@ export type XoApp = EventEmitter & {
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
   backupGuard(objectId: XapiXoRecord['id'], opts?: { bypassBackupCheck?: boolean; operation: string }): Promise<void>
   /* Throw if no authorization */
+  /**
+   * raw Docker Engine API request (admin-only REST passthrough), bounded by `docker.maxRawRequestSize` and
+   * `docker.maxRawResponseSize`
+   */
+  callDockerEngineRawApi(
+    id: XoDockerEngine['id'],
+    opts: {
+      method: string
+      path: string
+      headers?: Record<string, string>
+      body?: Readable
+      signal?: AbortSignal
+    }
+  ): Promise<{ statusCode: number; headers: Record<string, string | string[] | undefined>; body: Readable }>
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
   /* whether this machine can run the tools of an import from VMware */
   checkEsxiDependencies(): Promise<XoV2vStatus>
@@ -506,6 +521,8 @@ export type XoApp = EventEmitter & {
       timestamps?: boolean
     }
   ): Promise<XoDockerLogs>
+  /** the stats sampler's latest sample if ready, else one `stream=false` call (~1-2 s) */
+  getDockerContainerStats(id: XoDockerContainer['id']): Promise<XoDockerContainerStats>
   /** an engine which fails does not fail the list, see `errors` */
   getDockerContainers(opts: {
     engines: XoDockerEngine['id'][]
