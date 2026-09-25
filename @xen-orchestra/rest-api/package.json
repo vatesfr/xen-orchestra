@@ -42,7 +42,7 @@
     "@xen-orchestra/backups": "^0.74.2",
     "@xen-orchestra/log": "^0.7.2",
     "@xen-orchestra/qcow2": "^1.4.0",
-    "@xen-orchestra/xapi": "^8.10.5",
+    "@xen-orchestra/xapi": "^9.0.0",
     "complex-matcher": "^1.1.1",
     "golike-defer": "^0.5.1",
     "inversify": "^6.2.2",
