@@ -54,6 +54,10 @@ export default class AbstractNbdClient {
   // publish itself
   #connectGeneration = 0
 
+  // generation of the attempt which published the current transport: an error
+  // on a transport of another generation is stale and must be ignored
+  #connectedGeneration
+
   #waitBeforeReconnect
   #readBlockRetries
   #reconnectRetry
@@ -202,22 +206,31 @@ export default class AbstractNbdClient {
    * connection
    * ------------------------------------------------------------------------- */
 
-  #onTransportError = error => {
+  #onTransportError(generation, error) {
     // without this listener an error on the transport would be thrown as an
     // uncaught exception, and pending reads would only fail on message timeout
     //
-    // an error outside of the connected window is expected (the other end can
-    // be gone already while we're closing), and always reported to the caller
-    // through the connect()/readBlock() rejection
-    const log = this.#connected ? warn : debug
-    log('error on the nbd transport', { error })
+    // an error on a transport which is not the current one is expected (a
+    // closed transport can be reset late by the other end, after a reconnection)
+    // and must not reject the reads of the current transport
+    //
+    // an error during the handshake is reported by the handshake reads
+    // themselves, through the connect() rejection
+    if (!this.#connected || generation !== this.#connectedGeneration) {
+      debug('error on a stale nbd transport', { error })
+      return
+    }
+    warn('error on the nbd transport', { error })
     this.#rejectAll(error)
   }
 
-  #watchTransport(transport) {
-    transport.readable.on('error', this.#onTransportError)
+  // the generation is used instead of the transport itself since an attempt can
+  // own multiple transports (the raw one and the one upgraded to TLS)
+  #watchTransport(transport, generation) {
+    const onError = error => this.#onTransportError(generation, error)
+    transport.readable.on('error', onError)
     if (transport.writable !== transport.readable) {
-      transport.writable.on('error', this.#onTransportError)
+      transport.writable.on('error', onError)
     }
   }
 
@@ -227,10 +240,10 @@ export default class AbstractNbdClient {
     // not cancel on timeout, so a superseded attempt must not be able to use,
     // replace or destroy the transport of the attempt which replaced it
     let transport = await this._openTransport()
-    this.#watchTransport(transport)
+    this.#watchTransport(transport, generation)
     try {
       // the transport can be replaced during the handshake (TLS upgrade)
-      transport = await this.#handshake(transport)
+      transport = await this.#handshake(transport, generation)
 
       if (generation !== this.#connectGeneration) {
         const error = new Error('this connection has been superseded by a newer one')
@@ -244,6 +257,7 @@ export default class AbstractNbdClient {
       throw error
     }
     this.#transport = transport
+    this.#connectedGeneration = generation
     this.#connected = true
     // reset internal state if we reconnected a nbd client
     this.#commandQueryBacklog = new Map()
@@ -366,9 +380,10 @@ export default class AbstractNbdClient {
   //
   /**
    * @param {NbdTransport} transport
+   * @param {number} generation - the connection attempt owning the transport
    * @returns {Promise<NbdTransport>}
    */
-  async #handshake(transport) {
+  async #handshake(transport, generation) {
     assert((await this.#read(transport, 8)).equals(INIT_PASSWD))
     assert((await this.#read(transport, 8)).equals(OPTS_MAGIC))
     const flagsBuffer = await this.#read(transport, 2)
@@ -379,7 +394,7 @@ export default class AbstractNbdClient {
     // let the subclass upgrade the transport if it needs to (TLS)
     const secured = await this._secureTransport(transport)
     if (secured !== transport) {
-      this.#watchTransport(secured)
+      this.#watchTransport(secured, generation)
       transport = secured
     }
 
