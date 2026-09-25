@@ -401,7 +401,7 @@
   "docker-ssh-passphrase-info": "Only if the private key is encrypted",
   "docker-ssh-port": "SSH port",
   "docker-ssh-private-key": "SSH private key",
-  "docker-ssh-private-key-info": "Paste an OpenSSH or PEM private key. It is never displayed again.",
+  "docker-ssh-private-key-info": "OpenSSH or PEM, never displayed again",
   "docker-ssh-private-key-invalid": "This is not a PEM or OpenSSH private key (it should start with -----BEGIN)",
   "docker-ssh-private-key-keep": "The current private key is kept.",
   "docker-ssh-private-key-replace": "Replace private key",
