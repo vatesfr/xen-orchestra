@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:stream'
+import type { Readable } from 'node:stream'
 import type {
   AnyXoJob,
   AnyXoLog,
@@ -27,6 +28,7 @@ import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
 import type {
   XoDockerContainerAction,
   XoDockerContainerListError,
+  XoDockerContainerStats,
   XoDockerEngineInfo,
   XoDockerEngineTestResult,
   XoDockerLogs,
@@ -306,6 +308,20 @@ export type XoApp = {
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
   backupGuard(objectId: XapiXoRecord['id'], opts?: { bypassBackupCheck?: boolean; operation: string }): Promise<void>
   /* Throw if no authorization */
+  /**
+   * raw Docker Engine API request (admin-only REST passthrough), bounded by `docker.maxRawRequestSize` and
+   * `docker.maxRawResponseSize`
+   */
+  callDockerEngineRawApi(
+    id: XoDockerEngine['id'],
+    opts: {
+      method: string
+      path: string
+      headers?: Record<string, string>
+      body?: Readable
+      signal?: AbortSignal
+    }
+  ): Promise<{ statusCode: number; headers: Record<string, string | string[] | undefined>; body: Readable }>
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
   /* validate, apply and persist the configuration of a plugin */
   configurePlugin(id: string, configuration: unknown, mergeWithExisting?: boolean): Promise<void>
@@ -437,6 +453,8 @@ export type XoApp = {
       timestamps?: boolean
     }
   ): Promise<XoDockerLogs>
+  /** the stats sampler's latest sample if ready, else one `stream=false` call (~1-2 s) */
+  getDockerContainerStats(id: XoDockerContainer['id']): Promise<XoDockerContainerStats>
   /** an engine which fails does not fail the list, see `errors` */
   getDockerContainers(opts: {
     engines: XoDockerEngine['id'][]

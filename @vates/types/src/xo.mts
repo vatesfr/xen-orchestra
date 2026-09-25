@@ -24,6 +24,7 @@ import type {
   XoDockerCompose,
   XoDockerContainerHealth,
   XoDockerContainerState,
+  XoDockerContainerStats,
   XoDockerHealthCheck,
   XoDockerMount,
   XoDockerNetwork,
@@ -301,6 +302,11 @@ export type XoDockerContainer = {
   hostname?: string
   workingDir?: string
   user?: string
+
+  /** only with `stats=true`, for running and paused containers: latest sample of the engine's stats sampler */
+  stats?: XoDockerContainerStats
+  /** only with `stats=true`: the first samples are not there yet (`stats` missing, or `cpuPercent: null`) */
+  statsPending?: boolean
 }
 
 export type XoGroup = {
