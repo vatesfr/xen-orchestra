@@ -150,7 +150,7 @@
     "xo-acl-resolver": "^0.5.4",
     "xo-collection": "^0.6.1",
     "xo-common": "^0.11.0",
-    "xo-remote-parser": "^0.10.1",
+    "xo-remote-parser": "^1.0.0",
     "xo-vmdk-to-vhd": "^2.5.10",
     "yaml": "^2.9.0"
   },

@@ -55,7 +55,7 @@
     "value-matcher": "^0.2.0",
     "vhd-lib": "^4.16.1",
     "xo-common": "^0.11.0",
-    "xo-remote-parser": "^0.10.1",
+    "xo-remote-parser": "^1.0.0",
     "zod": "^4.3.6",
     "zod-openapi": "^5.4.6"
   },
