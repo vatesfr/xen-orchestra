@@ -1,5 +1,6 @@
 <template>
   <div :class="{ 'no-ui': !uiStore.hasUi }" class="vm-console-view">
+    <VmLocalIsoPoc v-if="vm" :vm />
     <div v-if="hasError">{{ t('error-occurred') }}</div>
     <UiLoader v-else-if="!isReady" class="loader" />
     <VtsStateHero v-else-if="!isVmRunning" format="page" type="offline" size="large" class="state-hero">
@@ -24,6 +25,7 @@
 </template>
 
 <script lang="ts" setup>
+import VmLocalIsoPoc from '@/components/vm/VmLocalIsoPoc.vue'
 import { isVmOperationPending } from '@/libs/vm.ts'
 import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
