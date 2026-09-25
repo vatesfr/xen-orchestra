@@ -107,16 +107,17 @@ export const dockerContainerLogs = {
   asOf: 1790285371392,
 }
 
+// xo-nginx running a busy loop, phase 4 end-to-end run (one full CPU = 100)
 export const dockerContainerStats = {
-  sampledAt: 1790327410123,
-  cpuPercent: 3.1,
-  onlineCpus: 4,
-  memoryUsage: 641728512,
-  memoryLimit: 8330301440,
-  memoryPercent: 7.7,
-  networkRx: 1296,
+  sampledAt: 1790299585403,
+  cpuPercent: 101.81180487804878,
+  onlineCpus: 6,
+  memoryUsage: 6746112,
+  memoryLimit: 5157838848,
+  memoryPercent: 0.1307933845706689,
+  networkRx: 816,
   networkTx: 126,
-  blockRead: 0,
-  blockWrite: 4096,
-  pids: 5,
+  blockRead: null,
+  blockWrite: null,
+  pids: 9,
 }
