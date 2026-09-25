@@ -15,6 +15,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Docker] Manage the Docker containers running in your VMs, over SSH, with nothing to install in the VM: the new XO 6 VM _Containers_ tab lists them (ports, state, uptime, CPU and memory usage, Compose projects), shows their logs, and starts, stops, restarts, pauses, resumes and removes them. Also available in the REST API (`/rest/v0/docker-engines` and `/rest/v0/docker-containers`, administrators only), with an optional raw Docker Engine API passthrough, disabled by default (`[docker] allowRawApi`). The SSH host key of the VM is verified, see the [documentation](https://docs.xen-orchestra.com/manage-your-infrastructure/docker) for the prerequisites. **Note:** the SSH credentials of the Docker engines are equivalent to root access on the VMs, and they are stored in plain text in the database unless `redis.encryptCredentialDatabase` is enabled
 - [Header] On mobile, the XO 5 link and third party apps are grouped in a "More actions" menu (PR [#10744](https://github.com/vatesfr/xen-orchestra/pull/10744))
 - [Mobile/Side panels] Full-page menus on mobile with "Change state" and "Manage in XO-5" in "More actions", side panel actions shown as buttons when there is room, and fixes for long names in headers and menu placement (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
 - [Side panels] Side panels can be resized like the treeview, whose default width now adapts to the screen size (PR [#10725](https://github.com/vatesfr/xen-orchestra/pull/10725))
