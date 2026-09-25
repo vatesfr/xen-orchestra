@@ -412,10 +412,14 @@ export class PoolController extends XapiXoController<XoPool> {
    * before their host reboots and start them again on it afterwards. Without it, such VMs make the action fail
    * with an `incorrect state` error listing their UUIDs.
    *
-   * A pool whose master is already up to date while another host is not was left partially updated, for example
-   * by an interrupted rolling pool update: set `acceptCurrentStateAsBaseline` to `true` to start from that state,
-   * otherwise the action fails with an `incorrect state` error listing the outdated hosts. A pool whose previous
-   * rolling pool update is still running or was left incomplete is refused with an `incorrect state` error as well.
+   * A pool whose previous rolling pool update is still running is refused with an `incorrect state` error.
+   *
+   * On a pool whose master runs XCP-ng or XenServer 8.4+, a master already up to date while another host is not
+   * means the pool was left partially updated, for example by an interrupted rolling pool update: set
+   * `acceptCurrentStateAsBaseline` to `true` to start from that state, otherwise the action fails with an
+   * `incorrect state` error listing the outdated hosts. Such a pool whose previous rolling pool update was left
+   * incomplete is refused with an `incorrect state` error as well. Older XenServer and Citrix Hypervisor pools are
+   * refused in neither case.
    *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    * @example body { "bypassBackupCheck": false, "shutdownPinnedVms": true }
@@ -718,7 +722,9 @@ export class PoolController extends XapiXoController<XoPool> {
   /**
    * Recovery status of an incomplete rolling pool update: run and per-host
    * step statuses, last error, pinned VMs still halted. 404 when the last
-   * rolling pool update completed successfully (no recovery needed).
+   * rolling pool update completed successfully (no recovery needed), or when
+   * the pool's master does not run XCP-ng or XenServer 8.4+ (no recovery
+   * record is kept for those pools).
    *
    * Required privilege:
    * - resource: pool, action: rolling-update

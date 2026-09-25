@@ -286,7 +286,8 @@ export function listUnrestoredItems(record, { pool, loadBalancerLoaded, getHost,
 }
 
 /**
- * Recorder used when a run does not track recovery (rolling pool reboot):
+ * Recorder used when a run does not track recovery (rolling pool reboot,
+ * rolling pool update on a pool without recovery, see supportsRpuRecovery):
  * every method is a no-op.
  */
 export const noopRpuRecorder = Object.freeze({
