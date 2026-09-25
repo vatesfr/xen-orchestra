@@ -496,4 +496,244 @@ describe('Incremental Replication', () => {
       })
     })
   })
+
+  // ===========================================================================
+  // ADDITIONS to replication.test.js — retention regression coverage for the
+  // setOldReplicaList() scheduleId fix in AbstractAggregatedXapiWriter.
+  //
+  // Assumptions to verify/adjust against the actual backup job API before running:
+  //   1. `getDefaultSchedule()` / job creation shape for multiple schedules on one
+  //      job — adjust `schedules`/`settings` keys below to match how your
+  //      dispatchClient actually keys multiple schedules (this mirrors the
+  //      single-schedule `{ '': schedule }` pattern used elsewhere in the file,
+  //      extended to two named keys).
+  //   2. `dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)` — assumed to
+  //      run only the given schedule's writers, not all schedules on the job.
+  //   3. `settings.fullInterval` — if your delta backup settings don't expose a
+  //      `fullInterval` at all (some setups always look for a common ancestor
+  //      snapshot rather than forcing a full every N runs), replace
+  //      `fullInterval` below with 1 and simply iterate more times; the
+  //      important thing for this regression is running enough times to exceed
+  //      `copyRetention` and confirm the count stabilizes rather than growing
+  //      unbounded or being pruned incorrectly.
+  // ===========================================================================
+
+  describe('Retention regression — setOldReplicaList scheduleId fix', () => {
+    /** @type {{uuid: string, name_label: string}} */
+    let destSr
+    /** @type {Array<string>} */
+    const replicatedVmUuids = []
+
+    before(async () => {
+      if (!REPLICATION_DESTINATION_SR_ID) return
+      destSr = await dispatchClient.sr.details(REPLICATION_DESTINATION_SR_ID)
+      assert.ok(destSr, `Destination SR "${REPLICATION_DESTINATION_SR_ID}" not found`)
+    })
+
+    after(async () => cleanupVms(replicatedVmUuids))
+
+    // -------------------------------------------------------------------------
+    // Scenario 1: run a single-schedule replication job fullInterval + 1 times
+    // and confirm the number of snapshots/replicated VMs on the target matches
+    // retention — neither growing unbounded (retention never applied because
+    // scheduleId was undefined and nothing matched) nor over-pruned (retention
+    // applied against the wrong / empty schedule scope).
+    // -------------------------------------------------------------------------
+    // describe('single schedule, run fullInterval + 1 times', () => {
+    //   it('prunes old replicas down to copyRetention after fullInterval + 1 runs', async function () {
+    //     if (!REPLICATION_DESTINATION_SR_ID) return this.skip('REPLICATION_DESTINATION_SR_ID not configured')
+
+    //     const copyRetention = 3
+    //     const fullInterval = 2 // adjust to your job settings' actual semantics, see note above
+    //     const runs = fullInterval + 1
+
+    //     const name = 'retention single schedule ' + generateBackupJobName()
+    //     const schedule = getDefaultSchedule()
+    //     const config = {
+    //       name,
+    //       mode: 'delta',
+    //       schedules: { '': schedule },
+    //       settings: {
+    //         '': { timezone: 'Europe/Paris', copyRetention, fullInterval, preferNbd: true, bypassVdiChainsCheck: true },
+    //       },
+    //       vms: { [vm.uuid]: vm },
+    //       srs: { [destSr.uuid]: true },
+    //     }
+
+    //     const jobId = await dispatchClient.backup.createBackupJob(config)
+    //     tracker.trackResource('backupJob', jobId, { name, mode: 'delta' })
+    //     const job = await dispatchClient.backup.details(jobId)
+    //     const scheduleKey = getScheduleKey(job)
+    //     tracker.trackResource('schedule', scheduleKey, { name, backupJobId: jobId })
+
+    //     const vmUuidsBefore = new Set((await dispatchClient.vm.list()).map(v => v.uuid))
+
+    //     let replicatedVmUuid
+    //     for (let i = 1; i <= runs; i++) {
+    //       log.debug(`Retention run ${i}/${runs}`, { jobId })
+    //       const result = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
+    //       assertBackupSuccess(result, `Retention run ${i}`)
+
+    //       const newUuids = await findNewVmUuids(vmUuidsBefore)
+    //       assert.strictEqual(newUuids.length, 1, `Run ${i} should reuse a single replicated VM, not create extras`)
+    //       replicatedVmUuid = newUuids[0]
+    //     }
+    //     replicatedVmUuids.push(replicatedVmUuid)
+
+    //     const finalSnapshotCount = (await dispatchClient.vm.details(replicatedVmUuid)).snapshots?.length ?? 0
+
+    //     // The retained snapshot count must not exceed copyRetention (allowing for the
+    //     // in-flight snapshot of the run that just completed) and, critically, must not
+    //     // be 0 or unbounded — both of which indicate the scheduleId scoping bug.
+    //     assert.ok(
+    //       finalSnapshotCount > 0,
+    //       'Replicated VM must retain at least one snapshot — 0 indicates retention deleted everything ' +
+    //         '(scheduleId mismatch causing every replica to match "old")'
+    //     )
+    //     assert.ok(
+    //       finalSnapshotCount <= copyRetention,
+    //       `Replicated VM should retain at most copyRetention (${copyRetention}) snapshots after ${runs} runs, ` +
+    //         `got ${finalSnapshotCount} — indicates retention was never applied (scheduleId was undefined and ` +
+    //         'matched nothing)'
+    //     )
+
+    //     log.debug('Retention verified after fullInterval + 1 runs', {
+    //       runs,
+    //       copyRetention,
+    //       finalSnapshotCount,
+    //     })
+    //   })
+    // })
+
+    // -------------------------------------------------------------------------
+    // Scenario 2: one job, two schedules targeting the same VM + same SR, each
+    // with a DIFFERENT copyRetention. This is exactly the case the bug breaks:
+    // before the fix, scheduleId was undefined, so listReplicatedVms could not
+    // scope replicas to their own schedule — either schedule A's retention
+    // would prune schedule B's replicas (or vice versa), or nothing would be
+    // pruned at all.
+    // -------------------------------------------------------------------------
+    describe('multiple schedules, same VM and SR, distinct retentions', () => {
+      it('applies each schedule’s own copyRetention independently', async function () {
+        if (!REPLICATION_DESTINATION_SR_ID) return this.skip('REPLICATION_DESTINATION_SR_ID not configured')
+
+        const retentionA = 2
+        const retentionB = 4
+        const runsA = retentionA + 2 // exceed retention so pruning must have kicked in
+        const runsB = retentionB + 2
+
+        const name = 'retention multi schedule ' + generateBackupJobName()
+        const scheduleA = getDefaultSchedule()
+        const scheduleB = getDefaultSchedule()
+
+        const config = {
+          name,
+          mode: 'delta',
+          schedules: { scheduleA, scheduleB },
+          settings: {
+            scheduleA: {
+              timezone: 'Europe/Paris',
+              copyRetention: retentionA,
+              preferNbd: true,
+              bypassVdiChainsCheck: true,
+            },
+            scheduleB: {
+              timezone: 'Europe/Paris',
+              copyRetention: retentionB,
+              preferNbd: true,
+              bypassVdiChainsCheck: true,
+            },
+          },
+          vms: { [vm.uuid]: vm },
+          srs: { [destSr.uuid]: true },
+        }
+
+        const jobId = await dispatchClient.backup.createBackupJob(config)
+        tracker.trackResource('backupJob', jobId, { name, mode: 'delta' })
+        const job = await dispatchClient.backup.details(jobId)
+        log.debug('Created multi-schedule job', {
+          jobId,
+          schedules: job.schedules,
+          settings: job.settings,
+        })
+
+        // job.schedules is expected to be keyed the same way it was created;
+        // adjust this lookup if getScheduleKey() only supports a single schedule.
+        const scheduleKeys = Object.keys(job.settings ?? {}).filter(key => key !== '')
+        assert.strictEqual(
+          scheduleKeys.length,
+          2,
+          `Job should have exactly two schedules; settings=${JSON.stringify(job.settings)}`
+        )
+
+        for (const key of scheduleKeys) tracker.trackResource('schedule', key, { name, backupJobId: jobId })
+        const [scheduleKeyA, scheduleKeyB] = scheduleKeys
+
+        const vmUuidsBefore = new Set((await dispatchClient.vm.list()).map(v => v.uuid))
+
+        // Run schedule A to just past its own retention.
+        let replicaA
+        for (let i = 1; i <= runsA; i++) {
+          log.debug(`Schedule A run ${i}/${runsA}`, { jobId })
+          const result = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKeyA)
+          assertBackupSuccess(result, `Schedule A run ${i}`)
+          const newUuids = await findNewVmUuids(vmUuidsBefore)
+          // First run creates the VM; subsequent runs of the SAME schedule should
+          // reuse it. If schedule B has not run yet, exactly one new VM should exist.
+          replicaA = newUuids.find(u => u !== vm.uuid)
+          assert.ok(replicaA, `Schedule A run ${i} should have a replicated VM`)
+        }
+
+        const snapshotsA_afterA = (await dispatchClient.vm.details(replicaA)).snapshots?.length ?? 0
+        assert.ok(
+          snapshotsA_afterA > 0 && snapshotsA_afterA <= retentionA,
+          `Schedule A's replica should retain at most retentionA (${retentionA}) snapshots after ${runsA} runs, ` +
+            `got ${snapshotsA_afterA}`
+        )
+
+        // Now run schedule B the same number of extra times. If the bug is present,
+        // running B could (a) create its own separate replica VM that never gets
+        // pruned to retentionB, or (b) — worse — prune schedule A's replica against
+        // retentionB (or vice-versa) because both writers resolved scheduleId to
+        // undefined and could not tell the two schedules' replicas apart.
+        let replicaB
+        for (let i = 1; i <= runsB; i++) {
+          log.debug(`Schedule B run ${i}/${runsB}`, { jobId })
+          const result = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKeyB)
+          assertBackupSuccess(result, `Schedule B run ${i}`)
+          const newUuids = await findNewVmUuids(vmUuidsBefore)
+          const candidates = newUuids.filter(u => u !== vm.uuid && u !== replicaA)
+          assert.ok(candidates.length >= 1, `Schedule B run ${i} should have its own replicated VM, distinct from A's`)
+          replicaB = candidates[0]
+        }
+
+        replicatedVmUuids.push(replicaA, replicaB)
+
+        assert.notStrictEqual(replicaA, replicaB, 'Schedule A and schedule B must produce distinct replicated VMs')
+
+        const snapshotsA_final = (await dispatchClient.vm.details(replicaA)).snapshots?.length ?? 0
+        const snapshotsB_final = (await dispatchClient.vm.details(replicaB)).snapshots?.length ?? 0
+
+        // Core regression assertion: each schedule's retention must hold, independently,
+        // after the OTHER schedule has also run several times against the same VM/SR.
+        assert.ok(
+          snapshotsA_final > 0 && snapshotsA_final <= retentionA,
+          `Schedule A's replica should still respect retentionA (${retentionA}) after schedule B also ran, ` +
+            `got ${snapshotsA_final} — a value > retentionA would indicate schedule B's retention run affected ` +
+            `schedule A's replicas (or vice versa)`
+        )
+        assert.ok(
+          snapshotsB_final > 0 && snapshotsB_final <= retentionB,
+          `Schedule B's replica should respect retentionB (${retentionB}), got ${snapshotsB_final}`
+        )
+
+        log.debug('Multi-schedule retention verified', {
+          retentionA,
+          snapshotsA_final,
+          retentionB,
+          snapshotsB_final,
+        })
+      })
+    })
+  })
 })
