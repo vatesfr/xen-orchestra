@@ -10,29 +10,39 @@ parameterized resources never register a URL without an engine id
   <div v-else-if="isEditing" class="content">
     <DockerConnectionForm :vm :engine @saved="onSaved()" @cancel="isEditing = false" />
   </div>
-  <div v-else class="content">
-    <VtsColumns>
-      <VtsColumn>
-        <DockerEngineCard
-          :engine
-          :info="dockerEngineInfo"
-          @configure="isEditing = true"
-          @refresh="refresh()"
-          @deleted="emit('deleted')"
+  <VtsContentSidePanel v-else class="docker-engine-view">
+    <div class="content">
+      <VtsColumns>
+        <VtsColumn>
+          <DockerEngineCard
+            :engine
+            :info="dockerEngineInfo"
+            @configure="isEditing = true"
+            @refresh="refresh()"
+            @deleted="emit('deleted')"
+          />
+        </VtsColumn>
+        <VtsColumn>
+          <DockerContainersSummaryCard :summary="dockerContainersSummary" :has-error="!isConnected" />
+        </VtsColumn>
+      </VtsColumns>
+      <UiCard class="container">
+        <DockerContainersTable
+          :containers="isConnected ? dockerContainers : []"
+          :is-ready="areDockerContainersReady"
+          :has-error="!isConnected || hasDockerContainerFetchError"
+          @changed="refresh()"
         />
-      </VtsColumn>
-      <VtsColumn>
-        <DockerContainersSummaryCard :summary="dockerContainersSummary" :has-error="!isConnected" />
-      </VtsColumn>
-    </VtsColumns>
-    <UiCard class="container">
-      <DockerContainersTable
-        :containers="isConnected ? dockerContainers : []"
-        :is-ready="areDockerContainersReady"
-        :has-error="!isConnected || hasDockerContainerFetchError"
-      />
-    </UiCard>
-  </div>
+      </UiCard>
+    </div>
+    <DockerContainerSidePanel
+      :container="selectedContainer"
+      :engine
+      :vm
+      @close="selectedContainer = undefined"
+      @changed="refresh()"
+    />
+  </VtsContentSidePanel>
 </template>
 
 <script lang="ts" setup>
@@ -40,16 +50,24 @@ import DockerContainersSummaryCard from '@/modules/docker/components/DockerConta
 import DockerContainersTable from '@/modules/docker/components/DockerContainersTable.vue'
 import DockerEngineCard from '@/modules/docker/components/DockerEngineCard.vue'
 import DockerConnectionForm from '@/modules/docker/components/form/connection/DockerConnectionForm.vue'
+import DockerContainerSidePanel from '@/modules/docker/components/panel/DockerContainerSidePanel.vue'
+import { useDockerContainerActionError } from '@/modules/docker/composables/use-docker-container-action-error.composable.ts'
 import { useDockerRefresh } from '@/modules/docker/composables/use-docker-refresh.composable.ts'
 import { useXoDockerContainerCollection } from '@/modules/docker/remote-resources/use-xo-docker-container-collection.ts'
 import { useXoDockerEngineInfo } from '@/modules/docker/remote-resources/use-xo-docker-engine-info.ts'
-import { DOCKER_STATUS, type FrontXoDockerEngine } from '@/modules/docker/types/docker.type.ts'
+import {
+  DOCKER_STATUS,
+  type FrontXoDockerContainer,
+  type FrontXoDockerEngine,
+} from '@/modules/docker/types/docker.type.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
+import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import { computed, ref } from 'vue'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { engine } = defineProps<{
@@ -73,9 +91,19 @@ const {
   areDockerContainersReady,
   hasDockerContainerFetchError,
   reloadDockerContainers,
+  getDockerContainerById,
 } = useXoDockerContainerCollection({}, () => engine.id)
 
+const { clearDockerContainerActionError } = useDockerContainerActionError()
+
+onBeforeUnmount(() => clearDockerContainerActionError())
+
 const isConnected = computed(() => dockerEngineInfo.value?.status === DOCKER_STATUS.CONNECTED)
+
+const selectedContainer = useRouteQuery<FrontXoDockerContainer | undefined>('id', {
+  toData: id => (isConnected.value ? getDockerContainerById(id as FrontXoDockerContainer['id']) : undefined),
+  toQuery: container => container?.id ?? '',
+})
 
 const isEditing = ref(false)
 

@@ -1,6 +1,7 @@
 import type {
   DockerEngineCreatePayload,
   DockerEngineUpdatePayload,
+  FrontXoDockerContainer,
   FrontXoDockerEngine,
 } from '@/modules/docker/types/docker.type.ts'
 import { defineJobArg } from '@core/packages/job'
@@ -20,4 +21,10 @@ export const xoDockerConnectionSaveArg = defineJobArg<DockerConnectionSaveReques
 export const xoDockerEngineArg = defineJobArg({
   toArray: false,
   identify: (engine: FrontXoDockerEngine) => engine.id,
+})
+
+// the container id: a job runs per row, not globally
+export const xoDockerContainerArg = defineJobArg({
+  toArray: false,
+  identify: (container: FrontXoDockerContainer) => container.id,
 })

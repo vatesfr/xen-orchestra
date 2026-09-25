@@ -52,7 +52,17 @@ export const dockerContainerFields = [
   'ports',
   'labels',
   'compose',
+  'networks',
+  'mounts',
   'startedAt',
+  'finishedAt',
+  'oomKilled',
+  'healthCheck',
+  'restartPolicy',
+  'restartCount',
+  // only with `stats=true`
+  'stats',
+  'statsPending',
 ] as const satisfies readonly (keyof XoDockerContainer)[]
 
 export type FrontXoDockerContainer = Pick<XoDockerContainer, (typeof dockerContainerFields)[number]>
