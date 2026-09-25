@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/fs",
-  "version": "4.9.3",
+  "version": "4.9.4",
   "license": "AGPL-3.0-or-later",
   "description": "The File System for Xen Orchestra backups.",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/fs",
@@ -42,7 +42,7 @@
     "proper-lockfile": "^4.1.2",
     "readable-stream": "^4.1.0",
     "through2": "^4.0.2",
-    "xo-remote-parser": "^0.10.1"
+    "xo-remote-parser": "^1.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.29.0",
