@@ -10,10 +10,8 @@
 <script setup lang="ts">
 import BackupJobsTable from '@/modules/backup/components/jobs/BackupJobsTable.vue'
 import BackupJobSidePanel from '@/modules/backup/components/jobs/panel/BackupJobSidePanel.vue'
-import {
-  useXoBackupJobCollection,
-  type FrontXoVmBackupJob,
-} from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import { type FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import { useXoVmBackupJobCollection } from '@/modules/vm/remote-resources/use-xo-vm-backup-jobs-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -23,11 +21,7 @@ const { vm } = defineProps<{
   vm: FrontXoVm
 }>()
 
-const {
-  backupJobs: vmBackupJobs,
-  areBackupJobsReady: areVmBackupJobsReady,
-  hasBackupJobFetchError: hasVmBackupJobFetchError,
-} = useXoBackupJobCollection({}, () => vm.id)
+const { vmBackupJobs, areVmBackupJobsReady, hasVmBackupJobFetchError } = useXoVmBackupJobCollection({}, () => vm.id)
 
 const selectedBackupJob = useRouteQuery<FrontXoVmBackupJob | undefined>('id', {
   toData: id => vmBackupJobs.value.find(backupJob => backupJob.id === id),
