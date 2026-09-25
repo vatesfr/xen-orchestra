@@ -13,6 +13,7 @@ import { mcpGateMiddleware } from './middlewares/mcp-gate.middleware.mjs'
 import { type OpenAPIV3 } from 'openapi-types'
 import { createExternalRouter, sendObjects } from './router/external-router.mjs'
 import { BASE_URL } from './helpers/utils.helper.mjs'
+import { mountDockerRawRoutes } from './docker-engines/docker-engine-raw.routes.mjs'
 
 export { sendObjects }
 
@@ -59,6 +60,10 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
   RegisterRoutes(express)
 
   express.use(BASE_URL, externalRouter)
+
+  // raw Docker Engine API passthrough (admin only, disabled by default), a
+  // wildcard route: not a tsoa controller
+  mountDockerRawRoutes(mountExternalRoute, swaggerOpenApiSpec)
 
   express.get(`${BASE_URL}/docs/swagger.json`, (_req, res) => {
     res.setHeader('Content-Type', 'application/json')

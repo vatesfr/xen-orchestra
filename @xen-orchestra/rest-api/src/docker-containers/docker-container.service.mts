@@ -5,6 +5,7 @@ import type {
   XoDockerContainer,
   XoDockerContainerAction,
   XoDockerContainerListError,
+  XoDockerContainerStats,
   XoDockerEngine,
   XoDockerLogs,
 } from '@vates/types'
@@ -165,6 +166,10 @@ export class DockerContainerService {
 
   getContainer(id: XoDockerContainer['id']): Promise<XoDockerContainer> {
     return withDockerErrors(() => this.#restApi.xoApp.getDockerContainer(id))
+  }
+
+  getStats(id: XoDockerContainer['id']): Promise<XoDockerContainerStats> {
+    return withDockerErrors(() => this.#restApi.xoApp.getDockerContainerStats(id))
   }
 
   getLogs(

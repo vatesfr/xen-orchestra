@@ -16,7 +16,7 @@ import {
 import type { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import type { XoDockerContainer, XoDockerContainerAction, XoDockerLogs } from '@vates/types'
+import type { XoDockerContainer, XoDockerContainerAction, XoDockerContainerStats, XoDockerLogs } from '@vates/types'
 
 import { DockerContainerService } from './docker-container.service.mjs'
 import { DockerEngineService } from '../docker-engines/docker-engine.service.mjs'
@@ -38,6 +38,7 @@ import {
   dockerContainer,
   dockerContainerIds,
   dockerContainerLogs,
+  dockerContainerStats,
   partialDockerContainers,
 } from '../open-api/oa-examples/docker-container.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
@@ -137,6 +138,36 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   }
 
   /**
+   * CPU, memory, network, block I/O and PIDs of a container, like `docker
+   * stats`: `cpuPercent` is 100 for one full CPU (up to `100 * onlineCpus`),
+   * `memoryUsage` excludes the reclaimable page cache.
+   *
+   * The latest sample of the engine's stats sampler when it streams this
+   * container (see `stats=true` on the listing), else one call to dockerd
+   * (~1-2 s). Does not start the sampler.
+   *
+   * Required privilege:
+   * - admin (v2: resource: docker-container, action: read)
+   *
+   * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
+   */
+  // ACLs v2: acl({ resource: 'docker-container', action: 'read', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
+  @Example(dockerContainerStats)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/stats')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(badGatewayResp.status, 'SSH or Docker failure (see data.code)')
+  @Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
+  @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
+  async getDockerContainerStats(@Path() id: string): Promise<XoDockerContainerStats> {
+    await this.#dockerEngineService.assertDockerFeature()
+    const containerId = id as XoDockerContainer['id']
+    // 404 without connecting on a malformed id or an unknown engine
+    await this.#dockerContainerService.assertContainerId(containerId)
+    return this.#dockerContainerService.getStats(containerId)
+  }
+
+  /**
    * The container, inspected (served from the listing cache when possible).
    *
    * Required privilege:
@@ -174,6 +205,14 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * some engines failed. The details are in `GET /docker-engines/{id}/info`
    * and in the engine's `connectionStatus` and `error`.
    *
+   * `stats=true` starts the engine's stats sampler (one Docker stats stream
+   * per running container, at most `docker.maxStatsContainers`, stopped after
+   * `docker.statsIdleTimeout` without reader) and merges its latest samples
+   * into the running and paused containers (`stats`, see
+   * `GET /docker-containers/{id}/stats`). It never waits for a sample: the
+   * containers whose samples are not there yet have `statsPending: true`
+   * (the CPU usage needs two samples, one second apart).
+   *
    * Required privilege:
    * - admin (v2: resource: docker-container, action: read, per container)
    *
@@ -181,6 +220,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * @example filter "$engine:8d834412-eb40-4328-a815-3fcc0989bd07 state:running"
    * @example limit 42
    * @example all true
+   * @example stats true
    * @example force_refresh false
    */
   // ACLs v2: @Security('*', ['acl']) + sendObjects(…, { privilege: { action: 'read', resource: 'docker-container' } })
@@ -199,7 +239,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
     @Query() limit?: number,
     /** include stopped containers, default true */
     @Query() all?: boolean,
-    /** not supported yet (422) */
+    /** merge the latest stats of the running and paused containers (`stats`), never blocks: `statsPending: true` while the first samples are not there (~2 s) */
     @Query() stats?: boolean,
     /** bypass the cache of the container lists */
     @Query() force_refresh?: boolean
