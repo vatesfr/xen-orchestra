@@ -154,15 +154,46 @@ describe('Incremental Replication', () => {
   }
 
   /**
-   * @param {string} vmUuid
-   * @returns {Promise<boolean>} Whether the VM still exists.
+   * @param {Error} error
+   * @returns {boolean} Whether the error looks like a "not found" response rather than a transient failure.
    */
-  const vmExists = async vmUuid => {
-    try {
-      await dispatchClient.vm.details(vmUuid)
-      return true
-    } catch {
-      return false
+  const isNotFoundError = error => {
+    const message = error?.message ?? ''
+    return /HTTP 404\b/i.test(message) || /not found/i.test(message)
+  }
+
+  /**
+   * @param {string} vmUuid
+   * @param {{retries?: number}} [options] - Number of times to retry on a
+   *   non-"not found" error before giving up and propagating it (default 1).
+   * @returns {Promise<boolean>} Whether the VM still exists.
+   * @throws If the underlying call keeps failing with something other than a
+   *   "not found" response — a transient RPC/network error must not be
+   *   silently reported as "the VM was deleted".
+   */
+  const vmExists = async (vmUuid, { retries = 1 } = {}) => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        await dispatchClient.vm.details(vmUuid)
+        return true
+      } catch (error) {
+        if (isNotFoundError(error)) {
+          return false
+        }
+
+        const shouldRetry = attempt < retries
+
+        if (!shouldRetry) {
+          throw error
+        }
+
+        log.warn('Transient error while checking VM existence, retrying', {
+          vmUuid,
+          error,
+        })
+
+        await delay(1_000)
+      }
     }
   }
 
@@ -611,9 +642,17 @@ describe('Incremental Replication', () => {
           }
         })()
 
-        const result2 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
-        pollState.running = false
-        await pollUsage
+        let result2
+        try {
+          result2 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
+        } finally {
+          // Always stop the polling loop and let it settle, even if the run
+          // itself throws — otherwise the dangling `while (pollState.running)`
+          // timer keeps firing forever and, with --test-concurrency=1, hangs
+          // every test queued after this one.
+          pollState.running = false
+          await pollUsage
+        }
 
         assertBackupSuccess(result2, 'Second replication')
 
