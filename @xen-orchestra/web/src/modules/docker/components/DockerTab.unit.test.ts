@@ -85,6 +85,7 @@ function setContainers(containers: FrontXoDockerContainer[]) {
   Object.assign(containerState, {
     dockerContainers: records,
     dockerContainersSummary: computed(() => summarizeContainers(records.value)),
+    getDockerContainerById: (id: FrontXoDockerContainer['id']) => records.value.find(container => container.id === id),
     areDockerContainersReady: ref(true),
     hasDockerContainerFetchError: ref(false),
     reloadDockerContainers: vi.fn(),
@@ -160,10 +161,9 @@ it('shows the engine, the counters and the containers when the engine is connect
   expect(wrapper.find('.docker-containers-summary-card .total').text()).toContain('2')
   expect(wrapper.find('.docker-containers-summary-card .running').text()).toContain('1')
   expect(wrapper.find('.docker-containers-summary-card .stopped').text()).toContain('1')
-  expect(wrapper.findAll('.docker-containers-table .container').map(row => row.find('.name span').text())).toEqual([
-    'web',
-    'job',
-  ])
+  expect(
+    wrapper.findAll('.docker-containers-table tbody tr').map(row => row.find('.vts-stacked-text-cell .primary').text())
+  ).toEqual(['web', 'job'])
   expect(wrapper.find('.docker-containers-table').text()).toContain(t('status:exited-with-code', { code: 3 }))
 })
 
@@ -196,7 +196,7 @@ it.each([
   expect(card.text()).toContain(t('action:configure-monitoring'))
   // the table is in its error state, it does not show stale containers
   expect(wrapper.find('.docker-containers-table .vts-state-hero.error').exists()).toBe(true)
-  expect(wrapper.findAll('.docker-containers-table .container')).toHaveLength(0)
+  expect(wrapper.findAll('.docker-containers-table tbody tr')).toHaveLength(0)
 })
 
 it('shows the connection form of the engine when configuring the monitoring', async () => {
