@@ -45,6 +45,7 @@
 
 - [XO5/Host/Patches] Warn when installing patches on a host while its pool master is not up to date (PR [#10523](https://github.com/vatesfr/xen-orchestra/pull/10523))
 - [XO6] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
+- [Plugin/audit] New `logRecords` option to also write each new audit record to xo-server logs as a single JSON line, so they can be forwarded to a syslog server (PR [#10460](https://github.com/vatesfr/xen-orchestra/pull/10460))
 
 ### Bug fixes
 
@@ -106,6 +107,7 @@
 - xen-api minor
 - xo-cli patch
 - xo-server minor
+- xo-server-audit minor
 - xo-server-load-balancer minor
 - xo-server-sdn-controller patch
 - xo-web minor

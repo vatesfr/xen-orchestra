@@ -13,6 +13,7 @@ import { PassThrough, pipeline, promises } from 'readable-stream'
 import { createRestRoutes } from './rest-api.js'
 
 const log = createLogger('xo:xo-server-audit')
+const recordsLog = createLogger('xo:xo-server-audit:records')
 
 const DEFAULT_BLOCKED_LIST = {
   'acl.get': true,
@@ -192,6 +193,11 @@ export const configurationSchema = {
         'Whether to save user actions in the audit log (do not enable if you are planning to perform an audit log import)',
       type: 'boolean',
     },
+    logRecords: {
+      description:
+        'Also write each new record to xo-server logs, as a single JSON line (e.g. to forward them to a syslog server)',
+      type: 'boolean',
+    },
   },
 }
 
@@ -220,8 +226,9 @@ class AuditXoPlugin {
     }
   }
 
-  configure({ active = false }, { loaded }) {
+  configure({ active = false, logRecords = false }, { loaded }) {
     this._active = active
+    this._logRecords = logRecords
 
     if (loaded) {
       this._addListeners()
@@ -337,7 +344,7 @@ class AuditXoPlugin {
   async _handleEvent(event, { userId, userIp, userName, ...data }) {
     try {
       if (event !== 'apiCall' || !this._blockedList[data.method]) {
-        return await this._auditCore.add(
+        const record = await this._auditCore.add(
           {
             userId,
             userIp,
@@ -346,6 +353,10 @@ class AuditXoPlugin {
           event,
           data
         )
+        if (this._logRecords) {
+          recordsLog.info(JSON.stringify(record))
+        }
+        return record
       }
     } catch (error) {
       log.error(error)
