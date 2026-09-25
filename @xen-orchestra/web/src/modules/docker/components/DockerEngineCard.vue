@@ -58,7 +58,22 @@
       </VtsTabularKeyValueRow>
     </VtsTabularKeyValueList>
 
-    <div>
+    <UiAlert v-if="testResult !== undefined" :accent="testResult.accent" close @close="testResult = undefined">
+      {{ testResult.title }}
+      <template v-if="testResult.description" #description>{{ testResult.description }}</template>
+    </UiAlert>
+
+    <div class="buttons">
+      <UiButton
+        variant="tertiary"
+        accent="brand"
+        size="small"
+        left-icon="action:connect"
+        :busy="isTesting"
+        @click="testConnection()"
+      >
+        {{ t('action:test-connection') }}
+      </UiButton>
       <UiButton
         variant="tertiary"
         accent="danger"
@@ -74,7 +89,9 @@
 </template>
 
 <script lang="ts" setup>
+import { useDockerErrorMessage } from '@/modules/docker/composables/use-docker-error-message.composable.ts'
 import { useXoDockerConnectionDeleteJob } from '@/modules/docker/jobs/xo-docker-connection-delete.job.ts'
+import { useXoDockerEngineTestJob } from '@/modules/docker/jobs/xo-docker-engine-test.job.ts'
 import type { FrontXoDockerEngine, FrontXoDockerEngineInfo } from '@/modules/docker/types/docker.type.ts'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -85,7 +102,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { engine, info } = defineProps<{
@@ -112,6 +129,42 @@ const engineVersion = computed(() => {
 
   return `${info.engineVersion ?? '-'} (API ${info.apiVersion ?? '-'})`
 })
+
+const { run: runTest, isRunning: isTesting } = useXoDockerEngineTestJob(() => engine)
+
+const { getDockerErrorMessage } = useDockerErrorMessage()
+
+const testResult = ref<{ accent: 'success' | 'danger'; title: string; description?: string }>()
+
+async function testConnection() {
+  testResult.value = undefined
+
+  try {
+    const result = await runTest()
+
+    testResult.value = result.ok
+      ? {
+          accent: 'success',
+          title: t('docker-connection-test-succeeded'),
+          description: result.engineVersion === undefined ? undefined : `Docker ${result.engineVersion}`,
+        }
+      : {
+          accent: 'danger',
+          title: t('docker-connection-failed'),
+          description: [result.error?.message, result.diagnostic?.message].filter(Boolean).join(' — '),
+        }
+  } catch (error) {
+    // e.g. 429 SSH_COOLDOWN right after a failed authentication
+    testResult.value = {
+      accent: 'danger',
+      title: t('docker-connection-failed'),
+      description: getDockerErrorMessage(error),
+    }
+  } finally {
+    // the test clears or sets the error of the engine
+    emit('refresh')
+  }
+}
 
 const { run: deleteEngine, isRunning: isDeleting } = useXoDockerConnectionDeleteJob(() => engine)
 
@@ -140,6 +193,12 @@ function forget() {
 
 <style lang="postcss" scoped>
 .docker-engine-card {
+  .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+
   .error-description {
     display: flex;
     flex-direction: column;

@@ -108,6 +108,7 @@ import DockerAddressField from '@/modules/docker/components/form/connection/inpu
 import DockerPortInput from '@/modules/docker/components/form/connection/inputs/DockerPortInput.vue'
 import DockerPrivateKeyTextarea from '@/modules/docker/components/form/connection/inputs/DockerPrivateKeyTextarea.vue'
 import DockerTextInput from '@/modules/docker/components/form/connection/inputs/DockerTextInput.vue'
+import { useDockerErrorMessage } from '@/modules/docker/composables/use-docker-error-message.composable.ts'
 import { useDockerConnectionForm } from '@/modules/docker/form/connection/use-docker-connection-form.ts'
 import type { DockerConnectionSaveRequest } from '@/modules/docker/jobs/xo-docker-args.ts'
 import { useXoDockerConnectionSaveJob } from '@/modules/docker/jobs/xo-docker-connection-save.job.ts'
@@ -170,6 +171,8 @@ const hostKeyError = ref<DockerHostKeyErrorData>()
 
 const saveError = ref<string>()
 
+const { getDockerErrorMessage } = useDockerErrorMessage()
+
 const { run: save, isRunning } = useXoDockerConnectionSaveJob(request)
 
 async function submit(nextRequest: DockerConnectionSaveRequest) {
@@ -186,8 +189,8 @@ async function submit(nextRequest: DockerConnectionSaveRequest) {
     hostKeyError.value = getHostKeyErrorData(error)
 
     if (hostKeyError.value === undefined) {
-      const cause = (error as { cause?: { error?: unknown } }).cause
-      saveError.value = typeof cause?.error === 'string' ? cause.error : String((error as Error).message ?? error)
+      // e.g. a 429 SSH_COOLDOWN: tells when to retry
+      saveError.value = getDockerErrorMessage(error)
     }
   }
 }

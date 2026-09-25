@@ -24,7 +24,16 @@ export function createDockerContainer(overrides: Partial<FrontXoDockerContainer>
     ports: [{ privatePort: 80, protocol: 'tcp', publicPort: 8080, ip: '0.0.0.0' }],
     labels: {},
     compose: undefined,
+    networks: [{ name: 'bridge', ipAddress: '172.17.0.2' }],
+    mounts: [],
     startedAt: 1790276921786,
+    finishedAt: undefined,
+    oomKilled: false,
+    healthCheck: undefined,
+    restartPolicy: { name: 'no', maximumRetryCount: 0 },
+    restartCount: 0,
+    stats: undefined,
+    statsPending: undefined,
     ...overrides,
   }
 }
