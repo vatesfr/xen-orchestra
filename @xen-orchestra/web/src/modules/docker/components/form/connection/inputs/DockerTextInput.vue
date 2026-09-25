@@ -1,5 +1,5 @@
 <template>
-  <VtsInputWrapper :label :message>
+  <VtsInputWrapper :label :message wrap-message>
     <UiInput
       v-model.trim="model"
       :accent="error !== undefined ? 'danger' : 'brand'"
