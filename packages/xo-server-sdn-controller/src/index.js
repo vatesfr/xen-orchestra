@@ -306,7 +306,10 @@ class SDNController extends EventEmitter {
     this._tlsHelper = new TlsHelper()
 
     this._handledTasks = []
-    this._managed = []
+    // Set() of Xapi instances (whose object events are being watched).
+    this._managedXapis = new Set()
+    // Map(Xapi, cleaner) to stop watching its object events
+    this._xapiCleaners = new Map()
   }
 
   // ---------------------------------------------------------------------------
@@ -474,7 +477,8 @@ class SDNController extends EventEmitter {
     this.ofChannels = {}
 
     this._handledTasks = []
-    this._managed = []
+    this._managedXapis = new Set()
+    this._xapiCleaners = new Map()
 
     this._unsetApiMethods()
   }
@@ -628,6 +632,13 @@ class SDNController extends EventEmitter {
   _handleDisconnectedXapi(xapi) {
     log.debug('xapi disconnected', { id: xapi.pool.uuid })
     try {
+      // the Xapi instance is dead, a new one (same pool UUID, same XAPI
+      // object $refs) will be created on reconnection and must be managed
+      // again in _manageXapi; run the per-Xapi cleaner to detach the event
+      // listeners (also drops the reference pinning the dead Xapi's object
+      // cache)
+      this._xapiCleaners.get(xapi)?.()
+
       forOwn(this.privateNetworks, privateNetwork => {
         privateNetwork.networks = omitBy(privateNetwork.networks, network => network.$pool.uuid === xapi.pool.uuid)
 
@@ -1005,7 +1016,7 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   async _manageXapi(xapi) {
-    if (this._managed.includes(xapi.pool.uuid)) {
+    if (this._managedXapis.has(xapi)) {
       return noop // pushed in _cleaners
     }
 
@@ -1017,13 +1028,18 @@ class SDNController extends EventEmitter {
     objects.on('remove', objectsRemovedXapi)
 
     await this._installCaCertificateIfNeeded(xapi)
-    this._managed.push(xapi.pool.uuid)
+    this._managedXapis.add(xapi)
 
-    return () => {
+    const cleaner = () => {
+      this._managedXapis.delete(xapi)
+      this._xapiCleaners.delete(xapi)
       objects.removeListener('add', this._objectsAdded)
       objects.removeListener('update', this._objectsUpdated)
       objects.removeListener('remove', objectsRemovedXapi)
     }
+    this._xapiCleaners.set(xapi, cleaner)
+
+    return cleaner
   }
 
   _objectsAdded(objects) {
@@ -1544,20 +1560,62 @@ class SDNController extends EventEmitter {
     return client
   }
 
+  // Returns the OpenFlow controller for the given host, creating it if needed.
+  //
+  // this.ofChannels maps host.$ref to an entry `{ host, $xapi, controller }`
+  // where `controller` is the Promise returned by instantiateController()
+  // until the controller is ready. `$xapi` records the XAPI connection the
+  // controller was created for: on reconnection xo-server replaces the Xapi
+  // instance while the XAPI objects (and their $refs) are kept, so a
+  // controller created for a previous connection is stale and must be
+  // recreated.
   async _getOrCreateOfChannel(host) {
-    if (host === undefined || !host.enabled) {
+    if (host === undefined) {
       return undefined
     }
 
-    let channel = this.ofChannels[host.$ref]
-    if (channel === undefined) {
-      // this ensure only one channel is create in parallel
-      channel = this.ofChannels[host.$ref] = instantiateController(host, this._tlsHelper, this.#staticConfig)
+    const $ref = host.$ref
+    const $xapi = host.$xapi
+
+    // The host is unreachable (disabled, or its XAPI is not connected): drop
+    // any cached controller so it gets recreated when the host comes back.
+    if (!host.enabled || $xapi.status !== 'connected') {
+      delete this.ofChannels[$ref]
+      return undefined
     }
-    if (this.ofChannels[host.$ref].then) {
-      this.ofChannels[host.$ref] = await this.ofChannels[host.$ref]
+
+    const channel = this.ofChannels[$ref]
+    if (channel !== undefined) {
+      if (channel.$xapi === $xapi) {
+        // The controller for this connection is cached: either ready, or
+        // still being instantiated by a concurrent call; awaiting the shared
+        // Promise is fine in both cases.
+        return channel.controller
+      }
+
+      // The controller belongs to a previous XAPI connection, drop it and
+      // recreate it below.
+      delete this.ofChannels[$ref]
     }
-    return channel
+
+    // Stash the entry before awaiting, so concurrent calls share the same
+    // instantiation.
+    const entry = (this.ofChannels[$ref] = {
+      host,
+      $xapi,
+      controller: instantiateController(host, this._tlsHelper, this.#staticConfig),
+    })
+    try {
+      entry.controller = await entry.controller
+    } catch (error) {
+      // Only clear the cache if it still points to this entry (it may have
+      // been dropped in the meantime, e.g. by a host removal event).
+      if (this.ofChannels[$ref] === entry) {
+        delete this.ofChannels[$ref]
+      }
+      throw error
+    }
+    return entry.controller
   }
 }
 
