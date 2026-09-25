@@ -140,7 +140,10 @@ enabled = false
 threshold = 1000
 
 [http]
-useForwardedHeaders = false
+# Trust X-Forwarded-* headers from loopback only: the proxies below (e.g.
+# `/v5/api`) forward requests to xo-server itself through `localhost`, which
+# would otherwise hide the real IP address of clients (e.g. in the audit log)
+useForwardedHeaders = ['loopback']
 
 # Helmet handles HTTP security via headers
 #

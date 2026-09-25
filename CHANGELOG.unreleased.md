@@ -15,6 +15,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Audit] Fix actions made from XO 5 (`/v5`) being logged with `127.0.0.1` or `::1` as user IP address instead of the real IP address of the client
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server patch
 
 <!--packages-end-->
