@@ -1,15 +1,13 @@
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
-import { dirname, join } from 'node:path'
+import { dirname } from 'node:path'
 import { EventEmitter } from 'node:events'
-import { Disposable, pTimeout } from 'promise-toolbox'
 import { setTimeout as delay } from 'node:timers/promises'
 import { Agent } from 'undici'
 
-import { findFreePort, formatNbdkitArgs, waitForPort } from './_nbdkit.mjs'
 import { resolveDiskLocation } from './_paths.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
-import { VDDK_LIB_PATH } from './_vddk.mjs'
+import { formatVecturaArgs, VECTURA_BIN } from './_vectura.mjs'
 import { COWD_HEADER_LENGTH, grainDirectoryToDataMap, parseCowdHeader } from './parsers/cowd.mjs'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
@@ -25,15 +23,8 @@ import {
   traversalSpec,
 } from './soap/specs.mjs'
 import { VimClient } from './soap/VimClient.mjs'
-import { spawn } from 'node:child_process'
-import NbdClient from '@vates/nbd-client'
-
-import { tmpdir } from 'node:os'
-import fs from 'node:fs/promises'
 
 const { info, warn } = createLogger('xo:vmware-explorer:esxi')
-
-export { VDDK_LIB_DIR, VDDK_LIB_PATH } from './_vddk.mjs'
 
 const DEFAULT_DOWNLOAD_RETRIES = 4
 // a vmdk descriptor is a text file of a few hundred bytes, but a long parentFileNameHint pushes
@@ -52,9 +43,6 @@ const DEFAULT_TASK_TIMEOUT = 60e3
 const MAX_CBT_QUERIES = 1024
 const MAX_RETRY_DELAY = 30e3
 const MAX_TASK_POLL_DELAY = 5e3
-const NBDKIT_KILL_TIMEOUT = 10e3
-// connecting the vddk library to the host can be slow
-const NBDKIT_READY_TIMEOUT = 60e3
 
 // a failure which will not fix itself must not be retried: a missing file, a rejected
 // authentication or a programming error only delay the report of the real problem
@@ -88,12 +76,6 @@ function isRetryableError(error) {
   // the host did not send its response headers in time
   return error?.name === 'TimeoutError'
 }
-
-const noop = () => {}
-
-// the options change what the server exports, so they are part of its identity
-const nbdServerKey = (vmId, diskPath, { compression, singleLink, threads }) =>
-  JSON.stringify([vmId, diskPath, singleLink, threads, compression])
 
 /**
  * Everything the change tracking of a VM is addressed by, as {@link Esxi#getChangeTracking} reads
@@ -148,10 +130,8 @@ export default class Esxi extends EventEmitter {
   #httpsAgent
   #user
   #password
-  #spawn
   #thumbprint
   #vimClient
-  #nbdServers = new Map()
 
   /**
    * @param {string} host
@@ -160,19 +140,11 @@ export default class Esxi extends EventEmitter {
    * @param {boolean} sslVerify
    * @param {object} [options]
    * @param {typeof globalThis.fetch} [options.fetch] - injectable fetch implementation, for tests
-   * @param {typeof spawn} [options.spawn] - injectable process spawner, for tests
    * @param {object} [options.vimClient] - injectable SOAP client, for tests
    */
-  constructor(
-    host,
-    user,
-    password,
-    sslVerify,
-    { fetch: fetchImplementation, spawn: spawnImplementation, vimClient } = {}
-  ) {
+  constructor(host, user, password, sslVerify, { fetch: fetchImplementation, vimClient } = {}) {
     super()
     this.#fetchImpl = fetchImplementation ?? globalThis.fetch
-    this.#spawn = spawnImplementation ?? spawn
     this.#host = host.trim()
     this.#user = user
     this.#password = password
@@ -217,20 +189,10 @@ export default class Esxi extends EventEmitter {
    * @returns {Promise<void>}
    */
   async close() {
-    try {
-      // the servers would only be reaped by `--exit-with-parent`, i.e. when this process ends
-      await asyncEach([...this.#nbdServers.keys()], key => this.#killNbdServerByKey(key), {
-        concurrency: 4,
-        // every server must be tried: `asyncEach` stops on the first error by default, which would
-        // leave the other ones running
-        stopOnError: false,
-      })
-    } finally {
-      // a server refusing to die must not leave the session open on the host, nor the sockets of
-      // the agent
-      await this.#vimClient.close()
-      await this.#httpsAgent?.close()
-    }
+    // the vectura processes are owned by the `NbdStdioClient` reading through them, and stopped
+    // when it disconnects: there is nothing to reap here
+    await this.#vimClient.close()
+    await this.#httpsAgent?.close()
   }
 
   async #computeDatacenters() {
@@ -956,10 +918,10 @@ export default class Esxi extends EventEmitter {
   }
 
   /**
-   * SHA-1 fingerprint of the certificate of the host, as the vddk library expects it.
+   * SHA-256 fingerprint of the certificate of the host, as vectura's `--thumbprint` expects it.
    *
-   * Memoized: it used to be computed again for every nbdkit server, with two openssl processes
-   * every time.
+   * Memoized: it used to be computed again for every disk export, with two openssl processes every
+   * time.
    *
    * @returns {Promise<string>}
    */
@@ -978,186 +940,38 @@ export default class Esxi extends EventEmitter {
   }
 
   /**
-   * Starts an nbdkit server exporting a disk of a VM, or shares the one already serving it.
+   * Settings of an `NbdStdioClient` reading one disk of a VM through vectura.
    *
-   * The server is stopped when the disposable is disposed, and a server shared by several callers
-   * survives until the last of them disposes: the caller no longer has to name it again, with the
-   * exact same options, to stop it.
+   * Nothing is started here: `vectura serve` speaks NBD on its own standard streams, so one process
+   * serves exactly one client, and the client is what spawns it, kills it on `disconnect()` and
+   * restarts it when a read is retried. The caller passes these settings, and `NbdStdioClient` as
+   * the `ClientClass`, to `NbdDisk`.
    *
    * @param {string} vmId
    * @param {string} diskPath - `[datastore] dir/disk.vmdk`
    * @param {object} [options]
-   * @param {string} [options.compression]
-   * @param {boolean} [options.singleLink] - export the top delta only
-   * @param {number} [options.threads]
-   * @returns {Promise<Disposable<{ died: Promise<object>, nbdInfos: object, process: object }>>}
+   * @param {string} [options.compression] - `skipz`, `zlib` or `none`, vectura defaults to `skipz`
+   * @param {number} [options.depth] - host reads in flight, 1 to 32, vectura defaults to 16
+   * @returns {Promise<{ args: Array<string>, command: string, env: object, exportname: string }>}
    */
-  async getNbdServer(vmId, diskPath, { compression = 'fastlz', singleLink = false, threads = 1 } = {}) {
-    const key = nbdServerKey(vmId, diskPath, { compression, singleLink, threads })
-
-    let entry = this.#nbdServers.get(key)
-    if (entry === undefined) {
-      // the promise is memoized, not its result: the previous implementation had six await points
-      // between the check and the registration, so two concurrent calls spawned two servers and
-      // orphaned the first one
-      entry = { pending: this.#spawnNbdKitProcess(vmId, diskPath, { compression, singleLink, threads }), users: 0 }
-      this.#nbdServers.set(key, entry)
-
-      // neither a failed spawn nor a dead server must be handed out to the next caller
-      const forget = () => {
-        if (this.#nbdServers.get(key) === entry) {
-          this.#nbdServers.delete(key)
-        }
-      }
-      entry.pending.then(server => server.died.then(forget), forget)
-    }
-
-    entry.users += 1
-
-    let server
-    try {
-      server = await entry.pending
-    } catch (error) {
-      entry.users -= 1
-      throw error
-    }
-
-    // `Disposable` refuses a second disposal itself, so this runs exactly once per caller
-    const dispose = async () => {
-      entry.users -= 1
-      // `close()` stops every server left, a disposal after it has nothing to do
-      if (entry.users === 0 && this.#nbdServers.get(key) === entry) {
-        await this.#killNbdServerByKey(key)
-      }
-    }
-
-    return new Disposable(dispose, server)
-  }
-
-  async #spawnNbdKitProcess(vmId, diskPath, { compression, singleLink, threads }) {
-    const thumbprint = await this.getServerThumbprint()
-    const port = await findFreePort()
-    const tmpDir = await fs.mkdtemp(join(tmpdir(), 'xo-server'))
-    const passFile = join(tmpDir, 'params')
-    const outFd = await fs.open(join(tmpDir, 'stdout'), 'a')
-    const errFd = await fs.open(join(tmpDir, 'stderr'), 'a')
-    // the file holds a password, and only the directory was protecting it
-    await fs.writeFile(passFile, this.#password, { mode: 0o600 })
-
-    const args = formatNbdkitArgs({
-      compression,
-      diskPath,
-      host: this.#host,
-      libdir: VDDK_LIB_PATH,
-      passFile,
-      port,
-      singleLink,
-      threads,
-      thumbprint,
-      user: this.#user,
-      vmId,
-    })
-
-    const nbdKitProcess = this.#spawn('nbdkit', args, {
-      cwd: tmpDir,
-      env: {
-        ...process.env,
-        LD_LIBRARY_PATH: `${VDDK_LIB_PATH}/lib64`,
-      },
-    })
-    nbdKitProcess.stdout.pipe(outFd.createWriteStream())
-    nbdKitProcess.stderr.pipe(errFd.createWriteStream())
-    info(`nbdkit logs of ${diskPath} are in ${tmpDir}`)
-
-    // `error` is emitted when the binary is missing: without a listener, it is an uncaught event
-    // which terminates the whole process
-    const died = new Promise(resolve => {
-      nbdKitProcess.once('error', error => resolve({ error }))
-      nbdKitProcess.once('exit', (code, signal) => resolve({ code, signal }))
-    })
-
-    died.then(async ({ code, error, signal }) => {
-      await Promise.all([outFd.close().catch(noop), errFd.close().catch(noop)])
-      if (error !== undefined) {
-        warn('nbdkit could not be started', { args, error, tmpDir })
-      } else if (code !== 0) {
-        warn(`nbdkit server process exited with code ${code} ,detailed logs are in ${tmpDir}/stderr `, { signal })
-      } else {
-        // nothing to look at, the logs would pile up in the temporary directory
-        await fs.rm(tmpDir, { force: true, recursive: true }).catch(noop)
-      }
-    })
-
-    // the readiness of the server and its death are racing: nbdkit exits on a bad thumbprint or a
-    // missing library, and waiting for the port would then burn the whole timeout
-    const failed = died.then(({ code, error }) => {
-      if (error !== undefined) {
-        // the spawn itself failed, and its own code already says why, e.g. `ENOENT` when nbdkit is
-        // not installed
-        throw error
-      }
-      const exited = new Error(
-        `nbdkit exited with code ${code} before being ready, detailed logs are in ${tmpDir}/stderr`
-      )
-      exited.code = 'NBDKIT_EXITED'
-      throw exited
-    })
-    failed.catch(noop) // the race is usually won by the readiness of the server
-
-    const readiness = new AbortController()
-    try {
-      await Promise.race([waitForPort(port, { signal: readiness.signal, timeout: NBDKIT_READY_TIMEOUT }), failed])
-    } catch (error) {
-      await this.#killNbdServer({ died, process: nbdKitProcess }, diskPath).catch(noop)
-      throw error
-    } finally {
-      // losing the race must not leave a probe running until its own timeout
-      readiness.abort()
-      // nbdkit reads the password once, while configuring its plugin, which is done by the time it
-      // listens
-      await fs.unlink(passFile).catch(error => warn('failed to remove the password file', { error, passFile }))
-    }
-
+  async getVecturaSpawnSettings(vmId, diskPath, { compression, depth } = {}) {
     return {
-      died,
-      nbdInfos: { address: '127.0.0.1', port, exportname: diskPath },
-      process: nbdKitProcess,
+      command: VECTURA_BIN,
+      args: formatVecturaArgs({
+        compression,
+        depth,
+        diskPath,
+        host: this.#host,
+        thumbprint: await this.getServerThumbprint(),
+        user: this.#user,
+        vmId,
+      }),
+      // vectura reads the password from there and nowhere else: never a flag, never a file, so it
+      // cannot be read from the command line of the process
+      env: { ...process.env, VECTURA_PASSWORD: this.#password },
+      // vectura serves a single unnamed export, the disk is already named by `--disk`
+      exportname: '',
     }
-  }
-
-  async #killNbdServer(server, label) {
-    const { died, process: nbdKitProcess } = server
-    if (nbdKitProcess.exitCode !== null || nbdKitProcess.signalCode !== null) {
-      return
-    }
-    nbdKitProcess.kill()
-    try {
-      await pTimeout.call(died, NBDKIT_KILL_TIMEOUT)
-    } catch (error) {
-      warn('nbdkit did not exit, killing it', { error, label, pid: nbdKitProcess.pid })
-      nbdKitProcess.kill('SIGKILL')
-      await died
-    }
-  }
-
-  async #killNbdServerByKey(key) {
-    const entry = this.#nbdServers.get(key)
-    if (entry === undefined) {
-      warn(`nbdkit server ${key} was already killed`)
-      return
-    }
-    // the entry used to be left in place, so the next spawn handed out a dead process listening on
-    // nothing
-    this.#nbdServers.delete(key)
-
-    let server
-    try {
-      server = await entry.pending
-    } catch {
-      // the spawn failed, there is nothing left to kill
-      return
-    }
-    await this.#killNbdServer(server, key)
   }
 
   /**
@@ -1326,8 +1140,8 @@ export default class Esxi extends EventEmitter {
   /**
    * Blocks of a disk to read, from the change tracking of the host.
    *
-   * Needs no nbdkit server, no vddk library and no nbdinfo: one call answers from the `-ctk.vmdk`
-   * the host maintains. Two questions, the same call:
+   * Needs nothing installed and no disk export: one call answers from the `-ctk.vmdk` the host
+   * maintains. Two questions, the same call:
    * - without `baseDiskPath`, every block the disk has ever used, across the whole chain
    * - with it, only the blocks written since the disk a previous import already read
    *
@@ -1432,37 +1246,6 @@ export default class Esxi extends EventEmitter {
     return areas
   }
 
-  async #getDataMapFromVddk(vmId, datastoreName, diskPath, signal) {
-    return Disposable.use(
-      this.getNbdServer(vmId, `[${datastoreName}] ${diskPath}`, { singleLink: true }),
-      async ({ nbdInfos }) => {
-        const start = Date.now()
-        info('nbd server for data map spawned')
-        signal?.throwIfAborted()
-
-        // the client is built here, and not before the server: a spawn which failed used to leave
-        // it undefined, and the `TypeError` of `nbdClient.disconnect()` replaced the real error,
-        // feeding the fallback with a misleading cause
-        const nbdClient = new NbdClient(nbdInfos)
-        try {
-          await nbdClient.connect()
-
-          info('nbd client for data map connected')
-
-          const dataMap = await nbdClient.getMap(signal)
-
-          info(
-            `got the data map of the single disk in ${Math.round((Date.now() - start) / 1000)} seconds ,${dataMap.length} blocks`
-          )
-
-          return dataMap
-        } finally {
-          await nbdClient.disconnect().catch(error => warn('error while disconnecting the nbd client', { error }))
-        }
-      }
-    )
-  }
-
   async #readRange(datastoreName, path, start, length, signal) {
     // an HTTP range is inclusive: asking for `0-512` reads 513 bytes
     const res = await this.download(datastoreName, path, { range: `${start}-${start + length - 1}`, signal })
@@ -1502,8 +1285,9 @@ export default class Esxi extends EventEmitter {
    * Blocks of a disk which hold data, used to read only what the disk uses.
    *
    * The change tracking of the host answers both questions and is asked first: it is a documented
-   * call every backup product has leaned on for years, where the map read through the vddk needs
-   * an nbdkit server, the vddk library and nbdinfo, all version-coupled.
+   * call every backup product has leaned on for years. When it refuses, the metadata of the delta
+   * is read straight from the datastore, which is the only other source left — vectura serves the
+   * disk and nothing else, there is no block map to ask it for.
    *
    * @param {string} vmId
    * @param {string} datastoreName
@@ -1530,19 +1314,12 @@ export default class Esxi extends EventEmitter {
     }
 
     if (baseDiskPath === undefined) {
-      // the other two sources describe a single link of the chain, which is not the disk being
-      // read: handing one of them over as the map of a whole disk would drop everything the
-      // parents hold. Reading the disk is the only other answer
+      // the metadata of a delta describes a single link of the chain, which is not the disk being
+      // read: handing it over as the map of a whole disk would drop everything the parents hold.
+      // Reading the disk is the only other answer
       return undefined
     }
 
-    try {
-      // We await the result of getDataMapFromVddk so we can catch errors and fallback to the direct metadata reading.
-      return await this.#getDataMapFromVddk(vmId, datastoreName, diskPath, signal)
-    } catch (error) {
-      signal?.throwIfAborted()
-      warn('error while getting datamap from vddk, fall back to a direct metadata reading', { error })
-      return this.#getDataMapFromCowd(datastoreName, diskPath, signal)
-    }
+    return this.#getDataMapFromCowd(datastoreName, diskPath, signal)
   }
 }

@@ -1,0 +1,55 @@
+[package]
+name = "vectura"
+version = "0.1.1"
+edition = "2024"
+description = "Standalone client for VMware's NFC disk-read protocol"
+# The license of the Xen Orchestra application components, see LICENSE.md at
+# the root of the repository. The crate stays unpublished, so deny.toml keeps
+# skipping it: its allow list says what a dependency may bring into the
+# binary, and AGPL is deliberately not on it.
+license = "AGPL-3.0-or-later"
+publish = false
+# No `rust-version`: the toolchain pin lives in rust-toolchain.toml alone.
+
+[dependencies]
+aws-lc-rs = "1.18.1"
+clap = { version = "4.6.6", features = ["derive"] }
+flate2 = { version = "1.1.10", default-features = false, features = ["rust_backend"] }
+quick-xml = "0.42.0"
+rustls = "0.23"
+rustls-native-certs = "0.8.4"
+rustls-pki-types = "1.15.1"
+thiserror = "2.0.20"
+
+[dev-dependencies]
+rcgen = { version = "0.14.10", default-features = false, features = ["aws_lc_rs"] }
+serde_json = "1.0.151"
+
+[profile.release]
+# The binary is committed and shipped in the npm package: no symbols.
+strip = true
+
+[lints.rust]
+# The whole crate is safe Rust. `forbid` cannot be overridden by an attribute
+# lower down, unlike `deny`, which is the point.
+unsafe_code = "forbid"
+missing_docs = "warn"
+missing_debug_implementations = "warn"
+redundant_imports = "warn"
+redundant_lifetimes = "warn"
+trivial_numeric_casts = "warn"
+unused_lifetimes = "warn"
+
+[lints.clippy]
+# Every warning is an error in CI through
+# `cargo clippy -- -D warnings`; the groups stay at `warn` here so that a
+# local `cargo build` still compiles while a fix is in progress.
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+# Individual lints from the `restriction` group; each one names a construct
+# the project does not use.
+allow_attributes_without_reason = "warn"
+clone_on_ref_ptr = "warn"
+map_err_ignore = "warn"
+undocumented_unsafe_blocks = "warn"
+unused_result_ok = "warn"

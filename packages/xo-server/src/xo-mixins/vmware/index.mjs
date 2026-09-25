@@ -5,7 +5,7 @@ import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { createLogger } from '@xen-orchestra/log'
 import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
-import { checkVddkDependencies } from '@xen-orchestra/vmware-explorer/checks.mjs'
+import { checkDependencies } from '@xen-orchestra/vmware-explorer/checks.mjs'
 import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
 import { importDisksFromDatastore, importStream } from './importDisksfromDatastore.mjs'
@@ -264,8 +264,8 @@ export default class MigrateVm {
     return vm.uuid
   }
 
-  async checkVddkDependencies() {
-    return checkVddkDependencies()
+  async checkEsxiDependencies() {
+    return checkDependencies()
   }
 
   async exportEsxiDisk({ disk: diskId, format, host, user, password, vm: vmId }) {

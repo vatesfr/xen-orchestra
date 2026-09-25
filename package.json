@@ -58,6 +58,7 @@
       "eslint"
     ],
     ".USAGE.md": "scripts/usage-to-readme.js --git-add",
+    "@xen-orchestra/vmware-explorer/vectura/**/*.rs": "sh -c 'cd @xen-orchestra/vmware-explorer/vectura && cargo fmt --all --check' --",
     "./CHANGELOG.unreleased.md": "sh -c 'scripts/gen-deps-list.js --check-order' --"
   },
   "private": true,
