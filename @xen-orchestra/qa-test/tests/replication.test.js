@@ -539,71 +539,71 @@ describe('Incremental Replication', () => {
     // scheduleId was undefined and nothing matched) nor over-pruned (retention
     // applied against the wrong / empty schedule scope).
     // -------------------------------------------------------------------------
-    // describe('single schedule, run fullInterval + 1 times', () => {
-    //   it('prunes old replicas down to copyRetention after fullInterval + 1 runs', async function () {
-    //     if (!REPLICATION_DESTINATION_SR_ID) return this.skip('REPLICATION_DESTINATION_SR_ID not configured')
+    describe('single schedule, run fullInterval + 1 times', () => {
+      it('prunes old replicas down to copyRetention after fullInterval + 1 runs', async function () {
+        if (!REPLICATION_DESTINATION_SR_ID) return this.skip('REPLICATION_DESTINATION_SR_ID not configured')
 
-    //     const copyRetention = 3
-    //     const fullInterval = 2 // adjust to your job settings' actual semantics, see note above
-    //     const runs = fullInterval + 1
+        const copyRetention = 3
+        const fullInterval = 2 // adjust to your job settings' actual semantics, see note above
+        const runs = fullInterval + 1
 
-    //     const name = 'retention single schedule ' + generateBackupJobName()
-    //     const schedule = getDefaultSchedule()
-    //     const config = {
-    //       name,
-    //       mode: 'delta',
-    //       schedules: { '': schedule },
-    //       settings: {
-    //         '': { timezone: 'Europe/Paris', copyRetention, fullInterval, preferNbd: true, bypassVdiChainsCheck: true },
-    //       },
-    //       vms: { [vm.uuid]: vm },
-    //       srs: { [destSr.uuid]: true },
-    //     }
+        const name = 'retention single schedule ' + generateBackupJobName()
+        const schedule = getDefaultSchedule()
+        const config = {
+          name,
+          mode: 'delta',
+          schedules: { '': schedule },
+          settings: {
+            '': { timezone: 'Europe/Paris', copyRetention, fullInterval, preferNbd: true, bypassVdiChainsCheck: true },
+          },
+          vms: { [vm.uuid]: vm },
+          srs: { [destSr.uuid]: true },
+        }
 
-    //     const jobId = await dispatchClient.backup.createBackupJob(config)
-    //     tracker.trackResource('backupJob', jobId, { name, mode: 'delta' })
-    //     const job = await dispatchClient.backup.details(jobId)
-    //     const scheduleKey = getScheduleKey(job)
-    //     tracker.trackResource('schedule', scheduleKey, { name, backupJobId: jobId })
+        const jobId = await dispatchClient.backup.createBackupJob(config)
+        tracker.trackResource('backupJob', jobId, { name, mode: 'delta' })
+        const job = await dispatchClient.backup.details(jobId)
+        const scheduleKey = getScheduleKey(job)
+        tracker.trackResource('schedule', scheduleKey, { name, backupJobId: jobId })
 
-    //     const vmUuidsBefore = new Set((await dispatchClient.vm.list()).map(v => v.uuid))
+        const vmUuidsBefore = new Set((await dispatchClient.vm.list()).map(v => v.uuid))
 
-    //     let replicatedVmUuid
-    //     for (let i = 1; i <= runs; i++) {
-    //       log.debug(`Retention run ${i}/${runs}`, { jobId })
-    //       const result = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
-    //       assertBackupSuccess(result, `Retention run ${i}`)
+        let replicatedVmUuid
+        for (let i = 1; i <= runs; i++) {
+          log.debug(`Retention run ${i}/${runs}`, { jobId })
+          const result = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
+          assertBackupSuccess(result, `Retention run ${i}`)
 
-    //       const newUuids = await findNewVmUuids(vmUuidsBefore)
-    //       assert.strictEqual(newUuids.length, 1, `Run ${i} should reuse a single replicated VM, not create extras`)
-    //       replicatedVmUuid = newUuids[0]
-    //     }
-    //     replicatedVmUuids.push(replicatedVmUuid)
+          const newUuids = await findNewVmUuids(vmUuidsBefore)
+          assert.strictEqual(newUuids.length, 1, `Run ${i} should reuse a single replicated VM, not create extras`)
+          replicatedVmUuid = newUuids[0]
+        }
+        replicatedVmUuids.push(replicatedVmUuid)
 
-    //     const finalSnapshotCount = (await dispatchClient.vm.details(replicatedVmUuid)).snapshots?.length ?? 0
+        const finalSnapshotCount = (await dispatchClient.vm.details(replicatedVmUuid)).snapshots?.length ?? 0
 
-    //     // The retained snapshot count must not exceed copyRetention (allowing for the
-    //     // in-flight snapshot of the run that just completed) and, critically, must not
-    //     // be 0 or unbounded — both of which indicate the scheduleId scoping bug.
-    //     assert.ok(
-    //       finalSnapshotCount > 0,
-    //       'Replicated VM must retain at least one snapshot — 0 indicates retention deleted everything ' +
-    //         '(scheduleId mismatch causing every replica to match "old")'
-    //     )
-    //     assert.ok(
-    //       finalSnapshotCount <= copyRetention,
-    //       `Replicated VM should retain at most copyRetention (${copyRetention}) snapshots after ${runs} runs, ` +
-    //         `got ${finalSnapshotCount} — indicates retention was never applied (scheduleId was undefined and ` +
-    //         'matched nothing)'
-    //     )
+        // The retained snapshot count must not exceed copyRetention (allowing for the
+        // in-flight snapshot of the run that just completed) and, critically, must not
+        // be 0 or unbounded — both of which indicate the scheduleId scoping bug.
+        assert.ok(
+          finalSnapshotCount > 0,
+          'Replicated VM must retain at least one snapshot — 0 indicates retention deleted everything ' +
+            '(scheduleId mismatch causing every replica to match "old")'
+        )
+        assert.ok(
+          finalSnapshotCount <= copyRetention,
+          `Replicated VM should retain at most copyRetention (${copyRetention}) snapshots after ${runs} runs, ` +
+            `got ${finalSnapshotCount} — indicates retention was never applied (scheduleId was undefined and ` +
+            'matched nothing)'
+        )
 
-    //     log.debug('Retention verified after fullInterval + 1 runs', {
-    //       runs,
-    //       copyRetention,
-    //       finalSnapshotCount,
-    //     })
-    //   })
-    // })
+        log.debug('Retention verified after fullInterval + 1 runs', {
+          runs,
+          copyRetention,
+          finalSnapshotCount,
+        })
+      })
+    })
 
     // -------------------------------------------------------------------------
     // Scenario 2: one job, two schedules targeting the same VM + same SR, each
