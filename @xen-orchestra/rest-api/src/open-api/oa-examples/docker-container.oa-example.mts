@@ -1,6 +1,5 @@
 // Real payloads, captured from xo-server run from the sources against a rootless
-// dockerd 29.8.1 reached through OpenSSH 10.0 (phase 3 end-to-end run of the
-// Docker integration, rerun after the review fixes). Lists are shortened.
+// dockerd 29.8.1 reached through OpenSSH 10.0. Lists are shortened.
 
 export const dockerContainerIds = [
   '/rest/v0/docker-containers/8d834412-eb40-4328-a815-3fcc0989bd07_40ce479c34637ad31b8ecd460d7d14aa0e2ed90dd73187afa6b284170418f1d5',
@@ -107,16 +106,17 @@ export const dockerContainerLogs = {
   asOf: 1790285371392,
 }
 
+// xo-nginx running a busy loop (one full CPU = 100)
 export const dockerContainerStats = {
-  sampledAt: 1790327410123,
-  cpuPercent: 3.1,
-  onlineCpus: 4,
-  memoryUsage: 641728512,
-  memoryLimit: 8330301440,
-  memoryPercent: 7.7,
-  networkRx: 1296,
+  sampledAt: 1790299585403,
+  cpuPercent: 101.81180487804878,
+  onlineCpus: 6,
+  memoryUsage: 6746112,
+  memoryLimit: 5157838848,
+  memoryPercent: 0.1307933845706689,
+  networkRx: 816,
   networkTx: 126,
-  blockRead: 0,
-  blockWrite: 4096,
-  pids: 5,
+  blockRead: null,
+  blockWrite: null,
+  pids: 9,
 }
