@@ -72,7 +72,7 @@
   "action:duplicate-n-vms": "1 VM dupliceren | {n} VM’s dupliceren",
   "action:edit": "Bewerken",
   "action:edit-config": "Configuratie bewerken",
-  "action:edit-traffic-rule": "@:action:bewerk@.lower:traffic-rule",
+  "action:edit-traffic-rule": "@:action:edit @.lower:traffic-rule",
   "action:enable": "Inschakelen",
   "action:enable-host": "Host inschakelen",
   "action:enable-light-mode": "Lichte modus inschakelen",
