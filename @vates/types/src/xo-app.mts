@@ -191,12 +191,6 @@ export type BackupArchiveDiskMount = {
   port: number
 }
 
-/** A live mount, as listed by `listMountedBackupArchiveDisks` */
-export type MountedBackupArchiveDisk = BackupArchiveDiskMount & {
-  /** Path of the mounted disk on its backup repository */
-  diskPath: string
-}
-
 export type XoApp = {
   hooks: EventEmitter
   _redis: {
@@ -379,6 +373,8 @@ export type XoApp = {
   getBackupArchiveDiskMountOwner(id: BackupArchiveDiskMount['id']): {
     archiveId: XoVmBackupArchive['id']
     hostId: XoHost['id']
+    /** set when the disk is served by a proxy instead of this appliance */
+    proxyId?: XoProxy['id']
   }
   getBackupNgLogs(): Promise<Record<string, AnyXoLog>>
   getBackupNgLogs(id: AnyXoLog['id']): Promise<AnyXoLog>
@@ -417,7 +413,6 @@ export type XoApp = {
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
     pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
   }>
-  listMountedBackupArchiveDisks(): MountedBackupArchiveDisk[]
   /** `null` when the listing of a backup repository failed */
   listVmBackupsNg(
     backupRepositoryIds: XoBackupRepository['id'][],
@@ -426,6 +421,9 @@ export type XoApp = {
   /**
    * Serve one disk of a backup archive as a read-only iSCSI LUN and attach it to
    * `host` as an SR. Undone by `unmountBackupArchiveDisk`.
+   *
+   * The LUN is served by whoever can read the backup repository: this appliance, or the proxy the
+   * repository is linked to.
    */
   mountBackupArchiveDisk(params: {
     archiveId: XoVmBackupArchive['id']
@@ -434,6 +432,16 @@ export type XoApp = {
     hostId: XoHost['id']
   }): Promise<BackupArchiveDiskMount>
   pingRemote(id: XoBackupRepository['id']): Promise<{ success: true }>
+  /**
+   * Record the live mounts a proxy created by itself, while running a restore: they never went
+   * through `mountBackupArchiveDisk`, so nothing else knows which proxy serves them.
+   */
+  registerProxyBackupArchiveDiskMounts(params: {
+    archiveId: XoVmBackupArchive['id']
+    /** as reported by the restore, each with the host it is attached to */
+    mounts: { id: BackupArchiveDiskMount['id']; hostId: XoHost['id'] }[]
+    proxyId: XoProxy['id']
+  }): void
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(
     body: Pick<XoServer, 'host' | 'httpProxy' | 'label' | 'username'> & {
