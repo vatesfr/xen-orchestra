@@ -8,6 +8,8 @@
 import { asyncEach } from '@vates/async-each'
 import { createHmac, randomBytes } from 'node:crypto'
 import { once } from 'node:events'
+import { finished } from 'node:stream/promises'
+import { Transform } from 'node:stream'
 import { createLogger } from '@xen-orchestra/log'
 import { synchronized } from 'decorator-synchronized'
 import { invalidParameters, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
@@ -15,6 +17,7 @@ import { invalidParameters, noSuchObject, objectAlreadyExists } from 'xo-common/
 import { compareApiVersions, DockerConnection, normalizeFingerprint } from '../_docker/connection.mjs'
 import { SshCooldown } from '../_docker/cooldown.mjs'
 import {
+  CONNECTION_CLOSED,
   DOCKER_API_ERROR,
   DOCKER_SOCKET_UNREACHABLE,
   DockerError,
@@ -22,12 +25,20 @@ import {
   HOST_KEY_UNKNOWN,
   isDockerError,
   POOL_EXHAUSTED,
+  RAW_REQUEST_TOO_LARGE,
+  RAW_RESPONSE_TOO_LARGE,
   SSH_AUTH_FAILED,
   SSH_COOLDOWN,
   SSH_UNREACHABLE,
 } from '../_docker/errors.mjs'
-import { normalizeContainerInspect, normalizeContainerListEntry, normalizeEngineInfo } from '../_docker/normalize.mjs'
+import {
+  normalizeContainerInspect,
+  normalizeContainerListEntry,
+  normalizeContainerStats,
+  normalizeEngineInfo,
+} from '../_docker/normalize.mjs'
 import { DockerConnectionPool } from '../_docker/pool.mjs'
+import { DockerStatsSampler } from '../_docker/stats-sampler.mjs'
 import { createLogLineParser, createStdcopyDemuxer, isMultiplexedStream } from '../_docker/stdcopy.mjs'
 import { AsyncTtlCache } from '../_docker/ttl-cache.mjs'
 import { DockerEngines } from '../models/docker-engine.mjs'
@@ -53,6 +64,10 @@ const DEFAULTS = {
   logsTimeout: 30e3,
   logsIdleTimeout: 10e3,
   authFailureCooldown: 10e3,
+  statsIdleTimeout: 90e3,
+  maxStatsContainers: 100,
+  maxRawRequestSize: 1024 * 1024,
+  maxRawResponseSize: 10 * 1024 * 1024,
 }
 
 const FINGERPRINT_RE = /^SHA256:[A-Za-z0-9+/]{43}$/
@@ -117,6 +132,29 @@ const PUBLIC_FIELDS = ['label', 'host', 'port', 'username', 'socketPath', 'hostK
 const INSPECTED_STATES = new Set(['running', 'paused', 'restarting'])
 
 const CONTAINER_ACTIONS = new Set(['start', 'stop', 'restart', 'pause', 'unpause'])
+
+// containers streamed by the stats sampler (a paused container still uses memory)
+const SAMPLED_STATES = new Set(['running', 'paused'])
+
+const RAW_METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'])
+
+/**
+ * Pass-through stream which fails with a DockerError of `code` once more than
+ * `maxSize` bytes went through.
+ */
+function createSizeLimiter(maxSize, code, message) {
+  let size = 0
+  return new Transform({
+    transform(chunk, encoding, callback) {
+      size += chunk.length
+      if (size > maxSize) {
+        callback(new DockerError(code, message, { data: { maxSize } }))
+      } else {
+        callback(null, chunk)
+      }
+    },
+  })
+}
 
 const INFO_STATUS_BY_CODE = {
   [SSH_AUTH_FAILED]: 'auth-failed',
@@ -250,6 +288,8 @@ export default class Docker {
   // `vm:<id>` around the one-engine-per-VM check and the write
   #lock = synchronized.withKey()((key, fn) => fn())
   #pool
+  // engine id → { key, sampler }, see `#getSampler()`
+  #samplers = new Map()
 
   constructor(app) {
     this.#app = app
@@ -270,6 +310,10 @@ export default class Docker {
       maxLogsSize: get('maxLogsSize', parseSize),
       logsTimeout: getDuration('logsTimeout'),
       logsIdleTimeout: getDuration('logsIdleTimeout'),
+      statsIdleTimeout: getDuration('statsIdleTimeout'),
+      maxStatsContainers: get('maxStatsContainers'),
+      maxRawRequestSize: get('maxRawRequestSize', parseSize),
+      maxRawResponseSize: get('maxRawResponseSize', parseSize),
     }
 
     this.#cooldown = new SshCooldown({ cooldown: getDuration('authFailureCooldown') })
@@ -297,7 +341,10 @@ export default class Docker {
         engines => this.#importEngines(engines)
       )
     })
-    app.hooks.on('stop', () => this.#pool.destroy())
+    app.hooks.on('stop', () => {
+      this.#stopSamplers()
+      return this.#pool.destroy()
+    })
   }
 
   // ===================================================================
@@ -555,7 +602,9 @@ export default class Docker {
    * @param {object} opts
    * @param {string[]} opts.engines ids of the engines
    * @param {boolean} [opts.all] include stopped containers
-   * @param {boolean} [opts.stats] not supported yet
+   * @param {boolean} [opts.stats] merge the latest stats (`stats`) of the running and paused containers, never
+   *   blocks: starts the engine's stats sampler if needed, and the containers whose sample is not ready yet (or has
+   *   no CPU usage yet, ~2 s after the start) have `statsPending: true`
    * @param {boolean} [opts.forceRefresh] bypass the cache
    * @returns {Promise<{ containers: object[], errors: { $engine: string, $VM?: string, code: string, message: string }[], asOf: number }>}
    */
@@ -563,11 +612,6 @@ export default class Docker {
     if (!Array.isArray(engines)) {
       throw invalidParameters('engines must be an array of engine ids')
     }
-    if (stats) {
-      // TODO: stats sampler (sequencing step 8)
-      throw invalidParameters('stats are not supported yet')
-    }
-
     // fails early, before any connection, on an unknown engine
     const records = await Promise.all(Array.from(new Set(engines), id => this.#getEngineWithCredentials(id)))
 
@@ -580,8 +624,29 @@ export default class Docker {
         try {
           const result = await this.#getEngineContainers(record, { all, forceRefresh })
           asOf = asOf === undefined ? result.asOf : Math.min(asOf, result.asOf)
+          let sampler
+          if (stats) {
+            sampler = this.#getSampler(record, { start: true })
+            // the list tells the sampler which containers are running (the
+            // actions evict the cached list, so it follows them)
+            sampler.sync(
+              Array.from(result.containers.values(), _ => _.container)
+                .filter(_ => SAMPLED_STATES.has(_.state))
+                .map(_ => _.dockerId)
+            )
+          }
           for (const { container } of result.containers.values()) {
-            containers.push(this.#decorateContainer(record, container))
+            const decorated = this.#decorateContainer(record, container)
+            const sample = sampler?.get(container.dockerId)
+            if (sample !== undefined) {
+              if (sample.stats !== undefined) {
+                decorated.stats = sample.stats
+              }
+              if (sample.pending) {
+                decorated.statsPending = true
+              }
+            }
+            containers.push(decorated)
           }
         } catch (error) {
           if (!isDockerError(error)) {
@@ -627,6 +692,120 @@ export default class Docker {
         throw noSuchObject(id, 'docker-container')
       }
       return this.#decorateContainer(record, container)
+    })
+  }
+
+  /**
+   * Stats of a container: the latest sample of the engine's stats sampler if
+   * it streams this container and has a CPU usage, else one
+   * `GET /containers/{id}/stats?stream=false` (~1-2 s, dockerd waits for a
+   * second sample).
+   *
+   * Does not start the sampler.
+   *
+   * @param {string} id composite id
+   * @returns {Promise<object>} see `normalizeContainerStats()`
+   */
+  async getDockerContainerStats(id) {
+    const { record, dockerId } = await this.#resolveContainerId(id)
+    const sample = this.#getSampler(record, { start: false })?.get(dockerId)
+    if (sample !== undefined && !sample.pending && sample.stats !== undefined) {
+      return sample.stats
+    }
+    return this.#withConnection(record, async connection => {
+      let body
+      try {
+        // never `one-shot=true`: `precpu_stats` would be empty
+        ;({ body } = await connection.request({
+          path: `/containers/${encodeURIComponent(dockerId)}/stats`,
+          query: { stream: 0 },
+        }))
+      } catch (error) {
+        throw isNotFound(error) ? noSuchObject(id, 'docker-container') : error
+      }
+      return normalizeContainerStats(body)
+    })
+  }
+
+  /**
+   * Raw Docker Engine API request (the REST raw passthrough, admin only): the
+   * caller is responsible for the authorization and for the path and headers
+   * checks.
+   *
+   * The request body is cut at `docker.maxRawRequestSize` and the response
+   * body at `docker.maxRawResponseSize` (the body stream then fails with
+   * RAW_RESPONSE_TOO_LARGE). The request is sent on a dedicated channel
+   * (outside of the limit of concurrent requests of the engine), the pooled
+   * connection is held until the response is consumed or destroyed.
+   *
+   * @param {string} id engine id
+   * @param {object} opts
+   * @param {string} opts.method
+   * @param {string} opts.path Docker API path with its query string, e.g. `/images/json?all=1`; prefixed with the
+   *   negotiated API version unless it starts with `/v<version>/`
+   * @param {Record<string, string>} [opts.headers] sent as is
+   * @param {import('node:stream').Readable} [opts.body]
+   * @param {AbortSignal} [opts.signal] aborts the request and the response
+   * @returns {Promise<{ statusCode: number, headers: import('node:http').IncomingHttpHeaders, body: import('node:stream').Readable }>}
+   */
+  async callDockerEngineRawApi(id, { method, path, headers = {}, body, signal }) {
+    method = String(method).toUpperCase()
+    if (!RAW_METHODS.has(method)) {
+      throw invalidParameters(`method must be one of ${Array.from(RAW_METHODS).join(', ')}`)
+    }
+    if (typeof path !== 'string' || !path.startsWith('/')) {
+      throw invalidParameters('path must start with /')
+    }
+    const { maxRawRequestSize, maxRawResponseSize } = this.#config
+    const contentLength = headers['content-length']
+    if (contentLength !== undefined && Number(contentLength) > maxRawRequestSize) {
+      throw new DockerError(RAW_REQUEST_TOO_LARGE, 'the request body is too large (docker.maxRawRequestSize)', {
+        data: { maxSize: maxRawRequestSize },
+      })
+    }
+    const record = await this.#getEngineWithCredentials(id)
+
+    let requestBody
+    if (body !== undefined) {
+      requestBody = createSizeLimiter(
+        maxRawRequestSize,
+        RAW_REQUEST_TOO_LARGE,
+        'the request body is too large (docker.maxRawRequestSize)'
+      )
+      body.on('error', error => requestBody.destroy(error))
+      body.pipe(requestBody)
+    }
+
+    return new Promise((resolve, reject) => {
+      this.#withConnection(record, async connection => {
+        const response = await connection.requestStream({
+          method,
+          path,
+          headers,
+          body: requestBody,
+          signal,
+          raw: true,
+          longLived: true,
+        })
+        const length = response.headers['content-length']
+        if (length !== undefined && Number(length) > maxRawResponseSize) {
+          response.destroy()
+          throw new DockerError(RAW_RESPONSE_TOO_LARGE, 'the response is too large (docker.maxRawResponseSize)', {
+            data: { maxSize: maxRawResponseSize, statusCode: response.statusCode },
+          })
+        }
+        const limited = createSizeLimiter(
+          maxRawResponseSize,
+          RAW_RESPONSE_TOO_LARGE,
+          'the response is too large (docker.maxRawResponseSize)'
+        )
+        response.on('error', error => limited.destroy(error))
+        limited.on('close', () => response.destroy())
+        response.pipe(limited)
+        resolve({ statusCode: response.statusCode, headers: response.headers, body: limited })
+        // the pooled connection is busy until the response is done
+        await finished(limited).catch(() => {})
+      }).catch(reject)
     })
   }
 
@@ -1176,7 +1355,93 @@ export default class Docker {
     )
   }
 
+  /**
+   * Stats sampler of an engine, bound to its current connection: it holds a
+   * reference on the pooled connection while alive (never evicted, nor closed
+   * as idle), and stops on its own after `docker.statsIdleTimeout` without
+   * reader, or when the connection fails or is closed.
+   *
+   * @returns {DockerStatsSampler | undefined}
+   */
+  #getSampler(record, { start }) {
+    const key = this.#connectionKey(record)
+    let entry = this.#samplers.get(record.id)
+    if (entry !== undefined && (entry.key !== key || entry.sampler.stopped)) {
+      // the engine's parameters changed: the sampler used the old connection
+      entry.sampler.stop()
+      this.#samplers.delete(record.id)
+      entry = undefined
+    }
+    if (entry !== undefined || !start) {
+      return entry?.sampler
+    }
+
+    let resolveStopped, rejectStopped
+    const stopped = new Promise((resolve, reject) => {
+      resolveStopped = resolve
+      rejectStopped = reject
+    })
+    stopped.catch(() => {})
+    let resolveConnection, rejectConnection
+    const pConnection = new Promise((resolve, reject) => {
+      resolveConnection = resolve
+      rejectConnection = reject
+    })
+    pConnection.catch(() => {})
+
+    const sampler = new DockerStatsSampler({
+      idleTimeout: this.#config.statsIdleTimeout,
+      maxContainers: this.#config.maxStatsContainers,
+      openStream: async (dockerId, signal) =>
+        (await pConnection).requestStream({
+          path: `/containers/${encodeURIComponent(dockerId)}/stats`,
+          query: { stream: 1 },
+          signal,
+          longLived: true,
+        }),
+      onStop: error => {
+        if (this.#samplers.get(record.id)?.sampler === sampler) {
+          this.#samplers.delete(record.id)
+        }
+        // an engine failure is rethrown in `#withConnection()`: the pool
+        // evicts the connection and caches the failure
+        if (error === undefined) {
+          resolveStopped()
+        } else {
+          rejectStopped(error)
+        }
+        rejectConnection(new DockerError(CONNECTION_CLOSED, 'the stats sampler has been stopped'))
+      },
+    })
+    this.#samplers.set(record.id, { key, sampler })
+    this.#withConnection(record, connection => {
+      resolveConnection(connection)
+      return stopped
+    }).catch(error => {
+      if (!sampler.stopped) {
+        rejectConnection(error)
+        sampler.stop()
+      }
+      if (!isDockerError(error)) {
+        log.warn('stats sampler', { engine: record.id, error })
+      }
+    })
+    return sampler
+  }
+
+  #stopSampler(id) {
+    this.#samplers.get(id)?.sampler.stop()
+    this.#samplers.delete(id)
+  }
+
+  #stopSamplers() {
+    for (const id of Array.from(this.#samplers.keys())) {
+      this.#stopSampler(id)
+    }
+  }
+
   async #invalidate(id) {
+    this.#stopSampler(id)
     this.#cache.deleteByPrefix(id + ':')
     await this.#pool.invalidate(id)
   }

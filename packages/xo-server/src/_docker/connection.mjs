@@ -38,6 +38,17 @@ const MAX_RESPONSE_SIZE = 64 * 1024 * 1024
 const MAX_CONCURRENT_REQUESTS = 8
 const MAX_QUEUED_REQUESTS = 1e3
 
+// Long-lived streams (stats streams of the sampler, raw passthrough) would
+// hold a request slot for minutes, and 8 of them would starve every other
+// request of the engine: they have their own channels (a dedicated agent
+// without keep-alive, so a channel is closed with its response) and their own
+// limit, not queued (POOL_EXHAUSTED right away when reached).
+//
+// `direct-streamlocal` channels are not SSH sessions: OpenSSH's `MaxSessions`
+// does not apply to them. The stats sampler is itself capped by
+// `docker.maxStatsContainers` (default 100).
+export const MAX_LONG_LIVED_STREAMS = 128
+
 /**
  * Counting semaphore with a bounded, abortable, FIFO queue.
  */
@@ -45,11 +56,18 @@ class RequestLimiter {
   #active = 0
   #max
   #maxQueued
+  #message
   #queue = []
 
-  constructor(max, maxQueued) {
+  constructor(max, maxQueued, message = 'too many pending Docker API requests') {
     this.#max = max
     this.#maxQueued = maxQueued
+    this.#message = message
+  }
+
+  /** @returns {number} number of granted slots */
+  get active() {
+    return this.#active
   }
 
   /**
@@ -63,7 +81,7 @@ class RequestLimiter {
     }
     if (this.#queue.length >= this.#maxQueued) {
       return Promise.reject(
-        new DockerError(POOL_EXHAUSTED, 'too many pending Docker API requests', {
+        new DockerError(POOL_EXHAUSTED, this.#message, {
           data: { maxConcurrent: this.#max, maxQueued: this.#maxQueued },
         })
       )
@@ -347,6 +365,8 @@ export class DockerConnection {
   #requestTimeout
   #socketPath
   #sshConfig
+  #streamAgent
+  #streamLimiter
 
   /**
    * @param {object} opts
@@ -412,6 +432,20 @@ export class DockerConnection {
       },
       { maxSockets: MAX_CONCURRENT_REQUESTS }
     )
+    this.#streamLimiter = new RequestLimiter(MAX_LONG_LIVED_STREAMS, 0, 'too many long-lived Docker API streams')
+    this.#streamAgent = new SshHttpAgent(
+      {
+        getClient: () => this.#getClient(),
+        socketPath,
+        connectTimeout,
+      },
+      { keepAlive: false, maxSockets: Infinity, maxFreeSockets: 0 }
+    )
+  }
+
+  /** @returns {{ requests: number, streams: number }} slots in use, for tests and diagnostics */
+  get activeRequests() {
+    return { requests: this.#limiter.active, streams: this.#streamLimiter.active }
   }
 
   /** @returns {string | undefined} negotiated API version, e.g. `1.43` */
@@ -603,7 +637,11 @@ export class DockerConnection {
    * @param {AbortSignal} signal
    * @returns {Promise<import('node:http').IncomingMessage>}
    */
-  async #send({ method = 'GET', path, query, body, headers = {}, versioned = true }, signal, generation) {
+  async #send(
+    { method = 'GET', path, query, body, headers = {}, versioned = true, longLived = false },
+    signal,
+    generation
+  ) {
     if (versioned) {
       // the negotiation is shared between requests: do not cancel it
       await raceSignal(this.#negotiate(), signal)
@@ -626,7 +664,7 @@ export class DockerConnection {
     const fullPath = (versioned ? `/v${this.#apiVersion}` : '') + path + buildQueryString(query)
 
     // acquired after the negotiation which needs a slot itself
-    const releaseSlot = await this.#limiter.acquire(signal)
+    const releaseSlot = await (longLived ? this.#streamLimiter : this.#limiter).acquire(signal)
     let onAbort
     const release = () => {
       signal.removeEventListener('abort', onAbort)
@@ -651,7 +689,7 @@ export class DockerConnection {
       signal.addEventListener('abort', onAbort, { once: true })
 
       const req = httpRequest({
-        agent: this.#agent,
+        agent: longLived ? this.#streamAgent : this.#agent,
         host: 'docker',
         port: 80,
         method,
@@ -766,11 +804,16 @@ export class DockerConnection {
    * afterwards only `signal` can interrupt the stream: the caller is
    * responsible for consuming or destroying it.
    *
-   * @param {object} opts see `request()`
+   * @param {object} opts see `request()`, plus:
+   * @param {boolean} [opts.longLived] the response may stay open for long (e.g. `stats?stream=true`): sent on a
+   *   dedicated channel, outside of the limit of concurrent requests (see `MAX_LONG_LIVED_STREAMS`)
+   * @param {boolean} [opts.raw] raw passthrough: `path` is sent verbatim (it may contain a query string, and is
+   *   prefixed with the negotiated version unless it starts with `/v<version>/`), and error responses (non 2xx) are
+   *   returned instead of thrown
    * @returns {Promise<import('node:http').IncomingMessage>}
    * @throws {DockerError}
    */
-  async requestStream({ method, path, query, body, headers, signal: callerSignal }) {
+  async requestStream({ method, path, query, body, headers, signal: callerSignal, longLived = false, raw = false }) {
     // AbortSignal.timeout() cannot be cancelled, use a timer instead
     const controller = new AbortController()
     const timer = setTimeout(() => {
@@ -779,8 +822,14 @@ export class DockerConnection {
     const signal = AbortSignal.any([controller.signal, callerSignal].filter(signal => signal !== undefined))
     const generation = this.#generation
     try {
-      const response = await this.#send({ method, path, query, body, headers }, signal, generation)
-      if (response.statusCode < 200 || response.statusCode >= 300) {
+      const response = await this.#send(
+        raw
+          ? { method, path, body, headers, longLived, versioned: !/^\/v\d+(?:\.\d+)?\//.test(path) }
+          : { method, path, query, body, headers, longLived },
+        signal,
+        generation
+      )
+      if (!raw && (response.statusCode < 200 || response.statusCode >= 300)) {
         await this.#throwApiError(response, path, signal)
       }
       clearTimeout(timer)
@@ -876,6 +925,7 @@ export class DockerConnection {
       new DockerError(CONNECTION_CLOSED, 'the Docker connection has been closed', { data: this.#context })
     )
     this.#agent.destroy()
+    this.#streamAgent.destroy()
     const clientPromise = this.#clientPromise
     this.#clientPromise = undefined
     const client = this.#client

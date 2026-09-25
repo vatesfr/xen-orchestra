@@ -29,6 +29,10 @@ export const TIMEOUT = 'TIMEOUT'
 export const POOL_EXHAUSTED = 'POOL_EXHAUSTED'
 // the request was interrupted (or never sent) because `close()` was called
 export const CONNECTION_CLOSED = 'CONNECTION_CLOSED'
+// raw passthrough: the request body exceeds `docker.maxRawRequestSize`
+export const RAW_REQUEST_TOO_LARGE = 'RAW_REQUEST_TOO_LARGE'
+// raw passthrough: the response exceeds `docker.maxRawResponseSize`
+export const RAW_RESPONSE_TOO_LARGE = 'RAW_RESPONSE_TOO_LARGE'
 
 // SSH_MSG_CHANNEL_OPEN_FAILURE reason codes (RFC 4254 § 5.1)
 export const SSH_OPEN_ADMINISTRATIVELY_PROHIBITED = 1
