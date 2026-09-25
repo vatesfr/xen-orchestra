@@ -337,7 +337,14 @@ export function normalizeContainerInspect(data) {
 
 // === Stats
 
+// every stats value comes from the daemon: only finite numbers are accepted,
+// never numeric strings (which the sums would concatenate), objects, NaN or
+// Infinity, and every computed value is checked again (huge values overflow)
 const isNumber = value => typeof value === 'number' && Number.isFinite(value)
+// byte, page, process counters
+const isCounter = value => isNumber(value) && value >= 0
+const finiteOrNull = value => (isNumber(value) ? value : null)
+const isObject = value => typeof value === 'object' && value !== null
 
 /**
  * CPU usage in percent, like `docker stats`: 100 means one full CPU, so the
@@ -353,21 +360,32 @@ const isNumber = value => typeof value === 'number' && Number.isFinite(value)
  * @returns {{ cpuPercent: number | null, onlineCpus: number | undefined }}
  */
 export function computeCpuPercent(cpuStats, precpuStats) {
+  const onlineCpusValue = cpuStats?.online_cpus
+  const percpuUsage = cpuStats?.cpu_usage?.percpu_usage
   const onlineCpus =
-    cpuStats?.online_cpus > 0 ? cpuStats.online_cpus : cpuStats?.cpu_usage?.percpu_usage?.length || undefined
-  const cpuDelta = cpuStats?.cpu_usage?.total_usage - precpuStats?.cpu_usage?.total_usage
-  const systemDelta = cpuStats?.system_cpu_usage - precpuStats?.system_cpu_usage
+    Number.isSafeInteger(onlineCpusValue) && onlineCpusValue > 0
+      ? onlineCpusValue
+      : (Array.isArray(percpuUsage) && percpuUsage.length) || undefined
+  const total = cpuStats?.cpu_usage?.total_usage
+  const preTotal = precpuStats?.cpu_usage?.total_usage
+  const system = cpuStats?.system_cpu_usage
+  const preSystem = precpuStats?.system_cpu_usage
   if (
     onlineCpus === undefined ||
-    !isNumber(cpuDelta) ||
-    !isNumber(systemDelta) ||
-    !(precpuStats.system_cpu_usage > 0) ||
-    systemDelta <= 0 ||
-    cpuDelta < 0
+    !isCounter(total) ||
+    !isCounter(preTotal) ||
+    !isCounter(system) ||
+    !isCounter(preSystem) ||
+    !(preSystem > 0)
   ) {
     return { cpuPercent: null, onlineCpus }
   }
-  return { cpuPercent: (cpuDelta / systemDelta) * onlineCpus * 100, onlineCpus }
+  const cpuDelta = total - preTotal
+  const systemDelta = system - preSystem
+  if (!(systemDelta > 0) || cpuDelta < 0) {
+    return { cpuPercent: null, onlineCpus }
+  }
+  return { cpuPercent: finiteOrNull((cpuDelta / systemDelta) * onlineCpus * 100), onlineCpus }
 }
 
 /**
@@ -383,10 +401,10 @@ export function computeCpuPercent(cpuStats, precpuStats) {
  */
 export function computeMemoryUsage(memoryStats) {
   const usage = memoryStats?.usage
-  if (!isNumber(usage)) {
+  if (!isCounter(usage)) {
     return null
   }
-  const stats = memoryStats.stats ?? {}
+  const stats = isObject(memoryStats.stats) ? memoryStats.stats : {}
   let cache
   if ('total_inactive_file' in stats) {
     cache = stats.total_inactive_file // cgroup v1
@@ -395,7 +413,7 @@ export function computeMemoryUsage(memoryStats) {
   } else {
     cache = stats.cache // cgroup v1 (old daemons)
   }
-  return isNumber(cache) && cache < usage ? usage - cache : usage
+  return isCounter(cache) && cache < usage ? usage - cache : usage
 }
 
 /**
@@ -410,29 +428,39 @@ function computeBlockIo(blkioStats) {
   }
   let blockRead = 0
   let blockWrite = 0
-  for (const { op, value } of entries) {
+  for (const entry of entries) {
+    if (!isObject(entry) || typeof entry.op !== 'string' || !isCounter(entry.value)) {
+      continue
+    }
     // `Read`/`Write` on cgroup v1, `read`/`write` on cgroup v2
-    const lowerOp = op?.toLowerCase()
+    const lowerOp = entry.op.toLowerCase()
     if (lowerOp === 'read') {
-      blockRead += value
+      blockRead += entry.value
     } else if (lowerOp === 'write') {
-      blockWrite += value
+      blockWrite += entry.value
     }
   }
-  return { blockRead, blockWrite }
+  return { blockRead: finiteOrNull(blockRead), blockWrite: finiteOrNull(blockWrite) }
 }
 
 function computeNetworkIo(networks) {
-  if (networks === undefined || networks === null) {
+  if (!isObject(networks)) {
     return { networkRx: null, networkTx: null }
   }
   let networkRx = 0
   let networkTx = 0
-  for (const { rx_bytes: rx = 0, tx_bytes: tx = 0 } of Object.values(networks)) {
-    networkRx += rx
-    networkTx += tx
+  for (const network of Object.values(networks)) {
+    if (!isObject(network)) {
+      continue
+    }
+    if (isCounter(network.rx_bytes)) {
+      networkRx += network.rx_bytes
+    }
+    if (isCounter(network.tx_bytes)) {
+      networkTx += network.tx_bytes
+    }
   }
-  return { networkRx, networkTx }
+  return { networkRx: finiteOrNull(networkRx), networkTx: finiteOrNull(networkTx) }
 }
 
 /**
@@ -445,25 +473,31 @@ function computeNetworkIo(networks) {
  * @param {object} stats
  */
 export function normalizeContainerStats(stats) {
+  if (!isObject(stats) || Array.isArray(stats)) {
+    throw new TypeError('stats must be an object')
+  }
   const isWindows = stats.os_type === 'windows'
   const { cpuPercent, onlineCpus } = isWindows
     ? { cpuPercent: null, onlineCpus: undefined }
     : computeCpuPercent(stats.cpu_stats, stats.precpu_stats)
+  const memoryStats = isObject(stats.memory_stats) ? stats.memory_stats : undefined
   const memoryUsage = isWindows
-    ? (stats.memory_stats?.privateworkingset ?? null)
-    : computeMemoryUsage(stats.memory_stats)
-  const memoryLimit =
-    isNumber(stats.memory_stats?.limit) && stats.memory_stats.limit > 0 ? stats.memory_stats.limit : null
+    ? isCounter(memoryStats?.privateworkingset)
+      ? memoryStats.privateworkingset
+      : null
+    : computeMemoryUsage(memoryStats)
+  const memoryLimit = isCounter(memoryStats?.limit) && memoryStats.limit > 0 ? memoryStats.limit : null
   return {
     sampledAt: parseDockerDate(stats.read) ?? null,
     cpuPercent,
     onlineCpus,
     memoryUsage,
     memoryLimit,
-    memoryPercent: memoryUsage !== null && memoryLimit !== null ? (memoryUsage / memoryLimit) * 100 : null,
+    memoryPercent:
+      memoryUsage !== null && memoryLimit !== null ? finiteOrNull((memoryUsage / memoryLimit) * 100) : null,
     ...computeNetworkIo(stats.networks),
     ...computeBlockIo(stats.blkio_stats),
-    pids: isNumber(stats.pids_stats?.current) ? stats.pids_stats.current : null,
+    pids: isCounter(stats.pids_stats?.current) ? stats.pids_stats.current : null,
   }
 }
 

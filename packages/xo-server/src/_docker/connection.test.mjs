@@ -662,6 +662,69 @@ describe('DockerConnection (fake daemon)', () => {
     await connection.close()
   })
 
+  it('reads at most 4 KiB of an error body and truncates the message (hostile daemon)', async () => {
+    let written = 0
+    handler = (req, res) => {
+      if (req.url === '/version') {
+        return defaultHandler(req, res)
+      }
+      if (req.url.endsWith('/object')) {
+        return json(res, 500, { message: { toString: 'x' } })
+      }
+      if (req.url.endsWith('/text')) {
+        res.writeHead(500, { 'content-type': 'text/plain' })
+        return res.end('y'.repeat(3000))
+      }
+      // a never-ending JSON error body
+      res.writeHead(500, { 'content-type': 'application/json' })
+      res.write('{"message":"')
+      const chunk = 'x'.repeat(64 * 1024)
+      const write = () => {
+        let more = true
+        while (more && !res.destroyed && written < 100 * 1024 * 1024) {
+          written += chunk.length
+          more = res.write(chunk)
+        }
+        if (!more) {
+          res.once('drain', write)
+        }
+      }
+      write()
+    }
+    const { connection } = createConnection({ requestTimeout: 5e3 })
+    await connection.connect()
+    const start = Date.now()
+    for (const call of [
+      () => connection.request({ path: '/flood' }),
+      () => connection.requestStream({ path: '/flood' }),
+    ]) {
+      await assert.rejects(call(), error => {
+        assert.equal(error.code, DOCKER_API_ERROR)
+        assert.equal(error.data.statusCode, 500)
+        assert.ok(written < 10 * 1024 * 1024, `${written} bytes written by the daemon`)
+        assert.ok(error.message.length <= 1024, `message of ${error.message.length} chars`)
+        assert.ok(error.data.message.length <= 1024)
+        return true
+      })
+    }
+    assert.ok(Date.now() - start < 2e3, 'does not wait for the whole body')
+    assert.ok(written < 10 * 1024 * 1024, `${written} bytes written by the daemon`)
+    await assert.rejects(connection.request({ path: '/object' }), error => {
+      assert.equal(error.message, 'Docker API error 500')
+      assert.equal(error.data.message, undefined)
+      return true
+    })
+    await assert.rejects(connection.request({ path: '/text' }), error => {
+      assert.ok(error.message.length <= 1024)
+      assert.match(error.message, /^y+…$/)
+      return true
+    })
+    // still usable
+    handler = defaultHandler
+    await connection.request({ path: '/containers/json' })
+    await connection.close()
+  })
+
   it('times out with TIMEOUT (requestTimeout)', async () => {
     const { connection } = createConnection({ requestTimeout: 200 })
     await connection.connect()

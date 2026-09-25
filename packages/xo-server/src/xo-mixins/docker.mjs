@@ -68,6 +68,7 @@ const DEFAULTS = {
   maxStatsContainers: 100,
   maxRawRequestSize: 1024 * 1024,
   maxRawResponseSize: 10 * 1024 * 1024,
+  rawRequestTimeout: 5 * 60e3,
 }
 
 const FINGERPRINT_RE = /^SHA256:[A-Za-z0-9+/]{43}$/
@@ -314,6 +315,7 @@ export default class Docker {
       maxStatsContainers: get('maxStatsContainers'),
       maxRawRequestSize: get('maxRawRequestSize', parseSize),
       maxRawResponseSize: get('maxRawResponseSize', parseSize),
+      rawRequestTimeout: getDuration('rawRequestTimeout'),
     }
 
     this.#cooldown = new SshCooldown({ cooldown: getDuration('authFailureCooldown') })
@@ -738,6 +740,10 @@ export default class Docker {
    * (outside of the limit of concurrent requests of the engine), the pooled
    * connection is held until the response is consumed or destroyed.
    *
+   * The whole request, response body included, is aborted after
+   * `docker.rawRequestTimeout` (before the response: TIMEOUT, afterwards the
+   * body stream fails, i.e. the response is cut); 0 disables it.
+   *
    * @param {string} id engine id
    * @param {object} opts
    * @param {string} opts.method
@@ -756,7 +762,7 @@ export default class Docker {
     if (typeof path !== 'string' || !path.startsWith('/')) {
       throw invalidParameters('path must start with /')
     }
-    const { maxRawRequestSize, maxRawResponseSize } = this.#config
+    const { maxRawRequestSize, maxRawResponseSize, rawRequestTimeout } = this.#config
     const contentLength = headers['content-length']
     if (contentLength !== undefined && Number(contentLength) > maxRawRequestSize) {
       throw new DockerError(RAW_REQUEST_TOO_LARGE, 'the request body is too large (docker.maxRawRequestSize)', {
@@ -765,25 +771,38 @@ export default class Docker {
     }
     const record = await this.#getEngineWithCredentials(id)
 
-    let requestBody
-    if (body !== undefined) {
-      requestBody = createSizeLimiter(
-        maxRawRequestSize,
-        RAW_REQUEST_TOO_LARGE,
-        'the request body is too large (docker.maxRawRequestSize)'
-      )
-      body.on('error', error => requestBody.destroy(error))
-      body.pipe(requestBody)
-    }
+    // the whole lifetime of the request, response body included (e.g. `/events`
+    // or `logs?follow=1` would otherwise stay open as long as the client)
+    const controller = new AbortController()
+    const timer =
+      rawRequestTimeout > 0
+        ? setTimeout(
+            () => controller.abort(new DOMException('raw Docker API request timed out', 'TimeoutError')),
+            rawRequestTimeout
+          )
+        : undefined
+    timer?.unref?.()
+    const requestSignal = AbortSignal.any([controller.signal, signal].filter(signal => signal !== undefined))
 
     return new Promise((resolve, reject) => {
+      let requestBody
       this.#withConnection(record, async connection => {
+        // piped only once connected: nothing reads it before
+        if (body !== undefined) {
+          requestBody = createSizeLimiter(
+            maxRawRequestSize,
+            RAW_REQUEST_TOO_LARGE,
+            'the request body is too large (docker.maxRawRequestSize)'
+          )
+          body.on('error', error => requestBody.destroy(error))
+          body.pipe(requestBody)
+        }
         const response = await connection.requestStream({
           method,
           path,
           headers,
           body: requestBody,
-          signal,
+          signal: requestSignal,
           raw: true,
           longLived: true,
         })
@@ -805,7 +824,20 @@ export default class Docker {
         resolve({ statusCode: response.statusCode, headers: response.headers, body: limited })
         // the pooled connection is busy until the response is done
         await finished(limited).catch(() => {})
-      }).catch(reject)
+        clearTimeout(timer)
+      }).catch(error => {
+        clearTimeout(timer)
+        // the request failed (no connection, channel refused, timeout…): the
+        // body is not sent, what the client still sends is discarded (the
+        // caller's stream is neither kept piped into a limiter nobody reads,
+        // nor destroyed: the caller may still have to answer on its socket)
+        if (requestBody !== undefined) {
+          body.unpipe(requestBody)
+          requestBody.destroy()
+          body.resume()
+        }
+        reject(error)
+      })
     })
   }
 

@@ -23,7 +23,7 @@ import { parseDuration } from '@vates/parse-duration'
 import { createClient } from 'redis'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
-import { Readable } from 'node:stream'
+import { PassThrough, Readable } from 'node:stream'
 
 import CryptoCredentials from './crypto-credentials.mjs'
 import Docker from './docker.mjs'
@@ -863,6 +863,94 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
             isCode('RAW_REQUEST_TOO_LARGE')
           )
           await assert.rejects(docker.callDockerEngineRawApi('nope', { method: 'GET', path: '/x' }), noSuchObject.is)
+        })
+
+        it('callDockerEngineRawApi(): the request body does not leak when the connection fails (review 3)', async () => {
+          const { id } = await seed({})
+          fake.connect = async () => {
+            throw new DockerError('SSH_UNREACHABLE', 'fake unreachable host')
+          }
+          const body = new PassThrough()
+          body.write('x'.repeat(1024))
+          await assert.rejects(
+            docker.callDockerEngineRawApi(id, { method: 'POST', path: '/build', body }),
+            isCode('SSH_UNREACHABLE')
+          )
+          // never piped: left untouched for the caller (node's HTTP server dumps
+          // an unconsumed request body once the response is sent), instead of
+          // piling up behind a size limiter nobody reads
+          assert.equal(body.listenerCount('data'), 0, 'not piped')
+          assert.equal(body.destroyed, false)
+
+          // failure once piped (e.g. the channel or the request fails): unpiped,
+          // and what the client still sends is discarded
+          fake.connect = async () => {}
+          const originalRequestStream = DockerConnection.prototype.requestStream
+          DockerConnection.prototype.requestStream = async ({ body }) => {
+            await new Promise(resolve => setImmediate(resolve))
+            assert.notEqual(body, undefined)
+            throw new DockerError('TIMEOUT', 'fake timeout')
+          }
+          try {
+            // another engine: the failure of the first one is remembered by the pool
+            const other = await seed({ host: '192.0.2.11' })
+            const body = new PassThrough()
+            body.write('x'.repeat(1024))
+            await assert.rejects(
+              docker.callDockerEngineRawApi(other.id, { method: 'POST', path: '/build', body }),
+              isCode('TIMEOUT')
+            )
+            assert.equal(body.listenerCount('data'), 0, 'unpiped')
+            for (let i = 0; i < 64; ++i) {
+              body.write(Buffer.alloc(16 * 1024))
+            }
+            await new Promise(resolve => setImmediate(resolve))
+            assert.equal(body.readableLength, 0, 'drained')
+          } finally {
+            DockerConnection.prototype.requestStream = originalRequestStream
+          }
+        })
+
+        it('callDockerEngineRawApi(): rawRequestTimeout bounds the whole response, 0 disables it (review 3)', async () => {
+          const { id } = await seed({})
+          const originalRequestStream = DockerConnection.prototype.requestStream
+          // a response which never ends (e.g. `/events`), destroyed on abort like
+          // the real one
+          DockerConnection.prototype.requestStream = async ({ signal }) => {
+            const response = new Readable({ read() {} })
+            response.statusCode = 200
+            response.headers = { 'content-type': 'application/json' }
+            response.push('{"status":"start"}\n')
+            signal.addEventListener('abort', () => response.destroy(signal.reason), { once: true })
+            return response
+          }
+          const closed = stream => new Promise(resolve => stream.once('close', resolve))
+          try {
+            const short = await createDocker({ redis, crypto, config: { docker: { rawRequestTimeout: '200ms' } } })
+            const start = Date.now()
+            const { body } = await short.docker.callDockerEngineRawApi(id, { method: 'GET', path: '/events' })
+            body.resume()
+            body.on('error', () => {})
+            await closed(body)
+            const duration = Date.now() - start
+            assert.ok(duration >= 150 && duration < 1e3, `${duration} ms`)
+
+            const unlimited = await createDocker({ redis, crypto, config: { docker: { rawRequestTimeout: 0 } } })
+            const result = await unlimited.docker.callDockerEngineRawApi(id, { method: 'GET', path: '/events' })
+            result.body.resume()
+            await sleep(400)
+            assert.equal(result.body.destroyed, false, 'still open')
+            result.body.destroy()
+
+            // the default: 5 minutes
+            const { body: defaultBody } = await docker.callDockerEngineRawApi(id, { method: 'GET', path: '/events' })
+            defaultBody.resume()
+            await sleep(300)
+            assert.equal(defaultBody.destroyed, false)
+            defaultBody.destroy()
+          } finally {
+            DockerConnection.prototype.requestStream = originalRequestStream
+          }
         })
       })
     })

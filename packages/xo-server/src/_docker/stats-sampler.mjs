@@ -26,6 +26,9 @@ export const DEFAULT_MAX_CONTAINERS = 100
 export const DEFAULT_MAX_OBJECT_SIZE = 256 * 1024
 // a container whose stream failed or ended is not reopened before this delay
 export const DEFAULT_RETRY_DELAY = 5e3
+// dockerd sends one object per second: a daemon sending more (hostile or
+// buggy) must not make us parse more, only the latest object is kept
+export const DEFAULT_PARSE_INTERVAL = 1e3
 
 // errors of one stream which do not concern the engine: the stream is dropped
 // (and retried by a later `sync()` after `retryDelay`), the other streams are
@@ -43,9 +46,10 @@ export class DockerStatsSampler {
   #now
   #onStop
   #openStream
+  #parseInterval
   #retryDelay
   #stopped = false
-  #streams = new Map() // Docker id → { controller, stream, stats, samples }
+  #streams = new Map() // Docker id → { controller, stream, stats, samples, lastParse, pendingLine, parseTimer }
 
   /**
    * @param {object} opts
@@ -53,7 +57,10 @@ export class DockerStatsSampler {
    *   opens `GET /containers/{id}/stats?stream=true` (newline-delimited JSON objects)
    * @param {number} [opts.idleTimeout] ms without `sync()`/`get()` after which the sampler stops
    * @param {number} [opts.maxContainers] max number of streams
-   * @param {number} [opts.maxObjectSize] max size of one JSON object (bytes), the stream is dropped above
+   * @param {number} [opts.maxObjectSize] max size of one JSON object (UTF-16 code units, roughly bytes), the
+   *   stream is dropped above; checked on the pending partial object plus each received chunk, before scanning
+   * @param {number} [opts.parseInterval] min ms between two parsed objects of a stream, the latest one received in
+   *   the meantime is parsed at the end of the interval
    * @param {number} [opts.retryDelay] ms before reopening the stream of a container after a failure or an end
    * @param {(error?: Error) => void} [opts.onStop] called once, with the error which stopped the sampler if any
    * @param {() => number} [opts.now] for tests
@@ -64,6 +71,7 @@ export class DockerStatsSampler {
     maxContainers = DEFAULT_MAX_CONTAINERS,
     maxObjectSize = DEFAULT_MAX_OBJECT_SIZE,
     retryDelay = DEFAULT_RETRY_DELAY,
+    parseInterval = DEFAULT_PARSE_INTERVAL,
     onStop,
     now = Date.now,
   }) {
@@ -72,6 +80,7 @@ export class DockerStatsSampler {
     this.#maxContainers = maxContainers
     this.#maxObjectSize = maxObjectSize
     this.#retryDelay = retryDelay
+    this.#parseInterval = parseInterval
     this.#onStop = onStop
     this.#now = now
     this.#lastRead = now()
@@ -210,6 +219,8 @@ export class DockerStatsSampler {
     const entry = this.#streams.get(id)
     if (entry !== undefined) {
       this.#streams.delete(id)
+      clearTimeout(entry.parseTimer)
+      entry.pendingLine = undefined
       entry.controller.abort()
       entry.stream?.destroy()
     }
@@ -232,7 +243,15 @@ export class DockerStatsSampler {
   }
 
   #open(id) {
-    const entry = { controller: new AbortController(), stream: undefined, stats: undefined, samples: 0 }
+    const entry = {
+      controller: new AbortController(),
+      stream: undefined,
+      stats: undefined,
+      samples: 0,
+      lastParse: -Infinity,
+      pendingLine: undefined,
+      parseTimer: undefined,
+    }
     this.#streams.set(id, entry)
     this.#openStream(id, entry.controller.signal).then(
       stream => {
@@ -252,30 +271,63 @@ export class DockerStatsSampler {
     )
   }
 
+  // parses the latest complete line received, unless one was parsed less than
+  // `parseInterval` ago: it is then parsed at the end of the interval (unless a
+  // newer one replaces it meanwhile)
+  #parse(id, entry) {
+    const line = entry.pendingLine
+    if (line === undefined || this.#streams.get(id) !== entry) {
+      return
+    }
+    const wait = entry.lastParse + this.#parseInterval - this.#now()
+    if (wait > 0) {
+      if (entry.parseTimer === undefined) {
+        entry.parseTimer = setTimeout(() => {
+          entry.parseTimer = undefined
+          this.#parse(id, entry)
+        }, wait)
+        entry.parseTimer.unref?.()
+      }
+      return
+    }
+    entry.pendingLine = undefined
+    entry.lastParse = this.#now()
+    let stats
+    try {
+      stats = normalizeContainerStats(JSON.parse(line))
+    } catch (error) {
+      this.#drop(id, entry, new Error('invalid stats object', { cause: error }))
+      return
+    }
+    entry.stats = stats
+    ++entry.samples
+  }
+
   #consume(id, entry, stream) {
+    // partial line after the last newline received
     let buffer = ''
     stream.setEncoding('utf8')
     stream.on('data', chunk => {
-      buffer += chunk
-      let index
-      while ((index = buffer.indexOf('\n')) !== -1) {
-        const line = buffer.slice(0, index).trim()
-        buffer = buffer.slice(index + 1)
-        if (line === '') {
-          continue
-        }
-        let stats
-        try {
-          stats = normalizeContainerStats(JSON.parse(line))
-        } catch (error) {
-          this.#drop(id, entry, new Error('invalid stats object', { cause: error }))
-          return
-        }
-        entry.stats = stats
-        ++entry.samples
-      }
-      if (buffer.length > this.#maxObjectSize) {
+      // checked before any scanning: a daemon cannot make us buffer or scan
+      // more than the cap, whatever the number of lines (a legitimate stream
+      // sends a few KiB per second, and a chunk is at most 64 KiB)
+      if (buffer.length + chunk.length > this.#maxObjectSize) {
         this.#drop(id, entry, new Error('stats object too large'))
+        return
+      }
+      // only the latest complete line matters: the objects before it are
+      // older samples, never parsed
+      const last = chunk.lastIndexOf('\n')
+      if (last === -1) {
+        buffer += chunk
+        return
+      }
+      const previous = chunk.lastIndexOf('\n', last - 1)
+      const line = (previous === -1 ? buffer + chunk.slice(0, last) : chunk.slice(previous + 1, last)).trim()
+      buffer = chunk.slice(last + 1)
+      if (line !== '') {
+        entry.pendingLine = line
+        this.#parse(id, entry)
       }
     })
     // `close` is always emitted, after `error` if any: the stream ended
