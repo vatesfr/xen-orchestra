@@ -1,6 +1,6 @@
 [package]
 name = "vectura"
-version = "1.0.0"
+version = "0.1.1"
 edition = "2024"
 description = "Standalone client for VMware's NFC disk-read protocol"
 # The license of the Xen Orchestra application components, see LICENSE.md at

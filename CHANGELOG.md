@@ -117,7 +117,6 @@
 - @xen-orchestra/mixins 0.21.0
 - @xen-orchestra/proxy 0.32.0
 - @xen-orchestra/proxy-cli 0.3.4
-- vectura 1.0.0
 - @xen-orchestra/vmware-explorer 1.0.0
 - @xen-orchestra/qa-test 1.2.1
 - @xen-orchestra/rest-api 0.40.0
