@@ -1,6 +1,9 @@
+import { createLogger } from '@xen-orchestra/log'
 import type { HttpStatusCodeLiteral } from 'tsoa'
 
 import { ApiError } from './error.helper.mjs'
+
+const log = createLogger('xo:rest-api:docker')
 
 /**
  * Shape of the `DockerError`s thrown by xo-server's Docker transport
@@ -26,6 +29,42 @@ function getRetryAfter(error: DockerErrorLike): string | undefined {
   }
 }
 
+// Docker Engine API statuses of errors of the request: 400 bad parameter,
+// 404 no such object, 409 conflict (e.g. already paused, in use)
+const PASSED_THROUGH_STATUSES = new Set([400, 404, 409])
+
+// the connection context added by xo-server to its errors: logged here, never
+// sent to the client
+const CONTEXT_FIELDS = new Set(['host', 'port', 'socketPath', 'path'])
+
+// same as xo-server's `MAX_ERROR_MESSAGE_LENGTH`
+const MAX_MESSAGE_LENGTH = 512
+
+function truncateMessage(message: string): string {
+  return message.length > MAX_MESSAGE_LENGTH ? message.slice(0, MAX_MESSAGE_LENGTH) + '…' : message
+}
+
+function getClientData(error: DockerErrorLike): Record<string, unknown> {
+  const data = error.data ?? {}
+  if (error.code === 'DOCKER_API_ERROR') {
+    // written by the daemon: only what the client needs
+    const { statusCode, message } = data
+    return {
+      code: error.code,
+      statusCode: typeof statusCode === 'number' ? statusCode : undefined,
+      message: typeof message === 'string' ? truncateMessage(message) : undefined,
+    }
+  }
+  const clientData: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(data)) {
+    if (!CONTEXT_FIELDS.has(key)) {
+      clientData[key] = value
+    }
+  }
+  clientData.code = error.code
+  return clientData
+}
+
 function getStatus(error: DockerErrorLike): HttpStatusCodeLiteral {
   switch (error.code) {
     case 'HOST_KEY_UNKNOWN':
@@ -45,8 +84,11 @@ function getStatus(error: DockerErrorLike): HttpStatusCodeLiteral {
     case 'DOCKER_API_ERROR': {
       const statusCode = error.data?.statusCode
       // errors of the request (e.g. 409 pausing a paused container) are passed
-      // through, errors of the daemon are the upstream's fault
-      return typeof statusCode === 'number' && statusCode >= 400 && statusCode < 500
+      // through, only the ones in the allowlist: a 401/407 from the daemon (or
+      // a proxy in front of it) would make the browser prompt for credentials
+      // and a 403 would look like a missing XO permission. Every other status
+      // is the upstream's fault, `data.statusCode` keeps it.
+      return typeof statusCode === 'number' && PASSED_THROUGH_STATUSES.has(statusCode)
         ? (statusCode as HttpStatusCodeLiteral)
         : 502
     }
@@ -65,17 +107,27 @@ function getStatus(error: DockerErrorLike): HttpStatusCodeLiteral {
  * Convert a `DockerError` to an `ApiError` with the right HTTP status, other
  * errors are returned as is.
  *
- * `data.code` is the Docker error code, the other properties of its `data`
- * (e.g. the observed `fingerprint` of `HOST_KEY_UNKNOWN`, the socket
- * `diagnostic`) are kept. They never contain secrets: xo-server scrubs them.
+ * `data.code` is the Docker error code. For `DOCKER_API_ERROR`, only the
+ * upstream `statusCode` and the (truncated) `message` are added; for the
+ * others, the properties of its `data` (e.g. the observed `fingerprint` of
+ * `HOST_KEY_UNKNOWN`, the socket `diagnostic`) are kept, except the connection
+ * context (`host`, `port`, `socketPath`, `path`), which is only logged. They
+ * never contain secrets: xo-server scrubs them.
  */
 export function toDockerApiError(error: unknown): unknown {
   if (!isDockerError(error)) {
     return error
   }
+  const status = getStatus(error)
   const retryAfter = getRetryAfter(error)
-  const apiError = new ApiError(error.message, getStatus(error), {
-    data: { ...error.data, code: error.code },
+  // the full error, with its context, stays in the server logs
+  if (status >= 500) {
+    log.warn(error.message, { error })
+  } else {
+    log.debug(error.message, { error })
+  }
+  const apiError = new ApiError(truncateMessage(error.message), status, {
+    data: getClientData(error),
     headers: retryAfter === undefined ? undefined : { 'Retry-After': retryAfter },
   })
   apiError.cause = error
