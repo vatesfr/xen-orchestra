@@ -24,7 +24,12 @@ import {
 import { fileRestoreDecorators, fileRestoreMethods } from './_fileRestore.mjs'
 import { formatFilenameDate } from './_filenameDate.mjs'
 import { isMetadataFile } from './_backupType.mjs'
-import { readBackupJournal, writeBackupJournalEntries, writeBackupJournalEntry } from './_backupJournal.mjs'
+import {
+  isKnownJournalEvent,
+  readBackupJournal,
+  writeBackupJournalEntries,
+  writeBackupJournalEntry,
+} from './_backupJournal.mjs'
 import { isValidXva } from './_isValidXva.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
@@ -560,7 +565,7 @@ export class RemoteAdapter {
     // rewritten several times costs a single one
     const lastEventByFilename = new Map()
     entries.forEach(({ event, filename, vmUuid }, index) => {
-      if (event !== 'add' && event !== 'change' && event !== 'del') {
+      if (!isKnownJournalEvent(event)) {
         warn('ignoring unsupported journal event', { event, filename })
         return
       }

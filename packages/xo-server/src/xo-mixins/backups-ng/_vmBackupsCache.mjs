@@ -376,7 +376,8 @@ export class VmBackupsCache {
       if (event === 'del') {
         removeBackup(backupsByVm, vmUuid, filename)
       } else {
-        ;(backupsByVm[vmUuid] ??= {})[filename] = backup
+        const backups = (backupsByVm[vmUuid] ??= {})
+        backups[filename] = backup
       }
     }
 

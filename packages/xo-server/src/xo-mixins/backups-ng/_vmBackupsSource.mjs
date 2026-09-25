@@ -5,6 +5,7 @@ import keyBy from 'lodash/keyBy.js'
 import mapValues from 'lodash/mapValues.js'
 import { createLogger } from '@xen-orchestra/log'
 import { formatJournalEvents, formatVmBackupAt } from '@xen-orchestra/backups/formatVmBackups.mjs'
+import { isKnownJournalEvent } from '@xen-orchestra/backups/_backupJournal.mjs'
 import { invalidParameters } from 'xo-common/api-errors.js'
 
 /** @typedef {import('./_vmBackupsCache.mjs').BackupsByVm} BackupsByVm */
@@ -132,8 +133,9 @@ export class VmBackupsSource {
   async readJournal(repository, cursor, opts) {
     const { proxy } = repository
     if (proxy !== undefined) {
+      let read
       try {
-        return await this.#app.callProxyMethod(proxy, 'backup.listVmBackupsJournal', {
+        read = await this.#app.callProxyMethod(proxy, 'backup.listVmBackupsJournal', {
           remote: remoteOf(repository),
           remoteId: repository.id,
           cursor,
@@ -152,6 +154,19 @@ export class VmBackupsSource {
         }
         return undefined
       }
+
+      // the proxy only dropped the event kinds *it* does not know, and it can be more recent than
+      // this process: drop the ones this version does not know either, as
+      // `readBackupJournalEvents()` does on a local read. The cursor still moves past them, like
+      // locally, and the next full rebuild accounts for them.
+      const events = read.events.filter(({ event, filename }) => {
+        if (isKnownJournalEvent(event)) {
+          return true
+        }
+        warn('ignoring unsupported journal event', { event, filename, proxyId: proxy })
+        return false
+      })
+      return { ...read, events }
     }
 
     const { events, cursor: nextCursor } = await this.#useAdapter(repository, adapter =>
