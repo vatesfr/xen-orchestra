@@ -3,7 +3,7 @@ import VmSystemManagement from '@/modules/vm/components/system/VmSystemManagemen
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { VM_OPERATIONS } from '@vates/types'

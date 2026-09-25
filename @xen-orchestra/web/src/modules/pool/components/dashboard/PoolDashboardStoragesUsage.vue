@@ -6,15 +6,12 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardTitle>
-    <VtsStateHero v-if="!areStoragesUsageReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
-      {{ t('error-no-data') }}
-    </VtsStateHero>
-    <VtsStateHero v-else-if="topFiveUsage.length === 0" format="card" type="no-data" size="medium">
-      {{ t('no-data-to-calculate') }}
-    </VtsStateHero>
-    <template v-else>
-      <VtsProgressBarGroup :items="progressBarItems" legend-type="percent" />
+    <VtsStatefulProgressBarGroup
+      :items="progressBarItems"
+      :busy="!areStoragesUsageReady"
+      :has-error
+      legend-type="percent"
+    >
       <div class="total">
         <UiCardNumbers
           :label="t('total-used')"
@@ -29,15 +26,14 @@
           size="medium"
         />
       </div>
-    </template>
+    </VtsStatefulProgressBarGroup>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import { buildPercentProgressItems, getStoragesUsageTotals } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
-import VtsProgressBarGroup from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { getStoragesUsageTotals, toPercentProgressItem } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
+import VtsStatefulProgressBarGroup from '@core/components/stateful-progress-bar-group/VtsStatefulProgressBarGroup.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -61,7 +57,7 @@ const totals = computed(() => getStoragesUsageTotals(topFiveUsage.value))
 const formattedTotalUsage = computed(() => formatSizeRaw(totals.value.totalUsage, 0))
 const formattedTotalSizeFree = computed(() => formatSizeRaw(totals.value.totalSize - totals.value.totalUsage, 0))
 
-const progressBarItems = computed(() => buildPercentProgressItems(topFiveUsage.value))
+const progressBarItems = computed(() => topFiveUsage.value.map(toPercentProgressItem))
 </script>
 
 <style lang="postcss" scoped>
