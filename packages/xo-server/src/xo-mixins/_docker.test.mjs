@@ -813,8 +813,7 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
         it('getDockerContainers()', async () => {
           await assert.rejects(docker.getDockerContainers(), { code: 10 })
           await assert.rejects(docker.getDockerContainers({ engines: ['nope'] }), noSuchObject.is)
-          const { id } = await seed({})
-          await assert.rejects(docker.getDockerContainers({ engines: [id], stats: true }), { code: 10 })
+          await seed({})
           const empty = await docker.getDockerContainers({ engines: [] })
           assert.deepEqual(empty.containers, [])
           assert.deepEqual(empty.errors, [])
@@ -843,6 +842,27 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
             await assert.rejects(docker.getDockerContainerLogs(containerId, opts), { code: 10 }, JSON.stringify(opts))
           }
           await assert.rejects(docker.getDockerContainerLogs(containerId, { since: 'not a date' }), { code: 10 })
+        })
+
+        it('getDockerContainerStats(): malformed id or unknown engine → noSuchObject (phase 4)', async () => {
+          for (const id of ['nope', `nope_${'a'.repeat(64)}`]) {
+            await assert.rejects(docker.getDockerContainerStats(id), noSuchObject.is, id)
+          }
+        })
+
+        it('callDockerEngineRawApi(): parameters checked before any connection (phase 4)', async () => {
+          const { id } = await seed({})
+          await assert.rejects(docker.callDockerEngineRawApi(id, { method: 'CONNECT', path: '/x' }), { code: 10 })
+          await assert.rejects(docker.callDockerEngineRawApi(id, { method: 'GET', path: 'x' }), { code: 10 })
+          await assert.rejects(
+            docker.callDockerEngineRawApi(id, {
+              method: 'POST',
+              path: '/x',
+              headers: { 'content-length': String(2 * 1024 * 1024) },
+            }),
+            isCode('RAW_REQUEST_TOO_LARGE')
+          )
+          await assert.rejects(docker.callDockerEngineRawApi('nope', { method: 'GET', path: '/x' }), noSuchObject.is)
         })
       })
     })
@@ -1382,5 +1402,226 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
     await instance.emit('stop')
     assert.equal((await instance.docker.getDockerEngine(id)).connectionStatus, 'idle')
     await instance.docker.deleteDockerEngine(id)
+  })
+
+  describe('stats sampler and raw requests (phase 4)', () => {
+    let engineId, ids
+    // the long-lived streams opened through DockerConnection, to check they are closed
+    let streams, originalRequestStream
+
+    before(async () => {
+      engineId = (await createTrusted({ label: 'stats' })).id
+      const { containers } = await docker.getDockerContainers({ engines: [engineId] })
+      ids = Object.fromEntries(containers.map(_ => [_.name, _.id]))
+      streams = []
+      originalRequestStream = DockerConnection.prototype.requestStream
+      DockerConnection.prototype.requestStream = async function (opts) {
+        const response = await originalRequestStream.call(this, opts)
+        if (opts.longLived) {
+          streams.push({ path: opts.path, response })
+        }
+        return response
+      }
+    })
+
+    after(() => {
+      DockerConnection.prototype.requestStream = originalRequestStream
+    })
+
+    const statsStreams = () => streams.filter(_ => _.path.endsWith('/stats'))
+    const openStatsStreams = () => statsStreams().filter(_ => !_.response.destroyed && !_.response.complete)
+
+    // CPU load in xo-nginx for `seconds`, through a detached exec (the raw
+    // mixin method, which unlike the REST passthrough allows exec start)
+    const loadNginx = async seconds => {
+      const call = async (path, body) => {
+        const { statusCode, body: stream } = await docker.callDockerEngineRawApi(engineId, {
+          method: 'POST',
+          path,
+          headers: { 'content-type': 'application/json' },
+          body: Readable.from([JSON.stringify(body)]),
+        })
+        const chunks = []
+        for await (const chunk of stream) {
+          chunks.push(chunk)
+        }
+        return { statusCode, body: Buffer.concat(chunks).toString() }
+      }
+      const created = await call(`/containers/${ids['xo-nginx'].split('_')[1]}/exec`, {
+        Cmd: ['timeout', String(seconds), 'sh', '-c', 'while :; do :; done'],
+      })
+      assert.equal(created.statusCode, 201, created.body)
+      const started = await call(`/exec/${JSON.parse(created.body).Id}/start`, { Detach: true })
+      assert.equal(started.statusCode, 200, started.body)
+    }
+
+    it('stats=true never blocks: statsPending first, then real CPU and memory numbers', async () => {
+      await loadNginx(8)
+      let { containers } = await docker.getDockerContainers({ engines: [engineId], stats: true })
+      let byName = Object.fromEntries(containers.map(_ => [_.name, _]))
+      assert.equal(byName['xo-nginx'].statsPending, true)
+      assert.equal(byName['xo-paused'].statsPending, true, 'paused containers are sampled too')
+      assert.equal(byName['xo-exited'].statsPending, undefined, 'stopped containers are not sampled')
+      assert.equal(byName['xo-exited'].stats, undefined)
+
+      await sleep(3e3)
+      ;({ containers } = await docker.getDockerContainers({ engines: [engineId], stats: true }))
+      byName = Object.fromEntries(containers.map(_ => [_.name, _]))
+      const { stats, statsPending } = byName['xo-nginx']
+      assert.equal(statsPending, undefined)
+      assert.ok(stats.cpuPercent > 0, `cpuPercent ${stats.cpuPercent}`)
+      assert.ok(stats.memoryUsage > 0)
+      assert.equal(typeof stats.sampledAt, 'number')
+      // one stream per running or paused container, not reopened by the second list
+      const sampled = containers.filter(_ => _.state === 'running' || _.state === 'paused').length
+      assert.equal(openStatsStreams().length, sampled)
+      assert.equal(statsStreams().length, sampled)
+
+      // served from the warm sampler
+      const start = Date.now()
+      const single = await docker.getDockerContainerStats(ids['xo-nginx'])
+      assert.ok(Date.now() - start < 500, 'no call to dockerd')
+      assert.ok(single.memoryUsage > 0)
+    })
+
+    it('getDockerContainerStats(): one call when not sampled, 404 on an unknown container', async () => {
+      const stats = await docker.getDockerContainerStats(ids['xo-exited'])
+      assert.equal(stats.cpuPercent, null)
+      await assert.rejects(docker.getDockerContainerStats(`${engineId}_${'0'.repeat(64)}`), noSuchObject.is)
+    })
+
+    it('follows the containers started and stopped between two lists', async () => {
+      const nginx = ids['xo-nginx']
+      await docker.runDockerContainerAction(nginx, 'stop')
+      try {
+        const { containers } = await docker.getDockerContainers({ engines: [engineId], stats: true })
+        assert.equal(containers.find(_ => _.id === nginx).statsPending, undefined)
+        assert.equal(containers.find(_ => _.id === nginx).stats, undefined)
+        await sleep(200)
+        assert.ok(!openStatsStreams().some(_ => _.path.includes(nginx.split('_')[1])), 'its stream is closed')
+      } finally {
+        await docker.runDockerContainerAction(nginx, 'start')
+      }
+      const { containers } = await docker.getDockerContainers({ engines: [engineId], stats: true })
+      assert.equal(containers.find(_ => _.id === nginx).statsPending, true, 'a new stream')
+      await sleep(200)
+      assert.ok(openStatsStreams().some(_ => _.path.includes(nginx.split('_')[1])))
+    })
+
+    it('deleting the engine stops its sampler', async () => {
+      const { id } = await createTrusted({ label: 'stats, deleted' })
+      const before = streams.length
+      await docker.getDockerContainers({ engines: [id], stats: true })
+      await sleep(500)
+      const mine = streams.slice(before)
+      assert.ok(mine.length > 0)
+      await docker.deleteDockerEngine(id)
+      await sleep(200)
+      assert.ok(
+        mine.every(_ => _.response.destroyed),
+        'streams closed'
+      )
+    })
+
+    it('stops after statsIdleTimeout without reader, and on the stop hook', async () => {
+      const instance = await createDocker({
+        redis,
+        config: { docker: { statsIdleTimeout: '1s', authFailureCooldown: '0s' } },
+      })
+      try {
+        const { id } = await instance.docker.createDockerEngine({ ...baseParams(), hostKeyFingerprint: fingerprint })
+        let before = streams.length
+        await instance.docker.getDockerContainers({ engines: [id], stats: true })
+        await sleep(300)
+        let mine = streams.slice(before)
+        assert.ok(mine.length > 0 && mine.every(_ => !_.response.destroyed))
+        await sleep(1500)
+        assert.ok(
+          mine.every(_ => _.response.destroyed),
+          'idle: streams closed'
+        )
+        // the connection is still pooled (idle), only released
+        assert.equal((await instance.docker.getDockerEngine(id)).connectionStatus, 'connected')
+
+        before = streams.length
+        await instance.docker.getDockerContainers({ engines: [id], stats: true })
+        await sleep(300)
+        mine = streams.slice(before)
+        assert.ok(mine.length > 0, 'restarted by a new reader')
+        await instance.emit('stop')
+        await sleep(100)
+        assert.ok(
+          mine.every(_ => _.response.destroyed),
+          'stop hook: streams closed'
+        )
+        await instance.docker.deleteDockerEngine(id)
+      } finally {
+        await instance.emit('stop')
+      }
+    })
+
+    it('maxStatsContainers caps the streams', async () => {
+      const instance = await createDocker({
+        redis,
+        config: { docker: { maxStatsContainers: 2, authFailureCooldown: '0s' } },
+      })
+      try {
+        const { id } = await instance.docker.createDockerEngine({ ...baseParams(), hostKeyFingerprint: fingerprint })
+        const before = streams.length
+        const { containers } = await instance.docker.getDockerContainers({ engines: [id], stats: true })
+        assert.equal(containers.filter(_ => _.statsPending).length, 2)
+        await sleep(500)
+        assert.equal(streams.length - before, 2)
+        await instance.docker.deleteDockerEngine(id)
+      } finally {
+        await instance.emit('stop')
+      }
+    })
+
+    it('callDockerEngineRawApi(): versioned path, status passed through, response cap', async () => {
+      const read = async stream => {
+        const chunks = []
+        for await (const chunk of stream) {
+          chunks.push(chunk)
+        }
+        return Buffer.concat(chunks).toString()
+      }
+      let result = await docker.callDockerEngineRawApi(engineId, { method: 'GET', path: '/version' })
+      assert.equal(result.statusCode, 200)
+      assert.equal(result.headers['api-version'] !== undefined, true)
+      assert.match(JSON.parse(await read(result.body)).Version, /^\d+\./)
+
+      result = await docker.callDockerEngineRawApi(engineId, { method: 'GET', path: '/images/json?all=1' })
+      assert.ok(Array.isArray(JSON.parse(await read(result.body))))
+
+      result = await docker.callDockerEngineRawApi(engineId, {
+        method: 'GET',
+        path: `/containers/${'0'.repeat(64)}/json`,
+      })
+      assert.equal(result.statusCode, 404, 'not thrown')
+      await read(result.body)
+
+      const small = await createDocker({
+        redis,
+        config: { docker: { maxRawResponseSize: 100, authFailureCooldown: '0s' } },
+      })
+      try {
+        // content-length announced: refused before streaming
+        await assert.rejects(
+          small.docker.callDockerEngineRawApi(engineId, { method: 'GET', path: '/version' }),
+          isCode('RAW_RESPONSE_TOO_LARGE')
+        )
+        // chunked: the stream fails
+        const { body } = await small.docker.callDockerEngineRawApi(engineId, {
+          method: 'GET',
+          path: '/containers/json?all=1',
+        })
+        await assert.rejects(read(body), isCode('RAW_RESPONSE_TOO_LARGE'))
+        // the connection is still usable
+        assert.equal((await small.docker.getDockerEngineInfo(engineId)).status, 'connected')
+      } finally {
+        await small.emit('stop')
+      }
+    })
   })
 })
