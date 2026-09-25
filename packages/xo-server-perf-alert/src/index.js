@@ -166,10 +166,12 @@ class PerfAlertXoPlugin {
       const objects = Object.values(affectedObjects).slice(0, alarmType.length)
       if (objects.length === 0) {
         for (let i = 0; i < alarmType.length; i++) {
-          objects.push({
+          const object = {
             name_label: `[#${i + 1} FAKE object] no object matches this rule`,
-            uuid: `${i + 1}234567a-1a2b-1234-1a2b-123456789abcd`,
-          })
+            uuid: `${i + 1}234567a-1a2b-1234-1a2b-123456789abc`,
+          }
+          object.id = object.uuid
+          objects.push(object)
         }
       }
       objects.forEach((object, index) => {
@@ -192,9 +194,9 @@ class PerfAlertXoPlugin {
    * @param {string} html
    * @param {string} markdown
    */
-  _sendAlertEmail(subject, html, markdown) {
+  async _sendAlertEmail(subject, html, markdown) {
     if (this.#configuration.toEmails !== undefined && this._xo.sendEmail !== undefined) {
-      this._xo.sendEmail({
+      await this._xo.sendEmail({
         to: this.#configuration.toEmails,
         subject,
         html,
