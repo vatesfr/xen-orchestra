@@ -51,6 +51,10 @@ function setup({ licensed = true, maxListedEngines }: { licensed?: boolean; maxL
         asOf: 42,
       }
     },
+    getDockerContainerStats: async (...args: unknown[]) => {
+      calls.push({ method: 'getDockerContainerStats', args })
+      return { sampledAt: 1, cpuPercent: 3.1, memoryUsage: 42 }
+    },
     runDockerContainerAction: async (...args: unknown[]) => {
       calls.push({ method: 'runDockerContainerAction', args })
     },
@@ -112,6 +116,13 @@ describe('getEngineScope()', () => {
   })
 })
 
+const makeReq = (query: Record<string, string>, headers: Record<string, string> = {}) =>
+  ({
+    query,
+    path: '/rest/v0/docker-containers',
+    res: { setHeader: (name: string, value: string) => (headers[name] = value) },
+  }) as never
+
 describe('DockerContainerController', () => {
   describe('scoped listing', () => {
     it('422 without a filter designating engines, before any connection', async () => {
@@ -129,13 +140,6 @@ describe('DockerContainerController', () => {
       await assert.rejects(controller.getDockerContainers(req, `$pool:${POOL}`), invalidParameters.is)
       assert.deepEqual(calls, [])
     })
-
-    const makeReq = (query: Record<string, string>, headers: Record<string, string> = {}) =>
-      ({
-        query,
-        path: '/rest/v0/docker-containers',
-        res: { setHeader: (name: string, value: string) => (headers[name] = value) },
-      }) as never
 
     it('a plain array; applies the whole filter; failed engines in the x-docker-errors header (fixes)', async () => {
       const { calls, controller } = setup()
@@ -232,6 +236,48 @@ describe('DockerContainerController', () => {
     })
   })
 
+  describe('stats (phase 4)', () => {
+    it('stats=true is passed to the mixin, the stats and statsPending of the containers are kept', async () => {
+      const { calls, controller } = setup()
+      containers[0] = { ...containers[0], stats: { cpuPercent: 3.1 }, statsPending: true } as never
+      try {
+        const filter = `$VM:${VM_1}`
+        const req = makeReq({ filter, fields: 'name,stats,statsPending' })
+        const result = await controller.getDockerContainers(
+          req,
+          filter,
+          'name,stats,statsPending',
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          true
+        )
+        assert.equal((calls[0].args[0] as { stats: boolean }).stats, true)
+        assert.deepEqual((result as unknown[])[0], {
+          name: 'web',
+          stats: { cpuPercent: 3.1 },
+          statsPending: true,
+          href: `/rest/v0/docker-containers/engine-1_${DOCKER_ID}`,
+        })
+      } finally {
+        const { stats: _stats, statsPending: _pending, ...rest } = containers[0] as never as Record<string, unknown>
+        containers[0] = rest as never
+      }
+    })
+
+    it('GET /docker-containers/{id}/stats: 404 without connecting, then the mixin', async () => {
+      const { calls, controller } = setup()
+      for (const id of ['nope', `engine-9_${DOCKER_ID}`]) {
+        await assert.rejects(controller.getDockerContainerStats(id), noSuchObject.is, id)
+      }
+      assert.deepEqual(calls, [])
+      const id = `engine-1_${DOCKER_ID}`
+      assert.deepEqual(await controller.getDockerContainerStats(id), { sampledAt: 1, cpuPercent: 3.1, memoryUsage: 42 })
+      assert.deepEqual(calls, [{ method: 'getDockerContainerStats', args: [id] }])
+    })
+  })
+
   describe('actions and removal', () => {
     it('404 before creating a task, without connecting', async () => {
       const { calls, controller, tasks } = setup()
@@ -299,6 +345,7 @@ describe('DockerContainerController', () => {
       () => controller.getDockerContainers(req, `$VM:${VM_1}`),
       () => controller.getDockerContainer(id),
       () => controller.getDockerContainerLogs(id),
+      () => controller.getDockerContainerStats(id),
       () => controller.startDockerContainer(id),
       () => controller.stopDockerContainer(id),
       () => controller.restartDockerContainer(id),

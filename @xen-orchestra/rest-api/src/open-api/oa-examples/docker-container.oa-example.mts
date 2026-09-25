@@ -106,3 +106,17 @@ export const dockerContainerLogs = {
   timedOut: false,
   asOf: 1790285371392,
 }
+
+export const dockerContainerStats = {
+  sampledAt: 1790327410123,
+  cpuPercent: 3.1,
+  onlineCpus: 4,
+  memoryUsage: 641728512,
+  memoryLimit: 8330301440,
+  memoryPercent: 7.7,
+  networkRx: 1296,
+  networkTx: 126,
+  blockRead: 0,
+  blockWrite: 4096,
+  pids: 5,
+}

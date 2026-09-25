@@ -39,6 +39,9 @@ function getStatus(error: DockerErrorLike): HttpStatusCodeLiteral {
     case 'POOL_EXHAUSTED':
     case 'CONNECTION_CLOSED':
       return 503
+    case 'RAW_REQUEST_TOO_LARGE':
+      // raw passthrough, docker.maxRawRequestSize
+      return 413
     case 'DOCKER_API_ERROR': {
       const statusCode = error.data?.statusCode
       // errors of the request (e.g. 409 pausing a paused container) are passed
