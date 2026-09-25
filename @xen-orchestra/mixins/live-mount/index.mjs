@@ -1,13 +1,15 @@
 import { asyncEach } from '@vates/async-each'
+import { CachedDiskBlockDevice, DiskBlockDevice, IscsiTarget, RawBlockDevice } from '@vates/iscsi'
 import { createLogger } from '@xen-orchestra/log'
-import { DiskBlockDevice, IscsiTarget } from '@vates/iscsi'
 import { defer } from 'golike-defer'
+import { EventEmitter } from 'node:events'
 import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { randomBytes } from 'node:crypto'
 
-import { detectLocalAddress } from './_address.mjs'
+import { createCache } from './_cache.mjs'
 import { createChapCredentials, probeScsiId } from './_target.mjs'
+import { detectLocalAddress } from './_address.mjs'
 import { forgetSr, introduceSr, introduceVdi } from './_sr.mjs'
 
 const { info, warn } = createLogger('xo:mixins:LiveMount')
@@ -16,10 +18,13 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * Serve a disk as a read-only iSCSI LUN and attach it, as an SR, to a host —
  * so its content is usable without copying it first.
  *
- * Nothing is cached: every read goes straight to the source, and writes are
- * refused (the LUN is backed by `@vates/iscsi`'s `DiskBlockDevice`, which is
- * read-only). Since nothing needs to be plugged into this appliance's own VM,
- * the mount can target any host reachable by the caller.
+ * Without a cache SR, nothing is cached: every read goes straight to the
+ * source, writes are refused, and the mount can target any host reachable by
+ * the caller.
+ *
+ * With one, the disk is materialized block by block into a VDI hot-plugged onto
+ * this appliance's own VM, which must then belong to the pool of the target
+ * host. That VDI lives and dies with the mount.
  *
  * Nothing app-specific is read from `app` apart from `config` and `hooks`: the
  * source disk, the XAPI connection and the target host are all passed in by
@@ -27,6 +32,10 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * any future feature built on it (booting a VM straight from a backup,
  * importing one from another hypervisor), each supplying its own way to open
  * the source disk.
+ *
+ * A mount releases itself when its VDI is removed from the pool — typically
+ * when the VM it was attached to is deleted — so a caller which forgets to
+ * unmount does not leak an SR and a target for the lifetime of the process.
  *
  * The implementation is split by concern, each module private to this
  * directory: `_target.mjs` (CHAP + the iSCSI target + SCSI probe), `_sr.mjs`
@@ -37,9 +46,13 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * today it only ever mounts one disk at a time, and a future feature mounting
  * a whole VM (one call per disk, then a VM built on the results) belongs on
  * its own method rather than squatting on a bare `mount`/`unmount`.
+ *
+ * @fires LiveMount#unmounted - `(id)`, whenever a mount stops existing,
+ * whether it was unmounted explicitly or because its VDI disappeared
  */
-export default class LiveMount {
+export default class LiveMount extends EventEmitter {
   #app
+  #createCacheDevice
   #createTarget
   #detectAddress
   #openDisk
@@ -47,17 +60,25 @@ export default class LiveMount {
   // mount id -> mount record
   #mounts = new Map()
 
-  // `openDisk`/`createTarget`/`detectAddress` are injectable for tests only,
+  // XAPI connection -> mount id, by the uuid of the VDI that mount serves. Weak, so a connection
+  // which goes away takes its watch with it, and its single listener with it.
+  #mountIdsByVdiUuid = new WeakMap()
+
+  // every dependency reaching outside this process is injectable for tests only,
   // like xo-server's crypto-credentials mixin does with xenStore/fsPromises
   constructor(
     app,
     {
       openDisk = openDiskChain,
+      createCacheDevice = options => new RawBlockDevice(options),
       createTarget = options => new IscsiTarget(options),
       detectAddress = detectLocalAddress,
     } = {}
   ) {
+    super()
+
     this.#app = app
+    this.#createCacheDevice = createCacheDevice
     this.#createTarget = createTarget
     this.#detectAddress = detectAddress
     this.#openDisk = openDisk
@@ -82,11 +103,15 @@ export default class LiveMount {
    * @param {string} params.hostRef - opaque ref of the host the disk is attached to as an SR
    * @param {string} [params.nameLabel] - name of the created SR
    * @param {() => Promise<void>} [params.release] - called on unmount, e.g. to dispose the remote handler
+   * @param {string} [params.cacheSrUuid] - SR of a local VDI the disk is materialized into as it is
+   * read, so the backup repository is read at most once per block. Unset, nothing is cached.
+   * @param {string} [params.vmUuid] - VM of this appliance, in `xapi`'s pool; required with `cacheSrUuid`
    * @returns {Promise<{ id: string, srUuid: string, vdiUuid: string, iqn: string, address: string, port: number }>}
    */
   async mountDisk(params) {
     const mount = await this.#createDiskMount(params)
     this.#mounts.set(mount.id, mount)
+    this.#watchVdi(mount)
     return {
       id: mount.id,
       srUuid: mount.srUuid,
@@ -97,7 +122,11 @@ export default class LiveMount {
     }
   }
 
-  #createDiskMount = defer(async ($defer, { handler, diskPath, xapi, hostRef, nameLabel, release }) => {
+  #createDiskMount = defer(async ($defer, params) => {
+    const { cacheSrUuid, diskPath, handler, hostRef, nameLabel, release, vmUuid, xapi } = params
+    if (cacheSrUuid !== undefined && vmUuid === undefined) {
+      throw new Error('vmUuid is required to create a live mount cache')
+    }
     const config = this.#app.config
     // `iscsi.advertisedAddress` overrides auto-detection; unset, the address
     // reachable *from* the target host is guessed by asking the OS which
@@ -119,7 +148,24 @@ export default class LiveMount {
     const disk = await this.#openDisk({ handler, path: diskPath })
     $defer.onFailure(() => disk.close())
 
-    const lun = new DiskBlockDevice({ disk })
+    // before the target, which opens the LUN
+    let mountCache
+    let lun
+    if (cacheSrUuid === undefined) {
+      lun = new DiskBlockDevice({ disk })
+    } else {
+      mountCache = await createCache($defer, {
+        createCacheDevice: this.#createCacheDevice,
+        disk,
+        diskPath,
+        id,
+        srUuid: cacheSrUuid,
+        vmUuid,
+        xapi,
+      })
+      lun = new CachedDiskBlockDevice({ cache: mountCache.device, disk })
+    }
+
     const target = this.#createTarget({
       chap,
       host: config.getOptional('iscsi.bindAddress'),
@@ -155,10 +201,80 @@ export default class LiveMount {
 
     const vdiUuid = await introduceVdi({ xapi, srRef, SCSIid, size: lun.getSize(), diskPath, readOnly: true })
 
-    info('mounted', { id, address, port, srUuid, vdiUuid, diskPath })
+    info('mounted', { id, address, port, srUuid, vdiUuid, diskPath, cached: mountCache !== undefined })
 
-    return { address, disk, diskPath, id, iqn, port, release, srRef, srUuid, target, vdiUuid, xapi }
+    return {
+      address,
+      cache: mountCache,
+      disk,
+      diskPath,
+      id,
+      iqn,
+      lun,
+      port,
+      release,
+      srRef,
+      srUuid,
+      target,
+      vdiUuid,
+      xapi,
+    }
   })
+
+  /**
+   * Tear a mount down as soon as its VDI disappears from the pool.
+   *
+   * A live mounted disk is attached to a VM like any other one, and deleting that VM deletes its
+   * disks: the VDI record goes away, but the SR introduced for it, the iSCSI target serving it
+   * and the disk chain behind it would stay for as long as this process lives. Nothing ever
+   * reports the LUN itself as unused, so the VDI vanishing is the only signal that the mount has
+   * become pointless.
+   *
+   * One listener per XAPI connection, whatever the number of mounts on it: `xapi.objects` reports
+   * every removal of the pool anyway, and a listener per mount would pile up on a shared
+   * connection. It is never removed, it simply ends up watching for nothing — what is tracked,
+   * and dropped as soon as it is of no use, is the uuid it looks for.
+   *
+   * @param {object} mount - mount record, as built by `#createDiskMount`
+   */
+  #watchVdi({ id, vdiUuid, xapi }) {
+    const objects = xapi.objects
+    if (typeof objects?.on !== 'function') {
+      // a connection which does not watch the pool objects: the mount works, it just has to be
+      // unmounted explicitly
+      warn('cannot watch the live mounted VDI, this mount will not be released on its own', { id, vdiUuid })
+      return
+    }
+
+    let mountIds = this.#mountIdsByVdiUuid.get(xapi)
+    if (mountIds === undefined) {
+      mountIds = new Map()
+      this.#mountIdsByVdiUuid.set(xapi, mountIds)
+
+      // the collection is keyed by uuid for every record which has one, so a removed VDI is
+      // reported under the very uuid `introduceVdi` resolved
+      objects.on('remove', removed => {
+        for (const uuid of Object.keys(removed)) {
+          const mountId = mountIds.get(uuid)
+          if (mountId !== undefined) {
+            // a VDI is removed once and for all, and a mount introduces exactly one: nothing else
+            // will ever come for this uuid
+            mountIds.delete(uuid)
+            info('the live mounted VDI was removed, unmounting', { id: mountId, vdiUuid: uuid })
+            this.unmountDisk(mountId).catch(error => {
+              warn('failed to unmount after the VDI was removed', { error, id: mountId })
+            })
+          }
+        }
+      })
+    }
+    mountIds.set(vdiUuid, id)
+  }
+
+  /** Stop expecting the removal of a mount's VDI, because this unmount is what removes it. */
+  #unwatchVdi({ vdiUuid, xapi }) {
+    this.#mountIdsByVdiUuid.get(xapi)?.delete(vdiUuid)
+  }
 
   /**
    * Detach a mount from its host and stop serving it.
@@ -166,6 +282,9 @@ export default class LiveMount {
    * Each teardown step runs even if an earlier one failed: a mount holds a
    * socket, a disk chain, a VDI and an SR, and giving up halfway would leak
    * whatever came after.
+   *
+   * With a cache, the device must be closed before its VBD is unplugged, or the
+   * kernel refuses to release it and the VDI is leaked.
    *
    * @param {string} id - identifier returned by {@link LiveMount#mountDisk}
    */
@@ -178,8 +297,11 @@ export default class LiveMount {
     // drop it first, so a failing teardown cannot be retried against a
     // half-released mount
     this.#mounts.delete(id)
+    // and stop watching before forgetting the SR, which removes the VDI: that removal is ours,
+    // not the deletion this mixin reacts to
+    this.#unwatchVdi(mount)
 
-    const { xapi, srRef, target, release } = mount
+    const { cache, xapi, srRef, target, release } = mount
 
     const errors = []
     const step = async (what, fn) => {
@@ -194,7 +316,22 @@ export default class LiveMount {
     await step('forget the SR', () => forgetSr(xapi, srRef))
     // stop serving first, so no I/O is left in flight
     await step('close the target', () => target.close())
+    if (cache !== undefined) {
+      // already closed by the target, which owns the LUN — unless closing the target failed before
+      // getting there, and an open descriptor would then block the unplug and leak the VDI
+      await step('close the cache device', () => cache.device.close())
+      await step('destroy the cache VBD', () => xapi.VBD_destroy(cache.vbdRef))
+      await step('destroy the cache VDI', () => xapi.VDI_destroy(cache.vdiRef))
+    }
     await step('release the caller resources', () => release?.())
+
+    // the mount is gone whatever happened above, so callers tracking it must hear about it even
+    // when the teardown was partial — and a listener misbehaving is not an unmount failure
+    try {
+      this.emit('unmounted', id)
+    } catch (error) {
+      warn('an unmounted listener failed', { error, id })
+    }
 
     if (errors.length !== 0) {
       const error = new Error(`failed to unmount live mount ${id}`)
@@ -205,9 +342,9 @@ export default class LiveMount {
     info('unmounted', { id, srUuid: mount.srUuid })
   }
 
-  /** Live disk mounts, in creation order. */
+  /** Live disk mounts, in creation order; a cached one also reports how much of the disk is local. */
   listMountedDisks() {
-    return [...this.#mounts.values()].map(({ id, srUuid, vdiUuid, diskPath, iqn, address, port }) => ({
+    return [...this.#mounts.values()].map(({ id, srUuid, vdiUuid, diskPath, iqn, address, port, cache, lun }) => ({
       id,
       srUuid,
       vdiUuid,
@@ -215,6 +352,7 @@ export default class LiveMount {
       iqn,
       address,
       port,
+      cache: cache === undefined ? undefined : lun.getMaterialized(),
     }))
   }
 }

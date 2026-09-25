@@ -1,11 +1,14 @@
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 
+import { getCurrentVmUuid } from '../_XenStore.mjs'
+
 /**
  * @typedef {import('@vates/types').XoApp} XoApp
  * @typedef {import('@vates/types').BackupArchiveDiskMount} BackupArchiveDiskMount
  * @typedef {import('@vates/types').XoBackupRepository} XoBackupRepository
  * @typedef {import('@vates/types').XoHost} XoHost
  * @typedef {import('@vates/types').XoProxy} XoProxy
+ * @typedef {import('@vates/types').XoSr} XoSr
  * @typedef {import('@vates/types').XoVmBackupArchive} XoVmBackupArchive
  */
 
@@ -66,6 +69,12 @@ export default class BackupDiskMountsResolver {
   /** @param {XoApp} app */
   constructor(app) {
     this.#app = app
+
+    // a mount also disappears on its own, when the VDI it serves is removed from the pool — e.g.
+    // when the VM it was attached to is deleted
+    app.liveMount.on('unmounted', id => {
+      this.#mounts.delete(id)
+    })
   }
 
   /**
@@ -76,9 +85,11 @@ export default class BackupDiskMountsResolver {
    * @param {XoVmBackupArchive['id']} params.archiveId - `<backup repository id>/<metadata path>`
    * @param {string} params.diskId - id of one of the archive's disks, a path on the backup repository
    * @param {XoHost['id']} params.hostId - id of the host the disk is attached to
+   * @param {XoSr['id']} [params.cacheSrId] - SR of a local VDI the disk is materialized into as it is
+   * read, plugged onto the VM serving the mount (this appliance or the proxy). Unset, nothing is cached.
    * @returns {Promise<BackupArchiveDiskMount>}
    */
-  async mountBackupArchiveDisk({ archiveId, diskId, hostId }) {
+  async mountBackupArchiveDisk({ archiveId, cacheSrId, diskId, hostId }) {
     const app = this.#app
 
     const archive = await this.#getArchive(archiveId)
@@ -96,8 +107,8 @@ export default class BackupDiskMountsResolver {
 
     const mount =
       proxyId === undefined
-        ? await this.#mountHere({ diskId, host, nameLabel, remote })
-        : await this.#mountOnProxy({ diskId, host, nameLabel, proxyId, remote })
+        ? await this.#mountHere({ cacheSrId, diskId, host, nameLabel, remote })
+        : await this.#mountOnProxy({ cacheSrId, diskId, host, nameLabel, proxyId, remote })
 
     this.#mounts.set(mount.id, { archiveId, hostId, proxyId })
     return mount
@@ -169,16 +180,19 @@ export default class BackupDiskMountsResolver {
    *
    * @returns {Promise<BackupArchiveDiskMount>}
    */
-  async #mountHere({ diskId, host, nameLabel, remote }) {
+  async #mountHere({ cacheSrId, diskId, host, nameLabel, remote }) {
     const app = this.#app
+    const vmUuid = cacheSrId === undefined ? undefined : await getCurrentVmUuid()
     const adapter = await app.getBackupsRemoteAdapter(remote)
     try {
       return await app.liveMount.mountDisk({
+        cacheSrUuid: cacheSrId,
         diskPath: diskId,
         handler: adapter.value.handler,
         hostRef: host._xapiRef,
         nameLabel,
         release: () => adapter.dispose(),
+        vmUuid,
         xapi: app.getXapi(host),
       })
     } catch (error) {
@@ -194,8 +208,16 @@ export default class BackupDiskMountsResolver {
    *
    * @returns {Promise<BackupArchiveDiskMount>}
    */
-  async #mountOnProxy({ diskId, host, nameLabel, proxyId, remote }) {
+  async #mountOnProxy({ cacheSrId, diskId, host, nameLabel, proxyId, remote }) {
     const app = this.#app
+    let vmUuid
+    if (cacheSrId !== undefined) {
+      vmUuid = (await app.getProxy(proxyId)).vmUuid
+      // a proxy may be registered by its address only
+      if (vmUuid == null) {
+        throw invalidParameters(`the proxy ${proxyId} is not a known VM, it cannot hold a live mount cache`)
+      }
+    }
     // httpProxy is ignored when using XO Proxy
     const {
       allowUnauthorized,
@@ -206,6 +228,7 @@ export default class BackupDiskMountsResolver {
 
     try {
       return await app.callProxyMethod(proxyId, 'backup.mountDisk', {
+        cacheSr: cacheSrId,
         disk: diskId,
         host: host.uuid,
         nameLabel,
@@ -213,6 +236,7 @@ export default class BackupDiskMountsResolver {
           url: remote.url,
           options: remote.options,
         },
+        vm: vmUuid,
         xapi: {
           allowUnauthorized,
           credentials: { username, password },

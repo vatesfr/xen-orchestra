@@ -156,13 +156,14 @@ export default class Backups {
           },
         ],
         deleteVmBackups: [
-          ({ filenames, remote }) =>
-            Disposable.use(this.getAdapter(remote), adapter => adapter.deleteVmBackups(filenames)),
+          ({ filenames, remote, immediate }) =>
+            Disposable.use(this.getAdapter(remote), adapter => adapter.deleteVmBackups(filenames, { immediate })),
           {
             description: 'delete VM backups',
             params: {
               filenames: { type: 'array', items: { type: 'string' } },
               remote: { type: 'object' },
+              immediate: { type: 'boolean', optional: true },
             },
           },
         ],
@@ -362,15 +363,27 @@ export default class Backups {
           },
         ],
         mountDisk: [
-          ({ disk, host, nameLabel, remote, xapi }) =>
-            this.#mountDisk({ diskPath: disk, hostUuid: host, nameLabel, remote, xapi }),
+          ({ cacheSr, disk, host, nameLabel, remote, vm, xapi }) =>
+            this.#mountDisk({
+              cacheSrUuid: cacheSr,
+              diskPath: disk,
+              hostUuid: host,
+              nameLabel,
+              remote,
+              vmUuid: vm,
+              xapi,
+            }),
           {
             description: 'serve a disk of a backup repository as a read-only iSCSI LUN, attached to a host as an SR',
             params: {
+              // uuid of the SR of a local cache VDI, requires `vm`
+              cacheSr: { type: 'string', optional: true },
               disk: { type: 'string' },
               host: { type: 'string' },
               nameLabel: { type: 'string', optional: true },
               remote: { type: 'object' },
+              // uuid of this proxy's own VM, the cache VDI is plugged onto it
+              vm: { type: 'string', optional: true },
               xapi: { type: 'object' },
             },
           },
@@ -477,19 +490,23 @@ export default class Backups {
    * @param {string} [params.nameLabel] - name of the created SR
    * @param {object} params.remote - backup repository holding the disk
    * @param {object} params.xapi - connection options of the pool owning `hostUuid`
+   * @param {string} [params.cacheSrUuid] - SR of a local cache VDI, requires `vmUuid`
+   * @param {string} [params.vmUuid] - uuid of this proxy's own VM
    */
-  async #mountDisk({ diskPath, hostUuid, nameLabel, remote, xapi: xapiOpts }) {
+  async #mountDisk({ cacheSrUuid, diskPath, hostUuid, nameLabel, remote, vmUuid, xapi: xapiOpts }) {
     const {
       dispose,
       value: [adapter, xapi],
     } = await Disposable.all([this.getAdapter(remote), this.getXapi(xapiOpts)])
     try {
       return await this._app.liveMount.mountDisk({
+        cacheSrUuid,
         diskPath,
         handler: adapter.handler,
         hostRef: await xapi.call('host.get_by_uuid', hostUuid),
         nameLabel,
         release: dispose,
+        vmUuid,
         xapi,
       })
     } catch (error) {

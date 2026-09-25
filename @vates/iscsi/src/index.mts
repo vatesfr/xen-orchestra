@@ -8,6 +8,8 @@ import type { ChapCredentials } from './types.mjs'
 
 export { FileBlockDevice } from './backend.mjs'
 export type { BlockDevice, FileBlockDeviceOptions } from './backend.mjs'
+export { RawBlockDevice } from './RawBlockDevice.mjs'
+export type { RawBlockDeviceOptions } from './RawBlockDevice.mjs'
 export type { ScsiIdentity } from './scsi.mjs'
 export type { ChapCredentials } from './types.mjs'
 export { IscsiInitiator } from './initiator.mjs'
