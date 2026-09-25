@@ -190,12 +190,6 @@ export type BackupArchiveDiskMount = {
   port: number
 }
 
-/** A live mount, as listed by `listMountedBackupArchiveDisks` */
-export type MountedBackupArchiveDisk = BackupArchiveDiskMount & {
-  /** Path of the mounted disk on its backup repository */
-  diskPath: string
-}
-
 export type XoApp = {
   hooks: EventEmitter
   _redis: {
@@ -417,7 +411,6 @@ export type XoApp = {
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
     pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
   }>
-  listMountedBackupArchiveDisks(): MountedBackupArchiveDisk[]
   /** `null` when the listing of a backup repository failed */
   listVmBackupsNg(
     backupRepositoryIds: XoBackupRepository['id'][],
@@ -443,8 +436,8 @@ export type XoApp = {
    */
   registerProxyBackupArchiveDiskMounts(params: {
     archiveId: XoVmBackupArchive['id']
-    hostId: XoHost['id']
-    mounts: MountedBackupArchiveDisk[]
+    /** as reported by the restore, each with the host it is attached to */
+    mounts: { id: BackupArchiveDiskMount['id']; hostId: XoHost['id'] }[]
     proxyId: XoProxy['id']
   }): void
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */

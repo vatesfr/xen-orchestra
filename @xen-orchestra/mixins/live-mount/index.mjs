@@ -3,6 +3,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { DiskBlockDevice, IscsiTarget } from '@vates/iscsi'
 import { defer } from 'golike-defer'
 import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
+import { noSuchObject } from 'xo-common/api-errors.js'
 import { randomBytes } from 'node:crypto'
 
 import { detectLocalAddress } from './_address.mjs'
@@ -171,7 +172,8 @@ export default class LiveMount {
   async unmountDisk(id) {
     const mount = this.#mounts.get(id)
     if (mount === undefined) {
-      throw new Error(`no such live mount ${id}`)
+      // a coded error, so a remote caller (XO driving a proxy) can tell it apart from a failed call
+      noSuchObject(id, 'live-mount')
     }
     // drop it first, so a failing teardown cannot be retried against a
     // half-released mount

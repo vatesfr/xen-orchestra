@@ -6,7 +6,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
-import { hasLiveMountTarget, normalizeVdiRestoreTargets } from '@xen-orchestra/backups/_vdiRestoreTargets.mjs'
+import { hasLiveMountTarget } from '@xen-orchestra/backups/_vdiRestoreTargets.mjs'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
@@ -523,25 +523,18 @@ export default class BackupNg {
    *
    * A restore delegated to a proxy mounts the disks *on the proxy*, out of reach of
    * `mountBackupArchiveDisk`: the mounts it reports are recorded here, with the proxy serving
-   * them, so they can be listed and unmounted afterwards.
+   * them, so they can be unmounted afterwards.
    *
    * @param {XoVmBackupArchive['id']} archiveId
    * @param {string} proxyId
-   * @param {object} [settings] - restore settings, holding the per disk targets
-   * @param {{ liveMounts?: object[] }} [result] - result of the restore, as reported by the proxy
+   * @param {{ liveMounts?: { id: string, hostId: string }[] }} [result] - result of the restore, as reported by the proxy
    */
-  #registerProxyLiveMounts(archiveId, proxyId, settings, result) {
+  #registerProxyLiveMounts(archiveId, proxyId, result) {
     const mounts = result?.liveMounts
     if (mounts === undefined || mounts.length === 0) {
       return
     }
-    this._app.registerProxyBackupArchiveDiskMounts({
-      archiveId,
-      // the restore itself rejects mounts spread over several hosts, so they all share this one
-      hostId: normalizeVdiRestoreTargets(settings?.mapVdisSrs).getLiveMountHost(),
-      mounts,
-      proxyId,
-    })
+    this._app.registerProxyBackupArchiveDiskMounts({ archiveId, mounts, proxyId })
   }
 
   async importVmBackupNg(id, srId, settings) {
@@ -613,7 +606,7 @@ export default class BackupNg {
 
         // the proxy mounted the disks itself, on itself: without this, nothing here would know
         // which proxy to ask to unmount them
-        this.#registerProxyLiveMounts(id, remote.proxy, settings, result)
+        this.#registerProxyLiveMounts(id, remote.proxy, result)
       } else {
         result = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
           const metadata = await adapter.readVmBackupMetadata(metadataFilename)

@@ -3,7 +3,6 @@ import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 /**
  * @typedef {import('@vates/types').XoApp} XoApp
  * @typedef {import('@vates/types').BackupArchiveDiskMount} BackupArchiveDiskMount
- * @typedef {import('@vates/types').MountedBackupArchiveDisk} MountedBackupArchiveDisk
  * @typedef {import('@vates/types').XoBackupRepository} XoBackupRepository
  * @typedef {import('@vates/types').XoHost} XoHost
  * @typedef {import('@vates/types').XoProxy} XoProxy
@@ -58,7 +57,6 @@ export default class BackupDiskMountsResolver {
    *   {
    *     archiveId: XoVmBackupArchive['id']
    *     hostId: XoHost['id']
-   *     mount: MountedBackupArchiveDisk
    *     proxyId?: XoProxy['id']
    *   }
    * >}
@@ -101,7 +99,7 @@ export default class BackupDiskMountsResolver {
         ? await this.#mountHere({ diskId, host, nameLabel, remote })
         : await this.#mountOnProxy({ diskId, host, nameLabel, proxyId, remote })
 
-    this.#mounts.set(mount.id, { archiveId, hostId, mount: { ...mount, diskPath: diskId }, proxyId })
+    this.#mounts.set(mount.id, { archiveId, hostId, proxyId })
     return mount
   }
 
@@ -130,13 +128,12 @@ export default class BackupDiskMountsResolver {
    *
    * @param {object} params
    * @param {XoVmBackupArchive['id']} params.archiveId
-   * @param {XoHost['id']} params.hostId - host the mounts are attached to
-   * @param {MountedBackupArchiveDisk[]} params.mounts - as reported by the restore
+   * @param {{ id: BackupArchiveDiskMount['id'], hostId: XoHost['id'] }[]} params.mounts - as reported by the restore
    * @param {XoProxy['id']} params.proxyId - proxy serving the mounts
    */
-  registerProxyBackupArchiveDiskMounts({ archiveId, hostId, mounts, proxyId }) {
-    for (const mount of mounts) {
-      this.#mounts.set(mount.id, { archiveId, hostId, mount, proxyId })
+  registerProxyBackupArchiveDiskMounts({ archiveId, mounts, proxyId }) {
+    for (const { id, hostId } of mounts) {
+      this.#mounts.set(id, { archiveId, hostId, proxyId })
     }
   }
 
@@ -146,17 +143,25 @@ export default class BackupDiskMountsResolver {
    */
   async unmountBackupArchiveDisk(id) {
     const proxyId = this.#mounts.get(id)?.proxyId
-    this.#mounts.delete(id)
 
-    if (proxyId !== undefined) {
-      return this.#app.callProxyMethod(proxyId, 'backup.unmountDisk', { id })
+    if (proxyId === undefined) {
+      // the mixin forgets the mount even when its teardown fails: there is nothing left to retry
+      this.#mounts.delete(id)
+      return this.#app.liveMount.unmountDisk(id)
     }
-    return this.#app.liveMount.unmountDisk(id)
-  }
 
-  /** @returns {MountedBackupArchiveDisk[]} */
-  listMountedBackupArchiveDisks() {
-    return [...this.#mounts.values()].map(({ mount }) => mount)
+    try {
+      await this.#app.callProxyMethod(proxyId, 'backup.unmountDisk', { id })
+    } catch (error) {
+      // a proxy which no longer knows the mount (restarted, or a previous teardown failed after
+      // forgetting it) makes the entry stale. Any other failure may not have reached the proxy,
+      // which would still serve the LUN: keep the entry so the unmount can be retried
+      if (noSuchObject.is(error, { type: 'live-mount' })) {
+        this.#mounts.delete(id)
+      }
+      throw error
+    }
+    this.#mounts.delete(id)
   }
 
   /**

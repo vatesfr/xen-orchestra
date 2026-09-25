@@ -26,8 +26,8 @@ async function resolveUuid(xapi, cache, uuid, type) {
   return cache.get(uuid)
 }
 export class ImportVmBackup {
-  // live mounts created by this restore, so a failure can release them and a success can report
-  // them to the caller, which is the one keeping track of them
+  // live mounts created by this restore, with the host they are attached to, so a failure can
+  // release them and a success can report them to the caller, which is the one keeping track of them
   #liveMounts = []
 
   // ref of the host serving the live mounts, resolved once on the destination pool
@@ -357,7 +357,7 @@ export class ImportVmBackup {
 
       const diskPath = join(metadataDir, metadata.vhds[vdiRef])
       const mount = await liveMount.mountDisk({ diskPath, hostId })
-      this.#liveMounts.push({ ...mount, diskPath })
+      this.#liveMounts.push({ ...mount, hostId })
       info('disk live mounted', { diskPath, hostId, mountId: mount.id, vdiUuid: vdi.uuid })
 
       const record = { ...vdi, liveMountedVdiRef: await xapi.call('VDI.get_by_uuid', mount.vdiUuid) }
