@@ -1,6 +1,6 @@
 {
   "name": "@vates/iscsi",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "dist/index.mjs",
   "types": "dist/index.d.mts",
   "bin": {
