@@ -205,6 +205,52 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/kubernetes': RouteRecordInfo<
+      '/kubernetes',
+      '/kubernetes',
+      Record<never, never>,
+      Record<never, never>,
+      | '/kubernetes/cluster/[id]'
+      | '/kubernetes/clusters'
+      | '/kubernetes/namespace/[id]'
+      | '/kubernetes/node/[id]'
+      | '/kubernetes/pod/[id]'
+    >,
+    '/kubernetes/cluster/[id]': RouteRecordInfo<
+      '/kubernetes/cluster/[id]',
+      '/kubernetes/cluster/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/kubernetes/clusters': RouteRecordInfo<
+      '/kubernetes/clusters',
+      '/kubernetes/clusters',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/kubernetes/namespace/[id]': RouteRecordInfo<
+      '/kubernetes/namespace/[id]',
+      '/kubernetes/namespace/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/kubernetes/node/[id]': RouteRecordInfo<
+      '/kubernetes/node/[id]',
+      '/kubernetes/node/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/kubernetes/pod/[id]': RouteRecordInfo<
+      '/kubernetes/pod/[id]',
+      '/kubernetes/pod/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/network/new': RouteRecordInfo<
       '/network/new',
       '/network/new',
@@ -646,6 +692,47 @@ declare module 'vue-router/auto-routes' {
     'src/pages/host/[id]/vms.vue': {
       routes:
         | '/host/[id]/vms'
+      views:
+        | never
+    }
+    'src/pages/kubernetes.vue': {
+      routes:
+        | '/kubernetes'
+        | '/kubernetes/cluster/[id]'
+        | '/kubernetes/clusters'
+        | '/kubernetes/namespace/[id]'
+        | '/kubernetes/node/[id]'
+        | '/kubernetes/pod/[id]'
+      views:
+        | 'default'
+    }
+    'src/pages/kubernetes/cluster/[id].vue': {
+      routes:
+        | '/kubernetes/cluster/[id]'
+      views:
+        | never
+    }
+    'src/pages/kubernetes/clusters.vue': {
+      routes:
+        | '/kubernetes/clusters'
+      views:
+        | never
+    }
+    'src/pages/kubernetes/namespace/[id].vue': {
+      routes:
+        | '/kubernetes/namespace/[id]'
+      views:
+        | never
+    }
+    'src/pages/kubernetes/node/[id].vue': {
+      routes:
+        | '/kubernetes/node/[id]'
+      views:
+        | never
+    }
+    'src/pages/kubernetes/pod/[id].vue': {
+      routes:
+        | '/kubernetes/pod/[id]'
       views:
         | never
     }
