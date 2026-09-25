@@ -16,20 +16,30 @@ import {
 
 const { warn } = createLogger('xo:importdiskfromdatastore')
 
-export async function importStream({ esxi, dataMap, disk, vmId, format }, consumerCallback) {
+export async function importStream(
+  {
+    esxi,
+    disk,
+    // vectura serves the disk and nothing else: there is no block map to fall back on, so the
+    // whole disk is read. `capacity` and not the aligned size, reading past the export would fail
+    dataMap = [{ offset: 0, length: disk.capacity, type: 0 }],
+    vmId,
+    format,
+  },
+  consumerCallback
+) {
   const signal = Task.abortSignal
   const { datastore: datastoreName, diskPath } = disk
 
-  // nothing is started here: these are the settings of the vectura process, which `NbdStdioClient`
-  // spawns on connect and kills on disconnect
+  // `NbdStdioClient` spawns vectura on connect and kills it on disconnect
   // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
-  const nbdSettings = await esxi.getNbdServer(vmId, `[${datastoreName}] ${diskPath}`)
+  const vecturaSettings = await esxi.getVecturaSpawnSettings(vmId, `[${datastoreName}] ${diskPath}`)
 
   let vmdk
   let stream
   try {
     signal?.throwIfAborted()
-    vmdk = new NbdDisk(nbdSettings, READ_BLOCK_SIZE, { dataMap, ClientClass: NbdStdioClient })
+    vmdk = new NbdDisk(vecturaSettings, READ_BLOCK_SIZE, { dataMap, ClientClass: NbdStdioClient })
 
     await vmdk.init()
     signal?.throwIfAborted()
@@ -111,16 +121,12 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, changeTracking, user
   }
 
   // asked in both cases: the blocks written since `baseDiskPath`, or every block the disk uses.
-  // `undefined` when the host cannot answer for a whole disk
-  const dataMap = (await esxi.getDataMap(vmId, datastoreName, diskPath, {
+  // `undefined` when the host cannot answer for a whole disk, `importStream` then reads all of it
+  const dataMap = await esxi.getDataMap(vmId, datastoreName, diskPath, {
     baseDiskPath,
     changeTracking,
     signal: Task.abortSignal,
-  })) ?? [
-    // vectura serves the disk and nothing else: there is no block map to fall back on, so the
-    // whole disk is read. `capacity` and not the aligned size, reading past the export would fail
-    { offset: 0, length: capacity, type: 0 },
-  ]
+  })
   try {
     if (!existingVdi) {
       Task.info(`create a new VDI for ${diskPath}`)

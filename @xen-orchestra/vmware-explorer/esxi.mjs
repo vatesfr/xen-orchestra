@@ -954,7 +954,7 @@ export default class Esxi extends EventEmitter {
    * @param {number} [options.depth] - host reads in flight, 1 to 32, vectura defaults to 16
    * @returns {Promise<{ args: Array<string>, command: string, env: object, exportname: string }>}
    */
-  async getNbdServer(vmId, diskPath, { compression, depth } = {}) {
+  async getVecturaSpawnSettings(vmId, diskPath, { compression, depth } = {}) {
     return {
       command: VECTURA_BIN,
       args: formatVecturaArgs({

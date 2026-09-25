@@ -1129,7 +1129,7 @@ RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
   })
 })
 
-describe('getNbdServer', function () {
+describe('getVecturaSpawnSettings', function () {
   const vecturaEsxi = async () => {
     const { esxi } = await connectedEsxi()
     // the only step needing the real host
@@ -1140,7 +1140,7 @@ describe('getNbdServer', function () {
   it('builds the vectura command line of one disk', async function () {
     const esxi = await vecturaEsxi()
 
-    const { args, command, exportname } = await esxi.getNbdServer('1', '[ds main] vm/vm.vmdk')
+    const { args, command, exportname } = await esxi.getVecturaSpawnSettings('1', '[ds main] vm/vm.vmdk')
 
     assert.equal(command, VECTURA_BIN)
     assert.deepEqual(args, [
@@ -1163,7 +1163,7 @@ describe('getNbdServer', function () {
   it('passes the password through the environment and never on the command line', async function () {
     const esxi = await vecturaEsxi()
 
-    const { args, env } = await esxi.getNbdServer('1', '[ds main] vm/vm.vmdk')
+    const { args, env } = await esxi.getVecturaSpawnSettings('1', '[ds main] vm/vm.vmdk')
 
     assert.equal(env.VECTURA_PASSWORD, 'password')
     assert.equal(
@@ -1175,11 +1175,11 @@ describe('getNbdServer', function () {
   it('leaves compression and depth out unless they are asked for', async function () {
     const esxi = await vecturaEsxi()
 
-    const { args } = await esxi.getNbdServer('1', '[ds main] vm/vm.vmdk', { compression: 'none', depth: 4 })
+    const { args } = await esxi.getVecturaSpawnSettings('1', '[ds main] vm/vm.vmdk', { compression: 'none', depth: 4 })
 
     assert.deepEqual(args.slice(-4), ['--compression', 'none', '--depth', '4'])
 
-    const { args: bare } = await esxi.getNbdServer('1', '[ds main] vm/vm.vmdk')
+    const { args: bare } = await esxi.getVecturaSpawnSettings('1', '[ds main] vm/vm.vmdk')
     assert.equal(bare.includes('--compression'), false)
     assert.equal(bare.includes('--depth'), false)
   })
