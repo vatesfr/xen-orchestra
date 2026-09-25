@@ -140,9 +140,20 @@ enabled = false
 threshold = 1000
 
 [docker]
+# Docker containers of VMs, managed over SSH (see docs: "Docker containers").
+#
+# Administrators only. The credentials of the engines (SSH password, private key
+# and passphrase) are stored in redis, in plain text unless
+# `redis.encryptCredentialDatabase` is enabled: they are root-equivalent on the
+# guests (membership in the `docker` group is), protect the database accordingly.
+#
+# Durations accept a number of milliseconds or a string like '30s', '5 min'.
+# Sizes accept a number of bytes or a string like '1MiB'.
+
 # Expose the raw Docker Engine API passthrough at /rest/v0/docker-engines/{id}/_raw/*
 # Administrators only, and disabled by default: it grants unrestricted access to the
-# Docker daemon of the guest, which is equivalent to root on that guest.
+# Docker daemon of the guest, which is equivalent to root on that guest. Every call
+# is logged (namespace `xo:rest-api:docker-raw`).
 allowRawApi = false
 
 # Refuse to connect when the guest's SSH host key is unknown or has changed.
@@ -152,10 +163,13 @@ allowRawApi = false
 strictHostKeyChecking = true
 
 # SSH connections to Docker engines are pooled, closed after being idle for
-# `connectionIdleTimeout`, and at most `maxConnections` are open at once.
+# `connectionIdleTimeout`, and at most `maxConnections` are open at once (then
+# POOL_EXHAUSTED, 503 + Retry-After in the REST API).
 maxConnections = 20
 connectionIdleTimeout = '5 min'
+# SSH handshake and authentication.
 connectTimeout = '15s'
+# One Docker API request (until the response headers for streamed responses).
 requestTimeout = '30s'
 
 # After a connection failure, the engine is not retried for this long (avoids
@@ -170,20 +184,27 @@ failureTtl = '30s'
 # right away. 0 disables it.
 authFailureCooldown = '10s'
 
-# Container lists are cached for this long.
+# Container lists are cached for this long (`force_refresh` in the REST API
+# bypasses the cache).
 cacheExpiresIn = '10s'
-cacheTimeout = '20s'
 
+# Above this number of containers, a list does not inspect each of them (no
+# precise uptime, restart count…).
+inspectThreshold = 200
+
+# Max engines a single GET /docker-containers may fan out to (422 above).
+maxListedEngines = 10
+
+# Stats (`?stats=true`, /docker-containers/{id}/stats): one stream per running
+# container of an engine, at most `maxStatsContainers`, stopped after
+# `statsIdleTimeout` without any reader.
 statsIdleTimeout = '90s'
 maxStatsContainers = 100
 
-# Above this number of running containers, a list does not inspect each of them
-# (no precise uptime, restart count…).
-inspectThreshold = 200
-
+# Logs: default and max number of lines, responses cut (`truncated: true`)
+# above `maxLogsSize`.
 defaultLogsTail = 100
 maxLogsTail = 10000
-# Logs responses are cut (`truncated: true`) above this size.
 maxLogsSize = '5MiB'
 # Reading the logs stops after `logsTimeout` overall, or `logsIdleTimeout` without
 # data (`truncated: true, timedOut: true`, with what was read so far): a stalled
@@ -191,11 +212,14 @@ maxLogsSize = '5MiB'
 logsTimeout = '30s'
 logsIdleTimeout = '10s'
 
-# Max engines a single GET /docker-containers may fan out to.
-maxListedEngines = 10
-
+# Raw passthrough (`allowRawApi`): request bodies above `maxRawRequestSize` are
+# refused (413), responses above `maxRawResponseSize` are refused (502) or cut.
 maxRawRequestSize = '1MiB'
 maxRawResponseSize = '10MiB'
+# The whole raw request, response included (e.g. `events`, `logs?follow=1`), is
+# aborted after this long: 504 before the response, otherwise the response is
+# cut. 0 disables it.
+rawRequestTimeout = '5 min'
 
 [http]
 useForwardedHeaders = false

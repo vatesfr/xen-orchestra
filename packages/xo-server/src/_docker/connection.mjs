@@ -327,6 +327,47 @@ async function readBody(response) {
   return Buffer.concat(chunks)
 }
 
+// error bodies are only read for their message: a hostile or buggy daemon must
+// not make us read (nor put in errors, logs and API responses) megabytes
+export const MAX_ERROR_BODY_SIZE = 4 * 1024
+export const MAX_ERROR_MESSAGE_LENGTH = 512
+
+/**
+ * Reads at most `MAX_ERROR_BODY_SIZE` bytes of an error response, the rest is
+ * discarded (the response is destroyed, and its channel with it).
+ *
+ * @param {import('node:http').IncomingMessage} response
+ * @returns {Promise<{ buffer: Buffer, truncated: boolean }>}
+ */
+async function readErrorBody(response) {
+  const chunks = []
+  let size = 0
+  for await (const chunk of response) {
+    chunks.push(chunk)
+    size += chunk.length
+    if (size > MAX_ERROR_BODY_SIZE) {
+      response.destroy()
+      return { buffer: Buffer.concat(chunks).subarray(0, MAX_ERROR_BODY_SIZE), truncated: true }
+    }
+  }
+  return { buffer: Buffer.concat(chunks), truncated: false }
+}
+
+/**
+ * @param {unknown} message
+ * @returns {string | undefined}
+ */
+export function truncateErrorMessage(message) {
+  if (typeof message !== 'string') {
+    return undefined
+  }
+  message = message.trim()
+  if (message === '') {
+    return undefined
+  }
+  return message.length > MAX_ERROR_MESSAGE_LENGTH ? message.slice(0, MAX_ERROR_MESSAGE_LENGTH) + '…' : message
+}
+
 function parseBody(response, buffer) {
   if (buffer.length !== 0 && isJsonContentType(response.headers['content-type'])) {
     try {
@@ -746,8 +787,17 @@ export class DockerConnection {
   async #throwApiError(response, path, signal) {
     let message
     try {
-      const body = parseBody(response, await raceSignal(readBody(response), signal))
-      message = Buffer.isBuffer(body) ? body.toString('utf8').trim() : body?.message
+      const { buffer, truncated } = await raceSignal(readErrorBody(response), signal)
+      let body = buffer
+      if (!truncated) {
+        try {
+          body = parseBody(response, buffer)
+        } catch {
+          // invalid JSON: used as text
+        }
+      }
+      // a truncated JSON body cannot be parsed: its beginning is used as text
+      message = truncateErrorMessage(Buffer.isBuffer(body) ? body.toString('utf8') : body?.message)
     } catch (error) {
       // reported as TIMEOUT by #wrapError()
       if (signal.aborted) {

@@ -496,6 +496,106 @@ describe('normalizeContainerStats()', () => {
     assert.equal(normalized.cpuPercent, null)
     assert.equal(normalized.memoryUsage, 1234)
   })
+
+  // a hostile (or buggy) daemon controls every value: only finite numbers may
+  // come out, never strings (concatenated by the sums), objects or NaN/Infinity
+  describe('hostile values', () => {
+    const HOSTILE = ['1000', '', 'x', NaN, Infinity, -Infinity, { valueOf: 1 }, [1], true, null, 1e308]
+    const assertOnlyFinite = normalized => {
+      for (const [key, value] of Object.entries(normalized)) {
+        assert.ok(
+          value === null || value === undefined || (typeof value === 'number' && Number.isFinite(value)),
+          `${key}: ${typeof value} ${String(value)}`
+        )
+      }
+    }
+
+    it('in the block I/O and network sums', () => {
+      for (const hostile of HOSTILE) {
+        const stats = clone(STATS_NGINX_IDLE)
+        stats.blkio_stats.io_service_bytes_recursive = [
+          { op: 'Read', value: 100 },
+          { op: 'Read', value: hostile },
+          { op: 'Write', value: hostile },
+          { op: 'Write', value: 1e308 },
+        ]
+        stats.networks = { eth0: { rx_bytes: 10, tx_bytes: hostile }, eth1: { rx_bytes: hostile, tx_bytes: 1e308 } }
+        const normalized = normalizeContainerStats(stats)
+        assertOnlyFinite(normalized)
+        if (typeof hostile === 'number' && Number.isFinite(hostile)) {
+          continue // 1e308: the sums overflow, checked by assertOnlyFinite
+        }
+        assert.equal(normalized.blockRead, 100, String(hostile))
+        assert.equal(normalized.networkRx, 10, String(hostile))
+      }
+    })
+
+    it('in the entries themselves (non-object entries, op not a string)', () => {
+      const stats = clone(STATS_NGINX_IDLE)
+      stats.blkio_stats.io_service_bytes_recursive = [null, 'x', 1, { op: 1, value: 1 }, { op: 'read', value: 2 }]
+      stats.networks = { eth0: null, eth1: 'x', eth2: { rx_bytes: 3, tx_bytes: 4 } }
+      const normalized = normalizeContainerStats(stats)
+      assert.equal(normalized.blockRead, 2)
+      assert.equal(normalized.networkRx, 3)
+      assert.equal(normalized.networkTx, 4)
+      stats.networks = 'eth0'
+      assertOnlyFinite(normalizeContainerStats(stats))
+    })
+
+    it('in privateworkingset (Windows)', () => {
+      for (const hostile of HOSTILE) {
+        const stats = { os_type: 'windows', memory_stats: { privateworkingset: hostile, limit: 1e-300 } }
+        assertOnlyFinite(normalizeContainerStats(stats))
+      }
+    })
+
+    it('in the CPU and memory counters, online_cpus and pids', () => {
+      for (const hostile of HOSTILE) {
+        for (const set of [
+          s => (s.cpu_stats.online_cpus = hostile),
+          s => (s.cpu_stats.cpu_usage.total_usage = hostile),
+          s => (s.precpu_stats.cpu_usage.total_usage = hostile),
+          s => (s.cpu_stats.system_cpu_usage = hostile),
+          s => (s.precpu_stats.system_cpu_usage = hostile),
+          s => (s.cpu_stats.cpu_usage.percpu_usage = hostile),
+          s => (s.memory_stats.usage = hostile),
+          s => (s.memory_stats.limit = hostile),
+          s => (s.memory_stats.stats.inactive_file = hostile),
+          s => (s.pids_stats.current = hostile),
+          s => (s.read = hostile),
+        ]) {
+          const stats = clone(STATS_BUSY)
+          set(stats)
+          assertOnlyFinite(normalizeContainerStats(stats))
+        }
+      }
+    })
+
+    it('does not accept numeric strings for online_cpus', () => {
+      const stats = clone(STATS_BUSY)
+      stats.cpu_stats.online_cpus = '4'
+      delete stats.cpu_stats.cpu_usage.percpu_usage
+      const normalized = normalizeContainerStats(stats)
+      assert.equal(normalized.onlineCpus, undefined)
+      assert.equal(normalized.cpuPercent, null)
+    })
+
+    it('huge values which overflow give null, not Infinity', () => {
+      const stats = clone(STATS_BUSY)
+      stats.cpu_stats.online_cpus = 1e308
+      stats.memory_stats = { usage: 1e308, limit: 1e-300, stats: {} }
+      const normalized = normalizeContainerStats(stats)
+      assertOnlyFinite(normalized)
+      assert.equal(normalized.cpuPercent, null)
+      assert.equal(normalized.memoryPercent, null)
+    })
+
+    it('a non-object stats value throws (the sampler drops the stream)', () => {
+      for (const value of [null, 1, 'x']) {
+        assert.throws(() => normalizeContainerStats(value))
+      }
+    })
+  })
 })
 
 describe('normalizeEngineInfo()', () => {
