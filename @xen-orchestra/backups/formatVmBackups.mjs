@@ -9,7 +9,7 @@ import { normalize } from '@xen-orchestra/fs/path'
  * `RemoteAdapter#readBackupJournalEvents()` returns it.
  *
  * @typedef {object} ResolvedJournalEvent
- * @property {string} event
+ * @property {import('./_backupJournal.mjs').BackupJournalEvent} event
  * @property {string} vmUuid
  * @property {string} filename normalized path of the backup metadata
  * @property {object} [metadata] current metadata of the backup, on `add` and `change`
@@ -19,7 +19,7 @@ import { normalize } from '@xen-orchestra/fs/path'
  * A journal event whose backup has been formatted for the users.
  *
  * @typedef {object} FormattedJournalEvent
- * @property {string} event
+ * @property {import('./_backupJournal.mjs').BackupJournalEvent} event
  * @property {string} vmUuid
  * @property {string} filename normalized path of the backup metadata
  * @property {import('@vates/types').XoVmBackupArchive} [backup] current value of the backup, on
@@ -110,8 +110,7 @@ export function formatVmBackups(backupsByVM, backupRepositoryId) {
  * Resolves the backups carried by journal events, so that a listing can be brought up to date from
  * the result alone.
  *
- * Events without metadata (`del`, and the event kinds this version does not know) are passed
- * through untouched: it is up to the caller to decide what to do with them.
+ * Events without metadata, i.e. `del`, are passed through untouched.
  *
  * @param {ResolvedJournalEvent[]} events
  * @param {string} backupRepositoryId

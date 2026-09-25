@@ -145,6 +145,22 @@ describe('on a repository attached to a proxy', () => {
     })
   })
 
+  it('drops the event kinds this version does not know, from a more recent proxy', async () => {
+    const backup = formattedOf('20260811T090000')
+    const added = { event: 'add', vmUuid: VM, filename: backup.id, backup }
+    const { source } = createProxiedSource({
+      'backup.listVmBackupsJournal': () => ({
+        events: [{ event: 'a-future-event', vmUuid: VM, filename: filenameOf(VM, '20260811T100000') }, added],
+        cursor: 'the-next-cursor',
+      }),
+    })
+
+    assert.deepEqual(await source.readJournal(PROXIED_REPOSITORY, 'a-cursor'), {
+      events: [added],
+      cursor: 'the-next-cursor',
+    })
+  })
+
   it('reports a proxy which does not expose its journal as unreplayable, and warns once', async () => {
     const { calls, source } = createProxiedSource({
       'backup.listVmBackups': () => ({ [REPOSITORY.id]: {} }),

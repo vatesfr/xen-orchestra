@@ -80,6 +80,17 @@ const { debug, warn } = createLogger('xo:backups:backupJournal')
 // (Object Lock) repositories, where `cache.json.gz` cannot be rewritten.
 export const BACKUP_JOURNAL_DIR = 'xo-backup-log'
 
+/**
+ * Whether this version knows what to do with an event.
+ *
+ * A journal can hold entries written by a more recent version, and a proxy can be more recent than
+ * the xo-server it answers to: readers drop the events this rejects instead of guessing.
+ *
+ * @param {string} event
+ * @returns {event is BackupJournalEvent}
+ */
+export const isKnownJournalEvent = event => event === 'add' || event === 'change' || event === 'del'
+
 // Same idea as `formatFilenameDate` but with milliseconds, so that two events on the same VM
 // within the same second keep distinct, ordered names.
 const formatDate = utcFormat('%Y%m%dT%H%M%S.%LZ')

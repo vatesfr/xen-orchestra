@@ -76,7 +76,8 @@ class Repository {
         const backupsByVm = {}
         for (const metadata of this.metadataByFilename.values()) {
           const backup = this.#format(metadata)
-          ;(backupsByVm[metadata.vm.uuid] ??= {})[backup.id] = backup
+          const backups = (backupsByVm[metadata.vm.uuid] ??= {})
+          backups[backup.id] = backup
         }
         return backupsByVm
       },

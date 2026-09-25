@@ -112,12 +112,8 @@ describe('formatJournalEvents()', () => {
     })
   })
 
-  it('passes the other events through, without a backup', () => {
-    // `del`, and the event kinds this version does not know about
-    const events = [
-      { event: 'del', vmUuid: VM, filename: FILENAME },
-      { event: 'a-future-event', vmUuid: VM, filename: FILENAME },
-    ]
+  it('passes the deletions through, without a backup', () => {
+    const events = [{ event: 'del', vmUuid: VM, filename: FILENAME }]
 
     assert.deepEqual(formatJournalEvents(events, REPOSITORY), events)
   })
