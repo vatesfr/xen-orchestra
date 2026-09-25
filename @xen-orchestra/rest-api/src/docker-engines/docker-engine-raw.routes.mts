@@ -41,7 +41,9 @@ export const INBOUND_HEADERS = ['accept', 'content-length', 'content-type'] as c
 export const OUTBOUND_HEADERS = ['api-version', 'content-length', 'content-type', 'docker-experimental', 'ostype']
 
 // endpoints which hijack the connection (bidirectional streams): not supported
-const HIJACK_PATHS = [/^containers\/[^/]+\/attach(?:\/ws)?$/, /^exec\/[^/]+\/start$/, /^session$/, /^grpc$/]
+// the name may contain `/` (legacy link aliases, e.g. `web/db`): dockerd routes
+// these endpoints with `{name:.*}`
+const HIJACK_PATHS = [/^containers\/.+\/attach(?:\/ws)?$/, /^exec\/.+\/start$/, /^session$/, /^grpc$/]
 const VERSION_SEGMENT = /^v\d+(?:\.\d+)?$/
 
 /**
@@ -167,7 +169,19 @@ export async function dockerRawHandler({ req, res, restApi }: { req: Request; re
       throw toDockerApiError(error)
     }
 
+    // a 401/407 from the daemon (or a proxy in front of it) must not look like
+    // an XO authentication failure, nor make a browser prompt for credentials
+    if (upstream.statusCode === 401 || upstream.statusCode === 407) {
+      upstream.body.destroy()
+      throw new ApiError(`Docker API error ${upstream.statusCode}`, 502, {
+        data: { code: 'DOCKER_API_ERROR', statusCode: upstream.statusCode },
+      })
+    }
+
     res.status(upstream.statusCode)
+    // streamed responses (events, logs?follow=1…) must reach the client as they
+    // come: xo-server's `compression()` (and any proxy) would buffer them
+    res.setHeader('Cache-Control', 'no-transform')
     for (const name of OUTBOUND_HEADERS) {
       const value = upstream.headers[name]
       if (value !== undefined) {
@@ -198,6 +212,8 @@ export const dockerRawRoutes: RouteDefinition[] = (['get', 'post', 'put', 'patch
 }))
 
 const RAW_DESCRIPTION = `Raw Docker Engine API passthrough (\`{path}\` is the Docker API path, which may contain \`/\` and a query string, e.g. \`images/json?all=1\`; it is prefixed with the negotiated API version unless it starts with \`v<version>/\`). Docker's answer is returned as is (status and body), with only the \`api-version\`, \`content-length\`, \`content-type\`, \`docker-experimental\` and \`ostype\` headers.
+
+The whole request, response included, is limited to \`docker.rawRequestTimeout\` (default 5 minutes, 504 before the response, otherwise the response is cut). Responses are never compressed (\`Cache-Control: no-transform\`), so that streams (e.g. \`events\`) arrive as they come. A 401 or 407 from the daemon is answered with a 502 (\`data.statusCode\`), never passed through.
 
 Disabled by default (501): \`[docker] allowRawApi = true\` in xo-server's configuration. It grants unrestricted access to the Docker daemon of the guest, which is equivalent to root on that guest: every call is logged.
 
@@ -238,7 +254,7 @@ function rawOperation(method: string): OpenAPIV3.OperationObject {
           },
         }),
     responses: {
-      '200': { description: "Docker's answer (any status is passed through)" },
+      '200': { description: "Docker's answer (any status is passed through, except 401 and 407: 502)" },
       '400': { description: 'Invalid Docker API path' },
       '401': { description: 'Authentication required' },
       '403': { description: 'Not an administrator, or DOCKER feature not authorized' },
@@ -249,6 +265,7 @@ function rawOperation(method: string): OpenAPIV3.OperationObject {
         description: 'SSH or Docker failure (see data.code), or response larger than docker.maxRawResponseSize',
       },
       '503': { description: 'Too many busy SSH connections or streams' },
+      '504': { description: 'No response within docker.rawRequestTimeout' },
     },
     // never an MCP tool: unrestricted, root-equivalent access
     'x-mcp-exposure': 'deny',

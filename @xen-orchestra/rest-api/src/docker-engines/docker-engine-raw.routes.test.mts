@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { createServer, request as httpRequest, type Server } from 'node:http'
+import { createRequire } from 'node:module'
 import { Readable } from 'node:stream'
 import { after, before, beforeEach, describe, it } from 'node:test'
 import express, { type NextFunction, type Request, type Response } from 'express'
@@ -16,6 +17,10 @@ import {
 import genericErrorHandler from '../middlewares/generic-error-handler.middleware.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import type { RouteDefinition } from '../router/types.mjs'
+
+// xo-server compresses every response (`app.use(compression())`), no types
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const compression = createRequire(import.meta.url)('compression') as () => express.RequestHandler
 
 const ENGINE_ID = 'a1ea0bb5-f67d-4406-8d9b-6a4c2fa8c6ac'
 const VM_ID = 'c7b3b4bc-0000-4000-8000-000000000001'
@@ -89,6 +94,7 @@ let port: number
 
 before(async () => {
   const app = express()
+  app.use(compression())
   app.all(`/rest/v0${DOCKER_RAW_ENDPOINT}`, (req: Request, res: Response, next: NextFunction) => {
     // what the external router does with the callback's errors
     dockerRawHandler({ req, res, restApi }).catch(next)
@@ -178,6 +184,15 @@ describe('raw Docker API passthrough', () => {
       'v1.41/exec/123/start',
       'session',
       'grpc',
+      // names with a `/` (legacy link aliases like `web/db`), which dockerd
+      // routes with `{name:.*}` (review 3)
+      'containers/web/db/attach',
+      'containers/web/db/attach?stream=1&stdin=1',
+      'containers/web/db/attach/ws',
+      'v1.43/containers/web/db/attach',
+      'containers/a/b/c/attach',
+      'exec/a/b/start',
+      'v1.43/exec/web/db/start',
     ]) {
       const res = await send(`${ENGINE_ID}/_raw/${path}`, { method: 'POST' })
       assert.equal(res.status, 501, path)
@@ -292,6 +307,55 @@ describe('raw Docker API passthrough', () => {
     assert.equal(res.status, 200)
     assert.ok(res.error !== undefined, 'the response is not complete')
     assert.equal(res.body, '[{"Id":"a"},')
+  })
+
+  it('streamed responses are not buffered by compression (review 3)', async () => {
+    let push: ((chunk: string | null) => void) | undefined
+    state.upstream = () => {
+      const body = new Readable({ read() {} })
+      push = chunk => body.push(chunk)
+      return { statusCode: 200, headers: { 'content-type': 'application/json' }, body }
+    }
+    const first = await new Promise<{ headers: Record<string, unknown>; chunk: string }>((resolve, reject) => {
+      const req = httpRequest({
+        host: '127.0.0.1',
+        port,
+        path: `/rest/v0/docker-engines/${ENGINE_ID}/_raw/events`,
+        headers: { 'accept-encoding': 'gzip' },
+      })
+      req.on('response', res => {
+        const timer = setTimeout(() => {
+          req.destroy()
+          reject(new Error('no chunk within 1 s: the response is buffered'))
+        }, 1e3)
+        res.once('data', chunk => {
+          clearTimeout(timer)
+          resolve({ headers: res.headers, chunk: chunk.toString() })
+          req.destroy()
+        })
+      })
+      req.on('error', () => {})
+      req.end()
+      // one small event, the stream stays open
+      setTimeout(() => push!('{"status":"restart"}\n'), 50)
+    })
+    assert.equal(first.headers['content-encoding'], undefined)
+    assert.match(String(first.headers['cache-control']), /no-transform/)
+    assert.equal(first.chunk, '{"status":"restart"}\n')
+  })
+
+  it("the daemon's 401 and 407 are not passed through (review 3)", async () => {
+    for (const statusCode of [401, 407]) {
+      state.upstream = () => ({
+        statusCode,
+        headers: { 'content-type': 'application/json', 'www-authenticate': 'Basic realm="docker"' },
+        body: Readable.from(['{"message":"authentication required"}']),
+      })
+      const res = await send(`${ENGINE_ID}/_raw/images/json`)
+      assert.equal(res.status, 502, String(statusCode))
+      assert.equal(res.headers['www-authenticate'], undefined)
+      assert.deepEqual(JSON.parse(res.body).data, { code: 'DOCKER_API_ERROR', statusCode })
+    }
   })
 
   it('SSH/Docker errors are mapped', async () => {

@@ -244,6 +244,62 @@ describe('toDockerApiError()', () => {
     assert.equal(statusOf('DOCKER_API_ERROR'), 502)
   })
 
+  it("never passes the daemon's authentication errors through, only an allowlist of 4xx (review 3)", () => {
+    for (const statusCode of [400, 404, 409]) {
+      assert.equal(statusOf('DOCKER_API_ERROR', { statusCode }), statusCode)
+    }
+    // 401/407 would make a browser or a proxy prompt for credentials, 403
+    // would look like a missing XO permission
+    for (const statusCode of [401, 403, 405, 406, 407, 413, 418, 429, 451, 499]) {
+      const error = toDockerApiError(new DockerError('DOCKER_API_ERROR', 'nope', { statusCode })) as ApiError
+      assert.equal(error.status, 502, String(statusCode))
+      assert.equal(error.data?.statusCode, statusCode, 'the upstream status is kept in data')
+    }
+  })
+
+  it('DOCKER_API_ERROR: only code, statusCode and a truncated message reach the client (review 3)', () => {
+    const message = 'x'.repeat(10e3)
+    const error = toDockerApiError(
+      new DockerError('DOCKER_API_ERROR', message, {
+        host: '192.0.2.1',
+        port: 2222,
+        socketPath: '/run/user/1000/docker.sock',
+        path: '/containers/abc/json',
+        statusCode: 404,
+        message,
+      })
+    ) as ApiError
+    assert.equal(error.status, 404)
+    assert.deepEqual(Object.keys(error.data!).sort(), ['code', 'message', 'statusCode'])
+    assert.equal(error.data!.code, 'DOCKER_API_ERROR')
+    assert.equal(error.data!.statusCode, 404)
+    assert.ok((error.data!.message as string).length <= 1024)
+    assert.ok(error.message.length <= 1024)
+    assert.doesNotMatch(JSON.stringify({ message: error.message, data: error.data }), /192\.0\.2\.1|2222|docker\.sock/)
+  })
+
+  it('other errors: the connection context (host, port, socketPath, path) is not copied (review 3)', () => {
+    const error = toDockerApiError(
+      new DockerError('TIMEOUT', 'timed out', {
+        host: '192.0.2.1',
+        port: 2222,
+        socketPath: '/run/user/1000/docker.sock',
+        path: '/containers/abc/json',
+        timeout: 30e3,
+      })
+    ) as ApiError
+    assert.deepEqual(error.data, { code: 'TIMEOUT', timeout: 30e3 })
+    const hostKey = toDockerApiError(
+      new DockerError('HOST_KEY_UNKNOWN', 'unknown', {
+        host: '192.0.2.1',
+        port: 22,
+        fingerprint: 'SHA256:x',
+        algorithm: 'ssh-ed25519',
+      })
+    ) as ApiError
+    assert.deepEqual(hostKey.data, { code: 'HOST_KEY_UNKNOWN', fingerprint: 'SHA256:x', algorithm: 'ssh-ed25519' })
+  })
+
   it('keeps the data, with the code', () => {
     const error = toDockerApiError(
       new DockerError('DOCKER_SOCKET_UNREACHABLE', 'message', { diagnostic: { code: 'socket-missing' } })
