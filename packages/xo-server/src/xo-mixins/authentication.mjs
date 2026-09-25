@@ -98,6 +98,10 @@ export default class {
         indexes: ['client_id', 'user_id'],
         crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', {
+        collection: tokensDb,
+        type: 'authentication_token',
+      })
 
       app.addConfigManager(
         'authTokens',

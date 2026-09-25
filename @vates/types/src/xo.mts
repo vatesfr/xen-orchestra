@@ -903,6 +903,7 @@ export type NonXapiXoRecord =
   | AnyXoBackupArchive
   | AnyXoJob
   | AnyXoLog
+  | XoAuthenticationToken
   | XoGroup
   | XoProxy
   | XoJob
