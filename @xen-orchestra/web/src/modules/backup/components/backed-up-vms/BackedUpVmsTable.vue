@@ -25,9 +25,9 @@
 <script setup lang="ts">
 import { useXoBackedUpVmsUtils } from '@/modules/backup/composables/xo-backed-up-vms-utils.composable.ts'
 import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
 import { useXoVmBackupArchiveCollection } from '@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -41,7 +41,7 @@ import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { type XoBackupRepository } from '@vates/types'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { toLower } from 'lodash-es'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -56,12 +56,11 @@ const { t } = useI18n()
 
 const { backedUpVms } = useXoBackedUpVmsUtils(() => backupJob.vms)
 
-const backupRepositoriesIds = computed(() => extractIdsFromSimplePattern(backupJob.remotes))
-
-const { backupArchives, areBackupArchivesReady } = useXoVmBackupArchiveCollection(
-  {},
-  () => backupRepositoriesIds.value as XoBackupRepository['id'][]
+const backupRepositoriesIds = computed(() =>
+  extractIdsFromSimplePattern<FrontXoBackupRepository['id']>(backupJob.remotes)
 )
+
+const { backupArchives, areBackupArchivesReady } = useXoVmBackupArchiveCollection({}, () => backupRepositoriesIds.value)
 
 const searchQuery = ref('')
 

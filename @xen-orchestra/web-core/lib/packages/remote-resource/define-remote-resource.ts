@@ -191,6 +191,14 @@ export function defineRemoteResource<
     ) => {
       // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
       if ((await watchCollection?.predicate?.(receivedData, context)) === false) {
+        // on update, the object may no longer belong to this (sub-)collection (e.g. VM removed from a backup job)
+        if (calledFrom === 'update' && Array.isArray(data.value) && !Array.isArray(receivedData)) {
+          if (!isBufferEventsProcessed) {
+            bufferedEvents.push(['remove', receivedData])
+          } else {
+            removeData(data.value, receivedData)
+          }
+        }
         return
       }
 
@@ -371,7 +379,8 @@ export function defineRemoteResource<
     let resume: VoidFunction = execute
 
     if (watchCollection !== undefined) {
-      const { collectionId, resource, handleDelete, handlePost, handleWatching } = watchCollection
+      const { resource, handleDelete, handlePost, handleWatching } = watchCollection
+      const collectionId = `${watchCollection.collectionId}:${url}`
       const { watch, unwatch } = useSseStore()
 
       pause = () => unwatch({ collectionId, resource, handleDelete })

@@ -1,7 +1,8 @@
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
-import type { XoVm, XoVmBackupJob, XoMetadataBackupJob, XoMirrorBackupJob } from '@vates/types'
+import type { XoVmBackupJob, XoMetadataBackupJob, XoMirrorBackupJob } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 
 export type FrontXoVmBackupJob = Pick<XoVmBackupJob, (typeof vmBackupJobFields)[number]>
@@ -10,7 +11,7 @@ export type FrontXoMirrorBackupJob = Pick<XoMirrorBackupJob, (typeof mirrorBacku
 
 export type FrontAnyXoBackupJob = FrontXoVmBackupJob | FrontXoMetadataBackupJob | FrontXoMirrorBackupJob
 
-const vmBackupJobFields = [
+export const vmBackupJobFields = [
   'id',
   'name',
   'mode',
@@ -46,30 +47,25 @@ const mirrorBackupJobfields = [
 ] as const satisfies readonly (keyof XoMirrorBackupJob)[]
 
 // Ensure fields are unique
-const anyBackupJobFields = Array.from(
+export const anyBackupJobFields = Array.from(
   new Set([...vmBackupJobFields, ...metadataBackupJobFields, ...mirrorBackupJobfields])
 )
 
-export const useXoBackupJobCollection = <T extends XoVm['id'] | (() => XoVm['id']) | undefined = undefined>(
-  parentsContext?: object,
-  vmId?: T
-) =>
-  defineRemoteResource({
-    url: (vmId?: T) =>
-      vmId
-        ? `${BASE_URL}/vms/${vmId}/backup-jobs?fields=${vmBackupJobFields.join(',')}`
-        : `${BASE_URL}/backup-jobs?fields=${anyBackupJobFields.join(',')}`,
-    initialData: () => [] as (T extends undefined ? FrontAnyXoBackupJob : FrontXoVmBackupJob)[],
-    state: (rawBackupJobs, context) => {
-      const backupJobs = useSorted(rawBackupJobs, ({ name: name1 = '' }, { name: name2 = '' }) =>
-        name1.localeCompare(name2)
-      )
+export const useXoBackupJobCollection = defineRemoteResource({
+  url: `${BASE_URL}/backup-jobs?fields=${anyBackupJobFields.join(',')}&ndjson=true`,
+  stream: true,
+  initWatchCollection: () => useWatchCollection({ resource: 'backup-job', fields: anyBackupJobFields }),
+  initialData: () => [] as FrontAnyXoBackupJob[],
+  state: (rawBackupJobs, context) => {
+    const backupJobs = useSorted(rawBackupJobs, ({ name: name1 = '' }, { name: name2 = '' }) =>
+      name1.localeCompare(name2)
+    )
 
-      return {
-        ...useXoCollectionState(backupJobs, {
-          context,
-          baseName: 'backupJob',
-        }),
-      }
-    },
-  })(parentsContext, vmId)
+    return {
+      ...useXoCollectionState(backupJobs, {
+        context,
+        baseName: 'backupJob',
+      }),
+    }
+  },
+})

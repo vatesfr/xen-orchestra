@@ -13,11 +13,16 @@
 import BackupRepositoriesTargetsTable from '@/modules/backup/components/targets/BackupRepositoriesTargetsTable.vue'
 import StorageRepositoriesTargetsTable from '@/modules/backup/components/targets/StorageRepositoriesTargetsTable.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
-import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
-import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
+import {
+  useXoBackupRepositoryCollection,
+  type FrontXoBackupRepository,
+} from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
+import {
+  useXoSrCollection,
+  type FrontXoSr,
+} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import type { XoBackupRepository, XoSr } from '@vates/types'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { computed } from 'vue'
 
 const { backupJob } = defineProps<{
@@ -29,7 +34,7 @@ const { getBackupRepositoriesByIds, areBackupRepositoriesReady, hasBackupReposit
   useXoBackupRepositoryCollection()
 
 const backupRepositories = computed(() =>
-  getBackupRepositoriesByIds(extractIdsFromSimplePattern(backupJob.remotes) as XoBackupRepository['id'][])
+  getBackupRepositoriesByIds(extractIdsFromSimplePattern<FrontXoBackupRepository['id']>(backupJob.remotes))
 )
 
 const storageRepositories = computed(() => {
@@ -37,7 +42,7 @@ const storageRepositories = computed(() => {
     return []
   }
 
-  return getSrsByIds(extractIdsFromSimplePattern(backupJob.srs) as XoSr['id'][])
+  return getSrsByIds(extractIdsFromSimplePattern<FrontXoSr['id']>(backupJob.srs))
 })
 </script>
 
