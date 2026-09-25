@@ -157,6 +157,20 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/backup-repository/[id]': RouteRecordInfo<
+      '/backup-repository/[id]',
+      '/backup-repository/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/backup-repository/[id]/general'
+    >,
+    '/backup-repository/[id]/general': RouteRecordInfo<
+      '/backup-repository/[id]/general',
+      '/backup-repository/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/host/[id]': RouteRecordInfo<
       '/host/[id]',
       '/host/:id',
@@ -618,6 +632,19 @@ declare module 'vue-router/auto-routes' {
     'src/pages/backup/[id]/targets.vue': {
       routes:
         | '/backup/[id]/targets'
+      views:
+        | never
+    }
+    'src/pages/backup-repository/[id].vue': {
+      routes:
+        | '/backup-repository/[id]'
+        | '/backup-repository/[id]/general'
+      views:
+        | 'default'
+    }
+    'src/pages/backup-repository/[id]/general.vue': {
+      routes:
+        | '/backup-repository/[id]/general'
       views:
         | never
     }
