@@ -1,13 +1,16 @@
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 
 export const XOA_NAME = 'Xen Orchestra Appliance'
+export const IS_XOA_BUILD = import.meta.env.VITE_XOA_BUILD === 'true'
 
 export const XO_LINKS = {
   BLOG: 'https://xen-orchestra.com/blog/',
   COMMUNITY: 'https://xcp-ng.org/forum/category/12/xen-orchestra',
   DOC: 'https://docs.xen-orchestra.com',
-  DOC_SDN_CONTROLLER_MIGRATION: 'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#migration-path',
-  DOC_SDN_CONTROLLER_XAPI_PLUGIN: 'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#xapi-plugin',
+  DOC_SDN_CONTROLLER_MIGRATION:
+    'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#migration-path',
+  DOC_SDN_CONTROLLER_XAPI_PLUGIN:
+    'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#xapi-plugin',
   TRANSLATION: 'https://translate.vates.tech/engage/xen-orchestra/',
 }
 

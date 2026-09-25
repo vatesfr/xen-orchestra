@@ -1,4 +1,5 @@
 import { formValidationConfig } from '@/plugins/form-validation.config.ts'
+import { IS_XOA_BUILD } from '@/shared/constants.ts'
 import i18n from '@core/i18n.ts'
 import { useOverlayStore } from '@core/packages/overlay/use-overlay-store.ts'
 import { RegleVuePlugin } from '@regle/core'
@@ -14,6 +15,9 @@ import '@core/assets/css/_themes.pcss'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
 async function init() {
+  // eslint-disable-next-line no-console
+  console.info(`[XO6] build origin: ${IS_XOA_BUILD ? 'XOA' : 'sources'}`)
+
   // TODO: remove when non admin users are handled in XO6
   if (import.meta.env.PROD) {
     const { data: me } = await useFetch('/rest/v0/users/me').json<XoUser>()
