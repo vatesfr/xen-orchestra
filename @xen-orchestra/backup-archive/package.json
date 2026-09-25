@@ -8,7 +8,8 @@
   "main": "./dist/index.mjs",
   "exports": {
     ".": "./dist/index.mjs",
-    "./disks": "./dist/disks/index.mjs"
+    "./disks": "./dist/disks/index.mjs",
+    "./disks/hashed": "./dist/disks/hashed/index.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
@@ -32,14 +33,15 @@
     "uuid": "^9.0.0",
     "promise-toolbox": "^0.21.0",
     "@vates/async-each": "^1.0.1",
-    "vhd-lib": "^4.16.1"
+    "vhd-lib": "^4.16.1",
+    "compare-versions": "^6.1.1"
   },
   "scripts": {
     "build": "yarn run clean && tsc",
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
-    "test": "yarn run clean && tsc && node --test **/*.test.mjs",
-    "test-integration": "tsc && node --test **/*.integ.mjs",
+    "test": "tsc && node --test \"**/*.test.mjs\"",
+    "test-integration": "tsc && node --test \"**/*.integ.mjs\"",
     "clean": "rimraf dist/"
   },
   "private": false,

@@ -131,7 +131,7 @@ export abstract class RemoteHandlerAbstract {
     options?: ReadStreamOptions
   ): Promise<Readable & { length?: number; maxStreamLength?: number }>
 
-  abstract readFile(file: string, options?: ReadFileOptions): Promise<string>
+  abstract readFile(file: string, options?: ReadFileOptions): Promise<Buffer>
 
   abstract read(file: FileDescriptor, buffer: Buffer, position?: number): Promise<ReadResult>
 

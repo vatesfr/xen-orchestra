@@ -140,7 +140,7 @@ export class MergeRemoteDisk {
 
     try {
       const mergeStateContent = await this.#handler.readFile(this.#statePath)
-      this.#state = JSON.parse(mergeStateContent)
+      this.#state = JSON.parse(mergeStateContent.toString())
 
       // work-around to bugs introduced in 97d94b795 and 4e50858
       //
@@ -344,7 +344,7 @@ export class MergeRemoteDisk {
       const parentPath = normalize(vdiDir + '/' + match[1])
       let chain
       try {
-        const state = JSON.parse(await handler.readFile(filePath))
+        const state = JSON.parse((await handler.readFile(filePath)).toString())
         if (Array.isArray(state?.chain)) {
           chain = state.chain.map((/** @type {string} */ relPath) => normalize(resolveFromFile(filePath, relPath)))
         } else {
