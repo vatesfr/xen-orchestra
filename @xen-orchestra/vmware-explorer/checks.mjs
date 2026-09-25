@@ -1,54 +1,22 @@
-import { exec } from 'node:child_process'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
 
-import { getBundledPackage } from './_vectura.mjs'
-
-/**
- * Version of the vectura binary on this machine.
- *
- * @returns {Promise<string>} rejects when it is not installed or not runnable
- */
-/* async */ function getVecturaVersion() {
-  return new Promise(function (resolve, reject) {
-    exec('vectura --version', (error, stdout) => {
-      if (error) {
-        return reject(error)
-      }
-      const matches = stdout.match(/vectura ([0-9.]+)/)
-      if (matches === null) {
-        return reject(new Error(`can't read the version of vectura in ${JSON.stringify(stdout)}`))
-      }
-      resolve(matches[1])
-    })
-  })
-}
+import { VECTURA_BIN } from './_vectura.mjs'
 
 /**
- * Whether the installed vectura is the one shipped with this package.
+ * Whether the vectura binary shipped with this package runs on this machine.
  *
- * The two are compared for equality and not with a range: the package holds the binary xo-server is
- * tested against, so anything else — older or newer — is worth reporting.
+ * There is nothing to install: this only fails when the binary lost its executable bit or when the
+ * system is too old for it (glibc before 2.34).
  *
  * @returns {Promise<Object>}
  */
 async function vectura() {
-  const { version: expectedVersion } = await getBundledPackage()
-
-  let version
   try {
-    version = await getVecturaVersion()
+    await promisify(execFile)(VECTURA_BIN, ['--version'])
+    return { status: 'success' }
   } catch (error) {
-    return {
-      error: `vectura is not installed or not runnable: ${error.message}`,
-      expectedVersion,
-      status: 'error',
-    }
-  }
-
-  return {
-    installed: true,
-    version,
-    status: version === expectedVersion ? 'success' : 'alarm',
-    expectedVersion,
+    return { error: `vectura is not runnable: ${error.message}`, status: 'error' }
   }
 }
 

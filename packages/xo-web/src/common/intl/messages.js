@@ -21,20 +21,11 @@ const messages = {
   hostIp: 'Host IP',
   interfaces: 'Interfaces',
   keyValue: '{key}: {value}',
-  esxiLibraryManualInstall:
-    'On other systems, install the vectura package shipped with xo-server manually: it is the `vectura_*.deb` of the `@xen-orchestra/vmware-explorer` module, installed with `dpkg --install`.',
-  esxiLibraryAutoInstall: 'install {library} (debian based system)',
-  esxiLibraryInstalling:
-    "Installing {library} can take a few minutes. You can check the progress in the XO tasks screen while it's running.",
   esxiProgressLinkText: 'Track progress',
-
-  esxiLibraryOutdated:
-    '{library} is outdated expecting {expectedVersion}, got {version}. Please uninstall it and install the required version.',
   esxiCheckingPrerequisite: 'Checking prerequisite on XO',
   esxiCheckedPrerequisite: 'Result of the prerequisite check on XO',
 
   esxiCheckingPrerequisiteError: 'Must be corrected before importing VM',
-  esxiCheckedPrerequisiteVersion: 'expected version {expectedVersion} , {version} installed',
   esxiImportSslCertificate: 'Skip SSL check',
   esxiImportRememberLogin: 'Remember connection in this browser',
   esxiImportRememberWarning:

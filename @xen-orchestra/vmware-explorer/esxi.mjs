@@ -7,7 +7,7 @@ import { Agent } from 'undici'
 
 import { resolveDiskLocation } from './_paths.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
-import { formatVecturaArgs } from './_vectura.mjs'
+import { formatVecturaArgs, VECTURA_BIN } from './_vectura.mjs'
 import { COWD_HEADER_LENGTH, grainDirectoryToDataMap, parseCowdHeader } from './parsers/cowd.mjs'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
@@ -956,7 +956,7 @@ export default class Esxi extends EventEmitter {
    */
   async getNbdServer(vmId, diskPath, { compression, depth } = {}) {
     return {
-      command: 'vectura',
+      command: VECTURA_BIN,
       args: formatVecturaArgs({
         compression,
         depth,

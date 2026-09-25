@@ -1,0 +1,17 @@
+# Cargo
+/target/
+**/*.rs.bk
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local environment files are never committed. VECTURA_PASSWORD lives in the
+# shell that runs the command, not in a file next to the source.
+.env
+.env.*
+!.env.example
