@@ -134,20 +134,6 @@ declare namespace backup {
     url: string
   }
 
-  // `mapVdisSrs` gives a target per disk, keyed by the uuid the disk has in the backup:
-  // `{ type: 'restore', sr?: string }`, `{ type: 'ignore' }`, `{ type: 'live-mount', host: string }`,
-  // or an SR uuid / `null` for the first two, in the legacy shape. A live mounted disk is served
-  // by this proxy, like `mountDisk` does, and outlives the restore: it is reported in `liveMounts`,
-  // and its `id` must be handed back to `unmountDisk`.
-  function importVmBackup(_: {
-    backupId: string
-    remote: Remote
-    settings?: { newMacAddresses?: boolean; mapVdisSrs?: object }
-    srUuid: string
-    xapi: Xapi
-    streamLogs: boolean = false
-  }): string
-
   interface MountedDisk {
     // handle to pass to `unmountDisk`
     id: string
@@ -162,6 +148,29 @@ declare namespace backup {
     // port of the portal, ephemeral: one target per mount
     port: number
   }
+
+  interface RestoredVm {
+    // UUID of the restored VM
+    id: string
+    // bytes transferred
+    size: number
+    // disks live mounted instead of transferred, each attached to `hostId` (a host UUID)
+    liveMounts: (MountedDisk & { hostId: string })[]
+  }
+
+  // `mapVdisSrs` gives a target per disk, keyed by the uuid the disk has in the backup:
+  // `{ type: 'restore', sr?: string }`, `{ type: 'ignore' }`, `{ type: 'live-mount', host: string }`,
+  // or an SR uuid / `null` for the first two, in the legacy shape. A live mounted disk is served
+  // by this proxy, like `mountDisk` does, and outlives the restore: it is reported in `liveMounts`,
+  // and its `id` must be handed back to `unmountDisk`.
+  function importVmBackup(_: {
+    backupId: string
+    remote: Remote
+    settings?: { newMacAddresses?: boolean; mapVdisSrs?: object }
+    srUuid: string
+    xapi: Xapi
+    streamLogs: boolean = false
+  }): RestoredVm // with `streamLogs`, an ndjson stream of the task logs, the result in the end one
 
   // Serve `disk` as a read-only iSCSI LUN and attach it, as an SR, to `host` — a host of the pool
   // `xapi` points at. Nothing is copied: every read goes straight to the backup repository, and
@@ -180,6 +189,8 @@ declare namespace backup {
     xapi: Xapi
   }): MountedDisk
 
+  // Fails with a `noSuchObject` error (code 1, `data.type: 'live-mount'`) for an id this proxy does
+  // not serve, e.g. after a restart: the caller can then forget it.
   function unmountDisk(_: { id: string })
 
   function listPoolMetadataBackups(_: { remotes: { [id: string]: Remote } }): {
