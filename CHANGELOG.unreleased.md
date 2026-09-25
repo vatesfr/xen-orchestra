@@ -11,6 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API/RBAC] Add a built-in Backup administrator RBAC role template to administer backup jobs, schedules, repositories, archives and logs (PR [#10443](https://github.com/vatesfr/xen-orchestra/pull/10443))
 - [XO6/Vm] Add the VM name to VM related actions that open a modal (PR [#10310](https://github.com/vatesfr/xen-orchestra/pull/10310))
 - [XO6] Allow changing which PIF a host uses for its management interface, without deleting and recreating the network config (PR [#10110](https://github.com/vatesfr/xen-orchestra/pull/10110))
 - [Backups] change the prefix name of vms during health checks from 'Importing...' to 'Health Check' to avoid confusion (PR [#10361](https://github.com/vatesfr/xen-orchestra/pull/10361))
