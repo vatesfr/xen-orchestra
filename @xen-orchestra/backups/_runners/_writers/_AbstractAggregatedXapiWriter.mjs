@@ -61,7 +61,7 @@ export class AbstractAggregatedXapiWriter {
 
   setOldReplicaList() {
     debug(`setOldReplicaList for vm ${this.#props.vmUuid}`)
-    const scheduleId = this.#props.scheduleId
+    const scheduleId = this.#props.schedule.id
     const vmUuid = this.#props.vmUuid
     const settings = this.#props.settings
 
