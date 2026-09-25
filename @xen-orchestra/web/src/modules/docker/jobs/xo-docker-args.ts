@@ -10,10 +10,11 @@ export type DockerConnectionSaveRequest =
   | { engineId: FrontXoDockerEngine['id']; payload: DockerEngineUpdatePayload }
 
 // one connection per VM (creation) or engine (update) at a time
-export const xoDockerConnectionSaveArg = defineJobArg({
+export const xoDockerConnectionSaveArg = defineJobArg<DockerConnectionSaveRequest>({
   toArray: false,
-  identify: (request: DockerConnectionSaveRequest) =>
-    request.engineId ?? (request.payload as DockerEngineCreatePayload).$VM,
+  // the identity is also computed while no request is set (it is reset once saved)
+  identify: (request?: DockerConnectionSaveRequest) =>
+    request?.engineId ?? (request?.payload as DockerEngineCreatePayload | undefined)?.$VM,
 })
 
 export const xoDockerEngineArg = defineJobArg({
