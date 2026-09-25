@@ -4458,6 +4458,20 @@ export const importVddkLib = file => {
       })
   })
 }
+export const uploadAirgapDataPack = file =>
+  _call('xoa.licenses.uploadAirgapDataPack')
+    .then(({ $sendTo }) =>
+      post($sendTo, file.file).then(async res => {
+        if (!res.ok) {
+          throw new Error(await res.text())
+        }
+        success(_('uploadAirgapDataPackSuccess'))
+      })
+    )
+    .catch(err => {
+      error(_('uploadAirgapDataPackError'), err)
+      throw err
+    })
 export const installNbdInfo = file => {
   return _call('esxi.installNbdInfoFromSource')
     .then(() => {
