@@ -76,6 +76,7 @@
 - [Backup] Fix a job combining Rolling Snapshot with Disaster Recovery to an SR of the source VM's pool destroying its own snapshots: the job reported a success but kept fewer snapshots than the configured snapshot retention, usually none (PR [#10395](https://github.com/vatesfr/xen-orchestra/pull/10395))
 - [OpenMetrics] Share metrics collection between requests to avoid filling up XOA memory (PR [10401](https://github.com/vatesfr/xen-orchestra/pull/10401))
 - [Netbox] Fix IP addresses synced with an incorrect, less specific prefix (e.g. `/8` instead of `/24`) when a shorter container prefix also matched [#10240](https://github.com/vatesfr/xen-orchestra/issues/10240) (PR [#10297](https://github.com/vatesfr/xen-orchestra/pull/10297))
+- [Backups] Prevent continuous replication failed transfer to accumulate replicas (PR [#10404](https://github.com/vatesfr/xen-orchestra/pull/10404))
 - [backup/restore] Fix backups of a repository randomly disappearing from the list after visiting a VM (PR [#10277](https://github.com/vatesfr/xen-orchestra/pull/10277))
 - [Jobs] Running a sequence whose configured user was deleted now fails with a clear error instead of an obscure one, and saving a sequence now updates it to run as the saving user (PR [#10423](https://github.com/vatesfr/xen-orchestra/pull/10423))
 - **XO 5**:
