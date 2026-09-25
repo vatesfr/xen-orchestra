@@ -6,7 +6,7 @@
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('path-on-share')" :value="pathOnShare" />
       <VtsTabularKeyValueRow :label="t('username')" :value="smb.username" />
-      <VtsTabularKeyValueRow :label="t('password')" :value="MASKED_SECRET" />
+      <VtsTabularKeyValueRow v-if="smb.password !== ''" :label="t('password')" :value="MASKED_SECRET" />
       <VtsTabularKeyValueRow :label="t('domain')" :value="smb.domain" />
       <VtsTabularKeyValueRow :label="t('custom-options')" :value="formattedOptions" />
     </VtsTabularKeyValueList>
