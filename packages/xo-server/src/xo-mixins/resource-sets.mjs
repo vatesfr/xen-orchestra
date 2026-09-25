@@ -31,6 +31,8 @@ const computeVmXapiResourcesUsage = vm => {
   let disks = 0
   let disk = 0
 
+  const canUseLiveResources = !(vm.is_a_snapshot || vm.is_a_template)
+
   forEach(vm.$VBDs, vbd => {
     let vdi, vdiId
     if (vbd.type === 'Disk' && !processed[(vdiId = vbd.VDI)] && (vdi = vbd.$VDI)) {
@@ -41,11 +43,11 @@ const computeVmXapiResourcesUsage = vm => {
   })
 
   return {
-    cpus: vm.VCPUs_at_startup,
+    cpus: canUseLiveResources ? vm.VCPUs_at_startup : 0,
     disk,
     disks,
-    memory: vm.memory_dynamic_max,
-    vms: 1,
+    memory: canUseLiveResources ? vm.memory_dynamic_max : 0,
+    vms: canUseLiveResources ? 1 : 0,
   }
 }
 
