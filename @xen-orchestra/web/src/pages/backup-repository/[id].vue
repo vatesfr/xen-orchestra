@@ -14,12 +14,17 @@ import BackupRepositoryHeader from '@/modules/backup-repository/components/Backu
 import { useXoBackupRepositoryCollection } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const route = useRoute<'/backup-repository/[id]'>()
+
+useDefaultTab('/backup-repository/[id]', 'general')
+
 const uiStore = useUiStore()
+
 const { t } = useI18n()
 
 const { useGetBackupRepositoryById, areBackupRepositoriesReady } = useXoBackupRepositoryCollection()

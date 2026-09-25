@@ -2,7 +2,7 @@
   <UiHeadBar>
     {{ br.name }}
     <template #icon>
-      <VtsIcon v-if="br" size="medium" :name="getBackupRepositoryIcon(br, parsedUrl?.type)" />
+      <VtsIcon size="medium" :name="brIcon" />
     </template>
   </UiHeadBar>
 </template>
@@ -13,10 +13,13 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import { getBackupRepositoryIcon } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import { computed } from 'vue'
 
 const { br } = defineProps<{
   br: FrontXoBackupRepository
 }>()
 
 const parsedUrl = useXoBackupRepositoryParsedUrl(() => br)
+
+const brIcon = computed(() => getBackupRepositoryIcon(br, parsedUrl.value?.type))
 </script>
