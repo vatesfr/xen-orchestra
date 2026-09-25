@@ -316,7 +316,24 @@ export default class {
         ? this._app.callProxyMethod(remote.proxy, 'remote.getInfo', { remote })
         : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
 
-    this._remotesInfo[remote.id] = { ...(await timeout.call(promise, 5e3)), encryption }
+    const info = { ...(await timeout.call(promise, 5e3)), encryption }
+
+    const currentRemote = await ignoreErrors.call(this._remotes.first(remote.id))
+    if (!currentRemote?.enabled) {
+      return
+    }
+
+    const prev = this._remotesInfo[remote.id]
+    this._remotesInfo[remote.id] = info
+
+    const { size, used, available } = info
+    if (prev?.size !== size || prev?.used !== used || prev?.available !== available) {
+      this._updateRemote(remote.id, {
+        size: size ?? null,
+        used: used ?? null,
+        available: available ?? null,
+      }).catch(warn)
+    }
   }
 
   async _refreshRemoteInfo(remote) {
@@ -426,7 +443,7 @@ export default class {
     return /* await */ this.updateRemote(remote.id, { enabled: true })
   }
 
-  updateRemote(id, { enabled, name, options, proxy, url }) {
+  async updateRemote(id, { enabled, name, options, proxy, url }) {
     if (url !== undefined) {
       validateUrl(url)
     }
@@ -440,17 +457,29 @@ export default class {
 
     this._cancelRemoteInfoRetry(id)
     this._app.invalidateVmBackupsListing(id)
+
+    const sizeProps = {}
     if (enabled === false) {
       delete this._remotesInfo[id]
+      sizeProps.size = null
+      sizeProps.used = null
+      sizeProps.available = null
     }
 
-    return this._updateRemote(id, {
+    const remote = await this._updateRemote(id, {
       enabled,
       name,
       options,
       proxy,
       url,
+      ...sizeProps,
     })
+
+    if (enabled === true) {
+      ignoreErrors.call(this._refreshRemoteInfo(remote))
+    }
+
+    return remote
   }
 
   @synchronized()
