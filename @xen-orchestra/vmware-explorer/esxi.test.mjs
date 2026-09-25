@@ -523,6 +523,411 @@ describe('tasks', function () {
   })
 })
 
+describe('attachDisk / detachDisk', function () {
+  const FILE_NAME = '[ds main] other.vm/other.vmdk'
+  const scsi = (key, busNumber, extra = {}) => ({
+    attributes: { 'xsi:type': 'ParaVirtualSCSIController' },
+    key,
+    busNumber,
+    scsiCtlrUnitNumber: 7,
+    ...extra,
+  })
+  const disk = ({ key, controllerKey, unitNumber, fileName = '[ds main] a.vm/a.vmdk' }) => ({
+    attributes: { 'xsi:type': 'VirtualDisk' },
+    key,
+    controllerKey,
+    unitNumber,
+    capacityInKB: 1024,
+    backing: { attributes: { 'xsi:type': 'VirtualDiskFlatVer2BackingInfo' }, fileName },
+  })
+
+  // answers the devices of the VM, which the reconfiguration replaces with `after`
+  const reconfigEsxi = async ({ before, after = before }) => {
+    let reconfigured = false
+    const { esxi, vimClient } = await connectedEsxi({
+      responses: {
+        ReconfigVM_Task: () => {
+          reconfigured = true
+          return startedTask()
+        },
+        RetrievePropertiesEx: ({ specSet }) => {
+          const { type } = specSet[0].propSet[0]
+          if (type === 'Task') {
+            return taskInfo('success')
+          }
+          return propertyOf('VirtualMachine', 'vm-1', 'config.hardware.device', {
+            attributes: { 'xsi:type': 'ArrayOfVirtualDevice' },
+            VirtualDevice: reconfigured ? after : before,
+          })
+        },
+      },
+    })
+    return { esxi, vimClient }
+  }
+
+  const deviceChangeOf = vimClient => {
+    const [{ args }] = vimClient.callsTo('ReconfigVM_Task')
+    assert.equal(args._this, 'vm-1')
+    return args.spec.deviceChange[0]
+  }
+
+  it('attaches the disk in a mode which never writes to its file, on the first free SCSI unit', async function () {
+    const before = [
+      scsi(1001, 1),
+      scsi(1000, 0),
+      disk({ key: 2000, controllerKey: 1000, unitNumber: 0 }),
+      disk({ key: 2001, controllerKey: 1000, unitNumber: 1 }),
+    ]
+    const { esxi, vimClient } = await reconfigEsxi({
+      before,
+      after: [...before, disk({ key: 2002, controllerKey: 1000, unitNumber: 2, fileName: FILE_NAME })],
+    })
+
+    assert.deepEqual(await esxi.attachDisk('vm-1', FILE_NAME), { controllerKey: 1000, deviceKey: 2002, unitNumber: 2 })
+
+    const change = deviceChangeOf(vimClient)
+    assert.equal(change.operation, 'add')
+    // an existing file is used as is, `create` would make a new one
+    assert.equal(change.fileOperation, undefined)
+    assert.deepEqual(change.device, {
+      attributes: { 'xsi:type': 'VirtualDisk' },
+      key: -1,
+      backing: {
+        attributes: { 'xsi:type': 'VirtualDiskFlatVer2BackingInfo' },
+        fileName: FILE_NAME,
+        diskMode: 'independent_nonpersistent',
+      },
+      controllerKey: 1000,
+      unitNumber: 2,
+      capacityInKB: 0,
+    })
+    // the schema is a sequence: the order of the elements is the order of the keys
+    assert.deepEqual(Object.keys(change.device), [
+      'attributes',
+      'key',
+      'backing',
+      'controllerKey',
+      'unitNumber',
+      'capacityInKB',
+    ])
+  })
+
+  it('skips the unit of the controller itself', async function () {
+    const before = [
+      scsi(1000, 0),
+      ...[0, 1, 2, 3, 4, 5, 6].map(unitNumber => disk({ key: 2000 + unitNumber, controllerKey: 1000, unitNumber })),
+    ]
+    const { esxi, vimClient } = await reconfigEsxi({
+      before,
+      after: [...before, disk({ key: 2008, controllerKey: 1000, unitNumber: 8, fileName: FILE_NAME })],
+    })
+
+    assert.equal((await esxi.attachDisk('vm-1', FILE_NAME)).unitNumber, 8)
+    assert.equal(deviceChangeOf(vimClient).device.unitNumber, 8)
+  })
+
+  it('moves on to the next controller when one is full', async function () {
+    const full = Array.from({ length: 16 }, (_, unitNumber) => unitNumber)
+      .filter(unitNumber => unitNumber !== 7)
+      .map(unitNumber => disk({ key: 2000 + unitNumber, controllerKey: 1000, unitNumber }))
+    const before = [scsi(1000, 0), scsi(1001, 1), ...full]
+    const { esxi } = await reconfigEsxi({
+      before,
+      after: [...before, disk({ key: 2100, controllerKey: 1001, unitNumber: 0, fileName: FILE_NAME })],
+    })
+
+    assert.deepEqual(await esxi.attachDisk('vm-1', FILE_NAME), { controllerKey: 1001, deviceKey: 2100, unitNumber: 0 })
+  })
+
+  it('reports a VM without any free SCSI slot', async function () {
+    // an IDE controller is not a candidate
+    const { esxi, vimClient } = await reconfigEsxi({
+      before: [{ attributes: { 'xsi:type': 'VirtualIDEController' }, key: 200, busNumber: 0 }],
+    })
+
+    await assert.rejects(esxi.attachDisk('vm-1', FILE_NAME), { code: 'NO_FREE_SLOT', vmId: 'vm-1' })
+    assert.equal(vimClient.callsTo('ReconfigVM_Task').length, 0)
+  })
+
+  it('uses the slot named by the caller', async function () {
+    const before = [scsi(1000, 0)]
+    const { esxi, vimClient } = await reconfigEsxi({
+      before,
+      after: [...before, disk({ key: 16000, controllerKey: 15000, unitNumber: 3, fileName: FILE_NAME })],
+    })
+
+    assert.deepEqual(await esxi.attachDisk('vm-1', FILE_NAME, { controllerKey: 15000, unitNumber: 3 }), {
+      controllerKey: 15000,
+      deviceKey: 16000,
+      unitNumber: 3,
+    })
+    // the devices are only read once, after the reconfiguration
+    assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, 2)
+  })
+
+  it('refuses half a slot', async function () {
+    const { esxi, vimClient } = await reconfigEsxi({ before: [] })
+
+    await assert.rejects(esxi.attachDisk('vm-1', FILE_NAME, { controllerKey: 1000 }), { code: 'INVALID_SLOT' })
+    assert.equal(vimClient.calls.length, 0)
+  })
+
+  it('fails when the disk is not where it was attached', async function () {
+    const before = [scsi(1000, 0)]
+    const { esxi } = await reconfigEsxi({
+      before,
+      after: [...before, disk({ key: 2000, controllerKey: 1000, unitNumber: 0, fileName: '[ds main] else.vmdk' })],
+    })
+
+    await assert.rejects(esxi.attachDisk('vm-1', FILE_NAME), { code: 'DISK_NOT_ATTACHED', vmId: 'vm-1' })
+  })
+
+  it('detaches a disk without deleting its file', async function () {
+    const { esxi, vimClient } = await reconfigEsxi({
+      before: [scsi(1000, 0), disk({ key: 2002, controllerKey: 1000, unitNumber: 2, fileName: FILE_NAME })],
+    })
+
+    await esxi.detachDisk('vm-1', 2002)
+
+    const change = deviceChangeOf(vimClient)
+    assert.equal(change.operation, 'remove')
+    // `destroy` would delete the file from the datastore
+    assert.equal(change.fileOperation, undefined)
+    assert.deepEqual(change.device, {
+      attributes: { 'xsi:type': 'VirtualDisk' },
+      key: 2002,
+      controllerKey: 1000,
+      unitNumber: 2,
+      capacityInKB: 1024,
+    })
+  })
+
+  it('refuses to detach a device which is not a disk', async function () {
+    const { esxi, vimClient } = await reconfigEsxi({ before: [scsi(1000, 0)] })
+
+    await assert.rejects(esxi.detachDisk('vm-1', 1000), { code: 'NO_SUCH_DISK', vmId: 'vm-1' })
+    await assert.rejects(esxi.detachDisk('vm-1', 4242), { code: 'NO_SUCH_DISK' })
+    assert.equal(vimClient.callsTo('ReconfigVM_Task').length, 0)
+  })
+})
+
+describe('checkDiskAttachable', function () {
+  const FILE_NAME = '[ds main] other.vm/other.vmdk'
+
+  const mount = (hostId, { mounted = true, accessible = true, inaccessibleReason } = {}) => ({
+    attributes: { 'xsi:type': 'DatastoreHostMount' },
+    key: moRef('HostSystem', hostId),
+    mountInfo: { accessMode: 'readWrite', mounted, accessible, inaccessibleReason },
+  })
+
+  const checkEsxi = async ({
+    summary = { accessible: true, multipleHostAccess: true, type: 'vsan' },
+    mounts = [mount('host-1'), mount('host-2')],
+  } = {}) => {
+    const properties = {
+      'VirtualMachine:vm-1:runtime.host': moRef('HostSystem', 'host-2'),
+      'Datastore:datastore-11:summary': { attributes: { 'xsi:type': 'DatastoreSummary' }, ...summary },
+      'Datastore:datastore-11:host': {
+        attributes: { 'xsi:type': 'ArrayOfDatastoreHostMount' },
+        DatastoreHostMount: mounts,
+      },
+    }
+    const fetched = []
+    const { esxi, vimClient } = await connectedEsxi({
+      // the file is never read, it could take a lock of its own
+      fetch: async url => {
+        fetched.push(url)
+        return response({ status: 500 })
+      },
+      responses: {
+        RetrievePropertiesEx: ({ specSet }) => {
+          const { type, pathSet } = specSet[0].propSet[0]
+          const id = specSet[0].objectSet[0].obj.$value
+          return propertyOf(type, id, pathSet[0], properties[`${type}:${id}:${pathSet[0]}`])
+        },
+      },
+    })
+    return { esxi, fetched, vimClient }
+  }
+
+  it('accepts a disk on a datastore the host of the VM mounts', async function () {
+    const { esxi, fetched } = await checkEsxi()
+
+    assert.deepEqual(await esxi.checkDiskAttachable('vm-1', FILE_NAME), {
+      attachable: true,
+      datastoreType: 'vsan',
+      shared: true,
+    })
+    assert.equal(fetched.length, 0)
+  })
+
+  it('reads the booleans whether the SOAP library converted them or not', async function () {
+    const { esxi } = await checkEsxi({
+      summary: { accessible: 'true', multipleHostAccess: 'false', type: 'VMFS' },
+      mounts: [mount('host-2', { mounted: 'true', accessible: 'true' })],
+    })
+
+    assert.deepEqual(await esxi.checkDiskAttachable('vm-1', FILE_NAME), {
+      attachable: true,
+      datastoreType: 'VMFS',
+      shared: false,
+    })
+  })
+
+  it('refuses a local datastore of another host', async function () {
+    const { esxi, fetched } = await checkEsxi({
+      summary: { accessible: true, multipleHostAccess: false, type: 'VMFS' },
+      mounts: mount('host-1'),
+    })
+
+    assert.deepEqual(await esxi.checkDiskAttachable('vm-1', FILE_NAME), {
+      attachable: false,
+      code: 'DATASTORE_NOT_MOUNTED',
+      reason: 'the host host-2 of the VM vm-1 does not mount the datastore ds main',
+      datastoreType: 'VMFS',
+      shared: false,
+    })
+    assert.equal(fetched.length, 0)
+  })
+
+  it('refuses a datastore the host of the VM cannot reach', async function () {
+    const { esxi } = await checkEsxi({
+      summary: { accessible: true, multipleHostAccess: true, type: 'NFS' },
+      mounts: [mount('host-1'), mount('host-2', { accessible: false, inaccessibleReason: 'AllPathsDown_Start' })],
+    })
+
+    const result = await esxi.checkDiskAttachable('vm-1', FILE_NAME)
+    assert.equal(result.code, 'DATASTORE_NOT_MOUNTED')
+    assert.match(result.reason, /AllPathsDown_Start$/)
+  })
+
+  it('refuses an inaccessible datastore', async function () {
+    const { esxi } = await checkEsxi({
+      summary: { accessible: false, inaccessibleReason: 'lost', multipleHostAccess: true, type: 'NFS' },
+    })
+
+    const result = await esxi.checkDiskAttachable('vm-1', FILE_NAME)
+    assert.equal(result.attachable, false)
+    assert.equal(result.code, 'DATASTORE_INACCESSIBLE')
+  })
+
+  it('throws when the host cannot be asked, instead of answering about the disk', async function () {
+    const { esxi, vimClient } = await checkEsxi()
+    vimClient.responses.RetrievePropertiesEx = () => {
+      throw Object.assign(new Error('connection reset'), { code: 'ECONNRESET' })
+    }
+
+    await assert.rejects(esxi.checkDiskAttachable('vm-1', FILE_NAME), { code: 'ECONNRESET' })
+  })
+
+  it('refuses an unknown datastore or a path which is not a datastore path, without asking the host', async function () {
+    const { esxi, vimClient } = await checkEsxi()
+
+    assert.equal((await esxi.checkDiskAttachable('vm-1', '[nope] a.vmdk')).code, 'DATASTORE_NOT_FOUND')
+    assert.equal((await esxi.checkDiskAttachable('vm-1', 'a.vmdk')).code, 'INVALID_PATH')
+    assert.equal(vimClient.calls.length, 0)
+  })
+})
+
+describe('listHostsAbleToAttach', function () {
+  const mount = (hostId, { mounted = true, accessible = true } = {}) => ({
+    key: moRef('HostSystem', hostId),
+    mountInfo: { mounted, accessible },
+  })
+  const SHARED = { accessible: true, multipleHostAccess: true, type: 'vsan' }
+
+  // `ds main` is datastore-11, `ds2` datastore-12 and `ds3` datastore-21
+  const hostsEsxi = async datastores => {
+    const fetched = []
+    const { esxi, vimClient } = await connectedEsxi({
+      fetch: async url => {
+        fetched.push(url)
+        return response({ status: 500 })
+      },
+      responses: {
+        RetrievePropertiesEx: ({ specSet }) => {
+          const { type, pathSet } = specSet[0].propSet[0]
+          const id = specSet[0].objectSet[0].obj.$value
+          if (type === 'HostSystem') {
+            return page([
+              { obj: moRef('HostSystem', 'host-1'), propSet: [{ name: 'name', val: 'esxi-1' }] },
+              { obj: moRef('HostSystem', 'host-2'), propSet: [{ name: 'name', val: 'esxi-2' }] },
+            ])
+          }
+          const { summary = SHARED, mounts } = datastores[id]
+          const val = pathSet[0] === 'summary' ? summary : { DatastoreHostMount: mounts }
+          return propertyOf(type, id, pathSet[0], val)
+        },
+      },
+    })
+    return { esxi, fetched, vimClient }
+  }
+
+  it('keeps the hosts which reach the datastore of every disk', async function () {
+    const { esxi, fetched, vimClient } = await hostsEsxi({
+      'datastore-11': { mounts: [mount('host-1'), mount('host-2'), mount('host-3')] },
+      // a local datastore of host-2
+      'datastore-12': { summary: { ...SHARED, multipleHostAccess: false }, mounts: mount('host-2') },
+    })
+
+    assert.deepEqual(
+      await esxi.listHostsAbleToAttach([
+        '[ds main] a.vm/a.vmdk',
+        '[ds2] b.vm/b.vmdk',
+        // a second disk on the same datastore
+        '[ds main] a.vm/a_1.vmdk',
+      ]),
+      ['host-2']
+    )
+    // each datastore is asked once, its summary and its mounts
+    assert.equal(vimClient.callsTo('RetrievePropertiesEx').length, 4)
+    // the files are never read, it could take a lock of their own
+    assert.equal(fetched.length, 0)
+  })
+
+  it('leaves out a host which mounts a datastore but cannot reach it', async function () {
+    const { esxi } = await hostsEsxi({
+      'datastore-11': {
+        mounts: [mount('host-1', { accessible: false }), mount('host-2'), mount('host-3', { mounted: 'false' })],
+      },
+    })
+
+    assert.deepEqual(await esxi.listHostsAbleToAttach(['[ds main] a.vm/a.vmdk']), ['host-2'])
+  })
+
+  it('answers no host when a datastore is not accessible', async function () {
+    const { esxi } = await hostsEsxi({
+      'datastore-11': { mounts: [mount('host-1')] },
+      'datastore-21': { summary: { ...SHARED, accessible: 'false' }, mounts: [mount('host-1')] },
+    })
+
+    assert.deepEqual(await esxi.listHostsAbleToAttach(['[ds main] a.vmdk', '[ds3] b.vmdk']), [])
+  })
+
+  it('answers no host when no host reaches all the datastores', async function () {
+    const { esxi } = await hostsEsxi({
+      'datastore-11': { mounts: [mount('host-1')] },
+      'datastore-12': { mounts: [mount('host-2')] },
+    })
+
+    assert.deepEqual(await esxi.listHostsAbleToAttach(['[ds main] a.vmdk', '[ds2] b.vmdk']), [])
+  })
+
+  it('answers every host when there is no disk', async function () {
+    const { esxi } = await hostsEsxi({})
+
+    assert.deepEqual(await esxi.listHostsAbleToAttach([]), ['host-1', 'host-2'])
+  })
+
+  it('throws on a path it cannot place, without asking the host', async function () {
+    const { esxi, vimClient } = await hostsEsxi({})
+
+    await assert.rejects(esxi.listHostsAbleToAttach(['[ds main] a.vmdk', 'a.vmdk']), { code: 'INVALID_PATH' })
+    await assert.rejects(esxi.listHostsAbleToAttach(['[nope] a.vmdk']), { code: 'DATASTORE_NOT_FOUND' })
+    assert.equal(vimClient.calls.length, 0)
+  })
+})
+
 describe('getAllVmMetadata', function () {
   const vm = (id, propSet) => ({ obj: moRef('VirtualMachine', id), propSet })
 
