@@ -1,11 +1,7 @@
 <template>
-  <div class="breadcrumb-container">
+  <div class="backup-repository-breadcrumb-link">
     <UiBreadcrumb :size>
-      <UiLink
-        :size
-        :to="{ name: '/admin/backup-and-replication/backup-repositories', params: { id: br.id } }"
-        icon="object:backup-archive"
-      >
+      <UiLink :size :to="{ name: '/admin/backup-and-replication/backup-repositories' }" icon="object:backup-archive">
         {{ t('backup-repositories') }}
       </UiLink>
       <span>
@@ -35,13 +31,13 @@ const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
-.breadcrumb-container {
+.backup-repository-breadcrumb-link {
   min-height: 5.6rem;
   padding: 1.2rem 1.6rem;
   display: flex;
   gap: 1.6rem;
   align-items: center;
-  border-bottom: 0.1rem solid var(--color-neutral-border);
+  border-block-end: 0.1rem solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-primary);
   justify-content: space-between;
   overflow-y: auto;
