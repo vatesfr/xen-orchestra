@@ -39,7 +39,7 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
-import { computed, nextTick, useTemplateRef, watch } from 'vue'
+import { computed, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { container } = defineProps<{
@@ -58,15 +58,17 @@ const content = computed(() => formatDockerLogEntries(dockerContainerLogs.value?
 // follow the tail, like `docker logs`
 const viewer = useTemplateRef('viewer')
 
-watch(content, async () => {
-  await nextTick()
+watch(
+  [content, viewer],
+  () => {
+    const code = viewer.value?.querySelector('code')
 
-  const code = viewer.value?.querySelector('code')
-
-  if (code) {
-    code.scrollTop = code.scrollHeight
-  }
-})
+    if (code) {
+      code.scrollTop = code.scrollHeight
+    }
+  },
+  { flush: 'post' }
+)
 </script>
 
 <style lang="postcss" scoped>

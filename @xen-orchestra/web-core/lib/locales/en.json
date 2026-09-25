@@ -389,7 +389,7 @@
   "docker-connection-failed": "Unable to connect to the Docker engine",
   "docker-connection-test-succeeded": "Connection to the Docker engine succeeded",
   "docker-container-action-failed": "{action} failed on {name}",
-  "docker-container-delete-description": "The container is removed from the VM. Its named volumes are kept.",
+  "docker-container-delete-description": "The container is removed from the VM. Its volumes are kept.",
   "docker-container-stop-before-delete": "Stop the container before deleting it",
   "docker-cpu-usage-of-n-cpus": "{usage} (1 CPU) | {usage} ({n} CPUs, 100% per CPU)",
   "docker-engine": "Docker engine",
