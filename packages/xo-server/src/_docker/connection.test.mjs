@@ -283,6 +283,15 @@ describe('DockerConnection (fake daemon)', () => {
       res.end('line 1\nline 2\n')
       return
     }
+    if (req.url === `/v${MAX_API_VERSION}/stream`) {
+      // headers, then a body which never ends
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.write('{}\n')
+      return
+    }
+    if (req.url.startsWith('/v1.40/raw') || req.url.startsWith(`/v${MAX_API_VERSION}/raw`)) {
+      return json(res, 418, { url: req.url })
+    }
     if (req.url === `/v${MAX_API_VERSION}/hang`) {
       // never answers
       return
@@ -584,6 +593,50 @@ describe('DockerConnection (fake daemon)', () => {
       chunks.push(chunk)
     }
     assert.equal(Buffer.concat(chunks).toString(), 'line 1\nline 2\n')
+    await connection.close()
+  })
+
+  it('long-lived streams do not use the request slots (phase 4)', async () => {
+    const { client, connection } = createConnection()
+    await connection.connect()
+    const streams = await Promise.all(
+      Array.from({ length: 20 }, () => connection.requestStream({ path: '/stream', longLived: true }))
+    )
+    // closing the connection aborts them
+    streams.forEach(stream => stream.on('error', () => {}))
+    assert.deepEqual(connection.activeRequests, { requests: 0, streams: 20 })
+    // one channel per stream, on the same SSH connection
+    assert.ok(client.channelsOpened >= 21, `${client.channelsOpened} channels`)
+    // the regular requests are not starved
+    await Promise.all(Array.from({ length: 10 }, () => connection.request({ path: '/containers/json' })))
+
+    // a stream releases its slot when destroyed, and its channel is not reused
+    streams[0].destroy()
+    await once(streams[0], 'close')
+    assert.equal(connection.activeRequests.streams, 19)
+
+    await connection.close()
+    // not `once()`: it rejects on `error`
+    await Promise.all(
+      streams.slice(1).map(stream => (stream.closed ? undefined : new Promise(resolve => stream.on('close', resolve))))
+    )
+    assert.deepEqual(connection.activeRequests, { requests: 0, streams: 0 })
+  })
+
+  it('raw requests: verbatim path and query, version prefix unless present, errors returned (phase 4)', async () => {
+    const { connection } = createConnection()
+    const read = async response => {
+      const chunks = []
+      for await (const chunk of response) {
+        chunks.push(chunk)
+      }
+      return JSON.parse(Buffer.concat(chunks))
+    }
+    let response = await connection.requestStream({ path: '/raw?a=1&b=%2F', raw: true, longLived: true })
+    assert.equal(response.statusCode, 418)
+    assert.deepEqual(await read(response), { url: `/v${MAX_API_VERSION}/raw?a=1&b=%2F` })
+    response = await connection.requestStream({ path: '/v1.40/raw', raw: true })
+    assert.deepEqual(await read(response), { url: '/v1.40/raw' })
     await connection.close()
   })
 
