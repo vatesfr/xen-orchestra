@@ -11,6 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API/VM] Experimental `browser-media` endpoints (administrators only): stream an ISO selected in the browser into a VM CD drive, without uploading it first and without installing anything on the hosts. Available when `iscsi.advertisedAddress` is set (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
 - [i18n] Update Chinese (Simplified Han script), Czech, Dutch, Finnish, Italian, Norwegian, Persian, Portuguese, Russian, Slovak, Spanish and Turkish translations (PR [#10396](https://github.com/vatesfr/xen-orchestra/pull/10396))
 
 ### Bug fixes
@@ -35,5 +36,6 @@
 
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server minor
 
 <!--packages-end-->
