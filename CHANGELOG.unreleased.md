@@ -11,6 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [XO6/VM] Experimental: stream an ISO from your computer into a VM CD drive, from the console page. Requires `iscsi.advertisedAddress` on xo-server (PR [#10466](https://github.com/vatesfr/xen-orchestra/pull/10466))
 - [i18n] Update Chinese (Simplified Han script), Czech, Dutch, Finnish, Italian, Norwegian, Persian, Portuguese, Russian, Slovak, Spanish and Turkish translations (PR [#10396](https://github.com/vatesfr/xen-orchestra/pull/10396))
 
 ### Bug fixes
