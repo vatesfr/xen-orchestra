@@ -21,7 +21,7 @@
     "tar-stream": "^3.1.8",
     "@types/tar-stream": "^3.1.4",
     "tmp": "^0.2.1",
-    "@vates/types": "^2.1.0"
+    "@vates/types": "^2.2.0"
   },
   "dependencies": {
     "@xen-orchestra/log": "^0.7.1",
@@ -32,7 +32,7 @@
     "uuid": "^9.0.0",
     "promise-toolbox": "^0.21.0",
     "@vates/async-each": "^1.0.1",
-    "vhd-lib": "^4.16.1"
+    "vhd-lib": "^4.16.2"
   },
   "scripts": {
     "build": "yarn run clean && tsc",

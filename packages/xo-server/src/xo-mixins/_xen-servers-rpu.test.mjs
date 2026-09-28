@@ -18,6 +18,7 @@ function createXenServers({
   intentRefused = false,
   loadBalancerLoaded = false,
   recordRefused = false,
+  softwareVersion = { product_brand: 'XCP-ng', product_version: '8.3.0' },
   updateRefused = false,
   withSchedule = false,
   wlbEnabled = false,
@@ -95,6 +96,7 @@ function createXenServers({
   mock.timers.reset()
   // no server is registered in the test: stub the XAPI lookup
   xenServers.getXapi = () => ({
+    pool: { $master: { software_version: softwareVersion } },
     async getField(type, ref, field) {
       return field === 'wlb_enabled' && wlbEnabled
     },
@@ -188,6 +190,34 @@ describe('XenServers.rollingPoolUpdate', function () {
       ['recorder.dropIfNothingToRecover'],
     ])
   })
+
+  it('keeps a recovery record on a XenServer 8.4+ pool', async function () {
+    const { calls, xenServers } = createXenServers({
+      softwareVersion: { product_brand: 'XenServer', product_version: '8.4.0' },
+    })
+    await xenServers.rollingPoolUpdate(pool)
+    assert.ok(calls.some(([name]) => name === 'startRpuRecoveryRun'))
+  })
+
+  for (const softwareVersion of [
+    { product_brand: 'XenServer', product_version: '8.2.1' },
+    { product_brand: 'Citrix Hypervisor', product_version: '8.2.1' },
+  ]) {
+    it(`runs without a recovery record on a ${softwareVersion.product_brand} ${softwareVersion.product_version} pool`, async function () {
+      const { calls, xenServers } = createXenServers({ softwareVersion, withSchedule: true })
+      await xenServers.rollingPoolUpdate(pool)
+      assert.deepEqual(calls, [
+        ['backupGuard', 'pool-1', { bypassBackupCheck: undefined, operation: 'rollingPoolUpdate' }],
+        ['getAllJobs'],
+        ['updateSchedule', 'schedule-1', false],
+        [
+          'xapi.rollingPoolUpdate',
+          { acceptCurrentStateAsBaseline: undefined, rebootVm: undefined, shutdownPinnedVms: undefined },
+        ],
+        ['updateSchedule', 'schedule-1', true],
+      ])
+    })
+  }
 
   it('succeeds even if the recovery record cannot be deleted afterwards', async function () {
     const { calls, xenServers } = createXenServers({
