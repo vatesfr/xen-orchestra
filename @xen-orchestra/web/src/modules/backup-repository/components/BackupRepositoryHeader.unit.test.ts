@@ -25,10 +25,11 @@ it('shows the name of the repository in the head bar', () => {
   expect(wrapper.get('.ui-head-bar .label').text()).toBe('Nightly backups')
 })
 
-it('lists the backup repositories then the repository in the breadcrumb', () => {
+it('lists backup and replication, the backup repositories then the repository in the breadcrumb', () => {
   const wrapper = mountHeader(createBr({ name: 'Nightly backups' }))
 
   expect(wrapper.findAll('.ui-breadcrumb li').map(item => item.text())).toEqual([
+    t('backup-and-replication'),
     t('backup-repositories'),
     'Nightly backups',
   ])
