@@ -3,6 +3,7 @@ import type { useXoDockerContainerLogs } from '@/modules/docker/remote-resources
 import { createDockerContainer } from '@/test/create-docker-container.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import type { XoDockerLogs } from '@vates/types'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
@@ -70,6 +71,14 @@ it('shows the last lines, one per entry, the error stream marked', () => {
   expect(wrapper.text()).toContain(t('logs-read-only-info', { n: 10 }))
   expect(wrapper.text()).not.toContain(t('logs-truncated'))
   expect(wrapper.text()).not.toContain(t('logs-timed-out'))
+})
+
+it('follows the tail of the logs', () => {
+  setLogs(createLogs())
+
+  const wrapper = mountCard()
+
+  expect(wrapper.findComponent(UiLogEntryViewer).props('autoScroll')).toBe(true)
 })
 
 it('says when the logs have been cut', () => {
