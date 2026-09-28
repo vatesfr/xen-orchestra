@@ -17,6 +17,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backup] Fix replication never cleaning up a VM left behind by an interrupted transfer, which could keep accumulating on the target SR (PR [#10436](https://github.com/vatesfr/xen-orchestra/pull/10436))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -33,8 +35,8 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-
 - xo-server patch
 <!--packages-end-->

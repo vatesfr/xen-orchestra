@@ -3,7 +3,6 @@ import humanFormat from 'human-format'
 
 import { asyncMapSettled } from '@xen-orchestra/async-map'
 import { Task } from '@vates/task'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
 
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { importIncrementalVm } from '../../_incrementalVm.mjs'
@@ -343,10 +342,37 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const vmUuid = this._vmUuid
     const scheduleId = this._schedule.id
 
-    // delete previous interrupted copies
-    ignoreErrors.call(asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vmUuid), vm => vm.$destroy))
+    const entries = listReplicatedVms(xapi, scheduleId, srUuid, vmUuid)
 
-    const allEntries = listReplicatedVms(xapi, scheduleId, srUuid, vmUuid)
+    // delete previous interrupted copies: #decorateVmMetadata sets DATETIME to this sentinel
+    // before a transfer starts and only updates it to the real timestamp once the transfer
+    // completes, so any entry still carrying it is a leftover from a transfer that never finished.
+    //
+    // Two cases must survive this cleanup regardless of the sentinel:
+    // - checkBaseVdis (which runs before _prepare) may already have validated this run's target
+    //   VM as chainable despite the sentinel (e.g. the interrupted transfer never wrote any data),
+    //   in which case it must survive to be reused, not be destroyed out from under this run.
+    // - an interrupted update of an existing target VM carries the sentinel on the live VM, not on
+    //   a snapshot, but that VM's snapshots are still valid restore points from earlier, completed
+    //   runs. Destroying it would cascade-destroy them too, so only a VM with no snapshots (a
+    //   brand new, never-completed replica) is safe to destroy here.
+    const interruptedEntries = entries.filter(
+      e =>
+        e.other_config[DATETIME] === formatFilenameDate(0) &&
+        e.$ref !== this._targetVmRef &&
+        (e.is_a_snapshot || e.snapshots.length === 0)
+    )
+    await Task.run({ properties: { name: 'cleanup interrupted entries' } }, async () => {
+      await asyncMapSettled(interruptedEntries, async vm => {
+        try {
+          await vm.$destroy({ bypassBlockedOperation: true })
+        } catch (error) {
+          warn('failed to cleanup interrupted entry', { error, vmUuid: vm.uuid })
+          Task.warning('failed to cleanup interrupted replication', { vmUuid: vm.uuid })
+        }
+      })
+    })
+    const allEntries = entries.filter(e => !interruptedEntries.includes(e))
 
     // In the snapshot-based flow a non-snapshot VM (the live target) coexists with its
     // snapshots (one per transfer). That VM must not be subject to retention — only its
