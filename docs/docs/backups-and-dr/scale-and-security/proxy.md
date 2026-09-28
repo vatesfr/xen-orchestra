@@ -116,6 +116,7 @@ A disk can be [live mounted](../backup-features-and-settings.md#live-mount) from
 
 - The hosts connect to the proxy over iSCSI, on a TCP port picked for each mount. If a firewall sits between the hosts and the proxy, that firewall must allow TCP connections from the hosts to the proxy.
 - The address provided to the hosts is the proxy's automatically detected address. If the hosts cannot reach it, set the address in the `[iscsi]` section of the proxy configuration (`/etc/xo-proxy/config.toml`), using the same `advertisedAddress` and `bindAddress` settings as those configured for XOA.
+- If ufw is enabled on the proxy, the proxy can open the port of each mount itself, only for the host it is mounted on: set `manageFirewall = 'ufw'` in the same `[iscsi]` section. See [Firewall of Xen Orchestra](../backup-features-and-settings.md#live-mount-firewall) for how the rules behave, including when ufw is reloaded or the proxy crashes.
 - The mount lasts as long as the proxy process: restarting or updating the proxy ends it.
 - Deleting the live mounted disk, or the VM with its disks, releases the mount, as without a proxy.
 

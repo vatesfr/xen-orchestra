@@ -476,7 +476,7 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
 - **Incremental backups only.** Live mount is not available for full backups, nor in [backup health checks](#backup-health-check).
 - **Read-only.** The VM sees a read-only disk. It is best suited for data disks: most operating systems need a writable system disk.
 - **One host per restore.** All the disks live mounted by one restore use the same host, and that host must be able to reach the main SR: its own host for a local SR, any host of its pool for a shared SR. The host selector only offers these hosts, and the most likely one is pre-selected.
-- **Network.** The hosts connect to Xen Orchestra (or the proxy) over iSCSI, on a TCP port picked for each mount. A firewall between the hosts and Xen Orchestra must let the hosts open TCP connections to it. The address given to the hosts is auto-detected; if they cannot reach it (NAT, several networks), set it in the [configuration file](../getting-started/configuration.md), for example `/etc/xo-server/config.iscsi.toml`:
+- **Network.** The hosts connect to Xen Orchestra (or the proxy) over iSCSI, on a TCP port picked for each mount. A firewall between the hosts and Xen Orchestra must let the hosts open TCP connections to it. For the firewall of XOA itself, see [Firewall of Xen Orchestra](#live-mount-firewall). The address given to the hosts is auto-detected; if they cannot reach it (NAT, several networks), set it in the [configuration file](../getting-started/configuration.md), for example `/etc/xo-server/config.iscsi.toml`:
 
   ```toml
   [iscsi]
@@ -487,6 +487,46 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
   ```
 
 - **Temporary.** A live mount only lasts as long as the Xen Orchestra process serving it: restarting or updating XOA ends it, and the disk becomes unavailable to the VM. Stop using the disk before restarting or updating XOA. If Xen Orchestra stopped unexpectedly, the `[XO backup] <VM name>` SR stays behind with nothing serving it: detach the disk from the VM and forget the SR.
+
+### Firewall of Xen Orchestra {#live-mount-firewall}
+
+Each live mounted disk is served on its own TCP port, picked when the disk is mounted, so it cannot be allowed in the firewall in advance. If ufw is enabled on Xen Orchestra, it blocks the hosts, and the restore fails with `the host cannot reach the iSCSI target at <address>, check iscsi.advertisedAddress`.
+
+Xen Orchestra can open these ports in ufw itself, **only when needed**. To enable this, add to the [configuration file](../getting-started/configuration.md), for example `/etc/xo-server/config.iscsi.toml`, then restart Xen Orchestra:
+
+```toml
+[iscsi]
+manageFirewall = 'ufw'
+```
+
+When it is enabled:
+
+- **One rule per mount.** When a disk is mounted, Xen Orchestra adds a rule allowing **only the host it is mounted on** to connect, **only on the port of that mount**. The rule is removed when the mount is released, or right away if the mount fails.
+- **Host address.** The rule uses the management address of the host. If `advertisedAddress` points to another network, such as a storage network, the host connects from another address and the rule does not match: allow that network in ufw yourself.
+- **Not saved.** The rules exist only in the running firewall: they are not written to the ufw configuration and do not appear in `ufw status`. To list them:
+
+  ```sh
+  iptables -S ufw-user-input | grep xo-live-mount
+  # hosts with an IPv6 management address
+  ip6tables -S ufw6-user-input | grep xo-live-mount
+  ```
+
+- **Requirements.** ufw must be enabled, and Xen Orchestra must run as root, which XOA and the proxies do. Otherwise every live mount fails with `iptables … failed, is ufw enabled?`. Only ufw is supported: any other value makes live mounts fail with `unsupported iscsi.manageFirewall`.
+
+**What happens if ufw is reloaded or restarted** (`ufw reload`, `ufw disable` then `ufw enable`, restarting the ufw service):
+
+- ufw rebuilds its rules and **drops those added by Xen Orchestra**.
+- A disk in use keeps working, since ufw still accepts established connections. But the next time the host has to connect again (network outage, host reboot, SR unplugged then plugged again), the connection is blocked and the VM gets I/O errors on that disk.
+- The rules are not added back automatically. To be safe, [release](#release-live-mount) the mounts and live mount the disks again.
+
+**What happens if Xen Orchestra crashes** (process killed, appliance lost power):
+
+- Its rules can stay in the firewall. Nothing listens on their ports anymore, so a host trying to connect gets refused.
+- They are removed the **next time Xen Orchestra starts**, or when the appliance reboots, whichever comes first.
+- If you remove `manageFirewall` from the configuration before restarting, Xen Orchestra no longer removes them. List them with the command above, then delete each one with `iptables -D`, followed by the rule as listed without its leading `-A`.
+- As with any crash, the `[XO backup] <VM name>` SR also stays behind (see **Temporary** above).
+
+A normal stop or restart of Xen Orchestra releases every mount, which removes their rules.
 
 ### Live mount a disk during a restore
 
