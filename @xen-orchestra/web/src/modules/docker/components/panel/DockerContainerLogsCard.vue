@@ -8,14 +8,14 @@
     <VtsStateHero v-else-if="content === ''" format="card" type="no-data" size="extra-small">
       {{ t('no-log-available') }}
     </VtsStateHero>
-    <div v-else ref="viewer" class="viewer">
-      <UiLogEntryViewer
-        :label="t('logs-last-n-lines', { n: DOCKER_LOGS_TAIL })"
-        :content
-        size="small"
-        :accent="dockerContainerLogs?.timedOut ? 'warning' : 'info'"
-      />
-    </div>
+    <UiLogEntryViewer
+      v-else
+      :label="t('logs-last-n-lines', { n: DOCKER_LOGS_TAIL })"
+      :content
+      size="small"
+      :accent="dockerContainerLogs?.timedOut ? 'warning' : 'info'"
+      auto-scroll
+    />
     <UiInfo v-if="dockerContainerLogs?.timedOut" accent="warning" wrap class="notice">
       {{ t('logs-timed-out') }}
     </UiInfo>
@@ -39,7 +39,7 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
-import { computed, useTemplateRef, watch } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { container } = defineProps<{
@@ -54,21 +54,6 @@ const { dockerContainerLogs, areDockerContainerLogsReady, hasDockerContainerLogs
 )
 
 const content = computed(() => formatDockerLogEntries(dockerContainerLogs.value?.entries ?? []))
-
-// follow the tail, like `docker logs`
-const viewer = useTemplateRef('viewer')
-
-watch(
-  [content, viewer],
-  () => {
-    const code = viewer.value?.querySelector('code')
-
-    if (code) {
-      code.scrollTop = code.scrollHeight
-    }
-  },
-  { flush: 'post' }
-)
 </script>
 
 <style lang="postcss" scoped>
