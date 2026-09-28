@@ -11,7 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [XO6/SR] Add VDIs tab to the dedicated Storage Repository page (PR [#XXXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXXX))
+- [XO6/SR] Add VDIs tab to the dedicated Storage Repository page (PR [#10142](https://github.com/vatesfr/xen-orchestra/pull/10142))
 
 ### Bug fixes
 
