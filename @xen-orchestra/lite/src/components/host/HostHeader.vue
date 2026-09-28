@@ -16,7 +16,9 @@
     <template #actions>
       <MenuList placement="bottom-end">
         <template #trigger="{ open }">
-          <UiDropdownButton size="medium" @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
+          <UiDropdownButton size="medium" variant="primary" @click="open($event)">
+            {{ t('action:change-state') }}
+          </UiDropdownButton>
         </template>
         <HostPowerStateActions :host />
       </MenuList>
