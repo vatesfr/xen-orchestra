@@ -11,16 +11,9 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [i18n] Update Chinese (Simplified Han script), Czech, Dutch, Finnish, Italian, Norwegian, Persian, Portuguese, Russian, Slovak, Spanish and Turkish translations (PR [#10396](https://github.com/vatesfr/xen-orchestra/pull/10396))
-- [RPU] Keeping track of an interrupted rolling pool update, refusing a new one until it is closed, and closing it from the pool's Patches tab only apply to XCP-ng and XenServer 8.4+ pools. Older XenServer and Citrix Hypervisor pools are updated as before (PR [#10447](https://github.com/vatesfr/xen-orchestra/pull/10447))
-
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
-
-- [Backup] Fix replication never cleaning up a VM left behind by an interrupted transfer, which could keep accumulating on the target SR (PR [#10436](https://github.com/vatesfr/xen-orchestra/pull/10436))
-- [Plugin/perf-alert] Fix `test plugin` button (PR [#10407](https://github.com/vatesfr/xen-orchestra/pull/10407))
-- [Plugin/perf-alert] Fix SR dead link (PR [#10407](https://github.com/vatesfr/xen-orchestra/pull/10407))
 
 ### Packages to release
 
@@ -37,15 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @vates/types minor
-- @xen-orchestra/backups patch
-- @xen-orchestra/rest-api patch
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
-- vhd-lib patch
-- xo-server minor
-- xo-server-perf-alert patch
-- xo-web minor
 
 <!--packages-end-->
