@@ -63,6 +63,7 @@
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups minor
+- @xen-orchestra/docker-ssh minor
 - @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor

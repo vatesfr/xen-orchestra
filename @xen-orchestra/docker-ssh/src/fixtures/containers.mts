@@ -8,7 +8,9 @@
 // `-e SECRET_TOKEN=hunter2` (a fake secret, used to check that the environment
 // never reaches a DTO).
 
-export const CONTAINER_LIST = [
+import type { DockerContainerSummary, DockerInspect } from '../wire.mjs'
+
+export const CONTAINER_LIST: DockerContainerSummary[] = [
   {
     Id: 'a3fd8f213141e4d860dd3ea270f6ce7c339ce4b2f85f0e2238be2beb1717404d',
     Names: ['/xo-cap-created'],
@@ -494,7 +496,7 @@ export const CONTAINER_LIST = [
   },
 ]
 
-export const INSPECT_BY_NAME = {
+export const INSPECT_BY_NAME: Record<string, DockerInspect> = {
   'xo-nginx': {
     AppArmorProfile: '',
     Args: ['nginx', '-g', 'daemon off;'],

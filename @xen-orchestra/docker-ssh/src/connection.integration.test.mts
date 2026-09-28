@@ -15,11 +15,17 @@
 
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { createServer } from 'node:net'
+import { createServer, type AddressInfo } from 'node:net'
 import test from 'node:test'
 import { Client } from 'ssh2'
 
-import { DockerConnection, MAX_API_VERSION } from './connection.mjs'
+import {
+  DockerConnection,
+  MAX_API_VERSION,
+  type DockerConnectionInternals,
+  type DockerConnectionOptions,
+  type SshClient,
+} from './connection.mjs'
 import {
   DOCKER_SOCKET_UNREACHABLE,
   HOST_KEY_MISMATCH,
@@ -28,7 +34,9 @@ import {
   SSH_AUTH_FAILED,
   SSH_UNREACHABLE,
   TIMEOUT,
+  type DockerError,
 } from './errors.mjs'
+import type { DockerInfo, DockerVersion } from './wire.mjs'
 
 const { after, before, describe, it } = test
 
@@ -48,31 +56,33 @@ const skip = host === undefined ? 'XO_DOCKER_TEST_SSH_HOST is not set' : false
 // a local TCP port on which nothing listens
 async function getClosedPort() {
   const server = createServer()
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
-  const { port } = server.address()
+  await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
+  // a TCP server: an `AddressInfo`
+  const { port } = server.address() as AddressInfo
   await new Promise(resolve => server.close(resolve))
   return port
 }
 
 describe('DockerConnection (real SSH + dockerd)', { skip }, () => {
-  let privateKey, badPrivateKey
-  const connections = []
+  let privateKey: Buffer, badPrivateKey: Buffer
+  const connections: DockerConnection[] = []
 
+  // `!`: the environment is set, the tests are skipped otherwise
   before(() => {
-    privateKey = readFileSync(keyPath)
-    badPrivateKey = readFileSync(badKeyPath)
+    privateKey = readFileSync(keyPath!)
+    badPrivateKey = readFileSync(badKeyPath!)
   })
 
   after(async () => {
     await Promise.all(connections.map(connection => connection.close()))
   })
 
-  const createConnection = (opts, internals) => {
+  const createConnection = (opts?: Partial<DockerConnectionOptions>, internals?: DockerConnectionInternals) => {
     const connection = new DockerConnection(
       {
-        host,
+        host: host!,
         port: Number(port),
-        username,
+        username: username!,
         privateKey,
         socketPath,
         hostKeyFingerprint: fingerprint,
@@ -87,7 +97,7 @@ describe('DockerConnection (real SSH + dockerd)', { skip }, () => {
   }
 
   describe('with the right fingerprint', () => {
-    let connection
+    let connection: DockerConnection
     before(async () => {
       connection = createConnection()
       await connection.connect()
@@ -95,14 +105,14 @@ describe('DockerConnection (real SSH + dockerd)', { skip }, () => {
 
     it('negotiates the API version', () => {
       assert.equal(connection.apiVersion, MAX_API_VERSION)
-      assert.match(connection.engineVersion, /^\d+\.\d+/)
-      assert.equal(connection.observedHostKey.fingerprint, fingerprint)
+      assert.match(connection.engineVersion!, /^\d+\.\d+/)
+      assert.equal(connection.observedHostKey!.fingerprint, fingerprint)
     })
 
     it('GET /version', async () => {
       const { statusCode, body } = await connection.request({ path: '/version' })
       assert.equal(statusCode, 200)
-      assert.equal(body.Version, connection.engineVersion)
+      assert.equal((body as DockerVersion).Version, connection.engineVersion)
     })
 
     it('GET /containers/json?all=1', async () => {
@@ -115,8 +125,8 @@ describe('DockerConnection (real SSH + dockerd)', { skip }, () => {
 
     it('GET /info', async () => {
       const { body } = await connection.request({ path: '/info' })
-      assert.equal(typeof body.ID, 'string')
-      assert.equal(typeof body.Containers, 'number')
+      assert.equal(typeof (body as DockerInfo).ID, 'string')
+      assert.equal(typeof (body as DockerInfo).Containers, 'number')
     })
 
     it('handles 10 concurrent requests', async () => {
@@ -129,9 +139,9 @@ describe('DockerConnection (real SSH + dockerd)', { skip }, () => {
     })
 
     it('reports Docker errors', async () => {
-      await assert.rejects(connection.request({ path: '/containers/xo-does-not-exist/json' }), error => {
+      await assert.rejects(connection.request({ path: '/containers/xo-does-not-exist/json' }), (error: DockerError) => {
         assert.equal(error.code, 'DOCKER_API_ERROR')
-        assert.equal(error.data.statusCode, 404)
+        assert.equal(error.data!.statusCode, 404)
         assert.match(error.message, /No such container/)
         return true
       })
@@ -154,7 +164,7 @@ describe('DockerConnection (real SSH + dockerd)', { skip }, () => {
   })
 
   it('recovers from SSH connection losses (no reuse of dead keep-alive channels, no leaked slots)', async () => {
-    const clients = []
+    const clients: SshClient[] = []
     const connection = createConnection(
       { requestTimeout: 2e3 },
       {
@@ -169,7 +179,7 @@ describe('DockerConnection (real SSH + dockerd)', { skip }, () => {
     for (let i = 0; i < 5; ++i) {
       await Promise.all([connection.request({ path: '/_ping' }), connection.request({ path: '/_ping' })])
       // simulate a network failure
-      clients.at(-1)._sock.destroy()
+      clients.at(-1)!._sock!.destroy()
       await new Promise(resolve => setTimeout(resolve, 100))
       const start = Date.now()
       const results = await Promise.all(
@@ -182,7 +192,7 @@ describe('DockerConnection (real SSH + dockerd)', { skip }, () => {
   })
 
   it('close() rejects queued requests with CONNECTION_CLOSED and does not reconnect', async () => {
-    const clients = []
+    const clients: SshClient[] = []
     const connection = createConnection(
       {},
       {
@@ -206,39 +216,39 @@ describe('DockerConnection (real SSH + dockerd)', { skip }, () => {
     }
     await new Promise(resolve => setTimeout(resolve, 200))
     assert.equal(clients.length, 1)
-    assert.equal(clients[0]._sock.destroyed, true)
+    assert.equal(clients[0]._sock!.destroyed, true)
   })
 
   it('fails with HOST_KEY_MISMATCH on a wrong fingerprint', async () => {
     const connection = createConnection({ hostKeyFingerprint: 'SHA256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' })
-    await assert.rejects(connection.connect(), error => {
+    await assert.rejects(connection.connect(), (error: DockerError) => {
       assert.equal(error.code, HOST_KEY_MISMATCH)
-      assert.equal(error.data.expected, 'SHA256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
-      assert.equal(error.data.actual, fingerprint)
+      assert.equal(error.data!.expected, 'SHA256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+      assert.equal(error.data!.actual, fingerprint)
       return true
     })
   })
 
   it('fails with HOST_KEY_UNKNOWN without fingerprint', async () => {
     const connection = createConnection({ hostKeyFingerprint: undefined })
-    await assert.rejects(connection.connect(), error => {
+    await assert.rejects(connection.connect(), (error: DockerError) => {
       assert.equal(error.code, HOST_KEY_UNKNOWN)
-      assert.equal(error.data.fingerprint, fingerprint)
-      assert.equal(error.data.algorithm, 'ssh-ed25519')
+      assert.equal(error.data!.fingerprint, fingerprint)
+      assert.equal(error.data!.algorithm, 'ssh-ed25519')
       return true
     })
-    assert.equal(connection.observedHostKey.fingerprint, fingerprint)
+    assert.equal(connection.observedHostKey!.fingerprint, fingerprint)
   })
 
   it('accepts an unknown host key when asked to', async () => {
     const connection = createConnection({ hostKeyFingerprint: undefined, acceptUnknownHostKey: true })
     await connection.connect()
-    assert.equal(connection.observedHostKey.fingerprint, fingerprint)
+    assert.equal(connection.observedHostKey!.fingerprint, fingerprint)
   })
 
   it('fails with SSH_AUTH_FAILED with a bad key', async () => {
     const connection = createConnection({ privateKey: badPrivateKey })
-    await assert.rejects(connection.connect(), error => {
+    await assert.rejects(connection.connect(), (error: DockerError) => {
       assert.equal(error.code, SSH_AUTH_FAILED)
       assert.doesNotMatch(JSON.stringify(error.data) + JSON.stringify(error.cause), /PRIVATE KEY/)
       return true
@@ -264,10 +274,10 @@ describe('DockerConnection (real SSH + dockerd)', { skip }, () => {
         hostKeyFingerprint: undefined,
         acceptUnknownHostKey: true,
       })
-      await assert.rejects(connection.connect(), error => {
+      await assert.rejects(connection.connect(), (error: DockerError) => {
         assert.equal(error.code, DOCKER_SOCKET_UNREACHABLE)
-        assert.equal(error.data.reason, 2)
-        assert.equal(error.data.description, 'open failed')
+        assert.equal(error.data!.reason, 2)
+        assert.equal(error.data!.description, 'open failed')
         return true
       })
     }

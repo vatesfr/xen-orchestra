@@ -3,6 +3,8 @@
 // name, host name, paths, engine ID) have been scrubbed. Do not edit by hand:
 // re-record them instead.
 
+import type { DockerInfo, DockerVersion } from '../wire.mjs'
+
 export const INFO = {
   Architecture: 'x86_64',
   BridgeNfIp6tables: false,
@@ -112,7 +114,7 @@ export const INFO = {
     'WARNING: No io.max (riops) support',
     'WARNING: No io.max (wiops) support',
   ],
-}
+} satisfies DockerInfo
 
 export const VERSION = {
   Platform: {
@@ -184,4 +186,4 @@ export const VERSION = {
   GoVersion: 'go1.26.8',
   KernelVersion: '6.12.101+deb13-amd64',
   BuildTime: '2026-09-15T16:27:24.000000000+00:00',
-}
+} satisfies DockerVersion

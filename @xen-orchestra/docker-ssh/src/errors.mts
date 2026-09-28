@@ -43,25 +43,32 @@ const SENSITIVE_KEYS = new Set(['passphrase', 'password', 'privateKey', 'authHan
 
 /**
  * Returns a shallow copy of `value` without any sensitive entries.
- *
- * @param {unknown} value
- * @returns {unknown}
  */
-export function scrub(value) {
+export function scrub(value: unknown): unknown {
   if (value === null || typeof value !== 'object' || Buffer.isBuffer(value)) {
     return value
   }
   if (Array.isArray(value)) {
     return value.map(scrub)
   }
-  const result = {}
+  const result: Record<string, unknown> = {}
   for (const key of Object.keys(value)) {
     if (!SENSITIVE_KEYS.has(key)) {
-      result[key] = scrub(value[key])
+      result[key] = scrub((value as Record<string, unknown>)[key])
     }
   }
   return result
 }
+
+/**
+ * Error kept as the `cause` of a DockerError: a clean copy of the original one
+ * (see `sanitizeCause()`), with the diagnosis fields of ssh2 and Node errors
+ * (`code`, `level`, `reason`…).
+ */
+export type DockerErrorCause = Error & Record<string, unknown>
+
+// fields of an ssh2 (or Node) error kept by `sanitizeCause()`
+const CAUSE_KEYS = ['code', 'level', 'reason', 'description', 'errno', 'syscall', 'address', 'port', 'fatal'] as const
 
 /**
  * Copy of an ssh2 error that only keeps the fields useful for diagnosis.
@@ -69,23 +76,21 @@ export function scrub(value) {
  * ssh2 errors do not reference the connection config in this version but
  * nothing prevents a future version (or some intermediate code) to attach it,
  * so rebuild a clean error instead of keeping the original object.
- *
- * @param {unknown} error
- * @returns {Error | undefined}
  */
-function sanitizeCause(error) {
+function sanitizeCause(error: unknown): DockerErrorCause | undefined {
   if (error === undefined || error === null) {
     return undefined
   }
   if (!(error instanceof Error)) {
-    return new Error(String(error))
+    return new Error(String(error)) as DockerErrorCause
   }
-  const copy = new Error(error.message)
+  const copy = new Error(error.message) as DockerErrorCause
   copy.name = error.name
   copy.stack = error.stack
-  for (const key of ['code', 'level', 'reason', 'description', 'errno', 'syscall', 'address', 'port', 'fatal']) {
-    if (error[key] !== undefined) {
-      copy[key] = error[key]
+  for (const key of CAUSE_KEYS) {
+    const value = (error as DockerErrorCause)[key]
+    if (value !== undefined) {
+      copy[key] = value
     }
   }
   if (error.cause !== undefined) {
@@ -94,30 +99,38 @@ function sanitizeCause(error) {
   return copy
 }
 
+/** Non-sensitive details of a DockerError (sensitive keys are removed, see `scrub()`) */
+export type DockerErrorData = Record<string, unknown>
+
 export class DockerError extends Error {
+  // `declare`: no class fields, which would define the properties (even
+  // `undefined` ones) before the constructor assigns them
+  declare code: string
+  declare data?: DockerErrorData
+  declare cause?: DockerErrorCause
+
   /**
-   * @param {string} code one of the exported codes
-   * @param {string} message
-   * @param {{ data?: object, cause?: unknown }} [opts]
+   * @param code one of the exported codes
    */
-  constructor(code, message, { data, cause } = {}) {
+  constructor(code: string, message: string, { data, cause }: { data?: object; cause?: unknown } = {}) {
     const sanitizedCause = sanitizeCause(cause)
     super(message, sanitizedCause === undefined ? undefined : { cause: sanitizedCause })
     this.name = 'DockerError'
     this.code = code
     if (data !== undefined) {
-      this.data = scrub(data)
+      this.data = scrub(data) as DockerErrorData
     }
   }
 }
 
-/**
- * @param {unknown} error
- * @returns {error is DockerError}
- */
-export const isDockerError = error => error instanceof DockerError
+export const isDockerError = (error: unknown): error is DockerError => error instanceof DockerError
 
-const isAbortOrTimeout = error => error?.name === 'AbortError' || error?.name === 'TimeoutError'
+// the properties of an unknown error which are looked at (reading them on a
+// primitive gives `undefined`)
+type ErrorLike = { name?: unknown; message?: unknown; level?: unknown; reason?: unknown } | null | undefined
+
+const isAbortOrTimeout = (error: unknown) =>
+  (error as ErrorLike)?.name === 'AbortError' || (error as ErrorLike)?.name === 'TimeoutError'
 
 /**
  * Convert an error raised by ssh2 (or by the transport around it) to a
@@ -125,22 +138,24 @@ const isAbortOrTimeout = error => error?.name === 'AbortError' || error?.name ==
  *
  * Already converted errors are returned as is.
  *
- * @param {unknown} error
- * @param {{ host?: string, port?: number, socketPath?: string }} [context] non-sensitive context added to `data`
- * @returns {DockerError}
+ * @param context non-sensitive context added to `data`
  */
-export function fromSshError(error, context = {}) {
+export function fromSshError(
+  error: unknown,
+  context: { host?: string; port?: number; socketPath?: string } = {}
+): DockerError {
   if (isDockerError(error)) {
     return error
   }
 
-  const data = { ...context }
+  const data: DockerErrorData = { ...context }
+  const errorLike = error as ErrorLike
 
   if (isAbortOrTimeout(error)) {
     return new DockerError(TIMEOUT, 'operation timed out or was aborted', { data, cause: error })
   }
 
-  const level = error?.level
+  const level = errorLike?.level
   if (level === 'client-authentication') {
     return new DockerError(SSH_AUTH_FAILED, 'SSH authentication failed', { data, cause: error })
   }
@@ -158,10 +173,10 @@ export function fromSshError(error, context = {}) {
   // `reason` is the numeric code from SSH_MSG_CHANNEL_OPEN_FAILURE, or `''`
   // when the server closed the channel instead of answering. The server's
   // description is only available in the message (no dedicated property).
-  const reason = error?.reason
+  const reason = errorLike?.reason
   if (reason !== undefined) {
     data.reason = reason
-    data.description = String(error.message).replace(/^\(SSH\) Channel open failure: /, '')
+    data.description = String(errorLike!.message).replace(/^\(SSH\) Channel open failure: /, '')
     if (reason === SSH_OPEN_ADMINISTRATIVELY_PROHIBITED) {
       return new DockerError(
         STREAM_LOCAL_FORWARDING_DISABLED,
@@ -192,14 +207,15 @@ export function fromSshError(error, context = {}) {
 
   // thrown synchronously by `Client#connect()` when the key cannot be used
   // (unparsable, wrong passphrase…), the message does not contain the key
+  const message = errorLike?.message
   if (
-    typeof error?.message === 'string' &&
-    (error.message.startsWith('Cannot parse privateKey') || error.message.startsWith('privateKey value does not'))
+    typeof message === 'string' &&
+    (message.startsWith('Cannot parse privateKey') || message.startsWith('privateKey value does not'))
   ) {
     return new DockerError(SSH_AUTH_FAILED, 'the SSH private key cannot be used', { data, cause: error })
   }
 
-  if (typeof error?.message === 'string' && error.message.startsWith('strictVendor enabled')) {
+  if (typeof message === 'string' && message.startsWith('strictVendor enabled')) {
     return new DockerError(STREAM_LOCAL_UNSUPPORTED, 'the SSH server does not support stream local forwarding', {
       data,
       cause: error,

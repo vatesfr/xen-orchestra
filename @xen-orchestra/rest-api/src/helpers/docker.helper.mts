@@ -7,8 +7,8 @@ const log = createLogger('xo:rest-api:docker')
 
 /**
  * Shape of the `DockerError`s thrown by xo-server's Docker transport
- * (`packages/xo-server/src/_docker/errors.mjs`), which cannot be imported
- * here: they are recognized by their name and string code.
+ * (`@xen-orchestra/docker-ssh`, which is not a dependency of this package):
+ * they are recognized by their name and string code.
  */
 export type DockerErrorLike = Error & { code: string; data?: Record<string, unknown> }
 

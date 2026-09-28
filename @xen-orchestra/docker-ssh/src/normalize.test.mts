@@ -19,14 +19,18 @@ import {
   parseContainerStatus,
   parseDockerDate,
 } from './normalize.mjs'
+import type { DockerCpuStats, DockerStatsSample } from './wire.mjs'
 
 const { describe, it } = test
 
-const clone = value => JSON.parse(JSON.stringify(value))
+// the copies of stats are typed `DockerStatsSample`, whose values are `unknown`:
+// the tests change them like a hostile daemon would
+const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value))
 
-const listEntry = name => CONTAINER_LIST.find(entry => entry.Names.includes('/' + name))
-const listed = name => normalizeContainerListEntry(listEntry(name))
-const inspected = name => normalizeContainerInspect(INSPECT_BY_NAME[name])
+// `!`: the fixtures contain these containers
+const listEntry = (name: string) => CONTAINER_LIST.find(entry => entry.Names!.includes('/' + name))!
+const listed = (name: string) => normalizeContainerListEntry(listEntry(name))
+const inspected = (name: string) => normalizeContainerInspect(INSPECT_BY_NAME[name])
 
 describe('parseDockerDate()', () => {
   it('parses RFC 3339 dates with nanoseconds', () => {
@@ -57,7 +61,7 @@ describe('getContainerName()', () => {
 })
 
 describe('parseContainerStatus()', () => {
-  const cases = [
+  const cases: [string | undefined, object][] = [
     ['Exited (3) 2 minutes ago', { exitCode: 3 }],
     ['Exited (0) 8 seconds ago', { exitCode: 0 }],
     ['Exited (137) About an hour ago', { exitCode: 137 }],
@@ -82,9 +86,9 @@ describe('parseContainerStatus()', () => {
   it('parses the real statuses', () => {
     for (const entry of CONTAINER_LIST) {
       const { exitCode } = parseContainerStatus(entry.Status)
-      const inspect = INSPECT_BY_NAME[getContainerName(entry.Names)]
+      const inspect = INSPECT_BY_NAME[getContainerName(entry.Names)!]
       if (entry.State === 'exited') {
-        assert.equal(exitCode, inspect.State.ExitCode)
+        assert.equal(exitCode, inspect.State!.ExitCode)
       } else {
         assert.equal(exitCode, undefined)
       }
@@ -153,7 +157,7 @@ describe('getComposeInfo()', () => {
       configFiles: ['/srv/compose-demo/compose.yaml'],
     })
     assert.deepEqual(inspected('demo-web-1').compose, listed('demo-web-1').compose)
-    assert.equal(listed('demo-cache-1').compose.service, 'cache')
+    assert.equal(listed('demo-cache-1').compose!.service, 'cache')
   })
 
   it('is undefined outside of a Compose project', () => {
@@ -235,19 +239,19 @@ describe('normalizeContainerListEntry()', () => {
 describe('normalizeContainerInspect()', () => {
   it('is consistent with the list entry', () => {
     for (const entry of CONTAINER_LIST) {
-      const name = getContainerName(entry.Names)
+      const name = getContainerName(entry.Names)!
       const { status, createdAt, ...fromList } = normalizeContainerListEntry(entry)
       const fromInspect = inspected(name)
       for (const [key, value] of Object.entries(fromList)) {
-        assert.deepEqual(fromInspect[key], value, `${name}: ${key}`)
+        assert.deepEqual(fromInspect[key as keyof typeof fromInspect], value, `${name}: ${key}`)
       }
-      assert.equal(Math.floor(fromInspect.createdAt / 1e3) * 1e3, createdAt)
+      assert.equal(Math.floor(fromInspect.createdAt! / 1e3) * 1e3, createdAt)
     }
   })
 
   it('gives the details of a running container', () => {
     const container = inspected('xo-cap-busy')
-    assert.equal(container.startedAt, Date.parse(INSPECT_BY_NAME['xo-cap-busy'].State.StartedAt))
+    assert.equal(container.startedAt, Date.parse(INSPECT_BY_NAME['xo-cap-busy'].State!.StartedAt!))
     assert.equal(container.finishedAt, undefined)
     assert.deepEqual(container.restartPolicy, { name: 'unless-stopped', maximumRetryCount: 0 })
     assert.equal(container.restartCount, 0)
@@ -258,7 +262,7 @@ describe('normalizeContainerInspect()', () => {
   })
 
   it('never exposes the environment', () => {
-    assert.ok(INSPECT_BY_NAME['xo-cap-busy'].Config.Env.includes('SECRET_TOKEN=hunter2'))
+    assert.ok(INSPECT_BY_NAME['xo-cap-busy'].Config!.Env!.includes('SECRET_TOKEN=hunter2'))
     assert.doesNotMatch(JSON.stringify(inspected('xo-cap-busy')), /hunter2|SECRET_TOKEN/)
     assert.doesNotMatch(JSON.stringify(listed('xo-cap-busy')), /hunter2|SECRET_TOKEN/)
   })
@@ -285,25 +289,25 @@ describe('normalizeContainerInspect()', () => {
 
   it('gives the health check status', () => {
     const healthy = inspected('xo-healthy')
-    const log = INSPECT_BY_NAME['xo-healthy'].State.Health.Log
+    const log = INSPECT_BY_NAME['xo-healthy'].State!.Health!.Log!
     assert.equal(healthy.health, 'healthy')
     assert.deepEqual(healthy.healthCheck, {
       failingStreak: 0,
-      lastCheckAt: Date.parse(log.at(-1).End),
+      lastCheckAt: Date.parse(log.at(-1)!.End!),
       lastExitCode: 0,
     })
     const unhealthy = inspected('xo-unhealthy')
     assert.equal(unhealthy.health, 'unhealthy')
-    assert.ok(unhealthy.healthCheck.failingStreak > 0)
-    assert.equal(unhealthy.healthCheck.lastExitCode, 1)
+    assert.ok(unhealthy.healthCheck!.failingStreak > 0)
+    assert.equal(unhealthy.healthCheck!.lastExitCode, 1)
   })
 
   it('handles missing optional parts (old API versions)', () => {
     const data = clone(INSPECT_BY_NAME['xo-nginx'])
-    delete data.HostConfig.RestartPolicy
+    delete data.HostConfig!.RestartPolicy
     delete data.NetworkSettings
     delete data.Mounts
-    delete data.Config.Labels
+    delete data.Config!.Labels
     const container = normalizeContainerInspect(data)
     assert.deepEqual(container.restartPolicy, { name: 'no', maximumRetryCount: 0 })
     assert.deepEqual(container.ports, [])
@@ -324,7 +328,7 @@ describe('computeCpuPercent()', () => {
         6 *
         100
     )
-    assert.ok(cpuPercent > 95 && cpuPercent < 105, String(cpuPercent))
+    assert.ok(cpuPercent! > 95 && cpuPercent! < 105, String(cpuPercent))
   })
 
   it('gives 0 for an idle container', () => {
@@ -333,23 +337,23 @@ describe('computeCpuPercent()', () => {
   })
 
   it('falls back to percpu_usage when online_cpus is missing', () => {
-    const cpu = clone(STATS_BUSY.cpu_stats)
-    const precpu = clone(STATS_BUSY.precpu_stats)
+    const cpu = clone<DockerCpuStats>(STATS_BUSY.cpu_stats)
+    const precpu = clone<DockerCpuStats>(STATS_BUSY.precpu_stats)
     delete cpu.online_cpus
     delete precpu.online_cpus
-    cpu.cpu_usage.percpu_usage = [1, 2, 3, 4]
+    cpu.cpu_usage!.percpu_usage = [1, 2, 3, 4]
     const { cpuPercent, onlineCpus } = computeCpuPercent(cpu, precpu)
     assert.equal(onlineCpus, 4)
-    const expected = (computeCpuPercent(STATS_BUSY.cpu_stats, STATS_BUSY.precpu_stats).cpuPercent * 4) / 6
-    assert.ok(Math.abs(cpuPercent - expected) < 1e-9, `${cpuPercent} ≠ ${expected}`)
+    const expected = (computeCpuPercent(STATS_BUSY.cpu_stats, STATS_BUSY.precpu_stats).cpuPercent! * 4) / 6
+    assert.ok(Math.abs(cpuPercent! - expected) < 1e-9, `${cpuPercent} ≠ ${expected}`)
 
-    delete cpu.cpu_usage.percpu_usage
+    delete cpu.cpu_usage!.percpu_usage
     assert.deepEqual(computeCpuPercent(cpu, precpu), { cpuPercent: null, onlineCpus: undefined })
   })
 
   it('gives null, not Infinity, when system_cpu_usage is 0', () => {
-    const cpu = clone(STATS_BUSY.cpu_stats)
-    const precpu = clone(STATS_BUSY.precpu_stats)
+    const cpu = clone<DockerCpuStats>(STATS_BUSY.cpu_stats)
+    const precpu = clone<DockerCpuStats>(STATS_BUSY.precpu_stats)
     precpu.system_cpu_usage = 0
     assert.equal(computeCpuPercent(cpu, precpu).cpuPercent, null)
     precpu.system_cpu_usage = cpu.system_cpu_usage
@@ -367,8 +371,8 @@ describe('computeCpuPercent()', () => {
   })
 
   it('gives null when the counters went backwards', () => {
-    const cpu = clone(STATS_BUSY.cpu_stats)
-    cpu.cpu_usage.total_usage = 0
+    const cpu = clone<DockerCpuStats>(STATS_BUSY.cpu_stats)
+    cpu.cpu_usage!.total_usage = 0
     assert.equal(computeCpuPercent(cpu, STATS_BUSY.precpu_stats).cpuPercent, null)
   })
 
@@ -469,15 +473,15 @@ describe('normalizeContainerStats()', () => {
   })
 
   it('sums the block I/O (cgroup v1 and v2 op names) and the network interfaces', () => {
-    const stats = clone(STATS_NGINX_IDLE)
-    stats.blkio_stats.io_service_bytes_recursive = [
+    const stats = clone<DockerStatsSample>(STATS_NGINX_IDLE)
+    stats.blkio_stats!.io_service_bytes_recursive = [
       { major: 8, minor: 0, op: 'Read', value: 100 },
       { major: 8, minor: 0, op: 'Write', value: 10 },
       { major: 8, minor: 16, op: 'read', value: 200 },
       { major: 8, minor: 16, op: 'write', value: 20 },
       { major: 8, minor: 16, op: 'Total', value: 330 },
     ]
-    stats.networks.eth1 = { rx_bytes: 1, tx_bytes: 2 }
+    ;(stats.networks as Record<string, unknown>).eth1 = { rx_bytes: 1, tx_bytes: 2 }
     const { blockRead, blockWrite, networkRx, networkTx } = normalizeContainerStats(stats)
     assert.deepEqual(
       { blockRead, blockWrite, networkRx, networkTx },
@@ -501,7 +505,7 @@ describe('normalizeContainerStats()', () => {
   // come out, never strings (concatenated by the sums), objects or NaN/Infinity
   describe('hostile values', () => {
     const HOSTILE = ['1000', '', 'x', NaN, Infinity, -Infinity, { valueOf: 1 }, [1], true, null, 1e308]
-    const assertOnlyFinite = normalized => {
+    const assertOnlyFinite = (normalized: object) => {
       for (const [key, value] of Object.entries(normalized)) {
         assert.ok(
           value === null || value === undefined || (typeof value === 'number' && Number.isFinite(value)),
@@ -512,8 +516,8 @@ describe('normalizeContainerStats()', () => {
 
     it('in the block I/O and network sums', () => {
       for (const hostile of HOSTILE) {
-        const stats = clone(STATS_NGINX_IDLE)
-        stats.blkio_stats.io_service_bytes_recursive = [
+        const stats = clone<DockerStatsSample>(STATS_NGINX_IDLE)
+        stats.blkio_stats!.io_service_bytes_recursive = [
           { op: 'Read', value: 100 },
           { op: 'Read', value: hostile },
           { op: 'Write', value: hostile },
@@ -531,8 +535,8 @@ describe('normalizeContainerStats()', () => {
     })
 
     it('in the entries themselves (non-object entries, op not a string)', () => {
-      const stats = clone(STATS_NGINX_IDLE)
-      stats.blkio_stats.io_service_bytes_recursive = [null, 'x', 1, { op: 1, value: 1 }, { op: 'read', value: 2 }]
+      const stats = clone<DockerStatsSample>(STATS_NGINX_IDLE)
+      stats.blkio_stats!.io_service_bytes_recursive = [null, 'x', 1, { op: 1, value: 1 }, { op: 'read', value: 2 }]
       stats.networks = { eth0: null, eth1: 'x', eth2: { rx_bytes: 3, tx_bytes: 4 } }
       const normalized = normalizeContainerStats(stats)
       assert.equal(normalized.blockRead, 2)
@@ -552,19 +556,19 @@ describe('normalizeContainerStats()', () => {
     it('in the CPU and memory counters, online_cpus and pids', () => {
       for (const hostile of HOSTILE) {
         for (const set of [
-          s => (s.cpu_stats.online_cpus = hostile),
-          s => (s.cpu_stats.cpu_usage.total_usage = hostile),
-          s => (s.precpu_stats.cpu_usage.total_usage = hostile),
-          s => (s.cpu_stats.system_cpu_usage = hostile),
-          s => (s.precpu_stats.system_cpu_usage = hostile),
-          s => (s.cpu_stats.cpu_usage.percpu_usage = hostile),
-          s => (s.memory_stats.usage = hostile),
-          s => (s.memory_stats.limit = hostile),
-          s => (s.memory_stats.stats.inactive_file = hostile),
-          s => (s.pids_stats.current = hostile),
-          s => (s.read = hostile),
+          (s: DockerStatsSample) => (s.cpu_stats!.online_cpus = hostile),
+          (s: DockerStatsSample) => (s.cpu_stats!.cpu_usage!.total_usage = hostile),
+          (s: DockerStatsSample) => (s.precpu_stats!.cpu_usage!.total_usage = hostile),
+          (s: DockerStatsSample) => (s.cpu_stats!.system_cpu_usage = hostile),
+          (s: DockerStatsSample) => (s.precpu_stats!.system_cpu_usage = hostile),
+          (s: DockerStatsSample) => (s.cpu_stats!.cpu_usage!.percpu_usage = hostile),
+          (s: DockerStatsSample) => (s.memory_stats!.usage = hostile),
+          (s: DockerStatsSample) => (s.memory_stats!.limit = hostile),
+          (s: DockerStatsSample) => ((s.memory_stats!.stats as Record<string, unknown>).inactive_file = hostile),
+          (s: DockerStatsSample) => (s.pids_stats!.current = hostile),
+          (s: DockerStatsSample) => (s.read = hostile),
         ]) {
-          const stats = clone(STATS_BUSY)
+          const stats = clone<DockerStatsSample>(STATS_BUSY)
           set(stats)
           assertOnlyFinite(normalizeContainerStats(stats))
         }
@@ -572,17 +576,17 @@ describe('normalizeContainerStats()', () => {
     })
 
     it('does not accept numeric strings for online_cpus', () => {
-      const stats = clone(STATS_BUSY)
-      stats.cpu_stats.online_cpus = '4'
-      delete stats.cpu_stats.cpu_usage.percpu_usage
+      const stats = clone<DockerStatsSample>(STATS_BUSY)
+      stats.cpu_stats!.online_cpus = '4'
+      delete stats.cpu_stats!.cpu_usage!.percpu_usage
       const normalized = normalizeContainerStats(stats)
       assert.equal(normalized.onlineCpus, undefined)
       assert.equal(normalized.cpuPercent, null)
     })
 
     it('huge values which overflow give null, not Infinity', () => {
-      const stats = clone(STATS_BUSY)
-      stats.cpu_stats.online_cpus = 1e308
+      const stats = clone<DockerStatsSample>(STATS_BUSY)
+      stats.cpu_stats!.online_cpus = 1e308
       stats.memory_stats = { usage: 1e308, limit: 1e-300, stats: {} }
       const normalized = normalizeContainerStats(stats)
       assertOnlyFinite(normalized)
