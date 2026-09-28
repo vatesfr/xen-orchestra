@@ -21,12 +21,7 @@ export function useDockerContainerDelete(
 
   const { t } = useI18n()
 
-  const {
-    run,
-    canRun: canDeleteDockerContainer,
-    isRunning: isDeletingDockerContainer,
-    errorMessage: deleteDockerContainerErrorMessage,
-  } = useXoDockerContainerDeleteJob(container)
+  const { run, isRunning: isDeletingDockerContainer } = useXoDockerContainerDeleteJob(container)
 
   const { dockerContainerActionError, clearDockerContainerActionError } = useDockerContainerActionError()
 
@@ -72,8 +67,6 @@ export function useDockerContainerDelete(
 
   return {
     deleteDockerContainer,
-    canDeleteDockerContainer,
     isDeletingDockerContainer,
-    deleteDockerContainerErrorMessage,
   }
 }

@@ -1,13 +1,21 @@
-import {
-  DOCKER_STATUS,
-  type DockerHostKeyErrorData,
-  type DockerStatus,
-  type FrontXoDockerContainer,
-  type FrontXoDockerEngine,
-  type FrontXoDockerEngineInfo,
+import type {
+  DockerHostKeyErrorData,
+  DockerStopConfirmedRestartPolicy,
+  FrontXoDockerContainer,
 } from '@/modules/docker/types/docker.type.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { ApiError } from '@/shared/error/api.error.ts'
+import { IPV4_REGEX, IPV6_REGEX } from '@core/packages/form-validation/custom-rules/ip.regex.ts'
+import { type IpAddress, isIpv6 } from '@core/utils/ip-address.utils.ts'
 import type { XoDockerContainerAction, XoDockerContainerState, XoDockerLogEntry, XoDockerPort } from '@vates/types'
+
+function isIpAddress(value: string): value is IpAddress {
+  return IPV4_REGEX.test(value) || IPV6_REGEX.test(value)
+}
+
+function isIpv4Address(value: string | undefined): value is IpAddress {
+  return value !== undefined && isIpAddress(value) && !isIpv6(value)
+}
 
 /**
  * Addresses to offer for the SSH connection to a VM: its IPv4 addresses
@@ -18,16 +26,14 @@ import type { XoDockerContainerAction, XoDockerContainerState, XoDockerLogEntry,
 export function getVmSshCandidateAddresses(vm: Pick<FrontXoVm, 'addresses' | 'mainIpAddress'>): string[] {
   const addresses = new Set<string>()
 
-  if (vm.mainIpAddress !== undefined && vm.mainIpAddress !== '' && !vm.mainIpAddress.includes(':')) {
+  if (isIpv4Address(vm.mainIpAddress)) {
     addresses.add(vm.mainIpAddress)
   }
 
   for (const [key, address] of Object.entries(vm.addresses ?? {})) {
-    if (/\/ipv6\//.test(key) || address.includes(':')) {
-      continue
+    if (!/\/ipv6\//.test(key) && isIpv4Address(address)) {
+      addresses.add(address)
     }
-
-    addresses.add(address)
   }
 
   return [...addresses]
@@ -149,14 +155,17 @@ export function getContainerPrimaryAction(state: XoDockerContainerState): XoDock
 /**
  * Docker restarts a container with these policies as soon as it stops on its
  * own, and a user stopping it could believe the action failed: confirm first.
+ * Returns the policy to confirm, `undefined` when stopping needs no confirmation.
  *
  * (A manual `docker stop` is honoured by dockerd: it is not restarted until
  * the daemon restarts, or at all with `unless-stopped`.)
  */
-export function shouldConfirmContainerStop(container: Pick<FrontXoDockerContainer, 'restartPolicy'>): boolean {
+export function getStopConfirmedRestartPolicy(
+  container: Pick<FrontXoDockerContainer, 'restartPolicy'>
+): DockerStopConfirmedRestartPolicy | undefined {
   const policy = container.restartPolicy?.name
 
-  return policy === 'always' || policy === 'unless-stopped'
+  return policy === 'always' || policy === 'unless-stopped' ? policy : undefined
 }
 
 export type ContainerStateAccent = 'success' | 'warning' | 'danger' | 'muted'
@@ -213,38 +222,42 @@ export type DockerApiErrorInfo = {
   retryAfter?: number
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+/**
+ * `data` of the body of an `ApiError`: the REST API answers `{ error, data: { code, … } }`
+ */
+function getApiErrorData(error: ApiError): Record<string, unknown> {
+  const data = error.cause?.data
+
+  return isRecord(data) ? data : {}
+}
+
 /**
  * What an `ApiError` thrown by `fetchRequest` says: the REST API answers
  * `{ error, data: { code, … } }`; `SSH_COOLDOWN` carries `data.retryAfter`
  * (like the `Retry-After` header, which `fetchRequest` does not expose).
  */
 export function parseDockerApiError(error: unknown): DockerApiErrorInfo {
-  if (typeof error !== 'object' || error === null) {
-    return { message: String(error) }
+  if (!(error instanceof ApiError)) {
+    return { message: error instanceof Error ? error.message : String(error) }
   }
 
-  const { status, cause, message } = error as { status?: unknown; cause?: unknown; message?: unknown }
-  const body = (typeof cause === 'object' && cause !== null ? cause : {}) as {
-    error?: unknown
-    message?: unknown
-    data?: Record<string, unknown>
-  }
-  const data = body.data ?? {}
-  const retryAfter = data.retryAfter
+  const { status, cause, message } = error
+  const data = getApiErrorData(error)
+  const { code, retryAfter } = data
 
   return {
-    status: typeof status === 'number' ? status : undefined,
-    code: typeof data.code === 'string' ? data.code : undefined,
+    status,
+    code: typeof code === 'string' ? code : undefined,
     message:
-      typeof body.error === 'string'
-        ? body.error
-        : typeof body.message === 'string'
-          ? body.message
-          : String(message ?? error),
+      typeof cause?.error === 'string' ? cause.error : typeof cause?.message === 'string' ? cause.message : message,
     retryAfter:
       typeof retryAfter === 'number' && retryAfter > 0
         ? Math.ceil(retryAfter)
-        : status === 429 || data.code === 'SSH_COOLDOWN'
+        : status === 429 || code === 'SSH_COOLDOWN'
           ? 1
           : undefined,
   }
@@ -299,36 +312,22 @@ export function summarizeContainers(containers: Pick<FrontXoDockerContainer, 'st
 }
 
 /**
- * Status of the Docker engine of a VM: `not-configured` without engine, else
- * the status reported by its info (`undefined` while unknown).
- */
-export function getDockerStatus(
-  engine: FrontXoDockerEngine | undefined,
-  info: Pick<FrontXoDockerEngineInfo, 'status'> | undefined
-): DockerStatus | undefined {
-  if (engine === undefined) {
-    return DOCKER_STATUS.NOT_CONFIGURED
-  }
-
-  return info?.status
-}
-
-/**
  * The host key data of a 409 of `POST`/`PATCH /docker-engines`, if it is one
  */
 export function getHostKeyErrorData(error: unknown): DockerHostKeyErrorData | undefined {
-  if (typeof error !== 'object' || error === null || (error as { status?: unknown }).status !== 409) {
+  if (!(error instanceof ApiError) || error.status !== 409) {
     return undefined
   }
 
-  const data = (error as { cause?: { data?: Record<string, unknown> } }).cause?.data
+  const { code, fingerprint, expected, actual, algorithm } = getApiErrorData(error)
+  const algorithmData = typeof algorithm === 'string' ? { algorithm } : {}
 
-  if (data?.code === 'HOST_KEY_UNKNOWN' && typeof data.fingerprint === 'string') {
-    return data as DockerHostKeyErrorData
+  if (code === 'HOST_KEY_UNKNOWN' && typeof fingerprint === 'string') {
+    return { code, fingerprint, ...algorithmData }
   }
 
-  if (data?.code === 'HOST_KEY_MISMATCH' && typeof data.actual === 'string') {
-    return data as DockerHostKeyErrorData
+  if (code === 'HOST_KEY_MISMATCH' && typeof expected === 'string' && typeof actual === 'string') {
+    return { code, expected, actual, ...algorithmData }
   }
 
   return undefined

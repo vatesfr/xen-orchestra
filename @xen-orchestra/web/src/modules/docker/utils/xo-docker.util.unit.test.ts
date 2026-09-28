@@ -1,4 +1,3 @@
-import { DOCKER_STATUS } from '@/modules/docker/types/docker.type.ts'
 import {
   buildPublishedPortUrl,
   canDeleteContainer,
@@ -9,19 +8,18 @@ import {
   getContainerDisplayName,
   getContainerPrimaryAction,
   getContainerStateAccent,
-  getDockerStatus,
   getHostKeyErrorData,
+  getStopConfirmedRestartPolicy,
   getVmSshCandidateAddresses,
   isSshFingerprint,
   isSshPrivateKey,
   getPublishedPortToOpen,
   parseDockerApiError,
   shortContainerId,
-  shouldConfirmContainerStop,
   summarizeContainers,
 } from '@/modules/docker/utils/xo-docker.util.ts'
 import { ApiError } from '@/shared/error/api.error.ts'
-import { createDockerContainer, createDockerEngine } from '@/test/create-docker-container.ts'
+import { createDockerContainer } from '@/test/create-docker-container.ts'
 
 describe('getVmSshCandidateAddresses', () => {
   it('keeps the IPv4 addresses, deduplicated, the main one first', () => {
@@ -149,20 +147,6 @@ describe('summarizeContainers', () => {
   })
 })
 
-describe('getDockerStatus', () => {
-  it('is not-configured without engine', () => {
-    expect(getDockerStatus(undefined, undefined)).toBe(DOCKER_STATUS.NOT_CONFIGURED)
-  })
-
-  it('is the status of the info of the engine', () => {
-    expect(getDockerStatus(createDockerEngine(), { status: 'unreachable' })).toBe(DOCKER_STATUS.UNREACHABLE)
-  })
-
-  it('is unknown while the info is loading', () => {
-    expect(getDockerStatus(createDockerEngine(), undefined)).toBeUndefined()
-  })
-})
-
 describe('getHostKeyErrorData', () => {
   const conflict = (data: Record<string, unknown>) =>
     new ApiError('Conflict', { status: 409, cause: { error: 'the SSH host key is unknown', data } })
@@ -181,6 +165,7 @@ describe('getHostKeyErrorData', () => {
 
   it('ignores the other errors', () => {
     expect(getHostKeyErrorData(conflict({ objectId: 'engine-1', objectType: 'docker-engine' }))).toBeUndefined()
+    expect(getHostKeyErrorData(conflict({ code: 'HOST_KEY_MISMATCH', actual: 'SHA256:new' }))).toBeUndefined()
     expect(
       getHostKeyErrorData(new ApiError('Bad Gateway', { status: 502, cause: { data: { code: 'SSH_AUTH_FAILED' } } }))
     ).toBeUndefined()
@@ -218,16 +203,16 @@ describe('getContainerPrimaryAction', () => {
 })
 
 it.each([
-  ['always', true],
-  ['unless-stopped', true],
-  ['on-failure', false],
-  ['no', false],
-])('shouldConfirmContainerStop with the restart policy %s is %s', (name, expected) => {
-  expect(shouldConfirmContainerStop({ restartPolicy: { name, maximumRetryCount: 0 } })).toBe(expected)
+  ['always', 'always'],
+  ['unless-stopped', 'unless-stopped'],
+  ['on-failure', undefined],
+  ['no', undefined],
+])('getStopConfirmedRestartPolicy with the restart policy %s is %s', (name, expected) => {
+  expect(getStopConfirmedRestartPolicy({ restartPolicy: { name, maximumRetryCount: 0 } })).toBe(expected)
 })
 
-it('shouldConfirmContainerStop does not confirm without restart policy', () => {
-  expect(shouldConfirmContainerStop({ restartPolicy: undefined })).toBe(false)
+it('getStopConfirmedRestartPolicy does not confirm without restart policy', () => {
+  expect(getStopConfirmedRestartPolicy({ restartPolicy: undefined })).toBeUndefined()
 })
 
 describe('getContainerStateAccent', () => {
