@@ -5,6 +5,13 @@
  * - rejections are not cached
  * - expired entries are only removed by `sweep()`, `delete()` or
  *   `deleteByPrefix()`: call `sweep()` periodically
+ * - a value fetched while its key is deleted is not cached (the caller still
+ *   gets it)
+ *
+ * Not `lru-cache` (whose `fetch()` has the rest, with `ignoreFetchAbort`): its
+ * `keys()` does not list pending fetches, so `deleteByPrefix()` could not drop
+ * them, and a list fetched with an engine's previous credentials would be
+ * cached after the credentials change (checked with lru-cache 11.5).
  */
 type Entry = { promise: Promise<unknown>; value: unknown; expiresAt: number | undefined }
 
