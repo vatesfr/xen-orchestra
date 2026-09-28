@@ -14,10 +14,12 @@
 - [RPU] A rolling pool update is now refused while a previous one is still in progress or was left incomplete, and asks for confirmation when the master is already up to date but other hosts are not (PR [#10394](https://github.com/vatesfr/xen-orchestra/pull/10394))
 - [RPU] An incomplete rolling pool update can now be closed from the pool's Patches tab, or with `pool.finalizeRollingUpdate` and the REST route `POST /rest/v0/pools/{id}/actions/finalize_rolling_update`. The closing is refused while the update left something it had changed unrestored (HA, WLB, load balancer, backup schedules, disabled hosts, displaced or halted VMs); forcing it lists the abandoned items in the task and changes nothing in the pool (PR [#10418](https://github.com/vatesfr/xen-orchestra/pull/10418))
 - [RPU] Keep track of an interrupted rolling pool update across xo-server restarts: the pool's Patches tab now shows which hosts were updated, the last error, and the VMs that were shut down for the update and not started again (PR [#10331](https://github.com/vatesfr/xen-orchestra/pull/10331))
+- [RPU] Keeping track of an interrupted rolling pool update, refusing a new one until it is closed, and closing it from the pool's Patches tab only apply to XCP-ng and XenServer 8.4+ pools. Older XenServer and Citrix Hypervisor pools are updated as before (PR [#10447](https://github.com/vatesfr/xen-orchestra/pull/10447))
 
 - [Web-Core/TabItem] Update the component to remove uppercase for better readability (PR [#10338](https://github.com/vatesfr/xen-orchestra/pull/10338))
 - [Docs] Improve doc, rename titles, and refactor menu (PR [#10212](https://github.com/vatesfr/xen-orchestra/pull/10212))
 - [i18n] Add Turkish and update Czech, Dutch, Slovak and Swedish translations (PR [#10316](https://github.com/vatesfr/xen-orchestra/pull/10316))
+- [i18n] Update Chinese (Simplified Han script), Czech, Dutch, Finnish, Italian, Norwegian, Persian, Portuguese, Russian, Slovak, Spanish and Turkish translations (PR [#10396](https://github.com/vatesfr/xen-orchestra/pull/10396))
 - [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
 - [XO6/Host] Sort the networks table by network name (PR [#10367](https://github.com/vatesfr/xen-orchestra/pull/10367))
 - [XO6/Host] Add possibility to scan PIFs directly from the host (PR [#10191](https://github.com/vatesfr/xen-orchestra/pull/10191))
@@ -51,6 +53,7 @@
 - [backup/restore] Fix backups of a repository randomly disappearing from the list after visiting a VM (PR [#10277](https://github.com/vatesfr/xen-orchestra/pull/10277))
 - [Backup] Fix a job combining Rolling Snapshot with Disaster Recovery to an SR of the source VM's pool destroying its own snapshots: the job reported a success but kept fewer snapshots than the configured snapshot retention, usually none (PR [#10395](https://github.com/vatesfr/xen-orchestra/pull/10395))
 - [Backups] Fix slow replication startup and fallback to full on qcow2 (PR [#10333](https://github.com/vatesfr/xen-orchestra/pull/10333))
+- [Backup] Fix replication never cleaning up a VM left behind by an interrupted transfer, which could keep accumulating on the target SR (PR [#10436](https://github.com/vatesfr/xen-orchestra/pull/10436))
 
 - [REST API/SDN Controller] Fix deleting a non-existent traffic rule wrongly returning success instead of a 404 (PR [#9895](https://github.com/vatesfr/xen-orchestra/pull/9895))
 - [REST API] Rolling pool update and rolling pool reboot are now refused while a backup job runs on the pool, like their JSON-RPC counterparts, unless `bypassBackupCheck` is set in the request body (PR [#10313](https://github.com/vatesfr/xen-orchestra/pull/10313))
@@ -81,6 +84,9 @@
 - [V2V] The session opened on the source host is now closed when a listing, a migration or a disk export ends, instead of piling up until it expires — a host only accepts a limited number of them (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 - [V2V] Report what the source host complained about, instead of `task execution failed` or an assertion error, when an operation fails (PR [#10363](https://github.com/vatesfr/xen-orchestra/pull/10363))
 
+- [Plugin/perf-alert] Fix `test plugin` button (PR [#10407](https://github.com/vatesfr/xen-orchestra/pull/10407))
+- [Plugin/perf-alert] Fix SR dead link (PR [#10407](https://github.com/vatesfr/xen-orchestra/pull/10407))
+
 - **XO 5**:
 - [Netdata] Fix `You must enable Javascript` error due to CSP blocking Netdata's inline scripts (PR [#10275](https://github.com/vatesfr/xen-orchestra/pull/10275))
 - [tab-disks] VDI migration now shows all pool SRs for admins, even on VMs bound to a Resource Set [Forum#107707](https://xcp-ng.org/forum/post/107707) (PR [#10422](https://github.com/vatesfr/xen-orchestra/pull/10422))
@@ -101,33 +107,35 @@
 - xen-api 5.0.0
 - @vates/nbd-client 3.6.0
 - @vates/node-vsphere-soap 2.2.0
-- @vates/types 2.1.0
 - @xen-orchestra/acl 1.7.0
 - @xen-orchestra/backup-archive 1.1.3
 - @xen-orchestra/qcow2 1.4.0
 - @xen-orchestra/xapi 9.0.0
-- @xen-orchestra/backups 0.75.0
 - @xen-orchestra/backups-cli 1.1.15
 - @xen-orchestra/cr-seed-cli 1.0.3
 - @xen-orchestra/disk-cli 2.2.2
 - @xen-orchestra/immutable-backups 3.0.6
-- @xen-orchestra/web-core 0.61.0
 - @xen-orchestra/mcp 1.4.3
 - @xen-orchestra/mixins 0.21.0
-- @xen-orchestra/proxy 0.32.0
 - @xen-orchestra/proxy-cli 0.3.4
 - @xen-orchestra/vmware-explorer 1.0.0
 - @xen-orchestra/qa-test 1.2.1
-- @xen-orchestra/rest-api 0.40.0
-- @xen-orchestra/web 0.61.0
 - xapi-explore-sr 0.4.8
-- xo-server 5.209.0
 - xo-server-audit 0.15.3
 - xo-server-auth-ldap 0.10.12
 - xo-server-netbox 1.13.3
 - xo-server-openmetrics 1.9.3
 - xo-server-sdn-controller 1.5.1
-- xo-web 5.204.0
+- vhd-lib 4.16.2
+- @vates/types 2.2.0
+- @xen-orchestra/backups 0.75.1
+- @xen-orchestra/web-core 0.62.0
+- @xen-orchestra/proxy 0.32.1
+- @xen-orchestra/rest-api 0.40.1
+- @xen-orchestra/web 0.62.0
+- xo-server 5.210.0
+- xo-server-perf-alert 1.1.2
+- xo-web 5.205.0
 
 ## **6.8.2** (2026-09-04)
 
