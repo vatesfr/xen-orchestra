@@ -112,7 +112,9 @@ export default class LiveMount extends EventEmitter {
 
     // the target of each mount listens on an ephemeral port, which a firewall cannot allow in
     // advance: when told to, the port is opened to the host of the mount, for its lifetime only
-    const firewallName = app.config.getOptional('iscsi.manageFirewall')
+    // `false` turns off the default of the packaged configuration
+    const configuredFirewall = app.config.getOptional('iscsi.manageFirewall')
+    const firewallName = configuredFirewall === false ? undefined : configuredFirewall
     const firewall = firewallName === undefined ? undefined : createFirewall(firewallName)
     if (firewallName !== undefined && firewall === undefined) {
       this.#firewallError = new Error(
@@ -216,9 +218,12 @@ export default class LiveMount extends EventEmitter {
     // so the one it connects from — unless `iscsi.advertisedAddress` points at another network
     let firewallRule
     if (firewall !== undefined) {
-      firewallRule = { source: hostAddress, port, id }
-      await firewall.open(firewallRule)
-      $defer.onFailure(() => firewall.close(firewallRule))
+      const rule = { source: hostAddress, port, id }
+      // none opened when there is no firewall to drive on this install: nothing to close then
+      if (await firewall.open(rule)) {
+        firewallRule = rule
+        $defer.onFailure(() => firewall.close(rule))
+      }
     }
 
     const deviceConfig = {

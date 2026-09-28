@@ -48,16 +48,102 @@ describe('createUfwFirewall', () => {
   })
 
   it('reports the command which failed, with its cause', async () => {
-    const cause = new Error("iptables: Chain 'ufw-user-input' does not exist")
+    const cause = Object.assign(new Error('Command failed'), {
+      code: 4,
+      stderr: 'Another app is currently holding the xtables lock',
+    })
     const exec = async () => {
       throw cause
     }
 
     await assert.rejects(createUfwFirewall({ exec }).open({ source: '10.1.0.5', port: 42289, id: ID }), error => {
-      assert.match(error.message, /^iptables -I ufw-user-input .* failed, is ufw enabled\?$/)
+      assert.match(error.message, /^iptables -I ufw-user-input .* failed$/)
       assert.equal(error.cause, cause)
       return true
     })
+  })
+
+  // enabled by default: an install it cannot apply to must still mount
+  for (const [what, failure] of [
+    ['iptables is not installed', Object.assign(new Error('spawn iptables ENOENT'), { code: 'ENOENT' })],
+    [
+      'ufw is not enabled',
+      Object.assign(new Error('Command failed'), {
+        code: 1,
+        stderr: 'iptables: No chain/target/match by that name.\n',
+      }),
+    ],
+    [
+      'not running as root',
+      Object.assign(new Error('Command failed'), {
+        code: 4,
+        stderr:
+          'iptables v1.8.9 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)\n',
+      }),
+    ],
+  ]) {
+    it(`opens nothing, without failing, when ${what}`, async () => {
+      const exec = async () => {
+        throw failure
+      }
+      const firewall = createUfwFirewall({ exec })
+
+      assert.equal(await firewall.open({ source: '10.1.0.5', port: 42289, id: ID }), false)
+      await firewall.close({ source: '10.1.0.5', port: 42289, id: ID })
+      assert.deepEqual(await firewall.purge(), [])
+    })
+  }
+
+  it('reports whether a rule was opened', async () => {
+    const { exec } = makeExec()
+
+    assert.equal(await createUfwFirewall({ exec }).open({ source: '10.1.0.5', port: 42289, id: ID }), true)
+  })
+
+  it('considers a rule already dropped, e.g. by ufw reload, as closed', async () => {
+    const exec = async () => {
+      throw Object.assign(new Error('Command failed'), {
+        code: 1,
+        stderr: 'iptables: Bad rule (does a matching rule exist in that chain?).\n',
+      })
+    }
+
+    await createUfwFirewall({ exec }).close({ source: '10.1.0.5', port: 42289, id: ID })
+  })
+
+  it('reports any other failure to close a rule', async () => {
+    const cause = Object.assign(new Error('Command failed'), { code: 4, stderr: 'xtables lock timeout' })
+    const exec = async () => {
+      throw cause
+    }
+
+    await assert.rejects(createUfwFirewall({ exec }).close({ source: '10.1.0.5', port: 42289, id: ID }), { cause })
+  })
+
+  it('purges the families it can, skipping one without ufw', async () => {
+    const calls = []
+    const exec = async (command, args) => {
+      calls.push([command, ...args])
+      if (command === 'ip6tables') {
+        throw Object.assign(new Error('Command failed'), {
+          code: 1,
+          stderr: 'ip6tables: No chain/target/match by that name.\n',
+        })
+      }
+      return {
+        stdout: `-A ufw-user-input -s 10.1.0.5/32 -p tcp -m tcp --dport 42289 -m comment --comment "xo-live-mount:${ID}" -j ACCEPT\n`,
+      }
+    }
+
+    assert.deepEqual(await createUfwFirewall({ exec }).purge(), [{ source: '10.1.0.5', port: 42289, id: ID }])
+    assert.deepEqual(
+      calls.map(([command, , , action]) => [command, action]),
+      [
+        ['iptables', '-S'],
+        ['iptables', '-D'],
+        ['ip6tables', '-S'],
+      ]
+    )
   })
 
   it('purges only its own rules, in both families', async () => {

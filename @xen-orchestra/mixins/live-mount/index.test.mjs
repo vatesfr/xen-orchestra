@@ -99,7 +99,7 @@ const makeXapi = ({ poolUuid = 'pool-uuid', probeError, vdiSmConfig } = {}) => {
 }
 
 // records what the mixin asks of the firewall, instead of running iptables
-const makeFirewall = ({ openError } = {}) => {
+const makeFirewall = ({ openError, available = true } = {}) => {
   const firewall = {
     calls: [],
     async open(rule) {
@@ -107,6 +107,7 @@ const makeFirewall = ({ openError } = {}) => {
       if (openError !== undefined) {
         throw openError
       }
+      return available
     },
     async close(rule) {
       firewall.calls.push(['close', rule])
@@ -281,7 +282,7 @@ describe('mountDisk', () => {
     const { mixin } = makeMixin()
     const xapi = makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_141', []) })
 
-    await assert.rejects(mountDisk(mixin, xapi), /cannot reach the iSCSI target at 192\.168\.1\.8/)
+    await assert.rejects(mountDisk(mixin, xapi), /cannot reach the iSCSI target at 192\.168\.1\.8:34567, .* firewalls/)
   })
 
   it('closes the target and the disk when the probe fails', async () => {
@@ -606,6 +607,38 @@ describe('iscsi.manageFirewall', () => {
     assert.equal(target.closed, true)
     assert.equal(disk.closed, true)
     assert.ok(!xapi.calls.some(([method]) => method === 'SR.probe'))
+  })
+
+  it('neither records nor closes a rule when there is no firewall to drive', async () => {
+    const { mixin, firewall } = makeMixin({ manageFirewall: 'ufw', firewall: makeFirewall({ available: false }) })
+    const { id } = await mountDisk(mixin, makeXapi())
+
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(
+      firewall.calls.map(([action]) => action),
+      ['open']
+    )
+  })
+
+  it('does not close a rule it could not open when the mount fails', async () => {
+    const { mixin, firewall } = makeMixin({ manageFirewall: 'ufw', firewall: makeFirewall({ available: false }) })
+
+    await assert.rejects(mountDisk(mixin, makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_141', []) })))
+
+    assert.deepEqual(
+      firewall.calls.map(([action]) => action),
+      ['open']
+    )
+  })
+
+  it('drives no firewall when set to false, overriding the packaged default', async () => {
+    const { mixin, createFirewallCalls, hooks } = makeMixin({ manageFirewall: false })
+
+    await mountDisk(mixin, makeXapi())
+
+    assert.deepEqual(createFirewallCalls, [])
+    assert.deepEqual(hooks.listeners('start'), [])
   })
 
   it('removes the stale rules on start', async () => {

@@ -490,16 +490,18 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
 
 ### Firewall of Xen Orchestra {#live-mount-firewall}
 
-Each live mounted disk is served on its own TCP port, picked when the disk is mounted, so it cannot be allowed in the firewall in advance. If ufw is enabled on Xen Orchestra, it blocks the hosts, and the restore fails with `the host cannot reach the iSCSI target at <address>, check iscsi.advertisedAddress`.
+Each live mounted disk is served on its own TCP port, picked when the disk is mounted, so it cannot be allowed in the firewall in advance. So when ufw is enabled on Xen Orchestra, as on XOA, **Xen Orchestra opens these ports in ufw itself, only when needed**. This is enabled by default.
 
-Xen Orchestra can open these ports in ufw itself, **only when needed**. To enable this, add to the [configuration file](../getting-started/configuration.md), for example `/etc/xo-server/config.iscsi.toml`, then restart Xen Orchestra:
+To turn it off, and manage the firewall yourself, add to the [configuration file](../getting-started/configuration.md), for example `/etc/xo-server/config.iscsi.toml`, then restart Xen Orchestra:
 
 ```toml
 [iscsi]
-manageFirewall = 'ufw'
+manageFirewall = false
 ```
 
-When it is enabled:
+If a firewall still blocks the hosts, the restore fails with `the host cannot reach the iSCSI target at <address>:<port>, check iscsi.advertisedAddress and the firewalls between them`.
+
+How it works:
 
 - **One rule per mount.** When a disk is mounted, Xen Orchestra adds a rule allowing **only the host it is mounted on** to connect, **only on the port of that mount**. The rule is removed when the mount is released, or right away if the mount fails.
 - **Host address.** The rule uses the management address of the host. If `advertisedAddress` points to another network, such as a storage network, the host connects from another address and the rule does not match: allow that network in ufw yourself.
@@ -511,19 +513,20 @@ When it is enabled:
   ip6tables -S ufw6-user-input | grep xo-live-mount
   ```
 
-- **Requirements.** ufw must be enabled, and Xen Orchestra must run as root, which XOA and the proxies do. Otherwise every live mount fails with `iptables … failed, is ufw enabled?`. Only ufw is supported: any other value makes live mounts fail with `unsupported iscsi.manageFirewall`.
+- **Without ufw.** If iptables is not installed, if ufw is not enabled, or if Xen Orchestra does not run as root (XOA and the proxies do), no rule is added and the live mount goes on as usual: any other firewall must let the hosts in. When not running as root, a warning is logged for each mount, since ufw may be enabled and block the hosts.
+- **Only ufw** is supported: any other value than `'ufw'` or `false` makes live mounts fail with `unsupported iscsi.manageFirewall`.
 
 **What happens if ufw is reloaded or restarted** (`ufw reload`, `ufw disable` then `ufw enable`, restarting the ufw service):
 
 - ufw rebuilds its rules and **drops those added by Xen Orchestra**.
 - A disk in use keeps working, since ufw still accepts established connections. But the next time the host has to connect again (network outage, host reboot, SR unplugged then plugged again), the connection is blocked and the VM gets I/O errors on that disk.
-- The rules are not added back automatically. To be safe, [release](#release-live-mount) the mounts and live mount the disks again.
+- The rules are not added back automatically. To be safe, [release](#release-live-mount) the mounts and live mount the disks again. Releasing a mount whose rule was already dropped works as usual.
 
 **What happens if Xen Orchestra crashes** (process killed, appliance lost power):
 
 - Its rules can stay in the firewall. Nothing listens on their ports anymore, so a host trying to connect gets refused.
 - They are removed the **next time Xen Orchestra starts**, or when the appliance reboots, whichever comes first.
-- If you remove `manageFirewall` from the configuration before restarting, Xen Orchestra no longer removes them. List them with the command above, then delete each one with `iptables -D`, followed by the rule as listed without its leading `-A`.
+- If you set `manageFirewall = false` before restarting, Xen Orchestra no longer removes them. List them with the command above, then delete each one with `iptables -D`, followed by the rule as listed without its leading `-A`.
 - As with any crash, the `[XO backup] <VM name>` SR also stays behind (see **Temporary** above).
 
 A normal stop or restart of Xen Orchestra releases every mount, which removes their rules.

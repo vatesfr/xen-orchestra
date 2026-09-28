@@ -1,6 +1,9 @@
+import { createLogger } from '@xen-orchestra/log'
 import { execFile } from 'node:child_process'
 import { isIPv6 } from 'node:net'
 import { promisify } from 'node:util'
+
+const { debug, warn } = createLogger('xo:mixins:LiveMount')
 
 // every rule is tagged with this prefix, so the ones a crash left behind can be found again
 const COMMENT_PREFIX = 'xo-live-mount:'
@@ -13,6 +16,34 @@ const XTABLES_LOCK_WAIT = '5'
 
 const execFileAsync = promisify(execFile)
 const defaultExec = (command, args) => execFileAsync(command, args, { timeout: EXEC_TIMEOUT })
+
+// enabled by default, so it must stay out of the way of the installs it cannot apply to: rather
+// than failing the mounts, no rule is opened, and whatever firewall there is decides
+const NOT_ROOT_RE = /you must be root/i
+// ufw not installed, or not enabled: it deletes its chains when stopped
+const MISSING_CHAIN_RE = /No chain\/target\/match by that name|does not exist/i
+// a rule already gone, typically dropped by `ufw reload`
+const MISSING_RULE_RE = /Bad rule|does a matching rule exist/i
+
+/**
+ * Why the firewall cannot be driven, if that is what `error` says.
+ *
+ * @param {Error & { code?: unknown, stderr?: string }} error - as rejected by `execFile`
+ * @returns {string | undefined}
+ */
+function unavailabilityOf(error) {
+  if (error.code === 'ENOENT') {
+    return 'iptables is not installed'
+  }
+  const stderr = error.stderr ?? ''
+  if (NOT_ROOT_RE.test(stderr)) {
+    return 'not running as root'
+  }
+  if (MISSING_CHAIN_RE.test(stderr)) {
+    return 'ufw is not enabled'
+  }
+  return undefined
+}
 
 /**
  * ufw drops anything not explicitly allowed, and the ephemeral port of each target cannot be
@@ -82,12 +113,15 @@ export function parseListedRules(listing) {
 export function createUfwFirewall({ exec = defaultExec } = {}) {
   const familyOf = source => UFW[isIPv6(source) ? 6 : 4]
 
+  // a failure carries `unavailable` when it only says there is no ufw to drive
   const run = async (command, args) => {
     try {
       return await exec(command, ['-w', XTABLES_LOCK_WAIT, ...args])
     } catch (error) {
-      const wrapped = new Error(`${command} ${args.join(' ')} failed, is ufw enabled?`)
+      const wrapped = new Error(`${command} ${args.join(' ')} failed`)
       wrapped.cause = error
+      wrapped.unavailable = unavailabilityOf(error)
+      wrapped.missingRule = MISSING_RULE_RE.test(error.stderr ?? '')
       throw wrapped
     }
   }
@@ -95,17 +129,37 @@ export function createUfwFirewall({ exec = defaultExec } = {}) {
   return {
     /**
      * @param {{ source: string, port: number, id: string }} rule - `source` is the address of the host
+     * @returns {Promise<boolean>} whether a rule was opened, and must be closed: not when there is no ufw to drive
      */
     async open(rule) {
       const { command, chain } = familyOf(rule.source)
-      // inserted first: nothing below may drop it
-      await run(command, ['-I', chain, ...ruleSpec(rule)])
+      try {
+        // inserted first: nothing below may drop it
+        await run(command, ['-I', chain, ...ruleSpec(rule)])
+        return true
+      } catch (error) {
+        if (error.unavailable === undefined) {
+          throw error
+        }
+        // not root: ufw may well be enabled, and would then block the host
+        const log = error.unavailable === 'not running as root' ? warn : debug
+        log('no firewall rule opened for this live mount', { reason: error.unavailable, ...rule })
+        return false
+      }
     },
 
-    /** @param {{ source: string, port: number, id: string }} rule - as passed to `open` */
+    /** @param {{ source: string, port: number, id: string }} rule - as passed to a successful `open` */
     async close(rule) {
       const { command, chain } = familyOf(rule.source)
-      await run(command, ['-D', chain, ...ruleSpec(rule)])
+      try {
+        await run(command, ['-D', chain, ...ruleSpec(rule)])
+      } catch (error) {
+        // `ufw reload` or `ufw disable` dropped it already: what closing it was for
+        if (error.unavailable === undefined && !error.missingRule) {
+          throw error
+        }
+        debug('the firewall rule of this live mount was already gone', { reason: error.unavailable, ...rule })
+      }
     },
 
     /**
@@ -116,7 +170,17 @@ export function createUfwFirewall({ exec = defaultExec } = {}) {
     async purge() {
       const removed = []
       for (const { command, chain } of Object.values(UFW)) {
-        const { stdout } = await run(command, ['-S', chain])
+        let stdout
+        try {
+          ;({ stdout } = await run(command, ['-S', chain]))
+        } catch (error) {
+          if (error.unavailable === undefined) {
+            throw error
+          }
+          // no chain, no rule of ours in it
+          debug('no stale firewall rule to look for', { command, reason: error.unavailable })
+          continue
+        }
         for (const rule of parseListedRules(stdout)) {
           await run(command, ['-D', chain, ...ruleSpec(rule)])
           removed.push(rule)
