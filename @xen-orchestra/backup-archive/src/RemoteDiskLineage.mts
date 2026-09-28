@@ -281,6 +281,22 @@ export class RemoteDiskLineage {
       return false
     }
 
+    // Keeps the orphan loop away from a chain that must not be touched this run. Pinned disks are
+    // differencing: every ancestor they read through must survive too, however deep the lineage is
+    // (e.g. after a retention change). The ancestors are merged normally once the chain is
+    // resumed or dropped.
+    const pin = (paths: readonly string[]): void => {
+      for (const path of paths) {
+        // `seen` guards against a cycle in corrupted headers
+        const seen = new Set<string>()
+        for (let p: string | undefined = path; p !== undefined && !seen.has(p); p = this.#parentOf.get(p)) {
+          seen.add(p)
+          visited.add(p)
+          toDelete.delete(p)
+        }
+      }
+    }
+
     // Process interrupted merges first so their disks are protected from the orphan loop
     for (const [parentPath, { stateFilePath, chain: stateChain, step }] of this.#interruptedMerges) {
       if (!this.#diskPaths.has(parentPath)) {
@@ -313,7 +329,7 @@ export class RemoteDiskLineage {
               step,
               missing,
             })
-            survivors.forEach(p => visited.add(p))
+            pin(survivors)
             continue
           }
 
@@ -371,7 +387,7 @@ export class RemoteDiskLineage {
         continue
       }
 
-      chain.forEach(p => visited.add(p))
+      pin(chain)
       toMerge.push({ chain, isResuming: true })
     }
 
