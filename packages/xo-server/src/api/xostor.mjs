@@ -65,7 +65,7 @@ async function installOrUpdateDependencies(host, method = 'install') {
 export async function installDependencies({ host }) {
   const pool = this.getObject(host.$poolId, 'pool')
   if (pool.HA_enabled) {
-    throw incorrectState({ actual: pool.HA_enabled, expected: false, object: pool.id, property: 'ha_enabled' })
+    throw incorrectState({ actual: pool.HA_enabled, expected: false, object: pool.id, property: 'HA_enabled' })
   }
   await installOrUpdateDependencies.call(this, host)
   await this.getXapiObject(host).$restartAgent()

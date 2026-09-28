@@ -262,7 +262,7 @@ export async function restartAgent({ bypassBackupCheck = false, host }) {
       actual: pool.HA_enabled,
       expected: false,
       object: pool.id,
-      property: 'ha_enabled',
+      property: 'HA_enabled',
     })
   }
   if (bypassBackupCheck) {
