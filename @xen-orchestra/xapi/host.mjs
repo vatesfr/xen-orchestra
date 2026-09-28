@@ -20,7 +20,15 @@ const waitAgentRestart = (xapi, hostRef, prevAgentStartTime) =>
 class Host {
   async restartAgent(ref) {
     const agentStartTime = +(await this.getField('host', ref, 'other_config')).agent_start_time
-
+    const host = await this.getRecord('host', ref)
+    if (!host.$pool.ha_enabled) {
+      throw incorrectState({
+        actual: host.$pool.ha_enabled,
+        expected: false,
+        object: host.$poolId,
+        property: 'HA_enabled',
+      })
+    }
     await this.call('host.restart_agent', ref)
 
     await waitAgentRestart(this, ref, agentStartTime)
