@@ -47,7 +47,7 @@ export class RemoteDiskLineage {
 
   constructor(handler: RemoteHandlerAbstract, vdiDir: string, opts: ResolvedBackupCleanOptions) {
     this.#handler = handler
-    this.#vdiDir = vdiDir
+    this.#vdiDir = normalize(vdiDir)
     this.#opts = opts
   }
 
