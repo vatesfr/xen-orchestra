@@ -1,5 +1,5 @@
 import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
-import type { XoKubernetesRoot } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
+import { KUBERNETES_ROOT_ID, type XoKubernetesRoot } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { KUBERNETES_NAME } from '@/shared/constants.ts'
 import type { TreeNodeBase } from '@core/packages/tree/tree-node-base.ts'
 import { defineTree } from '@core/packages/tree/define-tree.ts'
@@ -9,18 +9,16 @@ export function useXoKubernetesTreeDefinitions(predicate: (node: TreeNodeBase) =
   const { clusters, areClustersReady } = useXoKubernetesClusterCollection()
 
   const kubernetesRoot: XoKubernetesRoot = {
+    id: KUBERNETES_ROOT_ID,
     type: 'kubernetes',
     name: KUBERNETES_NAME,
   }
 
-  const kubernetesRoots = computed(() => [kubernetesRoot])
-
   const definitions = computed(() =>
     defineTree(
       'kubernetes',
-      kubernetesRoots.value,
+      [kubernetesRoot],
       {
-        getId: () => 'kubernetes-root',
         getLabel: 'name',
         discriminator: 'kubernetes',
       },

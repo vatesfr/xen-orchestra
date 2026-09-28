@@ -1,6 +1,9 @@
 <template>
   <UiHeadBar icon="object:kubernetes">
     {{ KUBERNETES_NAME }}
+    <template #actions>
+      <CreateClusterButton />
+    </template>
   </UiHeadBar>
   <TabList>
     <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/kubernetes/clusters' }" custom>
@@ -12,6 +15,7 @@
 </template>
 
 <script setup lang="ts">
+import CreateClusterButton from '@/modules/kubernetes/components/actions/create-cluster/CreateClusterButton.vue'
 import { KUBERNETES_NAME } from '@/shared/constants.ts'
 import TabList from '@core/components/tab-list/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'

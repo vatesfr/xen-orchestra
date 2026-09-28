@@ -6,15 +6,15 @@
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('desired') }}</template>
-        <template #value>{{ nodesStatus.desiredReplicas }}</template>
+        <template #value>{{ nodesStatus.desired_replicas }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('ready') }}</template>
-        <template #value>{{ nodesStatus.readyReplicas }}</template>
+        <template #value>{{ nodesStatus.ready_replicas }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('available') }}</template>
-        <template #value>{{ nodesStatus.availableReplicas }}</template>
+        <template #value>{{ nodesStatus.available_replicas }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('total') }}</template>

@@ -1,6 +1,6 @@
 <template>
   <VtsTreeItem expanded :node-id="leaf.id">
-    <UiTreeItemLabel icon="object:node" :route="getKubernetesNodeRoute(leaf.dataId)" no-indent>
+    <UiTreeItemLabel icon="object:node" :route="getKubernetesNodeRoute(leaf.data.id)" no-indent>
       {{ leaf.data.name }}
     </UiTreeItemLabel>
   </VtsTreeItem>

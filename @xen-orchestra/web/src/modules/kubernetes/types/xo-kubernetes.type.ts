@@ -1,4 +1,6 @@
-export type KubernetesClusterStatus = 'ready' | 'partially-ready' | 'not-ready'
+import type { Status } from '@core/components/status/VtsStatus.vue'
+
+export type KubernetesClusterStatus = Extract<Status, 'ready' | 'partially-ready' | 'not-ready'>
 
 export type KubernetesClusterPhase =
   | 'Pending'
@@ -11,28 +13,33 @@ export type KubernetesClusterPhase =
   | 'Failed'
   | 'Unknown'
 
+export type KubernetesStatus = KubernetesClusterStatus | KubernetesClusterPhase | true | false
+
+export const KUBERNETES_ROOT_ID = 'kubernetes-root'
+
 export type XoKubernetesRoot = {
+  id: typeof KUBERNETES_ROOT_ID
   name: string
   type: 'kubernetes'
 }
 
 export type XoKubernetesNodesStatus = {
-  availableReplicas: number
-  desiredReplicas: number
-  readyReplicas: number
+  available_replicas: number
+  desired_replicas: number
+  ready_replicas: number
   replicas: number
 }
 
 export type XoKubernetesCluster = {
-  controlPlaneEndpoint: string
-  controlPlaneStatus: XoKubernetesNodesStatus
-  createdAt: string
+  control_plane_endpoint: string
+  control_plane_status: XoKubernetesNodesStatus
+  created_at: string
   id: string
   name: string
   phase: KubernetesClusterPhase
   tags: Record<string, string> | null
   type: 'kubernetes-cluster'
-  workerStatus: XoKubernetesNodesStatus
+  worker_status: XoKubernetesNodesStatus
 }
 
 export type XoKubernetesNode = {

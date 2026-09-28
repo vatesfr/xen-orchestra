@@ -15,7 +15,7 @@ export function isClusterPhaseReady(phase: KubernetesClusterPhase): boolean {
 }
 
 export function clusterStatus(cluster: XoKubernetesCluster): KubernetesClusterStatus {
-  const isPhaseReady = cluster.phase === 'Provisioned' || cluster.phase === 'Running'
+  const isPhaseReady = isClusterPhaseReady(cluster.phase)
   const isControlPlaneInitialized = false
   const isInfrastructureProvisioned = false
 
