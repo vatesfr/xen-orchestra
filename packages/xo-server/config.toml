@@ -219,6 +219,18 @@ requestTimeout = 0
 # Address the iSCSI targets bind to. Unset means all interfaces.
 #bindAddress = '0.0.0.0'
 
+# Firewall to open the port of each mount in, to the host it is attached to and
+# for the lifetime of the mount only: every mount listens on its own ephemeral
+# port, which cannot be allowed in advance.
+#
+# Only 'ufw' is supported: rules are inserted in `ufw-user-input` (and
+# `ufw6-user-input`) with `iptables`, so they are never persisted, and the ones a
+# crash left behind are removed at the next start. `ufw reload` drops them,
+# which breaks the mounts alive at that time. Requires running as root.
+#
+# Unset, the firewall of this appliance is left alone, and must let the hosts in.
+#manageFirewall = 'ufw'
+
 [logs]
 # Display all logs matching this filter, regardless of their level
 #filter = 'xo:load-balancer'
