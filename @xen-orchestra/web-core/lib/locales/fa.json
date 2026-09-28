@@ -122,7 +122,7 @@
   "community-name": "{name} انجمن",
   "configuration": "پیکربندی",
   "confirm-cancel?": "آیا مطمئن هستید که می خواهید لغو کنید؟",
-  "confirm-delete": "شما می خواهید {0} را حذف کنید",
+  "confirm-delete": "شما می خواهید {name} را حذف کنید",
   "connected": "متصل شد",
   "console": "کنسول",
   "console-actions": "عملیات کنسول",

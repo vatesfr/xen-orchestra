@@ -65,7 +65,7 @@
   "concurrency": "Samanaikaisuus",
   "configuration": "Kokoonpano",
   "confirm-cancel?": "Haluatko varmasti peruuttaa?",
-  "confirm-delete": "Olet poistamassa {0}",
+  "confirm-delete": "Olet poistamassa {name}",
   "connect": "Yhdistä",
   "connected": "Yhdistetty",
   "connecting": "Yhdistetään",
