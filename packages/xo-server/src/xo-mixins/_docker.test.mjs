@@ -8,7 +8,7 @@
 //   `_docker/connection.integration.test.mjs` (XO_DOCKER_TEST_SSH_HOST…), and
 //   uses database XO_DOCKER_TEST_REDIS_DB + 1; XO_DOCKER_TEST_MIXIN_SSH_PORT and
 //   XO_DOCKER_TEST_MIXIN_SSH_FINGERPRINT override the port and the fingerprint
-//   (see below)
+//   (see below); XO_DOCKER_TEST_ROOTLESS=0 when the daemon is not rootless
 
 import assert from 'node:assert/strict'
 import { randomBytes } from 'node:crypto'
@@ -40,6 +40,8 @@ const {
   XO_DOCKER_TEST_SSH_BAD_KEY: badKeyPath,
   XO_DOCKER_TEST_SOCKET: socketPath,
   XO_DOCKER_TEST_SSH_NOFWD_PORT: noForwardingPort,
+  // `0` when the test daemon is not rootless
+  XO_DOCKER_TEST_ROOTLESS: rootless = '1',
 } = process.env
 
 // OpenSSH >= 9.8 refuses connections from a source address which failed too
@@ -1125,7 +1127,7 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
       assert.ok(info.containers.total >= 7)
       assert.ok(info.containers.running >= 1)
       assert.ok(info.containers.paused >= 1)
-      assert.equal(info.rootless, true)
+      assert.equal(info.rootless, rootless !== '0')
       const demo = info.compose.projects.find(_ => _.name === 'demo')
       assert.deepEqual(demo, { name: 'demo', containers: 2, running: 2 })
 
