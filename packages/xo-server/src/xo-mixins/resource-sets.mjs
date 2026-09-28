@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { asyncMapSettled } from '@xen-orchestra/async-map'
 import difference from 'lodash/difference.js'
 import every from 'lodash/every.js'
 import forEach from 'lodash/forEach.js'

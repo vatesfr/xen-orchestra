@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { asyncMapSettled } from '@xen-orchestra/async-map'
 import keyBy from 'lodash/keyBy.js'
 import { createSchedule } from '@xen-orchestra/cron'
 import { ignoreErrors } from 'promise-toolbox'

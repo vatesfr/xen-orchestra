@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { asyncMapSettled } from '@xen-orchestra/async-map'
 import Disposable from 'promise-toolbox/Disposable'
 import groupBy from 'lodash/groupBy.js'
 import merge from 'lodash/merge.js'
