@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Web-Core] Add collapsible sections (accordions) to organize content (PR [#9446](https://github.com/vatesfr/xen-orchestra/pull/9446))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->
