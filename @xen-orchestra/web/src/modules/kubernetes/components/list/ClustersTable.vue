@@ -1,6 +1,11 @@
 <template>
   <div class="clusters-table">
-    <UiTitle>{{ t('clusters') }}</UiTitle>
+    <UiTitle>
+      {{ t('clusters') }}
+      <template #action>
+        <slot name="title-actions" />
+      </template>
+    </UiTitle>
     <VtsQueryBuilder v-model="filter" :schema />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
@@ -21,7 +26,7 @@
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { clusterStatus } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { getKubernetesClusterRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
-import { kubernetesTagsToDisplayStrings } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
+import { kubernetesTagsToStrings } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -35,6 +40,7 @@ import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-bu
 import { useClusterColumns } from '@core/tables/column-sets/cluster-columns.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { useI18n } from 'vue-i18n'
+
 const {
   clusters: rawClusters,
   busy,
@@ -43,6 +49,10 @@ const {
   clusters: XoKubernetesCluster[]
   busy?: boolean
   error?: boolean
+}>()
+
+defineSlots<{
+  'title-actions'(): any
 }>()
 
 const { t } = useI18n()
@@ -85,7 +95,7 @@ const { HeadCells, BodyCells } = useClusterColumns({
         r(`${cluster.controlPlaneStatus.readyReplicas}/${cluster.controlPlaneStatus.desiredReplicas}`),
       workerNodes: r => r(`${cluster.workerStatus.readyReplicas}/${cluster.workerStatus.desiredReplicas}`),
       /* pods: r => r(''), */
-      tags: r => r(kubernetesTagsToDisplayStrings(cluster.tags), 'info'),
+      tags: r => r(kubernetesTagsToStrings(cluster.tags), 'info'),
       selectItem: r => r(() => (selectedClusterId.value = cluster.id)),
     }
   },

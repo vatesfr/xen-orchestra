@@ -1,16 +1,11 @@
 <template>
   <UiPanelCard class="cluster-info-card">
-    <VtsCardObjectTitle
-      :id="cluster.id"
-      :label="cluster.name"
-      :to="getKubernetesClusterRoute(cluster.id)"
-      icon="object:cluster"
-    />
+    <VtsCardObjectTitle :id="cluster.id" :label="cluster.name" :to="clusterRoute" icon="object:cluster" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
-          <KubernetesStatus :status="status" />
+          <KubernetesStatus :status />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue align-top>
@@ -41,7 +36,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('created-on') }}</template>
         <template #value>
-          <span v-tooltip="createdAtTooltip ?? false">{{ createdAtFormatted }}</span>
+          <span v-tooltip="createdAtTooltip">{{ createdAtFormatted }}</span>
         </template>
         <template v-if="cluster.createdAt" #addons>
           <VtsCopyButton :value="cluster.createdAt" />
@@ -57,7 +52,7 @@ import { useXoKubernetesClusterUtils } from '@/modules/kubernetes/composables/xo
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { clusterStatus } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { getKubernetesClusterRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
-import { kubernetesTagsToDisplayStrings } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
+import { kubernetesTagsToStrings } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -76,7 +71,9 @@ const { t } = useI18n()
 
 const { createdAtFormatted, createdAtTooltip } = useXoKubernetesClusterUtils(() => cluster)
 
-const displayTags = computed(() => kubernetesTagsToDisplayStrings(cluster.tags))
+const clusterRoute = computed(() => getKubernetesClusterRoute(cluster.id))
+
+const displayTags = computed(() => kubernetesTagsToStrings(cluster.tags))
 
 const version = computed(() => '')
 

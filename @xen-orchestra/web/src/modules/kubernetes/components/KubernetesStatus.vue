@@ -5,13 +5,11 @@
 </template>
 
 <script setup lang="ts">
-import type { KubernetesClusterStatus, KubernetesClusterPhase } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
+import type { KubernetesStatus } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
 import { useI18n } from 'vue-i18n'
-
-export type KubernetesStatus = KubernetesClusterStatus | KubernetesClusterPhase | true | false
 
 const { status } = defineProps<{
   status: KubernetesStatus
@@ -35,8 +33,8 @@ const currentStatus = useMapper<KubernetesStatus, { text: string; accent: InfoAc
     ['Deleted', { text: t('deleted'), accent: 'danger' }],
     ['Deleting', { text: t('deleting'), accent: 'info' }],
     ['Unknown', { text: t('unknown'), accent: 'muted' }],
-    [true, { text: t('ready'), accent: 'success' }],
-    [false, { text: t('not-ready'), accent: 'muted' }],
+    [true, { text: t('enabled'), accent: 'success' }],
+    [false, { text: t('disabled'), accent: 'muted' }],
   ],
   false
 )

@@ -4,7 +4,7 @@ import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export function useXoKubernetesClusterUtils(rawCluster: MaybeRefOrGetter<XoKubernetesCluster>) {
-  const { d, locale, t } = useI18n()
+  const { d, t } = useI18n()
 
   const cluster = toComputed(rawCluster)
 
@@ -15,15 +15,15 @@ export function useXoKubernetesClusterUtils(rawCluster: MaybeRefOrGetter<XoKuber
       return t('unknown')
     }
 
-    return new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(createdAtDate.value)
+    return d(createdAtDate.value, { dateStyle: 'long' })
   })
 
   const createdAtTooltip = computed(() => {
-    if (createdAtDate.value === undefined || createdAtFormatted.value === undefined) {
+    if (createdAtDate.value === undefined) {
       return t('unknown')
     }
 
-    return `${createdAtFormatted.value}, ${d(createdAtDate.value, { timeStyle: 'medium' })}`
+    return d(createdAtDate.value, { dateStyle: 'long', timeStyle: 'medium' })
   })
 
   return {
