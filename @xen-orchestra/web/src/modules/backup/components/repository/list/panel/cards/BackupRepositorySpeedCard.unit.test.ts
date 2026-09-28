@@ -1,13 +1,13 @@
 import BackupRepositorySpeedCard from '@/modules/backup/components/repository/list/panel/cards/BackupRepositorySpeedCard.vue'
 import type { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup/jobs/xo-backup-repository-benchmark.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+import { createBrBenchmark } from '@/test/create-br-benchmark.ts'
 import { createBr } from '@/test/create-br.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { formatSpeed } from '@core/utils/speed.util.ts'
-import type { XoBackupRepositoryBenchmark } from '@vates/types'
 import { flushPromises, mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
@@ -35,10 +35,6 @@ function mockBenchmarkJob({ canRun = true, isRunning = false }: { canRun?: boole
     isRunning: ref(isRunning),
     errorMessage: ref(canRun ? undefined : 'Backup repository disabled'),
   })
-}
-
-function createBenchmark(overrides: Partial<XoBackupRepositoryBenchmark> = {}): XoBackupRepositoryBenchmark {
-  return { readRate: 200_000_000, writeRate: 100_000_000, timestamp: 1_700_000_000_000, ...overrides }
 }
 
 function mountCard(br: FrontXoBackupRepository = createBr()) {
@@ -89,8 +85,8 @@ it('shows the speeds of the latest stored benchmark and offers to copy them', ()
   const wrapper = mountCard(
     createBr({
       benchmarks: [
-        createBenchmark({ writeRate: 1_000_000, readRate: 2_000_000 }),
-        createBenchmark({ writeRate: 100_000_000, readRate: 200_000_000 }),
+        createBrBenchmark({ writeRate: 1_000_000, readRate: 2_000_000 }),
+        createBrBenchmark({ writeRate: 100_000_000, readRate: 200_000_000 }),
       ],
     })
   )
@@ -101,7 +97,7 @@ it('shows the speeds of the latest stored benchmark and offers to copy them', ()
 
 it('shows the result of a benchmark run from the card in place of the stored one', async () => {
   run.mockResolvedValue({ writeRate: 300_000_000, readRate: 400_000_000 })
-  const wrapper = mountCard(createBr({ benchmarks: [createBenchmark()] }))
+  const wrapper = mountCard(createBr({ benchmarks: [createBrBenchmark()] }))
 
   await findBenchmarkButton(wrapper).trigger('click')
   await flushPromises()

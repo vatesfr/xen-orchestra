@@ -3,6 +3,7 @@ import {
   useXoBackupRepositoryBenchmarkJob,
 } from '@/modules/backup/jobs/xo-backup-repository-benchmark.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+import { formatSpeed } from '@core/utils/speed.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter, ref, watch } from 'vue'
 
@@ -19,6 +20,14 @@ export function useXoBackupRepositoryBenchmark(rawBr: MaybeRefOrGetter<FrontXoBa
   const manualBenchmark = ref<BackupRepositoryBenchmarkResult>()
 
   const benchmark = computed(() => manualBenchmark.value ?? br.value.benchmarks?.at(-1))
+
+  function useFormattedRate(rate: 'readRate' | 'writeRate') {
+    return computed(() => (benchmark.value === undefined ? undefined : formatSpeed(benchmark.value[rate])))
+  }
+
+  const writeSpeed = useFormattedRate('writeRate')
+
+  const readSpeed = useFormattedRate('readRate')
 
   async function runBenchmark() {
     try {
@@ -37,5 +46,5 @@ export function useXoBackupRepositoryBenchmark(rawBr: MaybeRefOrGetter<FrontXoBa
     }
   )
 
-  return { benchmark, runBenchmark, canBenchmark, isBenchmarking, benchmarkErrorMessage }
+  return { benchmark, writeSpeed, readSpeed, runBenchmark, canBenchmark, isBenchmarking, benchmarkErrorMessage }
 }

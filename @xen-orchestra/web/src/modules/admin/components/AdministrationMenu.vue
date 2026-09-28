@@ -88,6 +88,8 @@ const sections = computed<AdminMenuSection[]>(() => [
     padding: 0.4rem 0;
 
     .link {
+      flex-grow: 1;
+      padding-block: 1.2rem;
       text-decoration: none;
     }
   }

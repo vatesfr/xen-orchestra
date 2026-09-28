@@ -1,9 +1,10 @@
 import { useXoBackupRepositoryBenchmark } from '@/modules/backup/composables/use-xo-backup-repository-benchmark.composable.ts'
 import type { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup/jobs/xo-backup-repository-benchmark.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+import { createBrBenchmark } from '@/test/create-br-benchmark.ts'
 import { createBr } from '@/test/create-br.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import type { XoBackupRepositoryBenchmark } from '@vates/types'
+import { formatSpeed } from '@core/utils/speed.util.ts'
 import { nextTick, ref } from 'vue'
 
 const { useBenchmarkJob, run } = vi.hoisted(() => ({
@@ -29,10 +30,6 @@ beforeEach(() => {
   })
 })
 
-function createBenchmark(overrides: Partial<XoBackupRepositoryBenchmark> = {}): XoBackupRepositoryBenchmark {
-  return { readRate: 200_000_000, writeRate: 100_000_000, timestamp: 1_700_000_000_000, ...overrides }
-}
-
 function mountBenchmark(br: FrontXoBackupRepository = createBr()) {
   return mountComposable(() => useXoBackupRepositoryBenchmark(br)).wrapper.vm
 }
@@ -43,9 +40,9 @@ describe('benchmark', () => {
   })
 
   it('is the latest benchmark stored on the repository', () => {
-    const latest = createBenchmark({ writeRate: 100_000_000, readRate: 200_000_000 })
+    const latest = createBrBenchmark({ writeRate: 100_000_000, readRate: 200_000_000 })
     const result = mountBenchmark(
-      createBr({ benchmarks: [createBenchmark({ writeRate: 1_000_000, readRate: 2_000_000 }), latest] })
+      createBr({ benchmarks: [createBrBenchmark({ writeRate: 1_000_000, readRate: 2_000_000 }), latest] })
     )
 
     expect(result.benchmark).toEqual(latest)
@@ -53,7 +50,7 @@ describe('benchmark', () => {
 
   it('is replaced by the result of a benchmark run', async () => {
     run.mockResolvedValue({ writeRate: 300_000_000, readRate: 400_000_000 })
-    const result = mountBenchmark(createBr({ benchmarks: [createBenchmark()] }))
+    const result = mountBenchmark(createBr({ benchmarks: [createBrBenchmark()] }))
 
     await result.runBenchmark()
 
@@ -63,7 +60,7 @@ describe('benchmark', () => {
   it('stays unchanged when the benchmark run fails', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     run.mockRejectedValue(new Error('Backup repository unreachable'))
-    const stored = createBenchmark()
+    const stored = createBrBenchmark()
     const result = mountBenchmark(createBr({ benchmarks: [stored] }))
 
     await result.runBenchmark()
@@ -73,15 +70,51 @@ describe('benchmark', () => {
 
   it('drops the result of a benchmark run when the source repository changes', async () => {
     run.mockResolvedValue({ writeRate: 300_000_000, readRate: 400_000_000 })
-    const br = ref(createBr({ benchmarks: [createBenchmark()] }))
+    const br = ref(createBr({ benchmarks: [createBrBenchmark()] }))
     const { wrapper } = mountComposable(() => useXoBackupRepositoryBenchmark(br))
 
     await wrapper.vm.runBenchmark()
 
-    const otherStored = createBenchmark({ writeRate: 5_000_000, readRate: 6_000_000 })
+    const otherStored = createBrBenchmark({ writeRate: 5_000_000, readRate: 6_000_000 })
     br.value = createBr({ id: 'backup-repository-456' as FrontXoBackupRepository['id'], benchmarks: [otherStored] })
     await nextTick()
 
     expect(wrapper.vm.benchmark).toEqual(otherStored)
+  })
+})
+
+describe('writeSpeed and readSpeed', () => {
+  it('are undefined when the repository was never benchmarked', () => {
+    const result = mountBenchmark(createBr({ benchmarks: [] }))
+
+    expect({ write: result.writeSpeed, read: result.readSpeed }).toEqual({ write: undefined, read: undefined })
+  })
+
+  it('are the formatted rates of the latest stored benchmark', () => {
+    const result = mountBenchmark(
+      createBr({
+        benchmarks: [
+          createBrBenchmark({ writeRate: 1_000_000, readRate: 2_000_000 }),
+          createBrBenchmark({ writeRate: 100_000_000, readRate: 200_000_000 }),
+        ],
+      })
+    )
+
+    expect({ write: result.writeSpeed, read: result.readSpeed }).toEqual({
+      write: formatSpeed(100_000_000),
+      read: formatSpeed(200_000_000),
+    })
+  })
+
+  it('are the formatted rates of a benchmark run', async () => {
+    run.mockResolvedValue({ writeRate: 300_000_000, readRate: 400_000_000 })
+    const result = mountBenchmark(createBr({ benchmarks: [createBrBenchmark()] }))
+
+    await result.runBenchmark()
+
+    expect({ write: result.writeSpeed, read: result.readSpeed }).toEqual({
+      write: formatSpeed(300_000_000),
+      read: formatSpeed(400_000_000),
+    })
   })
 })
