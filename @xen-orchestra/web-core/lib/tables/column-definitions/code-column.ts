@@ -11,10 +11,10 @@ import { h } from 'vue'
  */
 export const useCodeColumn = defineColumn((config?: HeaderConfig & { maxWidth?: string }) => ({
   renderHead: () => renderHeadCell(config?.headerLabel),
-  renderBody: (content: string | undefined, options?: { copy?: boolean }) =>
+  renderBody: (content: string | undefined) =>
     renderBodyCell(() =>
       content === undefined || content === ''
         ? undefined
-        : h(VtsCodeSnippet, { content, copy: options?.copy, style: { maxWidth: config?.maxWidth ?? '30rem' } })
+        : h(VtsCodeSnippet, { content, style: { maxWidth: config?.maxWidth ?? '30rem' } })
     ),
 }))
