@@ -9,7 +9,6 @@
 <script setup lang="ts">
 import ClusterHeader from '@/modules/kubernetes/components/ClusterHeader.vue'
 import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
-import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -20,5 +19,5 @@ const { t } = useI18n()
 
 const { areClustersReady, useGetClusterById } = useXoKubernetesClusterCollection()
 
-const cluster = useGetClusterById(() => route.params.id as XoKubernetesCluster['id'])
+const cluster = useGetClusterById(() => route.params.id)
 </script>

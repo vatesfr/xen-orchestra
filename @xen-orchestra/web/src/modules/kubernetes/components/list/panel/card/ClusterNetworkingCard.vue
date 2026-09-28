@@ -6,9 +6,9 @@
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('cp-endpoint') }}</template>
-        <template v-if="cluster.controlPlaneEndpoint" #value>{{ cluster.controlPlaneEndpoint }}</template>
-        <template v-if="cluster.controlPlaneEndpoint" #addons>
-          <VtsCopyButton :value="cluster.controlPlaneEndpoint" />
+        <template v-if="cluster.control_plane_endpoint" #value>{{ cluster.control_plane_endpoint }}</template>
+        <template v-if="cluster.control_plane_endpoint" #addons>
+          <VtsCopyButton :value="cluster.control_plane_endpoint" />
         </template>
       </VtsCardRowKeyValue>
     </div>

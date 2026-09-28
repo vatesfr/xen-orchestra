@@ -3,7 +3,6 @@ import { useXoSiteTreeDefinitions } from '@/modules/site/composables/xo-site-tre
 import { useTreeCollapse } from '@core/composables/tree-collapse.composable.ts'
 import { useTreeFilter } from '@core/composables/tree-filter.composable.ts'
 import { useTree } from '@core/packages/tree/use-tree.ts'
-import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 
 export function useNavigationTree() {
@@ -11,12 +10,11 @@ export function useNavigationTree() {
 
   const { definitions: siteDefinitions, isReady: isSiteTreeReady } = useXoSiteTreeDefinitions(predicate)
 
-  const { definitions: kubernetesDefinitions, isReady: areKubernetesObjectsReady } =
-    useXoKubernetesTreeDefinitions(predicate)
+  const { definitions: kubernetesDefinitions } = useXoKubernetesTreeDefinitions(predicate)
 
   const definitions = computed(() => [...siteDefinitions.value, ...kubernetesDefinitions.value])
 
-  const isReady = logicAnd(isSiteTreeReady, areKubernetesObjectsReady)
+  const isReady = isSiteTreeReady
 
   const collapsedIds = useTreeCollapse('site.collapsed', filter, hasFilter)
 

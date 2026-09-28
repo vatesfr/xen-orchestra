@@ -4,8 +4,8 @@
       <ClusterInfoCard :cluster />
       <ClusterStatusCard :cluster />
       <ClusterNetworkingCard :cluster />
-      <ClusterNodesReplicasCard :title="t('control-plane-replicas')" :nodes-status="cluster.controlPlaneStatus" />
-      <ClusterNodesReplicasCard :title="t('worker-replicas')" :nodes-status="cluster.workerStatus" />
+      <ClusterNodesReplicasCard :title="t('control-plane-replicas')" :nodes-status="cluster.control_plane_status" />
+      <ClusterNodesReplicasCard :title="t('worker-replicas')" :nodes-status="cluster.worker_status" />
     </template>
   </VtsSidePanel>
 </template>
