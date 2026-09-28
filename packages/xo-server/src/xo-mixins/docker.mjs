@@ -14,33 +14,35 @@ import { createLogger } from '@xen-orchestra/log'
 import { synchronized } from 'decorator-synchronized'
 import { invalidParameters, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
 
-import { compareApiVersions, DockerConnection, normalizeFingerprint } from '../_docker/connection.mjs'
-import { SshCooldown } from '../_docker/cooldown.mjs'
 import {
+  AsyncTtlCache,
+  compareApiVersions,
   CONNECTION_CLOSED,
+  createLogLineParser,
+  createStdcopyDemuxer,
   DOCKER_API_ERROR,
   DOCKER_SOCKET_UNREACHABLE,
+  DockerConnection,
+  DockerConnectionPool,
   DockerError,
+  DockerStatsSampler,
   HOST_KEY_MISMATCH,
   HOST_KEY_UNKNOWN,
   isDockerError,
+  isMultiplexedStream,
+  normalizeContainerInspect,
+  normalizeContainerListEntry,
+  normalizeContainerStats,
+  normalizeEngineInfo,
+  normalizeFingerprint,
   POOL_EXHAUSTED,
   RAW_REQUEST_TOO_LARGE,
   RAW_RESPONSE_TOO_LARGE,
   SSH_AUTH_FAILED,
   SSH_COOLDOWN,
   SSH_UNREACHABLE,
-} from '../_docker/errors.mjs'
-import {
-  normalizeContainerInspect,
-  normalizeContainerListEntry,
-  normalizeContainerStats,
-  normalizeEngineInfo,
-} from '../_docker/normalize.mjs'
-import { DockerConnectionPool } from '../_docker/pool.mjs'
-import { DockerStatsSampler } from '../_docker/stats-sampler.mjs'
-import { createLogLineParser, createStdcopyDemuxer, isMultiplexedStream } from '../_docker/stdcopy.mjs'
-import { AsyncTtlCache } from '../_docker/ttl-cache.mjs'
+  SshCooldown,
+} from '@xen-orchestra/docker-ssh'
 import { DockerEngines } from '../models/docker-engine.mjs'
 import { parseSize } from '../utils.mjs'
 
@@ -382,7 +384,7 @@ export default class Docker {
    *
    * After an authentication, host key or handshake failure, the same
    * parameters are refused for `docker.authFailureCooldown` (DockerError
-   * `SSH_COOLDOWN`, `data.retryAfter` in seconds), see `_docker/cooldown.mjs`.
+   * `SSH_COOLDOWN`, `data.retryAfter` in seconds), see `cooldown.mts` in `@xen-orchestra/docker-ssh`.
    *
    * @param {object} params
    * @param {string} [params.$VM] VM running the engine, required without `host`

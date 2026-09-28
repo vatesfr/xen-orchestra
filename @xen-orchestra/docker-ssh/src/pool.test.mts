@@ -9,16 +9,19 @@ import {
   SSH_AUTH_FAILED,
   SSH_UNREACHABLE,
 } from './errors.mjs'
-import { DockerConnectionPool } from './pool.mjs'
+import type { DockerRequestOptions } from './connection.mjs'
+import { type DockerConnectionFacade, DockerConnectionPool } from './pool.mjs'
 
 class FakeConnection {
-  static instances = []
+  static instances: FakeConnection[] = []
 
   closed = 0
   connected = false
   connects = 0
+  connectDelay: number
+  connectError: DockerError | undefined
 
-  constructor({ connectError, connectDelay = 0 } = {}) {
+  constructor({ connectError, connectDelay = 0 }: { connectError?: DockerError; connectDelay?: number } = {}) {
     this.connectDelay = connectDelay
     this.connectError = connectError
     FakeConnection.instances.push(this)
@@ -42,8 +45,25 @@ class FakeConnection {
     this.connected = false
   }
 
-  async request({ path }) {
-    return { statusCode: 200, body: path }
+  async request({ path }: DockerRequestOptions) {
+    return { statusCode: 200, headers: {}, body: path }
+  }
+
+  // not used by these tests, but part of `PoolableConnection`
+  get engineVersion() {
+    return undefined
+  }
+
+  get observedHostKey() {
+    return undefined
+  }
+
+  async requestStream(): Promise<never> {
+    throw new Error('not implemented')
+  }
+
+  async exec(): Promise<never> {
+    throw new Error('not implemented')
   }
 }
 
@@ -53,7 +73,7 @@ const createClock = (start = 1e6) => {
   return clock
 }
 
-const engine = (id, revision = 0) => ({ id, revision })
+const engine = (id: string, revision: number | string = 0) => ({ id, revision })
 
 const idle = () => {}
 
@@ -106,13 +126,13 @@ describe('DockerConnectionPool', () => {
 
     await assert.rejects(pool.use(engine('a'), create, idle), { code: SSH_UNREACHABLE })
     assert.equal(created, 1)
-    assert.equal(FakeConnection.instances.at(-1).closed, 1, 'the failed connection is closed')
+    assert.equal(FakeConnection.instances.at(-1)!.closed, 1, 'the failed connection is closed')
 
     now.time += 10e3
-    await assert.rejects(pool.use(engine('a'), create, idle), error => {
+    await assert.rejects(pool.use(engine('a'), create, idle), (error: DockerError) => {
       assert.equal(error.code, SSH_UNREACHABLE)
-      assert.equal(error.data.failFast, true)
-      assert.equal(error.data.retryAt, 1e6 + 30e3)
+      assert.equal(error.data!.failFast, true)
+      assert.equal(error.data!.retryAt, 1e6 + 30e3)
       return true
     })
     assert.equal(created, 1, 'no new attempt during failureTtl')
@@ -132,7 +152,7 @@ describe('DockerConnectionPool', () => {
   it('keeps reporting the last error after failureTtl, until a connection succeeds', async () => {
     const now = createClock()
     const pool = new DockerConnectionPool({ failureTtl: 30e3, now })
-    let error = new DockerError(SSH_AUTH_FAILED, 'bad key')
+    let error: DockerError | undefined = new DockerError(SSH_AUTH_FAILED, 'bad key')
     const create = () => new FakeConnection({ connectError: error })
 
     await assert.rejects(pool.use(engine('a'), create, idle))
@@ -160,7 +180,7 @@ describe('DockerConnectionPool', () => {
     assert.equal(pool.size, 0)
     assert.equal(connection.closed, 1)
     assert.equal(pool.getState('a').status, 'error')
-    await assert.rejects(pool.use(engine('a'), create, idle), error => error.data.failFast === true)
+    await assert.rejects(pool.use(engine('a'), create, idle), (error: DockerError) => error.data!.failFast === true)
     await pool.destroy()
   })
 
@@ -184,12 +204,12 @@ describe('DockerConnectionPool', () => {
     const create = () => new FakeConnection()
 
     await pool.use(engine('idle'), create, idle)
-    const idleConnection = FakeConnection.instances.at(-1)
+    const idleConnection = FakeConnection.instances.at(-1)!
 
-    let finish
-    const busy = pool.use(engine('busy'), create, () => new Promise(resolve => (finish = resolve)))
+    let finish: (() => void) | undefined
+    const busy = pool.use(engine('busy'), create, () => new Promise<void>(resolve => (finish = resolve)))
     await new Promise(resolve => setTimeout(resolve, 5))
-    const busyConnection = FakeConnection.instances.at(-1)
+    const busyConnection = FakeConnection.instances.at(-1)!
 
     now.time += 4 * 60e3
     pool.sweep()
@@ -203,7 +223,7 @@ describe('DockerConnectionPool', () => {
     assert.equal(pool.size, 1)
     assert.deepEqual(pool.getState('idle'), { status: 'idle' })
 
-    finish()
+    finish!()
     await busy
     now.time += 6 * 60e3
     pool.sweep()
@@ -226,8 +246,8 @@ describe('DockerConnectionPool', () => {
   it('caps the connections: evicts the least recently used idle one', async () => {
     const now = createClock()
     const pool = new DockerConnectionPool({ maxConnections: 2, now })
-    const byId = {}
-    const create = id => () => (byId[id] = new FakeConnection())
+    const byId: Record<string, FakeConnection> = {}
+    const create = (id: string) => () => (byId[id] = new FakeConnection())
 
     await pool.use(engine('a'), create('a'), idle)
     now.time += 1e3
@@ -249,9 +269,9 @@ describe('DockerConnectionPool', () => {
   it('throws POOL_EXHAUSTED when all the connections are busy', async () => {
     const pool = new DockerConnectionPool({ maxConnections: 2 })
     const create = () => new FakeConnection()
-    const finishes = []
+    const finishes: (() => void)[] = []
     const busy = ['a', 'b'].map(id =>
-      pool.use(engine(id), create, () => new Promise(resolve => finishes.push(resolve)))
+      pool.use(engine(id), create, () => new Promise<void>(resolve => finishes.push(resolve)))
     )
     await new Promise(resolve => setTimeout(resolve, 5))
 
@@ -297,7 +317,7 @@ describe('DockerConnectionPool', () => {
   it('invalidate() closes the connections of an engine and forgets its failure', async () => {
     const pool = new DockerConnectionPool()
     await pool.use(engine('a'), () => new FakeConnection(), idle)
-    const connection = FakeConnection.instances.at(-1)
+    const connection = FakeConnection.instances.at(-1)!
     await assert.rejects(
       pool.use(engine('b'), () => new FakeConnection({ connectError: new DockerError(SSH_AUTH_FAILED, 'x') }), idle)
     )
@@ -313,21 +333,23 @@ describe('DockerConnectionPool', () => {
 
   it('a connection closed by the pool refuses new requests', async () => {
     const pool = new DockerConnectionPool()
-    let facade, started, finish
-    const running = new Promise(resolve => (started = resolve))
+    let facade: DockerConnectionFacade | undefined
+    let started: (() => void) | undefined
+    let finish: (() => void) | undefined
+    const running = new Promise<void>(resolve => (started = resolve))
     const done = pool.use(
       engine('a'),
       () => new FakeConnection(),
       async connection => {
         facade = connection
-        started()
-        await new Promise(resolve => (finish = resolve))
+        started!()
+        await new Promise<void>(resolve => (finish = resolve))
       }
     )
     await running
     await pool.invalidate('a')
-    await assert.rejects(facade.request({ path: '/info' }), { code: CONNECTION_CLOSED })
-    finish()
+    await assert.rejects(facade!.request({ path: '/info' }), { code: CONNECTION_CLOSED })
+    finish!()
     await done
     await pool.destroy()
   })
@@ -336,7 +358,7 @@ describe('DockerConnectionPool', () => {
     const pool = new DockerConnectionPool()
     const promise = pool.use(engine('a'), () => new FakeConnection({ connectDelay: 200 }), idle)
     await new Promise(resolve => setTimeout(resolve, 2))
-    const connection = FakeConnection.instances.at(-1)
+    const connection = FakeConnection.instances.at(-1)!
     await pool.invalidate('a')
     await assert.rejects(promise, { code: CONNECTION_CLOSED })
     assert.ok(connection.closed >= 1)
@@ -347,10 +369,10 @@ describe('DockerConnectionPool', () => {
   it('destroy() closes everything, including pending connections, and refuses new uses', async () => {
     const pool = new DockerConnectionPool()
     await pool.use(engine('a'), () => new FakeConnection(), idle)
-    const established = FakeConnection.instances.at(-1)
+    const established = FakeConnection.instances.at(-1)!
     const pending = pool.use(engine('b'), () => new FakeConnection({ connectDelay: 200 }), idle)
     await new Promise(resolve => setTimeout(resolve, 2))
-    const connecting = FakeConnection.instances.at(-1)
+    const connecting = FakeConnection.instances.at(-1)!
 
     await pool.destroy()
     assert.equal(established.closed, 1)

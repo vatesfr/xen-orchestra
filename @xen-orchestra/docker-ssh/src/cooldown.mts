@@ -36,39 +36,42 @@ const TRIGGER_CODES = new Set([HOST_KEY_MISMATCH, HOST_KEY_UNKNOWN, SSH_AUTH_FAI
 const PENALTY_HINT =
   'the SSH server closed the connection before the handshake: the SSH server may be temporarily refusing this address (OpenSSH PerSourcePenalties), after recent failed attempts from XO'
 
-const isHandshakeLoss = error =>
+const isHandshakeLoss = (error: unknown): boolean =>
   isDockerError(error) &&
   error.code === SSH_ERROR &&
   typeof error.cause?.message === 'string' &&
   error.cause.message.startsWith('Connection lost before handshake')
 
 export class SshCooldown {
-  #cooldown
+  #cooldown: number
   // key → { identity, code, until }
-  #entries = new Map()
+  #entries = new Map<string, { identity: string; code: string; until: number }>()
   // key → time of the last failure (any identity)
-  #lastFailures = new Map()
-  #now
-  #penaltyWindow
+  #lastFailures = new Map<string, number>()
+  #now: () => number
+  #penaltyWindow: number
 
   /**
-   * @param {object} [opts]
-   * @param {number} [opts.cooldown] ms, 0 disables the refusal (not the SSH_REFUSED_PENALTY mapping)
-   * @param {number} [opts.penaltyWindow] ms after a failure during which a lost handshake is reported as SSH_REFUSED_PENALTY
-   * @param {() => number} [opts.now] for tests
+   * @param opts.cooldown ms, 0 disables the refusal (not the SSH_REFUSED_PENALTY mapping)
+   * @param opts.penaltyWindow ms after a failure during which a lost handshake is reported as SSH_REFUSED_PENALTY
+   * @param opts.now for tests
    */
-  constructor({ cooldown = DEFAULT_COOLDOWN, penaltyWindow = DEFAULT_PENALTY_WINDOW, now = Date.now } = {}) {
+  constructor({
+    cooldown = DEFAULT_COOLDOWN,
+    penaltyWindow = DEFAULT_PENALTY_WINDOW,
+    now = Date.now,
+  }: { cooldown?: number; penaltyWindow?: number; now?: () => number } = {}) {
     this.#cooldown = cooldown
     this.#penaltyWindow = penaltyWindow
     this.#now = now
   }
 
-  /** @returns {number} number of tracked keys, for tests */
-  get size() {
+  /** number of tracked keys, for tests */
+  get size(): number {
     return new Set([...this.#entries.keys(), ...this.#lastFailures.keys()]).size
   }
 
-  #prune(now) {
+  #prune(now: number) {
     for (const [key, entry] of this.#entries) {
       if (entry.until <= now) {
         this.#entries.delete(key)
@@ -82,15 +85,13 @@ export class SshCooldown {
   }
 
   /**
-   * @param {string[]} keys
-   * @param {string} identity
    * @throws {DockerError} SSH_COOLDOWN if one of the keys failed recently with the same identity
    */
-  check(keys, identity) {
+  check(keys: string[], identity: string): void {
     const now = this.#now()
     this.#prune(now)
     let until = 0
-    let code
+    let code: string | undefined
     for (const key of keys) {
       const entry = this.#entries.get(key)
       if (entry !== undefined && entry.identity === identity && entry.until > until) {
@@ -111,36 +112,32 @@ export class SshCooldown {
   /**
    * Record a connection failure, and convert it if it looks like a penalty.
    *
-   * @param {string[]} keys
-   * @param {string} identity
-   * @param {unknown} error
-   * @returns {unknown} the error to throw instead of `error`
+   * @returns the error to throw instead of `error`
    */
-  onFailure(keys, identity, error) {
+  onFailure<E>(keys: string[], identity: string, error: E): E | DockerError {
     if (!isDockerError(error) || !TRIGGER_CODES.has(error.code) || error.data?.failFast) {
       return error
     }
     const now = this.#now()
     this.#prune(now)
+    let result: DockerError = error
     if (isHandshakeLoss(error) && keys.some(key => this.#lastFailures.has(key))) {
-      error = new DockerError(SSH_REFUSED_PENALTY, PENALTY_HINT, { data: error.data, cause: error.cause })
+      result = new DockerError(SSH_REFUSED_PENALTY, PENALTY_HINT, { data: error.data, cause: error.cause })
     }
     for (const key of keys) {
       this.#lastFailures.set(key, now)
       if (this.#cooldown > 0) {
-        this.#entries.set(key, { identity, code: error.code, until: now + this.#cooldown })
+        this.#entries.set(key, { identity, code: result.code, until: now + this.#cooldown })
       }
     }
-    return error
+    return result
   }
 
   /**
    * Forget the cooldown of keys after a success (not the failure history: a
    * penalty may still be running for other parameters).
-   *
-   * @param {string[]} keys
    */
-  clear(keys) {
+  clear(keys: string[]): void {
     for (const key of keys) {
       this.#entries.delete(key)
     }

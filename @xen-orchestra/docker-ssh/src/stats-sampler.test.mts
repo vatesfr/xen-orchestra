@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { once } from 'node:events'
 import { mkdtemp, rm } from 'node:fs/promises'
-import { createServer, get as httpGet } from 'node:http'
+import { createServer, get as httpGet, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { PassThrough } from 'node:stream'
@@ -9,13 +9,24 @@ import { after, before, describe, it } from 'node:test'
 
 import { DockerError } from './errors.mjs'
 import { DockerStatsSampler } from './stats-sampler.mjs'
+import type { DockerCpuStats, DockerStatsSample } from './wire.mjs'
 
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 const tick = () => new Promise(resolve => setImmediate(resolve))
 
 // a Docker stats object: `total` / `system` are the cumulated CPU counters,
 // `pre` the previous ones (absent on the first object of a stream)
-const statsObject = ({ total, system, pre, memory = 100e6 }) => ({
+const statsObject = ({
+  total,
+  system,
+  pre,
+  memory = 100e6,
+}: {
+  total: number
+  system: number
+  pre?: DockerCpuStats
+  memory?: number
+}): DockerStatsSample => ({
   read: '2026-09-24T12:00:00.000000000Z',
   cpu_stats: { cpu_usage: { total_usage: total }, system_cpu_usage: system, online_cpus: 2 },
   precpu_stats: pre === undefined ? { cpu_usage: { total_usage: 0 } } : pre,
@@ -27,13 +38,13 @@ const statsObject = ({ total, system, pre, memory = 100e6 }) => ({
  * Fake `openStream()`: one PassThrough per call, controllable from the test.
  */
 function createFakeDocker() {
-  const streams = new Map()
-  const opened = []
+  const streams = new Map<string, PassThrough>()
+  const opened: string[] = []
   const fake = {
     opened,
     streams,
-    fail: undefined, // (dockerId) => Error | undefined
-    openStream: async (dockerId, signal) => {
+    fail: undefined as ((dockerId: string) => Error | undefined) | undefined,
+    openStream: async (dockerId: string, signal: AbortSignal) => {
       opened.push(dockerId)
       await tick()
       const error = fake.fail?.(dockerId)
@@ -45,10 +56,10 @@ function createFakeDocker() {
       streams.set(dockerId, stream)
       return stream
     },
-    push(dockerId, object) {
-      streams.get(dockerId).write(JSON.stringify(object) + '\n')
+    push(dockerId: string, object: object) {
+      streams.get(dockerId)!.write(JSON.stringify(object) + '\n')
     },
-    isOpen(dockerId) {
+    isOpen(dockerId: string) {
       const stream = streams.get(dockerId)
       return stream !== undefined && !stream.destroyed
     },
@@ -70,9 +81,9 @@ describe('DockerStatsSampler', () => {
       fake.push('a', statsObject({ total: 1e9, system: 100e9 }))
       await tick()
       let sample = sampler.get('a')
-      assert.equal(sample.pending, true)
-      assert.equal(sample.stats.cpuPercent, null)
-      assert.equal(sample.stats.memoryUsage, 100e6)
+      assert.equal(sample!.pending, true)
+      assert.equal(sample!.stats!.cpuPercent, null)
+      assert.equal(sample!.stats!.memoryUsage, 100e6)
 
       // 0.5 s of CPU over 10 s of system time on 2 CPUs → 10 %
       fake.push(
@@ -85,8 +96,8 @@ describe('DockerStatsSampler', () => {
       )
       await tick()
       sample = sampler.get('a')
-      assert.equal(sample.pending, false)
-      assert.equal(sample.stats.cpuPercent, 10)
+      assert.equal(sample!.pending, false)
+      assert.equal(sample!.stats!.cpuPercent, 10)
       assert.equal(sampler.get('unknown'), undefined)
     } finally {
       sampler.stop()
@@ -101,15 +112,15 @@ describe('DockerStatsSampler', () => {
       await tick()
       await tick()
       const line = JSON.stringify(statsObject({ total: 1, system: 1, memory: 42 })) + '\n'
-      const stream = fake.streams.get('a')
+      const stream = fake.streams.get('a')!
       for (let i = 0; i < line.length; i += 7) {
         stream.write(line.slice(i, i + 7))
         await tick()
       }
-      assert.equal(sampler.get('a').stats.memoryUsage, 42)
+      assert.equal(sampler.get('a')!.stats!.memoryUsage, 42)
       fake.push('a', statsObject({ total: 2, system: 2, memory: 43 }))
       await tick()
-      assert.equal(sampler.get('a').stats.memoryUsage, 43)
+      assert.equal(sampler.get('a')!.stats!.memoryUsage, 43)
     } finally {
       sampler.stop()
     }
@@ -146,7 +157,7 @@ describe('DockerStatsSampler', () => {
       sampler.sync(['a'])
       await tick()
       await tick()
-      fake.streams.get('a').end()
+      fake.streams.get('a')!.end()
       await tick()
       await tick()
       assert.equal(sampler.has('a'), false)
@@ -181,7 +192,7 @@ describe('DockerStatsSampler', () => {
     const fake = createFakeDocker()
     const error = new DockerError('SSH_UNREACHABLE', 'connection lost')
     fake.fail = () => error
-    let stopError = 'not called'
+    let stopError: unknown = 'not called'
     const sampler = new DockerStatsSampler({
       openStream: fake.openStream,
       onStop: error => {
@@ -229,7 +240,7 @@ describe('DockerStatsSampler', () => {
       sampler.sync(['a'])
       await tick()
       await tick()
-      fake.streams.get('a').write('x'.repeat(200))
+      fake.streams.get('a')!.write('x'.repeat(200))
       await tick()
       await tick()
       assert.equal(sampler.has('a'), false)
@@ -287,7 +298,8 @@ describe('DockerStatsSampler', () => {
 // a hostile daemon behind a real HTTP server on a Unix socket, the streams
 // being opened like `DockerConnection#requestStream()` returns them
 describe('DockerStatsSampler against a hostile daemon', () => {
-  let dir, socketPath, server, handler
+  let dir: string, socketPath: string, server: Server
+  let handler: (req: IncomingMessage, res: ServerResponse) => void
 
   before(async () => {
     dir = await mkdtemp(join(tmpdir(), 'xo-docker-sampler-'))
@@ -303,19 +315,19 @@ describe('DockerStatsSampler against a hostile daemon', () => {
     await rm(dir, { recursive: true, force: true })
   })
 
-  const openStream = (dockerId, signal) =>
-    new Promise((resolve, reject) => {
+  const openStream = (dockerId: string, signal: AbortSignal) =>
+    new Promise<IncomingMessage>((resolve, reject) => {
       const req = httpGet({ socketPath, path: `/containers/${dockerId}/stats?stream=1`, signal }, resolve)
       req.on('error', reject)
     })
 
   // counts the JSON.parse() calls made while `fn` runs
-  async function countParses(fn) {
+  async function countParses(fn: () => Promise<unknown>) {
     const { parse } = JSON
     let count = 0
-    JSON.parse = function () {
+    JSON.parse = function (this: JSON, ...args: Parameters<typeof JSON.parse>) {
       ++count
-      return parse.apply(this, arguments)
+      return parse.apply(this, args)
     }
     try {
       await fn()
@@ -325,7 +337,7 @@ describe('DockerStatsSampler against a hostile daemon', () => {
     return count
   }
 
-  const line = memory => JSON.stringify(statsObject({ total: 1, system: 1, memory })) + '\n'
+  const line = (memory: number) => JSON.stringify(statsObject({ total: 1, system: 1, memory })) + '\n'
 
   it('a flood of objects in one burst is not fully parsed (latest complete line only)', async () => {
     handler = (req, res) => {
@@ -345,7 +357,7 @@ describe('DockerStatsSampler against a hostile daemon', () => {
         await sleep(300)
       })
       assert.ok(sampler.has('a'), 'the stream is kept')
-      assert.ok(sampler.get('a').stats !== undefined)
+      assert.ok(sampler.get('a')!.stats !== undefined)
       assert.ok(parses <= 2, `${parses} parses`)
     } finally {
       sampler.stop()
@@ -353,7 +365,7 @@ describe('DockerStatsSampler against a hostile daemon', () => {
   })
 
   it('throttles the parsing to about once per second per stream, keeping the latest sample', async () => {
-    let res
+    let res: ServerResponse
     handler = (_req, _res) => {
       res = _res
       res.writeHead(200, { 'content-type': 'application/json' })
@@ -371,10 +383,10 @@ describe('DockerStatsSampler against a hostile daemon', () => {
         await sleep(50)
       })
       assert.equal(parses, 1, 'only the first object within the interval')
-      assert.equal(sampler.get('a').stats.memoryUsage, 0)
+      assert.equal(sampler.get('a')!.stats!.memoryUsage, 0)
       parses = await countParses(() => sleep(350))
       assert.equal(parses, 1, 'the latest one at the end of the interval')
-      assert.equal(sampler.get('a').stats.memoryUsage, 20)
+      assert.equal(sampler.get('a')!.stats!.memoryUsage, 20)
     } finally {
       sampler.stop()
     }
@@ -419,16 +431,16 @@ describe('DockerStatsSampler against a hostile daemon', () => {
       res.writeHead(200, { 'content-type': 'application/json' })
       const object = statsObject({ total: 1, system: 1 })
       object.networks = { eth0: { rx_bytes: '1', tx_bytes: { a: 1 } } }
-      object.memory_stats.usage = '1000'
-      object.cpu_stats.online_cpus = '4'
+      object.memory_stats!.usage = '1000'
+      object.cpu_stats!.online_cpus = '4'
       res.write(JSON.stringify(object) + '\n')
     }
     const sampler = new DockerStatsSampler({ openStream })
     try {
       sampler.sync(['a'])
       await sleep(100)
-      const { stats } = sampler.get('a')
-      for (const [key, value] of Object.entries(stats)) {
+      const { stats } = sampler.get('a')!
+      for (const [key, value] of Object.entries(stats!)) {
         assert.ok(value === null || value === undefined || Number.isFinite(value), key)
       }
     } finally {

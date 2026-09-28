@@ -18,6 +18,8 @@
 
 import { createLogger } from '@xen-orchestra/log'
 
+import type { DockerConnection } from './connection.mjs'
+
 import {
   CONNECTION_CLOSED,
   DOCKER_API_VERSION_UNSUPPORTED,
@@ -63,15 +65,52 @@ const ENGINE_FAILURE_CODES = new Set([
 
 const LOCAL_CODES = new Set([CONNECTION_CLOSED, POOL_EXHAUSTED])
 
-const isEngineFailure = error => isDockerError(error) && ENGINE_FAILURE_CODES.has(error.code)
+const isEngineFailure = (error: unknown): error is DockerError =>
+  isDockerError(error) && ENGINE_FAILURE_CODES.has(error.code)
 
 // what is exposed of an error in `getState()`
-const summarizeError = error => ({
+const summarizeError = (error: unknown): { code: string; message: string } => ({
   code: isDockerError(error) ? error.code : 'UNKNOWN_ERROR',
-  message: String(error?.message ?? error),
+  message: String((error as { message?: unknown } | null | undefined)?.message ?? error),
 })
 
-const makeKey = (id, revision) => `${id}:${revision ?? 0}`
+const makeKey = (id: string, revision: number | string | undefined) => `${id}:${revision ?? 0}`
+
+/**
+ * What the users of a pooled connection get, see `createFacade()`.
+ */
+export type DockerConnectionFacade = Pick<
+  DockerConnection,
+  'apiVersion' | 'engineVersion' | 'observedHostKey' | 'request' | 'requestStream' | 'exec'
+>
+
+/**
+ * What the pool uses of a connection: a `DockerConnection`, or a stand-in in
+ * tests.
+ */
+export type PoolableConnection = DockerConnectionFacade & Pick<DockerConnection, 'connect' | 'close'>
+
+/** State of an engine's connection, see `getState()` */
+export type DockerConnectionState = {
+  status: 'idle' | 'connected' | 'error'
+  error?: { code: string; message: string }
+}
+
+type Entry = {
+  closed: boolean
+  closing?: Promise<void>
+  connected: boolean
+  connection: PoolableConnection | undefined
+  facade: DockerConnectionFacade | undefined
+  id: string
+  key: string
+  lastUsed: number
+  ready: Promise<void>
+  refs: number
+}
+
+// a failure is anything a connection attempt threw, a DockerError in practice
+type Failure = { error: unknown; until: number }
 
 /**
  * Facade given to the users of a pooled connection: once the pool has closed
@@ -79,8 +118,9 @@ const makeKey = (id, revision) => `${id}:${revision ?? 0}`
  * instead of letting `DockerConnection` silently open a new SSH connection the
  * pool would not know about.
  */
-function createFacade(entry) {
-  const { connection } = entry
+function createFacade(entry: Entry): DockerConnectionFacade {
+  // set before the facade is created
+  const { connection } = entry as Entry & { connection: PoolableConnection }
   const assertOpen = () => {
     if (entry.closed) {
       throw new DockerError(CONNECTION_CLOSED, 'the Docker connection has been closed')
@@ -114,25 +154,23 @@ function createFacade(entry) {
 export class DockerConnectionPool {
   #destroyed = false
   // key → entry
-  #entries = new Map()
+  #entries = new Map<string, Entry>()
   // key → { error, until }
-  #failures = new Map()
-  #failureTtl
-  #idleTimeout
-  #maxConnections
-  #now
-  #onSweep
-  #sweeper
-  #sweepInterval
+  #failures = new Map<string, Failure>()
+  #failureTtl: number
+  #idleTimeout: number
+  #maxConnections: number
+  #now: () => number
+  #onSweep: (() => void) | undefined
+  #sweeper: NodeJS.Timeout | undefined
+  #sweepInterval: number
 
   /**
-   * @param {object} [opts]
-   * @param {number} [opts.maxConnections]
-   * @param {number} [opts.idleTimeout] ms
-   * @param {number} [opts.failureTtl] ms
-   * @param {number} [opts.sweepInterval] ms
-   * @param {() => void} [opts.onSweep] called on each sweep, e.g. to clean caches
-   * @param {() => number} [opts.now] for tests
+   * @param opts.idleTimeout ms
+   * @param opts.failureTtl ms
+   * @param opts.sweepInterval ms
+   * @param opts.onSweep called on each sweep, e.g. to clean caches
+   * @param opts.now for tests
    */
   constructor({
     maxConnections = DEFAULT_MAX_CONNECTIONS,
@@ -141,6 +179,13 @@ export class DockerConnectionPool {
     sweepInterval = DEFAULT_SWEEP_INTERVAL,
     onSweep,
     now = Date.now,
+  }: {
+    maxConnections?: number
+    idleTimeout?: number
+    failureTtl?: number
+    sweepInterval?: number
+    onSweep?: () => void
+    now?: () => number
   } = {}) {
     this.#failureTtl = failureTtl
     this.#idleTimeout = idleTimeout
@@ -150,19 +195,15 @@ export class DockerConnectionPool {
     this.#sweepInterval = sweepInterval
   }
 
-  /** @returns {number} number of connections (established or being established) */
-  get size() {
+  /** number of connections (established or being established) */
+  get size(): number {
     return this.#entries.size
   }
 
   /**
    * Passive state of an engine's connection, never connects.
-   *
-   * @param {string} id
-   * @param {number | string} [revision]
-   * @returns {{ status: 'idle' | 'connected' | 'error', error?: { code: string, message: string } }}
    */
-  getState(id, revision) {
+  getState(id: string, revision?: number | string): DockerConnectionState {
     const key = makeKey(id, revision)
     const failure = this.#failures.get(key)
     if (failure !== undefined) {
@@ -174,10 +215,8 @@ export class DockerConnectionPool {
 
   /**
    * Forget the last failure of an engine (e.g. after a successful manual test).
-   *
-   * @param {string} id
    */
-  clearFailure(id) {
+  clearFailure(id: string): void {
     for (const key of this.#failures.keys()) {
       if (key.startsWith(id + ':')) {
         this.#failures.delete(key)
@@ -190,16 +229,17 @@ export class DockerConnectionPool {
    *
    * The connection is considered busy (never evicted) while `fn` runs.
    *
-   * @template T
-   * @param {{ id: string, revision?: number | string }} engine
-   * @param {() => Promise<import('./connection.mjs').DockerConnection> | import('./connection.mjs').DockerConnection} createConnection returns a new, not yet connected, connection
-   * @param {(connection: ReturnType<typeof createFacade>) => Promise<T>} fn
-   * @returns {Promise<T>}
+   * @param createConnection returns a new, not yet connected, connection
    */
-  async use({ id, revision }, createConnection, fn) {
+  async use<T>(
+    { id, revision }: { id: string; revision?: number | string },
+    createConnection: () => Promise<PoolableConnection> | PoolableConnection,
+    fn: (connection: DockerConnectionFacade) => Promise<T> | T
+  ): Promise<T> {
     const entry = await this.#acquire(id, revision, createConnection)
     try {
-      return await fn(entry.facade)
+      // `facade!`: set once the entry is ready
+      return await fn(entry.facade!)
     } catch (error) {
       if (isEngineFailure(error) && this.#entries.get(entry.key) === entry) {
         debug('engine failure while using a connection', { id, code: error.code })
@@ -213,7 +253,11 @@ export class DockerConnectionPool {
     }
   }
 
-  async #acquire(id, revision, createConnection) {
+  async #acquire(
+    id: string,
+    revision: number | string | undefined,
+    createConnection: () => Promise<PoolableConnection> | PoolableConnection
+  ): Promise<Entry> {
     if (this.#destroyed) {
       throw new DockerError(CONNECTION_CLOSED, 'the Docker connection pool has been destroyed')
     }
@@ -222,7 +266,8 @@ export class DockerConnectionPool {
 
     const failure = this.#failures.get(key)
     if (failure !== undefined && failure.until > this.#now()) {
-      const { error } = failure
+      // a DockerError in practice, anything else is reported as SSH_ERROR
+      const error = failure.error as { code?: string; message: string; data?: object }
       throw new DockerError(error.code ?? SSH_ERROR, error.message, {
         data: { ...error.data, failFast: true, retryAt: failure.until },
         cause: error,
@@ -249,13 +294,13 @@ export class DockerConnectionPool {
     return entry
   }
 
-  #create(id, key, createConnection) {
+  #create(id: string, key: string, createConnection: () => Promise<PoolableConnection> | PoolableConnection): Entry {
     if (this.#entries.size >= this.#maxConnections) {
       this.#evictOne()
     }
     this.#pruneFailures(id, key)
 
-    const entry = {
+    const entry: Entry = {
       closed: false,
       connected: false,
       connection: undefined,
@@ -263,7 +308,8 @@ export class DockerConnectionPool {
       id,
       key,
       lastUsed: this.#now(),
-      ready: undefined,
+      // replaced right below, `entry` must exist before the promise runs
+      ready: undefined as unknown as Promise<void>,
       refs: 0,
     }
     entry.ready = (async () => {
@@ -301,13 +347,13 @@ export class DockerConnectionPool {
     return entry
   }
 
-  #setFailure(key, error) {
+  #setFailure(key: string, error: unknown): void {
     this.#failures.set(key, { error, until: this.#now() + this.#failureTtl })
   }
 
   // the failures of the other revisions of an engine are stale: they would
   // otherwise stay in memory until the engine is invalidated
-  #pruneFailures(id, key) {
+  #pruneFailures(id: string, key: string): void {
     for (const other of this.#failures.keys()) {
       if (other !== key && other.startsWith(id + ':')) {
         this.#failures.delete(other)
@@ -315,8 +361,8 @@ export class DockerConnectionPool {
     }
   }
 
-  #evictOne() {
-    let lru
+  #evictOne(): void {
+    let lru: Entry | undefined
     for (const entry of this.#entries.values()) {
       if (entry.refs === 0 && entry.connected && (lru === undefined || entry.lastUsed < lru.lastUsed)) {
         lru = entry
@@ -334,9 +380,9 @@ export class DockerConnectionPool {
   /**
    * Remove an entry from the pool and close its connection.
    *
-   * @returns {Promise<void>} never rejects
+   * @returns never rejects
    */
-  #close(entry) {
+  #close(entry: Entry): Promise<void> {
     if (this.#entries.get(entry.key) === entry) {
       this.#entries.delete(entry.key)
     }
@@ -354,14 +400,14 @@ export class DockerConnectionPool {
     return entry.closing
   }
 
-  #startSweeper() {
+  #startSweeper(): void {
     if (this.#sweeper === undefined && !this.#destroyed) {
       this.#sweeper = setInterval(() => this.sweep(), this.#sweepInterval)
       this.#sweeper.unref()
     }
   }
 
-  #stopSweeper() {
+  #stopSweeper(): void {
     if (this.#sweeper !== undefined) {
       clearInterval(this.#sweeper)
       this.#sweeper = undefined
@@ -373,7 +419,7 @@ export class DockerConnectionPool {
    *
    * Called periodically while the pool has connections, exposed for tests.
    */
-  sweep() {
+  sweep(): void {
     const limit = this.#now() - this.#idleTimeout
     for (const entry of Array.from(this.#entries.values())) {
       if (entry.refs === 0 && entry.connected && entry.lastUsed <= limit) {
@@ -391,13 +437,10 @@ export class DockerConnectionPool {
   /**
    * Close the connections of an engine (all revisions) and forget its last
    * failure.
-   *
-   * @param {string} id
-   * @returns {Promise<void>}
    */
-  async invalidate(id) {
+  async invalidate(id: string): Promise<void> {
     this.clearFailure(id)
-    const promises = []
+    const promises: Promise<void>[] = []
     for (const entry of Array.from(this.#entries.values())) {
       if (entry.id === id) {
         promises.push(this.#close(entry))
@@ -408,10 +451,8 @@ export class DockerConnectionPool {
 
   /**
    * Close every connection, the pool cannot be used afterwards.
-   *
-   * @returns {Promise<void>}
    */
-  async destroy() {
+  async destroy(): Promise<void> {
     this.#destroyed = true
     this.#stopSweeper()
     this.#failures.clear()

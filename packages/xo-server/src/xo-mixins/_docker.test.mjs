@@ -5,10 +5,11 @@
 //   `redis://127.0.0.1:6379`), database XO_DOCKER_TEST_REDIS_DB (default 10) is
 //   flushed
 // - the second one also needs the real SSH + dockerd environment of
-//   `_docker/connection.integration.test.mjs` (XO_DOCKER_TEST_SSH_HOST…), and
-//   uses database XO_DOCKER_TEST_REDIS_DB + 1; XO_DOCKER_TEST_MIXIN_SSH_PORT and
-//   XO_DOCKER_TEST_MIXIN_SSH_FINGERPRINT override the port and the fingerprint
-//   (see below); XO_DOCKER_TEST_ROOTLESS=0 when the daemon is not rootless
+//   `connection.integration.test.mts` of `@xen-orchestra/docker-ssh`
+//   (XO_DOCKER_TEST_SSH_HOST…), and uses database XO_DOCKER_TEST_REDIS_DB + 1;
+//   XO_DOCKER_TEST_MIXIN_SSH_PORT and XO_DOCKER_TEST_MIXIN_SSH_FINGERPRINT
+//   override the port and the fingerprint (see below); XO_DOCKER_TEST_ROOTLESS=0
+//   when the daemon is not rootless
 
 import assert from 'node:assert/strict'
 import { randomBytes } from 'node:crypto'
@@ -21,14 +22,13 @@ import { join } from 'node:path'
 import { after, before, beforeEach, describe, it } from 'node:test'
 import { parseDuration } from '@vates/parse-duration'
 import { createClient } from 'redis'
+import { DockerConnection, DockerError } from '@xen-orchestra/docker-ssh'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
 import { PassThrough, Readable } from 'node:stream'
 
 import CryptoCredentials from './crypto-credentials.mjs'
 import Docker from './docker.mjs'
-import { DockerConnection } from '../_docker/connection.mjs'
-import { DockerError } from '../_docker/errors.mjs'
 import { DockerEngines } from '../models/docker-engine.mjs'
 
 const {
