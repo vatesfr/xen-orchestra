@@ -65,7 +65,7 @@ export async function forgetSr(xapi, srRef) {
   try {
     pbdRefs = await xapi.call('SR.get_PBDs', srRef)
   } catch (error) {
-    if (error?.code === 'HANDLE_INVALID') {
+    if (/** @type {{ code?: string } | undefined} */ (error)?.code === 'HANDLE_INVALID') {
       debug('the SR is already gone', { srRef })
       return
     }

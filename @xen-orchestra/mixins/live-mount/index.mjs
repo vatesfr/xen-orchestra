@@ -14,6 +14,32 @@ import { forgetSr, introduceSr, introduceVdi } from './_sr.mjs'
 const { info, warn } = createLogger('xo:mixins:LiveMount')
 
 /**
+ * The part of a XAPI connection used to watch the pool objects: absent from a connection which does
+ * not watch them. `object &` so any connection type is accepted, even one declaring none of this.
+ *
+ * @typedef {object & {
+ *   objects?: object & { allIndexes?: { type?: { getEventEmitterByType(type: string): EventEmitter } } }
+ * }} WatchableXapi
+ */
+
+/**
+ * A mount, as built by `#createDiskMount`.
+ *
+ * @typedef {object} DiskMount
+ * @property {string} id
+ * @property {string} address
+ * @property {number} port
+ * @property {string} iqn
+ * @property {string} diskPath
+ * @property {string} srRef
+ * @property {string} srUuid
+ * @property {string} vdiUuid
+ * @property {import('@vates/iscsi').IscsiTarget} target
+ * @property {WatchableXapi} xapi
+ * @property {() => Promise<void>} [release]
+ */
+
+/**
  * Serve a disk as a read-only iSCSI LUN and attach it, as an SR, to a host —
  * so its content is usable without copying it first.
  *
@@ -189,7 +215,7 @@ export default class LiveMount extends EventEmitter {
    * up on a shared connection. It is never removed, it simply ends up watching for nothing — what
    * is tracked, and dropped as soon as it is of no use, is the uuid it looks for.
    *
-   * @param {object} mount - mount record, as built by `#createDiskMount`
+   * @param {DiskMount} mount
    */
   #watchVdi({ id, vdiUuid, xapi }) {
     const vdiEvents = xapi.objects?.allIndexes?.type?.getEventEmitterByType('VDI')
@@ -224,7 +250,11 @@ export default class LiveMount extends EventEmitter {
     mountIds.set(vdiUuid, id)
   }
 
-  /** Stop expecting the removal of a mount's VDI, because this unmount is what removes it. */
+  /**
+   * Stop expecting the removal of a mount's VDI, because this unmount is what removes it.
+   *
+   * @param {DiskMount} mount
+   */
   #unwatchVdi({ vdiUuid, xapi }) {
     this.#mountIdsByVdiUuid.get(xapi)?.delete(vdiUuid)
   }
