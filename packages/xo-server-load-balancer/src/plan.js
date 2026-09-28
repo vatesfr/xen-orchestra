@@ -1175,6 +1175,7 @@ export default class Plan {
             memoryNeeded: vmsAverages[vm.id].memory,
             cpuNeeded: vmsAverages[vm.id].cpu,
             reason: `to free up resources on host to later migrate affinity-tagged VMs to it (${tag})`,
+            immovableTags: coalition,
           })
           promises.push(...otherMigrationPromises)
 
@@ -1221,6 +1222,8 @@ export default class Plan {
     memoryNeeded,
     cpuNeeded,
     reason,
+    // prevents edge case back-and-forth migration when freeing up resources to migrate VM during VM-to-VM affinity
+    immovableTags = [],
   }) {
     const promises = []
 
@@ -1239,7 +1242,10 @@ export default class Plan {
       : undefined
 
     const candidateVms = sortBy(
-      filter(Object.values(crowdedHost.vms), vm => vm.xenTools && !this._isVmInCooldown(vm)),
+      filter(
+        Object.values(crowdedHost.vms),
+        vm => vm.xenTools && !this._isVmInCooldown(vm) && intersection(vm.tags, immovableTags).length === 0
+      ),
       [vm => -vmsAverages[vm.id].memory] // try to migrate bigger VMs first to minimize the number of migrations
     )
     debugAffinity(`Candidate VMs to be moved away: ${candidateVms.map(vm => vm.name_label)}`)
