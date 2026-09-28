@@ -89,6 +89,7 @@
 - xo-server minor
 - xo-server-audit minor
 - xo-server-load-balancer patch
+- xo-server-usage-report patch
 - xo-web minor
 
 <!--packages-end-->
