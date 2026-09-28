@@ -1,3 +1,5 @@
+// @ts-check
+
 import { noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import Collection from '../collection/redis.mjs'
@@ -12,6 +14,28 @@ import Collection from '../collection/redis.mjs'
 //
 // Records are stored as JSON, the whole record being encrypted when
 // `redis.encryptCredentialDatabase` is enabled (see `collection/redis.mjs`).
+
+/**
+ * A stored engine, secrets included: never exposed as is (see `#sanitize()` in
+ * `xo-mixins/docker.mjs`, which returns an `XoDockerEngine`)
+ *
+ * @typedef {{
+ *   id: import('@vates/types').XoDockerEngine['id'],
+ *   vm?: import('@vates/types').XoVm['id'],
+ *   label?: string,
+ *   host?: string,
+ *   port: number,
+ *   username: string,
+ *   password?: string,
+ *   privateKey?: string,
+ *   passphrase?: string,
+ *   socketPath: string,
+ *   hostKeyFingerprint?: string,
+ *   hostKeyAlgorithm?: string,
+ *   revision?: string,
+ * }} DockerEngineRecord
+ */
+
 export class DockerEngines extends Collection {
   // writes (add, update, which both use `_add()`, and remove) are serialized,
   // one record at a time: the one-engine-per-VM check reads the `vm` index,
@@ -19,8 +43,14 @@ export class DockerEngines extends Collection {
   // the same VM would both pass it
   //
   // In-process only: xo-server is the only writer of this collection.
+  /** @type {Promise<unknown>} */
   #writes = Promise.resolve()
 
+  /**
+   * @template T
+   * @param {() => Promise<T>} fn
+   * @returns {Promise<T>}
+   */
   #serialize(fn) {
     const write = this.#writes.then(fn)
     this.#writes = write.catch(() => {})

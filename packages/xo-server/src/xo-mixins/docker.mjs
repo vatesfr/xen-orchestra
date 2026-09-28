@@ -1,3 +1,5 @@
+// @ts-check
+
 // Docker engines reached through SSH (`direct-streamlocal` to the Docker
 // socket), and their containers.
 //
@@ -45,6 +47,49 @@ import {
 } from '@xen-orchestra/docker-ssh'
 import { DockerEngines } from '../models/docker-engine.mjs'
 import { parseSize } from '../utils.mjs'
+
+/**
+ * @typedef {import('@vates/types').XoApp} XoApp
+ * @typedef {import('@vates/types').XoDockerContainer} XoDockerContainer
+ * @typedef {import('@vates/types').XoDockerContainerAction} XoDockerContainerAction
+ * @typedef {import('@vates/types').XoDockerContainerListError} XoDockerContainerListError
+ * @typedef {import('@vates/types').XoDockerContainerStats} XoDockerContainerStats
+ * @typedef {import('@vates/types').XoDockerEngine} XoDockerEngine
+ * @typedef {import('@vates/types').XoDockerEngineInfo} XoDockerEngineInfo
+ * @typedef {import('@vates/types').XoDockerEngineInfoDisconnected} XoDockerEngineInfoDisconnected
+ * @typedef {import('@vates/types').XoDockerEngineTestResult} XoDockerEngineTestResult
+ * @typedef {import('@vates/types').XoDockerError} XoDockerError
+ * @typedef {import('@vates/types').XoDockerLogs} XoDockerLogs
+ * @typedef {import('@vates/types').XoDockerSocketDiagnostic} XoDockerSocketDiagnostic
+ * @typedef {import('@xen-orchestra/docker-ssh').DockerConnectionFacade} DockerConnectionFacade
+ * @typedef {import('@xen-orchestra/docker-ssh').DockerContainerSummary} DockerContainerSummary
+ * @typedef {import('@xen-orchestra/docker-ssh').DockerInfo} DockerInfo
+ * @typedef {import('@xen-orchestra/docker-ssh').DockerInspect} DockerInspect
+ * @typedef {import('@xen-orchestra/docker-ssh').DockerVersion} DockerVersion
+ * @typedef {import('@xen-orchestra/docker-ssh').NormalizedDockerContainer} NormalizedDockerContainer
+ * @typedef {import('../models/docker-engine.mjs').DockerEngineRecord} DockerEngineRecord
+ *
+ * @typedef {{ asOf: number, containers: Map<string, { container: NormalizedDockerContainer, inspected: boolean }> }} EngineContainers
+ *   cached list of the containers of an engine, see `#getEngineContainers()`
+ *
+ * The public methods, whose signatures are in `XoApp` (`@vates/types/src/xo-app.mts`)
+ * @typedef {Pick<XoApp,
+ *   | 'callDockerEngineRawApi'
+ *   | 'createDockerEngine'
+ *   | 'deleteDockerContainer'
+ *   | 'deleteDockerEngine'
+ *   | 'getAllDockerEngines'
+ *   | 'getDockerContainer'
+ *   | 'getDockerContainerLogs'
+ *   | 'getDockerContainerStats'
+ *   | 'getDockerContainers'
+ *   | 'getDockerEngine'
+ *   | 'getDockerEngineInfo'
+ *   | 'runDockerContainerAction'
+ *   | 'testDockerEngine'
+ *   | 'updateDockerEngine'
+ * >} DockerXoApp
+ */
 
 const log = createLogger('xo:xo-mixins:docker')
 
@@ -159,13 +204,19 @@ function createSizeLimiter(maxSize, code, message) {
   })
 }
 
+/** @type {Record<string, XoDockerEngineInfoDisconnected['status']>} */
 const INFO_STATUS_BY_CODE = {
   [SSH_AUTH_FAILED]: 'auth-failed',
   [HOST_KEY_MISMATCH]: 'host-key-mismatch',
   [HOST_KEY_UNKNOWN]: 'host-key-mismatch',
 }
 
+/**
+ * @param {import('@xen-orchestra/docker-ssh').DockerError} error
+ * @returns {XoDockerError}
+ */
 const serializeDockerError = error => {
+  /** @type {XoDockerError} */
   const result = { code: error.code, message: error.message }
   if (error.data !== undefined) {
     result.data = error.data
@@ -190,6 +241,7 @@ const SOCKET_PROBE_SCRIPT = [
   'echo ok',
 ].join('; ')
 
+/** @type {Record<string, (socketPath: string) => XoDockerSocketDiagnostic>} */
 const SOCKET_DIAGNOSTICS = {
   missing: socketPath => ({
     code: 'socket-missing',
@@ -277,6 +329,7 @@ function summarizeCompose(containers) {
   return { projects: Array.from(projects.values()).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)) }
 }
 
+/** @implements {DockerXoApp} */
 export default class Docker {
   #app
   #cache
@@ -356,15 +409,17 @@ export default class Docker {
   // ===================================================================
 
   /**
-   * @returns {Promise<object[]>} the engines, without secrets
+   * @returns {Promise<XoDockerEngine[]>} the engines, without secrets
    */
   async getAllDockerEngines() {
-    return (await this.#db.get()).map(record => this.#sanitize(record))
+    // `Collection#get()` is not typed (its base implementation returns nothing)
+    const records = /** @type {DockerEngineRecord[]} */ (/** @type {unknown} */ (await this.#db.get()))
+    return records.map(record => this.#sanitize(record))
   }
 
   /**
    * @param {string} id
-   * @returns {Promise<object>} the engine, without secrets
+   * @returns {Promise<XoDockerEngine>} the engine, without secrets
    */
   async getDockerEngine(id) {
     return this.#sanitize(await this.#getEngineWithCredentials(id))
@@ -386,11 +441,11 @@ export default class Docker {
    * parameters are refused for `docker.authFailureCooldown` (DockerError
    * `SSH_COOLDOWN`, `data.retryAfter` in seconds), see `cooldown.mts` in `@xen-orchestra/docker-ssh`.
    *
-   * @param {object} params
+   * @param {object} [params]
    * @param {string} [params.$VM] VM running the engine, required without `host`
    * @param {string} [params.host] empty: resolved from the VM's addresses at connection time
    * @param {number} [params.port]
-   * @param {string} params.username
+   * @param {string} [params.username] required (checked)
    * @param {string} [params.password]
    * @param {string} [params.privateKey]
    * @param {string} [params.passphrase]
@@ -398,7 +453,7 @@ export default class Docker {
    * @param {string} [params.hostKeyFingerprint] `SHA256:…` as printed by `ssh-keygen -l`
    * @param {boolean} [params.acceptUnknownHostKey] transient, never stored
    * @param {string} [params.label]
-   * @returns {Promise<object>} the new engine, without secrets
+   * @returns {Promise<XoDockerEngine>} the new engine, without secrets
    * @throws {DockerError} the connection errors (HOST_KEY_UNKNOWN, HOST_KEY_MISMATCH, SSH_AUTH_FAILED…), SSH_COOLDOWN
    */
   async createDockerEngine(params = {}) {
@@ -440,8 +495,8 @@ export default class Docker {
    * key pinning, config import).
    *
    * @param {string} id
-   * @param {object} properties see `createDockerEngine()`
-   * @returns {Promise<object>} the updated engine, without secrets
+   * @param {object} [properties] see `createDockerEngine()`
+   * @returns {Promise<XoDockerEngine>} the updated engine, without secrets
    */
   async updateDockerEngine(id, properties = {}) {
     if (typeof id !== 'string') {
@@ -509,7 +564,7 @@ export default class Docker {
    * `#probeSocket()`).
    *
    * @param {string} id
-   * @returns {Promise<{ ok: boolean, apiVersion?: string, engineVersion?: string, fingerprint?: string, algorithm?: string, error?: object, diagnostic?: { code: string, message: string } }>}
+   * @returns {Promise<XoDockerEngineTestResult>}
    * @throws {DockerError} SSH_COOLDOWN (nothing attempted) shortly after an authentication, host key or handshake failure with the same parameters
    */
   async testDockerEngine(id) {
@@ -536,6 +591,7 @@ export default class Docker {
         throw error
       }
       const { fingerprint, algorithm } = connection?.observedHostKey ?? {}
+      /** @type {XoDockerEngineTestResult} */
       const result = { ok: false, fingerprint, algorithm, error: serializeDockerError(error) }
       if (error.code === DOCKER_SOCKET_UNREACHABLE) {
         result.diagnostic = await this.#probeSocket(connection, record.socketPath)
@@ -554,13 +610,13 @@ export default class Docker {
    * connected.
    *
    * @param {string} id
-   * @returns {Promise<object>}
+   * @returns {Promise<XoDockerEngineInfo>}
    */
   async getDockerEngineInfo(id) {
     const record = await this.#getEngineWithCredentials(id)
     try {
       return await this.#withConnection(record, async connection => {
-        const [{ body: info }, { body: version }, { body: composeContainers }] = await Promise.all([
+        const [{ body: infoBody }, { body: versionBody }, { body: composeBody }] = await Promise.all([
           connection.request({ path: '/info' }),
           connection.request({ path: '/version' }),
           connection.request({
@@ -568,10 +624,13 @@ export default class Docker {
             query: { all: 1, filters: { label: ['com.docker.compose.project'] } },
           }),
         ])
+        const info = /** @type {DockerInfo} */ (infoBody)
+        const version = /** @type {DockerVersion} */ (versionBody)
+        const composeContainers = /** @type {DockerContainerSummary[]} */ (composeBody)
         // `id` is the daemon's ID, not to be confused with the engine's
         const { id: daemonId, ...engineInfo } = normalizeEngineInfo(info, version)
         return {
-          status: 'connected',
+          status: /** @type {const} */ ('connected'),
           asOf: Date.now(),
           daemonId,
           ...engineInfo,
@@ -603,14 +662,14 @@ export default class Docker {
    * An engine which fails does not fail the list: its containers are missing
    * and the failure is reported in `errors`.
    *
-   * @param {object} opts
-   * @param {string[]} opts.engines ids of the engines
+   * @param {object} [opts]
+   * @param {string[]} [opts.engines] ids of the engines, required (checked)
    * @param {boolean} [opts.all] include stopped containers
    * @param {boolean} [opts.stats] merge the latest stats (`stats`) of the running and paused containers, never
    *   blocks: starts the engine's stats sampler if needed, and the containers whose sample is not ready yet (or has
    *   no CPU usage yet, ~2 s after the start) have `statsPending: true`
    * @param {boolean} [opts.forceRefresh] bypass the cache
-   * @returns {Promise<{ containers: object[], errors: { $engine: string, $VM?: string, code: string, message: string }[], asOf: number }>}
+   * @returns {Promise<{ containers: XoDockerContainer[], errors: XoDockerContainerListError[], asOf: number }>}
    */
   async getDockerContainers({ engines, all = true, stats = false, forceRefresh = false } = {}) {
     if (!Array.isArray(engines)) {
@@ -619,8 +678,11 @@ export default class Docker {
     // fails early, before any connection, on an unknown engine
     const records = await Promise.all(Array.from(new Set(engines), id => this.#getEngineWithCredentials(id)))
 
+    /** @type {XoDockerContainer[]} */
     const containers = []
+    /** @type {XoDockerContainerListError[]} */
     const errors = []
+    /** @type {number | undefined} */
     let asOf
     await asyncEach(
       records,
@@ -671,13 +733,13 @@ export default class Docker {
 
   /**
    * @param {string} id composite id: `<engine id>_<Docker id>`
-   * @returns {Promise<object>}
+   * @returns {Promise<XoDockerContainer>}
    */
   async getDockerContainer(id) {
     const { record, dockerId } = await this.#resolveContainerId(id)
 
     for (const all of [true, false]) {
-      const cached = this.#cache.peek(this.#containersCacheKey(record, all))?.containers.get(dockerId)
+      const cached = this.#peekEngineContainers(record, all)?.containers.get(dockerId)
       if (cached?.inspected) {
         return this.#decorateContainer(record, cached.container)
       }
@@ -690,7 +752,7 @@ export default class Docker {
       } catch (error) {
         throw isNotFound(error) ? noSuchObject(id, 'docker-container') : error
       }
-      const container = normalizeContainerInspect(body)
+      const container = normalizeContainerInspect(/** @type {DockerInspect} */ (body))
       // the composite id must designate the container by its full id
       if (container.dockerId !== dockerId) {
         throw noSuchObject(id, 'docker-container')
@@ -708,7 +770,7 @@ export default class Docker {
    * Does not start the sampler.
    *
    * @param {string} id composite id
-   * @returns {Promise<object>} see `normalizeContainerStats()`
+   * @returns {Promise<XoDockerContainerStats>}
    */
   async getDockerContainerStats(id) {
     const { record, dockerId } = await this.#resolveContainerId(id)
@@ -857,7 +919,7 @@ export default class Docker {
    * @param {boolean} [opts.stdout]
    * @param {boolean} [opts.stderr]
    * @param {boolean} [opts.timestamps]
-   * @returns {Promise<{ entries: { timestamp?: string, stream: string, message: string }[], truncated: boolean, timedOut: boolean, asOf: number }>}
+   * @returns {Promise<XoDockerLogs>}
    */
   async getDockerContainerLogs(
     id,
@@ -891,10 +953,11 @@ export default class Docker {
       // setting of the container decides
       let tty
       if (connection.apiVersion === undefined || compareApiVersions(connection.apiVersion, '1.42') < 0) {
-        tty = this.#cache.peek(this.#containersCacheKey(record, true))?.containers.get(dockerId)?.container.tty
+        tty = this.#peekEngineContainers(record, true)?.containers.get(dockerId)?.container.tty
         if (tty === undefined) {
           try {
-            tty = normalizeContainerInspect((await connection.request({ path: path + '/json' })).body).tty
+            const { body } = await connection.request({ path: path + '/json' })
+            tty = normalizeContainerInspect(/** @type {DockerInspect} */ (body)).tty
           } catch (error) {
             throw isNotFound(error) ? noSuchObject(id, 'docker-container') : error
           }
@@ -1000,7 +1063,7 @@ export default class Docker {
    * when pausing a paused container).
    *
    * @param {string} id composite id
-   * @param {'start' | 'stop' | 'restart' | 'pause' | 'unpause'} action
+   * @param {XoDockerContainerAction} action
    * @returns {Promise<void>}
    */
   async runDockerContainerAction(id, action) {
@@ -1094,6 +1157,9 @@ export default class Docker {
     ])
   }
 
+  /**
+   * @returns {Promise<DockerEngineRecord>}
+   */
   async #getEngineWithCredentials(id) {
     const record = typeof id === 'string' ? await this.#db.first(id) : undefined
     if (record === undefined) {
@@ -1358,6 +1424,8 @@ export default class Docker {
    * Tell apart the causes of a DOCKER_SOCKET_UNREACHABLE, which OpenSSH reports
    * identically (channel open failure, reason 2): run a small script in an SSH
    * session channel.
+   *
+   * @returns {Promise<XoDockerSocketDiagnostic>}
    */
   async #probeSocket(connection, socketPath) {
     try {
@@ -1375,6 +1443,12 @@ export default class Docker {
     }
   }
 
+  /**
+   * @template T
+   * @param {DockerEngineRecord} record
+   * @param {(connection: DockerConnectionFacade) => Promise<T>} fn
+   * @returns {Promise<T>}
+   */
   #withConnection(record, fn) {
     const acceptUnknownHostKey = record.hostKeyFingerprint === undefined && !this.#config.strictHostKeyChecking
     return this.#pool.use(
@@ -1480,8 +1554,13 @@ export default class Docker {
     await this.#pool.invalidate(id)
   }
 
+  /**
+   * @param {DockerEngineRecord} record
+   * @returns {XoDockerEngine}
+   */
   #sanitize(record) {
-    const engine = { id: record.id }
+    // completed below
+    const engine = /** @type {XoDockerEngine} */ ({ id: record.id })
     if (record.vm !== undefined) {
       engine.$VM = record.vm
       const poolId = this.#getVm(record.vm)?.$pool
@@ -1529,10 +1608,20 @@ export default class Docker {
   }
 
   /**
+   * The cached list of the containers of an engine, if any, see
+   * `#getEngineContainers()`.
+   *
+   * @returns {EngineContainers | undefined}
+   */
+  #peekEngineContainers(record, all) {
+    return /** @type {EngineContainers | undefined} */ (this.#cache.peek(this.#containersCacheKey(record, all)))
+  }
+
+  /**
    * Tier 1 (the list) + tier 2 (inspection of the running containers), cached
    * per engine.
    *
-   * @returns {Promise<{ asOf: number, containers: Map<string, { container: object, inspected: boolean }> }>}
+   * @returns {Promise<EngineContainers>}
    */
   #getEngineContainers(record, { all, forceRefresh }) {
     return this.#cache.get(
@@ -1541,8 +1630,9 @@ export default class Docker {
         this.#withConnection(record, async connection => {
           const { body } = await connection.request({ path: '/containers/json', query: { all: all ? 1 : 0 } })
           const asOf = Date.now()
+          /** @type {EngineContainers['containers']} */
           const containers = new Map()
-          for (const entry of body) {
+          for (const entry of /** @type {DockerContainerSummary[]} */ (body)) {
             const container = normalizeContainerListEntry(entry)
             containers.set(container.dockerId, { container, inspected: false })
           }
@@ -1563,7 +1653,7 @@ export default class Docker {
                   throw error
                 }
                 containers.set(listEntry.dockerId, {
-                  container: mergeInspect(listEntry, normalizeContainerInspect(body)),
+                  container: mergeInspect(listEntry, normalizeContainerInspect(/** @type {DockerInspect} */ (body))),
                   inspected: true,
                 })
               },
@@ -1576,8 +1666,17 @@ export default class Docker {
     )
   }
 
+  /**
+   * @param {DockerEngineRecord} record
+   * @param {NormalizedDockerContainer} container
+   * @returns {XoDockerContainer}
+   */
   #decorateContainer(record, container) {
-    const decorated = { id: `${record.id}_${container.dockerId}`, $engine: record.id }
+    // completed below
+    const decorated = /** @type {XoDockerContainer} */ ({
+      id: `${record.id}_${container.dockerId}`,
+      $engine: record.id,
+    })
     if (record.vm !== undefined) {
       decorated.$VM = record.vm
       const poolId = this.#getVm(record.vm)?.$pool
