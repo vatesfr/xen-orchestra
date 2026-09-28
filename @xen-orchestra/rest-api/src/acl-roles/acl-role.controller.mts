@@ -21,7 +21,7 @@ import {
 import { createLogger } from '@xen-orchestra/log'
 import { provide } from 'inversify-binding-decorators'
 import { type Request as ExRequest, json } from 'express'
-import type { XoAclRole, XoGroup, XoUser } from '@vates/types'
+import type { XoAclPrivilege, XoAclRole, XoGroup, XoUser } from '@vates/types'
 
 import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import { aclPrivilegeIds, partialAclPrivileges } from '../open-api/oa-examples/acl-privilege.oa-example.mjs'
@@ -40,7 +40,7 @@ import {
 } from '../open-api/common/response.common.mjs'
 import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { BASE_URL, limitAndFilterArray } from '../helpers/utils.helper.mjs'
-import type { SendObjects } from '../helpers/helper.type.mjs'
+import type { SafeOmit, SendObjects, Simplify } from '../helpers/helper.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { entityId } from '../open-api/oa-examples/common.oa-example.mjs'
@@ -98,6 +98,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   /**
    * Required privilege:
    * - resource: acl-role, action: create
+   * - resource: acl-privilege, action: create (if privileges is passed)
    *
    * @example body {
    *  "name": "VMs creator",
@@ -109,17 +110,37 @@ export class AclRoleController extends XoController<XoAclRole> {
   @Post('')
   @Middlewares([
     json(),
-    acl({
-      resource: 'acl-role',
-      action: 'create',
-      object: ({ req }) => req.body,
-    }),
+    acl([
+      {
+        resource: 'acl-role',
+        action: 'create',
+        // extracts `privileges` because they have their own acl check
+        object: ({
+          req: {
+            body: { privileges, ...role },
+          },
+        }) => {
+          console.log(role)
+          return role
+        },
+      },
+      {
+        resource: 'acl-privilege',
+        action: ({ req }) => (req.body.privileges !== undefined ? 'create' : undefined),
+        objects: ({ req }) => req.body.privileges,
+      },
+    ]),
   ])
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   async createAclV2Role(
-    @Body() body: { name: string; description?: string }
+    @Body()
+    body: {
+      name: string
+      description?: string
+      privileges?: Simplify<SafeOmit<AnyPrivilege, 'id' | 'roleId'>>[]
+    }
   ): Promise<{ id: Unbrand<XoAclRole>['id'] }> {
     const newRole = await this.restApi.xoApp.createAclV2Role(body)
     return { id: newRole.id }
