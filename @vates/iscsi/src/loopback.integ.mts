@@ -4,6 +4,7 @@ import { connect, type Socket } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { once } from 'node:events'
+import { setTimeout as delay } from 'node:timers/promises'
 import { after, before, describe, it } from 'node:test'
 
 import {
@@ -639,6 +640,159 @@ describe('connection replacement', () => {
       await target.close()
       await rm(dir, { recursive: true, force: true })
     }
+  })
+})
+
+// A connection only takes over once it has itself logged in: until then, it
+// must not disturb the session in use, whatever it does or fails to do.
+describe('connection admission', () => {
+  const CHAP = { user: 'alice', secret: 's3cr3t-s3cr3t' }
+
+  let dir: string
+  let backingPath: string
+
+  before(async () => {
+    dir = await mkdtemp(join(tmpdir(), 'vates-iscsi-admission-'))
+    backingPath = join(dir, 'lun.img')
+    await writeFile(backingPath, Buffer.alloc(LUN_SIZE, 0x5a))
+  })
+
+  after(async () => {
+    await rm(dir, { recursive: true, force: true })
+  })
+
+  async function withTarget(
+    options: { loginTimeoutMs?: number; maxPendingConnections?: number },
+    fn: (port: number) => Promise<void>
+  ): Promise<void> {
+    const target = new IscsiTarget({
+      iqn: IQN,
+      host: '127.0.0.1',
+      port: 0,
+      lun: new FileBlockDevice({ path: backingPath, blockSize: BLOCK_SIZE }),
+      chap: CHAP,
+      ...options,
+    })
+    await target.listen()
+    try {
+      const address = target.address()
+      assert.ok(address !== undefined)
+      await fn(address.port)
+    } finally {
+      await target.close()
+    }
+  }
+
+  async function rawConnect(port: number): Promise<Socket> {
+    const socket = connect(port, '127.0.0.1')
+    await once(socket, 'connect')
+    return socket
+  }
+
+  async function assertStillServing(initiator: IscsiInitiator): Promise<void> {
+    // leave the target time to act on whatever just happened
+    await delay(100)
+    assert.deepEqual(await initiator.read(0, BLOCK_SIZE), Buffer.alloc(BLOCK_SIZE, 0x5a))
+  }
+
+  it('a connection that sends nothing does not interrupt the session', async () => {
+    await withTarget({}, async port => {
+      const initiator = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN, chap: CHAP })
+      await initiator.connect()
+      const probe = await rawConnect(port)
+      try {
+        await assertStillServing(initiator)
+      } finally {
+        probe.destroy()
+        await initiator.close()
+      }
+    })
+  })
+
+  it('a failed CHAP login does not interrupt the session', async () => {
+    await withTarget({}, async port => {
+      const initiator = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN, chap: CHAP })
+      await initiator.connect()
+      try {
+        const intruder = new IscsiInitiator({
+          host: '127.0.0.1',
+          port,
+          targetIqn: IQN,
+          chap: { user: CHAP.user, secret: 'wrong-wrong-wrong' },
+        })
+        await assert.rejects(intruder.connect(), /login rejected/)
+        await assertStillServing(initiator)
+      } finally {
+        await initiator.close()
+      }
+    })
+  })
+
+  it('a Discovery session does not interrupt the session', async () => {
+    await withTarget({}, async port => {
+      const initiator = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN, chap: CHAP })
+      await initiator.connect()
+      const socket = await rawConnect(port)
+      try {
+        const discovery = new MiniInitiator(socket)
+        await discovery.login('Discovery')
+        assert.equal((await discovery.sendTargets()).get('TargetName'), IQN)
+        await assertStillServing(initiator)
+        await discovery.logout()
+      } finally {
+        socket.destroy()
+        await initiator.close()
+      }
+    })
+  })
+
+  it('an authenticated login replaces the session', async () => {
+    await withTarget({}, async port => {
+      const stale = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN, chap: CHAP })
+      await stale.connect()
+      const initiator = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN, chap: CHAP })
+      await initiator.connect()
+      try {
+        await assert.rejects(stale.read(0, BLOCK_SIZE), /connection closed/)
+        await assertStillServing(initiator)
+      } finally {
+        await stale.close().catch(() => {})
+        await initiator.close()
+      }
+    })
+  })
+
+  it('closes a connection that does not log in in time', async () => {
+    await withTarget({ loginTimeoutMs: 100 }, async port => {
+      const probe = await rawConnect(port)
+      const closed = once(probe, 'close')
+      try {
+        await Promise.race([closed, delay(5000).then(() => assert.fail('the connection should have been closed'))])
+      } finally {
+        probe.destroy()
+      }
+    })
+  })
+
+  it('drops the oldest connection without a session past the limit', async () => {
+    await withTarget({ maxPendingConnections: 2 }, async port => {
+      const initiator = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN, chap: CHAP })
+      await initiator.connect()
+      const probes = [await rawConnect(port), await rawConnect(port)]
+      try {
+        const oldestClosed = once(probes[0], 'close')
+        probes.push(await rawConnect(port))
+        await oldestClosed
+        assert.equal(probes[1].destroyed, false)
+        assert.equal(probes[2].destroyed, false)
+        await assertStillServing(initiator)
+      } finally {
+        for (const probe of probes) {
+          probe.destroy()
+        }
+        await initiator.close()
+      }
+    })
   })
 })
 

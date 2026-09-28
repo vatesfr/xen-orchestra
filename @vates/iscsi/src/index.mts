@@ -25,6 +25,8 @@ const DEFAULT_PORT = 3260
 const DEFAULT_WRITE_TIMEOUT_MS = 30_000
 const DEFAULT_CMD_WINDOW = 64
 const DEFAULT_READ_CONCURRENCY = 16
+const DEFAULT_LOGIN_TIMEOUT_MS = 15_000
+const DEFAULT_MAX_PENDING_CONNECTIONS = 8
 
 const DEFAULT_IDENTITY: ScsiIdentity = {
   vendor: 'VATES',
@@ -61,18 +63,34 @@ export interface IscsiTargetOptions {
    * open-iscsi `node.session.auth` username/password). Omit for no authentication.
    */
   readonly chap?: ChapCredentials
+  /**
+   * Time a new connection has to establish a Normal session, in ms (0
+   * disables). Also bounds Discovery sessions. Defaults to 15000.
+   */
+  readonly loginTimeoutMs?: number
+  /**
+   * Max number of connections that have not established a Normal session yet;
+   * past it, the oldest one is dropped. Defaults to 8.
+   */
+  readonly maxPendingConnections?: number
 }
 
 /**
  * A minimal iSCSI target exposing exactly one read/write LUN.
  *
  * Single initiator, single connection (`MaxConnections=1`),
- * `ErrorRecoveryLevel=0`, no digests. A new connection always replaces the
- * current one rather than being refused (see `#onConnection`): there is no
- * way to tell a stale, abandoned connection (initiator gave up without
- * closing the socket) from a healthy one, so refusing would let one stuck
- * connection wedge the target forever. Not RFC 7143 session reinstatement (no
- * ISID matching) — safe here since the target is ephemeral, CHAP-guarded, and
+ * `ErrorRecoveryLevel=0`, no digests.
+ *
+ * A new connection replaces the current one rather than being refused (see
+ * `#onSessionEstablished`): there is no way to tell a stale, abandoned
+ * connection (initiator gave up without closing the socket) from a healthy
+ * one, so refusing would let one stuck connection wedge the target forever.
+ * The replacement only happens once the new connection has established a
+ * Normal session, CHAP included when configured, so that a port scan, a failed
+ * login or a Discovery session cannot interrupt the current one. Until then,
+ * connections are bounded in time (`loginTimeoutMs`) and in number
+ * (`maxPendingConnections`). Not RFC 7143 session reinstatement (no ISID
+ * matching) — safe here since the target is ephemeral, CHAP-guarded, and
  * single-consumer.
  */
 export class IscsiTarget {
@@ -85,9 +103,14 @@ export class IscsiTarget {
   readonly #cmdWindow: number
   readonly #readConcurrency: number
   readonly #chap?: ChapCredentials
+  readonly #loginTimeoutMs: number
+  readonly #maxPendingConnections: number
 
   #server?: Server
+  // the connection with an established Normal session, serving the LUN
   #connection?: Connection
+  // connections without one yet, in arrival order
+  readonly #pendingConnections = new Set<Connection>()
   #tsih = 0
 
   constructor(options: IscsiTargetOptions) {
@@ -99,6 +122,8 @@ export class IscsiTarget {
     this.#cmdWindow = options.cmdWindow ?? DEFAULT_CMD_WINDOW
     this.#readConcurrency = options.readConcurrency ?? DEFAULT_READ_CONCURRENCY
     this.#chap = options.chap
+    this.#loginTimeoutMs = options.loginTimeoutMs ?? DEFAULT_LOGIN_TIMEOUT_MS
+    this.#maxPendingConnections = options.maxPendingConnections ?? DEFAULT_MAX_PENDING_CONNECTIONS
     this.#identity = {
       ...DEFAULT_IDENTITY,
       // Default the serial to the IQN so the LUN has a stable, unique identity.
@@ -122,26 +147,42 @@ export class IscsiTarget {
       readConcurrency: this.#readConcurrency,
       allocateTsih: () => this.#allocateTsih(),
       chap: this.#chap,
+      loginTimeoutMs: this.#loginTimeoutMs,
+      onSessionEstablished: connection => this.#onSessionEstablished(connection),
     }
   }
 
   #onConnection(socket: Socket): void {
-    const existing = this.#connection
-    if (existing !== undefined) {
-      // Replaces a possibly-stale connection rather than refusing; see the class doc.
-      log.warn('replacing existing connection with a new one', { remote: socket.remoteAddress })
-      existing.destroy()
+    const pending = this.#pendingConnections
+    if (pending.size >= this.#maxPendingConnections) {
+      // a Set iterates in insertion order: this is the oldest
+      const [oldest] = pending
+      log.warn('too many connections without a session, dropping the oldest', { remote: socket.remoteAddress })
+      pending.delete(oldest)
+      oldest.destroy()
     }
     socket.setNoDelay(true)
     const connection = new Connection(socket, this.#deps())
-    this.#connection = connection
+    pending.add(connection)
     // Long-lived per-connection task; serve() handles its own errors and never
     // rejects, so detaching it here is safe.
     void connection.serve().finally(() => {
+      pending.delete(connection)
       if (this.#connection === connection) {
         this.#connection = undefined
       }
     })
+  }
+
+  #onSessionEstablished(connection: Connection): void {
+    this.#pendingConnections.delete(connection)
+    const existing = this.#connection
+    if (existing !== undefined) {
+      // Replaces a possibly-stale connection rather than refusing; see the class doc.
+      log.warn('replacing existing connection with a newly logged in one')
+      existing.destroy()
+    }
+    this.#connection = connection
   }
 
   /** Open the LUN (if needed) and start accepting connections. */
@@ -175,17 +216,23 @@ export class IscsiTarget {
     return address !== null && typeof address === 'object' ? address : undefined
   }
 
-  /** Stop accepting connections, drop the active connection, and close the LUN. */
+  /** Stop accepting connections, drop every connection, and close the LUN. */
   async close(): Promise<void> {
     const server = this.#server
-    const connection = this.#connection
+    const connections = [...this.#pendingConnections]
+    if (this.#connection !== undefined) {
+      connections.push(this.#connection)
+    }
     this.#server = undefined
     this.#connection = undefined
+    this.#pendingConnections.clear()
     if (server !== undefined) {
       await new Promise<void>((resolve, reject) => {
         server.close(error => (error ? reject(error) : resolve()))
-        // Drop the live connection so server.close() can complete.
-        connection?.destroy()
+        // Drop the live connections so server.close() can complete.
+        for (const connection of connections) {
+          connection.destroy()
+        }
       })
     }
     await this.#lun.close()

@@ -81,6 +81,14 @@ export interface ConnectionDeps {
   allocateTsih(): number
   /** When set, require one-way CHAP: the target challenges and verifies the initiator. */
   readonly chap?: ChapCredentials
+  /**
+   * Time allowed to establish a Normal session, in ms (0 or unset disables):
+   * past it, the connection is closed. Also bounds Discovery sessions, which
+   * never become Normal ones.
+   */
+  readonly loginTimeoutMs?: number
+  /** Called once this connection has established a Normal session. */
+  onSessionEstablished?(connection: Connection): void
 }
 
 type Phase = 'login' | 'fullFeature' | 'closed'
@@ -123,6 +131,8 @@ export class Connection implements CommandContext {
   readonly #pendingWrites = new Map<number, PendingWrite>()
   #nextTargetTransferTag = 1
 
+  #loginTimer?: ReturnType<typeof setTimeout>
+
   constructor(socket: Socket, deps: ConnectionDeps) {
     this.#socket = socket
     this.#deps = deps
@@ -142,6 +152,13 @@ export class Connection implements CommandContext {
 
   /** Read and service PDUs until the peer logs out or the connection drops. */
   async serve(): Promise<void> {
+    const { loginTimeoutMs = 0 } = this.#deps
+    if (loginTimeoutMs > 0) {
+      this.#loginTimer = setTimeout(() => {
+        log.warn('no session established in time, closing the connection', { remote: this.#socket.remoteAddress })
+        this.destroy()
+      }, loginTimeoutMs).unref()
+    }
     try {
       for (;;) {
         const pdu = await readPdu(this.#socket)
@@ -156,6 +173,7 @@ export class Connection implements CommandContext {
     } catch (error) {
       this.#fail(error)
     } finally {
+      clearTimeout(this.#loginTimer)
       this.#phase = 'closed'
       this.#socket.destroy()
     }
@@ -316,6 +334,10 @@ export class Connection implements CommandContext {
         sessionType: this.#sessionType,
         target: this.#login.targetName,
       })
+      if (this.#sessionType === 'Normal') {
+        clearTimeout(this.#loginTimer)
+        this.#deps.onSessionEstablished?.(this)
+      }
     }
     return false
   }
