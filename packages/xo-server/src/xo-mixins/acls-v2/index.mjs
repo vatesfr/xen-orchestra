@@ -261,12 +261,24 @@ export default class {
    * @param {object} role
    * @param {XoAclRole['name']} role.name
    * @param {XoAclRole['description']} [role.description]
+   * @param {Omit<Privilege, 'id'| 'roleId'>[]} [role.privileges]
    * @returns {Promise<XoAclRole>}
    */
   async createAclV2Role(role) {
     await this._app.checkFeatureAuthorization('RBAC')
+    const { privileges, ..._role } = role
 
-    return this.#roleDb.add(role)
+    const newRole = await this.#roleDb.add(_role)
+    if (privileges !== undefined) {
+      try {
+        await Promise.all(privileges.map(privilege => this.createAclV2Privilege({ ...privilege, roleId: newRole.id })))
+      } catch (error) {
+        await this.deleteAclV2Role(newRole.id)
+        throw error
+      }
+    }
+
+    return newRole
   }
 
   /**
