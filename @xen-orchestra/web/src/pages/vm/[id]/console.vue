@@ -1,23 +1,27 @@
 <template>
-  <VtsStateHero v-if="!isVmConsoleRunning" format="page" type="offline" size="large" class="state-hero">
-    <span>{{ t('console-offline') }}</span>
-    <span class="title typo-h1">{{ t('vm-not-running') }}</span>
-    <div class="description typo-body-bold">
-      <span>{{ t('console-unavailable-reason', { type: 'virtual machine' }) }}</span>
-      <span>{{ t('start-console', { type: 'VM' }) }}</span>
-    </div>
-  </VtsStateHero>
-  <VtsLayoutConsole v-else>
-    <VtsRemoteConsole ref="console-element" :url :is-console-available="isConsoleAvailable" />
+  <VtsLayoutConsole v-if="isVmConsoleRunning || isBrowserMediaAvailable">
+    <VtsRemoteConsole v-if="isVmConsoleRunning" ref="console-element" :url :is-console-available="isConsoleAvailable" />
+    <VmConsoleOffline v-else />
     <template #actions>
-      <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
-      <VtsDivider type="stretch" />
-      <VtsClipboardConsole />
+      <!-- available while halted, so that an ISO can be connected before starting the VM -->
+      <template v-if="isBrowserMediaAvailable">
+        <BrowserMediaConsoleSection :vm />
+        <VtsDivider v-if="isVmConsoleRunning" type="stretch" />
+      </template>
+      <template v-if="isVmConsoleRunning">
+        <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
+        <VtsDivider type="stretch" />
+        <VtsClipboardConsole />
+      </template>
     </template>
   </VtsLayoutConsole>
+  <VmConsoleOffline v-else />
 </template>
 
 <script lang="ts" setup>
+import BrowserMediaConsoleSection from '@/modules/browser-media/components/BrowserMediaConsoleSection.vue'
+import { useXoBrowserMediaCollection } from '@/modules/browser-media/remote-resources/use-xo-browser-media-collection.ts'
+import VmConsoleOffline from '@/modules/vm/components/console/VmConsoleOffline.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
@@ -25,16 +29,14 @@ import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vu
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { VM_OPERATIONS } from '@vates/types'
 import { computed, useTemplateRef } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   vm: FrontXoVm
 }>()
 
-const { t } = useI18n()
+const { isBrowserMediaAvailable } = useXoBrowserMediaCollection()
 
 const STOP_OPERATIONS = [
   VM_OPERATIONS.SHUTDOWN,
@@ -57,20 +59,3 @@ const consoleElement = useTemplateRef('console-element')
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
 </script>
-
-<style scoped lang="postcss">
-.state-hero {
-  padding: 0.8rem;
-
-  .title {
-    color: var(--color-neutral-txt-primary);
-  }
-
-  .description {
-    display: flex;
-    flex-direction: column;
-    gap: 1.4rem;
-    color: var(--color-neutral-txt-secondary);
-  }
-}
-</style>
