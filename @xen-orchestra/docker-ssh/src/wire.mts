@@ -1,152 +1,118 @@
-// Docker Engine API wire shapes, as documented for API 1.43 (`MAX_API_VERSION`)
-// and read by this package. Internal: the XO DTOs are in `@vates/types`.
+// Docker Engine API wire shapes read by this package. Internal: the XO DTOs are
+// in `@vates/types`.
 //
-// Only the fields read by the transport and the normalizers are listed, the
-// daemon sends more (hence the index signatures), and older API versions may
-// omit some of them. These types are what the daemon is expected to send, they
-// are not checked, except for the stats: a hostile or buggy daemon controls
-// every value (see `normalizeContainerStats()`), which are therefore
-// `unknown`.
+// Built from the types generated from Docker's OpenAPI specifications
+// (`docker-api.gen.mts`, see `scripts/generate-api-types.mjs`): only the fields
+// read by the transport and the normalizers are picked, their types come from
+// the spec. The daemon sends more (hence the index signatures), and older API
+// versions may omit some of them. Departures from the spec are commented.
+//
+// These types are what the daemon is expected to send, they are not checked,
+// except for the stats: a hostile or buggy daemon controls every value (see
+// `normalizeContainerStats()`), which are therefore `unknown`.
+
+import type { definitions as Api } from './docker-api.gen.mjs'
+
+/** the fields `K` of the spec definition `T`, the others being allowed but unknown */
+type Wire<T, K extends keyof T> = Pick<T, K> & { [key: string]: unknown }
+
+/**
+ * `T` with the fields `K` required: sent by every daemon, relied upon by the
+ * normalizers (an intersection, not `Omit`, which would lose the properties of a
+ * type with an index signature)
+ */
+type WithRequired<T, K extends keyof T> = T & { [P in K]-?: NonNullable<T[P]> }
 
 /** `GET /version` */
-export type DockerVersion = {
-  Version?: string
-  ApiVersion?: string
-  MinAPIVersion?: string
-  [key: string]: unknown
-}
+export type DockerVersion = Wire<Api['SystemVersion'], 'Version' | 'ApiVersion' | 'MinAPIVersion'>
 
 /** `GET /info` */
-export type DockerInfo = {
-  ID?: string
-  Name?: string
-  ServerVersion?: string
-  OperatingSystem?: string
-  OSType?: string
-  KernelVersion?: string
-  Architecture?: string
-  NCPU?: number
-  MemTotal?: number
-  Driver?: string
-  LoggingDriver?: string
-  CgroupDriver?: string
-  CgroupVersion?: string
-  SecurityOptions?: string[] | null
-  Containers?: number
-  ContainersRunning?: number
-  ContainersPaused?: number
-  ContainersStopped?: number
-  Images?: number
-  Warnings?: string[] | null
-  [key: string]: unknown
+export type DockerInfo = Wire<
+  Api['SystemInfo'],
+  | 'ID'
+  | 'Name'
+  | 'ServerVersion'
+  | 'OperatingSystem'
+  | 'OSType'
+  | 'KernelVersion'
+  | 'Architecture'
+  | 'NCPU'
+  | 'MemTotal'
+  | 'Driver'
+  | 'LoggingDriver'
+  | 'CgroupDriver'
+  | 'CgroupVersion'
+  | 'Containers'
+  | 'ContainersRunning'
+  | 'ContainersPaused'
+  | 'ContainersStopped'
+  | 'Images'
+> & {
+  // not in the spec: `null` when empty
+  SecurityOptions?: Api['SystemInfo']['SecurityOptions'] | null
+  Warnings?: Api['SystemInfo']['Warnings'] | null
 }
 
-export type DockerContainerState = 'created' | 'running' | 'paused' | 'restarting' | 'removing' | 'exited' | 'dead'
+export type DockerContainerState = NonNullable<Api['ContainerState']['Status']>
 
 /** entry of `Ports` in `GET /containers/json` */
-export type DockerPort = {
-  IP?: string
-  PrivatePort: number
-  PublicPort?: number
-  Type: string
-  [key: string]: unknown
-}
+export type DockerPort = Wire<Api['Port'], 'IP' | 'PrivatePort' | 'PublicPort' | 'Type'>
 
-/** `NetworkSettings.Ports` of `GET /containers/{id}/json`, e.g. `{ "80/tcp": [{ "HostIp": "0.0.0.0", "HostPort": "8080" }], "443/tcp": null }` */
-export type DockerPortMap = Record<string, { HostIp: string; HostPort: string }[] | null>
+/**
+ * `NetworkSettings.Ports` of `GET /containers/{id}/json`, e.g.
+ * `{ "80/tcp": [{ "HostIp": "0.0.0.0", "HostPort": "8080" }], "443/tcp": null }`
+ * (not in the spec: `null` for an exposed port which is not published)
+ */
+export type DockerPortMap = Record<string, WithRequired<Api['PortBinding'], 'HostIp' | 'HostPort'>[] | null>
 
 /** value of `NetworkSettings.Networks` */
-export type DockerEndpointSettings = {
-  IPAddress?: string
-  GlobalIPv6Address?: string
-  [key: string]: unknown
-}
+export type DockerEndpointSettings = Wire<Api['EndpointSettings'], 'IPAddress' | 'GlobalIPv6Address'>
 
-export type DockerMountPoint = {
-  Type: string
-  Name?: string
-  Source: string
-  Destination: string
-  RW: boolean
-  [key: string]: unknown
-}
+export type DockerMountPoint = WithRequired<
+  Wire<Api['MountPoint'], 'Type' | 'Name' | 'Source' | 'Destination' | 'RW'>,
+  'Type' | 'Source' | 'Destination' | 'RW'
+>
 
 /** entry of `GET /containers/json` */
-export type DockerContainerSummary = {
-  Id: string
-  Names?: string[]
-  Image: string
-  ImageID: string
-  Command: string
-  /** seconds since the epoch */
-  Created: number
+export type DockerContainerSummary = WithRequired<
+  Wire<
+    Api['ContainerSummary'],
+    'Id' | 'Names' | 'Image' | 'ImageID' | 'Command' | 'Created' | 'Status' | 'Ports' | 'Labels' | 'Mounts'
+  >,
+  'Id' | 'Image' | 'ImageID' | 'Command' | 'Created'
+> & {
+  // the spec says `string`
   State: DockerContainerState
-  /** human readable, e.g. `Up 5 minutes (healthy)` */
-  Status?: string
-  Ports?: DockerPort[]
-  Labels?: Record<string, string>
   NetworkSettings?: { Networks?: Record<string, DockerEndpointSettings>; [key: string]: unknown }
   Mounts?: DockerMountPoint[]
-  [key: string]: unknown
 }
 
 /** `Config` of `GET /containers/{id}/json` */
-export type DockerContainerConfig = {
-  Image: string
-  Labels?: Record<string, string>
-  Tty?: boolean
-  Hostname?: string
-  WorkingDir?: string
-  User?: string
-  /** never exposed: it routinely contains secrets */
-  Env?: string[]
-  [key: string]: unknown
-}
+export type DockerContainerConfig = WithRequired<
+  Wire<Api['ContainerConfig'], 'Image' | 'Labels' | 'Tty' | 'Hostname' | 'WorkingDir' | 'User' | 'Env'>,
+  'Image'
+>
 
-export type DockerHealthCheckResult = {
-  Start?: string
-  End?: string
-  ExitCode?: number
-  Output?: string
-  [key: string]: unknown
-}
+export type DockerHealthCheckResult = Wire<Api['HealthcheckResult'], 'Start' | 'End' | 'ExitCode' | 'Output'>
 
 /** `State` of `GET /containers/{id}/json` */
-export type DockerContainerStateInfo = {
-  Status: DockerContainerState
-  ExitCode?: number
-  OOMKilled?: boolean
-  Error?: string
-  /** RFC 3339, Go's zero date when not set */
-  StartedAt?: string
-  FinishedAt?: string
+export type DockerContainerStateInfo = WithRequired<
+  Wire<Api['ContainerState'], 'Status' | 'ExitCode' | 'OOMKilled' | 'Error' | 'StartedAt' | 'FinishedAt'>,
+  'Status'
+> & {
   /** only for a container with a health check */
-  Health?: {
-    Status?: string
-    FailingStreak: number
+  Health?: WithRequired<Wire<Api['Health'], 'Status' | 'FailingStreak'>, 'FailingStreak'> & {
     Log?: DockerHealthCheckResult[]
-    [key: string]: unknown
   }
-  [key: string]: unknown
 }
 
 /** `GET /containers/{id}/json` */
-export type DockerInspect = {
-  Id: string
-  /** with a leading `/` */
-  Name: string
-  /** image ID */
-  Image: string
-  Path: string
-  Args?: string[]
-  /** RFC 3339 */
-  Created?: string
-  RestartCount?: number
+export type DockerInspect = WithRequired<
+  Wire<Api['ContainerInspectResponse'], 'Id' | 'Name' | 'Image' | 'Path' | 'Args' | 'Created' | 'RestartCount'>,
+  'Id' | 'Name' | 'Image' | 'Path'
+> & {
   Config?: DockerContainerConfig
-  HostConfig?: {
-    RestartPolicy?: { Name?: string; MaximumRetryCount?: number }
-    [key: string]: unknown
-  }
+  HostConfig?: { RestartPolicy?: Api['RestartPolicy']; [key: string]: unknown }
   NetworkSettings?: {
     Ports?: DockerPortMap
     Networks?: Record<string, DockerEndpointSettings>
@@ -154,52 +120,39 @@ export type DockerInspect = {
   }
   State?: DockerContainerStateInfo
   Mounts?: DockerMountPoint[]
-  [key: string]: unknown
 }
 
 // === Stats: never trusted
 //
-// The objects are typed as such so that they can be read with optional
-// chaining, which gives `undefined` whatever they really are: the keys read are
-// not properties of the prototypes of the primitives.
+// The keys come from the spec (API 1.48, the first one documenting the stats),
+// every value is `unknown`: the objects are typed as such so that they can be
+// read with optional chaining, which gives `undefined` whatever they really
+// are (the keys read are not properties of the prototypes of the primitives).
+// No index signature: reading a key which is not in the spec does not compile.
+
+type Untrusted<T> = { [K in keyof T]?: unknown }
 
 /** `cpu_stats` and `precpu_stats` */
-export type DockerCpuStats = {
-  online_cpus?: unknown
-  cpu_usage?: { total_usage?: unknown; percpu_usage?: unknown; [key: string]: unknown }
-  system_cpu_usage?: unknown
-  [key: string]: unknown
+export type DockerCpuStats = Omit<Untrusted<Api['ContainerCPUStats']>, 'cpu_usage'> & {
+  cpu_usage?: Untrusted<Api['ContainerCPUUsage']>
 }
 
-/** `memory_stats` */
-export type DockerMemoryStats = {
-  usage?: unknown
-  limit?: unknown
-  /** cgroup counters, e.g. `inactive_file` */
-  stats?: unknown
-  /** Windows */
-  privateworkingset?: unknown
-  [key: string]: unknown
-}
+/** `memory_stats` (`stats`: cgroup counters, e.g. `inactive_file`; `privateworkingset`: Windows) */
+export type DockerMemoryStats = Untrusted<Api['ContainerMemoryStats']>
 
-/** `blkio_stats` */
-export type DockerBlkioStats = {
-  /** `{ op, value }` entries */
-  io_service_bytes_recursive?: unknown
-  [key: string]: unknown
-}
+/** `blkio_stats` (`io_service_bytes_recursive`: `{ op, value }` entries) */
+export type DockerBlkioStats = Untrusted<Api['ContainerBlkioStats']>
 
 /** one object of `GET /containers/{id}/stats` */
-export type DockerStatsSample = {
-  /** RFC 3339 */
-  read?: unknown
-  os_type?: unknown
+export type DockerStatsSample = Omit<
+  Untrusted<Api['ContainerStatsResponse']>,
+  'cpu_stats' | 'precpu_stats' | 'memory_stats' | 'blkio_stats' | 'pids_stats'
+> & {
   cpu_stats?: DockerCpuStats
   precpu_stats?: DockerCpuStats
   memory_stats?: DockerMemoryStats
-  /** interface name → `{ rx_bytes, tx_bytes }` */
-  networks?: unknown
   blkio_stats?: DockerBlkioStats
-  pids_stats?: { current?: unknown; [key: string]: unknown }
-  [key: string]: unknown
+  pids_stats?: Untrusted<Api['ContainerPidsStats']>
+  /** sent by the daemon (e.g. `windows`), missing from the spec */
+  os_type?: unknown
 }
