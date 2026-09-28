@@ -184,16 +184,16 @@ export default class LiveMount extends EventEmitter {
    * reports the LUN itself as unused, so the VDI vanishing is the only signal that the mount has
    * become pointless.
    *
-   * One listener per XAPI connection, whatever the number of mounts on it: `xapi.objects` reports
-   * every removal of the pool anyway, and a listener per mount would pile up on a shared
-   * connection. It is never removed, it simply ends up watching for nothing — what is tracked,
-   * and dropped as soon as it is of no use, is the uuid it looks for.
+   * One listener per XAPI connection, whatever the number of mounts on it: the VDI events of
+   * `xapi.objects` report every VDI removal of the pool anyway, and a listener per mount would pile
+   * up on a shared connection. It is never removed, it simply ends up watching for nothing — what
+   * is tracked, and dropped as soon as it is of no use, is the uuid it looks for.
    *
    * @param {object} mount - mount record, as built by `#createDiskMount`
    */
   #watchVdi({ id, vdiUuid, xapi }) {
-    const objects = xapi.objects
-    if (typeof objects?.on !== 'function') {
+    const vdiEvents = xapi.objects?.allIndexes?.type?.getEventEmitterByType('VDI')
+    if (vdiEvents === undefined) {
       // a connection which does not watch the pool objects: the mount works, it just has to be
       // unmounted explicitly
       warn('cannot watch the live mounted VDI, this mount will not be released on its own', { id, vdiUuid })
@@ -205,20 +205,19 @@ export default class LiveMount extends EventEmitter {
       mountIds = new Map()
       this.#mountIdsByVdiUuid.set(xapi, mountIds)
 
-      // the collection is keyed by uuid for every record which has one, so a removed VDI is
-      // reported under the very uuid `introduceVdi` resolved
-      objects.on('remove', removed => {
-        for (const uuid of Object.keys(removed)) {
-          const mountId = mountIds.get(uuid)
-          if (mountId !== undefined) {
-            // a VDI is removed once and for all, and a mount introduces exactly one: nothing else
-            // will ever come for this uuid
-            mountIds.delete(uuid)
-            info('the live mounted VDI was removed, unmounting', { id: mountId, vdiUuid: uuid })
-            this.unmountDisk(mountId).catch(error => {
-              warn('failed to unmount after the VDI was removed', { error, id: mountId })
-            })
-          }
+      // the type index reports each removed record on its own, as it was before its removal, so
+      // under the very uuid `introduceVdi` resolved
+      vdiEvents.on('remove', (_, vdi) => {
+        const uuid = vdi?.uuid
+        const mountId = uuid === undefined ? undefined : mountIds.get(uuid)
+        if (mountId !== undefined) {
+          // a VDI is removed once and for all, and a mount introduces exactly one: nothing else
+          // will ever come for this uuid
+          mountIds.delete(uuid)
+          info('the live mounted VDI was removed, unmounting', { id: mountId, vdiUuid: uuid })
+          this.unmountDisk(mountId).catch(error => {
+            warn('failed to unmount after the VDI was removed', { error, id: mountId })
+          })
         }
       })
     }

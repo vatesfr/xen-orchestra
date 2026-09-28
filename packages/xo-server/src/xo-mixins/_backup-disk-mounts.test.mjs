@@ -9,6 +9,17 @@ const archiveId = 'remote-1/xo-vm-backups/vm-1/20260101T000000Z.json'
 const hostId = 'host-1'
 const proxyId = 'proxy-1'
 
+// stands for xen-api's record cache, whose type index reports each removed record of the pool on
+// its own, per type
+const makeXapi = () => {
+  const emitters = { __proto__: null }
+  const getEventEmitterByType = type => (emitters[type] ??= new EventEmitter())
+  return {
+    objects: { allIndexes: { type: { getEventEmitterByType } } },
+    removeRecord: ($type, uuid) => getEventEmitterByType($type).emit('remove', undefined, { $type, uuid }),
+  }
+}
+
 const makeNoSuchLiveMount = id => {
   try {
     noSuchObject(id, 'live-mount')
@@ -24,7 +35,9 @@ const makeNoSuchLiveMount = id => {
  */
 function createResolver({ callProxyMethod = async () => {}, unmountDisk = async () => {} } = {}) {
   const calls = []
-  const app = {
+  const xapi = makeXapi()
+  // XO emits `server:connected` for each new XAPI connection
+  const app = Object.assign(new EventEmitter(), {
     async callProxyMethod(id, method, params) {
       calls.push([id, method, params])
       return callProxyMethod(method, params)
@@ -32,17 +45,17 @@ function createResolver({ callProxyMethod = async () => {}, unmountDisk = async 
     getObject: () => ({ _xapiRef: 'OpaqueRef:host', uuid: hostId }),
     getRemoteWithCredentials: async () => ({ url: 'file:///backups' }),
     getBackupsRemoteAdapter: async () => ({ value: { handler: {} }, dispose: async () => {} }),
-    getXapi: () => ({}),
+    getXapi: () => xapi,
     listVmBackupsNg: async () => ({
       'remote-1': { 'vm-1': [{ id: archiveId, disks: [{ id: 'disk.vhd' }], vm: { name_label: 'vm' } }] },
     }),
     // the resolver listens to `unmounted` to forget the mounts that disappear on their own
     liveMount: Object.assign(new EventEmitter(), {
-      mountDisk: async () => ({ id: 'local-mount' }),
+      mountDisk: async () => ({ id: 'local-mount', srUuid: 'sr-local' }),
       unmountDisk,
     }),
-  }
-  return { app, calls, resolver: new BackupDiskMountsResolver(app) }
+  })
+  return { app, calls, resolver: new BackupDiskMountsResolver(app), xapi }
 }
 
 const isKnown = (resolver, id) => {
@@ -132,5 +145,108 @@ describe('liveMount unmounted event', () => {
     app.liveMount.emit('unmounted', 'm1')
 
     assert.equal(isKnown(resolver, 'm1'), false)
+  })
+})
+
+describe('removal of the SR of a mount served by a proxy', () => {
+  // the unmount it triggers is not awaited by anything
+  const flush = () => new Promise(resolve => setImmediate(resolve))
+
+  it('asks the proxy to unmount and forgets the mount', async () => {
+    const { calls, resolver, xapi } = createResolver()
+    resolver.registerProxyBackupArchiveDiskMounts({
+      archiveId,
+      mounts: [{ id: 'm1', hostId, srUuid: 'sr-1' }],
+      proxyId,
+    })
+
+    xapi.removeRecord('SR', 'sr-1')
+    await flush()
+
+    assert.deepEqual(calls, [[proxyId, 'backup.unmountDisk', { id: 'm1' }]])
+    assert.equal(isKnown(resolver, 'm1'), false)
+  })
+
+  it('ignores the removal an explicit unmount causes', async () => {
+    const { calls, resolver, xapi } = createResolver({
+      // the proxy forgetting the SR is reported while the call is still running
+      callProxyMethod: async () => xapi.removeRecord('SR', 'sr-1'),
+    })
+    resolver.registerProxyBackupArchiveDiskMounts({
+      archiveId,
+      mounts: [{ id: 'm1', hostId, srUuid: 'sr-1' }],
+      proxyId,
+    })
+
+    await resolver.unmountBackupArchiveDisk('m1')
+    await flush()
+
+    assert.equal(calls.length, 1)
+  })
+
+  it('keeps watching after a failed unmount', async () => {
+    let fail = true
+    const { calls, resolver, xapi } = createResolver({
+      callProxyMethod: async () => {
+        if (fail) {
+          throw new Error('ECONNREFUSED')
+        }
+      },
+    })
+    resolver.registerProxyBackupArchiveDiskMounts({
+      archiveId,
+      mounts: [{ id: 'm1', hostId, srUuid: 'sr-1' }],
+      proxyId,
+    })
+    await assert.rejects(resolver.unmountBackupArchiveDisk('m1'))
+
+    fail = false
+    xapi.removeRecord('SR', 'sr-1')
+    await flush()
+
+    assert.equal(calls.length, 2)
+    assert.equal(isKnown(resolver, 'm1'), false)
+  })
+
+  it('watches the connections established afterwards, e.g. a reconnection', async () => {
+    const { app, calls, resolver } = createResolver()
+    resolver.registerProxyBackupArchiveDiskMounts({
+      archiveId,
+      mounts: [{ id: 'm1', hostId, srUuid: 'sr-1' }],
+      proxyId,
+    })
+
+    const reconnected = makeXapi()
+    app.emit('server:connected', { server: {}, xapi: reconnected })
+    reconnected.removeRecord('SR', 'sr-1')
+    await flush()
+
+    assert.deepEqual(calls, [[proxyId, 'backup.unmountDisk', { id: 'm1' }]])
+  })
+
+  it('ignores the removal of anything but an SR', async () => {
+    const { calls, resolver, xapi } = createResolver()
+    resolver.registerProxyBackupArchiveDiskMounts({
+      archiveId,
+      mounts: [{ id: 'm1', hostId, srUuid: 'sr-1' }],
+      proxyId,
+    })
+
+    xapi.removeRecord('VDI', 'sr-1')
+    await flush()
+
+    assert.deepEqual(calls, [])
+    assert.equal(isKnown(resolver, 'm1'), true)
+  })
+
+  it('leaves the mounts served here to the mixin, which watches their VDI', async () => {
+    const unmounted = []
+    const { resolver, xapi } = createResolver({ unmountDisk: async id => unmounted.push(id) })
+    await resolver.mountBackupArchiveDisk({ archiveId, diskId: 'disk.vhd', hostId })
+
+    xapi.removeRecord('SR', 'sr-local')
+    await flush()
+
+    assert.deepEqual(unmounted, [])
   })
 })

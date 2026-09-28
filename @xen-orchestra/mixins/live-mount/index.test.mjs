@@ -31,10 +31,12 @@ class XapiError extends Error {
 
 const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
   const calls = []
-  // stands for xen-api's record cache: a `xo-collection`, which reports every removed record of
-  // the pool under its `$id` — the uuid, for a VDI
-  const objects = new EventEmitter()
-  objects.remove = (...ids) => objects.emit('remove', Object.fromEntries(ids.map(id => [id, undefined])))
+  // stands for xen-api's record cache: a `xo-collection` whose type index reports each removed
+  // record of the pool on its own, per type
+  const emitters = { __proto__: null }
+  const getEventEmitterByType = type => (emitters[type] ??= new EventEmitter())
+  const objects = { allIndexes: { type: { getEventEmitterByType } } }
+  const removeRecord = ($type, uuid) => getEventEmitterByType($type).emit('remove', undefined, { $type, uuid })
 
   // each mount introduces its own VDI, so the driver hands back a different uuid every time
   let nVdis = 0
@@ -55,14 +57,20 @@ const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
       case 'SR.get_VDIs':
         return ['OpaqueRef:vdi']
       case 'SR.get_PBDs':
+        if (xapi.srGone) {
+          throw new XapiError('HANDLE_INVALID', ['SR', SR_REF])
+        }
         return ['OpaqueRef:pbd']
       default:
         return undefined
     }
   }
-  return {
+  const xapi = {
     calls,
     objects,
+    removeRecord,
+    // set to answer for an SR which no longer exists
+    srGone: false,
     async call(method, ...args) {
       return handle(method, ...args)
     },
@@ -86,6 +94,7 @@ const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
       return { uuid: nVdis > 1 ? `vdi-uuid-${nVdis}` : 'vdi-uuid', sm_config: vdiSmConfig ?? { SCSIid: SCSI_ID } }
     },
   }
+  return xapi
 }
 
 const makeMixin = ({ diskOpenError, listenError, advertisedAddress = '192.168.1.8' } = {}) => {
@@ -293,6 +302,25 @@ describe('unmountDisk', () => {
     assert.deepEqual(mixin.listMountedDisks(), [])
   })
 
+  it('succeeds when the SR is already gone, e.g. forgotten by hand', async () => {
+    const { mixin, target } = makeMixin()
+    const xapi = makeXapi()
+    let released = false
+
+    const { id } = await mountDisk(mixin, xapi, { release: async () => (released = true) })
+    xapi.calls.length = 0
+    xapi.srGone = true
+
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(
+      xapi.calls.map(([method]) => method),
+      ['SR.get_PBDs']
+    )
+    assert.equal(target.closed, true)
+    assert.equal(released, true)
+  })
+
   it('still closes the target and releases resources when forgetting the SR fails', async () => {
     const { mixin, target } = makeMixin()
     const xapi = makeXapi()
@@ -349,7 +377,7 @@ describe('when the live mounted VDI is removed', () => {
     const { id, vdiUuid } = await mountDisk(mixin, xapi, { release: async () => (released = true) })
     xapi.calls.length = 0
 
-    xapi.objects.remove(vdiUuid)
+    xapi.removeRecord('VDI', vdiUuid)
 
     assert.equal(await unmountedMount(mixin), id)
     assert.deepEqual(
@@ -368,7 +396,7 @@ describe('when the live mounted VDI is removed', () => {
     const second = await mountDisk(mixin, xapi, { diskPath: 'xo-vm-backups/vm/vdis/job/vdi/20260801T120000Z.vhd' })
 
     assert.notEqual(first.vdiUuid, second.vdiUuid)
-    xapi.objects.remove(first.vdiUuid)
+    xapi.removeRecord('VDI', first.vdiUuid)
 
     await unmountedMount(mixin)
     assert.deepEqual(
@@ -380,9 +408,11 @@ describe('when the live mounted VDI is removed', () => {
   it('ignores the removal of anything else', async () => {
     const { mixin } = makeMixin()
     const xapi = makeXapi()
-    const { id } = await mountDisk(mixin, xapi)
+    const { id, vdiUuid } = await mountDisk(mixin, xapi)
 
-    xapi.objects.remove('some-other-object')
+    xapi.removeRecord('VDI', 'some-other-vdi')
+    // a record of another type which happens to share the uuid
+    xapi.removeRecord('SR', vdiUuid)
 
     await new Promise(resolve => setImmediate(resolve))
     assert.deepEqual(
@@ -400,7 +430,7 @@ describe('when the live mounted VDI is removed', () => {
 
     await mixin.unmountDisk(id)
     // forgetting the SR removes the VDI: that removal must not feed back into a second teardown
-    xapi.objects.remove(vdiUuid)
+    xapi.removeRecord('VDI', vdiUuid)
 
     await new Promise(resolve => setImmediate(resolve))
     assert.deepEqual(unmounted, [id])
