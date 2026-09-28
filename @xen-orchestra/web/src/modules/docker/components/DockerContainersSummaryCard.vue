@@ -55,6 +55,7 @@ const { t } = useI18n()
     gap: 3.2rem;
   }
 
+  /* TODO(design-system): UiCardNumbers has no accent prop to color its value, hence the override */
   .running :deep(.values) {
     color: var(--color-success-txt-base);
   }

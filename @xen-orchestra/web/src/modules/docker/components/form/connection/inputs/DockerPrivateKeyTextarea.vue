@@ -1,7 +1,6 @@
 <template>
   <UiTextarea
     v-model="model"
-    class="docker-private-key-textarea"
     :accent="errorMessage !== undefined ? 'danger' : 'brand'"
     :required
     autocomplete="off"
@@ -29,6 +28,8 @@ const { error } = defineProps<{
   onBlur?: () => void
 }>()
 
+// TODO(design-system): UiTextarea has no option for a monospace, taller field (a key is easier to check that way).
+// It forwards `class` to the native <textarea>, outside this component's scoped styles, so it cannot be styled from here.
 const model = defineModel<string>({ required: true })
 
 const { t } = useI18n()
@@ -38,10 +39,3 @@ const errorMessage = computed(() => {
   return typeof first === 'object' ? first.content : first
 })
 </script>
-
-<style lang="postcss" scoped>
-.docker-private-key-textarea :deep(.textarea) {
-  font-family: monospace;
-  min-height: 12rem;
-}
-</style>
