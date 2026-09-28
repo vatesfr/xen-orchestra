@@ -40,6 +40,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- vhd-lib patch
 - xo-server patch
 - xo-server-perf-alert patch
 
