@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { asyncMapSettled } from '@xen-orchestra/async-map'
 import emitAsync from '@xen-orchestra/emit-async'
 import groupBy from 'lodash/groupBy.js'
 import { createLogger } from '@xen-orchestra/log'
@@ -86,8 +86,8 @@ export default class Jobs {
       this._logger = await app.getLogger('jobs')
     })
     // it sends a report for the interrupted backup jobs
-    app.on('plugins:registered', () =>
-      asyncMapSettled(this._jobs.get(), job => {
+    app.on('plugins:registered', async () =>
+      asyncMapSettled(await this._jobs.get(), job => {
         // only the interrupted backup jobs have the runId property
         if (job.runId === undefined) {
           return

@@ -6,7 +6,6 @@
  */
 
 import fatfs from '@vates/fatfs'
-import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import filter from 'lodash/filter.js'
 import find from 'lodash/find.js'
 import flatMap from 'lodash/flatMap.js'
@@ -22,7 +21,7 @@ import pick from 'lodash/pick.js'
 import semver from 'semver'
 import tarStream from 'tar-stream'
 import uniq from 'lodash/uniq.js'
-import { asyncMap } from '@xen-orchestra/async-map'
+import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { vmdkToVhd, vhdToVMDK, writeOvaOn } from 'xo-vmdk-to-vhd'
 import { cancelable, CancelToken, fromEvents, ignoreErrors, pRetry } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
@@ -1396,7 +1395,7 @@ export default class Xapi extends XapiBase {
       })
     })
 
-    await asyncMapSettled(pifsByHost, pifs => this.call('Bond.create', network.$ref, pifs, '', bondMode))
+    await asyncMapSettled(Object.values(pifsByHost), pifs => this.call('Bond.create', network.$ref, pifs, '', bondMode))
 
     return network
   }
