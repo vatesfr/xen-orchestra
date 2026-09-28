@@ -143,6 +143,70 @@ describe('RemoteDiskLineage.clean() interrupted merges', { concurrency: 1 }, () 
     assert.deepEqual(warning.data.missing, [`${vdiDir}/missing.alias.vhd`])
   })
 
+  test('keeps every ancestor of a chain it refused to resume', async () => {
+    // several ancestors fell out of retention after the merge was interrupted (e.g. the retention
+    // was lowered): deleting any of them would leave `base`, a differencing disk, without a parent
+    const ggp = await generateDisk('ggp')
+    const gp = await generateDisk('gp', { parent: ggp })
+    const base = await generateDisk('base', { parent: gp })
+    const child = await generateDisk('child', { parent: base })
+    const statePath = await writeMergeState(base, { chain: ['base', 'missing', 'child'] })
+
+    const { warnings, infos } = await cleanLineage({ activeDisks: [child], merge: true })
+
+    assert.ok(
+      warnings.some(({ message }) => message === 'merge chain lost disks before its cleanup step, refusing to resume'),
+      'the incomplete chain should be reported'
+    )
+    assert.equal(
+      infos.some(({ message }) => message === 'Disk chain needs merging'),
+      false,
+      'neither the refused chain nor its ancestors should be merged'
+    )
+    assert.equal(await exists(ggp.aliasPath), true, 'ggp should be kept')
+    assert.equal(await exists(gp.aliasPath), true, 'gp should be kept')
+    assert.equal(await exists(statePath), true, 'merge state should be kept')
+    assert.equal(await exists(base.aliasPath), true, 'base should be kept')
+    assert.equal(await exists(child.aliasPath), true, 'child should be kept')
+  })
+
+  test('keeps every ancestor of a resumed chain, and merges them on the next run', async () => {
+    const ggp = await generateDisk('ggp')
+    const gp = await generateDisk('gp', { parent: ggp })
+    const base = await generateDisk('base', { parent: gp })
+    const child = await generateDisk('child', { parent: base })
+    const statePath = await writeMergeState(base, { chain: ['base', 'child'] })
+
+    // first run: only the interrupted merge is resumed, its ancestors are left alone
+    const firstRun = await cleanLineage({ activeDisks: [child], merge: true })
+
+    assert.ok(
+      firstRun.infos.some(({ message, data }) => message === 'merging disk chain' && data.chain.length === 2),
+      'the interrupted merge should be resumed'
+    )
+    assert.equal(await exists(statePath), false, 'merge state should be deleted once the merge completed')
+    assert.equal(await exists(base.aliasPath), false, 'base should be merged into child')
+    assert.equal(await exists(ggp.aliasPath), true, 'ggp should be kept')
+    assert.equal(await exists(gp.aliasPath), true, 'gp should be kept')
+    assert.equal(await exists(child.aliasPath), true, 'child should be kept')
+
+    // second run: the ancestors are merged into child as a regular chain
+    const secondRun = await cleanLineage({ activeDisks: [child], merge: true })
+
+    assert.deepEqual(
+      secondRun.warnings.filter(({ message }) => message === 'disk broken: parent missing or broken'),
+      [],
+      'child should still have its parents'
+    )
+    assert.ok(
+      secondRun.infos.some(({ message, data }) => message === 'merging disk chain' && data.chain.length === 3),
+      'ggp and gp should be merged into child'
+    )
+    assert.equal(await exists(ggp.aliasPath), false, 'ggp should be merged into child')
+    assert.equal(await exists(gp.aliasPath), false, 'gp should be merged into child')
+    assert.equal(await exists(child.aliasPath), true, 'child should be kept')
+  })
+
   test('drops an unmergeable chain, state and disks, once nothing uses it', async () => {
     const base = await generateDisk('base')
     const missing = await generateDisk('missing', { parent: base })
