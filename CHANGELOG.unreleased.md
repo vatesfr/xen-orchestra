@@ -39,6 +39,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+- @vates/types minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor

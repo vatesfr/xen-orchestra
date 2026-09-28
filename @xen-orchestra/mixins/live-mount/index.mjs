@@ -13,14 +13,7 @@ import { forgetSr, introduceSr, introduceVdi } from './_sr.mjs'
 
 const { info, warn } = createLogger('xo:mixins:LiveMount')
 
-/**
- * The part of a XAPI connection used to watch the pool objects: absent from a connection which does
- * not watch them. `object &` so any connection type is accepted, even one declaring none of this.
- *
- * @typedef {object & {
- *   objects?: object & { allIndexes?: { type?: { getEventEmitterByType(type: string): EventEmitter } } }
- * }} WatchableXapi
- */
+/** @typedef {import('@vates/types').Xapi} Xapi */
 
 /**
  * A mount, as built by `#createDiskMount`.
@@ -35,7 +28,8 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * @property {string} srUuid
  * @property {string} vdiUuid
  * @property {import('@vates/iscsi').IscsiTarget} target
- * @property {WatchableXapi} xapi
+ * @property {Xapi} xapi - replaced by any newer connection to the same pool, see {@link LiveMount#watchConnection}
+ * @property {string} [poolUuid] - pool of `xapi`, unknown if it was not connected
  * @property {() => Promise<void>} [release]
  */
 
@@ -58,6 +52,8 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * A mount releases itself when its VDI is removed from the pool — typically
  * when the VM it was attached to is deleted — so a caller which forgets to
  * unmount does not leak an SR and a target for the lifetime of the process.
+ * A caller which replaces its XAPI connections (e.g. on reconnection) must
+ * hand each new one to {@link LiveMount#watchConnection}.
  *
  * The implementation is split by concern, each module private to this
  * directory: `_target.mjs` (CHAP + the iSCSI target + SCSI probe), `_sr.mjs`
@@ -81,9 +77,10 @@ export default class LiveMount extends EventEmitter {
   // mount id -> mount record
   #mounts = new Map()
 
-  // XAPI connection -> mount id, by the uuid of the VDI that mount serves. Weak, so a connection
-  // which goes away takes its watch with it, and its single listener with it.
-  #mountIdsByVdiUuid = new WeakMap()
+  // VDI uuid -> id of the mount serving it: a uuid is unique across pools, so a single map serves
+  // every connection, including the ones replacing the connection a mount was created with
+  /** @type {Map<string, string>} */
+  #mountIdsByVdiUuid = new Map()
 
   // `openDisk`/`createTarget`/`detectAddress` are injectable for tests only,
   // like xo-server's crypto-credentials mixin does with xenStore/fsPromises
@@ -198,7 +195,8 @@ export default class LiveMount extends EventEmitter {
 
     info('mounted', { id, address, port, srUuid, vdiUuid, diskPath })
 
-    return { address, disk, diskPath, id, iqn, port, release, srRef, srUuid, target, vdiUuid, xapi }
+    const poolUuid = xapi.pool?.uuid
+    return { address, disk, diskPath, id, iqn, poolUuid, port, release, srRef, srUuid, target, vdiUuid, xapi }
   })
 
   /**
@@ -210,44 +208,11 @@ export default class LiveMount extends EventEmitter {
    * reports the LUN itself as unused, so the VDI vanishing is the only signal that the mount has
    * become pointless.
    *
-   * One listener per XAPI connection, whatever the number of mounts on it: the VDI events of
-   * `xapi.objects` report every VDI removal of the pool anyway, and a listener per mount would pile
-   * up on a shared connection. It is never removed, it simply ends up watching for nothing — what
-   * is tracked, and dropped as soon as it is of no use, is the uuid it looks for.
-   *
    * @param {DiskMount} mount
    */
   #watchVdi({ id, vdiUuid, xapi }) {
-    const vdiEvents = xapi.objects?.allIndexes?.type?.getEventEmitterByType('VDI')
-    if (vdiEvents === undefined) {
-      // a connection which does not watch the pool objects: the mount works, it just has to be
-      // unmounted explicitly
-      warn('cannot watch the live mounted VDI, this mount will not be released on its own', { id, vdiUuid })
-      return
-    }
-
-    let mountIds = this.#mountIdsByVdiUuid.get(xapi)
-    if (mountIds === undefined) {
-      mountIds = new Map()
-      this.#mountIdsByVdiUuid.set(xapi, mountIds)
-
-      // the type index reports each removed record on its own, as it was before its removal, so
-      // under the very uuid `introduceVdi` resolved
-      vdiEvents.on('remove', (_, vdi) => {
-        const uuid = vdi?.uuid
-        const mountId = uuid === undefined ? undefined : mountIds.get(uuid)
-        if (mountId !== undefined) {
-          // a VDI is removed once and for all, and a mount introduces exactly one: nothing else
-          // will ever come for this uuid
-          mountIds.delete(uuid)
-          info('the live mounted VDI was removed, unmounting', { id: mountId, vdiUuid: uuid })
-          this.unmountDisk(mountId).catch(error => {
-            warn('failed to unmount after the VDI was removed', { error, id: mountId })
-          })
-        }
-      })
-    }
-    mountIds.set(vdiUuid, id)
+    this.#mountIdsByVdiUuid.set(vdiUuid, id)
+    this.#listen(xapi)
   }
 
   /**
@@ -255,8 +220,74 @@ export default class LiveMount extends EventEmitter {
    *
    * @param {DiskMount} mount
    */
-  #unwatchVdi({ vdiUuid, xapi }) {
-    this.#mountIdsByVdiUuid.get(xapi)?.delete(vdiUuid)
+  #unwatchVdi({ vdiUuid }) {
+    this.#mountIdsByVdiUuid.delete(vdiUuid)
+  }
+
+  /**
+   * Take over from the previous connection to the same pool, which a new one replaces.
+   *
+   * A connection which went away reports nothing more, and no longer answers either: without this,
+   * the removal of a VDI would go unnoticed, and so would the SR forgotten on unmount. xo-server
+   * creates a new connection on every reconnection, and each one must be handed here.
+   *
+   * @param {Xapi} xapi
+   */
+  watchConnection(xapi) {
+    const poolUuid = xapi.pool?.uuid
+    if (poolUuid !== undefined) {
+      for (const mount of this.#mounts.values()) {
+        if (mount.poolUuid === poolUuid) {
+          mount.xapi = xapi
+        }
+      }
+    }
+    this.#listen(xapi)
+  }
+
+  /**
+   * One listener per XAPI connection, whatever the number of mounts on it: the VDI events of
+   * `xapi.objects` report every VDI removal of the pool anyway, and a listener per mount would pile
+   * up on a shared connection. It is never removed, it simply ends up watching for nothing — what
+   * is tracked, and dropped as soon as it is of no use, is the uuid it looks for.
+   *
+   * A connection which does not watch the pool events never reports anything: its mounts work, they
+   * just have to be unmounted explicitly.
+   *
+   * @param {Xapi} xapi
+   */
+  #listen(xapi) {
+    const vdiEvents = xapi.objects.allIndexes.type.getEventEmitterByType('VDI')
+    // a single handler shared by every connection, so the emitter itself tells whether this one is
+    // already listened to
+    if (!vdiEvents.listeners('remove').includes(this.#onVdiRemoved)) {
+      vdiEvents.on('remove', this.#onVdiRemoved)
+    }
+  }
+
+  /**
+   * The type index reports each removed record on its own, as it was before its removal, so under
+   * the very uuid `introduceVdi` resolved.
+   *
+   * @param {unknown} _
+   * @param {{ uuid?: string } | undefined} vdi
+   */
+  #onVdiRemoved = (_, vdi) => {
+    const uuid = vdi?.uuid
+    if (uuid === undefined) {
+      return
+    }
+    const mountId = this.#mountIdsByVdiUuid.get(uuid)
+    if (mountId === undefined) {
+      return
+    }
+    // a VDI is removed once and for all, and a mount introduces exactly one: nothing else will ever
+    // come for this uuid
+    this.#mountIdsByVdiUuid.delete(uuid)
+    info('the live mounted VDI was removed, unmounting', { id: mountId, vdiUuid: uuid })
+    this.unmountDisk(mountId).catch(error => {
+      warn('failed to unmount after the VDI was removed', { error, id: mountId })
+    })
   }
 
   /**

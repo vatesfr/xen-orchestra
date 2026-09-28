@@ -10,6 +10,7 @@ const { info, warn } = createLogger('xo:xo-mixins:backup-disk-mounts')
  * @typedef {import('@vates/types').XoHost} XoHost
  * @typedef {import('@vates/types').XoProxy} XoProxy
  * @typedef {import('@vates/types').XoVmBackupArchive} XoVmBackupArchive
+ * @typedef {import('@vates/types').Xapi} Xapi
  */
 
 /**
@@ -18,15 +19,6 @@ const { info, warn } = createLogger('xo:xo-mixins:backup-disk-mounts')
  * @typedef {XoApp & Pick<import('node:events').EventEmitter, 'on'> & {
  *   liveMount: import('@xen-orchestra/mixins/live-mount/index.mjs').default
  * }} App
- */
-
-/**
- * The part of a XAPI connection used to watch the pool objects: absent from a connection which does
- * not watch them. `object &` so any connection type is accepted, even one declaring none of this.
- *
- * @typedef {object & {
- *   objects?: object & { allIndexes?: { type?: { getEventEmitterByType(type: string): import('node:events').EventEmitter } } }
- * }} WatchableXapi
  */
 
 /**
@@ -89,10 +81,6 @@ export default class BackupDiskMountsResolver {
   /** @type {Map<BackupArchiveDiskMount['srUuid'], BackupArchiveDiskMount['id']>} */
   #proxyMountIdsBySrUuid = new Map()
 
-  // XAPI connections already listened to, see `#watchConnection`
-  /** @type {WeakSet<WatchableXapi>} */
-  #watchedConnections = new WeakSet()
-
   /** @param {App} app */
   constructor(app) {
     this.#app = app
@@ -103,8 +91,12 @@ export default class BackupDiskMountsResolver {
       this.#mounts.delete(id)
     })
 
-    // a reconnection is a new connection, the previous one no longer reports anything
-    app.on('server:connected', ({ xapi }) => this.#watchConnection(xapi))
+    // a reconnection is a new connection, the previous one no longer reports anything, nor answers:
+    // for the mounts served here too, which the mixin has to be told about
+    app.on('server:connected', ({ xapi }) => {
+      this.#watchConnection(xapi)
+      app.liveMount.watchConnection(xapi)
+    })
   }
 
   /**
@@ -252,26 +244,32 @@ export default class BackupDiskMountsResolver {
    * every object of a pool as removed when it is merely disconnected, which would unmount all its
    * disks.
    *
-   * @param {WatchableXapi} xapi
+   * @param {Xapi} xapi
    */
   #watchConnection(xapi) {
-    if (this.#watchedConnections.has(xapi)) {
-      return
+    const srEvents = xapi.objects.allIndexes.type.getEventEmitterByType('SR')
+    // a single handler shared by every connection, so the emitter itself tells whether this one is
+    // already listened to
+    if (!srEvents.listeners('remove').includes(this.#onSrRemoved)) {
+      srEvents.on('remove', this.#onSrRemoved)
     }
-    const srEvents = xapi.objects?.allIndexes?.type?.getEventEmitterByType('SR')
-    if (srEvents === undefined) {
-      return
-    }
-    this.#watchedConnections.add(xapi)
+  }
 
-    // the type index reports each removed record on its own, as it was before its removal
-    srEvents.on('remove', (_, sr) => {
-      const srUuid = sr?.uuid
-      const id = srUuid === undefined ? undefined : this.#proxyMountIdsBySrUuid.get(srUuid)
-      if (id !== undefined) {
-        this.#onProxyMountSrRemoved(id, srUuid)
-      }
-    })
+  /**
+   * The type index reports each removed record on its own, as it was before its removal.
+   *
+   * @param {unknown} _
+   * @param {{ uuid?: BackupArchiveDiskMount['srUuid'] } | undefined} sr
+   */
+  #onSrRemoved = (_, sr) => {
+    const srUuid = sr?.uuid
+    if (srUuid === undefined) {
+      return
+    }
+    const id = this.#proxyMountIdsBySrUuid.get(srUuid)
+    if (id !== undefined) {
+      this.#onProxyMountSrRemoved(id, srUuid)
+    }
   }
 
   /**

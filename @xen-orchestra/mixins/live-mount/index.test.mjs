@@ -29,7 +29,7 @@ class XapiError extends Error {
   }
 }
 
-const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
+const makeXapi = ({ poolUuid = 'pool-uuid', probeError, vdiSmConfig } = {}) => {
   const calls = []
   // stands for xen-api's record cache: a `xo-collection` whose type index reports each removed
   // record of the pool on its own, per type
@@ -68,6 +68,7 @@ const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
   const xapi = {
     calls,
     objects,
+    pool: { uuid: poolUuid },
     removeRecord,
     // set to answer for an SR which no longer exists
     srGone: false,
@@ -435,18 +436,71 @@ describe('when the live mounted VDI is removed', () => {
     await new Promise(resolve => setImmediate(resolve))
     assert.deepEqual(unmounted, [id])
   })
+})
 
-  it('does not watch a connection which does not report its objects', async () => {
+describe('after a reconnection', () => {
+  const unmountedMount = mixin =>
+    new Promise(resolve => {
+      mixin.once('unmounted', resolve)
+    })
+
+  it('unmounts when the VDI removal is reported by the new connection, and tears down through it', async () => {
+    const { mixin, target } = makeMixin()
+    const disconnected = makeXapi()
+    const { id, vdiUuid } = await mountDisk(mixin, disconnected)
+    disconnected.calls.length = 0
+
+    const reconnected = makeXapi()
+    mixin.watchConnection(reconnected)
+    reconnected.removeRecord('VDI', vdiUuid)
+
+    assert.equal(await unmountedMount(mixin), id)
+    // the previous connection no longer answers: the SR must be forgotten through the new one
+    assert.deepEqual(disconnected.calls, [])
+    assert.deepEqual(
+      reconnected.calls.map(([method]) => method),
+      ['SR.get_PBDs', 'PBD.unplug', 'SR.forget']
+    )
+    assert.equal(target.closed, true)
+  })
+
+  it('unmounts explicitly through the new connection', async () => {
+    const { mixin } = makeMixin()
+    const disconnected = makeXapi()
+    const { id } = await mountDisk(mixin, disconnected)
+    disconnected.calls.length = 0
+
+    const reconnected = makeXapi()
+    mixin.watchConnection(reconnected)
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(disconnected.calls, [])
+    assert.equal(reconnected.calls.at(-1)[0], 'SR.forget')
+  })
+
+  it('leaves the mounts of other pools on their own connection', async () => {
     const { mixin } = makeMixin()
     const xapi = makeXapi()
-    delete xapi.objects
-
     const { id } = await mountDisk(mixin, xapi)
+    xapi.calls.length = 0
 
-    assert.deepEqual(
-      mixin.listMountedDisks().map(_ => _.id),
-      [id]
-    )
+    const otherPool = makeXapi({ poolUuid: 'other-pool-uuid' })
+    mixin.watchConnection(otherPool)
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(otherPool.calls, [])
+    assert.equal(xapi.calls.at(-1)[0], 'SR.forget')
+  })
+
+  it('listens only once to a connection handed several times', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    await mountDisk(mixin, xapi)
+
+    mixin.watchConnection(xapi)
+    mixin.watchConnection(xapi)
+
+    assert.equal(xapi.objects.allIndexes.type.getEventEmitterByType('VDI').listenerCount('remove'), 1)
   })
 })
 

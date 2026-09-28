@@ -35,6 +35,8 @@ const makeNoSuchLiveMount = id => {
  */
 function createResolver({ callProxyMethod = async () => {}, unmountDisk = async () => {} } = {}) {
   const calls = []
+  // connections handed to the mixin
+  const watchedConnections = []
   const xapi = makeXapi()
   // XO emits `server:connected` for each new XAPI connection
   const app = Object.assign(new EventEmitter(), {
@@ -53,9 +55,10 @@ function createResolver({ callProxyMethod = async () => {}, unmountDisk = async 
     liveMount: Object.assign(new EventEmitter(), {
       mountDisk: async () => ({ id: 'local-mount', srUuid: 'sr-local' }),
       unmountDisk,
+      watchConnection: xapi => watchedConnections.push(xapi),
     }),
   })
-  return { app, calls, resolver: new BackupDiskMountsResolver(app), xapi }
+  return { app, calls, resolver: new BackupDiskMountsResolver(app), watchedConnections, xapi }
 }
 
 const isKnown = (resolver, id) => {
@@ -222,6 +225,15 @@ describe('removal of the SR of a mount served by a proxy', () => {
     await flush()
 
     assert.deepEqual(calls, [[proxyId, 'backup.unmountDisk', { id: 'm1' }]])
+  })
+
+  it('hands the new connections to the mixin, for the mounts served here', () => {
+    const { app, watchedConnections } = createResolver()
+
+    const reconnected = makeXapi()
+    app.emit('server:connected', { server: {}, xapi: reconnected })
+
+    assert.deepEqual(watchedConnections, [reconnected])
   })
 
   it('ignores the removal of anything but an SR', async () => {
