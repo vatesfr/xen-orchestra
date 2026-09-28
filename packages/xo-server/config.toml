@@ -214,6 +214,11 @@ requestTimeout = 0
 # route through to reach the target host) — usually correct, but not
 # guaranteed if this appliance is behind NAT or asymmetric routing. Set this
 # explicitly if mounts fail to connect despite auto-detection.
+#
+# Streaming an ISO from the browser (experimental, administrators only) is only
+# available when this is set explicitly. Each session opens a temporary target
+# on an ephemeral port, attached to a single host: the VM cannot migrate while
+# the ISO is inserted.
 #advertisedAddress = '192.168.0.1'
 
 # Address the iSCSI targets bind to. Unset means all interfaces.

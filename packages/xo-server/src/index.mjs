@@ -41,6 +41,7 @@ import { invalidCredentials } from 'xo-common/api-errors.js'
 import { Peer as JsonRpcPeer } from 'json-rpc-peer'
 
 import ensureArray from './_ensureArray.mjs'
+import { installBrowserMedia } from './browser-media.mjs'
 import Xo from './xo.mjs'
 
 import bodyParser from 'body-parser'
@@ -1077,6 +1078,8 @@ export default async function main(args) {
 
   // Must be set up before the API.
   express.use(xo._handleHttpRequest.bind(xo))
+
+  installBrowserMedia(webServer, xo)
 
   setUpStaticFiles(express, config.http.publicMounts)
 
