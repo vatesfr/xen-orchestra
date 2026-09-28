@@ -1,7 +1,13 @@
 import { createHash } from 'node:crypto'
-import { request as httpRequest } from 'node:http'
-import { Readable } from 'node:stream'
-import { Client } from 'ssh2'
+import { request as httpRequest, type IncomingHttpHeaders, type IncomingMessage } from 'node:http'
+import { type Duplex, Readable } from 'node:stream'
+import {
+  Client,
+  type ClientCallback,
+  type ClientErrorExtensions,
+  type ConnectConfig,
+  type ServerHostKeyAlgorithm,
+} from 'ssh2'
 import { createLogger } from '@xen-orchestra/log'
 
 import {
@@ -17,6 +23,7 @@ import {
   TIMEOUT,
 } from './errors.mjs'
 import { SshHttpAgent } from './ssh-http-agent.mjs'
+import type { DockerVersion } from './wire.mjs'
 
 const { debug, warn } = createLogger('xo:docker:connection')
 
@@ -52,29 +59,30 @@ export const MAX_LONG_LIVED_STREAMS = 128
 /**
  * Counting semaphore with a bounded, abortable, FIFO queue.
  */
+type Waiter = { grant: () => void; reject: (error: unknown) => void }
+
 class RequestLimiter {
   #active = 0
-  #max
-  #maxQueued
-  #message
-  #queue = []
+  #max: number
+  #maxQueued: number
+  #message: string
+  #queue: Waiter[] = []
 
-  constructor(max, maxQueued, message = 'too many pending Docker API requests') {
+  constructor(max: number, maxQueued: number, message = 'too many pending Docker API requests') {
     this.#max = max
     this.#maxQueued = maxQueued
     this.#message = message
   }
 
-  /** @returns {number} number of granted slots */
-  get active() {
+  /** number of granted slots */
+  get active(): number {
     return this.#active
   }
 
   /**
-   * @param {AbortSignal} signal
-   * @returns {Promise<() => void>} resolves with an idempotent release function
+   * @returns resolves with an idempotent release function
    */
-  acquire(signal) {
+  acquire(signal: AbortSignal): Promise<() => void> {
     if (this.#active < this.#max) {
       ++this.#active
       return Promise.resolve(this.#makeRelease())
@@ -89,7 +97,7 @@ class RequestLimiter {
     if (signal.aborted) {
       return Promise.reject(signal.reason)
     }
-    return new Promise((resolve, reject) => {
+    return new Promise<() => void>((resolve, reject) => {
       const remove = () => {
         signal.removeEventListener('abort', onAbort)
         const index = this.#queue.indexOf(waiter)
@@ -101,7 +109,7 @@ class RequestLimiter {
         remove()
         reject(signal.reason)
       }
-      const waiter = {
+      const waiter: Waiter = {
         grant: () => {
           signal.removeEventListener('abort', onAbort)
           resolve(this.#makeRelease())
@@ -118,16 +126,14 @@ class RequestLimiter {
 
   /**
    * Reject every queued (not yet granted) acquisition.
-   *
-   * @param {Error} error
    */
-  rejectQueued(error) {
+  rejectQueued(error: Error): void {
     for (const waiter of this.#queue.slice()) {
       waiter.reject(error)
     }
   }
 
-  #makeRelease() {
+  #makeRelease(): () => void {
     let released = false
     return () => {
       if (released) {
@@ -149,20 +155,18 @@ class RequestLimiter {
  * OpenSSH fingerprint of a host key, same format as `ssh-keygen -lf`:
  * `SHA256:` followed by the unpadded base64 of the SHA-256 of the key blob.
  *
- * @param {Buffer} keyBlob host key in SSH wire format (what ssh2's `hostVerifier` receives when `hostHash` is not set)
- * @returns {string}
+ * @param keyBlob host key in SSH wire format (what ssh2's `hostVerifier` receives when `hostHash` is not set)
  */
-export function computeFingerprint(keyBlob) {
+export function computeFingerprint(keyBlob: Buffer): string {
   return 'SHA256:' + createHash('sha256').update(keyBlob).digest('base64').replace(/=+$/, '')
 }
 
 /**
  * Algorithm of a host key blob: its first field (SSH string).
  *
- * @param {Buffer} keyBlob
- * @returns {string | undefined} e.g. `ssh-ed25519`
+ * @returns e.g. `ssh-ed25519`
  */
-export function getKeyAlgorithm(keyBlob) {
+export function getKeyAlgorithm(keyBlob: Buffer): string | undefined {
   if (keyBlob.length < 4) {
     return
   }
@@ -176,11 +180,8 @@ export function getKeyAlgorithm(keyBlob) {
 /**
  * Normalize a user-provided fingerprint: ensure the `SHA256:` prefix, drop
  * base64 padding and surrounding spaces.
- *
- * @param {string} fingerprint
- * @returns {string}
  */
-export function normalizeFingerprint(fingerprint) {
+export function normalizeFingerprint(fingerprint: string): string {
   let normalized = fingerprint.trim().replace(/=+$/, '')
   if (!normalized.startsWith('SHA256:')) {
     normalized = 'SHA256:' + normalized
@@ -188,18 +189,23 @@ export function normalizeFingerprint(fingerprint) {
   return normalized
 }
 
+/** An SSH host key, as seen during a handshake */
+export type HostKey = { fingerprint: string; algorithm: string | undefined }
+
 /**
  * Check a host key against the expected fingerprint.
  *
- * @param {Buffer} keyBlob
- * @param {object} opts
- * @param {string} [opts.expectedFingerprint]
- * @param {boolean} [opts.acceptUnknownHostKey]
- * @returns {{ fingerprint: string, algorithm: string | undefined }} the observed key if accepted
+ * @returns the observed key if accepted
  * @throws {DockerError} HOST_KEY_UNKNOWN or HOST_KEY_MISMATCH
  */
-export function verifyHostKey(keyBlob, { expectedFingerprint, acceptUnknownHostKey = false }) {
-  const observed = { fingerprint: computeFingerprint(keyBlob), algorithm: getKeyAlgorithm(keyBlob) }
+export function verifyHostKey(
+  keyBlob: Buffer,
+  {
+    expectedFingerprint,
+    acceptUnknownHostKey = false,
+  }: { expectedFingerprint?: string | null; acceptUnknownHostKey?: boolean }
+): HostKey {
+  const observed: HostKey = { fingerprint: computeFingerprint(keyBlob), algorithm: getKeyAlgorithm(keyBlob) }
   if (expectedFingerprint == null || expectedFingerprint === '') {
     if (acceptUnknownHostKey) {
       return observed
@@ -218,11 +224,9 @@ export function verifyHostKey(keyBlob, { expectedFingerprint, acceptUnknownHostK
 /**
  * Compare two `major.minor` API versions.
  *
- * @param {string} a
- * @param {string} b
- * @returns {number} negative if a < b, 0 if equal, positive if a > b
+ * @returns negative if a < b, 0 if equal, positive if a > b
  */
-export function compareApiVersions(a, b) {
+export function compareApiVersions(a: string, b: string): number {
   const pa = String(a).split('.').map(Number)
   const pb = String(b).split('.').map(Number)
   for (let i = 0, n = Math.max(pa.length, pb.length); i < n; ++i) {
@@ -237,11 +241,17 @@ export function compareApiVersions(a, b) {
 /**
  * Choose the API version to use with a daemon, based on its `GET /version`.
  *
- * @param {{ ApiVersion?: string, MinAPIVersion?: string }} version
- * @returns {string}
+ * The values are checked: they come from the daemon.
+ *
  * @throws {DockerError} DOCKER_API_VERSION_UNSUPPORTED
  */
-export function negotiateApiVersion({ ApiVersion, MinAPIVersion }) {
+export function negotiateApiVersion({
+  ApiVersion,
+  MinAPIVersion,
+}: {
+  ApiVersion?: unknown
+  MinAPIVersion?: unknown
+}): string {
   if (typeof ApiVersion !== 'string' || !/^\d+\.\d+$/.test(ApiVersion)) {
     throw new DockerError(DOCKER_API_VERSION_UNSUPPORTED, 'the Docker daemon did not report a valid API version', {
       data: { apiVersion: ApiVersion },
@@ -263,35 +273,34 @@ export function negotiateApiVersion({ ApiVersion, MinAPIVersion }) {
 }
 
 // preferred `serverHostKey` algorithms for a given host key type
-const hostKeyAlgorithmsFor = keyType =>
-  keyType === 'ssh-rsa' ? ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa'] : [keyType]
+//
+// `keyType` is not checked against the algorithms known by ssh2: an unknown one
+// makes the handshake fail
+const hostKeyAlgorithmsFor = (keyType: string): ServerHostKeyAlgorithm[] =>
+  keyType === 'ssh-rsa' ? ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa'] : [keyType as ServerHostKeyAlgorithm]
 
 /**
  * Wait for `promise` unless `signal` aborts first (the promise itself is not
  * cancelled).
- *
- * @template T
- * @param {Promise<T>} promise
- * @param {AbortSignal} signal
- * @returns {Promise<T>}
  */
-function raceSignal(promise, signal) {
+function raceSignal<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
   if (signal.aborted) {
     return Promise.reject(signal.reason)
   }
-  let onAbort
+  let onAbort: (() => void) | undefined
+  // `onAbort!` below: always set, the executor of the promise runs synchronously
   return Promise.race([
     promise,
-    new Promise((resolve, reject) => {
+    new Promise<never>((resolve, reject) => {
       onAbort = () => reject(signal.reason)
       signal.addEventListener('abort', onAbort, { once: true })
     }),
-  ]).finally(() => signal.removeEventListener('abort', onAbort))
+  ]).finally(() => signal.removeEventListener('abort', onAbort!))
 }
 
-const isJsonContentType = contentType => typeof contentType === 'string' && /[/+]json\b/i.test(contentType)
+const isJsonContentType = (contentType: unknown) => typeof contentType === 'string' && /[/+]json\b/i.test(contentType)
 
-function buildQueryString(query) {
+function buildQueryString(query: Record<string, unknown> | undefined): string {
   if (query === undefined) {
     return ''
   }
@@ -307,12 +316,8 @@ function buildQueryString(query) {
   return search === '' ? '' : '?' + search
 }
 
-/**
- * @param {import('node:http').IncomingMessage} response
- * @returns {Promise<Buffer>}
- */
-async function readBody(response) {
-  const chunks = []
+async function readBody(response: IncomingMessage): Promise<Buffer> {
+  const chunks: Buffer[] = []
   let size = 0
   for await (const chunk of response) {
     size += chunk.length
@@ -335,12 +340,9 @@ export const MAX_ERROR_MESSAGE_LENGTH = 512
 /**
  * Reads at most `MAX_ERROR_BODY_SIZE` bytes of an error response, the rest is
  * discarded (the response is destroyed, and its channel with it).
- *
- * @param {import('node:http').IncomingMessage} response
- * @returns {Promise<{ buffer: Buffer, truncated: boolean }>}
  */
-async function readErrorBody(response) {
-  const chunks = []
+async function readErrorBody(response: IncomingMessage): Promise<{ buffer: Buffer; truncated: boolean }> {
+  const chunks: Buffer[] = []
   let size = 0
   for await (const chunk of response) {
     chunks.push(chunk)
@@ -353,22 +355,21 @@ async function readErrorBody(response) {
   return { buffer: Buffer.concat(chunks), truncated: false }
 }
 
-/**
- * @param {unknown} message
- * @returns {string | undefined}
- */
-export function truncateErrorMessage(message) {
-  if (typeof message !== 'string') {
+export function truncateErrorMessage(value: unknown): string | undefined {
+  if (typeof value !== 'string') {
     return undefined
   }
-  message = message.trim()
+  const message = value.trim()
   if (message === '') {
     return undefined
   }
   return message.length > MAX_ERROR_MESSAGE_LENGTH ? message.slice(0, MAX_ERROR_MESSAGE_LENGTH) + '…' : message
 }
 
-function parseBody(response, buffer) {
+/**
+ * @returns the parsed JSON (anything: it comes from the daemon), or `buffer` if the response is not JSON
+ */
+function parseBody(response: IncomingMessage, buffer: Buffer): unknown {
   if (buffer.length !== 0 && isJsonContentType(response.headers['content-type'])) {
     try {
       return JSON.parse(buffer.toString('utf8'))
@@ -383,49 +384,133 @@ function parseBody(response, buffer) {
 }
 
 /**
+ * What `DockerConnection` uses of an `ssh2.Client`, so that tests can provide
+ * a stand-in.
+ */
+export interface SshClient {
+  on(event: 'ready', listener: () => void): this
+  on(event: 'close', listener: () => void): this
+  on(event: 'error', listener: (error: Error & ClientErrorExtensions) => void): this
+  once(event: 'close', listener: () => void): this
+  connect(config: ConnectConfig): this
+  exec(command: string, callback: ClientCallback): this
+  openssh_forwardOutStreamLocal(socketPath: string, callback: (error: Error | undefined, channel: Duplex) => void): this
+  end(): this
+  destroy?(): this
+  /** private TCP socket (`net.Socket`) of `ssh2.Client`, not in its public API, see `close()` */
+  _sock?: { readonly destroyed: boolean; destroy(): void }
+}
+
+export type DockerConnectionOptions = {
+  host: string
+  port?: number
+  username: string
+  password?: string
+  privateKey?: string | Buffer
+  passphrase?: string
+  /** path of the Docker socket on the remote host */
+  socketPath?: string
+  /** expected host key fingerprint (`SHA256:…`), `null` (e.g. from a DB) is the same as missing */
+  hostKeyFingerprint?: string | null
+  /** type of the expected host key (e.g. `ssh-ed25519`, as in `observedHostKey.algorithm`), makes the server present this key */
+  hostKeyAlgorithm?: string | null
+  /** accept any host key when `hostKeyFingerprint` is missing, the observed one is then available in `observedHostKey` */
+  acceptUnknownHostKey?: boolean
+  /** max duration of the SSH connection (TCP + handshake + auth) and of a channel opening (ms) */
+  connectTimeout?: number
+  /** max duration of an HTTP request, including reading the response (ms) */
+  requestTimeout?: number
+}
+
+/** for tests only */
+export type DockerConnectionInternals = {
+  createClient?: () => SshClient
+  closeTimeout?: number
+}
+
+export type DockerRequestOptions = {
+  method?: string
+  /** e.g. `/containers/json` */
+  path: string
+  query?: Record<string, unknown>
+  /** objects are sent as JSON */
+  body?: unknown
+  headers?: Record<string, string>
+  signal?: AbortSignal
+}
+
+export type DockerStreamRequestOptions = DockerRequestOptions & {
+  /**
+   * the response may stay open for long (e.g. `stats?stream=true`): sent on a
+   * dedicated channel, outside of the limit of concurrent requests (see `MAX_LONG_LIVED_STREAMS`)
+   */
+  longLived?: boolean
+  /**
+   * raw passthrough: `path` is sent verbatim (it may contain a query string, and is
+   * prefixed with the negotiated version unless it starts with `/v<version>/`), and error responses (non 2xx) are
+   * returned instead of thrown
+   */
+  raw?: boolean
+}
+
+export type DockerResponse = {
+  statusCode: number
+  headers: IncomingHttpHeaders
+  /** parsed when JSON (anything: it comes from the daemon), a Buffer otherwise */
+  body: unknown
+}
+
+export type DockerExecResult = { code: number | null; signal: string | undefined; stdout: string; stderr: string }
+
+type SendOptions = {
+  method?: string
+  path: string
+  query?: Record<string, unknown>
+  body?: unknown
+  headers?: Record<string, string | number>
+  versioned?: boolean
+  longLived?: boolean
+}
+
+type SshConfig = {
+  host: string
+  port: number
+  username: string
+  password: string | undefined
+  privateKey: string | Buffer | undefined
+  passphrase: string | undefined
+  hostKeyFingerprint: string | undefined
+}
+
+/**
  * Connection to a Docker daemon reached through SSH: one `ssh2.Client`, many
  * HTTP requests multiplexed on `direct-streamlocal@openssh.com` channels.
  */
 export class DockerConnection {
-  #acceptUnknownHostKey
-  #agent
-  #apiVersion
-  #client
-  #clientPromise
-  #closeTimeout
-  #closedClients = new WeakSet()
-  #connectTimeout
-  #createClient
-  #engineVersion
+  #acceptUnknownHostKey: boolean
+  #agent: SshHttpAgent
+  #apiVersion: string | undefined
+  #client: SshClient | undefined
+  #clientPromise: Promise<SshClient> | undefined
+  #closeTimeout: number
+  #closedClients = new WeakSet<SshClient>()
+  #connectTimeout: number
+  #createClient: () => SshClient
+  #engineVersion: string | undefined
   #generation = 0
-  #hostKeyAlgorithm
-  #limiter
-  #pinnedHostKey
-  #negotiation
-  #observedHostKey
-  #requestTimeout
-  #socketPath
-  #sshConfig
-  #streamAgent
-  #streamLimiter
+  #hostKeyAlgorithm: string | undefined
+  #limiter: RequestLimiter
+  #pinnedHostKey: HostKey | undefined
+  #negotiation: Promise<string> | undefined
+  #observedHostKey: HostKey | undefined
+  #requestTimeout: number
+  #socketPath: string
+  #sshConfig: SshConfig
+  #streamAgent: SshHttpAgent
+  #streamLimiter: RequestLimiter
 
   /**
-   * @param {object} opts
-   * @param {string} opts.host
-   * @param {number} [opts.port]
-   * @param {string} opts.username
-   * @param {string} [opts.password]
-   * @param {string | Buffer} [opts.privateKey]
-   * @param {string} [opts.passphrase]
-   * @param {string} [opts.socketPath] path of the Docker socket on the remote host
-   * @param {string} [opts.hostKeyFingerprint] expected host key fingerprint (`SHA256:…`)
-   * @param {string} [opts.hostKeyAlgorithm] type of the expected host key (e.g. `ssh-ed25519`, as in `observedHostKey.algorithm`), makes the server present this key
-   * @param {boolean} [opts.acceptUnknownHostKey] accept any host key when `hostKeyFingerprint` is missing, the observed one is then available in `observedHostKey`
-   * @param {number} [opts.connectTimeout] max duration of the SSH connection (TCP + handshake + auth) and of a channel opening (ms)
-   * @param {number} [opts.requestTimeout] max duration of an HTTP request, including reading the response (ms)
-   * @param {object} [internals] for tests only
-   * @param {() => import('ssh2').Client} [internals.createClient]
-   * @param {number} [internals.closeTimeout]
+   * @param internals for tests only
    */
   constructor(
     {
@@ -441,8 +526,8 @@ export class DockerConnection {
       acceptUnknownHostKey = false,
       connectTimeout = DEFAULT_CONNECT_TIMEOUT,
       requestTimeout = DEFAULT_REQUEST_TIMEOUT,
-    },
-    { createClient = () => new Client(), closeTimeout = CLOSE_TIMEOUT } = {}
+    }: DockerConnectionOptions,
+    { createClient = () => new Client(), closeTimeout = CLOSE_TIMEOUT }: DockerConnectionInternals = {}
   ) {
     this.#acceptUnknownHostKey = acceptUnknownHostKey
     this.#closeTimeout = closeTimeout
@@ -484,45 +569,43 @@ export class DockerConnection {
     )
   }
 
-  /** @returns {{ requests: number, streams: number }} slots in use, for tests and diagnostics */
-  get activeRequests() {
+  /** slots in use, for tests and diagnostics */
+  get activeRequests(): { requests: number; streams: number } {
     return { requests: this.#limiter.active, streams: this.#streamLimiter.active }
   }
 
-  /** @returns {string | undefined} negotiated API version, e.g. `1.43` */
-  get apiVersion() {
+  /** negotiated API version, e.g. `1.43` */
+  get apiVersion(): string | undefined {
     return this.#apiVersion
   }
 
-  /** @returns {string | undefined} version of the Docker Engine, e.g. `27.3.1` */
-  get engineVersion() {
+  /** version of the Docker Engine, e.g. `27.3.1` */
+  get engineVersion(): string | undefined {
     return this.#engineVersion
   }
 
-  /** @returns {{ fingerprint: string, algorithm: string | undefined } | undefined} host key seen during the last handshake */
-  get observedHostKey() {
+  /** host key seen during the last handshake */
+  get observedHostKey(): HostKey | undefined {
     return this.#observedHostKey
   }
 
-  get #context() {
+  get #context(): { host: string; port: number; socketPath: string } {
     const { host, port } = this.#sshConfig
     return { host, port, socketPath: this.#socketPath }
   }
 
   /**
    * Establish the SSH connection (if necessary) and negotiate the API version.
-   *
-   * @returns {Promise<void>}
    */
-  async connect() {
+  async connect(): Promise<void> {
     await this.#getClient()
     await this.#negotiate()
   }
 
   /**
-   * @returns {Promise<import('ssh2').Client>} a ready client, shared by all requests
+   * @returns a ready client, shared by all requests
    */
-  #getClient() {
+  #getClient(): Promise<SshClient> {
     if (this.#clientPromise === undefined) {
       const promise = this.#openClient()
       this.#clientPromise = promise
@@ -536,7 +619,7 @@ export class DockerConnection {
     return this.#clientPromise
   }
 
-  #openClient() {
+  #openClient(): Promise<SshClient> {
     const { host, port, username, password, privateKey, passphrase } = this.#sshConfig
     const context = this.#context
 
@@ -547,14 +630,14 @@ export class DockerConnection {
     const expectedFingerprint = this.#sshConfig.hostKeyFingerprint ?? pinned?.fingerprint
     const expectedAlgorithm = this.#hostKeyAlgorithm ?? pinned?.algorithm
 
-    return new Promise((resolve, reject) => {
+    return new Promise<SshClient>((resolve, reject) => {
       const client = this.#createClient()
       this.#client = client
 
-      let hostKeyError
+      let hostKeyError: DockerError | undefined
       let ready = false
       let settled = false
-      const fail = error => {
+      const fail = (error: DockerError) => {
         if (!settled) {
           settled = true
           reject(error)
@@ -613,7 +696,7 @@ export class DockerConnection {
           algorithms:
             expectedAlgorithm === undefined ? undefined : { serverHostKey: hostKeyAlgorithmsFor(expectedAlgorithm) },
           // `hostHash` must not be set: the verifier receives the raw key blob
-          hostVerifier: keyBlob => {
+          hostVerifier: (keyBlob: Buffer): boolean => {
             try {
               this.#observedHostKey = verifyHostKey(keyBlob, {
                 expectedFingerprint,
@@ -626,8 +709,19 @@ export class DockerConnection {
               }
               hostKeyError = error
               // still exposed so that the user can be asked to confirm it
-              const { actual, fingerprint = actual, algorithm } = error.data
-              this.#observedHostKey = { fingerprint, algorithm }
+              //
+              // `data` of the errors thrown by `verifyHostKey()`
+              const {
+                actual,
+                fingerprint = actual,
+                algorithm,
+              } = error.data as {
+                actual?: string
+                fingerprint?: string
+                algorithm: string | undefined
+              }
+              // one of them is always set by `verifyHostKey()`
+              this.#observedHostKey = { fingerprint: fingerprint!, algorithm }
               return false
             }
           },
@@ -644,13 +738,15 @@ export class DockerConnection {
     })
   }
 
-  #negotiate() {
+  #negotiate(): Promise<string> {
     if (this.#apiVersion !== undefined) {
       return Promise.resolve(this.#apiVersion)
     }
     if (this.#negotiation === undefined) {
       const negotiation = (async () => {
-        const { body } = await this.#request({ method: 'GET', path: '/version', versioned: false })
+        const { body } = (await this.#request({ method: 'GET', path: '/version', versioned: false })) as {
+          body: DockerVersion
+        }
         const apiVersion = negotiateApiVersion(body)
         this.#apiVersion = apiVersion
         this.#engineVersion = body.Version
@@ -673,16 +769,12 @@ export class DockerConnection {
 
   /**
    * Send a request and wait for the response headers.
-   *
-   * @param {object} opts
-   * @param {AbortSignal} signal
-   * @returns {Promise<import('node:http').IncomingMessage>}
    */
   async #send(
-    { method = 'GET', path, query, body, headers = {}, versioned = true, longLived = false },
-    signal,
-    generation
-  ) {
+    { method = 'GET', path, query, body, headers = {}, versioned = true, longLived = false }: SendOptions,
+    signal: AbortSignal,
+    generation: number
+  ): Promise<IncomingMessage> {
     if (versioned) {
       // the negotiation is shared between requests: do not cancel it
       await raceSignal(this.#negotiate(), signal)
@@ -690,7 +782,7 @@ export class DockerConnection {
     signal.throwIfAborted()
     this.#assertNotClosedSince(generation)
 
-    let payload
+    let payload: unknown
     headers = { ...headers }
     if (body !== undefined && !(body instanceof Readable) && !Buffer.isBuffer(body) && typeof body !== 'string') {
       payload = JSON.stringify(body)
@@ -706,9 +798,11 @@ export class DockerConnection {
 
     // acquired after the negotiation which needs a slot itself
     const releaseSlot = await (longLived ? this.#streamLimiter : this.#limiter).acquire(signal)
-    let onAbort
+    let onAbort: (() => void) | undefined
     const release = () => {
-      signal.removeEventListener('abort', onAbort)
+      // `onAbort!`: `release()` is only called once the listener is set, or
+      // before `addEventListener()` which ignores `undefined`
+      signal.removeEventListener('abort', onAbort!)
       releaseSlot()
     }
     try {
@@ -718,7 +812,7 @@ export class DockerConnection {
       throw error
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise<IncomingMessage>((resolve, reject) => {
       // Do not rely only on the request/response emitting `close` or `error`:
       // when the SSH connection is lost, a channel may never emit anything
       // after being destroyed (ssh2's Channel#destroy() does not emit them).
@@ -751,18 +845,19 @@ export class DockerConnection {
         payload.on('error', error => req.destroy(error))
         payload.pipe(req)
       } else {
-        req.end(payload)
+        // a string, a Buffer or `undefined`: objects have been serialized above
+        req.end(payload as string | Buffer | undefined)
       }
     })
   }
 
-  #assertNotClosedSince(generation) {
+  #assertNotClosedSince(generation: number): void {
     if (generation !== this.#generation) {
       throw new DockerError(CONNECTION_CLOSED, 'the Docker connection has been closed', { data: this.#context })
     }
   }
 
-  #wrapError(error, path, signal, generation) {
+  #wrapError(error: unknown, path: string | undefined, signal: AbortSignal, generation: number): DockerError {
     if (isDockerError(error)) {
       return error
     }
@@ -772,23 +867,25 @@ export class DockerConnection {
         cause: error,
       })
     }
+    // only its `name` is looked at, it is an Error in practice
+    const errorLike = error as { name?: unknown } | null | undefined
     // once the signal is aborted, the error can also be a generic socket
     // error (e.g. `ECONNRESET: aborted` while reading the body)
-    if (signal.aborted || error?.name === 'AbortError' || error?.name === 'TimeoutError') {
+    if (signal.aborted || errorLike?.name === 'AbortError' || errorLike?.name === 'TimeoutError') {
       // AbortError from http.request has the signal reason as cause
       return new DockerError(TIMEOUT, 'Docker API request timed out or was aborted', {
         data: { ...this.#context, path, timeout: this.#requestTimeout },
-        cause: error.name === 'AbortError' || signal.reason === undefined ? error : signal.reason,
+        cause: errorLike!.name === 'AbortError' || signal.reason === undefined ? error : signal.reason,
       })
     }
     return fromSshError(error, this.#context)
   }
 
-  async #throwApiError(response, path, signal) {
-    let message
+  async #throwApiError(response: IncomingMessage, path: string, signal: AbortSignal): Promise<never> {
+    let message: string | undefined
     try {
       const { buffer, truncated } = await raceSignal(readErrorBody(response), signal)
-      let body = buffer
+      let body: unknown = buffer
       if (!truncated) {
         try {
           body = parseBody(response, buffer)
@@ -797,7 +894,9 @@ export class DockerConnection {
         }
       }
       // a truncated JSON body cannot be parsed: its beginning is used as text
-      message = truncateErrorMessage(Buffer.isBuffer(body) ? body.toString('utf8') : body?.message)
+      message = truncateErrorMessage(
+        Buffer.isBuffer(body) ? body.toString('utf8') : (body as { message?: unknown } | null | undefined)?.message
+      )
     } catch (error) {
       // reported as TIMEOUT by #wrapError()
       if (signal.aborted) {
@@ -809,14 +908,16 @@ export class DockerConnection {
     })
   }
 
-  async #request(opts) {
+  async #request(opts: SendOptions & { signal?: AbortSignal }): Promise<DockerResponse> {
     const generation = this.#generation
     const signal = AbortSignal.any(
       [AbortSignal.timeout(this.#requestTimeout), opts.signal].filter(signal => signal !== undefined)
     )
     try {
       const response = await this.#send(opts, signal, generation)
-      const { statusCode, headers } = response
+      const { headers } = response
+      // always set on a client response
+      const statusCode = response.statusCode!
       if (statusCode < 200 || statusCode >= 300) {
         await this.#throwApiError(response, opts.path, signal)
       }
@@ -832,17 +933,10 @@ export class DockerConnection {
    *
    * The path must not contain the version prefix, it is added automatically.
    *
-   * @param {object} opts
-   * @param {string} [opts.method]
-   * @param {string} opts.path e.g. `/containers/json`
-   * @param {Record<string, unknown>} [opts.query]
-   * @param {unknown} [opts.body] objects are sent as JSON
-   * @param {Record<string, string>} [opts.headers]
-   * @param {AbortSignal} [opts.signal]
-   * @returns {Promise<{ statusCode: number, headers: import('node:http').IncomingHttpHeaders, body: unknown }>} body is parsed when JSON, a Buffer otherwise
+   * @returns body is parsed when JSON, a Buffer otherwise
    * @throws {DockerError}
    */
-  request({ method, path, query, body, headers, signal }) {
+  request({ method, path, query, body, headers, signal }: DockerRequestOptions): Promise<DockerResponse> {
     return this.#request({ method, path, query, body, headers, signal })
   }
 
@@ -854,16 +948,18 @@ export class DockerConnection {
    * afterwards only `signal` can interrupt the stream: the caller is
    * responsible for consuming or destroying it.
    *
-   * @param {object} opts see `request()`, plus:
-   * @param {boolean} [opts.longLived] the response may stay open for long (e.g. `stats?stream=true`): sent on a
-   *   dedicated channel, outside of the limit of concurrent requests (see `MAX_LONG_LIVED_STREAMS`)
-   * @param {boolean} [opts.raw] raw passthrough: `path` is sent verbatim (it may contain a query string, and is
-   *   prefixed with the negotiated version unless it starts with `/v<version>/`), and error responses (non 2xx) are
-   *   returned instead of thrown
-   * @returns {Promise<import('node:http').IncomingMessage>}
    * @throws {DockerError}
    */
-  async requestStream({ method, path, query, body, headers, signal: callerSignal, longLived = false, raw = false }) {
+  async requestStream({
+    method,
+    path,
+    query,
+    body,
+    headers,
+    signal: callerSignal,
+    longLived = false,
+    raw = false,
+  }: DockerStreamRequestOptions): Promise<IncomingMessage> {
     // AbortSignal.timeout() cannot be cancelled, use a timer instead
     const controller = new AbortController()
     const timer = setTimeout(() => {
@@ -879,7 +975,8 @@ export class DockerConnection {
         signal,
         generation
       )
-      if (!raw && (response.statusCode < 200 || response.statusCode >= 300)) {
+      // `statusCode!`: always set on a client response
+      if (!raw && (response.statusCode! < 200 || response.statusCode! >= 300)) {
         await this.#throwApiError(response, path, signal)
       }
       clearTimeout(timer)
@@ -898,14 +995,12 @@ export class DockerConnection {
    * Only meant for diagnostics (e.g. probing the Docker socket when it cannot
    * be opened), the output is truncated at `maxOutputSize` bytes per stream.
    *
-   * @param {string} command
-   * @param {object} [opts]
-   * @param {AbortSignal} [opts.signal]
-   * @param {number} [opts.maxOutputSize]
-   * @returns {Promise<{ code: number | null, signal: string | undefined, stdout: string, stderr: string }>}
    * @throws {DockerError}
    */
-  async exec(command, { signal: callerSignal, maxOutputSize = 64 * 1024 } = {}) {
+  async exec(
+    command: string,
+    { signal: callerSignal, maxOutputSize = 64 * 1024 }: { signal?: AbortSignal; maxOutputSize?: number } = {}
+  ): Promise<DockerExecResult> {
     const signal = AbortSignal.any(
       [AbortSignal.timeout(this.#requestTimeout), callerSignal].filter(signal => signal !== undefined)
     )
@@ -913,7 +1008,7 @@ export class DockerConnection {
     try {
       const client = await raceSignal(this.#getClient(), signal)
       this.#assertNotClosedSince(generation)
-      return await new Promise((resolve, reject) => {
+      return await new Promise<DockerExecResult>((resolve, reject) => {
         client.exec(command, (error, channel) => {
           if (error) {
             reject(error)
@@ -925,23 +1020,23 @@ export class DockerConnection {
           }
           signal.addEventListener('abort', onAbort, { once: true })
 
-          const collect = chunks => {
+          const collect = (chunks: Buffer[]) => {
             let size = 0
-            return chunk => {
+            return (chunk: Buffer) => {
               if (size < maxOutputSize) {
                 chunks.push(chunk.subarray(0, maxOutputSize - size))
               }
               size += chunk.length
             }
           }
-          const stdout = []
-          const stderr = []
+          const stdout: Buffer[] = []
+          const stderr: Buffer[] = []
           channel.on('data', collect(stdout))
           channel.stderr.on('data', collect(stderr))
 
-          let exitCode = null
-          let exitSignal
-          channel.on('exit', (code, signalName) => {
+          let exitCode: number | null = null
+          let exitSignal: string | undefined
+          channel.on('exit', (code: number | null, signalName?: string) => {
             exitCode = code ?? null
             exitSignal = signalName ?? undefined
           })
@@ -966,10 +1061,8 @@ export class DockerConnection {
    *
    * Pending and queued requests fail with CONNECTION_CLOSED. The instance can
    * still be used afterwards: a new request opens a new connection.
-   *
-   * @returns {Promise<void>}
    */
-  async close() {
+  async close(): Promise<void> {
     ++this.#generation
     this.#limiter.rejectQueued(
       new DockerError(CONNECTION_CLOSED, 'the Docker connection has been closed', { data: this.#context })
@@ -987,7 +1080,7 @@ export class DockerConnection {
     if (client === undefined || this.#closedClients.has(client)) {
       return
     }
-    await new Promise(resolve => {
+    await new Promise<void>(resolve => {
       const timer = setTimeout(() => {
         warn('SSH connection did not close in time, destroying it', this.#context)
         // Client#destroy() is a no-op once the socket is no longer writable,

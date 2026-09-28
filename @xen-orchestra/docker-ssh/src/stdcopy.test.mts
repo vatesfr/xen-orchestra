@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
-import { Readable } from 'node:stream'
+import { Readable, type Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import test from 'node:test'
 
-import { DOCKER_API_ERROR } from './errors.mjs'
+import { DOCKER_API_ERROR, type DockerError } from './errors.mjs'
 import { LOGS_EXITED, LOGS_NGINX, LOGS_TTY } from './fixtures/logs.mjs'
 import {
   createLogLineParser,
@@ -12,6 +12,8 @@ import {
   MAX_SYSTEM_ERR_SIZE,
   MULTIPLEXED_STREAM_CONTENT_TYPE,
   RAW_STREAM_CONTENT_TYPE,
+  type DemuxedChunk,
+  type DockerLogLine,
 } from './stdcopy.mjs'
 
 const { describe, it } = test
@@ -20,7 +22,7 @@ const NGINX_BODY = Buffer.from(LOGS_NGINX.body, 'base64')
 const EXITED_BODY = Buffer.from(LOGS_EXITED.body, 'base64')
 const TTY_BODY = Buffer.from(LOGS_TTY.body, 'base64')
 
-function frame(type, payload) {
+function frame(type: number, payload: string | Buffer) {
   const data = Buffer.from(payload)
   const header = Buffer.alloc(8)
   header[0] = type
@@ -28,11 +30,13 @@ function frame(type, payload) {
   return Buffer.concat([header, data])
 }
 
-const bytes = buffer => Array.from(buffer, byte => Buffer.from([byte]))
+const bytes = (buffer: Buffer) => Array.from(buffer, byte => Buffer.from([byte]))
 
-async function run(chunks, ...transforms) {
-  const output = []
-  await pipeline(Readable.from(chunks), ...transforms, async source => {
+// `T`: the objects emitted by the last transform (`DemuxedChunk` or `DockerLogLine` in these tests)
+async function run<T = DemuxedChunk>(chunks: unknown[], ...transforms: Transform[]): Promise<T[]> {
+  const output: T[] = []
+  // @ts-expect-error @types/node has no overload of pipeline() for a variable number of transforms (rest argument)
+  await pipeline(Readable.from(chunks), ...transforms, async (source: AsyncIterable<T>) => {
     for await (const object of source) {
       output.push(object)
     }
@@ -41,8 +45,8 @@ async function run(chunks, ...transforms) {
 }
 
 // concatenates the emitted chunks of each stream
-function byStream(objects) {
-  const result = {}
+function byStream(objects: DemuxedChunk[]) {
+  const result: Record<string, Buffer> = {}
   for (const { stream, chunk } of objects) {
     result[stream] = Buffer.concat([result[stream] ?? Buffer.alloc(0), chunk])
   }
@@ -50,8 +54,8 @@ function byStream(objects) {
 }
 
 // splits a multiplexed body into frames, the simple way
-function parseFrames(body) {
-  const frames = []
+function parseFrames(body: Buffer) {
+  const frames: { type: number; payload: string }[] = []
   for (let offset = 0; offset < body.length; ) {
     const size = body.readUInt32BE(offset + 4)
     frames.push({ type: body[offset], payload: body.subarray(offset + 8, offset + 8 + size).toString() })
@@ -176,7 +180,7 @@ describe('createStdcopyDemuxer()', () => {
     for (let i = 0; i < big.length; i += 10e3) {
       chunks.push(big.subarray(i, i + 10e3))
     }
-    await assert.rejects(run(chunks, createStdcopyDemuxer()), error => {
+    await assert.rejects(run(chunks, createStdcopyDemuxer()), (error: DockerError) => {
       assert.equal(error.code, DOCKER_API_ERROR)
       assert.equal(error.message, 'Docker stream error: ' + 'x'.repeat(MAX_SYSTEM_ERR_SIZE))
       return true
@@ -194,14 +198,14 @@ describe('createStdcopyDemuxer()', () => {
 
 describe('createLogLineParser()', () => {
   it('parses real non-TTY logs, fed byte-at-a-time', async () => {
-    const entries = await run(bytes(NGINX_BODY), createStdcopyDemuxer(), createLogLineParser())
+    const entries = await run<DockerLogLine>(bytes(NGINX_BODY), createStdcopyDemuxer(), createLogLineParser())
     const frames = parseFrames(NGINX_BODY)
     // with timestamps=1, dockerd sends one line per frame
     assert.equal(entries.length, frames.length)
     entries.forEach((entry, i) => {
       assert.equal(entry.stream, frames[i].type === 1 ? 'stdout' : 'stderr')
       assert.equal(`${entry.timestamp} ${entry.message}\n`, frames[i].payload)
-      assert.match(entry.timestamp, /^2026-09-24T16:5\d:\d\d\.\d+Z$/)
+      assert.match(entry.timestamp!, /^2026-09-24T16:5\d:\d\d\.\d+Z$/)
     })
     assert.deepEqual(entries[0], {
       stream: 'stdout',
@@ -213,7 +217,11 @@ describe('createLogLineParser()', () => {
   })
 
   it('parses real TTY logs: strips \\r, emits the last line without new line', async () => {
-    const entries = await run(bytes(TTY_BODY), createStdcopyDemuxer({ tty: true }), createLogLineParser())
+    const entries = await run<DockerLogLine>(
+      bytes(TTY_BODY),
+      createStdcopyDemuxer({ tty: true }),
+      createLogLineParser()
+    )
     assert.deepEqual(entries, [
       { stream: 'stdout', timestamp: '2026-09-24T16:56:05.110355030Z', message: 'tty line one' },
       // written on stderr by the container, but a TTY merges both
@@ -230,7 +238,7 @@ describe('createLogLineParser()', () => {
       frame(2, 'line\n'),
       frame(1, 'ld'),
     ])
-    const entries = await run([body], createStdcopyDemuxer(), createLogLineParser())
+    const entries = await run<DockerLogLine>([body], createStdcopyDemuxer(), createLogLineParser())
     assert.deepEqual(entries, [
       { stream: 'stdout', timestamp: undefined, message: 'hello' },
       { stream: 'stderr', timestamp: undefined, message: 'err line' },
@@ -249,7 +257,10 @@ describe('createLogLineParser()', () => {
       '2026-09-24T16:54:37Z',
       ' 2026-09-24T16:54:37Z leading space',
     ]
-    const entries = await run([{ stream: 'stdout', chunk: Buffer.from(lines.join('\n')) }], createLogLineParser())
+    const entries = await run<DockerLogLine>(
+      [{ stream: 'stdout', chunk: Buffer.from(lines.join('\n')) }],
+      createLogLineParser()
+    )
     assert.deepEqual(
       entries.map(({ timestamp, message }) => [timestamp, message]),
       [
@@ -266,7 +277,10 @@ describe('createLogLineParser()', () => {
   })
 
   it('keeps empty lines', async () => {
-    const entries = await run([{ stream: 'stdout', chunk: Buffer.from('a\n\n\nb\n') }], createLogLineParser())
+    const entries = await run<DockerLogLine>(
+      [{ stream: 'stdout', chunk: Buffer.from('a\n\n\nb\n') }],
+      createLogLineParser()
+    )
     assert.deepEqual(
       entries.map(_ => _.message),
       ['a', '', '', 'b']
@@ -276,7 +290,7 @@ describe('createLogLineParser()', () => {
   it('decodes multi-byte UTF-8 characters split across chunks', async () => {
     const text = 'héllo wörld 🐳\n'
     const chunks = bytes(Buffer.from(text)).map(chunk => ({ stream: 'stdout', chunk }))
-    const entries = await run(chunks, createLogLineParser())
+    const entries = await run<DockerLogLine>(chunks, createLogLineParser())
     assert.deepEqual(entries, [{ stream: 'stdout', timestamp: undefined, message: 'héllo wörld 🐳' }])
   })
 
@@ -285,7 +299,7 @@ describe('createLogLineParser()', () => {
       { stream: 'stdout', chunk: Buffer.from('x'.repeat(25)) },
       { stream: 'stdout', chunk: 'yy\nz' },
     ]
-    const entries = await run(chunks, createLogLineParser({ maxLineLength: 10 }))
+    const entries = await run<DockerLogLine>(chunks, createLogLineParser({ maxLineLength: 10 }))
     assert.deepEqual(
       entries.map(_ => _.message),
       ['x'.repeat(10), 'x'.repeat(10), 'xxxxxyy', 'z']

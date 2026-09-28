@@ -9,7 +9,8 @@
 // See https://docs.docker.com/reference/api/engine/version/v1.43/#tag/Container/operation/ContainerAttach
 
 import { StringDecoder } from 'node:string_decoder'
-import { Transform } from 'node:stream'
+import { Transform, type TransformCallback } from 'node:stream'
+import type { XoDockerLogEntry } from '@vates/types'
 
 import { compareApiVersions } from './connection.mjs'
 import { DOCKER_API_ERROR, DockerError } from './errors.mjs'
@@ -23,11 +24,29 @@ const HEADER_SIZE = 8
 //
 // type 3 (`systemErr`) is used by dockerd to report an error in the middle of
 // an attach/exec stream, its payload is the error message
-const STREAM_NAMES = ['stdin', 'stdout', 'stderr']
+const STREAM_NAMES = ['stdin', 'stdout', 'stderr'] as const
 const SYSTEM_ERR = 3
 // only the beginning of a systemErr payload is kept (it becomes an error
 // message), the rest is read and dropped
 export const MAX_SYSTEM_ERR_SIZE = 64 * 1024
+
+export type DockerStreamName = (typeof STREAM_NAMES)[number]
+
+/** object emitted by `createStdcopyDemuxer()` */
+export type DemuxedChunk = { stream: DockerStreamName; chunk: Buffer }
+
+/** `createStdcopyDemuxer()` */
+export type StdcopyDemuxer = Transform & { truncated: boolean }
+
+/**
+ * Object emitted by `createLogLineParser()`: an `XoDockerLogEntry`, except
+ * that `stream` may be `stdin` (attach streams), and that `timestamp` is always
+ * present (`undefined` if the line has none).
+ */
+export type DockerLogLine = Omit<XoDockerLogEntry, 'stream' | 'timestamp'> & {
+  stream: DockerStreamName
+  timestamp: string | undefined
+}
 
 /**
  * Whether a logs/attach response body is multiplexed (8-byte frames) or raw.
@@ -37,12 +56,11 @@ export const MAX_SYSTEM_ERR_SIZE = 64 * 1024
  * container's `Config.Tty` decides, defaulting to multiplexed, which is what
  * containers without TTY (the vast majority) produce.
  *
- * @param {string | undefined} contentType response `Content-Type`
- * @param {boolean} [tty] `Config.Tty` of the container, if known
- * @param {string} [apiVersion] negotiated API version, e.g. `1.43`
- * @returns {boolean}
+ * @param contentType response `Content-Type`
+ * @param tty `Config.Tty` of the container, if known
+ * @param apiVersion negotiated API version, e.g. `1.43`
  */
-export function isMultiplexedStream(contentType, tty, apiVersion) {
+export function isMultiplexedStream(contentType: string | undefined, tty?: boolean, apiVersion?: string): boolean {
   const type = contentType?.split(';')[0].trim().toLowerCase()
   if (type === MULTIPLEXED_STREAM_CONTENT_TYPE) {
     return true
@@ -66,33 +84,33 @@ export function isMultiplexedStream(contentType, tty, apiVersion) {
  * already been emitted and `demuxer.truncated` is set to `true`: the stream ends
  * normally, so that the complete part of the logs remains usable.
  *
- * @param {object} [opts]
- * @param {boolean} [opts.tty] raw mode: the input is not framed, every chunk is emitted as `stdout`
- * @returns {Transform & { truncated: boolean }}
+ * @param opts.tty raw mode: the input is not framed, every chunk is emitted as `stdout`
  */
-export function createStdcopyDemuxer({ tty = false } = {}) {
+export function createStdcopyDemuxer({ tty = false }: { tty?: boolean } = {}): StdcopyDemuxer {
   if (tty) {
+    // `truncated` is added right below
     const passthrough = new Transform({
       readableObjectMode: true,
-      transform(chunk, _encoding, callback) {
-        callback(null, { stream: 'stdout', chunk })
+      transform(chunk: Buffer, _encoding, callback) {
+        callback(null, { stream: 'stdout', chunk } satisfies DemuxedChunk)
       },
-    })
+    }) as StdcopyDemuxer
     passthrough.truncated = false
     return passthrough
   }
 
   const header = Buffer.alloc(HEADER_SIZE)
   let headerLength = 0
-  let stream // name of the stream of the current frame
+  let stream: DockerStreamName | undefined // name of the stream of the current frame
   let remaining = 0 // payload bytes still expected for the current frame
-  let systemErr // chunks of a systemErr frame, emitted as an error
+  let systemErr: Buffer[] | undefined // chunks of a systemErr frame, emitted as an error
   let systemErrSize = 0
 
+  // `truncated` is added right below
   const demuxer = new Transform({
     readableObjectMode: true,
 
-    transform(chunk, _encoding, callback) {
+    transform(chunk: Buffer, _encoding, callback) {
       let offset = 0
       const { length } = chunk
       while (offset < length) {
@@ -146,7 +164,8 @@ export function createStdcopyDemuxer({ tty = false } = {}) {
             return
           }
         } else {
-          this.push({ stream, chunk: payload })
+          // `stream!`: set by the header of this frame
+          this.push({ stream: stream!, chunk: payload } satisfies DemuxedChunk)
         }
       }
       callback()
@@ -154,16 +173,16 @@ export function createStdcopyDemuxer({ tty = false } = {}) {
 
     flush(callback) {
       if (headerLength !== 0 || remaining !== 0) {
-        this.truncated = true
+        ;(this as StdcopyDemuxer).truncated = true
       }
       callback()
     },
-  })
+  }) as StdcopyDemuxer
   demuxer.truncated = false
   return demuxer
 }
 
-function systemError(chunks) {
+function systemError(chunks: Buffer[]): DockerError {
   return new DockerError(DOCKER_API_ERROR, `Docker stream error: ${Buffer.concat(chunks).toString().trim()}`)
 }
 
@@ -188,14 +207,14 @@ const DEFAULT_MAX_LINE_LENGTH = 64 * 1024
  *   memory used by an output without new lines
  * - the last line is emitted even if it does not end with a new line
  *
- * @param {object} [opts]
- * @param {number} [opts.maxLineLength]
- * @returns {Transform}
+ * The input chunks may also be strings.
  */
-export function createLogLineParser({ maxLineLength = DEFAULT_MAX_LINE_LENGTH } = {}) {
+export function createLogLineParser({
+  maxLineLength = DEFAULT_MAX_LINE_LENGTH,
+}: { maxLineLength?: number } = {}): Transform {
   // stream name → { decoder, pending }
-  const states = new Map()
-  const getState = stream => {
+  const states = new Map<DockerStreamName, { decoder: StringDecoder; pending: string }>()
+  const getState = (stream: DockerStreamName) => {
     let state = states.get(stream)
     if (state === undefined) {
       state = { decoder: new StringDecoder('utf8'), pending: '' }
@@ -204,26 +223,31 @@ export function createLogLineParser({ maxLineLength = DEFAULT_MAX_LINE_LENGTH } 
     return state
   }
 
-  const emitLine = (parser, stream, line) => {
+  const emitLine = (parser: Transform, stream: DockerStreamName, line: string) => {
     if (line.endsWith('\r')) {
       line = line.slice(0, -1)
     }
     const match = TIMESTAMP_RE.exec(line)
     parser.push(
-      match === null
+      (match === null
         ? { stream, timestamp: undefined, message: line }
-        : { stream, timestamp: match[1], message: line.slice(match[0].length) }
+        : { stream, timestamp: match[1], message: line.slice(match[0].length) }) satisfies DockerLogLine
     )
   }
 
   return new Transform({
     objectMode: true,
 
-    transform({ stream, chunk }, _encoding, callback) {
+    transform(
+      { stream, chunk }: { stream: DockerStreamName; chunk: Buffer | string },
+      _encoding: BufferEncoding,
+      callback: TransformCallback
+    ) {
       const state = getState(stream)
       const text = state.pending + (typeof chunk === 'string' ? chunk : state.decoder.write(chunk))
       const lines = text.split('\n')
-      let pending = lines.pop()
+      // `pop()!`: `split()` gives at least one string
+      let pending = lines.pop()!
       for (const line of lines) {
         emitLine(this, stream, line)
       }

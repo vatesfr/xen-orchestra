@@ -58,10 +58,10 @@ describe('AsyncTtlCache', () => {
 
   it('a value fetched before a deletion is not cached', async () => {
     const cache = new AsyncTtlCache({ expiresIn: 1e3 })
-    let resolve
-    const promise = cache.get('k', () => new Promise(_resolve => (resolve = _resolve)))
+    let resolve: ((value: string) => void) | undefined
+    const promise = cache.get('k', () => new Promise<string>(_resolve => (resolve = _resolve)))
     cache.delete('k')
-    resolve('stale')
+    resolve!('stale')
     assert.equal(await promise, 'stale')
     assert.equal(cache.peek('k'), undefined)
   })

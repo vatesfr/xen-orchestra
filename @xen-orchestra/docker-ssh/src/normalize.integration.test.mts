@@ -14,9 +14,12 @@ import { readFileSync } from 'node:fs'
 import { pipeline } from 'node:stream/promises'
 import test from 'node:test'
 
+import type { XoDockerContainerStats } from '@vates/types'
+
 import { DockerConnection } from './connection.mjs'
 import { normalizeContainerInspect, normalizeContainerListEntry, normalizeContainerStats } from './normalize.mjs'
-import { createLogLineParser, createStdcopyDemuxer, isMultiplexedStream } from './stdcopy.mjs'
+import { createLogLineParser, createStdcopyDemuxer, isMultiplexedStream, type DockerLogLine } from './stdcopy.mjs'
+import type { DockerContainerSummary, DockerInspect } from './wire.mjs'
 
 const { after, before, describe, it } = test
 
@@ -32,14 +35,15 @@ const {
 const skip = host === undefined ? 'XO_DOCKER_TEST_SSH_HOST is not set' : false
 
 describe('logs and stats (real SSH + dockerd)', { skip }, () => {
-  let connection
+  let connection: DockerConnection
 
+  // `!`: the environment is set, the tests are skipped otherwise
   before(async () => {
     connection = new DockerConnection({
-      host,
+      host: host!,
       port: Number(port),
-      username,
-      privateKey: readFileSync(keyPath),
+      username: username!,
+      privateKey: readFileSync(keyPath!),
       socketPath,
       hostKeyFingerprint: fingerprint,
       connectTimeout: 5e3,
@@ -52,12 +56,12 @@ describe('logs and stats (real SSH + dockerd)', { skip }, () => {
     await connection?.close()
   })
 
-  async function inspect(name) {
+  async function inspect(name: string) {
     const { body } = await connection.request({ path: `/containers/${name}/json` })
-    return normalizeContainerInspect(body)
+    return normalizeContainerInspect(body as DockerInspect)
   }
 
-  async function getLogs(name, query = {}) {
+  async function getLogs(name: string, query: Record<string, unknown> = {}) {
     const container = await inspect(name)
     const response = await connection.requestStream({
       path: `/containers/${name}/logs`,
@@ -66,8 +70,8 @@ describe('logs and stats (real SSH + dockerd)', { skip }, () => {
     const tty = !isMultiplexedStream(response.headers['content-type'], container.tty, connection.apiVersion)
     assert.equal(tty, container.tty, 'the content type agrees with Config.Tty')
     const demuxer = createStdcopyDemuxer({ tty })
-    const entries = []
-    await pipeline(response, demuxer, createLogLineParser(), async source => {
+    const entries: DockerLogLine[] = []
+    await pipeline(response, demuxer, createLogLineParser(), async (source: AsyncIterable<DockerLogLine>) => {
       for await (const entry of source) {
         entries.push(entry)
       }
@@ -76,9 +80,9 @@ describe('logs and stats (real SSH + dockerd)', { skip }, () => {
     return { entries, contentType: response.headers['content-type'] }
   }
 
-  const assertTimestamp = (timestamp, since) => {
-    assert.match(timestamp, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,9})?Z$/)
-    const time = Date.parse(timestamp)
+  const assertTimestamp = (timestamp: string | undefined, since: number) => {
+    assert.match(timestamp!, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,9})?Z$/)
+    const time = Date.parse(timestamp!)
     assert.ok(time >= since && time <= Date.now() + 60e3, timestamp)
   }
 
@@ -90,7 +94,7 @@ describe('logs and stats (real SSH + dockerd)', { skip }, () => {
     const [{ stream, timestamp, message }] = entries
     assert.equal(stream, 'stdout')
     assert.equal(message, 'failing on purpose')
-    assertTimestamp(timestamp, container.startedAt - 1e3)
+    assertTimestamp(timestamp, container.startedAt! - 1e3)
   })
 
   it('reads the logs of xo-nginx, stdout and stderr', async () => {
@@ -100,7 +104,7 @@ describe('logs and stats (real SSH + dockerd)', { skip }, () => {
     for (const { stream, timestamp, message } of entries) {
       assert.ok(stream === 'stdout' || stream === 'stderr')
       // since its creation: it may have been restarted (e.g. by the REST proof)
-      assertTimestamp(timestamp, container.createdAt - 1e3)
+      assertTimestamp(timestamp, container.createdAt! - 1e3)
       assert.equal(typeof message, 'string')
       assert.ok(!message.includes('\n'))
     }
@@ -127,7 +131,7 @@ describe('logs and stats (real SSH + dockerd)', { skip }, () => {
       ]
     )
     for (const { timestamp } of entries) {
-      assertTimestamp(timestamp, container.startedAt - 1e3)
+      assertTimestamp(timestamp, container.startedAt! - 1e3)
     }
   })
 
@@ -136,16 +140,19 @@ describe('logs and stats (real SSH + dockerd)', { skip }, () => {
     const start = Date.now()
     const { body } = await connection.request({ path: '/containers/xo-nginx/stats', query: { stream: false } })
     const stats = normalizeContainerStats(body)
+    // `!`: checked by the assertions (a `null` compares as 0, an `undefined` as NaN)
     // dockerd pre-reads a sample, precpu_stats is valid
     assert.equal(typeof stats.cpuPercent, 'number')
-    assert.ok(stats.cpuPercent >= 0 && stats.cpuPercent <= 100 * stats.onlineCpus, String(stats.cpuPercent))
-    assert.ok(stats.onlineCpus >= 1)
-    assert.ok(stats.memoryUsage > 0 && stats.memoryUsage <= body.memory_stats.usage)
-    assert.ok(stats.memoryLimit >= stats.memoryUsage)
-    assert.ok(stats.memoryPercent > 0 && stats.memoryPercent <= 100)
-    assert.ok(stats.pids >= 1)
-    assert.ok(stats.networkRx >= 0)
-    assert.ok(stats.sampledAt >= Math.max(container.startedAt, start - 5e3) && stats.sampledAt <= Date.now() + 60e3)
+    assert.ok(stats.cpuPercent! >= 0 && stats.cpuPercent! <= 100 * stats.onlineCpus!, String(stats.cpuPercent))
+    assert.ok(stats.onlineCpus! >= 1)
+    assert.ok(
+      stats.memoryUsage! > 0 && stats.memoryUsage! <= (body as { memory_stats: { usage: number } }).memory_stats.usage
+    )
+    assert.ok(stats.memoryLimit! >= stats.memoryUsage!)
+    assert.ok(stats.memoryPercent! > 0 && stats.memoryPercent! <= 100)
+    assert.ok(stats.pids! >= 1)
+    assert.ok(stats.networkRx! >= 0)
+    assert.ok(stats.sampledAt! >= Math.max(container.startedAt!, start - 5e3) && stats.sampledAt! <= Date.now() + 60e3)
   })
 
   it('reads and normalizes streamed stats of xo-nginx (stream=true)', async () => {
@@ -155,7 +162,7 @@ describe('logs and stats (real SSH + dockerd)', { skip }, () => {
       query: { stream: true },
       signal: controller.signal,
     })
-    const samples = []
+    const samples: XoDockerContainerStats[] = []
     try {
       let buffer = ''
       for await (const chunk of response) {
@@ -176,20 +183,22 @@ describe('logs and stats (real SSH + dockerd)', { skip }, () => {
     // the first object of a stream has no previous CPU sample
     assert.equal(first.cpuPercent, null)
     assert.equal(typeof second.cpuPercent, 'number')
-    assert.ok(second.sampledAt > first.sampledAt)
-    assert.ok(second.memoryUsage > 0)
+    assert.ok(second.sampledAt! > first.sampledAt!)
+    assert.ok(second.memoryUsage! > 0)
   })
 
   it('normalizes the real container list', async () => {
     const { body } = await connection.request({ path: '/containers/json', query: { all: 1 } })
-    const containers = new Map(body.map(normalizeContainerListEntry).map(container => [container.name, container]))
+    const containers = new Map(
+      (body as DockerContainerSummary[]).map(normalizeContainerListEntry).map(container => [container.name, container])
+    )
 
-    const nginx = containers.get('xo-nginx')
+    const nginx = containers.get('xo-nginx')!
     assert.equal(nginx.state, 'running')
     assert.deepEqual(nginx.ports, [{ ip: '0.0.0.0', privatePort: 80, publicPort: 8080, protocol: 'tcp' }])
     assert.deepEqual((await inspect('xo-nginx')).ports, nginx.ports)
 
-    const exited = containers.get('xo-exited')
+    const exited = containers.get('xo-exited')!
     assert.equal(exited.state, 'exited')
     assert.equal(exited.exitCode, 3)
     assert.equal((await inspect('xo-exited')).exitCode, 3)

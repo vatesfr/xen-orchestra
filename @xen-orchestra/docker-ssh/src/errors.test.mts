@@ -16,12 +16,12 @@ import {
 
 const { describe, it } = test
 
-function sshError(message, props) {
+function sshError(message: string, props: object) {
   return Object.assign(new Error(message), props)
 }
 
 describe('fromSshError()', () => {
-  const cases = [
+  const cases: [string, Error, string][] = [
     [
       'auth failure',
       sshError('All configured authentication methods failed', { level: 'client-authentication' }),
@@ -60,16 +60,16 @@ describe('fromSshError()', () => {
       const result = fromSshError(error, { host: 'h', port: 22 })
       assert.ok(result instanceof DockerError)
       assert.equal(result.code, code)
-      assert.equal(result.data.host, 'h')
-      assert.equal(result.cause.message, error.message)
+      assert.equal(result.data!.host, 'h')
+      assert.equal(result.cause!.message, error.message)
     })
   }
 
   it('keeps the channel open failure details', () => {
     const result = fromSshError(sshError('(SSH) Channel open failure: open failed', { reason: 2 }))
-    assert.equal(result.data.reason, 2)
-    assert.equal(result.data.description, 'open failed')
-    assert.equal(result.cause.reason, 2)
+    assert.equal(result.data!.reason, 2)
+    assert.equal(result.data!.description, 'open failed')
+    assert.equal(result.cause!.reason, 2)
   })
 
   it('returns DockerError as is', () => {
@@ -83,12 +83,13 @@ describe('fromSshError()', () => {
       config: { password: 'hunter2', privateKey: 'KEY' },
       password: 'hunter2',
     })
-    const result = fromSshError(error, { host: 'h', password: 'hunter2', privateKey: 'KEY' })
+    // the context is not supposed to contain credentials
+    const result = fromSshError(error, { host: 'h', password: 'hunter2', privateKey: 'KEY' } as { host: string })
     const serialized = JSON.stringify({ data: result.data, cause: result.cause, ...result.cause })
     assert.doesNotMatch(serialized, /hunter2|KEY/)
-    assert.equal(result.cause.config, undefined)
-    assert.equal(result.cause.password, undefined)
-    assert.equal(result.cause.level, 'client-authentication')
+    assert.equal(result.cause!.config, undefined)
+    assert.equal(result.cause!.password, undefined)
+    assert.equal(result.cause!.level, 'client-authentication')
   })
 })
 
@@ -111,7 +112,7 @@ describe('DockerError', () => {
     assert.equal(error.name, 'DockerError')
     assert.equal(error.code, SSH_ERROR)
     assert.deepEqual(error.data, { host: 'h' })
-    assert.equal(error.cause.code, 'ECONNRESET')
-    assert.equal(error.cause.password, undefined)
+    assert.equal(error.cause!.code, 'ECONNRESET')
+    assert.equal(error.cause!.password, undefined)
   })
 })

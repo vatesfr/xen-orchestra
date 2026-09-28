@@ -6,18 +6,19 @@
  * - expired entries are only removed by `sweep()`, `delete()` or
  *   `deleteByPrefix()`: call `sweep()` periodically
  */
+type Entry = { promise: Promise<unknown>; value: unknown; expiresAt: number | undefined }
+
 export class AsyncTtlCache {
   // key → { promise, value, expiresAt } (`expiresAt` undefined while pending)
-  #entries = new Map()
-  #expiresIn
-  #now
+  #entries = new Map<string, Entry>()
+  #expiresIn: number
+  #now: () => number
 
   /**
-   * @param {object} opts
-   * @param {number} opts.expiresIn ms
-   * @param {() => number} [opts.now] for tests
+   * @param opts.expiresIn ms
+   * @param opts.now for tests
    */
-  constructor({ expiresIn, now = Date.now }) {
+  constructor({ expiresIn, now = Date.now }: { expiresIn: number; now?: () => number }) {
     this.#expiresIn = expiresIn
     this.#now = now
   }
@@ -27,25 +28,28 @@ export class AsyncTtlCache {
   }
 
   /**
-   * @template T
-   * @param {string} key
-   * @param {() => Promise<T>} fn
-   * @param {object} [opts]
-   * @param {boolean} [opts.forceRefresh] ignore a cached value (a pending one is still shared)
-   * @returns {Promise<T>}
+   * The type of a cached value is not checked: a key must always be used with
+   * functions returning the same type.
+   *
+   * @param opts.forceRefresh ignore a cached value (a pending one is still shared)
    */
-  get(key, fn, { forceRefresh = false } = {}) {
+  get<T>(key: string, fn: () => Promise<T>, { forceRefresh = false }: { forceRefresh?: boolean } = {}): Promise<T> {
     const current = this.#entries.get(key)
     if (current !== undefined) {
       if (current.expiresAt === undefined) {
-        return current.promise
+        return current.promise as Promise<T>
       }
       if (!forceRefresh && current.expiresAt > this.#now()) {
-        return current.promise
+        return current.promise as Promise<T>
       }
     }
 
-    const entry = { expiresAt: undefined, promise: undefined, value: undefined }
+    const entry: { expiresAt: number | undefined; promise: Promise<T>; value: T | undefined } = {
+      expiresAt: undefined,
+      // replaced right below, `entry` must exist before the callbacks run
+      promise: undefined as unknown as Promise<T>,
+      value: undefined,
+    }
     entry.promise = (async () => fn())().then(
       value => {
         if (this.#entries.get(key) === entry) {
@@ -67,22 +71,19 @@ export class AsyncTtlCache {
 
   /**
    * Value of a key if it is cached and not expired, without fetching it.
-   *
-   * @param {string} key
-   * @returns {unknown}
    */
-  peek(key) {
+  peek(key: string): unknown {
     const entry = this.#entries.get(key)
     if (entry !== undefined && entry.expiresAt !== undefined && entry.expiresAt > this.#now()) {
       return entry.value
     }
   }
 
-  delete(key) {
+  delete(key: string) {
     this.#entries.delete(key)
   }
 
-  deleteByPrefix(prefix) {
+  deleteByPrefix(prefix: string) {
     for (const key of Array.from(this.#entries.keys())) {
       if (key.startsWith(prefix)) {
         this.#entries.delete(key)

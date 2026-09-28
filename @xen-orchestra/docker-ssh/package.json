@@ -1,0 +1,52 @@
+{
+  "name": "@xen-orchestra/docker-ssh",
+  "version": "0.0.0",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "license": "AGPL-3.0-or-later",
+  "private": false,
+  "type": "module",
+  "description": "Docker Engine API client reaching the Docker socket of a remote host through SSH",
+  "keywords": [
+    "docker",
+    "ssh",
+    "streamlocal",
+    "xen-orchestra"
+  ],
+  "dependencies": {
+    "@vates/types": "^2.0.1",
+    "@xen-orchestra/log": "^0.7.2",
+    "ssh2": "^1.16.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "@types/node": "^22.3.0",
+    "@types/ssh2": "^1.15.5",
+    "rimraf": "^6.0.1",
+    "typescript": "~5.6",
+    "typescript-eslint": "^8.61.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist/",
+    "dev": "tsc --watch",
+    "postversion": "npm publish --access public",
+    "prebuild": "rimraf dist/",
+    "predev": "yarn run prebuild",
+    "test": "tsc && node --test \"dist/**/*.test.mjs\""
+  },
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/docker-ssh",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/docker-ssh",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

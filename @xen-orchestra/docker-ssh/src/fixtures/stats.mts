@@ -7,6 +7,8 @@
 // `STATS_STREAM_NGINX` are the first two objects of `?stream=true`: the first one
 // has no `precpu_stats.system_cpu_usage`.
 
+import type { DockerStatsSample } from '../wire.mjs'
+
 export const STATS_NGINX_IDLE = {
   id: '0f5359257668ff1fd83db09c2c906d810a4363ebeeffdf02f8a9e47faf41f731',
   name: '/xo-nginx',
@@ -106,7 +108,7 @@ export const STATS_NGINX_IDLE = {
       throttled_time: 0,
     },
   },
-}
+} satisfies DockerStatsSample
 
 export const STATS_BUSY = {
   id: '109f6bbd3d699034fd925bff4eef8e606102d33a1ce108b3f16957298c7f528f',
@@ -207,7 +209,7 @@ export const STATS_BUSY = {
       throttled_time: 0,
     },
   },
-}
+} satisfies DockerStatsSample
 
 export const STATS_PAUSED = {
   id: '20fc8ce5f266072556c77fbacb4a010b6ca5da1d281317c5118b824932b53537',
@@ -308,7 +310,7 @@ export const STATS_PAUSED = {
       throttled_time: 0,
     },
   },
-}
+} satisfies DockerStatsSample
 
 export const STATS_EXITED = {
   id: '42af13ee1713b7f4e51e3704da91f4c4eba213b28dce23a94be7f5a63bd251fe',
@@ -354,7 +356,7 @@ export const STATS_EXITED = {
       throttled_time: 0,
     },
   },
-}
+} satisfies DockerStatsSample
 
 export const STATS_STREAM_NGINX = [
   {
@@ -555,4 +557,4 @@ export const STATS_STREAM_NGINX = [
       },
     },
   },
-]
+] satisfies DockerStatsSample[]

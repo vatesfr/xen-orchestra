@@ -1,4 +1,6 @@
-import { Agent } from 'node:http'
+import { Agent, type AgentOptions, type ClientRequestArgs } from 'node:http'
+import type { Socket } from 'node:net'
+import type { Duplex } from 'node:stream'
 import { createLogger } from '@xen-orchestra/log'
 
 import { DockerError, fromSshError, SSH_UNREACHABLE, TIMEOUT } from './errors.mjs'
@@ -10,6 +12,18 @@ const DEFAULT_CONNECT_TIMEOUT = 10e3
 function noop() {}
 
 /**
+ * The `net.Socket` methods added by `decorateStream()`.
+ */
+export type DecoratedStream = Duplex & {
+  setKeepAlive(): void
+  setNoDelay(): void
+  setTimeout(): void
+  ref(): void
+  unref(): void
+  destroySoon: Duplex['destroy']
+}
+
+/**
  * Make an ssh2 channel usable as an HTTP socket.
  *
  * Port of `decorateStream()` from `ssh2/lib/http-agents.js` (HTTP case): the
@@ -19,10 +33,10 @@ function noop() {}
  * Note: `setTimeout` is a no-op, therefore the `timeout` option of the agent
  * and `req.setTimeout()` have no effect on these sockets, timeouts must be
  * handled with an `AbortSignal`.
- *
- * @param {import('node:stream').Duplex} stream
  */
-export function decorateStream(stream) {
+export function decorateStream(duplex: Duplex): DecoratedStream {
+  // decorated in place: the methods are added below
+  const stream = duplex as DecoratedStream
   stream.setKeepAlive = noop
   stream.setNoDelay = noop
   stream.setTimeout = noop
@@ -39,8 +53,8 @@ export function decorateStream(stream) {
     closed = true
   })
   const { destroy } = stream
-  stream.destroy = function () {
-    const result = destroy.apply(this, arguments)
+  stream.destroy = function (this: Duplex, ...args: Parameters<Duplex['destroy']>) {
+    const result = destroy.apply(this, args)
     if (!removed) {
       removed = true
       // deferred: the agent may be iterating over its sockets (Agent#destroy())
@@ -68,19 +82,34 @@ export function decorateStream(stream) {
  *
  * The `host` and `port` of the requests are ignored.
  */
+/**
+ * What the agent needs of an `ssh2.Client` (its `openssh_forwardOutStreamLocal()`).
+ */
+export interface ForwardOutStreamLocalClient {
+  openssh_forwardOutStreamLocal(
+    socketPath: string,
+    callback: (error: Error | undefined, channel: Duplex) => void
+  ): unknown
+}
+
 export class SshHttpAgent extends Agent {
-  #connectTimeout
-  #getClient
-  #socketPath
+  #connectTimeout: number
+  #getClient: () => Promise<ForwardOutStreamLocalClient>
+  #socketPath: string
 
   /**
-   * @param {object} opts
-   * @param {() => Promise<import('ssh2').Client>} opts.getClient returns a connected (ready) client, must enforce its own timeout
-   * @param {string} opts.socketPath path of the Unix socket on the remote host
-   * @param {number} [opts.connectTimeout] max duration to open a channel once the client is ready (ms)
-   * @param {import('node:http').AgentOptions} [agentOptions]
+   * @param opts.getClient returns a connected (ready) client, must enforce its own timeout
+   * @param opts.socketPath path of the Unix socket on the remote host
+   * @param opts.connectTimeout max duration to open a channel once the client is ready (ms)
    */
-  constructor({ getClient, socketPath, connectTimeout = DEFAULT_CONNECT_TIMEOUT }, agentOptions) {
+  constructor(
+    {
+      getClient,
+      socketPath,
+      connectTimeout = DEFAULT_CONNECT_TIMEOUT,
+    }: { getClient: () => Promise<ForwardOutStreamLocalClient>; socketPath: string; connectTimeout?: number },
+    agentOptions?: AgentOptions
+  ) {
     super({
       keepAlive: true,
       keepAliveMsecs: 10e3,
@@ -100,18 +129,21 @@ export class SshHttpAgent extends Agent {
    * connection has been lost stays writable: it would be reused and requests
    * sent on it would never complete. Always remove it from the free list.
    */
-  removeSocket(socket, options) {
+  removeSocket(socket: Duplex, options: ClientRequestArgs): void {
     const name = this.getName(options)
     const freeSockets = this.freeSockets[name]
     if (freeSockets !== undefined) {
-      const index = freeSockets.indexOf(socket)
+      // the sockets of this agent are ssh2 channels, typed as `net.Socket` by @types/node
+      const index = freeSockets.indexOf(socket as Socket)
       if (index !== -1) {
         freeSockets.splice(index, 1)
         if (freeSockets.length === 0) {
-          delete this.freeSockets[name]
+          // `freeSockets` is only read-only in @types/node, `http.Agent` itself deletes its keys
+          delete (this.freeSockets as NodeJS.Dict<Socket[]>)[name]
         }
       }
     }
+    // @ts-expect-error `removeSocket()` is internal to `http.Agent` (Node's lib/_http_agent.js), missing from @types/node
     return super.removeSocket(socket, options)
   }
 
@@ -120,13 +152,12 @@ export class SshHttpAgent extends Agent {
    *
    * Async form: returns nothing and calls `cb` once.
    *
-   * @param {object} _options ignored (host/port are meaningless here)
-   * @param {(error: Error | null, socket?: import('node:stream').Duplex) => void} cb
+   * @param _options ignored (host/port are meaningless here)
    */
-  createConnection(_options, cb) {
+  createConnection(_options: ClientRequestArgs, cb: (error: Error | null, socket?: Duplex) => void): undefined {
     const socketPath = this.#socketPath
     let settled = false
-    const settle = (error, stream) => {
+    const settle = (error: unknown, stream?: Duplex) => {
       if (settled) {
         // too late: the caller already received an error, release the channel
         stream?.destroy()
@@ -135,13 +166,14 @@ export class SshHttpAgent extends Agent {
       settled = true
       clearTimeout(timer)
       if (error == null) {
-        cb(null, decorateStream(stream))
+        // no error: ssh2 gives a channel
+        cb(null, decorateStream(stream as Duplex))
       } else {
         cb(fromSshError(error, { socketPath }))
       }
     }
 
-    let timer
+    let timer: NodeJS.Timeout | undefined
 
     this.#getClient().then(
       client => {

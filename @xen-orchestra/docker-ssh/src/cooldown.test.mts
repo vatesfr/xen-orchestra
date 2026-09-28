@@ -33,11 +33,11 @@ describe('SshCooldown', () => {
     now.time += 4e3
     assert.throws(
       () => cooldown.check(keys, 'id1'),
-      error => {
+      (error: DockerError) => {
         assert.equal(error.code, SSH_COOLDOWN)
-        assert.equal(error.data.lastCode, SSH_AUTH_FAILED)
-        assert.equal(error.data.retryAfter, 6)
-        assert.equal(error.data.retryAt, 1e6 + 10e3)
+        assert.equal(error.data!.lastCode, SSH_AUTH_FAILED)
+        assert.equal(error.data!.retryAfter, 6)
+        assert.equal(error.data!.retryAt, 1e6 + 10e3)
         return true
       }
     )
@@ -89,7 +89,7 @@ describe('SshCooldown', () => {
     const error = cooldown.onFailure(['target:h:22', 'engine:x'], 'other', lostHandshake())
     assert.equal(error.code, SSH_REFUSED_PENALTY)
     assert.match(error.message, /temporarily refusing this address \(OpenSSH PerSourcePenalties\)/)
-    assert.equal(error.cause.message, 'Connection lost before handshake')
+    assert.equal(error.cause!.message, 'Connection lost before handshake')
 
     // outside the window
     now.time += 61e3

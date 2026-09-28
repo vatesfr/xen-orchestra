@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { EventEmitter, once } from 'node:events'
 import { mkdtemp, rm } from 'node:fs/promises'
-import { createServer } from 'node:http'
-import { connect as netConnect } from 'node:net'
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
+import { connect as netConnect, type Socket } from 'node:net'
 import { Duplex } from 'node:stream'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -17,6 +17,7 @@ import {
   negotiateApiVersion,
   normalizeFingerprint,
   verifyHostKey,
+  type DockerConnectionOptions,
 } from './connection.mjs'
 import {
   DOCKER_API_ERROR,
@@ -27,7 +28,9 @@ import {
   HOST_KEY_UNKNOWN,
   SSH_AUTH_FAILED,
   TIMEOUT,
+  type DockerError,
 } from './errors.mjs'
+import type { ConnectConfig } from 'ssh2'
 
 const { after, before, beforeEach, describe, it } = test
 
@@ -65,10 +68,10 @@ describe('host key fingerprint', () => {
   it('verifyHostKey() rejects a missing fingerprint with HOST_KEY_UNKNOWN', () => {
     assert.throws(
       () => verifyHostKey(Buffer.from(ED25519_KEY, 'base64'), {}),
-      error =>
+      (error: DockerError) =>
         error.code === HOST_KEY_UNKNOWN &&
-        error.data.fingerprint === ED25519_FINGERPRINT &&
-        error.data.algorithm === 'ssh-ed25519'
+        error.data!.fingerprint === ED25519_FINGERPRINT &&
+        error.data!.algorithm === 'ssh-ed25519'
     )
   })
 
@@ -88,10 +91,10 @@ describe('host key fingerprint', () => {
   it('verifyHostKey() rejects another key with HOST_KEY_MISMATCH', () => {
     assert.throws(
       () => verifyHostKey(Buffer.from(ED25519_KEY, 'base64'), { expectedFingerprint: RSA_FINGERPRINT }),
-      error =>
+      (error: DockerError) =>
         error.code === HOST_KEY_MISMATCH &&
-        error.data.expected === RSA_FINGERPRINT &&
-        error.data.actual === ED25519_FINGERPRINT
+        error.data!.expected === RSA_FINGERPRINT &&
+        error.data!.actual === ED25519_FINGERPRINT
     )
   })
 })
@@ -104,10 +107,10 @@ describe('DockerConnection (real ssh2 client, no network)', () => {
       privateKey: 'not a key: TOP-SECRET',
       passphrase: 'hunter2',
     })
-    await assert.rejects(connection.connect(), error => {
+    await assert.rejects(connection.connect(), (error: DockerError) => {
       assert.equal(error.code, SSH_AUTH_FAILED)
       assert.doesNotMatch(
-        JSON.stringify({ ...error, cause: error.cause, message: error.cause.message }),
+        JSON.stringify({ ...error, cause: error.cause, message: error.cause!.message }),
         /TOP-SECRET|hunter2/
       )
       return true
@@ -162,25 +165,31 @@ function createDeadChannel() {
       cb()
     },
   })
-  channel.destroy = function () {
+  channel.destroy = function (this: Duplex) {
     return this
   }
   return channel
 }
 
+// what `DockerConnection` passes to ssh2: its `hostVerifier` is synchronous
+type FakeConnectConfig = Omit<ConnectConfig, 'hostVerifier'> & { hostVerifier?: (keyBlob: Buffer) => boolean }
+
 class FakeSshClient extends EventEmitter {
-  channels = []
+  channels: Socket[] = []
   channelsOpened = 0
-  connectConfig
+  connectConfig!: FakeConnectConfig
   // host key presented to the host verifier (if any)
   hostKey = Buffer.from(ED25519_KEY, 'base64')
   deadChannels = false
   // when false, end() does not emit close (unresponsive server)
   endEmitsClose = true
-  openError
-  _sock = { destroyed: false, destroy: () => (this._sock.destroyed = true) }
+  openError: Error | undefined
+  _sock: { destroyed: boolean; destroy: () => boolean } = {
+    destroyed: false,
+    destroy: () => (this._sock.destroyed = true),
+  }
 
-  connect(config) {
+  connect(config: FakeConnectConfig) {
     this.connectConfig = config
     process.nextTick(() => {
       if (config.hostVerifier !== undefined && !config.hostVerifier(this.hostKey)) {
@@ -193,7 +202,7 @@ class FakeSshClient extends EventEmitter {
     return this
   }
 
-  openssh_forwardOutStreamLocal(socketPath, cb) {
+  openssh_forwardOutStreamLocal(socketPath: string, cb: (error: Error | undefined, channel: Duplex) => void) {
     if (this.openError !== undefined) {
       process.nextTick(cb, this.openError)
       return this
@@ -216,12 +225,12 @@ class FakeSshClient extends EventEmitter {
     for (const channel of this.channels) {
       channel.removeAllListeners('data')
       channel.pause()
-      channel.write = (chunk, encoding, cb) => {
-        if (typeof encoding === 'function') cb = encoding
+      channel.write = (chunk: unknown, encoding?: unknown, cb?: () => void) => {
+        if (typeof encoding === 'function') cb = encoding as () => void
         cb?.()
         return true
       }
-      channel.destroy = function () {
+      channel.destroy = function (this: Socket) {
         return this
       }
       channel.emit('close')
@@ -235,16 +244,22 @@ class FakeSshClient extends EventEmitter {
     }
     return this
   }
+
+  // not used by these tests, but part of `SshClient`
+  exec(): this {
+    throw new Error('not implemented')
+  }
 }
 
 describe('DockerConnection (fake daemon)', () => {
-  let dir, socketPath, server, handler, requests
+  let dir: string, socketPath: string, server: Server
+  let handler: (req: IncomingMessage, res: ServerResponse) => void, requests: string[]
 
   before(async () => {
     dir = await mkdtemp(join(tmpdir(), 'xo-docker-test-'))
     socketPath = join(dir, 'docker.sock')
     server = createServer((req, res) => {
-      requests.push(req.url)
+      requests.push(req.url!)
       handler(req, res)
     })
     server.listen(socketPath)
@@ -257,25 +272,25 @@ describe('DockerConnection (fake daemon)', () => {
     await rm(dir, { recursive: true, force: true })
   })
 
-  const json = (res, statusCode, body) => {
+  const json = (res: ServerResponse, statusCode: number, body: unknown) => {
     res.writeHead(statusCode, { 'content-type': 'application/json' })
     res.end(JSON.stringify(body))
   }
 
-  const defaultHandler = (req, res) => {
+  const defaultHandler = (req: IncomingMessage, res: ServerResponse) => {
     if (req.url === '/version') {
       return json(res, 200, { Version: '27.3.1', ApiVersion: '1.47', MinAPIVersion: '1.24' })
     }
-    if (req.url.startsWith(`/v${MAX_API_VERSION}/containers/json`)) {
+    if (req.url!.startsWith(`/v${MAX_API_VERSION}/containers/json`)) {
       return json(res, 200, [{ Id: 'abc', Names: ['/foo'] }])
     }
     if (req.url === `/v${MAX_API_VERSION}/containers/missing/json`) {
       return json(res, 404, { message: 'No such container: missing' })
     }
     if (req.url === `/v${MAX_API_VERSION}/echo`) {
-      const chunks = []
+      const chunks: Buffer[] = []
       req.on('data', chunk => chunks.push(chunk))
-      req.on('end', () => json(res, 201, { method: req.method, body: JSON.parse(Buffer.concat(chunks)) }))
+      req.on('end', () => json(res, 201, { method: req.method, body: JSON.parse(Buffer.concat(chunks).toString()) }))
       return
     }
     if (req.url === `/v${MAX_API_VERSION}/logs`) {
@@ -289,7 +304,7 @@ describe('DockerConnection (fake daemon)', () => {
       res.write('{}\n')
       return
     }
-    if (req.url.startsWith('/v1.40/raw') || req.url.startsWith(`/v${MAX_API_VERSION}/raw`)) {
+    if (req.url!.startsWith('/v1.40/raw') || req.url!.startsWith(`/v${MAX_API_VERSION}/raw`)) {
       return json(res, 418, { url: req.url })
     }
     if (req.url === `/v${MAX_API_VERSION}/hang`) {
@@ -305,7 +320,7 @@ describe('DockerConnection (fake daemon)', () => {
     requests = []
   })
 
-  const createConnection = (opts = {}) => {
+  const createConnection = (opts: Partial<DockerConnectionOptions> = {}) => {
     const client = new FakeSshClient()
     const connection = new DockerConnection(
       {
@@ -375,7 +390,7 @@ describe('DockerConnection (fake daemon)', () => {
   })
 
   it('close() rejects queued and in-flight requests with CONNECTION_CLOSED and does not reconnect', async () => {
-    handler = (req, res) =>
+    handler = (req: IncomingMessage, res: ServerResponse) =>
       req.url === '/version' ? defaultHandler(req, res) : setTimeout(() => json(res, 200, {}), 300).unref()
     let clients = 0
     const connection = new DockerConnection(
@@ -409,7 +424,7 @@ describe('DockerConnection (fake daemon)', () => {
     )
     await connection.connect()
     assert.equal(client.connectConfig.algorithms, undefined)
-    assert.equal(connection.observedHostKey.fingerprint, ED25519_FINGERPRINT)
+    assert.equal(connection.observedHostKey!.fingerprint, ED25519_FINGERPRINT)
     await connection.close()
 
     // reconnection: same key type requested, another key → mismatch
@@ -441,7 +456,7 @@ describe('DockerConnection (fake daemon)', () => {
       hostKeyAlgorithm: 'ssh-rsa',
       hostKeyFingerprint: RSA_FINGERPRINT,
     })
-    client.connect = function (config) {
+    client.connect = function (this: FakeSshClient, config: FakeConnectConfig) {
       this.connectConfig = config
       process.nextTick(() => {
         this.emit(
@@ -452,18 +467,18 @@ describe('DockerConnection (fake daemon)', () => {
       })
       return this
     }
-    await assert.rejects(connection.connect(), error => {
+    await assert.rejects(connection.connect(), (error: DockerError) => {
       assert.equal(error.code, HOST_KEY_MISMATCH)
-      assert.equal(error.data.expectedAlgorithm, 'ssh-rsa')
+      assert.equal(error.data!.expectedAlgorithm, 'ssh-rsa')
       return true
     })
   })
 
   it('treats a null hostKeyFingerprint as missing (HOST_KEY_UNKNOWN)', async () => {
     const { connection } = createConnection({ hostKeyFingerprint: null })
-    await assert.rejects(connection.connect(), error => {
+    await assert.rejects(connection.connect(), (error: DockerError) => {
       assert.equal(error.code, HOST_KEY_UNKNOWN)
-      assert.equal(error.data.fingerprint, ED25519_FINGERPRINT)
+      assert.equal(error.data!.fingerprint, ED25519_FINGERPRINT)
       return true
     })
   })
@@ -478,7 +493,7 @@ describe('DockerConnection (fake daemon)', () => {
   })
 
   it('reports TIMEOUT (not DOCKER_API_ERROR) when aborted while reading an error body', async () => {
-    handler = (req, res) => {
+    handler = (req: IncomingMessage, res: ServerResponse) => {
       if (req.url === '/version') {
         return defaultHandler(req, res)
       }
@@ -502,9 +517,9 @@ describe('DockerConnection (fake daemon)', () => {
     assert.equal(connectConfig.keepaliveCountMax, 3)
     assert.equal(connectConfig.hostHash, undefined)
     assert.equal(typeof connectConfig.hostVerifier, 'function')
-    assert.equal(connectConfig.hostVerifier(Buffer.from(ED25519_KEY, 'base64')), true)
-    assert.equal(connectConfig.hostVerifier(Buffer.from(RSA_KEY, 'base64')), false)
-    assert.equal(connection.observedHostKey.fingerprint, RSA_FINGERPRINT)
+    assert.equal(connectConfig.hostVerifier!(Buffer.from(ED25519_KEY, 'base64')), true)
+    assert.equal(connectConfig.hostVerifier!(Buffer.from(RSA_KEY, 'base64')), false)
+    assert.equal(connection.observedHostKey!.fingerprint, RSA_FINGERPRINT)
     await connection.close()
   })
 
@@ -530,18 +545,18 @@ describe('DockerConnection (fake daemon)', () => {
   })
 
   it('uses the daemon version when lower than ours', async () => {
-    handler = (req, res) =>
+    handler = (req: IncomingMessage, res: ServerResponse) =>
       req.url === '/version'
         ? json(res, 200, { Version: '20.10.0', ApiVersion: '1.41', MinAPIVersion: '1.12' })
         : json(res, 200, { url: req.url })
     const { connection } = createConnection()
     const { body } = await connection.request({ path: '/info' })
-    assert.equal(body.url, '/v1.41/info')
+    assert.equal((body as { url: string }).url, '/v1.41/info')
     await connection.close()
   })
 
   it('fails with DOCKER_API_VERSION_UNSUPPORTED and retries negotiation later', async () => {
-    handler = (req, res) => json(res, 200, { Version: '1.11', ApiVersion: '1.23' })
+    handler = (req: IncomingMessage, res: ServerResponse) => json(res, 200, { Version: '1.11', ApiVersion: '1.23' })
     const { connection } = createConnection()
     await assert.rejects(connection.connect(), { code: DOCKER_API_VERSION_UNSUPPORTED })
     await assert.rejects(connection.request({ path: '/info' }), { code: DOCKER_API_VERSION_UNSUPPORTED })
@@ -625,12 +640,12 @@ describe('DockerConnection (fake daemon)', () => {
 
   it('raw requests: verbatim path and query, version prefix unless present, errors returned (phase 4)', async () => {
     const { connection } = createConnection()
-    const read = async response => {
-      const chunks = []
+    const read = async (response: IncomingMessage) => {
+      const chunks: Buffer[] = []
       for await (const chunk of response) {
         chunks.push(chunk)
       }
-      return JSON.parse(Buffer.concat(chunks))
+      return JSON.parse(Buffer.concat(chunks).toString())
     }
     let response = await connection.requestStream({ path: '/raw?a=1&b=%2F', raw: true, longLived: true })
     assert.equal(response.statusCode, 418)
@@ -642,9 +657,9 @@ describe('DockerConnection (fake daemon)', () => {
 
   it('fails with DOCKER_API_ERROR on non-2xx', async () => {
     const { connection } = createConnection()
-    await assert.rejects(connection.request({ path: '/containers/missing/json' }), error => {
+    await assert.rejects(connection.request({ path: '/containers/missing/json' }), (error: DockerError) => {
       assert.equal(error.code, DOCKER_API_ERROR)
-      assert.equal(error.data.statusCode, 404)
+      assert.equal(error.data!.statusCode, 404)
       assert.equal(error.message, 'No such container: missing')
       return true
     })
@@ -664,14 +679,14 @@ describe('DockerConnection (fake daemon)', () => {
 
   it('reads at most 4 KiB of an error body and truncates the message (hostile daemon)', async () => {
     let written = 0
-    handler = (req, res) => {
+    handler = (req: IncomingMessage, res: ServerResponse) => {
       if (req.url === '/version') {
         return defaultHandler(req, res)
       }
-      if (req.url.endsWith('/object')) {
+      if (req.url!.endsWith('/object')) {
         return json(res, 500, { message: { toString: 'x' } })
       }
-      if (req.url.endsWith('/text')) {
+      if (req.url!.endsWith('/text')) {
         res.writeHead(500, { 'content-type': 'text/plain' })
         return res.end('y'.repeat(3000))
       }
@@ -698,23 +713,23 @@ describe('DockerConnection (fake daemon)', () => {
       () => connection.request({ path: '/flood' }),
       () => connection.requestStream({ path: '/flood' }),
     ]) {
-      await assert.rejects(call(), error => {
+      await assert.rejects(call(), (error: DockerError) => {
         assert.equal(error.code, DOCKER_API_ERROR)
-        assert.equal(error.data.statusCode, 500)
+        assert.equal(error.data!.statusCode, 500)
         assert.ok(written < 10 * 1024 * 1024, `${written} bytes written by the daemon`)
         assert.ok(error.message.length <= 1024, `message of ${error.message.length} chars`)
-        assert.ok(error.data.message.length <= 1024)
+        assert.ok((error.data!.message as string).length <= 1024)
         return true
       })
     }
     assert.ok(Date.now() - start < 2e3, 'does not wait for the whole body')
     assert.ok(written < 10 * 1024 * 1024, `${written} bytes written by the daemon`)
-    await assert.rejects(connection.request({ path: '/object' }), error => {
+    await assert.rejects(connection.request({ path: '/object' }), (error: DockerError) => {
       assert.equal(error.message, 'Docker API error 500')
-      assert.equal(error.data.message, undefined)
+      assert.equal(error.data!.message, undefined)
       return true
     })
-    await assert.rejects(connection.request({ path: '/text' }), error => {
+    await assert.rejects(connection.request({ path: '/text' }), (error: DockerError) => {
       assert.ok(error.message.length <= 1024)
       assert.match(error.message, /^y+…$/)
       return true
@@ -751,9 +766,9 @@ describe('DockerConnection (fake daemon)', () => {
   it('maps channel open failures', async () => {
     const { client, connection } = createConnection()
     client.openError = Object.assign(new Error('(SSH) Channel open failure: open failed'), { reason: 2 })
-    await assert.rejects(connection.connect(), error => {
+    await assert.rejects(connection.connect(), (error: DockerError) => {
       assert.equal(error.code, DOCKER_SOCKET_UNREACHABLE)
-      assert.equal(error.data.socketPath, socketPath)
+      assert.equal(error.data!.socketPath, socketPath)
       assert.doesNotMatch(JSON.stringify(error.data), /secret/)
       return true
     })

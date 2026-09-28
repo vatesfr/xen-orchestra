@@ -13,6 +13,8 @@
 // No XO concepts here: the caller provides `openStream()`, and tells which
 // containers are running with `sync()` on each list refresh.
 
+import type { Readable } from 'node:stream'
+import type { XoDockerContainerStats } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 
 import { DOCKER_API_ERROR, isDockerError, POOL_EXHAUSTED, TIMEOUT } from './errors.mjs'
@@ -33,38 +35,59 @@ export const DEFAULT_PARSE_INTERVAL = 1e3
 // errors of one stream which do not concern the engine: the stream is dropped
 // (and retried by a later `sync()` after `retryDelay`), the other streams are
 // kept. Any other error (SSH failure, closed connection…) stops the sampler.
-const isStreamError = error =>
+const isStreamError = (error: unknown): boolean =>
   !isDockerError(error) || error.code === DOCKER_API_ERROR || error.code === TIMEOUT || error.code === POOL_EXHAUSTED
 
-export class DockerStatsSampler {
-  #failures = new Map() // Docker id → time after which it may be reopened
-  #idleTimeout
-  #idleTimer
-  #lastRead
-  #maxContainers
-  #maxObjectSize
-  #now
-  #onStop
-  #openStream
-  #parseInterval
-  #retryDelay
-  #stopped = false
-  #streams = new Map() // Docker id → { controller, stream, stats, samples, lastParse, pendingLine, parseTimer }
+type StreamEntry = {
+  controller: AbortController
+  stream: Readable | undefined
+  stats: XoDockerContainerStats | undefined
+  samples: number
+  lastParse: number
+  pendingLine: string | undefined
+  parseTimer: NodeJS.Timeout | undefined
+}
 
+export type DockerStatsSamplerOptions = {
+  /** opens `GET /containers/{id}/stats?stream=true` (newline-delimited JSON objects) */
+  openStream: (dockerId: string, signal: AbortSignal) => Promise<Readable>
+  /** ms without `sync()`/`get()` after which the sampler stops */
+  idleTimeout?: number
+  /** max number of streams */
+  maxContainers?: number
   /**
-   * @param {object} opts
-   * @param {(dockerId: string, signal: AbortSignal) => Promise<import('node:stream').Readable>} opts.openStream
-   *   opens `GET /containers/{id}/stats?stream=true` (newline-delimited JSON objects)
-   * @param {number} [opts.idleTimeout] ms without `sync()`/`get()` after which the sampler stops
-   * @param {number} [opts.maxContainers] max number of streams
-   * @param {number} [opts.maxObjectSize] max size of one JSON object (UTF-16 code units, roughly bytes), the
-   *   stream is dropped above; checked on the pending partial object plus each received chunk, before scanning
-   * @param {number} [opts.parseInterval] min ms between two parsed objects of a stream, the latest one received in
-   *   the meantime is parsed at the end of the interval
-   * @param {number} [opts.retryDelay] ms before reopening the stream of a container after a failure or an end
-   * @param {(error?: Error) => void} [opts.onStop] called once, with the error which stopped the sampler if any
-   * @param {() => number} [opts.now] for tests
+   * max size of one JSON object (UTF-16 code units, roughly bytes), the stream is dropped above; checked on the
+   * pending partial object plus each received chunk, before scanning
    */
+  maxObjectSize?: number
+  /**
+   * min ms between two parsed objects of a stream, the latest one received in the meantime is parsed at the end of
+   * the interval
+   */
+  parseInterval?: number
+  /** ms before reopening the stream of a container after a failure or an end */
+  retryDelay?: number
+  /** called once, with the error which stopped the sampler if any */
+  onStop?: (error?: unknown) => void
+  /** for tests */
+  now?: () => number
+}
+
+export class DockerStatsSampler {
+  #failures = new Map<string, number>() // Docker id → time after which it may be reopened
+  #idleTimeout: number
+  #idleTimer: NodeJS.Timeout | undefined
+  #lastRead: number
+  #maxContainers: number
+  #maxObjectSize: number
+  #now: () => number
+  #onStop: ((error?: unknown) => void) | undefined
+  #openStream: (dockerId: string, signal: AbortSignal) => Promise<Readable>
+  #parseInterval: number
+  #retryDelay: number
+  #stopped = false
+  #streams = new Map<string, StreamEntry>() // Docker id → { controller, stream, stats, samples, lastParse, pendingLine, parseTimer }
+
   constructor({
     openStream,
     idleTimeout = DEFAULT_IDLE_TIMEOUT,
@@ -74,7 +97,7 @@ export class DockerStatsSampler {
     parseInterval = DEFAULT_PARSE_INTERVAL,
     onStop,
     now = Date.now,
-  }) {
+  }: DockerStatsSamplerOptions) {
     this.#openStream = openStream
     this.#idleTimeout = idleTimeout
     this.#maxContainers = maxContainers
@@ -87,13 +110,12 @@ export class DockerStatsSampler {
     this.#scheduleIdleCheck(idleTimeout)
   }
 
-  /** @returns {boolean} */
-  get stopped() {
+  get stopped(): boolean {
     return this.#stopped
   }
 
-  /** @returns {number} number of streams (opening or open) */
-  get size() {
+  /** number of streams (opening or open) */
+  get size(): number {
     return this.#streams.size
   }
 
@@ -102,9 +124,9 @@ export class DockerStatsSampler {
    * `maxContainers`, the already streamed ones are kept first), the others are
    * closed.
    *
-   * @param {Iterable<string>} dockerIds the running containers
+   * @param dockerIds the running containers
    */
-  sync(dockerIds) {
+  sync(dockerIds: Iterable<string>): void {
     if (this.#stopped) {
       return
     }
@@ -112,7 +134,7 @@ export class DockerStatsSampler {
 
     const ids = Array.from(new Set(dockerIds))
     const now = this.#now()
-    const wanted = new Set()
+    const wanted = new Set<string>()
     // the containers already streamed are kept first, to avoid churn when the
     // cap is reached
     for (const id of ids) {
@@ -137,7 +159,8 @@ export class DockerStatsSampler {
     }
     // forget the failures of the containers which are gone
     for (const id of Array.from(this.#failures.keys())) {
-      if (!ids.includes(id) || this.#failures.get(id) <= now) {
+      // `get(id)!`: `id` is a key
+      if (!ids.includes(id) || this.#failures.get(id)! <= now) {
         this.#failures.delete(id)
       }
     }
@@ -149,21 +172,18 @@ export class DockerStatsSampler {
   }
 
   /**
-   * @param {string} dockerId
-   * @returns {boolean} whether this container is streamed
+   * @returns whether this container is streamed
    */
-  has(dockerId) {
+  has(dockerId: string): boolean {
     return this.#streams.has(dockerId)
   }
 
   /**
    * Latest sample of a container.
    *
-   * @param {string} dockerId
-   * @returns {{ stats: object | undefined, pending: boolean } | undefined} `undefined` if not streamed, `pending`
-   *   until the second sample (the first one has no CPU usage)
+   * @returns `undefined` if not streamed, `pending` until the second sample (the first one has no CPU usage)
    */
-  get(dockerId) {
+  get(dockerId: string): { stats: XoDockerContainerStats | undefined; pending: boolean } | undefined {
     if (this.#stopped) {
       return
     }
@@ -178,9 +198,9 @@ export class DockerStatsSampler {
   /**
    * Close every stream, the sampler cannot be used afterwards.
    *
-   * @param {Error} [error] reason, passed to `onStop`
+   * @param error reason, passed to `onStop`
    */
-  stop(error) {
+  stop(error?: unknown): void {
     if (this.#stopped) {
       return
     }
@@ -202,7 +222,7 @@ export class DockerStatsSampler {
     this.#lastRead = this.#now()
   }
 
-  #scheduleIdleCheck(delay) {
+  #scheduleIdleCheck(delay: number): void {
     this.#idleTimer = setTimeout(() => {
       const idle = this.#now() - this.#lastRead
       if (idle >= this.#idleTimeout) {
@@ -215,7 +235,7 @@ export class DockerStatsSampler {
     this.#idleTimer.unref?.()
   }
 
-  #close(id) {
+  #close(id: string): void {
     const entry = this.#streams.get(id)
     if (entry !== undefined) {
       this.#streams.delete(id)
@@ -227,7 +247,7 @@ export class DockerStatsSampler {
   }
 
   // the stream of a container failed or ended on its own
-  #drop(id, entry, error) {
+  #drop(id: string, entry: StreamEntry, error?: unknown): void {
     if (this.#streams.get(id) !== entry) {
       return
     }
@@ -242,8 +262,8 @@ export class DockerStatsSampler {
     }
   }
 
-  #open(id) {
-    const entry = {
+  #open(id: string): void {
+    const entry: StreamEntry = {
       controller: new AbortController(),
       stream: undefined,
       stats: undefined,
@@ -274,7 +294,7 @@ export class DockerStatsSampler {
   // parses the latest complete line received, unless one was parsed less than
   // `parseInterval` ago: it is then parsed at the end of the interval (unless a
   // newer one replaces it meanwhile)
-  #parse(id, entry) {
+  #parse(id: string, entry: StreamEntry): void {
     const line = entry.pendingLine
     if (line === undefined || this.#streams.get(id) !== entry) {
       return
@@ -303,11 +323,12 @@ export class DockerStatsSampler {
     ++entry.samples
   }
 
-  #consume(id, entry, stream) {
+  #consume(id: string, entry: StreamEntry, stream: Readable): void {
     // partial line after the last newline received
     let buffer = ''
     stream.setEncoding('utf8')
-    stream.on('data', chunk => {
+    // strings: the encoding is set
+    stream.on('data', (chunk: string) => {
       // checked before any scanning: a daemon cannot make us buffer or scan
       // more than the cap, whatever the number of lines (a legitimate stream
       // sends a few KiB per second, and a chunk is at most 64 KiB)

@@ -114,6 +114,7 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/disk-cli patch
+- @xen-orchestra/docker-ssh minor
 - @xen-orchestra/fs patch
 - @xen-orchestra/mcp patch
 - @xen-orchestra/mixins minor
