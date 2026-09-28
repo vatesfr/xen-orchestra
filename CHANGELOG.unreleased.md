@@ -33,5 +33,6 @@
 
 - @xen-orchestra/async-map minor
 - xo-server patch
+- xo-server-usage-report patch
 
 <!--packages-end-->
