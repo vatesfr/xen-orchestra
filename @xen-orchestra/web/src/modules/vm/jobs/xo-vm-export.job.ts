@@ -23,7 +23,6 @@ export const useXoVmExportJob = defineJob('vm.export', [xoVmArg, xoVmExportTypeA
 
   return {
     async run(vm: FrontXoVm | undefined, type: VmExportType, compression: VmExportCompression) {
-      // Already rejected by validate, the guard only narrows the type
       if (vm === undefined) {
         return
       }
