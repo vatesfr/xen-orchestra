@@ -3,6 +3,8 @@ import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 export const XOA_NAME = 'Xen Orchestra Appliance'
 export const IS_XOA_BUILD = import.meta.env.VITE_XOA_BUILD === 'true'
 
+export const KUBERNETES_NAME = 'Kubernetes'
+
 export const XO_LINKS = {
   BLOG: 'https://xen-orchestra.com/blog/',
   COMMUNITY: 'https://xcp-ng.org/forum/category/12/xen-orchestra',
