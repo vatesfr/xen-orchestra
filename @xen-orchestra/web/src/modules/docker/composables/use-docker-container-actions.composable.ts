@@ -14,7 +14,7 @@ import {
   getContainerActions,
   getContainerDisplayName,
   getContainerPrimaryAction,
-  shouldConfirmContainerStop,
+  getStopConfirmedRestartPolicy,
 } from '@/modules/docker/utils/xo-docker.util.ts'
 import type { IconName } from '@core/icons'
 import type { ActionItem } from '@core/tables/column-definitions/action-column.ts'
@@ -99,11 +99,13 @@ export function useDockerContainerActions(
   })
 
   function runDockerContainerAction(action: XoDockerContainerAction) {
-    if (action === 'stop' && shouldConfirmContainerStop(container.value)) {
+    const policy = action === 'stop' ? getStopConfirmedRestartPolicy(container.value) : undefined
+
+    if (policy !== undefined) {
       return openStopModal({
         props: {
           name: getContainerDisplayName(container.value),
-          policy: container.value.restartPolicy?.name ?? '',
+          policy,
         },
       })
     }

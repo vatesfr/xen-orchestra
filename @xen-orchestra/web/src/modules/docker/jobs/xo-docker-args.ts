@@ -14,8 +14,13 @@ export type DockerConnectionSaveRequest =
 export const xoDockerConnectionSaveArg = defineJobArg<DockerConnectionSaveRequest>({
   toArray: false,
   // the identity is also computed while no request is set (it is reset once saved)
-  identify: (request?: DockerConnectionSaveRequest) =>
-    request?.engineId ?? (request?.payload as DockerEngineCreatePayload | undefined)?.$VM,
+  identify: (request?: DockerConnectionSaveRequest) => {
+    if (request === undefined) {
+      return undefined
+    }
+
+    return request.engineId === undefined ? request.payload.$VM : request.engineId
+  },
 })
 
 export const xoDockerEngineArg = defineJobArg({

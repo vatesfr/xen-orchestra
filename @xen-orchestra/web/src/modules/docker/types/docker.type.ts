@@ -1,20 +1,20 @@
 import type { XoDockerContainer, XoDockerEngine, XoDockerEngineInfo } from '@vates/types'
 
 /**
- * State of the Docker engine of a VM, as shown by its Containers tab.
- *
- * `not-configured` (no engine for the VM) is computed by the frontend, the other
- * ones are the `status` of `GET /docker-engines/{id}/info`.
+ * State of the Docker engine of a VM: the `status` of `GET /docker-engines/{id}/info`
  */
 export const DOCKER_STATUS = {
-  NOT_CONFIGURED: 'not-configured',
   CONNECTED: 'connected',
   UNREACHABLE: 'unreachable',
   AUTH_FAILED: 'auth-failed',
   HOST_KEY_MISMATCH: 'host-key-mismatch',
 } as const
 
-export type DockerStatus = (typeof DOCKER_STATUS)[keyof typeof DOCKER_STATUS]
+/**
+ * Restart policies making Docker restart a stopped container, hence a
+ * confirmation before stopping it
+ */
+export type DockerStopConfirmedRestartPolicy = 'always' | 'unless-stopped'
 
 export const dockerEngineFields = [
   'id',
