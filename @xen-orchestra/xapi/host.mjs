@@ -21,7 +21,7 @@ class Host {
   async restartAgent(ref) {
     const agentStartTime = +(await this.getField('host', ref, 'other_config')).agent_start_time
     const host = await this.getRecord('host', ref)
-    if (!host.$pool.ha_enabled) {
+    if (host.$pool.ha_enabled) {
       throw incorrectState({
         actual: host.$pool.ha_enabled,
         expected: false,
