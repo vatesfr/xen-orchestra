@@ -2,6 +2,9 @@
   <div class="backup-repository-breadcrumb-link">
     <UiBreadcrumb :size>
       <UiLink :size :to="{ name: '/admin/backup-and-replication/backup-repositories' }" icon="object:backup-archive">
+        {{ t('backup-and-replication') }}
+      </UiLink>
+      <UiLink :size :to="{ name: '/admin/backup-and-replication/backup-repositories' }">
         {{ t('backup-repositories') }}
       </UiLink>
       <span>
@@ -19,7 +22,7 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
+const { br } = defineProps<{
   br: FrontXoBackupRepository
 }>()
 
