@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Web-Core/UiDropdownButton] Add a small size and primary/secondary variants for dropdown buttons (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -34,5 +36,6 @@
 <!--packages-start-->
 
 - xo-server patch
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->
