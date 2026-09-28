@@ -79,8 +79,7 @@ export async function set({ id, email, firstname, lastname, password, permission
   } else if ([...noEditFields, 'permission'].some(key => arguments[0][key])) {
     throw invalidParameters('this property can only be changed by an administrator')
   } else if (id !== this.apiContext.user.id) {
-      throw invalidParameters('a user can only change its own properties')
-    }
+    throw invalidParameters('a user can only change its own properties')
   }
 
   const user = await this.getUser(id)
