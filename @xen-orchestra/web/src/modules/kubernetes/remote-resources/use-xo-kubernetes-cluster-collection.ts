@@ -1,13 +1,11 @@
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { normalizeKubernetesTags } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { useSorted } from '@vueuse/core'
 import { reactify } from '@vueuse/shared'
 
-type ApiKubernetesCluster = Omit<XoKubernetesCluster, 'id' | 'type' | 'tags'> & {
+type ApiKubernetesCluster = Omit<XoKubernetesCluster, 'id' | 'type'> & {
   id?: XoKubernetesCluster['id']
-  tags?: Record<string, string>
 }
 
 function toXoCluster(cluster: ApiKubernetesCluster): XoKubernetesCluster {
@@ -15,7 +13,7 @@ function toXoCluster(cluster: ApiKubernetesCluster): XoKubernetesCluster {
     ...cluster,
     id: cluster.id ?? cluster.name,
     type: 'kubernetes-cluster',
-    tags: normalizeKubernetesTags(cluster.tags),
+    tags: cluster.tags ?? null,
   }
 }
 

@@ -2,13 +2,18 @@
   <KubernetesHeader />
   <VtsContentSidePanel class="kubernetes-clusters">
     <UiCard class="container">
-      <ClustersTable :clusters :busy="!areClustersReady" :error="hasClusterFetchError" />
+      <ClustersTable :clusters :busy="!areClustersReady" :error="hasClusterFetchError">
+        <template #title-actions>
+          <CreateClusterButton :full-label="false" />
+        </template>
+      </ClustersTable>
     </UiCard>
     <ClusterSidePanel :cluster="selectedCluster" @close="selectedCluster = undefined" />
   </VtsContentSidePanel>
 </template>
 
 <script setup lang="ts">
+import CreateClusterButton from '@/modules/kubernetes/components/actions/create-cluster/CreateClusterButton.vue'
 import KubernetesHeader from '@/modules/kubernetes/components/KubernetesHeader.vue'
 import ClustersTable from '@/modules/kubernetes/components/list/ClustersTable.vue'
 import ClusterSidePanel from '@/modules/kubernetes/components/list/panel/ClusterSidePanel.vue'

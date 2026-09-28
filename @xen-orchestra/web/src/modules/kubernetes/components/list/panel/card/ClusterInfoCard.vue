@@ -57,7 +57,7 @@ import { useXoKubernetesClusterUtils } from '@/modules/kubernetes/composables/xo
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { clusterStatus } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { getKubernetesClusterRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
-import { kubernetesTagsToDisplayStrings } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
+import { kubernetesTagsToStrings } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -76,7 +76,7 @@ const { t } = useI18n()
 
 const { createdAtFormatted, createdAtTooltip } = useXoKubernetesClusterUtils(() => cluster)
 
-const displayTags = computed(() => kubernetesTagsToDisplayStrings(cluster.tags))
+const displayTags = computed(() => kubernetesTagsToStrings(cluster.tags))
 
 const version = computed(() => '')
 

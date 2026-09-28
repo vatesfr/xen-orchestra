@@ -11,7 +11,7 @@ export const useClusterColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    cluster: useLinkColumn({ headerLabel: () => t('cluster') }),
+    cluster: useLinkColumn({ headerLabel: () => t('cluster', 1) }),
     version: useTextColumn({ headerLabel: () => t('version') }),
     status: useStatusColumn({ headerLabel: () => t('status') }),
     controlPlaneNodes: useNumberColumn({ headerLabel: () => t('control-plane-replicas') }),
