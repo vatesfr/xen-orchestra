@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { EventEmitter } from 'node:events'
 import { describe, it } from 'node:test'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
@@ -35,12 +36,13 @@ function createResolver({ callProxyMethod = async () => {}, unmountDisk = async 
     listVmBackupsNg: async () => ({
       'remote-1': { 'vm-1': [{ id: archiveId, disks: [{ id: 'disk.vhd' }], vm: { name_label: 'vm' } }] },
     }),
-    liveMount: {
+    // the resolver listens to `unmounted` to forget the mounts that disappear on their own
+    liveMount: Object.assign(new EventEmitter(), {
       mountDisk: async () => ({ id: 'local-mount' }),
       unmountDisk,
-    },
+    }),
   }
-  return { calls, resolver: new BackupDiskMountsResolver(app) }
+  return { app, calls, resolver: new BackupDiskMountsResolver(app) }
 }
 
 const isKnown = (resolver, id) => {
@@ -119,5 +121,16 @@ describe('unmountBackupArchiveDisk on this appliance', () => {
 
     await assert.rejects(resolver.unmountBackupArchiveDisk(mount.id), /SR_HAS_NO_PBDS/)
     assert.equal(isKnown(resolver, mount.id), false)
+  })
+})
+
+describe('liveMount unmounted event', () => {
+  it('forgets a mount that disappeared on its own', () => {
+    const { app, resolver } = createResolver()
+    resolver.registerProxyBackupArchiveDiskMounts({ archiveId, mounts: [{ id: 'm1', hostId }], proxyId })
+
+    app.liveMount.emit('unmounted', 'm1')
+
+    assert.equal(isKnown(resolver, 'm1'), false)
   })
 })

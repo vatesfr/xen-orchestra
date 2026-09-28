@@ -70,7 +70,7 @@ export default class BackupDiskMountsResolver {
     // a mount also disappears on its own, when the VDI it serves is removed from the pool — e.g.
     // when the VM it was attached to is deleted
     app.liveMount.on('unmounted', id => {
-      this.#mountOwners.delete(id)
+      this.#mounts.delete(id)
     })
   }
 
