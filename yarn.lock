@@ -1748,6 +1748,13 @@
   resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-7.3.1.tgz#913fe0c0aed1184390efeec2546d78f9c4c8dc4a"
   integrity sha512-k0C0sdHmZtAo6dRDtd1Z/qcpyHbL0CKsjV8seMY/21xGhY5Wsv0XRmiI/xEEH4y2c9b1+jvgNs/3EqhV27yUEA==
 
+"@fortawesome/free-brands-svg-icons@^7.3.1":
+  version "7.3.1"
+  resolved "https://registry.yarnpkg.com/@fortawesome/free-brands-svg-icons/-/free-brands-svg-icons-7.3.1.tgz#6ae4b0d6d3969e105989b43edb318cd20b561161"
+  integrity sha512-8eiNzycuFhy3mZsi5EVO8JpO3H8l7/kSCl4Gk4iUew9hJuzYFqAAD6kqgeEup3+YZ9hL+5cjjorGzrRLkYuURg==
+  dependencies:
+    "@fortawesome/fontawesome-common-types" "7.3.1"
+
 "@fortawesome/free-regular-svg-icons@^7.3.1":
   version "7.3.1"
   resolved "https://registry.yarnpkg.com/@fortawesome/free-regular-svg-icons/-/free-regular-svg-icons-7.3.1.tgz#643bf28ff4a878ee75abbf974a6096bbe3816306"
