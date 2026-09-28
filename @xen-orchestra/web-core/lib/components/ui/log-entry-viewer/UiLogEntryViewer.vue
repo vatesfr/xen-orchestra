@@ -15,7 +15,7 @@
         />
       </div>
     </div>
-    <code :class="fontClasses.codeClass" class="code-container">
+    <code ref="codeContainer" :class="fontClasses.codeClass" class="code-container">
       {{ content }}
     </code>
   </div>
@@ -26,7 +26,7 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { computed, watch } from 'vue'
+import { computed, useTemplateRef, watch } from 'vue'
 
 type LogEntryViewerAccent = 'info' | 'warning' | 'danger'
 type LogEntryViewerSize = 'small' | 'medium'
@@ -35,11 +35,13 @@ const {
   size,
   accent,
   content: rawContent = '',
+  autoScroll,
 } = defineProps<{
   label: string
   content: string | object | undefined
   size: LogEntryViewerSize
   accent: LogEntryViewerAccent
+  autoScroll?: boolean
 }>()
 
 defineSlots<{
@@ -81,6 +83,19 @@ watch(
     pre.textContent = content.value
   },
   { immediate: true, deep: true }
+)
+
+const codeContainer = useTemplateRef('codeContainer')
+
+// keep the latest lines in view when the content changes, like `tail -f`
+watch(
+  [content, codeContainer, () => autoScroll],
+  ([, element]) => {
+    if (autoScroll && element) {
+      element.scrollTop = element.scrollHeight
+    }
+  },
+  { flush: 'post' }
 )
 
 function openRawValueInNewTab() {
