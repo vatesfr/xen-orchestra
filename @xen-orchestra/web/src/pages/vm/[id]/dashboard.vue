@@ -2,16 +2,7 @@
   <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
     <VmDashboardQuickInfo class="quick-info" :vm />
     <div v-if="!isVmRunning" class="offline-hero-container">
-      <VtsStateHero format="page" type="offline" size="large" horizontal>
-        <span>
-          {{ t('all-quiet-launchpad') }}
-        </span>
-        <span class="title typo-h1">{{ t('vm-shutdown') }}</span>
-        <div class="description typo-body-bold">
-          <span>{{ t('vm-off') }}</span>
-          <span>{{ t('start-vm') }}</span>
-        </div>
-      </VtsStateHero>
+      <VmOfflineHero />
     </div>
     <template v-else>
       <VmDashboardBackupRuns class="backup-runs" :vm-id="vm.id" :vm-dashboard :has-error />
@@ -43,16 +34,15 @@ import VmDashboardNetworkUsageChart from '@/modules/vm/components/dashboard/VmDa
 import VmDashboardQuickInfo from '@/modules/vm/components/dashboard/VmDashboardQuickInfo.vue'
 import VmDashboardRamUsageChart from '@/modules/vm/components/dashboard/VmDashboardRamUsageChart.vue'
 import VmDashboardVdiUsageChart from '@/modules/vm/components/dashboard/VmDashboardVdiUsageChart.vue'
+import VmOfflineHero from '@/modules/vm/components/VmOfflineHero.vue'
 import { useXoVmAlarmsCollection } from '@/modules/vm/remote-resources/use-xo-vm-alarms-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmDashboard } from '@/modules/vm/remote-resources/use-xo-vm-dashboard.ts'
 import { useFetchStats } from '@/shared/composables/fetch-stats.composable.ts'
 import { GRANULARITY } from '@/shared/utils/rest-api-stats.ts'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
   vm: FrontXoVm
@@ -67,8 +57,6 @@ const { vmAlarms, areVmAlarmsReady, hasVmAlarmFetchError } = useXoVmAlarmsCollec
 const isVmRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 
 const uiStore = useUiStore()
-
-const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
@@ -123,17 +111,6 @@ const { t } = useI18n()
 
   .vdi-usage-chart {
     grid-area: vdi-usage-chart;
-  }
-
-  .title {
-    color: var(--color-neutral-txt-primary);
-  }
-
-  .description {
-    display: flex;
-    flex-direction: column;
-    gap: 1.4rem;
-    color: var(--color-neutral-txt-secondary);
   }
 
   &.mobile {

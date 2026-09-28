@@ -309,7 +309,6 @@ const portToOpen = computed(() =>
   }
 
   .command {
-    font-family: 'Courier New', Courier, monospace;
     overflow-wrap: anywhere;
   }
 

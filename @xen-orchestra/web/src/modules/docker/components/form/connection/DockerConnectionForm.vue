@@ -16,7 +16,6 @@
 
       <div class="row">
         <DockerTextInput v-bind="usernameInputBindings" />
-        <div />
       </div>
 
       <UiCheckbox v-if="isEditing" v-model="replacePrivateKey" accent="brand">
@@ -37,7 +36,6 @@
           placeholder="SHA256:…"
           :info="t('docker-host-key-fingerprint-info', { command: FINGERPRINT_COMMAND })"
         />
-        <div />
       </div>
 
       <div>
@@ -56,7 +54,6 @@
           v-bind="socketPathInputBindings"
           :info="t('docker-socket-path-info', { path: ROOTLESS_SOCKET_PATH })"
         />
-        <div />
       </div>
 
       <UiAlert v-if="hostKeyError?.code === 'HOST_KEY_UNKNOWN'" accent="warning" class="host-key-alert">
@@ -212,10 +209,13 @@ async function trustHostKey() {
   const { fingerprint } = hostKeyError.value
   formData.hostKeyFingerprint = fingerprint
 
-  await submit({
-    ...request.value,
-    payload: { ...request.value.payload, hostKeyFingerprint: fingerprint },
-  } as DockerConnectionSaveRequest)
+  const current = request.value
+
+  await submit(
+    current.engineId === undefined
+      ? { payload: { ...current.payload, hostKeyFingerprint: fingerprint } }
+      : { engineId: current.engineId, payload: { ...current.payload, hostKeyFingerprint: fingerprint } }
+  )
 }
 </script>
 
@@ -232,19 +232,15 @@ async function trustHostKey() {
     gap: 2.4rem;
   }
 
+  /* two fields per row, like NewVdiForm: a single field keeps the width of one column */
   .row {
-    display: flex;
+    display: grid;
     align-items: start;
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
     gap: 2.4rem;
 
-    & > * {
-      width: 100%;
-      min-width: 0;
-    }
-
     @media (--medium-or-large) {
-      flex-direction: row;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8rem;
       max-width: 88rem;
     }

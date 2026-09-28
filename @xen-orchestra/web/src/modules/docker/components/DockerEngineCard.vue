@@ -32,12 +32,12 @@
       <VtsTabularKeyValueRow :label="t('docker-ssh-address')" :value="sshAddress" />
       <VtsTabularKeyValueRow :label="t('docker-socket-path')">
         <template #value>
-          <code>{{ engine.socketPath }}</code>
+          <VtsCodeSnippet :content="engine.socketPath" />
         </template>
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('docker-host-key-fingerprint')">
         <template #value>
-          <code class="fingerprint">{{ engine.hostKeyFingerprint ?? '-' }}</code>
+          <VtsCodeSnippet :content="engine.hostKeyFingerprint ?? '-'" />
         </template>
       </VtsTabularKeyValueRow>
       <template v-if="info?.status === 'connected'">
@@ -93,6 +93,7 @@ import { useDockerErrorMessage } from '@/modules/docker/composables/use-docker-e
 import { useXoDockerConnectionDeleteJob } from '@/modules/docker/jobs/xo-docker-connection-delete.job.ts'
 import { useXoDockerEngineTestJob } from '@/modules/docker/jobs/xo-docker-engine-test.job.ts'
 import type { FrontXoDockerEngine, FrontXoDockerEngineInfo } from '@/modules/docker/types/docker.type.ts'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
@@ -205,9 +206,7 @@ function forget() {
     gap: 0.4rem;
   }
 
-  .error-code,
-  .fingerprint {
-    font-family: monospace;
+  .error-code {
     word-break: break-all;
   }
 }
