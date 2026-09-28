@@ -19,7 +19,7 @@ import {
   parseContainerStatus,
   parseDockerDate,
 } from './normalize.mjs'
-import type { DockerCpuStats, DockerStatsSample } from './wire.mjs'
+import type { DockerCpuStats, DockerPort, DockerStatsSample } from './wire.mjs'
 
 const { describe, it } = test
 
@@ -133,7 +133,7 @@ describe('ports', () => {
   })
 
   it('removes exact duplicates and handles missing values', () => {
-    const port = { IP: '0.0.0.0', PrivatePort: 80, PublicPort: 8080, Type: 'tcp' }
+    const port: DockerPort = { IP: '0.0.0.0', PrivatePort: 80, PublicPort: 8080, Type: 'tcp' }
     assert.deepEqual(normalizeListPorts([port, { ...port }]), [
       { ip: '0.0.0.0', privatePort: 80, publicPort: 8080, protocol: 'tcp' },
     ])
