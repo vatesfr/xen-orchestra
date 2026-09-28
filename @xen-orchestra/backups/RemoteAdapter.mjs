@@ -349,9 +349,13 @@ export class RemoteAdapter {
     return vmsUuids
   }
 
+  /**
+   * @returns {Promise<Record<string, import('./formatVmBackups.mjs').VmBackupMetadata[]>>} keyed by VM UUID,
+   * without the VMs which have no backups
+   */
   async listAllVmBackups() {
     const vmsUuids = await this.listAllVms()
-    const backups = { __proto__: null }
+    const backups = Object.create(null)
     await asyncEach(vmsUuids, async vmUuid => {
       const vmBackups = await this.listVmBackups(vmUuid)
       if (vmBackups.length !== 0) {

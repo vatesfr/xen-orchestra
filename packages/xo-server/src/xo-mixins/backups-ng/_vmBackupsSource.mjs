@@ -1,5 +1,6 @@
 // @ts-check
 
+// @ts-ignore promise-toolbox ships no types
 import Disposable from 'promise-toolbox/Disposable'
 import keyBy from 'lodash/keyBy.js'
 import mapValues from 'lodash/mapValues.js'
@@ -11,8 +12,28 @@ import { invalidParameters } from 'xo-common/api-errors.js'
 /** @typedef {import('./_vmBackupsCache.mjs').BackupsByVm} BackupsByVm */
 /** @typedef {import('./_vmBackupsCache.mjs').Backups} Backups */
 /** @typedef {import('./_vmBackupsCache.mjs').FormattedBackup} FormattedBackup */
+/** @typedef {import('./_vmBackupsCache.mjs').JournalEvent} JournalEvent */
 /** @typedef {import('./_vmBackupsCache.mjs').JournalRead} JournalRead */
 /** @typedef {import('./_vmBackupsCache.mjs').Repository} Repository */
+/** @typedef {import('@xen-orchestra/backups/formatVmBackups.mjs').VmBackupMetadata} VmBackupMetadata */
+
+/**
+ * What the source needs from the `Xo` app.
+ *
+ * @typedef {object} App
+ * @property {(proxyId: string, method: string, params: object) => Promise<any>} callProxyMethod
+ * @property {(repository: Repository) => object} getBackupsRemoteAdapter a disposable of the
+ * `RemoteAdapter` of the repository
+ */
+
+/**
+ * A journal read, as a proxy answers it. The proxy can be more recent than this process, therefore
+ * its events can be of a kind this version does not know.
+ *
+ * @typedef {object} ProxyJournalRead
+ * @property {{ event: string, vmUuid: string, filename: string, backup?: FormattedBackup }[]} events
+ * @property {string} [cursor]
+ */
 
 const { warn } = createLogger('xo:xo-mixins:backups-ng:vmBackupsSource')
 
@@ -25,7 +46,7 @@ const METHOD_NOT_FOUND_CODE = -32601
  * by the authentication token of the proxy.
  *
  * @param {Repository} repository
- * @returns {{ url: string, options?: object }}
+ * @returns {{ url: string, options?: string }}
  */
 const remoteOf = repository => ({ url: repository.url, options: repository.options })
 
@@ -43,7 +64,7 @@ const keyBackups = backups => keyBy(backups, 'id')
 /**
  * Formats the backups of a VM and keys them like `keyBackups()`, as `VmBackupsCache` stores them.
  *
- * @param {object[]} metadata as `RemoteAdapter#listVmBackups()` returns them
+ * @param {VmBackupMetadata[]} metadata as `RemoteAdapter#listVmBackups()` returns them
  * @param {string} repositoryId
  * @returns {Backups}
  */
@@ -58,7 +79,7 @@ const formatBackups = (metadata, repositoryId) =>
  * one which is attached to a proxy.
  */
 export class VmBackupsSource {
-  /** @type {object} */
+  /** @type {App} */
   #app
 
   // proxies already warned about, so that one which is too old to expose its journal is reported
@@ -70,7 +91,7 @@ export class VmBackupsSource {
   #proxiesWithoutJournal = new Set()
 
   /**
-   * @param {object} app
+   * @param {App} app
    */
   constructor(app) {
     this.#app = app
@@ -133,6 +154,7 @@ export class VmBackupsSource {
   async readJournal(repository, cursor, opts) {
     const { proxy } = repository
     if (proxy !== undefined) {
+      /** @type {ProxyJournalRead} */
       let read
       try {
         read = await this.#app.callProxyMethod(proxy, 'backup.listVmBackupsJournal', {
@@ -142,7 +164,7 @@ export class VmBackupsSource {
           mustExist: opts?.mustExist,
         })
       } catch (error) {
-        if (error?.code !== METHOD_NOT_FOUND_CODE) {
+        if (/** @type {{ code?: unknown } | null | undefined} */ (error)?.code !== METHOD_NOT_FOUND_CODE) {
           throw error
         }
 
@@ -159,14 +181,15 @@ export class VmBackupsSource {
       // this process: drop the ones this version does not know either, as
       // `readBackupJournalEvents()` does on a local read. The cursor still moves past them, like
       // locally, and the next full rebuild accounts for them.
-      const events = read.events.filter(({ event, filename }) => {
+      const knownEvents = read.events.filter(({ event, filename }) => {
         if (isKnownJournalEvent(event)) {
           return true
         }
         warn('ignoring unsupported journal event', { event, filename, proxyId: proxy })
         return false
       })
-      return { ...read, events }
+      // `filter()` does not narrow the type: only the kinds this version knows are left
+      return { ...read, events: /** @type {JournalEvent[]} */ (knownEvents) }
     }
 
     const { events, cursor: nextCursor } = await this.#useAdapter(repository, adapter =>
@@ -204,7 +227,9 @@ export class VmBackupsSource {
    */
   async #listVmBackupsOnProxy(repository, vmId) {
     const { id } = repository
-    const { [id]: backupsByVm } = await this.#app.callProxyMethod(repository.proxy, 'backup.listVmBackups', {
+    // set: this is only called for a repository attached to a proxy
+    const proxy = /** @type {string} */ (repository.proxy)
+    const { [id]: backupsByVm } = await this.#app.callProxyMethod(proxy, 'backup.listVmBackups', {
       remotes: { [id]: remoteOf(repository) },
       vmId,
     })

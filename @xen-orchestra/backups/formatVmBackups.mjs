@@ -4,28 +4,33 @@ import mapValues from 'lodash/mapValues.js'
 import { dirname } from 'node:path'
 import { normalize } from '@xen-orchestra/fs/path'
 
+/** @typedef {import('@vates/types').XoVmBackupArchive} XoVmBackupArchive */
+
+/** @typedef {{ event: 'del', vmUuid: string, filename: string }} DeletedJournalEvent */
+
 /**
  * A journal event whose backup has been resolved to its current metadata, as
  * `RemoteAdapter#readBackupJournalEvents()` returns it.
- *
- * @typedef {object} ResolvedJournalEvent
- * @property {import('./_backupJournal.mjs').BackupJournalEvent} event
- * @property {string} vmUuid
- * @property {string} filename normalized path of the backup metadata
- * @property {object} [metadata] current metadata of the backup, on `add` and `change`
  */
+/** @typedef {{ event: 'add' | 'change', vmUuid: string, filename: string, metadata: object }} ResolvedUpsertedJournalEvent */
+/** @typedef {DeletedJournalEvent | ResolvedUpsertedJournalEvent} ResolvedJournalEvent */
 
 /**
  * A journal event whose backup has been formatted for the users.
+ */
+/** @typedef {{ event: 'add' | 'change', vmUuid: string, filename: string, backup: XoVmBackupArchive }} UpsertedJournalEvent */
+/** @typedef {DeletedJournalEvent | UpsertedJournalEvent} FormattedJournalEvent */
+
+/**
+ * The metadata of a backup, as `RemoteAdapter#listVmBackups()` reads it back: the content of the
+ * file, plus the path it was read from.
  *
- * @typedef {object} FormattedJournalEvent
- * @property {import('./_backupJournal.mjs').BackupJournalEvent} event
- * @property {string} vmUuid
- * @property {string} filename normalized path of the backup metadata
- * @property {import('@vates/types').XoVmBackupArchive} [backup] current value of the backup, on
- * `add` and `change`
+ * @typedef {{ _filename: string }} VmBackupMetadata
  */
 
+/**
+ * @returns {import('@vates/types').XoVmBackupArchive & { tags: string[] }}
+ */
 export function formatVmBackup(backup) {
   const { isVhdDifferencing, vmSnapshot } = backup
 
@@ -87,7 +92,7 @@ export function formatVmBackup(backup) {
  * @param {object} metadata as read back from the repository
  * @param {string} filename path of the backup metadata, normalized or not
  * @param {string} backupRepositoryId
- * @returns {object}
+ * @returns {import('@vates/types').XoVmBackupArchive}
  */
 export function formatVmBackupAt(metadata, filename, backupRepositoryId) {
   const normalized = normalize(filename)
@@ -96,7 +101,7 @@ export function formatVmBackupAt(metadata, filename, backupRepositoryId) {
 
 /**
  * format all backups as returned by RemoteAdapter#listAllVmBackups()
- * @param {Record<string, object[]>} backupsByVM
+ * @param {Record<string, VmBackupMetadata[]>} backupsByVM
  * @param {string} backupRepositoryId
  * @returns {Record<string, object[]>}
  */
@@ -117,9 +122,12 @@ export function formatVmBackups(backupsByVM, backupRepositoryId) {
  * @returns {FormattedJournalEvent[]}
  */
 export function formatJournalEvents(events, backupRepositoryId) {
-  return events.map(({ event, vmUuid, filename, metadata }) =>
-    metadata === undefined
-      ? { event, vmUuid, filename }
-      : { event, vmUuid, filename, backup: formatVmBackupAt(metadata, filename, backupRepositoryId) }
-  )
+  return events.map(resolved => {
+    if (resolved.event === 'del') {
+      return resolved
+    }
+
+    const { event, vmUuid, filename, metadata } = resolved
+    return { event, vmUuid, filename, backup: formatVmBackupAt(metadata, filename, backupRepositoryId) }
+  })
 }

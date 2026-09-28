@@ -48,7 +48,7 @@ import { journalCursorAt } from '@xen-orchestra/backups/_backupJournal.mjs'
  * @typedef {object} Source
  * @property {(repository: Repository) => Promise<BackupsByVm>} listAll
  * @property {(repository: Repository, vmUuid: string) => Promise<Backups>} listOneVm
- * @property {(repository: Repository, cursor: string | undefined, opts: { mustExist: boolean }) => Promise<JournalRead | undefined>} readJournal
+ * @property {(repository: Repository, cursor: string | undefined, opts?: { mustExist?: boolean }) => Promise<JournalRead | undefined>} readJournal
  * `undefined` when this repository cannot be replayed at all, e.g. it is attached to a proxy which
  * does not expose its journal
  */
@@ -318,6 +318,7 @@ export class VmBackupsCache {
     // the cursor is bootstrapped from this process' clock before the listing, so that the events
     // which happen during it are replayed on the next read
     const now = Date.now()
+    /** @type {Entry} */
     const entry = {
       backupsByVm: undefined,
       cursor: journalCursorAt(now - CLOCK_SKEW_TOLERANCE),
@@ -372,12 +373,13 @@ export class VmBackupsCache {
 
     // the source reduced the events to the last one of each backup, therefore they are independent
     // and the order they are applied in does not matter
-    for (const { event, vmUuid, filename, backup } of read.events) {
-      if (event === 'del') {
+    for (const journalEvent of read.events) {
+      const { vmUuid, filename } = journalEvent
+      if (journalEvent.event === 'del') {
         removeBackup(backupsByVm, vmUuid, filename)
       } else {
         const backups = (backupsByVm[vmUuid] ??= {})
-        backups[filename] = backup
+        backups[filename] = journalEvent.backup
       }
     }
 
