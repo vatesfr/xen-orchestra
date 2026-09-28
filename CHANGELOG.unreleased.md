@@ -39,10 +39,11 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
 - @xen-orchestra/backups minor
+- @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/rest-api patch
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xen-api patch
 - xo-server minor
