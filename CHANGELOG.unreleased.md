@@ -49,6 +49,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xen-api patch
+- xo-remote-parser major
 - xo-server minor
 
 <!--packages-end-->
