@@ -469,6 +469,14 @@ describe('deleteVmBackupsNg', () => {
 })
 
 describe('on a repository attached to a proxy', () => {
+  beforeEach(() => {
+    mock.timers.enable({ apis: ['setTimeout', 'Date'] })
+  })
+
+  afterEach(() => {
+    mock.timers.reset()
+  })
+
   it('makes a deletion visible at once, without listing the repository again', async () => {
     const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(VM, '20260811T093000')])
     const backupNg = createBackupNgWithProxiedRepository(repository)
@@ -525,7 +533,7 @@ describe('invalidateVmBackupsListing() on a cached repository', () => {
     await backupNg.listVmBackupsNg([REMOTE_ID])
     assert.equal(repository.nListings, 1)
 
-    // as the `remotes` mixin does when the repository is gone or has been reconfigured
+    // as the `remotes` mixin does when the repository has been reconfigured
     backupNg.invalidateVmBackupsListing(REMOTE_ID)
 
     await backupNg.listVmBackupsNg([REMOTE_ID])
@@ -534,6 +542,14 @@ describe('invalidateVmBackupsListing() on a cached repository', () => {
 })
 
 describe('vmBackupArchives', () => {
+  beforeEach(() => {
+    mock.timers.enable({ apis: ['setTimeout', 'Date'] })
+  })
+
+  afterEach(() => {
+    mock.timers.reset()
+  })
+
   // records what the mixin announces, in order
   const recordEvents = backupNg => {
     const events = []
