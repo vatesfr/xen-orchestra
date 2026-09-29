@@ -15,6 +15,7 @@ import type { HttpStatusCodeLiteral } from 'tsoa'
 import { NextFunction, Request, Response } from 'express'
 
 import { ApiError } from '../helpers/error.helper.mjs'
+import { toDockerApiError } from '../helpers/docker.helper.mjs'
 import type { XoError } from '../helpers/helper.type.mjs'
 
 const log = createLogger('xo:rest-api:error-handler')
@@ -22,6 +23,9 @@ const log = createLogger('xo:rest-api:error-handler')
 // must have 4 parameters to be recognized as an error middleware by express
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function genericErrorHandler(error: unknown, req: Request, res: Response, _next: NextFunction) {
+  // DockerErrors of xo-server's Docker transport to ApiErrors
+  error = toDockerApiError(error)
+
   if (!(error instanceof Error)) {
     log.error(JSON.stringify(error))
     res.status(500).json({ error })

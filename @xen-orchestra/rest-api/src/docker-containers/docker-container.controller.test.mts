@@ -4,7 +4,6 @@ import { featureUnauthorized, invalidParameters, noSuchObject } from 'xo-common/
 
 import { DockerContainerController } from './docker-container.controller.mjs'
 import { DockerContainerService, getEngineScope } from './docker-container.service.mjs'
-import { DockerEngineService } from '../docker-engines/docker-engine.service.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
 import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
@@ -73,7 +72,7 @@ function setup({ licensed = true, maxListedEngines }: { licensed?: boolean; maxL
     },
   } as unknown as RestApi
   const service = new DockerContainerService(restApi)
-  const controller = new DockerContainerController(restApi, service, new DockerEngineService(restApi))
+  const controller = new DockerContainerController(restApi, service)
   return { calls, controller, service, tasks }
 }
 

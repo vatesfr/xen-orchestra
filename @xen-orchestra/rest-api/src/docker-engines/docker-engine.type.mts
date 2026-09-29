@@ -1,5 +1,3 @@
-import type { XoDockerEngine } from '@vates/types'
-
 /**
  * SSH connection to a Docker host
  *
@@ -12,7 +10,13 @@ export interface CreateDockerEngineBody {
   label?: string
   /** SSH host, without it the address is resolved from the VM's reported addresses */
   host?: string
-  /** SSH port, default 22 */
+  /**
+   * SSH port, default 22
+   *
+   * @isInt
+   * @minimum 1
+   * @maximum 65535
+   */
   port?: number
   username: string
   /** a password or a private key is required */
@@ -43,6 +47,11 @@ export interface UpdateDockerEngineBody {
   $VM?: string | null
   label?: string | null
   host?: string | null
+  /**
+   * @isInt
+   * @minimum 1
+   * @maximum 65535
+   */
   port?: number | null
   username?: string
   password?: string | null
@@ -57,5 +66,3 @@ export interface UpdateDockerEngineBody {
   /** see the creation */
   acceptUnknownHostKey?: boolean
 }
-
-export type DockerEngineId = XoDockerEngine['id']
