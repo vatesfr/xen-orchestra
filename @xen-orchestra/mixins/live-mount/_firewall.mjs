@@ -5,7 +5,8 @@ import { promisify } from 'node:util'
 
 const { debug, warn } = createLogger('xo:mixins:LiveMount')
 
-// every rule is tagged with this prefix, so the ones a crash left behind can be found again
+// every rule is tagged with this prefix and the scope of its process, so the ones a crash left
+// behind can be found again, without touching the ones of another process on the same machine
 const COMMENT_PREFIX = 'xo-live-mount:'
 
 // external command: never let a stuck `iptables` hang a mount
@@ -22,7 +23,7 @@ const defaultExec = (command, args) => execFileAsync(command, args, { timeout: E
 const NOT_ROOT_RE = /you must be root/i
 // ufw not installed, or not enabled: it deletes its chains when stopped
 const MISSING_CHAIN_RE = /No chain\/target\/match by that name|does not exist/i
-// a rule already gone, typically dropped by `ufw reload`
+// a rule already gone, dropped by any change made to ufw meanwhile
 const MISSING_RULE_RE = /Bad rule|does a matching rule exist/i
 
 /**
@@ -45,6 +46,21 @@ function unavailabilityOf(error) {
   return undefined
 }
 
+/** A failed `iptables` command, telling why when it is not a plain failure. */
+export class FirewallCommandError extends Error {
+  /**
+   * @param {string} message
+   * @param {Error & { code?: unknown, stderr?: string }} cause - as rejected by `execFile`
+   */
+  constructor(message, cause) {
+    super(message, { cause })
+    /** @type {string | undefined} set when it only says there is no ufw to drive */
+    this.unavailable = unavailabilityOf(cause)
+    /** @type {boolean} set when the rule to delete does not exist */
+    this.missingRule = MISSING_RULE_RE.test(cause.stderr ?? '')
+  }
+}
+
 /**
  * ufw drops anything not explicitly allowed, and the ephemeral port of each target cannot be
  * declared in advance. Rules are inserted straight into ufw's own chain: a table of our own could
@@ -54,8 +70,10 @@ function unavailabilityOf(error) {
  * `/etc/ufw/user.rules`, so a crash cannot leave a permanent hole — at worst one lasting until the
  * next start, which purges them, or the next reboot.
  *
- * Known limit: `ufw reload` rebuilds ufw's chains and drops these rules, which breaks the mounts
- * alive at that time.
+ * Known limit: any change made to ufw (`ufw allow`, `ufw delete`, `ufw reload`, `ufw enable`…)
+ * restores its user chains from `user.rules`, which drops these rules and breaks the mounts alive at
+ * that time. Accepted: XOA and proxies are appliances, their firewall is not meant to be changed by
+ * hand. The mounts made afterwards are not affected.
  */
 const UFW = {
   4: { command: 'iptables', chain: 'ufw-user-input' },
@@ -63,10 +81,17 @@ const UFW = {
 }
 
 /**
+ * @param {string} scope
+ * @returns {string} the comment prefix of the rules of this scope
+ */
+const commentPrefixOf = scope => `${COMMENT_PREFIX}${scope}:`
+
+/**
+ * @param {string} commentPrefix - see `commentPrefixOf`
  * @param {{ source: string, port: number, id: string }} rule
  * @returns {string[]} the rule spec, shared by its insertion and its deletion
  */
-const ruleSpec = ({ source, port, id }) => [
+const ruleSpec = (commentPrefix, { source, port, id }) => [
   '-s',
   source,
   '-p',
@@ -76,27 +101,31 @@ const ruleSpec = ({ source, port, id }) => [
   '-m',
   'comment',
   '--comment',
-  COMMENT_PREFIX + id,
+  commentPrefix + id,
   '-j',
   'ACCEPT',
 ]
 
 // as printed by `iptables -S`, which adds the implicit `-m tcp` and a prefix length to the source:
-// -A ufw-user-input -s 10.1.0.5/32 -p tcp -m tcp --dport 42289 -m comment --comment "xo-live-mount:<id>" -j ACCEPT
-const LISTED_RULE_RE = new RegExp(
-  `^-A \\S+ -s (\\S+?)(?:/\\d+)? -p tcp -m tcp --dport (\\d+) -m comment --comment "?${COMMENT_PREFIX}([^"\\s]+)"? -j ACCEPT$`
-)
+// -A ufw-user-input -s 10.1.0.5/32 -p tcp -m tcp --dport 42289 -m comment --comment "xo-live-mount:<scope>:<id>" -j ACCEPT
+const escapeRegExp = string => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const listedRuleRe = commentPrefix =>
+  new RegExp(
+    `^-A \\S+ -s (\\S+?)(?:/\\d+)? -p tcp -m tcp --dport (\\d+) -m comment --comment "?${escapeRegExp(commentPrefix)}([^"\\s]+)"? -j ACCEPT$`
+  )
 
 /**
- * The rules this module inserted, from the `iptables -S` output of a chain.
+ * The rules this module inserted for `scope`, from the `iptables -S` output of a chain.
  *
  * @param {string} listing
+ * @param {string} scope
  * @returns {{ source: string, port: number, id: string }[]}
  */
-export function parseListedRules(listing) {
+export function parseListedRules(listing, scope) {
+  const listedRule = listedRuleRe(commentPrefixOf(scope))
   const rules = []
   for (const line of listing.split('\n')) {
-    const match = LISTED_RULE_RE.exec(line.trim())
+    const match = listedRule.exec(line.trim())
     if (match !== null) {
       rules.push({ source: match[1], port: Number(match[2]), id: match[3] })
     }
@@ -108,21 +137,19 @@ export function parseListedRules(listing) {
  * Open the port of each live mount to the host it is attached to, in ufw.
  *
  * @param {object} [options]
+ * @param {string} options.scope - the process the rules belong to (e.g. `xo-server`): only its own are purged
  * @param {(command: string, args: string[]) => Promise<{ stdout: string }>} [options.exec] - injectable for tests only
  */
-export function createUfwFirewall({ exec = defaultExec } = {}) {
+export function createUfwFirewall({ scope, exec = defaultExec }) {
+  const commentPrefix = commentPrefixOf(scope)
   const familyOf = source => UFW[isIPv6(source) ? 6 : 4]
 
-  // a failure carries `unavailable` when it only says there is no ufw to drive
+  /** @throws {FirewallCommandError} */
   const run = async (command, args) => {
     try {
       return await exec(command, ['-w', XTABLES_LOCK_WAIT, ...args])
     } catch (error) {
-      const wrapped = new Error(`${command} ${args.join(' ')} failed`)
-      wrapped.cause = error
-      wrapped.unavailable = unavailabilityOf(error)
-      wrapped.missingRule = MISSING_RULE_RE.test(error.stderr ?? '')
-      throw wrapped
+      throw new FirewallCommandError(`${command} ${args.join(' ')} failed`, error)
     }
   }
 
@@ -135,7 +162,7 @@ export function createUfwFirewall({ exec = defaultExec } = {}) {
       const { command, chain } = familyOf(rule.source)
       try {
         // inserted first: nothing below may drop it
-        await run(command, ['-I', chain, ...ruleSpec(rule)])
+        await run(command, ['-I', chain, ...ruleSpec(commentPrefix, rule)])
         return true
       } catch (error) {
         if (error.unavailable === undefined) {
@@ -152,13 +179,15 @@ export function createUfwFirewall({ exec = defaultExec } = {}) {
     async close(rule) {
       const { command, chain } = familyOf(rule.source)
       try {
-        await run(command, ['-D', chain, ...ruleSpec(rule)])
+        await run(command, ['-D', chain, ...ruleSpec(commentPrefix, rule)])
       } catch (error) {
-        // `ufw reload` or `ufw disable` dropped it already: what closing it was for
+        // a change made to ufw dropped it already: what closing it was for
         if (error.unavailable === undefined && !error.missingRule) {
           throw error
         }
-        debug('the firewall rule of this live mount was already gone', { reason: error.unavailable, ...rule })
+        // gone while mounted: the host was locked out, which is what broke this mount if it did
+        const log = error.missingRule ? warn : debug
+        log('the firewall rule of this live mount was already gone', { reason: error.unavailable, ...rule })
       }
     },
 
@@ -181,8 +210,8 @@ export function createUfwFirewall({ exec = defaultExec } = {}) {
           debug('no stale firewall rule to look for', { command, reason: error.unavailable })
           continue
         }
-        for (const rule of parseListedRules(stdout)) {
-          await run(command, ['-D', chain, ...ruleSpec(rule)])
+        for (const rule of parseListedRules(stdout, scope)) {
+          await run(command, ['-D', chain, ...ruleSpec(commentPrefix, rule)])
           removed.push(rule)
         }
       }
