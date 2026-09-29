@@ -19,7 +19,6 @@ import { provide } from 'inversify-binding-decorators'
 import type { XoDockerContainer, XoDockerContainerAction, XoDockerContainerStats, XoDockerLogs } from '@vates/types'
 
 import { DockerContainerService } from './docker-container.service.mjs'
-import { DockerEngineService } from '../docker-engines/docker-engine.service.mjs'
 import {
   asynchronousActionResp,
   badGatewayResp,
@@ -43,6 +42,7 @@ import {
 } from '../open-api/oa-examples/docker-container.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
+import { assertDockerFeature, withDockerErrors } from '../helpers/docker.helper.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -51,7 +51,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
  * Header of the scoped listing which reports the engines which failed (JSON
  * array of `{ engine, code }`), only present when there are some
  */
-export const DOCKER_ERRORS_HEADER = 'x-docker-errors'
+const DOCKER_ERRORS_HEADER = 'x-docker-errors'
 
 // v1: no `acl` middleware, so every route is admin-only (see the README's
 // ACLs section). The `// ACLs v2:` comments give the middleware to add with the
@@ -61,20 +61,18 @@ export const DOCKER_ERRORS_HEADER = 'x-docker-errors'
 @Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Response(featureUnauthorized.status, featureUnauthorized.description)
+@Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
 @Tags('docker-containers')
 @provide(DockerContainerController)
 export class DockerContainerController extends XoController<XoDockerContainer> {
   #dockerContainerService: DockerContainerService
-  #dockerEngineService: DockerEngineService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
-    @inject(DockerContainerService) dockerContainerService: DockerContainerService,
-    @inject(DockerEngineService) dockerEngineService: DockerEngineService
+    @inject(DockerContainerService) dockerContainerService: DockerContainerService
   ) {
     super('docker-container', restApi)
     this.#dockerContainerService = dockerContainerService
-    this.#dockerEngineService = dockerEngineService
   }
 
   // --- abstract methods
@@ -84,7 +82,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
     return (await this.#dockerContainerService.list({ filter })).containers
   }
   getCollectionObject(id: XoDockerContainer['id']): Promise<XoDockerContainer> {
-    return this.#dockerContainerService.getContainer(id)
+    return this.restApi.xoApp.getDockerContainer(id)
   }
 
   /**
@@ -112,7 +110,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   @Response(badGatewayResp.status, 'SSH or Docker failure (see data.code)')
-  @Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async getDockerContainerLogs(
     @Path() id: string,
@@ -126,7 +123,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
     @Query() stderr?: boolean,
     @Query() timestamps?: boolean
   ): Promise<XoDockerLogs> {
-    await this.#dockerEngineService.assertDockerFeature()
+    await assertDockerFeature(this.restApi)
     return this.#dockerContainerService.getLogs(id as XoDockerContainer['id'], {
       tail,
       since,
@@ -157,14 +154,13 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Get('{id}/stats')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(badGatewayResp.status, 'SSH or Docker failure (see data.code)')
-  @Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async getDockerContainerStats(@Path() id: string): Promise<XoDockerContainerStats> {
-    await this.#dockerEngineService.assertDockerFeature()
+    await assertDockerFeature(this.restApi)
     const containerId = id as XoDockerContainer['id']
     // 404 without connecting on a malformed id or an unknown engine
     await this.#dockerContainerService.assertContainerId(containerId)
-    return this.#dockerContainerService.getStats(containerId)
+    return this.restApi.xoApp.getDockerContainerStats(containerId)
   }
 
   /**
@@ -181,10 +177,9 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Get('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(badGatewayResp.status, 'SSH or Docker failure (see data.code)')
-  @Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async getDockerContainer(@Path() id: string): Promise<Unbrand<XoDockerContainer>> {
-    await this.#dockerEngineService.assertDockerFeature()
+    await assertDockerFeature(this.restApi)
     return this.getObject(id as XoDockerContainer['id'])
   }
 
@@ -229,7 +224,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Response(invalidParameters.status, 'The filter does not designate engines, or too many')
-  @Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
   async getDockerContainers(
     @Request() req: ExRequest,
     @Query() filter?: string,
@@ -244,7 +238,7 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
     /** bypass the cache of the container lists */
     @Query() force_refresh?: boolean
   ): SendObjects<Partial<Unbrand<XoDockerContainer>>> {
-    await this.#dockerEngineService.assertDockerFeature()
+    await assertDockerFeature(this.restApi)
     const { containers, errors } = await this.#dockerContainerService.list({
       filter,
       all,
@@ -275,7 +269,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Response(noContentResp.status, 'Started, or already running (synchronous call)')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(badGatewayResp.status, 'SSH or Docker failure (see data.code, synchronous call)')
-  @Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   startDockerContainer(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     return this.#action(id, 'start', sync)
@@ -295,7 +288,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Response(noContentResp.status, 'Stopped, or already stopped (synchronous call)')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(badGatewayResp.status, 'SSH or Docker failure (see data.code, synchronous call)')
-  @Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   stopDockerContainer(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     return this.#action(id, 'stop', sync)
@@ -315,7 +307,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Response(noContentResp.status, 'Restarted (synchronous call)')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(badGatewayResp.status, 'SSH or Docker failure (see data.code, synchronous call)')
-  @Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   restartDockerContainer(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     return this.#action(id, 'restart', sync)
@@ -336,7 +327,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(incorrectStateResp.status, 'Not running, or already paused (synchronous call)')
   @Response(badGatewayResp.status, 'SSH or Docker failure (see data.code, synchronous call)')
-  @Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   pauseDockerContainer(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     return this.#action(id, 'pause', sync)
@@ -357,7 +347,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(incorrectStateResp.status, 'Not paused (synchronous call)')
   @Response(badGatewayResp.status, 'SSH or Docker failure (see data.code, synchronous call)')
-  @Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   unpauseDockerContainer(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     return this.#action(id, 'unpause', sync)
@@ -390,13 +379,11 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
     /** also remove its anonymous volumes */
     @Query() removeVolumes?: boolean
   ): Promise<void> {
-    await this.#dockerEngineService.assertDockerFeature()
+    await assertDockerFeature(this.restApi)
     const containerId = id as XoDockerContainer['id']
     await this.#dockerContainerService.assertContainerId(containerId)
     await this.createAction<void>(
-      async () => {
-        await this.#dockerContainerService.delete(containerId, { force, removeVolumes })
-      },
+      () => withDockerErrors(() => this.restApi.xoApp.deleteDockerContainer(containerId, { force, removeVolumes })),
       {
         sync: true,
         statusCode: noContentResp.status,
@@ -410,14 +397,12 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   }
 
   async #action(id: string, action: XoDockerContainerAction, sync?: boolean): CreateActionReturnType<void> {
-    await this.#dockerEngineService.assertDockerFeature()
+    await assertDockerFeature(this.restApi)
     const containerId = id as XoDockerContainer['id']
     // 404 before creating a task (without connecting: only the engine is checked)
     await this.#dockerContainerService.assertContainerId(containerId)
     return this.createAction<void>(
-      async () => {
-        await this.#dockerContainerService.runAction(containerId, action)
-      },
+      () => withDockerErrors(() => this.restApi.xoApp.runDockerContainerAction(containerId, action)),
       {
         sync,
         statusCode: noContentResp.status,

@@ -21,7 +21,6 @@ import type { XoDockerEngine } from '@vates/types'
 import { unauthorized } from 'xo-common/api-errors.js'
 
 import { ApiError } from '../helpers/error.helper.mjs'
-import { toDockerApiError } from '../helpers/docker.helper.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import type { RouteDefinition } from '../router/types.mjs'
 
@@ -36,9 +35,9 @@ const RAW_SEPARATOR = '/_raw/'
 
 // the only request headers forwarded to dockerd: never `cookie`,
 // `authorization`, `x-xo-*`, `upgrade`…
-export const INBOUND_HEADERS = ['accept', 'content-length', 'content-type'] as const
+const INBOUND_HEADERS = ['accept', 'content-length', 'content-type'] as const
 // the only response headers sent back
-export const OUTBOUND_HEADERS = ['api-version', 'content-length', 'content-type', 'docker-experimental', 'ostype']
+const OUTBOUND_HEADERS = ['api-version', 'content-length', 'content-type', 'docker-experimental', 'ostype']
 
 // endpoints which hijack the connection (bidirectional streams): not supported
 // the name may contain `/` (legacy link aliases, e.g. `web/db`): dockerd routes
@@ -156,18 +155,13 @@ export async function dockerRawHandler({ req, res, restApi }: { req: Request; re
   const onClose = () => controller.abort()
   res.once('close', onClose)
   try {
-    let upstream
-    try {
-      upstream = await xoApp.callDockerEngineRawApi(engineId, {
-        method,
-        path,
-        headers,
-        body: hasBody ? req : undefined,
-        signal: controller.signal,
-      })
-    } catch (error) {
-      throw toDockerApiError(error)
-    }
+    const upstream = await xoApp.callDockerEngineRawApi(engineId, {
+      method,
+      path,
+      headers,
+      body: hasBody ? req : undefined,
+      signal: controller.signal,
+    })
 
     // a 401/407 from the daemon (or a proxy in front of it) must not look like
     // an XO authentication failure, nor make a browser prompt for credentials
@@ -203,7 +197,7 @@ export async function dockerRawHandler({ req, res, restApi }: { req: Request; re
   }
 }
 
-export const dockerRawRoutes: RouteDefinition[] = (['get', 'post', 'put', 'patch', 'delete'] as const).map(method => ({
+const dockerRawRoutes: RouteDefinition[] = (['get', 'post', 'put', 'patch', 'delete'] as const).map(method => ({
   method,
   endpoint: DOCKER_RAW_ENDPOINT,
   tags: ['docker-engines'],
