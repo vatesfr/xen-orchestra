@@ -141,8 +141,11 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     const userPrivileges = (await restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
     let resource: SupportedResource | undefined
 
-    if (!XAPI_TYPES.includes(this.type)) {
-      resource = this.type as NonXapiListenerType
+    if (this.type === 'vm-backups-cache') {
+      // not named after an XO collection: what the VM backups cache announces are backup archives
+      resource = 'backup-archive'
+    } else if (!XAPI_TYPES.includes(this.type)) {
+      resource = this.type as Exclude<NonXapiListenerType, 'vm-backups-cache'>
     } else {
       const resourceXapiType = Object.entries(XAPI_TYPE_BY_ACL_RESOURCE).find(([, xapiType]) => xapiType === this.type)
       if (resourceXapiType === undefined) {
