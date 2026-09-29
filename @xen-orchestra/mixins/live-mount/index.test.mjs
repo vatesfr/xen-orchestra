@@ -168,6 +168,7 @@ const makeMixin = ({
   }
 
   const mixin = new LiveMount(app, {
+    appName: 'xo-server',
     openDisk: async params => {
       if (diskOpenError !== undefined) {
         throw diskOpenError
@@ -556,7 +557,7 @@ describe('iscsi.manageFirewall', () => {
 
     const { id } = await mountDisk(mixin, xapi)
 
-    assert.deepEqual(firewall.calls, [['open', { source: '10.20.30.40', port: 34567, id }]])
+    assert.deepEqual(firewall.calls, [['purge'], ['open', { source: '10.20.30.40', port: 34567, id }]])
     // opened before the host first connects, which is the probe
     const probeIndex = xapi.calls.findIndex(([method]) => method === 'SR.probe')
     const hostAddressIndex = xapi.calls.findIndex(([method, , , field]) => method === 'getField' && field === 'address')
@@ -590,7 +591,7 @@ describe('iscsi.manageFirewall', () => {
 
     assert.deepEqual(
       firewall.calls.map(([action]) => action),
-      ['open', 'close']
+      ['purge', 'open', 'close']
     )
     assert.equal(target.closed, true)
   })
@@ -617,7 +618,7 @@ describe('iscsi.manageFirewall', () => {
 
     assert.deepEqual(
       firewall.calls.map(([action]) => action),
-      ['open']
+      ['purge', 'open']
     )
   })
 
@@ -628,7 +629,7 @@ describe('iscsi.manageFirewall', () => {
 
     assert.deepEqual(
       firewall.calls.map(([action]) => action),
-      ['open']
+      ['purge', 'open']
     )
   })
 
@@ -647,6 +648,20 @@ describe('iscsi.manageFirewall', () => {
     await Promise.all(hooks.listeners('start').map(listener => listener()))
 
     assert.deepEqual(firewall.calls, [['purge']])
+  })
+
+  it('removes the stale rules before the first rule, even when mounting before start, and only once', async () => {
+    const { mixin, firewall, hooks } = makeMixin({ manageFirewall: 'ufw' })
+
+    const { id } = await mountDisk(mixin, makeXapi())
+    await Promise.all(hooks.listeners('start').map(listener => listener()))
+    await mountDisk(mixin, makeXapi())
+
+    assert.deepEqual(
+      firewall.calls.map(([action]) => action),
+      ['purge', 'open', 'open']
+    )
+    assert.equal(firewall.calls[1][1].id, id)
   })
 
   it('does not fail the start when the stale rules cannot be removed', async () => {

@@ -80,6 +80,11 @@ export default class LiveMount extends EventEmitter {
   #createTarget
   #detectAddress
   #firewall
+  #firewallName
+  // a mount waits for the stale rules to be removed: listed before its own is inserted, its rule
+  // would be removed with them
+  /** @type {Promise<void> | undefined} */
+  #firewallPurge
   // an invalid `iscsi.manageFirewall` fails the mounts, not the whole process
   #firewallError
   #openDisk
@@ -92,15 +97,18 @@ export default class LiveMount extends EventEmitter {
   /** @type {Map<string, string>} */
   #mountIdsByVdiUuid = new Map()
 
+  // `appName` scopes the firewall rules, so that xo-server and xo-proxy on the same machine do not
+  // purge each other's
   // `openDisk`/`createTarget`/`detectAddress`/`createFirewall` are injectable for tests only,
   // like xo-server's crypto-credentials mixin does with xenStore/fsPromises
   constructor(
     app,
     {
+      appName,
       openDisk = openDiskChain,
       createTarget = options => new IscsiTarget(options),
       detectAddress = detectLocalAddress,
-      createFirewall = name => FIREWALLS[name]?.(),
+      createFirewall = name => FIREWALLS[name]?.({ scope: appName }),
     } = {}
   ) {
     super()
@@ -124,17 +132,9 @@ export default class LiveMount extends EventEmitter {
     }
     if (firewall !== undefined) {
       this.#firewall = firewall
+      this.#firewallName = firewallName
       // a process which died without unmounting left its rules behind, nothing serves their ports anymore
-      app.hooks.on('start', async () => {
-        try {
-          const removed = await firewall.purge()
-          if (removed.length !== 0) {
-            info('removed stale firewall rules', { firewall: firewallName, removed })
-          }
-        } catch (error) {
-          warn('failed to remove stale firewall rules', { error, firewall: firewallName })
-        }
-      })
+      app.hooks.on('start', () => this.#purgeFirewall())
     }
 
     app.hooks.on('stop', () =>
@@ -147,6 +147,27 @@ export default class LiveMount extends EventEmitter {
         { stopOnError: false }
       )
     )
+  }
+
+  /**
+   * Remove the stale rules once, on start or before the first mount, whichever comes first: the
+   * API may be served before the start hooks run.
+   *
+   * @returns {Promise<void>} never rejects: a failure is logged, and does not prevent the mounts
+   */
+  #purgeFirewall() {
+    const firewallName = this.#firewallName
+    this.#firewallPurge ??= (async () => {
+      try {
+        const removed = await this.#firewall.purge()
+        if (removed.length !== 0) {
+          info('removed stale firewall rules', { firewall: firewallName, removed })
+        }
+      } catch (error) {
+        warn('failed to remove stale firewall rules', { error, firewall: firewallName })
+      }
+    })()
+    return this.#firewallPurge
   }
 
   /**
@@ -218,6 +239,7 @@ export default class LiveMount extends EventEmitter {
     // so the one it connects from — unless `iscsi.advertisedAddress` points at another network
     let firewallRule
     if (firewall !== undefined) {
+      await this.#purgeFirewall()
       const rule = { source: hostAddress, port, id }
       // none opened when there is no firewall to drive on this install: nothing to close then
       if (await firewall.open(rule)) {
