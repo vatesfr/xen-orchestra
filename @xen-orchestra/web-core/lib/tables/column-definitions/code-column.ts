@@ -7,14 +7,12 @@ import { h } from 'vue'
 
 /**
  * A monospace value (e.g. an image reference), truncated with a tooltip
- * beyond `maxWidth` (default `30rem`)
+ * beyond `30rem`
  */
-export const useCodeColumn = defineColumn((config?: HeaderConfig & { maxWidth?: string }) => ({
+export const useCodeColumn = defineColumn((config?: HeaderConfig) => ({
   renderHead: () => renderHeadCell(config?.headerLabel),
   renderBody: (content: string | undefined) =>
     renderBodyCell(() =>
-      content === undefined || content === ''
-        ? undefined
-        : h(VtsCodeSnippet, { content, style: { maxWidth: config?.maxWidth ?? '30rem' } })
+      content === undefined || content === '' ? undefined : h(VtsCodeSnippet, { content, style: { maxWidth: '30rem' } })
     ),
 }))
