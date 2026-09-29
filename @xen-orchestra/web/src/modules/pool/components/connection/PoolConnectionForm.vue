@@ -1,36 +1,18 @@
 <template>
-  <form class="connection-form" :class="{ mobile: uiStore.isSmall }" @submit.prevent="submit()">
+  <VtsForm class="connection-form" :class="{ mobile: uiStore.isSmall }" @submit="submit()">
     <div class="primary-host-section">
       <UiTitle>{{ t('master') }}</UiTitle>
       <div class="inputs-container">
-        <VtsInputWrapper :label="t('ip-address')">
-          <!-- TODO validation -->
-          <UiInput v-model.trim="form.host" accent="brand" required :placeholder="t('ip-port-placeholder')" />
-          <UiInfo accent="info" wrap>
-            {{ t('pool-connection-ip-info') }}
-          </UiInfo>
-        </VtsInputWrapper>
-        <!-- TODO validation -->
-        <VtsInputWrapper :label="t('proxy-url')">
-          <UiInput v-model.trim="form.httpProxy" accent="brand" />
-        </VtsInputWrapper>
-        <!-- TODO validation -->
-        <VtsInputWrapper :label="t('username')">
-          <UiInput v-model.trim="form.username" accent="brand" required />
-          <UiInfo accent="info" wrap>
-            {{ t('root-by-default') }}
-          </UiInfo>
-        </VtsInputWrapper>
-        <!-- TODO validation -->
-        <VtsInputWrapper :label="t('password')">
-          <UiInput v-model="form.password" accent="brand" required type="password" />
-        </VtsInputWrapper>
+        <PoolConnectionFormTextInput v-bind="hostInputBindings" />
+        <PoolConnectionFormTextInput v-bind="httpProxyInputBindings" />
+        <PoolConnectionFormTextInput v-bind="usernameInputBindings" :error="usernameError" />
+        <PoolConnectionFormPasswordInput v-bind="passwordInputBindings" :error="passwordError" />
       </div>
     </div>
     <UiTitle>{{ t('options') }}</UiTitle>
     <div class="options-section">
-      <UiCheckbox v-model="form.readOnly" accent="brand">{{ t('read-only') }}</UiCheckbox>
-      <UiCheckbox v-model="form.allowUnauthorized" accent="brand">
+      <UiCheckbox v-model="formData.readOnly" accent="brand">{{ t('read-only') }}</UiCheckbox>
+      <UiCheckbox v-model="formData.allowUnauthorized" accent="brand">
         {{ t('accept-self-signed-certificates') }}
       </UiCheckbox>
     </div>
@@ -49,24 +31,28 @@
         {{ t('connect') }}
       </UiButton>
     </div>
-  </form>
+  </VtsForm>
 </template>
 
 <script setup lang="ts">
+import PoolConnectionFormPasswordInput from '@/modules/pool/components/connection/inputs/PoolConnectionFormPasswordInput.vue'
+import PoolConnectionFormTextInput from '@/modules/pool/components/connection/inputs/PoolConnectionFormTextInput.vue'
+import { usePoolConnectionForm } from '@/modules/pool/composables/use-pool-connection-form.composable.ts'
 import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
 import { useXoServerCreateJob } from '@/modules/server/jobs/xo-server-create.job.ts'
 import { useXoServerForgetJob } from '@/modules/server/jobs/xo-server-forget.job.ts'
-import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import { ApiError } from '@/shared/error/api.error.ts'
+import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsForm from '@core/components/form/VtsForm.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { HttpCodes } from '@core/types/http-codes.type.ts'
 import type { XoServer } from '@vates/types'
 import { logicOr } from '@vueuse/math'
-import { computed, reactive, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
@@ -78,35 +64,20 @@ const { t } = useI18n()
 const uiStore = useUiStore()
 const serverId = ref<XoServer['id']>('' as XoServer['id'])
 
-interface NewServerForm {
-  host: string
-  httpProxy: string
-  username: string
-  password: string
-  readOnly: boolean
-  allowUnauthorized: boolean
-}
+const {
+  formData,
+  validate,
+  payload,
+  hostInputBindings,
+  httpProxyInputBindings,
+  usernameInputBindings,
+  passwordInputBindings,
+} = usePoolConnectionForm()
 
-const form = reactive<NewServerForm>({
-  host: '',
-  httpProxy: '',
-  username: '',
-  password: '',
-  readOnly: false,
-  allowUnauthorized: false,
-})
+const credentialsError = ref<InputWrapperMessage>()
 
-const payload = computed(() => ({
-  host: form.host,
-  username: form.username,
-  password: form.password,
-  ...Object.assign(
-    {},
-    form.httpProxy && { httpProxy: form.httpProxy },
-    form.readOnly && { readOnly: form.readOnly },
-    form.allowUnauthorized && { allowUnauthorized: form.allowUnauthorized }
-  ),
-}))
+const usernameError = computed(() => credentialsError.value ?? usernameInputBindings.value.error)
+const passwordError = computed(() => credentialsError.value ?? passwordInputBindings.value.error)
 
 // TODO: multiple server creation not possible in the UI for now
 // so only handle a single payload
@@ -117,6 +88,14 @@ const { isRunning: removeIsRunning, run: remove } = useXoServerForgetJob([server
 const isServerJobRunning = logicOr(connectIsRunning, createIsRunning, removeIsRunning)
 
 async function submit() {
+  credentialsError.value = undefined
+
+  const valid = await validate()
+
+  if (!valid) {
+    return
+  }
+
   try {
     // TODO: multiple server creation not possible in the UI for now
     // so only handle single server creation
@@ -130,11 +109,17 @@ async function submit() {
       throw promiseConnectResult.reason
     }
 
-    emit('success', serverId.value, form.host)
+    emit('success', serverId.value, formData.host)
   } catch (error) {
     await remove()
+
+    if (error instanceof ApiError && error.status === HttpCodes.Unauthorized) {
+      credentialsError.value = { content: t('invalid-username-or-password'), accent: 'danger' }
+      return
+    }
+
     if (error instanceof Error) {
-      emit('error', error, form.host)
+      emit('error', error, formData.host)
     } else {
       console.error('Unknown error:', error)
     }
