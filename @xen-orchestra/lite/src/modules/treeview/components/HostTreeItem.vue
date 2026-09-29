@@ -6,6 +6,9 @@
       @toggle="branch.toggleCollapse()"
     >
       {{ branch.data.name_label || '(Host)' }}
+      <template #icon>
+        <VtsObjectIcon v-tooltip="hostState" type="host" size="medium" :state="hostState" />
+      </template>
       <template #addons>
         <UiLoader v-if="isChangingState" v-tooltip="currentOperation" />
         <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
@@ -34,13 +37,18 @@
 </template>
 
 <script lang="ts" setup>
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
+import { getHostState } from '@/modules/host/utils/host.util.ts'
 import type { HostBranch } from '@/modules/treeview/types/tree.type.ts'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
@@ -50,14 +58,27 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { branch } = defineProps<{
+const { branch, hostOpaqueRef } = defineProps<{
   branch: HostBranch
+  hostOpaqueRef: XenApiHost['$ref']
 }>()
 
 const { t } = useI18n()
 
 const { isMasterHost } = usePoolStore().subscribe()
 const { runningVmsCountByHostRef } = useVmStore().subscribe()
+const { getByOpaqueRef } = useHostStore().subscribe()
+const host = computed(() => getByOpaqueRef(hostOpaqueRef))
+
+const { getHostPowerState } = useHostMetricsStore().subscribe()
+
+const hostState = computed(() => {
+  if (host.value === undefined) {
+    return 'unknown'
+  }
+
+  return getHostState(host.value, getHostPowerState(host.value))
+})
 
 const { isChangingState, currentOperation } = useHostUtils(() => branch.data)
 
