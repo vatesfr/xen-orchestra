@@ -5,16 +5,12 @@ import type {
 } from '@/modules/docker/types/docker.type.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { ApiError } from '@/shared/error/api.error.ts'
-import { IPV4_REGEX, IPV6_REGEX } from '@core/packages/form-validation/custom-rules/ip.regex.ts'
-import { type IpAddress, isIpv6 } from '@core/utils/ip-address.utils.ts'
+import { IPV4_REGEX } from '@core/packages/form-validation/custom-rules/ip.regex.ts'
 import type { XoDockerContainerAction, XoDockerContainerState, XoDockerLogEntry, XoDockerPort } from '@vates/types'
+import { uniqBy } from 'lodash-es'
 
-function isIpAddress(value: string): value is IpAddress {
-  return IPV4_REGEX.test(value) || IPV6_REGEX.test(value)
-}
-
-function isIpv4Address(value: string | undefined): value is IpAddress {
-  return value !== undefined && isIpAddress(value) && !isIpv6(value)
+function isIpv4Address(value: string | undefined): value is string {
+  return value !== undefined && IPV4_REGEX.test(value)
 }
 
 /**
@@ -71,42 +67,10 @@ export function formatPortMapping(port: XoDockerPort): string {
  * Docker lists a port published on all interfaces twice (`0.0.0.0` and `::`)
  */
 export function dedupePorts(ports: XoDockerPort[]): XoDockerPort[] {
-  const seen = new Set<string>()
-
-  return ports.filter(port => {
-    const key = `${port.publicPort}:${port.privatePort}/${port.protocol}`
-
-    if (seen.has(key)) {
-      return false
-    }
-
-    seen.add(key)
-
-    return true
-  })
+  return uniqBy(ports, port => `${port.publicPort}:${port.privatePort}/${port.protocol}`)
 }
 
 const LOOPBACK_RE = /^(127\.|::1$|localhost$)/
-
-/**
- * URL opening a published TCP port from the browser, `undefined` when the port
- * is not published or only bound to the loopback interface of the guest.
- */
-export function buildPublishedPortUrl(port: XoDockerPort, host: string | undefined): string | undefined {
-  if (
-    host === undefined ||
-    host === '' ||
-    port.publicPort === undefined ||
-    port.protocol !== 'tcp' ||
-    (port.ip !== undefined && LOOPBACK_RE.test(port.ip))
-  ) {
-    return undefined
-  }
-
-  const hostname = host.includes(':') ? `[${host}]` : host
-
-  return `http://${hostname}:${port.publicPort}`
-}
 
 /**
  * Lifecycle actions available in a container state, the deletion being a
@@ -137,19 +101,7 @@ export function canDeleteContainer(state: XoDockerContainerState): boolean {
  * The action of the side panel's main button
  */
 export function getContainerPrimaryAction(state: XoDockerContainerState): XoDockerContainerAction | undefined {
-  switch (state) {
-    case 'running':
-    case 'restarting':
-      return 'stop'
-    case 'paused':
-      return 'unpause'
-    case 'created':
-    case 'exited':
-    case 'dead':
-      return 'start'
-    case 'removing':
-      return undefined
-  }
+  return getContainerActions(state).find(action => action !== 'restart' && action !== 'pause')
 }
 
 /**
@@ -208,9 +160,14 @@ export function getPublishedPortToOpen(
   }
 
   const [port] = published
-  const url = buildPublishedPortUrl(port, host)
 
-  return url === undefined ? undefined : { port, url }
+  if (host === undefined || host === '' || (port.ip !== undefined && LOOPBACK_RE.test(port.ip))) {
+    return undefined
+  }
+
+  const hostname = host.includes(':') ? `[${host}]` : host
+
+  return { port, url: `http://${hostname}:${port.publicPort}` }
 }
 
 export type DockerApiErrorInfo = {
@@ -254,12 +211,7 @@ export function parseDockerApiError(error: unknown): DockerApiErrorInfo {
     code: typeof code === 'string' ? code : undefined,
     message:
       typeof cause?.error === 'string' ? cause.error : typeof cause?.message === 'string' ? cause.message : message,
-    retryAfter:
-      typeof retryAfter === 'number' && retryAfter > 0
-        ? Math.ceil(retryAfter)
-        : status === 429 || code === 'SSH_COOLDOWN'
-          ? 1
-          : undefined,
+    retryAfter: typeof retryAfter === 'number' && retryAfter > 0 ? Math.ceil(retryAfter) : undefined,
   }
 }
 
@@ -319,15 +271,14 @@ export function getHostKeyErrorData(error: unknown): DockerHostKeyErrorData | un
     return undefined
   }
 
-  const { code, fingerprint, expected, actual, algorithm } = getApiErrorData(error)
-  const algorithmData = typeof algorithm === 'string' ? { algorithm } : {}
+  const { code, fingerprint, expected, actual } = getApiErrorData(error)
 
   if (code === 'HOST_KEY_UNKNOWN' && typeof fingerprint === 'string') {
-    return { code, fingerprint, ...algorithmData }
+    return { code, fingerprint }
   }
 
   if (code === 'HOST_KEY_MISMATCH' && typeof expected === 'string' && typeof actual === 'string') {
-    return { code, expected, actual, ...algorithmData }
+    return { code, expected, actual }
   }
 
   return undefined

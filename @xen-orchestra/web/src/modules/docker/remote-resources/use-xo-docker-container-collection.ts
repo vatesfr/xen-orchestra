@@ -25,17 +25,13 @@ export const useXoDockerContainerCollection = defineRemoteResource({
     data.value = receivedData
   },
   state: (containers, context) => {
-    const areDockerContainerStatsPending = computed(() =>
-      containers.value.some(container => container.statsPending === true)
-    )
-
     // the sampler has just started: fetch again soon rather than at the next poll
     const { start: retrySoon } = useTimeoutFn(() => context.forceReload(), DOCKER_STATS_PENDING_RETRY_MS, {
       immediate: false,
     })
 
     watch(containers, () => {
-      if (areDockerContainerStatsPending.value) {
+      if (containers.value.some(container => container.statsPending === true)) {
         retrySoon()
       }
     })
@@ -47,7 +43,6 @@ export const useXoDockerContainerCollection = defineRemoteResource({
       }),
       // derived from the list, so that the counters always agree with the table
       dockerContainersSummary: computed(() => summarizeContainers(containers.value)),
-      areDockerContainerStatsPending,
       reloadDockerContainers: context.forceReload,
     }
   },

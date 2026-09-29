@@ -128,7 +128,7 @@ const { vm, engine } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  saved: [engineId: FrontXoDockerEngine['id']]
+  saved: []
   cancel: []
 }>()
 
@@ -178,10 +178,10 @@ async function submit(nextRequest: DockerConnectionSaveRequest) {
   saveError.value = undefined
 
   try {
-    const engineId = await save()
+    await save()
     clearSecrets()
     request.value = undefined
-    emit('saved', engineId)
+    emit('saved')
   } catch (error) {
     hostKeyError.value = getHostKeyErrorData(error)
 

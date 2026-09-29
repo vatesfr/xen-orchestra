@@ -1,5 +1,4 @@
 import { type DockerConnectionSaveRequest, xoDockerConnectionSaveArg } from '@/modules/docker/jobs/xo-docker-args.ts'
-import type { FrontXoDockerEngine } from '@/modules/docker/types/docker.type.ts'
 import { fetchPost, fetchRequest } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
@@ -16,19 +15,15 @@ export const useXoDockerConnectionSaveJob = defineJob('docker-connection.save', 
   const { t } = useI18n()
 
   return {
-    async run(request: DockerConnectionSaveRequest): Promise<FrontXoDockerEngine['id']> {
+    async run(request: DockerConnectionSaveRequest): Promise<void> {
       if (request.engineId !== undefined) {
         await fetchRequest(`docker-engines/${request.engineId}`, {
           method: 'PATCH',
           body: JSON.stringify(request.payload),
         })
-
-        return request.engineId
+      } else {
+        await fetchPost('docker-engines', request.payload)
       }
-
-      const { id } = await fetchPost<{ id: FrontXoDockerEngine['id'] }>('docker-engines', request.payload)
-
-      return id
     },
 
     validate(isRunning, request) {
