@@ -40,6 +40,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @vates/nbd-client minor
 - @vates/types minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/mixins minor
