@@ -15,10 +15,12 @@ const INITIAL_FORM_DATA = {
   customOptions: '',
 }
 
-export function useNfsBackupRepositoryDetailsForm() {
+export type NfsBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
+
+export function useNfsBackupRepositoryDetailsForm(initialData?: Partial<NfsBackupRepositoryDetailsFormData>) {
   const { t } = useI18n()
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(INITIAL_FORM_DATA, {
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm({ ...INITIAL_FORM_DATA, ...initialData }, {
     errors: {
       onBlur: () => ({
         port: { port: withMessage(port, () => t('invalid-port')) },
