@@ -172,13 +172,6 @@ export class DockerStatsSampler {
   }
 
   /**
-   * @returns whether this container is streamed
-   */
-  has(dockerId: string): boolean {
-    return this.#streams.has(dockerId)
-  }
-
-  /**
    * Latest sample of a container.
    *
    * @returns `undefined` if not streamed, `pending` until the second sample (the first one has no CPU usage)

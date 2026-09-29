@@ -60,7 +60,7 @@ describe('AsyncTtlCache', () => {
     const cache = new AsyncTtlCache({ expiresIn: 1e3 })
     let resolve: ((value: string) => void) | undefined
     const promise = cache.get('k', () => new Promise<string>(_resolve => (resolve = _resolve)))
-    cache.delete('k')
+    cache.deleteByPrefix('k')
     resolve!('stale')
     assert.equal(await promise, 'stale')
     assert.equal(cache.peek('k'), undefined)

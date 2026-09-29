@@ -316,40 +316,24 @@ function buildQueryString(query: Record<string, unknown> | undefined): string {
   return search === '' ? '' : '?' + search
 }
 
-async function readBody(response: IncomingMessage): Promise<Buffer> {
-  const chunks: Buffer[] = []
-  let size = 0
-  for await (const chunk of response) {
-    size += chunk.length
-    if (size > MAX_RESPONSE_SIZE) {
-      response.destroy()
-      throw new DockerError(DOCKER_API_ERROR, 'Docker API response is too large', {
-        data: { maxSize: MAX_RESPONSE_SIZE },
-      })
-    }
-    chunks.push(chunk)
-  }
-  return Buffer.concat(chunks)
-}
-
 // error bodies are only read for their message: a hostile or buggy daemon must
 // not make us read (nor put in errors, logs and API responses) megabytes
 export const MAX_ERROR_BODY_SIZE = 4 * 1024
 export const MAX_ERROR_MESSAGE_LENGTH = 512
 
 /**
- * Reads at most `MAX_ERROR_BODY_SIZE` bytes of an error response, the rest is
- * discarded (the response is destroyed, and its channel with it).
+ * Reads at most `maxSize` bytes of a response, the rest is discarded (the
+ * response is destroyed, and its channel with it).
  */
-async function readErrorBody(response: IncomingMessage): Promise<{ buffer: Buffer; truncated: boolean }> {
+async function readBody(response: IncomingMessage, maxSize: number): Promise<{ buffer: Buffer; truncated: boolean }> {
   const chunks: Buffer[] = []
   let size = 0
   for await (const chunk of response) {
     chunks.push(chunk)
     size += chunk.length
-    if (size > MAX_ERROR_BODY_SIZE) {
+    if (size > maxSize) {
       response.destroy()
-      return { buffer: Buffer.concat(chunks).subarray(0, MAX_ERROR_BODY_SIZE), truncated: true }
+      return { buffer: Buffer.concat(chunks).subarray(0, maxSize), truncated: true }
     }
   }
   return { buffer: Buffer.concat(chunks), truncated: false }
@@ -754,15 +738,11 @@ export class DockerConnection {
         return apiVersion
       })()
       this.#negotiation = negotiation
-      negotiation.then(
-        () => {
-          this.#negotiation = undefined
-        },
-        () => {
-          // allow a new attempt
-          this.#negotiation = undefined
-        }
-      )
+      // on success, #apiVersion is set and checked first
+      negotiation.catch(() => {
+        // allow a new attempt
+        this.#negotiation = undefined
+      })
     }
     return this.#negotiation
   }
@@ -884,7 +864,7 @@ export class DockerConnection {
   async #throwApiError(response: IncomingMessage, path: string, signal: AbortSignal): Promise<never> {
     let message: string | undefined
     try {
-      const { buffer, truncated } = await raceSignal(readErrorBody(response), signal)
+      const { buffer, truncated } = await raceSignal(readBody(response, MAX_ERROR_BODY_SIZE), signal)
       let body: unknown = buffer
       if (!truncated) {
         try {
@@ -921,7 +901,13 @@ export class DockerConnection {
       if (statusCode < 200 || statusCode >= 300) {
         await this.#throwApiError(response, opts.path, signal)
       }
-      const body = parseBody(response, await raceSignal(readBody(response), signal))
+      const { buffer, truncated } = await raceSignal(readBody(response, MAX_RESPONSE_SIZE), signal)
+      if (truncated) {
+        throw new DockerError(DOCKER_API_ERROR, 'Docker API response is too large', {
+          data: { maxSize: MAX_RESPONSE_SIZE },
+        })
+      }
+      const body = parseBody(response, buffer)
       return { statusCode, headers, body }
     } catch (error) {
       throw this.#wrapError(error, opts.path, signal, generation)
@@ -979,7 +965,6 @@ export class DockerConnection {
       if (!raw && (response.statusCode! < 200 || response.statusCode! >= 300)) {
         await this.#throwApiError(response, path, signal)
       }
-      clearTimeout(timer)
       return response
     } catch (error) {
       throw this.#wrapError(error, path, signal, generation)
