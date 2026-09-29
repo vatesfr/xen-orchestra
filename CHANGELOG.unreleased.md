@@ -17,6 +17,10 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [REST API] Keep collection events ordered per object (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
+- [REST API] Wait for the XAPI objects before making a server connected (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
+- [REST API] Do not record an server error when a connection attempt is aborted (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -35,5 +39,9 @@
 
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
+- @xen-orchestra/rest-api patch
 - xo-server minor
+- xen-api patch
+- xo-server patch
+
 <!--packages-end-->
