@@ -153,6 +153,11 @@ export type FinalizeRollingUpdateBody = {
   force?: boolean
 }
 
+export type ResumeRollingUpdateBody = {
+  /** Skip the backup safety check before rebooting the hosts, asked again on each resume. Defaults to false. */
+  bypassBackupCheck?: boolean
+}
+
 export type RollingPoolUpdateBody = RollingPoolActionBody & {
   /**
    * Start the update even though the master is already up to date while another host is not, ie from a pool left

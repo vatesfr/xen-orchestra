@@ -37,10 +37,12 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
-- @xen-orchestra/rest-api patch
+- @xen-orchestra/rest-api minor
 - xen-api patch
 - xo-server minor
+- xo-web minor
 
 <!--packages-end-->

@@ -343,4 +343,162 @@ describe('rollingPoolReboot', function () {
       xapi.hosts.map(_ => _.uuid)
     )
   })
+
+  describe('resume', function () {
+    // records which hosts the run touches and what it writes to the record
+    const spyXapi = xapi => {
+      const touched = []
+      const clearHost = xapi.clearHost.bind(xapi)
+      xapi.clearHost = async host => {
+        touched.push(['evacuate', host.uuid])
+        return clearHost(host)
+      }
+      const callAsync = xapi.callAsync.bind(xapi)
+      xapi.callAsync = async (method, ref, ...args) => {
+        touched.push([method, xapi.getObject(ref).uuid])
+        return callAsync(method, ref, ...args)
+      }
+      return touched
+    }
+    const planSpyRecorder = () => {
+      const recorder = stepSpyRecorder()
+      recorder.calls = []
+      recorder.setPlan = plan => recorder.calls.push(['setPlan', plan])
+      recorder.hostStarting = hostId => recorder.calls.push(['hostStarting', hostId])
+      recorder.hostSkipped = hostId => recorder.calls.push(['hostSkipped', hostId])
+      return recorder
+    }
+
+    it('leaves the done hosts alone and brings every VM back to its host of the first attempt', async function () {
+      const xapi = new FakeXapi([
+        [30, 30],
+        [30, 30],
+        [30, 30],
+      ])
+      const vmHomeById = Object.fromEntries(xapi.homeOf)
+      // first attempt: host A done, host B stopped in the middle of its
+      // evacuation, host A's VMs not migrated back yet
+      const [hostA, hostB, hostC] = xapi.hosts
+      const vm = uuid => xapi.getObject(uuid)
+      vm('vm-a1').$resident_on = hostB
+      vm('vm-a2').$resident_on = hostC
+      vm('vm-b1').$resident_on = hostA
+      hostB.enabled = false
+      // started after the first attempt: unknown to the record
+      delete vmHomeById['vm-c2']
+
+      const touched = spyXapi(xapi)
+      const recorder = planSpyRecorder()
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        resume: {
+          doneHostIds: new Set(['host-A']),
+          hostOrder: ['host-A', 'host-B', 'host-C'],
+          vmHomeById,
+          haltedPinnedVms: {},
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(touched, [
+        ['evacuate', 'host-B'],
+        ['host.reboot', 'host-B'],
+        ['evacuate', 'host-C'],
+        ['host.reboot', 'host-C'],
+      ])
+      assert.deepEqual(xapi.strayedVms(), [])
+      // the done host keeps its steps, and the record keeps the placement of
+      // the first attempt
+      assert.deepEqual(recorder.calls, [
+        ['setPlan', { hostOrder: ['host-A', 'host-B', 'host-C'], vmHomeById: Object.fromEntries(xapi.homeOf) }],
+        ['hostStarting', 'host-B'],
+        ['hostStarting', 'host-C'],
+      ])
+      assert.ok(recorder.steps.some(_ => _.hostId === 'host-A' && _.name === 'restoreVms' && _.status === 'observed'))
+    })
+
+    it('handles the hosts in the order of the first attempt', async function () {
+      const xapi = new FakeXapi([[10], [10], [10]])
+      const recorder = planSpyRecorder()
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-C', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(
+        recorder.calls.filter(([name]) => name === 'hostStarting').map(([, hostId]) => hostId),
+        ['host-A', 'host-C', 'host-B']
+      )
+    })
+
+    it('checks the evacuation precondition of the remaining hosts only right before evacuating them', async function () {
+      const xapi = new FakeXapi([[10], [10], [10]])
+      const calls = []
+      for (const host of xapi.hosts) {
+        host.$call = async method => {
+          calls.push([method, host.uuid])
+          // not enough memory while the host disabled by the previous attempt
+          // is still out of the pool
+          if (method === 'get_vms_which_prevent_evacuation' && host.uuid === 'host-C') {
+            return { 'OpaqueRef:vm-c1': ['HOST_NOT_ENOUGH_FREE_MEMORY'] }
+          }
+          return {}
+        }
+      }
+
+      const { error } = await rollingPoolReboot(xapi, {
+        resume: {
+          doneHostIds: new Set(['host-A']),
+          hostsStarted: true,
+          hostOrder: ['host-A', 'host-B', 'host-C'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.ok(!calls.some(([, hostId]) => hostId === 'host-A'))
+      assert.deepEqual(
+        calls.filter(([, hostId]) => hostId === 'host-C'),
+        [
+          ['get_vms_which_prevent_evacuation', 'host-C'],
+          ['assert_can_evacuate', 'host-C'],
+        ]
+      )
+    })
+
+    it('starts again the pinned VMs a previous attempt left halted', async function () {
+      const xapi = new FakeXapi([[10], [10]])
+      const pinnedVm = xapi.getObject('vm-b1')
+      pinnedVm.power_state = 'Halted'
+      const started = []
+      const callAsync = xapi.callAsync.bind(xapi)
+      xapi.callAsync = async (method, ...args) => {
+        if (method === 'VM.start_on') {
+          started.push(args.slice(0, 2))
+          return
+        }
+        return callAsync(method, ...args)
+      }
+
+      const { error } = await rollingPoolReboot(xapi, {
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: { 'vm-b1': 'host-B' },
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(started, [['OpaqueRef:vm-b1', 'OpaqueRef:host-B']])
+    })
+  })
 })

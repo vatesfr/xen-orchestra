@@ -138,6 +138,7 @@ export function buildRpuRecoveryView(record) {
     interruptedAt: record.interruptedAt,
     taskId: record.taskId,
     variant: record.variant,
+    attempt: record.attempt ?? 1,
     hostOrder: record.hostOrder,
     hosts,
     lastError: record.lastError ?? null,
@@ -285,6 +286,10 @@ export function listUnrestoredItems(record, { pool, loadBalancerLoaded, getHost,
   return items
 }
 
+// the item types of listUnrestoredItems that a successful resume cannot
+// restore: it only knows the state it found
+export const RPU_SETTING_TYPES = new Set(['ha', 'autoPowerOn', 'wlb', 'loadBalancer', 'schedule'])
+
 /**
  * Recorder used when a run does not track recovery (rolling pool reboot,
  * rolling pool update on a pool without recovery, see supportsRpuRecovery):
@@ -308,6 +313,7 @@ export const noopRpuRecorder = Object.freeze({
   forgetHaltedPinnedVm: noop,
   fail: asyncNoop,
   dropIfNothingToRecover: asyncNoop,
+  markSucceeded: asyncNoop,
   delete: asyncNoop,
 })
 
@@ -347,16 +353,19 @@ export function createRpuRecoveryRecorder({ store, record }) {
     await chain
     await store.del(record.poolId)
   }
-  // a record that survives a successful run must not be reported as
-  // interrupted at the next restart: it is stamped `succeeded` (best effort)
-  // before the delete failure is rethrown
+  // best effort: a record that survives a successful run must not be
+  // reported as interrupted at the next restart
+  const markSucceeded = async () => {
+    record.status = 'succeeded'
+    record.finishedAt = new Date().toISOString()
+    await enqueueWrite().catch(warnOnce)
+  }
+  // the record is stamped `succeeded` before the delete failure is rethrown
   const deleteOrSucceed = async () => {
     try {
       await deleteRecord()
     } catch (error) {
-      record.status = 'succeeded'
-      record.finishedAt = new Date().toISOString()
-      await enqueueWrite().catch(warnOnce)
+      await markSucceeded()
       throw error
     }
   }
@@ -377,6 +386,7 @@ export function createRpuRecoveryRecorder({ store, record }) {
 
   return {
     runId: record.runId,
+    attempt: record.attempt ?? 1,
 
     markRunning() {
       record.status = 'running'
@@ -392,8 +402,10 @@ export function createRpuRecoveryRecorder({ store, record }) {
       record.variant = variant
       write()
     },
+    // on resume, the updated hosts have no missing patches anymore: the
+    // inventory of the first attempt stays the reference
     setPatchInventory(hasMissingPatchesByHost) {
-      record.hasMissingPatchesByHost = hasMissingPatchesByHost
+      record.hasMissingPatchesByHost ??= hasMissingPatchesByHost
       write()
     },
     // one write for the biggest part of the record, right before the first
@@ -404,11 +416,12 @@ export function createRpuRecoveryRecorder({ store, record }) {
       write()
     },
     // `enabled` before the run touches the host: a host the operator had
-    // already disabled is not a change of the run
+    // already disabled is not a change of the run. A resumed host keeps the
+    // values of the first attempt, the interrupted one may have disabled it
     hostStarting(hostId, agentStartTime, enabled) {
       const entry = hostEntry(hostId)
-      entry.agentStartedAtBeforeUpdate = agentStartTime
-      entry.enabledBeforeUpdate = enabled
+      entry.agentStartedAtBeforeUpdate ??= agentStartTime
+      entry.enabledBeforeUpdate ??= enabled
       write()
     },
     hostSkipped(hostId) {
@@ -450,11 +463,15 @@ export function createRpuRecoveryRecorder({ store, record }) {
      * change, otherwise a crash would leave it changed and nothing would know.
      *
      * @param {'ha' | 'autoPowerOn' | 'wlb' | 'loadBalancer' | 'schedules'} name
-     * @param {boolean | string[]} [value=true] - Ids of the disabled schedules for `schedules`
+     * @param {boolean | string[]} [value=true] - Ids of the disabled schedules for `schedules`, added to the ones
+     *   of the previous attempts
      * @returns {Promise<void>}
      */
     async settingChangedByRun(name, value = true) {
-      ;(record.changedByRun ??= {})[name] = value
+      const changedByRun = (record.changedByRun ??= {})
+      const previous = changedByRun[name]
+      changedByRun[name] =
+        Array.isArray(previous) && Array.isArray(value) ? [...new Set([...previous, ...value])] : value
       await enqueueWrite()
     },
     // strict: the entry must be on disk before the VM is shut down, otherwise
@@ -482,12 +499,16 @@ export function createRpuRecoveryRecorder({ store, record }) {
     // block the retry with the option the operator just consented to. Meant
     // to run after those restorations, so that a record still on disk means
     // some of them may not have happened; never throws, the record then
-    // simply stays `failed`
+    // simply stays `failed`. Never on resume: the record keeps what the
+    // previous attempts changed
     async dropIfNothingToRecover() {
-      if (Object.keys(record.hosts).length === 0) {
+      if (record.attempt === undefined && Object.keys(record.hosts).length === 0) {
         await deleteRecord().catch(warnOnce)
       }
     },
+    // a successful run which left some settings changed keeps its record, so
+    // that Finalize lists them
+    markSucceeded,
     // a successful run leaves no record behind: strict, a record left on disk
     // would report the run as interrupted at the next restart
     delete: deleteOrSucceed,
@@ -523,6 +544,132 @@ export async function startRpuRecoveryRun({ store, poolId, options }) {
   const record = createRpuRecoveryRecord({ poolId, options })
   await store.put(poolId, record)
   return createRpuRecoveryRecorder({ store, record })
+}
+
+const RESUMABLE_STATUSES = ['failed', 'interrupted']
+
+// once one of these steps started, only the live state can tell whether it did
+// its job
+const STEPS_AFTER_EVACUATE = ['update', 'reboot', 'enable']
+
+const isStepOver = status => status === 'observed-succeeded' || status === 'not-needed'
+
+/**
+ * Decides, from the record of a failed or interrupted run, what a resume does
+ * with each host:
+ *
+ * - done: evacuated, and every later step succeeded or was not needed, it is
+ *   neither evacuated nor rebooted again;
+ * - resumed: no step after the evacuation started, the evacuation is run again
+ *   and XAPI only moves the VMs still resident;
+ * - left alone by the run (every step `not-needed`): skipped as usual.
+ *
+ * Any other host stopped after its evacuation and is refused.
+ *
+ * @param {object} record - Readable record
+ * @returns {{ doneHostIds: Set<string>, hostsStarted: boolean, hostOrder: string[], vmHomeById: object,
+ *   haltedPinnedVms: object }} `hostsStarted` when a host was handled by a previous attempt, the other fields
+ *   come from the record
+ * @throws {Error} `incorrectState` (property `resumableStep`) when a host cannot be resumed
+ */
+export function planRpuResume(record) {
+  const doneHostIds = new Set()
+  for (const hostId of record.hostOrder ?? []) {
+    const steps = record.hosts[hostId]?.steps ?? {}
+    const status = name => steps[name]?.status ?? 'pending'
+    if (STEPS_AFTER_EVACUATE.every(name => status(name) === 'pending')) {
+      continue
+    }
+    if (status('evacuate') === 'observed-succeeded' && STEPS_AFTER_EVACUATE.every(name => isStepOver(status(name)))) {
+      doneHostIds.add(hostId)
+      continue
+    }
+    if (RPU_RECOVERY_STEP_NAMES.every(name => status(name) === 'not-needed')) {
+      continue
+    }
+    const step = STEPS_AFTER_EVACUATE.find(name => !isStepOver(status(name))) ?? 'evacuate'
+    throw incorrectState({
+      actual: { hostId, step, status: status(step) },
+      expected: 'evacuate',
+      object: record.poolId,
+      property: 'resumableStep',
+    })
+  }
+  return {
+    doneHostIds,
+    hostsStarted: Object.keys(record.hosts).length > 0,
+    hostOrder: record.hostOrder ?? [],
+    vmHomeById: record.vmHomeById ?? {},
+    haltedPinnedVms: record.haltedPinnedVms ?? {},
+  }
+}
+
+/**
+ * Plan of a run that continues no previous attempt, see planRpuResume: no
+ * host done, no order nor VM placement to follow.
+ */
+export const noRpuResume = Object.freeze({
+  doneHostIds: new Set(),
+  hostsStarted: false,
+  hostOrder: [],
+  vmHomeById: {},
+  haltedPinnedVms: {},
+})
+
+/**
+ * Continues the failed or interrupted run of a pool: same `runId`, next
+ * attempt.
+ *
+ * The evacuation and VM restoration steps that failed or were running in the
+ * previous attempt are set back to `pending`: `failed` is sticky within an
+ * attempt, not across attempts.
+ *
+ * Strict write of the `resuming` status: a failure rejects and must abort the
+ * resume before any side effect. The caller holds the RPU guard of the pool.
+ *
+ * @param {object} params
+ * @param {object} params.store - LevelDB sublevel, keyed by pool id
+ * @param {string} params.poolId
+ * @returns {Promise<{ recorder: object, record: object, plan: object }>} see planRpuResume for `plan`
+ * @throws {Error} `noSuchObject` when the pool has no record
+ * @throws {Error} `incorrectState` (property `status`) when the record is not failed nor interrupted
+ * @throws {Error} `incorrectState` (property `resumableStep`) when a host cannot be resumed, the record is left
+ *   untouched
+ */
+export async function resumeRpuRecoveryRun({ store, poolId }) {
+  let record
+  try {
+    record = await store.get(poolId)
+  } catch (error) {
+    if (error.notFound) {
+      throw noSuchObject(poolId, 'rollingUpdateRecovery')
+    }
+    log.warn('unreadable RPU recovery record', { error, poolId })
+  }
+  if (record?.schemaVersion !== RPU_RECOVERY_SCHEMA_VERSION) {
+    throw incorrectState({ actual: 'blocked', expected: RESUMABLE_STATUSES, object: poolId, property: 'status' })
+  }
+  if (!RESUMABLE_STATUSES.includes(record.status)) {
+    throw incorrectState({ actual: record.status, expected: RESUMABLE_STATUSES, object: poolId, property: 'status' })
+  }
+
+  const plan = planRpuResume(record)
+
+  for (const { steps } of Object.values(record.hosts)) {
+    for (const name of ['evacuate', 'restoreVms']) {
+      const status = steps[name]?.status
+      if (status === 'failed' || status === 'running') {
+        steps[name] = { status: 'pending' }
+      }
+    }
+  }
+  record.status = 'resuming'
+  record.attempt = (record.attempt ?? 1) + 1
+  record.updatedAt = new Date().toISOString()
+  delete record.finishedAt
+  await store.put(poolId, record)
+
+  return { recorder: createRpuRecoveryRecorder({ store, record }), record, plan }
 }
 
 /**

@@ -84,6 +84,7 @@ import type {
   CreateVmParams,
   FinalizeRollingUpdateBody,
   PoolDashboard,
+  ResumeRollingUpdateBody,
   RollingPoolActionBody,
   RollingPoolUpdateBody,
 } from './pool.type.mjs'
@@ -785,6 +786,56 @@ export class PoolController extends XapiXoController<XoPool> {
       statusCode: noContentResp.status,
       taskProperties: {
         name: 'finalize rolling pool update',
+        objectId: poolId,
+        params: body,
+        progress: 0,
+      },
+    })
+  }
+
+  /**
+   * Resume a failed or interrupted rolling pool update: the same run continues, only the hosts with remaining work
+   * are evacuated, updated and rebooted, then the VMs are migrated back to the host they were on before the first
+   * attempt.
+   *
+   * The backup check is not taken from the previous attempts: set `bypassBackupCheck` again if needed.
+   *
+   * 404 when the pool has no record. Refused with an `incorrect state` error when the update is neither failed nor
+   * interrupted, or when a host stopped after its evacuation (update, reboot or enable started): finalize the record
+   * instead once the pool has been reviewed.
+   *
+   * Required privilege:
+   * - resource: pool, action: rolling-update
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example body { "bypassBackupCheck": false }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/resume_rolling_update')
+  @Middlewares([json(), acl({ resource: 'pool', action: 'rolling-update', objectId: 'params.id' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(featureUnauthorized.status, featureUnauthorized.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  resumeRollingUpdate(
+    @Path() id: string,
+    @Body() body?: ResumeRollingUpdateBody,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const poolId = id as XoPool['id']
+    const action = async (task: VatesTask) => {
+      const pool = this.getObject(poolId)
+      await this.restApi.xoApp.resumeRollingPoolUpdate(pool, { ...body, parentTask: task })
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'resume rolling pool update',
         objectId: poolId,
         params: body,
         progress: 0,

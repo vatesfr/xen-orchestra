@@ -18,6 +18,7 @@ import {
   installPatches,
   isSrShared,
   isSrWritable,
+  resumeRollingPoolUpdate,
   rollingPoolUpdate,
   subscribeCurrentUser,
   subscribeHostMissingPatches,
@@ -150,13 +151,19 @@ const RPU_RECOVERY_MESSAGES = {
   succeeded: 'rpuRecoverySucceeded',
 }
 
+// a resume continues the run of a record in these statuses
+const RPU_RESUMABLE_STATUSES = ['failed', 'interrupted']
+
+const RPU_RECOVERY_STEP_NAMES = ['evacuate', 'update', 'reboot', 'enable', 'restoreVms']
+const isRpuStepOver = step => step?.status === 'observed-succeeded' || step?.status === 'not-needed'
+
 const RpuRecoveryBanner = ({ poolId, recovery }) => {
   const message = RPU_RECOVERY_MESSAGES[recovery?.status]
   if (message === undefined) {
     return null
   }
 
-  const { blockedReason, hostOrder = [], hosts = {}, haltedPinnedVms = {}, lastError } = recovery
+  const { attempt, blockedReason, hostOrder = [], hosts = {}, haltedPinnedVms = {}, lastError } = recovery
   const haltedVmIds = Object.keys(haltedPinnedVms)
 
   return (
@@ -167,14 +174,21 @@ const RpuRecoveryBanner = ({ poolId, recovery }) => {
             <Icon icon='alarm' /> {_('rpuRecoveryIncompleteTitle')}
           </h4>
           <p>{_(message)}</p>
+          {attempt > 1 && <p>{_('rpuRecoveryAttempt', { attempt })}</p>}
           {blockedReason !== undefined && <p>{blockedReason}</p>}
           {hostOrder.length > 0 && (
             <ul>
-              {hostOrder.map(hostId => (
-                <li key={hostId}>
-                  {renderXoItemFromId(hostId)} — {hosts[hostId]?.status}
-                </li>
-              ))}
+              {hostOrder.map(hostId => {
+                const { status, steps = {} } = hosts[hostId] ?? {}
+                // the remaining work of the host starts at its first unfinished step
+                const step = RPU_RECOVERY_STEP_NAMES.find(name => !isRpuStepOver(steps[name]))
+                return (
+                  <li key={hostId}>
+                    {renderXoItemFromId(hostId)} — {status}
+                    {status !== 'succeeded' && status !== 'not-needed' && step !== undefined && ` (${step})`}
+                  </li>
+                )
+              })}
             </ul>
           )}
           {lastError != null && (
@@ -324,6 +338,7 @@ export default class TabPatches extends Component {
 
     // xo-server refuses a new run as long as the previous one left a record
     const hasIncompleteRun = rollingUpdateRecovery != null
+    const isResumable = RPU_RESUMABLE_STATUSES.includes(rollingUpdateRecovery?.status)
 
     // with recovery, xo-server updates each host from its own missing patches;
     // older XenServer and CH install the master's missing patches pool-wide
@@ -335,7 +350,26 @@ export default class TabPatches extends Component {
           <RpuRecoveryBanner poolId={pool.id} recovery={rollingUpdateRecovery} />
           <Row>
             <Col className='text-xs-right'>
-              {ROLLING_POOL_UPDATES_AVAILABLE && (
+              {ROLLING_POOL_UPDATES_AVAILABLE && isResumable && (
+                <TabButton
+                  btnStyle='primary'
+                  disabled={hasMultipleVmsRunningOnLocalStorage || isSingleHost}
+                  handler={resumeRollingPoolUpdate}
+                  handlerParam={pool.id}
+                  icon='pool-rolling-update'
+                  labelId='rpuRecoveryResume'
+                  tooltip={
+                    hasMultipleVmsRunningOnLocalStorage
+                      ? _('nVmsRunningOnLocalStorage', {
+                          nVms: this.getNVmsRunningOnLocalStorage(),
+                        })
+                      : isSingleHost
+                        ? _('multiHostPoolUpdate')
+                        : undefined
+                  }
+                />
+              )}
+              {ROLLING_POOL_UPDATES_AVAILABLE && !isResumable && (
                 <TabButton
                   btnStyle='primary'
                   disabled={

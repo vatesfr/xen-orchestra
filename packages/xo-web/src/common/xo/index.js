@@ -1652,6 +1652,42 @@ export const finalizeRollingPoolUpdate = async poolId => {
   rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
 }
 
+export const resumeRollingPoolUpdate = async poolId => {
+  await confirm({
+    body: _('rpuRecoveryResumeConfirm'),
+    title: _('rpuRecoveryResume'),
+    icon: 'pool-rolling-update',
+  })
+
+  const resume = async (options = {}) => {
+    try {
+      await _call('pool.resumeRollingUpdate', { pool: poolId, ...options })
+      subscribeHostMissingPatches.forceRefresh()
+    } catch (err) {
+      // once the backup check is bypassed, the refusal comes from a run in progress
+      if (forbiddenOperation.is(err) && !options.bypassBackupCheck) {
+        await confirm({
+          body: (
+            <p className='text-warning'>
+              <Icon icon='alarm' /> {_('bypassBackupPoolModalMessage')}
+            </p>
+          ),
+          title: _('rpuRecoveryResume'),
+          icon: 'pool-rolling-update',
+        })
+        return resume({ ...options, bypassBackupCheck: true })
+      }
+      throw err
+    }
+  }
+
+  try {
+    await resume()
+  } finally {
+    rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
+  }
+}
+
 export const installSupplementalPack = (host, file) => {
   info(_('supplementalPackInstallStartedTitle'), _('supplementalPackInstallStartedMessage'))
 
