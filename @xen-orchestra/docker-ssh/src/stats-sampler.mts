@@ -1,4 +1,4 @@
-// Tier 3 of the container data (see the plan, §5): stats, never blocking.
+// Container stats, never blocking the listing.
 //
 // One sampler per engine, started by the first request asking for stats and
 // stopped after `idleTimeout` without any reader. While alive, it holds one
@@ -20,7 +20,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { DOCKER_API_ERROR, isDockerError, POOL_EXHAUSTED, TIMEOUT } from './errors.mjs'
 import { normalizeContainerStats } from './normalize.mjs'
 
-const { debug, warn } = createLogger('xo:docker:stats-sampler')
+const { debug, warn } = createLogger('xo:docker-ssh:stats-sampler')
 
 export const DEFAULT_IDLE_TIMEOUT = 90e3
 export const DEFAULT_MAX_CONTAINERS = 100
@@ -169,13 +169,6 @@ export class DockerStatsSampler {
         this.#open(id)
       }
     }
-  }
-
-  /**
-   * @returns whether this container is streamed
-   */
-  has(dockerId: string): boolean {
-    return this.#streams.has(dockerId)
   }
 
   /**

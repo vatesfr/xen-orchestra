@@ -5,9 +5,7 @@ import { createLogger } from '@xen-orchestra/log'
 
 import { DockerError, fromSshError, SSH_UNREACHABLE, TIMEOUT } from './errors.mjs'
 
-const { debug } = createLogger('xo:docker:ssh-http-agent')
-
-const DEFAULT_CONNECT_TIMEOUT = 10e3
+const { debug } = createLogger('xo:docker-ssh:ssh-http-agent')
 
 function noop() {}
 
@@ -106,8 +104,8 @@ export class SshHttpAgent extends Agent {
     {
       getClient,
       socketPath,
-      connectTimeout = DEFAULT_CONNECT_TIMEOUT,
-    }: { getClient: () => Promise<ForwardOutStreamLocalClient>; socketPath: string; connectTimeout?: number },
+      connectTimeout,
+    }: { getClient: () => Promise<ForwardOutStreamLocalClient>; socketPath: string; connectTimeout: number },
     agentOptions?: AgentOptions
   ) {
     super({

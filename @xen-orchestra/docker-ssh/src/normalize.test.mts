@@ -5,7 +5,6 @@ import { CONTAINER_LIST, INSPECT_BY_NAME } from './fixtures/containers.mjs'
 import { INFO, VERSION } from './fixtures/engine.mjs'
 import { STATS_BUSY, STATS_EXITED, STATS_NGINX_IDLE, STATS_PAUSED, STATS_STREAM_NGINX } from './fixtures/stats.mjs'
 import {
-  CONTAINER_STATES,
   computeCpuPercent,
   computeMemoryUsage,
   getComposeInfo,
@@ -231,7 +230,11 @@ describe('normalizeContainerListEntry()', () => {
 
   it('only gives known states', () => {
     for (const entry of CONTAINER_LIST) {
-      assert.ok(CONTAINER_STATES.includes(normalizeContainerListEntry(entry).state))
+      assert.ok(
+        ['created', 'running', 'paused', 'restarting', 'removing', 'exited', 'dead'].includes(
+          normalizeContainerListEntry(entry).state
+        )
+      )
     }
   })
 })

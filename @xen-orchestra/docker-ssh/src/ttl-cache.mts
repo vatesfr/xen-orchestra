@@ -86,10 +86,6 @@ export class AsyncTtlCache {
     }
   }
 
-  delete(key: string) {
-    this.#entries.delete(key)
-  }
-
   deleteByPrefix(prefix: string) {
     for (const key of Array.from(this.#entries.keys())) {
       if (key.startsWith(prefix)) {

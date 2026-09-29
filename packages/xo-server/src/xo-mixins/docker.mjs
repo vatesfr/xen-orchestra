@@ -136,21 +136,6 @@ const WRITABLE_FIELDS = new Map([
 const TRANSIENT_FIELDS = new Set(['acceptUnknownHostKey'])
 const STRING_FIELDS = ['vm', 'label', 'host', 'username', 'password', 'privateKey', 'passphrase', 'socketPath']
 
-// stored properties which change how to connect: changing any of them bumps the
-// revision, which invalidates the pooled connection and the caches
-const IDENTITY_FIELDS = [
-  'vm',
-  'host',
-  'port',
-  'username',
-  'password',
-  'privateKey',
-  'passphrase',
-  'socketPath',
-  'hostKeyFingerprint',
-  'hostKeyAlgorithm',
-]
-
 // stored properties which change the SSH connection itself: an update changing
 // one of them (or the address resolved from the VM) connects first, and is only
 // saved on success
@@ -166,8 +151,22 @@ const CONNECTION_FIELDS = [
   'hostKeyAlgorithm',
 ]
 
+// stored properties which change how to connect: changing any of them bumps the
+// revision, which invalidates the pooled connection and the caches
+const IDENTITY_FIELDS = ['vm', ...CONNECTION_FIELDS]
+
 // stored properties accepted by the config import, see `#importEngines()`
 const STORED_FIELDS = new Set([...WRITABLE_FIELDS.values(), 'hostKeyAlgorithm', 'revision'])
+
+// pin a host key into the record (mutated, not saved)
+function setHostKey(record, { fingerprint, algorithm }) {
+  record.hostKeyFingerprint = fingerprint
+  if (algorithm === undefined) {
+    delete record.hostKeyAlgorithm
+  } else {
+    record.hostKeyAlgorithm = algorithm
+  }
+}
 
 // unique, never reused: two different identities never share a revision
 const newRevision = () => randomBytes(8).toString('hex')
@@ -1340,22 +1339,8 @@ export default class Docker {
       this.#cooldown.check(cooldownKeys, identity)
     }
 
-    const connection = this.#newConnection(record, host, acceptUnknownHostKey)
-    const connect = connection.connect.bind(connection)
-    connection.connect = async () => {
-      try {
-        await connect()
-      } catch (error) {
-        throw this.#cooldown.onFailure(cooldownKeys, identity, error)
-      }
-      this.#cooldown.clear(cooldownKeys)
-    }
-    return connection
-  }
-
-  #newConnection(record, host, acceptUnknownHostKey) {
     const { connectTimeout, requestTimeout } = this.#config
-    return new DockerConnection({
+    const connection = new DockerConnection({
       host,
       port: record.port,
       username: record.username,
@@ -1369,6 +1354,16 @@ export default class Docker {
       connectTimeout,
       requestTimeout,
     })
+    const connect = connection.connect.bind(connection)
+    connection.connect = async () => {
+      try {
+        await connect()
+      } catch (error) {
+        throw this.#cooldown.onFailure(cooldownKeys, identity, error)
+      }
+      this.#cooldown.clear(cooldownKeys)
+    }
+    return connection
   }
 
   /**
@@ -1392,29 +1387,18 @@ export default class Docker {
     } finally {
       await connection.close()
     }
-    const { fingerprint, algorithm } = connection.observedHostKey
-    record.hostKeyFingerprint = fingerprint
-    if (algorithm === undefined) {
-      delete record.hostKeyAlgorithm
-    } else {
-      record.hostKeyAlgorithm = algorithm
-    }
+    setHostKey(record, connection.observedHostKey)
   }
 
   // used when a key has been accepted without strict host key checking
   //
   // Under the engine's lock, on a fresh read: only the pin is written, over
   // whatever the other mutations did meanwhile
-  async #pinHostKey(id, { fingerprint, algorithm }) {
+  async #pinHostKey(id, hostKey) {
     await this.#withLocks([`engine:${id}`], async () => {
       const record = await this.#db.first(id)
       if (record !== undefined && record.hostKeyFingerprint === undefined) {
-        record.hostKeyFingerprint = fingerprint
-        if (algorithm === undefined) {
-          delete record.hostKeyAlgorithm
-        } else {
-          record.hostKeyAlgorithm = algorithm
-        }
+        setHostKey(record, hostKey)
         await this.#db.update(record)
       }
     })
@@ -1561,13 +1545,7 @@ export default class Docker {
   #sanitize(record) {
     // completed below
     const engine = /** @type {XoDockerEngine} */ ({ id: record.id })
-    if (record.vm !== undefined) {
-      engine.$VM = record.vm
-      const poolId = this.#getVm(record.vm)?.$pool
-      if (poolId !== undefined) {
-        engine.$pool = poolId
-      }
-    }
+    this.#setVmAndPool(engine, record)
     for (const key of PUBLIC_FIELDS) {
       if (record[key] !== undefined) {
         engine[key] = record[key]
@@ -1677,13 +1655,18 @@ export default class Docker {
       id: `${record.id}_${container.dockerId}`,
       $engine: record.id,
     })
+    this.#setVmAndPool(decorated, record)
+    return Object.assign(decorated, container)
+  }
+
+  // the VM hosting the engine, and its pool when the VM is known
+  #setVmAndPool(target, record) {
     if (record.vm !== undefined) {
-      decorated.$VM = record.vm
+      target.$VM = record.vm
       const poolId = this.#getVm(record.vm)?.$pool
       if (poolId !== undefined) {
-        decorated.$pool = poolId
+        target.$pool = poolId
       }
     }
-    return Object.assign(decorated, container)
   }
 }

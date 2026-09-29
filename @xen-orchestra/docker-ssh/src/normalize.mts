@@ -13,7 +13,6 @@ import type {
   XoDockerCompose,
   XoDockerContainer,
   XoDockerContainerHealth,
-  XoDockerContainerState,
   XoDockerContainerStats,
   XoDockerEngineInfoConnected,
   XoDockerMount,
@@ -90,16 +89,6 @@ export function getContainerName(names: string[] | undefined): string | undefine
   const name = names.find(name => name.lastIndexOf('/') === 0) ?? names[0]
   return name.startsWith('/') ? name.slice(1) : name
 }
-
-export const CONTAINER_STATES: XoDockerContainerState[] = [
-  'created',
-  'running',
-  'paused',
-  'restarting',
-  'removing',
-  'exited',
-  'dead',
-]
 
 /**
  * Parse the human readable `Status` of a list entry, e.g. `Exited (3) 2 hours
