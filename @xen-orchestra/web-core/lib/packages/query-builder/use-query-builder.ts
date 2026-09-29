@@ -19,7 +19,7 @@ export function useQueryBuilder(
       const parsed = parse(filter.value)
       rootNode.value = handleNode({ node: parsed, negate: false, schema: schema.value })
     } catch {
-      return undefined
+      rootNode.value = undefined
     }
   }
 
