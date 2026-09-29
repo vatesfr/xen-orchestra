@@ -63,13 +63,14 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
 
   async function validateAndBuildPayload(): Promise<NewNetworkPayload | undefined> {
     const valid = await validate()
+    const basePayload = buildBasePayload()
 
-    if (!valid || formData.pif === undefined) {
+    if (!valid || formData.pif === undefined || basePayload === undefined) {
       return undefined
     }
 
     return {
-      ...buildBasePayload(),
+      ...basePayload,
       pif: formData.pif,
       ...(typeof formData.vlan === 'number' && { vlan: formData.vlan }),
     }

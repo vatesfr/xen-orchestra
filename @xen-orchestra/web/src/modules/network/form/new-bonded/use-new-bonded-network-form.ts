@@ -64,13 +64,14 @@ export function useNewBondedNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['i
 
   async function validateAndBuildPayload(): Promise<NewBondedNetworkPayload | undefined> {
     const valid = await validate()
+    const basePayload = buildBasePayload()
 
-    if (!valid || formData.bondMode === undefined) {
+    if (!valid || formData.bondMode === undefined || basePayload === undefined) {
       return undefined
     }
 
     return {
-      ...buildBasePayload(),
+      ...basePayload,
       pifIds: formData.pifs.map(pif => pif.id),
       bondMode: formData.bondMode,
     }
