@@ -15,27 +15,20 @@ export const DOCKER_STATS_PENDING_RETRY_MS = 3e3
  *
  * Not streamed: a streamed fetch empties the list before refilling it, which
  * would make the table blink and unmount the side panel of the selected
- * container on every poll. The payload is a plain array, assigned as is.
+ * container on every poll.
  */
 export const useXoDockerContainerCollection = defineRemoteResource({
   url: (engineId: string) =>
     `${BASE_URL}/docker-containers?filter=${encodeURIComponent(`$engine:${engineId}`)}&fields=${dockerContainerFields.join(',')}&stats=true`,
   initialData: () => [] as FrontXoDockerContainer[],
-  onDataReceived: async (data, receivedData) => {
-    data.value = receivedData
-  },
   state: (containers, context) => {
-    const areDockerContainerStatsPending = computed(() =>
-      containers.value.some(container => container.statsPending === true)
-    )
-
     // the sampler has just started: fetch again soon rather than at the next poll
     const { start: retrySoon } = useTimeoutFn(() => context.forceReload(), DOCKER_STATS_PENDING_RETRY_MS, {
       immediate: false,
     })
 
     watch(containers, () => {
-      if (areDockerContainerStatsPending.value) {
+      if (containers.value.some(container => container.statsPending === true)) {
         retrySoon()
       }
     })
@@ -47,7 +40,6 @@ export const useXoDockerContainerCollection = defineRemoteResource({
       }),
       // derived from the list, so that the counters always agree with the table
       dockerContainersSummary: computed(() => summarizeContainers(containers.value)),
-      areDockerContainerStatsPending,
       reloadDockerContainers: context.forceReload,
     }
   },

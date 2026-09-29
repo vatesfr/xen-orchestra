@@ -33,7 +33,7 @@ const { error, info } = defineProps<{
 const model = defineModel<string>({ required: true })
 
 const message = computed<InputWrapperMessage | undefined>(() => {
-  const messages = [...(error === undefined ? [] : toArray(error)), ...(info === undefined ? [] : [info])]
+  const messages = [...toArray(error), ...toArray(info)]
 
   return messages.length === 0 ? undefined : messages
 })

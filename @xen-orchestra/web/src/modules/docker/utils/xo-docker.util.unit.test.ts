@@ -1,5 +1,4 @@
 import {
-  buildPublishedPortUrl,
   canDeleteContainer,
   dedupePorts,
   formatDockerLogEntries,
@@ -78,33 +77,6 @@ it('dedupePorts drops the IPv6 twin of a port published on all interfaces', () =
   ])
 })
 
-describe('buildPublishedPortUrl', () => {
-  it('opens a published TCP port on the address of the VM', () => {
-    expect(
-      buildPublishedPortUrl({ privatePort: 80, publicPort: 8080, protocol: 'tcp', ip: '0.0.0.0' }, '10.0.0.2')
-    ).toBe('http://10.0.0.2:8080')
-  })
-
-  it('brackets an IPv6 host', () => {
-    expect(buildPublishedPortUrl({ privatePort: 80, publicPort: 8080, protocol: 'tcp' }, 'fd00::2')).toBe(
-      'http://[fd00::2]:8080'
-    )
-  })
-
-  it.each([
-    ['unpublished', { privatePort: 80, protocol: 'tcp' }],
-    ['bound to the loopback', { privatePort: 80, publicPort: 9090, protocol: 'tcp', ip: '127.0.0.1' }],
-    ['bound to the IPv6 loopback', { privatePort: 80, publicPort: 9090, protocol: 'tcp', ip: '::1' }],
-    ['UDP', { privatePort: 53, publicPort: 5353, protocol: 'udp' }],
-  ])('returns undefined for a port %s', (_, port) => {
-    expect(buildPublishedPortUrl(port, '10.0.0.2')).toBeUndefined()
-  })
-
-  it('returns undefined without host', () => {
-    expect(buildPublishedPortUrl({ privatePort: 80, publicPort: 8080, protocol: 'tcp' }, undefined)).toBeUndefined()
-  })
-})
-
 describe('getContainerActions', () => {
   it.each([
     ['running', ['restart', 'pause', 'stop'], false],
@@ -154,7 +126,7 @@ describe('getHostKeyErrorData', () => {
   it('extracts the fingerprint of an unknown host key', () => {
     expect(
       getHostKeyErrorData(conflict({ code: 'HOST_KEY_UNKNOWN', fingerprint: 'SHA256:abc', algorithm: 'ssh-ed25519' }))
-    ).toEqual({ code: 'HOST_KEY_UNKNOWN', fingerprint: 'SHA256:abc', algorithm: 'ssh-ed25519' })
+    ).toEqual({ code: 'HOST_KEY_UNKNOWN', fingerprint: 'SHA256:abc' })
   })
 
   it('extracts both fingerprints of a mismatching host key', () => {
@@ -266,10 +238,20 @@ describe('getPublishedPortToOpen', () => {
     ).toBeUndefined()
   })
 
-  it('offers nothing for a port bound to the loopback interface of the guest', () => {
+  it('brackets an IPv6 host', () => {
+    expect(getPublishedPortToOpen([{ privatePort: 80, publicPort: 8080, protocol: 'tcp' }], 'fd00::2')?.url).toBe(
+      'http://[fd00::2]:8080'
+    )
+  })
+
+  it.each(['127.0.0.1', '::1'])('offers nothing for a port bound to the loopback interface %s of the guest', ip => {
     expect(
-      getPublishedPortToOpen([{ ip: '127.0.0.1', privatePort: 80, publicPort: 9090, protocol: 'tcp' }], '10.0.0.5')
+      getPublishedPortToOpen([{ ip, privatePort: 80, publicPort: 9090, protocol: 'tcp' }], '10.0.0.5')
     ).toBeUndefined()
+  })
+
+  it('offers nothing for a UDP port', () => {
+    expect(getPublishedPortToOpen([{ privatePort: 53, publicPort: 5353, protocol: 'udp' }], '10.0.0.5')).toBeUndefined()
   })
 
   it('offers nothing without published port or without address', () => {
