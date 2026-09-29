@@ -6,7 +6,6 @@ import {
 } from '@core/packages/remote-resource/sse.store.ts'
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
 import type { VoidFunction } from '@core/types/utility.type.ts'
-import { ifElse } from '@core/utils/if-else.utils.ts'
 import { noop, useDebounceFn, useTimeoutPoll } from '@vueuse/core'
 import { merge, remove } from 'lodash-es'
 import readNDJSONStream from 'ndjson-readablestream'
@@ -438,21 +437,37 @@ export function defineRemoteResource<
   }
 
   function initializeUrl(url: ComputedRef<string>, context: ResourceContext<TArgs>) {
+    let subscribedUrl: string | undefined
+
     watch(
-      url,
-      (toUrl, fromUrl) => {
-        registerUrl(toUrl, context)
+      [url, context.isEnabled],
+      ([currentUrl, isEnabled]) => {
+        registerUrl(currentUrl, context)
 
-        if (context.isEnabled.value) {
-          subscribeToUrl(toUrl)
+        const targetUrl = isEnabled ? currentUrl : undefined
+
+        if (targetUrl === subscribedUrl) {
+          return
         }
 
-        if (fromUrl) {
-          unsubscribeFromUrl(fromUrl)
+        if (targetUrl !== undefined) {
+          subscribeToUrl(targetUrl)
         }
+
+        if (subscribedUrl !== undefined) {
+          unsubscribeFromUrl(subscribedUrl)
+        }
+
+        subscribedUrl = targetUrl
       },
       { immediate: true }
     )
+
+    onScopeDispose(() => {
+      if (subscribedUrl !== undefined) {
+        unsubscribeFromUrl(subscribedUrl)
+      }
+    })
   }
 
   return function useRemoteResource(
@@ -476,10 +491,6 @@ export function defineRemoteResource<
     return scope.run(() => {
       const url = computed(() => buildUrl(...(args.map(arg => toValue(arg)) as TArgs)))
 
-      onScopeDispose(() => {
-        unsubscribeFromUrl(url.value)
-      })
-
       const context: ResourceContext<TArgs> = {
         scope,
         args,
@@ -502,12 +513,6 @@ export function defineRemoteResource<
       initializeUrl(url, context)
 
       const state = reactive({} as TState)
-
-      ifElse(
-        isEnabled,
-        () => subscribeToUrl(url.value),
-        () => unsubscribeFromUrl(url.value)
-      )
 
       watch(
         url,
