@@ -1,13 +1,13 @@
 <template>
   <VtsLayoutSidebar class="pool-tree-sidebar">
     <template #subheader>
-      <SidebarSearch v-model="filter" />
+      <VtsTreeSearch v-model="filter" />
     </template>
     <VtsTreeList v-if="hasError">
       <VtsTreeItemError>{{ t('error-no-data') }}</VtsTreeItemError>
     </VtsTreeList>
     <VtsTreeList v-else-if="!isReady">
-      <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="object:pool" />
+      <VtsTreeLoadingItem icon="object:pool" />
     </VtsTreeList>
     <VtsStateHero v-else-if="isSearching" class="loader" format="card" size="medium" type="busy" />
     <VtsStateHero v-else-if="treeItems.length === 0" format="card" size="medium" type="no-result">
@@ -20,12 +20,12 @@
 <script lang="ts" setup>
 import { usePoolTree } from '@/modules/pool/composables/pool-tree.composable.ts'
 import PoolTreeList from '@/modules/treeview/components/PoolTreeList.vue'
-import SidebarSearch from '@/modules/treeview/components/SidebarSearch.vue'
 import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsTreeItemError from '@core/components/tree/VtsTreeItemError.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
+import VtsTreeSearch from '@core/components/tree/VtsTreeSearch.vue'
 import { computed, nextTick, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
