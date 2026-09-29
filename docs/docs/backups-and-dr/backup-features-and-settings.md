@@ -516,16 +516,17 @@ How it works:
 - **Without ufw.** If iptables is not installed, if ufw is not enabled, or if Xen Orchestra does not run as root (XOA and the proxies do), no rule is added and the live mount goes on as usual: any other firewall must let the hosts in. When not running as root, a warning is logged for each mount, since ufw may be enabled and block the hosts.
 - **Only ufw** is supported: any other value than `'ufw'` or `false` makes live mounts fail with `unsupported iscsi.manageFirewall`.
 
-**What happens if ufw is reloaded or restarted** (`ufw reload`, `ufw disable` then `ufw enable`, restarting the ufw service):
+**What happens if ufw is changed** (`ufw allow`, `ufw delete`, `ufw reload`, `ufw disable` then `ufw enable`, restarting the ufw service):
 
-- ufw rebuilds its rules and **drops those added by Xen Orchestra**.
+- ufw rebuilds its rules and **drops those added by Xen Orchestra**. XOA and the proxies are appliances: their firewall is not meant to be changed by hand while disks are live mounted.
 - A disk in use keeps working, since ufw still accepts established connections. But the next time the host has to connect again (network outage, host reboot, SR unplugged then plugged again), the connection is blocked and the VM gets I/O errors on that disk.
-- The rules are not added back automatically. To be safe, [release](#release-live-mount) the mounts and live mount the disks again. Releasing a mount whose rule was already dropped works as usual.
+- The rules are not added back automatically. To be safe, [release](#release-live-mount) the mounts and live mount the disks again. Releasing a mount whose rule was already dropped works as usual, and logs a warning.
+- Disks live mounted after the change are not affected: their rules are added as usual.
 
 **What happens if Xen Orchestra crashes** (process killed, appliance lost power):
 
 - Its rules can stay in the firewall. Nothing listens on their ports anymore, so a host trying to connect gets refused.
-- They are removed the **next time Xen Orchestra starts**, or when the appliance reboots, whichever comes first.
+- They are removed the **next time Xen Orchestra starts**, or when the appliance reboots, whichever comes first. Xen Orchestra and a proxy running on the same machine only remove their own rules.
 - If you set `manageFirewall = false` before restarting, Xen Orchestra no longer removes them. List them with the command above, then delete each one with `iptables -D`, followed by the rule as listed without its leading `-A`.
 - As with any crash, the `[XO backup] <VM name>` SR also stays behind (see **Temporary** above).
 
