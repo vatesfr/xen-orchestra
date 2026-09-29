@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [Backup/Restore] Backup repositories attached to a proxy now also benefit from the faster, journal-replayed backup listing (PR [#10437](https://github.com/vatesfr/xen-orchestra/pull/10437))
+- [REST API] SSE now supports the `backup-archive` collection: backups appearing, being merged or disappearing from a backup repository are pushed to the subscribers, instead of each client listing the repositories again to spot them. XO does not read a repository on its own, so the changes of a repository are pushed as it is listed — a listing by any client is enough — and the archives it already holds arrive as `add` events the first time it is listed after a restart (PR [#XXXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXXX))
 
 ### Bug fixes
 
@@ -37,9 +38,10 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
-- @xen-orchestra/rest-api patch
+- @xen-orchestra/rest-api minor
 - xen-api patch
 - xo-server minor
 
