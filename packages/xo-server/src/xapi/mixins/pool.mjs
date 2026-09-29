@@ -5,7 +5,7 @@ import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { incorrectState } from 'xo-common/api-errors.js'
 import { isHostRunning } from '../utils.mjs'
-import { noopRpuRecorder } from '../../_rpuRecovery.mjs'
+import { noopRpuRecorder, noRpuResume } from '../../_rpuRecovery.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import filter from 'lodash/filter.js'
@@ -47,14 +47,28 @@ const methods = {
     })
   },
 
+  // `resume` continues a previous attempt of the same run, see `planRpuResume`
   async rollingPoolReboot(
     $defer,
     parentTask,
-    { beforeEvacuateVms, beforeRebootHost, ignoreHost, shutdownPinnedVms = false, recorder = noopRpuRecorder } = {}
+    {
+      beforeEvacuateVms,
+      beforeRebootHost,
+      ignoreHost,
+      shutdownPinnedVms = false,
+      recorder = noopRpuRecorder,
+      resume = noRpuResume,
+    } = {}
   ) {
     // migrating the VMs back to their host doubles the migrations of the run: a
     // pool can opt out of that phase by setting this key to `false`
     const migrateVmsBack = this.pool.other_config['xo:rpuMigrateVmsBack'] !== 'false'
+
+    // a host done by a previous attempt is neither evacuated nor rebooted
+    // again, but its VMs still have to come back to it
+    const isDone = host => resume.doneHostIds.has(host.uuid)
+    const skipHost = host => isDone(host) || (ignoreHost?.(host) ?? false)
+    const skipMigrateBack = host => !isDone(host) && (ignoreHost?.(host) ?? false)
 
     if (this.pool.ha_enabled) {
       const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
@@ -72,6 +86,9 @@ const methods = {
     }
 
     const hosts = filter(this.objects.all, { $type: 'host' })
+    // same order as the previous attempt, the hosts it did not know last
+    const rank = new Map(resume.hostOrder.map((hostId, i) => [hostId, i]))
+    hosts.sort((a, b) => (rank.get(a.uuid) ?? hosts.length) - (rank.get(b.uuid) ?? hosts.length))
 
     {
       const deadHost = hosts.find(_ => !isHostRunning(_))
@@ -93,10 +110,14 @@ const methods = {
     //
     // this check requires HA to be already disabled: with HA enabled, XAPI
     // reports every non-protected VM as an evacuation blocker
+    //
+    // once a previous attempt started handling the hosts, one it disabled
+    // makes the pool look short of memory: only the pinned VMs are collected
+    // here, the full precondition is checked right before each evacuation
     const unhandledPinnedVmUuids = []
     await Promise.all(
       hosts
-        .filter(host => !ignoreHost || !ignoreHost(host))
+        .filter(host => !skipHost(host))
         .map(async host => {
           const blockedVms = await host.$call('get_vms_which_prevent_evacuation')
           const vmRefs = Object.keys(blockedVms)
@@ -107,13 +128,17 @@ const methods = {
           const canHandleAllBlockers = Object.values(blockedVms).every(([errorCode]) =>
             PINNED_VM_ERROR_CODES.has(errorCode)
           )
-          if (!canHandleAllBlockers) {
+          if (!canHandleAllBlockers && !resume.hostsStarted) {
             // let XAPI raise its canonical CANNOT_EVACUATE_HOST error
             return host.$call('assert_can_evacuate')
           }
 
           if (!shutdownPinnedVms) {
-            unhandledPinnedVmUuids.push(...vmRefs.map(vmRef => this.getObject(vmRef).uuid))
+            unhandledPinnedVmUuids.push(
+              ...vmRefs
+                .filter(vmRef => PINNED_VM_ERROR_CODES.has(blockedVms[vmRef][0]))
+                .map(vmRef => this.getObject(vmRef).uuid)
+            )
           }
         })
     )
@@ -131,6 +156,14 @@ const methods = {
     // VMs shut down for their host's reboot and not started again yet: if the
     // run aborts, leave them running rather than halted
     const haltedPinnedVms = new Map() // VM ref -> host ref
+    // including the ones the previous attempt did not start again
+    for (const [vmId, hostId] of Object.entries(resume.haltedPinnedVms)) {
+      const vm = this.getObject(vmId, undefined)
+      const host = this.getObject(hostId, undefined)
+      if (vm?.power_state === 'Halted' && host !== undefined) {
+        haltedPinnedVms.set(vm.$ref, host.$ref)
+      }
+    }
     $defer(async () => {
       for (const [vmRef, hostRef] of haltedPinnedVms) {
         try {
@@ -162,7 +195,6 @@ const methods = {
     // Remember on which hosts the running VMs are: to migrate them back after
     // the reboots, and for the recovery record (not reconstructible once the
     // evacuations have started)
-    const vmRefsByHost = {}
     const vmHomeById = {}
     for (const vm of filter(this.objects.all, { $type: 'VM', power_state: 'Running', is_control_domain: false })) {
       const hostId = vm.$resident_on?.$id
@@ -171,8 +203,17 @@ const methods = {
         throw new Error('Could not find host of all running VMs')
       }
 
-      ;(vmRefsByHost[hostId] ??= []).push(vm.$ref)
       vmHomeById[vm.uuid] = hostId
+    }
+    // on resume, the VMs go back where they were before the first attempt, the
+    // current placement only covers the VMs unknown to the record
+    Object.assign(vmHomeById, resume.vmHomeById)
+    const vmRefsByHost = {}
+    for (const [vmId, hostId] of Object.entries(vmHomeById)) {
+      const vm = this.getObject(vmId, undefined)
+      if (vm?.power_state === 'Running') {
+        ;(vmRefsByHost[hostId] ??= []).push(vm.$ref)
+      }
     }
 
     // Put master in first position to restart it first
@@ -197,7 +238,7 @@ const methods = {
         const hostId = host.uuid
         const hostName = host.name_label
 
-        if (!ignoreHost || !ignoreHost(host)) {
+        if (!skipHost(host)) {
           // live values right before the run touches the host, `hosts` is a
           // snapshot from the start of the run: after a crash, comparing
           // agent_start_time to the current value tells whether this host
@@ -360,7 +401,10 @@ const methods = {
             throw error
           })
         } else {
-          recorder.hostSkipped(hostId)
+          // a done host keeps the steps of the attempt that handled it
+          if (!isDone(host)) {
+            recorder.hostSkipped(hostId)
+          }
           rprProgress += progressStepPerHost * nStepsSubtask
           setProgress(parentTask, rprProgress)
           subtaskProgress += subtaskProgressStep * nStepsSubtask
@@ -377,7 +421,7 @@ const methods = {
       await this._migrateVmsBack(
         hosts,
         vmRefsByHost,
-        ignoreHost,
+        skipMigrateBack,
         () => {
           rprProgress += progressStepPerHost
           setProgress(parentTask, rprProgress)

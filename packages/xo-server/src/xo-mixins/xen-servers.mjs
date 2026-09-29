@@ -55,6 +55,7 @@ export default class XenServers {
     this._stats = new XapiStats()
     this._xapis = { __proto__: null }
     this._app = app
+    this._pendingRpuLoadBalancerReEnables = 0
 
     app.config.watchDuration('xapiMarkDisconnectedDelay', xapiMarkDisconnectedDelay => {
       this._xapiMarkDisconnectedDelay = xapiMarkDisconnectedDelay
@@ -922,6 +923,7 @@ export default class XenServers {
       poolId,
       poolName: pool.name_label,
     })
+    this._pendingRpuLoadBalancerReEnables++
     task
       .run(async () => {
         await pDelay(reEnableDelay).unref()
@@ -930,6 +932,19 @@ export default class XenServers {
       .catch(error => {
         log.warn('failed to re-enable the load balancer after a rolling pool update', { error, poolId })
       })
+      .finally(() => {
+        this._pendingRpuLoadBalancerReEnables--
+      })
+  }
+
+  /**
+   * Whether the load balancer plugin, unloaded by a rolling pool update, is waiting for `loadBalancerReEnableDelay`
+   * before being loaded again: xo-server restores it by itself, it is not a setting a run left changed.
+   *
+   * @returns {boolean}
+   */
+  isRpuLoadBalancerReEnablePending() {
+    return this._pendingRpuLoadBalancerReEnables > 0
   }
 
   async _suspendRpuLoadBalancer($defer, pool, recorder) {
@@ -1009,6 +1024,64 @@ export default class XenServers {
         })
       : noopRpuRecorder
 
+    return this._runRollingPoolUpdate($defer, pool, {
+      jobs,
+      options: { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms },
+      parentTask,
+      recorder,
+      schedules,
+    })
+  }
+
+  /**
+   * Resumes the failed or interrupted rolling pool update of the pool: same run, only the hosts with remaining work
+   * are handled, then the VMs go back to the host they were on before the first attempt.
+   *
+   * @param {Function} $defer - Injected by the `defer` decorator
+   * @param {object} pool - XO pool object
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassBackupCheck] - Skip the backup guard, the bypass is logged. Not taken from the
+   *   previous attempts: asked again on each resume
+   * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
+   * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool, or a rolling pool update or reboot
+   *   runs on the pool
+   * @throws {Error} `noSuchObject` if the pool has no recovery record
+   * @throws {Error} `incorrectState` (property `status`) if the run is neither failed nor interrupted, (property
+   *   `resumableStep`) if a host stopped past its evacuation
+   */
+  async resumeRollingPoolUpdate($defer, pool, { bypassBackupCheck = false, parentTask } = {}) {
+    const app = this._app
+    const poolId = pool.id
+    await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
+    await app.backupGuard(poolId, { bypassBackupCheck, operation: 'resumeRollingPoolUpdate' })
+    const [schedules, jobs] = await Promise.all([app.getAllSchedules(), app.getAllJobs('backup')])
+
+    $defer(acquireRpuGuard(poolId, 'resumeRollingPoolUpdate'))
+
+    const { recorder, options, resume, leftoverSettings } = await app.resumeRpuRecoveryRun(pool)
+    return this._runRollingPoolUpdate($defer, pool, {
+      jobs,
+      leftoverSettings,
+      // a resume is the explicit acceptance of the state its run left
+      options: { ...options, acceptCurrentStateAsBaseline: true },
+      parentTask,
+      recorder,
+      resume,
+      schedules,
+    })
+  }
+
+  // the part of a run shared by a rolling pool update and its resumes, once the
+  // recovery record is ready
+  async _runRollingPoolUpdate(
+    $defer,
+    pool,
+    { jobs, leftoverSettings = [], options, parentTask, recorder, resume, schedules }
+  ) {
+    const app = this._app
+    const poolId = pool.id
+    const { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms } = options
+
     // a failure before the first host was handled leaves nothing to recover
     // once the restorations deferred below (schedules, load balancer, WLB)
     // have run: registered before them, this runs after them
@@ -1083,6 +1156,7 @@ export default class XenServers {
         poolName: pool.name_label,
         progress: 0,
         type: 'pool.rolling_update',
+        ...(recorder.runId !== undefined && { runId: recorder.runId, attempt: recorder.attempt }),
         ...(trace !== undefined && { traceFile: trace.traceFile }),
       }
       const task = parentTask === undefined ? app.tasks.create(properties) : new Task({ properties })
@@ -1095,6 +1169,7 @@ export default class XenServers {
           rebootVm,
           shutdownPinnedVms,
           recorder,
+          resume,
         })
       )
     } catch (error) {
@@ -1105,9 +1180,15 @@ export default class XenServers {
     // a successful run needs no recovery: the record must be gone. If the
     // delete fails, the recorder has stamped the record `succeeded` so the
     // run is not reported as interrupted at the next restart; a stale record
-    // must not fail an RPU that succeeded: log it
+    // must not fail an RPU that succeeded: log it. A resume that found
+    // settings left changed by an interrupted attempt keeps the record, so
+    // Finalize lists them
     try {
-      await recorder.delete()
+      if (leftoverSettings.length > 0) {
+        await recorder.markSucceeded()
+      } else {
+        await recorder.delete()
+      }
     } catch (error) {
       log.warn('failed to delete the recovery record after a successful rolling pool update', { error, poolId })
     }
@@ -1121,5 +1202,6 @@ decorateClass(XenServers, {
       return [this]
     },
   ],
+  resumeRollingPoolUpdate: defer,
   rollingPoolUpdate: defer,
 })

@@ -143,7 +143,8 @@ export type PoolRollingUpdateRecoveryError = {
 }
 
 export type PoolRollingUpdateRecoveryHost = {
-  status: 'pending' | 'running' | 'succeeded' | 'failed' | 'not-needed'
+  /** `interrupted`: left in progress by a run that is over */
+  status: 'pending' | 'running' | 'interrupted' | 'succeeded' | 'failed' | 'not-needed'
   steps: Record<RPU_RECOVERY_STEP_NAME, PoolRollingUpdateRecoveryStep>
   lastError: PoolRollingUpdateRecoveryError | null
 }
@@ -158,6 +159,10 @@ export type PoolRollingUpdateRecoveryRun = {
   interruptedAt?: string
   taskId?: string
   variant?: 'xcp' | 'xs-cdn'
+  /** 1 for the first attempt, incremented by each resume of the run */
+  attempt?: number
+  /** whether a resume would be accepted: run failed or interrupted, and no host stopped after its evacuation */
+  resumable?: boolean
   hostOrder?: string[]
   hosts: Record<string, PoolRollingUpdateRecoveryHost>
   lastError: PoolRollingUpdateRecoveryError | null
@@ -466,6 +471,7 @@ export type XoApp = {
   ): Promise<void>
   getRollingUpdateRecovery(poolId: XoPool['id']): Promise<PoolRollingUpdateRecovery | undefined>
   finalizeRollingUpdate(pool: XoPool, opts?: { force?: boolean; parentTask?: VatesTask }): Promise<void>
+  resumeRollingPoolUpdate(pool: XoPool, opts?: { bypassBackupCheck?: boolean; parentTask?: VatesTask }): Promise<void>
   setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
   shareVmResourceSet(vmId: XoVm['id']): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>

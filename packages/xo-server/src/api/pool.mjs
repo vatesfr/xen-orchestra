@@ -329,6 +329,27 @@ finalizeRollingUpdate.description =
 
 // -------------------------------------------------------------------
 
+export async function resumeRollingUpdate({ bypassBackupCheck, pool }) {
+  await this.resumeRollingPoolUpdate(pool, { bypassBackupCheck })
+}
+
+resumeRollingUpdate.params = {
+  bypassBackupCheck: {
+    optional: true,
+    type: 'boolean',
+  },
+  pool: { type: 'string' },
+}
+
+resumeRollingUpdate.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
+
+resumeRollingUpdate.description =
+  'Resume a failed or interrupted rolling pool update: only the hosts with remaining work are handled'
+
+// -------------------------------------------------------------------
+
 export async function rollingReboot({ bypassBackupCheck, pool, shutdownPinnedVms }) {
   await this.rollingPoolReboot(pool, { bypassBackupCheck, shutdownPinnedVms })
 }
