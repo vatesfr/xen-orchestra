@@ -20,6 +20,7 @@
 - [Backup/Restore] When ufw is enabled, as on XOA and proxies, live mount opens its iSCSI port in it, for the host the disk is attached to and while it is mounted (`iscsi.manageFirewall = false` to turn it off) (PR [#10468](https://github.com/vatesfr/xen-orchestra/pull/10468))
 - [XO6/BRs] Add backup repository list page (PR [#10247](https://github.com/vatesfr/xen-orchestra/pull/10247))
 - [XO5/XO Config Cloud Backup] Require an acknowledgment to enable and warn about backup deletion when disabling (PR [#10457](https://github.com/vatesfr/xen-orchestra/pull/10457))
+- [XO6/Pool] Add validation to the pool connection form (PR [#10484](https://github.com/vatesfr/xen-orchestra/pull/10484))
 
 ### Bug fixes
 
@@ -32,7 +33,7 @@
 - [Backups] Fix backup logs transfer size including health check restores and every backup target, which made it much bigger than in XO5 [Forum#12486](https://xcp-ng.org/forum/topic/12486) (PR [#10448](https://github.com/vatesfr/xen-orchestra/pull/10448))
 - [Network] Fix reactivity of PIF metrics (e.g. `carrier`) (PR [#10438](https://github.com/vatesfr/xen-orchestra/pull/10438))
 - [Host] Disable restart toolstack for HA enabled Pools (PR [#10344](https://github.com/vatesfr/xen-orchestra/pull/10344))
-
+- [XO6/Pool] Display an error when connecting a pool that is already registered, instead of failing silently (PR [#10484](https://github.com/vatesfr/xen-orchestra/pull/10484))
 
 ### Packages to release
 
