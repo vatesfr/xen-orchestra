@@ -1,7 +1,7 @@
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { useRouteQuery } from '@vueuse/router'
 import { parse } from 'complex-matcher'
-import { computed, type ComputedRef, type MaybeRefOrGetter, type Ref } from 'vue'
+import { computed, type ComputedRef, type MaybeRefOrGetter, ref, type Ref } from 'vue'
 
 export type UseQueryBuilderFilterReturn<TSource> = {
   items: ComputedRef<TSource[]>
@@ -11,9 +11,11 @@ export type UseQueryBuilderFilterReturn<TSource> = {
 export function useQueryBuilderFilter<TSource>(
   id: string,
   sourcesRaw: MaybeRefOrGetter<TSource[]>,
-  options?: { initialFilter?: string }
+  options?: { initialFilter?: string; ignoreRoute?: boolean }
 ): UseQueryBuilderFilterReturn<TSource> {
-  const filter = useRouteQuery(`qb.${id}`, options?.initialFilter ?? '')
+  const initialFilter = options?.initialFilter ?? ''
+
+  const filter = options?.ignoreRoute ? ref(initialFilter) : useRouteQuery(`qb.${id}`, initialFilter)
 
   const sources = toComputed(sourcesRaw)
 
