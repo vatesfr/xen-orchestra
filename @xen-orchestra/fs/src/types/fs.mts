@@ -121,6 +121,7 @@ export abstract class RemoteHandlerAbstract {
   abstract get encryptionAlgorithm(): string
   abstract sync(): Promise<void>
   abstract forget(): Promise<void>
+  abstract link(existingPath: string, newPath: string): Promise<void>
   abstract list(dir: string, options?: ListOptions): Promise<string[]>
   abstract mkdir(dir: string, options?: MkdirOptions): Promise<void>
   abstract mktree(dir: string, options?: MkdirOptions): Promise<void>

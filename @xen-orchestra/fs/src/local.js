@@ -134,6 +134,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return stats.size
   }
 
+  async _link(existingPath, newPath) {
+    return this.#addSyncStackTrace(fs.link, this.getFilePath(existingPath), this.getFilePath(newPath))
+  }
+
   async _list(dir) {
     return this.#addSyncStackTrace(fs.readdir, this.getFilePath(dir))
   }

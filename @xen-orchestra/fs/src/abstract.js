@@ -34,6 +34,7 @@ const WITH_LIMIT = [
   'copy',
   'getInfo',
   'getSizeOnDisk',
+  'link',
   'list',
   'mkdir',
   'openFile',
@@ -53,6 +54,7 @@ const WITH_RETRY = {
   _copy: {},
   _getInfo: {},
   _getSize: {},
+  _link: {},
   _list: {},
   _mkdir: {},
   _openFile: {},
@@ -79,6 +81,7 @@ const WITH_TIMEOUT = [
   '_createReadStream',
   '_getInfo',
   '_getSize',
+  '_link',
   '_list',
   '_rename',
   '_copy',
@@ -121,6 +124,10 @@ class PrefixWrapper {
       })
     }
     return entries
+  }
+
+  async link(existingPath, newPath) {
+    return this._handler.link(this._resolve(existingPath), this._resolve(newPath))
   }
 
   rename(oldPath, newPath) {
@@ -169,7 +176,17 @@ export default class RemoteHandlerAbstract {
   }
 
   _conditionRetry(error) {
-    return !['EEXIST', 'EISDIR', 'ENOTEMPTY', 'ENOENT', 'ENOTDIR', 'SystemInUse', 'ERR_ASSERTION'].includes(error?.code)
+    return ![
+      'EEXIST',
+      'EISDIR',
+      'ENOTEMPTY',
+      'ENOENT',
+      'ENOTDIR',
+      'ENOTSUP',
+      'EPERM',
+      'SystemInUse',
+      'ERR_ASSERTION',
+    ].includes(error?.code)
   }
 
   #applySafeGuards(options) {
@@ -347,6 +364,23 @@ export default class RemoteHandlerAbstract {
 
   async getSizeOnDisk(file) {
     return this._getSize(typeof file === 'string' ? normalizePath(file) : file)
+  }
+
+  async #link(existingPath, newPath, createTree = true) {
+    try {
+      await this._link(existingPath, newPath)
+    } catch (error) {
+      // ENOENT can be a missing target directory OR a missing source
+      if (error.code === 'ENOENT' && createTree) {
+        await this._mktree(dirname(newPath))
+        return this.#link(existingPath, newPath, false)
+      }
+      throw error
+    }
+  }
+
+  async __link(existingPath, newPath) {
+    return this.#link(normalizePath(existingPath), normalizePath(newPath))
   }
 
   async __list(dir, { filter, ignoreMissing = false, prependDir = false } = {}) {
@@ -646,6 +680,10 @@ export default class RemoteHandlerAbstract {
   }
 
   async _getSize(file) {
+    throw new Error('Not implemented')
+  }
+
+  async _link(existingPath, newPath) {
     throw new Error('Not implemented')
   }
 
