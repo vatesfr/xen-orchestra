@@ -26,7 +26,7 @@
               @click="open($event)"
             />
           </template>
-          <HostTreeActions :host="branch.data" />
+          <HostMoreActions :host="branch.data" show-change-state-button />
         </MenuList>
       </template>
     </UiTreeItemLabel>
@@ -34,7 +34,7 @@
 </template>
 
 <script lang="ts" setup>
-import HostTreeActions from '@/modules/host/components/actions/HostTreeActions.vue'
+import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
 import type { HostBranch } from '@/modules/treeview/types/tree.type.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
