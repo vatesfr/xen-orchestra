@@ -1,7 +1,7 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
+import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
-import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column.ts'
 import { useStatusColumn } from '@core/tables/column-definitions/status-column.ts'
 import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
@@ -18,6 +18,6 @@ export const useClusterColumns = defineColumns(() => {
     workerNodes: useNumberColumn({ headerLabel: () => t('worker-replicas') }),
     /* pods: useNumberColumn({ headerLabel: () => t('pods') }), */
     tags: useTagColumn({ headerLabel: () => t('tags') }),
-    selectItem: useSelectItemColumn(),
+    actions: useActionColumn({}),
   }
 })
