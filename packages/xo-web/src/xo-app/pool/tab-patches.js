@@ -1,4 +1,5 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import Icon from 'icon'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
@@ -12,6 +13,7 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 import { getXoaPlan, ENTERPRISE } from 'xoa-plans'
 import { renderXoItemFromId } from 'render-xo-item'
 import {
+  finalizeRollingPoolUpdate,
   installAllPatchesOnPool,
   installPatches,
   isSrShared,
@@ -139,16 +141,22 @@ const INDIVIDUAL_ACTIONS_XCP = [
   },
 ]
 
-// an incomplete update only warrants a warning in these statuses: live
-// statuses mean a run is in progress, absence of record means nothing to do
-const RPU_RECOVERY_VISIBLE_STATUSES = ['blocked', 'failed', 'interrupted']
+// a record only warrants a warning in these statuses: live statuses mean a
+// run is in progress, absence of record means nothing to do
+const RPU_RECOVERY_MESSAGES = {
+  blocked: 'rpuRecoveryBlocked',
+  failed: 'rpuRecoveryFailed',
+  interrupted: 'rpuRecoveryInterrupted',
+  succeeded: 'rpuRecoverySucceeded',
+}
 
-const RpuRecoveryBanner = ({ recovery }) => {
-  if (recovery == null || !RPU_RECOVERY_VISIBLE_STATUSES.includes(recovery.status)) {
+const RpuRecoveryBanner = ({ poolId, recovery }) => {
+  const message = RPU_RECOVERY_MESSAGES[recovery?.status]
+  if (message === undefined) {
     return null
   }
 
-  const { blockedReason, hostOrder = [], hosts = {}, haltedPinnedVms = {}, lastError, status } = recovery
+  const { blockedReason, hostOrder = [], hosts = {}, haltedPinnedVms = {}, lastError } = recovery
   const haltedVmIds = Object.keys(haltedPinnedVms)
 
   return (
@@ -158,13 +166,7 @@ const RpuRecoveryBanner = ({ recovery }) => {
           <h4>
             <Icon icon='alarm' /> {_('rpuRecoveryIncompleteTitle')}
           </h4>
-          <p>
-            {status === 'interrupted'
-              ? _('rpuRecoveryInterrupted')
-              : status === 'failed'
-                ? _('rpuRecoveryFailed')
-                : _('rpuRecoveryBlocked')}
-          </p>
+          <p>{_(message)}</p>
           {blockedReason !== undefined && <p>{blockedReason}</p>}
           {hostOrder.length > 0 && (
             <ul>
@@ -190,6 +192,14 @@ const RpuRecoveryBanner = ({ recovery }) => {
               </ul>
             </div>
           )}
+          <ActionButton
+            btnStyle='warning'
+            handler={finalizeRollingPoolUpdate}
+            handlerParam={poolId}
+            icon='pool-rolling-update'
+          >
+            {_('rpuRecoveryFinalize')}
+          </ActionButton>
         </div>
       </Col>
     </Row>
@@ -315,17 +325,21 @@ export default class TabPatches extends Component {
     // xo-server refuses a new run as long as the previous one left a record
     const hasIncompleteRun = rollingUpdateRecovery != null
 
+    // with recovery, xo-server updates each host from its own missing patches;
+    // older XenServer and CH install the master's missing patches pool-wide
+    const supportsRpuRecovery = productBrand === 'XCP-ng' || _isXsHostWithCdnPatches
+
     return (
       <Upgrade place='poolPatches' required={2}>
         <Container>
-          <RpuRecoveryBanner recovery={rollingUpdateRecovery} />
+          <RpuRecoveryBanner poolId={pool.id} recovery={rollingUpdateRecovery} />
           <Row>
             <Col className='text-xs-right'>
               {ROLLING_POOL_UPDATES_AVAILABLE && (
                 <TabButton
                   btnStyle='primary'
                   disabled={
-                    !some(hasMissingPatchesByHost) ||
+                    (supportsRpuRecovery ? !some(hasMissingPatchesByHost) : isEmpty(missingPatches)) ||
                     hasMultipleVmsRunningOnLocalStorage ||
                     isSingleHost ||
                     hasIncompleteRun

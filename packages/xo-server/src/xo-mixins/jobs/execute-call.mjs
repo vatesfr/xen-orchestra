@@ -8,6 +8,7 @@ import { timeout } from 'promise-toolbox'
 
 import { crossProduct } from '../../math.mjs'
 import { serializeError, thunkToArray } from '../../utils.mjs'
+import validateJobUser from './validate-job-user.mjs'
 
 // ===================================================================
 
@@ -71,7 +72,9 @@ export default async function executeJobCall({ app, job, logger, runJobId, sched
       params,
       start: Date.now(),
     })
-    let promise = app.callApiMethod(connection, job.method, Object.assign({}, params))
+    let promise = validateJobUser(app, job).then(() =>
+      app.callApiMethod(connection, job.method, Object.assign({}, params))
+    )
     if (job.timeout) {
       promise = promise::timeout(job.timeout)
     }

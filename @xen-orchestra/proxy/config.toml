@@ -44,6 +44,20 @@ cert = '/var/lib/xo-proxy/certificate.pem'
 key = '/var/lib/xo-proxy/key.pem'
 port = 443
 
+[iscsi]
+# Address this proxy is reachable at *from the hosts*: it is handed to them as
+# the iSCSI portal when a disk of one of its backup repositories is live
+# mounted, so a value they cannot reach makes the mount fail.
+#
+# When unset, it is auto-detected per mount (the local address the OS would
+# route through to reach the target host) — usually correct, but not
+# guaranteed if this proxy is behind NAT or asymmetric routing. Set this
+# explicitly if mounts fail to connect despite auto-detection.
+#advertisedAddress = '192.168.0.1'
+
+# Address the iSCSI targets bind to. Unset means all interfaces.
+#bindAddress = '0.0.0.0'
+
 [logs]
 # Display all logs matching this filter, regardless of their level
 #filter = 'xo:backups:*'

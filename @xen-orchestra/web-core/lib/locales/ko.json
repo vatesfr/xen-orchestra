@@ -102,7 +102,6 @@
   "action:start-on-host": "특정 호스트에서 시작",
   "action:suspend": "일시 중지",
   "action:turn-into-group": "그룹으로 만들기",
-  "action:unselect-all": "모두 선택 해제",
   "action:update": "업데이트",
   "action:use-query-builder": "쿼리 빌더 사용",
   "action:visit-pool-dashboard": "풀 대시보드로 이동",

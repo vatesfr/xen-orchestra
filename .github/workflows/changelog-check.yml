@@ -10,6 +10,8 @@ on:
 
 jobs:
   changed-packages:
+    # the release PR bumps every listed package and empties the list
+    if: github.head_ref != 'release'
     runs-on: ubuntu-latest
     steps:
       # https://github.com/actions/checkout

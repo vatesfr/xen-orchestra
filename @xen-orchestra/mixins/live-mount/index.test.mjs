@@ -305,7 +305,7 @@ describe('unmountDisk', () => {
 
   it('rejects an unknown mount', async () => {
     const { mixin } = makeMixin()
-    await assert.rejects(mixin.unmountDisk('nope'), /no such live mount nope/)
+    await assert.rejects(mixin.unmountDisk('nope'), { code: 1, data: { id: 'nope', type: 'live-mount' } })
   })
 })
 

@@ -3,6 +3,7 @@
   <li class="menu-item">
     <MenuTrigger
       v-if="!$slots.submenu"
+      :accent
       :active="isBusy"
       :busy="isBusy"
       :disabled="isDisabled"
@@ -15,6 +16,7 @@
     <MenuList v-else :disabled="isDisabled">
       <template #trigger="{ open, isOpen }">
         <MenuTrigger
+          :accent
           :active="isOpen"
           :busy="isBusy"
           :disabled="isDisabled"
@@ -40,23 +42,26 @@ import type { IconName } from '@core/icons'
 import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util.ts'
 import { computed, inject, ref } from 'vue'
 
-const props = defineProps<{
+export type MenuItemAccent = 'neutral' | 'brand' | 'danger' | 'warning'
+
+const { onClick, disabled, busy } = defineProps<{
   icon?: IconName
   onClick?: () => any
   disabled?: boolean
   busy?: boolean
+  accent: MenuItemAccent
 }>()
 
 const isParentHorizontal = inject(
   IK_MENU_HORIZONTAL,
   computed(() => false)
 )
-const isDisabled = useDisabled(() => props.disabled)
+const isDisabled = useDisabled(() => disabled)
 
 const submenuIcon = computed((): IconName => (isParentHorizontal.value ? 'fa:angle-down' : 'fa:angle-right'))
 
 const isHandlingClick = ref(false)
-const isBusy = computed(() => isHandlingClick.value || props.busy === true)
+const isBusy = computed(() => isHandlingClick.value || busy === true)
 const closeMenu = inject(IK_CLOSE_MENU, undefined)
 
 const handleClick = async () => {
@@ -66,7 +71,7 @@ const handleClick = async () => {
 
   isHandlingClick.value = true
   try {
-    await props.onClick?.()
+    await onClick?.()
     closeMenu?.()
   } finally {
     isHandlingClick.value = false

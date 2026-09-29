@@ -93,7 +93,6 @@
   "action:start-on-host": "Iniciar num host específico",
   "action:suspend": "Suspender",
   "action:turn-into-group": "Transformar em grupo",
-  "action:unselect-all": "Desmarcar tudo",
   "action:update": "Atualizar",
   "action:use-query-builder": "Use o construtor de pesquisa",
   "action:visit-pool-dashboard": "Visitar o panel de control da pool",

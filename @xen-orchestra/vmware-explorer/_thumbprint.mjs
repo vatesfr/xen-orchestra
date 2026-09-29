@@ -2,13 +2,13 @@ import { connect } from 'node:tls'
 import { isIP } from 'node:net'
 
 /**
- * SHA-1 fingerprint of the certificate presented by a TLS server, in the `AA:BB:...` form the
- * vddk library expects.
+ * SHA-256 fingerprint of the certificate presented by a TLS server, in the `sha256:AA:BB:...` form
+ * vectura expects for `--thumbprint`.
  *
  * This used to shell out to `openssl s_client` and `openssl x509`, which left a temporary
  * directory and a file descriptor behind on every call, had no timeout at all — a black holed port
- * froze the whole spawn of the nbdkit server — and threw from inside a callback instead of
- * rejecting, terminating the process.
+ * froze the whole start of an import — and threw from inside a callback instead of rejecting,
+ * terminating the process.
  *
  * @param {string} host
  * @param {object} [options]
@@ -36,13 +36,14 @@ export function getCertificateThumbprint(host, { port = 443, timeout = 10e3 } = 
     }
 
     socket.once('secureConnect', () => {
-      const { fingerprint } = socket.getPeerCertificate()
-      if (typeof fingerprint !== 'string' || fingerprint.length === 0) {
+      // `fingerprint` is the SHA-1 one, which is not what is pinned here
+      const { fingerprint256 } = socket.getPeerCertificate()
+      if (typeof fingerprint256 !== 'string' || fingerprint256.length === 0) {
         // nothing to wait for on this path, drop the socket instead of half closing it
         return fail(new Error(`the host ${host}:${port} did not present any certificate`))
       }
       socket.end()
-      resolve(fingerprint)
+      resolve(`sha256:${fingerprint256}`)
     })
     socket.once('timeout', () => {
       fail(new Error(`no TLS handshake with ${host}:${port} after ${timeout}ms`))
