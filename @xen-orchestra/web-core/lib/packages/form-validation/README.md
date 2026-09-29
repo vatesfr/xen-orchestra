@@ -237,6 +237,7 @@ All rules from `@regle/rules` are re-exported from this package. Commonly used r
 | `withMessage` | Attaches a custom message to any rule                      |
 | `isFilled`    | Type guard: checks if a value is defined                   |
 | `outOfRange`  | Number must be between `min` and `max` (passes when empty) |
+| `queryFilter` | String must be a parsable query filter (passes when empty) |
 
 `type Maybe<T>` and `type FormRuleDeclaration<T>` are also re-exported for use in custom validator signatures.
 
