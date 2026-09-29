@@ -85,9 +85,13 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
 
   const selectedPool = useGetPoolById(() => formData.pool)
 
-  function buildBasePayload(): BaseNetworkPayload {
+  function buildBasePayload(): BaseNetworkPayload | undefined {
+    if (formData.pool === undefined) {
+      return undefined
+    }
+
     return {
-      poolId: formData.pool!,
+      poolId: formData.pool,
       name: formData.name,
       ...(formData.description !== '' && { description: formData.description }),
       ...(typeof formData.mtu === 'number' && { mtu: formData.mtu }),
