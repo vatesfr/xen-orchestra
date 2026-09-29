@@ -247,7 +247,7 @@
   "configure-for-protected": "Чтобы обеспечить защиту ваших виртуальных машин, настройте {backup-job}",
   "configure-in-xo-5": "Настроить в XO 5",
   "confirm-cancel?": "Вы уверены, что хотите отменить?",
-  "confirm-delete": "Вы собираетесь удалить {0}",
+  "confirm-delete": "Вы собираетесь удалить {name}",
   "connect": "Подключиться",
   "connected": "Подключен",
   "connected-to-ip": "Подключиться к {ip}",
