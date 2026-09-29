@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Backup/Restore] Backup repositories attached to a proxy now also benefit from the faster, journal-replayed backup listing (PR [#10437](https://github.com/vatesfr/xen-orchestra/pull/10437))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -35,8 +37,10 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
+- @xen-orchestra/proxy minor
 - @xen-orchestra/rest-api patch
 - xen-api patch
-- xo-server patch
+- xo-server minor
 
 <!--packages-end-->
