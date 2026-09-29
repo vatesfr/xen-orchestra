@@ -37,11 +37,10 @@
 <script setup lang="ts">
 import PoolConnectionFormPasswordInput from '@/modules/pool/components/connection/inputs/PoolConnectionFormPasswordInput.vue'
 import PoolConnectionFormTextInput from '@/modules/pool/components/connection/inputs/PoolConnectionFormTextInput.vue'
-import { usePoolConnectionForm } from '@/modules/pool/composables/use-pool-connection-form.composable.ts'
+import { usePoolConnectionForm } from '@/modules/pool/form/use-pool-connection-form.ts'
 import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
 import { useXoServerCreateJob } from '@/modules/server/jobs/xo-server-create.job.ts'
 import { useXoServerForgetJob } from '@/modules/server/jobs/xo-server-forget.job.ts'
-import { ApiError } from '@/shared/error/api.error.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -49,7 +48,6 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { HttpCodes } from '@core/types/http-codes.type.ts'
 import type { XoServer } from '@vates/types'
 import { logicOr } from '@vueuse/math'
 import { computed, ref } from 'vue'
@@ -89,6 +87,7 @@ const isServerJobRunning = logicOr(connectIsRunning, createIsRunning, removeIsRu
 
 async function submit() {
   credentialsError.value = undefined
+  serverId.value = '' as XoServer['id']
 
   const valid = await validate()
 
@@ -111,9 +110,11 @@ async function submit() {
 
     emit('success', serverId.value, formData.host)
   } catch (error) {
-    await remove()
+    if (serverId.value !== '') {
+      await remove()
+    }
 
-    if (error instanceof ApiError && error.status === HttpCodes.Unauthorized) {
+    if (error instanceof Error && error.message.startsWith('SESSION_AUTHENTICATION_FAILED')) {
       credentialsError.value = { content: t('invalid-username-or-password'), accent: 'danger' }
       return
     }
