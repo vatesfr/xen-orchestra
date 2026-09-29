@@ -143,7 +143,7 @@ describe('DockerStatsSampler', () => {
       assert.equal(fake.isOpen('a'), false, 'a is closed')
       assert.equal(fake.isOpen('b'), true)
       assert.equal(fake.isOpen('c'), true)
-      assert.equal(sampler.has('a'), false)
+      assert.equal(sampler.get('a'), undefined)
       assert.equal(sampler.size, 2)
     } finally {
       sampler.stop()
@@ -160,12 +160,12 @@ describe('DockerStatsSampler', () => {
       fake.streams.get('a')!.end()
       await tick()
       await tick()
-      assert.equal(sampler.has('a'), false)
+      assert.equal(sampler.get('a'), undefined)
       sampler.sync(['a'])
-      assert.equal(sampler.has('a'), false, 'not retried right away')
+      assert.equal(sampler.get('a'), undefined, 'not retried right away')
       await sleep(60)
       sampler.sync(['a'])
-      assert.equal(sampler.has('a'), true)
+      assert.notEqual(sampler.get('a'), undefined)
       assert.deepEqual(fake.opened, ['a', 'a'])
     } finally {
       sampler.stop()
@@ -181,8 +181,8 @@ describe('DockerStatsSampler', () => {
       await tick()
       await tick()
       assert.equal(sampler.stopped, false)
-      assert.equal(sampler.has('gone'), false)
-      assert.equal(sampler.has('a'), true)
+      assert.equal(sampler.get('gone'), undefined)
+      assert.notEqual(sampler.get('a'), undefined)
     } finally {
       sampler.stop()
     }
@@ -243,7 +243,7 @@ describe('DockerStatsSampler', () => {
       fake.streams.get('a')!.write('x'.repeat(200))
       await tick()
       await tick()
-      assert.equal(sampler.has('a'), false)
+      assert.equal(sampler.get('a'), undefined)
       assert.equal(fake.isOpen('a'), false)
     } finally {
       sampler.stop()
@@ -356,7 +356,7 @@ describe('DockerStatsSampler against a hostile daemon', () => {
         sampler.sync(['a'])
         await sleep(300)
       })
-      assert.ok(sampler.has('a'), 'the stream is kept')
+      assert.notEqual(sampler.get('a'), undefined, 'the stream is kept')
       assert.ok(sampler.get('a')!.stats !== undefined)
       assert.ok(parses <= 2, `${parses} parses`)
     } finally {
@@ -405,7 +405,7 @@ describe('DockerStatsSampler against a hostile daemon', () => {
         await sleep(100)
       })
       assert.equal(parses, 0)
-      assert.equal(sampler.has('a'), false, 'dropped')
+      assert.equal(sampler.get('a'), undefined, 'dropped')
     } finally {
       sampler.stop()
     }
@@ -420,7 +420,7 @@ describe('DockerStatsSampler against a hostile daemon', () => {
     try {
       sampler.sync(['a'])
       await sleep(100)
-      assert.equal(sampler.has('a'), false)
+      assert.equal(sampler.get('a'), undefined)
     } finally {
       sampler.stop()
     }

@@ -217,11 +217,7 @@ export class DockerConnectionPool {
    * Forget the last failure of an engine (e.g. after a successful manual test).
    */
   clearFailure(id: string): void {
-    for (const key of this.#failures.keys()) {
-      if (key.startsWith(id + ':')) {
-        this.#failures.delete(key)
-      }
-    }
+    this.#deleteFailures(id)
   }
 
   /**
@@ -298,7 +294,9 @@ export class DockerConnectionPool {
     if (this.#entries.size >= this.#maxConnections) {
       this.#evictOne()
     }
-    this.#pruneFailures(id, key)
+    // the failures of the other revisions of an engine are stale: they would
+    // otherwise stay in memory until the engine is invalidated
+    this.#deleteFailures(id, key)
 
     const entry: Entry = {
       closed: false,
@@ -351,12 +349,11 @@ export class DockerConnectionPool {
     this.#failures.set(key, { error, until: this.#now() + this.#failureTtl })
   }
 
-  // the failures of the other revisions of an engine are stale: they would
-  // otherwise stay in memory until the engine is invalidated
-  #pruneFailures(id: string, key: string): void {
-    for (const other of this.#failures.keys()) {
-      if (other !== key && other.startsWith(id + ':')) {
-        this.#failures.delete(other)
+  // failures of all the revisions of an engine, except `keep`
+  #deleteFailures(id: string, keep?: string): void {
+    for (const key of this.#failures.keys()) {
+      if (key !== keep && key.startsWith(id + ':')) {
+        this.#failures.delete(key)
       }
     }
   }
