@@ -49,7 +49,7 @@ const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
 
-const { getProxyById } = useXoProxyCollection()
+const { useGetProxyById } = useXoProxyCollection()
 
 const { items: filteredBrs, filter } = useQueryBuilderFilter('brs', () => brs)
 
@@ -80,6 +80,7 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
   body: (br: FrontXoBackupRepository) => {
     const parsedBrUrl = useXoBackupRepositoryParsedUrl(() => br)
     const typeLabel = useXoBackupRepositoryTypeLabel(() => parsedBrUrl.value?.type)
+    const proxy = useGetProxyById(() => br.proxy)
 
     return {
       backupRepository: r =>
@@ -87,7 +88,7 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
       status: r => r(getBackupRepositoryStatus(br)),
       type: r => r(typeLabel.value),
       proxy: r => {
-        const proxyName = getProxyById(br.proxy)?.name
+        const proxyName = proxy.value?.name
 
         return proxyName ? r(proxyName, { leftIcon: { icon: 'object:proxy' } }) : r('')
       },

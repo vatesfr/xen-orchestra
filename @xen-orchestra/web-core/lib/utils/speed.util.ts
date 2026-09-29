@@ -3,7 +3,7 @@ import { type Info, raw, Scale } from 'human-format'
 const scale = Scale.create(['B/s', 'KiB/s', 'MiB/s', 'GiB/s', 'TiB/s'], 1024)
 
 type FormatSpeedOptions = {
-  maxDecimals: number
+  maxDecimals: number | 'auto'
   milliseconds?: number
 }
 

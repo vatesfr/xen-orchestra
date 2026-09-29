@@ -1,6 +1,7 @@
 import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { IconName } from '@core/icons'
+import type { BackupRepositoryType } from 'xo-remote-parser'
 
 export const MASKED_SECRET = '•'.repeat(12)
 
@@ -12,7 +13,7 @@ export function getBackupRepositoryStatus(br: FrontXoBackupRepository): Status {
   return br.error ? 'unable-to-connect' : 'enabled'
 }
 
-export function getBackupRepositoryIcon(br: FrontXoBackupRepository, type: string | undefined): IconName {
+export function getBackupRepositoryIcon(br: FrontXoBackupRepository, type: BackupRepositoryType | undefined): IconName {
   if (type === undefined) {
     return 'object:br:unknown'
   }
