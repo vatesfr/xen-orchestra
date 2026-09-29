@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [Backup/Restore] Backup repositories attached to a proxy now also benefit from the faster, journal-replayed backup listing (PR [#10437](https://github.com/vatesfr/xen-orchestra/pull/10437))
+- [REST API/RBAC] Add a built-in Backup administrator RBAC role template to administer backup jobs, schedules, repositories, archives and logs (PR [#10443](https://github.com/vatesfr/xen-orchestra/pull/10443))
 
 ### Bug fixes
 
