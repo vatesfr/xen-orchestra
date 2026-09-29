@@ -1,6 +1,6 @@
 import PoolDashboardStoragesUsage from '@/modules/pool/components/dashboard/PoolDashboardStoragesUsage.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import { findCardNumbers } from '@/test/find-labelled-values.ts'
+import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -68,7 +68,10 @@ it('shows one progress bar per storage, the fullest first', () => {
     ]),
   })
 
-  expect(wrapper.findAll('.ui-legend').map(legend => legend.text())).toEqual(['Shared storage70%', 'Local storage30%'])
+  expect(findLegends(wrapper)).toEqual([
+    ['Shared storage', '70%'],
+    ['Local storage', '30%'],
+  ])
 })
 
 it('sums the usage and the free space across the storages', () => {

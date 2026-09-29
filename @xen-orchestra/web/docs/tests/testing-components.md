@@ -61,7 +61,7 @@ expect(labelledValues).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8
 
 Prefer this shape: one assertion covering every row a user sees, and it fails loudly when a value lands under the wrong label. Assert against **class names and semantic elements**, never a positional chain of child indexes.
 
-`src/test/find-labelled-values.ts` does exactly that reduction, so a card test does not re-roll it:
+`src/test/find-rendered-values.ts` does exactly that reduction, so a card test does not re-roll it:
 
 | Helper                   | Reads                                                      |
 | ------------------------ | ---------------------------------------------------------- |
@@ -82,6 +82,22 @@ expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.value').t
 ```
 
 When a card mixes deterministic values with environment-derived ones (a relative start time, a locale-formatted date), pin the deterministic rows with `toMatchObject` and cover the composition separately by asserting the **list of labels, in order** — the formatted values themselves belong in the test of the composable that derives them.
+
+Two more readers live in the same file, for output that is not a label/value pair:
+
+| Helper          | Reads                                                             |
+| --------------- | ----------------------------------------------------------------- |
+| `findTableRows` | the `tbody` of a table, as one array of **cell** texts per row    |
+| `findTags`      | every `UiTag`, as its text, in the order the component lists them |
+
+```typescript
+expect(findTableRows(wrapper)).toEqual([
+  ['XSAPATCH-1', '1.0'],
+  ['XSAPATCH-2', '2.0'],
+])
+```
+
+`findTableRows` reads cells rather than each row's whole text for the same reason the helpers above split label from value: `row.text()` concatenates the columns, so a patch named `XSAPATCH-1` at version `1.0` and one named `XSAPATCH-11` at version `.0` read identically.
 
 ### Never spell out a translation
 
@@ -151,25 +167,27 @@ Keep it to one representative value: how the formatter handles the whole range, 
 
 ## Legend cards
 
-A donut card and a progress-bar card both render their values through `UiLegend`, which keeps the label and the value addressable:
+A donut card and a progress-bar card both render their values through `UiLegend`, which keeps the label and the value addressable. `src/test/find-rendered-values.ts` reads them, so a card test does not re-roll the query:
+
+| Helper                        | Reads                                                  |
+| ----------------------------- | ------------------------------------------------------ |
+| `findLegends`                 | every `UiLegend`, as ordered `[label, value]` pairs    |
+| `findProgressBarGroupLegends` | the same, grouped per `VtsProgressBarGroup`            |
+| `findCardNumbers`             | every `UiCardNumbers` a card lays out beside its chart |
 
 ```typescript
-function findLegends(wrapper: VueWrapper) {
-  return wrapper
-    .findAll('.ui-legend')
-    .map(legend => [legend.get('.label').text(), legend.get('.value-and-unit').text()])
-}
-
 expect(findLegends(wrapper)).toEqual([
   [t('vm:status:running', 2), '2'],
   [t('vm:status:halted', 2), '1'],
 ])
 ```
 
+Pairs rather than a record: a card may legend the same label twice, and the order it lists them in is part of what a user reads.
+
 Three things shape those assertions:
 
 - `VtsProgressBarGroup` sorts **descending by default**, so the expected order is the busiest first, not the order the payload listed.
-- A card holding several legend groups — `PoolDashboardStatus` shows one for its hosts and one for its VMs — is queried per group (`wrapper.findAll('.vts-donut-chart-with-legend')`, then the legends inside each). A flat `findAll('.ui-legend')` collapses the groups into one list, and an assertion on it no longer says which group a value landed in.
+- A card holding several legend groups — `PoolDashboardStatus` shows one for its hosts and one for its VMs — is queried per group: `findProgressBarGroupLegends` does that for progress-bar groups, while a donut card goes through `wrapper.findAll('.vts-donut-chart-with-legend')` and the legends inside each. A flat `findLegends` collapses the groups into one list, and an assertion on it no longer says which group a value landed in.
 - `VtsStateHero` renders its own wording ahead of the slot: an `all-done` hero reads `'All good!Patches up to date'`. Assert the part the component owns with `toContain`.
 
 ## Routing
