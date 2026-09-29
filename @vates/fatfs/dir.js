@@ -107,6 +107,11 @@ dir.iterator = function (dirChain, opts) {
                 
                 long = null;
                 return cb(null, entry, entryPos);
+            } else if (opts.includeLabels) {           // volume label, never listed otherwise
+                entry._label = true;
+                entry._name = (entry.Name.filename + entry.Name.extension).replace(/ +$/, '');
+                long = null;
+                return cb(null, entry, entryPos);
             } else long = null;
             getNextEntry(cb);
         });
@@ -258,12 +263,19 @@ dir.addFile = function (vol, dirChain, entryInfo, opts, cb) {
     }
     var name = entryInfo.name,
         entries = [], mainEntry;
-    entries.push(mainEntry = {
+    entries.push(mainEntry = (opts.volumeLabel) ? {
+        // volume label: raw eleven-character name, no long name entry (below)
+        Name: _.labelname(name),
+        Attr: {volume_id:true},
+        _name: name
+    } : {
         Name: _.shortname(name),
         Attr: {directory:opts.dir||false},
         _name: name
     });
-    if (1 || mainEntry.Name._lossy) {         // HACK: always write long names until `._lossy` is more useful!
+    // No long name entry on a volume label: mtools' `mlabel` would print "label (abbr=SHORT)",
+    // which Cloudbase-Init does not expect, and fsck_msdos flags it as invalid.
+    if (!opts.volumeLabel && (1 || mainEntry.Name._lossy)) {         // HACK: always write long names until `._lossy` is more useful!
         var workaroundTessel427 = ('\uFFFF'.length !== 1);
         if (workaroundTessel427) throw Error("Your JS runtime does not have proper Unicode string support. (If Tessel, is your firmware up-to-date?)");
         
@@ -288,7 +300,7 @@ dir.addFile = function (vol, dirChain, entryInfo, opts, cb) {
         entries[entries.length - 1].Ord |= S.lastLongFlag;
     }
     
-    if (entryInfo.tail) {
+    if (entryInfo.tail && !opts.volumeLabel) {       // a label never needs a numeric tail
         var name = mainEntry.Name.filename,
             suffix = '~'+entryInfo.tail,
             endIdx = name.indexOf(' '),
@@ -298,19 +310,45 @@ dir.addFile = function (vol, dirChain, entryInfo, opts, cb) {
         _.log(_.log.DBG, "Shortname amended to:", mainEntry.Name);
     }
     
-    vol.allocateInFAT(dirChain.firstCluster || 2, function (e,fileCluster) {
-        if (e) return cb(e);
-        
+    // Fixed-size root directory (FAT12/16): refuse what does not fit before touching the FAT.
+    // On any directory, the end marker is skipped rather than allocated a cluster of its own.
+    var endMarker = entryInfo.lastEntry,
+        markerPos = _.adjustedPos(vol, entryInfo.target, S.dirEntry.size * entries.length),
+        markerOpensCluster = (markerPos.offset === 0 && markerPos.sector % vol._sectorsPerCluster === 0);
+    if (dirChain.numSectors) {
+        var room = dirChain.numSectors * dirChain.sectorSize
+            - (entryInfo.target.sector * dirChain.sectorSize + entryInfo.target.offset);
+        if (entries.length * S.dirEntry.size > room) return cb(S.err.NOSPC());
+        if (endMarker && (entries.length + 1) * S.dirEntry.size > room) endMarker = false;
+        proceed();
+    } else if (endMarker && markerOpensCluster) {
+        dirChain.readSectors(markerPos.sector, _.allocBuffer(dirChain.sectorSize), function (e, buf) {
+            if (e) return cb(e);
+            if (!buf) endMarker = false;            // that cluster does not exist yet
+            proceed();
+        });
+    } else proceed();
+
+    function proceed() {
+        if (opts.volumeLabel) writeEntries(0);          // a label owns no data cluster
+        else vol.allocateInFAT(dirChain.firstCluster || 2, function (e,fileCluster) {
+            if (e) cb(e);
+            else writeEntries(fileCluster);
+        });
+    }
+
+    function writeEntries(fileCluster) {
         var nameBuf = S.dirEntry.fields['Name'].bytesFromValue(mainEntry.Name),
             nameSum = _.checksumName(nameBuf);
         // TODO: finalize initial properties… (via `opts.mode` instead?)
-        _updateEntry(vol, mainEntry, {firstCluster:fileCluster, size:0, ctime:true,_touch:true});
+        if (opts.volumeLabel) _updateEntry(vol, mainEntry, {firstCluster:0, size:0, ctime:true, mtime:true});
+        else _updateEntry(vol, mainEntry, {firstCluster:fileCluster, size:0, ctime:true,_touch:true});
         mainEntry._pos = _.adjustedPos(vol, entryInfo.target, S.dirEntry.size*(entries.length-1));
         entries.slice(1).forEach(function (entry) {
             entry.Chksum = nameSum;
         });
         entries.reverse();
-        if (entryInfo.lastEntry) entries.push({});
+        if (endMarker) entries.push({});
         
         var entriesData = _.allocBuffer(S.dirEntry.size*entries.length),
             dataOffset = {bytes:0};
@@ -323,9 +361,10 @@ dir.addFile = function (vol, dirChain, entryInfo, opts, cb) {
         dirChain.writeToPosition(entryInfo.target, entriesData, function (e) {
             // TODO: if we get error, what/should we clean up?
             if (e) cb(e);
+            else if (opts.volumeLabel) cb(null, mainEntry, null);
             else cb(null, mainEntry, vol.chainForCluster(fileCluster, dirChain));
         });
-    });
+    }
 };
 
 dir.findInDirectory = function (vol, dirChain, name, opts, cb) {
@@ -358,6 +397,19 @@ dir.findInDirectory = function (vol, dirChain, name, opts, cb) {
         });
     }
     processNext(dir.iterator(dirChain, {includeFree:(0 && opts.prepareForCreate)}));
+};
+
+dir.findVolumeLabel = function (vol, dirChain, cb) {
+    var next = dir.iterator(dirChain, {includeLabels:true});
+    function processNext() {
+        next(function (e, d) {
+            if (e) cb(e);
+            else if (!d) cb(null, null);
+            else if (d._label) cb(null, d);
+            else processNext();
+        });
+    }
+    processNext();
 };
 
 dir.updateEntry = function (vol, entry, newStats, cb) {
