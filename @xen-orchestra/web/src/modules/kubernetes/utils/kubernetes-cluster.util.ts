@@ -4,6 +4,18 @@ import type {
   XoKubernetesCluster,
 } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 
+export function isClusterDeletable(phase: KubernetesClusterPhase): boolean {
+  switch (phase) {
+    case 'Running':
+    case 'Provisioned':
+    case 'Failed':
+    case 'Updating':
+      return true
+    default:
+      return false
+  }
+}
+
 export function isClusterPhaseReady(phase: KubernetesClusterPhase): boolean {
   switch (phase) {
     case 'Provisioned':
@@ -19,7 +31,7 @@ export function clusterStatus(cluster: XoKubernetesCluster): KubernetesClusterSt
   const isControlPlaneInitialized = false
   const isInfrastructureProvisioned = false
 
-  /* if (isPhaseReady && isControlPlaneInitialized && isInfrastructureProvisioned) { */
+  // TODO if (isPhaseReady && isControlPlaneInitialized && isInfrastructureProvisioned) {
   if (isPhaseReady) {
     return 'ready'
   } else if (!isPhaseReady && !isControlPlaneInitialized && !isInfrastructureProvisioned) {

@@ -23,6 +23,7 @@
 </template>
 
 <script setup lang="ts">
+import ClusterActions from '@/modules/kubernetes/components/actions/ClusterActions.vue'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { clusterStatus } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { getKubernetesClusterRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
@@ -96,7 +97,12 @@ const { HeadCells, BodyCells } = useClusterColumns({
       workerNodes: r => r(`${cluster.workerStatus.readyReplicas}/${cluster.workerStatus.desiredReplicas}`),
       /* pods: r => r(''), */
       tags: r => r(kubernetesTagsToStrings(cluster.tags), 'info'),
-      selectItem: r => r(() => (selectedClusterId.value = cluster.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedClusterId.value = cluster.id),
+          component: ClusterActions,
+          props: { cluster },
+        }),
     }
   },
 })
