@@ -16,9 +16,11 @@ import {
   HbdFileError,
   sha256hex,
   VERSION,
+  type DedupType,
   type BlockHash,
   type HashedDiskMetadata,
 } from './hbdPaths.mjs'
+import { randomUUID } from 'node:crypto'
 
 /**
  * Content addressed disk: block index -> SHA-256 of the block payload, kept in a
@@ -30,15 +32,25 @@ export class HashedDiskDeduplicated extends HashedDisk {
   #metadata: HashedDiskMetadata | undefined
   #bat: BlockAllocationTable | undefined
   #blocksDir: string | undefined
+  #blockStorePath: string | undefined
   #dirty = false
 
-  constructor({ handler, path }: { handler: RemoteHandlerAbstract; path: string }) {
+  constructor({
+    handler,
+    path,
+    blockStorePath,
+  }: {
+    handler: RemoteHandlerAbstract
+    path: string
+    blockStorePath?: string
+  }) {
     super()
     this.#handler = handler
     // normalized once here so every path this disk hands out or derives has the
     // same shape: callers match them against paths listed from the handler, and
     // an unnormalized one silently fails to compare equal
     this.#path = normalize(path)
+    this.#blockStorePath = blockStorePath
   }
 
   /**
@@ -52,6 +64,8 @@ export class HashedDiskDeduplicated extends HashedDisk {
     uuid,
     parentUuid,
     parentPath,
+    dedupType = 'PER_DISK',
+    blockStorePath,
   }: {
     handler: RemoteHandlerAbstract
     path: string
@@ -60,6 +74,8 @@ export class HashedDiskDeduplicated extends HashedDisk {
     uuid: string
     parentUuid?: string
     parentPath?: string
+    dedupType?: DedupType
+    blockStorePath?: string
   }): Promise<HashedDiskDeduplicated> {
     const dataDir = dataDirName(uuid)
     const hashesPath = join(dataDir, hashesFileName(new Date()))
@@ -71,14 +87,18 @@ export class HashedDiskDeduplicated extends HashedDisk {
       uuid,
       parentUuid,
       parentPath,
-      dedupType: 'PER_DISK',
+      dedupType,
       localBlocksPath: `${dataDir}/blocks/`,
       hashesPath,
     } satisfies HashedDiskMetadata
 
+    if (metadata.dedupType === 'PER_BACKUP_REPOSITORY' && blockStorePath === undefined) {
+      throw new Error("Can't init PER_BACKUP_REPOSITORY without blockStorePath")
+    }
+
     const bat = BlockAllocationTable.allocate(Math.ceil(virtualSize / blockSize))
 
-    const disk = new HashedDiskDeduplicated({ handler, path })
+    const disk = new HashedDiskDeduplicated({ handler, path, blockStorePath })
     await handler.outputFile(disk.#resolve(hashesPath), bat.toBuffer(), { flags: 'wx' })
     await handler.outputFile(path, JSON.stringify(metadata), { flags: 'wx' })
 
@@ -120,6 +140,19 @@ export class HashedDiskDeduplicated extends HashedDisk {
       throw new Error(`can't use a HashedDiskDeduplicated before init`)
     }
     return join(this.#blocksDir, blockRelPath(hash))
+  }
+
+  /**
+   * @param hash always hex
+   * @returns complete path in store
+   * Rooted at the remote root, not the disk dir, so no #resolve: the root comes from
+   * the caller and the hash is always hex
+   */
+  #storePath(hash: BlockHash): string {
+    if (this.#blockStorePath === undefined) {
+      throw new Error(`disk ${this.#path} is PER_BACKUP_REPOSITORY but no blockStorePath was given`)
+    }
+    return join(this.#blockStorePath, blockRelPath(hash), '0')
   }
 
   // ---------------------------------------------------------------- lifecycle
@@ -247,6 +280,17 @@ export class HashedDiskDeduplicated extends HashedDisk {
     return this.#loadedBat.get(index)
   }
 
+  async #link(existingPath: string, newPath: string): Promise<void> {
+    try {
+      await this.#handler.link(existingPath, newPath)
+    } catch (error: unknown) {
+      // EEXIST => block already referenced by disk
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
+        throw error
+      }
+    }
+  }
+
   /**
    * Writes the block file unless it is already there. 'wx' for concurrent cases
    */
@@ -261,6 +305,34 @@ export class HashedDiskDeduplicated extends HashedDisk {
       }
       // already stored, by another index of this disk or by a previous run
     }
+  }
+
+  async #addBlockReference(hash: BlockHash, data: Buffer): Promise<void> {
+    if (this.#loadedMetadata.dedupType === 'PER_DISK') {
+      return this.#storeBlock(hash, data)
+    }
+
+    const storePath = this.#storePath(hash)
+    const blockPath = this.#blockPath(hash)
+    try {
+      await this.#link(storePath, blockPath)
+      return
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error
+      }
+    }
+
+    // link did not work, we need a new block
+    const tmp = join(this.#blocksDir!, '.tmp', randomUUID())
+    await this.#handler.outputFile(tmp, Buffer.concat([buildBlockHeader(hash), data]), { flags: 'wx' })
+    try {
+      await this.#link(tmp, storePath)
+    } finally {
+      await this.#handler.unlink(tmp, { checksum: false })
+    }
+
+    await this.#link(storePath, blockPath)
   }
 
   async readBlock(index: number): Promise<DiskBlock> {
@@ -297,7 +369,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
       return blockSize
     }
 
-    await this.#storeBlock(hash, data)
+    await this.#addBlockReference(hash, data)
     bat.set(index, hash)
     this.#dirty = true
 

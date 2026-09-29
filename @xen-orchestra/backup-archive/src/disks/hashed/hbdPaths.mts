@@ -42,7 +42,7 @@ export function asBlockHash(value: string): BlockHash {
   return value as BlockHash
 }
 
-type DedupType = 'PER_BACKUP_REPOSITORY' | 'PER_DISK'
+export type DedupType = 'PER_BACKUP_REPOSITORY' | 'PER_DISK'
 
 export interface HashedDiskMetadata {
   version: string
