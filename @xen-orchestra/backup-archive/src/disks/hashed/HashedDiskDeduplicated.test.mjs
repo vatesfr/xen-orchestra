@@ -1,5 +1,7 @@
 import { test } from 'node:test'
 import { strict as assert } from 'node:assert'
+import { stat } from 'node:fs/promises'
+import { join } from 'node:path'
 
 import tmp from 'tmp'
 import * as uuid from 'uuid'
@@ -407,5 +409,127 @@ describe('HashedDiskDeduplicated', () => {
     const disk = await createDisk()
     await assert.rejects(() => disk.mergeBlock(disk, 0, false), /must be implemented/)
     await assert.rejects(() => disk.rename('other.hbd'), /must be implemented/)
+  })
+})
+
+describe('HashedDiskDeduplicated with a block store', () => {
+  const STORE = 'xo-block-store'
+
+  const createSharedDisk = async ({ blockStorePath = STORE } = {}) => {
+    const dir = `xo-vm-backups/VMUUID/vdis/${uuid.v4()}`
+    const diskUuid = uuid.v4()
+    const path = `${dir}/20260814T120000000Z.hbd`
+    const disk = await HashedDiskDeduplicated.create({
+      handler,
+      path,
+      virtualSize: VIRTUAL_SIZE,
+      blockSize: BLOCK_SIZE,
+      uuid: diskUuid,
+      dedupType: 'PER_BACKUP_REPOSITORY',
+      blockStorePath,
+    })
+    return { disk, path, tmpDir: `${dir}/data/${diskUuid}/blocks/.tmp` }
+  }
+
+  const nlink = async path => (await stat(join(tempDir, path))).nlink
+
+  test('create refuses PER_BACKUP_REPOSITORY without a blockStorePath, and writes nothing', async () => {
+    await assert.rejects(
+      () => createDisk({ dedupType: 'PER_BACKUP_REPOSITORY' }),
+      /Can't init PER_BACKUP_REPOSITORY without blockStorePath/
+    )
+    await assert.rejects(() => listFiles('xo-vm-backups'), { code: 'ENOENT' })
+  })
+
+  test('create records the dedup type in the metadata, but not the store path', async () => {
+    const { disk } = await createSharedDisk()
+    const metadata = disk.getMetadata()
+
+    assert.equal(metadata.dedupType, 'PER_BACKUP_REPOSITORY')
+    assert.ok(!JSON.stringify(metadata).includes(STORE), 'the store location must not be remote-controlled')
+  })
+
+  test('two disks writing the same payload share one inode', async () => {
+    const { disk: a } = await createSharedDisk()
+    const { disk: b } = await createSharedDisk()
+    const data = block(0xaa)
+
+    await a.writeBlock({ index: 0, data })
+    await b.writeBlock({ index: 3, data })
+
+    const storeFiles = await listFiles(STORE)
+    assert.equal(storeFiles.length, 1)
+    assert.equal(await nlink(storeFiles[0]), 3, 'store copy + one link per disk')
+
+    assert.ok((await a.readBlock(0)).data.equals(data))
+    assert.ok((await b.readBlock(3)).data.equals(data))
+  })
+
+  test('five writes of three unique payloads across two disks give three store files', async () => {
+    const { disk: a } = await createSharedDisk()
+    const { disk: b } = await createSharedDisk()
+
+    await a.writeBlock({ index: 0, data: block(1) })
+    await a.writeBlock({ index: 1, data: block(2) })
+    await b.writeBlock({ index: 0, data: block(1) })
+    await b.writeBlock({ index: 1, data: block(3) })
+    await b.writeBlock({ index: 2, data: block(2) })
+
+    assert.equal((await listFiles(STORE)).length, 3)
+    // disk side: 2 links in a, 3 in b
+    assert.equal(await countBlockFiles(), 5)
+  })
+
+  test('the same payload at two indexes of one disk is linked once', async () => {
+    const { disk } = await createSharedDisk()
+    const data = block(0xaa)
+
+    await disk.writeBlock({ index: 0, data })
+    await disk.writeBlock({ index: 7, data })
+
+    const storeFiles = await listFiles(STORE)
+    assert.equal(storeFiles.length, 1)
+    assert.equal(await nlink(storeFiles[0]), 2, 'the second index hits EEXIST on the disk link')
+    assert.equal(await countBlockFiles(), 1)
+  })
+
+  test('the temporary file of a store miss is removed', async () => {
+    const { disk, tmpDir } = await createSharedDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+
+    assert.deepEqual(await listFiles(tmpDir), [])
+  })
+
+  test('reads go through the disk link, never the store path', async () => {
+    const { disk } = await createSharedDisk()
+    const data = block(0xaa)
+    await disk.writeBlock({ index: 0, data })
+
+    const [storeFile] = await listFiles(STORE)
+    await handler.unlink(storeFile, { checksum: false })
+
+    assert.ok((await disk.readBlock(0)).data.equals(data))
+  })
+
+  test('a disk reopened without a store can still be read, but not written', async () => {
+    const { disk, path } = await createSharedDisk()
+    const data = block(0xaa)
+    await disk.writeBlock({ index: 0, data })
+    await disk.close()
+
+    const reopened = new HashedDiskDeduplicated({ handler, path })
+    await reopened.init()
+
+    assert.ok((await reopened.readBlock(0)).data.equals(data))
+    await assert.rejects(() => reopened.writeBlock({ index: 1, data: block(0xbb) }), /no blockStorePath was given/)
+  })
+
+  test('a handler without link fails at write time', async () => {
+    const { disk } = await createSharedDisk()
+    handler.link = async () => {
+      throw new Error('Not implemented')
+    }
+
+    await assert.rejects(() => disk.writeBlock({ index: 0, data: block(0xaa) }), /Not implemented/)
   })
 })
