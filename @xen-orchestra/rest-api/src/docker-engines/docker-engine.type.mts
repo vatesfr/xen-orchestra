@@ -1,5 +1,3 @@
-import type { XoDockerEngine } from '@vates/types'
-
 /**
  * SSH connection to a Docker host
  *
@@ -57,5 +55,3 @@ export interface UpdateDockerEngineBody {
   /** see the creation */
   acceptUnknownHostKey?: boolean
 }
-
-export type DockerEngineId = XoDockerEngine['id']

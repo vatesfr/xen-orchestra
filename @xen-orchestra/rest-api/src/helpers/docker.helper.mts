@@ -2,6 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 import type { HttpStatusCodeLiteral } from 'tsoa'
 
 import { ApiError } from './error.helper.mjs'
+import type { RestApi } from '../rest-api/rest-api.mjs'
 
 const log = createLogger('xo:rest-api:docker')
 
@@ -10,18 +11,16 @@ const log = createLogger('xo:rest-api:docker')
  * (`@xen-orchestra/docker-ssh`, which is not a dependency of this package):
  * they are recognized by their name and string code.
  */
-export type DockerErrorLike = Error & { code: string; data?: Record<string, unknown> }
+type DockerErrorLike = Error & { code: string; data?: Record<string, unknown> }
 
-export const isDockerError = (error: unknown): error is DockerErrorLike =>
+const isDockerError = (error: unknown): error is DockerErrorLike =>
   error instanceof Error && error.name === 'DockerError' && typeof (error as { code?: unknown }).code === 'string'
-
-// the pool is full of busy connections: the client should retry soon
-const POOL_EXHAUSTED_RETRY_AFTER = '5'
 
 function getRetryAfter(error: DockerErrorLike): string | undefined {
   switch (error.code) {
     case 'POOL_EXHAUSTED':
-      return POOL_EXHAUSTED_RETRY_AFTER
+      // the pool is full of busy connections: the client should retry soon
+      return '5'
     case 'SSH_COOLDOWN': {
       const retryAfter = error.data?.retryAfter
       return String(typeof retryAfter === 'number' && retryAfter > 0 ? Math.ceil(retryAfter) : 1)
@@ -55,14 +54,7 @@ function getClientData(error: DockerErrorLike): Record<string, unknown> {
       message: typeof message === 'string' ? truncateMessage(message) : undefined,
     }
   }
-  const clientData: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(data)) {
-    if (!CONTEXT_FIELDS.has(key)) {
-      clientData[key] = value
-    }
-  }
-  clientData.code = error.code
-  return clientData
+  return { ...Object.fromEntries(Object.entries(data).filter(([key]) => !CONTEXT_FIELDS.has(key))), code: error.code }
 }
 
 function getStatus(error: DockerErrorLike): HttpStatusCodeLiteral {
@@ -136,6 +128,9 @@ export function toDockerApiError(error: unknown): unknown {
 
 /**
  * Run `fn`, converting the `DockerError`s it throws, see `toDockerApiError()`.
+ *
+ * Only needed in the actions of tasks: their records keep the error as thrown,
+ * whereas the other errors are converted by the generic error handler.
  */
 export async function withDockerErrors<T>(fn: () => Promise<T>): Promise<T> {
   try {
@@ -143,6 +138,14 @@ export async function withDockerErrors<T>(fn: () => Promise<T>): Promise<T> {
   } catch (error) {
     throw toDockerApiError(error)
   }
+}
+
+/**
+ * Must be called first by every Docker route: an unlicensed XOA must not
+ * store credentials nor open SSH sessions.
+ */
+export function assertDockerFeature(restApi: RestApi): Promise<void> {
+  return restApi.xoApp.checkFeatureAuthorization('DOCKER')
 }
 
 const SECRET_FIELDS = ['password', 'privateKey', 'passphrase'] as const
@@ -153,10 +156,7 @@ export const OBFUSCATED = '***obfuscated***'
  * secrets are replaced by `OBFUSCATED` (clearing one, with `null` or `''`, is
  * kept as is).
  */
-export function obfuscateDockerEngineParams<T extends object | undefined>(body: T): T {
-  if (body === undefined) {
-    return body
-  }
+export function obfuscateDockerEngineParams<T extends object>(body: T): T {
   const params = { ...body } as Record<string, unknown>
   for (const key of SECRET_FIELDS) {
     const value = params[key]

@@ -3,7 +3,6 @@ import { describe, it } from 'node:test'
 import { featureUnauthorized, noSuchObject } from 'xo-common/api-errors.js'
 
 import { DockerEngineController } from './docker-engine.controller.mjs'
-import { DockerEngineService } from './docker-engine.service.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
 import { OBFUSCATED, toDockerApiError } from '../helpers/docker.helper.mjs'
 import genericErrorHandler from '../middlewares/generic-error-handler.middleware.mjs'
@@ -92,7 +91,7 @@ function setup({ licensed = true, xoApp: xoAppOverrides = {} }: { licensed?: boo
       },
     },
   } as unknown as RestApi
-  const controller = new DockerEngineController(restApi, new DockerEngineService(restApi))
+  const controller = new DockerEngineController(restApi)
   return { calls, controller, tasks }
 }
 
@@ -335,8 +334,9 @@ describe('toDockerApiError()', () => {
       },
       json: (value: unknown) => (body = value),
     }
+    // mapped by the generic error handler itself
     genericErrorHandler(
-      toDockerApiError(new DockerError('POOL_EXHAUSTED', 'too many connections')),
+      new DockerError('POOL_EXHAUSTED', 'too many connections'),
       { method: 'GET', path: '/docker-engines/x/info' } as never,
       res as never,
       () => {}

@@ -1,17 +1,9 @@
 import * as CM from 'complex-matcher'
 import { inject } from 'inversify'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
-import type {
-  XoDockerContainer,
-  XoDockerContainerAction,
-  XoDockerContainerListError,
-  XoDockerContainerStats,
-  XoDockerEngine,
-  XoDockerLogs,
-} from '@vates/types'
+import type { XoDockerContainer, XoDockerContainerListError, XoDockerEngine, XoDockerLogs } from '@vates/types'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { withDockerErrors } from '../helpers/docker.helper.mjs'
 import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 const DEFAULT_MAX_LISTED_ENGINES = 10
@@ -81,11 +73,6 @@ export function getEngineScope(node: CM.Node): EnginePredicate | undefined {
   }
 }
 
-export type DockerContainerList = {
-  containers: XoDockerContainer[]
-  errors: XoDockerContainerListError[]
-}
-
 /**
  * Containers of the Docker engines, fetched live through xo-server's pool
  * (and cached there, see `docker.cacheExpiresIn`: not cached again here).
@@ -137,11 +124,9 @@ export class DockerContainerService {
     all?: boolean
     stats?: boolean
     forceRefresh?: boolean
-  }): Promise<DockerContainerList> {
+  }): Promise<{ containers: XoDockerContainer[]; errors: XoDockerContainerListError[] }> {
     const engines = await this.resolveEngines(filter)
-    const { containers, errors } = await withDockerErrors(() =>
-      this.#restApi.xoApp.getDockerContainers({ engines, all, stats, forceRefresh })
-    )
+    const { containers, errors } = await this.#restApi.xoApp.getDockerContainers({ engines, all, stats, forceRefresh })
     const predicate = safeParseComplexMatcher(filter!).createPredicate()
     return { containers: containers.filter(predicate), errors }
   }
@@ -164,14 +149,6 @@ export class DockerContainerService {
     }
   }
 
-  getContainer(id: XoDockerContainer['id']): Promise<XoDockerContainer> {
-    return withDockerErrors(() => this.#restApi.xoApp.getDockerContainer(id))
-  }
-
-  getStats(id: XoDockerContainer['id']): Promise<XoDockerContainerStats> {
-    return withDockerErrors(() => this.#restApi.xoApp.getDockerContainerStats(id))
-  }
-
   getLogs(
     id: XoDockerContainer['id'],
     opts: {
@@ -186,20 +163,10 @@ export class DockerContainerService {
     // a number of milliseconds or a date string
     const toDate = (value: string | undefined) =>
       value !== undefined && /^\d+(?:\.\d+)?$/.test(value) ? Number(value) : value
-    return withDockerErrors(() =>
-      this.#restApi.xoApp.getDockerContainerLogs(id, {
-        ...opts,
-        since: toDate(opts.since),
-        until: toDate(opts.until),
-      })
-    )
-  }
-
-  runAction(id: XoDockerContainer['id'], action: XoDockerContainerAction): Promise<void> {
-    return withDockerErrors(() => this.#restApi.xoApp.runDockerContainerAction(id, action))
-  }
-
-  delete(id: XoDockerContainer['id'], opts: { force?: boolean; removeVolumes?: boolean }): Promise<void> {
-    return withDockerErrors(() => this.#restApi.xoApp.deleteDockerContainer(id, opts))
+    return this.#restApi.xoApp.getDockerContainerLogs(id, {
+      ...opts,
+      since: toDate(opts.since),
+      until: toDate(opts.until),
+    })
   }
 }
