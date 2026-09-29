@@ -12,6 +12,9 @@
       @toggle="toggle()"
     >
       {{ host.name_label || '(Host)' }}
+      <template #icon>
+        <VtsObjectIcon v-tooltip="hostState" type="host" size="medium" :state="hostState" />
+      </template>
       <template #addons>
         <UiLoader v-if="isChangingState" v-tooltip="currentOperation" />
         <VtsIcon v-if="isPoolMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
@@ -50,11 +53,14 @@ import InfraVmItems from '@/components/infra/InfraVmItems.vue'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
+import { getHostState } from '@/modules/host/utils/host.util.ts'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -74,6 +80,16 @@ const { t } = useI18n()
 
 const { getByOpaqueRef } = useHostStore().subscribe()
 const host = computed(() => getByOpaqueRef(hostOpaqueRef))
+
+const { getHostPowerState } = useHostMetricsStore().subscribe()
+
+const hostState = computed(() => {
+  if (host.value === undefined) {
+    return 'unknown'
+  }
+
+  return getHostState(host.value, getHostPowerState(host.value))
+})
 
 const { pool } = usePoolStore().subscribe()
 const isPoolMaster = computed(() => pool.value?.master === hostOpaqueRef)
