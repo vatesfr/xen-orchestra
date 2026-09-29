@@ -22,6 +22,7 @@ function createController() {
     tasks: { create: (properties: unknown) => ({ id: 'task-1', properties, run: (fn: () => unknown) => fn() }) },
     xoApp: {
       finalizeRollingUpdate: record('finalizeRollingUpdate'),
+      resumeRollingPoolUpdate: record('resumeRollingPoolUpdate'),
       rollingPoolReboot: record('rollingPoolReboot'),
       rollingPoolUpdate: record('rollingPoolUpdate'),
     },
@@ -50,6 +51,20 @@ for (const [method, orchestrator] of [
     })
   })
 }
+
+describe('PoolController.resumeRollingUpdate', () => {
+  it('forwards bypassBackupCheck from the body to the orchestrator', async () => {
+    const { calls, controller } = createController()
+
+    await controller.resumeRollingUpdate('pool-1', undefined, true)
+    await controller.resumeRollingUpdate('pool-1', { bypassBackupCheck: true }, true)
+
+    assert.deepEqual(calls, [
+      { orchestrator: 'resumeRollingPoolUpdate', parentTask: 'task-1' },
+      { orchestrator: 'resumeRollingPoolUpdate', parentTask: 'task-1', bypassBackupCheck: true },
+    ])
+  })
+})
 
 describe('PoolController.finalizeRollingUpdate', () => {
   it('forwards force from the body to the orchestrator', async () => {

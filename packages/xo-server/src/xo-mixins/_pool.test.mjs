@@ -76,6 +76,9 @@ function makeStore(record) {
     async del(key) {
       values.delete(key)
     },
+    async put(key, value) {
+      values.set(key, value)
+    },
   }
 }
 
@@ -215,5 +218,27 @@ describe('Pools.finalizeRollingUpdate', function () {
     const [[, { runId, unrestoredItems }]] = app.calls
     assert.equal(runId, undefined)
     assert.equal(unrestoredItems, null)
+  })
+})
+
+describe('Pools.resumeRpuRecoveryRun', function () {
+  it('resumes the run with the settings left changed by the previous attempt, not the hosts', async function () {
+    const { pools, store } = createPools({ record: makeDirtyRecord() })
+
+    const { recorder, resume, leftoverSettings } = await pools.resumeRpuRecoveryRun(pool)
+
+    assert.equal(store.values.get('pool-1').status, 'resuming')
+    assert.equal(recorder.runId, 'run-1')
+    assert.equal(recorder.attempt, 2)
+    assert.deepEqual(leftoverSettings, [{ type: 'ha', id: 'pool-1' }])
+    assert.equal(resume.hostsStarted, true)
+    assert.deepEqual(resume.hostOrder, ['h1'])
+  })
+
+  it('has nothing to resume when the pool has no record', async function () {
+    const { pools } = createPools()
+    await assert.rejects(pools.resumeRpuRecoveryRun(pool), error =>
+      noSuchObject.is(error, { id: 'pool-1', type: 'rollingUpdateRecovery' })
+    )
   })
 })

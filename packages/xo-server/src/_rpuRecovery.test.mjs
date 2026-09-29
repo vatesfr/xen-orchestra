@@ -1,7 +1,7 @@
 import assert from 'assert/strict'
 import test from 'node:test'
 import { Readable } from 'node:stream'
-import { incorrectState } from 'xo-common/api-errors.js'
+import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
 
 import {
   buildRpuRecoveryView,
@@ -9,8 +9,10 @@ import {
   filterError,
   listUnrestoredItems,
   noopRpuRecorder,
+  planRpuResume,
   readRpuRecoveryView,
   reconcileRpuRecoveryAtBoot,
+  resumeRpuRecoveryRun,
   RPU_RECOVERY_SCHEMA_VERSION,
   startRpuRecoveryRun,
   unreadableRpuRecoveryView,
@@ -168,6 +170,14 @@ describe('buildRpuRecoveryView()', () => {
     assert.equal(view.hosts.skipped.status, 'not-needed')
     assert.equal(view.hosts.done.status, 'succeeded')
     assert.equal(view.hosts.half.status, 'running')
+  })
+
+  it('exposes the attempt, 1 for a record written before resumes existed', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    assert.equal(buildRpuRecoveryView(record).attempt, 1)
+
+    record.attempt = 3
+    assert.equal(buildRpuRecoveryView(record).attempt, 3)
   })
 })
 
@@ -440,6 +450,38 @@ describe('createRpuRecoveryRecorder()', () => {
     await assert.rejects(recorder.settingChangedByRun('wlb'), /disk full/)
   })
 
+  it('settingChangedByRun keeps the schedules disabled by a previous attempt', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    await recorder.settingChangedByRun('schedules', ['schedule-1', 'schedule-2'])
+    await recorder.settingChangedByRun('schedules', ['schedule-2', 'schedule-3'])
+
+    assert.deepEqual(stored().changedByRun.schedules, ['schedule-1', 'schedule-2', 'schedule-3'])
+  })
+
+  it('hostStarting keeps the state of the host before the first attempt', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    recorder.hostStarting('h1', '123', true)
+    // resumed: the host was disabled by the interrupted attempt
+    recorder.hostStarting('h1', '456', false)
+    await recorder.fail(new Error('later'))
+
+    assert.equal(stored().hosts.h1.agentStartedAtBeforeUpdate, '123')
+    assert.equal(stored().hosts.h1.enabledBeforeUpdate, true)
+  })
+
+  it('markSucceeded keeps the record as succeeded', async () => {
+    const { store, recorder } = await makeRecorder()
+
+    recorder.markRunning()
+    await recorder.markSucceeded()
+
+    const record = store.data.get('pool1')
+    assert.equal(record.status, 'succeeded')
+    assert.equal(typeof record.finishedAt, 'string')
+  })
+
   it('tracking writes are best effort: a write failure does not throw', async () => {
     const { store, recorder } = await makeRecorder()
     store.put = async () => {
@@ -530,6 +572,28 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(stored().status, 'failed')
   })
 
+  it('dropIfNothingToRecover keeps the record of a resume, which knows what the previous attempts changed', async () => {
+    const { store, recorder: firstAttempt } = await makeRecorder()
+    await firstAttempt.fail(new Error('interrupted'))
+    const { recorder } = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+
+    await recorder.fail(new Error('boom'))
+    await recorder.dropIfNothingToRecover()
+
+    assert.equal(store.data.get('pool1').status, 'failed')
+  })
+
+  it('setPatchInventory keeps the inventory of the first attempt', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    recorder.setPatchInventory({ h1: true, h2: true })
+    // resumed: h1 was updated by the previous attempt
+    recorder.setPatchInventory({ h1: false, h2: true })
+    await recorder.fail(new Error('later'))
+
+    assert.deepEqual(stored().hasMissingPatchesByHost, { h1: true, h2: true })
+  })
+
   it('dropIfNothingToRecover never throws: the record stays failed when it cannot be dropped', async () => {
     const { store, recorder } = await makeRecorder()
     store.del = async () => {
@@ -564,6 +628,152 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(typeof record.finishedAt, 'string')
     await reconcileRpuRecoveryAtBoot(store)
     assert.equal(store.data.get('pool1').status, 'succeeded')
+  })
+})
+
+const allSteps = status =>
+  Object.fromEntries(['evacuate', 'update', 'reboot', 'enable', 'restoreVms'].map(name => [name, { status }]))
+
+describe('planRpuResume()', () => {
+  function makeRecord(hosts) {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    record.hostOrder = Object.keys(hosts)
+    record.hosts = Object.fromEntries(Object.entries(hosts).map(([hostId, steps]) => [hostId, { steps }]))
+    return record
+  }
+
+  it('sorts the hosts: done, to resume, left alone', () => {
+    const record = makeRecord({
+      done: { ...allSteps('observed-succeeded'), restoreVms: { status: 'pending' } },
+      evacuateFailed: { evacuate: { status: 'failed' } },
+      evacuateRunning: { evacuate: { status: 'running' } },
+      evacuated: { evacuate: { status: 'observed-succeeded' } },
+      ignored: allSteps('not-needed'),
+    })
+    // not handled yet
+    record.hostOrder.push('pending')
+
+    const plan = planRpuResume(record)
+
+    assert.deepEqual([...plan.doneHostIds], ['done'])
+    assert.equal(plan.hostsStarted, true)
+  })
+
+  it('refuses a host stopped after its evacuation, before any write', () => {
+    for (const steps of [
+      { evacuate: { status: 'observed-succeeded' }, update: { status: 'running' } },
+      { ...allSteps('observed-succeeded'), reboot: { status: 'failed' } },
+      { evacuate: { status: 'observed-succeeded' }, update: { status: 'observed-succeeded' } },
+    ]) {
+      assert.throws(
+        () => planRpuResume(makeRecord({ h1: steps })),
+        error => incorrectState.is(error, { object: 'pool1', property: 'resumableStep', actual: { hostId: 'h1' } })
+      )
+    }
+  })
+
+  it('has nothing done without a host order, nor started hosts without host', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+
+    const plan = planRpuResume(record)
+
+    assert.equal(plan.doneHostIds.size, 0)
+    assert.equal(plan.hostsStarted, false)
+  })
+})
+
+describe('resumeRpuRecoveryRun()', () => {
+  async function storeWith(patch) {
+    const store = makeFakeStore()
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    Object.assign(record, { status: 'failed', finishedAt: 'T' }, patch)
+    await store.put('pool1', record)
+    return { store, record }
+  }
+
+  it('fails when the pool has no record', async () => {
+    await assert.rejects(resumeRpuRecoveryRun({ store: makeFakeStore(), poolId: 'pool1' }), error =>
+      noSuchObject.is(error, { id: 'pool1', type: 'rollingUpdateRecovery' })
+    )
+  })
+
+  it('refuses a record which is not failed nor interrupted', async () => {
+    for (const status of ['preparing', 'running', 'resuming', 'cleaning', 'succeeded']) {
+      const { store } = await storeWith({ status })
+      await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1' }), error =>
+        incorrectState.is(error, { actual: status, property: 'status' })
+      )
+    }
+  })
+
+  it('refuses a blocked record', async () => {
+    const { store } = await storeWith({ schemaVersion: 42 })
+    await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1' }), error =>
+      incorrectState.is(error, { actual: 'blocked', property: 'status' })
+    )
+
+    store.get = async () => {
+      throw new SyntaxError('Unexpected token')
+    }
+    await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1' }), error =>
+      incorrectState.is(error, { actual: 'blocked', property: 'status' })
+    )
+  })
+
+  it('leaves a record refused by the plan untouched', async () => {
+    const { store } = await storeWith({
+      hostOrder: ['h1'],
+      hosts: { h1: { steps: { evacuate: { status: 'observed-succeeded' }, reboot: { status: 'running' } } } },
+    })
+    const before = structuredClone(store.data.get('pool1'))
+
+    await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1' }), error =>
+      incorrectState.is(error, { property: 'resumableStep' })
+    )
+    assert.deepEqual(store.data.get('pool1'), before)
+  })
+
+  it('continues the same run: resuming on disk, attempt increased, failed steps of the previous attempt re-armed', async () => {
+    const { store, record } = await storeWith({
+      status: 'interrupted',
+      hostOrder: ['h1', 'h2'],
+      hosts: {
+        h1: { steps: { ...allSteps('observed-succeeded'), restoreVms: { status: 'failed' } } },
+        h2: { steps: { evacuate: { status: 'failed' } } },
+      },
+    })
+
+    const resumed = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+
+    const stored = store.data.get('pool1')
+    assert.equal(stored.runId, record.runId)
+    assert.equal(stored.status, 'resuming')
+    assert.equal(stored.attempt, 2)
+    assert.equal(stored.finishedAt, undefined)
+    assert.equal(stored.hosts.h1.steps.restoreVms.status, 'pending')
+    assert.equal(stored.hosts.h1.steps.reboot.status, 'observed-succeeded')
+    assert.equal(stored.hosts.h2.steps.evacuate.status, 'pending')
+    assert.equal(resumed.recorder.runId, record.runId)
+    assert.equal(resumed.recorder.attempt, 2)
+    assert.deepEqual([...resumed.plan.doneHostIds], ['h1'])
+
+    // a failure of the resume is recorded and the run can be resumed again
+    resumed.recorder.stepRunning('h2', 'evacuate')
+    resumed.recorder.hostFailed('h2', new Error('not enough memory'))
+    await resumed.recorder.fail(new Error('not enough memory'))
+    assert.equal(store.data.get('pool1').hosts.h2.steps.evacuate.status, 'failed')
+
+    await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    assert.equal(store.data.get('pool1').attempt, 3)
+  })
+
+  it('rejects when the resuming status cannot be written', async () => {
+    const { store } = await storeWith()
+    store.put = async () => {
+      throw new Error('disk full')
+    }
+
+    await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1' }), /disk full/)
   })
 })
 
@@ -640,6 +850,7 @@ describe('noopRpuRecorder', () => {
     await noopRpuRecorder.settingChangedByRun('ha')
     await noopRpuRecorder.fail(new Error('boom'))
     await noopRpuRecorder.dropIfNothingToRecover()
+    await noopRpuRecorder.markSucceeded()
     await noopRpuRecorder.delete()
   })
 })

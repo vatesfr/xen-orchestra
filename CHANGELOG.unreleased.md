@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [Backup/Restore] Backup repositories attached to a proxy now also benefit from the faster, journal-replayed backup listing (PR [#10437](https://github.com/vatesfr/xen-orchestra/pull/10437))
+- [RPU] Resume a failed or interrupted rolling pool update: only the hosts with remaining work are handled, and the VMs go back to their original host (PR [#10474](https://github.com/vatesfr/xen-orchestra/pull/10474))
 
 ### Bug fixes
 
@@ -37,10 +38,12 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
-- @xen-orchestra/rest-api patch
+- @xen-orchestra/rest-api minor
 - xen-api patch
 - xo-server minor
+- xo-web minor
 
 <!--packages-end-->

@@ -1289,7 +1289,11 @@ const messages = {
   rpuRecoveryRecordExists:
     'A rolling pool update is in progress or was left incomplete. It must be resolved before a new one can start.',
   rpuRecoverySucceeded:
-    'The last rolling pool update completed but its record could not be removed. A new one cannot start until it is finalized.',
+    'The last rolling pool update completed but its record was kept: it could not be removed, or settings changed by an interrupted attempt are still to be restored. A new one cannot start until it is finalized.',
+  rpuRecoveryAttempt: 'Attempt {attempt}',
+  rpuRecoveryResume: 'Resume',
+  rpuRecoveryResumeConfirm:
+    'Resume the rolling pool update: only the hosts with remaining work are handled, then the VMs are migrated back to their original host.',
   rpuRecoveryFinalize: 'Finalize',
   rpuRecoveryFinalizeConfirm:
     'Finalize the last rolling pool update? Its record will be removed and a new rolling pool update will be allowed. This is refused if the update changed something it did not restore.',

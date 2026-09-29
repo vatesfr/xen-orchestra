@@ -16,6 +16,7 @@ function createXenServers({
   backupRunning = false,
   deleteRecord = async () => {},
   intentRefused = false,
+  leftoverSettings = [],
   loadBalancerLoaded = false,
   recordRefused = false,
   softwareVersion = { product_brand: 'XCP-ng', product_version: '8.3.0' },
@@ -25,6 +26,32 @@ function createXenServers({
 } = {}) {
   const calls = []
   const taskNames = []
+  const taskProperties = []
+  const makeRecorder = (attempt = 1) => ({
+    runId: 'run-1',
+    attempt,
+    markRunning() {},
+    setTaskId() {},
+    async settingChangedByRun(name, value) {
+      calls.push(['recorder.settingChangedByRun', name, value])
+      if (intentRefused) {
+        throw new Error('store unavailable')
+      }
+    },
+    async delete() {
+      calls.push(['recorder.delete'])
+      return deleteRecord()
+    },
+    async markSucceeded() {
+      calls.push(['recorder.markSucceeded'])
+    },
+    async fail() {
+      calls.push(['recorder.fail'])
+    },
+    async dropIfNothingToRecover() {
+      calls.push(['recorder.dropIfNothingToRecover'])
+    },
+  })
   const app = {
     apiContext: { user: { preferences: {} } },
     hooks: { on() {} },
@@ -37,6 +64,7 @@ function createXenServers({
     tasks: {
       create(properties) {
         taskNames.push(properties.name)
+        taskProperties.push(properties)
         return new Task({ properties })
       },
     },
@@ -70,22 +98,21 @@ function createXenServers({
       if (recordRefused) {
         throw incorrectState({ actual: 'failed', expected: null, object: poolId, property: 'rollingUpdateRecovery' })
       }
+      return makeRecorder()
+    },
+    async resumeRpuRecoveryRun({ id }) {
+      calls.push(['resumeRpuRecoveryRun', id])
       return {
-        markRunning() {},
-        setTaskId() {},
-        async settingChangedByRun(name, value) {
-          calls.push(['recorder.settingChangedByRun', name, value])
-          if (intentRefused) {
-            throw new Error('store unavailable')
-          }
+        recorder: makeRecorder(2),
+        options: { bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: true },
+        resume: {
+          doneHostIds: new Set(['host-A']),
+          hostsStarted: true,
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: { vm1: 'host-A' },
+          haltedPinnedVms: {},
         },
-        delete: deleteRecord,
-        async fail() {
-          calls.push(['recorder.fail'])
-        },
-        async dropIfNothingToRecover() {
-          calls.push(['recorder.dropIfNothingToRecover'])
-        },
+        leftoverSettings,
       }
     },
   }
@@ -103,14 +130,17 @@ function createXenServers({
     async call(method, ref, value) {
       calls.push(['xapi.call', method, value])
     },
-    async rollingPoolUpdate(task, { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms }) {
+    async rollingPoolUpdate(task, { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms, resume }) {
       calls.push(['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms }])
+      if (resume !== undefined) {
+        calls.push(['xapi.rollingPoolUpdate resume', resume])
+      }
       if (updateRefused) {
         throw incorrectState({ actual: ['host-B'], expected: [], object: 'pool-1', property: 'partiallyUpdatedPool' })
       }
     },
   })
-  return { calls, taskNames, xenServers }
+  return { calls, taskNames, taskProperties, xenServers }
 }
 
 describe('XenServers.rollingPoolUpdate', function () {
@@ -139,6 +169,7 @@ describe('XenServers.rollingPoolUpdate', function () {
         { acceptCurrentStateAsBaseline: true, bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: false },
       ],
       ['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: false }],
+      ['recorder.delete'],
     ])
   })
 
@@ -226,6 +257,58 @@ describe('XenServers.rollingPoolUpdate', function () {
       },
     })
     await xenServers.rollingPoolUpdate(pool)
-    assert.equal(calls.at(-1)[0], 'xapi.rollingPoolUpdate')
+    assert.equal(calls.at(-1)[0], 'recorder.delete')
+  })
+})
+
+describe('XenServers.resumeRollingPoolUpdate', function () {
+  it('asks the backup guard again, then continues the same run where it stopped', async function () {
+    const { calls, taskProperties, xenServers } = createXenServers()
+    await xenServers.resumeRollingPoolUpdate(pool)
+    assert.deepEqual(calls, [
+      ['backupGuard', 'pool-1', { bypassBackupCheck: false, operation: 'resumeRollingPoolUpdate' }],
+      ['getAllJobs'],
+      ['resumeRpuRecoveryRun', 'pool-1'],
+      ['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: true }],
+      [
+        'xapi.rollingPoolUpdate resume',
+        {
+          doneHostIds: new Set(['host-A']),
+          hostsStarted: true,
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: { vm1: 'host-A' },
+          haltedPinnedVms: {},
+        },
+      ],
+      ['recorder.delete'],
+    ])
+    assert.equal(taskProperties[0].runId, 'run-1')
+    assert.equal(taskProperties[0].attempt, 2)
+  })
+
+  it('is refused by the backup guard before the record is read', async function () {
+    const { calls, xenServers } = createXenServers({ backupRunning: true })
+    await assert.rejects(xenServers.resumeRollingPoolUpdate(pool, { bypassBackupCheck: false }), forbiddenOperation.is)
+    assert.deepEqual(calls, [
+      ['backupGuard', 'pool-1', { bypassBackupCheck: false, operation: 'resumeRollingPoolUpdate' }],
+    ])
+  })
+
+  it('keeps the record once done when a previous attempt left settings changed', async function () {
+    const { calls, xenServers } = createXenServers({ leftoverSettings: [{ type: 'ha', id: 'pool-1' }] })
+    await xenServers.resumeRollingPoolUpdate(pool)
+    assert.equal(calls.at(-1)[0], 'recorder.markSucceeded')
+    assert.ok(!calls.some(([name]) => name === 'recorder.delete'))
+  })
+
+  it('records the failure of a resume', async function () {
+    const { calls, xenServers } = createXenServers({ updateRefused: true })
+    await assert.rejects(xenServers.resumeRollingPoolUpdate(pool), error =>
+      incorrectState.is(error, { property: 'partiallyUpdatedPool' })
+    )
+    assert.deepEqual(
+      calls.slice(-2).map(([name]) => name),
+      ['recorder.fail', 'recorder.dropIfNothingToRecover']
+    )
   })
 })
