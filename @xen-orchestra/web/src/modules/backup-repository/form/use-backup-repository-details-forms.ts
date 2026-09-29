@@ -1,20 +1,46 @@
-import { useAzureBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-azure-backup-repository-details-form.ts'
-import { useLocalBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-local-backup-repository-details-form.ts'
-import { useNfsBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-nfs-backup-repository-details-form.ts'
-import { useS3BackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-s3-backup-repository-details-form.ts'
-import { useSmbBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
+import {
+  type AzureBackupRepositoryDetailsFormData,
+  useAzureBackupRepositoryDetailsForm,
+} from '@/modules/backup-repository/form/details/use-azure-backup-repository-details-form.ts'
+import {
+  type LocalBackupRepositoryDetailsFormData,
+  useLocalBackupRepositoryDetailsForm,
+} from '@/modules/backup-repository/form/details/use-local-backup-repository-details-form.ts'
+import {
+  type NfsBackupRepositoryDetailsFormData,
+  useNfsBackupRepositoryDetailsForm,
+} from '@/modules/backup-repository/form/details/use-nfs-backup-repository-details-form.ts'
+import {
+  type S3BackupRepositoryDetailsFormData,
+  useS3BackupRepositoryDetailsForm,
+} from '@/modules/backup-repository/form/details/use-s3-backup-repository-details-form.ts'
+import {
+  type SmbBackupRepositoryDetailsFormData,
+  useSmbBackupRepositoryDetailsForm,
+} from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
 import type { BackupRepositoryGeneralFormData } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import { computed } from 'vue'
 
 export type BackupRepositoryDetailsForms = ReturnType<typeof useBackupRepositoryDetailsForms>['details']
 
-export function useBackupRepositoryDetailsForms(generalFormData: BackupRepositoryGeneralFormData) {
+export type BackupRepositoryDetailsInitialData = {
+  file?: Partial<LocalBackupRepositoryDetailsFormData>
+  nfs?: Partial<NfsBackupRepositoryDetailsFormData>
+  smb?: Partial<SmbBackupRepositoryDetailsFormData>
+  s3?: Partial<S3BackupRepositoryDetailsFormData>
+  azure?: Partial<AzureBackupRepositoryDetailsFormData>
+}
+
+export function useBackupRepositoryDetailsForms(
+  generalFormData: BackupRepositoryGeneralFormData,
+  initialData?: BackupRepositoryDetailsInitialData
+) {
   const details = {
-    file: useLocalBackupRepositoryDetailsForm(() => generalFormData.proxy),
-    nfs: useNfsBackupRepositoryDetailsForm(),
-    smb: useSmbBackupRepositoryDetailsForm(),
-    s3: useS3BackupRepositoryDetailsForm(),
-    azure: useAzureBackupRepositoryDetailsForm(() => generalFormData.type),
+    file: useLocalBackupRepositoryDetailsForm(() => generalFormData.proxy, initialData?.file),
+    nfs: useNfsBackupRepositoryDetailsForm(initialData?.nfs),
+    smb: useSmbBackupRepositoryDetailsForm(initialData?.smb),
+    s3: useS3BackupRepositoryDetailsForm(initialData?.s3),
+    azure: useAzureBackupRepositoryDetailsForm(() => generalFormData.type, initialData?.azure),
   }
 
   const currentDetailsForm = computed(() => {
