@@ -106,6 +106,18 @@ exports.shortname = function (name) {
 //shortname("autoexecutable.batch") => {basis:['AUTOEXEC','BAT'],lossy:true}
 // TODO: OS X stores `shortname("._.Trashes")` as ['~1', 'TRA'] — should we?
 
+// FAT volume label: eleven raw ASCII characters, no 8.3 split, no leading space (as fatlabel).
+// Validated before uppercasing: Unicode case mapping would turn 'ß' into 'SS'.
+var _labelInvalid = /[^A-Za-z0-9$%'\-_@~`!(){}^#& ]/;
+exports.labelname = function (name) {
+    name = name.replace(/ +$/, '');
+    if (!name.length || name[0] === ' ' || _labelInvalid.test(name)) throw S.err.INVAL();
+    if (name.length > 11) throw S.err.NAMETOOLONG();
+    name = name.toUpperCase();
+    while (name.length < 11) name += ' ';
+    return {filename:name.slice(0,8), extension:name.slice(8), _lossy:false};
+};
+
 var _lnInvalid = /[^a-zA-Z0-9$%'-_@~`!(){}^#&.+,;=[\] ]/g;
 exports.longname = function (name) {
     name = name.trim().replace(/\.+$/, '').replace(_lnInvalid, function (c) {

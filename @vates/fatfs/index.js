@@ -752,18 +752,34 @@ exports.createFileSystem = function (volume, opts, cb) {
   }
 
   // See https://github.com/natevw/fatfs/pull/31/files
+  //
+  // Written as a bare root directory entry: a file entry would bring a long name entry and a
+  // data cluster, and mtools' `mlabel` would print "label (abbr=SHORT)", which Cloudbase-Init rejects.
   fs.createLabel = function (name, cb) {
-    fs.open(name, 'a', (e, _fd) => {
-      if (e) {
-        cb(e)
-      } else {
-        let fd = fileDescriptors[_fd]
-        fd.entry.Attr.volume_id = true
-        fd.entry.FstClusLO = 0
-        fd.entry.FstClusHI = 0
-
-        fs._updateEntry(fd.entry, {}, cb)
+    // queue behind the volume initialization, like every other operation
+    cb = GROUP(cb, function () {
+      if (vol.opts.ro) return _.delayedCall(cb, S.err.ROFS())
+      var label
+      try {
+        // validated up front; dir.addFile encodes the entry again from the normalized name
+        _.labelname(name)
+        label = _.absoluteSteps(name)[0]
+      } catch (e) {
+        return _.delayedCall(cb, e.code ? e : S.err.INVAL())
       }
+      // root directory only, and not through the path cache: a label is not an fs entry
+      var root = vol.rootDirectoryChain
+      dir.findVolumeLabel(vol, root, function (e, existing) {
+        if (e || existing) return _.delayedCall(cb, e || S.err.EXIST())
+        dir.findInDirectory(vol, root, label, { prepareForCreate: true }, function (e, entry) {
+          if (!e) _.delayedCall(cb, S.err.EXIST())
+          else if (e.code !== 'NOENT') _.delayedCall(cb, e)
+          else
+            fs._addFile(root, _.extend(entry, { name: label }), { volumeLabel: true }, function (e) {
+              _.delayedCall(cb, e)
+            })
+        })
+      })
     })
   }
 

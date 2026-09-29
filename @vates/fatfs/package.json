@@ -5,7 +5,8 @@
   "description": "fs implementation on top of raw FAT16/FAT32 block source",
   "main": "index.js",
   "scripts": {
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "test": "node --test index.test.js"
   },
   "repository": {
     "directory": "@vates/fatfs",
