@@ -40,6 +40,8 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/rest-api patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xen-api patch
 - xo-server minor
 
