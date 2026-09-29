@@ -21,7 +21,8 @@ export function useEditBackupRepositoryForm(rawBr: MaybeRefOrGetter<FrontXoBacku
       proxy: br.value.proxy,
       encrypted: parsedUrl.value?.encryptionKey !== undefined,
       encryptionKey: parsedUrl.value?.encryptionKey ?? '',
-    })
+    }),
+    true
   )
 
   const { details, currentDetailsForm } = useBackupRepositoryDetailsForms(general.formData)

@@ -25,7 +25,7 @@ const BLOCK_ONLY_TYPES: BackupRepositoryType[] = ['azure', 'azurite', 's3']
 
 export type BackupRepositoryGeneralForm = ReturnType<typeof useBackupRepositoryGeneralForm>
 
-export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneralFormData) {
+export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneralFormData, isTypeLocked = false) {
   const { t } = useI18n()
 
   const { proxies } = useXoProxyCollection()
@@ -81,6 +81,7 @@ export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneral
 
   const { id: typeSelectId } = useFormSelect('type', typeOptions, {
     required: true,
+    disabled: () => isTypeLocked,
     option: { label: 'label', value: 'value' },
   })
 
