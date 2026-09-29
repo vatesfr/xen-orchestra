@@ -35,7 +35,6 @@ export class AggregatedIncrementalXapiWriter extends AbstractAggregatedXapiWrite
   }
 
   // take the lock on every adapters with this VM
-  // cleanup if deleteFirst is selected
   async beforeBackup() {
     await this.setupWriters()
     await Promise.all(this.writers.map(writer => writer.beforeBackup()))
