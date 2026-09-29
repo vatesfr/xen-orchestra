@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [Backup/Restore] Backup repositories attached to a proxy now also benefit from the faster, journal-replayed backup listing (PR [#10437](https://github.com/vatesfr/xen-orchestra/pull/10437))
+- [Plugin/audit] New `logRecords` option to also write each new audit record to xo-server logs as a single JSON line, so they can be forwarded to a syslog server (PR [#10460](https://github.com/vatesfr/xen-orchestra/pull/10460))
 
 ### Bug fixes
 
@@ -42,5 +43,6 @@
 - @xen-orchestra/rest-api patch
 - xen-api patch
 - xo-server minor
+- xo-server-audit minor
 
 <!--packages-end-->
