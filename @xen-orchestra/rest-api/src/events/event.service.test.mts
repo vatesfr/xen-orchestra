@@ -85,7 +85,7 @@ async function flush() {
 }
 
 describe('EventService', () => {
-  it('streams the changes of the backup archives of the app to a backup-archive subscriber', async t => {
+  it('streams the changes of the backup archives of the app to a vm-backups-cache subscriber', async t => {
     // the ping listener the subscriber always gets would otherwise keep the test process alive
     t.mock.timers.enable({ apis: ['setInterval'] })
 
@@ -94,7 +94,7 @@ describe('EventService', () => {
     const { frames, res } = createResponse()
 
     const subscriberId = eventService.createSseSubscriber(res)
-    eventService.addListenerFor(subscriberId, { type: 'backup-archive' })
+    eventService.addListenerFor(subscriberId, { type: 'vm-backups-cache' })
 
     vmBackupArchives.emit('add', archive, undefined)
     await flush()
@@ -104,11 +104,11 @@ describe('EventService', () => {
       frames.map(({ event }) => event),
       ['init', 'add']
     )
-    assert.equal(frames[1].data.$subscription, 'backup-archive')
+    assert.equal(frames[1].data.$subscription, 'vm-backups-cache')
     assert.equal(frames[1].data.id, archive.id)
 
     // stops listening to the collection once nobody subscribes to it anymore
-    eventService.removeListenerFor(subscriberId, 'backup-archive')
+    eventService.removeListenerFor(subscriberId, 'vm-backups-cache')
     assert.equal(vmBackupArchives.listenerCount('add'), 0)
   })
 })
