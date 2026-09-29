@@ -116,6 +116,6 @@ export function createNetworkOperations(xenApi: XenApi) {
     },
 
     delete: (networkRefs: NetworkRefs) =>
-      Promise.all(toArray(networkRefs).map(networkRef => xenApi.call('network.destroy', [networkRef]))),
+      Promise.allSettled(toArray(networkRefs).map(networkRef => xenApi.call('network.destroy', [networkRef]))),
   }
 }
