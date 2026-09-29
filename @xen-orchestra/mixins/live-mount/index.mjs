@@ -8,6 +8,7 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 import { randomBytes } from 'node:crypto'
 
 import { detectLocalAddress } from './_address.mjs'
+import { createUfwFirewall } from './_firewall.mjs'
 import { createChapCredentials, probeScsiId } from './_target.mjs'
 import { forgetSr, introduceSr, introduceVdi } from './_sr.mjs'
 
@@ -30,8 +31,14 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * @property {import('@vates/iscsi').IscsiTarget} target
  * @property {Xapi} xapi - replaced by any newer connection to the same pool, see {@link LiveMount#watchConnection}
  * @property {string} [poolUuid] - pool of `xapi`, unknown if it was not connected
+ * @property {{ source: string, port: number, id: string }} [firewallRule] - opened by `iscsi.manageFirewall`
  * @property {() => Promise<void>} [release]
  */
+
+// the firewalls `iscsi.manageFirewall` can drive
+const FIREWALLS = {
+  ufw: createUfwFirewall,
+}
 
 /**
  * Serve a disk as a read-only iSCSI LUN and attach it, as an SR, to a host —
@@ -72,6 +79,14 @@ export default class LiveMount extends EventEmitter {
   #app
   #createTarget
   #detectAddress
+  #firewall
+  #firewallName
+  // a mount waits for the stale rules to be removed: listed before its own is inserted, its rule
+  // would be removed with them
+  /** @type {Promise<void> | undefined} */
+  #firewallPurge
+  // an invalid `iscsi.manageFirewall` fails the mounts, not the whole process
+  #firewallError
   #openDisk
 
   // mount id -> mount record
@@ -82,14 +97,18 @@ export default class LiveMount extends EventEmitter {
   /** @type {Map<string, string>} */
   #mountIdsByVdiUuid = new Map()
 
-  // `openDisk`/`createTarget`/`detectAddress` are injectable for tests only,
+  // `appName` scopes the firewall rules, so that xo-server and xo-proxy on the same machine do not
+  // purge each other's
+  // `openDisk`/`createTarget`/`detectAddress`/`createFirewall` are injectable for tests only,
   // like xo-server's crypto-credentials mixin does with xenStore/fsPromises
   constructor(
     app,
     {
+      appName,
       openDisk = openDiskChain,
       createTarget = options => new IscsiTarget(options),
       detectAddress = detectLocalAddress,
+      createFirewall = name => FIREWALLS[name]?.({ scope: appName }),
     } = {}
   ) {
     super()
@@ -98,6 +117,25 @@ export default class LiveMount extends EventEmitter {
     this.#createTarget = createTarget
     this.#detectAddress = detectAddress
     this.#openDisk = openDisk
+
+    // the target of each mount listens on an ephemeral port, which a firewall cannot allow in
+    // advance: when told to, the port is opened to the host of the mount, for its lifetime only
+    // `false` turns off the default of the packaged configuration
+    const configuredFirewall = app.config.getOptional('iscsi.manageFirewall')
+    const firewallName = configuredFirewall === false ? undefined : configuredFirewall
+    const firewall = firewallName === undefined ? undefined : createFirewall(firewallName)
+    if (firewallName !== undefined && firewall === undefined) {
+      this.#firewallError = new Error(
+        `unsupported iscsi.manageFirewall: ${firewallName}, expected one of ${Object.keys(FIREWALLS).join(', ')}`
+      )
+      warn('live mounts are disabled', { error: this.#firewallError })
+    }
+    if (firewall !== undefined) {
+      this.#firewall = firewall
+      this.#firewallName = firewallName
+      // a process which died without unmounting left its rules behind, nothing serves their ports anymore
+      app.hooks.on('start', () => this.#purgeFirewall())
+    }
 
     app.hooks.on('stop', () =>
       asyncEach(
@@ -109,6 +147,27 @@ export default class LiveMount extends EventEmitter {
         { stopOnError: false }
       )
     )
+  }
+
+  /**
+   * Remove the stale rules once, on start or before the first mount, whichever comes first: the
+   * API may be served before the start hooks run.
+   *
+   * @returns {Promise<void>} never rejects: a failure is logged, and does not prevent the mounts
+   */
+  #purgeFirewall() {
+    const firewallName = this.#firewallName
+    this.#firewallPurge ??= (async () => {
+      try {
+        const removed = await this.#firewall.purge()
+        if (removed.length !== 0) {
+          info('removed stale firewall rules', { firewall: firewallName, removed })
+        }
+      } catch (error) {
+        warn('failed to remove stale firewall rules', { error, firewall: firewallName })
+      }
+    })()
+    return this.#firewallPurge
   }
 
   /**
@@ -136,15 +195,20 @@ export default class LiveMount extends EventEmitter {
   }
 
   #createDiskMount = defer(async ($defer, { handler, diskPath, xapi, hostRef, nameLabel, release }) => {
+    if (this.#firewallError !== undefined) {
+      throw this.#firewallError
+    }
     const config = this.#app.config
     // `iscsi.advertisedAddress` overrides auto-detection; unset, the address
     // reachable *from* the target host is guessed by asking the OS which
     // local address it would route through to reach it — usually right, but
     // not guaranteed to be reachable *back* from the host (NAT, asymmetric
     // routing), which is what the override is for.
+    const firewall = this.#firewall
     let address = config.getOptional('iscsi.advertisedAddress')
+    const hostAddress =
+      address === undefined || firewall !== undefined ? await xapi.getField('host', hostRef, 'address') : undefined
     if (address === undefined) {
-      const hostAddress = await xapi.getField('host', hostRef, 'address')
       address = await this.#detectAddress(hostAddress)
     }
 
@@ -171,6 +235,19 @@ export default class LiveMount extends EventEmitter {
     $defer.onFailure(() => target.close())
     const { port } = target.address()
 
+    // scoped to the host's management address: the one the advertised address is detected from,
+    // so the one it connects from — unless `iscsi.advertisedAddress` points at another network
+    let firewallRule
+    if (firewall !== undefined) {
+      await this.#purgeFirewall()
+      const rule = { source: hostAddress, port, id }
+      // none opened when there is no firewall to drive on this install: nothing to close then
+      if (await firewall.open(rule)) {
+        firewallRule = rule
+        $defer.onFailure(() => firewall.close(rule))
+      }
+    }
+
     const deviceConfig = {
       chapuser: chap.user,
       chappassword: chap.secret,
@@ -196,7 +273,22 @@ export default class LiveMount extends EventEmitter {
     info('mounted', { id, address, port, srUuid, vdiUuid, diskPath })
 
     const poolUuid = xapi.pool?.uuid
-    return { address, disk, diskPath, id, iqn, poolUuid, port, release, srRef, srUuid, target, vdiUuid, xapi }
+    return {
+      address,
+      disk,
+      diskPath,
+      firewallRule,
+      id,
+      iqn,
+      poolUuid,
+      port,
+      release,
+      srRef,
+      srUuid,
+      target,
+      vdiUuid,
+      xapi,
+    }
   })
 
   /**
@@ -312,7 +404,7 @@ export default class LiveMount extends EventEmitter {
     // not the deletion this mixin reacts to
     this.#unwatchVdi(mount)
 
-    const { xapi, srRef, target, release } = mount
+    const { xapi, srRef, target, firewallRule, release } = mount
 
     const errors = []
     const step = async (what, fn) => {
@@ -327,6 +419,9 @@ export default class LiveMount extends EventEmitter {
     await step('forget the SR', () => forgetSr(xapi, srRef))
     // stop serving first, so no I/O is left in flight
     await step('close the target', () => target.close())
+    if (firewallRule !== undefined) {
+      await step('close the firewall rule', () => this.#firewall.close(firewallRule))
+    }
     await step('release the caller resources', () => release?.())
 
     // the mount is gone whatever happened above, so callers tracking it must hear about it even

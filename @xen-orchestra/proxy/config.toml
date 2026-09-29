@@ -58,6 +58,22 @@ port = 443
 # Address the iSCSI targets bind to. Unset means all interfaces.
 #bindAddress = '0.0.0.0'
 
+# Firewall to open the port of each mount in, to the host it is attached to and
+# for the lifetime of the mount only: every mount listens on its own ephemeral
+# port, which cannot be allowed in advance.
+#
+# Only 'ufw' is supported: rules are inserted in `ufw-user-input` (and
+# `ufw6-user-input`) with `iptables`, so they are never persisted, and the ones a
+# crash left behind are removed at the next start. Any change made to ufw
+# (`ufw allow`, `ufw delete`, `ufw reload`…) drops them, which breaks the mounts
+# alive at that time: the firewall of an appliance is not meant to be changed by
+# hand.
+#
+# Without iptables, without ufw enabled, or when not running as root, no rule
+# is opened and the mounts go on: whatever firewall there is must let the hosts
+# in. Set to `false` to leave the firewall of this proxy alone.
+manageFirewall = 'ufw'
+
 [logs]
 # Display all logs matching this filter, regardless of their level
 #filter = 'xo:backups:*'

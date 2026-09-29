@@ -98,15 +98,47 @@ const makeXapi = ({ poolUuid = 'pool-uuid', probeError, vdiSmConfig } = {}) => {
   return xapi
 }
 
-const makeMixin = ({ diskOpenError, listenError, advertisedAddress = '192.168.1.8' } = {}) => {
+// records what the mixin asks of the firewall, instead of running iptables
+const makeFirewall = ({ openError, available = true } = {}) => {
+  const firewall = {
+    calls: [],
+    async open(rule) {
+      firewall.calls.push(['open', rule])
+      if (openError !== undefined) {
+        throw openError
+      }
+      return available
+    },
+    async close(rule) {
+      firewall.calls.push(['close', rule])
+    },
+    async purge() {
+      firewall.calls.push(['purge'])
+      return []
+    },
+  }
+  return firewall
+}
+
+const makeMixin = ({
+  diskOpenError,
+  listenError,
+  advertisedAddress = '192.168.1.8',
+  manageFirewall,
+  firewall = makeFirewall(),
+} = {}) => {
   const hooks = new EventEmitter()
   const detectAddressCalls = []
+  const createFirewallCalls = []
   const app = {
     config: {
       getOptional: path => {
         if (path === 'iscsi.advertisedAddress') {
           // `null` (as opposed to the default) simulates an unset config key
           return advertisedAddress === null ? undefined : advertisedAddress
+        }
+        if (path === 'iscsi.manageFirewall') {
+          return manageFirewall
         }
         assert.equal(path, 'iscsi.bindAddress')
         return undefined
@@ -136,6 +168,7 @@ const makeMixin = ({ diskOpenError, listenError, advertisedAddress = '192.168.1.
   }
 
   const mixin = new LiveMount(app, {
+    appName: 'xo-server',
     openDisk: async params => {
       if (diskOpenError !== undefined) {
         throw diskOpenError
@@ -151,9 +184,13 @@ const makeMixin = ({ diskOpenError, listenError, advertisedAddress = '192.168.1.
       detectAddressCalls.push(hostAddress)
       return '203.0.113.7'
     },
+    createFirewall: name => {
+      createFirewallCalls.push(name)
+      return name === 'ufw' ? firewall : undefined
+    },
   })
 
-  return { app, detectAddressCalls, disk, hooks, mixin, target }
+  return { app, createFirewallCalls, detectAddressCalls, disk, firewall, hooks, mixin, target }
 }
 
 const mountDisk = (mixin, xapi, params) =>
@@ -246,7 +283,7 @@ describe('mountDisk', () => {
     const { mixin } = makeMixin()
     const xapi = makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_141', []) })
 
-    await assert.rejects(mountDisk(mixin, xapi), /cannot reach the iSCSI target at 192\.168\.1\.8/)
+    await assert.rejects(mountDisk(mixin, xapi), /cannot reach the iSCSI target at 192\.168\.1\.8:34567, .* firewalls/)
   })
 
   it('closes the target and the disk when the probe fails', async () => {
@@ -501,6 +538,150 @@ describe('after a reconnection', () => {
     mixin.watchConnection(xapi)
 
     assert.equal(xapi.objects.allIndexes.type.getEventEmitterByType('VDI').listenerCount('remove'), 1)
+  })
+})
+
+describe('iscsi.manageFirewall', () => {
+  it('drives no firewall when unset', async () => {
+    const { mixin, createFirewallCalls, hooks } = makeMixin()
+
+    await mountDisk(mixin, makeXapi())
+
+    assert.deepEqual(createFirewallCalls, [])
+    assert.deepEqual(hooks.listeners('start'), [])
+  })
+
+  it('opens the port of the target to the host, even with an advertised address', async () => {
+    const { mixin, firewall } = makeMixin({ manageFirewall: 'ufw' })
+    const xapi = makeXapi()
+
+    const { id } = await mountDisk(mixin, xapi)
+
+    assert.deepEqual(firewall.calls, [['purge'], ['open', { source: '10.20.30.40', port: 34567, id }]])
+    // opened before the host first connects, which is the probe
+    const probeIndex = xapi.calls.findIndex(([method]) => method === 'SR.probe')
+    const hostAddressIndex = xapi.calls.findIndex(([method, , , field]) => method === 'getField' && field === 'address')
+    assert.ok(hostAddressIndex !== -1 && hostAddressIndex < probeIndex)
+  })
+
+  it('closes the port on unmount, after the target', async () => {
+    const { mixin, firewall, target } = makeMixin({ manageFirewall: 'ufw' })
+    const { id } = await mountDisk(mixin, makeXapi())
+    firewall.calls.length = 0
+    let targetClosedFirst
+    const { close } = firewall
+    firewall.close = async rule => {
+      targetClosedFirst = target.closed
+      return close(rule)
+    }
+
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(firewall.calls, [['close', { source: '10.20.30.40', port: 34567, id }]])
+    assert.equal(targetClosedFirst, true)
+  })
+
+  it('closes the port when the mount fails afterwards', async () => {
+    const { mixin, firewall, target } = makeMixin({ manageFirewall: 'ufw' })
+
+    await assert.rejects(
+      mountDisk(mixin, makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_141', []) })),
+      /cannot reach the iSCSI target/
+    )
+
+    assert.deepEqual(
+      firewall.calls.map(([action]) => action),
+      ['purge', 'open', 'close']
+    )
+    assert.equal(target.closed, true)
+  })
+
+  it('closes the target when the port cannot be opened', async () => {
+    const { mixin, disk, target } = makeMixin({
+      manageFirewall: 'ufw',
+      firewall: makeFirewall({ openError: new Error('iptables failed') }),
+    })
+    const xapi = makeXapi()
+
+    await assert.rejects(mountDisk(mixin, xapi), /iptables failed/)
+
+    assert.equal(target.closed, true)
+    assert.equal(disk.closed, true)
+    assert.ok(!xapi.calls.some(([method]) => method === 'SR.probe'))
+  })
+
+  it('neither records nor closes a rule when there is no firewall to drive', async () => {
+    const { mixin, firewall } = makeMixin({ manageFirewall: 'ufw', firewall: makeFirewall({ available: false }) })
+    const { id } = await mountDisk(mixin, makeXapi())
+
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(
+      firewall.calls.map(([action]) => action),
+      ['purge', 'open']
+    )
+  })
+
+  it('does not close a rule it could not open when the mount fails', async () => {
+    const { mixin, firewall } = makeMixin({ manageFirewall: 'ufw', firewall: makeFirewall({ available: false }) })
+
+    await assert.rejects(mountDisk(mixin, makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_141', []) })))
+
+    assert.deepEqual(
+      firewall.calls.map(([action]) => action),
+      ['purge', 'open']
+    )
+  })
+
+  it('drives no firewall when set to false, overriding the packaged default', async () => {
+    const { mixin, createFirewallCalls, hooks } = makeMixin({ manageFirewall: false })
+
+    await mountDisk(mixin, makeXapi())
+
+    assert.deepEqual(createFirewallCalls, [])
+    assert.deepEqual(hooks.listeners('start'), [])
+  })
+
+  it('removes the stale rules on start', async () => {
+    const { firewall, hooks } = makeMixin({ manageFirewall: 'ufw' })
+
+    await Promise.all(hooks.listeners('start').map(listener => listener()))
+
+    assert.deepEqual(firewall.calls, [['purge']])
+  })
+
+  it('removes the stale rules before the first rule, even when mounting before start, and only once', async () => {
+    const { mixin, firewall, hooks } = makeMixin({ manageFirewall: 'ufw' })
+
+    const { id } = await mountDisk(mixin, makeXapi())
+    await Promise.all(hooks.listeners('start').map(listener => listener()))
+    await mountDisk(mixin, makeXapi())
+
+    assert.deepEqual(
+      firewall.calls.map(([action]) => action),
+      ['purge', 'open', 'open']
+    )
+    assert.equal(firewall.calls[1][1].id, id)
+  })
+
+  it('does not fail the start when the stale rules cannot be removed', async () => {
+    const firewall = makeFirewall()
+    firewall.purge = async () => {
+      throw new Error('ufw is not enabled')
+    }
+    const { hooks } = makeMixin({ manageFirewall: 'ufw', firewall })
+
+    await Promise.all(hooks.listeners('start').map(listener => listener()))
+  })
+
+  it('fails the mounts, not the process, when unsupported', async () => {
+    const { mixin, hooks } = makeMixin({ manageFirewall: 'firewalld' })
+    const xapi = makeXapi()
+
+    await assert.rejects(mountDisk(mixin, xapi), /unsupported iscsi.manageFirewall: firewalld, expected one of ufw/)
+
+    assert.deepEqual(xapi.calls, [])
+    assert.deepEqual(hooks.listeners('start'), [])
   })
 })
 
