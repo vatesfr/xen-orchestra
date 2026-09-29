@@ -7,7 +7,7 @@ import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BACKUP_REPOSITORY_TYPE, type BackupRepositoryType, type BackupRepositoryUrlOptions } from 'xo-remote-parser'
 
-type BackupRepositoryGeneralFormData = {
+export type BackupRepositoryGeneralFormData = {
   name: string
   type: BackupRepositoryType | undefined
   backupFormat: XoBackupFormat | undefined
@@ -25,19 +25,10 @@ const BLOCK_ONLY_TYPES: BackupRepositoryType[] = ['azure', 'azurite', 's3']
 
 export type BackupRepositoryGeneralForm = ReturnType<typeof useBackupRepositoryGeneralForm>
 
-export function useBackupRepositoryGeneralForm() {
+export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneralFormData) {
   const { t } = useI18n()
 
   const { proxies } = useXoProxyCollection()
-
-  const formData = reactive<BackupRepositoryGeneralFormData>({
-    name: '',
-    type: undefined,
-    backupFormat: undefined,
-    proxy: undefined,
-    encrypted: false,
-    encryptionKey: '',
-  })
 
   const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
     errors: {

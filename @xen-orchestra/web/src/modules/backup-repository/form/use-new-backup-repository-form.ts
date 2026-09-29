@@ -1,45 +1,35 @@
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
-import { useAzureBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-azure-backup-repository-details-form.ts'
-import { useLocalBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-local-backup-repository-details-form.ts'
-import { useNfsBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-nfs-backup-repository-details-form.ts'
-import { useS3BackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-s3-backup-repository-details-form.ts'
-import { useSmbBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
-import { useBackupRepositoryGeneralForm } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
+import { useBackupRepositoryDetailsForms } from '@/modules/backup-repository/form/use-backup-repository-details-forms.ts'
+import {
+  type BackupRepositoryGeneralFormData,
+  useBackupRepositoryGeneralForm,
+} from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import type { NewBackupRepositoryPayload } from '@/modules/backup-repository/jobs/xo-backup-repository-create.job.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
-import { computed, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { format as formatBackupRepositoryUrl } from 'xo-remote-parser'
 
 const STEPS = ['general', 'details', 'review'] as const
 type Step = (typeof STEPS)[number]
 
-export type NewBackupRepositoryDetailsForms = ReturnType<typeof useNewBackupRepositoryForm>['details']
-
 export function useNewBackupRepositoryForm() {
   const { t } = useI18n()
 
-  const general = useBackupRepositoryGeneralForm()
+  const general = useBackupRepositoryGeneralForm(
+    reactive<BackupRepositoryGeneralFormData>({
+      name: '',
+      type: undefined,
+      backupFormat: undefined,
+      proxy: undefined,
+      encrypted: false,
+      encryptionKey: '',
+    })
+  )
 
   const typeLabel = useXoBackupRepositoryTypeLabel(() => general.formData.type)
 
-  const details = {
-    file: useLocalBackupRepositoryDetailsForm(() => general.formData.proxy),
-    nfs: useNfsBackupRepositoryDetailsForm(),
-    smb: useSmbBackupRepositoryDetailsForm(),
-    s3: useS3BackupRepositoryDetailsForm(),
-    azure: useAzureBackupRepositoryDetailsForm(() => general.formData.type),
-  }
-
-  const currentDetailsForm = computed(() => {
-    const { type } = general.formData
-
-    if (type === undefined) {
-      return undefined
-    }
-
-    return details[type === 'azurite' ? 'azure' : type]
-  })
+  const { details, currentDetailsForm } = useBackupRepositoryDetailsForms(general.formData)
 
   const currentStepIndex = ref(0)
 
