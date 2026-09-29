@@ -18,6 +18,8 @@ export function createHostOperations(xenApi: XenApi) {
 
   const destroy = (hostRef: HostRef) => xenApi.call('host.destroy', [hostRef])
 
+  const restartAgent = (hostRef: HostRef) => xenApi.call('host.restart_agent', [hostRef])
+
   const clearHost = async (hostRef: HostRef, force: boolean) => {
     await disable(hostRef)
 
@@ -38,6 +40,7 @@ export function createHostOperations(xenApi: XenApi) {
     enable,
     powerOn,
     destroy,
+    restartAgent,
     cleanReboot: async (hostRef: HostRef, forceReboot: boolean) => {
       await clearHost(hostRef, forceReboot)
 
