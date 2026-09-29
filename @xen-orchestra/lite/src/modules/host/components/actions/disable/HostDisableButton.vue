@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canDisableHost && disableHostErrorMessage"
+    accent="neutral"
     :busy="isDisablingHost"
     :disabled="!canDisableHost"
     icon="action:disable"
