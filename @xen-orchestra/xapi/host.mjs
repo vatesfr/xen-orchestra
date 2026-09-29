@@ -25,7 +25,7 @@ class Host {
       throw incorrectState({
         actual: host.$pool.ha_enabled,
         expected: false,
-        object: host.$poolId,
+        object: host.$pool.uuid,
         property: 'HA_enabled',
       })
     }

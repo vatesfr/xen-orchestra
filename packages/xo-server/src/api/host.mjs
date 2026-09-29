@@ -256,15 +256,6 @@ restart.resolve = {
 // -------------------------------------------------------------------
 
 export async function restartAgent({ bypassBackupCheck = false, host }) {
-  const pool = this.getObject(host.$poolId, 'pool')
-  if (pool.HA_enabled) {
-    throw incorrectState({
-      actual: pool.HA_enabled,
-      expected: false,
-      object: pool.id,
-      property: 'HA_enabled',
-    })
-  }
   if (bypassBackupCheck) {
     log.warn('host.restartAgent with argument "bypassBackupCheck" set to true', { hostId: host.id })
   } else {

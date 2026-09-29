@@ -148,15 +148,7 @@ export class HostService {
     } = {}
   ): Promise<void> {
     const host = this.#restApi.getObject<XoHost>(hostId)
-    const pool = this.#restApi.getObject<XoPool>(host.$pool)
-    if (pool.HA_enabled) {
-      throw incorrectState({
-        actual: pool.HA_enabled,
-        expected: false,
-        object: pool.id,
-        property: 'HA_enabled',
-      })
-    }
+
     if (opts?.bypassBackupCheck) {
       log.warn('host.restartAgent called with argument "bypassBackupCheck" set to true', { hostId })
     } else {
