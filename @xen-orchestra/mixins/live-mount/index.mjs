@@ -2,6 +2,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { DiskBlockDevice, IscsiTarget } from '@vates/iscsi'
 import { defer } from 'golike-defer'
+import { EventEmitter } from 'node:events'
 import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { randomBytes } from 'node:crypto'
@@ -11,6 +12,26 @@ import { createChapCredentials, probeScsiId } from './_target.mjs'
 import { forgetSr, introduceSr, introduceVdi } from './_sr.mjs'
 
 const { info, warn } = createLogger('xo:mixins:LiveMount')
+
+/** @typedef {import('@vates/types').Xapi} Xapi */
+
+/**
+ * A mount, as built by `#createDiskMount`.
+ *
+ * @typedef {object} DiskMount
+ * @property {string} id
+ * @property {string} address
+ * @property {number} port
+ * @property {string} iqn
+ * @property {string} diskPath
+ * @property {string} srRef
+ * @property {string} srUuid
+ * @property {string} vdiUuid
+ * @property {import('@vates/iscsi').IscsiTarget} target
+ * @property {Xapi} xapi - replaced by any newer connection to the same pool, see {@link LiveMount#watchConnection}
+ * @property {string} [poolUuid] - pool of `xapi`, unknown if it was not connected
+ * @property {() => Promise<void>} [release]
+ */
 
 /**
  * Serve a disk as a read-only iSCSI LUN and attach it, as an SR, to a host —
@@ -28,6 +49,12 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * importing one from another hypervisor), each supplying its own way to open
  * the source disk.
  *
+ * A mount releases itself when its VDI is removed from the pool — typically
+ * when the VM it was attached to is deleted — so a caller which forgets to
+ * unmount does not leak an SR and a target for the lifetime of the process.
+ * A caller which replaces its XAPI connections (e.g. on reconnection) must
+ * hand each new one to {@link LiveMount#watchConnection}.
+ *
  * The implementation is split by concern, each module private to this
  * directory: `_target.mjs` (CHAP + the iSCSI target + SCSI probe), `_sr.mjs`
  * (the SR/VDI introduced on the target host). This file is the only public
@@ -37,8 +64,11 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * today it only ever mounts one disk at a time, and a future feature mounting
  * a whole VM (one call per disk, then a VM built on the results) belongs on
  * its own method rather than squatting on a bare `mount`/`unmount`.
+ *
+ * @fires LiveMount#unmounted - `(id)`, whenever a mount stops existing,
+ * whether it was unmounted explicitly or because its VDI disappeared
  */
-export default class LiveMount {
+export default class LiveMount extends EventEmitter {
   #app
   #createTarget
   #detectAddress
@@ -46,6 +76,11 @@ export default class LiveMount {
 
   // mount id -> mount record
   #mounts = new Map()
+
+  // VDI uuid -> id of the mount serving it: a uuid is unique across pools, so a single map serves
+  // every connection, including the ones replacing the connection a mount was created with
+  /** @type {Map<string, string>} */
+  #mountIdsByVdiUuid = new Map()
 
   // `openDisk`/`createTarget`/`detectAddress` are injectable for tests only,
   // like xo-server's crypto-credentials mixin does with xenStore/fsPromises
@@ -57,6 +92,8 @@ export default class LiveMount {
       detectAddress = detectLocalAddress,
     } = {}
   ) {
+    super()
+
     this.#app = app
     this.#createTarget = createTarget
     this.#detectAddress = detectAddress
@@ -87,6 +124,7 @@ export default class LiveMount {
   async mountDisk(params) {
     const mount = await this.#createDiskMount(params)
     this.#mounts.set(mount.id, mount)
+    this.#watchVdi(mount)
     return {
       id: mount.id,
       srUuid: mount.srUuid,
@@ -157,8 +195,100 @@ export default class LiveMount {
 
     info('mounted', { id, address, port, srUuid, vdiUuid, diskPath })
 
-    return { address, disk, diskPath, id, iqn, port, release, srRef, srUuid, target, vdiUuid, xapi }
+    const poolUuid = xapi.pool?.uuid
+    return { address, disk, diskPath, id, iqn, poolUuid, port, release, srRef, srUuid, target, vdiUuid, xapi }
   })
+
+  /**
+   * Tear a mount down as soon as its VDI disappears from the pool.
+   *
+   * A live mounted disk is attached to a VM like any other one, and deleting that VM deletes its
+   * disks: the VDI record goes away, but the SR introduced for it, the iSCSI target serving it
+   * and the disk chain behind it would stay for as long as this process lives. Nothing ever
+   * reports the LUN itself as unused, so the VDI vanishing is the only signal that the mount has
+   * become pointless.
+   *
+   * @param {DiskMount} mount
+   */
+  #watchVdi({ id, vdiUuid, xapi }) {
+    this.#mountIdsByVdiUuid.set(vdiUuid, id)
+    this.#listen(xapi)
+  }
+
+  /**
+   * Stop expecting the removal of a mount's VDI, because this unmount is what removes it.
+   *
+   * @param {DiskMount} mount
+   */
+  #unwatchVdi({ vdiUuid }) {
+    this.#mountIdsByVdiUuid.delete(vdiUuid)
+  }
+
+  /**
+   * Take over from the previous connection to the same pool, which a new one replaces.
+   *
+   * A connection which went away reports nothing more, and no longer answers either: without this,
+   * the removal of a VDI would go unnoticed, and so would the SR forgotten on unmount. xo-server
+   * creates a new connection on every reconnection, and each one must be handed here.
+   *
+   * @param {Xapi} xapi
+   */
+  watchConnection(xapi) {
+    const poolUuid = xapi.pool?.uuid
+    if (poolUuid !== undefined) {
+      for (const mount of this.#mounts.values()) {
+        if (mount.poolUuid === poolUuid) {
+          mount.xapi = xapi
+        }
+      }
+    }
+    this.#listen(xapi)
+  }
+
+  /**
+   * One listener per XAPI connection, whatever the number of mounts on it: the VDI events of
+   * `xapi.objects` report every VDI removal of the pool anyway, and a listener per mount would pile
+   * up on a shared connection. It is never removed, it simply ends up watching for nothing — what
+   * is tracked, and dropped as soon as it is of no use, is the uuid it looks for.
+   *
+   * A connection which does not watch the pool events never reports anything: its mounts work, they
+   * just have to be unmounted explicitly.
+   *
+   * @param {Xapi} xapi
+   */
+  #listen(xapi) {
+    const vdiEvents = xapi.objects.allIndexes.type.getEventEmitterByType('VDI')
+    // a single handler shared by every connection, so the emitter itself tells whether this one is
+    // already listened to
+    if (!vdiEvents.listeners('remove').includes(this.#onVdiRemoved)) {
+      vdiEvents.on('remove', this.#onVdiRemoved)
+    }
+  }
+
+  /**
+   * The type index reports each removed record on its own, as it was before its removal, so under
+   * the very uuid `introduceVdi` resolved.
+   *
+   * @param {unknown} _
+   * @param {{ uuid?: string } | undefined} vdi
+   */
+  #onVdiRemoved = (_, vdi) => {
+    const uuid = vdi?.uuid
+    if (uuid === undefined) {
+      return
+    }
+    const mountId = this.#mountIdsByVdiUuid.get(uuid)
+    if (mountId === undefined) {
+      return
+    }
+    // a VDI is removed once and for all, and a mount introduces exactly one: nothing else will ever
+    // come for this uuid
+    this.#mountIdsByVdiUuid.delete(uuid)
+    info('the live mounted VDI was removed, unmounting', { id: mountId, vdiUuid: uuid })
+    this.unmountDisk(mountId).catch(error => {
+      warn('failed to unmount after the VDI was removed', { error, id: mountId })
+    })
+  }
 
   /**
    * Detach a mount from its host and stop serving it.
@@ -178,6 +308,9 @@ export default class LiveMount {
     // drop it first, so a failing teardown cannot be retried against a
     // half-released mount
     this.#mounts.delete(id)
+    // and stop watching before forgetting the SR, which removes the VDI: that removal is ours,
+    // not the deletion this mixin reacts to
+    this.#unwatchVdi(mount)
 
     const { xapi, srRef, target, release } = mount
 
@@ -195,6 +328,14 @@ export default class LiveMount {
     // stop serving first, so no I/O is left in flight
     await step('close the target', () => target.close())
     await step('release the caller resources', () => release?.())
+
+    // the mount is gone whatever happened above, so callers tracking it must hear about it even
+    // when the teardown was partial — and a listener misbehaving is not an unmount failure
+    try {
+      this.emit('unmounted', id)
+    } catch (error) {
+      warn('an unmounted listener failed', { error, id })
+    }
 
     if (errors.length !== 0) {
       const error = new Error(`failed to unmount live mount ${id}`)

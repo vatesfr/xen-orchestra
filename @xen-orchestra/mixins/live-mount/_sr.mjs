@@ -57,8 +57,20 @@ export async function introduceSr($defer, { xapi, hostRef, deviceConfig, id, nam
 }
 
 // SR.forget rather than SR.destroy: the LUN content must not be touched
+//
+// an SR which no longer exists (forgotten by hand, which is also what triggers this teardown) is
+// already where this leaves it
 export async function forgetSr(xapi, srRef) {
-  const pbdRefs = await xapi.call('SR.get_PBDs', srRef)
+  let pbdRefs
+  try {
+    pbdRefs = await xapi.call('SR.get_PBDs', srRef)
+  } catch (error) {
+    if (/** @type {{ code?: string } | undefined} */ (error)?.code === 'HANDLE_INVALID') {
+      debug('the SR is already gone', { srRef })
+      return
+    }
+    throw error
+  }
   await asyncEach(pbdRefs, pbdRef => xapi.callAsync('PBD.unplug', pbdRef), { stopOnError: false })
   await xapi.call('SR.forget', srRef)
 }

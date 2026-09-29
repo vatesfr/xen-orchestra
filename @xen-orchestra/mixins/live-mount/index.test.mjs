@@ -29,8 +29,17 @@ class XapiError extends Error {
   }
 }
 
-const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
+const makeXapi = ({ poolUuid = 'pool-uuid', probeError, vdiSmConfig } = {}) => {
   const calls = []
+  // stands for xen-api's record cache: a `xo-collection` whose type index reports each removed
+  // record of the pool on its own, per type
+  const emitters = { __proto__: null }
+  const getEventEmitterByType = type => (emitters[type] ??= new EventEmitter())
+  const objects = { allIndexes: { type: { getEventEmitterByType } } }
+  const removeRecord = ($type, uuid) => getEventEmitterByType($type).emit('remove', undefined, { $type, uuid })
+
+  // each mount introduces its own VDI, so the driver hands back a different uuid every time
+  let nVdis = 0
   // `call` and `callAsync` answer the same way: which one a method goes through
   // is xen-api's concern, the assertions below only care that it was called
   const handle = (method, ...args) => {
@@ -40,18 +49,29 @@ const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
         throw probeError ?? new XapiError('SR_BACKEND_FAILURE_107', ['', '', LUN_LIST_XML])
       case 'SR.introduce':
         return SR_REF
+      case 'VDI.introduce':
+        ++nVdis
+        return undefined
       case 'PBD.create':
         return 'OpaqueRef:pbd'
       case 'SR.get_VDIs':
         return ['OpaqueRef:vdi']
       case 'SR.get_PBDs':
+        if (xapi.srGone) {
+          throw new XapiError('HANDLE_INVALID', ['SR', SR_REF])
+        }
         return ['OpaqueRef:pbd']
       default:
         return undefined
     }
   }
-  return {
+  const xapi = {
     calls,
+    objects,
+    pool: { uuid: poolUuid },
+    removeRecord,
+    // set to answer for an SR which no longer exists
+    srGone: false,
     async call(method, ...args) {
       return handle(method, ...args)
     },
@@ -72,9 +92,10 @@ const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
       calls.push(['getRecord', type, ref])
       // the driver derives the VDI uuid from the LUN serial, so it differs from
       // the one we asked for
-      return { uuid: 'vdi-uuid', sm_config: vdiSmConfig ?? { SCSIid: SCSI_ID } }
+      return { uuid: nVdis > 1 ? `vdi-uuid-${nVdis}` : 'vdi-uuid', sm_config: vdiSmConfig ?? { SCSIid: SCSI_ID } }
     },
   }
+  return xapi
 }
 
 const makeMixin = ({ diskOpenError, listenError, advertisedAddress = '192.168.1.8' } = {}) => {
@@ -282,10 +303,31 @@ describe('unmountDisk', () => {
     assert.deepEqual(mixin.listMountedDisks(), [])
   })
 
+  it('succeeds when the SR is already gone, e.g. forgotten by hand', async () => {
+    const { mixin, target } = makeMixin()
+    const xapi = makeXapi()
+    let released = false
+
+    const { id } = await mountDisk(mixin, xapi, { release: async () => (released = true) })
+    xapi.calls.length = 0
+    xapi.srGone = true
+
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(
+      xapi.calls.map(([method]) => method),
+      ['SR.get_PBDs']
+    )
+    assert.equal(target.closed, true)
+    assert.equal(released, true)
+  })
+
   it('still closes the target and releases resources when forgetting the SR fails', async () => {
     const { mixin, target } = makeMixin()
     const xapi = makeXapi()
     let released = false
+    const unmounted = []
+    mixin.on('unmounted', id => unmounted.push(id))
     const { id } = await mountDisk(mixin, xapi, { release: async () => (released = true) })
     xapi.call = xapi.callAsync = async () => {
       throw new Error('SR_HAS_NO_PBDS')
@@ -301,11 +343,164 @@ describe('unmountDisk', () => {
     assert.equal(released, true)
     // the mount is gone either way, a half-released mount must not be retried
     assert.deepEqual(mixin.listMountedDisks(), [])
+    // and whoever tracks it must hear about it
+    assert.deepEqual(unmounted, [id])
   })
 
   it('rejects an unknown mount', async () => {
     const { mixin } = makeMixin()
     await assert.rejects(mixin.unmountDisk('nope'), { code: 1, data: { id: 'nope', type: 'live-mount' } })
+  })
+
+  it('notifies its listeners', async () => {
+    const { mixin } = makeMixin()
+    const unmounted = []
+    mixin.on('unmounted', id => unmounted.push(id))
+
+    const { id } = await mountDisk(mixin, makeXapi())
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(unmounted, [id])
+  })
+})
+
+describe('when the live mounted VDI is removed', () => {
+  // the mount is released asynchronously, from an event handler
+  const unmountedMount = mixin =>
+    new Promise(resolve => {
+      mixin.once('unmounted', resolve)
+    })
+
+  it('forgets the SR, closes the target and releases the caller resources', async () => {
+    const { mixin, target } = makeMixin()
+    const xapi = makeXapi()
+    let released = false
+    const { id, vdiUuid } = await mountDisk(mixin, xapi, { release: async () => (released = true) })
+    xapi.calls.length = 0
+
+    xapi.removeRecord('VDI', vdiUuid)
+
+    assert.equal(await unmountedMount(mixin), id)
+    assert.deepEqual(
+      xapi.calls.map(([method]) => method),
+      ['SR.get_PBDs', 'PBD.unplug', 'SR.forget']
+    )
+    assert.equal(target.closed, true)
+    assert.equal(released, true)
+    assert.deepEqual(mixin.listMountedDisks(), [])
+  })
+
+  it('leaves the other mounts of the same connection alone', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    const first = await mountDisk(mixin, xapi)
+    const second = await mountDisk(mixin, xapi, { diskPath: 'xo-vm-backups/vm/vdis/job/vdi/20260801T120000Z.vhd' })
+
+    assert.notEqual(first.vdiUuid, second.vdiUuid)
+    xapi.removeRecord('VDI', first.vdiUuid)
+
+    await unmountedMount(mixin)
+    assert.deepEqual(
+      mixin.listMountedDisks().map(({ id }) => id),
+      [second.id]
+    )
+  })
+
+  it('ignores the removal of anything else', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    const { id, vdiUuid } = await mountDisk(mixin, xapi)
+
+    xapi.removeRecord('VDI', 'some-other-vdi')
+    // a record of another type which happens to share the uuid
+    xapi.removeRecord('SR', vdiUuid)
+
+    await new Promise(resolve => setImmediate(resolve))
+    assert.deepEqual(
+      mixin.listMountedDisks().map(_ => _.id),
+      [id]
+    )
+  })
+
+  it('is no longer expected once the mount was unmounted explicitly', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    const { id, vdiUuid } = await mountDisk(mixin, xapi)
+    const unmounted = []
+    mixin.on('unmounted', _ => unmounted.push(_))
+
+    await mixin.unmountDisk(id)
+    // forgetting the SR removes the VDI: that removal must not feed back into a second teardown
+    xapi.removeRecord('VDI', vdiUuid)
+
+    await new Promise(resolve => setImmediate(resolve))
+    assert.deepEqual(unmounted, [id])
+  })
+})
+
+describe('after a reconnection', () => {
+  const unmountedMount = mixin =>
+    new Promise(resolve => {
+      mixin.once('unmounted', resolve)
+    })
+
+  it('unmounts when the VDI removal is reported by the new connection, and tears down through it', async () => {
+    const { mixin, target } = makeMixin()
+    const disconnected = makeXapi()
+    const { id, vdiUuid } = await mountDisk(mixin, disconnected)
+    disconnected.calls.length = 0
+
+    const reconnected = makeXapi()
+    mixin.watchConnection(reconnected)
+    reconnected.removeRecord('VDI', vdiUuid)
+
+    assert.equal(await unmountedMount(mixin), id)
+    // the previous connection no longer answers: the SR must be forgotten through the new one
+    assert.deepEqual(disconnected.calls, [])
+    assert.deepEqual(
+      reconnected.calls.map(([method]) => method),
+      ['SR.get_PBDs', 'PBD.unplug', 'SR.forget']
+    )
+    assert.equal(target.closed, true)
+  })
+
+  it('unmounts explicitly through the new connection', async () => {
+    const { mixin } = makeMixin()
+    const disconnected = makeXapi()
+    const { id } = await mountDisk(mixin, disconnected)
+    disconnected.calls.length = 0
+
+    const reconnected = makeXapi()
+    mixin.watchConnection(reconnected)
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(disconnected.calls, [])
+    assert.equal(reconnected.calls.at(-1)[0], 'SR.forget')
+  })
+
+  it('leaves the mounts of other pools on their own connection', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    const { id } = await mountDisk(mixin, xapi)
+    xapi.calls.length = 0
+
+    const otherPool = makeXapi({ poolUuid: 'other-pool-uuid' })
+    mixin.watchConnection(otherPool)
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(otherPool.calls, [])
+    assert.equal(xapi.calls.at(-1)[0], 'SR.forget')
+  })
+
+  it('listens only once to a connection handed several times', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    await mountDisk(mixin, xapi)
+
+    mixin.watchConnection(xapi)
+    mixin.watchConnection(xapi)
+
+    assert.equal(xapi.objects.allIndexes.type.getEventEmitterByType('VDI').listenerCount('remove'), 1)
   })
 })
 
