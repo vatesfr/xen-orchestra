@@ -1,8 +1,11 @@
-import { useBackupRepositoryGeneralForm } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
+import {
+  type BackupRepositoryGeneralFormData,
+  useBackupRepositoryGeneralForm,
+} from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { flushPromises } from '@vue/test-utils'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { BackupRepositoryType } from 'xo-remote-parser'
 
@@ -10,15 +13,17 @@ vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), (
   useXoProxyCollection: (() => ({ proxies: ref([]) })) as unknown as typeof useXoProxyCollection,
 }))
 
-type GeneralFormData = ReturnType<typeof useBackupRepositoryGeneralForm>['formData']
-
 const ENCRYPTION_KEY = '0123456789abcdef0123456789ABCDEF'
 
-async function mountGeneralForm(formData: Partial<GeneralFormData> = {}) {
+function createGeneralFormData(): BackupRepositoryGeneralFormData {
+  return { name: '', type: undefined, backupFormat: undefined, proxy: undefined, encrypted: false, encryptionKey: '' }
+}
+
+async function mountGeneralForm(formData: Partial<BackupRepositoryGeneralFormData> = {}) {
   const result = mountComposable(() => {
     const { t } = useI18n()
 
-    return { ...useBackupRepositoryGeneralForm(), t }
+    return { ...useBackupRepositoryGeneralForm(reactive(createGeneralFormData())), t }
   }).wrapper.vm
 
   const { type, ...otherFormData } = formData
