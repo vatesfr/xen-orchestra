@@ -18,6 +18,7 @@ export type NonXapiListenerType =
   | 'backup-archive'
   | 'schedule'
   | 'authentication_token'
+  | 'kubernetes-cluster'
 
 export type XoListenerType = XapiListenerType | NonXapiListenerType
 

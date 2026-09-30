@@ -10,6 +10,7 @@ import { AlarmService } from '../alarms/alarm.service.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { XAPI_TYPES, type XapiXoRecord } from '@vates/types'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
+import { KubernetesEventService } from '../kubernetes/kubernetes.event.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
 
@@ -51,6 +52,9 @@ export class EventService {
       } else if (type === 'backup-archive') {
         // the backup archives are not a registered collection: the backups cache owns their emitter
         eventEmitter = this.#restApi.xoApp.vmBackupArchives
+      } else if(type === 'kubernetes-cluster'){
+        // TODO: Stand in for registerCollection in xo-server
+        eventEmitter = this.#restApi.ioc.get(KubernetesEventService).emitter
       } else if (XAPI_TYPES.includes(isMessage ? 'message' : type)) {
         // alarm is purely XO-related; it doesn't exist at the XAPI level.
         // alarm is a message with parsed values. So, in the case of an alarm listener, it listens for message collection.
