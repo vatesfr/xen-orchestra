@@ -2,6 +2,7 @@
 
 import keyBy from 'lodash/keyBy.js'
 import isEqual from 'lodash/isEqual.js'
+import { asyncEach } from '@vates/async-each'
 import { forbiddenOperation, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import {
@@ -271,7 +272,9 @@ export default class {
     const newRole = await this.#roleDb.add(_role)
     if (privileges !== undefined) {
       try {
-        await Promise.all(privileges.map(privilege => this.createAclV2Privilege({ ...privilege, roleId: newRole.id })))
+        await asyncEach(privileges, async privilege => {
+          await this.createAclV2Privilege({ ...privilege, roleId: newRole.id })
+        })
       } catch (error) {
         await this.deleteAclV2Role(newRole.id)
         throw error
@@ -740,8 +743,8 @@ export default class {
     const replicaRole = await this.createAclV2Role({
       name: params.name ?? role.name,
       description: params.description ?? role.description,
+      privileges: privileges.map(({ id, roleId, ...privilege }) => privilege),
     })
-    await Promise.all(privileges.map(privilege => this.createAclV2Privilege({ ...privilege, roleId: replicaRole.id })))
 
     return replicaRole.id
   }

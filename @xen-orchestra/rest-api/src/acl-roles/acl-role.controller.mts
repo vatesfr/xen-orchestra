@@ -21,7 +21,7 @@ import {
 import { createLogger } from '@xen-orchestra/log'
 import { provide } from 'inversify-binding-decorators'
 import { type Request as ExRequest, json } from 'express'
-import type { XoAclPrivilege, XoAclRole, XoGroup, XoUser } from '@vates/types'
+import type { XoAclRole, XoGroup, XoUser } from '@vates/types'
 
 import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import { aclPrivilegeIds, partialAclPrivileges } from '../open-api/oa-examples/acl-privilege.oa-example.mjs'
@@ -102,7 +102,11 @@ export class AclRoleController extends XoController<XoAclRole> {
    *
    * @example body {
    *  "name": "VMs creator",
-   *  "description": "Allow to create VMs"
+   *  "description": "Allow to create VMs",
+   *  "privileges": [
+   *    {"resource":"vm-template", "action":"instantiate"},
+   *    {"resource":"pool", "action":"create:vm"}
+   *  ]
    * }
    */
   @Example(entityId)
@@ -119,10 +123,7 @@ export class AclRoleController extends XoController<XoAclRole> {
           req: {
             body: { privileges, ...role },
           },
-        }) => {
-          console.log(role)
-          return role
-        },
+        }) => role,
       },
       {
         resource: 'acl-privilege',
