@@ -15,8 +15,11 @@ function mountHeader(br: FrontXoBackupRepository = createBr()) {
   })
 }
 
-function findHeadBarIcon(wrapper: ReturnType<typeof mountHeader>) {
-  return wrapper.getComponent(UiHeadBar).getComponent(VtsIcon).props('name')
+function findIcons(wrapper: ReturnType<typeof mountHeader>) {
+  return {
+    breadcrumb: wrapper.findAll('.ui-breadcrumb li').at(-1)?.getComponent(VtsIcon).props('name'),
+    headBar: wrapper.getComponent(UiHeadBar).getComponent(VtsIcon).props('name'),
+  }
 }
 
 it('shows the name of the repository in the head bar', () => {
@@ -46,23 +49,35 @@ it('links the breadcrumb back to the list of backup repositories', () => {
 it('shows a connected icon for an enabled repository without error', () => {
   const wrapper = mountHeader(createBr({ enabled: true, error: undefined }))
 
-  expect(findHeadBarIcon(wrapper)).toBe(objectIcon('br', 'connected'))
+  expect(findIcons(wrapper)).toEqual({
+    breadcrumb: objectIcon('br', 'connected'),
+    headBar: objectIcon('br', 'connected'),
+  })
 })
 
 it('shows a disconnected icon for an enabled repository with an error', () => {
   const wrapper = mountHeader(createBr({ error: { code: 'ENOENT' } }))
 
-  expect(findHeadBarIcon(wrapper)).toBe(objectIcon('br', 'disconnected'))
+  expect(findIcons(wrapper)).toEqual({
+    breadcrumb: objectIcon('br', 'disconnected'),
+    headBar: objectIcon('br', 'disconnected'),
+  })
 })
 
 it('shows a disabled icon for a disabled repository', () => {
   const wrapper = mountHeader(createBr({ enabled: false }))
 
-  expect(findHeadBarIcon(wrapper)).toBe(objectIcon('br', 'disabled'))
+  expect(findIcons(wrapper)).toEqual({
+    breadcrumb: objectIcon('br', 'disabled'),
+    headBar: objectIcon('br', 'disabled'),
+  })
 })
 
 it('shows an unknown icon for a repository with an unrecognized url', () => {
   const wrapper = mountHeader(createBr({ url: 'ftp://192.168.100.225/backup' }))
 
-  expect(findHeadBarIcon(wrapper)).toBe(objectIcon('br', 'unknown'))
+  expect(findIcons(wrapper)).toEqual({
+    breadcrumb: objectIcon('br', 'unknown'),
+    headBar: objectIcon('br', 'unknown'),
+  })
 })
