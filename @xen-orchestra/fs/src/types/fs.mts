@@ -2,6 +2,11 @@ import type { Readable, Writable } from 'stream'
 
 // ─── Supporting types ────────────────────────────────────────────────────────
 
+/** thrown when a handler does not support an operation, never retried */
+export declare class NotImplementedError extends Error {
+  code: 'ENOTIMP'
+}
+
 export interface RemoteInfo {
   url: string
   encryptionKey?: string

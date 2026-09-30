@@ -14,6 +14,7 @@ import { withTimeout } from './utils'
 import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 import { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, _getEncryptor } from './_encryptor'
+import { NotImplementedError } from './errors'
 
 const { info, warn } = createLogger('xo:fs:abstract')
 
@@ -182,6 +183,7 @@ export default class RemoteHandlerAbstract {
       'ENOTEMPTY',
       'ENOENT',
       'ENOTDIR',
+      'ENOTIMP',
       'ENOTSUP',
       'EPERM',
       'SystemInUse',
@@ -244,7 +246,7 @@ export default class RemoteHandlerAbstract {
   // - some preprocessing may be applied on parameters that should not be done multiple times (e.g. prefixing paths)
 
   get type() {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   addPrefix(prefix) {
@@ -642,7 +644,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async _closeFile(fd) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   async _createOutputStream(file, { dirMode, ...options } = {}) {
@@ -659,13 +661,13 @@ export default class RemoteHandlerAbstract {
   }
 
   async _createReadStream(file, options) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   // createWriteStream takes highWaterMark as option even if it's not documented.
   // Source: https://stackoverflow.com/questions/55026306/how-to-set-writeable-highwatermark
   async _createWriteStream(file, options) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   // called to finalize the remote
@@ -680,19 +682,19 @@ export default class RemoteHandlerAbstract {
   }
 
   async _getSize(file) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   async _link(existingPath, newPath) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   async _list(dir) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   async _mkdir(dir) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   async _mktree(dir, { mode } = {}) {
@@ -709,7 +711,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async _openFile(path, flags) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   async _outputFile(file, data, { dirMode, flags }) {
@@ -747,7 +749,7 @@ export default class RemoteHandlerAbstract {
   }
 
   _read(file, buffer, position) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   _readFile(file, options) {
@@ -755,14 +757,14 @@ export default class RemoteHandlerAbstract {
   }
 
   async _rename(oldPath, newPath) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
   async _copy(oldPath, newPath) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   async _rmdir(dir) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   async _rmtree(dir) {
@@ -802,7 +804,7 @@ export default class RemoteHandlerAbstract {
   async _sync() {}
 
   async _unlink(file) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   async _write(file, buffer, position) {
@@ -820,11 +822,11 @@ export default class RemoteHandlerAbstract {
   }
 
   async _writeFd(fd, buffer, position) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   async _writeFile(file, data, options) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   get isEncrypted() {
