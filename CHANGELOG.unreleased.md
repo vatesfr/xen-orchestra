@@ -28,6 +28,7 @@
 - [REST API] Wait for the XAPI objects before making a server connected (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
 - [REST API] Do not record an server error when a connection attempt is aborted (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
 - [Audit] Fix actions made from XO 5 (`/v5`) being logged with `127.0.0.1` or `::1` as user IP address instead of the real IP address of the client (PR [#10461](https://github.com/vatesfr/xen-orchestra/pull/10461))
+- [Backups] Fix backup logs transfer size including health check restores and every backup target, which made it much bigger than in XO5 [Forum#12486](https://xcp-ng.org/forum/topic/12486) (PR [#10448](https://github.com/vatesfr/xen-orchestra/pull/10448))
 
 ### Packages to release
 
