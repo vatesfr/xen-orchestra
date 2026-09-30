@@ -1,5 +1,4 @@
 import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { hostArg } from '@/modules/host/jobs/host-args.ts'
 import { isHostOperationPending } from '@/modules/host/utils/host.util.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
@@ -11,9 +10,9 @@ export const useHostEnableJob = defineJob('host.enable', [hostArg], () => {
   const { t } = useI18n()
 
   return {
-    run: (host: XenApiHost) => xapi.host.enable(host.$ref),
+    run: host => xapi.host.enable(host.$ref),
 
-    validate: (isRunning, host: XenApiHost | undefined) => {
+    validate: (isRunning, host) => {
       if (host === undefined) {
         throw new JobError(t('job:host-enable:missing-host'))
       }
