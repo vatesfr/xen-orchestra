@@ -724,7 +724,9 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  pif(obj) {
+  pif(obj, dependents) {
+    dependents[obj.metrics] = obj.$id
+
     const metrics = obj.$metrics
     const isBondMaster = !isEmpty(obj.bond_master_of)
     const isBondSlave = obj.bond_slave_of !== 'OpaqueRef:NULL'
