@@ -1,4 +1,3 @@
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { hostArg } from '@/modules/host/jobs/host-args.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
@@ -13,9 +12,9 @@ export const useHostRestartToolstackJob = defineJob('host.restart-toolstack', [h
   const { pool } = usePoolStore().subscribe()
 
   return {
-    run: (host: XenApiHost) => xapi.host.restartAgent(host.$ref),
+    run: host => xapi.host.restartAgent(host.$ref),
 
-    validate: (isRunning, host: XenApiHost | undefined) => {
+    validate: (isRunning, host) => {
       if (host === undefined) {
         throw new JobError(t('job:host-restart-toolstack:missing-host'))
       }
