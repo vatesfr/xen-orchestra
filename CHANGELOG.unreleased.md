@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [V2V] Prevent privilege escalation via Prototype Pollution (PR [#10489](https://github.com/vatesfr/xen-orchestra/pull/10489))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -48,6 +50,7 @@
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/rest-api patch
+- @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xen-api patch
