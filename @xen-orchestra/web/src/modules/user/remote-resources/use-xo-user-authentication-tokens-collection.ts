@@ -6,6 +6,7 @@ import type { XoAuthenticationToken } from '@vates/types'
 import { toValue } from 'vue'
 
 export const useXoUserAuthenticationTokensCollection = defineRemoteResource({
+  // no `ndjson=true` because not supported by the server for now
   url: (userId: FrontXoUser['id']) => `${BASE_URL}/users/${userId}/authentication_tokens`,
   stream: true,
   initWatchCollection: () =>
