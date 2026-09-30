@@ -112,7 +112,7 @@ function getMasterIcon(host: FrontXoHost) {
 }
 
 const { HeadCells, BodyCells } = useHostColumns({
-  exclude: sr === undefined ? ['srStatus'] : [],
+  exclude: sr === undefined ? ['checkbox', 'srStatus'] : ['checkbox'],
   body: (host: FrontXoHost) => {
     const ipAddresses = computed(() => getHostIpAddresses(host.address, pifsByHost.value.get(host.id)))
     const hostIcon = computed(() => getHostIcon(host))

@@ -1,6 +1,7 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useAddressColumn } from '@core/tables/column-definitions/address-column.ts'
+import { useCheckboxColumn } from '@core/tables/column-definitions/checkbox-column.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
 import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
@@ -9,6 +10,7 @@ import { useI18n } from 'vue-i18n'
 export const useVmColumns = defineColumns(() => {
   const { t } = useI18n()
   return {
+    checkbox: useCheckboxColumn(),
     vm: useLinkColumn({ headerLabel: () => t('vm') }),
     ipAddresses: useAddressColumn({ headerLabel: () => t('ip-addresses') }),
     vcpus: useNumberColumn({ headerLabel: () => t('vcpus') }),
