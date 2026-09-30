@@ -382,8 +382,7 @@ describe('HashedDiskDeduplicated', () => {
     await disk.writeBlock({ index: 0, data: block(0xbb) })
     await disk.flushMetadata()
 
-    // releasing it needs the store's link counts: Phase 3, not implemented here
-    assert.equal(await countBlockFiles(), 2)
+    assert.equal(await countBlockFiles(), 1)
     assert.ok((await disk.readBlock(0)).data.equals(block(0xbb)))
   })
 
@@ -554,5 +553,184 @@ describe('HashedDiskDeduplicated with a block store', () => {
     }
 
     await assert.rejects(() => disk.writeBlock({ index: 0, data: block(0xaa) }), NotImplementedError)
+  })
+})
+
+describe('HashedDiskDeduplicated reference cleanup', () => {
+  const STORE = 'xo-block-store'
+
+  const createSharedDisk = async () => {
+    const dir = `xo-vm-backups/VMUUID/vdis/${uuid.v4()}`
+    return HashedDiskDeduplicated.create({
+      handler,
+      path: `${dir}/20260814T120000000Z.hbd`,
+      virtualSize: VIRTUAL_SIZE,
+      blockSize: BLOCK_SIZE,
+      uuid: uuid.v4(),
+      dedupType: 'PER_BACKUP_REPOSITORY',
+      blockStorePath: STORE,
+    })
+  }
+
+  // store directories are never removed, only their files
+  const listStore = () =>
+    listFiles(STORE).catch(error => {
+      if (error.code === 'ENOENT') {
+        return []
+      }
+      throw error
+    })
+
+  const nlink = async path => (await stat(join(tempDir, path))).nlink
+
+  // the store holds exactly one file per hash still referenced by a live disk
+  async function assertStoreConsistent(...disks) {
+    const referenced = new Set()
+    for (const disk of disks) {
+      for (const index of disk.getBlockIndexes()) {
+        referenced.add(disk.getBlockHashAt(index))
+      }
+    }
+    assert.equal((await listStore()).length, referenced.size)
+  }
+
+  test('overwrite then flush releases the old block, store file included', async () => {
+    const disk = await createSharedDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await disk.flushMetadata()
+
+    await disk.writeBlock({ index: 0, data: block(0xbb) })
+    await disk.flushMetadata()
+
+    const storeFiles = await listStore()
+    assert.equal(storeFiles.length, 1)
+    assert.equal(await nlink(storeFiles[0]), 2)
+    assert.equal(await countBlockFiles(), 1)
+    assert.ok((await disk.readBlock(0)).data.equals(block(0xbb)))
+    await assertStoreConsistent(disk)
+  })
+
+  test('the old block is released on the flush that follows the overwrite', async () => {
+    const disk = await createSharedDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await disk.flushMetadata()
+    await disk.writeBlock({ index: 0, data: block(0xbb) })
+
+    assert.equal((await listStore()).length, 2, 'nothing is released before the flush')
+
+    await disk.flushMetadata()
+    assert.equal((await listStore()).length, 1)
+  })
+
+  test('overwriting one of two indexes holding a hash keeps its block', async () => {
+    const disk = await createSharedDisk()
+    const shared = block(0xaa)
+    await disk.writeBlock({ index: 0, data: shared })
+    await disk.writeBlock({ index: 5, data: shared })
+    await disk.flushMetadata()
+
+    await disk.writeBlock({ index: 0, data: block(0xbb) })
+    await disk.flushMetadata()
+
+    assert.ok((await disk.readBlock(5)).data.equals(shared))
+    await assertStoreConsistent(disk)
+  })
+
+  test('a hash that moved to another index keeps its block', async () => {
+    const disk = await createSharedDisk()
+    const moved = block(0xaa)
+    await disk.writeBlock({ index: 0, data: moved })
+    await disk.flushMetadata()
+
+    await disk.writeBlock({ index: 1, data: moved })
+    await disk.writeBlock({ index: 0, data: block(0xbb) })
+    await disk.flushMetadata()
+
+    assert.ok((await disk.readBlock(1)).data.equals(moved))
+    await assertStoreConsistent(disk)
+  })
+
+  test('a hash replaced before its first flush is released too', async () => {
+    const disk = await createSharedDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await disk.writeBlock({ index: 0, data: block(0xbb) })
+    await disk.flushMetadata()
+
+    assert.equal(await countBlockFiles(), 1)
+    await assertStoreConsistent(disk)
+  })
+
+  test('a hash replaced then written back before the flush keeps its block', async () => {
+    const disk = await createSharedDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await disk.writeBlock({ index: 0, data: block(0xbb) })
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await disk.flushMetadata()
+
+    assert.ok((await disk.readBlock(0)).data.equals(block(0xaa)))
+    await assertStoreConsistent(disk)
+  })
+
+  test('a flush with no change leaves every link in place', async () => {
+    const disk = await createSharedDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await disk.flushMetadata()
+    await disk.flushMetadata()
+
+    const [storeFile] = await listStore()
+    assert.equal(await nlink(storeFile), 2)
+  })
+
+  test('releasing a block shared with another disk keeps the store file', async () => {
+    const a = await createSharedDisk()
+    const b = await createSharedDisk()
+    await a.writeBlock({ index: 0, data: block(0xaa) })
+    await b.writeBlock({ index: 0, data: block(0xaa) })
+    await a.flushMetadata()
+
+    await a.writeBlock({ index: 0, data: block(0xbb) })
+    await a.flushMetadata()
+
+    assert.ok((await b.readBlock(0)).data.equals(block(0xaa)))
+    await assertStoreConsistent(a, b)
+  })
+
+  test('unlinking disks releases the store file only with the last one', async () => {
+    const a = await createSharedDisk()
+    const b = await createSharedDisk()
+    const shared = block(0xaa)
+    await a.writeBlock({ index: 0, data: shared })
+    await b.writeBlock({ index: 2, data: shared })
+    await a.close()
+    await b.close()
+
+    await a.unlink()
+    const [storeFile] = await listStore()
+    assert.equal(await nlink(storeFile), 2, 'store copy + b')
+    assert.ok((await b.readBlock(2)).data.equals(shared))
+
+    await b.unlink()
+    assert.deepEqual(await listStore(), [])
+  })
+
+  test('unlink releases blocks that were never flushed', async () => {
+    const disk = await createSharedDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+
+    await disk.unlink()
+
+    assert.deepEqual(await listStore(), [])
+    assert.deepEqual(await listFiles('xo-vm-backups'), [])
+  })
+
+  test('unlink releases a hash held at several indexes once', async () => {
+    const disk = await createSharedDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await disk.writeBlock({ index: 1, data: block(0xaa) })
+    await disk.writeBlock({ index: 2, data: block(0xbb) })
+
+    await disk.unlink()
+
+    assert.deepEqual(await listStore(), [])
   })
 })

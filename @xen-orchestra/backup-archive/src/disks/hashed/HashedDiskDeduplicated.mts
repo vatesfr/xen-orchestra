@@ -24,7 +24,7 @@ import {
 } from './hbdPaths.mjs'
 import { randomUUID } from 'node:crypto'
 
-const { warn } = createLogger('xo:backup-archive:hashed')
+const { warn } = createLogger('xo:backup-archive:hbd')
 
 /**
  * Content addressed disk: block index -> SHA-256 of the block payload, kept in a
@@ -38,6 +38,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
   #blocksDir: string | undefined
   #blockStorePath: string | undefined
   #dirty = false
+  #replacedHashes = new Set<BlockHash>()
 
   constructor({
     handler,
@@ -373,8 +374,14 @@ export class HashedDiskDeduplicated extends HashedDisk {
       return blockSize
     }
 
+    const replaced = bat.isEmpty(index) ? undefined : bat.get(index)
+
     await this.#addBlockReference(hash, data)
     bat.set(index, hash)
+
+    if (replaced !== undefined) {
+      this.#replacedHashes.add(replaced)
+    }
     this.#dirty = true
 
     return blockSize
@@ -388,6 +395,30 @@ export class HashedDiskDeduplicated extends HashedDisk {
   async setAllocatedBlocks(): Promise<void> {}
 
   // ---------------------------------------------------------------- metadata
+
+  /**
+   * best effort: the new BAT is already safe, a failure only leaks
+   */
+  async #removeOrphans(): Promise<void> {
+    if (this.#replacedHashes.size === 0) {
+      return
+    }
+    try {
+      const candidates = new Set(this.#replacedHashes)
+
+      // a replaced hash can still be referenced at another index
+      for (const index of this.#loadedBat.indexes()) {
+        candidates.delete(this.#loadedBat.get(index))
+      }
+
+      for (const hash of candidates) {
+        await this.#removeBlockReference(hash)
+      }
+      this.#replacedHashes.clear()
+    } catch (error) {
+      warn('failed to remove orphaned blocks', { path: this.#path, error })
+    }
+  }
 
   /**
    * Writes the BAT to a new timestamped file, then points the hbd file at it.
@@ -414,6 +445,8 @@ export class HashedDiskDeduplicated extends HashedDisk {
     const newMetadata = { ...metadata, hashesPath }
     await this.#handler.outputStream(this.#path, Readable.from(JSON.stringify(newMetadata)), { checksum: false })
     this.#metadata = newMetadata
+
+    await this.#removeOrphans()
 
     this.#dirty = false
 
@@ -444,12 +477,43 @@ export class HashedDiskDeduplicated extends HashedDisk {
   }
 
   async unlink(): Promise<void> {
+    if (this.#loadedMetadata.dedupType === 'PER_BACKUP_REPOSITORY') {
+      for (const index of this.#loadedBat.indexes()) {
+        try {
+          await this.#removeBlockReference(this.#loadedBat.get(index))
+        } catch (error) {
+          warn('failed to release block', { path: this.#path, index, error })
+        }
+      }
+    }
     await this.#handler.unlink(this.#path)
     await this.#handler.rmtree(this.#dataDir)
 
+    this.#replacedHashes.clear()
     this.#metadata = undefined
     this.#bat = undefined
     this.#blocksDir = undefined
     this.#dirty = false
+  }
+
+  async #removeBlockReference(hash: BlockHash): Promise<void> {
+    const blockPath = this.#blockPath(hash)
+    if (this.#loadedMetadata.dedupType === 'PER_DISK') {
+      return this.#handler.unlink(blockPath, { checksum: false })
+    } else {
+      let nlink: number
+      try {
+        nlink = await this.#handler.getLinkCount(blockPath)
+      } catch (error: unknown) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          return
+        }
+        throw error
+      }
+      await this.#handler.unlink(blockPath, { checksum: false })
+      if (nlink === 2) {
+        await this.#handler.unlink(this.#storePath(hash), { checksum: false })
+      }
+    }
   }
 }
