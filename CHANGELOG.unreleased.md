@@ -17,6 +17,7 @@
 - [Backup/Restore] A live mounted disk is released on its own once it is deleted, or the VM holding it is: its SR is forgotten and the backup is no longer served (PR [#10432](https://github.com/vatesfr/xen-orchestra/pull/10432))
 - [Backup/Restore] When ufw is enabled, as on XOA and proxies, live mount opens its iSCSI port in it, for the host the disk is attached to and while it is mounted (`iscsi.manageFirewall = false` to turn it off) (PR [#10468](https://github.com/vatesfr/xen-orchestra/pull/10468))
 - [XO6/BRs] Add backup repository list page (PR [#10247](https://github.com/vatesfr/xen-orchestra/pull/10247))
+- [XO6/BRs] Add backup repository create form (PR [#10271](https://github.com/vatesfr/xen-orchestra/pull/10271))
 
 ### Bug fixes
 
