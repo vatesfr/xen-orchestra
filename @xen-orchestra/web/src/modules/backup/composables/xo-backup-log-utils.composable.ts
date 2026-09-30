@@ -42,14 +42,25 @@ export function useXoBackupLogsUtils() {
 
   // Same as XO5: only the direct `transfer` children of `export` tasks are counted (not the health check restore),
   // and a single transfer per VM, even with multiple targets
+  const findVmTransferSize = (vmTask: BackupLogTask): number | undefined => {
+    for (const exportTask of vmTask.tasks ?? []) {
+      if (!hasMessage(exportTask, 'export')) {
+        continue
+      }
+
+      for (const task of exportTask.tasks ?? []) {
+        if (hasMessage(task, 'transfer') && task.status === 'success' && typeof task.result?.size === 'number') {
+          return task.result.size
+        }
+      }
+    }
+
+    return undefined
+  }
+
   const findTransferTaskSize = (vmTasks: FrontXoBackupLog['tasks']): number | undefined => {
     return vmTasks?.reduce((totalSize: number | undefined, vmTask) => {
-      const vmTransferSize = vmTask.tasks
-        ?.filter(task => hasMessage(task, 'export'))
-        .flatMap(exportTask => exportTask.tasks ?? [])
-        .filter(task => hasMessage(task, 'transfer') && task.status === 'success')
-        .map(task => task.result?.size)
-        .find((size): size is number => typeof size === 'number')
+      const vmTransferSize = findVmTransferSize(vmTask)
 
       return vmTransferSize === undefined ? totalSize : (totalSize ?? 0) + vmTransferSize
     }, undefined)
