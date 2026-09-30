@@ -29,8 +29,6 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { formatSpeed } from '@core/utils/speed.util.ts'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { br } = defineProps<{
@@ -39,11 +37,6 @@ const { br } = defineProps<{
 
 const { t } = useI18n()
 
-const { benchmark, runBenchmark, canBenchmark, isBenchmarking, benchmarkErrorMessage } = useXoBackupRepositoryBenchmark(
-  () => br
-)
-
-const writeSpeed = computed(() => (benchmark.value === undefined ? undefined : formatSpeed(benchmark.value.writeRate)))
-
-const readSpeed = computed(() => (benchmark.value === undefined ? undefined : formatSpeed(benchmark.value.readRate)))
+const { writeSpeed, readSpeed, runBenchmark, canBenchmark, isBenchmarking, benchmarkErrorMessage } =
+  useXoBackupRepositoryBenchmark(() => br)
 </script>
