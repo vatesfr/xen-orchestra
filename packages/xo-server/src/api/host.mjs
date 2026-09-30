@@ -718,7 +718,7 @@ async function handleGetSystemStatus(req, res, { xapi, host }) {
       Authorization: `Basic ${Buffer.from(`${server.username}:${server.password}`).toString('base64')}`,
     },
     rejectUnauthorized: !server.allowUnauthorized,
-    timeout: 0, // No timeout for large downloads
+    bodyTimeout: 0, // No timeout for large downloads
   }
 
   // Set response headers

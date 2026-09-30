@@ -34,14 +34,14 @@ export default class Http {
     })
   }
 
-  _getDispatcher(rejectUnauthorized, timeout) {
-    const key = `${rejectUnauthorized}:${timeout}`
+  _getDispatcher(rejectUnauthorized, bodyTimeout, headersTimeout) {
+    const key = `${rejectUnauthorized}:${bodyTimeout}:${headersTimeout}`
     let dispatcher = this._dispatchers.get(key)
     if (dispatcher === undefined) {
       dispatcher = new EnvHttpProxyAgent({
         connect: { rejectUnauthorized },
-        bodyTimeout: timeout,
-        headersTimeout: timeout,
+        bodyTimeout,
+        headersTimeout,
       })
       this._dispatchers.set(key, dispatcher)
     }
@@ -53,7 +53,16 @@ export default class Http {
   // take ownership of `error.response` and consume its body yourself
   async httpRequest(
     url,
-    { auth, body, bypassStatusCheck = false, headers, rejectUnauthorized = true, timeout = 0, ...opts } = {}
+    {
+      auth,
+      body,
+      bypassStatusCheck = false,
+      headers,
+      rejectUnauthorized = true,
+      bodyTimeout = 0,
+      headersTimeout = 0,
+      ...opts
+    } = {}
   ) {
     const finalHeaders = { ...headers }
     if (auth !== undefined) {
@@ -64,7 +73,7 @@ export default class Http {
       ...opts,
       body,
       headers: finalHeaders,
-      dispatcher: this._getDispatcher(rejectUnauthorized, timeout),
+      dispatcher: this._getDispatcher(rejectUnauthorized, bodyTimeout, headersTimeout),
 
       ...(body !== undefined && typeof body.pipe === 'function' ? { duplex: 'half' } : {}),
     })

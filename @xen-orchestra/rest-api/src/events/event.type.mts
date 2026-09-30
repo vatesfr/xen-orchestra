@@ -16,6 +16,7 @@ export type NonXapiListenerType =
   | 'backup-repository'
   | 'backup-job'
   | 'schedule'
+  | 'kubernetes-cluster'
 
 export type XoListenerType = XapiListenerType | NonXapiListenerType
 

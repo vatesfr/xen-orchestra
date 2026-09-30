@@ -72,7 +72,37 @@ export class KubernetesService {
    * Fetches the OpenAPI specification of CAPI
    */
   async getCAPISpec(): Promise<unknown> {
-    const CAPIUrl = await this.#getTargetUrl(CAPI_SPEC_PATH)
+    return this.#callCAPI(CAPI_SPEC_PATH)
+  }
+
+  async listClusters(): Promise<unknown> {
+    return this.#callCAPI('api/kubernetes/clusters/')
+  }
+
+  async openEventStream(CAPIPath: string, { signal }: { signal: AbortSignal }): Promise<NonNullable<Response['body']>> {
+    const CAPIUrl = await this.#getTargetUrl(CAPIPath)
+
+    const CAPIRes = await this.#getResponse(CAPIUrl, {
+      bypassStatusCheck: true,
+      headers: { accept: 'text/event-stream' },
+      method: 'GET',
+      bodyTimeout: 0,
+      signal,
+    })
+
+    if (!CAPIRes.ok) {
+      throw await this.#getCAPIError(CAPIUrl, CAPIRes)
+    }
+
+    if (CAPIRes.body === null) {
+      throw new ApiError('CAPI answered 2xx with no body', 502)
+    }
+
+    return CAPIRes.body
+  }
+
+  async #callCAPI(path: string): Promise<unknown> {
+    const CAPIUrl = await this.#getTargetUrl(path)
 
     const CAPIRes = await this.#getResponse(CAPIUrl, {
       bypassStatusCheck: true,
@@ -130,10 +160,12 @@ export class KubernetesService {
     const timeout = this.#restApi.xoApp.config.getOptionalDuration('rest-api.kubernetesProxyTimeout') ?? DEFAULT_TIMEOUT
 
     try {
-      return await this.#restApi.xoApp.httpRequest(CAPIUrl, { timeout, ...reqOpts })
+      return await this.#restApi.xoApp.httpRequest(CAPIUrl, { headersTimeout: timeout, ...reqOpts })
     } catch (error) {
       if (error != null && typeof error === 'object' && 'response' in error) {
         return (error as { response: Response }).response
+      } else if (error instanceof Error && error.name === 'AbortError') {
+        throw error
       } else {
         log.warn(`CAPI unreachable at ${CAPIUrl}`, error)
 

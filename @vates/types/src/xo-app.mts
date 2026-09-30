@@ -421,7 +421,9 @@ export type XoApp = {
       headers?: IncomingHttpHeaders
       method: string
       rejectUnauthorized?: boolean
-      timeout?: number
+      bodyTimeout?: number
+      headersTimeout?: number
+      signal?: AbortSignal
     }
   ): Promise<Response>
   listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{

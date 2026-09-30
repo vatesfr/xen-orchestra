@@ -20,6 +20,7 @@ import { LicenseService } from '../licenses/license.service.mjs'
 import { BackupRepositoryService } from '../backup-repositories/backup-repository.service.mjs'
 import { KubernetesService } from '../kubernetes/kubernetes.service.mjs'
 import { KubernetesOpenApiService } from '../kubernetes/kubernetes.openapi.mjs'
+import { KubernetesEventService } from '../kubernetes/kubernetes.event.mjs'
 
 const iocContainer = new Container()
 
@@ -161,6 +162,14 @@ export function setupContainer(xoApp: XoApp) {
     .toDynamicValue(ctx => {
       const kubernetesService = ctx.container.get(KubernetesService)
       return new KubernetesOpenApiService(kubernetesService)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(KubernetesEventService)
+    .toDynamicValue(ctx => {
+      const kubernetesService = ctx.container.get(KubernetesService)
+      return new KubernetesEventService(kubernetesService)
     })
     .inSingletonScope()
 }

@@ -134,3 +134,65 @@ describe('getCAPISpec', () => {
     })
   })
 })
+
+describe('openEventStream', () => {
+  const abortController = new AbortController()
+
+  it('requests the stream and returns its body', async () => {
+    let url: string | undefined
+    let opts: Parameters<HttpRequest>[1]
+    const service = makeService(async (_url, _opts) => {
+      url = _url
+      opts = _opts
+      return new Response('event: ping\ndata: {}\n\n', { headers: { 'content-type': 'text/event-stream' } })
+    })
+
+    const stream = await service.openEventStream('api/kubernetes/clusters/cluster-1/events', {
+      signal: abortController.signal,
+    })
+
+    assert.equal(url, `${CAPI_URL}/api/kubernetes/clusters/cluster-1/events`)
+    assert.equal(opts!.headers!.accept, 'text/event-stream')
+    assert.equal(opts!.signal, abortController.signal)
+
+    // an event stream is idle most of the time: it must not be aborted between two events
+    assert.equal(opts!.bodyTimeout, 0)
+
+    const { value } = await stream.getReader().read()
+    assert.equal(new TextDecoder().decode(value), 'event: ping\ndata: {}\n\n')
+  })
+
+  it('throws the error answered by CAPI', async () => {
+    const service = makeService(throwingHttpRequest(jsonResponse({ detail: 'unknown cluster' }, 404)))
+
+    await assertApiError(
+      service.openEventStream('api/kubernetes/clusters/nope/events', { signal: abortController.signal }),
+      { status: 404, message: 'unknown cluster' }
+    )
+  })
+
+  it('throws a bad gateway error when the response has no body', async () => {
+    const service = makeService(async () => new Response(null, { status: 204 }))
+
+    await assertApiError(
+      service.openEventStream('api/kubernetes/clusters/cluster-1/events', { signal: abortController.signal }),
+      { status: 502 }
+    )
+  })
+
+  it('rethrows an abort as-is, as it is not a failure', async () => {
+    const service = makeService(async () => {
+      throw Object.assign(new Error('This operation was aborted'), { name: 'AbortError' })
+    })
+
+    const error = await service
+      .openEventStream('api/kubernetes/clusters/cluster-1/events', { signal: abortController.signal })
+      .then(
+        () => assert.fail('expected the promise to be rejected'),
+        (error: unknown) => error
+      )
+
+    assert.ok(!(error instanceof ApiError))
+    assert.equal((error as Error).name, 'AbortError')
+  })
+})
