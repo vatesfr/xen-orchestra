@@ -34,6 +34,7 @@
 - [Host] Disable restart toolstack for HA enabled Pools (PR [#10344](https://github.com/vatesfr/xen-orchestra/pull/10344))
 - [Backups] Prevent continuous replication failed transfer to accumulate replicas (PR [#10404](https://github.com/vatesfr/xen-orchestra/pull/10404))
 - [XO5/Hosts] Disable restart toolstack button for the hosts that belongs to a HA pools (PR [#10340](https://github.com/vatesfr/xen-orchestra/pull/10340))
+- [XO5/Hosts] Disable restart toolstack button for the hosts that belongs to a HA pools in the home page (PR [#10497](https://github.com/vatesfr/xen-orchestra/pull/10497))
 
 ### Packages to release
 
