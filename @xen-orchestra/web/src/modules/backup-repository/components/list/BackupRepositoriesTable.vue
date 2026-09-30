@@ -90,7 +90,7 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
       backupRepository: r =>
         r({
           label: br.name,
-          to: { name: '/backup-repository/[id]/general', params: { id: br.id } },
+          to: { name: '/admin/backup-repository/[id]/general', params: { id: br.id } },
           icon: getBackupRepositoryIcon(br, parsedBrUrl.value?.type),
         }),
       status: r => r(getBackupRepositoryStatus(br)),

@@ -19,9 +19,9 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
-const route = useRoute<'/backup-repository/[id]'>()
+const route = useRoute<'/admin/backup-repository/[id]'>()
 
-useDefaultTab('/backup-repository/[id]', 'general')
+useDefaultTab('/admin/backup-repository/[id]', 'general')
 
 const uiStore = useUiStore()
 
