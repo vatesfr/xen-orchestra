@@ -338,7 +338,7 @@ describe('HashedDiskDeduplicated', () => {
     assert.ok((await reopened.readBlock(2)).data.equals(data))
   })
 
-  test('flushMetadata writes a new hashes file and never overwrites the previous one', async () => {
+  test('flushMetadata writes a new hashes file, then removes the previous one', async () => {
     const disk = await createDisk()
     const first = disk.getMetadata().hashesPath
 
@@ -348,7 +348,30 @@ describe('HashedDiskDeduplicated', () => {
 
     assert.notEqual(second, first)
     const hashesFiles = (await listFiles('xo-vm-backups')).filter(file => file.endsWith('.hash'))
-    assert.equal(hashesFiles.length, 2, 'the file the hbd used to point at is left for check()')
+    assert.deepEqual(hashesFiles, [`/${diskDir}/${second}`])
+  })
+
+  test('two flushes in a row get distinct hashes files', async () => {
+    const disk = await createDisk()
+    await disk.flushMetadata()
+    const first = disk.getMetadata().hashesPath
+    await disk.flushMetadata()
+
+    assert.notEqual(disk.getMetadata().hashesPath, first)
+  })
+
+  test('a previous hashes file that cannot be removed does not fail the flush', async () => {
+    const disk = await createDisk()
+    handler.unlink = async () => {
+      throw new Error('unlink failed')
+    }
+
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await disk.flushMetadata()
+
+    const reopened = new HashedDiskDeduplicated({ handler, path: diskPath })
+    await reopened.init()
+    assert.ok((await reopened.readBlock(0)).data.equals(block(0xaa)))
   })
 
   test('overwriting an index leaves the block it dropped on the remote', async () => {
