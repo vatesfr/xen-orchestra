@@ -3,6 +3,7 @@ import type { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { dirname, join } from 'node:path'
 import { Readable } from 'node:stream'
 import { isInDir, normalize } from '@xen-orchestra/fs/path'
+import pRetry from 'promise-toolbox/retry'
 
 import { HashedDisk } from './HashedDisk.mjs'
 import { BlockAllocationTable } from './BlockAllocationTable.mjs'
@@ -396,24 +397,15 @@ export class HashedDiskDeduplicated extends HashedDisk {
 
     // Every flush writes a new file: the one the hbd still points at must stay
     // intact, so a crash before the hbd is updated leaves the disk readable.
-    //
-    // Millisecond resolution is not unique enough for two flushes in a row, and
-    // an orphan from an interrupted flush may already hold the name, so let the
-    // exclusive write arbitrate rather than comparing path strings.
-    let date = new Date()
-    let hashesPath: string
-    for (let attempt = 0; ; attempt++) {
-      hashesPath = join(dataDir, hashesFileName(date))
-      try {
-        await this.#handler.outputFile(this.#resolve(hashesPath), this.#loadedBat.toBuffer(), { flags: 'wx' })
-        break
-      } catch (error: unknown) {
-        if ((error as NodeJS.ErrnoException).code !== 'EEXIST' || attempt >= 1000) {
-          throw error
-        }
-        date = new Date(date.getTime() + 1)
-      }
-    }
+    // The name has a random part, a collision is only retried for safety.
+    const hashesPath: string = await pRetry(
+      async () => {
+        const path = join(dataDir, hashesFileName(new Date()))
+        await this.#handler.outputFile(this.#resolve(path), this.#loadedBat.toBuffer(), { flags: 'wx' })
+        return path
+      },
+      { delay: 0, tries: 3, when: { code: 'EEXIST' } }
+    )
 
     const newMetadata = { ...metadata, hashesPath }
     await this.#handler.outputStream(this.#path, Readable.from(JSON.stringify(newMetadata)), { checksum: false })
