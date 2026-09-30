@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="canDisplay" icon="action:force-shutdown" :busy="isRunning" @click="openModal()">
+  <MenuItem v-if="canDisplay" accent="neutral" icon="action:force-shutdown" :busy="isRunning" @click="openModal()">
     {{ t('action:force-shutdown') }}
   </MenuItem>
 </template>
@@ -43,7 +43,7 @@ const openModal = () => {
 
   openForceShutdownModal({
     events: { onConfirm: () => forceShutdown() },
-    props: { accent: 'info', action: 'force-shutdown', object: 'vm', icon: 'status:info-picto' },
+    props: { accent: 'info', action: 'force-shutdown', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
   })
 }
 </script>

@@ -116,7 +116,7 @@ xo-server-db ls <namespace> [<pattern>...]
 
       Patterns have the following format \`<field>=<value>\`.
 
-xo-server-logs repl
+xo-server-db repl
 
     Open a REPL to interact directly with the database.
 

@@ -1476,6 +1476,12 @@ importFromEsxi.params = {
   workDirRemote: { type: 'string', optional: true },
 }
 
+importFromEsxi.resolve = {
+  network: ['network', 'network', 'administrate'],
+  sr: ['sr', 'SR', 'administrate'],
+  template: ['template', 'VM-template', 'administrate'],
+}
+
 /**
  * on success:  returns an object, the keys are the esxi id, and the values are the created vm uuid
  * On error: throw an error. If stopOnError is false, continue when an error occurs, throws an error at the end with a 'succeeded'
@@ -1577,6 +1583,12 @@ importMultipleFromEsxi.params = {
     uniqueItems: true,
   },
   workDirRemote: { type: 'string', optional: true },
+}
+
+importMultipleFromEsxi.resolve = {
+  network: ['network', 'network', 'administrate'],
+  sr: ['sr', 'SR', 'administrate'],
+  template: ['template', 'VM-template', 'administrate'],
 }
 
 // -------------------------------------------------------------------

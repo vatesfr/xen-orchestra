@@ -1,0 +1,8 @@
+{
+    "label": "Guides",
+    "position": 7,
+    "link": {
+      "type": "generated-index",
+      "description": "Detailed guides on specific operations in XO"
+    }
+  }

@@ -751,7 +751,7 @@ export class HostController extends XapiXoController<XoHost> {
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const opts = {
-      bypassBackupCheck: body?.bypassBackupCheck ?? false,
+      bypassBackupCheck: body?.bypassBackupCheck,
       bypassVersionCheck: body?.bypassVersionCheck ?? false,
       bypassBlockedSuspend: body?.bypassBlockedSuspend ?? false,
       bypassCurrentVmCheck: body?.bypassCurrentVmCheck ?? false,
@@ -777,7 +777,7 @@ export class HostController extends XapiXoController<XoHost> {
    * Required privilege:
    * - resource: host, action: restart-toolstack
    *
-   * Restart a host's toolstack.
+   * Restart a host's toolstack. (requires the pool's HA to be disabled)
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
@@ -789,6 +789,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   restartHostToolstack(
     @Path() id: string,

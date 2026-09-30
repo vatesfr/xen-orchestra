@@ -20,14 +20,7 @@
             <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
             {{ t('this-host') }}
           </template>
-          <UiLink
-            v-else-if="masterHost !== undefined"
-            :to="{ name: '/host/[id]/dashboard', params: { id: masterHost.id } }"
-            size="medium"
-            :icon="`object:host:${toLower(masterHost.power_state)}`"
-          >
-            {{ masterHost.name_label }}
-          </UiLink>
+          <HostLink v-else-if="masterHost !== undefined" :host="masterHost" size="medium" />
         </template>
       </VtsKeyValueRow>
     </VtsKeyValueList>
@@ -35,13 +28,10 @@
       <VtsKeyValueRow :label="t('uuid')" :value="host.id" />
       <VtsKeyValueRow :label="t('description')" :value="host.name_description" />
       <VtsKeyValueRow :label="t('version')" :value="host.version" />
-      <VtsKeyValueRow
-        :label="t('hardware')"
-        :value="`${host.bios_strings['system-manufacturer']} (${host.bios_strings['system-product-name']})`"
-      />
+      <VtsKeyValueRow :label="t('hardware')" :value="manufacturerInfo" />
     </VtsKeyValueList>
     <VtsKeyValueList>
-      <VtsKeyValueRow :label="t('cores-with-sockets')" :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
+      <VtsKeyValueRow :label="t('cores-with-sockets')" :value="coreSocketInfo" />
       <VtsKeyValueRow :label="t('ram')" :value="`${ram.value} ${ram.prefix}`" />
       <VtsKeyValueRow :label="t('tags')">
         <template #value>
@@ -55,21 +45,21 @@
 </template>
 
 <script lang="ts" setup>
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostCoreSocketInfo, getHostManufacturerInfo, getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
 import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { HOST_POWER_STATE } from '@vates/types'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -80,9 +70,9 @@ const { host } = defineProps<{
 const { t, locale } = useI18n()
 
 const { getMasterHostByPoolId, isMasterHost, areHostsReady } = useXoHostCollection()
-const { getPowerState } = useXoHostUtils(() => host)
+const { getHostStatus } = useXoHostUtils(() => host)
 
-const powerState = computed(() => getPowerState(host.power_state))
+const powerState = computed(() => getHostStatus(getHostState(host)))
 
 const date = computed(() => (host.startTime === null ? undefined : new Date(parseDateTime(host.startTime * 1000))))
 
@@ -95,6 +85,10 @@ const isMaster = computed(() => isMasterHost(host.id))
 const masterHost = computed(() => getMasterHostByPoolId(host.$pool))
 
 const ram = computed(() => formatSizeRaw(host.memory.size, 1))
+
+const manufacturerInfo = computed(() => getHostManufacturerInfo(host))
+
+const coreSocketInfo = computed(() => getHostCoreSocketInfo(host))
 </script>
 
 <style lang="postcss" scoped>

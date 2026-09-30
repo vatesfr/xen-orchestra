@@ -1,0 +1,8 @@
+{
+    "label": "Automation",
+    "position": 8,
+    "link": {
+      "type": "generated-index",
+      "description": "Various tools to automate your workflow in XO"
+    }
+  }

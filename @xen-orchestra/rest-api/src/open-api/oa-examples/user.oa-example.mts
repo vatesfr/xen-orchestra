@@ -23,8 +23,11 @@ export const user = {
   pw_hash: '***obfuscated***',
   groups: ['7d98fee4-3357-41a7-ac3f-9124212badb7', '7981ba62-c395-4546-bfa4-d1261653a77f'],
   name: 'admin@admin.net',
+  firstname: 'Ada',
+  lastname: 'Lovelace',
   preferences: {},
   id: '722d17b9-699b-49d2-8193-be1ac573d3de',
+  username: 'ada.lovelace',
 }
 
 export const userId = { id: '722d17b9-699b-49d2-8193-be1ac573d3de' }

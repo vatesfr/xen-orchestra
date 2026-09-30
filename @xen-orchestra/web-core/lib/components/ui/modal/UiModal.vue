@@ -4,7 +4,7 @@
     <div :aria-labelledby="slots.title ? titleId : undefined" aria-modal="true" class="modal" role="dialog">
       <UiButtonIcon
         v-if="onDismiss"
-        :accent="closeIconAccent"
+        :accent
         :target-scale="2"
         class="dismiss-button"
         icon="action:close-cancel-clear"
@@ -32,7 +32,6 @@ import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { IconName } from '@core/icons'
-import { useMapper } from '@core/packages/mapper'
 import { useOverlayEscape } from '@core/packages/overlay/use-overlay-escape.ts'
 import { IK_OVERLAY_ACCENT } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
@@ -60,16 +59,6 @@ const slots = defineSlots<{
 useOverlayEscape(() => emit('dismiss'))
 
 const titleId = useId()
-
-const closeIconAccent = useMapper(
-  () => accent,
-  {
-    info: 'brand',
-    warning: 'warning',
-    danger: 'danger',
-  },
-  'info'
-)
 
 const className = computed(() => toVariants({ accent }))
 

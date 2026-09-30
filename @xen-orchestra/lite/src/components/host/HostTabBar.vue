@@ -26,7 +26,7 @@
 
 <script lang="ts" setup>
 import RouterTab from '@/components/RouterTab.vue'
-import TabList from '@core/components/tab/TabList.vue'
+import TabList from '@core/components/tab-list/TabList.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

@@ -55,6 +55,8 @@ export interface CheckResult {
 
 export type CleanResult = {
   removedFiles: string[]
+  // Files rewritten in place (e.g. metadata whose size was updated after a merge)
+  changedFiles?: string[]
   merge?: boolean
   size?: number
   mergedSizes?: Map<string, number>

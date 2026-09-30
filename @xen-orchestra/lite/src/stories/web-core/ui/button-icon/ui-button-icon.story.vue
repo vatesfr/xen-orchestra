@@ -3,7 +3,7 @@
     v-slot="{ properties }"
     :params="[
       iconProp().preset('fa:ellipsis'),
-      prop('accent').required().enum('brand', 'warning', 'danger').preset('brand').widget(),
+      prop('accent').required().enum('brand', 'info', 'warning', 'danger').preset('brand').widget(),
       prop('size').required().enum('small', 'medium', 'large').preset('medium').widget(),
       prop('disabled').bool().widget(),
       prop('selected').bool().widget(),

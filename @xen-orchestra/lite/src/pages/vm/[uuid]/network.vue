@@ -1,21 +1,28 @@
 <template>
   <VtsContentSidePanel class="network">
     <UiCard class="container">
-      <VmVifsTable v-if="vm" :vifs :vm />
+      <VifsTable v-if="vm" :vifs :vm>
+        <template #title-actions>
+          <UiLink size="medium" :to="{ name: '/vif/new', query: { vmUuid: vm.uuid } }" icon="fa:plus">
+            {{ t('new-vif') }}
+          </UiLink>
+        </template>
+      </VifsTable>
     </UiCard>
-    <VmVifsSidePanel :vif="selectedVif" @close="selectedVif = undefined" />
+    <VifSidePanel :vif="selectedVif" @close="selectedVif = undefined" />
   </VtsContentSidePanel>
 </template>
 
 <script lang="ts" setup>
-import VmVifsSidePanel from '@/components/vm/network/VmVifsSidePanel.vue'
-import VmVifsTable from '@/components/vm/network/VmVifsTable.vue'
 import type { XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import VifSidePanel from '@/modules/vif/components/panel/VifSidePanel.vue'
+import VifsTable from '@/modules/vif/components/VifsTable.vue'
 import { usePageTitleStore } from '@/stores/page-title.store.ts'
 import { useVifStore } from '@/stores/xen-api/vif.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useArrayFilter } from '@vueuse/shared'
 import { computed } from 'vue'
@@ -28,6 +35,7 @@ const { getByUuid } = useVmStore().subscribe()
 const route = useRoute<'/vm/[uuid]/network'>()
 
 const { t } = useI18n()
+
 usePageTitleStore().setTitle(t('network'))
 
 const vm = computed(() => getByUuid(route.params.uuid as XenApiVm['uuid']))

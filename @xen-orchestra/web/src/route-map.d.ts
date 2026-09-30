@@ -91,6 +91,20 @@ declare module 'vue-router/auto-routes' {
       { path: ParamValue<false> },
       | never
     >,
+    '/admin/backup-and-replication': RouteRecordInfo<
+      '/admin/backup-and-replication',
+      '/admin/backup-and-replication',
+      Record<never, never>,
+      Record<never, never>,
+      | '/admin/backup-and-replication/backup-repositories'
+    >,
+    '/admin/backup-and-replication/backup-repositories': RouteRecordInfo<
+      '/admin/backup-and-replication/backup-repositories',
+      '/admin/backup-and-replication/backup-repositories',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/admin/user-management': RouteRecordInfo<
       '/admin/user-management',
       '/admin/user-management',
@@ -316,10 +330,18 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | '/sr/[id]/general'
+      | '/sr/[id]/hosts'
     >,
     '/sr/[id]/general': RouteRecordInfo<
       '/sr/[id]/general',
       '/sr/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/sr/[id]/hosts': RouteRecordInfo<
+      '/sr/[id]/hosts',
+      '/sr/:id/hosts',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -539,6 +561,19 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/admin/backup-and-replication.vue': {
+      routes:
+        | '/admin/backup-and-replication'
+        | '/admin/backup-and-replication/backup-repositories'
+      views:
+        | 'default'
+    }
+    'src/pages/admin/backup-and-replication/backup-repositories.vue': {
+      routes:
+        | '/admin/backup-and-replication/backup-repositories'
+      views:
+        | never
+    }
     'src/pages/admin/user-management.vue': {
       routes:
         | '/admin/user-management'
@@ -737,12 +772,19 @@ declare module 'vue-router/auto-routes' {
       routes:
         | '/sr/[id]'
         | '/sr/[id]/general'
+        | '/sr/[id]/hosts'
       views:
         | 'default'
     }
     'src/pages/sr/[id]/general.vue': {
       routes:
         | '/sr/[id]/general'
+      views:
+        | never
+    }
+    'src/pages/sr/[id]/hosts.vue': {
+      routes:
+        | '/sr/[id]/hosts'
       views:
         | never
     }

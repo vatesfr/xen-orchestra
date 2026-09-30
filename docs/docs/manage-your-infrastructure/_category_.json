@@ -1,0 +1,8 @@
+{
+    "label": "Manage your infrastructure",
+    "position": 4,
+    "link": {
+      "type": "generated-index",
+      "description": "All the information to manage your infrastructure on a day-to-day basis"
+    }
+  }

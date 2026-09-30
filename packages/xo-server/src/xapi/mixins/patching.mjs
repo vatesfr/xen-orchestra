@@ -15,6 +15,7 @@ import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import ensureArray from '../../_ensureArray.mjs'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
+import { noopRpuRecorder } from '../../_rpuRecovery.mjs'
 import { forEach, mapFilter, parseXml } from '../../utils.mjs'
 
 import { useUpdateSystem } from '../utils.mjs'
@@ -54,6 +55,16 @@ const log = createLogger('xo:xapi')
 const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
 const _isXs = host => host.software_version.product_brand === 'XenServer'
 const _isXsWithCdnUpdates = host => _isXs(host) && semver.gt(host.software_version.product_version, '8.3.0')
+
+/**
+ * Whether a rolling pool update keeps a recovery record: only when the pool's
+ * master runs XCP-ng or XenServer 8.4+, older XenServer and CH run it without
+ * one.
+ *
+ * @param {{ software_version: { product_brand: string, product_version: string } }} host - master of the pool
+ * @returns {boolean}
+ */
+export const supportsRpuRecovery = host => _isXcp(host) || _isXsWithCdnUpdates(host)
 
 export const isUpdaterBusyError = error =>
   error?.code === '-1' && typeof error.params?.[0] === 'string' && /plugin is busy/i.test(error.params[0])
@@ -732,16 +743,25 @@ const methods = {
   async rollingPoolUpdate(
     $defer,
     parentTask,
-    { xsCredentials, force = false, rebootVm = force, shutdownPinnedVms = false } = {}
+    {
+      xsCredentials,
+      acceptCurrentStateAsBaseline = false,
+      force = false,
+      rebootVm = force,
+      shutdownPinnedVms = false,
+      recorder = noopRpuRecorder,
+    } = {}
   ) {
-    if (some(this.objects.indexes.type.SR, { type: 'linstor' })) {
-      await this._updateLinstorPackages()
-    }
-
     const master = this.pool.$master
     const isXcp = _isXcp(master)
     const isXsWithCdnUpdates = _isXsWithCdnUpdates(master)
+    const supportsRecovery = supportsRpuRecovery(master)
     const hosts = Object.values(this.objects.indexes.type.host)
+
+    // a pool without recovery runs with a no-op recorder: nothing to label
+    if (supportsRecovery) {
+      recorder.setVariant(isXcp ? 'xcp' : 'xs-cdn')
+    }
 
     let xsHash
 
@@ -793,11 +813,37 @@ const methods = {
         subtask.set('progress', Math.round((done * 100) / hosts.length))
       })
     })
+    recorder.setPatchInventory(hasMissingPatchesByHost)
+
+    // a current master over outdated members is a pool left half updated, by
+    // an interrupted run or by hand: the operator must accept that state as
+    // the baseline of this run rather than have it silently completed. A pool
+    // without recovery is not checked, as before recovery existed
+    if (supportsRecovery && !acceptCurrentStateAsBaseline && !hasMissingPatchesByHost[master.uuid]) {
+      const outdatedHosts = Object.keys(pickBy(hasMissingPatchesByHost))
+      if (outdatedHosts.length > 0) {
+        throw incorrectState({
+          actual: outdatedHosts,
+          expected: [],
+          object: this.pool.uuid,
+          property: 'partiallyUpdatedPool',
+        })
+      }
+    }
+
+    // the LINSTOR packages are updated on every host and the XOSTOR services
+    // restarted before the first reboot. That restart must not happen for a
+    // run refused by one of the guards above, nor when no host needs an update
+    const needsUpdate = some(hasMissingPatchesByHost)
+    if (needsUpdate && some(this.objects.indexes.type.SR, { type: 'linstor' })) {
+      await this._updateLinstorPackages()
+    }
 
     await Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
       await this.rollingPoolReboot(parentTask, {
         xsCredentials,
         shutdownPinnedVms,
+        recorder,
         beforeEvacuateVms: () => {
           // On XS < 8.4 and CH, start by installing patches on all hosts
           if (!isXcp && !isXsWithCdnUpdates) {
@@ -808,10 +854,14 @@ const methods = {
         },
         beforeRebootHost: host => {
           if (isXcp || isXsWithCdnUpdates) {
+            recorder.stepRunning(host.uuid, 'update')
             return Task.run(
               { properties: { name: `Installing patches`, hostId: host.uuid, hostName: host.name_label } },
               () => this.installPatches({ hosts: [host], xsHash })
-            )
+            ).then(result => {
+              recorder.stepObserved(host.uuid, 'update')
+              return result
+            })
           }
         },
         ignoreHost: host => {

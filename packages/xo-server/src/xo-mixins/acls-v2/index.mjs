@@ -103,6 +103,11 @@ export default class {
         namespace: 'acl-v2-role',
         crypto: app.cryptoCredentials,
       })
+      app.hooks.emit('registerCollection', {
+        collection: roleDb,
+        type: 'acl-role',
+        decorate: this.#normalizeAclV2Role.bind(this),
+      })
       this.#roleDb = roleDb
 
       const privilegeDb = new Privileges({
@@ -112,6 +117,7 @@ export default class {
         indexes: ['roleId'],
         crypto: app.cryptoCredentials,
       })
+      app.hooks.emit('registerCollection', { collection: privilegeDb, type: 'acl-privilege' })
       this.#privilegeDb = privilegeDb
 
       const userRoleDb = new UserRoles({
@@ -396,7 +402,10 @@ export default class {
       throw forbiddenOperation('create ACL V2 privilege', 'role is a template')
     }
 
-    return this.#privilegeDb.add({ action, selector, effect, resource, roleId })
+    const privilege = await this.#privilegeDb.add({ action, selector, effect, resource, roleId })
+    await this._app.touchXoObject('acl-role', roleId)
+
+    return privilege
   }
 
   /**
@@ -416,7 +425,10 @@ export default class {
       throw forbiddenOperation('delete ACL V2 privilege', 'role is a template')
     }
 
-    return this.#privilegeDb.remove(privilege.id)
+    const removed = await this.#privilegeDb.remove(privilege.id)
+    await this._app.touchXoObject('acl-role', role.id)
+
+    return removed
   }
 
   /**
@@ -518,7 +530,10 @@ export default class {
       throw forbiddenOperation('attach ACL V2 role to user', 'role is a template')
     }
 
-    return this.#userRoleDb.add({ userId, roleId })
+    const newUserRole = await this.#userRoleDb.add({ userId, roleId })
+    await this._app.touchXoObject('acl-role', role.id)
+
+    return newUserRole
   }
 
   /**
@@ -549,7 +564,10 @@ export default class {
       throw noSuchObject(`userId:${userId} and roleId:${roleId}`, 'userRole')
     }
 
-    return this.#userRoleDb.remove(userRole.id)
+    const removed = await this.#userRoleDb.remove(userRole.id)
+    await this._app.touchXoObject('acl-role', roleId)
+
+    return removed
   }
   // === UserRole
   // === GroupRole
@@ -582,7 +600,10 @@ export default class {
       throw forbiddenOperation('attach ACL V2 role to group', 'role is a template')
     }
 
-    return this.#groupRoleDb.add({ groupId, roleId })
+    const newGroupRole = await this.#groupRoleDb.add({ groupId, roleId })
+    await Promise.all([this._app.touchXoObject('acl-role', role.id), this._app.touchXoObject('group', groupId)])
+
+    return newGroupRole
   }
 
   /**
@@ -612,7 +633,10 @@ export default class {
       throw noSuchObject(`groupId:${groupId} and roleId:${roleId}`, 'groupRole')
     }
 
-    return this.#groupRoleDb.remove(groupRole.id)
+    const removed = await this.#groupRoleDb.remove(groupRole.id)
+    await Promise.all([this._app.touchXoObject('acl-role', roleId), this._app.touchXoObject('group', groupId)])
+
+    return removed
   }
   // === GroupRole
 

@@ -19,6 +19,12 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   #blobServiceClient
   #containerClient
 
+  getConfig(key) {
+    if (key === 'useVhdDirectory') {
+      return true // compatibility layer
+    }
+    return super.getConfig(key)
+  }
   constructor(remote, _opts) {
     super(remote, _opts)
     const { username, path, password, host, protocol } = parse(remote.url)
@@ -312,9 +318,5 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     if (batch.batchRequest.operationCount > 0) {
       await blobBatchClient.submitBatch(batch)
     }
-  }
-
-  useVhdDirectory() {
-    return true
   }
 }

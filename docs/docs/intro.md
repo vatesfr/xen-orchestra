@@ -1,5 +1,7 @@
 ---
 slug: /
+sidebar_position: 1
+sidebar_label: Introduction
 ---
 
 # Xen Orchestra in a nutshell
@@ -13,7 +15,7 @@ Everything goes through XO, and everything that talks to your infrastructure tal
 <Schema label="Xen Orchestra at the center of your infrastructure" legend={[["#6aabf0", "XO"], ["#8e83fe", "XCP-ng"], ["#56c288", "VMs"], ["#e0a94a", "backup"], ["#5ac8c8", "V2V"]]} maxWidth="760px">
 <svg viewBox="0 0 680 380" role="img" aria-label="Users and automation tools drive Xen Orchestra, which manages any number of XCP-ng pools, streams backups to a repository, keeps disaster recovery copies and imports VMware VMs with V2V">
 {/* Who talks to XO: humans and automation. */}
-<a href="/xo6/gettingstarted" aria-label="The XO 6 web interface">
+<a href="/discover-xen-orchestra/gettingstarted" aria-label="The XO 6 web interface">
 <rect x="20" y="12" width="170" height="62" rx="8" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.28)"/>
 <text x="105" y="37" fontSize="13.5" fill="#c6d2e1" textAnchor="middle">Your team</text>
 <text x="105" y="56" fontSize="11.5" fill="#7a8699" textAnchor="middle">Web UI · any browser</text>
@@ -23,7 +25,7 @@ Everything goes through XO, and everything that talks to your infrastructure tal
 <text x="337" y="37" fontSize="13.5" fill="#c6d2e1" textAnchor="middle">Automation</text>
 <text x="337" y="56" fontSize="11.5" fill="#7a8699" textAnchor="middle">REST API · CLI · Terraform · Ansible</text>
 </a>
-<a href="/backup" aria-label="Backups">
+<a href="/backups-and-dr/backup" aria-label="Backups">
 <rect x="485" y="12" width="175" height="62" rx="8" fill="rgba(224,169,74,0.10)" stroke="#e0a94a"/>
 <text x="572" y="37" fontSize="13.5" fill="#e0a94a" textAnchor="middle">Backup repository</text>
 <text x="572" y="56" fontSize="11.5" fill="#7a8699" textAnchor="middle">S3 · NFS · SMB · Azure</text>
@@ -44,7 +46,7 @@ grows a connection wire to it, the VM is converted (the teal copy
 rides through XO and lands green in Pool 1 while the original
 fades), then the empty cluster and its wire disappear: XO connects
 to VMware only for the migration. */}
-<a className="schema-live" href="/xo5/v2v-migration-guide" aria-label="Migrate from VMware with V2V" opacity="0">
+<a className="schema-live" href="/guides/v2v-migration-guide" aria-label="Migrate from VMware with V2V" opacity="0">
 <animate attributeName="opacity" dur="36s" repeatCount="indefinite"
       values="0;0;1;1;0;0" keyTimes="0;0.111;0.125;0.41;0.45;1"/>
 <rect x="20" y="115" width="140" height="62" rx="8" fill="none" stroke="rgba(255,255,255,0.22)" strokeDasharray="6 5"/>
@@ -64,7 +66,7 @@ grows out of XO toward it, and vanishes with it. */}
 <animate attributeName="opacity" dur="36s" repeatCount="indefinite"
       values="0;0;1;1;0;0" keyTimes="0;0.139;0.15;0.41;0.45;1"/>
 </line>
-<a href="/full_replication" aria-label="Full replication">
+<a href="/backups-and-dr/backup-types/full_replication" aria-label="Full replication">
 <rect x="520" y="115" width="140" height="62" rx="8" fill="none" stroke="rgba(255,255,255,0.22)" strokeDasharray="6 5"/>
 <text x="530" y="132" fontSize="12.5" fill="#7a8699">DR site</text>
 <g opacity="0.45">
@@ -157,21 +159,21 @@ the parked standby. */}
 ## Start here
 
 <CardGrid>
-<LinkCard title="Deploy Xen Orchestra" href="/installation">Get the turnkey appliance (XOA) running in minutes, or install from the sources.</LinkCard>
-<LinkCard title="Discover XO 6" href="/xo6/gettingstarted">Tour the new interface: tree view, dashboards, consoles.</LinkCard>
-<LinkCard title="Set up backups" href="/backup">Rolling snapshots, incremental backups, replication and more.</LinkCard>
-<LinkCard title="Migrate from VMware" href="/xo5/v2v-migration-guide">Import your ESXi VMs directly into your pools with V2V.</LinkCard>
+<LinkCard title="Deploy Xen Orchestra" href="/getting-started/installation">Get the turnkey appliance (XOA) running in minutes, or install from the sources.</LinkCard>
+<LinkCard title="Discover XO 6" href="/discover-xen-orchestra/gettingstarted">Tour the new interface: tree view, dashboards, consoles.</LinkCard>
+<LinkCard title="Set up backups" href="/backups-and-dr/backup">Rolling snapshots, incremental backups, replication and more.</LinkCard>
+<LinkCard title="Migrate from VMware" href="/guides/v2v-migration-guide">Import your ESXi VMs directly into your pools with V2V.</LinkCard>
 <LinkCard title="Automate everything" href="/automation/restapi">REST API, CLI, Terraform, Ansible, Pulumi and more.</LinkCard>
-<LinkCard title="Get support" href="/support">Professional support by the Vates team, or community help.</LinkCard>
+<LinkCard title="Get support" href="/support-and-licencing/support">Professional support by the Vates team, or community help.</LinkCard>
 </CardGrid>
 
 ## What XO does for you
 
-- **Administration**: complete control of your pools, hosts, VMs, storage and networks, from a [modern web interface](xo6/gettingstarted.md) or from XO 5.
-- **Backup and disaster recovery**: rolling snapshots, full and incremental backups, replication, mirroring and immutability, toward S3, NFS, SMB or Azure targets. See [Backups](xo6/backups.md).
-- **Migration from VMware**: [V2V](xo5/v2v-migration-guide.md) imports your ESXi VMs directly into your pools.
+- **Administration**: complete control of your pools, hosts, VMs, storage and networks, from a [modern web interface](/discover-xen-orchestra/gettingstarted.md) or from XO 5.
+- **Backup and disaster recovery**: rolling snapshots, full and incremental backups, replication, mirroring and immutability, toward S3, NFS, SMB or Azure targets. See [Backups](/backups-and-dr/backups-in-xo6.md).
+- **Migration from VMware**: [V2V](/guides/v2v-migration-guide.md) imports your ESXi VMs directly into your pools.
 - **Automation**: a [REST API](automation/restapi.md), a CLI, and first-class providers for [Terraform](automation/terraform-provider.md), [Ansible](automation/ansible.md), [Pulumi](automation/pulumi-provider.md), [Packer](automation/packer-provider.md) and [PowerShell](automation/powershell-module.md), plus [Kubernetes cluster recipes](automation/kubernetes.md).
-- **Delegation**: users, groups and [RBAC](rbac.md) to give each team exactly the access it needs.
+- **Delegation**: users, groups and [RBAC](/users-and-access/rbac.md) to give each team exactly the access it needs.
 - **Scale**: one XO manages any number of pools on any number of sites, over LAN or WAN.
 
 ## XO in the Vates VMS stack
@@ -190,4 +192,4 @@ The search bar at the top covers docs.xen-orchestra.com, docs.xcp-ng.org and doc
 
 ## Two interfaces, one product
 
-Xen Orchestra currently ships two web interfaces on the same server and the same data: **XO 6**, the new default interface, and **XO 5**, which remains available for the operations XO 6 does not cover yet. Read [XO 6 and XO 5](xo6/xo6vsxo5.md) to see what lives where.
+Xen Orchestra currently ships two web interfaces on the same server and the same data: **XO 6**, the new default interface, and **XO 5**, which remains available for the operations XO 6 does not cover yet. Read [XO 6 and XO 5](/discover-xen-orchestra/xo6vsxo5.md) to see what lives where.

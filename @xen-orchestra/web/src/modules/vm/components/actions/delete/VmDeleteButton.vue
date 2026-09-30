@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:delete" :busy="isRunning" class="delete" @click="openModal()">
+  <MenuItem icon="action:delete" :busy="isRunning" accent="danger" @click="openModal()">
     {{ t('action:delete') }}
   </MenuItem>
 </template>
@@ -70,15 +70,9 @@ function openModal() {
       },
     },
     props: {
-      subject: t('n-vms', { n: 1 }),
+      subject: vm.name_label,
       confirmLabel: t('action:delete-n-vms', { n: 1 }),
     },
   })
 }
 </script>
-
-<style lang="postcss" scoped>
-.delete {
-  color: var(--color-danger-item-base);
-}
-</style>

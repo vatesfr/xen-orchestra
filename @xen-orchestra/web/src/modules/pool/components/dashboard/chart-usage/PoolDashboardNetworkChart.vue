@@ -11,17 +11,18 @@
     <VtsStateHero v-else-if="networkUsage.length === 0" format="card" type="no-data" size="medium">
       {{ t('no-data-to-calculate') }}
     </VtsStateHero>
-    <VtsLinearChart v-else :data="networkUsage" :max-value :value-formatter="byteFormatter" />
+    <VtsLinearChart v-else :data="networkUsage" :max-value :value-formatter="formatChartBytes" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
+import { buildStackedNetworkUsageSeries } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
+import { formatChartBytes, getPairedUsageMaxValue } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { formatSizeRaw } from '@core/utils/size.util.ts'
-import type { XapiHostStats, XapiPoolStats } from '@vates/types/common'
+import type { XapiPoolStats } from '@vates/types/common'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -35,79 +36,26 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t } = useI18n()
 
+const networkUsageSeries = computed(() => buildStackedNetworkUsageSeries(data))
+
 const networkUsage = computed<LinearChartData>(() => {
-  if (!data) {
+  const [download, upload] = networkUsageSeries.value
+
+  if (download.length === 0 && upload.length === 0) {
     return []
   }
 
-  const hostsStats = Object.values(data).filter(
-    (hostStats): hostStats is XapiHostStats => !!(hostStats as XapiHostStats)?.stats?.pifs
-  )
-  if (hostsStats.length === 0) {
-    return []
-  }
-
-  const timestamps = Array.from(
-    { length: Object.values(hostsStats[0]?.stats?.pifs?.rx ?? {})[0].length },
-    (_, i) =>
-      hostsStats[0].endTimestamp * 1000 -
-      (Object.values(hostsStats[0]?.stats?.pifs?.rx ?? {})[0].length - 1 - i) * hostsStats[0].interval * 1000
-  )
-
-  const txSeries = [
+  return [
     {
       label: t('network-upload'),
-      data: timestamps.map((timestamp, index) => {
-        const hostsSum = hostsStats.reduce((total, host) => {
-          const value = Object.values(host.stats?.pifs?.tx ?? {}).reduce(
-            (sum, values) => sum + (values[index] ?? NaN),
-            0
-          )
-          return total + value
-        }, 0)
-        return { timestamp, value: hostsSum }
-      }),
+      data: upload,
     },
-  ]
-
-  const rxSeries = [
     {
       label: t('network-download'),
-      data: timestamps.map((timestamp, index) => {
-        const hostsSum = hostsStats.reduce((total, host) => {
-          const value = Object.values(host.stats?.pifs?.rx ?? {}).reduce(
-            (sum, values) => sum + (values[index] ?? NaN),
-            0
-          )
-          return total + value
-        }, 0)
-        return { timestamp, value: hostsSum }
-      }),
+      data: download,
     },
   ]
-
-  return [...txSeries, ...rxSeries]
 })
 
-const maxValue = computed(() => {
-  const values = networkUsage.value.flatMap(series => series.data.map(item => item.value || 0))
-
-  if (values.length === 0) {
-    return 100
-  }
-
-  const maxUsage = Math.max(...values) * 1.2
-
-  return Math.ceil(maxUsage / 50) * 50
-})
-
-const byteFormatter = (value: number | null) => {
-  if (value === null) {
-    return ''
-  }
-
-  const size = formatSizeRaw(value, 1)
-
-  return `${size.value} ${size.prefix}`
-}
+const maxValue = computed(() => getPairedUsageMaxValue(networkUsageSeries.value, { step: 50 }))
 </script>
