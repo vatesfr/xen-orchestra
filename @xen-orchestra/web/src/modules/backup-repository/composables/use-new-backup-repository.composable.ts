@@ -18,6 +18,7 @@ export function useNewBackupRepository() {
     events: {
       onConfirm: async (newPayload: NewBackupRepositoryPayload) => {
         payload.value = newPayload
+
         try {
           const [result] = await run()
 
