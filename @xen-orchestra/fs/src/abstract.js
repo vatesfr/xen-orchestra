@@ -41,6 +41,7 @@ const WITH_LIMIT = [
   'copy',
   'getInfo',
   'getSizeOnDisk',
+  'getLinkCount',
   'link',
   'list',
   'mkdir',
@@ -60,6 +61,7 @@ const WITH_RETRY = {
   _closeFile: {},
   _copy: {},
   _getInfo: {},
+  _getLinkCount: {},
   _getSize: {},
   _link: {},
   _list: {},
@@ -87,6 +89,7 @@ const WITH_TIMEOUT = [
   '_closeFile',
   '_createReadStream',
   '_getInfo',
+  '_getLinkCount',
   '_getSize',
   '_link',
   '_list',
@@ -368,6 +371,10 @@ export default class RemoteHandlerAbstract {
   async getSize(file) {
     assert.strictEqual(this.isEncrypted, false, `Can't compute size of an encrypted file ${file}`)
     return this.getSizeOnDisk(file)
+  }
+
+  async __getLinkCount(file) {
+    return this._getLinkCount(normalizePath(file))
   }
 
   async getSizeOnDisk(file) {
@@ -685,6 +692,10 @@ export default class RemoteHandlerAbstract {
 
   async _lock(path) {
     return () => Promise.resolve()
+  }
+
+  async _getLinkCount(path) {
+    throw new Error('Not implemented')
   }
 
   async _getSize(file) {

@@ -162,7 +162,7 @@ export abstract class RemoteHandlerAbstract {
   abstract closeFile(fd: FileDescriptor): Promise<void>
 
   abstract getInfo(): Promise<RemoteInfoResult>
-
+  abstract getLinkCount(path: string): Promise<number>
   abstract getSize(file: FileDescriptor): Promise<number>
   abstract getSizeOnDisk(file: FileDescriptor): Promise<number>
   abstract lock(path: string): Promise<LockDisposer>

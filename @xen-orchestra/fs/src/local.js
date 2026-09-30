@@ -129,6 +129,11 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return info
   }
 
+  async _getLinkCount(path) {
+    const stats = await this.#addSyncStackTrace(fs.stat, this.getFilePath(path))
+    return stats.nlink
+  }
+
   async _getSize(file) {
     const stats = await this.#addSyncStackTrace(fs.stat, this.getFilePath(typeof file === 'string' ? file : file.path))
     return stats.size
