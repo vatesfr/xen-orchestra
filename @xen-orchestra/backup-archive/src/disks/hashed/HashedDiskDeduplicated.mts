@@ -496,9 +496,14 @@ export class HashedDiskDeduplicated extends HashedDisk {
     this.#dirty = false
   }
 
-  async #removeBlockReference(hash: BlockHash): Promise<void> {
+  /**
+   * @param options.skipStoreCheck the caller knows another disk still links
+   * this block (a parent holding the same hash during a merge), so the store
+   * file cannot be the last copy: saves one stat per block
+   */
+  async #removeBlockReference(hash: BlockHash, { skipStoreCheck = false } = {}): Promise<void> {
     const blockPath = this.#blockPath(hash)
-    if (this.#loadedMetadata.dedupType === 'PER_DISK') {
+    if (this.#loadedMetadata.dedupType === 'PER_DISK' || skipStoreCheck) {
       return this.#handler.unlink(blockPath, { checksum: false })
     } else {
       let nlink: number
