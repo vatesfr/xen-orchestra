@@ -14,9 +14,15 @@ import { withTimeout } from './utils'
 import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 import { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, _getEncryptor } from './_encryptor'
-import { NotImplementedError } from './errors'
 
 const { info, warn } = createLogger('xo:fs:abstract')
+export class NotImplementedError extends Error {
+  constructor(message = 'Not implemented') {
+    super(message)
+    this.name = 'NotImplementedError'
+    this.code = 'ENOTIMP'
+  }
+}
 
 const checksumFile = file => file + '.checksum'
 const computeRate = (hrtime, size) => {
