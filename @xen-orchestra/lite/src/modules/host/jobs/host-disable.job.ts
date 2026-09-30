@@ -1,5 +1,4 @@
 import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { hostArg } from '@/modules/host/jobs/host-args.ts'
 import { isHostOperationPending } from '@/modules/host/utils/host.util.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
@@ -13,9 +12,9 @@ export const useHostDisableJob = defineJob('host.disable', [hostArg], () => {
   const { isHostRunning } = useHostMetricsStore().subscribe()
 
   return {
-    run: (host: XenApiHost) => xapi.host.disable(host.$ref),
+    run: host => xapi.host.disable(host.$ref),
 
-    validate: (isRunning, host: XenApiHost | undefined) => {
+    validate: (isRunning, host) => {
       if (host === undefined) {
         throw new JobError(t('job:host-disable:missing-host'))
       }
