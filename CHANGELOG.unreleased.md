@@ -31,6 +31,8 @@
 - [Audit] Fix actions made from XO 5 (`/v5`) being logged with `127.0.0.1` or `::1` as user IP address instead of the real IP address of the client (PR [#10461](https://github.com/vatesfr/xen-orchestra/pull/10461))
 - [Backups] Fix backup logs transfer size including health check restores and every backup target, which made it much bigger than in XO5 [Forum#12486](https://xcp-ng.org/forum/topic/12486) (PR [#10448](https://github.com/vatesfr/xen-orchestra/pull/10448))
 - [Network] Fix reactivity of PIF metrics (e.g. `carrier`) (PR [#10438](https://github.com/vatesfr/xen-orchestra/pull/10438))
+- [Host] Disable restart toolstack for HA enabled Pools (PR [#10344](https://github.com/vatesfr/xen-orchestra/pull/10344))
+
 
 ### Packages to release
 
@@ -56,6 +58,7 @@
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
 - xen-api patch
 - xo-remote-parser major
 - xo-server minor
