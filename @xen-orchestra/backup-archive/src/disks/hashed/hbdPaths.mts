@@ -179,7 +179,7 @@ export function decodeBlock(
 }
 
 export function hashesFileName(date: Date): string {
-  return `hashes.${date.getTime()}.hash`
+  return `hashes.${date.getTime()}.${crypto.randomBytes(4).toString('hex')}.hash`
 }
 
 export function sha256hex(data: Buffer): BlockHash {

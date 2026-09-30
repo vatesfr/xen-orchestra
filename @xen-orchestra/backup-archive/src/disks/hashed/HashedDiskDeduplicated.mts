@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path'
 import { Readable } from 'node:stream'
 import { isInDir, normalize } from '@xen-orchestra/fs/path'
 import pRetry from 'promise-toolbox/retry'
+import { createLogger } from '@xen-orchestra/log'
 
 import { HashedDisk } from './HashedDisk.mjs'
 import { BlockAllocationTable } from './BlockAllocationTable.mjs'
@@ -22,6 +23,8 @@ import {
   type HashedDiskMetadata,
 } from './hbdPaths.mjs'
 import { randomUUID } from 'node:crypto'
+
+const { warn } = createLogger('xo:backup-archive:hashed')
 
 /**
  * Content addressed disk: block index -> SHA-256 of the block payload, kept in a
@@ -389,7 +392,8 @@ export class HashedDiskDeduplicated extends HashedDisk {
   /**
    * Writes the BAT to a new timestamped file, then points the hbd file at it.
    * The previous hashes file is never overwritten, so a crash between the two
-   * writes leaves the disk readable through the old one.
+   * writes leaves the disk readable through the old one. It is removed once
+   * the hbd points at the new one.
    */
   async flushMetadata(): Promise<void> {
     const metadata = this.#loadedMetadata
@@ -412,6 +416,14 @@ export class HashedDiskDeduplicated extends HashedDisk {
     this.#metadata = newMetadata
 
     this.#dirty = false
+
+    // the hbd no longer points at it. Best effort: the data dir is claimed as
+    // a whole, so a file left by a failure or a crash is only removed by check()
+    try {
+      await this.#handler.unlink(this.#resolve(metadata.hashesPath), { checksum: false })
+    } catch (error) {
+      warn('failed to remove the previous hashes file', { path: this.#path, hashesPath: metadata.hashesPath, error })
+    }
   }
 
   /**
@@ -432,8 +444,8 @@ export class HashedDiskDeduplicated extends HashedDisk {
   }
 
   async unlink(): Promise<void> {
-    await this.#handler.rmtree(this.#dataDir)
     await this.#handler.unlink(this.#path)
+    await this.#handler.rmtree(this.#dataDir)
 
     this.#metadata = undefined
     this.#bat = undefined
