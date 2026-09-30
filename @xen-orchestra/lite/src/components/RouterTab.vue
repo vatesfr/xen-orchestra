@@ -1,18 +1,18 @@
 <template>
   <RouterLink v-slot="{ isActive, href }" :to custom>
-    <TabItem
+    <UiTabItem
       :active="isActive"
       :disabled="isDisabled"
       :href="isDisabled ? undefined : href"
       :tag="isDisabled ? undefined : 'a'"
     >
       <slot />
-    </TabItem>
+    </UiTabItem>
   </RouterLink>
 </template>
 
 <script lang="ts" setup>
-import TabItem from '@core/components/tab/TabItem.vue'
+import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { useDisabled } from '@core/composables/disabled.composable.ts'
 import type { RouteLocationRaw } from 'vue-router'
 

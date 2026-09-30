@@ -21,6 +21,7 @@ import type {
   XoVm,
   XoVmController,
 } from '@vates/types'
+import { coalesceCalls } from '@vates/coalesce-calls'
 import { createLogger } from '@xen-orchestra/log'
 import { fork, type ChildProcess } from 'node:child_process'
 import { dirname, join } from 'node:path'
@@ -367,20 +368,39 @@ interface XostorHealthCheckRaw {
 }
 
 /**
- * Time-based cache with in-flight call coalescing.
+ * Time-based cache that serves stale values while reloading.
  *
- * `get()` returns the cached value while fresh; on miss it invokes the
- * supplied loader once and shares the same in-flight promise with any
- * concurrent caller until the loader settles. Keeps the parent process from
- * issuing redundant XAPI plugin calls when several Prometheus scrapes
- * overlap a cache miss.
+ * `get()` returns the snapshot while fresh. Once expired it still returns
+ * it at once and starts one background reload, shared with any concurrent
+ * caller until the loader settles: a scrape never waits on a slow XAPI
+ * plugin call (a dead BMC makes `ipmitool.py` hang until its timeout).
+ * Only the first load, before any snapshot exists, is awaited and its error
+ * reaches the caller. A failed background reload is logged and drops the
+ * snapshot, so the next call loads in the foreground again.
+ *
+ * Served data can therefore be up to TTL + one scrape interval + load time old.
  */
-class TtlCache<T> {
+export class TtlCache<T> {
+  #name: string
   #ttlMs: number
   #snapshot: { value: T; expiresAt: number } | undefined
-  #inFlight: Promise<T> | undefined
+  #reload = coalesceCalls((load: () => Promise<T>) => {
+    const pending = load().then(value => {
+      this.#snapshot = { value, expiresAt: Date.now() + this.#ttlMs }
+      return value
+    })
+    // a background reload has no caller to reject into: report it here
+    pending.catch((error: unknown) => {
+      if (this.#snapshot !== undefined) {
+        logger.warn('background reload failed, dropping the stale snapshot', { cache: this.#name, error })
+        this.#snapshot = undefined
+      }
+    })
+    return pending
+  })
 
-  constructor(ttlMs: number) {
+  constructor(name: string, ttlMs: number) {
+    this.#name = name
     this.#ttlMs = ttlMs
   }
 
@@ -390,19 +410,8 @@ class TtlCache<T> {
     if (snap !== undefined && snap.expiresAt > now) {
       return snap.value
     }
-    if (this.#inFlight !== undefined) {
-      return this.#inFlight
-    }
-    const pending = load()
-      .then(value => {
-        this.#snapshot = { value, expiresAt: Date.now() + this.#ttlMs }
-        return value
-      })
-      .finally(() => {
-        this.#inFlight = undefined
-      })
-    this.#inFlight = pending
-    return pending
+    const pending = this.#reload(load)
+    return snap === undefined ? pending : snap.value
   }
 }
 
@@ -752,10 +761,10 @@ class OpenMetricsPlugin {
   #lastCpuUsage = process.cpuUsage()
   #eluSamplerInterval: ReturnType<typeof setInterval> | undefined
 
-  #xostorHealthCheckCache = new TtlCache<XostorPayload>(XOSTOR_CACHE_TTL_MS)
-  #xostorSmartCache = new TtlCache<XostorSmartPayload>(XOSTOR_SMART_CACHE_TTL_MS)
-  #xostorUpdatesCache = new TtlCache<XostorUpdatesPayload>(XOSTOR_UPDATES_CACHE_TTL_MS)
-  #hostPowerCache = new TtlCache<HostPowerPayload>(IPMI_POWER_CACHE_TTL_MS)
+  #xostorHealthCheckCache = new TtlCache<XostorPayload>('XOSTOR health', XOSTOR_CACHE_TTL_MS)
+  #xostorSmartCache = new TtlCache<XostorSmartPayload>('XOSTOR SMART', XOSTOR_SMART_CACHE_TTL_MS)
+  #xostorUpdatesCache = new TtlCache<XostorUpdatesPayload>('XOSTOR updates', XOSTOR_UPDATES_CACHE_TTL_MS)
+  #hostPowerCache = new TtlCache<HostPowerPayload>('host power', IPMI_POWER_CACHE_TTL_MS)
 
   constructor(xo: XoApp) {
     this.#xo = xo

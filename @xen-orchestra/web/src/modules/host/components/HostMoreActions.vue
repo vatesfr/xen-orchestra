@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="showChangeStateButton && !uiStore.isSmall" icon="action:change-state" class="change-state">
+  <MenuItem v-if="showChangeStateButton && !uiStore.isSmall" accent="brand" icon="action:change-state">
     {{ t('action:change-state') }}
     <template #submenu>
       <HostPowerStateActions :host />
@@ -51,9 +51,3 @@ const isHostHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED
 
 const displayDisableButton = computed(() => host.enabled || isHostHalted.value)
 </script>
-
-<style lang="postcss" scoped>
-.change-state {
-  color: var(--color-brand-txt-base);
-}
-</style>

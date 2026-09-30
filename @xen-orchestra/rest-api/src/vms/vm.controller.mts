@@ -55,8 +55,7 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { BASE_URL } from '../index.mjs'
-import { limitAndFilterArray, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
+import { BASE_URL, limitAndFilterArray, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { partialVms, vm, vmDashboard, vmIds, vmStatsExample, vmVdis } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -187,6 +186,8 @@ export class VmController extends XapiXoController<XoVm> {
    *
    * Special fields:
    * - `xenStoreData` keys are automatically prefixed with `vm-data/` when missing
+   * - `cpus` automatically set `cpusStaticMax` to the `cpus` value if `cpus` is higher than `vm.CPUs.max`
+   * - If `cpusStaticMax` is updated to a value that is incompatible with the VM topology, `vm.platform['cores-per-socket']` will be set to 1, unless `coresPerSocket` is explicitly specified
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example body {

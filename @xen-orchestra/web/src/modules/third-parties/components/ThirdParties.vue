@@ -7,7 +7,7 @@
       <EasyVirtLogo class="logo" />{{ t('provider-solutions', { provider: 'EasyVirt' }) }}
     </VtsDropdownTitle>
 
-    <MenuItem v-for="(easyVirtSolution, index) in easyVirtSolutions" :key="index">
+    <MenuItem v-for="(easyVirtSolution, index) in easyVirtSolutions" :key="index" accent="neutral">
       <UiLink class="link" size="small" :href="easyVirtSolution.href">
         {{ easyVirtSolution.label }}
       </UiLink>
@@ -19,12 +19,13 @@
 import EasyVirtLogo from '@/modules/third-parties/components/easyvirt/EasyVirtLogo.vue'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import { formatIpToHostName, type IpAddress } from '@/shared/utils/ip.utils.ts'
+import { formatIpToHostName } from '@/shared/utils/ip.utils.ts'
 import VtsDropdownTitle from '@core/components/dropdown/VtsDropdownTitle.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { type IpAddress } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
 
 import { useI18n } from 'vue-i18n'

@@ -1,13 +1,12 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import Disposable from 'promise-toolbox/Disposable'
-import forOwn from 'lodash/forOwn.js'
 import groupBy from 'lodash/groupBy.js'
 import merge from 'lodash/merge.js'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
-import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
+import { hasLiveMountTarget } from '@xen-orchestra/backups/_vdiRestoreTargets.mjs'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
@@ -19,6 +18,8 @@ import { Task } from '@vates/task'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
+import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
+import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
@@ -93,6 +94,8 @@ const extractIdsFromSimplePattern = pattern => {
 }
 
 export default class BackupNg {
+  #vmBackupsCache
+
   get runningRestores() {
     return this._runningRestores
   }
@@ -100,11 +103,18 @@ export default class BackupNg {
   constructor(app) {
     this._app = app
     this._runningRestores = new Set()
+    this.#vmBackupsCache = new VmBackupsCache(new VmBackupsSource(app), {
+      minRefreshDelay: app.config.getDuration('backups.listingDebounce'),
+    })
 
     /** @type {Record<XoBackupRepository['id'], ListingRetryState>} */
     this._backupsListingRetry = { __proto__: null }
     /** @type {Record<XoBackupRepository['id'], Promise<BackupsByVm>>} */
     this._trackedBackupsListings = { __proto__: null }
+    // remoteId → Set of the `vmId` (possibly `undefined`, for a full listing) debounced for this
+    // remote, so that every one of them can be dropped when the listing state is reset
+    /** @type {Record<XoBackupRepository['id'], Set<XoVm['id'] | undefined>>} */
+    this._trackedVmIdsByRemote = { __proto__: null }
 
     app.hooks.on('start', async () => {
       const executor = async ({
@@ -395,7 +405,7 @@ export default class BackupNg {
             return result
           }
         } finally {
-          targetRemoteIds.forEach(id => this.invalidateVmBackupsListing(id))
+          targetRemoteIds.forEach(id => this._refreshVmBackupsCache(id))
         }
       }
       app.registerJobExecutor('backup', executor)
@@ -486,7 +496,7 @@ export default class BackupNg {
     return this.deleteVmBackupsNg([id])
   }
 
-  async deleteVmBackupsNg(ids) {
+  async deleteVmBackupsNg(ids, immediate) {
     const app = this._app
     const backupsByRemote = groupBy(ids.map(parseVmBackupId), 'remoteId')
     await asyncMapSettled(Object.entries(backupsByRemote), async ([remoteId, backups]) => {
@@ -499,13 +509,35 @@ export default class BackupNg {
             url: remote.url,
             options: remote.options,
           },
+          immediate,
         })
       } else {
-        await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteVmBackups(filenames))
+        await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter =>
+          adapter.deleteVmBackups(filenames, { immediate })
+        )
       }
 
-      this.invalidateVmBackupsListing(remoteId)
+      this._refreshVmBackupsCache(remoteId)
     })
+  }
+
+  /**
+   * Record the live mounts a proxy created while restoring a backup on its own.
+   *
+   * A restore delegated to a proxy mounts the disks *on the proxy*, out of reach of
+   * `mountBackupArchiveDisk`: the mounts it reports are recorded here, with the proxy serving
+   * them, so they can be unmounted afterwards.
+   *
+   * @param {XoVmBackupArchive['id']} archiveId
+   * @param {string} proxyId
+   * @param {{ liveMounts?: { id: string, hostId: string, srUuid?: string }[] }} [result] - result of the restore, as reported by the proxy
+   */
+  #registerProxyLiveMounts(archiveId, proxyId, result) {
+    const mounts = result?.liveMounts
+    if (mounts === undefined || mounts.length === 0) {
+      return
+    }
+    this._app.registerProxyBackupArchiveDiskMounts({ archiveId, mounts, proxyId })
   }
 
   async importVmBackupNg(id, srId, settings) {
@@ -567,11 +599,17 @@ export default class BackupNg {
           }
         } catch (error) {
           if (invalidParameters.is(error)) {
+            // this proxy cannot stream the logs, and is therefore too old to live mount a disk:
+            // nothing to register below
             delete params.streamLogs
             return app.callProxyMethod(remote.proxy, 'backup.importVmBackup', params)
           }
           throw error
         }
+
+        // the proxy mounted the disks itself, on itself: without this, nothing here would know
+        // which proxy to ask to unmount them
+        this.#registerProxyLiveMounts(id, remote.proxy, result)
       } else {
         result = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
           const metadata = await adapter.readVmBackupMetadata(metadataFilename)
@@ -600,6 +638,14 @@ export default class BackupNg {
             async () =>
               new ImportVmBackup({
                 adapter,
+                // the mounts outlive this restore, so they get their own handler and their own
+                // lifecycle: `mountBackupArchiveDisk` already owns both, and validates the disk
+                // path against the archive
+                liveMount: {
+                  mountDisk: ({ diskPath, hostId }) =>
+                    app.mountBackupArchiveDisk({ archiveId: id, diskId: diskPath, hostId }),
+                  unmountDisk: mountId => app.unmountBackupArchiveDisk(mountId),
+                },
                 metadata,
                 settings,
                 srUuid: srId,
@@ -619,8 +665,8 @@ export default class BackupNg {
     function () {
       return this._app.config.getDuration('backups.listingDebounce')
     },
-    function keyFn(remoteId) {
-      return [this, remoteId]
+    function keyFn(remoteId, { vmId } = {}) {
+      return [this, remoteId, vmId]
     }
   )
   /**
@@ -638,46 +684,27 @@ export default class BackupNg {
     return timeout.call(this._listVmBackupsOnRemoteUncached(remoteId, opts), LISTING_TIMEOUT)
   }
 
+  // the next listing of this repository will replay its journal instead of waiting for the end of the
+  // current refresh window
+  //
+  // to call after a mutation triggered by this process, so that its effect is visible at once
+  _refreshVmBackupsCache(remoteId) {
+    this.#vmBackupsCache.refresh(remoteId)
+    this.#resetVmBackupsListingState(remoteId)
+  }
+
   /**
    * @param {XoBackupRepository['id']} remoteId
    * @param {{ vmId?: XoVm['id'] }} [opts]
    * @returns {Promise<BackupsByVm>}
    */
   async _listVmBackupsOnRemoteUncached(remoteId, { vmId } = {}) {
-    const app = this._app
-    const remote = await app.getRemoteWithCredentials(remoteId)
+    const remote = await this._app.getRemoteWithCredentials(remoteId)
 
-    let backupsByVm
-    if (remote.proxy !== undefined) {
-      ;({ [remoteId]: backupsByVm } = await app.callProxyMethod(remote.proxy, 'backup.listVmBackups', {
-        remotes: {
-          [remoteId]: {
-            url: remote.url,
-            options: remote.options,
-          },
-        },
-        vmId,
-      }))
-    } else {
-      backupsByVm = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
-        let vmBackups
-        if (vmId !== undefined) {
-          vmBackups = { [vmId]: await adapter.listVmBackups(vmId) }
-        } else {
-          vmBackups = await adapter.listAllVmBackups()
-        }
+    const backupsByVm =
+      vmId !== undefined ? await this.#vmBackupsCache.getOneVm(remote, vmId) : await this.#vmBackupsCache.get(remote)
 
-        return formatVmBackups(vmBackups, remote.id)
-      })
-    }
-
-    // inject the remote id on the backup which is needed for importVmBackupNg()
-    forOwn(backupsByVm, backups =>
-      backups.forEach(backup => {
-        backup.id = `${remoteId}/${backup.id}`
-      })
-    )
-    return backupsByVm
+    return serveVmBackups(backupsByVm, remoteId, vmId)
   }
 
   /**
@@ -718,6 +745,8 @@ export default class BackupNg {
       return Promise.resolve({ error: state.error })
     }
 
+    ;(this._trackedVmIdsByRemote[remoteId] ??= new Set()).add(vmId)
+
     const promise = this._listVmBackupsOnRemote(remoteId, { vmId })
 
     // this promise is returned to every caller of the debounce window, even after it has settled:
@@ -750,6 +779,9 @@ export default class BackupNg {
    * a backup repository whose listing failed is reported as `null` so that a slow or unreachable
    * one does not prevent the others from being listed
    *
+   * `vmId` narrows down the result: the repository is listed for this VM only, and cached
+   * apart from the listing of the whole repository
+   *
    * @param {XoBackupRepository['id'][]} remotes
    * @param {ListVmBackupsOpts} [opts]
    * @returns {Promise<Record<XoBackupRepository['id'], BackupsByVm | null>>}
@@ -766,13 +798,22 @@ export default class BackupNg {
       const { backupsByVm, error } = await this._listVmBackupsWithBackoff(remoteId, { vmId })
 
       // `null` = the listing failed, an empty object = this repository has no backups
-      backupsByVmByRemote[remoteId] = error === undefined ? backupsByVm : null
+      if (error !== undefined) {
+        backupsByVmByRemote[remoteId] = null
+      } else {
+        backupsByVmByRemote[remoteId] = vmId === undefined ? backupsByVm : { [vmId]: backupsByVm[vmId] ?? [] }
+      }
     })
 
     return backupsByVmByRemote
   }
 
   async checkVmBackupNg(backupId, srId, settings) {
+    if (hasLiveMountTarget(settings?.mapVdisSrs)) {
+      // the restored VM is destroyed at the end of the check, which would leave the mount behind
+      throw invalidParameters('a backup health check cannot live mount a disk')
+    }
+
     await this._app.tasks
       .create({
         name: 'VM Backup Health Check',
@@ -785,6 +826,7 @@ export default class BackupNg {
         const restoredId = await this.importVmBackupNg(backupId, srId, {
           ...settings,
           additionalVmTag: 'xo:no-bak=Health Check',
+          vmNamePrefix: '[Health Check] ',
         })
 
         const restoredVm = xapi.getObject(restoredId)
@@ -799,11 +841,29 @@ export default class BackupNg {
       })
   }
   /**
-   * drops the cached listing of a backup repository and its retry state, so that it is listed
-   * again on the next call instead of waiting for the current backoff delay
+   * drops the debounced listing of a backup repository and its retry state, so that it is listed
+   * again on the next call instead of waiting for the current debounce or backoff delay
    *
    * the outcome of a listing which is still running is ignored: it no longer represents the
    * current state of the repository
+   *
+   * @param {XoBackupRepository['id']} remoteId
+   */
+  #resetVmBackupsListingState(remoteId) {
+    const vmIds = this._trackedVmIdsByRemote[remoteId]
+    if (vmIds !== undefined) {
+      for (const vmId of vmIds) {
+        this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId, { vmId })
+      }
+      delete this._trackedVmIdsByRemote[remoteId]
+    }
+    delete this._trackedBackupsListings[remoteId]
+    delete this._backupsListingRetry[remoteId]
+  }
+
+  /**
+   * forgets everything known about a backup repository: its backups are read from scratch on the
+   * next listing, instead of being brought up to date from its journal
    *
    * public because it is also called by the remotes mixin when a backup repository is updated
    * or removed
@@ -811,8 +871,7 @@ export default class BackupNg {
    * @param {XoBackupRepository['id']} remoteId
    */
   invalidateVmBackupsListing(remoteId) {
-    this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
-    delete this._trackedBackupsListings[remoteId]
-    delete this._backupsListingRetry[remoteId]
+    this.#vmBackupsCache.delete(remoteId)
+    this.#resetVmBackupsListingState(remoteId)
   }
 }

@@ -6,6 +6,7 @@ import { isPromise } from 'node:util/types'
 import { MaybePromise, PromiseWriteInStreamError } from './helper.type.mjs'
 import { Writable } from 'node:stream'
 import { ApiError } from './error.helper.mjs'
+export const BASE_URL = '/rest/v0'
 export const NDJSON_CONTENT_TYPE = 'application/x-ndjson'
 
 const log = createLogger('xo:rest-api:utils-helper')

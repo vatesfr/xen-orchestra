@@ -14,7 +14,7 @@
   >
     <UiCollapsibleList v-bind="properties">
       <li v-for="vm in vms" :key="vm.id">
-        <UiLink :icon="faDesktop" size="medium" to="#">
+        <UiLink icon="object:vm" size="medium" to="#">
           {{ vm.name_label }}
         </UiLink>
       </li>
@@ -27,7 +27,6 @@ import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, slot } from '@/libs/story/story-param.ts'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const vms = computed(() => [

@@ -1,5 +1,12 @@
 <template>
-  <MenuItem v-if="canDisplay" :disabled="!canShutdown" icon="action:shutdown" :busy="isRunning" @click="openModal()">
+  <MenuItem
+    v-if="canDisplay"
+    accent="neutral"
+    :disabled="!canShutdown"
+    icon="action:shutdown"
+    :busy="isRunning"
+    @click="openModal()"
+  >
     {{ t('action:shutdown') }}
     <i v-if="!canShutdown" class="em-dash-prefix">{{ t('vm-tools-missing') }}</i>
   </MenuItem>
@@ -43,7 +50,7 @@ const openModal = () => {
 
   openShutdownModal({
     events: { onConfirm: () => shutdown() },
-    props: { accent: 'info', action: 'shutdown', object: 'vm', icon: 'status:info-picto' },
+    props: { accent: 'info', action: 'shutdown', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
   })
 }
 </script>

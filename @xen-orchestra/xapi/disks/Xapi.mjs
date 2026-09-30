@@ -98,7 +98,7 @@ export class XapiDiskSource extends DiskPassthrough {
     let source
     let streamSource
     try {
-      // we will only use the stream for bloc list
+      // we will only use the stream for block list
       streamSource = await this.#openExportStream({ onlyListChangedBlocks: true })
       if (streamSource === undefined) {
         throw new Error(`Can't open stream source`)

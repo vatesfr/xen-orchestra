@@ -1,22 +1,15 @@
 #!/usr/bin/env node
 'use strict'
 
-const fs = require('fs').promises
-const joinPath = require('path').join
 const semver = require('semver')
-const { getPackages } = require('./utils')
-const escapeRegExp = require('lodash/escapeRegExp')
+const { join } = require('path')
+const { getPackages, readFile } = require('./utils')
+const { readChangelogPackages } = require('./_readChangelogPackages.js')
 const invert = require('lodash/invert')
 const keyBy = require('lodash/keyBy')
 
 const { debug } = require('../@xen-orchestra/log').createLogger('gen-deps-list')
 const computeDepOrder = require('./_computeDepOrder.js')
-
-const changelogConfig = {
-  path: joinPath(__dirname, '../CHANGELOG.unreleased.md'),
-  startTag: '<!--packages-start-->',
-  endTag: '<!--packages-end-->',
-}
 
 const RELEASE_WEIGHT = { PATCH: 1, MINOR: 2, MAJOR: 3 }
 const RELEASE_TYPE = invert(RELEASE_WEIGHT)
@@ -86,6 +79,16 @@ async function main(args, scriptName) {
   }
 
   allPackages = keyBy(await getPackages(true), 'name')
+
+  // vectura is a Rust crate, not an npm package: @xen-orchestra/vmware-explorer
+  // bundles its binary, so a vectura release is followed by one of
+  // vmware-explorer, as if it depended on this exact version
+  const vecturaVersion = /^version = "(.+)"$/m.exec(
+    await readFile(join(__dirname, '../@xen-orchestra/vmware-explorer/vectura/Cargo.toml'))
+  )[1]
+  allPackages.vectura = { name: 'vectura', package: { name: 'vectura', version: vecturaVersion } }
+  allPackages['@xen-orchestra/vmware-explorer'].package.dependencies.vectura = vecturaVersion
+
   const releaseOrder = computeDepOrder(allPackages)
 
   Object.entries(toRelease).forEach(([packageName, releaseType]) => {
@@ -126,37 +129,7 @@ async function main(args, scriptName) {
 async function readPackagesFromChangelog(toRelease) {
   debug('reading packages from CHANGELOG.unreleased.md')
 
-  const content = await fs.readFile(changelogConfig.path)
-  const changelogRegex = new RegExp(
-    `${escapeRegExp(changelogConfig.startTag)}(.*)${escapeRegExp(changelogConfig.endTag)}`,
-    's'
-  )
-  const block = changelogRegex.exec(content)?.[1].trim()
-
-  if (block === undefined) {
-    throw new Error(`Could not find changelog block in ${changelogConfig.path}`)
-  }
-
-  block.split('\n').forEach(rawLine => {
-    const line = rawLine.trim()
-
-    if (!line) {
-      return
-    }
-
-    const match = line.match(/^-\s*(?<name>\S+)\s+(?<releaseType>patch|minor|major)$/)
-
-    if (!match) {
-      throw new Error(`Invalid line: "${rawLine}"`)
-    }
-
-    const { name, releaseType } = match.groups
-    if (name in toRelease) {
-      throw new Error('duplicate package to release in CHANGELOG.unreleased.md: ' + name)
-    }
-
-    toRelease[name] = releaseType
-  })
+  Object.assign(toRelease, await readChangelogPackages())
 }
 
 /**

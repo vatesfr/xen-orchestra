@@ -21,32 +21,32 @@
   </UiHeadBar>
   <TabList>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/backup/[id]/runs', params: { id: backupJob.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('runs') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink
       v-slot="{ isActive, href }"
       :to="{ name: '/backup/[id]/configuration', params: { id: backupJob.id } }"
       custom
     >
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('configuration') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink
       v-slot="{ isActive, href }"
       :to="{ name: '/backup/[id]/backed-up-vms', params: { id: backupJob.id } }"
       custom
     >
-      <TabItem :active="isActive" :href tag="a" :disabled="backupJob.type !== 'backup'">
+      <UiTabItem :active="isActive" :href tag="a" :disabled="backupJob.type !== 'backup'">
         {{ t('backed-up-vms') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/backup/[id]/targets', params: { id: backupJob.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive" :href tag="a">
         {{ t('backup-targets') }}
-      </TabItem>
+      </UiTabItem>
     </RouterLink>
   </TabList>
 </template>
@@ -56,11 +56,11 @@ import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-
 import { XOA_NAME } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import TabItem from '@core/components/tab/TabItem.vue'
-import TabList from '@core/components/tab/TabList.vue'
+import TabList from '@core/components/tab-list/TabList.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -28,6 +28,7 @@ import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks.mjs'
 import { generateToken } from '../utils.mjs'
 
 const DEBOUNCE_TIME_PROXY_STATE = 60000
+const DEBOUNCE_TIME_PROXY_LICENSE = 24 * 60 * 60 * 1000
 
 const synchronizedWrite = synchronized()
 
@@ -68,9 +69,19 @@ async function addProxyVersion(proxy) {
   }
 }
 
+async function addProxyLicense(proxy) {
+  try {
+    proxy.license = await this.getProxyLicense(proxy.id)
+  } catch (error) {
+    log.debug('addProxyLicense', { error, proxy })
+  }
+}
+
 async function populateProxy(proxy) {
   addProxyUrl.call(this, proxy)
   await addProxyVersion.call(this, proxy)
+  await addProxyLicense.call(this, proxy)
+  return proxy
 }
 
 export default class Proxy {
@@ -94,6 +105,7 @@ export default class Proxy {
         namespace: 'proxy',
         crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', { collection: db, type: 'proxy', decorate: populateProxy.bind(this) })
 
       return app.addConfigManager(
         'proxies',
@@ -170,6 +182,7 @@ export default class Proxy {
           productId: this._app.config.get('xo-proxy.licenseProductId'),
         })
         .catch(log.warn)
+      this.getProxyLicense(REMOVE_CACHE_ENTRY, id)
     }
   }
 
@@ -218,6 +231,10 @@ export default class Proxy {
 
     patch(proxy, { address, authenticationToken, name, vmUuid })
     await this._db.update(proxy)
+
+    if (vmUuid !== undefined) {
+      this.getProxyLicense(REMOVE_CACHE_ENTRY, id)
+    }
 
     await populateProxy.call(this, proxy)
     return proxy
@@ -287,6 +304,16 @@ export default class Proxy {
     }
 
     return this.callProxyMethod(id, 'appliance.updater.getState')
+  }
+
+  @decorateWith(debounceWithKey, DEBOUNCE_TIME_PROXY_LICENSE, id => id, false)
+  async getProxyLicense(id) {
+    const { vmUuid } = await this._getProxy(id)
+    const licenses = await this._app.getLicenses?.()
+    return licenses?.find(
+      license =>
+        license.productId === this._app.config.get('xo-proxy.licenseProductId') && license.boundObjectId === vmUuid
+    )
   }
 
   @decorateWith(defer)
@@ -423,6 +450,7 @@ export default class Proxy {
         authenticationToken: proxyAuthenticationToken,
         vmUuid: vm.uuid,
       })
+      this.getProxyLicense(REMOVE_CACHE_ENTRY, proxyId)
     } else {
       proxyId = await this.registerProxy({
         authenticationToken: proxyAuthenticationToken,
@@ -474,13 +502,19 @@ export default class Proxy {
     const proxy = await this._getProxy(id)
 
     const url = new URL('https://localhost/api/v1')
-
+    const headers = {
+      'Content-Type': 'application/json',
+      Cookie: cookie.serialize('authenticationToken', proxy.authenticationToken),
+    }
+    if (assertType !== 'scalar') {
+      // the proxy streams ndjson and binary responses incrementally; a compressor
+      // buffers them (brotli emits nothing until its window fills), so the response
+      // headers are never flushed and `headersTimeout` fires
+      headers['Accept-Encoding'] = 'identity'
+    }
     const request = {
       body: format.request(0, method, params),
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: cookie.serialize('authenticationToken', proxy.authenticationToken),
-      },
+      headers,
       method: 'POST',
       dispatcher: this._getAgent(timeout),
     }

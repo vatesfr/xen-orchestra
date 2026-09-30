@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="canDisplay" icon="action:force-reboot" :busy="isRunning" @click="openModal()">
+  <MenuItem v-if="canDisplay" accent="neutral" icon="action:force-reboot" :busy="isRunning" @click="openModal()">
     {{ t('action:force-reboot') }}
   </MenuItem>
 </template>
@@ -44,7 +44,7 @@ const openModal = () => {
 
   openRebootModal({
     events: { onConfirm: () => forceReboot() },
-    props: { accent: 'info', action: 'force-reboot', object: 'vm', icon: 'status:info-picto' },
+    props: { accent: 'info', action: 'force-reboot', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
   })
 }
 </script>
