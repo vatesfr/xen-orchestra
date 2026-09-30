@@ -105,6 +105,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/backup-repository/[id]': RouteRecordInfo<
+      '/admin/backup-repository/[id]',
+      '/admin/backup-repository/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/admin/backup-repository/[id]/general'
+    >,
+    '/admin/backup-repository/[id]/general': RouteRecordInfo<
+      '/admin/backup-repository/[id]/general',
+      '/admin/backup-repository/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/admin/user-management': RouteRecordInfo<
       '/admin/user-management',
       '/admin/user-management',
@@ -153,20 +167,6 @@ declare module 'vue-router/auto-routes' {
     '/backup/[id]/targets': RouteRecordInfo<
       '/backup/[id]/targets',
       '/backup/:id/targets',
-      { id: ParamValue<true> },
-      { id: ParamValue<false> },
-      | never
-    >,
-    '/backup-repository/[id]': RouteRecordInfo<
-      '/backup-repository/[id]',
-      '/backup-repository/:id',
-      { id: ParamValue<true> },
-      { id: ParamValue<false> },
-      | '/backup-repository/[id]/general'
-    >,
-    '/backup-repository/[id]/general': RouteRecordInfo<
-      '/backup-repository/[id]/general',
-      '/backup-repository/:id/general',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -588,6 +588,19 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/admin/backup-repository/[id].vue': {
+      routes:
+        | '/admin/backup-repository/[id]'
+        | '/admin/backup-repository/[id]/general'
+      views:
+        | 'default'
+    }
+    'src/pages/admin/backup-repository/[id]/general.vue': {
+      routes:
+        | '/admin/backup-repository/[id]/general'
+      views:
+        | never
+    }
     'src/pages/admin/user-management.vue': {
       routes:
         | '/admin/user-management'
@@ -632,19 +645,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/backup/[id]/targets.vue': {
       routes:
         | '/backup/[id]/targets'
-      views:
-        | never
-    }
-    'src/pages/backup-repository/[id].vue': {
-      routes:
-        | '/backup-repository/[id]'
-        | '/backup-repository/[id]/general'
-      views:
-        | 'default'
-    }
-    'src/pages/backup-repository/[id]/general.vue': {
-      routes:
-        | '/backup-repository/[id]/general'
       views:
         | never
     }
