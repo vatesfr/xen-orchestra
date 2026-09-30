@@ -25,6 +25,7 @@ const model = defineModel<boolean>({ required: true })
 
 const warningMessage = computed(() => {
   const firstWarning = Array.isArray(warning) ? warning[0] : warning
+
   return typeof firstWarning === 'object' ? firstWarning.content : firstWarning
 })
 </script>

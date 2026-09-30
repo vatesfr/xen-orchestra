@@ -8,7 +8,13 @@
       <UiStepper :steps :current-step="currentStepIndex">
         <BackupRepositoryGeneralStep v-if="currentStep === 'general'" :bindings="general.bindings" />
         <BackupRepositoryDetailsStep v-else-if="currentStep === 'details'" :type="general.formData.type" :details />
-        <NewBackupRepositoryReviewStep v-else :general :details :details-title="detailsStepLabel" @edit="goToStep" />
+        <NewBackupRepositoryReviewStep
+          v-else
+          :general
+          :details
+          :details-title="detailsStepLabel"
+          @edit="step => goToStep(step)"
+        />
       </UiStepper>
     </template>
 

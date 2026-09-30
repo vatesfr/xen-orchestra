@@ -1,5 +1,5 @@
 <template>
-  <div class="new-backup-repository-details-step">
+  <div class="backup-repository-details-step">
     <BackupRepositoryLocalFields v-if="type === 'file'" :bindings="details.file.bindings" />
     <BackupRepositoryNfsFields v-else-if="type === 'nfs'" :bindings="details.nfs.bindings" />
     <BackupRepositorySmbFields v-else-if="type === 'smb'" :bindings="details.smb.bindings" />
@@ -28,7 +28,7 @@ defineProps<{
 </script>
 
 <style lang="postcss" scoped>
-.new-backup-repository-details-step {
+.backup-repository-details-step {
   margin-block-start: 2.4rem;
   text-align: left;
 }

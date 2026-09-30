@@ -1,5 +1,5 @@
 <template>
-  <div class="new-backup-repository-general-step">
+  <div class="backup-repository-general-step">
     <div class="section">
       <UiTitle>{{ t('general-information') }}</UiTitle>
 
@@ -63,7 +63,7 @@ const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
-.new-backup-repository-general-step {
+.backup-repository-general-step {
   display: flex;
   flex-direction: column;
   gap: 4.8rem;
