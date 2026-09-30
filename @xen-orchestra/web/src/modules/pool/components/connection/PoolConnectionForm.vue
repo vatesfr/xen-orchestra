@@ -20,14 +20,7 @@
       <UiLink :to="{ name: '/(site)/dashboard' }" size="medium">
         {{ t('cancel') }}
       </UiLink>
-      <UiButton
-        type="submit"
-        accent="brand"
-        size="medium"
-        variant="primary"
-        :busy="isServerJobRunning"
-        :disabled="!createCanRun"
-      >
+      <UiButton type="submit" accent="brand" size="medium" variant="primary" :busy="isServerJobRunning">
         {{ t('connect') }}
       </UiButton>
     </div>
@@ -79,7 +72,7 @@ const passwordError = computed(() => credentialsError.value ?? passwordInputBind
 
 // TODO: multiple server creation not possible in the UI for now
 // so only handle a single payload
-const { canRun: createCanRun, isRunning: createIsRunning, run: create } = useXoServerCreateJob([payload])
+const { isRunning: createIsRunning, run: create } = useXoServerCreateJob([payload])
 const { isRunning: connectIsRunning, run: connect } = useXoServerConnectJob([serverId])
 const { isRunning: removeIsRunning, run: remove } = useXoServerForgetJob([serverId])
 
