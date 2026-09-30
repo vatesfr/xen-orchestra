@@ -15,7 +15,7 @@ export type NonXapiListenerType =
   | 'server'
   | 'backup-repository'
   | 'backup-job'
-  | 'vm-backups-cache'
+  | 'backup-archive'
   | 'schedule'
 
 export type XoListenerType = XapiListenerType | NonXapiListenerType
