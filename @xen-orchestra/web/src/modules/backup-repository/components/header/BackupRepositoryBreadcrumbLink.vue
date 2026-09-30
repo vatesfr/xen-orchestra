@@ -7,7 +7,8 @@
       <UiLink :size :to="{ name: '/admin/backup-and-replication/backup-repositories' }">
         {{ t('backup-repositories') }}
       </UiLink>
-      <span>
+      <span class="br-name">
+        <VtsIcon :name="icon" size="current" />
         {{ br.name }}
       </span>
     </UiBreadcrumb>
@@ -16,6 +17,8 @@
 
 <script lang="ts" setup>
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import type { IconName } from '@core/icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -24,6 +27,7 @@ import { useI18n } from 'vue-i18n'
 
 const { br } = defineProps<{
   br: FrontXoBackupRepository
+  icon: IconName
 }>()
 
 const uiStore = useUiStore()
@@ -44,5 +48,11 @@ const { t } = useI18n()
   background-color: var(--color-neutral-background-primary);
   justify-content: space-between;
   overflow-y: auto;
+
+  .br-name {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
 }
 </style>
