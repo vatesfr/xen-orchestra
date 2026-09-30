@@ -777,7 +777,7 @@ export class HostController extends XapiXoController<XoHost> {
    * Required privilege:
    * - resource: host, action: restart-toolstack
    *
-   * Restart a host's toolstack.
+   * Restart a host's toolstack. (requires the pool's HA to be disabled)
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
