@@ -7,6 +7,7 @@ import { Disposable, pFromCallback, TimeoutError } from 'promise-toolbox'
 import { getSyncedHandler } from '.'
 import { rimraf } from 'rimraf'
 import AbstractHandler from './abstract'
+import { NotImplementedError } from './errors'
 import fs from 'fs-extra'
 import tmp from 'tmp'
 
@@ -55,6 +56,25 @@ describe('closeFile()', () => {
     const promise = testHandler.closeFile({ fd: undefined, path: '' })
     clock.tick(TIMEOUT)
     await assert.rejects(promise, new TimeoutError())
+  })
+})
+
+describe('NotImplementedError', () => {
+  it('is thrown by an operation the handler does not implement', async () => {
+    const testHandler = new TestHandler()
+
+    await assert.rejects(testHandler.link('a', 'b'), error => {
+      assert.ok(error instanceof NotImplementedError)
+      assert.equal(error.code, 'ENOTIMP')
+      return true
+    })
+  })
+
+  it('is never retried', () => {
+    const testHandler = new TestHandler()
+
+    assert.equal(testHandler._conditionRetry(new NotImplementedError()), false)
+    assert.equal(testHandler._conditionRetry(new Error('transient')), true, 'an error without code still is')
   })
 })
 

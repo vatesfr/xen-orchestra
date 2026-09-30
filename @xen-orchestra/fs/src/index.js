@@ -7,6 +7,7 @@ import RemoteHandlerS3 from './s3'
 import RemoteHandlerSmb from './smb'
 import RemoteHandlerAzure from './azure'
 export { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, isLegacyEncryptionAlgorithm } from './_encryptor'
+export { NotImplementedError } from './errors'
 
 const HANDLERS = {
   file: RemoteHandlerLocal,
@@ -37,6 +38,5 @@ export const getSyncedHandler = async (...opts) => {
     value: handler,
   }
 }
-
 
 export { default as RemoteHandlerAbstract } from './abstract.js'
