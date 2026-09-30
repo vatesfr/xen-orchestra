@@ -421,6 +421,10 @@ export default class BackupNg {
       app.registerJobExecutor('backup', executor)
       app.registerJobExecutor('mirrorBackup', executor)
     })
+
+    app.hooks.on('stop', () => {
+      this.#vmBackupsCache.removeAllListeners()
+    })
   }
 
   async createBackupNgJob(type, props, schedules) {

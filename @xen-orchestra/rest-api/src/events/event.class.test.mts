@@ -86,13 +86,13 @@ async function flush() {
   }
 }
 
-describe('XoListener on the vm-backups-cache collection', () => {
+describe('XoListener on the backup-archive collection', () => {
   it('broadcasts the archive of each change, tagged with its subscription', async () => {
     const user = bindRestApi({ permission: 'admin' })
     const { frames, subscriber } = createSubscriber(user.id)
 
     const emitter = new EventEmitter()
-    const listener = new XoListener('vm-backups-cache', emitter)
+    const listener = new XoListener('backup-archive', emitter)
     listener.addSubscriber(subscriber)
 
     // a backup has been discovered by a listing
@@ -112,7 +112,7 @@ describe('XoListener on the vm-backups-cache collection', () => {
     )
     // every frame carries the archive itself, tagged with the collection it comes from
     frames.forEach(({ data }) => {
-      assert.equal(data.$subscription, 'vm-backups-cache')
+      assert.equal(data.$subscription, 'backup-archive')
       assert.equal(data.id, added.id)
       assert.equal(data.backupRepository, REPOSITORY_ID)
     })
@@ -127,7 +127,7 @@ describe('XoListener on the vm-backups-cache collection', () => {
     const { frames, subscriber } = createSubscriber(user.id)
 
     const emitter = new EventEmitter()
-    const listener = new XoListener('vm-backups-cache', emitter)
+    const listener = new XoListener('backup-archive', emitter)
     listener.addSubscriber(subscriber)
 
     const archive = createArchive(REPOSITORY_ID, 1)
@@ -154,7 +154,7 @@ describe('XoListener on the vm-backups-cache collection', () => {
     const { frames, subscriber } = createSubscriber(user.id)
 
     const emitter = new EventEmitter()
-    const listener = new XoListener('vm-backups-cache', emitter)
+    const listener = new XoListener('backup-archive', emitter)
     listener.addSubscriber(subscriber)
 
     const readable = createArchive(REPOSITORY_ID, 1)
