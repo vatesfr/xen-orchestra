@@ -746,6 +746,10 @@ export type TrafficRuleProtocol = (typeof TRAFFIC_RULE_PROTOCOLS)[number]
 export const SDN_CONTROLLER_OF_RULES_KEY = 'xo:sdn-controller:of-rules'
 export const SDN_CONTROLLER_OF_METHOD_KEY = 'xo:sdn-controller:of-method'
 export const SDN_CONTROLLER_OF_FORMAT_KEY = 'xo:sdn-controller:of-format'
+// The ordered list of a network's traffic rules, network-wide and VIF rules alike (JSON array of
+// TrafficRuleListEntry, highest priority first). Once present, it replaces the `of-rules` keys of the
+// network and its VIFs, which then only hold copies for XO 5.
+export const SDN_CONTROLLER_TRAFFIC_RULES_KEY = 'xo:sdn-controller:traffic-rules'
 export const TRAFFIC_RULE_PROTOCOLS = ['ARP', 'ICMP', 'IP', 'TCP', 'UDP'] as const
 export const TRAFFIC_RULE_PROTOCOLS_WITH_PORT: readonly TrafficRuleProtocol[] = ['TCP', 'UDP']
 
@@ -761,9 +765,21 @@ export type RawTrafficRule = {
   port?: string
 }
 
+// An entry of SDN_CONTROLLER_TRAFFIC_RULES_KEY: a VIF rule carries its VIF's MAC (lowercase), a
+// network-wide rule none. `priority` and `cookie` are those its OpenFlow flows are installed with;
+// `previousCookies` lists earlier versions whose flows may remain on some host.
+export type TrafficRuleListEntry = Omit<RawTrafficRule, 'port'> & {
+  mac?: string
+  port?: number
+  priority: number
+  cookie: string
+  previousCookies?: string[]
+}
+
 type BaseTrafficRule = RawTrafficRule & {
   id: string
   networkId: XoNetwork['id']
+  priority?: number
 }
 
 export type TrafficRule =
