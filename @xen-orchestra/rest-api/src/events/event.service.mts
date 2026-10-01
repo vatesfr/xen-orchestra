@@ -49,7 +49,7 @@ export class EventService {
       if (type === 'task') {
         eventEmitter = this.#restApi.xoApp.tasks
       } else if (type === 'backup-archive') {
-        // the backup archives are not a registered collection: the backups cache is the emitter itself
+        // the backup archives are not a registered collection: the backups cache owns their emitter
         eventEmitter = this.#restApi.xoApp.vmBackupArchives
       } else if (XAPI_TYPES.includes(isMessage ? 'message' : type)) {
         // alarm is purely XO-related; it doesn't exist at the XAPI level.
