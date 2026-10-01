@@ -151,10 +151,6 @@ const RPU_RECOVERY_MESSAGES = {
   succeeded: 'rpuRecoverySucceeded',
 }
 
-// a resume continues the run of a record in these statuses, unless xo-server
-// says it cannot (`resumable`): a host stopped after its evacuation
-const RPU_RESUMABLE_STATUSES = ['failed', 'interrupted']
-
 const RPU_RECOVERY_STEP_NAMES = ['evacuate', 'update', 'reboot', 'enable', 'restoreVms']
 const isRpuStepOver = step => step?.status === 'observed-succeeded' || step?.status === 'not-needed'
 
@@ -164,7 +160,7 @@ const RpuRecoveryBanner = ({ poolId, recovery }) => {
     return null
   }
 
-  const { attempt, blockedReason, hostOrder = [], hosts = {}, haltedPinnedVms = {}, lastError, resumable } = recovery
+  const { attempt, blockedReason, hostOrder = [], hosts = {}, haltedPinnedVms = {}, lastError } = recovery
   const haltedVmIds = Object.keys(haltedPinnedVms)
 
   return (
@@ -175,7 +171,6 @@ const RpuRecoveryBanner = ({ poolId, recovery }) => {
             <Icon icon='alarm' /> {_('rpuRecoveryIncompleteTitle')}
           </h4>
           <p>{_(message)}</p>
-          {RPU_RESUMABLE_STATUSES.includes(recovery.status) && !resumable && <p>{_('rpuRecoveryNotResumable')}</p>}
           {attempt > 1 && <p>{_('rpuRecoveryAttempt', { attempt })}</p>}
           {blockedReason !== undefined && <p>{blockedReason}</p>}
           {hostOrder.length > 0 && (

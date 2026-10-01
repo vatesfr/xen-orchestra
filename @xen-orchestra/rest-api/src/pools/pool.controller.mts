@@ -801,8 +801,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * The backup check is not taken from the previous attempts: set `bypassBackupCheck` again if needed.
    *
    * 404 when the pool has no record. Refused with an `incorrect state` error when the update is neither failed nor
-   * interrupted, or when a host stopped after its evacuation (update, reboot or enable started): finalize the record
-   * instead once the pool has been reviewed.
+   * interrupted.
    *
    * Required privilege:
    * - resource: pool, action: rolling-update
