@@ -15,6 +15,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Servers] Fix servers stuck in `Connecting` state when using an HTTPS proxy that support HTTP/2 ([Forum#12502](https://xcp-ng.org/forum/topic/12502/xoa-6.9-update)) (PR [#10507](https://github.com/vatesfr/xen-orchestra/pull/10507))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xen-api patch
 
 <!--packages-end-->
