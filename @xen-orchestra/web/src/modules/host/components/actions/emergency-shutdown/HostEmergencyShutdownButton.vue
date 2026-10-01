@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canEmergencyShutdownHost && emergencyShutdownHostErrorMessage"
-    class="emergency-shutdown"
+    class="host-emergency-shutdown-button"
     :disabled="!canEmergencyShutdownHost"
     icon="action:emergency-shutdown"
     :busy="isEmergencyShuttingDownHost"
@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoHostEmergencyShutdownJob } from '@/modules/host/jobs/xo-host-emergency-shutdown.job.ts'
+import { useXoHostShutdownJob } from '@/modules/host/jobs/xo-host-shutdown.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
@@ -30,7 +30,7 @@ const {
   canRun: canEmergencyShutdownHost,
   isRunning: isEmergencyShuttingDownHost,
   errorMessage: emergencyShutdownHostErrorMessage,
-} = useXoHostEmergencyShutdownJob(() => host)
+} = useXoHostShutdownJob(() => host, true)
 
 const { open: openActionModal } = useActionModal()
 
@@ -45,7 +45,11 @@ function emergencyShutdownHost() {
     },
     events: {
       onConfirm: async () => {
-        void run()
+        try {
+          await run()
+        } catch (error) {
+          console.error('Error when emergency shutting down host:', error)
+        }
       },
     },
   })
@@ -53,7 +57,7 @@ function emergencyShutdownHost() {
 </script>
 
 <style lang="postcss" scoped>
-.emergency-shutdown {
+.host-emergency-shutdown-button {
   color: var(--color-danger-item-base);
 }
 </style>
