@@ -5,7 +5,7 @@ import { join } from 'node:path'
 
 import tmp from 'tmp'
 import * as uuid from 'uuid'
-import { getHandler } from '@xen-orchestra/fs'
+import { getHandler, NotImplementedError } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 import { rimraf } from 'rimraf'
 
@@ -550,9 +550,9 @@ describe('HashedDiskDeduplicated with a block store', () => {
   test('a handler without link fails at write time', async () => {
     const { disk } = await createSharedDisk()
     handler.link = async () => {
-      throw new Error('Not implemented')
+      throw new NotImplementedError()
     }
 
-    await assert.rejects(() => disk.writeBlock({ index: 0, data: block(0xaa) }), /Not implemented/)
+    await assert.rejects(() => disk.writeBlock({ index: 0, data: block(0xaa) }), NotImplementedError)
   })
 })
