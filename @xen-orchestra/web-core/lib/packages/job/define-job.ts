@@ -31,15 +31,19 @@ export type JobSetup<TJobArgs extends JobArg[], TRunResult> = () => {
   validate: (isRunning: boolean, ...args: JobValidateArgs<TJobArgs>) => void
 }
 
-export type JobRunOptions<TRunResult> = {
-  detached?: boolean
+export type DetachedJobRunOptions<TRunResult> = {
+  detached: true
   onSuccess?: (result: Awaited<TRunResult>) => unknown
+}
+
+export type AttachedJobRunOptions = {
+  detached?: false
 }
 
 export type Job<TRunResult> = {
   run: {
-    (options: JobRunOptions<TRunResult> & { detached: true }): void
-    (options?: { detached?: false }): Promise<TRunResult>
+    (options: DetachedJobRunOptions<TRunResult>): void
+    (options?: AttachedJobRunOptions): Promise<TRunResult>
   }
   canRun: ComputedRef<boolean>
   error: ComputedRef<JobError | undefined>
@@ -127,22 +131,17 @@ export function defineJob<const TJobArgs extends JobArg[], TRunResult>(
       }
     }
 
-    function run(options: JobRunOptions<TRunResult> & { detached: true }): void
-    function run(options?: { detached?: false }): Promise<TRunResult>
-    function run(options?: JobRunOptions<TRunResult>) {
-      if (options?.detached !== true) {
+    function run(options: DetachedJobRunOptions<TRunResult>): void
+    function run(options?: AttachedJobRunOptions): Promise<TRunResult>
+    function run(options: DetachedJobRunOptions<TRunResult> | AttachedJobRunOptions = {}) {
+      if (options.detached !== true) {
         return execute()
       }
 
-      void (async () => {
-        try {
-          const result = await execute()
-
-          await options?.onSuccess?.(result)
-        } catch (error) {
-          console.error(`Job "${name}" failed:`, error)
-        }
-      })()
+      void execute().then(
+        result => options.onSuccess?.(result as Awaited<TRunResult>),
+        error => console.error(`Job "${name}" failed:`, error)
+      )
     }
 
     return {
