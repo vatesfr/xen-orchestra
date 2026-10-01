@@ -312,6 +312,15 @@ export class HashedDiskDeduplicated extends HashedDisk {
     }
   }
 
+  async rename(newPath: string): Promise<void> {
+    newPath = normalize(newPath)
+    if (dirname(newPath) !== this.#diskDir) {
+      throw new Error(`can't move ${this.#path} out of its directory, to ${newPath}`)
+    }
+    await this.#handler.rename(this.#path, newPath)
+    this.#path = newPath
+  }
+
   /**
    * Writes the block file unless it is already there. 'wx' for concurrent cases
    */
