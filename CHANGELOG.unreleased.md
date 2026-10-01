@@ -16,6 +16,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [Servers] Fix servers stuck in `Connecting` state when using an HTTPS proxy that support HTTP/2 ([Forum#12502](https://xcp-ng.org/forum/topic/12502/xoa-6.9-update)) (PR [#10507](https://github.com/vatesfr/xen-orchestra/pull/10507))
+- [VM/Snapshot] In the side panel, correctly filter VDIs associated with the VM snapshot (PR [#10510](https://github.com/vatesfr/xen-orchestra/pull/10510))
 
 ### Packages to release
 
@@ -33,6 +34,8 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web patch
+- @xen-orchestra/web-core patch
 - xen-api patch
 
 <!--packages-end-->

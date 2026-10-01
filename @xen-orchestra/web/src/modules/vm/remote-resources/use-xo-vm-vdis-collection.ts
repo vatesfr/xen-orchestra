@@ -4,7 +4,8 @@ import { useWatchCollection } from '@/shared/composables/watch-collection.compos
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
-import { toValue, watch } from 'vue'
+import { useOncePerScope, waitForCollection } from '@core/packages/remote-resource/utils/remote-resource.util.ts'
+import { toValue } from 'vue'
 
 export const useXoVmVdisCollection = defineRemoteResource({
   url: (vmId: string) => `${BASE_URL}/vms/${vmId}/vdis?fields=${vdiFields.join(',')}&ndjson=true`,
@@ -23,16 +24,9 @@ export const useXoVmVdisCollection = defineRemoteResource({
         const [id] = context.args
         const vmId = toValue(id)
 
-        const { useGetVbdsByIds, areVbdsReady, hasVbdFetchError, lastVbdFetchError } = useXoVbdCollection(context)
-        if (!areVbdsReady.value && !hasVbdFetchError.value) {
-          await new Promise<void>(resolve => watch([areVbdsReady, hasVbdFetchError], () => resolve(), { once: true }))
-        }
+        const { getVbdsByIds } = await waitForCollection(useOncePerScope(useXoVbdCollection, context))
 
-        if (hasVbdFetchError.value) {
-          throw lastVbdFetchError.value
-        }
-
-        const vbds = useGetVbdsByIds(obj.$VBDs).value
+        const vbds = getVbdsByIds(obj.$VBDs)
         return vbds.some(vbd => vbd.VM === vmId)
       },
     }),
