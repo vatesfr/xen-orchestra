@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
+import { invalidParameters } from 'xo-common/api-errors.js'
+
 import { ApiError } from '../helpers/error.helper.mjs'
 import { KubernetesService } from './kubernetes.service.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
@@ -50,6 +52,22 @@ async function assertApiError(promise: Promise<unknown>, { status, message }: { 
   }
 
   return error
+}
+
+// the errors of the invalid parameters are not `ApiError`s but XO errors, as they are
+// built by `xo-common`
+async function assertInvalidParameters(
+  promise: Promise<unknown>,
+  { message, errors }: { message: string; errors: unknown }
+) {
+  const error = await promise.then(
+    () => assert.fail('expected the promise to be rejected'),
+    (error: unknown) => error
+  )
+
+  assert.ok(invalidParameters.is(error), `expected an invalidParameters error, got ${String(error)}`)
+  assert.equal((error as Error).message, message)
+  assert.deepEqual((error as { data: { errors: unknown } }).data.errors, errors)
 }
 
 describe('getCAPISpec', () => {
@@ -117,10 +135,40 @@ describe('getCAPISpec', () => {
     const service = makeService(throwingHttpRequest(new Response('<html>Bad Gateway</html>', { status: 500 })))
 
     const error = await assertApiError(service.getCAPISpec(), {
-      status: 500,
+      status: 502,
       message: 'CAPI answered with the status 500',
     })
     assert.deepEqual(error.data, { CAPIError: '<html>Bad Gateway</html>' })
+  })
+
+  it('translates the validation errors of CAPI into invalid parameters', async () => {
+    const errors = [{ name: 'workerReplicas', reason: 'must be >= 1' }]
+    const service = makeService(
+      throwingHttpRequest(jsonResponse({ detail: 'workerReplicas must be >= 1', errors }, 422))
+    )
+
+    await assertInvalidParameters(service.getCAPISpec(), { message: 'workerReplicas must be >= 1', errors })
+  })
+
+  it('also translates the validation errors answered with a bad request status', async () => {
+    // CAPI used to answer `400` for an invalid input, before answering `422`
+    const errors = [{ name: 'name', reason: 'is required' }]
+    const service = makeService(throwingHttpRequest(jsonResponse({ errors }, 400)))
+
+    await assertInvalidParameters(service.getCAPISpec(), { message: 'invalid parameters', errors })
+  })
+
+  it('does not translate an error which has no validation error', async () => {
+    // e.g. CAPI answers a bad request when a cluster does not exist
+    const service = makeService(throwingHttpRequest(jsonResponse({ detail: 'unknown cluster' }, 400)))
+
+    await assertApiError(service.getCAPISpec(), { status: 400, message: 'unknown cluster' })
+  })
+
+  it('does not translate an error whose validation errors are empty', async () => {
+    const service = makeService(throwingHttpRequest(jsonResponse({ detail: 'nope', errors: [] }, 422)))
+
+    await assertApiError(service.getCAPISpec(), { status: 422, message: 'nope' })
   })
 
   it('throws a service unavailable error when CAPI cannot be reached', async () => {
