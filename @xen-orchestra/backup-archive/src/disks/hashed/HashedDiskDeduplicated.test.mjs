@@ -293,19 +293,38 @@ describe('HashedDiskDeduplicated', () => {
     await writeHbd({ hashesPath: `data/${uuid.v4()}/hashes.1.hash` })
     await assert.rejects(reopen, escapes(`/${diskDir}/data/${DISK_UUID}`))
 
-    await writeHbd({ localBlocksPath: '../blocks/' })
+    // the data dir is named from the blocks path, which must still sit in it
+    await writeHbd({ localBlocksPath: `elsewhere/${DISK_UUID}/blocks/` })
     await assert.rejects(reopen, escapes(`/${diskDir}/data/${DISK_UUID}`))
 
     // `.` and `..` resolve back to a directory holding other disks, and a
     // containment check accepts them: only the uuid format rules them out
-    for (const broken of ['../../..', '..', '.', 'not-a-uuid']) {
-      await writeHbd({ uuid: broken })
+    for (const broken of ['..', '.', 'not-a-uuid']) {
+      await writeHbd({ localBlocksPath: `data/${broken}/blocks/` })
       await assert.rejects(reopen, new RegExp(`not a valid uuid: ${broken.replace(/\./g, '\\.')} \\(in `))
     }
 
     // and the whole disk directory is still there
     await writeHbd({})
     await reopen()
+  })
+
+  test('a disk whose uuid changed still finds its data directory', async () => {
+    const disk = await createDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await disk.close()
+
+    // what a merge does: the parent takes its child's uuid
+    const metadata = { ...disk.getMetadata(), uuid: uuid.v4() }
+    await handler.writeFile(diskPath, JSON.stringify(metadata), { flags: 'w' })
+
+    const reopened = new HashedDiskDeduplicated({ handler, path: diskPath })
+    await reopened.init()
+    assert.ok((await reopened.readBlock(0)).data.equals(block(0xaa)))
+    assert.deepEqual(await reopened.listAssociatedFiles('xo-vm-backups'), [
+      `/${diskPath}`,
+      `/${diskDir}/data/${DISK_UUID}`,
+    ])
   })
 
   test('a failed init leaves the disk closed, so a retry really retries', async () => {

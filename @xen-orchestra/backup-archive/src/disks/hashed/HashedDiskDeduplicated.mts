@@ -1,6 +1,6 @@
 import type { DiskBlock } from '@xen-orchestra/disk-transform'
 import type { RemoteHandlerAbstract } from '@xen-orchestra/fs'
-import { dirname, join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { Readable } from 'node:stream'
 import { isInDir, normalize } from '@xen-orchestra/fs/path'
 import pRetry from 'promise-toolbox/retry'
@@ -35,6 +35,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
   #path: string
   #metadata: HashedDiskMetadata | undefined
   #bat: BlockAllocationTable | undefined
+  #dataDir: string | undefined
   #blocksDir: string | undefined
   #blockStorePath: string | undefined
   #dirty = false
@@ -140,6 +141,16 @@ export class HashedDiskDeduplicated extends HashedDisk {
     return this.#bat
   }
 
+  /**
+   * holds the blocks and every hashes file, current and orphaned
+   */
+  get #loadedDataDir(): string {
+    if (this.#dataDir === undefined) {
+      throw new Error(`can't use a HashedDiskDeduplicated before init`)
+    }
+    return this.#dataDir
+  }
+
   #blockPath(hash: BlockHash): string {
     if (this.#blocksDir === undefined) {
       throw new Error(`can't use a HashedDiskDeduplicated before init`)
@@ -172,6 +183,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
     }
 
     let metadata: HashedDiskMetadata
+    let dataDir: string
     let hashesPath: string
     let blocksDir: string
     try {
@@ -186,7 +198,9 @@ export class HashedDiskDeduplicated extends HashedDisk {
         throw new Error(`invalid virtualSize ${virtualSize}`)
       }
 
-      const dataDir = this.#resolve(dataDirName(metadata.uuid))
+      // named after the uuid at creation, not the current one: a merge gives
+      // the disk its child's uuid but leaves the directory where it is
+      dataDir = this.#resolve(dataDirName(basename(dirname(metadata.localBlocksPath))))
       hashesPath = this.#resolve(metadata.hashesPath, dataDir)
       blocksDir = this.#resolve(metadata.localBlocksPath, dataDir)
     } catch (error: unknown) {
@@ -194,6 +208,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
     }
 
     this.#metadata = metadata
+    this.#dataDir = dataDir
     this.#blocksDir = blocksDir
 
     try {
@@ -204,6 +219,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
       )
     } catch (error: unknown) {
       this.#metadata = undefined
+      this.#dataDir = undefined
       this.#blocksDir = undefined
       throw new HbdFileError((error as NodeJS.ErrnoException).message, hashesPath, error)
     }
@@ -426,7 +442,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
    * writes leaves the disk readable through the old one. It is removed once
    * the hbd points at the new one.
    */
-  async flushMetadata(): Promise<void> {
+  async flushMetadata(childDisk?: unknown): Promise<void> {
     const metadata = this.#loadedMetadata
     const dataDir = dirname(metadata.hashesPath)
 
@@ -457,6 +473,31 @@ export class HashedDiskDeduplicated extends HashedDisk {
     } catch (error) {
       warn('failed to remove the previous hashes file', { path: this.#path, hashesPath: metadata.hashesPath, error })
     }
+
+    if (childDisk instanceof HashedDiskDeduplicated) {
+      await this.#releaseChildReferences(childDisk)
+    }
+  }
+
+  /**
+   * End of a merge, once the parent hbd holds the child's hashes: a resumed
+   * merge then takes the same hash fast path and never reads the child again.
+   * Best effort: a link left behind is released by the child's unlink().
+   */
+  async #releaseChildReferences(childDisk: HashedDiskDeduplicated): Promise<void> {
+    const childBat = childDisk.#loadedBat
+    const parentBlockCount = this.getMaxBlockCount()
+    for (const index of childBat.indexes()) {
+      const hash = childBat.get(index)
+      // the parent holding the same hash keeps the inode alive, so the store
+      // file cannot be the last copy
+      const parentHoldsIt = index < parentBlockCount && this.#loadedBat.get(index) === hash
+      try {
+        await childDisk.#removeBlockReference(hash, { skipStoreCheck: parentHoldsIt })
+      } catch (error) {
+        warn('failed to release a child block', { path: childDisk.getPath(), index, error })
+      }
+    }
   }
 
   /**
@@ -464,16 +505,9 @@ export class HashedDiskDeduplicated extends HashedDisk {
    * a whole. Used by lineage and remote cleanup to tell owned files from orphans.
    */
   async listAssociatedFiles(dir: string): Promise<Array<string>> {
-    const files = [this.#path, this.#dataDir]
+    const files = [this.#path, this.#loadedDataDir]
 
     return files.filter(p => isInDir(p, dir))
-  }
-
-  /**
-   * holds the blocks and every hashes file, current and orphaned
-   */
-  get #dataDir(): string {
-    return this.#resolve(dataDirName(this.#loadedMetadata.uuid))
   }
 
   async unlink(): Promise<void> {
@@ -487,11 +521,12 @@ export class HashedDiskDeduplicated extends HashedDisk {
       }
     }
     await this.#handler.unlink(this.#path)
-    await this.#handler.rmtree(this.#dataDir)
+    await this.#handler.rmtree(this.#loadedDataDir)
 
     this.#replacedHashes.clear()
     this.#metadata = undefined
     this.#bat = undefined
+    this.#dataDir = undefined
     this.#blocksDir = undefined
     this.#dirty = false
   }
