@@ -1,15 +1,24 @@
 # ChangeLog
 
-## **next**
+## **6.9.0** (2026-09-30)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Security
+
+- [V2V] Prevent privilege escalation via Prototype Pollution (PR [#10489](https://github.com/vatesfr/xen-orchestra/pull/10489))
 
 ### Enhancements
 
 - [Backups] change the prefix name of vms during health checks from 'Importing...' to 'Health Check' to avoid confusion (PR [#10361](https://github.com/vatesfr/xen-orchestra/pull/10361))
 - [Backup/Restore] Faster listing of the backups: a backup repository is now listed once, then kept up to date by replaying its journal instead of being listed again. Especially visible on S3 repositories with Object Lock, where nothing could be cached before (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
 - [Backup/Restore] Choose what to do with each disk when restoring an incremental backup: restore it to an SR, live mount it read-only on a host so it is usable immediately without being copied, or not restore it at all (PR [#10345](https://github.com/vatesfr/xen-orchestra/pull/10345))
+- [Backup/Restore] Backup repositories attached to a proxy now also benefit from the faster, journal-replayed backup listing (PR [#10437](https://github.com/vatesfr/xen-orchestra/pull/10437))
+- [Backup/Restore] A live mounted disk is released on its own once it is deleted, or the VM holding it is: its SR is forgotten and the backup is no longer served (PR [#10432](https://github.com/vatesfr/xen-orchestra/pull/10432))
+- [Backup/Restore] When ufw is enabled, as on XOA and proxies, live mount opens its iSCSI port in it, for the host the disk is attached to and while it is mounted (`iscsi.manageFirewall = false` to turn it off) (PR [#10468](https://github.com/vatesfr/xen-orchestra/pull/10468))
 
 - [V2V] When a VM has Changed Block Tracking enabled on the source host, a migration now asks the host which blocks it has to read — the blocks a disk uses for a full transfer, the blocks written since the previous pass for a delta — instead of scanning the disk through the VDDK. Faster to start on large disks, and one less moving part. VMs without CBT are migrated exactly as before (PR [#10384](https://github.com/vatesfr/xen-orchestra/pull/10384))
-- [V2V] Migrations no longer need the VDDK library, `nbdkit` and `nbdinfo`. The disks are read through `vectura`, a single binary shipped with XO and installed in one click from the import screen. The Broadcom download, the tar.gz upload and the two compile-from-source buttons are gone. Note that the source must now be an ESXi 7.x or 8.x host reached directly, a vCenter address is no longer supported
+- [V2V] Migrations no longer need the VDDK library, `nbdkit` and `nbdinfo`. The disks are read through `vectura`, a single binary shipped with XO and installed in one click from the import screen. The Broadcom download, the tar.gz upload and the two compile-from-source buttons are gone. ESXi 6.x hosts are no longer supported
 
 - [RPU] A rolling pool update is now refused while a previous one is still in progress or was left incomplete, and asks for confirmation when the master is already up to date but other hosts are not (PR [#10394](https://github.com/vatesfr/xen-orchestra/pull/10394))
 - [RPU] An incomplete rolling pool update can now be closed from the pool's Patches tab, or with `pool.finalizeRollingUpdate` and the REST route `POST /rest/v0/pools/{id}/actions/finalize_rolling_update`. The closing is refused while the update left something it had changed unrestored (HA, WLB, load balancer, backup schedules, disabled hosts, displaced or halted VMs); forcing it lists the abandoned items in the task and changes nothing in the pool (PR [#10418](https://github.com/vatesfr/xen-orchestra/pull/10418))
@@ -29,6 +38,8 @@
 - [XO6/SR] Add dedicated Storage Repository page hosts sidepanel (PR [#10140](https://github.com/vatesfr/xen-orchestra/pull/10140))
 - [XO6] Allow changing which PIF a host uses for its management interface, without deleting and recreating the network config (PR [#10110](https://github.com/vatesfr/xen-orchestra/pull/10110))
 - [XO6/Vm] Add the VM name to VM related actions that open a modal (PR [#10310](https://github.com/vatesfr/xen-orchestra/pull/10310))
+- [XO6/StateHero] Update StateHero illustrations SVG to match current design system (PR [#10380](https://github.com/vatesfr/xen-orchestra/pull/10380))
+- [XO6/BRs] Add backup repository list page (PR [#10247](https://github.com/vatesfr/xen-orchestra/pull/10247))
 
 - [REST API] VDI can now be exported in qcow2 format, and the VHD export uses NBD when available. Both formats work whatever the format the disk is stored in. Every export format, raw included, now provides the size of the download (PR [#10350](https://github.com/vatesfr/xen-orchestra/pull/10350))
 - [REST API] Add an endpoint to reclaim space per vm or backup repository: `POST /rest/V0/backup-repositories/:id/actions/reclaim-space` (PR [#10262](https://github.com/vatesfr/xen-orchestra/pull/10262))
@@ -43,6 +54,7 @@
 - [LDAP] Release plugin for LDAP multidomain management (PR [#10015](https://github.com/vatesfr/xen-orchestra/pull/10015))
 
 - [XO5/Backups] Open the backup job edition form in the same tab when editing a backup job from the VM page (PR [#10342](https://github.com/vatesfr/xen-orchestra/pull/10342))
+- [XO5/XO Config Cloud Backup] Require an acknowledgment to enable and warn about backup deletion when disabling (PR [#10457](https://github.com/vatesfr/xen-orchestra/pull/10457))
 
 ### Bug fixes
 
@@ -54,9 +66,14 @@
 - [Backup] Fix a job combining Rolling Snapshot with Disaster Recovery to an SR of the source VM's pool destroying its own snapshots: the job reported a success but kept fewer snapshots than the configured snapshot retention, usually none (PR [#10395](https://github.com/vatesfr/xen-orchestra/pull/10395))
 - [Backups] Fix slow replication startup and fallback to full on qcow2 (PR [#10333](https://github.com/vatesfr/xen-orchestra/pull/10333))
 - [Backup] Fix replication never cleaning up a VM left behind by an interrupted transfer, which could keep accumulating on the target SR (PR [#10436](https://github.com/vatesfr/xen-orchestra/pull/10436))
+- [Backups] Prevent continuous replication failed transfer to accumulate replicas (PR [#10404](https://github.com/vatesfr/xen-orchestra/pull/10404))
+- [Backups] Fix backup logs transfer size including health check restores and every backup target, which made it much bigger than in XO5 [Forum#12486](https://xcp-ng.org/forum/topic/12486) (PR [#10448](https://github.com/vatesfr/xen-orchestra/pull/10448))
 
 - [REST API/SDN Controller] Fix deleting a non-existent traffic rule wrongly returning success instead of a 404 (PR [#9895](https://github.com/vatesfr/xen-orchestra/pull/9895))
 - [REST API] Rolling pool update and rolling pool reboot are now refused while a backup job runs on the pool, like their JSON-RPC counterparts, unless `bypassBackupCheck` is set in the request body (PR [#10313](https://github.com/vatesfr/xen-orchestra/pull/10313))
+- [REST API] Keep collection events ordered per object (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
+- [REST API] Wait for the XAPI objects before making a server connected (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
+- [REST API] Do not record an server error when a connection attempt is aborted (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
 
 - [Servers] Fix endless connection attempts to a pool which is already connected through another server entry (PR [#10355](https://github.com/vatesfr/xen-orchestra/pull/10355))
 - [Servers] fix a mishandling in the grace period before marking a pool disconnected, this will keep the ui in sync AND not redownload all the xapi object for a transient issue (PR [#10355](https://github.com/vatesfr/xen-orchestra/pull/10355))
@@ -87,6 +104,10 @@
 - [Plugin/perf-alert] Fix `test plugin` button (PR [#10407](https://github.com/vatesfr/xen-orchestra/pull/10407))
 - [Plugin/perf-alert] Fix SR dead link (PR [#10407](https://github.com/vatesfr/xen-orchestra/pull/10407))
 
+- [Host] Disable restart toolstack for HA enabled Pools (PR [#10344](https://github.com/vatesfr/xen-orchestra/pull/10344))
+- [Audit] Fix actions made from XO 5 (`/v5`) being logged with `127.0.0.1` or `::1` as user IP address instead of the real IP address of the client (PR [#10461](https://github.com/vatesfr/xen-orchestra/pull/10461))
+- [Network] Fix reactivity of PIF metrics (e.g. `carrier`) (PR [#10438](https://github.com/vatesfr/xen-orchestra/pull/10438))
+
 - **XO 5**:
 - [Netdata] Fix `You must enable Javascript` error due to CSP blocking Netdata's inline scripts (PR [#10275](https://github.com/vatesfr/xen-orchestra/pull/10275))
 - [tab-disks] VDI migration now shows all pool SRs for admins, even on VMs bound to a Resource Set [Forum#107707](https://xcp-ng.org/forum/post/107707) (PR [#10422](https://github.com/vatesfr/xen-orchestra/pull/10422))
@@ -97,29 +118,20 @@
 - [Backup/Restore] Fix listing backups sometimes mixing the results of two different VM listings (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
 - [Backup/Restore] Better handling of a backup repository the proxy fails to list, instead of silently returning nothing (PR [#10257](https://github.com/vatesfr/xen-orchestra/pull/10257))
 - [Backup] Fixed disk space not being freed during delta backup deletion (PR [#10273] (https://github.com/vatesfr/xen-orchestra/pull/10273))
+- [XO5/Hosts] Disable restart toolstack button for the hosts that belongs to a HA pools (PR [#10340](https://github.com/vatesfr/xen-orchestra/pull/10340))
 
 ### Released packages
 
 - @xen-orchestra/async-map 0.1.5
-- xo-remote-parser 1.0.0
-- @xen-orchestra/fs 4.9.4
 - @vates/iscsi 0.2.0
-- xen-api 5.0.0
 - @vates/nbd-client 3.6.0
 - @vates/node-vsphere-soap 2.2.0
 - @xen-orchestra/acl 1.7.0
 - @xen-orchestra/backup-archive 1.1.3
 - @xen-orchestra/qcow2 1.4.0
-- @xen-orchestra/xapi 9.0.0
-- @xen-orchestra/backups-cli 1.1.15
 - @xen-orchestra/cr-seed-cli 1.0.3
-- @xen-orchestra/disk-cli 2.2.2
-- @xen-orchestra/immutable-backups 3.0.6
 - @xen-orchestra/mcp 1.4.3
-- @xen-orchestra/mixins 0.21.0
 - @xen-orchestra/proxy-cli 0.3.4
-- @xen-orchestra/vmware-explorer 1.0.0
-- @xen-orchestra/qa-test 1.2.1
 - xapi-explore-sr 0.4.8
 - xo-server-audit 0.15.3
 - xo-server-auth-ldap 0.10.12
@@ -127,19 +139,29 @@
 - xo-server-openmetrics 1.9.3
 - xo-server-sdn-controller 1.5.1
 - vhd-lib 4.16.2
-- @vates/types 2.2.0
-- @xen-orchestra/backups 0.75.1
-- @xen-orchestra/web-core 0.62.0
-- @xen-orchestra/proxy 0.32.1
-- @xen-orchestra/rest-api 0.40.1
-- @xen-orchestra/web 0.62.0
-- xo-server 5.210.0
 - xo-server-perf-alert 1.1.2
-- xo-web 5.205.0
+- xo-remote-parser 2.0.0
+- @xen-orchestra/fs 4.9.5
+- xen-api 5.0.1
+- @vates/types 2.3.0
+- @xen-orchestra/xapi 9.0.1
+- @xen-orchestra/backups 0.76.0
+- @xen-orchestra/backups-cli 1.1.16
+- @xen-orchestra/disk-cli 2.2.3
+- @xen-orchestra/immutable-backups 3.0.7
+- @xen-orchestra/web-core 0.63.0
+- @xen-orchestra/mixins 0.22.0
+- @xen-orchestra/proxy 0.33.0
+- @xen-orchestra/vmware-explorer 1.0.1
+- @xen-orchestra/qa-test 1.2.2
+- @xen-orchestra/rest-api 0.40.2
+- @xen-orchestra/web 0.63.0
+- xo-server 5.211.0
+- xo-web 5.206.0
 
 ## **6.8.2** (2026-09-04)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -243,8 +265,6 @@
 - xo-server 5.208.1
 
 ## **6.7.1** (2026-08-04)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 

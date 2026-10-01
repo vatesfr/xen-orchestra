@@ -266,7 +266,9 @@ export class Xapi extends EventEmitter {
       this._undiciDispatcher = new ProxyAgent({
         ...dispatcherOpts,
 
-        proxyTls: tlsOpts,
+        // the `allowH2` option above does not apply to the connection with the
+        // HTTP proxy: undici cannot tunnel through HTTP/2 and reconnects endlessly
+        proxyTls: { ...tlsOpts, allowH2: false },
         requestTls: tlsOpts,
         token,
         uri,
