@@ -39,7 +39,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
   #blocksDir: string | undefined
   #blockStorePath: string | undefined
   #dirty = false
-  #replacedHashes = new Set<BlockHash>()
+  #orphanHashes = new Set<BlockHash>()
 
   constructor({
     handler,
@@ -396,7 +396,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
     bat.set(index, hash)
 
     if (replaced !== undefined) {
-      this.#replacedHashes.add(replaced)
+      this.#orphanHashes.add(replaced)
     }
     this.#dirty = true
 
@@ -417,7 +417,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
     const bat = this.#loadedBat
     for (const index of bat.indexes()) {
       if (index >= blockCount) {
-        this.#replacedHashes.add(bat.get(index))
+        this.#orphanHashes.add(bat.get(index))
       }
     }
     bat.resize(blockCount)
@@ -431,11 +431,11 @@ export class HashedDiskDeduplicated extends HashedDisk {
    * best effort: the new BAT is already safe, a failure only leaks
    */
   async #removeOrphans(): Promise<void> {
-    if (this.#replacedHashes.size === 0) {
+    if (this.#orphanHashes.size === 0) {
       return
     }
     try {
-      const candidates = new Set(this.#replacedHashes)
+      const candidates = new Set(this.#orphanHashes)
 
       // a replaced hash can still be referenced at another index
       for (const index of this.#loadedBat.indexes()) {
@@ -445,7 +445,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
       for (const hash of candidates) {
         await this.#removeBlockReference(hash)
       }
-      this.#replacedHashes.clear()
+      this.#orphanHashes.clear()
     } catch (error) {
       warn('failed to remove orphaned blocks', { path: this.#path, error })
     }
@@ -538,7 +538,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
     await this.#handler.unlink(this.#path)
     await this.#handler.rmtree(this.#loadedDataDir)
 
-    this.#replacedHashes.clear()
+    this.#orphanHashes.clear()
     this.#metadata = undefined
     this.#bat = undefined
     this.#dataDir = undefined
