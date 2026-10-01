@@ -1,9 +1,5 @@
 <template>
-  <UiLink
-    :to="{ name: '/vdi/[id]/general', params: { id: vdi.$snapshot_of }, query: { from: VDI_PAGE_CONTEXT.SNAPSHOT } }"
-    :icon="vbdsSnapshotStatus"
-    size="medium"
-  >
+  <UiLink :to="vdiRoute" :icon="vbdsSnapshotStatus" size="medium">
     {{ vdi.name_label }}
   </UiLink>
 </template>
@@ -15,6 +11,8 @@ import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import type { IconName } from '@core/icons'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useMapper } from '@core/packages/mapper'
+import { computed } from 'vue'
+import type { RouteLocationAsRelative } from 'vue-router'
 
 const { vdi } = defineProps<{ vdi: FrontXoVdiSnapshot }>()
 
@@ -29,4 +27,16 @@ const vbdsSnapshotStatus = useMapper<VbdAttachmentStatus, IconName>(
   },
   'someAttached'
 )
+
+const vdiRoute = computed<RouteLocationAsRelative | undefined>(() => {
+  if (!vdi.$snapshot_of) {
+    return undefined
+  }
+
+  return {
+    name: '/vdi/[id]/general',
+    params: { id: vdi.$snapshot_of },
+    query: { from: VDI_PAGE_CONTEXT.SNAPSHOT },
+  }
+})
 </script>
