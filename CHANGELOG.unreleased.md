@@ -15,6 +15,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [XO6/Pool] Fix required fields and warnings when creating a network (PR [#10374](https://github.com/vatesfr/xen-orchestra/pull/10374))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web patch
+- @xen-orchestra/web-core patch
 
 <!--packages-end-->
