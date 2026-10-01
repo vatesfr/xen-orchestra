@@ -7,6 +7,7 @@ import { type Request as ExRequest, type Response as ExResponse } from 'express'
 import { ApiError } from '../helpers/error.helper.mjs'
 import { XoApp } from '@vates/types'
 import { HttpStatusCodeLiteral } from 'tsoa'
+import { invalidParameters } from 'xo-common/api-errors.js'
 
 const log = createLogger('xo:rest-api:kubernetes-service')
 
@@ -14,7 +15,7 @@ const CAPI_SPEC_PATH = 'swagger/openapi.json'
 
 const DEFAULT_TIMEOUT = 10e3
 
-const RELAYED_CAPI_STATUSES = new Set<number>([400, 401, 403, 404, 409, 422, 500, 503])
+const RELAYED_CAPI_STATUSES = new Set<number>([400, 401, 403, 404, 409, 422])
 
 function isRelayableStatus(status: number): status is HttpStatusCodeLiteral {
   return RELAYED_CAPI_STATUSES.has(status)
@@ -57,6 +58,10 @@ export class KubernetesService {
 
     const CAPIRes = await this.#getResponse(CAPIUrl, reqOpts)
 
+    if (!CAPIRes.ok) {
+      await this.#throwCAPIError(CAPIUrl, CAPIRes)
+    }
+
     res.status(CAPIRes.status)
     const CAPIResContentType = CAPIRes.headers.get('content-type')
     if (CAPIResContentType !== null) res.contentType(CAPIResContentType)
@@ -81,16 +86,16 @@ export class KubernetesService {
     })
 
     if (!CAPIRes.ok) {
-      throw await this.#getCAPIError(CAPIUrl, CAPIRes)
+      await this.#throwCAPIError(CAPIUrl, CAPIRes)
     }
 
     return CAPIRes.body === null || CAPIRes.status === 204 ? undefined : await CAPIRes.json()
   }
 
   /**
-   * Builds the error to throw when CAPI answers with an error
+   * Builds the error and throws when CAPI answers with an error
    */
-  async #getCAPIError(CAPIUrl: string, CAPIRes: Response): Promise<ApiError> {
+  async #throwCAPIError(CAPIUrl: string, CAPIRes: Response): Promise<never> {
     let text = (await CAPIRes.text().catch(() => '')).substring(0, 1024)
 
     try {
@@ -101,7 +106,14 @@ export class KubernetesService {
 
     let message = `CAPI answered with the status ${CAPIRes.status}`
     if (typeof text === 'object' && text !== null) {
-      const { detail, title } = text as { detail?: unknown; title?: unknown }
+      log.warn(`CAPI answered with an error at ${CAPIUrl}`, { CAPIError: text, status: CAPIRes.status })
+
+      const { detail, title, errors } = text as { detail?: unknown; title?: unknown; errors?: unknown }
+
+      if ((CAPIRes.status === 400 || CAPIRes.status === 422) && Array.isArray(errors) && errors.length > 0) {
+        throw invalidParameters(typeof detail === 'string' ? detail : undefined, errors)
+      }
+
       if (typeof detail === 'string') {
         message = detail
       } else if (typeof title === 'string') {
@@ -109,9 +121,7 @@ export class KubernetesService {
       }
     }
 
-    log.warn(`CAPI answered with an error at ${CAPIUrl}`, { CAPIError: text, status: CAPIRes.status })
-
-    return new ApiError(message, isRelayableStatus(CAPIRes.status) ? CAPIRes.status : 502, {
+    throw new ApiError(message, isRelayableStatus(CAPIRes.status) ? CAPIRes.status : 502, {
       data: { CAPIError: text },
     })
   }

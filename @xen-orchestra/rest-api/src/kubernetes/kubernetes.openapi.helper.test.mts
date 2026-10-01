@@ -254,6 +254,42 @@ describe('transformCAPISpec', () => {
     ])
   })
 
+  it('imports the responses of CAPI which describe a success', () => {
+    const { responses } = transformFixture().paths['/kubernetes/clusters']!.get!
+    const success = responses['200'] as OpenAPIV3.ResponseObject
+
+    assert.equal(success.description, 'OK')
+    assert.deepEqual(success.content!['application/json'].schema, {
+      items: { $ref: '#/components/schemas/KubernetesClusterInfo' },
+      type: 'array',
+    })
+  })
+
+  it('replaces the responses of CAPI which describe an error', () => {
+    // CAPI describes this status with its own error schema, XO answers its own errors
+    const { responses } = transformFixture().paths['/kubernetes/clusters']!.get!
+    const badRequest = responses['400'] as OpenAPIV3.ResponseObject
+
+    assert.equal(badRequest.description, 'Bad request')
+    assert.equal(badRequest.content, undefined)
+  })
+
+  it('documents the errors which are answered by XO and not by CAPI', () => {
+    // this endpoint only declares a `200` in CAPI's specification
+    const { responses } = transformFixture().paths['/kubernetes/clusters']!.post!
+
+    assert.deepEqual(Object.keys(responses).sort(), ['200', '400', '401', '403', '422', '502', '503'])
+  })
+
+  it('does not document a status which is not answered by XO', () => {
+    // CAPI errors are answered as a bad gateway
+    for (const pathItem of Object.values(transformFixture().paths)) {
+      for (const operation of Object.values(pathItem!)) {
+        assert.equal((operation as OpenAPIV3.OperationObject).responses?.['500'], undefined)
+      }
+    }
+  })
+
   it('documents that an endpoint without privilege can only be used by administrators', () => {
     const { description } = transformFixture().paths['/kubernetes/clusters']!.get!
     assert.match(description!, /Only administrators/)

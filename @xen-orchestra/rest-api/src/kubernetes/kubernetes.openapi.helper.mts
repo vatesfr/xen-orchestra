@@ -2,6 +2,14 @@ import { createLogger } from '@xen-orchestra/log'
 import { OpenAPIV3 } from 'openapi-types'
 
 import { PROXIED_METHODS, type KubernetesAclRule } from './kubernetes.routes.mjs'
+import {
+  badGatewayResp,
+  badRequestResp,
+  forbiddenOperationResp,
+  invalidParameters,
+  serviceUnavailableResp,
+  unauthorizedResp,
+} from '../open-api/common/response.common.mjs'
 
 const log = createLogger('xo:rest-api:kubernetes-openapi-helper')
 
@@ -15,6 +23,15 @@ const IMPORTED_OPERATION_FIELDS = ['parameters', 'requestBody', 'responses', 'su
 
 // Header parameters describing the HTTP protocol itself
 const IGNORED_HEADER_PARAMETERS = new Set(['accept', 'content-type'])
+
+const XO_ERROR_RESPONSES = {
+  [badRequestResp.status]: { description: badRequestResp.description },
+  [unauthorizedResp.status]: { description: unauthorizedResp.description },
+  [forbiddenOperationResp.status]: { description: forbiddenOperationResp.description },
+  [invalidParameters.status]: { description: invalidParameters.description },
+  [badGatewayResp.status]: { description: badGatewayResp.description },
+  [serviceUnavailableResp.status]: { description: serviceUnavailableResp.description },
+}
 
 const TAG = 'kubernetes'
 
@@ -102,6 +119,19 @@ export function convertNullableTypes(node: unknown): void {
   Object.values(node).forEach(child => convertNullableTypes(child))
 }
 
+function importResponses(responses: unknown): OpenAPIV3.ResponsesObject {
+  const importedResponses: Record<string, unknown> = {}
+  if (isRecord(responses)) {
+    Object.entries(responses).forEach(([status, response]) => {
+      if (status.match(/^2\d\d$/)) {
+        importedResponses[status] = response
+      }
+    })
+  }
+
+  return { ...importedResponses, ...XO_ERROR_RESPONSES } as OpenAPIV3.ResponsesObject
+}
+
 /**
  *  The parameters describing the HTTP protocol are removed, and the key itself when it becomes empty
  */
@@ -182,10 +212,12 @@ export function transformCAPISpec(spec: unknown, aclRules: KubernetesAclRule[] =
 
       const importedOperation: Record<string, unknown> = {}
       for (const field of IMPORTED_OPERATION_FIELDS) {
-        if (operation[field] !== undefined) {
+        if (field !== 'responses' && operation[field] !== undefined) {
           importedOperation[field] = operation[field]
         }
       }
+
+      importedOperation.responses = importResponses(operation.responses)
 
       importedOperation.parameters = importParameters(importedOperation.parameters)
       if (importedOperation.parameters === undefined) {
