@@ -1,7 +1,6 @@
 import BackupRepositoryInfosCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryInfosCard.vue'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createBr } from '@/test/create-br.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -14,25 +13,18 @@ import { mount } from '@vue/test-utils'
 import { computed } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
-const { useGetProxyById, buildXo5Route } = vi.hoisted(() => ({
+const { useGetProxyById } = vi.hoisted(() => ({
   useGetProxyById: vi.fn(),
-  buildXo5Route: vi.fn(),
 }))
 
 vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({ useGetProxyById })) as unknown as typeof useXoProxyCollection,
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
-}))
-
 beforeEach(() => {
   useGetProxyById.mockReset()
-  buildXo5Route.mockReset()
 
   useGetProxyById.mockReturnValue(computed(() => undefined))
-  buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)
 })
 
 function mountCard(br: FrontXoBackupRepository = createBr()) {
@@ -49,12 +41,13 @@ it('renders the name and the id of the repository as the card title', () => {
   expect(wrapper.get('.vts-card-object-title').text()).toContain('br-42')
 })
 
-it('links the title to the backup repositories settings of XO 5', () => {
-  const wrapper = mountCard()
+it('links the title to the backup repository page', () => {
+  const wrapper = mountCard(createBr({ id: 'br-42' as FrontXoBackupRepository['id'] }))
 
-  expect(wrapper.findComponent(VtsCardObjectTitle).findComponent(UiLink).props('href')).toBe(
-    'https://xo5.example.com/#/settings/remotes'
-  )
+  expect(wrapper.findComponent(VtsCardObjectTitle).findComponent(UiLink).props('to')).toEqual({
+    name: '/admin/backup-repository/[id]/general',
+    params: { id: 'br-42' },
+  })
 })
 
 it('picks the title icon from the status of the repository', () => {
