@@ -753,3 +753,63 @@ describe('HashedDiskDeduplicated reference cleanup', () => {
     assert.deepEqual(await listStore(), [])
   })
 })
+
+describe('resize', () => {
+  test('grows: old blocks kept, new indexes empty and writable', async () => {
+    const disk = await createDisk()
+    await disk.writeBlock({ index: 3, data: block(0xaa) })
+
+    await disk.resize(20)
+
+    assert.equal(disk.getMaxBlockCount(), 20)
+    assert.ok((await disk.readBlock(3)).data.equals(block(0xaa)))
+    assert.equal(disk.hasBlock(15), false)
+    await disk.writeBlock({ index: 15, data: block(0xbb) })
+    assert.ok((await disk.readBlock(15)).data.equals(block(0xbb)))
+  })
+
+  test('shrinks: dropped blocks are released by the next flush', async () => {
+    const disk = await createDisk()
+    await disk.writeBlock({ index: 2, data: block(0xaa) })
+    await disk.writeBlock({ index: 8, data: block(0xbb) })
+    await disk.flushMetadata()
+
+    await disk.resize(5)
+    await disk.flushMetadata()
+
+    assert.equal(disk.getMaxBlockCount(), 5)
+    assert.deepEqual(disk.getBlockIndexes(), [2])
+    assert.equal(await countBlockFiles(), 1)
+  })
+
+  test('shrinking keeps a hash still used below the new size', async () => {
+    const disk = await createDisk()
+    await disk.writeBlock({ index: 2, data: block(0xaa) })
+    await disk.writeBlock({ index: 8, data: block(0xaa) })
+    await disk.flushMetadata()
+
+    await disk.resize(5)
+    await disk.flushMetadata()
+
+    assert.ok((await disk.readBlock(2)).data.equals(block(0xaa)))
+  })
+
+  test('a resized and flushed disk reopens', async () => {
+    const disk = await createDisk()
+    await disk.resize(20)
+    await disk.flushMetadata()
+
+    const reopened = new HashedDiskDeduplicated({ handler, path: diskPath })
+    await reopened.init()
+    assert.equal(reopened.getMaxBlockCount(), 20)
+  })
+
+  test('the same size changes nothing', async () => {
+    const disk = await createDisk()
+    const before = disk.getMetadata()
+
+    await disk.resize(10)
+
+    assert.deepEqual(disk.getMetadata(), before)
+  })
+})

@@ -410,6 +410,21 @@ export class HashedDiskDeduplicated extends HashedDisk {
    */
   async setAllocatedBlocks(): Promise<void> {}
 
+  async resize(blockCount: number): Promise<void> {
+    if (blockCount === this.getMaxBlockCount()) {
+      return
+    }
+    const bat = this.#loadedBat
+    for (const index of bat.indexes()) {
+      if (index >= blockCount) {
+        this.#replacedHashes.add(bat.get(index))
+      }
+    }
+    bat.resize(blockCount)
+    this.#metadata = { ...this.#loadedMetadata, virtualSize: blockCount * this.getBlockSize() }
+    this.#dirty = true
+  }
+
   // ---------------------------------------------------------------- metadata
 
   /**

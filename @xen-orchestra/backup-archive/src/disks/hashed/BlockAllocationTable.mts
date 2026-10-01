@@ -13,6 +13,13 @@ export class BlockAllocationTable {
     return new BlockAllocationTable(Buffer.alloc(maxBlockCount * HASH_SIZE), maxBlockCount)
   }
 
+  resize(maxBlockCount: number): void {
+    const bat = Buffer.alloc(maxBlockCount * HASH_SIZE)
+    this.#bat.copy(bat, 0, 0, Math.min(this.#bat.length, bat.length))
+    this.#bat = bat
+    this.#maxBlockCount = maxBlockCount
+  }
+
   static fromBuffer(buffer: Buffer, maxBlockCount: number, force = false): BlockAllocationTable {
     const expected = maxBlockCount * HASH_SIZE
     if (buffer.length !== expected) {
