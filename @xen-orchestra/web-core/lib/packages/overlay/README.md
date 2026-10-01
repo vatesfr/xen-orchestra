@@ -101,20 +101,18 @@ events: {
 
 While a handler is running, any further event is ignored: a double-click, or a click on Cancel during a save, does nothing.
 
-This is meant for work the user is waiting for — validating a form, saving what the overlay itself
-is editing. An action that merely needs to be _started_ should not be awaited, otherwise the overlay
-stays in the way while it runs. Return nothing instead, and let the trigger report the progress:
+If the handler doesn't need to wait for the work to finish, don't return its promise: the overlay closes right away and the work keeps running in the background.
 
 ```ts
 events: {
-  // The overlay closes right away, the job keeps running and the button that
-  // opened the overlay shows its `isRunning` state
-  onConfirm: () => run({ detached: true }),
+  onConfirm: () => {
+    // No `return`, no `await`: the overlay closes without waiting for the VM to be deleted
+    void deleteVm()
+  },
 }
 ```
 
-A detached `run` comes from the job package, which also takes care of logging the failure. See its
-own README.
+Errors are then no longer the overlay's concern: the work you started must handle them itself.
 
 ## Keeping the overlay open with `KEEP_OVERLAY_OPEN`
 
