@@ -335,6 +335,8 @@ export function defineRemoteResource<
           return
         }
 
+        lastError.value = undefined
+
         if (!response.body) {
           return
         }
