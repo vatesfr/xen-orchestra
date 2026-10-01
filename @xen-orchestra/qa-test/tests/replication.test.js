@@ -197,6 +197,34 @@ describe('Incremental Replication', () => {
     }
   }
 
+  /**
+   * Counts occurrences of a task with the given message anywhere in a backup
+   * log's task tree (recursively). Useful to detect an internal retry: e.g.
+   * more than one "target snapshot" task within a single run means the
+   * writer attempted the transfer more than once.
+   * @param {Object} logEntry
+   * @param {string} message
+   * @returns {number}
+   */
+  const countTasksByMessage = (logEntry, message) => {
+    let count = 0
+    const walk = tasks => {
+      if (!Array.isArray(tasks)) {
+        return
+      }
+      for (const task of tasks) {
+        if (task.message === message) {
+          count++
+        }
+        if (task.tasks?.length > 0) {
+          walk(task.tasks)
+        }
+      }
+    }
+    walk(logEntry.tasks || [])
+    return count
+  }
+
   // ===========================================================================
   // Incremental replication — same SR and cross-SR
   // ===========================================================================
@@ -604,11 +632,17 @@ describe('Incremental Replication', () => {
 
         // The target VM persists across runs — only its snapshots are subject
         // to retention (see IncrementalXapiWriter._prepare). So the signal for
-        // "was the old copy freed first" is the snapshot count on this VM and
-        // the destination SR's usage, not whether the VM itself gets destroyed.
-        const snapshotsAfterRun1 = (await dispatchClient.vm.details(replicaVmUuid)).snapshots?.length ?? 0
-        assert.ok(snapshotsAfterRun1 > 0, 'The replica VM should have at least one snapshot after the first run')
-        log.debug('Replica snapshot count after run 1', { snapshotsAfterRun1 })
+        // "was the old copy freed first" is the destination SR's usage over
+        // the run and whether the pruned snapshot gets replaced, not whether
+        // the VM itself gets destroyed.
+        const snapshotsAfterRun1 = (await dispatchClient.vm.details(replicaVmUuid)).snapshots ?? []
+        assert.strictEqual(
+          snapshotsAfterRun1.length,
+          1,
+          `Expected exactly 1 snapshot after the first run (copyRetention: 1), got ${snapshotsAfterRun1.length}`
+        )
+        const [snapshotUuidAfterRun1] = snapshotsAfterRun1
+        log.debug('Replica snapshot after run 1', { snapshotUuidAfterRun1 })
 
         const usageAfterRun1 = (await dispatchClient.sr.details(destSr.uuid)).physical_usage
         assert.ok(usageAfterRun1 > 0, 'Destination SR usage should be > 0 after the first replica is created')
@@ -616,25 +650,27 @@ describe('Incremental Replication', () => {
 
         // --- Run 2: with copyRetention 1, the run-1 snapshot is entirely
         // "old" and must be destroyed by _prepare() *before* the transfer,
-        // not by cleanup() after it. Poll SR usage and the replica's snapshot
-        // count while the job runs: with the bug, the old snapshot survives
-        // until cleanup() and usage climbs towards ~2x during the transfer;
-        // with the fix, the old snapshot should be gone well before the run
-        // completes, and usage should stay close to a single replica's
-        // footprint throughout.
+        // not by cleanup() after it. Poll SR usage while the job runs: with
+        // the bug, the old snapshot survives until cleanup() and usage climbs
+        // towards ~2x during the transfer; with the fix, it should be gone
+        // early and usage should stay close to a single replica's footprint
+        // for the bulk of the run.
+        //
+        // Note: we don't try to catch the snapshot count dipping to 0 via
+        // polling — the destroy-then-create pair around the old snapshot
+        // appears to happen back-to-back with no meaningful work in between,
+        // so that window can be sub-second and unreliable to sample even at
+        // 1s granularity over a run that takes many minutes. `peakUsage`
+        // instead measures the whole data-transfer phase, which does take
+        // most of the run, so it can't be missed the same way.
         const pollState = { running: true }
         let peakUsage = 0
-        let minSnapshotCountDuringRun = Infinity
 
         const pollUsage = (async () => {
           while (pollState.running) {
             try {
-              const [sr, replicaVm] = await Promise.all([
-                dispatchClient.sr.details(destSr.uuid),
-                dispatchClient.vm.details(replicaVmUuid),
-              ])
+              const sr = await dispatchClient.sr.details(destSr.uuid)
               peakUsage = Math.max(peakUsage, sr.physical_usage)
-              minSnapshotCountDuringRun = Math.min(minSnapshotCountDuringRun, replicaVm.snapshots?.length ?? 0)
             } catch (error) {
               log.warn('Polling error (ignored)', { error })
             }
@@ -657,18 +693,6 @@ describe('Incremental Replication', () => {
         assertBackupSuccess(result2, 'Second replication')
 
         // --- Assertions ---
-
-        // We must have observed the snapshot count drop below its run-1 level
-        // at some point while polling during run 2 — i.e. the old snapshot
-        // was destroyed as part of *this* run's preparation, not left
-        // dangling until after the transfer (where it would instead briefly
-        // rise to run1 + 1 before being pruned back down by cleanup()).
-        assert.ok(
-          minSnapshotCountDuringRun < snapshotsAfterRun1,
-          `Expected the replica's snapshot count to drop below ${snapshotsAfterRun1} at some point during ` +
-            `the second run (old snapshot freed first), but the minimum observed was ${minSnapshotCountDuringRun}. ` +
-            'This would indicate the old snapshot was only removed after the new transfer completed.'
-        )
 
         // The destination should never have needed to hold ~2 replicas' worth
         // of data at once. Some slack is allowed for VM/VDI metadata overhead
@@ -695,12 +719,36 @@ describe('Incremental Replication', () => {
         )
         assert.strictEqual(newUuids2[0], replicaVmUuid, 'Run 2 should reuse the same replica VM, not create a new one')
 
-        const snapshotsAfterRun2 = (await dispatchClient.vm.details(replicaVmUuid)).snapshots?.length ?? 0
-        assert.strictEqual(
+        const snapshotsAfterRun2 = (await dispatchClient.vm.details(replicaVmUuid)).snapshots ?? []
+        const targetSnapshotTaskCount = countTasksByMessage(result2, 'target snapshot')
+        const oldSnapshotStillPresent = snapshotsAfterRun2.includes(snapshotUuidAfterRun1)
+        log.debug('Snapshot state after run 2', {
           snapshotsAfterRun2,
-          snapshotsAfterRun1,
-          `Expected the replica to end up with exactly ${snapshotsAfterRun1} snapshot(s) (copyRetention: 1) after ` +
-            `run 2, got ${snapshotsAfterRun2} — never delete too much (0) or too little (>${snapshotsAfterRun1}).`
+          targetSnapshotTaskCount,
+          oldSnapshotStillPresent,
+        })
+
+        assert.strictEqual(
+          snapshotsAfterRun2.length,
+          1,
+          `Expected the replica to end up with exactly 1 snapshot (copyRetention: 1) after run 2, got ` +
+            `${snapshotsAfterRun2.length}. ` +
+            (oldSnapshotStillPresent
+              ? 'The run-1 snapshot is still present — the old entry was not destroyed.'
+              : targetSnapshotTaskCount > 1
+                ? `The run-1 snapshot was destroyed as expected, but run 2 logged ${targetSnapshotTaskCount} ` +
+                  '"target snapshot" tasks instead of 1 — this looks like an internal retry created an extra ' +
+                  'snapshot that deleteFirst (which only runs once, before the first attempt) never accounted for.'
+                : 'The run-1 snapshot was destroyed, and there was no apparent retry — cause unclear, ' +
+                  'inspect the debug log and result2.tasks for this run.')
+        )
+
+        // The pruned snapshot must have actually been replaced, not merely
+        // "still there" — proves the old one was genuinely destroyed rather
+        // than, say, the count coincidentally matching by other means.
+        assert.ok(
+          !oldSnapshotStillPresent,
+          'The run-1 snapshot should have been destroyed and replaced by a new one from run 2, not left in place'
         )
       })
     })
