@@ -528,7 +528,7 @@ const archiveIdOf = (vmUuid, name) => `${REPOSITORY.id}/${filenameOf(vmUuid, nam
 const recordEvents = cache => {
   const events = []
   for (const name of ['add', 'update', 'remove']) {
-    cache.on(name, (archive, previous) => events.push({ event: name, archive, previous }))
+    cache.archives.on(name, (archive, previous) => events.push({ event: name, archive, previous }))
   }
   return events
 }
@@ -674,7 +674,7 @@ describe('VmBackupsCache collection', () => {
     const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(OTHER_VM, '20260811T093000')])
     const cache = new VmBackupsCache(repository.source)
     const events = recordEvents(cache)
-    cache.on('add', () => {
+    cache.archives.on('add', () => {
       throw new Error('a broken consumer')
     })
 
@@ -698,7 +698,7 @@ describe('VmBackupsCache collection', () => {
 
     await cache.get(REPOSITORY)
     const events = recordEvents(cache)
-    cache.on('remove', () => {
+    cache.archives.on('remove', () => {
       throw new Error('a broken consumer')
     })
 

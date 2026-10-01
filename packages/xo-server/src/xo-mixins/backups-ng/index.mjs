@@ -107,7 +107,7 @@ export default class BackupNg {
    * @returns {import('node:events').EventEmitter}
    */
   get vmBackupArchives() {
-    return this.#vmBackupsCache
+    return this.#vmBackupsCache.archives
   }
 
   constructor(app) {
@@ -423,7 +423,7 @@ export default class BackupNg {
     })
 
     app.hooks.on('stop', () => {
-      this.#vmBackupsCache.removeAllListeners()
+      this.#vmBackupsCache.archives.removeAllListeners()
     })
   }
 
