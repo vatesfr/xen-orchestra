@@ -81,3 +81,13 @@ export const incorrectStateResp = {
   status: 409,
   description: 'Incorrect state',
 } as const
+
+export const badGatewayResp = {
+  status: 502,
+  description: 'Bad gateway',
+} as const
+
+export const serviceUnavailableResp = {
+  status: 503,
+  description: 'Service unavailable',
+} as const
