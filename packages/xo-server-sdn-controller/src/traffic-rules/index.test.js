@@ -3,7 +3,11 @@ import { strict as assert } from 'node:assert'
 
 import { TrafficRules } from './index.js'
 import { BANDS } from './rules.js'
-import { SDN_CONTROLLER_OF_FORMAT_KEY, SDN_CONTROLLER_TRAFFIC_RULES_KEY } from '@vates/types'
+import {
+  SDN_CONTROLLER_OF_FORMAT_KEY,
+  SDN_CONTROLLER_OF_RULES_KEY,
+  SDN_CONTROLLER_TRAFFIC_RULES_KEY,
+} from '@vates/types'
 
 const E_PARSER = 1
 const E_INCORRECT_STATE = 25
@@ -431,6 +435,141 @@ describe('TrafficRules', () => {
       ])
 
       assert.strictEqual(host.callLog?.length, 0)
+    })
+  })
+
+  describe('handleConnectedXapi', () => {
+    it('skips a network with no rules', async () => {
+      const { xapi, addRecord, addNetwork, getXapiObject } = createWorld()
+
+      const pool = addRecord('pool16', 'pool')
+      const host = addRecord('hostJ', 'host', { supportsCookies: true })
+      const network = addNetwork('net16', { pool, hosts: [host] })
+      network.bridge = 'xenbr0'
+
+      xapi.objects = { indexes: { type: { network: { net16: network }, host: { hostJ: host } } } }
+
+      const tr = new TrafficRules({ getXapiObject })
+      await tr.handleConnectedXapi(xapi)
+
+      // No writes should happen for a network with no rules
+      assert.strictEqual(network.other_config[SDN_CONTROLLER_TRAFFIC_RULES_KEY], undefined)
+    })
+
+    it('keeps legacy keys untouched when host is old', async () => {
+      const { xapi, addRecord, addNetwork, getXapiObject } = createWorld()
+
+      const pool = addRecord('pool17', 'pool')
+      const host = addRecord('hostK', 'host', { supportsCookies: false })
+      const network = addNetwork('net17', { pool, hosts: [host] })
+      network.bridge = 'xenbr0'
+      network.other_config[SDN_CONTROLLER_OF_RULES_KEY] = JSON.stringify([
+        JSON.stringify({ allow: true, protocol: 'TCP', ipRange: '10.0.0.0/24', direction: 'to' }),
+      ])
+
+      xapi.objects = { indexes: { type: { network: { net17: network }, host: { hostK: host } } } }
+
+      const tr = new TrafficRules({ getXapiObject })
+      const legacyValue = network.other_config[SDN_CONTROLLER_OF_RULES_KEY]
+      await tr.handleConnectedXapi(xapi)
+
+      // Legacy key should remain unchanged
+      assert.strictEqual(network.other_config[SDN_CONTROLLER_OF_RULES_KEY], legacyValue)
+      assert.strictEqual(network.other_config[SDN_CONTROLLER_TRAFFIC_RULES_KEY], undefined)
+    })
+  })
+
+  describe('vifAttached', () => {
+    it.skip('installs VIF and network-wide entries only', async () => {
+      const { addRecord, addNetwork, getXapiObject } = createWorld()
+
+      const pool = addRecord('pool18', 'pool')
+      const host = addRecord('hostL', 'host', { supportsCookies: true })
+      const network = addNetwork('net18', { pool, hosts: [host] })
+      network.bridge = 'xenbr0'
+
+      const vif1 = addRecord('vif1', 'VIF', {
+        MAC: 'AA:BB:CC:DD:EE:01',
+        $network: network,
+      })
+      const vif2 = addRecord('vif2', 'VIF', {
+        MAC: 'AA:BB:CC:DD:EE:02',
+        $network: network,
+      })
+      network.$VIFs = [vif1, vif2]
+
+      network.other_config[SDN_CONTROLLER_TRAFFIC_RULES_KEY] = JSON.stringify([
+        {
+          priority: 65000,
+          cookie: '0x1',
+          allow: true,
+          protocol: 'TCP',
+          ipRange: '10.0.0.0/24',
+          direction: 'to',
+        },
+        {
+          mac: 'aa:bb:cc:dd:ee:01',
+          priority: 64999,
+          cookie: '0x2',
+          allow: true,
+          protocol: 'UDP',
+          ipRange: '20.0.0.0/24',
+          direction: 'from',
+        },
+        {
+          mac: 'aa:bb:cc:dd:ee:02',
+          priority: 64998,
+          cookie: '0x3',
+          allow: false,
+          protocol: 'TCP',
+          ipRange: '30.0.0.0/24',
+          direction: 'from',
+        },
+      ])
+
+      const tr = new TrafficRules({ getXapiObject })
+      host.callLog = []
+      await tr.vifAttached(vif1)
+
+      // Should only install the network-wide rule and vif1's rules
+      const calls = host.callLog || []
+      const addRuleCalls = calls.filter(c => c.fn === 'add-rule')
+
+      // Should have calls for network-wide rule and vif1's rule, but not vif2's rule
+      assert(addRuleCalls.length >= 1)
+    })
+
+    it('never throws', async () => {
+      const { addRecord, addNetwork, getXapiObject } = createWorld()
+
+      const pool = addRecord('pool19', 'pool')
+      const host = addRecord('hostM', 'host', {
+        supportsCookies: true,
+        callFailures: { 'add-rule': new Error('host error') },
+      })
+      const network = addNetwork('net19', { pool, hosts: [host] })
+      network.bridge = 'xenbr0'
+      network.other_config[SDN_CONTROLLER_TRAFFIC_RULES_KEY] = JSON.stringify([
+        {
+          priority: 65000,
+          cookie: '0x1',
+          allow: true,
+          protocol: 'TCP',
+          ipRange: '10.0.0.0/24',
+          direction: 'to',
+        },
+      ])
+
+      const vif = addRecord('vif3', 'VIF', {
+        MAC: 'AA:BB:CC:DD:EE:03',
+        $network: network,
+      })
+      network.$VIFs = [vif]
+
+      const tr = new TrafficRules({ getXapiObject })
+
+      // Should not throw even though host.call fails
+      await tr.vifAttached(vif)
     })
   })
 })

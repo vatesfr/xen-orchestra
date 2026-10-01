@@ -6,7 +6,7 @@ import { synchronized } from 'decorator-synchronized'
 import * as store from './store'
 import { apply, remove, rewrite } from './engine'
 import { hostsOf, TrafficRulesPlugin } from './plugin'
-import { migrate } from './migration'
+import { hasLegacyRules, migrate, neutralizeLegacy, neutralizeVifCopy } from './migration'
 import { appendPriority, generateCookie, planRewrite, sameMatch, sameRule, toEntryFields } from './rules'
 
 const log = createLogger('xo:sdn-controller:traffic-rules')
@@ -291,5 +291,74 @@ export class TrafficRules {
       const { entries: planned, deleteOrder } = planRewrite(ordered)
       await rewrite({ network: currentNetwork, entries: planned, deleteOrder, plugin: this.#plugin, store })
     })
+  }
+
+  // At every connection to a pool. The pool's plugins may have been updated, so
+  // its hosts are probed again. Then, network by network:
+  // - a network with legacy rules is migrated if it is eligible, or stays legacy
+  //   with a warning;
+  // - a network that uses the list gets all its entries installed again (XO may
+  //   have missed VM starts while it was away), which also finishes an interrupted
+  //   rewrite; then any legacy data on it is neutralized, and the copies are
+  //   written again.
+  // A network without any rule stays untouched until its first rule.
+  async handleConnectedXapi(xapi) {
+    this.#plugin.forgetHosts(Object.values(xapi.objects.indexes.type.host ?? {}))
+    for (const network of Object.values(xapi.objects.indexes.type.network ?? {})) {
+      if (!store.isManaged(network) && !hasLegacyRules(network)) {
+        continue
+      }
+      try {
+        await this.#withNetworkLock(network.$id, () => this.#reconcile(network))
+      } catch (error) {
+        log.error('error while reconciling the traffic rules of a network', { error, network: network.uuid })
+      }
+    }
+  }
+
+  async #reconcile(network) {
+    network = network.$xapi.getObjectByRef(network.$ref)
+    if (!store.isManaged(network)) {
+      const reason = await this.#whyNotEligible(network)
+      if (reason !== undefined) {
+        log.warn('traffic rules of this network stay in legacy mode, without order', {
+          network: network.uuid,
+          reason,
+        })
+        return
+      }
+      await migrate({ network, plugin: this.#plugin, store })
+      return
+    }
+    const entries = store.readList(network)
+    network = await apply({ network, list: entries, entries, plugin: this.#plugin, store })
+    network = await neutralizeLegacy({ network, entries, plugin: this.#plugin })
+    await store.save(network, entries)
+  }
+
+  // A VIF was plugged, or its VM started, rebooted or migrated. Its entries and the
+  // network-wide ones are installed again: its host may have lost its flows
+  // (restart), and network-wide rules need its new port. Its copy is checked too:
+  // a clone, a revert or a VM created from a template brings another VIF's.
+  //
+  // Nothing happens when a VIF goes away. Its entries match its MAC on the whole
+  // bridge and stay installed, so a live migration never leaves the VM
+  // unfiltered.
+  //
+  // Called from XAPI event handlers: never throws.
+  async vifAttached(vif) {
+    const network = vif.$network
+    try {
+      await this.#withNetworkLock(network.$id, async () => {
+        let { network: current, entries } = await this.#open(network)
+        const mac = vif.MAC.toLowerCase()
+        const own = entries.filter(entry => entry.mac === undefined || entry.mac === mac)
+        current = await apply({ network: current, list: entries, entries: own, plugin: this.#plugin, store })
+        await neutralizeVifCopy({ network: current, vif, entries, plugin: this.#plugin })
+        await store.save(current, entries)
+      })
+    } catch (error) {
+      log.error('error while installing the traffic rules of a VIF', { error, vif: vif.uuid, network: network.uuid })
+    }
   }
 }
