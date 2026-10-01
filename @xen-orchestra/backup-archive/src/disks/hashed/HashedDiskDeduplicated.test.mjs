@@ -994,3 +994,43 @@ describe('merge', () => {
     await assert.rejects(() => parent.mergeMetadata({}), /can't merge different disk types/)
   })
 })
+
+describe('rename', () => {
+  const otherName = () => `${diskDir}/20260815T120000000Z.hbd`
+
+  test('moves the hbd inside its directory, the disk reopens from the new path', async () => {
+    const disk = await createDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await disk.close()
+
+    await disk.rename(otherName())
+
+    assert.equal(disk.getPath(), `/${otherName()}`)
+    await assert.rejects(() => handler.readFile(diskPath), { code: 'ENOENT' })
+    const reopened = new HashedDiskDeduplicated({ handler, path: otherName() })
+    await reopened.init()
+    assert.ok((await reopened.readBlock(0)).data.equals(block(0xaa)))
+  })
+
+  test('replaces an hbd already at the new path', async () => {
+    const disk = await createDisk()
+    // what a kept child leaves behind (removeUnused = false)
+    await handler.writeFile(otherName(), '{"stale": true}', { flags: 'w' })
+
+    await disk.rename(otherName())
+
+    const reopened = new HashedDiskDeduplicated({ handler, path: otherName() })
+    await reopened.init()
+    assert.equal(reopened.getUuid(), DISK_UUID)
+  })
+
+  test('refuses to leave its directory, and does not move', async () => {
+    const disk = await createDisk()
+
+    for (const newPath of [`${diskDir}/sub/x.hbd`, `xo-vm-backups/elsewhere/x.hbd`]) {
+      await assert.rejects(() => disk.rename(newPath), /can't move .* out of its directory/)
+    }
+    assert.equal(disk.getPath(), `/${diskPath}`)
+    await handler.readFile(diskPath)
+  })
+})
