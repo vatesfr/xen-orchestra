@@ -21,7 +21,7 @@ the password is read from `VECTURA_PASSWORD` only.
 
 The binary, `vectura`, ships in this directory with
 `@xen-orchestra/vmware-explorer`, and xo-server runs it from there. It runs
-on Debian 12, Ubuntu 22.04 or newer (amd64) and needs nothing but glibc. To
+on Debian 11, Ubuntu 20.04 or newer (amd64) and needs nothing but glibc. To
 use it by hand, copy it to a directory in `PATH`:
 
 ```sh
@@ -100,8 +100,9 @@ one and commits both as `feat(vectura): <version>`.
 `tests/bundled_binary.rs` fails when the binary and `Cargo.toml` disagree, or
 when the binary lost its executable bit.
 
-The build links against glibc 2.34 through zig, whatever the glibc of the
-machine, so the binary runs on Debian 12 and Ubuntu 22.04. It needs
+The build links against glibc 2.31 through zig, whatever the glibc of the
+machine, so the binary runs on Debian 11, which XOA appliances still run,
+and Ubuntu 20.04. It needs
 [zig](https://ziglang.org/download/) (0.16.0 tested) and:
 
 ```sh
