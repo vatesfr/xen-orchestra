@@ -541,6 +541,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/tree/vts-tree-search': RouteRecordInfo<
+      '/story/web-core/tree/vts-tree-search',
+      '/story/web-core/tree/vts-tree-search',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/account-menu-button/ui-account-menu-button': RouteRecordInfo<
       '/story/web-core/ui/account-menu-button/ui-account-menu-button',
       '/story/web-core/ui/account-menu-button/ui-account-menu-button',
@@ -1525,6 +1532,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/tree/vts-tree-loading-item.story.vue': {
       routes:
         | '/story/web-core/tree/vts-tree-loading-item'
+      views:
+        | never
+    }
+    'src/stories/web-core/tree/vts-tree-search.story.vue': {
+      routes:
+        | '/story/web-core/tree/vts-tree-search'
       views:
         | never
     }
