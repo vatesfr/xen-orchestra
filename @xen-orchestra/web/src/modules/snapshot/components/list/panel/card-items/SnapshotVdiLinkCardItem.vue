@@ -9,14 +9,14 @@
 </template>
 
 <script setup lang="ts">
-import type { FrontXoVmSnapshotVdi } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-vdi-collection.ts'
 import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
+import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
 import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import type { IconName } from '@core/icons'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useMapper } from '@core/packages/mapper'
 
-const { vdi } = defineProps<{ vdi: FrontXoVmSnapshotVdi }>()
+const { vdi } = defineProps<{ vdi: FrontXoVdiSnapshot }>()
 
 const vbdsStatus = useVbdsStatus(() => vdi.$VBDs)
 
