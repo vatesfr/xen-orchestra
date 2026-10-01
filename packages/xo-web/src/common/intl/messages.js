@@ -1290,8 +1290,6 @@ const messages = {
     'A rolling pool update is in progress or was left incomplete. It must be resolved before a new one can start.',
   rpuRecoverySucceeded:
     'The last rolling pool update completed but its record was kept: it could not be removed, or settings changed by an interrupted attempt are still to be restored. A new one cannot start until it is finalized.',
-  rpuRecoveryNotResumable:
-    'It cannot be resumed: a host stopped after its evacuation, while being updated or rebooted. Review the pool, then finalize.',
   rpuRecoveryAttempt: 'Attempt {attempt}',
   rpuRecoveryResume: 'Resume',
   rpuRecoveryResumeConfirm:

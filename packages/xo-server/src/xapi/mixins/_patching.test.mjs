@@ -4,6 +4,8 @@ import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { incorrectState } from 'xo-common/api-errors.js'
 
 import patchingMethods, { supportsRpuRecovery } from './patching.mjs'
+import { noopRpuRecorder } from '../../_rpuRecovery.mjs'
+import { REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
 
 const { describe, it } = test
 
@@ -26,8 +28,16 @@ class FakeXapi {
         $ref: `OpaqueRef:host-${letter}`,
         uuid: `host-${letter}`,
         name_label: `host ${letter}`,
+        metrics: `OpaqueRef:metrics-${letter}`,
         software_version: softwareVersion,
+        enabled: true,
+        other_config: { boot_time: '1000' },
+        live: true,
+        // what is left of the reboot in progress of a host which is not live
+        reboot: undefined,
         nMissingPatches,
+        // listing cached before the current state, until removed
+        cachedNMissingPatches: undefined,
       }
     })
     this.objects = {
@@ -48,6 +58,34 @@ class FakeXapi {
     // patch installations in order: the hosts of each call, 'pool' for a
     // pool-wide one
     this.installs = []
+
+    // hosts enabled by the update, in order
+    this.enabledHosts = []
+
+    // XenServer 8.4+ only: 'remove' and 'fetch' calls to the updates endpoint
+    this.updatesEndpointCalls = []
+
+    // XenServer 8.4+ only: host or VM uuid -> level of its first pending
+    // guidances check
+    this.guardLevels = {}
+
+    this._restartHostTimeout = 60e3
+  }
+
+  getObject(hostId) {
+    return this.hosts.find(host => host.uuid === hostId)
+  }
+
+  async _waitObjectState(metricsRef, predicate) {
+    const host = this.hosts.find(host => host.metrics === metricsRef)
+    if (!predicate({ live: host.live })) {
+      await host.reboot()
+    }
+  }
+
+  async enableHost(hostId) {
+    this.enabledHosts.push(hostId)
+    this.getObject(hostId).enabled = true
   }
 
   async installPatches({ hosts }) {
@@ -55,8 +93,12 @@ class FakeXapi {
   }
 
   async listMissingPatches(hostUuid) {
-    const { nMissingPatches } = this.hosts.find(host => host.uuid === hostUuid)
-    return Array.from({ length: nMissingPatches }, (_, i) => ({ name: `patch-${i}` }))
+    if (hostUuid === REMOVE_CACHE_ENTRY) {
+      this.getObject(arguments[1]).cachedNMissingPatches = undefined
+      return
+    }
+    const { nMissingPatches, cachedNMissingPatches = nMissingPatches } = this.getObject(hostUuid)
+    return Array.from({ length: cachedNMissingPatches }, (_, i) => ({ name: `patch-${i}` }))
   }
 
   async _updateLinstorPackages() {
@@ -65,7 +107,7 @@ class FakeXapi {
 
   async rollingPoolReboot(parentTask, { beforeEvacuateVms, beforeRebootHost, ignoreHost, resume }) {
     this.resume = resume
-    const handledHosts = this.hosts.filter(host => !ignoreHost(host))
+    const handledHosts = this.hosts.filter(host => !resume.doneHostIds.has(host.uuid) && !ignoreHost(host))
     this.steps.push(handledHosts.map(host => host.uuid))
     await beforeEvacuateVms()
     for (const host of handledHosts) {
@@ -74,11 +116,14 @@ class FakeXapi {
   }
 
   // XenServer 8.4+ only: no update guidance, no pending guidance
-  async _fetchXsUpdatesEndpoint() {
+  async _fetchXsUpdatesEndpoint(host) {
+    this.updatesEndpointCalls.push(host === REMOVE_CACHE_ENTRY ? 'remove' : 'fetch')
     return { hash: 'hash', hosts: [] }
   }
 
-  async _pendingGuidancesGuard() {}
+  async _pendingGuidancesGuard(object, level) {
+    this.guardLevels[object.uuid] ??= level
+  }
 }
 
 // the mixin reaches its own methods through `this`
@@ -190,13 +235,31 @@ describe('rollingPoolUpdate', function () {
   })
 
   describe('resume', function () {
-    const resumeOf = hostsStarted => ({
-      doneHostIds: new Set(['host-A']),
+    // host-A done, unless the previous attempt stopped before any host
+    const resumeOf = (hostsStarted, unfinishedHosts = {}) => ({
+      doneHostIds: new Set(hostsStarted ? ['host-A'] : []),
+      unfinishedHosts,
+      patchedHostIds: new Set(hostsStarted ? ['host-A', ...Object.keys(unfinishedHosts)] : []),
       hostsStarted,
       hostOrder: ['host-A', 'host-B'],
       vmHomeById: {},
       haltedPinnedVms: {},
     })
+    // host-B, touched by the previous attempt before its reboot
+    const unfinishedB = (enabledBeforeUpdate = true) =>
+      resumeOf(true, { 'host-B': { agentStartedAtBeforeUpdate: '2000', enabledBeforeUpdate } })
+
+    const resumeUpdate = (xapi, resume) => {
+      const observedSteps = []
+      const recorder = {
+        ...noopRpuRecorder,
+        stepObserved: (hostId, name) => observedSteps.push(`${hostId} ${name}`),
+      }
+      return rollingPoolUpdate(xapi, { acceptCurrentStateAsBaseline: true, recorder, resume }).then(error => ({
+        error,
+        observedSteps,
+      }))
+    }
 
     it('hands the resume to the reboot', async function () {
       const xapi = new FakeXapi([0, 2])
@@ -205,8 +268,109 @@ describe('rollingPoolUpdate', function () {
       const error = await rollingPoolUpdate(xapi, { acceptCurrentStateAsBaseline: true, resume })
 
       assert.equal(error, undefined)
-      assert.equal(xapi.resume, resume)
+      assert.deepEqual(xapi.resume, resume)
       assert.deepEqual(xapi.steps, [['host-B']])
+    })
+
+    it('updates again an unfinished host which still has missing patches', async function () {
+      const xapi = new FakeXapi([0, 2])
+
+      const { error } = await resumeUpdate(xapi, unfinishedB())
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.steps, [['host-B']])
+      assert.deepEqual(xapi.installs, [['host-B']])
+    })
+
+    it('only reboots an unfinished host which has no missing patches left', async function () {
+      const xapi = new FakeXapi([0, 0])
+
+      const { error, observedSteps } = await resumeUpdate(xapi, unfinishedB())
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.steps, [['host-B']])
+      assert.deepEqual(xapi.installs, [])
+      assert.deepEqual(observedSteps, ['host-B update'])
+    })
+
+    it('lists the missing patches again instead of reading the cached listing', async function () {
+      const xapi = new FakeXapi([0, 0])
+      xapi.hosts[1].cachedNMissingPatches = 2
+
+      const { error } = await resumeUpdate(xapi, unfinishedB())
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.installs, [])
+    })
+
+    it('neither updates nor reboots an unfinished host which rebooted since, and enables it', async function () {
+      const xapi = new FakeXapi([0, 0])
+      Object.assign(xapi.hosts[1], { enabled: false, other_config: { boot_time: '3000' } })
+
+      const { error, observedSteps } = await resumeUpdate(xapi, unfinishedB())
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.steps, [[]])
+      assert.deepEqual(xapi.installs, [])
+      assert.deepEqual(xapi.enabledHosts, ['host-B'])
+      assert.deepEqual([...xapi.resume.doneHostIds], ['host-A', 'host-B'])
+      assert.deepEqual(observedSteps, ['host-B evacuate', 'host-B update', 'host-B reboot', 'host-B enable'])
+    })
+
+    it('leaves disabled an unfinished host the operator had disabled', async function () {
+      const xapi = new FakeXapi([0, 0])
+      Object.assign(xapi.hosts[1], { enabled: false, other_config: { boot_time: '3000' } })
+
+      const { error } = await resumeUpdate(xapi, unfinishedB(false))
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.enabledHosts, [])
+    })
+
+    it('waits for the end of a reboot in progress before deciding', async function () {
+      const xapi = new FakeXapi([0, 0])
+      const host = xapi.hosts[1]
+      host.live = false
+      host.reboot = async () => {
+        Object.assign(host, { live: true, other_config: { boot_time: '3000' } })
+      }
+
+      const { error } = await resumeUpdate(xapi, unfinishedB())
+
+      assert.equal(error, undefined)
+      // rebooted: nothing left to do on it
+      assert.deepEqual(xapi.steps, [[]])
+    })
+
+    it('gives up on a host which does not come back in time', async function () {
+      const xapi = new FakeXapi([0, 0])
+      Object.assign(xapi.hosts[1], { live: false, reboot: () => new Promise(() => {}) })
+      xapi._restartHostTimeout = 10
+
+      const { error } = await resumeUpdate(xapi, unfinishedB())
+
+      assert.match(error?.message, /host-B took too long to restart/)
+      assert.deepEqual(xapi.steps, [])
+    })
+
+    it('checks only the mandatory pending guidances of the hosts the run patched, on fresh listings', async function () {
+      const xapi = new FakeXapi([0, 2], { softwareVersion: XS_CDN })
+
+      const { error } = await resumeUpdate(xapi, unfinishedB())
+
+      assert.equal(error, undefined)
+      // PENDING_GUIDANCES_LEVEL: 0 is mandatory, 2 is full
+      assert.deepEqual(xapi.guardLevels, { 'host-A': 0, 'host-B': 0 })
+      assert.deepEqual(xapi.updatesEndpointCalls.slice(0, 2), ['remove', 'fetch'])
+    })
+
+    it('checks every pending guidance of a host the run did not patch', async function () {
+      const xapi = new FakeXapi([0, 2], { softwareVersion: XS_CDN })
+
+      const { error } = await resumeUpdate(xapi, resumeOf(true))
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.guardLevels, { 'host-A': 0, 'host-B': 2 })
     })
 
     it('leaves the LINSTOR packages alone once a host started with them', async function () {

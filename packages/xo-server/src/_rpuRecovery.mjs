@@ -143,7 +143,7 @@ export function buildRpuRecoveryView(record) {
     taskId: record.taskId,
     variant: record.variant,
     attempt: record.attempt ?? 1,
-    resumable: isRpuRunResumable(record),
+    resumable: RESUMABLE_STATUSES.includes(record.status),
     hostOrder: record.hostOrder,
     hosts,
     lastError: record.lastError ?? null,
@@ -553,11 +553,10 @@ export async function startRpuRecoveryRun({ store, poolId, options }) {
 
 const RESUMABLE_STATUSES = ['failed', 'interrupted']
 
-// once one of these steps started, only the live state can tell whether it did
-// its job
 const STEPS_AFTER_EVACUATE = ['update', 'reboot', 'enable']
 
 const isStepOver = status => status === 'observed-succeeded' || status === 'not-needed'
+const isStepStarted = status => status !== 'pending' && status !== 'not-needed'
 
 /**
  * Decides, from the record of a failed or interrupted run, what a resume does
@@ -565,60 +564,43 @@ const isStepOver = status => status === 'observed-succeeded' || status === 'not-
  *
  * - done: evacuated, and every later step succeeded or was not needed, it is
  *   neither evacuated nor rebooted again;
- * - resumed: no step after the evacuation started, the evacuation is run again
- *   and XAPI only moves the VMs still resident;
- * - left alone by the run (every step `not-needed`): skipped as usual.
- *
- * Any other host stopped after its evacuation and is refused.
+ * - unfinished: a step started and the host is not done, only the live state
+ *   tells what is left (missing patches, reboot since the run touched it), see
+ *   rollingPoolUpdate;
+ * - not started yet, or left alone by the run (every step `not-needed`):
+ *   handled as on a first attempt.
  *
  * @param {object} record - Readable record
- * @returns {{ doneHostIds: Set<string>, hostsStarted: boolean, hostOrder: string[], vmHomeById: object,
- *   haltedPinnedVms: object }} `hostsStarted` when a host was handled by a previous attempt, the other fields
- *   come from the record
- * @throws {Error} `incorrectState` (property `resumableStep`) when a host cannot be resumed
+ * @returns {{ doneHostIds: Set<string>, unfinishedHosts: object, patchedHostIds: Set<string>, hostsStarted: boolean,
+ *   hostOrder: string[], vmHomeById: object, haltedPinnedVms: object }} `unfinishedHosts` maps the id of each
+ *   unfinished host to its `agentStartedAtBeforeUpdate` and `enabledBeforeUpdate`, `patchedHostIds` are the hosts
+ *   whose update started, `hostsStarted` when a host was handled by a previous attempt, the other fields come from
+ *   the record
  */
 export function planRpuResume(record) {
   const doneHostIds = new Set()
+  const unfinishedHosts = {}
+  const patchedHostIds = new Set()
   for (const hostId of record.hostOrder ?? []) {
-    const steps = record.hosts[hostId]?.steps ?? {}
+    const { steps = {}, agentStartedAtBeforeUpdate, enabledBeforeUpdate } = record.hosts[hostId] ?? {}
     const status = name => steps[name]?.status ?? 'pending'
-    if (STEPS_AFTER_EVACUATE.every(name => status(name) === 'pending')) {
-      continue
+    if (isStepStarted(status('update'))) {
+      patchedHostIds.add(hostId)
     }
     if (status('evacuate') === 'observed-succeeded' && STEPS_AFTER_EVACUATE.every(name => isStepOver(status(name)))) {
       doneHostIds.add(hostId)
-      continue
+    } else if (['evacuate', ...STEPS_AFTER_EVACUATE].some(name => isStepStarted(status(name)))) {
+      unfinishedHosts[hostId] = { agentStartedAtBeforeUpdate, enabledBeforeUpdate }
     }
-    if (RPU_RECOVERY_STEP_NAMES.every(name => status(name) === 'not-needed')) {
-      continue
-    }
-    const step = STEPS_AFTER_EVACUATE.find(name => !isStepOver(status(name))) ?? 'evacuate'
-    throw incorrectState({
-      actual: { hostId, step, status: status(step) },
-      expected: 'evacuate',
-      object: record.poolId,
-      property: 'resumableStep',
-    })
   }
   return {
     doneHostIds,
+    unfinishedHosts,
+    patchedHostIds,
     hostsStarted: Object.keys(record.hosts).length > 0,
     hostOrder: record.hostOrder ?? [],
     vmHomeById: record.vmHomeById ?? {},
     haltedPinnedVms: record.haltedPinnedVms ?? {},
-  }
-}
-
-// whether resumeRpuRecoveryRun would accept this readable record
-function isRpuRunResumable(record) {
-  if (!RESUMABLE_STATUSES.includes(record.status)) {
-    return false
-  }
-  try {
-    planRpuResume(record)
-    return true
-  } catch {
-    return false
   }
 }
 
@@ -628,6 +610,8 @@ function isRpuRunResumable(record) {
  */
 export const noRpuResume = Object.freeze({
   doneHostIds: new Set(),
+  unfinishedHosts: {},
+  patchedHostIds: new Set(),
   hostsStarted: false,
   hostOrder: [],
   vmHomeById: {},
@@ -638,9 +622,8 @@ export const noRpuResume = Object.freeze({
  * Continues the failed or interrupted run of a pool: same `runId`, next
  * attempt.
  *
- * The evacuation and VM restoration steps that failed or were running in the
- * previous attempt are set back to `pending`: `failed` is sticky within an
- * attempt, not across attempts.
+ * The steps that failed or were running in the previous attempt are set back
+ * to `pending`: `failed` is sticky within an attempt, not across attempts.
  *
  * Strict write of the `resuming` status: a failure rejects and must abort the
  * resume before any side effect. The caller holds the RPU guard of the pool.
@@ -651,8 +634,6 @@ export const noRpuResume = Object.freeze({
  * @returns {Promise<{ recorder: object, record: object, plan: object }>} see planRpuResume for `plan`
  * @throws {Error} `noSuchObject` when the pool has no record
  * @throws {Error} `incorrectState` (property `status`) when the record is not failed nor interrupted
- * @throws {Error} `incorrectState` (property `resumableStep`) when a host cannot be resumed, the record is left
- *   untouched
  */
 export async function resumeRpuRecoveryRun({ store, poolId }) {
   let record
@@ -671,10 +652,12 @@ export async function resumeRpuRecoveryRun({ store, poolId }) {
     throw incorrectState({ actual: record.status, expected: RESUMABLE_STATUSES, object: poolId, property: 'status' })
   }
 
+  // before the reset below, which forgets the steps the previous attempt left
+  // running or failed
   const plan = planRpuResume(record)
 
   for (const { steps } of Object.values(record.hosts)) {
-    for (const name of ['evacuate', 'restoreVms']) {
+    for (const name of RPU_RECOVERY_STEP_NAMES) {
       const status = steps[name]?.status
       if (status === 'failed' || status === 'running') {
         steps[name] = { status: 'pending' }
