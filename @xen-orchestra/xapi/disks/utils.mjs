@@ -59,6 +59,19 @@ async function getBackupNetworkAddresses(xapi) {
   return Promise.all(pifs.map(pifRef => xapi.getField('PIF', pifRef, 'IP')))
 }
 
+/**
+ * Whether xapi-nbd serves in TLS: same rule as xapi-nbd itself, TLS unless the pool only has networks with
+ * the insecure_nbd purpose (it refuses connections when both purposes are set)
+ *
+ * @param {any} xapi
+ * @returns {Promise<boolean>}
+ */
+async function isNbdTlsRequired(xapi) {
+  const networks = Object.values(await xapi.call('network.get_all_records'))
+  const purposes = networks.flatMap(network => network.purpose)
+  return purposes.includes('nbd') || !purposes.includes('insecure_nbd')
+}
+
 // the xo-nbd XAPI plugin serves the VDIs through its own NBD data server, faster than xapi-nbd
 const NBD_PLUGIN = 'xo-nbd'
 
@@ -203,6 +216,12 @@ export async function connectNbdClientIfPossible(xapi, vdiRef, nbdConcurrency) {
   let nbdInfos = await xapi.call('VDI.get_nbd_info', vdiRef)
   if (backupAddresses !== undefined) {
     nbdInfos = nbdInfos.filter(({ address }) => backupAddresses.includes(address))
+  }
+  // VDI.get_nbd_info always gives the certificate, even when xapi-nbd serves in clear (insecure_nbd), and
+  // the client upgrades to TLS whenever it has one: decide like xapi-nbd, from the network purposes, rather
+  // than downgrading when the server refuses STARTTLS (which anyone on the path could force)
+  if (!(await isNbdTlsRequired(xapi))) {
+    nbdInfos = nbdInfos.map(({ cert: _cert, ...nbdInfo }) => nbdInfo)
   }
 
   if (nbdInfos.length === 0) {
