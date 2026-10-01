@@ -445,12 +445,6 @@ describe('HashedDiskDeduplicated', () => {
 
     assert.deepEqual(await listFiles('xo-vm-backups'), [])
   })
-
-  test('the merge lifecycle is not implemented yet', async () => {
-    const disk = await createDisk()
-    await assert.rejects(() => disk.mergeBlock(disk, 0, false), /must be implemented/)
-    await assert.rejects(() => disk.rename('other.hbd'), /must be implemented/)
-  })
 })
 
 describe('HashedDiskDeduplicated with a block store', () => {
@@ -811,5 +805,192 @@ describe('resize', () => {
     await disk.resize(10)
 
     assert.deepEqual(disk.getMetadata(), before)
+  })
+})
+
+describe('merge', () => {
+  const STORE = 'xo-block-store'
+
+  const createSharedDisk = (opts = {}) =>
+    HashedDiskDeduplicated.create({
+      handler,
+      path: `xo-vm-backups/VMUUID/vdis/${uuid.v4()}/20260814T120000000Z.hbd`,
+      virtualSize: VIRTUAL_SIZE,
+      blockSize: BLOCK_SIZE,
+      uuid: uuid.v4(),
+      dedupType: 'PER_BACKUP_REPOSITORY',
+      blockStorePath: STORE,
+      ...opts,
+    })
+
+  const nlink = async path => (await stat(join(tempDir, path))).nlink
+
+  async function assertSameContent(disk, expected) {
+    assert.deepEqual(disk.getBlockIndexes(), Object.keys(expected).map(Number))
+    for (const [index, data] of Object.entries(expected)) {
+      assert.ok((await disk.readBlock(Number(index))).data.equals(data), `index ${index}`)
+    }
+  }
+
+  test('mergeBlock with the same hash on both sides writes nothing', async () => {
+    const parent = await createSharedDisk()
+    const child = await createSharedDisk()
+    await parent.writeBlock({ index: 0, data: block(0xaa) })
+    await child.writeBlock({ index: 0, data: block(0xaa) })
+
+    assert.equal(await parent.mergeBlock(child, 0, false), 0)
+
+    const [storeFile] = await listFiles(STORE)
+    assert.equal(await nlink(storeFile), 3, 'store copy + parent + child, no new link')
+  })
+
+  test('mergeBlock takes the child block and returns its size', async () => {
+    const parent = await createSharedDisk()
+    const child = await createSharedDisk()
+    await parent.writeBlock({ index: 0, data: block(0xaa) })
+    await child.writeBlock({ index: 0, data: block(0xbb) })
+
+    assert.equal(await parent.mergeBlock(child, 0, false), BLOCK_SIZE)
+
+    assert.ok((await parent.readBlock(0)).data.equals(block(0xbb)))
+  })
+
+  test('mergeBlock refuses a child with another block size, before writing anything', async () => {
+    const parent = await createSharedDisk()
+    const child = await HashedDiskDeduplicated.create({
+      handler,
+      path: `xo-vm-backups/VMUUID/vdis/${uuid.v4()}/20260814T120000000Z.hbd`,
+      virtualSize: VIRTUAL_SIZE,
+      blockSize: BLOCK_SIZE * 2,
+      uuid: uuid.v4(),
+      dedupType: 'PER_BACKUP_REPOSITORY',
+      blockStorePath: STORE,
+    })
+    await child.writeBlock({ index: 0, data: Buffer.alloc(BLOCK_SIZE * 2, 0xaa) })
+
+    // refused by writeBlock's own size check, no extra check per mergeBlock
+    await assert.rejects(() => parent.mergeBlock(child, 0, false), /expected a 4096 bytes block, got 8192/)
+    assert.equal(parent.hasBlock(0), false)
+  })
+
+  test('a full merge leaves the child content, a consistent store and no child link', async () => {
+    const parent = await createSharedDisk()
+    const child = await createSharedDisk()
+    for (let index = 0; index < 5; index++) {
+      await parent.writeBlock({ index, data: block(index) })
+    }
+    await parent.flushMetadata()
+    // 3 changed, 2 shared with the parent
+    const childContent = { 0: block(0x10), 1: block(1), 2: block(0x12), 3: block(3), 4: block(0x14) }
+    for (const [index, data] of Object.entries(childContent)) {
+      await child.writeBlock({ index: Number(index), data })
+    }
+
+    for (const index of child.getBlockIndexes()) {
+      await parent.mergeBlock(child, index, false)
+    }
+    await parent.flushMetadata(child)
+
+    await assertSameContent(parent, childContent)
+    assert.equal((await listFiles(STORE)).length, 5, 'the 3 replaced parent blocks are released')
+    for (const storeFile of await listFiles(STORE)) {
+      assert.equal(await nlink(storeFile), 2, 'store copy + parent, the child links are gone')
+    }
+  })
+
+  test('a resumed merge gets the skipped indexes back on flush', async () => {
+    const parent = await createSharedDisk()
+    const child = await createSharedDisk()
+    const childContent = {}
+    for (let index = 0; index < 5; index++) {
+      childContent[index] = block(0x20 + index)
+      await child.writeBlock({ index, data: childContent[index] })
+    }
+
+    // a resume restarts at currentBlock: indexes 0 to 2 are never merged
+    await parent.mergeBlock(child, 3, true)
+    await parent.mergeBlock(child, 4, true)
+    await parent.flushMetadata(child)
+
+    await assertSameContent(parent, childContent)
+  })
+
+  test('a failed re-sync leaves the parent as it was on the remote', async () => {
+    const parent = await createSharedDisk()
+    const child = await createSharedDisk()
+    await child.writeBlock({ index: 0, data: block(0xaa) })
+    await parent.flushMetadata()
+    const { hashesPath } = parent.getMetadata()
+    child.readBlock = async () => {
+      throw new Error('child unreadable')
+    }
+
+    await assert.rejects(() => parent.flushMetadata(child), /child unreadable/)
+
+    assert.equal(parent.getMetadata().hashesPath, hashesPath, 'no new BAT written')
+  })
+
+  test('mergeMetadata takes the child uuid and size, and keeps its own parent', async () => {
+    const parent = await createSharedDisk({ parentUuid: 'grandparent-uuid', parentPath: './grandparent.hbd' })
+    // fewer bytes, same block count: the exact size must be copied, not rounded
+    const child = await createSharedDisk({ virtualSize: VIRTUAL_SIZE - 100 })
+
+    await parent.mergeMetadata(child)
+
+    assert.equal(parent.getUuid(), child.getUuid())
+    assert.equal(parent.getVirtualSize(), VIRTUAL_SIZE - 100)
+    assert.equal(parent.getParentUuid(), 'grandparent-uuid')
+
+    const reopened = new HashedDiskDeduplicated({ handler, path: parent.getPath(), blockStorePath: STORE })
+    await reopened.init()
+    assert.equal(reopened.getUuid(), child.getUuid())
+  })
+
+  test('a merged disk still reads its blocks once the child is gone', async () => {
+    const parent = await createSharedDisk()
+    const child = await createSharedDisk()
+    await parent.writeBlock({ index: 0, data: block(0xaa) })
+    await child.writeBlock({ index: 1, data: block(0xbb) })
+
+    for (const index of child.getBlockIndexes()) {
+      await parent.mergeBlock(child, index, false)
+    }
+    await parent.flushMetadata(child)
+    await parent.mergeMetadata(child)
+    await child.unlink()
+
+    const reopened = new HashedDiskDeduplicated({ handler, path: parent.getPath(), blockStorePath: STORE })
+    await reopened.init()
+    assert.ok((await reopened.readBlock(0)).data.equals(block(0xaa)))
+    assert.ok((await reopened.readBlock(1)).data.equals(block(0xbb)))
+  })
+
+  test('mergeMetadata twice gives the same result', async () => {
+    const parent = await createSharedDisk()
+    const child = await createSharedDisk()
+
+    await parent.mergeMetadata(child)
+    const once = parent.getMetadata()
+    await parent.mergeMetadata(child)
+
+    assert.deepEqual(parent.getMetadata(), once)
+  })
+
+  test('mergeMetadata refuses a parent that was not resized for its child, and writes nothing', async () => {
+    const parent = await createSharedDisk()
+    const child = await createSharedDisk({ virtualSize: VIRTUAL_SIZE * 2 })
+    const before = parent.getMetadata()
+
+    await assert.rejects(() => parent.mergeMetadata(child), /is not sized for its child, resize first/)
+
+    const reopened = new HashedDiskDeduplicated({ handler, path: parent.getPath() })
+    await reopened.init()
+    assert.deepEqual(reopened.getMetadata(), before)
+  })
+
+  test('mergeMetadata refuses a child of another disk type', async () => {
+    const parent = await createSharedDisk()
+
+    await assert.rejects(() => parent.mergeMetadata({}), /can't merge different disk types/)
   })
 })

@@ -403,6 +403,18 @@ export class HashedDiskDeduplicated extends HashedDisk {
     return blockSize
   }
 
+  async mergeBlock(childDisk: HashedDiskDeduplicated, index: number, isResumingMerge: boolean): Promise<number> {
+    const childHash = childDisk.getBlockHashAt(index)
+    const parentHash = this.getBlockHashAt(index)
+
+    if (parentHash === childHash) {
+      return 0
+    }
+
+    const block = await childDisk.readBlock(index)
+    return this.writeBlock(block)
+  }
+
   /**
    * No-op: the BAT is built exclusively by writeBlock, which knows the hash.
    * Declaring an index without content is meaningless in a content addressed
@@ -458,6 +470,9 @@ export class HashedDiskDeduplicated extends HashedDisk {
    * the hbd points at the new one.
    */
   async flushMetadata(childDisk?: unknown): Promise<void> {
+    if (childDisk instanceof HashedDiskDeduplicated) {
+      await this.#mergeWithChild(childDisk)
+    }
     const metadata = this.#loadedMetadata
     const dataDir = dirname(metadata.hashesPath)
 
@@ -492,6 +507,31 @@ export class HashedDiskDeduplicated extends HashedDisk {
     if (childDisk instanceof HashedDiskDeduplicated) {
       await this.#releaseChildReferences(childDisk)
     }
+  }
+
+  async #mergeWithChild(childDisk: HashedDiskDeduplicated): Promise<void> {
+    if (childDisk.getBlockSize() !== this.getBlockSize()) {
+      throw new Error(`can't merge a ${childDisk.getBlockSize()} bytes block disk into a ${this.getBlockSize()} one`)
+    }
+    const childBat = childDisk.#loadedBat
+    for (const index of childBat.indexes()) {
+      if (this.#loadedBat.get(index) !== childBat.get(index)) {
+        await this.mergeBlock(childDisk, index, true)
+      }
+    }
+  }
+
+  async mergeMetadata(childDisk) {
+    if (!(childDisk instanceof HashedDiskDeduplicated)) {
+      throw new Error(`can't merge different disk types`)
+    }
+    const { uuid, virtualSize } = childDisk.getMetadata()
+    if (Math.ceil(virtualSize / this.getBlockSize()) !== this.getMaxBlockCount()) {
+      throw new Error(`the BAT of ${this.#path} is not sized for its child, resize first`)
+    }
+    const metadata = { ...this.#loadedMetadata, uuid, virtualSize }
+    await this.#handler.outputStream(this.#path, Readable.from(JSON.stringify(metadata)), { checksum: false })
+    this.#metadata = metadata
   }
 
   /**
