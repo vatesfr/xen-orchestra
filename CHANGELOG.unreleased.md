@@ -18,6 +18,7 @@
 - [Servers] Fix servers stuck in `Connecting` state when using an HTTPS proxy that support HTTP/2 ([Forum#12502](https://xcp-ng.org/forum/topic/12502/xoa-6.9-update)) (PR [#10507](https://github.com/vatesfr/xen-orchestra/pull/10507))
 - [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
 - [XO5/Hosts] Disable restart toolstack button for the hosts that belongs to a HA pools in the home page (PR [#10497](https://github.com/vatesfr/xen-orchestra/pull/10497))
+- [XO 6] Fix sometimes incorrect IDs in URLs (PR [#10511](https://github.com/vatesfr/xen-orchestra/pull/10511))
 
 ### Packages to release
 
@@ -36,6 +37,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/web patch
+- @xen-orchestra/web-core patch
 - xen-api patch
 - xo-web patch
 
