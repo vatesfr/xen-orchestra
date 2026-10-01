@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [VM/Network] Add the possibility to edit a VIF (PR [#10505](https://github.com/vatesfr/xen-orchestra/pull/10505))
+
 ## **0.26.0** (2026-10-01)
 
 - [Host] Add possibility to reboot a host (PR [#10250](https://github.com/vatesfr/xen-orchestra/pull/10250))

@@ -982,6 +982,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/vif/[uuid]/edit': RouteRecordInfo<
+      '/vif/[uuid]/edit',
+      '/vif/:uuid/edit',
+      { uuid: ParamValue<true> },
+      { uuid: ParamValue<false> },
+      | never
+    >,
     '/vif/new': RouteRecordInfo<
       '/vif/new',
       '/vif/new',
@@ -1903,6 +1910,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/user-logo/user-logo.story.vue': {
       routes:
         | '/story/web-core/ui/user-logo/user-logo'
+      views:
+        | never
+    }
+    'src/pages/vif/[uuid]/edit.vue': {
+      routes:
+        | '/vif/[uuid]/edit'
       views:
         | never
     }
