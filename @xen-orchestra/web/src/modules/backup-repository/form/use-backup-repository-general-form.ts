@@ -1,6 +1,7 @@
 import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { regex, required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { computed, reactive, watch } from 'vue'
@@ -127,6 +128,7 @@ export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneral
     encryptionKey: useField('encryptionKey', () => ({
       label: t('key'),
       required: true,
+      type: 'password' as InputType,
       info: t('n-hexadecimal-characters', { n: ENCRYPTION_KEY_LENGTH }),
     })),
   })

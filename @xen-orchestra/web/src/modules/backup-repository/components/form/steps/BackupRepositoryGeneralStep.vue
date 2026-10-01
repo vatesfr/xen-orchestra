@@ -35,10 +35,9 @@
         {{ t('encryption-available-for-block-modes-only') }}
       </UiAlert>
 
-      <BackupRepositoryFormCheckbox v-bind="bindings.encrypted" />
-
-      <BackupRepositoryFormRow v-if="bindings.encrypted.modelValue">
-        <BackupRepositoryFormTextInput v-bind="bindings.encryptionKey" />
+      <BackupRepositoryFormRow>
+        <BackupRepositoryFormCheckbox v-bind="bindings.encrypted" />
+        <BackupRepositoryFormTextInput v-if="bindings.encrypted.modelValue" v-bind="bindings.encryptionKey" />
       </BackupRepositoryFormRow>
     </div>
   </div>
