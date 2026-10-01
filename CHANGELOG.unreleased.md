@@ -15,6 +15,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backups/sequences] Prevent errors on backup with proxy from aborting sequences (PR [#10504](https://github.com/vatesfr/xen-orchestra/pull/10504))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server patch
 
 <!--packages-end-->

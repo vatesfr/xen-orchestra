@@ -212,7 +212,16 @@ export default class BackupNg {
                 jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
               },
               onTaskUpdate: (log, event) => {
-                handleBackupLog(log, event, { app: this._app, jobName: job.name })
+                try {
+                  handleBackupLog(log, event, { app: this._app, jobName: job.name })
+                } catch (error) {
+                  // At the end of the root task, handleBackupLog throws if any subtask failed:
+                  // ignore it, so that a partially failed job doesn't stop a job sequence.
+                  // A job-level failure is still thrown by Task.run below.
+                  if (event.type !== 'end' || log.$root !== log) {
+                    throw error
+                  }
+                }
               },
             })
             return await Task.run(
@@ -362,7 +371,16 @@ export default class BackupNg {
                   result = forwardResult(log)
                 },
                 onTaskUpdate: (log, event) => {
-                  handleBackupLog(log, event, { app: this._app, jobName: job.name })
+                  try {
+                    handleBackupLog(log, event, { app: this._app, jobName: job.name })
+                  } catch (error) {
+                    // At the end of the root task, handleBackupLog throws if any subtask failed:
+                    // ignore it, so that a partially failed job doesn't stop the job sequence.
+                    // A job-level failure is still thrown by onRootTaskEnd above.
+                    if (event.type !== 'end' || log.$root !== log) {
+                      throw error
+                    }
+                  }
                 },
               })
 
