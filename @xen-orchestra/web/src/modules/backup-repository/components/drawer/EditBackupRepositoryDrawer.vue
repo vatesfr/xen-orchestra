@@ -26,6 +26,7 @@ import BackupRepositoryDetailsStep from '@/modules/backup-repository/components/
 import BackupRepositoryGeneralStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryGeneralStep.vue'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import { useEditBackupRepositoryForm } from '@/modules/backup-repository/form/use-edit-backup-repository-form.ts'
+import type { EditBackupRepositoryPayload } from '@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
@@ -38,19 +39,21 @@ const { br } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  confirm: []
+  confirm: [payload: EditBackupRepositoryPayload]
   cancel: []
 }>()
 
 const { t } = useI18n()
 
-const { general, details, validate } = useEditBackupRepositoryForm(() => br)
+const { general, details, validateAndBuildPayload } = useEditBackupRepositoryForm(() => br)
 
 const typeLabel = useXoBackupRepositoryTypeLabel(() => general.formData.type)
 
 async function handleConfirm() {
-  if (await validate()) {
-    emit('confirm')
+  const payload = await validateAndBuildPayload()
+
+  if (payload !== undefined) {
+    emit('confirm', payload)
   }
 }
 </script>
