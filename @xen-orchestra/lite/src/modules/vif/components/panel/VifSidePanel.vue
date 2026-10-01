@@ -1,6 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!vif" class="vm-vifs-side-panel" @close="emit('close')">
     <template v-if="vif" #actions>
+      <VifEditButton :vif />
       <VifConnectionToggleButton v-if="vm" :vif :vm />
     </template>
     <template v-if="vif" #default>
@@ -109,6 +110,7 @@
 <script setup lang="ts">
 import type { XenApiVif } from '@/libs/xen-api/xen-api.types.ts'
 import VifConnectionToggleButton from '@/modules/vif/components/actions/connection/VifConnectionToggleButton.vue'
+import VifEditButton from '@/modules/vif/components/actions/edit/VifEditButton.vue'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'

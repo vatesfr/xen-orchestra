@@ -25,6 +25,7 @@
 <script lang="ts" setup>
 import type { XenApiNetwork, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useVifConnection } from '@/modules/vif/composables/use-vif-connection.composable.ts'
+import { useVifEdit } from '@/modules/vif/composables/use-vif-edit.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { useVifStore } from '@/stores/xen-api/vif.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
@@ -58,6 +59,8 @@ const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 
 const { t } = useI18n()
+
+const { goToVifEdit } = useVifEdit()
 
 const selectedVifId = useRouteQuery('id')
 
@@ -147,7 +150,10 @@ const { HeadCells, BodyCells } = useVifColumns({
       actions: r =>
         r({
           onClick: () => (selectedVifId.value = vif.uuid),
-          actions: [connectionAction.value],
+          actions: [
+            { label: t('action:edit'), icon: 'action:edit', onClick: () => goToVifEdit(vif) } satisfies ActionItem,
+            connectionAction.value,
+          ],
         }),
     }
   },

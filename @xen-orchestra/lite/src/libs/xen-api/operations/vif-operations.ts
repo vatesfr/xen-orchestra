@@ -25,6 +25,14 @@ export function createVifOperations(xenApi: XenApi) {
     qos_algorithm_type?: string
   }
 
+  const setOtherConfig = (vifRefs: VifRefs, key: string, value: string) =>
+    Promise.all(
+      toArray(vifRefs).map(async vifRef => {
+        await xenApi.call('VIF.remove_from_other_config', [vifRef, key])
+        await xenApi.call('VIF.add_to_other_config', [vifRef, key, value])
+      })
+    )
+
   return {
     create: async (vifs: VifCreateParams[]) => {
       const results: VifRefs = []
@@ -78,5 +86,27 @@ export function createVifOperations(xenApi: XenApi) {
     plug: (vifRefs: VifRefs) => Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.plug', [vifRef]))),
 
     unplug: (vifRefs: VifRefs) => Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.unplug', [vifRef]))),
+
+    move: (vifRefs: VifRefs, networkRef: NetworkRef) =>
+      Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.move', [vifRef, networkRef]))),
+
+    setIpv4Allowed: (vifRefs: VifRefs, ips: string[]) =>
+      Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.set_ipv4_allowed', [vifRef, ips]))),
+
+    setIpv6Allowed: (vifRefs: VifRefs, ips: string[]) =>
+      Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.set_ipv6_allowed', [vifRef, ips]))),
+
+    setLockingMode: (vifRefs: VifRefs, lockingMode: VIF_LOCKING_MODE) =>
+      Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.set_locking_mode', [vifRef, lockingMode]))),
+
+    setRateLimit: (vifRefs: VifRefs, kbps: number | null) =>
+      Promise.all(
+        toArray(vifRefs).map(async vifRef => {
+          await xenApi.call('VIF.set_qos_algorithm_type', [vifRef, kbps === null ? '' : 'ratelimit'])
+          await xenApi.call('VIF.set_qos_algorithm_params', [vifRef, kbps === null ? {} : { kbps: String(kbps) }])
+        })
+      ),
+
+    setTxChecksumming: (vifRefs: VifRefs, enabled: boolean) => setOtherConfig(vifRefs, 'ethtool-tx', String(enabled)),
   }
 }
