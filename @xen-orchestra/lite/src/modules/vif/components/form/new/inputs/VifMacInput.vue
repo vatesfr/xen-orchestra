@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label="t('mac-address')" :message="error">
-    <UiInput v-model.trim="model" accent="brand" :placeholder="t('auto-generated')" />
+    <UiInput v-model.trim="model" accent="brand" :required :placeholder="required ? undefined : t('auto-generated')" />
   </VtsInputWrapper>
 </template>
 
@@ -11,6 +11,7 @@ import { useI18n } from 'vue-i18n'
 
 defineProps<{
   error?: InputWrapperMessage
+  required?: boolean
 }>()
 
 const model = defineModel<string>({ required: true })
