@@ -166,6 +166,57 @@ describe('AbstractNbdClient', () => {
     }
   })
 
+  it('reads into a given target', async () => {
+    const client = new InMemoryNbdClient()
+    await client.connect()
+    try {
+      const target = Buffer.alloc(BLOCK_SIZE + 8, 0xaa)
+      const block = await client.readBlock(1, BLOCK_SIZE, target.subarray(8))
+      assert.equal(block.buffer, target.buffer, 'the data is written in the target memory')
+      assert.ok(block.equals(DATA.subarray(BLOCK_SIZE, 2 * BLOCK_SIZE)))
+      assert.equal(target.readUInt32BE(0), 0xaaaaaaaa, 'nothing written before the target')
+
+      // the last block of a non aligned export is shorter than the target
+      const last = await client.readBlock(3, BLOCK_SIZE, Buffer.alloc(BLOCK_SIZE))
+      assert.equal(last.length, DATA.length - 3 * BLOCK_SIZE)
+      assert.ok(last.equals(DATA.subarray(3 * BLOCK_SIZE)))
+
+      await assert.rejects(client.readBlock(0, BLOCK_SIZE, Buffer.alloc(BLOCK_SIZE - 1)), /target is too small/)
+    } finally {
+      await client.disconnect()
+    }
+  })
+
+  it('reassembles answers split in arbitrary chunks', async () => {
+    for (const chunkSize of [1, 7, 16, 17, BLOCK_SIZE + 3]) {
+      const client = new InMemoryNbdClient({ chunkSize, answerInReverse: true })
+      await client.connect()
+      try {
+        const blocks = await Promise.all([0, 1, 2, 3].map(index => client.readBlock(index, BLOCK_SIZE)))
+        blocks.forEach((block, index) =>
+          assert.ok(block.equals(DATA.subarray(index * BLOCK_SIZE, (index + 1) * BLOCK_SIZE)), `chunk ${chunkSize}`)
+        )
+      } finally {
+        await client.disconnect()
+      }
+    }
+  })
+
+  it('times out when the server stops answering', async () => {
+    const client = new InMemoryNbdClient(
+      { stopAnsweringAfter: 1 },
+      { messageTimeout: 100, readBlockRetries: 1, reconnectRetry: 1, waitBeforeReconnect: 0 }
+    )
+    await client.connect()
+    try {
+      const block = await client.readBlock(0, BLOCK_SIZE)
+      assert.ok(block.equals(DATA.subarray(0, BLOCK_SIZE)))
+      await assert.rejects(client.readBlock(1, BLOCK_SIZE), /timed out/)
+    } finally {
+      await client.disconnect()
+    }
+  })
+
   it('does not support getMap()', async () => {
     const client = new InMemoryNbdClient()
     await assert.rejects(client.getMap(), ({ code }) => code === 'NBD_MAP_UNSUPPORTED')

@@ -3,6 +3,54 @@ import { connect } from 'node:tls'
 import { spawn } from 'node:child_process'
 import AbstractNbdClient from './AbstractNbdClient.mjs'
 import { NBD_DEFAULT_PORT, NBD_OPT_STARTTLS } from './constants.mjs'
+import { PassThrough } from 'node:stream'
+
+// the kernel writes the received data into this buffer, reused for every read
+const ONREAD_BUFFER_SIZE = 1024 * 1024
+
+/**
+ * Receives the data of `socket` through its `onread` option.
+ *
+ * During the handshake the (small and rare) chunks are copied into `readable`,
+ * then `setReceiver()` hands the reused buffer directly to the parser of the answers.
+ *
+ * `onread` must be given to the constructor of the socket, which is then given to `attach()`
+ */
+function createOnReadTransport() {
+  const readable = new PassThrough()
+  let receiver
+  const transport = {
+    readable,
+    writable: undefined,
+    setReceiver(fn) {
+      // what came with the end of the handshake must be parsed first
+      let chunk
+      while ((chunk = readable.read()) !== null) {
+        fn(chunk, chunk.length)
+      }
+      receiver = fn
+    },
+  }
+  return {
+    onread: {
+      buffer: Buffer.allocUnsafeSlow(ONREAD_BUFFER_SIZE),
+      callback(length, buffer) {
+        if (receiver !== undefined) {
+          receiver(buffer, length)
+        } else {
+          readable.write(Buffer.from(buffer.subarray(0, length)))
+        }
+      },
+    },
+    attach(socket) {
+      transport.writable = socket
+      // with `onread` the socket does not emit its data, but its end must still reach the readers
+      socket.once('end', () => readable.end())
+      socket.once('close', () => readable.destroy())
+    },
+    transport,
+  }
+}
 
 /**
  * NBD client talking to a server over TCP, optionally upgrading the connection
@@ -33,7 +81,12 @@ export default class NbdTcpClient extends AbstractNbdClient {
   // mandatory , at least to start the handshake: the connection always starts
   // unsecured, and is upgraded to TLS during the handshake
   async _openTransport() {
-    const socket = new Socket()
+    // without TLS, the kernel writes the answers into a reused buffer instead of a new Buffer per chunk:
+    // this is what keeps the GC quiet at high throughput (TLS sockets ignore `onread`)
+    const onRead = this.#serverCert === undefined ? createOnReadTransport() : undefined
+    // `onread` is only taken into account by the constructor
+    const socket = new Socket({ onread: onRead?.onread })
+    onRead?.attach(socket)
     await new Promise((resolve, reject) => {
       socket.connect(this.#serverPort, this.#serverAddress)
       socket.once('error', reject)
@@ -42,7 +95,7 @@ export default class NbdTcpClient extends AbstractNbdClient {
         resolve()
       })
     })
-    return { readable: socket, writable: socket }
+    return onRead?.transport ?? { readable: socket, writable: socket }
   }
 
   async _secureTransport(transport) {

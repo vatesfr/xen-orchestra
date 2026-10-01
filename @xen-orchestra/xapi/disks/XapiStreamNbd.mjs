@@ -8,7 +8,7 @@
 
 import { RandomDiskPassthrough } from '@xen-orchestra/disk-transform'
 import { createLogger } from '@xen-orchestra/log'
-import { connectNbdClientIfPossible } from './utils.mjs'
+import { connectNbdClientIfPossible, readNbdBlock } from './utils.mjs'
 
 const { warn } = createLogger('xo:xapi:XapiStreamNbd')
 
@@ -80,8 +80,7 @@ export class XapiStreamNbdSource extends RandomDiskPassthrough {
     if (this.#nbdClient === undefined) {
       throw new Error(`Can't use the nbd client of a XapiVhdStreamNbdSource before init`)
     }
-    const data = await this.#nbdClient.readBlock(index, this.getBlockSize())
-    return { index, data }
+    return readNbdBlock(this.#nbdClient, index, this.getBlockSize())
   }
 
   async *buildDiskBlockGenerator() {

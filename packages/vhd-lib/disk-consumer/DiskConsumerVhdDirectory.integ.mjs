@@ -60,7 +60,79 @@ class MockDisk extends RandomAccessDisk {
   async close() {}
 }
 
+// blocks whose data comes after a prefix in the same buffer, like the NBD sources do
+class PrefixedMockDisk extends MockDisk {
+  released = 0
+  #fillByte
+  #prefixByte
+  #detached
+  constructor(nbBlocks, blockIndexes, fillByte, { prefixByte = 0xff, detached = false } = {}) {
+    super(nbBlocks, blockIndexes, fillByte)
+    this.#fillByte = fillByte
+    this.#prefixByte = prefixByte
+    this.#detached = detached
+  }
+
+  async readBlock(index) {
+    const prefixed = Buffer.alloc(512 + DEFAULT_BLOCK_SIZE, this.#fillByte)
+    prefixed.fill(this.#prefixByte, 0, 512)
+    // detached: data is not the memory of prefixed, the consumer must not use prefixed
+    const data = this.#detached ? Buffer.alloc(DEFAULT_BLOCK_SIZE, this.#fillByte) : prefixed.subarray(512)
+    return {
+      index,
+      data,
+      prefixed,
+      release: () => {
+        // once released, the producer may reuse the memory: scramble it to catch a late use
+        prefixed.fill(0)
+        data.fill(0)
+        this.released++
+      },
+    }
+  }
+}
+
+async function writeAndCheck(disk, fillByte) {
+  const tempDir = await pFromCallback(cb => tmp.dir(cb))
+  try {
+    await Disposable.use(async function* () {
+      const handler = yield getSyncedHandler({ url: 'file://' + tempDir })
+      const aliasPath = 'disk.alias.vhd'
+      await writeToVhdDirectory({
+        disk,
+        target: { handler, path: aliasPath, concurrency: 4, validator: async () => {} },
+      })
+      const vhd = yield openVhd(handler, aliasPath)
+      await vhd.readBlockAllocationTable()
+      for (const index of disk.getBlockIndexes()) {
+        const { bitmap, data } = await vhd.readBlock(index)
+        assert.ok(
+          bitmap.every(byte => byte === 0xff),
+          `block ${index} bitmap should be full`
+        )
+        assert.ok(
+          data.every(byte => byte === fillByte),
+          `block ${index} should contain the source disk data`
+        )
+      }
+    })
+  } finally {
+    await rimraf(tempDir)
+  }
+}
+
 describe('DiskConsumerVhdDirectory', () => {
+  it('writes prefixed blocks without copy and releases them once written', async () => {
+    const disk = new PrefixedMockDisk(4, [0, 1, 3], 0x5a)
+    await writeAndCheck(disk, 0x5a)
+    assert.equal(disk.released, 3, 'each block released once')
+  })
+
+  it('falls back to a copy when the prefix is not a full bitmap or not the same memory', async () => {
+    await writeAndCheck(new PrefixedMockDisk(2, [0, 1], 0x33, { prefixByte: 0x00 }), 0x33)
+    await writeAndCheck(new PrefixedMockDisk(2, [0, 1], 0x44, { detached: true }), 0x44)
+  })
+
   it('writes a valid VHD directory that can be read back', async () => {
     const tempDir = await pFromCallback(cb => tmp.dir(cb))
     try {

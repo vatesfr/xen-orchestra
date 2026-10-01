@@ -168,6 +168,44 @@ CYu1Xn/FVPx1HoRgWc7E8wFhDcA/P3SJtfIQWHB9FzSaBflKGR4t8WCE2eE8+cTB
   await fs.unlink(path)
 })
 
+test('it works on an unsecured network, reading into given buffers', async tap => {
+  const path = await createTempFile(FILE_SIZE)
+  // without cert: the TCP client receives through `onread`, without allocation per chunk
+  await spawnNbdKit(path)
+  const client = new MultiNbdClient({ address: '127.0.0.1', exportname: 'MY_SECRET_EXPORT' }, { nbdConcurrency: 2 })
+  await client.connect()
+  tap.equal(client.exportSize, BigInt(FILE_SIZE))
+
+  const nbBlocks = Math.ceil(FILE_SIZE / CHUNK_SIZE)
+  // twice the content, with some reads in flight when the server is restarted
+  for (let pass = 0; pass < 2; pass++) {
+    const targets = Array.from({ length: nbBlocks }, () => Buffer.alloc(CHUNK_SIZE + 16, 0xaa))
+    const blocks = await Promise.all(
+      targets.map((target, index) => client.readBlock(index, CHUNK_SIZE, target.subarray(16)))
+    )
+    blocks.forEach((block, i) => {
+      const expectedLength = Math.min(CHUNK_SIZE, FILE_SIZE - CHUNK_SIZE * i)
+      let blockOk = block.length === expectedLength && block.buffer === targets[i].buffer
+      for (let j = 0; j < block.length && blockOk; j += 4) {
+        blockOk = block.readUInt32BE(j) === i * CHUNK_SIZE + j
+      }
+      // nothing written outside of the target
+      blockOk = blockOk && targets[i].readUInt32BE(0) === 0xaaaaaaaa
+      tap.ok(blockOk, `check block ${i} of pass ${pass}`, {
+        length: block.length,
+        sameMemory: block.buffer === targets[i].buffer,
+        first: block.readUInt32BE(0),
+        guard: targets[i].readUInt32BE(0),
+      })
+    })
+    await killNbdKit()
+    await spawnNbdKit(path)
+  }
+  await client.disconnect()
+  await killNbdKit()
+  await fs.unlink(path)
+})
+
 test('fails if server does not answer', async () => {
   const client = new MultiNbdClient(
     {

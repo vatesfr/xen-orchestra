@@ -1,4 +1,5 @@
 export { Disk, DiskBlock, RandomAccessDisk } from './Disk.mjs'
+export { BlockBufferPool } from './BlockBufferPool.mjs'
 export { DiskChain } from './DiskChain.mjs'
 export { DiskLargerBlock } from './DiskLargerBlock.mjs'
 export { DiskSmallerBlock } from './DiskSmallerBlock.mjs'

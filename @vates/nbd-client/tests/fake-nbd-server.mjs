@@ -32,9 +32,20 @@ const NBD_EINVAL = 22
  * @param {string} [options.exportName] - the export name the client must ask for
  * @param {boolean} [options.answerInReverse] - answer by pairs, in reverse order, to check the client handles out of order answers
  * @param {(request: {offset: bigint, length: number, index: number}) => number} [options.errorCode] - non zero to answer an error to this read
+ * @param {number} [options.chunkSize] - split the answers in chunks of this size, to check the client reassembles them
+ * @param {number} [options.stopAnsweringAfter] - stop answering (without closing) after this number of answers
  * @returns {Promise<void>} resolves when the client disconnected or closed the connection
  */
-export async function serveNbd({ readable, writable, data, exportName = '', answerInReverse = false, errorCode }) {
+export async function serveNbd({
+  readable,
+  writable,
+  data,
+  exportName = '',
+  answerInReverse = false,
+  errorCode,
+  chunkSize,
+  stopAnsweringAfter = Infinity,
+}) {
   const write = buffer => pFromCallback(cb => writable.write(buffer, cb))
 
   // handshake: server flags
@@ -78,15 +89,26 @@ export async function serveNbd({ readable, writable, data, exportName = '', answ
   let index = 0
   let pending = []
 
+  let nbAnswers = 0
   const answer = async ({ handle, offset, length, index }, forcedCode) => {
+    if (nbAnswers++ >= stopAnsweringAfter) {
+      return
+    }
     const code = forcedCode ?? errorCode?.({ handle, offset, length, index }) ?? 0
     const header = Buffer.alloc(16)
     header.writeInt32BE(NBD_REPLY_MAGIC, 0)
     header.writeInt32BE(code, 4)
     header.writeBigUInt64BE(handle, 8)
-    await write(header)
+    let message = header
     if (code === 0) {
-      await write(data.subarray(Number(offset), Number(offset) + length))
+      message = Buffer.concat([header, data.subarray(Number(offset), Number(offset) + length)])
+    }
+    if (chunkSize === undefined) {
+      await write(message)
+    } else {
+      for (let i = 0; i < message.length; i += chunkSize) {
+        await write(message.subarray(i, i + chunkSize))
+      }
     }
   }
 

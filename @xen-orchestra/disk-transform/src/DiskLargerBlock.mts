@@ -40,9 +40,9 @@ export class DiskLargerBlock extends RandomAccessDisk {
     const blockRatio = this.#blockSize / source.getBlockSize()
     const firstSourceBlockIndex = index * blockRatio
     for (let i = firstSourceBlockIndex; i < firstSourceBlockIndex + blockRatio; i++) {
-      let data: Buffer | undefined
+      let sourceBlock: DiskBlock | undefined
       if (source.hasBlock(i)) {
-        data = (await source.readBlock(i)).data
+        sourceBlock = await source.readBlock(i)
       } else {
         if (this.isDifferencing()) {
           if (this.#parent === undefined) {
@@ -51,11 +51,13 @@ export class DiskLargerBlock extends RandomAccessDisk {
             this.#parent = chain
           }
           const parent = this.#parent!
-          data = (await parent.readBlock(i)).data
+          sourceBlock = await parent.readBlock(i)
         }
       }
-      if (data !== undefined) {
-        data.copy(destinationBlockData, (i - firstSourceBlockIndex) * source.getBlockSize())
+      if (sourceBlock !== undefined) {
+        sourceBlock.data.copy(destinationBlockData, (i - firstSourceBlockIndex) * source.getBlockSize())
+        // the data has been copied, the source memory can be reused
+        sourceBlock.release?.()
       }
     }
     return {
