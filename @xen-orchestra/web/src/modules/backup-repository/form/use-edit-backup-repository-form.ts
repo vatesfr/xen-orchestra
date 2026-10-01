@@ -5,6 +5,7 @@ import {
   useBackupRepositoryGeneralForm,
 } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { getBackupRepositoryDetailsInitialData } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { type MaybeRefOrGetter, reactive } from 'vue'
 
@@ -25,7 +26,10 @@ export function useEditBackupRepositoryForm(rawBr: MaybeRefOrGetter<FrontXoBacku
     true
   )
 
-  const { details, currentDetailsForm } = useBackupRepositoryDetailsForms(general.formData)
+  const { details, currentDetailsForm } = useBackupRepositoryDetailsForms(
+    general.formData,
+    parsedUrl.value === undefined ? undefined : getBackupRepositoryDetailsInitialData(parsedUrl.value, br.value.options)
+  )
 
   async function validate(): Promise<boolean> {
     const [isGeneralValid, areDetailsValid] = await Promise.all([
