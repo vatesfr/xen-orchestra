@@ -149,7 +149,7 @@ const textMappingsByObject: TextMappingByObject = {
     'emergency-shutdown': {
       title: t('modal:confirm-host-emergency-shutdown?', { host: hostName }),
       message: t('modal:host-emergency-shutdown-message'),
-      action: t('action:emergency-shutdown'),
+      action: t('action:emergency-shutdown-host'),
     },
   },
 }
