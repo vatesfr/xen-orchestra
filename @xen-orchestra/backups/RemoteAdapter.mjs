@@ -36,6 +36,7 @@ import { watchStreamSize } from './_watchStreamSize.mjs'
 import { RemoteVhdDisk, openDiskChain, openDisposableDisk } from '@xen-orchestra/backup-archive/disks'
 import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
+import { DISCARD_BLOCKS, DiscardedDisk } from './_discardedDisk.mjs'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
@@ -666,6 +667,16 @@ export class RemoteAdapter {
   }
 
   async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
+    if (DISCARD_BLOCKS) {
+      const discarded = new DiscardedDisk(disk)
+      await this.#writeVhd(path, discarded, { validator, writeBlockConcurrency, uuid, parentUuid, parentPath })
+      // what was read, for the transfer speed of the task to mean something
+      return discarded.bytesRead
+    }
+    return this.#writeVhd(path, disk, { validator, writeBlockConcurrency, uuid, parentUuid, parentPath })
+  }
+
+  async #writeVhd(path, disk, { validator, writeBlockConcurrency, uuid, parentUuid, parentPath }) {
     const handler = this._handler
 
     if (this.useVhdDirectory()) {
