@@ -151,6 +151,24 @@ describe('Incremental Replication', () => {
     }
   }
 
+  /**
+   * Counts the snapshots of a VM tagged with the given schedule
+   * (other_config `xo:backup:schedule`, exposed as `other` on the REST VM-snapshot object).
+   * @param {string} vmUuid
+   * @param {string} scheduleId
+   * @returns {Promise<number>}
+   */
+  const countScheduleSnapshots = async (vmUuid, scheduleId) => {
+    const snapshotUuids = (await dispatchClient.vm.details(vmUuid)).snapshots ?? []
+    const scheduleIds = await Promise.all(
+      snapshotUuids.map(async snapshotUuid => {
+        const snapshot = await dispatchClient.restApiClient.get(`/rest/v0/vm-snapshots/${snapshotUuid}`)
+        return snapshot.other?.['xo:backup:schedule']
+      })
+    )
+    return scheduleIds.filter(id => id === scheduleId).length
+  }
+
   // ===========================================================================
   // Incremental replication — same SR and cross-SR
   // ===========================================================================
@@ -275,12 +293,16 @@ describe('Incremental Replication', () => {
       //   run 1 → full transfer, new VM created
       //   run 2 → incremental transfer, same VM reused
       //   run 3 → incremental transfer, new VM created (destination was started)
+      //
+      // copyRetention is 2 so that run 3 goes beyond it: the oldest replica
+      // snapshot must be destroyed.
       // -----------------------------------------------------------------------
 
       describe('Replication lifecycle: full → incremental → incremental after DR start', () => {
         it('should do full on first run, incremental on second, and incremental with new VM after destination started', async t => {
           if (destSrSkipReason) return t.skip(destSrSkipReason)
-          const { jobId, scheduleKey } = await createReplicationJob(vm, destSr.uuid)
+          const copyRetention = 2
+          const { jobId, scheduleKey } = await createReplicationJob(vm, destSr.uuid, '', { copyRetention })
           const vmUuidsBefore = new Set((await dispatchClient.vm.list()).map(v => v.uuid))
 
           // --- Run 1: full transfer, new VM created ---
@@ -315,6 +337,11 @@ describe('Incremental Replication', () => {
             `Replicated VM should have ≥1 snapshot after first run, got ${snapshotsAfterFirst}`
           )
           log.debug('Replicated VM snapshot count after first run', { label, snapshots: snapshotsAfterFirst })
+          assert.strictEqual(
+            await countScheduleSnapshots(replicatedVmUuid, scheduleKey),
+            1,
+            'Replicated VM should have 1 snapshot of the schedule after first run'
+          )
 
           log.debug('Checking CONTENT_KEY propagation after first run', { label })
           await assertContentKeyInvariants(jobId, replicatedVmUuid)
@@ -352,6 +379,11 @@ describe('Incremental Replication', () => {
           assert.ok(
             snapshotsAfterSecond > snapshotsAfterFirst,
             `Replicated VM should accumulate snapshots across runs (before: ${snapshotsAfterFirst}, after: ${snapshotsAfterSecond})`
+          )
+          assert.strictEqual(
+            await countScheduleSnapshots(replicatedVmUuid, scheduleKey),
+            2,
+            'Replicated VM should have 2 snapshots of the schedule after second run'
           )
           log.debug('VM reused', {
             label,
@@ -399,6 +431,17 @@ describe('Incremental Replication', () => {
           replicatedVmUuids.push(secondReplicaUuid)
 
           log.debug('New replica created', { label, newUuid: secondReplicaUuid, originalUuid: replicatedVmUuid })
+
+          // 3 transfers with copyRetention = 2: the oldest snapshot must have been
+          // destroyed, wherever the remaining ones live (old or new replica VM)
+          const retained =
+            (await countScheduleSnapshots(replicatedVmUuid, scheduleKey)) +
+            (await countScheduleSnapshots(secondReplicaUuid, scheduleKey))
+          assert.strictEqual(
+            retained,
+            copyRetention,
+            `Replicas should keep copyRetention (${copyRetention}) snapshots of the schedule after 3 runs, got ${retained}`
+          )
         })
       })
     })
@@ -422,9 +465,8 @@ describe('Incremental Replication', () => {
   // ===========================================================================
 
   describe('Distributed replication across two SRs', () => {
-    const SCHEDULE_ID_OC_KEY = 'xo:backup:schedule' // @xen-orchestra/backups/_otherConfig.mjs: SCHEDULE_ID
     const copyRetention = 2
-    const runs = copyRetention + 2 // exceed retention so pruning must have kicked in
+    const runs = copyRetention + 1 // exceed retention so pruning must have kicked in
 
     /** @type {Array<string>} VMs created during this test */
     const replicatedVmUuids = []
@@ -458,23 +500,6 @@ describe('Incremental Replication', () => {
     const getVmSrUuids = async vmUuid => {
       const vdis = await dispatchClient.vdi.getVdisForVm(vmUuid)
       return new Set(vdis.map(vdi => vdi.SR))
-    }
-
-    /**
-     * Counts the snapshots of a VM tagged with the given schedule.
-     * @param {string} vmUuid
-     * @param {string} scheduleId
-     * @returns {Promise<number>}
-     */
-    const countScheduleSnapshots = async (vmUuid, scheduleId) => {
-      const snapshotUuids = (await dispatchClient.vm.details(vmUuid)).snapshots ?? []
-      const scheduleIds = await Promise.all(
-        snapshotUuids.map(async snapshotUuid => {
-          const snapshot = await dispatchClient.restApiClient.get(`/rest/v0/vm-snapshots/${snapshotUuid}`)
-          return snapshot.other?.[SCHEDULE_ID_OC_KEY]
-        })
-      )
-      return scheduleIds.filter(id => id === scheduleId).length
     }
 
     it(`should chain deltas on the same SR and keep ${copyRetention} replicas after ${runs} runs`, async t => {
