@@ -6,13 +6,14 @@ export class AggregatedIncrementalXapiWriter extends AbstractAggregatedXapiWrite
   /**
    *
    * @param {Map<string,string>} baseUuidToSrcVdi
+   * @param {Map<string,string>} contentKeys
    */
-  async checkBaseVdis(baseUuidToSrcVdi) {
+  async checkBaseVdis(baseUuidToSrcVdi, contentKeys) {
     debug('checkBaseVdis', { baseUuidToSrcVdi })
     let selectedCopy = new Map()
     for (const writer of this.writers) {
       const copy = new Map(baseUuidToSrcVdi)
-      await writer.checkBaseVdis(copy)
+      await writer.checkBaseVdis(copy, contentKeys)
       if (copy.size > 0) {
         debug('checkBaseVdis found a mainwriter candidate ', writer._sr.name_label)
         // there can be multiple candidates
