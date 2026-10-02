@@ -2,6 +2,7 @@
 
 ## **next**
 
+- [Pool] Fix connection, stats and consoles when overriding the pool master with `?master=`: use HTTPS by default instead of the protocol and port of the page (PR [#9955](https://github.com/vatesfr/xen-orchestra/pull/9955))
 - [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
 
 ## **0.26.0** (2026-10-01)
