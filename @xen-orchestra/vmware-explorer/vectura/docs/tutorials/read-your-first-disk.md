@@ -8,7 +8,7 @@ transcript of the session.
 
 ## What you need
 
-- A Debian 12 or Ubuntu 22.04 machine, or newer, on amd64, that reaches the
+- A Debian 11 or Ubuntu 20.04 machine, or newer, on amd64, that reaches the
   ESXi host on ports 443 and 902.
 - An ESXi 7.x or 8.x host, reached directly by its own address. A vCenter
   works too, as long as this machine also reaches the ESXi host on port 902.
