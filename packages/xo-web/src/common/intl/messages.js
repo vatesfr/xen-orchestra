@@ -1253,6 +1253,8 @@ const messages = {
   installAllPatchesRedirect: 'Go to pool',
   installAllPatchesOnHostContent:
     'The pool master must always be updated FIRST. Updating will automatically restart the toolstack. Running VMs will not be affected. Are you sure you want to continue and install all patches on this host?',
+  installAllPatchesOnHostMasterNotUpToDate:
+    'The pool master is not up to date. Installing patches on a host before its pool master can lead to severe issues. Update the pool master first, or use a rolling pool update.',
   installAllPatchesXostorWarning:
     'If you are using XOSTOR storage it is absolutely crucial that you update the XOSTOR services before patching your pool. Please refer to this documentation to update your XOSTOR services:',
   patchRelease: 'Release',
