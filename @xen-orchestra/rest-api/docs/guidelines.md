@@ -18,6 +18,8 @@ Naming is hard, building a coherent API is hard: ask/propose naming **before** s
 
 Use the `@Deprecated()` decorator if needed, and never remove a route without changing the API version.
 
+URLs must be written in `snake_case`.
+
 ### Resource consistency
 
 For a given resource (VMs, VIFs, users, etc.), property names must be consistent across all endpoints. The types and names of properties must also be coherent with the types in `@vates/types/xo.mts`.
@@ -102,7 +104,14 @@ In order not to pollute important decorators, all example structures should be i
 
 ## Actions
 
-REST API actions are reserved to user actions that won't fit the REST API. The REST API actions must use the `this.createAction` method to handle correctly synchronous and asynchronous mode.
+When to use an action?
+
+- anything that cannot be presented in REST format (e.g, SR.scan)
+- operations that can take a long time (e.g, mount live disk)
+
+An action endpoint must contain the `actions` segment in the URL (e.g. `/srs/:sr-id/actions/scan`, `/backup-archives/:ba-id/live_disks/:live-disk-id/actions/unmount`)
+
+REST API actions are reserved to user actions that won't fit the REST API. The REST API actions must use the `this.createAction` method (and must only be used for action endpoints) to handle correctly synchronous and asynchronous mode.
 
 If your action endpoint includes a request body, don't forget to add `params` to the `taskProperties` property (obfuscate sensitive params such as passwords)
 
