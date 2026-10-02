@@ -1,5 +1,5 @@
 <template>
-  <UiDrawer @confirm="handleConfirm()" @dismiss="emit('cancel')">
+  <UiDrawer class="edit-backup-repository-drawer" @confirm="handleConfirm()" @dismiss="emit('cancel')">
     <template #title>
       {{ t('edit-br') }}
     </template>
@@ -59,15 +59,17 @@ async function handleConfirm() {
 </script>
 
 <style lang="postcss" scoped>
-.details-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-  margin-block-start: 4.8rem;
-  text-align: left;
+.edit-backup-repository-drawer {
+  .details-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+    margin-block-start: 4.8rem;
+    text-align: start;
 
-  .details-step {
-    margin-block-start: 0;
+    .details-step {
+      margin-block-start: 0;
+    }
   }
 }
 </style>

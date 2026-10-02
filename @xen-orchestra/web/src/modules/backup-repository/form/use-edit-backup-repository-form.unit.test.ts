@@ -100,6 +100,19 @@ describe('validateAndBuildPayload', () => {
     expect(await form.validateAndBuildPayload()).toBeUndefined()
   })
 
+  it.each([
+    'file:///var/backups',
+    'nfs://192.168.1.10:2049:/exports/backups?useVhdDirectory=true',
+    'smb://admin:secret@CORP\\\\192.168.1.10\\share\0backups\\xo',
+    's3://AKID:secret@s3.us-east-2.amazonaws.com/bucket/backups/xo?useVhdDirectory=true#us-east-2',
+    'azure://account:key@account.blob.core.windows.net/container/backups?useVhdDirectory=true',
+    'azurite+http://devstoreaccount1:key@127.0.0.1:10000/container?useVhdDirectory=true',
+  ])('rebuilds the same url when nothing is edited: %s', async url => {
+    const payload = await mountEditForm(createBr({ url })).validateAndBuildPayload()
+
+    expect(payload?.url).toBe(url)
+  })
+
   it('builds no payload for a repository with an unrecognized url', async () => {
     const form = mountEditForm(createBr({ url: 'ftp://192.168.1.10/backups' }))
 
