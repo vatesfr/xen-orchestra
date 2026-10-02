@@ -16,6 +16,7 @@
 - [XO5/Settings/IPs] Show an example of the expected IP format when adding IPs to an IP pool (PR [#10522](https://github.com/vatesfr/xen-orchestra/pull/10522))
 - [XO6/BRs] Add backup repository create form (PR [#10271](https://github.com/vatesfr/xen-orchestra/pull/10271))
 - [XO6/BRs] Add backup repository detail page (PR [#10454](https://github.com/vatesfr/xen-orchestra/pull/10454))
+- [XO6/BRs] Add backup repository edit form (PR [#10478](https://github.com/vatesfr/xen-orchestra/pull/10478))
 
 ### Bug fixes
 
