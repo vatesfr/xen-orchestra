@@ -3,7 +3,7 @@
     <UiPanelCardTitle
       size="medium"
       :label="t('warnings')"
-      :counter="{ value: Object.keys(task.warnings!).length, accent: 'warning' }"
+      :counter="{ value: task.warnings?.length ?? 0, accent: 'warning' }"
     />
     <div class="content">
       <template v-for="(warning, index) in task.warnings" :key="index">
