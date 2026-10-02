@@ -60,6 +60,7 @@
   "action:deploy": "Deploy",
   "action:deploy-xoa": "Deploy XOA",
   "action:detach": "Detach",
+  "action:detach-host": "@:action:detach host",
   "action:detach-n-vdis": "Detach 1 VDI | Detach {n} VDIs",
   "action:detach-vdi": "Detach VDI",
   "action:disable": "Disable",
