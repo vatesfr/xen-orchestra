@@ -6,6 +6,7 @@ export class AggregatedIncrementalXapiWriter extends AbstractAggregatedXapiWrite
   /**
    *
    * @param {Map<string,string>} baseUuidToSrcVdi
+   * @param {Map<string,string>} contentKeys
    */
   async checkBaseVdis(baseUuidToSrcVdi, contentKeys) {
     debug('checkBaseVdis', { baseUuidToSrcVdi })
