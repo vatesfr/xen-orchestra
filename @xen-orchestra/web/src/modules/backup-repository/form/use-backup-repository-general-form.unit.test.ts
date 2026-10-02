@@ -1,11 +1,16 @@
+import BackupRepositoryFormSelect from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormSelect.vue'
+import BackupRepositoryGeneralStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryGeneralStep.vue'
 import {
   type BackupRepositoryGeneralFormData,
   useBackupRepositoryGeneralForm,
 } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { flushPromises } from '@vue/test-utils'
-import { reactive, ref } from 'vue'
+import UiInput from '@core/components/ui/input/UiInput.vue'
+import { flushPromises, mount } from '@vue/test-utils'
+import { defineComponent, h, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { BackupRepositoryType } from 'xo-remote-parser'
 
@@ -14,6 +19,8 @@ vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), (
 }))
 
 const ENCRYPTION_KEY = '0123456789abcdef0123456789ABCDEF'
+
+const OBFUSCATED_VALUE = 'obfuscated-q3oi6d9X8uenGvdLnHk2'
 
 function createGeneralFormData(): BackupRepositoryGeneralFormData {
   return { name: '', type: undefined, backupFormat: undefined, proxy: undefined, encrypted: false, encryptionKey: '' }
@@ -35,6 +42,41 @@ async function mountGeneralForm(formData: Partial<BackupRepositoryGeneralFormDat
   await flushPromises()
 
   return result
+}
+
+// In edit mode, formData is filled from the start, as the edit form does, so the watchers don't overwrite it
+function createEditGeneralForm(formData: Partial<BackupRepositoryGeneralFormData>) {
+  return useBackupRepositoryGeneralForm(reactive({ ...createGeneralFormData(), ...formData }), true)
+}
+
+function mountEditGeneralForm(formData: Partial<BackupRepositoryGeneralFormData>) {
+  return mountComposable(() => createEditGeneralForm(formData)).wrapper.vm
+}
+
+// The selects only expose their id in the bindings, so their disabled state is read from the rendered step.
+// The select configurations are registered per app, hence the form is created by the mounted component itself
+function findDisabledSelects(formData: Partial<BackupRepositoryGeneralFormData>) {
+  const wrapper = mount(
+    defineComponent(() => {
+      const { bindings } = createEditGeneralForm(formData)
+
+      return () => h(BackupRepositoryGeneralStep, { bindings })
+    }),
+    { global: createGlobalTestConfig() }
+  )
+
+  return wrapper
+    .findAllComponents(BackupRepositoryFormSelect)
+    .filter(select => select.getComponent(UiInput).props('disabled'))
+    .map(select => select.props('label'))
+}
+
+const ENCRYPTED_NFS_FORM_DATA: Partial<BackupRepositoryGeneralFormData> = {
+  name: 'My repository',
+  type: 'nfs',
+  backupFormat: 'block',
+  encrypted: true,
+  encryptionKey: OBFUSCATED_VALUE,
 }
 
 describe('formData', () => {
@@ -169,5 +211,40 @@ describe('buildUrlOptions', () => {
     const result = await mountGeneralForm({ type: 's3', encrypted: true, encryptionKey: ENCRYPTION_KEY })
 
     expect(result.buildUrlOptions()).toEqual({ useVhdDirectory: true, encryptionKey: ENCRYPTION_KEY })
+  })
+})
+
+describe('edit mode', () => {
+  it('locks the encryption and its key of an encrypted repository', () => {
+    const result = mountEditGeneralForm(ENCRYPTED_NFS_FORM_DATA)
+
+    expect(result.bindings.encrypted.disabled).toBe(true)
+    expect(result.bindings.encryptionKey.disabled).toBe(true)
+  })
+
+  it('locks the encryption of an unencrypted block based repository', () => {
+    const result = mountEditGeneralForm({ name: 'My repository', type: 'nfs', backupFormat: 'block' })
+
+    expect(result.bindings.encrypted.disabled).toBe(true)
+  })
+
+  it('locks the type and the format of an encrypted repository, as the encryption requires the block based one', () => {
+    expect(findDisabledSelects(ENCRYPTED_NFS_FORM_DATA)).toEqual([t('type'), t('backup-format')])
+  })
+
+  it('locks only the type of an unencrypted repository', () => {
+    expect(findDisabledSelects({ name: 'My repository', type: 'nfs', backupFormat: 'block' })).toEqual([t('type')])
+  })
+
+  it('accepts the obfuscated key sent back by the API', async () => {
+    const result = mountEditGeneralForm(ENCRYPTED_NFS_FORM_DATA)
+
+    expect(await result.validate()).toBe(true)
+  })
+
+  it('keeps the key of an encrypted repository', () => {
+    const result = mountEditGeneralForm(ENCRYPTED_NFS_FORM_DATA)
+
+    expect(result.buildUrlOptions()).toEqual({ useVhdDirectory: true, encryptionKey: OBFUSCATED_VALUE })
   })
 })
