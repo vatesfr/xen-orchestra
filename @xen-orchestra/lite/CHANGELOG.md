@@ -3,6 +3,7 @@
 ## **next**
 
 - [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
+- [VM/New] Fix UEFI VMs booting in BIOS mode when created with a network install or without disk (PR [#10521](https://github.com/vatesfr/xen-orchestra/pull/10521))
 
 ## **0.26.0** (2026-10-01)
 
