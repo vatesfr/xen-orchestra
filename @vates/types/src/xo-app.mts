@@ -288,7 +288,7 @@ export type XoApp = {
   createAclV2Role(role: {
     name: XoAclRole['name']
     description?: XoAclRole['description']
-    privileges?: Omit<XoAclBasePrivilege, 'id' | 'roleId'>
+    privileges?: Omit<XoAclBasePrivilege, 'id' | 'roleId'>[]
   }): Promise<XoAclRole>
   createAuthenticationToken(opts: {
     client?: {
