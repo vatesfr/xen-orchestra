@@ -545,6 +545,7 @@
   "job:backup-repository-benchmark:missing-backup-repository": "Missing backup repository",
   "job:backup-repository-benchmark:repository-disabled": "Backup repository disabled",
   "job:backup-repository-create:encryption-requires-block": "Encryption requires the block based backup format",
+  "job:backup-repository-edit:encryption-key-locked": "Encryption key cannot be modified",
   "job:connect:in-progress": "Connect in progress…",
   "job:create:in-progress": "Create in progress…",
   "job:delete:in-progress": "Delete in progress…",

@@ -44,7 +44,6 @@ async function mountGeneralForm(formData: Partial<BackupRepositoryGeneralFormDat
   return result
 }
 
-// In edit mode, formData is filled from the start, as the edit form does, so the watchers don't overwrite it
 function createEditGeneralForm(formData: Partial<BackupRepositoryGeneralFormData>) {
   return useBackupRepositoryGeneralForm(reactive({ ...createGeneralFormData(), ...formData }), true)
 }
@@ -53,8 +52,6 @@ function mountEditGeneralForm(formData: Partial<BackupRepositoryGeneralFormData>
   return mountComposable(() => createEditGeneralForm(formData)).wrapper.vm
 }
 
-// The selects only expose their id in the bindings, so their disabled state is read from the rendered step.
-// The select configurations are registered per app, hence the form is created by the mounted component itself
 function findDisabledSelects(formData: Partial<BackupRepositoryGeneralFormData>) {
   const wrapper = mount(
     defineComponent(() => {

@@ -545,6 +545,7 @@
   "job:backup-repository-benchmark:missing-backup-repository": "Aucun dépôt de sauvegarde",
   "job:backup-repository-benchmark:repository-disabled": "Dépôt de sauvegarde désactivé",
   "job:backup-repository-create:encryption-requires-block": "Le chiffrement nécessite le format de sauvegarde par blocs",
+  "job:backup-repository-edit:encryption-key-locked": "La clé de chiffrement ne peut pas être modifiée",
   "job:connect:in-progress": "Connexion en cours…",
   "job:create:in-progress": "Création en cours…",
   "job:delete:in-progress": "Suppression en cours…",
