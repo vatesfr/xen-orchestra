@@ -21,13 +21,16 @@ export function useLocalBackupRepositoryDetailsForm(
   const proxy = toComputed(rawProxy)
   const { t } = useI18n()
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm({ ...INITIAL_FORM_DATA, ...initialData }, {
-    errors: {
-      onSubmit: () => ({
-        path: { required },
-      }),
-    },
-  })
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+    { ...INITIAL_FORM_DATA, ...initialData },
+    {
+      errors: {
+        onSubmit: () => ({
+          path: { required },
+        }),
+      },
+    }
+  )
 
   const bindings = reactive({
     path: useField('path', () => ({

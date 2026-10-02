@@ -22,15 +22,18 @@ export type SmbBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 export function useSmbBackupRepositoryDetailsForm(initialData?: Partial<SmbBackupRepositoryDetailsFormData>) {
   const { t } = useI18n()
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm({ ...INITIAL_FORM_DATA, ...initialData }, {
-    errors: {
-      onSubmit: () => ({
-        pathOnShare: { required },
-        username: { required },
-        password: { required },
-      }),
-    },
-  })
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+    { ...INITIAL_FORM_DATA, ...initialData },
+    {
+      errors: {
+        onSubmit: () => ({
+          pathOnShare: { required },
+          username: { required },
+          password: { required },
+        }),
+      },
+    }
+  )
 
   const bindings = reactive({
     pathOnShare: useField('pathOnShare', () => ({

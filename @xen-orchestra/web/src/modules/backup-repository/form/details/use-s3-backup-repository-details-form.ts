@@ -22,17 +22,20 @@ export type S3BackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 export function useS3BackupRepositoryDetailsForm(initialData?: Partial<S3BackupRepositoryDetailsFormData>) {
   const { t } = useI18n()
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm({ ...INITIAL_FORM_DATA, ...initialData }, {
-    errors: {
-      onSubmit: () => ({
-        endpoint: { required },
-        region: { required },
-        accessKeyId: { required },
-        secret: { required },
-        bucket: { required },
-      }),
-    },
-  })
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+    { ...INITIAL_FORM_DATA, ...initialData },
+    {
+      errors: {
+        onSubmit: () => ({
+          endpoint: { required },
+          region: { required },
+          accessKeyId: { required },
+          secret: { required },
+          bucket: { required },
+        }),
+      },
+    }
+  )
 
   watch(
     () => formData.useHttps,

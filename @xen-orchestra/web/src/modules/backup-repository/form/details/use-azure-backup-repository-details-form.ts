@@ -27,16 +27,19 @@ export function useAzureBackupRepositoryDetailsForm(
 
   const type = toComputed(rawType)
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm({ ...INITIAL_FORM_DATA, ...initialData }, {
-    errors: {
-      onSubmit: () => ({
-        hostName: { required },
-        accountName: { required },
-        key: { required },
-        containerName: { required },
-      }),
-    },
-  })
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+    { ...INITIAL_FORM_DATA, ...initialData },
+    {
+      errors: {
+        onSubmit: () => ({
+          hostName: { required },
+          accountName: { required },
+          key: { required },
+          containerName: { required },
+        }),
+      },
+    }
+  )
 
   const bindings = reactive({
     hostName: useField('hostName', () => ({ label: t('host-name'), required: true })),
