@@ -46,6 +46,12 @@ it('links the breadcrumb back to the list of backup repositories', () => {
   )
 })
 
+it('offers to edit the repository', () => {
+  const wrapper = mountHeader()
+
+  expect(wrapper.get('.ui-head-bar .actions').text()).toContain(t('action:edit'))
+})
+
 it('shows a connected icon for an enabled repository without error', () => {
   const wrapper = mountHeader(createBr({ enabled: true, error: undefined }))
 
