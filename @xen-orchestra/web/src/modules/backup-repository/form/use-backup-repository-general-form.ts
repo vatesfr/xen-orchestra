@@ -26,19 +26,22 @@ const BLOCK_ONLY_TYPES: BackupRepositoryType[] = ['azure', 'azurite', 's3']
 
 export type BackupRepositoryGeneralForm = ReturnType<typeof useBackupRepositoryGeneralForm>
 
-export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneralFormData, isTypeLocked = false) {
+export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneralFormData, isEditing = false) {
   const { t } = useI18n()
 
   const { proxies } = useXoProxyCollection()
 
   const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
     errors: {
+      // In edit mode, the key is locked and comes back obfuscated from the API, so it can't match the regex
       onBlur: () => ({
-        encryptionKey: {
-          regex: withMessage(regex(ENCRYPTION_KEY_REGEX), () =>
-            t('encryption-key-invalid', { n: ENCRYPTION_KEY_LENGTH })
-          ),
-        },
+        encryptionKey: isEditing
+          ? {}
+          : {
+              regex: withMessage(regex(ENCRYPTION_KEY_REGEX), () =>
+                t('encryption-key-invalid', { n: ENCRYPTION_KEY_LENGTH })
+              ),
+            },
       }),
       onSubmit: () => ({
         name: { required },
@@ -82,7 +85,7 @@ export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneral
 
   const { id: typeSelectId } = useFormSelect('type', typeOptions, {
     required: true,
-    disabled: () => isTypeLocked,
+    disabled: () => isEditing,
     option: { label: 'label', value: 'value' },
   })
 
@@ -102,7 +105,8 @@ export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneral
 
   const { id: backupFormatSelectId } = useFormSelect('backupFormat', backupFormatOptions, {
     required: true,
-    disabled: () => formData.type === undefined || isBackupFormatLocked.value,
+    // Encryption requires block format, and it can't be changed in edit mode
+    disabled: () => formData.type === undefined || isBackupFormatLocked.value || (isEditing && formData.encrypted),
     option: { label: 'label', value: 'value', properties: source => ({ hint: source.hint }) },
   })
 
@@ -123,12 +127,13 @@ export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneral
     encrypted: useField('encrypted', () => ({
       label: t('encrypted'),
       warning: t('encryption-key-loss-warning'),
-      disabled: !isEncryptionAvailable.value,
+      disabled: isEditing || !isEncryptionAvailable.value,
     })),
     encryptionKey: useField('encryptionKey', () => ({
       label: t('key'),
       required: true,
       type: 'password' as InputType,
+      disabled: isEditing,
       info: t('n-hexadecimal-characters', { n: ENCRYPTION_KEY_LENGTH }),
     })),
   })
