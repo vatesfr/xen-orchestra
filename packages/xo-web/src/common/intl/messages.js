@@ -2573,6 +2573,7 @@ const messages = {
   // ----- IPs ------
   ipPoolName: 'Name',
   ipPoolIps: 'IPs',
+  ipPoolIpsPlaceholder: 'IPs, e.g. 192.168.0.1-192.168.0.254;192.168.1.10',
   ipPoolNetworks: 'Networks',
   ipsNoIpPool: 'No IP pools',
   ipsCreate: 'Create',

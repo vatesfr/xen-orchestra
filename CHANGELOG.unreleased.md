@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [XO5/Settings/IPs] Show an example of the expected IP format when adding IPs to an IP pool (PR [#10522](https://github.com/vatesfr/xen-orchestra/pull/10522))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -42,6 +44,6 @@
 - @xen-orchestra/web patch
 - vectura patch
 - xen-api patch
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
