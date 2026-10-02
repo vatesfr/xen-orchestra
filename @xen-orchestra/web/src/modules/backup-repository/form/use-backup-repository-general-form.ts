@@ -132,7 +132,7 @@ export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneral
     encryptionKey: useField('encryptionKey', () => ({
       label: t('key'),
       required: true,
-      type: 'password' as InputType,
+      type: (isEditing ? 'password' : 'text') as InputType,
       disabled: isEditing,
       info: t('n-hexadecimal-characters', { n: ENCRYPTION_KEY_LENGTH }),
     })),
