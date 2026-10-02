@@ -9,12 +9,13 @@
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
-type CounterAccent = 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'muted'
+export type CounterValue = number | string
+export type CounterAccent = 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'muted'
 type CounterVariant = 'primary' | 'secondary'
 type CounterSize = 'small' | 'medium'
 
 const { size, accent, variant } = defineProps<{
-  value: number | string
+  value: CounterValue
   accent: CounterAccent
   variant: CounterVariant
   size: CounterSize

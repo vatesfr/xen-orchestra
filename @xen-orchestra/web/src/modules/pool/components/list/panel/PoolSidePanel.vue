@@ -20,7 +20,7 @@
       <VtsStateHero v-if="!arePoolsReady" format="panel" type="busy" size="medium" />
       <template v-else>
         <UiPanelCard v-if="server.error === undefined">
-          <VtsCardObjectTitle :id="server.id" :label="server.label" icon="object:pool" />
+          <UiPanelCardTitle :id="server.id" size="medium" :label="server.label" icon="object:pool" />
           <div class="content">
             <!-- Pool -->
             <VtsCardRowKeyValue>
@@ -131,12 +131,7 @@
           </VtsCardRowKeyValue>
         </UiPanelCard>
         <UiPanelCard v-if="hosts !== undefined">
-          <UiCardTitle>
-            <span>
-              {{ t('hosts') }}
-              <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
-            </span>
-          </UiCardTitle>
+          <UiPanelCardTitle size="medium" :label="t('hosts')" :counter="hosts.length" />
           <VtsStateHero v-if="hosts.length === 0" format="card" type="no-data" size="small">
             {{ t('no-data') }}
           </VtsStateHero>
@@ -145,10 +140,7 @@
           </template>
         </UiPanelCard>
         <UiPanelCard v-if="server.error">
-          <UiCardTitle>
-            {{ t('error') }}
-            <UiCounter :value="1" accent="danger" size="small" variant="primary" />
-          </UiCardTitle>
+          <UiPanelCardTitle size="medium" :label="t('error')" :counter="{ value: 1, accent: 'danger' }" />
           <UiLogEntryViewer accent="danger" :label="t('api-error-details')" size="small" :content="server.error" />
         </UiPanelCard>
       </template>
@@ -165,7 +157,6 @@ import PoolForgetButton from '@/modules/pool/components/actions/forget/PoolForge
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
@@ -175,11 +166,11 @@ import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'

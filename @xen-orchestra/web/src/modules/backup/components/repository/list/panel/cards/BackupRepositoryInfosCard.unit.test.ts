@@ -6,8 +6,8 @@ import { createBr } from '@/test/create-br.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 import type { XoProxy } from '@vates/types'
 import { mount } from '@vue/test-utils'
@@ -45,14 +45,14 @@ function mountCard(br: FrontXoBackupRepository = createBr()) {
 it('renders the name and the id of the repository as the card title', () => {
   const wrapper = mountCard(createBr({ name: 'Nightly backups', id: 'br-42' as FrontXoBackupRepository['id'] }))
 
-  expect(wrapper.get('.vts-card-object-title').text()).toContain('Nightly backups')
-  expect(wrapper.get('.vts-card-object-title').text()).toContain('br-42')
+  expect(wrapper.get('.ui-panel-card-title').text()).toContain('Nightly backups')
+  expect(wrapper.get('.ui-panel-card-title').text()).toContain('br-42')
 })
 
 it('links the title to the backup repositories settings of XO 5', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.findComponent(VtsCardObjectTitle).findComponent(UiLink).props('href')).toBe(
+  expect(wrapper.findComponent(UiPanelCardTitle).findComponent(UiLink).props('href')).toBe(
     'https://xo5.example.com/#/settings/remotes'
   )
 })
@@ -60,7 +60,7 @@ it('links the title to the backup repositories settings of XO 5', () => {
 it('picks the title icon from the status of the repository', () => {
   const wrapper = mountCard(createBr({ error: { code: 'ENOENT' } }))
 
-  expect(wrapper.findComponent(VtsCardObjectTitle).props('icon')).toBe(objectIcon('br', 'disconnected'))
+  expect(wrapper.findComponent(UiPanelCardTitle).props('icon')).toBe(objectIcon('br', 'disconnected'))
 })
 
 it('lists every row of the card, in order', () => {
