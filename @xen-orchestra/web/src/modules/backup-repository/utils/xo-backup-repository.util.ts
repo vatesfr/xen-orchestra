@@ -5,6 +5,10 @@ import type { BackupRepositoryType } from 'xo-remote-parser'
 
 export const MASKED_SECRET = '•'.repeat(12)
 
+export function maskSecret(secret: string | undefined): string {
+  return secret !== undefined && secret !== '' ? MASKED_SECRET : ''
+}
+
 export function getBackupRepositoryStatus(br: FrontXoBackupRepository): Status {
   if (!br.enabled) {
     return 'disabled'

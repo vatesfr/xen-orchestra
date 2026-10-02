@@ -3,8 +3,8 @@
     <UiCheckbox v-model="model" accent="brand" :disabled>
       {{ label }}
     </UiCheckbox>
-    <UiInfo v-if="warningMessage !== undefined" accent="warning" wrap>
-      {{ warningMessage }}
+    <UiInfo v-for="message of warningMessages" :key="message" accent="warning" wrap>
+      {{ message }}
     </UiInfo>
   </div>
 </template>
@@ -13,6 +13,7 @@
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 
 const { warning } = defineProps<{
@@ -23,11 +24,9 @@ const { warning } = defineProps<{
 
 const model = defineModel<boolean>({ required: true })
 
-const warningMessage = computed(() => {
-  const firstWarning = Array.isArray(warning) ? warning[0] : warning
-
-  return typeof firstWarning === 'object' ? firstWarning.content : firstWarning
-})
+const warningMessages = computed(() =>
+  toArray(warning).map(message => (typeof message === 'object' ? message.content : message))
+)
 </script>
 
 <style lang="postcss" scoped>

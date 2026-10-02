@@ -1,7 +1,7 @@
+import { useBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-backup-repository-details-form.ts'
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup-repository/types/new-backup-repository.type.ts'
 import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { required } from '@core/packages/form-validation'
-import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { type MaybeRefOrGetter, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -16,13 +16,7 @@ export function useLocalBackupRepositoryDetailsForm(rawProxy: MaybeRefOrGetter<F
   const proxy = toComputed(rawProxy)
   const { t } = useI18n()
 
-  const formData = reactive({ ...INITIAL_FORM_DATA })
-
-  const {
-    useField,
-    validate,
-    reset: resetValidation,
-  } = useValidatedForm(formData, {
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(INITIAL_FORM_DATA, {
     errors: {
       onSubmit: () => ({
         path: { required },
@@ -45,11 +39,6 @@ export function useLocalBackupRepositoryDetailsForm(rawProxy: MaybeRefOrGetter<F
         path: formData.path,
       },
     }
-  }
-
-  function reset() {
-    Object.assign(formData, INITIAL_FORM_DATA)
-    resetValidation()
   }
 
   return { formData, bindings, validate, buildPayload, reset }

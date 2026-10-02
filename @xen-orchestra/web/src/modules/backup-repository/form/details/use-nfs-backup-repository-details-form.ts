@@ -1,6 +1,6 @@
+import { useBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-backup-repository-details-form.ts'
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup-repository/types/new-backup-repository.type.ts'
 import { port, required, withMessage } from '@core/packages/form-validation'
-import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -18,13 +18,7 @@ const INITIAL_FORM_DATA = {
 export function useNfsBackupRepositoryDetailsForm() {
   const { t } = useI18n()
 
-  const formData = reactive({ ...INITIAL_FORM_DATA })
-
-  const {
-    useField,
-    validate,
-    reset: resetValidation,
-  } = useValidatedForm(formData, {
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(INITIAL_FORM_DATA, {
     errors: {
       onBlur: () => ({
         port: { port: withMessage(port, () => t('invalid-port')) },
@@ -57,11 +51,6 @@ export function useNfsBackupRepositoryDetailsForm() {
       },
       ...(formData.customOptions !== '' && { options: formData.customOptions }),
     }
-  }
-
-  function reset() {
-    Object.assign(formData, INITIAL_FORM_DATA)
-    resetValidation()
   }
 
   return { formData, bindings, validate, buildPayload, reset }

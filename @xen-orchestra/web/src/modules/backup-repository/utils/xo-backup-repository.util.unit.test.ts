@@ -2,6 +2,8 @@ import {
   formatMountOptions,
   getBackupRepositoryIcon,
   getBackupRepositoryStatus,
+  MASKED_SECRET,
+  maskSecret,
   splitBackupRepositoryPath,
 } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { createBr } from '@/test/create-br.ts'
@@ -75,5 +77,15 @@ describe('splitBackupRepositoryPath', () => {
 
   it('returns an empty root when the path is empty', () => {
     expect(splitBackupRepositoryPath('')).toEqual({ root: '', subPath: '/' })
+  })
+})
+
+describe('maskSecret', () => {
+  it('masks a given secret', () => {
+    expect(maskSecret('password')).toBe(MASKED_SECRET)
+  })
+
+  it('leaves a missing secret empty', () => {
+    expect({ empty: maskSecret(''), undefined: maskSecret(undefined) }).toEqual({ empty: '', undefined: '' })
   })
 })

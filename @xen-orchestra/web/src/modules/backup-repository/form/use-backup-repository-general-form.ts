@@ -82,27 +82,29 @@ export function useBackupRepositoryGeneralForm() {
     }
   )
 
-  const typeLabels = Object.values(BACKUP_REPOSITORY_TYPE).map(type => ({
-    type,
-    label: useXoBackupRepositoryTypeLabel(type),
+  const typeOptions = Object.values(BACKUP_REPOSITORY_TYPE).map(type => ({
+    id: type,
+    label: useXoBackupRepositoryTypeLabel(type).value,
+    value: type,
   }))
-
-  const typeOptions = computed(() =>
-    typeLabels.map(({ type, label }) => ({
-      id: type,
-      label: label.value,
-      value: type,
-    }))
-  )
 
   const { id: typeSelectId } = useFormSelect('type', typeOptions, {
     required: true,
     option: { label: 'label', value: 'value' },
   })
 
+  const backupFormatLabels = computed<Record<XoBackupFormat, string>>(() => ({
+    block: t('block-based'),
+    vhd: t('vhd-file'),
+  }))
+
+  function getBackupFormatLabel(format: XoBackupFormat | undefined): string | undefined {
+    return format !== undefined ? backupFormatLabels.value[format] : undefined
+  }
+
   const backupFormatOptions = computed(() => [
-    { id: 'block', label: t('block-based'), value: 'block', hint: t('block-based-hint') },
-    { id: 'vhd', label: t('vhd-file'), value: 'vhd', hint: t('vhd-file-hint') },
+    { id: 'block', label: backupFormatLabels.value.block, value: 'block', hint: t('block-based-hint') },
+    { id: 'vhd', label: backupFormatLabels.value.vhd, value: 'vhd', hint: t('vhd-file-hint') },
   ])
 
   const { id: backupFormatSelectId } = useFormSelect('backupFormat', backupFormatOptions, {
@@ -139,10 +141,10 @@ export function useBackupRepositoryGeneralForm() {
 
   function buildUrlOptions(): BackupRepositoryUrlOptions {
     return {
-      ...(formData.encrypted && formData.encryptionKey !== '' && { encryptionKey: formData.encryptionKey }),
+      ...(formData.encrypted && { encryptionKey: formData.encryptionKey }),
       ...(formData.backupFormat === 'block' && { useVhdDirectory: true }),
     }
   }
 
-  return { formData, bindings, validate, buildUrlOptions }
+  return { formData, bindings, validate, buildUrlOptions, getBackupFormatLabel }
 }

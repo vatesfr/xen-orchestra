@@ -1,7 +1,6 @@
+import { useBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-backup-repository-details-form.ts'
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup-repository/types/new-backup-repository.type.ts'
-import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { required } from '@core/packages/form-validation'
-import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -21,13 +20,7 @@ const INITIAL_FORM_DATA = {
 export function useS3BackupRepositoryDetailsForm() {
   const { t } = useI18n()
 
-  const formData = reactive({ ...INITIAL_FORM_DATA })
-
-  const {
-    useField,
-    validate,
-    reset: resetValidation,
-  } = useValidatedForm(formData, {
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(INITIAL_FORM_DATA, {
     errors: {
       onSubmit: () => ({
         endpoint: { required },
@@ -58,7 +51,7 @@ export function useS3BackupRepositoryDetailsForm() {
     allowUnauthorized: useField('allowUnauthorized', () => ({ label: t('allow-unauthorized') })),
     region: useField('region', () => ({ label: t('region'), required: true })),
     accessKeyId: useField('accessKeyId', () => ({ label: t('access-key-id'), required: true })),
-    secret: useField('secret', () => ({ label: t('secret'), required: true, type: 'password' as InputType })),
+    secret: useField('secret', () => ({ label: t('secret'), required: true, type: 'password' as const })),
     bucket: useField('bucket', () => ({ label: t('bucket-name'), required: true })),
     pathInBucket: useField('pathInBucket', () => ({ label: t('path-in-bucket') })),
   })
@@ -76,11 +69,6 @@ export function useS3BackupRepositoryDetailsForm() {
         ...(formData.allowUnauthorized && { allowUnauthorized: true }),
       },
     }
-  }
-
-  function reset() {
-    Object.assign(formData, INITIAL_FORM_DATA)
-    resetValidation()
   }
 
   return { formData, bindings, validate, buildPayload, reset }
