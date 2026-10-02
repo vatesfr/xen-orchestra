@@ -360,6 +360,7 @@ export function defineRemoteResource<
         }
 
         isReady.value = true
+        lastError.value = undefined
       } catch (error) {
         lastError.value = error instanceof Error ? error : new Error(String(error))
       } finally {
