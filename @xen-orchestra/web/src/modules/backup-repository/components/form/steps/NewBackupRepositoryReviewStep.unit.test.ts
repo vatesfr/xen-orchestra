@@ -73,7 +73,7 @@ describe('general section', () => {
     expect(findLabelledValues(generalSection)).toEqual({
       [t('name')]: 'My repository',
       [t('type')]: t('nfs'),
-      [t('storage-mode')]: t('vhd-file'),
+      [t('backup-format')]: t('vhd-file'),
       [t('proxy')]: '',
       [t('encryption')]: t('disabled'),
     })
@@ -82,7 +82,7 @@ describe('general section', () => {
   it('shows the block based storage mode', async () => {
     const { generalSection } = await mountReviewStep({ type: 's3' })
 
-    expect(findLabelledValues(generalSection)).toMatchObject({ [t('storage-mode')]: t('block-based') })
+    expect(findLabelledValues(generalSection)).toMatchObject({ [t('backup-format')]: t('block-based') })
   })
 
   it('shows the name of the selected proxy', async () => {

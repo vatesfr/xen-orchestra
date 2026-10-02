@@ -26,9 +26,14 @@ it('shows no warning when none is given', () => {
 it.each<[string, CheckboxProps['warning']]>([
   ['a text', 'The data cannot be recovered'],
   ['a message', { content: 'The data cannot be recovered', accent: 'warning' }],
-  ['the first of several messages', ['The data cannot be recovered', 'Another warning']],
 ])('shows the warning given as %s', (_, warning) => {
   expect(findWarnings(mountCheckbox({ warning }))).toEqual(['The data cannot be recovered'])
+})
+
+it('shows every warning when several are given', () => {
+  const warning = ['The data cannot be recovered', 'Another warning']
+
+  expect(findWarnings(mountCheckbox({ warning }))).toEqual(warning)
 })
 
 it('is checked according to its model', () => {

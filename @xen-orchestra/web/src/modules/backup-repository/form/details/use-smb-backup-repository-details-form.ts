@@ -1,7 +1,6 @@
+import { useBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-backup-repository-details-form.ts'
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup-repository/types/new-backup-repository.type.ts'
-import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { required } from '@core/packages/form-validation'
-import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -21,13 +20,7 @@ const INITIAL_FORM_DATA = {
 export function useSmbBackupRepositoryDetailsForm() {
   const { t } = useI18n()
 
-  const formData = reactive({ ...INITIAL_FORM_DATA })
-
-  const {
-    useField,
-    validate,
-    reset: resetValidation,
-  } = useValidatedForm(formData, {
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(INITIAL_FORM_DATA, {
     errors: {
       onSubmit: () => ({
         pathOnShare: { required },
@@ -50,7 +43,7 @@ export function useSmbBackupRepositoryDetailsForm() {
       info: t('smb-subfolder-sample'),
     })),
     username: useField('username', () => ({ label: t('username'), required: true })),
-    password: useField('password', () => ({ label: t('password'), required: true, type: 'password' as InputType })),
+    password: useField('password', () => ({ label: t('password'), required: true, type: 'password' as const })),
     domain: useField('domain', () => ({
       label: t('domain'),
       placeholder: SMB_DEFAULT_DOMAIN,
@@ -71,11 +64,6 @@ export function useSmbBackupRepositoryDetailsForm() {
       },
       ...(formData.customOptions !== '' && { options: formData.customOptions }),
     }
-  }
-
-  function reset() {
-    Object.assign(formData, INITIAL_FORM_DATA)
-    resetValidation()
   }
 
   return { formData, bindings, validate, buildPayload, reset }
