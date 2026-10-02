@@ -17,8 +17,8 @@
   "action:close": "Chiudi",
   "action:confirm": "Conferma",
   "action:connect": "Connetti",
-  "action:connect-another-pool": "Connetta un'altra pool",
-  "action:connect-pool": "Connetta pool",
+  "action:connect-another-pool": "Connetti un altro pool",
+  "action:connect-pool": "Connetti pool",
   "action:copy": "Copia",
   "action:copy-all": "Copia tutto",
   "action:copy-host": "Copia host",
@@ -465,6 +465,7 @@
   "xo-lite": "XO lite",
   "xo-lite-under-construction": "XOLite è in costruzione",
   "xo-replications": "Repliche XO",
+  "xo-team": "Il team XO",
   "xoa": "XOA",
   "xoa-ssh-account": "Account XOA SSH",
   "you-are-currently-on": "Ti trovi in: {0}"

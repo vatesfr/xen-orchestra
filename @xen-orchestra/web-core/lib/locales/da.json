@@ -136,7 +136,7 @@
   "configuration": "Konfiguration",
   "configure-in-xo-5": "Konfigurer i XO 5",
   "confirm-cancel?": "Er du sikker på, at du vil annullere?",
-  "confirm-delete": "Du er ved at slette {0}",
+  "confirm-delete": "Du er ved at slette {name}",
   "connect": "Forbind",
   "connected": "Forbundet",
   "connected-to-ip": "Forbundet til {ip}",
