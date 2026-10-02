@@ -3,6 +3,7 @@
 ## **next**
 
 - [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
+- [Side panels] Harmonize card titles across side panels (PR [#10289](https://github.com/vatesfr/xen-orchestra/pull/10289))
 
 ## **0.26.0** (2026-10-01)
 

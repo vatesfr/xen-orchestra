@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [XO6/Side panels] Harmonize card titles across side panels (PR [#10289](https://github.com/vatesfr/xen-orchestra/pull/10289))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -35,7 +37,8 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xen-api patch
 - xo-web patch
 

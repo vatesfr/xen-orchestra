@@ -1,10 +1,6 @@
 <template>
   <UiPanelCard class="task-infos-card">
-    <UiPanelCardTitle
-      size="medium"
-      :label="t('info')"
-      :counter="{ value: Object.keys(task.infos!).length, accent: 'info' }"
-    />
+    <UiPanelCardTitle size="medium" :label="t('info')" :counter="{ value: task.infos?.length ?? 0, accent: 'info' }" />
     <div class="content">
       <template v-for="(info, index) in task.infos" :key="index">
         <VtsDivider v-if="index > 0" class="divider" type="stretch" />
