@@ -16,7 +16,6 @@ const { useBenchmarkJob, run } = vi.hoisted(() => ({
   run: vi.fn(),
 }))
 
-// The job monitors a task through a remote-resource collection, which would open an SSE subscription
 vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'), () => ({
   useXoBackupRepositoryBenchmarkJob: useBenchmarkJob as unknown as typeof useXoBackupRepositoryBenchmarkJob,
 }))

@@ -49,6 +49,10 @@ export const useXoBackupRepositoryEditJob = defineJob('br.edit', [xoBackupReposi
 
       const brInfo = parseBackupRepositoryUrl(payload.url)
 
+      if (brInfo.encryptionKey !== parseBackupRepositoryUrl(br.url).encryptionKey) {
+        throw new JobError(t('job:backup-repository-edit:encryption-key-locked'))
+      }
+
       if (brInfo.encryptionKey !== undefined && brInfo.useVhdDirectory !== true) {
         throw new JobError(t('job:backup-repository-create:encryption-requires-block'))
       }
