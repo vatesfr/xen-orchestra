@@ -142,6 +142,12 @@ describe('bindings', () => {
 
     expect(result.bindings.encrypted.disabled).toBe(false)
   })
+
+  it('shows the encryption key in clear text', async () => {
+    const result = await mountGeneralForm({ type: 'nfs', backupFormat: 'block', encrypted: true })
+
+    expect(result.bindings.encryptionKey.type).toBe('text')
+  })
 })
 
 describe('validate', () => {
@@ -217,6 +223,12 @@ describe('edit mode', () => {
 
     expect(result.bindings.encrypted.disabled).toBe(true)
     expect(result.bindings.encryptionKey.disabled).toBe(true)
+  })
+
+  it('hides the key of an encrypted repository', () => {
+    const result = mountEditGeneralForm(ENCRYPTED_NFS_FORM_DATA)
+
+    expect(result.bindings.encryptionKey.type).toBe('password')
   })
 
   it('locks the encryption of an unencrypted block based repository', () => {
