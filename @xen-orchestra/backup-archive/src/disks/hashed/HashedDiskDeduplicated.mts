@@ -113,19 +113,10 @@ export class HashedDiskDeduplicated extends HashedDisk {
     return disk
   }
 
+  // ---------------------------------------------------------------- getters
+
   get #diskDir(): string {
     return dirname(this.#path)
-  }
-
-  /**
-   * Resolves a path stored in the metadata, which is relative to the hbd file.
-   */
-  #resolve(relativePath: string, container: string = this.#diskDir): string {
-    const resolved = normalize(join(this.#diskDir, relativePath))
-    if (!isInDir(resolved, container)) {
-      throw new Error(`path ${relativePath} escapes ${container}`)
-    }
-    return resolved
   }
 
   get #loadedMetadata(): HashedDiskMetadata {
@@ -151,89 +142,6 @@ export class HashedDiskDeduplicated extends HashedDisk {
     }
     return this.#dataDir
   }
-
-  #blockPath(hash: BlockHash): string {
-    if (this.#blocksDir === undefined) {
-      throw new Error(`can't use a HashedDiskDeduplicated before init`)
-    }
-    return join(this.#blocksDir, blockRelPath(hash))
-  }
-
-  /**
-   * @param hash always hex
-   * @returns complete path in store
-   * Rooted at the remote root, not the disk dir, so no #resolve: the root comes from
-   * the caller and the hash is always hex
-   */
-  #storePath(hash: BlockHash): string {
-    if (this.#blockStorePath === undefined) {
-      throw new Error(`disk ${this.#path} is PER_BACKUP_REPOSITORY but no blockStorePath was given`)
-    }
-    return join(this.#blockStorePath, blockRelPath(hash), '0')
-  }
-
-  // ---------------------------------------------------------------- lifecycle
-
-  /**
-   * @param options.force to force read a hashes file whose size disagrees with
-   * virtualSize / blockSize, instead of refusing to open the disk (useful for first tests)
-   */
-  async init(options: { force?: boolean } = {}): Promise<void> {
-    if (this.#metadata !== undefined) {
-      return
-    }
-
-    let metadata: HashedDiskMetadata
-    let dataDir: string
-    let hashesPath: string
-    let blocksDir: string
-    try {
-      metadata = JSON.parse((await this.#handler.readFile(this.#path)).toString())
-      checkVersion(metadata.version)
-
-      const { blockSize, virtualSize } = metadata
-      if (!Number.isInteger(blockSize) || blockSize <= 0) {
-        throw new Error(`invalid blockSize ${blockSize}`)
-      }
-      if (!Number.isInteger(virtualSize) || virtualSize < 0) {
-        throw new Error(`invalid virtualSize ${virtualSize}`)
-      }
-
-      // named after the uuid at creation, not the current one: a merge gives
-      // the disk its child's uuid but leaves the directory where it is
-      dataDir = this.#resolve(dataDirName(basename(dirname(metadata.localBlocksPath))))
-      hashesPath = this.#resolve(metadata.hashesPath, dataDir)
-      blocksDir = this.#resolve(metadata.localBlocksPath, dataDir)
-    } catch (error: unknown) {
-      throw new HbdFileError((error as NodeJS.ErrnoException).message, this.#path, error)
-    }
-
-    this.#metadata = metadata
-    this.#dataDir = dataDir
-    this.#blocksDir = blocksDir
-
-    try {
-      this.#bat = BlockAllocationTable.fromBuffer(
-        await this.#handler.readFile(hashesPath),
-        this.getMaxBlockCount(),
-        options.force
-      )
-      this.#oldBlockCount = this.getMaxBlockCount()
-    } catch (error: unknown) {
-      this.#metadata = undefined
-      this.#dataDir = undefined
-      this.#blocksDir = undefined
-      throw new HbdFileError((error as NodeJS.ErrnoException).message, hashesPath, error)
-    }
-  }
-
-  async close(): Promise<void> {
-    if (this.#dirty) {
-      await this.flushMetadata()
-    }
-  }
-
-  // ---------------------------------------------------------------- getters
 
   getVirtualSize(): number {
     return this.#loadedMetadata.virtualSize
@@ -303,14 +211,64 @@ export class HashedDiskDeduplicated extends HashedDisk {
     return this.#loadedBat.hashAt(index)
   }
 
-  async #link(existingPath: string, newPath: string): Promise<void> {
+  // ---------------------------------------------------------------- public
+
+  /**
+   * @param options.force to force read a hashes file whose size disagrees with
+   * virtualSize / blockSize, instead of refusing to open the disk (useful for first tests)
+   */
+  async init(options: { force?: boolean } = {}): Promise<void> {
+    if (this.#metadata !== undefined) {
+      return
+    }
+
+    let metadata: HashedDiskMetadata
+    let dataDir: string
+    let hashesPath: string
+    let blocksDir: string
     try {
-      await this.#handler.link(existingPath, newPath)
-    } catch (error: unknown) {
-      // EEXIST => block already referenced by disk
-      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
-        throw error
+      metadata = JSON.parse((await this.#handler.readFile(this.#path)).toString())
+      checkVersion(metadata.version)
+
+      const { blockSize, virtualSize } = metadata
+      if (!Number.isInteger(blockSize) || blockSize <= 0) {
+        throw new Error(`invalid blockSize ${blockSize}`)
       }
+      if (!Number.isInteger(virtualSize) || virtualSize < 0) {
+        throw new Error(`invalid virtualSize ${virtualSize}`)
+      }
+
+      // named after the uuid at creation, not the current one: a merge gives
+      // the disk its child's uuid but leaves the directory where it is
+      dataDir = this.#resolve(dataDirName(basename(dirname(metadata.localBlocksPath))))
+      hashesPath = this.#resolve(metadata.hashesPath, dataDir)
+      blocksDir = this.#resolve(metadata.localBlocksPath, dataDir)
+    } catch (error: unknown) {
+      throw new HbdFileError((error as NodeJS.ErrnoException).message, this.#path, error)
+    }
+
+    this.#metadata = metadata
+    this.#dataDir = dataDir
+    this.#blocksDir = blocksDir
+
+    try {
+      this.#bat = BlockAllocationTable.fromBuffer(
+        await this.#handler.readFile(hashesPath),
+        this.getMaxBlockCount(),
+        options.force
+      )
+      this.#oldBlockCount = this.getMaxBlockCount()
+    } catch (error: unknown) {
+      this.#metadata = undefined
+      this.#dataDir = undefined
+      this.#blocksDir = undefined
+      throw new HbdFileError((error as NodeJS.ErrnoException).message, hashesPath, error)
+    }
+  }
+
+  async close(): Promise<void> {
+    if (this.#dirty) {
+      await this.flushMetadata()
     }
   }
 
@@ -321,50 +279,6 @@ export class HashedDiskDeduplicated extends HashedDisk {
     }
     await this.#handler.rename(this.#path, newPath)
     this.#path = newPath
-  }
-
-  /**
-   * Writes the block file unless it is already there. 'wx' for concurrent cases
-   */
-  async #storeBlock(hash: BlockHash, data: Buffer): Promise<void> {
-    try {
-      await this.#handler.outputFile(this.#blockPath(hash), Buffer.concat([buildBlockHeader(hash), data]), {
-        flags: 'wx',
-      })
-    } catch (error: unknown) {
-      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
-        throw error
-      }
-      // already stored, by another index of this disk or by a previous run
-    }
-  }
-
-  async #addBlockReference(hash: BlockHash, data: Buffer): Promise<void> {
-    if (this.#loadedMetadata.dedupType === 'PER_DISK') {
-      return this.#storeBlock(hash, data)
-    }
-
-    const storePath = this.#storePath(hash)
-    const blockPath = this.#blockPath(hash)
-    try {
-      await this.#link(storePath, blockPath)
-      return
-    } catch (error: unknown) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        throw error
-      }
-    }
-
-    // link did not work, we need a new block
-    const tmp = join(this.#blocksDir!, '.tmp', randomUUID())
-    await this.#handler.outputFile(tmp, Buffer.concat([buildBlockHeader(hash), data]), { flags: 'wx' })
-    try {
-      await this.#link(tmp, storePath)
-    } finally {
-      await this.#handler.unlink(tmp, { checksum: false })
-    }
-
-    await this.#link(storePath, blockPath)
   }
 
   async readBlock(index: number): Promise<DiskBlock> {
@@ -435,45 +349,6 @@ export class HashedDiskDeduplicated extends HashedDisk {
     bat.resize(blockCount)
     this.#metadata = { ...this.#loadedMetadata, virtualSize: blockCount * this.getBlockSize() }
     this.#dirty = true
-  }
-
-  // ---------------------------------------------------------------- metadata
-
-  /**
-   * best effort: the new BAT is already safe, a failure only leaks
-   */
-  async #removeOrphans(previousHashesPath: string): Promise<void> {
-    const stream = await this.#handler.createReadStream(previousHashesPath)
-    try {
-      const current = this.#loadedBat
-      const candidates = new HashEntrySet()
-
-      // Pass 1: Entries of the previous BAT this flush replaced
-      for await (const { firstIndex, bat } of BlockAllocationTable.readChunks(stream, this.#oldBlockCount)) {
-        for (const index of bat.indexes()) {
-          if (!current.sameAt(firstIndex + index, bat, index)) {
-            candidates.add(Buffer.from(bat.entryAt(index)))
-          }
-        }
-      }
-
-      // Pass 2: A replaced hash can still be referenced at another index
-      for (const index of current.indexes()) {
-        if (candidates.size === 0) {
-          break
-        }
-        candidates.delete(current.entryAt(index))
-      }
-
-      // Removal
-      for (const entry of candidates) {
-        await this.#removeBlockReference(entry.toString('hex') as BlockHash)
-      }
-    } catch (error) {
-      warn('failed to remove orphaned blocks', { path: this.#path, error })
-    } finally {
-      stream.destroy()
-    }
   }
 
   /**
@@ -572,6 +447,131 @@ export class HashedDiskDeduplicated extends HashedDisk {
     this.#dataDir = undefined
     this.#blocksDir = undefined
     this.#dirty = false
+  }
+
+  // ---------------------------------------------------------------- private
+
+  /**
+   * Resolves a path stored in the metadata, which is relative to the hbd file.
+   */
+  #resolve(relativePath: string, container: string = this.#diskDir): string {
+    const resolved = normalize(join(this.#diskDir, relativePath))
+    if (!isInDir(resolved, container)) {
+      throw new Error(`path ${relativePath} escapes ${container}`)
+    }
+    return resolved
+  }
+
+  #blockPath(hash: BlockHash): string {
+    if (this.#blocksDir === undefined) {
+      throw new Error(`can't use a HashedDiskDeduplicated before init`)
+    }
+    return join(this.#blocksDir, blockRelPath(hash))
+  }
+
+  /**
+   * @param hash always hex
+   * @returns complete path in store
+   * Rooted at the remote root, not the disk dir, so no #resolve: the root comes from
+   * the caller and the hash is always hex
+   */
+  #storePath(hash: BlockHash): string {
+    if (this.#blockStorePath === undefined) {
+      throw new Error(`disk ${this.#path} is PER_BACKUP_REPOSITORY but no blockStorePath was given`)
+    }
+    return join(this.#blockStorePath, blockRelPath(hash), '0')
+  }
+
+  async #link(existingPath: string, newPath: string): Promise<void> {
+    try {
+      await this.#handler.link(existingPath, newPath)
+    } catch (error: unknown) {
+      // EEXIST => block already referenced by disk
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
+        throw error
+      }
+    }
+  }
+
+  /**
+   * Writes the block file unless it is already there. 'wx' for concurrent cases
+   */
+  async #storeBlock(hash: BlockHash, data: Buffer): Promise<void> {
+    try {
+      await this.#handler.outputFile(this.#blockPath(hash), Buffer.concat([buildBlockHeader(hash), data]), {
+        flags: 'wx',
+      })
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
+        throw error
+      }
+      // already stored, by another index of this disk or by a previous run
+    }
+  }
+
+  async #addBlockReference(hash: BlockHash, data: Buffer): Promise<void> {
+    if (this.#loadedMetadata.dedupType === 'PER_DISK') {
+      return this.#storeBlock(hash, data)
+    }
+
+    const storePath = this.#storePath(hash)
+    const blockPath = this.#blockPath(hash)
+    try {
+      await this.#link(storePath, blockPath)
+      return
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error
+      }
+    }
+
+    // link did not work, we need a new block
+    const tmp = join(this.#blocksDir!, '.tmp', randomUUID())
+    await this.#handler.outputFile(tmp, Buffer.concat([buildBlockHeader(hash), data]), { flags: 'wx' })
+    try {
+      await this.#link(tmp, storePath)
+    } finally {
+      await this.#handler.unlink(tmp, { checksum: false })
+    }
+
+    await this.#link(storePath, blockPath)
+  }
+
+  /**
+   * best effort: the new BAT is already safe, a failure only leaks
+   */
+  async #removeOrphans(previousHashesPath: string): Promise<void> {
+    const stream = await this.#handler.createReadStream(previousHashesPath)
+    try {
+      const current = this.#loadedBat
+      const candidates = new HashEntrySet()
+
+      // Pass 1: Entries of the previous BAT this flush replaced
+      for await (const { firstIndex, bat } of BlockAllocationTable.readChunks(stream, this.#oldBlockCount)) {
+        for (const index of bat.indexes()) {
+          if (!current.sameAt(firstIndex + index, bat, index)) {
+            candidates.add(Buffer.from(bat.entryAt(index)))
+          }
+        }
+      }
+
+      // Pass 2: A replaced hash can still be referenced at another index
+      for (const index of current.indexes()) {
+        if (candidates.size === 0) {
+          break
+        }
+        candidates.delete(current.entryAt(index))
+      }
+
+      // Removal
+      for (const entry of candidates) {
+        await this.#removeBlockReference(entry.toString('hex') as BlockHash)
+      }
+    } catch (error) {
+      warn('failed to remove orphaned blocks', { path: this.#path, error })
+    } finally {
+      stream.destroy()
+    }
   }
 
   /**
