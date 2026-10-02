@@ -18,6 +18,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   #dir
   #blobServiceClient
   #containerClient
+  #immutable = false
 
   getConfig(key) {
     if (key === 'useVhdDirectory') {
@@ -92,7 +93,26 @@ export default class AzureHandler extends RemoteHandlerAbstract {
    */
   async _sync() {
     await this.#containerClient.createIfNotExists()
+    try {
+      const { hasImmutabilityPolicy, hasLegalHold } = await this.#containerClient.getProperties()
+      if (hasImmutabilityPolicy || hasLegalHold) {
+        info('Azure container has immutability policy, switching to immutable mode')
+        this.#immutable = true
+      }
+    } catch (error) {
+      if (error.statusCode === 403) {
+        // no privilege to read container properties — stay conservative, assume immutability
+        warn('Azure user lacks privilege to check immutability policy, assuming immutable')
+        this.#immutable = true
+      } else {
+        throw error
+      }
+    }
     await super._sync()
+  }
+
+  isImmutable() {
+    return this.#immutable || super.isImmutable()
   }
 
   /**
