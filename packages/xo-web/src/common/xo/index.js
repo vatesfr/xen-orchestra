@@ -1471,11 +1471,19 @@ export const isPubKeyTooShort = host => {
 }
 
 // for XCP-ng now
-export const installAllPatchesOnHost = ({ host }) =>
-  confirm({
+export const installAllPatchesOnHost = async ({ host }) => {
+  const { master } = getObject(store.getState(), host.$pool)
+  const isMasterUpToDate = master === host.id || isEmpty(await getHostMissingPatches(master))
+
+  return confirm({
     body: (
       <div>
         <p>{_('installAllPatchesOnHostContent')}</p>
+        {!isMasterUpToDate && (
+          <p className='text-danger'>
+            <Icon icon='alarm' /> {_('installAllPatchesOnHostMasterNotUpToDate')}
+          </p>
+        )}
         <p className='text-warning'>
           {_('installAllPatchesXostorWarning')}
           <br />
@@ -1491,6 +1499,7 @@ export const installAllPatchesOnHost = ({ host }) =>
       subscribeHostMissingPatches.forceRefresh(host)
     )
   )
+}
 
 export const installPatches = (patches, pool) =>
   confirm({
