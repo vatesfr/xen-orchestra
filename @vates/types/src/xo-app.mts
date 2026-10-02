@@ -285,7 +285,11 @@ export type XoApp = {
     id: XoAclRole['id'],
     params?: { name?: XoAclRole['name']; description?: XoAclRole['description'] }
   ): Promise<XoAclRole['id']>
-  createAclV2Role(role: { name: XoAclRole['name']; description?: XoAclRole['description'] }): Promise<XoAclRole>
+  createAclV2Role(role: {
+    name: XoAclRole['name']
+    description?: XoAclRole['description']
+    privileges?: Omit<XoAclBasePrivilege, 'id' | 'roleId'>
+  }): Promise<XoAclRole>
   createAuthenticationToken(opts: {
     client?: {
       id?: string
