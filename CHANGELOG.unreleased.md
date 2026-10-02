@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [SBOM] Add CycloneDX generation script to check all dependencies in one json (PR [#10368](https://github.com/vatesfr/xen-orchestra/pull/10368))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
