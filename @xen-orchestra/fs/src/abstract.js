@@ -385,7 +385,10 @@ export default class RemoteHandlerAbstract {
 
   // data can be an array of buffers, the file is then their concatenation
   async outputFile(file, data, { dirMode, flags = 'wx' } = {}) {
-    let encryptedData = this.#encryptor.encryptData(data)
+    // the encrypted parts are not concatenated when the handler can write them as is
+    let encryptedData = this._writesBufferArrays
+      ? this.#encryptor.encryptDataParts(data)
+      : this.#encryptor.encryptData(data)
     if (Array.isArray(encryptedData) && !this._writesBufferArrays) {
       encryptedData = Buffer.concat(encryptedData)
     }

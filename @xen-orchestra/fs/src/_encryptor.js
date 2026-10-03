@@ -28,6 +28,7 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
       ivLength: 0,
       authTagLength: 0,
       encryptData: buffer => buffer,
+      encryptDataParts: buffer => buffer,
       encryptStream: stream => stream,
       decryptData: buffer => buffer,
       decryptStream: stream => stream,
@@ -110,11 +111,16 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
   }
 
   // data can be an array of buffers, encrypted as their concatenation
-  function encryptData(data) {
+  // returns the encrypted file as an array of buffers, to be written one after the other
+  function encryptDataParts(data) {
     const iv = crypto.randomBytes(ivLength)
     const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv)
     const encrypted = Array.isArray(data) ? data.map(buffer => cipher.update(buffer)) : [cipher.update(data)]
-    return Buffer.concat([iv, ...encrypted, cipher.final(), authTagLength > 0 ? cipher.getAuthTag() : Buffer.alloc(0)])
+    return [iv, ...encrypted, cipher.final(), authTagLength > 0 ? cipher.getAuthTag() : Buffer.alloc(0)]
+  }
+
+  function encryptData(data) {
+    return Buffer.concat(encryptDataParts(data))
   }
 
   function decryptData(buffer) {
@@ -139,6 +145,7 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
     authTagLength,
     ivLength,
     encryptData,
+    encryptDataParts,
     encryptStream,
     decryptData,
     decryptStream,

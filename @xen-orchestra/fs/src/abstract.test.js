@@ -202,6 +202,18 @@ describe('encryption', () => {
     })
   )
 
+  it(
+    'outputFile writes an array of buffers on an encrypted remote',
+    Disposable.wrap(async function* () {
+      const handler = yield getSyncedHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd91"` })
+      const data = Buffer.from('some data, written in several parts')
+      await handler.outputFile('dir/file', [data.subarray(0, 4), data.subarray(4)])
+      // encrypted on disk
+      assert.equal((await fs.readFile(`${dir}/dir/file`)).includes(data), false)
+      assert.deepEqual(await handler.readFile('dir/file'), data)
+    })
+  )
+
   it('sync should fail when changing key on non empty remote ', async () => {
     const encryptor = _getEncryptor(DEFAULT_ENCRYPTION_ALGORITHM, '73c1838d7d8a6088ca2317fb5f29cd91')
 
