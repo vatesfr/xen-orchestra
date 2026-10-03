@@ -1,6 +1,8 @@
 import MultiNbdClient from '@vates/nbd-client/multi.mjs'
+import NbdTcpClient from '@vates/nbd-client/NbdTcpClient.mjs'
 import { BlockBufferPool } from '@xen-orchestra/disk-transform'
 import { createLogger } from '@xen-orchestra/log'
+import { NbdDiskWriter } from './NbdDiskWriter.mjs'
 
 const { debug, info, warn } = createLogger('xo:xapi:disks:nbd')
 
@@ -110,6 +112,34 @@ class PluginNbdClient extends MultiNbdClient {
 }
 
 /**
+ * The hosts which can export the VDI through the xo-nbd plugin
+ *
+ * @param {any} xapi
+ * @param {string} vdiUuid
+ * @param {(address: string) => boolean} keepAddress
+ * @returns {Promise<Array<{host: string}>|undefined>} undefined when the plugin is not usable on this pool
+ */
+async function getPluginCandidates(xapi, vdiUuid, keepAddress) {
+  if (xapi.pool.other_config['xo:nbdPlugin'] === 'false' || (pluginAbsentUntil.get(xapi) ?? 0) > Date.now()) {
+    return undefined
+  }
+  let candidates
+  try {
+    // any host can list the candidates: the hosts where the SR of the VDI is attached
+    candidates = await callNbdPlugin(xapi, xapi.pool.master, 'get_nbd_infos', { vdi_uuid: vdiUuid })
+  } catch (error) {
+    if (error.code === 'XENAPI_MISSING_PLUGIN') {
+      pluginAbsentUntil.set(xapi, Date.now() + PLUGIN_ABSENCE_TTL)
+      debug('the xo-nbd plugin is not installed')
+      return undefined
+    }
+    throw error
+  }
+  // in a random order to spread the exports on the hosts of a shared SR
+  return candidates.filter(({ addresses }) => addresses.some(keepAddress)).sort(() => Math.random() - 0.5)
+}
+
+/**
  * Exports the VDI through the xo-nbd plugin and connects to it
  *
  * @param {any} xapi
@@ -119,26 +149,12 @@ class PluginNbdClient extends MultiNbdClient {
  * @returns {Promise<MultiNbdClient|undefined>} undefined when the plugin is not usable: the caller falls back to xapi-nbd
  */
 async function connectThroughPlugin(xapi, vdiRef, nbdConcurrency, backupAddresses) {
-  if (xapi.pool.other_config['xo:nbdPlugin'] === 'false' || (pluginAbsentUntil.get(xapi) ?? 0) > Date.now()) {
+  const vdiUuid = await xapi.getField('VDI', vdiRef, 'uuid')
+  const keepAddress = address => backupAddresses === undefined || backupAddresses.includes(address)
+  const usable = await getPluginCandidates(xapi, vdiUuid, keepAddress)
+  if (usable === undefined) {
     return undefined
   }
-  const vdiUuid = await xapi.getField('VDI', vdiRef, 'uuid')
-  let candidates
-  try {
-    // any host can list the candidates: the hosts where the SR of the VDI is attached
-    candidates = await callNbdPlugin(xapi, xapi.pool.master, 'get_nbd_infos', { vdi_uuid: vdiUuid })
-  } catch (error) {
-    if (error.code === 'XENAPI_MISSING_PLUGIN') {
-      pluginAbsentUntil.set(xapi, Date.now() + PLUGIN_ABSENCE_TTL)
-      debug('the xo-nbd plugin is not installed, using xapi-nbd')
-      return undefined
-    }
-    throw error
-  }
-
-  const keepAddress = address => backupAddresses === undefined || backupAddresses.includes(address)
-  // in a random order to spread the exports on the hosts of a shared SR
-  const usable = candidates.filter(({ addresses }) => addresses.some(keepAddress)).sort(() => Math.random() - 0.5)
   for (const candidate of usable) {
     const hostRef = await xapi.call('host.get_by_uuid', candidate.host)
     let exported
@@ -185,6 +201,79 @@ async function connectThroughPlugin(xapi, vdiRef, nbdConcurrency, backupAddresse
       await client.disconnect().catch(() => {})
       await closeExport()
     }
+  }
+  return undefined
+}
+
+/**
+ * Exports the VDI in write mode through the xo-nbd plugin, and connects a single NBD client to it
+ *
+ * xapi-nbd only exports read-only: without the plugin, the caller imports the data through XAPI
+ *
+ * @param {any} xapi
+ * @param {string} vdiRef - must not be a snapshot nor be attached (dom0 included)
+ * @returns {Promise<NbdDiskWriter|undefined>} undefined when the VDI can't be exported in write mode
+ */
+export async function openNbdDiskWriter(xapi, vdiRef) {
+  const backupAddresses = await getBackupNetworkAddresses(xapi)
+  const keepAddress = address => backupAddresses === undefined || backupAddresses.includes(address)
+  const vdiUuid = await xapi.getField('VDI', vdiRef, 'uuid')
+  const usable = await getPluginCandidates(xapi, vdiUuid, keepAddress)
+  if (usable === undefined) {
+    return undefined
+  }
+  for (const candidate of usable) {
+    const hostRef = await xapi.call('host.get_by_uuid', candidate.host)
+    let exported
+    try {
+      exported = await callNbdPlugin(xapi, hostRef, 'open', { vdi_uuid: vdiUuid, mode: 'w' })
+    } catch (error) {
+      warn('xo-nbd plugin: open in write mode failed, trying the next candidate', {
+        vdiUuid,
+        host: candidate.host,
+        error,
+      })
+      continue
+    }
+    // the written data are only guaranteed once it succeeded
+    const closeExport = () => callNbdPlugin(xapi, hostRef, 'close', { token: exported.exportname })
+
+    if (exported.writable) {
+      const virtualSize = BigInt(await xapi.getField('VDI', vdiRef, 'virtual_size'))
+      // a single connection: the first address which answers
+      for (const address of exported.addresses.filter(keepAddress)) {
+        const client = new NbdTcpClient(
+          {
+            address,
+            port: exported.port,
+            exportname: exported.exportname,
+            // the client upgrades to TLS only when given a certificate
+            cert: exported.tls ? exported.cert : undefined,
+          },
+          { connectTimeout: PLUGIN_CONNECT_TIMEOUT }
+        )
+        try {
+          await client.connect()
+          if (client.readOnly) {
+            throw new Error('the export is read-only')
+          }
+          // the export must be this VDI: a different size means another disk, never write it
+          if (BigInt(client.exportSize) !== virtualSize) {
+            throw new Error(`export size ${client.exportSize} differs from the VDI virtual size ${virtualSize}`)
+          }
+          info('xo-nbd plugin: connected in write mode', { vdiUuid, host: candidate.host, tls: exported.tls })
+          return new NbdDiskWriter(client, closeExport)
+        } catch (error) {
+          warn('xo-nbd plugin: write connection failed', { vdiUuid, host: candidate.host, address, error })
+          await client.disconnect().catch(() => {})
+        }
+      }
+    } else {
+      warn('xo-nbd plugin: the export is not writable', { vdiUuid, host: candidate.host })
+    }
+    await closeExport().catch(error =>
+      warn('xo-nbd plugin: close failed, the export will expire', { vdiUuid, host: candidate.host, error })
+    )
   }
   return undefined
 }

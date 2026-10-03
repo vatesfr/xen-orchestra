@@ -5,10 +5,18 @@ import { createLogger } from '@xen-orchestra/log'
 import {
   INIT_PASSWD,
   NBD_CMD_DISC,
+  NBD_CMD_FLUSH,
   NBD_CMD_READ,
+  NBD_CMD_TRIM,
+  NBD_CMD_WRITE,
+  NBD_CMD_WRITE_ZEROES,
   NBD_DEFAULT_BLOCK_SIZE,
   NBD_FLAG_FIXED_NEWSTYLE,
   NBD_FLAG_HAS_FLAGS,
+  NBD_FLAG_READ_ONLY,
+  NBD_FLAG_SEND_FLUSH,
+  NBD_FLAG_SEND_TRIM,
+  NBD_FLAG_SEND_WRITE_ZEROES,
   NBD_OPT_EXPORT_NAME,
   NBD_OPT_REPLY_MAGIC,
   NBD_REPLY_ACK,
@@ -20,6 +28,31 @@ import {
 const { debug, warn } = createLogger('vates:nbd-client')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
+
+// error codes of the protocol, the same values as the Linux errno
+const NBD_ERRORS = {
+  1: 'EPERM',
+  5: 'EIO',
+  12: 'ENOMEM',
+  22: 'EINVAL',
+  28: 'ENOSPC',
+  75: 'EOVERFLOW',
+  95: 'ENOTSUP',
+  108: 'ESHUTDOWN',
+}
+
+/**
+ * The server refused a request, the connection is still usable
+ *
+ * @param {number} nbdError
+ */
+function createServerError(nbdError) {
+  const code = NBD_ERRORS[nbdError]
+  const error = new Error(`the NBD server answered the error ${nbdError} (${code ?? 'unknown'})`)
+  error.code = code
+  error.nbdError = nbdError
+  return error
+}
 
 /**
  * A pair of streams carrying the NBD protocol.
@@ -43,7 +76,8 @@ const { debug, warn } = createLogger('vates:nbd-client')
  * One receiver per connection: data received late on a previous connection
  * can't be mixed with the queries of the current one.
  *
- * Only simple replies to NBD_CMD_READ are expected.
+ * Only simple replies are expected: with a payload for NBD_CMD_READ, without for
+ * the other commands.
  */
 class ReplyReceiver {
   // AFAIK, there is no guaranty the server answers in the same order as the queries
@@ -137,19 +171,29 @@ class ReplyReceiver {
     }
 
     const error = header.readInt32BE(4)
+    const queryId = header.readBigUInt64BE(8)
+    const query = this.#backlog.get(queryId)
     if (error !== 0) {
-      // @todo use error code from constants.mjs
+      if (query?.noPayload) {
+        // nothing follows the header: only this query failed, the next answers can still be parsed
+        this.#backlog.delete(queryId)
+        query.reject(createServerError(error))
+        return
+      }
+      // a simple reply to a read does not tell if its data follow: the stream can't be parsed anymore
       this.fail(new Error(`GOT ERROR CODE  : ${error}`))
       return
     }
 
-    const queryId = header.readBigUInt64BE(8)
-    const query = this.#backlog.get(queryId)
     if (query === undefined) {
       this.fail(new Error(` no query associated with id ${queryId}`))
       return
     }
     this.#backlog.delete(queryId)
+    if (query.noPayload) {
+      query.resolve()
+      return
+    }
     // the payload is written once, at its final place
     const buffer = query.target ?? Buffer.allocUnsafe(query.size)
     if (buffer.length === 0) {
@@ -189,6 +233,7 @@ class ReplyReceiver {
 export default class AbstractNbdClient {
   #exportName
   #exportSize
+  #transmissionFlags = 0
 
   /** @type {NbdTransport|undefined} */
   #transport
@@ -218,7 +263,7 @@ export default class AbstractNbdClient {
    * @param {number} [options.connectTimeout]
    * @param {number} [options.messageTimeout]
    * @param {number} [options.waitBeforeReconnect]
-   * @param {number} [options.readBlockRetries]
+   * @param {number} [options.readBlockRetries] - tries of a read or a write, reconnecting between them
    * @param {number} [options.reconnectRetry]
    */
   constructor(
@@ -245,6 +290,23 @@ export default class AbstractNbdClient {
 
   get exportName() {
     return this.#exportName
+  }
+
+  // the capabilities announced by the server for this export, known once connected
+  get readOnly() {
+    return (this.#transmissionFlags & NBD_FLAG_READ_ONLY) !== 0
+  }
+
+  get canFlush() {
+    return (this.#transmissionFlags & NBD_FLAG_SEND_FLUSH) !== 0
+  }
+
+  get canTrim() {
+    return (this.#transmissionFlags & NBD_FLAG_SEND_TRIM) !== 0
+  }
+
+  get canWriteZeroes() {
+    return (this.#transmissionFlags & NBD_FLAG_SEND_WRITE_ZEROES) !== 0
   }
 
   get connected() {
@@ -562,8 +624,8 @@ export default class AbstractNbdClient {
     this.#exportSize = answer.readBigUInt64BE(0)
     const transmissionFlags = answer.readInt16BE(8)
     assert.strictEqual(transmissionFlags & NBD_FLAG_HAS_FLAGS, NBD_FLAG_HAS_FLAGS, 'NBD_FLAG_HAS_FLAGS') // must always be 1 by the norm
-
     // note : xapi server always send NBD_FLAG_READ_ONLY (3) as a flag
+    this.#transmissionFlags = transmissionFlags
 
     return transport
   }
@@ -687,13 +749,135 @@ export default class AbstractNbdClient {
     if (target !== undefined) {
       assert.ok(target.length >= size, `target is too small: ${target.length} < ${size}`)
     }
-    return pRetry(() => this.#readBlock(index, size, target), {
+    return this.#retry(() => this.#readBlock(index, size, target), `reading block ${index}`)
+  }
+
+  /**
+   * Sends a command whose answer has no payload
+   *
+   * @param {number} type - NBD_CMD_*
+   * @param {bigint} offset
+   * @param {number} length
+   * @param {Buffer} [data] - sent after the request (NBD_CMD_WRITE)
+   * @returns {Promise<void>}
+   */
+  async #command(type, offset, length, data) {
+    // we don't want to add anything in backlog while reconnecting
+    if (this.#reconnectingPromise) {
+      await this.#reconnectingPromise
+    }
+
+    const queryId = this.#nextCommandQueryId
+    this.#nextCommandQueryId++
+
+    const header = Buffer.alloc(28)
+    header.writeInt32BE(NBD_REQUEST_MAGIC, 0)
+    header.writeInt16BE(0, 4) // no command flags
+    header.writeInt16BE(type, 6)
+    header.writeBigUInt64BE(queryId, 8)
+    header.writeBigUInt64BE(offset, 16)
+    header.writeInt32BE(length, 24)
+
+    return new Promise((resolve, reject) => {
+      function decoratedReject(error) {
+        error.offset = offset
+        error.size = length
+        reject(error)
+      }
+
+      const transport = this.#getTransport()
+      const receiver = this.#receiver
+      receiver.add(queryId, { noPayload: true, resolve, reject: decoratedReject })
+      // the request and its data are queued at once: no other query can come in between
+      const sent =
+        data === undefined
+          ? this.#write(transport, header)
+          : Promise.all([this.#write(transport, header), this.#write(transport, data)])
+      sent.catch(error => {
+        receiver.delete(queryId)
+        decoratedReject(error)
+      })
+    })
+  }
+
+  #retry(fn, description) {
+    return pRetry(fn, {
       tries: this.#readBlockRetries,
-      when: error => error.code !== 'ERR_ABORTED',
+      // the server refused the request (nbdError): it would refuse it again
+      when: error => error.code !== 'ERR_ABORTED' && error.nbdError === undefined,
       onRetry: async err => {
-        warn('will retry reading block ', index, err)
+        warn(`will retry ${description}`, err)
         await this.reconnect()
       },
     })
+  }
+
+  // the bytes of the block `index`, the last block of the export may be shorter
+  #blockRange(index, size) {
+    const offset = BigInt(index) * BigInt(size)
+    assert.ok(offset < this.#exportSize, `block ${index} is beyond the end of the export`)
+    const remaining = this.#exportSize - offset
+    return { offset, length: remaining < BigInt(size) ? Number(remaining) : size }
+  }
+
+  #assertCapability(isCapable, description) {
+    if (!isCapable) {
+      const error = new Error(`the NBD export does not allow to ${description}`)
+      error.code = this.readOnly ? 'EROFS' : 'ENOTSUP'
+      throw error
+    }
+  }
+
+  /**
+   * A write is idempotent: it is retried after a reconnection like a read
+   *
+   * @param {number} index
+   * @param {Buffer} data - the data of the block, shorter for the last block of the export. It must not be
+   *   modified until the returned promise is settled
+   * @param {number} [size] - the size of the blocks: the data are written at `index * size`
+   * @returns {Promise<void>}
+   */
+  async writeBlock(index, data, size = NBD_DEFAULT_BLOCK_SIZE) {
+    this.#assertCapability(!this.readOnly, `write block ${index}`)
+    const { offset, length } = this.#blockRange(index, size)
+    assert.strictEqual(data.length, length, `block ${index} must be ${length} bytes, got ${data.length}`)
+    return this.#retry(() => this.#command(NBD_CMD_WRITE, offset, length, data), `writing block ${index}`)
+  }
+
+  /**
+   * Writes zeroes on the block `index` without sending them
+   *
+   * @param {number} index
+   * @param {number} [size]
+   * @returns {Promise<void>}
+   */
+  async writeZeroes(index, size = NBD_DEFAULT_BLOCK_SIZE) {
+    this.#assertCapability(!this.readOnly && this.canWriteZeroes, `write zeroes on block ${index}`)
+    const { offset, length } = this.#blockRange(index, size)
+    return this.#retry(() => this.#command(NBD_CMD_WRITE_ZEROES, offset, length), `writing zeroes on block ${index}`)
+  }
+
+  /**
+   * Tells the server the data of the block `index` are not needed anymore, reading it afterwards gives
+   * undefined data
+   *
+   * @param {number} index
+   * @param {number} [size]
+   * @returns {Promise<void>}
+   */
+  async trim(index, size = NBD_DEFAULT_BLOCK_SIZE) {
+    this.#assertCapability(!this.readOnly && this.canTrim, `trim block ${index}`)
+    const { offset, length } = this.#blockRange(index, size)
+    return this.#retry(() => this.#command(NBD_CMD_TRIM, offset, length), `trimming block ${index}`)
+  }
+
+  /**
+   * Resolves once all the writes acknowledged before have reached a permanent storage
+   *
+   * @returns {Promise<void>}
+   */
+  async flush() {
+    this.#assertCapability(this.canFlush, 'flush')
+    return this.#retry(() => this.#command(NBD_CMD_FLUSH, 0n, 0), 'flushing')
   }
 }

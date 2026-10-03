@@ -4,10 +4,17 @@ import { readChunk, readChunkStrict } from '@vates/read-chunk'
 import {
   INIT_PASSWD,
   NBD_CMD_DISC,
+  NBD_CMD_FLUSH,
   NBD_CMD_READ,
+  NBD_CMD_TRIM,
+  NBD_CMD_WRITE,
+  NBD_CMD_WRITE_ZEROES,
   NBD_FLAG_FIXED_NEWSTYLE,
   NBD_FLAG_HAS_FLAGS,
   NBD_FLAG_READ_ONLY,
+  NBD_FLAG_SEND_FLUSH,
+  NBD_FLAG_SEND_TRIM,
+  NBD_FLAG_SEND_WRITE_ZEROES,
   NBD_OPT_EXPORT_NAME,
   NBD_OPT_REPLY_MAGIC,
   NBD_REPLY_ACK,
@@ -16,10 +23,11 @@ import {
   OPTS_MAGIC,
 } from '../constants.mjs'
 
+const NBD_EPERM = 1
 const NBD_EINVAL = 22
 
 /**
- * Minimal read-only newstyle NBD server, used by the tests only.
+ * Minimal newstyle NBD server, used by the tests only.
  *
  * It is transport agnostic on purpose: the unit tests drive it through two
  * in-memory `PassThrough`, the integration tests through the standard streams
@@ -28,10 +36,11 @@ const NBD_EINVAL = 22
  * @param {object} options
  * @param {import('node:stream').Readable} options.readable - where the client queries are read from
  * @param {import('node:stream').Writable} options.writable - where the answers are written to
- * @param {Buffer} options.data - the content of the export
+ * @param {Buffer} options.data - the content of the export, modified by the writes of a writable export
+ * @param {boolean} [options.allowWrites] - accept writes, flushes, trims and write zeroes, the export is read-only otherwise
  * @param {string} [options.exportName] - the export name the client must ask for
  * @param {boolean} [options.answerInReverse] - answer by pairs, in reverse order, to check the client handles out of order answers
- * @param {(request: {offset: bigint, length: number, index: number}) => number} [options.errorCode] - non zero to answer an error to this read
+ * @param {(request: {type: number, offset: bigint, length: number, index: number}) => number} [options.errorCode] - non zero to answer an error to this request
  * @param {number} [options.chunkSize] - split the answers in chunks of this size, to check the client reassembles them
  * @param {number} [options.stopAnsweringAfter] - stop answering (without closing) after this number of answers
  * @returns {Promise<void>} resolves when the client disconnected or closed the connection
@@ -41,6 +50,7 @@ export async function serveNbd({
   writable,
   data,
   exportName = '',
+  allowWrites = false,
   answerInReverse = false,
   errorCode,
   chunkSize,
@@ -71,7 +81,11 @@ export async function serveNbd({
       // 8 (size) + 2 (transmission flags) + 124 zeroes
       const answer = Buffer.alloc(134)
       answer.writeBigUInt64BE(BigInt(data.length), 0)
-      answer.writeInt16BE(NBD_FLAG_HAS_FLAGS | NBD_FLAG_READ_ONLY, 8)
+      answer.writeInt16BE(
+        NBD_FLAG_HAS_FLAGS |
+          (allowWrites ? NBD_FLAG_SEND_FLUSH | NBD_FLAG_SEND_TRIM | NBD_FLAG_SEND_WRITE_ZEROES : NBD_FLAG_READ_ONLY),
+        8
+      )
       await write(answer)
       selected = true
     } else {
@@ -90,17 +104,17 @@ export async function serveNbd({
   let pending = []
 
   let nbAnswers = 0
-  const answer = async ({ handle, offset, length, index }, forcedCode) => {
+  const answer = async ({ type = NBD_CMD_READ, handle, offset, length, index }, forcedCode) => {
     if (nbAnswers++ >= stopAnsweringAfter) {
       return
     }
-    const code = forcedCode ?? errorCode?.({ handle, offset, length, index }) ?? 0
+    const code = forcedCode ?? errorCode?.({ type, handle, offset, length, index }) ?? 0
     const header = Buffer.alloc(16)
     header.writeInt32BE(NBD_REPLY_MAGIC, 0)
     header.writeInt32BE(code, 4)
     header.writeBigUInt64BE(handle, 8)
     let message = header
-    if (code === 0) {
+    if (code === 0 && type === NBD_CMD_READ) {
       message = Buffer.concat([header, data.subarray(Number(offset), Number(offset) + length)])
     }
     if (chunkSize === undefined) {
@@ -133,6 +147,34 @@ export async function serveNbd({
     if (type === NBD_CMD_DISC) {
       await flush()
       break
+    }
+
+    if (type === NBD_CMD_WRITE || type === NBD_CMD_FLUSH || type === NBD_CMD_TRIM || type === NBD_CMD_WRITE_ZEROES) {
+      const command = {
+        type,
+        handle,
+        offset: request.readBigUInt64BE(16),
+        length: request.readInt32BE(24),
+        index: index++,
+      }
+      // the data of a write must be read, even when it is refused
+      const payload = type === NBD_CMD_WRITE ? await readChunkStrict(readable, command.length) : undefined
+      if (!allowWrites) {
+        await answer(command, NBD_EPERM)
+        continue
+      }
+      if (errorCode?.(command) ?? 0) {
+        await answer(command)
+        continue
+      }
+      const start = Number(command.offset)
+      if (type === NBD_CMD_WRITE) {
+        payload.copy(data, start)
+      } else if (type !== NBD_CMD_FLUSH) {
+        data.fill(0, start, start + command.length)
+      }
+      await answer(command, 0)
+      continue
     }
 
     if (type !== NBD_CMD_READ) {
