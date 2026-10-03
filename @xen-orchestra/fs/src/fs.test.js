@@ -174,6 +174,22 @@ handlers.forEach(url => {
       })
     })
 
+    describe('#createReadStream()', () => {
+      it('reads 10 MiB chunks', { skip: !url.startsWith('file:') }, async () => {
+        const data = unsecureRandomBytes(3 * 10 * 1024 * 1024 + 7)
+        await handler.outputFile('file', data)
+        const chunks = []
+        for await (const chunk of await handler.createReadStream('file')) {
+          chunks.push(chunk)
+        }
+        assert.deepEqual(
+          chunks.map(chunk => chunk.length),
+          [10 * 1024 * 1024, 10 * 1024 * 1024, 10 * 1024 * 1024, 7]
+        )
+        assert.deepEqual(Buffer.concat(chunks), data)
+      })
+    })
+
     describe('#outputStream()', () => {
       it('stores the checksum of the data', async () => {
         await handler.outputStream('file', Readable.from([TEST_DATA]))
