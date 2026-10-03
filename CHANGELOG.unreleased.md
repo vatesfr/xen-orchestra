@@ -20,6 +20,7 @@
 - [Restore/Replication] Write the disks through the `xo-nbd` XAPI plugin when it is installed, several blocks at a time, instead of a XAPI import
 - [Mirror] The incremental mirrors copy the blocks as stored, without decompressing nor recompressing them, when the source and the destinations use the same compression
 - [Mirror] The full mirrors between unencrypted remotes reuse the checksum of the source instead of computing it again
+- [Backup/Restore] Less CPU used on the local, NFS and SMB remotes: the stack traces of the file system errors are no longer completed by default (`syncStackTraces` in `[remoteOptions]` to enable them)
 
 ### Bug fixes
 

@@ -82,7 +82,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   constructor(remote, opts = {}) {
     super(remote, opts)
 
-    this.#addSyncStackTrace = (opts.syncStackTraces ?? true) ? addSyncStackTrace : dontAddSyncStackTrace
+    this.#addSyncStackTrace = (opts.syncStackTraces ?? false) ? addSyncStackTrace : dontAddSyncStackTrace
     this.#retriesOnEagain = {
       delay: 1e3,
       retries: 9,
