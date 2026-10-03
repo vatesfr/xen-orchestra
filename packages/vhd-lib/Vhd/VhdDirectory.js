@@ -307,18 +307,21 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     return (await this._handler.getSizeOnDisk(this.getFullBlockPath(blockId))) - initialSize
   }
 
-  // block.buffer can be an array of buffers (bitmap and data for example), they are written without being concatenated
   async writeEntireBlock(block) {
-    const length = Array.isArray(block.buffer)
-      ? block.buffer.reduce((sum, buffer) => sum + buffer.length, 0)
-      : block.buffer.length
     assert.strictEqual(
-      length,
+      block.buffer.length,
       this.fullBlockSize,
-      `partial block can't be written , expecting ${this.fullBlockSize}, got ${length}`
+      `partial block can't be written , expecting ${this.fullBlockSize}, got ${block.buffer.length}`
     )
     await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
     setBitmap(this.#blockTable, block.id)
+  }
+
+  // bitmap and data are not concatenated: the handler can write them with a single writev
+  async writeBlockData(blockId, data) {
+    assert.strictEqual(data.length, this.header.blockSize, `block ${blockId} must be ${this.header.blockSize} bytes`)
+    await this._writeChunk(this.#getBlockPath(blockId), [Buffer.alloc(this.bitmapSize, 255), data])
+    setBitmap(this.#blockTable, blockId)
   }
 
   async _readParentLocatorData(id) {

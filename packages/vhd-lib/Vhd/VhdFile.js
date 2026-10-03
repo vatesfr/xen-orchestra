@@ -346,6 +346,18 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
     await this._write(block.buffer, sectorsToBytes(blockAddr))
   }
 
+  // bitmap and data are written separately, at their place in the block: no need to concatenate them
+  async writeBlockData(blockId, data) {
+    assert.strictEqual(data.length, this.header.blockSize, `block ${blockId} must be ${this.header.blockSize} bytes`)
+    let blockAddr = this._getBatEntry(blockId)
+
+    if (blockAddr === BLOCK_UNUSED) {
+      blockAddr = await this._createBlock(blockId)
+    }
+    await this._writeBlockBitmap(blockAddr, Buffer.alloc(this.bitmapSize, 255))
+    await this._write(data, sectorsToBytes(blockAddr + this.sectorsOfBitmap))
+  }
+
   async _writeBlockSectors(block, beginSectorId, endSectorId, parentBitmap) {
     let blockAddr = this._getBatEntry(block.id)
 

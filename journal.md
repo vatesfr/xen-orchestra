@@ -88,12 +88,22 @@ Profil du client XO pendant une lecture NBD à environ 1,2 Go/s (Node 24, VM de 
   - Les autres (S3, Azure) reçoivent un `Buffer.concat` : ils sont distants, plus lents, et on privilégie
     la fiabilité.
   - Avec chiffrement, chaque morceau passe par `cipher.update()`, sans copie supplémentaire.
-- `vhd-lib` : `VhdDirectory.writeEntireBlock()` accepte un tableau (`buffer: [bitmap, data]`). Avec
-  compression, les morceaux sont concaténés avant de compresser.
-- `vhd-lib/disk-consumer/DiskConsumerVhdDirectory.mjs` : écrit `[FULL_BLOCK_BITMAP, data]`, sans
-  `Buffer.concat`, puis appelle `release()` une fois le fichier de bloc écrit.
-- Tests : blocs écrits et libérés une fois chacun. Pour vérifier qu'aucune lecture ne se produit après la
-  libération, la mémoire est brouillée au moment du `release()`. Écriture avec compression.
+- `vhd-lib` : nouvelle méthode `writeBlockData(blockId, data)`. Elle ne reçoit que les données, le bitmap
+  (complet) est spécifique au format et ajouté par le VHD lui-même.
+  - `VhdDirectory` : `_writeChunk()` avec `[bitmap, data]`, donc `outputFile()` avec un tableau. Avec
+    compression, les morceaux sont concaténés avant de compresser.
+  - `VhdFile` : bitmap et données écrits séparément à leur place dans le fichier, sans concaténation.
+  - `VhdAbstract` (les autres) : concaténation puis `writeEntireBlock()`.
+  - `writeEntireBlock()` ne change pas : le merge de `VhdAbstract.mergeBlock()` recopie le bitmap du bloc
+    enfant, qui n'est pas forcément complet.
+- `vhd-lib/disk-consumer/DiskConsumerVhdDirectory.mjs` : `writeBlockData()`, puis `release()` une fois le
+  fichier de bloc écrit. Le dernier bloc d'un disque non aligné est complété par des zéros, comme le
+  faisait le `Buffer.concat` avec une longueur fixe.
+- `backup-archive/RemoteVhdDisk.writeBlock()` (utilisé aussi par le merge, qui ne garde déjà que les
+  données) : `writeBlockData()` au lieu de construire le bitmap et de concaténer.
+- Tests : blocs écrits et libérés une fois chacun (la mémoire est brouillée au `release()` pour détecter
+  une lecture tardive), compression, dernier bloc plus court, `writeBlockData()` sur `VhdDirectory` (avec
+  et sans compression) et sur `VhdFile`.
 
   Une première version mettait le bitmap en préfixe dans les buffers du pool, pour écrire bitmap et données
   d'un seul tenant. Elle a été retirée : mesurée sur la vraie stack, `writev` est aussi rapide (tmpfs,
@@ -102,15 +112,15 @@ Profil du client XO pendant une lecture NBD à environ 1,2 Go/s (Node 24, VM de 
 
 ### Résultat des tests
 
-| Suite | Résultat |
-|---|---|
-| `@vates/nbd-client`, unitaires | 27 sur 27 |
-| `@vates/nbd-client`, intégration TCP (nbdkit, TLS et clair, redémarrages du serveur) | 33 sur 33 |
-| `@vates/nbd-client`, intégration stdio | 41 sur 41 |
-| `@xen-orchestra/disk-transform` | 43 sur 43 |
-| `@xen-orchestra/xapi` | 7 sur 7 |
-| `vhd-lib`, `disk-consumer` | 10 sur 10 |
-| `@xen-orchestra/backups` | 103 sur 103 |
+| Suite                                                                                | Résultat    |
+| ------------------------------------------------------------------------------------ | ----------- |
+| `@vates/nbd-client`, unitaires                                                       | 27 sur 27   |
+| `@vates/nbd-client`, intégration TCP (nbdkit, TLS et clair, redémarrages du serveur) | 33 sur 33   |
+| `@vates/nbd-client`, intégration stdio                                               | 41 sur 41   |
+| `@xen-orchestra/disk-transform`                                                      | 43 sur 43   |
+| `@xen-orchestra/xapi`                                                                | 7 sur 7     |
+| `vhd-lib`, `disk-consumer`                                                           | 10 sur 10   |
+| `@xen-orchestra/backups`                                                             | 103 sur 103 |
 
 ## Mesures
 
@@ -131,12 +141,12 @@ Deux scénarios :
   client XO seul ;
 - **réel :** 8 Go lus sur le NVMe.
 
-| Scénario | Code d'origine | Nouveau client NBD seul | Nouveau client + pool + écriture sans copie |
-|---|---|---|---|
-| Clair, en cache | 1 296 à 1 302 Mo/s, 190 % CPU, ~317 GC majeurs | 1 550 à 1 617 Mo/s, 155 à 171 % | **2 820 à 2 832 Mo/s, 78 à 85 %, 2 GC** |
-| Clair, réel 8 Go | 1 128 à 1 244 Mo/s, 185 % | 1 212 à 1 231 Mo/s, 160 % | **1 352 à 1 359 Mo/s, 41 à 44 %, 2 GC** |
-| TLS, en cache | 895 à 963 Mo/s, 165 %, ~350 GC | 1 017 à 1 028 Mo/s | **1 091 à 1 199 Mo/s**, ~210 GC |
-| TLS, réel 8 Go | 847 à 933 Mo/s, 170 % | 892 à 917 Mo/s | **1 026 à 1 041 Mo/s** |
+| Scénario         | Code d'origine                                 | Nouveau client NBD seul         | Nouveau client + pool + écriture sans copie |
+| ---------------- | ---------------------------------------------- | ------------------------------- | ------------------------------------------- |
+| Clair, en cache  | 1 296 à 1 302 Mo/s, 190 % CPU, ~317 GC majeurs | 1 550 à 1 617 Mo/s, 155 à 171 % | **2 820 à 2 832 Mo/s, 78 à 85 %, 2 GC**     |
+| Clair, réel 8 Go | 1 128 à 1 244 Mo/s, 185 %                      | 1 212 à 1 231 Mo/s, 160 %       | **1 352 à 1 359 Mo/s, 41 à 44 %, 2 GC**     |
+| TLS, en cache    | 895 à 963 Mo/s, 165 %, ~350 GC                 | 1 017 à 1 028 Mo/s              | **1 091 à 1 199 Mo/s**, ~210 GC             |
+| TLS, réel 8 Go   | 847 à 933 Mo/s, 170 %                          | 892 à 917 Mo/s                  | **1 026 à 1 041 Mo/s**                      |
 
 ## Gains attendus en production
 
@@ -147,6 +157,7 @@ Deux scénarios :
   En lecture réelle, on n'est plus limité par XO mais par le serveur : environ 1,35 Go/s ici, ce qui
   correspond à la limite de tapdisk (1,5 Go/s par VDI). Le CPU libéré profite aux VMs et aux disques
   sauvegardés en parallèle, et aux jobs simultanés.
+
 - **NBD en TLS :** **+15 à +20 % de débit**. Le déchiffrement TLS de Node, sur le thread principal, et ses
   allocations par enregistrement restent la limite.
 - **Aujourd'hui, avec `xapi-nbd` :** le gain sera masqué tant que le serveur plafonne (395 Mo/s par
@@ -218,16 +229,16 @@ côté XO.
 
 ## Mesures (Mo/s)
 
-| Chemin | VHD d0 | VHD d1 | VHD d3 | VHD d10 | qcow2 d0 | qcow2 d1 | qcow2 d3 | qcow2 d10 |
-|---|---|---|---|---|---|---|---|---|
-| Device dom0, `dd` 2 Mo O_DIRECT, 1 lecture | 1 316 | 918 | 853 | 813 | 980 | 962 | 946 | 913 |
-| Device dom0, 4 lectures | 1 507 | 883 | 827 | 801 | 1 113 | 1 050 | 1 024 | 996 |
-| CPU de tapdisk | 88-99 % | 73 % | 71 % | 67 % | 127-148 % | 219-235 % | 220-230 % | 214-226 % |
-| `xapi-nbd` TLS, 1 connexion | 585 | 465 | 445 | 414 | 537 | 409 | 402 | 396 |
-| `xapi-nbd` TLS, 4 connexions | 959 | 579 | 576 | 558 | 802 | 667 | 660 | 636 |
-| nbdkit en clair sur le device, 1 connexion | 1 321 | 654 | 643 | 614 | 1 046 | 846 | 852 | 816 |
-| `export_raw_vdi` (flux complet) | 573 | 472 | 467 | 442 | 666 | 632 | 613 | 604 |
-| **Serveur NBD de tapdisk**, 1 connexion, en clair, via `socat -b 1M` | **3 159** | | | **1 230** | **2 878** | | | **1 651** (1 809 avec 4 connexions) |
+| Chemin                                                               | VHD d0    | VHD d1 | VHD d3 | VHD d10   | qcow2 d0  | qcow2 d1  | qcow2 d3  | qcow2 d10                           |
+| -------------------------------------------------------------------- | --------- | ------ | ------ | --------- | --------- | --------- | --------- | ----------------------------------- |
+| Device dom0, `dd` 2 Mo O_DIRECT, 1 lecture                           | 1 316     | 918    | 853    | 813       | 980       | 962       | 946       | 913                                 |
+| Device dom0, 4 lectures                                              | 1 507     | 883    | 827    | 801       | 1 113     | 1 050     | 1 024     | 996                                 |
+| CPU de tapdisk                                                       | 88-99 %   | 73 %   | 71 %   | 67 %      | 127-148 % | 219-235 % | 220-230 % | 214-226 %                           |
+| `xapi-nbd` TLS, 1 connexion                                          | 585       | 465    | 445    | 414       | 537       | 409       | 402       | 396                                 |
+| `xapi-nbd` TLS, 4 connexions                                         | 959       | 579    | 576    | 558       | 802       | 667       | 660       | 636                                 |
+| nbdkit en clair sur le device, 1 connexion                           | 1 321     | 654    | 643    | 614       | 1 046     | 846       | 852       | 816                                 |
+| `export_raw_vdi` (flux complet)                                      | 573       | 472    | 467    | 442       | 666       | 632       | 613       | 604                                 |
+| **Serveur NBD de tapdisk**, 1 connexion, en clair, via `socat -b 1M` | **3 159** |        |        | **1 230** | **2 878** |           |           | **1 651** (1 809 avec 4 connexions) |
 
 Le délai jusqu'au premier octet de `export_raw_vdi` est inférieur à 15 ms dans tous les cas : 8 Go et
 10 niveaux, c'est trop petit pour que `qemu-img map` pèse. Il faut le remesurer sur de gros disques très
@@ -345,12 +356,12 @@ Le plugin et le démon sont décrits dans `/data/xapi-nbd-rs/JOURNAL.md`. Côté
 Lecture complète d'un VDI de 8 Go par `XapiDiskSource` en NBD, avec un `Xapi` réel. Script :
 `@xen-orchestra/backups/_bench/xapidisk.mjs`.
 
-| Scénario | Chemin utilisé | Débit | Exports ou VBD restants |
-|---|---|---|---|
-| A. Plugin installé | plugin (1 export pendant le transfert), TLS | 969 à 1 053 Mo/s | aucun |
-| B. Plugin absent (renommé) | `XENAPI_MISSING_PLUGIN`, puis `xapi-nbd` | 611 Mo/s | aucun |
-| C1. Port 10810 bloqué vers `.5` | plugin, via la seconde adresse du candidat (`.6`) | 1 135 Mo/s | aucun |
-| C2. Port 10810 bloqué vers toutes les adresses | plugin `open`, connexion refusée, `close`, puis `xapi-nbd` | 628 Mo/s | aucun : export retiré dans la même seconde |
+| Scénario                                       | Chemin utilisé                                             | Débit            | Exports ou VBD restants                    |
+| ---------------------------------------------- | ---------------------------------------------------------- | ---------------- | ------------------------------------------ |
+| A. Plugin installé                             | plugin (1 export pendant le transfert), TLS                | 969 à 1 053 Mo/s | aucun                                      |
+| B. Plugin absent (renommé)                     | `XENAPI_MISSING_PLUGIN`, puis `xapi-nbd`                   | 611 Mo/s         | aucun                                      |
+| C1. Port 10810 bloqué vers `.5`                | plugin, via la seconde adresse du candidat (`.6`)          | 1 135 Mo/s       | aucun                                      |
+| C2. Port 10810 bloqué vers toutes les adresses | plugin `open`, connexion refusée, `close`, puis `xapi-nbd` | 628 Mo/s         | aucun : export retiré dans la même seconde |
 
 Tests de non-régression : `@xen-orchestra/xapi` 7 sur 7, `@xen-orchestra/backups` 103 sur 103. ESLint et
 Prettier passent.

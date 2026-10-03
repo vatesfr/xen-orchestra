@@ -119,6 +119,33 @@ describe('DiskConsumerVhdDirectory', () => {
     assert.equal(disk.released, 3, 'each block released once')
   })
 
+  it('pads the last block when it is shorter', async () => {
+    const disk = new MockDisk(2, [0, 1], 0x21)
+    const shortLength = 1024 * 1024
+    disk.getVirtualSize = () => DEFAULT_BLOCK_SIZE + shortLength
+    disk.readBlock = async index => ({
+      index,
+      data: Buffer.alloc(index === 1 ? shortLength : DEFAULT_BLOCK_SIZE, 0x21),
+    })
+    const tempDir = await pFromCallback(cb => tmp.dir(cb))
+    try {
+      await Disposable.use(async function* () {
+        const handler = yield getSyncedHandler({ url: 'file://' + tempDir })
+        await writeToVhdDirectory({
+          disk,
+          target: { handler, path: 'disk.alias.vhd', concurrency: 1, validator: async () => {} },
+        })
+        const vhd = yield openVhd(handler, 'disk.alias.vhd')
+        await vhd.readBlockAllocationTable()
+        const { data } = await vhd.readBlock(1)
+        assert.ok(data.subarray(0, shortLength).every(byte => byte === 0x21))
+        assert.ok(data.subarray(shortLength).every(byte => byte === 0))
+      })
+    } finally {
+      await rimraf(tempDir)
+    }
+  })
+
   it('writes compressed blocks', async () => {
     await writeAndCheck(new ReleasingMockDisk(2, [0, 1], 0x33), 0x33, 'gzip')
   })

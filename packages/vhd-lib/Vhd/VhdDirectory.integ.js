@@ -80,6 +80,26 @@ describe('VhdDirectory', async () => {
     })
   })
 
+  for (const compression of [undefined, 'gzip']) {
+    it(`writes the data of a block with a full bitmap (compression: ${compression})`, async () => {
+      await createRandomFile(`${tempDir}/randomfile`, 8)
+      await convertFromRawToVhd(`${tempDir}/randomfile`, `${tempDir}/source.vhd`)
+      await Disposable.use(async function* () {
+        const source = yield openVhd(handler, 'source.vhd')
+        const vhd = yield VhdDirectory.create(handler, 'data.vhd', { compression })
+        vhd.header = source.header
+        vhd.footer = source.footer
+        const data = Buffer.alloc(vhd.header.blockSize, 0x42)
+        await vhd.writeBlockData(3, data)
+        assert.equal(vhd.containsBlock(3), true)
+        const block = await vhd.readBlock(3)
+        assert.ok(block.bitmap.every(byte => byte === 0xff))
+        assert.ok(block.data.equals(data))
+        await assert.rejects(vhd.writeBlockData(4, data.subarray(1)))
+      })
+    })
+  }
+
   it('compresses blocks and metadata works', async () => {
     const initalSize = 4
     const rawFileName = `${tempDir}/randomfile`

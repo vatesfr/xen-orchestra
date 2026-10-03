@@ -5,7 +5,7 @@
  * @typedef {import('@xen-orchestra/disk-transform').Disk} Disk
  */
 
-import { BaseVhd, FULL_BLOCK_BITMAP } from './BaseVhd.mjs'
+import { BaseVhd } from './BaseVhd.mjs'
 import { basename, dirname } from 'node:path'
 import { asyncEach } from '@vates/async-each'
 import { VhdDirectory, VhdAbstract } from 'vhd-lib'
@@ -86,8 +86,11 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
           if (data.length < DEFAULT_BLOCK_SIZE) {
             truncatedBlock = { data, index }
           }
-          // bitmap and data are written without being concatenated (writev on a local remote)
-          await vhd.writeEntireBlock({ id: index, buffer: [FULL_BLOCK_BITMAP, data] })
+          // the last block of a disk may be shorter: pad it with zeros
+          await vhd.writeBlockData(
+            index,
+            data.length < DEFAULT_BLOCK_SIZE ? Buffer.concat([data], DEFAULT_BLOCK_SIZE) : data
+          )
           // the block file is written, its memory can be reused
           release?.()
         },
