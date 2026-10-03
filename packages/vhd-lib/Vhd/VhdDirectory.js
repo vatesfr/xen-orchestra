@@ -18,27 +18,29 @@ const NULL_COMPRESSOR = {
   baseOptions: {},
 }
 
-// larger than a full block (2 MiB + 512): zlib processes a block in a single pass on the thread pool instead of a
-// round trip per chunk of 16 KiB (the default), 3 times faster to decompress with zstd and 1.5 times with brotli
-const ZLIB_CHUNK_SIZE = 4 * 1024 * 1024
+// the output buffers of zlib, instead of chunks of 16 KiB (the default) each costing a round trip to the thread pool:
+// - a compressed block is about 1 MiB: larger buffers would be allocated for nothing, keeping the GC busy
+// - a decompressed block (2 MiB + 512) fits in a single buffer
+const COMPRESS_CHUNK_SIZE = 1024 * 1024
+const DECOMPRESS_CHUNK_SIZE = 2 * 1024 * 1024 + 1024
 
-function withZlibOptions(fn, options) {
+function withZlibOptions(fn, chunkSize, options) {
   const promisified = promisify(fn)
-  return buffer => promisified(buffer, { chunkSize: ZLIB_CHUNK_SIZE, ...options })
+  return buffer => promisified(buffer, { chunkSize, ...options })
 }
 
 const COMPRESSORS = {
   gzip: {
-    compress: withZlibOptions(zlib.gzip, { level: zlib.constants.Z_BEST_SPEED }),
-    decompress: withZlibOptions(zlib.gunzip),
+    compress: withZlibOptions(zlib.gzip, COMPRESS_CHUNK_SIZE, { level: zlib.constants.Z_BEST_SPEED }),
+    decompress: withZlibOptions(zlib.gunzip, DECOMPRESS_CHUNK_SIZE),
   },
   brotli: {
-    compress: withZlibOptions(zlib.brotliCompress, {
+    compress: withZlibOptions(zlib.brotliCompress, COMPRESS_CHUNK_SIZE, {
       params: {
         [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY,
       },
     }),
-    decompress: withZlibOptions(zlib.brotliDecompress),
+    decompress: withZlibOptions(zlib.brotliDecompress, DECOMPRESS_CHUNK_SIZE),
   },
   none: NULL_COMPRESSOR,
 }
@@ -50,18 +52,45 @@ const ZSTD_LEVEL = -3
 // zstd is only available since Node 22.15
 if (zlib.zstdCompress !== undefined) {
   COMPRESSORS.zstd = {
-    compress: withZlibOptions(zlib.zstdCompress, {
+    compress: withZlibOptions(zlib.zstdCompress, COMPRESS_CHUNK_SIZE, {
       params: {
         [zlib.constants.ZSTD_c_compressionLevel]: ZSTD_LEVEL,
       },
     }),
-    decompress: withZlibOptions(zlib.zstdDecompress),
+    decompress: withZlibOptions(zlib.zstdDecompress, DECOMPRESS_CHUNK_SIZE),
   }
 }
 
 // inject identifiers
 for (const id of Object.keys(COMPRESSORS)) {
   COMPRESSORS[id].id = id
+}
+
+// buffers concatenating the parts of a full block before compressing it, reused instead of allocated for each block
+// (each one is external memory which keeps the GC busy at high throughput)
+const concatBuffers = []
+const MAX_FREE_CONCAT_BUFFERS = 32
+
+/**
+ * @param {{compress(buffer: Buffer): Promise<Buffer>}} compressor
+ * @param {Buffer[]} parts
+ */
+async function compressParts(compressor, parts) {
+  const length = parts.reduce((sum, part) => sum + part.length, 0)
+  const reused = concatBuffers.length !== 0 && concatBuffers[concatBuffers.length - 1].length === length
+  const buffer = reused ? concatBuffers.pop() : Buffer.allocUnsafeSlow(length)
+  let offset = 0
+  for (const part of parts) {
+    offset += part.copy(buffer, offset)
+  }
+  try {
+    return await compressor.compress(buffer)
+  } finally {
+    // the compressed data are a new buffer: this one can be reused
+    if (concatBuffers.length < MAX_FREE_CONCAT_BUFFERS) {
+      concatBuffers.push(buffer)
+    }
+  }
 }
 
 function getCompressor(compressorType) {
@@ -186,11 +215,11 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       `Can't write a chunk ${partName} in ${this._path} with read permission`
     )
 
-    const compressed = await this.#compressor.compress(
+    if (Array.isArray(buffer) && this.#compressor !== NULL_COMPRESSOR) {
       // the handler can write an array without concatenating it, a compressor can't
-      Array.isArray(buffer) && this.#compressor !== NULL_COMPRESSOR ? Buffer.concat(buffer) : buffer
-    )
-    return this.#outputChunk(partName, compressed)
+      return this.#outputChunk(partName, await compressParts(this.#compressor, buffer))
+    }
+    return this.#outputChunk(partName, await this.#compressor.compress(buffer))
   }
 
   // writes a chunk as stored (already compressed)
