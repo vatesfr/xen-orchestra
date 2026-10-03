@@ -9,36 +9,50 @@ import { PassThrough } from 'node:stream'
 const ONREAD_BUFFER_SIZE = 1024 * 1024
 
 /**
- * Receives the data of `socket` through its `onread` option.
+ * Receives the data of `socket` through its `onread` option, only used without TLS (`tls.connect` ignores it).
  *
- * During the handshake the (small and rare) chunks are copied into `readable`,
- * then `setReceiver()` hands the reused buffer directly to the parser of the answers.
+ * During the handshake the (small and rare) chunks are copied into `readable` from a reused buffer. Then the
+ * parser of the answers tells, before each read, where the data must go (`setDirectReceiver()`): the kernel writes
+ * the payload of the reads straight into the buffers of their queries, without any copy.
  *
  * `onread` must be given to the constructor of the socket, which is then given to `attach()`
  */
 function createOnReadTransport() {
   const readable = new PassThrough()
+  const handshakeBuffer = Buffer.allocUnsafeSlow(ONREAD_BUFFER_SIZE)
   let receiver
+  // the buffer of a read is chosen before the read: the last one given by the receiver
+  let receiverTarget
   const transport = {
     readable,
     writable: undefined,
-    setReceiver(fn) {
+    setDirectReceiver(directReceiver) {
       // what came with the end of the handshake must be parsed first
       let chunk
       while ((chunk = readable.read()) !== null) {
-        fn(chunk, chunk.length)
+        directReceiver.feed(chunk, chunk.length)
       }
-      receiver = fn
+      receiver = directReceiver
     },
   }
   return {
     onread: {
-      buffer: Buffer.allocUnsafeSlow(ONREAD_BUFFER_SIZE),
+      // called before each read
+      buffer: () => {
+        if (receiver === undefined) {
+          return handshakeBuffer
+        }
+        receiverTarget = receiver.nextReadTarget()
+        return receiverTarget
+      },
       callback(length, buffer) {
-        if (receiver !== undefined) {
-          receiver(buffer, length)
-        } else {
+        if (receiver === undefined) {
           readable.write(Buffer.from(buffer.subarray(0, length)))
+        } else if (buffer === receiverTarget) {
+          receiver.received(length)
+        } else {
+          // a read started before the receiver was set, into the handshake buffer
+          receiver.feed(buffer, length)
         }
       },
     },

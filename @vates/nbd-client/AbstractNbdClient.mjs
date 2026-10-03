@@ -29,6 +29,9 @@ const { debug, warn } = createLogger('vates:nbd-client')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
 
+// what is received once a connection can't be parsed anymore is written there, then ignored
+const DISCARD_BUFFER = Buffer.alloc(64 * 1024)
+
 // error codes of the protocol, the same values as the Linux errno
 const NBD_ERRORS = {
   1: 'EPERM',
@@ -67,6 +70,10 @@ function createServerError(nbdError) {
  *  handshake, the transport hands the received data directly to `receiver` instead of emitting it through
  *  `readable` (no allocation per chunk). `chunk` may be reused once `receiver` returns: it must be consumed
  *  synchronously. Data still buffered in `readable` must be handed to `receiver` first.
+ * @property {(receiver: {nextReadTarget(): Buffer, received(length: number): void, feed(chunk: Buffer, length: number): void}) => void} [setDirectReceiver]
+ *  - optional, preferred to `setReceiver`: after the handshake, the transport writes each received data straight
+ *  into the buffer given by `receiver.nextReadTarget()` (the rest of a header, or of the payload of a read, no copy),
+ *  then calls `receiver.received(length)`. Data still buffered in `readable` must be handed to `receiver.feed()` first.
  */
 
 /**
@@ -153,6 +160,46 @@ class ReplyReceiver {
         chunk.copy(current.buffer, current.filled, offset, offset + n)
         current.filled += n
         offset += n
+        if (current.filled === current.buffer.length) {
+          this.#current = undefined
+          current.query.resolve(current.buffer)
+        }
+      }
+    }
+    this.#watch()
+  }
+
+  /**
+   * Direct reception (see NbdTransport#setDirectReceiver): where the next received bytes must be written, the rest
+   * of the header being received or the rest of the payload, straight into the buffer of its query
+   *
+   * @returns {Buffer} never empty
+   */
+  nextReadTarget() {
+    if (this.#error !== undefined) {
+      // the stream can't be parsed anymore: what comes is discarded
+      return DISCARD_BUFFER
+    }
+    const current = this.#current
+    return current === undefined ? this.#header.subarray(this.#headerLength) : current.buffer.subarray(current.filled)
+  }
+
+  /**
+   * Direct reception: `length` bytes have been written into the buffer returned by nextReadTarget()
+   *
+   * @param {number} length
+   */
+  received(length) {
+    if (this.#error === undefined) {
+      const current = this.#current
+      if (current === undefined) {
+        this.#headerLength += length
+        if (this.#headerLength === 16) {
+          this.#headerLength = 0
+          this.#onHeader()
+        }
+      } else {
+        current.filled += length
         if (current.filled === current.buffer.length) {
           this.#current = undefined
           current.query.resolve(current.buffer)
@@ -437,7 +484,9 @@ export default class AbstractNbdClient {
       transport.writable.on('close', onClose)
     }
 
-    if (transport.setReceiver !== undefined) {
+    if (transport.setDirectReceiver !== undefined) {
+      transport.setDirectReceiver(receiver)
+    } else if (transport.setReceiver !== undefined) {
       transport.setReceiver((chunk, length) => receiver.feed(chunk, length))
     } else {
       transport.readable.on('data', chunk => receiver.feed(chunk, chunk.length))

@@ -354,3 +354,77 @@ describe('AbstractNbdClient writes', () => {
     }
   })
 })
+
+// like the onread transport of NbdTcpClient: once the handshake is done, the received data are written straight into
+// the buffers asked by the parser, in pieces of variable sizes (like the reads of the kernel)
+class DirectReceptionClient extends AbstractNbdClient {
+  #serverOptions
+  directReads = 0
+
+  constructor(serverOptions, options) {
+    super({}, options)
+    this.#serverOptions = serverOptions
+  }
+
+  async _openTransport() {
+    const toServer = new PassThrough()
+    const toClient = new PassThrough()
+    serveNbd({ readable: toServer, writable: toClient, data: DATA, ...this.#serverOptions }).catch(error =>
+      toClient.destroy(error)
+    )
+    const transport = {
+      readable: toClient,
+      writable: toServer,
+      setDirectReceiver: receiver => {
+        let chunk
+        while ((chunk = toClient.read()) !== null) {
+          receiver.feed(chunk, chunk.length)
+        }
+        let size = 1
+        toClient.on('data', chunk => {
+          for (let offset = 0; offset < chunk.length; ) {
+            const target = receiver.nextReadTarget()
+            // pieces of 1, 3, 9, 27... bytes
+            size = size > 4096 ? 1 : size * 3
+            const n = Math.min(target.length, chunk.length - offset, size)
+            chunk.copy(target, 0, offset, offset + n)
+            this.directReads++
+            receiver.received(n)
+            offset += n
+          }
+        })
+      },
+    }
+    return transport
+  }
+}
+
+describe('AbstractNbdClient direct reception', () => {
+  it('reads straight into the given buffers, answered out of order', async () => {
+    const client = new DirectReceptionClient({ answerInReverse: true, chunkSize: 1000 })
+    await client.connect()
+    try {
+      const targets = [0, 1, 2, 3].map(() => Buffer.alloc(BLOCK_SIZE))
+      const blocks = await Promise.all(targets.map((target, index) => client.readBlock(index, BLOCK_SIZE, target)))
+      blocks.forEach((block, index) => {
+        assert.equal(block.buffer, targets[index].buffer, 'the data are in the given buffer')
+        assert.ok(block.equals(DATA.subarray(index * BLOCK_SIZE, (index + 1) * BLOCK_SIZE)))
+      })
+      assert.ok(client.directReads > 0)
+    } finally {
+      await client.disconnect()
+    }
+  })
+
+  it('handles the answers without payload of the writes', async () => {
+    const data = Buffer.from(DATA)
+    const client = new DirectReceptionClient({ data, allowWrites: true })
+    await client.connect()
+    try {
+      await Promise.all([client.writeBlock(0, Buffer.alloc(BLOCK_SIZE, 7), BLOCK_SIZE), client.flush()])
+      assert.ok((await client.readBlock(0, BLOCK_SIZE)).equals(Buffer.alloc(BLOCK_SIZE, 7)))
+    } finally {
+      await client.disconnect()
+    }
+  })
+})
