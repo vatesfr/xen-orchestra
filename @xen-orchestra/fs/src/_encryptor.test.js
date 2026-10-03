@@ -36,6 +36,12 @@ algorithms.forEach(algorithm => {
       assert.equal(decrypted.equals(buffer), true)
     })
 
+    it('rejects tampered data', { skip: algorithm !== 'aes-256-gcm' }, () => {
+      const encrypted = encryptor.encryptData(buffer)
+      encrypted[encrypted.length >> 1] ^= 1
+      assert.throws(() => encryptor.decryptData(encrypted))
+    })
+
     it('encrypts into parts which concatenated are the encrypted data', () => {
       const parts = encryptor.encryptDataParts([buffer.subarray(0, 512), buffer.subarray(512)])
       const encrypted = Array.isArray(parts) ? Buffer.concat(parts) : Buffer.concat([parts])

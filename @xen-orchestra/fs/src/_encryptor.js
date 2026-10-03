@@ -135,7 +135,10 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
       encrypted = buffer.slice(ivLength)
     }
     const decrypted = decipher.update(encrypted)
-    return Buffer.concat([decrypted, decipher.final()])
+    // final() must always be called: it checks the auth tag
+    const final = decipher.final()
+    // nothing is left with stream modes (like GCM): no need to copy the data
+    return final.length === 0 ? decrypted : Buffer.concat([decrypted, final])
   }
 
   return {
