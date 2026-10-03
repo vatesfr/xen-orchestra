@@ -10,6 +10,14 @@ const PAGE_SIZE = 4096
 const ZERO_PAGE = Buffer.alloc(PAGE_SIZE)
 const LENGTH_SIZE = 4
 
+// the empty parts of a disk are usually large: a region of zeroes is skipped with a single comparison
+const REGION_SIZE = 64 * 1024
+const PAGES_PER_REGION = REGION_SIZE / PAGE_SIZE
+const ZERO_REGION = Buffer.alloc(REGION_SIZE)
+
+// cheap check before a comparison: data rarely have their start, middle and end at zero
+const mayBeZero = (part, start, end) => part[start] === 0 && part[(start + end) >>> 1] === 0 && part[end - 1] === 0
+
 /**
  * @param {Buffer|Buffer[]} data - the chunk, or its parts (the chunk is their concatenation)
  * @returns {Buffer[]} the filtered chunk, in parts: the stored pages are views on the data, never copied
@@ -37,6 +45,24 @@ exports.removeZeroPages = function removeZeroPages(data) {
   let partIndex = 0
   let offset = 0 // in parts[partIndex]
   for (let i = 0; i < nbPages; i++) {
+    if (i % PAGES_PER_REGION === 0 && (i + PAGES_PER_REGION) * PAGE_SIZE <= length) {
+      const part = parts[partIndex]
+      const end = offset + REGION_SIZE
+      if (
+        end <= part.length &&
+        mayBeZero(part, offset, end) &&
+        part.compare(ZERO_REGION, 0, REGION_SIZE, offset, end) === 0
+      ) {
+        offset = end
+        if (offset === part.length) {
+          partIndex++
+          offset = 0
+        }
+        i += PAGES_PER_REGION - 1
+        continue
+      }
+    }
+
     // the page may span several parts
     const slices = []
     let remaining = Math.min(PAGE_SIZE, length - i * PAGE_SIZE)
@@ -51,7 +77,11 @@ exports.removeZeroPages = function removeZeroPages(data) {
         offset = 0
       }
     }
-    if (slices.every(([part, start, end]) => part.compare(ZERO_PAGE, 0, end - start, start, end) === 0)) {
+    if (
+      slices.every(
+        ([part, start, end]) => mayBeZero(part, start, end) && part.compare(ZERO_PAGE, 0, end - start, start, end) === 0
+      )
+    ) {
       continue
     }
     header[LENGTH_SIZE + (i >> 3)] |= 1 << (i & 7)
