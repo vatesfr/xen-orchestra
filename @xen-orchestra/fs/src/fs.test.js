@@ -4,6 +4,7 @@ import { strict as assert } from 'assert'
 import 'dotenv/config'
 import { forOwn, random } from 'lodash'
 import { tmpdir } from 'os'
+import { Readable } from 'node:stream'
 
 import { getHandler } from '.'
 
@@ -170,6 +171,30 @@ handlers.forEach(url => {
         await handler.outputFile('file', '')
         const error = await rejectionOf(handler.mktree('file/dir'))
         assert.equal(error.code, 'ENOTDIR')
+      })
+    })
+
+    describe('#outputStream()', () => {
+      it('stores the checksum of the data', async () => {
+        await handler.outputStream('file', Readable.from([TEST_DATA]))
+        assert.match(String(await handler.readFile('file.checksum')), /^\$1\$\$[0-9a-f]{32}$/)
+        // the stored checksum is valid
+        const chunks = []
+        for await (const chunk of await handler.createReadStream('file', { checksum: true })) {
+          chunks.push(chunk)
+        }
+        assert.deepEqual(Buffer.concat(chunks), TEST_DATA)
+      })
+
+      it('stores a known checksum as is', async () => {
+        await handler.outputStream('file', Readable.from([TEST_DATA]), { checksum: '$1$$known' })
+        assert.equal(String(await handler.readFile('file.checksum')), '$1$$known')
+        assert.deepEqual(await handler.readFile('file'), TEST_DATA)
+      })
+
+      it('stores no checksum when disabled', async () => {
+        await handler.outputStream('file', Readable.from([TEST_DATA]), { checksum: false })
+        assert.equal((await rejectionOf(handler.readFile('file.checksum'))).code, 'ENOENT')
       })
     })
 

@@ -16,6 +16,7 @@ import { openVhd, VhdFile, VhdAbstract, Constants, VhdDirectory } from 'vhd-lib'
 import computeGeometryForSize from 'vhd-lib/_computeGeometryForSize.js'
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
+import { Readable } from 'node:stream'
 
 const { beforeEach, afterEach, describe } = test
 
@@ -398,5 +399,72 @@ describe('mirror between VHD directory remotes', { concurrency: 1 }, () => {
     const source = await openRemote({ compressionType: 'gzip' })
     const target = await openRemote({ compressionType: 'none' })
     assert.equal(await mirror(source, target, 0x3c), undefined)
+  })
+})
+
+// full mirror: the XVA is read from a remote then written on another one
+describe('full mirror checksum', { concurrency: 1 }, () => {
+  const KEY = '73c1838d7d8a6088ca2317fb5f29cd91'
+  const XVA = `${rootPath}/20240101T000000Z.xva`
+  const metadata = { _filename: `${rootPath}/20240101T000000Z.json`, xva: './20240101T000000Z.xva' }
+  const data = Buffer.alloc(1024 * 1024, 0x77)
+  const dirs = []
+  const handlers = []
+  beforeEach(async () => {
+    // the global hooks expect it
+    handler = getHandler({ url: `file://${tempDir}` })
+    await handler.sync()
+  })
+  afterEach(async () => {
+    await Promise.all(handlers.splice(0).map(handler => handler.forget()))
+    await Promise.all(dirs.splice(0).map(dir => rimraf(dir)))
+  })
+
+  async function openRemote(encryptionKey) {
+    const dir = await pFromCallback(cb => tmp.dir(cb))
+    dirs.push(dir)
+    const remoteHandler = getHandler({ url: `file://${dir}`, encryptionKey })
+    await remoteHandler.sync()
+    handlers.push(remoteHandler)
+    return new RemoteAdapter(remoteHandler)
+  }
+
+  async function readChecksum(adapter) {
+    return String(await adapter.handler.readFile(XVA + '.checksum')).trim()
+  }
+
+  test('an unencrypted copy stores the checksum of the source, which stays valid', async () => {
+    const source = await openRemote()
+    const target = await openRemote()
+    await source.outputStream(XVA, Readable.from([data]))
+
+    const checksum = await source.readFullVmBackupChecksum(metadata)
+    assert.equal(checksum, await readChecksum(source))
+    await target.outputStream(XVA, await source.readFullVmBackup(metadata), { checksum })
+
+    assert.equal(await readChecksum(target), checksum)
+    const chunks = []
+    for await (const chunk of await target.handler.createReadStream(XVA, { checksum: true })) {
+      chunks.push(chunk)
+    }
+    assert.deepEqual(Buffer.concat(chunks), data)
+  })
+
+  test('an encrypted copy stores no checksum', async () => {
+    const source = await openRemote()
+    const target = await openRemote(KEY)
+    await source.outputStream(XVA, Readable.from([data]))
+
+    const checksum = await source.readFullVmBackupChecksum(metadata)
+    await target.outputStream(XVA, await source.readFullVmBackup(metadata), { checksum })
+
+    await assert.rejects(target.handler.readFile(XVA + '.checksum'), { code: 'ENOENT' })
+    assert.deepEqual(await target.handler.readFile(XVA), data)
+  })
+
+  test('an encrypted source gives no checksum', async () => {
+    const source = await openRemote(KEY)
+    await source.outputStream(XVA, Readable.from([data]))
+    assert.equal(await source.readFullVmBackupChecksum(metadata), undefined)
   })
 })

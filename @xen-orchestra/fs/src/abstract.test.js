@@ -9,6 +9,7 @@ import { rimraf } from 'rimraf'
 import AbstractHandler from './abstract'
 import fs from 'fs-extra'
 import tmp from 'tmp'
+import { Readable } from 'node:stream'
 
 const TIMEOUT = 12e5
 
@@ -199,6 +200,17 @@ describe('encryption', () => {
       assert.equal(encryption.algorithm, DEFAULT_ENCRYPTION_ALGORITHM)
       const metadata = JSON.parse(await handler.readFile(`./metadata.json`))
       assert.equal(metadata.random, 'NOTSORANDOM')
+    })
+  )
+
+  it(
+    'outputStream refuses a known checksum on an encrypted remote',
+    Disposable.wrap(async function* () {
+      const handler = yield getSyncedHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd91"` })
+      await assert.rejects(
+        handler.outputStream('file', Readable.from([Buffer.from('data')]), { checksum: '$1$$known' }),
+        /encrypted remote/
+      )
     })
   )
 
