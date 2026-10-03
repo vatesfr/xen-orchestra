@@ -159,6 +159,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     }
   }
 
+  // buffer can be an array of buffers, the chunk is then their concatenation
   async _writeChunk(partName, buffer) {
     assert.notStrictEqual(
       this._opts?.flags,
@@ -168,7 +169,10 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
 
     // in case of VhdDirectory, we want to create the file if it does not exists
     const flags = this._opts?.flags === 'r+' ? 'w' : this._opts?.flags
-    const compressed = await this.#compressor.compress(buffer)
+    const compressed = await this.#compressor.compress(
+      // the handler can write an array without concatenating it, a compressor can't
+      Array.isArray(buffer) && this.#compressor !== NULL_COMPRESSOR ? Buffer.concat(buffer) : buffer
+    )
     return this._handler.outputFile(this.#getChunkPath(partName), compressed, { flags })
   }
 
@@ -303,11 +307,15 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     return (await this._handler.getSizeOnDisk(this.getFullBlockPath(blockId))) - initialSize
   }
 
+  // block.buffer can be an array of buffers (bitmap and data for example), they are written without being concatenated
   async writeEntireBlock(block) {
+    const length = Array.isArray(block.buffer)
+      ? block.buffer.reduce((sum, buffer) => sum + buffer.length, 0)
+      : block.buffer.length
     assert.strictEqual(
-      block.buffer.length,
+      length,
       this.fullBlockSize,
-      `partial block can't be written , expecting ${this.fullBlockSize}, got ${block.buffer.length}`
+      `partial block can't be written , expecting ${this.fullBlockSize}, got ${length}`
     )
     await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
     setBitmap(this.#blockTable, block.id)

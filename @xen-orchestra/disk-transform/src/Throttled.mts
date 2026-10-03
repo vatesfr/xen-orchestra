@@ -13,7 +13,7 @@ export class ThrottledDisk extends DiskPassthrough {
     //throttle want to be able to know the length of the data
     async function* generatorWithLength() {
       for await (const block of generator) {
-        // keep the optional properties (prefixed, release)
+        // keep the optional properties (release)
         yield {
           ...block,
           length: block.data.length,

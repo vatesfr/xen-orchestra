@@ -5,14 +5,8 @@ export type DiskBlock = {
   index: number // the index of the block. Offset in raw disk is index * blockSize
   data: DiskBlockData // thue Buffer like data of this block. Must be blockSize length
   /**
-   * optional: a Buffer ending with `data` (same memory), its leading bytes have been prefilled by the producer
-   * (see BlockBufferPool). It lets a consumer which must prepend a header to the data (a VHD block bitmap for
-   * example) skip a copy, after having checked these leading bytes are the ones it expects
-   */
-  prefixed?: Buffer
-  /**
    * optional: gives the memory of `data` back to its pool once this block has been consumed,
-   * `data` and `prefixed` must not be used after calling it.
+   * `data` must not be used after calling it.
    * Never calling it is always safe: the memory will be garbage collected
    */
   release?: () => void

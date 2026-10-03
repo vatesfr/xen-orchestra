@@ -28,8 +28,12 @@ const RAW = env.RAW ?? '/data/bench/mixed.raw'
 const SIZE = Number(env.SIZE_GB ?? 2) * 1024 * 1024 * 1024
 const PCT = Number(env.PCT ?? 100)
 const indexes = []
+// BLOCKS_FILE: the indexes to read, one per line (the allocated blocks of a real chain), MAX_BLOCKS of them
+const fromFile = env.BLOCKS_FILE
+  ? (await import('node:fs')).readFileSync(env.BLOCKS_FILE, 'utf8').split('\n').filter(Boolean).map(Number).slice(0, Number(env.MAX_BLOCKS ?? Infinity))
+  : undefined
 const CYCLE = env.CYCLE_MB ? Number(env.CYCLE_MB) / 2 : Infinity // read the same range again and again (server cache)
-for (let i = 0; i < SIZE / BLOCK; i++) {
+for (let i = 0; fromFile === undefined && i < SIZE / BLOCK; i++) {
   if (CYCLE !== Infinity) {
     indexes.push(i % CYCLE)
     continue
@@ -37,6 +41,7 @@ for (let i = 0; i < SIZE / BLOCK; i++) {
   // deterministic sparse selection
   if ((i * 37) % 100 < PCT) indexes.push(i)
 }
+if (fromFile !== undefined) indexes.push(...fromFile)
 
 class BenchDisk extends RandomAccessDisk {
   #read
@@ -122,7 +127,7 @@ async function openSource() {
   const client = new MultiNbdClient(infos, { nbdConcurrency: Number(env.NBD_CONC ?? 1) })
   await client.connect()
   if (env.POOL === '1') {
-    // same path as XapiStreamNbdSource/XapiVhdCbtSource: pooled buffers, prefixed with a VHD bitmap
+    // same path as XapiStreamNbdSource/XapiVhdCbtSource: pooled buffers
     const { readNbdBlock } = await import('@xen-orchestra/xapi/disks/utils.mjs')
     const disk = new BenchDisk(
       () => {},

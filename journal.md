@@ -59,17 +59,13 @@ Profil du client XO pendant une lecture NBD à environ 1,2 Go/s (Node 24, VM de 
 
 ### 2. `@xen-orchestra/disk-transform` : pool de buffers et libération optionnelle
 
-- `BlockBufferPool.mts` (nouveau) : pool de buffers `prefix + blockSize`, dont le préfixe est copié une
-  seule fois à l'allocation.
+- `BlockBufferPool.mts` (nouveau) : pool de buffers de `blockSize` octets.
   - Le pool ne bloque et n'échoue jamais : s'il est vide, il alloue un nouveau buffer.
   - Il garde au plus `maxFree` buffers libres ; les autres sont laissés au GC.
   - Une double libération est ignorée, pour ne jamais confier la même mémoire à deux utilisateurs.
-- `Disk.mts` : `DiskBlock` gagne deux champs optionnels.
-  - `prefixed` : un buffer qui se termine par `data` (même mémoire), et dont les premiers octets ont été
-    pré-remplis par le producteur.
-  - `release()` : rend la mémoire au pool une fois le bloc consommé. **Ne jamais l'appeler est toujours
-    sûr** : la mémoire est alors ramassée par le GC.
-- `Throttled.mts` : conserve `prefixed` et `release`. Avant, chaque bloc était reconstruit en
+- `Disk.mts` : `DiskBlock` gagne un champ optionnel, `release()`. Il rend la mémoire au pool une fois le
+  bloc consommé. **Ne jamais l'appeler est toujours sûr** : la mémoire est alors ramassée par le GC.
+- `Throttled.mts` : conserve `release`. Avant, chaque bloc était reconstruit en
   `{ index, data, length }`.
 - `SynchronizedDisk.mts` : le même bloc est remis à tous les forks.
   - Un compteur, égal au nombre de forks, fait que la mémoire ne retourne au pool qu'une fois que **tous**
@@ -77,28 +73,32 @@ Profil du client XO pendant une lecture NBD à environ 1,2 Go/s (Node 24, VM de 
   - Un double `release()` venant du même fork n'est compté qu'une fois.
   - Un fork qui s'arrête en cours de route laisse simplement les blocs suivants au GC.
 - `DiskLargerBlock.mts` : libère le bloc source dès qu'il a été copié dans le bloc agrandi.
-- Tests : pool (réutilisation, préfixe conservé, double libération, `maxFree`), conservation des champs
+- Tests : pool (réutilisation, double libération, `maxFree`), conservation de `release`
   par `ThrottledDisk`, libération partagée par `SynchronizedDisk` (une seule libération après les deux
   forks, et aucune tant qu'un fork détient encore le bloc).
 
 ### 3. Sources NBD de XAPI et writer VHD block : écriture sans copie
 
-- `@xen-orchestra/xapi/disks/utils.mjs` : un pool partagé par le processus, de buffers de 512 + 2 Mo
-  préfixés par un **bitmap VHD complet**, et la fonction `readNbdBlock()`. Elle lit le bloc directement
-  dans un buffer du pool et renvoie `{ index, data, prefixed, release }`. `prefixed` n'est fourni que si
-  le bloc est complet.
+- `@xen-orchestra/xapi/disks/utils.mjs` : un pool de buffers de 2 Mo partagé par le processus, et la
+  fonction `readNbdBlock()`. Elle lit le bloc directement dans un buffer du pool et renvoie
+  `{ index, data, release }`.
 - `XapiStreamNbd.mjs` et `XapiVhdCbt.mjs` : `readBlock()` passe par `readNbdBlock()`.
-- `vhd-lib/disk-consumer/DiskConsumerVhdDirectory.mjs` : écrit directement `prefixed`, sans
-  `Buffer.concat`, si quatre conditions sont réunies :
-  - le bloc est complet ;
-  - `data` est bien la même mémoire que `prefixed`, à 512 octets du début ;
-  - les 512 premiers octets valent le bitmap complet ;
-  - la longueur est la bonne.
+- `@xen-orchestra/fs` : `outputFile()` accepte un tableau de buffers, le fichier est leur concaténation.
+  - Le handler local (et donc NFS et SMB) l'écrit avec un seul `writev`, sans concaténer.
+  - Les autres (S3, Azure) reçoivent un `Buffer.concat` : ils sont distants, plus lents, et on privilégie
+    la fiabilité.
+  - Avec chiffrement, chaque morceau passe par `cipher.update()`, sans copie supplémentaire.
+- `vhd-lib` : `VhdDirectory.writeEntireBlock()` accepte un tableau (`buffer: [bitmap, data]`). Avec
+  compression, les morceaux sont concaténés avant de compresser.
+- `vhd-lib/disk-consumer/DiskConsumerVhdDirectory.mjs` : écrit `[FULL_BLOCK_BITMAP, data]`, sans
+  `Buffer.concat`, puis appelle `release()` une fois le fichier de bloc écrit.
+- Tests : blocs écrits et libérés une fois chacun. Pour vérifier qu'aucune lecture ne se produit après la
+  libération, la mémoire est brouillée au moment du `release()`. Écriture avec compression.
 
-  Sinon, il fait la copie comme avant. Il appelle `release()` une fois le fichier de bloc écrit.
-- Tests : blocs préfixés, écrits sans copie et libérés une fois chacun. Pour vérifier qu'aucune lecture ne
-  se produit après la libération, la mémoire est brouillée au moment du `release()`. Retour à la copie
-  quand le préfixe est faux ou que la mémoire est détachée.
+  Une première version mettait le bitmap en préfixe dans les buffers du pool, pour écrire bitmap et données
+  d'un seul tenant. Elle a été retirée : mesurée sur la vraie stack, `writev` est aussi rapide (tmpfs,
+  2 Go : 6080 Mo/s contre 5735 avec le préfixe, et 2799 avec `Buffer.concat`) pour beaucoup moins de
+  code.
 
 ### Résultat des tests
 

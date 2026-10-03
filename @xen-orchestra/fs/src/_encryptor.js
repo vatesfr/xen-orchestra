@@ -109,11 +109,12 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
     )
   }
 
-  function encryptData(buffer) {
+  // data can be an array of buffers, encrypted as their concatenation
+  function encryptData(data) {
     const iv = crypto.randomBytes(ivLength)
     const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv)
-    const encrypted = cipher.update(buffer)
-    return Buffer.concat([iv, encrypted, cipher.final(), authTagLength > 0 ? cipher.getAuthTag() : Buffer.alloc(0)])
+    const encrypted = Array.isArray(data) ? data.map(buffer => cipher.update(buffer)) : [cipher.update(data)]
+    return Buffer.concat([iv, ...encrypted, cipher.final(), authTagLength > 0 ? cipher.getAuthTag() : Buffer.alloc(0)])
   }
 
   function decryptData(buffer) {

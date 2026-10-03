@@ -179,6 +179,11 @@ handlers.forEach(url => {
         assert.deepEqual(await handler.readFile('file'), TEST_DATA)
       })
 
+      it('writes an array of buffers as their concatenation', async () => {
+        await handler.outputFile('dir/file', [TEST_DATA.subarray(0, 10), Buffer.alloc(0), TEST_DATA.subarray(10)])
+        assert.deepEqual(await handler.readFile('dir/file'), TEST_DATA)
+      })
+
       it('throws on existing files', { skip: skipFsNotInAzure() }, async () => {
         await handler.outputFile('file', '')
         const error = await rejectionOf(handler.outputFile('file', ''))

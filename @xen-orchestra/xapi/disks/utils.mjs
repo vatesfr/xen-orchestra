@@ -8,9 +8,7 @@ const NBD_BLOCK_SIZE = 2 * 1024 * 1024
 
 // shared by all the NBD exports of this process: reusing the block buffers instead of allocating 2MB per
 // block keeps V8 from running a major GC dozens of times per second.
-// The prefix is a full VHD block bitmap: most exports end up in VHD block files, which can then be written
-// without copying the data (see DiskBlock.prefixed)
-const NBD_BLOCK_POOL = new BlockBufferPool({ blockSize: NBD_BLOCK_SIZE, prefix: Buffer.alloc(512, 255), maxFree: 32 })
+const NBD_BLOCK_POOL = new BlockBufferPool({ blockSize: NBD_BLOCK_SIZE, maxFree: 32 })
 
 /**
  * Reads a block through NBD directly into a pooled buffer
@@ -24,7 +22,7 @@ export async function readNbdBlock(nbdClient, index, blockSize) {
   if (blockSize !== NBD_BLOCK_SIZE) {
     return { index, data: await nbdClient.readBlock(index, blockSize) }
   }
-  const { buffer, data, release } = NBD_BLOCK_POOL.acquire()
+  const { data, release } = NBD_BLOCK_POOL.acquire()
   let read
   try {
     read = await nbdClient.readBlock(index, blockSize, data)
@@ -33,13 +31,7 @@ export async function readNbdBlock(nbdClient, index, blockSize) {
     release()
     throw error
   }
-  /** @type {import('@xen-orchestra/disk-transform').DiskBlock} */
-  const block = { index, data: read, release }
-  // the last block of a disk may be shorter: its buffer would not be prefix + data
-  if (read.length === blockSize) {
-    block.prefixed = buffer
-  }
-  return block
+  return { index, data: read, release }
 }
 
 /**
@@ -181,6 +173,11 @@ async function connectThroughPlugin(xapi, vdiRef, nbdConcurrency, backupAddresse
     )
     try {
       await client.connect()
+      // the export must be this VDI: a different size means another disk, never read it as this one
+      const virtualSize = BigInt(await xapi.getField('VDI', vdiRef, 'virtual_size'))
+      if (BigInt(client.exportSize) !== virtualSize) {
+        throw new Error(`export size ${client.exportSize} differs from the VDI virtual size ${virtualSize}`)
+      }
       info('xo-nbd plugin: connected', { vdiUuid, host: candidate.host, tls: exported.tls })
       return client
     } catch (error) {

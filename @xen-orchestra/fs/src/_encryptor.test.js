@@ -36,6 +36,17 @@ algorithms.forEach(algorithm => {
       assert.equal(decrypted.equals(buffer), true)
     })
 
+    it('handle an array of buffers', () => {
+      let encrypted = encryptor.encryptData([buffer.subarray(0, 512), buffer.subarray(512)])
+      // without encryption, the array is kept as is
+      if (Array.isArray(encrypted)) {
+        assert.equal(algorithm, 'none')
+        encrypted = Buffer.concat(encrypted)
+      }
+      const decrypted = encryptor.decryptData(encrypted)
+      assert.equal(decrypted.equals(buffer), true)
+    })
+
     it('handle stream', async () => {
       const stream = Readable.from(buffer)
       stream.length = buffer.length

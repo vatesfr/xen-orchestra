@@ -8,21 +8,14 @@ import { ThrottledDisk } from './Throttled.mjs'
 import { Throttle } from '@vates/generator-toolbox'
 
 test('BlockBufferPool', async t => {
-  await t.test('prefixes the data and reuses released buffers', () => {
-    const prefix = Buffer.alloc(16, 0xff)
-    const pool = new BlockBufferPool({ blockSize: 64, prefix })
+  await t.test('reuses released buffers', () => {
+    const pool = new BlockBufferPool({ blockSize: 64 })
     const first = pool.acquire()
-    assert.strictEqual(first.buffer.length, 16 + 64)
     assert.strictEqual(first.data.length, 64)
-    assert.ok(first.buffer.subarray(0, 16).equals(prefix))
-    // data is a view on the end of buffer
-    first.data.fill(7)
-    assert.strictEqual(first.buffer[16], 7)
 
     first.release()
     const second = pool.acquire()
-    assert.strictEqual(second.buffer, first.buffer, 'the released buffer is reused')
-    assert.ok(second.buffer.subarray(0, 16).equals(prefix), 'the prefix is still there')
+    assert.strictEqual(second.data, first.data, 'the released buffer is reused')
     assert.strictEqual(pool.allocated, 1)
     assert.strictEqual(pool.reused, 1)
   })
@@ -34,7 +27,7 @@ test('BlockBufferPool', async t => {
     block.release()
     const a = pool.acquire()
     const b = pool.acquire()
-    assert.notStrictEqual(a.buffer, b.buffer, 'the same memory must never be handed out twice')
+    assert.notStrictEqual(a.data, b.data, 'the same memory must never be handed out twice')
   })
 
   await t.test('keeps at most maxFree buffers', () => {
@@ -59,12 +52,11 @@ class PooledDisk extends DebugDisk {
     this.pool = new BlockBufferPool({ blockSize })
   }
   async readBlock(index: number): Promise<DiskBlock> {
-    const { buffer, data, release } = this.pool.acquire()
+    const { data, release } = this.pool.acquire()
     data.fill(index)
     return {
       index,
       data,
-      prefixed: buffer,
       release: () => {
         this.released++
         release()
@@ -74,12 +66,11 @@ class PooledDisk extends DebugDisk {
 }
 
 test('release through the disk transforms', async t => {
-  await t.test('ThrottledDisk keeps prefixed and release', async () => {
+  await t.test('ThrottledDisk keeps release', async () => {
     const source = new PooledDisk(4, 32)
     await source.init()
     const disk = new ThrottledDisk(source, new Throttle(0))
     for await (const block of disk.diskBlocks()) {
-      assert.ok(block.prefixed !== undefined)
       assert.strictEqual(typeof block.release, 'function')
       block.release!()
     }

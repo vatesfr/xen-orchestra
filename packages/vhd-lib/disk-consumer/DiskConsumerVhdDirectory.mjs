@@ -74,10 +74,9 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
        * @type {import('@xen-orchestra/disk-transform').DiskBlock | null}
        */
       let truncatedBlock = null
-      const EXPECTED_FULL_BUFFER_SIZE = DEFAULT_BLOCK_SIZE + FULL_BLOCK_BITMAP.length
       await asyncEach(
         generator,
-        async ({ index, data, prefixed, release }) => {
+        async ({ index, data, release }) => {
           signal?.throwIfAborted()
           if (truncatedBlock !== null) {
             throw new Error(
@@ -87,18 +86,8 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
           if (data.length < DEFAULT_BLOCK_SIZE) {
             truncatedBlock = { data, index }
           }
-          // the producer may already have put the data right after a full bitmap: no copy needed
-          const buffer =
-            prefixed !== undefined &&
-            prefixed.length === EXPECTED_FULL_BUFFER_SIZE &&
-            data.length === DEFAULT_BLOCK_SIZE &&
-            // data must be the end of prefixed, the same memory
-            data.buffer === prefixed.buffer &&
-            data.byteOffset === prefixed.byteOffset + FULL_BLOCK_BITMAP.length &&
-            prefixed.compare(FULL_BLOCK_BITMAP, 0, FULL_BLOCK_BITMAP.length, 0, FULL_BLOCK_BITMAP.length) === 0
-              ? prefixed
-              : Buffer.concat([FULL_BLOCK_BITMAP, data], EXPECTED_FULL_BUFFER_SIZE)
-          await vhd.writeEntireBlock({ id: index, buffer })
+          // bitmap and data are written without being concatenated (writev on a local remote)
+          await vhd.writeEntireBlock({ id: index, buffer: [FULL_BLOCK_BITMAP, data] })
           // the block file is written, its memory can be reused
           release?.()
         },
