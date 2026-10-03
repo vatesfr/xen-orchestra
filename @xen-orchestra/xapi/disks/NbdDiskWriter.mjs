@@ -20,14 +20,24 @@ export class NbdDiskWriter {
   #closeExport
   /** @type {Promise<void>|undefined} */
   #exportClosed
+  #progressHandler
 
   /**
    * @param {import('@vates/nbd-client').AbstractNbdClient} client - connected to a writable export
    * @param {() => Promise<void>} closeExport - ends the export: the written data are only guaranteed once it resolved
+   * @param {object} [options]
+   * @param {{setProgress(progress: number): Promise<void>, done(): Promise<void>, fail(): Promise<void>}} [options.progressHandler]
+   *   - the progress of the disk being written (between 0 and 1), done once the export is closed
    */
-  constructor(client, closeExport) {
+  constructor(client, closeExport, { progressHandler } = {}) {
     this.#client = client
     this.#closeExport = closeExport
+    this.#progressHandler = progressHandler
+  }
+
+  // the progress must never fail nor slow down the import
+  #report(method, ...args) {
+    this.#progressHandler?.[method](...args)?.catch?.(error => warn(`NBD writer: progress ${method} failed`, { error }))
   }
 
   // called once, whoever asks first
@@ -56,6 +66,8 @@ export class NbdDiskWriter {
     const requestSize = Math.min(blockSize, NBD_WRITE_SIZE)
     assert.strictEqual(blockSize % requestSize, 0, `can't split blocks of ${blockSize} bytes in requests`)
     const requestsPerBlock = blockSize / requestSize
+    const nbBlocks = disk.getBlockIndexes().length
+    let nbWrittenBlocks = 0
 
     let written = 0
     await asyncEach(
@@ -85,6 +97,7 @@ export class NbdDiskWriter {
         }
         // the block has been written, its memory can be reused
         release?.()
+        this.#report('setProgress', ++nbWrittenBlocks / nbBlocks)
       },
       { concurrency }
     )
@@ -98,22 +111,29 @@ export class NbdDiskWriter {
   async close() {
     const client = this.#client
     try {
-      if (client.canFlush) {
-        await client.flush()
-      }
-    } finally {
       try {
-        await client.disconnect()
+        if (client.canFlush) {
+          await client.flush()
+        }
       } finally {
-        await this.#endExport()
+        try {
+          await client.disconnect()
+        } finally {
+          await this.#endExport()
+        }
       }
+    } catch (error) {
+      this.#report('fail')
+      throw error
     }
+    this.#report('done')
   }
 
   /**
    * After a failure: frees the connection and the export, without throwing
    */
   async abort() {
+    this.#report('fail')
     await this.#client.disconnect().catch(error => warn('NBD writer: disconnection failed', { error }))
     await this.#endExport().catch(error => warn('NBD writer: closing the export failed, it will expire', { error }))
   }

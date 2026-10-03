@@ -46,6 +46,7 @@ function fakeDisk(blockSize, blocks) {
   return {
     released: 0,
     getBlockSize: () => blockSize,
+    getBlockIndexes: () => blocks.map(([index]) => index),
     async *diskBlocks() {
       for (const [index, data] of blocks) {
         yield { index, data, release: () => this.released++ }
@@ -157,5 +158,38 @@ describe('NbdDiskWriter', () => {
     await writer.abort()
     await writer.abort()
     assert.equal(closes, 1)
+  })
+
+  it('reports the progress, then the end of the task', async () => {
+    const events = []
+    const progressHandler = {
+      setProgress: async progress => events.push(progress),
+      done: async () => events.push('done'),
+      fail: async () => events.push('fail'),
+    }
+    const writer = new NbdDiskWriter(new FakeClient(8 * MiB), async () => {}, { progressHandler })
+    const disk = fakeDisk(
+      2 * MiB,
+      [0, 1, 2, 3].map(index => [index, Buffer.alloc(2 * MiB, 1)])
+    )
+    disk.getBlockIndexes = () => [0, 1, 2, 3]
+    await writer.writeDisk(disk, { concurrency: 1 })
+    await writer.close()
+    assert.deepEqual(events, [0.25, 0.5, 0.75, 1, 'done'])
+
+    // a failed import fails the task, a failed close too
+    const failed = []
+    const failingHandler = {
+      setProgress: async () => {},
+      done: async () => failed.push('done'),
+      fail: async () => failed.push('fail'),
+    }
+    await new NbdDiskWriter(new FakeClient(2 * MiB), async () => {}, { progressHandler: failingHandler }).abort()
+    await assert.rejects(
+      new NbdDiskWriter(new FakeClient(2 * MiB, { failFlush: true }), async () => {}, {
+        progressHandler: failingHandler,
+      }).close()
+    )
+    assert.deepEqual(failed, ['fail', 'fail'])
   })
 })

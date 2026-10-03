@@ -74,6 +74,10 @@ export class XapiProgressHandler {
     this.#taskRef && (await this.#xapi.call('task_set_status', this.#taskRef, 'success'))
   }
 
+  async fail() {
+    this.#taskRef && (await this.#xapi.call('task_set_status', this.#taskRef, 'failure'))
+  }
+
   /**
    * avoid spamming the xapi task api
    * @param {number} progress number between 0 and 1

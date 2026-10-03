@@ -3,6 +3,7 @@ import NbdTcpClient from '@vates/nbd-client/NbdTcpClient.mjs'
 import { BlockBufferPool } from '@xen-orchestra/disk-transform'
 import { createLogger } from '@xen-orchestra/log'
 import { NbdDiskWriter } from './NbdDiskWriter.mjs'
+import { XapiProgressHandler } from './XapiProgress.mjs'
 
 const { debug, info, warn } = createLogger('xo:xapi:disks:nbd')
 
@@ -262,7 +263,11 @@ export async function openNbdDiskWriter(xapi, vdiRef) {
             throw new Error(`export size ${client.exportSize} differs from the VDI virtual size ${virtualSize}`)
           }
           info('xo-nbd plugin: connected in write mode', { vdiUuid, host: candidate.host, tls: exported.tls })
-          return new NbdDiskWriter(client, closeExport)
+          // like the reads (see XapiDiskSource), a XAPI task shows the progress of the import
+          const label = await xapi.getField('VDI', vdiRef, 'name_label')
+          return new NbdDiskWriter(client, closeExport, {
+            progressHandler: new XapiProgressHandler(xapi, `Importing content of VDI ${label} through NBD`),
+          })
         } catch (error) {
           warn('xo-nbd plugin: write connection failed', { vdiUuid, host: candidate.host, address, error })
           await client.disconnect().catch(() => {})
