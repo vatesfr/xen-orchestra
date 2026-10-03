@@ -18,24 +18,27 @@ const NULL_COMPRESSOR = {
   baseOptions: {},
 }
 
+// larger than a full block (2 MiB + 512): zlib processes a block in a single pass on the thread pool instead of a
+// round trip per chunk of 16 KiB (the default), 3 times faster to decompress with zstd and 1.5 times with brotli
+const ZLIB_CHUNK_SIZE = 4 * 1024 * 1024
+
+function withZlibOptions(fn, options) {
+  const promisified = promisify(fn)
+  return buffer => promisified(buffer, { chunkSize: ZLIB_CHUNK_SIZE, ...options })
+}
+
 const COMPRESSORS = {
   gzip: {
-    compress: (
-      gzip => buffer =>
-        gzip(buffer, { level: zlib.constants.Z_BEST_SPEED })
-    )(promisify(zlib.gzip)),
-    decompress: promisify(zlib.gunzip),
+    compress: withZlibOptions(zlib.gzip, { level: zlib.constants.Z_BEST_SPEED }),
+    decompress: withZlibOptions(zlib.gunzip),
   },
   brotli: {
-    compress: (
-      brotliCompress => buffer =>
-        brotliCompress(buffer, {
-          params: {
-            [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY,
-          },
-        })
-    )(promisify(zlib.brotliCompress)),
-    decompress: promisify(zlib.brotliDecompress),
+    compress: withZlibOptions(zlib.brotliCompress, {
+      params: {
+        [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY,
+      },
+    }),
+    decompress: withZlibOptions(zlib.brotliDecompress),
   },
   none: NULL_COMPRESSOR,
 }
@@ -47,15 +50,12 @@ const ZSTD_LEVEL = -3
 // zstd is only available since Node 22.15
 if (zlib.zstdCompress !== undefined) {
   COMPRESSORS.zstd = {
-    compress: (
-      zstdCompress => buffer =>
-        zstdCompress(buffer, {
-          params: {
-            [zlib.constants.ZSTD_c_compressionLevel]: ZSTD_LEVEL,
-          },
-        })
-    )(promisify(zlib.zstdCompress)),
-    decompress: promisify(zlib.zstdDecompress),
+    compress: withZlibOptions(zlib.zstdCompress, {
+      params: {
+        [zlib.constants.ZSTD_c_compressionLevel]: ZSTD_LEVEL,
+      },
+    }),
+    decompress: withZlibOptions(zlib.zstdDecompress),
   }
 }
 
