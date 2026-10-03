@@ -9,7 +9,6 @@ const assert = require('assert')
 const { synchronized } = require('decorator-synchronized')
 const promisify = require('promise-toolbox/promisify')
 const zlib = require('zlib')
-const { removeZeroPages, restoreZeroPages } = require('./_zeroFilter')
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
 
@@ -42,11 +41,6 @@ const COMPRESSORS = {
     decompress: withZlibOptions(zlib.brotliDecompress),
   },
   none: NULL_COMPRESSOR,
-  // no compression, only the pages full of zeroes are removed: much cheaper, and the result is written without copy
-  zeros: {
-    compress: removeZeroPages,
-    decompress: restoreZeroPages,
-  },
 }
 
 // negative levels are the fastest ones: they mostly remove the runs of zeroes, and decompress about 5 times faster

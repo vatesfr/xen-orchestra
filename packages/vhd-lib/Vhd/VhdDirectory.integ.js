@@ -80,7 +80,7 @@ describe('VhdDirectory', async () => {
     })
   })
 
-  for (const compression of [undefined, 'gzip', 'zstd', 'zeros']) {
+  for (const compression of [undefined, 'gzip', 'zstd']) {
     it(`writes the data of a block with a full bitmap (compression: ${compression})`, async () => {
       await createRandomFile(`${tempDir}/randomfile`, 8)
       await convertFromRawToVhd(`${tempDir}/randomfile`, `${tempDir}/source.vhd`)
@@ -123,25 +123,6 @@ describe('VhdDirectory', async () => {
       // never written in a VHD directory with another compression, nor with the wrong size
       await assert.rejects(plain.writeRawBlock(1, raw, 'gzip'))
       await assert.rejects(plain.writeRawBlock(1, raw, plain.compressionType), /must be/)
-    })
-  })
-
-  it('only stores the pages of a block which are not empty with the zeros filter', async () => {
-    await createRandomFile(`${tempDir}/randomfile`, 8)
-    await convertFromRawToVhd(`${tempDir}/randomfile`, `${tempDir}/source.vhd`)
-    await Disposable.use(async function* () {
-      const source = yield openVhd(handler, 'source.vhd')
-      const vhd = yield VhdDirectory.create(handler, 'zeros.vhd', { compression: 'zeros' })
-      vhd.header = source.header
-      vhd.footer = source.footer
-      // the second half of the block is empty
-      const data = Buffer.alloc(vhd.header.blockSize)
-      data.fill(0x42, 0, data.length / 2)
-      await vhd.writeBlockData(0, data)
-      const { size } = await fs.stat(`${tempDir}/${vhd.getFullBlockPath(0)}`)
-      // the bitmap shifts the data by 512 bytes: one more page is stored
-      assert.ok(size < vhd.fullBlockSize / 2 + 2 * 4096, `${size} bytes stored`)
-      assert.ok((await vhd.readBlock(0)).data.equals(data))
     })
   })
 
