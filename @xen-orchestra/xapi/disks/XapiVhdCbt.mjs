@@ -5,7 +5,7 @@
  */
 import assert from 'node:assert'
 import { RandomAccessDisk } from '@xen-orchestra/disk-transform'
-import { connectNbdClientIfPossible } from './utils.mjs'
+import { connectNbdClientIfPossible, readNbdBlock } from './utils.mjs'
 
 /**
  * @typedef {Error & { code: string }} ErrorWithCode
@@ -129,8 +129,7 @@ export class XapiVhdCbtSource extends RandomAccessDisk {
     if (this.#onlyListChangedBlocks) {
       throw new Error(`Disk ${this.#ref} from ${this.#baseRef} is open in "only list block mode"`)
     }
-    const data = await this.#nbdClient.readBlock(index, this.getBlockSize())
-    return { index, data }
+    return readNbdBlock(this.#nbdClient, index, this.getBlockSize())
   }
 
   /** @returns {Promise<void>} */

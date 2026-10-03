@@ -21,11 +21,14 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
     for (const metadata of transferList) {
       const stream = this._throttleStream(await this._sourceRemoteAdapter.readFullVmBackup(metadata))
       const sizeContainer = watchStreamSize(stream)
+      // the unencrypted destinations store the same data as the source: no need to compute their checksum again
+      const checksum = await this._sourceRemoteAdapter.readFullVmBackupChecksum(metadata)
 
       // @todo shouldn't transfer backup if it will be deleted by retention policy (higher retention on source than destination)
       await this._callWriters(
         writer =>
           writer.run({
+            checksum,
             stream: forkStreamUnpipe(stream),
             // stream will be forked and transformed, it's not safe to attach additional properties to it
             streamLength: stream.length,

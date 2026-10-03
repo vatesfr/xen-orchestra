@@ -139,6 +139,29 @@ describe('VhdFile', async () => {
     assert.equal((await fs.readFile(recoveredFileName)).equals(randomData), true)
   })
 
+  it('writes the data of a block with a full bitmap', async () => {
+    const emptyFileName = `${tempDir}/empty.vhd`
+    await execa('qemu-img', ['create', '-fvpc', emptyFileName, '8M'])
+    const vhd = new VhdFile(handler, 'empty.vhd')
+    await vhd.readHeaderAndFooter()
+    await vhd.readBlockAllocationTable()
+    const data = randomBytes(vhd.header.blockSize)
+    await vhd.writeBlockData(1, data)
+    // written twice: the second write reuses the allocated block
+    await vhd.writeBlockData(2, data)
+    await vhd.writeBlockData(1, data)
+    await vhd.writeFooter()
+    const reopened = new VhdFile(handler, 'empty.vhd')
+    await reopened.readHeaderAndFooter()
+    await reopened.readBlockAllocationTable()
+    for (const id of [1, 2]) {
+      const block = await reopened.readBlock(id)
+      assert.ok(block.bitmap.every(byte => byte === 0xff))
+      assert.ok(block.data.equals(data))
+    }
+    assert.equal(reopened.containsBlock(0), false)
+  })
+
   it('writes Data in 2 non-overlapping operations', async () => {
     const mbOfRandom = 3
     const rawFileName = `${tempDir}/randomfile`

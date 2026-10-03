@@ -8,6 +8,18 @@ import { DEFAULT_BLOCK_SIZE, DISK_TYPES, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE }
 import { createFooter, createHeader } from '../_createFooterHeader.js'
 
 export const FULL_BLOCK_BITMAP = Buffer.alloc(SECTOR_SIZE, 255)
+
+/**
+ * the data of a block file of a VHD directory (see DiskBlock.vhdBlockCompression) is not the data of the block:
+ * only a VHD directory using the same compression can write it
+ *
+ * @param {import('@xen-orchestra/disk-transform').DiskBlock} block
+ */
+export function assertNotVhdBlockFile({ index, vhdBlockCompression }) {
+  if (vhdBlockCompression !== undefined) {
+    throw new Error(`block ${index} is a block file of a VHD directory compressed with ${vhdBlockCompression}`)
+  }
+}
 /**
  * @abstract
  */
@@ -82,8 +94,9 @@ export class BaseVhd {
    */
   async *vhdblockGenerator() {
     const generator = this.#source.diskBlocks()
-    for await (const { data } of generator) {
-      yield Buffer.concat([FULL_BLOCK_BITMAP, data])
+    for await (const block of generator) {
+      assertNotVhdBlockFile(block)
+      yield Buffer.concat([FULL_BLOCK_BITMAP, block.data])
     }
   }
 }

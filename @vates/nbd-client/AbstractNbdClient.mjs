@@ -1,14 +1,22 @@
 import assert from 'node:assert'
-import { pRetry, pDelay, pTimeout, pFromCallback } from 'promise-toolbox'
+import { pRetry, pDelay, pTimeout, pFromCallback, TimeoutError } from 'promise-toolbox'
 import { readChunkStrict } from '@vates/read-chunk'
 import { createLogger } from '@xen-orchestra/log'
 import {
   INIT_PASSWD,
   NBD_CMD_DISC,
+  NBD_CMD_FLUSH,
   NBD_CMD_READ,
+  NBD_CMD_TRIM,
+  NBD_CMD_WRITE,
+  NBD_CMD_WRITE_ZEROES,
   NBD_DEFAULT_BLOCK_SIZE,
   NBD_FLAG_FIXED_NEWSTYLE,
   NBD_FLAG_HAS_FLAGS,
+  NBD_FLAG_READ_ONLY,
+  NBD_FLAG_SEND_FLUSH,
+  NBD_FLAG_SEND_TRIM,
+  NBD_FLAG_SEND_WRITE_ZEROES,
   NBD_OPT_EXPORT_NAME,
   NBD_OPT_REPLY_MAGIC,
   NBD_REPLY_ACK,
@@ -21,6 +29,31 @@ const { debug, warn } = createLogger('vates:nbd-client')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
 
+// error codes of the protocol, the same values as the Linux errno
+const NBD_ERRORS = {
+  1: 'EPERM',
+  5: 'EIO',
+  12: 'ENOMEM',
+  22: 'EINVAL',
+  28: 'ENOSPC',
+  75: 'EOVERFLOW',
+  95: 'ENOTSUP',
+  108: 'ESHUTDOWN',
+}
+
+/**
+ * The server refused a request, the connection is still usable
+ *
+ * @param {number} nbdError
+ */
+function createServerError(nbdError) {
+  const code = NBD_ERRORS[nbdError]
+  const error = new Error(`the NBD server answered the error ${nbdError} (${code ?? 'unknown'})`)
+  error.code = code
+  error.nbdError = nbdError
+  return error
+}
+
 /**
  * A pair of streams carrying the NBD protocol.
  *
@@ -30,7 +63,162 @@ const { debug, warn } = createLogger('vates:nbd-client')
  * @typedef {object} NbdTransport
  * @property {import('node:stream').Readable} readable - where the server answers are read from
  * @property {import('node:stream').Writable} writable - where the client queries are written to
+ * @property {(receiver: (chunk: Buffer, length: number) => void) => void} [setReceiver] - optional: after the
+ *  handshake, the transport hands the received data directly to `receiver` instead of emitting it through
+ *  `readable` (no allocation per chunk). `chunk` may be reused once `receiver` returns: it must be consumed
+ *  synchronously. Data still buffered in `readable` must be handed to `receiver` first.
  */
+
+/**
+ * Parses the answers of the transmission phase of one connection, and copies
+ * their payload straight into the buffer of the matching query.
+ *
+ * One receiver per connection: data received late on a previous connection
+ * can't be mixed with the queries of the current one.
+ *
+ * Only simple replies are expected: with a payload for NBD_CMD_READ, without for
+ * the other commands.
+ */
+class ReplyReceiver {
+  // AFAIK, there is no guaranty the server answers in the same order as the queries
+  // map of command waiting for a response queryId => { size/*in byte*/, target, resolve, reject}
+  #backlog = new Map()
+  #header = Buffer.alloc(16)
+  #headerLength = 0
+
+  /** @type {{ query: object, buffer: Buffer, filled: number } | undefined} */
+  #current
+
+  /** @type {Error | undefined} once failed, the stream can't be parsed anymore */
+  #error
+
+  #messageTimeout
+  /** @type {NodeJS.Timeout | undefined} */
+  #timer
+
+  constructor(messageTimeout) {
+    this.#messageTimeout = messageTimeout
+  }
+
+  get error() {
+    return this.#error
+  }
+
+  add(queryId, query) {
+    if (this.#error !== undefined) {
+      query.reject(this.#error)
+      return
+    }
+    this.#backlog.set(queryId, query)
+    this.#watch()
+  }
+
+  delete(queryId) {
+    this.#backlog.delete(queryId)
+    this.#watch()
+  }
+
+  // reject everything pending and stop parsing: the next answers are not trustworthy anymore
+  fail(error) {
+    if (this.#error === undefined) {
+      this.#error = error
+    }
+    const current = this.#current
+    this.#current = undefined
+    current?.query.reject(error)
+    this.#backlog.forEach(({ reject }) => reject(error))
+    this.#backlog.clear()
+    this.#watch()
+  }
+
+  /**
+   * @param {Buffer} chunk
+   * @param {number} length - only the first `length` bytes of `chunk` are data
+   */
+  feed(chunk, length) {
+    let offset = 0
+    while (offset < length && this.#error === undefined) {
+      const current = this.#current
+      if (current === undefined) {
+        const n = Math.min(16 - this.#headerLength, length - offset)
+        chunk.copy(this.#header, this.#headerLength, offset, offset + n)
+        this.#headerLength += n
+        offset += n
+        if (this.#headerLength === 16) {
+          this.#headerLength = 0
+          this.#onHeader()
+        }
+      } else {
+        const n = Math.min(current.buffer.length - current.filled, length - offset)
+        chunk.copy(current.buffer, current.filled, offset, offset + n)
+        current.filled += n
+        offset += n
+        if (current.filled === current.buffer.length) {
+          this.#current = undefined
+          current.query.resolve(current.buffer)
+        }
+      }
+    }
+    this.#watch()
+  }
+
+  #onHeader() {
+    const header = this.#header
+    const magic = header.readInt32BE(0)
+    if (magic !== NBD_REPLY_MAGIC) {
+      this.fail(new Error(`magic number for block answer is wrong : ${magic} ${NBD_REPLY_MAGIC}`))
+      return
+    }
+
+    const error = header.readInt32BE(4)
+    const queryId = header.readBigUInt64BE(8)
+    const query = this.#backlog.get(queryId)
+    if (error !== 0) {
+      if (query?.noPayload) {
+        // nothing follows the header: only this query failed, the next answers can still be parsed
+        this.#backlog.delete(queryId)
+        query.reject(createServerError(error))
+        return
+      }
+      // a simple reply to a read does not tell if its data follow: the stream can't be parsed anymore
+      this.fail(new Error(`GOT ERROR CODE  : ${error}`))
+      return
+    }
+
+    if (query === undefined) {
+      this.fail(new Error(` no query associated with id ${queryId}`))
+      return
+    }
+    this.#backlog.delete(queryId)
+    if (query.noPayload) {
+      query.resolve()
+      return
+    }
+    // the payload is written once, at its final place
+    const buffer = query.target ?? Buffer.allocUnsafe(query.size)
+    if (buffer.length === 0) {
+      query.resolve(buffer)
+    } else {
+      this.#current = { query, buffer, filled: 0 }
+    }
+  }
+
+  // the server must make progress while some queries are waiting for their answer
+  #watch() {
+    const waiting = this.#current !== undefined || this.#backlog.size > 0
+    if (!waiting) {
+      clearTimeout(this.#timer)
+      this.#timer = undefined
+    } else if (this.#timer === undefined) {
+      this.#timer = setTimeout(() => {
+        this.#timer = undefined
+        this.fail(new TimeoutError())
+      }, this.#messageTimeout)
+    } else {
+      this.#timer.refresh()
+    }
+  }
+}
 
 /**
  * Transport agnostic NBD client: it implements the handshake and the
@@ -45,6 +233,7 @@ const { debug, warn } = createLogger('vates:nbd-client')
 export default class AbstractNbdClient {
   #exportName
   #exportSize
+  #transmissionFlags = 0
 
   /** @type {NbdTransport|undefined} */
   #transport
@@ -60,13 +249,9 @@ export default class AbstractNbdClient {
   #connectTimeout
   #messageTimeout
 
-  // AFAIK, there is no guaranty the server answers in the same order as the queries
-  // so we handle a backlog of command waiting for response and handle concurrency manually
-
-  #waitingForResponse // there is already a listener waiting for a response
   #nextCommandQueryId = BigInt(0)
-  // map of command waiting for a response queryId => { size/*in byte*/, resolve, reject}
-  #commandQueryBacklog = new Map()
+  /** @type {ReplyReceiver|undefined} parses the answers of the current connection */
+  #receiver
   #connected = false
 
   #reconnectingPromise
@@ -78,7 +263,7 @@ export default class AbstractNbdClient {
    * @param {number} [options.connectTimeout]
    * @param {number} [options.messageTimeout]
    * @param {number} [options.waitBeforeReconnect]
-   * @param {number} [options.readBlockRetries]
+   * @param {number} [options.readBlockRetries] - tries of a read or a write, reconnecting between them
    * @param {number} [options.reconnectRetry]
    */
   constructor(
@@ -105,6 +290,23 @@ export default class AbstractNbdClient {
 
   get exportName() {
     return this.#exportName
+  }
+
+  // the capabilities announced by the server for this export, known once connected
+  get readOnly() {
+    return (this.#transmissionFlags & NBD_FLAG_READ_ONLY) !== 0
+  }
+
+  get canFlush() {
+    return (this.#transmissionFlags & NBD_FLAG_SEND_FLUSH) !== 0
+  }
+
+  get canTrim() {
+    return (this.#transmissionFlags & NBD_FLAG_SEND_TRIM) !== 0
+  }
+
+  get canWriteZeroes() {
+    return (this.#transmissionFlags & NBD_FLAG_SEND_WRITE_ZEROES) !== 0
   }
 
   get connected() {
@@ -202,7 +404,7 @@ export default class AbstractNbdClient {
    * connection
    * ------------------------------------------------------------------------- */
 
-  #onTransportError = error => {
+  #onTransportError(error, receiver) {
     // without this listener an error on the transport would be thrown as an
     // uncaught exception, and pending reads would only fail on message timeout
     //
@@ -211,13 +413,36 @@ export default class AbstractNbdClient {
     // through the connect()/readBlock() rejection
     const log = this.#connected ? warn : debug
     log('error on the nbd transport', { error })
-    this.#rejectAll(error)
+    receiver.fail(error)
   }
 
-  #watchTransport(transport) {
-    transport.readable.on('error', this.#onTransportError)
+  #watchTransport(transport, receiver) {
+    const onError = error => this.#onTransportError(error, receiver)
+    transport.readable.on('error', onError)
     if (transport.writable !== transport.readable) {
-      transport.writable.on('error', this.#onTransportError)
+      transport.writable.on('error', onError)
+    }
+  }
+
+  // transmission phase: the answers are parsed as they come, without waiting for a read() of their size
+  #startReceiving(transport, receiver) {
+    const onClose = () => {
+      const error = new Error('the nbd transport has been closed')
+      error.code = 'NBD_TRANSPORT_CLOSED'
+      receiver.fail(error)
+    }
+    transport.readable.on('end', onClose)
+    transport.readable.on('close', onClose)
+    if (transport.writable !== transport.readable) {
+      transport.writable.on('close', onClose)
+    }
+
+    if (transport.setReceiver !== undefined) {
+      transport.setReceiver((chunk, length) => receiver.feed(chunk, length))
+    } else {
+      transport.readable.on('data', chunk => receiver.feed(chunk, chunk.length))
+      // the handshake used read() with 'readable' listeners: explicitly switch the stream to flowing
+      transport.readable.resume()
     }
   }
 
@@ -227,10 +452,12 @@ export default class AbstractNbdClient {
     // not cancel on timeout, so a superseded attempt must not be able to use,
     // replace or destroy the transport of the attempt which replaced it
     let transport = await this._openTransport()
-    this.#watchTransport(transport)
+    // each connection has its own receiver: late answers on a previous one can't reach the queries of this one
+    const receiver = new ReplyReceiver(this.#messageTimeout)
+    this.#watchTransport(transport, receiver)
     try {
       // the transport can be replaced during the handshake (TLS upgrade)
-      transport = await this.#handshake(transport)
+      transport = await this.#handshake(transport, receiver)
 
       if (generation !== this.#connectGeneration) {
         const error = new Error('this connection has been superseded by a newer one')
@@ -244,10 +471,9 @@ export default class AbstractNbdClient {
       throw error
     }
     this.#transport = transport
+    this.#receiver = receiver
     this.#connected = true
-    // reset internal state if we reconnected a nbd client
-    this.#commandQueryBacklog = new Map()
-    this.#waitingForResponse = false
+    this.#startReceiving(transport, receiver)
   }
 
   async connect() {
@@ -366,9 +592,10 @@ export default class AbstractNbdClient {
   //
   /**
    * @param {NbdTransport} transport
+   * @param {ReplyReceiver} receiver
    * @returns {Promise<NbdTransport>}
    */
-  async #handshake(transport) {
+  async #handshake(transport, receiver) {
     assert((await this.#read(transport, 8)).equals(INIT_PASSWD))
     assert((await this.#read(transport, 8)).equals(OPTS_MAGIC))
     const flagsBuffer = await this.#read(transport, 2)
@@ -379,7 +606,7 @@ export default class AbstractNbdClient {
     // let the subclass upgrade the transport if it needs to (TLS)
     const secured = await this._secureTransport(transport)
     if (secured !== transport) {
-      this.#watchTransport(secured)
+      this.#watchTransport(secured, receiver)
       transport = secured
     }
 
@@ -397,8 +624,8 @@ export default class AbstractNbdClient {
     this.#exportSize = answer.readBigUInt64BE(0)
     const transmissionFlags = answer.readInt16BE(8)
     assert.strictEqual(transmissionFlags & NBD_FLAG_HAS_FLAGS, NBD_FLAG_HAS_FLAGS, 'NBD_FLAG_HAS_FLAGS') // must always be 1 by the norm
-
     // note : xapi server always send NBD_FLAG_READ_ONLY (3) as a flag
+    this.#transmissionFlags = transmissionFlags
 
     return transport
   }
@@ -461,57 +688,7 @@ export default class AbstractNbdClient {
    * transmission
    * ------------------------------------------------------------------------- */
 
-  // when one read fail ,stop everything
-  // (sync: it must be usable from an event handler without leaving a floating promise)
-  #rejectAll(error) {
-    this.#commandQueryBacklog.forEach(({ reject }) => {
-      reject(error)
-    })
-  }
-
-  async #readBlockResponse() {
-    // ensure at most one read occur in parallel
-    if (this.#waitingForResponse) {
-      return
-    }
-    try {
-      this.#waitingForResponse = true
-      const transport = this.#getTransport()
-      const buffer = await this.#read(transport, 16)
-      const magic = buffer.readInt32BE(0)
-
-      if (magic !== NBD_REPLY_MAGIC) {
-        throw new Error(`magic number for block answer is wrong : ${magic} ${NBD_REPLY_MAGIC}`)
-      }
-
-      const error = buffer.readInt32BE(4)
-      if (error !== 0) {
-        // @todo use error code from constants.mjs
-        throw new Error(`GOT ERROR CODE  : ${error}`)
-      }
-
-      const blockQueryId = buffer.readBigUInt64BE(8)
-      const query = this.#commandQueryBacklog.get(blockQueryId)
-      if (!query) {
-        throw new Error(` no query associated with id ${blockQueryId}`)
-      }
-      this.#commandQueryBacklog.delete(blockQueryId)
-      const data = await this.#read(transport, query.size)
-      query.resolve(data)
-      this.#waitingForResponse = false
-      if (this.#commandQueryBacklog.size > 0) {
-        // it doesn't throw directly but will throw all relevant promise on failure
-        this.#readBlockResponse()
-      }
-    } catch (error) {
-      // reject all the promises
-      // we don't need to call readBlockResponse on failure
-      // since we will empty the backlog
-      this.#rejectAll(error)
-    }
-  }
-
-  async #readBlock(index, size) {
+  async #readBlock(index, size, target) {
     // we don't want to add anything in backlog while reconnecting
     if (this.#reconnectingPromise) {
       await this.#reconnectingPromise
@@ -543,30 +720,164 @@ export default class AbstractNbdClient {
         reject(error)
       }
 
-      // this will handle one block response, but it can be another block
-      // since server does not guaranty to handle query in order
-      this.#commandQueryBacklog.set(queryId, {
+      const transport = this.#getTransport()
+      const receiver = this.#receiver
+      // the answer can come in any order, the receiver matches it with this query
+      receiver.add(queryId, {
         size,
+        // the payload is copied directly into it, the last block of the export may be shorter
+        target: target?.subarray(0, size),
         resolve,
         reject: decoratedReject,
       })
       // really send the command to the server
-      this.#write(this.#getTransport(), buffer).catch(decoratedReject)
-
-      // #readBlockResponse never throws directly
-      // but if it fails it will reject all the promises in the backlog
-      this.#readBlockResponse()
+      this.#write(transport, buffer).catch(error => {
+        receiver.delete(queryId)
+        decoratedReject(error)
+      })
     })
   }
 
-  async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
-    return pRetry(() => this.#readBlock(index, size), {
+  /**
+   * @param {number} index
+   * @param {number} [size]
+   * @param {Buffer} [target] - optional, where to write the data instead of a newly allocated Buffer,
+   *   must be at least `size` long. The returned Buffer is then a view on it
+   * @returns {Promise<Buffer>}
+   */
+  async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE, target) {
+    if (target !== undefined) {
+      assert.ok(target.length >= size, `target is too small: ${target.length} < ${size}`)
+    }
+    return this.#retry(() => this.#readBlock(index, size, target), `reading block ${index}`)
+  }
+
+  /**
+   * Sends a command whose answer has no payload
+   *
+   * @param {number} type - NBD_CMD_*
+   * @param {bigint} offset
+   * @param {number} length
+   * @param {Buffer} [data] - sent after the request (NBD_CMD_WRITE)
+   * @returns {Promise<void>}
+   */
+  async #command(type, offset, length, data) {
+    // we don't want to add anything in backlog while reconnecting
+    if (this.#reconnectingPromise) {
+      await this.#reconnectingPromise
+    }
+
+    const queryId = this.#nextCommandQueryId
+    this.#nextCommandQueryId++
+
+    const header = Buffer.alloc(28)
+    header.writeInt32BE(NBD_REQUEST_MAGIC, 0)
+    header.writeInt16BE(0, 4) // no command flags
+    header.writeInt16BE(type, 6)
+    header.writeBigUInt64BE(queryId, 8)
+    header.writeBigUInt64BE(offset, 16)
+    header.writeInt32BE(length, 24)
+
+    return new Promise((resolve, reject) => {
+      function decoratedReject(error) {
+        error.offset = offset
+        error.size = length
+        reject(error)
+      }
+
+      const transport = this.#getTransport()
+      const receiver = this.#receiver
+      receiver.add(queryId, { noPayload: true, resolve, reject: decoratedReject })
+      // the request and its data are queued at once: no other query can come in between
+      const sent =
+        data === undefined
+          ? this.#write(transport, header)
+          : Promise.all([this.#write(transport, header), this.#write(transport, data)])
+      sent.catch(error => {
+        receiver.delete(queryId)
+        decoratedReject(error)
+      })
+    })
+  }
+
+  #retry(fn, description) {
+    return pRetry(fn, {
       tries: this.#readBlockRetries,
-      when: error => error.code !== 'ERR_ABORTED',
+      // the server refused the request (nbdError): it would refuse it again
+      when: error => error.code !== 'ERR_ABORTED' && error.nbdError === undefined,
       onRetry: async err => {
-        warn('will retry reading block ', index, err)
+        warn(`will retry ${description}`, err)
         await this.reconnect()
       },
     })
+  }
+
+  // the bytes of the block `index`, the last block of the export may be shorter
+  #blockRange(index, size) {
+    const offset = BigInt(index) * BigInt(size)
+    assert.ok(offset < this.#exportSize, `block ${index} is beyond the end of the export`)
+    const remaining = this.#exportSize - offset
+    return { offset, length: remaining < BigInt(size) ? Number(remaining) : size }
+  }
+
+  #assertCapability(isCapable, description) {
+    if (!isCapable) {
+      const error = new Error(`the NBD export does not allow to ${description}`)
+      error.code = this.readOnly ? 'EROFS' : 'ENOTSUP'
+      throw error
+    }
+  }
+
+  /**
+   * A write is idempotent: it is retried after a reconnection like a read
+   *
+   * @param {number} index
+   * @param {Buffer} data - the data of the block, shorter for the last block of the export. It must not be
+   *   modified until the returned promise is settled
+   * @param {number} [size] - the size of the blocks: the data are written at `index * size`
+   * @returns {Promise<void>}
+   */
+  async writeBlock(index, data, size = NBD_DEFAULT_BLOCK_SIZE) {
+    this.#assertCapability(!this.readOnly, `write block ${index}`)
+    const { offset, length } = this.#blockRange(index, size)
+    assert.strictEqual(data.length, length, `block ${index} must be ${length} bytes, got ${data.length}`)
+    return this.#retry(() => this.#command(NBD_CMD_WRITE, offset, length, data), `writing block ${index}`)
+  }
+
+  /**
+   * Writes zeroes on the block `index` without sending them
+   *
+   * @param {number} index
+   * @param {number} [size]
+   * @returns {Promise<void>}
+   */
+  async writeZeroes(index, size = NBD_DEFAULT_BLOCK_SIZE) {
+    this.#assertCapability(!this.readOnly && this.canWriteZeroes, `write zeroes on block ${index}`)
+    const { offset, length } = this.#blockRange(index, size)
+    return this.#retry(() => this.#command(NBD_CMD_WRITE_ZEROES, offset, length), `writing zeroes on block ${index}`)
+  }
+
+  /**
+   * Tells the server the data of the block `index` are not needed anymore, reading it afterwards gives
+   * undefined data
+   *
+   * @param {number} index
+   * @param {number} [size]
+   * @returns {Promise<void>}
+   */
+  async trim(index, size = NBD_DEFAULT_BLOCK_SIZE) {
+    this.#assertCapability(!this.readOnly && this.canTrim, `trim block ${index}`)
+    const { offset, length } = this.#blockRange(index, size)
+    return this.#retry(() => this.#command(NBD_CMD_TRIM, offset, length), `trimming block ${index}`)
+  }
+
+  /**
+   * Resolves once all the writes acknowledged before have reached a permanent storage
+   *
+   * @returns {Promise<void>}
+   */
+  async flush() {
+    this.#assertCapability(this.canFlush, 'flush')
+    return this.#retry(() => this.#command(NBD_CMD_FLUSH, 0n, 0), 'flushing')
   }
 }

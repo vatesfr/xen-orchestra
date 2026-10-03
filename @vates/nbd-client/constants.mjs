@@ -14,6 +14,7 @@ export const NBD_FLAG_SEND_FLUSH = 1 << 2
 export const NBD_FLAG_SEND_FUA = 1 << 3
 export const NBD_FLAG_ROTATIONAL = 1 << 4
 export const NBD_FLAG_SEND_TRIM = 1 << 5
+export const NBD_FLAG_SEND_WRITE_ZEROES = 1 << 6
 
 export const NBD_FLAG_FIXED_NEWSTYLE = 1 << 0
 

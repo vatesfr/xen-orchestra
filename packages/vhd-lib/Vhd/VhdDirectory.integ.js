@@ -80,6 +80,52 @@ describe('VhdDirectory', async () => {
     })
   })
 
+  for (const compression of [undefined, 'gzip', 'zstd']) {
+    it(`writes the data of a block with a full bitmap (compression: ${compression})`, async () => {
+      await createRandomFile(`${tempDir}/randomfile`, 8)
+      await convertFromRawToVhd(`${tempDir}/randomfile`, `${tempDir}/source.vhd`)
+      await Disposable.use(async function* () {
+        const source = yield openVhd(handler, 'source.vhd')
+        const vhd = yield VhdDirectory.create(handler, 'data.vhd', { compression })
+        vhd.header = source.header
+        vhd.footer = source.footer
+        const data = Buffer.alloc(vhd.header.blockSize, 0x42)
+        await vhd.writeBlockData(3, data)
+        assert.equal(vhd.containsBlock(3), true)
+        const block = await vhd.readBlock(3)
+        assert.ok(block.bitmap.every(byte => byte === 0xff))
+        assert.ok(block.data.equals(data))
+        await assert.rejects(vhd.writeBlockData(4, data.subarray(1)))
+      })
+    })
+  }
+
+  it('copies block files as stored between VHD directories with the same compression', async () => {
+    await createRandomFile(`${tempDir}/randomfile`, 8)
+    await convertFromRawToVhd(`${tempDir}/randomfile`, `${tempDir}/source.vhd`)
+    await Disposable.use(async function* () {
+      const source = yield openVhd(handler, 'source.vhd')
+      const gzip = yield VhdDirectory.create(handler, 'gzip.vhd', { compression: 'gzip' })
+      const copy = yield VhdDirectory.create(handler, 'copy.vhd', { compression: 'gzip' })
+      const plain = yield VhdDirectory.create(handler, 'plain.vhd')
+      for (const vhd of [gzip, copy, plain]) {
+        vhd.header = source.header
+        vhd.footer = source.footer
+      }
+      const data = Buffer.alloc(source.header.blockSize, 0x42)
+      await gzip.writeBlockData(1, data)
+
+      const raw = await gzip.readRawBlock(1)
+      assert.ok(raw.length < gzip.fullBlockSize, 'still compressed')
+      await copy.writeRawBlock(1, raw, 'gzip')
+      assert.ok((await copy.readBlock(1)).data.equals(data))
+
+      // never written in a VHD directory with another compression, nor with the wrong size
+      await assert.rejects(plain.writeRawBlock(1, raw, 'gzip'))
+      await assert.rejects(plain.writeRawBlock(1, raw, plain.compressionType), /must be/)
+    })
+  })
+
   it('compresses blocks and metadata works', async () => {
     const initalSize = 4
     const rawFileName = `${tempDir}/randomfile`

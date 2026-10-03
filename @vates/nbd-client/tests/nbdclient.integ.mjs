@@ -7,6 +7,7 @@ import { Socket } from 'node:net'
 import { NBD_DEFAULT_PORT } from '../constants.mjs'
 import assert from 'node:assert'
 import MultiNbdClient from '../multi.mjs'
+import NbdTcpClient from '../NbdTcpClient.mjs'
 
 const CHUNK_SIZE = 1024 * 1024 // non default size
 const FILE_SIZE = 1024 * 1024 * 9.5 // non aligned file size
@@ -22,7 +23,7 @@ async function createTempFile(size) {
   return tmpPath
 }
 
-async function spawnNbdKit(path) {
+async function spawnNbdKit(path, { readOnly = true } = {}) {
   let tries = 5
   // wait for server to be ready
 
@@ -33,7 +34,7 @@ async function spawnNbdKit(path) {
       path,
       '--newstyle', //
       '--exit-with-parent',
-      '--read-only',
+      ...(readOnly ? ['--read-only'] : []),
       '--export-name=MY_SECRET_EXPORT',
       '--tls=on',
       '--tls-certificates=./tests/',
@@ -165,6 +166,96 @@ CYu1Xn/FVPx1HoRgWc7E8wFhDcA/P3SJtfIQWHB9FzSaBflKGR4t8WCE2eE8+cTB
   // double disconnection shouldn't pose any problem
   await client.disconnect()
   nbdServer.kill()
+  await fs.unlink(path)
+})
+
+test('it works on an unsecured network, reading into given buffers', async tap => {
+  const path = await createTempFile(FILE_SIZE)
+  // without cert: the TCP client receives through `onread`, without allocation per chunk
+  await spawnNbdKit(path)
+  const client = new MultiNbdClient({ address: '127.0.0.1', exportname: 'MY_SECRET_EXPORT' }, { nbdConcurrency: 2 })
+  await client.connect()
+  tap.equal(client.exportSize, BigInt(FILE_SIZE))
+
+  const nbBlocks = Math.ceil(FILE_SIZE / CHUNK_SIZE)
+  // twice the content, with some reads in flight when the server is restarted
+  for (let pass = 0; pass < 2; pass++) {
+    const targets = Array.from({ length: nbBlocks }, () => Buffer.alloc(CHUNK_SIZE + 16, 0xaa))
+    const blocks = await Promise.all(
+      targets.map((target, index) => client.readBlock(index, CHUNK_SIZE, target.subarray(16)))
+    )
+    blocks.forEach((block, i) => {
+      const expectedLength = Math.min(CHUNK_SIZE, FILE_SIZE - CHUNK_SIZE * i)
+      let blockOk = block.length === expectedLength && block.buffer === targets[i].buffer
+      for (let j = 0; j < block.length && blockOk; j += 4) {
+        blockOk = block.readUInt32BE(j) === i * CHUNK_SIZE + j
+      }
+      // nothing written outside of the target
+      blockOk = blockOk && targets[i].readUInt32BE(0) === 0xaaaaaaaa
+      tap.ok(blockOk, `check block ${i} of pass ${pass}`, {
+        length: block.length,
+        sameMemory: block.buffer === targets[i].buffer,
+        first: block.readUInt32BE(0),
+        guard: targets[i].readUInt32BE(0),
+      })
+    })
+    await killNbdKit()
+    await spawnNbdKit(path)
+  }
+  await client.disconnect()
+  await killNbdKit()
+  await fs.unlink(path)
+})
+
+test('writes, with and without TLS', async tap => {
+  const path = await createTempFile(FILE_SIZE)
+  const expected = await fs.readFile(path)
+  const nbBlocks = Math.ceil(FILE_SIZE / CHUNK_SIZE)
+  await spawnNbdKit(path, { readOnly: false })
+  const cert = await fs.readFile('./tests/server-cert.pem', 'utf8')
+
+  for (const [label, settings] of [
+    ['plain', { address: '127.0.0.1', exportname: 'MY_SECRET_EXPORT' }],
+    ['TLS', { address: '127.0.0.1', exportname: 'MY_SECRET_EXPORT', cert }],
+  ]) {
+    const client = new NbdTcpClient(settings)
+    await client.connect()
+    tap.equal(client.readOnly, false, `${label}: writable export`)
+    tap.equal(client.canFlush, true, `${label}: can flush`)
+
+    // every block, the last one is shorter, written concurrently
+    const fill = label === 'plain' ? 1 : 101
+    await Promise.all(
+      Array.from({ length: nbBlocks }, (_, index) => {
+        const length = Math.min(CHUNK_SIZE, FILE_SIZE - index * CHUNK_SIZE)
+        const data = Buffer.alloc(length, fill + index)
+        data.copy(expected, index * CHUNK_SIZE)
+        return client.writeBlock(index, data, CHUNK_SIZE)
+      })
+    )
+    if (client.canWriteZeroes) {
+      await client.writeZeroes(1, CHUNK_SIZE)
+      expected.fill(0, CHUNK_SIZE, 2 * CHUNK_SIZE)
+    }
+    await client.flush()
+
+    for (let index = 0; index < nbBlocks; index++) {
+      const block = await client.readBlock(index, CHUNK_SIZE)
+      tap.ok(block.equals(expected.subarray(index * CHUNK_SIZE, (index + 1) * CHUNK_SIZE)), `${label}: block ${index}`)
+    }
+    await client.disconnect()
+    tap.ok((await fs.readFile(path)).equals(expected), `${label}: the file has been written`)
+  }
+  await killNbdKit()
+
+  // a read-only export refuses the writes
+  await spawnNbdKit(path)
+  const client = new NbdTcpClient({ address: '127.0.0.1', exportname: 'MY_SECRET_EXPORT' })
+  await client.connect()
+  tap.equal(client.readOnly, true)
+  await assert.rejects(client.writeBlock(0, Buffer.alloc(CHUNK_SIZE), CHUNK_SIZE), { code: 'EROFS' })
+  await client.disconnect()
+  await killNbdKit()
   await fs.unlink(path)
 })
 

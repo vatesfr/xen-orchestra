@@ -115,6 +115,13 @@ describe('DiskConsumerVhdStream', () => {
     }
   })
 
+  it('should refuse the block files of a VHD directory', async () => {
+    const disk = new MockDisk(2, [0, 1])
+    disk.readBlock = async index => ({ index, data: Buffer.alloc(1024), vhdBlockCompression: 'gzip' })
+    const stream = await toVhdStream(disk)
+    await assert.rejects(stream.toArray(), /block file of a VHD directory/)
+  })
+
   it('should abort stream when signal is aborted before start', async () => {
     const disk = new MockDisk(
       8,

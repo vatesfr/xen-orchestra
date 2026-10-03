@@ -11,6 +11,7 @@ const { warn } = createLogger('xo:xapi')
 
 export { default as isDefaultTemplate } from './isDefaultTemplate.mjs'
 export { XapiDiskSource } from './disks/Xapi.mjs'
+export { openNbdDiskWriter } from './disks/utils.mjs'
 
 // VDI formats. (Raw is not available for delta vdi.)
 export const VDI_FORMAT_RAW = 'raw'

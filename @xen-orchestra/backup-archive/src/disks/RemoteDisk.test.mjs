@@ -95,6 +95,32 @@ describe('tests RemoteVhdDisk', { concurrency: 1 }, () => {
     assert.equal(readBlock.data.length, 2097152, 'block should be readable')
   })
 
+  test('RemoteVhdDisk returns the block files as stored once useRawBlocks() is called', async () => {
+    await generateVhd(`${basePath}/disk.vhd`, { blocks: [0, 1], mode: 'directory', useAlias: true })
+    const disk = new RemoteVhdDisk({ handler, path: `${basePath}/disk.vhd.alias.vhd` })
+    await disk.init({ force: false })
+
+    assert.equal(disk.useRawBlocks('gzip'), false, 'only with the compression of the VHD directory')
+    assert.equal((await disk.readBlock(1)).vhdBlockCompression, undefined)
+
+    assert.equal(disk.useRawBlocks('none'), true)
+    const block = await disk.readBlock(1)
+    assert.equal(block.vhdBlockCompression, 'none')
+    assert.equal(block.data.length, 2 * 1024 * 1024 + 512, 'bitmap + data')
+    assert.ok(block.data.every(byte => byte === 1))
+
+    // a block file is never written as data
+    await assert.rejects(disk.writeBlock(block), /block file/)
+  })
+
+  test('RemoteVhdDisk does not return block files for a VHD file', async () => {
+    await generateVhd(`${basePath}/disk.vhd`, { blocks: [0, 1] })
+    const disk = new RemoteVhdDisk({ handler, path: `${basePath}/disk.vhd` })
+    await disk.init({ force: false })
+    assert.equal(disk.useRawBlocks('none'), false)
+    assert.equal((await disk.readBlock(1)).vhdBlockCompression, undefined)
+  })
+
   test('RemoteVhdDisk should write block', async () => {
     // Create VHD disk
     await generateVhd(`${basePath}/disk.vhd`, { blocks: [0, 1] })
@@ -1046,121 +1072,5 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
 
     const parentIndexes = parent.getBlockIndexes()
     assert.deepEqual(parentIndexes, expectedIndexes, 'all child blocks should be merged into parent')
-  })
-})
-
-/**
- * Benchmarks
- *
- * These tests always pass. They log merge throughput so regressions are visible.
- * Warning emitted when throughput drops below threshold.
- *
- * Block count can be overriden via BENCH_MERGE_BLOCKS env var (1 block = 2 MB):
- * BENCH_MERGE_BLOCKS=2560 node --test RemoteDisk.test.mjs
- */
-describe('benchmark MergeRemoteDisk', { concurrency: 1 }, () => {
-  // Block size as written by generateVhd: 2 MB of data + 512 B bitmap
-  const BLOCK_DATA_BYTES = 2 * 1024 * 1024
-  const BENCH_BLOCKS = process.env.BENCH_MERGE_BLOCKS ?? 500
-  const WARN_THRESHOLD_FILE_MB_S = 500
-  const WARN_THRESHOLD_DIRECTORY_MB_S = 5000
-
-  test('mergeRemoteDisk throughput - VHD file mode', async t => {
-    const childBlocks = Array.from({ length: BENCH_BLOCKS }, (_, i) => i + 2)
-
-    await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1] })
-    await generateVhd(`${basePath}/child.vhd`, { blocks: childBlocks })
-
-    const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd` })
-    const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
-
-    const mergeRemoteDisk = new MergeRemoteDisk(handler, { removeUnused: true })
-    const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
-    await parent.init({ force: isResumingMerge })
-    await child.init({ force: isResumingMerge })
-
-    const start = performance.now()
-    await mergeRemoteDisk.merge(parent, child)
-    const elapsedMs = performance.now() - start
-
-    const totalMB = (BENCH_BLOCKS * BLOCK_DATA_BYTES) / (1024 * 1024)
-    const throughputMBs = totalMB / (elapsedMs / 1000)
-
-    t.diagnostic(
-      `VHD file merge: ${BENCH_BLOCKS} blocks (${totalMB.toFixed(0)} MB) in ${(elapsedMs / 1000).toFixed(2)}s: ${throughputMBs.toFixed(1)} MB/s`
-    )
-
-    if (throughputMBs < WARN_THRESHOLD_FILE_MB_S) {
-      t.diagnostic(
-        `WARNING: throughput ${throughputMBs.toFixed(1)} MB/s is below the ${WARN_THRESHOLD_FILE_MB_S} MB/s threshold`
-      )
-    }
-  })
-
-  test('mergeRemoteDisk throughput - VHD directory mode (direct disk, reference)', async t => {
-    const childBlocks = Array.from({ length: BENCH_BLOCKS }, (_, i) => i + 2)
-
-    await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1], mode: 'directory', useAlias: true })
-    await generateVhd(`${basePath}/child.vhd`, { blocks: childBlocks, mode: 'directory', useAlias: true })
-
-    const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd.alias.vhd` })
-    const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd.alias.vhd` })
-
-    const mergeRemoteDisk = new MergeRemoteDisk(handler, { removeUnused: true })
-    const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
-    await parent.init({ force: isResumingMerge })
-    await child.init({ force: isResumingMerge })
-
-    const start = performance.now()
-    await mergeRemoteDisk.merge(parent, child)
-    const elapsedMs = performance.now() - start
-
-    const totalMB = (BENCH_BLOCKS * BLOCK_DATA_BYTES) / (1024 * 1024)
-    const throughputMBs = totalMB / (elapsedMs / 1000)
-
-    t.diagnostic(
-      `VHD directory merge (direct disk): ${BENCH_BLOCKS} blocks (${totalMB.toFixed(0)} MB) in ${(elapsedMs / 1000).toFixed(2)}s: ${throughputMBs.toFixed(1)} MB/s`
-    )
-
-    if (throughputMBs < WARN_THRESHOLD_DIRECTORY_MB_S) {
-      t.diagnostic(
-        `WARNING: chain merge throughput ${throughputMBs.toFixed(1)} MB/s is below the ${WARN_THRESHOLD_DIRECTORY_MB_S} MB/s threshold`
-      )
-    }
-  })
-
-  test('mergeRemoteDisk throughput - VHD directory mode (chain, cleanVm path)', async t => {
-    const childBlocks = Array.from({ length: BENCH_BLOCKS }, (_, i) => i + 2)
-
-    await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1], mode: 'directory', useAlias: true })
-    await generateVhd(`${basePath}/child.vhd`, { blocks: childBlocks, mode: 'directory', useAlias: true })
-
-    const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd.alias.vhd` })
-    // Replicate _mergeVhdChain exactly: child disks are wrapped in a RemoteVhdDiskChain
-    const childDisk = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd.alias.vhd` })
-    const childChain = new RemoteVhdDiskChain({ disks: [childDisk] })
-
-    const mergeRemoteDisk = new MergeRemoteDisk(handler, { removeUnused: true })
-    // init pattern matches _mergeVhdChain: parent individually, chain for all children
-    const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
-    await parent.init({ force: isResumingMerge })
-    await childChain.init({ force: isResumingMerge })
-
-    const start = performance.now()
-    await mergeRemoteDisk.merge(parent, childChain)
-    const elapsedMs = performance.now() - start
-
-    const totalMB = (BENCH_BLOCKS * BLOCK_DATA_BYTES) / (1024 * 1024)
-    const throughputMBs = totalMB / (elapsedMs / 1000)
-
-    t.diagnostic(
-      `VHD directory merge (chain / cleanVm path): ${BENCH_BLOCKS} blocks (${totalMB.toFixed(0)} MB) in ${(elapsedMs / 1000).toFixed(2)}s: ${throughputMBs.toFixed(1)} MB/s`
-    )
-
-    if (throughputMBs < WARN_THRESHOLD_DIRECTORY_MB_S) {
-      t.diagnostic(
-        `WARNING: chain merge throughput ${throughputMBs.toFixed(1)} MB/s is below the ${WARN_THRESHOLD_DIRECTORY_MB_S} MB/s threshold`
-      )
-    }
   })
 })

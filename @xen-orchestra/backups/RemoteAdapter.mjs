@@ -36,6 +36,7 @@ import { watchStreamSize } from './_watchStreamSize.mjs'
 import { RemoteVhdDisk, openDiskChain, openDisposableDisk } from '@xen-orchestra/backup-archive/disks'
 import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
+import { DISCARD_BLOCKS, DiscardedDisk } from './_discardedDisk.mjs'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
@@ -315,6 +316,14 @@ export class RemoteAdapter {
 
   useVhdDirectory() {
     return this.handler.getConfig('useVhdDirectory')
+  }
+
+  /**
+   * @returns {string | undefined} the compression of the VHD directories written on this remote, undefined if it
+   * does not write VHD directories
+   */
+  getVhdDirectoryCompression() {
+    return this.useVhdDirectory() ? (this.handler.getConfig('compressionType') ?? 'brotli') : undefined // compatibility layer
   }
 
   #useAlias() {
@@ -666,6 +675,16 @@ export class RemoteAdapter {
   }
 
   async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
+    if (DISCARD_BLOCKS) {
+      const discarded = new DiscardedDisk(disk)
+      await this.#writeVhd(path, discarded, { validator, writeBlockConcurrency, uuid, parentUuid, parentPath })
+      // what was read, for the transfer speed of the task to mean something
+      return discarded.bytesRead
+    }
+    return this.#writeVhd(path, disk, { validator, writeBlockConcurrency, uuid, parentUuid, parentPath })
+  }
+
+  async #writeVhd(path, disk, { validator, writeBlockConcurrency, uuid, parentUuid, parentPath }) {
     const handler = this._handler
 
     if (this.useVhdDirectory()) {
@@ -676,7 +695,7 @@ export class RemoteAdapter {
           path,
           concurrency: writeBlockConcurrency,
           validator,
-          compression: handler.getConfig('compressionType') ?? 'brotli', // compatibility layer
+          compression: this.getVhdDirectoryCompression(),
           uuid,
           parentUuid,
           parentPath,
@@ -702,7 +721,8 @@ export class RemoteAdapter {
   ) {
     const container = watchStreamSize(input)
     await this._handler.outputStream(path, input, {
-      checksum,
+      // a known checksum is the one of unencrypted data: an encrypted remote stores no checksum
+      checksum: typeof checksum === 'string' && this._handler.isEncrypted ? false : checksum,
       dirMode: this._dirMode,
       maxStreamLength,
       streamLength,
@@ -715,19 +735,30 @@ export class RemoteAdapter {
   }
 
   // open the  hierarchy of ancestors until we find a full one
-  async _createVhdDisk(handler, path, { useChain }) {
+  async _createVhdDisk(handler, path, { useChain, rawBlocksCompression }) {
     let disk
     if (useChain) {
       disk = await openDiskChain({ handler, path })
     } else {
       disk = new RemoteVhdDisk({ handler, path })
       await disk.init()
+      if (rawBlocksCompression !== undefined) {
+        // each block file is copied as stored if this disk is a VHD directory with the same compression
+        const raw = disk.useRawBlocks(rawBlocksCompression)
+        debug('reading block files as stored', { path, raw, rawBlocksCompression })
+      }
     }
     disk = new ReadAhead(disk)
     return disk
   }
 
-  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
+  /**
+   * @param {object} [options]
+   * @param {boolean} [options.useChain=true]
+   * @param {string} [options.rawBlocksCompression] - without chain: the disks which are VHD directories with this
+   *   compression return their block files as stored (see RemoteVhdDisk#useRawBlocks)
+   */
+  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true, rawBlocksCompression } = {}) {
     const handler = this._handler
     const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
     const dir = dirname(metadata._filename)
@@ -735,7 +766,7 @@ export class RemoteAdapter {
     const disks = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
       delete vdis[ref].baseVdi
-      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
+      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain, rawBlocksCompression })
     })
 
     return {
@@ -751,6 +782,28 @@ export class RemoteAdapter {
 
   readFullVmBackup(metadata) {
     return this._handler.createReadStream(resolve('/', dirname(metadata._filename), metadata.xva))
+  }
+
+  /**
+   * @returns {Promise<string | undefined>} the checksum of the XVA as stored, undefined if it is unknown (no checksum
+   *   file, or encrypted remote: the stored data are not the data read)
+   */
+  async readFullVmBackupChecksum(metadata) {
+    if (this._handler.isEncrypted) {
+      return
+    }
+    try {
+      const checksum = String(
+        await this._handler.readFile(resolve('/', dirname(metadata._filename), metadata.xva) + '.checksum')
+      ).trim()
+      // $<algorithm id>$<salt>$<hash>
+      return checksum.startsWith('$') ? checksum : undefined
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return
+      }
+      throw error
+    }
   }
 
   async readVmBackupMetadata(path) {
