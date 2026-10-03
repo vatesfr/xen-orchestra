@@ -167,13 +167,18 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       `Can't write a chunk ${partName} in ${this._path} with read permission`
     )
 
-    // in case of VhdDirectory, we want to create the file if it does not exists
-    const flags = this._opts?.flags === 'r+' ? 'w' : this._opts?.flags
     const compressed = await this.#compressor.compress(
       // the handler can write an array without concatenating it, a compressor can't
       Array.isArray(buffer) && this.#compressor !== NULL_COMPRESSOR ? Buffer.concat(buffer) : buffer
     )
-    return this._handler.outputFile(this.#getChunkPath(partName), compressed, { flags })
+    return this.#outputChunk(partName, compressed)
+  }
+
+  // writes a chunk as stored (already compressed)
+  #outputChunk(partName, data) {
+    // in case of VhdDirectory, we want to create the file if it does not exists
+    const flags = this._opts?.flags === 'r+' ? 'w' : this._opts?.flags
+    return this._handler.outputFile(this.#getChunkPath(partName), data, { flags })
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -315,6 +320,27 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     )
     await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
     setBitmap(this.#blockTable, block.id)
+  }
+
+  // the block file as stored: decrypted by the handler but still compressed with compressionType
+  async readRawBlock(blockId) {
+    return this._handler.readFile(this.getFullBlockPath(blockId))
+  }
+
+  // writes a block file read by readRawBlock() from a VHD directory, which must use the same compression: it is
+  // neither decompressed nor recompressed
+  async writeRawBlock(blockId, buffer, compressionType) {
+    assert.strictEqual(
+      compressionType,
+      this.compressionType,
+      `can't write a block compressed with ${compressionType} in a VHD directory using ${this.compressionType}`
+    )
+    if (this.#compressor === NULL_COMPRESSOR) {
+      assert.strictEqual(buffer.length, this.fullBlockSize, `block ${blockId} must be ${this.fullBlockSize} bytes`)
+    }
+    assert.notStrictEqual(this._opts?.flags, 'r', `Can't write block ${blockId} in ${this._path} with read permission`)
+    await this.#outputChunk(this.#getBlockPath(blockId), buffer)
+    setBitmap(this.#blockTable, blockId)
   }
 
   // bitmap and data are not concatenated: the handler can write them with a single writev

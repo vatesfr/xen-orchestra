@@ -95,6 +95,32 @@ describe('tests RemoteVhdDisk', { concurrency: 1 }, () => {
     assert.equal(readBlock.data.length, 2097152, 'block should be readable')
   })
 
+  test('RemoteVhdDisk returns the block files as stored once useRawBlocks() is called', async () => {
+    await generateVhd(`${basePath}/disk.vhd`, { blocks: [0, 1], mode: 'directory', useAlias: true })
+    const disk = new RemoteVhdDisk({ handler, path: `${basePath}/disk.vhd.alias.vhd` })
+    await disk.init({ force: false })
+
+    assert.equal(disk.useRawBlocks('gzip'), false, 'only with the compression of the VHD directory')
+    assert.equal((await disk.readBlock(1)).vhdBlockCompression, undefined)
+
+    assert.equal(disk.useRawBlocks('none'), true)
+    const block = await disk.readBlock(1)
+    assert.equal(block.vhdBlockCompression, 'none')
+    assert.equal(block.data.length, 2 * 1024 * 1024 + 512, 'bitmap + data')
+    assert.ok(block.data.every(byte => byte === 1))
+
+    // a block file is never written as data
+    await assert.rejects(disk.writeBlock(block), /block file/)
+  })
+
+  test('RemoteVhdDisk does not return block files for a VHD file', async () => {
+    await generateVhd(`${basePath}/disk.vhd`, { blocks: [0, 1] })
+    const disk = new RemoteVhdDisk({ handler, path: `${basePath}/disk.vhd` })
+    await disk.init({ force: false })
+    assert.equal(disk.useRawBlocks('none'), false)
+    assert.equal((await disk.readBlock(1)).vhdBlockCompression, undefined)
+  })
+
   test('RemoteVhdDisk should write block', async () => {
     // Create VHD disk
     await generateVhd(`${basePath}/disk.vhd`, { blocks: [0, 1] })

@@ -62,14 +62,26 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
     })
     // yeah , let's go
   }
+  /**
+   * the block files can be copied as stored, never decompressed nor recompressed, if all the writers write VHD
+   * directories with the same compression (the source disks must also use it, see RemoteVhdDisk#useRawBlocks)
+   * @returns {string | undefined}
+   */
+  #getRawBlocksCompression() {
+    const compressions = new Set([...this._writers].map(writer => writer.getVhdDirectoryCompression()))
+    return compressions.size === 1 ? [...compressions][0] : undefined
+  }
+
   async _run() {
     const transferList = await this._computeTransferList(({ mode }) => mode === 'delta')
+    const rawBlocksCompression = this.#getRawBlocksCompression()
     const nbTransferrableVms = transferList.length
     let nbTransferredVms = 0
     for (const metadata of transferList) {
       assert.strictEqual(metadata.mode, 'delta')
       const incrementalExport = await this._sourceRemoteAdapter.readIncrementalVmBackup(metadata, undefined, {
         useChain: false,
+        rawBlocksCompression,
       })
       // don't trust metadata too much
       // recompute if it's a base backup

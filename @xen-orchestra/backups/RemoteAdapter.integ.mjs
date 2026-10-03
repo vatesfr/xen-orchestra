@@ -323,3 +323,80 @@ describe('RemoteAdapter#writeVhd validated by checkDisk', { concurrency: 1 }, ()
     })
   }
 })
+
+// incremental mirror: the source disk is read from a remote then written on another one
+describe('mirror between VHD directory remotes', { concurrency: 1 }, () => {
+  const KEYS = ['73c1838d7d8a6088ca2317fb5f29cd91', '0123456789abcdef0123456789abcdef']
+  const dirs = []
+  const handlers = []
+  beforeEach(async () => {
+    // the global hooks expect it
+    handler = getHandler({ url: `file://${tempDir}` })
+    await handler.sync()
+  })
+  afterEach(async () => {
+    await Promise.all(handlers.splice(0).map(handler => handler.forget()))
+    await Promise.all(dirs.splice(0).map(dir => rimraf(dir)))
+  })
+
+  async function openRemote({ compressionType, encryptionKey }) {
+    const dir = await pFromCallback(cb => tmp.dir(cb))
+    dirs.push(dir)
+    const remoteHandler = getHandler({ url: `file://${dir}`, useVhdDirectory: true, compressionType, encryptionKey })
+    await remoteHandler.sync()
+    handlers.push(remoteHandler)
+    return new RemoteAdapter(remoteHandler)
+  }
+
+  async function mirror(source, target, fillByte) {
+    const path = `${basePath}/${source.getVhdFileName('base')}`
+    await source.writeVhd(path, new MockDisk(3, [0, 2], fillByte), { uuid: uniqueIdBuffer() })
+    const disk = await source._createVhdDisk(source.handler, path, {
+      useChain: false,
+      rawBlocksCompression: target.getVhdDirectoryCompression(),
+    })
+    const { vhdBlockCompression } = await disk.readBlock(0)
+    await target.writeVhd(path, disk, {
+      validator: tmpPath => checkDisk(target.handler, tmpPath),
+      uuid: uniqueIdBuffer(),
+    })
+    await Disposable.use(openVhd(target.handler, path), async vhd => {
+      await vhd.readBlockAllocationTable()
+      assert.equal(vhd.compressionType, target.getVhdDirectoryCompression())
+      assert.equal(vhd.containsBlock(1), false)
+      for (const id of [0, 2]) {
+        const { bitmap, data } = await vhd.readBlock(id)
+        assert.ok(bitmap.every(byte => byte === 0xff))
+        assert.ok(data.every(byte => byte === fillByte))
+      }
+    })
+    return vhdBlockCompression
+  }
+
+  for (const [label, sourceOptions, targetOptions] of [
+    ['same compression', { compressionType: 'gzip' }, { compressionType: 'gzip' }],
+    ['without compression', { compressionType: 'none' }, { compressionType: 'none' }],
+    [
+      'same compression, different encryption keys',
+      { compressionType: 'gzip', encryptionKey: KEYS[0] },
+      { compressionType: 'gzip', encryptionKey: KEYS[1] },
+    ],
+    [
+      'same compression, encrypted source only',
+      { compressionType: 'gzip', encryptionKey: KEYS[0] },
+      { compressionType: 'gzip' },
+    ],
+  ]) {
+    test(`${label}: block files are copied as stored`, async () => {
+      const source = await openRemote(sourceOptions)
+      const target = await openRemote(targetOptions)
+      assert.equal(await mirror(source, target, 0x5a), targetOptions.compressionType)
+    })
+  }
+
+  test('different compressions: blocks are decompressed and recompressed', async () => {
+    const source = await openRemote({ compressionType: 'gzip' })
+    const target = await openRemote({ compressionType: 'none' })
+    assert.equal(await mirror(source, target, 0x3c), undefined)
+  })
+})

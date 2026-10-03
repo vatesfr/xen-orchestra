@@ -23,6 +23,14 @@ import { diskHasData } from './_diskHasData.mjs'
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
 export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWriter) {
+  /**
+   * @returns {string | undefined} the compression of the VHD directories this writer writes, undefined if it does
+   * not write VHD directories
+   */
+  getVhdDirectoryCompression() {
+    return this._adapter.getVhdDirectoryCompression()
+  }
+
   #parentVdiPaths
   #parentUuids
   async checkBaseVdis(baseUuidToSrcVdi) {

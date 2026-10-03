@@ -36,6 +36,12 @@ export class RemoteVhdDisk extends RemoteDisk {
   #vhd
 
   /**
+   * set by useRawBlocks(): the compression of the block files returned by readBlock()
+   * @type {string | undefined}
+   */
+  #rawBlocksCompression
+
+  /**
    * @type {boolean | undefined}
    */
   #isDifferencing
@@ -258,6 +264,9 @@ export class RemoteVhdDisk extends RemoteDisk {
     if (this.#vhd === undefined) {
       throw new Error(`can't call readBlock of a RemoteVhdDisk before init`)
     }
+    if (diskBlock.vhdBlockCompression !== undefined) {
+      throw new Error(`can't write block ${diskBlock.index}: it is a block file, not the data of the block`)
+    }
     await this.#vhd.writeBlockData(diskBlock.index, diskBlock.data)
 
     return this.getBlockSize()
@@ -272,11 +281,37 @@ export class RemoteVhdDisk extends RemoteDisk {
     if (this.#vhd === undefined) {
       throw new Error(`can't call readBlock of a RemoteVhdDisk before init`)
     }
+    if (this.#rawBlocksCompression !== undefined) {
+      return {
+        index,
+        data: await /** @type {VhdDirectory} */ (this.#vhd).readRawBlock(index),
+        vhdBlockCompression: this.#rawBlocksCompression,
+      }
+    }
     const { data } = await this.#vhd.readBlock(index)
     return {
       index,
       data,
     }
+  }
+
+  /**
+   * From now on, readBlock() returns the block files as stored (bitmap + data, compressed with
+   * `compressionType`) instead of the data of the blocks: a VHD directory using the same compression can write
+   * them as is, without decompressing nor recompressing them.
+   * Only possible for a VHD directory using `compressionType`.
+   * @param {string} compressionType
+   * @returns {boolean} whether readBlock() now returns block files
+   */
+  useRawBlocks(compressionType) {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call useRawBlocks of a RemoteVhdDisk before init`)
+    }
+    if (!(this.#vhd instanceof VhdDirectory) || this.#vhd.compressionType !== compressionType) {
+      return false
+    }
+    this.#rawBlocksCompression = compressionType
+    return true
   }
 
   /**

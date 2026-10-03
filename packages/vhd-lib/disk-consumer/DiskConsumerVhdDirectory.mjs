@@ -76,8 +76,14 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
       let truncatedBlock = null
       await asyncEach(
         generator,
-        async ({ index, data, release }) => {
+        async ({ index, data, release, vhdBlockCompression }) => {
           signal?.throwIfAborted()
+          if (vhdBlockCompression !== undefined) {
+            // a block file of a VHD directory: written as stored, never decompressed nor recompressed
+            await vhd.writeRawBlock(index, data, vhdBlockCompression)
+            release?.()
+            return
+          }
           if (truncatedBlock !== null) {
             throw new Error(
               `Expecting a ${DEFAULT_BLOCK_SIZE} bytes block, got a ${truncatedBlock.data.length}, for index ${truncatedBlock.index}`

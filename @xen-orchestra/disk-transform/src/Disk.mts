@@ -10,6 +10,12 @@ export type DiskBlock = {
    * Never calling it is always safe: the memory will be garbage collected
    */
   release?: () => void
+  /**
+   * optional: when set, `data` is not the data of the block but a block file of a VHD directory as stored
+   * (bitmap + data, compressed with this algorithm). Only a consumer writing VHD directory blocks with the same
+   * compression can use it, any other consumer must refuse the block
+   */
+  vhdBlockCompression?: string
 }
 
 export type BytesLength = number

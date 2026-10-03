@@ -318,6 +318,14 @@ export class RemoteAdapter {
     return this.handler.getConfig('useVhdDirectory')
   }
 
+  /**
+   * @returns {string | undefined} the compression of the VHD directories written on this remote, undefined if it
+   * does not write VHD directories
+   */
+  getVhdDirectoryCompression() {
+    return this.useVhdDirectory() ? (this.handler.getConfig('compressionType') ?? 'brotli') : undefined // compatibility layer
+  }
+
   #useAlias() {
     return this.useVhdDirectory()
   }
@@ -687,7 +695,7 @@ export class RemoteAdapter {
           path,
           concurrency: writeBlockConcurrency,
           validator,
-          compression: handler.getConfig('compressionType') ?? 'brotli', // compatibility layer
+          compression: this.getVhdDirectoryCompression(),
           uuid,
           parentUuid,
           parentPath,
@@ -726,19 +734,30 @@ export class RemoteAdapter {
   }
 
   // open the  hierarchy of ancestors until we find a full one
-  async _createVhdDisk(handler, path, { useChain }) {
+  async _createVhdDisk(handler, path, { useChain, rawBlocksCompression }) {
     let disk
     if (useChain) {
       disk = await openDiskChain({ handler, path })
     } else {
       disk = new RemoteVhdDisk({ handler, path })
       await disk.init()
+      if (rawBlocksCompression !== undefined) {
+        // each block file is copied as stored if this disk is a VHD directory with the same compression
+        const raw = disk.useRawBlocks(rawBlocksCompression)
+        debug('reading block files as stored', { path, raw, rawBlocksCompression })
+      }
     }
     disk = new ReadAhead(disk)
     return disk
   }
 
-  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
+  /**
+   * @param {object} [options]
+   * @param {boolean} [options.useChain=true]
+   * @param {string} [options.rawBlocksCompression] - without chain: the disks which are VHD directories with this
+   *   compression return their block files as stored (see RemoteVhdDisk#useRawBlocks)
+   */
+  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true, rawBlocksCompression } = {}) {
     const handler = this._handler
     const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
     const dir = dirname(metadata._filename)
@@ -746,7 +765,7 @@ export class RemoteAdapter {
     const disks = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
       delete vdis[ref].baseVdi
-      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
+      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain, rawBlocksCompression })
     })
 
     return {
