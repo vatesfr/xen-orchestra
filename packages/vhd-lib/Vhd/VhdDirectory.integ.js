@@ -80,7 +80,7 @@ describe('VhdDirectory', async () => {
     })
   })
 
-  for (const compression of [undefined, 'gzip', 'zstd']) {
+  for (const compression of [undefined, 'gzip', 'zstd', 'zeros']) {
     it(`writes the data of a block with a full bitmap (compression: ${compression})`, async () => {
       await createRandomFile(`${tempDir}/randomfile`, 8)
       await convertFromRawToVhd(`${tempDir}/randomfile`, `${tempDir}/source.vhd`)

@@ -9,6 +9,7 @@ const assert = require('assert')
 const { synchronized } = require('decorator-synchronized')
 const promisify = require('promise-toolbox/promisify')
 const zlib = require('zlib')
+const { removeZeroPages, restoreZeroPages } = require('./_zeroFilter')
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
 
@@ -43,6 +44,13 @@ const COMPRESSORS = {
     decompress: withZlibOptions(zlib.brotliDecompress, DECOMPRESS_CHUNK_SIZE),
   },
   none: NULL_COMPRESSOR,
+  // no compression, only the pages full of zeroes are removed: much cheaper, it works on the parts of a block
+  // without concatenating them, and its result (views on the data) is written without copy
+  zeros: {
+    compress: removeZeroPages,
+    decompress: restoreZeroPages,
+    acceptsParts: true,
+  },
 }
 
 // negative levels are the fastest ones: they mostly remove the runs of zeroes, and decompress about 5 times faster
@@ -215,7 +223,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       `Can't write a chunk ${partName} in ${this._path} with read permission`
     )
 
-    if (Array.isArray(buffer) && this.#compressor !== NULL_COMPRESSOR) {
+    if (Array.isArray(buffer) && this.#compressor !== NULL_COMPRESSOR && !this.#compressor.acceptsParts) {
       // the handler can write an array without concatenating it, a compressor can't
       return this.#outputChunk(partName, await compressParts(this.#compressor, buffer))
     }
