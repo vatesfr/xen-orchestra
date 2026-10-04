@@ -37,9 +37,10 @@ export class XapiProgressHandler {
    */
   #taskRef
   /**
-   * @type {boolean}
+   * the creation of the task, shared by the calls made while it is in progress
+   * @type {Promise<void>|undefined}
    */
-  #starting = false
+  #started
   /**
    * @type {any}
    */
@@ -65,17 +66,36 @@ export class XapiProgressHandler {
     this.#minThresholdPercentBetweenProgressEmit = minThresholdPercentBetweenProgressEmit
     this.#xapi = xapi
   }
-  async start() {
-    this.#starting = true
-    this.#taskRef = await this.#xapi.call('task_create', this.#label, '')
-    this.#starting = false
-  }
-  async done() {
-    this.#taskRef && (await this.#xapi.call('task_set_status', this.#taskRef, 'success'))
+  // creates the task once: progress is reported by several writers at a time, each call must not create its own
+  // task, the others would never be ended
+  start() {
+    if (this.#started === undefined) {
+      this.#started = this.#xapi.call('task_create', this.#label, '').then(
+        taskRef => {
+          this.#taskRef = taskRef
+        },
+        error => {
+          // the next progress call tries again
+          this.#started = undefined
+          throw error
+        }
+      )
+    }
+    return this.#started
   }
 
-  async fail() {
-    this.#taskRef && (await this.#xapi.call('task_set_status', this.#taskRef, 'failure'))
+  // the task may still be being created
+  async #setStatus(status) {
+    await this.#started?.catch(() => {})
+    this.#taskRef && (await this.#xapi.call('task_set_status', this.#taskRef, status))
+  }
+
+  done() {
+    return this.#setStatus('success')
+  }
+
+  fail() {
+    return this.#setStatus('failure')
   }
 
   /**
@@ -85,12 +105,8 @@ export class XapiProgressHandler {
    */
   async setProgress(progress) {
     if (this.#taskRef === undefined) {
-      await this.start()
-      return
-    }
-    if (this.#starting === true) {
       // the data will be updated on next progress call
-      return
+      return this.start()
     }
     if (progress < 0 || progress > 1) {
       return
