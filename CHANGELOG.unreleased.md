@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [XO5/Host/Patches] Warn when installing patches on a host while its pool master is not up to date (PR [#10523](https://github.com/vatesfr/xen-orchestra/pull/10523))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -43,6 +45,6 @@
 - @xen-orchestra/web patch
 - vectura patch
 - xen-api patch
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
