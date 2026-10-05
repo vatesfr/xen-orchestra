@@ -37,13 +37,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
-import { getHostState } from '@/modules/host/utils/host.util.ts'
 import type { HostBranch } from '@/modules/treeview/types/tree.type.ts'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
-import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -58,29 +54,16 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { branch, hostOpaqueRef } = defineProps<{
+const { branch } = defineProps<{
   branch: HostBranch
-  hostOpaqueRef: XenApiHost['$ref']
 }>()
 
 const { t } = useI18n()
 
 const { isMasterHost } = usePoolStore().subscribe()
 const { runningVmsCountByHostRef } = useVmStore().subscribe()
-const { getByOpaqueRef } = useHostStore().subscribe()
-const host = computed(() => getByOpaqueRef(hostOpaqueRef))
 
-const { getHostPowerState } = useHostMetricsStore().subscribe()
-
-const hostState = computed(() => {
-  if (host.value === undefined) {
-    return 'unknown'
-  }
-
-  return getHostState(host.value, getHostPowerState(host.value))
-})
-
-const { isChangingState, currentOperation } = useHostUtils(() => branch.data)
+const { hostState, isChangingState, currentOperation } = useHostUtils(() => branch.data)
 
 const isMaster = computed(() => isMasterHost(branch.data.$ref))
 

@@ -32,8 +32,8 @@ export const getHostPendingStateOperation = (host: XenApiHost, isHostRunning: bo
     isHostRunning ? RUNNING_CHANGING_STATE_OPERATIONS : NOT_RUNNING_CHANGING_STATE_OPERATIONS
   )
 
-export const getHostState = (host: XenApiHost | undefined, powerState: HOST_POWER_STATE): HostState => {
-  if (!host || powerState === HOST_POWER_STATE.UNKNOWN) {
+export const getHostState = (host: XenApiHost, powerState: HOST_POWER_STATE): HostState => {
+  if (powerState === HOST_POWER_STATE.UNKNOWN) {
     return 'unknown'
   }
 

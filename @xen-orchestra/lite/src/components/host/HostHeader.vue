@@ -44,8 +44,6 @@ import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
-import { getHostState } from '@/modules/host/utils/host.util.ts'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -63,12 +61,8 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getHostPowerState } = useHostMetricsStore().subscribe()
-
-const hostState = computed(() => getHostState(host, getHostPowerState(host)))
-
 const { isMasterHost } = usePoolStore().subscribe()
 const isMaster = computed(() => isMasterHost(host.$ref))
 
-const { isChangingState, currentOperation } = useHostUtils(() => host)
+const { hostState, isChangingState, currentOperation } = useHostUtils(() => host)
 </script>
