@@ -40,27 +40,37 @@ export function useXoTaskUtils() {
         reject(new Error(`task ID: ${taskId} never received`))
       }, 2000)
 
-      const stop = watch(
-        task,
-        task => {
-          if (task !== undefined) {
-            clearTimeout(timeout)
-            if (task.status === 'success') {
-              cleanup()
-              resolve(task.result as TResult)
-            } else if (task.status === 'failure') {
-              cleanup()
-              reject(normalizeError(task.result, taskId))
-            } else if (task.status !== 'pending') {
-              cleanup()
-              reject(normalizeError(task.result, taskId))
-            }
-          }
-        },
-        {
-          immediate: true,
+      const stop = watch(task, task => {
+        if (settle(task)) {
+          cleanup()
         }
-      )
+      })
+
+      // The task may already be over (e.g. a fast action)
+      if (settle(task.value)) {
+        cleanup()
+      }
+
+      // Returns true once the task is over, after resolving or rejecting the promise
+      function settle(task: FrontXoTask | undefined) {
+        if (task === undefined) {
+          return false
+        }
+
+        clearTimeout(timeout)
+
+        if (task.status === 'pending') {
+          return false
+        }
+
+        if (task.status === 'success') {
+          resolve(task.result as TResult)
+        } else {
+          reject(normalizeError(task.result, taskId))
+        }
+
+        return true
+      }
 
       function cleanup() {
         stop()
