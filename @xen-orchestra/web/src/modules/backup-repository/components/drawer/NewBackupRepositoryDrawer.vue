@@ -1,7 +1,7 @@
 <template>
   <UiDrawer @confirm="handleConfirm()" @dismiss="emit('cancel')">
     <template #title>
-      {{ t('create-new-br') }}
+      {{ t('action:create-new-br') }}
     </template>
 
     <template #content>
@@ -19,10 +19,12 @@
     </template>
 
     <template #buttons>
-      <VtsOverlayCancelButton v-if="currentStep !== 'general'" @click="back()">{{ t('back') }}</VtsOverlayCancelButton>
+      <VtsOverlayCancelButton v-if="currentStep !== 'general'" @click="back()">
+        {{ t('action:back') }}
+      </VtsOverlayCancelButton>
       <VtsOverlayCancelButton v-else @click="emit('cancel')" />
       <VtsOverlayConfirmButton>
-        {{ currentStep === 'review' ? t('action:create') : t('continue') }}
+        {{ currentStep === 'review' ? t('action:create') : t('action:continue') }}
       </VtsOverlayConfirmButton>
     </template>
   </UiDrawer>

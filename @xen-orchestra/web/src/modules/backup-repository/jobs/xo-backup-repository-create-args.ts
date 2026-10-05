@@ -2,6 +2,6 @@ import type { NewBackupRepositoryPayload } from '@/modules/backup-repository/job
 import { defineJobArg } from '@core/packages/job'
 
 export const payloadsArg = defineJobArg<NewBackupRepositoryPayload>({
-  identify: payload => `${payload.name}:${payload.url}`,
+  identify: payload => payload.name,
   toArray: true,
 })

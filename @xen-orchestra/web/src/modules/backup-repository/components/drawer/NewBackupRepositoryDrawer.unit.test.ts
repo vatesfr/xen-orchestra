@@ -115,7 +115,7 @@ describe('general step', () => {
     const wrapper = await mountDrawer()
 
     expect(findRenderedSteps(wrapper)).toEqual(['general'])
-    expect(findButtonLabels(wrapper)).toEqual([t('cancel'), t('continue')])
+    expect(findButtonLabels(wrapper)).toEqual([t('cancel'), t('action:continue')])
   })
 
   it('cancels from the cancel button', async () => {
@@ -132,13 +132,13 @@ describe('details step', () => {
     const wrapper = await mountDrawerAtDetailsStep()
 
     expect(findRenderedSteps(wrapper)).toEqual(['details'])
-    expect(findButtonLabels(wrapper)).toEqual([t('back'), t('continue')])
+    expect(findButtonLabels(wrapper)).toEqual([t('action:back'), t('action:continue')])
   })
 
   it('goes back to the general step, without cancelling', async () => {
     const wrapper = await mountDrawerAtDetailsStep()
 
-    await clickButton(wrapper, t('back'))
+    await clickButton(wrapper, t('action:back'))
 
     expect(findRenderedSteps(wrapper)).toEqual(['general'])
     expect(wrapper.emitted('cancel')).toBeUndefined()
@@ -150,7 +150,7 @@ describe('review step', () => {
     const wrapper = await mountDrawerAtReviewStep()
 
     expect(findRenderedSteps(wrapper)).toEqual(['review'])
-    expect(findButtonLabels(wrapper)).toEqual([t('back'), t('action:create')])
+    expect(findButtonLabels(wrapper)).toEqual([t('action:back'), t('action:create')])
   })
 
   it('does not confirm before it is submitted', async () => {
