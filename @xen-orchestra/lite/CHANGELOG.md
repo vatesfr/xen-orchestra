@@ -2,11 +2,20 @@
 
 ## **next**
 
+- [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
+- [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
+
+
+## **0.26.0** (2026-10-01)
+
 - [Host] Add possibility to reboot a host (PR [#10250](https://github.com/vatesfr/xen-orchestra/pull/10250))
 - [Web-Core/TabItem] Update the component to remove uppercase for better readability (PR [#10338](https://github.com/vatesfr/xen-orchestra/pull/10338))
 - [Host] Add possibility to force reboot a host (PR [#10311](https://github.com/vatesfr/xen-orchestra/pull/10311))
 - [Icons] Update FontAwesome, clean unused libraries (PR [#10365](https://github.com/vatesfr/xen-orchestra/pull/10365))
-- [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
+- [Host] Add possibility to shut down and start a host (PR [#10314](https://github.com/vatesfr/xen-orchestra/pull/10314))
+- Use `MenuItem`'s `accent` prop to color menu actions instead of custom CSS classes (PR [#10348](https://github.com/vatesfr/xen-orchestra/pull/10348))
+- [Host] Add possibility to forget a host (PR [#10315](https://github.com/vatesfr/xen-orchestra/pull/10315))
+- [Pool/Network] Add the possibility to delete host internal networks (PR [#10332](https://github.com/vatesfr/xen-orchestra/pull/10332))
 
 ## **0.25.0** (2026-08-31)
 
@@ -25,6 +34,7 @@
 - [VM/Network] add possibility to “connect/disconnect” a VIF on a VM (PR [#10080](https://github.com/vatesfr/xen-orchestra/pull/10080))
 - [Pool/networks] Add the possibility to copy information from one or more networks in JSON format (PR [#10083](https://github.com/vatesfr/xen-orchestra/pull/10083))
 - Fix some design inconsistency between pages (PR [#10109](https://github.com/vatesfr/xen-orchestra/pull/10109))
+- [VM/Network/VIF] Add possibility to create VIF from VM > Network screen (PR [#10216](https://github.com/vatesfr/xen-orchestra/pull/10216))
 
 ## **0.23.0** (2026-06-30)
 

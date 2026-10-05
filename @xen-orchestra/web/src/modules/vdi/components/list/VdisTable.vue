@@ -234,6 +234,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
               onClick: () => deleteVdis(),
               disabled: !canDeleteVdis.value,
               busy: isDeletingVdis.value,
+              accent: 'danger',
             },
           ],
         }),

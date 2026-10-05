@@ -29,8 +29,17 @@ class XapiError extends Error {
   }
 }
 
-const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
+const makeXapi = ({ poolUuid = 'pool-uuid', probeError, vdiSmConfig } = {}) => {
   const calls = []
+  // stands for xen-api's record cache: a `xo-collection` whose type index reports each removed
+  // record of the pool on its own, per type
+  const emitters = { __proto__: null }
+  const getEventEmitterByType = type => (emitters[type] ??= new EventEmitter())
+  const objects = { allIndexes: { type: { getEventEmitterByType } } }
+  const removeRecord = ($type, uuid) => getEventEmitterByType($type).emit('remove', undefined, { $type, uuid })
+
+  // each mount introduces its own VDI, so the driver hands back a different uuid every time
+  let nVdis = 0
   // `call` and `callAsync` answer the same way: which one a method goes through
   // is xen-api's concern, the assertions below only care that it was called
   const handle = (method, ...args) => {
@@ -40,18 +49,29 @@ const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
         throw probeError ?? new XapiError('SR_BACKEND_FAILURE_107', ['', '', LUN_LIST_XML])
       case 'SR.introduce':
         return SR_REF
+      case 'VDI.introduce':
+        ++nVdis
+        return undefined
       case 'PBD.create':
         return 'OpaqueRef:pbd'
       case 'SR.get_VDIs':
         return ['OpaqueRef:vdi']
       case 'SR.get_PBDs':
+        if (xapi.srGone) {
+          throw new XapiError('HANDLE_INVALID', ['SR', SR_REF])
+        }
         return ['OpaqueRef:pbd']
       default:
         return undefined
     }
   }
-  return {
+  const xapi = {
     calls,
+    objects,
+    pool: { uuid: poolUuid },
+    removeRecord,
+    // set to answer for an SR which no longer exists
+    srGone: false,
     async call(method, ...args) {
       return handle(method, ...args)
     },
@@ -72,20 +92,53 @@ const makeXapi = ({ probeError, vdiSmConfig } = {}) => {
       calls.push(['getRecord', type, ref])
       // the driver derives the VDI uuid from the LUN serial, so it differs from
       // the one we asked for
-      return { uuid: 'vdi-uuid', sm_config: vdiSmConfig ?? { SCSIid: SCSI_ID } }
+      return { uuid: nVdis > 1 ? `vdi-uuid-${nVdis}` : 'vdi-uuid', sm_config: vdiSmConfig ?? { SCSIid: SCSI_ID } }
     },
   }
+  return xapi
 }
 
-const makeMixin = ({ diskOpenError, listenError, advertisedAddress = '192.168.1.8' } = {}) => {
+// records what the mixin asks of the firewall, instead of running iptables
+const makeFirewall = ({ openError, available = true } = {}) => {
+  const firewall = {
+    calls: [],
+    async open(rule) {
+      firewall.calls.push(['open', rule])
+      if (openError !== undefined) {
+        throw openError
+      }
+      return available
+    },
+    async close(rule) {
+      firewall.calls.push(['close', rule])
+    },
+    async purge() {
+      firewall.calls.push(['purge'])
+      return []
+    },
+  }
+  return firewall
+}
+
+const makeMixin = ({
+  diskOpenError,
+  listenError,
+  advertisedAddress = '192.168.1.8',
+  manageFirewall,
+  firewall = makeFirewall(),
+} = {}) => {
   const hooks = new EventEmitter()
   const detectAddressCalls = []
+  const createFirewallCalls = []
   const app = {
     config: {
       getOptional: path => {
         if (path === 'iscsi.advertisedAddress') {
           // `null` (as opposed to the default) simulates an unset config key
           return advertisedAddress === null ? undefined : advertisedAddress
+        }
+        if (path === 'iscsi.manageFirewall') {
+          return manageFirewall
         }
         assert.equal(path, 'iscsi.bindAddress')
         return undefined
@@ -115,6 +168,7 @@ const makeMixin = ({ diskOpenError, listenError, advertisedAddress = '192.168.1.
   }
 
   const mixin = new LiveMount(app, {
+    appName: 'xo-server',
     openDisk: async params => {
       if (diskOpenError !== undefined) {
         throw diskOpenError
@@ -130,9 +184,13 @@ const makeMixin = ({ diskOpenError, listenError, advertisedAddress = '192.168.1.
       detectAddressCalls.push(hostAddress)
       return '203.0.113.7'
     },
+    createFirewall: name => {
+      createFirewallCalls.push(name)
+      return name === 'ufw' ? firewall : undefined
+    },
   })
 
-  return { app, detectAddressCalls, disk, hooks, mixin, target }
+  return { app, createFirewallCalls, detectAddressCalls, disk, firewall, hooks, mixin, target }
 }
 
 const mountDisk = (mixin, xapi, params) =>
@@ -225,7 +283,7 @@ describe('mountDisk', () => {
     const { mixin } = makeMixin()
     const xapi = makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_141', []) })
 
-    await assert.rejects(mountDisk(mixin, xapi), /cannot reach the iSCSI target at 192\.168\.1\.8/)
+    await assert.rejects(mountDisk(mixin, xapi), /cannot reach the iSCSI target at 192\.168\.1\.8:34567, .* firewalls/)
   })
 
   it('closes the target and the disk when the probe fails', async () => {
@@ -282,10 +340,31 @@ describe('unmountDisk', () => {
     assert.deepEqual(mixin.listMountedDisks(), [])
   })
 
+  it('succeeds when the SR is already gone, e.g. forgotten by hand', async () => {
+    const { mixin, target } = makeMixin()
+    const xapi = makeXapi()
+    let released = false
+
+    const { id } = await mountDisk(mixin, xapi, { release: async () => (released = true) })
+    xapi.calls.length = 0
+    xapi.srGone = true
+
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(
+      xapi.calls.map(([method]) => method),
+      ['SR.get_PBDs']
+    )
+    assert.equal(target.closed, true)
+    assert.equal(released, true)
+  })
+
   it('still closes the target and releases resources when forgetting the SR fails', async () => {
     const { mixin, target } = makeMixin()
     const xapi = makeXapi()
     let released = false
+    const unmounted = []
+    mixin.on('unmounted', id => unmounted.push(id))
     const { id } = await mountDisk(mixin, xapi, { release: async () => (released = true) })
     xapi.call = xapi.callAsync = async () => {
       throw new Error('SR_HAS_NO_PBDS')
@@ -301,11 +380,308 @@ describe('unmountDisk', () => {
     assert.equal(released, true)
     // the mount is gone either way, a half-released mount must not be retried
     assert.deepEqual(mixin.listMountedDisks(), [])
+    // and whoever tracks it must hear about it
+    assert.deepEqual(unmounted, [id])
   })
 
   it('rejects an unknown mount', async () => {
     const { mixin } = makeMixin()
-    await assert.rejects(mixin.unmountDisk('nope'), /no such live mount nope/)
+    await assert.rejects(mixin.unmountDisk('nope'), { code: 1, data: { id: 'nope', type: 'live-mount' } })
+  })
+
+  it('notifies its listeners', async () => {
+    const { mixin } = makeMixin()
+    const unmounted = []
+    mixin.on('unmounted', id => unmounted.push(id))
+
+    const { id } = await mountDisk(mixin, makeXapi())
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(unmounted, [id])
+  })
+})
+
+describe('when the live mounted VDI is removed', () => {
+  // the mount is released asynchronously, from an event handler
+  const unmountedMount = mixin =>
+    new Promise(resolve => {
+      mixin.once('unmounted', resolve)
+    })
+
+  it('forgets the SR, closes the target and releases the caller resources', async () => {
+    const { mixin, target } = makeMixin()
+    const xapi = makeXapi()
+    let released = false
+    const { id, vdiUuid } = await mountDisk(mixin, xapi, { release: async () => (released = true) })
+    xapi.calls.length = 0
+
+    xapi.removeRecord('VDI', vdiUuid)
+
+    assert.equal(await unmountedMount(mixin), id)
+    assert.deepEqual(
+      xapi.calls.map(([method]) => method),
+      ['SR.get_PBDs', 'PBD.unplug', 'SR.forget']
+    )
+    assert.equal(target.closed, true)
+    assert.equal(released, true)
+    assert.deepEqual(mixin.listMountedDisks(), [])
+  })
+
+  it('leaves the other mounts of the same connection alone', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    const first = await mountDisk(mixin, xapi)
+    const second = await mountDisk(mixin, xapi, { diskPath: 'xo-vm-backups/vm/vdis/job/vdi/20260801T120000Z.vhd' })
+
+    assert.notEqual(first.vdiUuid, second.vdiUuid)
+    xapi.removeRecord('VDI', first.vdiUuid)
+
+    await unmountedMount(mixin)
+    assert.deepEqual(
+      mixin.listMountedDisks().map(({ id }) => id),
+      [second.id]
+    )
+  })
+
+  it('ignores the removal of anything else', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    const { id, vdiUuid } = await mountDisk(mixin, xapi)
+
+    xapi.removeRecord('VDI', 'some-other-vdi')
+    // a record of another type which happens to share the uuid
+    xapi.removeRecord('SR', vdiUuid)
+
+    await new Promise(resolve => setImmediate(resolve))
+    assert.deepEqual(
+      mixin.listMountedDisks().map(_ => _.id),
+      [id]
+    )
+  })
+
+  it('is no longer expected once the mount was unmounted explicitly', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    const { id, vdiUuid } = await mountDisk(mixin, xapi)
+    const unmounted = []
+    mixin.on('unmounted', _ => unmounted.push(_))
+
+    await mixin.unmountDisk(id)
+    // forgetting the SR removes the VDI: that removal must not feed back into a second teardown
+    xapi.removeRecord('VDI', vdiUuid)
+
+    await new Promise(resolve => setImmediate(resolve))
+    assert.deepEqual(unmounted, [id])
+  })
+})
+
+describe('after a reconnection', () => {
+  const unmountedMount = mixin =>
+    new Promise(resolve => {
+      mixin.once('unmounted', resolve)
+    })
+
+  it('unmounts when the VDI removal is reported by the new connection, and tears down through it', async () => {
+    const { mixin, target } = makeMixin()
+    const disconnected = makeXapi()
+    const { id, vdiUuid } = await mountDisk(mixin, disconnected)
+    disconnected.calls.length = 0
+
+    const reconnected = makeXapi()
+    mixin.watchConnection(reconnected)
+    reconnected.removeRecord('VDI', vdiUuid)
+
+    assert.equal(await unmountedMount(mixin), id)
+    // the previous connection no longer answers: the SR must be forgotten through the new one
+    assert.deepEqual(disconnected.calls, [])
+    assert.deepEqual(
+      reconnected.calls.map(([method]) => method),
+      ['SR.get_PBDs', 'PBD.unplug', 'SR.forget']
+    )
+    assert.equal(target.closed, true)
+  })
+
+  it('unmounts explicitly through the new connection', async () => {
+    const { mixin } = makeMixin()
+    const disconnected = makeXapi()
+    const { id } = await mountDisk(mixin, disconnected)
+    disconnected.calls.length = 0
+
+    const reconnected = makeXapi()
+    mixin.watchConnection(reconnected)
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(disconnected.calls, [])
+    assert.equal(reconnected.calls.at(-1)[0], 'SR.forget')
+  })
+
+  it('leaves the mounts of other pools on their own connection', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    const { id } = await mountDisk(mixin, xapi)
+    xapi.calls.length = 0
+
+    const otherPool = makeXapi({ poolUuid: 'other-pool-uuid' })
+    mixin.watchConnection(otherPool)
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(otherPool.calls, [])
+    assert.equal(xapi.calls.at(-1)[0], 'SR.forget')
+  })
+
+  it('listens only once to a connection handed several times', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    await mountDisk(mixin, xapi)
+
+    mixin.watchConnection(xapi)
+    mixin.watchConnection(xapi)
+
+    assert.equal(xapi.objects.allIndexes.type.getEventEmitterByType('VDI').listenerCount('remove'), 1)
+  })
+})
+
+describe('iscsi.manageFirewall', () => {
+  it('drives no firewall when unset', async () => {
+    const { mixin, createFirewallCalls, hooks } = makeMixin()
+
+    await mountDisk(mixin, makeXapi())
+
+    assert.deepEqual(createFirewallCalls, [])
+    assert.deepEqual(hooks.listeners('start'), [])
+  })
+
+  it('opens the port of the target to the host, even with an advertised address', async () => {
+    const { mixin, firewall } = makeMixin({ manageFirewall: 'ufw' })
+    const xapi = makeXapi()
+
+    const { id } = await mountDisk(mixin, xapi)
+
+    assert.deepEqual(firewall.calls, [['purge'], ['open', { source: '10.20.30.40', port: 34567, id }]])
+    // opened before the host first connects, which is the probe
+    const probeIndex = xapi.calls.findIndex(([method]) => method === 'SR.probe')
+    const hostAddressIndex = xapi.calls.findIndex(([method, , , field]) => method === 'getField' && field === 'address')
+    assert.ok(hostAddressIndex !== -1 && hostAddressIndex < probeIndex)
+  })
+
+  it('closes the port on unmount, after the target', async () => {
+    const { mixin, firewall, target } = makeMixin({ manageFirewall: 'ufw' })
+    const { id } = await mountDisk(mixin, makeXapi())
+    firewall.calls.length = 0
+    let targetClosedFirst
+    const { close } = firewall
+    firewall.close = async rule => {
+      targetClosedFirst = target.closed
+      return close(rule)
+    }
+
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(firewall.calls, [['close', { source: '10.20.30.40', port: 34567, id }]])
+    assert.equal(targetClosedFirst, true)
+  })
+
+  it('closes the port when the mount fails afterwards', async () => {
+    const { mixin, firewall, target } = makeMixin({ manageFirewall: 'ufw' })
+
+    await assert.rejects(
+      mountDisk(mixin, makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_141', []) })),
+      /cannot reach the iSCSI target/
+    )
+
+    assert.deepEqual(
+      firewall.calls.map(([action]) => action),
+      ['purge', 'open', 'close']
+    )
+    assert.equal(target.closed, true)
+  })
+
+  it('closes the target when the port cannot be opened', async () => {
+    const { mixin, disk, target } = makeMixin({
+      manageFirewall: 'ufw',
+      firewall: makeFirewall({ openError: new Error('iptables failed') }),
+    })
+    const xapi = makeXapi()
+
+    await assert.rejects(mountDisk(mixin, xapi), /iptables failed/)
+
+    assert.equal(target.closed, true)
+    assert.equal(disk.closed, true)
+    assert.ok(!xapi.calls.some(([method]) => method === 'SR.probe'))
+  })
+
+  it('neither records nor closes a rule when there is no firewall to drive', async () => {
+    const { mixin, firewall } = makeMixin({ manageFirewall: 'ufw', firewall: makeFirewall({ available: false }) })
+    const { id } = await mountDisk(mixin, makeXapi())
+
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(
+      firewall.calls.map(([action]) => action),
+      ['purge', 'open']
+    )
+  })
+
+  it('does not close a rule it could not open when the mount fails', async () => {
+    const { mixin, firewall } = makeMixin({ manageFirewall: 'ufw', firewall: makeFirewall({ available: false }) })
+
+    await assert.rejects(mountDisk(mixin, makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_141', []) })))
+
+    assert.deepEqual(
+      firewall.calls.map(([action]) => action),
+      ['purge', 'open']
+    )
+  })
+
+  it('drives no firewall when set to false, overriding the packaged default', async () => {
+    const { mixin, createFirewallCalls, hooks } = makeMixin({ manageFirewall: false })
+
+    await mountDisk(mixin, makeXapi())
+
+    assert.deepEqual(createFirewallCalls, [])
+    assert.deepEqual(hooks.listeners('start'), [])
+  })
+
+  it('removes the stale rules on start', async () => {
+    const { firewall, hooks } = makeMixin({ manageFirewall: 'ufw' })
+
+    await Promise.all(hooks.listeners('start').map(listener => listener()))
+
+    assert.deepEqual(firewall.calls, [['purge']])
+  })
+
+  it('removes the stale rules before the first rule, even when mounting before start, and only once', async () => {
+    const { mixin, firewall, hooks } = makeMixin({ manageFirewall: 'ufw' })
+
+    const { id } = await mountDisk(mixin, makeXapi())
+    await Promise.all(hooks.listeners('start').map(listener => listener()))
+    await mountDisk(mixin, makeXapi())
+
+    assert.deepEqual(
+      firewall.calls.map(([action]) => action),
+      ['purge', 'open', 'open']
+    )
+    assert.equal(firewall.calls[1][1].id, id)
+  })
+
+  it('does not fail the start when the stale rules cannot be removed', async () => {
+    const firewall = makeFirewall()
+    firewall.purge = async () => {
+      throw new Error('ufw is not enabled')
+    }
+    const { hooks } = makeMixin({ manageFirewall: 'ufw', firewall })
+
+    await Promise.all(hooks.listeners('start').map(listener => listener()))
+  })
+
+  it('fails the mounts, not the process, when unsupported', async () => {
+    const { mixin, hooks } = makeMixin({ manageFirewall: 'firewalld' })
+    const xapi = makeXapi()
+
+    await assert.rejects(mountDisk(mixin, xapi), /unsupported iscsi.manageFirewall: firewalld, expected one of ufw/)
+
+    assert.deepEqual(xapi.calls, [])
+    assert.deepEqual(hooks.listeners('start'), [])
   })
 })
 

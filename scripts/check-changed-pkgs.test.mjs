@@ -8,6 +8,7 @@ const PACKAGE_NAMES_BY_DIR = new Map([
   ['@xen-orchestra/babel-config', '@xen-orchestra/babel-config'],
   ['@xen-orchestra/backups', '@xen-orchestra/backups'],
   ['@xen-orchestra/lite', '@xen-orchestra/lite'],
+  ['@xen-orchestra/vmware-explorer', '@xen-orchestra/vmware-explorer'],
   ['packages/xo-server', 'xo-server'],
 ])
 
@@ -111,6 +112,16 @@ describe('getChangedPackages', function () {
         '@vates/types/types.test.mts',
       ]),
       []
+    )
+  })
+
+  it('maps a vectura file to vectura, not to the package which bundles it', function () {
+    assert.deepEqual(
+      changedPackageNames([
+        '@xen-orchestra/vmware-explorer/vectura/src/main.rs',
+        '@xen-orchestra/vmware-explorer/vectura/tests/cli.rs',
+      ]),
+      ['vectura']
     )
   })
 

@@ -1598,6 +1598,60 @@ export const rollingPoolUpdate = async poolId => {
   await rpu()
 }
 
+const RPU_UNRESTORED_ITEM_LABELS = {
+  autoPowerOn: 'rpuUnrestoredAutoPowerOn',
+  ha: 'rpuUnrestoredHa',
+  haltedPinnedVm: 'rpuUnrestoredHaltedPinnedVm',
+  host: 'rpuUnrestoredHost',
+  loadBalancer: 'rpuUnrestoredLoadBalancer',
+  schedule: 'rpuUnrestoredSchedule',
+  vm: 'rpuUnrestoredVm',
+  wlb: 'rpuUnrestoredWlb',
+}
+
+export const finalizeRollingPoolUpdate = async poolId => {
+  await confirm({
+    body: _('rpuRecoveryFinalizeConfirm'),
+    title: _('rpuRecoveryFinalize'),
+    icon: 'pool-rolling-update',
+  })
+
+  try {
+    await _call('pool.finalizeRollingUpdate', { pool: poolId })
+  } catch (err) {
+    if (!incorrectState.is(err, { property: 'unrestoredItems' })) {
+      throw err
+    }
+    // what the update changed and did not restore, or null when its record
+    // cannot be read: a second confirmation abandons them
+    const items = err.data.actual
+    await confirm({
+      body: (
+        <div className='text-warning'>
+          <p>
+            <Icon icon='alarm' />{' '}
+            {_(items === null ? 'rpuRecoveryForceFinalizeUnknownConfirm' : 'rpuRecoveryForceFinalizeConfirm')}
+          </p>
+          {items !== null && (
+            <ul>
+              {items.map(({ type, id, name }) => (
+                <li key={type + id}>
+                  {_(RPU_UNRESTORED_ITEM_LABELS[type])}
+                  {name !== undefined && `: ${name}`}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ),
+      title: _('rpuRecoveryFinalize'),
+      icon: 'pool-rolling-update',
+    })
+    await _call('pool.finalizeRollingUpdate', { pool: poolId, force: true })
+  }
+  rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
+}
+
 export const installSupplementalPack = (host, file) => {
   info(_('supplementalPackInstallStartedTitle'), _('supplementalPackInstallStartedMessage'))
 
@@ -3248,8 +3302,8 @@ export const checkBackup = (backup, sr, { mapVdisSrs = {} } = {}) => {
 
 export const deleteBackup = backup => _call('backupNg.deleteVmBackup', { id: resolveId(backup) })
 
-export const deleteBackups = async backups =>
-  _call('backupNg.deleteVmBackups', { ids: backups.map(backup => resolveId(backup)) })
+export const deleteBackups = async (backups, immediate) =>
+  _call('backupNg.deleteVmBackups', { ids: backups.map(backup => resolveId(backup)), immediate })
 
 export const createMetadataBackupJob = props =>
   _call('metadataBackup.createJob', props)
@@ -4390,38 +4444,6 @@ export const esxiListVms = (host, user, password, sslVerify) =>
 export const esxiCheckInstall = () => _call('esxi.checkInstall')
 export const importVmsFromEsxi = params => _call('vm.importMultipleFromEsxi', params)
 
-export const importVddkLib = file => {
-  return _call('esxi.installVddkLib').then(({ $sendTo }) => {
-    return post($sendTo, file.file)
-      .then(res => {
-        if (res.status !== 200) {
-          throw res.status
-        }
-        success('lib successfully installed')
-      })
-      .catch(err => {
-        error('fail to install vddk lib', err)
-      })
-  })
-}
-export const installNbdInfo = file => {
-  return _call('esxi.installNbdInfoFromSource')
-    .then(() => {
-      success('nbdInfo successfullly installed successfully installed')
-    })
-    .catch(err => {
-      error('fail to install nbdInfo', err)
-    })
-}
-export const installNbdKit = file => {
-  return _call('esxi.installNbdKitFromSource')
-    .then(() => {
-      success('nbdkit successfullly installed successfully installed')
-    })
-    .catch(err => {
-      error('fail to install nbdkit', err)
-    })
-}
 // GitHub API ---------------------------------------------------------------
 const _callGithubApi = async (endpoint = '') => {
   const url = new URL('https://api.github.com/repos/vatesfr/xen-orchestra')

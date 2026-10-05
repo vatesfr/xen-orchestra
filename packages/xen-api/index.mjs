@@ -32,6 +32,8 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 
 const { debug } = createLogger('xen-api')
 
+export const DISCONNECTED_ERROR_CODE = 'XEN_API_DISCONNECTED'
+
 // ===================================================================
 // Minimal `node:http(s)` request helper used by `putResource`.
 // `fetch`/`undici` cannot be used here because `putResource` relies on a hack
@@ -264,7 +266,9 @@ export class Xapi extends EventEmitter {
       this._undiciDispatcher = new ProxyAgent({
         ...dispatcherOpts,
 
-        proxyTls: tlsOpts,
+        // the `allowH2` option above does not apply to the connection with the
+        // HTTP proxy: undici cannot tunnel through HTTP/2 and reconnects endlessly
+        proxyTls: { ...tlsOpts, allowH2: false },
         requestTls: tlsOpts,
         token,
         uri,
@@ -1005,6 +1009,13 @@ export class Xapi extends EventEmitter {
     return Promise.resolve(task)
   }
 
+  /**
+   * Settles like `promise`, unless the connection is closed first, in which case
+   * it rejects with an error whose `code` is `DISCONNECTED_ERROR_CODE`
+   *
+   * @param {Promise} promise
+   * @returns {Promise}
+   */
   _interruptOnDisconnect(promise) {
     let listener
     const pWrapper = new Promise((resolve, reject) => {
@@ -1012,7 +1023,9 @@ export class Xapi extends EventEmitter {
       this.on(
         DISCONNECTED,
         (listener = () => {
-          reject(new Error('disconnected'))
+          const error = new Error('disconnected')
+          error.code = DISCONNECTED_ERROR_CODE
+          reject(error)
         })
       )
     })

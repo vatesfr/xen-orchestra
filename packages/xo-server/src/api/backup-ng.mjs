@@ -266,8 +266,8 @@ deleteVmBackup.params = {
   },
 }
 
-export function deleteVmBackups({ ids }) {
-  return this.deleteVmBackupsNg(ids)
+export function deleteVmBackups({ ids, immediate }) {
+  return this.deleteVmBackupsNg(ids, immediate)
 }
 
 deleteVmBackups.permission = 'admin'
@@ -276,6 +276,10 @@ deleteVmBackups.params = {
   ids: {
     type: 'array',
     items: { type: 'string' },
+  },
+  immediate: {
+    type: 'boolean',
+    optional: true,
   },
 }
 

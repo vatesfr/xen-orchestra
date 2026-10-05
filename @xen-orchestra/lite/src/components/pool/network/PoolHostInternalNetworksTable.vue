@@ -30,6 +30,7 @@
 
 <script setup lang="ts">
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
+import NetworkDeleteButton from '@/modules/network/components/actions/delete/NetworkDeleteButton.vue'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -87,13 +88,18 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useNetworkColumns({
-  exclude: ['status', 'vlan', 'actions'],
+  exclude: ['status', 'vlan', 'selectItem'],
   body: (network: XenApiNetwork) => ({
     network: r => r({ label: network.name_label }),
     description: r => r(network.name_description),
     mtu: r => r(network.MTU),
     defaultLockingMode: r => r(getLockingMode(network.default_locking_mode)),
-    selectItem: r => r(() => (selectedNetworkId.value = network.uuid)),
+    actions: r =>
+      r({
+        onClick: () => (selectedNetworkId.value = network.uuid),
+        component: NetworkDeleteButton,
+        props: { network },
+      }),
   }),
 })
 </script>

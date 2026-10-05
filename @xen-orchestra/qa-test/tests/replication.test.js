@@ -83,19 +83,29 @@ describe('Incremental Replication', () => {
   /**
    * Creates a delta replication job from sourceVm to targetSrUuid.
    * @param {{uuid: string, name_label: string}} sourceVm
-   * @param {string} targetSrUuid
+   * @param {string | Array<string>} targetSrUuid - one SR UUID, or several for a multi-SR job
+   * @param {string} [baseName]
+   * @param {object} [extraSettings] - merged into the job global settings
    * @returns {Promise<{jobId: string, scheduleKey: string}>}
    */
-  const createReplicationJob = async (sourceVm, targetSrUuid, baseName = '') => {
+  const createReplicationJob = async (sourceVm, targetSrUuid, baseName = '', extraSettings = {}) => {
     const name = baseName + ' ' + generateBackupJobName()
     const schedule = getDefaultSchedule()
     const config = {
       name,
       mode: 'delta',
       schedules: { '': schedule },
-      settings: { '': { timezone: 'Europe/Paris', copyRetention: 3, preferNbd: true, bypassVdiChainsCheck: true } },
+      settings: {
+        '': {
+          timezone: 'Europe/Paris',
+          copyRetention: 3,
+          preferNbd: true,
+          bypassVdiChainsCheck: true,
+          ...extraSettings,
+        },
+      },
       vms: { [sourceVm.uuid]: sourceVm },
-      srs: { [targetSrUuid]: true },
+      srs: Object.fromEntries([targetSrUuid].flat().map(srUuid => [srUuid, true])),
     }
 
     const jobId = await dispatchClient.backup.createBackupJob(config)
@@ -139,6 +149,24 @@ describe('Incremental Replication', () => {
         log.warn('Failed to clean up VM', { uuid: vmUuid, error })
       }
     }
+  }
+
+  /**
+   * Counts the snapshots of a VM tagged with the given schedule
+   * (other_config `xo:backup:schedule`, exposed as `other` on the REST VM-snapshot object).
+   * @param {string} vmUuid
+   * @param {string} scheduleId
+   * @returns {Promise<number>}
+   */
+  const countScheduleSnapshots = async (vmUuid, scheduleId) => {
+    const snapshotUuids = (await dispatchClient.vm.details(vmUuid)).snapshots ?? []
+    const scheduleIds = await Promise.all(
+      snapshotUuids.map(async snapshotUuid => {
+        const snapshot = await dispatchClient.restApiClient.get(`/rest/v0/vm-snapshots/${snapshotUuid}`)
+        return snapshot.other?.['xo:backup:schedule']
+      })
+    )
+    return scheduleIds.filter(id => id === scheduleId).length
   }
 
   // ===========================================================================
@@ -265,12 +293,16 @@ describe('Incremental Replication', () => {
       //   run 1 → full transfer, new VM created
       //   run 2 → incremental transfer, same VM reused
       //   run 3 → incremental transfer, new VM created (destination was started)
+      //
+      // copyRetention is 2 so that run 3 goes beyond it: the oldest replica
+      // snapshot must be destroyed.
       // -----------------------------------------------------------------------
 
       describe('Replication lifecycle: full → incremental → incremental after DR start', () => {
         it('should do full on first run, incremental on second, and incremental with new VM after destination started', async t => {
           if (destSrSkipReason) return t.skip(destSrSkipReason)
-          const { jobId, scheduleKey } = await createReplicationJob(vm, destSr.uuid)
+          const copyRetention = 2
+          const { jobId, scheduleKey } = await createReplicationJob(vm, destSr.uuid, '', { copyRetention })
           const vmUuidsBefore = new Set((await dispatchClient.vm.list()).map(v => v.uuid))
 
           // --- Run 1: full transfer, new VM created ---
@@ -305,6 +337,11 @@ describe('Incremental Replication', () => {
             `Replicated VM should have ≥1 snapshot after first run, got ${snapshotsAfterFirst}`
           )
           log.debug('Replicated VM snapshot count after first run', { label, snapshots: snapshotsAfterFirst })
+          assert.strictEqual(
+            await countScheduleSnapshots(replicatedVmUuid, scheduleKey),
+            1,
+            'Replicated VM should have 1 snapshot of the schedule after first run'
+          )
 
           log.debug('Checking CONTENT_KEY propagation after first run', { label })
           await assertContentKeyInvariants(jobId, replicatedVmUuid)
@@ -342,6 +379,11 @@ describe('Incremental Replication', () => {
           assert.ok(
             snapshotsAfterSecond > snapshotsAfterFirst,
             `Replicated VM should accumulate snapshots across runs (before: ${snapshotsAfterFirst}, after: ${snapshotsAfterSecond})`
+          )
+          assert.strictEqual(
+            await countScheduleSnapshots(replicatedVmUuid, scheduleKey),
+            2,
+            'Replicated VM should have 2 snapshots of the schedule after second run'
           )
           log.debug('VM reused', {
             label,
@@ -389,10 +431,139 @@ describe('Incremental Replication', () => {
           replicatedVmUuids.push(secondReplicaUuid)
 
           log.debug('New replica created', { label, newUuid: secondReplicaUuid, originalUuid: replicatedVmUuid })
+
+          // 3 transfers with copyRetention = 2: the oldest snapshot must have been
+          // destroyed, wherever the remaining ones live (old or new replica VM)
+          const retained =
+            (await countScheduleSnapshots(replicatedVmUuid, scheduleKey)) +
+            (await countScheduleSnapshots(secondReplicaUuid, scheduleKey))
+          assert.strictEqual(
+            retained,
+            copyRetention,
+            `Replicas should keep copyRetention (${copyRetention}) snapshots of the schedule after 3 runs, got ${retained}`
+          )
         })
       })
     })
   }
+
+  // ===========================================================================
+  // Distributed replication — one job, two SRs, `distributeReplications`
+  //
+  // The job targets two SRs but each run writes on a single one (the
+  // AggregatedIncrementalXapiWriter picks the SR holding the base, or the one
+  // with the most free space for a new chain). This scenario only passes with
+  // both fixes:
+  //
+  // - checkBaseVdis: from the second run, the aggregated writer must forward
+  //   the content keys to its sub-writers, otherwise the run fails with
+  //   "Cannot read properties of undefined (reading 'get')".
+  // - retention: the aggregated writer handles retention for all its SRs
+  //   (sub-writers have skipDeleteOldEntries). It must look up old replicas
+  //   with the schedule id, otherwise nothing matches and replica snapshots
+  //   pile up beyond copyRetention.
+  // ===========================================================================
+
+  describe('Distributed replication across two SRs', () => {
+    const copyRetention = 2
+    const runs = copyRetention + 1 // exceed retention so pruning must have kicked in
+
+    /** @type {Array<string>} VMs created during this test */
+    const replicatedVmUuids = []
+
+    after(async () => cleanupVms(replicatedVmUuids))
+
+    /**
+     * Collects every warning message in the task tree of a backup log.
+     * @param {Object} logEntry
+     * @returns {Array<string>}
+     */
+    const collectWarnings = logEntry => {
+      const messages = []
+      const walk = tasks => {
+        for (const task of tasks ?? []) {
+          for (const warning of task.warnings ?? []) {
+            messages.push(warning.message)
+          }
+          walk(task.tasks)
+        }
+      }
+      walk(logEntry.tasks)
+      return messages
+    }
+
+    /**
+     * Returns the UUIDs of the SRs holding the user VDIs of a VM.
+     * @param {string} vmUuid
+     * @returns {Promise<Set<string>>}
+     */
+    const getVmSrUuids = async vmUuid => {
+      const vdis = await dispatchClient.vdi.getVdisForVm(vmUuid)
+      return new Set(vdis.map(vdi => vdi.SR))
+    }
+
+    it(`should chain deltas on the same SR and keep ${copyRetention} replicas after ${runs} runs`, async t => {
+      if (sourceVmSrUuid === REPLICATION_DESTINATION_SR_ID) {
+        return t.skip('REPLICATION_DESTINATION_SR_ID must differ from the source VM SR')
+      }
+      const srUuids = [sourceVmSrUuid, REPLICATION_DESTINATION_SR_ID]
+
+      const { jobId, scheduleKey } = await createReplicationJob(vm, srUuids, 'distributed', {
+        copyRetention,
+        distributeReplications: true,
+      })
+      const vmUuidsBefore = new Set((await dispatchClient.vm.list()).map(v => v.uuid))
+
+      let mainSrUuid
+      for (let i = 1; i <= runs; i++) {
+        // run 1 is a full on one of the two SRs, the next ones are deltas on the SR holding the base
+        log.debug(`Distributed replication run ${i}/${runs}`, { jobId })
+        const result = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
+        assertBackupSuccess(result, `Distributed replication run ${i}`)
+        assertFullOrDeltaForSr(result, REPLICATION_DESTINATION_SR_ID, { mustBeFull: i === 1 })
+
+        const checkBaseVdisWarnings = collectWarnings(result).filter(message => message.includes('checkBaseVdis'))
+        assert.deepStrictEqual(checkBaseVdisWarnings, [], `Run ${i}: writer.checkBaseVdis() should not fail`)
+
+        const newUuids = await findNewVmUuids(vmUuidsBefore)
+        for (const uuid of newUuids) {
+          if (!replicatedVmUuids.includes(uuid)) {
+            replicatedVmUuids.push(uuid)
+          }
+        }
+        assert.ok(newUuids.length > 0, `Run ${i}: a replica VM should exist`)
+
+        if (mainSrUuid === undefined) {
+          const replicaSrUuids = await getVmSrUuids(newUuids[0])
+          assert.strictEqual(replicaSrUuids.size, 1, 'Replica disks should all be on a single SR')
+          ;[mainSrUuid] = replicaSrUuids
+          assert.ok(srUuids.includes(mainSrUuid), `Replica SR ${mainSrUuid} should be one of the job SRs`)
+          log.debug('Main SR chosen', { sr: mainSrUuid })
+        }
+        for (const uuid of newUuids) {
+          assert.deepStrictEqual(
+            await getVmSrUuids(uuid),
+            new Set([mainSrUuid]),
+            `Run ${i}: replica ${uuid} should be on the SR holding the base (${mainSrUuid})`
+          )
+        }
+      }
+
+      // Each run adds one snapshot tagged with the schedule on the replica. Without
+      // retention, there would be `runs` of them.
+      const replicaUuids = await findNewVmUuids(vmUuidsBefore)
+      let retained = 0
+      for (const uuid of replicaUuids) {
+        retained += await countScheduleSnapshots(uuid, scheduleKey)
+      }
+      assert.strictEqual(
+        retained,
+        copyRetention,
+        `Distributed replication should keep copyRetention (${copyRetention}) replicas after ${runs} runs, got ${retained}`
+      )
+      log.debug('Distributed replication retention verified', { runs, copyRetention, retained })
+    })
+  })
 
   // ===========================================================================
   // Bi-directional replication — planned switch to disaster site

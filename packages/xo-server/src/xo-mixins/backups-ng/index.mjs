@@ -19,6 +19,7 @@ import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
+import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
@@ -102,10 +103,9 @@ export default class BackupNg {
   constructor(app) {
     this._app = app
     this._runningRestores = new Set()
-    this.#vmBackupsCache = new VmBackupsCache(
-      (repository, fn) => Disposable.use(app.getBackupsRemoteAdapter(repository), fn),
-      { minRefreshDelay: app.config.getDuration('backups.listingDebounce') }
-    )
+    this.#vmBackupsCache = new VmBackupsCache(new VmBackupsSource(app), {
+      minRefreshDelay: app.config.getDuration('backups.listingDebounce'),
+    })
 
     /** @type {Record<XoBackupRepository['id'], ListingRetryState>} */
     this._backupsListingRetry = { __proto__: null }
@@ -496,7 +496,7 @@ export default class BackupNg {
     return this.deleteVmBackupsNg([id])
   }
 
-  async deleteVmBackupsNg(ids) {
+  async deleteVmBackupsNg(ids, immediate) {
     const app = this._app
     const backupsByRemote = groupBy(ids.map(parseVmBackupId), 'remoteId')
     await asyncMapSettled(Object.entries(backupsByRemote), async ([remoteId, backups]) => {
@@ -509,13 +509,35 @@ export default class BackupNg {
             url: remote.url,
             options: remote.options,
           },
+          immediate,
         })
       } else {
-        await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteVmBackups(filenames))
+        await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter =>
+          adapter.deleteVmBackups(filenames, { immediate })
+        )
       }
 
       this._refreshVmBackupsCache(remoteId)
     })
+  }
+
+  /**
+   * Record the live mounts a proxy created while restoring a backup on its own.
+   *
+   * A restore delegated to a proxy mounts the disks *on the proxy*, out of reach of
+   * `mountBackupArchiveDisk`: the mounts it reports are recorded here, with the proxy serving
+   * them, so they can be unmounted afterwards.
+   *
+   * @param {XoVmBackupArchive['id']} archiveId
+   * @param {string} proxyId
+   * @param {{ liveMounts?: { id: string, hostId: string, srUuid?: string }[] }} [result] - result of the restore, as reported by the proxy
+   */
+  #registerProxyLiveMounts(archiveId, proxyId, result) {
+    const mounts = result?.liveMounts
+    if (mounts === undefined || mounts.length === 0) {
+      return
+    }
+    this._app.registerProxyBackupArchiveDiskMounts({ archiveId, mounts, proxyId })
   }
 
   async importVmBackupNg(id, srId, settings) {
@@ -530,11 +552,6 @@ export default class BackupNg {
     try {
       let result
       if (remote.proxy !== undefined) {
-        if (hasLiveMountTarget(settings?.mapVdisSrs)) {
-          // a live mount is served by the appliance which created it, and a proxy has no LiveMount
-          throw invalidParameters('a disk cannot be live mounted from a backup repository handled by a proxy')
-        }
-
         // httpProxy is ignored when using XO Proxy
         const { allowUnauthorized, host, password, username } = await app.getXenServerWithCredentials(
           app.getXenServerIdByObject(sr.$id)
@@ -582,11 +599,17 @@ export default class BackupNg {
           }
         } catch (error) {
           if (invalidParameters.is(error)) {
+            // this proxy cannot stream the logs, and is therefore too old to live mount a disk:
+            // nothing to register below
             delete params.streamLogs
             return app.callProxyMethod(remote.proxy, 'backup.importVmBackup', params)
           }
           throw error
         }
+
+        // the proxy mounted the disks itself, on itself: without this, nothing here would know
+        // which proxy to ask to unmount them
+        this.#registerProxyLiveMounts(id, remote.proxy, result)
       } else {
         result = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
           const metadata = await adapter.readVmBackupMetadata(metadataFilename)
@@ -661,20 +684,6 @@ export default class BackupNg {
     return timeout.call(this._listVmBackupsOnRemoteUncached(remoteId, opts), LISTING_TIMEOUT)
   }
 
-  // proxies don't expose the journal of their repositories yet: they are still listed in full
-  async _listVmBackupsOnProxy(remoteId, remote, vmId) {
-    const { [remoteId]: backupsByVm } = await this._app.callProxyMethod(remote.proxy, 'backup.listVmBackups', {
-      remotes: {
-        [remoteId]: {
-          url: remote.url,
-          options: remote.options,
-        },
-      },
-      vmId,
-    })
-    return backupsByVm
-  }
-
   // the next listing of this repository will replay its journal instead of waiting for the end of the
   // current refresh window
   //
@@ -690,21 +699,10 @@ export default class BackupNg {
    * @returns {Promise<BackupsByVm>}
    */
   async _listVmBackupsOnRemoteUncached(remoteId, { vmId } = {}) {
-    const app = this._app
-    const remote = await app.getRemoteWithCredentials(remoteId)
+    const remote = await this._app.getRemoteWithCredentials(remoteId)
 
-    let backupsByVm
-    if (remote.proxy !== undefined) {
-      backupsByVm = await this._listVmBackupsOnProxy(remoteId, remote, vmId)
-      if (backupsByVm === undefined) {
-        // the proxy omits the repositories it failed to list
-        throw new Error(`the proxy failed to list the backup repository ${remoteId}`)
-      }
-    } else if (vmId !== undefined) {
-      backupsByVm = await this.#vmBackupsCache.getOneVm(remote, vmId)
-    } else {
-      backupsByVm = await this.#vmBackupsCache.get(remote)
-    }
+    const backupsByVm =
+      vmId !== undefined ? await this.#vmBackupsCache.getOneVm(remote, vmId) : await this.#vmBackupsCache.get(remote)
 
     return serveVmBackups(backupsByVm, remoteId, vmId)
   }

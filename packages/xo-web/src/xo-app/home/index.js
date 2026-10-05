@@ -103,7 +103,8 @@ const OPTIONS = {
       {
         handler: restartHostsAgents,
         icon: 'host-restart-agent',
-        tooltip: _('restartHostAgent'),
+        disabled: ({ haEnabled }) => haEnabled,
+        tooltip: ({ haEnabled }) => _(haEnabled ? 'highAvailabilityNotDisabledTooltip' : 'restartHostAgent'),
       },
       {
         handler: emergencyShutdownHosts,
@@ -506,6 +507,8 @@ const NoObjects = props =>
       )
   )
 
+  const getPools = createGetObjectsOfType('pool')
+
   return (state, props) => {
     const type = getType(state, props)
 
@@ -514,6 +517,7 @@ const NoObjects = props =>
       isAdmin: isAdmin(state, props),
       isPoolAdmin: getIsPoolAdmin(state, props),
       items: type === 'VM' ? getVms(state, props) : getItems(state, props),
+      pools: getPools(state, props),
       type,
       user: getUser(state, props),
     }
@@ -896,6 +900,13 @@ export default class Home extends Component {
     items => keys(pickBy(items))
   )
 
+  _isHaEnabledOnSelection = createSelector(
+    this._getSelectedItemsIds,
+    () => this.props.items,
+    () => this.props.pools,
+    (ids, items, pools) => ids.some(id => get(() => pools[items[id].$pool].HA_enabled) === true)
+  )
+
   // Shortcuts -----------------------------------------------------------------
 
   _getShortcutsHandler = createSelector(
@@ -1017,7 +1028,7 @@ export default class Home extends Component {
               <Tooltip content={_('filterSyntaxLinkTooltip')}>
                 <a
                   className='input-group-addon'
-                  href='https://docs.xen-orchestra.com/manage-your-infrastructure/manage_infrastructure#live-filter-search'
+                  href='https://docs.xen-orchestra.com/xo5/manage_infrastructure#live-filter-search'
                   rel='noopener noreferrer'
                   target='_blank'
                 >
@@ -1068,11 +1079,16 @@ export default class Home extends Component {
               <div>
                 {mainActions && (
                   <div className='btn-group'>
-                    {map(mainActions, (action, key) => (
-                      <Tooltip content={action.tooltip} key={key}>
-                        <ActionButton {...action} handlerParam={this._getSelectedItemsIds()} />
-                      </Tooltip>
-                    ))}
+                    {map(mainActions, (action, key) => {
+                      const params = { haEnabled: this._isHaEnabledOnSelection() }
+                      const tooltip = typeof action.tooltip === 'function' ? action.tooltip(params) : action.tooltip
+                      const disabled = typeof action.disabled === 'function' ? action.disabled(params) : action.disabled
+                      return (
+                        <Tooltip content={tooltip} key={key}>
+                          <ActionButton {...action} tooltip={tooltip} disabled={disabled} handlerParam={this._getSelectedItemsIds()} />
+                        </Tooltip>
+                      )
+                    })}
                   </div>
                 )}
                 {otherActions && (

@@ -21,25 +21,11 @@ const messages = {
   hostIp: 'Host IP',
   interfaces: 'Interfaces',
   keyValue: '{key}: {value}',
-  esxiLibraryInfo: 'The V2V tool needs the vddk library, provided by Broadcom. Please download it from their website',
-  esxiLibraryLink: 'Download link',
-
-  esxiVddkLibrary: 'Drop the tar.gz file of the vddk library (linux)',
-  esxiVddkLibraryImport: 'Import and install the Vddk library. VDDK9 need nbdkit 1.42+',
-  esxiLibraryManualInstall:
-    'For other systems, you can install manually from https://gitlab.com/nbdkit/ . For reference the list of packages need for a debian 13 is **git dh-autoreconf pkg-config make libxml2-dev ocaml libc-bin**',
-  esxiLibraryAutoInstall: 'install {library} (debian based system)',
-  esxiLibraryInstalling:
-    "Installing {library} can take a few minutes. You can check the progress in the XO tasks screen while it's running.",
   esxiProgressLinkText: 'Track progress',
-
-  esxiLibraryOutdated:
-    '{library} library is outdated expecting {expectedVersion}, got {version}. Please uninstall it and install the required version.',
   esxiCheckingPrerequisite: 'Checking prerequisite on XO',
   esxiCheckedPrerequisite: 'Result of the prerequisite check on XO',
 
   esxiCheckingPrerequisiteError: 'Must be corrected before importing VM',
-  esxiCheckedPrerequisiteVersion: 'expected version {expectedVersion} , {version} installed',
   esxiImportSslCertificate: 'Skip SSL check',
   esxiImportRememberLogin: 'Remember connection in this browser',
   esxiImportRememberWarning:
@@ -1302,6 +1288,24 @@ const messages = {
   rpuRecoveryHaltedPinnedVms: 'VMs shut down for the update and not started again yet:',
   rpuRecoveryRecordExists:
     'A rolling pool update is in progress or was left incomplete. It must be resolved before a new one can start.',
+  rpuRecoverySucceeded:
+    'The last rolling pool update completed but its record could not be removed. A new one cannot start until it is finalized.',
+  rpuRecoveryFinalize: 'Finalize',
+  rpuRecoveryFinalizeConfirm:
+    'Finalize the last rolling pool update? Its record will be removed and a new rolling pool update will be allowed. This is refused if the update changed something it did not restore.',
+  rpuRecoveryForceFinalizeConfirm:
+    'The update changed the following and did not restore them. Finalize anyway? Nothing will be restored: these items are abandoned and listed in the task.',
+  rpuRecoveryForceFinalizeUnknownConfirm:
+    'The record of the update could not be read, so what it changed and did not restore is unknown. Finalize anyway? Nothing will be restored: whatever the update left is abandoned, and the task records that the list is unknown.',
+  rpuUnrestoredHa: 'High Availability disabled',
+  rpuUnrestoredAutoPowerOn: 'Auto power on disabled',
+  rpuUnrestoredWlb: 'Workload Balancing disabled',
+  rpuUnrestoredLoadBalancer:
+    'Load balancer plugin unloaded. Unless xo-server restarted since the update, XO loads it again once the configured delay has elapsed (30 minutes by default): wait for it rather than finalizing or loading it manually',
+  rpuUnrestoredSchedule: 'Backup schedule disabled',
+  rpuUnrestoredHost: 'Host disabled',
+  rpuUnrestoredVm: 'VM away from its original host',
+  rpuUnrestoredHaltedPinnedVm: 'VM shut down for the update and not started again',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
@@ -2050,6 +2054,7 @@ const messages = {
   deleteVmBackupsTitle: 'Delete {vm} backups',
   deleteBackupsSelect: 'Select backups to delete:',
   deleteVmBackupsSelectAll: 'All',
+  deleteVmBackupsImmediate: 'Free delta disk space now',
   deleteVmBackupsBulkTitle: 'Delete backups',
   deleteVmBackupsBulkMessage:
     'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?',
@@ -2656,11 +2661,15 @@ const messages = {
 
   // ----- XO cloud config -----
   backedUpXoConfigs: 'Backed up XO Configs',
+  disableXoConfigCloudBackupConfirm:
+    'XO config backups on Vates servers will be deleted after their expiration period (100 days). Ensure you export the XO config to your own environment',
   manageXoConfigCloudBackup: 'Manage XO Config Cloud Backup',
   selectXoConfig: 'Select XO config',
   xoConfigCloudBackup: 'XO Config Cloud Backup',
   xoConfigCloudBackupTips:
     'Your encrypted configuration is securely stored inside your Vates account and backed up once a day',
+  xoCloudConfigAcknowledgment:
+    'I acknowledge that XO Config Cloud Backup is an optional feature outside the scope of my Vates VMS contract and does not replace my responsibility to maintain my own configuration backups. I enable it voluntarily, at my sole risk.',
   xoCloudConfigEnterPassphrase: 'Passphrase is required to encrypt backups',
   xoCloudConfigRestoreEnterPassphrase: 'Enter the passphrase:',
 

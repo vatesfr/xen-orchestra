@@ -206,7 +206,7 @@ export default class Restore extends Component {
       .then(() => this._refreshBackupList())
 
   _delete = async data => {
-    const backups = await confirm({
+    const { backups, immediate } = await confirm({
       title: _('deleteVmBackupsTitle', { vm: data.last.vm.name_label }),
       body: <DeleteBackupsModalBody backups={data.backups} />,
       icon: 'delete',
@@ -222,7 +222,7 @@ export default class Restore extends Component {
       icon: 'delete',
     })
 
-    await deleteBackups(backups)
+    await deleteBackups(backups, immediate)
 
     await this._refreshBackupList()
   }

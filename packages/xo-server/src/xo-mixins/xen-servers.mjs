@@ -11,21 +11,24 @@ import { defer } from 'golike-defer'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { fibonacci } from 'iterable-backoff'
 import { networkInterfaces } from 'os'
-import { noSuchObject, incorrectState } from 'xo-common/api-errors.js'
+import { noSuchObject, incorrectState, operationFailed } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
-import { pDelay, ignoreErrors } from 'promise-toolbox'
+import { pDelay, ignoreErrors, timeout, TimeoutError } from 'promise-toolbox'
 import { Task } from '@vates/task'
 import Disposable from 'promise-toolbox/Disposable'
 
 import * as XenStore from '../_XenStore.mjs'
 import Xapi from '../xapi/index.mjs'
 import { acquireRpuGuard } from '../_rpuGuard.mjs'
+import { noopRpuRecorder } from '../_rpuRecovery.mjs'
 import { getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
+import { supportsRpuRecovery } from '../xapi/mixins/patching.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 import XapiStats from '../xapi-stats.mjs'
 import { autoReconnect } from '../_xenServerAutoReconnect.mjs'
 import { camelToSnakeCase, forEach, isEmpty, popProperty, serializeError } from '../utils.mjs'
 import { Servers } from '../models/server.mjs'
+import { DISCONNECTED_ERROR_CODE } from 'xen-api'
 
 // ===================================================================
 
@@ -665,11 +668,29 @@ export default class XenServers {
         // which case the loop stops on its own
         this._autoReconnectXenServer(server.id)
       })
+
+      try {
+        await timeout.call(xapi._interruptOnDisconnect(xapi.objectsFetched), this._xapiMarkDisconnectedDelay)
+      } catch (error) {
+        if (!(error instanceof TimeoutError)) {
+          throw error
+        }
+        log.warn('objects take too long to fetch', { id, xapiMarkDisconnectedDelay: this._xapiMarkDisconnectedDelay })
+        throw operationFailed({ objectId: id, code: 'TIMEOUT_CONNECT_SERVER' })
+      }
+
       this._app.emit('server:connected', { server, xapi })
       await this.updateXenServer(id, { error: null, status: 'connected' })::ignoreErrors()
     } catch (error) {
       delete this._xapis[server.id]
       await xapi.disconnect()::ignoreErrors()
+
+      // `_interruptOnDisconnect` rejects the pending call when the connection is
+      // closed: the attempt was aborted, and the disconnection handles the status
+      if (error.code === DISCONNECTED_ERROR_CODE) {
+        throw error
+      }
+
       await this.updateXenServer(id, { status: 'disconnected' })
 
       const serializedError = serializeError(error)
@@ -911,7 +932,7 @@ export default class XenServers {
       })
   }
 
-  async _suspendRpuLoadBalancer($defer, pool) {
+  async _suspendRpuLoadBalancer($defer, pool, recorder) {
     const app = this._app
     const suspension = this._getRpuLoadBalancerSuspension()
     const state = suspension.value
@@ -934,6 +955,8 @@ export default class XenServers {
           })
           reEnableDelay = DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY
         }
+        // intent on disk first: a refused write must not leave a re-enabling pending
+        await recorder.settingChangedByRun('loadBalancer')
         state.autoload = plugin.autoload
         state.reEnableDelay = reEnableDelay
         state.shouldReEnable = true
@@ -950,14 +973,16 @@ export default class XenServers {
    * @param {object} [opts]
    * @param {boolean} [opts.acceptCurrentStateAsBaseline] - Start even though the master is already up to date while
    *   another host is not, ie from a partially updated pool, otherwise such an update is refused with an
-   *   `incorrectState` error (property `partiallyUpdatedPool`)
+   *   `incorrectState` error (property `partiallyUpdatedPool`). Only checked on XCP-ng and XenServer 8.4+: older
+   *   XenServer and CH pools are updated without this check
    * @param {boolean} [opts.bypassBackupCheck] - Skip the backup guard, the bypass is logged
    * @param {boolean} [opts.rebootVm] - Accept the VM reboots required by the update guidances (XenServer 8.4+),
    *   otherwise such an update is refused with an `incorrectState` error
    * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
    * @param {boolean} [opts.shutdownPinnedVms] - Shut down the VMs that cannot be migrated before their host reboots
    * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool
-   * @throws {Error} `incorrectState` (property `rollingUpdateRecovery`) if a previous run left a recovery record
+   * @throws {Error} `incorrectState` (property `rollingUpdateRecovery`) if a previous run left a recovery record, only on
+   *   XCP-ng and XenServer 8.4+ where a run keeps one
    */
   async rollingPoolUpdate(
     $defer,
@@ -973,13 +998,16 @@ export default class XenServers {
     $defer(acquireRpuGuard(poolId, 'rollingPoolUpdate'))
 
     // strict write before any side effect: if the record cannot be persisted,
-    // an interruption could not be reported, so the run must not start
-    const recorder = await app.startRpuRecoveryRun(poolId, {
-      acceptCurrentStateAsBaseline,
-      rebootVm,
-      bypassBackupCheck,
-      shutdownPinnedVms,
-    })
+    // an interruption could not be reported, so the run must not start. A pool
+    // without recovery runs without a record, as it did before recovery existed
+    const recorder = supportsRpuRecovery(this.getXapi(pool).pool.$master)
+      ? await app.startRpuRecoveryRun(poolId, {
+          acceptCurrentStateAsBaseline,
+          rebootVm,
+          bypassBackupCheck,
+          shutdownPinnedVms,
+        })
+      : noopRpuRecorder
 
     // a failure before the first host was handled leaves nothing to recover
     // once the restorations deferred below (schedules, load balancer, WLB)
@@ -1016,20 +1044,28 @@ export default class XenServers {
       recorder.markRunning()
 
       // Disable schedules
+      const schedulesToDisable = schedules.filter(
+        schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled
+      )
+      if (schedulesToDisable.length > 0) {
+        await recorder.settingChangedByRun(
+          'schedules',
+          schedulesToDisable.map(schedule => schedule.id)
+        )
+      }
       await Promise.all(
-        schedules
-          .filter(schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled)
-          .map(async schedule => {
-            await app.updateSchedule({ ...schedule, enabled: false })
-            $defer(() => app.updateSchedule({ ...schedule, enabled: true }))
-          })
+        schedulesToDisable.map(async schedule => {
+          await app.updateSchedule({ ...schedule, enabled: false })
+          $defer(() => app.updateSchedule({ ...schedule, enabled: true }))
+        })
       )
 
       // Disable load balancer
-      await this._suspendRpuLoadBalancer($defer, pool)
+      await this._suspendRpuLoadBalancer($defer, pool, recorder)
 
       const xapi = this.getXapi(pool)
       if (await xapi.getField('pool', pool._xapiRef, 'wlb_enabled')) {
+        await recorder.settingChangedByRun('wlb')
         await xapi.call('pool.set_wlb_enabled', pool._xapiRef, false)
         $defer(() => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true))
       }

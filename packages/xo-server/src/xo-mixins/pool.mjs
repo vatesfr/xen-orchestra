@@ -11,10 +11,13 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { Task } from '@vates/task'
+import { incorrectState } from 'xo-common/api-errors.js'
 
 import { acquireRpuGuard } from '../_rpuGuard.mjs'
 import { gcRpuTraces, getRpuTracesConfig, openRpuTrace, reconcileRpuTraces } from '../_rpuObservability.mjs'
 import {
+  listUnrestoredItems,
+  readClosableRpuRecoveryRecord,
   readRpuRecoveryView,
   reconcileRpuRecoveryAtBoot,
   startRpuRecoveryRun as startRpuRecoveryRunInStore,
@@ -93,6 +96,87 @@ export default class Pools {
 
   getRollingUpdateRecovery(poolId) {
     return readRpuRecoveryView(this._rpuRecoveryStore, poolId)
+  }
+
+  /**
+   * Closes the recovery record a previous rolling pool update left on the pool.
+   *
+   * Refused while the run left something unrestored, unless `force` is set:
+   * the items are then abandoned, listed in the task and the trace, and
+   * nothing is restored nor changed in the pool. VMs away from their home host
+   * alone do not refuse it, they are only listed in the task.
+   *
+   * @param {object} pool - XO pool object
+   * @param {object} [opts]
+   * @param {boolean} [opts.force] - Close even though items are left unrestored or the record cannot be read
+   * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
+   * @returns {Promise<void>}
+   * @throws {Error} `noSuchObject` if the pool has no record
+   * @throws {Error} `forbiddenOperation` if a rolling pool update or reboot is running on the pool
+   * @throws {Error} `incorrectState` (property `status`) if the record belongs to a live run
+   * @throws {Error} `incorrectState` (property `unrestoredItems`, `actual` the items, `null` when the record cannot
+   *   be read) if something is left unrestored and `force` is not set
+   */
+  async finalizeRollingUpdate(pool, { force = false, parentTask } = {}) {
+    const { _app } = this
+    const poolId = pool.id
+    const store = this._rpuRecoveryStore
+    const releaseGuard = acquireRpuGuard(poolId, 'finalizeRollingUpdate')
+    try {
+      const record = await readClosableRpuRecoveryRecord(store, poolId)
+
+      const xapi = _app.getXapi(pool)
+      const [plugin, schedules] = await Promise.all([_app.getOptionalPlugin('load-balancer'), _app.getAllSchedules()])
+      const scheduleById = keyBy(schedules, 'id')
+      const unrestoredItems = listUnrestoredItems(record, {
+        pool: xapi.pool,
+        loadBalancerLoaded: plugin?.loaded === true,
+        getHost: hostId => xapi.getObjectByUuid(hostId, undefined),
+        getVm: vmId => xapi.getObjectByUuid(vmId, undefined),
+        getSchedule: scheduleId => scheduleById[scheduleId],
+      })
+      // a VM away from its home host does not block: it may have been moved on
+      // purpose, and the next run takes the current placement as its home
+      const abandonsItems = unrestoredItems === null || unrestoredItems.some(item => item.type !== 'vm')
+      if (abandonsItems && !force) {
+        throw incorrectState({ actual: unrestoredItems, expected: [], object: poolId, property: 'unrestoredItems' })
+      }
+
+      const runId = record?.runId
+      const trace = openRpuTrace({ dir: getRpuTracesConfig(_app).dir, kind: 'rpu-finalize', poolId })
+      if (trace !== undefined) {
+        log.info(`finalization of the rolling pool update of pool ${poolId}: trace in ${trace.traceFile}`)
+      }
+      try {
+        const properties = {
+          name: 'Finalize rolling pool update',
+          objectId: poolId,
+          poolId,
+          poolName: pool.name_label,
+          type: 'pool.rolling_update_finalize',
+          runId,
+          force,
+          unrestoredItems,
+          ...(trace !== undefined && { traceFile: trace.traceFile }),
+        }
+        const task = parentTask === undefined ? _app.tasks.create(properties) : new Task({ properties })
+        trace?.attach(task)
+        await task.run(async () => {
+          if (abandonsItems) {
+            log.warn(`rolling pool update of pool ${poolId} finalized by force, nothing restored`, {
+              poolId,
+              runId,
+              unrestoredItems,
+            })
+          }
+          await store.del(poolId)
+        })
+      } finally {
+        trace?.stop()
+      }
+    } finally {
+      releaseGuard()
+    }
   }
 
   async mergeInto($defer, { sources: sourceIds, target, force }) {

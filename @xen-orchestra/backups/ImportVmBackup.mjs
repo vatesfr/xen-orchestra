@@ -26,8 +26,9 @@ async function resolveUuid(xapi, cache, uuid, type) {
   return cache.get(uuid)
 }
 export class ImportVmBackup {
-  // ids of the live mounts created by this restore, so a failure can release them
-  #liveMountIds = []
+  // live mounts created by this restore, with the host they are attached to, so a failure can
+  // release them and a success can report them to the caller, which is the one keeping track of them
+  #liveMounts = []
 
   // ref of the host serving the live mounts, resolved once on the destination pool
   #liveMountHostRef
@@ -356,7 +357,7 @@ export class ImportVmBackup {
 
       const diskPath = join(metadataDir, metadata.vhds[vdiRef])
       const mount = await liveMount.mountDisk({ diskPath, hostId })
-      this.#liveMountIds.push(mount.id)
+      this.#liveMounts.push({ ...mount, hostId })
       info('disk live mounted', { diskPath, hostId, mountId: mount.id, vdiUuid: vdi.uuid })
 
       const record = { ...vdi, liveMountedVdiRef: await xapi.call('VDI.get_by_uuid', mount.vdiUuid) }
@@ -374,7 +375,7 @@ export class ImportVmBackup {
    * Their SR is plugged on that host only, so the VM can run nowhere else.
    */
   async #setLiveMountAffinity(vmRef) {
-    if (this.#liveMountIds.length === 0) {
+    if (this.#liveMounts.length === 0) {
       return
     }
     await this._xapi.call('VM.set_affinity', vmRef, await this.#resolveLiveMountHostRef())
@@ -387,7 +388,7 @@ export class ImportVmBackup {
    * hide the error which caused it.
    */
   async #releaseLiveMounts() {
-    for (const id of this.#liveMountIds.splice(0)) {
+    for (const { id } of this.#liveMounts.splice(0)) {
       try {
         await this._liveMount.unmountDisk(id)
       } catch (error) {
@@ -473,7 +474,7 @@ export class ImportVmBackup {
         return {
           size,
           id: await xapi.getField('VM', vmRef, 'uuid'),
-          liveMountIds: [...this.#liveMountIds],
+          liveMounts: [...this.#liveMounts],
         }
       }
     )

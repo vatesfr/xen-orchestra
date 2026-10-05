@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
