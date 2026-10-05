@@ -7,8 +7,9 @@ import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { d, t } from '@/test/i18n.ts'
+import { t } from '@/test/i18n.ts'
 import { objectIcon } from '@core/icons'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
 import { computed, ref } from 'vue'
 
@@ -110,7 +111,7 @@ it('shows the replicated VM, its date and its storage repository', () => {
 
   expect(findLabelledValues(wrapper)).toMatchObject({
     [t('vm')]: 'Web server',
-    [t('date')]: d(replication.timestamp, { dateStyle: 'short', timeStyle: 'medium' }),
+    [t('date')]: formatDateTime(replication.timestamp),
     [t('storage-repository')]: 'Backup SR',
   })
 })

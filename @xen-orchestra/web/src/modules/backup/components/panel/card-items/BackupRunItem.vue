@@ -59,6 +59,7 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationAsRelative } from 'vue-router'
@@ -67,7 +68,7 @@ const { backupRun } = defineProps<{
   backupRun: FrontXoBackupLog
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
 const href = computed(() => buildXo5Route(`/backup/${backupRun.jobId}/edit`))
@@ -76,7 +77,7 @@ const { schedules } = useXoScheduleCollection()
 
 const runDate = computed(() => backupRun.end ?? backupRun.start)
 
-const formattedRunDate = computed(() => d(runDate.value, 'datetime_short'))
+const formattedRunDate = computed(() => formatDateTime(runDate.value))
 
 const logContent = computed(() => {
   if (backupRun.status !== 'success' && backupRun.status !== 'pending' && backupRun.tasks && backupRun.tasks[0]) {

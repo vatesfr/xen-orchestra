@@ -8,7 +8,7 @@ export const useBackupRunColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    date: useDateColumn({ headerLabel: () => t('date'), dateStyle: 'short', timeStyle: 'medium' }),
+    date: useDateColumn({ headerLabel: () => t('date') }),
     backupArchiveStatus: useStatusColumn({ headerLabel: () => t('backup-archive-status') }),
     backupJob: useLinkColumn({ headerLabel: () => t('backup-job') }),
   }

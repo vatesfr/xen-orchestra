@@ -72,19 +72,20 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { snapshot } = defineProps<{ snapshot: FrontXoVmSnapshot }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { getSnapshotTrigger } = useSnapshotTrigger()
 
 const { buildXo5VmSnapshotRoute } = useXo5VmSnapshotRoute()
 
-const formattedDate = computed(() => d(snapshot.snapshot_time * 1000, { dateStyle: 'short', timeStyle: 'medium' }))
+const formattedDate = computed(() => formatDateTime(snapshot.snapshot_time * 1000))
 
 const memoryAccent = computed(() => (snapshot.power_state === VM_POWER_STATE.SUSPENDED ? 'success' : 'muted'))
 

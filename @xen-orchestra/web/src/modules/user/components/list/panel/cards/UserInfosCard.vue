@@ -50,6 +50,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -57,7 +58,7 @@ const { user } = defineProps<{
   user: FrontXoUser
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
 
@@ -80,7 +81,7 @@ const lastLoginTimestamp = computed(() => {
     return undefined
   }
 
-  return d(mostRecentTimestamp, { dateStyle: 'short', timeStyle: 'medium' })
+  return formatDateTime(mostRecentTimestamp)
 })
 
 const providers = computed(() => {

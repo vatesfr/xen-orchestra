@@ -33,6 +33,7 @@ import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -41,11 +42,9 @@ const { snapshot } = defineProps<{
   title: string
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
-const formattedDate = computed(() =>
-  snapshot ? d(snapshot.snapshot_time * 1000, { dateStyle: 'short', timeStyle: 'medium' }) : undefined
-)
+const formattedDate = computed(() => (snapshot ? formatDateTime(snapshot.snapshot_time * 1000) : undefined))
 
 const { buildXo5VmSnapshotRoute } = useXo5VmSnapshotRoute()
 </script>
