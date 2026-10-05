@@ -2,7 +2,7 @@ import type { FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-colle
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 
 export function getPbdsConnectionStatus(pbds: FrontXoPbd[]) {
-  if (pbds.length === 0 || pbds.every(pbd => !pbd.attached)) {
+  if (pbds.every(pbd => !pbd.attached)) {
     return CONNECTION_STATUS.DISCONNECTED
   }
 
