@@ -145,7 +145,7 @@ export abstract class RemoteHandlerAbstract {
   abstract outputFile(file: string, data: string | Buffer, options?: OutputFileOptions): Promise<void>
   abstract writeFile(file: string, data: string | Buffer, options?: WriteFileOptions): Promise<void>
 
-  abstract write(file: FileArg, buffer: Buffer, position?: number): Promise<void>
+  abstract write(file: FileDescriptor, buffer: Buffer, position?: number): Promise<void>
   abstract truncate(file: string, len: number): Promise<void>
 
   // ── File management ──────────────────────────────────────────────────────
