@@ -376,15 +376,69 @@ See [named routes documentation](https://router.vuejs.org/guide/essentials/named
 ❌ Bad
 
 ```vue
-<UiLink :to="`/vm/${vm.id}/dashboard`">
-  {{ t('dashboard') }}
-</UiLink>
+<template>
+  <UiLink :to="`/vm/${vm.id}/dashboard`">
+    {{ t('dashboard') }}
+  </UiLink>
+</template>
 ```
 
 ✅ Good
 
 ```vue
-<UiLink :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
-  {{ t('dashboard') }}
-</UiLink>
+<template>
+  <UiLink :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+    {{ t('dashboard') }}
+  </UiLink>
+</template>
+```
+
+## Route params MUST NOT be passed as `undefined`
+
+When building a named route location for `<UiLink>`, `<RouterLink>`, or `router.push()`, Vue Router merges params with the active route. If a param value is `undefined`, the router reuses the current route’s param with the same name, which produces incorrect URLs.
+
+Either use a computed to return `undefined` as the route (disabling the link while still showing the component), or guard the link with a `v-if` (hide the link entirely).
+
+❌ Bad
+
+```vue
+<template>
+  <UiLink :to="{ name: '/vdi/[id]/general', params: { id: vdi.$snapshot_of } }">
+    {{ vdi.name_label }}
+  </UiLink>
+</template>
+```
+
+✅ Good
+
+```vue
+<template>
+  <UiLink :to="vdiRoute">{{ vdi.name_label }}</UiLink>
+</template
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { RouteLocationAsRelative } from 'vue-router'
+
+const vdiRoute = computed<RouteLocationAsRelative | undefined>(() => {
+  if (!vdi.$snapshot_of) {
+    return undefined
+  }
+
+  return {
+    name: '/vdi/[id]/general',
+    params: { id: vdi.$snapshot_of },
+  }
+})
+</script>
+```
+
+✅ Also good
+
+```vue
+<template>
+  <UiLink v-if="vdi.$snapshot_of" :to="{ name: '/vdi/[id]/general', params: { id: vdi.$snapshot_of } }">
+    {{ vdi.name_label }}
+  </UiLink>
+</template>
 ```
