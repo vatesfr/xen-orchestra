@@ -1352,6 +1352,7 @@
   "vlan-required": "Le VLAN est requis.",
   "vm": "VM",
   "vm-backup-failure-number-of-retries": "Nombre de tentatives en cas d'échec de la sauvegarde de la VM",
+  "vm-delete-warning": "Cela supprimera définitivement la VM, ses snapshots et ses disques. Les disques attachés à une autre VM sont conservés. Cette action est irréversible.",
   "vm-disable-blocked-protection": "Pour continuer, vous pouvez désactiver la protection dans la configuration de la VM.",
   "vm-disable-delete-protection": "Pour la supprimer, veuillez modifier sa configuration et désactiver la protection contre la suppression.",
   "vm-is-running": "La VM est en cours d'exécution",

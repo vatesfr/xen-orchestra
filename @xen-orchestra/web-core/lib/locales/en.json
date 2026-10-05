@@ -1352,6 +1352,7 @@
   "vlan-required": "VLAN is required.",
   "vm": "VM",
   "vm-backup-failure-number-of-retries": "Number of retries if VM backup fails",
+  "vm-delete-warning": "This will permanently delete the VM, its snapshots and its disks. Disks attached to another VM are kept. This action cannot be undone.",
   "vm-disable-blocked-protection": "To proceed, you can disable the protection in the VM’s configuration.",
   "vm-disable-delete-protection": "To remove it, please edit its configuration and disable the deletion protection.",
   "vm-is-running": "The VM is running",
