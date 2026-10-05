@@ -1,6 +1,7 @@
 import { asyncEach } from '@vates/async-each'
 import type { RemoteHandlerAbstract } from '@xen-orchestra/fs'
-import { join, normalize } from '@xen-orchestra/fs/path'
+import { basename, join, normalize } from '@xen-orchestra/fs/path'
+import { asBlockHash, decodeBlock, HBD_HEADER_SIZE } from './hbdPaths.mjs'
 
 // <store>/<ab>/<cd>/<hash>/<copy>: copies are always at this depth
 const COPY_DEPTH = 4
@@ -10,11 +11,15 @@ export async function scanBlockStore(
   blockStorePath: string,
   {
     remove = false,
+    verify = false,
     logInfo = () => {},
+    logWarn = () => {},
     logDebug = () => {},
   }: {
     remove?: boolean
+    verify?: boolean
     logInfo?: (message: string, data?: object) => void
+    logWarn?: (message: string, data?: object) => void
     logDebug?: (message: string, data?: object) => void
   } = {}
 ): Promise<{ removed: number }> {
@@ -40,6 +45,9 @@ export async function scanBlockStore(
         } else if (depth + 1 === COPY_DEPTH) {
           if (await removeIfOrphan(path)) {
             removed++ // a store copy
+          } else if (verify) {
+            // <ab>/<cd>/<hash>/<copy>: the copy's directory is named after the full hash
+            await verifyCopy(path, basename(dir))
           }
         }
       },
@@ -62,6 +70,16 @@ export async function scanBlockStore(
     } catch (error) {
       logDebug('failed to check a store copy', { path, error })
       return false
+    }
+  }
+
+  async function verifyCopy(path: string, hashCopy: string): Promise<void> {
+    try {
+      const hash = asBlockHash(hashCopy)
+      const buffer = await handler.readFile(path)
+      decodeBlock(buffer, buffer.length - HBD_HEADER_SIZE, hash)
+    } catch (error) {
+      logWarn('corrupted store block', { path, error })
     }
   }
 

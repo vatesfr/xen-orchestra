@@ -22,6 +22,9 @@ import {
   type BlockHash,
   type HashedDiskMetadata,
   HashEntrySet,
+  HBD_HEADER_SIZE,
+  parseBlockHeader,
+  CODEC_RAW,
 } from './hbdPaths.mjs'
 import { randomUUID } from 'node:crypto'
 
@@ -41,15 +44,23 @@ export class HashedDiskDeduplicated extends HashedDisk {
   #blockStorePath: string | undefined
   #dirty = false
   #oldBlockCount = 0
+  #scrubEnabled: boolean
+  #scrubMaxAgeMs: number
+  #blocksScrubbed = 0
+  #blocksCorrupted = 0
 
   constructor({
     handler,
     path,
     blockStorePath,
+    scrubEnabled = false,
+    scrubMaxAgeMs = 30 * 86400e3, // 30 days
   }: {
     handler: RemoteHandlerAbstract
     path: string
     blockStorePath?: string
+    scrubEnabled?: boolean
+    scrubMaxAgeMs?: number
   }) {
     super()
     this.#handler = handler
@@ -58,6 +69,12 @@ export class HashedDiskDeduplicated extends HashedDisk {
     // an unnormalized one silently fails to compare equal
     this.#path = normalize(path)
     this.#blockStorePath = blockStorePath
+
+    this.#scrubEnabled = scrubEnabled && !this.#handler.isEncrypted
+    if (scrubEnabled && !this.#scrubEnabled) {
+      warn("Scrubbing can't be enabled on a encrypted remote", { path: this.#path })
+    }
+    this.#scrubMaxAgeMs = scrubMaxAgeMs
   }
 
   /**
@@ -73,6 +90,8 @@ export class HashedDiskDeduplicated extends HashedDisk {
     parentPath,
     dedupType = 'PER_DISK',
     blockStorePath,
+    scrubEnabled,
+    scrubMaxAgeMs,
   }: {
     handler: RemoteHandlerAbstract
     path: string
@@ -83,6 +102,8 @@ export class HashedDiskDeduplicated extends HashedDisk {
     parentPath?: string
     dedupType?: DedupType
     blockStorePath?: string
+    scrubEnabled?: boolean
+    scrubMaxAgeMs?: number
   }): Promise<HashedDiskDeduplicated> {
     const dataDir = dataDirName(uuid)
     const hashesPath = join(dataDir, hashesFileName(new Date()))
@@ -105,7 +126,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
 
     const bat = BlockAllocationTable.allocate(Math.ceil(virtualSize / blockSize))
 
-    const disk = new HashedDiskDeduplicated({ handler, path, blockStorePath })
+    const disk = new HashedDiskDeduplicated({ handler, path, blockStorePath, scrubEnabled, scrubMaxAgeMs })
     await handler.outputFile(disk.#resolve(hashesPath), bat.toBuffer(), { flags: 'wx' })
     await handler.outputFile(path, JSON.stringify(metadata), { flags: 'wx' })
 
@@ -209,6 +230,16 @@ export class HashedDiskDeduplicated extends HashedDisk {
 
   getBlockHashAt(index: number): BlockHash {
     return this.#loadedBat.hashAt(index)
+  }
+
+  /** store blocks fully reread and checked since this disk was opened */
+  getBlocksScrubbed(): number {
+    return this.#blocksScrubbed
+  }
+
+  /** store blocks found corrupted, and rewritten, since this disk was opened */
+  getBlocksCorrupted(): number {
+    return this.#blocksCorrupted
   }
 
   // ---------------------------------------------------------------- public
@@ -543,7 +574,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
     for (let copy = 0; ; copy++) {
       const storePath = this.#storePath(hash, copy)
       try {
-        return await this.#link(storePath, blockPath)
+        await this.#link(storePath, blockPath)
       } catch (error: unknown) {
         const { code } = error as NodeJS.ErrnoException
         if (code === 'EMLINK') {
@@ -552,21 +583,28 @@ export class HashedDiskDeduplicated extends HashedDisk {
         if (code !== 'ENOENT') {
           throw error
         }
+
+        // link did not work, we need a new block
+        const tmp = join(this.#tmpDir, randomUUID())
+        await this.#handler.outputFile(tmp, Buffer.concat([buildBlockHeader(hash), data]), { flags: 'wx' })
+        try {
+          await this.#link(tmp, storePath)
+          await this.#link(storePath, blockPath)
+        } finally {
+          await this.#handler
+            .unlink(tmp, { checksum: false })
+            .catch(error => warn('failed to remove a temporary block file', { path: this.#path, tmp, error }))
+        }
+        return
       }
-      // link did not work, we need a new block
-      const tmp = join(this.#tmpDir, randomUUID())
-      await this.#handler.outputFile(tmp, Buffer.concat([buildBlockHeader(hash), data]), { flags: 'wx' })
-      try {
-        await this.#link(tmp, storePath)
-        await this.#link(storePath, blockPath)
-      } finally {
-        await this.#handler
-          .unlink(tmp, { checksum: false })
-          .catch(error => warn('failed to remove a temporary block file', { path: this.#path, tmp, error }))
+
+      if (this.#scrubEnabled) {
+        await this.#scrub(hash, data, storePath)
       }
       return
     }
   }
+
 
   /**
    * best effort: the new BAT is already safe, a failure only leaks
@@ -662,5 +700,45 @@ export class HashedDiskDeduplicated extends HashedDisk {
   #setHash(index: number, hash: BlockHash): void {
     this.#loadedBat.set(index, hash)
     this.#dirty = true
+  }
+
+  async #scrub(hash: BlockHash, data: Buffer, storePath: string): Promise<void> {
+    try {
+      const header = Buffer.alloc(HBD_HEADER_SIZE)
+      const now = Date.now()
+      // read metadata
+      await this.#handler.read(storePath, header, 0)
+      let verifiedAt = 0
+      try {
+        verifiedAt = parseBlockHeader(header).verifiedAt
+      } catch {
+        verifiedAt = 0
+      }
+      if (now - verifiedAt < this.#scrubMaxAgeMs) {
+        return
+      }
+      this.#blocksScrubbed++
+
+      // check block
+      let corrupted = false
+      try {
+        decodeBlock(await this.#handler.readFile(storePath), this.getBlockSize(), hash)
+      } catch {
+        corrupted = true
+      }
+
+      // update medata or rewrite block
+      if (!corrupted) {
+        await this.#handler.write(storePath, buildBlockHeader(hash, CODEC_RAW, now), 0)
+      } else {
+        this.#blocksCorrupted++
+        warn('corrupted store block, repaired', { hash, storePath })
+        await this.#handler.outputFile(storePath, Buffer.concat([buildBlockHeader(hash, CODEC_RAW, now), data]), {
+          flags: 'w',
+        })
+      }
+    } catch (error) {
+      warn('failed to scrub a store block', { hash, storePath, error })
+    }
   }
 }
