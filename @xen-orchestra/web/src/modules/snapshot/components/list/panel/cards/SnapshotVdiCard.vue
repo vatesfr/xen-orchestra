@@ -1,11 +1,11 @@
 <template>
-  <UiPanelCard v-if="vmSnapshotVdis.length > 0" class="snapshot-vdi-card">
+  <UiPanelCard v-if="vmSnapshotVdiSnapshots.length > 0" class="snapshot-vdi-card">
     <UiCardTitle>
       {{ t('vdis') }}
-      <UiCounter :value="vmSnapshotVdis.length" accent="neutral" size="small" variant="primary" />
+      <UiCounter :value="vmSnapshotVdiSnapshots.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
     <div class="content">
-      <div v-for="(vmSnapshotVdi, index) in vmSnapshotVdis" :key="vmSnapshotVdi.id" class="content">
+      <div v-for="(vmSnapshotVdi, index) in vmSnapshotVdiSnapshots" :key="vmSnapshotVdi.id" class="content">
         <SnapshotVdiLinkCardItem :vdi="vmSnapshotVdi" />
         <!-- DESCRIPTION -->
         <VtsCardRowKeyValue truncate>
@@ -21,7 +21,7 @@
         <SnapshotVdiUsageCardItem :usage="vmSnapshotVdi.usage" />
         <!-- FORMAT -->
         <VdiFormatCardItem :format="vmSnapshotVdi.image_format" />
-        <VtsDivider v-if="index < vmSnapshotVdis.length - 1" class="divider" type="stretch" />
+        <VtsDivider v-if="index < vmSnapshotVdiSnapshots.length - 1" class="divider" type="stretch" />
       </div>
     </div>
   </UiPanelCard>
@@ -45,7 +45,7 @@ const { snapshot } = defineProps<{ snapshot: FrontXoVmSnapshot }>()
 
 const { t } = useI18n()
 
-const { vmSnapshotVdis } = useXoVmSnapshotVdiCollection({}, () => snapshot.id)
+const { vmSnapshotVdiSnapshots } = useXoVmSnapshotVdiCollection({}, () => snapshot.id)
 </script>
 
 <style scoped lang="postcss">

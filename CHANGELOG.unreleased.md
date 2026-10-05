@@ -22,6 +22,8 @@
 - [XO5/Hosts] Disable restart toolstack button for the hosts that belongs to a HA pools in the home page (PR [#10497](https://github.com/vatesfr/xen-orchestra/pull/10497))
 - [Backup/replication] fix to ensure distributed replications are deleted according to retention( PR [#10491] (https://github.com/vatesfr/xen-orchestra/pull/10491))
 - [Replication] Fix `Cannot read properties of undefined (reading 'get')` error on continuous replication to multiple SRs (PR [#10519](https://github.com/vatesfr/xen-orchestra/pull/10519))
+- [VM/Snapshot] In the side panel, correctly filter VDIs associated with the VM snapshot (PR [#10510](https://github.com/vatesfr/xen-orchestra/pull/10510))
+
 
 ### Packages to release
 
@@ -43,6 +45,7 @@
 - @xen-orchestra/qa-test patch
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web patch
+- @xen-orchestra/web-core patch
 - vectura patch
 - xen-api patch
 - xo-web patch
