@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import { strict as assert } from 'node:assert'
-import { stat } from 'node:fs/promises'
+import { open, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import tmp from 'tmp'
@@ -1241,5 +1241,177 @@ describe('EMLINK', () => {
     assert.deepEqual((await listFiles(STORE)).sort(), [`${storeDir}/0`, `${storeDir}/1`])
     assert.equal(await nlink(`${storeDir}/1`), 3, 'store copy + b + c')
     assert.ok((await c.readBlock(0)).data.equals(data))
+  })
+})
+
+describe('scrub', () => {
+  const STORE = 'xo-block-store'
+  const data = block(0xaa)
+  const storeCopy = `/${STORE}/${blockRelPath(sha256hex(data))}/0`
+
+  const createStoreDisk = (opts = {}) =>
+    HashedDiskDeduplicated.create({
+      handler,
+      path: `xo-vm-backups/VMUUID/vdis/${uuid.v4()}/20260814T120000000Z.hbd`,
+      virtualSize: VIRTUAL_SIZE,
+      blockSize: BLOCK_SIZE,
+      uuid: uuid.v4(),
+      dedupType: 'PER_BACKUP_REPOSITORY',
+      blockStorePath: STORE,
+      ...opts,
+    })
+
+  const verifiedAt = async () => {
+    const header = Buffer.alloc(HBD_HEADER_SIZE)
+    await handler.read(storeCopy, header, 0)
+    return parseBlockHeader(header).verifiedAt
+  }
+
+  // full reads of the store copy, the costly part of a scrub
+  function countStoreReads() {
+    const counter = { reads: 0 }
+    const readFile = handler.readFile
+    handler.readFile = (path, ...args) => {
+      if (String(path).includes(STORE)) {
+        counter.reads++
+      }
+      return readFile.call(handler, path, ...args)
+    }
+    return counter
+  }
+
+  // flips a payload byte in place: same inode, so every disk link sees it
+  async function corruptStoreCopy() {
+    const file = await open(join(tempDir, storeCopy), 'r+')
+    try {
+      const byte = Buffer.alloc(1)
+      await file.read(byte, 0, 1, HBD_HEADER_SIZE + 1)
+      byte[0] ^= 0xff
+      await file.write(byte, 0, 1, HBD_HEADER_SIZE + 1)
+    } finally {
+      await file.close()
+    }
+  }
+
+  test('disabled: a dedup hit reads nothing from the store', async () => {
+    await (await createStoreDisk()).writeBlock({ index: 0, data })
+    const counter = countStoreReads()
+
+    const disk = await createStoreDisk()
+    await disk.writeBlock({ index: 0, data })
+
+    assert.equal(counter.reads, 0)
+    assert.equal(disk.getBlocksScrubbed(), 0)
+  })
+
+  test('a never verified block is checked on its first dedup hit', async () => {
+    await (await createStoreDisk()).writeBlock({ index: 0, data })
+    assert.equal(await verifiedAt(), 0)
+    const before = Date.now()
+
+    const disk = await createStoreDisk({ scrubEnabled: true })
+    await disk.writeBlock({ index: 0, data })
+
+    assert.equal(disk.getBlocksScrubbed(), 1)
+    assert.equal(disk.getBlocksCorrupted(), 0)
+    assert.ok((await verifiedAt()) >= before, 'verifiedAt updated')
+  })
+
+  test('a recently verified block is not read again', async () => {
+    await (await createStoreDisk()).writeBlock({ index: 0, data })
+    await (await createStoreDisk({ scrubEnabled: true })).writeBlock({ index: 0, data })
+    const counter = countStoreReads()
+
+    const disk = await createStoreDisk({ scrubEnabled: true })
+    await disk.writeBlock({ index: 0, data })
+
+    assert.equal(counter.reads, 0)
+    assert.equal(disk.getBlocksScrubbed(), 0)
+  })
+
+  test('a block verified too long ago is checked again', async () => {
+    await (await createStoreDisk()).writeBlock({ index: 0, data })
+    await (await createStoreDisk({ scrubEnabled: true })).writeBlock({ index: 0, data })
+    const previous = await verifiedAt()
+
+    const disk = await createStoreDisk({ scrubEnabled: true, scrubMaxAgeMs: 0 })
+    await disk.writeBlock({ index: 0, data })
+
+    assert.equal(disk.getBlocksScrubbed(), 1)
+    assert.ok((await verifiedAt()) >= previous)
+  })
+
+  test('a corrupted block is repaired, for every disk linking it', async () => {
+    const a = await createStoreDisk()
+    await a.writeBlock({ index: 0, data })
+    await corruptStoreCopy()
+    await assert.rejects(() => a.readBlock(0), /block corruption on read/)
+
+    const b = await createStoreDisk({ scrubEnabled: true })
+    await b.writeBlock({ index: 0, data })
+
+    assert.equal(b.getBlocksCorrupted(), 1)
+    assert.ok((await a.readBlock(0)).data.equals(data), 'a reads the repaired block through its own link')
+    assert.ok((await b.readBlock(0)).data.equals(data))
+    assert.equal((await stat(join(tempDir, storeCopy))).nlink, 3, 'still one shared inode')
+  })
+
+  test('the block just published is not scrubbed', async () => {
+    const disk = await createStoreDisk({ scrubEnabled: true })
+    await disk.writeBlock({ index: 0, data })
+
+    assert.equal(disk.getBlocksScrubbed(), 0)
+  })
+})
+
+describe('scanBlockStore verify', () => {
+  const STORE = 'xo-block-store'
+  const data = block(0xaa)
+  const storeCopy = `/${STORE}/${blockRelPath(sha256hex(data))}/0`
+
+  const linkedBlock = async () => {
+    const disk = await createDisk({ dedupType: 'PER_BACKUP_REPOSITORY', blockStorePath: STORE })
+    await disk.writeBlock({ index: 0, data })
+    return disk
+  }
+
+  test('a healthy store reports nothing', async () => {
+    await linkedBlock()
+    const warned = []
+
+    await scanBlockStore(handler, STORE, { verify: true, logWarn: (message, data) => warned.push(data.path) })
+
+    assert.deepEqual(warned, [])
+  })
+
+  test('a corrupted copy is reported and kept', async () => {
+    await linkedBlock()
+    const buffer = await handler.readFile(storeCopy)
+    buffer[HBD_HEADER_SIZE + 1] ^= 0xff
+    await handler.writeFile(storeCopy, buffer, { flags: 'w' })
+    const warned = []
+
+    await scanBlockStore(handler, STORE, {
+      verify: true,
+      remove: true,
+      logWarn: (message, data) => warned.push(data.path),
+    })
+
+    assert.deepEqual(warned, [storeCopy])
+    await handler.readFile(storeCopy)
+  })
+
+  test('without verify, the copies in use are not read', async () => {
+    await linkedBlock()
+    let reads = 0
+    const readFile = handler.readFile
+    handler.readFile = (...args) => {
+      reads++
+      return readFile.apply(handler, args)
+    }
+
+    await scanBlockStore(handler, STORE)
+
+    assert.equal(reads, 0)
   })
 })

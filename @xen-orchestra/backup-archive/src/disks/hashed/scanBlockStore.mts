@@ -1,5 +1,6 @@
 import type { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { join, normalize } from '@xen-orchestra/fs/path'
+import { asBlockHash, decodeBlock, HBD_HEADER_SIZE } from './hbdPaths.mjs'
 
 // <store>/<16>/<16>/<16>/<16>/<copy>: copies are always at this depth
 const COPY_DEPTH = 5
@@ -7,12 +8,22 @@ const COPY_DEPTH = 5
 export async function scanBlockStore(
   handler: RemoteHandlerAbstract,
   blockStorePath: string,
-  { remove = false, logInfo = () => {} }: { remove?: boolean; logInfo?: (message: string, data?: object) => void } = {}
+  {
+    remove = false,
+    verify = false,
+    logInfo = () => {},
+    logWarn = () => {},
+  }: {
+    remove?: boolean
+    verify?: boolean
+    logInfo?: (message: string, data?: object) => void
+    logWarn?: (message: string, data?: object) => void
+  } = {}
 ): Promise<{ removed: number }> {
   blockStorePath = normalize(blockStorePath)
   let removed = 0
 
-  async function visit(dir: string, depth: number): Promise<void> {
+  async function visit(dir: string, depth: number, hashPrefix: string = ''): Promise<void> {
     let names: string[]
     try {
       names = await handler.list(dir, { ignoreMissing: true })
@@ -25,10 +36,12 @@ export async function scanBlockStore(
     for (const name of names) {
       const path = join(dir, name)
       if (depth + 1 < COPY_DEPTH) {
-        await visit(path, depth + 1) // a hash level: go down
+        await visit(path, depth + 1, `${hashPrefix}${name}`) // a hash level: go down
       } else if (depth + 1 === COPY_DEPTH) {
         if (await removeIfOrphan(path)) {
           removed++ // a store copy
+        } else if (verify) {
+          await verifyCopy(path, hashPrefix)
         }
       }
     }
@@ -51,6 +64,16 @@ export async function scanBlockStore(
       return true
     } catch {
       return false
+    }
+  }
+
+  async function verifyCopy(path: string, hashPrefix: string): Promise<void> {
+    try {
+      const hash = asBlockHash(hashPrefix)
+      const buffer = await handler.readFile(path)
+      decodeBlock(buffer, buffer.length - HBD_HEADER_SIZE, hash)
+    } catch (error) {
+      logWarn('corrupted store block', { path, error })
     }
   }
 
