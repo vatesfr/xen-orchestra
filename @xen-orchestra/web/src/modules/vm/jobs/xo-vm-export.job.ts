@@ -22,11 +22,7 @@ export const useXoVmExportJob = defineJob('vm.export', [xoVmArg, xoVmExportTypeA
   const { t } = useI18n()
 
   return {
-    async run(vm: FrontXoVm | undefined, type: VmExportType, compression: VmExportCompression) {
-      if (vm === undefined) {
-        return
-      }
-
+    async run(vm: FrontXoVm, type: VmExportType, compression: VmExportCompression) {
       const params = new URLSearchParams()
 
       if (type === 'xva' && compression !== 'none') {
