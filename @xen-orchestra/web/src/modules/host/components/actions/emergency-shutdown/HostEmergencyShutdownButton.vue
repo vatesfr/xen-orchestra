@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canEmergencyShutdownHost && emergencyShutdownHostErrorMessage"
-    class="host-emergency-shutdown-button"
+    accent="danger"
     :disabled="!canEmergencyShutdownHost"
     icon="action:emergency-shutdown"
     :busy="isEmergencyShuttingDownHost"
@@ -55,9 +55,3 @@ function emergencyShutdownHost() {
   })
 }
 </script>
-
-<style lang="postcss" scoped>
-.host-emergency-shutdown-button {
-  color: var(--color-danger-item-base);
-}
-</style>
