@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [XO6/SR] Add VDIs tab to the dedicated Storage Repository page (PR [#10142](https://github.com/vatesfr/xen-orchestra/pull/10142))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -44,7 +46,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/qa-test patch
 - @xen-orchestra/vmware-explorer patch
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core patch
 - vectura patch
 - xen-api patch

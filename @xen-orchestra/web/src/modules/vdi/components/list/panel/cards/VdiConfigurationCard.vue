@@ -11,7 +11,13 @@
         </template>
         <template #value>
           <div v-if="vdiSr" class="storage">
-            <UiLink size="small" :href="srHref" icon="object:sr">
+            <UiLink
+              size="small"
+              :to="{ name: '/sr/[id]/general', params: { id: vdiSr.id } }"
+              :icon="srStatusIcon"
+              :is-primary="isDefaultSr(vdiSr)"
+              :primary-tooltip="t('default-storage-repository')"
+            >
               {{ vdiSr.name_label }}
             </UiLink>
           </div>
@@ -20,7 +26,7 @@
           <VtsCopyButton :value="vdiSr.name_label" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="vm">
         <template #key>
           {{ t('read-only') }}
         </template>
@@ -36,7 +42,7 @@
           <VtsStatus :status="vdi.cbt_enabled ?? false" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="vm">
         <template #key>
           {{ t('bootable') }}
         </template>
@@ -49,12 +55,12 @@
 </template>
 
 <script setup lang="ts">
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -66,23 +72,21 @@ import { useI18n } from 'vue-i18n'
 
 const { vdi, vm } = defineProps<{
   vdi: FrontXoVdi
-  vm: FrontXoVm
+  vm?: FrontXoVm
 }>()
 
 const { t } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
-
-const { useGetSrById } = useXoSrCollection()
+const { useGetSrById, isDefaultSr } = useXoSrCollection()
 const { useGetVbdsByIds } = useXoVbdCollection()
 
 const vdiSr = useGetSrById(() => vdi.$SR)
 
-const srHref = computed(() => (vdiSr.value ? buildXo5Route(`/srs/${vdiSr.value.id}/general`) : undefined))
+const { srStatusIcon } = useXoSrUtils(vdiSr)
 
 const vbds = useGetVbdsByIds(() => vdi.$VBDs)
 
-const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
+const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm?.id))
 
 const isReadOnly = computed(() => vbd.value?.read_only ?? false)
 

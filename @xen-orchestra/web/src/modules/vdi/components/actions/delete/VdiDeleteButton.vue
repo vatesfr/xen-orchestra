@@ -26,18 +26,10 @@ const { vdi, vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { deleteVdis, canDeleteVdis, isDeletingVdis } = useVdiDelete({
+const { deleteVdis, canDeleteVdis, isDeletingVdis, deleteVdisErrorMessage } = useVdiDelete({
   vdis: () => [vdi],
   vm: () => vm,
 })
 
-const hint = computed(() => {
-  if (!vm) {
-    return t('vdi-not-attached-to-vm')
-  }
-  if (!canDeleteVdis.value) {
-    return t('vm-running')
-  }
-  return undefined
-})
+const hint = computed(() => (canDeleteVdis.value ? undefined : deleteVdisErrorMessage.value))
 </script>
