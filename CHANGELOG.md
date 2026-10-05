@@ -1,5 +1,32 @@
 # ChangeLog
 
+**\*next**
+
+### Bug fixes
+
+- [Servers] Fix servers stuck in `Connecting` state when using an HTTPS proxy that support HTTP/2 ([Forum#12502](https://xcp-ng.org/forum/topic/12502/xoa-6.9-update)) (PR [#10507](https://github.com/vatesfr/xen-orchestra/pull/10507))
+- [Backups] Fix synchronized backups task log showing VM count+1 (PR [#10518](https://github.com/vatesfr/xen-orchestra/pull/10518))
+- [Backup/replication] fix to ensure distributed replications are deleted according to retention( PR [#10491] (https://github.com/vatesfr/xen-orchestra/pull/10491))
+- [Replication] Fix `Cannot read properties of undefined (reading 'get')` error on continuous replication to multiple SRs (PR [#10519](https://github.com/vatesfr/xen-orchestra/pull/10519))
+- [V2V] Fix `vectura is not runnable` on XOA and other systems based on Debian 11 (glibc 2.31): the `vectura` binary required glibc 2.34
+- [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
+- [XO5/Hosts] Disable restart toolstack button for the hosts that belongs to a HA pools in the home page (PR [#10497](https://github.com/vatesfr/xen-orchestra/pull/10497))
+- [VM/Snapshot] In the side panel, correctly filter VDIs associated with the VM snapshot (PR [#10510](https://github.com/vatesfr/xen-orchestra/pull/10510))
+- [XO6] Fix sometimes incorrect IDs in URLs (PR [#10511](https://github.com/vatesfr/xen-orchestra/pull/10511))
+
+### Released packages
+
+- xen-api 5.0.2
+- @xen-orchestra/backups 0.76.1
+- @xen-orchestra/web-core 0.63.1
+- @xen-orchestra/proxy 0.33.1
+- vectura 0.1.2
+- @xen-orchestra/vmware-explorer 1.0.2
+- @xen-orchestra/qa-test 1.2.3
+- @xen-orchestra/web 0.63.1
+- xo-server 5.211.1
+- xo-web 5.206.1
+
 ## **6.9.0** (2026-09-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
