@@ -31,6 +31,7 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
     errors: {
       onSubmit: () => ({
         pif: { required: withMessage(required, () => t('interface-required')) },
+        vlan: { required: withMessage(required, () => t('vlan-required')) },
       }),
     },
     warnings: {
@@ -65,14 +66,14 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
     const valid = await validate()
     const basePayload = buildBasePayload()
 
-    if (!valid || formData.pif === undefined || basePayload === undefined) {
+    if (!valid || formData.pif === undefined || formData.vlan === undefined || basePayload === undefined) {
       return undefined
     }
 
     return {
       ...basePayload,
       pif: formData.pif,
-      ...(typeof formData.vlan === 'number' && { vlan: formData.vlan }),
+      vlan: formData.vlan,
     }
   }
 
@@ -83,7 +84,7 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
     mtuInputBindings,
     nbdCheckboxBindings,
     interfaceSelectBindings: useSelect(interfacesSelectId, 'pif', () => ({ label: t('interface') })),
-    vlanInputBindings: useField('vlan', () => ({ label: t('vlan'), info: t('vlan-default-value-message') })),
+    vlanInputBindings: useField('vlan', () => ({ label: t('vlan'), required: true })),
     validateAndBuildPayload,
   }
 }

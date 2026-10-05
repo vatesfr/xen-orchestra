@@ -496,6 +496,7 @@
   "job:arg:template-uuid-required": "Mall UUID krävs",
   "job:arg:username-required": "Användarnamn krävs",
   "job:arg:vdi-id-required": "VDI-ID krävs",
+  "job:arg:vlan-required": "@:vlan-required",
   "job:arg:vm-id-required": "VM ID krävs",
   "job:connect:in-progress": "Anslutning pågår…",
   "job:create:in-progress": "Skapande pågår…",
