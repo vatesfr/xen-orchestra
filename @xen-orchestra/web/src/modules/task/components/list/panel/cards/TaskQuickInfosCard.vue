@@ -85,6 +85,7 @@ import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTi
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { formatSize } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -93,7 +94,7 @@ const { task } = defineProps<{
   task: FrontXoTask
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { resolveTaskName } = useXoTaskNameResolver()
 
@@ -121,10 +122,10 @@ const formattedSize = computed(() => {
   return typeof size === 'number' ? formatSize(size, 2) : undefined
 })
 
-const formattedStartDate = computed(() => d(task.start, { dateStyle: 'short', timeStyle: 'medium' }))
+const formattedStartDate = computed(() => formatDateTime(task.start))
 const formattedEndDate = computed(() => {
   if (task.end) {
-    return d(task.end, { dateStyle: 'short', timeStyle: 'medium' })
+    return formatDateTime(task.end)
   }
 
   const progress = task.properties.progress
@@ -138,7 +139,7 @@ const formattedEndDate = computed(() => {
   const estimatedTotal = (elapsed * 100) / progress
   const endTimestamp = task.start + estimatedTotal
 
-  return d(endTimestamp, 'datetime_short')
+  return formatDateTime(endTimestamp)
 })
 </script>
 

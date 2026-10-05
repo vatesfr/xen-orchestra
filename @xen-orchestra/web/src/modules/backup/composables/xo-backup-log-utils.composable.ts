@@ -1,14 +1,13 @@
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import type { Info, Scale } from 'human-format'
-import { useI18n } from 'vue-i18n'
 
 export type BackupLogTask = NonNullable<FrontXoBackupLog['tasks']>[number] & { message?: string }
 
 type VmTransfer = { size: number; start: number; end: number | undefined }
 
 export function useXoBackupLogsUtils() {
-  const { d } = useI18n()
 
   function getBackupLogDate(value: number): string
   function getBackupLogDate(value: number | undefined): string | undefined
@@ -17,7 +16,7 @@ export function useXoBackupLogsUtils() {
       return undefined
     }
 
-    return d(value, { dateStyle: 'short', timeStyle: 'medium' })
+    return formatDateTime(value)
   }
 
   function getBackupLogDuration(backupLog: FrontXoBackupLog) {

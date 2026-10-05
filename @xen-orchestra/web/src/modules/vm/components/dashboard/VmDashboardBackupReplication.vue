@@ -47,6 +47,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { objectIcon } from '@core/icons'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -59,7 +60,7 @@ const { hasError, vmDashboard } = defineProps<{
 const { getSrById, areSrsReady, hasSrFetchError } = useXoSrCollection()
 const { getVmById } = useXoVmCollection()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const replication = computed(() => vmDashboard?.backupsInfo?.replication)
 
@@ -75,9 +76,7 @@ const vmPowerStateIcon = computed(() => objectIcon('vm', toLower(vm.value?.power
 
 const storageRepository = computed(() => getSrById(replication.value?.sr))
 
-const formattedDate = computed(() =>
-  replication.value ? d(replication.value.timestamp, { dateStyle: 'short', timeStyle: 'medium' }) : undefined
-)
+const formattedDate = computed(() => (replication.value ? formatDateTime(replication.value.timestamp) : undefined))
 
 const { srStatusIcon } = useXoSrUtils(() => storageRepository.value)
 </script>

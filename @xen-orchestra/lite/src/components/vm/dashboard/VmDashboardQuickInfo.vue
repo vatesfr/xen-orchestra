@@ -71,7 +71,7 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { useMapper } from '@core/packages/mapper'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { parseDateTime } from '@core/utils/time.util.ts'
+import { formatDate, parseDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -79,7 +79,7 @@ const { vm } = defineProps<{
   vm: XenApiVm
 }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const { isReady, getVmHost } = useVmStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
@@ -141,7 +141,7 @@ const installDateFormatted = computed(() => {
     return t('unknown')
   }
 
-  return new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(new Date(parseDateTime(installTime)))
+  return formatDate(parseDateTime(installTime))
 })
 
 const ram = computed(() => formatSizeRaw(vm.memory_dynamic_max, 0))
