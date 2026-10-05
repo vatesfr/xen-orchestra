@@ -11,7 +11,13 @@
         </template>
         <template #value>
           <div v-if="vdiSr" class="storage">
-            <UiLink size="small" :to="{ name: '/sr/[id]/general', params: { id: vdiSr.id } }" icon="object:sr">
+            <UiLink
+              size="small"
+              :to="{ name: '/sr/[id]/general', params: { id: vdiSr.id } }"
+              :icon="srStatusIcon"
+              :is-primary="isDefaultSr(vdiSr)"
+              :primary-tooltip="t('default-storage-repository')"
+            >
               {{ vdiSr.name_label }}
             </UiLink>
           </div>
@@ -49,6 +55,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
@@ -70,10 +77,12 @@ const { vdi, vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { useGetSrById } = useXoSrCollection()
+const { useGetSrById, isDefaultSr } = useXoSrCollection()
 const { useGetVbdsByIds } = useXoVbdCollection()
 
 const vdiSr = useGetSrById(() => vdi.$SR)
+
+const { srStatusIcon } = useXoSrUtils(vdiSr)
 
 const vbds = useGetVbdsByIds(() => vdi.$VBDs)
 

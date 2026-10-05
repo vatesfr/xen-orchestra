@@ -4,7 +4,7 @@
       {{ t('configuration') }}
     </UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('format')" :value="displayedVdi?.image_format" />
+      <VtsTabularKeyValueRow :label="t('format')" :value="format" />
       <VtsTabularKeyValueRow :label="t('storage')">
         <template v-if="sr" #value>
           <UiLink
@@ -37,6 +37,7 @@ import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-uti
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
+import { getVdiFormat } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
@@ -53,6 +54,8 @@ const { t } = useI18n()
 const { useGetSrById, isDefaultSr } = useXoSrCollection()
 
 const displayedVdi = computed(() => vdi ?? vdiSnapshot)
+
+const format = computed(() => getVdiFormat(displayedVdi.value?.image_format))
 
 const sr = useGetSrById(() => displayedVdi.value?.$SR)
 
