@@ -349,10 +349,19 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         warn('NBD write unusable, importing through XAPI', { vdi: vdi.uuid, error })
       })
       if (nbdWriter !== undefined) {
+        // without a base (and outside of a live mount), the VDI has just been created and reads as zeroes:
+        // a full disk written on it doesn't need its zeroes. The zeroes of a differencing disk may erase
+        // data and are always written
+        const { baseVdi, liveMountedVdiRef } = vdiRecords[id]
+        const skipZeroBlocks =
+          baseVdi?.$ref === undefined &&
+          liveMountedVdiRef === undefined &&
+          vdiDisks.length === 1 &&
+          !vdiDisks[0].isDifferencing()
         await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
         try {
           for (const disk of vdiDisks) {
-            await nbdWriter.writeDisk(disk, { cancelToken })
+            await nbdWriter.writeDisk(disk, { cancelToken, skipZeroBlocks })
           }
         } catch (error) {
           await nbdWriter.abort()
