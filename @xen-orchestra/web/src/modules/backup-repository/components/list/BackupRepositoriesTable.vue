@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
 import { useEditBackupRepository } from '@/modules/backup-repository/composables/use-edit-backup-repository.composable.ts'
 import { useXoBackupRepositoryBenchmark } from '@/modules/backup-repository/composables/use-xo-backup-repository-benchmark.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
@@ -96,6 +97,13 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
       () => br
     )
 
+    const {
+      forgetBackupRepositories,
+      canForgetBackupRepositories,
+      isForgettingBackupRepositories,
+      forgetBackupRepositoriesErrorMessage,
+    } = useBackupRepositoryForget(() => [br])
+
     return {
       backupRepository: r =>
         r({
@@ -126,6 +134,16 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
               disabled: !canBenchmark.value,
               busy: isBenchmarking.value,
               hint: benchmarkErrorMessage.value,
+            },
+            {
+              label: t('action:forget'),
+              icon: 'action:forget',
+              onClick: () => forgetBackupRepositories(),
+              disabled: !canForgetBackupRepositories.value,
+              busy: isForgettingBackupRepositories.value,
+              hint: forgetBackupRepositoriesErrorMessage.value,
+              accent: 'danger',
+              separator: true,
             },
           ],
         }),

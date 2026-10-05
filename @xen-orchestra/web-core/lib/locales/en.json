@@ -747,6 +747,8 @@
   "modal:action:vm-force-shutdown": "@:action:force-shutdown VM",
   "modal:action:vm-reboot": "@:action:reboot VM",
   "modal:action:vm-shutdown": "@:action:shutdown VM",
+  "modal:backup-repository-forget-message": "Forgetting this backup repository will permanently remove it from the system. Existing backups stored in this repository will no longer be accessible through the platform. This action cannot be undone. Proceed with caution.",
+  "modal:backup-repository-forget-title": "You are about to forget a backup repository",
   "modal:confirm-host-detach?": "Are you sure you want to detach {host}?",
   "modal:confirm-host-disable-and-evacuate-vms?": "Are you sure you want to disable {host} and evacuate its VMs?",
   "modal:confirm-host-disable?": "Are you sure you want to disable {host}?",
