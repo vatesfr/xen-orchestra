@@ -63,6 +63,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
     try {
       await dispatchClient.restApiClient.post(`${BASE}/vifs/${vifId}/actions/add_traffic_rule?sync=true`, SENTINEL_RULE)
       await dispatchClient.restApiClient.post(`${BASE}/vifs/${vifId}/actions/delete_traffic_rule?sync=true`, {
+        allow: SENTINEL_RULE.allow,
         direction: SENTINEL_RULE.direction,
         ipRange: SENTINEL_RULE.ipRange,
         protocol: SENTINEL_RULE.protocol,
@@ -80,7 +81,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
     const network = await dispatchClient.restApiClient.get(`/rest/v0/networks/${networkId}?fields=*`)
     const ofMethod =
       network.$pool !== undefined
-        ? (await dispatchClient.restApiClient.get(`/rest/v0/pools/${network.$pool}?fields=*`)).other_config?.[
+        ? (await dispatchClient.restApiClient.get(`/rest/v0/pools/${network.$pool}?fields=*`)).otherConfig?.[
             'xo:sdn-controller:of-method'
           ]
         : undefined
@@ -88,8 +89,8 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
     if (ofMethod === undefined || ofMethod !== 'xapi-plugin') {
       skipReason =
         `SDN controller pool uses the '${ofMethod}' backend; this suite requires the ` +
-        `'xapi-plugin' backend (set the useDirectChannel option to false in config.toml). ` +
-        log.warn('SDN controller pre-check failed', { skipReason })
+        `'xapi-plugin' backend (set the useDirectChannel option to false in config.toml).`
+      log.warn('SDN controller pre-check failed', { skipReason })
     }
   })
 
@@ -157,6 +158,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
 
     itSdn('should reject delete when direction is missing', () =>
       rejectsWithHttpError(`${BASE}/networks/${networkId}/actions/delete_traffic_rule?sync=true`, {
+        allow: true,
         ipRange: '10.0.0.0/8',
         protocol: 'TCP',
       })
@@ -164,6 +166,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
 
     itSdn('should reject delete when ipRange is missing', () =>
       rejectsWithHttpError(`${BASE}/networks/${networkId}/actions/delete_traffic_rule?sync=true`, {
+        allow: true,
         direction: 'from',
         protocol: 'TCP',
       })
@@ -171,6 +174,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
 
     itSdn('should reject delete when protocol is missing', () =>
       rejectsWithHttpError(`${BASE}/networks/${networkId}/actions/delete_traffic_rule?sync=true`, {
+        allow: true,
         direction: 'from',
         ipRange: '10.0.0.0/8',
       })
@@ -215,6 +219,8 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
 
     itSdn('should delete the rule', async () => {
       await dispatchClient.restApiClient.post(`${BASE}/networks/${networkId}/actions/delete_traffic_rule?sync=true`, {
+        // the route matches `allow` too, which the previous test set to false
+        allow: false,
         direction: VALID_RULE.direction,
         ipRange: VALID_RULE.ipRange,
         protocol: VALID_RULE.protocol,
@@ -227,13 +233,17 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       assert.strictEqual(found, undefined, 'Rule should be absent after delete')
     })
 
-    itSdn('should not error when deleting a non-existent rule', () =>
-      dispatchClient.restApiClient.post(`${BASE}/networks/${networkId}/actions/delete_traffic_rule?sync=true`, {
-        direction: 'to',
-        ipRange: '192.168.99.0/24',
-        protocol: 'UDP',
-        port: 9999,
-      })
+    itSdn('should return 404 when deleting a non-existent rule', () =>
+      assert.rejects(
+        dispatchClient.restApiClient.post(`${BASE}/networks/${networkId}/actions/delete_traffic_rule?sync=true`, {
+          allow: true,
+          direction: 'to',
+          ipRange: '192.168.99.0/24',
+          protocol: 'UDP',
+          port: 9999,
+        }),
+        { message: /^HTTP 404:/ }
+      )
     )
   })
 
@@ -297,6 +307,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
 
     itSdn('should reject delete when direction is missing', () =>
       rejectsWithHttpError(`${BASE}/vifs/${vifId}/actions/delete_traffic_rule?sync=true`, {
+        allow: true,
         ipRange: '10.0.0.0/8',
         protocol: 'TCP',
       })
@@ -304,6 +315,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
 
     itSdn('should reject delete when ipRange is missing', () =>
       rejectsWithHttpError(`${BASE}/vifs/${vifId}/actions/delete_traffic_rule?sync=true`, {
+        allow: true,
         direction: 'from',
         protocol: 'TCP',
       })
@@ -311,6 +323,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
 
     itSdn('should reject delete when protocol is missing', () =>
       rejectsWithHttpError(`${BASE}/vifs/${vifId}/actions/delete_traffic_rule?sync=true`, {
+        allow: true,
         direction: 'from',
         ipRange: '10.0.0.0/8',
       })
@@ -345,6 +358,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
 
     itSdn('should delete the rule', async () => {
       await dispatchClient.restApiClient.post(`${BASE}/vifs/${vifId}/actions/delete_traffic_rule?sync=true`, {
+        allow: VALID_RULE.allow,
         direction: VALID_RULE.direction,
         ipRange: VALID_RULE.ipRange,
         protocol: VALID_RULE.protocol,
@@ -356,13 +370,17 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       assert.strictEqual(found, undefined, 'Rule should be absent after delete')
     })
 
-    itSdn('should not error when deleting a non-existent rule', () =>
-      dispatchClient.restApiClient.post(`${BASE}/vifs/${vifId}/actions/delete_traffic_rule?sync=true`, {
-        direction: 'to',
-        ipRange: '192.168.99.0/24',
-        protocol: 'UDP',
-        port: 9999,
-      })
+    itSdn('should return 404 when deleting a non-existent rule', () =>
+      assert.rejects(
+        dispatchClient.restApiClient.post(`${BASE}/vifs/${vifId}/actions/delete_traffic_rule?sync=true`, {
+          allow: true,
+          direction: 'to',
+          ipRange: '192.168.99.0/24',
+          protocol: 'UDP',
+          port: 9999,
+        }),
+        { message: /^HTTP 404:/ }
+      )
     )
   })
 })
