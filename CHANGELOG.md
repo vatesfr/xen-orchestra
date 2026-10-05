@@ -1,6 +1,8 @@
 # ChangeLog
 
-**next**
+## **6.9.1** (2026-10-05)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
@@ -28,8 +30,6 @@
 - xo-web 5.206.1
 
 ## **6.9.0** (2026-09-30)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Security
 
