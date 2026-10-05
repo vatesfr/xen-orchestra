@@ -15,6 +15,7 @@ import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
 import { randomBytes } from 'crypto'
 import { createRestRoutes } from './rest-api'
+import { TrafficRules } from './traffic-rules'
 
 // =============================================================================
 
@@ -259,6 +260,12 @@ function isControllerNeeded(xapi) {
 
 class SDNController extends EventEmitter {
   #staticConfig
+
+  // With sdncontroller.py, traffic rules can have an OpenFlow priority
+  // (./traffic-rules.js). The direct OpenFlow channel keeps the legacy methods.
+  #useOrderedTrafficRules
+  #trafficRules = new TrafficRules()
+
   /*
   Attributes on created networks:
   - `other_config`:
@@ -283,6 +290,7 @@ class SDNController extends EventEmitter {
   constructor({ xo, getDataDir, staticConfig }) {
     super()
     this.#staticConfig = staticConfig
+    this.#useOrderedTrafficRules = !staticConfig.useDirectChannel
     this._xo = xo
     this._getDataDir = getDataDir
 
@@ -382,19 +390,20 @@ class SDNController extends EventEmitter {
 
     // ---------------- OpenFlow rules method ----------------------------------
 
-    const addRule = params => this._addRule(params)
+    const addRule = params => this._addTrafficRule(params)
     addRule.description = 'Add an ACL rule to a VIF'
     addRule.params = {
       allow: { type: 'boolean' },
       direction: { type: 'string' },
       ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
+      priority: { type: 'integer', optional: true },
       protocol: { type: 'string' },
       vifId: { type: 'string' },
     }
     addRule.permission = 'admin'
 
-    const deleteRule = params => this._deleteRule(params)
+    const deleteRule = params => this._deleteTrafficRule(params)
     deleteRule.description = 'Delete an ACL rule from a VIF'
     deleteRule.params = {
       direction: { type: 'string' },
@@ -405,19 +414,20 @@ class SDNController extends EventEmitter {
     }
     deleteRule.permission = 'admin'
 
-    const addNetworkRule = params => this._addNetworkRule(params)
+    const addNetworkRule = params => this._addTrafficRule(params)
     addNetworkRule.description = 'Add an ACL rule to a network'
     addNetworkRule.params = {
       allow: { type: 'boolean' },
       direction: { type: 'string' },
       ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
+      priority: { type: 'integer', optional: true },
       protocol: { type: 'string' },
       networkId: { type: 'string' },
     }
     addNetworkRule.permission = 'admin'
 
-    const deleteNetworkRule = params => this._deleteNetworkOfRule(params)
+    const deleteNetworkRule = params => this._deleteTrafficRule(params)
     deleteNetworkRule.description = 'Delete an ACL rule from a network'
     deleteNetworkRule.params = {
       direction: { type: 'string' },
@@ -573,10 +583,16 @@ class SDNController extends EventEmitter {
       )
 
       // -----------------------------------------------------------------------
-      // Apply all VIF rules
+      // Apply all traffic rules
       const vifs = Object.values(xapi.objects.indexes.type.VIF ?? {})
-      for (const vif of vifs) {
-        await this._applyVifOfRules(vif)
+      if (this.#useOrderedTrafficRules) {
+        for (const network of Object.values(xapi.objects.indexes.type.network ?? {})) {
+          await this.#trafficRules.refresh(network)
+        }
+      } else {
+        for (const vif of vifs) {
+          await this._applyVifOfRules(vif)
+        }
       }
 
       // -----------------------------------------------------------------------
@@ -649,6 +665,44 @@ class SDNController extends EventEmitter {
   }
 
   // ===========================================================================
+  // Traffic rules: TrafficRules when #useOrderedTrafficRules, otherwise the
+  // legacy methods after these ones
+
+  // The network or the VIF holding a rule
+  async _getTrafficRuleTarget({ networkId, vifId }) {
+    if (vifId === undefined) {
+      return this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
+    }
+    const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
+    // as _addRule does: the pool's events are what apply the rules when a VM starts
+    await this._setPoolControllerIfNeeded(vif.$pool)
+    return vif
+  }
+
+  async _addTrafficRule(params) {
+    if (!this.#useOrderedTrafficRules) {
+      return params.vifId === undefined ? this._addNetworkRule(params) : this._addRule(params)
+    }
+    return this.#trafficRules.addRule(await this._getTrafficRuleTarget(params), params)
+  }
+
+  async _deleteTrafficRule(params) {
+    if (!this.#useOrderedTrafficRules) {
+      return params.vifId === undefined ? this._deleteNetworkOfRule(params) : this._deleteRule(params)
+    }
+    return this.#trafficRules.deleteRule(await this._getTrafficRuleTarget(params), params)
+  }
+
+  // `target` is `{ networkId }` or `{ vifId }`
+  async _updateTrafficRule(target, oldRule, newRule) {
+    if (!this.#useOrderedTrafficRules) {
+      await this._deleteTrafficRule({ ...oldRule, ...target })
+      return this._addTrafficRule({ ...newRule, ...target })
+    }
+    return this.#trafficRules.updateRule(await this._getTrafficRuleTarget(target), oldRule, newRule)
+  }
+
+  // ---------------------------------------------------------------------------
 
   async _addRule({ allow, direction, ipRange = '', port, protocol, vifId }) {
     const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
@@ -682,7 +736,19 @@ class SDNController extends EventEmitter {
         ipRange,
         direction,
       })
-      if (!newVifRules.includes(stringRule)) {
+      // compare the fields, not the strings: rules written with a priority have more
+      if (
+        !newVifRules.some(entry => {
+          const rule = JSON.parse(entry)
+          return (
+            rule.allow === allow &&
+            rule.protocol === protocol &&
+            rule.port === port &&
+            rule.ipRange === ipRange &&
+            rule.direction === direction
+          )
+        })
+      ) {
         newVifRules.push(stringRule)
         await vif.update_other_config('xo:sdn-controller:of-rules', JSON.stringify(newVifRules))
         await vif.$xapi.barrier(vif.$ref)
@@ -1247,6 +1313,13 @@ class SDNController extends EventEmitter {
       }
 
       await vm.$xapi.watchTask(key).catch(noop)
+      // Ordered rules go once the VM is down
+      if (this.#useOrderedTrafficRules && (value === 'clean_shutdown' || value === 'hard_shutdown')) {
+        for (const vif of vm.$VIFs) {
+          await this.#trafficRules.vifDetached(vif)
+        }
+      }
+
       // Re-apply rules after task ended
       if (
         value === 'migrate_send' ||
@@ -1275,15 +1348,25 @@ class SDNController extends EventEmitter {
         if (value === 'plug') {
           await vif.$xapi.watchTask(key).catch(noop)
           vif = await vif.$xapi.barrier(vif.$ref)
-          await this._applyVifOfRules(vif)
-          await this._applyNetworkOfRules(vif.$network)
+          if (this.#useOrderedTrafficRules) {
+            await this.#trafficRules.vifAttached(vif)
+          } else {
+            await this._applyVifOfRules(vif)
+            await this._applyNetworkOfRules(vif.$network)
+          }
         } else if (value === 'unplug' || value === 'unplug_force') {
-          // refresh NetworkOfRules by cleaning/applying
-          await this._cleanNetworkOfRules(vif.$network)
-          await this._applyNetworkOfRules(vif.$network)
+          if (!this.#useOrderedTrafficRules) {
+            // refresh NetworkOfRules by cleaning/applying
+            await this._cleanNetworkOfRules(vif.$network)
+            await this._applyNetworkOfRules(vif.$network)
 
-          await this._cleanVifOfRules(vif)
+            await this._cleanVifOfRules(vif)
+          }
           await vif.$xapi.watchTask(key).catch(noop)
+          // ordered rules go once the VIF is unplugged
+          if (this.#useOrderedTrafficRules) {
+            await this.#trafficRules.vifDetached(vif)
+          }
         }
         this._handledTasks = filter(this._handledTasks, ref => ref !== key)
       })
@@ -1513,6 +1596,11 @@ class SDNController extends EventEmitter {
   }
 
   async _cleanOfVmRules(vm) {
+    // ordered rules stay through migrations and reboots, and go once a shutdown is
+    // over (_vmUpdated)
+    if (this.#useOrderedTrafficRules) {
+      return
+    }
     for (const vif of vm.$VIFs) {
       // refresh NetworkOfRules by cleaning/applying
       await this._cleanNetworkOfRules(vif.$network)
@@ -1523,8 +1611,12 @@ class SDNController extends EventEmitter {
 
   async _applyOfRules(vm) {
     for (const vif of vm.$VIFs) {
-      await this._applyVifOfRules(vif)
-      await this._applyNetworkOfRules(vif.$network)
+      if (this.#useOrderedTrafficRules) {
+        await this.#trafficRules.vifAttached(vif)
+      } else {
+        await this._applyVifOfRules(vif)
+        await this._applyNetworkOfRules(vif.$network)
+      }
     }
   }
 

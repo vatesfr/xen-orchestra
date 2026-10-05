@@ -759,6 +759,9 @@ export type RawTrafficRule = {
   ipRange: string
   direction: TrafficRuleDirection
   port?: string
+  // The OpenFlow priority, with the XAPI plugin: of the rules of a network matching a packet, the
+  // highest one decides. Without one, a rule has the OpenFlow default, 32768.
+  priority?: number
 }
 
 type BaseTrafficRule = RawTrafficRule & {

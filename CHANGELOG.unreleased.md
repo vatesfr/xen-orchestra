@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API/SDN Controller] With the XAPI plugin, traffic rules can be given an OpenFlow `priority` in `add_traffic_rule` and `update_traffic_rule`: of the rules of a network matching a packet, the highest-priority one wins (PR [#10525](https://github.com/vatesfr/xen-orchestra/pull/10525))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -35,8 +37,10 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/web patch
 - xen-api patch
+- xo-server-sdn-controller minor
 - xo-web patch
 
 <!--packages-end-->

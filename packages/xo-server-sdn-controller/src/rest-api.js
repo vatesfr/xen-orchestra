@@ -24,9 +24,13 @@ const BODY_UPDATE_RULE = {
       ipRange: { type: 'string', example: '10.0.0.0/8', optional: true },
       protocol: { type: 'string', example: 'tcp', optional: true },
       port: { type: 'number', example: 80, optional: true, nullable: true },
+      priority: { type: 'number', example: 40000, optional: true, nullable: true },
     },
   },
 }
+
+const PRIORITY_DESCRIPTION =
+  'With the XAPI plugin, `priority` is the OpenFlow priority of the rule, an integer from 0 to 65535: of the rules of a network, network and VIF rules alike, the highest one matching a packet decides. It must not be used by another rule of the network. Without one, the rule has the OpenFlow default, 32768.'
 
 // network and vif traffic-rule routes only differ by these tokens
 const RESOURCES = [
@@ -35,16 +39,12 @@ const RESOURCES = [
     acl: 'network',
     type: 'network',
     idKey: 'networkId',
-    addRule: (controller, rule) => controller._addNetworkRule(rule),
-    deleteRule: (controller, rule) => controller._deleteNetworkOfRule(rule),
   },
   {
     collection: 'vifs',
     acl: 'vif',
     type: 'VIF',
     idKey: 'vifId',
-    addRule: (controller, rule) => controller._addRule(rule),
-    deleteRule: (controller, rule) => controller._deleteRule(rule),
   },
 ]
 
@@ -90,26 +90,32 @@ function ruleFromBody(req, idKey) {
   if (req.body.port != null) {
     rule.port = req.body.port
   }
+  if (req.body.priority != null) {
+    rule.priority = req.body.priority
+  }
   return rule
 }
 
 function addRuleRoute(controller, resource) {
   return {
     endpoint: `/${resource.collection}/{id}/actions/add_traffic_rule`,
-    description: `Add a traffic rule to a ${resource.type}.\n\nRequired privilege:\n - resource: ${resource.acl}, action: update:other_config`,
+    description: `Add a traffic rule to a ${resource.type}.\n\n${PRIORITY_DESCRIPTION}\n\nRequired privilege:\n - resource: ${resource.acl}, action: update:other_config`,
     method: 'post',
     tags: ['sdn-controller'],
     params: PARAMS_ID,
     query: QUERY_SYNC,
-    body: RULE_FIELDS,
+    body: { ...RULE_FIELDS, priority: { type: 'number', example: 40000, optional: true } },
     responses: [
       { status: 204, description: 'Rule added successfully' },
+      { status: 403, description: 'Access denied' },
       { status: 404, description: `No ${resource.type} found for this ID` },
+      { status: 409, description: 'Another rule of the network has this priority' },
+      { status: 422, description: 'Priority is not an integer from 0 to 65535' },
     ],
     middlewares: jsonAndAcl(resource.acl),
     callback: ({ req, createAction }) => {
       const rule = ruleFromBody(req, resource.idKey)
-      return createAction(() => resource.addRule(controller, rule), {
+      return createAction(() => controller._addTrafficRule(rule), {
         sync: req.query.sync ?? false,
         statusCode: 204,
         taskProperties: {
@@ -134,6 +140,7 @@ function deleteRuleRoute(controller, resource) {
     body: RULE_FIELDS,
     responses: [
       { status: 204, description: 'Rule deleted successfully' },
+      { status: 403, description: 'Access denied' },
       { status: 404, description: `No ${resource.type} found for this ID, or rule not found` },
     ],
     middlewares: jsonAndAcl(resource.acl),
@@ -147,7 +154,7 @@ function deleteRuleRoute(controller, resource) {
           if (!rules.some(r => rulesEqual(r, rule))) {
             throw noSuchObject(JSON.stringify(rule), 'traffic-rule')
           }
-          await resource.deleteRule(controller, rule)
+          await controller._deleteTrafficRule(rule)
         },
         {
           sync: req.query.sync ?? false,
@@ -167,7 +174,7 @@ function deleteRuleRoute(controller, resource) {
 function updateRuleRoute(controller, resource) {
   return {
     endpoint: `/${resource.collection}/{id}/actions/update_traffic_rule`,
-    description: `Update a rule on a ${resource.type}: \`oldRule\` identifies the rule to update and must be given in full, \`newRule\` is a partial update where a field set to \`null\` is removed from the rule.\n\nRequired privilege:\n - resource: ${resource.acl}, action: update:other_config`,
+    description: `Update a rule on a ${resource.type}: \`oldRule\` identifies the rule to update and must be given in full, \`newRule\` is a partial update where a field set to \`null\` is removed from the rule.\n\n${PRIORITY_DESCRIPTION}\n\nRequired privilege:\n - resource: ${resource.acl}, action: update:other_config`,
     method: 'post',
     tags: ['sdn-controller'],
     params: PARAMS_ID,
@@ -175,7 +182,10 @@ function updateRuleRoute(controller, resource) {
     body: BODY_UPDATE_RULE,
     responses: [
       { status: 204, description: 'Rule updated successfully' },
+      { status: 403, description: 'Access denied' },
       { status: 404, description: `Old rule does not exist on this ${resource.type}` },
+      { status: 409, description: 'Another rule has the new match, or another rule of the network the new priority' },
+      { status: 422, description: 'Priority is not an integer from 0 to 65535' },
     ],
     middlewares: jsonAndAcl(resource.acl),
     callback: ({ req, createAction }) => {
@@ -185,13 +195,15 @@ function updateRuleRoute(controller, resource) {
         async () => {
           const object = controller._xo.getObject(id, resource.type)
           const rules = parseRules(object.other_config[SDN_CONTROLLER_OF_RULES_KEY])
-          if (!rules.some(rule => rulesEqual(rule, oldRule))) {
+          const stored = rules.find(rule => rulesEqual(rule, oldRule))
+          if (stored === undefined) {
             throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
           }
-          const newRule = applyRulePatch(oldRule, partialNewRule)
+          // patching the stored rule keeps what `oldRule` does not mention, like the
+          // priority
+          const newRule = applyRulePatch(stored, partialNewRule)
 
-          await resource.deleteRule(controller, { ...oldRule, [resource.idKey]: id })
-          await resource.addRule(controller, { ...newRule, [resource.idKey]: id })
+          await controller._updateTrafficRule({ [resource.idKey]: id }, oldRule, newRule)
         },
         {
           sync: req.query.sync ?? false,
