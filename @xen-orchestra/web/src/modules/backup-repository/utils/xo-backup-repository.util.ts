@@ -1,5 +1,7 @@
+import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import type { BackupRepositoryDetailsInitialData } from '@/modules/backup-repository/form/use-backup-repository-details-forms.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { IconName } from '@core/icons'
 import type { BackupRepositoryType, ParsedBackupRepositoryUrl } from 'xo-remote-parser'
@@ -28,6 +30,17 @@ export function getBackupRepositoryIcon(br: FrontXoBackupRepository, type: Backu
   }
 
   return br.error ? 'object:br:disconnected' : 'object:br:connected'
+}
+
+export function getBackupJobsUsingBackupRepository(
+  br: FrontXoBackupRepository,
+  backupJobs: FrontAnyXoBackupJob[]
+): FrontAnyXoBackupJob[] {
+  return backupJobs.filter(
+    backupJob =>
+      extractIdsFromSimplePattern(backupJob.remotes).includes(br.id) ||
+      ('sourceRemote' in backupJob && backupJob.sourceRemote === br.id)
+  )
 }
 
 export function formatMountOptions(options: string | undefined): string {

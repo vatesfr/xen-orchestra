@@ -5,3 +5,8 @@ export const xoBackupRepositoryArg = defineJobArg({
   identify: (br: FrontXoBackupRepository) => br.id,
   toArray: false,
 })
+
+export const xoBackupRepositoriesArg = defineJobArg({
+  identify: (br: FrontXoBackupRepository) => br.id,
+  toArray: true,
+})
