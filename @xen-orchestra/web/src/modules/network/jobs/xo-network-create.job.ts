@@ -18,7 +18,7 @@ export type BaseNewNetworkPayload = {
 // Payload that the REST API expects
 export type NewNetworkPayload = BaseNewNetworkPayload & {
   pif: XoPif['id']
-  vlan?: number
+  vlan: number
 }
 
 export const useXoNetworkCreateJob = defineJob('network.create', [payloadsArg], () => {
