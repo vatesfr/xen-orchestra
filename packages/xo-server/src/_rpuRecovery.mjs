@@ -570,6 +570,9 @@ const isStepStarted = status => status !== 'pending' && status !== 'not-needed'
  * - not started yet, or left alone by the run (every step `not-needed`):
  *   handled as on a first attempt.
  *
+ * A host whose update started, possibly in an attempt before the last one
+ * (`updateStarted`, kept by resumeRpuRecoveryRun), counts as patched.
+ *
  * @param {object} record - Readable record
  * @returns {{ doneHostIds: Set<string>, unfinishedHosts: object, patchedHostIds: Set<string>, hostsStarted: boolean,
  *   hostOrder: string[], vmHomeById: object, haltedPinnedVms: object }} `unfinishedHosts` maps the id of each
@@ -582,9 +585,9 @@ export function planRpuResume(record) {
   const unfinishedHosts = {}
   const patchedHostIds = new Set()
   for (const hostId of record.hostOrder ?? []) {
-    const { steps = {}, agentStartedAtBeforeUpdate, enabledBeforeUpdate } = record.hosts[hostId] ?? {}
+    const { steps = {}, agentStartedAtBeforeUpdate, enabledBeforeUpdate, updateStarted } = record.hosts[hostId] ?? {}
     const status = name => steps[name]?.status ?? 'pending'
-    if (isStepStarted(status('update'))) {
+    if (updateStarted || isStepStarted(status('update'))) {
       patchedHostIds.add(hostId)
     }
     if (status('evacuate') === 'observed-succeeded' && STEPS_AFTER_EVACUATE.every(name => isStepOver(status(name)))) {
@@ -656,12 +659,17 @@ export async function resumeRpuRecoveryRun({ store, poolId }) {
   // running or failed
   const plan = planRpuResume(record)
 
-  for (const { steps } of Object.values(record.hosts)) {
+  for (const [hostId, host] of Object.entries(record.hosts)) {
     for (const name of RPU_RECOVERY_STEP_NAMES) {
-      const status = steps[name]?.status
+      const status = host.steps[name]?.status
       if (status === 'failed' || status === 'running') {
-        steps[name] = { status: 'pending' }
+        host.steps[name] = { status: 'pending' }
       }
+    }
+    // an update reset to pending is still installed: the next resume must
+    // know it if this attempt fails before reaching the host
+    if (plan.patchedHostIds.has(hostId)) {
+      host.updateStarted = true
     }
   }
   record.status = 'resuming'

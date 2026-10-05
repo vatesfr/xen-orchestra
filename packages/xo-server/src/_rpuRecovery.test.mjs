@@ -795,8 +795,10 @@ describe('resumeRpuRecoveryRun()', () => {
     await resumed.recorder.fail(new Error('not enough memory'))
     assert.equal(store.data.get('pool1').hosts.h2.steps.evacuate.status, 'failed')
 
-    await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    const again = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
     assert.equal(store.data.get('pool1').attempt, 3)
+    // h3 still patched although its update step was reset by the previous resume
+    assert.deepEqual([...again.plan.patchedHostIds], ['h1', 'h3'])
   })
 
   it('rejects when the resuming status cannot be written', async () => {

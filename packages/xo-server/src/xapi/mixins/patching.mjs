@@ -765,14 +765,32 @@ const methods = {
       recorder.setVariant(isXcp ? 'xcp' : 'xs-cdn')
     }
 
-    // a host the previous attempt was rebooting may not be back yet
-    await asyncEach(Object.keys(resume.unfinishedHosts), hostId =>
-      timeout.call(
-        this._waitObjectState(this.getObject(hostId).metrics, metrics => metrics.live),
+    // a host the previous attempt was rebooting may not be back yet. XAPI
+    // reports it live before refreshing its `boot_time`, read below: wait for
+    // the agent of the new boot too. A host not live without restarting (lost
+    // heartbeat) never gets a new agent: the resume fails on the timeout, the
+    // next one goes on with the host live
+    await asyncEach(Object.keys(resume.unfinishedHosts), async hostId => {
+      const { metrics, other_config } = this.getObject(hostId)
+      if (this.getObject(metrics, undefined)?.live) {
+        return
+      }
+      const agentStartTime = other_config.agent_start_time
+      await timeout.call(
+        (async () => {
+          await this._waitObjectState(metrics, metrics => metrics.live)
+          await this._waitObjectState(hostId, host => host.other_config.agent_start_time !== agentStartTime)
+        })(),
         this._restartHostTimeout,
         new Error(`Host ${hostId} took too long to restart`)
       )
-    )
+    })
+
+    // A host this run already patched has the pending guidances of that update
+    // until it reboots: only the mandatory ones, the only ones XenServer
+    // requires to be cleared, are checked, before and after the reboots
+    const pendingGuidancesLevel = object =>
+      resume.patchedHostIds.has(object.uuid) ? PENDING_GUIDANCES_LEVEL.mandatory : PENDING_GUIDANCES_LEVEL.full
 
     let xsHash
 
@@ -801,16 +819,8 @@ const methods = {
       }
 
       // DO NOT UPDATE if some pending guidances are present https://docs.xenserver.com/en-us/xenserver/8/update/apply-updates-using-xe#before-you-start
-      // A host this run already patched has the pending guidances of that
-      // update until it reboots: only the mandatory ones, the only ones
-      // XenServer requires to be cleared, are checked
       const runningVms = filter(this.objects.indexes.type.VM, { power_state: 'Running', is_control_domain: false })
-      await asyncEach([...hosts, ...runningVms], obj =>
-        this._pendingGuidancesGuard(
-          obj,
-          resume.patchedHostIds.has(obj.uuid) ? PENDING_GUIDANCES_LEVEL.mandatory : PENDING_GUIDANCES_LEVEL.full
-        )
-      )
+      await asyncEach([...hosts, ...runningVms], obj => this._pendingGuidancesGuard(obj, pendingGuidancesLevel(obj)))
     }
 
     const hasMissingPatchesByHost = {}
@@ -883,7 +893,13 @@ const methods = {
         // left disabled by the previous attempt, nothing is left to do on it
         if (!host.enabled && enabledBeforeUpdate !== false) {
           await Task.run({ properties: { name: 'Enabling host', hostId, hostName: host.name_label } }, () =>
-            this.enableHost(hostId)
+            // XAPI refuses until the end of the host startup, which comes after
+            // its agent started
+            pRetry(() => this.enableHost(hostId), {
+              delay: 5e3,
+              tries: 60,
+              when: { code: 'HOST_STILL_BOOTING' },
+            })
           )
         }
         for (const name of ['evacuate', 'update', 'reboot', 'enable']) {
@@ -936,7 +952,7 @@ const methods = {
       await Promise.all(
         hosts.map(async host => {
           try {
-            await this._pendingGuidancesGuard(host)
+            await this._pendingGuidancesGuard(host, pendingGuidancesLevel(host))
           } catch (error) {
             log.debug(`host: ${host.uuid} has pending guidances even after a reboot!`)
             throw error

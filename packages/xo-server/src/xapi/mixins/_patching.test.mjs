@@ -31,10 +31,13 @@ class FakeXapi {
         metrics: `OpaqueRef:metrics-${letter}`,
         software_version: softwareVersion,
         enabled: true,
-        other_config: { boot_time: '1000' },
+        other_config: { boot_time: '1000', agent_start_time: '1100' },
         live: true,
-        // what is left of the reboot in progress of a host which is not live
+        // what is left of the reboot in progress of a host which is not live:
+        // `reboot` until XAPI reports it live, then `startAgent` until it
+        // refreshes boot_time and agent_start_time
         reboot: undefined,
+        startAgent: undefined,
         nMissingPatches,
         // listing cached before the current state, until removed
         cachedNMissingPatches: undefined,
@@ -65,21 +68,33 @@ class FakeXapi {
     // XenServer 8.4+ only: 'remove' and 'fetch' calls to the updates endpoint
     this.updatesEndpointCalls = []
 
-    // XenServer 8.4+ only: host or VM uuid -> level of its first pending
-    // guidances check
+    // XenServer 8.4+ only: host or VM uuid -> level of each of its pending
+    // guidances checks
     this.guardLevels = {}
 
     this._restartHostTimeout = 60e3
   }
 
-  getObject(hostId) {
-    return this.hosts.find(host => host.uuid === hostId)
+  // a host by uuid, or the metrics of a host by ref
+  getObject(id) {
+    const host = this.hosts.find(host => host.uuid === id)
+    if (host !== undefined) {
+      return host
+    }
+    return { live: this.hosts.find(host => host.metrics === id).live }
   }
 
-  async _waitObjectState(metricsRef, predicate) {
-    const host = this.hosts.find(host => host.metrics === metricsRef)
-    if (!predicate({ live: host.live })) {
-      await host.reboot()
+  async _waitObjectState(id, predicate) {
+    const host = this.hosts.find(host => host.metrics === id)
+    if (host !== undefined) {
+      if (!predicate({ live: host.live })) {
+        await host.reboot()
+      }
+      return
+    }
+    const target = this.getObject(id)
+    if (!predicate(target)) {
+      await target.startAgent()
     }
   }
 
@@ -122,7 +137,7 @@ class FakeXapi {
   }
 
   async _pendingGuidancesGuard(object, level) {
-    this.guardLevels[object.uuid] ??= level
+    ;(this.guardLevels[object.uuid] ??= []).push(level)
   }
 }
 
@@ -317,6 +332,28 @@ describe('rollingPoolUpdate', function () {
       assert.deepEqual(observedSteps, ['host-B evacuate', 'host-B update', 'host-B reboot', 'host-B enable'])
     })
 
+    it('enables a host which rebooted since once XAPI finished starting it', async function (t) {
+      t.mock.timers.enable({ apis: ['setTimeout'] })
+      const xapi = new FakeXapi([0, 0])
+      Object.assign(xapi.hosts[1], { enabled: false, other_config: { boot_time: '3000' } })
+      let refusals = 2
+      const { enableHost } = xapi
+      xapi.enableHost = async hostId => {
+        if (refusals-- > 0) {
+          throw Object.assign(new Error('HOST_STILL_BOOTING'), { code: 'HOST_STILL_BOOTING' })
+        }
+        return enableHost.call(xapi, hostId)
+      }
+
+      // the retries wait on the mocked setTimeout: move the clock until the end
+      const ticker = setInterval(() => t.mock.timers.tick(5e3), 1)
+      const { error } = await resumeUpdate(xapi, unfinishedB()).finally(() => clearInterval(ticker))
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.enabledHosts, ['host-B'])
+      assert.deepEqual(xapi.steps, [[]])
+    })
+
     it('leaves disabled an unfinished host the operator had disabled', async function () {
       const xapi = new FakeXapi([0, 0])
       Object.assign(xapi.hosts[1], { enabled: false, other_config: { boot_time: '3000' } })
@@ -331,8 +368,12 @@ describe('rollingPoolUpdate', function () {
       const xapi = new FakeXapi([0, 0])
       const host = xapi.hosts[1]
       host.live = false
+      // XAPI reports the host live before it refreshes its boot_time
       host.reboot = async () => {
-        Object.assign(host, { live: true, other_config: { boot_time: '3000' } })
+        host.live = true
+      }
+      host.startAgent = async () => {
+        host.other_config = { boot_time: '3000', agent_start_time: '3100' }
       }
 
       const { error } = await resumeUpdate(xapi, unfinishedB())
@@ -353,14 +394,14 @@ describe('rollingPoolUpdate', function () {
       assert.deepEqual(xapi.steps, [])
     })
 
-    it('checks only the mandatory pending guidances of the hosts the run patched, on fresh listings', async function () {
+    it('checks only the mandatory pending guidances of the hosts the run patched, before and after the reboots', async function () {
       const xapi = new FakeXapi([0, 2], { softwareVersion: XS_CDN })
 
       const { error } = await resumeUpdate(xapi, unfinishedB())
 
       assert.equal(error, undefined)
-      // PENDING_GUIDANCES_LEVEL: 0 is mandatory, 2 is full
-      assert.deepEqual(xapi.guardLevels, { 'host-A': 0, 'host-B': 0 })
+      // PENDING_GUIDANCES_LEVEL: 0 is mandatory, 2 is full; before and after the reboots
+      assert.deepEqual(xapi.guardLevels, { 'host-A': [0, 0], 'host-B': [0, 0] })
       assert.deepEqual(xapi.updatesEndpointCalls.slice(0, 2), ['remove', 'fetch'])
     })
 
@@ -370,7 +411,7 @@ describe('rollingPoolUpdate', function () {
       const { error } = await resumeUpdate(xapi, resumeOf(true))
 
       assert.equal(error, undefined)
-      assert.deepEqual(xapi.guardLevels, { 'host-A': 0, 'host-B': 2 })
+      assert.deepEqual(xapi.guardLevels, { 'host-A': [0, 0], 'host-B': [2, 2] })
     })
 
     it('leaves the LINSTOR packages alone once a host started with them', async function () {
