@@ -5,8 +5,8 @@
       <div class="inputs-container">
         <PoolConnectionFormTextInput v-bind="hostInputBindings" />
         <PoolConnectionFormTextInput v-bind="httpProxyInputBindings" />
-        <PoolConnectionFormTextInput v-bind="usernameInputBindings" :error="usernameError" />
-        <PoolConnectionFormPasswordInput v-bind="passwordInputBindings" :error="passwordError" />
+        <PoolConnectionFormTextInput v-bind="usernameInputBindings" />
+        <PoolConnectionFormPasswordInput v-bind="passwordInputBindings" />
       </div>
     </div>
     <UiTitle>{{ t('options') }}</UiTitle>
@@ -31,10 +31,10 @@
 import PoolConnectionFormPasswordInput from '@/modules/pool/components/connection/inputs/PoolConnectionFormPasswordInput.vue'
 import PoolConnectionFormTextInput from '@/modules/pool/components/connection/inputs/PoolConnectionFormTextInput.vue'
 import { usePoolConnectionForm } from '@/modules/pool/form/use-pool-connection-form.ts'
+import { isAuthenticationFailedError } from '@/modules/pool/utils/xo-pool.util.ts'
 import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
 import { useXoServerCreateJob } from '@/modules/server/jobs/xo-server-create.job.ts'
 import { useXoServerForgetJob } from '@/modules/server/jobs/xo-server-forget.job.ts'
-import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
@@ -43,7 +43,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoServer } from '@vates/types'
 import { logicOr } from '@vueuse/math'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
@@ -59,16 +59,12 @@ const {
   formData,
   validate,
   payload,
+  showCredentialsError,
   hostInputBindings,
   httpProxyInputBindings,
   usernameInputBindings,
   passwordInputBindings,
 } = usePoolConnectionForm()
-
-const credentialsError = ref<InputWrapperMessage>()
-
-const usernameError = computed(() => credentialsError.value ?? usernameInputBindings.value.error)
-const passwordError = computed(() => credentialsError.value ?? passwordInputBindings.value.error)
 
 // TODO: multiple server creation not possible in the UI for now
 // so only handle a single payload
@@ -79,7 +75,6 @@ const { isRunning: removeIsRunning, run: remove } = useXoServerForgetJob([server
 const isServerJobRunning = logicOr(connectIsRunning, createIsRunning, removeIsRunning)
 
 async function submit() {
-  credentialsError.value = undefined
   serverId.value = '' as XoServer['id']
 
   const valid = await validate()
@@ -107,16 +102,17 @@ async function submit() {
       await remove()
     }
 
-    if (error instanceof Error && error.message.startsWith('SESSION_AUTHENTICATION_FAILED')) {
-      credentialsError.value = { content: t('invalid-username-or-password'), accent: 'danger' }
+    if (!(error instanceof Error)) {
+      console.error('Unknown error:', error)
       return
     }
 
-    if (error instanceof Error) {
-      emit('error', error, formData.host)
-    } else {
-      console.error('Unknown error:', error)
+    if (isAuthenticationFailedError(error)) {
+      showCredentialsError()
+      return
     }
+
+    emit('error', error, formData.host)
   }
 }
 </script>
