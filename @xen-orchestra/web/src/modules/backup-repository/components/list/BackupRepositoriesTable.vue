@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 import { useEditBackupRepository } from '@/modules/backup-repository/composables/use-edit-backup-repository.composable.ts'
+import { useXoBackupRepositoryBenchmark } from '@/modules/backup-repository/composables/use-xo-backup-repository-benchmark.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
@@ -84,7 +85,9 @@ const state = useTableState({
 const { HeadCells, BodyCells } = useBackupRepositoryColumns({
   body: (br: FrontXoBackupRepository) => {
     const parsedBrUrl = useXoBackupRepositoryParsedUrl(() => br)
+
     const typeLabel = useXoBackupRepositoryTypeLabel(() => parsedBrUrl.value?.type)
+
     const proxy = useGetProxyById(() => br.proxy)
 
     const {
@@ -93,6 +96,10 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
       isEditingBackupRepository,
       editBackupRepositoryErrorMessage,
     } = useEditBackupRepository(() => br)
+
+    const { runBenchmark, canBenchmark, isBenchmarking, benchmarkErrorMessage } = useXoBackupRepositoryBenchmark(
+      () => br
+    )
 
     return {
       backupRepository: r =>
@@ -119,6 +126,14 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
               busy: isEditingBackupRepository.value,
               disabled: !canEditBackupRepository.value,
               hint: editBackupRepositoryErrorMessage.value,
+            },
+            {
+              label: t('action:test-speed'),
+              icon: 'action:scan',
+              onClick: () => runBenchmark(),
+              disabled: !canBenchmark.value,
+              busy: isBenchmarking.value,
+              hint: benchmarkErrorMessage.value,
             },
           ],
         }),
