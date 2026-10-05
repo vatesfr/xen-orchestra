@@ -490,11 +490,11 @@ export class HashedDiskDeduplicated extends HashedDisk {
    * Rooted at the remote root, not the disk dir, so no #resolve: the root comes from
    * the caller and the hash is always hex
    */
-  #storePath(hash: BlockHash): string {
+  #storePath(hash: BlockHash, copy = 0): string {
     if (this.#blockStorePath === undefined) {
       throw new Error(`disk ${this.#path} is PER_BACKUP_REPOSITORY but no blockStorePath was given`)
     }
-    return join(this.#blockStorePath, blockRelPath(hash), '0')
+    return join(this.#blockStorePath, blockRelPath(hash), String(copy))
   }
 
   async #link(existingPath: string, newPath: string): Promise<void> {
@@ -529,27 +529,30 @@ export class HashedDiskDeduplicated extends HashedDisk {
       return this.#storeBlock(hash, data)
     }
 
-    const storePath = this.#storePath(hash)
     const blockPath = this.#blockPath(hash)
-    try {
-      await this.#link(storePath, blockPath)
-      return
-    } catch (error: unknown) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        throw error
+    for (let copy = 0; ; copy++) {
+      const storePath = this.#storePath(hash, copy)
+      try {
+        return await this.#link(storePath, blockPath)
+      } catch (error: unknown) {
+        const { code } = error as NodeJS.ErrnoException
+        if (code === 'EMLINK') {
+          continue
+        }
+        if (code !== 'ENOENT') {
+          throw error
+        }
       }
+      // link did not work, we need a new block
+      const tmp = join(this.#blocksDir!, '.tmp', randomUUID())
+      await this.#handler.outputFile(tmp, Buffer.concat([buildBlockHeader(hash), data]), { flags: 'wx' })
+      try {
+        await this.#link(tmp, storePath)
+      } finally {
+        await this.#handler.unlink(tmp, { checksum: false })
+      }
+      return await this.#link(storePath, blockPath)
     }
-
-    // link did not work, we need a new block
-    const tmp = join(this.#blocksDir!, '.tmp', randomUUID())
-    await this.#handler.outputFile(tmp, Buffer.concat([buildBlockHeader(hash), data]), { flags: 'wx' })
-    try {
-      await this.#link(tmp, storePath)
-    } finally {
-      await this.#handler.unlink(tmp, { checksum: false })
-    }
-
-    await this.#link(storePath, blockPath)
   }
 
   /**
@@ -573,7 +576,26 @@ export class HashedDiskDeduplicated extends HashedDisk {
       }
       await this.#handler.unlink(blockPath, { checksum: false })
       if (nlink === 2) {
-        await this.#handler.unlink(this.#storePath(hash), { checksum: false })
+        await this.#removeOrphanStoreCopy(hash)
+      }
+    }
+  }
+
+  async #removeOrphanStoreCopy(hash: BlockHash): Promise<void> {
+    // first, check /0
+    const first = this.#storePath(hash)
+    if ((await this.#handler.getLinkCount(first).catch(() => 0)) === 1) {
+      return this.#handler.unlink(first, { checksum: false })
+    }
+    // if /0 copy is not used for this disk, check the other paths
+    const dir = dirname(first)
+    for (const name of await this.#handler.list(dir, { ignoreMissing: true })) {
+      if (name === '0') {
+        continue
+      }
+      const path = join(dir, name)
+      if ((await this.#handler.getLinkCount(path).catch(() => 0)) === 1) {
+        await this.#handler.unlink(path, { checksum: false })
       }
     }
   }

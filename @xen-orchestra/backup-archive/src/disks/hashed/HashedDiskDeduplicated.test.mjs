@@ -1169,3 +1169,77 @@ describe('scanBlockStore', () => {
     assert.deepEqual(logged, [`/${storeDirOf(block(0xaa))}/0`])
   })
 })
+
+describe('EMLINK', () => {
+  const STORE = 'xo-block-store'
+  const data = block(0xaa)
+  const storeDir = `/${STORE}/${blockRelPath(sha256hex(data))}`
+
+  const createStoreDisk = () =>
+    HashedDiskDeduplicated.create({
+      handler,
+      path: `xo-vm-backups/VMUUID/vdis/${uuid.v4()}/20260814T120000000Z.hbd`,
+      virtualSize: VIRTUAL_SIZE,
+      blockSize: BLOCK_SIZE,
+      uuid: uuid.v4(),
+      dedupType: 'PER_BACKUP_REPOSITORY',
+      blockStorePath: STORE,
+    })
+
+  const nlink = async path => (await stat(join(tempDir, path))).nlink
+
+  // from now on, store copy 0 has reached the link limit of the filesystem
+  function fillFirstCopy() {
+    const link = handler.link
+    handler.link = async (existingPath, newPath) => {
+      if (existingPath.endsWith('/0') && newPath.includes('/blocks/')) {
+        throw Object.assign(new Error('EMLINK: too many links'), { code: 'EMLINK' })
+      }
+      return link.call(handler, existingPath, newPath)
+    }
+  }
+
+  test('a full store copy makes the next disk use a new copy', async () => {
+    const a = await createStoreDisk()
+    await a.writeBlock({ index: 0, data })
+    fillFirstCopy()
+
+    const b = await createStoreDisk()
+    await b.writeBlock({ index: 0, data })
+
+    assert.deepEqual((await listFiles(STORE)).sort(), [`${storeDir}/0`, `${storeDir}/1`])
+    assert.equal(await nlink(`${storeDir}/0`), 2, 'store copy + a')
+    assert.equal(await nlink(`${storeDir}/1`), 2, 'store copy + b')
+    assert.ok((await a.readBlock(0)).data.equals(data))
+    assert.ok((await b.readBlock(0)).data.equals(data))
+  })
+
+  test('releasing the last disk of an overflow copy removes that copy only', async () => {
+    const a = await createStoreDisk()
+    await a.writeBlock({ index: 0, data })
+    fillFirstCopy()
+    const b = await createStoreDisk()
+    await b.writeBlock({ index: 0, data })
+
+    await b.unlink()
+
+    assert.deepEqual(await listFiles(STORE), [`${storeDir}/0`])
+    assert.equal(await nlink(`${storeDir}/0`), 2, 'a still holds copy 0')
+    assert.ok((await a.readBlock(0)).data.equals(data))
+  })
+
+  test('an existing overflow copy is reused instead of creating another one', async () => {
+    const a = await createStoreDisk()
+    await a.writeBlock({ index: 0, data })
+    fillFirstCopy()
+    const b = await createStoreDisk()
+    await b.writeBlock({ index: 0, data })
+
+    const c = await createStoreDisk()
+    await c.writeBlock({ index: 0, data })
+
+    assert.deepEqual((await listFiles(STORE)).sort(), [`${storeDir}/0`, `${storeDir}/1`])
+    assert.equal(await nlink(`${storeDir}/1`), 3, 'store copy + b + c')
+    assert.ok((await c.readBlock(0)).data.equals(data))
+  })
+})
