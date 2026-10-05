@@ -141,6 +141,8 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
               await asyncEach(
                 [...vms].filter(vm => batchIds.has(vm.uuid)),
                 async vm => {
+                  // The task deliverately includes both the transfer (including the wait) and and backup.
+                  // This is done to have the snapshot reported under the VM.
                   const { task } = getVmTask(vm.uuid, vm.name_label)
 
                   const vmSettings = { ...settings, ...allSettings[vm.uuid] }
