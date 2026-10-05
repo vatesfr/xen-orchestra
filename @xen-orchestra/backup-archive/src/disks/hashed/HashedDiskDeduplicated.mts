@@ -396,6 +396,21 @@ export class HashedDiskDeduplicated extends HashedDisk {
     }
   }
 
+  async checkAndClean(): Promise<void> {
+    const current = basename(this.#loadedMetadata.hashesPath)
+    for (const filename of await this.#handler.list(this.#loadedDataDir)) {
+      if (filename !== current && /^hashes\..+\.hash$/.test(filename)) {
+        await this.#handler.unlink(join(this.#loadedDataDir, filename), { checksum: false }).catch(() => {})
+      }
+    }
+    if (this.#loadedMetadata.dedupType === 'PER_BACKUP_REPOSITORY') {
+      const tmpDir = join(this.#loadedDataDir, 'blocks', '.tmp')
+      for (const filename of await this.#handler.list(tmpDir, { ignoreMissing: true })) {
+        await this.#handler.unlink(join(tmpDir, filename), { checksum: false }).catch(() => {})
+      }
+    }
+  }
+
   async mergeMetadata(childDisk) {
     if (!(childDisk instanceof HashedDiskDeduplicated)) {
       throw new Error(`can't merge different disk types`)

@@ -22,6 +22,7 @@ import {
   HBD_HEADER_SIZE,
   HBD_MAGIC,
   parseBlockHeader,
+  scanBlockStore,
   sha256hex,
 } from '@xen-orchestra/backup-archive/disks/hashed'
 
@@ -1032,5 +1033,139 @@ describe('rename', () => {
     }
     assert.equal(disk.getPath(), `/${diskPath}`)
     await handler.readFile(diskPath)
+  })
+})
+
+describe('cleanOrphanBats', () => {
+  const dataDir = () => `${diskDir}/data/${DISK_UUID}`
+  const listData = async () => (await handler.list(dataDir())).sort()
+
+  test('removes a leftover BAT and keeps the current one', async () => {
+    const disk = await createDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await disk.flushMetadata()
+    const current = disk.getMetadata().hashesPath.split('/').pop()
+    await handler.writeFile(`${dataDir()}/hashes.1.abcd1234.hash`, Buffer.alloc(HASH_SIZE * 10), { flags: 'wx' })
+
+    await disk.checkAndClean()
+
+    assert.deepEqual(await listData(), ['blocks', current])
+    const reopened = new HashedDiskDeduplicated({ handler, path: diskPath })
+    await reopened.init()
+    assert.ok((await reopened.readBlock(0)).data.equals(block(0xaa)))
+  })
+
+  test('removes every leftover BAT', async () => {
+    const disk = await createDisk()
+    const current = disk.getMetadata().hashesPath.split('/').pop()
+    for (const name of ['hashes.1.aaaa0000.hash', 'hashes.2.bbbb0000.hash', 'hashes.3.cccc0000.hash']) {
+      await handler.writeFile(`${dataDir()}/${name}`, 'x', { flags: 'wx' })
+    }
+
+    await disk.checkAndClean()
+
+    assert.deepEqual(await listData(), [current])
+  })
+
+  test('leaves the other files of the data directory alone', async () => {
+    const disk = await createDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await handler.writeFile(`${dataDir()}/notes.txt`, 'x', { flags: 'wx' })
+    await handler.writeFile(`${dataDir()}/hashes.hash`, 'x', { flags: 'wx' })
+
+    await disk.checkAndClean()
+
+    assert.ok((await listData()).includes('notes.txt'))
+    assert.ok((await listData()).includes('hashes.hash'), 'not a hashes file name')
+    assert.ok((await disk.readBlock(0)).data.equals(block(0xaa)))
+  })
+
+  test('empties blocks/.tmp of a store disk', async () => {
+    const disk = await createDisk({ dedupType: 'PER_BACKUP_REPOSITORY', blockStorePath: 'xo-block-store' })
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    // a store write interrupted between its temp file and the store link
+    await handler.writeFile(`${dataDir()}/blocks/.tmp/leftover`, 'x', { flags: 'wx' })
+
+    await disk.checkAndClean()
+
+    assert.deepEqual(await handler.list(`${dataDir()}/blocks/.tmp`), [])
+    assert.ok((await disk.readBlock(0)).data.equals(block(0xaa)))
+  })
+
+  test('does not fail without a blocks/.tmp directory', async () => {
+    const disk = await createDisk({ dedupType: 'PER_BACKUP_REPOSITORY', blockStorePath: 'xo-block-store' })
+
+    await disk.checkAndClean()
+  })
+})
+
+describe('scanBlockStore', () => {
+  const STORE = 'xo-block-store'
+  const createStoreDisk = () => createDisk({ dedupType: 'PER_BACKUP_REPOSITORY', blockStorePath: STORE })
+  const storeDirOf = data => `${STORE}/${blockRelPath(sha256hex(data))}`
+  // a store file no disk links to, as a crash or a missed release leaves it
+  const writeOrphan = (data, copy = 0) => handler.outputFile(`${storeDirOf(data)}/${copy}`, data, { flags: 'wx' })
+  const listStore = () =>
+    listFiles(STORE).catch(error => {
+      if (error.code === 'ENOENT') {
+        return []
+      }
+      throw error
+    })
+
+  test('removes a store file no disk links to', async () => {
+    await writeOrphan(block(0xaa))
+
+    assert.deepEqual(await scanBlockStore(handler, STORE, { remove: true }), { removed: 1 })
+    assert.deepEqual(await listStore(), [])
+  })
+
+  test('keeps a store file still linked by a disk', async () => {
+    const disk = await createStoreDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+
+    assert.deepEqual(await scanBlockStore(handler, STORE, { remove: true }), { removed: 0 })
+    assert.equal((await listStore()).length, 1)
+    assert.ok((await disk.readBlock(0)).data.equals(block(0xaa)))
+  })
+
+  test('removes the directories it emptied, but not the store root', async () => {
+    await writeOrphan(block(0xaa))
+
+    await scanBlockStore(handler, STORE, { remove: true })
+
+    assert.deepEqual(await handler.list(STORE), [])
+  })
+
+  test('a missing store is not an error', async () => {
+    assert.deepEqual(await scanBlockStore(handler, STORE, { remove: true }), { removed: 0 })
+  })
+
+  test('removes an orphan overflow copy and keeps the copy in use', async () => {
+    const disk = await createStoreDisk()
+    await disk.writeBlock({ index: 0, data: block(0xaa) })
+    await writeOrphan(block(0xaa), 1)
+
+    assert.deepEqual(await scanBlockStore(handler, STORE, { remove: true }), { removed: 1 })
+    assert.deepEqual(await listStore(), [`/${storeDirOf(block(0xaa))}/0`])
+  })
+
+  test('leaves a file outside the store layout alone', async () => {
+    await handler.outputFile(`${STORE}/stray.txt`, 'x', { flags: 'wx' })
+    await writeOrphan(block(0xaa))
+
+    assert.deepEqual(await scanBlockStore(handler, STORE, { remove: true }), { removed: 1 })
+    assert.deepEqual(await listStore(), [`/${STORE}/stray.txt`])
+  })
+
+  test('a dry run reports the orphans and removes nothing', async () => {
+    await writeOrphan(block(0xaa))
+    const logged = []
+
+    const result = await scanBlockStore(handler, STORE, { logInfo: (message, data) => logged.push(data.path) })
+
+    assert.deepEqual(result, { removed: 1 }, 'counts what would be removed')
+    assert.equal((await listStore()).length, 1)
+    assert.deepEqual(logged, [`/${storeDirOf(block(0xaa))}/0`])
   })
 })
