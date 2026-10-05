@@ -134,7 +134,9 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
 
               const batchIds = selectSynchronizedSnapshotVms(settings.synchronizedSnapshot, vms)
 
-              Task.info('synchronized snapshot', { vms: Array.from(batchIds) })
+              if (batchIds.size > 0) {
+                Task.info('synchronized snapshot', { vms: Array.from(batchIds) })
+              }
 
               await asyncEach(
                 [...vms].filter(vm => batchIds.has(vm.uuid)),
