@@ -189,6 +189,7 @@ export default class RemoteHandlerAbstract {
     return ![
       'EEXIST',
       'EISDIR',
+      'EMLINK',
       'ENOTEMPTY',
       'ENOENT',
       'ENOTDIR',
