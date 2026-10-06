@@ -38,20 +38,19 @@ export function useVdiMigrate(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
 
         const migratedVdiId = vdi.value.id
 
-        try {
-          const [result] = await run()
+        run({
+          detached: true,
+          onSuccess: ([result]) => {
+            if (!result || result.status === 'rejected') {
+              console.error(`Failed to migrate VDI ${migratedVdiId}`)
+              return
+            }
 
-          if (!result || result.status === 'rejected') {
-            console.error(`Failed to migrate VDI ${migratedVdiId}`)
-            return
-          }
-
-          if (route.query.id === migratedVdiId) {
-            void router.replace({ query: { ...route.query, id: result.value.id } })
-          }
-        } catch (error) {
-          console.error('Error when migrating VDI:', error)
-        }
+            if (route.query.id === migratedVdiId) {
+              void router.replace({ query: { ...route.query, id: result.value.id } })
+            }
+          },
+        })
       },
       onCancel: true,
     },

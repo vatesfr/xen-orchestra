@@ -44,9 +44,7 @@ function restartToolstack() {
       icon: 'status:info-picto',
     },
     events: {
-      onConfirm: async () => {
-        void run()
-      },
+      onConfirm: () => run({ detached: true }),
     },
   })
 }

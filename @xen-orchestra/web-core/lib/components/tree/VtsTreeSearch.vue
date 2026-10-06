@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar-search">
+  <div class="vts-tree-search">
     <UiInput
       v-model="search"
       :aria-label="t('action:search-treeview')"
@@ -21,7 +21,7 @@ const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
-.sidebar-search {
+.vts-tree-search {
   padding: 0.4rem;
 }
 </style>

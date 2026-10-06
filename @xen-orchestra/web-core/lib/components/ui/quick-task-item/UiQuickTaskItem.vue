@@ -1,13 +1,11 @@
-<!-- WIP -->
+<!-- WIP - Will be removed in one of the following stacked PRs -->
 <template>
   <div class="ui-quick-task-item">
     <div v-if="hasSubTasks" class="toggle" @click="toggleExpand()">
       <UiButtonIcon accent="brand" :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'" size="small" />
     </div>
     <div class="content">
-      <div class="typo-body-bold">
-        {{ task.name }}
-      </div>
+      <VtsTaskName :task size="medium" />
       <div class="informations">
         <div class="line-1">
           <UiTag v-if="task.tag" accent="neutral" variant="primary">{{ task.tag }}</UiTag>
@@ -32,6 +30,7 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickTaskList from '@core/components/task/VtsQuickTaskList.vue'
+import VtsTaskName from '@core/components/task/VtsTaskName.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'

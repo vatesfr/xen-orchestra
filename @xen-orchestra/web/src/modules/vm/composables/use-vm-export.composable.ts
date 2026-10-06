@@ -3,7 +3,7 @@ import { useXoVmExportJob, type VmExportCompression, type VmExportType } from '@
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { ref, type MaybeRefOrGetter } from 'vue'
+import { type MaybeRefOrGetter, ref } from 'vue'
 
 export function useVmExport(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const vm = toComputed(rawVm)
@@ -16,15 +16,11 @@ export function useVmExport(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const { open: exportVm } = useOverlay({
     component: () => import('@/modules/vm/components/drawer/VmExportDrawer.vue'),
     events: {
-      onConfirm: async (values: VmExportFormValues) => {
-        try {
-          exportType.value = values.type
-          exportCompression.value = values.compression
+      onConfirm: (values: VmExportFormValues) => {
+        exportType.value = values.type
+        exportCompression.value = values.compression
 
-          await run()
-        } catch (error) {
-          console.error('Error when exporting VM:', error)
-        }
+        run({ detached: true })
       },
       onCancel: true,
     },
