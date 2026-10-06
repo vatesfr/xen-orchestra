@@ -4,9 +4,11 @@
     :params="[
       prop('label').str().preset('CPU').widget(),
       prop('value').str().preset('4 vCPUs').widget(),
-      prop('copy')
-        .type('boolean | string')
-        .help('Displays a copy button: `true` copies the value prop, a string copies that string'),
+      prop('copy').bool().help('Displays a copy button that copies the value prop').widget(),
+      prop('copy-value')
+        .str()
+        .help('Displays a copy button that copies this string instead of the value prop')
+        .widget(),
       slot('label').help('Overrides the label prop'),
       slot('value').help('Overrides the value prop, meant to receive text or inline elements'),
     ]"

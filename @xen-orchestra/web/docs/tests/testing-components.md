@@ -74,7 +74,7 @@ Prefer this shape: one assertion covering every row a user sees, and it fails lo
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
 ```
 
-A row offers a copy button through its `copy` prop. `findCopiedValues` leaves rows without one out, so a `toEqual` pins both which rows are copyable and what they copy — including a row that must offer no copy because its value is empty:
+A row offers a copy button through its `copy` prop (copies its `value`) or its `copy-value` prop (copies that string). `findCopiedValues` leaves rows without one out, so a `toEqual` pins both which rows are copyable and what they copy — including a row that must offer no copy because its value is empty:
 
 ```typescript
 expect(findCopiedValues(wrapper)).toEqual({ [t('ip-address')]: '10.0.0.1', [t('uuid')]: 'vm-42' })

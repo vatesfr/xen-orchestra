@@ -2,7 +2,7 @@
   <UiCard class="vm-snapshot-card">
     <UiCardTitle>{{ title }}</UiCardTitle>
     <VtsKeyValueList>
-      <VtsKeyValueRow :label="t('snapshot')" :copy="snapshot?.name_label">
+      <VtsKeyValueRow :label="t('snapshot')" :copy-value="snapshot?.name_label">
         <template #value>
           <UiLink
             v-if="snapshot?.name_label"

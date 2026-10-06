@@ -65,6 +65,13 @@ it('offers to copy the snapshot name', () => {
   expect(findCopiedValues(wrapper)).toEqual({ [t('snapshot')]: 'Before upgrade' })
 })
 
+// A `boolean | string` prop would cast 'copy' to `true`, and the row has no value prop to fall back on
+it('offers to copy a snapshot named "copy"', () => {
+  const wrapper = mountSnapshotCard(createVmSnapshot({ name_label: 'copy' }))
+
+  expect(findCopiedValues(wrapper)).toEqual({ [t('snapshot')]: 'copy' })
+})
+
 it('leaves both rows empty and offers no copy when there is no snapshot', () => {
   const wrapper = mountSnapshotCard(undefined)
 
