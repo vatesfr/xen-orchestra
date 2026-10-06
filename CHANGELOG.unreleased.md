@@ -35,6 +35,8 @@
 
 - @vates/types minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/xapi-pg major
+- xen-api minor
 - xo-server minor
 
 <!--packages-end-->
