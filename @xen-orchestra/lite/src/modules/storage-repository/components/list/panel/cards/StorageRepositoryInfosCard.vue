@@ -1,6 +1,11 @@
 <template>
   <UiPanelCard class="storage-repository-infos-card">
-    <UiPanelCardTitle :id="sr.uuid" size="medium" :label="sr.name_label" :icon="srStatusIcon" />
+    <UiPanelCardTitle
+      :id="sr.uuid"
+      size="medium"
+      :label="sr.name_label"
+      :icon="sr.name_label ? srStatusIcon : undefined"
+    />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>

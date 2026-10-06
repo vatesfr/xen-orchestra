@@ -65,7 +65,7 @@
       </UiPanelCard>
       <!-- VIF NETWORK INFORMATION -->
       <UiPanelCard>
-        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
+        <UiPanelCardTitle size="medium" :label="t('network-information')" />
         <div class="content">
           <!-- IP ADDRESSES -->
           <div v-if="ipAddresses.length">
@@ -117,7 +117,6 @@ import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMe
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'

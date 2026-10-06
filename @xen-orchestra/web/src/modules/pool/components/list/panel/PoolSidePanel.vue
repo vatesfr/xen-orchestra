@@ -68,9 +68,7 @@
           </template>
         </UiAlert>
         <UiPanelCard>
-          <UiCardTitle>
-            {{ t('connection') }}
-          </UiCardTitle>
+          <UiPanelCardTitle size="medium" :label="t('connection')" />
           <!-- status -->
           <VtsCardRowKeyValue>
             <template #key>{{ t('status') }}</template>
@@ -165,7 +163,6 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'

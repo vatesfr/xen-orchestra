@@ -78,7 +78,7 @@
       </UiPanelCard>
       <!-- NETWORK INFORMATION -->
       <UiPanelCard>
-        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
+        <UiPanelCardTitle size="medium" :label="t('network-information')" />
         <div class="content">
           <!-- IP ADDRESSES -->
           <div v-if="ipAddresses.length">
@@ -183,7 +183,7 @@
       </UiPanelCard>
       <!-- PROPERTIES -->
       <UiPanelCard>
-        <UiCardTitle>{{ t('properties') }}</UiCardTitle>
+        <UiPanelCardTitle size="medium" :label="t('properties')" />
         <div class="content">
           <!-- MTU -->
           <VtsCardRowKeyValue>
@@ -236,7 +236,6 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'

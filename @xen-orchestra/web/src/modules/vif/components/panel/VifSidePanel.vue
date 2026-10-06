@@ -89,7 +89,7 @@
       </UiPanelCard>
       <!-- NETWORK INFORMATION -->
       <UiPanelCard>
-        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
+        <UiPanelCardTitle size="medium" :label="t('network-information')" />
         <div class="content">
           <!-- IP ADDRESSES -->
           <template v-if="ipAddresses.length">
@@ -143,7 +143,6 @@ import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMe
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'

@@ -66,10 +66,7 @@
         </div>
       </UiPanelCard>
       <UiPanelCard v-if="pifsCount && pifsCount > 0">
-        <div class="typo-body-bold">
-          {{ t('pifs') }}
-          <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
-        </div>
+        <UiPanelCardTitle size="medium" :label="t('pifs')" :counter="pifsCount" />
         <table class="simple-table">
           <thead>
             <tr>
@@ -106,7 +103,6 @@ import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'

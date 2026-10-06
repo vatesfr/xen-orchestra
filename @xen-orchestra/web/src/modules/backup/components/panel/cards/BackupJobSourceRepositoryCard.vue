@@ -1,8 +1,6 @@
 <template>
   <UiPanelCard v-if="sourceBackupRepository !== undefined">
-    <UiCardTitle>
-      {{ t('source-backup-repository') }}
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('source-backup-repository')" />
     <UiLink size="small" :icon="sourceBackupRepositoryIcon" :href>
       {{ sourceBackupRepository.name }}
     </UiLink>
@@ -13,9 +11,9 @@
 import type { FrontXoMirrorBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoBackupRepositoryCollection } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -1,17 +1,20 @@
 <template>
   <UiPanelCard class="task-quick-infos-card">
-    <UiCardTitle v-if="nameParts !== undefined || task.properties.name !== undefined" class="text-ellipsis">
-      <div v-if="nameParts" class="title">
-        <VtsIcon name="fa:bars-progress" size="medium" />
-        <template v-for="(part, index) in nameParts" :key="index">
-          <UiLink size="small" :to="part.to">{{ part.text }}</UiLink>
-        </template>
-      </div>
-      <UiLink v-else size="small" icon="fa:bars-progress">
-        {{ task.properties.name }}
-      </UiLink>
-    </UiCardTitle>
-    <UiPanelCardTitle :id="task.id" size="medium" />
+    <UiPanelCardTitle
+      :id="task.id"
+      size="medium"
+      :label="task.properties.name"
+      :icon="task.properties.name !== undefined ? 'fa:bars-progress' : undefined"
+    >
+      <template v-if="nameParts" #label>
+        <span>
+          <template v-for="(part, index) in nameParts" :key="index">
+            <UiLink v-if="part.to !== undefined" size="medium" :to="part.to">{{ part.text }}</UiLink>
+            <template v-else>{{ part.text }}</template>
+          </template>
+        </span>
+      </template>
+    </UiPanelCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('task-type') }}</template>
@@ -71,9 +74,7 @@ import { getTaskAccents } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
@@ -132,13 +133,6 @@ const formattedEndDate = computed(() => {
 
 <style scoped lang="postcss">
 .task-quick-infos-card {
-  .title {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.8rem;
-    align-items: center;
-  }
-
   .content {
     display: flex;
     flex-direction: column;
