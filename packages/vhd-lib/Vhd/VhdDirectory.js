@@ -16,6 +16,8 @@ const NULL_COMPRESSOR = {
   compress: buffer => buffer,
   decompress: buffer => buffer,
   baseOptions: {},
+  // an array of buffers is returned as is, the handler writes it without concatenating it
+  acceptsBufferArray: true,
 }
 
 const COMPRESSORS = {
@@ -170,8 +172,8 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     // in case of VhdDirectory, we want to create the file if it does not exists
     const flags = this._opts?.flags === 'r+' ? 'w' : this._opts?.flags
     const compressed = await this.#compressor.compress(
-      // the handler can write an array without concatenating it, a compressor can't
-      Array.isArray(buffer) && this.#compressor !== NULL_COMPRESSOR ? Buffer.concat(buffer) : buffer
+      // the handler can write an array without concatenating it, most compressors can't
+      Array.isArray(buffer) && !this.#compressor.acceptsBufferArray ? Buffer.concat(buffer) : buffer
     )
     return this._handler.outputFile(this.#getChunkPath(partName), compressed, { flags })
   }
