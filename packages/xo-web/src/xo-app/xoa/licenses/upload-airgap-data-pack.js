@@ -4,7 +4,7 @@ import Component from 'base-component'
 import Dropzone from 'dropzone'
 import Icon from 'icon'
 import React from 'react'
-import { uploadAirgapDataPack } from 'xo'
+import { exportAirgapLicenses, uploadAirgapDataPack } from 'xo'
 
 export default class UploadAirgapDataPack extends Component {
   state = {
@@ -19,10 +19,11 @@ export default class UploadAirgapDataPack extends Component {
     })
   }
 
-  _handleUpload = () =>
-    uploadAirgapDataPack({ file: this.state.airgapDataPack }).then(() => {
-      this.setState({ airgapDataPack: undefined })
-    })
+  _handleUpload = async () => {
+    await uploadAirgapDataPack(this.state.airgapDataPack)
+    this.setState({ airgapDataPack: undefined })
+    return this.props.updateLicenses()
+  }
 
   _handleRemove = () => {
     this.setState({ airgapDataPack: undefined })
@@ -52,12 +53,23 @@ export default class UploadAirgapDataPack extends Component {
           </p>
         )}
         {airgapDataPack && (
-          <div className='form-group pull-right'>
-            <ActionButton btnStyle='primary' className='mr-1' handler={this._handleUpload} icon='import'>
-              {_('uploadAirgapDataPack')}
-            </ActionButton>
+          <div className='clearfix'>
+            <div className='form-group pull-right'>
+              <ActionButton btnStyle='primary' className='mr-1' handler={this._handleUpload} icon='import'>
+                {_('uploadAirgapDataPack')}
+              </ActionButton>
+            </div>
           </div>
         )}
+        <div>
+          <h3>{_('exportAirgapLicenses')}</h3>
+          <p>
+            {_('exportAirgapLicensesDescription')}{' '}
+            <ActionButton btnStyle='primary' handler={exportAirgapLicenses} icon='export' size='small'>
+              {_('exportAirgapLicenses')}
+            </ActionButton>
+          </p>
+        </div>
       </div>
     )
   }
