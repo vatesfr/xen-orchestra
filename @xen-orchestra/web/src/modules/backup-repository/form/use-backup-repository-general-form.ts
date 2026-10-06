@@ -1,8 +1,14 @@
 import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
+import { useXoBackupRepositoryCompressionLabels } from '@/modules/backup-repository/composables/use-xo-backup-repository-compression-label.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import {
+  BACKUP_REPOSITORY_COMPRESSIONS,
+  DEFAULT_BACKUP_REPOSITORY_COMPRESSION,
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { regex, required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
+import type { BACKUP_REPOSITORY_COMPRESSION } from '@vates/types'
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BACKUP_REPOSITORY_TYPE, type BackupRepositoryType, type BackupRepositoryUrlOptions } from 'xo-remote-parser'
@@ -14,6 +20,7 @@ type BackupRepositoryGeneralFormData = {
   proxy: FrontXoProxy['id'] | undefined
   encrypted: boolean
   encryptionKey: string
+  compression: BACKUP_REPOSITORY_COMPRESSION
 }
 
 const ENCRYPTION_KEY_LENGTH = 32
@@ -37,6 +44,7 @@ export function useBackupRepositoryGeneralForm() {
     proxy: undefined,
     encrypted: false,
     encryptionKey: '',
+    compression: DEFAULT_BACKUP_REPOSITORY_COMPRESSION,
   })
 
   const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
@@ -63,6 +71,8 @@ export function useBackupRepositoryGeneralForm() {
 
   const isEncryptionAvailable = computed(() => formData.backupFormat === 'block')
 
+  const isBlockFormat = computed(() => formData.backupFormat === 'block')
+
   watch(isBackupFormatLocked, isLocked => {
     formData.backupFormat = isLocked ? 'block' : undefined
   })
@@ -70,6 +80,13 @@ export function useBackupRepositoryGeneralForm() {
   watch(isEncryptionAvailable, isAvailable => {
     if (!isAvailable) {
       formData.encrypted = false
+    }
+  })
+
+  // the compression only applies to the block based format
+  watch(isBlockFormat, isBlock => {
+    if (!isBlock) {
+      formData.compression = DEFAULT_BACKUP_REPOSITORY_COMPRESSION
     }
   })
 
@@ -113,6 +130,23 @@ export function useBackupRepositoryGeneralForm() {
     option: { label: 'label', value: 'value', properties: source => ({ hint: source.hint }) },
   })
 
+  const compressionLabels = useXoBackupRepositoryCompressionLabels()
+
+  const compressionOptions = computed(() =>
+    BACKUP_REPOSITORY_COMPRESSIONS.map(compression => ({
+      id: compression,
+      label: compressionLabels.value[compression],
+      value: compression,
+      hint: compression === 'zstd' ? t('zstd-node-requirement') : undefined,
+    }))
+  )
+
+  const { id: compressionSelectId } = useFormSelect('compression', compressionOptions, {
+    required: true,
+    disabled: () => !isBlockFormat.value,
+    option: { label: 'label', value: 'value', properties: source => ({ hint: source.hint }) },
+  })
+
   const { id: proxySelectId } = useFormSelect('proxy', proxies, {
     searchable: true,
     emptyOption: { label: t('none'), value: undefined },
@@ -137,12 +171,16 @@ export function useBackupRepositoryGeneralForm() {
       required: true,
       info: t('n-hexadecimal-characters', { n: ENCRYPTION_KEY_LENGTH }),
     })),
+    compression: useSelect(compressionSelectId, () => ({ label: t('compression') })),
   })
 
   function buildUrlOptions(): BackupRepositoryUrlOptions {
     return {
       ...(formData.encrypted && { encryptionKey: formData.encryptionKey }),
       ...(formData.backupFormat === 'block' && { useVhdDirectory: true }),
+      // no compressionType in the URL means the default compression
+      ...(isBlockFormat.value &&
+        formData.compression !== DEFAULT_BACKUP_REPOSITORY_COMPRESSION && { compressionType: formData.compression }),
     }
   }
 

@@ -20,6 +20,11 @@
         <VtsTabularKeyValueRow :label="t('name')" :value="general.formData.name" />
         <VtsTabularKeyValueRow :label="t('type')" :value="typeLabel" />
         <VtsTabularKeyValueRow :label="t('backup-format')" :value="backupFormatLabel" />
+        <VtsTabularKeyValueRow
+          v-if="general.formData.backupFormat === 'block'"
+          :label="t('compression')"
+          :value="compressionLabel"
+        />
         <VtsTabularKeyValueRow :label="t('proxy')">
           <template v-if="proxy" #value>
             <VtsIcon name="object:proxy" size="medium" />
@@ -71,6 +76,7 @@ import BackupRepositoryLocalReview from '@/modules/backup-repository/components/
 import BackupRepositoryNfsReview from '@/modules/backup-repository/components/form/review/BackupRepositoryNfsReview.vue'
 import BackupRepositoryS3Review from '@/modules/backup-repository/components/form/review/BackupRepositoryS3Review.vue'
 import BackupRepositorySmbReview from '@/modules/backup-repository/components/form/review/BackupRepositorySmbReview.vue'
+import { useXoBackupRepositoryCompressionLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-compression-label.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import type { BackupRepositoryGeneralForm } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import type { NewBackupRepositoryDetailsForms } from '@/modules/backup-repository/form/use-new-backup-repository-form.ts'
@@ -105,6 +111,8 @@ const type = computed(() => general.formData.type)
 const typeLabel = useXoBackupRepositoryTypeLabel(type)
 
 const backupFormatLabel = computed(() => general.getBackupFormatLabel(general.formData.backupFormat))
+
+const compressionLabel = useXoBackupRepositoryCompressionLabel(() => general.formData.compression)
 </script>
 
 <style lang="postcss" scoped>

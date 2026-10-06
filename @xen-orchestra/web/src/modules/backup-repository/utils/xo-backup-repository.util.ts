@@ -1,7 +1,22 @@
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { IconName } from '@core/icons'
-import type { BackupRepositoryType } from 'xo-remote-parser'
+import { BACKUP_REPOSITORY_COMPRESSION } from '@vates/types'
+import type { BackupRepositoryType, BackupRepositoryUrlOptions } from 'xo-remote-parser'
+
+export const BACKUP_REPOSITORY_COMPRESSIONS = Object.values(BACKUP_REPOSITORY_COMPRESSION)
+
+// a backup repository in block mode without compressionType in its URL uses brotli
+export const DEFAULT_BACKUP_REPOSITORY_COMPRESSION: BACKUP_REPOSITORY_COMPRESSION = BACKUP_REPOSITORY_COMPRESSION.BROTLI
+
+// can be any string: the URL may have been written by hand
+export function getBackupRepositoryCompression(urlOptions: BackupRepositoryUrlOptions): string {
+  return urlOptions.compressionType ?? DEFAULT_BACKUP_REPOSITORY_COMPRESSION
+}
+
+export function isBackupRepositoryCompression(compression: string): compression is BACKUP_REPOSITORY_COMPRESSION {
+  return (BACKUP_REPOSITORY_COMPRESSIONS as string[]).includes(compression)
+}
 
 export const MASKED_SECRET = '•'.repeat(12)
 

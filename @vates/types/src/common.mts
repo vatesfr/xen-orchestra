@@ -800,3 +800,14 @@ export const XAPI_TYPES: readonly string[] = [
 export const RPU_RECOVERY_STEP_NAMES = ['evacuate', 'update', 'reboot', 'enable', 'restoreVms'] as const
 
 export type RPU_RECOVERY_STEP_NAME = (typeof RPU_RECOVERY_STEP_NAMES)[number]
+
+/** compressions of a backup repository in block mode, brotli when its URL has no compressionType */
+export const BACKUP_REPOSITORY_COMPRESSION = {
+  BROTLI: 'brotli',
+  GZIP: 'gzip',
+  ZSTD: 'zstd',
+  NONE: 'none',
+} as const
+
+export type BACKUP_REPOSITORY_COMPRESSION =
+  (typeof BACKUP_REPOSITORY_COMPRESSION)[keyof typeof BACKUP_REPOSITORY_COMPRESSION]
