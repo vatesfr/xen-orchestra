@@ -7,6 +7,38 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { objectIcon } from '@core/icons'
 import { mount } from '@vue/test-utils'
+import { computed } from 'vue'
+
+// The action composables load jobs that subscribe to server events, unavailable in tests
+vi.mock(import('@/modules/backup-repository/composables/use-backup-repository-change-state.composable.ts'), () => ({
+  useBackupRepositoryChangeState: () => ({
+    changeBackupRepositoryState: vi.fn(),
+    canChangeBackupRepositoryState: computed(() => true),
+    isChangingBackupRepositoryState: computed(() => false),
+    changeBackupRepositoryStateErrorMessage: computed(() => undefined),
+  }),
+}))
+
+vi.mock(import('@/modules/backup-repository/composables/use-xo-backup-repository-benchmark.composable.ts'), () => ({
+  useXoBackupRepositoryBenchmark: () => ({
+    benchmark: computed(() => undefined),
+    writeSpeed: computed(() => undefined),
+    readSpeed: computed(() => undefined),
+    runBenchmark: vi.fn(),
+    canBenchmark: computed(() => true),
+    isBenchmarking: computed(() => false),
+    benchmarkErrorMessage: computed(() => undefined),
+  }),
+}))
+
+vi.mock(import('@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'), () => ({
+  useBackupRepositoryForget: () => ({
+    forgetBackupRepositories: vi.fn(),
+    canForgetBackupRepositories: computed(() => true),
+    isForgettingBackupRepositories: computed(() => false),
+    forgetBackupRepositoriesErrorMessage: computed(() => undefined),
+  }),
+}))
 
 function mountHeader(br: FrontXoBackupRepository = createBr()) {
   return mount(BackupRepositoryHeader, {
