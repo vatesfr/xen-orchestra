@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { asyncMapSettled } from '@xen-orchestra/async-map'
 import cloneDeep from 'lodash/cloneDeep.js'
 import Disposable from 'promise-toolbox/Disposable'
 import { createLogger } from '@xen-orchestra/log'
@@ -167,7 +167,7 @@ export default class metadataBackup {
     })
 
     const { id: jobId, settings } = job
-    await asyncMapSettled(schedules, async (schedule, tmpId) => {
+    await asyncMapSettled(Object.entries(schedules), async ([tmpId, schedule]) => {
       const { id: scheduleId } = await app.createSchedule({
         ...schedule,
         jobId,

@@ -31,4 +31,8 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/async-map major
+- xo-server patch
+- xo-server-usage-report patch
+
 <!--packages-end-->
