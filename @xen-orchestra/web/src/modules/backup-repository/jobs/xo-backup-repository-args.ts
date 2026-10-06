@@ -10,3 +10,8 @@ export const xoBackupRepositoriesArg = defineJobArg({
   identify: (br: FrontXoBackupRepository) => br.id,
   toArray: true,
 })
+
+export const xoBackupRepositoryEnabledArg = defineJobArg<boolean>({
+  identify: false,
+  toArray: false,
+})
