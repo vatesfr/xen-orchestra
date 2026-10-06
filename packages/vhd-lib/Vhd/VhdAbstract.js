@@ -99,6 +99,17 @@ exports.VhdAbstract = class VhdAbstract {
   }
 
   /**
+   * writes the data of a block, with a bitmap marking all its sectors as present
+   *
+   * @param {number} blockId
+   * @param {Buffer} data - header.blockSize bytes
+   */
+  async writeBlockData(blockId, data) {
+    assert.strictEqual(data.length, this.header.blockSize, `block ${blockId} must be ${this.header.blockSize} bytes`)
+    await this.writeEntireBlock({ id: blockId, buffer: Buffer.concat([Buffer.alloc(this.bitmapSize, 255), data]) })
+  }
+
+  /**
    * coalesce the block with id blockId from the child vhd into
    * this vhd
    *
