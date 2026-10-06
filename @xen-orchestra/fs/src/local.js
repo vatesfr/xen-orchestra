@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import fromCallback from 'promise-toolbox/fromCallback'
 import fs from 'fs-extra'
+import fsPromises from 'node:fs/promises'
 import lockfile from 'proper-lockfile'
 import { createLogger } from '@xen-orchestra/log'
 import { execFile } from 'node:child_process'
@@ -49,6 +50,21 @@ async function df(path) {
 
 function dontAddSyncStackTrace(fn, ...args) {
   return fn.apply(this, args)
+}
+
+// writes the buffers one after the other with writev: no need to concatenate them
+// libuv already resumes the partial writes, a short count means the write stopped (like a full disk)
+async function writeBuffers(path, buffers, flags) {
+  const handle = await fsPromises.open(path, flags)
+  try {
+    const length = buffers.reduce((sum, buffer) => sum + buffer.length, 0)
+    const { bytesWritten } = await handle.writev(buffers, 0)
+    if (bytesWritten !== length) {
+      throw new Error(`incomplete write of ${path}: ${bytesWritten} of ${length} bytes`)
+    }
+  } finally {
+    await handle.close()
+  }
 }
 
 export default class LocalHandler extends RemoteHandlerAbstract {
@@ -250,6 +266,13 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   _writeFile(file, data, { flags }) {
+    if (Array.isArray(data)) {
+      return this.#addSyncStackTrace(writeBuffers, this.getFilePath(file), data, flags)
+    }
     return this.#addSyncStackTrace(fs.writeFile, this.getFilePath(file), data, { flag: flags })
+  }
+
+  get _writesBufferArrays() {
+    return true
   }
 }

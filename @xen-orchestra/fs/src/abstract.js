@@ -383,8 +383,15 @@ export default class RemoteHandlerAbstract {
     await this._mktree(normalizePath(dir), { mode })
   }
 
+  // data can be an array of buffers, the file is then their concatenation
   async outputFile(file, data, { dirMode, flags = 'wx' } = {}) {
-    const encryptedData = this.#encryptor.encryptData(data)
+    // the encrypted parts are not concatenated when the handler can write them as is
+    let encryptedData = this._writesBufferArrays
+      ? this.#encryptor.encryptDataParts(data)
+      : this.#encryptor.encryptData(data)
+    if (Array.isArray(encryptedData) && !this._writesBufferArrays) {
+      encryptedData = Buffer.concat(encryptedData)
+    }
     await this._outputFile(normalizePath(file), encryptedData, { dirMode, flags })
   }
 
@@ -787,6 +794,11 @@ export default class RemoteHandlerAbstract {
 
   async _writeFile(file, data, options) {
     throw new Error('Not implemented')
+  }
+
+  // whether _writeFile accepts an array of buffers (written one after the other, without concatenating them)
+  get _writesBufferArrays() {
+    return false
   }
 
   get isEncrypted() {
