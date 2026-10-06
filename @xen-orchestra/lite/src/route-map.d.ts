@@ -408,6 +408,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/modal/vts-error-modal': RouteRecordInfo<
+      '/story/web-core/modal/vts-error-modal',
+      '/story/web-core/modal/vts-error-modal',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/object-icon/vts-object-icon': RouteRecordInfo<
       '/story/web-core/object-icon/vts-object-icon',
       '/story/web-core/object-icon/vts-object-icon',
@@ -1418,6 +1425,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/legend-group/vts-legend-group.story.vue': {
       routes:
         | '/story/web-core/legend-group/vts-legend-group'
+      views:
+        | never
+    }
+    'src/stories/web-core/modal/vts-error-modal.story.vue': {
+      routes:
+        | '/story/web-core/modal/vts-error-modal'
       views:
         | never
     }
