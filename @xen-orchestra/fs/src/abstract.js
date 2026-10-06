@@ -26,6 +26,10 @@ const computeRate = (hrtime, size) => {
 const DEFAULT_TIMEOUT = 12e5 // 20 min
 const DEFAULT_MAX_PARALLEL_OPERATIONS = 10
 
+// size of the chunks of the file streams, same as the backup streams: with the 64 KiB of Node, each chunk costs a
+// round trip to the thread pool, which limits a sequential read to about 1.5 GB/s
+const DEFAULT_HIGH_WATER_MARK = 10 * 1024 * 1024
+
 const ENCRYPTION_DESC_FILENAME = 'encryption.json'
 const ENCRYPTION_METADATA_FILENAME = 'metadata.json'
 
@@ -158,7 +162,7 @@ export default class RemoteHandlerAbstract {
       }
     }
     ;({
-      highWaterMark: this._highWaterMark,
+      highWaterMark: this._highWaterMark = DEFAULT_HIGH_WATER_MARK,
       timeout: this._timeout = DEFAULT_TIMEOUT,
       withLimit: this._withLimit = WITH_LIMIT,
       withTimeout: this._withTimeout = WITH_TIMEOUT,
