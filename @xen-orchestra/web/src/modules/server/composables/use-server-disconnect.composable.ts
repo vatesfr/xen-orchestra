@@ -26,13 +26,7 @@ export function useServerDisconnect(rawServerId: MaybeRefOrGetter<FrontXoServer[
   const { open } = useOverlay({
     component: () => import('@/modules/server/components/modal/ServerDisconnectModal.vue'),
     events: {
-      onConfirm: async () => {
-        try {
-          await run()
-        } catch (error) {
-          console.error('Error when disconnecting server:', error)
-        }
-      },
+      onConfirm: () => run({ detached: true }),
       onCancel: true,
     },
   })
