@@ -53,25 +53,16 @@ const { redirect: redirectAfterForgetHost } = useRedirectAfterDelete({
 })
 
 function forgetHost() {
-  openActionModal({
-    events: {
-      onConfirm: async () => {
-        try {
-          await run()
-        } catch (error) {
-          console.error('Error when forgetting host:', error)
-          return
-        }
-
-        await redirectAfterForgetHost()
-      },
-    },
+  return openActionModal({
     props: {
       accent: 'danger',
       action: 'forget',
       object: 'host',
       hostName: host.name_label,
       icon: 'status:danger-circle',
+    },
+    events: {
+      onConfirm: () => run({ detached: true, onSuccess: redirectAfterForgetHost }),
     },
   })
 }

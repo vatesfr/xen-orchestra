@@ -21,6 +21,7 @@ const srFields = [
   '$pool',
   '$container',
   'content_type',
+  'is_tools_sr',
   'physical_usage',
   'usage',
   'size',
@@ -60,7 +61,7 @@ export const useXoSrCollection = defineRemoteResource({
       const tmpSrsByPool = new Map<FrontXoPool['id'], FrontXoSr[]>()
 
       srs.forEach(sr => {
-        if (sr.SR_type === 'iso') {
+        if (sr.SR_type === 'iso' && !sr.is_tools_sr) {
           tmpVdiIsosBySrName[sr.name_label] = []
 
           sr.VDIs.forEach(vdiId => {

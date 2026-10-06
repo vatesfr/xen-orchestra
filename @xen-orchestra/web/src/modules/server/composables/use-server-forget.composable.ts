@@ -22,13 +22,7 @@ export function useServerForget(
   const { open } = useOverlay({
     component: () => import('@/modules/server/components/modal/ServerForgetModal.vue'),
     events: {
-      onConfirm: async () => {
-        try {
-          await run()
-        } catch (error) {
-          console.error('Error when forgetting server:', error)
-        }
-      },
+      onConfirm: () => run({ detached: true }),
       onCancel: true,
     },
   })

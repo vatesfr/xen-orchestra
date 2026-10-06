@@ -101,6 +101,19 @@ events: {
 
 While a handler is running, any further event is ignored: a double-click, or a click on Cancel during a save, does nothing.
 
+If the handler doesn't need to wait for the work to finish, don't return its promise: the overlay closes right away and the work keeps running in the background.
+
+```ts
+events: {
+  onConfirm: () => {
+    // No `return`, no `await`: the overlay closes without waiting for the VM to be deleted
+    void deleteVm()
+  },
+}
+```
+
+Errors are then no longer the overlay's concern: the work you started must handle them itself.
+
 ## Keeping the overlay open with `KEEP_OVERLAY_OPEN`
 
 Sometimes handling an event should _not_ close the overlay — a validation failure, a failed API call. Return `KEEP_OVERLAY_OPEN` for that:

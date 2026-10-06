@@ -33,22 +33,12 @@ export function useVifDelete(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
     const count = vifs.value.length
 
     return open({
-      events: {
-        onConfirm: async () => {
-          let result
-
-          try {
-            result = await run()
-          } catch (error) {
-            console.error('Error when deleting VIF:', error)
-          }
-
-          await redirectIfOnObjectPage(result)
-        },
-      },
       props: {
         subject: t('n-vifs', { n: count }),
         confirmLabel: t('action:delete-n-vifs', { n: count }),
+      },
+      events: {
+        onConfirm: () => run({ detached: true, onSuccess: redirectIfOnObjectPage }),
       },
     })
   }

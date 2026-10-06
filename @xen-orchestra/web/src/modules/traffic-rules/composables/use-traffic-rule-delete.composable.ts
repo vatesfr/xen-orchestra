@@ -23,19 +23,13 @@ export function useTrafficRuleDelete(rawRules: MaybeRefOrGetter<TrafficRule[]>) 
     const count = rules.value.length
 
     return open({
-      events: {
-        onConfirm: async () => {
-          try {
-            await run()
-          } catch (error) {
-            console.error('Error when deleting traffic rule:', error)
-          }
-        },
-      },
       props: {
         subject: t('n-traffic-rules', { n: count }),
         description: t('traffic-rule-delete-warning'),
         confirmLabel: t('action:delete-n-traffic-rules', { n: count }),
+      },
+      events: {
+        onConfirm: () => run({ detached: true }),
       },
     })
   }

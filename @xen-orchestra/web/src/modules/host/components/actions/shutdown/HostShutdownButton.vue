@@ -35,16 +35,16 @@ const {
 const { open: openActionModal } = useActionModal()
 
 function shutdownHost() {
-  openActionModal({
-    events: {
-      onConfirm: () => run(),
-    },
+  return openActionModal({
     props: {
       accent: 'info',
       action: 'shutdown',
       object: 'host',
       hostName: host.name_label,
       icon: 'status:info-picto',
+    },
+    events: {
+      onConfirm: () => run({ detached: true }),
     },
   })
 }
