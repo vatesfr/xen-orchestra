@@ -17,7 +17,8 @@
 - [XO6/BRs] Add backup repository create form (PR [#10271](https://github.com/vatesfr/xen-orchestra/pull/10271))
 - [Backup] New `zstd` compression for the remotes in block mode (needs Node 22.15 or later), faster to back up and about 1.5 times faster to restore than `brotli`
 - [XO6/BRs] Show the compression of the backup repositories in block mode, choose it at creation
-- [Backup] Remove the unused `vhdDirectoryCompression` setting of the configuration: the compression is the one of the backup repository, brotli by default
+- [Backup] Remove the unused `vhdDirectoryCompression` setting of the configuration: the compression is the one of the backup repository, brotli by default (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
+- [Backup] Add `zstd` compression support for backup in vhd block mode (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
 
 ### Bug fixes
 
