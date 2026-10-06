@@ -19,10 +19,11 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 
-const { value, copy } = defineProps<{
+const { value, copy, copyValue } = defineProps<{
   label?: string
   value?: string
-  copy?: boolean | string
+  copy?: boolean
+  copyValue?: string
 }>()
 
 defineSlots<{
@@ -30,7 +31,7 @@ defineSlots<{
   value?(): any
 }>()
 
-const valueToCopy = computed(() => (typeof copy === 'string' ? copy : copy ? value : undefined))
+const valueToCopy = computed(() => copyValue ?? (copy ? value : undefined))
 </script>
 
 <style lang="postcss" scoped>

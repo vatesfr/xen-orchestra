@@ -1,6 +1,6 @@
 <template>
   <div class="vts-tabular-key-value-row">
-    <VtsKeyValuePair :label :value :copy>
+    <VtsKeyValuePair :label :value :copy :copy-value>
       <template v-if="slots.label" #label>
         <slot name="label" />
       </template>
@@ -17,7 +17,8 @@ import VtsKeyValuePair from '@core/components/key-value-pair/VtsKeyValuePair.vue
 defineProps<{
   label?: string
   value?: string
-  copy?: boolean | string
+  copy?: boolean
+  copyValue?: string
 }>()
 
 const slots = defineSlots<{
