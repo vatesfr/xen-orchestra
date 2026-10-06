@@ -2817,6 +2817,13 @@ export const editNetwork = (network, props) => _call('network.set', { ...props, 
 
 export const getBondModes = () => _call('network.getBondModes')
 export const createNetwork = params => _call('network.create', params)
+
+// the disk data are sent in clear: the user must confirm the network is dedicated
+export const confirmInsecureNbd = () =>
+  confirm({
+    title: _('insecureNbdConfirmTitle'),
+    body: _('insecureNbdConfirmBody'),
+  })
 export const createBondedNetwork = params => _call('network.createBonded', params)
 export const createPrivateNetwork = ({ preferredCenter, ...params }) =>
   _call('sdnController.createPrivateNetwork', {
