@@ -17,6 +17,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -35,6 +37,7 @@
 
 - @vates/types minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web patch
 - xo-server minor
 
 <!--packages-end-->
