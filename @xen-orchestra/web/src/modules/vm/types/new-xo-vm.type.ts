@@ -3,22 +3,13 @@ import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-
 import type { XoHost, XoNetwork, XoSr, XoVdi, XoVif } from '@vates/types'
 
 export interface Vdi {
+  key: string
   id?: XoVdi['id']
   name_label: string
   name_description: string
   size: number
   sr: XoSr['id'] | undefined
   userdevice?: string
-  destroy?: boolean
-}
-
-export interface VdiToSend {
-  name_label?: string
-  name_description?: string
-  size?: number
-  sr?: XoSr['id'] | undefined
-  userdevice?: string
-  destroy?: boolean
 }
 
 export interface Vif {
