@@ -4,6 +4,7 @@ import { parse } from 'xo-remote-parser'
 import { join, split } from './path'
 import RemoteHandlerAbstract from './abstract'
 import copyStreamToBuffer from './_copyStreamToBuffer'
+import { acquireLeaseLock } from './_leaseLock.js'
 import { PassThrough, Transform, pipeline } from 'stream'
 
 createLogger('xo:fs:azure')
@@ -85,6 +86,67 @@ export default class AzureHandler extends RemoteHandlerAbstract {
 
     const { value } = await iterator.next()
     return (value?.segment?.blobItems?.length ?? 0) > 0
+  }
+
+  // the `LeaseLockStore` of `_leaseLock.js` for the blob at `path`
+  //
+  // It sends its requests with `this.#containerClient` directly, not through the handler's methods: those go
+  // through the handler's concurrency limit, and a renewal queued behind long uploads would let the lease expire.
+  #createLeaseStore(path) {
+    const blobClient = this.#containerClient.getBlockBlobClient(this.#makeFullPath(path))
+
+    return {
+      create: async () => {
+        try {
+          await blobClient.upload('', 0, { conditions: { ifNoneMatch: '*' } })
+        } catch (error) {
+          // 409: the blob exists; 412: it exists and is leased, and a write without the lease ID is refused
+          if (error.statusCode !== 409 && error.statusCode !== 412) {
+            throw error
+          }
+        }
+      },
+      acquire: async (leaseId, duration) => {
+        try {
+          await blobClient.getBlobLeaseClient(leaseId).acquireLease(duration)
+          return true
+        } catch (error) {
+          // another lease is active
+          if (error.statusCode === 409) {
+            return false
+          }
+          if (error.statusCode === 404) {
+            const enoent = new Error(`ENOENT: no such file '${path}'`, { cause: error })
+            enoent.code = 'ENOENT'
+            enoent.path = path
+            throw enoent
+          }
+          throw error
+        }
+      },
+      renew: async leaseId => {
+        try {
+          await blobClient.getBlobLeaseClient(leaseId).renewLease()
+          return true
+        } catch (error) {
+          // 404: the blob is gone; 409: it is leased to someone else
+          if (error.statusCode === 404 || error.statusCode === 409) {
+            return false
+          }
+          throw error
+        }
+      },
+      remove: async leaseId => {
+        try {
+          await blobClient.delete({ conditions: { leaseId } })
+        } catch (error) {
+          // 404: the blob is gone; 412: it is not leased to `leaseId`
+          if (error.statusCode !== 404 && error.statusCode !== 412) {
+            throw error
+          }
+        }
+      },
+    }
   }
 
   /**
@@ -318,5 +380,10 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     if (batch.batchRequest.operationCount > 0) {
       await blobBatchClient.submitBatch(batch)
     }
+  }
+
+  async _lock(path) {
+    // `<path>.lock`, the name of the local lock directory: the listings skip it already
+    return acquireLeaseLock(this.#createLeaseStore(`${path}.lock`), path)
   }
 }
