@@ -25,6 +25,14 @@ export async function connectNbdClientIfPossible(xapi, vdiRef, nbdConcurrency) {
     error.code = 'NO_NBD_AVAILABLE'
     throw error
   }
+  // when the pool is only reachable through an HTTP proxy (e.g. an XO Proxy),
+  // NBD connections must be tunneled through it as well
+  const { httpProxy } = xapi
+  if (httpProxy !== undefined) {
+    const proxyRejectUnauthorized = !xapi.allowUnauthorized
+    nbdInfos = nbdInfos.map(nbdInfo => ({ ...nbdInfo, httpProxy, proxyRejectUnauthorized }))
+  }
+
   const nbdClient = new MultiNbdClient(nbdInfos, { nbdConcurrency })
   await nbdClient.connect()
   return nbdClient

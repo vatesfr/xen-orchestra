@@ -241,6 +241,10 @@ export class Xapi extends EventEmitter {
     }
 
     const { httpProxy } = opts
+    // raw URL of the HTTP proxy, `_httpAgent` and `_undiciDispatcher` only
+    // cover the HTTP(S) requests, consumers of raw TCP connections (NBD) need
+    // the URL itself
+    this._httpProxy = httpProxy
     this._allowUnauthorized = opts.allowUnauthorized
     const dispatcherOpts = {
       // XAPI speaks HTTP/1.1 only; undici >= 8 offers h2 during ALPN by default,
@@ -339,6 +343,14 @@ export class Xapi extends EventEmitter {
 
       this.watchEvents()
     }
+  }
+
+  get allowUnauthorized() {
+    return this._allowUnauthorized
+  }
+
+  get httpProxy() {
+    return this._httpProxy
   }
 
   get readOnly() {
