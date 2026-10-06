@@ -41,3 +41,6 @@ export type ReplaceKey<Type, OldKey extends keyof Type, NewKey extends string, N
   Record<NewKey, NewKeyType>
 
 export type SafeOmit<T, K extends keyof T> = T extends T ? Omit<T, K> : never
+
+// Force tsoa to resolve the computed type (conditional/distributive types otherwise produce a self-referencing schema)
+export type Simplify<T> = { [K in keyof T]: T[K] }

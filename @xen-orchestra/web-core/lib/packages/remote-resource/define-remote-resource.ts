@@ -372,7 +372,8 @@ export function defineRemoteResource<
     let resume: VoidFunction = execute
 
     if (watchCollection !== undefined) {
-      const { collectionId, resource, handleDelete, handlePost, handleWatching } = watchCollection
+      const { resource, handleDelete, handlePost, handleWatching } = watchCollection
+      const collectionId = `${watchCollection.collectionId}:${url}`
       const { watch, unwatch } = useSseStore()
 
       pause = () => unwatch({ collectionId, resource, handleDelete })

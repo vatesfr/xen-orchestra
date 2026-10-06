@@ -9,6 +9,7 @@ import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { routes } from 'vue-router/auto-routes'
 import '@xen-orchestra/web-core/assets/css/base.pcss'
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
 const router = createRouter({
   history: createWebHashHistory(),

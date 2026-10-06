@@ -11,13 +11,14 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API] `POST /rest/v0/acl-roles` now supports a `privileges` property, allowing privileges to be directly associated with the newly created role (PR [#10470](https://github.com/vatesfr/xen-orchestra/pull/10470))
+- [XO6/Tasks] Add link and object resolution to Tasks Overview panel, better text flow for resolved task names (PR [#10265](https://github.com/vatesfr/xen-orchestra/pull/10265))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [Servers] Fix servers stuck in `Connecting` state when using an HTTPS proxy that support HTTP/2 ([Forum#12502](https://xcp-ng.org/forum/topic/12502/xoa-6.9-update)) (PR [#10507](https://github.com/vatesfr/xen-orchestra/pull/10507))
-- [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
-- [XO5/Hosts] Disable restart toolstack button for the hosts that belongs to a HA pools in the home page (PR [#10497](https://github.com/vatesfr/xen-orchestra/pull/10497))
+- [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
 - [Dashboard] Fix cards staying in error state after a temporary failure to fetch data, until the page was reloaded (PR [#10516](https://github.com/vatesfr/xen-orchestra/pull/10516))
 
 ### Packages to release
@@ -36,9 +37,10 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web patch
-- @xen-orchestra/web-core patch
-- xen-api patch
-- xo-web patch
+- @vates/types minor
+- @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
+- xo-server minor
 
 <!--packages-end-->
