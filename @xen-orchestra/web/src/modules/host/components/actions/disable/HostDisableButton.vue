@@ -1,15 +1,13 @@
 <template>
   <MenuItem
     v-tooltip="!canDisableHost && disableHostErrorMessage"
-    size="medium"
-    variant="tertiary"
-    accent="brand"
+    accent="neutral"
     :disabled="!canDisableHost"
     icon="action:disable"
     :busy="isDisablingHost"
     @click="openDisableHostModal()"
   >
-    {{ t('action:disable-host') }}
+    {{ t('action:disable') }}
   </MenuItem>
 </template>
 
@@ -17,8 +15,8 @@
 import { useXoHostDisableJob } from '@/modules/host/jobs/xo-host-disable.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -32,17 +30,20 @@ const {
   canRun: canDisableHost,
   isRunning: isDisablingHost,
   errorMessage: disableHostErrorMessage,
-} = useXoHostDisableJob(() => host)
+} = useXoHostDisableJob(() => host, false)
 
-const openDisableHostModal = useModal({
-  component: import('@core/components/modal/VtsActionModal.vue'),
-  props: {
-    accent: 'warning',
-    action: 'disable',
-    object: 'host',
-    hostName: host.name_label,
-    icon: 'status:warning-picto',
-  },
-  onConfirm: () => disableHost(),
-})
+const { open: openActionModal } = useActionModal()
+
+function openDisableHostModal() {
+  return openActionModal({
+    events: { onConfirm: () => disableHost() },
+    props: {
+      accent: 'info',
+      action: 'disable',
+      object: 'host',
+      hostName: host.name_label,
+      icon: 'status:info-picto',
+    },
+  })
+}
 </script>

@@ -8,17 +8,18 @@ export async function makeImmutable(dirPath: string): Promise<void> {
 // chattr processes all paths even when some are missing (it does not abort on the first
 // error), so every existing path is correctly lifted.
 //
-// Per-path "while trying to stat" messages (ENOENT) are silently ignored regardless of
-// locale — these are always expected for optional paths (.xva, .alias.vhd, …) that are
-// absent in delta backups.  chattr localises the error description but "while trying to
-// stat" is always emitted in English, so we match on that suffix only.
+// Per-path "while trying to stat" messages (ENOENT) are silently ignored — these are always
+// expected for optional paths (.xva, .alias.vhd, …) that are absent in delta backups.  chattr
+// translates that whole message, so it is run under `LC_ALL=C`: without it, every batch
+// containing an optional missing path fails on a localised system, which means no backup ever
+// gets locked there.
 //
 // Any other error (e.g. EAGAIN on NFS when the file is still open, permission denied) is
 // retried up to 3 times with a 1 s delay before being re-thrown.
 async function execChattrWithMissingFiles(args: string[]): Promise<void> {
   for (let attempt = 0; ; attempt++) {
     try {
-      await execa('chattr', args)
+      await execa('chattr', args, { env: { LC_ALL: 'C' } })
       return
     } catch (err) {
       const stderr = (err as ExecaError).stderr ?? ''

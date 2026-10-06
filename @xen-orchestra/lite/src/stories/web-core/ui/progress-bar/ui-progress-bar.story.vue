@@ -18,7 +18,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop } from '@/libs/story/story-param'
+import { prop } from '@/libs/story/story-param.ts'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 
 const presets = {

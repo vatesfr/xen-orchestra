@@ -1,0 +1,40 @@
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
+import { payloadArg } from '@/modules/network/jobs/internal-network-create-args.ts'
+import type { BaseNewNetworkPayload } from '@/modules/network/jobs/network-create.job.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
+import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { useI18n } from 'vue-i18n'
+
+export type NewInternalNetworkPayload = BaseNewNetworkPayload
+
+export const useInternalNetworkCreateJob = defineJob('internal-network.create', [payloadArg], () => {
+  const xapi = useXenApiStore().getXapi()
+  const { t } = useI18n()
+
+  return {
+    async run(payload): Promise<XenApiNetwork['uuid']> {
+      const networkRef = await xapi.network.createInternal({
+        nameLabel: payload.name,
+        nameDescription: payload.description,
+        mtu: payload.mtu,
+        nbd: payload.nbd,
+      })
+
+      return xapi.getField<XenApiNetwork['uuid']>('network', networkRef, 'uuid')
+    },
+
+    validate(isRunning, payload) {
+      if (isRunning) {
+        throw new JobRunningError(t('job:create:in-progress'))
+      }
+
+      if (payload === undefined) {
+        throw new JobError(t('job:arg:missing-payload'))
+      }
+
+      if (payload.name.length === 0) {
+        throw new JobError(t('job:arg:name-required'))
+      }
+    },
+  }
+})

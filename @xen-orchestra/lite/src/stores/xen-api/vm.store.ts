@@ -1,14 +1,14 @@
-import type { GetStats } from '@/composables/fetch-stats.composable'
-import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useHostStore } from '@/stores/xen-api/host.store'
+import type { GetStats } from '@/composables/fetch-stats.composable.ts'
+import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
+import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePbdStore } from '@/stores/xen-api/pbd.store.ts'
 import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import { useVbdStore } from '@/stores/xen-api/vbd.store.ts'
 import { useVdiStore } from '@/stores/xen-api/vdi.store.ts'
-import { useVmRawStore } from '@/stores/xen-api/vm-raw.store'
-import { useXenApiStore } from '@/stores/xen-api.store'
-import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
+import { useVmRawStore } from '@/stores/xen-api/vm-raw.store.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
+import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util.ts'
 import type { XapiVmStatsRaw } from '@vates/types/common'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
@@ -72,6 +72,18 @@ export const useVmStore = defineStore('xen-api-vm', () => {
 
     return undefined
   }
+
+  const runningVmsCountByHostRef = computed(() => {
+    const countByHostRef = new Map<XenApiHost['$ref'], number>()
+
+    runningVms.value.forEach(vm => {
+      if (vm.resident_on) {
+        countByHostRef.set(vm.resident_on, (countByHostRef.get(vm.resident_on) ?? 0) + 1)
+      }
+    })
+
+    return countByHostRef
+  })
 
   const recordsByHostRef = computed(() => {
     const vmsByHostOpaqueRef = new Map<XenApiHost['$ref'], XenApiVm[]>()
@@ -146,6 +158,7 @@ export const useVmStore = defineStore('xen-api-vm', () => {
     records,
     templates,
     runningVms,
+    runningVmsCountByHostRef,
     recordsByHostRef,
     getStats,
     getVmHost,

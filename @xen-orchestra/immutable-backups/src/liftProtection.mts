@@ -118,6 +118,68 @@ async function liftExpiredVmBackups(root: string, immutabilityDuration: number, 
   })
 }
 
+// `liftExpiredVmBackups` names the files of a backup from the datetime of its `<datetime>.json`,
+// like the watcher does when locking them. A disk can outlive that name:
+//
+// - retention deletes the metadata json first and leaves the disks to the next `cleanVm`, so
+//   nothing names them any more;
+// - a merge renames a disk, and the surviving `data/<datetime>.vhd` keeps the name of the older
+//   backup its blocks came from.
+//
+// Such a disk would stay immutable forever — a full scan does not help, it only bypasses the
+// `isImmutable` fast-path — and an immutable disk blocks every future merge and deletion in its VDI
+// directory. So walk the VDI directories themselves and lift what is expired, using the datetime in
+// each entry's own name, which is the reference the other passes use too.
+//
+// Only runs on the first pass after startup: it recovers states that should not happen, and looking
+// hourly would not make it more effective.
+async function liftExpiredOrphanDisks(root: string, immutabilityDuration: number): Promise<void> {
+  const threshold = Date.now() - immutabilityDuration
+  const vmDirs = await listDirs(join(root, 'xo-vm-backups'))
+  debug('scanning VDI directories for expired disks', { count: vmDirs.length })
+  await asyncEach(vmDirs, async vmDir => {
+    // disks live under `vdis/<jobId>/<vdiId>/`, so two levels of directories to walk first
+    const jobDirs = await listDirs(join(vmDir, 'vdis'))
+    const vdiDirs = (await Promise.all(jobDirs.map(jobDir => listDirs(jobDir)))).flat()
+
+    await asyncEach(vdiDirs, async vdiDir => {
+      try {
+        // `<datetime>.vhd` (flat VHD or alias) and `<datetime>.alias.vhd`
+        const entries = await fsp.readdir(vdiDir, { withFileTypes: true })
+        const candidates = entries.map(entry => join(vdiDir, entry.name))
+
+        // `data/<datetime>.vhd` VHD directories. They are locked recursively, but the attribute is
+        // set on the directory itself too, so its own entry is enough to decide — no need to look
+        // at the blocks inside.
+        if (entries.some(entry => entry.name === 'data' && entry.isDirectory())) {
+          const dataDir = join(vdiDir, 'data')
+          candidates.push(...(await fsp.readdir(dataDir)).map(name => join(dataDir, name)))
+        }
+
+        const expired: string[] = []
+        for (const path of candidates) {
+          // Entries without a datetime — `data` itself, merge state files — are left alone: there
+          // is nothing to compare them to.
+          const datetime = extractDatetime(basename(path))
+          if (datetime === undefined) continue
+          const backupTimestamp = parseDatetime(datetime)
+          if (backupTimestamp === undefined || backupTimestamp > threshold) continue
+          expired.push(path)
+        }
+
+        if (expired.length === 0) return
+        debug('lifting expired disks', { vdiDir, count: expired.length })
+        // Recursive: a VHD directory must be released together with its blocks, and `-R` is a no-op
+        // on the flat VHDs and aliases sharing the batch.
+        await Directory.liftImmutabilityBatch(expired)
+      } catch (err) {
+        // `cleanVm` may be merging or deleting these files at the same time
+        if (err.code !== 'ENOENT') warn('error lifting expired disks', { err, vdiDir })
+      }
+    })
+  })
+}
+
 // Walk `xo-config-backups/<scheduleId>/<datetime>/metadata.json` files and
 // lift immutability on any backup directory whose metadata mtime is expired.
 async function liftExpiredConfigBackups(root: string, immutabilityDuration: number, fullScan: boolean): Promise<void> {
@@ -180,6 +242,12 @@ export async function liftRemoteImmutability(
     liftExpiredConfigBackups(root, immutabilityDuration, fullScan),
     liftExpiredPoolBackups(root, immutabilityDuration, fullScan),
   ])
+
+  // after the passes above: every disk still named by a metadata json has been handled, so this one
+  // only has the leftovers to look at
+  if (fullScan) {
+    await liftExpiredOrphanDisks(root, immutabilityDuration)
+  }
 }
 
 // Lift immutability on all expired backups across every configured remote.

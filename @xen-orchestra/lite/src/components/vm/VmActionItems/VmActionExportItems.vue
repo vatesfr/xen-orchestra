@@ -1,12 +1,20 @@
 <template>
-  <MenuItem icon="fa:file-export">
+  <MenuItem accent="neutral" icon="fa:file-export">
     {{ t('action:export') }}
     <template #submenu>
       <VmActionExportItem :vm-refs="vmRefs" />
-      <MenuItem icon="fa:code" @click="exportVmsAsJsonFile(vms, `vms_${new Date().toISOString()}.json`)">
+      <MenuItem
+        accent="neutral"
+        icon="fa:code"
+        @click="exportVmsAsJsonFile(vms, `vms_${new Date().toISOString()}.json`)"
+      >
         {{ t('action:export-table-to', { type: '.json' }) }}
       </MenuItem>
-      <MenuItem icon="fa:file-csv" @click="exportVmsAsCsvFile(vms, `vms_${new Date().toISOString()}.csv`)">
+      <MenuItem
+        accent="neutral"
+        icon="fa:file-csv"
+        @click="exportVmsAsCsvFile(vms, `vms_${new Date().toISOString()}.csv`)"
+      >
         {{ t('action:export-table-to', { type: '.csv' }) }}
       </MenuItem>
     </template>
@@ -15,9 +23,9 @@
 
 <script lang="ts" setup>
 import VmActionExportItem from '@/components/vm/VmActionItems/VmActionExportItem.vue'
-import { exportVmsAsCsvFile, exportVmsAsJsonFile } from '@/libs/vm'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useVmStore } from '@/stores/xen-api/vm.store'
+import { exportVmsAsCsvFile, exportVmsAsJsonFile } from '@/libs/vm.ts'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

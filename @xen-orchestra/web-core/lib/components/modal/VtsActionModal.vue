@@ -1,25 +1,25 @@
 <template>
-  <VtsModal :accent :icon dismissible>
+  <UiModal :accent :icon @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       <span>{{ modalTexts.title }}</span>
     </template>
     <template #content>
-      <span>{{ modalTexts.message }}</span>
+      <span v-if="modalTexts.message">{{ modalTexts.message }}</span>
     </template>
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <VtsModalConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton>
         {{ modalTexts.action }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import type { ActionsByObject, HostActions, ObjectType, VmActions } from '@core/types/object.type.ts'
@@ -27,7 +27,7 @@ import { useI18n } from 'vue-i18n'
 
 type ActionTexts = {
   title: string
-  message: string
+  message?: string
   action: string
 }
 
@@ -38,23 +38,30 @@ type TextMappingByObject = {
 type VtsActionModalVmProps = {
   object: 'vm'
   action: VmActions
+  vmName: string
   hostName?: never
 }
 
 type VtsActionModalHostProps = {
   object: 'host'
   action: HostActions
+  vmName?: never
   hostName: string
 }
 
-const { action, object, hostName } = defineProps<
+const { action, object, vmName, hostName } = defineProps<
   (VtsActionModalVmProps | VtsActionModalHostProps) & {
     accent: ModalAccent
     icon: IconName
   }
 >()
 
-const defaultActionByObject: { [O in ObjectType]: ActionsByObject[O] } = {
+const emit = defineEmits<{
+  confirm: []
+  cancel: []
+}>()
+
+const defaultActionByObject: ActionsByObject = {
   vm: 'shutdown',
   host: 'disable',
 }
@@ -64,36 +71,80 @@ const { t } = useI18n()
 const textMappingsByObject: TextMappingByObject = {
   vm: {
     'force-reboot': {
-      title: t('modal:confirm-vm-force-reboot'),
+      title: t('modal:confirm-vm-force-reboot?', { vm: vmName }),
       message: t('modal:vm-force-reboot-message'),
       action: t('modal:action:vm-force-reboot'),
     },
     'force-shutdown': {
-      title: t('modal:confirm-vm-force-shutdown'),
+      title: t('modal:confirm-vm-force-shutdown?', { vm: vmName }),
       message: t('modal:vm-force-shutdown-message'),
       action: t('modal:action:vm-force-shutdown'),
     },
     reboot: {
-      title: t('modal:confirm-vm-reboot'),
+      title: t('modal:confirm-vm-reboot?', { vm: vmName }),
       message: t('modal:vm-reboot-message'),
       action: t('modal:action:vm-reboot'),
     },
     shutdown: {
-      title: t('modal:confirm-vm-shutdown'),
+      title: t('modal:confirm-vm-shutdown?', { vm: vmName }),
       message: t('modal:vm-shutdown-message'),
       action: t('modal:action:vm-shutdown'),
     },
   },
   host: {
     enable: {
-      title: t('modal:confirm-host-enable', { host: hostName }),
+      title: t('modal:confirm-host-enable?', { host: hostName }),
       message: t('modal:host-enable-message'),
       action: t('action:enable-host'),
     },
     disable: {
-      title: t('modal:confirm-host-disable', { host: hostName }),
+      title: t('modal:confirm-host-disable?', { host: hostName }),
       message: t('modal:host-disable-message'),
       action: t('action:disable-host'),
+    },
+    shutdown: {
+      title: t('modal:confirm-host-shutdown?', { host: hostName }),
+      message: t('modal:host-shutdown-message'),
+      action: t('action:shutdown-host'),
+    },
+    start: {
+      title: t('modal:confirm-host-start?', { host: hostName }),
+      action: t('action:start-host'),
+    },
+    forget: {
+      title: t('modal:confirm-host-forget?', { host: hostName }),
+      message: t('modal:host-forget-message'),
+      action: t('action:forget-host'),
+    },
+    'disable-and-evacuate-vms': {
+      title: t('modal:confirm-host-disable-and-evacuate-vms?', { host: hostName }),
+      message: t('modal:host-disable-and-evacuate-vms-message'),
+      action: t('action:disable-host-and-evacuate-vms'),
+    },
+    reboot: {
+      title: t('modal:confirm-host-reboot?', { host: hostName }),
+      message: t('modal:host-reboot-message'),
+      action: t('action:reboot-host'),
+    },
+    'force-reboot': {
+      title: t('modal:confirm-host-force-reboot?', { host: hostName }),
+      message: t('modal:host-force-reboot-message'),
+      action: t('action:force-reboot-host'),
+    },
+    'smart-reboot': {
+      title: t('modal:confirm-host-smart-reboot?', { host: hostName }),
+      message: t('modal:host-smart-reboot-message'),
+      action: t('action:smart-reboot-host'),
+    },
+    'restart-toolstack': {
+      title: t('modal:confirm-host-restart-toolstack?', { host: hostName }),
+      message: t('modal:host-restart-toolstack-message'),
+      action: t('action:restart-toolstack'),
+    },
+    detach: {
+      title: t('modal:confirm-host-detach?', { host: hostName }),
+      message: t('modal:host-detach-message'),
+      action: t('action:detach'),
     },
   },
 }

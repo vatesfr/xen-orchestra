@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="status:info-picto" dismissible>
+  <UiModal accent="info" icon="status:info-picto" @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       {{ t('vdi-detach-title', { n: count }) }}
     </template>
@@ -9,22 +9,27 @@
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <VtsModalConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton>
         {{ t(`action:detach-n-vdis`, { n: count }) }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@xen-orchestra/web-core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@xen-orchestra/web-core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@xen-orchestra/web-core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
   count: number
+}>()
+
+const emit = defineEmits<{
+  confirm: []
+  cancel: []
 }>()
 
 const { t } = useI18n()

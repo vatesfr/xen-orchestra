@@ -10,7 +10,7 @@
 
 <script lang="ts" setup>
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { toVariants } from '@core/utils/to-variants.util'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { useI18n } from 'vue-i18n'
 
 export type LabelAccent = 'neutral' | 'warning' | 'danger'

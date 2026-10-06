@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="storage-repository-infos-card">
     <UiCardTitle>
       <div v-if="sr.name_label" class="title">
         <VtsIcon :name="srStatusIcon" size="medium" />
@@ -58,7 +58,7 @@
         <template #value><VtsStatus :status="isHaSr" /></template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -72,8 +72,8 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -101,9 +101,7 @@ const isHaSr = computed(() => isHaSrForPool(sr, pool))
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.storage-repository-infos-card {
   .title {
     display: flex;
     align-items: center;

@@ -1,5 +1,11 @@
-import { TreeNodeBase } from '@core/packages/tree/tree-node-base'
-import type { BranchStatuses, ChildTreeGetter, TreeContext, TreeNode, TreeNodeOptions } from '@core/packages/tree/types'
+import { TreeNodeBase } from '@core/packages/tree/tree-node-base.ts'
+import type {
+  BranchStatuses,
+  ChildTreeGetter,
+  TreeContext,
+  TreeNode,
+  TreeNodeOptions,
+} from '@core/packages/tree/types.ts'
 
 export class Branch<
   TData extends object = any,

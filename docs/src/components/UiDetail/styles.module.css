@@ -1,0 +1,43 @@
+/* A cropped close-up: dashed frame + magnifier tag say "zoom", in
+   contrast with the solid browser chrome of full-page <UiShot>s. */
+.detail {
+  position: relative;
+  margin: 1.6rem auto;
+  border: 2px dashed var(--ifm-color-emphasis-300);
+  border-radius: 10px;
+  padding: 0.5rem;
+  background: var(--ifm-background-surface-color);
+}
+
+.tag {
+  position: absolute;
+  top: -0.75rem;
+  left: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-emphasis-600);
+  background: var(--ifm-background-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+}
+
+.screen {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+.caption {
+  padding: 0.45rem 0.3rem 0.1rem;
+  font-size: 0.82rem;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--ifm-color-emphasis-600);
+  text-align: center;
+}

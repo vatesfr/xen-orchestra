@@ -16,7 +16,7 @@
 import VtsQuickTaskList from '@core/components/task/VtsQuickTaskList.vue'
 import VtsQuickTaskTabBar, { type TaskTab } from '@core/components/task/VtsQuickTaskTabBar.vue'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
-import { useUiStore } from '@core/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed, ref } from 'vue'
 
 const props = defineProps<{

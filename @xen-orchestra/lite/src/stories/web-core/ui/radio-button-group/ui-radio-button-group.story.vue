@@ -30,7 +30,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, setting, slot } from '@/libs/story/story-param'
+import { prop, setting, slot } from '@/libs/story/story-param.ts'
 import { boolean } from '@/libs/story/story-widget.ts'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'

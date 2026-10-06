@@ -11,7 +11,7 @@ import PoolTreeItem from '@/modules/treeview/components/PoolTreeItem.vue'
 import SiteTreeItem from '@/modules/treeview/components/SiteTreeItem.vue'
 import VmTreeItem from '@/modules/treeview/components/VmTreeItem.vue'
 import type { HostBranch, PoolBranch, SiteBranch, VmLeaf } from '@/modules/treeview/types/tree.type.ts'
-import type { TreeNode } from '@core/packages/tree/types'
+import type { TreeNode } from '@core/packages/tree/types.ts'
 import { IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util.ts'
 import { computed, provide } from 'vue'
 

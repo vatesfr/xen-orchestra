@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xen-api",
-  "version": "4.8.0",
+  "version": "5.0.2",
   "license": "ISC",
   "description": "Connector to the Xen API",
   "keywords": [
@@ -28,7 +28,7 @@
     "xen-api": "./cli.mjs"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.19"
   },
   "dependencies": {
     "@vates/coalesce-calls": "^0.1.0",
@@ -42,7 +42,6 @@
     "@xen-orchestra/xapi-pg": "^1.0.0",
     "bind-property-descriptor": "^2.0.0",
     "blocked": "^1.2.1",
-    "http-request-plus": "^1.0.2",
     "jest-diff": "^29.0.3",
     "json-rpc-protocol": "^0.13.1",
     "limit-concurrency-decorator": "^0.6.0",
@@ -53,9 +52,9 @@
     "proxy-agent": "^6.3.1",
     "promise-toolbox": "^0.21.0",
     "pw": "0.0.4",
-    "undici": "^6.2.1",
+    "undici": "^8.10.0",
     "xo-collection": "^0.6.1",
-    "xo-common": "^0.10.0"
+    "xo-common": "^0.11.0"
   },
   "devDependencies": {
     "getopts": "^2.3.0",
@@ -69,11 +68,11 @@
     "source-map-support": "^0.5.21",
     "tap": "^18.7.0",
     "throttle": "^1.0.3",
-    "vhd-lib": "^4.16.1"
+    "vhd-lib": "^4.16.2"
   },
   "scripts": {
     "plot": "gnuplot -p memory-test.gnu",
     "postversion": "npm publish",
-    "test": "tap --allow-incomplete-coverage"
+    "test": "tap --allow-incomplete-coverage *.spec.mjs && node --test"
   }
 }

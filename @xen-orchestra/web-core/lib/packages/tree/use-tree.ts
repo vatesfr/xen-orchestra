@@ -1,4 +1,4 @@
-import { buildNodes } from '@core/packages/tree/build-nodes'
+import { buildNodes } from '@core/packages/tree/build-nodes.ts'
 import type {
   DefinitionToTreeNode,
   FlatTreeNode,
@@ -7,7 +7,7 @@ import type {
   TreeNodeDefinition,
   TreeNodeId,
   UseTreeOptions,
-} from '@core/packages/tree/types'
+} from '@core/packages/tree/types.ts'
 import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
 
 export function useTree<
@@ -93,7 +93,7 @@ export function useTree<
 
   function findNodeByObjectId(nodes: TreeNode[], objectId: string | number): TreeNode | undefined {
     for (const node of nodes) {
-      if (node && node.data && (node.data.id === objectId || String(node.data.id) === String(objectId))) {
+      if (node && node.data !== undefined && String(node.dataId) === String(objectId)) {
         return node
       }
       if (node && node.isBranch && node.hasChildren) {

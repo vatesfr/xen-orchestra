@@ -24,8 +24,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { slot, setting } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import { slot, setting } from '@/libs/story/story-param.ts'
+import { text } from '@/libs/story/story-widget.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'

@@ -1,4 +1,4 @@
-import { createQueryBuilderFilter } from '@core/packages/query-builder/filter/create-query-builder-filter'
+import { createQueryBuilderFilter } from '@core/packages/query-builder/filter/create-query-builder-filter.ts'
 import { getComparisonOperator } from '@core/packages/query-builder/node/get-comparison-operator.ts'
 import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import type { Comparison as ComparisonNode } from 'complex-matcher'

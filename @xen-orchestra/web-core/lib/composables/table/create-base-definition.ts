@@ -1,4 +1,4 @@
-import type { BaseDefinition, ColumnOptions } from '@core/composables/table/type'
+import type { BaseDefinition, ColumnOptions } from '@core/composables/table/type.ts'
 
 export function createBaseDefinition<TId extends string, TRecord>(
   columnId: TId,

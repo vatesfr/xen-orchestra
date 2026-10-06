@@ -2,11 +2,38 @@
 
 ## **next**
 
+- [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
+- [Treeview] Add a search bar and virtualize the tree (PR [#10414](https://github.com/vatesfr/xen-orchestra/pull/10414))
+
+## **0.26.0** (2026-10-01)
+
+- [Host] Add possibility to reboot a host (PR [#10250](https://github.com/vatesfr/xen-orchestra/pull/10250))
+- [Web-Core/TabItem] Update the component to remove uppercase for better readability (PR [#10338](https://github.com/vatesfr/xen-orchestra/pull/10338))
+- [Host] Add possibility to force reboot a host (PR [#10311](https://github.com/vatesfr/xen-orchestra/pull/10311))
+- [Icons] Update FontAwesome, clean unused libraries (PR [#10365](https://github.com/vatesfr/xen-orchestra/pull/10365))
+- [Host] Add possibility to shut down and start a host (PR [#10314](https://github.com/vatesfr/xen-orchestra/pull/10314))
+- Use `MenuItem`'s `accent` prop to color menu actions instead of custom CSS classes (PR [#10348](https://github.com/vatesfr/xen-orchestra/pull/10348))
+- [Host] Add possibility to forget a host (PR [#10315](https://github.com/vatesfr/xen-orchestra/pull/10315))
+- [Pool/Network] Add the possibility to delete host internal networks (PR [#10332](https://github.com/vatesfr/xen-orchestra/pull/10332))
+
+## **0.25.0** (2026-08-31)
+
+- [Treeview] Add VM tree actions (PR [#10304](https://github.com/vatesfr/xen-orchestra/pull/10304))
+- [Pool/networks] Add the possibility to create new network or bonded network (PR [#10145](https://github.com/vatesfr/xen-orchestra/pull/10145))
+- [VM] Add VDIs page with table and side panel (PR [#10269](https://github.com/vatesfr/xen-orchestra/pull/10269))
+- [Host/Network] Add ability to rescan physical network interfaces (PIFs) (PR [#10147](https://github.com/vatesfr/xen-orchestra/pull/10147))
+- Fix inconsistent spacing in side panel cards (PR [#10279](https://github.com/vatesfr/xen-orchestra/pull/10279))
+- Fix missing collapse buttons on pools and hosts in the tree sidebar (added `hasChildren` prop) (PR [#10244](https://github.com/vatesfr/xen-orchestra/pull/10244))
+- [Pool/networks] Add the possibility to create new internal network (PR [#10235](https://github.com/vatesfr/xen-orchestra/pull/10235))
+
+## **0.24.0** (2026-07-30)
+
 - [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))
 - Remove all "coming soon" disabled button placeholders from network, VM, and pool components (PR [#10068](https://github.com/vatesfr/xen-orchestra/pull/10068))
 - [VM/Network] add possibility to “connect/disconnect” a VIF on a VM (PR [#10080](https://github.com/vatesfr/xen-orchestra/pull/10080))
 - [Pool/networks] Add the possibility to copy information from one or more networks in JSON format (PR [#10083](https://github.com/vatesfr/xen-orchestra/pull/10083))
 - Fix some design inconsistency between pages (PR [#10109](https://github.com/vatesfr/xen-orchestra/pull/10109))
+- [VM/Network/VIF] Add possibility to create VIF from VM > Network screen (PR [#10216](https://github.com/vatesfr/xen-orchestra/pull/10216))
 
 ## **0.23.0** (2026-06-30)
 

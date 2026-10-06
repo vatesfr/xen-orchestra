@@ -1,4 +1,4 @@
-import { toComputed } from '@core/utils/to-computed.util'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { ComputedRef, InjectionKey, MaybeRefOrGetter } from 'vue'
 import { inject, provide, toValue } from 'vue'
 

@@ -24,7 +24,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { IconName } from '@core/icons'
 import { computed } from 'vue'
 
-export type DonutSegmentAccent = 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'muted'
+export type DonutSegmentAccent = 'info' | 'secondary' | 'success' | 'warning' | 'danger' | 'muted'
 
 export type DonutSegment = {
   value: number
@@ -79,12 +79,12 @@ const computedSegments = computed(() => {
     stroke-width: 10;
     fill: transparent;
 
-    &.accent--neutral {
-      stroke: var(--color-neutral-txt-secondary);
-    }
-
     &.accent--info {
       stroke: var(--color-info-item-base);
+    }
+
+    &.accent--secondary {
+      stroke: var(--color-neutral-txt-secondary);
     }
 
     &.accent--success {

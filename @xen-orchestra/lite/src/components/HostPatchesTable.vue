@@ -14,12 +14,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiPatchWithHostRefs } from '@/composables/host-patches.composable'
+import type { XenApiPatchWithHostRefs } from '@/composables/host-patches.composable.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import { useTableState } from '@core/composables/table-state.composable'
-import { useUiStore } from '@core/stores/ui.store'
-import { usePatchColumns } from '@core/tables/column-sets/patch-columns'
+import { useTableState } from '@core/composables/table-state.composable.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
+import { usePatchColumns } from '@core/tables/column-sets/patch-columns.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

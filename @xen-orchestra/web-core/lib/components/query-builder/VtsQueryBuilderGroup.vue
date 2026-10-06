@@ -7,9 +7,11 @@
           <template #trigger="{ open }">
             <UiButtonIcon size="medium" accent="brand" icon="fa:ellipsis" @click="open" />
           </template>
-          <MenuItem @click="emit('duplicate')">{{ t('action:duplicate') }}</MenuItem>
-          <MenuItem @click="emit('remove', true)">{{ t('action:move-filters-to-parent-group') }}</MenuItem>
-          <MenuItem @click="emit('remove')">{{ t('action:delete-group') }}</MenuItem>
+          <MenuItem accent="neutral" @click="emit('duplicate')">{{ t('action:duplicate') }}</MenuItem>
+          <MenuItem accent="neutral" @click="emit('remove', true)">
+            {{ t('action:move-filters-to-parent-group') }}
+          </MenuItem>
+          <MenuItem accent="danger" @click="emit('remove')">{{ t('action:delete-group') }}</MenuItem>
         </MenuList>
       </div>
       <div class="content">
@@ -54,7 +56,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import type { QueryBuilderGroup } from '@core/packages/query-builder/types'
+import type { QueryBuilderGroup } from '@core/packages/query-builder/types.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

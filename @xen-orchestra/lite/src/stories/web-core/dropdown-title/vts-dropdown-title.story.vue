@@ -22,8 +22,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { event, iconProp, prop, setting, slot } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import { event, iconProp, prop, setting, slot } from '@/libs/story/story-param.ts'
+import { text } from '@/libs/story/story-widget.ts'
 import VtsDropdownTitle from '@core/components/dropdown/VtsDropdownTitle.vue'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import UiDropdownList from '@core/components/ui/dropdown/UiDropdownList.vue'

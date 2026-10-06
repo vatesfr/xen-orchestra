@@ -1,18 +1,18 @@
 <template>
   <UiButton
-    v-tooltip="!canConnectSr && connectSrErrorMessage"
+    v-tooltip="!canConnectSrs && connectSrsErrorMessage"
     size="medium"
     variant="tertiary"
     accent="brand"
-    :disabled="!canConnectSr"
+    :disabled="!canConnectSrs"
     left-icon="action:connect"
-    :busy="isConnectingSr"
-    @click="openSrConnectModal()"
+    :busy="isConnectingSrs"
+    @click="connectSrs()"
   >
     {{ t('action:connect') }}
     <UiCounter
       v-if="isPartiallyConnectedInScope"
-      :value="targetCount"
+      :value="connectionTargetCount"
       accent="brand"
       variant="secondary"
       size="small"
@@ -23,7 +23,7 @@
 <script lang="ts" setup>
 import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
 import { useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable.ts'
-import { useSrConnectModal } from '@/modules/storage-repository/composables/use-sr-connect-modal.composable.ts'
+import { useSrConnection } from '@/modules/storage-repository/composables/use-sr-connection.composable.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
@@ -42,14 +42,8 @@ const { isPartiallyConnectedInScope } = useSrUtils(
 
 const { t } = useI18n()
 
-const {
-  openModal: openSrConnectModal,
-  canRun: canConnectSr,
-  isRunning: isConnectingSr,
-  errorMessage: connectSrErrorMessage,
-  targetCount,
-} = useSrConnectModal(
-  () => [sr],
-  () => scope
-)
+const { connectSrs, canConnectSrs, isConnectingSrs, connectSrsErrorMessage, connectionTargetCount } = useSrConnection({
+  srs: () => [sr],
+  scope: () => scope,
+})
 </script>

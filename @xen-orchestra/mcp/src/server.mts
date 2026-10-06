@@ -23,7 +23,7 @@ export async function createServer(getClient: () => XoClient): Promise<McpServer
   const server = new McpServer({ name: 'xo-mcp-server', version: '1.0.0' })
 
   const client = getClient()
-  const spec = await fetchSwaggerSpec(client.getBaseUrl(), client.getAuthHeaders())
+  const spec = await fetchSwaggerSpec(client.getBaseUrl(), client.getAuthHeaders(), client.fetchFn)
   const domains = parseSwagger(spec, parseEnvOverrides())
 
   for (const domain of domains.values()) {
@@ -31,7 +31,7 @@ export async function createServer(getClient: () => XoClient): Promise<McpServer
   }
 
   registerCheckConnection(server, getClient)
-  registerSearchDocs(server)
+  registerSearchDocs(server, getClient)
   registerGetInfrastructureSummary(server, getClient)
 
   return server

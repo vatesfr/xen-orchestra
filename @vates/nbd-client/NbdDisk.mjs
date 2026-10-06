@@ -6,11 +6,17 @@ import NbdClient from '@vates/nbd-client'
  */
 
 /**
+ * any NBD client, whatever transport it uses
+ *
+ * @typedef {import('@vates/nbd-client').AbstractNbdClient} AbstractNbdClient
+ */
+
+/**
  * @extends {RandomAccessDisk}
  */
 export class NbdDisk extends RandomAccessDisk {
   #nbdInfos
-  /** @type {NbdClient|undefined} */
+  /** @type {AbstractNbdClient|undefined} */
   #nbdClient
 
   /** @type {Array<DataRange> | undefined} */
@@ -19,19 +25,63 @@ export class NbdDisk extends RandomAccessDisk {
   /** @type {number} */
   #blockSize
 
-  constructor(nbdInfos, blockSize, { dataMap } = {}) {
+  /** @type {number | undefined} */
+  #hasBlockCursor
+
+  /** @type {number | undefined} */
+  #hasBlockPreviousIndex
+
+  /** @type {typeof AbstractNbdClient} */
+  #ClientClass
+
+  /**
+   * @param {object} nbdInfos - the settings of the client, depends on `ClientClass`
+   * @param {number} blockSize
+   * @param {object} [options]
+   * @param {Array<{offset: number, length: number, type: number}>} [options.dataMap] - computed through `getMap()` when not provided
+   * @param {typeof AbstractNbdClient} [options.ClientClass] - to talk to a NBD server through another transport
+   */
+  constructor(nbdInfos, blockSize, { dataMap, ClientClass = NbdClient } = {}) {
     super()
     this.#blockSize = blockSize
     this.#nbdInfos = nbdInfos
+    this.#ClientClass = ClientClass
     this.#dataMap = dataMap && this.#processDatamap(dataMap)
   }
 
   #processDatamap(rawDataMap) {
-    return rawDataMap
-      .filter(({ type }) => type === 0)
+    const ranges = rawDataMap
+      .filter(({ type, length }) => type === 0 && length > 0)
       .map(({ offset, length }) => ({ offset, length }))
       .sort(({ offset: offset1 }, { offset: offset2 }) => offset1 - offset2)
+
+    // hasBlock()'s forward-only cursor is only correct if the extents are
+    // sorted AND disjoint: an earlier extent must never reach into a block
+    // after a later one, otherwise the cursor could skip it and wrongly report
+    // a block as empty, dropping data and corrupting the output.
+    // Touching extents (cur.offset === prevEnd) are merged
+    const merged = []
+    for (const range of ranges) {
+      const last = merged[merged.length - 1]
+      if (last !== undefined) {
+        const lastEnd = last.offset + last.length
+        if (range.offset < lastEnd) {
+          throw new Error(
+            `overlapping ranges in data map: [${last.offset}, ${lastEnd}) and [${range.offset}, ${range.offset + range.length})`
+          )
+        }
+        if (range.offset === lastEnd) {
+          // touching: extend the previous extent
+          last.length += range.length
+          continue
+        }
+      }
+      // gap (or first range): new extent
+      merged.push(range)
+    }
+    return merged
   }
+
   /**
    * @param {number} index
    * @returns {Promise<DiskBlock>}
@@ -78,7 +128,7 @@ export class NbdDisk extends RandomAccessDisk {
    * @returns {Promise<void>}
    */
   async init() {
-    this.#nbdClient = new NbdClient(this.#nbdInfos)
+    this.#nbdClient = new this.#ClientClass(this.#nbdInfos)
     await this.#nbdClient.connect()
     if (this.#dataMap === undefined) {
       this.#dataMap = this.#processDatamap(await this.#nbdClient.getMap())
@@ -118,6 +168,34 @@ export class NbdDisk extends RandomAccessDisk {
   }
 
   /**
+   * Counts the allocated blocks without materializing the index list.
+   *
+   * @returns {number}
+   */
+  getBlockIndexesCount() {
+    if (!this.#dataMap) {
+      throw new Error("can't getBlockIndexesCount before init")
+    }
+
+    const blockSize = this.getBlockSize()
+
+    let count = 0
+    let lastCountedBlock = -1
+    for (const { offset, length } of this.#dataMap) {
+      const firstBlockIndex = Math.floor(offset / blockSize)
+      const lastBlockIndex = Math.floor((offset + length - 1) / blockSize)
+      const from = Math.max(firstBlockIndex, lastCountedBlock + 1)
+
+      if (lastBlockIndex >= from) {
+        count += lastBlockIndex - from + 1
+        lastCountedBlock = lastBlockIndex
+      }
+    }
+
+    return count
+  }
+
+  /**
    * @param {number} index
    * @returns {boolean}
    */
@@ -125,8 +203,32 @@ export class NbdDisk extends RandomAccessDisk {
     if (!this.#dataMap) {
       throw new Error("can't hasBlock before init")
     }
-    const blockStart = index * this.getBlockSize()
-    const blockEnd = (index + 1) * this.getBlockSize()
-    return this.#dataMap.some(({ offset, length }) => offset + length > blockStart && offset < blockEnd)
+
+    const blockSize = this.getBlockSize()
+    const blockStart = index * blockSize
+    const blockEnd = blockStart + blockSize
+
+    let startExtentIndex = 0
+    if (this.#hasBlockCursor !== undefined && index >= this.#hasBlockPreviousIndex) {
+      startExtentIndex = this.#hasBlockCursor
+    } else {
+      this.#hasBlockCursor = undefined
+    }
+    this.#hasBlockPreviousIndex = index
+
+    const dataMap = this.#dataMap
+    const l = dataMap.length
+    for (let i = startExtentIndex; i < l; i++) {
+      const { offset, length } = dataMap[i]
+      if (offset >= blockEnd) {
+        // extents are sorted: nothing from here on can overlap this block
+        break
+      }
+      if (offset + length > blockStart) {
+        this.#hasBlockCursor = i
+        return true
+      }
+    }
+    return false
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <UiCard :has-error class="pool-dashboard-status">
+  <UiCard :has-error>
     <UiCardTitle>{{ t('status') }}</UiCardTitle>
     <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">{{ t('error-no-data') }}</VtsStateHero>
@@ -25,8 +25,8 @@
 
 <script lang="ts" setup>
 import PoolDashboardStatusItem from '@/components/pool/dashboard/PoolDashboardStatusItem.vue'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
-import { useVmStore } from '@/stores/xen-api/vm.store'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -56,9 +56,3 @@ const totalVmsCount = computed(() => vms.value.length)
 
 const activeVmsCount = computed(() => vms.value.filter(vm => vm.power_state === 'Running').length)
 </script>
-
-<style lang="postcss" scoped>
-.pool-dashboard-status {
-  min-width: 32rem;
-}
-</style>

@@ -9,10 +9,18 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop } from '@/libs/story/story-param'
+import { iconProp, prop } from '@/libs/story/story-param.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+
+const { open: openLegendModal } = useOverlay({
+  component: () => import('@/stories/overlay/DemoLegendInfoModal.vue'),
+  events: {
+    onClose: true,
+  },
+})
 
 const title: DonutChartWithLegendProps['title'] = {
   label: 'Chart Title',
@@ -22,7 +30,7 @@ const title: DonutChartWithLegendProps['title'] = {
 
 const segments: DonutChartWithLegendProps['segments'] = [
   { value: 16, accent: 'success', label: 'Online' },
-  { value: 22, accent: 'warning', label: 'Maintenance', tooltip: 'Accessible in read-only' },
+  { value: 22, accent: 'warning', label: 'Maintenance', onInfoClick: () => openLegendModal() },
   { value: 35, accent: 'danger', label: 'Offline' },
   { value: 12, accent: 'muted', label: 'Unknown' },
 ]

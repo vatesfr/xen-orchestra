@@ -1,43 +1,57 @@
 <template>
-  <VtsModal accent="warning" icon="status:warning-picto" dismissible>
+  <UiModal :accent :icon @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
-      <I18nT keypath="confirm-delete" scope="global" tag="div">
-        <span class="n-delete">
-          <slot name="title" />
-        </span>
-      </I18nT>
+      {{ t('confirm-delete', { name: subject }) }}
     </template>
 
     <template #content>
-      <slot name="content">{{ t('please-confirm-to-continue') }}</slot>
+      {{ description ?? t('please-confirm-to-continue') }}
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <VtsModalConfirmButton>
-        <slot name="confirm" />
-      </VtsModalConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton>
+        {{ confirmLabel }}
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
+import type { IconName } from '@core/icons'
+import { useMapper } from '@core/packages/mapper'
 import { useI18n } from 'vue-i18n'
 
-defineSlots<{
-  title(): any
-  content?(): any
-  confirm(): any
+type DeleteModalAccent = 'warning' | 'danger'
+
+const {
+  subject,
+  description,
+  confirmLabel,
+  accent = 'warning',
+} = defineProps<{
+  subject: string
+  confirmLabel: string
+  description?: string
+  accent?: DeleteModalAccent
+}>()
+
+const emit = defineEmits<{
+  confirm: []
+  cancel: []
 }>()
 
 const { t } = useI18n()
-</script>
 
-<style lang="postcss" scoped>
-.n-delete {
-  color: var(--color-warning-item-base);
-}
-</style>
+const icon = useMapper<DeleteModalAccent, IconName>(
+  () => accent,
+  {
+    warning: 'status:warning-picto',
+    danger: 'status:danger-picto',
+  },
+  'warning'
+)
+</script>

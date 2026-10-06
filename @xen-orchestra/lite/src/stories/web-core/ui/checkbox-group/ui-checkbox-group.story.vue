@@ -21,7 +21,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, slot } from '@/libs/story/story-param'
+import { prop, slot } from '@/libs/story/story-param.ts'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
 import { ref } from 'vue'

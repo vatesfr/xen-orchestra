@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="task-quick-infos-card">
     <UiCardTitle v-if="nameParts !== undefined || task.properties.name !== undefined" class="text-ellipsis">
       <div v-if="nameParts" class="title">
         <VtsIcon name="fa:bars-progress" size="medium" />
@@ -61,7 +61,7 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -74,10 +74,10 @@ import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObject
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
@@ -131,8 +131,7 @@ const formattedEndDate = computed(() => {
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
+.task-quick-infos-card {
   .title {
     display: flex;
     flex-wrap: wrap;

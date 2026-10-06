@@ -21,7 +21,7 @@ export function useDefaultTab(dispatcherRouteName: RouteRecordName & string, def
       if (name === dispatcherRouteName) {
         const isSameDispatcher = localStorage.getItem(TAB_MEMORY_DISPATCHER) === dispatcherRouteName
         const tabName = (isSameDispatcher ? localStorage.getItem(TAB_MEMORY_LAST) : null) ?? defaultTab
-        void router.replace({ name: `${dispatcherRouteName}/${tabName}` } as RouteLocationRaw)
+        void router.replace({ name: `${dispatcherRouteName}/${tabName}`, query: route.query } as RouteLocationRaw)
       } else if (!name.startsWith(dispatcherRouteName)) {
         return
       }

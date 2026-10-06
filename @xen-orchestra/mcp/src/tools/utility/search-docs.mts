@@ -1,6 +1,8 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { formatToolError } from '../../helpers/tool-error.mjs'
+import { proxyFetch, type FetchFn } from '../../utils/proxy.mjs'
+import type { XoClient } from '../../xo-client.mjs'
 
 const DOC_FETCH_TIMEOUT_MS = 30_000
 
@@ -18,12 +20,12 @@ const DOC_TOPICS = [
   'releases',
 ] as const
 
-export async function fetchDocumentation(path: string): Promise<string> {
+export async function fetchDocumentation(path: string, fetchFn: FetchFn = proxyFetch): Promise<string> {
   const url = `${XO_DOCS_BASE_URL}${path}`
 
   let response: Response
   try {
-    response = await fetch(url, {
+    response = await fetchFn(url, {
       headers: { Accept: 'text/html' },
       signal: AbortSignal.timeout(DOC_FETCH_TIMEOUT_MS),
     })
@@ -67,7 +69,7 @@ export async function fetchDocumentation(path: string): Promise<string> {
   return text
 }
 
-export function registerSearchDocs(server: McpServer): void {
+export function registerSearchDocs(server: McpServer, getClient: () => XoClient): void {
   server.registerTool(
     'search_documentation',
     {
@@ -82,7 +84,7 @@ export function registerSearchDocs(server: McpServer): void {
       const path = `/${topic}`
 
       try {
-        const content = await fetchDocumentation(path)
+        const content = await fetchDocumentation(path, getClient().fetchFn)
         return {
           content: [
             {

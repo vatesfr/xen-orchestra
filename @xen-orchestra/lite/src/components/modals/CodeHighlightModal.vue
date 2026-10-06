@@ -1,16 +1,20 @@
 <template>
-  <VtsModal accent="info" dismissible>
+  <UiModal accent="info" @dismiss="emit('close')">
     <template #content>
       <CodeHighlight :code />
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
 import CodeHighlight from '@/components/CodeHighlight.vue'
-import VtsModal from '@core/components/modal/VtsModal.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 
 defineProps<{
   code: any
+}>()
+
+const emit = defineEmits<{
+  close: []
 }>()
 </script>

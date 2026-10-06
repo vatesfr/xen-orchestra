@@ -6,8 +6,8 @@
 </template>
 
 <script lang="ts" setup>
-import type { TooltipOptions } from '@core/stores/tooltip.store'
-import { hasEllipsis } from '@core/utils/has-ellipsis.util'
+import type { TooltipOptions } from '@core/stores/tooltip.store.ts'
+import { hasEllipsis } from '@core/utils/has-ellipsis.util.ts'
 import { isString } from 'lodash-es'
 import place from 'placement.js'
 import { computed, ref, watch, watchEffect } from 'vue'

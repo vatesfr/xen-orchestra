@@ -11,7 +11,7 @@
  * @param {number} [options.nbdConcurrency] - Number of concurrent NBD connections (default: 1)
  * @returns {Object} Complete backup job configuration
  */
-export function backupConfig(name, schedule, vm, backupRepository, options = {}) {
+export function backupConfig(name, schedule, vms, backupRepository, options = {}) {
   const config = {
     name,
     mode: 'delta', // Will be overridden by tests
@@ -26,9 +26,7 @@ export function backupConfig(name, schedule, vm, backupRepository, options = {})
         bypassVdiChainsCheck: true,
       },
     },
-    vms: {
-      [vm.uuid]: vm,
-    },
+    vms: Array.isArray(vms) ? Object.fromEntries(vms.map(vm => [vm.uuid, vm])) : { [vms.uuid]: vms },
     remotes: {
       [backupRepository.id]: backupRepository,
     },
@@ -46,6 +44,14 @@ export function backupConfig(name, schedule, vm, backupRepository, options = {})
 
   if (options.nbdConcurrency !== undefined) {
     config.settings[''].nbdConcurrency = options.nbdConcurrency
+  }
+
+  if (options.snapshotConcurrency !== undefined) {
+    config.settings[''].snapshotConcurrency = options.snapshotConcurrency
+  }
+
+  if (options.synchronizedSnapshot !== undefined) {
+    config.settings[''].synchronizedSnapshot = options.synchronizedSnapshot
   }
 
   return config

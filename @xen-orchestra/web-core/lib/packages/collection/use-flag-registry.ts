@@ -1,15 +1,18 @@
 import { objectFromEntries, objectEntries } from '@core/utils/object.util.ts'
 import type { CollectionConfigFlags, CollectionItemId, FlagConfig, FlagRegistry } from './types.ts'
-import { isRef, reactive, toValue, watch } from 'vue'
+import { isRef, reactive, unref, watch } from 'vue'
 
 export function useFlagRegistry<TFlag extends string, TId extends CollectionItemId>(
-  config: CollectionConfigFlags<TFlag> = [] as TFlag[]
+  config: CollectionConfigFlags<TFlag> = {} as CollectionConfigFlags<TFlag>
 ): FlagRegistry<TId, TFlag> {
   const registry = reactive(new Map()) as Map<TFlag, Set<TId>>
 
-  const flags = Array.isArray(config)
-    ? objectFromEntries(config.map(flag => [flag, { multiple: true } as FlagConfig]))
-    : config
+  const flags = objectFromEntries(
+    objectEntries(config).map(([flag, flagConfig]): [TFlag, FlagConfig] => [
+      flag,
+      flagConfig === true ? {} : flagConfig,
+    ])
+  )
 
   for (const [flag, { multiple }] of objectEntries(flags)) {
     if (isRef(multiple)) {
@@ -71,7 +74,7 @@ export function useFlagRegistry<TFlag extends string, TId extends CollectionItem
   function isMultipleAllowed(flag: TFlag) {
     assertFlag(flag)
 
-    return toValue(flags[flag]?.multiple) ?? true
+    return unref(flags[flag]?.multiple) ?? true
   }
 
   return {

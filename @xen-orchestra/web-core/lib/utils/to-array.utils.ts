@@ -1,4 +1,4 @@
-import type { MaybeArray } from '@core/types/utility.type'
+import type { MaybeArray } from '@core/types/utility.type.ts'
 
 export function toArray<T>(value: MaybeArray<T> | undefined): T[] {
   if (value === undefined) {

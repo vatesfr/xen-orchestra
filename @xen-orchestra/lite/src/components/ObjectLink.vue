@@ -10,12 +10,12 @@
 </template>
 
 <script generic="T extends ObjectType" lang="ts" setup>
-import type { ObjectType, ObjectTypeToRecord } from '@/libs/xen-api/xen-api.types'
-import type { XapiContext } from '@/stores/xen-api/create-xapi-store-config'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
-import { useSrStore } from '@/stores/xen-api/sr.store'
-import { useVmStore } from '@/stores/xen-api/vm.store'
+import type { ObjectType, ObjectTypeToRecord } from '@/libs/xen-api/xen-api.types.ts'
+import type { XapiContext } from '@/stores/xen-api/create-xapi-store-config.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
+import { useSrStore } from '@/stores/xen-api/sr.store.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { computed, watch } from 'vue'
 import { type RouteLocationTyped, type RouteRecordName } from 'vue-router'

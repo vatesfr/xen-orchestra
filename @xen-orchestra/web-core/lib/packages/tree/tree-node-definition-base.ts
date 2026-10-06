@@ -1,4 +1,4 @@
-import type { TreeNodeOptions } from '@core/packages/tree/types'
+import type { TreeNodeOptions } from '@core/packages/tree/types.ts'
 
 export abstract class TreeNodeDefinitionBase<TData extends object, TDiscriminator> {
   abstract readonly isBranch: boolean

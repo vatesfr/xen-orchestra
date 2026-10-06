@@ -8,7 +8,7 @@ import type { ThresholdConfig } from '@core/packages/threshold/type.ts'
 import { formatSize } from '@core/utils/size.util.ts'
 import { computed, type ComputedRef, type MaybeRefOrGetter, type Reactive, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { toComputed } from './to-computed.util'
+import { toComputed } from './to-computed.util.ts'
 
 export function defaultProgressThresholds(tooltip?: string): ThresholdConfig<ProgressBarThresholdPayload> {
   return {

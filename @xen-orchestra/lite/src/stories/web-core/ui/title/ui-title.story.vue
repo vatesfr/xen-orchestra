@@ -20,8 +20,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { setting, slot } from '@/libs/story/story-param'
-import { boolean } from '@/libs/story/story-widget'
+import { setting, slot } from '@/libs/story/story-param.ts'
+import { boolean } from '@/libs/story/story-widget.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 </script>

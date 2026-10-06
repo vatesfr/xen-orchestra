@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { LinearChartData, ValueFormatter } from '@core/types/chart'
+import type { LinearChartData, ValueFormatter } from '@core/types/chart.ts'
 import { utcFormat } from 'd3-time-format'
 import type { EChartsOption } from 'echarts'
 import { LineChart } from 'echarts/charts'

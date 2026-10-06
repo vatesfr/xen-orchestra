@@ -1,6 +1,5 @@
-import type { AnyXoBackupJob, XoBackupRepository } from '@vates/types'
+import type { AnyXoBackupJob, XoBackupRepository, XoVm, XoApp } from '@vates/types'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { provide } from 'inversify-binding-decorators'
 import { inject } from 'inversify'
 
 export class BackupRepositoryService {
@@ -25,6 +24,7 @@ export class BackupRepositoryService {
     const allJobs = await this.#restApi.xoApp.getAllJobs()
     const referencingJobs: AnyXoBackupJob['id'][] = []
 
+    // checks if a backup job related to this backup repository is running
     for (const job of allJobs) {
       if (job.type === 'backup' || job.type === 'metadataBackup') {
         if (this.isBackupRepositoryReferenced(job.remotes, repositoryId)) {
@@ -38,5 +38,21 @@ export class BackupRepositoryService {
     }
 
     return referencingJobs
+  }
+
+  async reclaimSpace(
+    backupRepositoryId: XoBackupRepository['id'],
+    body?: {
+      vmUuid?: string
+      merge?: boolean
+      remove?: boolean
+    }
+  ): Promise<Awaited<ReturnType<XoApp['reclaimSpace']>>> {
+    const vmUuid = body?.vmUuid as XoVm['id']
+    return await this.#restApi.xoApp.reclaimSpace(backupRepositoryId, {
+      vmUuid: vmUuid,
+      merge: body?.merge,
+      remove: body?.remove,
+    })
   }
 }

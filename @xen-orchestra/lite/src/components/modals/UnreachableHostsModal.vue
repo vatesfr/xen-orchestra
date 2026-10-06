@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="danger" icon="object:host">
+  <UiModal accent="danger" icon="object:host" @confirm="emit('confirm')">
     <template #title>{{ t('unreachable-hosts') }}</template>
     <template #content>
       <div class="description">
@@ -13,23 +13,28 @@
       </div>
     </template>
     <template #buttons>
-      <VtsModalCancelButton />
-      <VtsModalConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')" />
+      <VtsOverlayConfirmButton>
         {{ t('unreachable-hosts-reload-page') }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
   urls: string[]
+}>()
+
+const emit = defineEmits<{
+  confirm: []
+  cancel: []
 }>()
 
 const { t } = useI18n()

@@ -22,14 +22,14 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { usePifStore } from '@/stores/xen-api/pif.store'
+import type { XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

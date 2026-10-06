@@ -17,7 +17,7 @@ import {
 } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed } from 'vue'
 
 const { backupJob } = defineProps<{

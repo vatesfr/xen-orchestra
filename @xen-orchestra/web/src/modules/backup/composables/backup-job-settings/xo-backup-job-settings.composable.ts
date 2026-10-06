@@ -1,6 +1,6 @@
-import { getMetadataBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-metadata-backup-job-settings'
-import { getMirrorBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-mirror-backup-job-settings'
-import { getVmBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-vm-backup-job-settings'
+import { getMetadataBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-metadata-backup-job-settings.ts'
+import { getMirrorBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-mirror-backup-job-settings.ts'
+import { getVmBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-vm-backup-job-settings.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import type { ReportWhen } from '@/modules/backup/types/xo-backup.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
@@ -9,8 +9,8 @@ import { formatSpeedRaw } from '@core/utils/speed.util.ts'
 import { formatTimeout } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { reactiveComputed } from '@vueuse/shared'
-import type { Info } from 'human-format'
 import type humanFormat from 'human-format'
+import type { Info } from 'human-format'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -40,7 +40,7 @@ export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<Front
   )
 
   const maxExportRate = computed<Info<humanFormat.Scale<'B/s' | 'KiB/s' | 'MiB/s' | 'GiB/s' | 'TiB/s'>> | undefined>(
-    () => (settings.maxExportRate ? formatSpeedRaw(settings.maxExportRate) : undefined)
+    () => (settings.maxExportRate ? formatSpeedRaw(settings.maxExportRate, { maxDecimals: 2 }) : undefined)
   )
 
   const formattedTimeout = computed(() =>

@@ -7,6 +7,7 @@ const { warn } = createLogger('vates:nbd-client:multi')
 export default class MultiNbdClient {
   #clients = []
   #nbdConcurrency
+  #nextClient = 0
   #options
   #readAhead
   #settings
@@ -97,8 +98,31 @@ export default class MultiNbdClient {
    * @returns {Promise<Buffer>}
    */
   async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
-    const clientId = index % this.#clients.length
-    return this.#clients[clientId].readBlock(index, size)
+    const clientId = this.#nextClient++ % this.#clients.length
+    const client = this.#clients[clientId]
+    try {
+      return await client.readBlock(index, size)
+    } catch (err) {
+      // client.readBlock() already exhausted its own retries/reconnects: this connection is dead.
+      // Evict it so future reads stop being routed to it, and retry this read on a surviving
+      // client, since the data is usually still reachable through the others.
+      this.#evict(client)
+      if (this.#clients.length === 0) {
+        throw err
+      }
+      warn(`evicted a dead nbd client, retrying block ${index} on a remaining client`, { err })
+      return this.readBlock(index, size)
+    }
+  }
+
+  // no-op if `client` was already evicted by a concurrent failed read on the same client
+  #evict(client) {
+    const i = this.#clients.indexOf(client)
+    if (i === -1) {
+      return
+    }
+    this.#clients.splice(i, 1)
+    client.disconnect().catch(() => {})
   }
 
   /**

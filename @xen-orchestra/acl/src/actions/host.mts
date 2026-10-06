@@ -16,6 +16,7 @@ export default {
     smart: true,
   },
   'restart-toolstack': true,
+  'scan-pifs': true,
   shutdown: {
     clean: true,
     emergency: true,

@@ -2,19 +2,23 @@ import {
   type FrontXoNetwork,
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { getNetworkIcon } from '@/modules/network/utils/xo-network.util.ts'
+import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
+import { vmToTargetOption } from '@/modules/traffic-rules/form/target-option.util.ts'
 import {
   type BaseTrafficRuleFormData,
   useTrafficRuleFormBase,
 } from '@/modules/traffic-rules/form/use-traffic-rule-form-base.ts'
-import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
+import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
+import { isNetworkRuleSupported } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { objectIcon } from '@core/icons'
+import type { IconName } from '@core/icons'
 import { type FormValidationConfig, required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { TrafficRuleTargetType } from '@vates/types'
-import { toLower } from 'lodash-es'
 import { computed, type MaybeRefOrGetter, reactive, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -28,7 +32,7 @@ type TargetOption = {
   id: FrontXoVif['id'] | FrontXoNetwork['id']
   label: string
   value: FrontXoVif['id'] | FrontXoNetwork['id']
-  icon: 'object:network' | 'object:vif'
+  icon: IconName
 }
 
 export function useNewTrafficRuleForm(
@@ -39,6 +43,8 @@ export function useNewTrafficRuleForm(
 
   const poolId = toComputed(rawPoolId)
   const vifId = toComputed(rawVifId)
+
+  const getDirectionLabels = useDirectionLabels()
 
   const formData = reactive<NewTrafficRuleFormData>({
     allow: true,
@@ -51,13 +57,27 @@ export function useNewTrafficRuleForm(
     targetId: undefined,
   })
 
+  const targetPrefix = computed(() => {
+    const [, prefix] = getDirectionLabels({ type: formData.targetType, direction: formData.direction })
+
+    return prefix
+  })
+
   const isVifTarget = computed(() => formData.targetType === 'VIF')
 
+  const { useGetPoolById } = useXoPoolCollection()
   const { networks, getNetworkById } = useXoNetworkCollection()
+  const { getPifsByIds } = useXoPifCollection()
   const { vifs, useGetVifById } = useXoVifCollection()
   const { vmsByPool } = useXoVmCollection()
 
+  const pool = useGetPoolById(() => poolId.value)
+
   const sourceVif = useGetVifById(() => vifId.value)
+
+  const canCreateNetworkRule = computed(() => isNetworkRuleSupported(pool.value))
+
+  const isUnsupportedNetworkTarget = computed(() => formData.targetType === 'network' && !canCreateNetworkRule.value)
 
   const isParentNetworkPlugged = computed(() => {
     const vif = sourceVif.value
@@ -93,7 +113,7 @@ export function useNewTrafficRuleForm(
           id: network.id,
           label: network.name_label,
           value: network.id,
-          icon: 'object:network',
+          icon: getNetworkIcon(getPifsByIds(network.PIFs)),
         }))
   )
 
@@ -101,20 +121,14 @@ export function useNewTrafficRuleForm(
     poolVms.value.map(vm => {
       const hasVifs = vm.VIFs.length > 0
 
-      return {
-        id: vm.id,
-        label: vm.name_label,
-        value: vm.id,
-        icon: objectIcon('vm', toLower(vm.power_state)),
-        disabled: !hasVifs,
-      }
+      return vmToTargetOption(vm, hasVifs)
     })
   )
 
-  const targetTypeOptions = [
-    { id: 'network', label: t('network'), value: 'network' },
-    { id: 'VIF', label: t('vif'), value: 'VIF' },
-  ]
+  const targetTypeOptions = computed(() => [
+    { id: 'network', label: t('network'), value: 'network', disabled: !canCreateNetworkRule.value },
+    { id: 'VIF', label: t('vif'), value: 'VIF', disabled: false },
+  ])
 
   const extraConfig: FormValidationConfig<NewTrafficRuleFormData> = {
     errors: {
@@ -145,7 +159,11 @@ export function useNewTrafficRuleForm(
   const { id: targetTypeSelectId } = useFormSelect('targetType', targetTypeOptions, {
     required: true,
     disabled: () => !isParentNetworkPlugged.value,
-    option: { label: 'label', value: 'value' },
+    option: {
+      label: 'label',
+      value: 'value',
+      disabled: source => source.disabled,
+    },
   })
 
   const { id: vmSelectId } = useFormSelect('vmId', vmOptions, {
@@ -187,6 +205,12 @@ export function useNewTrafficRuleForm(
   )
 
   watchEffect(() => {
+    if (isUnsupportedNetworkTarget.value) {
+      formData.targetType = 'VIF'
+    }
+  })
+
+  watchEffect(() => {
     if (!sourceVif.value) {
       return
     }
@@ -206,7 +230,11 @@ export function useNewTrafficRuleForm(
     }
   })
 
-  async function validateAndBuildPayload(): Promise<NewTrafficRulePayload | undefined> {
+  async function validateAndBuildPayload(): Promise<TrafficRulePayload | undefined> {
+    if (isUnsupportedNetworkTarget.value) {
+      return undefined
+    }
+
     const valid = await validate()
 
     if (!valid || formData.targetId === undefined) {
@@ -221,6 +249,7 @@ export function useNewTrafficRuleForm(
   }
 
   return {
+    targetPrefix,
     isVifTarget,
     hasPort,
     allowSelectBindings,
@@ -231,7 +260,7 @@ export function useNewTrafficRuleForm(
     targetTypeSelectBindings: useSelect(targetTypeSelectId, () => ({ label: t('object') })),
     vmSelectBindings: useSelect(vmSelectId, () => ({ label: t('from-vm') })),
     targetSelectBindings: useSelect(targetSelectId, () => ({
-      label: formData.targetType === 'network' ? t('choose-network') : t('choose-vif'),
+      label: formData.targetType === 'network' ? t('network') : t('vif'),
     })),
     validateAndBuildPayload,
   }

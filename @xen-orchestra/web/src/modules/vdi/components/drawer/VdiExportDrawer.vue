@@ -1,5 +1,5 @@
 <template>
-  <VtsDrawer dismissible @dismiss="emit('cancel')">
+  <UiDrawer @dismiss="emit('cancel')" @confirm="emit('confirm', exportFormat)">
     <template #title>{{ t('action:export-content') }}</template>
 
     <template #content>
@@ -9,21 +9,21 @@
     </template>
 
     <template #buttons>
-      <VtsDrawerCancelButton />
-      <VtsDrawerConfirmButton :on-click="handleConfirm">
+      <VtsOverlayCancelButton @click="emit('cancel')" />
+      <VtsOverlayConfirmButton>
         {{ t('action:export-vdi') }}
-      </VtsDrawerConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsDrawer>
+  </UiDrawer>
 </template>
 
 <script setup lang="ts">
 import type { VdiExportFormat } from '@/shared/constants.ts'
-import VtsDrawer from '@core/components/drawer/VtsDrawer.vue'
-import VtsDrawerCancelButton from '@core/components/drawer/VtsDrawerCancelButton.vue'
-import VtsDrawerConfirmButton from '@core/components/drawer/VtsDrawerConfirmButton.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
+import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 import { ref } from 'vue'
@@ -52,8 +52,4 @@ const { id: exportFormatSelectedId } = useFormSelect(options, {
     value: 'value',
   },
 })
-
-function handleConfirm() {
-  emit('confirm', exportFormat.value)
-}
 </script>

@@ -38,7 +38,25 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
-      include: ['value-matcher', 'complex-matcher'],
+      include: ['value-matcher', 'complex-matcher', 'xo-remote-parser'],
+    },
+    test: {
+      globals: true,
+      setupFiles: ['./src/test/setup.ts'],
+      alias: {
+        // `placement.js` only declares a `module` entry, which the Node-style resolution used by Vitest ignores
+        'placement.js': fileURLToPath(new URL('../../node_modules/placement.js/dist/index.es.js', import.meta.url)),
+      },
+      projects: [
+        {
+          extends: true,
+          test: {
+            include: ['**/*.unit.{test,spec}.ts'],
+            name: 'unit',
+            environment: 'happy-dom',
+          },
+        },
+      ],
     },
   }
 })

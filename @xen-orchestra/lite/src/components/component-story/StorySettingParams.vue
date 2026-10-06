@@ -37,7 +37,7 @@
 <script lang="ts" setup>
 import StoryParamsTable from '@/components/component-story/StoryParamsTable.vue'
 import StoryWidget from '@/components/component-story/StoryWidget.vue'
-import type { SettingParam } from '@/libs/story/story-param'
+import type { SettingParam } from '@/libs/story/story-param.ts'
 import { useVModel } from '@vueuse/core'
 
 const props = defineProps<{

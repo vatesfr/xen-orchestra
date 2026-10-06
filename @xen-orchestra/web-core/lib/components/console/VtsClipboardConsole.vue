@@ -17,7 +17,7 @@
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

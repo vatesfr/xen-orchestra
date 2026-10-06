@@ -18,6 +18,9 @@
     <RouterTab :to="{ name: '/vm/[uuid]/network', params: { uuid } }">
       {{ t('network') }}
     </RouterTab>
+    <RouterTab :to="{ name: '/vm/[uuid]/vdis', params: { uuid } }">
+      {{ t('vdis') }}
+    </RouterTab>
     <RouterTab :to="{ name: '/vm/[uuid]/tasks', params: { uuid } }" disabled>
       {{ t('tasks') }}
     </RouterTab>
@@ -26,7 +29,7 @@
 
 <script lang="ts" setup>
 import RouterTab from '@/components/RouterTab.vue'
-import TabList from '@core/components/tab/TabList.vue'
+import TabList from '@core/components/tab-list/TabList.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

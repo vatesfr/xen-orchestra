@@ -1,5 +1,5 @@
-import { BranchDefinition } from '@core/packages/tree/branch-definition'
-import type { Identifiable, Labeled, TreeNodeDefinition, TreeNodeOptions } from '@core/packages/tree/types'
+import { BranchDefinition } from '@core/packages/tree/branch-definition.ts'
+import type { Identifiable, Labeled, TreeNodeDefinition, TreeNodeOptions } from '@core/packages/tree/types.ts'
 
 export function defineBranch<
   TData extends Identifiable & Labeled,

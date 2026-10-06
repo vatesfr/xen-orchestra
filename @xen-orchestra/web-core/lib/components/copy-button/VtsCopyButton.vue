@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useCopyToClipboard } from '@core/composables/copy.composable.ts'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

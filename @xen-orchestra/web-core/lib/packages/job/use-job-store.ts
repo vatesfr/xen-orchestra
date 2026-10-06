@@ -1,5 +1,5 @@
-import type { JobIdentity } from '@core/packages/job/define-job-arg'
-import { toArray } from '@core/utils/to-array.utils'
+import type { JobIdentity } from '@core/packages/job/define-job-arg.ts'
+import { toArray } from '@core/utils/to-array.utils.ts'
 import { defineStore } from 'pinia'
 import { shallowReactive } from 'vue'
 

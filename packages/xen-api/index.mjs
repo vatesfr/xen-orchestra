@@ -1,11 +1,12 @@
 import assert from 'assert'
 import dns from 'dns'
+import http from 'node:http'
+import https from 'node:https'
 import ms from 'ms'
-import httpRequest from 'http-request-plus'
 import map from 'lodash/map.js'
 import noop from 'lodash/noop.js'
 import Obfuscate from '@vates/obfuscate'
-import { Agent, ProxyAgent, request } from 'undici'
+import { Agent, interceptors, ProxyAgent, request } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { compose } from '@vates/compose'
@@ -16,6 +17,7 @@ import { jsonHash } from '@vates/json-hash'
 import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { decorateClass } from '@vates/decorate-with'
+import { pipeline } from 'node:stream'
 import { ProxyAgent as HttpProxyAgent } from 'proxy-agent'
 
 import getTaskResult from './_getTaskResult.mjs'
@@ -30,7 +32,98 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 
 const { debug } = createLogger('xen-api')
 
+export const DISCONNECTED_ERROR_CODE = 'XEN_API_DISCONNECTED'
+
 // ===================================================================
+// Minimal `node:http(s)` request helper used by `putResource`.
+// `fetch`/`undici` cannot be used here because `putResource` relies on a hack
+// (see below) where a huge `content-length` is announced and the connection is
+// cut once the real data has been sent
+// Mimics the subset of `http-request-plus` that `putResource` depends on:
+// resolves with the Node response on a 2xx status, otherwise rejects with an
+// error carrying the response as `error.response` (whose body is drained, so a
+// non-2xx response never leaks its socket). A stream body is never
+// replayed, so redirects are not followed for it (`putResource` probes for
+// redirections with an empty body beforehand).
+function nodeRequest(url, { body, headers, maxRedirects = 5, signal, timeout, ...opts }) {
+  url = url instanceof URL ? url : new URL(url)
+  debug('nodeRequest', url.href)
+  const bodyIsStream = body != null && typeof body.pipe === 'function'
+
+  headers = { ...headers }
+  if (body !== undefined && headers['content-length'] === undefined) {
+    const length = bodyIsStream ? (body.headers?.['content-length'] ?? body.length) : Buffer.byteLength(body)
+    if (length !== undefined) {
+      headers['content-length'] = length
+    }
+  }
+
+  let redirectsLeft = bodyIsStream ? 0 : maxRedirects
+
+  const send = currentUrl =>
+    new Promise((resolve, reject) => {
+      const req = (currentUrl.protocol === 'https:' ? https : http).request(currentUrl, { ...opts, headers, signal })
+
+      // before the response is received, errors reject the promise; afterwards,
+      // they are forwarded to the response so an abnormally closed connection
+      // (the 1PiB hack in `putResource` cuts the socket once the data has been
+      // sent) does not reject a settled promise, and `putResource`'s
+      // post-processing can handle the `ERR_STREAM_PREMATURE_CLOSE` itself
+      let sendError = reject
+      const onError = error => sendError(error)
+      req.on('error', onError)
+
+      if (timeout !== undefined) {
+        req.setTimeout(timeout, () => {
+          const error = new Error('HTTP connection has timed out')
+          error.url = currentUrl.href
+          req.destroy(error)
+        })
+      }
+
+      req.on('response', response => {
+        const { statusCode } = response
+        const { location } = response.headers
+        const isRedirect = statusCode >= 300 && statusCode < 400
+
+        if (redirectsLeft > 0 && isRedirect && location !== undefined) {
+          --redirectsLeft
+          response.destroy()
+          resolve(send(new URL(location, currentUrl)))
+          return
+        }
+
+        sendError = error => response.destroy(error)
+        // a client `IncomingMessage` has no `.url`; expose the final URL so
+        // callers (e.g. `putResource`) can attach it as error context
+        response.url = currentUrl.href
+        const isOk = statusCode >= 200 && statusCode < 300
+        if (isOk) {
+          resolve(response)
+        } else {
+          const error = new Error(`${statusCode} ${response.statusMessage}`)
+          Object.defineProperty(error, 'response', { value: response })
+
+          response.destroy()
+          reject(error)
+        }
+      })
+
+      if (bodyIsStream) {
+        // let `pipeline` own the request errors while streaming
+        req.off('error', onError)
+        pipeline(body, req, error => {
+          if (error != null) {
+            sendError(error)
+          }
+        })
+      } else {
+        req.end(body)
+      }
+    })
+
+  return send(url)
+}
 
 // in seconds!
 const EVENT_TIMEOUT = 60
@@ -153,9 +246,13 @@ export class Xapi extends EventEmitter {
     const { httpProxy } = opts
     this._allowUnauthorized = opts.allowUnauthorized
     const dispatcherOpts = {
+      // XAPI speaks HTTP/1.1 only; undici >= 8 offers h2 during ALPN by default,
+      // which buys us nothing here and changes how the TLS handshake looks to
+      // XAPI and to whatever sits in front of it (stunnel, reverse proxies).
+      allowH2: false,
+
       bodyTimeout: this._httpInactivityTimeout,
       headersTimeout: this._httpInactivityTimeout,
-      maxRedirections: 3,
     }
     const tlsOpts = {
       minVersion: 'TLSv1',
@@ -172,7 +269,9 @@ export class Xapi extends EventEmitter {
       this._undiciDispatcher = new ProxyAgent({
         ...dispatcherOpts,
 
-        proxyTls: tlsOpts,
+        // the `allowH2` option above does not apply to the connection with the
+        // HTTP proxy: undici cannot tunnel through HTTP/2 and reconnects endlessly
+        proxyTls: { ...tlsOpts, allowH2: false },
         requestTls: tlsOpts,
         token,
         uri,
@@ -184,6 +283,20 @@ export class Xapi extends EventEmitter {
         connect: tlsOpts,
       })
     }
+
+    // Redirects used to be handled by the dispatcher's `maxRedirections` option,
+    // which undici >= 8 silently ignores: it must now be an explicit
+    // interceptor. This matters when talking to a slave, which answers a 302 to
+    // the pool master. Calls that handle redirections themselves (`getResource`)
+    // keep opting out with a per-request `maxRedirections: 0`.
+    //
+    // Warning: since undici 7, this interceptor follows the fetch spec and
+    // rewrites a redirected POST into a bodyless GET, which would strip the
+    // payload of an RPC call. Harmless for now because XAPI only redirects
+    // GETs (`/export`, `/export_raw_vdi`, `/vm_rrd`) and PUTs (`/import`,
+    // `/import_raw_vdi`, `/messages`, `/rrd_put`), and answers a
+    // `HOST_IS_SLAVE` error instead of a redirection on the RPC endpoints
+    this._undiciDispatcher = this._undiciDispatcher.compose(interceptors.redirect({ maxRedirections: 3 }))
     this._setUrl(url)
 
     // Addresses of known pool members, used to fail over to a surviving host
@@ -429,6 +542,15 @@ export class Xapi extends EventEmitter {
       return this.call(`${type}.remove_from_${field}`, ref, entry).then(noop)
     }
 
+    // `cores-per-socket` is always present in `platform`, see https://github.com/vatesfr/xen-orchestra/pull/9136
+    // so, updating `platform` is the only way to change the `cores-per-socket` value
+    // this is a workaround, waiting for the XAPI to fix the `cores-per-socket: undefined` bug
+    if (type === 'VM' && field === 'platform' && entry === 'cores-per-socket') {
+      const platform = await this.getField('VM', ref, 'platform')
+      platform['cores-per-socket'] = value
+      return this.call('VM.set_platform', ref, platform)
+    }
+
     while (true) {
       // First, remove any previous value to avoid triggering an unnecessary
       // `MAP_DUPLICATE_KEY` error which will appear in the XAPI logs
@@ -565,7 +687,7 @@ export class Xapi extends EventEmitter {
     await this._setHostAddressInUrl(url, host)
 
     const doRequest = (url, opts) =>
-      httpRequest(url, {
+      nodeRequest(url, {
         agent: this._httpAgent,
         body,
         headers,
@@ -890,6 +1012,13 @@ export class Xapi extends EventEmitter {
     return Promise.resolve(task)
   }
 
+  /**
+   * Settles like `promise`, unless the connection is closed first, in which case
+   * it rejects with an error whose `code` is `DISCONNECTED_ERROR_CODE`
+   *
+   * @param {Promise} promise
+   * @returns {Promise}
+   */
   _interruptOnDisconnect(promise) {
     let listener
     const pWrapper = new Promise((resolve, reject) => {
@@ -897,7 +1026,9 @@ export class Xapi extends EventEmitter {
       this.on(
         DISCONNECTED,
         (listener = () => {
-          reject(new Error('disconnected'))
+          const error = new Error('disconnected')
+          error.code = DISCONNECTED_ERROR_CODE
+          reject(error)
         })
       )
     })

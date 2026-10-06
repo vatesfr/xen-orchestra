@@ -1,13 +1,13 @@
 import assert from 'assert'
 import contentType from 'content-type'
 import cookie from 'cookie'
-import hrp from 'http-request-plus'
 import isEmpty from 'lodash/isEmpty.js'
 import omit from 'lodash/omit.js'
 import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
 import some from 'lodash/some.js'
 import split2 from 'split2'
+import { Agent } from 'undici'
 import { compileTemplate } from '@xen-orchestra/template'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
@@ -16,6 +16,7 @@ import { format, parse } from 'json-rpc-peer'
 import { incorrectState, invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { readChunk, readChunkStrict } from '@vates/read-chunk'
+import { Readable } from 'node:stream'
 import { Ref } from 'xen-api'
 import { synchronized } from 'decorator-synchronized'
 import { timeout } from 'promise-toolbox'
@@ -27,6 +28,7 @@ import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks.mjs'
 import { generateToken } from '../utils.mjs'
 
 const DEBOUNCE_TIME_PROXY_STATE = 60000
+const DEBOUNCE_TIME_PROXY_LICENSE = 24 * 60 * 60 * 1000
 
 const synchronizedWrite = synchronized()
 
@@ -67,14 +69,26 @@ async function addProxyVersion(proxy) {
   }
 }
 
+async function addProxyLicense(proxy) {
+  try {
+    proxy.license = await this.getProxyLicense(proxy.id)
+  } catch (error) {
+    log.debug('addProxyLicense', { error, proxy })
+  }
+}
+
 async function populateProxy(proxy) {
   addProxyUrl.call(this, proxy)
   await addProxyVersion.call(this, proxy)
+  await addProxyLicense.call(this, proxy)
+  return proxy
 }
 
 export default class Proxy {
   constructor(app) {
     this._app = app
+
+    this._agents = new Map()
     const rules = {
       '{date}': (date = new Date()) => date.toISOString(),
     }
@@ -91,6 +105,7 @@ export default class Proxy {
         namespace: 'proxy',
         crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', { collection: db, type: 'proxy', decorate: populateProxy.bind(this) })
 
       return app.addConfigManager(
         'proxies',
@@ -98,6 +113,19 @@ export default class Proxy {
         proxies => db.update(proxies)
       )
     })
+  }
+
+  _getAgent(timeout) {
+    let agent = this._agents.get(timeout)
+    if (agent === undefined) {
+      agent = new Agent({
+        connect: { rejectUnauthorized: false },
+        headersTimeout: timeout,
+        bodyTimeout: timeout,
+      })
+      this._agents.set(timeout, agent)
+    }
+    return agent
   }
 
   async _getChannel() {
@@ -154,6 +182,7 @@ export default class Proxy {
           productId: this._app.config.get('xo-proxy.licenseProductId'),
         })
         .catch(log.warn)
+      this.getProxyLicense(REMOVE_CACHE_ENTRY, id)
     }
   }
 
@@ -202,6 +231,10 @@ export default class Proxy {
 
     patch(proxy, { address, authenticationToken, name, vmUuid })
     await this._db.update(proxy)
+
+    if (vmUuid !== undefined) {
+      this.getProxyLicense(REMOVE_CACHE_ENTRY, id)
+    }
 
     await populateProxy.call(this, proxy)
     return proxy
@@ -271,6 +304,16 @@ export default class Proxy {
     }
 
     return this.callProxyMethod(id, 'appliance.updater.getState')
+  }
+
+  @decorateWith(debounceWithKey, DEBOUNCE_TIME_PROXY_LICENSE, id => id, false)
+  async getProxyLicense(id) {
+    const { vmUuid } = await this._getProxy(id)
+    const licenses = await this._app.getLicenses?.()
+    return licenses?.find(
+      license =>
+        license.productId === this._app.config.get('xo-proxy.licenseProductId') && license.boundObjectId === vmUuid
+    )
   }
 
   @decorateWith(defer)
@@ -407,6 +450,7 @@ export default class Proxy {
         authenticationToken: proxyAuthenticationToken,
         vmUuid: vm.uuid,
       })
+      this.getProxyLicense(REMOVE_CACHE_ENTRY, proxyId)
     } else {
       proxyId = await this.registerProxy({
         authenticationToken: proxyAuthenticationToken,
@@ -458,16 +502,21 @@ export default class Proxy {
     const proxy = await this._getProxy(id)
 
     const url = new URL('https://localhost/api/v1')
-
+    const headers = {
+      'Content-Type': 'application/json',
+      Cookie: cookie.serialize('authenticationToken', proxy.authenticationToken),
+    }
+    if (assertType !== 'scalar') {
+      // the proxy streams ndjson and binary responses incrementally; a compressor
+      // buffers them (brotli emits nothing until its window fills), so the response
+      // headers are never flushed and `headersTimeout` fires
+      headers['Accept-Encoding'] = 'identity'
+    }
     const request = {
       body: format.request(0, method, params),
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: cookie.serialize('authenticationToken', proxy.authenticationToken),
-      },
+      headers,
       method: 'POST',
-      rejectUnauthorized: false,
-      timeout,
+      dispatcher: this._getAgent(timeout),
     }
 
     if (proxy.address !== undefined) {
@@ -485,27 +534,33 @@ export default class Proxy {
       url.hostname = address.includes(':') ? `[${address}]` : address
     }
 
-    const response = await hrp(url, request)
+    const response = await fetch(url, request)
+    if (!response.ok) {
+      await response.body?.cancel() // free the socket
+      throw new Error(`${response.status} ${response.statusText}`)
+    }
 
-    const authenticationToken = parseSetCookie(response, {
+    const authenticationToken = parseSetCookie(response.headers.getSetCookie(), {
       map: true,
     }).authenticationToken?.value
     if (authenticationToken !== undefined) {
       await this.updateProxy(id, { authenticationToken })
     }
 
-    const responseType = contentType.parse(response).type
+    const stream = Readable.fromWeb(response.body)
+
+    const responseType = contentType.parse(response.headers.get('content-type'))?.type
     if (responseType === 'application/octet-stream') {
       if (assertType !== 'stream') {
-        response.destroy()
+        stream.destroy()
         throw new Error(`expect the result to be ${assertType}`)
       }
-      return response
+      return stream
     }
 
     assert.strictEqual(responseType, 'application/json')
 
-    const lines = pumpify.obj(response, split2(JSON.parse))
+    const lines = pumpify.obj(stream, split2(JSON.parse))
     const firstLine = await readChunk(lines)
 
     const result = parse.result(firstLine)

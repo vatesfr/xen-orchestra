@@ -5,7 +5,7 @@ import type {
   RawXenApiRecord,
   TypeToRawType,
   XenApiRecord,
-} from '@/libs/xen-api/xen-api.types'
+} from '@/libs/xen-api/xen-api.types.ts'
 
 export const XEN_API_OBJECT_TYPES = {
   bond: 'Bond',

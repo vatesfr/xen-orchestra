@@ -7,17 +7,21 @@ import CSON from 'cson-parser'
 import fromCallback from 'promise-toolbox/fromCallback'
 import fs from 'fs'
 import getopts from 'getopts'
-import hrp from 'http-request-plus'
 import split2 from 'split2'
 import pumpify from 'pumpify'
+import { Agent } from 'undici'
 import { extname } from 'path'
 import { format, parse } from 'json-rpc-protocol'
 import { inspect } from 'util'
 import { load as loadConfig } from 'app-conf'
-import { pipeline } from 'stream'
+import { pipeline, Readable } from 'stream'
 import { readChunk } from '@vates/read-chunk'
 
 const pkg = JSON.parse(fs.readFileSync(new URL('package.json', import.meta.url)))
+
+// the proxy uses a self-signed certificate; timeouts disabled (0) because
+// requests can be long running (the default 300s would cut them off)
+const insecureAgent = new Agent({ connect: { rejectUnauthorized: false }, headersTimeout: 0, bodyTimeout: 0 })
 
 const FORMATS = {
   __proto__: null,
@@ -94,10 +98,7 @@ ${pkg.name} v${pkg.version}`
       cookie: `authenticationToken=${token}`,
     },
     method: 'POST',
-    rejectUnauthorized: false,
-
-    // Default 5s timeout (since Node 19) is problematic with long running requests
-    timeout: 0,
+    dispatcher: insecureAgent,
   }
 
   const call = async ({ method, params }) => {
@@ -105,25 +106,30 @@ ${pkg.name} v${pkg.version}`
       process.stderr.write(`\n${colors.bold(`--- call #${callPath.join('.')}`)} ---\n\n`)
     }
 
-    const response = await hrp(url, {
+    const response = await fetch(url, {
       ...baseRequest,
 
       body: format.request(0, method, params),
     })
+    if (!response.ok) {
+      await response.body?.cancel() // free the socket
+      throw new Error(`${response.status} ${response.statusText}`)
+    }
 
     const { stdout } = process
+    const stream = Readable.fromWeb(response.body)
 
-    const responseType = contentType.parse(response).type
+    const responseType = contentType.parse(response.headers.get('content-type'))?.type
     if (responseType === 'application/octet-stream') {
       if (stdout.isTTY) {
         throw new Error('binary data, pipe to a file!')
       }
-      await fromCallback(pipeline, response, stdout)
+      await fromCallback(pipeline, stream, stdout)
       return
     }
 
     assert.strictEqual(responseType, 'application/json')
-    const lines = pumpify.obj(response, split2())
+    const lines = pumpify.obj(stream, split2())
 
     const firstLine = await readChunk(lines)
 

@@ -1,5 +1,4 @@
 import assert from 'assert'
-import findKey from 'lodash/findKey.js'
 import pick from 'lodash/pick.js'
 import { asyncEach } from '@vates/async-each'
 import { BaseError } from 'make-error'
@@ -12,21 +11,24 @@ import { defer } from 'golike-defer'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { fibonacci } from 'iterable-backoff'
 import { networkInterfaces } from 'os'
-import { noSuchObject, incorrectState } from 'xo-common/api-errors.js'
+import { noSuchObject, incorrectState, operationFailed } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
-import { pDelay, ignoreErrors } from 'promise-toolbox'
+import { pDelay, ignoreErrors, timeout, TimeoutError } from 'promise-toolbox'
 import { Task } from '@vates/task'
 import Disposable from 'promise-toolbox/Disposable'
 
 import * as XenStore from '../_XenStore.mjs'
 import Xapi from '../xapi/index.mjs'
 import { acquireRpuGuard } from '../_rpuGuard.mjs'
+import { noopRpuRecorder } from '../_rpuRecovery.mjs'
 import { getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
+import { supportsRpuRecovery } from '../xapi/mixins/patching.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 import XapiStats from '../xapi-stats.mjs'
 import { autoReconnect } from '../_xenServerAutoReconnect.mjs'
-import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils.mjs'
+import { camelToSnakeCase, forEach, isEmpty, popProperty, serializeError } from '../utils.mjs'
 import { Servers } from '../models/server.mjs'
+import { DISCONNECTED_ERROR_CODE } from 'xen-api'
 
 // ===================================================================
 
@@ -44,15 +46,6 @@ const MAX_TIMER_DELAY = 2 ** 31 - 1
 const DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY = 30 * 60 * 1000 // 30 minutes, same as config.toml
 const synchronizedLoadBalancerOperation = synchronized()(operation => operation())
 
-// Server is disconnected:
-// - _xapis[server.id] is undefined
-
-// Server is connecting:
-// - _xapis[server.id] is defined
-
-// Server is connected:
-// - _xapis[server.id] id defined
-// - _serverIdsByPool[xapi.pool.$id] is server.id
 export default class XenServers {
   constructor(app, { safeMode }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
@@ -82,18 +75,38 @@ export default class XenServers {
         }
       }
     }
-    app.hooks.on('core started', () => {
+    let timeoutId
+    let promiseSetupServersStatus = new Promise((_resolve, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error('unable to setup the server collection. Timed out'))
+      }, 1000)
+    })
+    app.hooks.on('core started', async () => {
       const serversDb = (this._servers = new Servers({
         connection: app._redis,
         namespace: 'server',
         indexes: ['host'],
         crypto: app.cryptoCredentials,
       }))
+      // at XO startup, set all servers as disconnected
+      clearTimeout(timeoutId)
+      promiseSetupServersStatus = (async () => {
+        const servers = await serversDb.get()
+        await serversDb.update(servers.map(server => ({ ...server, status: 'disconnected' })))
+      })()
+      await promiseSetupServersStatus
+
+      app.hooks.emit('registerCollection', {
+        collection: serversDb,
+        type: 'server',
+        decorate: this._decorateXenServer.bind(this),
+      })
 
       app.addConfigManager(
         'xenServers',
         () => serversDb.get(),
-        servers => serversDb.update(servers).then(connectServers)
+        // when importing an XO config, set all servers as disconnected
+        servers => serversDb.update(servers.map(server => ({ ...server, status: 'disconnected' }))).then(connectServers)
       )
     })
     app.hooks.on('start', async () => {
@@ -110,6 +123,7 @@ export default class XenServers {
       }
 
       if (!safeMode) {
+        await promiseSetupServersStatus
         await connectServers()
       }
     })
@@ -137,6 +151,7 @@ export default class XenServers {
       password,
       readOnly,
       username,
+      status: 'disconnected',
     })
 
     return server
@@ -181,6 +196,7 @@ export default class XenServers {
       'poolNameDescription',
       'poolNameLabel',
       'username',
+      'status',
     ]) {
       let value = properties[key]
       if (value !== undefined) {
@@ -235,7 +251,14 @@ export default class XenServers {
 
     // an enabled server must not stay disconnected without retries, e.g. after
     // the user fixed its credentials or address
-    if (server.enabled && !this._connectingXenServers.has(id) && this._getXenServerStatus(id) === 'disconnected') {
+    //
+    // only an update which can actually change the outcome of a connection may
+    // (re-)arm the loop: `_connectXenServer` writes `{ error }` on every failed
+    // attempt, and that bookkeeping write must not restart a loop which just
+    // stopped on a permanent error (e.g. PoolAlreadyConnected), which would
+    // retry forever, at full speed since each loop restarts its own backoff
+    const canFixConnection = properties.enabled === true || connectionIdentityChanged
+    if (canFixConnection && server.enabled && !this._connectingXenServers.has(id) && server.status === 'disconnected') {
       this._autoReconnectXenServer(id)
     }
   }
@@ -275,8 +298,7 @@ export default class XenServers {
     forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
       // handle pool UUID change
       if (xapiObject.$type === 'pool' && serverIdsByPool[xapiObject.$id] === undefined) {
-        const obsoletePoolId = findKey(serverIdsByPool, serverId => serverId === conId)
-        delete serverIdsByPool[obsoletePoolId]
+        self._forgetXenServerPool(conId)
         serverIdsByPool[xapiObject.$id] = conId
       }
 
@@ -387,7 +409,6 @@ export default class XenServers {
       connect: id => this.connectXenServer(id, { enable: false }),
       delay: pDelay,
       getServer: id => this.getXenServer(id),
-      getStatus: id => this._getXenServerStatus(id),
       isFatal: error => error instanceof PoolAlreadyConnected,
       isGone: error => noSuchObject.is(error),
       log,
@@ -405,7 +426,7 @@ export default class XenServers {
 
   async connectXenServer(id, { enable = true } = {}) {
     const server = await this.getXenServerWithCredentials(id)
-    const serverStatus = this._getXenServerStatus(id)
+    const serverStatus = server.status
     // `_connectingXenServers` also guards against a concurrent connection
     // attempt for the same server, which would overwrite `_xapis[id]` and leak
     // a live connection
@@ -427,9 +448,7 @@ export default class XenServers {
   }
 
   async _connectXenServer(id, server, { enable }) {
-    if (enable) {
-      await this.updateXenServer(id, { enabled: true })
-    }
+    await this.updateXenServer(id, { status: 'connecting', enabled: enable ? true : undefined })
 
     const { config } = this._app
 
@@ -463,7 +482,8 @@ export default class XenServers {
 
       // requesting disconnection on the connecting server
       if (this._xapis[server.id] === undefined) {
-        xapi.disconnect()::ignoreErrors()
+        await xapi.disconnect()::ignoreErrors()
+        await this.updateXenServer(id, { status: 'disconnected' })
         return
       }
 
@@ -607,45 +627,78 @@ export default class XenServers {
       xapi.xo.install()
       xapi.watchEvents()
 
-      this.updateXenServer(id, { error: null })::ignoreErrors()
+      const _updateXenServer = (id, props) => {
+        this.updateXenServer(id, props)::ignoreErrors()
+      }
 
-      xapi.once('eventFetchingError', function eventFetchingErrorListener() {
+      const onEventFetchingError = () => {
         const timeout = setTimeout(() => {
           xapi.xo.uninstall()
 
           // switch server status from connected to connecting
-          delete serverIdsByPool[poolId]
+          this._forgetXenServerPool(server.id)
+          _updateXenServer(server.id, { status: 'connecting' })
         }, this._xapiMarkDisconnectedDelay)
         xapi.once('eventFetchingSuccess', () => {
-          xapi.once('eventFetchingError', eventFetchingErrorListener)
+          xapi.once('eventFetchingError', onEventFetchingError)
           if (serverIdsByPool[poolId] === undefined) {
+            // the pool may now be known under another identifier, `install()`
+            // replays the pool object which registers it under the right one
             serverIdsByPool[poolId] = server.id
             xapi.xo.install()
+            _updateXenServer(server.id, { error: null, status: 'connected' })
           } else {
             clearTimeout(timeout)
           }
         })
-      })
+      }
+      xapi.once('eventFetchingError', onEventFetchingError)
 
-      xapi.once('disconnected', () => {
+      xapi.once('disconnected', async () => {
         xapi.xo.uninstall()
         delete this._xapis[server.id]
-        delete this._serverIdsByPool[poolId]
+        this._forgetXenServerPool(server.id)
         this._app.emit('server:disconnected', { server, xapi })
+        const _server = await this.getXenServerWithCredentials(id)
+        if (_server.status !== 'disconnected') {
+          await this.updateXenServer(server.id, { status: 'disconnected' })
+        }
 
         // deliberate disconnections set `enabled` to false beforehand, in
         // which case the loop stops on its own
         this._autoReconnectXenServer(server.id)
       })
+
+      try {
+        await timeout.call(xapi._interruptOnDisconnect(xapi.objectsFetched), this._xapiMarkDisconnectedDelay)
+      } catch (error) {
+        if (!(error instanceof TimeoutError)) {
+          throw error
+        }
+        log.warn('objects take too long to fetch', { id, xapiMarkDisconnectedDelay: this._xapiMarkDisconnectedDelay })
+        throw operationFailed({ objectId: id, code: 'TIMEOUT_CONNECT_SERVER' })
+      }
+
       this._app.emit('server:connected', { server, xapi })
+      await this.updateXenServer(id, { error: null, status: 'connected' })::ignoreErrors()
     } catch (error) {
       delete this._xapis[server.id]
-      xapi.disconnect()::ignoreErrors()
+      await xapi.disconnect()::ignoreErrors()
+
+      // `_interruptOnDisconnect` rejects the pending call when the connection is
+      // closed: the attempt was aborted, and the disconnection handles the status
+      if (error.code === DISCONNECTED_ERROR_CODE) {
+        throw error
+      }
+
+      await this.updateXenServer(id, { status: 'disconnected' })
+
+      const serializedError = serializeError(error)
 
       // avoid a database write per auto-reconnect attempt when the error did not change
       const previousError = server.error
-      if (previousError?.code !== error?.code || previousError?.message !== error?.message) {
-        this.updateXenServer(id, { error })::ignoreErrors()
+      if (previousError?.code !== serializedError.code || previousError?.message !== serializedError.message) {
+        await this.updateXenServer(id, { error: serializedError })::ignoreErrors()
       }
 
       // permanent errors: retrying is pointless, do not start the loop
@@ -657,10 +710,25 @@ export default class XenServers {
     }
   }
 
+  // Removes every pool this server is registered as the connection of.
+  //
+  // The pool is looked up by server instead of by identifier because a pool
+  // UUID can change during the life of a connection (see `_onXenAdd`): a
+  // mapping left behind would make every subsequent connection to that pool
+  // fail with `PoolAlreadyConnected`, including the ones of this very server.
+  _forgetXenServerPool(serverId) {
+    const serverIdsByPool = this._serverIdsByPool
+    for (const poolId of Object.keys(serverIdsByPool)) {
+      if (serverIdsByPool[poolId] === serverId) {
+        delete serverIdsByPool[poolId]
+      }
+    }
+  }
+
   async disconnectXenServer(id) {
     // throw no such object if the server does not exist
     const server = await this.getXenServer(id)
-    const status = this._getXenServerStatus(id)
+    const status = server.status
     if (status === 'disconnected' && !server.enabled) {
       throw incorrectState({
         actual: status,
@@ -669,7 +737,11 @@ export default class XenServers {
         property: 'status',
       })
     }
-    await this.updateXenServer(id, { enabled: false })
+
+    await this.updateXenServer(id, {
+      enabled: false,
+      status: status === 'disconnected' ? undefined : 'disconnecting',
+    })
 
     /**
      * if the server is enabled but disconnected, xapi is undefined
@@ -678,13 +750,12 @@ export default class XenServers {
     const xapi = this._xapis[id]
     delete this._xapis[id]
 
-    const serverIdsByPool = this._serverIdsByPool
-    const poolId = findKey(serverIdsByPool, _ => _ === xapi)
-    if (poolId !== undefined) {
-      delete serverIdsByPool[id]
-    }
+    this._forgetXenServerPool(id)
 
-    return xapi?.disconnect()
+    await xapi?.disconnect()
+    if (status !== 'disconnected') {
+      await this.updateXenServer(id, { status: 'disconnected' })
+    }
   }
 
   getAllXapis() {
@@ -702,15 +773,6 @@ export default class XenServers {
     return this.getXapi(xoObject).getObjectByRef(xoObject._xapiRef)
   }
 
-  _getXenServerStatus(id) {
-    const xapi = this._xapis[id]
-    return xapi === undefined
-      ? 'disconnected'
-      : this._serverIdsByPool[xapi.pool?.$id] === id
-        ? 'connected'
-        : 'connecting'
-  }
-
   _decorateXenServer(server) {
     const xapis = this._xapis
 
@@ -719,11 +781,10 @@ export default class XenServers {
       lastEventFetchedTimestamp !== undefined &&
       Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay
     ) {
-      server.error = xapis[server.id].watchEventsError
+      server.error = serializeError(xapis[server.id].watchEventsError)
     }
-    server.status = this._getXenServerStatus(server.id)
-    if (server.status === 'connected') {
-      const xapi = xapis[server.id]
+    const xapi = xapis[server.id]
+    if (server.status === 'connected' && xapi !== undefined) {
       server.poolId = xapi.pool.uuid
       try {
         server.master = xapi.getObjectByRef(xapi.pool.master).uuid
@@ -740,6 +801,8 @@ export default class XenServers {
 
     // Do not expose password.
     delete server.password
+
+    return server
   }
 
   async getAllXenServers() {
@@ -869,7 +932,7 @@ export default class XenServers {
       })
   }
 
-  async _suspendRpuLoadBalancer($defer, pool) {
+  async _suspendRpuLoadBalancer($defer, pool, recorder) {
     const app = this._app
     const suspension = this._getRpuLoadBalancerSuspension()
     const state = suspension.value
@@ -892,6 +955,8 @@ export default class XenServers {
           })
           reEnableDelay = DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY
         }
+        // intent on disk first: a refused write must not leave a re-enabling pending
+        await recorder.settingChangedByRun('loadBalancer')
         state.autoload = plugin.autoload
         state.reEnableDelay = reEnableDelay
         state.shouldReEnable = true
@@ -900,82 +965,152 @@ export default class XenServers {
     })
   }
 
-  async rollingPoolUpdate($defer, pool, { rebootVm, parentTask, shutdownPinnedVms } = {}) {
+  /**
+   * Updates the hosts of the pool one at a time, the backup schedules of the pool are disabled meanwhile.
+   *
+   * @param {Function} $defer - Injected by the `defer` decorator
+   * @param {object} pool - XO pool object
+   * @param {object} [opts]
+   * @param {boolean} [opts.acceptCurrentStateAsBaseline] - Start even though the master is already up to date while
+   *   another host is not, ie from a partially updated pool, otherwise such an update is refused with an
+   *   `incorrectState` error (property `partiallyUpdatedPool`). Only checked on XCP-ng and XenServer 8.4+: older
+   *   XenServer and CH pools are updated without this check
+   * @param {boolean} [opts.bypassBackupCheck] - Skip the backup guard, the bypass is logged
+   * @param {boolean} [opts.rebootVm] - Accept the VM reboots required by the update guidances (XenServer 8.4+),
+   *   otherwise such an update is refused with an `incorrectState` error
+   * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
+   * @param {boolean} [opts.shutdownPinnedVms] - Shut down the VMs that cannot be migrated before their host reboots
+   * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool
+   * @throws {Error} `incorrectState` (property `rollingUpdateRecovery`) if a previous run left a recovery record, only on
+   *   XCP-ng and XenServer 8.4+ where a run keeps one
+   */
+  async rollingPoolUpdate(
+    $defer,
+    pool,
+    { acceptCurrentStateAsBaseline, bypassBackupCheck, rebootVm, parentTask, shutdownPinnedVms } = {}
+  ) {
     const app = this._app
-    await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
-    const [schedules, jobs] = await Promise.all([app.getAllSchedules(), app.getAllJobs('backup')])
-
     const poolId = pool.id
+    await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
+    await app.backupGuard(poolId, { bypassBackupCheck, operation: 'rollingPoolUpdate' })
+    const [schedules, jobs] = await Promise.all([app.getAllSchedules(), app.getAllJobs('backup')])
 
     $defer(acquireRpuGuard(poolId, 'rollingPoolUpdate'))
 
-    const jobsOfthePool = []
-    jobs.forEach(({ id: jobId, vms }) => {
-      if (vms.id !== undefined) {
-        for (const vmId of extractIdsFromSimplePattern(vms)) {
-          // try/catch to avoid `no such object`
-          try {
-            if (app.getObject(vmId).$poolId === poolId) {
-              jobsOfthePool.push(jobId)
-              break
-            }
-          } catch {}
-        }
-      } else {
-        // Smart mode
-        // For smart mode, we take a simplified approach:
-        // - if smart mode is explicitly 'resident' or 'not resident' on pools, we
-        //   check if it concerns this pool
-        // - if not, the job may concern this pool so we add it to `jobsOfThePool`
-        if (vms.$pool === undefined || createPredicate(vms.$pool)(poolId)) {
-          jobsOfthePool.push(jobId)
-        }
-      }
-    })
+    // strict write before any side effect: if the record cannot be persisted,
+    // an interruption could not be reported, so the run must not start. A pool
+    // without recovery runs without a record, as it did before recovery existed
+    const recorder = supportsRpuRecovery(this.getXapi(pool).pool.$master)
+      ? await app.startRpuRecoveryRun(poolId, {
+          acceptCurrentStateAsBaseline,
+          rebootVm,
+          bypassBackupCheck,
+          shutdownPinnedVms,
+        })
+      : noopRpuRecorder
 
-    // Disable schedules
-    await Promise.all(
-      schedules
-        .filter(schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled)
-        .map(async schedule => {
+    // a failure before the first host was handled leaves nothing to recover
+    // once the restorations deferred below (schedules, load balancer, WLB)
+    // have run: registered before them, this runs after them
+    $defer.onFailure(() => recorder.dropIfNothingToRecover())
+
+    // every failure from here on is persisted before the caller sees it: the
+    // pool state starts changing below (schedules, load balancer, WLB)
+    try {
+      const jobsOfthePool = []
+      jobs.forEach(({ id: jobId, vms }) => {
+        if (vms.id !== undefined) {
+          for (const vmId of extractIdsFromSimplePattern(vms)) {
+            // try/catch to avoid `no such object`
+            try {
+              if (app.getObject(vmId).$poolId === poolId) {
+                jobsOfthePool.push(jobId)
+                break
+              }
+            } catch {}
+          }
+        } else {
+          // Smart mode
+          // For smart mode, we take a simplified approach:
+          // - if smart mode is explicitly 'resident' or 'not resident' on pools, we
+          //   check if it concerns this pool
+          // - if not, the job may concern this pool so we add it to `jobsOfThePool`
+          if (vms.$pool === undefined || createPredicate(vms.$pool)(poolId)) {
+            jobsOfthePool.push(jobId)
+          }
+        }
+      })
+
+      recorder.markRunning()
+
+      // Disable schedules
+      const schedulesToDisable = schedules.filter(
+        schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled
+      )
+      if (schedulesToDisable.length > 0) {
+        await recorder.settingChangedByRun(
+          'schedules',
+          schedulesToDisable.map(schedule => schedule.id)
+        )
+      }
+      await Promise.all(
+        schedulesToDisable.map(async schedule => {
           await app.updateSchedule({ ...schedule, enabled: false })
           $defer(() => app.updateSchedule({ ...schedule, enabled: true }))
         })
-    )
+      )
 
-    // Disable load balancer
-    await this._suspendRpuLoadBalancer($defer, pool)
+      // Disable load balancer
+      await this._suspendRpuLoadBalancer($defer, pool, recorder)
 
-    const xapi = this.getXapi(pool)
-    if (await xapi.getField('pool', pool._xapiRef, 'wlb_enabled')) {
-      await xapi.call('pool.set_wlb_enabled', pool._xapiRef, false)
-      $defer(() => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true))
+      const xapi = this.getXapi(pool)
+      if (await xapi.getField('pool', pool._xapiRef, 'wlb_enabled')) {
+        await recorder.settingChangedByRun('wlb')
+        await xapi.call('pool.set_wlb_enabled', pool._xapiRef, false)
+        $defer(() => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true))
+      }
+
+      const trace = openRpuTrace({ dir: getRpuTracesConfig(app).dir, kind: 'rpu', poolId })
+      $defer(() => trace?.stop())
+      if (trace !== undefined) {
+        log.info(`rolling pool update of pool ${poolId}: trace in ${trace.traceFile}`)
+      }
+
+      const properties = {
+        name: 'Rolling pool update',
+        objectId: poolId,
+        poolId,
+        poolName: pool.name_label,
+        progress: 0,
+        type: 'pool.rolling_update',
+        ...(trace !== undefined && { traceFile: trace.traceFile }),
+      }
+      const task = parentTask === undefined ? app.tasks.create(properties) : new Task({ properties })
+      trace?.attach(task)
+      recorder.setTaskId(task.id)
+      await task.run(async () =>
+        this.getXapi(pool).rollingPoolUpdate(task, {
+          xsCredentials: app.apiContext.user.preferences.xsCredentials,
+          acceptCurrentStateAsBaseline,
+          rebootVm,
+          shutdownPinnedVms,
+          recorder,
+        })
+      )
+    } catch (error) {
+      await recorder.fail(error)
+      throw error
     }
 
-    const trace = openRpuTrace({ dir: getRpuTracesConfig(app).dir, kind: 'rpu', poolId })
-    $defer(() => trace?.stop())
-    if (trace !== undefined) {
-      log.info(`rolling pool update of pool ${poolId}: trace in ${trace.traceFile}`)
+    // a successful run needs no recovery: the record must be gone. If the
+    // delete fails, the recorder has stamped the record `succeeded` so the
+    // run is not reported as interrupted at the next restart; a stale record
+    // must not fail an RPU that succeeded: log it
+    try {
+      await recorder.delete()
+    } catch (error) {
+      log.warn('failed to delete the recovery record after a successful rolling pool update', { error, poolId })
     }
-
-    const properties = {
-      name: 'Rolling pool update',
-      objectId: poolId,
-      poolId,
-      poolName: pool.name_label,
-      progress: 0,
-      type: 'pool.rolling_update',
-      ...(trace !== undefined && { traceFile: trace.traceFile }),
-    }
-    const task = parentTask === undefined ? app.tasks.create(properties) : new Task({ properties })
-    trace?.attach(task)
-    await task.run(async () =>
-      this.getXapi(pool).rollingPoolUpdate(task, {
-        xsCredentials: app.apiContext.user.preferences.xsCredentials,
-        rebootVm,
-        shutdownPinnedVms,
-      })
-    )
   }
 }
 

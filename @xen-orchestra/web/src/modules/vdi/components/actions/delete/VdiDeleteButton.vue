@@ -1,10 +1,10 @@
 <template>
   <MenuItem
     icon="action:delete"
-    class="delete"
-    :disabled="!canDeleteVdi"
-    :busy="isDeletingVdi"
-    @click="openVdiDeleteModal()"
+    accent="danger"
+    :disabled="!canDeleteVdis"
+    :busy="isDeletingVdis"
+    @click="deleteVdis()"
   >
     {{ t('action:delete') }}
     <i v-if="hint">{{ hint }}</i>
@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
+import { useVdiDelete } from '@/modules/vdi/composables/use-vdi-delete.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@xen-orchestra/web-core/components/menu/MenuItem.vue'
@@ -26,28 +26,18 @@ const { vdi, vm } = defineProps<{
 
 const { t } = useI18n()
 
-const {
-  openModal: openVdiDeleteModal,
-  canRun: canDeleteVdi,
-  isRunning: isDeletingVdi,
-} = useVdiDeleteModal(
-  () => [vdi],
-  () => vm
-)
+const { deleteVdis, canDeleteVdis, isDeletingVdis } = useVdiDelete({
+  vdis: () => [vdi],
+  vm: () => vm,
+})
 
 const hint = computed(() => {
   if (!vm) {
     return t('vdi-not-attached-to-vm')
   }
-  if (!canDeleteVdi.value) {
+  if (!canDeleteVdis.value) {
     return t('vm-running')
   }
   return undefined
 })
 </script>
-
-<style lang="postcss" scoped>
-.delete {
-  color: var(--color-danger-item-base);
-}
-</style>

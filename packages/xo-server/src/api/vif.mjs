@@ -162,6 +162,10 @@ export async function set({
     network = xapi.getObject(networkId ?? vif.$network)
     attached == null && (attached = vif.attached)
 
+    const otherConfig =
+      txChecksumming !== undefined ? { ...vif.other_config, 'ethtool-tx': String(txChecksumming) } : vif.other_config
+    const newRateLimit = rateLimit === undefined ? vif.rateLimit : rateLimit
+
     await this.allocIpAddresses(vif.id, null, oldIpAddresses)
     await xapi.deleteVif(vif._xapiId)
 
@@ -176,13 +180,13 @@ export async function set({
           // - Else if the network is changing: config it to 'network_default'
           // - Else: use the old locking mode
           locking_mode: lockingMode ?? (isNetworkChanged ? 'network_default' : vif.lockingMode),
-          qos_algorithm_type: rateLimit != null ? 'ratelimit' : undefined,
-          qos_algorithm_params: rateLimit != null ? { kbps: String(rateLimit) } : undefined,
+          qos_algorithm_type: newRateLimit != null ? 'ratelimit' : undefined,
+          qos_algorithm_params: newRateLimit != null ? { kbps: String(newRateLimit) } : undefined,
           network: network.$ref,
-          other_config: {
-            'ethtool-tx': txChecksumming !== undefined ? String(txChecksumming) : undefined,
-          },
+          other_config: otherConfig,
           VM: vm.$ref,
+          MTU: vif.MTU,
+          device: vif.device,
         },
         {
           MAC: mac,

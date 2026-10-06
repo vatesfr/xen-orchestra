@@ -1,5 +1,5 @@
-import XapiStats from '@/libs/xapi-stats'
-import XenApi from '@/libs/xen-api/xen-api'
+import XapiStats from '@/libs/xapi-stats.ts'
+import XenApi from '@/libs/xen-api/xen-api.ts'
 import { useLocalStorage, useSessionStorage, whenever } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { computed, ref, watchEffect } from 'vue'

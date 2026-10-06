@@ -29,7 +29,12 @@ export function useVdiMigrateForm(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
     sr: undefined,
   })
 
-  const { useFormSelect, useSelect, validate } = useValidatedForm(formData, {
+  const {
+    useFormSelect,
+    useSelect,
+    validate,
+    reset: resetValidation,
+  } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
         sr: { required },
@@ -84,10 +89,16 @@ export function useVdiMigrateForm(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
     return isValid ? formData.sr : undefined
   }
 
+  function reset() {
+    formData.sr = undefined
+    resetValidation()
+  }
+
   return {
     srSelectBindings,
     selectedSr,
     requiresForceMigrate,
     validateAndGetSrId,
+    reset,
   }
 }

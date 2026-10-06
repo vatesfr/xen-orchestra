@@ -1,11 +1,11 @@
 <template>
   <MenuItem
-    v-tooltip="!canDeleteSr && deleteSrErrorMessage"
+    v-tooltip="!canDeleteSrs && deleteSrsErrorMessage"
+    accent="danger"
     icon="action:delete"
-    :disabled="!canDeleteSr"
-    :busy="isDeletingSr"
-    class="delete"
-    @click="openSrDeleteModal()"
+    :disabled="!canDeleteSrs"
+    :busy="isDeletingSrs"
+    @click="deleteSrs()"
   >
     {{ t('action:delete') }}
   </MenuItem>
@@ -13,7 +13,7 @@
 
 <script lang="ts" setup>
 import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
-import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
+import { useSrDelete } from '@/modules/storage-repository/composables/use-sr-delete.composable.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
@@ -24,16 +24,5 @@ const { sr } = defineProps<{
 
 const { t } = useI18n()
 
-const {
-  openModal: openSrDeleteModal,
-  canRun: canDeleteSr,
-  isRunning: isDeletingSr,
-  errorMessage: deleteSrErrorMessage,
-} = useSrDeleteModal(() => [sr])
+const { deleteSrs, canDeleteSrs, isDeletingSrs, deleteSrsErrorMessage } = useSrDelete(() => [sr])
 </script>
-
-<style lang="postcss" scoped>
-.delete {
-  color: var(--color-danger-item-base);
-}
-</style>

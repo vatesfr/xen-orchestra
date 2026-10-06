@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, slot } from '@/libs/story/story-param'
+import { prop, slot } from '@/libs/story/story-param.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiAlarmItem from '@core/components/ui/alarm-item/UiAlarmItem.vue'
 import UiAlarmList from '@core/components/ui/alarm-list/UiAlarmList.vue'

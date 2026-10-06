@@ -1,5 +1,5 @@
-import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable'
-import { fetchPost } from '@/shared/utils/fetch.util'
+import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
 import type { XoGpuGroup, XoHost, XoPool, XoTask, XoVdi, XoVgpuType, XoVm, XoVmTemplate } from '@vates/types'
 import type { Ref } from 'vue'

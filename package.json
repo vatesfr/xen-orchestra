@@ -58,6 +58,7 @@
       "eslint"
     ],
     ".USAGE.md": "scripts/usage-to-readme.js --git-add",
+    "@xen-orchestra/vmware-explorer/vectura/**/*.rs": "sh -c 'cd @xen-orchestra/vmware-explorer/vectura && cargo fmt --all --check' --",
     "./CHANGELOG.unreleased.md": "sh -c 'scripts/gen-deps-list.js --check-order' --"
   },
   "private": true,
@@ -72,7 +73,7 @@
     "test": "npm run test-lint && npm run test-unit",
     "test-integration": "scripts/run-script.js --parallel test-integration",
     "test-lint": "eslint --ignore-path .gitignore --ignore-pattern packages/xo-web .",
-    "test-unit": "scripts/run-script.js --bail test"
+    "test-unit": "node --test 'scripts/**/*.test.mjs' && scripts/run-script.js --bail test"
   },
   "workspaces": [
     "@*/*",

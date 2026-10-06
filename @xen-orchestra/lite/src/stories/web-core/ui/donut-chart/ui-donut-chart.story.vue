@@ -9,13 +9,13 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, iconProp } from '@/libs/story/story-param'
-import { object } from '@/libs/story/story-widget'
+import { prop, iconProp } from '@/libs/story/story-param.ts'
+import { object } from '@/libs/story/story-widget.ts'
 import UiDonutChart, { type DonutSegment } from '@core/components/ui/donut-chart/UiDonutChart.vue'
 
 const segments: DonutSegment[] = [
   { value: 13, accent: 'info' },
-  { value: 14, accent: 'neutral' },
+  { value: 14, accent: 'secondary' },
   { value: 16, accent: 'success' },
   { value: 22, accent: 'warning' },
   { value: 35, accent: 'danger' },

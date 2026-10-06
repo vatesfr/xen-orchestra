@@ -4,16 +4,18 @@ import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'xo-remote-parser'
 import { DEFAULT_ENCRYPTION_ALGORITHM, getHandler, isLegacyEncryptionAlgorithm } from '@xen-orchestra/fs'
 import { ignoreErrors, timeout, TimeoutError } from 'promise-toolbox'
-import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
+import { invalidParameters, noSuchObject, incorrectState } from 'xo-common/api-errors.js'
 import { synchronized } from 'decorator-synchronized'
-
 import patch from '../patch.mjs'
 import { Remotes } from '../models/remote.mjs'
 import Disposable from 'promise-toolbox/Disposable'
+import { BACKUP_DIR } from '@xen-orchestra/backups/_getVmBackupDir.mjs'
+import { Task } from '@vates/task'
+import { asyncEach } from '@vates/async-each'
 
 // ===================================================================
 
-const { warn, logError } = createLogger('xo:mixins:remotes')
+const { warn, debug } = createLogger('xo:mixins:remotes')
 
 const obfuscateRemote = ({ url, ...remote }) => {
   const parsedUrl = parse(url)
@@ -83,6 +85,11 @@ export default class {
         namespace: 'remote',
         indexes: ['enabled'],
         crypto: app.cryptoCredentials,
+      })
+      app.hooks.emit('registerCollection', {
+        collection: this._remotes,
+        type: 'backup-repository',
+        decorate: obfuscateRemote,
       })
 
       app.addConfigManager(
@@ -193,6 +200,97 @@ export default class {
     return result
   }
 
+  // checks if a job referencing this remote is currently running
+  async #isReferencedByRunningJob(remoteId) {
+    const jobs = await this._app.getAllJobs()
+    return jobs.some(job => {
+      if (job.runId === undefined) {
+        return false
+      }
+      if (job.type === 'backup' || job.type === 'metadataBackup') {
+        return this.#isRemoteReferenced(job.remotes, remoteId)
+      }
+      if (job.type === 'mirrorBackup') {
+        return job.sourceRemote === remoteId || this.#isRemoteReferenced(job.remotes, remoteId)
+      }
+      return false
+    })
+  }
+
+  #isRemoteReferenced(idsToCheck, remoteId) {
+    if (idsToCheck === undefined) {
+      return false
+    }
+    const { id } = idsToCheck
+    const ids = typeof id === 'string' ? [id] : id.__or
+    return ids.includes(remoteId)
+  }
+
+  // The caller of this function have to create a parent Task
+  async reclaimSpace(remoteId, { vmUuid, merge = true, remove = true } = {}) {
+    if (await this.#isReferencedByRunningJob(remoteId)) {
+      throw incorrectState({ actual: 'running', expected: 'idle', object: 'backup job referencing this remote' })
+    }
+
+    const remote = await this.getRemoteWithCredentials(remoteId)
+
+    if (remote.proxy !== undefined) {
+      return this._app.callProxyMethod(
+        remote.proxy,
+        'remote.reclaimSpace',
+        {
+          remote,
+          vmUuid,
+          merge,
+          remove,
+        },
+        { timeout: 600e3 }
+      ) // by default in config file it's 1 min, now it's 10 min
+    }
+
+    return Disposable.use(this._app.getBackupsRemoteAdapter(remote), async adapter => {
+      const allVms = await adapter.listAllVms()
+      if (vmUuid !== undefined && !allVms.includes(vmUuid)) {
+        throw noSuchObject(vmUuid, 'VM')
+      }
+      const vmUuids = vmUuid !== undefined ? [vmUuid] : allVms
+      Task.set('total', vmUuids.length)
+      let done = 0
+
+      const results = []
+      await asyncEach(
+        vmUuids,
+        async uuid => {
+          try {
+            const { merge: didMerge, size } = await Task.run(
+              { properties: { name: `Clean VM ${uuid}`, data: { type: 'VM', id: uuid } } },
+              () =>
+                adapter.cleanVm(`${BACKUP_DIR}/${uuid}`, {
+                  remove,
+                  merge,
+                  logInfo: Task.info,
+                  logWarn: Task.warning,
+                })
+            )
+            results.push({ vmUuid: uuid, success: true, merge: didMerge, size })
+          } catch (error) {
+            results.push({
+              vmUuid: uuid,
+              success: false,
+              error: error instanceof Error ? error.message : String(error),
+            })
+          } finally {
+            done++
+            Task.set('progress', Math.round((done / vmUuids.length) * 100))
+          }
+        },
+        { concurrency: 2, stopOnError: false }
+      )
+
+      return results
+    })
+  }
+
   async getAllRemotesInfo() {
     for (const remote of await this._remotes.get()) {
       if (remote.enabled && this._remotesInfoRetry[remote.id] === undefined) {
@@ -229,19 +327,23 @@ export default class {
       if (_isRetryableRemoteError(error)) {
         this._scheduleRemoteInfoRetry(remote, error)
       } else {
-        logError('failed to get remote info, will NOT retry', { id: remote.id, error, code: error.code })
+        debug('failed to get remote info, will NOT retry', { id: remote.id, name: remote.name, error })
         this._cancelRemoteInfoRetry(remote.id)
       }
     }
   }
 
-  _scheduleRemoteInfoRetry({ id }, error) {
-    warn('failed to get remote info, will retry', { id, error })
+  _scheduleRemoteInfoRetry({ id, name }, error) {
     let state = this._remotesInfoRetry[id]
     if (!state) {
       state = this._remotesInfoRetry[id] = { attempt: 0 }
     }
-    const delay = remoteInfoRetryDelay(state.attempt++)
+    const attempt = state.attempt++
+    const delay = remoteInfoRetryDelay(attempt)
+
+    const log = attempt === 1 ? warn : debug
+    log('failed to get remote info, will retry', { id, name, delay, error })
+
     state.timer = setTimeout(() => ignoreErrors.call(this._retryRemoteInfo(id)), delay)
     state.timer.unref?.()
   }
@@ -337,6 +439,7 @@ export default class {
     }
 
     this._cancelRemoteInfoRetry(id)
+    this._app.invalidateVmBackupsListing(id)
     if (enabled === false) {
       delete this._remotesInfo[id]
     }
@@ -370,6 +473,7 @@ export default class {
 
   async removeRemote(id) {
     this._cancelRemoteInfoRetry(id)
+    this._app.invalidateVmBackupsListing(id)
     delete this._remotesInfo[id]
 
     const handlers = this._handlers

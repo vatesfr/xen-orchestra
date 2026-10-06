@@ -12,7 +12,7 @@
 
 <script lang="ts" setup>
 import StackedBarSegment, { type StackedBarSegmentProps } from '@core/components/ui/stacked-bar/StackedBarSegment.vue'
-import { formatSizeParse } from '@core/utils/size.util'
+import { formatSizeParse } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 
 type Segment = {

@@ -1,10 +1,10 @@
 <template>
   <MenuItem
+    accent="danger"
     icon="action:disconnect"
-    class="disconnect typo-body-bold-small"
-    :busy="isRunning"
-    :disabled="!canRun"
-    @click="openModal()"
+    :busy="isDisconnectingServer"
+    :disabled="!canDisconnectServer"
+    @click="disconnectServer()"
   >
     {{ t('action:disconnect-pool') }}
   </MenuItem>
@@ -12,7 +12,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useServerDisconnectModal } from '@/modules/server/composables/use-server-disconnect-modal.composable.ts'
+import { useServerDisconnect } from '@/modules/server/composables/use-server-disconnect.composable.ts'
 import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import type { XoServer } from '@vates/types'
@@ -27,11 +27,5 @@ const { serverByPool } = useXoServerCollection()
 
 const serverId = computed(() => serverByPool.value.get(poolId)?.[0]?.id ?? ('' as XoServer['id']))
 
-const { openModal, canRun, isRunning } = useServerDisconnectModal(serverId)
+const { disconnectServer, canDisconnectServer, isDisconnectingServer } = useServerDisconnect(serverId)
 </script>
-
-<style lang="postcss" scoped>
-.disconnect {
-  color: var(--color-danger-item-base);
-}
-</style>

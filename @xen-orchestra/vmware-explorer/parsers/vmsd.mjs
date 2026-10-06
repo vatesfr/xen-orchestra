@@ -1,12 +1,15 @@
 // the vmsd file contain the snapshot history of the VM , and their chaining
 
+import { UNSAFE_KEYS } from './utils.mjs'
+
 function set(obj, keyPath, val) {
   const [key, ...other] = keyPath
-  // key like snapshot0->snapshot9 are grouped in an array snapshots[]
-  const match = key.match(/^(.+)([0-9])$/)
+
+  const match = key.match(/^(.+?)([0-9]+)$/)
   if (match) {
     // an array
     let [, label, index] = match
+    index = parseInt(index)
     // I like my array names in plural form
     label += 's'
     if (!obj[label]) {
@@ -17,7 +20,7 @@ function set(obj, keyPath, val) {
       // it contains objects
       if (!obj[label][index]) {
         // and this object is not already initialized
-        obj[label][parseInt(index)] = {}
+        obj[label][index] = {}
       }
       set(obj[label][index], other, val)
     } else {
@@ -25,6 +28,9 @@ function set(obj, keyPath, val) {
       obj[label][index] = val
     }
   } else {
+    if (UNSAFE_KEYS.has(key)) {
+      return
+    }
     if (other.length) {
       // an object
       if (!obj[key]) {

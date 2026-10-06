@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
 import { useI18n } from 'vue-i18n'
 
@@ -14,10 +14,12 @@ export type Status =
   | 'connecting'
   | 'connected'
   | 'disconnected'
+  | 'disconnecting'
   | 'partially-connected'
   | 'disconnected-from-physical-device'
   | 'physically-disconnected'
   | 'unable-to-connect-to-the-pool'
+  | 'unable-to-connect'
   | 'success'
   | 'skipped'
   | 'interrupted'
@@ -43,10 +45,12 @@ const currentStatus = useMapper<Status, { text: string; accent: InfoAccent }>(
     ['connecting', { text: t('connecting'), accent: 'info' }],
     ['connected', { text: t('connected'), accent: 'success' }],
     ['disconnected', { text: t('disconnected'), accent: 'danger' }],
+    ['disconnecting', { text: t('disconnecting'), accent: 'info' }],
     ['partially-connected', { text: t('partially-connected'), accent: 'warning' }],
     ['disconnected-from-physical-device', { text: t('disconnected-from-physical-device'), accent: 'warning' }],
     ['physically-disconnected', { text: t('disconnected-from-physical-device'), accent: 'danger' }],
     ['unable-to-connect-to-the-pool', { text: t('unable-to-connect-to-the-pool'), accent: 'danger' }],
+    ['unable-to-connect', { text: t('unable-to-connect'), accent: 'danger' }],
     ['success', { text: t('success'), accent: 'success' }],
     ['skipped', { text: t('skipped'), accent: 'warning' }],
     ['interrupted', { text: t('interrupted'), accent: 'danger' }],

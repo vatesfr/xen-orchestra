@@ -212,7 +212,7 @@ exports.featureUnauthorized = create(26, ({ featureCode, currentPlan, minPlan, c
     currentPlan,
     minPlan,
     currentBundle,
-    allowedBundles
+    allowedBundles,
   },
   message: 'feature Unauthorized',
 }))
@@ -224,4 +224,11 @@ exports.noMatchingVm = create(27, ({ jobId, runJobId, scheduleId }) => ({
     scheduleId,
   },
   message: 'no VMs match this pattern',
+}))
+
+exports.serviceUnavailable = create(28, ({ serviceName }) => ({
+  data: {
+    serviceName,
+  },
+  message: 'service unavailable',
 }))

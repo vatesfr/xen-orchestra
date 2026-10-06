@@ -7,7 +7,7 @@
 
 <script lang="ts" setup>
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import { useUiStore } from '@core/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import type NoVncClient from '@novnc/novnc/lib/rfb'
 import _RFB from '@novnc/novnc/lib/rfb'
 import { whenever } from '@vueuse/core'

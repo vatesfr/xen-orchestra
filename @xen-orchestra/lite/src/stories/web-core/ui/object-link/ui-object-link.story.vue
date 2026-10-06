@@ -16,6 +16,6 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop, setting, slot } from '@/libs/story/story-param'
+import { iconProp, prop, setting, slot } from '@/libs/story/story-param.ts'
 import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 </script>

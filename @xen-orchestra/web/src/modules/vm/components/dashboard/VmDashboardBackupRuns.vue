@@ -22,7 +22,7 @@
         size="small"
         variant="tertiary"
         class="button"
-        @click="openProtectionHelpModal()"
+        @click="openVmProtectedInfoModal()"
       >
         {{ t('what-does-protected-mean?') }}
       </UiButton>
@@ -55,8 +55,8 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection'
-import type { VmDashboardRun, VmProtectionStatus, XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type'
+import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import type { VmDashboardRun, VmProtectionStatus, XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
@@ -67,10 +67,10 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { useTableState } from '@core/composables/table-state.composable'
+import { useVmProtectedInfoModal } from '@core/composables/modals/use-vm-protected-info-modal.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useMapper } from '@core/packages/mapper'
-import { useModal } from '@core/packages/modal/use-modal'
-import { useBackupRunColumns } from '@core/tables/column-sets/vm-backup-run-colums'
+import { useBackupRunColumns } from '@core/tables/column-sets/vm-backup-run-colums.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -84,9 +84,7 @@ const { t } = useI18n()
 
 const { getBackupJobById, areBackupJobsReady, hasBackupJobFetchError } = useXoBackupJobCollection()
 
-const openProtectionHelpModal = useModal(() => ({
-  component: import('@xen-orchestra/web/src/shared/components/modals/VmProtectedHelper.vue'),
-}))
+const { open: openVmProtectedInfoModal } = useVmProtectedInfoModal()
 
 const lastRuns = computed(() => vmDashboard?.backupsInfo?.lastRuns)
 

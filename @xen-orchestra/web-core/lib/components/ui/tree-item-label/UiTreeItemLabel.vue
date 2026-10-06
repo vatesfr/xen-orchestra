@@ -18,7 +18,7 @@
           :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'"
           size="small"
           :target-scale="{ x: 1.5, y: 2 }"
-          @click="emit('toggle')"
+          @click.stop="emit('toggle')"
         />
         <div v-else class="h-line" />
       </div>
@@ -30,7 +30,7 @@
           <slot />
         </div>
       </a>
-      <div class="addons-wrapper">
+      <div class="addons-wrapper" @click.stop>
         <slot name="addons" />
       </div>
     </div>
@@ -41,9 +41,13 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTreeLine from '@core/components/tree/VtsTreeLine.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
-import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN, IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util'
+import {
+  IK_TREE_ITEM_EXPANDED,
+  IK_TREE_ITEM_HAS_CHILDREN,
+  IK_TREE_LIST_DEPTH,
+} from '@core/utils/injection-keys.util.ts'
 import { inject, ref, useAttrs } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'

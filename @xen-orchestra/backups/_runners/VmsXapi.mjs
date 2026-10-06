@@ -9,7 +9,9 @@ import { getAdaptersByRemote } from './_getAdaptersByRemote.mjs'
 import { IncrementalXapi } from './_vmRunners/IncrementalXapi.mjs'
 import { FullXapi } from './_vmRunners/FullXapi.mjs'
 import { Throttle } from '@vates/generator-toolbox'
+import { asyncEach } from '@vates/async-each'
 import createStreamThrottle from './_createStreamThrottle.mjs'
+import { selectSynchronizedSnapshotVms } from './_selectSynchronizedSnapshotVms.mjs'
 
 const noop = Function.prototype
 
@@ -31,7 +33,9 @@ const DEFAULT_XAPI_VM_SETTINGS = {
   nRetriesVmBackupFailures: 0,
   offlineBackup: false,
   offlineSnapshot: false,
+  snapshotConcurrency: 2,
   snapshotRetention: 0,
+  synchronizedSnapshot: false,
   timeout: 0,
   useNbd: false,
   unconditionalSnapshot: false,
@@ -45,6 +49,16 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
     Object.assign(baseSettings, DEFAULT_XAPI_VM_SETTINGS, config.defaultSettings, config.vm?.defaultSettings)
     Object.assign(baseSettings, job.settings[''])
     return baseSettings
+  }
+
+  _getVmBackup(jobMode, opts) {
+    if (jobMode === 'delta') {
+      return new IncrementalXapi(opts)
+    } else if (jobMode === 'full') {
+      return new FullXapi(opts)
+    }
+
+    throw new Error(`Job mode ${jobMode} not implemented`)
   }
 
   async run() {
@@ -95,21 +109,99 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
         const allSettings = this._job.settings
         const baseSettings = this._baseSettings
 
-        const queue = new Set(vmIds)
+        const preTakenTimestampByVmId = {}
+        const failedSnapshotByVmId = {}
         const taskByVmId = {}
         const nTriesByVmId = {}
 
-        const handleVm = vmUuid => {
-          const getVmTask = () => {
-            const started = taskByVmId[vmUuid] !== undefined
-            if (!started) {
-              taskByVmId[vmUuid] = new Task(taskStart)
-            }
-            return {
-              task: taskByVmId[vmUuid],
-              started,
-            }
+        const getVmTask = (vmUuid, name_label) => {
+          const started = taskByVmId[vmUuid] !== undefined
+          if (!started) {
+            taskByVmId[vmUuid] = new Task({ properties: { id: vmUuid, name: 'backup VM', type: 'VM', name_label } })
           }
+          return {
+            task: taskByVmId[vmUuid],
+            started,
+          }
+        }
+
+        if (settings.synchronizedSnapshot) {
+          await Disposable.use(
+            Disposable.all(vmIds.map(vmId => this._getRecord('VM', vmId).catch(noop))),
+            async vms => {
+              // remove vms that failed (already handled)
+              vms = vms.filter(_ => _ !== undefined)
+
+              const batchIds = selectSynchronizedSnapshotVms(settings.synchronizedSnapshot, vms)
+
+              if (batchIds.size > 0) {
+                Task.info('synchronized snapshot', { vms: Array.from(batchIds) })
+              }
+
+              await asyncEach(
+                [...vms].filter(vm => batchIds.has(vm.uuid)),
+                async vm => {
+                  const { task } = getVmTask(vm.uuid, vm.name_label)
+
+                  const vmSettings = { ...settings, ...allSettings[vm.uuid] }
+                  const opts = {
+                    baseSettings,
+                    config,
+                    getSnapshotNameLabel,
+                    healthCheckSr,
+                    job,
+                    remoteAdapters,
+                    schedule,
+                    settings: vmSettings,
+                    srs,
+                    throttleGenerator,
+                    throttleStream,
+                    vm,
+                  }
+
+                  await task
+                    .runInside(async () => {
+                      let vmBackup
+                      try {
+                        vmBackup = this._getVmBackup(job.mode, opts)
+                        if (
+                          !vmBackup._settings.offlineBackup &&
+                          !vmBackup._settings.offlineSnapshot &&
+                          (await vmBackup._mustDoSnapshot())
+                        ) {
+                          await vmBackup._prepareAndSnapshot()
+                          preTakenTimestampByVmId[vm.uuid] = vmBackup.timestamp
+                        }
+                      } catch (error) {
+                        failedSnapshotByVmId[vm.uuid] = error
+                        if (vmBackup !== undefined) {
+                          try {
+                            await vmBackup._fetchJobSnapshots()
+                            await vmBackup._removeUnusedSnapshots()
+                            await vmBackup._cleanMetadata()
+                          } catch (cleanupError) {
+                            // Best effort cleanup
+                          }
+                        }
+
+                        throw error
+                      }
+                    })
+                    .catch(noop)
+                },
+                {
+                  concurrency: settings.snapshotConcurrency,
+                }
+              )
+            }
+          )
+        }
+
+        const snapshotedVmIds = new Set(vmIds.filter(id => !(id in failedSnapshotByVmId)))
+
+        const queue = new Set(snapshotedVmIds)
+
+        const handleVm = vmUuid => {
           const vmBackupFailed = async (error, task) => {
             if (isLastRun) {
               return task.failure(error)
@@ -130,17 +222,13 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
           nTriesByVmId[vmUuid]++
 
           const vmSettings = { ...settings, ...allSettings[vmUuid] }
-          const taskStart = { properties: { id: vmUuid, name: 'backup VM', type: 'VM' } }
           const isLastRun = nTriesByVmId[vmUuid] === vmSettings.nRetriesVmBackupFailures + 1
 
           return this._getRecord('VM', vmUuid).then(
             disposableVm =>
               Disposable.use(disposableVm, async vm => {
-                if (taskStart.properties.name_label === undefined) {
-                  taskStart.properties.name_label = vm.name_label
-                }
+                const { task } = getVmTask(vmUuid, vm.name_label)
 
-                const { task } = getVmTask()
                 // error has to be caught in the task to prevent its failure, but handled outside the task to execute another task.run()
                 let taskError
                 return task
@@ -155,21 +243,16 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                       schedule,
                       settings: vmSettings,
                       srs,
+                      // when set, the batch phase already snapshotted this VM; the
+                      // runner re-finds that snapshot by its metadata (see _snapshot)
+                      synchronizedSnapshotTimestamp: preTakenTimestampByVmId[vmUuid],
                       throttleGenerator,
                       throttleStream,
                       vm,
                     }
 
-                    let vmBackup
-                    if (job.mode === 'delta') {
-                      vmBackup = new IncrementalXapi(opts)
-                    } else {
-                      if (job.mode === 'full') {
-                        vmBackup = new FullXapi(opts)
-                      } else {
-                        throw new Error(`Job mode ${job.mode} not implemented`)
-                      }
-                    }
+                    const vmBackup = this._getVmBackup(job.mode, opts)
+
                     return vmBackup.run().catch(error => {
                       taskError = error
                     })
@@ -185,7 +268,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                   .catch(noop) // errors are handled by logs
               }),
             error => {
-              const { task: vmTask, started } = getVmTask()
+              const { task: vmTask, started } = getVmTask(vmUuid)
               if (!started) {
                 // the task is not started (except if it's a retry), and an unstarted task can't be failed
                 vmTask.start()

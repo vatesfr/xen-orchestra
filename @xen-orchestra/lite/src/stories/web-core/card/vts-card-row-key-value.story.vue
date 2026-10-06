@@ -74,8 +74,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, setting, slot } from '@/libs/story/story-param'
-import { choice, text } from '@/libs/story/story-widget'
+import { prop, setting, slot } from '@/libs/story/story-param.ts'
+import { choice, text } from '@/libs/story/story-widget.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'

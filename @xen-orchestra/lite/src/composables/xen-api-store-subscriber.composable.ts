@@ -1,7 +1,7 @@
-import { type SubscriberDependencies, useSubscriber } from '@/composables/subscriber.composable'
-import type { XenApiStoreBaseContext } from '@/composables/xen-api-store-base-context.composable'
-import type { ObjectType, ObjectTypeToRecord } from '@/libs/xen-api/xen-api.types'
-import { useXenApiStore } from '@/stores/xen-api.store'
+import { type SubscriberDependencies, useSubscriber } from '@/composables/subscriber.composable.ts'
+import type { XenApiStoreBaseContext } from '@/composables/xen-api-store-base-context.composable.ts'
+import type { ObjectType, ObjectTypeToRecord } from '@/libs/xen-api/xen-api.types.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { useI18n } from 'vue-i18n'
 
 export const useXenApiStoreSubscriber = <Type extends ObjectType, XRecord extends ObjectTypeToRecord<Type>>(

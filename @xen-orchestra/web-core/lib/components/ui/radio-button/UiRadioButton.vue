@@ -11,8 +11,8 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { useDisabled } from '@core/composables/disabled.composable'
-import { toVariants } from '@core/utils/to-variants.util'
+import { useDisabled } from '@core/composables/disabled.composable.ts'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
 const { accent, value, disabled } = defineProps<{

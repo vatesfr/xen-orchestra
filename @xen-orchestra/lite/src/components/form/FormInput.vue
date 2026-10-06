@@ -20,13 +20,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@/composables/context.composable'
-import { ColorContext } from '@/context'
-import type { Color } from '@/types'
-import { IK_INPUT_ID, IK_INPUT_TYPE } from '@/types/injection-keys'
+import { useContext } from '@/composables/context.composable.ts'
+import { ColorContext } from '@/context.ts'
+import type { Color } from '@/types/index.ts'
+import { IK_INPUT_ID, IK_INPUT_TYPE } from '@/types/injection-keys.ts'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { useDisabled } from '@core/composables/disabled.composable'
+import { useDisabled } from '@core/composables/disabled.composable.ts'
 import { useVModel } from '@vueuse/core'
 import { computed, type HTMLAttributes, inject, ref, useAttrs } from 'vue'
 

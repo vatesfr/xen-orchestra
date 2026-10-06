@@ -140,7 +140,10 @@ enabled = false
 threshold = 1000
 
 [http]
-useForwardedHeaders = false
+# Trust X-Forwarded-* headers from loopback only: the proxies below (e.g.
+# `/v5/api`) forward requests to xo-server itself through `localhost`, which
+# would otherwise hide the real IP address of clients (e.g. in the audit log)
+useForwardedHeaders = ['loopback']
 
 # Helmet handles HTTP security via headers
 #
@@ -204,6 +207,36 @@ requestTimeout = 0
 '/v5/api/updater' = 'ws://localhost:9001'
 '/v5/netdata' = '[protocol]//localhost:[port]/netdata'
 '/v5/rest' = '[protocol]//localhost:[port]/rest'
+
+[iscsi]
+# Address this appliance is reachable at *from the hosts*: it is handed to them
+# as the iSCSI portal when a backup disk is mounted, so a value they cannot
+# reach makes the mount fail.
+#
+# When unset, it is auto-detected per mount (the local address the OS would
+# route through to reach the target host) — usually correct, but not
+# guaranteed if this appliance is behind NAT or asymmetric routing. Set this
+# explicitly if mounts fail to connect despite auto-detection.
+#advertisedAddress = '192.168.0.1'
+
+# Address the iSCSI targets bind to. Unset means all interfaces.
+#bindAddress = '0.0.0.0'
+
+# Firewall to open the port of each mount in, to the host it is attached to and
+# for the lifetime of the mount only: every mount listens on its own ephemeral
+# port, which cannot be allowed in advance.
+#
+# Only 'ufw' is supported: rules are inserted in `ufw-user-input` (and
+# `ufw6-user-input`) with `iptables`, so they are never persisted, and the ones a
+# crash left behind are removed at the next start. Any change made to ufw
+# (`ufw allow`, `ufw delete`, `ufw reload`…) drops them, which breaks the mounts
+# alive at that time: the firewall of an appliance is not meant to be changed by
+# hand.
+#
+# Without iptables, without ufw enabled, or when not running as root, no rule
+# is opened and the mounts go on: whatever firewall there is must let the hosts
+# in. Set to `false` to leave the firewall of this appliance alone.
+manageFirewall = 'ufw'
 
 [logs]
 # Display all logs matching this filter, regardless of their level
@@ -283,6 +316,9 @@ dashboardCacheTimeout = '1 min'
 # Allow to set a limit of memory per SSE client
 # before destroying the client. In MiB
 maxRamAllocatedPerSseClient = 20
+# Allow to set a limit of events queued for a client watching the tasks
+# collection (`GET /rest/v0/tasks?watch=true`) before destroying the client
+maxEventsQueuedPerWatchClient = 1000
 
 [jsonrpc-api]
 xvaImportFromUrlTimeout = '6s'

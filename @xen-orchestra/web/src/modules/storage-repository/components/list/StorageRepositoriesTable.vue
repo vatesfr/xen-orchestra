@@ -25,15 +25,16 @@
 </template>
 
 <script setup lang="ts">
-import { useSrConnectModal } from '@/modules/storage-repository/composables/use-sr-connect-modal.composable.ts'
-import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
-import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
+import { useSrConnection } from '@/modules/storage-repository/composables/use-sr-connection.composable.ts'
+import { useSrDelete } from '@/modules/storage-repository/composables/use-sr-delete.composable.ts'
 import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { getSrPageLocation } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -46,7 +47,6 @@ import { icon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
-import { type SrScope } from '@core/types/storage-repository.type.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
@@ -115,46 +115,37 @@ function getPrimaryIcon(sr: FrontXoSr) {
 
 const { HeadCells, BodyCells } = useSrColumns({
   body: (sr: FrontXoSr) => {
-    const { buildXo5Route } = useXoRoutes()
-
-    const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
     const rightIcon = computed(() => getPrimaryIcon(sr))
 
-    const { srStatusIcon } = useXoSrUtils(sr, () => scope)
+    const { srStatusIcon, getSrAccessModeLabel } = useXoSrUtils(sr, () => scope)
 
-    const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
-
-    const {
-      openModal: openSrConnectModal,
-      canRun: canConnectSr,
-      isRunning: isConnectingSr,
-      errorMessage: connectSrErrorMessage,
-      targetCount: connectTargetCount,
-    } = useSrConnectModal(
-      () => [sr],
-      () => scope
-    )
+    const { deleteSrs, canDeleteSrs, isDeletingSrs } = useSrDelete(() => [sr])
 
     const {
-      openModal: openSrDisconnectModal,
-      canRun: canDisconnectSr,
-      isRunning: isDisconnectingSr,
-      errorMessage: disconnectSrErrorMessage,
-      targetCount: disconnectTargetCount,
-    } = useSrDisconnectModal(
-      () => [sr],
-      () => scope
-    )
+      connectSrs,
+      disconnectSrs,
+      canConnectSrs,
+      canDisconnectSrs,
+      isConnectingSrs,
+      isDisconnectingSrs,
+      connectSrsErrorMessage,
+      disconnectSrsErrorMessage,
+      connectionTargetCount,
+      disconnectionTargetCount,
+    } = useSrConnection({
+      srs: () => [sr],
+      scope: () => scope,
+    })
 
     const connectLabel = computed(() =>
-      shouldShowTargetCount(scope, connectTargetCount.value)
-        ? t('action:connect-n', { n: connectTargetCount.value })
+      shouldShowTargetCount(scope, connectionTargetCount.value)
+        ? t('action:connect-n', { n: connectionTargetCount.value })
         : t('action:connect')
     )
 
     const disconnectLabel = computed(() =>
-      shouldShowTargetCount(scope, disconnectTargetCount.value)
-        ? t('action:disconnect-n', { n: disconnectTargetCount.value })
+      shouldShowTargetCount(scope, disconnectionTargetCount.value)
+        ? t('action:disconnect-n', { n: disconnectionTargetCount.value })
         : t('action:disconnect')
     )
 
@@ -162,13 +153,13 @@ const { HeadCells, BodyCells } = useSrColumns({
       storageRepository: r =>
         r({
           label: sr.name_label,
-          href: href.value,
+          to: getSrPageLocation(sr, scope),
           icon: srStatusIcon.value,
           rightIcon: rightIcon.value,
         }),
       description: r => r(sr.name_description),
       storageFormat: r => r(sr.SR_type),
-      accessMode: r => r(sr.shared ? t('shared') : t('local')),
+      accessMode: r => r(getSrAccessModeLabel(sr)),
       usedSpace: r => r(sr.physical_usage, sr.size),
       actions: r =>
         r({
@@ -177,25 +168,26 @@ const { HeadCells, BodyCells } = useSrColumns({
             {
               label: connectLabel.value,
               icon: 'action:connect',
-              onClick: () => openSrConnectModal(),
-              busy: isConnectingSr.value,
-              disabled: !canConnectSr.value,
-              hint: connectSrErrorMessage.value,
+              onClick: () => connectSrs(),
+              busy: isConnectingSrs.value,
+              disabled: !canConnectSrs.value,
+              hint: connectSrsErrorMessage.value,
             },
             {
               label: disconnectLabel.value,
               icon: 'action:disconnect',
-              onClick: () => openSrDisconnectModal(),
-              busy: isDisconnectingSr.value,
-              disabled: !canDisconnectSr.value,
-              hint: disconnectSrErrorMessage.value,
+              onClick: () => disconnectSrs(),
+              busy: isDisconnectingSrs.value,
+              disabled: !canDisconnectSrs.value,
+              hint: disconnectSrsErrorMessage.value,
             },
             {
               label: t('action:delete'),
               icon: 'action:delete',
-              onClick: () => openSrDeleteModal(),
-              disabled: !canDeleteSr.value,
-              busy: isDeletingSr.value,
+              onClick: () => deleteSrs(),
+              disabled: !canDeleteSrs.value,
+              busy: isDeletingSrs.value,
+              accent: 'danger',
             },
           ],
         }),

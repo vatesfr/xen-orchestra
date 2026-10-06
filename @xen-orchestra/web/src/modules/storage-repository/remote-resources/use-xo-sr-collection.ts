@@ -1,14 +1,16 @@
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { useXoPoolCollection, type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoVdiCollection, type FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { safePushInMap } from '@/shared/utils/map.util'
+import { safePushInMap } from '@/shared/utils/map.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { XoSr } from '@vates/types'
 import { reactify, useSorted } from '@vueuse/core'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 export type FrontXoSr = Pick<XoSr, (typeof srFields)[number]>
 
@@ -43,6 +45,7 @@ export const useXoSrCollection = defineRemoteResource({
 
     const { getVdiById } = useXoVdiCollection(context)
     const { getPoolById } = useXoPoolCollection()
+    const { pbdsBySr } = useXoPbdCollection()
 
     const state = useXoCollectionState(sortedSrs, {
       context,
@@ -77,6 +80,18 @@ export const useXoSrCollection = defineRemoteResource({
       srsByPool.value = tmpSrsByPool
     })
 
+    const srsByHost = computed(() => {
+      const tmpSrsByHost = new Map<FrontXoHost['id'], FrontXoSr[]>()
+
+      sortedSrs.value.forEach(sr => {
+        pbdsBySr.value.get(sr.id)?.forEach(pbd => {
+          safePushInMap(tmpSrsByHost, pbd.host, sr)
+        })
+      })
+
+      return tmpSrsByHost
+    })
+
     const isDefaultSr = (sr: FrontXoSr) => getPoolById(sr.$pool)?.default_SR === sr.id
 
     const isHighAvailabilitySr = reactify((sr: FrontXoSr) => {
@@ -89,6 +104,7 @@ export const useXoSrCollection = defineRemoteResource({
       ...state,
       vdiIsosBySrName,
       srsByPool,
+      srsByHost,
       isDefaultSr,
       isHighAvailabilitySr,
     }

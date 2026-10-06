@@ -1,4 +1,4 @@
-import { IK_DISABLED } from '@core/utils/injection-keys.util'
+import { IK_DISABLED } from '@core/utils/injection-keys.util.ts'
 import { computed, inject, type MaybeRefOrGetter, provide, toValue } from 'vue'
 
 export function useDisabled(condition?: MaybeRefOrGetter<boolean>) {

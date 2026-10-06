@@ -23,7 +23,10 @@ describe('Incremental backup file restore', () => {
   let incrementalBackup
 
   before(async () => {
-    ;({ dispatchClient, tracker, vm, backupRepository } = await setup())
+    let vms
+    ;({ dispatchClient, tracker, vms, backupRepository } = await setup())
+    // Only using one VM
+    vm = vms[0]
 
     const name = generateBackupJobName()
     const schedule = getDefaultSchedule()

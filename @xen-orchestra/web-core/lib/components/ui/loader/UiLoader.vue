@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts" setup>
-import { uniqueId } from '@core/utils/unique-id.util'
+import { uniqueId } from '@core/utils/unique-id.util.ts'
 
 const firstHalfId = uniqueId('spinner-first-half-')
 const secondHalfId = uniqueId('spinner-second-half-')

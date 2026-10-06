@@ -14,7 +14,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, slot } from '@/libs/story/story-param'
+import { prop, slot } from '@/libs/story/story-param.ts'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 </script>

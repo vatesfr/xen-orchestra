@@ -1,7 +1,7 @@
-import { useHideRouteQuery } from '@core/composables/hide-route-query.composable'
-import { useSortRouteQuery } from '@core/composables/sort-route-query.composable'
-import { createDefineColumn } from '@core/composables/table/create-define-column'
-import type { ColumnDefinition, Table, TableOptions } from '@core/composables/table/type'
+import { useHideRouteQuery } from '@core/composables/hide-route-query.composable.ts'
+import { useSortRouteQuery } from '@core/composables/sort-route-query.composable.ts'
+import { createDefineColumn } from '@core/composables/table/create-define-column.ts'
+import type { ColumnDefinition, Table, TableOptions } from '@core/composables/table/type.ts'
 import type { MaybeRefOrGetter } from 'vue'
 import { computed, reactive, toValue } from 'vue'
 

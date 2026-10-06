@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 
 const slots = defineSlots<{
   default: () => any

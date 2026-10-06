@@ -3,7 +3,7 @@
     v-slot="{ properties }"
     :params="[
       iconProp().preset('fa:ellipsis'),
-      prop('accent').required().enum('brand', 'warning', 'danger').preset('brand').widget(),
+      prop('accent').required().enum('brand', 'info', 'warning', 'danger').preset('brand').widget(),
       prop('size').required().enum('small', 'medium', 'large').preset('medium').widget(),
       prop('disabled').bool().widget(),
       prop('selected').bool().widget(),
@@ -22,6 +22,6 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop } from '@/libs/story/story-param'
+import { iconProp, prop } from '@/libs/story/story-param.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 </script>

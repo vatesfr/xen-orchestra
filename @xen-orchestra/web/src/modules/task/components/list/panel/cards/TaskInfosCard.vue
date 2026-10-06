@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="task-infos-card">
     <UiCardTitle>
       {{ t('info') }}
       <UiCounter :value="Object.keys(task.infos!).length" accent="info" size="small" variant="primary" />
@@ -16,7 +16,7 @@
         </VtsCardRowKeyValue>
       </template>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -24,9 +24,9 @@ import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-co
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -37,9 +37,7 @@ const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.task-infos-card {
   .content {
     display: flex;
     flex-direction: column;

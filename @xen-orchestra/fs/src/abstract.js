@@ -144,6 +144,10 @@ export default class RemoteHandlerAbstract {
     return this.#rawEncryptor
   }
 
+  getConfig(key) {
+    return this._remote[key]
+  }
+
   constructor(remote, options = {}) {
     if (remote.url === 'test://') {
       this._remote = remote
@@ -601,12 +605,6 @@ export default class RemoteHandlerAbstract {
       fd: await this._openFile(path, flags),
       path,
     }
-  }
-
-  // Methods that can be implemented by inheriting classes
-
-  useVhdDirectory() {
-    return this._remote.useVhdDirectory ?? false
   }
 
   async _closeFile(fd) {

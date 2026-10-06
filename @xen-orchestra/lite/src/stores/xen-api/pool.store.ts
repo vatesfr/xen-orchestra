@@ -1,7 +1,7 @@
-import type { XenApiHost, XenApiPool } from '@/libs/xen-api/xen-api.types'
-import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
+import type { XenApiHost, XenApiPool } from '@/libs/xen-api/xen-api.types.ts'
+import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util.ts'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 

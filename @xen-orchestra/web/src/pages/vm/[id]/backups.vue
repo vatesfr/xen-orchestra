@@ -17,7 +17,7 @@ import {
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 
 const { vm } = defineProps<{
   vm: FrontXoVm

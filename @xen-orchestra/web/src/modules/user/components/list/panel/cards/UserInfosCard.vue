@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiPanelCard class="user-infos-card">
     <UiCardTitle>
       <div class="title">
         <UiUserLogo size="small" />
@@ -36,7 +36,7 @@
         <template #value>{{ providers }}</template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -46,9 +46,9 @@ import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -97,9 +97,7 @@ const userPermission = computed(() => {
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.user-infos-card {
   .title {
     display: flex;
     align-items: center;

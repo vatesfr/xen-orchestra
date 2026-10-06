@@ -9,6 +9,7 @@ import {
   notImplemented,
   objectAlreadyExists,
   unauthorized,
+  serviceUnavailable,
 } from 'xo-common/api-errors.js'
 import type { HttpStatusCodeLiteral } from 'tsoa'
 import { NextFunction, Request, Response } from 'express'
@@ -52,6 +53,8 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
     statusCode = 501
   } else if (incorrectState.is(error)) {
     statusCode = 409
+  } else if (serviceUnavailable.is(error)) {
+    statusCode = 503
   } else {
     if (error.name === 'XapiError') {
       responseError.info = 'This is a XenServer/XCP-ng error, not an XO error'

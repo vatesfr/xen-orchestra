@@ -29,7 +29,7 @@ export default class MigrateVm {
         },
       },
     }
-    const schedule = { id: 'one-time' }
+    const schedule = { id: 'one-time', name: 'one-time' }
 
     // for now we only support this from the main OA, no proxy
     return createRunner({
@@ -75,23 +75,31 @@ export default class MigrateVm {
     // since the source is stopped, there won't be any new change after
     await backup.run()
 
-    // find the destination Vm
-    const targets = Object.keys(
-      app.getObjects({
-        filter: obj => {
-          return (
-            'other' in obj &&
+    // find the destination Vm and collapse into a single id
+    const targetIds = new Set(
+      Object.values(
+        app.getObjectsByType('VM-snapshot', {
+          filter: obj =>
             obj.other['xo:backup:job'] === jobId &&
             obj.other['xo:backup:sr'] === srId &&
-            obj.other['xo:backup:vm'] === sourceVm.uuid &&
-            'start' in obj.blockedOperations
-          )
-        },
+            obj.other['xo:backup:vm'] === sourceVm.uuid,
+        })
+      ).map(snapshot => snapshot.$snapshot_of)
+    )
+
+    // the incremental xapi writer blocks `start` on the VM it replicates, checking it here ensures
+    // only a replicated VM is ever considered
+    const targets = Object.keys(
+      app.getObjectsByType('VM', {
+        filter: obj => targetIds.has(obj.id) && 'start' in obj.blockedOperations,
       })
     )
+
     if (targets.length === 0) {
       throw new Error(`Vm target of warm migration not found for ${sourceVmId} on SR ${srId} `)
     }
+
+    // more than one means distinct copies
     if (targets.length > 1) {
       throw new Error(`Multiple target of warm migration found for ${sourceVmId} on SR ${srId} `)
     }

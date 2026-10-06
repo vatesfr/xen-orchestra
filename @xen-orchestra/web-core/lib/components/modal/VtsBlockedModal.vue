@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="danger" icon="status:danger-picto" dismissible>
+  <UiModal accent="danger" icon="status:danger-picto" @dismiss="emit('close')">
     <template #title>
       <span>{{ modalTexts.title }}</span>
     </template>
@@ -12,18 +12,18 @@
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <UiLink :href icon="action:edit" size="medium" @click="emit('confirm')">
+      <VtsOverlayCancelButton @click="emit('close')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <UiLink :href icon="action:edit" size="medium" @click="emit('close')">
         {{ t('action:edit-config') }}
       </UiLink>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import type { VmBlockedOperations } from '@core/types/object.type.ts'
 import { useI18n } from 'vue-i18n'
@@ -40,7 +40,7 @@ const { blockedOperation } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  confirm: []
+  close: []
 }>()
 
 const { t } = useI18n()

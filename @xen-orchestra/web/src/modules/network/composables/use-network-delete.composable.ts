@@ -1,0 +1,72 @@
+import { NETWORK_DELETE_ERROR, useXoNetworkDeleteJob } from '@/modules/network/jobs/xo-network-delete.job.ts'
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { getNetworkType, type NetworkType } from '@/modules/network/utils/xo-network.util.ts'
+import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+import { toComputed } from '@core/utils/to-computed.util.ts'
+import { computed, type MaybeRefOrGetter } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+export function useNetworkDelete(rawNetworks: MaybeRefOrGetter<FrontXoNetwork[]>) {
+  const networks = toComputed(rawNetworks)
+
+  const { t } = useI18n()
+
+  const {
+    run,
+    canRun: canDeleteNetworks,
+    isRunning: isDeletingNetworks,
+    errorMessage: deleteNetworksErrorMessage,
+    error: deleteNetworksError,
+  } = useXoNetworkDeleteJob(networks)
+
+  const subject = computed(() => {
+    const count = networks.value.length
+
+    const subjectsByType: Record<NetworkType, string> = {
+      physical: t('n-networks', { n: count }),
+      bonded: t('n-bonded-networks', { n: count }),
+      internal: t('n-internal-networks', { n: count }),
+    }
+
+    return subjectsByType[getNetworkType(networks.value[0])]
+  })
+
+  const { open: openNetworkDeleteModal } = useDeleteModal()
+
+  const { open: openNetworkDeleteErrorModal } = useOverlay({
+    component: () => import('@/modules/network/components/modal/NetworkDeleteErrorModal.vue'),
+    events: {
+      onClose: true,
+    },
+  })
+
+  function deleteNetworks() {
+    if (!canDeleteNetworks.value) {
+      return openNetworkDeleteErrorModal({
+        props: {
+          error: deleteNetworksErrorMessage.value,
+          showConnectedVifsMessage: deleteNetworksError.value?.jobName === NETWORK_DELETE_ERROR.VIFS_IN_USE,
+        },
+      })
+    }
+
+    return openNetworkDeleteModal({
+      events: {
+        onConfirm: async () => {
+          try {
+            await run()
+          } catch (apiError) {
+            console.error('Error when deleting network:', apiError)
+          }
+        },
+      },
+      props: {
+        subject: subject.value,
+        confirmLabel: t('action:delete-n-networks', { n: networks.value.length }),
+      },
+    })
+  }
+
+  return { deleteNetworks, canDeleteNetworks, isDeletingNetworks }
+}

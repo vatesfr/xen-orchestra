@@ -1,6 +1,6 @@
-import type { ObjectType, ObjectTypeToRecord, XenApiRecord } from '@/libs/xen-api/xen-api.types'
-import { useXenApiStore } from '@/stores/xen-api.store'
-import type { SubscribableStoreConfig } from '@core/types/subscribable-store.type'
+import type { ObjectType, ObjectTypeToRecord, XenApiRecord } from '@/libs/xen-api/xen-api.types.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
+import type { SubscribableStoreConfig } from '@core/types/subscribable-store.type.ts'
 import { computed, type ComputedRef, readonly, type Ref, ref, shallowReactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 

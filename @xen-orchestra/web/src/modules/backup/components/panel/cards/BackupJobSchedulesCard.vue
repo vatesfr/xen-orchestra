@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiPanelCard class="backup-job-schedules-card">
     <UiCardTitle>
       {{ t('schedules') }}
       <UiCounter :value="backupJobSchedules.length" accent="neutral" size="small" variant="primary" />
@@ -57,7 +57,7 @@
         </VtsCardRowKeyValue>
       </template>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -67,10 +67,10 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJobSchedules } = defineProps<{
@@ -83,13 +83,15 @@ const { buildXo5Route } = useXoRoutes()
 </script>
 
 <style scoped lang="postcss">
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+.backup-job-schedules-card {
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
 
-  .divider {
-    margin-block: 1.6rem;
+    .divider {
+      margin-block: 1.6rem;
+    }
   }
 }
 </style>

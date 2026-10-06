@@ -19,7 +19,7 @@ import type {
   VM_POWER_STATE,
 } from './common.mjs'
 import type * as CMType from './lib/complex-matcher.mjs'
-import { XoAclPrivilege, XoAclRole, XoAclSupportedActionsByResource } from './lib/xen-orchestra-acl.mjs'
+import { XoAclBasePrivilege, XoAclRole } from './lib/xen-orchestra-acl.mjs'
 import type { XenApiHost, XenApiPool } from './xen-api.mjs'
 
 type BaseXapiXo = {
@@ -140,6 +140,7 @@ export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
 }
 
 // TODO: to be typed when Bastien.N has finished working on the XO task
+// Once the [key:string]: unknown is removed, remove the `as XoMessage` in event.class.mts
 type BaseXoLog = {
   id: Branded<'xo-log'>
   infos?: { data: unknown; message: string }[]
@@ -200,8 +201,14 @@ export type XoPoolBackupArchive = XoMetadataBackupArchive & {
   type: 'xo-pool-metadata-backup'
 }
 
+export type XoBackupRepositoryBenchmark = {
+  readRate: number
+  timestamp: number
+  writeRate: number
+}
+
 export type XoBackupRepository = {
-  benchmarks?: { readRate: number; timestamp: number; writeRate: number }[]
+  benchmarks?: XoBackupRepositoryBenchmark[]
   enabled: boolean
   error?: Record<string, unknown>
   id: Branded<'backup-repository'>
@@ -578,6 +585,9 @@ export type XoJob = BaseXoJob & {
       [key: string]: unknown
     }[]
   }
+  userId?: XoUser['id']
+  createdBy?: XoUser['id']
+  updatedBy?: XoUser['id']
 }
 
 export type XoSchedule = {
@@ -602,7 +612,7 @@ export type XoServer = {
   poolNameDescription?: string
   poolNameLabel?: string
   readOnly: boolean
-  status: 'connected' | 'disconnected' | 'connecting'
+  status: 'connected' | 'disconnecting' | 'disconnected' | 'connecting'
   username: string
 }
 
@@ -712,12 +722,18 @@ export type XoTask = {
 export type XoUser = {
   authProviders?: Record<string, string>
   email: string
+  firstname?: string
   groups: XoGroup['id'][]
   id: Branded<'user'>
+  lastname?: string
+  /**
+   * @deprecated use username instead
+   */
   name?: string
   permission: 'none' | 'admin'
   pw_hash?: string
   preferences: Record<string, string>
+  username?: string
 }
 
 export type XoAuthenticationToken = {
@@ -889,10 +905,7 @@ export type XapiXoRecord =
   | XoVtpm
   | XoSm
 
-export type NonXapiXoRecord<
-  TActionsByResource extends XoAclSupportedActionsByResource = never,
-  TResource extends string = never,
-> =
+export type NonXapiXoRecord =
   | AnyXoBackupArchive
   | AnyXoJob
   | AnyXoLog
@@ -905,12 +918,9 @@ export type NonXapiXoRecord<
   | XoTask
   | XoUser
   | XoAclRole
-  | XoAclPrivilege<TActionsByResource, TResource>
+  | XoAclBasePrivilege
 
-export type XoRecord<
-  TActionsByResource extends XoAclSupportedActionsByResource = never,
-  TResource extends string = never,
-> = XapiXoRecord | NonXapiXoRecord<TActionsByResource, TResource>
+export type XoRecord = XapiXoRecord | NonXapiXoRecord
 
 export type AnyXoVm = XoVm | XoVmSnapshot | XoVmTemplate | XoVmController
 

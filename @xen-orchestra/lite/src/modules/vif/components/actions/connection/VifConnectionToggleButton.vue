@@ -1,13 +1,13 @@
 <template>
   <UiButton
-    v-tooltip="!canToggleVifConnection && toggleConnectionErrorMessage"
+    v-tooltip="!connection.canToggle && connection.errorMessage"
     size="medium"
     variant="tertiary"
     accent="brand"
-    :disabled="!canToggleVifConnection"
+    :disabled="!connection.canToggle"
     :left-icon="connection.icon"
-    :busy="isTogglingVifConnection"
-    @click="openVifConnectionToggleModal()"
+    :busy="connection.isToggling"
+    @click="connection.toggle()"
   >
     {{ connection.label }}
   </UiButton>
@@ -15,12 +15,11 @@
 
 <script lang="ts" setup>
 import type { XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
-import { useVifConnectionToggleModal } from '@/modules/vif/composables/use-vif-connection-toggle-modal.composable.ts'
+import { useVifConnection } from '@/modules/vif/composables/use-vif-connection.composable.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
 import { CONNECTION_ACTION } from '@core/types/connection.ts'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vif, vm } = defineProps<{
@@ -30,25 +29,40 @@ const { vif, vm } = defineProps<{
 
 const { t } = useI18n()
 
-const action = computed(() => (vif.currently_attached ? CONNECTION_ACTION.DISCONNECT : CONNECTION_ACTION.CONNECT))
+const {
+  connectVifs,
+  disconnectVifs,
+  canConnectVifs,
+  canDisconnectVifs,
+  isConnectingVifs,
+  isDisconnectingVifs,
+  connectVifsErrorMessage,
+  disconnectVifsErrorMessage,
+} = useVifConnection({
+  vifs: () => [vif],
+  vm: () => vm,
+})
 
 const connection = useMapper(
-  () => action.value,
+  () => (vif.currently_attached ? CONNECTION_ACTION.DISCONNECT : CONNECTION_ACTION.CONNECT),
   () => ({
-    connect: { label: t('action:connect'), icon: 'action:connect' },
-    disconnect: { label: t('action:disconnect'), icon: 'action:disconnect' },
+    connect: {
+      label: t('action:connect'),
+      icon: 'action:connect' as const,
+      toggle: connectVifs,
+      canToggle: canConnectVifs.value,
+      isToggling: isConnectingVifs.value,
+      errorMessage: connectVifsErrorMessage.value,
+    },
+    disconnect: {
+      label: t('action:disconnect'),
+      icon: 'action:disconnect' as const,
+      toggle: disconnectVifs,
+      canToggle: canDisconnectVifs.value,
+      isToggling: isDisconnectingVifs.value,
+      errorMessage: disconnectVifsErrorMessage.value,
+    },
   }),
   'connect'
-)
-
-const {
-  openModal: openVifConnectionToggleModal,
-  canRun: canToggleVifConnection,
-  isRunning: isTogglingVifConnection,
-  errorMessage: toggleConnectionErrorMessage,
-} = useVifConnectionToggleModal(
-  action,
-  () => [vif],
-  () => vm
 )
 </script>

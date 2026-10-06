@@ -33,16 +33,7 @@
       </VtsKeyValueRow>
       <VtsKeyValueRow :label="t('host')">
         <template #value>
-          <UiLink
-            v-if="host"
-            :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-            size="medium"
-            :icon="`object:host:${hostPowerState}`"
-            :is-primary="isMaster"
-            :primary-tooltip="t('master')"
-          >
-            {{ host.name_label }}
-          </UiLink>
+          <HostLink v-if="host" :host="host" size="medium" />
           <template v-else>
             {{ t('none') }}
           </template>
@@ -55,20 +46,7 @@
       <VtsKeyValueRow :label="t('virtualization-type')" :value="virtualizationType" />
       <VtsKeyValueRow :label="t('guest-tools')">
         <template #value>
-          <div class="value">
-            <VtsIcon
-              v-if="guestToolsDisplay.value !== '-'"
-              v-tooltip="guestToolsDisplay.tooltip"
-              :name="guestToolsDisplay.type === 'link' ? 'status:halted-circle' : 'status:success-circle'"
-              size="medium"
-            />
-            <UiLink v-if="guestToolsDisplay.type === 'link'" size="small" :href="XCP_LINKS.GUEST_TOOLS">
-              {{ guestToolsDisplay.value }}
-            </UiLink>
-            <template v-else>
-              <span v-tooltip class="text-ellipsis"> {{ guestToolsDisplay.value }}</span>
-            </template>
-          </div>
+          <VmGuestToolsStatus :guest-tools-display />
         </template>
       </VtsKeyValueRow>
     </VtsKeyValueList>
@@ -87,12 +65,12 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
+import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { XCP_LINKS } from '@/shared/constants.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
 import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
@@ -100,10 +78,7 @@ import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatSize } from '@core/utils/size.util.ts'
-import { HOST_POWER_STATE } from '@vates/types'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -116,7 +91,6 @@ const { t } = useI18n()
 const { areVmsReady } = useXoVmCollection()
 const { useGetPoolById } = useXoPoolCollection()
 const { getVmHost } = useXoVmCollection()
-const { isMasterHost } = useXoHostCollection()
 
 const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useXoVmUtils(() => vm)
 
@@ -133,12 +107,6 @@ const virtualizationType = computed(() =>
 )
 
 const host = computed(() => getVmHost(vm))
-
-const isMaster = computed(() => (host.value !== undefined ? isMasterHost(host.value.id) : false))
-
-const hostPowerState = computed(() =>
-  host.value ? toLower(host.value.power_state) : toLower(HOST_POWER_STATE.UNKNOWN)
-)
 </script>
 
 <style lang="postcss" scoped>

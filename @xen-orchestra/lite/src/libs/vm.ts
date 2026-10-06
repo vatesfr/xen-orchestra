@@ -1,5 +1,5 @@
-import type { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { VM_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { saveAs } from 'file-saver'
 import { castArray } from 'lodash-es'
 

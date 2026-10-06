@@ -38,7 +38,7 @@ import {
   Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { limitAndFilterArray, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import { BASE_URL, limitAndFilterArray, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 import type {
   UnbrandAnyXoBackupJob,
   UnbrandXoMetadataBackupJob,
@@ -58,7 +58,6 @@ import {
   vmBackupJob,
   vmBackupJobIds,
 } from '../open-api/oa-examples/backup-job.oa-example.mjs'
-import { BASE_URL } from '../index.mjs'
 import { BackupJobService } from './backup-job.service.mjs'
 
 const log = createLogger('xo:rest-api:backupJob-controller')
