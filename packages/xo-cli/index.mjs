@@ -667,6 +667,7 @@ async function call(args) {
           new PassThrough(),
           noop
         )
+
         const response = await fetch(url, {
           dispatcher,
           body: input,
