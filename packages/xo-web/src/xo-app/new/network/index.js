@@ -8,7 +8,14 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import Wizard, { Section } from 'wizard'
 import { addSubscriptions, connectStore } from 'utils'
-import { createBondedNetwork, createNetwork, createPrivateNetwork, getBondModes, subscribePlugins } from 'xo'
+import {
+  confirmInsecureNbd,
+  createBondedNetwork,
+  createNetwork,
+  createPrivateNetwork,
+  getBondModes,
+  subscribePlugins,
+} from 'xo'
 import { isAdmin, createGetObject, createGetObjectsOfType, getIsPoolAdmin } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
@@ -189,7 +196,7 @@ const NewNetwork = decorate([
       router: PropTypes.object,
     }
 
-    _create = () => {
+    _create = async () => {
       const { pool, state } = this.props
       const {
         bonded,
@@ -209,6 +216,11 @@ const NewNetwork = decorate([
       let { mtu, vlan } = state
       mtu = mtu === '' ? undefined : +mtu
       vlan = vlan === '' ? undefined : +vlan
+
+      if (!bonded && !isPrivate && nbd === 'insecure_nbd') {
+        // a cancel rejects: the network is not created and the form stays as is
+        await confirmInsecureNbd()
+      }
 
       return bonded
         ? createBondedNetwork({
@@ -242,7 +254,8 @@ const NewNetwork = decorate([
               description,
               mtu,
               name,
-              nbd,
+              // the API takes null for no NBD, which the select can't use as an option value
+              nbd: nbd === 'none' ? null : nbd,
               pif: pif == null ? undefined : pif.id,
               pool: pool.id,
               vlan,
@@ -449,8 +462,9 @@ const NewNetwork = decorate([
                               name='nbd'
                               onChange={effects.onChangeNbd}
                               options={[
-                                { label: _('noNbdConnection'), value: false },
-                                { label: _('nbdConnection'), value: true },
+                                { label: _('noNbdConnection'), value: 'none' },
+                                { label: _('nbdConnection'), value: 'nbd' },
+                                { label: _('insecureNbdConnection'), value: 'insecure_nbd' },
                               ]}
                               value={nbd}
                             />
