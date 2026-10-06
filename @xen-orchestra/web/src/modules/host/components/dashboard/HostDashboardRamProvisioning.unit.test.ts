@@ -1,7 +1,7 @@
 import HostDashboardRamProvisioning from '@/modules/host/components/dashboard/HostDashboardRamProvisioning.vue'
 import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
-import { findCardNumbers } from '@/test/find-labelled-values.ts'
+import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -60,5 +60,5 @@ it('labels the progress bar with the name of the host', () => {
     createHost({ name_label: 'Primary Host', memory: { size: 4294967296, usage: 1073741824 } })
   )
 
-  expect(wrapper.get('.ui-legend').text()).toContain('Primary Host')
+  expect(findLegends(wrapper).map(([label]) => label)).toEqual(['Primary Host'])
 })
