@@ -2,6 +2,9 @@ import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 
 const RFC_MINIMUM_MTU = 68 // see RFC 791
 
+// 'nbd': NBD over TLS, 'insecure_nbd': NBD in clear, null: no NBD
+const NBD_PARAM = { enum: [null, 'nbd', 'insecure_nbd'], optional: true }
+
 export function getBondModes() {
   return ['balance-slb', 'active-backup', 'lacp']
 }
@@ -15,8 +18,8 @@ export async function create({ pool, name, description, pif, mtu = 1500, vlan = 
     vlan,
   })
 
-  if (nbd) {
-    await network.add_purpose('nbd')
+  if (nbd != null) {
+    await network.add_purpose(nbd)
   }
 
   return xapiObjectToXo(network).id
@@ -25,7 +28,7 @@ export async function create({ pool, name, description, pif, mtu = 1500, vlan = 
 create.params = {
   pool: { type: 'string' },
   name: { type: 'string' },
-  nbd: { type: 'boolean', optional: true },
+  nbd: NBD_PARAM,
   description: { type: 'string', minLength: 0, optional: true },
   pif: { type: 'string', optional: true },
   mtu: { type: 'integer', optional: true, minimum: RFC_MINIMUM_MTU },
@@ -87,12 +90,20 @@ export async function set({
     mtu !== undefined && network.$setMtu(mtu),
     nameDescription !== undefined && network.set_name_description(nameDescription),
     nameLabel !== undefined && network.set_name_label(nameLabel),
-    nbd !== undefined &&
-      Promise.all([
-        network.remove_purpose('insecure_nbd'),
-        nbd ? network.add_purpose('nbd') : network.remove_purpose('nbd'),
-      ]),
+    nbd !== undefined && setNbdPurpose(network, nbd),
   ])
+}
+
+// nbd and insecure_nbd are incompatible purposes: the other one must be removed before adding one
+async function setNbdPurpose(network, nbd) {
+  for (const otherPurpose of ['nbd', 'insecure_nbd']) {
+    if (otherPurpose !== nbd) {
+      await network.remove_purpose(otherPurpose)
+    }
+  }
+  if (nbd !== null) {
+    await network.add_purpose(nbd)
+  }
 }
 
 set.params = {
@@ -121,10 +132,7 @@ set.params = {
     type: 'string',
     optional: true,
   },
-  nbd: {
-    type: 'boolean',
-    optional: true,
-  },
+  nbd: NBD_PARAM,
 }
 
 set.resolve = {
