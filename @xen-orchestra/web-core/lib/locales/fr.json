@@ -553,6 +553,7 @@
   "job:edit:in-progress": "Modification en cours…",
   "job:enable:in-progress": "Activation en cours…",
   "job:export:in-progress": "Export en cours…",
+  "job:host-detach:bad-power-state": "@:host-not-running",
   "job:host-detach:in-progress": "Détachement de l'hôte en cours…",
   "job:host-detach:master-host": "L'hôte primaire ne peut pas être détaché",
   "job:host-detach:missing-host": "Aucun hôte à détacher",
