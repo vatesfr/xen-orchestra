@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import { useBackupRepositoryChangeState } from '@/modules/backup-repository/composables/use-backup-repository-change-state.composable.ts'
 import { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
 import { useEditBackupRepository } from '@/modules/backup-repository/composables/use-edit-backup-repository.composable.ts'
 import { useXoBackupRepositoryBenchmark } from '@/modules/backup-repository/composables/use-xo-backup-repository-benchmark.composable.ts'
@@ -103,6 +104,13 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
     )
 
     const {
+      changeBackupRepositoryState,
+      canChangeBackupRepositoryState,
+      isChangingBackupRepositoryState,
+      changeBackupRepositoryStateErrorMessage,
+    } = useBackupRepositoryChangeState(() => br)
+
+    const {
       forgetBackupRepositories,
       canForgetBackupRepositories,
       isForgettingBackupRepositories,
@@ -127,6 +135,14 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
         r({
           onClick: () => (selectedBrId.value = br.id),
           actions: [
+            {
+              label: br.enabled ? t('action:disable') : t('action:enable'),
+              icon: br.enabled ? 'status:disabled' : 'status:success-circle',
+              onClick: () => changeBackupRepositoryState(),
+              disabled: !canChangeBackupRepositoryState.value,
+              busy: isChangingBackupRepositoryState.value,
+              hint: changeBackupRepositoryStateErrorMessage.value,
+            },
             {
               label: t('action:edit'),
               icon: 'action:edit',
