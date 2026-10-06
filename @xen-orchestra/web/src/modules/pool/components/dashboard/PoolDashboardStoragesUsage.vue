@@ -6,7 +6,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardTitle>
-    <VtsStatefulProgressBarGroup
+    <VtsProgressBarGroupWithStates
       :items="progressBarItems"
       :busy="!areStoragesUsageReady"
       :has-error
@@ -26,14 +26,14 @@
           size="medium"
         />
       </div>
-    </VtsStatefulProgressBarGroup>
+    </VtsProgressBarGroupWithStates>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
 import { getStoragesUsageTotals, toPercentProgressItem } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
-import VtsStatefulProgressBarGroup from '@core/components/stateful-progress-bar-group/VtsStatefulProgressBarGroup.vue'
+import VtsProgressBarGroupWithStates from '@core/components/progress-bar-group-with-states/VtsProgressBarGroupWithStates.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
