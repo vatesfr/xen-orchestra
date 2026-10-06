@@ -28,7 +28,7 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
       ivLength: 0,
       authTagLength: 0,
       encryptData: buffer => buffer,
-      encryptDataParts: buffer => buffer,
+      encryptDataParts: buffers => buffers,
       encryptStream: stream => stream,
       decryptData: buffer => buffer,
       decryptStream: stream => stream,

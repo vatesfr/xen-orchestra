@@ -53,22 +53,14 @@ function dontAddSyncStackTrace(fn, ...args) {
 }
 
 // writes the buffers one after the other with writev: no need to concatenate them
+// libuv already resumes the partial writes, a short count means the write stopped (like a full disk)
 async function writeBuffers(path, buffers, flags) {
   const handle = await fsPromises.open(path, flags)
   try {
-    let position = 0
-    while (buffers.length !== 0) {
-      const { bytesWritten } = await handle.writev(buffers, position)
-      position += bytesWritten
-      // a partial write: skip what has been written
-      let written = bytesWritten
-      while (buffers.length !== 0 && written >= buffers[0].length) {
-        written -= buffers[0].length
-        buffers = buffers.slice(1)
-      }
-      if (written !== 0) {
-        buffers = [buffers[0].subarray(written), ...buffers.slice(1)]
-      }
+    const length = buffers.reduce((sum, buffer) => sum + buffer.length, 0)
+    const { bytesWritten } = await handle.writev(buffers, 0)
+    if (bytesWritten !== length) {
+      throw new Error(`incomplete write of ${path}: ${bytesWritten} of ${length} bytes`)
     }
   } finally {
     await handle.close()
