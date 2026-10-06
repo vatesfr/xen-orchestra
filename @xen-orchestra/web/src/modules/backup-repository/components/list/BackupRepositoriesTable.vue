@@ -7,7 +7,7 @@
   </UiTitle>
   <VtsQueryBuilder v-model="filter" :schema />
 
-  <VtsTable :state :pagination-bindings sticky="right">
+  <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
     <thead>
       <tr>
         <HeadCells />
@@ -40,6 +40,7 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
@@ -65,15 +66,22 @@ const { openEditBackupRepositoryDrawer } = useEditBackupRepository()
 
 const { items: filteredBrs, filter } = useQueryBuilderFilter('brs', () => brs)
 
+const selectedBrId = useRouteQuery('id')
+
+const { pageRecords: paginatedBrs, paginationBindings } = usePagination('brs', filteredBrs)
+
+const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
+  items: () => brs,
+  filteredItems: brs,
+  pageItems: paginatedBrs,
+  getItemId: br => br.id,
+})
+
 const schema = useQueryBuilderSchema<FrontXoBackupRepository>({
   '': useStringSchema(t('any-property')),
   name: useStringSchema(t('name')),
   url: useStringSchema(t('url')),
 })
-
-const selectedBrId = useRouteQuery('id')
-
-const { pageRecords: paginatedBrs, paginationBindings } = usePagination('brs', filteredBrs)
 
 const state = useTableState({
   busy: () => busy,
@@ -87,6 +95,9 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useBackupRepositoryColumns({
+  head: () => ({
+    checkbox: r => r(pageSelectionModel),
+  }),
   body: (br: FrontXoBackupRepository) => {
     const parsedBrUrl = useXoBackupRepositoryParsedUrl(() => br)
 
@@ -113,6 +124,11 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
     } = useBackupRepositoryForget(() => [br])
 
     return {
+      checkbox: r =>
+        r({
+          selected: isSelected(br.id),
+          onToggle: () => toggleSelection(br.id),
+        }),
       backupRepository: r =>
         r({
           label: br.name,
