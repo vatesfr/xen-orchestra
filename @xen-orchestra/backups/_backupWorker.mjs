@@ -75,7 +75,6 @@ class BackupWorker {
       yield new RemoteAdapter(handler, {
         debounceResource: this.debounceResource,
         dirMode: this.#config.dirMode,
-        vhdDirectoryCompression: this.#config.vhdDirectoryCompression,
       })
     } finally {
       await handler.forget()

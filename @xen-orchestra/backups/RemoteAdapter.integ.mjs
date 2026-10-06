@@ -40,10 +40,10 @@ afterEach(async () => {
 const uniqueId = () => uuid.v1()
 const uniqueIdBuffer = () => uuid.v1({}, Buffer.alloc(16))
 
-async function getAdapter({ useVhdDirectory = false, vhdDirectoryCompression, remoteCompressionType } = {}) {
+async function getAdapter({ useVhdDirectory = false, remoteCompressionType } = {}) {
   handler = getHandler({ url: `file://${tempDir}`, useVhdDirectory, compressionType: remoteCompressionType })
   await handler.sync()
-  return new RemoteAdapter(handler, { vhdDirectoryCompression })
+  return new RemoteAdapter(handler)
 }
 
 const listVmDir = () => handler.list(rootPath, { ignoreMissing: true })
@@ -145,7 +145,8 @@ describe('RemoteAdapter#isMergeableParent', { concurrency: 1 }, () => {
 
           test(`diskIsDirectory=${diskIsDirectory} useVhdDirectory=${useVhdDirectory} compressionMatches=${compressionMatches} uuidMatches=${uuidMatches} -> ${expected}`, async () => {
             const targetCompression = 'brotli'
-            const adapter = await getAdapter({ useVhdDirectory, vhdDirectoryCompression: targetCompression })
+            // no compressionType on the remote: brotli
+            const adapter = await getAdapter({ useVhdDirectory })
             const targetUuid = uniqueIdBuffer()
 
             await generateVhd(`${basePath}/disk.vhd`, {
@@ -164,37 +165,32 @@ describe('RemoteAdapter#isMergeableParent', { concurrency: 1 }, () => {
 })
 
 describe('RemoteAdapter#isMergeableParent compression resolution', { concurrency: 1 }, () => {
-  test('the per-remote compressionType override wins over the adapter default', async () => {
-    const adapter = await getAdapter({
-      useVhdDirectory: true,
-      vhdDirectoryCompression: 'gzip', // config.toml-style default
-      remoteCompressionType: 'brotli', // per-remote override, should be the one actually compared against
-    })
+  test('the compressionType of the remote is the one compared against', async () => {
+    const adapter = await getAdapter({ useVhdDirectory: true, remoteCompressionType: 'gzip' })
     const targetUuid = uniqueIdBuffer()
-    await generateVhd(`${basePath}/disk.vhd`, { mode: 'directory', compression: 'brotli', uuid: targetUuid })
+    await generateVhd(`${basePath}/disk.vhd`, { mode: 'directory', compression: 'gzip', uuid: targetUuid })
 
     assert.equal(await adapter.isMergeableParent(targetUuid, `${basePath}/disk.vhd.alias.vhd`), true)
   })
 
-  test('a disk compressed with the adapter default (not the override) is rejected', async () => {
-    const adapter = await getAdapter({
-      useVhdDirectory: true,
-      vhdDirectoryCompression: 'gzip',
-      remoteCompressionType: 'brotli',
-    })
+  test('a disk compressed with another codec than the remote is rejected', async () => {
+    const adapter = await getAdapter({ useVhdDirectory: true, remoteCompressionType: 'gzip' })
     const targetUuid = uniqueIdBuffer()
-    // disk uses the config default, not the remote override that's actually in effect
+    await generateVhd(`${basePath}/disk.vhd`, { mode: 'directory', compression: 'brotli', uuid: targetUuid })
+
+    assert.equal(await adapter.isMergeableParent(targetUuid, `${basePath}/disk.vhd.alias.vhd`), false)
+  })
+
+  test('a remote without compressionType uses brotli', async () => {
+    const adapter = await getAdapter({ useVhdDirectory: true })
+    const targetUuid = uniqueIdBuffer()
     await generateVhd(`${basePath}/disk.vhd`, { mode: 'directory', compression: 'gzip', uuid: targetUuid })
 
     assert.equal(await adapter.isMergeableParent(targetUuid, `${basePath}/disk.vhd.alias.vhd`), false)
   })
 
-  test("a remote-level 'none' override means no compression, ignoring the adapter default", async () => {
-    const adapter = await getAdapter({
-      useVhdDirectory: true,
-      vhdDirectoryCompression: 'brotli',
-      remoteCompressionType: 'none',
-    })
+  test("a remote-level 'none' means no compression", async () => {
+    const adapter = await getAdapter({ useVhdDirectory: true, remoteCompressionType: 'none' })
     const targetUuid = uniqueIdBuffer()
     // no compression option => VhdDirectory's own getCompressionType() is undefined, matching 'none'
     await generateVhd(`${basePath}/disk.vhd`, { mode: 'directory', uuid: targetUuid })

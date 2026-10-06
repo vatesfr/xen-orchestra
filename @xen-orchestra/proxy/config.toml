@@ -23,7 +23,6 @@ dirMode = 0o700
 # Disables VHD merges running in background
 disableMergeWorker = false
 snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
-vhdDirectoryCompression = 'brotli'
 
 
 # This is a workaround.
