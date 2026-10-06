@@ -37,6 +37,7 @@ describe('formData', () => {
       proxy: PROXY_ID,
       encrypted: true,
       encryptionKey: OBFUSCATED_VALUE,
+      compression: 'brotli',
     })
   })
 
@@ -44,6 +45,19 @@ describe('formData', () => {
     const form = mountEditForm(createBr({ url: 'nfs://192.168.1.10:/exports/backups' }))
 
     expect(form.general.formData).toMatchObject({ backupFormat: 'vhd', encrypted: false, encryptionKey: '' })
+  })
+
+  it('fills the compression from the URL, brotli without compressionType', () => {
+    const compressionOf = (url: string) => mountEditForm(createBr({ url })).general.formData.compression
+
+    expect(compressionOf('nfs://192.168.1.10:/exports/backups?useVhdDirectory=true')).toBe('brotli')
+    expect(compressionOf('nfs://192.168.1.10:/exports/backups?useVhdDirectory=true&compressionType=%22zstd%22')).toBe(
+      'zstd'
+    )
+    // written by hand: not one of the options
+    expect(
+      compressionOf('nfs://192.168.1.10:/exports/backups?useVhdDirectory=true&compressionType=%22lz4%22')
+    ).toBeUndefined()
   })
 
   it('fills the details of the repository type', () => {
@@ -91,6 +105,29 @@ describe('validateAndBuildPayload', () => {
     const payload = await form.validateAndBuildPayload()
 
     expect(parseBackupRepositoryUrl(payload!.url)).toMatchObject({ fullListingInterval: 360 })
+  })
+
+  it('keeps the compression of the URL, which can not be changed in edit mode', async () => {
+    for (const compressionType of ['zstd', 'none', 'lz4']) {
+      const form = mountEditForm(
+        createBr({
+          url: `nfs://192.168.1.10:/exports/backups?useVhdDirectory=true&compressionType=%22${compressionType}%22`,
+        })
+      )
+      form.general.formData.name = 'Weekly backups'
+
+      const payload = await form.validateAndBuildPayload()
+
+      expect(parseBackupRepositoryUrl(payload!.url)).toMatchObject({ useVhdDirectory: true, compressionType })
+    }
+  })
+
+  it('does not add a compression to a repository without one', async () => {
+    const payload = await mountEditForm(
+      createBr({ url: 'nfs://192.168.1.10:/exports/backups?useVhdDirectory=true' })
+    ).validateAndBuildPayload()
+
+    expect(parseBackupRepositoryUrl(payload!.url)).not.toHaveProperty('compressionType')
   })
 
   it('does not add a listing interval to a repository without one', async () => {

@@ -4,6 +4,7 @@ import {
   ENCRYPTION_KEY_LENGTH,
   ENCRYPTION_KEY_REGEX,
 } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
+import { DEFAULT_BACKUP_REPOSITORY_COMPRESSION } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
 import { regex, withMessage } from '@core/packages/form-validation'
 import { computed, reactive, ref, watch } from 'vue'
@@ -29,6 +30,7 @@ export function useNewBackupRepositoryForm() {
       proxy: undefined,
       encrypted: false,
       encryptionKey: '',
+      compression: DEFAULT_BACKUP_REPOSITORY_COMPRESSION,
     }),
     {
       extraConfig: {

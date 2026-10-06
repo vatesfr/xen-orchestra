@@ -3,12 +3,18 @@ import type { BackupRepositoryGeneralFormData } from '@/modules/backup-repositor
 import type { EditBackupRepositoryPayload } from '@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { getBackupRepositoryDetailsInitialData } from '@/modules/backup-repository/utils/xo-backup-repository-details-initial-data.util.ts'
-import { isBackupRepositoryEncrypted } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import {
+  getBackupRepositoryCompression,
+  isBackupRepositoryCompression,
+  isBackupRepositoryEncrypted,
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { reactive } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 export function useEditBackupRepositoryForm(br: FrontXoBackupRepository) {
   const parsedUrl = parseBackupRepositoryUrl(br.url)
+
+  const compression = getBackupRepositoryCompression(parsedUrl)
 
   const {
     general,
@@ -23,13 +29,19 @@ export function useEditBackupRepositoryForm(br: FrontXoBackupRepository) {
       proxy: br.proxy,
       encrypted: isBackupRepositoryEncrypted(parsedUrl),
       encryptionKey: parsedUrl.encryptionKey ?? '',
+      compression: isBackupRepositoryCompression(compression) ? compression : undefined,
     }),
     {
       isEditing: true,
       detailsInitialData: getBackupRepositoryDetailsInitialData(parsedUrl, br.options),
       // no field of this form sets it: without this, editing the repository drops it, and the VM backups
       // cache rebuilds the repository with the default listing interval
-      urlOptionsToKeep: { fullListingInterval: parsedUrl.fullListingInterval },
+      // same for the compression, which can't be changed in edit mode: without it, the repository goes back to
+      // brotli, and the next backups start new full chains
+      urlOptionsToKeep: {
+        fullListingInterval: parsedUrl.fullListingInterval,
+        compressionType: parsedUrl.compressionType,
+      },
     }
   )
 

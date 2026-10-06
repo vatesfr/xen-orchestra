@@ -28,6 +28,13 @@
           <VtsCopyButton :value="brStorageMode" />
         </template>
       </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="parsedBrUrl?.useVhdDirectory">
+        <template #key>{{ t('compression') }}</template>
+        <template #value>{{ brCompression }}</template>
+        <template #addons>
+          <VtsCopyButton :value="brCompression" />
+        </template>
+      </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('proxy') }}</template>
         <template v-if="brProxy" #value>
@@ -69,7 +76,7 @@ const { br, parsedBrUrl } = defineProps<{
 
 const { t } = useI18n()
 
-const { brStatus, brType, brStorageMode, brProxy, isEncrypted } = useXoBackupRepositoryUtils(
+const { brStatus, brType, brStorageMode, brCompression, brProxy, isEncrypted } = useXoBackupRepositoryUtils(
   () => br,
   () => parsedBrUrl
 )

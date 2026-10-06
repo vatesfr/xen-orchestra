@@ -22,7 +22,15 @@ vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), (
 const ENCRYPTION_KEY = '0123456789abcdef0123456789ABCDEF'
 
 function createGeneralFormData(): BackupRepositoryGeneralFormData {
-  return { name: '', type: undefined, backupFormat: undefined, proxy: undefined, encrypted: false, encryptionKey: '' }
+  return {
+    name: '',
+    type: undefined,
+    backupFormat: undefined,
+    proxy: undefined,
+    encrypted: false,
+    encryptionKey: '',
+    compression: 'brotli',
+  }
 }
 
 async function mountGeneralForm(formData: Partial<BackupRepositoryGeneralFormData> = {}) {
@@ -43,20 +51,18 @@ async function mountGeneralForm(formData: Partial<BackupRepositoryGeneralFormDat
   return result
 }
 
-function createEditGeneralForm(formData: Partial<BackupRepositoryGeneralFormData>) {
-  return useBackupRepositoryGeneralForm(reactive({ ...createGeneralFormData(), ...formData }), {
-    isEditing: true,
-  })
+function createEditGeneralForm(formData: Partial<BackupRepositoryGeneralFormData>, { isEditing = true } = {}) {
+  return useBackupRepositoryGeneralForm(reactive({ ...createGeneralFormData(), ...formData }), { isEditing })
 }
 
 function mountEditGeneralForm(formData: Partial<BackupRepositoryGeneralFormData>) {
   return mountComposable(() => createEditGeneralForm(formData)).wrapper.vm
 }
 
-function findDisabledSelects(formData: Partial<BackupRepositoryGeneralFormData>) {
+function findDisabledSelects(formData: Partial<BackupRepositoryGeneralFormData>, { isEditing = true } = {}) {
   const wrapper = mount(
     defineComponent(() => {
-      const { bindings } = createEditGeneralForm(formData)
+      const { bindings } = createEditGeneralForm(formData, { isEditing })
 
       return () => h(BackupRepositoryGeneralStep, { bindings })
     }),
@@ -116,6 +122,15 @@ describe('formData', () => {
     expect(result.formData).toMatchObject({ encrypted: false, encryptionKey: '' })
   })
 
+  it('goes back to the default compression when the format is no longer block based', async () => {
+    const result = await mountGeneralForm({ type: 'nfs', backupFormat: 'block', compression: 'zstd' })
+
+    result.formData.backupFormat = 'vhd'
+    await flushPromises()
+
+    expect(result.formData.compression).toBe('brotli')
+  })
+
   it('drops the encryption key when the encryption is turned off', async () => {
     const result = await mountGeneralForm({
       type: 'nfs',
@@ -142,6 +157,16 @@ describe('bindings', () => {
     const result = await mountGeneralForm({ type: 'nfs', backupFormat: 'block' })
 
     expect(result.bindings.encrypted.disabled).toBe(false)
+  })
+
+  it('disables the compression unless the format is block based', () => {
+    expect(findDisabledSelects({ type: 'nfs', backupFormat: 'vhd' }, { isEditing: false })).toContain(t('compression'))
+  })
+
+  it('enables the compression for the block based format', () => {
+    expect(findDisabledSelects({ type: 'nfs', backupFormat: 'block' }, { isEditing: false })).not.toContain(
+      t('compression')
+    )
   })
 
   it('shows the encryption key in clear text', async () => {
@@ -204,6 +229,18 @@ describe('buildUrlOptions', () => {
 
     expect(result.buildUrlOptions()).toEqual({ useVhdDirectory: true, encryptionKey: ENCRYPTION_KEY })
   })
+
+  it('carries the chosen compression of a block based repository', async () => {
+    const result = await mountGeneralForm({ type: 'nfs', backupFormat: 'block', compression: 'zstd' })
+
+    expect(result.buildUrlOptions()).toEqual({ useVhdDirectory: true, compressionType: 'zstd' })
+  })
+
+  it('carries no compression for the default one, the one used without compressionType', async () => {
+    const result = await mountGeneralForm({ type: 'nfs', backupFormat: 'block', compression: 'brotli' })
+
+    expect(result.buildUrlOptions()).toEqual({ useVhdDirectory: true })
+  })
 })
 
 describe('edit mode', () => {
@@ -226,15 +263,27 @@ describe('edit mode', () => {
     expect(result.bindings.encrypted.disabled).toBe(true)
   })
 
-  it('locks the type and the format of an encrypted repository', () => {
-    expect(findDisabledSelects(ENCRYPTED_NFS_FORM_DATA)).toEqual([t('type'), t('backup-format')])
+  it('locks the type, the format and the compression of an encrypted repository', () => {
+    expect(findDisabledSelects(ENCRYPTED_NFS_FORM_DATA)).toEqual([t('type'), t('backup-format'), t('compression')])
   })
 
-  it('locks the type and the format of an unencrypted repository', () => {
+  it('locks the type, the format and the compression of an unencrypted repository', () => {
     expect(findDisabledSelects({ name: 'My repository', type: 'nfs', backupFormat: 'block' })).toEqual([
       t('type'),
       t('backup-format'),
+      t('compression'),
     ])
+  })
+
+  it('leaves the compression to the caller, which keeps the one of the URL', () => {
+    const result = mountEditGeneralForm({
+      name: 'My repository',
+      type: 'nfs',
+      backupFormat: 'block',
+      compression: 'zstd',
+    })
+
+    expect(result.buildUrlOptions()).toEqual({ useVhdDirectory: true })
   })
 
   it('accepts the obfuscated key sent back by the API', async () => {
@@ -271,7 +320,8 @@ describe('multi-edit mode', () => {
       defineComponent(() => {
         const { bindings } = createMultiEditGeneralForm(formData, mixedFields)
 
-        return () => h(BackupRepositoryGeneralStep, { bindings })
+        // like the bulk edit drawer
+        return () => h(BackupRepositoryGeneralStep, { bindings, hideEncryption: true })
       }),
       { global: createGlobalTestConfig() }
     )

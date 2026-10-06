@@ -817,3 +817,15 @@ export type RPU_RECOVERY_STEP_NAME = (typeof RPU_RECOVERY_STEP_NAMES)[number]
 export const COMMON_TAG = {
   NOBAK: 'xo:no-bak',
 } as const
+
+/** compressions of a backup repository in block mode, brotli when its URL has no compressionType */
+export const BACKUP_REPOSITORY_COMPRESSION = {
+  BROTLI: 'brotli',
+  ZSTD: 'zstd',
+  ZEROS: 'zeros',
+  GZIP: 'gzip',
+  NONE: 'none',
+} as const
+
+export type BACKUP_REPOSITORY_COMPRESSION =
+  (typeof BACKUP_REPOSITORY_COMPRESSION)[keyof typeof BACKUP_REPOSITORY_COMPRESSION]
