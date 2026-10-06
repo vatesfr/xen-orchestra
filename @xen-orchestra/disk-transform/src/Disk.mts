@@ -4,6 +4,18 @@ export type DiskBlockData = Buffer
 export type DiskBlock = {
   index: number // the index of the block. Offset in raw disk is index * blockSize
   data: DiskBlockData // thue Buffer like data of this block. Must be blockSize length
+  /**
+   * optional: gives the memory of `data` back to its pool once this block has been consumed,
+   * `data` must not be used after calling it.
+   * Never calling it is always safe: the memory will be garbage collected
+   */
+  release?: () => void
+  /**
+   * optional: when set, `data` is not the data of the block but a block file of a VHD directory as stored
+   * (bitmap + data, compressed with this algorithm). Only a consumer writing VHD directory blocks with the same
+   * compression can use it, any other consumer must refuse the block
+   */
+  vhdBlockCompression?: string
 }
 
 export type BytesLength = number

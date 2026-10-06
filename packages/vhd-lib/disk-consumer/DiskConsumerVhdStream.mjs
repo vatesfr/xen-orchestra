@@ -1,5 +1,5 @@
 import { Readable } from 'stream'
-import { BaseVhd, FULL_BLOCK_BITMAP } from './BaseVhd.mjs'
+import { BaseVhd, FULL_BLOCK_BITMAP, assertNotVhdBlockFile } from './BaseVhd.mjs'
 import { DEFAULT_BLOCK_SIZE } from '../_constants.js'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { fuFooter, fuHeader, checksumStruct } from 'vhd-lib/_structs.js'
@@ -67,8 +67,10 @@ export class DiskConsumerVhdStream extends BaseVhd {
       yield header
       yield bat
       let truncatedBlock = null
-      for await (const { data, index } of blockGenerator) {
+      for await (const block of blockGenerator) {
         signal?.throwIfAborted()
+        assertNotVhdBlockFile(block)
+        const { data, index } = block
         // only the last block can be truncated
         // but the stream expect a full block
         if (truncatedBlock !== null) {

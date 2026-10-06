@@ -95,13 +95,14 @@ export default class MultiNbdClient {
    *
    * @param {number} index
    * @param {number} size
+   * @param {Buffer} [target] - where to write the data instead of a new Buffer, see AbstractNbdClient#readBlock
    * @returns {Promise<Buffer>}
    */
-  async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
+  async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE, target) {
     const clientId = this.#nextClient++ % this.#clients.length
     const client = this.#clients[clientId]
     try {
-      return await client.readBlock(index, size)
+      return await client.readBlock(index, size, target)
     } catch (err) {
       // client.readBlock() already exhausted its own retries/reconnects: this connection is dead.
       // Evict it so future reads stop being routed to it, and retry this read on a surviving
@@ -111,7 +112,7 @@ export default class MultiNbdClient {
         throw err
       }
       warn(`evicted a dead nbd client, retrying block ${index} on a remaining client`, { err })
-      return this.readBlock(index, size)
+      return this.readBlock(index, size, target)
     }
   }
 

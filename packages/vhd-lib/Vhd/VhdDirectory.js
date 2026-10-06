@@ -9,6 +9,7 @@ const assert = require('assert')
 const { synchronized } = require('decorator-synchronized')
 const promisify = require('promise-toolbox/promisify')
 const zlib = require('zlib')
+const { removeZeroPages, restoreZeroPages } = require('./_zeroFilter')
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
 
@@ -18,31 +19,86 @@ const NULL_COMPRESSOR = {
   baseOptions: {},
 }
 
+// the output buffers of zlib, instead of chunks of 16 KiB (the default) each costing a round trip to the thread pool:
+// - a compressed block is about 1 MiB: larger buffers would be allocated for nothing, keeping the GC busy
+// - a decompressed block (2 MiB + 512) fits in a single buffer
+const COMPRESS_CHUNK_SIZE = 1024 * 1024
+const DECOMPRESS_CHUNK_SIZE = 2 * 1024 * 1024 + 1024
+
+function withZlibOptions(fn, chunkSize, options) {
+  const promisified = promisify(fn)
+  return buffer => promisified(buffer, { chunkSize, ...options })
+}
+
 const COMPRESSORS = {
   gzip: {
-    compress: (
-      gzip => buffer =>
-        gzip(buffer, { level: zlib.constants.Z_BEST_SPEED })
-    )(promisify(zlib.gzip)),
-    decompress: promisify(zlib.gunzip),
+    compress: withZlibOptions(zlib.gzip, COMPRESS_CHUNK_SIZE, { level: zlib.constants.Z_BEST_SPEED }),
+    decompress: withZlibOptions(zlib.gunzip, DECOMPRESS_CHUNK_SIZE),
   },
   brotli: {
-    compress: (
-      brotliCompress => buffer =>
-        brotliCompress(buffer, {
-          params: {
-            [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY,
-          },
-        })
-    )(promisify(zlib.brotliCompress)),
-    decompress: promisify(zlib.brotliDecompress),
+    compress: withZlibOptions(zlib.brotliCompress, COMPRESS_CHUNK_SIZE, {
+      params: {
+        [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY,
+      },
+    }),
+    decompress: withZlibOptions(zlib.brotliDecompress, DECOMPRESS_CHUNK_SIZE),
   },
   none: NULL_COMPRESSOR,
+  // no compression, only the pages full of zeroes are removed: much cheaper, it works on the parts of a block
+  // without concatenating them, and its result (views on the data) is written without copy
+  zeros: {
+    compress: removeZeroPages,
+    decompress: restoreZeroPages,
+    acceptsParts: true,
+  },
+}
+
+// negative levels are the fastest ones: they mostly remove the runs of zeroes, and decompress about 5 times faster
+// than brotli
+const ZSTD_LEVEL = -3
+
+// zstd is only available since Node 22.15
+if (zlib.zstdCompress !== undefined) {
+  COMPRESSORS.zstd = {
+    compress: withZlibOptions(zlib.zstdCompress, COMPRESS_CHUNK_SIZE, {
+      params: {
+        [zlib.constants.ZSTD_c_compressionLevel]: ZSTD_LEVEL,
+      },
+    }),
+    decompress: withZlibOptions(zlib.zstdDecompress, DECOMPRESS_CHUNK_SIZE),
+  }
 }
 
 // inject identifiers
 for (const id of Object.keys(COMPRESSORS)) {
   COMPRESSORS[id].id = id
+}
+
+// buffers concatenating the parts of a full block before compressing it, reused instead of allocated for each block
+// (each one is external memory which keeps the GC busy at high throughput)
+const concatBuffers = []
+const MAX_FREE_CONCAT_BUFFERS = 32
+
+/**
+ * @param {{compress(buffer: Buffer): Promise<Buffer>}} compressor
+ * @param {Buffer[]} parts
+ */
+async function compressParts(compressor, parts) {
+  const length = parts.reduce((sum, part) => sum + part.length, 0)
+  const reused = concatBuffers.length !== 0 && concatBuffers[concatBuffers.length - 1].length === length
+  const buffer = reused ? concatBuffers.pop() : Buffer.allocUnsafeSlow(length)
+  let offset = 0
+  for (const part of parts) {
+    offset += part.copy(buffer, offset)
+  }
+  try {
+    return await compressor.compress(buffer)
+  } finally {
+    // the compressed data are a new buffer: this one can be reused
+    if (concatBuffers.length < MAX_FREE_CONCAT_BUFFERS) {
+      concatBuffers.push(buffer)
+    }
+  }
 }
 
 function getCompressor(compressorType) {
@@ -159,6 +215,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     }
   }
 
+  // buffer can be an array of buffers, the chunk is then their concatenation
   async _writeChunk(partName, buffer) {
     assert.notStrictEqual(
       this._opts?.flags,
@@ -166,10 +223,18 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       `Can't write a chunk ${partName} in ${this._path} with read permission`
     )
 
+    if (Array.isArray(buffer) && this.#compressor !== NULL_COMPRESSOR && !this.#compressor.acceptsParts) {
+      // the handler can write an array without concatenating it, a compressor can't
+      return this.#outputChunk(partName, await compressParts(this.#compressor, buffer))
+    }
+    return this.#outputChunk(partName, await this.#compressor.compress(buffer))
+  }
+
+  // writes a chunk as stored (already compressed)
+  #outputChunk(partName, data) {
     // in case of VhdDirectory, we want to create the file if it does not exists
     const flags = this._opts?.flags === 'r+' ? 'w' : this._opts?.flags
-    const compressed = await this.#compressor.compress(buffer)
-    return this._handler.outputFile(this.#getChunkPath(partName), compressed, { flags })
+    return this._handler.outputFile(this.#getChunkPath(partName), data, { flags })
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -311,6 +376,34 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     )
     await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
     setBitmap(this.#blockTable, block.id)
+  }
+
+  // the block file as stored: decrypted by the handler but still compressed with compressionType
+  async readRawBlock(blockId) {
+    return this._handler.readFile(this.getFullBlockPath(blockId))
+  }
+
+  // writes a block file read by readRawBlock() from a VHD directory, which must use the same compression: it is
+  // neither decompressed nor recompressed
+  async writeRawBlock(blockId, buffer, compressionType) {
+    assert.strictEqual(
+      compressionType,
+      this.compressionType,
+      `can't write a block compressed with ${compressionType} in a VHD directory using ${this.compressionType}`
+    )
+    if (this.#compressor === NULL_COMPRESSOR) {
+      assert.strictEqual(buffer.length, this.fullBlockSize, `block ${blockId} must be ${this.fullBlockSize} bytes`)
+    }
+    assert.notStrictEqual(this._opts?.flags, 'r', `Can't write block ${blockId} in ${this._path} with read permission`)
+    await this.#outputChunk(this.#getBlockPath(blockId), buffer)
+    setBitmap(this.#blockTable, blockId)
+  }
+
+  // bitmap and data are not concatenated: the handler can write them with a single writev
+  async writeBlockData(blockId, data) {
+    assert.strictEqual(data.length, this.header.blockSize, `block ${blockId} must be ${this.header.blockSize} bytes`)
+    await this._writeChunk(this.#getBlockPath(blockId), [Buffer.alloc(this.bitmapSize, 255), data])
+    setBitmap(this.#blockTable, blockId)
   }
 
   async _readParentLocatorData(id) {

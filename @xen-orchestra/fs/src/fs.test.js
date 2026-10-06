@@ -4,6 +4,7 @@ import { strict as assert } from 'assert'
 import 'dotenv/config'
 import { forOwn, random } from 'lodash'
 import { tmpdir } from 'os'
+import { Readable } from 'node:stream'
 
 import { getHandler } from '.'
 
@@ -173,10 +174,55 @@ handlers.forEach(url => {
       })
     })
 
+    describe('#createReadStream()', () => {
+      it('reads 10 MiB chunks', { skip: !url.startsWith('file:') }, async () => {
+        const data = unsecureRandomBytes(3 * 10 * 1024 * 1024 + 7)
+        await handler.outputFile('file', data)
+        const chunks = []
+        for await (const chunk of await handler.createReadStream('file')) {
+          chunks.push(chunk)
+        }
+        assert.deepEqual(
+          chunks.map(chunk => chunk.length),
+          [10 * 1024 * 1024, 10 * 1024 * 1024, 10 * 1024 * 1024, 7]
+        )
+        assert.deepEqual(Buffer.concat(chunks), data)
+      })
+    })
+
+    describe('#outputStream()', () => {
+      it('stores the checksum of the data', async () => {
+        await handler.outputStream('file', Readable.from([TEST_DATA]))
+        assert.match(String(await handler.readFile('file.checksum')), /^\$1\$\$[0-9a-f]{32}$/)
+        // the stored checksum is valid
+        const chunks = []
+        for await (const chunk of await handler.createReadStream('file', { checksum: true })) {
+          chunks.push(chunk)
+        }
+        assert.deepEqual(Buffer.concat(chunks), TEST_DATA)
+      })
+
+      it('stores a known checksum as is', async () => {
+        await handler.outputStream('file', Readable.from([TEST_DATA]), { checksum: '$1$$known' })
+        assert.equal(String(await handler.readFile('file.checksum')), '$1$$known')
+        assert.deepEqual(await handler.readFile('file'), TEST_DATA)
+      })
+
+      it('stores no checksum when disabled', async () => {
+        await handler.outputStream('file', Readable.from([TEST_DATA]), { checksum: false })
+        assert.equal((await rejectionOf(handler.readFile('file.checksum'))).code, 'ENOENT')
+      })
+    })
+
     describe('#outputFile()', () => {
       it('writes data to a file', async () => {
         await handler.outputFile('file', TEST_DATA)
         assert.deepEqual(await handler.readFile('file'), TEST_DATA)
+      })
+
+      it('writes an array of buffers as their concatenation', async () => {
+        await handler.outputFile('dir/file', [TEST_DATA.subarray(0, 10), Buffer.alloc(0), TEST_DATA.subarray(10)])
+        assert.deepEqual(await handler.readFile('dir/file'), TEST_DATA)
       })
 
       it('throws on existing files', { skip: skipFsNotInAzure() }, async () => {

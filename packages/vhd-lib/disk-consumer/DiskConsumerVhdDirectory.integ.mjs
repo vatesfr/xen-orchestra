@@ -60,7 +60,127 @@ class MockDisk extends RandomAccessDisk {
   async close() {}
 }
 
+// blocks whose memory goes back to their producer once released, like the NBD sources do
+class ReleasingMockDisk extends MockDisk {
+  released = 0
+  #fillByte
+  constructor(nbBlocks, blockIndexes, fillByte) {
+    super(nbBlocks, blockIndexes, fillByte)
+    this.#fillByte = fillByte
+  }
+
+  async readBlock(index) {
+    const data = Buffer.alloc(DEFAULT_BLOCK_SIZE, this.#fillByte)
+    return {
+      index,
+      data,
+      release: () => {
+        // once released, the producer may reuse the memory: scramble it to catch a late use
+        data.fill(0)
+        this.released++
+      },
+    }
+  }
+}
+
+async function writeAndCheck(disk, fillByte, compression) {
+  const tempDir = await pFromCallback(cb => tmp.dir(cb))
+  try {
+    await Disposable.use(async function* () {
+      const handler = yield getSyncedHandler({ url: 'file://' + tempDir })
+      const aliasPath = 'disk.alias.vhd'
+      await writeToVhdDirectory({
+        disk,
+        target: { handler, path: aliasPath, compression, concurrency: 4, validator: async () => {} },
+      })
+      const vhd = yield openVhd(handler, aliasPath)
+      await vhd.readBlockAllocationTable()
+      for (const index of disk.getBlockIndexes()) {
+        const { bitmap, data } = await vhd.readBlock(index)
+        assert.ok(
+          bitmap.every(byte => byte === 0xff),
+          `block ${index} bitmap should be full`
+        )
+        assert.ok(
+          data.every(byte => byte === fillByte),
+          `block ${index} should contain the source disk data`
+        )
+      }
+    })
+  } finally {
+    await rimraf(tempDir)
+  }
+}
+
 describe('DiskConsumerVhdDirectory', () => {
+  it('writes the blocks and releases them once written', async () => {
+    const disk = new ReleasingMockDisk(4, [0, 1, 3], 0x5a)
+    await writeAndCheck(disk, 0x5a)
+    assert.equal(disk.released, 3, 'each block released once')
+  })
+
+  it('pads the last block when it is shorter', async () => {
+    const disk = new MockDisk(2, [0, 1], 0x21)
+    const shortLength = 1024 * 1024
+    disk.getVirtualSize = () => DEFAULT_BLOCK_SIZE + shortLength
+    disk.readBlock = async index => ({
+      index,
+      data: Buffer.alloc(index === 1 ? shortLength : DEFAULT_BLOCK_SIZE, 0x21),
+    })
+    const tempDir = await pFromCallback(cb => tmp.dir(cb))
+    try {
+      await Disposable.use(async function* () {
+        const handler = yield getSyncedHandler({ url: 'file://' + tempDir })
+        await writeToVhdDirectory({
+          disk,
+          target: { handler, path: 'disk.alias.vhd', concurrency: 1, validator: async () => {} },
+        })
+        const vhd = yield openVhd(handler, 'disk.alias.vhd')
+        await vhd.readBlockAllocationTable()
+        const { data } = await vhd.readBlock(1)
+        assert.ok(data.subarray(0, shortLength).every(byte => byte === 0x21))
+        assert.ok(data.subarray(shortLength).every(byte => byte === 0))
+      })
+    } finally {
+      await rimraf(tempDir)
+    }
+  })
+
+  it('writes block files as stored, only with the same compression', async () => {
+    const tempDir = await pFromCallback(cb => tmp.dir(cb))
+    try {
+      await Disposable.use(async function* () {
+        const handler = yield getSyncedHandler({ url: 'file://' + tempDir })
+        // a block file without compression: full bitmap + data
+        const blockFile = Buffer.concat([Buffer.alloc(512, 0xff), Buffer.alloc(DEFAULT_BLOCK_SIZE, 0x24)])
+        const disk = new MockDisk(2, [0, 1], 0)
+        disk.readBlock = async index => ({ index, data: blockFile, vhdBlockCompression: 'none' })
+        await writeToVhdDirectory({
+          disk,
+          target: { handler, path: 'disk.alias.vhd', concurrency: 1, validator: async () => {} },
+        })
+        const vhd = yield openVhd(handler, 'disk.alias.vhd')
+        await vhd.readBlockAllocationTable()
+        assert.ok((await vhd.readBlock(1)).data.every(byte => byte === 0x24))
+
+        disk.readBlock = async index => ({ index, data: blockFile, vhdBlockCompression: 'gzip' })
+        await assert.rejects(
+          writeToVhdDirectory({
+            disk,
+            target: { handler, path: 'other.alias.vhd', concurrency: 1, validator: async () => {} },
+          }),
+          /compressed with gzip/
+        )
+      })
+    } finally {
+      await rimraf(tempDir)
+    }
+  })
+
+  it('writes compressed blocks', async () => {
+    await writeAndCheck(new ReleasingMockDisk(2, [0, 1], 0x33), 0x33, 'gzip')
+  })
+
   it('writes a valid VHD directory that can be read back', async () => {
     const tempDir = await pFromCallback(cb => tmp.dir(cb))
     try {

@@ -5,14 +5,17 @@ import { CancelToken } from 'promise-toolbox'
 import { compareVersions } from 'compare-versions'
 import { defer } from 'golike-defer'
 import { Task } from '@vates/task'
+import { createLogger } from '@xen-orchestra/log'
 
 import { cancelableMap } from './_cancelableMap.mjs'
 import pick from 'lodash/pick.js'
 import { BASE_DELTA_VDI, CONTENT_KEY, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
-import { VHD_MAX_SIZE, XapiDiskSource } from '@xen-orchestra/xapi'
+import { VHD_MAX_SIZE, XapiDiskSource, openNbdDiskWriter } from '@xen-orchestra/xapi'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
+
+const { warn } = createLogger('xo:backups:incrementalVm')
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
@@ -335,11 +338,42 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   await Promise.all([
     // Import VDI contents.
     cancelableMap(cancelToken, Object.entries(newVdis), async (cancelToken, [id, vdi]) => {
-      for (const disk of ensureArray(disks[id])) {
-        if (disk === null) {
-          // we restore a backup and reuse completely a local snapshot
-          continue
+      // null: we restore a backup and reuse completely a local snapshot
+      const vdiDisks = ensureArray(disks[id]).filter(disk => disk !== null)
+      if (vdiDisks.length === 0) {
+        return
+      }
+
+      // through NBD, the blocks are written at their place in the VDI, several at a time, whatever its format
+      const nbdWriter = await openNbdDiskWriter(xapi, vdi.$ref).catch(error => {
+        warn('NBD write unusable, importing through XAPI', { vdi: vdi.uuid, error })
+      })
+      if (nbdWriter !== undefined) {
+        // without a base (and outside of a live mount), the VDI has just been created and reads as zeroes:
+        // a full disk written on it doesn't need its zeroes. The zeroes of a differencing disk may erase
+        // data and are always written
+        const { baseVdi, liveMountedVdiRef } = vdiRecords[id]
+        const skipZeroBlocks =
+          baseVdi?.$ref === undefined &&
+          liveMountedVdiRef === undefined &&
+          vdiDisks.length === 1 &&
+          !vdiDisks[0].isDifferencing()
+        await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
+        try {
+          for (const disk of vdiDisks) {
+            await nbdWriter.writeDisk(disk, { cancelToken, skipZeroBlocks })
+          }
+        } catch (error) {
+          await nbdWriter.abort()
+          throw error
         }
+        // the written data are only guaranteed once the export is closed
+        await nbdWriter.close()
+        await xapi.setField('VDI', vdi.$ref, 'name_label', vdiRecords[id].name_label)
+        return
+      }
+
+      for (const disk of vdiDisks) {
         await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
 
         let stream, format

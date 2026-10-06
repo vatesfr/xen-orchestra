@@ -8,45 +8,55 @@ import { BACKUP_JOB_NAME_PREFIX, getRequiredEnv } from '../utils/index.js'
 const log = createLogger('cleanup')
 
 /**
- * Allowed paths for automatic backup cleanup of file:// remotes.
- * SECURITY: Only test-scoped paths containing 'test', 'qa', or 'tmp/xo'.
- * Non-file:// remotes return an empty list (cleanup is delegated to XO API).
+ * Local path of a file:// remote URL, without its options (query string)
  *
- * Computed lazily so that `process.env.BACKUP_REPOSITORY_URL` is read at call
+ * @param {string} repoUrl
+ * @returns {string|undefined} undefined for an invalid or non-local URL
+ */
+const getLocalPath = repoUrl => {
+  // Non-local remotes have no local path to safety-check
+  if (!repoUrl?.startsWith('file://')) return undefined
+  try {
+    return new URL(repoUrl).pathname
+  } catch {
+    log.warn('Rejected cleanup URL: invalid URL', { repoUrl })
+    return undefined
+  }
+}
+
+/**
+ * Allowed paths for automatic backup cleanup of file:// remotes: the backup repository and the mirror destination.
+ * SECURITY: Only test-scoped paths containing 'test', 'qa', or 'tmp/xo'.
+ * Non-file:// remotes are not listed (cleanup is delegated to XO API).
+ *
+ * Computed lazily so that the environment variables are read at call
  * time rather than module-load time — otherwise ESM import hoisting would make
  * it evaluate before any in-code env loading runs.
  *
  * @returns {Array<string>}
  */
 const getAllowedCleanupPaths = () => {
-  const repoUrl = process.env.BACKUP_REPOSITORY_URL
+  const allowed = []
+  for (const repoUrl of [process.env.BACKUP_REPOSITORY_URL, process.env.MIRROR_DESTINATION_REPOSITORY_URL]) {
+    const repoPath = getLocalPath(repoUrl)
+    if (repoPath === undefined) continue
 
-  // Non-local remotes have no local path to safety-check
-  if (!repoUrl?.startsWith('file://')) return []
+    // SECURITY: Reject paths containing path traversal sequences
+    if (repoPath.includes('..')) {
+      log.warn('Rejected cleanup path: contains path traversal', { repoPath })
+      continue
+    }
 
-  let repoPath
-  try {
-    repoPath = new URL(repoUrl).pathname
-  } catch {
-    log.warn('Rejected cleanup URL: invalid URL', { repoUrl })
-    return []
+    const normalized = path.resolve(repoPath).toLowerCase()
+    const isTestPath = ['test', 'qa', 'tmp/xo'].some(marker => normalized.includes(marker))
+    if (!isTestPath) {
+      log.warn('Rejected cleanup path: not a test path', { repoPath })
+      continue
+    }
+
+    allowed.push(path.resolve(repoPath))
   }
-
-  // SECURITY: Reject paths containing path traversal sequences
-  if (repoPath?.includes('..')) {
-    log.warn('Rejected cleanup path: contains path traversal', { repoPath })
-    return []
-  }
-
-  const normalized = repoPath ? path.resolve(repoPath).toLowerCase() : ''
-  const isTestPath = ['test', 'qa', 'tmp/xo'].some(marker => normalized.includes(marker))
-
-  if (!isTestPath) {
-    if (repoPath) log.warn('Rejected cleanup path: not a test path', { repoPath })
-    return []
-  }
-
-  return [path.resolve(repoPath)]
+  return allowed
 }
 
 /**
@@ -571,16 +581,17 @@ export class CleanupClient {
       let repoPath = null
       try {
         const repoDetails = await this.dispatchClient.backupRepository.details(backupRepositoryId)
-        if (repoDetails?.url?.startsWith('file://')) {
-          repoPath = repoDetails.url.replace('file://', '')
-        }
+        repoPath = getLocalPath(repoDetails?.url) ?? null
       } catch (error) {
         log.warn('Could not get repository details', { error })
       }
 
       // Clean up backup files if path is allowed
-      const normalizedPath = repoPath ? path.normalize(repoPath) : null
-      const isAllowed = normalizedPath && getAllowedCleanupPaths().some(p => normalizedPath.startsWith(p))
+      const normalizedPath = repoPath ? path.resolve(repoPath) : null
+      // the allowed directory itself or below it, not a sibling sharing its prefix
+      const isAllowed =
+        normalizedPath &&
+        getAllowedCleanupPaths().some(p => normalizedPath === p || normalizedPath.startsWith(p + path.sep))
 
       if (isAllowed) {
         try {
