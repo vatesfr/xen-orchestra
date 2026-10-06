@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API] `POST /rest/v0/acl-roles` now supports a `privileges` property, allowing privileges to be directly associated with the newly created role (PR [#10470](https://github.com/vatesfr/xen-orchestra/pull/10470))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -33,7 +35,9 @@
 
 <!--packages-start-->
 
-- @vates/types patch
+- @vates/types minor
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
-- xo-server patch
+- xo-server minor
+
 <!--packages-end-->
