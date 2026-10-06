@@ -47,36 +47,65 @@ async function prepareForPool(poolUuid, poolRef, dbPool, classDict) {
 export async function createPgTransport(pgUrl, createRealTransport) {
   const dbPool = new Pool({ connectionString: pgUrl })
   info('created interceptor transport and connected to DB')
-  const classDict = await loadXapiDefinition(ALL_LIFE_CYCLE_STATES, _cls => true)
-  const nonSessionMethods = getNonSessionMethods(classDict)
+  // classes loaded from the JSON file, will be different from what we find with system.listMethods
+  const fromJsonClassDict = await loadXapiDefinition(ALL_LIFE_CYCLE_STATES, _cls => true)
+  const nonSessionMethods = getNonSessionMethods(fromJsonClassDict)
   return function (prm) {
     const realTransport = createRealTransport(prm)
     let eventStore = null
     let classNameFixer = null
     let sessionId = null
-    let xapiDBClasses
-    async function refillDBEvents(dbPool, sessionId, classes, timeout = 0.0) {
+    let listedMethods = null
+    // classes we want to observe, xen-api discovers them with system.listMethods
+    let observedClassesDict = null
+    let observedClassNames = null
+    async function refillDBEvents(dbPool, sessionId, classNames, timeout = 0.0) {
       // using separate db client for each action because event.from might be blocking
       const lastTokenFromDB = await withClient(dbPool, async dbClient => await eventStore.getLastToken(dbClient))
       // we need to do an initial load with events.from(), because pulling the objects class by class with
       // get_all_records() doesn't allow keeping all the foreign constraints intact during the insert.
       info('refilling event store... ', { token: lastTokenFromDB, timeout })
-      const initialLoad = await realTransport('event.from', [sessionId, classes, lastTokenFromDB || '', timeout])
+      const initialLoad = await realTransport('event.from', [sessionId, classNames, lastTokenFromDB || '', timeout])
       const fixedNames = classNameFixer(initialLoad)
       await withClient(dbPool, async dbClient => {
         await eventStore.ingestEvents(dbClient, fixedNames, sessionId)
         info('refill done', fixedNames.token)
       })
     }
+
+    /**
+     * special function hijacking the first call to prepare the system
+     * @return {Promise<void>}
+     */
+    async function ensureFirstSeverCall() {
+      if (listedMethods === null) {
+        info(`ensureFirstSeverCall`)
+        // call is idempotent
+        // eslint-disable-next-line require-atomic-updates
+        listedMethods = await realTransport('system.listMethods')
+        // guessing what the xen-api package is interested in
+        const set = new Set(
+          listedMethods.filter(m => m.endsWith('.get_all_records')).map(m => m.slice(0, m.indexOf('.')))
+        )
+        // need to reload to apply the filter, it also filters out members of forbidden types
+        observedClassesDict = await loadXapiDefinition(ALL_LIFE_CYCLE_STATES, cls => set.has(cls.name))
+        observedClassNames = Array.from(set)
+      }
+    }
     return async (method, params) => {
+      await ensureFirstSeverCall()
+      if (method === 'system.listMethods') {
+        info(`intercepted ${method}`)
+        return listedMethods
+      }
       if (method === 'event.from' && eventStore) {
         info(`intercepted ${method}`)
         const [sessionId, xoCovetedClasses, token, timeout] = params
         const paramClassesSet = new Set(xoCovetedClasses)
-        const fromJson = new Set(xapiDBClasses)
-        info(`XO wants to get, but xo-pg doesn't track: `, paramClassesSet.difference(fromJson))
-        info(`xo-pg tracks but XO doesn't: `, fromJson.difference(paramClassesSet))
-        await refillDBEvents(dbPool, sessionId, xoCovetedClasses, timeout)
+        const other = new Set(observedClassNames)
+        info(`XO wants to get, but xo-pg doesn't track: `, paramClassesSet.difference(other))
+        info(`xo-pg tracks but XO doesn't: `, other.difference(paramClassesSet))
+        await refillDBEvents(dbPool, sessionId, observedClassNames, timeout)
         const result = await withClient(dbPool, async dbClient => await eventStore.eventsFrom(dbClient, token))
         info('computed events between', { from: params[2], to: result.token, timeout: params[3] })
         return result
@@ -96,27 +125,19 @@ export async function createPgTransport(pgUrl, createRealTransport) {
       if (method === 'event.inject') {
         info(`injected ${result}`)
       }
-      if (method === 'system.listMethods') {
-        const classes = result.filter(m => m.endsWith('.get_all_records')).map(m => m.slice(0, m.indexOf('.')))
-        info(`system.listMethods`, classes)
-      }
       if (method === 'pool.get_all_records') {
         if (eventStore === null && Object.keys(result).length) {
           const [firstPoolRef, firstPoolRecord] = Object.entries(result)[0]
-          let dbObjects
-          ;({ classNameFixer, eventStore, dbObjects } = await prepareForPool(
+          ;({ classNameFixer, eventStore } = await prepareForPool(
             firstPoolRecord.uuid,
             firstPoolRef,
             dbPool,
-            classDict
+            observedClassesDict
           ))
-          xapiDBClasses = Object.values(dbObjects.CLASSES_DICT)
-            .filter(c => c.messages.find(m => m.name === 'get_all_records'))
-            .map(c => c.name)
-          await refillDBEvents(dbPool, params[0], xapiDBClasses)
+          info(`observedClassNames ${observedClassNames}`)
+          await refillDBEvents(dbPool, params[0], observedClassNames)
         }
       }
-
       return result
     }
   }
