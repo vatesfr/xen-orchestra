@@ -1,10 +1,10 @@
-import { clustersArg } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-delete-args.ts'
+import { xoKubernetesClustersArg } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-args.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { fetchDelete } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
-export const useXoKubernetesClusterDeleteJob = defineJob('kubernetes-cluster.delete', [clustersArg], () => {
+export const useXoKubernetesClusterDeleteJob = defineJob('kubernetes-cluster.delete', [xoKubernetesClustersArg], () => {
   const { t } = useI18n()
 
   return {
