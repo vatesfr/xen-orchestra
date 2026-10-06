@@ -1,5 +1,5 @@
 <template>
-  <UiCard :has-error class="pool-dashboard-status">
+  <UiCard :has-error>
     <UiCardTitle>{{ t('status') }}</UiCardTitle>
     <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">{{ t('error-no-data') }}</VtsStateHero>
@@ -56,9 +56,3 @@ const totalVmsCount = computed(() => vms.value.length)
 
 const activeVmsCount = computed(() => vms.value.filter(vm => vm.power_state === 'Running').length)
 </script>
-
-<style lang="postcss" scoped>
-.pool-dashboard-status {
-  min-width: 32rem;
-}
-</style>
