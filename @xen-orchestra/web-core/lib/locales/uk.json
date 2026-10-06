@@ -123,7 +123,7 @@
   "configuration": "Налаштування",
   "configure-in-xo-5": "Налаштувати в XO 5",
   "confirm-cancel?": "Ви впевнені, що хочете скасувати?",
-  "confirm-delete": "Ви збираєтеся видалити {0}",
+  "confirm-delete": "Ви збираєтеся видалити {name}",
   "connect": "Підключитися",
   "connected": "Підключено",
   "connected-to-ip": "Підключитися до {ip}",
