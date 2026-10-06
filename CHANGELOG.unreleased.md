@@ -36,5 +36,4 @@
 - @vates/types patch
 - @xen-orchestra/web patch
 - xo-server patch
-- 
 <!--packages-end-->
