@@ -6,6 +6,9 @@
       @toggle="branch.toggleCollapse()"
     >
       {{ branch.data.name_label || '(Host)' }}
+      <template #icon>
+        <VtsObjectIcon v-tooltip="hostState" type="host" size="medium" :state="hostState" />
+      </template>
       <template #addons>
         <UiLoader v-if="isChangingState" v-tooltip="currentOperation" />
         <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
@@ -41,6 +44,7 @@ import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
@@ -59,7 +63,7 @@ const { t } = useI18n()
 const { isMasterHost } = usePoolStore().subscribe()
 const { runningVmsCountByHostRef } = useVmStore().subscribe()
 
-const { isChangingState, currentOperation } = useHostUtils(() => branch.data)
+const { hostState, isChangingState, currentOperation } = useHostUtils(() => branch.data)
 
 const isMaster = computed(() => isMasterHost(branch.data.$ref))
 
