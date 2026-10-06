@@ -5,11 +5,15 @@
       iconProp(),
       prop('selected').bool().widget(),
       prop('disabled').bool().widget().ctx(),
+      prop('variant').enum('primary', 'secondary').preset('primary').widget().required(),
+      prop('size').enum('small', 'medium').preset('medium').widget().required(),
       slot(),
       setting('defaultSlotContent').preset('Dropdown title').widget(text()).help('Content for default slot'),
     ]"
   >
-    <UiDropdownButton v-bind="properties">{{ settings.defaultSlotContent }}</UiDropdownButton>
+    <UiDropdownButton v-bind="properties" :size="properties.size" :variant="properties.variant">
+      {{ settings.defaultSlotContent }}
+    </UiDropdownButton>
   </ComponentStory>
 </template>
 
