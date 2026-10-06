@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [REST API] `POST /rest/v0/acl-roles` now supports a `privileges` property, allowing privileges to be directly associated with the newly created role (PR [#10470](https://github.com/vatesfr/xen-orchestra/pull/10470))
+- [XO6/Tasks] Add link and object resolution to Tasks Overview panel, better text flow for resolved task names (PR [#10265](https://github.com/vatesfr/xen-orchestra/pull/10265))
 
 ### Bug fixes
 
@@ -37,7 +38,8 @@
 
 - @vates/types minor
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xo-server minor
 
 <!--packages-end-->
