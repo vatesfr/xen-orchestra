@@ -18,8 +18,11 @@ import { NodeHttpHandler } from '@aws-sdk/node-http-handler'
 import { getApplyMd5BodyChecksumPlugin } from '@aws-sdk/middleware-apply-body-checksum'
 import { Agent as HttpAgent } from 'http'
 import { Agent as HttpsAgent } from 'https'
+import { randomBytes } from 'node:crypto'
 import { createLogger } from '@xen-orchestra/log'
+import { acquireConditionalLock, probeConditionalWrites, REFRESH_TIMEOUT } from './_conditionalLock.js'
 import { PassThrough, Transform, pipeline } from 'stream'
+import { pTimeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import copyStreamToBuffer from './_copyStreamToBuffer.js'
 import guessAwsRegion from './_guessAwsRegion.js'
@@ -36,6 +39,80 @@ const MAX_PART_NUMBER = 10000
 const MIN_PART_SIZE = 5 * 1024 * 1024
 const { debug, info, warn } = createLogger('xo:fs:s3')
 
+// the `ConditionalLockStore` of `_conditionalLock.js` for the object `params` designates
+//
+// It sends its requests with the S3 client directly, not through the handler's methods: those go through
+// the handler's concurrency limit, and a refresh queued behind long uploads would let the lock go stale.
+function createLockStore(s3, params) {
+  // the condition failed: 412 Precondition Failed; 409 ConditionalRequestConflict, AWS's answer while
+  // another conditional write on the same key is in progress, i.e. someone else is writing the lock;
+  // and for `IfMatch` only, 404: the object does not exist (for `create()`, a 404 means a missing
+  // bucket, which is an error, not a held lock)
+  //
+  // A response without ETag counts as a failed condition too: the first request of the probe finds out.
+  const put = async (body, conditions, failedStatuses) => {
+    try {
+      const { ETag } = await s3.send(new PutObjectCommand({ ...params, ...conditions, Body: body }))
+      return ETag
+    } catch (error) {
+      const statusCode = error.$metadata?.httpStatusCode
+      if (failedStatuses.includes(statusCode)) {
+        return undefined
+      }
+
+      // 501 Not Implemented: the provider refuses the condition headers instead of honouring them
+      if (statusCode === 501) {
+        throw Object.assign(new Error('conditional writes are refused', { cause: error }), { code: 'ENOTSUP' })
+      }
+
+      throw error
+    }
+  }
+
+  return {
+    create: body => put(body, { IfNoneMatch: '*' }, [409, 412]),
+    replace: (body, etag) => put(body, { IfMatch: etag }, [404, 409, 412]),
+    read: async () => {
+      const command = new GetObjectCommand(params)
+
+      // the age of the object is measured on the server's clock, `LastModified` against the `Date` of this
+      // response: the clocks of XO, its proxies and the provider need not agree
+      let date
+      command.middlewareStack.add(
+        next => async args => {
+          const result = await next(args)
+          date = result.response.headers.date
+          return result
+        },
+        { step: 'build' }
+      )
+
+      try {
+        const { Body, ETag, LastModified } = await s3.send(command)
+
+        // some providers omit these: without an ETag, `replace()` would send `IfMatch: undefined`, an
+        // unconditional write; `probeConditionalWrites()` reads the object too, and reports this as unsupported
+        if (Body === undefined || ETag === undefined || LastModified === undefined) {
+          // read the response to its end so its socket goes back to the keep-alive pool
+          await Body?.transformToString()
+          throw Object.assign(new Error('GetObject returned no Body, ETag or Last-Modified'), { code: 'ENOTSUP' })
+        }
+
+        const now = date !== undefined ? Date.parse(date) : Date.now()
+        return { etag: ETag, body: await Body.transformToString(), age: now - LastModified.getTime() }
+      } catch (error) {
+        if (error.name === 'NoSuchKey') {
+          return undefined
+        }
+        throw error
+      }
+    },
+    remove: async () => {
+      await s3.send(new DeleteObjectCommand(params))
+    },
+  }
+}
+
 export default class S3Handler extends RemoteHandlerAbstract {
   #bucket
   #dir
@@ -43,9 +120,14 @@ export default class S3Handler extends RemoteHandlerAbstract {
   #httpAgent
   #httpsAgent
   #immutable = false
+  // the S3 user may not read the bucket's Object Lock configuration: whether it is enabled is unknown
+  #objectLockUnknown = false
   #maxPartSize
   #maxPartNumber
   #minPartSize
+  // caches the in-flight probe of the provider's conditional writes, a Promise<boolean>, not the flag itself:
+  // reset to undefined when the probe request fails, so the next lock probes again
+  #conditionalWritesProbe
 
   getConfig(key) {
     if (key === 'useVhdDirectory') {
@@ -134,6 +216,31 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   #createParams(file) {
     return { Bucket: this.#bucket, Key: this.#makeKey(file) }
+  }
+
+  // whether the provider honours conditional writes, probed on the first lock of the handler
+  #supportsConditionalWrites() {
+    if (this.#conditionalWritesProbe === undefined) {
+      const store = createLockStore(this.#s3, this.#createParams(`/.xo-lock-probe-${randomBytes(8).toString('hex')}`))
+      // bounded, as the lock's refreshes are: a hung request would otherwise hold every lock of this handler
+      // until the socket timeout
+      this.#conditionalWritesProbe = pTimeout.call(probeConditionalWrites(store), REFRESH_TIMEOUT).then(
+        reason => {
+          if (reason !== undefined) {
+            warn('the S3 provider does not honour conditional writes, nothing is locked on this remote', { reason })
+          }
+          return reason === undefined
+        },
+        error => {
+          // a failed request (the network, a permission, a 400 about the request itself) says nothing about the
+          // provider, and must not fail the backup: the lock is skipped this once, and the next one probes again
+          this.#conditionalWritesProbe = undefined
+          warn('could not probe the S3 provider for conditional writes, nothing is locked on this remote', { error })
+          return false
+        }
+      )
+    }
+    return this.#conditionalWritesProbe
   }
 
   async #multipartCopy(oldPath, newPath) {
@@ -495,11 +602,33 @@ export default class S3Handler extends RemoteHandlerAbstract {
       if (error.$metadata.httpStatusCode === 403) {
         info(`s3 user doesnt have enough privilege to check for Object Lock, enable content MD5 header`)
         this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
+        if (!this.#objectLockUnknown) {
+          warn(
+            'the S3 user cannot read the Object Lock configuration of the bucket (s3:GetBucketObjectLockConfiguration), nothing is locked on this remote'
+          )
+        }
+        this.#objectLockUnknown = true
       } else if (error.Code === 'ObjectLockConfigurationNotFoundError' || error.$metadata.httpStatusCode === 501) {
         info(`Object lock is not available or not configured, don't add the content MD5 header`)
       } else {
         throw error
       }
     }
+  }
+
+  // Object Lock buckets keep the no-op lock of `RemoteHandlerAbstract`: every write of the lock object would leave
+  // a version retained for the whole retention period. So do the buckets whose Object Lock configuration the S3
+  // user cannot read (see `_sync()`).
+  //
+  // Versioned buckets without Object Lock are locked: the versions the writes leave are removable, by a lifecycle
+  // rule expiring noncurrent versions, and skipping the lock would leave the common versioned-backup setup
+  // unprotected.
+  async _lock(path) {
+    if (this.isImmutable() || this.#objectLockUnknown || !(await this.#supportsConditionalWrites())) {
+      return super._lock(path)
+    }
+
+    // `<path>.lock`, the name of the local lock directory: the listings skip it already
+    return acquireConditionalLock(createLockStore(this.#s3, this.#createParams(`${path}.lock`)), path)
   }
 }
