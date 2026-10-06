@@ -392,6 +392,7 @@ Xen Orchestra supports Amazon S3 storage and other S3-compatible providers, so y
 - Not all S3-compatible providers adhere perfectly to Amazon S3 standards. Check the [supported object storage providers](./scale-and-security/object-storage-support.md) list and its support tiers, and test your setup before trusting it with critical backups.
 - Losing your encryption key means your backups will be permanently inaccessible. If you enable encryption, make sure your key is stored securely, and outside of the backed up infrastructure, as there's no way to recover your data without it.
 - If the bucket has S3 Object Lock enabled, read [S3 Object Lock](./scale-and-security/object-lock.md) first: it constrains which backup modes and retention settings you can use, and XO does not set the retention period itself.
+- XO locks a VM's folder in the bucket while a backup job, a merge or a deletion modifies it, so that two of them never modify the same VM's backups at once. This needs a provider that supports conditional writes (`If-None-Match` and `If-Match` on `PutObject`). With a provider that doesn't (XO logs a warning) and on buckets with Object Lock enabled, backups run without this lock, as they used to.
 
 :::
 
@@ -415,6 +416,7 @@ To configure an Azure backup repository, you'll need:
 
 - When using Azurite instead of real Azure, select the **Azurite** type and provide the emulator's host/port.
 - Container names must be **lowercase**.
+- XO locks a VM's folder in the container while a backup job, a merge or a deletion modifies it, so that two of them never modify the same VM's backups at once.
 
 :::
 

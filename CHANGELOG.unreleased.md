@@ -11,6 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Backups] VM backups on S3 and Azure repositories now lock the VM's folder like on other repositories: two jobs, or a job and a deletion, no longer modify the same VM's backups at the same time, and the second one fails with "Lock file is already being held". On S3, this requires a provider supporting conditional writes; buckets with Object Lock enabled are not locked yet (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 - [REST API] `POST /rest/v0/acl-roles` now supports a `privileges` property, allowing privileges to be directly associated with the newly created role (PR [#10470](https://github.com/vatesfr/xen-orchestra/pull/10470))
 - [XO6/Tasks] Add link and object resolution to Tasks Overview panel, better text flow for resolved task names (PR [#10265](https://github.com/vatesfr/xen-orchestra/pull/10265))
 - [XO5/Settings/IPs] Show an example of the expected IP format when adding IPs to an IP pool (PR [#10522](https://github.com/vatesfr/xen-orchestra/pull/10522))
@@ -41,6 +42,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/fs minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor

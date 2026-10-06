@@ -135,11 +135,16 @@ This error appears in the logs of some failed backup runs. It means the VM's fol
 
 - another backup job
 - a merge process on the Virtual Hard Disk (VHD)
+- a deletion of backups of this VM, which merges the remaining ones
 
 To solve this issue, we recommend that you:
 
 - wait until the other backup job or the merge process is done
 - make sure your backup repository is not being overworked
+
+On S3 repositories, the lock is an object named `xo-vm-backups/<VM UUID>.lock`, which its holder rewrites every 30 seconds. If XO stops while holding it, the next job can take it over once it has gone 3 minutes without being rewritten. S3 repositories are locked only if the provider supports conditional writes (XO logs a warning when it does not) and if the bucket does not have Object Lock enabled.
+
+On Azure repositories, the lock is a blob named `xo-vm-backups/<VM UUID>.lock`, which its holder leases for 60 seconds and renews every 15 seconds. If XO stops while holding it, the lease expires, and the next job can take the lock within 60 seconds.
 
 ## Error: HTTP connection has timed out
 
