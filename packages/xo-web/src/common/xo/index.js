@@ -3998,6 +3998,8 @@ export const setXostor = (sr, params) => _call('xostor.set', { sr: resolveId(sr)
 
 export const getLicenses = ({ productType } = {}) => _call('xoa.licenses.getAll', { productType })
 
+export const getIsAirgap = () => _call('xoa.getIsAirgap')
+
 export const getLicense = (productId, boundObjectId) => _call('xoa.licenses.get', { productId, boundObjectId })
 
 export const bindLicense = (licenseId, boundObjectId) => _call('xoa.licenses.bind', { licenseId, boundObjectId })
@@ -4290,19 +4292,18 @@ export const importVddkLib = file => {
   })
 }
 export const uploadAirgapDataPack = file =>
-  _call('xoa.licenses.uploadAirgapDataPack')
-    .then(({ $sendTo }) =>
-      post($sendTo, file.file).then(async res => {
-        if (!res.ok) {
-          throw new Error(await res.text())
-        }
-        success(_('uploadAirgapDataPackSuccess'))
-      })
-    )
-    .catch(err => {
-      error(_('uploadAirgapDataPackError'), err)
-      throw err
+  _call('xoa.licenses.uploadAirgapDataPack').then(({ $sendTo }) =>
+    post($sendTo, file).then(async res => {
+      if (!res.ok) {
+        throw new Error(await res.text())
+      }
+      success(_('uploadAirgapDataPackSuccess'))
     })
+  )
+export const exportAirgapLicenses = () =>
+  _call('xoa.licenses.exportAirgapLicenses').then(({ $getFrom: url }) => {
+    window.open(`.${url}`)
+  })
 export const installNbdInfo = file => {
   return _call('esxi.installNbdInfoFromSource')
     .then(() => {

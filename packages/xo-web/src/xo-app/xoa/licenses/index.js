@@ -15,7 +15,14 @@ import { Container, Row, Col } from 'grid'
 import { createSelector } from 'selectors'
 import { forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
-import { getLicenses, selfBindLicense, subscribePlugins, subscribeProxies, subscribeSelfLicenses } from 'xo'
+import {
+  getIsAirgap,
+  getLicenses,
+  selfBindLicense,
+  subscribePlugins,
+  subscribeProxies,
+  subscribeSelfLicenses,
+} from 'xo'
 
 import Proxies from './proxies'
 import UploadAirgapDataPack from './upload-airgap-data-pack'
@@ -170,8 +177,17 @@ export default class Licenses extends Component {
   constructor() {
     super()
 
-    this.componentDidMount = this._updateLicenses
+    this.componentDidMount = () => {
+      this._updateIsAirgap()
+      return this._updateLicenses()
+    }
   }
+
+  _updateIsAirgap = () =>
+    getIsAirgap().then(
+      isAirgap => this.setState({ isAirgap }),
+      () => this.setState({ isAirgap: false })
+    )
 
   _updateLicenses = () => {
     this.setState({ licenseError: undefined })
@@ -333,11 +349,6 @@ export default class Licenses extends Component {
             </ActionButton>
           </Col>
         </Row>
-        <Row className='mb-1 mt-3'>
-          <Col>
-            <UploadAirgapDataPack />
-          </Col>
-        </Row>
         <Row>
           <Col>
             <SortedTable
@@ -369,6 +380,13 @@ export default class Licenses extends Component {
             </Link>
           </Col>
         </Row>
+        {this.state.isAirgap && (
+          <Row className='mt-3'>
+            <Col>
+              <UploadAirgapDataPack updateLicenses={this._updateLicenses} />
+            </Col>
+          </Row>
+        )}
       </Container>
     )
   }
