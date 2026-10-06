@@ -1,7 +1,7 @@
 import { useXoVifDeleteJob } from '@/modules/vif/jobs/xo-vif-delete.job.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import { useRedirectAfterDelete } from '@/shared/composables/redirect-after-delete.composable.ts'
 import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
+import { useRedirectAfterDelete } from '@core/composables/redirect-after-delete.composable.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
