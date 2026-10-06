@@ -82,6 +82,16 @@ it('shows a loader in place of the VMs while their usage has not arrived yet', (
   expect(findProgressBarGroupLegends(wrapper)).toEqual([[['Host 1', '1 GiB / 4 GiB']]])
 })
 
+it('reports that there is nothing to show in a section without host or VM', () => {
+  const wrapper = mountRamUsage({ poolDashboard: withTopFiveRam([], []) })
+
+  expect(wrapper.findAll('.vts-state-hero').map(hero => hero.text())).toEqual([
+    t('no-data-to-calculate'),
+    t('no-data-to-calculate'),
+  ])
+  expect(wrapper.findAll('.ui-progress-bar')).toEqual([])
+})
+
 it('passes the fetch error down to both sections', () => {
   const wrapper = mountRamUsage({ hasError: true })
 
