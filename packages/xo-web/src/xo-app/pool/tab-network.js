@@ -16,7 +16,7 @@ import { TabButtonLink } from 'tab-button'
 import { Text, Number } from 'editable'
 import { Select, Toggle } from 'form'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { deleteNetwork, editNetwork, editPif, setManagementPifs } from 'xo'
+import { confirmInsecureNbd, deleteNetwork, editNetwork, editPif, setManagementPifs } from 'xo'
 
 // =============================================================================
 
@@ -95,25 +95,32 @@ class Nbd extends Component {
   NBD_FILTER_OPTIONS = [
     {
       labelId: 'noNbdConnection',
-      value: false,
+      value: 'none',
     },
     {
       labelId: 'nbdConnection',
-      value: true,
+      value: 'nbd',
     },
-  ]
-  INSECURE_OPTION = [
     {
       labelId: 'insecureNbdConnection',
       value: 'insecure_nbd',
-      disabled: true,
     },
   ]
 
   _getOptionRenderer = ({ labelId }) => _(labelId)
 
-  _editNbdConnection = value => {
-    editNetwork(this.props.network, { nbd: value.value })
+  _editNbdConnection = async ({ value }) => {
+    const { network } = this.props
+    if (value === 'insecure_nbd' && !network.insecureNbd) {
+      try {
+        await confirmInsecureNbd()
+      } catch {
+        // canceled: the select keeps showing the current purpose of the network
+        return
+      }
+    }
+    // the API takes null for no NBD, which the select can't use as an option value
+    await editNetwork(network, { nbd: value === 'none' ? null : value })
   }
 
   render() {
@@ -123,10 +130,8 @@ class Nbd extends Component {
       <Select
         onChange={this._editNbdConnection}
         optionRenderer={this._getOptionRenderer}
-        // We chose not to show the unsecure_nbd option unless the user has already activated it through another client.
-        // The reason is that we don't want them to know about it since the option is not allowed in XO.
-        options={network.insecureNbd ? [...this.NBD_FILTER_OPTIONS, ...this.INSECURE_OPTION] : this.NBD_FILTER_OPTIONS}
-        value={network.nbd ? true : network.insecureNbd ? 'insecure_nbd' : false}
+        options={this.NBD_FILTER_OPTIONS}
+        value={network.nbd ? 'nbd' : network.insecureNbd ? 'insecure_nbd' : 'none'}
       />
     )
   }
