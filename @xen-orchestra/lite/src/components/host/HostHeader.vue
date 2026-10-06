@@ -4,7 +4,7 @@
       <VtsObjectIcon
         size="medium"
         type="host"
-        :state="powerState"
+        :state="hostState"
         :busy="isChangingState"
         :busy-tooltip="currentOperation"
       />
@@ -20,7 +20,6 @@
         </template>
         <HostPowerStateActions :host />
       </MenuList>
-
       <MenuList placement="bottom-end">
         <template #trigger="{ open }">
           <UiButtonIcon
@@ -45,7 +44,6 @@ import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -63,12 +61,8 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isHostRunning } = useHostMetricsStore().subscribe()
-
-const powerState = computed(() => (isHostRunning(host) ? 'running' : 'halted'))
-
 const { isMasterHost } = usePoolStore().subscribe()
 const isMaster = computed(() => isMasterHost(host.$ref))
 
-const { isChangingState, currentOperation } = useHostUtils(() => host)
+const { hostState, isChangingState, currentOperation } = useHostUtils(() => host)
 </script>

@@ -40,13 +40,7 @@ export function useVbdConnection(options: { vbds: MaybeRefOrGetter<FrontXoVbd[]>
         count: vbds.value.length,
       },
       events: {
-        onConfirm: async () => {
-          try {
-            await runConnect()
-          } catch (error) {
-            console.error('Error when connecting VBD:', error)
-          }
-        },
+        onConfirm: () => runConnect({ detached: true }),
       },
     })
   }
@@ -58,13 +52,7 @@ export function useVbdConnection(options: { vbds: MaybeRefOrGetter<FrontXoVbd[]>
         count: vbds.value.length,
       },
       events: {
-        onConfirm: async () => {
-          try {
-            await runDisconnect()
-          } catch (error) {
-            console.error('Error when disconnecting VBD:', error)
-          }
-        },
+        onConfirm: () => runDisconnect({ detached: true }),
       },
     })
   }

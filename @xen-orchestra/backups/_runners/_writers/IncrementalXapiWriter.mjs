@@ -383,11 +383,11 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     retentionEntries.sort(compareReplicatedVmDatetime)
     this._oldEntries = getOldEntries(settings.copyRetention - 1, retentionEntries)
 
-    if (settings.deleteFirst && settings.skipDeleteOldEntries) {
+    if (settings.deleteFirst && !settings.skipDeleteOldEntries) {
       // we want to keep the baseVM when copying a delta
       // even if we want to keep only one after
       let mostRecentEntry
-      if (this._oldEntries.length > 1 && settings.copyRetention === 1 && !isFull) {
+      if (this._oldEntries.length > 0 && settings.copyRetention === 1 && !isFull) {
         mostRecentEntry = this._oldEntries.pop()
       }
       await this._deleteOldEntries()
