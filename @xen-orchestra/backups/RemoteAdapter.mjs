@@ -702,7 +702,8 @@ export class RemoteAdapter {
   ) {
     const container = watchStreamSize(input)
     await this._handler.outputStream(path, input, {
-      checksum,
+      // a known checksum is the one of unencrypted data: an encrypted remote stores no checksum
+      checksum: typeof checksum === 'string' && this._handler.isEncrypted ? false : checksum,
       dirMode: this._dirMode,
       maxStreamLength,
       streamLength,
@@ -751,6 +752,28 @@ export class RemoteAdapter {
 
   readFullVmBackup(metadata) {
     return this._handler.createReadStream(resolve('/', dirname(metadata._filename), metadata.xva))
+  }
+
+  /**
+   * @returns {Promise<string | undefined>} the checksum of the XVA as stored, undefined if it is unknown (no checksum
+   *   file, or encrypted remote: the stored data are not the data read)
+   */
+  async readFullVmBackupChecksum(metadata) {
+    if (this._handler.isEncrypted) {
+      return
+    }
+    try {
+      const checksum = String(
+        await this._handler.readFile(resolve('/', dirname(metadata._filename), metadata.xva) + '.checksum')
+      ).trim()
+      // $<algorithm id>$<salt>$<hash>
+      return checksum.startsWith('$') ? checksum : undefined
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return
+      }
+      throw error
+    }
   }
 
   async readVmBackupMetadata(path) {

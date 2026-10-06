@@ -15,6 +15,8 @@
 - [XO6/Tasks] Add link and object resolution to Tasks Overview panel, better text flow for resolved task names (PR [#10265](https://github.com/vatesfr/xen-orchestra/pull/10265))
 - [XO5/Settings/IPs] Show an example of the expected IP format when adding IPs to an IP pool (PR [#10522](https://github.com/vatesfr/xen-orchestra/pull/10522))
 - [XO6/BRs] Add backup repository create form (PR [#10271](https://github.com/vatesfr/xen-orchestra/pull/10271))
+- [Backup/Restore] Faster reading of the files of a remote, like the full backups (10 MiB chunks instead of 64 KiB)
+- [Mirror] The full mirrors between unencrypted remotes reuse the checksum of the source instead of computing it again
 
 ### Bug fixes
 
@@ -41,6 +43,8 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/fs minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
