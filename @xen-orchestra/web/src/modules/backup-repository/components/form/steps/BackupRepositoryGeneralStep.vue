@@ -40,6 +40,21 @@
       <BackupRepositoryFormRow v-if="bindings.encrypted.modelValue">
         <BackupRepositoryFormTextInput v-bind="bindings.encryptionKey" />
       </BackupRepositoryFormRow>
+
+      <BackupRepositoryFormRow>
+        <BackupRepositoryFormSelect v-bind="bindings.compression">
+          <template #option="{ option }">
+            <VtsOption :option>
+              <span class="option-content">
+                <span class="typo-body-bold">{{ option.properties.label }}</span>
+                <span v-if="option.properties.hint" class="em-dash-prefix hint typo-body-regular">
+                  {{ option.properties.hint }}
+                </span>
+              </span>
+            </VtsOption>
+          </template>
+        </BackupRepositoryFormSelect>
+      </BackupRepositoryFormRow>
     </div>
   </div>
 </template>

@@ -40,6 +40,25 @@ const COMPRESSORS = {
   none: NULL_COMPRESSOR,
 }
 
+// negative levels are the fastest ones: they mostly remove the runs of zeroes, and decompress about 5 times faster
+// than brotli
+const ZSTD_LEVEL = -3
+
+// zstd is only available since Node 22.15
+if (zlib.zstdCompress !== undefined) {
+  COMPRESSORS.zstd = {
+    compress: (
+      zstdCompress => buffer =>
+        zstdCompress(buffer, {
+          params: {
+            [zlib.constants.ZSTD_c_compressionLevel]: ZSTD_LEVEL,
+          },
+        })
+    )(promisify(zlib.zstdCompress)),
+    decompress: promisify(zlib.zstdDecompress),
+  }
+}
+
 // inject identifiers
 for (const id of Object.keys(COMPRESSORS)) {
   COMPRESSORS[id].id = id

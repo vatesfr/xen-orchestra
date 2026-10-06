@@ -22,6 +22,13 @@
           <VtsCopyButton :value="brStorageMode" />
         </template>
       </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="parsedBrUrl?.useVhdDirectory">
+        <template #key>{{ t('compression') }}</template>
+        <template #value>{{ brCompression }}</template>
+        <template #addons>
+          <VtsCopyButton :value="brCompression" />
+        </template>
+      </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('proxy') }}</template>
         <template v-if="brProxy" #value>
@@ -43,9 +50,14 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoBackupRepositoryCompressionLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-compression-label.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import {
+  getBackupRepositoryCompression,
+  getBackupRepositoryIcon,
+  getBackupRepositoryStatus,
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -85,6 +97,10 @@ const brStorageMode = computed(() => {
 })
 
 const isEncrypted = computed(() => parsedBrUrl?.encryptionKey !== undefined)
+
+const brCompression = useXoBackupRepositoryCompressionLabel(() =>
+  parsedBrUrl === undefined ? undefined : getBackupRepositoryCompression(parsedBrUrl)
+)
 
 const brProxy = useGetProxyById(() => br.proxy)
 </script>

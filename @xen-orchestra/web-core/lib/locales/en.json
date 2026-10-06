@@ -265,6 +265,7 @@
   "bootable": "Bootable",
   "br-details": "Backup repository details",
   "br-type-details": "{type} details",
+  "brotli": "Brotli",
   "bucket-name": "Bucket name",
   "build-number": "Build number",
   "by": "By",
@@ -1421,5 +1422,6 @@
   "xoa-ssh-password-confirm-different": "SSH password confirmation is different",
   "xva": "XVA",
   "you-are-currently-on": "You are currently on: {0}",
-  "zstd": "ZSTD"
+  "zstd": "ZSTD",
+  "zstd-node-requirement": "Requires Node.js 22.15 or later where the backups run"
 }

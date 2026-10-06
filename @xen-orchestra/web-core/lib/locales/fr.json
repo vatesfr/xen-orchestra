@@ -265,6 +265,7 @@
   "bootable": "Amorçable",
   "br-details": "Détails du BR",
   "br-type-details": "Détails {type}",
+  "brotli": "Brotli",
   "bucket-name": "Nom du bucket",
   "build-number": "Numéro de build",
   "by": "Par",
@@ -1421,5 +1422,6 @@
   "xoa-ssh-password-confirm-different": "La confirmation du mot de passe SSH est différente",
   "xva": "XVA",
   "you-are-currently-on": "Vous êtes actuellement sur : {0}",
-  "zstd": "ZSTD"
+  "zstd": "ZSTD",
+  "zstd-node-requirement": "Nécessite Node.js 22.15 ou plus récent là où s'exécutent les sauvegardes"
 }
