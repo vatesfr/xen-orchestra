@@ -9,7 +9,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsStatefulProgressBarGroup
+    <VtsProgressBarGroupWithStates
       :items="hostsCpuItems ?? []"
       :thresholds="cpuThresholds"
       :has-error
@@ -22,7 +22,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsStatefulProgressBarGroup
+    <VtsProgressBarGroupWithStates
       :items="vmsCpuItems ?? []"
       :thresholds="cpuThresholds"
       :has-error
@@ -35,7 +35,7 @@
 <script lang="ts" setup>
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
 import { toPercentProgressItem } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
-import VtsStatefulProgressBarGroup from '@core/components/stateful-progress-bar-group/VtsStatefulProgressBarGroup.vue'
+import VtsProgressBarGroupWithStates from '@core/components/progress-bar-group-with-states/VtsProgressBarGroupWithStates.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

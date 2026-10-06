@@ -76,6 +76,16 @@ it('measures both sections against the CPU thresholds, which a full CPU has yet 
   expect(wrapper.findAll('.ui-progress-bar').map(bar => bar.classes('accent--info'))).toEqual([true, true])
 })
 
+it('reports that there is nothing to show in a section without host or VM', () => {
+  const wrapper = mountCpuUsage({ poolDashboard: withTopFiveCpu([], []) })
+
+  expect(wrapper.findAll('.vts-state-hero').map(hero => hero.text())).toEqual([
+    t('no-data-to-calculate'),
+    t('no-data-to-calculate'),
+  ])
+  expect(wrapper.findAll('.ui-progress-bar')).toEqual([])
+})
+
 it('passes the fetch error down to both sections', () => {
   const wrapper = mountCpuUsage({ hasError: true })
 
