@@ -322,8 +322,23 @@ export default class Licenses extends Component {
       return <em>{missingXoaPlugin}</em>
     }
 
+    const airgapDataPack = this.state.isAirgap && (
+      <Row className='mt-3'>
+        <Col>
+          <UploadAirgapDataPack updateLicenses={this._updateLicenses} />
+        </Col>
+      </Row>
+    )
+
+    // in airgap, licenses can't be fetched until a data pack is installed on the local
+    // license server so the upload must be displayed to get out of this state
     if (this.state.licenseError !== undefined) {
-      return <span className='text-danger'>{_('getLicensesError')}</span>
+      return (
+        <Container>
+          <span className='text-danger'>{_('getLicensesError')}</span>
+          {airgapDataPack}
+        </Container>
+      )
     }
 
     if (this.state.licenses === undefined) {
@@ -380,13 +395,7 @@ export default class Licenses extends Component {
             </Link>
           </Col>
         </Row>
-        {this.state.isAirgap && (
-          <Row className='mt-3'>
-            <Col>
-              <UploadAirgapDataPack updateLicenses={this._updateLicenses} />
-            </Col>
-          </Row>
-        )}
+        {airgapDataPack}
       </Container>
     )
   }
