@@ -64,7 +64,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
+- @xen-orchestra/web-core patch
 - xo-server minor
 - xo-server-load-balancer minor
 - xo-web minor
