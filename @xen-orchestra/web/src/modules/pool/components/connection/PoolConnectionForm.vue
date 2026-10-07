@@ -1,5 +1,5 @@
 <template>
-  <VtsForm class="connection-form" :class="{ mobile: uiStore.isSmall }" @submit="submit()">
+  <VtsForm class="connection-form" :class="{ mobile: uiStore.isSmall }" @submit="onSubmit()">
     <div class="primary-host-section">
       <UiTitle>{{ t('master') }}</UiTitle>
       <div class="inputs-container">
@@ -11,10 +11,8 @@
     </div>
     <UiTitle>{{ t('options') }}</UiTitle>
     <div class="options-section">
-      <UiCheckbox v-model="formData.readOnly" accent="brand">{{ t('read-only') }}</UiCheckbox>
-      <UiCheckbox v-model="formData.allowUnauthorized" accent="brand">
-        {{ t('accept-self-signed-certificates') }}
-      </UiCheckbox>
+      <PoolConnectionFormCheckbox v-bind="readOnlyCheckboxBindings" />
+      <PoolConnectionFormCheckbox v-bind="allowUnauthorizedCheckboxBindings" />
     </div>
     <div class="buttons-container">
       <UiLink :to="{ name: '/(site)/dashboard' }" size="medium">
@@ -28,6 +26,7 @@
 </template>
 
 <script setup lang="ts">
+import PoolConnectionFormCheckbox from '@/modules/pool/components/connection/inputs/PoolConnectionFormCheckbox.vue'
 import PoolConnectionFormPasswordInput from '@/modules/pool/components/connection/inputs/PoolConnectionFormPasswordInput.vue'
 import PoolConnectionFormTextInput from '@/modules/pool/components/connection/inputs/PoolConnectionFormTextInput.vue'
 import { usePoolConnectionForm } from '@/modules/pool/form/use-pool-connection-form.ts'
@@ -37,7 +36,6 @@ import { useXoServerCreateJob } from '@/modules/server/jobs/xo-server-create.job
 import { useXoServerForgetJob } from '@/modules/server/jobs/xo-server-forget.job.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -64,6 +62,8 @@ const {
   httpProxyInputBindings,
   usernameInputBindings,
   passwordInputBindings,
+  readOnlyCheckboxBindings,
+  allowUnauthorizedCheckboxBindings,
 } = usePoolConnectionForm()
 
 // TODO: multiple server creation not possible in the UI for now
@@ -74,7 +74,7 @@ const { isRunning: removeIsRunning, run: remove } = useXoServerForgetJob([server
 
 const isServerJobRunning = logicOr(connectIsRunning, createIsRunning, removeIsRunning)
 
-async function submit() {
+async function onSubmit() {
   serverId.value = '' as XoServer['id']
 
   const valid = await validate()

@@ -72,5 +72,9 @@ export function usePoolConnectionForm() {
       useField('username', () => ({ label: t('username'), required: true, info: t('root-by-default') }))
     ),
     passwordInputBindings: withCredentialsError(useField('password', () => ({ label: t('password'), required: true }))),
+    readOnlyCheckboxBindings: useField('readOnly', () => ({ label: t('read-only') })),
+    allowUnauthorizedCheckboxBindings: useField('allowUnauthorized', () => ({
+      label: t('accept-self-signed-certificates'),
+    })),
   }
 }
