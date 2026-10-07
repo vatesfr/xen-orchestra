@@ -20,6 +20,8 @@ import {
   readClosableRpuRecoveryRecord,
   readRpuRecoveryView,
   reconcileRpuRecoveryAtBoot,
+  resumeRpuRecoveryRun as resumeRpuRecoveryRunInStore,
+  RPU_SETTING_TYPES,
   startRpuRecoveryRun as startRpuRecoveryRunInStore,
 } from '../_rpuRecovery.mjs'
 
@@ -94,8 +96,54 @@ export default class Pools {
     return startRpuRecoveryRunInStore({ store: this._rpuRecoveryStore, poolId, options })
   }
 
+  /**
+   * Continues the failed or interrupted run of a pool, see `resumeRpuRecoveryRun` in `_rpuRecovery.mjs`.
+   *
+   * @param {object} pool - XO pool object
+   * @returns {Promise<object>} the recorder, the options of the run, what the previous attempts did (see
+   *   `planRpuResume`), and the settings they left changed
+   */
+  async resumeRpuRecoveryRun(pool) {
+    const { recorder, record, plan } = await resumeRpuRecoveryRunInStore({
+      store: this._rpuRecoveryStore,
+      poolId: pool.id,
+    })
+    // the record is `resuming` on disk from here: a failure to read the live
+    // state (pool disconnected while its master reboots...) must fail the run,
+    // otherwise the record stays live and blocks resume and finalize until the
+    // next restart
+    let leftoverSettings
+    try {
+      leftoverSettings = (await this._listUnrestoredRpuItems(pool, record)).filter(item =>
+        RPU_SETTING_TYPES.has(item.type)
+      )
+    } catch (error) {
+      await recorder.fail(error)
+      throw error
+    }
+    return { recorder, options: record.options, resume: plan, leftoverSettings }
+  }
+
   getRollingUpdateRecovery(poolId) {
     return readRpuRecoveryView(this._rpuRecoveryStore, poolId)
+  }
+
+  // compared with the live state: what the operator restored by hand is not listed
+  async _listUnrestoredRpuItems(pool, record) {
+    const xapi = this._app.getXapi(pool)
+    const [plugin, schedules] = await Promise.all([
+      this._app.getOptionalPlugin('load-balancer'),
+      this._app.getAllSchedules(),
+    ])
+    const scheduleById = keyBy(schedules, 'id')
+    return listUnrestoredItems(record, {
+      pool: xapi.pool,
+      // unloaded but waiting for xo-server to load it again is not left changed
+      loadBalancerLoaded: plugin?.loaded === true || this._app.isRpuLoadBalancerReEnablePending(),
+      getHost: hostId => xapi.getObjectByUuid(hostId, undefined),
+      getVm: vmId => xapi.getObjectByUuid(vmId, undefined),
+      getSchedule: scheduleId => scheduleById[scheduleId],
+    })
   }
 
   /**
@@ -125,16 +173,7 @@ export default class Pools {
     try {
       const record = await readClosableRpuRecoveryRecord(store, poolId)
 
-      const xapi = _app.getXapi(pool)
-      const [plugin, schedules] = await Promise.all([_app.getOptionalPlugin('load-balancer'), _app.getAllSchedules()])
-      const scheduleById = keyBy(schedules, 'id')
-      const unrestoredItems = listUnrestoredItems(record, {
-        pool: xapi.pool,
-        loadBalancerLoaded: plugin?.loaded === true,
-        getHost: hostId => xapi.getObjectByUuid(hostId, undefined),
-        getVm: vmId => xapi.getObjectByUuid(vmId, undefined),
-        getSchedule: scheduleId => scheduleById[scheduleId],
-      })
+      const unrestoredItems = await this._listUnrestoredRpuItems(pool, record)
       // a VM away from its home host does not block: it may have been moved on
       // purpose, and the next run takes the current placement as its home
       const abandonsItems = unrestoredItems === null || unrestoredItems.some(item => item.type !== 'vm')

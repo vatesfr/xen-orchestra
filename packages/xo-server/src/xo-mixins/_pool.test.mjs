@@ -76,6 +76,9 @@ function makeStore(record) {
     async del(key) {
       values.delete(key)
     },
+    async put(key, value) {
+      values.set(key, value)
+    },
   }
 }
 
@@ -93,6 +96,7 @@ function createPools({ record } = {}) {
     getObjectByUuid: id => (id === 'h1' ? { name_label: 'host 1', enabled: false } : undefined),
   })
   app.getOptionalPlugin = async () => undefined
+  app.isRpuLoadBalancerReEnablePending = () => false
   app.getAllSchedules = async () => []
   const pools = new Pools(app)
   const store = makeStore(record)
@@ -177,6 +181,17 @@ describe('Pools.finalizeRollingUpdate', function () {
     })
   })
 
+  it('does not count a load balancer xo-server is about to load again as unrestored', async function () {
+    const { app, pools, store } = createPools({ record: makeRecord({ changedByRun: { loadBalancer: true } }) })
+    await assert.rejects(pools.finalizeRollingUpdate(pool), error =>
+      incorrectState.is(error, { actual: [{ type: 'loadBalancer', id: 'load-balancer' }], property: 'unrestoredItems' })
+    )
+
+    app.isRpuLoadBalancerReEnablePending = () => true
+    await pools.finalizeRollingUpdate(pool)
+    assert.equal(store.values.has('pool-1'), false)
+  })
+
   it('is not refused for a VM away from its home host only, which is still listed in the task', async function () {
     const { app, pools, store } = createPools({ record: makeRecord({ vmHomeById: { vm1: 'h1' } }) })
     app.getXapi = () => ({
@@ -215,5 +230,50 @@ describe('Pools.finalizeRollingUpdate', function () {
     const [[, { runId, unrestoredItems }]] = app.calls
     assert.equal(runId, undefined)
     assert.equal(unrestoredItems, null)
+  })
+})
+
+describe('Pools.resumeRpuRecoveryRun', function () {
+  it('resumes the run with the settings left changed by the previous attempt, not the hosts', async function () {
+    const { pools, store } = createPools({ record: makeDirtyRecord() })
+
+    const { recorder, resume, leftoverSettings } = await pools.resumeRpuRecoveryRun(pool)
+
+    assert.equal(store.values.get('pool-1').status, 'resuming')
+    assert.equal(recorder.runId, 'run-1')
+    assert.equal(recorder.attempt, 2)
+    assert.deepEqual(leftoverSettings, [{ type: 'ha', id: 'pool-1' }])
+    assert.equal(resume.hostsStarted, true)
+    assert.deepEqual(resume.hostOrder, ['h1'])
+  })
+
+  it('leaves out the load balancer xo-server is about to load again', async function () {
+    const { app, pools } = createPools({ record: makeRecord({ changedByRun: { ha: true, loadBalancer: true } }) })
+    app.isRpuLoadBalancerReEnablePending = () => true
+
+    const { leftoverSettings } = await pools.resumeRpuRecoveryRun(pool)
+
+    assert.deepEqual(leftoverSettings, [{ type: 'ha', id: 'pool-1' }])
+  })
+
+  it('fails the run when the live state cannot be read, so the record is not left live', async function () {
+    const { app, pools, store } = createPools({ record: makeDirtyRecord() })
+    const error = new Error('pool disconnected')
+    app.getXapi = () => {
+      throw error
+    }
+
+    await assert.rejects(pools.resumeRpuRecoveryRun(pool), error)
+
+    const record = store.values.get('pool-1')
+    assert.equal(record.status, 'failed')
+    assert.equal(record.lastError.message, 'pool disconnected')
+  })
+
+  it('has nothing to resume when the pool has no record', async function () {
+    const { pools } = createPools()
+    await assert.rejects(pools.resumeRpuRecoveryRun(pool), error =>
+      noSuchObject.is(error, { id: 'pool-1', type: 'rollingUpdateRecovery' })
+    )
   })
 })

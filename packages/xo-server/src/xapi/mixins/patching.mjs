@@ -15,7 +15,7 @@ import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import ensureArray from '../../_ensureArray.mjs'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
-import { noopRpuRecorder } from '../../_rpuRecovery.mjs'
+import { noopRpuRecorder, noRpuResume } from '../../_rpuRecovery.mjs'
 import { forEach, mapFilter, parseXml } from '../../utils.mjs'
 
 import { useUpdateSystem } from '../utils.mjs'
@@ -750,6 +750,8 @@ const methods = {
       rebootVm = force,
       shutdownPinnedVms = false,
       recorder = noopRpuRecorder,
+      // see `rollingPoolReboot`
+      resume = noRpuResume,
     } = {}
   ) {
     const master = this.pool.$master
@@ -833,9 +835,10 @@ const methods = {
 
     // the LINSTOR packages are updated on every host and the XOSTOR services
     // restarted before the first reboot. That restart must not happen for a
-    // run refused by one of the guards above, nor when no host needs an update
+    // run refused by one of the guards above, nor when no host needs an update,
+    // nor again once a host started with them
     const needsUpdate = some(hasMissingPatchesByHost)
-    if (needsUpdate && some(this.objects.indexes.type.SR, { type: 'linstor' })) {
+    if (needsUpdate && !resume.hostsStarted && some(this.objects.indexes.type.SR, { type: 'linstor' })) {
       await this._updateLinstorPackages()
     }
 
@@ -844,6 +847,7 @@ const methods = {
         xsCredentials,
         shutdownPinnedVms,
         recorder,
+        resume,
         beforeEvacuateVms: () => {
           // On XS < 8.4 and CH, start by installing patches on all hosts
           if (!isXcp && !isXsWithCdnUpdates) {

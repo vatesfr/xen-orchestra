@@ -14,6 +14,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [Backup/Restore] Backup repositories attached to a proxy now also benefit from the faster, journal-replayed backup listing (PR [#10437](https://github.com/vatesfr/xen-orchestra/pull/10437))
+- [RPU] Resume a failed or interrupted rolling pool update: only the hosts with remaining work are handled, and the VMs go back to their original host (PR [#10474](https://github.com/vatesfr/xen-orchestra/pull/10474))
 - [XO6/StateHero] Update StateHero illustrations SVG to match current design system (PR [#10380](https://github.com/vatesfr/xen-orchestra/pull/10380))
 - [i18n] Update Chinese (Simplified Han script), Czech, Dutch, Finnish, Italian, Norwegian, Persian, Portuguese, Russian, Slovak, Spanish and Turkish translations (PR [#10396](https://github.com/vatesfr/xen-orchestra/pull/10396))
 - [Backup/Restore] A live mounted disk is released on its own once it is deleted, or the VM holding it is: its SR is forgotten and the backup is no longer served (PR [#10432](https://github.com/vatesfr/xen-orchestra/pull/10432))
@@ -50,13 +51,13 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
-- @xen-orchestra/rest-api patch
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xen-api patch
 - xo-remote-parser major
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->

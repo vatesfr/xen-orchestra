@@ -63,7 +63,8 @@ class FakeXapi {
     this.steps.push('linstor')
   }
 
-  async rollingPoolReboot(parentTask, { beforeEvacuateVms, beforeRebootHost, ignoreHost }) {
+  async rollingPoolReboot(parentTask, { beforeEvacuateVms, beforeRebootHost, ignoreHost, resume }) {
+    this.resume = resume
     const handledHosts = this.hosts.filter(host => !ignoreHost(host))
     this.steps.push(handledHosts.map(host => host.uuid))
     await beforeEvacuateVms()
@@ -186,6 +187,45 @@ describe('rollingPoolUpdate', function () {
 
     assert.equal(error, undefined)
     assert.deepEqual(xapi.steps, ['linstor', ['host-A', 'host-B']])
+  })
+
+  describe('resume', function () {
+    const resumeOf = hostsStarted => ({
+      doneHostIds: new Set(['host-A']),
+      hostsStarted,
+      hostOrder: ['host-A', 'host-B'],
+      vmHomeById: {},
+      haltedPinnedVms: {},
+    })
+
+    it('hands the resume to the reboot', async function () {
+      const xapi = new FakeXapi([0, 2])
+      const resume = resumeOf(true)
+
+      const error = await rollingPoolUpdate(xapi, { acceptCurrentStateAsBaseline: true, resume })
+
+      assert.equal(error, undefined)
+      assert.equal(xapi.resume, resume)
+      assert.deepEqual(xapi.steps, [['host-B']])
+    })
+
+    it('leaves the LINSTOR packages alone once a host started with them', async function () {
+      const xapi = new FakeXapi([0, 2], { linstor: true })
+
+      const error = await rollingPoolUpdate(xapi, { acceptCurrentStateAsBaseline: true, resume: resumeOf(true) })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.steps, [['host-B']])
+    })
+
+    it('updates the LINSTOR packages when the previous attempt stopped before any host', async function () {
+      const xapi = new FakeXapi([1, 2], { linstor: true })
+
+      const error = await rollingPoolUpdate(xapi, { resume: resumeOf(false) })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.steps, ['linstor', ['host-A', 'host-B']])
+    })
   })
 })
 
