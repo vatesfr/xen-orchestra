@@ -195,7 +195,8 @@
               :can-resize-existing-disks="canResizeExistingDisks"
               :default-existing-vdis="defaultExistingVdis"
               @add="addStorageEntry()"
-              @remove="removeVdi" />
+              @remove="removeVdi"
+            />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
             <UiCheckboxGroup accent="brand" :vertical="uiStore.isSmall">
@@ -644,24 +645,20 @@ const redirectToPool = (poolId: XoPool['id']) => {
   router.push({ name: '/pool/[id]/dashboard', params: { id: poolId } })
 }
 
-function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi, canResizeExistingDisks: boolean) {
+function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi, includeSize: boolean) {
   const changes: Record<string, unknown> = {}
 
   for (const _key in vdi1) {
     const key = _key as keyof Vdi
 
-    if (key === 'size') {
-      if (canResizeExistingDisks && vdi1[key] !== vdi2[key]) {
-        changes[key] = vdi2[key]
-      }
+    if (vdi1[key] === vdi2[key] || (key === 'size' && !includeSize)) {
       continue
     }
 
-    if (vdi1[key] !== vdi2[key]) {
-      changes[key] = vdi2[key]
-    }
+    changes[key] = vdi2[key]
   }
-  return Object.keys(changes).length > 0 ? changes : undefined
+
+  return Object.keys(changes).length > 0 ? (changes as Partial<Vdi>) : undefined
 }
 
 const cloudInitModes: InstallMode[] = ['ssh-key', 'cloud-init-config']
@@ -685,7 +682,7 @@ const existingVdisToSend = computed(() => {
       return acc
     }
 
-    const changes = getExistingVdisDiff(defaultVdi, currentVdi)
+    const changes = getExistingVdisDiff(defaultVdi, currentVdi, canResizeExistingDisks.value)
 
     if (changes) {
       acc.push({ ...changes, ...(changes.size && { size: giBToBytes(changes.size) }), userdevice })
@@ -1024,6 +1021,20 @@ watch(
   }
 )
 watch(() => vmState.sshKeys, buildCloudConfig, { deep: true })
+
+watch(canResizeExistingDisks, canResize => {
+  if (canResize) {
+    return
+  }
+
+  vmState.existingVdis.forEach(vdi => {
+    const defaultVdi = defaultExistingVdis.value.find(existingVdi => existingVdi.id === vdi.id)
+
+    if (defaultVdi !== undefined) {
+      vdi.size = defaultVdi.size
+    }
+  })
+})
 </script>
 
 <style scoped lang="postcss">

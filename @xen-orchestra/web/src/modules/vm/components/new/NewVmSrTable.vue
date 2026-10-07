@@ -29,8 +29,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { useNewVmSrColumns } from '@core/tables/column-sets/new-vm-sr-columns.ts'
-import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
-import { computed, toRef, watch } from 'vue'
+import { computed, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vmState, srs, canResizeExistingDisks, defaultExistingVdis } = defineProps<{
@@ -52,8 +51,6 @@ const vdis = computed(() => [...vmState.existingVdis, ...vmState.vdis])
 const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
   body: ({ vdi, onRemove }: { vdi: Vdi; onRemove: () => void }) => {
     const { id: srSelectId } = useFormSelect(() => srs, {
-  body: ({ vdi, onRemove }: { vdi: Vdi; onRemove?: () => void }) => {
-    const { id: srSelectId } = useFormSelect(() => props.srs, {
       model: toRef(vdi, 'sr'),
       option: {
         label: sr => {
@@ -68,18 +65,16 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
     const size = toRef(vdi, 'size')
     const description = toRef(vdi, 'name_description')
 
-    const isExistingVdi = vmState.existingVdis.includes(vdi)
-    const defaultVdi = isExistingVdi ? defaultExistingVdis[vmState.existingVdis.indexOf(vdi)] : undefined
-    const minSize = defaultVdi?.size ?? 1
+    const defaultVdi = defaultExistingVdis.find(existingVdi => existingVdi.id === vdi.id)
 
     return {
       sr: r => r(srSelectId),
       diskName: r => r(diskName),
       size: r =>
         r(size, {
-          disabled: vdi.id !== undefined ? !props.canResizeExistingDisks : false,
+          disabled: vdi.id !== undefined && !canResizeExistingDisks,
           min: defaultVdi?.size ?? 1,
-        } as any),
+        }),
       description: r => r(description),
       remove: r => r(onRemove),
     }
