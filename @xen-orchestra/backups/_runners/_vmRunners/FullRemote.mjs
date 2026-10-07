@@ -24,12 +24,15 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
       // the unencrypted destinations store the same data as the source: no need to compute their checksum again
       const checksum = await this._sourceRemoteAdapter.readFullVmBackupChecksum(metadata)
 
+      // a single writer can consume the stream itself: no need to fork it
+      const isForked = this._writers.size > 1
+
       // @todo shouldn't transfer backup if it will be deleted by retention policy (higher retention on source than destination)
       await this._callWriters(
         writer =>
           writer.run({
             checksum,
-            stream: forkStreamUnpipe(stream),
+            stream: isForked ? forkStreamUnpipe(stream) : stream,
             // stream will be forked and transformed, it's not safe to attach additional properties to it
             streamLength: stream.length,
             maxStreamLength: stream.maxStreamLength, // for encrypted destination/source without length
