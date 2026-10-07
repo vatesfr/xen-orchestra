@@ -5,8 +5,10 @@
       <slot name="title-actions" />
     </template>
   </UiTitle>
-  <VtsQueryBuilder v-model="filter" :schema />
-  <VtsTableBulkActions :actions="bulkActions" />
+  <div class="filters">
+    <VtsQueryBuilder v-model="filter" :schema />
+    <BackupRepositoriesBulkActions :brs="selectedBrs" />
+  </div>
 
   <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
     <thead>
@@ -23,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import BackupRepositoriesBulkActions from '@/modules/backup-repository/components/list/BackupRepositoriesBulkActions.vue'
 import { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
 import { useEditBackupRepository } from '@/modules/backup-repository/composables/use-edit-backup-repository.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
@@ -35,11 +38,9 @@ import {
   getBackupRepositoryStatus,
 } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
@@ -82,61 +83,6 @@ const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionB
 })
 
 const selectedBrs = computed(() => brs.filter(br => selectedIds.value.includes(br.id)))
-
-const {
-  run: connectBackupRepositories,
-  canRun: canConnectBackupRepositories,
-  isRunning: isConnectingBackupRepositories,
-  errorMessage: connectBackupRepositoriesErrorMessage,
-} = useXoBackupRepositoryChangeStateJob(selectedBrs, true)
-
-const {
-  run: disableBackupRepositories,
-  canRun: canDisableBackupRepositories,
-  isRunning: isDisablingBackupRepositories,
-  errorMessage: disableBackupRepositoriesErrorMessage,
-} = useXoBackupRepositoryChangeStateJob(selectedBrs, false)
-
-const {
-  run: benchmarkBackupRepositories,
-  canRun: canBenchmarkBackupRepositories,
-  isRunning: isBenchmarkingBackupRepositories,
-  errorMessage: benchmarkBackupRepositoriesErrorMessage,
-} = useXoBackupRepositoryBenchmarkJob(selectedBrs)
-
-const bulkActions = computed<ActionItem[]>(() => [
-  {
-    label: t('action:change-state'),
-    icon: 'action:change-state',
-    disabled: selectedBrs.value.length === 0,
-    children: [
-      {
-        label: t('action:connect'),
-        icon: 'status:success-circle',
-        onClick: () => connectBackupRepositories(),
-        disabled: !canConnectBackupRepositories.value,
-        busy: isConnectingBackupRepositories.value,
-        hint: connectBackupRepositoriesErrorMessage.value,
-      },
-      {
-        label: t('action:disable'),
-        icon: 'status:disabled',
-        onClick: () => disableBackupRepositories(),
-        disabled: !canDisableBackupRepositories.value,
-        busy: isDisablingBackupRepositories.value,
-        hint: disableBackupRepositoriesErrorMessage.value,
-      },
-    ],
-  },
-  {
-    label: t('action:test-speed'),
-    icon: 'action:scan',
-    onClick: () => benchmarkBackupRepositories(),
-    disabled: !canBenchmarkBackupRepositories.value,
-    busy: isBenchmarkingBackupRepositories.value,
-    hint: benchmarkBackupRepositoriesErrorMessage.value,
-  },
-])
 
 const schema = useQueryBuilderSchema<FrontXoBackupRepository>({
   '': useStringSchema(t('any-property')),
@@ -250,3 +196,11 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
   },
 })
 </script>
+
+<style scoped lang="postcss">
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+</style>
