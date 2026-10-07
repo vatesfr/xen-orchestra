@@ -1,6 +1,7 @@
 <template>
   <VtsOverlayButton
     variant="primary"
+    :disabled
     :type="onClick ? 'button' : 'submit'"
     v-on="onClick ? { click: () => emit('click') } : {}"
   >
@@ -11,8 +12,9 @@
 <script lang="ts" setup>
 import VtsOverlayButton from '@core/components/overlay/VtsOverlayButton.vue'
 
-const { onClick } = defineProps<{
+const { onClick, disabled } = defineProps<{
   onClick?: () => void
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{

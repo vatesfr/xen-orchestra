@@ -1,5 +1,12 @@
 <template>
-  <UiButton :accent="buttonAccent" :busy="isBusy" :disabled="isDisabled" :variant size="medium" @click="trigger">
+  <UiButton
+    :accent="buttonAccent"
+    :busy="isBusy"
+    :disabled="disabled || isOverlayLocked"
+    :variant
+    size="medium"
+    @click="trigger"
+  >
     <slot />
   </UiButton>
 </template>
@@ -13,13 +20,14 @@ import { inject } from 'vue'
 
 defineProps<{
   variant: ButtonVariant
+  disabled?: boolean
 }>()
 
 defineSlots<{
   default(): any
 }>()
 
-const { isBusy, isDisabled, trigger } = useOverlayTrigger()
+const { isBusy, isDisabled: isOverlayLocked, trigger } = useOverlayTrigger()
 
 const overlayAccent = inject(IK_OVERLAY_ACCENT, undefined)
 
