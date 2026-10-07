@@ -657,18 +657,24 @@ function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
 const existingVdisToSend = computed(() => {
   return defaultExistingVdis.value.reduce<NewVmVdiPayload[]>((acc, defaultVdi) => {
     const { userdevice } = defaultVdi
+
     if (userdevice === undefined) {
       return acc
     }
+
     const currentVdi = vmState.existingVdis.find(vdi => vdi.id === defaultVdi.id)
+
     if (currentVdi === undefined) {
       acc.push({ userdevice, destroy: true })
       return acc
     }
+
     const changes = getExistingVdisDiff(defaultVdi, currentVdi)
+
     if (changes) {
       acc.push({ ...changes, ...(changes.size && { size: giBToBytes(changes.size) }), userdevice })
     }
+
     return acc
   }, [])
 })
