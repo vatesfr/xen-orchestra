@@ -6,6 +6,7 @@
     </template>
   </UiTitle>
   <VtsQueryBuilder v-model="filter" :schema />
+  <VtsTableBulkActions :actions="bulkActions" />
 
   <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
     <thead>
@@ -22,21 +23,23 @@
 </template>
 
 <script setup lang="ts">
-import { useBackupRepositoryChangeState } from '@/modules/backup-repository/composables/use-backup-repository-change-state.composable.ts'
 import { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
 import { useEditBackupRepository } from '@/modules/backup-repository/composables/use-edit-backup-repository.composable.ts'
 import { useXoBackupRepositoryBenchmark } from '@/modules/backup-repository/composables/use-xo-backup-repository-benchmark.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import {
   getBackupRepositoryIcon,
   getBackupRepositoryStatus,
 } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
@@ -46,6 +49,7 @@ import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-q
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBackupRepositoryColumns } from '@core/tables/column-sets/backup-repository-columns.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { brs, busy, error } = defineProps<{
@@ -70,12 +74,54 @@ const selectedBrId = useRouteQuery('id')
 
 const { pageRecords: paginatedBrs, paginationBindings } = usePagination('brs', filteredBrs)
 
-const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
+const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
   items: () => brs,
   filteredItems: brs,
   pageItems: paginatedBrs,
   getItemId: br => br.id,
 })
+
+const selectedBrs = computed(() => brs.filter(br => selectedIds.value.includes(br.id)))
+
+const {
+  run: connectBackupRepositories,
+  canRun: canConnectBackupRepositories,
+  isRunning: isConnectingBackupRepositories,
+  errorMessage: connectBackupRepositoriesErrorMessage,
+} = useXoBackupRepositoryChangeStateJob(selectedBrs, true)
+
+const {
+  run: disableBackupRepositories,
+  canRun: canDisableBackupRepositories,
+  isRunning: isDisablingBackupRepositories,
+  errorMessage: disableBackupRepositoriesErrorMessage,
+} = useXoBackupRepositoryChangeStateJob(selectedBrs, false)
+
+const bulkActions = computed<ActionItem[]>(() => [
+  {
+    label: t('action:change-state'),
+    icon: 'action:change-state',
+    disabled: selectedBrs.value.length === 0,
+    children: [
+      {
+        label: t('action:connect'),
+        icon: 'status:success-circle',
+        onClick: () => connectBackupRepositories(),
+        disabled: !canConnectBackupRepositories.value,
+        busy: isConnectingBackupRepositories.value,
+        hint: connectBackupRepositoriesErrorMessage.value,
+      },
+      {
+        label: t('action:disable'),
+        icon: 'status:disabled',
+        onClick: () => disableBackupRepositories(),
+        disabled: !canDisableBackupRepositories.value,
+        busy: isDisablingBackupRepositories.value,
+        hint: disableBackupRepositoriesErrorMessage.value,
+      },
+    ],
+  },
+])
 
 const schema = useQueryBuilderSchema<FrontXoBackupRepository>({
   '': useStringSchema(t('any-property')),
@@ -110,11 +156,14 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
     )
 
     const {
-      changeBackupRepositoryState,
-      canChangeBackupRepositoryState,
-      isChangingBackupRepositoryState,
-      changeBackupRepositoryStateErrorMessage,
-    } = useBackupRepositoryChangeState(() => br)
+      run: changeBackupRepositoriesState,
+      canRun: canChangeBackupRepositoriesState,
+      isRunning: isChangingBackupRepositoriesState,
+      errorMessage: changeBackupRepositoriesStateErrorMessage,
+    } = useXoBackupRepositoryChangeStateJob(
+      () => [br],
+      () => !br.enabled
+    )
 
     const {
       forgetBackupRepositories,
@@ -147,12 +196,12 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
           onClick: () => (selectedBrId.value = br.id),
           actions: [
             {
-              label: br.enabled ? t('action:disable') : t('action:enable'),
+              label: br.enabled ? t('action:disable') : t('action:connect'),
               icon: br.enabled ? 'status:disabled' : 'status:success-circle',
-              onClick: () => changeBackupRepositoryState(),
-              disabled: !canChangeBackupRepositoryState.value,
-              busy: isChangingBackupRepositoryState.value,
-              hint: changeBackupRepositoryStateErrorMessage.value,
+              onClick: () => changeBackupRepositoriesState(),
+              disabled: !canChangeBackupRepositoriesState.value,
+              busy: isChangingBackupRepositoriesState.value,
+              hint: changeBackupRepositoriesStateErrorMessage.value,
             },
             {
               label: t('action:edit'),
