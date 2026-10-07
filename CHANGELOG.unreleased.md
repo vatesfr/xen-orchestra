@@ -26,7 +26,7 @@
 - [Dashboard] Fix cards staying in error state after a temporary failure to fetch data, until the page was reloaded (PR [#10516](https://github.com/vatesfr/xen-orchestra/pull/10516))
 - [backup] Properly detect a disk deleting while merging (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
 - [backup] Recover a deadlocked merge when the chain is out of retention (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
-- [Backup/S3] Fix files never deleted on providers and handle NotFound as expected (PR #xxxx)
+- [Backup/S3] Fix files never deleted on providers and handle NotFound as expected (PR [#10548](https://github.com/vatesfr/xen-orchestra/pull/10548))
 
 ### Packages to release
 
