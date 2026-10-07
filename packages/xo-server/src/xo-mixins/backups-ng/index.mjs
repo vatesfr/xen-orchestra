@@ -530,7 +530,7 @@ export default class BackupNg {
    *
    * @param {XoVmBackupArchive['id']} archiveId
    * @param {string} proxyId
-   * @param {{ liveMounts?: { id: string, hostId: string }[] }} [result] - result of the restore, as reported by the proxy
+   * @param {{ liveMounts?: { id: string, hostId: string, srUuid?: string }[] }} [result] - result of the restore, as reported by the proxy
    */
   #registerProxyLiveMounts(archiveId, proxyId, result) {
     const mounts = result?.liveMounts

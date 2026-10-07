@@ -2,15 +2,43 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { DiskBlockDevice, IscsiTarget } from '@vates/iscsi'
 import { defer } from 'golike-defer'
+import { EventEmitter } from 'node:events'
 import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { randomBytes } from 'node:crypto'
 
 import { detectLocalAddress } from './_address.mjs'
+import { createUfwFirewall } from './_firewall.mjs'
 import { createChapCredentials, probeScsiId } from './_target.mjs'
 import { forgetSr, introduceSr, introduceVdi } from './_sr.mjs'
 
 const { info, warn } = createLogger('xo:mixins:LiveMount')
+
+/** @typedef {import('@vates/types').Xapi} Xapi */
+
+/**
+ * A mount, as built by `#createDiskMount`.
+ *
+ * @typedef {object} DiskMount
+ * @property {string} id
+ * @property {string} address
+ * @property {number} port
+ * @property {string} iqn
+ * @property {string} diskPath
+ * @property {string} srRef
+ * @property {string} srUuid
+ * @property {string} vdiUuid
+ * @property {import('@vates/iscsi').IscsiTarget} target
+ * @property {Xapi} xapi - replaced by any newer connection to the same pool, see {@link LiveMount#watchConnection}
+ * @property {string} [poolUuid] - pool of `xapi`, unknown if it was not connected
+ * @property {{ source: string, port: number, id: string }} [firewallRule] - opened by `iscsi.manageFirewall`
+ * @property {() => Promise<void>} [release]
+ */
+
+// the firewalls `iscsi.manageFirewall` can drive
+const FIREWALLS = {
+  ufw: createUfwFirewall,
+}
 
 /**
  * Serve a disk as a read-only iSCSI LUN and attach it, as an SR, to a host —
@@ -28,6 +56,12 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * importing one from another hypervisor), each supplying its own way to open
  * the source disk.
  *
+ * A mount releases itself when its VDI is removed from the pool — typically
+ * when the VM it was attached to is deleted — so a caller which forgets to
+ * unmount does not leak an SR and a target for the lifetime of the process.
+ * A caller which replaces its XAPI connections (e.g. on reconnection) must
+ * hand each new one to {@link LiveMount#watchConnection}.
+ *
  * The implementation is split by concern, each module private to this
  * directory: `_target.mjs` (CHAP + the iSCSI target + SCSI probe), `_sr.mjs`
  * (the SR/VDI introduced on the target host). This file is the only public
@@ -37,30 +71,71 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * today it only ever mounts one disk at a time, and a future feature mounting
  * a whole VM (one call per disk, then a VM built on the results) belongs on
  * its own method rather than squatting on a bare `mount`/`unmount`.
+ *
+ * @fires LiveMount#unmounted - `(id)`, whenever a mount stops existing,
+ * whether it was unmounted explicitly or because its VDI disappeared
  */
-export default class LiveMount {
+export default class LiveMount extends EventEmitter {
   #app
   #createTarget
   #detectAddress
+  #firewall
+  #firewallName
+  // a mount waits for the stale rules to be removed: listed before its own is inserted, its rule
+  // would be removed with them
+  /** @type {Promise<void> | undefined} */
+  #firewallPurge
+  // an invalid `iscsi.manageFirewall` fails the mounts, not the whole process
+  #firewallError
   #openDisk
 
   // mount id -> mount record
   #mounts = new Map()
 
-  // `openDisk`/`createTarget`/`detectAddress` are injectable for tests only,
+  // VDI uuid -> id of the mount serving it: a uuid is unique across pools, so a single map serves
+  // every connection, including the ones replacing the connection a mount was created with
+  /** @type {Map<string, string>} */
+  #mountIdsByVdiUuid = new Map()
+
+  // `appName` scopes the firewall rules, so that xo-server and xo-proxy on the same machine do not
+  // purge each other's
+  // `openDisk`/`createTarget`/`detectAddress`/`createFirewall` are injectable for tests only,
   // like xo-server's crypto-credentials mixin does with xenStore/fsPromises
   constructor(
     app,
     {
+      appName,
       openDisk = openDiskChain,
       createTarget = options => new IscsiTarget(options),
       detectAddress = detectLocalAddress,
+      createFirewall = name => FIREWALLS[name]?.({ scope: appName }),
     } = {}
   ) {
+    super()
+
     this.#app = app
     this.#createTarget = createTarget
     this.#detectAddress = detectAddress
     this.#openDisk = openDisk
+
+    // the target of each mount listens on an ephemeral port, which a firewall cannot allow in
+    // advance: when told to, the port is opened to the host of the mount, for its lifetime only
+    // `false` turns off the default of the packaged configuration
+    const configuredFirewall = app.config.getOptional('iscsi.manageFirewall')
+    const firewallName = configuredFirewall === false ? undefined : configuredFirewall
+    const firewall = firewallName === undefined ? undefined : createFirewall(firewallName)
+    if (firewallName !== undefined && firewall === undefined) {
+      this.#firewallError = new Error(
+        `unsupported iscsi.manageFirewall: ${firewallName}, expected one of ${Object.keys(FIREWALLS).join(', ')}`
+      )
+      warn('live mounts are disabled', { error: this.#firewallError })
+    }
+    if (firewall !== undefined) {
+      this.#firewall = firewall
+      this.#firewallName = firewallName
+      // a process which died without unmounting left its rules behind, nothing serves their ports anymore
+      app.hooks.on('start', () => this.#purgeFirewall())
+    }
 
     app.hooks.on('stop', () =>
       asyncEach(
@@ -72,6 +147,27 @@ export default class LiveMount {
         { stopOnError: false }
       )
     )
+  }
+
+  /**
+   * Remove the stale rules once, on start or before the first mount, whichever comes first: the
+   * API may be served before the start hooks run.
+   *
+   * @returns {Promise<void>} never rejects: a failure is logged, and does not prevent the mounts
+   */
+  #purgeFirewall() {
+    const firewallName = this.#firewallName
+    this.#firewallPurge ??= (async () => {
+      try {
+        const removed = await this.#firewall.purge()
+        if (removed.length !== 0) {
+          info('removed stale firewall rules', { firewall: firewallName, removed })
+        }
+      } catch (error) {
+        warn('failed to remove stale firewall rules', { error, firewall: firewallName })
+      }
+    })()
+    return this.#firewallPurge
   }
 
   /**
@@ -87,6 +183,7 @@ export default class LiveMount {
   async mountDisk(params) {
     const mount = await this.#createDiskMount(params)
     this.#mounts.set(mount.id, mount)
+    this.#watchVdi(mount)
     return {
       id: mount.id,
       srUuid: mount.srUuid,
@@ -98,15 +195,20 @@ export default class LiveMount {
   }
 
   #createDiskMount = defer(async ($defer, { handler, diskPath, xapi, hostRef, nameLabel, release }) => {
+    if (this.#firewallError !== undefined) {
+      throw this.#firewallError
+    }
     const config = this.#app.config
     // `iscsi.advertisedAddress` overrides auto-detection; unset, the address
     // reachable *from* the target host is guessed by asking the OS which
     // local address it would route through to reach it — usually right, but
     // not guaranteed to be reachable *back* from the host (NAT, asymmetric
     // routing), which is what the override is for.
+    const firewall = this.#firewall
     let address = config.getOptional('iscsi.advertisedAddress')
+    const hostAddress =
+      address === undefined || firewall !== undefined ? await xapi.getField('host', hostRef, 'address') : undefined
     if (address === undefined) {
-      const hostAddress = await xapi.getField('host', hostRef, 'address')
       address = await this.#detectAddress(hostAddress)
     }
 
@@ -133,6 +235,19 @@ export default class LiveMount {
     $defer.onFailure(() => target.close())
     const { port } = target.address()
 
+    // scoped to the host's management address: the one the advertised address is detected from,
+    // so the one it connects from — unless `iscsi.advertisedAddress` points at another network
+    let firewallRule
+    if (firewall !== undefined) {
+      await this.#purgeFirewall()
+      const rule = { source: hostAddress, port, id }
+      // none opened when there is no firewall to drive on this install: nothing to close then
+      if (await firewall.open(rule)) {
+        firewallRule = rule
+        $defer.onFailure(() => firewall.close(rule))
+      }
+    }
+
     const deviceConfig = {
       chapuser: chap.user,
       chappassword: chap.secret,
@@ -157,8 +272,115 @@ export default class LiveMount {
 
     info('mounted', { id, address, port, srUuid, vdiUuid, diskPath })
 
-    return { address, disk, diskPath, id, iqn, port, release, srRef, srUuid, target, vdiUuid, xapi }
+    const poolUuid = xapi.pool?.uuid
+    return {
+      address,
+      disk,
+      diskPath,
+      firewallRule,
+      id,
+      iqn,
+      poolUuid,
+      port,
+      release,
+      srRef,
+      srUuid,
+      target,
+      vdiUuid,
+      xapi,
+    }
   })
+
+  /**
+   * Tear a mount down as soon as its VDI disappears from the pool.
+   *
+   * A live mounted disk is attached to a VM like any other one, and deleting that VM deletes its
+   * disks: the VDI record goes away, but the SR introduced for it, the iSCSI target serving it
+   * and the disk chain behind it would stay for as long as this process lives. Nothing ever
+   * reports the LUN itself as unused, so the VDI vanishing is the only signal that the mount has
+   * become pointless.
+   *
+   * @param {DiskMount} mount
+   */
+  #watchVdi({ id, vdiUuid, xapi }) {
+    this.#mountIdsByVdiUuid.set(vdiUuid, id)
+    this.#listen(xapi)
+  }
+
+  /**
+   * Stop expecting the removal of a mount's VDI, because this unmount is what removes it.
+   *
+   * @param {DiskMount} mount
+   */
+  #unwatchVdi({ vdiUuid }) {
+    this.#mountIdsByVdiUuid.delete(vdiUuid)
+  }
+
+  /**
+   * Take over from the previous connection to the same pool, which a new one replaces.
+   *
+   * A connection which went away reports nothing more, and no longer answers either: without this,
+   * the removal of a VDI would go unnoticed, and so would the SR forgotten on unmount. xo-server
+   * creates a new connection on every reconnection, and each one must be handed here.
+   *
+   * @param {Xapi} xapi
+   */
+  watchConnection(xapi) {
+    const poolUuid = xapi.pool?.uuid
+    if (poolUuid !== undefined) {
+      for (const mount of this.#mounts.values()) {
+        if (mount.poolUuid === poolUuid) {
+          mount.xapi = xapi
+        }
+      }
+    }
+    this.#listen(xapi)
+  }
+
+  /**
+   * One listener per XAPI connection, whatever the number of mounts on it: the VDI events of
+   * `xapi.objects` report every VDI removal of the pool anyway, and a listener per mount would pile
+   * up on a shared connection. It is never removed, it simply ends up watching for nothing — what
+   * is tracked, and dropped as soon as it is of no use, is the uuid it looks for.
+   *
+   * A connection which does not watch the pool events never reports anything: its mounts work, they
+   * just have to be unmounted explicitly.
+   *
+   * @param {Xapi} xapi
+   */
+  #listen(xapi) {
+    const vdiEvents = xapi.objects.allIndexes.type.getEventEmitterByType('VDI')
+    // a single handler shared by every connection, so the emitter itself tells whether this one is
+    // already listened to
+    if (!vdiEvents.listeners('remove').includes(this.#onVdiRemoved)) {
+      vdiEvents.on('remove', this.#onVdiRemoved)
+    }
+  }
+
+  /**
+   * The type index reports each removed record on its own, as it was before its removal, so under
+   * the very uuid `introduceVdi` resolved.
+   *
+   * @param {unknown} _
+   * @param {{ uuid?: string } | undefined} vdi
+   */
+  #onVdiRemoved = (_, vdi) => {
+    const uuid = vdi?.uuid
+    if (uuid === undefined) {
+      return
+    }
+    const mountId = this.#mountIdsByVdiUuid.get(uuid)
+    if (mountId === undefined) {
+      return
+    }
+    // a VDI is removed once and for all, and a mount introduces exactly one: nothing else will ever
+    // come for this uuid
+    this.#mountIdsByVdiUuid.delete(uuid)
+    info('the live mounted VDI was removed, unmounting', { id: mountId, vdiUuid: uuid })
+    this.unmountDisk(mountId).catch(error => {
+      warn('failed to unmount after the VDI was removed', { error, id: mountId })
+    })
+  }
 
   /**
    * Detach a mount from its host and stop serving it.
@@ -178,8 +400,11 @@ export default class LiveMount {
     // drop it first, so a failing teardown cannot be retried against a
     // half-released mount
     this.#mounts.delete(id)
+    // and stop watching before forgetting the SR, which removes the VDI: that removal is ours,
+    // not the deletion this mixin reacts to
+    this.#unwatchVdi(mount)
 
-    const { xapi, srRef, target, release } = mount
+    const { xapi, srRef, target, firewallRule, release } = mount
 
     const errors = []
     const step = async (what, fn) => {
@@ -194,7 +419,18 @@ export default class LiveMount {
     await step('forget the SR', () => forgetSr(xapi, srRef))
     // stop serving first, so no I/O is left in flight
     await step('close the target', () => target.close())
+    if (firewallRule !== undefined) {
+      await step('close the firewall rule', () => this.#firewall.close(firewallRule))
+    }
     await step('release the caller resources', () => release?.())
+
+    // the mount is gone whatever happened above, so callers tracking it must hear about it even
+    // when the teardown was partial — and a listener misbehaving is not an unmount failure
+    try {
+      this.emit('unmounted', id)
+    } catch (error) {
+      warn('an unmounted listener failed', { error, id })
+    }
 
     if (errors.length !== 0) {
       const error = new Error(`failed to unmount live mount ${id}`)
