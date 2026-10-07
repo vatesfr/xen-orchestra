@@ -32,6 +32,7 @@
 - [backup] Recover a deadlocked merge when the chain is out of retention (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
 - [Plugins/load balancer] Prevent inter-pool migrations triggered by affinity or anti-affinity (PR [#10207](https://github.com/vatesfr/xen-orchestra/pull/10207))
 - [REST API] Fix VM creation when destroying an existing VDI (PR [#10292](https://github.com/vatesfr/xen-orchestra/pull/10292))
+- [Backups/DR] Report the actual XAPI error instead of `(intermediate value) is not iterable` when a VM import fails
 
 ### Packages to release
 
@@ -55,6 +56,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xen-api patch
 - xo-server minor
 - xo-server-load-balancer minor
 - xo-web minor

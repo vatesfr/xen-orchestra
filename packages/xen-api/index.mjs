@@ -743,8 +743,10 @@ export class Xapi extends EventEmitter {
     if (pTaskResult !== undefined) {
       if (useHack) {
         // In case of the hack, ignore (but log) the very probably `VDI_IO_ERROR` because it is usually irrelevant
+        //
+        // except for a VM import: a failed task means no VM has been created, and the caller needs the VM ref
         pTaskResult = pTaskResult.catch(error => {
-          if (error.code === 'VDI_IO_ERROR') {
+          if (error.code === 'VDI_IO_ERROR' && pathname !== '/import/') {
             console.warn(this._humanId, 'Xapi#putResource> task result ', pathname, error)
           } else {
             error.url = response.url
