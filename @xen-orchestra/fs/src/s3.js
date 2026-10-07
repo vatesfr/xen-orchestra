@@ -303,7 +303,14 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _unlink(path) {
-    await this.#s3.send(new DeleteObjectCommand(this.#createParams(path)))
+    try {
+      await this.#s3.send(new DeleteObjectCommand(this.#createParams(path)))
+    } catch (e) {
+      // Some providers answers 404 NoSuchKey where AWS answers 204
+      if (e.name !== 'NoSuchKey' && e.$metadata?.httpStatusCode !== 404) {
+        throw e
+      }
+    }
 
     if (await this.#isNotEmptyDir(path)) {
       const error = new Error(`EISDIR: illegal operation on a directory, unlink '${path}'`)
@@ -370,8 +377,20 @@ export default class S3Handler extends RemoteHandlerAbstract {
     if (typeof file !== 'string') {
       file = file.fd
     }
-    const result = await this.#s3.send(new HeadObjectCommand(this.#createParams(file)))
-    return +result.ContentLength
+    try {
+      const result = await this.#s3.send(new HeadObjectCommand(this.#createParams(file)))
+      return +result.ContentLength
+    } catch (e) {
+      // a HEAD response has no body, so a missing object is reported as
+      // NotFound instead of the NoSuchKey the other methods get
+      if (e.name === 'NotFound' || e.$metadata?.httpStatusCode === 404) {
+        const error = new Error(`ENOENT: no such file '${file}'`, { cause: e })
+        error.code = 'ENOENT'
+        error.path = file
+        throw error
+      }
+      throw e
+    }
   }
 
   async _read(file, buffer, position = 0) {

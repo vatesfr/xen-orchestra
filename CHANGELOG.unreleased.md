@@ -22,10 +22,11 @@
 
 - [Backups] Fix on distributed incremental replication and deleteFirst incorrectly disabled for non-distributed replication jobs (PR [#10452](https://github.com/vatesfr/xen-orchestra/pull/10452))
 - [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
-- [Host/VM] Fix the confirmation modal staying open and blocking the UI until the action was fully completed (PR #10417](https://github.com/vatesfr/xen-orchestra/pull/10417))
+- [Host/VM] Fix the confirmation modal staying open and blocking the UI until the action was fully completed (PR [#10417](https://github.com/vatesfr/xen-orchestra/pull/10417))
 - [Dashboard] Fix cards staying in error state after a temporary failure to fetch data, until the page was reloaded (PR [#10516](https://github.com/vatesfr/xen-orchestra/pull/10516))
 - [backup] Properly detect a disk deleting while merging (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
 - [backup] Recover a deadlocked merge when the chain is out of retention (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
+- [Backup/S3] Fix files never deleted on providers and handle NotFound as expected (PR #xxxx)
 
 ### Packages to release
 
@@ -46,6 +47,7 @@
 - @vates/types minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
+- @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
