@@ -256,6 +256,20 @@ describe('Pools.resumeRpuRecoveryRun', function () {
     assert.deepEqual(leftoverSettings, [{ type: 'ha', id: 'pool-1' }])
   })
 
+  it('fails the run when the live state cannot be read, so the record is not left live', async function () {
+    const { app, pools, store } = createPools({ record: makeDirtyRecord() })
+    const error = new Error('pool disconnected')
+    app.getXapi = () => {
+      throw error
+    }
+
+    await assert.rejects(pools.resumeRpuRecoveryRun(pool), error)
+
+    const record = store.values.get('pool-1')
+    assert.equal(record.status, 'failed')
+    assert.equal(record.lastError.message, 'pool disconnected')
+  })
+
   it('has nothing to resume when the pool has no record', async function () {
     const { pools } = createPools()
     await assert.rejects(pools.resumeRpuRecoveryRun(pool), error =>

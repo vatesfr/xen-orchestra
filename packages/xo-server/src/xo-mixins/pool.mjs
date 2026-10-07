@@ -108,9 +108,19 @@ export default class Pools {
       store: this._rpuRecoveryStore,
       poolId: pool.id,
     })
-    const leftoverSettings = (await this._listUnrestoredRpuItems(pool, record)).filter(item =>
-      RPU_SETTING_TYPES.has(item.type)
-    )
+    // the record is `resuming` on disk from here: a failure to read the live
+    // state (pool disconnected while its master reboots...) must fail the run,
+    // otherwise the record stays live and blocks resume and finalize until the
+    // next restart
+    let leftoverSettings
+    try {
+      leftoverSettings = (await this._listUnrestoredRpuItems(pool, record)).filter(item =>
+        RPU_SETTING_TYPES.has(item.type)
+      )
+    } catch (error) {
+      await recorder.fail(error)
+      throw error
+    }
     return { recorder, options: record.options, resume: plan, leftoverSettings }
   }
 
