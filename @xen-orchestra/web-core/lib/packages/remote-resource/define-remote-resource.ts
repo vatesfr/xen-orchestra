@@ -130,6 +130,7 @@ export function defineRemoteResource<
       // Due to transitive types of vates/types, the type is NodeJS.Timeout.
       pause: VoidFunction
       resume: VoidFunction
+      execute: () => Promise<void>
       isPaused: boolean
       state: object
       stateScope: EffectScope
@@ -425,6 +426,7 @@ export function defineRemoteResource<
       count: 0,
       pause,
       resume,
+      execute,
       isPaused: true,
       state,
       stateScope,
@@ -492,9 +494,8 @@ export function defineRemoteResource<
         disable: () => {
           isEnabled.value = false
         },
-        forceReload: () => {
-          cache.get(url.value)?.pause()
-          cache.get(url.value)?.resume()
+        forceReload: async () => {
+          await cache.get(url.value)?.execute()
         },
       }
 
