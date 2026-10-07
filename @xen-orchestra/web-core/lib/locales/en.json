@@ -1279,6 +1279,7 @@
   "treeview": "Treeview",
   "trigger": "Trigger",
   "type": "Type",
+  "type-below-to-continue": "To continue, please type below:",
   "unable-to-attach-vdi": "Unable to attach VDI",
   "unable-to-connect": "Unable to connect",
   "unable-to-connect-to": "Unable to connect to {ip}",

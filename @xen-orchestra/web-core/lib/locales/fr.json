@@ -1279,6 +1279,7 @@
   "treeview": "Arborescence",
   "trigger": "Déclencheur",
   "type": "Type",
+  "type-below-to-continue": "Pour continuer, veuillez saisir ci-dessous :",
   "unable-to-attach-vdi": "Impossible d'attacher le VDI",
   "unable-to-connect": "Impossible de se connecter",
   "unable-to-connect-to": "Impossible de se connecter à {ip}",
