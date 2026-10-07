@@ -8,14 +8,14 @@
       <BackupRepositoryChangeStateButton :br />
       <BackupRepositoryEditButton :br />
       <UiButton
-        v-tooltip="!canBenchmark && benchmarkErrorMessage"
+        v-tooltip="!canBenchmarkBackupRepository && benchmarkBackupRepositoryErrorMessage"
         size="medium"
         variant="tertiary"
         accent="brand"
         left-icon="action:scan"
-        :disabled="!canBenchmark"
-        :busy="isBenchmarking"
-        @click="runBenchmark()"
+        :disabled="!canBenchmarkBackupRepository"
+        :busy="isBenchmarkingBackupRepository"
+        @click="benchmarkBackupRepository()"
       >
         {{ t('action:test-speed') }}
       </UiButton>
@@ -39,7 +39,7 @@
 import BackupRepositoryChangeStateButton from '@/modules/backup-repository/components/actions/change-state/BackupRepositoryChangeStateButton.vue'
 import BackupRepositoryEditButton from '@/modules/backup-repository/components/actions/edit/BackupRepositoryEditButton.vue'
 import { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
-import { useXoBackupRepositoryBenchmark } from '@/modules/backup-repository/composables/use-xo-backup-repository-benchmark.composable.ts'
+import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -55,7 +55,12 @@ const { br } = defineProps<{
 
 const { t } = useI18n()
 
-const { runBenchmark, canBenchmark, isBenchmarking, benchmarkErrorMessage } = useXoBackupRepositoryBenchmark(() => br)
+const {
+  run: benchmarkBackupRepository,
+  canRun: canBenchmarkBackupRepository,
+  isRunning: isBenchmarkingBackupRepository,
+  errorMessage: benchmarkBackupRepositoryErrorMessage,
+} = useXoBackupRepositoryBenchmarkJob(() => [br])
 
 const {
   forgetBackupRepositories,

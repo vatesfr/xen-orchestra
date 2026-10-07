@@ -1,18 +1,18 @@
 <template>
   <MenuItem
-    v-tooltip="!canBenchmark && benchmarkErrorMessage"
+    v-tooltip="!canBenchmarkBackupRepository && benchmarkBackupRepositoryErrorMessage"
     accent="neutral"
     icon="action:scan"
-    :disabled="!canBenchmark"
-    :busy="isBenchmarking"
-    @click="runBenchmark()"
+    :disabled="!canBenchmarkBackupRepository"
+    :busy="isBenchmarkingBackupRepository"
+    @click="benchmarkBackupRepository()"
   >
     {{ t('action:test-speed') }}
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
-import { useXoBackupRepositoryBenchmark } from '@/modules/backup-repository/composables/use-xo-backup-repository-benchmark.composable.ts'
+import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -24,5 +24,10 @@ const { br } = defineProps<{
 
 const { t } = useI18n()
 
-const { runBenchmark, canBenchmark, isBenchmarking, benchmarkErrorMessage } = useXoBackupRepositoryBenchmark(() => br)
+const {
+  run: benchmarkBackupRepository,
+  canRun: canBenchmarkBackupRepository,
+  isRunning: isBenchmarkingBackupRepository,
+  errorMessage: benchmarkBackupRepositoryErrorMessage,
+} = useXoBackupRepositoryBenchmarkJob(() => [br])
 </script>

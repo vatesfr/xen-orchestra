@@ -4,10 +4,10 @@
       {{ t('speed') }}
       <template #action>
         <BackupRepositoryBenchmarkButton
-          :can-benchmark
-          :is-benchmarking
-          :error-message="benchmarkErrorMessage"
-          @click="runBenchmark()"
+          :can-benchmark="canBenchmarkBackupRepository"
+          :is-benchmarking="isBenchmarkingBackupRepository"
+          :error-message="benchmarkBackupRepositoryErrorMessage"
+          @click="benchmarkBackupRepository()"
         />
       </template>
     </UiTitle>
@@ -21,6 +21,7 @@
 <script setup lang="ts">
 import BackupRepositoryBenchmarkButton from '@/modules/backup-repository/components/actions/benchmark/BackupRepositoryBenchmarkButton.vue'
 import { useXoBackupRepositoryBenchmark } from '@/modules/backup-repository/composables/use-xo-backup-repository-benchmark.composable.ts'
+import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
@@ -34,6 +35,12 @@ const { br } = defineProps<{
 
 const { t } = useI18n()
 
-const { writeSpeed, readSpeed, runBenchmark, canBenchmark, isBenchmarking, benchmarkErrorMessage } =
-  useXoBackupRepositoryBenchmark(() => br)
+const {
+  run: benchmarkBackupRepository,
+  canRun: canBenchmarkBackupRepository,
+  isRunning: isBenchmarkingBackupRepository,
+  errorMessage: benchmarkBackupRepositoryErrorMessage,
+} = useXoBackupRepositoryBenchmarkJob(() => [br])
+
+const { writeSpeed, readSpeed } = useXoBackupRepositoryBenchmark(() => br)
 </script>

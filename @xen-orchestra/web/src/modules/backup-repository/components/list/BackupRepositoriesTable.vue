@@ -25,9 +25,9 @@
 <script setup lang="ts">
 import { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
 import { useEditBackupRepository } from '@/modules/backup-repository/composables/use-edit-backup-repository.composable.ts'
-import { useXoBackupRepositoryBenchmark } from '@/modules/backup-repository/composables/use-xo-backup-repository-benchmark.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import {
@@ -95,6 +95,13 @@ const {
   errorMessage: disableBackupRepositoriesErrorMessage,
 } = useXoBackupRepositoryChangeStateJob(selectedBrs, false)
 
+const {
+  run: benchmarkBackupRepositories,
+  canRun: canBenchmarkBackupRepositories,
+  isRunning: isBenchmarkingBackupRepositories,
+  errorMessage: benchmarkBackupRepositoriesErrorMessage,
+} = useXoBackupRepositoryBenchmarkJob(selectedBrs)
+
 const bulkActions = computed<ActionItem[]>(() => [
   {
     label: t('action:change-state'),
@@ -118,6 +125,14 @@ const bulkActions = computed<ActionItem[]>(() => [
         hint: disableBackupRepositoriesErrorMessage.value,
       },
     ],
+  },
+  {
+    label: t('action:test-speed'),
+    icon: 'action:scan',
+    onClick: () => benchmarkBackupRepositories(),
+    disabled: !canBenchmarkBackupRepositories.value,
+    busy: isBenchmarkingBackupRepositories.value,
+    hint: benchmarkBackupRepositoriesErrorMessage.value,
   },
 ])
 
@@ -156,9 +171,12 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
       editBackupRepositoryErrorMessage,
     } = useEditBackupRepository(() => br)
 
-    const { runBenchmark, canBenchmark, isBenchmarking, benchmarkErrorMessage } = useXoBackupRepositoryBenchmark(
-      () => br
-    )
+    const {
+      run: benchmarkBackupRepository,
+      canRun: canBenchmarkBackupRepository,
+      isRunning: isBenchmarkingBackupRepository,
+      errorMessage: benchmarkBackupRepositoryErrorMessage,
+    } = useXoBackupRepositoryBenchmarkJob(() => [br])
 
     const {
       run: changeBackupRepositoriesState,
@@ -219,10 +237,10 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
             {
               label: t('action:test-speed'),
               icon: 'action:scan',
-              onClick: () => runBenchmark(),
-              disabled: !canBenchmark.value,
-              busy: isBenchmarking.value,
-              hint: benchmarkErrorMessage.value,
+              onClick: () => benchmarkBackupRepository(),
+              disabled: !canBenchmarkBackupRepository.value,
+              busy: isBenchmarkingBackupRepository.value,
+              hint: benchmarkBackupRepositoryErrorMessage.value,
             },
             {
               label: t('action:forget'),
