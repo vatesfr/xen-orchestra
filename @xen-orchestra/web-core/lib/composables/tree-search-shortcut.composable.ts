@@ -3,28 +3,38 @@ import { type SidebarSide, useSidebar } from '@core/packages/sidebar'
 import { onKeyStroke } from '@vueuse/core'
 import { type MaybeRefOrGetter, nextTick, toValue } from 'vue'
 
-type Focusable = { focus: () => void }
+const SHORTCUT_KEY = 'k'
+
+const IS_MAC = navigator.userAgent.includes('Mac')
+
+export const TREE_SEARCH_SHORTCUT_LABEL = `${IS_MAC ? '⌘' : 'Ctrl'}+${SHORTCUT_KEY.toUpperCase()}`
+
+export const TREE_SEARCH_ARIA_KEY_SHORTCUTS = `${IS_MAC ? 'Meta' : 'Control'}+${SHORTCUT_KEY.toUpperCase()}`
 
 function isTreeSearchShortcut(event: KeyboardEvent) {
-  return (event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'k'
+  return (
+    (event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === SHORTCUT_KEY
+  )
 }
 
 export function useTreeSearchShortcut(
-  treeSearch: MaybeRefOrGetter<Focusable | null | undefined>,
-  options: { side?: SidebarSide; beforeFocus?: () => void } = {}
+  treeSearch: MaybeRefOrGetter<{ focus: () => void } | null | undefined>,
+  options: { side?: MaybeRefOrGetter<SidebarSide>; beforeFocus?: () => void } = {}
 ) {
-  const sidebar = useSidebar(options.side)
-
   const overlayStore = useOverlayStore()
 
   onKeyStroke(isTreeSearchShortcut, async event => {
-    event.preventDefault()
-
-    if (event.repeat || overlayStore.overlays.length > 0) {
+    if (overlayStore.overlays.length > 0) {
       return
     }
 
-    sidebar.toggleExpand(true)
+    event.preventDefault()
+
+    if (event.repeat) {
+      return
+    }
+
+    useSidebar(toValue(options.side)).toggleExpand(true)
     options.beforeFocus?.()
 
     await nextTick()

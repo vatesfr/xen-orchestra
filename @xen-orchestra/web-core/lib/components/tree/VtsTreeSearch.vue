@@ -3,9 +3,10 @@
     <UiInput
       ref="input"
       v-model="search"
-      :aria-label="t('action:search-treeview')"
+      :aria-label="label"
       right-icon="fa:magnifying-glass"
-      :placeholder="t('action:search-treeview')"
+      :placeholder="label"
+      :aria-keyshortcuts="TREE_SEARCH_ARIA_KEY_SHORTCUTS"
       accent="brand"
       clearable
     />
@@ -14,12 +15,18 @@
 
 <script lang="ts" setup>
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import { useTemplateRef } from 'vue'
+import {
+  TREE_SEARCH_ARIA_KEY_SHORTCUTS,
+  TREE_SEARCH_SHORTCUT_LABEL,
+} from '@core/composables/tree-search-shortcut.composable.ts'
+import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const search = defineModel<string>({ default: '' })
 
 const { t } = useI18n()
+
+const label = computed(() => t('action:search-treeview', { shortcut: TREE_SEARCH_SHORTCUT_LABEL }))
 
 const input = useTemplateRef('input')
 

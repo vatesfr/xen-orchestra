@@ -95,7 +95,7 @@ const siteTreeList = useTemplateRef('siteTreeList')
 const treeSearch = useTemplateRef('treeSearch')
 
 useTreeSearchShortcut(treeSearch, {
-  side,
+  side: () => side,
   beforeFocus: () => (activeSidebarPanel.value = SIDEBAR_PANEL.TREEVIEW),
 })
 
