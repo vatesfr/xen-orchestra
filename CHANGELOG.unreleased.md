@@ -21,6 +21,7 @@
 - [XO5/Hosts] Disable restart toolstack button for the hosts that belongs to a HA pools in the home page (PR [#10497](https://github.com/vatesfr/xen-orchestra/pull/10497))
 - [Backup/replication] fix to ensure distributed replications are deleted according to retention( PR [#10491] (https://github.com/vatesfr/xen-orchestra/pull/10491))
 - [Replication] Fix `Cannot read properties of undefined (reading 'get')` error on continuous replication to multiple SRs (PR [#10519](https://github.com/vatesfr/xen-orchestra/pull/10519))
+- [Backup/NBD] Support NBD for pools reached through an HTTP proxy (e.g. an XO Proxy): NBD connections are now tunneled through the proxy instead of falling back to a stream export (PR [#10544](https://github.com/vatesfr/xen-orchestra/pull/10544))
 
 ### Packages to release
 
@@ -38,11 +39,13 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web patch
+- @xen-orchestra/xapi minor
 - vectura patch
-- xen-api patch
+- xen-api minor
 - xo-web patch
 
 <!--packages-end-->
