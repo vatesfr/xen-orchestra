@@ -54,8 +54,9 @@ export default class AbstractNbdClient {
   // publish itself
   #connectGeneration = 0
 
-  // generation of the attempt which published the current transport: an error
-  // on a transport of another generation is stale and must be ignored
+  // generation of the attempt which published the current transport, undefined
+  // when not connected: an error on a transport of another generation is stale
+  // and must be ignored
   #connectedGeneration
 
   #waitBeforeReconnect
@@ -71,7 +72,6 @@ export default class AbstractNbdClient {
   #nextCommandQueryId = BigInt(0)
   // map of command waiting for a response queryId => { size/*in byte*/, resolve, reject}
   #commandQueryBacklog = new Map()
-  #connected = false
 
   #reconnectingPromise
 
@@ -112,7 +112,7 @@ export default class AbstractNbdClient {
   }
 
   get connected() {
-    return this.#connected
+    return this.#connectedGeneration !== undefined
   }
 
   /* ---------------------------------------------------------------------------
@@ -216,7 +216,7 @@ export default class AbstractNbdClient {
     //
     // an error during the handshake is reported by the handshake reads
     // themselves, through the connect() rejection
-    if (!this.#connected || generation !== this.#connectedGeneration) {
+    if (generation !== this.#connectedGeneration) {
       debug('error on a stale nbd transport', { error })
       return
     }
@@ -258,7 +258,6 @@ export default class AbstractNbdClient {
     }
     this.#transport = transport
     this.#connectedGeneration = generation
-    this.#connected = true
     // reset internal state if we reconnected a nbd client
     this.#commandQueryBacklog = new Map()
     this.#waitingForResponse = false
@@ -281,10 +280,10 @@ export default class AbstractNbdClient {
   }
 
   async disconnect() {
-    if (!this.#connected) {
+    if (this.#connectedGeneration === undefined) {
       return
     }
-    this.#connected = false
+    this.#connectedGeneration = undefined
     const transport = this.#transport
     this.#transport = undefined
     if (transport === undefined) {

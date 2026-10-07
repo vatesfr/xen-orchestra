@@ -26,6 +26,7 @@
 - [Dashboard] Fix cards staying in error state after a temporary failure to fetch data, until the page was reloaded (PR [#10516](https://github.com/vatesfr/xen-orchestra/pull/10516))
 - [backup] Properly detect a disk deleting while merging (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
 - [backup] Recover a deadlocked merge when the chain is out of retention (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
+- [Backups] Fix NBD reads failing after a reconnection, when the previous connection is closed late by the host (PR [#10456](https://github.com/vatesfr/xen-orchestra/pull/10456))
 
 ### Packages to release
 
