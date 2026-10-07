@@ -5,6 +5,25 @@ import type { XoGpuGroup, XoHost, XoPool, XoSr, XoTask, XoVdi, XoVgpuType, XoVm,
 import type { Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+export type NewVmVdiPayload =
+  | /** Create VDI */ {
+      name_label: string
+      size: number
+      sr: XoSr['id'] | undefined
+      name_description?: string
+    }
+  | /** Update VDI */ {
+      userdevice: string
+      name_label?: string
+      size?: number
+      sr?: XoSr['id']
+      name_description?: string
+    }
+  | /** Destroy VDI */ {
+      destroy: true
+      userdevice: string
+    }
+
 // Payload that the REST API expects
 type TCreateVmPayload = {
   autoPoweron?: boolean
@@ -91,22 +110,3 @@ export const useXoVmCreateJob = defineJob('vm.create', [payloadsArg], () => {
     },
   }
 })
-
-export type NewVmVdiPayload =
-  | /** Create VDI */ {
-      name_label: string
-      size: number
-      sr: XoSr['id'] | undefined
-      name_description?: string
-    }
-  | /** Update VDI */ {
-      userdevice: string
-      name_label?: string
-      size?: number
-      sr?: XoSr['id']
-      name_description?: string
-    }
-  | /** Destroy VDI */ {
-      destroy: true
-      userdevice: string
-    }
