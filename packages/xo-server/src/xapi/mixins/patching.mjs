@@ -10,7 +10,7 @@ import { Readable } from 'node:stream'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
-import { pRetry } from 'promise-toolbox'
+import { pRetry, timeout } from 'promise-toolbox'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import ensureArray from '../../_ensureArray.mjs'
@@ -765,10 +765,41 @@ const methods = {
       recorder.setVariant(isXcp ? 'xcp' : 'xs-cdn')
     }
 
+    // a host the previous attempt was rebooting may not be back yet. XAPI
+    // reports it live before refreshing its `boot_time`, read below: wait for
+    // the agent of the new boot too. A host not live without restarting (lost
+    // heartbeat) never gets a new agent: the resume fails on the timeout, the
+    // next one goes on with the host live
+    await asyncEach(Object.keys(resume.unfinishedHosts), async hostId => {
+      const { metrics, other_config } = this.getObject(hostId)
+      if (this.getObject(metrics, undefined)?.live) {
+        return
+      }
+      const agentStartTime = other_config.agent_start_time
+      await timeout.call(
+        (async () => {
+          await this._waitObjectState(metrics, metrics => metrics.live)
+          await this._waitObjectState(hostId, host => host.other_config.agent_start_time !== agentStartTime)
+        })(),
+        this._restartHostTimeout,
+        new Error(`Host ${hostId} took too long to restart`)
+      )
+    })
+
+    // A host this run already patched has the pending guidances of that update
+    // until it reboots: only the mandatory ones, the only ones XenServer
+    // requires to be cleared, are checked, before and after the reboots
+    const pendingGuidancesLevel = object =>
+      resume.patchedHostIds.has(object.uuid) ? PENDING_GUIDANCES_LEVEL.mandatory : PENDING_GUIDANCES_LEVEL.full
+
     let xsHash
 
     // only for XS >= 8.4
     if (isXsWithCdnUpdates) {
+      // the listings are cached: the previous attempt may have changed them
+      if (resume.hostsStarted) {
+        await this._fetchXsUpdatesEndpoint(REMOVE_CACHE_ENTRY, master)
+      }
       const xsUpdatesResult = await this._fetchXsUpdatesEndpoint(master)
       xsHash = xsUpdatesResult.hash
       if (!rebootVm) {
@@ -789,7 +820,7 @@ const methods = {
 
       // DO NOT UPDATE if some pending guidances are present https://docs.xenserver.com/en-us/xenserver/8/update/apply-updates-using-xe#before-you-start
       const runningVms = filter(this.objects.indexes.type.VM, { power_state: 'Running', is_control_domain: false })
-      await asyncEach([...hosts, ...runningVms], obj => this._pendingGuidancesGuard(obj))
+      await asyncEach([...hosts, ...runningVms], obj => this._pendingGuidancesGuard(obj, pendingGuidancesLevel(obj)))
     }
 
     const hasMissingPatchesByHost = {}
@@ -807,6 +838,9 @@ const methods = {
             },
           },
           async () => {
+            if (resume.hostsStarted) {
+              this.listMissingPatches(REMOVE_CACHE_ENTRY, hostUuid)
+            }
             const missingPatches = await this.listMissingPatches(hostUuid)
             hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
           }
@@ -842,12 +876,47 @@ const methods = {
       await this._updateLinstorPackages()
     }
 
+    // what is left on the hosts a previous attempt did not finish: with no
+    // missing patches, the update is not installed again, and the reboot only
+    // happens if the host did not reboot since the run touched it
+    const doneHostIds = new Set(resume.doneHostIds)
+    const rebootOnlyHostIds = new Set()
+    for (const [hostId, { agentStartedAtBeforeUpdate, enabledBeforeUpdate }] of Object.entries(
+      resume.unfinishedHosts
+    )) {
+      if (hasMissingPatchesByHost[hostId]) {
+        continue
+      }
+      const host = this.getObject(hostId)
+      // boot_time, unlike agent_start_time, is not changed by a toolstack restart
+      if (+host.other_config.boot_time > +agentStartedAtBeforeUpdate) {
+        // left disabled by the previous attempt, nothing is left to do on it
+        if (!host.enabled && enabledBeforeUpdate !== false) {
+          await Task.run({ properties: { name: 'Enabling host', hostId, hostName: host.name_label } }, () =>
+            // XAPI refuses until the end of the host startup, which comes after
+            // its agent started
+            pRetry(() => this.enableHost(hostId), {
+              delay: 5e3,
+              tries: 60,
+              when: { code: 'HOST_STILL_BOOTING' },
+            })
+          )
+        }
+        for (const name of ['evacuate', 'update', 'reboot', 'enable']) {
+          recorder.stepObserved(hostId, name)
+        }
+        doneHostIds.add(hostId)
+      } else {
+        rebootOnlyHostIds.add(hostId)
+      }
+    }
+
     await Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
       await this.rollingPoolReboot(parentTask, {
         xsCredentials,
         shutdownPinnedVms,
         recorder,
-        resume,
+        resume: { ...resume, doneHostIds },
         beforeEvacuateVms: () => {
           // On XS < 8.4 and CH, start by installing patches on all hosts
           if (!isXcp && !isXsWithCdnUpdates) {
@@ -857,6 +926,10 @@ const methods = {
           }
         },
         beforeRebootHost: host => {
+          if (rebootOnlyHostIds.has(host.uuid)) {
+            recorder.stepObserved(host.uuid, 'update')
+            return
+          }
           if (isXcp || isXsWithCdnUpdates) {
             recorder.stepRunning(host.uuid, 'update')
             return Task.run(
@@ -869,7 +942,7 @@ const methods = {
           }
         },
         ignoreHost: host => {
-          return !hasMissingPatchesByHost[host.uuid]
+          return !hasMissingPatchesByHost[host.uuid] && !rebootOnlyHostIds.has(host.uuid)
         },
       })
     })
@@ -879,7 +952,7 @@ const methods = {
       await Promise.all(
         hosts.map(async host => {
           try {
-            await this._pendingGuidancesGuard(host)
+            await this._pendingGuidancesGuard(host, pendingGuidancesLevel(host))
           } catch (error) {
             log.debug(`host: ${host.uuid} has pending guidances even after a reboot!`)
             throw error

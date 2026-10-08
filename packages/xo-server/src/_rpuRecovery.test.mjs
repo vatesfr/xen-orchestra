@@ -209,7 +209,7 @@ describe('buildRpuRecoveryView()', () => {
     // a host stopped after its evacuation
     record.status = 'interrupted'
     record.hosts.h1 = { steps: { evacuate: { status: 'observed-succeeded' }, update: { status: 'running' } } }
-    assert.equal(buildRpuRecoveryView(record).resumable, false)
+    assert.equal(buildRpuRecoveryView(record).resumable, true)
   })
 
   it('exposes the attempt, 1 for a record written before resumes existed', () => {
@@ -682,34 +682,35 @@ describe('planRpuResume()', () => {
     return record
   }
 
-  it('sorts the hosts: done, to resume, left alone', () => {
+  it('sorts the hosts: done, unfinished, left alone', () => {
     const record = makeRecord({
       done: { ...allSteps('observed-succeeded'), restoreVms: { status: 'pending' } },
       evacuateFailed: { evacuate: { status: 'failed' } },
-      evacuateRunning: { evacuate: { status: 'running' } },
       evacuated: { evacuate: { status: 'observed-succeeded' } },
+      updateRunning: { evacuate: { status: 'observed-succeeded' }, update: { status: 'running' } },
+      rebootFailed: { ...allSteps('observed-succeeded'), reboot: { status: 'failed' } },
       ignored: allSteps('not-needed'),
     })
+    record.hosts.updateRunning.agentStartedAtBeforeUpdate = '1700000000.5'
+    record.hosts.updateRunning.enabledBeforeUpdate = true
     // not handled yet
     record.hostOrder.push('pending')
 
     const plan = planRpuResume(record)
 
     assert.deepEqual([...plan.doneHostIds], ['done'])
+    assert.deepEqual(Object.keys(plan.unfinishedHosts), [
+      'evacuateFailed',
+      'evacuated',
+      'updateRunning',
+      'rebootFailed',
+    ])
+    assert.deepEqual(plan.unfinishedHosts.updateRunning, {
+      agentStartedAtBeforeUpdate: '1700000000.5',
+      enabledBeforeUpdate: true,
+    })
+    assert.deepEqual([...plan.patchedHostIds], ['done', 'updateRunning', 'rebootFailed'])
     assert.equal(plan.hostsStarted, true)
-  })
-
-  it('refuses a host stopped after its evacuation, before any write', () => {
-    for (const steps of [
-      { evacuate: { status: 'observed-succeeded' }, update: { status: 'running' } },
-      { ...allSteps('observed-succeeded'), reboot: { status: 'failed' } },
-      { evacuate: { status: 'observed-succeeded' }, update: { status: 'observed-succeeded' } },
-    ]) {
-      assert.throws(
-        () => planRpuResume(makeRecord({ h1: steps })),
-        error => incorrectState.is(error, { object: 'pool1', property: 'resumableStep', actual: { hostId: 'h1' } })
-      )
-    }
   })
 
   it('has nothing done without a host order, nor started hosts without host', () => {
@@ -760,26 +761,14 @@ describe('resumeRpuRecoveryRun()', () => {
     )
   })
 
-  it('leaves a record refused by the plan untouched', async () => {
-    const { store } = await storeWith({
-      hostOrder: ['h1'],
-      hosts: { h1: { steps: { evacuate: { status: 'observed-succeeded' }, reboot: { status: 'running' } } } },
-    })
-    const before = structuredClone(store.data.get('pool1'))
-
-    await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1' }), error =>
-      incorrectState.is(error, { property: 'resumableStep' })
-    )
-    assert.deepEqual(store.data.get('pool1'), before)
-  })
-
   it('continues the same run: resuming on disk, attempt increased, failed steps of the previous attempt re-armed', async () => {
     const { store, record } = await storeWith({
       status: 'interrupted',
-      hostOrder: ['h1', 'h2'],
+      hostOrder: ['h1', 'h2', 'h3'],
       hosts: {
         h1: { steps: { ...allSteps('observed-succeeded'), restoreVms: { status: 'failed' } } },
         h2: { steps: { evacuate: { status: 'failed' } } },
+        h3: { steps: { evacuate: { status: 'observed-succeeded' }, update: { status: 'failed' } } },
       },
     })
 
@@ -793,9 +782,12 @@ describe('resumeRpuRecoveryRun()', () => {
     assert.equal(stored.hosts.h1.steps.restoreVms.status, 'pending')
     assert.equal(stored.hosts.h1.steps.reboot.status, 'observed-succeeded')
     assert.equal(stored.hosts.h2.steps.evacuate.status, 'pending')
+    assert.equal(stored.hosts.h3.steps.update.status, 'pending')
     assert.equal(resumed.recorder.runId, record.runId)
     assert.equal(resumed.recorder.attempt, 2)
     assert.deepEqual([...resumed.plan.doneHostIds], ['h1'])
+    // planned before the reset
+    assert.deepEqual([...resumed.plan.patchedHostIds], ['h1', 'h3'])
 
     // a failure of the resume is recorded and the run can be resumed again
     resumed.recorder.stepRunning('h2', 'evacuate')
@@ -803,8 +795,10 @@ describe('resumeRpuRecoveryRun()', () => {
     await resumed.recorder.fail(new Error('not enough memory'))
     assert.equal(store.data.get('pool1').hosts.h2.steps.evacuate.status, 'failed')
 
-    await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    const again = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
     assert.equal(store.data.get('pool1').attempt, 3)
+    // h3 still patched although its update step was reset by the previous resume
+    assert.deepEqual([...again.plan.patchedHostIds], ['h1', 'h3'])
   })
 
   it('rejects when the resuming status cannot be written', async () => {
