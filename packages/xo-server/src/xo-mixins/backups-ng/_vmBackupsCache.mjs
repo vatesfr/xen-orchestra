@@ -1,7 +1,9 @@
 // @ts-check
 
+import isEqual from 'lodash/isEqual.js'
 import { compareTimestamp } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 import { createLogger } from '@xen-orchestra/log'
+import { EventEmitter } from 'node:events'
 import { journalCursorAt } from '@xen-orchestra/backups/_backupJournal.mjs'
 
 /**
@@ -115,6 +117,51 @@ const removeBackup = (backupsByVm, vmUuid, key) => {
 }
 
 /**
+ * What a journal event changed in the backups of a repository, as `#emit()` announces it.
+ *
+ * @typedef {object} Change
+ * @property {'add' | 'update' | 'remove'} event
+ * @property {FormattedBackup} [backup] current value of the archive, `undefined` on `remove`
+ * @property {FormattedBackup} [previous] value it had before, `undefined` on `add`
+ */
+
+/**
+ * Applies one journal event to the backups of a repository.
+ *
+ * @param {BackupsByVm} backupsByVm backups to bring up to date, mutated in place
+ * @param {JournalEvent} journalEvent
+ * @returns {Change | undefined} what it changed, `undefined` when it changed nothing
+ */
+const applyEvent = (backupsByVm, journalEvent) => {
+  const { vmUuid, filename } = journalEvent
+  const previous = backupsByVm[vmUuid]?.[filename]
+
+  if (journalEvent.event === 'del') {
+    removeBackup(backupsByVm, vmUuid, filename)
+    return previous === undefined ? undefined : { event: 'remove', previous }
+  }
+
+  const { backup } = journalEvent
+  const backups = (backupsByVm[vmUuid] ??= {})
+  backups[filename] = backup
+  if (isEqual(previous, backup)) {
+    return
+  }
+  return { event: previous === undefined ? 'add' : 'update', backup, previous }
+}
+
+/**
+ * The archive a backup is served and announced as: the cache keys the backups of a repository by
+ * the name of their metadata, which is only unique within that repository.
+ *
+ * @param {FormattedBackup} backup
+ * @param {string} repositoryId
+ * @returns {FormattedBackup}
+ */
+const archiveOf = (backup, repositoryId) =>
+  /** @type {FormattedBackup} */ ({ ...backup, id: `${repositoryId}/${backup.id}` })
+
+/**
  * Turns the backups of a repository into the shape expected by the API:
  * `{ [vmUuid]: <backups sorted by timestamp> }`, restricted to `vmId` when it is given.
  *
@@ -133,7 +180,7 @@ export function serveVmBackups(backupsByVm, remoteId, vmId) {
         ? []
         : Object.values(backups)
             // inject the remote id on the backup which is needed for importVmBackupNg()
-            .map(backup => /** @type {FormattedBackup} */ ({ ...backup, id: `${remoteId}/${backup.id}` }))
+            .map(backup => archiveOf(backup, remoteId))
             .sort(compareTimestamp)
   }
   return result
@@ -156,8 +203,27 @@ export function serveVmBackups(backupsByVm, remoteId, vmId) {
  * `immutable-backups` daemon lifting the immutability of a backup), when the remote is re-pointed,
  * reconfigured or moved to another proxy, which the entry detects by itself from what it was built
  * from, and when the source turns out not to be able to replay the repository at all.
+ *
+ * What it holds is also served as a collection, `archives`: every change is announced as an `add`,
+ * `update` or `remove` event carrying the archive and its previous value, with the same signature as
+ * the other collections of the app.
  */
 export class VmBackupsCache {
+  // repository id → the backups last announced for it, which is the object the entry holds while it
+  // has one: a replay mutates it in place, and only a listing replaces it
+  //
+  // it outlives the entry so that a repository which is read from scratch again only announces what
+  // really changed in the meantime, instead of removing then re-adding everything it holds
+  //
+  // therefore only `remove()` releases it: it is the call which says that a repository is not coming
+  // back, while `delete()` keeps it for the listing which is going to compare itself against it
+  /** @type {Map<string, BackupsByVm>} */
+  #announced = new Map()
+
+  // a plain emitter rather than the cache itself, so that its consumers can only listen: they must
+  // not reach `delete()` or `remove()`, which would bypass the listing state their owner keeps
+  #archives = new EventEmitter()
+
   // repository id → { backupsByVm, cursor, journalConfirmed, options, proxy, refreshedAt, stale, url }
   /** @type {Map<string, Entry>} */
   #entries = new Map()
@@ -173,12 +239,25 @@ export class VmBackupsCache {
   #source
 
   /**
+   * The archives the cache holds, as a collection: `add`, `update` and `remove` events carrying the
+   * archive and its previous value.
+   *
+   * @returns {EventEmitter}
+   */
+  get archives() {
+    return this.#archives
+  }
+
+  /**
    * @param {Source} source
    * @param {object} [options]
    * @param {number} [options.minRefreshDelay] minimum delay between two journal reads of the same
    * repository, in milliseconds
    */
   constructor(source, { minRefreshDelay = 0 } = {}) {
+    // process-wide collection: the number of consumers subscribing to it is not bounded by 10
+    this.#archives.setMaxListeners(0)
+
     this.#source = source
     this.#minRefreshDelay = minRefreshDelay
   }
@@ -193,6 +272,14 @@ export class VmBackupsCache {
    * arriving after `delete()` must not be served the outcome of an operation which started before it,
    * e.g. against a since-reconfigured repository.
    *
+   * Announces nothing: the repository is going to be read again, and the listing which does it only
+   * announces what actually changed — the archives last announced for it are kept for that
+   * comparison, and are only released by `remove()`.
+   *
+   * A repository which is not going to be listed again must therefore go through `remove()` instead:
+   * after this call, its archives stay in the collection, and in memory, for as long as the process
+   * lives.
+   *
    * @param {Repository['id']} repositoryId
    * @returns {void}
    */
@@ -201,6 +288,32 @@ export class VmBackupsCache {
       debug('entry deleted', { repositoryId })
     }
     this.#pending.delete(repositoryId)
+  }
+
+  /**
+   * Announces that a repository is gone: every archive it held is removed from the collection, and
+   * it is forgotten as `delete()` does.
+   *
+   * To call when the repository itself is removed or disabled, i.e. when it will not be listed
+   * again; a repository which is merely re-read must go through `delete()`.
+   *
+   * @param {Repository['id']} repositoryId
+   * @returns {void}
+   */
+  remove(repositoryId) {
+    const announced = this.#announced.get(repositoryId)
+    this.delete(repositoryId)
+
+    if (announced === undefined) {
+      return
+    }
+    this.#announced.delete(repositoryId)
+
+    for (const backups of Object.values(announced)) {
+      for (const backup of Object.values(backups)) {
+        this.#emit('remove', repositoryId, undefined, backup)
+      }
+    }
   }
 
   /**
@@ -309,6 +422,65 @@ export class VmBackupsCache {
   }
 
   /**
+   * @param {'add' | 'update' | 'remove'} event
+   * @param {string} repositoryId
+   * @param {FormattedBackup} [backup] current value of the archive, `undefined` on `remove`
+   * @param {FormattedBackup} [previous] value it had before, `undefined` on `add`
+   * @returns {void}
+   */
+  #emit(event, repositoryId, backup, previous) {
+    // the listeners run synchronously inside the listing path: a consumer which throws must not fail
+    // the listing which announced the change, nor the changes announced after it
+    try {
+      this.#archives.emit(
+        event,
+        backup === undefined ? undefined : archiveOf(backup, repositoryId),
+        previous === undefined ? undefined : archiveOf(previous, repositoryId)
+      )
+    } catch (error) {
+      warn('a listener failed', { event, repositoryId, error })
+    }
+  }
+
+  /**
+   * Announces what changed between the backups a repository has just been listed with and the ones
+   * last announced for it, and makes them the announced ones.
+   *
+   * @param {string} repositoryId
+   * @param {BackupsByVm} backupsByVm
+   * @returns {void}
+   */
+  #announce(repositoryId, backupsByVm) {
+    const announced = this.#announced.get(repositoryId)
+    this.#announced.set(repositoryId, backupsByVm)
+
+    for (const [vmUuid, backups] of Object.entries(backupsByVm)) {
+      const announcedBackups = announced?.[vmUuid]
+      for (const [key, backup] of Object.entries(backups)) {
+        const previous = announcedBackups?.[key]
+        if (previous === undefined) {
+          this.#emit('add', repositoryId, backup)
+        } else if (!isEqual(previous, backup)) {
+          this.#emit('update', repositoryId, backup, previous)
+        }
+      }
+    }
+
+    if (announced === undefined) {
+      return
+    }
+
+    for (const [vmUuid, backups] of Object.entries(announced)) {
+      const currentBackups = backupsByVm[vmUuid]
+      for (const [key, backup] of Object.entries(backups)) {
+        if (currentBackups?.[key] === undefined) {
+          this.#emit('remove', repositoryId, undefined, backup)
+        }
+      }
+    }
+  }
+
+  /**
    * @param {Repository} repository
    * @returns {Promise<BackupsByVm>}
    */
@@ -339,6 +511,13 @@ export class VmBackupsCache {
       debug('entry built', { repositoryId: id, nVms: Object.keys(backupsByVm).length })
 
       entry.backupsByVm = backupsByVm
+
+      // the entry may have been dropped while it was being built: it is not resurrected, and what it
+      // read is not announced either
+      if (this.#entries.get(id) === entry) {
+        this.#announce(id, backupsByVm)
+      }
+
       return backupsByVm
     } catch (error) {
       // don't leave a half-built entry behind, but don't wipe one a newer build has published
@@ -371,18 +550,24 @@ export class VmBackupsCache {
       return false
     }
 
+    // the repository may have been removed while its journal was being read: the entry is still
+    // brought up to date for the call which started the replay, but what it reads is only announced
+    // while these backups are still the announced ones
+    const announced = this.#announced.get(repository.id) === backupsByVm
+
     // the source reduced the events to the last one of each backup, therefore they are independent
     // and the order they are applied in does not matter
     for (const journalEvent of read.events) {
-      const { vmUuid, filename } = journalEvent
-      if (journalEvent.event === 'del') {
-        removeBackup(backupsByVm, vmUuid, filename)
-      } else {
-        const backups = (backupsByVm[vmUuid] ??= {})
-        backups[filename] = journalEvent.backup
+      const change = applyEvent(backupsByVm, journalEvent)
+      if (announced && change !== undefined) {
+        this.#emit(change.event, repository.id, change.backup, change.previous)
       }
     }
 
+    // the cursor, not the events, is what says whether the journal moved forward: the entries it
+    // covers may all have resolved to no event at all, e.g. they are of a kind this version does
+    // not support, and reading them again on every replay would widen the read a bit more every
+    // minute, until the next rebuild
     if (read.cursor !== undefined && read.cursor !== entry.cursor) {
       entry.cursor = /** @type {string} */ (read.cursor)
       // the journal has now actually been observed to exist: it disappearing on a later replay is
