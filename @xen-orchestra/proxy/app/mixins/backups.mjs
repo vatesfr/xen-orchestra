@@ -378,16 +378,29 @@ export default class Backups {
           },
         ],
         mountDisk: [
-          ({ disk, host, nameLabel, remote, xapi, xapiLabels = { srNameLabel: nameLabel } }) =>
-            this.#mountDisk({ diskPath: disk, hostUuid: host, remote, xapi, xapiLabels }),
+          ({ cacheSr, disk, host, nameLabel, remote, vm, xapi, xapiLabels = { srNameLabel: nameLabel } }) =>
+            this.#mountDisk({
+              cacheSrUuid: cacheSr,
+              diskPath: disk,
+              hostUuid: host,
+              remote,
+              vmUuid: vm,
+              xapi,
+              xapiLabels,
+            }),
           {
-            description: 'serve a disk of a backup repository as a read-only iSCSI LUN, attached to a host as an SR',
+            description:
+              'serve a disk of a backup repository as an iSCSI LUN attached to a host as an SR, read-only unless cached',
             params: {
+              // uuid of the SR of a local cache VDI, requires `vm`
+              cacheSr: { type: 'string', optional: true },
               disk: { type: 'string' },
               host: { type: 'string' },
               // name of the SR, superseded by `xapiLabels.srNameLabel`: still sent by older XOs
               nameLabel: { type: 'string', optional: true },
               remote: { type: 'object' },
+              // uuid of this proxy's own VM, the cache VDI is plugged onto it
+              vm: { type: 'string', optional: true },
               xapi: { type: 'object' },
               // `{ srNameLabel?, vdiNameLabel?, vdiNameDescription? }`, see the live mount mixin
               xapiLabels: { type: 'object', optional: true },
@@ -483,8 +496,8 @@ export default class Backups {
   }
 
   /**
-   * Serve a disk of a backup repository as a read-only iSCSI LUN and attach it, as an SR, to a
-   * host of the pool `xapiOpts` points at.
+   * Serve a disk of a backup repository as an iSCSI LUN and attach it, as an SR, to a host of the
+   * pool `xapiOpts` points at. Read-only, unless it is cached.
    *
    * The adapter and the XAPI connection are acquired here but released by the unmount, not by the
    * call which created the mount: the mount outlives it and needs both until it is torn down —
@@ -495,19 +508,23 @@ export default class Backups {
    * @param {string} params.hostUuid - uuid of the host the disk is attached to
    * @param {object} params.remote - backup repository holding the disk
    * @param {object} params.xapi - connection options of the pool owning `hostUuid`
+   * @param {string} [params.cacheSrUuid] - SR of a local cache VDI, requires `vmUuid`
+   * @param {string} [params.vmUuid] - uuid of this proxy's own VM
    * @param {object} [params.xapiLabels] - names of the SR and of the VDI shown to the user
    */
-  async #mountDisk({ diskPath, hostUuid, remote, xapi: xapiOpts, xapiLabels }) {
+  async #mountDisk({ cacheSrUuid, diskPath, hostUuid, remote, vmUuid, xapi: xapiOpts, xapiLabels }) {
     const {
       dispose,
       value: [adapter, xapi],
     } = await Disposable.all([this.getAdapter(remote), this.getXapi(xapiOpts)])
     try {
       return await this._app.liveMount.mountDisk({
+        cacheSrUuid,
         diskPath,
         handler: adapter.handler,
         hostRef: await xapi.call('host.get_by_uuid', hostUuid),
         release: dispose,
+        vmUuid,
         xapi,
         xapiLabels,
       })
