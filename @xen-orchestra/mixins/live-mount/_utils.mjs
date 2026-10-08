@@ -1,4 +1,4 @@
-// identifies the SRs we created, to recognize leftovers
+// identifies the SRs and VDIs we created, so a leftover after a hard kill is recognizable
 export const OC_MOUNT = 'xo:live-mount'
 
 // the LUN serves the *content* of the source disk, not its container format, so

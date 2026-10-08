@@ -86,13 +86,13 @@ export async function forgetSr(xapi, srRef) {
  * one asked for. The LUN itself is what actually enforces it: a read-only one
  * advertises it to the guest, and refuses writes.
  */
-export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath, readOnly }) {
+export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath, id, nameLabel, nameDescription, readOnly }) {
   const uuid = randomUUID()
   await xapi.call(
     'VDI.introduce',
     uuid,
-    `${cacheLabel(diskPath)}.raw`,
-    `mount of ${diskPath}`,
+    nameLabel ?? `${cacheLabel(diskPath)}.raw`,
+    nameDescription ?? `mount of ${diskPath}`,
     srRef,
     'user',
     false, // sharable
@@ -123,6 +123,7 @@ export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath, readOn
     if (vdi.uuid !== uuid) {
       info('the driver renamed the introduced VDI', { asked: uuid, got: vdi.uuid })
     }
+    await xapi.setFieldEntry('VDI', vdiRef, 'other_config', OC_MOUNT, id)
     return vdi.uuid
   }
   warn('no VDI found for the introduced LUN', { SCSIid, srRef, diskPath })

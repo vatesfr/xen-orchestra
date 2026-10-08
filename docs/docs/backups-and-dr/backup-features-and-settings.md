@@ -479,7 +479,7 @@ Typical uses:
 ### How it works
 
 - Xen Orchestra (or the [proxy](./scale-and-security/proxy.md#live-mount) handling the BR) runs one iSCSI target per live mounted disk, protected by CHAP credentials generated for that mount.
-- An SR named `[XO backup] <VM name>` is introduced on the chosen host. It holds a single read-only VDI, attached in read-only mode to the restored VM.
+- An SR named `[XO live mount] <VM name> (<backup date>)` is introduced on the chosen host. It holds a single read-only VDI, named like the backed up disk, attached in read-only mode to the restored VM.
 - Every read done by the VM goes through Xen Orchestra to the BR. Nothing is ever written: neither to the backup, nor to the SR.
 - The restored VM is pinned (affinity) to the host the disk is mounted on: the SR is plugged on that host only.
 
@@ -504,7 +504,7 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
   #bindAddress = '0.0.0.0'
   ```
 
-- **Temporary.** A live mount only lasts as long as the Xen Orchestra process serving it: restarting or updating XOA ends it, and the disk becomes unavailable to the VM. Stop using the disk before restarting or updating XOA. If Xen Orchestra stopped unexpectedly, the `[XO backup] <VM name>` SR stays behind with nothing serving it: detach the disk from the VM and forget the SR.
+- **Temporary.** A live mount only lasts as long as the Xen Orchestra process serving it: restarting or updating XOA ends it, and the disk becomes unavailable to the VM. Stop using the disk before restarting or updating XOA. If Xen Orchestra stopped unexpectedly, the `[XO live mount] <VM name> (<backup date>)` SR stays behind with nothing serving it: detach the disk from the VM and forget the SR.
 
 ### Firewall of Xen Orchestra {#live-mount-firewall}
 
@@ -546,7 +546,7 @@ How it works:
 - Its rules can stay in the firewall. Nothing listens on their ports anymore, so a host trying to connect gets refused.
 - They are removed the **next time Xen Orchestra starts**, or when the appliance reboots, whichever comes first. Xen Orchestra and a proxy running on the same machine only remove their own rules.
 - If you set `manageFirewall = false` before restarting, Xen Orchestra no longer removes them. List them with the command above, then delete each one with `iptables -D`, followed by the rule as listed without its leading `-A`.
-- As with any crash, the `[XO backup] <VM name>` SR also stays behind (see **Temporary** above).
+- As with any crash, the `[XO live mount] <VM name> (<backup date>)` SR also stays behind (see **Temporary** above).
 
 A normal stop or restart of Xen Orchestra releases every mount, which removes their rules.
 
@@ -558,7 +558,7 @@ A normal stop or restart of Xen Orchestra releases every mount, which removes th
 4. For the disk to mount, pick **Live mount (read only)** as the action, and check the host in the **Destination** column.
 5. Click **OK**.
 
-The restored VM then has the live mounted disk on the `[XO backup] <VM name>` SR:
+The restored VM then has the live mounted disk on the `[XO live mount] <VM name> (<backup date>)` SR:
 
 <UiDetail src="/img/xo5/live-mount-vm-disks.png" alt="The Disks tab of the restored VM: the live mounted disk sits on the [XO backup] SR and is attached in read-only mode" width={760} />
 

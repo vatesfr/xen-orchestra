@@ -1,5 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
+import { liveMountXapiLabels } from '@xen-orchestra/backups/liveMountXapiLabels.mjs'
 
 const { info, warn } = createLogger('xo:xo-mixins:backup-disk-mounts')
 
@@ -113,14 +114,19 @@ export default class BackupDiskMountsResolver {
     const app = this.#app
 
     const archive = await this.#getArchive(archiveId)
-    if (!archive.disks.some(disk => disk.id === diskId)) {
+    const disk = archive.disks.find(disk => disk.id === diskId)
+    if (disk === undefined) {
       // `diskId` is a path on the backup repository, an unchecked one would
       // expose any file it contains
       throw invalidParameters(`disk ${diskId} does not belong to backup archive ${archiveId}`)
     }
 
     const host = app.getObject(hostId, 'host')
-    const xapiLabels = { srNameLabel: `[XO backup] ${archive.vm.name_label}` }
+    const xapiLabels = liveMountXapiLabels({
+      timestamp: archive.timestamp,
+      vdiNameLabel: disk.name,
+      vmNameLabel: archive.vm.name_label,
+    })
 
     const remote = await app.getRemoteWithCredentials(getBackupRepositoryId(archiveId))
     const proxyId = remote.proxy
@@ -332,7 +338,6 @@ export default class BackupDiskMountsResolver {
       return await app.callProxyMethod(proxyId, 'backup.mountDisk', {
         disk: diskId,
         host: host.uuid,
-        nameLabel: xapiLabels.srNameLabel,
         remote: {
           url: remote.url,
           options: remote.options,
@@ -342,6 +347,7 @@ export default class BackupDiskMountsResolver {
           credentials: { username, password },
           url,
         },
+        xapiLabels,
       })
     } catch (error) {
       throw wrapProxyError(error, proxyId)
