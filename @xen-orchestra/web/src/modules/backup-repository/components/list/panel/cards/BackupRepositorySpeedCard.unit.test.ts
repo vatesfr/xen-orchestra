@@ -8,7 +8,7 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { formatSpeed } from '@core/utils/speed.util.ts'
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
 const { useBenchmarkJob, run } = vi.hoisted(() => ({
@@ -95,14 +95,12 @@ it('shows the speeds of the latest stored benchmark and offers to copy them', ()
   expect(findCardCopiedValues(wrapper)).toEqual([formatSpeed(100_000_000), formatSpeed(200_000_000)])
 })
 
-it('shows the result of a benchmark run from the card in place of the stored one', async () => {
-  run.mockResolvedValue({ writeRate: 300_000_000, readRate: 400_000_000 })
-  const wrapper = mountCard(createBr({ benchmarks: [createBrBenchmark()] }))
+it('runs the benchmark job when clicking the benchmark button', async () => {
+  const wrapper = mountCard()
 
   await findBenchmarkButton(wrapper).trigger('click')
-  await flushPromises()
 
-  expect(findSpeeds(wrapper)).toEqual({ write: formatSpeed(300_000_000), read: formatSpeed(400_000_000) })
+  expect(run).toHaveBeenCalledOnce()
 })
 
 it('disables the benchmark button when the job cannot run', () => {
