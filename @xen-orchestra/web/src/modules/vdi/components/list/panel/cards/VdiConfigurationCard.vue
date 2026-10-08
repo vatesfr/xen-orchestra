@@ -57,8 +57,8 @@
 <script setup lang="ts">
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
+import { useVdiVmVbd } from '@/modules/vdi/composables/use-vdi-vm-vbd.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -78,15 +78,15 @@ const { vdi, vm } = defineProps<{
 const { t } = useI18n()
 
 const { useGetSrById, isDefaultSr } = useXoSrCollection()
-const { useGetVbdsByIds } = useXoVbdCollection()
 
 const vdiSr = useGetSrById(() => vdi.$SR)
 
 const { srStatusIcon } = useXoSrUtils(vdiSr)
 
-const vbds = useGetVbdsByIds(() => vdi.$VBDs)
-
-const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm?.id))
+const vbd = useVdiVmVbd(
+  () => vdi,
+  () => vm
+)
 
 const isReadOnly = computed(() => vbd.value?.read_only ?? false)
 

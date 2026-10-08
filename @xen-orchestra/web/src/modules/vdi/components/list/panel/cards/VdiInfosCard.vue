@@ -47,7 +47,7 @@
 
 <script lang="ts" setup>
 import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
-import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { useVdiVmVbd } from '@/modules/vdi/composables/use-vdi-vm-vbd.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
@@ -95,11 +95,12 @@ const vbdsStatus = useMapper<VbdAttachmentStatus, (typeof CONNECTION_STATUS)[key
   'noneAttached'
 )
 
-const { useGetVbdsByIds } = useXoVbdCollection()
+const vbd = useVdiVmVbd(
+  () => vdi,
+  () => vm
+)
 
-const vbds = useGetVbdsByIds(() => vdi.$VBDs)
-
-const vdiDevice = computed(() => vbds.value.find(vbd => vbd.VM === vm?.id)?.device ?? '')
+const vdiDevice = computed(() => vbd.value?.device ?? '')
 </script>
 
 <style scoped lang="postcss">

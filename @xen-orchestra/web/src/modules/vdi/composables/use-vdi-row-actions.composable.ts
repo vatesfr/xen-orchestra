@@ -1,9 +1,9 @@
 import { useVbdConnection } from '@/modules/vbd/composables/use-vbd-connection.composable.ts'
 import { useVbdDelete } from '@/modules/vbd/composables/use-vbd-delete.composable.ts'
-import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useVdiDelete } from '@/modules/vdi/composables/use-vdi-delete.composable.ts'
 import { useVdiExport } from '@/modules/vdi/composables/use-vdi-export.composable.ts'
 import { useVdiMigrate } from '@/modules/vdi/composables/use-vdi-migrate.composable.ts'
+import { useVdiVmVbd } from '@/modules/vdi/composables/use-vdi-vm-vbd.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { ActionItem } from '@core/tables/column-definitions/action-column.ts'
@@ -19,11 +19,7 @@ export function useVdiRowActions(rawVdi: MaybeRefOrGetter<FrontXoVdi>, rawVm: Ma
 
   const { t } = useI18n()
 
-  const { useGetVbdsByIds } = useXoVbdCollection()
-
-  const vbds = useGetVbdsByIds(() => vdi.value.$VBDs)
-
-  const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.value?.id))
+  const vbd = useVdiVmVbd(vdi, vm)
 
   const vmVbds = computed(() => (vbd.value ? [vbd.value] : []))
 
