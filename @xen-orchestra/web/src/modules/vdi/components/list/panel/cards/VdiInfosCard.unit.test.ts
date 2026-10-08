@@ -59,8 +59,8 @@ it('shows the device of the VBD plugging the VDI into the VM', () => {
   expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('device')]: 'xvdc' })
 })
 
-it('leaves out the device row when no VM is given', () => {
+it('leaves the device empty when no VM is given', () => {
   useGetVbdsByIds.mockReturnValue(computed(() => [createVbd({ device: 'xvdc' })]))
 
-  expect(Object.keys(findCardLabelledValues(mountInfosCard()))).toEqual([t('description'), t('tags'), t('status')])
+  expect(findCardLabelledValues(mountInfosCard())).toMatchObject({ [t('device')]: '' })
 })
