@@ -37,6 +37,7 @@
 - [BRs] Add backup repository detail page (PR [#10454](https://github.com/vatesfr/xen-orchestra/pull/10454))
 - [Backup logs] Add backup log list in admin menu (PR [#10572](https://github.com/vatesfr/xen-orchestra/pull/10572))
 - [BRs] Add backup repository edit form (PR [#10478](https://github.com/vatesfr/xen-orchestra/pull/10478))
+- [BRs] Add change state, test speed and forget actions, and bulk actions on BRs (PR [#10532](https://github.com/vatesfr/xen-orchestra/pull/10532))
 - [Backup] Support insecure dedicated NBD network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
 - [Pool/Network] Allow enabling the insecure NBD (not encrypted) on a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
 - [REST API] `POST /rest/v0/pools/:id/actions/create_network` supports `insecureNbd` to create a network with the insecure NBD (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
