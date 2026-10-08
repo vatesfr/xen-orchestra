@@ -202,9 +202,9 @@ export default class Backups {
                     this.#mountDisk({
                       diskPath,
                       hostUuid: hostId,
-                      nameLabel: `[XO backup] ${metadata.vm.name_label}`,
                       remote,
                       xapi: xapiOpts,
+                      xapiLabels: { srNameLabel: `[XO backup] ${metadata.vm.name_label}` },
                     }),
                   unmountDisk: mountId => app.liveMount.unmountDisk(mountId),
                 },
@@ -385,7 +385,7 @@ export default class Backups {
         ],
         mountDisk: [
           ({ disk, host, nameLabel, remote, xapi }) =>
-            this.#mountDisk({ diskPath: disk, hostUuid: host, nameLabel, remote, xapi }),
+            this.#mountDisk({ diskPath: disk, hostUuid: host, remote, xapi, xapiLabels: { srNameLabel: nameLabel } }),
           {
             description: 'serve a disk of a backup repository as a read-only iSCSI LUN, attached to a host as an SR',
             params: {
@@ -496,11 +496,11 @@ export default class Backups {
    * @param {object} params
    * @param {string} params.diskPath - path of the disk on the backup repository
    * @param {string} params.hostUuid - uuid of the host the disk is attached to
-   * @param {string} [params.nameLabel] - name of the created SR
    * @param {object} params.remote - backup repository holding the disk
    * @param {object} params.xapi - connection options of the pool owning `hostUuid`
+   * @param {object} [params.xapiLabels] - names of what is created, see the live mount mixin
    */
-  async #mountDisk({ diskPath, hostUuid, nameLabel, remote, xapi: xapiOpts }) {
+  async #mountDisk({ diskPath, hostUuid, remote, xapi: xapiOpts, xapiLabels }) {
     const {
       dispose,
       value: [adapter, xapi],
@@ -510,9 +510,9 @@ export default class Backups {
         diskPath,
         handler: adapter.handler,
         hostRef: await xapi.call('host.get_by_uuid', hostUuid),
-        nameLabel,
         release: dispose,
         xapi,
+        xapiLabels,
       })
     } catch (error) {
       await dispose()
