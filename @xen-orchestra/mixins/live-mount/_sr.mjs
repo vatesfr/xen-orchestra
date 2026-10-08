@@ -83,8 +83,8 @@ export async function forgetSr(xapi, srRef) {
  * `readOnly` states the intent, but this driver ignores it either way —
  * `RAWVDI.introduce()` ends in `_db_introduce()`, which builds the record from
  * the driver's own VDI object, the same reason the resulting uuid is not the
- * one asked for. The LUN itself is what actually enforces it: it throws on
- * write, since it is backed by a read-only `DiskBlockDevice`.
+ * one asked for. The LUN itself is what actually enforces it: a read-only one
+ * advertises it to the guest, and refuses writes.
  */
 export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath, readOnly }) {
   const uuid = randomUUID()

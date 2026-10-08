@@ -4,6 +4,7 @@ import { describe, it } from 'node:test'
 import type { BlockDevice } from './backend.mjs'
 import { ScsiStatus, SenseKey } from './constants.mjs'
 import {
+  buildModeSense,
   buildReadCapacity10,
   buildReadCapacity16,
   buildReportLuns,
@@ -45,6 +46,12 @@ class MemoryBlockDevice implements BlockDevice {
   }
   async flush(): Promise<void> {}
   async close(): Promise<void> {}
+}
+
+class ReadOnlyMemoryBlockDevice extends MemoryBlockDevice {
+  isReadOnly(): boolean {
+    return true
+  }
 }
 
 class FakeContext implements CommandContext {
@@ -142,6 +149,13 @@ describe('response encoders', () => {
     assert.deepEqual(data.subarray(8, 16), Buffer.alloc(8))
   })
 
+  it('sets the Write Protect bit of MODE SENSE only for a read-only LUN', () => {
+    assert.equal(buildModeSense(false)[2], 0x00)
+    assert.equal(buildModeSense(false, true)[2], 0x80)
+    assert.equal(buildModeSense(true)[3], 0x00)
+    assert.equal(buildModeSense(true, true)[3], 0x80)
+  })
+
   it('advertises supported VPD pages and rejects unknown ones', () => {
     const page00 = buildVpd(0x00, IDENTITY)
     assert.ok(page00 !== undefined)
@@ -157,6 +171,16 @@ describe('handleScsiCommand', () => {
     assert.equal(ctx.reads.length, 1)
     assert.equal(ctx.reads[0].data.length, 36)
     assert.equal(ctx.reads[0].allocationLength, 36)
+  })
+
+  it('MODE SENSE(6) reports whether the LUN is write protected', async () => {
+    const modeSense = async (lun: BlockDevice) => {
+      const ctx = new FakeContext(lun)
+      await handleScsiCommand(cdb(0x1a, 0x00, 0x3f, 0x00, 4), 1, ctx, IDENTITY)
+      return ctx.reads[0].data[2]
+    }
+    assert.equal(await modeSense(new MemoryBlockDevice(4096)), 0x00)
+    assert.equal(await modeSense(new ReadOnlyMemoryBlockDevice(4096)), 0x80)
   })
 
   it('READ(10) returns the backing bytes for the requested blocks', async () => {
