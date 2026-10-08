@@ -840,6 +840,7 @@
   "new-vm": "Nouvelle VM",
   "new-vm:add": "Ajouter une nouvelle VM",
   "new-vm:description": "Description de la VM",
+  "new-vm:disk-size-below-template": "{name} : la taille ne peut pas être inférieure à celle du disque du modèle ({size} Go)",
   "new-vm:ha-best-effort": "Au mieux",
   "new-vm:ha-best-effort-description": "Si l'hôte tombe en panne, HA tente de redémarrer la VM sur un autre hôte, mais seulement après toutes les VM « Redémarrer ». Non garanti.",
   "new-vm:ha-disabled": "Désactivé",

@@ -840,6 +840,7 @@
   "new-vm": "New VM",
   "new-vm:add": "Add a new VM",
   "new-vm:description": "VM description",
+  "new-vm:disk-size-below-template": "{name}: the size can't be smaller than the template disk size ({size} GB)",
   "new-vm:ha-best-effort": "Best-effort",
   "new-vm:ha-best-effort-description": "If the host fails, HA tries to restart the VM on another host, but only after all \"Restart\" VMs. Not guaranteed.",
   "new-vm:ha-disabled": "Disabled",
