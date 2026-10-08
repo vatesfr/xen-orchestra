@@ -8,10 +8,11 @@ import type {
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
+import { findTabs } from '@/test/find-tabs.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { computed } from 'vue'
 
 vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
@@ -50,10 +51,6 @@ async function mountHeader(scope: SrScope = { type: SR_SCOPE_TYPE.POOL }, initia
     props: { sr: createSr({ id: 'sr-42' as FrontXoSr['id'] }), scope },
     global: createGlobalTestConfig({ router }),
   })
-}
-
-function findTabs(wrapper: VueWrapper) {
-  return wrapper.findAll('.ui-tab-item')
 }
 
 it('lists every tab of the SR, in order', async () => {

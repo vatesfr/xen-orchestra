@@ -3,6 +3,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findTabs } from '@/test/find-tabs.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -33,10 +34,6 @@ async function mountHeader(vm: FrontXoVm = createVm({ id: 'vm-42' as FrontXoVm['
     props: { vm },
     global: createGlobalTestConfig({ router }),
   })
-}
-
-function findTabs(wrapper: Awaited<ReturnType<typeof mountHeader>>) {
-  return wrapper.findAll('.ui-tab-item')
 }
 
 /**
