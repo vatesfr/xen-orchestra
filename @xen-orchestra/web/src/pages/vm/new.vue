@@ -26,20 +26,22 @@
                 :vertical="uiStore.isSmall"
                 :gap="uiStore.isSmall ? 'narrow' : 'wide'"
               >
-                <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
-                  {{ t('no-config') }}
-                </UiRadioButton>
-                <UiRadioButton v-if="isDiskTemplate" v-model="vmState.installMode" accent="brand" value="ssh-key">
-                  {{ t('ssh-key') }}
-                </UiRadioButton>
-                <UiRadioButton v-model="vmState.installMode" accent="brand" value="cloud-init-config">
-                  {{ t('cloud-init-config') }}
+                <template v-if="isDiskTemplate">
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
+                    {{ t('no-config') }}
+                  </UiRadioButton>
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
+                    {{ t('ssh-key') }}
+                  </UiRadioButton>
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="cloud-init-config">
+                    {{ t('cloud-init-config') }}
+                  </UiRadioButton>
+                </template>
+                <UiRadioButton v-else v-model="vmState.installMode" accent="brand" value="network">
+                  {{ t('pxe') }}
                 </UiRadioButton>
                 <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
                   {{ t('iso-dvd') }}
-                </UiRadioButton>
-                <UiRadioButton v-if="isDiskTemplate" v-model="vmState.installMode" accent="brand" value="network">
-                  {{ t('pxe') }}
                 </UiRadioButton>
               </UiRadioButtonGroup>
               <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
@@ -197,6 +199,9 @@
               @add="addStorageEntry()"
               @remove="removeVdi"
             />
+            <UiInfo v-for="vdi in undersizedExistingVdis" :key="vdi.key" accent="danger" wrap>
+              {{ t('new-vm:disk-size-below-template', { name: vdi.name, size: vdi.minSize }) }}
+            </UiInfo>
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
             <UiCheckboxGroup accent="brand" :vertical="uiStore.isSmall">
@@ -234,7 +239,7 @@
               accent="brand"
               size="medium"
               :busy="isRunning"
-              :disabled="!canRun"
+              :disabled="!canRun || undersizedExistingVdis.length > 0"
               type="submit"
             >
               {{ t('action:create') }}
@@ -273,6 +278,7 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
 import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
@@ -661,11 +667,20 @@ function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi, includeSize: boolean) {
   return Object.keys(changes).length > 0 ? (changes as Partial<Vdi>) : undefined
 }
 
-const cloudInitModes: InstallMode[] = ['ssh-key', 'cloud-init-config']
+// Same as XO 5. With 'cdrom', there is no auto-grow on existing disks
+const resizableDisksInstallModes: InstallMode[] = ['ssh-key', 'cloud-init-config', 'cdrom']
 
 const canResizeExistingDisks = computed(() => {
-  return cloudInitModes.includes(vmState.installMode)
+  return resizableDisksInstallModes.includes(vmState.installMode)
 })
+
+const undersizedExistingVdis = computed(() =>
+  vmState.existingVdis.flatMap(vdi => {
+    const minSize = defaultExistingVdis.value.find(existingVdi => existingVdi.id === vdi.id)?.size
+
+    return minSize !== undefined && Number(vdi.size) < minSize ? [{ key: vdi.key, name: vdi.name_label, minSize }] : []
+  })
+)
 
 const existingVdisToSend = computed(() => {
   return defaultExistingVdis.value.reduce<NewVmVdiPayload[]>((acc, defaultVdi) => {

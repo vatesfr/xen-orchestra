@@ -72,6 +72,7 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
       diskName: r => r(diskName),
       size: r =>
         r(size, {
+          accent: defaultVdi !== undefined && Number(vdi.size) < defaultVdi.size ? 'danger' : 'brand',
           disabled: vdi.id !== undefined && !canResizeExistingDisks,
           min: defaultVdi?.size ?? 1,
         }),
