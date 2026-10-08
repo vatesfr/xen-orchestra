@@ -28,6 +28,7 @@
 - [Dashboard] Fix cards staying in error state after a temporary failure to fetch data, until the page was reloaded (PR [#10516](https://github.com/vatesfr/xen-orchestra/pull/10516))
 - [backup] Properly detect a disk deleting while merging (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
 - [backup] Recover a deadlocked merge when the chain is out of retention (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
+- [backup repository] Add change state, test speed and forget actions and multi actions on BRs (PR [#10532](https://github.com/vatesfr/xen-orchestra/pull/10532))
 
 ### Packages to release
 

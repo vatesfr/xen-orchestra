@@ -8,7 +8,7 @@
       <div class="vts-type-to-confirm-modal">
         <p v-if="description">{{ description }}</p>
         <p class="instruction">{{ t('type-below-to-continue') }}</p>
-        <UiTag :accent class="confirmation-text" variant="primary">{{ confirmationText }}</UiTag>
+        <UiTag :accent class="confirmation-text" variant="primary">{{ displayedConfirmationText }}</UiTag>
         <UiInput v-model="typedText" accent="brand" />
       </div>
     </template>
@@ -50,6 +50,8 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const typedText = ref('')
+
+const displayedConfirmationText = computed(() => `[${confirmationText}]`)
 
 const isConfirmed = computed(() => typedText.value === confirmationText)
 </script>

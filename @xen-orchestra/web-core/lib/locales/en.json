@@ -752,7 +752,7 @@
   "modal:action:vm-reboot": "@:action:reboot VM",
   "modal:action:vm-shutdown": "@:action:shutdown VM",
   "modal:backup-repository-forget-message": "Forgetting this backup repository will permanently remove it from the system. Existing backups stored in this repository will no longer be accessible through the platform. This action cannot be undone. Proceed with caution.",
-  "modal:backup-repository-forget-n-message": "Forgetting those backup repositories will permanently remove it from the system. Existing backups stored in this repository will no longer be accessible through the platform. This action cannot be undone. Proceed with caution.",
+  "modal:backup-repository-forget-n-message": "Forgetting these backup repositories will permanently remove them from the system. Existing backups stored in these repositories will no longer be accessible through the platform. This action cannot be undone. Proceed with caution.",
   "modal:backup-repository-forget-n-title": "You are about to forget {n} backup repositories",
   "modal:backup-repository-forget-title": "You are about to forget a backup repository",
   "modal:confirm-host-detach?": "Are you sure you want to detach {host}?",
