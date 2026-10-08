@@ -456,14 +456,17 @@ export default class {
     }
 
     this._cancelRemoteInfoRetry(id)
-    this._app.invalidateVmBackupsListing(id)
 
     const sizeProps = {}
     if (enabled === false) {
+      // it will not be listed again: its backups are no longer part of the collection
+      this._app.forgetVmBackupRepository(id)
       delete this._remotesInfo[id]
       sizeProps.size = null
       sizeProps.used = null
       sizeProps.available = null
+    } else {
+      this._app.invalidateVmBackupsListing(id)
     }
 
     const remote = await this._updateRemote(id, {
