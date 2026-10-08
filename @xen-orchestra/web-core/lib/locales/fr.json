@@ -127,7 +127,7 @@
   "action:revert-vm-here": "Restaurer la VM à cet instantané",
   "action:save": "Enregistrer",
   "action:search": "Rechercher",
-  "action:search-treeview": "Rechercher dans l'arborescence",
+  "action:search-treeview": "@:action:search dans l'arborescence ({shortcut})",
   "action:see-all": "Voir tout",
   "action:see-less": "Voir moins",
   "action:see-n-more": "Voir {n} de plus",

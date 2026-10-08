@@ -127,7 +127,7 @@
   "action:revert-vm-here": "Revert VM here",
   "action:save": "Save",
   "action:search": "Search",
-  "action:search-treeview": "Search in treeview",
+  "action:search-treeview": "@:action:search in treeview ({shortcut})",
   "action:see-all": "See all",
   "action:see-less": "See less",
   "action:see-n-more": "See {n} more",
