@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Backup/Restore] Live restore: a disk can now be live mounted read/write, with a cache on an SR of the pool running XO (or the proxy). Each block is read from the BR only once and the VM can boot from it, but what it writes is lost when the mount is released. The live mounted SR and VDI are now named after the backed up VM, disk and backup date (PR [#10434](https://github.com/vatesfr/xen-orchestra/pull/10434))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -34,7 +36,13 @@
 
 <!--packages-start-->
 
-- xo-server patch
+- @vates/iscsi minor
+- @vates/types minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/mixins minor
+- @xen-orchestra/proxy minor
+- xo-server minor
+- xo-web minor
 - xo-server-sdn-controller patch
 
 <!--packages-end-->
