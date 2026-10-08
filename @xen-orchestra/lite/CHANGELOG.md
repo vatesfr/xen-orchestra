@@ -6,6 +6,10 @@
 - [Treeview] Add a search bar and virtualize the tree (PR [#10414](https://github.com/vatesfr/xen-orchestra/pull/10414))
 - [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
 - [Host] Add possibility to enable/disable a host (PR [#10337](https://github.com/vatesfr/xen-orchestra/pull/10337))
+- [Host] Add possibility to restart a host toolstack (PR [#10480](https://github.com/vatesfr/xen-orchestra/pull/10480))
+- [Host] Add possibility to detach a host (PR [#10520](https://github.com/vatesfr/xen-orchestra/pull/10520))
+- [Side panels] Harmonize card titles across side panels (PR [#10289](https://github.com/vatesfr/xen-orchestra/pull/10289))
+- [VM/New] Fix UEFI VMs booting in BIOS mode when created with a network install or without disk (PR [#10521](https://github.com/vatesfr/xen-orchestra/pull/10521))
 
 ## **0.26.0** (2026-10-01)
 

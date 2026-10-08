@@ -1,6 +1,6 @@
 <template>
   <UiPanelCard class="backup-repository-local-card">
-    <UiCardTitle>{{ t('local') }}</UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('local')" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('path') }}</template>
@@ -16,8 +16,8 @@
 <script lang="ts" setup>
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { useI18n } from 'vue-i18n'
 import type { ParsedFileBackupRepositoryUrl } from 'xo-remote-parser'
 

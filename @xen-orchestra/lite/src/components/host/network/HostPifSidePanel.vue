@@ -3,7 +3,7 @@
     <template v-if="pif" #default>
       <!-- PIF -->
       <UiPanelCard>
-        <VtsCardObjectTitle :id="pif.uuid" :label="isBond ? t('bond') : t('pif')" />
+        <UiPanelCardTitle :id="pif.uuid" size="medium" :label="isBond ? t('bond') : t('pif')" />
         <div class="content">
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
@@ -78,7 +78,7 @@
       </UiPanelCard>
       <!-- NETWORK INFORMATION -->
       <UiPanelCard>
-        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
+        <UiPanelCardTitle size="medium" :label="t('network-information')" />
         <div class="content">
           <!-- IP ADDRESSES -->
           <div v-if="ipAddresses.length">
@@ -183,7 +183,7 @@
       </UiPanelCard>
       <!-- PROPERTIES -->
       <UiPanelCard>
-        <UiCardTitle>{{ t('properties') }}</UiCardTitle>
+        <UiPanelCardTitle size="medium" :label="t('properties')" />
         <div class="content">
           <!-- MTU -->
           <VtsCardRowKeyValue>
@@ -230,15 +230,14 @@ import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import humanFormat from 'human-format'
