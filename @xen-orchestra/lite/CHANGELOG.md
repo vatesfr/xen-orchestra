@@ -7,6 +7,7 @@
 - [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
 - [Host] Add possibility to enable/disable a host (PR [#10337](https://github.com/vatesfr/xen-orchestra/pull/10337))
 - [Host] Add possibility to restart a host toolstack (PR [#10480](https://github.com/vatesfr/xen-orchestra/pull/10480))
+- [Host] Add possibility to detach a host (PR [#10520](https://github.com/vatesfr/xen-orchestra/pull/10520))
 
 ## **0.26.0** (2026-10-01)
 
