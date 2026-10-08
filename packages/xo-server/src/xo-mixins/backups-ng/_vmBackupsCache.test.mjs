@@ -524,17 +524,20 @@ describe('VmBackupsCache', () => {
 // the id the cache announces an archive under, which is the one the API serves it as
 const archiveIdOf = (vmUuid, name) => `${REPOSITORY.id}/${filenameOf(vmUuid, name)}`
 
-// records what the cache announces, in order
+// records what the cache announces, in order: the archive of an `add` or `update`, the id of a
+// `remove`, which the cache emits one at a time
 const recordEvents = cache => {
   const events = []
   for (const name of ['add', 'update', 'remove']) {
-    cache.archives.on(name, (archive, previous) => events.push({ event: name, archive, previous }))
+    cache.archives.on(name, ([item]) =>
+      events.push(name === 'remove' ? { event: name, id: item } : { event: name, archive: item })
+    )
   }
   return events
 }
 
 // what an event says, without the whole archive
-const summarize = events => events.map(({ event, archive, previous }) => ({ event, id: (archive ?? previous).id }))
+const summarize = events => events.map(({ event, archive, id }) => ({ event, id: id ?? archive.id }))
 
 describe('VmBackupsCache collection', () => {
   it('announces the backups a listing discovered', async t => {
@@ -553,7 +556,6 @@ describe('VmBackupsCache collection', () => {
           ...formatVmBackupAt(metadata, metadata._filename, REPOSITORY.id),
           id: archiveIdOf(VM, '20260811T090000'),
         },
-        previous: undefined,
       },
     ])
   })
@@ -582,8 +584,6 @@ describe('VmBackupsCache collection', () => {
       { event: 'remove', id: archiveIdOf(VM, '20260811T093000') },
     ])
     assert.equal(events[1].archive.size, 42)
-    assert.equal(events[1].previous.size, 1)
-    assert.equal(events[2].previous.id, archiveIdOf(VM, '20260811T093000'))
   })
 
   it('announces nothing when a journal event changed nothing', async t => {
@@ -719,6 +719,35 @@ describe('VmBackupsCache collection', () => {
     cache.remove(REPOSITORY.id)
 
     assert.deepEqual(events, [])
+  })
+
+  it('serves the archives it announced, as the app reads a collection', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const metadata = metadataOf(VM, '20260811T090000')
+    const repository = new Repository([metadata])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+
+    // nothing has been listed yet, e.g. when the app registers the collection
+    assert.deepEqual(await cache.archives.get(), [])
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+    repository.add(metadataOf(OTHER_VM, '20260811T100000'), Date.now())
+    await cache.get(REPOSITORY)
+
+    assert.deepEqual(
+      (await cache.archives.get()).map(_ => _.id).sort(),
+      [archiveIdOf(OTHER_VM, '20260811T100000'), archiveIdOf(VM, '20260811T090000')].sort()
+    )
+    assert.deepEqual(await cache.archives.first(archiveIdOf(VM, '20260811T090000')), {
+      ...formatVmBackupAt(metadata, metadata._filename, REPOSITORY.id),
+      id: archiveIdOf(VM, '20260811T090000'),
+    })
+    assert.equal(await cache.archives.first(archiveIdOf(VM, 'a-backup-it-does-not-hold')), undefined)
+
+    cache.remove(REPOSITORY.id)
+    assert.deepEqual(await cache.archives.get(), [])
+    assert.equal(await cache.archives.first(archiveIdOf(VM, '20260811T090000')), undefined)
   })
 })
 

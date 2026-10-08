@@ -100,16 +100,6 @@ export default class BackupNg {
     return this._runningRestores
   }
 
-  /**
-   * the VM backup archives of the backup repositories, as a collection: `add`, `update` and
-   * `remove` events carrying the archive and its previous value
-   *
-   * @returns {import('node:events').EventEmitter}
-   */
-  get vmBackupArchives() {
-    return this.#vmBackupsCache.archives
-  }
-
   constructor(app) {
     this._app = app
     this._runningRestores = new Set()
@@ -125,6 +115,10 @@ export default class BackupNg {
     // remote, so that every one of them can be dropped when the listing state is reset
     /** @type {Record<XoBackupRepository['id'], Set<XoVm['id'] | undefined>>} */
     this._trackedVmIdsByRemote = { __proto__: null }
+
+    app.hooks.on('core started', () => {
+      app.hooks.emit('registerCollection', { collection: this.#vmBackupsCache.archives, type: 'backup-archive' })
+    })
 
     app.hooks.on('start', async () => {
       const executor = async ({
@@ -420,10 +414,6 @@ export default class BackupNg {
       }
       app.registerJobExecutor('backup', executor)
       app.registerJobExecutor('mirrorBackup', executor)
-    })
-
-    app.hooks.on('stop', () => {
-      this.#vmBackupsCache.archives.removeAllListeners()
     })
   }
 
