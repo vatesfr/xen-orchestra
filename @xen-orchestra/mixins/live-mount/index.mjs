@@ -18,10 +18,12 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
 
 /**
  * The XAPI names of what a mount creates, as the user sees them. Each one falls back to a name
- * derived from the mount.
+ * derived from the disk path.
  *
  * @typedef {object} LiveMountXapiLabels
  * @property {string} [srNameLabel] - `name_label` of the SR introduced on the host
+ * @property {string} [vdiNameLabel] - `name_label` of the VDI attached to the host
+ * @property {string} [vdiNameDescription] - `name_description` of the VDI attached to the host
  */
 
 /**
@@ -184,7 +186,7 @@ export default class LiveMount extends EventEmitter {
    * @param {string} params.diskPath - path of the source disk, passed to `openDisk`
    * @param {object} params.xapi - XAPI connection of the pool owning `hostRef`
    * @param {string} params.hostRef - opaque ref of the host the disk is attached to as an SR
-   * @param {LiveMountXapiLabels} [params.xapiLabels] - names of what is created, as shown to the user
+   * @param {LiveMountXapiLabels} [params.xapiLabels] - names of the SR and of the VDI shown to the user
    * @param {() => Promise<void>} [params.release] - called on unmount, e.g. to dispose the remote handler
    * @returns {Promise<{ id: string, srUuid: string, vdiUuid: string, iqn: string, address: string, port: number }>}
    */
@@ -276,7 +278,17 @@ export default class LiveMount extends EventEmitter {
       diskPath,
     })
 
-    const vdiUuid = await introduceVdi({ xapi, srRef, SCSIid, size: lun.getSize(), diskPath, readOnly: true })
+    const vdiUuid = await introduceVdi({
+      xapi,
+      srRef,
+      SCSIid,
+      size: lun.getSize(),
+      diskPath,
+      id,
+      nameLabel: xapiLabels.vdiNameLabel,
+      nameDescription: xapiLabels.vdiNameDescription,
+      readOnly: true,
+    })
 
     info('mounted', { id, address, port, srUuid, vdiUuid, diskPath })
 

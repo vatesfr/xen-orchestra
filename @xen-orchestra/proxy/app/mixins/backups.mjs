@@ -198,14 +198,8 @@ export default class Backups {
                 // resources disposed at the end of this call: `#mountDisk` takes its own and
                 // releases them on unmount
                 liveMount: {
-                  mountDisk: ({ diskPath, hostId }) =>
-                    this.#mountDisk({
-                      diskPath,
-                      hostUuid: hostId,
-                      remote,
-                      xapi: xapiOpts,
-                      xapiLabels: { srNameLabel: `[XO backup] ${metadata.vm.name_label}` },
-                    }),
+                  mountDisk: ({ diskPath, hostId, xapiLabels }) =>
+                    this.#mountDisk({ diskPath, hostUuid: hostId, remote, xapi: xapiOpts, xapiLabels }),
                   unmountDisk: mountId => app.liveMount.unmountDisk(mountId),
                 },
                 metadata,
@@ -384,16 +378,19 @@ export default class Backups {
           },
         ],
         mountDisk: [
-          ({ disk, host, nameLabel, remote, xapi }) =>
-            this.#mountDisk({ diskPath: disk, hostUuid: host, remote, xapi, xapiLabels: { srNameLabel: nameLabel } }),
+          ({ disk, host, nameLabel, remote, xapi, xapiLabels = { srNameLabel: nameLabel } }) =>
+            this.#mountDisk({ diskPath: disk, hostUuid: host, remote, xapi, xapiLabels }),
           {
             description: 'serve a disk of a backup repository as a read-only iSCSI LUN, attached to a host as an SR',
             params: {
               disk: { type: 'string' },
               host: { type: 'string' },
+              // name of the SR, superseded by `xapiLabels.srNameLabel`: still sent by older XOs
               nameLabel: { type: 'string', optional: true },
               remote: { type: 'object' },
               xapi: { type: 'object' },
+              // `{ srNameLabel?, vdiNameLabel?, vdiNameDescription? }`, see the live mount mixin
+              xapiLabels: { type: 'object', optional: true },
             },
           },
         ],
@@ -498,7 +495,7 @@ export default class Backups {
    * @param {string} params.hostUuid - uuid of the host the disk is attached to
    * @param {object} params.remote - backup repository holding the disk
    * @param {object} params.xapi - connection options of the pool owning `hostUuid`
-   * @param {object} [params.xapiLabels] - names of what is created, see the live mount mixin
+   * @param {object} [params.xapiLabels] - names of the SR and of the VDI shown to the user
    */
   async #mountDisk({ diskPath, hostUuid, remote, xapi: xapiOpts, xapiLabels }) {
     const {

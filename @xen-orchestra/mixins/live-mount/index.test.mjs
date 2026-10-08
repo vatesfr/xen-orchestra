@@ -264,10 +264,13 @@ describe('mountDisk', () => {
 
     // ephemeral SR: tagged and not scanned at boot
     assert.deepEqual(
-      xapi.calls.filter(([method]) => method === 'setFieldEntry').map(([, , , , entry, value]) => [entry, value]),
+      xapi.calls
+        .filter(([method]) => method === 'setFieldEntry')
+        .map(([, type, , , entry, value]) => [type, entry, value]),
       [
-        ['xo:live-mount', result.id],
-        ['auto-scan', 'false'],
+        ['SR', 'xo:live-mount', result.id],
+        ['SR', 'auto-scan', 'false'],
+        ['VDI', 'xo:live-mount', result.id],
       ]
     )
     // VDI.read_only is StaticRO in XAPI: nothing may try to set it
@@ -279,14 +282,23 @@ describe('mountDisk', () => {
     )
   })
 
-  it('names the SR as the caller asks', async () => {
+  it('names the SR and the VDI as the caller asks', async () => {
     const { mixin } = makeMixin()
     const xapi = makeXapi()
 
-    await mountDisk(mixin, xapi, { xapiLabels: { srNameLabel: '[XO backup] web01' } })
+    await mountDisk(mixin, xapi, {
+      xapiLabels: {
+        srNameLabel: '[XO live mount] web01',
+        vdiNameLabel: 'system',
+        vdiNameDescription: 'live mount of web01',
+      },
+    })
 
     const srIntroduce = xapi.calls.find(([method]) => method === 'SR.introduce')
-    assert.equal(srIntroduce[2], '[XO backup] web01')
+    assert.equal(srIntroduce[2], '[XO live mount] web01')
+    const vdiIntroduce = xapi.calls.find(([method]) => method === 'VDI.introduce')
+    assert.equal(vdiIntroduce[2], 'system')
+    assert.equal(vdiIntroduce[3], 'live mount of web01')
   })
 
   it('advertises an uncached LUN as write protected', async () => {
