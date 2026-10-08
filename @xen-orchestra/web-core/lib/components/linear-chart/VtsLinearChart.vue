@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import type { LinearChartData, ValueFormatter } from '@core/types/chart.ts'
-import { utcFormat } from 'd3-time-format'
+import { timeFormat } from 'd3-time-format'
 import type { EChartsOption } from 'echarts'
 import { LineChart } from 'echarts/charts'
 import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
@@ -56,7 +56,7 @@ const option = computed<EChartsOption>(() => ({
   xAxis: {
     type: 'time',
     axisLabel: {
-      formatter: (timestamp: number) => utcFormat('%a\n%I:%M\n%p')(new Date(timestamp)),
+      formatter: (timestamp: number) => timeFormat('%a\n%H:%M')(new Date(timestamp)),
       showMaxLabel: false,
       showMinLabel: false,
     },
