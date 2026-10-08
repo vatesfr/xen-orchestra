@@ -289,6 +289,12 @@ describe('mountDisk', () => {
     assert.equal(srIntroduce[2], '[XO backup] web01')
   })
 
+  it('advertises an uncached LUN as write protected', async () => {
+    const { mixin, target } = makeMixin()
+    await mountDisk(mixin, makeXapi())
+    assert.equal(target.options.lun.isReadOnly(), true)
+  })
+
   it('reports an unreachable target as a configuration problem', async () => {
     const { mixin } = makeMixin()
     const xapi = makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_141', []) })

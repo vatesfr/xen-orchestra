@@ -102,6 +102,10 @@ export class DiskBlockDevice implements BlockDevice {
     return result
   }
 
+  isReadOnly(): boolean {
+    return true
+  }
+
   /**
    * Always throws: the source disk is read-only. The target answers CHECK
    * CONDITION / MEDIUM ERROR, which initiators surface as an I/O error.

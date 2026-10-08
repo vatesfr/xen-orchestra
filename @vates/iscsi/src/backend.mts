@@ -18,6 +18,12 @@ export interface BlockDevice {
   getBlockSize(): number
   /** Read exactly `length` bytes starting at byte `offset`. */
   read(offset: number, length: number): Promise<Buffer>
+  /**
+   * Whether writes are refused. Advertised to initiators with the Write Protect
+   * bit of MODE SENSE, so a guest mounts the disk read-only instead of failing
+   * on its first write. Unimplemented means writable.
+   */
+  isReadOnly?(): boolean
   /** Write `data` starting at byte `offset`. */
   write(offset: number, data: Buffer): Promise<void>
   /** Flush any buffered data to stable storage (SYNCHRONIZE CACHE). */
