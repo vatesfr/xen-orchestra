@@ -79,3 +79,30 @@ const { HeadCells, BodyCells } = useUserTableColumns({
   </table>
 </template>
 ```
+
+# Sorting
+
+Pass an optional `sort` object to make columns sortable. Keys are column ids, values are compare functions receiving two row items (same type as the `body` item).
+
+Clicking a sortable header cycles through ascending → descending → unsorted. Only one column is sorted at a time, and the sort state is local to the component.
+
+`useColumns` doesn't own the rows, so use the returned `sortItems` function to sort them (before pagination, if any):
+
+```ts
+const { HeadCells, BodyCells, sortItems } = useUserTableColumns({
+  body: (user: User) => ({
+    fullName: r => r(`${user.firstName} ${user.lastName}`),
+    email: r => r(user.email),
+    age: r => r({ value: user.age }),
+  }),
+  sort: {
+    email: (user1, user2) => user1.email.localeCompare(user2.email),
+    age: (user1, user2) => user1.age - user2.age,
+  },
+})
+
+const sortedUsers = computed(() => sortItems(users.value))
+```
+
+> [!NOTE]
+> The head cell of a sortable column must be rendered with `VtsHeaderCell` (which is the case with `renderHeadCell`), as it receives the `sortable`, `sortDirection` and `onSort` props.
