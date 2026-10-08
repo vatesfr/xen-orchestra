@@ -1,30 +1,5 @@
-import { defineIconPack, type IconSingleConfig } from '@core/packages/icon'
-import {
-  faCircle as circleEmpty,
-  faSquare as checkboxEmpty,
-  type IconDefinition,
-} from '@fortawesome/free-regular-svg-icons'
-import {
-  faBan,
-  faBolt,
-  faCheck,
-  faCircle,
-  faClose,
-  faExclamation,
-  faInfo,
-  faLock,
-  faMeteor,
-  faMinus,
-  faMoon,
-  faPause,
-  faPlay,
-  faSatelliteDish,
-  faSquare,
-  faSquareCheck,
-  faSquareMinus,
-  faStar,
-  faUserAstronaut,
-} from '@fortawesome/free-solid-svg-icons'
+import { regular, solid } from '@core/icons/kit.generated.ts'
+import { defineIconPack, type IconDefinition, type IconSingleConfig } from '@core/packages/icon'
 
 function constructIcon(icon: IconDefinition): IconSingleConfig {
   return {
@@ -34,199 +9,199 @@ function constructIcon(icon: IconDefinition): IconSingleConfig {
 }
 
 export const statusIcons = defineIconPack({
-  running: constructIcon(faPlay),
+  running: constructIcon(solid.faPlay),
   'running-circle': [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-success-item-base)',
     },
     {
-      icon: faPlay,
+      icon: solid.faPlay,
       color: 'var(--color-success-txt-item)',
       translate: [0.5, 0],
       size: 8,
     },
   ],
-  paused: constructIcon(faPause),
+  paused: constructIcon(solid.faPause),
   'paused-circle': [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-info-item-base)',
     },
     {
-      icon: faPause,
+      icon: solid.faPause,
       color: 'var(--color-info-txt-item)',
       size: 8,
     },
   ],
-  suspended: constructIcon(faMoon),
+  suspended: constructIcon(solid.faMoon),
   'suspended-circle': [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-neutral-background-disabled)',
     },
     {
-      icon: faMoon,
+      icon: solid.faMoon,
       color: 'var(--color-neutral-txt-secondary)',
       translate: [-1, 0],
       size: 13,
     },
   ],
-  halted: constructIcon(faSquare),
+  halted: constructIcon(solid.faSquare),
   'halted-circle': [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-danger-item-base)',
     },
     {
-      icon: faSquare,
+      icon: solid.faSquare,
       color: 'var(--color-danger-txt-item)',
       size: 7,
     },
   ],
   'host-disabled-circle': [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-neutral-background-disabled)',
     },
     {
-      icon: faBan,
+      icon: solid.faBan,
       color: 'var(--color-neutral-txt-secondary)',
       size: 13,
     },
   ],
-  info: constructIcon(faInfo),
+  info: constructIcon(solid.faInfo),
   'info-circle': [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-info-item-base)',
     },
     {
-      icon: faInfo,
+      icon: solid.faInfo,
       color: 'var(--color-info-txt-item)',
       size: [10, 8],
     },
   ],
-  'info-picto': constructIcon(faUserAstronaut),
-  success: constructIcon(faCheck),
+  'info-picto': constructIcon(solid.faUserAstronaut),
+  success: constructIcon(solid.faCheck),
   'success-circle': [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-success-item-base)',
     },
     {
-      icon: faCheck,
+      icon: solid.faCheck,
       color: 'var(--color-success-txt-item)',
       size: 10,
     },
   ],
-  warning: constructIcon(faExclamation),
+  warning: constructIcon(solid.faExclamation),
   'warning-circle': [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-warning-item-base)',
     },
     {
-      icon: faExclamation,
+      icon: solid.faExclamation,
       color: 'var(--color-warning-txt-item)',
       size: 10,
     },
   ],
-  'warning-picto': constructIcon(faSatelliteDish),
+  'warning-picto': constructIcon(solid.faSatelliteDish),
   'danger-circle': [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-danger-item-base)',
     },
     {
-      icon: faClose,
+      icon: solid.faClose,
       color: 'var(--color-danger-txt-item)',
       size: 10,
     },
   ],
-  'danger-picto': constructIcon(faMeteor),
+  'danger-picto': constructIcon(solid.faMeteor),
   disabled: [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-neutral-background-disabled)',
     },
     {
-      icon: faMinus,
+      icon: solid.faMinus,
       color: 'var(--color-neutral-txt-secondary)',
       size: [8, 10],
     },
   ],
-  checkbox: constructIcon(checkboxEmpty),
+  checkbox: constructIcon(regular.faSquare),
   'checkbox-checked': [
     {
-      icon: faSquare,
+      icon: solid.faSquare,
       color: 'var(--color-brand-txt-item)',
       size: 10,
     },
     {
-      icon: faSquareCheck,
+      icon: solid.faSquareCheck,
       color: 'var(--color-brand-item-base)',
     },
   ],
   'checkbox-partially-checked': [
     {
-      icon: faSquare,
+      icon: solid.faSquare,
       color: 'var(--color-brand-txt-item)',
       size: 10,
     },
     {
-      icon: faSquareMinus,
+      icon: solid.faSquareMinus,
       color: 'var(--color-brand-item-base)',
     },
   ],
-  'radio-button': constructIcon(circleEmpty),
+  'radio-button': constructIcon(regular.faCircle),
   'radio-button-checked': [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-brand-item-base)',
     },
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-brand-txt-item)',
       size: 6,
     },
   ],
-  primary: constructIcon(faStar),
+  primary: constructIcon(solid.faStar),
   'primary-circle': [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-info-item-base)',
     },
     {
-      icon: faStar,
+      icon: solid.faStar,
       color: 'var(--color-info-txt-item)',
       size: 10,
     },
   ],
   'primary-circle-disabled': [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-neutral-txt-secondary)',
     },
     {
-      icon: faStar,
+      icon: solid.faStar,
       color: 'var(--color-neutral-background-primary)',
       size: 10,
     },
   ],
   'force-circle': [
     {
-      icon: faCircle,
+      icon: solid.faCircle,
       color: 'var(--color-warning-item-base)',
     },
     {
-      icon: faBolt,
+      icon: solid.faBolt,
       color: 'var(--color-warning-txt-item)',
       size: 10,
     },
   ],
   lock: {
-    icon: faLock,
+    icon: solid.faLock,
     color: 'var(--color-neutral-txt-primary)',
     size: [14, 15],
   },
