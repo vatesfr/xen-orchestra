@@ -13,4 +13,15 @@ describe('liveMountXapiLabels', () => {
       vdiNameDescription: 'Read-only live mount of web01 (20250801T080832Z), removed on unmount.',
     })
   })
+
+  it('says a live restore loses what is written to it', () => {
+    const xapiLabels = liveMountXapiLabels({
+      readWrite: true,
+      timestamp: TIMESTAMP,
+      vdiNameLabel: 'system',
+      vmNameLabel: 'web01',
+    })
+    assert.equal(xapiLabels.srNameLabel, '[XO live restore] web01 (20250801T080832Z)')
+    assert.match(xapiLabels.vdiNameDescription, /lost on unmount/)
+  })
 })
