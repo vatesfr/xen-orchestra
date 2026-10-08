@@ -1,8 +1,6 @@
 <template>
   <UiPanelCard class="host-hardware-specifications-card">
-    <UiCardTitle>
-      {{ t('hardware-specifications') }}
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('hardware-specifications')" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('manufacturer-info') }}</template>
@@ -27,8 +25,8 @@ import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-co
 import { getHostCoreSocketInfo, getHostManufacturerInfo } from '@/modules/host/utils/xo-host.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

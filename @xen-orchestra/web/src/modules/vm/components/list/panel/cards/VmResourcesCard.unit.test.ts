@@ -50,7 +50,7 @@ function attachVdis(...sizes: number[]) {
 it('renders the card title', () => {
   const wrapper = mountResourcesCard()
 
-  expect(wrapper.get('.ui-card-title .title').text()).toBe(t('resources'))
+  expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('resources'))
 })
 
 it('shows the vCPU count, the formatted RAM and the summed disk space of the VM', () => {

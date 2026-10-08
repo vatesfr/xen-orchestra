@@ -1,8 +1,6 @@
 <template>
   <UiPanelCard class="host-network-card">
-    <UiCardTitle>
-      {{ t('network') }}
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('network')" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('management-ip') }}</template>
@@ -51,8 +49,8 @@ import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-co
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

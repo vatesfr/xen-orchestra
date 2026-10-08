@@ -30,7 +30,7 @@ describe('azure', () => {
   it('renders the azure card title', () => {
     const wrapper = mountCard()
 
-    expect(wrapper.get('.ui-card-title').text()).toBe(t('azure'))
+    expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('azure'))
   })
 
   it('shows the host, account, container and path in container, without the https row', () => {
@@ -50,7 +50,7 @@ describe('azurite', () => {
   it('renders the azurite card title', () => {
     const wrapper = mountCard(createAzureUrl({ type: 'azurite' }))
 
-    expect(wrapper.get('.ui-card-title').text()).toBe(t('azurite'))
+    expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('azurite'))
   })
 
   it('shows whether the endpoint uses https', () => {

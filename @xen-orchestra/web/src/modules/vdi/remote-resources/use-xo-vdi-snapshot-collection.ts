@@ -25,7 +25,8 @@ export const vdiSnapshotFields = [
 ] as const satisfies readonly (keyof XoVdiSnapshot)[]
 
 export const useXoVdiSnapshotCollection = defineRemoteResource({
-  url: `${BASE_URL}/vdi-snapshots?fields=${vdiSnapshotFields.join(',')}`,
+  url: `${BASE_URL}/vdi-snapshots?fields=${vdiSnapshotFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'VDI-snapshot', fields: vdiSnapshotFields }),
   initialData: () => [] as FrontXoVdiSnapshot[],
   state: (vdiSnapshots, context) =>

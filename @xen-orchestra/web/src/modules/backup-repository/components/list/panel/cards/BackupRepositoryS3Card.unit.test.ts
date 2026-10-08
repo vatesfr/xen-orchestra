@@ -29,7 +29,7 @@ function mountCard(s3 = createS3Url()) {
 it('renders the card title', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('s3'))
+  expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('s3'))
 })
 
 it('shows the endpoint, security settings, credentials, bucket and path in bucket', () => {
