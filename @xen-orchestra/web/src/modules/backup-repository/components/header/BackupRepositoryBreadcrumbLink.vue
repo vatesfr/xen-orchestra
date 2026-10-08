@@ -25,7 +25,7 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { br } = defineProps<{
+defineProps<{
   br: FrontXoBackupRepository
   icon: IconName
 }>()
