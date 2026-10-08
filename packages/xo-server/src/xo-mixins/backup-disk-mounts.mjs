@@ -120,15 +120,15 @@ export default class BackupDiskMountsResolver {
     }
 
     const host = app.getObject(hostId, 'host')
-    const nameLabel = `[XO backup] ${archive.vm.name_label}`
+    const xapiLabels = { srNameLabel: `[XO backup] ${archive.vm.name_label}` }
 
     const remote = await app.getRemoteWithCredentials(getBackupRepositoryId(archiveId))
     const proxyId = remote.proxy
 
     const mount =
       proxyId === undefined
-        ? await this.#mountHere({ diskId, host, nameLabel, remote })
-        : await this.#mountOnProxy({ diskId, host, nameLabel, proxyId, remote })
+        ? await this.#mountHere({ diskId, host, remote, xapiLabels })
+        : await this.#mountOnProxy({ diskId, host, proxyId, remote, xapiLabels })
 
     this.#trackMount(mount.id, { archiveId, hostId, proxyId, srUuid: mount.srUuid })
     return mount
@@ -293,7 +293,7 @@ export default class BackupDiskMountsResolver {
    *
    * @returns {Promise<BackupArchiveDiskMount>}
    */
-  async #mountHere({ diskId, host, nameLabel, remote }) {
+  async #mountHere({ diskId, host, remote, xapiLabels }) {
     const app = this.#app
     const adapter = await app.getBackupsRemoteAdapter(remote)
     try {
@@ -301,9 +301,9 @@ export default class BackupDiskMountsResolver {
         diskPath: diskId,
         handler: adapter.value.handler,
         hostRef: host._xapiRef,
-        nameLabel,
         release: () => adapter.dispose(),
         xapi: app.getXapi(host),
+        xapiLabels,
       })
     } catch (error) {
       await adapter.dispose()
@@ -318,7 +318,7 @@ export default class BackupDiskMountsResolver {
    *
    * @returns {Promise<BackupArchiveDiskMount>}
    */
-  async #mountOnProxy({ diskId, host, nameLabel, proxyId, remote }) {
+  async #mountOnProxy({ diskId, host, proxyId, remote, xapiLabels }) {
     const app = this.#app
     // httpProxy is ignored when using XO Proxy
     const {
@@ -332,7 +332,7 @@ export default class BackupDiskMountsResolver {
       return await app.callProxyMethod(proxyId, 'backup.mountDisk', {
         disk: diskId,
         host: host.uuid,
-        nameLabel,
+        nameLabel: xapiLabels.srNameLabel,
         remote: {
           url: remote.url,
           options: remote.options,

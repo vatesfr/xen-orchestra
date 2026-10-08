@@ -17,6 +17,14 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
 /** @typedef {import('@vates/types').Xapi} Xapi */
 
 /**
+ * The XAPI names of what a mount creates, as the user sees them. Each one falls back to a name
+ * derived from the mount.
+ *
+ * @typedef {object} LiveMountXapiLabels
+ * @property {string} [srNameLabel] - `name_label` of the SR introduced on the host
+ */
+
+/**
  * A mount, as built by `#createDiskMount`.
  *
  * @typedef {object} DiskMount
@@ -176,7 +184,7 @@ export default class LiveMount extends EventEmitter {
    * @param {string} params.diskPath - path of the source disk, passed to `openDisk`
    * @param {object} params.xapi - XAPI connection of the pool owning `hostRef`
    * @param {string} params.hostRef - opaque ref of the host the disk is attached to as an SR
-   * @param {string} [params.nameLabel] - name of the created SR
+   * @param {LiveMountXapiLabels} [params.xapiLabels] - names of what is created, as shown to the user
    * @param {() => Promise<void>} [params.release] - called on unmount, e.g. to dispose the remote handler
    * @returns {Promise<{ id: string, srUuid: string, vdiUuid: string, iqn: string, address: string, port: number }>}
    */
@@ -194,7 +202,7 @@ export default class LiveMount extends EventEmitter {
     }
   }
 
-  #createDiskMount = defer(async ($defer, { handler, diskPath, xapi, hostRef, nameLabel, release }) => {
+  #createDiskMount = defer(async ($defer, { handler, diskPath, xapi, hostRef, release, xapiLabels = {} }) => {
     if (this.#firewallError !== undefined) {
       throw this.#firewallError
     }
@@ -264,7 +272,7 @@ export default class LiveMount extends EventEmitter {
       hostRef,
       deviceConfig: fullDeviceConfig,
       id,
-      nameLabel,
+      nameLabel: xapiLabels.srNameLabel,
       diskPath,
     })
 

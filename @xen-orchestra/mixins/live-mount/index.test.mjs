@@ -279,6 +279,16 @@ describe('mountDisk', () => {
     )
   })
 
+  it('names the SR as the caller asks', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+
+    await mountDisk(mixin, xapi, { xapiLabels: { srNameLabel: '[XO backup] web01' } })
+
+    const srIntroduce = xapi.calls.find(([method]) => method === 'SR.introduce')
+    assert.equal(srIntroduce[2], '[XO backup] web01')
+  })
+
   it('reports an unreachable target as a configuration problem', async () => {
     const { mixin } = makeMixin()
     const xapi = makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_141', []) })

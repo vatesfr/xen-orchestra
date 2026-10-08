@@ -2,16 +2,13 @@ import { randomUUID } from 'node:crypto'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 
-import { cacheLabel } from './_utils.mjs'
+import { cacheLabel, OC_MOUNT } from './_utils.mjs'
 
 const { debug, info, warn } = createLogger('xo:mixins:LiveMount')
 
 // Raw "LUN per VDI" driver: the LUN becomes a VDI as-is, with no LVM written to
 // it — the only iSCSI SR type usable on a read-only LUN.
 const SR_TYPE = 'iscsi'
-
-// identifies the SRs we created, to recognize leftovers
-const OC_MOUNT = 'xo:live-mount'
 
 // Our target exposes exactly one LUN, numbered 0.
 const LUN_ID = '0'
