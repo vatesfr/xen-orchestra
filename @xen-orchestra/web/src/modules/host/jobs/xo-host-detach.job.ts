@@ -6,7 +6,7 @@ import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-co
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { POOL_ALLOWED_OPERATIONS } from '@vates/types'
+import { HOST_POWER_STATE, POOL_ALLOWED_OPERATIONS } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useXoHostDetachJob = defineJob('host.detach', [xoHostArg], () => {
@@ -33,6 +33,10 @@ export const useXoHostDetachJob = defineJob('host.detach', [xoHostArg], () => {
 
       if (pool?.master === host.id) {
         throw new JobError(t('job:host-detach:master-host'))
+      }
+
+      if (host.power_state !== HOST_POWER_STATE.RUNNING) {
+        throw new JobError(t('job:host-detach:bad-power-state'))
       }
     },
   }
