@@ -49,18 +49,23 @@ export function useVdiRowActions(rawVdi: MaybeRefOrGetter<FrontXoVdi>, rawVm: Ma
     if (isMigratingVdi.value) {
       return 'migrate'
     }
+
     if (isDeletingVdis.value) {
       return 'delete'
     }
+
     if (isDeletingVbds.value) {
       return 'detach'
     }
+
     if (isConnectingVbds.value) {
       return 'connect'
     }
+
     if (isDisconnectingVbds.value) {
       return 'disconnect'
     }
+
     return 'none'
   })
 
