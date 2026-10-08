@@ -57,10 +57,13 @@
 
 <!--packages-start-->
 
+- @vates/iscsi minor
 - @vates/nbd-client patch
 - @vates/types minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
+- @xen-orchestra/mixins minor
+- @xen-orchestra/proxy minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
