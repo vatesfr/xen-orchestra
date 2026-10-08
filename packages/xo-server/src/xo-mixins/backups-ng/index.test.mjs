@@ -1,5 +1,6 @@
 import assert from 'assert/strict'
 import Disposable from 'promise-toolbox/Disposable'
+import EventEmitter from 'node:events'
 import test from 'node:test'
 import TimeoutError from 'promise-toolbox/TimeoutError'
 import { formatJournalEvents, formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
@@ -394,7 +395,7 @@ const createBackupNgWithRepository = repository => {
       assert.equal(id, REMOTE_ID)
       return { id: REMOTE_ID, url: 'file:///media/backup' }
     },
-    hooks: { on() {} },
+    hooks: new EventEmitter(),
   }
   return new BackupNg(app)
 }
@@ -541,7 +542,7 @@ describe('invalidateVmBackupsListing() on a cached repository', () => {
   })
 })
 
-describe('vmBackupArchives', () => {
+describe('the backup-archive collection', () => {
   beforeEach(() => {
     mock.timers.enable({ apis: ['setTimeout', 'Date'] })
   })
@@ -550,16 +551,32 @@ describe('vmBackupArchives', () => {
     mock.timers.reset()
   })
 
-  // records what the mixin announces, in order
+  // the collection the mixin registers once the core of the app has started, as `xo.mjs` receives it
+  const registeredCollection = backupNg => {
+    const { hooks } = backupNg._app
+    let registered
+    hooks.on('registerCollection', payload => {
+      registered = payload
+    })
+    hooks.emit('core started')
+    return registered
+  }
+
+  // records what the mixin announces, in order, by the id of the one archive each event carries
   const recordEvents = backupNg => {
+    const { collection } = registeredCollection(backupNg)
     const events = []
     for (const name of ['add', 'update', 'remove']) {
-      backupNg.vmBackupArchives.on(name, (archive, previous) =>
-        events.push({ event: name, id: (archive ?? previous).id })
-      )
+      collection.on(name, ([item]) => events.push({ event: name, id: name === 'remove' ? item : item.id }))
     }
     return events
   }
+
+  it('is registered with the app as backup-archive', () => {
+    const backupNg = createBackupNgWithRepository(new Repository([]))
+
+    assert.equal(registeredCollection(backupNg).type, 'backup-archive')
+  })
 
   it('announces the archives a listing discovered', async () => {
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
