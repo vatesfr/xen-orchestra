@@ -99,19 +99,38 @@ There is no special job type for it. To replicate in the reverse direction, simp
 
 On its first run, instead of sending a full copy, the job looks for a common snapshot on both sides (using the content metadata XO writes on every replicated disk) and only transfers the blocks that changed since that snapshot. Then, on the production side:
 
-- If the original VM is halted (or suspended) and its disks haven't changed since the last replication, the job **updates the original VM in place**: no duplicate VM, your production VM simply catches up with what happened on the DR side.
-- If the original VM has diverged (or is running), the common snapshot is still used as the delta base, but the job creates a new VM next to it rather than overwriting anything.
+- If the original VM's disks are exactly as the original job last replicated them, the job **updates the original VM in place**: no duplicate VM, your production VM simply catches up with what happened on the DR side. This requires the original VM to be halted (or suspended), its disks not to be used by any other VM, and not a single block to have been written to them since the original job's last snapshot.
+- Otherwise, the common snapshot is still used as the delta base, but the job creates a new VM next to the original rather than overwriting anything.
+
+:::warning
+Shutting down the original VM counts as a change: the shutdown itself writes to its disks (logs, file system journals). If the VM was still running when the original job last ran, the reverse job creates a new VM, even if nobody touched the VM since. To get an in-place update, shut the VM down **before** the original job's last run, and don't start it again.
+:::
 
 This matters in two situations:
 
-- **Failing back after a failover**: your production site went down, you force-started the replica and ran on the DR side for a few hours or days. Once production is repaired, a reverse job brings all the changes back as a delta, without transferring entire VMs across the WAN.
-- **Testing or executing a recovery plan**: you can do a planned switch to the DR site, work there, then switch back, with only deltas moving in each direction.
+- **Failing back after a failover**: your production site went down, you force-started the replica and ran on the DR side for a few hours or days. Once production is repaired, a reverse job brings all the changes back as a delta, without transferring entire VMs across the WAN. Since the production VM was still running after its last replication, the job creates a new VM next to it.
+- **Testing or executing a recovery plan**: you can do a planned switch to the DR site, work there, then switch back, with only deltas moving in each direction. This is where the original VM can be updated in place: see [Planned switch](#planned-switch).
 
 Constraints to be aware of:
 
 - The cross-job snapshot reuse only kicks in when the job has **a single replication target SR** (no additional targets or backup repositories in the same job).
 - It relies on the content metadata introduced with this feature: both sides need replication snapshots created by a recent XO (the same-VM reuse arrived in XO 6.3, the cross-direction reuse in XO 6.5). Older chains fall back to a full transfer on the first reverse run.
 - As always with incremental replication, don't delete or alter the replication snapshots: they are the common base that makes the reverse run a delta instead of a full.
+
+### Planned switch with an in-place update {#planned-switch}
+
+1. Shut down the VM on the production side.
+1. Run the original job one last time, then disable it: its snapshot now holds the VM's final state.
+1. Force start the replica on the DR side, and work there.
+1. To switch back, shut down the DR VM and run the reverse job: it updates the original VM in place.
+
+An in-place update turns the original VM into a replica of the DR VM. It keeps its UUID, but:
+
+- it takes the DR VM's name, prefixed with the reverse job's (`[XO Backup <job name>] …`), and the DR VM's description and settings (CPU, memory, tags)
+- it gets the `Continuous Replication` tag, and its start is blocked like any replica's: force start it to resume production
+- its HA restart priority is cleared, and it gets the `HA disabled` tag
+
+To see which outcome a run had, look at the snapshot the reverse job just created on the production side: if it belongs to your original VM, the VM was updated in place.
 
 ## Manual initial seed
 
@@ -204,6 +223,6 @@ If you want to start a VM on your destination host without breaking the incremen
 
 <UiDetail src="/img/xo5/force-start.jpg" alt="The force start confirmation, shown when starting a protected replica" width={480} />
 
-Force starting the most recent replica gets your services back quickly, but it consumes that replica: the job on the (now dead) production side would have to send a new full copy anyway.
+Force starting the most recent replica gets your services back quickly, but it consumes that replica: once production is back, the original job can no longer update it, and creates a new replica next to it (still transferring only a delta).
 
-Once your production site is back online, use [reverse replication](#reverse-replication) to fail back: create an incremental replication job from the DR side to your production SR. Everything that happened while you were running on the DR site comes back as a delta, and if your original VM is still there and untouched, it is updated in place. When production is up to date, shut down the DR side, restart the original job, and you are back to your normal replication flow.
+Once your production site is back online, use [reverse replication](#reverse-replication) to fail back: create an incremental replication job from the DR side to your production SR. Everything that happened while you were running on the DR site comes back as a delta, in a new VM next to the original one: the original VM most likely kept running after its last replication, so it can't be updated in place. To finish, shut down the DR VM, run the reverse job one last time so nothing written on the DR side is lost, force start the new VM, and select it in the original job instead of the old one.
