@@ -4,7 +4,6 @@ import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
-import { parseDateTime } from '@core/utils/time.util.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -87,19 +86,11 @@ describe('installDateFormatted', () => {
     expect(result.installDateFormatted).toBe(result.t('unknown'))
   })
 
-  it('formats the install date with the current locale', () => {
+  it('formats the install date as YYYY-MM-DD', () => {
     const installTime = 1660000000
-    const { wrapper } = mountComposable(() => {
-      const { locale, t } = useI18n()
-      const { installDateFormatted } = useXoVmUtils(createVm({ installTime }))
-      const expected = new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(
-        new Date(parseDateTime(installTime * 1000))
-      )
+    const result = mountVmUtils({ installTime })
 
-      return { installDateFormatted, expected, t }
-    })
-
-    expect(wrapper.vm.installDateFormatted).toBe(wrapper.vm.expected)
+    expect(result.installDateFormatted).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
 })
 

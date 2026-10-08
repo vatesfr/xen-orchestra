@@ -1,4 +1,11 @@
-import { utcParse } from 'd3-time-format'
+import { timeFormat, utcParse } from 'd3-time-format'
+
+const dateFormatter = timeFormat('%Y-%m-%d')
+const dateTimeFormatter = timeFormat('%Y-%m-%d %H:%M:%S')
+
+export const formatDate = (date: Date | number | string) => dateFormatter(new Date(date))
+
+export const formatDateTime = (date: Date | number | string) => dateTimeFormatter(new Date(date))
 
 export function parseDateTime(dateTime: Date | string | number): number {
   if (typeof dateTime === 'number') {

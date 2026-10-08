@@ -1,10 +1,10 @@
 <template>
-  <span :title="date.toLocaleString()">{{ relativeTime }}</span>
+  <span :title="formatDateTime(date)">{{ relativeTime }}</span>
 </template>
 
 <script lang="ts" setup>
 import useRelativeTime from '@core/composables/relative-time.composable.ts'
-import { parseDateTime } from '@core/utils/time.util.ts'
+import { formatDateTime, parseDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 
 const props = defineProps<{

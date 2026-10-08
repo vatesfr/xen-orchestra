@@ -9,8 +9,8 @@ export const useBackupLogsColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    startDate: useDateColumn({ headerLabel: () => t('start-date'), dateStyle: 'short', timeStyle: 'medium' }),
-    endDate: useDateColumn({ headerLabel: () => t('end-date'), dateStyle: 'short', timeStyle: 'medium' }),
+    startDate: useDateColumn({ headerLabel: () => t('start-date') }),
+    endDate: useDateColumn({ headerLabel: () => t('end-date') }),
     duration: useNumberColumn({ headerLabel: () => t('duration') }),
     status: useStatusColumn(),
     transferSize: useNumberColumn({ headerLabel: () => t('transfer-size') }),

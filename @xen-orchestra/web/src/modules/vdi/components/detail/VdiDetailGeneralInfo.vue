@@ -59,6 +59,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -68,7 +69,7 @@ const { vdi, vbd, vdiSnapshot } = defineProps<{
   vdiSnapshot?: FrontXoVdiSnapshot
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { getVdiById } = useXoVdiCollection()
 const { getVbdsByIds } = useXoVbdCollection()
@@ -86,7 +87,7 @@ const vdiSourceVdiSnapshot = computed(() => {
 
 const snapshotFormattedDate = computed(() => {
   if (vdiSnapshot) {
-    return d(vdiSnapshot.snapshot_time * 1000, { dateStyle: 'short', timeStyle: 'medium' })
+    return formatDateTime(vdiSnapshot.snapshot_time * 1000)
   }
   return undefined
 })
