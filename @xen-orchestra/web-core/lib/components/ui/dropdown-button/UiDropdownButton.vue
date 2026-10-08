@@ -1,6 +1,6 @@
 <!-- v9 -->
 <template>
-  <button :class="[className, { selected }]" :disabled="isDisabled" class="ui-dropdown-item" type="button">
+  <button :class="className" :disabled="isDisabled" class="ui-dropdown-button" type="button">
     <VtsIcon :name="icon" :size />
     <span :class="size === 'small' ? 'typo-action-button-small' : 'typo-action-button'">
       <slot />
@@ -11,17 +11,17 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import type { ButtonSize } from '@core/components/ui/button/UiButton.vue'
 import { useDisabled } from '@core/composables/disabled.composable.ts'
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
 export type DropdownButtonVariant = 'primary' | 'secondary'
+export type DropdownButtonSize = 'small' | 'medium'
 
-const { disabled, selected, icon, size, variant } = defineProps<{
+const { disabled, selected, size, variant } = defineProps<{
   variant: DropdownButtonVariant
-  size: ButtonSize
+  size: DropdownButtonSize
   disabled?: boolean
   selected?: boolean
   icon?: IconName
@@ -29,11 +29,11 @@ const { disabled, selected, icon, size, variant } = defineProps<{
 
 const isDisabled = useDisabled(() => disabled)
 
-const className = computed(() => toVariants({ size, variant }))
+const className = computed(() => toVariants({ size, variant, selected }))
 </script>
 
 <style lang="postcss" scoped>
-.ui-dropdown-item {
+.ui-dropdown-button {
   display: inline-flex;
   align-items: center;
   gap: 0.8rem;
@@ -41,16 +41,6 @@ const className = computed(() => toVariants({ size, variant }))
   position: relative;
   border-width: 0.1rem;
   border-style: solid;
-
-  &.size--small {
-    padding-block: 0.8rem;
-    padding-inline: 1.2rem;
-  }
-
-  &.size--medium {
-    padding-block: 1.2rem;
-    padding-inline: 1.6rem;
-  }
 
   &:focus-visible {
     outline: none;
@@ -64,8 +54,9 @@ const className = computed(() => toVariants({ size, variant }))
     }
   }
 
+  /* VARIANT */
   &.variant--primary {
-    background: var(--color-neutral-background-primary);
+    background-color: var(--color-neutral-background-primary);
     border-color: var(--color-brand-item-base);
     border-radius: 9rem;
     color: var(--color-brand-txt-base);
@@ -87,43 +78,55 @@ const className = computed(() => toVariants({ size, variant }))
 
     &:disabled {
       cursor: not-allowed;
-      border-color: var(--color-neutral-txt-secondary);
       background-color: var(--color-neutral-background-disabled);
+      border-color: var(--color-neutral-txt-secondary);
       color: var(--color-neutral-txt-secondary);
     }
   }
 
   &.variant--secondary {
-    background: transparent;
+    background-color: transparent;
     border-color: transparent;
     color: var(--color-brand-txt-base);
 
-    &.size--small {
-      border-radius: 0.2rem;
-    }
-
-    &.size--medium {
-      border-radius: 0.4rem;
-    }
-
     &:hover {
-      background: var(--color-brand-background-hover);
+      background-color: var(--color-brand-background-hover);
       color: var(--color-brand-txt-hover);
     }
 
     &:active {
-      background: var(--color-brand-background-active);
+      background-color: var(--color-brand-background-active);
       color: var(--color-brand-txt-active);
     }
 
     &.selected:not(:disabled) {
-      background: var(--color-brand-background-selected);
+      background-color: var(--color-brand-background-selected);
       color: var(--color-brand-txt-base);
     }
 
     &:disabled {
       cursor: not-allowed;
+      background-color: transparent;
       color: var(--color-neutral-txt-secondary);
+    }
+  }
+
+  /* SIZE */
+  &.size--small {
+    padding-block: 0.8rem;
+    padding-inline: 1.2rem;
+
+    &.variant--secondary {
+      border-radius: 0.2rem;
+    }
+  }
+
+  &.size--medium {
+    padding-block: 1.2rem;
+    padding-inline: 1.6rem;
+
+    &.variant--secondary {
+      border-radius: 0.4rem;
     }
   }
 }
