@@ -31,16 +31,25 @@ export type BackupRepositoryDetailsInitialData = {
   azure?: Partial<AzureBackupRepositoryDetailsFormData>
 }
 
+export type BackupRepositoryDetailsMixedFields = {
+  file?: (keyof LocalBackupRepositoryDetailsFormData)[]
+  nfs?: (keyof NfsBackupRepositoryDetailsFormData)[]
+  smb?: (keyof SmbBackupRepositoryDetailsFormData)[]
+  s3?: (keyof S3BackupRepositoryDetailsFormData)[]
+  azure?: (keyof AzureBackupRepositoryDetailsFormData)[]
+}
+
 export function useBackupRepositoryDetailsForms(
   generalFormData: BackupRepositoryGeneralFormData,
-  initialData?: BackupRepositoryDetailsInitialData
+  initialData?: BackupRepositoryDetailsInitialData,
+  mixedFields?: BackupRepositoryDetailsMixedFields
 ) {
   const details = {
-    file: useLocalBackupRepositoryDetailsForm(() => generalFormData.proxy, initialData?.file),
-    nfs: useNfsBackupRepositoryDetailsForm(initialData?.nfs),
-    smb: useSmbBackupRepositoryDetailsForm(initialData?.smb),
-    s3: useS3BackupRepositoryDetailsForm(initialData?.s3),
-    azure: useAzureBackupRepositoryDetailsForm(() => generalFormData.type, initialData?.azure),
+    file: useLocalBackupRepositoryDetailsForm(() => generalFormData.proxy, initialData?.file, mixedFields?.file),
+    nfs: useNfsBackupRepositoryDetailsForm(initialData?.nfs, mixedFields?.nfs),
+    smb: useSmbBackupRepositoryDetailsForm(initialData?.smb, mixedFields?.smb),
+    s3: useS3BackupRepositoryDetailsForm(initialData?.s3, mixedFields?.s3),
+    azure: useAzureBackupRepositoryDetailsForm(() => generalFormData.type, initialData?.azure, mixedFields?.azure),
   }
 
   const currentDetailsForm = computed(() => {

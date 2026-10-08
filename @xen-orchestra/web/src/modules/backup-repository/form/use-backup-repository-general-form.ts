@@ -26,10 +26,19 @@ const BLOCK_ONLY_TYPES: BackupRepositoryType[] = ['azure', 'azurite', 's3']
 
 export type BackupRepositoryGeneralForm = ReturnType<typeof useBackupRepositoryGeneralForm>
 
-export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneralFormData, isEditing = false) {
+export function useBackupRepositoryGeneralForm(
+  formData: BackupRepositoryGeneralFormData,
+  isEditing = false,
+  // Fields whose values differ between the edited BRs (multi-edition)
+  mixedFields: (keyof BackupRepositoryGeneralFormData)[] = []
+) {
   const { t } = useI18n()
 
   const { proxies } = useXoProxyCollection()
+
+  function getMixedPlaceholder(field: keyof BackupRepositoryGeneralFormData) {
+    return mixedFields.includes(field) ? t('mixed') : undefined
+  }
 
   const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
     errors: {
@@ -86,6 +95,7 @@ export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneral
   const { id: typeSelectId } = useFormSelect('type', typeOptions, {
     required: true,
     disabled: () => isEditing,
+    placeholder: () => getMixedPlaceholder('type') ?? '',
     option: { label: 'label', value: 'value' },
   })
 
@@ -107,6 +117,7 @@ export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneral
     required: true,
     // Encryption requires block format, and it can't be changed in edit mode
     disabled: () => formData.type === undefined || isBackupFormatLocked.value || (isEditing && formData.encrypted),
+    placeholder: () => getMixedPlaceholder('backupFormat') ?? '',
     option: { label: 'label', value: 'value', properties: source => ({ hint: source.hint }) },
   })
 
@@ -117,7 +128,7 @@ export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneral
   })
 
   const bindings = reactive({
-    name: useField('name', () => ({ label: t('name'), required: true })),
+    name: useField('name', () => ({ label: t('name'), required: true, placeholder: getMixedPlaceholder('name') })),
     type: useSelect(typeSelectId, () => ({ label: t('type') })),
     backupFormat: useSelect(backupFormatSelectId, () => ({
       label: t('backup-format'),
@@ -135,6 +146,7 @@ export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneral
       type: (isEditing ? 'password' : 'text') as InputType,
       disabled: isEditing,
       info: t('n-hexadecimal-characters', { n: ENCRYPTION_KEY_LENGTH }),
+      placeholder: getMixedPlaceholder('encryptionKey'),
     })),
   })
 

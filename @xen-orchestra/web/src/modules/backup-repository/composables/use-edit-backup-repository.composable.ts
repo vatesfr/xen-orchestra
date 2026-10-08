@@ -37,13 +37,33 @@ export function useEditBackupRepository() {
     },
   })
 
+  // TODO add back call
+  const { open: openMultiEdit } = useOverlay({
+    component: () => import('@/modules/backup-repository/components/drawer/EditBackupRepositoriesDrawer.vue'),
+    events: {
+      onConfirm: true,
+      onCancel: true,
+    },
+  })
+
   function openEditBackupRepositoryDrawer(newBr: FrontXoBackupRepository) {
     br.value = newBr
 
     return open({ props: { br: newBr } })
   }
 
+  function openEditBackupRepositoriesDrawer(brs: FrontXoBackupRepository[]) {
+    const [firstBr] = brs
+
+    if (brs.length === 1 && firstBr !== undefined) {
+      return openEditBackupRepositoryDrawer(firstBr)
+    }
+
+    return openMultiEdit({ props: { brs } })
+  }
+
   return {
     openEditBackupRepositoryDrawer,
+    openEditBackupRepositoriesDrawer,
   }
 }

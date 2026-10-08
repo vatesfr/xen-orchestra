@@ -21,13 +21,14 @@ export type AzureBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 
 export function useAzureBackupRepositoryDetailsForm(
   rawType: MaybeRefOrGetter<BackupRepositoryType | undefined>,
-  initialData?: Partial<AzureBackupRepositoryDetailsFormData>
+  initialData?: Partial<AzureBackupRepositoryDetailsFormData>,
+  mixedFields: (keyof AzureBackupRepositoryDetailsFormData)[] = []
 ) {
   const { t } = useI18n()
 
   const type = toComputed(rawType)
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+  const { formData, useField, validate, reset, getMixedPlaceholder } = useBackupRepositoryDetailsForm(
     { ...INITIAL_FORM_DATA, ...initialData },
     {
       errors: {
@@ -38,16 +39,37 @@ export function useAzureBackupRepositoryDetailsForm(
           containerName: { required },
         }),
       },
-    }
+    },
+    mixedFields
   )
 
   const bindings = reactive({
-    hostName: useField('hostName', () => ({ label: t('host-name'), required: true })),
+    hostName: useField('hostName', () => ({
+      label: t('host-name'),
+      required: true,
+      placeholder: getMixedPlaceholder('hostName'),
+    })),
     useHttps: useField('useHttps', () => ({ label: t('use-https') })),
-    accountName: useField('accountName', () => ({ label: t('account-name'), required: true })),
-    key: useField('key', () => ({ label: t('key'), required: true, type: 'password' as const })),
-    containerName: useField('containerName', () => ({ label: t('container-name'), required: true })),
-    pathInContainer: useField('pathInContainer', () => ({ label: t('path-in-container') })),
+    accountName: useField('accountName', () => ({
+      label: t('account-name'),
+      required: true,
+      placeholder: getMixedPlaceholder('accountName'),
+    })),
+    key: useField('key', () => ({
+      label: t('key'),
+      required: true,
+      type: 'password' as const,
+      placeholder: getMixedPlaceholder('key'),
+    })),
+    containerName: useField('containerName', () => ({
+      label: t('container-name'),
+      required: true,
+      placeholder: getMixedPlaceholder('containerName'),
+    })),
+    pathInContainer: useField('pathInContainer', () => ({
+      label: t('path-in-container'),
+      placeholder: getMixedPlaceholder('pathInContainer'),
+    })),
   })
 
   function buildPayload(): BackupRepositoryDetailsPayload {

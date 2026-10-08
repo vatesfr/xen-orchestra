@@ -19,10 +19,13 @@ const INITIAL_FORM_DATA = {
 
 export type S3BackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 
-export function useS3BackupRepositoryDetailsForm(initialData?: Partial<S3BackupRepositoryDetailsFormData>) {
+export function useS3BackupRepositoryDetailsForm(
+  initialData?: Partial<S3BackupRepositoryDetailsFormData>,
+  mixedFields: (keyof S3BackupRepositoryDetailsFormData)[] = []
+) {
   const { t } = useI18n()
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+  const { formData, useField, validate, reset, getMixedPlaceholder } = useBackupRepositoryDetailsForm(
     { ...INITIAL_FORM_DATA, ...initialData },
     {
       errors: {
@@ -34,7 +37,8 @@ export function useS3BackupRepositoryDetailsForm(initialData?: Partial<S3BackupR
           bucket: { required },
         }),
       },
-    }
+    },
+    mixedFields
   )
 
   watch(
@@ -51,14 +55,35 @@ export function useS3BackupRepositoryDetailsForm(initialData?: Partial<S3BackupR
       label: t('endpoint-url'),
       required: true,
       info: t('s3-endpoint-sample'),
+      placeholder: getMixedPlaceholder('endpoint'),
     })),
     useHttps: useField('useHttps', () => ({ label: t('use-https') })),
     allowUnauthorized: useField('allowUnauthorized', () => ({ label: t('allow-unauthorized') })),
-    region: useField('region', () => ({ label: t('region'), required: true })),
-    accessKeyId: useField('accessKeyId', () => ({ label: t('access-key-id'), required: true })),
-    secret: useField('secret', () => ({ label: t('secret'), required: true, type: 'password' as const })),
-    bucket: useField('bucket', () => ({ label: t('bucket-name'), required: true })),
-    pathInBucket: useField('pathInBucket', () => ({ label: t('path-in-bucket') })),
+    region: useField('region', () => ({
+      label: t('region'),
+      required: true,
+      placeholder: getMixedPlaceholder('region'),
+    })),
+    accessKeyId: useField('accessKeyId', () => ({
+      label: t('access-key-id'),
+      required: true,
+      placeholder: getMixedPlaceholder('accessKeyId'),
+    })),
+    secret: useField('secret', () => ({
+      label: t('secret'),
+      required: true,
+      type: 'password' as const,
+      placeholder: getMixedPlaceholder('secret'),
+    })),
+    bucket: useField('bucket', () => ({
+      label: t('bucket-name'),
+      required: true,
+      placeholder: getMixedPlaceholder('bucket'),
+    })),
+    pathInBucket: useField('pathInBucket', () => ({
+      label: t('path-in-bucket'),
+      placeholder: getMixedPlaceholder('pathInBucket'),
+    })),
   })
 
   function buildPayload(): BackupRepositoryDetailsPayload {
