@@ -139,7 +139,7 @@ declare namespace backup {
     id: string
     // UUID of the SR introduced on the host
     srUuid: string
-    // UUID of the read-only VDI exposing the disk
+    // UUID of the VDI exposing the disk, read-only unless it is cached
     vdiUuid: string
     // IQN of the target serving the disk
     iqn: string
@@ -172,9 +172,9 @@ declare namespace backup {
     streamLogs: boolean = false
   }): RestoredVm // with `streamLogs`, an ndjson stream of the task logs, the result in the end one
 
-  // Serve `disk` as a read-only iSCSI LUN and attach it, as an SR, to `host` — a host of the pool
-  // `xapi` points at. Nothing is copied: every read goes straight to the backup repository, and
-  // writes are refused. Undone by `unmountDisk`.
+  // Serve `disk` as an iSCSI LUN and attach it, as an SR, to `host` — a host of the pool `xapi`
+  // points at. Without `cacheSr`, nothing is copied: every read goes straight to the backup
+  // repository, and the LUN is write protected. Undone by `unmountDisk`.
   //
   // `xapiLabels` names the SR and the VDI attached to the host; `nameLabel`, which only names the
   // SR, is still accepted from older XOs.
@@ -182,13 +182,22 @@ declare namespace backup {
   // The portal handed to the host is this proxy's address as seen from it, auto-detected unless
   // `iscsi.advertisedAddress` is set in the proxy configuration.
   //
+  // With `cacheSr`, the LUN is read/write: each block read is kept in a VDI of this SR, hot-plugged
+  // onto this proxy's own VM `vm`, so the backup repository is read at most once per block, and the
+  // writes land there too — the backup is never modified. That VDI is created with the mount and
+  // destroyed with it, so what was written is lost on unmount. It requires this proxy to be a VM
+  // of `xapi`'s pool, and `cacheSr` to be plugged on the host running it; on a local SR, this
+  // proxy must not be migrated until the mount is gone, since that VDI cannot follow it.
+  //
   // There is no method to list the mounts: a proxy is driven by a single XO, which is the one
   // keeping track of them.
   function mountDisk(_: {
+    cacheSr?: string
     disk: string
     host: string
     nameLabel?: string // deprecated, use `xapiLabels.srNameLabel`
     remote: Remote
+    vm?: string
     xapi: Xapi
     xapiLabels?: { srNameLabel?: string; vdiNameLabel?: string; vdiNameDescription?: string }
   }): MountedDisk
