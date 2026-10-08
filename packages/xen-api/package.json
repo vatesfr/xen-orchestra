@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xen-api",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "license": "ISC",
   "description": "Connector to the Xen API",
   "keywords": [

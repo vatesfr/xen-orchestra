@@ -6,7 +6,7 @@
     <template v-if="vif" #default>
       <!-- VIF -->
       <UiPanelCard>
-        <VtsCardObjectTitle :id="vif.uuid" :label="t('vif')" />
+        <UiPanelCardTitle :id="vif.uuid" size="medium" :label="t('vif')" />
         <div class="content">
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
@@ -65,7 +65,7 @@
       </UiPanelCard>
       <!-- VIF NETWORK INFORMATION -->
       <UiPanelCard>
-        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
+        <UiPanelCardTitle size="medium" :label="t('network-information')" />
         <div class="content">
           <!-- IP ADDRESSES -->
           <div v-if="ipAddresses.length">
@@ -113,13 +113,12 @@ import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

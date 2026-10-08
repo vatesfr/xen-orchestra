@@ -17,7 +17,7 @@ function mountCard(host: FrontXoHost = createHost()) {
 it('renders the card title', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('hardware-specifications'))
+  expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('hardware-specifications'))
 })
 
 it('shows the manufacturer and the core layout of the host', () => {

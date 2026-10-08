@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/web",
-  "version": "0.63.0",
+  "version": "0.63.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -35,7 +35,7 @@
     "@vueuse/integrations": "^14.0.0",
     "@vueuse/math": "^14.0.0",
     "@vueuse/shared": "^14.0.0",
-    "@xen-orchestra/web-core": "^0.63.0",
+    "@xen-orchestra/web-core": "^0.63.1",
     "complex-matcher": "^1.1.1",
     "d3-time-format": "^4.1.0",
     "happy-dom": "^20.0.0",
@@ -81,5 +81,8 @@
   "license": "AGPL-3.0-or-later",
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "@xen-orchestra/backups": "^0.74.2"
   }
 }

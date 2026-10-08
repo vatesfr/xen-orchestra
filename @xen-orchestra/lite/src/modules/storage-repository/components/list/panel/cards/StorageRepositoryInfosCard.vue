@@ -1,13 +1,12 @@
 <template>
   <UiPanelCard class="storage-repository-infos-card">
-    <UiCardTitle>
-      <div v-if="sr.name_label" class="title">
-        <VtsIcon :name="srStatusIcon" size="medium" />
-        {{ sr.name_label }}
-      </div>
-    </UiCardTitle>
+    <UiPanelCardTitle
+      :id="sr.uuid"
+      size="medium"
+      :label="sr.name_label"
+      :icon="sr.name_label ? srStatusIcon : undefined"
+    />
     <div class="content">
-      <VtsCodeSnippet :content="sr.uuid" copy />
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
@@ -67,13 +66,11 @@ import { useSrUtils } from '@/modules/storage-repository/composables/sr-utils.co
 import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -102,12 +99,6 @@ const isHaSr = computed(() => isHaSrForPool(sr, pool))
 
 <style scoped lang="postcss">
 .storage-repository-infos-card {
-  .title {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-  }
-
   .content {
     display: flex;
     flex-direction: column;

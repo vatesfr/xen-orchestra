@@ -189,12 +189,7 @@
             </div>
             <!-- STORAGE SECTION -->
             <UiTitle>{{ t('storage') }}</UiTitle>
-            <NewVmSrTable
-              :srs="filteredSrs"
-              :vm-state
-              @add="addStorageEntry()"
-              @remove="index => deleteItem(vmState.vdis, index)"
-            />
+            <NewVmSrTable :srs="filteredSrs" :vm-state @add="addStorageEntry()" @remove="removeVdi" />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
             <UiCheckboxGroup accent="brand" :vertical="uiStore.isSmall">
@@ -255,7 +250,7 @@ import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resour
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import NewVmNetworkTable from '@/modules/vm/components/new/NewVmNetworkTable.vue'
 import NewVmSrTable from '@/modules/vm/components/new/NewVmSrTable.vue'
-import { useXoVmCreateJob } from '@/modules/vm/jobs/xo-vm-create.job.ts'
+import { type NewVmVdiPayload, useXoVmCreateJob } from '@/modules/vm/jobs/xo-vm-create.job.ts'
 import {
   type FrontXoVmTemplate,
   useXoVmTemplateCollection,
@@ -285,6 +280,7 @@ import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoPool } from '@vates/types'
 
+import { omit, uniqueId } from 'lodash-es'
 import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -449,6 +445,7 @@ const addStorageEntry = () => {
   }
 
   vmState.vdis.push({
+    key: uniqueId('vdi-'),
     name_label: (vmState.new_vm_template?.name_label || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
     sr: defaultSr.value,
@@ -482,6 +479,11 @@ const removeSshKey = (index: number) => {
   vmState.sshKeys.splice(index, 1)
 }
 
+const removeVdi = (key: Vdi['key']) => {
+  vmState.vdis = vmState.vdis.filter(vdi => vdi.key !== key)
+  vmState.existingVdis = vmState.existingVdis.filter(vdi => vdi.key !== key)
+}
+
 const isDiskTemplate = computed(() => {
   return (
     vmState.new_vm_template &&
@@ -511,6 +513,7 @@ const filteredSrs = computed(() => {
 
 const getVmTemplateVdis = (template: FrontXoVmTemplate) =>
   (template.template_info?.disks ?? []).map((disk, index) => ({
+    key: uniqueId('vdi-'),
     name_label: `${template?.name_label || 'disk'}_${index}_${generateRandomString(4)}`,
     name_description: 'Created by XO',
     size: bytesToGiB(disk.size),
@@ -533,6 +536,7 @@ const getExistingVdis = (template: FrontXoVmTemplate) => {
     }
 
     acc.push({
+      key: vdi.id,
       id: vdi.id,
       name_label: vdi.name_label,
       name_description: vdi.name_description,
@@ -650,13 +654,25 @@ function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
   return hasChanged ? (changes as Partial<Vdi>) : undefined
 }
 
-const modifiedExistingVdis = computed(() => {
-  return vmState.existingVdis.reduce<Partial<Vdi>[]>((acc, vdi, index) => {
-    const defaultVdi = defaultExistingVdis.value[index]
-    const changes = getExistingVdisDiff(defaultVdi, vdi)
+const existingVdisToSend = computed(() => {
+  return defaultExistingVdis.value.reduce<NewVmVdiPayload[]>((acc, defaultVdi) => {
+    const { userdevice } = defaultVdi
+
+    if (userdevice === undefined) {
+      return acc
+    }
+
+    const currentVdi = vmState.existingVdis.find(vdi => vdi.id === defaultVdi.id)
+
+    if (currentVdi === undefined) {
+      acc.push({ userdevice, destroy: true })
+      return acc
+    }
+
+    const changes = getExistingVdisDiff(defaultVdi, currentVdi)
 
     if (changes) {
-      acc.push({ ...changes, userdevice: vdi.userdevice })
+      acc.push({ ...changes, ...(changes.size && { size: giBToBytes(changes.size) }), userdevice })
     }
 
     return acc
@@ -729,15 +745,15 @@ const vifsToSend = computed(() => {
   return result
 })
 
-const vmData = computed(() => {
-  const vdisToSend = [...vmState.vdis, ...modifiedExistingVdis.value].map(vdi => ({
-    ...vdi,
-    ...(vdi.size && { size: giBToBytes(vdi.size) }),
-  }))
+const vdisToSend = computed<NewVmVdiPayload[]>(() => [
+  ...vmState.vdis.map(vdi => ({ ...omit(vdi, 'key'), size: giBToBytes(vdi.size) })),
+  ...existingVdisToSend.value,
+])
 
+const vmData = computed(() => {
   const optionalFields = Object.assign(
     {},
-    vdisToSend.length > 0 && { vdis: vdisToSend },
+    vdisToSend.value.length > 0 && { vdis: vdisToSend.value },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
     vmState.installMode !== 'no-config' &&

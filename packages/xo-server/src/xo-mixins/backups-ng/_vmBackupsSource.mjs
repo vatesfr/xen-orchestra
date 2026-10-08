@@ -9,6 +9,7 @@ import { formatJournalEvents, formatVmBackupAt } from '@xen-orchestra/backups/fo
 import { isKnownJournalEvent } from '@xen-orchestra/backups/_backupJournal.mjs'
 import { invalidParameters } from 'xo-common/api-errors.js'
 
+/** @typedef {import('@vates/types').XoProxy['id']} ProxyId */
 /** @typedef {import('./_vmBackupsCache.mjs').BackupsByVm} BackupsByVm */
 /** @typedef {import('./_vmBackupsCache.mjs').Backups} Backups */
 /** @typedef {import('./_vmBackupsCache.mjs').FormattedBackup} FormattedBackup */
@@ -18,10 +19,16 @@ import { invalidParameters } from 'xo-common/api-errors.js'
 /** @typedef {import('@xen-orchestra/backups/formatVmBackups.mjs').VmBackupMetadata} VmBackupMetadata */
 
 /**
+ * A repository whose backups are read through a proxy instead of by this process.
+ *
+ * @typedef {Repository & { proxy: ProxyId }} ProxiedRepository
+ */
+
+/**
  * What the source needs from the `Xo` app.
  *
  * @typedef {object} App
- * @property {(proxyId: string, method: string, params: object) => Promise<any>} callProxyMethod
+ * @property {(proxyId: ProxyId, method: string, params: object) => Promise<any>} callProxyMethod
  * @property {(repository: Repository) => object} getBackupsRemoteAdapter a disposable of the
  * `RemoteAdapter` of the repository
  */
@@ -40,6 +47,15 @@ const { warn } = createLogger('xo:xo-mixins:backups-ng:vmBackupsSource')
 // `callProxyMethod()` throws the deserialized JSON-RPC error, which is a plain object and not an
 // `Error`: only its code can be matched on
 const METHOD_NOT_FOUND_CODE = -32601
+
+/**
+ * Whether a repository is read through a proxy, as a guard so that the methods which only handle
+ * that case can require the proxy id the whole `Repository` type only makes optional.
+ *
+ * @param {Repository} repository
+ * @returns {repository is ProxiedRepository}
+ */
+const isProxied = repository => repository.proxy !== undefined
 
 /**
  * What a proxy needs to reach a repository. The credentials travel in the url, protected by TLS and
@@ -87,7 +103,7 @@ export class VmBackupsSource {
   //
   // it only gates the warning: the method is still called every time, so a proxy which gets
   // upgraded starts being replayed at once
-  /** @type {Set<string>} */
+  /** @type {Set<ProxyId>} */
   #proxiesWithoutJournal = new Set()
 
   /**
@@ -114,7 +130,7 @@ export class VmBackupsSource {
    * @returns {Promise<BackupsByVm>}
    */
   async listAll(repository) {
-    if (repository.proxy !== undefined) {
+    if (isProxied(repository)) {
       return mapValues(await this.#listVmBackupsOnProxy(repository), keyBackups)
     }
 
@@ -131,7 +147,7 @@ export class VmBackupsSource {
    * @returns {Promise<Backups>}
    */
   async listOneVm(repository, vmUuid) {
-    if (repository.proxy !== undefined) {
+    if (isProxied(repository)) {
       return this.#listOneVmOnProxy(repository, vmUuid)
     }
 
@@ -200,7 +216,7 @@ export class VmBackupsSource {
   }
 
   /**
-   * @param {Repository} repository
+   * @param {ProxiedRepository} repository
    * @param {string} vmUuid
    * @returns {Promise<Backups>}
    */
@@ -221,14 +237,14 @@ export class VmBackupsSource {
   }
 
   /**
-   * @param {Repository} repository
+   * @param {ProxiedRepository} repository
    * @param {string} [vmId]
    * @returns {Promise<Record<string, FormattedBackup[]>>}
    */
   async #listVmBackupsOnProxy(repository, vmId) {
-    const { id } = repository
-    // set: this is only called for a repository attached to a proxy
-    const proxy = /** @type {string} */ (repository.proxy)
+    const { id, proxy } = repository
+
+    /** @type {Record<string, Record<string, FormattedBackup[]>>} */
     const { [id]: backupsByVm } = await this.#app.callProxyMethod(proxy, 'backup.listVmBackups', {
       remotes: { [id]: remoteOf(repository) },
       vmId,

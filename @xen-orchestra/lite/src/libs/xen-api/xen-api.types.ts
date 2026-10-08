@@ -44,7 +44,7 @@ import type {
   VUSB_OPERATION,
 } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XEN_API_OBJECT_TYPES } from '@/libs/xen-api/xen-api.utils.ts'
-import type { OPAQUE_REF_NULL } from '@vates/types'
+import type { OPAQUE_REF_NULL, POOL_ALLOWED_OPERATIONS } from '@vates/types'
 
 type TypeMapping = typeof XEN_API_OBJECT_TYPES
 export type ObjectType = keyof TypeMapping
@@ -112,6 +112,7 @@ export interface XenApiPool extends XenApiRecord<'pool'> {
     cpu_count: string
   }
   master: XenApiHost['$ref']
+  current_operations: Record<string, POOL_ALLOWED_OPERATIONS>
   name_label: string
   other_config: Record<string, string>
   // TODO add | OPAQUE_REF_NULL, warning with newVm
@@ -167,6 +168,7 @@ export interface XenApiHost extends XenApiRecord<'host'> {
 
 export interface XenApiSr extends XenApiRecord<'sr'> {
   content_type: string
+  is_tools_sr: boolean
   name_description: string
   name_label: string
   other_config: Record<string, string>

@@ -7,7 +7,7 @@ import { FilterBuilder } from '../client/FilterBuilder.js'
 import {
   assertFullOrDelta,
   assertFullOrDeltaForSr,
-  findTaskByMessage,
+  findInfoByMessage,
   generateBackupJobName,
   getDefaultSchedule,
   getScheduleKey,
@@ -134,7 +134,10 @@ describe('Backup basic tests', () => {
       assertBackupSuccess(result, 'Synchronized full backup')
       assertFullOrDelta(result, backupRepository.id, { mustBeFull: true })
 
-      assert(findTaskByMessage(result, 'snapshot VMs') === null, `No batch snapshot should have been performed`)
+      assert(
+        findInfoByMessage(result, 'synchronized snapshot') === null,
+        `No batch snapshot should have been performed`
+      )
     })
 
     it('should run a synchronized delta backup and reuse the batch snapshots as the delta base on the second run', async () => {

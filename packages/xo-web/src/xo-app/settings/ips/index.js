@@ -32,6 +32,7 @@ const IPS_PATTERN = (() => {
   networks: createGetObjectsOfType('network').groupBy('id'),
   vifs: createGetObjectsOfType('VIF').groupBy('id'),
 }))
+@injectIntl
 class IpsCell extends BaseComponent {
   _addIps = () => {
     const addresses = {}
@@ -120,6 +121,7 @@ class IpsCell extends BaseComponent {
                 <DebounceInput
                   autoFocus
                   onChange={this.linkState('newIps')}
+                  placeholder={this.props.intl.formatMessage(messages.ipPoolIpsPlaceholder)}
                   type='text'
                   className='form-control'
                   required
@@ -312,7 +314,7 @@ export default class Ips extends BaseComponent {
                     disabled={creatingIpPool}
                     onChange={this.linkState('ips')}
                     pattern={IPS_PATTERN}
-                    placeholder={intl.formatMessage(messages.ipPoolIps)}
+                    placeholder={intl.formatMessage(messages.ipPoolIpsPlaceholder)}
                     required
                     style={FULL_WIDTH}
                     type='text'

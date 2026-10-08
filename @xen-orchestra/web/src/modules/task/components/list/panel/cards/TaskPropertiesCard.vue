@@ -1,8 +1,6 @@
 <template>
   <UiPanelCard class="task-properties-card">
-    <UiCardTitle>
-      {{ t('properties') }}
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('properties')" />
     <div class="content">
       <VtsRecursiveFields :fields="propertiesOtherWithoutCloudConfig" />
     </div>
@@ -21,9 +19,9 @@
 import { useXoTaskPropertiesUtils } from '@/modules/task/composables/xo-task-properties-utils.composable.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import VtsRecursiveFields from '@core/components/recursive-fields/VtsRecursiveFields.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { omit } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

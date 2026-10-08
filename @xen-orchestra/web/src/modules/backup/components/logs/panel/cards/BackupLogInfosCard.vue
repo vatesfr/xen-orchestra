@@ -1,6 +1,6 @@
 <template>
   <UiPanelCard class="backup-log-infos-card">
-    <VtsCardObjectTitle :id="backupLog.id" :label="backupLog.id" icon="object:backup-run" />
+    <UiPanelCardTitle :id="backupLog.id" size="medium" :label="backupLog.id" icon="object:backup-run" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('start-date') }}</template>
@@ -49,11 +49,11 @@
 import { useXoBackupLogsUtils } from '@/modules/backup/composables/xo-backup-log-utils.composable.ts'
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
