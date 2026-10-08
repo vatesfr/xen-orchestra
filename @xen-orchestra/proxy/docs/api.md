@@ -176,6 +176,9 @@ declare namespace backup {
   // `xapi` points at. Nothing is copied: every read goes straight to the backup repository, and
   // writes are refused. Undone by `unmountDisk`.
   //
+  // `xapiLabels` names the SR and the VDI attached to the host; `nameLabel`, which only names the
+  // SR, is still accepted from older XOs.
+  //
   // The portal handed to the host is this proxy's address as seen from it, auto-detected unless
   // `iscsi.advertisedAddress` is set in the proxy configuration.
   //
@@ -184,9 +187,10 @@ declare namespace backup {
   function mountDisk(_: {
     disk: string
     host: string
-    nameLabel?: string
+    nameLabel?: string // deprecated, use `xapiLabels.srNameLabel`
     remote: Remote
     xapi: Xapi
+    xapiLabels?: { srNameLabel?: string; vdiNameLabel?: string; vdiNameDescription?: string }
   }): MountedDisk
 
   // Fails with a `noSuchObject` error (code 1, `data.type: 'live-mount'`) for an id this proxy does

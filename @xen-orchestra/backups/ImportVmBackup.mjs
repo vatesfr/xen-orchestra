@@ -2,6 +2,7 @@ import assert from 'node:assert'
 
 import { formatFilenameDate } from './_filenameDate.mjs'
 import { importIncrementalVm } from './_incrementalVm.mjs'
+import { liveMountXapiLabels } from './liveMountXapiLabels.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 import { decorateClass } from '@vates/decorate-with'
 import { Task } from '@vates/task'
@@ -42,7 +43,8 @@ export class ImportVmBackup {
    * @param {object} [params.liveMount] - how to serve a disk from the backup repository instead of
    * copying it, injected by the caller since a live mount outlives the restore and cannot be run
    * from this package
-   * @param {({ diskPath, hostId }) => Promise<{ id: string, vdiUuid: string }>} params.liveMount.mountDisk
+   * @param {({ diskPath, hostId, xapiLabels }) => Promise<{ id: string, vdiUuid: string }>} params.liveMount.mountDisk
+   * `xapiLabels` are those of {@link liveMountXapiLabels}
    * @param {(id: string) => Promise<void>} params.liveMount.unmountDisk
    * @param {object} [params.settings]
    */
@@ -356,7 +358,12 @@ export class ImportVmBackup {
       }
 
       const diskPath = join(metadataDir, metadata.vhds[vdiRef])
-      const mount = await liveMount.mountDisk({ diskPath, hostId })
+      const xapiLabels = liveMountXapiLabels({
+        timestamp: metadata.timestamp,
+        vdiNameLabel: vdi.name_label,
+        vmNameLabel: metadata.vm.name_label,
+      })
+      const mount = await liveMount.mountDisk({ diskPath, hostId, xapiLabels })
       this.#liveMounts.push({ ...mount, hostId })
       info('disk live mounted', { diskPath, hostId, mountId: mount.id, vdiUuid: vdi.uuid })
 
