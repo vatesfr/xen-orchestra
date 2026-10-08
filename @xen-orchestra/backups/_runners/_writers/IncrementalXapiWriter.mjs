@@ -383,11 +383,11 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     retentionEntries.sort(compareReplicatedVmDatetime)
     this._oldEntries = getOldEntries(settings.copyRetention - 1, retentionEntries)
 
-    if (settings.deleteFirst && settings.skipDeleteOldEntries) {
+    if (settings.deleteFirst && !settings.skipDeleteOldEntries) {
       // we want to keep the baseVM when copying a delta
       // even if we want to keep only one after
       let mostRecentEntry
-      if (this._oldEntries.length > 1 && settings.copyRetention === 1 && !isFull) {
+      if (this._oldEntries.length > 0 && settings.copyRetention === 1 && !isFull) {
         mostRecentEntry = this._oldEntries.pop()
       }
       await this._deleteOldEntries()
@@ -418,6 +418,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     vm.other_config[JOB_ID] = job.id
     vm.other_config[SCHEDULE_ID] = scheduleId
     vm.other_config[REPLICATED_TO_SR_UUID] = sr.uuid
+    vm.other_config[VM_UUID] = this._vmUuid
     // set the timestamp in the past to ensure any incomplete VM will be deleted on next run
     vm.other_config[DATETIME] = formatFilenameDate(0)
 
@@ -439,7 +440,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       vdi.other_config[JOB_ID] = job.id
       vdi.other_config[SCHEDULE_ID] = scheduleId
       vdi.other_config[REPLICATED_TO_SR_UUID] = sr.uuid
-      vdi.other_config[VM_UUID] = vm.uuid
+      vdi.other_config[VM_UUID] = this._vmUuid
 
       const baseDeltaVdiUuid = vdi.other_config[BASE_DELTA_VDI]
       if (baseDeltaVdiUuid !== undefined) {

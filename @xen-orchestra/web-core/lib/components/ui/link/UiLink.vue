@@ -23,6 +23,7 @@ const props = defineProps<
     busyTooltip?: string
     isPrimary?: boolean
     primaryTooltip?: string
+    displayInline?: boolean
   }
 >()
 
@@ -33,7 +34,7 @@ const typoClasses = {
 
 const { component, attributes, isDisabled } = useLinkComponent('span', () => props)
 
-const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.value }])
+const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.value, inline: props.displayInline }])
 </script>
 
 <style lang="postcss" scoped>
@@ -42,6 +43,10 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
   align-items: center;
   gap: 0.8rem;
   color: var(--color-brand-txt-base);
+
+  &.inline {
+    display: inline;
+  }
 
   &:hover {
     color: var(--color-brand-txt-hover);

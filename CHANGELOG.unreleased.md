@@ -7,29 +7,34 @@
 
 > Security fixes and new features should go in this section
 
-- [V2V] Prevent privilege escalation via Prototype Pollution (PR [#10489](https://github.com/vatesfr/xen-orchestra/pull/10489))
-
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [Backup/Restore] Backup repositories attached to a proxy now also benefit from the faster, journal-replayed backup listing (PR [#10437](https://github.com/vatesfr/xen-orchestra/pull/10437))
+- [REST API] `POST /rest/v0/acl-roles` now supports a `privileges` property, allowing privileges to be directly associated with the newly created role (PR [#10470](https://github.com/vatesfr/xen-orchestra/pull/10470))
+- [XO6/Tasks] Add link and object resolution to Tasks Overview panel, better text flow for resolved task names (PR [#10265](https://github.com/vatesfr/xen-orchestra/pull/10265))
+- [XO5/Settings/IPs] Show an example of the expected IP format when adding IPs to an IP pool (PR [#10522](https://github.com/vatesfr/xen-orchestra/pull/10522))
+- [XO6/BRs] Add backup repository create form (PR [#10271](https://github.com/vatesfr/xen-orchestra/pull/10271))
+- [REST API] SSE now supports the `backup-archive` collection: backups appearing, being merged or disappearing from a backup repository are pushed to the subscribers, instead of each client listing the repositories again to spot them. XO does not read a repository on its own, so the changes of a repository are pushed as it is listed — a listing by any client is enough — and the archives it already holds arrive as `add` events the first time it is listed after a restart (PR [#10472](https://github.com/vatesfr/xen-orchestra/pull/10472))
+- [Plugins/load balancer] Added VM-to-host affinity to force VMs to run on a given set of hosts if possible (PR [#10207](https://github.com/vatesfr/xen-orchestra/pull/10207))
+- [Plugins/load balancer] Improved migration decision making (PR [#10207](https://github.com/vatesfr/xen-orchestra/pull/10207))
+- [XO6/New VM] Allow removing existing (template) disks (PR [#10292](https://github.com/vatesfr/xen-orchestra/pull/10292))
+- [XO6/Pool] Add validation to the pool connection form (PR [#10484](https://github.com/vatesfr/xen-orchestra/pull/10484))
 - [RPU] Resume a failed or interrupted rolling pool update: only the hosts with remaining work are handled, and the VMs go back to their original host (PR [#10474](https://github.com/vatesfr/xen-orchestra/pull/10474))
-- [XO6/StateHero] Update StateHero illustrations SVG to match current design system (PR [#10380](https://github.com/vatesfr/xen-orchestra/pull/10380))
-- [i18n] Update Chinese (Simplified Han script), Czech, Dutch, Finnish, Italian, Norwegian, Persian, Portuguese, Russian, Slovak, Spanish and Turkish translations (PR [#10396](https://github.com/vatesfr/xen-orchestra/pull/10396))
-- [Backup/Restore] A live mounted disk is released on its own once it is deleted, or the VM holding it is: its SR is forgotten and the backup is no longer served (PR [#10432](https://github.com/vatesfr/xen-orchestra/pull/10432))
-- [Backup/Restore] When ufw is enabled, as on XOA and proxies, live mount opens its iSCSI port in it, for the host the disk is attached to and while it is mounted (`iscsi.manageFirewall = false` to turn it off) (PR [#10468](https://github.com/vatesfr/xen-orchestra/pull/10468))
-- [XO6/BRs] Add backup repository list page (PR [#10247](https://github.com/vatesfr/xen-orchestra/pull/10247))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [REST API] Keep collection events ordered per object (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
-- [REST API] Wait for the XAPI objects before making a server connected (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
-- [REST API] Do not record an server error when a connection attempt is aborted (PR [#10446](https://github.com/vatesfr/xen-orchestra/pull/10446))
-- [Audit] Fix actions made from XO 5 (`/v5`) being logged with `127.0.0.1` or `::1` as user IP address instead of the real IP address of the client (PR [#10461](https://github.com/vatesfr/xen-orchestra/pull/10461))
-- [Backups] Fix backup logs transfer size including health check restores and every backup target, which made it much bigger than in XO5 [Forum#12486](https://xcp-ng.org/forum/topic/12486) (PR [#10448](https://github.com/vatesfr/xen-orchestra/pull/10448))
+- [Backups] Fix on distributed incremental replication and deleteFirst incorrectly disabled for non-distributed replication jobs (PR [#10452](https://github.com/vatesfr/xen-orchestra/pull/10452))
+- [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
+- [Host/VM] Fix the confirmation modal staying open and blocking the UI until the action was fully completed (PR #10417](https://github.com/vatesfr/xen-orchestra/pull/10417))
+- [Dashboard] Fix cards staying in error state after a temporary failure to fetch data, until the page was reloaded (PR [#10516](https://github.com/vatesfr/xen-orchestra/pull/10516))
+- [backup] Properly detect a disk deleting while merging (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
+- [backup] Recover a deadlocked merge when the chain is out of retention (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
+- [Plugins/load balancer] Prevent inter-pool migrations triggered by affinity or anti-affinity (PR [#10207](https://github.com/vatesfr/xen-orchestra/pull/10207))
+- [REST API] Fix VM creation when destroying an existing VDI (PR [#10292](https://github.com/vatesfr/xen-orchestra/pull/10292))
+- [XO6/Pool] Display an error when connecting a pool that is already registered, instead of failing silently (PR [#10484](https://github.com/vatesfr/xen-orchestra/pull/10484))
 
 ### Packages to release
 
@@ -48,16 +53,13 @@
 <!--packages-start-->
 
 - @vates/types minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/mixins minor
-- @xen-orchestra/proxy minor
+- @xen-orchestra/backup-archive patch
+- @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- xen-api patch
-- xo-remote-parser major
 - xo-server minor
+- xo-server-load-balancer minor
 - xo-web minor
 
 <!--packages-end-->

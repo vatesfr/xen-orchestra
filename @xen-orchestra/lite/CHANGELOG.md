@@ -2,6 +2,14 @@
 
 ## **next**
 
+- [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
+- [Treeview] Add a search bar and virtualize the tree (PR [#10414](https://github.com/vatesfr/xen-orchestra/pull/10414))
+- [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
+- [Host] Add possibility to enable/disable a host (PR [#10337](https://github.com/vatesfr/xen-orchestra/pull/10337))
+- [Host] Add possibility to restart a host toolstack (PR [#10480](https://github.com/vatesfr/xen-orchestra/pull/10480))
+
+## **0.26.0** (2026-10-01)
+
 - [Host] Add possibility to reboot a host (PR [#10250](https://github.com/vatesfr/xen-orchestra/pull/10250))
 - [Web-Core/TabItem] Update the component to remove uppercase for better readability (PR [#10338](https://github.com/vatesfr/xen-orchestra/pull/10338))
 - [Host] Add possibility to force reboot a host (PR [#10311](https://github.com/vatesfr/xen-orchestra/pull/10311))

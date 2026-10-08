@@ -2579,6 +2579,7 @@ const messages = {
   // ----- IPs ------
   ipPoolName: 'Name',
   ipPoolIps: 'IPs',
+  ipPoolIpsPlaceholder: 'IPs, e.g. 192.168.0.1-192.168.0.254;192.168.1.10',
   ipPoolNetworks: 'Networks',
   ipsNoIpPool: 'No IP pools',
   ipsCreate: 'Create',
@@ -2667,11 +2668,15 @@ const messages = {
 
   // ----- XO cloud config -----
   backedUpXoConfigs: 'Backed up XO Configs',
+  disableXoConfigCloudBackupConfirm:
+    'XO config backups on Vates servers will be deleted after their expiration period (100 days). Ensure you export the XO config to your own environment',
   manageXoConfigCloudBackup: 'Manage XO Config Cloud Backup',
   selectXoConfig: 'Select XO config',
   xoConfigCloudBackup: 'XO Config Cloud Backup',
   xoConfigCloudBackupTips:
     'Your encrypted configuration is securely stored inside your Vates account and backed up once a day',
+  xoCloudConfigAcknowledgment:
+    'I acknowledge that XO Config Cloud Backup is an optional feature outside the scope of my Vates VMS contract and does not replace my responsibility to maintain my own configuration backups. I enable it voluntarily, at my sole risk.',
   xoCloudConfigEnterPassphrase: 'Passphrase is required to encrypt backups',
   xoCloudConfigRestoreEnterPassphrase: 'Enter the passphrase:',
 
