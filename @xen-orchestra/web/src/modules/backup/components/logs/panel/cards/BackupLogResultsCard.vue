@@ -1,9 +1,10 @@
 <template>
   <UiPanelCard class="backup-log-results-card">
-    <UiCardTitle>
-      {{ cardMetadata.title }}
-      <UiCounter :value="results.length" size="small" :accent="cardMetadata.accent" variant="primary" />
-    </UiCardTitle>
+    <UiPanelCardTitle
+      size="medium"
+      :label="cardMetadata.title"
+      :counter="{ value: results.length, accent: cardMetadata.accent }"
+    />
     <div class="content">
       <template v-for="(result, index) in results" :key="index">
         <VtsCardRowKeyValue>
@@ -32,10 +33,9 @@ import type { BackupLogResult } from '@/modules/task/utils/xo-task.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { useMapper } from '@core/packages/mapper'
 import { useI18n } from 'vue-i18n'
 

@@ -62,7 +62,7 @@ function findBenchmarkButton(wrapper: ReturnType<typeof mountCard>) {
 it('renders the card title', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('speed'))
+  expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('speed'))
 })
 
 it('lists the writing and reading speeds only', () => {

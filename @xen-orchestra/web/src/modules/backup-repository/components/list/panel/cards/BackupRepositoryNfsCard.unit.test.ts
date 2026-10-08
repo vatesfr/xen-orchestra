@@ -19,7 +19,7 @@ function mountCard(nfs = createNfsUrl(), options?: string) {
 it('renders the card title', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('nfs'))
+  expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('nfs'))
 })
 
 it('shows the host, port, path and formatted mount options of the share', () => {
