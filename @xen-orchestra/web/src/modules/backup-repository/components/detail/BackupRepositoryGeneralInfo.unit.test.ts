@@ -37,7 +37,7 @@ it('renders the card title', () => {
   expect(wrapper.get('.ui-title .label').text()).toBe(t('general-information'))
 })
 
-it('shows the name, id, status, type, backup format, proxy and encryption of a plain repository', () => {
+it('shows the name, id, status, type, storage mode, proxy and encryption of a plain repository', () => {
   const wrapper = mountCard(
     createBr({
       name: 'Nightly backups',
@@ -51,7 +51,7 @@ it('shows the name, id, status, type, backup format, proxy and encryption of a p
     [t('uuid')]: 'br-42',
     [t('status')]: t('enabled'),
     [t('type')]: t('nfs'),
-    [t('backup-format')]: t('file-based'),
+    [t('storage-mode')]: t('file-based'),
     [t('proxy')]: '',
     [t('encryption')]: t('disabled'),
   })
@@ -69,23 +69,23 @@ it('shows an enabled repository with an error as unable to connect', () => {
   expect(findLabelledValues(wrapper)).toMatchObject({ [t('status')]: t('unable-to-connect') })
 })
 
-it('shows the block based backup format and the encryption of an encrypted repository', () => {
+it('shows the block based storage mode and the encryption of an encrypted repository', () => {
   const wrapper = mountCard(
     createBr({ url: 'nfs://192.168.100.225:/media/nfs?useVhdDirectory=true&encryptionKey=%22secret%22' })
   )
 
   expect(findLabelledValues(wrapper)).toMatchObject({
-    [t('backup-format')]: t('block-based'),
+    [t('storage-mode')]: t('block-based'),
     [t('encryption')]: t('enabled'),
   })
 })
 
-it('shows an unrecognized url as unknown type and backup format', () => {
+it('shows an unrecognized url as unknown type and storage mode', () => {
   const wrapper = mountCard(createBr({ url: 'ftp://192.168.100.225/backup' }))
 
   expect(findLabelledValues(wrapper)).toMatchObject({
     [t('type')]: t('unknown'),
-    [t('backup-format')]: t('unknown'),
+    [t('storage-mode')]: t('unknown'),
   })
 })
 

@@ -1,16 +1,16 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ t('azurite') }}
+      {{ azure.type === 'azure' ? t('azure') : t('azurite') }}
     </UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('host')" :value="azurite.host" />
-      <VtsTabularKeyValueRow :label="t('https')">
+      <VtsTabularKeyValueRow :label="t('host')" :value="azure.host" />
+      <VtsTabularKeyValueRow v-if="azure.type === 'azurite'" :label="t('https')">
         <template #value>
-          <VtsStatus :status="azurite.protocol === 'https'" />
+          <VtsStatus :status="azure.protocol === 'https'" />
         </template>
       </VtsTabularKeyValueRow>
-      <VtsTabularKeyValueRow :label="t('account-name')" :value="azurite.username" />
+      <VtsTabularKeyValueRow :label="t('account-name')" :value="azure.username" />
       <VtsTabularKeyValueRow :label="t('key')" :value="MASKED_SECRET" />
       <VtsTabularKeyValueRow :label="t('container-name')" :value="splitPath.root" />
       <VtsTabularKeyValueRow :label="t('path')" :value="splitPath.subPath" />
@@ -32,11 +32,11 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ParsedAzureBackupRepositoryUrl } from 'xo-remote-parser'
 
-const { azurite } = defineProps<{
-  azurite: ParsedAzureBackupRepositoryUrl
+const { azure } = defineProps<{
+  azure: ParsedAzureBackupRepositoryUrl
 }>()
 
 const { t } = useI18n()
 
-const splitPath = computed(() => splitBackupRepositoryPath(azurite.path))
+const splitPath = computed(() => splitBackupRepositoryPath(azure.path))
 </script>

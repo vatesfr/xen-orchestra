@@ -1,13 +1,15 @@
 <template>
   <VtsColumns extra-space-around>
     <VtsColumn>
-      <BackupRepositoryGeneralInfo :br :parsed-br-url="parsedBrUrl" />
+      <BackupRepositoryGeneralInfo :br :parsed-br-url />
       <BackupRepositoryLocalDetails v-if="parsedBrUrl?.type === 'file'" :file="parsedBrUrl" />
       <BackupRepositoryNfsDetails v-else-if="parsedBrUrl?.type === 'nfs'" :nfs="parsedBrUrl" :options="br.options" />
       <BackupRepositorySmbDetails v-else-if="parsedBrUrl?.type === 'smb'" :smb="parsedBrUrl" :options="br.options" />
       <BackupRepositoryS3Details v-else-if="parsedBrUrl?.type === 's3'" :s3="parsedBrUrl" />
-      <BackupRepositoryAzureDetails v-else-if="parsedBrUrl?.type === 'azure'" :azure="parsedBrUrl" />
-      <BackupRepositoryAzuriteDetails v-else-if="parsedBrUrl?.type === 'azurite'" :azurite="parsedBrUrl" />
+      <BackupRepositoryAzureAzuriteDetails
+        v-else-if="parsedBrUrl?.type === 'azure' || parsedBrUrl?.type === 'azurite'"
+        :azure="parsedBrUrl"
+      />
     </VtsColumn>
     <VtsColumn>
       <BackupRepositorySpeed :br />
@@ -16,8 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import BackupRepositoryAzureDetails from '@/modules/backup-repository/components/detail/BackupRepositoryAzureDetails.vue'
-import BackupRepositoryAzuriteDetails from '@/modules/backup-repository/components/detail/BackupRepositoryAzuriteDetails.vue'
+import BackupRepositoryAzureAzuriteDetails from '@/modules/backup-repository/components/detail/BackupRepositoryAzureAzuriteDetails.vue'
 import BackupRepositoryGeneralInfo from '@/modules/backup-repository/components/detail/BackupRepositoryGeneralInfo.vue'
 import BackupRepositoryLocalDetails from '@/modules/backup-repository/components/detail/BackupRepositoryLocalDetails.vue'
 import BackupRepositoryNfsDetails from '@/modules/backup-repository/components/detail/BackupRepositoryNfsDetails.vue'

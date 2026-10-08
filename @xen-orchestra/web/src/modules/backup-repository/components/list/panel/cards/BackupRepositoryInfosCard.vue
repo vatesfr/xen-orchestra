@@ -49,13 +49,9 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import { useXoBackupRepositoryUtils } from '@/modules/backup-repository/composables/use-xo-backup-repository-utils.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import {
-  getBackupRepositoryIcon,
-  getBackupRepositoryStatus,
-} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
-import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import { getBackupRepositoryIcon } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -73,25 +69,12 @@ const { br, parsedBrUrl } = defineProps<{
 
 const { t } = useI18n()
 
-const { useGetProxyById } = useXoProxyCollection()
-
-const brType = useXoBackupRepositoryTypeLabel(() => parsedBrUrl?.type)
+const { brStatus, brType, brStorageMode, brProxy, isEncrypted } = useXoBackupRepositoryUtils(
+  () => br,
+  () => parsedBrUrl
+)
 
 const brIcon = computed(() => getBackupRepositoryIcon(br, parsedBrUrl?.type))
-
-const brStatus = computed(() => getBackupRepositoryStatus(br))
-
-const brStorageMode = computed(() => {
-  if (parsedBrUrl?.type === undefined) {
-    return t('unknown')
-  }
-
-  return parsedBrUrl.useVhdDirectory ? t('block-based') : t('file-based')
-})
-
-const isEncrypted = computed(() => parsedBrUrl?.encryptionKey !== undefined)
-
-const brProxy = useGetProxyById(() => br.proxy)
 </script>
 
 <style scoped lang="postcss">

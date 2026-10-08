@@ -14,7 +14,11 @@
 </template>
 
 <script setup lang="ts">
-import { formatMountOptions, MASKED_SECRET } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import {
+  formatMountOptions,
+  getSmbPathOnShare,
+  MASKED_SECRET,
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -30,7 +34,7 @@ const { smb, options } = defineProps<{
 
 const { t } = useI18n()
 
-const pathOnShare = computed(() => `\\\\${smb.host}${smb.path !== '' ? `\\${smb.path}` : ''}`)
+const pathOnShare = computed(() => getSmbPathOnShare(smb))
 
 const formattedOptions = computed(() => formatMountOptions(options))
 </script>
