@@ -11,7 +11,7 @@
       setting('defaultSlotContent').preset('Dropdown title').widget(text()).help('Content for default slot'),
     ]"
   >
-    <UiDropdownButton v-bind="properties" :size="properties.size" :variant="properties.variant">
+    <UiDropdownButton v-bind="properties">
       {{ settings.defaultSlotContent }}
     </UiDropdownButton>
   </ComponentStory>
