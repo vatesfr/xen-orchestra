@@ -44,13 +44,7 @@ function emergencyShutdownHost() {
       icon: 'status:danger-picto',
     },
     events: {
-      onConfirm: async () => {
-        try {
-          await run()
-        } catch (error) {
-          console.error('Error when emergency shutting down host:', error)
-        }
-      },
+      onConfirm: () => run({ detached: true }),
     },
   })
 }

@@ -192,5 +192,19 @@ export const actionIcons = defineIconPack({
   download: constructIcon(faDownload),
   'health-check': constructIcon(faHeart),
   evacuate: constructIcon(faArrowCircleRight),
-  'emergency-shutdown': constructBadgedIcon(faSquare, faStarOfLife),
+  'emergency-shutdown': [
+    constructIcon(faSquare),
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-background-primary)',
+      translate: [7, 5.5],
+      size: 13,
+    },
+    {
+      icon: faStarOfLife,
+      color: 'currentColor',
+      translate: [7, 5.5],
+      size: 10,
+    },
+  ],
 })
