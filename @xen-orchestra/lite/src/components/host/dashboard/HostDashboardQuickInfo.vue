@@ -7,7 +7,7 @@
           {{ powerState.text }}
         </template>
       </VtsKeyValueRow>
-      <VtsKeyValueRow :label="t('ip-address')" :value="host.address" />
+      <VtsKeyValueRow :label="t('ip-address')" :value="host.address" copy />
       <VtsKeyValueRow :label="t('started')" :value="isRunning ? relativeStartTime : undefined" />
       <VtsKeyValueRow :label="t('master')">
         <template #value>
@@ -27,7 +27,7 @@
       </VtsKeyValueRow>
     </VtsKeyValueList>
     <VtsKeyValueList>
-      <VtsKeyValueRow :label="t('uuid')" :value="host.uuid" />
+      <VtsKeyValueRow :label="t('uuid')" :value="host.uuid" copy />
       <VtsKeyValueRow :label="t('description')" :value="host.name_description" />
       <VtsKeyValueRow :label="t('version')" :value="host.software_version.product_version" />
       <VtsKeyValueRow
