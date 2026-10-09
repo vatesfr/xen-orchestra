@@ -141,7 +141,18 @@ describe('ImportVmBackup#_decorateIncrementalVmMetadata()', () => {
 
       const backup = await importer._decorateIncrementalVmMetadata()
 
-      assert.deepEqual(liveMount.mounted, [{ diskPath: `/xo-vm-backups/${VM_UUID}/${vhdPath(DATA)}`, hostId: HOST }])
+      assert.deepEqual(liveMount.mounted, [
+        {
+          diskPath: `/xo-vm-backups/${VM_UUID}/${vhdPath(DATA)}`,
+          hostId: HOST,
+          // named after the backed up VM and disk, not after the file on the backup repository
+          xapiLabels: {
+            srNameLabel: '[XO live mount] a vm (20250801T080832Z)',
+            vdiNameLabel: 'data',
+            vdiNameDescription: 'Read-only live mount of a vm (20250801T080832Z), removed on unmount.',
+          },
+        },
+      ])
       // no data is transferred for it
       assert.deepEqual(Object.keys(backup.disks), [SYSTEM.ref])
     })

@@ -125,15 +125,21 @@ export function buildFixedSense({ key, asc, ascq }: SenseInfo): Buffer {
   return buffer
 }
 
+// Write Protect bit of the device-specific parameter byte of the MODE SENSE header
+const MODE_SENSE_WP = 0x80
+
 /** Minimal MODE SENSE parameter data: a header with no block descriptor or pages. */
-export function buildModeSense(long: boolean): Buffer {
+export function buildModeSense(long: boolean, readOnly = false): Buffer {
+  const deviceSpecific = readOnly ? MODE_SENSE_WP : 0
   if (long) {
     const buffer = Buffer.alloc(8)
     buffer.writeUInt16BE(6, 0) // mode data length (8 - 2)
+    buffer[3] = deviceSpecific
     return buffer
   }
   const buffer = Buffer.alloc(4)
   buffer[0] = 3 // mode data length (4 - 1)
+  buffer[2] = deviceSpecific
   return buffer
 }
 
@@ -243,7 +249,7 @@ export async function handleScsiCommand(
     }
 
     case 'modeSense':
-      return ctx.sendReadData(itt, buildModeSense(request.long), request.allocationLength)
+      return ctx.sendReadData(itt, buildModeSense(request.long, lun.isReadOnly?.() === true), request.allocationLength)
 
     case 'syncCache':
       await lun.flush()

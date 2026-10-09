@@ -1,12 +1,14 @@
 import { asyncEach } from '@vates/async-each'
+import { CachedDiskBlockDevice, DiskBlockDevice, FileBlockDevice, IscsiTarget } from '@vates/iscsi'
 import { createLogger } from '@xen-orchestra/log'
-import { DiskBlockDevice, IscsiTarget } from '@vates/iscsi'
 import { defer } from 'golike-defer'
 import { EventEmitter } from 'node:events'
 import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { randomBytes } from 'node:crypto'
 
+import { cacheLabel } from './_utils.mjs'
+import { createCache } from './_cache.mjs'
 import { detectLocalAddress } from './_address.mjs'
 import { createUfwFirewall } from './_firewall.mjs'
 import { createChapCredentials, probeScsiId } from './_target.mjs'
@@ -15,6 +17,16 @@ import { forgetSr, introduceSr, introduceVdi } from './_sr.mjs'
 const { info, warn } = createLogger('xo:mixins:LiveMount')
 
 /** @typedef {import('@vates/types').Xapi} Xapi */
+
+/**
+ * The XAPI names of what a mount creates, as the user sees them. Each one falls back to a name
+ * derived from the disk path.
+ *
+ * @typedef {object} LiveMountXapiLabels
+ * @property {string} [srNameLabel] - `name_label` of the SR introduced on the host
+ * @property {string} [vdiNameLabel] - `name_label` of the VDI attached to the host, and of the cache VDI
+ * @property {string} [vdiNameDescription] - `name_description` of the VDI attached to the host
+ */
 
 /**
  * A mount, as built by `#createDiskMount`.
@@ -31,6 +43,7 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * @property {import('@vates/iscsi').IscsiTarget} target
  * @property {Xapi} xapi - replaced by any newer connection to the same pool, see {@link LiveMount#watchConnection}
  * @property {string} [poolUuid] - pool of `xapi`, unknown if it was not connected
+ * @property {{ device: object, lun: object, vbdRef: string, vdiRef: string }} [cache] - local VDI the disk is materialized into
  * @property {{ source: string, port: number, id: string }} [firewallRule] - opened by `iscsi.manageFirewall`
  * @property {() => Promise<void>} [release]
  */
@@ -41,13 +54,19 @@ const FIREWALLS = {
 }
 
 /**
- * Serve a disk as a read-only iSCSI LUN and attach it, as an SR, to a host —
- * so its content is usable without copying it first.
+ * Serve a disk as an iSCSI LUN and attach it, as an SR, to a host — so its
+ * content is usable without copying it first.
  *
- * Nothing is cached: every read goes straight to the source, and writes are
- * refused (the LUN is backed by `@vates/iscsi`'s `DiskBlockDevice`, which is
- * read-only). Since nothing needs to be plugged into this appliance's own VM,
- * the mount can target any host reachable by the caller.
+ * Without a cache SR, the mount is read-only: every read goes straight to the
+ * source, the LUN is advertised as write protected, and the mount can target
+ * any host reachable by the caller.
+ *
+ * With one, it is read/write: the disk is materialized block by block into a
+ * VDI hot-plugged onto this appliance's own VM, which then holds every write
+ * too — the source is never modified. This appliance must belong to the pool of
+ * the target host, and that VDI lives and dies with the mount: what was written
+ * is lost on unmount. On a local SR, this appliance must not be migrated while
+ * the mount lasts: its VDI cannot follow it.
  *
  * Nothing app-specific is read from `app` apart from `config` and `hooks`: the
  * source disk, the XAPI connection and the target host are all passed in by
@@ -77,6 +96,7 @@ const FIREWALLS = {
  */
 export default class LiveMount extends EventEmitter {
   #app
+  #createCacheDevice
   #createTarget
   #detectAddress
   #firewall
@@ -99,13 +119,14 @@ export default class LiveMount extends EventEmitter {
 
   // `appName` scopes the firewall rules, so that xo-server and xo-proxy on the same machine do not
   // purge each other's
-  // `openDisk`/`createTarget`/`detectAddress`/`createFirewall` are injectable for tests only,
+  // every dependency reaching outside this process is injectable for tests only,
   // like xo-server's crypto-credentials mixin does with xenStore/fsPromises
   constructor(
     app,
     {
       appName,
       openDisk = openDiskChain,
+      createCacheDevice = options => new FileBlockDevice(options),
       createTarget = options => new IscsiTarget(options),
       detectAddress = detectLocalAddress,
       createFirewall = name => FIREWALLS[name]?.({ scope: appName }),
@@ -114,6 +135,7 @@ export default class LiveMount extends EventEmitter {
     super()
 
     this.#app = app
+    this.#createCacheDevice = createCacheDevice
     this.#createTarget = createTarget
     this.#detectAddress = detectAddress
     this.#openDisk = openDisk
@@ -176,8 +198,12 @@ export default class LiveMount extends EventEmitter {
    * @param {string} params.diskPath - path of the source disk, passed to `openDisk`
    * @param {object} params.xapi - XAPI connection of the pool owning `hostRef`
    * @param {string} params.hostRef - opaque ref of the host the disk is attached to as an SR
-   * @param {string} [params.nameLabel] - name of the created SR
+   * @param {LiveMountXapiLabels} [params.xapiLabels] - names of the SR and of the VDI shown to the user
    * @param {() => Promise<void>} [params.release] - called on unmount, e.g. to dispose the remote handler
+   * @param {string} [params.cacheSrUuid] - SR of a local VDI the disk is materialized into as it is
+   * read, and which holds the writes. Unset, nothing is cached and the mount is read-only. It must be
+   * plugged on the host running this appliance.
+   * @param {string} [params.vmUuid] - VM of this appliance, in `xapi`'s pool; required with `cacheSrUuid`
    * @returns {Promise<{ id: string, srUuid: string, vdiUuid: string, iqn: string, address: string, port: number }>}
    */
   async mountDisk(params) {
@@ -194,9 +220,13 @@ export default class LiveMount extends EventEmitter {
     }
   }
 
-  #createDiskMount = defer(async ($defer, { handler, diskPath, xapi, hostRef, nameLabel, release }) => {
+  #createDiskMount = defer(async ($defer, params) => {
+    const { cacheSrUuid, diskPath, handler, hostRef, release, vmUuid, xapi, xapiLabels = {} } = params
     if (this.#firewallError !== undefined) {
       throw this.#firewallError
+    }
+    if (cacheSrUuid !== undefined && vmUuid === undefined) {
+      throw new Error('vmUuid is required to create a live mount cache')
     }
     const config = this.#app.config
     // `iscsi.advertisedAddress` overrides auto-detection; unset, the address
@@ -221,7 +251,26 @@ export default class LiveMount extends EventEmitter {
     const disk = await this.#openDisk({ handler, path: diskPath })
     $defer.onFailure(() => disk.close())
 
-    const lun = new DiskBlockDevice({ disk })
+    // before the target, which opens the LUN
+    let cache
+    let lun
+    if (cacheSrUuid === undefined) {
+      lun = new DiskBlockDevice({ disk })
+    } else {
+      const { device, vbdRef, vdiRef } = await createCache($defer, {
+        createCacheDevice: this.#createCacheDevice,
+        disk,
+        diskPath,
+        id,
+        nameLabel: xapiLabels.vdiNameLabel ?? cacheLabel(diskPath),
+        srUuid: cacheSrUuid,
+        vmUuid,
+        xapi,
+      })
+      lun = new CachedDiskBlockDevice({ cache: device, disk })
+      cache = { device, lun, vbdRef, vdiRef }
+    }
+
     const target = this.#createTarget({
       chap,
       host: config.getOptional('iscsi.bindAddress'),
@@ -264,17 +313,28 @@ export default class LiveMount extends EventEmitter {
       hostRef,
       deviceConfig: fullDeviceConfig,
       id,
-      nameLabel,
+      nameLabel: xapiLabels.srNameLabel,
       diskPath,
     })
 
-    const vdiUuid = await introduceVdi({ xapi, srRef, SCSIid, size: lun.getSize(), diskPath, readOnly: true })
+    const vdiUuid = await introduceVdi({
+      xapi,
+      srRef,
+      SCSIid,
+      size: lun.getSize(),
+      diskPath,
+      id,
+      nameLabel: xapiLabels.vdiNameLabel,
+      nameDescription: xapiLabels.vdiNameDescription,
+      readOnly: cache === undefined,
+    })
 
-    info('mounted', { id, address, port, srUuid, vdiUuid, diskPath })
+    info('mounted', { id, address, port, srUuid, vdiUuid, diskPath, cached: cache !== undefined })
 
     const poolUuid = xapi.pool?.uuid
     return {
       address,
+      cache,
       disk,
       diskPath,
       firewallRule,
@@ -389,6 +449,9 @@ export default class LiveMount extends EventEmitter {
    * socket, a disk chain, a VDI and an SR, and giving up halfway would leak
    * whatever came after.
    *
+   * With a cache, the device must be closed before its VBD is unplugged, or the
+   * kernel refuses to release it and the VDI is leaked.
+   *
    * @param {string} id - identifier returned by {@link LiveMount#mountDisk}
    */
   async unmountDisk(id) {
@@ -404,7 +467,7 @@ export default class LiveMount extends EventEmitter {
     // not the deletion this mixin reacts to
     this.#unwatchVdi(mount)
 
-    const { xapi, srRef, target, firewallRule, release } = mount
+    const { cache, firewallRule, xapi, srRef, target, release } = mount
 
     const errors = []
     const step = async (what, fn) => {
@@ -421,6 +484,13 @@ export default class LiveMount extends EventEmitter {
     await step('close the target', () => target.close())
     if (firewallRule !== undefined) {
       await step('close the firewall rule', () => this.#firewall.close(firewallRule))
+    }
+    if (cache !== undefined) {
+      // already closed by the target, which owns the LUN — unless closing the target failed before
+      // getting there, and an open descriptor would then block the unplug and leak the VDI
+      await step('close the cache device', () => cache.device.close())
+      await step('destroy the cache VBD', () => xapi.VBD_destroy(cache.vbdRef))
+      await step('destroy the cache VDI', () => xapi.VDI_destroy(cache.vdiRef))
     }
     await step('release the caller resources', () => release?.())
 
@@ -441,9 +511,9 @@ export default class LiveMount extends EventEmitter {
     info('unmounted', { id, srUuid: mount.srUuid })
   }
 
-  /** Live disk mounts, in creation order. */
+  /** Live disk mounts, in creation order; a cached one also reports how much of the disk is local. */
   listMountedDisks() {
-    return [...this.#mounts.values()].map(({ id, srUuid, vdiUuid, diskPath, iqn, address, port }) => ({
+    return [...this.#mounts.values()].map(({ id, srUuid, vdiUuid, diskPath, iqn, address, port, cache }) => ({
       id,
       srUuid,
       vdiUuid,
@@ -451,6 +521,7 @@ export default class LiveMount extends EventEmitter {
       iqn,
       address,
       port,
+      cache: cache?.lun.getMaterialized(),
     }))
   }
 }

@@ -1,5 +1,8 @@
 import { createLogger } from '@xen-orchestra/log'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
+import { liveMountXapiLabels } from '@xen-orchestra/backups/liveMountXapiLabels.mjs'
+
+import { getCurrentVmUuid } from '../_XenStore.mjs'
 
 const { info, warn } = createLogger('xo:xo-mixins:backup-disk-mounts')
 
@@ -9,6 +12,7 @@ const { info, warn } = createLogger('xo:xo-mixins:backup-disk-mounts')
  * @typedef {import('@vates/types').XoBackupRepository} XoBackupRepository
  * @typedef {import('@vates/types').XoHost} XoHost
  * @typedef {import('@vates/types').XoProxy} XoProxy
+ * @typedef {import('@vates/types').XoSr} XoSr
  * @typedef {import('@vates/types').XoVmBackupArchive} XoVmBackupArchive
  * @typedef {import('@vates/types').Xapi} Xapi
  */
@@ -100,35 +104,43 @@ export default class BackupDiskMountsResolver {
   }
 
   /**
-   * Serve one disk of a backup archive as a read-only iSCSI LUN and attach it to
-   * a host as an SR.
+   * Serve one disk of a backup archive as an iSCSI LUN and attach it to a host
+   * as an SR: read-only, unless `cacheSrId` is set.
    *
    * @param {object} params
    * @param {XoVmBackupArchive['id']} params.archiveId - `<backup repository id>/<metadata path>`
    * @param {string} params.diskId - id of one of the archive's disks, a path on the backup repository
    * @param {XoHost['id']} params.hostId - id of the host the disk is attached to
+   * @param {XoSr['id']} [params.cacheSrId] - SR of a local VDI the disk is materialized into as it is
+   * read, plugged onto the VM serving the mount (this appliance or the proxy). Unset, nothing is cached.
    * @returns {Promise<BackupArchiveDiskMount>}
    */
-  async mountBackupArchiveDisk({ archiveId, diskId, hostId }) {
+  async mountBackupArchiveDisk({ archiveId, cacheSrId, diskId, hostId }) {
     const app = this.#app
 
     const archive = await this.#getArchive(archiveId)
-    if (!archive.disks.some(disk => disk.id === diskId)) {
+    const disk = archive.disks.find(disk => disk.id === diskId)
+    if (disk === undefined) {
       // `diskId` is a path on the backup repository, an unchecked one would
       // expose any file it contains
       throw invalidParameters(`disk ${diskId} does not belong to backup archive ${archiveId}`)
     }
 
     const host = app.getObject(hostId, 'host')
-    const nameLabel = `[XO backup] ${archive.vm.name_label}`
+    const xapiLabels = liveMountXapiLabels({
+      readWrite: cacheSrId !== undefined,
+      timestamp: archive.timestamp,
+      vdiNameLabel: disk.name,
+      vmNameLabel: archive.vm.name_label,
+    })
 
     const remote = await app.getRemoteWithCredentials(getBackupRepositoryId(archiveId))
     const proxyId = remote.proxy
 
     const mount =
       proxyId === undefined
-        ? await this.#mountHere({ diskId, host, nameLabel, remote })
-        : await this.#mountOnProxy({ diskId, host, nameLabel, proxyId, remote })
+        ? await this.#mountHere({ cacheSrId, diskId, host, remote, xapiLabels })
+        : await this.#mountOnProxy({ cacheSrId, diskId, host, proxyId, remote, xapiLabels })
 
     this.#trackMount(mount.id, { archiveId, hostId, proxyId, srUuid: mount.srUuid })
     return mount
@@ -293,17 +305,20 @@ export default class BackupDiskMountsResolver {
    *
    * @returns {Promise<BackupArchiveDiskMount>}
    */
-  async #mountHere({ diskId, host, nameLabel, remote }) {
+  async #mountHere({ cacheSrId, diskId, host, remote, xapiLabels }) {
     const app = this.#app
+    const vmUuid = cacheSrId === undefined ? undefined : await getCurrentVmUuid()
     const adapter = await app.getBackupsRemoteAdapter(remote)
     try {
       return await app.liveMount.mountDisk({
+        cacheSrUuid: cacheSrId,
         diskPath: diskId,
         handler: adapter.value.handler,
         hostRef: host._xapiRef,
-        nameLabel,
         release: () => adapter.dispose(),
+        vmUuid,
         xapi: app.getXapi(host),
+        xapiLabels,
       })
     } catch (error) {
       await adapter.dispose()
@@ -318,8 +333,16 @@ export default class BackupDiskMountsResolver {
    *
    * @returns {Promise<BackupArchiveDiskMount>}
    */
-  async #mountOnProxy({ diskId, host, nameLabel, proxyId, remote }) {
+  async #mountOnProxy({ cacheSrId, diskId, host, proxyId, remote, xapiLabels }) {
     const app = this.#app
+    let vmUuid
+    if (cacheSrId !== undefined) {
+      vmUuid = (await app.getProxy(proxyId)).vmUuid
+      // a proxy may be registered by its address only
+      if (vmUuid == null) {
+        throw invalidParameters(`the proxy ${proxyId} is not a known VM, it cannot hold a live mount cache`)
+      }
+    }
     // httpProxy is ignored when using XO Proxy
     const {
       allowUnauthorized,
@@ -330,18 +353,20 @@ export default class BackupDiskMountsResolver {
 
     try {
       return await app.callProxyMethod(proxyId, 'backup.mountDisk', {
+        cacheSr: cacheSrId,
         disk: diskId,
         host: host.uuid,
-        nameLabel,
         remote: {
           url: remote.url,
           options: remote.options,
         },
+        vm: vmUuid,
         xapi: {
           allowUnauthorized,
           credentials: { username, password },
           url,
         },
+        xapiLabels,
       })
     } catch (error) {
       throw wrapProxyError(error, proxyId)

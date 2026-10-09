@@ -2,16 +2,13 @@ import { randomUUID } from 'node:crypto'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 
-import { cacheLabel } from './_utils.mjs'
+import { cacheLabel, OC_MOUNT } from './_utils.mjs'
 
 const { debug, info, warn } = createLogger('xo:mixins:LiveMount')
 
 // Raw "LUN per VDI" driver: the LUN becomes a VDI as-is, with no LVM written to
 // it — the only iSCSI SR type usable on a read-only LUN.
 const SR_TYPE = 'iscsi'
-
-// identifies the SRs we created, to recognize leftovers
-const OC_MOUNT = 'xo:live-mount'
 
 // Our target exposes exactly one LUN, numbered 0.
 const LUN_ID = '0'
@@ -86,16 +83,16 @@ export async function forgetSr(xapi, srRef) {
  * `readOnly` states the intent, but this driver ignores it either way —
  * `RAWVDI.introduce()` ends in `_db_introduce()`, which builds the record from
  * the driver's own VDI object, the same reason the resulting uuid is not the
- * one asked for. The LUN itself is what actually enforces it: it throws on
- * write, since it is backed by a read-only `DiskBlockDevice`.
+ * one asked for. The LUN itself is what actually enforces it: a read-only one
+ * advertises it to the guest, and refuses writes.
  */
-export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath, readOnly }) {
+export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath, id, nameLabel, nameDescription, readOnly }) {
   const uuid = randomUUID()
   await xapi.call(
     'VDI.introduce',
     uuid,
-    `${cacheLabel(diskPath)}.raw`,
-    `mount of ${diskPath}`,
+    nameLabel ?? `${cacheLabel(diskPath)}.raw`,
+    nameDescription ?? `mount of ${diskPath}`,
     srRef,
     'user',
     false, // sharable
@@ -126,6 +123,7 @@ export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath, readOn
     if (vdi.uuid !== uuid) {
       info('the driver renamed the introduced VDI', { asked: uuid, got: vdi.uuid })
     }
+    await xapi.setFieldEntry('VDI', vdiRef, 'other_config', OC_MOUNT, id)
     return vdi.uuid
   }
   warn('no VDI found for the introduced LUN', { SCSIid, srRef, diskPath })
