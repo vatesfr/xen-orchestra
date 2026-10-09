@@ -13,7 +13,7 @@ import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { VM_POWER_STATE } from '@vates/types'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { computed, ref } from 'vue'
 
 const { engineState, infoState, containerState } = vi.hoisted(() => ({
@@ -28,6 +28,14 @@ vi.mock(import('@/modules/docker/remote-resources/use-xo-docker-engine-collectio
 
 vi.mock(import('@/modules/docker/remote-resources/use-xo-docker-engine-info.ts'), () => ({
   useXoDockerEngineInfo: (() => infoState) as unknown as typeof useXoDockerEngineInfo,
+}))
+
+// confirms right away
+vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => ({
+  useDeleteModal: () =>
+    ({
+      open: ({ events }: { events: { onConfirm: () => Promise<void> } }) => events.onConfirm(),
+    }) as never,
 }))
 
 vi.mock(import('@/modules/docker/remote-resources/use-xo-docker-container-collection.ts'), () => ({
@@ -71,11 +79,11 @@ function setEngines({
   })
 }
 
-function setInfo(info: FrontXoDockerEngineInfo | undefined) {
+function setInfo(info: FrontXoDockerEngineInfo | undefined, { hasError = false }: { hasError?: boolean } = {}) {
   Object.assign(infoState, {
     dockerEngineInfo: ref(info),
     isDockerEngineInfoReady: ref(info !== undefined),
-    hasDockerEngineInfoError: ref(false),
+    hasDockerEngineInfoError: ref(hasError),
     reloadDockerEngineInfo: vi.fn(),
   })
 }
@@ -211,4 +219,63 @@ it('shows the connection form of the engine when configuring the monitoring', as
   await configure.trigger('click')
 
   expect(wrapper.find('.docker-connection-form').text()).toContain(t('docker-ssh-private-key-replace'))
+})
+
+it('shows the engine as unreachable when its pooled connection failed since the last /info', () => {
+  setEngines({
+    engine: createDockerEngine({
+      connectionStatus: 'error',
+      error: { code: 'SSH_UNREACHABLE', message: 'connect EHOSTUNREACH 192.168.1.11:22' },
+    }),
+  })
+  setInfo(CONNECTED_INFO)
+  setContainers([])
+
+  const wrapper = mountTab()
+
+  const card = wrapper.find('.docker-engine-card')
+  expect(card.text()).toContain(t('disconnected'))
+  const alert = card.find('.ui-alert')
+  expect(alert.classes()).toContain('accent--danger')
+  expect(alert.text()).toContain(t('docker-connection-failed'))
+  expect(alert.text()).toContain('connect EHOSTUNREACH 192.168.1.11:22')
+  // an error, not "no container"
+  expect(wrapper.find('.docker-containers-table .vts-state-hero.error').exists()).toBe(true)
+})
+
+it('keeps the engine card and its actions when /info fails', () => {
+  setEngines({ engine: createDockerEngine() })
+  setInfo(undefined, { hasError: true })
+
+  const wrapper = mountTab()
+
+  expect(wrapper.find('.docker-engine-view').exists()).toBe(true)
+  const card = wrapper.find('.docker-engine-card')
+  expect(card.find('.ui-alert').text()).toContain(t('error-no-data'))
+  expect(card.text()).toContain(t('action:configure-monitoring'))
+  expect(card.text()).toContain(t('action:forget-docker-engine'))
+  expect(wrapper.find('.docker-containers-table .vts-state-hero.error').exists()).toBe(true)
+})
+
+it('shows why forgetting the engine failed', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => Response.json({ error: 'engine is busy' }, { status: 500, statusText: 'Internal Server Error' }))
+  )
+  setEngines({ engine: createDockerEngine() })
+  setInfo(CONNECTED_INFO)
+
+  const wrapper = mountTab()
+
+  await wrapper
+    .findAll('.docker-engine-card button')
+    .find(button => button.text() === t('action:forget-docker-engine'))!
+    .trigger('click')
+  await flushPromises()
+
+  const alert = wrapper.find('.docker-engine-card .ui-alert')
+  expect(alert.classes()).toContain('accent--danger')
+  expect(alert.text()).toContain(t('docker-forget-engine-failed'))
+  expect(alert.text()).toContain('engine is busy')
+  expect(wrapper.emitted()).not.toHaveProperty('deleted')
 })
