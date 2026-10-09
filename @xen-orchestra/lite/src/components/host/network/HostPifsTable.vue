@@ -26,7 +26,7 @@
 
 <script lang="ts" setup>
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
-import { usePifForgetModal } from '@/modules/pif/composables/use-pif-forget-modal.composable.ts'
+import { usePifForget } from '@/modules/pif/composables/use-pif-forget.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -121,12 +121,7 @@ const { HeadCells, BodyCells } = usePifColumns({
     const ipMode = computed(() => getIpConfigurationMode(pif.ip_configuration_mode))
     const rightIcon = computed(() => getManagementIcon(pif))
 
-    const {
-      openModal: openPifForgetModal,
-      canRun: canForgetPif,
-      isRunning: isForgettingPif,
-      errorMessage: forgetPifErrorMessage,
-    } = usePifForgetModal(() => [pif])
+    const { forgetPifs, canForgetPifs, isForgettingPifs, forgetPifsErrorMessage } = usePifForget(() => [pif])
 
     return {
       network: r => r({ label: name.value }),
@@ -143,10 +138,10 @@ const { HeadCells, BodyCells } = usePifColumns({
             {
               label: t('action:forget'),
               icon: 'action:forget',
-              onClick: () => openPifForgetModal(),
-              busy: isForgettingPif.value,
-              disabled: !canForgetPif.value,
-              hint: forgetPifErrorMessage.value,
+              onClick: () => forgetPifs(),
+              busy: isForgettingPifs.value,
+              disabled: !canForgetPifs.value,
+              hint: forgetPifsErrorMessage.value,
               accent: 'danger',
             },
           ],
