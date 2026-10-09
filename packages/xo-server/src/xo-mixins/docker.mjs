@@ -1326,22 +1326,39 @@ export default class Docker {
    * @returns {Promise<T>}
    */
   #withConnection(record, fn) {
-    try {
-      this.#assertCurrent(record)
-    } catch (error) {
-      return Promise.reject(error)
-    }
-    const acceptUnknownHostKey = record.hostKeyFingerprint === undefined && !this.#config.strictHostKeyChecking
-    return this.#pool.use(
-      { id: record.id, revision: this.#connectionKey(record) },
-      () => this.#createConnection(record, { acceptUnknownHostKey }),
-      async connection => {
-        if (acceptUnknownHostKey && connection.observedHostKey !== undefined) {
-          await this.#pinHostKey(record.id, connection.observedHostKey)
-        }
-        return fn(connection)
+    return this.#holdConnection(record).then(async ({ connection, release }) => {
+      try {
+        const result = await fn(connection)
+        release()
+        return result
+      } catch (error) {
+        release(error)
+        throw error
       }
+    })
+  }
+
+  /**
+   * Pooled connection of an engine, busy until released, see `pool.hold()`.
+   *
+   * @param {DockerEngineRecord} record
+   * @returns {Promise<{ connection: DockerConnectionFacade, release: (error?: unknown) => void }>}
+   */
+  async #holdConnection(record) {
+    this.#assertCurrent(record)
+    const acceptUnknownHostKey = record.hostKeyFingerprint === undefined && !this.#config.strictHostKeyChecking
+    const held = await this.#pool.hold({ id: record.id, revision: this.#connectionKey(record) }, () =>
+      this.#createConnection(record, { acceptUnknownHostKey })
     )
+    if (acceptUnknownHostKey && held.connection.observedHostKey !== undefined) {
+      try {
+        await this.#pinHostKey(record.id, held.connection.observedHostKey)
+      } catch (error) {
+        held.release(error)
+        throw error
+      }
+    }
+    return held
   }
 
   /**
@@ -1381,24 +1398,13 @@ export default class Docker {
     }
     this.#assertCurrent(record)
 
-    let resolveStopped, rejectStopped
-    const stopped = new Promise((resolve, reject) => {
-      resolveStopped = resolve
-      rejectStopped = reject
-    })
-    stopped.catch(() => {})
-    let resolveConnection, rejectConnection
-    const pConnection = new Promise((resolve, reject) => {
-      resolveConnection = resolve
-      rejectConnection = reject
-    })
-    pConnection.catch(() => {})
-
+    // a reference on the pooled connection, released when the sampler stops
+    const held = this.#holdConnection(record)
     const sampler = new DockerStatsSampler({
       idleTimeout: this.#config.statsIdleTimeout,
       maxContainers: this.#config.maxStatsContainers,
       openStream: async (dockerId, signal) =>
-        (await pConnection).requestStream({
+        (await held).connection.requestStream({
           path: `/containers/${encodeURIComponent(dockerId)}/stats`,
           query: { stream: 1 },
           signal,
@@ -1408,25 +1414,19 @@ export default class Docker {
         if (this.#samplers.get(record.id)?.sampler === sampler) {
           this.#samplers.delete(record.id)
         }
-        // an engine failure is rethrown in `#withConnection()`: the pool
-        // evicts the connection and caches the failure
-        if (error === undefined) {
-          resolveStopped()
-        } else {
-          rejectStopped(error)
+        if (error !== undefined && !isDockerError(error)) {
+          log.warn('stats sampler', { engine: record.id, error })
         }
-        rejectConnection(new DockerError(CONNECTION_CLOSED, 'the stats sampler has been stopped'))
+        // an engine failure evicts the connection and is negatively cached
+        held.then(
+          ({ release }) => release(error),
+          () => {}
+        )
       },
     })
     this.#samplers.set(record.id, { key, sampler })
-    this.#withConnection(record, connection => {
-      resolveConnection(connection)
-      return stopped
-    }).catch(error => {
-      if (!sampler.stopped) {
-        rejectConnection(error)
-        sampler.stop()
-      }
+    held.catch(error => {
+      sampler.stop()
       if (!isDockerError(error)) {
         log.warn('stats sampler', { engine: record.id, error })
       }
