@@ -46,6 +46,22 @@ const wrapProxyError = (error, proxyId) =>
     : error
 
 /**
+ * VM of a proxy, which a cached live mount served by that proxy plugs its cache VDI onto.
+ *
+ * @param {XoApp} app
+ * @param {XoProxy['id']} proxyId
+ * @returns {Promise<string>}
+ */
+export async function getProxyVmUuid(app, proxyId) {
+  const { vmUuid } = await app.getProxy(proxyId)
+  // a proxy may be registered by its address only
+  if (vmUuid == null) {
+    throw invalidParameters(`the proxy ${proxyId} is not a known VM, it cannot hold a live mount cache`)
+  }
+  return vmUuid
+}
+
+/**
  * Resolution layer between XO objects and the `LiveMount` shared mixin: it
  * turns a backup archive id + disk id + host id into a remote handler, a disk
  * path and a XAPI connection. The mounting itself lives in
@@ -335,14 +351,7 @@ export default class BackupDiskMountsResolver {
    */
   async #mountOnProxy({ cacheSrId, diskId, host, proxyId, remote, xapiLabels }) {
     const app = this.#app
-    let vmUuid
-    if (cacheSrId !== undefined) {
-      vmUuid = (await app.getProxy(proxyId)).vmUuid
-      // a proxy may be registered by its address only
-      if (vmUuid == null) {
-        throw invalidParameters(`the proxy ${proxyId} is not a known VM, it cannot hold a live mount cache`)
-      }
-    }
+    const vmUuid = cacheSrId === undefined ? undefined : await getProxyVmUuid(app, proxyId)
     // httpProxy is ignored when using XO Proxy
     const {
       allowUnauthorized,

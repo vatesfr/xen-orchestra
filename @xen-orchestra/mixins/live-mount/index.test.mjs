@@ -89,7 +89,9 @@ const makeXapi = ({
         }
         return ['OpaqueRef:pbd']
       case 'VM.get_by_uuid':
-        assert.equal(args[0], SELF_VM_UUID)
+        if (args[0] !== SELF_VM_UUID) {
+          throw new XapiError('UUID_INVALID', ['VM', args[0]])
+        }
         return SELF_VM_REF
       case 'SR.get_by_uuid':
         return `OpaqueRef:sr-${args[0]}`
@@ -959,6 +961,16 @@ describe('the read cache', () => {
     const xapi = makeXapi()
     await assert.rejects(mountDisk(mixin, xapi, { cacheSrUuid: CACHE_SR_UUID }), /vmUuid is required/)
     assert.deepEqual(xapi.calls, [])
+  })
+
+  it('explains that this appliance belongs to another pool, having created nothing', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    await assert.rejects(
+      mountDisk(mixin, xapi, { ...CACHE, vmUuid: 'vm-of-another-pool' }),
+      /not a VM of the pool the disk is mounted onto/
+    )
+    assert.ok(!xapi.calls.some(([method]) => method === 'VDI_create'))
   })
 
   describe('unwinds what it created when the mount fails later', () => {

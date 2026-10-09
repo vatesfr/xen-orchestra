@@ -30,7 +30,19 @@ const TRANSIENT_OPEN_ERRORS = ['EBUSY', 'ENOENT', 'ENOMEDIUM', 'ENXIO']
  * @returns {Promise<{ device: object, vbdRef: string, vdiRef: string }>}
  */
 export async function createCache($defer, { xapi, disk, diskPath, id, nameLabel, srUuid, vmUuid, createCacheDevice }) {
-  const vmRef = await xapi.call('VM.get_by_uuid', vmUuid)
+  let vmRef
+  try {
+    vmRef = await xapi.call('VM.get_by_uuid', vmUuid)
+  } catch (error) {
+    if (error?.code !== 'UUID_INVALID') {
+      throw error
+    }
+    // the common case of an appliance running in another pool than the one it restores to
+    throw new Error(
+      `this appliance (VM ${vmUuid}) is not a VM of the pool the disk is mounted onto, it cannot hold its cache`,
+      { cause: error }
+    )
+  }
   const srRef = await xapi.call('SR.get_by_uuid', srUuid)
 
   // checked upfront, so a wrong SR fails with its name rather than as a plug failure, after a VDI

@@ -184,7 +184,7 @@ export default class Backups {
           },
         ],
         importVmBackup: [
-          async ({ backupId, remote, srUuid, settings, streamLogs = false, xapi: xapiOpts }) => {
+          async ({ backupId, remote, srUuid, settings, streamLogs = false, vm: vmUuid, xapi: xapiOpts }) => {
             const {
               dispose,
               value: [adapter, xapi],
@@ -198,8 +198,16 @@ export default class Backups {
                 // resources disposed at the end of this call: `#mountDisk` takes its own and
                 // releases them on unmount
                 liveMount: {
-                  mountDisk: ({ diskPath, hostId, xapiLabels }) =>
-                    this.#mountDisk({ diskPath, hostUuid: hostId, remote, xapi: xapiOpts, xapiLabels }),
+                  mountDisk: ({ cacheSrUuid, diskPath, hostId, xapiLabels }) =>
+                    this.#mountDisk({
+                      cacheSrUuid,
+                      diskPath,
+                      hostUuid: hostId,
+                      remote,
+                      vmUuid,
+                      xapi: xapiOpts,
+                      xapiLabels,
+                    }),
                   unmountDisk: mountId => app.liveMount.unmountDisk(mountId),
                 },
                 metadata,
@@ -242,6 +250,8 @@ export default class Backups {
               settings: { type: 'object', optional: true },
               srUuid: { type: 'string' },
               streamLogs: { type: 'boolean', optional: true },
+              // uuid of this proxy's own VM, required by a cached live mount in `settings.mapVdisSrs`
+              vm: { type: 'string', optional: true },
               xapi: { type: 'object' },
             },
           },

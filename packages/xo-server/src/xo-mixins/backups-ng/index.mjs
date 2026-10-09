@@ -6,7 +6,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
-import { hasLiveMountTarget } from '@xen-orchestra/backups/_vdiRestoreTargets.mjs'
+import { hasCachedLiveMountTarget, hasLiveMountTarget } from '@xen-orchestra/backups/_vdiRestoreTargets.mjs'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
@@ -16,6 +16,7 @@ import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.mjs'
 import { Task } from '@vates/task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
+import { getProxyVmUuid } from '../backup-disk-mounts.mjs'
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
@@ -580,6 +581,9 @@ export default class BackupNg {
           settings,
           srUuid: sr.uuid,
           streamLogs: true,
+          // a cached live mount plugs its cache VDI onto the proxy's own VM. Only sent when needed:
+          // an older proxy rejects it, rather than silently mounting the disk read only
+          vm: hasCachedLiveMountTarget(settings?.mapVdisSrs) ? await getProxyVmUuid(app, remote.proxy) : undefined,
           xapi: {
             allowUnauthorized,
             credentials: {
@@ -613,6 +617,11 @@ export default class BackupNg {
           }
         } catch (error) {
           if (invalidParameters.is(error)) {
+            if (params.vm !== undefined) {
+              throw new Error(`the proxy ${remote.proxy} is too old to cache a live mounted disk, upgrade it`, {
+                cause: error,
+              })
+            }
             // this proxy cannot stream the logs, and is therefore too old to live mount a disk:
             // nothing to register below
             delete params.streamLogs
@@ -656,8 +665,8 @@ export default class BackupNg {
                 // lifecycle: `mountBackupArchiveDisk` already owns both, and validates the disk
                 // path against the archive
                 liveMount: {
-                  mountDisk: ({ diskPath, hostId }) =>
-                    app.mountBackupArchiveDisk({ archiveId: id, diskId: diskPath, hostId }),
+                  mountDisk: ({ cacheSrUuid, diskPath, hostId }) =>
+                    app.mountBackupArchiveDisk({ archiveId: id, cacheSrId: cacheSrUuid, diskId: diskPath, hostId }),
                   unmountDisk: mountId => app.unmountBackupArchiveDisk(mountId),
                 },
                 metadata,

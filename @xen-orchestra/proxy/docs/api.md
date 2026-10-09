@@ -159,15 +159,18 @@ declare namespace backup {
   }
 
   // `mapVdisSrs` gives a target per disk, keyed by the uuid the disk has in the backup:
-  // `{ type: 'restore', sr?: string }`, `{ type: 'ignore' }`, `{ type: 'live-mount', host: string }`,
-  // or an SR uuid / `null` for the first two, in the legacy shape. A live mounted disk is served
-  // by this proxy, like `mountDisk` does, and outlives the restore: it is reported in `liveMounts`,
-  // and its `id` must be handed back to `unmountDisk`.
+  // `{ type: 'restore', sr?: string }`, `{ type: 'ignore' }`,
+  // `{ type: 'live-mount', host: string, cacheSr?: string }`, or an SR uuid / `null` for the first
+  // two, in the legacy shape. A live mounted disk is served by this proxy, like `mountDisk` does,
+  // and outlives the restore: it is reported in `liveMounts`, and its `id` must be handed back to
+  // `unmountDisk`. With `cacheSr`, it is cached and read/write, like `mountDisk` with `cacheSr`:
+  // `vm` must then be this proxy's own VM.
   function importVmBackup(_: {
     backupId: string
     remote: Remote
     settings?: { newMacAddresses?: boolean; mapVdisSrs?: object }
     srUuid: string
+    vm?: string
     xapi: Xapi
     streamLogs: boolean = false
   }): RestoredVm // with `streamLogs`, an ndjson stream of the task logs, the result in the end one
