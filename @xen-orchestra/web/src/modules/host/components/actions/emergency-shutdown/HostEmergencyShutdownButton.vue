@@ -1,13 +1,13 @@
 <template>
   <MenuItem
-    v-tooltip="!canShutdownHost && shutdownHostErrorMessage"
-    accent="neutral"
-    :disabled="!canShutdownHost"
-    icon="action:shutdown"
-    :busy="isShuttingDownHost"
-    @click="shutdownHost()"
+    v-tooltip="!canEmergencyShutdownHost && emergencyShutdownHostErrorMessage"
+    accent="danger"
+    :disabled="!canEmergencyShutdownHost"
+    icon="action:emergency-shutdown"
+    :busy="isEmergencyShuttingDownHost"
+    @click="emergencyShutdownHost()"
   >
-    {{ t('action:shutdown') }}
+    {{ t('action:emergency-shutdown') }}
   </MenuItem>
 </template>
 
@@ -27,21 +27,21 @@ const { t } = useI18n()
 
 const {
   run,
-  canRun: canShutdownHost,
-  isRunning: isShuttingDownHost,
-  errorMessage: shutdownHostErrorMessage,
-} = useXoHostShutdownJob(() => host, false)
+  canRun: canEmergencyShutdownHost,
+  isRunning: isEmergencyShuttingDownHost,
+  errorMessage: emergencyShutdownHostErrorMessage,
+} = useXoHostShutdownJob(() => host, true)
 
 const { open: openActionModal } = useActionModal()
 
-function shutdownHost() {
+function emergencyShutdownHost() {
   return openActionModal({
     props: {
-      accent: 'info',
-      action: 'shutdown',
+      accent: 'danger',
+      action: 'emergency-shutdown',
       object: 'host',
       hostName: host.name_label,
-      icon: 'status:info-picto',
+      icon: 'status:danger-picto',
     },
     events: {
       onConfirm: () => run({ detached: true }),
