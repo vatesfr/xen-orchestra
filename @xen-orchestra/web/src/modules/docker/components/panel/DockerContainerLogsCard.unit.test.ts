@@ -2,7 +2,7 @@ import DockerContainerLogsCard from '@/modules/docker/components/panel/DockerCon
 import type { useXoDockerContainerLogs } from '@/modules/docker/remote-resources/use-xo-docker-container-logs.ts'
 import { createDockerContainer } from '@/test/create-docker-container.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { t } from '@/test/i18n.ts'
+import { d, t } from '@/test/i18n.ts'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import type { XoDockerLogs } from '@vates/types'
 import { mount } from '@vue/test-utils'
@@ -65,8 +65,10 @@ it('shows the last lines, one per entry, the error stream marked', () => {
 
   const viewer = wrapper.find('.ui-log-entry-viewer')
   expect(viewer.find('.label').text()).toBe(t('logs-last-n-lines', { n: 50 }))
+  // in local time, like the other dates
+  const date = (timestamp: string) => d(new Date(timestamp), { key: 'datetime_short', second: '2-digit' })
   expect(viewer.find('code').text()).toBe(
-    '2026-09-25 08:42:01 nginx: ready\n2026-09-25 08:42:02 [stderr] upstream timed out'
+    `${date('2026-09-25T08:42:01.123Z')} nginx: ready\n${date('2026-09-25T08:42:02Z')} [stderr] upstream timed out`
   )
   expect(wrapper.text()).toContain(t('logs-read-only-info', { n: 10 }))
   expect(wrapper.text()).not.toContain(t('logs-truncated'))

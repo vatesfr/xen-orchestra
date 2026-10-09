@@ -242,6 +242,13 @@ describe('getPublishedPortToOpen', () => {
     expect(getPublishedPortToOpen([{ privatePort: 80, publicPort: 8080, protocol: 'tcp' }], 'fd00::2')?.url).toBe(
       'http://[fd00::2]:8080'
     )
+    expect(getPublishedPortToOpen([{ privatePort: 80, publicPort: 8080, protocol: 'tcp' }], '[fd00::2]')?.url).toBe(
+      'http://[fd00::2]:8080'
+    )
+  })
+
+  it.each(['bad host', 'a/b', 'evil.com@x'])('offers nothing for the invalid host %j', host => {
+    expect(getPublishedPortToOpen([{ privatePort: 80, publicPort: 8080, protocol: 'tcp' }], host)).toBeUndefined()
   })
 
   it.each(['127.0.0.1', '::1'])('offers nothing for a port bound to the loopback interface %s of the guest', ip => {
@@ -298,10 +305,22 @@ describe('parseDockerApiError', () => {
 
 it('formatDockerLogEntries prints one line per entry, marking the error stream', () => {
   expect(
-    formatDockerLogEntries([
-      { timestamp: '2026-09-25T08:42:01.123456789Z', stream: 'stdout', message: 'ready' },
-      { timestamp: '2026-09-25T08:42:02.000000000Z', stream: 'stderr', message: 'oops' },
-      { stream: 'stdout', message: 'no timestamp' },
-    ])
-  ).toBe('2026-09-25 08:42:01 ready\n2026-09-25 08:42:02 [stderr] oops\nno timestamp')
+    formatDockerLogEntries(
+      [
+        { timestamp: '2026-09-25T08:42:01.123456789Z', stream: 'stdout', message: 'ready' },
+        { timestamp: '2026-09-25T08:42:02.000000000Z', stream: 'stderr', message: 'oops' },
+        { stream: 'stdout', message: 'no timestamp' },
+      ],
+      date => date.toISOString()
+    )
+  ).toBe('2026-09-25T08:42:01.123Z ready\n2026-09-25T08:42:02.000Z [stderr] oops\nno timestamp')
+})
+
+it('formatDockerLogEntries strips the ANSI escape sequences', () => {
+  expect(
+    formatDockerLogEntries(
+      [{ stream: 'stdout', message: '\x1b[32mINFO\x1b[0m listening \x1b[1;31mon\x1b[m :80\x1b[?25l\x1b[2K' }],
+      String
+    )
+  ).toBe('INFO listening on :80')
 })
