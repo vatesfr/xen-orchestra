@@ -35,7 +35,7 @@ it('shows the share path, credentials, domain and formatted mount options', () =
   const wrapper = mountCard(createSmbUrl(), 'vers=3.0, ,soft')
 
   expect(findCardLabelledValues(wrapper)).toEqual({
-    [t('path-on-share')]: '192.168.100.10\\share\\backups',
+    [t('path-on-share')]: '\\\\192.168.100.10\\share\\backups',
     [t('username')]: 'admin',
     [t('password')]: MASKED_SECRET,
     [t('domain')]: 'WORKGROUP',
@@ -54,7 +54,7 @@ it('offers to copy each visible value as it is shown', () => {
   const wrapper = mountCard(createSmbUrl(), 'vers=3.0, ,soft')
 
   expect(findCardCopiedValues(wrapper)).toEqual([
-    '192.168.100.10\\share\\backups',
+    '\\\\192.168.100.10\\share\\backups',
     'admin',
     'WORKGROUP',
     'vers=3.0, soft',
@@ -65,5 +65,11 @@ it('leaves the mount options empty and not copyable when there are none', () => 
   const wrapper = mountCard(createSmbUrl(), undefined)
 
   expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('custom-options')]: '' })
-  expect(findCardCopiedValues(wrapper)).toEqual(['192.168.100.10\\share\\backups', 'admin', 'WORKGROUP'])
+  expect(findCardCopiedValues(wrapper)).toEqual(['\\\\192.168.100.10\\share\\backups', 'admin', 'WORKGROUP'])
+})
+
+it('shows the share path without trailing separator when there is no subfolder', () => {
+  const wrapper = mountCard(createSmbUrl({ path: '' }))
+
+  expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('path-on-share')]: '\\\\192.168.100.10' })
 })

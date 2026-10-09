@@ -43,7 +43,11 @@
 </template>
 
 <script lang="ts" setup>
-import { formatMountOptions, MASKED_SECRET } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import {
+  formatMountOptions,
+  getSmbPathOnShare,
+  MASKED_SECRET,
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
@@ -59,7 +63,7 @@ const { smb, options } = defineProps<{
 
 const { t } = useI18n()
 
-const pathOnShare = computed(() => `${smb.host}\\${smb.path}`)
+const pathOnShare = computed(() => getSmbPathOnShare(smb))
 
 const formattedOptions = computed(() => formatMountOptions(options))
 </script>
