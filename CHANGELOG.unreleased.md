@@ -21,7 +21,7 @@
 - [XO6/New VM] Allow removing existing (template) disks (PR [#10292](https://github.com/vatesfr/xen-orchestra/pull/10292))
 - [XO6/Pool] Add validation to the pool connection form (PR [#10484](https://github.com/vatesfr/xen-orchestra/pull/10484))
 - [XO6] All objects displayed in the UI are now updated in real time, except backup logs and backup archives which are still refreshed every 30 seconds (PR [#10450](https://github.com/vatesfr/xen-orchestra/pull/10450))
-- [REST API] Event subscriptions (`/rest/v0/events`) now support `authentication_token`: each user only receives events about their own tokens (PR [#10450](https://github.com/vatesfr/xen-orchestra/pull/10450))
+- [REST API] Event subscriptions (`/rest/v0/events`) now support `authentication_token`: each user only receives events about their own tokens and `backup-logs` (PRs [#10450](https://github.com/vatesfr/xen-orchestra/pull/10450), [#10563](https://github.com/vatesfr/xen-orchestra/pull/10563))
 
 ### Bug fixes
 
