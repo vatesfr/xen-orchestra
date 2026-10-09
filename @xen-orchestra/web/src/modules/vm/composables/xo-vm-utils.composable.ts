@@ -50,7 +50,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     if (!vm.value.installTime) {
       return t('unknown')
     }
-    return formatDate(parseDateTime(vm.value.installTime * 1000))
+    return formatDate(vm.value.installTime * 1000)
   })
 
   const hasGuestTools = (vm: FrontXoVm) => {
