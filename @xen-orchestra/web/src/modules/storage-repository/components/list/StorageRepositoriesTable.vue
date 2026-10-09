@@ -27,6 +27,7 @@
 <script setup lang="ts">
 import { useSrConnection } from '@/modules/storage-repository/composables/use-sr-connection.composable.ts'
 import { useSrDelete } from '@/modules/storage-repository/composables/use-sr-delete.composable.ts'
+import { useSrQueryBuilder } from '@/modules/storage-repository/composables/use-sr-query-builder.composable.ts'
 import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   useXoSrCollection,
@@ -44,11 +45,7 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
-import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
-import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
-import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
-import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -74,18 +71,7 @@ const selectedSrId = useRouteQuery('id')
 
 const { isDefaultSr } = useXoSrCollection()
 
-const { filter, items: filteredSrs } = useQueryBuilderFilter('sr', () => rawSrs)
-
-const schema = useQueryBuilderSchema<FrontXoSr>({
-  '': useStringSchema(t('any-property')),
-  name_label: useStringSchema(t('name')),
-  name_description: useStringSchema(t('description')),
-  SR_type: useStringSchema(t('storage-format')),
-  shared: useBooleanSchema(t('access-mode'), {
-    true: t('shared'),
-    false: t('local'),
-  }),
-})
+const { items: filteredSrs, filter, schema } = useSrQueryBuilder('sr', () => rawSrs)
 
 const state = useTableState({
   busy: () => busy,
