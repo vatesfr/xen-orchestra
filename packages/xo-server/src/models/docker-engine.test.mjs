@@ -168,6 +168,14 @@ describe('DockerEngines (redis)', { skip }, () => {
           await db.update({ ...other, label: 'renamed' })
           assert.equal((await db.first({ vm: OTHER_VM })).label, 'renamed')
         })
+
+        it('assertNoEngineForVm(): the pre-check of the same rule, ignoring some engines', async () => {
+          await db.assertNoEngineForVm(VM)
+          const { id } = await db.add(makeRecord())
+          await assert.rejects(db.assertNoEngineForVm(VM), { code: 16, data: { objectId: id, objectType: 'docker-engine' } })
+          await db.assertNoEngineForVm(VM, new Set([id]))
+          await db.assertNoEngineForVm(OTHER_VM)
+        })
       })
     })
   }

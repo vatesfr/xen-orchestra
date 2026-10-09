@@ -11,7 +11,7 @@ import { asyncEach } from '@vates/async-each'
 import { createHmac, randomBytes } from 'node:crypto'
 import { createLogger } from '@xen-orchestra/log'
 import { synchronized } from 'decorator-synchronized'
-import { invalidParameters, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
+import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 
 import {
   AsyncTtlCache,
@@ -403,8 +403,9 @@ export default class Docker {
     }
 
     const create = async () => {
+      // fast pre-check, before connecting: the model enforces it on write
       if (record.vm !== undefined) {
-        await this.#assertNoEngineForVm(record.vm)
+        await this.#db.assertNoEngineForVm(record.vm)
       }
       await this.#connectAndPin(record, { acceptUnknownHostKey: params.acceptUnknownHostKey === true })
       record.revision = newRevision()
@@ -457,8 +458,9 @@ export default class Docker {
       }
 
       const update = async () => {
+        // fast pre-check, before connecting: the model enforces it on write
         if (record.vm !== undefined && record.vm !== previous.vm) {
-          await this.#assertNoEngineForVm(record.vm)
+          await this.#db.assertNoEngineForVm(record.vm)
         }
 
         const connectionChanged =
@@ -974,12 +976,9 @@ export default class Docker {
     await this.#withLocks(
       [...Array.from(ids, id => `engine:${id}`), ...Array.from(vms.keys(), vm => `vm:${vm}`)],
       async () => {
-        // engines not in the import keep their VM
+        // checked before writing anything: engines not in the import keep their VM
         for (const vm of vms.keys()) {
-          const existing = await this.#db.first({ vm })
-          if (existing !== undefined && !ids.has(existing.id)) {
-            throw objectAlreadyExists({ objectId: existing.id, objectType: 'docker-engine' })
-          }
+          await this.#db.assertNoEngineForVm(vm, ids)
         }
         await this.#db.add(records, { replace: true })
         for (const { id, revision } of records) {
@@ -988,13 +987,6 @@ export default class Docker {
         await Promise.all(Array.from(ids, id => this.#invalidate(id)))
       }
     )
-  }
-
-  async #assertNoEngineForVm(vm) {
-    const existing = await this.#db.first({ vm })
-    if (existing !== undefined) {
-      throw objectAlreadyExists({ objectId: existing.id, objectType: 'docker-engine' })
-    }
   }
 
   /**

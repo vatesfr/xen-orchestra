@@ -86,17 +86,27 @@ export class DockerEngines extends Collection {
     return this.#serialize(() => super._remove(ids))
   }
 
-  // v1: at most one engine per VM
-  async #assertNoEngineForVm(vm) {
+  /**
+   * v1: at most one engine per VM.
+   *
+   * The single source of truth of this rule: enforced on every write (see
+   * `_beforeAdd()` and `_beforeUpdate()`), and also usable by the callers as a
+   * pre-check (e.g. before connecting, or before writing a whole import).
+   *
+   * @param {string} vm
+   * @param {Set<string>} [ignored] ids of the engines which do not count (e.g. rewritten by an import)
+   * @throws objectAlreadyExists
+   */
+  async assertNoEngineForVm(vm, ignored) {
     const existing = await this.first({ vm })
-    if (existing !== undefined) {
+    if (existing !== undefined && !ignored?.has(existing.id)) {
       throw objectAlreadyExists({ objectId: existing.id, objectType: 'docker-engine' })
     }
   }
 
   async _beforeAdd(record) {
     if (record.vm !== undefined) {
-      await this.#assertNoEngineForVm(record.vm)
+      await this.assertNoEngineForVm(record.vm)
     }
   }
 
@@ -104,7 +114,7 @@ export class DockerEngines extends Collection {
     // the record being updated is not in the index for its new VM, any match
     // is another record
     if (record.vm !== undefined && record.vm !== previous.vm) {
-      await this.#assertNoEngineForVm(record.vm)
+      await this.assertNoEngineForVm(record.vm)
     }
   }
 }
