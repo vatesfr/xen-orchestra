@@ -14,30 +14,22 @@ type ScopeProperty = (typeof SCOPE_PROPERTIES)[number]
 
 type EnginePredicate = (engine: XoDockerEngine) => boolean
 
-const getScopeValue = (engine: XoDockerEngine, property: ScopeProperty): string | undefined =>
-  property === '$engine' ? engine.id : engine[property]
+// the scope properties of the containers of an engine
+const getScopeObject = (engine: XoDockerEngine): Record<ScopeProperty, string | undefined> => ({
+  $engine: engine.id,
+  $VM: engine.$VM,
+  $pool: engine.$pool,
+})
 
-// values of an equality term: `foo`, `"foo"`, or `|(foo bar)`
-function getEqualityValues(node: CM.Node): string[] | undefined {
-  if (node instanceof CM.StringNode || node instanceof CM.NumberOrStringNode) {
-    return [node.value]
-  }
-  if (node instanceof CM.Or) {
-    const values: string[] = []
-    for (const child of node.children) {
-      const childValues = getEqualityValues(child)
-      if (childValues === undefined) {
-        return
-      }
-      values.push(...childValues)
-    }
-    return values
-  }
-}
+// a value (`foo`, `"foo"`) or a disjunction of values (`|(foo bar)`)
+const isValueTerm = (node: CM.Node): boolean =>
+  node instanceof CM.StringNode ||
+  node instanceof CM.NumberOrStringNode ||
+  (node instanceof CM.Or && node.children.every(isValueTerm))
 
 /**
- * Engines designated by the equality terms on `$engine`, `$VM` or `$pool` of
- * a filter, as a predicate.
+ * Engines designated by the value terms on `$engine`, `$VM` or `$pool` of a
+ * filter, as a predicate.
  *
  * The designated engines are a superset of the engines of the containers
  * matching the filter (which is applied afterwards anyway): terms which cannot
@@ -48,18 +40,12 @@ function getEqualityValues(node: CM.Node): string[] | undefined {
  */
 export function getEngineScope(node: CM.Node): EnginePredicate | undefined {
   if (node instanceof CM.Property) {
-    if (!(SCOPE_PROPERTIES as readonly string[]).includes(node.name)) {
+    if (!(SCOPE_PROPERTIES as readonly string[]).includes(node.name) || !isValueTerm(node.child)) {
       return
     }
-    const property = node.name as ScopeProperty
-    const values = getEqualityValues(node.child)?.map(value => value.toLowerCase())
-    if (values === undefined) {
-      return
-    }
-    return engine => {
-      const value = getScopeValue(engine, property)
-      return value !== undefined && values.includes(value.toLowerCase())
-    }
+    // complex-matcher's own semantics (case-insensitive substring), like the
+    // filter applied to the containers afterwards: `$VM:c7b3b4bc` works too
+    return engine => node.match(getScopeObject(engine))
   }
   if (node instanceof CM.And) {
     const predicates = node.children.map(getEngineScope).filter(_ => _ !== undefined)
