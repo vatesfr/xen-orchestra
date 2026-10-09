@@ -216,16 +216,23 @@ export default class Jobs {
     // We keep the jobs for this because of some mechanism related to jobs, like preventing double execution.
     jobData.runJobId = runJobId
 
-    const startBackupLog = {
-      ...(await app.getBackupNgLogs(runJobId)),
-      status: 'pending', // overitte the status, because `getBackupNgLogs` return a `interrupted` status here. see `handleLog`
+    let previousBackupLog
+    let startBackupLog
+    // sequence have no backup-log associated
+    if (type === 'backup' || job.key === undefined) {
+      startBackupLog = {
+        ...(await app.getBackupNgLogs(runJobId)),
+        status: 'pending', // overitte the status, because `getBackupNgLogs` return a `interrupted` status here. see `handleLog`
+      }
+      app.backupLogsEe.emit('add', startBackupLog)
+      previousBackupLog = startBackupLog
     }
-    let previousBackupLog = startBackupLog
-    app.backupLogsEe.emit('add', startBackupLog)
 
     function emitBackupLogUpdate(backupLog) {
-      app.backupLogsEe.emit('update', backupLog, previousBackupLog)
-      previousBackupLog = backupLog
+      if (startBackupLog !== undefined) {
+        app.backupLogsEe.emit('update', backupLog, previousBackupLog)
+        previousBackupLog = backupLog
+      }
     }
 
     try {
