@@ -165,9 +165,19 @@ export function getPublishedPortToOpen(
     return undefined
   }
 
-  const hostname = host.includes(':') ? `[${host}]` : host
+  const hostname = host.includes(':') && !host.startsWith('[') ? `[${host}]` : host
 
-  return { port, url: `http://${hostname}:${port.publicPort}` }
+  // the setters validate and normalize the host (an IPv6 address compressed),
+  // ignoring an invalid one or truncating it at a delimiter (`/`, `?`…)
+  const url = new URL('http://placeholder')
+  url.hostname = hostname
+  url.port = String(port.publicPort)
+
+  if (url.hostname === 'placeholder' || (!hostname.startsWith('[') && url.hostname !== hostname.toLowerCase())) {
+    return undefined
+  }
+
+  return { port, url: url.origin }
 }
 
 export type DockerApiErrorInfo = {
@@ -294,17 +304,21 @@ export function isSshPrivateKey(value: string): boolean {
   return value.trimStart().startsWith('-----BEGIN ')
 }
 
+// CSI sequences (colors, cursor moves) of a program writing to a terminal
+// eslint-disable-next-line no-control-regex
+const ANSI_ESCAPE_RE = /\x1b\[[0-9;?]*[ -/]*[@-~]/g
+
 /**
- * Log entries as text, one line each: `2026-09-25 08:42:01 message`, with a
- * `stderr` marker on the error stream (the date is the engine's, in UTC)
+ * Log entries as text, one line each: `<date> message`, with a `stderr` marker
+ * on the error stream, the ANSI escape sequences removed
  */
-export function formatDockerLogEntries(entries: XoDockerLogEntry[]): string {
+export function formatDockerLogEntries(entries: XoDockerLogEntry[], formatDate: (date: Date) => string): string {
   return entries
     .map(({ timestamp, stream, message }) => {
-      const date = timestamp === undefined ? '' : `${timestamp.slice(0, 19).replace('T', ' ')} `
+      const date = timestamp === undefined ? '' : `${formatDate(new Date(timestamp))} `
       const marker = stream === 'stderr' ? '[stderr] ' : ''
 
-      return `${date}${marker}${message}`
+      return `${date}${marker}${message.replace(ANSI_ESCAPE_RE, '')}`
     })
     .join('\n')
 }
