@@ -105,6 +105,7 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmdk major
 - @xen-orchestra/vmware-explorer patch
