@@ -14,6 +14,9 @@ export const dockerEngineFields = [
   'username',
   'socketPath',
   'hostKeyFingerprint',
+  // state of the pooled connection: e.g. the container list failed on this engine
+  'connectionStatus',
+  'error',
 ] as const satisfies readonly (keyof XoDockerEngine)[]
 
 export type FrontXoDockerEngine = Pick<XoDockerEngine, (typeof dockerEngineFields)[number]>

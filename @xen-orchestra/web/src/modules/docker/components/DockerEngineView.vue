@@ -4,9 +4,6 @@ parameterized resources never register a URL without an engine id
 -->
 <template>
   <VtsStateHero v-if="!isDockerEngineInfoReady && !hasDockerEngineInfoError" format="page" type="busy" size="large" />
-  <VtsStateHero v-else-if="hasDockerEngineInfoError" format="page" type="error" size="large">
-    {{ t('error-no-data') }}
-  </VtsStateHero>
   <div v-else-if="isEditing" class="content">
     <DockerConnectionForm :vm :engine @saved="onSaved()" @cancel="isEditing = false" />
   </div>
@@ -16,7 +13,8 @@ parameterized resources never register a URL without an engine id
         <VtsColumn>
           <DockerEngineCard
             :engine
-            :info="dockerEngineInfo"
+            :info="hasDockerEngineInfoError ? undefined : dockerEngineInfo"
+            :has-info-error="hasDockerEngineInfoError"
             @configure="isEditing = true"
             @refresh="refresh()"
             @deleted="emit('deleted')"
@@ -63,7 +61,6 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed, onBeforeUnmount, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { engine } = defineProps<{
   vm: FrontXoVm
@@ -74,8 +71,6 @@ const emit = defineEmits<{
   saved: []
   deleted: []
 }>()
-
-const { t } = useI18n()
 
 const { dockerEngineInfo, isDockerEngineInfoReady, hasDockerEngineInfoError, reloadDockerEngineInfo } =
   useXoDockerEngineInfo({}, () => engine.id)
@@ -93,7 +88,13 @@ const { clearDockerContainerActionError } = useDockerContainerActionError()
 
 onBeforeUnmount(() => clearDockerContainerActionError())
 
-const isConnected = computed(() => dockerEngineInfo.value?.status === 'connected')
+// the engine record tells when the pooled connection failed since, e.g. while listing the containers
+const isConnected = computed(
+  () =>
+    !hasDockerEngineInfoError.value &&
+    dockerEngineInfo.value?.status === 'connected' &&
+    engine.connectionStatus !== 'error'
+)
 
 const selectedContainer = useRouteQuery<FrontXoDockerContainer | undefined>('id', {
   toData: id => (isConnected.value ? getDockerContainerById(id as FrontXoDockerContainer['id']) : undefined),

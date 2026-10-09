@@ -394,6 +394,7 @@
   "docker-engine": "Docker engine",
   "docker-engine-version": "Docker version",
   "docker-forget-engine-description": "Xen Orchestra will stop monitoring the Docker engine of this VM and forget its SSH credentials. The containers are not affected.",
+  "docker-forget-engine-failed": "Unable to forget the Docker engine",
   "docker-host-key-expected": "Expected fingerprint:",
   "docker-host-key-fingerprint": "SSH host key fingerprint",
   "docker-host-key-fingerprint-check": "Check it on the VM with: {command}",
