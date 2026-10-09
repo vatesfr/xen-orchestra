@@ -289,7 +289,7 @@
   "confirm-cancel?": "Are you sure you want to cancel?",
   "confirm-delete": "You're about to delete {name}",
   "confirm-disconnect": "You're about to disconnect {0}",
-  "confirm-forget": "You're about to forget {0}",
+  "confirm-forget": "You're about to forget {name}",
   "confirm-vm-revert": "Confirm VM revert",
   "connect": "Connect",
   "connected": "Connected",

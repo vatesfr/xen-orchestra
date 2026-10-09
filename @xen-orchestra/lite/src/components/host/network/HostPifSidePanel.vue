@@ -2,10 +2,10 @@
   <VtsSidePanel :has-selection="!!pif" class="host-pif-side-panel" @close="emit('close')">
     <template v-if="pif" #actions>
       <VtsForgetButton
-        :busy="isForgettingPif"
-        :disabled="!canForgetPif"
-        :tooltip="!canForgetPif && forgetPifErrorMessage"
-        @click="openPifForgetModal()"
+        :busy="isForgettingPifs"
+        :disabled="!canForgetPifs"
+        :tooltip="!canForgetPifs && forgetPifsErrorMessage"
+        @click="forgetPifs()"
       />
     </template>
     <template v-if="pif" #default>
@@ -234,7 +234,7 @@
 
 <script setup lang="ts">
 import type { XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
-import { usePifForgetModal } from '@/modules/pif/composables/use-pif-forget-modal.composable.ts'
+import { usePifForget } from '@/modules/pif/composables/use-pif-forget.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
@@ -269,12 +269,9 @@ const { getBondsDevices, isBondMaster } = usePifStore().subscribe()
 
 const { t } = useI18n()
 
-const {
-  openModal: openPifForgetModal,
-  canRun: canForgetPif,
-  isRunning: isForgettingPif,
-  errorMessage: forgetPifErrorMessage,
-} = usePifForgetModal(() => (pif !== undefined ? [pif] : []))
+const { forgetPifs, canForgetPifs, isForgettingPifs, forgetPifsErrorMessage } = usePifForget(() =>
+  pif !== undefined ? [pif] : []
+)
 
 const ipAddresses = computed(() => {
   if (pif === undefined) {

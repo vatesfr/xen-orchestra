@@ -1,11 +1,7 @@
 <template>
-  <UiModal accent="warning" icon="status:warning-picto" @confirm="emit('confirm')" @dismiss="emit('cancel')">
+  <UiModal accent="danger" icon="status:danger-picto" @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
-      <I18nT keypath="confirm-forget" scope="global" tag="div">
-        <span class="n-forget">
-          {{ subject }}
-        </span>
-      </I18nT>
+      {{ t('confirm-forget', { name: subject }) }}
     </template>
 
     <template #content>
@@ -27,7 +23,7 @@ import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmB
 import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { useI18n } from 'vue-i18n'
 
-const { subject, description, confirmLabel } = defineProps<{
+defineProps<{
   subject: string
   confirmLabel: string
   description?: string
@@ -40,9 +36,3 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 </script>
-
-<style lang="postcss" scoped>
-.n-forget {
-  color: var(--color-warning-item-base);
-}
-</style>
