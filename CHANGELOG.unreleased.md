@@ -24,6 +24,7 @@
 - [REST API] Event subscriptions (`/rest/v0/events`) now support `authentication_token`: each user only receives events about their own tokens (PR [#10450](https://github.com/vatesfr/xen-orchestra/pull/10450))
 - [XO6/Side panels] Harmonize card titles across side panels (PR [#10289](https://github.com/vatesfr/xen-orchestra/pull/10289))
 - [Host] Add a condition to disable the detached action when the host is not running (PR [#10543](https://github.com/vatesfr/xen-orchestra/pull/10543))
+- [Backup/Restore] Live restore: a disk can now be live mounted read/write, with a cache on an SR of the pool. Each block is read from the BR only once and the VM can boot from it, but what it writes is lost when the mount is released. The live mounted SR and VDI are now named after the backed up VM, disk and backup date (PR [#10434](https://github.com/vatesfr/xen-orchestra/pull/10434))
 
 ### Bug fixes
 
@@ -61,7 +62,7 @@
 - @vates/nbd-client patch
 - @vates/types minor
 - @xen-orchestra/backup-archive patch
-- @xen-orchestra/backups patch
+- @xen-orchestra/backups minor
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/rest-api minor

@@ -3267,6 +3267,10 @@ const resolveVdiRestoreTargets = mapVdisSrs =>
     if (type === 'live-mount') {
       return { type, host: resolveId(target.host) }
     }
+    // a live restore is a live mount which a cache makes read/write
+    if (type === 'live-restore') {
+      return { type: 'live-mount', host: resolveId(target.host), cacheSr: resolveId(target.cacheSr) }
+    }
     return { type }
   })
 
