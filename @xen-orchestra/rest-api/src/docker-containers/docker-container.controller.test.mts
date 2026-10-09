@@ -51,6 +51,13 @@ function setup({ licensed = true, maxListedEngines }: { licensed?: boolean; maxL
         asOf: 42,
       }
     },
+    getDockerContainer: async (id: string) => {
+      const container = containers.find(_ => _.id === id)
+      if (container === undefined) {
+        throw noSuchObject(id, 'docker-container')
+      }
+      return container
+    },
     getDockerContainerStats: async (...args: unknown[]) => {
       calls.push({ method: 'getDockerContainerStats', args })
       return { sampledAt: 1, cpuPercent: 3.1, memoryUsage: 42 }
@@ -297,6 +304,13 @@ describe('DockerContainerController', () => {
         await assert.rejects(controller.startDockerContainer(id, true), noSuchObject.is, id)
         await assert.rejects(controller.deleteDockerContainer(id), noSuchObject.is, id)
       }
+      assert.deepEqual(calls, [])
+      assert.deepEqual(tasks, [])
+    })
+
+    it('an unknown container of a known engine: 404 before creating a task', async () => {
+      const { calls, controller, tasks } = setup()
+      await assert.rejects(controller.startDockerContainer(`engine-1_${'ef'.repeat(32)}`), noSuchObject.is)
       assert.deepEqual(calls, [])
       assert.deepEqual(tasks, [])
     })
