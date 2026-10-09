@@ -13,6 +13,7 @@
 
 - [XO6/Kubernetes] Add Kubernetes in the treeview, Kubernetes page with clusters table and side-panel (PR [#10459](https://github.com/vatesfr/xen-orchestra/pull/10459))
 - [XO6/Kubernetes] Kubernetes clusters can now be created from the UI (PR [#10524](https://github.com/vatesfr/xen-orchestra/pull/10524))
+- [XO6/Kubernetes] Kubernetes clusters can now be deleted from the UI (PR [#10526](https://github.com/vatesfr/xen-orchestra/pull/10526))
 
 ### Bug fixes
 
