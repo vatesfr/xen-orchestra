@@ -389,8 +389,10 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   async #action(id: string, action: XoDockerContainerAction, sync?: boolean): CreateActionReturnType<void> {
     await assertDockerFeature(this.restApi)
     const containerId = id as XoDockerContainer['id']
-    // 404 before creating a task (without connecting: only the engine is checked)
+    // 404 before creating a task: the id and the engine without connecting,
+    // then the container (from the listing cache when possible)
     await this.#dockerContainerService.assertContainerId(containerId)
+    await this.getObject(containerId)
     return this.createAction<void>(
       () => withDockerErrors(() => this.restApi.xoApp.runDockerContainerAction(containerId, action)),
       {
