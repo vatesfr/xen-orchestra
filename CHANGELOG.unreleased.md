@@ -21,6 +21,7 @@
 - [XO6/New VM] Allow removing existing (template) disks (PR [#10292](https://github.com/vatesfr/xen-orchestra/pull/10292))
 - [XO6/Pool] Add validation to the pool connection form (PR [#10484](https://github.com/vatesfr/xen-orchestra/pull/10484))
 - [RPU] Resume a failed or interrupted rolling pool update: only the hosts with remaining work are handled, and the VMs go back to their original host (PR [#10474](https://github.com/vatesfr/xen-orchestra/pull/10474))
+- [RPU] Resuming a rolling pool update restores the settings the failed or interrupted attempt left disabled: HA, auto power on, backup schedules, WLB and the load balancer (PR [#10562](https://github.com/vatesfr/xen-orchestra/pull/10562))
 
 ### Bug fixes
 
