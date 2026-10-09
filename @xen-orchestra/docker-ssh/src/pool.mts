@@ -6,6 +6,8 @@
 //   connection can never serve other parameters than the ones it was opened
 //   with
 // - concurrent first uses of an engine share one SSH handshake
+// - a connection whose SSH session ends (lost, or closed) is removed: the next
+//   use opens a new one, through `createConnection` and the negative cache
 // - idle connections are closed after `idleTimeout` by one shared, unref'd
 //   sweeper
 // - at most `maxConnections`: the least recently used idle connection is
@@ -88,7 +90,7 @@ export type DockerConnectionFacade = Pick<
  * What the pool uses of a connection: a `DockerConnection`, or a stand-in in
  * tests.
  */
-export type PoolableConnection = DockerConnectionFacade & Pick<DockerConnection, 'connect' | 'close'>
+export type PoolableConnection = DockerConnectionFacade & Pick<DockerConnection, 'connect' | 'close' | 'onClose'>
 
 /** State of an engine's connection, see `getState()` */
 export type DockerConnectionState = {
@@ -113,10 +115,9 @@ type Entry = {
 type Failure = { error: unknown; until: number }
 
 /**
- * Facade given to the users of a pooled connection: once the pool has closed
- * the connection (eviction, invalidation, destroy), it refuses new requests
- * instead of letting `DockerConnection` silently open a new SSH connection the
- * pool would not know about.
+ * Facade given to the users of a pooled connection: neither `connect()` nor
+ * `close()`, and new requests are refused once the pool has closed the
+ * connection (eviction, invalidation, destroy).
  */
 function createFacade(entry: Entry): DockerConnectionFacade {
   // set before the facade is created
@@ -314,6 +315,12 @@ export class DockerConnectionPool {
       const connection = await createConnection()
       entry.connection = connection
       entry.facade = createFacade(entry)
+      connection.onClose(() => {
+        if (this.#entries.get(key) === entry) {
+          debug('Docker connection closed, removed from the pool', { id })
+        }
+        this.#close(entry)
+      })
       if (entry.closed) {
         throw new DockerError(CONNECTION_CLOSED, 'the Docker connection has been closed')
       }

@@ -20,6 +20,7 @@ class FakeConnection {
   connects = 0
   connectDelay: number
   connectError: DockerError | undefined
+  onCloseListener: (() => void) | undefined
 
   constructor({ connectError, connectDelay = 0 }: { connectError?: DockerError; connectDelay?: number } = {}) {
     this.connectDelay = connectDelay
@@ -43,6 +44,16 @@ class FakeConnection {
   async close() {
     ++this.closed
     this.connected = false
+  }
+
+  onClose(listener: () => void) {
+    this.onCloseListener = listener
+  }
+
+  // the SSH session ends on its own (network failure, server restart…)
+  simulateLoss() {
+    this.connected = false
+    this.onCloseListener?.()
   }
 
   async request({ path }: DockerRequestOptions) {
@@ -363,6 +374,27 @@ describe('DockerConnectionPool', () => {
     await assert.rejects(promise, { code: CONNECTION_CLOSED })
     assert.ok(connection.closed >= 1)
     assert.deepEqual(pool.getState('a'), { status: 'idle' })
+    await pool.destroy()
+  })
+
+  it('a lost connection is removed: not reported connected, the next use opens a new one', async () => {
+    const pool = new DockerConnectionPool()
+    await pool.use(engine('a'), () => new FakeConnection(), idle)
+    const lost = FakeConnection.instances.at(-1)!
+    assert.deepEqual(pool.getState('a'), { status: 'connected' })
+    lost.simulateLoss()
+    assert.deepEqual(pool.getState('a'), { status: 'idle' })
+    assert.equal(pool.size, 0)
+    // not negatively cached: a lost session is not a connection failure
+    let created = 0
+    await pool.use(
+      engine('a'),
+      () => (++created, new FakeConnection()),
+      () => {}
+    )
+    assert.equal(created, 1)
+    assert.notEqual(FakeConnection.instances.at(-1), lost)
+    assert.ok(lost.closed >= 1)
     await pool.destroy()
   })
 
