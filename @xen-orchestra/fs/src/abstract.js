@@ -26,6 +26,10 @@ const computeRate = (hrtime, size) => {
 const DEFAULT_TIMEOUT = 12e5 // 20 min
 const DEFAULT_MAX_PARALLEL_OPERATIONS = 10
 
+// size of the chunks of the file streams, same as the backup streams: with the 64 KiB of Node, each chunk costs a
+// round trip to the thread pool, which limits a sequential read to about 1.5 GB/s
+const DEFAULT_HIGH_WATER_MARK = 10 * 1024 * 1024
+
 const ENCRYPTION_DESC_FILENAME = 'encryption.json'
 const ENCRYPTION_METADATA_FILENAME = 'metadata.json'
 
@@ -158,7 +162,7 @@ export default class RemoteHandlerAbstract {
       }
     }
     ;({
-      highWaterMark: this._highWaterMark,
+      highWaterMark: this._highWaterMark = DEFAULT_HIGH_WATER_MARK,
       timeout: this._timeout = DEFAULT_TIMEOUT,
       withLimit: this._withLimit = WITH_LIMIT,
       withTimeout: this._withTimeout = WITH_TIMEOUT,
@@ -289,12 +293,19 @@ export default class RemoteHandlerAbstract {
    * @param {string} path
    * @param {ReadableStream} input
    * @param {object} [options]
-   * @param {boolean} [options.checksum]
+   * @param {boolean|string} [options.checksum=true] - whether to compute and store the checksum of the stored data,
+   *   or this checksum itself when it is already known (an unencrypted file copied from another remote): it is then
+   *   stored as is, without reading the data
    * @param {number} [options.dirMode]
    * @param {(this: RemoteHandlerAbstract, path: string) => Promise<undefined>} [options.validator] Function that will be called before the data is commited to the remote, if it fails, file should not exist
    */
   async outputStream(path, input, { checksum = true, dirMode, maxStreamLength, streamLength, validator } = {}) {
     path = normalizePath(path)
+    const knownChecksum = typeof checksum === 'string' ? checksum : undefined
+    if (knownChecksum !== undefined) {
+      // the checksum is the one of the stored data, which are different once encrypted
+      assert.strictEqual(this.isEncrypted, false, `a known checksum can't be used on an encrypted remote for ${path}`)
+    }
     let checksumStream
     info('will output stream ', { path, streamLength, maxStreamLength, isEncrypted: this.isEncrypted })
     if (this.isEncrypted) {
@@ -305,7 +316,7 @@ export default class RemoteHandlerAbstract {
       info('stream is updated ', { path, streamLength, maxStreamLength, overhead })
     }
     input = this.#encryptor.encryptStream(input)
-    if (checksum) {
+    if (checksum === true) {
       checksumStream = createChecksumStream()
       pipeline(input, checksumStream, noop)
       input = checksumStream
@@ -319,7 +330,10 @@ export default class RemoteHandlerAbstract {
     if (checksum) {
       // using _outputFile means the checksum will NOT be encrypted
       // it is by design to allow checking of encrypted files without the key
-      await this._outputFile(checksumFile(path), await checksumStream.checksum, { dirMode, flags: 'wx' })
+      await this._outputFile(checksumFile(path), knownChecksum ?? (await checksumStream.checksum), {
+        dirMode,
+        flags: 'wx',
+      })
     }
   }
 
