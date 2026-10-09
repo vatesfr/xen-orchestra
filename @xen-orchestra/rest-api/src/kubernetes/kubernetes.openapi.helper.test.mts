@@ -64,10 +64,10 @@ const CAPI_SPEC_FIXTURE = {
     },
   },
   paths: {
-    '/api/kubernetes/clusters/': {
+    '/kubernetes/clusters/': {
       get: {
         description: '#### Controller: \n\n`capv-proxy/internal/components/webserver/handlers`\n\n---\n\n',
-        operationId: 'GET_/api/kubernetes/clusters/',
+        operationId: 'GET_/kubernetes/clusters/',
         parameters: [{ in: 'header', name: 'Accept', schema: { type: 'string' } }],
         responses: {
           '200': {
@@ -85,7 +85,7 @@ const CAPI_SPEC_FIXTURE = {
         tags: ['Clusters'],
       },
       post: {
-        operationId: 'POST_/api/kubernetes/clusters/',
+        operationId: 'POST_/kubernetes/clusters/',
         requestBody: {
           content: { 'application/json': { schema: { $ref: '#/components/schemas/ClusterCreateParams' } } },
           required: true,
@@ -100,9 +100,9 @@ const CAPI_SPEC_FIXTURE = {
         tags: ['Clusters'],
       },
     },
-    '/api/kubernetes/clusters/{id}/config': {
+    '/kubernetes/clusters/{id}/config': {
       get: {
-        operationId: 'GET_/api/kubernetes/clusters/:id/config',
+        operationId: 'GET_/kubernetes/clusters/:id/config',
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
         responses: {
           '200': {
@@ -115,7 +115,7 @@ const CAPI_SPEC_FIXTURE = {
       },
     },
     // not mounted by XO: must be reported as drift
-    '/api/kubernetes/quotas': {
+    '/kubernetes/quotas': {
       get: {
         responses: { '200': { description: 'OK' } },
         summary: 'get quotas',
@@ -137,15 +137,15 @@ const transformFixture = (aclRules: KubernetesAclRule[] = []) => transformCAPISp
 
 describe('CAPIPathToXoPath', () => {
   it('strips the CAPI prefix and the trailing slash', () => {
-    assert.equal(CAPIPathToXoPath('/api/kubernetes/clusters/'), '/kubernetes/clusters')
+    assert.equal(CAPIPathToXoPath('/kubernetes/clusters/'), '/kubernetes/clusters')
   })
 
   it('keeps the path parameters and the sub paths', () => {
-    assert.equal(CAPIPathToXoPath('/api/kubernetes/clusters/{id}/nodes'), '/kubernetes/clusters/{id}/nodes')
+    assert.equal(CAPIPathToXoPath('/kubernetes/clusters/{id}/nodes'), '/kubernetes/clusters/{id}/nodes')
   })
 
   it('strips repeated trailing slashes', () => {
-    assert.equal(CAPIPathToXoPath('/api/kubernetes/clusters///'), '/kubernetes/clusters')
+    assert.equal(CAPIPathToXoPath('/kubernetes/clusters///'), '/kubernetes/clusters')
   })
 
   it('leaves a path without the CAPI prefix untouched', () => {
@@ -153,7 +153,7 @@ describe('CAPIPathToXoPath', () => {
   })
 
   it('keeps the root path', () => {
-    assert.equal(CAPIPathToXoPath('/api/'), '/')
+    assert.equal(CAPIPathToXoPath('/'), '/')
   })
 })
 
