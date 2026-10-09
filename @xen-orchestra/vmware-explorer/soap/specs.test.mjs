@@ -10,6 +10,10 @@ import {
   queryChangedDiskAreasArgs,
   retrieveOptions,
   traversalSpec,
+  virtualDeviceConfigSpec,
+  virtualDisk,
+  virtualDiskFlatVer2BackingInfo,
+  virtualMachineConfigSpec,
 } from './specs.mjs'
 
 describe('moRef', function () {
@@ -115,5 +119,37 @@ describe('queryChangedDiskAreasArgs', function () {
     const args = queryChangedDiskAreasArgs({ _this: 'vm-8', deviceKey: 2000, startOffset: 0, changeId: '*' })
 
     assert.equal(args.attributes, undefined)
+  })
+})
+
+describe('virtual disk specs', function () {
+  it('emits a disk backed by an existing file in schema order', function () {
+    const device = virtualDisk({
+      capacityInKB: 0,
+      unitNumber: 2,
+      controllerKey: 1000,
+      backing: virtualDiskFlatVer2BackingInfo({ diskMode: 'independent_nonpersistent', fileName: '[ds] a.vmdk' }),
+      key: -1,
+    })
+
+    assert.deepEqual(Object.keys(device), [
+      'attributes',
+      'key',
+      'backing',
+      'controllerKey',
+      'unitNumber',
+      'capacityInKB',
+    ])
+    assert.deepEqual(Object.keys(device.backing), ['attributes', 'fileName', 'diskMode'])
+  })
+
+  it('declares the type of the device change and of the config spec', function () {
+    const spec = virtualMachineConfigSpec({
+      deviceChange: [virtualDeviceConfigSpec({ device: {}, operation: 'add' })],
+    })
+
+    assert.deepEqual(spec.attributes, { 'xsi:type': 'VirtualMachineConfigSpec' })
+    assert.deepEqual(Object.keys(spec.deviceChange[0]), ['attributes', 'operation', 'device'])
+    assert.deepEqual(spec.deviceChange[0].attributes, { 'xsi:type': 'VirtualDeviceConfigSpec' })
   })
 })
