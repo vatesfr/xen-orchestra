@@ -291,10 +291,6 @@ export function listUnrestoredItems(record, { pool, loadBalancerLoaded, getHost,
   return items
 }
 
-// the item types of listUnrestoredItems that a successful resume cannot
-// restore: it only knows the state it found
-export const RPU_SETTING_TYPES = new Set(['ha', 'autoPowerOn', 'wlb', 'loadBalancer', 'schedule'])
-
 /**
  * Recorder used when a run does not track recovery (rolling pool reboot,
  * rolling pool update on a pool without recovery, see supportsRpuRecovery):
@@ -314,12 +310,12 @@ export const noopRpuRecorder = Object.freeze({
   stepNotNeeded: noop,
   stepFailed: noop,
   settingChangedByRun: asyncNoop,
+  settingRestored: noop,
   recordHaltedPinnedVm: asyncNoop,
   forgetHaltedPinnedVm: noop,
   fail: asyncNoop,
   dropIfNothingToRecover: asyncNoop,
-  markSucceeded: asyncNoop,
-  delete: asyncNoop,
+  complete: asyncNoop,
 })
 
 /**
@@ -374,6 +370,13 @@ export function createRpuRecoveryRecorder({ store, record }) {
       throw error
     }
   }
+  const fail = async error => {
+    record.status = 'failed'
+    record.lastError = filterError(error)
+    record.finishedAt = new Date().toISOString()
+    await enqueueWrite().catch(warnOnce)
+  }
+  const settingsLeftChanged = () => Object.keys(record.changedByRun ?? {})
   const hostEntry = hostId => (record.hosts[hostId] ??= { steps: {} })
   // `failed` is sticky: the first failure of a step is never downgraded
   const setStep = (hostId, name, patch) => {
@@ -468,8 +471,9 @@ export function createRpuRecoveryRecorder({ store, record }) {
      * change, otherwise a crash would leave it changed and nothing would know.
      *
      * @param {'ha' | 'autoPowerOn' | 'wlb' | 'loadBalancer' | 'schedules'} name
-     * @param {boolean | string[]} [value=true] - Ids of the disabled schedules for `schedules`, added to the ones
-     *   of the previous attempts
+     * @param {boolean | object | string[]} [value=true] - What restoring the setting needs: `{ srs, configuration }`
+     *   for `ha` (uuids of the heartbeat SRs), `{ autoload }` for `loadBalancer`, ids of the disabled schedules
+     *   for `schedules`, added to the ones of the previous attempts
      * @returns {Promise<void>}
      */
     async settingChangedByRun(name, value = true) {
@@ -477,7 +481,33 @@ export function createRpuRecoveryRecorder({ store, record }) {
       const previous = changedByRun[name]
       changedByRun[name] =
         Array.isArray(previous) && Array.isArray(value) ? [...new Set([...previous, ...value])] : value
-      await enqueueWrite()
+      try {
+        await enqueueWrite()
+      } catch (error) {
+        // the run does not change a setting it could not record: a later
+        // write must not persist it
+        if (previous === undefined) {
+          delete changedByRun[name]
+        } else {
+          changedByRun[name] = previous
+        }
+        throw error
+      }
+    },
+    // a setting back to its value from before the run is no longer work left
+    // by the run: `id` is the schedule for `schedules`
+    settingRestored(name, id) {
+      const changedByRun = record.changedByRun ?? {}
+      if (changedByRun[name] === undefined) {
+        return
+      }
+      const ids = id === undefined ? [] : (changedByRun[name] ?? []).filter(_ => _ !== id)
+      if (ids.length === 0) {
+        delete changedByRun[name]
+      } else {
+        changedByRun[name] = ids
+      }
+      write()
     },
     // strict: the entry must be on disk before the VM is shut down, otherwise
     // a crash would leave a halted VM nothing knows about
@@ -491,32 +521,36 @@ export function createRpuRecoveryRecorder({ store, record }) {
     },
     // persists the failure before the caller rethrows; never throws so the
     // original error is not masked
-    async fail(error) {
-      record.status = 'failed'
-      record.lastError = filterError(error)
-      record.finishedAt = new Date().toISOString()
-      await enqueueWrite().catch(warnOnce)
-    },
+    fail,
     // A failure before the first host was handled leaves nothing to recover
     // once the orchestrator has restored what it changed (schedules, load
     // balancer, WLB): such a record is dropped, otherwise a refused
     // precondition (a guidance to accept, a pinned VM to shut down...) would
     // block the retry with the option the operator just consented to. Meant
-    // to run after those restorations, so that a record still on disk means
-    // some of them may not have happened; never throws, the record then
-    // simply stays `failed`. Never on resume: the record keeps what the
-    // previous attempts changed
+    // to run after those restorations: one that failed keeps the record. Never
+    // throws, the record then simply stays `failed`. Never on resume: the
+    // record keeps what the previous attempts changed
     async dropIfNothingToRecover() {
-      if (record.attempt === undefined && Object.keys(record.hosts).length === 0) {
+      if (
+        record.attempt === undefined &&
+        Object.keys(record.hosts).length === 0 &&
+        settingsLeftChanged().length === 0
+      ) {
         await deleteRecord().catch(warnOnce)
       }
     },
-    // a successful run which left some settings changed keeps its record, so
-    // that Finalize lists them
-    markSucceeded,
     // a successful run leaves no record behind: strict, a record left on disk
-    // would report the run as interrupted at the next restart
-    delete: deleteOrSucceed,
+    // would report the run as interrupted at the next restart. Meant to run
+    // after the restorations of the settings: one that failed keeps the record
+    // `failed` with what is left, a resume restores it again
+    async complete() {
+      const left = settingsLeftChanged()
+      if (left.length === 0) {
+        await deleteOrSucceed()
+      } else {
+        await fail(new Error(`settings changed by the rolling pool update not restored: ${left.join(', ')}`))
+      }
+    },
   }
 }
 
@@ -573,8 +607,8 @@ const isStepOver = status => status === 'observed-succeeded' || status === 'not-
  *
  * @param {object} record - Readable record
  * @returns {{ doneHostIds: Set<string>, hostsStarted: boolean, hostOrder: string[], vmHomeById: object,
- *   haltedPinnedVms: object }} `hostsStarted` when a host was handled by a previous attempt, the other fields
- *   come from the record
+ *   haltedPinnedVms: object, changedByRun: object }} `hostsStarted` when a host was handled by a previous attempt,
+ *   the other fields come from the record
  * @throws {Error} `incorrectState` (property `resumableStep`) when a host cannot be resumed
  */
 export function planRpuResume(record) {
@@ -606,6 +640,7 @@ export function planRpuResume(record) {
     hostOrder: record.hostOrder ?? [],
     vmHomeById: record.vmHomeById ?? {},
     haltedPinnedVms: record.haltedPinnedVms ?? {},
+    changedByRun: record.changedByRun ?? {},
   }
 }
 
@@ -624,7 +659,7 @@ function isRpuRunResumable(record) {
 
 /**
  * Plan of a run that continues no previous attempt, see planRpuResume: no
- * host done, no order nor VM placement to follow.
+ * host done, no order nor VM placement to follow, no setting left changed.
  */
 export const noRpuResume = Object.freeze({
   doneHostIds: new Set(),
@@ -632,6 +667,7 @@ export const noRpuResume = Object.freeze({
   hostOrder: [],
   vmHomeById: {},
   haltedPinnedVms: {},
+  changedByRun: {},
 })
 
 /**

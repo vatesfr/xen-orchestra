@@ -165,6 +165,34 @@ class FakeXapi {
 // the mixin reaches its own methods through `this`
 Object.setPrototypeOf(FakeXapi.prototype, poolMethods)
 
+// records the changes of the pool settings, and what the recorder is told
+// about them and about the hosts
+const settingsSpy = xapi => {
+  const events = []
+  xapi.pool.update_other_config = async (key, value) => events.push(['other_config', key, value])
+  const call = xapi.call.bind(xapi)
+  xapi.call = async (method, ...args) =>
+    method === 'pool.disable_ha' || method === 'pool.enable_ha'
+      ? events.push(['call', method, ...args])
+      : call(method, ...args)
+  // the heartbeat SRs of the tests
+  const getObject = xapi.getObject.bind(xapi)
+  xapi.getObject = (key, ...rest) => (key === 'sr-1' ? { $ref: 'OpaqueRef:sr-1' } : getObject(key, ...rest))
+  const recorder = {
+    ...noopRpuRecorder,
+    async settingChangedByRun(name, value) {
+      events.push(['record', name, value])
+    },
+    settingRestored(name) {
+      events.push(['restored', name])
+    },
+    hostStarting(hostId, agentStartTime, enabled) {
+      events.push(['hostStarting', hostId, enabled])
+    },
+  }
+  return { events, recorder, xapi }
+}
+
 // records only the step transitions, the rest of the recorder is a no-op
 const stepSpyRecorder = () => {
   const steps = []
@@ -275,42 +303,70 @@ describe('rollingPoolReboot', function () {
   })
 
   it('persists the settings it changes before changing them, and how each host was before', async function () {
-    const xapi = new FakeXapi([[30], [30]])
-    const events = []
+    const { events, recorder, xapi } = settingsSpy(new FakeXapi([[30], [30]]))
     xapi.pool.ha_enabled = true
-    xapi.pool.$ha_statefiles = []
-    xapi.pool.ha_configuration = {}
+    xapi.pool.$ha_statefiles = [{ SR: 'OpaqueRef:sr-1', $SR: { uuid: 'sr-1' } }]
+    xapi.pool.ha_configuration = { timeout: '60' }
     xapi.pool.other_config.auto_poweron = 'true'
-    xapi.pool.update_other_config = async (key, value) => events.push(['other_config', key, value])
     // disabled by the operator before the run
     xapi.hosts[1].enabled = false
-    const call = xapi.call.bind(xapi)
-    xapi.call = async (method, ...args) =>
-      method === 'pool.disable_ha' || method === 'pool.enable_ha'
-        ? events.push(['call', method])
-        : call(method, ...args)
-    const recorder = {
-      ...noopRpuRecorder,
-      async settingChangedByRun(name) {
-        events.push(['record', name])
-      },
-      hostStarting(hostId, agentStartTime, enabled) {
-        events.push(['hostStarting', hostId, enabled])
-      },
-    }
 
     const { error } = await rollingPoolReboot(xapi, { recorder })
 
     assert.equal(error, undefined)
     assert.deepEqual(events, [
-      ['record', 'ha'],
+      ['record', 'ha', { srs: ['sr-1'], configuration: { timeout: '60' } }],
       ['call', 'pool.disable_ha'],
-      ['record', 'autoPowerOn'],
+      ['record', 'autoPowerOn', undefined],
       ['other_config', 'auto_poweron', 'false'],
       ['hostStarting', 'host-A', true],
       ['hostStarting', 'host-B', false],
       ['other_config', 'auto_poweron', 'true'],
-      ['call', 'pool.enable_ha'],
+      ['restored', 'autoPowerOn'],
+      ['call', 'pool.enable_ha', ['OpaqueRef:sr-1'], { timeout: '60' }],
+      ['restored', 'ha'],
+    ])
+  })
+
+  it('leaves in the record a setting it could not restore', async function () {
+    const { events, recorder, xapi } = settingsSpy(new FakeXapi([[30], [30]]))
+    xapi.pool.ha_enabled = true
+    xapi.pool.$ha_statefiles = [{ SR: 'OpaqueRef:sr-1', $SR: { uuid: 'sr-1' } }]
+    xapi.pool.ha_configuration = {}
+    const call = xapi.call
+    xapi.call = async (method, ...args) => {
+      const result = await call(method, ...args)
+      if (method === 'pool.enable_ha') {
+        throw new Error('SR_NOT_ATTACHED')
+      }
+      return result
+    }
+
+    const { error } = await rollingPoolReboot(xapi, { recorder })
+
+    assert.equal(error, undefined)
+    assert.equal(events.at(-1)[1], 'pool.enable_ha')
+    assert.ok(!events.some(([name]) => name === 'restored'))
+  })
+
+  it('restores auto power on even when disabling it failed', async function () {
+    const { events, recorder, xapi } = settingsSpy(new FakeXapi([[30], [30]]))
+    xapi.pool.other_config.auto_poweron = 'true'
+    xapi.pool.update_other_config = async (key, value) => {
+      events.push(['other_config', key, value])
+      if (value === 'false') {
+        throw new Error('XAPI timeout')
+      }
+    }
+
+    const { error } = await rollingPoolReboot(xapi, { recorder })
+
+    assert.equal(error?.message, 'XAPI timeout')
+    assert.deepEqual(events, [
+      ['record', 'autoPowerOn', undefined],
+      ['other_config', 'auto_poweron', 'false'],
+      ['other_config', 'auto_poweron', 'true'],
+      ['restored', 'autoPowerOn'],
     ])
   })
 
@@ -472,6 +528,53 @@ describe('rollingPoolReboot', function () {
           ['assert_can_evacuate', 'host-C'],
         ]
       )
+    })
+
+    it('keeps the settings a previous attempt left changed as they are during the run, then restores them', async function () {
+      const { events, recorder, xapi } = settingsSpy(new FakeXapi([[10], [10]]))
+      // auto power on was already disabled before the run: not in the record
+      xapi.pool.other_config.auto_poweron = 'false'
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+          changedByRun: { ha: { srs: ['sr-1'], configuration: { timeout: '60' } } },
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(events, [
+        ['hostStarting', 'host-A', true],
+        ['hostStarting', 'host-B', true],
+        ['call', 'pool.enable_ha', ['OpaqueRef:sr-1'], { timeout: '60' }],
+        ['restored', 'ha'],
+      ])
+    })
+
+    it('leaves to the operator HA recorded without its configuration', async function () {
+      const { events, recorder, xapi } = settingsSpy(new FakeXapi([[10], [10]]))
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+          // written by an xo-server which did not keep the heartbeat SRs
+          changedByRun: { ha: true },
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(events, [
+        ['hostStarting', 'host-A', true],
+        ['hostStarting', 'host-B', true],
+      ])
     })
 
     it('starts again the pinned VMs a previous attempt left halted', async function () {
