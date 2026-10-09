@@ -158,8 +158,10 @@ export function useDockerConnectionForm(
         privateKey: formData.privateKey,
         passphrase: formData.passphrase,
       }),
-      ...(fingerprint !== (engine.value?.hostKeyFingerprint ?? '') &&
-        fingerprint !== '' && { hostKeyFingerprint: fingerprint }),
+      // an emptied field unpins the stored host key
+      ...(fingerprint !== (engine.value?.hostKeyFingerprint ?? '') && {
+        hostKeyFingerprint: fingerprint === '' ? null : fingerprint,
+      }),
     }
   }
 

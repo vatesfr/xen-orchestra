@@ -172,6 +172,24 @@ describe('edition', () => {
 
     expect((await form.validateAndBuildRequest())?.payload).toMatchObject({ privateKey: PRIVATE_KEY })
   })
+
+  it('unpins the host key when the fingerprint is emptied, sends it only when changed', async () => {
+    const form = mountForm(undefined, createDockerEngine({ hostKeyFingerprint: FINGERPRINT }))
+
+    expect((await form.validateAndBuildRequest())?.payload).not.toHaveProperty('hostKeyFingerprint')
+
+    form.formData.hostKeyFingerprint = ' '
+
+    expect((await form.validateAndBuildRequest())?.payload).toMatchObject({ hostKeyFingerprint: null })
+
+    const unpinned = mountForm(undefined, createDockerEngine({ hostKeyFingerprint: undefined }))
+
+    expect((await unpinned.validateAndBuildRequest())?.payload).not.toHaveProperty('hostKeyFingerprint')
+
+    unpinned.formData.hostKeyFingerprint = FINGERPRINT
+
+    expect((await unpinned.validateAndBuildRequest())?.payload).toMatchObject({ hostKeyFingerprint: FINGERPRINT })
+  })
 })
 
 it('clearSecrets forgets the private key and the passphrase', () => {

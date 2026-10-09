@@ -15,7 +15,7 @@
       </div>
 
       <div class="row">
-        <DockerTextInput v-bind="usernameInputBindings" />
+        <DockerTextInput v-bind="usernameInputBindings" name="docker-ssh-username" />
       </div>
 
       <UiCheckbox v-if="isEditing" v-model="replacePrivateKey" accent="brand">
@@ -27,7 +27,12 @@
 
       <div v-if="mustSendPrivateKey" class="row">
         <DockerPrivateKeyTextarea v-bind="privateKeyBindings" />
-        <DockerTextInput v-bind="passphraseInputBindings" type="password" :info="t('docker-ssh-passphrase-info')" />
+        <DockerTextInput
+          v-bind="passphraseInputBindings"
+          type="password"
+          name="docker-ssh-passphrase"
+          :info="t('docker-ssh-passphrase-info')"
+        />
       </div>
 
       <div class="row">
@@ -119,7 +124,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { ref } from 'vue'
+import { onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm, engine } = defineProps<{
@@ -180,15 +185,18 @@ async function submit(nextRequest: DockerConnectionSaveRequest) {
   try {
     await save()
     clearSecrets()
-    request.value = undefined
     emit('saved')
   } catch (error) {
+    // the secrets stay in the fields: the user fixes the form or trusts the host key, and submits again
     hostKeyError.value = getHostKeyErrorData(error)
 
     if (hostKeyError.value === undefined) {
       // e.g. a 429 SSH_COOLDOWN: tells when to retry
       saveError.value = getDockerErrorMessage(error)
     }
+  } finally {
+    // the payload carries the secrets
+    request.value = undefined
   }
 }
 
@@ -200,23 +208,22 @@ async function onSubmit() {
   }
 }
 
-// TOFU: the user checked the fingerprint of the 409, it is verified again on connection
+// TOFU: the user checked the fingerprint of the 409, it is verified again on connection.
+// The request is rebuilt from the form: the user may have changed it since.
 async function trustHostKey() {
-  if (request.value === undefined || hostKeyError.value?.code !== 'HOST_KEY_UNKNOWN') {
+  if (hostKeyError.value?.code !== 'HOST_KEY_UNKNOWN') {
     return
   }
 
-  const { fingerprint } = hostKeyError.value
-  formData.hostKeyFingerprint = fingerprint
+  formData.hostKeyFingerprint = hostKeyError.value.fingerprint
 
-  const current = request.value
-
-  await submit(
-    current.engineId === undefined
-      ? { payload: { ...current.payload, hostKeyFingerprint: fingerprint } }
-      : { engineId: current.engineId, payload: { ...current.payload, hostKeyFingerprint: fingerprint } }
-  )
+  await onSubmit()
 }
+
+onBeforeUnmount(() => {
+  clearSecrets()
+  request.value = undefined
+})
 </script>
 
 <style lang="postcss" scoped>
