@@ -10,7 +10,7 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 
 import Collection from '../../collection/redis.mjs'
 import patch from '../../patch.mjs'
-import { serializeError } from '../../utils.mjs'
+import { noop, serializeError } from '../../utils.mjs'
 
 import executeCall from './execute-call.mjs'
 import backupGuard from '../../api/_backupGuard.mjs'
@@ -187,6 +187,8 @@ export default class Jobs {
   @decorateWith(defer)
   async runJob($defer, job, schedule, data_) {
     const logger = this._logger
+    let unwatchBackupTask = noop
+
     const { id, type } = job
 
     const jobData = {
@@ -216,7 +218,7 @@ export default class Jobs {
 
     const startBackupLog = {
       ...(await app.getBackupNgLogs(runJobId)),
-      status: 'pending' // overitte the status, because `getBackupNgLogs` return a `interrupted` status here. see `handleLog`
+      status: 'pending', // overitte the status, because `getBackupNgLogs` return a `interrupted` status here. see `handleLog`
     }
     let previousBackupLog = startBackupLog
     app.backupLogsEe.emit('add', startBackupLog)
@@ -370,7 +372,7 @@ export default class Jobs {
       app.emit('job:terminated', runJobId, { type })
       throw error
     } finally {
-      unwatchBackupTask?.()
+      unwatchBackupTask()
       app.getBackupNgLogs(REMOVE_CACHE_ENTRY, runJobId)
       const backupLog = await app.getBackupNgLogs(runJobId)
       emitBackupLogUpdate(backupLog)
