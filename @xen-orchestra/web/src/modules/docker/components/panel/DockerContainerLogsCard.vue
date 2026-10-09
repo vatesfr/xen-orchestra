@@ -46,14 +46,19 @@ const { container } = defineProps<{
   container: FrontXoDockerContainer
 }>()
 
-const { t } = useI18n()
+const { t, d } = useI18n()
 
 const { dockerContainerLogs, areDockerContainerLogsReady, hasDockerContainerLogsError } = useXoDockerContainerLogs(
   {},
   () => container.id
 )
 
-const content = computed(() => formatDockerLogEntries(dockerContainerLogs.value?.entries ?? []))
+// local time like the other dates, with the seconds
+const content = computed(() =>
+  formatDockerLogEntries(dockerContainerLogs.value?.entries ?? [], date =>
+    d(date, { key: 'datetime_short', second: '2-digit' })
+  )
+)
 </script>
 
 <style lang="postcss" scoped>
