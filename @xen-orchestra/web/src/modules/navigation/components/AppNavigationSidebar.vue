@@ -42,6 +42,7 @@
 
 <script lang="ts" setup>
 import AdministrationMenu from '@/modules/admin/components/AdministrationMenu.vue'
+import { KUBERNETES_ROOT_ID } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { useNavigationTree } from '@/modules/navigation/composables/use-navigation-tree.composable.ts'
 import SidebarSearch from '@/modules/treeview/components/SidebarSearch.vue'
 import SiteTreeList from '@/modules/treeview/components/SiteTreeList.vue'
@@ -122,8 +123,8 @@ function getTreeNodeIdFromRoute() {
     return paramId
   }
 
-  if (route.path === '/kubernetes' || route.path === '/kubernetes/clusters') {
-    return 'kubernetes-root'
+  if (route.name === '/kubernetes' || route.name === '/kubernetes/clusters') {
+    return KUBERNETES_ROOT_ID
   }
 
   return undefined
