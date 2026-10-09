@@ -70,6 +70,8 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi-pg major
+- xen-api minor
 - xo-server minor
 - xo-server-load-balancer minor
 - xo-web minor

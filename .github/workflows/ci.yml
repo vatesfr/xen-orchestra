@@ -47,4 +47,6 @@ jobs:
         run: yarn test-lint
 
       - name: Integration tests
-        run: sudo yarn test-integration
+        # PATH=$PATH allows the root user to resolve the same executables as the normal user
+        # otherwise it uses the system node.js
+        run: sudo PATH=$PATH yarn test-integration
