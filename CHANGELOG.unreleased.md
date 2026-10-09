@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API] Add `DELETE /rest/v0/pifs/{id}` to forget a PIF (PR [#10564](https://github.com/vatesfr/xen-orchestra/pull/10564))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -33,6 +35,9 @@
 
 <!--packages-start-->
 
-- xo-server patch
+- @vates/types minor
+- @xen-orchestra/acl minor
+- @xen-orchestra/rest-api minor
+- xo-server minor
 
 <!--packages-end-->
