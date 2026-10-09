@@ -58,7 +58,8 @@ export class BlockAllocationTable {
   }
 
   isEmpty(index: number): boolean {
-    return this.#entry(index).equals(ZERO_ENTRY)
+    const offset = index * HASH_SIZE
+    return this.#bat.compare(ZERO_ENTRY, 0, HASH_SIZE, offset, offset + HASH_SIZE) === 0
   }
 
   countAllocated(): number {
