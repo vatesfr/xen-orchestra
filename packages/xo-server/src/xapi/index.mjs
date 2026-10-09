@@ -1424,6 +1424,35 @@ export default class Xapi extends XapiBase {
     await this.callAsync('network.destroy', network.$ref)
   }
 
+  async deletePif(pifId) {
+    const pif = this.getObject(pifId)
+
+    if (pif.management) {
+      throw forbiddenOperation('delete PIF', 'management interface')
+    }
+
+    if (Ref.isNotEmpty(pif.VLAN_master_of)) {
+      await this.callAsync('VLAN.destroy', pif.VLAN_master_of)
+      return
+    }
+
+    if (pif.bond_master_of.length > 0) {
+      await Promise.all(pif.bond_master_of.map(bond => this.call('Bond.destroy', bond)))
+      return
+    }
+
+    const [tunnelRef] = pif.tunnel_access_PIF_of
+
+    if (tunnelRef !== undefined) {
+      await this.callAsync('PIF.unplug', pif.$ref)
+      await this.callAsync('tunnel.destroy', tunnelRef)
+
+      return
+    }
+
+    await this.callAsync('PIF.forget', pif.$ref)
+  }
+
   // =================================================================
 
   async _doDockerAction(vmId, action, containerId) {

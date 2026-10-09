@@ -178,6 +178,7 @@ export interface Xapi {
     mtu?: number
   }): Promise<XenApiNetworkWrapped>
   deleteNetwork(id: XoNetwork['id']): Promise<void>
+  deletePif(id: XoPif['id']): Promise<void>
   deleteVif(vifId: XoVif['id']): Promise<void>
   disconnectVif(vifId: XoVif['id']): Promise<void>
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>

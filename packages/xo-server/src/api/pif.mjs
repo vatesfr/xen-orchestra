@@ -1,7 +1,5 @@
 // TODO: too low level, move into host.
 
-import filter from 'lodash/filter.js'
-import find from 'lodash/find.js'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import { IPV4_CONFIG_MODES, IPV6_CONFIG_MODES } from '../xapi/index.mjs'
@@ -19,17 +17,7 @@ export function getIpv6ConfigurationModes() {
 
 async function delete_({ pif }) {
   // TODO: check if PIF is attached before
-  const xapi = this.getXapi(pif)
-
-  const tunnels = filter(xapi.objects.all, { $type: 'tunnel' })
-  const tunnel = find(tunnels, { access_PIF: pif._xapiRef })
-  if (tunnel != null) {
-    await xapi.callAsync('PIF.unplug', pif._xapiRef)
-    await xapi.callAsync('tunnel.destroy', tunnel.$ref)
-    return
-  }
-
-  await xapi.callAsync('PIF.forget', pif._xapiRef)
+  await this.getXapi(pif).deletePif(pif._xapiId)
 }
 export { delete_ as delete }
 
