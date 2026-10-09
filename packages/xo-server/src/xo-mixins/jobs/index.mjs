@@ -218,21 +218,36 @@ export default class Jobs {
 
     let previousBackupLog
     let startBackupLog
-    const hasBackupLog = type === 'backup' || job.key === undefined
-    if (hasBackupLog) {
-      startBackupLog = {
-        ...(await app.getBackupNgLogs(runJobId)),
-        status: 'pending', // overwrite the status, because `getBackupNgLogs` return a `interrupted` status here. see `handleLog`
+    // ensure we don't stop a backup job due to an issue when trying to fetch backup logs
+    async function safeGetBackupLog(runJobId, { bypassCache = false } = {}) {
+      try {
+        if (bypassCache) {
+          app.getBackupNgLogs(REMOVE_CACHE_ENTRY, runJobId)
+        }
+        return await app.getBackupNgLogs(runJobId)
+      } catch (error) {
+        log.error('cannot get backup-log', { error, runJobId })
+        return undefined
       }
-      app.backupLogsEe.emit('add', startBackupLog)
-      previousBackupLog = startBackupLog
+    }
+
+    if (type === 'backup' || job.key === undefined) {
+      const safeBackupLog = await safeGetBackupLog(runJobId)
+      if (safeBackupLog === undefined) {
+        log.warn('SSE ignored to not interrupt the backup-job')
+      } else {
+        startBackupLog = {
+          ...safeBackupLog,
+          status: 'pending', // overwrite the status, because `getBackupNgLogs` return a `interrupted` status here. see `handleLog`
+        }
+        app.backupLogsEe.emit('add', startBackupLog)
+        previousBackupLog = startBackupLog
+      }
     }
 
     function emitBackupLogUpdate(backupLog) {
-      if (hasBackupLog) {
-        app.backupLogsEe.emit('update', backupLog, previousBackupLog)
-        previousBackupLog = backupLog
-      }
+      app.backupLogsEe.emit('update', backupLog, previousBackupLog)
+      previousBackupLog = backupLog
     }
 
     try {
@@ -325,7 +340,7 @@ export default class Jobs {
 
       // Links the job run to its backup log
       const jobUpdateFct = async backupTaskId => {
-        if (hasBackupLog) {
+        if (startBackupLog !== undefined) {
           function onBackupTaskUpdate(task) {
             const backupLog = { ...startBackupLog, tasks: [structuredClone(task)] }
             taskFormatAdapter(backupLog)
@@ -378,11 +393,14 @@ export default class Jobs {
       app.emit('job:terminated', runJobId, { type })
       throw error
     } finally {
-      if (hasBackupLog) {
+      if (startBackupLog !== undefined) {
         unwatchBackupTask()
-        app.getBackupNgLogs(REMOVE_CACHE_ENTRY, runJobId)
-        const backupLog = await app.getBackupNgLogs(runJobId)
-        emitBackupLogUpdate(backupLog)
+        const safeBackupLog = await safeGetBackupLog(runJobId, { bypassCache: true })
+        if (safeBackupLog === undefined) {
+          log.warn('skip SSE event due to a not found backup-log')
+        } else {
+          emitBackupLogUpdate(safeBackupLog)
+        }
       }
     }
   }
