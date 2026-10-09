@@ -16,5 +16,5 @@ export function useXoBackupRepositoryBenchmark(rawBr: MaybeRefOrGetter<FrontXoBa
 
   const readSpeed = useFormattedRate('readRate')
 
-  return { benchmark, writeSpeed, readSpeed }
+  return { writeSpeed, readSpeed }
 }

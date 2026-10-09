@@ -12,7 +12,7 @@
 <script lang="ts" setup>
 import VtsOverlayButton from '@core/components/overlay/VtsOverlayButton.vue'
 
-const { onClick, disabled } = defineProps<{
+const { onClick } = defineProps<{
   onClick?: () => void
   disabled?: boolean
 }>()

@@ -46,26 +46,14 @@ const {
   forgetBackupRepositoriesErrorMessage,
 } = useBackupRepositoryForget(() => brs)
 
-const noBrSelectedHint = computed(() => (brs.length === 0 ? t('no-br-selected') : undefined))
-
-const benchmarkHint = computed(() => {
-  if (noBrSelectedHint.value !== undefined) {
-    return noBrSelectedHint.value
-  }
-
-  if (brs.some(br => !br.enabled)) {
-    return t('some-selected-brs-disabled')
-  }
-
-  return benchmarkBackupRepositoriesErrorMessage.value
-})
+const isSelectionEmpty = computed(() => brs.length === 0)
 
 const bulkActions = computed<ActionItem[]>(() => [
   {
     label: t('action:change-state'),
     icon: 'action:change-state',
-    disabled: brs.length === 0,
-    hint: noBrSelectedHint.value,
+    disabled: isSelectionEmpty.value,
+    hint: isSelectionEmpty.value ? t('no-br-selected') : undefined,
     children: [
       {
         label: t('action:connect'),
@@ -91,7 +79,7 @@ const bulkActions = computed<ActionItem[]>(() => [
     onClick: () => benchmarkBackupRepositories(),
     disabled: !canBenchmarkBackupRepositories.value,
     busy: isBenchmarkingBackupRepositories.value,
-    hint: benchmarkHint.value,
+    hint: isSelectionEmpty.value ? t('no-br-selected') : benchmarkBackupRepositoriesErrorMessage.value,
   },
   {
     label: t('action:forget'),
@@ -99,7 +87,7 @@ const bulkActions = computed<ActionItem[]>(() => [
     onClick: () => forgetBackupRepositories(),
     disabled: !canForgetBackupRepositories.value,
     busy: isForgettingBackupRepositories.value,
-    hint: noBrSelectedHint.value ?? forgetBackupRepositoriesErrorMessage.value,
+    hint: isSelectionEmpty.value ? t('no-br-selected') : forgetBackupRepositoriesErrorMessage.value,
     accent: 'danger',
   },
 ])

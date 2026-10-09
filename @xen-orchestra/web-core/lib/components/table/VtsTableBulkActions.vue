@@ -1,12 +1,12 @@
 <template>
   <UiTableActions :title="t('table-actions')">
-    <template v-for="(action, index) of actions" :key="index">
-      <MenuList v-if="isGroupAction(action)" placement="bottom-start">
+    <template v-for="(action, index) of resolvedActions" :key="index">
+      <MenuList v-if="action.children" placement="bottom-start">
         <template #trigger="{ open }">
           <UiButton
             v-tooltip="action.hint"
             variant="tertiary"
-            :accent="buttonAccent(action.accent)"
+            :accent="action.buttonAccent"
             size="medium"
             :left-icon="action.icon"
             :disabled="action.disabled"
@@ -33,7 +33,7 @@
         v-else
         v-tooltip="action.hint"
         variant="tertiary"
-        :accent="buttonAccent(action.accent)"
+        :accent="action.buttonAccent"
         size="medium"
         :left-icon="action.icon"
         :disabled="action.disabled"
@@ -48,12 +48,12 @@
 
 <script setup lang="ts">
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import type { MenuItemAccent } from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
-import type { ActionItem, GroupActionItem } from '@core/components/menu/VtsActionsMenu.vue'
+import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import UiButton, { type ButtonAccent } from '@core/components/ui/button/UiButton.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { actions = [] } = defineProps<{
@@ -62,11 +62,12 @@ const { actions = [] } = defineProps<{
 
 const { t } = useI18n()
 
-function buttonAccent(accent: MenuItemAccent | undefined): ButtonAccent {
-  return accent === 'danger' || accent === 'warning' ? accent : 'brand'
-}
+const resolvedActions = computed(() =>
+  actions.map(action => {
+    const buttonAccent: ButtonAccent =
+      action.accent === 'danger' || action.accent === 'warning' ? action.accent : 'brand'
 
-function isGroupAction(action: ActionItem): action is GroupActionItem {
-  return 'children' in action
-}
+    return { ...action, buttonAccent }
+  })
+)
 </script>

@@ -20,9 +20,7 @@ export const useXoBackupRepositoryChangeStateJob = defineJob(
 
     return {
       async run(brs: FrontXoBackupRepository[], enabled: boolean) {
-        const results = await Promise.allSettled(
-          brs.map(br => fetchPatch(`backup-repositories/${br.id}`, { enabled }))
-        )
+        const results = await Promise.allSettled(brs.map(br => fetchPatch(`backup-repositories/${br.id}`, { enabled })))
 
         results.forEach((result, index) => {
           if (result.status === 'rejected') {
@@ -36,13 +34,9 @@ export const useXoBackupRepositoryChangeStateJob = defineJob(
         return results
       },
 
-      validate: (isRunning, brs: FrontXoBackupRepository[] | undefined, enabled: boolean | undefined) => {
+      validate: (isRunning, brs: FrontXoBackupRepository[] | undefined) => {
         if (!brs || brs.length === 0) {
           throw new JobError(t('job:backup-repository-change-state:missing-backup-repository'))
-        }
-
-        if (enabled === undefined) {
-          throw new JobError(t('job:backup-repository-change-state:missing-state'))
         }
 
         if (isRunning) {
