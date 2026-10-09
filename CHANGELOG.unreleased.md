@@ -28,6 +28,17 @@
 - [New VM] Allow resizing existing (template) disks when a config drive is used (PR [#10359](https://github.com/vatesfr/xen-orchestra/pull/10359))
 - [Host] Add possibility to emergency shutdown a host (PR [#10412](https://github.com/vatesfr/xen-orchestra/pull/10412))
 
+- Host Probe SR REST API Endpoints:
+
+  - `POST /rest/v0/hosts/:id/actions/probe_nfs` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
+  - `POST /rest/v0/hosts/:id/actions/probe_zfs` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
+  - `POST /rest/v0/hosts/:id/actions/probe_hba` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
+  - `POST /rest/v0/hosts/:id/actions/probe_iscsi_iqns` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
+  - `POST /rest/v0/hosts/:id/actions/probe_iscsi_luns` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
+  - `POST /rest/v0/hosts/:id/actions/probe_iscsi_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
+  - `POST /rest/v0/hosts/:id/actions/probe_hba_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
+  - `POST /rest/v0/hosts/:id/actions/probe_nfs_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -62,6 +73,7 @@
 
 - @vates/nbd-client patch
 - @vates/types minor
+- @xen-orchestra/acl minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
