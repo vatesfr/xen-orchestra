@@ -7,6 +7,7 @@ import { pipeline } from 'readable-stream'
 import { safeDateFormat } from '../utils.mjs'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
 import { getCurrentVmUuid } from '../_XenStore.mjs'
+import iteratee from 'lodash/iteratee.js'
 
 // ===================================================================
 
@@ -59,10 +60,25 @@ function handleGetAllObjects(req, res, { filter, limit }) {
   return fromCallback(pipeline, createNdJsonStream(objects), res)
 }
 
-export function getAllObjects({ filter, limit, ndjson = false }) {
+function composeFilter(filter, isObjectVisible) {
+  const predicate = filter === undefined ? undefined : iteratee(filter)
+
+  if (isObjectVisible === undefined) {
+    return predicate
+  } else if (predicate === undefined) {
+    return (object, id) => isObjectVisible(id)
+  } else {
+    return (object, id, objects) => isObjectVisible(id) && predicate(object, id, objects)
+  }
+}
+
+export async function getAllObjects({ filter, limit, ndjson = false }) {
   if (typeof filter === 'string') {
     filter = CM.parse(filter).createPredicate()
   }
+
+  const isObjectVisible = await this.getObjectFilterForUser(this.apiContext.user.id)
+  filter = composeFilter(filter, isObjectVisible)
 
   return ndjson
     ? this.registerHttpRequest(handleGetAllObjects, {

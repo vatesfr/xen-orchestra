@@ -20,6 +20,10 @@ export default class {
         crypto: app.cryptoCredentials,
       }))
 
+      for (const event of ['add', 'update', 'remove']) {
+        aclsDb.on(event, () => app.clearObjectFilterCache())
+      }
+
       app.addConfigManager(
         'acls',
         () => aclsDb.get(),

@@ -32,6 +32,8 @@
   "scripts": {
     "qa": "node --env-file-if-exists=.env --test --test-concurrency=1 tests/*.test.js",
     "qa:infrastructure": "node --env-file-if-exists=.env --test tests/infrastructure.test.js",
+    "qa:rbac": "node --env-file-if-exists=.env --test tests/rbac.test.js",
+    "qa:rbac:egress": "node --env-file-if-exists=.env benchmarks/rbac-egress.mjs",
     "qa:vm": "node --env-file-if-exists=.env --test tests/vm.test.js",
     "qa:backup:base": "node --env-file-if-exists=.env --test tests/backup.test.js",
     "qa:backup:nbd": "node --env-file-if-exists=.env --test tests/backup.nbd.test.js",

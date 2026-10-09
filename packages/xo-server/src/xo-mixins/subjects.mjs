@@ -38,6 +38,18 @@ export default class {
         indexes: ['name'],
         crypto: app.cryptoCredentials,
       }))
+
+      for (const event of ['add', 'update']) {
+        groupsDb.on(event, groups => {
+          for (const group of groups) {
+            for (const userId of group.users ?? []) {
+              app.clearObjectFilterCache(userId)
+            }
+          }
+        })
+      }
+      groupsDb.on('remove', () => app.clearObjectFilterCache())
+
       app.hooks.emit('registerCollection', {
         collection: groupsDb,
         type: 'group',
@@ -49,6 +61,20 @@ export default class {
         indexes: UNIQUE_FIELDS,
         crypto: app.cryptoCredentials,
       }))
+
+      for (const event of ['add', 'update']) {
+        usersDb.on(event, models => {
+          for (const model of models) {
+            app.clearObjectFilterCache(model.id)
+          }
+        })
+      }
+      usersDb.on('remove', userIds => {
+        for (const userId of userIds) {
+          app.clearObjectFilterCache(userId)
+        }
+      })
+
       app.hooks.emit('registerCollection', {
         collection: usersDb,
         type: 'user',
