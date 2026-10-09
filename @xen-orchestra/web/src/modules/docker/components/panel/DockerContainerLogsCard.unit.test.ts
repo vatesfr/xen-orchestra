@@ -81,6 +81,27 @@ it('follows the tail of the logs', () => {
   expect(wrapper.findComponent(UiLogEntryViewer).props('autoScroll')).toBe(true)
 })
 
+it('follows the tail only while the user stays at the bottom', async () => {
+  const wrapper = mount(UiLogEntryViewer, {
+    props: { label: 'Logs', content: 'a', size: 'small', accent: 'info', autoScroll: true },
+    global: createGlobalTestConfig(),
+  })
+  const element = wrapper.find('code').element
+  // no layout in happy-dom: 100px per line, one line visible
+  Object.defineProperty(element, 'scrollHeight', { get: () => element.textContent!.trim().split('\n').length * 100 })
+  Object.defineProperty(element, 'clientHeight', { value: 100 })
+  Object.defineProperty(element, 'scrollTop', { value: 0, writable: true })
+
+  // at the bottom: follows the new lines
+  await wrapper.setProps({ content: 'a\nb' })
+  expect(element.scrollTop).toBe(200)
+
+  // scrolled up to read: stays there
+  element.scrollTop = 0
+  await wrapper.setProps({ content: 'a\nb\nc' })
+  expect(element.scrollTop).toBe(0)
+})
+
 it('says when the logs have been cut', () => {
   setLogs(createLogs({ truncated: true }))
 
