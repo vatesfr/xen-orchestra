@@ -3,4 +3,5 @@ export default {
   update: {
     management: true,
   },
+  delete: true,
 }

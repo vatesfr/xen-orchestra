@@ -27,6 +27,7 @@
 - [Treeview] Press Ctrl+K (Cmd+K on macOS) to focus the treeview search (PR [#10492](https://github.com/vatesfr/xen-orchestra/pull/10492))
 - [New VM] Allow resizing existing (template) disks when a config drive is used (PR [#10359](https://github.com/vatesfr/xen-orchestra/pull/10359))
 - [Host] Add possibility to emergency shutdown a host (PR [#10412](https://github.com/vatesfr/xen-orchestra/pull/10412))
+- [REST API] Add `DELETE /rest/v0/pifs/{id}` to forget a PIF (PR [#]())
 
 ### Bug fixes
 
@@ -62,6 +63,7 @@
 
 - @vates/nbd-client patch
 - @vates/types minor
+- @xen-orchestra/acl minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
