@@ -117,12 +117,40 @@ const removeBackup = (backupsByVm, vmUuid, key) => {
 }
 
 /**
- * What a journal event changed in the backups of a repository, as `#emit()` announces it.
+ * The payload of each event of the archives: `add` and `update` carry archives, `remove` their ids.
+ *
+ * @typedef {{
+ *   add: FormattedBackup[],
+ *   update: FormattedBackup[],
+ *   remove: string[],
+ * }} ArchiveEvents
+ */
+
+/**
+ * The archives of the backup repositories, with the interface the app expects from the collections
+ * registered with it (see `registerCollection` in `xo.mjs`).
+ *
+ * @typedef {{
+ *   on: <E extends keyof ArchiveEvents>(event: E, listener: (archives: ArchiveEvents[E]) => void) => void,
+ *   off: <E extends keyof ArchiveEvents>(event: E, listener: (archives: ArchiveEvents[E]) => void) => void,
+ *   get: () => Promise<FormattedBackup[]>,
+ *   first: (id: string) => Promise<FormattedBackup | undefined>,
+ * }} Archives
+ */
+
+/**
+ * The backups of a repository whose archives `#emit()` announces, by event: `remove` holds the value
+ * they had before being removed.
+ *
+ * @typedef {Record<'add' | 'update' | 'remove', FormattedBackup[]>} Changes
+ */
+
+/**
+ * What a journal event changed in the backups of a repository.
  *
  * @typedef {object} Change
- * @property {'add' | 'update' | 'remove'} event
- * @property {FormattedBackup} [backup] current value of the archive, `undefined` on `remove`
- * @property {FormattedBackup} [previous] value it had before, `undefined` on `add`
+ * @property {keyof Changes} event
+ * @property {FormattedBackup} backup current value of the backup, or the value it had on `remove`
  */
 
 /**
@@ -138,7 +166,7 @@ const applyEvent = (backupsByVm, journalEvent) => {
 
   if (journalEvent.event === 'del') {
     removeBackup(backupsByVm, vmUuid, filename)
-    return previous === undefined ? undefined : { event: 'remove', previous }
+    return previous === undefined ? undefined : { event: 'remove', backup: previous }
   }
 
   const { backup } = journalEvent
@@ -147,19 +175,65 @@ const applyEvent = (backupsByVm, journalEvent) => {
   if (isEqual(previous, backup)) {
     return
   }
-  return { event: previous === undefined ? 'add' : 'update', backup, previous }
+  return { event: previous === undefined ? 'add' : 'update', backup }
 }
 
 /**
- * The archive a backup is served and announced as: the cache keys the backups of a repository by
- * the name of their metadata, which is only unique within that repository.
+ * Compares the backups a repository has just been listed with to the ones last announced for it.
+ *
+ * @param {BackupsByVm | undefined} announced
+ * @param {BackupsByVm} backupsByVm
+ * @returns {Changes}
+ */
+const diffBackups = (announced, backupsByVm) => {
+  /** @type {Changes} */
+  const changes = { add: [], update: [], remove: [] }
+
+  for (const [vmUuid, backups] of Object.entries(backupsByVm)) {
+    const announcedBackups = announced?.[vmUuid]
+    for (const [key, backup] of Object.entries(backups)) {
+      const previous = announcedBackups?.[key]
+      if (previous === undefined) {
+        changes.add.push(backup)
+      } else if (!isEqual(previous, backup)) {
+        changes.update.push(backup)
+      }
+    }
+  }
+
+  if (announced !== undefined) {
+    for (const [vmUuid, backups] of Object.entries(announced)) {
+      const currentBackups = backupsByVm[vmUuid]
+      for (const [key, backup] of Object.entries(backups)) {
+        if (currentBackups?.[key] === undefined) {
+          changes.remove.push(backup)
+        }
+      }
+    }
+  }
+
+  return changes
+}
+
+/**
+ * The id a backup is served and announced under: the cache keys the backups of a repository by the
+ * name of their metadata, which is only unique within that repository.
+ *
+ * @param {FormattedBackup} backup
+ * @param {string} repositoryId
+ * @returns {string}
+ */
+const archiveIdOf = (backup, repositoryId) => `${repositoryId}/${backup.id}`
+
+/**
+ * The archive a backup is served and announced as, see `archiveIdOf()`.
  *
  * @param {FormattedBackup} backup
  * @param {string} repositoryId
  * @returns {FormattedBackup}
  */
 const archiveOf = (backup, repositoryId) =>
-  /** @type {FormattedBackup} */ ({ ...backup, id: `${repositoryId}/${backup.id}` })
+  /** @type {FormattedBackup} */ ({ ...backup, id: archiveIdOf(backup, repositoryId) })
 
 /**
  * Turns the backups of a repository into the shape expected by the API:
@@ -204,9 +278,8 @@ export function serveVmBackups(backupsByVm, remoteId, vmId) {
  * reconfigured or moved to another proxy, which the entry detects by itself from what it was built
  * from, and when the source turns out not to be able to replay the repository at all.
  *
- * What it holds is also served as a collection, `archives`: every change is announced as an `add`,
- * `update` or `remove` event carrying the archive and its previous value, with the same signature as
- * the other collections of the app.
+ * What it holds is also served as a collection, `archives`, for the app to register with its other
+ * collections.
  */
 export class VmBackupsCache {
   // repository id → the backups last announced for it, which is the object the entry holds while it
@@ -220,9 +293,28 @@ export class VmBackupsCache {
   /** @type {Map<string, BackupsByVm>} */
   #announced = new Map()
 
-  // a plain emitter rather than the cache itself, so that its consumers can only listen: they must
-  // not reach `delete()` or `remove()`, which would bypass the listing state their owner keeps
-  #archives = new EventEmitter()
+  // only the cache emits on it: its consumers get a collection of its own rather than the cache itself,
+  // which can only listen, read, and not reach `delete()` or `remove()`, which would bypass the listing
+  // state their owner keeps
+  /** @type {EventEmitter} */
+  #emitter = new EventEmitter()
+
+  // archive id → the archive, for the archives announced and not removed since: `#emit()` is the only
+  // place where `#announced` changes, so it keeps this index in step with it
+  /** @type {Map<string, FormattedBackup>} */
+  #archivesById = new Map()
+
+  /** @type {Archives} */
+  #archives = {
+    on: (event, listener) => {
+      this.#emitter.on(event, listener)
+    },
+    off: (event, listener) => {
+      this.#emitter.off(event, listener)
+    },
+    get: async () => this.#listArchives(),
+    first: async (/** @type {string} */ id) => this.#archivesById.get(id),
+  }
 
   // repository id → { backupsByVm, cursor, journalConfirmed, options, proxy, refreshedAt, stale, url }
   /** @type {Map<string, Entry>} */
@@ -239,10 +331,9 @@ export class VmBackupsCache {
   #source
 
   /**
-   * The archives the cache holds, as a collection: `add`, `update` and `remove` events carrying the
-   * archive and its previous value.
+   * The archives the cache holds, as a collection to register with the app.
    *
-   * @returns {EventEmitter}
+   * @returns {Archives}
    */
   get archives() {
     return this.#archives
@@ -255,9 +346,6 @@ export class VmBackupsCache {
    * repository, in milliseconds
    */
   constructor(source, { minRefreshDelay = 0 } = {}) {
-    // process-wide collection: the number of consumers subscribing to it is not bounded by 10
-    this.#archives.setMaxListeners(0)
-
     this.#source = source
     this.#minRefreshDelay = minRefreshDelay
   }
@@ -309,11 +397,11 @@ export class VmBackupsCache {
     }
     this.#announced.delete(repositoryId)
 
-    for (const backups of Object.values(announced)) {
-      for (const backup of Object.values(backups)) {
-        this.#emit('remove', repositoryId, undefined, backup)
-      }
-    }
+    this.#emit(repositoryId, {
+      add: [],
+      update: [],
+      remove: Object.values(announced).flatMap(backups => Object.values(backups)),
+    })
   }
 
   /**
@@ -422,23 +510,69 @@ export class VmBackupsCache {
   }
 
   /**
-   * @param {'add' | 'update' | 'remove'} event
+   * Every archive of the collection: those of the repositories listed since the process started, and
+   * not removed since.
+   *
+   * @returns {FormattedBackup[]}
+   */
+  #listArchives() {
+    /** @type {FormattedBackup[]} */
+    const archives = []
+    for (const [repositoryId, backupsByVm] of this.#announced) {
+      for (const backups of Object.values(backupsByVm)) {
+        for (const backup of Object.values(backups)) {
+          archives.push(archiveOf(backup, repositoryId))
+        }
+      }
+    }
+    return archives
+  }
+
+  /**
+   * Announces the changes of the archives of a repository, one event per kind of change, as the
+   * other collections of the app do.
+   *
    * @param {string} repositoryId
-   * @param {FormattedBackup} [backup] current value of the archive, `undefined` on `remove`
-   * @param {FormattedBackup} [previous] value it had before, `undefined` on `add`
+   * @param {Changes} changes
    * @returns {void}
    */
-  #emit(event, repositoryId, backup, previous) {
+  #emit(repositoryId, { add, update, remove }) {
+    const added = add.map(backup => archiveOf(backup, repositoryId))
+    const updated = update.map(backup => archiveOf(backup, repositoryId))
+    const removed = remove.map(backup => archiveIdOf(backup, repositoryId))
+
+    // the index is updated before the listeners run, so that they read the state which is announced
+    for (const archive of [...added, ...updated]) {
+      this.#archivesById.set(archive.id, archive)
+    }
+    for (const id of removed) {
+      this.#archivesById.delete(id)
+    }
+
     // the listeners run synchronously inside the listing path: a consumer which throws must not fail
-    // the listing which announced the change, nor the changes announced after it
-    try {
-      this.#archives.emit(
-        event,
-        backup === undefined ? undefined : archiveOf(backup, repositoryId),
-        previous === undefined ? undefined : archiveOf(previous, repositoryId)
-      )
-    } catch (error) {
-      warn('a listener failed', { event, repositoryId, error })
+    // the listing which announced the changes, nor the kinds of change announced after it
+    /**
+     * @param {'add' | 'update' | 'remove'} event
+     * @param {FormattedBackup[] | string[]} archives
+     */
+    const emit = (event, archives) => {
+      try {
+        this.#emitter.emit(event, archives)
+      } catch (error) {
+        warn('a listener failed', { event, repositoryId, error })
+      }
+    }
+
+    /** @type {Array<['add' | 'update' | 'remove', FormattedBackup[] | string[]]>} */
+    const kinds = [
+      ['add', added],
+      ['update', updated],
+      ['remove', removed],
+    ]
+    for (const [event, archives] of kinds) {
+      if (archives.length !== 0) {
+        emit(event, archives)
+      }
     }
   }
 
@@ -451,33 +585,10 @@ export class VmBackupsCache {
    * @returns {void}
    */
   #announce(repositoryId, backupsByVm) {
-    const announced = this.#announced.get(repositoryId)
+    const changes = diffBackups(this.#announced.get(repositoryId), backupsByVm)
     this.#announced.set(repositoryId, backupsByVm)
 
-    for (const [vmUuid, backups] of Object.entries(backupsByVm)) {
-      const announcedBackups = announced?.[vmUuid]
-      for (const [key, backup] of Object.entries(backups)) {
-        const previous = announcedBackups?.[key]
-        if (previous === undefined) {
-          this.#emit('add', repositoryId, backup)
-        } else if (!isEqual(previous, backup)) {
-          this.#emit('update', repositoryId, backup, previous)
-        }
-      }
-    }
-
-    if (announced === undefined) {
-      return
-    }
-
-    for (const [vmUuid, backups] of Object.entries(announced)) {
-      const currentBackups = backupsByVm[vmUuid]
-      for (const [key, backup] of Object.entries(backups)) {
-        if (currentBackups?.[key] === undefined) {
-          this.#emit('remove', repositoryId, undefined, backup)
-        }
-      }
-    }
+    this.#emit(repositoryId, changes)
   }
 
   /**
@@ -555,14 +666,18 @@ export class VmBackupsCache {
     // while these backups are still the announced ones
     const announced = this.#announced.get(repository.id) === backupsByVm
 
+    /** @type {Changes} */
+    const changes = { add: [], update: [], remove: [] }
+
     // the source reduced the events to the last one of each backup, therefore they are independent
     // and the order they are applied in does not matter
     for (const journalEvent of read.events) {
       const change = applyEvent(backupsByVm, journalEvent)
       if (announced && change !== undefined) {
-        this.#emit(change.event, repository.id, change.backup, change.previous)
+        changes[change.event].push(change.backup)
       }
     }
+    this.#emit(repository.id, changes)
 
     // the cursor, not the events, is what says whether the journal moved forward: the entries it
     // covers may all have resolved to no event at all, e.g. they are of a kind this version does
