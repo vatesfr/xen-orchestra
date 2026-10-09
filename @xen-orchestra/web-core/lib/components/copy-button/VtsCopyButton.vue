@@ -3,6 +3,7 @@
     v-tooltip="!isSupported ? t('copy-unavailable-http') : copied && t('copied')"
     :disabled="!isSupported"
     :icon
+    :aria-label="t('action:copy')"
     size="small"
     accent="brand"
     @click="copy()"

@@ -110,6 +110,7 @@
   "action:open": "Open",
   "action:open-app": "@:action:open {name}",
   "action:open-console-in-new-tab": "Open console in new tab",
+  "action:open-in-new-tab": "Open in new tab",
   "action:pause": "Pause",
   "action:pick-template": "Pick template",
   "action:plus-and": "+ @:and",

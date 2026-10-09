@@ -107,6 +107,7 @@
   "action:open": "Ouvrir",
   "action:open-app": "@:action:open {name}",
   "action:open-console-in-new-tab": "Ouvrir la console dans un nouvel onglet",
+  "action:open-in-new-tab": "Ouvrir dans un nouvel onglet",
   "action:pick-template": "Choisir un modèle",
   "action:plus-and": "+ @:and",
   "action:plus-or": "+ @:or",

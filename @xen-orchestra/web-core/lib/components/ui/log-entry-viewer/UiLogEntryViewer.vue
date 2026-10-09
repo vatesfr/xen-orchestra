@@ -9,6 +9,7 @@
         <VtsCopyButton :value="content" />
         <UiButtonIcon
           icon="fa:arrow-up-right-from-square"
+          :aria-label="t('action:open-in-new-tab')"
           size="small"
           accent="brand"
           @click="openRawValueInNewTab()"
@@ -27,6 +28,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed, useTemplateRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 type LogEntryViewerAccent = 'info' | 'warning' | 'danger'
 type LogEntryViewerSize = 'small' | 'medium'
@@ -47,6 +49,8 @@ const {
 defineSlots<{
   default(): any
 }>()
+
+const { t } = useI18n()
 
 const mapping = {
   small: {

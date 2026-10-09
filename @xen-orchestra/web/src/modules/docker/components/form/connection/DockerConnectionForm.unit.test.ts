@@ -64,3 +64,14 @@ it('does not let the browser autofill the login password into the SSH fields', (
   expect(wrapper.find('input[name="docker-ssh-username"]').attributes('autocomplete')).toBe('off')
   expect(wrapper.find('input[name="docker-ssh-passphrase"]').attributes('autocomplete')).toBe('new-password')
 })
+
+it('tells assistive technologies whether the advanced settings are expanded', async () => {
+  const wrapper = mountForm()
+  const toggle = wrapper.findAll('button').find(button => button.text() === t('advanced-settings'))!
+
+  expect(toggle.attributes('aria-expanded')).toBe('false')
+
+  await toggle.trigger('click')
+
+  expect(toggle.attributes('aria-expanded')).toBe('true')
+})
