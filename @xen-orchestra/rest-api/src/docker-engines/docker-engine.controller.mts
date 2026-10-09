@@ -33,6 +33,7 @@ import {
   badRequestResp,
   createdResp,
   featureUnauthorized,
+  forbiddenOperationResp,
   gatewayTimeoutResp,
   invalidParameters,
   noContentResp,
@@ -55,19 +56,24 @@ import {
 } from '../open-api/oa-examples/docker-engine.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
-import { assertDockerFeature, withDockerErrors } from '../helpers/docker.helper.mjs'
+import { withDockerErrors } from '../helpers/docker.helper.mjs'
+import { dockerFeatureMiddleware } from '../middlewares/docker-feature.middleware.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 
-// v1: no `acl` middleware, so every route is admin-only (see the README's
-// ACLs section): the stored credentials give root-equivalent access to the
-// Docker hosts. The `// ACLs v2:` comments give the middleware to add with the
-// `docker-engine` ACL resource.
+/**
+ * Docker engines: the SSH access to the Docker (or Podman) socket of a VM.
+ *
+ * No ACL privilege covers these routes: they are restricted to administrators,
+ * the stored credentials give root-equivalent access to the VMs.
+ */
 @Route('docker-engines')
 @Security('*')
+@Middlewares(dockerFeatureMiddleware)
 @Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
+@Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
 @Response(featureUnauthorized.status, featureUnauthorized.description)
 @Tags('docker-engines')
 @provide(DockerEngineController)
@@ -91,14 +97,10 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    * pooled SSH connection. Filter on `$VM` to find the engine of a VM (an empty
    * list means it has none).
    *
-   * Required privilege:
-   * - admin (v2: resource: docker-engine, action: read)
-   *
    * @example fields "id,$VM,label,connectionStatus"
    * @example filter "$VM:c7b3b4bc-0000-4000-8000-00000000cafe"
    * @example limit 42
    */
-  // ACLs v2: @Security('*', ['acl']) + sendObjects(…, { privilege: { action: 'read', resource: 'docker-engine' } })
   @Example(dockerEngineIds)
   @Example(partialDockerEngines)
   @Extension('x-mcp-exposure', 'allow')
@@ -111,7 +113,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoDockerEngine>>>> {
-    await assertDockerFeature(this.restApi)
     return this.sendObjects(Object.values(await this.getObjects({ filter })), req, { limit })
   }
 
@@ -121,12 +122,8 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    * Always answers 200 when the engine exists: `status` is `connected`, or
    * `unreachable`, `auth-failed` or `host-key-mismatch` with an `error`.
    *
-   * Required privilege:
-   * - admin (v2: resource: docker-engine, action: read)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07"
    */
-  // ACLs v2: acl({ resource: 'docker-engine', action: 'read', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerEngine })
   @Example(dockerEngineInfo)
   @Example(dockerEngineInfoAuthFailed)
   @Extension('x-mcp-exposure', 'allow')
@@ -135,7 +132,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   @Response(badGatewayResp.status, 'Docker API error of the daemon')
   @Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
   async getDockerEngineInfo(@Path() id: string): Promise<XoDockerEngineInfo> {
-    await assertDockerFeature(this.restApi)
     // not cached: three requests on the pooled connection, and an unreachable
     // engine fails fast thanks to the pool's negative cache
     return this.restApi.xoApp.getDockerEngineInfo(id as XoDockerEngine['id'])
@@ -145,18 +141,13 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    * The engine, without its secrets (`hasPassword` and `hasPrivateKey` tell
    * which ones are set). Never connects.
    *
-   * Required privilege:
-   * - admin (v2: resource: docker-engine, action: read)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07"
    */
-  // ACLs v2: acl({ resource: 'docker-engine', action: 'read', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerEngine })
   @Example(dockerEngine)
   @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
   async getDockerEngine(@Path() id: string): Promise<Unbrand<XoDockerEngine>> {
-    await assertDockerFeature(this.restApi)
     return this.getObject(id as XoDockerEngine['id'])
   }
 
@@ -190,9 +181,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    *
    * Always synchronous: the result (or the error) is the response.
    *
-   * Required privilege:
-   * - admin (v2: resource: docker-engine, action: create)
-   *
    * @example body {
    *   "$VM": "c7b3b4bc-0000-4000-8000-00000000cafe",
    *   "label": "Web server",
@@ -202,7 +190,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    *   "hostKeyFingerprint": "SHA256:G+4RawxzV+6SGkxauQY8Vqmu2KZ4ENCQu/YuxBIARDA"
    * }
    */
-  // ACLs v2: acl({ resource: 'docker-engine', action: 'create', object: ({ req }) => req.body })
   @Example(dockerEngineId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('')
@@ -219,7 +206,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   @Response(badGatewayResp.status, 'SSH or Docker socket failure (see data.code, data.diagnostic)')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async createDockerEngine(@Body() body: CreateDockerEngineBody): Promise<{ id: string }> {
-    await assertDockerFeature(this.restApi)
     // no task: its record (params, error) would be readable by every user with
     // `task:read`
     const engine = await this.restApi.xoApp.createDockerEngine(body as XoDockerEngineProperties)
@@ -246,13 +232,9 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    *
    * Always synchronous.
    *
-   * Required privilege:
-   * - admin (v2: resource: docker-engine, action: update)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07"
    * @example body { "label": "Web server (prod)" }
    */
-  // ACLs v2: acl({ resource: 'docker-engine', action: 'update', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerEngine })
   @Extension('x-mcp-exposure', 'confirm')
   @Patch('{id}')
   @Middlewares(json())
@@ -264,7 +246,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   @Response(badGatewayResp.status, 'SSH or Docker socket failure (see data.code, data.diagnostic)')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async updateDockerEngine(@Path() id: string, @Body() body: UpdateDockerEngineBody): Promise<void> {
-    await assertDockerFeature(this.restApi)
     // no task, see createDockerEngine()
     await this.restApi.xoApp.updateDockerEngine(id as XoDockerEngine['id'], body as XoDockerEngineProperties)
   }
@@ -273,18 +254,13 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    * Remove the engine from XO (nothing is changed on the Docker host), and
    * close its connection.
    *
-   * Required privilege:
-   * - admin (v2: resource: docker-engine, action: delete)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07"
    */
-  // ACLs v2: acl({ resource: 'docker-engine', action: 'delete', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerEngine })
   @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteDockerEngine(@Path() id: string): Promise<void> {
-    await assertDockerFeature(this.restApi)
     // no task, see createDockerEngine()
     await this.restApi.xoApp.deleteDockerEngine(id as XoDockerEngine['id'])
   }
@@ -300,12 +276,8 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
    * engine, it is refused without connecting: 429 `SSH_COOLDOWN` with
    * `Retry-After` (synchronous call).
    *
-   * Required privilege:
-   * - admin (v2: resource: docker-engine, action: test)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07"
    */
-  // ACLs v2: acl({ resource: 'docker-engine', action: 'test', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerEngine })
   @Example(taskLocation)
   @Example(dockerEngineTestResult)
   @Example(dockerEngineTestFailure)
@@ -319,7 +291,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
     @Path() id: string,
     @Query() sync?: boolean
   ): CreateActionReturnType<XoDockerEngineTestResult> {
-    await assertDockerFeature(this.restApi)
     const engineId = id as XoDockerEngine['id']
     // 404 before creating a task
     await this.getObject(engineId)

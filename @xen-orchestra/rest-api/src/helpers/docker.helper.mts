@@ -2,7 +2,6 @@ import { createLogger } from '@xen-orchestra/log'
 import type { HttpStatusCodeLiteral } from 'tsoa'
 
 import { ApiError } from './error.helper.mjs'
-import type { RestApi } from '../rest-api/rest-api.mjs'
 
 const log = createLogger('xo:rest-api:docker')
 
@@ -36,7 +35,7 @@ const PASSED_THROUGH_STATUSES = new Set([400, 404, 409])
 // sent to the client
 const CONTEXT_FIELDS = new Set(['host', 'port', 'socketPath', 'path'])
 
-// same as xo-server's `MAX_ERROR_MESSAGE_LENGTH`
+// same as `MAX_ERROR_MESSAGE_LENGTH` of `@xen-orchestra/docker-ssh`
 const MAX_MESSAGE_LENGTH = 512
 
 function truncateMessage(message: string): string {
@@ -144,12 +143,4 @@ export async function withDockerErrors<T>(fn: () => Promise<T>): Promise<T> {
   } catch (error) {
     throw toDockerApiError(error)
   }
-}
-
-/**
- * Must be called first by every Docker route: an unlicensed XOA must not
- * store credentials nor open SSH sessions.
- */
-export function assertDockerFeature(restApi: RestApi): Promise<void> {
-  return restApi.xoApp.checkFeatureAuthorization('DOCKER')
 }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { serializeError } from '@vates/task'
-import { featureUnauthorized, invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
+import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 
 import { DockerContainerController } from './docker-container.controller.mjs'
 import { DockerContainerService, getEngineScope } from './docker-container.service.mjs'
@@ -25,16 +25,11 @@ const containers = [
   { id: `engine-1_${'cd'.repeat(32)}`, $engine: 'engine-1', $VM: VM_1, $pool: POOL, name: 'db', state: 'exited' },
 ]
 
-function setup({ licensed = true, maxListedEngines }: { licensed?: boolean; maxListedEngines?: number } = {}) {
+function setup({ maxListedEngines }: { maxListedEngines?: number } = {}) {
   const calls: { method: string; args: unknown[] }[] = []
   const tasks: Record<string, unknown>[] = []
   const xoApp = {
-    config: { getOptional: (path: string) => (path === 'docker.maxListedEngines' ? maxListedEngines : undefined) },
-    checkFeatureAuthorization: async () => {
-      if (!licensed) {
-        throw featureUnauthorized({ featureCode: 'DOCKER' })
-      }
-    },
+    config: { get: (path: string) => (path === 'docker.maxListedEngines' ? (maxListedEngines ?? 10) : undefined) },
     getAllDockerEngines: async () => engines,
     getDockerEngine: async (id: string) => {
       const engine = engines.find(_ => _.id === id)
@@ -42,6 +37,13 @@ function setup({ licensed = true, maxListedEngines }: { licensed?: boolean; maxL
         throw noSuchObject(id, 'docker-engine')
       }
       return engine
+    },
+    getDockerContainerScope: async (id: string) => {
+      const [engineId, dockerId] = id.split('_')
+      if (!/^[0-9a-f]{64}$/.test(dockerId ?? '') || !engines.some(_ => _.id === engineId)) {
+        throw noSuchObject(id, 'docker-container')
+      }
+      return { id, $engine: engineId }
     },
     getDockerContainers: async (opts: unknown) => {
       calls.push({ method: 'getDockerContainers', args: [opts] })
@@ -154,7 +156,10 @@ describe('DockerContainerController', () => {
       const { calls, controller } = setup()
       const req = { query: {}, path: '/rest/v0/docker-containers' } as never
       for (const filter of [undefined, 'name:web', '$engine:engine-*']) {
-        await assert.rejects(controller.getDockerContainers(req, filter), invalidParameters.is)
+        await assert.rejects(
+          controller.getDockerContainers(req, undefined, undefined, undefined, filter),
+          invalidParameters.is
+        )
       }
       assert.deepEqual(calls, [])
     })
@@ -162,16 +167,20 @@ describe('DockerContainerController', () => {
     it('a partial id designates the engines, like the filter matches the containers', async () => {
       const { calls, controller } = setup()
       const req = makeReq({ fields: 'name' })
-      assert.deepEqual(await controller.getDockerContainers(req, '$VM:c7b3b4bc name:web', 'name'), [
-        { name: 'web', href: `/rest/v0/docker-containers/engine-1_${DOCKER_ID}` },
-      ])
+      assert.deepEqual(
+        await controller.getDockerContainers(req, 'name', undefined, undefined, '$VM:c7b3b4bc name:web'),
+        [{ name: 'web', href: `/rest/v0/docker-containers/engine-1_${DOCKER_ID}` }]
+      )
       assert.deepEqual((calls[0].args[0] as { engines: string[] }).engines, ['engine-1', 'engine-2'])
     })
 
     it('422 above maxListedEngines', async () => {
       const { calls, controller } = setup({ maxListedEngines: 1 })
       const req = { query: {}, path: '/rest/v0/docker-containers' } as never
-      await assert.rejects(controller.getDockerContainers(req, `$pool:${POOL}`), invalidParameters.is)
+      await assert.rejects(
+        controller.getDockerContainers(req, undefined, undefined, undefined, `$pool:${POOL}`),
+        invalidParameters.is
+      )
       assert.deepEqual(calls, [])
     })
 
@@ -180,7 +189,7 @@ describe('DockerContainerController', () => {
       const filter = `$pool:${POOL} state:running`
       const headers: Record<string, string> = {}
       const req = makeReq({ fields: 'name,state', filter }, headers)
-      assert.deepEqual(await controller.getDockerContainers(req, filter), [
+      assert.deepEqual(await controller.getDockerContainers(req, undefined, undefined, undefined, filter), [
         { name: 'web', state: 'running', href: `/rest/v0/docker-containers/engine-1_${DOCKER_ID}` },
       ])
       assert.deepEqual(JSON.parse(headers['x-docker-errors']), [{ engine: 'engine-2', code: 'SSH_AUTH_FAILED' }])
@@ -196,15 +205,15 @@ describe('DockerContainerController', () => {
       const { calls, controller } = setup()
       const filter = `$VM:${VM_1}`
       const req = makeReq({ filter })
-      assert.deepEqual(await controller.getDockerContainers(req, filter, undefined, undefined, undefined, 1), [
+      assert.deepEqual(await controller.getDockerContainers(req, undefined, undefined, undefined, filter, 1), [
         `/rest/v0/docker-containers/engine-1_${DOCKER_ID}`,
       ])
       await controller.getDockerContainers(
         req,
+        undefined,
+        undefined,
+        undefined,
         filter,
-        undefined,
-        undefined,
-        undefined,
         undefined,
         undefined,
         undefined,
@@ -222,7 +231,16 @@ describe('DockerContainerController', () => {
       }
       const headers: Record<string, string> = {}
       const req = makeReq({}, headers)
-      assert.deepEqual(await controller.getDockerContainers(req, '$VM:c7b3b4bc-0000-4000-8000-00000000dead'), [])
+      assert.deepEqual(
+        await controller.getDockerContainers(
+          req,
+          undefined,
+          undefined,
+          undefined,
+          '$VM:c7b3b4bc-0000-4000-8000-00000000dead'
+        ),
+        []
+      )
       assert.deepEqual(headers, {})
       assert.deepEqual(calls, [
         { method: 'getDockerContainers', args: [{ engines: [], all: true, stats: false, forceRefresh: false }] },
@@ -233,7 +251,13 @@ describe('DockerContainerController', () => {
       const { controller } = setup()
       const headers: Record<string, string> = {}
       const req = makeReq({ markdown: 'true', fields: 'name,state' }, headers)
-      const stream = (await controller.getDockerContainers(req, `$VM:${VM_1}`, 'name,state')) as AsyncIterable<unknown>
+      const stream = (await controller.getDockerContainers(
+        req,
+        'name,state',
+        undefined,
+        undefined,
+        `$VM:${VM_1}`
+      )) as AsyncIterable<unknown>
       let text = ''
       for await (const chunk of stream) {
         text += String(chunk)
@@ -252,7 +276,13 @@ describe('DockerContainerController', () => {
         path: '/rest/v0/docker-containers',
         res: { setHeader: (name: string, value: string) => (headers[name] = value) },
       } as never
-      const stream = (await controller.getDockerContainers(req, filter, 'name', true)) as AsyncIterable<unknown>
+      const stream = (await controller.getDockerContainers(
+        req,
+        'name',
+        true,
+        undefined,
+        filter
+      )) as AsyncIterable<unknown>
       const chunks: string[] = []
       for await (const chunk of stream) {
         chunks.push(String(chunk))
@@ -279,10 +309,10 @@ describe('DockerContainerController', () => {
         const req = makeReq({ filter, fields: 'name,stats,statsPending' })
         const result = await controller.getDockerContainers(
           req,
-          filter,
           'name,stats,statsPending',
           undefined,
           undefined,
+          filter,
           undefined,
           undefined,
           true
@@ -405,27 +435,5 @@ describe('DockerContainerController', () => {
         message: 'Container is already paused',
       })
     })
-  })
-
-  it('every route checks the DOCKER feature first', async () => {
-    const { calls, controller, tasks } = setup({ licensed: false })
-    const id = `engine-1_${DOCKER_ID}`
-    const req = { query: {}, path: '/rest/v0/docker-containers' } as never
-    for (const call of [
-      () => controller.getDockerContainers(req, `$VM:${VM_1}`),
-      () => controller.getDockerContainer(id),
-      () => controller.getDockerContainerLogs(id),
-      () => controller.getDockerContainerStats(id),
-      () => controller.startDockerContainer(id),
-      () => controller.stopDockerContainer(id),
-      () => controller.restartDockerContainer(id),
-      () => controller.pauseDockerContainer(id),
-      () => controller.unpauseDockerContainer(id),
-      () => controller.deleteDockerContainer(id),
-    ]) {
-      await assert.rejects(call(), featureUnauthorized.is)
-    }
-    assert.deepEqual(calls, [])
-    assert.deepEqual(tasks, [])
   })
 })

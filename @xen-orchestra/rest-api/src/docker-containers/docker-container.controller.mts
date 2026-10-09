@@ -3,6 +3,7 @@ import {
   Example,
   Extension,
   Get,
+  Middlewares,
   Path,
   Post,
   Query,
@@ -24,6 +25,7 @@ import {
   badGatewayResp,
   badRequestResp,
   featureUnauthorized,
+  forbiddenOperationResp,
   gatewayTimeoutResp,
   incorrectStateResp,
   invalidParameters,
@@ -42,7 +44,8 @@ import {
 } from '../open-api/oa-examples/docker-container.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
-import { assertDockerFeature, withDockerErrors } from '../helpers/docker.helper.mjs'
+import { withDockerErrors } from '../helpers/docker.helper.mjs'
+import { dockerFeatureMiddleware } from '../middlewares/docker-feature.middleware.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -53,13 +56,18 @@ import { RestApi } from '../rest-api/rest-api.mjs'
  */
 const DOCKER_ERRORS_HEADER = 'x-docker-errors'
 
-// v1: no `acl` middleware, so every route is admin-only (see the README's
-// ACLs section). The `// ACLs v2:` comments give the middleware to add with the
-// `docker-container` ACL resource.
+/**
+ * Containers of the Docker engines, read live from the engines (nothing is
+ * stored).
+ *
+ * No ACL privilege covers these routes: they are restricted to administrators.
+ */
 @Route('docker-containers')
 @Security('*')
+@Middlewares(dockerFeatureMiddleware)
 @Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
+@Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
 @Response(featureUnauthorized.status, featureUnauthorized.description)
 @Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
 @Tags('docker-containers')
@@ -92,9 +100,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    *
    * Logs routinely contain secrets.
    *
-   * Required privilege:
-   * - admin (v2: resource: docker-container, action: read-logs)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    * @example tail 100
    * @example since "2026-09-24T12:00:00Z"
@@ -103,7 +108,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * @example stderr true
    * @example timestamps true
    */
-  // ACLs v2: acl({ resource: 'docker-container', action: 'read-logs', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(dockerContainerLogs)
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/logs')
@@ -123,7 +127,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
     @Query() stderr?: boolean,
     @Query() timestamps?: boolean
   ): Promise<XoDockerLogs> {
-    await assertDockerFeature(this.restApi)
     return this.#dockerContainerService.getLogs(id as XoDockerContainer['id'], {
       tail,
       since,
@@ -143,12 +146,8 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * container (see `stats=true` on the listing), else one call to dockerd
    * (~1-2 s). Does not start the sampler.
    *
-   * Required privilege:
-   * - admin (v2: resource: docker-container, action: read)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    */
-  // ACLs v2: acl({ resource: 'docker-container', action: 'read', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(dockerContainerStats)
   @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/stats')
@@ -156,7 +155,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Response(badGatewayResp.status, 'SSH or Docker failure (see data.code)')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async getDockerContainerStats(@Path() id: string): Promise<XoDockerContainerStats> {
-    await assertDockerFeature(this.restApi)
     const containerId = id as XoDockerContainer['id']
     // 404 without connecting on a malformed id or an unknown engine
     await this.#dockerContainerService.assertContainerId(containerId)
@@ -166,12 +164,8 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   /**
    * The container, inspected (served from the listing cache when possible).
    *
-   * Required privilege:
-   * - admin (v2: resource: docker-container, action: read)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    */
-  // ACLs v2: acl({ resource: 'docker-container', action: 'read', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(dockerContainer)
   @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
@@ -179,7 +173,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Response(badGatewayResp.status, 'SSH or Docker failure (see data.code)')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async getDockerContainer(@Path() id: string): Promise<Unbrand<XoDockerContainer>> {
-    await assertDockerFeature(this.restApi)
     return this.getObject(id as XoDockerContainer['id'])
   }
 
@@ -209,9 +202,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * containers whose samples are not there yet have `statsPending: true`
    * (the CPU usage needs two samples, one second apart).
    *
-   * Required privilege:
-   * - admin (v2: resource: docker-container, action: read, per container)
-   *
    * @example fields "id,name,state,status,image"
    * @example filter "$engine:8d834412-eb40-4328-a815-3fcc0989bd07 state:running"
    * @example limit 42
@@ -219,7 +209,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    * @example stats true
    * @example force_refresh false
    */
-  // ACLs v2: @Security('*', ['acl']) + sendObjects(…, { privilege: { action: 'read', resource: 'docker-container' } })
   @Example(dockerContainerIds)
   @Example(partialDockerContainers)
   @Extension('x-mcp-exposure', 'allow')
@@ -227,10 +216,10 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Response(invalidParameters.status, 'The filter does not designate engines, or too many')
   async getDockerContainers(
     @Request() req: ExRequest,
-    @Query() filter?: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
+    @Query() filter?: string,
     @Query() limit?: number,
     /** include stopped containers, default true */
     @Query() all?: boolean,
@@ -239,7 +228,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
     /** bypass the cache of the container lists */
     @Query() force_refresh?: boolean
   ): SendObjects<Partial<Unbrand<XoDockerContainer>>> {
-    await assertDockerFeature(this.restApi)
     const { containers, errors } = await this.#dockerContainerService.list({
       filter,
       all,
@@ -257,12 +245,8 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   }
 
   /**
-   * Required privilege:
-   * - admin (v2: resource: docker-container, action: start)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    */
-  // ACLs v2: acl({ resource: 'docker-container', action: 'start', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/start')
@@ -276,12 +260,8 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   }
 
   /**
-   * Required privilege:
-   * - admin (v2: resource: docker-container, action: stop)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    */
-  // ACLs v2: acl({ resource: 'docker-container', action: 'stop', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/stop')
@@ -295,12 +275,8 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   }
 
   /**
-   * Required privilege:
-   * - admin (v2: resource: docker-container, action: restart)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    */
-  // ACLs v2: acl({ resource: 'docker-container', action: 'restart', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/restart')
@@ -314,12 +290,8 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   }
 
   /**
-   * Required privilege:
-   * - admin (v2: resource: docker-container, action: pause)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    */
-  // ACLs v2: acl({ resource: 'docker-container', action: 'pause', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/pause')
@@ -334,12 +306,8 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   }
 
   /**
-   * Required privilege:
-   * - admin (v2: resource: docker-container, action: unpause)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    */
-  // ACLs v2: acl({ resource: 'docker-container', action: 'unpause', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/unpause')
@@ -358,14 +326,10 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
    *
    * Always synchronous.
    *
-   * Required privilege:
-   * - admin (v2: resource: docker-container, action: delete)
-   *
    * @example id "8d834412-eb40-4328-a815-3fcc0989bd07_1b5d79f4a1c9275c5f9e1fc50629ea85ca807fe1c70f03e528e35f4b6ce1963e"
    * @example force false
-   * @example removeVolumes false
+   * @example remove_volumes false
    */
-  // ACLs v2: acl({ resource: 'docker-container', action: 'delete', objectId: 'params.id', getObject: ({ restApi }) => restApi.xoApp.getDockerContainer })
   @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -378,17 +342,15 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
     /** kill the container first if it is running */
     @Query() force?: boolean,
     /** also remove its anonymous volumes */
-    @Query() removeVolumes?: boolean
+    @Query() remove_volumes?: boolean
   ): Promise<void> {
-    await assertDockerFeature(this.restApi)
     const containerId = id as XoDockerContainer['id']
     await this.#dockerContainerService.assertContainerId(containerId)
     // no task: always synchronous, like the engine routes
-    await this.restApi.xoApp.deleteDockerContainer(containerId, { force, removeVolumes })
+    await this.restApi.xoApp.deleteDockerContainer(containerId, { force, removeVolumes: remove_volumes })
   }
 
   async #action(id: string, action: XoDockerContainerAction, sync?: boolean): CreateActionReturnType<void> {
-    await assertDockerFeature(this.restApi)
     const containerId = id as XoDockerContainer['id']
     // 404 before creating a task: the id and the engine without connecting,
     // then the container (from the listing cache when possible)
