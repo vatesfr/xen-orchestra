@@ -820,11 +820,16 @@ describe('checkDiskAttachable', function () {
     await assert.rejects(esxi.checkDiskAttachable('vm-1', FILE_NAME), { code: 'ECONNRESET' })
   })
 
-  it('refuses an unknown datastore or a path which is not a datastore path, without asking the host', async function () {
+  it('throws on a path it cannot place, without asking the host', async function () {
+    // the paths come from the inventory: answering "not attachable" would hide a bug or a stale inventory
     const { esxi, vimClient } = await checkEsxi()
 
-    assert.equal((await esxi.checkDiskAttachable('vm-1', '[nope] a.vmdk')).code, 'DATASTORE_NOT_FOUND')
-    assert.equal((await esxi.checkDiskAttachable('vm-1', 'a.vmdk')).code, 'INVALID_PATH')
+    await assert.rejects(esxi.checkDiskAttachable('vm-1', '[nope] a.vmdk'), {
+      code: 'DATASTORE_NOT_FOUND',
+      datastoreName: 'nope',
+      fileName: '[nope] a.vmdk',
+    })
+    await assert.rejects(esxi.checkDiskAttachable('vm-1', 'a.vmdk'), { code: 'INVALID_PATH', fileName: 'a.vmdk' })
     assert.equal(vimClient.calls.length, 0)
   })
 })

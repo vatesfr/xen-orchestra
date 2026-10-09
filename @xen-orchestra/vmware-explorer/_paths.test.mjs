@@ -1,13 +1,34 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { normalizeDatastorePath, resolveDiskLocation } from './_paths.mjs'
+import { normalizeDatastorePath, parseDatastorePath, resolveDiskLocation } from './_paths.mjs'
 
 describe('normalizeDatastorePath', function () {
   it('drops the ds:// scheme and the trailing slashes', function () {
     assert.equal(normalizeDatastorePath('ds:///vmfs/volumes/uuid-1/'), '/vmfs/volumes/uuid-1')
     assert.equal(normalizeDatastorePath('/vmfs/volumes/uuid-1'), '/vmfs/volumes/uuid-1')
     assert.equal(normalizeDatastorePath('/vmfs/volumes/uuid-1///'), '/vmfs/volumes/uuid-1')
+  })
+})
+
+describe('parseDatastorePath', function () {
+  it('splits the datastore name from the path', function () {
+    assert.deepEqual(parseDatastorePath('[ds main] vm/vm.vmdk'), { datastoreName: 'ds main', path: 'vm/vm.vmdk' })
+  })
+
+  it('accepts a path without the space after the datastore name', function () {
+    assert.deepEqual(parseDatastorePath('[ds]vm/vm.vmx'), { datastoreName: 'ds', path: 'vm/vm.vmx' })
+  })
+
+  it('refuses what is not a datastore path', function () {
+    assert.equal(parseDatastorePath('vm/vm.vmdk'), undefined)
+    assert.equal(parseDatastorePath('[] vm/vm.vmdk'), undefined)
+    assert.equal(parseDatastorePath('[ds] '), undefined)
+    assert.equal(parseDatastorePath('/vmfs/volumes/uuid-1/vm/vm.vmdk'), undefined)
+  })
+
+  it('does not support a ] in the datastore name', function () {
+    assert.equal(parseDatastorePath('[ds [1]] vm/vm.vmdk'), undefined)
   })
 })
 

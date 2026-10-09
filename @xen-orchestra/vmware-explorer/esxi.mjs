@@ -7,7 +7,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import { Agent } from 'undici'
 
 import { findFreePort, formatNbdkitArgs, waitForPort } from './_nbdkit.mjs'
-import { resolveDiskLocation } from './_paths.mjs'
+import { parseDatastorePath, resolveDiskLocation } from './_paths.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
 import { VDDK_LIB_PATH } from './_vddk.mjs'
 import { COWD_HEADER_LENGTH, grainDirectoryToDataMap, parseCowdHeader } from './parsers/cowd.mjs'
@@ -156,9 +156,6 @@ const DEFAULT_SCSI_CONTROLLER_UNIT = 7
 // independent disk is left out of the snapshots of the VM
 const READ_ONLY_DISK_MODE = 'independent_nonpersistent'
 
-// `[datastore1] vm/vm.vmdk`, the space after the datastore name is optional
-const DATASTORE_PATH_RE = /^\[([^\]]+)\] ?(.+)$/
-
 /**
  * A disk {@link Esxi#checkDiskAttachable} found nothing against.
  *
@@ -173,10 +170,10 @@ const DATASTORE_PATH_RE = /^\[([^\]]+)\] ?(.+)$/
  *
  * @typedef {object} UnattachableDisk
  * @property {false} attachable
- * @property {'DATASTORE_NOT_FOUND' | 'DATASTORE_INACCESSIBLE' | 'DATASTORE_NOT_MOUNTED' | 'INVALID_PATH'} code
+ * @property {'DATASTORE_INACCESSIBLE' | 'DATASTORE_NOT_MOUNTED'} code
  * @property {string} reason
- * @property {string} [datastoreType]
- * @property {boolean} [shared]
+ * @property {string} datastoreType
+ * @property {boolean} shared
  */
 
 // the SOAP library does not always convert the booleans of the answer
@@ -363,6 +360,31 @@ export default class Esxi extends EventEmitter {
       throw error
     }
     return dcPath
+  }
+
+  // the paths come from the inventory: a path which cannot be placed is not an answer about the disk,
+  // it is a bug or a stale inventory. The datastores are only known once connected
+  /**
+   * @param {string} fileName - datastore path, e.g. `[datastore1] vm/vm.vmdk`
+   * @returns {{ datastoreId: string, datastoreName: string }}
+   */
+  #findDatastore(fileName) {
+    const datastoreName = parseDatastorePath(fileName)?.datastoreName
+    if (datastoreName === undefined) {
+      const error = new Error(`${fileName} is not a datastore path`)
+      error.code = 'INVALID_PATH'
+      error.fileName = fileName
+      throw error
+    }
+    const datastoreId = this.#datastoreIds[datastoreName]
+    if (datastoreId === undefined) {
+      const error = new Error(`the datastore ${datastoreName} of ${fileName} is unknown to ${this.#host}`)
+      error.code = 'DATASTORE_NOT_FOUND'
+      error.datastoreName = datastoreName
+      error.fileName = fileName
+      throw error
+    }
+    return { datastoreId, datastoreName }
   }
 
   async #fetch(url, { range, signal, headersTimeout = DEFAULT_HEADERS_TIMEOUT } = {}) {
@@ -674,15 +696,15 @@ export default class Esxi extends EventEmitter {
     ])
 
     const vmPathName = config.files.vmPathName
-    const matches = vmPathName.match(/^\[(.*)\] (.+\.vmx)$/)
-    if (matches === null) {
+    const vmxLocation = parseDatastorePath(vmPathName)
+    if (vmxLocation === undefined || !vmxLocation.path.endsWith('.vmx')) {
       // destructuring the null used to throw a TypeError naming nothing
       const error = new Error(`can't parse the path of the vmx of the VM ${vmId}: ${vmPathName}`)
       error.code = 'BAD_VMX_PATH'
       error.vmId = vmId
       throw error
     }
-    const [, dataStore, vmxPath] = matches
+    const { datastoreName: dataStore, path: vmxPath } = vmxLocation
 
     const res = await this.download(dataStore, vmxPath, { signal })
     const vmx = parseVmx(await res.text())
@@ -1065,12 +1087,14 @@ export default class Esxi extends EventEmitter {
    * or vSAN all come down to whether the host the VM runs on mounts the datastore.
    *
    * What is checked:
-   * - the datastore is known and accessible
+   * - the datastore is accessible
    * - the host of the VM mounts it, and can reach it
    *
    * The file itself is not looked at: its path comes from the inventory, and reading it could take
    * a lock of its own. Nor is its lock: a disk of a snapshot or of a stopped VM can always be
-   * opened. A failure to ask the host is thrown, it is not an answer about the disk.
+   * opened. A failure to ask the host is thrown, it is not an answer about the disk, and so is a
+   * path which is not a datastore path (`INVALID_PATH`) or on a datastore unknown to the host
+   * (`DATASTORE_NOT_FOUND`): it is a bug, or an inventory read before the datastore was added.
    *
    * @param {string} vmId - id of the VM
    * @param {string} fileName - datastore path of the descriptor, e.g. `[datastore1] vm/vm.vmdk`
@@ -1079,22 +1103,8 @@ export default class Esxi extends EventEmitter {
    * @returns {Promise<AttachableDisk | UnattachableDisk>}
    */
   async checkDiskAttachable(vmId, fileName, { signal } = {}) {
-    const match = DATASTORE_PATH_RE.exec(fileName)
-    if (match === null) {
-      return { attachable: false, code: 'INVALID_PATH', reason: `${fileName} is not a datastore path` }
-    }
-    const [, datastoreName] = match
-
-    // the datastores are only known once connected
     await this.#connected
-    const datastoreId = this.#datastoreIds[datastoreName]
-    if (datastoreId === undefined) {
-      return {
-        attachable: false,
-        code: 'DATASTORE_NOT_FOUND',
-        reason: `the datastore ${datastoreName} is unknown to ${this.#host}`,
-      }
-    }
+    const { datastoreId, datastoreName } = this.#findDatastore(fileName)
 
     const [hostId, summary, mounts] = await Promise.all([
       this.#retrieveProperty('VirtualMachine', vmId, 'runtime.host', { signal }),
@@ -1144,28 +1154,10 @@ export default class Esxi extends EventEmitter {
    * no host reaches all the datastores, which includes a datastore which is not accessible
    */
   async listHostsAbleToAttach(fileNames, { signal } = {}) {
-    // the datastores are only known once connected
     await this.#connected
 
-    const datastoreIds = new Set()
-    for (const fileName of fileNames) {
-      const datastoreName = DATASTORE_PATH_RE.exec(fileName)?.[1]
-      if (datastoreName === undefined) {
-        const error = new Error(`${fileName} is not a datastore path`)
-        error.code = 'INVALID_PATH'
-        throw error
-      }
-      const datastoreId = this.#datastoreIds[datastoreName]
-      if (datastoreId === undefined) {
-        // the paths come from the inventory: an unknown datastore is not an answer, it is a bug or a
-        // stale inventory
-        const error = new Error(`the datastore ${datastoreName} of ${fileName} is unknown to ${this.#host}`)
-        error.code = 'DATASTORE_NOT_FOUND'
-        throw error
-      }
-      // the disks of a VM usually share a few datastores, each is only asked once
-      datastoreIds.add(datastoreId)
-    }
+    // the disks of a VM usually share a few datastores, each is only asked once
+    const datastoreIds = new Set(fileNames.map(fileName => this.#findDatastore(fileName).datastoreId))
 
     if (datastoreIds.size === 0) {
       // nothing to attach: any host will do
