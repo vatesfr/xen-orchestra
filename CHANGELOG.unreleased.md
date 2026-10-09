@@ -27,6 +27,7 @@
 - [Treeview] Press Ctrl+K (Cmd+K on macOS) to focus the treeview search (PR [#10492](https://github.com/vatesfr/xen-orchestra/pull/10492))
 - [New VM] Allow resizing existing (template) disks when a config drive is used (PR [#10359](https://github.com/vatesfr/xen-orchestra/pull/10359))
 - [Host] Add possibility to emergency shutdown a host (PR [#10412](https://github.com/vatesfr/xen-orchestra/pull/10412))
+- [BRs] Add backup repository detail page (PR [#10454](https://github.com/vatesfr/xen-orchestra/pull/10454))
 
 ### Bug fixes
 
