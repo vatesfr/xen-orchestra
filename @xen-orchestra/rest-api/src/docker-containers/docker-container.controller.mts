@@ -185,10 +185,11 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
 
   /**
    * Containers of the Docker engines designated by `filter`: it must contain
-   * an equality term on `$engine`, `$VM` or `$pool` (e.g. `$VM:<uuid>`,
-   * `$engine:|(<id1> <id2>)`) resolving to at most `docker.maxListedEngines`
-   * engines (default 10), else 422. The whole filter is then applied to the
-   * containers.
+   * a term with a value on `$engine`, `$VM` or `$pool` (e.g. `$VM:<uuid>`,
+   * `$engine:|(<id1> <id2>)`, matched like the rest of the filter, so a
+   * partial id works: `$VM:c7b3b4bc`) resolving to at most
+   * `docker.maxListedEngines` engines (default 10), else 422. The whole
+   * filter is then applied to the containers.
    *
    * Connects to the engines (results cached `docker.cacheExpiresIn`,
    * `force_refresh=true` bypasses the cache). The response is a plain array,

@@ -102,13 +102,19 @@ const scopeOf = (filter: string) => {
 }
 
 describe('getEngineScope()', () => {
-  it('equality terms on $engine, $VM and $pool', () => {
+  it('value terms on $engine, $VM and $pool', () => {
     assert.deepEqual(scopeOf('$engine:engine-3'), ['engine-3'])
     assert.deepEqual(scopeOf(`$VM:${VM_2}`), ['engine-2'])
     assert.deepEqual(scopeOf(`$VM:"${VM_2.toUpperCase()}"`), ['engine-2'])
     assert.deepEqual(scopeOf(`$pool:${POOL}`), ['engine-1', 'engine-2'])
-    // not a substring match, unlike the filter itself
-    assert.deepEqual(scopeOf('$engine:engine'), [])
+  })
+
+  it('the semantics of complex-matcher, like the filter itself: partial ids (case-insensitive substring)', () => {
+    assert.deepEqual(scopeOf('$VM:c7b3b4bc'), ['engine-1', 'engine-2'])
+    assert.deepEqual(scopeOf('$VM:C7B3B4BC-0000-4000-8000-000000000001'), ['engine-1'])
+    assert.deepEqual(scopeOf('$engine:engine'), ['engine-1', 'engine-2', 'engine-3'])
+    assert.deepEqual(scopeOf('$pool:b7569d99 $engine:2'), ['engine-2'])
+    assert.deepEqual(scopeOf('$VM:dead'), [])
   })
 
   it('conjunctions, disjunctions', () => {
@@ -151,6 +157,15 @@ describe('DockerContainerController', () => {
         await assert.rejects(controller.getDockerContainers(req, filter), invalidParameters.is)
       }
       assert.deepEqual(calls, [])
+    })
+
+    it('a partial id designates the engines, like the filter matches the containers', async () => {
+      const { calls, controller } = setup()
+      const req = makeReq({ fields: 'name' })
+      assert.deepEqual(await controller.getDockerContainers(req, '$VM:c7b3b4bc name:web', 'name'), [
+        { name: 'web', href: `/rest/v0/docker-containers/engine-1_${DOCKER_ID}` },
+      ])
+      assert.deepEqual((calls[0].args[0] as { engines: string[] }).engines, ['engine-1', 'engine-2'])
     })
 
     it('422 above maxListedEngines', async () => {
