@@ -10,31 +10,6 @@ function mountBenchmark(br: FrontXoBackupRepository = createBr()) {
   return mountComposable(() => useXoBackupRepositoryBenchmark(br)).wrapper.vm
 }
 
-describe('benchmark', () => {
-  it('is undefined when the repository was never benchmarked', () => {
-    expect(mountBenchmark(createBr({ benchmarks: [] })).benchmark).toBeUndefined()
-  })
-
-  it('is the latest benchmark stored on the repository', () => {
-    const latest = createBrBenchmark({ writeRate: 100_000_000, readRate: 200_000_000 })
-    const result = mountBenchmark(
-      createBr({ benchmarks: [createBrBenchmark({ writeRate: 1_000_000, readRate: 2_000_000 }), latest] })
-    )
-
-    expect(result.benchmark).toEqual(latest)
-  })
-
-  it('follows the changes of the source repository', () => {
-    const br = ref(createBr({ benchmarks: [createBrBenchmark()] }))
-    const { wrapper } = mountComposable(() => useXoBackupRepositoryBenchmark(br))
-
-    const latest = createBrBenchmark({ writeRate: 300_000_000, readRate: 400_000_000 })
-    br.value = createBr({ benchmarks: [createBrBenchmark(), latest] })
-
-    expect(wrapper.vm.benchmark).toEqual(latest)
-  })
-})
-
 describe('writeSpeed and readSpeed', () => {
   it('are undefined when the repository was never benchmarked', () => {
     const result = mountBenchmark(createBr({ benchmarks: [] }))
@@ -55,6 +30,18 @@ describe('writeSpeed and readSpeed', () => {
     expect({ write: result.writeSpeed, read: result.readSpeed }).toEqual({
       write: formatSpeed(100_000_000),
       read: formatSpeed(200_000_000),
+    })
+  })
+
+  it('follow the changes of the source repository', () => {
+    const br = ref(createBr({ benchmarks: [createBrBenchmark()] }))
+    const { wrapper } = mountComposable(() => useXoBackupRepositoryBenchmark(br))
+
+    br.value = createBr({ benchmarks: [createBrBenchmark({ writeRate: 300_000_000, readRate: 400_000_000 })] })
+
+    expect({ write: wrapper.vm.writeSpeed, read: wrapper.vm.readSpeed }).toEqual({
+      write: formatSpeed(300_000_000),
+      read: formatSpeed(400_000_000),
     })
   })
 })

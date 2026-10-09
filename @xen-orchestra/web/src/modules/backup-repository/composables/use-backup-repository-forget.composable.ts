@@ -1,5 +1,6 @@
 import { useXoBackupRepositoryForgetJob } from '@/modules/backup-repository/jobs/xo-backup-repository-forget.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { useTypeToConfirmModal } from '@core/composables/modals/use-type-to-confirm-modal.ts'
 import { useRedirectAfterDelete } from '@core/composables/redirect-after-delete.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
@@ -55,13 +56,7 @@ export function useBackupRepositoryForget(rawBrs: MaybeRefOrGetter<FrontXoBackup
     },
   })
 
-  const { open: openTypeToConfirmModal } = useOverlay({
-    component: () => import('@core/components/modal/VtsTypeToConfirmModal.vue'),
-    events: {
-      onConfirm: forget,
-      onCancel: true,
-    },
-  })
+  const { open: openTypeToConfirmModal } = useTypeToConfirmModal()
 
   function forgetBackupRepositories() {
     const count = brs.value.length
@@ -78,6 +73,9 @@ export function useBackupRepositoryForget(rawBrs: MaybeRefOrGetter<FrontXoBackup
         description: t('modal:backup-repository-forget-n-message'),
         confirmationText: t('n-brs', { n: count }),
         confirmLabel: t('action:forget-n-brs', { n: count }),
+      },
+      events: {
+        onConfirm: forget,
       },
     })
   }
