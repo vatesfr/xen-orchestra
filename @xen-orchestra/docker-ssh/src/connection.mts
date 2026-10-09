@@ -537,24 +537,29 @@ type SshConfig = {
 /**
  * Connection to a Docker daemon reached through SSH: one `ssh2.Client`, many
  * HTTP requests multiplexed on `direct-streamlocal@openssh.com` channels.
+ *
+ * One instance = one SSH session: it never reconnects. Once the session is
+ * closed (`close()`, or lost), every request fails with CONNECTION_CLOSED and a
+ * new instance must be created (see `DockerConnectionPool`, notified through
+ * `onClose()`).
  */
 export class DockerConnection {
   #acceptUnknownHostKey: boolean
   #agent: SshHttpAgent
   #apiVersion: string | undefined
   #client: SshClient | undefined
+  #clientClosed = false
   #clientPromise: Promise<SshClient> | undefined
+  #closed = false
   #closeTimeout: number
-  #closedClients = new WeakSet<SshClient>()
   #connectTimeout: number
   #createClient: () => SshClient
   #engineVersion: string | undefined
-  #generation = 0
   #hostKeyAlgorithm: string | undefined
   #limiter: RequestLimiter
-  #pinnedHostKey: HostKey | undefined
   #negotiation: Promise<string> | undefined
   #observedHostKey: HostKey | undefined
+  #onClose: (() => void) | undefined
   #requestTimeout: number
   #socketPath: string
   #sshConfig: SshConfig
@@ -636,9 +641,23 @@ export class DockerConnection {
     return this.#engineVersion
   }
 
-  /** host key seen during the last handshake */
+  /** host key seen during the handshake */
   get observedHostKey(): HostKey | undefined {
     return this.#observedHostKey
+  }
+
+  /** the SSH session is over (`close()`, or lost): every request fails with CONNECTION_CLOSED */
+  get closed(): boolean {
+    return this.#closed
+  }
+
+  /**
+   * Set the listener called once when an established (ready) SSH session ends,
+   * by `close()` or not; a failed connection attempt rejects `connect()`
+   * instead.
+   */
+  onClose(listener: () => void): void {
+    this.#onClose = listener
   }
 
   get #context(): { host: string; port: number; socketPath: string } {
@@ -648,6 +667,8 @@ export class DockerConnection {
 
   /**
    * Establish the SSH connection (if necessary) and negotiate the API version.
+   *
+   * A failed SSH connection is not retried: every later call fails the same.
    */
   async connect(): Promise<void> {
     await this.#getClient()
@@ -655,32 +676,41 @@ export class DockerConnection {
   }
 
   /**
-   * @returns a ready client, shared by all requests
+   * @returns the ready client, shared by all requests, opened once
    */
   #getClient(): Promise<SshClient> {
-    if (this.#clientPromise === undefined) {
-      const promise = this.#openClient()
-      this.#clientPromise = promise
-      promise.catch(() => {
-        // allow a new attempt
-        if (this.#clientPromise === promise) {
-          this.#clientPromise = undefined
-        }
-      })
+    if (this.#closed) {
+      return Promise.reject(this.#closedError())
     }
-    return this.#clientPromise
+    return (this.#clientPromise ??= this.#openClient())
+  }
+
+  #closedError(data?: object, cause?: unknown): DockerError {
+    return new DockerError(CONNECTION_CLOSED, 'the Docker connection has been closed', {
+      data: { ...this.#context, ...data },
+      cause,
+    })
+  }
+
+  /**
+   * The session is over: queued requests are rejected, in-flight ones fail
+   * (their channels are destroyed), later ones are refused.
+   */
+  #markClosed(): void {
+    if (this.#closed) {
+      return
+    }
+    this.#closed = true
+    this.#limiter.rejectQueued(this.#closedError())
+    this.#agent.destroy()
+    this.#streamAgent.destroy()
   }
 
   #openClient(): Promise<SshClient> {
     const { host, port, username, password, privateKey, passphrase } = this.#sshConfig
     const context = this.#context
-
-    // once a key has been accepted, it is pinned for the lifetime of this
-    // instance: reconnections must present the same key, even when the first
-    // one was accepted via `acceptUnknownHostKey`
-    const pinned = this.#pinnedHostKey
-    const expectedFingerprint = this.#sshConfig.hostKeyFingerprint ?? pinned?.fingerprint
-    const expectedAlgorithm = this.#hostKeyAlgorithm ?? pinned?.algorithm
+    const expectedFingerprint = this.#sshConfig.hostKeyFingerprint
+    const expectedAlgorithm = this.#hostKeyAlgorithm
 
     return new Promise<SshClient>((resolve, reject) => {
       const client = this.#createClient()
@@ -699,7 +729,6 @@ export class DockerConnection {
       client.on('ready', () => {
         ready = true
         settled = true
-        this.#pinnedHostKey ??= this.#observedHostKey
         debug('SSH connection ready', context)
         resolve(client)
       })
@@ -725,11 +754,11 @@ export class DockerConnection {
         fail(hostKeyError ?? fromSshError(error, context))
       })
       client.on('close', () => {
-        this.#closedClients.add(client)
+        this.#clientClosed = true
         debug('SSH connection closed', context)
-        if (this.#client === client) {
-          this.#client = undefined
-          this.#clientPromise = undefined
+        if (ready) {
+          this.#markClosed()
+          this.#onClose?.()
         }
         fail(hostKeyError ?? fromSshError(new Error('SSH connection closed before being ready'), context))
       })
@@ -781,10 +810,7 @@ export class DockerConnection {
       } catch (error) {
         // thrown synchronously on invalid config (e.g. unparsable private key),
         // the client will never emit `close`
-        this.#closedClients.add(client)
-        if (this.#client === client) {
-          this.#client = undefined
-        }
+        this.#clientClosed = true
         fail(fromSshError(error, context))
       }
     })
@@ -820,15 +846,14 @@ export class DockerConnection {
    */
   async #send(
     { method = 'GET', path, query, body, headers = {}, versioned = true, longLived = false }: SendOptions,
-    signal: AbortSignal,
-    generation: number
+    signal: AbortSignal
   ): Promise<IncomingMessage> {
     if (versioned) {
       // the negotiation is shared between requests: do not cancel it
       await raceSignal(this.#negotiate(), signal)
     }
     signal.throwIfAborted()
-    this.#assertNotClosedSince(generation)
+    this.#assertOpen()
 
     let payload: unknown
     headers = { ...headers }
@@ -854,7 +879,7 @@ export class DockerConnection {
       releaseSlot()
     }
     try {
-      this.#assertNotClosedSince(generation)
+      this.#assertOpen()
     } catch (error) {
       release()
       throw error
@@ -899,21 +924,18 @@ export class DockerConnection {
     })
   }
 
-  #assertNotClosedSince(generation: number): void {
-    if (generation !== this.#generation) {
-      throw new DockerError(CONNECTION_CLOSED, 'the Docker connection has been closed', { data: this.#context })
+  #assertOpen(): void {
+    if (this.#closed) {
+      throw this.#closedError()
     }
   }
 
-  #wrapError(error: unknown, path: string | undefined, signal: AbortSignal, generation: number): DockerError {
+  #wrapError(error: unknown, path: string | undefined, signal: AbortSignal): DockerError {
     if (isDockerError(error)) {
       return error
     }
-    if (generation !== this.#generation) {
-      return new DockerError(CONNECTION_CLOSED, 'the Docker connection has been closed', {
-        data: { ...this.#context, path },
-        cause: error,
-      })
+    if (this.#closed) {
+      return this.#closedError({ path }, error)
     }
     // only its `name` is looked at, it is an Error in practice
     const errorLike = error as { name?: unknown } | null | undefined
@@ -976,12 +998,11 @@ export class DockerConnection {
     maxSize = DEFAULT_MAX_RESPONSE_SIZE,
     ...opts
   }: SendOptions & { signal?: AbortSignal; maxSize?: number }): Promise<DockerResponse> {
-    const generation = this.#generation
     const signal = AbortSignal.any(
       [AbortSignal.timeout(this.#requestTimeout), opts.signal].filter(signal => signal !== undefined)
     )
     try {
-      const response = await this.#send(opts, signal, generation)
+      const response = await this.#send(opts, signal)
       const { headers } = response
       // always set on a client response
       const statusCode = response.statusCode!
@@ -997,7 +1018,7 @@ export class DockerConnection {
       const body = parseBody(response, buffer)
       return { statusCode, headers, body }
     } catch (error) {
-      throw this.#wrapError(error, opts.path, signal, generation)
+      throw this.#wrapError(error, opts.path, signal)
     }
   }
 
@@ -1047,14 +1068,12 @@ export class DockerConnection {
       controller.abort(new DOMException('Docker API request timed out', 'TimeoutError'))
     }, this.#requestTimeout)
     const signal = AbortSignal.any([controller.signal, callerSignal].filter(signal => signal !== undefined))
-    const generation = this.#generation
     try {
       const response = await this.#send(
         raw
           ? { method, path, body, headers, longLived, versioned: !/^\/v\d+(?:\.\d+)?\//.test(path) }
           : { method, path, query, body, headers, longLived },
-        signal,
-        generation
+        signal
       )
       // `statusCode!`: always set on a client response
       if (!raw && (response.statusCode! < 200 || response.statusCode! >= 300)) {
@@ -1062,7 +1081,7 @@ export class DockerConnection {
       }
       return response
     } catch (error) {
-      throw this.#wrapError(error, path, signal, generation)
+      throw this.#wrapError(error, path, signal)
     } finally {
       clearTimeout(timer)
     }
@@ -1084,10 +1103,9 @@ export class DockerConnection {
     const signal = AbortSignal.any(
       [AbortSignal.timeout(this.#requestTimeout), callerSignal].filter(signal => signal !== undefined)
     )
-    const generation = this.#generation
     try {
       const client = await raceSignal(this.#getClient(), signal)
-      this.#assertNotClosedSince(generation)
+      this.#assertOpen()
       // the server may never answer the channel opening: abortable too
       const channel = await raceSignal(
         new Promise<ClientChannel>((resolve, reject) => {
@@ -1148,32 +1166,22 @@ export class DockerConnection {
         })
       })
     } catch (error) {
-      throw this.#wrapError(error, undefined, signal, generation)
+      throw this.#wrapError(error, undefined, signal)
     }
   }
 
   /**
    * Close the SSH connection (and every channel on it).
    *
-   * Pending and queued requests fail with CONNECTION_CLOSED. The instance can
-   * still be used afterwards: a new request opens a new connection.
+   * Pending and queued requests fail with CONNECTION_CLOSED, and so do the
+   * later ones: the instance cannot be used afterwards.
    */
   async close(): Promise<void> {
-    ++this.#generation
-    this.#limiter.rejectQueued(
-      new DockerError(CONNECTION_CLOSED, 'the Docker connection has been closed', { data: this.#context })
-    )
-    this.#agent.destroy()
-    this.#streamAgent.destroy()
-    const clientPromise = this.#clientPromise
-    this.#clientPromise = undefined
+    this.#markClosed()
+    // wait for a pending connection to settle
+    await this.#clientPromise?.catch(() => {})
     const client = this.#client
-    this.#client = undefined
-    if (clientPromise !== undefined) {
-      // wait for a pending connection to settle
-      await clientPromise.catch(() => {})
-    }
-    if (client === undefined || this.#closedClients.has(client)) {
+    if (client === undefined || this.#clientClosed) {
       return
     }
     await new Promise<void>(resolve => {

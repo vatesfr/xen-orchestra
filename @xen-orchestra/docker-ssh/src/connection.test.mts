@@ -519,7 +519,7 @@ describe('DockerConnection (fake daemon)', () => {
     await connection.close()
   })
 
-  it('pins the host key accepted via acceptUnknownHostKey', async () => {
+  it('accepts an unknown host key via acceptUnknownHostKey, without requesting an algorithm', async () => {
     const client = new FakeSshClient()
     const connection = new DockerConnection(
       { host: 'fake', username: 'user', socketPath, acceptUnknownHostKey: true, hostKeyFingerprint: null },
@@ -528,18 +528,6 @@ describe('DockerConnection (fake daemon)', () => {
     await connection.connect()
     assert.equal(client.connectConfig.algorithms, undefined)
     assert.equal(connection.observedHostKey!.fingerprint, ED25519_FINGERPRINT)
-    await connection.close()
-
-    // reconnection: same key type requested, another key → mismatch
-    client.hostKey = Buffer.from(RSA_KEY, 'base64')
-    await assert.rejects(connection.connect(), {
-      code: HOST_KEY_MISMATCH,
-      data: { expected: ED25519_FINGERPRINT, actual: RSA_FINGERPRINT, algorithm: 'ssh-rsa' },
-    })
-    assert.deepEqual(client.connectConfig.algorithms, { serverHostKey: ['ssh-ed25519'] })
-
-    client.hostKey = Buffer.from(ED25519_KEY, 'base64')
-    await connection.connect()
     await connection.close()
   })
 
@@ -878,7 +866,7 @@ describe('DockerConnection (fake daemon)', () => {
     await connection.close()
   })
 
-  it('reconnects after the SSH connection has been closed', async () => {
+  it('one instance = one SSH session: never reconnects after close()', async () => {
     let clients = 0
     const connection = new DockerConnection(
       { host: 'fake', username: 'user', hostKeyFingerprint: ED25519_FINGERPRINT, socketPath },
@@ -891,8 +879,64 @@ describe('DockerConnection (fake daemon)', () => {
     )
     await connection.request({ path: '/containers/json' })
     await connection.close()
-    await connection.request({ path: '/containers/json' })
-    assert.equal(clients, 2)
+    assert.equal(connection.closed, true)
+    await assert.rejects(connection.request({ path: '/containers/json' }), { code: CONNECTION_CLOSED })
+    await assert.rejects(connection.connect(), { code: CONNECTION_CLOSED })
+    assert.equal(clients, 1)
+  })
+
+  it('a lost SSH session closes the connection: requests fail with CONNECTION_CLOSED, onClose() is called once', async () => {
+    handler = (req: IncomingMessage, res: ServerResponse) =>
+      req.url === '/version' ? defaultHandler(req, res) : setTimeout(() => json(res, 200, {}), 300).unref()
+    let clients = 0
+    let client!: FakeSshClient
+    const connection = new DockerConnection(
+      { host: 'fake', username: 'user', hostKeyFingerprint: ED25519_FINGERPRINT, socketPath, requestTimeout: 5e3 },
+      {
+        createClient: () => {
+          ++clients
+          return (client = new FakeSshClient())
+        },
+      }
+    )
+    let closes = 0
+    connection.onClose(() => ++closes)
+    await connection.connect()
+    // in-flight (8) and queued (4) requests
+    const results = Array.from({ length: 12 }, () =>
+      connection.request({ path: '/slow' }).then(
+        () => 'ok',
+        error => error.code
+      )
+    )
+    await new Promise(resolve => setTimeout(resolve, 50))
+    client.emit('close')
+    assert.deepEqual(await Promise.all(results), Array(12).fill(CONNECTION_CLOSED))
+    assert.equal(connection.closed, true)
+    assert.deepEqual(connection.activeRequests, { requests: 0, streams: 0 })
+    await assert.rejects(connection.request({ path: '/containers/json' }), { code: CONNECTION_CLOSED })
     await connection.close()
+    assert.equal(closes, 1)
+    assert.equal(clients, 1)
+  })
+
+  it('a failed SSH connection is not retried by the same instance', async () => {
+    let clients = 0
+    const connection = new DockerConnection(
+      { host: 'fake', username: 'user', socketPath, hostKeyFingerprint: null },
+      {
+        createClient: () => {
+          ++clients
+          return new FakeSshClient()
+        },
+      }
+    )
+    let closes = 0
+    connection.onClose(() => ++closes)
+    await assert.rejects(connection.connect(), { code: HOST_KEY_UNKNOWN })
+    await assert.rejects(connection.request({ path: '/containers/json' }), { code: HOST_KEY_UNKNOWN })
+    assert.equal(clients, 1)
+    await connection.close()
+    assert.equal(closes, 0)
   })
 })
