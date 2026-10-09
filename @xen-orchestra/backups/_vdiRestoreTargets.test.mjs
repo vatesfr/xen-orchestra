@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { hasLiveMountTarget, normalizeVdiRestoreTargets } from './_vdiRestoreTargets.mjs'
+import { hasCachedLiveMountTarget, hasLiveMountTarget, normalizeVdiRestoreTargets } from './_vdiRestoreTargets.mjs'
 
 const VDI_1 = 'vdi-uuid-1'
 const VDI_2 = 'vdi-uuid-2'
@@ -64,6 +64,11 @@ describe('normalizeVdiRestoreTargets()', () => {
       assert.equal(targets.getLiveMountHost(), HOST)
     })
 
+    it('keeps the cache SR of a live mount', () => {
+      const targets = normalizeVdiRestoreTargets({ [VDI_1]: { type: 'live-mount', host: HOST, cacheSr: SR } })
+      assert.deepEqual(targets.get(VDI_1), { type: 'live-mount', host: HOST, cacheSr: SR })
+    })
+
     it('accepts a restore without SR', () => {
       const targets = normalizeVdiRestoreTargets({ [VDI_1]: { type: 'restore' } })
       assert.deepEqual(targets.get(VDI_1), { type: 'restore', sr: undefined, useDifferential: false })
@@ -94,6 +99,13 @@ describe('normalizeVdiRestoreTargets()', () => {
       assert.throws(
         () => normalizeVdiRestoreTargets({ [VDI_1]: { type: 'live-mount' } }),
         /requires the id of the host/
+      )
+    })
+
+    it('rejects a non string cache SR', () => {
+      assert.throws(
+        () => normalizeVdiRestoreTargets({ [VDI_1]: { type: 'live-mount', host: HOST, cacheSr: null } }),
+        /expected the uuid of the cache SR/
       )
     })
 
@@ -128,5 +140,17 @@ describe('hasLiveMountTarget()', () => {
     assert.equal(hasLiveMountTarget(undefined), false)
     assert.equal(hasLiveMountTarget({}), false)
     assert.equal(hasLiveMountTarget({ [VDI_1]: SR, [VDI_2]: null, [VDI_3]: { type: 'ignore' } }), false)
+  })
+})
+
+describe('hasCachedLiveMountTarget()', () => {
+  it('detects a cached live mount entry', () => {
+    assert.equal(hasCachedLiveMountTarget({ [VDI_1]: { type: 'live-mount', host: HOST, cacheSr: SR } }), true)
+  })
+
+  it('is false for an uncached live mount, and every other shape', () => {
+    assert.equal(hasCachedLiveMountTarget(undefined), false)
+    assert.equal(hasCachedLiveMountTarget({ [VDI_1]: { type: 'live-mount', host: HOST } }), false)
+    assert.equal(hasCachedLiveMountTarget({ [VDI_1]: SR, [VDI_2]: null, [VDI_3]: { type: 'ignore' } }), false)
   })
 })
