@@ -25,6 +25,8 @@ const {
 
 const Y_AXIS_MAX_VALUE = 200
 
+const xAxisLabelFormatter = timeFormat('%a\n%H:%M')
+
 const valueFormatter = computed<ValueFormatter>(() => {
   const formatter = _valueFormatter
 
@@ -56,7 +58,7 @@ const option = computed<EChartsOption>(() => ({
   xAxis: {
     type: 'time',
     axisLabel: {
-      formatter: (timestamp: number) => timeFormat('%a\n%H:%M')(new Date(timestamp)),
+      formatter: (timestamp: number) => xAxisLabelFormatter(new Date(timestamp)),
       showMaxLabel: false,
       showMinLabel: false,
     },
