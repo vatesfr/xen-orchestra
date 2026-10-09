@@ -4,11 +4,13 @@
     <HostForceRebootButton :host />
     <HostSmartRebootButton :host />
     <HostShutdownButton :host />
+    <HostEmergencyShutdownButton :host />
   </template>
   <HostStartButton v-else :host />
 </template>
 
 <script lang="ts" setup>
+import HostEmergencyShutdownButton from '@/modules/host/components/actions/emergency-shutdown/HostEmergencyShutdownButton.vue'
 import HostForceRebootButton from '@/modules/host/components/actions/reboot/HostForceRebootButton.vue'
 import HostRebootButton from '@/modules/host/components/actions/reboot/HostRebootButton.vue'
 import HostSmartRebootButton from '@/modules/host/components/actions/reboot/HostSmartRebootButton.vue'

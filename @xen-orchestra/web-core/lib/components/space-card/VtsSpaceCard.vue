@@ -1,8 +1,6 @@
 <template>
   <UiPanelCard class="vts-space-card">
-    <UiCardTitle>
-      {{ t('space') }}
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('space')" />
 
     <slot name="alert" />
 
@@ -44,8 +42,8 @@
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { formatSize } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

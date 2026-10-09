@@ -1,9 +1,11 @@
 import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { extractIdsFromSimplePattern, destructSmartPattern } from '@/shared/utils/pattern.util.ts'
+import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { vmContainsNoBakTag } from '@/modules/vm/utils/xo-vm.util.ts'
+import { destructSmartPattern } from '@/shared/utils/pattern.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { XoVm, VM_POWER_STATE } from '@vates/types'
+import type { VM_POWER_STATE } from '@vates/types'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import * as ValueMatcher from 'value-matcher'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
@@ -34,10 +36,10 @@ export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<Fro
     if (checkSmartModeEnabled(backedUpVmsConfig.value)) {
       const predicate = ValueMatcher.createPredicate(backedUpVmsConfig.value)
 
-      return vms.value.filter(vm => predicate(vm) && !vm.tags?.includes('xo:no-bak'))
+      return vms.value.filter(vm => predicate(vm) && !vmContainsNoBakTag(vm))
     }
 
-    return getVmsByIds(extractIdsFromSimplePattern(backedUpVmsConfig.value) as XoVm['id'][])
+    return getVmsByIds(extractIdsFromSimplePattern<FrontXoVm['id']>(backedUpVmsConfig.value))
   })
 
   const backedUpVmsCount = computed(() => backedUpVms.value.length)

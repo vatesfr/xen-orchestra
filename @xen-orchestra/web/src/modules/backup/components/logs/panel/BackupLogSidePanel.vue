@@ -24,12 +24,11 @@ import BackupJobBackedUpVmsCard from '@/modules/backup/components/panel/cards/Ba
 import BackupJobSchedulesCard from '@/modules/backup/components/panel/cards/BackupJobSchedulesCard.vue'
 import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
-import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useXoPoolCollection, type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { getTasksResultsRecursively } from '@/modules/task/utils/xo-task.util.ts'
-import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import type { XoPool } from '@vates/types'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { computed } from 'vue'
 
 const { backupLog } = defineProps<{
@@ -55,7 +54,7 @@ const backedUpPools = computed(() => {
     return []
   }
 
-  return getPoolsByIds(extractIdsFromSimplePattern(backupJob.value.pools) as XoPool['id'][])
+  return getPoolsByIds(extractIdsFromSimplePattern<FrontXoPool['id']>(backupJob.value.pools))
 })
 
 const backupLogResults = computed(() => {

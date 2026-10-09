@@ -80,14 +80,35 @@ export class AbstractAggregatedXapiWriter {
     )
   }
 
-  async deleteOldReplicas() {
-    debug(`deleteOldReplicas will delete ${this.#oldVmReplicaList.length} replicated vms  for vm ${this.#props.vmUuid}`)
+  /**
+   * Deletes the old replicas computed by `setOldReplicaList`.
+   *
+   * @param {Object} [options]
+   * @param {boolean} [options.keepMostRecent=false] - Keep the most recent old replica, which is the base of the
+   *   next incremental replication (needed when copyRetention is 1 with deleteFirst). The kept replica stays in
+   *   the list, so a later call without `keepMostRecent` (from `cleanup()`) deletes it once the transfer is done.
+   */
+  async deleteOldReplicas({ keepMostRecent = false } = {}) {
+    let toDelete = this.#oldVmReplicaList
+    let kept
+
+    // the list is sorted by datetime (oldest first), so the last entry is the most recent replica,
+    // which is the base of the next incremental replication
+    if (keepMostRecent && toDelete.length > 0) {
+      kept = toDelete[toDelete.length - 1]
+      toDelete = toDelete.slice(0, -1)
+    }
+
+    debug(`deleteOldReplicas will delete ${toDelete.length} replicated vms  for vm ${this.#props.vmUuid}`)
     // destroy the VM on the right xapi
-    await asyncMapSettled(this.#oldVmReplicaList, async vm => {
+    await asyncMapSettled(toDelete, async vm => {
       debug('will delete old replica', vm.name_label)
       await vm.$xapi.VM_destroy(vm.$ref)
     })
-    debug(`deleteOldReplicas deleted  ${this.#oldVmReplicaList.length} replicated vms  for vm ${this.#props.vmUuid}`)
+    debug(`deleteOldReplicas deleted  ${toDelete.length} replicated vms  for vm ${this.#props.vmUuid}`)
+
+    // whatever is left (the kept base, if any) will be deleted by the next call, from cleanup()
+    this.#oldVmReplicaList = kept !== undefined ? [kept] : []
   }
 
   async setupWriters() {

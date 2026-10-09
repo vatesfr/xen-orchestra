@@ -1,72 +1,47 @@
 <template>
-  <form class="connection-form" :class="{ mobile: uiStore.isSmall }" @submit.prevent="submit()">
+  <VtsForm class="connection-form" :class="{ mobile: uiStore.isSmall }" @submit="onSubmit()">
     <div class="primary-host-section">
       <UiTitle>{{ t('master') }}</UiTitle>
       <div class="inputs-container">
-        <VtsInputWrapper :label="t('ip-address')">
-          <!-- TODO validation -->
-          <UiInput v-model.trim="form.host" accent="brand" required :placeholder="t('ip-port-placeholder')" />
-          <UiInfo accent="info" wrap>
-            {{ t('pool-connection-ip-info') }}
-          </UiInfo>
-        </VtsInputWrapper>
-        <!-- TODO validation -->
-        <VtsInputWrapper :label="t('proxy-url')">
-          <UiInput v-model.trim="form.httpProxy" accent="brand" />
-        </VtsInputWrapper>
-        <!-- TODO validation -->
-        <VtsInputWrapper :label="t('username')">
-          <UiInput v-model.trim="form.username" accent="brand" required />
-          <UiInfo accent="info" wrap>
-            {{ t('root-by-default') }}
-          </UiInfo>
-        </VtsInputWrapper>
-        <!-- TODO validation -->
-        <VtsInputWrapper :label="t('password')">
-          <UiInput v-model="form.password" accent="brand" required type="password" />
-        </VtsInputWrapper>
+        <PoolConnectionFormTextInput v-bind="hostInputBindings" />
+        <PoolConnectionFormTextInput v-bind="httpProxyInputBindings" />
+        <PoolConnectionFormTextInput v-bind="usernameInputBindings" />
+        <PoolConnectionFormPasswordInput v-bind="passwordInputBindings" />
       </div>
     </div>
     <UiTitle>{{ t('options') }}</UiTitle>
     <div class="options-section">
-      <UiCheckbox v-model="form.readOnly" accent="brand">{{ t('read-only') }}</UiCheckbox>
-      <UiCheckbox v-model="form.allowUnauthorized" accent="brand">
-        {{ t('accept-self-signed-certificates') }}
-      </UiCheckbox>
+      <PoolConnectionFormCheckbox v-bind="readOnlyCheckboxBindings" />
+      <PoolConnectionFormCheckbox v-bind="allowUnauthorizedCheckboxBindings" />
     </div>
     <div class="buttons-container">
       <UiLink :to="{ name: '/(site)/dashboard' }" size="medium">
         {{ t('cancel') }}
       </UiLink>
-      <UiButton
-        type="submit"
-        accent="brand"
-        size="medium"
-        variant="primary"
-        :busy="isServerJobRunning"
-        :disabled="!createCanRun"
-      >
+      <UiButton type="submit" accent="brand" size="medium" variant="primary" :busy="isServerJobRunning">
         {{ t('connect') }}
       </UiButton>
     </div>
-  </form>
+  </VtsForm>
 </template>
 
 <script setup lang="ts">
+import PoolConnectionFormCheckbox from '@/modules/pool/components/connection/inputs/PoolConnectionFormCheckbox.vue'
+import PoolConnectionFormPasswordInput from '@/modules/pool/components/connection/inputs/PoolConnectionFormPasswordInput.vue'
+import PoolConnectionFormTextInput from '@/modules/pool/components/connection/inputs/PoolConnectionFormTextInput.vue'
+import { usePoolConnectionForm } from '@/modules/pool/form/use-pool-connection-form.ts'
+import { isAuthenticationFailedError } from '@/modules/pool/utils/xo-pool.util.ts'
 import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
 import { useXoServerCreateJob } from '@/modules/server/jobs/xo-server-create.job.ts'
 import { useXoServerForgetJob } from '@/modules/server/jobs/xo-server-forget.job.ts'
-import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsForm from '@core/components/form/VtsForm.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoServer } from '@vates/types'
 import { logicOr } from '@vueuse/math'
-import { computed, reactive, ref } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
@@ -78,45 +53,36 @@ const { t } = useI18n()
 const uiStore = useUiStore()
 const serverId = ref<XoServer['id']>('' as XoServer['id'])
 
-interface NewServerForm {
-  host: string
-  httpProxy: string
-  username: string
-  password: string
-  readOnly: boolean
-  allowUnauthorized: boolean
-}
-
-const form = reactive<NewServerForm>({
-  host: '',
-  httpProxy: '',
-  username: '',
-  password: '',
-  readOnly: false,
-  allowUnauthorized: false,
-})
-
-const payload = computed(() => ({
-  host: form.host,
-  username: form.username,
-  password: form.password,
-  ...Object.assign(
-    {},
-    form.httpProxy && { httpProxy: form.httpProxy },
-    form.readOnly && { readOnly: form.readOnly },
-    form.allowUnauthorized && { allowUnauthorized: form.allowUnauthorized }
-  ),
-}))
+const {
+  formData,
+  validate,
+  payload,
+  showCredentialsError,
+  hostInputBindings,
+  httpProxyInputBindings,
+  usernameInputBindings,
+  passwordInputBindings,
+  readOnlyCheckboxBindings,
+  allowUnauthorizedCheckboxBindings,
+} = usePoolConnectionForm()
 
 // TODO: multiple server creation not possible in the UI for now
 // so only handle a single payload
-const { canRun: createCanRun, isRunning: createIsRunning, run: create } = useXoServerCreateJob([payload])
+const { isRunning: createIsRunning, run: create } = useXoServerCreateJob([payload])
 const { isRunning: connectIsRunning, run: connect } = useXoServerConnectJob([serverId])
 const { isRunning: removeIsRunning, run: remove } = useXoServerForgetJob([serverId])
 
 const isServerJobRunning = logicOr(connectIsRunning, createIsRunning, removeIsRunning)
 
-async function submit() {
+async function onSubmit() {
+  serverId.value = '' as XoServer['id']
+
+  const valid = await validate()
+
+  if (!valid) {
+    return
+  }
+
   try {
     // TODO: multiple server creation not possible in the UI for now
     // so only handle single server creation
@@ -130,14 +96,23 @@ async function submit() {
       throw promiseConnectResult.reason
     }
 
-    emit('success', serverId.value, form.host)
+    emit('success', serverId.value, formData.host)
   } catch (error) {
-    await remove()
-    if (error instanceof Error) {
-      emit('error', error, form.host)
-    } else {
-      console.error('Unknown error:', error)
+    if (serverId.value !== '') {
+      await remove()
     }
+
+    if (!(error instanceof Error)) {
+      console.error('Unknown error:', error)
+      return
+    }
+
+    if (isAuthenticationFailedError(error)) {
+      showCredentialsError()
+      return
+    }
+
+    emit('error', error, formData.host)
   }
 }
 </script>
