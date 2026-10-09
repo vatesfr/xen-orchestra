@@ -252,6 +252,7 @@ export type XoApp = {
     user?: XoUser
     permission?: XoUser['permission'] | 'none' | null
   }
+  backupLogsEe: EventEmitter
 
   // methods ------------
   allocIpAddresses(vifId: XoVif['id'], addAddresses?: string[], removeAddresses?: string[]): Promise<void>

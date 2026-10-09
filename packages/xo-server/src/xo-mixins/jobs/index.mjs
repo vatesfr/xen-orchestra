@@ -10,10 +10,13 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 
 import Collection from '../../collection/redis.mjs'
 import patch from '../../patch.mjs'
-import { serializeError } from '../../utils.mjs'
+import { noop, serializeError } from '../../utils.mjs'
 
 import executeCall from './execute-call.mjs'
 import backupGuard from '../../api/_backupGuard.mjs'
+import { REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
+import { EventEmitter } from 'node:events'
+import { taskFormatAdapter } from '../backups-ng-logs.mjs'
 
 // ===================================================================
 
@@ -52,11 +55,17 @@ class JobsDb extends Collection {
 // -----------------------------------------------------------------------------
 
 export default class Jobs {
+  #backupLogsEe = new EventEmitter()
   get runningJobs() {
     return this._runningJobs
   }
 
+  get backupLogsEe() {
+    return this.#backupLogsEe
+  }
+
   constructor(app) {
+    /** @type {import('@vates/types').XoApp} */
     this._app = app
     const executors = (this._executors = { __proto__: null })
     this._logger = undefined
@@ -178,6 +187,8 @@ export default class Jobs {
   @decorateWith(defer)
   async runJob($defer, job, schedule, data_) {
     const logger = this._logger
+    let unwatchBackupTask = noop
+
     const { id, type } = job
 
     const jobData = {
@@ -200,11 +211,30 @@ export default class Jobs {
       type,
     }
     const runJobId = logger.notice(`Starting execution of ${id}.`, jobData)
+    const app = this._app
     // Links the backup log to the job run
     // We keep the jobs for this because of some mechanism related to jobs, like preventing double execution.
     jobData.runJobId = runJobId
 
-    const app = this._app
+    let previousBackupLog
+    let startBackupLog
+    // sequence have no backup-log associated
+    if (type === 'backup' || job.key === undefined) {
+      startBackupLog = {
+        ...(await app.getBackupNgLogs(runJobId)),
+        status: 'pending', // overitte the status, because `getBackupNgLogs` return a `interrupted` status here. see `handleLog`
+      }
+      app.backupLogsEe.emit('add', startBackupLog)
+      previousBackupLog = startBackupLog
+    }
+
+    function emitBackupLogUpdate(backupLog) {
+      if (startBackupLog !== undefined) {
+        app.backupLogsEe.emit('update', backupLog, previousBackupLog)
+        previousBackupLog = backupLog
+      }
+    }
+
     try {
       let executor = this._executors[type]
       if (executor === undefined) {
@@ -295,13 +325,24 @@ export default class Jobs {
 
       // Links the job run to its backup log
       const jobUpdateFct = async backupTaskId => {
+        function onBackupTaskUpdate(task) {
+          const backupLog = { ...startBackupLog, tasks: [structuredClone(task)] }
+          taskFormatAdapter(backupLog)
+          if (backupLog.tasks === undefined) {
+            delete backupLog.tasks
+          }
+          emitBackupLogUpdate(backupLog)
+        }
+
+        app.tasks.on(backupTaskId, onBackupTaskUpdate)
+        unwatchBackupTask = () => app.tasks.off(backupTaskId, onBackupTaskUpdate)
+
         await logger.notice(`Adding backupTaskId to job run ${runJobId}`, {
           backupTaskId,
           event: 'job.backupTaskStart',
           runJobId,
         })
       }
-
       await executor({
         app,
         cancelToken: token,
@@ -337,6 +378,11 @@ export default class Jobs {
       )
       app.emit('job:terminated', runJobId, { type })
       throw error
+    } finally {
+      unwatchBackupTask()
+      app.getBackupNgLogs(REMOVE_CACHE_ENTRY, runJobId)
+      const backupLog = await app.getBackupNgLogs(runJobId)
+      emitBackupLogUpdate(backupLog)
     }
   }
 
