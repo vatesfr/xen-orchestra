@@ -1047,6 +1047,26 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
           }
         })
 
+        it('getDockerContainerScope(): never connects (ACL v2 prep)', async () => {
+          const dockerId = 'a'.repeat(64)
+          const onVm = await seed({ vm: VM_ID })
+          const standalone = await seed({})
+          assert.deepEqual(await docker.getDockerContainerScope(`${onVm.id}_${dockerId}`), {
+            id: `${onVm.id}_${dockerId}`,
+            $engine: onVm.id,
+            $VM: VM_ID,
+            $pool: POOL_ID,
+          })
+          assert.deepEqual(await docker.getDockerContainerScope(`${standalone.id}_${dockerId}`), {
+            id: `${standalone.id}_${dockerId}`,
+            $engine: standalone.id,
+          })
+          for (const id of ['nope', `nope_${dockerId}`, `${onVm.id}_abc`]) {
+            await assert.rejects(docker.getDockerContainerScope(id), noSuchObject.is, id)
+          }
+          assert.equal(fake.connects, 0)
+        })
+
         it('runDockerContainerAction() and deleteDockerContainer(): unknown action or container', async () => {
           const { id } = await seed({})
           const containerId = `${id}_${'a'.repeat(64)}`

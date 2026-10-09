@@ -442,6 +442,13 @@ export type XoApp = {
     limit?: number
   }): Promise<AnyXoLog[]>
   getDockerContainer(id: XoDockerContainer['id']): Promise<XoDockerContainer>
+  /**
+   * never connects: the container and the objects it belongs to, from its engine (the container itself may not
+   * exist), e.g. for the ACLs
+   */
+  getDockerContainerScope(
+    id: XoDockerContainer['id']
+  ): Promise<Pick<XoDockerContainer, 'id' | '$engine' | '$VM' | '$pool'>>
   getDockerContainerLogs(
     id: XoDockerContainer['id'],
     opts?: {
