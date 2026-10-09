@@ -13,6 +13,7 @@ export {
   type DockerConnectionState,
   type PoolableConnection,
 } from './pool.mjs'
+export * from './requests.mjs'
 export { DockerStatsSampler, type DockerStatsSamplerOptions } from './stats-sampler.mjs'
 export * from './ssh-http-agent.mjs'
 export * from './stdcopy.mjs'

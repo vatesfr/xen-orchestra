@@ -9,19 +9,13 @@
 
 import { asyncEach } from '@vates/async-each'
 import { createHmac, randomBytes } from 'node:crypto'
-import { once } from 'node:events'
-import { finished } from 'node:stream/promises'
-import { Transform } from 'node:stream'
 import { createLogger } from '@xen-orchestra/log'
 import { synchronized } from 'decorator-synchronized'
 import { invalidParameters, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import {
   AsyncTtlCache,
-  compareApiVersions,
   CONNECTION_CLOSED,
-  createLogLineParser,
-  createStdcopyDemuxer,
   DOCKER_API_ERROR,
   DOCKER_SOCKET_UNREACHABLE,
   DockerConnection,
@@ -32,15 +26,15 @@ import {
   HOST_KEY_TYPES,
   HOST_KEY_UNKNOWN,
   isDockerError,
-  isMultiplexedStream,
   normalizeContainerInspect,
   normalizeContainerListEntry,
   normalizeContainerStats,
   normalizeEngineInfo,
   parseFingerprint,
   POOL_EXHAUSTED,
+  rawRequest,
+  readContainerLogs,
   RAW_REQUEST_TOO_LARGE,
-  RAW_RESPONSE_TOO_LARGE,
   SSH_AUTH_FAILED,
   SSH_COOLDOWN,
   SSH_UNREACHABLE,
@@ -191,24 +185,6 @@ const CONTAINER_ACTIONS = new Set(['start', 'stop', 'restart', 'pause', 'unpause
 const SAMPLED_STATES = new Set(['running', 'paused'])
 
 const RAW_METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'])
-
-/**
- * Pass-through stream which fails with a DockerError of `code` once more than
- * `maxSize` bytes went through.
- */
-function createSizeLimiter(maxSize, code, message) {
-  let size = 0
-  return new Transform({
-    transform(chunk, encoding, callback) {
-      size += chunk.length
-      if (size > maxSize) {
-        callback(new DockerError(code, message, { data: { maxSize } }))
-      } else {
-        callback(null, chunk)
-      }
-    },
-  })
-}
 
 /** @type {Record<string, XoDockerEngineInfoDisconnected['status']>} */
 const INFO_STATUS_BY_CODE = {
@@ -888,74 +864,22 @@ export default class Docker {
       })
     }
     const record = await this.#getEngineWithCredentials(id)
-
-    // the whole lifetime of the request, response body included (e.g. `/events`
-    // or `logs?follow=1` would otherwise stay open as long as the client)
-    const controller = new AbortController()
-    const timer =
-      rawRequestTimeout > 0
-        ? setTimeout(
-            () => controller.abort(new DOMException('raw Docker API request timed out', 'TimeoutError')),
-            rawRequestTimeout
-          )
-        : undefined
-    timer?.unref?.()
-    const requestSignal = AbortSignal.any([controller.signal, signal].filter(signal => signal !== undefined))
-
     return new Promise((resolve, reject) => {
-      let requestBody
       this.#withConnection(record, async connection => {
-        // piped only once connected: nothing reads it before
-        if (body !== undefined) {
-          requestBody = createSizeLimiter(
-            maxRawRequestSize,
-            RAW_REQUEST_TOO_LARGE,
-            'the request body is too large (docker.maxRawRequestSize)'
-          )
-          body.on('error', error => requestBody.destroy(error))
-          body.pipe(requestBody)
-        }
-        const response = await connection.requestStream({
+        const { done, ...response } = await rawRequest(connection, {
           method,
           path,
           headers,
-          body: requestBody,
-          signal: requestSignal,
-          raw: true,
-          longLived: true,
+          body,
+          signal,
+          maxRequestSize: maxRawRequestSize,
+          maxResponseSize: maxRawResponseSize,
+          timeout: rawRequestTimeout,
         })
-        const length = response.headers['content-length']
-        if (length !== undefined && Number(length) > maxRawResponseSize) {
-          response.destroy()
-          throw new DockerError(RAW_RESPONSE_TOO_LARGE, 'the response is too large (docker.maxRawResponseSize)', {
-            data: { maxSize: maxRawResponseSize, statusCode: response.statusCode },
-          })
-        }
-        const limited = createSizeLimiter(
-          maxRawResponseSize,
-          RAW_RESPONSE_TOO_LARGE,
-          'the response is too large (docker.maxRawResponseSize)'
-        )
-        response.on('error', error => limited.destroy(error))
-        limited.on('close', () => response.destroy())
-        response.pipe(limited)
-        resolve({ statusCode: response.statusCode, headers: response.headers, body: limited })
+        resolve(response)
         // the pooled connection is busy until the response is done
-        await finished(limited).catch(() => {})
-        clearTimeout(timer)
-      }).catch(error => {
-        clearTimeout(timer)
-        // the request failed (no connection, channel refused, timeout…): the
-        // body is not sent, what the client still sends is discarded (the
-        // caller's stream is neither kept piped into a limiter nobody reads,
-        // nor destroyed: the caller may still have to answer on its socket)
-        if (requestBody !== undefined) {
-          body.unpipe(requestBody)
-          requestBody.destroy()
-          body.resume()
-        }
-        reject(error)
-      })
+        await done
+      }).catch(reject)
     })
   }
 
@@ -986,137 +910,24 @@ export default class Docker {
     if (!stdout && !stderr) {
       throw invalidParameters('at least one of stdout and stderr must be requested')
     }
-    const query = {
-      // dockerd answers 400 without any of them: always ask for both, and
-      // filter afterwards
-      stdout: 1,
-      stderr: 1,
-      // always requested: without them, a message starting with something
-      // looking like a timestamp would be mangled by the line parser
-      timestamps: 1,
-      tail,
-      since: toDockerTimestamp('since', since),
-      until: toDockerTimestamp('until', until),
-    }
-
+    const range = { since: toDockerTimestamp('since', since), until: toDockerTimestamp('until', until) }
     const { record, dockerId } = await this.#resolveContainerId(id)
-    const path = `/containers/${encodeURIComponent(dockerId)}`
-
     return this.#withConnection(record, async connection => {
-      // the content type is only reliable from API 1.42, before that the TTY
-      // setting of the container decides
-      let tty
-      if (connection.apiVersion === undefined || compareApiVersions(connection.apiVersion, '1.42') < 0) {
-        tty = this.#peekEngineContainers(record, true)?.containers.get(dockerId)?.container.tty
-        if (tty === undefined) {
-          try {
-            const { body } = await connection.request({ path: path + '/json' })
-            tty = normalizeAnswer(() => normalizeContainerInspect(/** @type {DockerInspect} */ (body))).tty
-          } catch (error) {
-            throw isNotFound(error) ? noSuchObject(id, 'docker-container') : error
-          }
-        }
-      }
-
-      const asOf = Date.now()
-      const controller = new AbortController()
-
-      // the body is bounded in time too: dockerd may stall or trickle, which
-      // would keep the pooled connection busy forever. On expiry, what has
-      // been read so far is returned (`truncated` and `timedOut`)
-      const TIMED_OUT = new Error('logs deadline')
-      const ENOUGH = new Error('enough log entries')
-      let timedOut = false
-      let response
-      const expire = () => {
-        timedOut = true
-        if (response === undefined) {
-          controller.abort(new DOMException('Docker logs request timed out', 'TimeoutError'))
-        } else {
-          response.destroy(TIMED_OUT)
-        }
-      }
-      const deadline = setTimeout(expire, logsTimeout)
-      let idleTimer
-      const resetIdle = () => {
-        clearTimeout(idleTimer)
-        idleTimer = setTimeout(expire, logsIdleTimeout)
-      }
-
       try {
-        try {
-          response = await connection.requestStream({ path: path + '/logs', query, signal: controller.signal })
-        } catch (error) {
-          throw isNotFound(error) ? noSuchObject(id, 'docker-container') : error
-        }
-        resetIdle()
-
-        const demuxer = createStdcopyDemuxer({
-          tty: !isMultiplexedStream(response.headers['content-type'], tty, connection.apiVersion),
+        return await readContainerLogs(connection, dockerId, {
+          tail,
+          ...range,
+          stdout,
+          stderr,
+          timestamps,
+          tty: this.#peekEngineContainers(record, true)?.containers.get(dockerId)?.container.tty,
+          maxSize: maxLogsSize,
+          maxEntries: maxLogsTail,
+          timeout: logsTimeout,
+          idleTimeout: logsIdleTimeout,
         })
-        const parser = createLogLineParser()
-        const entries = []
-        const streams = new Set([stdout && 'stdout', stderr && 'stderr'])
-        demuxer.pipe(parser)
-        demuxer.on('error', error => {
-          parser.destroy(error)
-          // interrupts the read loop below
-          response.destroy(error)
-        })
-        // lines over 64 KiB are split in several entries by dockerd: `tail`
-        // lines can give more than `tail` entries, `maxLogsTail` are kept
-        let tooManyEntries = false
-        const collected = (async () => {
-          for await (const entry of parser) {
-            if (!streams.has(entry.stream) || tooManyEntries) {
-              continue
-            }
-            if (entries.length === maxLogsTail) {
-              tooManyEntries = true
-              // stops the read loop below, what is still in the parser is
-              // drained (and dropped)
-              response.destroy(ENOUGH)
-              continue
-            }
-            entries.push(timestamps ? entry : { ...entry, timestamp: undefined })
-          }
-        })()
-        // awaited below, avoids an unhandled rejection meanwhile
-        collected.catch(() => {})
-
-        let truncated = false
-        try {
-          let size = 0
-          for await (const chunk of response) {
-            resetIdle()
-            if (size + chunk.length > maxLogsSize) {
-              demuxer.write(chunk.subarray(0, maxLogsSize - size))
-              truncated = true
-              break
-            }
-            size += chunk.length
-            if (!demuxer.write(chunk)) {
-              // rejects if the demuxer fails (e.g. invalid frame)
-              await once(demuxer, 'drain')
-            }
-          }
-        } catch (error) {
-          if (error !== TIMED_OUT && error !== ENOUGH) {
-            throw error
-          }
-        } finally {
-          clearTimeout(idleTimer)
-          // stops reading the response (and frees the channel) when truncated
-          // or timed out
-          response.destroy()
-          controller.abort()
-          demuxer.end()
-        }
-        await collected
-        return { entries, truncated: truncated || tooManyEntries || timedOut || demuxer.truncated, timedOut, asOf }
-      } finally {
-        clearTimeout(deadline)
-        clearTimeout(idleTimer)
+      } catch (error) {
+        throw isNotFound(error) ? noSuchObject(id, 'docker-container') : error
       }
     })
   }
