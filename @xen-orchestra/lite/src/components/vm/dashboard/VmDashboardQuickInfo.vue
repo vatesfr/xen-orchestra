@@ -141,7 +141,7 @@ const installDateFormatted = computed(() => {
     return t('unknown')
   }
 
-  return formatDate(parseDateTime(installTime))
+  return formatDate(installTime)
 })
 
 const ram = computed(() => formatSizeRaw(vm.memory_dynamic_max, 0))
