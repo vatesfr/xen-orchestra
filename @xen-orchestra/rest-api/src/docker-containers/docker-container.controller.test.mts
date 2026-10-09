@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
+import { serializeError } from '@vates/task'
 import { featureUnauthorized, invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 
 import { DockerContainerController } from './docker-container.controller.mjs'
@@ -67,7 +68,19 @@ function setup({ licensed = true, maxListedEngines }: { licensed?: boolean; maxL
     tasks: {
       create: (properties: Record<string, unknown>) => {
         tasks.push(properties)
-        return { id: 'task-1', set() {}, run: async (fn: () => unknown) => fn() }
+        return {
+          id: 'task-1',
+          set() {},
+          run: async (fn: () => unknown) => {
+            try {
+              return await fn()
+            } catch (error) {
+              // what the Tasks mixin of xo-server records (`@vates/task`)
+              properties.result = error instanceof Error && !('toJSON' in error) ? serializeError(error) : error
+              throw error
+            }
+          },
+        }
       },
     },
   } as unknown as RestApi
@@ -334,6 +347,33 @@ describe('DockerContainerController', () => {
         assert.ok(e instanceof ApiError)
         assert.equal(e.status, 409)
         return true
+      })
+    })
+
+    it('the record of a failed action holds the mapped error, without connection context nor raw error', async () => {
+      const { controller, tasks } = setup()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(controller as any).restApi.xoApp.runDockerContainerAction = async () => {
+        throw Object.assign(new Error('Container is already paused'), {
+          name: 'DockerError',
+          code: 'DOCKER_API_ERROR',
+          data: {
+            host: '192.0.2.1',
+            port: 2222,
+            socketPath: '/run/user/1000/docker.sock',
+            path: '/containers/abc/pause',
+            statusCode: 409,
+            message: 'Container is already paused',
+          },
+        })
+      }
+      await assert.rejects(controller.pauseDockerContainer(`engine-1_${DOCKER_ID}`, true), ApiError)
+      const record = JSON.stringify(tasks)
+      assert.doesNotMatch(record, /192\.0\.2\.1|2222|docker\.sock|"cause"|"stack"/)
+      assert.deepEqual(JSON.parse(record)[0].result, {
+        code: 'DOCKER_API_ERROR',
+        statusCode: 409,
+        message: 'Container is already paused',
       })
     })
   })

@@ -118,12 +118,18 @@ export function toDockerApiError(error: unknown): unknown {
   } else {
     log.debug(error.message, { error })
   }
-  const apiError = new ApiError(truncateMessage(error.message), status, {
-    data: getClientData(error),
+  const message = truncateMessage(error.message)
+  const data = getClientData(error)
+  const apiError = new ApiError(message, status, {
+    data,
     headers: retryAfter === undefined ? undefined : { 'Retry-After': retryAfter },
   })
-  apiError.cause = error
-  return apiError
+  // no `cause`, and a `toJSON()`: the record of a failed task (`@vates/task`
+  // serializes an error without `toJSON()` with its `cause` and enumerable
+  // properties, the data of an ApiError is private) is readable with
+  // `task:read`, it gets what the client would get, never the raw error and its
+  // connection context
+  return Object.assign(apiError, { toJSON: () => ({ ...data, message }) })
 }
 
 /**
