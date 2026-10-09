@@ -87,11 +87,27 @@ watch(
 
 const codeContainer = useTemplateRef('codeContainer')
 
+const AUTO_SCROLL_THRESHOLD_PX = 16
+
+// whether the user was at the bottom before the content changed: scrolling up to read stops following
+let isFollowing = true
+
+watch(
+  content,
+  () => {
+    const element = codeContainer.value
+
+    isFollowing =
+      element === null || element.scrollHeight - element.scrollTop - element.clientHeight <= AUTO_SCROLL_THRESHOLD_PX
+  },
+  { flush: 'pre' }
+)
+
 // keep the latest lines in view when the content changes, like `tail -f`
 watch(
   [content, codeContainer, () => autoScroll],
   ([, element]) => {
-    if (autoScroll && element) {
+    if (autoScroll && element && isFollowing) {
       element.scrollTop = element.scrollHeight
     }
   },
