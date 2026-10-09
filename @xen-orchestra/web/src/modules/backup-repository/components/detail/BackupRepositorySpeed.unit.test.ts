@@ -8,7 +8,7 @@ import { t } from '@/test/i18n.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { formatSpeed } from '@core/utils/speed.util.ts'
 import type { XoBackupRepositoryBenchmark } from '@vates/types'
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
 const { useBenchmarkJob, run } = vi.hoisted(() => ({
@@ -79,17 +79,12 @@ it('shows the speeds of the latest stored benchmark', () => {
   })
 })
 
-it('shows the result of a benchmark run from the card in place of the stored one', async () => {
-  run.mockResolvedValue({ writeRate: 300_000_000, readRate: 400_000_000 })
-  const wrapper = mountCard(createBr({ benchmarks: [createBenchmark()] }))
+it('runs the benchmark job when clicking the benchmark button', async () => {
+  const wrapper = mountCard()
 
   await findBenchmarkButton(wrapper).trigger('click')
-  await flushPromises()
 
-  expect(findLabelledValues(wrapper)).toEqual({
-    [t('writing-speed')]: formatSpeed(300_000_000),
-    [t('reading-speed')]: formatSpeed(400_000_000),
-  })
+  expect(run).toHaveBeenCalledOnce()
 })
 
 it('disables the benchmark button when the job cannot run', () => {

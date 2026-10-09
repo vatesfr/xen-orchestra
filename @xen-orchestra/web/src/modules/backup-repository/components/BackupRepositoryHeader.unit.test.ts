@@ -1,4 +1,6 @@
 import BackupRepositoryHeader from '@/modules/backup-repository/components/BackupRepositoryHeader.vue'
+import type { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
+import type { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -7,6 +9,35 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { objectIcon } from '@core/icons'
 import { mount } from '@vue/test-utils'
+import { computed } from 'vue'
+
+// The action jobs subscribe to server events, unavailable in tests
+vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'), () => ({
+  useXoBackupRepositoryChangeStateJob: (() => ({
+    run: vi.fn(),
+    canRun: computed(() => true),
+    isRunning: computed(() => false),
+    errorMessage: computed(() => undefined),
+  })) as unknown as typeof useXoBackupRepositoryChangeStateJob,
+}))
+
+vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'), () => ({
+  useXoBackupRepositoryBenchmarkJob: (() => ({
+    run: vi.fn(),
+    canRun: computed(() => true),
+    isRunning: computed(() => false),
+    errorMessage: computed(() => undefined),
+  })) as unknown as typeof useXoBackupRepositoryBenchmarkJob,
+}))
+
+vi.mock(import('@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'), () => ({
+  useBackupRepositoryForget: () => ({
+    forgetBackupRepositories: vi.fn(),
+    canForgetBackupRepositories: computed(() => true),
+    isForgettingBackupRepositories: computed(() => false),
+    forgetBackupRepositoriesErrorMessage: computed(() => undefined),
+  }),
+}))
 
 function mountHeader(br: FrontXoBackupRepository = createBr()) {
   return mount(BackupRepositoryHeader, {

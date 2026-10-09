@@ -5,9 +5,12 @@
       <slot name="title-actions" />
     </template>
   </UiTitle>
-  <VtsQueryBuilder v-model="filter" :schema />
+  <div class="filters">
+    <VtsQueryBuilder v-model="filter" :schema />
+    <BackupRepositoriesBulkActions :brs="selectedBrs" />
+  </div>
 
-  <VtsTable :state :pagination-bindings sticky="right">
+  <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
     <thead>
       <tr>
         <HeadCells />
@@ -22,9 +25,13 @@
 </template>
 
 <script setup lang="ts">
+import BackupRepositoriesBulkActions from '@/modules/backup-repository/components/list/BackupRepositoriesBulkActions.vue'
+import { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
 import { useEditBackupRepository } from '@/modules/backup-repository/composables/use-edit-backup-repository.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
+import { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import {
   getBackupRepositoryIcon,
@@ -37,11 +44,13 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBackupRepositoryColumns } from '@core/tables/column-sets/backup-repository-columns.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { brs, busy, error } = defineProps<{
@@ -62,15 +71,24 @@ const { openEditBackupRepositoryDrawer } = useEditBackupRepository()
 
 const { items: filteredBrs, filter } = useQueryBuilderFilter('brs', () => brs)
 
+const selectedBrId = useRouteQuery('id')
+
+const { pageRecords: paginatedBrs, paginationBindings } = usePagination('brs', filteredBrs)
+
+const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
+  items: () => brs,
+  filteredItems: filteredBrs,
+  pageItems: paginatedBrs,
+  getItemId: br => br.id,
+})
+
+const selectedBrs = computed(() => brs.filter(br => selectedIds.value.includes(br.id)))
+
 const schema = useQueryBuilderSchema<FrontXoBackupRepository>({
   '': useStringSchema(t('any-property')),
   name: useStringSchema(t('name')),
   url: useStringSchema(t('url')),
 })
-
-const selectedBrId = useRouteQuery('id')
-
-const { pageRecords: paginatedBrs, paginationBindings } = usePagination('brs', filteredBrs)
 
 const state = useTableState({
   busy: () => busy,
@@ -84,12 +102,46 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useBackupRepositoryColumns({
+  head: () => ({
+    checkbox: r => r(pageSelectionModel),
+  }),
   body: (br: FrontXoBackupRepository) => {
     const parsedBrUrl = useXoBackupRepositoryParsedUrl(() => br)
+
     const typeLabel = useXoBackupRepositoryTypeLabel(() => parsedBrUrl.value?.type)
+
     const proxy = useGetProxyById(() => br.proxy)
 
+    const {
+      run: benchmarkBackupRepository,
+      canRun: canBenchmarkBackupRepository,
+      isRunning: isBenchmarkingBackupRepository,
+      errorMessage: benchmarkBackupRepositoryErrorMessage,
+    } = useXoBackupRepositoryBenchmarkJob(() => [br])
+
+    const {
+      run: changeBackupRepositoriesState,
+      canRun: canChangeBackupRepositoriesState,
+      isRunning: isChangingBackupRepositoriesState,
+      errorMessage: changeBackupRepositoriesStateErrorMessage,
+    } = useXoBackupRepositoryChangeStateJob(
+      () => [br],
+      () => !br.enabled
+    )
+
+    const {
+      forgetBackupRepositories,
+      canForgetBackupRepositories,
+      isForgettingBackupRepositories,
+      forgetBackupRepositoriesErrorMessage,
+    } = useBackupRepositoryForget(() => [br])
+
     return {
+      checkbox: r =>
+        r({
+          selected: isSelected(br.id),
+          onToggle: () => toggleSelection(br.id),
+        }),
       backupRepository: r =>
         r({
           label: br.name,
@@ -108,9 +160,35 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
           onClick: () => (selectedBrId.value = br.id),
           actions: [
             {
+              label: br.enabled ? t('action:disable') : t('action:connect'),
+              icon: br.enabled ? 'status:disabled' : 'status:success-circle',
+              onClick: () => changeBackupRepositoriesState(),
+              disabled: !canChangeBackupRepositoriesState.value,
+              busy: isChangingBackupRepositoriesState.value,
+              hint: changeBackupRepositoriesStateErrorMessage.value,
+            },
+            {
               label: t('action:edit'),
               icon: 'action:edit',
               onClick: () => openEditBackupRepositoryDrawer(br),
+            },
+            {
+              label: t('action:test-speed'),
+              icon: 'action:scan',
+              onClick: () => benchmarkBackupRepository(),
+              disabled: !canBenchmarkBackupRepository.value,
+              busy: isBenchmarkingBackupRepository.value,
+              hint: benchmarkBackupRepositoryErrorMessage.value,
+            },
+            {
+              label: t('action:forget'),
+              icon: 'action:forget',
+              onClick: () => forgetBackupRepositories(),
+              disabled: !canForgetBackupRepositories.value,
+              busy: isForgettingBackupRepositories.value,
+              hint: forgetBackupRepositoriesErrorMessage.value,
+              accent: 'danger',
+              separator: true,
             },
           ],
         }),
@@ -118,3 +196,11 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
   },
 })
 </script>
+
+<style scoped lang="postcss">
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+</style>
