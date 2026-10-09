@@ -1,5 +1,7 @@
 import { once } from 'node:events'
-import { isIP, isIPv6, Socket } from 'node:net'
+import { request as httpRequest } from 'node:http'
+import { request as httpsRequest } from 'node:https'
+import { isIPv6, Socket } from 'node:net'
 import { connect } from 'node:tls'
 import { spawn } from 'node:child_process'
 import AbstractNbdClient from './AbstractNbdClient.mjs'
@@ -14,6 +16,7 @@ import { NBD_DEFAULT_PORT, NBD_OPT_STARTTLS } from './constants.mjs'
 export default class NbdTcpClient extends AbstractNbdClient {
   #httpProxy
   #proxyRejectUnauthorized
+  #proxyTimeout
   #serverAddress
   #serverCert
   #serverPort
@@ -26,18 +29,37 @@ export default class NbdTcpClient extends AbstractNbdClient {
    * @param {string} [settings.cert] - PEM certificate, enables TLS when set
    * @param {string} [settings.httpProxy] - URL of an HTTP(S) proxy, the connection is tunneled through it with `CONNECT`
    * @param {boolean} [settings.proxyRejectUnauthorized=true] - whether to check the certificate of an HTTPS proxy
+   * @param {number} [settings.proxyTimeout=6e4] - delay in ms after which an unanswered `CONNECT` is aborted
    * @param {object} [options] - see {@link AbstractNbdClient}
    */
   constructor(
-    { address, port = NBD_DEFAULT_PORT, exportname, cert, httpProxy, proxyRejectUnauthorized = true },
+    {
+      address,
+      port = NBD_DEFAULT_PORT,
+      exportname,
+      cert,
+      httpProxy,
+      proxyRejectUnauthorized = true,
+      proxyTimeout = 6e4,
+    },
     options
   ) {
     super({ exportname }, options)
+    // other proxy protocols (e.g. SOCKS) are not supported for now
+    if (httpProxy !== undefined) {
+      const { protocol } = new URL(httpProxy)
+      if (protocol !== 'http:' && protocol !== 'https:') {
+        const error = new Error(`unsupported proxy protocol ${protocol}, only http: and https: are supported`)
+        error.code = 'NBD_PROXY_UNSUPPORTED_PROTOCOL'
+        throw error
+      }
+    }
     this.#serverAddress = address
     this.#serverPort = port
     this.#serverCert = cert
     this.#httpProxy = httpProxy
     this.#proxyRejectUnauthorized = proxyRejectUnauthorized
+    this.#proxyTimeout = proxyTimeout
   }
 
   /**
@@ -50,81 +72,48 @@ export default class NbdTcpClient extends AbstractNbdClient {
   async #connectThroughHttpProxy() {
     const proxy = new URL(this.#httpProxy)
     const isHttps = proxy.protocol === 'https:'
-    // URL keeps the brackets around IPv6 addresses
-    const proxyHost = proxy.hostname.replace(/^\[(.*)\]$/, '$1')
-    const proxyPort = Number(proxy.port) || (isHttps ? 443 : 80)
 
-    let socket
-    if (isHttps) {
-      socket = connect({
-        host: proxyHost,
-        port: proxyPort,
-        rejectUnauthorized: this.#proxyRejectUnauthorized,
-        // SNI does not support IP addresses
-        servername: isIP(proxyHost) === 0 ? proxyHost : undefined,
-      })
-      await once(socket, 'secureConnect')
-    } else {
-      socket = new Socket()
-      socket.connect(proxyPort, proxyHost)
-      await once(socket, 'connect')
+    const address = this.#serverAddress
+    const target = `${isIPv6(address) ? `[${address}]` : address}:${this.#serverPort}`
+    const headers = { host: target }
+    if (proxy.username !== '' || proxy.password !== '') {
+      const credentials = `${decodeURIComponent(proxy.username)}:${decodeURIComponent(proxy.password)}`
+      headers['proxy-authorization'] = `Basic ${Buffer.from(credentials).toString('base64')}`
     }
 
-    try {
-      const address = this.#serverAddress
-      const target = `${isIPv6(address) ? `[${address}]` : address}:${this.#serverPort}`
-      let request = `CONNECT ${target} HTTP/1.1\r\nHost: ${target}\r\n`
-      if (proxy.username !== '' || proxy.password !== '') {
-        const credentials = `${decodeURIComponent(proxy.username)}:${decodeURIComponent(proxy.password)}`
-        request += `Proxy-Authorization: Basic ${Buffer.from(credentials).toString('base64')}\r\n`
-      }
-      socket.write(request + '\r\n')
+    const req = (isHttps ? httpsRequest : httpRequest)({
+      agent: false,
+      headers,
+      // URL keeps the brackets around IPv6 addresses
+      hostname: proxy.hostname.replace(/^\[(.*)\]$/, '$1'),
+      method: 'CONNECT',
+      path: target,
+      port: proxy.port,
+      rejectUnauthorized: this.#proxyRejectUnauthorized,
+      timeout: this.#proxyTimeout,
+    })
+    // `timeout` only emits an event, the request must be aborted explicitly
+    req.on('timeout', () => {
+      const error = new Error(`HTTP proxy did not answer the CONNECT to ${target} in time`)
+      error.code = 'NBD_PROXY_CONNECT_TIMEOUT'
+      req.destroy(error)
+    })
+    req.end()
 
-      // read the proxy response headers, the NBD server may already have sent
-      // some data after them
-      const { head, rest } = await new Promise((resolve, reject) => {
-        let buffer = Buffer.alloc(0)
-        const cleanUp = () => {
-          socket.removeListener('data', onData)
-          socket.removeListener('end', onEnd)
-          socket.removeListener('error', reject)
-        }
-        const onData = chunk => {
-          buffer = Buffer.concat([buffer, chunk])
-          const index = buffer.indexOf('\r\n\r\n')
-          if (index !== -1) {
-            cleanUp()
-            socket.pause()
-            resolve({ head: buffer.subarray(0, index).toString(), rest: buffer.subarray(index + 4) })
-          } else if (buffer.length > 16 * 1024) {
-            cleanUp()
-            reject(new Error('HTTP proxy response headers too large'))
-          }
-        }
-        const onEnd = () => {
-          cleanUp()
-          reject(new Error('HTTP proxy closed the connection before answering'))
-        }
-        socket.on('data', onData)
-        socket.once('end', onEnd)
-        socket.once('error', reject)
-      })
-
-      const statusLine = head.split('\r\n', 1)[0]
-      const statusCode = Number(statusLine.split(' ')[1])
-      if (statusCode !== 200) {
-        const error = new Error(`HTTP proxy refused to connect to ${target}: ${statusLine}`)
-        error.code = 'NBD_PROXY_CONNECT_FAILED'
-        throw error
-      }
-      if (rest.length !== 0) {
-        socket.unshift(rest)
-      }
-      return socket
-    } catch (error) {
+    // the NBD server may already have sent some data, it is in `head`
+    const [res, socket, head] = await once(req, 'connect')
+    // the tunnel is established, NBD has its own timeouts
+    socket.setTimeout(0)
+    if (res.statusCode !== 200) {
       socket.destroy()
+      const error = new Error(`HTTP proxy refused to connect to ${target}: ${res.statusCode} ${res.statusMessage}`)
+      error.code = 'NBD_PROXY_CONNECT_FAILED'
       throw error
     }
+    if (head.length !== 0) {
+      socket.unshift(head)
+    }
+    return socket
   }
 
   // mandatory , at least to start the handshake: the connection always starts

@@ -80,4 +80,28 @@ describe('NbdTcpClient through an HTTP proxy', () => {
     await assert.rejects(client.connect(), { code: 'NBD_PROXY_CONNECT_FAILED' })
     await client.disconnect().catch(() => {})
   })
+
+  it('aborts the CONNECT when the proxy does not answer', async () => {
+    // accepts the TCP connection but never answers
+    const silentProxy = createTcpServer(() => {})
+    silentProxy.listen(0, '127.0.0.1')
+    await once(silentProxy, 'listening')
+    try {
+      const client = new NbdTcpClient({
+        address: '127.0.0.1',
+        port: nbdPort,
+        httpProxy: `http://127.0.0.1:${silentProxy.address().port}`,
+        proxyTimeout: 50,
+      })
+      await assert.rejects(client.connect(), { code: 'NBD_PROXY_CONNECT_TIMEOUT' })
+    } finally {
+      silentProxy.close()
+    }
+  })
+
+  it('rejects unsupported proxy protocols', () => {
+    assert.throws(() => new NbdTcpClient({ address: '127.0.0.1', httpProxy: 'socks5://127.0.0.1:1080' }), {
+      code: 'NBD_PROXY_UNSUPPORTED_PROTOCOL',
+    })
+  })
 })
