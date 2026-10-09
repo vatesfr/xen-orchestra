@@ -169,6 +169,21 @@ describe('DockerEngineController', () => {
       })
     })
 
+    it('create or update with a VM which does not exist: 404', async () => {
+      const vmId = 'c7b3b4bc-0000-4000-8000-00000000dead'
+      const throwNoSuchVm = async () => noSuchObject(vmId, 'VM')
+      const { controller } = setup({ xoApp: { createDockerEngine: throwNoSuchVm, updateDockerEngine: throwNoSuchVm } })
+      for (const call of [
+        () => controller.createDockerEngine({ $VM: vmId, username: 'xo' }),
+        () => controller.updateDockerEngine(ENGINE_ID, { $VM: vmId }),
+      ]) {
+        await assert.rejects(call(), error => {
+          assert.equal(respond(error).status, 404)
+          return true
+        })
+      }
+    })
+
     it('update', async () => {
       const { calls, controller, tasks } = setup()
       const body = { privateKey: SECRETS.privateKey, passphrase: SECRETS.passphrase, password: null }
