@@ -490,6 +490,22 @@ describe('createRpuRecoveryRecorder()', () => {
     await assert.rejects(recorder.settingChangedByRun('wlb'), /disk full/)
   })
 
+  it('settingChangedByRun refused leaves no trace of a setting the run did not change', async () => {
+    const { store, recorder, stored } = await makeRecorder()
+    await recorder.settingChangedByRun('schedules', ['schedule-1'])
+
+    const { put } = store
+    store.put = async () => {
+      throw new Error('disk full')
+    }
+    await assert.rejects(recorder.settingChangedByRun('schedules', ['schedule-2']), /disk full/)
+    await assert.rejects(recorder.settingChangedByRun('wlb'), /disk full/)
+    store.put = put
+    await recorder.fail(new Error('disk full'))
+
+    assert.deepEqual(stored().changedByRun, { schedules: ['schedule-1'] })
+  })
+
   it('settingChangedByRun keeps the schedules disabled by a previous attempt', async () => {
     const { recorder, stored } = await makeRecorder()
 
@@ -511,15 +527,20 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(stored().hosts.h1.enabledBeforeUpdate, true)
   })
 
-  it('markSucceeded keeps the record as succeeded', async () => {
-    const { store, recorder } = await makeRecorder()
+  it('settingRestored forgets a setting, or one schedule, once back to its value from before the run', async () => {
+    const { recorder, stored } = await makeRecorder()
+    await recorder.settingChangedByRun('ha', { srs: ['sr1'], configuration: {} })
+    await recorder.settingChangedByRun('wlb')
+    await recorder.settingChangedByRun('schedules', ['schedule-1', 'schedule-2'])
 
-    recorder.markRunning()
-    await recorder.markSucceeded()
+    recorder.settingRestored('ha')
+    recorder.settingRestored('schedules', 'schedule-1')
+    await recorder.fail(new Error('later'))
+    assert.deepEqual(stored().changedByRun, { wlb: true, schedules: ['schedule-2'] })
 
-    const record = store.data.get('pool1')
-    assert.equal(record.status, 'succeeded')
-    assert.equal(typeof record.finishedAt, 'string')
+    recorder.settingRestored('schedules', 'schedule-2')
+    await recorder.fail(new Error('later'))
+    assert.deepEqual(stored().changedByRun, { wlb: true })
   })
 
   it('tracking writes are best effort: a write failure does not throw', async () => {
@@ -623,6 +644,16 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(store.data.get('pool1').status, 'failed')
   })
 
+  it('dropIfNothingToRecover keeps the record while a setting the run changed is not restored', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    await recorder.settingChangedByRun('wlb')
+    await recorder.fail(new Error('pinned VMs'))
+    await recorder.dropIfNothingToRecover()
+
+    assert.deepEqual(stored().changedByRun, { wlb: true })
+  })
+
   it('setPatchInventory keeps the inventory of the first attempt', async () => {
     const { recorder, stored } = await makeRecorder()
 
@@ -646,22 +677,42 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(store.data.get('pool1').status, 'failed')
   })
 
-  it('delete removes the record after a successful run', async () => {
+  it('complete removes the record after a successful run which restored everything it changed', async () => {
     const { store, recorder } = await makeRecorder()
 
     recorder.markRunning()
-    await recorder.delete()
+    await recorder.settingChangedByRun('wlb')
+    recorder.settingRestored('wlb')
+    await recorder.complete()
 
     assert.equal(store.data.has('pool1'), false)
   })
 
-  it('delete is strict: rejects when the store fails', async () => {
+  it('complete keeps the record failed, with what is left to restore, when a setting could not be restored', async () => {
+    const { store, recorder } = await makeRecorder()
+
+    recorder.markRunning()
+    await recorder.settingChangedByRun('ha', { srs: ['sr1'], configuration: {} })
+    await recorder.settingChangedByRun('wlb')
+    recorder.settingRestored('wlb')
+    await recorder.complete()
+
+    const record = store.data.get('pool1')
+    assert.equal(record.status, 'failed')
+    assert.deepEqual(record.changedByRun, { ha: { srs: ['sr1'], configuration: {} } })
+    assert.match(record.lastError.message, /not restored: ha/)
+    assert.equal(typeof record.finishedAt, 'string')
+    // the cleanup can be run again
+    await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+  })
+
+  it('complete is strict: rejects when the record cannot be deleted', async () => {
     const { store, recorder } = await makeRecorder()
     store.del = async () => {
       throw new Error('disk error')
     }
 
-    await assert.rejects(recorder.delete(), /disk error/)
+    await assert.rejects(recorder.complete(), /disk error/)
     // the record left behind is terminal: not flipped to interrupted at boot
     const record = store.data.get('pool1')
     assert.equal(record.status, 'succeeded')
@@ -719,6 +770,14 @@ describe('planRpuResume()', () => {
 
     assert.equal(plan.doneHostIds.size, 0)
     assert.equal(plan.hostsStarted, false)
+    assert.deepEqual(plan.changedByRun, {})
+  })
+
+  it('passes on the settings the previous attempts changed, with their value from before the run', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    record.changedByRun = { ha: { srs: ['sr1'], configuration: {} }, schedules: ['schedule-1'] }
+
+    assert.deepEqual(planRpuResume(record).changedByRun, record.changedByRun)
   })
 })
 
@@ -890,7 +949,7 @@ describe('noopRpuRecorder', () => {
     await noopRpuRecorder.settingChangedByRun('ha')
     await noopRpuRecorder.fail(new Error('boom'))
     await noopRpuRecorder.dropIfNothingToRecover()
-    await noopRpuRecorder.markSucceeded()
-    await noopRpuRecorder.delete()
+    noopRpuRecorder.settingRestored('ha')
+    await noopRpuRecorder.complete()
   })
 })
