@@ -5,7 +5,7 @@
     </UiTitle>
     <VtsStateHero v-if="!areServersReady" format="card" type="busy" size="medium" />
     <VtsTabularKeyValueList v-else>
-      <VtsTabularKeyValueRow :label="t('ip-address')" :value="server?.host" />
+      <VtsTabularKeyValueRow :label="t('ip-address')" :value="server?.host" copy />
       <VtsTabularKeyValueRow :label="t('proxy-url')" :value="server?.httpProxy" />
       <VtsTabularKeyValueRow :label="t('username')" :value="server?.username" />
       <VtsTabularKeyValueRow :label="t('read-only')">

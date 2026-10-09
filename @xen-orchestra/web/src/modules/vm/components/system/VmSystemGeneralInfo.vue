@@ -4,8 +4,8 @@
       {{ t('general-information') }}
     </UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('name')" :value="vm.name_label" />
-      <VtsTabularKeyValueRow :label="t('id')" :value="vm.id" />
+      <VtsTabularKeyValueRow :label="t('name')" :value="vm.name_label" copy />
+      <VtsTabularKeyValueRow :label="t('id')" :value="vm.id" copy />
       <VtsTabularKeyValueRow :label="t('description')" :value="vm.name_description" />
       <VtsTabularKeyValueRow :label="t('tags')">
         <template v-if="vm.tags.length > 0" #value>

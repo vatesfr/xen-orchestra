@@ -67,9 +67,17 @@ Prefer this shape: one assertion covering every row a user sees, and it fails lo
 | ------------------------ | ---------------------------------------------------------- |
 | `findLabelledValues`     | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card |
 | `findCardLabelledValues` | every `VtsCardRowKeyValue` of a side-panel card            |
+| `findCopiedValues`       | what each copyable key/value row copies, keyed by label    |
+| `findCardCopiedValues`   | what each copyable `VtsCardRowKeyValue` copies, in order   |
 
 ```typescript
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
+```
+
+A row offers a copy button through its `copy` prop (copies its `value`) or its `copy-value` prop (copies that string). `findCopiedValues` leaves rows without one out, so a `toEqual` pins both which rows are copyable and what they copy — including a row that must offer no copy because its value is empty:
+
+```typescript
+expect(findCopiedValues(wrapper)).toEqual({ [t('ip-address')]: '10.0.0.1', [t('uuid')]: 'vm-42' })
 ```
 
 Both collapse rows that share a label into one entry — a list repeating the same label (an address list labelling only its first row) is queried directly instead:
