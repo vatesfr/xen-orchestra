@@ -1,4 +1,4 @@
-import { Get, Query, Route, Security, Tags, Response, SuccessResponse, Example, Path, Controller } from 'tsoa'
+import { Get, Query, Route, Security, Tags, Response, SuccessResponse, Example } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -8,7 +8,6 @@ import {
   unauthorizedResp,
   badRequestResp,
   forbiddenOperationResp,
-  asynchronousActionResp,
 } from '../open-api/common/response.common.mjs'
 import type { ConfigContent, ConfigSource } from './server-config.type.mjs'
 import { mergedConfigExample, sourcesExample, sourceFileExample } from './server-config.oa-example.mjs'
