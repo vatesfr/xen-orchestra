@@ -12,12 +12,12 @@
       </template>
     </UiTitle>
 
-    <UiAlert v-if="info !== undefined && info.status !== 'connected'" accent="danger">
-      {{ t(`docker-status:${info.status}`) }}
-      <template #description>
+    <UiAlert v-if="connectionAlert !== undefined" accent="danger">
+      {{ connectionAlert.title }}
+      <template v-if="connectionAlert.error !== undefined" #description>
         <div class="error-description">
-          <span>{{ info.error.message }}</span>
-          <code class="error-code">{{ info.error.code }}</code>
+          <span>{{ connectionAlert.error.message }}</span>
+          <code class="error-code">{{ connectionAlert.error.code }}</code>
         </div>
       </template>
     </UiAlert>
@@ -25,7 +25,9 @@
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('status')">
         <template #value>
-          <VtsStatus :status="info?.status === 'connected' ? 'connected' : 'disconnected'" />
+          <VtsStatus
+            :status="connectionAlert === undefined && info?.status === 'connected' ? 'connected' : 'disconnected'"
+          />
         </template>
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('docker-monitoring-mode')" :value="t('docker-monitoring-ssh')" />
@@ -58,9 +60,9 @@
       </VtsTabularKeyValueRow>
     </VtsTabularKeyValueList>
 
-    <UiAlert v-if="testResult !== undefined" :accent="testResult.accent" close @close="testResult = undefined">
-      {{ testResult.title }}
-      <template v-if="testResult.description" #description>{{ testResult.description }}</template>
+    <UiAlert v-if="actionResult !== undefined" :accent="actionResult.accent" close @close="actionResult = undefined">
+      {{ actionResult.title }}
+      <template v-if="actionResult.description" #description>{{ actionResult.description }}</template>
     </UiAlert>
 
     <div class="buttons">
@@ -106,9 +108,10 @@ import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { engine, info } = defineProps<{
+const { engine, info, hasInfoError } = defineProps<{
   engine: FrontXoDockerEngine
   info: FrontXoDockerEngineInfo | undefined
+  hasInfoError?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -123,6 +126,23 @@ const sshAddress = computed(
   () => `${engine.username}@${engine.host ?? engine.resolvedHost ?? t('docker-vm-main-address')}:${engine.port}`
 )
 
+const connectionAlert = computed<{ title: string; error?: { code: string; message: string } } | undefined>(() => {
+  if (hasInfoError) {
+    return { title: t('error-no-data') }
+  }
+
+  if (info !== undefined && info.status !== 'connected') {
+    return { title: t(`docker-status:${info.status}`), error: info.error }
+  }
+
+  // the pooled connection failed after the last /info, e.g. while listing the containers
+  if (engine.connectionStatus === 'error') {
+    return { title: t('docker-connection-failed'), error: engine.error }
+  }
+
+  return undefined
+})
+
 const engineVersion = computed(() => {
   if (info?.status !== 'connected') {
     return '-'
@@ -135,15 +155,16 @@ const { run: runTest, isRunning: isTesting } = useXoDockerEngineTestJob(() => en
 
 const { getDockerErrorMessage } = useDockerErrorMessage()
 
-const testResult = ref<{ accent: 'success' | 'danger'; title: string; description?: string }>()
+// result of the connection test, or failure of the forget action
+const actionResult = ref<{ accent: 'success' | 'danger'; title: string; description?: string }>()
 
 async function testConnection() {
-  testResult.value = undefined
+  actionResult.value = undefined
 
   try {
     const result = await runTest()
 
-    testResult.value = result.ok
+    actionResult.value = result.ok
       ? {
           accent: 'success',
           title: t('docker-connection-test-succeeded'),
@@ -156,7 +177,7 @@ async function testConnection() {
         }
   } catch (error) {
     // e.g. 429 SSH_COOLDOWN right after a failed authentication
-    testResult.value = {
+    actionResult.value = {
       accent: 'danger',
       title: t('docker-connection-failed'),
       description: getDockerErrorMessage(error),
@@ -175,11 +196,17 @@ function forget() {
   open({
     events: {
       onConfirm: async () => {
+        actionResult.value = undefined
+
         try {
           await deleteEngine()
           emit('deleted')
         } catch (error) {
-          console.error('Error when forgetting the Docker engine:', error)
+          actionResult.value = {
+            accent: 'danger',
+            title: t('docker-forget-engine-failed'),
+            description: getDockerErrorMessage(error),
+          }
         }
       },
     },

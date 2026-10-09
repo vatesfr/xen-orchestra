@@ -44,6 +44,8 @@ export function createDockerEngine(overrides: Partial<FrontXoDockerEngine> = {})
     username: 'docker',
     socketPath: '/var/run/docker.sock',
     hostKeyFingerprint: 'SHA256:G+4RawxzV+6SGkxauQY8Vqmu2KZ4ENCQu/YuxBIARDA',
+    connectionStatus: 'connected',
+    error: undefined,
     ...overrides,
   }
 }
