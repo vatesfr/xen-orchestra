@@ -398,6 +398,32 @@ describe('DockerConnectionPool', () => {
     await pool.destroy()
   })
 
+  it('hold(): busy until released (idempotent), release(error) with an engine failure evicts and caches it', async () => {
+    const clock = createClock()
+    const pool = new DockerConnectionPool({ idleTimeout: 1e3, now: clock })
+    const held = await pool.hold(engine('a'), () => new FakeConnection())
+    const connection = FakeConnection.instances.at(-1)!
+    assert.equal((await held.connection.request({ path: '/info' })).body, '/info')
+    clock.time += 2e3
+    pool.sweep()
+    assert.equal(connection.closed, 0)
+    held.release()
+    held.release()
+    clock.time += 2e3
+    pool.sweep()
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(connection.closed, 1)
+
+    const again = await pool.hold(engine('a'), () => new FakeConnection())
+    again.release(new DockerError(SSH_UNREACHABLE, 'lost'))
+    assert.equal(pool.getState('a').status, 'error')
+    await assert.rejects(
+      pool.hold(engine('a'), () => new FakeConnection()),
+      { code: SSH_UNREACHABLE }
+    )
+    await pool.destroy()
+  })
+
   it('destroy() closes everything, including pending connections, and refuses new uses', async () => {
     const pool = new DockerConnectionPool()
     await pool.use(engine('a'), () => new FakeConnection(), idle)
