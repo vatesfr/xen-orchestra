@@ -8,7 +8,7 @@ This project is composed of three main parts:
 
 ## Pages
 
-As we use `unplugin-vue-router`, each `.vue` file in this directory automatically becomes a route. The resulting URL if the file is named `index.vue` becomes the root route (`/`), otherwise it becomes a sub-route (e.g., `/host/:uuid`).
+As we use Vue Router, each `.vue` file in this directory automatically becomes a route. The resulting URL if the file is named `index.vue` becomes the root route (`/`), otherwise it becomes a sub-route (e.g., `/host/:uuid`).
 
 ## Shared
 
