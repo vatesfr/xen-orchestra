@@ -1,8 +1,5 @@
 import {
-<<<<<<< HEAD
   Body,
-=======
->>>>>>> aa8f6ef9b (remove unused imports, update changelog, adding dependecy)
   Delete,
   Example,
   Extension,
@@ -21,15 +18,9 @@ import {
 } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-<<<<<<< HEAD
 import { json, Request as ExRequest } from 'express'
-import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr, XoHost } from '@vates/types'
-=======
-import { Request as ExRequest } from 'express'
 import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/types'
->>>>>>> aa8f6ef9b (remove unused imports, update changelog, adding dependecy)
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
-
 import { acl } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { BASE_URL, escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
@@ -47,17 +38,7 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import {
-  partialSrs,
-  sr,
-  srId,
-  srIds,
-  nfsExport,
-  srUuids,
-  hbaExport,
-  iscsiIqnExport,
-  iscsiLunExport,
-} from '../open-api/oa-examples/sr.oa-example.mjs'
+import { partialSrs, sr, srId, srIds } from '../open-api/oa-examples/sr.oa-example.mjs'
 import { vdiId } from '../open-api/oa-examples/vdi.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'

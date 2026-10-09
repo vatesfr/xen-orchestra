@@ -3,39 +3,6 @@ import type { RestApi } from '../rest-api/rest-api.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
 import { LicenseService } from '../licenses/license.service.mjs'
 
-type NfsExport = {
-  path: string
-  acl: string
-}
-
-type HbaExport = {
-  hba: string
-  id: string
-  lun: number
-  path: string
-  scsiId: string
-  serial: string
-  size: number
-  vendor: string
-}
-
-type IscsiLunsExport = {
-  id: string
-  vendor: string
-  serial: string
-  size: string
-  scsiId: string
-}
-
-type IscsiIqnsExport = {
-  iqn: string
-  ip: string
-}
-
-type Srs = {
-  uuid: string
-}
-
 // Derived from `xapi.SR_create` params, renamed to stay consistent with the XO SR
 // representation returned by `GET /srs/:id`: `hostId` (XO id, not XAPI ref),
 // `SR_type` and `size` instead of XAPI's `type`/`physical_size`.
