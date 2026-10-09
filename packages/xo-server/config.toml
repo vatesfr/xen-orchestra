@@ -200,6 +200,10 @@ maxListedEngines = 10
 # `statsIdleTimeout` without any reader.
 statsIdleTimeout = '90s'
 maxStatsContainers = 100
+# A live stats sampler holds the pooled connection of its engine: at most
+# `maxStatsEngines` engines (and never more than half of `maxConnections`) are
+# sampled at once, the containers of the others are listed without stats.
+maxStatsEngines = 10
 
 # Logs: default and max number of lines, responses cut (`truncated: true`)
 # above `maxLogsSize`.
