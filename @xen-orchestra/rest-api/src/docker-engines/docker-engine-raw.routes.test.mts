@@ -7,16 +7,23 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import type { OpenAPIV3 } from 'openapi-types'
 import { featureUnauthorized, noSuchObject } from 'xo-common/api-errors.js'
 
+import type { XoApp } from '@vates/types'
+
+// the IoC container cannot be initialized on its own because of circular
+// imports between the services: load the generated routes first, like
+// `index.mts` does
+import '../open-api/routes/routes.js'
+
 import {
   DOCKER_RAW_ENDPOINT,
-  DOCKER_RAW_SPEC_PATH,
   dockerRawHandler,
   getRawPathSegments,
   mountDockerRawRoutes,
 } from './docker-engine-raw.routes.mjs'
 import genericErrorHandler from '../middlewares/generic-error-handler.middleware.mjs'
+import { setupContainer } from '../ioc/ioc.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
-import type { RouteDefinition } from '../router/types.mjs'
+import { createExternalRouter } from '../router/external-router.mjs'
 
 // xo-server compresses every response (`app.use(compression())`), no types
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -44,11 +51,16 @@ const state = {
     body: Readable.from(['[]']),
   }),
   error: undefined as Error | undefined,
+  signal: undefined as AbortSignal | undefined,
 }
 
 const restApi = {
   getCurrentUser: () => state.user,
   xoApp: {
+    // for the IoC container's RestApi, used by the external router
+    get apiContext() {
+      return { user: state.user }
+    },
     config: {
       getOptional: (path: string) => (path === 'docker.allowRawApi' ? state.allowRawApi : undefined),
     },
@@ -70,10 +82,12 @@ const restApi = {
         path,
         headers,
         body,
-      }: { method: string; path: string; headers: Record<string, string>; body?: Readable }
+        signal,
+      }: { method: string; path: string; headers: Record<string, string>; body?: Readable; signal: AbortSignal }
     ) => {
       const call: RawCall = { id, method, path, headers }
       state.calls.push(call)
+      state.signal = signal
       if (body !== undefined) {
         const chunks: Buffer[] = []
         for await (const chunk of body) {
@@ -95,6 +109,8 @@ let port: number
 before(async () => {
   const app = express()
   app.use(compression())
+  // like xo-server: a form-encoded body is consumed before the route
+  app.use(express.urlencoded({ extended: false }))
   app.all(`/rest/v0${DOCKER_RAW_ENDPOINT}`, (req: Request, res: Response, next: NextFunction) => {
     // what the external router does with the callback's errors
     dockerRawHandler({ req, res, restApi }).catch(next)
@@ -113,6 +129,7 @@ beforeEach(() => {
   state.user = { id: 'admin-id', email: 'admin@example.org', permission: 'admin' }
   state.calls = []
   state.error = undefined
+  state.signal = undefined
   state.upstream = () => ({
     statusCode: 200,
     headers: { 'content-type': 'application/json', 'api-version': '1.43', server: 'Docker/29', 'x-secret': 'no' },
@@ -358,6 +375,46 @@ describe('raw Docker API passthrough', () => {
     }
   })
 
+  it('415 when the body was already consumed (form-encoded)', async () => {
+    const res = await send(`${ENGINE_ID}/_raw/containers/create`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: 'Image=alpine',
+    })
+    assert.equal(res.status, 415)
+    assert.deepEqual(state.calls, [])
+  })
+
+  it('the upstream signal is aborted when the client disconnects mid-stream', async () => {
+    let push: ((chunk: string) => void) | undefined
+    state.upstream = () => {
+      const body = new Readable({ read() {} })
+      push = chunk => body.push(chunk)
+      return { statusCode: 200, headers: { 'content-type': 'application/json' }, body }
+    }
+    await new Promise<void>((resolve, reject) => {
+      const req = httpRequest({ host: '127.0.0.1', port, path: `/rest/v0/docker-engines/${ENGINE_ID}/_raw/events` })
+      req.on('response', res => {
+        res.once('data', () => {
+          // the client goes away while the stream is open
+          req.destroy()
+          resolve()
+        })
+      })
+      req.on('error', () => {})
+      req.end()
+      setTimeout(() => (push === undefined ? reject(new Error('no upstream call')) : push('{"status":"start"}\n')), 50)
+    })
+    const { signal } = state
+    assert.ok(signal !== undefined)
+    if (!signal.aborted) {
+      await new Promise((resolve, reject) => {
+        signal.addEventListener('abort', resolve)
+        setTimeout(() => reject(new Error('the upstream signal is not aborted')), 1e3)
+      })
+    }
+  })
+
   it('SSH/Docker errors are mapped', async () => {
     state.error = Object.assign(new Error('SSH authentication failed'), {
       name: 'DockerError',
@@ -378,27 +435,54 @@ describe('getRawPathSegments()', () => {
   })
 })
 
-describe('mountDockerRawRoutes()', () => {
-  it('mounts 5 methods and replaces the wildcard path with the hand-written entry (x-mcp-exposure deny)', () => {
-    const spec = { paths: {} } as OpenAPIV3.Document
-    const mounted: RouteDefinition[] = []
-    // what the external router does: adds the endpoint as is to the spec
-    const mountExternalRoute = (route: RouteDefinition) => {
-      mounted.push(route)
-      spec.paths[route.endpoint] = { ...spec.paths[route.endpoint], [route.method]: { responses: {} } }
-      return () => {}
-    }
+describe('through the external router, with the static OpenAPI spec', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const staticSpec = createRequire(import.meta.url)('../../open-api/spec/swagger.json') as OpenAPIV3.Document
+  const spec = structuredClone(staticSpec)
+  let routerServer: Server
+  let routerPort: number
+
+  before(async () => {
+    setupContainer(restApi.xoApp as unknown as XoApp)
+    const { mountExternalRoute, externalRouter } = createExternalRouter(spec)
     mountDockerRawRoutes(mountExternalRoute, spec)
-    assert.deepEqual(
-      mounted.map(_ => [_.method, _.endpoint]),
-      ['get', 'post', 'put', 'patch', 'delete'].map(method => [method, '/docker-engines/:id/_raw/*'])
-    )
-    assert.deepEqual(Object.keys(spec.paths), [DOCKER_RAW_SPEC_PATH])
-    const pathItem = spec.paths[DOCKER_RAW_SPEC_PATH] as Record<string, Record<string, unknown>>
+    const app = express()
+    app.use('/rest/v0', externalRouter)
+    app.use(genericErrorHandler)
+    routerServer = createServer(app)
+    await new Promise<void>(resolve => routerServer.listen(0, '127.0.0.1', resolve))
+    routerPort = (routerServer.address() as { port: number }).port
+  })
+
+  after(() => new Promise<void>(resolve => routerServer.close(() => resolve())))
+
+  const get = async (path: string) =>
+    (await fetch(`http://127.0.0.1:${routerPort}/rest/v0/docker-engines/${path}`)).status
+
+  it('403 for a non-admin user, even with allowRawApi on', async () => {
+    state.allowRawApi = true
+    for (const permission of ['none', 'viewer', 'operator']) {
+      state.user = { id: 'u', email: 'u@example.org', permission }
+      assert.equal(await get(`${ENGINE_ID}/_raw/version`), 403, permission)
+    }
+    assert.deepEqual(state.calls, [])
+    state.user = { id: 'admin-id', email: 'admin@example.org', permission: 'admin' }
+    assert.equal(await get(`${ENGINE_ID}/_raw/version`), 200)
+    assert.equal(state.calls.length, 1)
+  })
+
+  it('the hand-written entry of tsoa.json (x-mcp-exposure deny) replaces the wildcard path', () => {
+    assert.equal(spec.paths[DOCKER_RAW_ENDPOINT], undefined)
+    const pathItem = spec.paths['/docker-engines/{id}/_raw/{path}'] as Record<string, Record<string, unknown>>
     assert.deepEqual(Object.keys(pathItem), ['get', 'post', 'put', 'patch', 'delete'])
     for (const operation of Object.values(pathItem)) {
       assert.equal(operation['x-mcp-exposure'], 'deny')
       assert.match(String(operation.operationId), /^DockerEngineRaw/)
+      assert.match(String(operation.description), /admin \(ACL v2 will add an acl check in addition/)
     }
+    assert.deepEqual(
+      spec.paths['/docker-engines/{id}/_raw/{path}'],
+      staticSpec.paths['/docker-engines/{id}/_raw/{path}']
+    )
   })
 })

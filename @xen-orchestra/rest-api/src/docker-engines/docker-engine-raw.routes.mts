@@ -28,8 +28,6 @@ const log = createLogger('xo:rest-api:docker-raw')
 
 /** express path of the passthrough (relative to /rest/v0) */
 export const DOCKER_RAW_ENDPOINT = '/docker-engines/:id/_raw/*'
-/** path of the hand-written OpenAPI entry replacing the auto-inserted one */
-export const DOCKER_RAW_SPEC_PATH = '/docker-engines/{id}/_raw/{path}'
 
 const RAW_SEPARATOR = '/_raw/'
 
@@ -205,70 +203,10 @@ const dockerRawRoutes: RouteDefinition[] = (['get', 'post', 'put', 'patch', 'del
   callback: ({ req, res, restApi }) => dockerRawHandler({ req, res, restApi }),
 }))
 
-const RAW_DESCRIPTION = `Raw Docker Engine API passthrough (\`{path}\` is the Docker API path, which may contain \`/\` and a query string, e.g. \`images/json?all=1\`; it is prefixed with the negotiated API version unless it starts with \`v<version>/\`). Docker's answer is returned as is (status and body), with only the \`api-version\`, \`content-length\`, \`content-type\`, \`docker-experimental\` and \`ostype\` headers.
-
-The whole request, response included, is limited to \`docker.rawRequestTimeout\` (default 5 minutes, 504 before the response, otherwise the response is cut). Responses are never compressed (\`Cache-Control: no-transform\`), so that streams (e.g. \`events\`) arrive as they come. A 401 or 407 from the daemon is answered with a 502 (\`data.statusCode\`), never passed through.
-
-Disabled by default (501): \`[docker] allowRawApi = true\` in xo-server's configuration. It grants unrestricted access to the Docker daemon of the guest, which is equivalent to root on that guest: every call is logged.
-
-Only the \`accept\`, \`content-type\` and \`content-length\` request headers are forwarded. The request body is limited to \`docker.maxRawRequestSize\` (413) and the response to \`docker.maxRawResponseSize\` (502 when announced by \`content-length\`, otherwise the response is cut). Attach, exec start and connection upgrades are refused (501), as are \`.\`/\`..\` segments and encoded slashes (400). HEAD is supported through GET.
-
-Required privilege:
-- admin (no ACL, even in v2)`
-
-function rawOperation(method: string): OpenAPIV3.OperationObject {
-  return {
-    operationId: `DockerEngineRaw${method[0].toUpperCase()}${method.slice(1)}`,
-    description: RAW_DESCRIPTION,
-    tags: ['docker-engines'],
-    security: [{ '*': [] }],
-    parameters: [
-      {
-        in: 'path',
-        name: 'id',
-        required: true,
-        schema: { type: 'string' },
-        example: '8d834412-eb40-4328-a815-3fcc0989bd07',
-      },
-      {
-        in: 'path',
-        name: 'path',
-        required: true,
-        description: 'Docker Engine API path (may contain `/`)',
-        schema: { type: 'string' },
-        example: 'images/json',
-      },
-    ],
-    ...(method === 'get' || method === 'delete'
-      ? {}
-      : {
-          requestBody: {
-            required: false,
-            content: { 'application/json': { schema: {} }, 'application/octet-stream': { schema: {} } },
-          },
-        }),
-    responses: {
-      '200': { description: "Docker's answer (any status is passed through, except 401 and 407: 502)" },
-      '400': { description: 'Invalid Docker API path' },
-      '401': { description: 'Authentication required' },
-      '403': { description: 'Not an administrator, or DOCKER feature not authorized' },
-      '404': { description: 'Unknown engine' },
-      '413': { description: 'Request body larger than docker.maxRawRequestSize' },
-      '501': { description: 'Disabled (docker.allowRawApi), or attach/exec start/upgrade' },
-      '502': {
-        description: 'SSH or Docker failure (see data.code), or response larger than docker.maxRawResponseSize',
-      },
-      '503': { description: 'Too many busy SSH connections or streams' },
-      '504': { description: 'No response within docker.rawRequestTimeout' },
-    },
-    // never an MCP tool: unrestricted, root-equivalent access
-    'x-mcp-exposure': 'deny',
-  } as OpenAPIV3.OperationObject
-}
-
 /**
- * Mount the passthrough on the external router, and replace the wildcard path
- * it inserted in the OpenAPI spec with a hand-written entry.
+ * Mount the passthrough on the external router, and remove the wildcard path
+ * it inserted in the OpenAPI spec: the hand-written entry,
+ * `/docker-engines/{id}/_raw/{path}`, is in `tsoa.json`.
  */
 export function mountDockerRawRoutes(
   mountExternalRoute: (route: RouteDefinition) => () => void,
@@ -278,7 +216,4 @@ export function mountDockerRawRoutes(
     mountExternalRoute(route)
   }
   delete swaggerOpenApiSpec.paths[DOCKER_RAW_ENDPOINT]
-  swaggerOpenApiSpec.paths[DOCKER_RAW_SPEC_PATH] = Object.fromEntries(
-    dockerRawRoutes.map(({ method }) => [method, rawOperation(method)])
-  )
 }

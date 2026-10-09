@@ -77,6 +77,361 @@
             "tags": ["docs"],
             "x-mcp-exposure": "deny"
           }
+        },
+        "/docker-engines/{id}/_raw/{path}": {
+          "get": {
+            "operationId": "DockerEngineRawGet",
+            "description": "Raw Docker Engine API passthrough (`{path}` is the Docker API path, which may contain `/` and a query string, e.g. `images/json?all=1`; it is prefixed with the negotiated API version unless it starts with `v<version>/`). Docker's answer is returned as is (status and body), with only the `api-version`, `content-length`, `content-type`, `docker-experimental` and `ostype` headers.\n\nThe whole request, response included, is limited to `docker.rawRequestTimeout` (default 5 minutes, 504 before the response, otherwise the response is cut). Responses are never compressed (`Cache-Control: no-transform`), so that streams (e.g. `events`) arrive as they come. A 401 or 407 from the daemon is answered with a 502 (`data.statusCode`), never passed through.\n\nDisabled by default (501): `[docker] allowRawApi = true` in xo-server's configuration. It grants unrestricted access to the Docker daemon of the guest, which is equivalent to root on that guest: every call is logged.\n\nOnly the `accept`, `content-type` and `content-length` request headers are forwarded. The request body is limited to `docker.maxRawRequestSize` (413) and the response to `docker.maxRawResponseSize` (502 when announced by `content-length`, otherwise the response is cut). Attach, exec start and connection upgrades are refused (501), as are `.`/`..` segments and encoded slashes (400). HEAD is supported through GET.\n\nRequired privilege:\n- admin (ACL v2 will add an acl check in addition to the admin check)",
+            "tags": ["docker-engines"],
+            "security": [
+              {
+                "*": []
+              }
+            ],
+            "parameters": [
+              {
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                },
+                "example": "8d834412-eb40-4328-a815-3fcc0989bd07"
+              },
+              {
+                "in": "path",
+                "name": "path",
+                "required": true,
+                "description": "Docker Engine API path (may contain `/`)",
+                "schema": {
+                  "type": "string"
+                },
+                "example": "images/json"
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "Docker's answer (any status is passed through, except 401 and 407: 502)"
+              },
+              "400": {
+                "description": "Invalid Docker API path"
+              },
+              "401": {
+                "description": "Authentication required"
+              },
+              "403": {
+                "description": "Not an administrator, or DOCKER feature not authorized"
+              },
+              "404": {
+                "description": "Unknown engine"
+              },
+              "413": {
+                "description": "Request body larger than docker.maxRawRequestSize"
+              },
+              "501": {
+                "description": "Disabled (docker.allowRawApi), or attach/exec start/upgrade"
+              },
+              "502": {
+                "description": "SSH or Docker failure (see data.code), or response larger than docker.maxRawResponseSize"
+              },
+              "503": {
+                "description": "Too many busy SSH connections or streams"
+              },
+              "504": {
+                "description": "No response within docker.rawRequestTimeout"
+              }
+            },
+            "x-mcp-exposure": "deny"
+          },
+          "post": {
+            "operationId": "DockerEngineRawPost",
+            "description": "Raw Docker Engine API passthrough (`{path}` is the Docker API path, which may contain `/` and a query string, e.g. `images/json?all=1`; it is prefixed with the negotiated API version unless it starts with `v<version>/`). Docker's answer is returned as is (status and body), with only the `api-version`, `content-length`, `content-type`, `docker-experimental` and `ostype` headers.\n\nThe whole request, response included, is limited to `docker.rawRequestTimeout` (default 5 minutes, 504 before the response, otherwise the response is cut). Responses are never compressed (`Cache-Control: no-transform`), so that streams (e.g. `events`) arrive as they come. A 401 or 407 from the daemon is answered with a 502 (`data.statusCode`), never passed through.\n\nDisabled by default (501): `[docker] allowRawApi = true` in xo-server's configuration. It grants unrestricted access to the Docker daemon of the guest, which is equivalent to root on that guest: every call is logged.\n\nOnly the `accept`, `content-type` and `content-length` request headers are forwarded. The request body is limited to `docker.maxRawRequestSize` (413) and the response to `docker.maxRawResponseSize` (502 when announced by `content-length`, otherwise the response is cut). Attach, exec start and connection upgrades are refused (501), as are `.`/`..` segments and encoded slashes (400). HEAD is supported through GET.\n\nRequired privilege:\n- admin (ACL v2 will add an acl check in addition to the admin check)",
+            "tags": ["docker-engines"],
+            "security": [
+              {
+                "*": []
+              }
+            ],
+            "parameters": [
+              {
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                },
+                "example": "8d834412-eb40-4328-a815-3fcc0989bd07"
+              },
+              {
+                "in": "path",
+                "name": "path",
+                "required": true,
+                "description": "Docker Engine API path (may contain `/`)",
+                "schema": {
+                  "type": "string"
+                },
+                "example": "images/json"
+              }
+            ],
+            "requestBody": {
+              "required": false,
+              "content": {
+                "application/json": {
+                  "schema": {}
+                },
+                "application/octet-stream": {
+                  "schema": {}
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Docker's answer (any status is passed through, except 401 and 407: 502)"
+              },
+              "400": {
+                "description": "Invalid Docker API path"
+              },
+              "401": {
+                "description": "Authentication required"
+              },
+              "403": {
+                "description": "Not an administrator, or DOCKER feature not authorized"
+              },
+              "404": {
+                "description": "Unknown engine"
+              },
+              "413": {
+                "description": "Request body larger than docker.maxRawRequestSize"
+              },
+              "501": {
+                "description": "Disabled (docker.allowRawApi), or attach/exec start/upgrade"
+              },
+              "502": {
+                "description": "SSH or Docker failure (see data.code), or response larger than docker.maxRawResponseSize"
+              },
+              "503": {
+                "description": "Too many busy SSH connections or streams"
+              },
+              "504": {
+                "description": "No response within docker.rawRequestTimeout"
+              }
+            },
+            "x-mcp-exposure": "deny"
+          },
+          "put": {
+            "operationId": "DockerEngineRawPut",
+            "description": "Raw Docker Engine API passthrough (`{path}` is the Docker API path, which may contain `/` and a query string, e.g. `images/json?all=1`; it is prefixed with the negotiated API version unless it starts with `v<version>/`). Docker's answer is returned as is (status and body), with only the `api-version`, `content-length`, `content-type`, `docker-experimental` and `ostype` headers.\n\nThe whole request, response included, is limited to `docker.rawRequestTimeout` (default 5 minutes, 504 before the response, otherwise the response is cut). Responses are never compressed (`Cache-Control: no-transform`), so that streams (e.g. `events`) arrive as they come. A 401 or 407 from the daemon is answered with a 502 (`data.statusCode`), never passed through.\n\nDisabled by default (501): `[docker] allowRawApi = true` in xo-server's configuration. It grants unrestricted access to the Docker daemon of the guest, which is equivalent to root on that guest: every call is logged.\n\nOnly the `accept`, `content-type` and `content-length` request headers are forwarded. The request body is limited to `docker.maxRawRequestSize` (413) and the response to `docker.maxRawResponseSize` (502 when announced by `content-length`, otherwise the response is cut). Attach, exec start and connection upgrades are refused (501), as are `.`/`..` segments and encoded slashes (400). HEAD is supported through GET.\n\nRequired privilege:\n- admin (ACL v2 will add an acl check in addition to the admin check)",
+            "tags": ["docker-engines"],
+            "security": [
+              {
+                "*": []
+              }
+            ],
+            "parameters": [
+              {
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                },
+                "example": "8d834412-eb40-4328-a815-3fcc0989bd07"
+              },
+              {
+                "in": "path",
+                "name": "path",
+                "required": true,
+                "description": "Docker Engine API path (may contain `/`)",
+                "schema": {
+                  "type": "string"
+                },
+                "example": "images/json"
+              }
+            ],
+            "requestBody": {
+              "required": false,
+              "content": {
+                "application/json": {
+                  "schema": {}
+                },
+                "application/octet-stream": {
+                  "schema": {}
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Docker's answer (any status is passed through, except 401 and 407: 502)"
+              },
+              "400": {
+                "description": "Invalid Docker API path"
+              },
+              "401": {
+                "description": "Authentication required"
+              },
+              "403": {
+                "description": "Not an administrator, or DOCKER feature not authorized"
+              },
+              "404": {
+                "description": "Unknown engine"
+              },
+              "413": {
+                "description": "Request body larger than docker.maxRawRequestSize"
+              },
+              "501": {
+                "description": "Disabled (docker.allowRawApi), or attach/exec start/upgrade"
+              },
+              "502": {
+                "description": "SSH or Docker failure (see data.code), or response larger than docker.maxRawResponseSize"
+              },
+              "503": {
+                "description": "Too many busy SSH connections or streams"
+              },
+              "504": {
+                "description": "No response within docker.rawRequestTimeout"
+              }
+            },
+            "x-mcp-exposure": "deny"
+          },
+          "patch": {
+            "operationId": "DockerEngineRawPatch",
+            "description": "Raw Docker Engine API passthrough (`{path}` is the Docker API path, which may contain `/` and a query string, e.g. `images/json?all=1`; it is prefixed with the negotiated API version unless it starts with `v<version>/`). Docker's answer is returned as is (status and body), with only the `api-version`, `content-length`, `content-type`, `docker-experimental` and `ostype` headers.\n\nThe whole request, response included, is limited to `docker.rawRequestTimeout` (default 5 minutes, 504 before the response, otherwise the response is cut). Responses are never compressed (`Cache-Control: no-transform`), so that streams (e.g. `events`) arrive as they come. A 401 or 407 from the daemon is answered with a 502 (`data.statusCode`), never passed through.\n\nDisabled by default (501): `[docker] allowRawApi = true` in xo-server's configuration. It grants unrestricted access to the Docker daemon of the guest, which is equivalent to root on that guest: every call is logged.\n\nOnly the `accept`, `content-type` and `content-length` request headers are forwarded. The request body is limited to `docker.maxRawRequestSize` (413) and the response to `docker.maxRawResponseSize` (502 when announced by `content-length`, otherwise the response is cut). Attach, exec start and connection upgrades are refused (501), as are `.`/`..` segments and encoded slashes (400). HEAD is supported through GET.\n\nRequired privilege:\n- admin (ACL v2 will add an acl check in addition to the admin check)",
+            "tags": ["docker-engines"],
+            "security": [
+              {
+                "*": []
+              }
+            ],
+            "parameters": [
+              {
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                },
+                "example": "8d834412-eb40-4328-a815-3fcc0989bd07"
+              },
+              {
+                "in": "path",
+                "name": "path",
+                "required": true,
+                "description": "Docker Engine API path (may contain `/`)",
+                "schema": {
+                  "type": "string"
+                },
+                "example": "images/json"
+              }
+            ],
+            "requestBody": {
+              "required": false,
+              "content": {
+                "application/json": {
+                  "schema": {}
+                },
+                "application/octet-stream": {
+                  "schema": {}
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Docker's answer (any status is passed through, except 401 and 407: 502)"
+              },
+              "400": {
+                "description": "Invalid Docker API path"
+              },
+              "401": {
+                "description": "Authentication required"
+              },
+              "403": {
+                "description": "Not an administrator, or DOCKER feature not authorized"
+              },
+              "404": {
+                "description": "Unknown engine"
+              },
+              "413": {
+                "description": "Request body larger than docker.maxRawRequestSize"
+              },
+              "501": {
+                "description": "Disabled (docker.allowRawApi), or attach/exec start/upgrade"
+              },
+              "502": {
+                "description": "SSH or Docker failure (see data.code), or response larger than docker.maxRawResponseSize"
+              },
+              "503": {
+                "description": "Too many busy SSH connections or streams"
+              },
+              "504": {
+                "description": "No response within docker.rawRequestTimeout"
+              }
+            },
+            "x-mcp-exposure": "deny"
+          },
+          "delete": {
+            "operationId": "DockerEngineRawDelete",
+            "description": "Raw Docker Engine API passthrough (`{path}` is the Docker API path, which may contain `/` and a query string, e.g. `images/json?all=1`; it is prefixed with the negotiated API version unless it starts with `v<version>/`). Docker's answer is returned as is (status and body), with only the `api-version`, `content-length`, `content-type`, `docker-experimental` and `ostype` headers.\n\nThe whole request, response included, is limited to `docker.rawRequestTimeout` (default 5 minutes, 504 before the response, otherwise the response is cut). Responses are never compressed (`Cache-Control: no-transform`), so that streams (e.g. `events`) arrive as they come. A 401 or 407 from the daemon is answered with a 502 (`data.statusCode`), never passed through.\n\nDisabled by default (501): `[docker] allowRawApi = true` in xo-server's configuration. It grants unrestricted access to the Docker daemon of the guest, which is equivalent to root on that guest: every call is logged.\n\nOnly the `accept`, `content-type` and `content-length` request headers are forwarded. The request body is limited to `docker.maxRawRequestSize` (413) and the response to `docker.maxRawResponseSize` (502 when announced by `content-length`, otherwise the response is cut). Attach, exec start and connection upgrades are refused (501), as are `.`/`..` segments and encoded slashes (400). HEAD is supported through GET.\n\nRequired privilege:\n- admin (ACL v2 will add an acl check in addition to the admin check)",
+            "tags": ["docker-engines"],
+            "security": [
+              {
+                "*": []
+              }
+            ],
+            "parameters": [
+              {
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                },
+                "example": "8d834412-eb40-4328-a815-3fcc0989bd07"
+              },
+              {
+                "in": "path",
+                "name": "path",
+                "required": true,
+                "description": "Docker Engine API path (may contain `/`)",
+                "schema": {
+                  "type": "string"
+                },
+                "example": "images/json"
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "Docker's answer (any status is passed through, except 401 and 407: 502)"
+              },
+              "400": {
+                "description": "Invalid Docker API path"
+              },
+              "401": {
+                "description": "Authentication required"
+              },
+              "403": {
+                "description": "Not an administrator, or DOCKER feature not authorized"
+              },
+              "404": {
+                "description": "Unknown engine"
+              },
+              "413": {
+                "description": "Request body larger than docker.maxRawRequestSize"
+              },
+              "501": {
+                "description": "Disabled (docker.allowRawApi), or attach/exec start/upgrade"
+              },
+              "502": {
+                "description": "SSH or Docker failure (see data.code), or response larger than docker.maxRawResponseSize"
+              },
+              "503": {
+                "description": "Too many busy SSH connections or streams"
+              },
+              "504": {
+                "description": "No response within docker.rawRequestTimeout"
+              }
+            },
+            "x-mcp-exposure": "deny"
+          }
         }
       }
     }
