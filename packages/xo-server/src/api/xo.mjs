@@ -1,12 +1,15 @@
 import * as CM from 'complex-matcher'
 import { asyncEach } from '@vates/async-each'
+import { createLogger } from '@xen-orchestra/log'
 import { fromCallback } from 'promise-toolbox'
 import { getStreamAsBuffer } from 'get-stream'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { pipeline } from 'readable-stream'
 import { safeDateFormat } from '../utils.mjs'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
-import { getCurrentVmUuid } from '../_XenStore.mjs'
+import { getCurrentVmUuid as getCurrentVmUuidFromXenStore } from '../_XenStore.mjs'
+
+const log = createLogger('xo:api:xo')
 
 // ===================================================================
 
@@ -107,7 +110,7 @@ export async function snapshotBeforeUpgrade() {
   // Defaults to 1 (keep only the latest) when the config entry is missing.
   const maxSnapshots = Math.max(1, this.config.getOptional('xoa.numberOfUpgradeSnapshots') ?? 1)
 
-  const vmUuid = await getCurrentVmUuid()
+  const vmUuid = await getCurrentVmUuidFromXenStore()
   let vm, xapi
   try {
     vm = this.getXapiObject(vmUuid, 'VM')
@@ -132,3 +135,20 @@ export async function snapshotBeforeUpgrade() {
 snapshotBeforeUpgrade.permission = 'admin'
 
 snapshotBeforeUpgrade.params = {}
+
+// lets a client tell which SRs can hold a VDI plugged onto this VM, e.g. the cache of a live restore
+export async function getCurrentVmUuid() {
+  try {
+    return await getCurrentVmUuidFromXenStore()
+  } catch (error) {
+    // not running in a VM, or not allowed to read the XenStore
+    log.warn('cannot find the VM running XO', { error })
+    return null
+  }
+}
+
+getCurrentVmUuid.description = 'UUID of the VM running XO, null when it cannot be found'
+
+getCurrentVmUuid.permission = 'admin'
+
+getCurrentVmUuid.params = {}

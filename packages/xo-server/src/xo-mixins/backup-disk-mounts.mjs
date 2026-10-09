@@ -46,19 +46,43 @@ const wrapProxyError = (error, proxyId) =>
     : error
 
 /**
- * VM of a proxy, which a cached live mount served by that proxy plugs its cache VDI onto.
+ * Connection options of the pool holding an object, as a proxy expects them.
+ *
+ * @param {XoApp} app
+ * @param {string} objectId
+ */
+async function getXapiOptions(app, objectId) {
+  // httpProxy is ignored when using XO Proxy
+  const { allowUnauthorized, host, password, username } = await app.getXenServerWithCredentials(
+    app.getXenServerIdByObject(objectId)
+  )
+  return { allowUnauthorized, credentials: { username, password }, url: host }
+}
+
+/**
+ * What a proxy needs to hold the cache of a live mount: the VM it runs as, which the cache VDI is
+ * plugged onto, and the connection to the pool running it, which may not be the pool the disk is
+ * mounted onto.
  *
  * @param {XoApp} app
  * @param {XoProxy['id']} proxyId
- * @returns {Promise<string>}
+ * @returns {Promise<{ cacheXapi: object, vm: string }>} - as the proxy API names them
  */
-export async function getProxyVmUuid(app, proxyId) {
+export async function getProxyCacheParams(app, proxyId) {
   const { vmUuid } = await app.getProxy(proxyId)
   // a proxy may be registered by its address only
   if (vmUuid == null) {
     throw invalidParameters(`the proxy ${proxyId} is not a known VM, it cannot hold a live mount cache`)
   }
-  return vmUuid
+  let cacheXapi
+  try {
+    cacheXapi = await getXapiOptions(app, vmUuid)
+  } catch (error) {
+    throw new Error(`the pool running the proxy ${proxyId} is not connected to XO, it cannot hold a live mount cache`, {
+      cause: error,
+    })
+  }
+  return { cacheXapi, vm: vmUuid }
 }
 
 /**
@@ -323,11 +347,24 @@ export default class BackupDiskMountsResolver {
    */
   async #mountHere({ cacheSrId, diskId, host, remote, xapiLabels }) {
     const app = this.#app
-    const vmUuid = cacheSrId === undefined ? undefined : await getCurrentVmUuid()
+    let cacheXapi, vmUuid
+    if (cacheSrId !== undefined) {
+      vmUuid = await getCurrentVmUuid()
+      // the cache VDI is plugged onto the VM of XO, so it lives in the pool running XO, which may
+      // not be the one the disk is mounted onto
+      try {
+        cacheXapi = app.getXapi(vmUuid)
+      } catch (error) {
+        throw new Error('the pool running XO is not connected to it, it cannot hold a live mount cache', {
+          cause: error,
+        })
+      }
+    }
     const adapter = await app.getBackupsRemoteAdapter(remote)
     try {
       return await app.liveMount.mountDisk({
         cacheSrUuid: cacheSrId,
+        cacheXapi,
         diskPath: diskId,
         handler: adapter.value.handler,
         hostRef: host._xapiRef,
@@ -351,7 +388,7 @@ export default class BackupDiskMountsResolver {
    */
   async #mountOnProxy({ cacheSrId, diskId, host, proxyId, remote, xapiLabels }) {
     const app = this.#app
-    const vmUuid = cacheSrId === undefined ? undefined : await getProxyVmUuid(app, proxyId)
+    const cacheParams = cacheSrId === undefined ? undefined : await getProxyCacheParams(app, proxyId)
     // httpProxy is ignored when using XO Proxy
     const {
       allowUnauthorized,
@@ -362,6 +399,7 @@ export default class BackupDiskMountsResolver {
 
     try {
       return await app.callProxyMethod(proxyId, 'backup.mountDisk', {
+        ...cacheParams,
         cacheSr: cacheSrId,
         disk: diskId,
         host: host.uuid,
@@ -369,7 +407,6 @@ export default class BackupDiskMountsResolver {
           url: remote.url,
           options: remote.options,
         },
-        vm: vmUuid,
         xapi: {
           allowUnauthorized,
           credentials: { username, password },

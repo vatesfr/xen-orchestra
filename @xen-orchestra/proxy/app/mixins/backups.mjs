@@ -184,7 +184,7 @@ export default class Backups {
           },
         ],
         importVmBackup: [
-          async ({ backupId, remote, srUuid, settings, streamLogs = false, vm: vmUuid, xapi: xapiOpts }) => {
+          async ({ backupId, cacheXapi, remote, srUuid, settings, streamLogs = false, vm: vmUuid, xapi: xapiOpts }) => {
             const {
               dispose,
               value: [adapter, xapi],
@@ -201,6 +201,7 @@ export default class Backups {
                   mountDisk: ({ cacheSrUuid, diskPath, hostId, xapiLabels }) =>
                     this.#mountDisk({
                       cacheSrUuid,
+                      cacheXapi,
                       diskPath,
                       hostUuid: hostId,
                       remote,
@@ -246,6 +247,8 @@ export default class Backups {
             description: 'create a new VM from a backup',
             params: {
               backupId: { type: 'string' },
+              // connection options of the pool running this proxy, required by a cached live mount
+              cacheXapi: { type: 'object', optional: true },
               remote: { type: 'object' },
               settings: { type: 'object', optional: true },
               srUuid: { type: 'string' },
@@ -388,9 +391,10 @@ export default class Backups {
           },
         ],
         mountDisk: [
-          ({ cacheSr, disk, host, nameLabel, remote, vm, xapi, xapiLabels = { srNameLabel: nameLabel } }) =>
+          ({ cacheSr, cacheXapi, disk, host, nameLabel, remote, vm, xapi, xapiLabels = { srNameLabel: nameLabel } }) =>
             this.#mountDisk({
               cacheSrUuid: cacheSr,
+              cacheXapi,
               diskPath: disk,
               hostUuid: host,
               remote,
@@ -402,8 +406,10 @@ export default class Backups {
             description:
               'serve a disk of a backup repository as an iSCSI LUN attached to a host as an SR, read-only unless cached',
             params: {
-              // uuid of the SR of a local cache VDI, requires `vm`
+              // uuid of the SR of a local cache VDI, requires `vm` and `cacheXapi`
               cacheSr: { type: 'string', optional: true },
+              // connection options of the pool running this proxy, which holds `cacheSr`
+              cacheXapi: { type: 'object', optional: true },
               disk: { type: 'string' },
               host: { type: 'string' },
               // name of the SR, superseded by `xapiLabels.srNameLabel`: still sent by older XOs
@@ -518,18 +524,34 @@ export default class Backups {
    * @param {string} params.hostUuid - uuid of the host the disk is attached to
    * @param {object} params.remote - backup repository holding the disk
    * @param {object} params.xapi - connection options of the pool owning `hostUuid`
-   * @param {string} [params.cacheSrUuid] - SR of a local cache VDI, requires `vmUuid`
+   * @param {string} [params.cacheSrUuid] - SR of a local cache VDI, requires `vmUuid` and `cacheXapi`
+   * @param {object} [params.cacheXapi] - connection options of the pool running this proxy, which
+   * holds `cacheSrUuid`: it may not be the pool owning `hostUuid`
    * @param {string} [params.vmUuid] - uuid of this proxy's own VM
    * @param {object} [params.xapiLabels] - names of the SR and of the VDI shown to the user
    */
-  async #mountDisk({ cacheSrUuid, diskPath, hostUuid, remote, vmUuid, xapi: xapiOpts, xapiLabels }) {
+  async #mountDisk({
+    cacheSrUuid,
+    cacheXapi: cacheXapiOpts,
+    diskPath,
+    hostUuid,
+    remote,
+    vmUuid,
+    xapi: xapiOpts,
+    xapiLabels,
+  }) {
+    const resources = [this.getAdapter(remote), this.getXapi(xapiOpts)]
+    if (cacheXapiOpts !== undefined) {
+      resources.push(this.getXapi(cacheXapiOpts))
+    }
     const {
       dispose,
-      value: [adapter, xapi],
-    } = await Disposable.all([this.getAdapter(remote), this.getXapi(xapiOpts)])
+      value: [adapter, xapi, cacheXapi],
+    } = await Disposable.all(resources)
     try {
       return await this._app.liveMount.mountDisk({
         cacheSrUuid,
+        cacheXapi,
         diskPath,
         handler: adapter.handler,
         hostRef: await xapi.call('host.get_by_uuid', hostUuid),

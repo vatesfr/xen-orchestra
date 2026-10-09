@@ -4248,6 +4248,9 @@ export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 export const snapshotXoa = () => _call('xo.snapshotBeforeUpgrade')
 
+// `null` when XO does not run in a VM, or cannot tell which one
+export const getXoVmUuid = () => _call('xo.getCurrentVmUuid')
+
 export const getApiApplianceInfo = () => fetch('./rest/v0/appliance').then(resp => resp.json())
 
 export const restartXoServer = async () => {

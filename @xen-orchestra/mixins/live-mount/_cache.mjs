@@ -19,7 +19,7 @@ const TRANSIENT_OPEN_ERRORS = ['EBUSY', 'ENOENT', 'ENOMEDIUM', 'ENXIO']
  *
  * @param {object} $defer - the caller's golike-defer handle
  * @param {object} params
- * @param {object} params.xapi - XAPI connection of the pool the disk is mounted onto
+ * @param {object} params.xapi - XAPI connection of the pool running this appliance
  * @param {object} params.disk - the source disk, already opened
  * @param {string} params.diskPath - path of the source disk, for the logs
  * @param {string} params.id - id of the mount
@@ -37,13 +37,22 @@ export async function createCache($defer, { xapi, disk, diskPath, id, nameLabel,
     if (error?.code !== 'UUID_INVALID') {
       throw error
     }
-    // the common case of an appliance running in another pool than the one it restores to
-    throw new Error(
-      `this appliance (VM ${vmUuid}) is not a VM of the pool the disk is mounted onto, it cannot hold its cache`,
-      { cause: error }
-    )
+    throw new Error(`this appliance (VM ${vmUuid}) does not run in the pool of this XAPI connection`, {
+      cause: error,
+    })
   }
-  const srRef = await xapi.call('SR.get_by_uuid', srUuid)
+  let srRef
+  try {
+    srRef = await xapi.call('SR.get_by_uuid', srUuid)
+  } catch (error) {
+    if (error?.code !== 'UUID_INVALID') {
+      throw error
+    }
+    // the cache VDI is plugged onto this appliance's VM, so its SR must belong to the same pool
+    throw new Error(`the SR ${srUuid} is not in the pool running this appliance: pick an SR of that pool`, {
+      cause: error,
+    })
+  }
 
   // checked upfront, so a wrong SR fails with its name rather than as a plug failure, after a VDI
   // was created for nothing: shared SRs are plugged on every host of their pool, local ones on

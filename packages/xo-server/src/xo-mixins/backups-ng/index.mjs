@@ -16,7 +16,7 @@ import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.mjs'
 import { Task } from '@vates/task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
-import { getProxyVmUuid } from '../backup-disk-mounts.mjs'
+import { getProxyCacheParams } from '../backup-disk-mounts.mjs'
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
@@ -573,6 +573,10 @@ export default class BackupNg {
         )
 
         const params = {
+          // a cached live mount plugs its cache VDI onto the proxy's own VM, in the pool running it.
+          // Only sent when needed: an older proxy rejects them, rather than silently mounting the
+          // disk read only
+          ...(hasCachedLiveMountTarget(settings?.mapVdisSrs) ? await getProxyCacheParams(app, remote.proxy) : {}),
           backupId: metadataFilename,
           remote: {
             url: remote.url,
@@ -581,9 +585,6 @@ export default class BackupNg {
           settings,
           srUuid: sr.uuid,
           streamLogs: true,
-          // a cached live mount plugs its cache VDI onto the proxy's own VM. Only sent when needed:
-          // an older proxy rejects it, rather than silently mounting the disk read only
-          vm: hasCachedLiveMountTarget(settings?.mapVdisSrs) ? await getProxyVmUuid(app, remote.proxy) : undefined,
           xapi: {
             allowUnauthorized,
             credentials: {

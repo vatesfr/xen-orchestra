@@ -164,9 +164,10 @@ declare namespace backup {
   // two, in the legacy shape. A live mounted disk is served by this proxy, like `mountDisk` does,
   // and outlives the restore: it is reported in `liveMounts`, and its `id` must be handed back to
   // `unmountDisk`. With `cacheSr`, it is cached and read/write, like `mountDisk` with `cacheSr`:
-  // `vm` must then be this proxy's own VM.
+  // `vm` and `cacheXapi` are then required, as for `mountDisk`.
   function importVmBackup(_: {
     backupId: string
+    cacheXapi?: Xapi
     remote: Remote
     settings?: { newMacAddresses?: boolean; mapVdisSrs?: object }
     srUuid: string
@@ -188,14 +189,16 @@ declare namespace backup {
   // With `cacheSr`, the LUN is read/write: each block read is kept in a VDI of this SR, hot-plugged
   // onto this proxy's own VM `vm`, so the backup repository is read at most once per block, and the
   // writes land there too — the backup is never modified. That VDI is created with the mount and
-  // destroyed with it, so what was written is lost on unmount. It requires this proxy to be a VM
-  // of `xapi`'s pool, and `cacheSr` to be plugged on the host running it; on a local SR, this
-  // proxy must not be migrated until the mount is gone, since that VDI cannot follow it.
+  // destroyed with it, so what was written is lost on unmount. `cacheXapi` connects to the pool
+  // running this proxy, which holds `cacheSr` and may differ from `xapi`'s; `cacheSr` must be
+  // plugged on the host running this proxy. On a local SR, this proxy must not be migrated until the
+  // mount is gone, since that VDI cannot follow it.
   //
   // There is no method to list the mounts: a proxy is driven by a single XO, which is the one
   // keeping track of them.
   function mountDisk(_: {
     cacheSr?: string
+    cacheXapi?: Xapi
     disk: string
     host: string
     nameLabel?: string // deprecated, use `xapiLabels.srNameLabel`

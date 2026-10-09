@@ -43,7 +43,7 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * @property {import('@vates/iscsi').IscsiTarget} target
  * @property {Xapi} xapi - replaced by any newer connection to the same pool, see {@link LiveMount#watchConnection}
  * @property {string} [poolUuid] - pool of `xapi`, unknown if it was not connected
- * @property {{ device: object, lun: object, vbdRef: string, vdiRef: string }} [cache] - local VDI the disk is materialized into
+ * @property {{ device: object, lun: object, vbdRef: string, vdiRef: string, xapi: Xapi }} [cache] - local VDI the disk is materialized into, in the pool running this appliance
  * @property {{ source: string, port: number, id: string }} [firewallRule] - opened by `iscsi.manageFirewall`
  * @property {() => Promise<void>} [release]
  */
@@ -63,10 +63,11 @@ const FIREWALLS = {
  *
  * With one, it is read/write: the disk is materialized block by block into a
  * VDI hot-plugged onto this appliance's own VM, which then holds every write
- * too — the source is never modified. This appliance must belong to the pool of
- * the target host, and that VDI lives and dies with the mount: what was written
- * is lost on unmount. On a local SR, this appliance must not be migrated while
- * the mount lasts: its VDI cannot follow it.
+ * too — the source is never modified. That VDI belongs to the pool running this
+ * appliance, which may differ from the pool of the target host: the latter only
+ * ever sees the LUN. It lives and dies with the mount: what was written is lost
+ * on unmount. On a local SR, this appliance must not be migrated while the mount
+ * lasts: its VDI cannot follow it.
  *
  * Nothing app-specific is read from `app` apart from `config` and `hooks`: the
  * source disk, the XAPI connection and the target host are all passed in by
@@ -203,7 +204,9 @@ export default class LiveMount extends EventEmitter {
    * @param {string} [params.cacheSrUuid] - SR of a local VDI the disk is materialized into as it is
    * read, and which holds the writes. Unset, nothing is cached and the mount is read-only. It must be
    * plugged on the host running this appliance.
-   * @param {string} [params.vmUuid] - VM of this appliance, in `xapi`'s pool; required with `cacheSrUuid`
+   * @param {string} [params.vmUuid] - VM of this appliance; required with `cacheSrUuid`
+   * @param {object} [params.cacheXapi] - XAPI connection of the pool running this appliance, which
+   * holds the cache SR; defaults to `xapi`, when this appliance runs in the pool of the target host
    * @returns {Promise<{ id: string, srUuid: string, vdiUuid: string, iqn: string, address: string, port: number }>}
    */
   async mountDisk(params) {
@@ -222,6 +225,7 @@ export default class LiveMount extends EventEmitter {
 
   #createDiskMount = defer(async ($defer, params) => {
     const { cacheSrUuid, diskPath, handler, hostRef, release, vmUuid, xapi, xapiLabels = {} } = params
+    const { cacheXapi = xapi } = params
     if (this.#firewallError !== undefined) {
       throw this.#firewallError
     }
@@ -265,10 +269,10 @@ export default class LiveMount extends EventEmitter {
         nameLabel: xapiLabels.vdiNameLabel ?? cacheLabel(diskPath),
         srUuid: cacheSrUuid,
         vmUuid,
-        xapi,
+        xapi: cacheXapi,
       })
       lun = new CachedDiskBlockDevice({ cache: device, disk })
-      cache = { device, lun, vbdRef, vdiRef }
+      cache = { device, lun, vbdRef, vdiRef, xapi: cacheXapi }
     }
 
     const target = this.#createTarget({
@@ -489,8 +493,8 @@ export default class LiveMount extends EventEmitter {
       // already closed by the target, which owns the LUN — unless closing the target failed before
       // getting there, and an open descriptor would then block the unplug and leak the VDI
       await step('close the cache device', () => cache.device.close())
-      await step('destroy the cache VBD', () => xapi.VBD_destroy(cache.vbdRef))
-      await step('destroy the cache VDI', () => xapi.VDI_destroy(cache.vdiRef))
+      await step('destroy the cache VBD', () => cache.xapi.VBD_destroy(cache.vbdRef))
+      await step('destroy the cache VDI', () => cache.xapi.VDI_destroy(cache.vdiRef))
     }
     await step('release the caller resources', () => release?.())
 
