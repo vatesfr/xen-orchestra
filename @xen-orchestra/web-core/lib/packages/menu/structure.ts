@@ -69,7 +69,7 @@ export function parseConfigHolder<TConfigHolder extends ConfigHolder>(
       $target: target.props,
       $isOpen: trigger.isOpen,
       [MENU_SYMBOL]: trigger.subMenu,
-      ...parseStructure(trigger.subMenu, configHolder.config.items),
+      ...parseStructure(trigger.subMenu, configHolder.config.items ?? {}),
     } as ParseConfigHolder<TConfigHolder>
   }
 
