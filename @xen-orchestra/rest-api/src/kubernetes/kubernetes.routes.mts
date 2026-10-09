@@ -9,7 +9,7 @@ import { SupportedActions } from '@xen-orchestra/acl'
 export const KUBERNETES_WILDCARD_ENDPOINT = '/kubernetes/*'
 
 const XO_PATH_PREFIX = '/kubernetes'
-const CAPI_PATH_PREFIX = 'api/kubernetes'
+const CAPI_PATH_PREFIX = 'kubernetes'
 
 // The only resource used by the rules for now, the privileges of a route are declared for
 // a single resource

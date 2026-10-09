@@ -13,7 +13,6 @@ import {
 
 const log = createLogger('xo:rest-api:kubernetes-openapi-helper')
 
-const CAPI_PATH_PREFIX = '/api'
 const CAPI_IGNORED_PATHS = new Set(['/ping'])
 const CAPI_SCHEMA_PREFIX = 'Kubernetes'
 const SCHEMA_REF_PREFIX = '#/components/schemas/'
@@ -47,12 +46,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 /**
  * Turns a CAPI path into the path XO REST API path
  *
- * `/api/kubernetes/clusters/` -> `/kubernetes/clusters`
+ * `/kubernetes/clusters/` -> `/kubernetes/clusters`
  */
 export function CAPIPathToXoPath(path: string): string {
-  const xoPath = path.startsWith(CAPI_PATH_PREFIX) ? path.slice(CAPI_PATH_PREFIX.length) : path
-
-  return xoPath.length > 1 ? xoPath.replace(/\/+$/, '') : xoPath
+  return path.length > 1 ? path.replace(/\/+$/, '') : path
 }
 
 /**
