@@ -229,24 +229,52 @@ export class DockerConnectionPool {
    * @param createConnection returns a new, not yet connected, connection
    */
   async use<T>(
-    { id, revision }: { id: string; revision?: number | string },
+    engine: { id: string; revision?: number | string },
     createConnection: () => Promise<PoolableConnection> | PoolableConnection,
     fn: (connection: DockerConnectionFacade) => Promise<T> | T
   ): Promise<T> {
-    const entry = await this.#acquire(id, revision, createConnection)
+    const { connection, release } = await this.hold(engine, createConnection)
     try {
-      // `facade!`: set once the entry is ready
-      return await fn(entry.facade!)
+      const result = await fn(connection)
+      release()
+      return result
     } catch (error) {
-      if (isEngineFailure(error) && this.#entries.get(entry.key) === entry) {
-        debug('engine failure while using a connection', { id, code: error.code })
-        this.#setFailure(entry.key, error)
-        this.#close(entry)
-      }
+      release(error)
       throw error
-    } finally {
-      --entry.refs
-      entry.lastUsed = this.#now()
+    }
+  }
+
+  /**
+   * Same as `use()` for a connection held across calls (e.g. by a stats
+   * sampler): busy (never evicted) until `release()` is called.
+   *
+   * `release(error)` with an engine failure evicts the connection and
+   * negatively caches the failure, like an error thrown by the `fn` of `use()`.
+   *
+   * @returns `release` is idempotent
+   */
+  async hold(
+    { id, revision }: { id: string; revision?: number | string },
+    createConnection: () => Promise<PoolableConnection> | PoolableConnection
+  ): Promise<{ connection: DockerConnectionFacade; release: (error?: unknown) => void }> {
+    const entry = await this.#acquire(id, revision, createConnection)
+    let released = false
+    return {
+      // set once the entry is ready
+      connection: entry.facade!,
+      release: error => {
+        if (released) {
+          return
+        }
+        released = true
+        if (isEngineFailure(error) && this.#entries.get(entry.key) === entry) {
+          debug('engine failure while using a connection', { id, code: error.code })
+          this.#setFailure(entry.key, error)
+          this.#close(entry)
+        }
+        --entry.refs
+        entry.lastUsed = this.#now()
+      },
     }
   }
 
