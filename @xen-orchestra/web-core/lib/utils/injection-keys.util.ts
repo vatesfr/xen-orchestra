@@ -1,4 +1,6 @@
 import type { InputWrapperController } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import type { AccordionItemContext } from '@core/components/ui/accordion/accordion-item/UiAccordionItem.vue'
+import type { AccordionController } from '@core/components/ui/accordion/UiAccordion.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import type { ValueFormatter } from '@core/types/chart.ts'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
@@ -24,3 +26,7 @@ export const IK_DISABLED = Symbol('IK_DISABLED') as InjectionKey<ComputedRef<boo
 export const IK_INPUT_WRAPPER_CONTROLLER = Symbol('IK_INPUT_WRAPPER_CONTROLLER') as InjectionKey<InputWrapperController>
 
 export const IK_OVERLAY_ACCENT = Symbol('IK_OVERLAY_ACCENT') as InjectionKey<ComputedRef<ModalAccent>>
+
+export const IK_ACCORDION_CONTROLLER = Symbol('IK_ACCORDION_CONTROLLER') as InjectionKey<AccordionController>
+
+export const IK_ACCORDION_ITEM = Symbol('IK_ACCORDION_ITEM') as InjectionKey<AccordionItemContext>
