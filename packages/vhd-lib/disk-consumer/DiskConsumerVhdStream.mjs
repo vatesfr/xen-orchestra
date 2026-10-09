@@ -60,7 +60,6 @@ export class DiskConsumerVhdStream extends BaseVhd {
     const { bat, fileSize } = this.computeVhdBatAndFileSize() // the bat contains the calculated position of the futures blocks
     const uid = 'to stream ' + Math.random()
     const blockGenerator = this.source.diskBlocks(uid)
-    const EXPECTED_FULL_BUFFER_SIZE = DEFAULT_BLOCK_SIZE + FULL_BLOCK_BITMAP.length
     async function* generator() {
       signal?.throwIfAborted()
       yield footer
@@ -80,8 +79,10 @@ export class DiskConsumerVhdStream extends BaseVhd {
         if (data.length < DEFAULT_BLOCK_SIZE) {
           truncatedBlock = { data, index }
         }
+        // bitmap and data are yielded separately: no need to copy the data
+        yield FULL_BLOCK_BITMAP
         // ensure the blocks are always at full size
-        yield Buffer.concat([FULL_BLOCK_BITMAP, data], EXPECTED_FULL_BUFFER_SIZE)
+        yield data.length < DEFAULT_BLOCK_SIZE ? Buffer.concat([data], DEFAULT_BLOCK_SIZE) : data
       }
       yield footer
     }
