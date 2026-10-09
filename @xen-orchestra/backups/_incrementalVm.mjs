@@ -294,9 +294,9 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       await asyncMap(Object.values(vdiVbds), vbd =>
         xapi.VBD_create({
           ...vbd,
-          // a live mount serves its disk read only: attach it as such, instead of letting the
-          // guest discover it through I/O errors on its first write
-          mode: isLiveMounted ? 'RO' : vbd.mode,
+          // an uncached live mount serves its disk read only: attach it as such, instead of letting
+          // the guest discover it through I/O errors on its first write
+          mode: isLiveMounted && vdi.liveMountedReadOnly ? 'RO' : vbd.mode,
           VDI: newVdi.$ref,
           VM: vmRef,
         })

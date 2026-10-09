@@ -89,9 +89,14 @@ const makeXapi = ({
         }
         return ['OpaqueRef:pbd']
       case 'VM.get_by_uuid':
-        assert.equal(args[0], SELF_VM_UUID)
+        if (args[0] !== SELF_VM_UUID) {
+          throw new XapiError('UUID_INVALID', ['VM', args[0]])
+        }
         return SELF_VM_REF
       case 'SR.get_by_uuid':
+        if (args[0] === 'sr-of-another-pool') {
+          throw new XapiError('UUID_INVALID', ['SR', args[0]])
+        }
         return `OpaqueRef:sr-${args[0]}`
       default:
         return undefined
@@ -959,6 +964,44 @@ describe('the read cache', () => {
     const xapi = makeXapi()
     await assert.rejects(mountDisk(mixin, xapi, { cacheSrUuid: CACHE_SR_UUID }), /vmUuid is required/)
     assert.deepEqual(xapi.calls, [])
+  })
+
+  it('lives in the pool running this appliance, which may not be the one of the target host', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    const cacheXapi = makeXapi()
+
+    const { id } = await mountDisk(mixin, xapi, { ...CACHE, cacheXapi })
+    await mixin.unmountDisk(id)
+
+    const cacheMethods = ['VDI_create', 'VBD_create', 'VBD_destroy', 'VDI_destroy']
+    assert.deepEqual(
+      cacheXapi.calls.map(([method]) => method).filter(method => cacheMethods.includes(method)),
+      cacheMethods
+    )
+    assert.ok(!xapi.calls.some(([method]) => cacheMethods.includes(method)))
+    // while the LUN is still attached to the target host
+    assert.ok(xapi.calls.some(([method]) => method === 'SR.introduce'))
+  })
+
+  it('explains that this appliance does not run in that pool, having created nothing', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    await assert.rejects(
+      mountDisk(mixin, xapi, { ...CACHE, vmUuid: 'vm-of-another-pool' }),
+      /does not run in the pool of this XAPI connection/
+    )
+    assert.ok(!xapi.calls.some(([method]) => method === 'VDI_create'))
+  })
+
+  it('explains that the SR is not in the pool running this appliance, having created nothing', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    await assert.rejects(
+      mountDisk(mixin, xapi, { ...CACHE, cacheSrUuid: 'sr-of-another-pool' }),
+      /not in the pool running this appliance/
+    )
+    assert.ok(!xapi.calls.some(([method]) => method === 'VDI_create'))
   })
 
   describe('unwinds what it created when the mount fails later', () => {

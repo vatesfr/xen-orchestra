@@ -143,6 +143,8 @@ describe('ImportVmBackup#_decorateIncrementalVmMetadata()', () => {
 
       assert.deepEqual(liveMount.mounted, [
         {
+          // not cached: read only
+          cacheSrUuid: undefined,
           diskPath: `/xo-vm-backups/${VM_UUID}/${vhdPath(DATA)}`,
           hostId: HOST,
           // named after the backed up VM and disk, not after the file on the backup repository
@@ -164,11 +166,25 @@ describe('ImportVmBackup#_decorateIncrementalVmMetadata()', () => {
 
       const vdi = backup.vdis[DATA.ref]
       assert.equal(vdi.liveMountedVdiRef, 'VDI_REF:mounted-vdi-1')
+      assert.equal(vdi.liveMountedReadOnly, true)
       assert.equal(vdi.SR, undefined)
       assert.equal(vdi.uuid, DATA.uuid)
       // the other disk is restored as usual
       assert.equal(backup.vdis[SYSTEM.ref].SR, `SR_REF:${DEFAULT_SR}`)
       assert.equal(backup.vdis[SYSTEM.ref].liveMountedVdiRef, undefined)
+    })
+
+    it('mounts a cached disk read/write, and says so in its names', async () => {
+      const { importer, liveMount } = makeImporter({
+        mapVdisSrs: { [DATA.uuid]: { type: 'live-mount', host: HOST, cacheSr: OTHER_SR } },
+      })
+
+      const backup = await importer._decorateIncrementalVmMetadata()
+
+      const [mounted] = liveMount.mounted
+      assert.equal(mounted.cacheSrUuid, OTHER_SR)
+      assert.equal(mounted.xapiLabels.srNameLabel, '[XO live restore] a vm (20250801T080832Z)')
+      assert.equal(backup.vdis[DATA.ref].liveMountedReadOnly, false)
     })
 
     it('rejects live mounts spread over several hosts', async () => {
