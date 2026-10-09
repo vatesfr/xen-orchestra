@@ -385,7 +385,6 @@ export type XoApp = EventEmitter & {
     opts?: { bypassOtp?: boolean; bypassTaskCreation?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
   backupGuard(objectId: XapiXoRecord['id'], opts?: { bypassBackupCheck?: boolean; operation: string }): Promise<void>
-  /* Throw if no authorization */
   /**
    * raw Docker Engine API request (admin-only REST passthrough), bounded by `docker.maxRawRequestSize` and
    * `docker.maxRawResponseSize`
@@ -400,6 +399,7 @@ export type XoApp = EventEmitter & {
       signal?: AbortSignal
     }
   ): Promise<{ statusCode: number; headers: Record<string, string | string[] | undefined>; body: Readable }>
+  /* Throw if no authorization */
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
   /* whether this machine can run the tools of an import from VMware */
   checkEsxiDependencies(): Promise<XoV2vStatus>
@@ -555,10 +555,7 @@ export type XoApp = EventEmitter & {
    * `assertBrowserMediaInsertable` reports the predictable failures synchronously, e.g. before
    * starting a task.
    */
-  insertBrowserMedia(params: {
-    id: XoBrowserMediaSession['id']
-    vmId: XoVm['id']
-  }): Promise<{ vdiId: XoVdi['id'] }>
+  insertBrowserMedia(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): Promise<{ vdiId: XoVdi['id'] }>
   assertBrowserMediaInsertable(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): void
   /** Eject the ISO of a browser media session, release its storage, and disconnect the browser */
   ejectBrowserMedia(id: XoBrowserMediaSession['id']): Promise<void>
@@ -585,6 +582,13 @@ export type XoApp = EventEmitter & {
     limit?: number
   }): Promise<AnyXoLog[]>
   getDockerContainer(id: XoDockerContainer['id']): Promise<XoDockerContainer>
+  /**
+   * never connects: the container and the objects it belongs to, from its engine (the container itself may not
+   * exist), e.g. for the ACLs
+   */
+  getDockerContainerScope(
+    id: XoDockerContainer['id']
+  ): Promise<Pick<XoDockerContainer, 'id' | '$engine' | '$VM' | '$pool'>>
   getDockerContainerLogs(
     id: XoDockerContainer['id'],
     opts?: {
