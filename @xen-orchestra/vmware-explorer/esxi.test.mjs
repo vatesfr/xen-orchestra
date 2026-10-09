@@ -826,10 +826,11 @@ describe('checkDiskAttachable', function () {
 
     await assert.rejects(esxi.checkDiskAttachable('vm-1', '[nope] a.vmdk'), {
       code: 'DATASTORE_NOT_FOUND',
-      datastoreName: 'nope',
-      fileName: '[nope] a.vmdk',
+      dataStore: 'nope',
+      dataStores: ['ds main', 'ds2', 'ds3'],
+      filePath: '[nope] a.vmdk',
     })
-    await assert.rejects(esxi.checkDiskAttachable('vm-1', 'a.vmdk'), { code: 'INVALID_PATH', fileName: 'a.vmdk' })
+    await assert.rejects(esxi.checkDiskAttachable('vm-1', 'a.vmdk'), { code: 'INVALID_PATH', filePath: 'a.vmdk' })
     assert.equal(vimClient.calls.length, 0)
   })
 })

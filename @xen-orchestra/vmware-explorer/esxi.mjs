@@ -373,15 +373,17 @@ export default class Esxi extends EventEmitter {
     if (datastoreName === undefined) {
       const error = new Error(`${fileName} is not a datastore path`)
       error.code = 'INVALID_PATH'
-      error.fileName = fileName
+      error.filePath = fileName
       throw error
     }
     const datastoreId = this.#datastoreIds[datastoreName]
     if (datastoreId === undefined) {
       const error = new Error(`the datastore ${datastoreName} of ${fileName} is unknown to ${this.#host}`)
       error.code = 'DATASTORE_NOT_FOUND'
-      error.datastoreName = datastoreName
-      error.fileName = fileName
+      // same context as DATACENTER_NOT_FOUND
+      error.dataStore = datastoreName
+      error.dataStores = Object.keys(this.#datastoreIds)
+      error.filePath = fileName
       throw error
     }
     return { datastoreId, datastoreName }
