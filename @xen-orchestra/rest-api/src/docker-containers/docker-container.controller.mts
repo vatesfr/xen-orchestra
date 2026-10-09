@@ -382,18 +382,8 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
     await assertDockerFeature(this.restApi)
     const containerId = id as XoDockerContainer['id']
     await this.#dockerContainerService.assertContainerId(containerId)
-    await this.createAction<void>(
-      () => withDockerErrors(() => this.restApi.xoApp.deleteDockerContainer(containerId, { force, removeVolumes })),
-      {
-        sync: true,
-        statusCode: noContentResp.status,
-        taskProperties: {
-          name: 'delete Docker container',
-          objectId: containerId,
-          params: { force, removeVolumes },
-        },
-      }
-    )
+    // no task: always synchronous, like the engine routes
+    await this.restApi.xoApp.deleteDockerContainer(containerId, { force, removeVolumes })
   }
 
   async #action(id: string, action: XoDockerContainerAction, sync?: boolean): CreateActionReturnType<void> {

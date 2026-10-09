@@ -310,11 +310,13 @@ describe('DockerContainerController', () => {
       )
     })
 
-    it('delete, with force and removeVolumes', async () => {
-      const { calls, controller } = setup()
+    it('delete, with force and removeVolumes, without a task', async () => {
+      const { calls, controller, tasks } = setup()
       const id = `engine-1_${DOCKER_ID}`
       await controller.deleteDockerContainer(id, true, false)
       assert.deepEqual(calls, [{ method: 'deleteDockerContainer', args: [id, { force: true, removeVolumes: false }] }])
+      // no task: its record would be readable by every user with task:read
+      assert.deepEqual(tasks, [])
     })
 
     it('Docker errors are mapped', async () => {
