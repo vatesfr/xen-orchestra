@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
+import { serializeError } from '@vates/task'
 import { featureUnauthorized, noSuchObject } from 'xo-common/api-errors.js'
 
 import { DockerEngineController } from './docker-engine.controller.mjs'
@@ -36,7 +37,11 @@ const engine = {
   connectionStatus: 'idle',
 }
 
-type Task = { id: string; properties: Record<string, unknown>; result?: unknown; error?: unknown }
+type Task = { id: string; properties: Record<string, unknown>; result?: unknown }
+
+// what the Tasks mixin of xo-server records on failure (`@vates/task`): the
+// error itself if it has a `toJSON()`, otherwise `serializeError(error)`
+const recordError = (error: unknown) => (error instanceof Error && !('toJSON' in error) ? serializeError(error) : error)
 
 function setup({ licensed = true, xoApp: xoAppOverrides = {} }: { licensed?: boolean; xoApp?: object } = {}) {
   const calls: { method: string; args: unknown[] }[] = []
@@ -83,7 +88,7 @@ function setup({ licensed = true, xoApp: xoAppOverrides = {} }: { licensed?: boo
             try {
               return (task.result = await fn())
             } catch (error) {
-              task.error = error
+              task.result = recordError(error)
               throw error
             }
           },
@@ -95,7 +100,9 @@ function setup({ licensed = true, xoApp: xoAppOverrides = {} }: { licensed?: boo
   return { calls, controller, tasks }
 }
 
-// everything a task record could persist
+const CONNECTION_CONTEXT = { host: '192.0.2.1', port: 2222, socketPath: '/run/user/1000/docker.sock' }
+
+// everything a task record could persist, readable with task:read
 const assertNoSecrets = (tasks: Task[]) => {
   assert.ok(tasks.length > 0)
   const serialized = JSON.stringify(tasks.map(({ properties, result }) => ({ properties, result })))
@@ -104,6 +111,10 @@ const assertNoSecrets = (tasks: Task[]) => {
   }
   // not even a fragment
   assert.equal(serialized.includes('secret-'), false, 'a fragment of a secret found in a task record')
+  for (const [name, value] of Object.entries(CONNECTION_CONTEXT)) {
+    assert.equal(serialized.includes(String(value)), false, `${name} found in a task record`)
+  }
+  assert.equal(serialized.includes('"cause"'), false, 'the raw error found in a task record')
 }
 
 // what the client receives, through the generic error handler
@@ -201,6 +212,23 @@ describe('DockerEngineController', () => {
       await controller.deleteDockerEngine(ENGINE_ID)
       assert.deepEqual(calls, [{ method: 'deleteDockerEngine', args: [ENGINE_ID] }])
       assert.deepEqual(tasks, [])
+    })
+  })
+
+  it('test which fails: the task record holds the mapped error, without connection context', async () => {
+    const { controller, tasks } = setup({
+      xoApp: {
+        testDockerEngine: async () => {
+          throw new DockerError('TIMEOUT', 'timed out', { ...CONNECTION_CONTEXT, timeout: 30e3 })
+        },
+      },
+    })
+    await assert.rejects(controller.testDockerEngine(ENGINE_ID, true), ApiError)
+    assertNoSecrets(tasks)
+    assert.deepEqual(JSON.parse(JSON.stringify(tasks[0].result)), {
+      code: 'TIMEOUT',
+      timeout: 30e3,
+      message: 'timed out',
     })
   })
 
