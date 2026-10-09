@@ -25,6 +25,7 @@ const obfuscateRemote = ({ url, ...remote }) => {
 
 const REMOTE_INFO_RETRY_DELAY = 5e3
 const REMOTE_INFO_RETRY_MAX_DELAY = 60 * 60 * 1e3 // cap at 1h
+const REMOTE_INFO_REFRESH_DELAY = 10e3
 const RETRY_CODES = new Set(['ECONNREFUSED', 'ETIMEDOUT', 'EHOSTUNREACH', 'ENETUNREACH', 'ENOTCONN', 'ESTALE'])
 function _isRetryableRemoteError(error) {
   return error instanceof TimeoutError || RETRY_CODES.has(error.code)
@@ -76,7 +77,16 @@ export default class {
     this._handlers = { __proto__: null }
     this._remotesInfo = {}
     this._remotesInfoRetry = { __proto__: null }
+    this._remotesInfoRefresh = { __proto__: null }
     this._app = app
+
+    const onVmBackupArchiveChange = (archive, previous) => {
+      const remoteId = (archive ?? previous)?.backupRepository
+      if (remoteId !== undefined) {
+        this._scheduleRemoteInfoRefresh(remoteId)
+      }
+    }
+    const VM_BACKUP_ARCHIVE_EVENTS = ['add', 'update', 'remove']
 
     app.hooks.on('clean', () => this._remotes.rebuildIndexes())
     app.hooks.on('core started', () => {
@@ -99,6 +109,8 @@ export default class {
       )
     })
     app.hooks.on('start', async () => {
+      VM_BACKUP_ARCHIVE_EVENTS.forEach(event => app.vmBackupArchives.on(event, onVmBackupArchiveChange))
+
       const remotes = await this._remotes.get()
       remotes.forEach(remote => {
         ignoreErrors.call(this.updateRemote(remote.id, {}))
@@ -108,6 +120,11 @@ export default class {
       })
     })
     app.hooks.on('stop', async () => {
+      VM_BACKUP_ARCHIVE_EVENTS.forEach(event => app.vmBackupArchives.off(event, onVmBackupArchiveChange))
+      Object.keys(this._remotesInfoRefresh).forEach(id => {
+        clearTimeout(this._remotesInfoRefresh[id])
+        delete this._remotesInfoRefresh[id]
+      })
       Object.keys(this._remotesInfoRetry).forEach(id => this._cancelRemoteInfoRetry(id))
       const handlers = this._handlers
       for (const id in handlers) {
@@ -382,6 +399,17 @@ export default class {
     }
   }
 
+  _scheduleRemoteInfoRefresh(id) {
+    clearTimeout(this._remotesInfoRefresh[id])
+    this._remotesInfoRefresh[id] = setTimeout(async () => {
+      delete this._remotesInfoRefresh[id]
+      const remote = await ignoreErrors.call(this._remotes.first(id))
+      if (remote?.enabled) {
+        await this._refreshRemoteInfo(remote)
+      }
+    }, REMOTE_INFO_REFRESH_DELAY)
+  }
+
   async getAllRemotes() {
     return (await this._remotes.get()).map(_ => obfuscateRemote(_))
   }
@@ -478,7 +506,8 @@ export default class {
       ...sizeProps,
     })
 
-    if (enabled === true) {
+    const isTargetChanged = url !== undefined || options !== undefined || proxy !== undefined
+    if (enabled === true || (remote.enabled && isTargetChanged)) {
       ignoreErrors.call(this._refreshRemoteInfo(remote))
     }
 
