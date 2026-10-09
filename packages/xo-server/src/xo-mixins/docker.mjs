@@ -87,6 +87,7 @@ import { parseSize } from '../utils.mjs'
  *   | 'getAllDockerEngines'
  *   | 'getDockerContainer'
  *   | 'getDockerContainerLogs'
+ *   | 'getDockerContainerScope'
  *   | 'getDockerContainerStats'
  *   | 'getDockerContainers'
  *   | 'getDockerEngine'
@@ -709,6 +710,23 @@ export default class Docker {
       }
       return this.#decorateContainer(record, container)
     })
+  }
+
+  /**
+   * The container and the objects it belongs to, from the engine record only:
+   * never connects, the container itself may not exist. What the ACLs must use
+   * (unlike `getDockerContainer()`, which may connect).
+   *
+   * @param {string} id composite id
+   * @returns {Promise<Pick<XoDockerContainer, 'id' | '$engine' | '$VM' | '$pool'>>}
+   * @throws noSuchObject on a malformed id or an unknown engine
+   */
+  async getDockerContainerScope(id) {
+    const { record } = await this.#resolveContainerId(id)
+    // `#decorateContainer()` without the container's data
+    const scope = /** @type {XoDockerContainer} */ ({ id, $engine: record.id })
+    this.#setVmAndPool(scope, record)
+    return scope
   }
 
   /**
