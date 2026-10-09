@@ -10,7 +10,7 @@ import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import type { XoBackupRepositoryBenchmark } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export type BackupRepositoryBenchmarkResult = Omit<XoBackupRepositoryBenchmark, 'timestamp'>
+type BackupRepositoryBenchmarkResult = Omit<XoBackupRepositoryBenchmark, 'timestamp'>
 
 export const useXoBackupRepositoryBenchmarkJob = defineJob(
   'backup-repository.benchmark',

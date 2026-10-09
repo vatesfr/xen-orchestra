@@ -17,6 +17,7 @@
 - [XO6/BRs] Add backup repository create form (PR [#10271](https://github.com/vatesfr/xen-orchestra/pull/10271))
 - [XO6/BRs] Add backup repository detail page (PR [#10454](https://github.com/vatesfr/xen-orchestra/pull/10454))
 - [XO6/BRs] Add backup repository edit form (PR [#10478](https://github.com/vatesfr/xen-orchestra/pull/10478))
+- [XO6/BRs] Add change state, test speed and forget actions and multi actions on BRs (PR [#10532](https://github.com/vatesfr/xen-orchestra/pull/10532))
 
 ### Bug fixes
 
@@ -28,7 +29,6 @@
 - [Dashboard] Fix cards staying in error state after a temporary failure to fetch data, until the page was reloaded (PR [#10516](https://github.com/vatesfr/xen-orchestra/pull/10516))
 - [backup] Properly detect a disk deleting while merging (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
 - [backup] Recover a deadlocked merge when the chain is out of retention (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
-- [backup repository] Add change state, test speed and forget actions and multi actions on BRs (PR [#10532](https://github.com/vatesfr/xen-orchestra/pull/10532))
 
 ### Packages to release
 

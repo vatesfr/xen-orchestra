@@ -24,7 +24,7 @@
         >
           {{ action.label }}
           <i v-if="action.hint" class="em-dash-prefix">{{ action.hint }}</i>
-          <template v-if="isGroupAction(action)" #submenu>
+          <template v-if="action.children" #submenu>
             <template v-for="(child, childIndex) of action.children" :key="childIndex">
               <MenuSeparator v-if="child.separator" />
               <MenuItem
@@ -88,8 +88,4 @@ export type GroupActionItem = BaseActionItem & {
 }
 
 export type ActionItem = LeafActionItem | GroupActionItem
-
-function isGroupAction(action: ActionItem): action is GroupActionItem {
-  return 'children' in action
-}
 </script>

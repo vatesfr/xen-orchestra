@@ -1,6 +1,9 @@
 import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { xoBackupRepositoriesArg } from '@/modules/backup-repository/jobs/xo-backup-repository-args.ts'
-import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import {
+  type FrontXoBackupRepository,
+  useXoBackupRepositoryCollection,
+} from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { getBackupJobsUsingBackupRepository } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
@@ -12,6 +15,8 @@ export const useXoBackupRepositoryForgetJob = defineJob('backup-repository.forge
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
   const { backupJobs } = useXoBackupJobCollection()
+
+  const { $context } = useXoBackupRepositoryCollection()
 
   return {
     async run(brs: FrontXoBackupRepository[]) {
@@ -30,6 +35,9 @@ export const useXoBackupRepositoryForgetJob = defineJob('backup-repository.forge
           console.error(`Failed to forget backup repository ${brs[index]?.id}:`, result.reason)
         }
       })
+
+      // Force reload while waiting for reactivity to be implemented for XO objects (XO-1013)
+      $context.forceReload()
 
       return results
     },

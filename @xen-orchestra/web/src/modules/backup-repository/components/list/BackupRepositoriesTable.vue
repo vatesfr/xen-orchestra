@@ -77,7 +77,7 @@ const { pageRecords: paginatedBrs, paginationBindings } = usePagination('brs', f
 
 const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
   items: () => brs,
-  filteredItems: brs,
+  filteredItems: filteredBrs,
   pageItems: paginatedBrs,
   getItemId: br => br.id,
 })
