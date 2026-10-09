@@ -1,5 +1,5 @@
 <template>
-  <span :title="formatDateTime(date)">{{ relativeTime }}</span>
+  <span :title="formattedDate">{{ relativeTime }}</span>
 </template>
 
 <script lang="ts" setup>
@@ -12,6 +12,8 @@ const props = defineProps<{
 }>()
 
 const date = computed(() => new Date(parseDateTime(props.date)))
+
+const formattedDate = computed(() => formatDateTime(date.value))
 
 const relativeTime = useRelativeTime(date)
 </script>

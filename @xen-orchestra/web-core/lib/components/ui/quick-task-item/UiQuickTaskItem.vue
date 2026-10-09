@@ -15,10 +15,10 @@
           </div>
         </div>
         <div v-if="task.start" class="line-2 typo-body-regular-small">
-          {{ formatDateTime(task.start) }}
+          {{ formattedStartDate }}
           <template v-if="task.end">
             <VtsIcon name="fa:arrow-right" size="medium" />
-            {{ formatDateTime(task.end) }}
+            {{ formattedEndDate }}
           </template>
         </div>
       </div>
@@ -50,6 +50,9 @@ const [isExpanded, toggleExpand] = useToggle()
 const subTasks = computed(() => props.task.subtasks ?? [])
 const subTasksCount = computed(() => subTasks.value.length)
 const hasSubTasks = computed(() => subTasksCount.value > 0)
+
+const formattedStartDate = computed(() => (props.task.start ? formatDateTime(props.task.start) : undefined))
+const formattedEndDate = computed(() => (props.task.end ? formatDateTime(props.task.end) : undefined))
 </script>
 
 <style lang="postcss" scoped>
