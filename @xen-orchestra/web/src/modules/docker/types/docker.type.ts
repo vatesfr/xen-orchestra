@@ -61,9 +61,12 @@ export type DockerEngineCreatePayload = {
 }
 
 /**
- * Body of `PATCH /docker-engines/{id}`: omitted secrets are kept
+ * Body of `PATCH /docker-engines/{id}`: omitted secrets are kept, a `null`
+ * `hostKeyFingerprint` unpins the host key
  */
-export type DockerEngineUpdatePayload = Partial<Omit<DockerEngineCreatePayload, '$VM'>>
+export type DockerEngineUpdatePayload = Partial<Omit<DockerEngineCreatePayload, '$VM' | 'hostKeyFingerprint'>> & {
+  hostKeyFingerprint?: string | null
+}
 
 /**
  * `data` of the 409 answers of `POST`/`PATCH /docker-engines`

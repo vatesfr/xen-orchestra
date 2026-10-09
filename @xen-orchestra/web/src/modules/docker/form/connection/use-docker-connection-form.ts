@@ -136,7 +136,7 @@ export function useDockerConnectionForm(
     return {
       $VM: vm.value.id,
       host: getHost(),
-      port: formData.port!,
+      port: formData.port ?? DEFAULT_SSH_PORT,
       username: formData.username.trim(),
       privateKey: formData.privateKey,
       ...(formData.passphrase !== '' && { passphrase: formData.passphrase }),
@@ -151,15 +151,17 @@ export function useDockerConnectionForm(
 
     return {
       host: getHost(),
-      port: formData.port!,
+      port: formData.port ?? DEFAULT_SSH_PORT,
       username: formData.username.trim(),
       socketPath: socketPath === '' ? DEFAULT_SOCKET_PATH : socketPath,
       ...(replacePrivateKey.value && {
         privateKey: formData.privateKey,
         passphrase: formData.passphrase,
       }),
-      ...(fingerprint !== (engine.value?.hostKeyFingerprint ?? '') &&
-        fingerprint !== '' && { hostKeyFingerprint: fingerprint }),
+      // an emptied field unpins the stored host key
+      ...(fingerprint !== (engine.value?.hostKeyFingerprint ?? '') && {
+        hostKeyFingerprint: fingerprint === '' ? null : fingerprint,
+      }),
     }
   }
 
