@@ -19,18 +19,21 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 
-const { value, copy, copyValue } = defineProps<{
+export type KeyValuePairProps = {
   label?: string
   value?: string
   copy?: boolean
   copyValue?: string
-}>()
+}
+
+const { value, copy, copyValue } = defineProps<KeyValuePairProps>()
 
 defineSlots<{
   label?(): any
   value?(): any
 }>()
 
+// `copyValue` alone enables the copy button, `copy` is only needed to copy `value` itself
 const valueToCopy = computed(() => copyValue ?? (copy ? value : undefined))
 </script>
 

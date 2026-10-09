@@ -12,15 +12,10 @@
 </template>
 
 <script lang="ts" setup>
-import VtsKeyValuePair from '@core/components/key-value-pair/VtsKeyValuePair.vue'
+import VtsKeyValuePair, { type KeyValuePairProps } from '@core/components/key-value-pair/VtsKeyValuePair.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 
-defineProps<{
-  label?: string
-  value?: string
-  copy?: boolean
-  copyValue?: string
-}>()
+defineProps<KeyValuePairProps>()
 
 const slots = defineSlots<{
   label?(): any
