@@ -65,16 +65,17 @@ const UNREACHABLE_INFO: FrontXoDockerEngineInfo = {
 function setEngines({
   engine,
   isReady = true,
-  hasError = false,
+  error,
 }: {
   engine?: FrontXoDockerEngine
   isReady?: boolean
-  hasError?: boolean
+  error?: Error
 }) {
   Object.assign(engineState, {
     dockerEngine: ref(engine),
     areDockerEnginesReady: ref(isReady),
-    hasDockerEngineFetchError: ref(hasError),
+    hasDockerEngineFetchError: ref(error !== undefined),
+    lastDockerEngineFetchError: ref(error),
     reloadDockerEngines: vi.fn(),
   })
 }
@@ -120,11 +121,29 @@ it('shows a loader while the engines are loading', () => {
 })
 
 it('shows an error when the engines cannot be fetched', () => {
-  setEngines({ isReady: false, hasError: true })
+  setEngines({ isReady: false, error: new Error('Failed to fetch: Forbidden', { cause: { status: 403, body: {} } }) })
 
   const wrapper = mountTab()
 
   expect(wrapper.find('.vts-state-hero.error').exists()).toBe(true)
+  expect(wrapper.text()).not.toContain(t('docker-unavailable-with-plan'))
+})
+
+it('tells when Docker is not available with the XOA plan, instead of an error', () => {
+  setEngines({
+    isReady: false,
+    error: new Error('Failed to fetch: Forbidden', {
+      cause: {
+        status: 403,
+        body: { error: 'feature Unauthorized', data: { currentPlan: 'free', minPlan: 'premium' } },
+      },
+    }),
+  })
+
+  const wrapper = mountTab()
+
+  expect(wrapper.find('.vts-state-hero.error').exists()).toBe(false)
+  expect(wrapper.find('.vts-state-hero').text()).toContain(t('docker-unavailable-with-plan'))
 })
 
 it('shows the offline hero when the VM is not running, not a connection error', () => {
