@@ -331,7 +331,10 @@ export function defineRemoteResource<
         const response = await fetch(url)
 
         if (!response.ok) {
-          lastError.value = Error(`Failed to fetch: ${response.statusText}`)
+          // the status and the body (e.g. `{ error, data }` of the REST API) tell the failures apart
+          lastError.value = new Error(`Failed to fetch: ${response.statusText}`, {
+            cause: { status: response.status, body: await response.json().catch(() => undefined) },
+          })
           return
         }
 
