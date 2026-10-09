@@ -19,10 +19,11 @@ import { request as httpRequest } from 'node:http'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { after, before, beforeEach, describe, it } from 'node:test'
+import { after, afterEach, before, beforeEach, describe, it } from 'node:test'
 import { parseDuration } from '@vates/parse-duration'
 import { createClient } from 'redis'
-import { DockerConnection, DockerError } from '@xen-orchestra/docker-ssh'
+import { DockerConnection, DockerError, MAX_API_VERSION } from '@xen-orchestra/docker-ssh'
+import { CONTAINER_LIST, INSPECT_BY_NAME } from '@xen-orchestra/docker-ssh/dist/fixtures/containers.mjs'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
 import { PassThrough, Readable } from 'node:stream'
@@ -63,6 +64,7 @@ const WRONG_FINGERPRINT = 'SHA256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 
 const VM_ID = '0a1b2c3d-0000-4000-8000-000000000001'
 const VM_WITHOUT_IP = '0a1b2c3d-0000-4000-8000-000000000002'
+const VM_WITHOUT_ADDRESS = '0a1b2c3d-0000-4000-8000-000000000003'
 const MISSING_VM = '0a1b2c3d-0000-4000-8000-00000000dead'
 const POOL_ID = 'c0ffee00-0000-4000-8000-000000000000'
 
@@ -75,6 +77,7 @@ const OBJECTS = {
     addresses: { '0/ipv4/0': '192.0.2.50' },
   },
   [VM_WITHOUT_IP]: { id: VM_WITHOUT_IP, type: 'VM', $pool: POOL_ID, addresses: { '0/ipv6/0': 'fe80::1' } },
+  [VM_WITHOUT_ADDRESS]: { id: VM_WITHOUT_ADDRESS, type: 'VM', $pool: POOL_ID, addresses: {} },
 }
 
 const getPath = (object, path) => path.split('.').reduce((value, key) => value?.[key], object)
@@ -464,10 +467,24 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
 
         it('cannot connect to a VM without address: SSH_UNREACHABLE, nothing saved', async () => {
           await assert.rejects(
-            docker.createDockerEngine({ $VM: MISSING_VM, username: 'u', password: 'p' }),
+            docker.createDockerEngine({ $VM: VM_WITHOUT_ADDRESS, username: 'u', password: 'p' }),
             isCode('SSH_UNREACHABLE')
           )
           assert.deepEqual(await docker.getAllDockerEngines(), [])
+        })
+
+        it('a $VM which does not exist: noSuchObject before connecting, on create and update (review 4)', async () => {
+          await assert.rejects(
+            docker.createDockerEngine({ $VM: MISSING_VM, host: 'h', username: 'u', password: 'p' }),
+            noSuchObject.is
+          )
+          const { id } = await seed({})
+          await assert.rejects(docker.updateDockerEngine(id, { $VM: MISSING_VM }), noSuchObject.is)
+          assert.equal(fake.connects, 0)
+          assert.equal((await docker.getAllDockerEngines()).length, 1)
+          // an engine whose VM has disappeared can still be updated
+          const orphan = await seed({ vm: MISSING_VM })
+          await docker.updateDockerEngine(orphan.id, { label: 'orphan' })
         })
       })
 
@@ -811,6 +828,207 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
         })
       })
 
+      describe('review 4 fixes', () => {
+        const ID = name => CONTAINER_LIST.find(_ => _.Names[0] === '/' + name).Id
+        const RUNNING = ['xo-nginx', 'xo-healthy']
+
+        // answers of the daemon behind the fake connections, by path
+        let originalRequest, originalRequestStream
+        beforeEach(() => {
+          originalRequest = DockerConnection.prototype.request
+          originalRequestStream = DockerConnection.prototype.requestStream
+        })
+        afterEach(async () => {
+          DockerConnection.prototype.request = originalRequest
+          DockerConnection.prototype.requestStream = originalRequestStream
+          DockerEngines.prototype.first = originalFirst
+          await emit('stop')
+        })
+        const stubDaemon = answer => {
+          DockerConnection.prototype.request = async function ({ path }) {
+            ++fake.requests
+            return { statusCode: 200, headers: {}, body: await answer(path) }
+          }
+        }
+        const listAnswer =
+          (overrides = {}) =>
+          path => {
+            if (path === '/containers/json') {
+              return CONTAINER_LIST.filter(_ => RUNNING.includes(_.Names[0].slice(1)))
+            }
+            const name = Object.keys(INSPECT_BY_NAME).find(name => path === `/containers/${ID(name)}/json`)
+            if (overrides[name] !== undefined) {
+              return overrides[name]()
+            }
+            return INSPECT_BY_NAME[name]
+          }
+
+        // the next `n` reads of engines are held until `release()`
+        const originalFirst = DockerEngines.prototype.first
+        const holdReads = (n = 1) => {
+          let release
+          const gate = new Promise(resolve => (release = resolve))
+          DockerEngines.prototype.first = async function (...args) {
+            const result = await originalFirst.apply(this, args)
+            if (n-- > 0) {
+              await gate
+            }
+            return result
+          }
+          return () => {
+            DockerEngines.prototype.first = originalFirst
+            release()
+          }
+        }
+
+        it('a poll which read the engine before an update does not connect with the old credentials', async () => {
+          const { id } = await seed({})
+          stubDaemon(listAnswer())
+          // the poll's record is read, then held until the update is done
+          const release = holdReads()
+          const list = docker.getDockerContainers({ engines: [id], stats: true })
+          await sleep(20)
+          await docker.updateDockerEngine(id, { password: 'new' })
+          const connects = fake.connects
+          release()
+          const { containers, errors } = await list
+          assert.deepEqual(containers, [])
+          assert.deepEqual(
+            errors.map(_ => _.code),
+            ['CONNECTION_CLOSED']
+          )
+          assert.equal(fake.connects, connects, 'no connection with the old credentials')
+          // the next poll uses the new record
+          assert.deepEqual((await docker.getDockerContainers({ engines: [id] })).errors, [])
+        })
+
+        it('a poll which read the engine before its deletion neither connects nor starts a sampler', async () => {
+          const { id } = await seed({})
+          stubDaemon(listAnswer())
+          const release = holdReads(2)
+          const stats = docker.getDockerContainerStats(`${id}_${ID('xo-nginx')}`)
+          const list = docker.getDockerContainers({ engines: [id], stats: true })
+          await sleep(20)
+          await docker.deleteDockerEngine(id)
+          release()
+          await assert.rejects(stats, isCode('CONNECTION_CLOSED'))
+          assert.deepEqual(
+            (await list).errors.map(_ => _.code),
+            ['CONNECTION_CLOSED']
+          )
+          assert.equal(fake.connects, 0)
+        })
+
+        it('one failed inspection does not fail the list', async () => {
+          const { id } = await seed({})
+          stubDaemon(
+            listAnswer({
+              'xo-healthy': () => {
+                throw new DockerError('DOCKER_API_ERROR', 'boom', { data: { statusCode: 500 } })
+              },
+            })
+          )
+          const { containers, errors } = await docker.getDockerContainers({ engines: [id] })
+          assert.deepEqual(errors, [])
+          const byName = Object.fromEntries(containers.map(_ => [_.name, _]))
+          assert.deepEqual(Object.keys(byName).sort(), RUNNING.slice().sort())
+          assert.equal(typeof byName['xo-nginx'].restartCount, 'number', 'inspected')
+          assert.equal(byName['xo-healthy'].restartCount, undefined, 'list entry only')
+        })
+
+        it('a malformed container list is a DOCKER_API_ERROR', async () => {
+          const { id } = await seed({})
+          for (const body of [{}, [{ ...CONTAINER_LIST[0], Names: [1] }], [{ ...CONTAINER_LIST[0], Names: '/x' }]]) {
+            stubDaemon(path => (path === '/containers/json' ? body : INSPECT_BY_NAME['xo-nginx']))
+            const { errors } = await docker.getDockerContainers({ engines: [id], forceRefresh: true })
+            assert.deepEqual(
+              errors.map(_ => _.code),
+              ['DOCKER_API_ERROR'],
+              JSON.stringify(body)
+            )
+          }
+        })
+
+        it('maxStatsEngines caps the live samplers: beyond, no stats', async () => {
+          const capped = await createDocker({ redis, crypto, config: { docker: { maxStatsEngines: 1 } } })
+          try {
+            const a = await seed({})
+            const b = await seed({ host: '192.0.2.11' })
+            stubDaemon(listAnswer())
+            // stats streams which never send anything
+            DockerConnection.prototype.requestStream = async () => new Readable({ read() {} })
+            const { containers, errors } = await capped.docker.getDockerContainers({
+              engines: [a.id, b.id],
+              stats: true,
+            })
+            assert.deepEqual(errors, [])
+            const pending = new Set(containers.filter(_ => _.statsPending).map(_ => _.$engine))
+            assert.equal(containers.length, 4)
+            assert.equal(pending.size, 1)
+          } finally {
+            await capped.emit('stop')
+          }
+        })
+
+        it('logs: at most maxLogsTail entries (long lines are split), the response is cut', async () => {
+          const short = await createDocker({ redis, crypto, config: { docker: { maxLogsTail: 10 } } })
+          try {
+            const a = await seed({})
+            let body
+            DockerConnection.prototype.requestStream = async () => {
+              body = new Readable({ read() {} })
+              body.headers = { 'content-type': 'application/vnd.docker.raw-stream' }
+              // never ends
+              body.push('\n'.repeat(50))
+              return body
+            }
+            const start = Date.now()
+            const logs = await short.docker.getDockerContainerLogs(`${a.id}_${'a'.repeat(64)}`, { tail: 10 })
+            assert.ok(Date.now() - start < 2e3)
+            assert.equal(logs.entries.length, 10)
+            assert.equal(logs.truncated, true)
+            assert.equal(logs.timedOut, false)
+            assert.ok(body.destroyed)
+          } finally {
+            await short.emit('stop')
+          }
+        })
+
+        it('host key: a whole ssh-keygen -l line is accepted, its type is kept by the import', async () => {
+          const { id } = await seed({})
+          fake.observed = { fingerprint: WRONG_FINGERPRINT, algorithm: 'ssh-rsa' }
+          const engine = await docker.updateDockerEngine(id, {
+            hostKeyFingerprint: `3072 ${WRONG_FINGERPRINT} root@docker (RSA)`,
+          })
+          assert.equal(engine.hostKeyFingerprint, WRONG_FINGERPRINT)
+          assert.equal(engine.hostKeyAlgorithm, 'ssh-rsa')
+
+          const { app } = await createDocker({ redis, crypto, config: {} })
+          const imp = app.configManagers.dockerEngines.imp
+          const record = { id: 'imported', host: 'h', username: 'u', password: 'p' }
+          await assert.rejects(imp([{ ...record, hostKeyFingerprint: FINGERPRINT, hostKeyAlgorithm: 'foo' }]), {
+            code: 10,
+          })
+          await imp([{ ...record, hostKeyFingerprint: `256 ${FINGERPRINT.slice(7)}= c (ECDSA)` }])
+          const imported = await seedDb.first('imported')
+          assert.equal(imported.hostKeyFingerprint, FINGERPRINT)
+          assert.equal(imported.hostKeyAlgorithm, 'ecdsa-sha2-nistp256')
+        })
+
+        it('pinning an accepted unknown key keeps the pooled connection', async () => {
+          const lax = await createDocker({ redis, crypto, config: { docker: { strictHostKeyChecking: false } } })
+          try {
+            const { id } = await seed({ hostKeyFingerprint: undefined, hostKeyAlgorithm: undefined })
+            await lax.docker.getDockerEngineInfo(id).catch(() => {})
+            assert.equal((await seedDb.first(id)).hostKeyFingerprint, FINGERPRINT, 'pinned')
+            await lax.docker.getDockerEngineInfo(id).catch(() => {})
+            assert.equal(fake.connects, 1)
+          } finally {
+            await lax.emit('stop')
+          }
+        })
+      })
+
       describe('containers: parameters checked before any connection', () => {
         it('getDockerContainers()', async () => {
           await assert.rejects(docker.getDockerContainers(), { code: 10 })
@@ -1106,7 +1324,7 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
         { ...result, engineVersion: typeof result.engineVersion },
         {
           ok: true,
-          apiVersion: '1.43',
+          apiVersion: MAX_API_VERSION,
           engineVersion: 'string',
           fingerprint,
           algorithm: 'ssh-ed25519',
@@ -1121,7 +1339,7 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
       assert.ok(info.asOf >= before)
       assert.match(info.engineVersion, /^\d+\.\d+/)
       assert.equal(typeof info.daemonId, 'string')
-      assert.equal(info.apiVersion, '1.43', 'the negotiated version')
+      assert.equal(info.apiVersion, MAX_API_VERSION, 'the negotiated version')
       assert.match(info.daemonApiVersion, /^1\.\d+$/)
       assert.equal('id' in info, false)
       assert.ok(info.containers.total >= 7)
