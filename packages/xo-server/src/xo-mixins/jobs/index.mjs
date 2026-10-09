@@ -218,18 +218,18 @@ export default class Jobs {
 
     let previousBackupLog
     let startBackupLog
-    // sequence have no backup-log associated
-    if (type === 'backup' || job.key === undefined) {
+    const hasBackupLog = type === 'backup' || job.key === undefined
+    if (hasBackupLog) {
       startBackupLog = {
         ...(await app.getBackupNgLogs(runJobId)),
-        status: 'pending', // overitte the status, because `getBackupNgLogs` return a `interrupted` status here. see `handleLog`
+        status: 'pending', // overwrite the status, because `getBackupNgLogs` return a `interrupted` status here. see `handleLog`
       }
       app.backupLogsEe.emit('add', startBackupLog)
       previousBackupLog = startBackupLog
     }
 
     function emitBackupLogUpdate(backupLog) {
-      if (startBackupLog !== undefined) {
+      if (hasBackupLog) {
         app.backupLogsEe.emit('update', backupLog, previousBackupLog)
         previousBackupLog = backupLog
       }
@@ -325,17 +325,16 @@ export default class Jobs {
 
       // Links the job run to its backup log
       const jobUpdateFct = async backupTaskId => {
-        function onBackupTaskUpdate(task) {
-          const backupLog = { ...startBackupLog, tasks: [structuredClone(task)] }
-          taskFormatAdapter(backupLog)
-          if (backupLog.tasks === undefined) {
-            delete backupLog.tasks
+        if (hasBackupLog) {
+          function onBackupTaskUpdate(task) {
+            const backupLog = { ...startBackupLog, tasks: [structuredClone(task)] }
+            taskFormatAdapter(backupLog)
+            emitBackupLogUpdate(backupLog)
           }
-          emitBackupLogUpdate(backupLog)
-        }
 
-        app.tasks.on(backupTaskId, onBackupTaskUpdate)
-        unwatchBackupTask = () => app.tasks.off(backupTaskId, onBackupTaskUpdate)
+          app.tasks.on(backupTaskId, onBackupTaskUpdate)
+          unwatchBackupTask = () => app.tasks.off(backupTaskId, onBackupTaskUpdate)
+        }
 
         await logger.notice(`Adding backupTaskId to job run ${runJobId}`, {
           backupTaskId,
@@ -379,10 +378,12 @@ export default class Jobs {
       app.emit('job:terminated', runJobId, { type })
       throw error
     } finally {
-      unwatchBackupTask()
-      app.getBackupNgLogs(REMOVE_CACHE_ENTRY, runJobId)
-      const backupLog = await app.getBackupNgLogs(runJobId)
-      emitBackupLogUpdate(backupLog)
+      if (hasBackupLog) {
+        unwatchBackupTask()
+        app.getBackupNgLogs(REMOVE_CACHE_ENTRY, runJobId)
+        const backupLog = await app.getBackupNgLogs(runJobId)
+        emitBackupLogUpdate(backupLog)
+      }
     }
   }
 
