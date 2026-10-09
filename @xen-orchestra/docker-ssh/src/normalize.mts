@@ -1,6 +1,6 @@
 // Docker Engine API wire shapes → XO DTOs.
 //
-// Pure functions, written against API 1.43 (`MAX_API_VERSION`) and tolerant of
+// Pure functions, written against API 1.44 (`MAX_API_VERSION`) and tolerant of
 // fields missing in older versions. Timestamps are converted to ms since the
 // epoch. Optional values which do not apply are left `undefined` (so they are
 // omitted from JSON), except the stats values which are `null` when they cannot
