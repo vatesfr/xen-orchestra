@@ -65,6 +65,7 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/vmdk major
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
