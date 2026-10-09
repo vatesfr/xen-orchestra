@@ -19,10 +19,13 @@ const INITIAL_FORM_DATA = {
 
 export type SmbBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 
-export function useSmbBackupRepositoryDetailsForm(initialData?: Partial<SmbBackupRepositoryDetailsFormData>) {
+export function useSmbBackupRepositoryDetailsForm(
+  initialData?: Partial<SmbBackupRepositoryDetailsFormData>,
+  mixedFields: (keyof SmbBackupRepositoryDetailsFormData)[] = []
+) {
   const { t } = useI18n()
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+  const { formData, useField, validate, reset, getMixedPlaceholder } = useBackupRepositoryDetailsForm(
     { ...INITIAL_FORM_DATA, ...initialData },
     {
       errors: {
@@ -32,7 +35,8 @@ export function useSmbBackupRepositoryDetailsForm(initialData?: Partial<SmbBacku
           password: { required },
         }),
       },
-    }
+    },
+    mixedFields
   )
 
   const bindings = reactive({
@@ -41,20 +45,34 @@ export function useSmbBackupRepositoryDetailsForm(initialData?: Partial<SmbBacku
       required: true,
       prefix: '\\\\',
       info: t('smb-share-sample'),
+      placeholder: getMixedPlaceholder('pathOnShare'),
     })),
     subfolder: useField('subfolder', () => ({
       label: t('subfolder'),
       prefix: '\\',
       info: t('smb-subfolder-sample'),
+      placeholder: getMixedPlaceholder('subfolder'),
     })),
-    username: useField('username', () => ({ label: t('username'), required: true })),
-    password: useField('password', () => ({ label: t('password'), required: true, type: 'password' as const })),
+    username: useField('username', () => ({
+      label: t('username'),
+      required: true,
+      placeholder: getMixedPlaceholder('username'),
+    })),
+    password: useField('password', () => ({
+      label: t('password'),
+      required: true,
+      type: 'password' as const,
+      placeholder: getMixedPlaceholder('password'),
+    })),
     domain: useField('domain', () => ({
       label: t('domain'),
-      placeholder: SMB_DEFAULT_DOMAIN,
+      placeholder: getMixedPlaceholder('domain', SMB_DEFAULT_DOMAIN),
       info: t('value-by-default', { value: SMB_DEFAULT_DOMAIN }),
     })),
-    customOptions: useField('customOptions', () => ({ label: t('custom-options') })),
+    customOptions: useField('customOptions', () => ({
+      label: t('custom-options'),
+      placeholder: getMixedPlaceholder('customOptions'),
+    })),
   })
 
   function buildPayload(): BackupRepositoryDetailsPayload {

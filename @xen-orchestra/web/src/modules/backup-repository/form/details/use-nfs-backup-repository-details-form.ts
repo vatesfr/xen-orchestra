@@ -17,10 +17,13 @@ const INITIAL_FORM_DATA = {
 
 export type NfsBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 
-export function useNfsBackupRepositoryDetailsForm(initialData?: Partial<NfsBackupRepositoryDetailsFormData>) {
+export function useNfsBackupRepositoryDetailsForm(
+  initialData?: Partial<NfsBackupRepositoryDetailsFormData>,
+  mixedFields: (keyof NfsBackupRepositoryDetailsFormData)[] = []
+) {
   const { t } = useI18n()
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+  const { formData, useField, validate, reset, getMixedPlaceholder } = useBackupRepositoryDetailsForm(
     { ...INITIAL_FORM_DATA, ...initialData },
     {
       errors: {
@@ -32,18 +35,30 @@ export function useNfsBackupRepositoryDetailsForm(initialData?: Partial<NfsBacku
           path: { required },
         }),
       },
-    }
+    },
+    mixedFields
   )
 
   const bindings = reactive({
-    host: useField('host', () => ({ label: t('host-or-ip-address'), required: true })),
+    host: useField('host', () => ({
+      label: t('host-or-ip-address'),
+      required: true,
+      placeholder: getMixedPlaceholder('host'),
+    })),
     port: useField('port', () => ({
       label: t('port'),
-      placeholder: NFS_DEFAULT_PORT,
+      placeholder: getMixedPlaceholder('port', NFS_DEFAULT_PORT),
       info: t('value-by-default', { value: NFS_DEFAULT_PORT }),
     })),
-    path: useField('path', () => ({ label: t('path-on-share'), required: true })),
-    customOptions: useField('customOptions', () => ({ label: t('custom-options') })),
+    path: useField('path', () => ({
+      label: t('path-on-share'),
+      required: true,
+      placeholder: getMixedPlaceholder('path'),
+    })),
+    customOptions: useField('customOptions', () => ({
+      label: t('custom-options'),
+      placeholder: getMixedPlaceholder('customOptions'),
+    })),
   })
 
   function buildPayload(): BackupRepositoryDetailsPayload {

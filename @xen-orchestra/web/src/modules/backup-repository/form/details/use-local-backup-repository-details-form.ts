@@ -16,12 +16,13 @@ export type LocalBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 
 export function useLocalBackupRepositoryDetailsForm(
   rawProxy: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>,
-  initialData?: Partial<LocalBackupRepositoryDetailsFormData>
+  initialData?: Partial<LocalBackupRepositoryDetailsFormData>,
+  mixedFields: (keyof LocalBackupRepositoryDetailsFormData)[] = []
 ) {
   const proxy = toComputed(rawProxy)
   const { t } = useI18n()
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+  const { formData, useField, validate, reset, getMixedPlaceholder } = useBackupRepositoryDetailsForm(
     { ...INITIAL_FORM_DATA, ...initialData },
     {
       errors: {
@@ -29,7 +30,8 @@ export function useLocalBackupRepositoryDetailsForm(
           path: { required },
         }),
       },
-    }
+    },
+    mixedFields
   )
 
   const bindings = reactive({
@@ -37,6 +39,7 @@ export function useLocalBackupRepositoryDetailsForm(
       label: t('backup-repository-path'),
       required: true,
       info: proxy.value ? t('path-must-be-absolute-on-proxy-host') : undefined,
+      placeholder: getMixedPlaceholder('path'),
     })),
   })
 
