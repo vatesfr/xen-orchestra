@@ -138,10 +138,28 @@ describe('negotiateApiVersion()', () => {
     assert.throws(() => negotiateApiVersion({ ApiVersion: '1.23' }), { code: DOCKER_API_VERSION_UNSUPPORTED })
   })
 
-  it('rejects a daemon which does not support our max version', () => {
-    assert.throws(() => negotiateApiVersion({ ApiVersion: '1.51', MinAPIVersion: '1.44' }), {
-      code: DOCKER_API_VERSION_UNSUPPORTED,
-    })
+  it('negotiates 1.44 with Docker 29 (MinAPIVersion 1.44)', () => {
+    assert.equal(negotiateApiVersion({ ApiVersion: '1.52', MinAPIVersion: '1.44' }), '1.44')
+  })
+
+  it("uses the daemon's oldest version, with a warning, when it does not support our max version", () => {
+    const symbol = Symbol.for('@xen-orchestra/log')
+    const global = globalThis as unknown as Record<symbol, unknown>
+    const transport = global[symbol]
+    const logs: { level: number; message: string }[] = []
+    global[symbol] = (log: { level: number; message: string }) => logs.push(log)
+    try {
+      assert.equal(negotiateApiVersion({ ApiVersion: '1.52', MinAPIVersion: '1.45' }), '1.45')
+    } finally {
+      global[symbol] = transport
+    }
+    assert.equal(logs.length, 1)
+    assert.match(logs[0].message, /does not support the API version/)
+  })
+
+  it('ignores an inconsistent MinAPIVersion', () => {
+    assert.equal(negotiateApiVersion({ ApiVersion: '1.52', MinAPIVersion: '1.60' }), MAX_API_VERSION)
+    assert.equal(negotiateApiVersion({ ApiVersion: '1.52', MinAPIVersion: 'x' }), MAX_API_VERSION)
   })
 
   it('rejects an invalid answer', () => {

@@ -3,13 +3,13 @@
 // API definitions this package reads, from the official OpenAPI (Swagger 2.0)
 // specifications published by Docker.
 //
-// - API 1.43 (`MAX_API_VERSION` in `src/connection.mts`) for everything
+// - API 1.44 (`MAX_API_VERSION` in `src/connection.mts`) for everything
 // - API 1.48 for the stats: before it, the spec documents the stats response as
 //   a plain `object` (the field names did not change, `ContainerStatsResponse`
 //   only documents them)
 //
 // Only the definitions reachable from `ROOTS` are kept. The inspect response is
-// inline in the 1.43 spec: it is added as `ContainerInspectResponse`, the name
+// inline in the 1.44 spec: it is added as `ContainerInspectResponse`, the name
 // later specs use.
 //
 //   yarn generate-api-types    # needs network access (specs + npx)
@@ -21,7 +21,7 @@ import { join } from 'node:path'
 import { parse } from 'yaml'
 
 const SPEC_URL = version => `https://docs.docker.com/reference/api/engine/version/v${version}.yaml`
-const API_VERSION = '1.43'
+const API_VERSION = '1.44'
 const STATS_API_VERSION = '1.48'
 const OPENAPI_TYPESCRIPT = 'openapi-typescript@5.4.2' // last major reading Swagger 2.0
 
