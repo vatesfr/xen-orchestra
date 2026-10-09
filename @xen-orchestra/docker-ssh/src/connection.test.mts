@@ -16,6 +16,7 @@ import {
   MAX_API_VERSION,
   negotiateApiVersion,
   normalizeFingerprint,
+  parseFingerprint,
   verifyHostKey,
   type DockerConnectionOptions,
 } from './connection.mjs'
@@ -30,7 +31,7 @@ import {
   TIMEOUT,
   type DockerError,
 } from './errors.mjs'
-import type { ConnectConfig } from 'ssh2'
+import type { ClientCallback, ClientChannel, ConnectConfig } from 'ssh2'
 
 const { after, before, beforeEach, describe, it } = test
 
@@ -56,6 +57,26 @@ describe('host key fingerprint', () => {
   it('normalizes user input', () => {
     assert.equal(normalizeFingerprint(' xo1L4JygV0hw5XQ+LHcn2iI3C9GvGsDRBNh+q7iQazs= '), ED25519_FINGERPRINT)
     assert.equal(normalizeFingerprint(ED25519_FINGERPRINT), ED25519_FINGERPRINT)
+  })
+
+  it('parses a whole ssh-keygen -l line, taking the algorithm from its type', () => {
+    const fp = ED25519_FINGERPRINT
+    assert.deepEqual(parseFingerprint(`256 ${fp} root@host (ED25519)`), { fingerprint: fp, algorithm: 'ssh-ed25519' })
+    assert.deepEqual(parseFingerprint(` 384 ${fp} a comment with spaces (ECDSA) `), {
+      fingerprint: fp,
+      algorithm: 'ecdsa-sha2-nistp384',
+    })
+    assert.deepEqual(parseFingerprint(`3072 ${fp} no comment (RSA)`), { fingerprint: fp, algorithm: 'ssh-rsa' })
+    assert.deepEqual(parseFingerprint(`256 ${fp} (ED25519)`), { fingerprint: fp, algorithm: 'ssh-ed25519' })
+    assert.deepEqual(parseFingerprint(`256 ${fp} (FOO)`), { fingerprint: fp, algorithm: undefined })
+    assert.deepEqual(parseFingerprint(fp.slice('SHA256:'.length) + '='), { fingerprint: fp, algorithm: undefined })
+  })
+
+  it('verifyHostKey() mentions the presented algorithm on HOST_KEY_MISMATCH', () => {
+    assert.throws(() => verifyHostKey(Buffer.from(RSA_KEY, 'base64'), { expectedFingerprint: ED25519_FINGERPRINT }), {
+      code: HOST_KEY_MISMATCH,
+      message: /\(ssh-rsa\)/,
+    })
   })
 
   it('verifyHostKey() accepts the expected key', () => {
@@ -263,8 +284,9 @@ class FakeSshClient extends EventEmitter {
     return this
   }
 
-  // not used by these tests, but part of `SshClient`
-  exec(): this {
+  // part of `SshClient`, replaced by the tests which use it
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  exec(command: string, cb: ClientCallback): this {
     throw new Error('not implemented')
   }
 }
@@ -354,6 +376,69 @@ describe('DockerConnection (fake daemon)', () => {
     )
     return { client, connection }
   }
+
+  it('exec() times out when the session channel is never opened, and drops a late one', async () => {
+    const { client, connection } = createConnection({ requestTimeout: 50 })
+    let callback: ClientCallback | undefined
+    client.exec = (command, cb) => {
+      callback = cb
+      return client
+    }
+    await assert.rejects(connection.exec('true'), { code: TIMEOUT })
+    let destroyed = false
+    const late = new Duplex({ read() {}, write: (chunk, encoding, cb) => cb() })
+    late.destroy = function (this: Duplex) {
+      destroyed = true
+      return this
+    }
+    callback!(undefined, late as unknown as ClientChannel)
+    assert.ok(destroyed)
+    await connection.close()
+  })
+
+  it('exec() ends stdin and collects the output', async () => {
+    const { client, connection } = createConnection()
+    let stdinEnded = false
+    client.exec = (command, cb) => {
+      const channel = Object.assign(
+        new Duplex({ read() {}, write: (chunk, encoding, cb) => cb(), final: cb => ((stdinEnded = true), cb()) }),
+        { stderr: new EventEmitter() }
+      )
+      process.nextTick(cb, undefined, channel as unknown as ClientChannel)
+      setImmediate(() => {
+        channel.push('ok\n')
+        channel.emit('exit', 0)
+        channel.emit('close')
+      })
+      return client
+    }
+    assert.deepEqual(await connection.exec('true'), { code: 0, signal: undefined, stdout: 'ok\n', stderr: '' })
+    assert.ok(stdinEnded)
+    await connection.close()
+  })
+
+  it('reports a daemon closing the channel or answering garbage as DOCKER_API_ERROR', async () => {
+    const { connection } = createConnection()
+    await connection.connect()
+    handler = req => req.socket.destroy()
+    await assert.rejects(connection.request({ path: '/containers/json' }), { code: DOCKER_API_ERROR })
+    handler = req => req.socket.end('garbage\r\n\r\n')
+    await assert.rejects(connection.request({ path: '/containers/json' }), { code: DOCKER_API_ERROR })
+    await connection.close()
+  })
+
+  it('caps a buffered response at 8 MiB by default, maxSize allows more', async () => {
+    const { connection } = createConnection({ requestTimeout: 10e3 })
+    await connection.connect()
+    handler = (req, res) => {
+      res.writeHead(200, { 'content-type': 'application/octet-stream' })
+      res.end(Buffer.alloc(9 * 1024 * 1024))
+    }
+    await assert.rejects(connection.request({ path: '/big' }), { code: DOCKER_API_ERROR })
+    const { body } = await connection.request({ path: '/big', maxSize: 16 * 1024 * 1024 })
+    assert.equal((body as Buffer).length, 9 * 1024 * 1024)
+    await connection.close()
+  })
 
   it('drops keep-alive channels closed by an SSH connection loss (still writable)', async () => {
     const { client, connection } = createConnection()
