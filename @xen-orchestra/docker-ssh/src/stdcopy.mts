@@ -58,7 +58,7 @@ export type DockerLogLine = Omit<XoDockerLogEntry, 'stream' | 'timestamp'> & {
  *
  * @param contentType response `Content-Type`
  * @param tty `Config.Tty` of the container, if known
- * @param apiVersion negotiated API version, e.g. `1.43`
+ * @param apiVersion negotiated API version, e.g. `1.44`
  */
 export function isMultiplexedStream(contentType: string | undefined, tty?: boolean, apiVersion?: string): boolean {
   const type = contentType?.split(';')[0].trim().toLowerCase()

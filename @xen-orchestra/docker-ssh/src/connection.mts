@@ -28,7 +28,10 @@ import type { DockerVersion } from './wire.mjs'
 const { debug, warn } = createLogger('xo:docker:connection')
 
 // newest Docker Engine API version this code has been written against
-export const MAX_API_VERSION = '1.43'
+//
+// 1.44 (Docker 25): Docker 29 refuses older versions by default (its
+// `MinAPIVersion` is 1.44), see `negotiateApiVersion()` for newer floors
+export const MAX_API_VERSION = '1.44'
 // oldest Docker Engine API version supported
 export const MIN_API_VERSION = '1.24'
 
@@ -266,10 +269,22 @@ export function negotiateApiVersion({
   if (compareApiVersions(ApiVersion, MIN_API_VERSION) < 0) {
     throw new DockerError(DOCKER_API_VERSION_UNSUPPORTED, 'the Docker daemon is too old', { data })
   }
-  if (typeof MinAPIVersion === 'string' && compareApiVersions(MAX_API_VERSION, MinAPIVersion) < 0) {
-    throw new DockerError(DOCKER_API_VERSION_UNSUPPORTED, 'the Docker daemon is too recent', { data })
+  const version = compareApiVersions(ApiVersion, MAX_API_VERSION) < 0 ? ApiVersion : MAX_API_VERSION
+  // a daemon refusing our max version: its oldest one is used rather than
+  // failing, newer API versions are mostly additive
+  if (
+    typeof MinAPIVersion === 'string' &&
+    /^\d+\.\d+$/.test(MinAPIVersion) &&
+    compareApiVersions(MinAPIVersion, version) > 0 &&
+    compareApiVersions(MinAPIVersion, ApiVersion) <= 0
+  ) {
+    warn(
+      'the Docker daemon does not support the API version this code has been written against, using its oldest one',
+      data
+    )
+    return MinAPIVersion
   }
-  return compareApiVersions(ApiVersion, MAX_API_VERSION) < 0 ? ApiVersion : MAX_API_VERSION
+  return version
 }
 
 // preferred `serverHostKey` algorithms for a given host key type
@@ -558,7 +573,7 @@ export class DockerConnection {
     return { requests: this.#limiter.active, streams: this.#streamLimiter.active }
   }
 
-  /** negotiated API version, e.g. `1.43` */
+  /** negotiated API version, e.g. `1.44` */
   get apiVersion(): string | undefined {
     return this.#apiVersion
   }
