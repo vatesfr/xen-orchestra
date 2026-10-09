@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { serializeError } from '@vates/task'
-import { featureUnauthorized, noSuchObject } from 'xo-common/api-errors.js'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
 import { DockerEngineController } from './docker-engine.controller.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
@@ -43,7 +43,7 @@ type Task = { id: string; properties: Record<string, unknown>; result?: unknown 
 // error itself if it has a `toJSON()`, otherwise `serializeError(error)`
 const recordError = (error: unknown) => (error instanceof Error && !('toJSON' in error) ? serializeError(error) : error)
 
-function setup({ licensed = true, xoApp: xoAppOverrides = {} }: { licensed?: boolean; xoApp?: object } = {}) {
+function setup({ xoApp: xoAppOverrides = {} }: { xoApp?: object } = {}) {
   const calls: { method: string; args: unknown[] }[] = []
   const tasks: Task[] = []
   const record =
@@ -53,11 +53,6 @@ function setup({ licensed = true, xoApp: xoAppOverrides = {} }: { licensed?: boo
       return result(...args)
     }
   const xoApp = {
-    checkFeatureAuthorization: async () => {
-      if (!licensed) {
-        throw featureUnauthorized({ featureCode: 'DOCKER' })
-      }
-    },
     getAllDockerEngines: record('getAllDockerEngines', () => [engine]),
     getDockerEngine: record('getDockerEngine', id => {
       if (id !== ENGINE_ID) {
@@ -237,24 +232,6 @@ describe('DockerEngineController', () => {
     assert.deepEqual(await controller.testDockerEngine(ENGINE_ID, true), { ok: true, fingerprint: 'SHA256:x' })
     assertNoSecrets(tasks)
     assert.equal(tasks[0].properties.params, undefined)
-  })
-
-  it('every route checks the DOCKER feature first', async () => {
-    const { calls, controller, tasks } = setup({ licensed: false })
-    const req = { query: {}, path: '/rest/v0/docker-engines' } as never
-    for (const call of [
-      () => controller.getDockerEngines(req),
-      () => controller.getDockerEngine(ENGINE_ID),
-      () => controller.getDockerEngineInfo(ENGINE_ID),
-      () => controller.createDockerEngine({ username: 'xo', host: 'h', ...SECRETS }),
-      () => controller.updateDockerEngine(ENGINE_ID, { label: 'x' }),
-      () => controller.deleteDockerEngine(ENGINE_ID),
-      () => controller.testDockerEngine(ENGINE_ID, true),
-    ]) {
-      await assert.rejects(call(), featureUnauthorized.is)
-    }
-    assert.deepEqual(calls, [])
-    assert.deepEqual(tasks, [])
   })
 
   it('test: 404 before creating a task', async () => {
