@@ -4,6 +4,7 @@ import { type Duplex, Readable } from 'node:stream'
 import {
   Client,
   type ClientCallback,
+  type ClientChannel,
   type ClientErrorExtensions,
   type ConnectConfig,
   type ServerHostKeyAlgorithm,
@@ -38,7 +39,8 @@ export const MIN_API_VERSION = '1.24'
 const DEFAULT_CONNECT_TIMEOUT = 10e3
 const DEFAULT_REQUEST_TIMEOUT = 30e3
 const CLOSE_TIMEOUT = 5e3
-const MAX_RESPONSE_SIZE = 64 * 1024 * 1024
+// default max size of a buffered response (`request()`), see its `maxSize` option
+export const DEFAULT_MAX_RESPONSE_SIZE = 8 * 1024 * 1024
 
 // `http.Agent` does not count the sockets being created asynchronously (see
 // `createSocket()` in Node's `lib/_http_agent.js`), therefore its `maxSockets`
@@ -192,6 +194,48 @@ export function normalizeFingerprint(fingerprint: string): string {
   return normalized
 }
 
+/** host key types (as in `HostKey.algorithm`) which can be expected, see `hostKeyAlgorithmsFor()` */
+export const HOST_KEY_TYPES = new Set([
+  'ssh-ed25519',
+  'ecdsa-sha2-nistp256',
+  'ecdsa-sha2-nistp384',
+  'ecdsa-sha2-nistp521',
+  'ssh-rsa',
+  'ssh-dss',
+])
+
+// type printed by `ssh-keygen -l` → host key type
+const KEYGEN_TYPES: Record<string, (bits: string | undefined) => string | undefined> = {
+  ED25519: () => 'ssh-ed25519',
+  ECDSA: bits => (bits === '256' || bits === '384' || bits === '521' ? `ecdsa-sha2-nistp${bits}` : undefined),
+  RSA: () => 'ssh-rsa',
+  DSA: () => 'ssh-dss',
+}
+
+/**
+ * Parse a user-provided fingerprint: either the fingerprint alone, or a whole
+ * line printed by `ssh-keygen -l` (`256 SHA256:… comment (ED25519)`), whose
+ * trailing type gives the algorithm.
+ *
+ * @returns the normalized fingerprint (see `normalizeFingerprint()`, not
+ *   validated), and the host key type when known
+ */
+export function parseFingerprint(input: string): { fingerprint: string; algorithm: string | undefined } {
+  let rest = input.trim()
+  let type: string | undefined
+  const match = /\s*\(([\w-]+)\)$/.exec(rest)
+  if (match !== null) {
+    type = match[1].toUpperCase()
+    rest = rest.slice(0, match.index)
+  }
+  const parts = rest.split(/\s+/)
+  const bits = parts.length > 1 && /^\d+$/.test(parts[0]) ? parts.shift() : undefined
+  return {
+    fingerprint: normalizeFingerprint(parts[0]),
+    algorithm: type === undefined ? undefined : KEYGEN_TYPES[type]?.(bits),
+  }
+}
+
 /** An SSH host key, as seen during a handshake */
 export type HostKey = { fingerprint: string; algorithm: string | undefined }
 
@@ -217,9 +261,13 @@ export function verifyHostKey(
   }
   const expected = normalizeFingerprint(expectedFingerprint)
   if (expected !== observed.fingerprint) {
-    throw new DockerError(HOST_KEY_MISMATCH, 'the SSH host key does not match the expected one', {
-      data: { expected, actual: observed.fingerprint, algorithm: observed.algorithm },
-    })
+    throw new DockerError(
+      HOST_KEY_MISMATCH,
+      `the SSH host key (${observed.algorithm}) does not match the expected one`,
+      {
+        data: { expected, actual: observed.fingerprint, algorithm: observed.algorithm },
+      }
+    )
   }
   return observed
 }
@@ -436,6 +484,11 @@ export type DockerRequestOptions = {
   body?: unknown
   headers?: Record<string, string>
   signal?: AbortSignal
+}
+
+export type DockerBufferedRequestOptions = DockerRequestOptions & {
+  /** max size of the response body (bytes), DOCKER_API_ERROR above, default `DEFAULT_MAX_RESPONSE_SIZE` */
+  maxSize?: number
 }
 
 export type DockerStreamRequestOptions = DockerRequestOptions & {
@@ -873,6 +926,22 @@ export class DockerConnection {
         cause: errorLike!.name === 'AbortError' || signal.reason === undefined ? error : signal.reason,
       })
     }
+    // not an SSH failure (those have a `level`, or a numeric `reason`, unlike
+    // the string one of Node's HTTP parser errors): dockerd closed the channel
+    // or answered garbage, the engine itself is not deemed unusable (the pool
+    // keeps the connection, the stats sampler keeps running)
+    const { code, message, level, reason } = (error ?? {}) as Record<string, unknown>
+    if (
+      (typeof code === 'string' && code.startsWith('HPE_')) ||
+      (level === undefined &&
+        reason === undefined &&
+        (code === 'ECONNRESET' || code === 'EPIPE' || message === 'socket hang up'))
+    ) {
+      return new DockerError(DOCKER_API_ERROR, 'the Docker daemon closed the connection or sent an invalid response', {
+        data: { ...this.#context, path },
+        cause: error,
+      })
+    }
     return fromSshError(error, this.#context)
   }
 
@@ -903,7 +972,10 @@ export class DockerConnection {
     })
   }
 
-  async #request(opts: SendOptions & { signal?: AbortSignal }): Promise<DockerResponse> {
+  async #request({
+    maxSize = DEFAULT_MAX_RESPONSE_SIZE,
+    ...opts
+  }: SendOptions & { signal?: AbortSignal; maxSize?: number }): Promise<DockerResponse> {
     const generation = this.#generation
     const signal = AbortSignal.any(
       [AbortSignal.timeout(this.#requestTimeout), opts.signal].filter(signal => signal !== undefined)
@@ -916,10 +988,10 @@ export class DockerConnection {
       if (statusCode < 200 || statusCode >= 300) {
         await this.#throwApiError(response, opts.path, signal)
       }
-      const { buffer, truncated } = await raceSignal(readBody(response, MAX_RESPONSE_SIZE), signal)
+      const { buffer, truncated } = await raceSignal(readBody(response, maxSize), signal)
       if (truncated) {
         throw new DockerError(DOCKER_API_ERROR, 'Docker API response is too large', {
-          data: { maxSize: MAX_RESPONSE_SIZE },
+          data: { ...this.#context, path: opts.path, maxSize },
         })
       }
       const body = parseBody(response, buffer)
@@ -937,8 +1009,16 @@ export class DockerConnection {
    * @returns body is parsed when JSON, a Buffer otherwise
    * @throws {DockerError}
    */
-  request({ method, path, query, body, headers, signal }: DockerRequestOptions): Promise<DockerResponse> {
-    return this.#request({ method, path, query, body, headers, signal })
+  request({
+    method,
+    path,
+    query,
+    body,
+    headers,
+    signal,
+    maxSize,
+  }: DockerBufferedRequestOptions): Promise<DockerResponse> {
+    return this.#request({ method, path, query, body, headers, signal, maxSize })
   }
 
   /**
@@ -1008,46 +1088,62 @@ export class DockerConnection {
     try {
       const client = await raceSignal(this.#getClient(), signal)
       this.#assertNotClosedSince(generation)
-      return await new Promise<DockerExecResult>((resolve, reject) => {
-        client.exec(command, (error, channel) => {
-          if (error) {
-            reject(error)
-            return
-          }
-          const onAbort = () => {
-            channel.destroy()
-            reject(signal.reason)
-          }
-          signal.addEventListener('abort', onAbort, { once: true })
-
-          const collect = (chunks: Buffer[]) => {
-            let size = 0
-            return (chunk: Buffer) => {
-              if (size < maxOutputSize) {
-                chunks.push(chunk.subarray(0, maxOutputSize - size))
-              }
-              size += chunk.length
+      // the server may never answer the channel opening: abortable too
+      const channel = await raceSignal(
+        new Promise<ClientChannel>((resolve, reject) => {
+          client.exec(command, (error, channel) => {
+            if (error) {
+              reject(error)
+            } else if (signal.aborted) {
+              // opened after the abort: nobody will read it
+              channel.destroy()
+            } else {
+              resolve(channel)
             }
-          }
-          const stdout: Buffer[] = []
-          const stderr: Buffer[] = []
-          channel.on('data', collect(stdout))
-          channel.stderr.on('data', collect(stderr))
-
-          let exitCode: number | null = null
-          let exitSignal: string | undefined
-          channel.on('exit', (code: number | null, signalName?: string) => {
-            exitCode = code ?? null
-            exitSignal = signalName ?? undefined
           })
-          channel.on('close', () => {
-            signal.removeEventListener('abort', onAbort)
-            resolve({
-              code: exitCode,
-              signal: exitSignal,
-              stdout: Buffer.concat(stdout).toString('utf8'),
-              stderr: Buffer.concat(stderr).toString('utf8'),
-            })
+        }),
+        signal
+      )
+      // nothing is sent on stdin
+      channel.end()
+      return await new Promise<DockerExecResult>((resolve, reject) => {
+        const onAbort = () => {
+          channel.destroy()
+          reject(signal.reason)
+        }
+        signal.addEventListener('abort', onAbort, { once: true })
+        if (signal.aborted) {
+          onAbort()
+          return
+        }
+
+        const collect = (chunks: Buffer[]) => {
+          let size = 0
+          return (chunk: Buffer) => {
+            if (size < maxOutputSize) {
+              chunks.push(chunk.subarray(0, maxOutputSize - size))
+            }
+            size += chunk.length
+          }
+        }
+        const stdout: Buffer[] = []
+        const stderr: Buffer[] = []
+        channel.on('data', collect(stdout))
+        channel.stderr.on('data', collect(stderr))
+
+        let exitCode: number | null = null
+        let exitSignal: string | undefined
+        channel.on('exit', (code: number | null, signalName?: string) => {
+          exitCode = code ?? null
+          exitSignal = signalName ?? undefined
+        })
+        channel.on('close', () => {
+          signal.removeEventListener('abort', onAbort)
+          resolve({
+            code: exitCode,
+            signal: exitSignal,
+            stdout: Buffer.concat(stdout).toString('utf8'),
+            stderr: Buffer.concat(stderr).toString('utf8'),
           })
         })
       })
