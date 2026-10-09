@@ -55,7 +55,7 @@ import {
 } from '../open-api/oa-examples/docker-engine.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
-import { assertDockerFeature, obfuscateDockerEngineParams, withDockerErrors } from '../helpers/docker.helper.mjs'
+import { assertDockerFeature, withDockerErrors } from '../helpers/docker.helper.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -220,25 +220,10 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async createDockerEngine(@Body() body: CreateDockerEngineBody): Promise<{ id: string }> {
     await assertDockerFeature(this.restApi)
-    return this.createAction<{ id: string }>(
-      async task => {
-        const engine = await withDockerErrors(() =>
-          this.restApi.xoApp.createDockerEngine(body as XoDockerEngineProperties)
-        )
-        task.set('objectId', engine.id)
-        return { id: engine.id }
-      },
-      {
-        sync: true,
-        statusCode: createdResp.status,
-        taskProperties: {
-          name: 'create Docker engine',
-          // set by the action, once created
-          objectId: undefined as unknown as XoDockerEngine['id'],
-          params: obfuscateDockerEngineParams(body),
-        },
-      }
-    ) as Promise<{ id: string }>
+    // no task: its record (params, error) would be readable by every user with
+    // `task:read`
+    const engine = await this.restApi.xoApp.createDockerEngine(body as XoDockerEngineProperties)
+    return { id: engine.id }
   }
 
   /**
@@ -280,21 +265,8 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async updateDockerEngine(@Path() id: string, @Body() body: UpdateDockerEngineBody): Promise<void> {
     await assertDockerFeature(this.restApi)
-    const engineId = id as XoDockerEngine['id']
-    await this.createAction<void>(
-      async () => {
-        await withDockerErrors(() => this.restApi.xoApp.updateDockerEngine(engineId, body as XoDockerEngineProperties))
-      },
-      {
-        sync: true,
-        statusCode: noContentResp.status,
-        taskProperties: {
-          name: 'update Docker engine',
-          objectId: engineId,
-          params: obfuscateDockerEngineParams(body),
-        },
-      }
-    )
+    // no task, see createDockerEngine()
+    await this.restApi.xoApp.updateDockerEngine(id as XoDockerEngine['id'], body as XoDockerEngineProperties)
   }
 
   /**
@@ -313,12 +285,8 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteDockerEngine(@Path() id: string): Promise<void> {
     await assertDockerFeature(this.restApi)
-    const engineId = id as XoDockerEngine['id']
-    await this.createAction<void>(() => withDockerErrors(() => this.restApi.xoApp.deleteDockerEngine(engineId)), {
-      sync: true,
-      statusCode: noContentResp.status,
-      taskProperties: { name: 'delete Docker engine', objectId: engineId },
-    })
+    // no task, see createDockerEngine()
+    await this.restApi.xoApp.deleteDockerEngine(id as XoDockerEngine['id'])
   }
 
   /**
