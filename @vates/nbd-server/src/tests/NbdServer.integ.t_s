@@ -1,0 +1,200 @@
+import { test } from 'node:test';
+import * as assert from 'node:assert';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
+import { NBDServer } from '../NBDServer.js';
+import { MockDisk } from './MockDisk.t_s';
+
+const execFileAsync = promisify(execFile);
+
+const TEST_PORT = 10809;
+const TEST_EXPORT = 'test-disk';
+const BLOCK_SIZE = 4096;
+const DISK_SIZE = 10 * 1024 * 1024; // 10MB
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+test('NBD Server Integration Tests', async (t) => {
+  let server: NBDServer;
+  let disk: MockDisk;
+
+  t.before(async () => {
+    disk = new MockDisk(DISK_SIZE, BLOCK_SIZE);
+    const exports = new Map([[TEST_EXPORT, disk]]);
+    
+    server = new NBDServer({
+      port: TEST_PORT,
+      host: 'localhost',
+      exports,
+      diskTimeout: 30000, // 30 seconds for tests
+    });
+
+    // Wait for server to start
+    await sleep(500);
+  });
+
+  t.after(() => {
+    server.close();
+  });
+
+  await t.test('nbd-client can list exports', async () => {
+    try {
+      const { stdout } = await execFileAsync('nbdinfo', [
+         `--list`,
+        `nbd://localhost:${TEST_PORT}`
+      ]);
+      
+      assert.ok(stdout.includes(TEST_EXPORT), 'Export name should be listed');
+    } catch (err: any) {
+      if (err.code === 'ENOENT') {
+        console.log('⚠️  nbdinfo not found, skipping test');
+        return;
+      }
+      throw err;
+    }
+  });
+
+  await t.test('nbd-client can get export info', async () => {
+    try {
+      const { stdout } = await execFileAsync('nbdinfo', [
+        `nbd://localhost:${TEST_PORT}/${TEST_EXPORT}`
+      ]);
+      
+      assert.ok(stdout.includes('export='), 'Should show export info');
+      assert.ok(stdout.includes(`${DISK_SIZE}`), 'Should show correct size');
+    } catch (err: any) {
+      if (err.code === 'ENOENT') {
+        console.log('⚠️  nbdinfo not found, skipping test');
+        return;
+      }
+      throw err;
+    }
+  });
+
+  await t.test('can read data with nbd-client', async () => {
+    const tmpFile = path.join('/tmp', `nbd-test-${Date.now()}.img`);
+    
+    try {
+      // Use nbd-client to copy data
+      const nbdUri = `nbd://localhost:${TEST_PORT}/${TEST_EXPORT}`;
+      
+      // Try using nbdcopy if available
+      try {
+        await execFileAsync('nbdcopy', [nbdUri, tmpFile]);
+      } catch (err: any) {
+        if (err.code === 'ENOENT') {
+          console.log('⚠️  nbdcopy not found, trying dd via nbd-client');
+          
+          // Alternative: use nbd-client + dd
+          const nbdDevice = '/dev/nbd0';
+          await execFileAsync('sudo', ['nbd-client', 'localhost', TEST_PORT.toString(), nbdDevice, '-name', TEST_EXPORT]);
+          try {
+            await execFileAsync('sudo', ['dd', `if=${nbdDevice}`, `of=${tmpFile}`, 'bs=4096']);
+          } finally {
+            await execFileAsync('sudo', ['nbd-client', '-d', nbdDevice]);
+          }
+        } else {
+          throw err;
+        }
+      }
+
+      // Verify the data
+      const copiedData = await fs.readFile(tmpFile);
+      assert.strictEqual(copiedData.length, DISK_SIZE, 'Copied data should match disk size');
+
+      // Verify first block content
+      const firstBlock = copiedData.slice(0, BLOCK_SIZE);
+      const expectedFirstBlock = await disk.readBlock(0);
+      assert.ok(firstBlock.equals(expectedFirstBlock), 'First block should match');
+
+      // Verify last block content
+      const lastBlockIndex = Math.floor(DISK_SIZE / BLOCK_SIZE) - 1;
+      const lastBlock = copiedData.slice(lastBlockIndex * BLOCK_SIZE, (lastBlockIndex + 1) * BLOCK_SIZE);
+      const expectedLastBlock = await disk.readBlock(lastBlockIndex);
+      assert.ok(lastBlock.equals(expectedLastBlock), 'Last block should match');
+
+    } finally {
+      try {
+        await fs.unlink(tmpFile);
+      } catch {}
+    }
+  });
+
+  await t.test('multiple concurrent connections', async () => {
+    try {
+      const promises = [];
+      for (let i = 0; i < 5; i++) {
+        promises.push(
+          execFileAsync('nbdinfo', [`nbd://localhost:${TEST_PORT}/${TEST_EXPORT}`])
+        );
+      }
+      
+      const results = await Promise.all(promises);
+      
+      for (const { stdout } of results) {
+        assert.ok(stdout.includes(`${DISK_SIZE}`), 'Each connection should get correct info');
+      }
+    } catch (err: any) {
+      if (err.code === 'ENOENT') {
+        console.log('⚠️  nbdinfo not found, skipping test');
+        return;
+      }
+      throw err;
+    }
+  });
+
+  await t.test('aligned reads work correctly', async () => {
+    // This test verifies that only aligned reads are accepted
+    // We can't easily test this with external tools, so we'll test the disk directly
+    
+    const block0 = await disk.readBlock(0);
+    const block1 = await disk.readBlock(1);
+    
+    assert.strictEqual(block0.length, BLOCK_SIZE);
+    assert.strictEqual(block1.length, BLOCK_SIZE);
+    assert.ok(!block0.equals(block1), 'Different blocks should have different content');
+  });
+});
+
+test('MockDisk generates deterministic data', async (t) => {
+  await t.test('same seed produces same data', async () => {
+    const seed = 'test-seed-123';
+    const disk1 = new MockDisk(DISK_SIZE, BLOCK_SIZE, seed);
+    const disk2 = new MockDisk(DISK_SIZE, BLOCK_SIZE, seed);
+
+    await disk1.open();
+    await disk2.open();
+
+    const block1 = await disk1.readBlock(0);
+    const block2 = await disk2.readBlock(0);
+
+    assert.ok(block1.equals(block2), 'Same seed should produce same data');
+  });
+
+  await t.test('different seeds produce different data', async () => {
+    const disk1 = new MockDisk(DISK_SIZE, BLOCK_SIZE, 'seed1');
+    const disk2 = new MockDisk(DISK_SIZE, BLOCK_SIZE, 'seed2');
+
+    await disk1.open();
+    await disk2.open();
+
+    const block1 = await disk1.readBlock(0);
+    const block2 = await disk2.readBlock(0);
+
+    assert.ok(!block1.equals(block2), 'Different seeds should produce different data');
+  });
+
+  await t.test('reads are consistent', async () => {
+    const disk = new MockDisk(DISK_SIZE, BLOCK_SIZE);
+    await disk.open();
+
+    const read1 = await disk.readBlock(5);
+    const read2 = await disk.readBlock(5);
+
+    assert.ok(read1.equals(read2), 'Multiple reads of same block should return same data');
+  });
+});

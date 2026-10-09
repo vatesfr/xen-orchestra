@@ -1,0 +1,76 @@
+import * as crypto from 'node:crypto';
+import { Disk } from '../interfaces.js';
+
+export class MockDisk implements RandomAccessDisk {
+  private blockSize: number;
+  private numBlocks: number;
+  private data: Map<number, Buffer> = new Map();
+  private seed: string;
+  private reproductibleBlocks: boolean
+
+  constructor(sizeInBytes: number, blockSize: number = 4096, seed?: string, reproductibleBlocks = false) {
+    this.blockSize = blockSize;
+    this.numBlocks = Math.floor(sizeInBytes / blockSize);
+    this.seed = seed || crypto.randomBytes(16).toString('hex');
+    this.reproductibleBlocks = reproductibleBlocks
+  }
+
+  async open(): Promise<void> {
+    // Nothing to do for mock disk
+  }
+
+  get size(): number {
+    return this.numBlocks * this.blockSize;
+  }
+
+  getBlockSize(): number {
+    return this.blockSize;
+  }
+
+  async readBlock(blockIndex: number): Promise<Buffer> {
+    if (blockIndex < 0 || blockIndex >= this.numBlocks) {
+      throw new Error(`Block index ${blockIndex} out of range`);
+    }
+    if(!this.reproductibleBlocks){
+      return Buffer.alloc(this.blockSize)
+    }
+    // Check cache first
+    if (this.data.has(blockIndex)) {
+      return this.data.get(blockIndex)!;
+    }
+
+    // Generate deterministic random data based on seed and block index
+    const hash = crypto.createHash('sha256');
+    hash.update(this.seed);
+    hash.update(blockIndex.toString());
+    const seedForBlock = hash.digest();
+
+    // Generate block data
+    const block = Buffer.alloc(this.blockSize);
+    let offset = 0;
+    while (offset < this.blockSize) {
+      const hash2 = crypto.createHash('sha256');
+      hash2.update(seedForBlock);
+      hash2.update(offset.toString());
+      const chunk = hash2.digest();
+      const toCopy = Math.min(chunk.length, this.blockSize - offset);
+      chunk.copy(block, offset, 0, toCopy);
+      offset += toCopy;
+    }
+
+    // Cache the block
+    this.data.set(blockIndex, block);
+    return block;
+  }
+
+  // Helper to get the seed (for verification in tests)
+  getSeed(): string {
+    return this.seed;
+  }
+
+  // Helper to verify data integrity
+  async verifyBlock(blockIndex: number, data: Buffer): Promise<boolean> {
+    const expected = await this.readBlock(blockIndex);
+    return expected.equals(data);
+  }
+}
