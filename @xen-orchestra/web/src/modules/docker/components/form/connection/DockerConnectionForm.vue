@@ -49,6 +49,7 @@
           accent="brand"
           size="small"
           :left-icon="showAdvanced ? 'fa:chevron-up' : 'fa:chevron-down'"
+          :aria-expanded="showAdvanced"
           @click="showAdvanced = !showAdvanced"
         >
           {{ t('advanced-settings') }}

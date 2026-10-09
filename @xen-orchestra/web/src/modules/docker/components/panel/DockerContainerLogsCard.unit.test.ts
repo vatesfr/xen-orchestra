@@ -94,6 +94,12 @@ it('follows the tail only while the user stays at the bottom', async () => {
   Object.defineProperty(element, 'clientHeight', { value: 100 })
   Object.defineProperty(element, 'scrollTop', { value: 0, writable: true })
 
+  // the icon-only buttons have an accessible name
+  expect(wrapper.findAll('.actions button').map(button => button.attributes('aria-label'))).toEqual([
+    t('action:copy'),
+    t('action:open-in-new-tab'),
+  ])
+
   // at the bottom: follows the new lines
   await wrapper.setProps({ content: 'a\nb' })
   expect(element.scrollTop).toBe(200)
