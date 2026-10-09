@@ -1,6 +1,8 @@
 // Docker Engine API client reaching the Docker socket of a remote host through
 // SSH (`direct-streamlocal@openssh.com` channels), with nothing to install on
-// the host. No XO concepts here: see xo-server's `xo-mixins/docker.mjs`.
+// the host. The normalizers produce the `XoDocker*` types of `@vates/types`,
+// the XO records, permissions and configuration are in xo-server's
+// `xo-mixins/docker.mjs`.
 
 export * from './connection.mjs'
 export * from './cooldown.mjs'
@@ -13,6 +15,7 @@ export {
   type DockerConnectionState,
   type PoolableConnection,
 } from './pool.mjs'
+export * from './requests.mjs'
 export { DockerStatsSampler, type DockerStatsSamplerOptions } from './stats-sampler.mjs'
 export * from './ssh-http-agent.mjs'
 export * from './stdcopy.mjs'
