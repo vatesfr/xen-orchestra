@@ -878,7 +878,7 @@ export default class NewVm extends BaseComponent {
       return
     }
 
-    const defaultSr = getObject(store.getState(), template.$pool, true).default_SR
+    const defaultSr = getObject(store.getState(), template.$pool, true)?.default_SR
 
     return includes(
       resolveIds(

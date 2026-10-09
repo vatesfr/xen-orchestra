@@ -105,6 +105,7 @@ createJob.params = {
 export function getSuggestedExcludedTags() {
   return ['Continuous Replication', 'Disaster Recovery', this.config.get('xo-proxy.vmTag')]
 }
+getSuggestedExcludedTags.permission = 'admin'
 
 export function deleteJob({ id }) {
   return this.deleteBackupNgJob(id, 'backup')

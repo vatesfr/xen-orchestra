@@ -469,6 +469,8 @@ export async function listPoolsMatchingCriteria(params) {
   return this.listPoolsMatchingCriteria(params)
 }
 
+listPoolsMatchingCriteria.permission = 'admin'
+
 listPoolsMatchingCriteria.params = {
   minAvailableHostMemory: { type: 'number', optional: true },
   minAvailableSrSize: { type: 'number', optional: true },

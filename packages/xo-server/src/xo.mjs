@@ -22,6 +22,7 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { pipeline } from 'node:stream'
 import { UniqueIndex as XoUniqueIndex } from 'xo-collection/unique-index.js'
+import { computeObjectNotifications } from './_objectNotifications.mjs'
 
 import mixins from './xo-mixins/index.mjs'
 import { generateToken, noop } from './utils.mjs'
@@ -416,32 +417,64 @@ export default class Xo extends EventEmitter {
     })
 
     objects.on('finish', () => {
-      const enteredMessage = !isEmpty(entered) && {
-        type: 'enter',
-        items: entered,
-      }
-      const exitedMessage = !isEmpty(exited) && {
-        type: 'exit',
-        items: exited,
-      }
+      const enteredBatch = entered
+      const exitedBatch = exited
 
-      if (!enteredMessage && !exitedMessage) {
+      reset()
+
+      if (isEmpty(enteredBatch) && isEmpty(exitedBatch)) {
         return
       }
 
-      for (const connection of this.apiConnections) {
-        // Notifies only authenticated clients.
-        if (connection.has('user_id') && connection.notify) {
-          if (enteredMessage) {
-            connection.notify('all', enteredMessage)
-          }
-          if (exitedMessage) {
-            connection.notify('all', exitedMessage)
-          }
+      this.#notifyObjectChanges(enteredBatch, exitedBatch).catch(error =>
+        log.warn('failed to notify object changes', { error })
+      )
+    })
+  }
+
+  async #notifyObjectChanges(entered, exited) {
+    const connections = []
+    for (const apiConnection of this.apiConnections) {
+      if (apiConnection.has('user_id') && apiConnection.notify !== undefined) {
+        connections.push(apiConnection)
+      }
+    }
+
+    if (connections.length === 0) {
+      return
+    }
+
+    // one filter per distinct user, not per connection: several tabs belong to
+    // the same person and must not each pay for a lookup
+    const filterByUserId = new Map()
+    await Promise.all(
+      Array.from(new Set(connections.map(connection => connection.get('user_id'))), async userId => {
+        try {
+          filterByUserId.set(userId, await this.getObjectFilterForUser(userId))
+        } catch (error) {
+          log.warn('failed to compute the object filter of a user', { error, userId })
+
+          // fail closed: never let a failure to resolve permissions widen what
+          // is sent
+          filterByUserId.set(userId, () => false)
         }
+      })
+    )
+
+    for (const connection of connections) {
+      const { enter, exit } = computeObjectNotifications({
+        entered,
+        exited,
+        isObjectVisible: filterByUserId.get(connection.get('user_id')),
+      })
+
+      if (enter !== undefined) {
+        connection.notify('all', { type: 'enter', items: enter })
       }
 
-      reset()
-    })
+      if (exit !== undefined) {
+        connection.notify('all', { type: 'exit', items: exit })
+      }
+    }
   }
 }

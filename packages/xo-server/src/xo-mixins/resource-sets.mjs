@@ -96,8 +96,9 @@ export default class {
     return id
   }
 
-  _save(set) {
-    return this._store.put(set.id, set)
+  async _save(set) {
+    await this._store.put(set.id, set)
+    this._app.clearObjectFilterCache()
   }
 
   async checkResourceSetConstraints(id, userId, objectIds) {
@@ -154,7 +155,7 @@ export default class {
       shareByDefault,
     })
 
-    await this._store.put(id, set)
+    await this._save(set)
 
     return set
   }
@@ -168,7 +169,11 @@ export default class {
           this.setVmResourceSet(vm.id, null, true)
         )
       )
-      return store.del(id)
+
+      await store.del(id)
+      this._app.clearObjectFilterCache()
+
+      return
     }
 
     throw noSuchObject(id, 'resourceSet')
