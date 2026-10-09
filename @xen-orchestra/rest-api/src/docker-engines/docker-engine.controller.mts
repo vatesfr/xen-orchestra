@@ -55,7 +55,8 @@ import {
 } from '../open-api/oa-examples/docker-engine.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
-import { assertDockerFeature, withDockerErrors } from '../helpers/docker.helper.mjs'
+import { withDockerErrors } from '../helpers/docker.helper.mjs'
+import { dockerFeatureMiddleware } from '../middlewares/docker-feature.middleware.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -66,6 +67,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 // `docker-engine` ACL resource.
 @Route('docker-engines')
 @Security('*')
+@Middlewares(dockerFeatureMiddleware)
 @Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Response(featureUnauthorized.status, featureUnauthorized.description)
@@ -111,7 +113,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoDockerEngine>>>> {
-    await assertDockerFeature(this.restApi)
     return this.sendObjects(Object.values(await this.getObjects({ filter })), req, { limit })
   }
 
@@ -135,7 +136,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   @Response(badGatewayResp.status, 'Docker API error of the daemon')
   @Response(serviceUnavailableResp.status, 'Too many busy SSH connections, see the Retry-After header')
   async getDockerEngineInfo(@Path() id: string): Promise<XoDockerEngineInfo> {
-    await assertDockerFeature(this.restApi)
     // not cached: three requests on the pooled connection, and an unreachable
     // engine fails fast thanks to the pool's negative cache
     return this.restApi.xoApp.getDockerEngineInfo(id as XoDockerEngine['id'])
@@ -156,7 +156,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   @Get('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
   async getDockerEngine(@Path() id: string): Promise<Unbrand<XoDockerEngine>> {
-    await assertDockerFeature(this.restApi)
     return this.getObject(id as XoDockerEngine['id'])
   }
 
@@ -219,7 +218,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   @Response(badGatewayResp.status, 'SSH or Docker socket failure (see data.code, data.diagnostic)')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async createDockerEngine(@Body() body: CreateDockerEngineBody): Promise<{ id: string }> {
-    await assertDockerFeature(this.restApi)
     // no task: its record (params, error) would be readable by every user with
     // `task:read`
     const engine = await this.restApi.xoApp.createDockerEngine(body as XoDockerEngineProperties)
@@ -264,7 +262,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   @Response(badGatewayResp.status, 'SSH or Docker socket failure (see data.code, data.diagnostic)')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async updateDockerEngine(@Path() id: string, @Body() body: UpdateDockerEngineBody): Promise<void> {
-    await assertDockerFeature(this.restApi)
     // no task, see createDockerEngine()
     await this.restApi.xoApp.updateDockerEngine(id as XoDockerEngine['id'], body as XoDockerEngineProperties)
   }
@@ -284,7 +281,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteDockerEngine(@Path() id: string): Promise<void> {
-    await assertDockerFeature(this.restApi)
     // no task, see createDockerEngine()
     await this.restApi.xoApp.deleteDockerEngine(id as XoDockerEngine['id'])
   }
@@ -319,7 +315,6 @@ export class DockerEngineController extends XoController<XoDockerEngine> {
     @Path() id: string,
     @Query() sync?: boolean
   ): CreateActionReturnType<XoDockerEngineTestResult> {
-    await assertDockerFeature(this.restApi)
     const engineId = id as XoDockerEngine['id']
     // 404 before creating a task
     await this.getObject(engineId)

@@ -3,6 +3,7 @@ import {
   Example,
   Extension,
   Get,
+  Middlewares,
   Path,
   Post,
   Query,
@@ -42,7 +43,8 @@ import {
 } from '../open-api/oa-examples/docker-container.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
-import { assertDockerFeature, withDockerErrors } from '../helpers/docker.helper.mjs'
+import { withDockerErrors } from '../helpers/docker.helper.mjs'
+import { dockerFeatureMiddleware } from '../middlewares/docker-feature.middleware.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -58,6 +60,7 @@ const DOCKER_ERRORS_HEADER = 'x-docker-errors'
 // `docker-container` ACL resource.
 @Route('docker-containers')
 @Security('*')
+@Middlewares(dockerFeatureMiddleware)
 @Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Response(featureUnauthorized.status, featureUnauthorized.description)
@@ -123,7 +126,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
     @Query() stderr?: boolean,
     @Query() timestamps?: boolean
   ): Promise<XoDockerLogs> {
-    await assertDockerFeature(this.restApi)
     return this.#dockerContainerService.getLogs(id as XoDockerContainer['id'], {
       tail,
       since,
@@ -156,7 +158,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Response(badGatewayResp.status, 'SSH or Docker failure (see data.code)')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async getDockerContainerStats(@Path() id: string): Promise<XoDockerContainerStats> {
-    await assertDockerFeature(this.restApi)
     const containerId = id as XoDockerContainer['id']
     // 404 without connecting on a malformed id or an unknown engine
     await this.#dockerContainerService.assertContainerId(containerId)
@@ -179,7 +180,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   @Response(badGatewayResp.status, 'SSH or Docker failure (see data.code)')
   @Response(gatewayTimeoutResp.status, gatewayTimeoutResp.description)
   async getDockerContainer(@Path() id: string): Promise<Unbrand<XoDockerContainer>> {
-    await assertDockerFeature(this.restApi)
     return this.getObject(id as XoDockerContainer['id'])
   }
 
@@ -239,7 +239,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
     /** bypass the cache of the container lists */
     @Query() force_refresh?: boolean
   ): SendObjects<Partial<Unbrand<XoDockerContainer>>> {
-    await assertDockerFeature(this.restApi)
     const { containers, errors } = await this.#dockerContainerService.list({
       filter,
       all,
@@ -380,7 +379,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
     /** also remove its anonymous volumes */
     @Query() removeVolumes?: boolean
   ): Promise<void> {
-    await assertDockerFeature(this.restApi)
     const containerId = id as XoDockerContainer['id']
     await this.#dockerContainerService.assertContainerId(containerId)
     // no task: always synchronous, like the engine routes
@@ -388,7 +386,6 @@ export class DockerContainerController extends XoController<XoDockerContainer> {
   }
 
   async #action(id: string, action: XoDockerContainerAction, sync?: boolean): CreateActionReturnType<void> {
-    await assertDockerFeature(this.restApi)
     const containerId = id as XoDockerContainer['id']
     // 404 before creating a task: the id and the engine without connecting,
     // then the container (from the listing cache when possible)

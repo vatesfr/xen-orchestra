@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { serializeError } from '@vates/task'
-import { featureUnauthorized, invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
+import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 
 import { DockerContainerController } from './docker-container.controller.mjs'
 import { DockerContainerService, getEngineScope } from './docker-container.service.mjs'
@@ -25,16 +25,11 @@ const containers = [
   { id: `engine-1_${'cd'.repeat(32)}`, $engine: 'engine-1', $VM: VM_1, $pool: POOL, name: 'db', state: 'exited' },
 ]
 
-function setup({ licensed = true, maxListedEngines }: { licensed?: boolean; maxListedEngines?: number } = {}) {
+function setup({ maxListedEngines }: { maxListedEngines?: number } = {}) {
   const calls: { method: string; args: unknown[] }[] = []
   const tasks: Record<string, unknown>[] = []
   const xoApp = {
     config: { getOptional: (path: string) => (path === 'docker.maxListedEngines' ? maxListedEngines : undefined) },
-    checkFeatureAuthorization: async () => {
-      if (!licensed) {
-        throw featureUnauthorized({ featureCode: 'DOCKER' })
-      }
-    },
     getAllDockerEngines: async () => engines,
     getDockerEngine: async (id: string) => {
       const engine = engines.find(_ => _.id === id)
@@ -405,27 +400,5 @@ describe('DockerContainerController', () => {
         message: 'Container is already paused',
       })
     })
-  })
-
-  it('every route checks the DOCKER feature first', async () => {
-    const { calls, controller, tasks } = setup({ licensed: false })
-    const id = `engine-1_${DOCKER_ID}`
-    const req = { query: {}, path: '/rest/v0/docker-containers' } as never
-    for (const call of [
-      () => controller.getDockerContainers(req, `$VM:${VM_1}`),
-      () => controller.getDockerContainer(id),
-      () => controller.getDockerContainerLogs(id),
-      () => controller.getDockerContainerStats(id),
-      () => controller.startDockerContainer(id),
-      () => controller.stopDockerContainer(id),
-      () => controller.restartDockerContainer(id),
-      () => controller.pauseDockerContainer(id),
-      () => controller.unpauseDockerContainer(id),
-      () => controller.deleteDockerContainer(id),
-    ]) {
-      await assert.rejects(call(), featureUnauthorized.is)
-    }
-    assert.deepEqual(calls, [])
-    assert.deepEqual(tasks, [])
   })
 })

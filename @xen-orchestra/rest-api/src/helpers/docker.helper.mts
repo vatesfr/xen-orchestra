@@ -2,7 +2,6 @@ import { createLogger } from '@xen-orchestra/log'
 import type { HttpStatusCodeLiteral } from 'tsoa'
 
 import { ApiError } from './error.helper.mjs'
-import type { RestApi } from '../rest-api/rest-api.mjs'
 
 const log = createLogger('xo:rest-api:docker')
 
@@ -144,12 +143,4 @@ export async function withDockerErrors<T>(fn: () => Promise<T>): Promise<T> {
   } catch (error) {
     throw toDockerApiError(error)
   }
-}
-
-/**
- * Must be called first by every Docker route: an unlicensed XOA must not
- * store credentials nor open SSH sessions.
- */
-export function assertDockerFeature(restApi: RestApi): Promise<void> {
-  return restApi.xoApp.checkFeatureAuthorization('DOCKER')
 }
