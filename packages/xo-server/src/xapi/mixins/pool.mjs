@@ -70,19 +70,43 @@ const methods = {
     const skipHost = host => isDone(host) || (ignoreHost?.(host) ?? false)
     const skipMigrateBack = host => !isDone(host) && (ignoreHost?.(host) ?? false)
 
+    // a setting a previous attempt disabled stays disabled until the end of
+    // this one, a setting disabled before the run is not in the record
+    const { changedByRun = {} } = resume
+
+    let ha = changedByRun.ha
     if (this.pool.ha_enabled) {
-      const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
-      const haConfig = this.pool.ha_configuration
-      await recorder.settingChangedByRun('ha')
+      ha = {
+        srs: this.pool.$ha_statefiles.map(vdi => vdi.$SR.uuid),
+        configuration: this.pool.ha_configuration,
+      }
+      await recorder.settingChangedByRun('ha', ha)
       await this.call('pool.disable_ha')
-      $defer(() => this.call('pool.enable_ha', haSrs, haConfig))
+    }
+    // HA recorded without its heartbeat SRs is left to the operator
+    if (ha?.srs !== undefined) {
+      $defer(async () => {
+        await this.call(
+          'pool.enable_ha',
+          ha.srs.map(uuid => this.getObject(uuid).$ref),
+          ha.configuration
+        )
+        recorder.settingRestored('ha')
+      })
     }
 
-    if (this.pool.other_config.auto_poweron === 'true') {
+    const autoPowerOn = this.pool.other_config.auto_poweron === 'true'
+    // registered before disabling it, which may fail after the change
+    if (autoPowerOn || changedByRun.autoPowerOn) {
+      $defer(async () => {
+        await this.pool.update_other_config('auto_poweron', 'true')
+        recorder.settingRestored('autoPowerOn')
+      })
+    }
+    if (autoPowerOn) {
       log.info(`temporarily disabling auto power on during the rolling reboot of pool ${this.pool.uuid}`)
       await recorder.settingChangedByRun('autoPowerOn')
       await this.pool.update_other_config('auto_poweron', 'false')
-      $defer(() => this.pool.update_other_config('auto_poweron', 'true'))
     }
 
     const hosts = filter(this.objects.all, { $type: 'host' })
