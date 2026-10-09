@@ -96,17 +96,17 @@ The context is available in the `$context` property of the returned state.
 
 It contains the following properties:
 
-| Property      | Type                              | Description                                                                        |
-| ------------- | --------------------------------- | ---------------------------------------------------------------------------------- |
-| `scope`       | `EffectScope`                     | The Vue effect scope used to be shared across the resource and its dependencies    |
-| `args`        | `any[]`                           | The arguments passed to the `useMyResource` function                               |
-| `isReady`     | `ComputedRef<boolean>`            | Indicates if the resource is ready (i.e., the data has been fetched at least once) |
-| `hasError`    | `ComputedRef<boolean>`            | Indicates if an error occurred during the last fetch                               |
-| `lastError`   | `ComputedRef<Error \| undefined>` | The last error that occurred during the fetch, if any                              |
-| `isEnabled`   | `Ref<boolean>`                    | Whether the resource is enabled (execute the request) or not                       |
-| `enable`      | `() => void`                      | Function to manually enable the resource                                           |
-| `disable`     | `() => void`                      | Function to manually disable the resource                                          |
-| `forceReload` | `() => void`                      | Function to manually reload the resource                                           |
+| Property      | Type                              | Description                                                                           |
+| ------------- | --------------------------------- | ------------------------------------------------------------------------------------- |
+| `scope`       | `EffectScope`                     | The Vue effect scope used to be shared across the resource and its dependencies       |
+| `args`        | `any[]`                           | The arguments passed to the `useMyResource` function                                  |
+| `isReady`     | `ComputedRef<boolean>`            | Indicates if the resource is ready (i.e., the data has been fetched at least once)    |
+| `hasError`    | `ComputedRef<boolean>`            | Indicates if an error occurred during the last fetch                                  |
+| `lastError`   | `ComputedRef<Error \| undefined>` | The error of the last fetch, if any; for an HTTP error, `cause` is `{ status, body }` |
+| `isEnabled`   | `Ref<boolean>`                    | Whether the resource is enabled (execute the request) or not                          |
+| `enable`      | `() => void`                      | Function to manually enable the resource                                              |
+| `disable`     | `() => void`                      | Function to manually disable the resource                                             |
+| `forceReload` | `() => void`                      | Function to manually reload the resource                                              |
 
 ```typescript
 const { myResource, $context } = useMyResource()
