@@ -30,8 +30,23 @@ export const XoServerConfigSchema = z
 
     http: z
       .object({
-        port: z.number().optional(),
-        host: z.string().optional(),
+        listen: z
+          .record(
+            z
+              .object({
+                port: z.number().optional(),
+                hostname: z.string().optional(),
+                acmeDomain: z.string().optional(),
+                key: redacted.optional(),
+                cert: redacted.optional(),
+                certificate: redacted.optional(),
+              })
+              .partial()
+              .catchall(z.any().transform(() => '**REDACTED**'))
+          )
+          .optional(),
+        listenOptions: z.record(z.unknown()).optional(),
+        redirectToHttps: z.boolean().optional(),
         sessionSecret: redacted,
         cookies: redacted,
         useForwardedHeaders: z.unknown().optional(),

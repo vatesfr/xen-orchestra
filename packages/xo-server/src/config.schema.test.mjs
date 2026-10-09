@@ -24,7 +24,7 @@ describe('applySchema()', function () {
   it('keeps safe values', function () {
     const input = {
       http: {
-        port: 8080,
+        listen: { 0: { port: 80 } },
       },
     }
 
@@ -32,7 +32,7 @@ describe('applySchema()', function () {
 
     assert.deepEqual(result, {
       http: {
-        port: 8080,
+        listen: { 0: { port: 80 } },
       },
     })
   })
