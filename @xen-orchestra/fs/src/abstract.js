@@ -695,7 +695,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async _getLinkCount(path) {
-    throw new Error('Not implemented')
+    throw new NotImplementedError()
   }
 
   async _getSize(file) {
