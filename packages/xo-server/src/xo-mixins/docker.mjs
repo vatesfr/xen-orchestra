@@ -29,6 +29,7 @@ import {
   DockerError,
   DockerStatsSampler,
   HOST_KEY_MISMATCH,
+  HOST_KEY_TYPES,
   HOST_KEY_UNKNOWN,
   isDockerError,
   isMultiplexedStream,
@@ -36,7 +37,7 @@ import {
   normalizeContainerListEntry,
   normalizeContainerStats,
   normalizeEngineInfo,
-  normalizeFingerprint,
+  parseFingerprint,
   POOL_EXHAUSTED,
   RAW_REQUEST_TOO_LARGE,
   RAW_RESPONSE_TOO_LARGE,
@@ -44,6 +45,7 @@ import {
   SSH_COOLDOWN,
   SSH_UNREACHABLE,
   SshCooldown,
+  TIMEOUT,
 } from '@xen-orchestra/docker-ssh'
 import { DockerEngines } from '../models/docker-engine.mjs'
 import { parseSize } from '../utils.mjs'
@@ -62,7 +64,6 @@ import { parseSize } from '../utils.mjs'
  * @typedef {import('@vates/types').XoDockerLogs} XoDockerLogs
  * @typedef {import('@vates/types').XoDockerSocketDiagnostic} XoDockerSocketDiagnostic
  * @typedef {import('@xen-orchestra/docker-ssh').DockerConnectionFacade} DockerConnectionFacade
- * @typedef {import('@xen-orchestra/docker-ssh').DockerContainerSummary} DockerContainerSummary
  * @typedef {import('@xen-orchestra/docker-ssh').DockerInfo} DockerInfo
  * @typedef {import('@xen-orchestra/docker-ssh').DockerInspect} DockerInspect
  * @typedef {import('@xen-orchestra/docker-ssh').DockerVersion} DockerVersion
@@ -113,6 +114,7 @@ const DEFAULTS = {
   authFailureCooldown: 10e3,
   statsIdleTimeout: 90e3,
   maxStatsContainers: 100,
+  maxStatsEngines: 10,
   maxRawRequestSize: 1024 * 1024,
   maxRawResponseSize: 10 * 1024 * 1024,
   rawRequestTimeout: 5 * 60e3,
@@ -154,6 +156,11 @@ const CONNECTION_FIELDS = [
 // stored properties which change how to connect: changing any of them bumps the
 // revision, which invalidates the pooled connection and the caches
 const IDENTITY_FIELDS = ['vm', ...CONNECTION_FIELDS]
+
+// in the key of the pooled connection, see `#connectionKey()`: not the host key,
+// a change of it bumps the revision anyway, except for the pinning of an
+// accepted unknown key, which must keep the connection which accepted it
+const KEYED_FIELDS = CONNECTION_FIELDS.filter(key => key !== 'hostKeyFingerprint' && key !== 'hostKeyAlgorithm')
 
 // stored properties accepted by the config import, see `#importEngines()`
 const STORED_FIELDS = new Set([...WRITABLE_FIELDS.values(), 'hostKeyAlgorithm', 'revision'])
@@ -303,6 +310,37 @@ function validateRecord(record) {
   if (record.hostKeyFingerprint !== undefined && !FINGERPRINT_RE.test(record.hostKeyFingerprint)) {
     throw invalidParameters('hostKeyFingerprint must be a SHA256 fingerprint, as printed by ssh-keygen -l')
   }
+  if (record.hostKeyAlgorithm !== undefined && !HOST_KEY_TYPES.has(record.hostKeyAlgorithm)) {
+    throw invalidParameters(`hostKeyAlgorithm must be one of ${Array.from(HOST_KEY_TYPES).join(', ')}`)
+  }
+}
+
+/**
+ * Normalize an answer of the daemon (hostile or buggy, see `wire.mts` in
+ * `@xen-orchestra/docker-ssh`): a malformed one is a DOCKER_API_ERROR, not a
+ * TypeError.
+ *
+ * @template T
+ * @param {() => T} normalize
+ * @returns {T}
+ */
+function normalizeAnswer(normalize) {
+  try {
+    return normalize()
+  } catch (error) {
+    throw new DockerError(DOCKER_API_ERROR, 'invalid answer from the Docker daemon', { cause: error })
+  }
+}
+
+/**
+ * @param {unknown} body of `GET /containers/json`
+ * @returns {NormalizedDockerContainer[]}
+ */
+function normalizeContainerList(body) {
+  if (!Array.isArray(body)) {
+    throw new DockerError(DOCKER_API_ERROR, 'invalid container list from the Docker daemon')
+  }
+  return body.map(entry => normalizeAnswer(() => normalizeContainerListEntry(entry)))
 }
 
 // merges the details of an inspection into a list entry, keeping the human
@@ -345,6 +383,10 @@ export default class Docker {
   #pool
   // engine id → { key, sampler }, see `#getSampler()`
   #samplers = new Map()
+  // engine id → its current revision (`null` once deleted), for the engines
+  // written by this process: a record read before a mutation is stale, it must
+  // not connect (old credentials, deleted engine), see `#assertCurrent()`
+  #revisions = new Map()
 
   constructor(app) {
     this.#app = app
@@ -367,6 +409,8 @@ export default class Docker {
       logsIdleTimeout: getDuration('logsIdleTimeout'),
       statsIdleTimeout: getDuration('statsIdleTimeout'),
       maxStatsContainers: get('maxStatsContainers'),
+      // every live sampler holds a pooled connection: never all of them
+      maxStatsEngines: Math.min(get('maxStatsEngines'), Math.floor(get('maxConnections') / 2)),
       maxRawRequestSize: get('maxRawRequestSize', parseSize),
       maxRawResponseSize: get('maxRawResponseSize', parseSize),
       rawRequestTimeout: getDuration('rawRequestTimeout'),
@@ -449,7 +493,8 @@ export default class Docker {
    * @param {string} [params.privateKey]
    * @param {string} [params.passphrase]
    * @param {string} [params.socketPath]
-   * @param {string} [params.hostKeyFingerprint] `SHA256:…` as printed by `ssh-keygen -l`
+   * @param {string} [params.hostKeyFingerprint] `SHA256:…` as printed by `ssh-keygen -l`, or a whole line of it (whose
+   *   key type is then used)
    * @param {boolean} [params.acceptUnknownHostKey] transient, never stored
    * @param {string} [params.label]
    * @returns {Promise<XoDockerEngine>} the new engine, without secrets
@@ -459,6 +504,9 @@ export default class Docker {
     const record = { port: DEFAULT_SSH_PORT, socketPath: DEFAULT_SOCKET_PATH }
     this.#applyProperties(record, params)
     validateRecord(record)
+    if (record.vm !== undefined) {
+      this.#assertVmExists(record.vm)
+    }
 
     const create = async () => {
       if (record.vm !== undefined) {
@@ -466,7 +514,9 @@ export default class Docker {
       }
       await this.#connectAndPin(record, { acceptUnknownHostKey: params.acceptUnknownHostKey === true })
       record.revision = newRevision()
-      return this.#sanitize(await this.#db.add(record))
+      const created = await this.#db.add(record)
+      this.#revisions.set(created.id, created.revision)
+      return this.#sanitize(created)
     }
     // the check, the connection and the write are atomic per VM
     return record.vm === undefined ? create() : this.#withLocks([`vm:${record.vm}`], create)
@@ -508,6 +558,9 @@ export default class Docker {
       const record = { ...previous }
       this.#applyProperties(record, properties)
       validateRecord(record)
+      if (record.vm !== undefined && record.vm !== previous.vm) {
+        this.#assertVmExists(record.vm)
+      }
 
       const update = async () => {
         if (record.vm !== undefined && record.vm !== previous.vm) {
@@ -528,6 +581,7 @@ export default class Docker {
             record.revision = newRevision()
           }
           await this.#db.update(record)
+          this.#revisions.set(id, record.revision)
           if (identityChanged) {
             await this.#invalidate(id)
           }
@@ -551,6 +605,7 @@ export default class Docker {
     await this.#withLocks([`engine:${id}`], async () => {
       await this.#getEngineWithCredentials(id)
       await this.#db.remove(id)
+      this.#revisions.set(id, null)
       await this.#invalidate(id)
     })
   }
@@ -625,9 +680,8 @@ export default class Docker {
         ])
         const info = /** @type {DockerInfo} */ (infoBody)
         const version = /** @type {DockerVersion} */ (versionBody)
-        const composeContainers = /** @type {DockerContainerSummary[]} */ (composeBody)
         // `id` is the daemon's ID, not to be confused with the engine's
-        const { id: daemonId, ...engineInfo } = normalizeEngineInfo(info, version)
+        const { id: daemonId, ...engineInfo } = normalizeAnswer(() => normalizeEngineInfo(info, version))
         return {
           status: /** @type {const} */ ('connected'),
           asOf: Date.now(),
@@ -636,7 +690,7 @@ export default class Docker {
           // the version used by XO, `/version` gives the daemon's newest one
           apiVersion: connection.apiVersion,
           daemonApiVersion: version.ApiVersion,
-          compose: summarizeCompose(composeContainers.map(normalizeContainerListEntry)),
+          compose: summarizeCompose(normalizeContainerList(composeBody)),
         }
       })
     } catch (error) {
@@ -691,10 +745,11 @@ export default class Docker {
           asOf = asOf === undefined ? result.asOf : Math.min(asOf, result.asOf)
           let sampler
           if (stats) {
+            // `undefined` beyond `docker.maxStatsEngines`: no stats
             sampler = this.#getSampler(record, { start: true })
             // the list tells the sampler which containers are running (the
             // actions evict the cached list, so it follows them)
-            sampler.sync(
+            sampler?.sync(
               Array.from(result.containers.values(), _ => _.container)
                 .filter(_ => SAMPLED_STATES.has(_.state))
                 .map(_ => _.dockerId)
@@ -751,7 +806,7 @@ export default class Docker {
       } catch (error) {
         throw isNotFound(error) ? noSuchObject(id, 'docker-container') : error
       }
-      const container = normalizeContainerInspect(/** @type {DockerInspect} */ (body))
+      const container = normalizeAnswer(() => normalizeContainerInspect(/** @type {DockerInspect} */ (body)))
       // the composite id must designate the container by its full id
       if (container.dockerId !== dockerId) {
         throw noSuchObject(id, 'docker-container')
@@ -788,7 +843,7 @@ export default class Docker {
       } catch (error) {
         throw isNotFound(error) ? noSuchObject(id, 'docker-container') : error
       }
-      return normalizeContainerStats(body)
+      return normalizeAnswer(() => normalizeContainerStats(body))
     })
   }
 
@@ -956,7 +1011,7 @@ export default class Docker {
         if (tty === undefined) {
           try {
             const { body } = await connection.request({ path: path + '/json' })
-            tty = normalizeContainerInspect(/** @type {DockerInspect} */ (body)).tty
+            tty = normalizeAnswer(() => normalizeContainerInspect(/** @type {DockerInspect} */ (body))).tty
           } catch (error) {
             throw isNotFound(error) ? noSuchObject(id, 'docker-container') : error
           }
@@ -970,6 +1025,7 @@ export default class Docker {
       // would keep the pooled connection busy forever. On expiry, what has
       // been read so far is returned (`truncated` and `timedOut`)
       const TIMED_OUT = new Error('logs deadline')
+      const ENOUGH = new Error('enough log entries')
       let timedOut = false
       let response
       const expire = () => {
@@ -1007,11 +1063,22 @@ export default class Docker {
           // interrupts the read loop below
           response.destroy(error)
         })
+        // lines over 64 KiB are split in several entries by dockerd: `tail`
+        // lines can give more than `tail` entries, `maxLogsTail` are kept
+        let tooManyEntries = false
         const collected = (async () => {
           for await (const entry of parser) {
-            if (streams.has(entry.stream)) {
-              entries.push(timestamps ? entry : { ...entry, timestamp: undefined })
+            if (!streams.has(entry.stream) || tooManyEntries) {
+              continue
             }
+            if (entries.length === maxLogsTail) {
+              tooManyEntries = true
+              // stops the read loop below, what is still in the parser is
+              // drained (and dropped)
+              response.destroy(ENOUGH)
+              continue
+            }
+            entries.push(timestamps ? entry : { ...entry, timestamp: undefined })
           }
         })()
         // awaited below, avoids an unhandled rejection meanwhile
@@ -1034,7 +1101,7 @@ export default class Docker {
             }
           }
         } catch (error) {
-          if (error !== TIMED_OUT) {
+          if (error !== TIMED_OUT && error !== ENOUGH) {
             throw error
           }
         } finally {
@@ -1046,7 +1113,7 @@ export default class Docker {
           demuxer.end()
         }
         await collected
-        return { entries, truncated: truncated || timedOut || demuxer.truncated, timedOut, asOf }
+        return { entries, truncated: truncated || tooManyEntries || timedOut || demuxer.truncated, timedOut, asOf }
       } finally {
         clearTimeout(deadline)
         clearTimeout(idleTimer)
@@ -1152,7 +1219,7 @@ export default class Docker {
     return this.#hmac([
       record.revision ?? 0,
       this.#resolveHost(record) ?? null,
-      ...CONNECTION_FIELDS.map(key => record[key] ?? null),
+      ...KEYED_FIELDS.map(key => record[key] ?? null),
     ])
   }
 
@@ -1194,10 +1261,15 @@ export default class Docker {
       ids.add(id)
       const record = { port: DEFAULT_SSH_PORT, socketPath: DEFAULT_SOCKET_PATH, ...properties }
       try {
-        validateRecord(record)
-        if (record.hostKeyFingerprint !== undefined) {
-          record.hostKeyFingerprint = normalizeFingerprint(record.hostKeyFingerprint)
+        if (typeof record.hostKeyFingerprint === 'string') {
+          const { fingerprint, algorithm } = parseFingerprint(record.hostKeyFingerprint)
+          record.hostKeyFingerprint = fingerprint
+          record.hostKeyAlgorithm ??= algorithm
+          if (record.hostKeyAlgorithm === undefined) {
+            delete record.hostKeyAlgorithm
+          }
         }
+        validateRecord(record)
       } catch (error) {
         error.message = `Docker engine ${id}: ${error.message}`
         throw error
@@ -1223,6 +1295,9 @@ export default class Docker {
           }
         }
         await this.#db.add(records, { replace: true })
+        for (const { id, revision } of records) {
+          this.#revisions.set(id, revision)
+        }
         await Promise.all(Array.from(ids, id => this.#invalidate(id)))
       }
     )
@@ -1269,11 +1344,10 @@ export default class Docker {
         if (typeof value !== 'string') {
           throw invalidParameters('hostKeyFingerprint must be a string')
         }
-        const fingerprint = normalizeFingerprint(value)
-        if (fingerprint !== record.hostKeyFingerprint) {
-          record.hostKeyFingerprint = fingerprint
-          // the type of a pasted key is unknown
-          delete record.hostKeyAlgorithm
+        // a whole `ssh-keygen -l` line gives the type of the key
+        const { fingerprint, algorithm } = parseFingerprint(value)
+        if (fingerprint !== record.hostKeyFingerprint || algorithm !== undefined) {
+          setHostKey(record, { fingerprint, algorithm })
         }
         continue
       }
@@ -1282,6 +1356,13 @@ export default class Docker {
     if (properties.acceptUnknownHostKey !== undefined && typeof properties.acceptUnknownHostKey !== 'boolean') {
       throw invalidParameters('acceptUnknownHostKey must be a boolean')
     }
+  }
+
+  /**
+   * @throws noSuchObject
+   */
+  #assertVmExists(vmId) {
+    this.#app.getObject(vmId, 'VM')
   }
 
   #getVm(vmId) {
@@ -1434,6 +1515,11 @@ export default class Docker {
    * @returns {Promise<T>}
    */
   #withConnection(record, fn) {
+    try {
+      this.#assertCurrent(record)
+    } catch (error) {
+      return Promise.reject(error)
+    }
     const acceptUnknownHostKey = record.hostKeyFingerprint === undefined && !this.#config.strictHostKeyChecking
     return this.#pool.use(
       { id: record.id, revision: this.#connectionKey(record) },
@@ -1448,10 +1534,25 @@ export default class Docker {
   }
 
   /**
+   * @throws {DockerError} CONNECTION_CLOSED if the record is stale: the engine has been updated or deleted since it was
+   *   read
+   */
+  #assertCurrent(record) {
+    const current = this.#revisions.get(record.id)
+    if (current !== undefined && current !== record.revision) {
+      throw new DockerError(CONNECTION_CLOSED, 'the Docker engine has been updated or deleted meanwhile', {
+        data: { engine: record.id },
+      })
+    }
+  }
+
+  /**
    * Stats sampler of an engine, bound to its current connection: it holds a
    * reference on the pooled connection while alive (never evicted, nor closed
    * as idle), and stops on its own after `docker.statsIdleTimeout` without
    * reader, or when the connection fails or is closed.
+   *
+   * Not started beyond `docker.maxStatsEngines` live samplers (`undefined`).
    *
    * @returns {DockerStatsSampler | undefined}
    */
@@ -1464,9 +1565,10 @@ export default class Docker {
       this.#samplers.delete(record.id)
       entry = undefined
     }
-    if (entry !== undefined || !start) {
+    if (entry !== undefined || !start || this.#samplers.size >= this.#config.maxStatsEngines) {
       return entry?.sampler
     }
+    this.#assertCurrent(record)
 
     let resolveStopped, rejectStopped
     const stopped = new Promise((resolve, reject) => {
@@ -1610,8 +1712,7 @@ export default class Docker {
           const asOf = Date.now()
           /** @type {EngineContainers['containers']} */
           const containers = new Map()
-          for (const entry of /** @type {DockerContainerSummary[]} */ (body)) {
-            const container = normalizeContainerListEntry(entry)
+          for (const container of normalizeContainerList(body)) {
             containers.set(container.dockerId, { container, inspected: false })
           }
 
@@ -1620,20 +1721,24 @@ export default class Docker {
             await asyncEach(
               toInspect,
               async listEntry => {
-                let body
+                let inspected
                 try {
-                  ;({ body } = await connection.request({ path: `/containers/${listEntry.dockerId}/json` }))
+                  const { body } = await connection.request({
+                    path: `/containers/${encodeURIComponent(listEntry.dockerId)}/json`,
+                  })
+                  inspected = normalizeAnswer(() => normalizeContainerInspect(/** @type {DockerInspect} */ (body)))
                 } catch (error) {
-                  // removed since the list: keep the list entry
-                  if (isNotFound(error)) {
+                  // removed since the list, or a failure of this request only
+                  // (not of the engine): keep the list entry, without details
+                  if (isDockerError(error) && (error.code === DOCKER_API_ERROR || error.code === TIMEOUT)) {
+                    if (!isNotFound(error)) {
+                      log.debug('container inspection', { engine: record.id, container: listEntry.dockerId, error })
+                    }
                     return
                   }
                   throw error
                 }
-                containers.set(listEntry.dockerId, {
-                  container: mergeInspect(listEntry, normalizeContainerInspect(/** @type {DockerInspect} */ (body))),
-                  inspected: true,
-                })
+                containers.set(listEntry.dockerId, { container: mergeInspect(listEntry, inspected), inspected: true })
               },
               { concurrency: 10 }
             )
