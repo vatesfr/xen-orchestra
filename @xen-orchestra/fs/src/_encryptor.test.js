@@ -36,6 +36,16 @@ algorithms.forEach(algorithm => {
       assert.equal(decrypted.equals(buffer), true)
     })
 
+    it('handle an array of buffers', () => {
+      // like a VHD block: a bitmap then the data, sizes not aligned on the cipher block size
+      const parts = [crypto.randomBytes(512), crypto.randomBytes(1024 * 1024 + 1)]
+      const encrypted = Buffer.concat(encryptor.encryptDataParts(parts))
+
+      // same layout as a single buffer: existing remotes must still be readable
+      const decrypted = encryptor.decryptData(encrypted)
+      assert.equal(decrypted.equals(Buffer.concat(parts)), true)
+    })
+
     it('handle stream', async () => {
       const stream = Readable.from(buffer)
       stream.length = buffer.length
