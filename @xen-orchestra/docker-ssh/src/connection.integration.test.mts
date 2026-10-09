@@ -36,6 +36,7 @@ import {
   TIMEOUT,
   type DockerError,
 } from './errors.mjs'
+import { type DockerConnectionFacade, DockerConnectionPool } from './pool.mjs'
 import type { DockerInfo, DockerVersion } from './wire.mjs'
 
 const { after, before, describe, it } = test
@@ -163,32 +164,60 @@ describe('DockerConnection (real SSH + dockerd)', { skip }, () => {
     assert.equal(statusCode, 200)
   })
 
-  it('recovers from SSH connection losses (no reuse of dead keep-alive channels, no leaked slots)', async () => {
+  it('SSH connection losses: the pool replaces the lost connection (no reuse of dead channels, no leaked slots)', async () => {
     const clients: SshClient[] = []
-    const connection = createConnection(
-      { requestTimeout: 2e3 },
-      {
-        createClient: () => {
-          const client = new Client()
-          clients.push(client)
-          return client
+    const lost: DockerConnection[] = []
+    const pool = new DockerConnectionPool()
+    const use = <T,>(fn: (connection: DockerConnectionFacade) => Promise<T>) =>
+      pool.use(
+        { id: 'engine' },
+        () => {
+          const connection = createConnection(
+            { requestTimeout: 2e3 },
+            {
+              createClient: () => {
+                const client = new Client()
+                clients.push(client)
+                return client
+              },
+            }
+          )
+          lost.push(connection)
+          return connection
         },
-      }
-    )
-    // more drops than the max number of free sockets and concurrent requests
-    for (let i = 0; i < 5; ++i) {
-      await Promise.all([connection.request({ path: '/_ping' }), connection.request({ path: '/_ping' })])
-      // simulate a network failure
-      clients.at(-1)!._sock!.destroy()
-      await new Promise(resolve => setTimeout(resolve, 100))
-      const start = Date.now()
-      const results = await Promise.all(
-        Array.from({ length: 3 }, () => connection.request({ path: '/_ping' }).then(({ statusCode }) => statusCode))
+        fn
       )
-      assert.deepEqual(results, [200, 200, 200])
-      assert.ok(Date.now() - start < 2e3)
+    try {
+      // more drops than the max number of free sockets and concurrent requests
+      for (let i = 0; i < 5; ++i) {
+        await use(connection =>
+          Promise.all([connection.request({ path: '/_ping' }), connection.request({ path: '/_ping' })])
+        )
+        // simulate a network failure
+        clients.at(-1)!._sock!.destroy()
+        await new Promise(resolve => setTimeout(resolve, 100))
+        // removed from the pool, closed for good, without leaked slots
+        assert.deepEqual(pool.getState('engine'), { status: 'idle' })
+        const dead = lost.at(-1)!
+        assert.equal(dead.closed, true)
+        assert.deepEqual(dead.activeRequests, { requests: 0, streams: 0 })
+        await assert.rejects(dead.request({ path: '/_ping' }), { code: CONNECTION_CLOSED })
+
+        const start = Date.now()
+        const results = await use(connection =>
+          Promise.all(
+            Array.from({ length: 3 }, () => connection.request({ path: '/_ping' }).then(({ statusCode }) => statusCode))
+          )
+        )
+        assert.deepEqual(results, [200, 200, 200])
+        assert.ok(Date.now() - start < 2e3)
+      }
+      // one SSH session per connection
+      assert.equal(clients.length, 6)
+      assert.equal(lost.length, 6)
+    } finally {
+      await pool.destroy()
     }
-    assert.equal(clients.length, 6)
   })
 
   it('close() rejects queued requests with CONNECTION_CLOSED and does not reconnect', async () => {
