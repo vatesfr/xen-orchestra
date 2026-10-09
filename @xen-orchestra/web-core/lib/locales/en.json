@@ -429,6 +429,7 @@
   "docker-status:auth-failed": "SSH authentication failed",
   "docker-status:host-key-mismatch": "The SSH host key has changed",
   "docker-status:unreachable": "The Docker engine is unreachable",
+  "docker-unavailable-with-plan": "Docker monitoring is not available with your Xen Orchestra plan",
   "docker-unreachable": "The containers cannot be listed while the Docker engine is unreachable",
   "docker-vm-address": "Address",
   "docker-vm-main-address": "main address of the VM",

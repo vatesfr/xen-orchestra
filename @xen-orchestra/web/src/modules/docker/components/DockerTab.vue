@@ -1,6 +1,9 @@
 <template>
   <div class="docker-tab">
     <VtsStateHero v-if="!areDockerEnginesReady && !hasDockerEngineFetchError" format="page" type="busy" size="large" />
+    <VtsStateHero v-else-if="isDockerUnavailableWithPlan" format="page" type="no-data" size="large">
+      {{ t('docker-unavailable-with-plan') }}
+    </VtsStateHero>
     <VtsStateHero v-else-if="hasDockerEngineFetchError" format="page" type="error" size="large">
       {{ t('error-no-data') }}
     </VtsStateHero>
@@ -22,6 +25,7 @@
 <script lang="ts" setup>
 import DockerEngineView from '@/modules/docker/components/DockerEngineView.vue'
 import DockerConnectionForm from '@/modules/docker/components/form/connection/DockerConnectionForm.vue'
+import { useDockerCapability } from '@/modules/docker/composables/use-docker-capability.composable.ts'
 import { useXoDockerEngineCollection } from '@/modules/docker/remote-resources/use-xo-docker-engine-collection.ts'
 import VmOfflineHero from '@/modules/vm/components/VmOfflineHero.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -37,8 +41,15 @@ const { vm } = defineProps<{
 const { t } = useI18n()
 
 // no SSH: reading the engines only reads their records
-const { dockerEngine, areDockerEnginesReady, hasDockerEngineFetchError, reloadDockerEngines } =
-  useXoDockerEngineCollection({}, () => `$VM:${vm.id}`)
+const {
+  dockerEngine,
+  areDockerEnginesReady,
+  hasDockerEngineFetchError,
+  lastDockerEngineFetchError,
+  reloadDockerEngines,
+} = useXoDockerEngineCollection({}, () => `$VM:${vm.id}`)
+
+const { isDockerUnavailableWithPlan } = useDockerCapability(lastDockerEngineFetchError)
 
 const isVmRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 </script>
