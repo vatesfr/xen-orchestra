@@ -4,7 +4,7 @@ import { featureUnauthorized, noSuchObject } from 'xo-common/api-errors.js'
 
 import { DockerEngineController } from './docker-engine.controller.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
-import { OBFUSCATED, toDockerApiError } from '../helpers/docker.helper.mjs'
+import { toDockerApiError } from '../helpers/docker.helper.mjs'
 import genericErrorHandler from '../middlewares/generic-error-handler.middleware.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
@@ -106,86 +106,109 @@ const assertNoSecrets = (tasks: Task[]) => {
   assert.equal(serialized.includes('secret-'), false, 'a fragment of a secret found in a task record')
 }
 
+// what the client receives, through the generic error handler
+function respond(error: unknown) {
+  const res = {
+    status: 0,
+    headers: {} as Record<string, string>,
+    body: undefined as unknown,
+  }
+  const fakeRes = {
+    headersSent: false,
+    setHeader: (name: string, value: string) => (res.headers[name] = value),
+    status: (code: number) => {
+      res.status = code
+      return fakeRes
+    },
+    json: (value: unknown) => (res.body = value),
+  }
+  genericErrorHandler(error, { method: 'POST', path: '/docker-engines' } as never, fakeRes as never, () => {})
+  return res
+}
+
 describe('DockerEngineController', () => {
-  describe('no secrets in task records', () => {
+  describe('create, update and delete: no task, whose record would be readable with task:read', () => {
     it('create', async () => {
       const { calls, controller, tasks } = setup()
       const body = { host: '192.0.2.1', username: 'xo', ...SECRETS, hostKeyFingerprint: 'SHA256:x' }
       assert.deepEqual(await controller.createDockerEngine(body), { id: ENGINE_ID })
-
       // the mixin gets the real secrets
       assert.deepEqual(calls, [{ method: 'createDockerEngine', args: [body] }])
-      assertNoSecrets(tasks)
-      assert.deepEqual(tasks[0].properties.params, {
-        host: '192.0.2.1',
-        username: 'xo',
-        password: OBFUSCATED,
-        privateKey: OBFUSCATED,
-        passphrase: OBFUSCATED,
-        hostKeyFingerprint: 'SHA256:x',
-      })
-      assert.equal(tasks[0].properties.objectId, ENGINE_ID, 'set once created')
-      assert.equal(tasks[0].properties.objectType, 'docker-engine')
+      assert.deepEqual(tasks, [])
     })
 
-    it('create which fails', async () => {
+    it('create which fails: the HTTP answer is the error (TOFU 409 with the observed fingerprint)', async () => {
+      const error = new DockerError('HOST_KEY_UNKNOWN', 'unknown host key', {
+        host: '192.0.2.1',
+        port: 22,
+        fingerprint: 'SHA256:x',
+        algorithm: 'ssh-ed25519',
+      })
       const { controller, tasks } = setup({
         xoApp: {
           createDockerEngine: async () => {
-            throw new DockerError('HOST_KEY_UNKNOWN', 'unknown host key', {
-              fingerprint: 'SHA256:x',
-              algorithm: 'ssh-ed25519',
-            })
+            throw error
           },
         },
       })
-      await assert.rejects(controller.createDockerEngine({ username: 'xo', host: 'h', ...SECRETS }), error => {
-        assert.ok(error instanceof ApiError)
-        assert.equal(error.status, 409)
-        assert.deepEqual(error.data, { code: 'HOST_KEY_UNKNOWN', fingerprint: 'SHA256:x', algorithm: 'ssh-ed25519' })
-        return true
+      await assert.rejects(controller.createDockerEngine({ username: 'xo', host: 'h', ...SECRETS }), _ => _ === error)
+      assert.deepEqual(tasks, [])
+      assert.deepEqual(respond(error), {
+        status: 409,
+        headers: {},
+        body: {
+          error: 'unknown host key',
+          data: { code: 'HOST_KEY_UNKNOWN', fingerprint: 'SHA256:x', algorithm: 'ssh-ed25519' },
+        },
       })
-      assertNoSecrets(tasks)
     })
 
-    it('update, clearing a secret is kept visible', async () => {
+    it('update', async () => {
       const { calls, controller, tasks } = setup()
       const body = { privateKey: SECRETS.privateKey, passphrase: SECRETS.passphrase, password: null }
       await controller.updateDockerEngine(ENGINE_ID, body)
       assert.deepEqual(calls, [{ method: 'updateDockerEngine', args: [ENGINE_ID, body] }])
-      assertNoSecrets(tasks)
-      assert.deepEqual(tasks[0].properties.params, { privateKey: OBFUSCATED, passphrase: OBFUSCATED, password: null })
+      assert.deepEqual(tasks, [])
     })
 
-    it('update which fails to connect: the error of the creation, no secret (fixes)', async () => {
+    it('update which fails to connect: the error of the creation', async () => {
       for (const [code, status] of [
         ['SSH_AUTH_FAILED', 502],
         ['HOST_KEY_MISMATCH', 409],
         ['SSH_COOLDOWN', 429],
       ] as const) {
+        const error = new DockerError(code, code, { retryAfter: 3 })
         const { controller, tasks } = setup({
           xoApp: {
             updateDockerEngine: async () => {
-              throw new DockerError(code, code, { retryAfter: 3 })
+              throw error
             },
           },
         })
-        await assert.rejects(controller.updateDockerEngine(ENGINE_ID, { privateKey: SECRETS.privateKey }), error => {
-          assert.ok(error instanceof ApiError)
-          assert.equal(error.status, status)
-          assert.equal((error.data as { code: string }).code, code)
-          return true
-        })
-        assertNoSecrets(tasks)
+        await assert.rejects(
+          controller.updateDockerEngine(ENGINE_ID, { privateKey: SECRETS.privateKey }),
+          _ => _ === error
+        )
+        assert.deepEqual(tasks, [])
+        const res = respond(error)
+        assert.equal(res.status, status, code)
+        assert.equal((res.body as { data: { code: string } }).data.code, code)
       }
     })
 
-    it('test', async () => {
-      const { controller, tasks } = setup()
-      assert.deepEqual(await controller.testDockerEngine(ENGINE_ID, true), { ok: true, fingerprint: 'SHA256:x' })
-      assertNoSecrets(tasks)
-      assert.equal(tasks[0].properties.params, undefined)
+    it('delete', async () => {
+      const { calls, controller, tasks } = setup()
+      await controller.deleteDockerEngine(ENGINE_ID)
+      assert.deepEqual(calls, [{ method: 'deleteDockerEngine', args: [ENGINE_ID] }])
+      assert.deepEqual(tasks, [])
     })
+  })
+
+  it('test: no secrets in the task record', async () => {
+    const { controller, tasks } = setup()
+    assert.deepEqual(await controller.testDockerEngine(ENGINE_ID, true), { ok: true, fingerprint: 'SHA256:x' })
+    assertNoSecrets(tasks)
+    assert.equal(tasks[0].properties.params, undefined)
   })
 
   it('every route checks the DOCKER feature first', async () => {

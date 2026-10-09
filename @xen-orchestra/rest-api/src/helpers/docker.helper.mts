@@ -147,22 +147,3 @@ export async function withDockerErrors<T>(fn: () => Promise<T>): Promise<T> {
 export function assertDockerFeature(restApi: RestApi): Promise<void> {
   return restApi.xoApp.checkFeatureAuthorization('DOCKER')
 }
-
-const SECRET_FIELDS = ['password', 'privateKey', 'passphrase'] as const
-export const OBFUSCATED = '***obfuscated***'
-
-/**
- * Copy of an engine create/update body safe to store in a task record: the
- * secrets are replaced by `OBFUSCATED` (clearing one, with `null` or `''`, is
- * kept as is).
- */
-export function obfuscateDockerEngineParams<T extends object>(body: T): T {
-  const params = { ...body } as Record<string, unknown>
-  for (const key of SECRET_FIELDS) {
-    const value = params[key]
-    if (value !== undefined && value !== null && value !== '') {
-      params[key] = OBFUSCATED
-    }
-  }
-  return params as T
-}
