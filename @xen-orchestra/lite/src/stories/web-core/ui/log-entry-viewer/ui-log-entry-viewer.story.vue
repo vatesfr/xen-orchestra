@@ -12,6 +12,10 @@
         .widget(object()),
       prop('accent').type('LogEntryViewerAccent').enum('info', 'warning', 'danger').required().preset('info').widget(),
       prop('size').type('LogEntryViewerSize').enum('small', 'medium').required().preset('small').widget(),
+      prop('autoScroll')
+        .bool()
+        .widget()
+        .help('Keep the last lines in view when the content changes, unless scrolled up'),
     ]"
   >
     <UiLogEntryViewer v-bind="properties" />
