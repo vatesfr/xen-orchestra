@@ -70,7 +70,7 @@ export interface IscsiTargetOptions {
   readonly loginTimeoutMs?: number
   /**
    * Max number of connections that have not established a Normal session yet;
-   * past it, the oldest one is dropped. Defaults to 8.
+   * past it, new ones are refused. Defaults to 8.
    */
   readonly maxPendingConnections?: number
 }
@@ -109,8 +109,8 @@ export class IscsiTarget {
   #server?: Server
   // the connection with an established Normal session, serving the LUN
   #connection?: Connection
-  // connections without one yet, in arrival order
-  readonly #pendingConnections = new Set<Connection>()
+  // every open connection, so that close() can drop them all
+  readonly #connections = new Set<Connection>()
   #tsih = 0
 
   constructor(options: IscsiTargetOptions) {
@@ -153,21 +153,13 @@ export class IscsiTarget {
   }
 
   #onConnection(socket: Socket): void {
-    const pending = this.#pendingConnections
-    if (pending.size >= this.#maxPendingConnections) {
-      // a Set iterates in insertion order: this is the oldest
-      const [oldest] = pending
-      log.warn('too many connections without a session, dropping the oldest', { remote: socket.remoteAddress })
-      pending.delete(oldest)
-      oldest.destroy()
-    }
     socket.setNoDelay(true)
     const connection = new Connection(socket, this.#deps())
-    pending.add(connection)
+    this.#connections.add(connection)
     // Long-lived per-connection task; serve() handles its own errors and never
     // rejects, so detaching it here is safe.
     void connection.serve().finally(() => {
-      pending.delete(connection)
+      this.#connections.delete(connection)
       if (this.#connection === connection) {
         this.#connection = undefined
       }
@@ -175,14 +167,13 @@ export class IscsiTarget {
   }
 
   #onSessionEstablished(connection: Connection): void {
-    this.#pendingConnections.delete(connection)
     const existing = this.#connection
+    this.#connection = connection
     if (existing !== undefined) {
       // Replaces a possibly-stale connection rather than refusing; see the class doc.
       log.warn('replacing existing connection with a newly logged in one')
       existing.destroy()
     }
-    this.#connection = connection
   }
 
   /** Open the LUN (if needed) and start accepting connections. */
@@ -193,6 +184,11 @@ export class IscsiTarget {
     await this.#lun.open?.()
 
     const server = createServer(socket => this.#onConnection(socket))
+    // + 1: the connection serving the LUN does not take a pending slot
+    server.maxConnections = this.#maxPendingConnections + 1
+    server.on('drop', data => {
+      log.warn('too many connections without a session, refusing a new one', { remote: data?.remoteAddress })
+    })
     this.#server = server
     try {
       await new Promise<void>((resolve, reject) => {
@@ -219,13 +215,10 @@ export class IscsiTarget {
   /** Stop accepting connections, drop every connection, and close the LUN. */
   async close(): Promise<void> {
     const server = this.#server
-    const connections = [...this.#pendingConnections]
-    if (this.#connection !== undefined) {
-      connections.push(this.#connection)
-    }
+    const connections = [...this.#connections]
     this.#server = undefined
     this.#connection = undefined
-    this.#pendingConnections.clear()
+    this.#connections.clear()
     if (server !== undefined) {
       await new Promise<void>((resolve, reject) => {
         server.close(error => (error ? reject(error) : resolve()))

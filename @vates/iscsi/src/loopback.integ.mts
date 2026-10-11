@@ -774,17 +774,20 @@ describe('connection admission', () => {
     })
   })
 
-  it('drops the oldest connection without a session past the limit', async () => {
+  it('refuses connections without a session past the limit', async () => {
     await withTarget({ maxPendingConnections: 2 }, async port => {
       const initiator = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN, chap: CHAP })
       await initiator.connect()
       const probes = [await rawConnect(port), await rawConnect(port)]
       try {
-        const oldestClosed = once(probes[0], 'close')
-        probes.push(await rawConnect(port))
-        await oldestClosed
+        const extra = await rawConnect(port)
+        probes.push(extra)
+        await Promise.race([
+          once(extra, 'close'),
+          delay(5000).then(() => assert.fail('the connection should have been refused')),
+        ])
+        assert.equal(probes[0].destroyed, false)
         assert.equal(probes[1].destroyed, false)
-        assert.equal(probes[2].destroyed, false)
         await assertStillServing(initiator)
       } finally {
         for (const probe of probes) {

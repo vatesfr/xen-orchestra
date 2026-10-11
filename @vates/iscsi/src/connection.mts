@@ -317,6 +317,13 @@ export class Connection implements CommandContext {
     bhs[37] = statusDetail
     await this.#send(assemblePdu(bhs, data))
 
+    // destroyed while the response was being written (login timeout, target
+    // closing): the write still succeeds, but this connection must not go on
+    // and replace the current session
+    if (this.#phase === 'closed') {
+      return true
+    }
+
     if (statusClass !== LoginStatusClass.SUCCESS) {
       // RFC 7143 §6.3: the failure response goes out first (above), then the
       // target closes the connection.
