@@ -7,6 +7,7 @@
 
 - Fix authentication token validation
 - [Backup/File restore] Symbolic links are no longer followed: browsing or downloading a path that goes through one is refused, and the links met inside a restored folder are skipped (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [Backup/Live mount] The iSCSI target of a mount only accepts connections from the host it is mounted on, configurable with `iscsi.restrictToHost` (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
 
 ### Enhancements
 
@@ -36,6 +37,7 @@
 - [Backups] VM backups on S3 and Azure repositories now lock the VM's folder like on other repositories: two jobs, or a job and the cleanup that follows a deletion, no longer modify the same VM's folder at the same time, and the second one fails with "Lock file is already being held". On S3, buckets with Object Lock enabled are not locked yet (PR [#10549](https://github.com/vatesfr/xen-orchestra/pull/10549))
 - [VMs] Select multiple VMs in VM tables to change their power state, snapshot or delete them at once (PR [#10780](https://github.com/vatesfr/xen-orchestra/pull/10780))
 - [XO6/Backups] Add filters and actions on backup jobs (PR [#10772](https://github.com/vatesfr/xen-orchestra/pull/10772))
+- [REST API/VM] Experimental, administrators only: insert an ISO selected in a browser in the CD drive of a VM, without uploading it and without installing anything on the hosts (`POST /vms/{id}/actions/insert_browser_iso` and `/browser-media`). The ISO is ejected once the browser disconnects or stops being read (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
 
 ### Bug fixes
 
@@ -46,6 +48,7 @@
 - [V2V] Keep the MAC address of a network card set by hand on VMware, instead of generating a new one, and no longer create a network interface for a card which is not present (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
 - [Replication] Fix `Cannot read properties of undefined (reading 'uuid')` error when an orphan replica snapshot exists on the target SR (PR [#10732](https://github.com/vatesfr/xen-orchestra/pull/10732))
 - [XO6/Modals] Modals no longer stretch across the screen: their width is limited to a third of the screen, up to 550px (PR [#10800](https://github.com/vatesfr/xen-orchestra/pull/10800))
+- [Backup/Live mount] Fix mounts failing when xo-server runs without root on a system using iptables-legacy, instead of leaving the firewall alone (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
 
 ### Packages to release
 
@@ -67,6 +70,7 @@
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api minor
