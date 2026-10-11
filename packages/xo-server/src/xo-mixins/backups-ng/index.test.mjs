@@ -4,6 +4,7 @@ import EventEmitter from 'node:events'
 import test from 'node:test'
 import TimeoutError from 'promise-toolbox/TimeoutError'
 import { formatJournalEvents, formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
+import { makeOnProgress } from '@vates/task/combineEvents'
 
 import BackupNg, { backupsListingRetryDelay } from './index.mjs'
 import { filenameOf, journalEntryPath, metadataOf, VM } from './_vmBackupsFixtures.mjs'
@@ -430,10 +431,12 @@ const createBackupNgWithRepository = repository => {
 const PROXY_ID = 'a-proxy-id'
 
 // serves the same in-memory repository through the RPCs a proxy exposes
-const createBackupNgWithProxiedRepository = (repository, { journal = true, failsToList = false } = {}) => {
+//
+// `backupLogs` is what the proxy streams when it runs a backup job: an async iterable of task events
+const createBackupNgWithProxiedRepository = (repository, { journal = true, failsToList = false, backupLogs } = {}) => {
   const adapter = repository.adapter
   const app = {
-    config: { getDuration: () => LISTING_DEBOUNCE },
+    config: { get: () => ({}), getDuration: () => LISTING_DEBOUNCE },
     getRemoteWithCredentials: async id => {
       assert.equal(id, REMOTE_ID)
       return { id: REMOTE_ID, url: 'file:///media/backup', proxy: PROXY_ID }
@@ -458,10 +461,18 @@ const createBackupNgWithProxiedRepository = (repository, { journal = true, fails
         return adapter.deleteVmBackups(params.filenames)
       }
 
+      if (method === 'backup.run') {
+        return backupLogs()
+      }
+
       throw new Error(`unexpected proxy method ${method}`)
     },
     hooks: new EventEmitter(),
-    registerJobExecutor() {},
+    jobExecutors: {},
+    registerJobExecutor(type, executor) {
+      this.jobExecutors[type] = executor
+    },
+    tasks: { createExternalProgressHandler: makeOnProgress },
   }
   return new BackupNg(app)
 }
@@ -616,7 +627,7 @@ describe('the backup-archive collection', () => {
     assert.deepEqual(events, [{ event: 'add', id: idOf('20260811T090000') }])
   })
 
-  it('announces a backup deleted through the mixin', async () => {
+  it('announces a backup deleted through the mixin, without waiting for a listing', async () => {
     const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(VM, '20260811T093000')])
     const backupNg = createBackupNgWithRepository(repository)
 
@@ -624,9 +635,64 @@ describe('the backup-archive collection', () => {
     const events = recordEvents(backupNg)
 
     await backupNg.deleteVmBackupsNg([idOf('20260811T093000')])
-    await backupNg.listVmBackupsNg([REMOTE_ID])
+    await tick(0)
 
     assert.deepEqual(events, [{ event: 'remove', id: idOf('20260811T093000') }])
+    assert.equal(repository.nListings, 1)
+  })
+
+  it('does not read a repository whose archives are not in the collection after a deletion', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(VM, '20260811T093000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const events = recordEvents(backupNg)
+
+    await backupNg.deleteVmBackupsNg([idOf('20260811T093000')])
+    await tick(0)
+
+    assert.equal(repository.nListings, 0)
+    assert.deepEqual(events, [])
+  })
+
+  it('announces the backup of a VM once it is exported, before the end of the job', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    let eventsWhenExported
+    const backupNg = createBackupNgWithProxiedRepository(repository, {
+      // a single VM exported to a single repository
+      async *backupLogs() {
+        yield { type: 'start', id: 'run', timestamp: 0, properties: { name: 'backup run' } }
+        yield {
+          type: 'start',
+          id: 'export',
+          parentId: 'run',
+          timestamp: 0,
+          properties: { id: REMOTE_ID, name: 'export', type: 'remote' },
+        }
+        repository.add(metadataOf(VM, '20260811T100000'))
+        yield { type: 'end', id: 'export', timestamp: 0, status: 'success' }
+
+        await tick(0)
+        eventsWhenExported = events.slice()
+
+        yield { type: 'end', id: 'run', timestamp: 0, status: 'success' }
+      },
+    })
+    const { hooks, jobExecutors } = backupNg._app
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    const events = recordEvents(backupNg)
+    hooks.emit('start')
+
+    await jobExecutors.mirrorBackup({
+      job: { id: 'job', name: 'job', proxy: PROXY_ID, remotes: { id: REMOTE_ID }, settings: { schedule: {} } },
+      jobData: {},
+      jobUpdateFct: async () => {},
+      schedule: { id: 'schedule' },
+    })
+
+    assert.deepEqual(eventsWhenExported, [{ event: 'add', id: idOf('20260811T100000') }])
+    assert.equal(repository.nListings, 1)
+
+    hooks.emit('stop')
   })
 
   it('reads the repositories of the collection on a timer, for the changes made by other processes', async () => {
