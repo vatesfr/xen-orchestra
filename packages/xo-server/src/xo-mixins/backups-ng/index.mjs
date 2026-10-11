@@ -233,15 +233,23 @@ export default class BackupNg {
         const proxyId = job.proxy
         const useXoProxy = proxyId !== undefined
         const targetRemoteIds = unboxIdsFromPattern(job.remotes)
+
+        const onTaskUpdate = (log, event) => {
+          // a VM has been backed up on this repository, retention and clean-vm included: its archives
+          // are updated now rather than at the end of the job
+          if (event.type === 'end' && log.properties?.name === 'export' && log.properties.type === 'remote') {
+            this._refreshVmBackupsCache(log.properties.id)
+          }
+          handleBackupLog(log, event, { app: this._app, jobName: job.name })
+        }
+
         try {
           if (!useXoProxy && backupsConfig.disableWorkers) {
             const onLogFct = app.tasks.createExternalProgressHandler({
               onRootTaskStart: log => {
                 jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
               },
-              onTaskUpdate: (log, event) => {
-                handleBackupLog(log, event, { app: this._app, jobName: job.name })
-              },
+              onTaskUpdate,
             })
             return await Task.run(
               {
@@ -389,9 +397,7 @@ export default class BackupNg {
                 onRootTaskEnd: log => {
                   result = forwardResult(log)
                 },
-                onTaskUpdate: (log, event) => {
-                  handleBackupLog(log, event, { app: this._app, jobName: job.name })
-                },
+                onTaskUpdate,
               })
 
               for await (const log of logsStream) {
@@ -414,9 +420,7 @@ export default class BackupNg {
               onRootTaskEnd: log => {
                 result = forwardResult(log)
               },
-              onTaskUpdate: (log, event) => {
-                handleBackupLog(log, event, { app: this._app, jobName: job.name })
-              },
+              onTaskUpdate,
             })
 
             await runBackupWorker(
@@ -716,9 +720,16 @@ export default class BackupNg {
   // current refresh window
   //
   // to call after a mutation triggered by this process, so that its effect is visible at once
+  //
+  // also replays its journal at once for the consumers of the archives, unless that means a full listing
   _refreshVmBackupsCache(remoteId) {
     this.#vmBackupsCache.refresh(remoteId)
     this.#resetVmBackupsListingState(remoteId)
+
+    if (this.#vmBackupsCache.isReplayable(remoteId)) {
+      // never rejects
+      this._listVmBackupsWithBackoff(remoteId)
+    }
   }
 
   // reads repositories of the collection for the changes this process did not make: the size the
