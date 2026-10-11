@@ -445,7 +445,8 @@ export class VmBackupsCache {
 
   /**
    * Marks a repository as stale: the next listing will replay its journal instead of waiting for the
-   * end of the current refresh window.
+   * end of the current refresh window, and a read already in progress reads it again before it
+   * settles, unless that means listing it in full, see `#refresh()`.
    *
    * To call after a mutation triggered by this process, so that its effect is visible at once.
    *
@@ -483,10 +484,36 @@ export class VmBackupsCache {
   }
 
   /**
+   * `#build()` and `#replay()` unset `stale` before they read: when it is set again once they are
+   * done, `refresh()` has been called meanwhile, and what they read may miss the mutation which
+   * prompted it. The callers of `get()` which joined this read are not served a state older than
+   * that call: the repository is read again, for as long as `refresh()` is called during the read.
+   *
+   * Not when, as far as the cache knows, reading it again means listing it in full: with mutations
+   * coming faster than a listing, e.g. a backup job writing VM after VM to the repository, this read
+   * would never settle. `stale` is left set, so the next read lists it again.
+   *
    * @param {Repository} repository
    * @returns {Promise<BackupsByVm>}
    */
   async #refresh(repository) {
+    for (;;) {
+      const backupsByVm = await this.#read(repository)
+
+      // only the entry this call has just read: one built by another call since is that call's
+      // business
+      const entry = this.#entries.get(repository.id)
+      if (entry?.backupsByVm !== backupsByVm || !entry.stale || this.#unreplayable.has(repository.id)) {
+        return backupsByVm
+      }
+    }
+  }
+
+  /**
+   * @param {Repository} repository
+   * @returns {Promise<BackupsByVm>}
+   */
+  async #read(repository) {
     const { id } = repository
     const entry = this.#entries.get(id)
     const now = Date.now()
@@ -687,7 +714,8 @@ export class VmBackupsCache {
     const backupsByVm = /** @type {BackupsByVm} */ (entry.backupsByVm)
 
     // taken and cleared before the journal read, so that a mutation or a `refresh()` which happens
-    // during it is not swallowed and the next listing replays again
+    // during it is not swallowed and the next listing replays again — and for a `refresh()`, so that
+    // `#refresh()` reads again before this read settles
     //
     // this is also why they are left as they are when the source turns out not to be replayable: the
     // rebuild which follows is at least as fresh as the replay would have been
