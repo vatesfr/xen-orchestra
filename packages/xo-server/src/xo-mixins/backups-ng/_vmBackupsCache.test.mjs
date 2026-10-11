@@ -135,6 +135,27 @@ class Repository {
   }
 }
 
+// makes the next call to a method of the source read, then wait for `release()` before returning
+// what it read, so that a test can act between the two; `read` resolves once it has read
+const holdNextRead = (source, method) => {
+  const original = source[method]
+  let onRead, release
+  const read = new Promise(resolve => {
+    onRead = resolve
+  })
+  const released = new Promise(resolve => {
+    release = resolve
+  })
+  source[method] = async (...args) => {
+    source[method] = original
+    const result = await original(...args)
+    onRead()
+    await released
+    return result
+  }
+  return { read, release }
+}
+
 const filenames = backupsByVm => Object.values(backupsByVm).flatMap(backups => Object.keys(backups))
 
 // `Date` is mocked in most tests: the cache decides to rebuild or to replay from the current time
@@ -374,6 +395,58 @@ describe('VmBackupsCache', () => {
     tick(30e3)
     await cache.get(REPOSITORY)
     assert.equal(repository.nListings, 2)
+  })
+
+  it('tells the repositories in the collection whose journal can be replayed from the others', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+    const replayability = () => ({
+      isReplayable: cache.isReplayable(REPOSITORY.id),
+      replayable: cache.replayableRepositoryIds(),
+      unreplayable: cache.unreplayableRepositoryIds(),
+    })
+
+    // never listed: none of its archives is in the collection
+    assert.deepEqual(replayability(), { isReplayable: false, replayable: [], unreplayable: [] })
+
+    await cache.get(REPOSITORY)
+    assert.deepEqual(replayability(), { isReplayable: true, replayable: [REPOSITORY.id], unreplayable: [] })
+
+    // reading it now means listing it in full, which the cache finds out on the next replay
+    repository.cannotReplay = true
+    tick(60e3)
+    await cache.get(REPOSITORY)
+    assert.deepEqual(replayability(), { isReplayable: false, replayable: [], unreplayable: [REPOSITORY.id] })
+
+    // e.g. it has been moved to another proxy, which may expose its journal
+    cache.delete(REPOSITORY.id)
+    assert.deepEqual(replayability(), { isReplayable: true, replayable: [REPOSITORY.id], unreplayable: [] })
+
+    cache.remove(REPOSITORY.id)
+    assert.deepEqual(replayability(), { isReplayable: false, replayable: [], unreplayable: [] })
+  })
+
+  it('does not record that a repository cannot be replayed when it is deleted during the read', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const source = repository.source
+    const cache = new VmBackupsCache(source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+
+    // e.g. read through a proxy which does not expose the journal, while the repository is being
+    // moved off it
+    repository.cannotReplay = true
+    const held = holdNextRead(source, 'readJournal')
+    const pending = cache.get(REPOSITORY)
+    await held.read
+    cache.delete(REPOSITORY.id)
+    held.release()
+    await pending
+
+    assert.equal(cache.isReplayable(REPOSITORY.id), true)
   })
 
   it('forgets a repository which cannot be read anymore', async t => {
