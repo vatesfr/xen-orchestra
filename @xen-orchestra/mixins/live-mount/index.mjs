@@ -26,6 +26,7 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * @property {number} port
  * @property {string} iqn
  * @property {Record<string, string>} deviceConfig - of an `iscsi` SR on this target, without `SCSIid`
+ * @property {Set<string>} refusedAddresses - connections refused by `iscsi.restrictToHost` came from these
  * @property {() => Promise<void>} close - stops serving, and closes the firewall rule if any
  */
 
@@ -311,15 +312,18 @@ export default class LiveMount extends EventEmitter {
       // the host is the only expected initiator: nothing else may take the connection slots of the
       // target, which only CHAP would keep from logging in otherwise. Behind a NAT, the host connects
       // from another address, which is what `iscsi.restrictToHost = false` is for
-      const allowedAddresses =
+      const allowedInitiatorAddresses =
         config.getOptional('iscsi.restrictToHost') === false
           ? undefined
           : await getHostAddresses(xapi, hostRef, hostAddress)
+      // what the host connected from instead, to tell why it cannot reach the target
+      const refusedAddresses = new Set()
 
       const iqn = `iqn.2026-07.tech.vates.xo:${kind}-${id}`
       const target = this.#createTarget({
         ...targetOptions,
-        allowedAddresses,
+        allowedInitiatorAddresses,
+        onConnectionRefused: address => refusedAddresses.add(address),
         chap,
         host: config.getOptional('iscsi.bindAddress'),
         identity: { serial: `xo-${kind}-${id}` },
@@ -358,6 +362,7 @@ export default class LiveMount extends EventEmitter {
         id,
         iqn,
         port,
+        refusedAddresses,
         close: async () => {
           // stop serving first, so no I/O is left in flight
           try {
@@ -394,7 +399,19 @@ export default class LiveMount extends EventEmitter {
       $defer.onFailure(() => served.close())
       const { address, deviceConfig, id, iqn, port } = served
 
-      const SCSIid = await probeScsiId({ xapi, hostRef, deviceConfig, address })
+      let SCSIid
+      try {
+        SCSIid = await probeScsiId({ xapi, hostRef, deviceConfig, address })
+      } catch (error) {
+        const [refused] = served.refusedAddresses
+        if (refused === undefined) {
+          throw error
+        }
+        throw new Error(
+          `the host connected to the iSCSI target from ${refused}, which is not one of its addresses, e.g. through a NAT: set iscsi.restrictToHost = false`,
+          { cause: error }
+        )
+      }
       const fullDeviceConfig = { ...deviceConfig, SCSIid }
 
       const { srRef, srUuid } = await introduceSr($defer, {

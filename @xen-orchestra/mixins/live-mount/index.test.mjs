@@ -340,7 +340,23 @@ describe('serveBlockDevice', () => {
 
     await mixin.serveBlockDevice({ lun, xapi: makeXapi(), hostRef: HOST_REF })
 
-    assert.deepEqual(target.options.allowedAddresses, ['10.20.30.40', 'fd00::40', '10.99.0.40'])
+    assert.deepEqual(target.options.allowedInitiatorAddresses, ['10.20.30.40', 'fd00::40', '10.99.0.40'])
+  })
+
+  it('names the address the host connected from when the probe fails because of it', async () => {
+    const { mixin, target } = makeMixin()
+    const xapi = makeXapi({ probeError: new XapiError('SR_BACKEND_FAILURE_141', []) })
+    const listen = target.listen
+    target.listen = async () => {
+      await listen()
+      // the host connects through a NAT
+      target.options.onConnectionRefused('192.168.1.254')
+    }
+
+    await assert.rejects(
+      mixin.mountBlockDevice({ lun, xapi, hostRef: HOST_REF, kind: 'test', nameLabel: 'x', nameDescription: '' }),
+      /from 192\.168\.1\.254, which is not one of its addresses.*restrictToHost = false/
+    )
   })
 
   it('accepts any address when iscsi.restrictToHost is false, e.g. behind a NAT', async () => {
@@ -348,7 +364,7 @@ describe('serveBlockDevice', () => {
 
     await mixin.serveBlockDevice({ lun, xapi: makeXapi(), hostRef: HOST_REF })
 
-    assert.equal(target.options.allowedAddresses, undefined)
+    assert.equal(target.options.allowedInitiatorAddresses, undefined)
   })
 
   it('serves again under the identity of a previous target', async () => {

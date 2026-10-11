@@ -524,7 +524,7 @@ To turn it off, and manage the firewall yourself, add to the [configuration file
 manageFirewall = false
 ```
 
-If a firewall still blocks the hosts, or if they connect through a NAT, the restore fails with `the host cannot reach the iSCSI target at <address>:<port>, check iscsi.advertisedAddress and the firewalls between them, and set iscsi.restrictToHost = false if the host reaches this appliance through a NAT`.
+If a firewall still blocks the hosts, the restore fails with `the host cannot reach the iSCSI target at <address>:<port>, check iscsi.advertisedAddress and the firewalls between them, …`. If they connect through a NAT, it fails with `the host connected to the iSCSI target from <address>, which is not one of its addresses, e.g. through a NAT: set iscsi.restrictToHost = false`.
 
 How it works:
 
