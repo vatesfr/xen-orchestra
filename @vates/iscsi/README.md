@@ -49,8 +49,9 @@ target-initiated NOP keepalives, multiple connections/LUNs.
 What a peer can make the target do is bounded:
 
 - connections that have not logged in yet are limited in time (`loginTimeoutMs`)
-  and number (`maxPendingConnections`), and `allowedAddresses` closes the ones
-  from any other initiator as soon as they are accepted
+  and number (`maxPendingConnections`), and `allowedInitiatorAddresses` (the
+  source addresses of the expected initiators) closes the other ones as soon as
+  they are accepted, reporting them to `onConnectionRefused`
 - a PDU data segment is at most 8 KiB during login, then the declared
   `MaxRecvDataSegmentLength` (256 KiB), checked before it is read
 - a single `READ`/`WRITE` is at most `maxTransferLength` (8 MiB by default),
