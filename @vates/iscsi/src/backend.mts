@@ -16,6 +16,11 @@ export interface BlockDevice {
   getSize(): number
   /** Logical block size in bytes (typically 512). */
   getBlockSize(): number
+  /**
+   * When true, the LUN is reported as write-protected and WRITE commands are
+   * refused up front (DATA PROTECT), without soliciting their data.
+   */
+  readonly readOnly?: boolean
   /** Read exactly `length` bytes starting at byte `offset`. */
   read(offset: number, length: number): Promise<Buffer>
   /** Write `data` starting at byte `offset`. */
