@@ -20,7 +20,8 @@ const defaultExec = (command, args) => execFileAsync(command, args, { timeout: E
 
 // enabled by default, so it must stay out of the way of the installs it cannot apply to: rather
 // than failing the mounts, no rule is opened, and whatever firewall there is decides
-const NOT_ROOT_RE = /you must be root/i
+// iptables-legacy fails on the xtables lock before telling so
+const NOT_ROOT_RE = /you must be root|can't open lock file .*: Permission denied/i
 // ufw not installed, or not enabled: it deletes its chains when stopped
 const MISSING_CHAIN_RE = /No chain\/target\/match by that name|does not exist/i
 // a rule already gone, dropped by any change made to ufw meanwhile
