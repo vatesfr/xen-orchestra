@@ -585,8 +585,7 @@ export default class LiveMount extends EventEmitter {
       return
     }
     // a VDI is removed once and for all, and a mount introduces exactly one: nothing else will ever
-    // come for this uuid
-    this.#mountIdsByVdiUuid.delete(uuid)
+    // come for this uuid. Still watched until the unmount goes through, which stops watching it
     info('the live mounted VDI was removed, unmounting', { id: mountId, vdiUuid: uuid })
     this.unmountDisk(mountId).catch(error => {
       warn('failed to unmount after the VDI was removed', { error, id: mountId })
@@ -611,6 +610,15 @@ export default class LiveMount extends EventEmitter {
       // a coded error, so a remote caller (XO driving a proxy) can tell it apart from a failed call
       noSuchObject(id, 'live-mount')
     }
+    // the stop hook, a removed VDI and the owner of the mount may all unmount it at once: they share
+    // the same unmount
+    mount.unmounting ??= this.#unmount(id, mount).finally(() => {
+      mount.unmounting = undefined
+    })
+    return mount.unmounting
+  }
+
+  async #unmount(id, mount) {
     if (mount.beforeUnmount !== undefined) {
       // nothing is released yet: on failure, the mount stays as it is, so the unmount can be retried
       await mount.beforeUnmount()
@@ -671,17 +679,19 @@ export default class LiveMount extends EventEmitter {
     return this.unmountDisk(id)
   }
 
-  /** Live disk mounts, in creation order; a cached one also reports how much of the disk is local. */
+  /** Live disk mounts, in creation order, without the other block devices; a cached one also reports how much of the disk is local. */
   listMountedDisks() {
-    return [...this.#mounts.values()].map(({ id, srUuid, vdiUuid, diskPath, iqn, address, port, cache }) => ({
-      id,
-      srUuid,
-      vdiUuid,
-      diskPath,
-      iqn,
-      address,
-      port,
-      cache: cache?.lun.getMaterialized(),
-    }))
+    return [...this.#mounts.values()]
+      .filter(mount => mount.diskPath !== undefined)
+      .map(({ id, srUuid, vdiUuid, diskPath, iqn, address, port, cache }) => ({
+        id,
+        srUuid,
+        vdiUuid,
+        diskPath,
+        iqn,
+        address,
+        port,
+        cache: cache?.lun.getMaterialized(),
+      }))
   }
 }

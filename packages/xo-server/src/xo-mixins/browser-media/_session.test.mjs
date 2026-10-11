@@ -35,7 +35,7 @@ const makeSession = ({ timeout = 1e3 } = {}) => {
   const closed = []
   const session = new BrowserMediaSession({
     socket,
-    owner: 'user-id',
+    userId: 'user-id',
     name: 'debian.iso',
     size: 64 * 1024,
     timeout,

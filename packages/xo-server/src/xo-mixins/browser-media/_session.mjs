@@ -82,14 +82,14 @@ export class BrowserMediaSession {
   /**
    * @param {object} params
    * @param {WebSocket} params.socket
-   * @param {string} params.owner - id of the user whose browser serves the ISO
+   * @param {string} params.userId - id of the user whose browser serves the ISO
    * @param {string} params.name
    * @param {number} params.size
    * @param {number} params.timeout - for a read, and between heartbeats
    * @param {(session: BrowserMediaSession) => void} params.onClose
    */
-  constructor({ socket, owner, name, size, timeout, onClose }) {
-    this.owner = owner
+  constructor({ socket, userId, name, size, timeout, onClose }) {
+    this.userId = userId
     this.name = name
     this.size = size
     this.#onClose = onClose
@@ -198,7 +198,7 @@ export class BrowserMediaSession {
       id: this.id,
       name: this.name,
       size: this.size,
-      owner: this.owner,
+      userId: this.userId,
       status: this.status,
       createdAt: this.createdAt,
       bytesRead: this.bytesRead,

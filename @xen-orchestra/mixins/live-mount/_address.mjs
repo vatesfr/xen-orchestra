@@ -43,9 +43,10 @@ export async function getHostAddresses(xapi, hostRef, hostAddress) {
     if (IP !== '') {
       addresses.add(IP)
     }
-    // with their prefix length, e.g. `fd00::1/64`
+    // with their prefix length, e.g. `fd00::1/64`, and canonicalized like the remote address of a
+    // socket, e.g. `fd00:0:0::1` becomes `fd00::1`
     for (const address of IPv6) {
-      addresses.add(address.split('/')[0])
+      addresses.add(new URL(`http://[${address.split('/')[0]}]`).hostname.slice(1, -1))
     }
   }
   return [...addresses]

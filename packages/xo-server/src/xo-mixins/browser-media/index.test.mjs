@@ -3,6 +3,7 @@ import { EventEmitter, once } from 'node:events'
 import { createServer } from 'node:http'
 import { after, afterEach, describe, it } from 'node:test'
 import WebSocket from 'ws'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
 import BrowserMedia from './index.mjs'
 import { TAG } from './_xapi.mjs'
@@ -22,7 +23,7 @@ class XapiError extends Error {
 }
 
 /** A pool as XAPI records, and the calls made to it. */
-function makeXapi({ powerState = 'Halted', cd = true } = {}) {
+function makeXapi({ powerState = 'Halted', cd = true, insertError } = {}) {
   const calls = []
   const records = {
     VM: {
@@ -78,6 +79,9 @@ function makeXapi({ powerState = 'Halted', cd = true } = {}) {
         delete get('VBD', ref).other_config[key]
         return
       case 'VBD.insert':
+        if (insertError !== undefined) {
+          throw insertError
+        }
         Object.assign(get('VBD', ref), { VDI: key, empty: false })
         return
       case 'VBD.eject':
@@ -130,24 +134,35 @@ function makeXapi({ powerState = 'Halted', cd = true } = {}) {
   }
 }
 
-/** Stands for the live mount mixin: records the mounts, runs `beforeUnmount` like it does. */
-function makeLiveMount({ mountError } = {}) {
+/**
+ * Stands for the live mount mixin: records the mounts, introduces their tagged SR, runs
+ * `beforeUnmount` like it does, and like it, reports a partial unmount as unmounted anyway.
+ */
+function makeLiveMount({ mountError, mountDelay = 0, forgetError } = {}) {
   const liveMount = new EventEmitter()
   liveMount.mounts = new Map()
   liveMount.served = []
   liveMount.mountBlockDevice = async params => {
+    await new Promise(resolve => setTimeout(resolve, mountDelay))
     if (mountError !== undefined) {
       throw mountError
     }
     const id = `mount-${liveMount.mounts.size}`
     liveMount.mounts.set(id, params)
+    params.xapi.records.SR[`OpaqueRef:sr-${id}`] = { sm_config: params.smConfig, PBDs: [], VDIs: [] }
     return { id, vdiUuid: 'vdi-uuid', srUuid: 'sr-uuid' }
   }
   liveMount.unmountBlockDevice = async id => {
     const params = liveMount.mounts.get(id)
     await params.beforeUnmount?.()
     liveMount.mounts.delete(id)
+    if (forgetError === undefined) {
+      delete params.xapi.records.SR[`OpaqueRef:sr-${id}`]
+    }
     liveMount.emit('unmounted', id)
+    if (forgetError !== undefined) {
+      throw forgetError
+    }
   }
   liveMount.serveBlockDevice = async params => {
     const served = { params, closed: false, close: async () => (served.closed = true) }
@@ -200,7 +215,7 @@ async function setup({
   }
   app.liveMount = liveMount
   app.getStore = async () => store
-  app.getAllXapis = () => ({ server: xapi })
+  app.getAllXapis = () => (app.poolDisconnected ? {} : { server: xapi })
   app.getXapi = () => xapi
   app.authenticateUser = async ({ token }) => {
     if (token === 'admin-token') {
@@ -214,8 +229,8 @@ async function setup({
   app.getObject = (id, type) => {
     if (type === 'VM' && id === VM_ID) {
       const vm = xapi.records.VM[VM_REF]
-      if (vm === undefined) {
-        throw Object.assign(new Error('no such VM'), { code: 1 })
+      if (vm === undefined || app.poolDisconnected) {
+        noSuchObject(id, 'VM')
       }
       return {
         id: VM_ID,
@@ -303,6 +318,10 @@ describe('browser connection', () => {
     assert.equal(await upgradeStatus(url, {}), 401)
     assert.equal(await upgradeStatus(url, { cookie: 'token=user-token' }), 403)
     assert.equal(await upgradeStatus(url, { cookie: 'token=admin-token', origin: 'https://evil.example' }), 403)
+    // another port of the same host is another site, which shares the cookies of XO
+    assert.equal(await upgradeStatus(url, { cookie: 'token=admin-token', origin: 'http://127.0.0.1:1' }), 403)
+    const { port } = new URL(url)
+    assert.equal(await upgradeStatus(url, { cookie: 'token=admin-token', origin: `http://127.0.0.1:${port}` }), 101)
     assert.equal(await upgradeStatus(url, { cookie: 'token=admin-token' }), 101)
   })
 
@@ -318,8 +337,8 @@ describe('browser connection', () => {
     assert.deepEqual(
       media
         .getAllBrowserMediaSessions()
-        .map(({ id, name, size, owner, status }) => ({ id, name, size, owner, status })),
-      [{ id: session, name: 'debian.iso', size: ISO_SIZE, owner: 'admin-id', status: 'connected' }]
+        .map(({ id, name, size, userId, status }) => ({ id, name, size, userId, status })),
+      [{ id: session, name: 'debian.iso', size: ISO_SIZE, userId: 'admin-id', status: 'connected' }]
     )
 
     socket.close()
@@ -369,6 +388,7 @@ describe('insertBrowserMedia', () => {
     assert.deepEqual(store.map.get(session), {
       pool: POOL_UUID,
       vm: VM_ID,
+      size: ISO_SIZE,
       createdAt: store.map.get(session).createdAt,
     })
     assert.equal(media.getBrowserMediaSession(session).status, 'inserted')
@@ -469,6 +489,64 @@ describe('end of an insertion', () => {
     assert.equal(code, 4408)
     await until(() => context.store.map.size === 0)
     assertReleased(context)
+  })
+})
+
+describe('failures while releasing', () => {
+  it('cleans the CD drive when the insertion fails after changing it', async () => {
+    const { media, store, url, xapi } = await setup({ xapi: makeXapi({ insertError: new Error('VBD.insert failed') }) })
+    const { session } = await connect(url)
+
+    await assert.rejects(media.insertBrowserMedia({ id: session, vmId: VM_ID }), /VBD\.insert failed/)
+
+    assert.deepEqual(xapi.records.VBD[CD_REF].other_config, {})
+    assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, {})
+    assert.deepEqual(xapi.records.SR, {})
+    assert.equal(store.map.size, 0)
+  })
+
+  it('makes an eject during the insertion wait for it to be undone', async () => {
+    const { media, store, url, xapi } = await setup({ liveMount: makeLiveMount({ mountDelay: 20 }) })
+    const { session } = await connect(url)
+
+    const inserting = media.insertBrowserMedia({ id: session, vmId: VM_ID })
+    await media.ejectBrowserMedia(session)
+
+    await assert.rejects(inserting, /disconnected during the insertion/)
+    assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, {})
+    assert.deepEqual(xapi.records.SR, {})
+    assert.equal(store.map.size, 0)
+  })
+
+  it('hands a partly released ISO over to the recovery, keeping its journal entry', async () => {
+    const { media, store, url, xapi } = await setup({
+      liveMount: makeLiveMount({ forgetError: new Error('PBD.unplug failed') }),
+    })
+    const { session } = await connect(url)
+    await media.insertBrowserMedia({ id: session, vmId: VM_ID })
+
+    await assert.rejects(media.ejectBrowserMedia(session), /PBD\.unplug failed/)
+
+    // the CD drive and the VM were released before the SR, which is left to the recovery
+    assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, {})
+    assert.equal(Object.keys(xapi.records.SR).length, 1)
+    assert.equal(store.map.size, 1)
+    assert.deepEqual(media.getAllBrowserMediaSessions(), [])
+  })
+
+  it('releases nothing while the pool of the VM is disconnected, and retries', async () => {
+    const { app, liveMount, media, store, url, xapi } = await setup()
+    const { session } = await connect(url)
+    await media.insertBrowserMedia({ id: session, vmId: VM_ID })
+
+    app.poolDisconnected = true
+    await assert.rejects(media.ejectBrowserMedia(session), /not connected/)
+
+    // not mistaken for a deleted VM: everything is kept for the retry
+    assert.equal(liveMount.mounts.size, 1)
+    assert.equal(store.map.size, 1)
+    assert.notDeepEqual(xapi.records.VM[VM_REF].blocked_operations, {})
+    assert.equal(media.getBrowserMediaSession(session).status, 'ejecting')
   })
 })
 

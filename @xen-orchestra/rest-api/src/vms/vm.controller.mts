@@ -68,7 +68,6 @@ import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import type { UnbrandXoVmBackupJob } from '../backup-jobs/backup-job.type.mjs'
 import { partialVmBackupJobs, vmBackupJobIds } from '../open-api/oa-examples/backup-job.oa-example.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
-import { insertedBrowserMedia } from '../open-api/oa-examples/browser-media.oa-example.mjs'
 import type { UnbrandedVmDashboard, UpdateVmRequestBody } from './vm.type.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { Task } from '@vates/task'
@@ -762,7 +761,7 @@ export class VmController extends XapiXoController<XoVm> {
    * The browser serves the ISO over a WebSocket to `/api/browser-media`, authenticated by the `token` cookie of an
    * administrator:
    * 1. it sends `{"name": string, "size": number}`, the size being a multiple of 512 bytes between 32 KiB and 128 GiB;
-   * 2. it receives `{"session": string}`, the id of the browser media session to pass to this action;
+   * 2. it receives `{"session": string}`, the id of the browser media session, to pass as `browserMediaId`;
    * 3. then it receives read requests `{"id": number, "offset": number, "length": number}` (at most 1 MiB), each
    *    answered by a binary message: `id` as a big-endian uint32, followed by exactly `length` bytes of the ISO.
    *
@@ -770,10 +769,9 @@ export class VmController extends XapiXoController<XoVm> {
    * ISO is not read anymore, `4410` once it is ejected, and `4503` when the feature is unavailable.
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
-   * @example body { "session": "3f1d0c9e8b7a6f5e4d3c2b1a09f8e7d6" }
+   * @example body { "browserMediaId": "3f1d0c9e8b7a6f5e4d3c2b1a09f8e7d6" }
    */
   @Example(taskLocation)
-  @Example(insertedBrowserMedia)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/insert_browser_iso')
   @Middlewares(json())
@@ -787,18 +785,26 @@ export class VmController extends XapiXoController<XoVm> {
   )
   insertBrowserIso(
     @Path() id: string,
-    @Body() body: { session: string },
+    @Body() body: { browserMediaId: string },
     @Query() sync?: boolean
   ): CreateActionReturnType<{ vdiId: XoVdi['id'] }> {
     const vmId = id as XoVm['id']
-    const params = { id: body.session as XoBrowserMediaSession['id'], vmId }
+    const params = { id: body.browserMediaId as XoBrowserMediaSession['id'], vmId }
     // reported as such rather than as a failed task
     this.restApi.xoApp.assertBrowserMediaInsertable(params)
 
-    return this.createAction<{ vdiId: XoVdi['id'] }>(() => this.restApi.xoApp.insertBrowserMedia(params), {
+    const action = async () => {
+      const result = await this.restApi.xoApp.insertBrowserMedia(params)
+      if (sync) {
+        this.setHeader('Location', `${BASE_URL}/vdis/${result.vdiId}`)
+      }
+      return result
+    }
+
+    return this.createAction<{ vdiId: XoVdi['id'] }>(action, {
       sync,
       statusCode: createdResp.status,
-      taskProperties: { name: 'insert browser ISO', objectId: vmId },
+      taskProperties: { name: 'insert browser ISO', objectId: vmId, params: body },
     })
   }
 
