@@ -139,6 +139,16 @@ writeBlockConcurrency = 16
 enabled = false
 threshold = 1000
 
+[browserMedia]
+# Administrators can stream an ISO from their browser into the CD drive of a VM
+# (experimental), served by the same iSCSI targets as the live mounts, see
+# `[iscsi]`. Set to `false` to disable it.
+enabled = true
+
+# Eject an ISO the VM has not read for this long, e.g. once an installation is
+# over: the VM cannot migrate nor be suspended while an ISO is inserted.
+idleTimeout = '1 hour'
+
 [http]
 # Trust X-Forwarded-* headers from loopback only: the proxies below (e.g.
 # `/v5/api`) forward requests to xo-server itself through `localhost`, which
@@ -237,6 +247,12 @@ requestTimeout = 0
 # is opened and the mounts go on: whatever firewall there is must let the hosts
 # in. Set to `false` to leave the firewall of this appliance alone.
 manageFirewall = 'ufw'
+
+# The iSCSI target of each mount only accepts connections from the addresses of
+# the host it is attached to (its management address and the ones of its PIFs),
+# so that nothing else can occupy its connection slots. Set to `false` when the
+# hosts reach this appliance through a NAT, which hides their own addresses.
+#restrictToHost = true
 
 [logs]
 # Display all logs matching this filter, regardless of their level

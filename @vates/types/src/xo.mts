@@ -457,6 +457,35 @@ export type XoPool = BaseXapiXo & {
   zstdSupported: boolean
 }
 
+/**
+ * An ISO selected in a browser and streamed from it, which can be inserted in the CD drive of a VM
+ * while the browser stays connected
+ */
+export type XoBrowserMediaSession = {
+  id: Branded<'browser-media'>
+  /** File name of the ISO, as selected in the browser */
+  name: string
+  /** Size of the ISO, in bytes */
+  size: number
+  /** User whose browser serves the ISO */
+  owner: XoUser['id']
+  status: 'connected' | 'inserting' | 'inserted' | 'ejecting'
+  /** Timestamp of the browser connection */
+  createdAt: number
+  /** Total of the bytes read from the browser */
+  bytesRead: number
+  /** Timestamp of the last read from the browser */
+  lastReadAt?: number
+  /** VM the ISO is inserted in, from the start of the insertion */
+  vmId?: XoVm['id']
+  /** VDI inserted in the CD drive of the VM */
+  vdiId?: XoVdi['id']
+  /** Timestamp of the end of the insertion */
+  insertedAt?: number
+  /** Why the last insertion failed */
+  error?: string
+}
+
 export type XoProxy = {
   id: Branded<'proxy'>
   url: string
@@ -696,6 +725,7 @@ export type XoTask = {
       | 'backup-job'
       | 'backup-log'
       | 'backup-repository'
+      | 'browser-media'
       | 'group'
       | 'proxy'
       | 'restore'
@@ -911,6 +941,7 @@ export type NonXapiXoRecord =
   | AnyXoJob
   | AnyXoLog
   | XoAuthenticationToken
+  | XoBrowserMediaSession
   | XoGroup
   | XoProxy
   | XoJob
