@@ -74,12 +74,18 @@ export interface IscsiTargetOptions {
    */
   readonly maxPendingConnections?: number
   /**
-   * When set, connections from any other address are closed as soon as they
-   * are accepted, before any login: only these initiators can take a pending
-   * connection slot. IPv4-mapped IPv6 addresses (`::ffff:a.b.c.d`) match
-   * their IPv4 form.
+   * Source addresses the initiators may connect from. When set, connections
+   * from any other address are closed as soon as they are accepted, before any
+   * login: only these initiators can take a pending connection slot.
+   * IPv4-mapped IPv6 addresses (`::ffff:a.b.c.d`) match their IPv4 form.
    */
-  readonly allowedAddresses?: Iterable<string>
+  readonly allowedInitiatorAddresses?: Iterable<string>
+  /**
+   * Called with the source address of each connection closed because it is
+   * not in `allowedInitiatorAddresses`, e.g. to tell why an initiator behind a
+   * NAT cannot connect.
+   */
+  readonly onConnectionRefused?: (address: string) => void
   /**
    * Max length of a single READ or WRITE, in bytes, advertised in the block
    * limits VPD page; longer commands are refused. At least one logical block.
@@ -110,7 +116,7 @@ function normalizeAddress(address: string): string {
  * Normal session, CHAP included when configured, so that a port scan, a failed
  * login or a Discovery session cannot interrupt the current one. Until then,
  * connections are bounded in time (`loginTimeoutMs`) and in number
- * (`maxPendingConnections`); with `allowedAddresses`, only the expected
+ * (`maxPendingConnections`); with `allowedInitiatorAddresses`, only the expected
  * initiators can take those slots. Not RFC 7143 session reinstatement (no ISID
  * matching) — safe here since the target is ephemeral, CHAP-guarded, and
  * single-consumer.
@@ -127,7 +133,8 @@ export class IscsiTarget {
   readonly #chap?: ChapCredentials
   readonly #loginTimeoutMs: number
   readonly #maxPendingConnections: number
-  readonly #allowedAddresses?: ReadonlySet<string>
+  readonly #allowedInitiatorAddresses?: ReadonlySet<string>
+  readonly #onConnectionRefused?: (address: string) => void
   readonly #maxTransferLength: number
 
   #server?: Server
@@ -148,9 +155,10 @@ export class IscsiTarget {
     this.#chap = options.chap
     this.#loginTimeoutMs = options.loginTimeoutMs ?? DEFAULT_LOGIN_TIMEOUT_MS
     this.#maxPendingConnections = options.maxPendingConnections ?? DEFAULT_MAX_PENDING_CONNECTIONS
-    if (options.allowedAddresses !== undefined) {
-      this.#allowedAddresses = new Set(Array.from(options.allowedAddresses, normalizeAddress))
+    if (options.allowedInitiatorAddresses !== undefined) {
+      this.#allowedInitiatorAddresses = new Set(Array.from(options.allowedInitiatorAddresses, normalizeAddress))
     }
+    this.#onConnectionRefused = options.onConnectionRefused
     this.#maxTransferLength = options.maxTransferLength ?? DEFAULT_MAX_TRANSFER_LENGTH
     if (this.#maxTransferLength < options.lun.getBlockSize()) {
       throw new RangeError('maxTransferLength must be at least one logical block')
@@ -185,10 +193,12 @@ export class IscsiTarget {
   }
 
   #onConnection(socket: Socket): void {
-    const allowed = this.#allowedAddresses
-    if (allowed !== undefined && !allowed.has(normalizeAddress(socket.remoteAddress ?? ''))) {
-      log.warn('connection from an address that is not allowed, closing it', { remote: socket.remoteAddress })
+    const allowed = this.#allowedInitiatorAddresses
+    const remote = normalizeAddress(socket.remoteAddress ?? '')
+    if (allowed !== undefined && !allowed.has(remote)) {
+      log.warn('connection from an address that is not allowed, closing it', { remote })
       socket.destroy()
+      this.#onConnectionRefused?.(remote)
       return
     }
     socket.setNoDelay(true)

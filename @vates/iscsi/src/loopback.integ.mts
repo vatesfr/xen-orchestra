@@ -662,7 +662,12 @@ describe('connection admission', () => {
   })
 
   async function withTarget(
-    options: { loginTimeoutMs?: number; maxPendingConnections?: number; allowedAddresses?: string[] },
+    options: {
+      loginTimeoutMs?: number
+      maxPendingConnections?: number
+      allowedInitiatorAddresses?: string[]
+      onConnectionRefused?: (address: string) => void
+    },
     fn: (port: number) => Promise<void>
   ): Promise<void> {
     const target = new IscsiTarget({
@@ -774,23 +779,28 @@ describe('connection admission', () => {
     })
   })
 
-  it('closes connections from an address that is not allowed', async () => {
-    await withTarget({ allowedAddresses: ['192.0.2.1'] }, async port => {
-      const probe = await rawConnect(port)
-      try {
-        await Promise.race([
-          once(probe, 'close'),
-          delay(5000).then(() => assert.fail('the connection should have been closed')),
-        ])
-      } finally {
-        probe.destroy()
+  it('closes connections from an address that is not allowed, and reports it', async () => {
+    const refused: string[] = []
+    await withTarget(
+      { allowedInitiatorAddresses: ['192.0.2.1'], onConnectionRefused: address => refused.push(address) },
+      async port => {
+        const probe = await rawConnect(port)
+        try {
+          await Promise.race([
+            once(probe, 'close'),
+            delay(5000).then(() => assert.fail('the connection should have been closed')),
+          ])
+        } finally {
+          probe.destroy()
+        }
       }
-    })
+    )
+    assert.deepEqual(refused, ['127.0.0.1'])
   })
 
   it('serves an allowed address, also in its IPv4-mapped IPv6 form', async () => {
     for (const allowed of ['127.0.0.1', '::ffff:127.0.0.1']) {
-      await withTarget({ allowedAddresses: [allowed] }, async port => {
+      await withTarget({ allowedInitiatorAddresses: [allowed] }, async port => {
         const initiator = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN, chap: CHAP })
         await initiator.connect()
         try {
