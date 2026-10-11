@@ -86,10 +86,18 @@ const makeXapi = ({ poolUuid = 'pool-uuid', probeError, vdiSmConfig } = {}) => {
       if (type === 'host' && field === 'address') {
         return '10.20.30.40' // the host's own management address, as XAPI reports it
       }
+      if (type === 'host' && field === 'PIFs') {
+        return ['OpaqueRef:pif-management', 'OpaqueRef:pif-storage']
+      }
       return 'sr-uuid'
     },
     async getRecord(type, ref) {
       calls.push(['getRecord', type, ref])
+      if (type === 'PIF') {
+        return ref === 'OpaqueRef:pif-management'
+          ? { IP: '10.20.30.40', IPv6: ['fd00::40/64'] }
+          : { IP: '10.99.0.40', IPv6: [] }
+      }
       // the driver derives the VDI uuid from the LUN serial, so it differs from
       // the one we asked for
       return { uuid: nVdis > 1 ? `vdi-uuid-${nVdis}` : 'vdi-uuid', sm_config: vdiSmConfig ?? { SCSIid: SCSI_ID } }
@@ -125,6 +133,7 @@ const makeMixin = ({
   listenError,
   advertisedAddress = '192.168.1.8',
   manageFirewall,
+  restrictToHost,
   firewall = makeFirewall(),
 } = {}) => {
   const hooks = new EventEmitter()
@@ -139,6 +148,9 @@ const makeMixin = ({
         }
         if (path === 'iscsi.manageFirewall') {
           return manageFirewall
+        }
+        if (path === 'iscsi.restrictToHost') {
+          return restrictToHost
         }
         assert.equal(path, 'iscsi.bindAddress')
         return undefined
@@ -317,6 +329,175 @@ describe('mountDisk', () => {
     assert.ok(
       xapi.calls.some(([method, , ref, field]) => method === 'getField' && ref === HOST_REF && field === 'address')
     )
+  })
+})
+
+describe('serveBlockDevice', () => {
+  const lun = { open: async () => {}, getSize: () => 1024 * 1024, getBlockSize: () => 512 }
+
+  it('only accepts the addresses of the host, storage networks included', async () => {
+    const { mixin, target } = makeMixin()
+
+    await mixin.serveBlockDevice({ lun, xapi: makeXapi(), hostRef: HOST_REF })
+
+    assert.deepEqual(target.options.allowedAddresses, ['10.20.30.40', 'fd00::40', '10.99.0.40'])
+  })
+
+  it('accepts any address when iscsi.restrictToHost is false, e.g. behind a NAT', async () => {
+    const { mixin, target } = makeMixin({ restrictToHost: false })
+
+    await mixin.serveBlockDevice({ lun, xapi: makeXapi(), hostRef: HOST_REF })
+
+    assert.equal(target.options.allowedAddresses, undefined)
+  })
+
+  it('serves again under the identity of a previous target', async () => {
+    const { mixin, target } = makeMixin()
+    const chap = { user: 'xo-cafebabe', secret: '0123456789abcdef' }
+
+    const served = await mixin.serveBlockDevice({
+      lun,
+      xapi: makeXapi(),
+      hostRef: HOST_REF,
+      kind: 'browser-media',
+      id: 'cafebabe',
+      chap,
+      port: 45678,
+    })
+
+    assert.equal(target.options.port, 45678)
+    assert.equal(target.options.chap, chap)
+    assert.equal(target.options.iqn, 'iqn.2026-07.tech.vates.xo:browser-media-cafebabe')
+    assert.equal(served.iqn, target.options.iqn)
+    assert.deepEqual(served.deviceConfig, {
+      chapuser: chap.user,
+      chappassword: chap.secret,
+      port: '34567', // as the target reports it
+      target: '192.168.1.8',
+      targetIQN: served.iqn,
+    })
+
+    await served.close()
+    assert.equal(target.closed, true)
+  })
+
+  it('closes the firewall rule with the target', async () => {
+    const firewall = makeFirewall()
+    const { mixin } = makeMixin({ manageFirewall: 'ufw', firewall })
+
+    const served = await mixin.serveBlockDevice({ lun, xapi: makeXapi(), hostRef: HOST_REF, id: 'cafebabe' })
+    await served.close()
+
+    const rule = { source: '10.20.30.40', port: 34567, id: 'cafebabe' }
+    assert.deepEqual(
+      firewall.calls.filter(([method]) => method !== 'purge'),
+      [
+        ['open', rule],
+        ['close', rule],
+      ]
+    )
+  })
+})
+
+describe('mountBlockDevice', () => {
+  const makeLun = ({ readOnly } = {}) => ({
+    closed: false,
+    readOnly,
+    open: async () => {},
+    getSize: () => 790626304,
+    getBlockSize: () => 512,
+  })
+
+  it('names the target, the SR and the VDI after the caller, and follows the read-only flag of the LUN', async () => {
+    const { mixin, target } = makeMixin()
+    const xapi = makeXapi()
+    let released = false
+
+    const result = await mixin.mountBlockDevice({
+      lun: makeLun({ readOnly: true }),
+      xapi,
+      hostRef: HOST_REF,
+      kind: 'browser-media',
+      nameLabel: 'debian-13.5.0-amd64-netinst.iso',
+      nameDescription: 'streamed from a browser',
+      smConfig: { 'xo:browser-media': 'session-id' },
+      targetOptions: { maxTransferLength: 1024 * 1024 },
+      release: async () => {
+        released = true
+      },
+    })
+
+    assert.match(result.iqn, /^iqn\.2026-07\.tech\.vates\.xo:browser-media-[0-9a-f]{32}$/)
+    assert.equal(target.options.identity.serial, `xo-browser-media-${result.id}`)
+    assert.equal(target.options.maxTransferLength, 1024 * 1024)
+
+    const srIntroduce = xapi.calls.find(([method]) => method === 'SR.introduce')
+    assert.equal(srIntroduce[2], 'debian-13.5.0-amd64-netinst.iso')
+    assert.equal(srIntroduce[3], 'streamed from a browser')
+    const vdiIntroduce = xapi.calls.find(([method]) => method === 'VDI.introduce')
+    assert.equal(vdiIntroduce[2], 'debian-13.5.0-amd64-netinst.iso')
+    assert.equal(vdiIntroduce[3], 'streamed from a browser')
+    assert.equal(vdiIntroduce[7], true) // read_only
+    assert.equal(vdiIntroduce[13], 790626304)
+    assert.deepEqual(srIntroduce[7], { 'xo:browser-media': 'session-id' }) // sm_config, set atomically
+
+    await mixin.unmountBlockDevice(result.id)
+    assert.equal(target.closed, true)
+    assert.equal(released, true)
+    assert.ok(xapi.calls.some(([method]) => method === 'SR.forget'))
+  })
+
+  it('calls beforeUnmount before forgetting the SR, and keeps the mount when it fails', async () => {
+    const { mixin, target } = makeMixin()
+    const xapi = makeXapi()
+    let failing = true
+    const order = []
+    const { id } = await mixin.mountBlockDevice({
+      lun: makeLun({ readOnly: true }),
+      xapi,
+      hostRef: HOST_REF,
+      kind: 'browser-media',
+      nameLabel: 'iso',
+      nameDescription: '',
+      beforeUnmount: async () => {
+        order.push(['beforeUnmount', xapi.calls.some(([method]) => method === 'SR.forget')])
+        if (failing) {
+          throw new Error('VBD.eject failed')
+        }
+      },
+    })
+
+    await assert.rejects(mixin.unmountBlockDevice(id), /VBD\.eject failed/)
+    // nothing released: forgetting the SR now could leave the host with a datapath on it
+    assert.ok(!xapi.calls.some(([method]) => method === 'SR.forget'))
+    assert.equal(target.closed, false)
+    assert.equal(mixin.listMountedDisks().length, 1)
+
+    failing = false
+    await mixin.unmountBlockDevice(id)
+    assert.deepEqual(order, [
+      ['beforeUnmount', false],
+      ['beforeUnmount', false],
+    ])
+    assert.ok(xapi.calls.some(([method]) => method === 'SR.forget'))
+    assert.equal(target.closed, true)
+    assert.deepEqual(mixin.listMountedDisks(), [])
+  })
+
+  it('introduces a writable VDI for a writable LUN', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+
+    await mixin.mountBlockDevice({
+      lun: makeLun(),
+      xapi,
+      hostRef: HOST_REF,
+      kind: 'test',
+      nameLabel: 'disk',
+      nameDescription: '',
+    })
+
+    assert.equal(xapi.calls.find(([method]) => method === 'VDI.introduce')[7], false)
   })
 })
 

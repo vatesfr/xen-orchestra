@@ -74,6 +74,12 @@ port = 443
 # in. Set to `false` to leave the firewall of this proxy alone.
 manageFirewall = 'ufw'
 
+# The iSCSI target of each mount only accepts connections from the addresses of
+# the host it is attached to (its management address and the ones of its PIFs),
+# so that nothing else can occupy its connection slots. Set to `false` when the
+# hosts reach this proxy through a NAT, which hides their own addresses.
+#restrictToHost = true
+
 [logs]
 # Display all logs matching this filter, regardless of their level
 #filter = 'xo:backups:*'
