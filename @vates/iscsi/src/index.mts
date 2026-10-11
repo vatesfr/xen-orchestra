@@ -3,7 +3,7 @@ import { createLogger, type Logger } from '@xen-orchestra/log'
 
 import type { BlockDevice } from './backend.mjs'
 import { Connection, type ConnectionDeps } from './connection.mjs'
-import type { ScsiIdentity } from './scsi.mjs'
+import { DEFAULT_MAX_TRANSFER_LENGTH, type ScsiIdentity } from './scsi.mjs'
 import type { ChapCredentials } from './types.mjs'
 
 export { FileBlockDevice } from './backend.mjs'
@@ -73,6 +73,27 @@ export interface IscsiTargetOptions {
    * past it, new ones are refused. Defaults to 8.
    */
   readonly maxPendingConnections?: number
+  /**
+   * When set, connections from any other address are closed as soon as they
+   * are accepted, before any login: only these initiators can take a pending
+   * connection slot. IPv4-mapped IPv6 addresses (`::ffff:a.b.c.d`) match
+   * their IPv4 form.
+   */
+  readonly allowedAddresses?: Iterable<string>
+  /**
+   * Max length of a single READ or WRITE, in bytes, advertised in the block
+   * limits VPD page; longer commands are refused. At least one logical block.
+   * Defaults to 8 MiB.
+   */
+  readonly maxTransferLength?: number
+}
+
+const IPV4_MAPPED_PREFIX = '::ffff:'
+
+function normalizeAddress(address: string): string {
+  return address.startsWith(IPV4_MAPPED_PREFIX) && address.includes('.')
+    ? address.slice(IPV4_MAPPED_PREFIX.length)
+    : address
 }
 
 /**
@@ -89,7 +110,8 @@ export interface IscsiTargetOptions {
  * Normal session, CHAP included when configured, so that a port scan, a failed
  * login or a Discovery session cannot interrupt the current one. Until then,
  * connections are bounded in time (`loginTimeoutMs`) and in number
- * (`maxPendingConnections`). Not RFC 7143 session reinstatement (no ISID
+ * (`maxPendingConnections`); with `allowedAddresses`, only the expected
+ * initiators can take those slots. Not RFC 7143 session reinstatement (no ISID
  * matching) — safe here since the target is ephemeral, CHAP-guarded, and
  * single-consumer.
  */
@@ -105,6 +127,8 @@ export class IscsiTarget {
   readonly #chap?: ChapCredentials
   readonly #loginTimeoutMs: number
   readonly #maxPendingConnections: number
+  readonly #allowedAddresses?: ReadonlySet<string>
+  readonly #maxTransferLength: number
 
   #server?: Server
   // the connection with an established Normal session, serving the LUN
@@ -124,6 +148,13 @@ export class IscsiTarget {
     this.#chap = options.chap
     this.#loginTimeoutMs = options.loginTimeoutMs ?? DEFAULT_LOGIN_TIMEOUT_MS
     this.#maxPendingConnections = options.maxPendingConnections ?? DEFAULT_MAX_PENDING_CONNECTIONS
+    if (options.allowedAddresses !== undefined) {
+      this.#allowedAddresses = new Set(Array.from(options.allowedAddresses, normalizeAddress))
+    }
+    this.#maxTransferLength = options.maxTransferLength ?? DEFAULT_MAX_TRANSFER_LENGTH
+    if (this.#maxTransferLength < options.lun.getBlockSize()) {
+      throw new RangeError('maxTransferLength must be at least one logical block')
+    }
     this.#identity = {
       ...DEFAULT_IDENTITY,
       // Default the serial to the IQN so the LUN has a stable, unique identity.
@@ -149,10 +180,17 @@ export class IscsiTarget {
       chap: this.#chap,
       loginTimeoutMs: this.#loginTimeoutMs,
       onSessionEstablished: connection => this.#onSessionEstablished(connection),
+      maxTransferLength: this.#maxTransferLength,
     }
   }
 
   #onConnection(socket: Socket): void {
+    const allowed = this.#allowedAddresses
+    if (allowed !== undefined && !allowed.has(normalizeAddress(socket.remoteAddress ?? ''))) {
+      log.warn('connection from an address that is not allowed, closing it', { remote: socket.remoteAddress })
+      socket.destroy()
+      return
+    }
     socket.setNoDelay(true)
     const connection = new Connection(socket, this.#deps())
     this.#connections.add(connection)

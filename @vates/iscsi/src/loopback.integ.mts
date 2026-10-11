@@ -662,7 +662,7 @@ describe('connection admission', () => {
   })
 
   async function withTarget(
-    options: { loginTimeoutMs?: number; maxPendingConnections?: number },
+    options: { loginTimeoutMs?: number; maxPendingConnections?: number; allowedAddresses?: string[] },
     fn: (port: number) => Promise<void>
   ): Promise<void> {
     const target = new IscsiTarget({
@@ -772,6 +772,34 @@ describe('connection admission', () => {
         probe.destroy()
       }
     })
+  })
+
+  it('closes connections from an address that is not allowed', async () => {
+    await withTarget({ allowedAddresses: ['192.0.2.1'] }, async port => {
+      const probe = await rawConnect(port)
+      try {
+        await Promise.race([
+          once(probe, 'close'),
+          delay(5000).then(() => assert.fail('the connection should have been closed')),
+        ])
+      } finally {
+        probe.destroy()
+      }
+    })
+  })
+
+  it('serves an allowed address, also in its IPv4-mapped IPv6 form', async () => {
+    for (const allowed of ['127.0.0.1', '::ffff:127.0.0.1']) {
+      await withTarget({ allowedAddresses: [allowed] }, async port => {
+        const initiator = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN, chap: CHAP })
+        await initiator.connect()
+        try {
+          await assertStillServing(initiator)
+        } finally {
+          await initiator.close()
+        }
+      })
+    }
   })
 
   it('refuses connections without a session past the limit', async () => {

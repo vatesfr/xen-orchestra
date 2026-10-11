@@ -24,7 +24,13 @@ import {
   TEXT_FLAG_FINAL,
 } from './constants.mjs'
 import { buildFixedSense, handleScsiCommand, type ScsiIdentity } from './scsi.mjs'
-import { buildSendTargetsResponse, LoginNegotiator, parseTextKeys } from './login.mjs'
+import {
+  buildSendTargetsResponse,
+  LOGIN_MAX_DATA_SEGMENT_LENGTH,
+  LoginNegotiator,
+  OUR_MAX_RECV_DATA_SEGMENT_LENGTH,
+  parseTextKeys,
+} from './login.mjs'
 import { allocBhs, assemblePdu, type IncomingPdu, readPdu, writePdu } from './pdu.mjs'
 import {
   decodeCdb,
@@ -89,6 +95,8 @@ export interface ConnectionDeps {
   readonly loginTimeoutMs?: number
   /** Called once this connection has established a Normal session. */
   onSessionEstablished?(connection: Connection): void
+  /** Max length of a single READ or WRITE, in bytes. */
+  readonly maxTransferLength?: number
 }
 
 type Phase = 'login' | 'fullFeature' | 'closed'
@@ -161,7 +169,10 @@ export class Connection implements CommandContext {
     }
     try {
       for (;;) {
-        const pdu = await readPdu(this.#socket)
+        const pdu = await readPdu(
+          this.#socket,
+          this.#phase === 'login' ? LOGIN_MAX_DATA_SEGMENT_LENGTH : OUR_MAX_RECV_DATA_SEGMENT_LENGTH
+        )
         if (pdu === null) {
           break // peer closed the connection
         }
@@ -418,13 +429,13 @@ export class Connection implements CommandContext {
       // Not awaited: the read loop must move on immediately rather than block on
       // this `lun.read()`. See the class doc for why no extra ordering is needed.
       void this.#readGate
-        .run(() => handleScsiCommand(cdb, pdu.itt, this, this.#deps.identity))
+        .run(() => handleScsiCommand(cdb, pdu.itt, this, this.#deps.identity, this.#deps.maxTransferLength))
         .catch(error => {
           this.#fail(error)
         })
       return
     }
-    await handleScsiCommand(cdb, pdu.itt, this, this.#deps.identity)
+    await handleScsiCommand(cdb, pdu.itt, this, this.#deps.identity, this.#deps.maxTransferLength)
   }
 
   async #sendReject(pdu: IncomingPdu, reason: number): Promise<void> {

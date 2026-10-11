@@ -72,17 +72,17 @@ keys if it declines transit on the first exchange.
 Decoded explicitly (`types.mts#decodeCdb`); anything else maps to `unsupported` → `CHECK CONDITION` /
 `ILLEGAL_REQUEST` / `INVALID COMMAND OPERATION CODE`:
 
-| Command             | Variants                                                         |
-| ------------------- | ---------------------------------------------------------------- |
-| `INQUIRY`           | standard + EVPD (vendor/product/revision/serial from `identity`) |
-| `REPORT LUNS`       |                                                                  |
-| `READ CAPACITY`     | `(10)` and `(16)`                                                |
-| `READ`              | `(10)` and `(16)`                                                |
-| `WRITE`             | `(10)` and `(16)`                                                |
-| `TEST UNIT READY`   |                                                                  |
-| `REQUEST SENSE`     |                                                                  |
-| `MODE SENSE`        | `(6)` and `(10)`                                                 |
-| `SYNCHRONIZE CACHE` | `(10)` and `(16)` — flushes the backing `BlockDevice`            |
+| Command             | Variants                                                                                                                                                       |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `INQUIRY`           | standard + EVPD `0x00`/`0x80`/`0x83` (vendor/product/revision/serial from `identity`) and `0xb0` (block limits: `maxTransferLength`)                           |
+| `REPORT LUNS`       |                                                                                                                                                                |
+| `READ CAPACITY`     | `(10)` and `(16)`                                                                                                                                              |
+| `READ`              | `(10)` and `(16)`; longer than `maxTransferLength` → `INVALID FIELD IN CDB`                                                                                    |
+| `WRITE`             | `(10)` and `(16)`; longer than `maxTransferLength` → `INVALID FIELD IN CDB`; on a `readOnly` LUN → `DATA PROTECT` / `WRITE PROTECTED`, without soliciting data |
+| `TEST UNIT READY`   |                                                                                                                                                                |
+| `REQUEST SENSE`     |                                                                                                                                                                |
+| `MODE SENSE`        | `(6)` and `(10)`; `WP` set on a `readOnly` LUN                                                                                                                 |
+| `SYNCHRONIZE CACHE` | `(10)` and `(16)` — flushes the backing `BlockDevice`                                                                                                          |
 
 **Not implemented**: persistent reservations, VAAI/thin-provisioning primitives (`UNMAP`, `WRITE SAME`, `COMPARE
 AND WRITE`, ...), any vendor-specific commands — anything beyond the ~10 commands a Linux initiator actually

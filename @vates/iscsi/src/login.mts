@@ -35,9 +35,12 @@ const log: Logger = createLogger('vates:iscsi:login')
 // Operational values the target imposes. The target drives negotiation, so these
 // are pinned to a single code path (see plan): all writes are R2T-solicited
 // (InitialR2T=Yes, ImmediateData=No), no digests, one connection.
-const OUR_MAX_RECV_DATA_SEGMENT_LENGTH = 262144
+export const OUR_MAX_RECV_DATA_SEGMENT_LENGTH = 262144
 const OUR_MAX_BURST_LENGTH = 262144
 const DEFAULT_INITIATOR_MAX_RECV_DATA_SEGMENT_LENGTH = 8192 // RFC 7143 default
+// a declared MaxRecvDataSegmentLength only applies once logged in: until then,
+// both sides keep to the 8192-byte default (RFC 7143 §13.12)
+export const LOGIN_MAX_DATA_SEGMENT_LENGTH = 8192
 
 /** Parse a NUL-delimited iSCSI text key=value data segment. */
 export function parseTextKeys(data: Buffer): Map<string, string> {
