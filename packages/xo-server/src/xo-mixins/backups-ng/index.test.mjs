@@ -13,6 +13,8 @@ const { afterEach, beforeEach, describe, it, mock } = test
 // must be kept in sync with `index.mjs`
 const LISTING_TIMEOUT = 30e3
 const LISTING_DEBOUNCE = 60e3
+const VM_BACKUP_ARCHIVES_POLL_INTERVAL = 60e3
+const VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL = 10 * 60e3
 
 // `mock.timers.tick()` is synchronous: yield to the event loop so that the promise continuations
 // it scheduled have run before the assertions
@@ -351,8 +353,30 @@ class Repository {
 
   nListings = 0
 
+  // set to make every read fail, as an unreachable repository does
+  failWith
+
   constructor(metadata) {
     metadata.forEach(_ => this.metadataByFilename.set(_._filename, _))
+  }
+
+  // writes a backup and its journal entry, as a backup job does
+  add(metadata) {
+    this.metadataByFilename.set(metadata._filename, metadata)
+    const date = Date.now()
+    this.journal.push({
+      event: 'add',
+      filename: metadata._filename,
+      vmUuid: metadata.vm.uuid,
+      date,
+      _filename: journalEntryPath(date),
+    })
+  }
+
+  #mayFail() {
+    if (this.failWith !== undefined) {
+      throw this.failWith
+    }
   }
 
   get adapter() {
@@ -365,10 +389,12 @@ class Repository {
         }
       },
       listAllVmBackups: async () => {
+        this.#mayFail()
         this.nListings++
         return { [VM]: [...this.metadataByFilename.values()] }
       },
       readBackupJournalEvents: async cursor => {
+        this.#mayFail()
         const entries = cursor === undefined ? this.journal.slice() : this.journal.filter(_ => _._filename > cursor)
         if (entries.length > 0) {
           cursor = entries[entries.length - 1]._filename
@@ -396,6 +422,7 @@ const createBackupNgWithRepository = repository => {
       return { id: REMOTE_ID, url: 'file:///media/backup' }
     },
     hooks: new EventEmitter(),
+    registerJobExecutor() {},
   }
   return new BackupNg(app)
 }
@@ -433,7 +460,8 @@ const createBackupNgWithProxiedRepository = (repository, { journal = true, fails
 
       throw new Error(`unexpected proxy method ${method}`)
     },
-    hooks: { on() {} },
+    hooks: new EventEmitter(),
+    registerJobExecutor() {},
   }
   return new BackupNg(app)
 }
@@ -544,7 +572,7 @@ describe('invalidateVmBackupsListing() on a cached repository', () => {
 
 describe('the backup-archive collection', () => {
   beforeEach(() => {
-    mock.timers.enable({ apis: ['setTimeout', 'Date'] })
+    mock.timers.enable({ apis: ['setInterval', 'setTimeout', 'Date'] })
   })
 
   afterEach(() => {
@@ -601,6 +629,73 @@ describe('the backup-archive collection', () => {
     await backupNg.listVmBackupsNg([REMOTE_ID])
 
     assert.deepEqual(events, [{ event: 'remove', ids: [idOf('20260811T093000')] }])
+  })
+
+  it('reads the repositories of the collection on a timer, for the changes made by other processes', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const { hooks } = backupNg._app
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    const events = recordEvents(backupNg)
+    hooks.emit('start')
+
+    // e.g. by another XO sharing the repository
+    repository.add(metadataOf(VM, '20260811T100000'))
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+
+    assert.deepEqual(events, [{ event: 'add', ids: [idOf('20260811T100000')] }])
+    assert.equal(repository.nListings, 1)
+
+    hooks.emit('stop')
+    repository.add(metadataOf(VM, '20260811T110000'))
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(events.length, 1)
+  })
+
+  it('lists the repositories of the collection whose journal cannot be read on a slower timer', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithProxiedRepository(repository, { journal: false })
+    const { hooks } = backupNg._app
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    const events = recordEvents(backupNg)
+    hooks.emit('start')
+
+    // the first tick finds out that the journal cannot be read, by listing the repository instead
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(repository.nListings, 2)
+
+    repository.add(metadataOf(VM, '20260811T100000'))
+    await tick(VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL - 2 * VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(repository.nListings, 2)
+    assert.deepEqual(events, [])
+
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(repository.nListings, 3)
+    assert.deepEqual(events, [{ event: 'add', ids: [idOf('20260811T100000')] }])
+
+    hooks.emit('stop')
+  })
+
+  it('keeps the retry delay of a repository the timer fails to read', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const { hooks } = backupNg._app
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    hooks.emit('start')
+
+    repository.failWith = new Error('unreachable')
+    for (let i = 0; i < 3; ++i) {
+      await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    }
+
+    // the second tick is served the failure of the first one, which the debounce still holds, and the
+    // third one fails again: a timer which reset the retry state would count a first failure each time
+    assert.equal(backupNg._backupsListingRetry[REMOTE_ID].attempt, 2)
+
+    hooks.emit('stop')
   })
 
   it('announces the removal of every archive of a repository which is gone', async () => {
