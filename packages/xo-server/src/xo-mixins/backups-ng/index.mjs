@@ -39,6 +39,14 @@ const logger = createLogger('xo:xo-mixins:backups-ng')
 const LISTING_RETRY_DELAY = 30e3
 const LISTING_TIMEOUT = 30e3
 const LISTING_RETRY_MAX_DELAY = 60 * 60 * 1e3 // cap at 1h
+
+// how often `#pollVmBackupArchives()` reads the repositories: not `backups.listingDebounce`, which a
+// user can set to 0, but that debounce still applies, and is the actual delay when it is longer
+const VM_BACKUP_ARCHIVES_POLL_INTERVAL = 60e3
+
+// the same for the repositories whose journal cannot be read: each read lists them in full
+const VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL = 10 * 60e3
+
 /**
  * @param {number} attempt number of consecutive failures so far, `0` for the first one
  * @returns {number} delay in ms before the next attempt is allowed
@@ -118,6 +126,22 @@ export default class BackupNg {
 
     app.hooks.on('core started', () => {
       app.hooks.emit('registerCollection', { collection: this.#vmBackupsCache.archives, type: 'backup-archive' })
+    })
+
+    let vmBackupArchivesPoll, vmBackupArchivesFullPoll
+    app.hooks.on('start', () => {
+      vmBackupArchivesPoll = setInterval(
+        () => this.#pollVmBackupArchives(this.#vmBackupsCache.replayableRepositoryIds()),
+        VM_BACKUP_ARCHIVES_POLL_INTERVAL
+      )
+      vmBackupArchivesFullPoll = setInterval(
+        () => this.#pollVmBackupArchives(this.#vmBackupsCache.unreplayableRepositoryIds()),
+        VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL
+      )
+    })
+    app.hooks.on('stop', () => {
+      clearInterval(vmBackupArchivesPoll)
+      clearInterval(vmBackupArchivesFullPoll)
     })
 
     app.hooks.on('start', async () => {
@@ -695,6 +719,20 @@ export default class BackupNg {
   _refreshVmBackupsCache(remoteId) {
     this.#vmBackupsCache.refresh(remoteId)
     this.#resetVmBackupsListingState(remoteId)
+  }
+
+  // reads repositories of the collection for the changes this process did not make: the size the
+  // merge worker rewrites after the job, or another XO sharing the repository
+  //
+  // without resetting the listing state, unlike `_refreshVmBackupsCache()`: an unreachable repository
+  // keeps its retry delay instead of being read on every tick
+  #pollVmBackupArchives(remoteIds) {
+    for (const remoteId of remoteIds) {
+      // once the debounce of the previous listing is over, the refresh window of the cache, as long
+      // but started a bit later, would still skip the read
+      this.#vmBackupsCache.refresh(remoteId)
+      this._listVmBackupsWithBackoff(remoteId)
+    }
   }
 
   /**
