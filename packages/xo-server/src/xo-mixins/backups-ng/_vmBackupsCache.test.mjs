@@ -281,17 +281,21 @@ describe('VmBackupsCache', () => {
     assert.ok(filenames(backups).includes(added._filename))
   })
 
-  it('rebuilds when the entry crosses a UTC day', async t => {
-    const { tick } = mockTime(t, Date.parse('2026-08-11T23:59:00Z'))
+  it('rebuilds an hour after the entry was built, however recently it was replayed', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
     const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
 
     await cache.get(REPOSITORY)
-    tick(120e3)
+    tick(59 * 60e3)
     await cache.get(REPOSITORY)
+    assert.equal(repository.nListings, 1)
+    assert.equal(repository.nJournalReads, 1)
 
+    tick(60e3)
+    await cache.get(REPOSITORY)
     assert.equal(repository.nListings, 2)
-    assert.equal(repository.nJournalReads, 0)
+    assert.equal(repository.nJournalReads, 1)
   })
 
   it('rebuilds when the remote is re-pointed or reconfigured', async t => {
@@ -606,15 +610,15 @@ describe('VmBackupsCache collection', () => {
   })
 
   it('announces nothing when a repository is listed again with the same backups', async t => {
-    const { tick } = mockTime(t, Date.parse('2026-08-11T23:59:00Z'))
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
     const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
 
     await cache.get(REPOSITORY)
     const events = recordEvents(cache)
 
-    // crossing a UTC day rebuilds the entry from scratch
-    tick(120e3)
+    // an hour later, the entry is rebuilt from scratch
+    tick(60 * 60e3)
     await cache.get(REPOSITORY)
 
     assert.equal(repository.nListings, 2)

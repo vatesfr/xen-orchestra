@@ -58,6 +58,8 @@ import { journalCursorAt } from '@xen-orchestra/backups/_backupJournal.mjs'
 /**
  * @typedef {object} Entry
  * @property {BackupsByVm} [backupsByVm] set once the initial listing has completed
+ * @property {number} builtAt when this process listed the repository in full, compared with its clock
+ * as `refreshedAt` is
  * @property {string} cursor opaque watermark owned by the source, only ever passed back to it: it is
  * stamped by the process which reads the journal, which is not necessarily this one, and must
  * therefore never be compared with this process' clock
@@ -65,8 +67,8 @@ import { journalCursorAt } from '@xen-orchestra/backups/_backupJournal.mjs'
  * successfully once, i.e. whether it disappearing on the next replay is anomalous rather than benign
  * @property {Repository['options']} [options]
  * @property {string} [proxy]
- * @property {number} refreshedAt when this process last brought the entry up to date, i.e. the only
- * field which may be compared with its clock
+ * @property {number} refreshedAt when this process last brought the entry up to date: with `builtAt`,
+ * the only fields which may be compared with its clock
  * @property {boolean} stale
  * @property {string} url
  */
@@ -83,9 +85,10 @@ const { debug, warn } = createLogger('xo:xo-mixins:backups-ng:vmBackupsCache')
 // removal.
 const CLOCK_SKEW_TOLERANCE = 5 * 60 * 1e3
 
-const MS_PER_DAY = 24 * 60 * 60 * 1e3
-
-const utcDay = timestamp => Math.floor(timestamp / MS_PER_DAY)
+// how long an entry is brought up to date from the journal before it is listed in full again, i.e. the
+// longest the drift described in `VmBackupsCache` lasts, at the price of one full listing of each
+// repository per period
+const REBUILD_INTERVAL = 60 * 60 * 1e3
 
 /**
  * @param {Entry} entry
@@ -276,7 +279,7 @@ export function serveVmBackups(backupsByVm, remoteId, vmId) {
  * How a repository is read is `VmBackupsSource`'s business: this class only decides *when* to list
  * it, when to replay it, and what to serve in the meantime.
  *
- * Entries are rebuilt from scratch when they cross a UTC day, which bounds the drift accumulated
+ * Entries are rebuilt from scratch an hour after they were built, which bounds the drift accumulated
  * from the events which could not be journaled, or which are not journaled at all (e.g. the
  * `immutable-backups` daemon lifting the immutability of a backup), when the remote is re-pointed,
  * reconfigured or moved to another proxy, which the entry detects by itself from what it was built
@@ -294,7 +297,7 @@ export class VmBackupsCache {
   //
   // therefore only `remove()` releases it: it is the call which says that a repository is not coming
   // back, while `delete()` keeps it for the listing which is going to compare itself against it
-  /** @type {Map<string, BackupsByVm>} */
+  /** @type {Map<Repository['id'], BackupsByVm>} */
   #announced = new Map()
 
   // only the cache emits on it: its consumers get a collection of its own rather than the cache itself,
@@ -312,7 +315,7 @@ export class VmBackupsCache {
     first: async (/** @type {string} */ id) => this.#listArchives().find(archive => archive.id === id),
   }
 
-  // repository id → { backupsByVm, cursor, journalConfirmed, options, proxy, refreshedAt, stale, url }
+  // repository id → { backupsByVm, builtAt, cursor, journalConfirmed, options, proxy, refreshedAt, stale, url }
   /** @type {Map<string, Entry>} */
   #entries = new Map()
 
@@ -325,6 +328,11 @@ export class VmBackupsCache {
 
   /** @type {Source} */
   #source
+
+  // ids of the repositories the source turned out not to be able to replay: bringing them up to date
+  // means listing them again in full
+  /** @type {Set<Repository['id']>} */
+  #unreplayable = new Set()
 
   /**
    * The archives the cache holds, as a collection to register with the app.
@@ -372,6 +380,41 @@ export class VmBackupsCache {
       debug('entry deleted', { repositoryId })
     }
     this.#pending.delete(repositoryId)
+
+    // e.g. it has been moved from a proxy which does not expose its journal: the next replay finds out
+    // again
+    this.#unreplayable.delete(repositoryId)
+  }
+
+  /**
+   * Whether a repository is worth bringing up to date without waiting for a listing: its archives
+   * are in the collection, and as far as the cache knows the source can replay its journal, i.e.
+   * reading it does not mean listing it in full.
+   *
+   * @param {Repository['id']} repositoryId
+   * @returns {boolean}
+   */
+  isReplayable(repositoryId) {
+    return this.#announced.has(repositoryId) && !this.#unreplayable.has(repositoryId)
+  }
+
+  /**
+   * The repositories `isReplayable()` holds for.
+   *
+   * @returns {Array<Repository['id']>}
+   */
+  replayableRepositoryIds() {
+    return [...this.#announced.keys()].filter(id => !this.#unreplayable.has(id))
+  }
+
+  /**
+   * The repositories whose archives are in the collection but `isReplayable()` does not hold for:
+   * bringing them up to date means listing them in full.
+   *
+   * @returns {Array<Repository['id']>}
+   */
+  unreplayableRepositoryIds() {
+    return [...this.#announced.keys()].filter(id => this.#unreplayable.has(id))
   }
 
   /**
@@ -449,7 +492,7 @@ export class VmBackupsCache {
     const now = Date.now()
 
     try {
-      if (entry === undefined || !isSameRepository(entry, repository) || utcDay(entry.refreshedAt) !== utcDay(now)) {
+      if (entry === undefined || !isSameRepository(entry, repository) || now - entry.builtAt >= REBUILD_INTERVAL) {
         return await this.#build(repository)
       }
 
@@ -459,6 +502,12 @@ export class VmBackupsCache {
       ) {
         // the source cannot replay this repository, e.g. it is attached to a proxy which does not
         // expose its journal: the only way to bring the entry up to date is to list it again
+        //
+        // not recorded for an entry dropped during the read, e.g. the repository has been moved off
+        // that proxy: `delete()` has just forgotten what this read would record
+        if (this.#entries.get(id) === entry) {
+          this.#unreplayable.add(id)
+        }
         return await this.#build(repository)
       }
 
@@ -568,7 +617,7 @@ export class VmBackupsCache {
    * Announces what changed between the backups a repository has just been listed with and the ones
    * last announced for it, and makes them the announced ones.
    *
-   * @param {string} repositoryId
+   * @param {Repository['id']} repositoryId
    * @param {BackupsByVm} backupsByVm
    * @returns {void}
    */
@@ -592,6 +641,7 @@ export class VmBackupsCache {
     /** @type {Entry} */
     const entry = {
       backupsByVm: undefined,
+      builtAt: now,
       cursor: journalCursorAt(now - CLOCK_SKEW_TOLERANCE),
       options: repository.options,
       proxy: repository.proxy,
