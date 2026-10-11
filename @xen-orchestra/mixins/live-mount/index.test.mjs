@@ -471,7 +471,8 @@ describe('mountBlockDevice', () => {
     // nothing released: forgetting the SR now could leave the host with a datapath on it
     assert.ok(!xapi.calls.some(([method]) => method === 'SR.forget'))
     assert.equal(target.closed, false)
-    assert.equal(mixin.listMountedDisks().length, 1)
+    // a block device is not a disk
+    assert.deepEqual(mixin.listMountedDisks(), [])
 
     failing = false
     await mixin.unmountBlockDevice(id)
@@ -482,6 +483,32 @@ describe('mountBlockDevice', () => {
     assert.ok(xapi.calls.some(([method]) => method === 'SR.forget'))
     assert.equal(target.closed, true)
     assert.deepEqual(mixin.listMountedDisks(), [])
+  })
+
+  it('shares a single unmount between concurrent callers, e.g. the stop hook and the owner', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    let nBeforeUnmount = 0
+    const { id } = await mixin.mountBlockDevice({
+      lun: makeLun({ readOnly: true }),
+      xapi,
+      hostRef: HOST_REF,
+      kind: 'browser-media',
+      nameLabel: 'iso',
+      nameDescription: '',
+      beforeUnmount: async () => {
+        ++nBeforeUnmount
+        await new Promise(resolve => setTimeout(resolve, 10))
+      },
+    })
+    let nUnmounted = 0
+    mixin.on('unmounted', () => ++nUnmounted)
+
+    await Promise.all([mixin.unmountBlockDevice(id), mixin.unmountBlockDevice(id)])
+
+    assert.equal(nBeforeUnmount, 1)
+    assert.equal(nUnmounted, 1)
+    assert.equal(xapi.calls.filter(([method]) => method === 'SR.forget').length, 1)
   })
 
   it('introduces a writable VDI for a writable LUN', async () => {

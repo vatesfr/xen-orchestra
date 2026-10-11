@@ -117,7 +117,7 @@ export class BrowserMediaController extends XoController<XoBrowserMediaSession> 
     return this.createAction<void>(() => this.restApi.xoApp.ejectBrowserMedia(sessionId), {
       sync,
       statusCode: noContentResp.status,
-      taskProperties: { name: 'eject browser media', objectId: sessionId, args: { vmId } },
+      taskProperties: { name: 'eject browser media', objectId: sessionId, params: { vmId } },
     })
   }
 }

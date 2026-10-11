@@ -49,18 +49,30 @@ const SR_DESCRIPTION = 'ISO streamed from a browser by Xen Orchestra, released w
 const TARGET_OPTIONS = { maxTransferLength: MAX_READ, readConcurrency: 4 }
 
 /**
- * Only host names are compared: a reverse proxy may drop the port from `Host`
- * (e.g. nginx `proxy_set_header Host $host`) while `Origin` keeps it.
+ * Whether the page opening the WebSocket was served by XO.
  *
  * A request without `Origin` does not come from a browser page, which cannot
  * open a WebSocket without it: the authentication cookie is then enough.
+ *
+ * Behind a trusted reverse proxy, `X-Forwarded-Host` tells the host the browser
+ * asked for. A reverse proxy may drop the port from `Host` (e.g. nginx
+ * `proxy_set_header Host $host`): ports are only compared when both tell one,
+ * since another port of the same host is another site, which shares the
+ * cookies of XO.
  */
-function isSameOrigin({ headers: { host, origin } }) {
+function isSameOrigin({ headers }, forwarded) {
+  const { origin } = headers
   if (origin === undefined) {
     return true
   }
+  const host = (forwarded && headers['x-forwarded-host']?.split(',')[0].trim()) || headers.host
   try {
-    return new URL(origin).hostname === new URL(`http://${host}`).hostname
+    const expected = new URL(`http://${host}`)
+    const actual = new URL(origin)
+    return (
+      actual.hostname === expected.hostname &&
+      (actual.port === '' || expected.port === '' || actual.port === expected.port)
+    )
   } catch {
     return false
   }
@@ -200,8 +212,9 @@ export default class BrowserMedia {
     if (!this.#enabled || this.#stopping) {
       return refuseUpgrade(socket, '404 Not Found')
     }
-    // only from XO's own pages, or from a client which is not a browser
-    if (!isSameOrigin(req)) {
+    // only from XO's own pages, or from a client which is not a browser; the forwarded headers are
+    // trusted when the web server resolved the client address from them
+    if (!isSameOrigin(req, remoteAddress !== req.socket.remoteAddress)) {
       return refuseUpgrade(socket, '403 Forbidden')
     }
     let user
@@ -224,7 +237,9 @@ export default class BrowserMedia {
         if (typeof iso === 'string') {
           return ws.close(CLOSE_INVALID, iso)
         }
-        if (this.#stopping || this.#sessions.size >= MAX_SESSIONS) {
+        // the sessions whose browser is gone, still being released, do not count
+        const nConnected = [...this.#sessions.values()].filter(session => !session.closed).length
+        if (this.#stopping || nConnected >= MAX_SESSIONS) {
           return ws.close(
             CLOSE_UNAVAILABLE,
             this.#stopping ? 'xo-server is stopping' : 'too many browser media sessions'
@@ -232,7 +247,7 @@ export default class BrowserMedia {
         }
         const session = new BrowserMediaSession({
           ...iso,
-          owner: user.id,
+          userId: user.id,
           socket: ws,
           timeout: TIMEOUT,
           onClose: session => this.#onClose(session),
@@ -301,10 +316,18 @@ export default class BrowserMedia {
     return assertInsertable(this.#app, this.#app.getObject(vmId, 'VM'))
   }
 
-  async insertBrowserMedia({ id, vmId }) {
+  insertBrowserMedia({ id, vmId }) {
     const cd = this.assertBrowserMediaInsertable({ id, vmId })
-    const app = this.#app
     const session = this.#getSession(id)
+    // an eject waits for the insertion to end, and to be undone if it fails
+    const inserting = (session.inserting = this.#insert(session, vmId, cd).finally(() => {
+      session.inserting = undefined
+    }))
+    return inserting
+  }
+
+  async #insert(session, vmId, cd) {
+    const app = this.#app
     const vm = app.getObject(vmId, 'VM')
     const xapi = app.getXapi(vm)
     const vmRef = vm._xapiRef
@@ -313,7 +336,7 @@ export default class BrowserMedia {
     session.vmId = vmId
     session.error = undefined
     // what has been done so far, undone by #release
-    const insertion = (session.insertion = {})
+    const insertion = (session.insertion = { pool: xapi.pool.uuid, vmUuid: vm.uuid })
     const assertConnected = () => {
       if (session.closed) {
         throw new Error('the browser disconnected during the insertion')
@@ -321,7 +344,9 @@ export default class BrowserMedia {
     }
     try {
       // before any change: a crash from now on must not orphan anything
-      await (await this.#getStore()).put(session.id, { pool: xapi.pool.uuid, vm: vm.uuid, createdAt: Date.now() })
+      await (
+        await this.#getStore()
+      ).put(session.id, { pool: insertion.pool, vm: insertion.vmUuid, size: session.size, createdAt: Date.now() })
       insertion.journaled = true
 
       const hostRef = await getInsertionHost(xapi, vmRef)
@@ -342,6 +367,7 @@ export default class BrowserMedia {
         beforeUnmount: () => this.#undoInsertion(session),
       })
       insertion.mountId = mount.id
+      insertion.mounted = true
       this.#sessionsByMountId.set(mount.id, session)
       assertConnected()
 
@@ -365,16 +391,21 @@ export default class BrowserMedia {
       try {
         await this.#release(session)
       } catch {
-        // logged and retried by #release
+        // logged, and retried or handed over to the recovery by #release
       }
       throw error
     }
   }
 
+  /** Resolves once the ISO is ejected and everything is released, rejects if it could not be. */
   async ejectBrowserMedia(id) {
     const session = this.#getSession(id)
     session.close(CLOSE_EJECTED, 'ejected')
-    await session.releasing
+    // a failed insertion is undone by itself
+    await session.inserting?.catch(() => {})
+    if (session.insertion !== undefined) {
+      await this.#release(session)
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -383,12 +414,20 @@ export default class BrowserMedia {
   /**
    * Undo everything an insertion did, and forget the session once its browser is gone.
    *
-   * Never rejects twice for the same attempt: the first failure is reported, and a new attempt is
-   * scheduled until it succeeds — what is left meanwhile is journaled anyway.
+   * The journal entry is only deleted once everything is released. As long as the device is mounted,
+   * a failed attempt is retried, the target still answering the host. Once the mount is gone with
+   * part of what it had to release (e.g. the SR could not be forgotten), the recovery takes over,
+   * from the journal and the tags, like after a crash.
+   *
+   * @returns {Promise<void>} rejects if this attempt failed
    */
   #release(session) {
     if (session.releasing !== undefined) {
       return session.releasing
+    }
+    if (session.insertion === undefined) {
+      // released or handed over meanwhile
+      return Promise.resolve()
     }
     const wasInserted = session.status === 'inserted'
     if (wasInserted) {
@@ -397,22 +436,39 @@ export default class BrowserMedia {
     const releasing = (session.releasing = (async () => {
       const { insertion } = session
       try {
-        if (insertion !== undefined) {
-          if (insertion.mountId !== undefined) {
-            // undoes the insertion first, see `beforeUnmount`
-            await this.#app.liveMount.unmountBlockDevice(insertion.mountId)
-          } else {
-            await this.#undoInsertion(session)
+        if (insertion.mountId !== undefined) {
+          // undoes the insertion first, see `beforeUnmount`
+          await this.#app.liveMount.unmountBlockDevice(insertion.mountId)
+        } else if (!insertion.mounted) {
+          await this.#undoInsertion(session)
+        }
+        if (insertion.mounted) {
+          // the mount may have ended without this mixin, e.g. with its SR forgotten by hand, and
+          // nothing says whether it was entirely released
+          const xapi = Object.values(this.#app.getAllXapis()).find(xapi => xapi.pool?.uuid === insertion.pool)
+          if (xapi === undefined) {
+            throw new Error('the pool of the VM is not connected')
           }
-          if (insertion.journaled) {
-            await (await this.#getStore()).del(session.id)
+          if ((await findTaggedSrs(xapi, session.id)).length !== 0) {
+            throw new Error('the SR of the ISO is still in the pool')
           }
         }
+        if (insertion.journaled) {
+          await (await this.#getStore()).del(session.id)
+        }
       } catch (error) {
-        log.warn('could not release a browser ISO, will retry', { error, session: session.id })
         session.releasing = undefined
-        if (!this.#stopping) {
-          setTimeout(() => this.#release(session).catch(() => {}), RELEASE_RETRY_DELAY).unref()
+        if (insertion.mounted && insertion.mountId === undefined) {
+          log.warn('a browser ISO was partly released, the recovery will release the rest', {
+            error,
+            session: session.id,
+          })
+          this.#handOver(session)
+        } else {
+          log.warn('could not release a browser ISO, will retry', { error, session: session.id })
+          if (!this.#stopping) {
+            setTimeout(() => this.#release(session).catch(() => {}), RELEASE_RETRY_DELAY).unref()
+          }
         }
         throw error
       }
@@ -430,6 +486,13 @@ export default class BrowserMedia {
       }
     })())
     return releasing
+  }
+
+  /** Leave what is left of an insertion to the recovery, which works from the journal. */
+  #handOver(session) {
+    session.insertion = undefined
+    session.close(CLOSE_UNAVAILABLE, 'the ISO storage could not be released')
+    this.#sessions.delete(session.id)
   }
 
   /**
@@ -450,17 +513,31 @@ export default class BrowserMedia {
       if (!noSuchObject.is(error)) {
         throw error
       }
-      // deleted with its CD drive and its blocked operations
-      insertion.vbdRef = undefined
-      insertion.blocked = false
-      return
+      // gone from XO: deleted, with its CD drive and its blocked operations, or its pool is
+      // disconnected, and nothing can be released yet
+      const xapi = Object.values(app.getAllXapis()).find(xapi => xapi.pool?.uuid === insertion.pool)
+      if (xapi === undefined) {
+        throw new Error('the pool of the VM is not connected')
+      }
+      try {
+        await xapi.call('VM.get_by_uuid', insertion.vmUuid)
+      } catch (error) {
+        if (error.code === 'UUID_INVALID') {
+          insertion.blocked = false
+          return
+        }
+        throw error
+      }
+      throw new Error('the VM is not known to XO yet')
     }
     const xapi = app.getXapi(vm)
-    if (insertion.vbdRef !== undefined) {
-      this.#sessionsByVbdRef.delete(insertion.vbdRef)
-      await ejectIso(xapi, { vbdRef: insertion.vbdRef, vdiRefs: [insertion.vdiRef], sessionId: session.id })
-      insertion.vbdRef = undefined
+    // the CD drives changed for this session, even by an insertion which failed halfway
+    const vdiRefs = insertion.vdiRef === undefined ? [] : [insertion.vdiRef]
+    for (const vbdRef of await findTaggedCds(xapi, vm._xapiRef, session.id)) {
+      this.#sessionsByVbdRef.delete(vbdRef)
+      await ejectIso(xapi, { vbdRef, vdiRefs, sessionId: session.id })
     }
+    insertion.vbdRef = undefined
     if (insertion.blocked) {
       await unblockOperations(xapi, vm._xapiRef, session.id)
       insertion.blocked = false
@@ -556,7 +633,7 @@ export default class BrowserMedia {
     )
   }
 
-  async #recover(xapi, sessionId, { vm: vmUuid }) {
+  async #recover(xapi, sessionId, { vm: vmUuid, size }) {
     let vmRef
     try {
       vmRef = await xapi.call('VM.get_by_uuid', vmUuid)
@@ -577,7 +654,7 @@ export default class BrowserMedia {
         for (const pbdRef of sr.PBDs) {
           const pbd = await xapi.getRecord('PBD', pbdRef)
           if (pbd.currently_attached) {
-            standbys.push(await this.#serveStandby(xapi, pbd, sr))
+            standbys.push(await this.#serveStandby(xapi, pbd, sr, size))
           }
         }
       }
@@ -604,14 +681,15 @@ export default class BrowserMedia {
     }
   }
 
-  async #serveStandby(xapi, pbd, sr) {
+  async #serveStandby(xapi, pbd, sr, size) {
     const config = pbd.device_config
     const secret =
       config.chappassword ??
       (await xapi.call('secret.get_value', await xapi.call('secret.get_by_uuid', config.chappassword_secret)))
     // `iqn.2026-07.tech.vates.xo:browser-media-<id>`, as built by the live mount mixin
     const id = config.targetIQN.slice(config.targetIQN.lastIndexOf('-') + 1)
-    const size = sr.VDIs.length === 0 ? MAX_READ : Number(await xapi.getField('VDI', sr.VDIs[0], 'virtual_size'))
+    // the capacity the host knows, journaled since the VDI may not have been introduced
+    size ??= Number(await xapi.getField('VDI', sr.VDIs[0], 'virtual_size'))
     return this.#app.liveMount.serveBlockDevice({
       lun: new UnavailableIsoDevice(size),
       xapi,

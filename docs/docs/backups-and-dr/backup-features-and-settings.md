@@ -504,6 +504,13 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
   #bindAddress = '0.0.0.0'
   ```
 
+- **Only the host connects.** The iSCSI target of a mount only accepts connections from the addresses of the host it is mounted on: its management address and the addresses of its PIFs, storage networks included. Any other connection is closed at once, so nothing else can keep the host from connecting. If the hosts reach Xen Orchestra through a NAT, which hides their own addresses, turn it off in the same `[iscsi]` section:
+
+  ```toml
+  [iscsi]
+  restrictToHost = false
+  ```
+
 - **Temporary.** A live mount only lasts as long as the Xen Orchestra process serving it: restarting or updating XOA ends it, and the disk becomes unavailable to the VM. Stop using the disk before restarting or updating XOA. If Xen Orchestra stopped unexpectedly, the `[XO backup] <VM name>` SR stays behind with nothing serving it: detach the disk from the VM and forget the SR.
 
 ### Firewall of Xen Orchestra {#live-mount-firewall}
@@ -517,7 +524,7 @@ To turn it off, and manage the firewall yourself, add to the [configuration file
 manageFirewall = false
 ```
 
-If a firewall still blocks the hosts, the restore fails with `the host cannot reach the iSCSI target at <address>:<port>, check iscsi.advertisedAddress and the firewalls between them`.
+If a firewall still blocks the hosts, or if they connect through a NAT, the restore fails with `the host cannot reach the iSCSI target at <address>:<port>, check iscsi.advertisedAddress and the firewalls between them, and set iscsi.restrictToHost = false if the host reaches this appliance through a NAT`.
 
 How it works:
 

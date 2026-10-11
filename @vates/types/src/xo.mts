@@ -468,7 +468,7 @@ export type XoBrowserMediaSession = {
   /** Size of the ISO, in bytes */
   size: number
   /** User whose browser serves the ISO */
-  owner: XoUser['id']
+  userId: XoUser['id']
   status: 'connected' | 'inserting' | 'inserted' | 'ejecting'
   /** Timestamp of the browser connection */
   createdAt: number
