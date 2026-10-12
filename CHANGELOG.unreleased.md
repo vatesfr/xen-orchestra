@@ -74,7 +74,6 @@
 - [xo-cli] fix output failing when outputing a rest api answer (PR [#10541](https://github.com/vatesfr/xen-orchestra/pull/10541))
 - [XO5/Self Service] Fix removing a tag from a resource set removing all the other tags instead (PR [#10550](https://github.com/vatesfr/xen-orchestra/pull/10550))
 - [Backups/DR] Report the actual XAPI error instead of `(intermediate value) is not iterable` when a VM import fails (PR [#10551](https://github.com/vatesfr/xen-orchestra/pull/10551/))
-- [XO6/VDI] Fix VDIs not attached to any VM being impossible to delete (PR [#10142](https://github.com/vatesfr/xen-orchestra/pull/10142))
 
 ### Packages to release
 
