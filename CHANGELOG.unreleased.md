@@ -17,7 +17,6 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [XO6/VDI] Fix VDIs not attached to any VM being impossible to delete (PR [#10142](https://github.com/vatesfr/xen-orchestra/pull/10142))
 
 ### Packages to release
 
