@@ -3,6 +3,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findHeadBarLabel, findHeadBarLoader, getHeadBarActions, getHeadBarIcon } from '@/test/find-header.ts'
+import { findTabs } from '@/test/find-rendered-values.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { findButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -36,10 +37,6 @@ async function mountHeader(vm: FrontXoVm = createVm({ id: 'vm-42' as FrontXoVm['
     props: { vm },
     global: createGlobalTestConfig({ router }),
   })
-}
-
-function findTabs(wrapper: Awaited<ReturnType<typeof mountHeader>>) {
-  return wrapper.findAll('.ui-tab-item')
 }
 
 it('shows the name of the VM', async () => {

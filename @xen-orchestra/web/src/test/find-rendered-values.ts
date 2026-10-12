@@ -198,3 +198,11 @@ export function findTags(wrapper: QueryableWrapper): string[] {
 export function findProgressBarFillStyle(wrapper: Pick<VueWrapper, 'get'>): string | undefined {
   return wrapper.get('.ui-progress-bar .fill').attributes('style')
 }
+
+/**
+ * Reads every `UiTabItem` of a mounted header, in order — each one rendered by a
+ * `RouterLink`, so its `href` and `active` class are addressable.
+ */
+export function findTabs(wrapper: QueryableWrapper) {
+  return wrapper.findAll('.ui-tab-item')
+}

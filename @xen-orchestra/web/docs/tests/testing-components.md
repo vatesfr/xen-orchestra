@@ -42,6 +42,7 @@ A label/value row is read through one query covering every row a user sees ([Ass
 | `findCardRowLinks`           | every link of the `VtsCardRowKeyValue` rows, as `[text, href]`     |
 | `findCopiedValues`           | what each copyable key/value row copies, keyed by label            |
 | `findCardCopiedValues`       | what each copyable `VtsCardRowKeyValue` copies, in order           |
+| `findTabs`                   | every `UiTabItem` of a header, in order                            |
 
 ```typescript
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
