@@ -751,8 +751,9 @@ export default class BackupNg {
   // listed since, and the timers of `#pollVmBackupArchives()` read all of them
   //
   // one after another rather than all at once: each listing reads the metadata of every VM of the
-  // repository; it also staggers their hourly rebuilds, which count from the listing, by as long as
-  // the listings take, i.e. the most for the repositories which are the slowest to list
+  // repository; it also staggers their periodic rebuilds (hourly unless the URL of the repository sets
+  // `fullListingInterval`), which count from the listing, by as long as the listings take, i.e. the
+  // most for the repositories which are the slowest to list
   //
   // through `_listVmBackupsWithBackoff()`, which never rejects: a repository which cannot be read then
   // is left out of the collection until a client lists it

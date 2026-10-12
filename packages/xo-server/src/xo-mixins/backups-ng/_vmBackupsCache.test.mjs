@@ -7,7 +7,7 @@ import { normalize } from '@xen-orchestra/fs/path'
 import { filenameOf, journalEntryPath, metadataOf, OTHER_VM, VM } from './_vmBackupsFixtures.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 
-const REPOSITORY = { id: 'repository' }
+const REPOSITORY = { id: 'repository', url: 'file:///media/backup' }
 
 const enoent = () => Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
 
@@ -317,6 +317,50 @@ describe('VmBackupsCache', () => {
     await cache.get(REPOSITORY)
     assert.equal(repository.nListings, 2)
     assert.equal(repository.nJournalReads, 1)
+  })
+
+  it('rebuilds after the fullListingInterval of the URL of the repository', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+    const withInterval = { ...REPOSITORY, url: 'file:///media/backup?fullListingInterval=10m' }
+
+    await cache.get(withInterval)
+    tick(9 * 60e3)
+    await cache.get(withInterval)
+    assert.equal(repository.nListings, 1)
+
+    tick(60e3)
+    await cache.get(withInterval)
+    assert.equal(repository.nListings, 2)
+  })
+
+  it('reads a fullListingInterval in milliseconds', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+    const withInterval = { ...REPOSITORY, url: 'file:///media/backup?fullListingInterval=600000' }
+
+    await cache.get(withInterval)
+    tick(10 * 60e3)
+    await cache.get(withInterval)
+    assert.equal(repository.nListings, 2)
+  })
+
+  it('rebuilds an hour after the entry was built when the fullListingInterval is invalid', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+    const withInterval = { ...REPOSITORY, url: 'file:///media/backup?fullListingInterval=often' }
+
+    await cache.get(withInterval)
+    tick(59 * 60e3)
+    await cache.get(withInterval)
+    assert.equal(repository.nListings, 1)
+
+    tick(60e3)
+    await cache.get(withInterval)
+    assert.equal(repository.nListings, 2)
   })
 
   it('rebuilds when the remote is re-pointed or reconfigured', async t => {
