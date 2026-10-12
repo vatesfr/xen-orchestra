@@ -133,7 +133,7 @@ export abstract class RemoteHandlerAbstract {
   abstract rmdir(dir: string): Promise<void>
   abstract rmtree(dir: string): Promise<void>
   abstract createReadStream(
-    file: FileArg,
+    file: FileDescriptor,
     options?: ReadStreamOptions
   ): Promise<Readable & { length?: number; maxStreamLength?: number }>
 
