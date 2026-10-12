@@ -126,9 +126,9 @@ Constraints to be aware of:
 
 An in-place update turns the original VM into a replica of the DR VM. It keeps its UUID, but:
 
-- it takes the DR VM's name, prefixed with the reverse job's (`[XO Backup <job name>] …`), and the DR VM's description and settings (CPU, memory, tags)
-- it gets the `Continuous Replication` tag, and its start is blocked like any replica's: force start it to resume production
-- its HA restart priority is cleared, and it gets the `HA disabled` tag
+- it takes the DR VM's name, prefixed with the reverse job's (`[XO Backup <job name>] …`), and the DR VM's description and settings (CPU, memory, tags).
+- it gets the `Continuous Replication` tag, and its start is blocked like any replica's: force start it to resume production.
+- its HA restart priority is cleared, and it gets the `HA disabled` tag.
 
 To see which outcome a run had, look at the snapshot the reverse job just created on the production side: if it belongs to your original VM, the VM was updated in place.
 
