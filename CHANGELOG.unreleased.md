@@ -52,6 +52,7 @@
 - [XO5/Host/Patches] Warn when installing patches on a host while its pool master is not up to date (PR [#10523](https://github.com/vatesfr/xen-orchestra/pull/10523))
 - [XO6] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
 - [XO6] Export VDI as vmdk (PR [#10591](https://github.com/vatesfr/xen-orchestra/pull/10591))
+- [XO5] Improve event handling (PR [#10568](https://github.com/vatesfr/xen-orchestra/pull/10568))
 
 ### Bug fixes
 
@@ -112,10 +113,14 @@
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+<<<<<<< HEAD
 - @xen-orchestra/xapi minor
 - vhd-lib minor
 - xen-api minor
 - xo-cli patch
+=======
+- xo-acl-resolver minor
+>>>>>>> ca52b2883 (update changelog)
 - xo-server minor
 - xo-server-load-balancer minor
 - xo-server-sdn-controller patch
