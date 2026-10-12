@@ -5,6 +5,8 @@ import { compareTimestamp } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'node:events'
 import { journalCursorAt } from '@xen-orchestra/backups/_backupJournal.mjs'
+import { parse } from 'xo-remote-parser'
+import { parseDuration } from '@vates/parse-duration'
 
 /**
  * A backup repository, as required by `VmBackupsCache`.
@@ -67,6 +69,8 @@ import { journalCursorAt } from '@xen-orchestra/backups/_backupJournal.mjs'
  * successfully once, i.e. whether it disappearing on the next replay is anomalous rather than benign
  * @property {Repository['options']} [options]
  * @property {string} [proxy]
+ * @property {number} rebuildInterval how long after `builtAt` the repository is listed in full again,
+ * see `rebuildIntervalOf()`
  * @property {number} refreshedAt when this process last brought the entry up to date: with `builtAt`,
  * the only fields which may be compared with its clock
  * @property {boolean} stale
@@ -87,7 +91,7 @@ const CLOCK_SKEW_TOLERANCE = 5 * 60 * 1e3
 
 // how long an entry is kept up to date from its journal before it is listed in full again, which
 // bounds the drift described in `VmBackupsCache` at the price of one full listing per period
-const REBUILD_INTERVAL = 60 * 60 * 1e3
+const DEFAULT_REBUILD_INTERVAL = 60 * 60 * 1e3
 
 /**
  * @param {Entry} entry
@@ -96,6 +100,39 @@ const REBUILD_INTERVAL = 60 * 60 * 1e3
  */
 const isSameRepository = (entry, repository) =>
   entry.url === repository.url && entry.options === repository.options && entry.proxy === repository.proxy
+
+/**
+ * How long an entry of a repository is brought up to date from the journal before it is listed in
+ * full again: the `fullListingInterval` parameter of its URL, a duration such as `6h` or a number of
+ * milliseconds, otherwise `DEFAULT_REBUILD_INTERVAL`.
+ *
+ * Read when the entry is built: the URL changing rebuilds the entry anyway, see `isSameRepository()`.
+ *
+ * @param {Repository} repository
+ * @returns {number}
+ */
+const rebuildIntervalOf = repository => {
+  const { fullListingInterval } = parse(repository.url)
+  if (fullListingInterval === undefined) {
+    return DEFAULT_REBUILD_INTERVAL
+  }
+
+  try {
+    return parseDuration(fullListingInterval)
+  } catch (error) {
+    if (!(error instanceof TypeError)) {
+      throw error
+    }
+
+    // a typo in an optional setting must not make the repository unreadable
+    warn('invalid fullListingInterval, using the default one', {
+      repositoryId: repository.id,
+      fullListingInterval,
+      defaultInterval: DEFAULT_REBUILD_INTERVAL,
+    })
+    return DEFAULT_REBUILD_INTERVAL
+  }
+}
 
 /**
  * forgets a backup, and the VM it belonged to when it was its last one
@@ -211,7 +248,8 @@ export function serveVmBackups(backupsByVm, remoteId, vmId) {
  * How a repository is read is `VmBackupsSource`'s business: this class only decides *when* to list
  * it, when to replay it, and what to serve in the meantime.
  *
- * Entries are rebuilt from scratch an hour after they were built, which bounds the drift accumulated
+ * Entries are rebuilt from scratch an hour after they were built, or after the `fullListingInterval`
+ * of the URL of the repository, see `rebuildIntervalOf()`, which bounds the drift accumulated
  * from the events which could not be journaled, or which are not journaled at all (e.g. the
  * `immutable-backups` daemon lifting the immutability of a backup), when the remote is re-pointed,
  * reconfigured or moved to another proxy, which the entry detects by itself from what it was built
@@ -245,7 +283,8 @@ export class VmBackupsCache {
     first: async (/** @type {string} */ id) => this.#listArchives().find(archive => archive.id === id),
   }
 
-  // repository id → { backupsByVm, builtAt, cursor, journalConfirmed, options, proxy, refreshedAt, stale, url }
+  // repository id → { backupsByVm, builtAt, cursor, journalConfirmed, options, proxy, rebuildInterval,
+  // refreshedAt, stale, url }
   /** @type {Map<string, Entry>} */
   #entries = new Map()
 
@@ -446,7 +485,7 @@ export class VmBackupsCache {
     const now = Date.now()
 
     try {
-      if (entry === undefined || !isSameRepository(entry, repository) || now - entry.builtAt >= REBUILD_INTERVAL) {
+      if (entry === undefined || !isSameRepository(entry, repository) || now - entry.builtAt >= entry.rebuildInterval) {
         return await this.#build(repository)
       }
 
@@ -604,6 +643,7 @@ export class VmBackupsCache {
       cursor: journalCursorAt(now - CLOCK_SKEW_TOLERANCE),
       options: repository.options,
       proxy: repository.proxy,
+      rebuildInterval: rebuildIntervalOf(repository),
       refreshedAt: now,
       stale: false,
       url: repository.url,
