@@ -3,27 +3,44 @@
     <UiPanelCardTitle size="medium" :label="t('configuration')" />
     <div class="content">
       <VdiFormatCardItem :format="vdi.image_format" />
-      <VtsCardRowKeyValue>
+      <template v-if="vbd">
+        <VtsCardRowKeyValue>
+          <template #key>
+            {{ t('storage') }}
+          </template>
+          <template #value>
+            <SrLink v-if="sr" :sr />
+          </template>
+          <template v-if="sr" #addons>
+            <VtsCopyButton :value="sr.name_label" />
+          </template>
+        </VtsCardRowKeyValue>
+        <VtsCardRowKeyValue>
+          <template #key>
+            {{ t('read-only') }}
+          </template>
+          <template #value>
+            <VtsStatus :status="isReadOnly" />
+          </template>
+        </VtsCardRowKeyValue>
+        <VtsCardRowKeyValue>
+          <template #key>
+            {{ t('bootable') }}
+          </template>
+          <template #value>
+            <VtsStatus :status="isBootable" />
+          </template>
+        </VtsCardRowKeyValue>
+      </template>
+      <VtsCardRowKeyValue v-else align-top>
         <template #key>
-          {{ t('storage') }}
+          {{ t('vms') }}
         </template>
         <template #value>
-          <div v-if="vdiSr" class="storage">
-            <UiLink size="small" :href="srHref" icon="object:sr">
-              {{ vdiSr.name_label }}
-            </UiLink>
-          </div>
+          <VdiVmLinks :vms />
         </template>
-        <template v-if="vdiSr" #addons>
-          <VtsCopyButton :value="vdiSr.name_label" />
-        </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
-        <template #key>
-          {{ t('read-only') }}
-        </template>
-        <template #value>
-          <VtsStatus :status="isReadOnly" />
+        <template v-if="vms.length > 0" #addons>
+          <VtsCopyButton :value="vmNames" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -31,15 +48,15 @@
           {{ t('change-block-tracking') }}
         </template>
         <template #value>
-          <VtsStatus :status="vdi.cbt_enabled ?? false" />
+          <VtsStatus :status="isCbtEnabled" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>
-          {{ t('bootable') }}
+          {{ t('operation:snapshot') }}
         </template>
         <template #value>
-          <VtsStatus :status="isBootable" />
+          <VtsStatus :status="isSnapshottingEnabled" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -47,44 +64,33 @@
 </template>
 
 <script setup lang="ts">
-import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import SrLink from '@/modules/storage-repository/components/SrLink.vue'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
+import VdiVmLinks from '@/modules/vdi/components/VdiVmLinks.vue'
+import { useVdiConfiguration } from '@/modules/vdi/composables/use-vdi-configuration.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdi, vm } = defineProps<{
+const { vdi, vbd } = defineProps<{
   vdi: FrontXoVdi
-  vm: FrontXoVm
+  vbd?: FrontXoVbd
 }>()
 
 const { t } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
+const { sr, vms, isReadOnly, isBootable, isCbtEnabled, isSnapshottingEnabled } = useVdiConfiguration(
+  () => vdi,
+  () => vbd
+)
 
-const { useGetSrById } = useXoSrCollection()
-const { useGetVbdsByIds } = useXoVbdCollection()
-
-const vdiSr = useGetSrById(() => vdi.$SR)
-
-const srHref = computed(() => (vdiSr.value ? buildXo5Route(`/srs/${vdiSr.value.id}/general`) : undefined))
-
-const vbds = useGetVbdsByIds(() => vdi.$VBDs)
-
-const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
-
-const isReadOnly = computed(() => vbd.value?.read_only ?? false)
-
-const isBootable = computed(() => vbd.value?.bootable ?? false)
+const vmNames = computed(() => vms.value.map(vm => vm.name_label).join(', '))
 </script>
 
 <style scoped lang="postcss">
@@ -93,11 +99,6 @@ const isBootable = computed(() => vbd.value?.bootable ?? false)
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-  }
-
-  .storage {
-    display: flex;
-    gap: 0.8rem;
   }
 }
 </style>

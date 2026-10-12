@@ -7,7 +7,7 @@
     @click="deleteVdis()"
   >
     {{ t('action:delete') }}
-    <i v-if="hint">{{ hint }}</i>
+    <i v-if="deleteVdisErrorMessage">{{ deleteVdisErrorMessage }}</i>
   </MenuItem>
 </template>
 
@@ -16,7 +16,6 @@ import { useVdiDelete } from '@/modules/vdi/composables/use-vdi-delete.composabl
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@xen-orchestra/web-core/components/menu/MenuItem.vue'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vdi, vm } = defineProps<{
@@ -26,18 +25,8 @@ const { vdi, vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { deleteVdis, canDeleteVdis, isDeletingVdis } = useVdiDelete({
+const { deleteVdis, canDeleteVdis, isDeletingVdis, deleteVdisErrorMessage } = useVdiDelete({
   vdis: () => [vdi],
   vm: () => vm,
-})
-
-const hint = computed(() => {
-  if (!vm) {
-    return t('vdi-not-attached-to-vm')
-  }
-  if (!canDeleteVdis.value) {
-    return t('vm-running')
-  }
-  return undefined
 })
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="vm-vdis-table">
+  <div class="vdis-table">
     <UiTitle>
       {{ t('vdis') }}
       <template #action>
@@ -52,7 +52,7 @@ import { useI18n } from 'vue-i18n'
 
 const { vdis, vm, busy, error } = defineProps<{
   vdis: FrontXoVdi[]
-  vm: FrontXoVm
+  vm?: FrontXoVm
   error?: boolean
   busy?: boolean
 }>()
@@ -93,7 +93,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
-    const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
+    const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm?.id))
 
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
@@ -185,7 +185,11 @@ const { HeadCells, BodyCells } = useVdiColumns({
       vdi: r =>
         r({
           label: vdi.name_label,
-          to: { name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } },
+          to: {
+            name: '/vdi/[id]/general',
+            params: { id: vdi.id },
+            query: { from: vm ? VDI_PAGE_CONTEXT.VM : VDI_PAGE_CONTEXT.SR },
+          },
           icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)),
           busy: runningAction.value !== 'none',
           busyTooltip: busyMessage.value,
@@ -198,7 +202,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
         r({
           onClick: () => (selectedVdiId.value = vdi.id),
           actions: [
-            connectionAction.value,
+            ...(vm ? [connectionAction.value] : []),
             {
               label: t('action:migrate-vdi-on-sr'),
               icon: 'action:migrate',
@@ -219,14 +223,18 @@ const { HeadCells, BodyCells } = useVdiColumns({
                 },
               ],
             },
-            {
-              label: t('action:detach-vdi'),
-              hint: deleteVbdsErrorMessage.value,
-              icon: 'action:detach',
-              onClick: () => deleteVbds(),
-              disabled: !canDeleteVbds.value,
-              busy: isDeletingVbds.value,
-            },
+            ...(vm
+              ? [
+                  {
+                    label: t('action:detach-vdi'),
+                    hint: deleteVbdsErrorMessage.value,
+                    icon: 'action:detach',
+                    onClick: () => deleteVbds(),
+                    disabled: !canDeleteVbds.value,
+                    busy: isDeletingVbds.value,
+                  } satisfies ActionItem,
+                ]
+              : []),
             {
               label: t('action:delete'),
               hint: deleteVdisErrorMessage.value,
@@ -244,14 +252,14 @@ const { HeadCells, BodyCells } = useVdiColumns({
 </script>
 
 <style scoped lang="postcss">
-.vm-vdis-table,
+.vdis-table,
 .table-actions,
 .container {
   display: flex;
   flex-direction: column;
 }
 
-.vm-vdis-table {
+.vdis-table {
   gap: 2.4rem;
 
   .container,
