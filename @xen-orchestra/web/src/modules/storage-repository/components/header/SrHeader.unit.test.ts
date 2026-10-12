@@ -8,6 +8,7 @@ import type {
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
+import { findTabs } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
@@ -50,10 +51,6 @@ async function mountHeader(scope: SrScope = POOL_SCOPE, initialPath?: string) {
     props: { sr: createSr({ id: 'sr-42' as FrontXoSr['id'] }), scope },
     global: createGlobalTestConfig({ router }),
   })
-}
-
-function findTabs(wrapper: Awaited<ReturnType<typeof mountHeader>>) {
-  return wrapper.findAll('.ui-tab-item')
 }
 
 it('lists every tab of the SR, in order', async () => {

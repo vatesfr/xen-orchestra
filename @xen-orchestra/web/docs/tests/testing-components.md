@@ -71,6 +71,7 @@ Prefer this shape: one assertion covering every row a user sees, and it fails lo
 | `findCardCopiedValues`   | what each copyable `VtsCardRowKeyValue` copies, in order               |
 | `findLegends`            | every `UiLegend`, as ordered `[label, value]` pairs (see Legend cards) |
 | `findCardNumbers`        | every `UiCardNumbers` a dashboard card lays out, as `[label, values]`  |
+| `findTabs`               | every `UiTabItem` of a header, in order                                |
 
 ```typescript
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
