@@ -25,7 +25,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, slot } from '@/libs/story/story-param'
+import { prop, slot } from '@/libs/story/story-param.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLinkList from '@core/components/ui/link-list/UiLinkList.vue'
 
