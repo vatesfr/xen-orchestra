@@ -744,6 +744,56 @@ describe('the backup-archive collection', () => {
     hooks.emit('stop')
   })
 
+  it('lists every enabled repository once the app has started', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const { _app: app } = backupNg
+    app.getAllRemotes = async () => [
+      { id: 'a-disabled-remote-id', enabled: false },
+      { id: REMOTE_ID, enabled: true },
+    ]
+    const listed = []
+    const { getRemoteWithCredentials } = app
+    app.getRemoteWithCredentials = id => {
+      listed.push(id)
+      return getRemoteWithCredentials(id)
+    }
+    const events = recordEvents(backupNg)
+
+    app.hooks.emit('start')
+    app.hooks.emit('started')
+    await tick(0)
+
+    assert.deepEqual(listed, [REMOTE_ID])
+    assert.deepEqual(events, [{ event: 'add', ids: [idOf('20260811T090000')] }])
+    assert.equal(repository.nListings, 1)
+
+    // and from then on, the timer reads it: not on its first tick, which the debounce still serves the
+    // listing above, started after the timer
+    repository.add(metadataOf(VM, '20260811T100000'))
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(events.length, 1)
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.deepEqual(events.slice(1), [{ event: 'add', ids: [idOf('20260811T100000')] }])
+    assert.equal(repository.nListings, 1)
+
+    app.hooks.emit('stop')
+  })
+
+  it('does not list the repositories once the app has stopped', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const { hooks } = backupNg._app
+    backupNg._app.getAllRemotes = async () => [{ id: REMOTE_ID, enabled: true }]
+
+    hooks.emit('start')
+    hooks.emit('started')
+    hooks.emit('stop')
+    await tick(0)
+
+    assert.equal(repository.nListings, 0)
+  })
+
   it('keeps the retry delay of a repository the timer fails to read', async () => {
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
     const backupNg = createBackupNgWithRepository(repository)
