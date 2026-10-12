@@ -39,6 +39,21 @@ PATCH /vms/:id
 }
 ```
 
+## Naming
+
+Always use the full name of a concept, never a shortened one, even if the context seems to make it obvious. This applies everywhere, not only to endpoints: route paths, RBAC resources, identifiers (variables, functions, types, files), JSDoc, OpenAPI descriptions, role descriptions, etc.
+
+```
+GET /backup-repositories/:id // OK ✅
+GET /repositories/:id        // Not OK ❌
+
+const backupRepository = ... // OK ✅
+const repository = ...       // Not OK ❌
+
+description: 'Full control over backup repositories' // OK ✅
+description: 'Full control over repositories'        // Not OK ❌
+```
+
 ## Code organisation
 
 - the service must handle the domain/functional logic of one or multiple REST API routes
