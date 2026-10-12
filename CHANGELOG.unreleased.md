@@ -67,6 +67,7 @@
 - [Replication] Fix `Cannot read properties of undefined (reading 'get')` error on continuous replication to multiple SRs (PR [#10519](https://github.com/vatesfr/xen-orchestra/pull/10519))
 - [Backup/NBD] Support NBD for pools reached through an HTTP proxy (e.g. an XO Proxy): NBD connections are now tunneled through the proxy instead of falling back to a stream export (PR [#10544](https://github.com/vatesfr/xen-orchestra/pull/10544))
 - [xo-cli] fix output failing when outputing a rest api answer (PR [#10541](https://github.com/vatesfr/xen-orchestra/pull/10541))
+- [xo-cli] Fix UND_ERR_REQ_CONTENT_LENGTH_MISMATCH introduced by commit 3293e69 - (PR [#10481](https://github.com/vatesfr/xen-orchestra/pull/10481))
 
 ### Packages to release
 
