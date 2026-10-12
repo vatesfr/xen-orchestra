@@ -186,3 +186,26 @@ export function sha256hex(data: Buffer): BlockHash {
   const hash = crypto.createHash('sha256')
   return hash.update(data).digest('hex') as BlockHash
 }
+
+export class HashEntrySet {
+  #keys = new Set<string>()
+
+  add(entry: Buffer): this {
+    this.#keys.add(entry.toString('latin1'))
+    return this
+  }
+  has(entry: Buffer): boolean {
+    return this.#keys.has(entry.toString('latin1'))
+  }
+  delete(entry: Buffer): boolean {
+    return this.#keys.delete(entry.toString('latin1'))
+  }
+  get size(): number {
+    return this.#keys.size
+  }
+  *[Symbol.iterator](): Iterator<Buffer> {
+    for (const key of this.#keys) {
+      yield Buffer.from(key, 'latin1')
+    }
+  }
+}
