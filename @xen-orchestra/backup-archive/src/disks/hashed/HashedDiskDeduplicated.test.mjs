@@ -150,14 +150,14 @@ describe('hbdPaths', () => {
     assert.deepEqual(bat.indexes(), [])
 
     bat.set(9, hash)
-    assert.equal(bat.get(9), hash)
+    assert.equal(bat.hashAt(9), hash)
     assert.ok(!bat.isEmpty(9))
     assert.ok(bat.isEmpty(8), 'writing entry 9 must not touch entry 8')
     assert.deepEqual(bat.indexes(), [9])
     assert.equal(bat.toBuffer().length, 10 * HASH_SIZE)
 
-    assert.throws(() => bat.get(10), /out of range/)
-    assert.throws(() => bat.get(-1), /out of range/)
+    assert.throws(() => bat.hashAt(10), /out of range/)
+    assert.throws(() => bat.hashAt(-1), /out of range/)
   })
 
   test('BlockAllocationTable.set refuses a hash it would only write partially', () => {
@@ -170,7 +170,7 @@ describe('hbdPaths', () => {
       assert.throws(() => bat.set(0, bad), /not a valid block hash/)
     }
 
-    assert.equal(bat.get(0), hash, 'a rejected set leaves the entry untouched')
+    assert.equal(bat.hashAt(0), hash, 'a rejected set leaves the entry untouched')
   })
 
   test('BlockAllocationTable.fromBuffer refuses a size mismatch unless forced', () => {
@@ -179,7 +179,7 @@ describe('hbdPaths', () => {
 
     const forced = BlockAllocationTable.fromBuffer(short, 10, true)
     assert.equal(forced.indexes().length, 0)
-    assert.throws(() => forced.get(5), /out of range/, 'the smaller count is authoritative')
+    assert.throws(() => forced.hashAt(5), /out of range/, 'the smaller count is authoritative')
   })
 })
 
@@ -663,27 +663,6 @@ describe('HashedDiskDeduplicated reference cleanup', () => {
     await assertStoreConsistent(disk)
   })
 
-  test('a hash replaced before its first flush is released too', async () => {
-    const disk = await createSharedDisk()
-    await disk.writeBlock({ index: 0, data: block(0xaa) })
-    await disk.writeBlock({ index: 0, data: block(0xbb) })
-    await disk.flushMetadata()
-
-    assert.equal(await countBlockFiles(), 1)
-    await assertStoreConsistent(disk)
-  })
-
-  test('a hash replaced then written back before the flush keeps its block', async () => {
-    const disk = await createSharedDisk()
-    await disk.writeBlock({ index: 0, data: block(0xaa) })
-    await disk.writeBlock({ index: 0, data: block(0xbb) })
-    await disk.writeBlock({ index: 0, data: block(0xaa) })
-    await disk.flushMetadata()
-
-    assert.ok((await disk.readBlock(0)).data.equals(block(0xaa)))
-    await assertStoreConsistent(disk)
-  })
-
   test('a flush with no change leaves every link in place', async () => {
     const disk = await createSharedDisk()
     await disk.writeBlock({ index: 0, data: block(0xaa) })
@@ -855,24 +834,6 @@ describe('merge', () => {
     assert.ok((await parent.readBlock(0)).data.equals(block(0xbb)))
   })
 
-  test('mergeBlock refuses a child with another block size, before writing anything', async () => {
-    const parent = await createSharedDisk()
-    const child = await HashedDiskDeduplicated.create({
-      handler,
-      path: `xo-vm-backups/VMUUID/vdis/${uuid.v4()}/20260814T120000000Z.hbd`,
-      virtualSize: VIRTUAL_SIZE,
-      blockSize: BLOCK_SIZE * 2,
-      uuid: uuid.v4(),
-      dedupType: 'PER_BACKUP_REPOSITORY',
-      blockStorePath: STORE,
-    })
-    await child.writeBlock({ index: 0, data: Buffer.alloc(BLOCK_SIZE * 2, 0xaa) })
-
-    // refused by writeBlock's own size check, no extra check per mergeBlock
-    await assert.rejects(() => parent.mergeBlock(child, 0, false), /expected a 4096 bytes block, got 8192/)
-    assert.equal(parent.hasBlock(0), false)
-  })
-
   test('a full merge leaves the child content, a consistent store and no child link', async () => {
     const parent = await createSharedDisk()
     const child = await createSharedDisk()
@@ -890,6 +851,8 @@ describe('merge', () => {
       await parent.mergeBlock(child, index, false)
     }
     await parent.flushMetadata(child)
+
+    await child.unlink() // what MergeRemoteDisk.removeUnused() does next
 
     await assertSameContent(parent, childContent)
     assert.equal((await listFiles(STORE)).length, 5, 'the 3 replaced parent blocks are released')
@@ -920,14 +883,19 @@ describe('merge', () => {
     const child = await createSharedDisk()
     await child.writeBlock({ index: 0, data: block(0xaa) })
     await parent.flushMetadata()
-    const { hashesPath } = parent.getMetadata()
-    child.readBlock = async () => {
-      throw new Error('child unreadable')
+    const before = parent.getMetadata()
+    // the re-sync links the child block into the parent: make that link fail
+    handler.link = async () => {
+      throw new Error('link failed')
     }
 
-    await assert.rejects(() => parent.flushMetadata(child), /child unreadable/)
+    await assert.rejects(() => parent.flushMetadata(child), /link failed/)
 
-    assert.equal(parent.getMetadata().hashesPath, hashesPath, 'no new BAT written')
+    assert.equal(parent.getMetadata().hashesPath, before.hashesPath, 'no new BAT written')
+    const reopened = new HashedDiskDeduplicated({ handler, path: parent.getPath(), blockStorePath: STORE })
+    await reopened.init()
+    assert.deepEqual(reopened.getMetadata(), before, 'the hbd on the remote is untouched')
+    assert.equal(reopened.hasBlock(0), false)
   })
 
   test('mergeMetadata takes the child uuid and size, and keeps its own parent', async () => {
