@@ -1,6 +1,23 @@
 import type { KubernetesClusterPhase } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { clusterStatus, isClusterPhaseReady } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
+import {
+  clusterStatus,
+  isClusterDeletable,
+  isClusterPhaseReady,
+} from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { createKubernetesCluster } from '@/test/create-kubernetes-cluster.ts'
+
+describe('isClusterDeletable', () => {
+  it.each<KubernetesClusterPhase>(['Running', 'Provisioned', 'Failed', 'Updating'])('returns true for %s', phase => {
+    expect(isClusterDeletable(phase)).toBe(true)
+  })
+
+  it.each<KubernetesClusterPhase>(['Pending', 'Provisioning', 'Deleting', 'Deleted', 'Unknown'])(
+    'returns false for %s',
+    phase => {
+      expect(isClusterDeletable(phase)).toBe(false)
+    }
+  )
+})
 
 describe('isClusterPhaseReady', () => {
   it.each<KubernetesClusterPhase>(['Provisioned', 'Running'])('returns true for %s', phase => {
