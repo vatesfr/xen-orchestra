@@ -6,11 +6,10 @@ import { isPromise } from 'node:util/types'
 import { MaybePromise, PromiseWriteInStreamError } from './helper.type.mjs'
 import { Writable } from 'node:stream'
 import { ApiError } from './error.helper.mjs'
+import { XMLParser } from 'fast-xml-parser'
 
 export const BASE_URL = '/rest/v0'
-import { XMLParser } from 'fast-xml-parser'
 export { default as forEach } from 'lodash/forEach.js'
-
 export const NDJSON_CONTENT_TYPE = 'application/x-ndjson'
 
 const log = createLogger('xo:rest-api:utils-helper')
