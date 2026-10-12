@@ -28,6 +28,15 @@
         {{ t('hosts') }}
       </UiTabItem>
     </RouterLink>
+    <RouterLink
+      v-slot="{ isActive, href }"
+      :to="{ name: '/sr/[id]/vdis', params: { id: sr.id }, query: scopeQuery }"
+      custom
+    >
+      <UiTabItem :active="isActive" :href tag="a">
+        {{ t('vdis') }}
+      </UiTabItem>
+    </RouterLink>
   </TabList>
 </template>
 
