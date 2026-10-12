@@ -2,7 +2,7 @@
   <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.id" :has-children="branch.hasChildren">
     <UiTreeItemLabel
       icon="object:namespace"
-      :route="getKubernetesNamespaceRoute(branch.dataId)"
+      :route="getKubernetesNamespaceRoute(branch.data.id)"
       @toggle="branch.toggleCollapse()"
     >
       {{ branch.data.name }}

@@ -2,7 +2,7 @@
   <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.id" :has-children="branch.hasChildren">
     <UiTreeItemLabel
       icon="object:cluster"
-      :route="getKubernetesClusterRoute(branch.dataId)"
+      :route="getKubernetesClusterRoute(branch.data.id)"
       @toggle="branch.toggleCollapse()"
     >
       {{ branch.data.name }}
