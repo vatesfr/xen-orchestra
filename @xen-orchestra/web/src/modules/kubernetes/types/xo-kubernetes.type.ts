@@ -1,5 +1,7 @@
 import type { Status } from '@core/components/status/VtsStatus.vue'
 
+export type KubernetesAvailabilityStatus = 'available' | 'not-available'
+
 export type KubernetesReadyStatus = Extract<Status, 'ready' | 'not-ready'>
 
 export type KubernetesClusterPhase =
@@ -13,7 +15,14 @@ export type KubernetesClusterPhase =
   | 'Failed'
   | 'Unknown'
 
-export type KubernetesStatus = KubernetesClusterPhase | 'yes' | 'no' | 'paused' | true | false
+export type KubernetesStatus =
+  | KubernetesAvailabilityStatus
+  | KubernetesClusterPhase
+  | 'yes'
+  | 'no'
+  | 'paused'
+  | true
+  | false
 
 export const KUBERNETES_ROOT_ID = 'kubernetes-root'
 
@@ -41,6 +50,7 @@ export type XoKubernetesCluster = {
   control_plane_endpoint: string
   control_plane_status: XoKubernetesNodesStatus
   created_at: string
+  description?: string
   id: string
   is_available: boolean
   is_control_plane_initialized: boolean

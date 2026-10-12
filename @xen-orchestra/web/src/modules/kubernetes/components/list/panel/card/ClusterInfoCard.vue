@@ -5,7 +5,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
-          <VtsStatus :status />
+          <KubernetesStatus :status />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue align-top>
@@ -35,11 +35,16 @@
           <VtsCopyButton :value="cluster.created_at" />
         </template>
       </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('created-by') }}</template>
+        <template #value>{{ t('unknown') }}</template>
+      </VtsCardRowKeyValue>
     </div>
   </UiPanelCard>
 </template>
 
 <script setup lang="ts">
+import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.vue'
 import { useXoKubernetesClusterUtils } from '@/modules/kubernetes/composables/xo-kubernetes-cluster-utils.composable.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { clusterReadyStatus, clusterVersion } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
@@ -47,7 +52,6 @@ import { getKubernetesClusterRoute } from '@/modules/kubernetes/utils/kubernetes
 import { kubernetesTagsToStrings } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
