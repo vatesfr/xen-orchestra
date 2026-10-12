@@ -63,12 +63,14 @@ Prefer this shape: one assertion covering every row a user sees, and it fails lo
 
 `src/test/find-labelled-values.ts` does exactly that reduction, so a card test does not re-roll it:
 
-| Helper                   | Reads                                                      |
-| ------------------------ | ---------------------------------------------------------- |
-| `findLabelledValues`     | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card |
-| `findCardLabelledValues` | every `VtsCardRowKeyValue` of a side-panel card            |
-| `findCopiedValues`       | what each copyable key/value row copies, keyed by label    |
-| `findCardCopiedValues`   | what each copyable `VtsCardRowKeyValue` copies, in order   |
+| Helper                   | Reads                                                                  |
+| ------------------------ | ---------------------------------------------------------------------- |
+| `findLabelledValues`     | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card             |
+| `findCardLabelledValues` | every `VtsCardRowKeyValue` of a side-panel card                        |
+| `findCopiedValues`       | what each copyable key/value row copies, keyed by label                |
+| `findCardCopiedValues`   | what each copyable `VtsCardRowKeyValue` copies, in order               |
+| `findLegends`            | every `UiLegend`, as ordered `[label, value]` pairs (see Legend cards) |
+| `findCardNumbers`        | every `UiCardNumbers` a dashboard card lays out, as `[label, values]`  |
 
 ```typescript
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
@@ -159,15 +161,9 @@ Keep it to one representative value: how the formatter handles the whole range, 
 
 ## Legend cards
 
-A donut card and a progress-bar card both render their values through `UiLegend`, which keeps the label and the value addressable:
+A donut card and a progress-bar card both render their values through `UiLegend`, which keeps the label and the value addressable — `findLegends` reads them:
 
 ```typescript
-function findLegends(wrapper: VueWrapper) {
-  return wrapper
-    .findAll('.ui-legend')
-    .map(legend => [legend.get('.label').text(), legend.get('.value-and-unit').text()])
-}
-
 expect(findLegends(wrapper)).toEqual([
   [t('vm:status:running', 2), '2'],
   [t('vm:status:halted', 2), '1'],
