@@ -1,6 +1,6 @@
 <template>
   <div class="content">
-    <span class="typo-body-bold-small subtitle">{{ label }}</span>
+    <UiPanelCardTitle size="small" :label class="subtitle" />
     <UiCollapsibleList tag="ul" :total-items="targets.length">
       <template v-for="target in targets" :key="target.id">
         <BackupJobTargetSrItem v-if="isSr(target)" :sr="target" />
@@ -16,6 +16,7 @@ import BackupJobTargetSrItem from '@/modules/backup/components/panel/card-items/
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 
 const { targets } = defineProps<{
   targets: FrontXoSr[] | FrontXoBackupRepository[]
@@ -34,7 +35,6 @@ function isSr(target: FrontXoSr | FrontXoBackupRepository): target is FrontXoSr 
   gap: 0.4rem;
 
   .subtitle {
-    color: var(--color-neutral-txt-primary);
     margin-bottom: 1.6rem;
   }
 }

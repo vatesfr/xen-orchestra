@@ -1,6 +1,6 @@
 <template>
   <UiPanelCard class="backup-repository-infos-card">
-    <VtsCardObjectTitle :id="br.id" :label="br.name" :icon="brIcon" :href="xo5BrHref" />
+    <UiPanelCardTitle :id="br.id" size="medium" :label="br.name" :icon="brIcon" :href="xo5BrHref" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
@@ -49,11 +49,11 @@ import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/ba
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ParsedBackupRepositoryUrl } from 'xo-remote-parser'

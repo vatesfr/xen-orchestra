@@ -31,7 +31,7 @@ export function findCardLabelledValues(wrapper: QueryableWrapper): Record<string
  * order — so a card test asserts what is copyable, and what is left out (a secret, an
  * empty value).
  *
- * Scoped to the rows: a `VtsCardObjectTitle` has a copy button of its own, for the id.
+ * Scoped to the rows: a `UiPanelCardTitle` has a copy button of its own, for the id.
  */
 export function findCardCopiedValues(wrapper: QueryableWrapper): unknown[] {
   return wrapper
