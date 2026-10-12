@@ -1,8 +1,8 @@
 import type { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { join, normalize } from '@xen-orchestra/fs/path'
 
-// <store>/<16>/<16>/<16>/<16>/<copy>: copies are always at this depth
-const COPY_DEPTH = 5
+// <store>/<ab>/<cd>/<hash>/<copy>: copies are always at this depth
+const COPY_DEPTH = 4
 
 export async function scanBlockStore(
   handler: RemoteHandlerAbstract,

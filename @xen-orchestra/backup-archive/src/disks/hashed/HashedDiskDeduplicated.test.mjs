@@ -81,12 +81,9 @@ async function listFiles(dir) {
 }
 
 describe('hbdPaths', () => {
-  test('blockRelPath splits the hash into 4 segments of 16 chars', () => {
+  test('blockRelPath convert the hash into 3 segments <ab>/<cd>/<hash>', () => {
     const hash = sha256hex(Buffer.from('x'))
-    const segments = blockRelPath(hash).split('/')
-    assert.equal(segments.length, 4)
-    segments.forEach(segment => assert.equal(segment.length, 16))
-    assert.equal(segments.join(''), hash)
+    assert.deepEqual(blockRelPath(hash).split('/'), [hash.slice(0, 2), hash.slice(2, 4), hash])
   })
 
   test('asBlockHash rejects anything that is not a lowercase sha256 hex', () => {

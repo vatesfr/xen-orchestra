@@ -31,8 +31,6 @@ export const CODEC_RAW = 0x00
 export const CODEC_BROTLI = 0x01
 
 const HASH_HEX_LENGTH = HASH_SIZE * 2 // chars, in memory
-const HASH_PATH_DEPTH = 4
-const HASH_PATH_SEGMENT = HASH_HEX_LENGTH / HASH_PATH_DEPTH
 const BLOCK_HASH_RE = new RegExp(`^[0-9a-f]{${HASH_HEX_LENGTH}}$`)
 
 export function asBlockHash(value: string): BlockHash {
@@ -84,7 +82,7 @@ export function dataDirName(uuid: string): string {
 }
 
 export function blockRelPath(hash: BlockHash): string {
-  return `${hash.slice(0, HASH_PATH_SEGMENT)}/${hash.slice(HASH_PATH_SEGMENT, HASH_PATH_SEGMENT * 2)}/${hash.slice(HASH_PATH_SEGMENT * 2, HASH_PATH_SEGMENT * 3)}/${hash.slice(HASH_PATH_SEGMENT * 3, HASH_PATH_SEGMENT * 4)}`
+  return `${hash.slice(0, 2)}/${hash.slice(2, 4)}/${hash}`
 }
 
 export interface HbdBlockHeader {
