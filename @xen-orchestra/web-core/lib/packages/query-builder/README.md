@@ -211,10 +211,11 @@ const schema = useQueryBuilderSchema<User>({...})
 // - Filters your items in real-time
 // - Handles invalid filter expressions gracefully
 const { items: filteredItems, filter } = useQueryBuilderFilter(
-  'users',           // Unique ID (used in URL)
+  'users',           // Unique ID (used in URL, unless ignoreRoute is true)
   () => items.value, // Your data source
   {
-    initialFilter: 'name:John'  // Optional: pre-set filter
+    initialFilter: 'name:John', // Optional: pre-set filter
+    ignoreRoute: true,          // Optional: keep the filter in memory instead of the URL
   }
 )
 
