@@ -1,9 +1,14 @@
 import { createLogger } from '@xen-orchestra/log'
 import { asBlockHash, BlockHash, HASH_SIZE } from './hbdPaths.mjs'
+import { readChunkStrict } from '@vates/read-chunk'
+import { Readable } from 'node:stream'
 
 const { warn } = createLogger('xo:backup-archive:bat')
 
 const ZERO_ENTRY = Buffer.alloc(HASH_SIZE)
+
+// a whole number of entries per read: no entry is ever split across two chunks
+const CHUNK_ENTRIES = 2048 // 64 KiB
 
 export class BlockAllocationTable {
   #bat: Buffer
@@ -14,9 +19,14 @@ export class BlockAllocationTable {
   }
 
   resize(maxBlockCount: number): void {
-    const bat = Buffer.alloc(maxBlockCount * HASH_SIZE)
-    this.#bat.copy(bat, 0, 0, Math.min(this.#bat.length, bat.length))
-    this.#bat = bat
+    const batLength = maxBlockCount * HASH_SIZE
+    if (batLength > this.#bat.length) {
+      const bat = Buffer.alloc(maxBlockCount * HASH_SIZE)
+      this.#bat.copy(bat, 0, 0, Math.min(this.#bat.length, bat.length))
+      this.#bat = bat
+    } else {
+      this.#bat = this.#bat.subarray(0, batLength)
+    }
     this.#maxBlockCount = maxBlockCount
   }
 
@@ -47,7 +57,18 @@ export class BlockAllocationTable {
     return this.#bat.subarray(offset, offset + HASH_SIZE)
   }
 
-  get(index: number): BlockHash {
+  entryAt(index: number): Buffer {
+    return this.#entry(index)
+  }
+
+  sameAt(index: number, other: BlockAllocationTable, otherIndex: number): boolean {
+    if (index >= this.#maxBlockCount) {
+      return false
+    }
+    return this.entryAt(index).equals(other.entryAt(otherIndex))
+  }
+
+  hashAt(index: number): BlockHash {
     return this.#entry(index).toString('hex') as BlockHash
   }
 
@@ -80,5 +101,16 @@ export class BlockAllocationTable {
 
   toBuffer(): Buffer {
     return this.#bat
+  }
+
+  static async *readChunks(
+    stream: Readable,
+    blockCount: number
+  ): AsyncGenerator<{ firstIndex: number; bat: BlockAllocationTable }> {
+    for (let firstIndex = 0; firstIndex < blockCount; firstIndex += CHUNK_ENTRIES) {
+      const count = Math.min(CHUNK_ENTRIES, blockCount - firstIndex)
+      const chunk = (await readChunkStrict(stream, count * HASH_SIZE)) as Buffer
+      yield { firstIndex, bat: new BlockAllocationTable(chunk, count) }
+    }
   }
 }
