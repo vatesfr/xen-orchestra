@@ -120,9 +120,9 @@ Constraints to be aware of:
 ### Planned switch with an in-place update {#planned-switch}
 
 1. Shut down the VM on the production side.
-1. Run the original job one last time, then disable it: its snapshot now holds the VM's final state.
-1. Force start the replica on the DR side, and work there.
-1. To switch back, shut down the DR VM and run the reverse job: it updates the original VM in place.
+2. Run the original job one last time, then disable it: its snapshot now holds the VM's final state.
+3. Force start the replica on the DR side, and work there.
+4. To switch back, shut down the DR VM and run the reverse job: it updates the original VM in place.
 
 An in-place update turns the original VM into a replica of the DR VM. It keeps its UUID, but:
 
