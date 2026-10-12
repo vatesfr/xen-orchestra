@@ -7,7 +7,15 @@ const COPY_DEPTH = 5
 export async function scanBlockStore(
   handler: RemoteHandlerAbstract,
   blockStorePath: string,
-  { remove = false, logInfo = () => {} }: { remove?: boolean; logInfo?: (message: string, data?: object) => void } = {}
+  {
+    remove = false,
+    logInfo = () => {},
+    logDebug = () => {},
+  }: {
+    remove?: boolean
+    logInfo?: (message: string, data?: object) => void
+    logDebug?: (message: string, data?: object) => void
+  } = {}
 ): Promise<{ removed: number }> {
   blockStorePath = normalize(blockStorePath)
   let removed = 0
@@ -32,11 +40,6 @@ export async function scanBlockStore(
         }
       }
     }
-    if (remove && depth > 0) {
-      // emptied by this scan? remove it
-      // still in use: ENOTEMPTY, ignored
-      await handler.rmdir(dir).catch(() => {})
-    }
   }
 
   async function removeIfOrphan(path: string): Promise<boolean> {
@@ -44,7 +47,7 @@ export async function scanBlockStore(
       if ((await handler.getLinkCount(path)) !== 1) {
         return false // still linked by a disk
       }
-      logInfo('orphan store file', { path })
+      logDebug('orphan store file', { path })
       if (remove) {
         await handler.unlink(path, { checksum: false })
       }

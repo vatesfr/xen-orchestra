@@ -1097,14 +1097,6 @@ describe('scanBlockStore', () => {
     assert.ok((await disk.readBlock(0)).data.equals(block(0xaa)))
   })
 
-  test('removes the directories it emptied, but not the store root', async () => {
-    await writeOrphan(block(0xaa))
-
-    await scanBlockStore(handler, STORE, { remove: true })
-
-    assert.deepEqual(await handler.list(STORE), [])
-  })
-
   test('a missing store is not an error', async () => {
     assert.deepEqual(await scanBlockStore(handler, STORE, { remove: true }), { removed: 0 })
   })
@@ -1130,7 +1122,7 @@ describe('scanBlockStore', () => {
     await writeOrphan(block(0xaa))
     const logged = []
 
-    const result = await scanBlockStore(handler, STORE, { logInfo: (message, data) => logged.push(data.path) })
+    const result = await scanBlockStore(handler, STORE, { logDebug: (message, data) => logged.push(data.path) })
 
     assert.deepEqual(result, { removed: 1 }, 'counts what would be removed')
     assert.equal((await listStore()).length, 1)
