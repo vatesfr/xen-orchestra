@@ -22,7 +22,6 @@ export function useVdiConfiguration(
 
   const vbds = useGetVbdsByIds(() => vdi.value?.$VBDs ?? [])
 
-  // vbd.VM can also be a template, snapshot or control domain, which the VM collection doesn't resolve
   const vms = useGetVmsByIds(() => vbds.value.map(vbd => vbd.VM as FrontXoVm['id']))
 
   const format = computed(() => getVdiFormat(vdi.value?.image_format))
