@@ -7,7 +7,7 @@ import { normalize } from '@xen-orchestra/fs/path'
 import { filenameOf, journalEntryPath, metadataOf, OTHER_VM, VM } from './_vmBackupsFixtures.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 
-const REPOSITORY = { id: 'repository' }
+const REPOSITORY = { id: 'repository', url: 'file:///media/backup' }
 
 const enoent = () => Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
 
@@ -302,22 +302,31 @@ describe('VmBackupsCache', () => {
     assert.ok(filenames(backups).includes(added._filename))
   })
 
-  it('rebuilds an hour after the entry was built, however recently it was replayed', async t => {
-    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
-    const repository = new Repository([metadataOf(VM, '20260811T090000')])
-    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+  for (const [query, minutes] of [
+    ['', 60],
+    ['?fullListingInterval=10m', 10],
+    ['?fullListingInterval=600000', 10],
+    // a typo must not make the repository unreadable: the default interval, with a warning
+    ['?fullListingInterval=often', 60],
+  ]) {
+    it(`rebuilds ${minutes} minutes after the entry was built, however recently it was replayed, for '${REPOSITORY.url + query}'`, async t => {
+      const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+      const repository = new Repository([metadataOf(VM, '20260811T090000')])
+      const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+      const withQuery = { ...REPOSITORY, url: REPOSITORY.url + query }
 
-    await cache.get(REPOSITORY)
-    tick(59 * 60e3)
-    await cache.get(REPOSITORY)
-    assert.equal(repository.nListings, 1)
-    assert.equal(repository.nJournalReads, 1)
+      await cache.get(withQuery)
+      tick((minutes - 1) * 60e3)
+      await cache.get(withQuery)
+      assert.equal(repository.nListings, 1)
+      assert.equal(repository.nJournalReads, 1)
 
-    tick(60e3)
-    await cache.get(REPOSITORY)
-    assert.equal(repository.nListings, 2)
-    assert.equal(repository.nJournalReads, 1)
-  })
+      tick(60e3)
+      await cache.get(withQuery)
+      assert.equal(repository.nListings, 2)
+      assert.equal(repository.nJournalReads, 1)
+    })
+  }
 
   it('rebuilds when the remote is re-pointed or reconfigured', async t => {
     mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
