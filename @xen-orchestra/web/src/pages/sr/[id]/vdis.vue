@@ -24,7 +24,6 @@ const { sr } = defineProps<{
 
 const { useGetVdisByIds, areVdisReady, hasVdiFetchError } = useXoVdiCollection()
 
-// sr.VDIs also contains VDI snapshot ids, which the VDI collection doesn't resolve
 const vdis = useGetVdisByIds(() => sr.VDIs as FrontXoVdi['id'][])
 
 const selectedVdi = useRouteQuery<FrontXoVdi | undefined>('id', {

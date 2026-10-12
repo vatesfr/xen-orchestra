@@ -8,7 +8,6 @@ export const xoVmsArg = defineJobArg({
   toArray: true,
 })
 
-// Some jobs (VDI/VBD) accept a missing VM, identify must not throw on it
 export const xoVmArg = defineJobArg<FrontXoVm>({
   identify: (vm?: FrontXoVm) => vm?.id,
   toArray: false,
