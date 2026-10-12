@@ -81,8 +81,8 @@ As you'll see, it is trivial to configure. In the "Backup/new" section, select t
 Then:
 
 1. Select the VMs you want to protect
-1. Schedule the replication interval
-1. Select the destination storage repository (it can be any SR connected to any host!)
+2. Schedule the replication interval
+3. Select the destination storage repository (it can be any SR connected to any host!)
 
 That's it! Your VMs are protected and replicated as requested.
 
@@ -95,7 +95,7 @@ Since Xen Orchestra 6.5, incremental replication works in both directions: the r
 There is no special job type for it. To replicate in the reverse direction, simply create a new incremental replication job going the other way:
 
 1. Select the replica (or the VM running on your DR side) as the source VM
-1. Select your original production SR as the destination
+2. Select your original production SR as the destination
 
 On its first run, instead of sending a full copy, the job looks for a common snapshot on both sides (using the content metadata XO writes on every replicated disk) and only transfers the blocks that changed since that snapshot. Then, on the production side:
 
