@@ -4,6 +4,7 @@ import type { useXoSrCollection } from '@/modules/storage-repository/remote-reso
 import type { FrontXoVbd, useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiConfigurationCard from '@/modules/vdi/components/list/panel/cards/VdiConfigurationCard.vue'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVbd } from '@/test/create-vbd.ts'
 import { createVdi } from '@/test/create-vdi.ts'
@@ -60,16 +61,16 @@ function givenVms(...vms: FrontXoVm[]) {
   useGetVmsByIds.mockReturnValue(computed(() => vms))
 }
 
-function mountCard(vbd?: FrontXoVbd) {
+function mountCard(fromContext: VdiPageContext, vbd?: FrontXoVbd) {
   return mount(VdiConfigurationCard, {
-    props: { vdi: createVdi({ image_format: 'qcow2', cbt_enabled: true, tags: ['NOSNAP'] }), vbd },
+    props: { vdi: createVdi({ image_format: 'qcow2', cbt_enabled: true, tags: ['NOSNAP'] }), vbd, fromContext },
     global: createGlobalTestConfig(),
   })
 }
 
-describe('with the VBD of the VM the VDI is shown for', () => {
+describe('in the VM context', () => {
   it('shows the storage and the VBD flags', () => {
-    const wrapper = mountCard(createVbd({ read_only: true, bootable: false }))
+    const wrapper = mountCard(VDI_PAGE_CONTEXT.VM, createVbd({ read_only: true, bootable: false }))
 
     expect(findCardLabelledValues(wrapper)).toEqual({
       [t('format')]: 'QCOW2',
@@ -82,24 +83,24 @@ describe('with the VBD of the VM the VDI is shown for', () => {
   })
 
   it('copies the format and the SR name', () => {
-    expect(findCardCopiedValues(mountCard(createVbd()))).toEqual(['QCOW2', 'Fast SR'])
+    expect(findCardCopiedValues(mountCard(VDI_PAGE_CONTEXT.VM, createVbd()))).toEqual(['QCOW2', 'Fast SR'])
   })
 
   it('leaves the storage empty, with nothing to copy, while the SR is not resolved', () => {
     useGetSrById.mockReturnValue(computed(() => undefined))
 
-    const wrapper = mountCard(createVbd())
+    const wrapper = mountCard(VDI_PAGE_CONTEXT.VM, createVbd())
 
     expect(findCardLabelledValues(wrapper)[t('storage')]).toBe('')
     expect(findCardCopiedValues(wrapper)).toEqual(['QCOW2'])
   })
 })
 
-describe('without a VBD', () => {
+describe('in the SR context', () => {
   it('shows the VMs instead of the storage and the VBD flags', () => {
     givenVms(createVm({ name_label: 'Web server' }))
 
-    expect(findCardLabelledValues(mountCard())).toEqual({
+    expect(findCardLabelledValues(mountCard(VDI_PAGE_CONTEXT.SR))).toEqual({
       [t('format')]: 'QCOW2',
       [t('vms')]: 'Web server',
       [t('change-block-tracking')]: t('enabled'),
@@ -113,10 +114,10 @@ describe('without a VBD', () => {
       createVm({ id: 'vm-2' as FrontXoVm['id'], name_label: 'Database' })
     )
 
-    expect(findCardCopiedValues(mountCard())).toEqual(['QCOW2', 'Web server, Database'])
+    expect(findCardCopiedValues(mountCard(VDI_PAGE_CONTEXT.SR))).toEqual(['QCOW2', 'Web server, Database'])
   })
 
   it('has no VM names to copy when the VDI is plugged into no VM', () => {
-    expect(findCardCopiedValues(mountCard())).toEqual(['QCOW2'])
+    expect(findCardCopiedValues(mountCard(VDI_PAGE_CONTEXT.SR))).toEqual(['QCOW2'])
   })
 })

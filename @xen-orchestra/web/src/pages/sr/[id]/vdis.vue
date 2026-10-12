@@ -1,10 +1,10 @@
 <template>
   <VtsContentSidePanel class="vdis">
     <UiCard class="container">
-      <VdisTable :vdis :busy="!areVdisReady" :error="hasVdiFetchError" />
+      <VdisTable :vdis :from-context="VDI_PAGE_CONTEXT.SR" :busy="!areVdisReady" :error="hasVdiFetchError" />
     </UiCard>
     <template #panel>
-      <VdiSidePanel :vdi="selectedVdi" @close="selectedVdi = undefined" />
+      <VdiSidePanel :vdi="selectedVdi" :from-context="VDI_PAGE_CONTEXT.SR" @close="selectedVdi = undefined" />
     </template>
   </VtsContentSidePanel>
 </template>
@@ -14,6 +14,7 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import VdiSidePanel from '@/modules/vdi/components/list/panel/VdiSidePanel.vue'
 import VdisTable from '@/modules/vdi/components/list/VdisTable.vue'
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'

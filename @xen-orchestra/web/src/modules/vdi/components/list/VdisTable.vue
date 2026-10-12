@@ -34,7 +34,7 @@ import { useVdiMigrate } from '@/modules/vdi/composables/use-vdi-migrate.composa
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
+import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -51,9 +51,10 @@ import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdis, vm, busy, error } = defineProps<{
+const { vdis, vm, fromContext, busy, error } = defineProps<{
   vdis: FrontXoVdi[]
   vm?: FrontXoVm
+  fromContext: VdiPageContext
   error?: boolean
   busy?: boolean
 }>()
@@ -179,7 +180,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
           to: {
             name: '/vdi/[id]/general',
             params: { id: vdi.id },
-            query: { from: vm ? VDI_PAGE_CONTEXT.VM : VDI_PAGE_CONTEXT.SR },
+            query: { from: fromContext },
           },
           icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)),
           busy: runningAction.value !== 'none',
@@ -193,7 +194,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
         r({
           onClick: () => (selectedVdiId.value = vdi.id),
           actions: [
-            ...(vm ? [connectionAction.value] : []),
+            ...(fromContext === VDI_PAGE_CONTEXT.VM ? [connectionAction.value] : []),
             {
               label: t('action:migrate-vdi-on-sr'),
               icon: 'action:migrate',
@@ -214,7 +215,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
                 },
               ],
             },
-            ...(vm
+            ...(fromContext === VDI_PAGE_CONTEXT.VM
               ? [
                   {
                     label: t('action:detach-vdi'),
