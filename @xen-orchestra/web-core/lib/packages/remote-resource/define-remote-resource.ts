@@ -21,6 +21,7 @@ import {
   reactive,
   type Ref,
   ref,
+  shallowReactive,
   shallowRef,
   toRef,
   toValue,
@@ -121,24 +122,26 @@ export function defineRemoteResource<
 }) {
   type EventBuffer<TData> = { events: ['update' | 'remove', TData][]; isProcessed: boolean }
 
-  const cache = new Map<
-    string,
-    {
-      count: number
-      evictionTimeout?: NodeJS.Timeout // TODO : Fixme , the actual type in browser is number, but NodeJS.Timeout in nodejs.
-      // Due to transitive types of vates/types, the type is NodeJS.Timeout.
-      pause: VoidFunction
-      resume: VoidFunction
-      execute: () => Promise<void>
-      isPaused: boolean
-      state: object
-      stateScope: EffectScope
-      isReady: Ref<boolean>
-      isFetching: Ref<boolean>
-      lastError: Ref<Error | undefined>
-      hasError: ComputedRef<boolean>
-    }
-  >()
+  const cache = shallowReactive(
+    new Map<
+      string,
+      {
+        count: number
+        evictionTimeout?: NodeJS.Timeout // TODO : Fixme , the actual type in browser is number, but NodeJS.Timeout in nodejs.
+        // Due to transitive types of vates/types, the type is NodeJS.Timeout.
+        pause: VoidFunction
+        resume: VoidFunction
+        execute: () => Promise<void>
+        isPaused: boolean
+        state: object
+        stateScope: EffectScope
+        isReady: Ref<boolean>
+        isFetching: Ref<boolean>
+        lastError: Ref<Error | undefined>
+        hasError: ComputedRef<boolean>
+      }
+    >()
+  )
 
   const buildUrl = typeof config.url === 'string' ? () => config.url as string : config.url
 
@@ -267,22 +270,25 @@ export function defineRemoteResource<
       return
     }
 
-    function cleanUp() {
-      if (entry === undefined) {
-        return
-      }
+    scheduleEviction(url)
+  }
 
-      entry.pause()
-      entry.isPaused = true
-      entry.stateScope.stop()
-      cache.delete(url)
+  function scheduleEviction(url: string) {
+    const entry = cache.get(url)
+
+    if (!entry) {
+      return
     }
 
-    if (cacheExpiration !== false) {
-      entry.evictionTimeout = setTimeout(cleanUp, cacheExpiration)
-    } else {
-      cleanUp()
-    }
+    entry.evictionTimeout = setTimeout(
+      () => {
+        entry.pause()
+        entry.isPaused = true
+        entry.stateScope.stop()
+        cache.delete(url)
+      },
+      cacheExpiration === false ? 0 : cacheExpiration
+    )
   }
 
   function registerUrl(url: string, context: ResourceContext<TArgs>) {
@@ -434,6 +440,8 @@ export function defineRemoteResource<
       lastError,
       hasError,
     })
+
+    scheduleEviction(url)
   }
 
   function initializeUrl(url: ComputedRef<string>, context: ResourceContext<TArgs>) {
@@ -515,9 +523,11 @@ export function defineRemoteResource<
       const state = reactive({} as TState)
 
       watch(
-        url,
-        () => {
-          Object.assign(state, cache.get(url.value)!.state)
+        () => cache.get(url.value),
+        entry => {
+          if (entry !== undefined) {
+            Object.assign(state, entry.state)
+          }
         },
         { immediate: true }
       )
