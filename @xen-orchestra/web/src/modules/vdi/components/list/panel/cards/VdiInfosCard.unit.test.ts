@@ -1,6 +1,7 @@
 import type { FrontXoVbd, useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiInfosCard from '@/modules/vdi/components/list/panel/cards/VdiInfosCard.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
 import { createVbd } from '@/test/create-vbd.ts'
 import { createVdi } from '@/test/create-vdi.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
@@ -24,18 +25,19 @@ beforeEach(() => {
   getVbdsByIds.mockReturnValue([])
 })
 
-function mountCard(vdi: FrontXoVdi = createVdi(), vbd?: FrontXoVbd) {
+function mountCard(vdi: FrontXoVdi = createVdi(), fromContext: VdiPageContext = VDI_PAGE_CONTEXT.SR, vbd?: FrontXoVbd) {
   return mount(VdiInfosCard, {
-    props: { vdi, vbd },
+    props: { vdi, vbd, fromContext },
     global: createGlobalTestConfig(),
   })
 }
 
-it('shows the description, tags, status and device of a VDI shown with its VBD', () => {
+it('shows the description, tags, status and device of a VDI in the VM context', () => {
   getVbdsByIds.mockReturnValue([createVbd({ attached: true })])
 
   const wrapper = mountCard(
     createVdi({ name_description: 'System disk', tags: ['prod'] }),
+    VDI_PAGE_CONTEXT.VM,
     createVbd({ device: 'xvdb' })
   )
 
@@ -48,18 +50,18 @@ it('shows the description, tags, status and device of a VDI shown with its VBD',
   expect(findCardCopiedValues(wrapper)).toEqual(['System disk', 'prod', CONNECTION_STATUS.CONNECTED, 'xvdb'])
 })
 
-it('hides the device row without a VBD', () => {
+it('hides the device row in the SR context', () => {
   expect(Object.keys(findCardLabelledValues(mountCard()))).toEqual([t('description'), t('tags'), t('status')])
 })
 
-it('links the title to the VDI page in the VM context when shown with a VBD', () => {
-  const wrapper = mountCard(createVdi({ id: 'vdi-1' as FrontXoVdi['id'] }), createVbd())
+it('links the title to the VDI page in the VM context', () => {
+  const wrapper = mountCard(createVdi({ id: 'vdi-1' as FrontXoVdi['id'] }), VDI_PAGE_CONTEXT.VM)
 
   expect(wrapper.getComponent(UiPanelCardTitle).get('a').attributes('href')).toBe('/vdi/vdi-1/general?from=vm')
 })
 
-it('links the title to the VDI page in the SR context without a VBD', () => {
-  const wrapper = mountCard(createVdi({ id: 'vdi-1' as FrontXoVdi['id'] }))
+it('links the title to the VDI page in the SR context', () => {
+  const wrapper = mountCard(createVdi({ id: 'vdi-1' as FrontXoVdi['id'] }), VDI_PAGE_CONTEXT.SR)
 
   expect(wrapper.getComponent(UiPanelCardTitle).get('a').attributes('href')).toBe('/vdi/vdi-1/general?from=sr')
 })

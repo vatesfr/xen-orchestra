@@ -8,9 +8,9 @@
       <VdiActions :vdi :vbd :vm />
     </template>
     <template v-if="vdi" #default>
-      <VdiInfosCard :vdi :vbd />
+      <VdiInfosCard :vdi :vbd :from-context />
       <VdiSpaceCard :vdi />
-      <VdiConfigurationCard :vdi :vbd />
+      <VdiConfigurationCard :vdi :vbd :from-context />
     </template>
   </VtsSidePanel>
 </template>
@@ -25,12 +25,14 @@ import VdiInfosCard from '@/modules/vdi/components/list/panel/cards/VdiInfosCard
 import VdiSpaceCard from '@/modules/vdi/components/list/panel/cards/VdiSpaceCard.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { VdiPageContext } from '@/shared/constants.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import { computed } from 'vue'
 
 const { vdi, vm } = defineProps<{
   vdi?: FrontXoVdi
   vm?: FrontXoVm
+  fromContext: VdiPageContext
 }>()
 
 const emit = defineEmits<{

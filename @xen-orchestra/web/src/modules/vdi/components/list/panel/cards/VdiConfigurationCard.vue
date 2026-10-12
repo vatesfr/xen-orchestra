@@ -3,18 +3,29 @@
     <UiPanelCardTitle size="medium" :label="t('configuration')" />
     <div class="content">
       <VdiFormatCardItem :format="vdi.image_format" />
-      <template v-if="vbd">
-        <VtsCardRowKeyValue>
-          <template #key>
-            {{ t('storage') }}
-          </template>
-          <template #value>
-            <SrLink v-if="sr" :sr />
-          </template>
-          <template v-if="sr" #addons>
-            <VtsCopyButton :value="sr.name_label" />
-          </template>
-        </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="fromContext === VDI_PAGE_CONTEXT.SR" align-top>
+        <template #key>
+          {{ t('vms') }}
+        </template>
+        <template #value>
+          <VdiVmLinks :vms />
+        </template>
+        <template v-if="vms.length > 0" #addons>
+          <VtsCopyButton :value="vmNames" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-else>
+        <template #key>
+          {{ t('storage') }}
+        </template>
+        <template #value>
+          <SrLink v-if="sr" :sr />
+        </template>
+        <template v-if="sr" #addons>
+          <VtsCopyButton :value="sr.name_label" />
+        </template>
+      </VtsCardRowKeyValue>
+      <template v-if="fromContext === VDI_PAGE_CONTEXT.VM">
         <VtsCardRowKeyValue>
           <template #key>
             {{ t('read-only') }}
@@ -32,17 +43,6 @@
           </template>
         </VtsCardRowKeyValue>
       </template>
-      <VtsCardRowKeyValue v-else align-top>
-        <template #key>
-          {{ t('vms') }}
-        </template>
-        <template #value>
-          <VdiVmLinks :vms />
-        </template>
-        <template v-if="vms.length > 0" #addons>
-          <VtsCopyButton :value="vmNames" />
-        </template>
-      </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>
           {{ t('change-block-tracking') }}
@@ -70,6 +70,7 @@ import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/Vd
 import VdiVmLinks from '@/modules/vdi/components/VdiVmLinks.vue'
 import { useVdiConfiguration } from '@/modules/vdi/composables/use-vdi-configuration.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -81,6 +82,7 @@ import { useI18n } from 'vue-i18n'
 const { vdi, vbd } = defineProps<{
   vdi: FrontXoVdi
   vbd?: FrontXoVbd
+  fromContext: VdiPageContext
 }>()
 
 const { t } = useI18n()
