@@ -1,11 +1,9 @@
-// Deliberatly left open, shared template library
 export function getAll() {
   return this.getAllCloudConfigs()
 }
 
 getAll.description = 'Gets all existing cloud configs templates'
 
-// Deliberatly left open, shared template library
 export function getAllNetworkConfigs() {
   return this.getAllNetworkConfigs()
 }
