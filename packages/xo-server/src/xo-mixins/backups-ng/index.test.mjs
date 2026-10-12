@@ -469,6 +469,14 @@ describe('deleteVmBackupsNg', () => {
 })
 
 describe('on a repository attached to a proxy', () => {
+  beforeEach(() => {
+    mock.timers.enable({ apis: ['setTimeout', 'Date'] })
+  })
+
+  afterEach(() => {
+    mock.timers.reset()
+  })
+
   it('makes a deletion visible at once, without listing the repository again', async () => {
     const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(VM, '20260811T093000')])
     const backupNg = createBackupNgWithProxiedRepository(repository)
@@ -525,10 +533,85 @@ describe('invalidateVmBackupsListing() on a cached repository', () => {
     await backupNg.listVmBackupsNg([REMOTE_ID])
     assert.equal(repository.nListings, 1)
 
-    // as the `remotes` mixin does when the repository is gone or has been reconfigured
+    // as the `remotes` mixin does when the repository has been reconfigured
     backupNg.invalidateVmBackupsListing(REMOTE_ID)
 
     await backupNg.listVmBackupsNg([REMOTE_ID])
     assert.equal(repository.nListings, 2)
+  })
+})
+
+describe('vmBackupArchives', () => {
+  beforeEach(() => {
+    mock.timers.enable({ apis: ['setTimeout', 'Date'] })
+  })
+
+  afterEach(() => {
+    mock.timers.reset()
+  })
+
+  // records what the mixin announces, in order
+  const recordEvents = backupNg => {
+    const events = []
+    for (const name of ['add', 'update', 'remove']) {
+      backupNg.vmBackupArchives.on(name, (archive, previous) =>
+        events.push({ event: name, id: (archive ?? previous).id })
+      )
+    }
+    return events
+  }
+
+  it('announces the archives a listing discovered', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const events = recordEvents(backupNg)
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+
+    assert.deepEqual(events, [{ event: 'add', id: idOf('20260811T090000') }])
+  })
+
+  it('announces a backup deleted through the mixin', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(VM, '20260811T093000')])
+    const backupNg = createBackupNgWithRepository(repository)
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    const events = recordEvents(backupNg)
+
+    await backupNg.deleteVmBackupsNg([idOf('20260811T093000')])
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+
+    assert.deepEqual(events, [{ event: 'remove', id: idOf('20260811T093000') }])
+  })
+
+  it('announces the removal of every archive of a repository which is gone', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(VM, '20260811T093000')])
+    const backupNg = createBackupNgWithRepository(repository)
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    const events = recordEvents(backupNg)
+
+    // as the `remotes` mixin does when the backup repository is removed or disabled
+    backupNg.forgetVmBackupRepository(REMOTE_ID)
+
+    assert.deepEqual(events, [
+      { event: 'remove', id: idOf('20260811T090000') },
+      { event: 'remove', id: idOf('20260811T093000') },
+    ])
+  })
+
+  it('announces nothing when a repository is merely invalidated and read again', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    const events = recordEvents(backupNg)
+
+    // as `_forceRefresh` does
+    backupNg.invalidateVmBackupsListing(REMOTE_ID)
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+
+    assert.equal(repository.nListings, 2)
+    assert.deepEqual(events, [])
   })
 })

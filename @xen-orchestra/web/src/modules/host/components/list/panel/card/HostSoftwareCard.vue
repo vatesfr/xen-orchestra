@@ -1,8 +1,6 @@
 <template>
   <UiPanelCard class="host-software-card">
-    <UiCardTitle>
-      {{ t('software') }}
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('software')" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('version') }}</template>
@@ -19,8 +17,8 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

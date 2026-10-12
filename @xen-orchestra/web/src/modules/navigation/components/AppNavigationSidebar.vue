@@ -23,7 +23,7 @@
       </TabList>
     </template>
     <template v-if="activeSidebarPanel === SIDEBAR_PANEL.TREEVIEW" #subheader>
-      <SidebarSearch v-model="filter" />
+      <VtsTreeSearch ref="treeSearch" v-model="filter" />
     </template>
     <template v-if="activeSidebarPanel === SIDEBAR_PANEL.TREEVIEW">
       <VtsStateHero v-if="!isConnected && !isDevPage" format="card" type="busy" size="medium" class="loader" />
@@ -43,7 +43,6 @@
 <script lang="ts" setup>
 import AdministrationMenu from '@/modules/admin/components/AdministrationMenu.vue'
 import { useXoSiteTree } from '@/modules/site/composables/xo-site-tree.composable.ts'
-import SidebarSearch from '@/modules/treeview/components/SidebarSearch.vue'
 import SiteTreeList from '@/modules/treeview/components/SiteTreeList.vue'
 import type { SidebarSide } from '@core/packages/sidebar'
 import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
@@ -51,7 +50,9 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import TabList from '@core/components/tab-list/TabList.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
+import VtsTreeSearch from '@core/components/tree/VtsTreeSearch.vue'
 import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
+import { useTreeSearchShortcut } from '@core/composables/tree-search-shortcut.composable.ts'
 import { useSseStore } from '@core/packages/remote-resource/sse.store.ts'
 import { watchImmediate } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
@@ -90,6 +91,13 @@ watchImmediate(
 )
 
 const siteTreeList = useTemplateRef('siteTreeList')
+
+const treeSearch = useTemplateRef('treeSearch')
+
+useTreeSearchShortcut(treeSearch, {
+  side: () => side,
+  beforeFocus: () => (activeSidebarPanel.value = SIDEBAR_PANEL.TREEVIEW),
+})
 
 const isDevPage = computed(() => route.path.startsWith('/dev'))
 

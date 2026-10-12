@@ -667,6 +667,7 @@ const TRANSFORMS = {
       type: 'SR',
 
       content_type: obj.content_type,
+      is_tools_sr: obj.is_tools_sr,
 
       // TODO: Should it replace usage?
       physical_usage: +obj.physical_utilisation,

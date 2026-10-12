@@ -42,12 +42,13 @@ export class RemoteDiskLineage {
   #childOf: Map<string, string> = new Map()
   // Disk paths declared active by their owning archives (accumulated across all referencing archives)
   #activeDiskPaths: Set<string> = new Set()
-  // Interrupted merges: normalized parent path { stateFilePath, chain }
-  #interruptedMerges: Map<string, { stateFilePath: string; chain?: string[] }> = new Map()
+  // Interrupted merges: normalized parent path { stateFilePath, chain, step }
+  #interruptedMerges: Map<string, { stateFilePath: string; chain?: string[]; step?: 'mergeBlocks' | 'cleanup' }> =
+    new Map()
 
   constructor(handler: RemoteHandlerAbstract, vdiDir: string, opts: ResolvedBackupCleanOptions) {
     this.#handler = handler
-    this.#vdiDir = vdiDir
+    this.#vdiDir = normalize(vdiDir)
     this.#opts = opts
   }
 
@@ -266,8 +267,38 @@ export class RemoteDiskLineage {
       return undefined
     }
 
+    // Read-only walk toward the descendants: true if any of them is still referenced by a backup.
+    // Unlike getUsedChildChainOrDelete, it neither marks disks visited nor schedules deletions.
+    const hasUsedDescendant = (diskPath: string): boolean => {
+      // `seen` guards against a cycle in corrupted headers
+      const seen = new Set<string>()
+      for (let p: string | undefined = diskPath; p !== undefined && !seen.has(p); p = this.#childOf.get(p)) {
+        seen.add(p)
+        if (!orphanDisks.has(p)) {
+          return true
+        }
+      }
+      return false
+    }
+
+    // Keeps the orphan loop away from a chain that must not be touched this run. Pinned disks are
+    // differencing: every ancestor they read through must survive too, however deep the lineage is
+    // (e.g. after a retention change). The ancestors are merged normally once the chain is
+    // resumed or dropped.
+    const pin = (paths: readonly string[]): void => {
+      for (const path of paths) {
+        // `seen` guards against a cycle in corrupted headers
+        const seen = new Set<string>()
+        for (let p: string | undefined = path; p !== undefined && !seen.has(p); p = this.#parentOf.get(p)) {
+          seen.add(p)
+          visited.add(p)
+          toDelete.delete(p)
+        }
+      }
+    }
+
     // Process interrupted merges first so their disks are protected from the orphan loop
-    for (const [parentPath, { stateFilePath, chain: stateChain }] of this.#interruptedMerges) {
+    for (const [parentPath, { stateFilePath, chain: stateChain, step }] of this.#interruptedMerges) {
       if (!this.#diskPaths.has(parentPath)) {
         this.#opts.logWarn('orphan merge state', { stateFilePath, missingDisk: parentPath })
         if (remove) {
@@ -279,14 +310,85 @@ export class RemoteDiskLineage {
 
       let chain: string[] | undefined
       if (stateChain !== undefined) {
+        const missing = stateChain.filter(p => !this.#diskPaths.has(p))
+
+        // A merge only removes disks during its cleanup step, so outside of it every disk of the
+        // recorded chain must still be there. Merging what is left would fold the surviving
+        // children into the parent and then rename it onto the chain tip, silently dropping the
+        // blocks of the disks that went missing. Never resume such a chain.
+        if (missing.length > 0 && step !== 'cleanup') {
+          // Each surviving disk is walked on its own: the missing disk breaks the `childOf` links,
+          // so a walk from the parent alone would stop at the gap.
+          const survivors = stateChain.filter(p => this.#diskPaths.has(p))
+          if (survivors.some(hasUsedDescendant)) {
+            // A backup still references a disk downstream: pin the chain so the orphan loop
+            // neither merges it afresh nor deletes it. It is dropped once nothing uses it anymore.
+            this.#opts.logWarn('merge chain lost disks before its cleanup step, refusing to resume', {
+              stateFilePath,
+              parentPath,
+              step,
+              missing,
+            })
+            pin(survivors)
+            continue
+          }
+
+          // Nothing uses the chain anymore (descendants of the missing disk are broken, so never
+          // active): drop the state, the orphan loop below deletes the disks.
+          this.#opts.logWarn('unmergeable merge chain on a fully orphaned lineage', {
+            stateFilePath,
+            parentPath,
+            step,
+            missing,
+          })
+          if (remove) {
+            this.#opts.logInfo('deleting merge state of orphaned lineage', { stateFilePath })
+            await this.#handler.unlink(stateFilePath)
+          }
+          continue
+        }
+
         const existing = stateChain.filter(p => this.#diskPaths.has(p))
-        if (existing.length >= 2) chain = existing
+        if (existing.length >= 2) {
+          chain = existing
+        } else {
+          // fewer than 2 disks of the recorded chain are left, there is nothing to resume and
+          // the state would otherwise stay on disk forever.
+          //
+          // only done when the chain was read successfully: an undefined `stateChain` also
+          // covers a state file that is merely unreadable right now, which must be kept
+          this.#opts.logWarn('merge state without a resumable chain', { stateFilePath, parentPath })
+          if (remove) {
+            this.#opts.logInfo('deleting unresumable merge state', { stateFilePath })
+            await this.#handler.unlink(stateFilePath)
+          }
+          continue
+        }
       }
 
-      if (chain !== undefined) {
-        chain.forEach(p => visited.add(p))
-        toMerge.push({ chain, isResuming: true })
+      if (chain === undefined) {
+        // state file unreadable: leave it alone, the orphan loop below schedules a fresh merge
+        continue
       }
+
+      // Nothing downstream of the merge parent is still referenced by a backup: merging would
+      // write into a lineage nothing points at, and pinning it below would exempt it from the
+      // orphan loop forever. The walk already marked the whole lineage for deletion, so only
+      // the state file is left to drop.
+      //
+      // It walks the live lineage rather than `stateChain`, which is frozen at the retention
+      // boundary of the run that created it and can be shorter than the real chain.
+      if (getUsedChildChainOrDelete(parentPath) === undefined) {
+        this.#opts.logWarn('merge state on a fully orphaned lineage', { stateFilePath, parentPath })
+        if (remove) {
+          this.#opts.logInfo('deleting merge state of orphaned lineage', { stateFilePath })
+          await this.#handler.unlink(stateFilePath)
+        }
+        continue
+      }
+
+      pin(chain)
+      toMerge.push({ chain, isResuming: true })
     }
 
     for (const orphan of orphanDisks) {

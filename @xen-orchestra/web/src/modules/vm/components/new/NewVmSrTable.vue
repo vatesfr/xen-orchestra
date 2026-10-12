@@ -6,11 +6,8 @@
       </tr>
     </thead>
     <tbody>
-      <VtsRow v-for="vdi in vmState.existingVdis" :key="vdi.id">
-        <BodyCells :item="{ vdi }" />
-      </VtsRow>
-      <VtsRow v-for="(vdi, index) in vmState.vdis" :key="index">
-        <BodyCells :item="{ vdi, onRemove: () => emit('remove', index) }" />
+      <VtsRow v-for="vdi in vdis" :key="vdi.key">
+        <BodyCells :item="{ vdi, onRemove: () => emit('remove', vdi.key) }" />
       </VtsRow>
       <VtsRow>
         <UiTableCell :colspan>
@@ -32,24 +29,27 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { useNewVmSrColumns } from '@core/tables/column-sets/new-vm-sr-columns.ts'
-import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
-import { toRef } from 'vue'
+import { computed, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vmState, srs } = defineProps<{
+const { vmState, srs, canResizeExistingDisks, defaultExistingVdis } = defineProps<{
   vmState: VmState
   srs: FrontXoSr[]
+  canResizeExistingDisks: boolean
+  defaultExistingVdis: Vdi[]
 }>()
 
 const emit = defineEmits<{
   add: []
-  remove: [index: number]
+  remove: [key: Vdi['key']]
 }>()
 
 const { t } = useI18n()
 
+const vdis = computed(() => [...vmState.existingVdis, ...vmState.vdis])
+
 const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
-  body: ({ vdi, onRemove }: { vdi: Vdi; onRemove?: () => void }) => {
+  body: ({ vdi, onRemove }: { vdi: Vdi; onRemove: () => void }) => {
     const { id: srSelectId } = useFormSelect(() => srs, {
       model: toRef(vdi, 'sr'),
       option: {
@@ -65,12 +65,19 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
     const size = toRef(vdi, 'size')
     const description = toRef(vdi, 'name_description')
 
+    const defaultVdi = defaultExistingVdis.find(existingVdi => existingVdi.id === vdi.id)
+
     return {
       sr: r => r(srSelectId),
       diskName: r => r(diskName),
-      size: r => r(size, { disabled: !onRemove }),
+      size: r =>
+        r(size, {
+          accent: defaultVdi !== undefined && Number(vdi.size) < defaultVdi.size ? 'danger' : 'brand',
+          disabled: vdi.id !== undefined && !canResizeExistingDisks,
+          min: defaultVdi?.size ?? 1,
+        }),
       description: r => r(description),
-      remove: r => (onRemove ? r(onRemove) : renderBodyCell()),
+      remove: r => r(onRemove),
     }
   },
 })

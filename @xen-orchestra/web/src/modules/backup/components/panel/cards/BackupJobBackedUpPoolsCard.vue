@@ -1,9 +1,6 @@
 <template>
   <UiPanelCard>
-    <UiCardTitle>
-      {{ t('backed-up-pools') }}
-      <UiCounter :value="backedUpPools.length" accent="neutral" size="small" variant="primary" />
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('backed-up-pools')" :counter="backedUpPools.length" />
     <div>
       <UiCollapsibleList tag="ul" :total-items="backedUpPools.length">
         <li v-for="pool in backedUpPools" :key="pool.id">
@@ -18,11 +15,10 @@
 
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 const { backedUpPools } = defineProps<{

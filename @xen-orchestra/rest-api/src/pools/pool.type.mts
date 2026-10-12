@@ -75,7 +75,7 @@ export type CreateVmBody = Omit<
       }
     | {
         destroy: true
-        userdervice: string
+        userdevice: string
       }
   )[]
   install?:

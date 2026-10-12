@@ -40,13 +40,7 @@ export function useVifConnection(options: { vifs: MaybeRefOrGetter<FrontXoVif[]>
         count: vifs.value.length,
       },
       events: {
-        onConfirm: async () => {
-          try {
-            await runConnect()
-          } catch (error) {
-            console.error('Error when connecting VIF:', error)
-          }
-        },
+        onConfirm: () => runConnect({ detached: true }),
       },
     })
   }
@@ -58,13 +52,7 @@ export function useVifConnection(options: { vifs: MaybeRefOrGetter<FrontXoVif[]>
         count: vifs.value.length,
       },
       events: {
-        onConfirm: async () => {
-          try {
-            await runDisconnect()
-          } catch (error) {
-            console.error('Error when disconnecting VIF:', error)
-          }
-        },
+        onConfirm: () => runDisconnect({ detached: true }),
       },
     })
   }

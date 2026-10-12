@@ -1,4 +1,4 @@
-import { getPoolInfo } from '@/modules/pool/utils/xo-pool.util.ts'
+import { getPoolInfo, isAuthenticationFailedError } from '@/modules/pool/utils/xo-pool.util.ts'
 import { createServer } from '@/test/create-server.ts'
 
 describe('getPoolInfo', () => {
@@ -40,5 +40,17 @@ describe('getPoolInfo', () => {
       to: undefined,
       icon: undefined,
     })
+  })
+})
+
+describe('isAuthenticationFailedError', () => {
+  it('returns true when the error message starts with the XAPI authentication failure code', () => {
+    expect(isAuthenticationFailedError(new Error('SESSION_AUTHENTICATION_FAILED(root, Authentication failure)'))).toBe(
+      true
+    )
+  })
+
+  it('returns false for any other error', () => {
+    expect(isAuthenticationFailedError(new Error('HOST_OFFLINE'))).toBe(false)
   })
 })

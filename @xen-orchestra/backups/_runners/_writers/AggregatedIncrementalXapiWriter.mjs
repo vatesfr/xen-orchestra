@@ -6,13 +6,14 @@ export class AggregatedIncrementalXapiWriter extends AbstractAggregatedXapiWrite
   /**
    *
    * @param {Map<string,string>} baseUuidToSrcVdi
+   * @param {Map<string,string>} contentKeys
    */
-  async checkBaseVdis(baseUuidToSrcVdi) {
+  async checkBaseVdis(baseUuidToSrcVdi, contentKeys) {
     debug('checkBaseVdis', { baseUuidToSrcVdi })
     let selectedCopy = new Map()
     for (const writer of this.writers) {
       const copy = new Map(baseUuidToSrcVdi)
-      await writer.checkBaseVdis(copy)
+      await writer.checkBaseVdis(copy, contentKeys)
       if (copy.size > 0) {
         debug('checkBaseVdis found a mainwriter candidate ', writer._sr.name_label)
         // there can be multiple candidates
@@ -34,17 +35,17 @@ export class AggregatedIncrementalXapiWriter extends AbstractAggregatedXapiWrite
   }
 
   // take the lock on every adapters with this VM
-  // cleanup if deleteFirst is selected
   async beforeBackup() {
     await this.setupWriters()
     await Promise.all(this.writers.map(writer => writer.beforeBackup()))
     this.setOldReplicaList()
-    if (this.props.settings.deleteFirst) {
-      await this.deleteOldReplicas()
-    }
   }
 
   async prepare(args) {
+    const { settings } = this.props
+    if (settings.deleteFirst) {
+      await this.deleteOldReplicas({ keepMostRecent: !args.isFull && settings.copyRetention === 1 })
+    }
     if (this.mainWriter === undefined) {
       debug('no mainwriter found, fallback to a new SR')
       // use the SR with the most empty space for starting a new chain
@@ -62,9 +63,7 @@ export class AggregatedIncrementalXapiWriter extends AbstractAggregatedXapiWrite
   // remove the backups and remove the entries
   async cleanup() {
     debug('cleanup')
-    if (!this.props.settings.deleteFirst) {
-      await this.deleteOldReplicas()
-    }
+    await this.deleteOldReplicas()
     await Promise.all(this.writers.map(writer => writer.cleanup()))
   }
 
