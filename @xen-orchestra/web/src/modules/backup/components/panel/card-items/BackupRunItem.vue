@@ -4,12 +4,7 @@
       {{ t('run') }}
     </template>
     <template #value>
-      <UiLink
-        v-if="backupRun.id"
-        size="small"
-        icon="object:backup-run"
-        :to="{ name: '/backup/[id]/runs', params: { id: backupRun.jobId }, query: { id: backupRun.id } }"
-      >
+      <UiLink size="small" icon="object:backup-run" :to="backupRunRoute">
         {{ backupRun.id }}
       </UiLink>
     </template>
@@ -66,6 +61,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { RouteLocationAsRelative } from 'vue-router'
 
 const { backupRun } = defineProps<{
   backupRun: FrontXoBackupLog
@@ -91,4 +87,16 @@ const logContent = computed(() => {
 })
 
 const scheduleName = computed(() => schedules.value.find(schedule => schedule.jobId === backupRun.jobId)?.name)
+
+const backupRunRoute = computed<RouteLocationAsRelative | undefined>(() => {
+  if (!backupRun.jobId) {
+    return undefined
+  }
+
+  return {
+    name: '/backup/[id]/runs',
+    params: { id: backupRun.jobId },
+    query: { id: backupRun.id },
+  }
+})
 </script>

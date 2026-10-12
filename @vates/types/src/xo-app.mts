@@ -233,6 +233,12 @@ export type XoApp = {
     }
   }
 
+  /**
+   * the VM backup archives of the backup repositories, as a collection: `add`, `update` and
+   * `remove` events carrying the archive and its previous value
+   */
+  vmBackupArchives: EventEmitter
+
   tasks: EventEmitter & {
     abort(id: XoTask['id'], reason?: string): Promise<void>
     clearLogs(): Promise<void>
@@ -285,7 +291,11 @@ export type XoApp = {
     id: XoAclRole['id'],
     params?: { name?: XoAclRole['name']; description?: XoAclRole['description'] }
   ): Promise<XoAclRole['id']>
-  createAclV2Role(role: { name: XoAclRole['name']; description?: XoAclRole['description'] }): Promise<XoAclRole>
+  createAclV2Role(role: {
+    name: XoAclRole['name']
+    description?: XoAclRole['description']
+    privileges?: Omit<XoAclBasePrivilege, 'id' | 'roleId'>[]
+  }): Promise<XoAclRole>
   createAuthenticationToken(opts: {
     client?: {
       id?: string

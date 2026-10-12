@@ -1,8 +1,19 @@
 name: Vectura
 
 # only when vectura changes: the rest of the repository does not build it
+#
+# pull requests rather than every push: GitHub filters a push on the diff with
+# the previous push, which after a rebase on `master` (or a merge of it)
+# contains the vectura changes of `master`, whereas it filters a pull request
+# on the diff with the merge base, i.e. the changes of the branch only
 on:
+  pull_request:
+    paths:
+      - '@xen-orchestra/vmware-explorer/vectura/**'
+      - .github/workflows/vectura.yml
   push:
+    branches:
+      - master
     paths:
       - '@xen-orchestra/vmware-explorer/vectura/**'
       - .github/workflows/vectura.yml

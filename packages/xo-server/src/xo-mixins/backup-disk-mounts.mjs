@@ -1,4 +1,7 @@
+import { createLogger } from '@xen-orchestra/log'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
+
+const { info, warn } = createLogger('xo:xo-mixins:backup-disk-mounts')
 
 /**
  * @typedef {import('@vates/types').XoApp} XoApp
@@ -7,6 +10,15 @@ import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
  * @typedef {import('@vates/types').XoHost} XoHost
  * @typedef {import('@vates/types').XoProxy} XoProxy
  * @typedef {import('@vates/types').XoVmBackupArchive} XoVmBackupArchive
+ * @typedef {import('@vates/types').Xapi} Xapi
+ */
+
+/**
+ * `XoApp` does not declare the app's own events nor the live mount mixin
+ *
+ * @typedef {XoApp & Pick<import('node:events').EventEmitter, 'on'> & {
+ *   liveMount: import('@xen-orchestra/mixins/live-mount/index.mjs').default
+ * }} App
  */
 
 /**
@@ -45,7 +57,7 @@ const wrapProxyError = (error, proxyId) =>
  * mount and to unmount.
  */
 export default class BackupDiskMountsResolver {
-  /** @type {XoApp} */
+  /** @type {App} */
   #app
 
   // every live mount this XO created, in creation order, whoever serves it: a mount id resolves
@@ -58,14 +70,33 @@ export default class BackupDiskMountsResolver {
    *     archiveId: XoVmBackupArchive['id']
    *     hostId: XoHost['id']
    *     proxyId?: XoProxy['id']
+   *     srUuid?: BackupArchiveDiskMount['srUuid']
    *   }
    * >}
    */
   #mounts = new Map()
 
-  /** @param {XoApp} app */
+  // SR uuid -> id of the mount it serves, for the mounts served by a proxy only: a uuid is unique
+  // across pools, so a single map serves every connection
+  /** @type {Map<BackupArchiveDiskMount['srUuid'], BackupArchiveDiskMount['id']>} */
+  #proxyMountIdsBySrUuid = new Map()
+
+  /** @param {App} app */
   constructor(app) {
     this.#app = app
+
+    // a mount served here also disappears on its own, when the VDI it serves is removed from the
+    // pool — e.g. when the VM it was attached to is deleted, or its SR forgotten by hand
+    app.liveMount.on('unmounted', id => {
+      this.#mounts.delete(id)
+    })
+
+    // a reconnection is a new connection, the previous one no longer reports anything, nor answers:
+    // for the mounts served here too, which the mixin has to be told about
+    app.on('server:connected', ({ xapi }) => {
+      this.#watchConnection(xapi)
+      app.liveMount.watchConnection(xapi)
+    })
   }
 
   /**
@@ -99,7 +130,7 @@ export default class BackupDiskMountsResolver {
         ? await this.#mountHere({ diskId, host, nameLabel, remote })
         : await this.#mountOnProxy({ diskId, host, nameLabel, proxyId, remote })
 
-    this.#mounts.set(mount.id, { archiveId, hostId, proxyId })
+    this.#trackMount(mount.id, { archiveId, hostId, proxyId, srUuid: mount.srUuid })
     return mount
   }
 
@@ -128,12 +159,12 @@ export default class BackupDiskMountsResolver {
    *
    * @param {object} params
    * @param {XoVmBackupArchive['id']} params.archiveId
-   * @param {{ id: BackupArchiveDiskMount['id'], hostId: XoHost['id'] }[]} params.mounts - as reported by the restore
+   * @param {{ id: BackupArchiveDiskMount['id'], hostId: XoHost['id'], srUuid?: BackupArchiveDiskMount['srUuid'] }[]} params.mounts - as reported by the restore
    * @param {XoProxy['id']} params.proxyId - proxy serving the mounts
    */
   registerProxyBackupArchiveDiskMounts({ archiveId, mounts, proxyId }) {
-    for (const { id, hostId } of mounts) {
-      this.#mounts.set(id, { archiveId, hostId, proxyId })
+    for (const { id, hostId, srUuid } of mounts) {
+      this.#trackMount(id, { archiveId, hostId, proxyId, srUuid })
     }
   }
 
@@ -150,18 +181,111 @@ export default class BackupDiskMountsResolver {
       return this.#app.liveMount.unmountDisk(id)
     }
 
+    // stop watching before the proxy forgets the SR: that removal is ours, not one to react to
+    const srUuid = this.#mounts.get(id)?.srUuid
+    if (srUuid !== undefined) {
+      this.#proxyMountIdsBySrUuid.delete(srUuid)
+    }
+
     try {
       await this.#app.callProxyMethod(proxyId, 'backup.unmountDisk', { id })
     } catch (error) {
       // a proxy which no longer knows the mount (restarted, or a previous teardown failed after
       // forgetting it) makes the entry stale. Any other failure may not have reached the proxy,
-      // which would still serve the LUN: keep the entry so the unmount can be retried
+      // which would still serve the LUN: keep the entry, and its watch, so the unmount can be retried
       if (noSuchObject.is(error, { type: 'live-mount' })) {
         this.#mounts.delete(id)
+      } else if (srUuid !== undefined) {
+        this.#proxyMountIdsBySrUuid.set(srUuid, id)
       }
       throw error
     }
     this.#mounts.delete(id)
+  }
+
+  /**
+   * Track a mount, and for one served by a proxy, watch its SR: nothing on the proxy side tells XO
+   * when it disappears (its VM deleted, or the SR forgotten by hand), unlike the mounts served here,
+   * which the mixin releases on its own.
+   *
+   * @param {BackupArchiveDiskMount['id']} id
+   * @param {{ archiveId: XoVmBackupArchive['id'], hostId: XoHost['id'], proxyId?: XoProxy['id'], srUuid?: BackupArchiveDiskMount['srUuid'] }} entry
+   */
+  #trackMount(id, entry) {
+    this.#mounts.set(id, entry)
+
+    const { hostId, proxyId, srUuid } = entry
+    if (proxyId === undefined) {
+      return
+    }
+    if (srUuid === undefined) {
+      // an older proxy, which does not report it: the mount works, it just has to be unmounted explicitly
+      warn('the SR of this live mount is unknown, it will not be released on its own', { id, proxyId })
+      return
+    }
+    this.#proxyMountIdsBySrUuid.set(srUuid, id)
+
+    // `server:connected` covers the connections to come, this one may predate this mount
+    let xapi
+    try {
+      xapi = this.#app.getXapi(this.#app.getObject(hostId, 'host'))
+    } catch (error) {
+      warn('cannot watch the SR of this live mount, the host is unknown', { error, hostId, id })
+      return
+    }
+    this.#watchConnection(xapi)
+  }
+
+  /**
+   * One listener per XAPI connection, whatever the number of mounts on it, never removed: it looks
+   * up the SRs to watch at each removal.
+   *
+   * The SR events of the connection's own `objects`, not `app.objects`: the latter also reports
+   * every object of a pool as removed when it is merely disconnected, which would unmount all its
+   * disks.
+   *
+   * @param {Xapi} xapi
+   */
+  #watchConnection(xapi) {
+    const srEvents = xapi.objects.allIndexes.type.getEventEmitterByType('SR')
+    // a single handler shared by every connection, so the emitter itself tells whether this one is
+    // already listened to
+    if (!srEvents.listeners('remove').includes(this.#onSrRemoved)) {
+      srEvents.on('remove', this.#onSrRemoved)
+    }
+  }
+
+  /**
+   * The type index reports each removed record on its own, as it was before its removal.
+   *
+   * @param {unknown} _
+   * @param {{ uuid?: BackupArchiveDiskMount['srUuid'] } | undefined} sr
+   */
+  #onSrRemoved = (_, sr) => {
+    const srUuid = sr?.uuid
+    if (srUuid === undefined) {
+      return
+    }
+    const id = this.#proxyMountIdsBySrUuid.get(srUuid)
+    if (id !== undefined) {
+      this.#onProxyMountSrRemoved(id, srUuid)
+    }
+  }
+
+  /**
+   * The SR is gone, but the proxy still serves the LUN and holds the backup repository: have it
+   * release them. It fails to forget the SR a second time, it does everything else anyway.
+   *
+   * @param {BackupArchiveDiskMount['id']} id
+   * @param {BackupArchiveDiskMount['srUuid']} srUuid
+   */
+  #onProxyMountSrRemoved(id, srUuid) {
+    info('the SR of a live mount served by a proxy was removed, unmounting', { id, srUuid })
+    this.unmountBackupArchiveDisk(id).catch(error => {
+      if (!noSuchObject.is(error, { type: 'live-mount' })) {
+        warn('failed to unmount after the SR was removed', { error, id, srUuid })
+      }
+    })
   }
 
   /**

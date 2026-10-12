@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
-      include: ['value-matcher', 'complex-matcher'],
+      include: ['value-matcher', 'complex-matcher', 'xo-remote-parser'],
     },
     test: {
       globals: true,

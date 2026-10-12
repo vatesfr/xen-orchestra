@@ -4,10 +4,7 @@
     class="vts-state-hero"
   >
     <UiLoader v-if="type === 'busy'" class="loader" />
-    <OfflineIllustration v-else-if="type === 'offline'" class="image" />
-    <NotFoundIllustration v-else-if="type === 'not-found'" class="image" />
-    <NoDataIllustration v-else-if="type === 'no-data'" class="image" />
-    <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
+    <VtsStateHeroIllustration v-else :type class="image" />
     <div v-if="slots.default || success" :class="[typoClass, { mobile: isMobile }]" class="content">
       <div v-if="success">{{ t('all-good!') }}</div>
       <slot />
@@ -23,16 +20,14 @@
 </template>
 
 <script lang="ts" setup>
-import NoDataIllustration from '@core/components/state-hero/NoDataIllustration.vue'
-import NotFoundIllustration from '@core/components/state-hero/NotFoundIllustration.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsStateHeroIllustration from '@core/components/state-hero/VtsStateHeroIllustration.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { StateHeroFormat, StateHeroSize, StateHeroType } from '@core/types/state-hero.type.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import OfflineIllustration from './OfflineIllustration.vue'
-import VtsIcon from '../icon/VtsIcon.vue'
 
 const { format, type, size, horizontal } = defineProps<{
   format: StateHeroFormat
@@ -61,14 +56,6 @@ const className = computed(() => toVariants({ size, format }))
 const error = computed(() => type === 'error')
 
 const success = computed(() => type === 'all-good' || type === 'all-done')
-
-const imageSrc = computed(() => {
-  if (type === 'busy' || type === 'not-found'|| type === 'no-data') {
-    return undefined
-  }
-
-  return new URL(`../../assets/${type}.svg`, import.meta.url).href
-})
 </script>
 
 <style lang="postcss" scoped>

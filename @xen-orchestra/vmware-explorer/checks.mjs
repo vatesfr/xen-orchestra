@@ -7,7 +7,7 @@ import { VECTURA_BIN } from './_vectura.mjs'
  * Whether the vectura binary shipped with this package runs on this machine.
  *
  * There is nothing to install: this only fails when the binary lost its executable bit or when the
- * system is too old for it (glibc before 2.34).
+ * system is too old for it (glibc before 2.31).
  *
  * @returns {Promise<Object>}
  */

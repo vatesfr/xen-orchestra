@@ -8,6 +8,10 @@ export function selectSynchronizedSnapshotVms(synchronizedSnapshot, vms) {
   let matches
   if (typeof synchronizedSnapshot === 'string') {
     matches = vms.filter(vm => vm.tags.includes(synchronizedSnapshot))
+
+    if (matches.length === 0) {
+      Task.warning('no vm matched the synchronizedSnapshot tag', { synchronizedSnapshot })
+    }
   } else if (synchronizedSnapshot === true) {
     matches = vms
   } else {

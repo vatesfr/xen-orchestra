@@ -631,7 +631,10 @@ const _createVm = defer(async ($defer: Defer) => {
       if ((newVdis.length === 0 && existingVdis.length === 0) || installMethod === 'network') {
         const { order } = vm.HVM_boot_params
 
-        await xapi.call('VM.set_HVM_boot_params', [vmRefs[0], { order: order ? 'n' + order.replace('n', '') : 'ncd' }])
+        await xapi.call('VM.set_HVM_boot_params', [
+          vmRefs[0],
+          { ...vm.HVM_boot_params, order: order ? 'n' + order.replace('n', '') : 'ncd' },
+        ])
       }
     } else {
       if (vm.PV_bootloader === 'eliloader') {

@@ -266,7 +266,11 @@ describe('parse (unrecognized input)', () => {
   })
 
   it('returns an error on unparsable SMB url', () => {
-    assert.throws(() => parse('smb://not-a-valid-smb-url'), /Invalid SMB url/)
+    assert.deepEqual(parse('smb://not-a-valid-smb-url'), {})
+  })
+
+  it('returns an empty object on an SMB url without credentials', () => {
+    assert.deepEqual(parse('smb://:password@toto\\\\192.168.100.225\\smb'), {})
   })
 
   it('keeps a non-JSON option value as a string', () => {

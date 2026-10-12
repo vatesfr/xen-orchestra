@@ -76,10 +76,14 @@
 # X-Forwarded-* headers to determine the IP address of clients.
 #
 # Accepted values for this setting:
-# - false (default): do not use the headers
+# - false: do not use the headers
 # - true: always use the headers
 # - a list of trusted addresses: the headers will be used only if the connection
 #   is coming from one of these addresses
+#
+# Default: ['loopback'], required for the internal proxies (e.g. `/v5/api`) to
+# forward the real IP address of clients. When overriding this setting, keep
+# 'loopback' in the list (e.g. ['loopback', '10.0.0.1']).
 #
 # More info about the accepted values: https://www.npmjs.com/package/proxy-addr?activeTab=readme#proxyaddrreq-trust
 #
