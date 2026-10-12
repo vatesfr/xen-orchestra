@@ -241,14 +241,16 @@ const { rootGroup, isUsable, updateFilter, resetFilter } = useQueryBuilder(filte
 // rootGroup is a reactive tree structure you can traverse and modify
 // It represents the parsed query
 
-// If the filter string is invalid, isUsable will be false
+// If the filter string cannot be parsed, isUsable is false and rootGroup is undefined
 if (!isUsable.value) {
   console.log('Current filter is not valid')
-  resetFilter()  // Reset to an empty query
 }
 
 // After modifying the tree, sync back to the filter string
 updateFilter()  // Updates filterString.value from rootGroup
+
+// Or discard the changes made to the tree
+resetFilter()  // Rebuilds rootGroup from filterString.value
 
 // You can also directly modify the tree structure:
 rootGroup.value.addChildFilter()  // Add a new filter condition
@@ -494,13 +496,11 @@ const schema = useQueryBuilderSchema<User>({
 Always check `isUsable` before relying on the parsed query:
 
 ```typescript
-const { rootGroup, isUsable, resetFilter } = useQueryBuilder(filterString, schema)
+const { rootGroup, isUsable } = useQueryBuilder(filterString, schema)
 
 // In your UI:
 if (!isUsable.value) {
-  // Show error or reset
   console.warn('Filter syntax is invalid')
-  resetFilter()
 }
 ```
 

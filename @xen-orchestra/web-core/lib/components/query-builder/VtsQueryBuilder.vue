@@ -1,44 +1,45 @@
 <template>
-  <form class="vts-query-builder" @submit.prevent="handleSubmit()">
+  <div class="vts-query-builder" role="search">
     <label :for="id" class="typo-body-regular-small label">
       {{ t('query-builder:label') }}
     </label>
     <div class="input-container">
       <UiInput
+        :id
         v-model="localFilter"
         :accent="isUsable ? 'brand' : 'danger'"
         :aria-label="uiStore.isSmall ? t('query-builder:label') : undefined"
         :placeholder="t('query-builder:placeholder')"
+        enterkeyhint="search"
         clearable
-        @clear="filter = localFilter"
+        @clear="search()"
+        @keydown.enter="handleEnterKey($event)"
       />
     </div>
 
-    <template v-if="uiStore.isSmallOrMedium">
-      <UiButtonIcon icon="fa:magnifying-glass" size="medium" accent="brand" />
-      <VtsQueryBuilderButton
-        v-model="rootGroup"
-        small
-        :disabled="!isUsable"
-        @confirm="updateFilter()"
-        @cancel="resetFilter"
-      />
-    </template>
+    <UiButtonIcon
+      v-if="uiStore.isSmallOrMedium"
+      icon="fa:magnifying-glass"
+      size="medium"
+      accent="brand"
+      @click="search()"
+    />
     <template v-else>
-      <UiButton size="medium" accent="brand" variant="secondary" type="submit">
+      <UiButton size="medium" accent="brand" variant="secondary" @click="search()">
         {{ t('action:search') }}
       </UiButton>
 
       <VtsDivider type="stretch" />
-
-      <VtsQueryBuilderButton
-        v-model="rootGroup"
-        :disabled="!isUsable"
-        @confirm="updateFilter()"
-        @cancel="resetFilter"
-      />
     </template>
-  </form>
+
+    <VtsQueryBuilderButton
+      v-model="rootGroup"
+      :small="uiStore.isSmallOrMedium"
+      :disabled="!isUsable"
+      @confirm="updateFilter()"
+      @cancel="resetFilter()"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -50,7 +51,8 @@ import UiInput from '@core/components/ui/input/UiInput.vue'
 import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import { useQueryBuilder } from '@core/packages/query-builder/use-query-builder.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { onMounted, ref, useId, watch } from 'vue'
+import { syncRef } from '@vueuse/core'
+import { ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { schema } = defineProps<{
@@ -61,9 +63,7 @@ const filter = defineModel<string>({ required: true })
 
 const localFilter = ref('')
 
-onMounted(() => {
-  localFilter.value = filter.value
-})
+syncRef(filter, localFilter, { direction: 'ltr' })
 
 const { t } = useI18n()
 
@@ -73,13 +73,19 @@ const id = useId()
 
 const { rootGroup, isUsable, updateFilter, resetFilter } = useQueryBuilder(filter, () => schema)
 
-function handleSubmit() {
+function search() {
   filter.value = localFilter.value
 }
 
-watch(filter, newFilter => {
-  localFilter.value = newFilter
-})
+function handleEnterKey(event: KeyboardEvent) {
+  // Ignore Enter when it confirms an IME composition
+  if (event.isComposing || event.keyCode === 229) {
+    return
+  }
+
+  event.preventDefault()
+  search()
+}
 </script>
 
 <style lang="postcss" scoped>
