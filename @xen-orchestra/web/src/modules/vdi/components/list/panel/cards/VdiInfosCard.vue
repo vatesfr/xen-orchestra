@@ -7,7 +7,7 @@
       :to="{
         name: '/vdi/[id]/general',
         params: { id: vdi.id },
-        query: { from: vbd ? VDI_PAGE_CONTEXT.VM : VDI_PAGE_CONTEXT.SR },
+        query: { from: fromContext },
       }"
       :icon="vdiIcon"
     />
@@ -39,7 +39,7 @@
           <VtsCopyButton :value="vbdsStatus" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="vbd">
+      <VtsCardRowKeyValue v-if="fromContext === VDI_PAGE_CONTEXT.VM">
         <template #key>{{ t('device') }}</template>
         <template #value>{{ vdiDevice }}</template>
         <template v-if="vdiDevice" #addons>
@@ -54,7 +54,7 @@
 import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
+import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
 import type { IconName } from '@core/icons'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -71,6 +71,7 @@ import { useI18n } from 'vue-i18n'
 const { vdi, vbd } = defineProps<{
   vdi: FrontXoVdi
   vbd?: FrontXoVbd
+  fromContext: VdiPageContext
 }>()
 
 const { t } = useI18n()
