@@ -66,6 +66,7 @@
 - [Backup/replication] fix to ensure distributed replications are deleted according to retention( PR [#10491] (https://github.com/vatesfr/xen-orchestra/pull/10491))
 - [Replication] Fix `Cannot read properties of undefined (reading 'get')` error on continuous replication to multiple SRs (PR [#10519](https://github.com/vatesfr/xen-orchestra/pull/10519))
 - [Backup/NBD] Support NBD for pools reached through an HTTP proxy (e.g. an XO Proxy): NBD connections are now tunneled through the proxy instead of falling back to a stream export (PR [#10544](https://github.com/vatesfr/xen-orchestra/pull/10544))
+- [xo-cli] fix output failing when outputing a rest api answer (PR [#10541](https://github.com/vatesfr/xen-orchestra/pull/10541))
 
 ### Packages to release
 
@@ -96,6 +97,7 @@
 - @xen-orchestra/xapi minor
 - vectura patch
 - xen-api minor
+- xo-cli patch
 - xo-server minor
 - xo-server-load-balancer minor
 - xo-server-sdn-controller patch
