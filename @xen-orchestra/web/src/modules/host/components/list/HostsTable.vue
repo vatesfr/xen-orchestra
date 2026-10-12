@@ -18,6 +18,7 @@
 </template>
 
 <script setup lang="ts">
+import { useHostQueryBuilder } from '@/modules/host/composables/use-host-query-builder.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
@@ -33,13 +34,9 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
-import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
-import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useHostColumns } from '@core/tables/column-sets/host-columns.ts'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
-import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import { HOST_POWER_STATE } from '@vates/types'
 import { logicAnd, logicNot, logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -68,20 +65,7 @@ const isReady = logicAnd(() => !busy, arePifsReady)
 
 const hasError = logicOr(() => error, hasPifFetchError)
 
-const { items: filteredHosts, filter } = useQueryBuilderFilter('hosts', () => rawHosts)
-
-const schema = useQueryBuilderSchema<FrontXoHost>({
-  '': useStringSchema(t('any-property')),
-  name_label: useStringSchema(t('name')),
-  name_description: useStringSchema(t('description')),
-  address: useStringSchema(t('ip-address')),
-  power_state: useStringSchema(t('power-state'), {
-    [HOST_POWER_STATE.RUNNING]: t('status:running'),
-    [HOST_POWER_STATE.HALTED]: t('status:halted'),
-    [HOST_POWER_STATE.UNKNOWN]: t('status:unknown'),
-  }),
-  tags: useStringSchema(t('tags')),
-})
+const { items: filteredHosts, filter, schema } = useHostQueryBuilder('hosts', () => rawHosts)
 
 const state = useTableState({
   busy: logicNot(isReady),
