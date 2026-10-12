@@ -1,7 +1,8 @@
 <template>
   <UiPanelCard class="cluster-info-card">
-    <VtsCardObjectTitle
+    <UiPanelCardTitle
       :id="cluster.id"
+      size="medium"
       :label="cluster.name"
       :to="getKubernetesClusterRoute(cluster.id)"
       icon="object:cluster"
@@ -59,10 +60,10 @@ import { clusterStatus } from '@/modules/kubernetes/utils/kubernetes-cluster.uti
 import { getKubernetesClusterRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
 import { kubernetesTagsToDisplayStrings } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
