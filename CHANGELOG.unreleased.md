@@ -80,10 +80,10 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
+- vectura patch
+- xen-api minor
 - xo-server minor
 - xo-server-load-balancer minor
 - xo-web minor
-- vectura patch
-- xen-api minor
 
 <!--packages-end-->
