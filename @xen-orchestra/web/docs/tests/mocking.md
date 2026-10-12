@@ -92,6 +92,18 @@ A job a single test file mocks needs no shared module: `createJobStub(useXJob)` 
 
 `mock-vm-delete.ts` stands for `useVmDelete`, which calls the REST API and opens modals: `vmDeleteMock.useVmDelete` is the spy to read the VMs a caller asked to delete, `vmDeleteMock.deleteVms` the one the caller runs, `vmDeleteMock.setDeleting(true)` holds the VMs as being deleted, `vmDeleteMock.setBlocked(message)` makes them undeletable for that reason, and `vmDeleteMock.reset()` goes in `beforeEach`.
 
+## Resolving by id
+
+When what a composable decides is _which_ records it looks up — the SR of a VDI, the VMs behind its VBDs — a canned `useGetXById.mockReturnValue(computed(() => sr))` hands back the expected record whatever id was asked for, so the test only echoes the mock. Implement the lookup over fixtures instead, the way the real collection filters by id, and assert the record the composable ends up with:
+
+```typescript
+useGetSrById.mockImplementation((id: MaybeRefOrGetter<FrontXoSr['id'] | undefined>) =>
+  computed(() => srs.find(sr => sr.id === toValue(id)))
+)
+```
+
+`use-vdi-configuration.composable.unit.test.ts` follows a VDI to its VBDs, then to their VMs, this way. A component test that only renders what it is handed keeps the canned `mockReturnValue`.
+
 ## Network
 
 `src/test/setup.ts` stubs the global `fetch` with a never-settling promise before each test, so composables that trigger remote requests on use never hit the network in unit tests. When a test needs a real response, `stubFetchResponse(status, body)` from `src/test/stub-fetch-response.ts` overrides it for that test only and returns the mock, to assert the request when the request is the contract (a job). `stubFetchServerError()` answers a 500 the server explains with `SERVER_ERROR_MESSAGE`; `stubV2vStartAccepted()` (the V2V start route answering `V2V_START_TASK_ID`) and `stubV2vStartProblems(errors)` (refusing the launch for those problems) live in `create-v2v-launch.ts`.
