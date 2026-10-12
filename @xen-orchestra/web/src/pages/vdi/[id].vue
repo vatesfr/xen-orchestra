@@ -4,8 +4,8 @@
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
-    <VdiHeader v-if="uiStore.hasUi" :vdi :vm :vbds :vbd :sr :vdi-snapshot :from-context="fromContext" />
-    <component :is="Component" :vdi :vbd :vm :sr :vdi-snapshot />
+    <VdiHeader v-if="uiStore.hasUi" :vdi :vm :vbds :vbd :sr :vdi-snapshot :from-context />
+    <component :is="Component" :vdi :vbd :vm :sr :vdi-snapshot :from-context />
   </RouterView>
 </template>
 
