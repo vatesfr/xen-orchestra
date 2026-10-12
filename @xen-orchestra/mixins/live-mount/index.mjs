@@ -7,33 +7,50 @@ import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { randomBytes } from 'node:crypto'
 
-import { detectLocalAddress } from './_address.mjs'
+import { detectLocalAddress, getHostAddresses } from './_address.mjs'
 import { createUfwFirewall } from './_firewall.mjs'
 import { createChapCredentials, probeScsiId } from './_target.mjs'
 import { forgetSr, introduceSr, introduceVdi } from './_sr.mjs'
+import { cacheLabel } from './_utils.mjs'
 
 const { info, warn } = createLogger('xo:mixins:LiveMount')
 
 /** @typedef {import('@vates/types').Xapi} Xapi */
 
 /**
- * A mount, as built by `#createDiskMount`.
+ * A block device served through an iSCSI target, as returned by {@link LiveMount#serveBlockDevice}.
+ *
+ * @typedef {object} ServedBlockDevice
+ * @property {string} id
+ * @property {string} address - address of the target, as handed to the host
+ * @property {number} port
+ * @property {string} iqn
+ * @property {Record<string, string>} deviceConfig - of an `iscsi` SR on this target, without `SCSIid`
+ * @property {Set<string>} refusedAddresses - connections refused by `iscsi.restrictToHost` came from these
+ * @property {() => Promise<void>} close - stops serving, and closes the firewall rule if any
+ */
+
+/**
+ * A mount, as built by `#createMount`.
  *
  * @typedef {object} DiskMount
  * @property {string} id
  * @property {string} address
  * @property {number} port
  * @property {string} iqn
- * @property {string} diskPath
+ * @property {string} [diskPath] - unset for a block device mounted by {@link LiveMount#mountBlockDevice}
  * @property {string} srRef
  * @property {string} srUuid
  * @property {string} vdiUuid
- * @property {import('@vates/iscsi').IscsiTarget} target
+ * @property {ServedBlockDevice} served
  * @property {Xapi} xapi - replaced by any newer connection to the same pool, see {@link LiveMount#watchConnection}
  * @property {string} [poolUuid] - pool of `xapi`, unknown if it was not connected
- * @property {{ source: string, port: number, id: string }} [firewallRule] - opened by `iscsi.manageFirewall`
  * @property {() => Promise<void>} [release]
+ * @property {() => Promise<void>} [beforeUnmount]
  */
+
+// names the IQN and the LUN serial of the targets serving a backup disk
+const DEFAULT_KIND = 'live-mount'
 
 // the firewalls `iscsi.manageFirewall` can drive
 const FIREWALLS = {
@@ -180,8 +197,60 @@ export default class LiveMount extends EventEmitter {
    * @param {() => Promise<void>} [params.release] - called on unmount, e.g. to dispose the remote handler
    * @returns {Promise<{ id: string, srUuid: string, vdiUuid: string, iqn: string, address: string, port: number }>}
    */
-  async mountDisk(params) {
-    const mount = await this.#createDiskMount(params)
+  async mountDisk({ handler, diskPath, xapi, hostRef, nameLabel, release }) {
+    if (this.#firewallError !== undefined) {
+      throw this.#firewallError
+    }
+    // the chain must keep its block allocation tables: they tell which blocks
+    // are allocated, and reading an unallocated one throws
+    const disk = await this.#openDisk({ handler, path: diskPath })
+    try {
+      return await this.#mount({
+        diskPath,
+        hostRef,
+        lun: new DiskBlockDevice({ disk }),
+        nameDescription: `mount of ${diskPath}`,
+        nameLabel,
+        release,
+        vdiNameLabel: `${cacheLabel(diskPath)}.raw`,
+        xapi,
+      })
+    } catch (error) {
+      await disk.close()
+      throw error
+    }
+  }
+
+  /**
+   * Like {@link LiveMount#mountDisk}, for any block device: serve it and attach it to a host as an
+   * SR holding a single VDI. Undone by {@link LiveMount#unmountBlockDevice}.
+   *
+   * The LUN is closed with the target. Its `readOnly` flag decides whether the VDI is read-only.
+   *
+   * @param {object} params
+   * @param {import('@vates/iscsi').BlockDevice} params.lun
+   * @param {object} params.xapi - XAPI connection of the pool owning `hostRef`
+   * @param {string} params.hostRef - opaque ref of the host the device is attached to as an SR
+   * @param {string} params.kind - names the IQN and the serial of the LUN, e.g. `browser-media`
+   * @param {string} params.nameLabel - name of the created SR and VDI
+   * @param {string} params.nameDescription - description of the created SR and VDI
+   * @param {Record<string, string>} [params.smConfig] - `sm_config` of the SR, set when it is introduced
+   * @param {Partial<import('@vates/iscsi').IscsiTargetOptions>} [params.targetOptions] - e.g. `maxTransferLength`
+   * @param {() => Promise<void>} [params.beforeUnmount] - called first on unmount, whatever triggers it,
+   * e.g. to eject the VDI while the target can still answer the host: if it fails, the device stays
+   * mounted, and the unmount can be retried
+   * @param {() => Promise<void>} [params.release] - called on unmount, once the target is closed
+   * @returns {Promise<{ id: string, srUuid: string, vdiUuid: string, iqn: string, address: string, port: number }>}
+   */
+  async mountBlockDevice({ nameLabel, ...params }) {
+    if (this.#firewallError !== undefined) {
+      throw this.#firewallError
+    }
+    return this.#mount({ ...params, nameLabel, vdiNameLabel: nameLabel })
+  }
+
+  async #mount(params) {
+    const mount = await this.#createMount(params)
     this.#mounts.set(mount.id, mount)
     this.#watchVdi(mount)
     return {
@@ -194,102 +263,197 @@ export default class LiveMount extends EventEmitter {
     }
   }
 
-  #createDiskMount = defer(async ($defer, { handler, diskPath, xapi, hostRef, nameLabel, release }) => {
-    if (this.#firewallError !== undefined) {
-      throw this.#firewallError
-    }
-    const config = this.#app.config
-    // `iscsi.advertisedAddress` overrides auto-detection; unset, the address
-    // reachable *from* the target host is guessed by asking the OS which
-    // local address it would route through to reach it — usually right, but
-    // not guaranteed to be reachable *back* from the host (NAT, asymmetric
-    // routing), which is what the override is for.
-    const firewall = this.#firewall
-    let address = config.getOptional('iscsi.advertisedAddress')
-    const hostAddress =
-      address === undefined || firewall !== undefined ? await xapi.getField('host', hostRef, 'address') : undefined
-    if (address === undefined) {
-      address = await this.#detectAddress(hostAddress)
-    }
+  /**
+   * Serve `lun` through a new iSCSI target, for `hostRef` to attach it: the target listens on an
+   * ephemeral port, requires CHAP, and only accepts connections from the addresses of the host,
+   * unless `iscsi.restrictToHost` is `false`. With `iscsi.manageFirewall`, its port is opened to
+   * the host until it is closed.
+   *
+   * `id`, `chap` and `port` serve a target again under the identity of a previous one, e.g. so that
+   * a host still logged in to a target that went away can complete its I/O and detach cleanly.
+   *
+   * @param {object} params
+   * @param {import('@vates/iscsi').BlockDevice} params.lun - closed with the target
+   * @param {object} params.xapi - XAPI connection of the pool owning `hostRef`
+   * @param {string} params.hostRef - opaque ref of the host the target is meant for
+   * @param {string} [params.kind] - names the IQN and the serial of the LUN, defaults to `live-mount`
+   * @param {string} [params.id] - random by default
+   * @param {{ user: string, secret: string }} [params.chap] - random by default
+   * @param {number} [params.port] - ephemeral by default
+   * @param {Partial<import('@vates/iscsi').IscsiTargetOptions>} [params.targetOptions]
+   * @returns {Promise<ServedBlockDevice>}
+   */
+  serveBlockDevice = defer(
+    async (
+      $defer,
+      {
+        lun,
+        xapi,
+        hostRef,
+        kind = DEFAULT_KIND,
+        id = randomBytes(16).toString('hex'),
+        chap = createChapCredentials(id),
+        port: requestedPort = 0,
+        targetOptions,
+      }
+    ) => {
+      if (this.#firewallError !== undefined) {
+        throw this.#firewallError
+      }
+      const config = this.#app.config
+      // `iscsi.advertisedAddress` overrides auto-detection; unset, the address
+      // reachable *from* the target host is guessed by asking the OS which
+      // local address it would route through to reach it — usually right, but
+      // not guaranteed to be reachable *back* from the host (NAT, asymmetric
+      // routing), which is what the override is for.
+      const hostAddress = await xapi.getField('host', hostRef, 'address')
+      const address = config.getOptional('iscsi.advertisedAddress') ?? (await this.#detectAddress(hostAddress))
 
-    const id = randomBytes(16).toString('hex')
-    const iqn = `iqn.2026-07.tech.vates.xo:live-mount-${id}`
-    const chap = createChapCredentials(id)
+      // the host is the only expected initiator: nothing else may take the connection slots of the
+      // target, which only CHAP would keep from logging in otherwise. Behind a NAT, the host connects
+      // from another address, which is what `iscsi.restrictToHost = false` is for
+      const allowedInitiatorAddresses =
+        config.getOptional('iscsi.restrictToHost') === false
+          ? undefined
+          : await getHostAddresses(xapi, hostRef, hostAddress)
+      // what the host connected from instead, to tell why it cannot reach the target
+      const refusedAddresses = new Set()
 
-    // the chain must keep its block allocation tables: they tell which blocks
-    // are allocated, and reading an unallocated one throws
-    const disk = await this.#openDisk({ handler, path: diskPath })
-    $defer.onFailure(() => disk.close())
+      const iqn = `iqn.2026-07.tech.vates.xo:${kind}-${id}`
+      const target = this.#createTarget({
+        ...targetOptions,
+        allowedInitiatorAddresses,
+        onConnectionRefused: address => refusedAddresses.add(address),
+        chap,
+        host: config.getOptional('iscsi.bindAddress'),
+        identity: { serial: `xo-${kind}-${id}` },
+        iqn,
+        lun,
+        port: requestedPort,
+      })
+      // opens the LUN, so its capacity is readable afterwards
+      await target.listen()
+      $defer.onFailure(() => target.close())
+      const { port } = target.address()
 
-    const lun = new DiskBlockDevice({ disk })
-    const target = this.#createTarget({
-      chap,
-      host: config.getOptional('iscsi.bindAddress'),
-      identity: { serial: `xo-live-mount-${id}` },
-      iqn,
-      lun,
-      port: 0, // ephemeral: one target per mount
-    })
-    // opens the LUN, so its capacity is readable afterwards
-    await target.listen()
-    $defer.onFailure(() => target.close())
-    const { port } = target.address()
+      // scoped to the host's management address: the one the advertised address is detected from,
+      // so the one it connects from — unless `iscsi.advertisedAddress` points at another network
+      const firewall = this.#firewall
+      let firewallRule
+      if (firewall !== undefined) {
+        await this.#purgeFirewall()
+        const rule = { source: hostAddress, port, id }
+        // none opened when there is no firewall to drive on this install: nothing to close then
+        if (await firewall.open(rule)) {
+          firewallRule = rule
+          $defer.onFailure(() => firewall.close(rule))
+        }
+      }
 
-    // scoped to the host's management address: the one the advertised address is detected from,
-    // so the one it connects from — unless `iscsi.advertisedAddress` points at another network
-    let firewallRule
-    if (firewall !== undefined) {
-      await this.#purgeFirewall()
-      const rule = { source: hostAddress, port, id }
-      // none opened when there is no firewall to drive on this install: nothing to close then
-      if (await firewall.open(rule)) {
-        firewallRule = rule
-        $defer.onFailure(() => firewall.close(rule))
+      return {
+        address,
+        deviceConfig: {
+          chapuser: chap.user,
+          chappassword: chap.secret,
+          port: String(port),
+          target: address,
+          targetIQN: iqn,
+        },
+        id,
+        iqn,
+        port,
+        refusedAddresses,
+        close: async () => {
+          // stop serving first, so no I/O is left in flight
+          try {
+            await target.close()
+          } finally {
+            if (firewallRule !== undefined) {
+              await firewall.close(firewallRule)
+            }
+          }
+        },
       }
     }
+  )
 
-    const deviceConfig = {
-      chapuser: chap.user,
-      chappassword: chap.secret,
-      port: String(port),
-      target: address,
-      targetIQN: iqn,
+  #createMount = defer(
+    async (
+      $defer,
+      {
+        lun,
+        xapi,
+        hostRef,
+        kind,
+        nameLabel,
+        nameDescription,
+        vdiNameLabel,
+        smConfig,
+        targetOptions,
+        diskPath,
+        beforeUnmount,
+        release,
+      }
+    ) => {
+      const served = await this.serveBlockDevice({ lun, xapi, hostRef, kind, targetOptions })
+      $defer.onFailure(() => served.close())
+      const { address, deviceConfig, id, iqn, port } = served
+
+      let SCSIid
+      try {
+        SCSIid = await probeScsiId({ xapi, hostRef, deviceConfig, address })
+      } catch (error) {
+        const [refused] = served.refusedAddresses
+        if (refused === undefined) {
+          throw error
+        }
+        throw new Error(
+          `the host connected to the iSCSI target from ${refused}, which is not one of its addresses, e.g. through a NAT: set iscsi.restrictToHost = false`,
+          { cause: error }
+        )
+      }
+      const fullDeviceConfig = { ...deviceConfig, SCSIid }
+
+      const { srRef, srUuid } = await introduceSr($defer, {
+        xapi,
+        hostRef,
+        deviceConfig: fullDeviceConfig,
+        id,
+        nameLabel,
+        nameDescription,
+        smConfig,
+      })
+
+      const vdiUuid = await introduceVdi({
+        xapi,
+        srRef,
+        SCSIid,
+        size: lun.getSize(),
+        nameLabel: vdiNameLabel,
+        nameDescription,
+        readOnly: lun.readOnly === true,
+      })
+
+      info('mounted', { id, address, port, srUuid, vdiUuid, diskPath })
+
+      const poolUuid = xapi.pool?.uuid
+      return {
+        address,
+        beforeUnmount,
+        diskPath,
+        id,
+        iqn,
+        poolUuid,
+        port,
+        release,
+        served,
+        srRef,
+        srUuid,
+        vdiUuid,
+        xapi,
+      }
     }
-
-    const SCSIid = await probeScsiId({ xapi, hostRef, deviceConfig, address })
-    const fullDeviceConfig = { ...deviceConfig, SCSIid }
-
-    const { srRef, srUuid } = await introduceSr($defer, {
-      xapi,
-      hostRef,
-      deviceConfig: fullDeviceConfig,
-      id,
-      nameLabel,
-      diskPath,
-    })
-
-    const vdiUuid = await introduceVdi({ xapi, srRef, SCSIid, size: lun.getSize(), diskPath, readOnly: true })
-
-    info('mounted', { id, address, port, srUuid, vdiUuid, diskPath })
-
-    const poolUuid = xapi.pool?.uuid
-    return {
-      address,
-      disk,
-      diskPath,
-      firewallRule,
-      id,
-      iqn,
-      poolUuid,
-      port,
-      release,
-      srRef,
-      srUuid,
-      target,
-      vdiUuid,
-      xapi,
-    }
-  })
+  )
 
   /**
    * Tear a mount down as soon as its VDI disappears from the pool.
@@ -374,8 +538,7 @@ export default class LiveMount extends EventEmitter {
       return
     }
     // a VDI is removed once and for all, and a mount introduces exactly one: nothing else will ever
-    // come for this uuid
-    this.#mountIdsByVdiUuid.delete(uuid)
+    // come for this uuid. Still watched until the unmount goes through, which stops watching it
     info('the live mounted VDI was removed, unmounting', { id: mountId, vdiUuid: uuid })
     this.unmountDisk(mountId).catch(error => {
       warn('failed to unmount after the VDI was removed', { error, id: mountId })
@@ -397,6 +560,19 @@ export default class LiveMount extends EventEmitter {
       // a coded error, so a remote caller (XO driving a proxy) can tell it apart from a failed call
       noSuchObject(id, 'live-mount')
     }
+    // the stop hook, a removed VDI and the owner of the mount may all unmount it at once: they share
+    // the same unmount
+    mount.unmounting ??= this.#unmount(id, mount).finally(() => {
+      mount.unmounting = undefined
+    })
+    return mount.unmounting
+  }
+
+  async #unmount(id, mount) {
+    if (mount.beforeUnmount !== undefined) {
+      // nothing is released yet: on failure, the mount stays as it is, so the unmount can be retried
+      await mount.beforeUnmount()
+    }
     // drop it first, so a failing teardown cannot be retried against a
     // half-released mount
     this.#mounts.delete(id)
@@ -404,7 +580,7 @@ export default class LiveMount extends EventEmitter {
     // not the deletion this mixin reacts to
     this.#unwatchVdi(mount)
 
-    const { xapi, srRef, target, firewallRule, release } = mount
+    const { xapi, srRef, served, release } = mount
 
     const errors = []
     const step = async (what, fn) => {
@@ -417,11 +593,7 @@ export default class LiveMount extends EventEmitter {
     }
 
     await step('forget the SR', () => forgetSr(xapi, srRef))
-    // stop serving first, so no I/O is left in flight
-    await step('close the target', () => target.close())
-    if (firewallRule !== undefined) {
-      await step('close the firewall rule', () => this.#firewall.close(firewallRule))
-    }
+    await step('stop serving', () => served.close())
     await step('release the caller resources', () => release?.())
 
     // the mount is gone whatever happened above, so callers tracking it must hear about it even
@@ -441,16 +613,27 @@ export default class LiveMount extends EventEmitter {
     info('unmounted', { id, srUuid: mount.srUuid })
   }
 
-  /** Live disk mounts, in creation order. */
+  /**
+   * Detach a block device mounted by {@link LiveMount#mountBlockDevice} and stop serving it.
+   *
+   * @param {string} id
+   */
+  unmountBlockDevice(id) {
+    return this.unmountDisk(id)
+  }
+
+  /** Live disk mounts, in creation order, without the other block devices. */
   listMountedDisks() {
-    return [...this.#mounts.values()].map(({ id, srUuid, vdiUuid, diskPath, iqn, address, port }) => ({
-      id,
-      srUuid,
-      vdiUuid,
-      diskPath,
-      iqn,
-      address,
-      port,
-    }))
+    return [...this.#mounts.values()]
+      .filter(mount => mount.diskPath !== undefined)
+      .map(({ id, srUuid, vdiUuid, diskPath, iqn, address, port }) => ({
+        id,
+        srUuid,
+        vdiUuid,
+        diskPath,
+        iqn,
+        address,
+        port,
+      }))
   }
 }

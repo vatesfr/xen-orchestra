@@ -26,3 +26,28 @@ export function detectLocalAddress(host, port = 1) {
     })
   })
 }
+
+/**
+ * Every address `hostRef` may connect from: its management address, and the ones of its PIFs, a
+ * storage network included.
+ *
+ * @param {object} xapi
+ * @param {string} hostRef
+ * @param {string} [hostAddress] - its management address, if already known
+ * @returns {Promise<string[]>}
+ */
+export async function getHostAddresses(xapi, hostRef, hostAddress) {
+  const addresses = new Set([hostAddress ?? (await xapi.getField('host', hostRef, 'address'))])
+  for (const pifRef of await xapi.getField('host', hostRef, 'PIFs')) {
+    const { IP, IPv6 } = await xapi.getRecord('PIF', pifRef)
+    if (IP !== '') {
+      addresses.add(IP)
+    }
+    // with their prefix length, e.g. `fd00::1/64`, and canonicalized like the remote address of a
+    // socket, e.g. `fd00:0:0::1` becomes `fd00::1`
+    for (const address of IPv6) {
+      addresses.add(new URL(`http://[${address.split('/')[0]}]`).hostname.slice(1, -1))
+    }
+  }
+  return [...addresses]
+}

@@ -99,6 +99,13 @@ describe('createUfwFirewall', () => {
           'iptables v1.8.9 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)\n',
       }),
     ],
+    [
+      'iptables-legacy runs without root',
+      Object.assign(new Error('Command failed'), {
+        code: 4,
+        stderr: "Fatal: can't open lock file /run/xtables.lock: Permission denied\n",
+      }),
+    ],
   ]) {
     it(`opens nothing, without failing, when ${what}`, async () => {
       const exec = async () => {

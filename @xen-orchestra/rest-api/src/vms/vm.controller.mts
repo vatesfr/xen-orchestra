@@ -26,6 +26,7 @@ import type {
   XapiVmStats,
   XenApiVm,
   XoAlarm,
+  XoBrowserMediaSession,
   XoVmBackupJob,
   XoHost,
   XoTask,
@@ -744,6 +745,66 @@ export class VmController extends XapiXoController<XoVm> {
         name: 'snapshot VM',
         objectId: vmId,
       },
+    })
+  }
+
+  /**
+   * Experimental, restricted to administrators.
+   *
+   * Insert an ISO streamed from a browser in the CD drive of the VM: nothing is uploaded, and nothing is installed on
+   * the hosts. The ISO stays inserted for as long as the browser serving it stays connected, and is read: then it is
+   * ejected, see `POST /browser-media/{id}/actions/eject`. Meanwhile, the VM cannot migrate nor be suspended.
+   *
+   * The VM must be halted, or running with an empty CD drive. A halted VM without CD drive gets a bootable one, removed
+   * with the ISO. A VM protected by HA is refused, since the ISO is attached to a single host.
+   *
+   * The browser serves the ISO over a WebSocket to `/api/browser-media`, authenticated by the `token` cookie of an
+   * administrator:
+   * 1. it sends `{"name": string, "size": number}`, the size being a multiple of 512 bytes between 32 KiB and 128 GiB;
+   * 2. it receives `{"session": string}`, the id of the browser media session, to pass as `browserMediaId`;
+   * 3. then it receives read requests `{"id": number, "offset": number, "length": number}` (at most 1 MiB), each
+   *    answered by a binary message: `id` as a big-endian uint32, followed by exactly `length` bytes of the ISO.
+   *
+   * Closing the WebSocket ejects the ISO. The server closes it with code `4400` on a protocol error, `4408` once the
+   * ISO is not read anymore, `4410` once it is ejected, and `4503` when the feature is unavailable.
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example body { "browserMediaId": "3f1d0c9e8b7a6f5e4d3c2b1a09f8e7d6" }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/insert_browser_iso')
+  @Middlewares(json())
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(createdResp.status, 'ISO inserted')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(
+    incorrectStateResp.status,
+    'The session or the VM is in the wrong state, or the VM already has an ISO streamed from a browser'
+  )
+  insertBrowserIso(
+    @Path() id: string,
+    @Body() body: { browserMediaId: string },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<{ vdiId: XoVdi['id'] }> {
+    const vmId = id as XoVm['id']
+    const params = { id: body.browserMediaId as XoBrowserMediaSession['id'], vmId }
+    // reported as such rather than as a failed task
+    this.restApi.xoApp.assertBrowserMediaInsertable(params)
+
+    const action = async () => {
+      const result = await this.restApi.xoApp.insertBrowserMedia(params)
+      if (sync) {
+        this.setHeader('Location', `${BASE_URL}/vdis/${result.vdiId}`)
+      }
+      return result
+    }
+
+    return this.createAction<{ vdiId: XoVdi['id'] }>(action, {
+      sync,
+      statusCode: createdResp.status,
+      taskProperties: { name: 'insert browser ISO', objectId: vmId, params: body },
     })
   }
 

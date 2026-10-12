@@ -2,8 +2,6 @@ import { randomUUID } from 'node:crypto'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 
-import { cacheLabel } from './_utils.mjs'
-
 const { debug, info, warn } = createLogger('xo:mixins:LiveMount')
 
 // Raw "LUN per VDI" driver: the LUN becomes a VDI as-is, with no LVM written to
@@ -27,17 +25,20 @@ const IMAGE_FORMAT_RAW = 'raw'
  * `SR.introduce`, not `SR.create`: create would scan, and a scan introduces the
  * VDI itself with an sm_config we could no longer amend.
  */
-export async function introduceSr($defer, { xapi, hostRef, deviceConfig, id, nameLabel, diskPath }) {
+export async function introduceSr(
+  $defer,
+  { xapi, hostRef, deviceConfig, id, nameLabel, nameDescription, smConfig = {} }
+) {
   const srUuid = randomUUID()
   const srRef = await xapi.call(
     'SR.introduce',
     srUuid,
     nameLabel ?? `[XO live mount] ${id.slice(0, 8)}`,
-    `mount of ${diskPath}`,
+    nameDescription,
     SR_TYPE,
     'user',
     false, // not shared: this mount serves a single host
-    {}
+    smConfig // set with the SR itself, so that the SR cannot exist without it
   )
   $defer.onFailure(() => xapi.call('SR.forget', srRef))
 
@@ -86,16 +87,16 @@ export async function forgetSr(xapi, srRef) {
  * `readOnly` states the intent, but this driver ignores it either way —
  * `RAWVDI.introduce()` ends in `_db_introduce()`, which builds the record from
  * the driver's own VDI object, the same reason the resulting uuid is not the
- * one asked for. The LUN itself is what actually enforces it: it throws on
- * write, since it is backed by a read-only `DiskBlockDevice`.
+ * one asked for. The LUN itself is what actually enforces it: a read-only
+ * `BlockDevice` is reported write-protected, and writes are refused.
  */
-export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath, readOnly }) {
+export async function introduceVdi({ xapi, srRef, SCSIid, size, nameLabel, nameDescription, readOnly }) {
   const uuid = randomUUID()
   await xapi.call(
     'VDI.introduce',
     uuid,
-    `${cacheLabel(diskPath)}.raw`,
-    `mount of ${diskPath}`,
+    nameLabel,
+    nameDescription,
     srRef,
     'user',
     false, // sharable
@@ -128,6 +129,6 @@ export async function introduceVdi({ xapi, srRef, SCSIid, size, diskPath, readOn
     }
     return vdi.uuid
   }
-  warn('no VDI found for the introduced LUN', { SCSIid, srRef, diskPath })
-  throw new Error(`no VDI found for the introduced LUN when tryng to mount ${diskPath}`)
+  warn('no VDI found for the introduced LUN', { SCSIid, srRef, nameLabel })
+  throw new Error(`no VDI found for the introduced LUN when trying to mount ${nameLabel}`)
 }
