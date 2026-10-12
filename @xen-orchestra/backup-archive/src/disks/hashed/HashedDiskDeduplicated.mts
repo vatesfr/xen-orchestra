@@ -413,7 +413,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
       }
     }
     if (this.#loadedMetadata.dedupType === 'PER_BACKUP_REPOSITORY') {
-      const tmpDir = join(this.#loadedDataDir, 'blocks', '.tmp')
+      const tmpDir = this.#tmpDir
       for (const filename of await this.#handler.list(tmpDir, { ignoreMissing: true })) {
         await this.#handler.unlink(join(tmpDir, filename), { checksum: false }).catch(() => {})
       }
@@ -483,6 +483,13 @@ export class HashedDiskDeduplicated extends HashedDisk {
     return join(this.#blocksDir, blockRelPath(hash))
   }
 
+  get #tmpDir(): string {
+    if (this.#blocksDir === undefined) {
+      throw new Error(`can't use a HashedDiskDeduplicated before init`)
+    }
+    return join(this.#blocksDir, '.tmp')
+  }
+
   /**
    * @param hash always hex
    * @returns complete path in store
@@ -543,7 +550,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
         }
       }
       // link did not work, we need a new block
-      const tmp = join(this.#blocksDir!, '.tmp', randomUUID())
+      const tmp = join(this.#tmpDir, randomUUID())
       await this.#handler.outputFile(tmp, Buffer.concat([buildBlockHeader(hash), data]), { flags: 'wx' })
       try {
         await this.#link(tmp, storePath)
