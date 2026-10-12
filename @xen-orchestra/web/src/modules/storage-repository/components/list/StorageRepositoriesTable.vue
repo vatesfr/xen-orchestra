@@ -100,6 +100,7 @@ function getPrimaryIcon(sr: FrontXoSr) {
 }
 
 const { HeadCells, BodyCells } = useSrColumns({
+  exclude: ['checkbox'],
   body: (sr: FrontXoSr) => {
     const rightIcon = computed(() => getPrimaryIcon(sr))
 
