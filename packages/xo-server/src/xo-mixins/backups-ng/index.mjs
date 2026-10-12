@@ -128,7 +128,7 @@ export default class BackupNg {
       app.hooks.emit('registerCollection', { collection: this.#vmBackupsCache.archives, type: 'backup-archive' })
     })
 
-    let vmBackupArchivesPoll, vmBackupArchivesFullPoll
+    let vmBackupArchivesPoll, vmBackupArchivesFullPoll, initialVmBackupArchivesListing
     app.hooks.on('start', () => {
       vmBackupArchivesPoll = setInterval(
         () => this.#pollVmBackupArchives(this.#vmBackupsCache.replayableRepositoryIds()),
@@ -139,9 +139,18 @@ export default class BackupNg {
         VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL
       )
     })
+    // once every start hook has run: the one of the remotes mixin invalidates the listing of every
+    // repository, which would drop what a listing started before it has read instead of announcing it
+    app.hooks.on('started', () => {
+      initialVmBackupArchivesListing = new AbortController()
+      this.#listAllVmBackupArchives(initialVmBackupArchivesListing.signal).catch(error => {
+        logger.warn('failed to list the backup repositories', { error })
+      })
+    })
     app.hooks.on('stop', () => {
       clearInterval(vmBackupArchivesPoll)
       clearInterval(vmBackupArchivesFullPoll)
+      initialVmBackupArchivesListing?.abort()
     })
 
     app.hooks.on('start', async () => {
@@ -729,6 +738,25 @@ export default class BackupNg {
     if (this.#vmBackupsCache.isReplayable(remoteId)) {
       // never rejects
       this._listVmBackupsWithBackoff(remoteId)
+    }
+  }
+
+  // lists every enabled repository, so that the collection, and the timers which read its
+  // repositories, cover all of them rather than only those a client has listed since the app started
+  //
+  // one after another: each listing reads the metadata of every VM of the repository, and listing
+  // them in sequence also staggers their periodic rebuilds, which count from the listing
+  //
+  // through `_listVmBackupsWithBackoff()`, which never rejects: a repository which cannot be read is
+  // left out until a client lists it
+  async #listAllVmBackupArchives(signal) {
+    for (const remote of await this._app.getAllRemotes()) {
+      if (signal.aborted) {
+        return
+      }
+      if (remote.enabled) {
+        await this._listVmBackupsWithBackoff(remote.id)
+      }
     }
   }
 
