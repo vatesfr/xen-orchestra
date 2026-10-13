@@ -376,6 +376,7 @@
   "deploy-xoa-status:waiting": "Waiting for XOA to respond…",
   "descending": "descending",
   "description": "Description",
+  "destination-host": "Destination host",
   "destination-sr": "Destination SR",
   "destination-sr-mandatory": "Destination SR is mandatory.",
   "details": "Details",
@@ -802,6 +803,7 @@
   "merge-backups-synchronously": "Merge backups synchronously",
   "message": "Message",
   "migration-compression": "Migration compression",
+  "migration-network": "Migration network",
   "minimum-dynamic-memory": "Minimum dynamic memory",
   "minimum-static-memory": "Minimum static memory",
   "missing-patches": "Missing patches",
@@ -954,6 +956,7 @@
   "no-custom-field-detected": "No custom fields detected",
   "no-data": "No data",
   "no-data-to-calculate": "No data to calculate",
+  "no-default-network-configured": "No default network is configured.",
   "no-group-attached": "No group attached",
   "no-host-attached": "No hosts attached",
   "no-host-detected": "No hosts detected",
@@ -1198,6 +1201,7 @@
   "select-destination-host": "Select a destination host",
   "select-format": "Select format",
   "select-host": "Select host",
+  "select-pool": "Select a pool",
   "select-preset": "Select a preset",
   "select-to-see-details": "Click on {icon} to see details",
   "selected-vms-in-execution": "Some selected VMs are running",
@@ -1526,5 +1530,6 @@
   "xoa-ssh-password-confirm-different": "SSH password confirmation is different",
   "xva": "XVA",
   "you-are-currently-on": "You are currently on: {0}",
+  "your-default-network-is": "Your default network is {name}",
   "zstd": "ZSTD"
 }

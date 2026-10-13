@@ -376,6 +376,7 @@
   "deploy-xoa-status:waiting": "En attente de réponse de la XOA…",
   "descending": "descendant",
   "description": "Description",
+  "destination-host": "Hôte de destination",
   "destination-sr": "SR de destination",
   "destination-sr-mandatory": "Le SR de destination est obligatoire.",
   "details": "Détails",
@@ -802,6 +803,7 @@
   "merge-backups-synchronously": "Fusionner les sauvegardes de manière synchrone",
   "message": "Message",
   "migration-compression": "Compression des migrations",
+  "migration-network": "Réseau de migration",
   "minimum-dynamic-memory": "Mémoire dynamique minimale",
   "minimum-static-memory": "Mémoire statique minimale",
   "missing-patches": "Patches manquants",
@@ -954,6 +956,7 @@
   "no-custom-field-detected": "Aucun champ personnalisé détecté",
   "no-data": "Aucune donnée",
   "no-data-to-calculate": "Aucune donnée à calculer",
+  "no-default-network-configured": "Aucun réseau par défaut n'est configuré.",
   "no-group-attached": "Pas de groupe attaché",
   "no-host-attached": "Aucun hôte attaché",
   "no-host-detected": "Aucun hôte détecté",
@@ -1198,6 +1201,7 @@
   "select-destination-host": "Sélectionnez un hôte de destination",
   "select-format": "Sélectionner le format",
   "select-host": "Sélectionnez un hôte",
+  "select-pool": "Sélectionnez un pool",
   "select-preset": "Sélectionner une configuration prédéfinie",
   "select-to-see-details": "Cliquez sur {icon} pour voir les détails",
   "selected-vms-in-execution": "Certaines VMs sélectionnées sont en cours d'exécution",
@@ -1526,5 +1530,6 @@
   "xoa-ssh-password-confirm-different": "La confirmation du mot de passe SSH est différente",
   "xva": "XVA",
   "you-are-currently-on": "Vous êtes actuellement sur : {0}",
+  "your-default-network-is": "Votre réseau par défaut est {name}",
   "zstd": "ZSTD"
 }

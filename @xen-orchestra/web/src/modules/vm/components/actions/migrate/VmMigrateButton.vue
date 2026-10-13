@@ -19,7 +19,7 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { migrateVm } = useVmMigrate()
+const { migrateVm } = useVmMigrate(() => vm)
 
 const isMigrating = computed(() => isVmOperationPending(vm, [VM_OPERATIONS.POOL_MIGRATE, VM_OPERATIONS.MIGRATE_SEND]))
 </script>
