@@ -1,0 +1,348 @@
+import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type {
+  FrontXoNetwork,
+  useXoNetworkCollection,
+} from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import type { FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useVmMigrateForm } from '@/modules/vm/form/migrate/use-vm-migrate-form.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { createHost } from '@/test/create-host.ts'
+import { createPool } from '@/test/create-pool.ts'
+import { createVm } from '@/test/create-vm.ts'
+import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import type { FormSelect, FormSelectId } from '@core/packages/form-select'
+import { mount } from '@vue/test-utils'
+import { computed, defineComponent, h, inject, nextTick, toValue, type MaybeRefOrGetter } from 'vue'
+
+const { useXoPoolCollectionMock, useXoHostCollectionMock, useXoNetworkCollectionMock, useXoPifCollectionMock } =
+  vi.hoisted(() => ({
+    useXoPoolCollectionMock: vi.fn(),
+    useXoHostCollectionMock: vi.fn(),
+    useXoNetworkCollectionMock: vi.fn(),
+    useXoPifCollectionMock: vi.fn(),
+  }))
+
+vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+  useXoPoolCollection: useXoPoolCollectionMock as unknown as typeof useXoPoolCollection,
+}))
+
+vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+  useXoHostCollection: useXoHostCollectionMock as unknown as typeof useXoHostCollection,
+}))
+
+vi.mock(import('@/modules/network/remote-resources/use-xo-network-collection.ts'), () => ({
+  useXoNetworkCollection: useXoNetworkCollectionMock as unknown as typeof useXoNetworkCollection,
+}))
+
+vi.mock(import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'), () => ({
+  useXoPifCollection: useXoPifCollectionMock as unknown as typeof useXoPifCollection,
+}))
+
+const POOL_ID = 'pool-1' as FrontXoPool['id']
+const OTHER_POOL_ID = 'pool-2' as FrontXoPool['id']
+const SOURCE_HOST_ID = 'host-src' as FrontXoHost['id']
+const TARGET_HOST_ID = 'host-dst' as FrontXoHost['id']
+const OTHER_POOL_HOST_ID = 'host-other' as FrontXoHost['id']
+const MANAGEMENT_NETWORK_ID = 'net-mgmt' as FrontXoNetwork['id']
+const MIGRATION_NETWORK_ID = 'net-migr' as FrontXoNetwork['id']
+const NO_IP_NETWORK_ID = 'net-noip' as FrontXoNetwork['id']
+const OTHER_POOL_NETWORK_ID = 'net-other' as FrontXoNetwork['id']
+
+function groupBy<TItem, TKey>(items: TItem[], getKey: (item: TItem) => TKey) {
+  const groups = new Map<TKey, TItem[]>()
+
+  for (const item of items) {
+    const key = getKey(item)
+    const group = groups.get(key) ?? []
+
+    group.push(item)
+    groups.set(key, group)
+  }
+
+  return groups
+}
+
+function createNetwork(overrides: Partial<FrontXoNetwork>): FrontXoNetwork {
+  return {
+    id: 'net' as FrontXoNetwork['id'],
+    name_label: 'Network',
+    name_description: '',
+    defaultIsLocked: false,
+    nbd: false,
+    tags: [],
+    $pool: POOL_ID,
+    MTU: 1500,
+    PIFs: [],
+    other_config: {},
+    type: 'network',
+    isBonded: false,
+    ...overrides,
+  }
+}
+
+function createPif(overrides: Partial<FrontXoPif>): FrontXoPif {
+  return {
+    id: 'pif' as FrontXoPif['id'],
+    $host: TARGET_HOST_ID,
+    $network: MANAGEMENT_NETWORK_ID,
+    $pool: POOL_ID,
+    attached: true,
+    carrier: true,
+    device: 'eth0',
+    dns: '',
+    gateway: '',
+    ip: '',
+    ipv6: [],
+    mac: '00:00:00:00:00:00',
+    management: false,
+    mode: 'Static',
+    mtu: 1500,
+    netmask: '',
+    speed: 1000,
+    vlan: -1,
+    isBondMaster: false,
+    isBondSlave: false,
+    bondSlaves: undefined,
+    physical: true,
+    type: 'PIF',
+    ipv6Mode: 'None',
+    primaryAddressType: 'IPv4',
+    ...overrides,
+  }
+}
+
+const pools = [
+  createPool({ id: POOL_ID, name_label: 'nova', otherConfig: { 'xo:migrationNetwork': MIGRATION_NETWORK_ID } }),
+  createPool({ id: OTHER_POOL_ID, name_label: 'other', otherConfig: {} }),
+]
+
+const hosts = [
+  createHost({ id: SOURCE_HOST_ID, name_label: 'source', $pool: POOL_ID }),
+  createHost({ id: TARGET_HOST_ID, name_label: 'target', $pool: POOL_ID }),
+  createHost({ id: OTHER_POOL_HOST_ID, name_label: 'other', $pool: OTHER_POOL_ID }),
+]
+
+const networks = [
+  createNetwork({ id: MANAGEMENT_NETWORK_ID, name_label: 'Management', PIFs: ['pif-1' as FrontXoPif['id']] }),
+  createNetwork({ id: MIGRATION_NETWORK_ID, name_label: 'BackupNet', PIFs: ['pif-2' as FrontXoPif['id']] }),
+  createNetwork({ id: NO_IP_NETWORK_ID, name_label: 'No IP', PIFs: ['pif-3' as FrontXoPif['id']] }),
+  createNetwork({ id: 'net-nopif' as FrontXoNetwork['id'], name_label: 'No PIF' }),
+  createNetwork({
+    id: OTHER_POOL_NETWORK_ID,
+    name_label: 'Other management',
+    $pool: OTHER_POOL_ID,
+    PIFs: ['pif-4' as FrontXoPif['id']],
+  }),
+]
+
+const pifs = [
+  createPif({ id: 'pif-1' as FrontXoPif['id'], $network: MANAGEMENT_NETWORK_ID, ip: '10.1.0.14', management: true }),
+  createPif({ id: 'pif-2' as FrontXoPif['id'], $network: MIGRATION_NETWORK_ID, ip: '172.16.210.14' }),
+  createPif({ id: 'pif-3' as FrontXoPif['id'], $network: NO_IP_NETWORK_ID, ip: '' }),
+  createPif({
+    id: 'pif-4' as FrontXoPif['id'],
+    $host: OTHER_POOL_HOST_ID,
+    $pool: OTHER_POOL_ID,
+    $network: OTHER_POOL_NETWORK_ID,
+    ip: '10.1.9.150',
+    management: true,
+  }),
+]
+
+beforeEach(() => {
+  useXoPoolCollectionMock.mockReset()
+  useXoHostCollectionMock.mockReset()
+  useXoNetworkCollectionMock.mockReset()
+  useXoPifCollectionMock.mockReset()
+
+  useXoPoolCollectionMock.mockReturnValue({
+    pools: computed(() => pools),
+    useGetPoolById: (id: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) =>
+      computed(() => pools.find(pool => pool.id === toValue(id))),
+  })
+
+  useXoHostCollectionMock.mockReturnValue({
+    hostsByPool: computed(() => groupBy(hosts, host => host.$pool)),
+  })
+
+  useXoNetworkCollectionMock.mockReturnValue({
+    networks: computed(() => networks),
+    getNetworkById: (id: FrontXoNetwork['id'] | undefined) => networks.find(network => network.id === id),
+  })
+
+  useXoPifCollectionMock.mockReturnValue({
+    pifsByHost: computed(() => groupBy(pifs, pif => pif.$host)),
+    getPifsByIds: (ids: FrontXoPif['id'][]) => pifs.filter(pif => ids.includes(pif.id)),
+  })
+})
+
+type SelectProbe = { select: FormSelect }
+
+const SelectProbe = defineComponent({
+  props: { selectId: { type: Symbol, required: true } },
+  setup(props) {
+    return { select: inject(props.selectId as FormSelectId) }
+  },
+  render: () => null,
+})
+
+function mountVmMigrateForm(vm: FrontXoVm = createVm({ $pool: POOL_ID, $container: SOURCE_HOST_ID })) {
+  let form: ReturnType<typeof useVmMigrateForm> | undefined
+
+  const wrapper = mount(
+    defineComponent({
+      setup() {
+        form = useVmMigrateForm(vm)
+
+        const { hostSelectBindings, migrationNetworkSelectBindings } = form
+
+        return () => [
+          h(SelectProbe, { selectId: hostSelectBindings.value.id }),
+          h(SelectProbe, { selectId: migrationNetworkSelectBindings.value.id }),
+        ]
+      },
+    }),
+    { global: createGlobalTestConfig() }
+  )
+
+  const [hostProbe, networkProbe] = wrapper.findAllComponents(SelectProbe)
+
+  return {
+    form: form!,
+    hostSelect: (hostProbe!.vm as unknown as SelectProbe).select,
+    networkSelect: (networkProbe!.vm as unknown as SelectProbe).select,
+  }
+}
+
+describe('host select', () => {
+  it('lists the hosts of the selected pool, current host excluded', () => {
+    const { hostSelect } = mountVmMigrateForm()
+
+    expect(hostSelect.allOptions.value.map(option => option.id)).toEqual([TARGET_HOST_ID])
+  })
+})
+
+describe('migration network select', () => {
+  it('lists the pool networks with PIFs and selects the pool migration network until a host is selected', () => {
+    const { form, networkSelect } = mountVmMigrateForm()
+
+    expect(networkSelect.allOptions.value.map(option => option.id)).toEqual([
+      MANAGEMENT_NETWORK_ID,
+      MIGRATION_NETWORK_ID,
+      NO_IP_NETWORK_ID,
+    ])
+    expect(form.formData.migrationNetwork).toBe(MIGRATION_NETWORK_ID)
+    expect(networkSelect.selectedLabel.value).toBe('BackupNet')
+  })
+
+  it('clears the selection when switching to a pool without migration network', async () => {
+    const { form, networkSelect } = mountVmMigrateForm()
+
+    form.formData.pool = OTHER_POOL_ID
+    await nextTick()
+
+    expect(networkSelect.allOptions.value.map(option => option.id)).toEqual([OTHER_POOL_NETWORK_ID])
+    expect(form.formData.migrationNetwork).toBeUndefined()
+    expect(networkSelect.selectedLabel.value).toBe('')
+  })
+
+  it('lists the networks on which the selected host has a PIF with an IP', async () => {
+    const { form, networkSelect } = mountVmMigrateForm()
+
+    form.formData.host = TARGET_HOST_ID
+    await nextTick()
+
+    expect(networkSelect.allOptions.value.map(option => option.id)).toEqual([
+      MANAGEMENT_NETWORK_ID,
+      MIGRATION_NETWORK_ID,
+    ])
+  })
+
+  it('selects the pool migration network when the host is selected', async () => {
+    const { form, networkSelect } = mountVmMigrateForm()
+
+    form.formData.host = TARGET_HOST_ID
+    await nextTick()
+
+    expect(form.formData.migrationNetwork).toBe(MIGRATION_NETWORK_ID)
+    expect(networkSelect.selectedLabel.value).toBe('BackupNet')
+  })
+
+  it('falls back to the management network for an inter-pool migration', async () => {
+    const { form, networkSelect } = mountVmMigrateForm()
+
+    form.formData.pool = OTHER_POOL_ID
+    await nextTick()
+    form.formData.host = OTHER_POOL_HOST_ID
+    await nextTick()
+
+    expect(form.formData.migrationNetwork).toBe(OTHER_POOL_NETWORK_ID)
+    expect(networkSelect.selectedLabel.value).toBe('Other management')
+  })
+
+  it('shows the pool migration network in the info message as soon as the drawer opens', () => {
+    const { form } = mountVmMigrateForm()
+
+    expect(form.migrationNetworkSelectBindings.value.info).toEqual({
+      content: 'Your default network is BackupNet',
+      accent: 'info',
+    })
+  })
+
+  it('tells that no default network is configured when the selected pool has no migration network', async () => {
+    const { form } = mountVmMigrateForm()
+
+    form.formData.pool = OTHER_POOL_ID
+    await nextTick()
+    form.formData.host = OTHER_POOL_HOST_ID
+    await nextTick()
+
+    expect(form.migrationNetworkSelectBindings.value.info).toEqual({
+      content: 'No default network is configured.',
+      accent: 'info',
+    })
+  })
+})
+
+describe('validateAndBuildPayload', () => {
+  it('builds a payload with the host and the migration network', async () => {
+    const { form } = mountVmMigrateForm()
+
+    form.formData.host = TARGET_HOST_ID
+    await nextTick()
+
+    await expect(form.validateAndBuildPayload()).resolves.toEqual({
+      hostId: TARGET_HOST_ID,
+      migrationNetworkId: MIGRATION_NETWORK_ID,
+    })
+  })
+
+  it('accepts no migration network for an intra-pool migration', async () => {
+    const { form } = mountVmMigrateForm()
+
+    form.formData.host = TARGET_HOST_ID
+    await nextTick()
+    form.formData.migrationNetwork = undefined
+
+    await expect(form.validateAndBuildPayload()).resolves.toEqual({ hostId: TARGET_HOST_ID })
+  })
+
+  it('requires a migration network for an inter-pool migration', async () => {
+    const { form } = mountVmMigrateForm()
+
+    form.formData.pool = OTHER_POOL_ID
+    await nextTick()
+    form.formData.host = OTHER_POOL_HOST_ID
+    await nextTick()
+    form.formData.migrationNetwork = undefined
+
+    await expect(form.validateAndBuildPayload()).resolves.toBeUndefined()
+  })
+
+  it('builds no payload without a host', async () => {
+    const { form } = mountVmMigrateForm()
+
+    await expect(form.validateAndBuildPayload()).resolves.toBeUndefined()
+  })
+})
