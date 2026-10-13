@@ -68,6 +68,7 @@
 - [Replication] Fix `Cannot read properties of undefined (reading 'get')` error on continuous replication to multiple SRs (PR [#10519](https://github.com/vatesfr/xen-orchestra/pull/10519))
 - [Backup/NBD] Support NBD for pools reached through an HTTP proxy (e.g. an XO Proxy): NBD connections are now tunneled through the proxy instead of falling back to a stream export (PR [#10544](https://github.com/vatesfr/xen-orchestra/pull/10544))
 - [xo-cli] fix output failing when outputing a rest api answer (PR [#10541](https://github.com/vatesfr/xen-orchestra/pull/10541))
+- [XO5/Self Service] Fix removing a tag from a resource set removing all the other tags instead (PR [#10550](https://github.com/vatesfr/xen-orchestra/pull/10550))
 
 ### Packages to release
 
