@@ -375,7 +375,12 @@ export default class RemoteHandlerAbstract {
   }
 
   async __getLinkCount(file) {
-    return this._getLinkCount(normalizePath(file))
+    return this._getLinkCount(normalizePath(file)).catch(error => {
+      if (error.code === 'ENOENT') {
+        return 0
+      }
+      throw error
+    })
   }
 
   async getSizeOnDisk(file) {

@@ -409,13 +409,17 @@ export class HashedDiskDeduplicated extends HashedDisk {
     const current = basename(this.#loadedMetadata.hashesPath)
     for (const filename of await this.#handler.list(this.#loadedDataDir)) {
       if (filename !== current && /^hashes\..+\.hash$/.test(filename)) {
-        await this.#handler.unlink(join(this.#loadedDataDir, filename), { checksum: false }).catch(() => {})
+        await this.#handler
+          .unlink(join(this.#loadedDataDir, filename), { checksum: false })
+          .catch(error => warn('failed to clean a leftover file', { path: this.#path, filename, error }))
       }
     }
     if (this.#loadedMetadata.dedupType === 'PER_BACKUP_REPOSITORY') {
       const tmpDir = this.#tmpDir
       for (const filename of await this.#handler.list(tmpDir, { ignoreMissing: true })) {
-        await this.#handler.unlink(join(tmpDir, filename), { checksum: false }).catch(() => {})
+        await this.#handler
+          .unlink(join(tmpDir, filename), { checksum: false })
+          .catch(error => warn('failed to clean a leftover file', { path: this.#path, filename, error }))
       }
     }
   }
@@ -554,10 +558,11 @@ export class HashedDiskDeduplicated extends HashedDisk {
       await this.#handler.outputFile(tmp, Buffer.concat([buildBlockHeader(hash), data]), { flags: 'wx' })
       try {
         await this.#link(tmp, storePath)
+        await this.#link(storePath, blockPath)
       } finally {
         await this.#handler.unlink(tmp, { checksum: false })
       }
-      return await this.#link(storePath, blockPath)
+      return
     }
   }
 
@@ -609,13 +614,9 @@ export class HashedDiskDeduplicated extends HashedDisk {
       return this.#handler.unlink(blockPath, { checksum: false })
     } else {
       let nlink: number
-      try {
-        nlink = await this.#handler.getLinkCount(blockPath)
-      } catch (error: unknown) {
-        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-          return
-        }
-        throw error
+      nlink = await this.#handler.getLinkCount(blockPath)
+      if (nlink === 0) {
+        return // already removed
       }
       await this.#handler.unlink(blockPath, { checksum: false })
       if (nlink === 2) {
@@ -627,7 +628,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
   async #removeOrphanStoreCopy(hash: BlockHash): Promise<void> {
     // first, check /0
     const first = this.#storePath(hash)
-    if ((await this.#handler.getLinkCount(first).catch(() => 0)) === 1) {
+    if ((await this.#linkCount(first)) === 1) {
       return this.#handler.unlink(first, { checksum: false })
     }
     // if /0 copy is not used for this disk, check the other paths
@@ -637,10 +638,17 @@ export class HashedDiskDeduplicated extends HashedDisk {
         continue
       }
       const path = join(dir, name)
-      if ((await this.#handler.getLinkCount(path).catch(() => 0)) === 1) {
+      if ((await this.#linkCount(path)) === 1) {
         await this.#handler.unlink(path, { checksum: false })
       }
     }
+  }
+
+  async #linkCount(path: string): Promise<number> {
+    return this.#handler.getLinkCount(path).catch(error => {
+      warn('failed to read a store copy link count', { path, error })
+      return 0
+    })
   }
 
   #setHash(index: number, hash: BlockHash): void {

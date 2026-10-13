@@ -52,7 +52,8 @@ export async function scanBlockStore(
         await handler.unlink(path, { checksum: false })
       }
       return true
-    } catch {
+    } catch (error) {
+      logDebug('failed to check a store copy', { path, error })
       return false
     }
   }
