@@ -7,6 +7,7 @@
       </UiLink>
       <span v-if="slots.suffix" class="interpunct" />
       <slot name="suffix" />
+      <span v-if="extraCount && extraCount > 0" class="typo-body-regular-small extra-count">+{{ extraCount }}</span>
     </div>
   </UiTableCell>
 </template>
@@ -27,6 +28,7 @@ export type VtsLinkCellProps = LinkOptions & {
     icon: IconName
     tooltip?: string
   }
+  extraCount?: number
 }
 
 defineProps<VtsLinkCellProps>()
@@ -50,5 +52,10 @@ const slots = defineSlots<{
 
 .link {
   line-height: 1.5;
+}
+
+.extra-count {
+  margin-inline-start: auto;
+  color: var(--color-neutral-txt-secondary);
 }
 </style>

@@ -1368,6 +1368,7 @@
   "vm-management": "Gestion de la VM",
   "vm-name": "Nom de la VM",
   "vm-name-required": "Le nom de la VM est requis.",
+  "vm-not-found": "VM introuvable",
   "vm-not-running": "VM non démarrée",
   "vm-off": "Cette machine virtuelle est éteinte.",
   "vm-protected-deletion": "Cette VM est actuellement protégée contre la suppression.",
