@@ -10,7 +10,7 @@ import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
-export type BulkEditBackupRepositoryPayloads = Record<FrontXoBackupRepository['id'], EditBackupRepositoryPayload>
+export type BulkEditBackupRepositoryPayloads = Map<FrontXoBackupRepository['id'], EditBackupRepositoryPayload>
 
 export const useXoBackupRepositoryBulkEditJob = defineJob(
   'backup-repository.bulk-edit',
@@ -24,7 +24,7 @@ export const useXoBackupRepositoryBulkEditJob = defineJob(
       async run(brs: FrontXoBackupRepository[], payloads: BulkEditBackupRepositoryPayloads) {
         const results = await Promise.allSettled(
           brs.map(async br => {
-            await fetchPatch(`backup-repositories/${br.id}`, payloads[br.id])
+            await fetchPatch(`backup-repositories/${br.id}`, payloads.get(br.id))
 
             // Mount the BR once so the server records its immediate status (error or not)
             // A failure here must not fail the edition: the BR exists and its error is stored on it
@@ -62,7 +62,7 @@ export const useXoBackupRepositoryBulkEditJob = defineJob(
         }
 
         for (const br of brs) {
-          const payload = payloads[br.id]
+          const payload = payloads.get(br.id)
 
           if (payload === undefined) {
             throw new JobError(t('job:backup-repository-bulk-edit:missing-payload'))

@@ -36,7 +36,7 @@ export function useBackupRepositoryDetailsForms(
   initialData?: BackupRepositoryDetailsInitialData
 ) {
   const details = {
-    file: useLocalBackupRepositoryDetailsForm(() => generalFormData.proxy, initialData?.file),
+    file: useLocalBackupRepositoryDetailsForm(() => generalFormData.proxy ?? undefined, initialData?.file),
     nfs: useNfsBackupRepositoryDetailsForm(initialData?.nfs),
     smb: useSmbBackupRepositoryDetailsForm(initialData?.smb),
     s3: useS3BackupRepositoryDetailsForm(initialData?.s3),

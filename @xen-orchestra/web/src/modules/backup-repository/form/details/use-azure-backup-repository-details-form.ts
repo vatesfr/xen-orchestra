@@ -8,17 +8,23 @@ import type { BackupRepositoryType } from 'xo-remote-parser'
 
 export type AzureBackupRepositoryDetailsForm = ReturnType<typeof useAzureBackupRepositoryDetailsForm>
 
-const INITIAL_FORM_DATA = {
+export type AzureBackupRepositoryDetailsFormData = {
+  hostName: string
+  useHttps: boolean | undefined
+  accountName: string
+  key: string
+  containerName: string
+  pathInContainer: string
+}
+
+const INITIAL_FORM_DATA: AzureBackupRepositoryDetailsFormData = {
   hostName: '',
-  // undefined when the value differs between the BRs (multi-edition)
-  useHttps: true as boolean | undefined,
+  useHttps: true,
   accountName: '',
   key: '',
   containerName: '',
   pathInContainer: '',
 }
-
-export type AzureBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 
 export function buildAzureBackupRepositoryDetailsPayload(
   data: AzureBackupRepositoryDetailsFormData,

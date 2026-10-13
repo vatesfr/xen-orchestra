@@ -1,6 +1,7 @@
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import { useBackupRepositoryDetailsForms } from '@/modules/backup-repository/form/use-backup-repository-details-forms.ts'
 import {
+  BACKUP_REPOSITORY_FORM_MODE,
   type BackupRepositoryGeneralFormData,
   useBackupRepositoryGeneralForm,
 } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
@@ -25,7 +26,7 @@ export function useEditBackupRepositoryForm(rawBr: MaybeRefOrGetter<FrontXoBacku
       encrypted: parsedUrl.value?.encryptionKey !== undefined,
       encryptionKey: parsedUrl.value?.encryptionKey ?? '',
     }),
-    true
+    BACKUP_REPOSITORY_FORM_MODE.EDIT
   )
 
   const { details, currentDetailsForm } = useBackupRepositoryDetailsForms(

@@ -1,6 +1,6 @@
 import {
-  buildAzureBackupRepositoryDetailsPayload,
   type AzureBackupRepositoryDetailsFormData,
+  buildAzureBackupRepositoryDetailsPayload,
 } from '@/modules/backup-repository/form/details/use-azure-backup-repository-details-form.ts'
 import {
   buildLocalBackupRepositoryDetailsPayload,
@@ -23,8 +23,9 @@ import {
   useBackupRepositoryDetailsForms,
 } from '@/modules/backup-repository/form/use-backup-repository-details-forms.ts'
 import {
-  BLOCK_ONLY_TYPES,
+  BACKUP_REPOSITORY_FORM_MODE,
   type BackupRepositoryGeneralFormData,
+  BLOCK_ONLY_TYPES,
   useBackupRepositoryGeneralForm,
 } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import type { BulkEditBackupRepositoryPayloads } from '@/modules/backup-repository/jobs/xo-backup-repository-bulk-edit.job.ts'
@@ -80,7 +81,6 @@ function getChangedValues<TData extends Record<string, unknown>>(data: TData, mi
   ) as Partial<TData>
 }
 
-// Applies the changes on the details of the BR, then builds its URL info like the details form does
 function buildDetailsPayload(
   { br, parsedUrl }: InitialBr,
   changes: Record<string, unknown>
@@ -160,8 +160,8 @@ export function useEditBackupRepositoriesForm(rawBrs: MaybeRefOrGetter<FrontXoBa
       encryptionKey: '',
       ...general.data,
     }),
-    true,
-    { isVhdForbidden }
+    BACKUP_REPOSITORY_FORM_MODE.MULTI_EDIT,
+    isVhdForbidden
   )
 
   // Details can only be edited together when all the BRs have the same type
@@ -225,7 +225,7 @@ export function useEditBackupRepositoriesForm(rawBrs: MaybeRefOrGetter<FrontXoBa
     const detailsChanges =
       detailsForm === undefined ? {} : getChangedValues<Record<string, unknown>>(detailsForm.formData, t('mixed-value'))
 
-    return Object.fromEntries(initialBrs.map(initialBr => [initialBr.br.id, buildPayload(initialBr, detailsChanges)]))
+    return new Map(initialBrs.map(initialBr => [initialBr.br.id, buildPayload(initialBr, detailsChanges)]))
   }
 
   return {

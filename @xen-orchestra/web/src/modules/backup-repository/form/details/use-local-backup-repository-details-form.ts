@@ -26,7 +26,7 @@ export function buildLocalBackupRepositoryDetailsPayload(
 }
 
 export function useLocalBackupRepositoryDetailsForm(
-  rawProxy: MaybeRefOrGetter<FrontXoProxy['id'] | null | undefined>,
+  rawProxy: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>,
   initialData?: Partial<LocalBackupRepositoryDetailsFormData>
 ) {
   const proxy = toComputed(rawProxy)

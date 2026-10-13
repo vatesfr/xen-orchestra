@@ -6,19 +6,27 @@ import { useI18n } from 'vue-i18n'
 
 export type S3BackupRepositoryDetailsForm = ReturnType<typeof useS3BackupRepositoryDetailsForm>
 
-const INITIAL_FORM_DATA = {
+export type S3BackupRepositoryDetailsFormData = {
+  endpoint: string
+  useHttps: boolean | undefined
+  allowUnauthorized: boolean | undefined
+  region: string
+  accessKeyId: string
+  secret: string
+  bucket: string
+  pathInBucket: string
+}
+
+const INITIAL_FORM_DATA: S3BackupRepositoryDetailsFormData = {
   endpoint: '',
-  // undefined when the value differs between the BRs (multi-edition)
-  useHttps: false as boolean | undefined,
-  allowUnauthorized: false as boolean | undefined,
+  useHttps: false,
+  allowUnauthorized: false,
   region: '',
   accessKeyId: '',
   secret: '',
   bucket: '',
   pathInBucket: '',
 }
-
-export type S3BackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 
 export function buildS3BackupRepositoryDetailsPayload(
   data: S3BackupRepositoryDetailsFormData

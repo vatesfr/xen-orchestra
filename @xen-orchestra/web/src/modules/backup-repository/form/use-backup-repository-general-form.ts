@@ -4,7 +4,7 @@ import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-
 import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { regex, required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
-import { computed, type MaybeRefOrGetter, reactive, toValue, watch } from 'vue'
+import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BACKUP_REPOSITORY_TYPE, type BackupRepositoryType, type BackupRepositoryUrlOptions } from 'xo-remote-parser'
 
@@ -12,9 +12,7 @@ export type BackupRepositoryGeneralFormData = {
   name: string
   type: BackupRepositoryType | undefined
   backupFormat: XoBackupFormat | undefined
-  // In multi-edition, null is "None" and undefined is a value that differs between the BRs
   proxy: FrontXoProxy['id'] | null | undefined
-  // undefined when the value differs between the BRs (multi-edition)
   encrypted: boolean | undefined
   encryptionKey: string
 }
@@ -28,17 +26,21 @@ export const BLOCK_ONLY_TYPES: BackupRepositoryType[] = ['azure', 'azurite', 's3
 
 export type BackupRepositoryGeneralForm = ReturnType<typeof useBackupRepositoryGeneralForm>
 
-export type BackupRepositoryGeneralFormMultiEditConfig = {
-  // The VHD format is forbidden when one of the edited BRs requires the block format
-  isVhdForbidden: MaybeRefOrGetter<boolean>
-}
+export const BACKUP_REPOSITORY_FORM_MODE = {
+  CREATE: 'create',
+  EDIT: 'edit',
+  MULTI_EDIT: 'multi-edit',
+} as const
+
+export type BackupRepositoryFormMode = (typeof BACKUP_REPOSITORY_FORM_MODE)[keyof typeof BACKUP_REPOSITORY_FORM_MODE]
 
 export function useBackupRepositoryGeneralForm(
   formData: BackupRepositoryGeneralFormData,
-  isEditing = false,
-  multiEditConfig?: BackupRepositoryGeneralFormMultiEditConfig
+  mode: BackupRepositoryFormMode = BACKUP_REPOSITORY_FORM_MODE.CREATE,
+  isVhdForbidden = false
 ) {
-  const isMultiEdit = multiEditConfig !== undefined
+  const isEditing = mode !== BACKUP_REPOSITORY_FORM_MODE.CREATE
+  const isMultiEdit = mode === BACKUP_REPOSITORY_FORM_MODE.MULTI_EDIT
 
   const { t } = useI18n()
 
@@ -58,7 +60,6 @@ export function useBackupRepositoryGeneralForm(
       }),
       onSubmit: () => ({
         name: { required },
-        // In multi-edition, the type and the format can differ between the BRs
         type: isMultiEdit ? {} : { required },
         backupFormat: isMultiEdit ? {} : { required },
         encryptionKey: {
@@ -126,7 +127,7 @@ export function useBackupRepositoryGeneralForm(
       label: 'label',
       value: 'value',
       properties: source => ({ hint: source.hint }),
-      disabled: source => source.value === 'vhd' && toValue(multiEditConfig?.isVhdForbidden) === true,
+      disabled: source => source.value === 'vhd' && isVhdForbidden,
     },
   })
 
