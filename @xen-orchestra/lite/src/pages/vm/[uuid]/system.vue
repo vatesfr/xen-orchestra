@@ -35,7 +35,6 @@ import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import type { XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -52,5 +51,13 @@ const vm = computed(() => getByUuid(id.value))
 
 // POC: same VM, translated through xo-server's xapi-object-to-xo
 const { getXoObject } = useXoObjectGraph()
-const xoVm = computed(() => (vm.value === undefined ? undefined : (getXoObject(vm.value.$ref) as XoVm | undefined)))
+const xoVm = computed(() => {
+  if (vm.value === undefined) {
+    return undefined
+  }
+
+  const xoObject = getXoObject(vm.value.$ref)
+
+  return xoObject?.type === 'VM' ? xoObject : undefined
+})
 </script>

@@ -1,13 +1,9 @@
-// POC — feeds XO Lite's records to xo-server's xapi-object-to-xo.
-//
-// The transform expects xen-api's enriched objects, not raw records. Lite keeps
-// raw records in per-type Pinia stores, so this composable federates the stores
-// the VM path touches into the single `{ ref -> record }` registry that the
-// ported `_wrapRecord` needs, then re-wraps everything.
-//
-// Rebuilt whenever any of the underlying stores changes. That is fine for a
-// POC and obviously not fine for production — see the write-up.
+// POC — feeds XO Lite's records to xapi-object-to-xo, following the
+// performance rules of the migration plan: one lookup kept up to date from
+// XAPI events, translation on first read, and only the changed record plus
+// its dependents forgotten on each change.
 
+import type { ObjectType, RecordRef, XenApiRecord } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
@@ -21,58 +17,140 @@ import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
 import { useVmRawStore } from '@/stores/xen-api/vm-raw.store.ts'
 import { useVtpmStore } from '@/stores/xen-api/vtpm.store.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
-import { xapiObjectToXo } from '@xen-orchestra/xapi-object-to-xo'
+import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util.ts'
+import { type XoObjectOf, xapiObjectToXo } from '@xen-orchestra/xapi-object-to-xo'
 import { createXapiGraph } from '@xen-orchestra/xapi-object-to-xo/browser'
-import { computed } from 'vue'
+import { defineStore } from 'pinia'
+import { computed, shallowReactive, toRaw } from 'vue'
 
-export function useXoObjectGraph() {
+type AnyRecord = XenApiRecord<ObjectType>
+
+const useXoObjectGraphStore = defineStore('xo-object-graph', () => {
   const xenApiStore = useXenApiStore()
+  const xenApi = xenApiStore.getXapi()
 
-  // The XAPI type name each store holds, as the transform expects it
-  // (`TRANSFORMS` is keyed on a lowercased `$type`).
-  const sources = {
-    pool: usePoolStore().subscribe(),
-    host: useHostStore().subscribe(),
-    host_metrics: useHostMetricsStore().subscribe(),
-    vm: useVmRawStore().subscribe(),
-    vm_metrics: useVmMetricsStore().subscribe(),
-    vm_guest_metrics: useVmGuestMetricsStore().subscribe(),
-    vbd: useVbdStore().subscribe(),
-    vdi: useVdiStore().subscribe(),
-    sr: useSrStore().subscribe(),
-    vif: useVifStore().subscribe(),
-    network: useNetworkStore().subscribe(),
-    vtpm: useVtpmStore().subscribe(),
+  // Every store the VM translation reads, keyed by the XAPI type it holds
+  const storesByType = {
+    pool: usePoolStore(),
+    host: useHostStore(),
+    host_metrics: useHostMetricsStore(),
+    vm: useVmRawStore(),
+    vm_metrics: useVmMetricsStore(),
+    vm_guest_metrics: useVmGuestMetricsStore(),
+    vbd: useVbdStore(),
+    vdi: useVdiStore(),
+    sr: useSrStore(),
+    vif: useVifStore(),
+    network: useNetworkStore(),
+    vtpm: useVtpmStore(),
   }
 
-  const isReady = computed(() => Object.values(sources).every(source => source.isReady.value))
+  const types = Object.keys(storesByType) as (keyof typeof storesByType)[]
 
-  const graph = computed(() => {
-    const recordsByType: Record<string, Record<string, Record<string, unknown>>> = {}
+  const isReady = computed(() => types.every(type => storesByType[type].getContext().isReady.value))
 
-    for (const [type, source] of Object.entries(sources)) {
-      const byRef: Record<string, Record<string, unknown>> = {}
+  const createGraph = () => createXapiGraph({ call: (method, ...args) => xenApi.call(method, args) })
 
-      for (const record of source.records.value) {
-        byRef[record.$ref] = record as unknown as Record<string, unknown>
-      }
+  let graph = createGraph()
 
-      recordsByType[type] = byRef
+  const xoObjectsByRef = shallowReactive(new Map<string, unknown>())
+  const dependentRefsByRef = new Map<string, Set<string>>()
+
+  const forget = (opaqueRef: string) => {
+    xoObjectsByRef.delete(opaqueRef)
+
+    const dependentRefs = dependentRefsByRef.get(opaqueRef)
+
+    if (dependentRefs === undefined) {
+      return
     }
 
-    return createXapiGraph({
-      recordsByType,
-      call: (method, ...args) => xenApiStore.getXapi().call(method, args),
-    })
-  })
-
-  const getXapiObject = (opaqueRef: string) => graph.value.getObjectByRef(opaqueRef)
-
-  const getXoObject = (opaqueRef: string) => {
-    const xapiObject = graph.value.getObjectByRef(opaqueRef)
-
-    return xapiObject === undefined ? undefined : xapiObjectToXo(xapiObject)
+    dependentRefsByRef.delete(opaqueRef)
+    dependentRefs.forEach(dependentRef => xoObjectsByRef.delete(dependentRef))
   }
 
-  return { isReady, getXapiObject, getXoObject, graph }
+  const translate = (opaqueRef: string) => {
+    const xapiObject = graph.getObjectByRef(opaqueRef)
+
+    if (xapiObject === undefined) {
+      return undefined
+    }
+
+    const dependents: Record<string, string> = {}
+    const xoObject = xapiObjectToXo(xapiObject, dependents)
+
+    for (const dependencyRef of Object.keys(dependents)) {
+      const dependentRefs = dependentRefsByRef.get(dependencyRef) ?? new Set<string>()
+      dependentRefs.add(opaqueRef)
+      dependentRefsByRef.set(dependencyRef, dependentRefs)
+    }
+
+    return xoObject
+  }
+
+  const listeners = types.map(type => {
+    const onSet = (record: AnyRecord) => {
+      graph.setRecord(type, record.$ref, record)
+      forget(record.$ref)
+    }
+
+    const onLoad = (records: AnyRecord[]) => records.forEach(onSet)
+
+    const onDelete = (opaqueRef: string) => {
+      graph.deleteRecord(opaqueRef)
+      forget(opaqueRef)
+    }
+
+    return { type, onSet, onLoad, onDelete }
+  })
+
+  const onSubscribe = () => {
+    for (const { type, onSet, onLoad, onDelete } of listeners) {
+      xenApi.addEventListener(`${type}.afterLoad`, onLoad)
+      xenApi.addEventListener(`${type}.add`, onSet)
+      xenApi.addEventListener(`${type}.mod`, onSet)
+      xenApi.addEventListener(`${type}.del`, onDelete)
+
+      // A store loaded by an earlier subscriber will not emit `afterLoad` again
+      onLoad(storesByType[type].getContext().records.value)
+    }
+  }
+
+  const onUnsubscribe = () => {
+    for (const { type, onSet, onLoad, onDelete } of listeners) {
+      xenApi.removeEventListener(`${type}.afterLoad`, onLoad)
+      xenApi.removeEventListener(`${type}.add`, onSet)
+      xenApi.removeEventListener(`${type}.mod`, onSet)
+      xenApi.removeEventListener(`${type}.del`, onDelete)
+    }
+
+    graph = createGraph()
+    dependentRefsByRef.clear()
+    xoObjectsByRef.clear()
+  }
+
+  const getXoObject = <TType extends ObjectType>(opaqueRef: RecordRef<TType>) => {
+    if (!isReady.value) {
+      return undefined
+    }
+
+    if (!xoObjectsByRef.has(opaqueRef)) {
+      // Filling the cache is not a change: write past the proxy so readers
+      // are not re-triggered. `has` above already tracks this key.
+      toRaw(xoObjectsByRef).set(opaqueRef, translate(opaqueRef))
+    }
+
+    return xoObjectsByRef.get(opaqueRef) as XoObjectOf<TType> | undefined
+  }
+
+  const context = { isReady, getXoObject }
+
+  return createSubscribableStoreContext(
+    { context, onSubscribe, onUnsubscribe, isEnabled: () => xenApiStore.isConnected },
+    storesByType
+  )
+})
+
+export function useXoObjectGraph() {
+  return useXoObjectGraphStore().subscribe()
 }
