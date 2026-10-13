@@ -1,6 +1,6 @@
 /**
  * Old deep links: /xo5/installation#<anchor> used to cover the whole
- * "from the sources" guide, which now lives on /getting-started/install-from-sources.
+ * "from the sources" guide, which now lives on /setup-and-config/install-from-sources.
  * The client-redirects plugin preserves the hash when forwarding
  * /xo5/installation to /getting-started/installation; this module completes the trip
  * for the anchors that moved to the dedicated sources page.
@@ -26,15 +26,15 @@ const MOVED_TO_SOURCES = new Set([
  * the sections that went elsewhere.
  */
 const MOVED_FROM_XOA: Record<string, string> = {
-  firewall: '/getting-started/configuration#firewall',
-  timezone: '/configuration#timezone',
-  'setting-a-custom-ntp-server': '/configuration#setting-a-custom-ntp-server',
-  'restart-the-service': '/configuration#restart-the-service',
-  'technical-support': '/getting-started/troubleshooting#still-stuck',
-  'xoa-check': '/troubleshooting#first-reflex-xoa-check',
-  'support-tunnel': '/troubleshooting#support-tunnel',
-  'ssh-pro-support': '/troubleshooting#support-tunnel',
-  'migrate-from-an-older-xoa': '/getting-started/migrate_to_new_xoa',
+  firewall: '/setup-and-config/configuration#firewall',
+  timezone: '/setup-and-config/configuration#timezone',
+  'setting-a-custom-ntp-server': '/setup-and-config/configuration#setting-a-custom-ntp-server',
+  'restart-the-service': '/setup-and-config/configuration#restart-the-service',
+  'technical-support': '/support-and-reference/troubleshooting#still-stuck',
+  'xoa-check': '/support-and-reference/troubleshooting#first-reflex-xoa-check',
+  'support-tunnel': '/support-and-reference/troubleshooting#support-tunnel',
+  'ssh-pro-support': '/support-and-reference/troubleshooting#support-tunnel',
+  'migrate-from-an-older-xoa': '/setup-and-config/migrate_to_new_xoa',
 }
 
 /**
@@ -60,12 +60,12 @@ export function onRouteDidUpdate({ location }: { location: { pathname: string; h
   const path = location.pathname.replace(/\/+$/, '')
   const anchor = location.hash.replace(/^#/, '')
   if (path === '/getting-started/installation' && MOVED_TO_SOURCES.has(anchor)) {
-    window.location.replace(`/install-from-sources#${anchor}`)
+    window.location.replace(`/setup-and-config/install-from-sources#${anchor}`)
   }
   if (path === '/getting-started/installation' && MOVED_FROM_XOA[anchor] !== undefined) {
     window.location.replace(MOVED_FROM_XOA[anchor])
   }
-  if (path === '/support-and-licencing/support' && MOVED_TO_VATES_DOCS[anchor] !== undefined) {
+  if (path === '/support-and-reference/support' && MOVED_TO_VATES_DOCS[anchor] !== undefined) {
     window.location.replace(MOVED_TO_VATES_DOCS[anchor])
   }
 }

@@ -18,7 +18,7 @@ In the case of virtualization, you have multiple physical hosts, which run your 
 You may have heard about VMware DRS (Distributed Resource Scheduler). That's the same principle here, but for XCP-ng.
 :::
 
-The first goal is to adapt your VM placement in real time, without service interruption, depending on the load. Since Xen Orchestra is connected to [multiple pools](../getting-started/architecture.md#xo-server) and XCP-ng supports live storage motion, we can perform load balancing on a **whole XCP-ng infrastructure**, even between remote datacenters.
+The first goal is to adapt your VM placement in real time, without service interruption, depending on the load. Since Xen Orchestra is connected to [multiple pools](../core-concepts/architecture.md#xo-server) and XCP-ng supports live storage motion, we can perform load balancing on a **whole XCP-ng infrastructure**, even between remote datacenters.
 
 :::tip
 A load balancing policy is called a **plan**.
@@ -300,7 +300,7 @@ The global situation (resource usage) is examined **every minute**, and each run
 Every migration decided by the plugin is visible in the XO **Tasks** view, as a task named "Load balancer migrates VM …" whose description tells you the source, the destination and the *reason*: CPU over threshold for too long, CPU significantly higher than the pool average, vCPU balancing, affinity or anti-affinity satisfaction, or a density-plan host shutdown. Nothing moves silently.
 
 :::tip
-During a [Rolling Pool Update](./manage_infrastructure#rolling-pool-updates-rpu), the load balancer is automatically suspended, and re-enabled 30 minutes after the update completes, so the two features never fight over VM placement.
+During a [Rolling Pool Update](./infrastructure/manage_infrastructure#rolling-pool-updates-rpu), the load balancer is automatically suspended, and re-enabled 30 minutes after the update completes, so the two features never fight over VM placement.
 :::
 
 ### Advanced settings

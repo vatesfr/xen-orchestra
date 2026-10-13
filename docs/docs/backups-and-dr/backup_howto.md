@@ -23,9 +23,9 @@ This part explains the terminology of backup types and features.
   - Azurite
 - [**File restore**](./backup-features-and-settings.md#restore-a-file): A feature that allows you to restore individual files from a VM backup without restoring the full VM.
 - [**Full backup**](./backup-types/full_backups.md): Copies the entire VM to backup repositories each time, regardless of previous backups.
-- [**Full replication**](./backup-types/full_replication.md): Creates a replica of a VM on other storage repositories (on the same pool or on another) by copying it completely on each run.
+- [**Full replication**](../replication/full_replication.md): Creates a replica of a VM on other storage repositories (on the same pool or on another) by copying it completely on each run.
 - [**Incremental backup**](./backup-types/incremental_backups.md): Transfers and stores only the changes since the last backup to backup repositories, reducing storage and network needs. The first run transfers the VM completely.
-- [**Incremental replication**](./backup-types/incremental_replication.md): Transfers and stores only the changes since the last backup to storage repositories (on the same pool or on another), reducing network needs. The first run transfers the VM completely.
+- [**Incremental replication**](../replication/incremental_replication.md): Transfers and stores only the changes since the last backup to storage repositories (on the same pool or on another), reducing network needs. The first run transfers the VM completely.
 - [**Long-term retention**](./backup-features-and-settings.md#long-term-backup-retention-with-gfs-strategy): Keeps backups over extended periods (weeks, months, or years) for compliance or archival purposes.
 - [**Mirror backup**](./backup-types/mirror_backup.md): Mirror a backup repository to another. Retention and encryption of source and destination can be different.
 - [**Distributed backup and replication**](./scale-and-security/distributed_backups.md): Distribute the backups and replications across multiple targets.
@@ -73,8 +73,8 @@ Here is the whole toolbox at a glance. Most infrastructures combine several of t
 | [Rolling snapshots](./backup-types/rolling_snapshots.md)                | Instant restore points, on the same storage | SR space only               | Instant revert                   | Oops protection, before risky changes  |
 | [Full backup](./backup-types/full_backups.md)                           | Complete standalone archive on a BR         | High, every run             | Simple, anywhere                 | Small fleets, simplicity first         |
 | [Incremental backup](./backup-types/incremental_backups.md)             | Compact archives after the first full       | Low per run                 | Whole VM or single files         | The default choice for most VMs        |
-| [Full replication (DR)](./backup-types/full_replication.md)             | Boot-ready copy on another host/SR          | High, every run             | Start the copy                   | DR with a modest RPO                   |
-| [Incremental replication (CR)](./backup-types/incremental_replication.md) | Boot-ready copy, updated by deltas        | Low per run                 | Clone and start                  | Low-RPO DR for critical VMs            |
+| [Full replication (DR)](../replication/full_replication.md)             | Boot-ready copy on another host/SR          | High, every run             | Start the copy                   | DR with a modest RPO                   |
+| [Incremental replication (CR)](../replication/incremental_replication.md) | Boot-ready copy, updated by deltas        | Low per run                 | Clone and start                  | Low-RPO DR for critical VMs            |
 | [Mirror backup](./backup-types/mirror_backup.md)                        | A second copy of a backup repository        | Follows the source          | Same as the source backups       | 3-2-1 strategies, offsite archives     |
 | [Metadata backup](./backup-types/metadata_backup.md)                    | XO config and pool metadata                 | Tiny                        | Rebuild your orchestration       | Always: it protects the tool itself    |
 
