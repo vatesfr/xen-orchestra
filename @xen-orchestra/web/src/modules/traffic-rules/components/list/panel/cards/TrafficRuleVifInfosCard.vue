@@ -1,6 +1,6 @@
 <template>
   <UiPanelCard class="traffic-rule-vif-infos-card">
-    <UiCardTitle>{{ t('vif') }}</UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('vif')" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>
@@ -130,9 +130,9 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import type { TrafficRule } from '@vates/types'

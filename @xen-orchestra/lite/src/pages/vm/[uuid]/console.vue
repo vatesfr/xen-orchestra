@@ -92,7 +92,7 @@ const url = computed(() => {
     return
   }
   const _url = new URL(vmConsole.value!.location)
-  _url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  _url.protocol = new URL(xenApiStore.getXapi().hostUrl).protocol === 'https:' ? 'wss:' : 'ws:'
   _url.searchParams.set('session_id', xenApiStore.currentSessionId)
   return _url
 })

@@ -9,12 +9,12 @@
           </span>
         </template>
       </VtsKeyValueRow>
-      <VtsKeyValueRow :label="t('ip-address')" :value="mainIpAddress" />
+      <VtsKeyValueRow :label="t('ip-address')" :value="mainIpAddress" copy />
       <VtsKeyValueRow :label="t('created-on')" :value="installDateFormatted" />
       <VtsKeyValueRow :label="t('started')" :value="relativeStartTime" />
     </VtsKeyValueList>
     <VtsKeyValueList>
-      <VtsKeyValueRow :label="t('uuid')" :value="vm.uuid" />
+      <VtsKeyValueRow :label="t('uuid')" :value="vm.uuid" copy />
       <VtsKeyValueRow :label="t('host')">
         <template #value>
           <UiLink

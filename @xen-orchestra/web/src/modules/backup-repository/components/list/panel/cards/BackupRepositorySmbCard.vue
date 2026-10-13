@@ -1,6 +1,6 @@
 <template>
   <UiPanelCard class="backup-repository-smb-card">
-    <UiCardTitle>{{ t('smb') }}</UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('smb')" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('path-on-share') }}</template>
@@ -46,8 +46,8 @@
 import { formatMountOptions, MASKED_SECRET } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ParsedSmbBackupRepositoryUrl } from 'xo-remote-parser'
