@@ -408,12 +408,11 @@ export class HashedDiskDeduplicated extends HashedDisk {
   }
 
   async mergeBlock(childDisk: HashedDiskDeduplicated, index: number, isResumingMerge: boolean): Promise<number> {
-    const childHash = childDisk.getBlockHashAt(index)
-    const parentHash = this.getBlockHashAt(index)
-
-    if (parentHash === childHash) {
+    if (this.#loadedBat.sameAt(index, childDisk.#loadedBat, index)) {
       return 0
     }
+
+    const childHash = childDisk.getBlockHashAt(index)
 
     await this.#link(childDisk.#blockPath(childHash), this.#blockPath(childHash))
 
@@ -526,7 +525,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
     }
     const childBat = childDisk.#loadedBat
     for (const index of childBat.indexes()) {
-      if (this.#loadedBat.hashAt(index) !== childBat.hashAt(index)) {
+      if (!this.#loadedBat.sameAt(index, childBat, index)) {
         await this.mergeBlock(childDisk, index, true)
       }
     }
