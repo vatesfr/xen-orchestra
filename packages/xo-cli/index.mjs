@@ -659,7 +659,14 @@ async function call(args) {
         url = new URL(result[key], baseUrl)
 
         const length = file === '-' ? undefined : (await stat(file)).size
-        const input = pipeline(file === '-' ? process.stdin : createReadStream(file), streamStatsPrinter(length), noop)
+        const input = pipeline(
+          file === '-' ? process.stdin : createReadStream(file),
+          streamStatsPrinter(length),
+          // progress-stream is built on readable-stream@2, which is not async iterable, so fetch would send
+          // "[object Object]" instead of the content: end the pipeline with a native stream
+          new PassThrough(),
+          noop
+        )
 
         const response = await fetch(url, {
           dispatcher,
