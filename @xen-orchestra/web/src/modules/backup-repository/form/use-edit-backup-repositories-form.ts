@@ -48,16 +48,15 @@ type InitialBr = {
 }
 
 // Keeps the values shared by all the items, and lists the fields whose values differ.
-// The text fields whose values differ get mixedValue (all the string fields by default), the other ones get undefined
-function mergeValues<TData extends Record<string, unknown>>(
-  items: TData[],
+function mergeValues<TFormData extends Record<string, unknown>>(
+  items: TFormData[],
   mixedValue: string,
-  textFields?: (keyof TData)[]
+  textFields?: (keyof TFormData)[]
 ) {
-  const data: Partial<TData> = {}
-  const mixedFields: (keyof TData)[] = []
+  const data: Partial<TFormData> = {}
+  const mixedFields: (keyof TFormData)[] = []
 
-  for (const field of Object.keys(items[0] ?? {}) as (keyof TData)[]) {
+  for (const field of Object.keys(items[0] ?? {}) as (keyof TFormData)[]) {
     const values = items.map(item => item[field])
 
     if (new Set(values).size > 1) {
@@ -65,20 +64,20 @@ function mergeValues<TData extends Record<string, unknown>>(
 
       data[field] = (
         (textFields?.includes(field) ?? typeof values[0] === 'string') ? mixedValue : undefined
-      ) as TData[keyof TData]
+      ) as TFormData[keyof TFormData]
     } else {
       data[field] = values[0]
     }
   }
 
+  console.log(data, mixedFields)
+
   return { data, mixedFields }
 }
 
 // Keeps the values to apply to all the items: the ones left mixed don't change on each item
-function getChangedValues<TData extends Record<string, unknown>>(data: TData, mixedValue: string): Partial<TData> {
-  return Object.fromEntries(
-    Object.entries(data).filter(([, value]) => value !== mixedValue && value !== undefined)
-  ) as Partial<TData>
+function getChangedValues(formData: Record<string, unknown>, mixedValue: string) {
+  return Object.fromEntries(Object.entries(formData).filter(([, value]) => value !== mixedValue && value !== undefined))
 }
 
 function buildDetailsPayload(
@@ -126,10 +125,8 @@ export function useEditBackupRepositoriesForm(rawBrs: MaybeRefOrGetter<FrontXoBa
 
   const hasMixedTypes = computed(() => new Set(brs.value.map(br => parseBackupRepositoryUrl(br.url).type)).size > 1)
 
-  // The form is initialized once from the BRs selected when it is opened
   const initialBrs: InitialBr[] = brs.value.map(br => ({ br, parsedUrl: parseBackupRepositoryUrl(br.url) }))
 
-  // VHD can't be used by block-only types nor by encrypted BRs, and the encryption can't be changed
   const isVhdForbidden = initialBrs.some(
     ({ parsedUrl }) =>
       (parsedUrl.type !== undefined && BLOCK_ONLY_TYPES.includes(parsedUrl.type)) ||
@@ -141,10 +138,7 @@ export function useEditBackupRepositoriesForm(rawBrs: MaybeRefOrGetter<FrontXoBa
       name: br.name,
       type: parsedUrl.type,
       backupFormat: parsedUrl.useVhdDirectory ? ('block' as const) : ('vhd' as const),
-      // null is "None", so a proxy shared by all the BRs is not taken for a mixed one
       proxy: br.proxy ?? null,
-      encrypted: parsedUrl.encryptionKey !== undefined,
-      encryptionKey: parsedUrl.encryptionKey ?? '',
     })),
     t('mixed-value'),
     ['name']
@@ -164,7 +158,6 @@ export function useEditBackupRepositoriesForm(rawBrs: MaybeRefOrGetter<FrontXoBa
     isVhdForbidden
   )
 
-  // Details can only be edited together when all the BRs have the same type
   const detailsType = general.data.type === 'azurite' ? 'azure' : general.data.type
 
   const details =
@@ -222,8 +215,7 @@ export function useEditBackupRepositoriesForm(rawBrs: MaybeRefOrGetter<FrontXoBa
       return undefined
     }
 
-    const detailsChanges =
-      detailsForm === undefined ? {} : getChangedValues<Record<string, unknown>>(detailsForm.formData, t('mixed-value'))
+    const detailsChanges = detailsForm === undefined ? {} : getChangedValues(detailsForm.formData, t('mixed-value'))
 
     return new Map(initialBrs.map(initialBr => [initialBr.br.id, buildPayload(initialBr, detailsChanges)]))
   }

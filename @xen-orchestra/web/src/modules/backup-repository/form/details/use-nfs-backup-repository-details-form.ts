@@ -18,16 +18,16 @@ const INITIAL_FORM_DATA = {
 export type NfsBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 
 export function buildNfsBackupRepositoryDetailsPayload(
-  data: NfsBackupRepositoryDetailsFormData
+  formData: NfsBackupRepositoryDetailsFormData
 ): BackupRepositoryDetailsPayload {
   return {
     urlInfo: {
       type: 'nfs',
-      host: data.host,
-      port: data.port !== '' ? data.port : NFS_DEFAULT_PORT,
-      path: data.path,
+      host: formData.host,
+      port: formData.port !== '' ? formData.port : NFS_DEFAULT_PORT,
+      path: formData.path,
     },
-    ...(data.customOptions !== '' && { options: data.customOptions }),
+    ...(formData.customOptions !== '' && { options: formData.customOptions }),
   }
 }
 

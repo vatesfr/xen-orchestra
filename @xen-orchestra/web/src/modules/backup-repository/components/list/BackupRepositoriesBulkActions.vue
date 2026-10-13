@@ -19,7 +19,12 @@ const { brs } = defineProps<{
 
 const { t } = useI18n()
 
-const { openEditBackupRepositoriesDrawer } = useEditBackupRepository()
+const {
+  openEditBackupRepositoriesDrawer,
+  canEditBackupRepositories,
+  isEditingBackupRepositories,
+  editBackupRepositoriesErrorMessage,
+} = useEditBackupRepository(() => brs)
 
 const {
   run: connectBackupRepositories,
@@ -91,9 +96,10 @@ const bulkActions = computed<ActionItem[]>(() => [
   {
     label: t('action:edit'),
     icon: 'action:edit',
-    onClick: () => openEditBackupRepositoriesDrawer(brs),
-    disabled: brs.length === 0,
-    hint: noBrSelectedHint.value,
+    onClick: () => openEditBackupRepositoriesDrawer(),
+    disabled: !canEditBackupRepositories.value,
+    busy: isEditingBackupRepositories.value,
+    hint: noBrSelectedHint.value ?? editBackupRepositoriesErrorMessage.value,
   },
   {
     label: t('action:test-speed'),

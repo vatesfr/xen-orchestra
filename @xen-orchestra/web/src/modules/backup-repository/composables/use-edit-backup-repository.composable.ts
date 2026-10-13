@@ -11,22 +11,28 @@ import {
   useXoBackupRepositoryCollection,
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
-import { ref } from 'vue'
+import { toComputed } from '@core/utils/to-computed.util.ts'
+import { type MaybeRefOrGetter, ref } from 'vue'
 
-export function useEditBackupRepository() {
+export function useEditBackupRepository(rawBrs: MaybeRefOrGetter<FrontXoBackupRepository[]> = []) {
   const br = ref<FrontXoBackupRepository>()
 
   const payload = ref<EditBackupRepositoryPayload>()
 
   const { $context } = useXoBackupRepositoryCollection()
 
-  const { run } = useXoBackupRepositoryEditJob(br, payload)
+  const { run: runEdit } = useXoBackupRepositoryEditJob(br, payload)
 
-  const brs = ref<FrontXoBackupRepository[]>([])
+  const brs = toComputed(rawBrs)
 
   const payloads = ref<BulkEditBackupRepositoryPayloads>()
 
-  const { run: runBulkEdit } = useXoBackupRepositoryBulkEditJob(brs, payloads)
+  const {
+    run: runBulkEdit,
+    canRun: canEditBackupRepositories,
+    isRunning: isEditingBackupRepositories,
+    errorMessage: editBackupRepositoriesErrorMessage,
+  } = useXoBackupRepositoryBulkEditJob(brs, payloads)
 
   const { open } = useOverlay({
     component: () => import('@/modules/backup-repository/components/drawer/EditBackupRepositoryDrawer.vue'),
@@ -35,7 +41,7 @@ export function useEditBackupRepository() {
         payload.value = newPayload
 
         try {
-          await run()
+          await runEdit()
 
           // Force reload while waiting for reactivity to be implemented for XO objects (XO-1013)
           $context.forceReload()
@@ -69,20 +75,21 @@ export function useEditBackupRepository() {
     return open({ props: { br: newBr } })
   }
 
-  function openEditBackupRepositoriesDrawer(newBrs: FrontXoBackupRepository[]) {
-    const [firstBr] = newBrs
+  function openEditBackupRepositoriesDrawer() {
+    const [firstBr] = brs.value
 
-    if (newBrs.length === 1 && firstBr !== undefined) {
+    if (brs.value.length === 1 && firstBr !== undefined) {
       return openEditBackupRepositoryDrawer(firstBr)
     }
 
-    brs.value = newBrs
-
-    return openMultiEdit({ props: { brs: newBrs } })
+    return openMultiEdit({ props: { brs: brs.value } })
   }
 
   return {
     openEditBackupRepositoryDrawer,
     openEditBackupRepositoriesDrawer,
+    canEditBackupRepositories,
+    isEditingBackupRepositories,
+    editBackupRepositoriesErrorMessage,
   }
 }

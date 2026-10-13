@@ -20,18 +20,18 @@ const INITIAL_FORM_DATA = {
 export type SmbBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 
 export function buildSmbBackupRepositoryDetailsPayload(
-  data: SmbBackupRepositoryDetailsFormData
+  formData: SmbBackupRepositoryDetailsFormData
 ): BackupRepositoryDetailsPayload {
   return {
     urlInfo: {
       type: 'smb',
-      host: data.pathOnShare,
-      path: data.subfolder,
-      domain: data.domain !== '' ? data.domain : SMB_DEFAULT_DOMAIN,
-      username: data.username,
-      password: data.password,
+      host: formData.pathOnShare,
+      path: formData.subfolder,
+      domain: formData.domain !== '' ? formData.domain : SMB_DEFAULT_DOMAIN,
+      username: formData.username,
+      password: formData.password,
     },
-    ...(data.customOptions !== '' && { options: data.customOptions }),
+    ...(formData.customOptions !== '' && { options: formData.customOptions }),
   }
 }
 

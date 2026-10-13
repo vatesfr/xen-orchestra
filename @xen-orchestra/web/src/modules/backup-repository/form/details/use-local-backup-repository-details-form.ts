@@ -15,12 +15,12 @@ const INITIAL_FORM_DATA = {
 export type LocalBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 
 export function buildLocalBackupRepositoryDetailsPayload(
-  data: LocalBackupRepositoryDetailsFormData
+  formData: LocalBackupRepositoryDetailsFormData
 ): BackupRepositoryDetailsPayload {
   return {
     urlInfo: {
       type: 'file',
-      path: data.path,
+      path: formData.path,
     },
   }
 }

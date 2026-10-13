@@ -6,21 +6,10 @@ import { useI18n } from 'vue-i18n'
 
 export type S3BackupRepositoryDetailsForm = ReturnType<typeof useS3BackupRepositoryDetailsForm>
 
-export type S3BackupRepositoryDetailsFormData = {
-  endpoint: string
-  useHttps: boolean | undefined
-  allowUnauthorized: boolean | undefined
-  region: string
-  accessKeyId: string
-  secret: string
-  bucket: string
-  pathInBucket: string
-}
-
-const INITIAL_FORM_DATA: S3BackupRepositoryDetailsFormData = {
+const INITIAL_FORM_DATA = {
   endpoint: '',
-  useHttps: false,
-  allowUnauthorized: false,
+  useHttps: false as boolean | undefined,
+  allowUnauthorized: false as boolean | undefined,
   region: '',
   accessKeyId: '',
   secret: '',
@@ -28,19 +17,21 @@ const INITIAL_FORM_DATA: S3BackupRepositoryDetailsFormData = {
   pathInBucket: '',
 }
 
+export type S3BackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
+
 export function buildS3BackupRepositoryDetailsPayload(
-  data: S3BackupRepositoryDetailsFormData
+  formData: S3BackupRepositoryDetailsFormData
 ): BackupRepositoryDetailsPayload {
   return {
     urlInfo: {
       type: 's3',
-      protocol: data.useHttps ? 'https' : 'http',
-      host: data.endpoint,
-      path: `${data.bucket}/${data.pathInBucket}`,
-      region: data.region,
-      username: data.accessKeyId,
-      password: data.secret,
-      ...(data.allowUnauthorized && { allowUnauthorized: true }),
+      protocol: formData.useHttps ? 'https' : 'http',
+      host: formData.endpoint,
+      path: `${formData.bucket}/${formData.pathInBucket}`,
+      region: formData.region,
+      username: formData.accessKeyId,
+      password: formData.secret,
+      ...(formData.allowUnauthorized && { allowUnauthorized: true }),
     },
   }
 }

@@ -13,7 +13,7 @@ export type BackupRepositoryGeneralFormData = {
   type: BackupRepositoryType | undefined
   backupFormat: XoBackupFormat | undefined
   proxy: FrontXoProxy['id'] | null | undefined
-  encrypted: boolean | undefined
+  encrypted: boolean
   encryptionKey: string
 }
 

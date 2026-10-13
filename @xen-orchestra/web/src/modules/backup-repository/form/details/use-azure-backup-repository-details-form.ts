@@ -8,36 +8,29 @@ import type { BackupRepositoryType } from 'xo-remote-parser'
 
 export type AzureBackupRepositoryDetailsForm = ReturnType<typeof useAzureBackupRepositoryDetailsForm>
 
-export type AzureBackupRepositoryDetailsFormData = {
-  hostName: string
-  useHttps: boolean | undefined
-  accountName: string
-  key: string
-  containerName: string
-  pathInContainer: string
-}
-
-const INITIAL_FORM_DATA: AzureBackupRepositoryDetailsFormData = {
+const INITIAL_FORM_DATA = {
   hostName: '',
-  useHttps: true,
+  useHttps: true as boolean | undefined,
   accountName: '',
   key: '',
   containerName: '',
   pathInContainer: '',
 }
 
+export type AzureBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
+
 export function buildAzureBackupRepositoryDetailsPayload(
-  data: AzureBackupRepositoryDetailsFormData,
+  formData: AzureBackupRepositoryDetailsFormData,
   type: BackupRepositoryType | undefined
 ): BackupRepositoryDetailsPayload {
   return {
     urlInfo: {
       type: type === 'azurite' ? 'azurite' : 'azure',
-      protocol: data.useHttps ? 'https' : 'http',
-      host: data.hostName,
-      path: `${data.containerName}/${data.pathInContainer}`,
-      username: data.accountName,
-      password: data.key,
+      protocol: formData.useHttps ? 'https' : 'http',
+      host: formData.hostName,
+      path: `${formData.containerName}/${formData.pathInContainer}`,
+      username: formData.accountName,
+      password: formData.key,
     },
   }
 }

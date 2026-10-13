@@ -8,7 +8,6 @@ import {
 import { fetchGet, fetchPatch } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
-import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 export type BulkEditBackupRepositoryPayloads = Map<FrontXoBackupRepository['id'], EditBackupRepositoryPayload>
 
@@ -21,7 +20,11 @@ export const useXoBackupRepositoryBulkEditJob = defineJob(
     const { $context } = useXoBackupRepositoryCollection()
 
     return {
-      async run(brs: FrontXoBackupRepository[], payloads: BulkEditBackupRepositoryPayloads) {
+      async run(brs: FrontXoBackupRepository[], payloads: BulkEditBackupRepositoryPayloads | undefined) {
+        if (payloads === undefined || brs.some(br => !payloads.has(br.id))) {
+          throw new JobError(t('job:backup-repository-bulk-edit:missing-payload'))
+        }
+
         const results = await Promise.allSettled(
           brs.map(async br => {
             await fetchPatch(`backup-repositories/${br.id}`, payloads.get(br.id))
@@ -44,47 +47,13 @@ export const useXoBackupRepositoryBulkEditJob = defineJob(
         return results
       },
 
-      validate(
-        isRunning,
-        brs: FrontXoBackupRepository[] | undefined,
-        payloads: BulkEditBackupRepositoryPayloads | undefined
-      ) {
+      validate(isRunning, brs: FrontXoBackupRepository[] | undefined) {
         if (!brs || brs.length === 0) {
           throw new JobError(t('job:backup-repository-bulk-edit:missing-backup-repository'))
         }
 
         if (isRunning) {
           throw new JobRunningError(t('job:backup-repository-bulk-edit:in-progress'))
-        }
-
-        if (payloads === undefined) {
-          throw new JobError(t('job:backup-repository-bulk-edit:missing-payload'))
-        }
-
-        for (const br of brs) {
-          const payload = payloads.get(br.id)
-
-          if (payload === undefined) {
-            throw new JobError(t('job:backup-repository-bulk-edit:missing-payload'))
-          }
-
-          if (payload.name === '') {
-            throw new JobError(t('job:backup-repository-bulk-edit:name-required'))
-          }
-
-          if (payload.url === '') {
-            throw new JobError(t('job:backup-repository-bulk-edit:url-required'))
-          }
-
-          const brInfo = parseBackupRepositoryUrl(payload.url)
-
-          if (brInfo.encryptionKey !== parseBackupRepositoryUrl(br.url).encryptionKey) {
-            throw new JobError(t('job:backup-repository-bulk-edit:encryption-key-locked'))
-          }
-
-          if (brInfo.encryptionKey !== undefined && brInfo.useVhdDirectory !== true) {
-            throw new JobError(t('job:backup-repository-bulk-edit:encryption-requires-block'))
-          }
         }
       },
     }
