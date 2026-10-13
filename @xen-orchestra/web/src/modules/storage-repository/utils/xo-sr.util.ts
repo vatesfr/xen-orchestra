@@ -27,10 +27,6 @@ export function getSrCustomFields(sr: FrontXoSr): Record<string, string> {
   }, {})
 }
 
-export function compareSrDescriptions(sr1: FrontXoSr, sr2: FrontXoSr) {
-  return compareStrings(sr1.name_description, sr2.name_description)
-}
-
 export function compareSrFormats(sr1: FrontXoSr, sr2: FrontXoSr) {
   return compareStrings(sr1.SR_type, sr2.SR_type)
 }

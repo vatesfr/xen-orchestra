@@ -13,6 +13,7 @@
 - [Treeview] Press Ctrl+K (Cmd+K on macOS) to focus the treeview search (PR [#10492](https://github.com/vatesfr/xen-orchestra/pull/10492))
 - [Pool] Fix connection, stats and consoles when overriding the pool master with `?master=`: use HTTPS by default instead of the protocol and port of the page (PR [#9955](https://github.com/vatesfr/xen-orchestra/pull/9955))
 - [Pool/Host/VM] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
+- [Table] Tables can be sorted by clicking a column header
 
 ## **0.26.0** (2026-10-01)
 

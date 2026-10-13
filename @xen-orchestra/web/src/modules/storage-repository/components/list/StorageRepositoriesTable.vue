@@ -35,7 +35,6 @@ import {
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import {
   compareSrAccessModes,
-  compareSrDescriptions,
   compareSrFormats,
   compareSrUsages,
   getSrPageLocation,
@@ -52,6 +51,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
+import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
 import { computed } from 'vue'
@@ -187,7 +187,7 @@ const { HeadCells, BodyCells, sortItems } = useSrColumns({
   },
   sort: {
     storageRepository: sortByNameLabel,
-    description: compareSrDescriptions,
+    description: sortByNameDescription,
     storageFormat: compareSrFormats,
     accessMode: compareSrAccessModes,
     usedSpace: compareSrUsages,

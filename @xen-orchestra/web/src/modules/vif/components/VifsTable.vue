@@ -43,6 +43,7 @@ import { type ActionItem } from '@core/tables/column-definitions/action-column.t
 import { useVifNetworkColumns } from '@core/tables/column-sets/vif-network-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { CONNECTION_ACTION, CONNECTION_STATUS } from '@core/types/connection.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
@@ -93,9 +94,7 @@ const getIpAddresses = (vif: FrontXoVif) => {
   return getUniqueIpAddressesForDevice(addresses, vif.device)
 }
 
-const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs', filteredVifs)
-
-const { HeadCells, BodyCells } = useVifNetworkColumns({
+const { HeadCells, BodyCells, sortItems } = useVifNetworkColumns({
   body: (vif: FrontXoVif) => {
     const ipAddresses = computed(() => getIpAddresses(vif))
 
@@ -183,7 +182,20 @@ const { HeadCells, BodyCells } = useVifNetworkColumns({
         }),
     }
   },
+  sort: {
+    network: (vif1, vif2) => compareStrings(getNetworkName(vif1), getNetworkName(vif2)),
+    device: (vif1, vif2) => compareStrings(vif1.device, vif2.device),
+    status: (vif1, vif2) => Number(vif1.attached) - Number(vif2.attached),
+    ipsAddresses: (vif1, vif2) => compareStrings(getIpAddresses(vif1)[0] ?? '', getIpAddresses(vif2)[0] ?? ''),
+    macAddresses: (vif1, vif2) => compareStrings(vif1.MAC, vif2.MAC),
+    mtu: (vif1, vif2) => vif1.MTU - vif2.MTU,
+    lockingMode: (vif1, vif2) => compareStrings(vif1.lockingMode, vif2.lockingMode),
+  },
 })
+
+const sortedVifs = computed(() => sortItems(filteredVifs.value))
+
+const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs', sortedVifs)
 </script>
 
 <style scoped lang="postcss">

@@ -1,7 +1,6 @@
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import {
   compareSrAccessModes,
-  compareSrDescriptions,
   compareSrFormats,
   compareSrUsages,
 } from '@/modules/storage-repository/utils/xo-sr.util.ts'
@@ -10,27 +9,6 @@ import { createSr } from '@/test/create-sr.ts'
 function sortSrLabels(srs: FrontXoSr[], compareFn: (sr1: FrontXoSr, sr2: FrontXoSr) => number) {
   return [...srs].sort(compareFn).map(sr => sr.name_label)
 }
-
-describe('compareSrDescriptions', () => {
-  it('orders storage repositories alphabetically by description', () => {
-    const srs = [
-      createSr({ name_label: 'Backups SR', name_description: 'Backups' }),
-      createSr({ name_label: 'ISO SR', name_description: 'ISO images' }),
-      createSr({ name_label: 'Archives SR', name_description: 'Archives' }),
-    ]
-
-    expect(sortSrLabels(srs, compareSrDescriptions)).toEqual(['Archives SR', 'Backups SR', 'ISO SR'])
-  })
-
-  it('orders numbers inside descriptions numerically', () => {
-    const srs = [
-      createSr({ name_label: 'Disk 10 SR', name_description: 'Disk 10' }),
-      createSr({ name_label: 'Disk 2 SR', name_description: 'Disk 2' }),
-    ]
-
-    expect(sortSrLabels(srs, compareSrDescriptions)).toEqual(['Disk 2 SR', 'Disk 10 SR'])
-  })
-})
 
 describe('compareSrFormats', () => {
   it('orders storage repositories alphabetically by storage format', () => {

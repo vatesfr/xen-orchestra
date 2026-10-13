@@ -37,6 +37,9 @@ import { icon } from '@core/icons'
 import { useHostColumns } from '@core/tables/column-sets/host-columns.ts'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
+import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { logicAnd, logicNot, logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -74,8 +77,6 @@ const state = useTableState({
     rawHosts.length === 0 ? t('no-host-detected') : filteredHosts.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', filteredHosts)
-
 const { getPbdsInScope } = useGetPbdsInScope()
 
 function getSrConnectionStatus(sr: FrontXoSr, host: FrontXoHost) {
@@ -95,7 +96,7 @@ function getMasterIcon(host: FrontXoHost) {
   }
 }
 
-const { HeadCells, BodyCells } = useHostColumns({
+const { HeadCells, BodyCells, sortItems } = useHostColumns({
   exclude: sr === undefined ? ['checkbox', 'srStatus'] : ['checkbox'],
   body: (host: FrontXoHost) => {
     const ipAddresses = computed(() => getHostIpAddresses(host.address, pifsByHost.value.get(host.id)))
@@ -120,7 +121,16 @@ const { HeadCells, BodyCells } = useHostColumns({
       selectItem: r => r(() => (selectedHostId.value = host.id)),
     }
   },
+  sort: {
+    host: sortByNameLabel,
+    description: sortByNameDescription,
+    ipAddresses: (host1, host2) => compareStrings(host1.address, host2.address),
+  },
 })
+
+const sortedHosts = computed(() => sortItems(filteredHosts.value))
+
+const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', sortedHosts)
 </script>
 
 <style scoped lang="postcss">

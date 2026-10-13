@@ -43,7 +43,7 @@
   - `POST /rest/v0/hosts/:id/actions/probe_nfs_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
  - [XO5/Host/Patches] Warn when installing patches on a host while its pool master is not up to date (PR [#10523](https://github.com/vatesfr/xen-orchestra/pull/10523))
 - [XO6] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
-- [XO6/Pool/Host/Storage] Storage repositories table can be sorted by clicking a column header
+- [XO6] Tables can be sorted by clicking a column header
 
 ### Bug fixes
 

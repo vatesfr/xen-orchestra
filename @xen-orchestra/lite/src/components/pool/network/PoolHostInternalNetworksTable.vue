@@ -31,6 +31,7 @@
 <script setup lang="ts">
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
 import NetworkDeleteButton from '@/modules/network/components/actions/delete/NetworkDeleteButton.vue'
+import { compareNetworkLockingModes, compareNetworkMtus } from '@/modules/network/utils/network.util.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -40,6 +41,8 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
+import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -74,8 +77,6 @@ const filteredNetworks = computed(() => {
   )
 })
 
-const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('internal-networks', filteredNetworks)
-
 const state = useTableState({
   busy: logicNot(isReady),
   error: hasError,
@@ -87,7 +88,7 @@ const state = useTableState({
         : false,
 })
 
-const { HeadCells, BodyCells } = useNetworkColumns({
+const { HeadCells, BodyCells, sortItems } = useNetworkColumns({
   exclude: ['status', 'vlan', 'selectItem'],
   body: (network: XenApiNetwork) => ({
     network: r => r({ label: network.name_label }),
@@ -101,7 +102,17 @@ const { HeadCells, BodyCells } = useNetworkColumns({
         props: { network },
       }),
   }),
+  sort: {
+    network: sortByNameLabel,
+    description: sortByNameDescription,
+    mtu: compareNetworkMtus,
+    defaultLockingMode: compareNetworkLockingModes,
+  },
 })
+
+const sortedNetworks = computed(() => sortItems(filteredNetworks.value))
+
+const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('internal-networks', sortedNetworks)
 </script>
 
 <style scoped lang="postcss">

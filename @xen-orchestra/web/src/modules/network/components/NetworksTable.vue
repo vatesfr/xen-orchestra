@@ -27,7 +27,12 @@
 <script setup lang="ts">
 import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getNetworkStatus } from '@/modules/network/utils/xo-network.util.ts'
+import {
+  compareNetworkLockingModes,
+  compareNetworkMtus,
+  getNetworkStatus,
+  getNetworkVlan,
+} from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
@@ -41,9 +46,12 @@ import { icon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -65,7 +73,7 @@ defineSlots<{
 
 const { t } = useI18n()
 
-const { pifs, getPifsByIds } = useXoPifCollection()
+const { getPifsByIds } = useXoPifCollection()
 
 const selectedNetworkId = useRouteQuery('id')
 
@@ -93,19 +101,13 @@ const state = useTableState({
         : false,
 })
 
-const getNetworkVlan = (network: FrontXoNetwork) => {
-  const networkPIFs = pifs.value.filter(pif => network.PIFs.includes(pif.id))
-
-  if (networkPIFs.length > 0) {
-    return networkPIFs[0].vlan !== -1 ? networkPIFs[0].vlan.toString() : t('none')
-  }
-}
-
 const getLockingMode = (isLocked: boolean) => (isLocked ? t('disabled') : t('unlocked'))
 
-const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
+const getStatusLabel = (network: FrontXoNetwork) => t(getNetworkStatus(getPifsByIds(network.PIFs)))
 
-const { HeadCells, BodyCells } = useNetworkColumns({
+const getVlan = (network: FrontXoNetwork) => getNetworkVlan(getPifsByIds(network.PIFs))
+
+const { HeadCells, BodyCells, sortItems } = useNetworkColumns({
   exclude: internal ? ['vlan', 'status', 'selectItem'] : ['selectItem'],
   body: (network: FrontXoNetwork) => {
     const { buildXo5Route } = useXoRoutes()
@@ -113,7 +115,11 @@ const { HeadCells, BodyCells } = useNetworkColumns({
     const networkPifs = computed(() => getPifsByIds(network.PIFs))
 
     const status = computed(() => getNetworkStatus(networkPifs.value))
-    const vlan = computed(() => getNetworkVlan(network))
+    const vlan = computed(() => {
+      const vlanId = getNetworkVlan(networkPifs.value)
+
+      return vlanId === -1 ? t('none') : vlanId.toString()
+    })
     const defaultLockingMode = computed(() => getLockingMode(network.defaultIsLocked))
     const href = computed(() => buildXo5Route(`/pools/${network.$pool}/network?s=1_0_asc-${network.id}`))
 
@@ -146,7 +152,19 @@ const { HeadCells, BodyCells } = useNetworkColumns({
         }),
     }
   },
+  sort: {
+    network: sortByNameLabel,
+    description: sortByNameDescription,
+    status: (network1, network2) => compareStrings(getStatusLabel(network1), getStatusLabel(network2)),
+    vlan: (network1, network2) => getVlan(network1) - getVlan(network2),
+    mtu: compareNetworkMtus,
+    defaultLockingMode: compareNetworkLockingModes,
+  },
 })
+
+const sortedNetworks = computed(() => sortItems(filteredNetworks.value))
+
+const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', sortedNetworks)
 </script>
 
 <style scoped lang="postcss">

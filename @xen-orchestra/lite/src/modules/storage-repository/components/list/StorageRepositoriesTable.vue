@@ -26,6 +26,7 @@ import type { XenApiPool, XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
 import { useGetPbdsInScope, useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable.ts'
 import { useSrConnection } from '@/modules/storage-repository/composables/use-sr-connection.composable.ts'
 import { useSrDelete } from '@/modules/storage-repository/composables/use-sr-delete.composable.ts'
+import { compareSrAccessModes, compareSrFormats, compareSrUsages } from '@/modules/storage-repository/utils/sr.util.ts'
 import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -37,6 +38,8 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
 import { type SrScope } from '@core/types/storage-repository.type.ts'
+import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -89,8 +92,6 @@ const state = useTableState({
   },
 })
 
-const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', filteredSrs)
-
 const { getSrPbdsSignature } = useGetPbdsInScope()
 
 function getPrimaryIcon(sr: XenApiSr) {
@@ -104,7 +105,7 @@ function getPrimaryIcon(sr: XenApiSr) {
   }
 }
 
-const { HeadCells, BodyCells } = useSrColumns({
+const { HeadCells, BodyCells, sortItems } = useSrColumns({
   exclude: ['checkbox'],
   body: (sr: XenApiSr) => {
     const rightIcon = computed(() => getPrimaryIcon(sr))
@@ -185,7 +186,18 @@ const { HeadCells, BodyCells } = useSrColumns({
         }),
     }
   },
+  sort: {
+    storageRepository: sortByNameLabel,
+    description: sortByNameDescription,
+    storageFormat: compareSrFormats,
+    accessMode: compareSrAccessModes,
+    usedSpace: compareSrUsages,
+  },
 })
+
+const sortedSrs = computed(() => sortItems(filteredSrs.value))
+
+const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', sortedSrs)
 </script>
 
 <style scoped lang="postcss">

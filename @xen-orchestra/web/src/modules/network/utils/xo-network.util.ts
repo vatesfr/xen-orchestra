@@ -43,3 +43,16 @@ export function getNetworkType(network: FrontXoNetwork): NetworkType {
 
   return NETWORK_TYPE.PHYSICAL
 }
+
+// -1 when the network has no VLAN or no PIF
+export function getNetworkVlan(pifs: FrontXoPif[]) {
+  return pifs[0]?.vlan ?? -1
+}
+
+export function compareNetworkMtus(network1: FrontXoNetwork, network2: FrontXoNetwork) {
+  return network1.MTU - network2.MTU
+}
+
+export function compareNetworkLockingModes(network1: FrontXoNetwork, network2: FrontXoNetwork) {
+  return Number(network1.defaultIsLocked) - Number(network2.defaultIsLocked)
+}
