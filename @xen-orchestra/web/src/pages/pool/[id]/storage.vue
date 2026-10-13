@@ -5,9 +5,9 @@
         <template #title-actions>
           <MenuList placement="bottom-end">
             <template #trigger="{ open }">
-              <UiDropdownButton @click="open($event)">{{ t('new') }}</UiDropdownButton>
+              <UiDropdownButton variant="primary" size="medium" @click="open($event)">{{ t('new') }}</UiDropdownButton>
             </template>
-            <MenuItem icon="fa:plus" @click="openCreateSrDrawer({ poolId: pool.id })">
+            <MenuItem icon="action:add" accent="neutral" @click="openCreateSrDrawer({ poolId: pool.id })">
               {{ t('action:create-sr') }}
             </MenuItem>
           </MenuList>

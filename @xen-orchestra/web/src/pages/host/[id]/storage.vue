@@ -5,9 +5,13 @@
         <template #title-actions>
           <MenuList placement="bottom-end">
             <template #trigger="{ open }">
-              <UiDropdownButton @click="open($event)">{{ t('new') }}</UiDropdownButton>
+              <UiDropdownButton variant="primary" size="medium" @click="open($event)">{{ t('new') }}</UiDropdownButton>
             </template>
-            <MenuItem icon="fa:plus" @click="openCreateSrDrawer({ poolId: host.$pool, hostId: host.id })">
+            <MenuItem
+              icon="action:add"
+              accent="neutral"
+              @click="openCreateSrDrawer({ poolId: host.$pool, hostId: host.id })"
+            >
               {{ t('action:create-sr') }}
             </MenuItem>
           </MenuList>
