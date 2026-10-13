@@ -1200,3 +1200,58 @@ describe('EMLINK', () => {
     assert.ok((await c.readBlock(0)).data.equals(data))
   })
 })
+
+describe('store directory', () => {
+  const STORE = 'xo-block-store'
+  const data = block(0xaa)
+  const hash = sha256hex(data)
+  // <store>/<ab>/<cd>: the fan-out levels, kept; <hash>: removed once empty
+  const fanOutDir = `${STORE}/${hash.slice(0, 2)}/${hash.slice(2, 4)}`
+
+  const createStoreDisk = () =>
+    HashedDiskDeduplicated.create({
+      handler,
+      path: `xo-vm-backups/VMUUID/vdis/${uuid.v4()}/20260814T120000000Z.hbd`,
+      virtualSize: VIRTUAL_SIZE,
+      blockSize: BLOCK_SIZE,
+      uuid: uuid.v4(),
+      dedupType: 'PER_BACKUP_REPOSITORY',
+      blockStorePath: STORE,
+    })
+
+  test('releasing the last disk removes the hash directory, not the fan-out ones', async () => {
+    const disk = await createStoreDisk()
+    await disk.writeBlock({ index: 0, data })
+    await disk.close()
+
+    await disk.unlink()
+
+    assert.deepEqual(await handler.list(fanOutDir), [], 'no <hash> directory left')
+  })
+
+  test('a copy still in use keeps the hash directory', async () => {
+    const disk = await createStoreDisk()
+    await disk.writeBlock({ index: 0, data })
+    // an overflow copy some other disk still links
+    await handler.outputFile(`${fanOutDir}/${hash}/1`, data, { flags: 'wx' })
+    await handler.link(`${fanOutDir}/${hash}/1`, 'elsewhere/link')
+    await disk.close()
+
+    await disk.unlink()
+
+    assert.deepEqual(await handler.list(`${fanOutDir}/${hash}`), ['1'])
+  })
+
+  test('writing the block again recreates the hash directory', async () => {
+    const first = await createStoreDisk()
+    await first.writeBlock({ index: 0, data })
+    await first.close()
+    await first.unlink()
+
+    const second = await createStoreDisk()
+    await second.writeBlock({ index: 0, data })
+
+    assert.deepEqual(await handler.list(`${fanOutDir}/${hash}`), ['0'])
+    assert.ok((await second.readBlock(0)).data.equals(data))
+  })
+})

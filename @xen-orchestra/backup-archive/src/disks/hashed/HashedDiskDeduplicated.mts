@@ -626,22 +626,28 @@ export class HashedDiskDeduplicated extends HashedDisk {
   }
 
   async #removeOrphanStoreCopy(hash: BlockHash): Promise<void> {
-    // first, check /0
     const first = this.#storePath(hash)
-    if ((await this.#linkCount(first)) === 1) {
-      return this.#handler.unlink(first, { checksum: false })
-    }
-    // if /0 copy is not used for this disk, check the other paths
     const dir = dirname(first)
-    for (const name of await this.#handler.list(dir, { ignoreMissing: true })) {
-      if (name === '0') {
-        continue
-      }
-      const path = join(dir, name)
-      if ((await this.#linkCount(path)) === 1) {
-        await this.#handler.unlink(path, { checksum: false })
+    // first, check /0
+    if ((await this.#linkCount(first)) === 1) {
+      await this.#handler.unlink(first, { checksum: false })
+    } else {
+      // if /0 copy is not used for this disk, check the other paths
+      for (const name of await this.#handler.list(dir, { ignoreMissing: true })) {
+        if (name === '0') {
+          continue
+        }
+        const path = join(dir, name)
+        if ((await this.#linkCount(path)) === 1) {
+          await this.#handler.unlink(path, { checksum: false })
+        }
       }
     }
+    await this.#handler.rmdir(dir).catch(error => {
+      if (error.code !== 'ENOTEMPTY' && error.code !== 'EEXIST') {
+        warn('failed to remove an empty store directory', { dir, error })
+      }
+    })
   }
 
   async #linkCount(path: string): Promise<number> {
