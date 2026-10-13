@@ -28,7 +28,7 @@ function mountCard(smb = createSmbUrl(), options?: string) {
 it('renders the card title', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('smb'))
+  expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('smb'))
 })
 
 it('shows the share path, credentials, domain and formatted mount options', () => {

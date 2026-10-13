@@ -19,7 +19,7 @@ function mountCard(file = createFileUrl()) {
 it('renders the card title', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('local'))
+  expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('local'))
 })
 
 it('shows the path of the repository', () => {

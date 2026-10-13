@@ -228,11 +228,12 @@ Each step config is a `FormValidationConfig` scoped to its own sub-object: writi
 
 #### Navigation
 
-| Property      | Type                                 | Description                                                                                                           |
-| ------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| `currentStep` | `ComputedRef<keyof TSteps & string>` | The currently active step name                                                                                        |
-| `next`        | `() => Promise<boolean>`             | Validates the current step; advances to the next step only if validation passes. Returns `true` if the step was valid |
-| `back`        | `() => void`                         | Goes to the previous step without validation                                                                          |
+| Property      | Type                                    | Description                                                                                                           |
+| ------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `currentStep` | `ComputedRef<keyof TSteps & string>`    | The currently active step name                                                                                        |
+| `next`        | `() => Promise<boolean>`                | Validates the current step; advances to the next step only if validation passes. Returns `true` if the step was valid |
+| `back`        | `() => void`                            | Goes to the previous step without validation                                                                          |
+| `backTo`      | `(step: keyof TSteps & string) => void` | Goes back to an earlier step without validation; does nothing if the step is not before the current one               |
 
 #### Validation state
 

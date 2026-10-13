@@ -1,9 +1,6 @@
 <template>
   <UiPanelCard>
-    <UiCardTitle>
-      {{ t('connected-srs') }}
-      <UiCounter :value="srs.length" accent="neutral" size="small" variant="primary" />
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('connected-srs')" :counter="srs.length" />
     <VtsStateHero v-if="!isReady" format="card" type="busy" size="extra-small" />
     <VtsStateHero v-else-if="hasFetchError" format="card" type="error" horizontal size="extra-small">
       {{ t('error-no-data') }}
@@ -36,11 +33,10 @@ import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/co
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { toSrScopeQuery } from '@/modules/storage-repository/utils/sr-scope.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { logicAnd, logicOr } from '@vueuse/math'
