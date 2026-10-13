@@ -41,7 +41,8 @@
   - `POST /rest/v0/hosts/:id/actions/probe_iscsi_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
   - `POST /rest/v0/hosts/:id/actions/probe_hba_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
   - `POST /rest/v0/hosts/:id/actions/probe_nfs_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
- - [XO5/Host/Patches] Warn when installing patches on a host while its pool master is not up to date (PR [#10523](https://github.com/vatesfr/xen-orchestra/pull/10523))
+
+- [XO5/Host/Patches] Warn when installing patches on a host while its pool master is not up to date (PR [#10523](https://github.com/vatesfr/xen-orchestra/pull/10523))
 - [XO6] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
 
 ### Bug fixes
@@ -96,7 +97,6 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
-- vectura patch
 - xen-api minor
 - xo-cli patch
 - xo-server minor
