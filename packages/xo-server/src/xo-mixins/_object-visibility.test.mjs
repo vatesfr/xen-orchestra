@@ -61,11 +61,13 @@ const USERS = { 'admin-1': ADMIN, 'user-1': USER, 'user-2': OTHER_USER }
 
 describe('ObjectVisibility', function () {
   describe('#getObjectFilterForUser()', function () {
-    it('returns undefined for an admin, meaning no filtering at all', async function () {
+    it('gives an admin a predicate that accepts everything', async function () {
       const app = createMockApp({ users: USERS })
       const mixin = new ObjectVisibility(app)
 
-      assert.equal(await mixin.getObjectFilterForUser('admin-1'), undefined)
+      const isVisible = await mixin.getObjectFilterForUser('admin-1')
+
+      assert.equal(isVisible('vm-1'), true)
     })
 
     it('never reads the ACLs of an admin', async function () {

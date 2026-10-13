@@ -20,31 +20,24 @@ import isEmpty from 'lodash/isEmpty.js'
  * @param {object} opts
  * @param {{ [id: string]: object }} opts.entered
  * @param {{ [id: string]: 0 }} opts.exited
- * @param {IsObjectVisible} [opts.isObjectVisible] - `undefined` means no filtering, as for an admin
+ * @param {IsObjectVisible} [opts.isObjectVisible]
  * @returns {{ enter?: { [id: string]: object }, exit?: { [id: string]: 0 } }}
  */
 export function computeObjectNotifications({ entered, exited, isObjectVisible }) {
-  if (isObjectVisible === undefined) {
-    return {
-      enter: !isEmpty(entered) ? entered : undefined,
-      exit: !isEmpty(exited) ? exited : undefined,
+  let enter
+  let exit
+
+  for (const objectId in entered) {
+    if (isObjectVisible(objectId)) {
+      if (enter === undefined) enter = { __proto__: null }
+      enter[objectId] = entered[objectId]
+    } else {
+      if (exit === undefined) exit = { __proto__: null }
+      exit[objectId] = 0
     }
-  } else {
-    let enter
-    let exit
-
-    for (const objectId in entered) {
-      if (isObjectVisible(objectId)) {
-        if (enter === undefined) enter = { __proto__: null }
-        enter[objectId] = entered[objectId]
-      } else {
-        if (exit === undefined) exit = { __proto__: null }
-        exit[objectId] = 0
-      }
-    }
-
-    if (!isEmpty(exited)) exit = { ...exit, ...exited }
-
-    return { enter, exit }
   }
+
+  if (!isEmpty(exited)) exit = { ...exit, ...exited }
+
+  return { enter, exit }
 }

@@ -23,6 +23,7 @@ import { parseDuration } from '@vates/parse-duration'
 import { pipeline } from 'node:stream'
 import { UniqueIndex as XoUniqueIndex } from 'xo-collection/unique-index.js'
 import { computeObjectNotifications } from './_objectNotifications.mjs'
+import { asyncEach } from '@vates/async-each'
 
 import mixins from './xo-mixins/index.mjs'
 import { generateToken, noop } from './utils.mjs'
@@ -444,37 +445,49 @@ export default class Xo extends EventEmitter {
       return
     }
 
-    // one filter per distinct user, not per connection: several tabs belong to
-    // the same person and must not each pay for a lookup
-    const filterByUserId = new Map()
-    await Promise.all(
-      Array.from(new Set(connections.map(connection => connection.get('user_id'))), async userId => {
-        try {
-          filterByUserId.set(userId, await this.getObjectFilterForUser(userId))
-        } catch (error) {
-          log.warn('failed to compute the object filter of a user', { error, userId })
-
-          // fail closed: never let a failure to resolve permissions widen what
-          // is sent
-          filterByUserId.set(userId, () => false)
-        }
-      })
-    )
-
+    const connectionsByUserId = new Map()
     for (const connection of connections) {
-      const { enter, exit } = computeObjectNotifications({
-        entered,
-        exited,
-        isObjectVisible: filterByUserId.get(connection.get('user_id')),
-      })
+      const connectionUserId = connection.get('user_id')
 
-      if (enter !== undefined) {
-        connection.notify('all', { type: 'enter', items: enter })
-      }
-
-      if (exit !== undefined) {
-        connection.notify('all', { type: 'exit', items: exit })
+      const userConnections = connectionsByUserId.get(connectionUserId)
+      if (userConnections === undefined) {
+        connectionsByUserId.set(connectionUserId, [connection])
+      } else {
+        userConnections.push(connection)
       }
     }
+
+    await asyncEach(
+      connectionsByUserId,
+      async ([userId, userConnections]) => {
+        let objectFilter
+        try {
+          objectFilter = await this.getObjectFilterForUser(userId)
+        } catch (error) {
+          log.warn('failed to compute the object filter of a user', { error, userId })
+        }
+
+        if (objectFilter) {
+          const { enter, exit } = computeObjectNotifications({
+            entered,
+            exited,
+            isObjectVisible: objectFilter,
+          })
+
+          for (const userConnection of userConnections) {
+            if (enter !== undefined) {
+              userConnection.notify('all', { type: 'enter', items: enter })
+            }
+
+            if (exit !== undefined) {
+              userConnection.notify('all', { type: 'exit', items: exit })
+            }
+          }
+        }
+      },
+      {
+        concurrency: 10,
+      }
+    )
   }
 }

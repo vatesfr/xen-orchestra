@@ -97,8 +97,38 @@ export default class {
   }
 
   async _save(set) {
+    let previous
+    try {
+      previous = await this._store.get(set.id)
+    } catch (error) {
+      // expected when the set is being created
+    }
+
     await this._store.put(set.id, set)
-    this._app.clearObjectFilterCache()
+    await this.#clearCacheForSubjects([...(previous?.subjects ?? []), ...set.subjects])
+  }
+
+  async #clearCacheForSubjects(subjectIds) {
+    const usersByGroupId = new Map()
+    for (const group of await this._app.getAllGroups()) {
+      usersByGroupId.set(group.id, group.users)
+    }
+
+    const userIds = new Set()
+    for (const subjectId of subjectIds) {
+      const groupUserIds = usersByGroupId.get(subjectId)
+      if (groupUserIds !== undefined) {
+        for (const userId of groupUserIds) {
+          userIds.add(userId)
+        }
+      } else {
+        userIds.add(subjectId)
+      }
+    }
+
+    for (const userId of userIds) {
+      await this._app.clearObjectFilterCache(userId)
+    }
   }
 
   async checkResourceSetConstraints(id, userId, objectIds) {
@@ -170,8 +200,17 @@ export default class {
         )
       )
 
+      // read the subjects before the set is gone: they are whose cache must be
+      // dropped
+      let previous
+      try {
+        previous = await this._store.get(id)
+      } catch (error) {
+        // `has` already said it was there, so this should not happen
+      }
+
       await store.del(id)
-      this._app.clearObjectFilterCache()
+      await this.#clearCacheForSubjects(previous?.subjects ?? [])
 
       return
     }

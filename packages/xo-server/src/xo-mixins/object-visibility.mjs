@@ -1,4 +1,4 @@
-import { createIsObjectVisible } from '../_objectVisibility.mjs'
+import { createPermissions, createIsObjectVisible } from '../_objectVisibility.mjs'
 import TTLCache from '@isaacs/ttlcache'
 import isEqual from 'lodash/isEqual.js'
 import { createLogger } from '@xen-orchestra/log'
@@ -10,6 +10,7 @@ const log = createLogger('xo:object-visibility')
  *   permission: string,
  *   permissionsByObject?: { [objectId: string]: { [permission: string]: 1 } },
  *   resourceSetObjectIds?: string[],
+ *   permissions?: { [objectId: string]: { [permission: string]: 1 } },
  * }} Sources
  */
 
@@ -68,17 +69,17 @@ export default class ObjectVisibility {
   #pendingResyncs = new Map()
 
   /**
-   * Returns the predicate deciding which objects a user may see, or
-   * `undefined` for an admin, which means no filtering at all.
+   * Returns the predicate deciding which objects a user may see. An admin
+   * gets one that accepts everything.
    *
    * @param {string} userId
-   * @returns {Promise<import('../_objectVisibility.mjs').IsObjectVisible | undefined>}
+   * @returns {Promise<import('../_objectVisibility.mjs').IsObjectVisible>}
    */
   async getObjectFilterForUser(userId) {
-    const { permission, permissionsByObject, resourceSetObjectIds } = await this.#getSources(userId)
+    const { permission, permissions } = await this.#getSources(userId)
 
     if (permission === 'admin') {
-      return undefined
+      return () => true
     } else {
       return createIsObjectVisible({
         getObject: objectId => {
@@ -88,8 +89,7 @@ export default class ObjectVisibility {
             return undefined
           }
         },
-        permissionsByObject,
-        resourceSetObjectIds,
+        permissionsByObject: permissions,
       })
     }
   }
@@ -150,8 +150,9 @@ export default class ObjectVisibility {
         this._app.getAllResourceSets(userId),
       ])
       const resourceSetObjectIds = resourceSets.flatMap(resourceSet => resourceSet.objects).sort()
+      const permissions = createPermissions({ permissionsByObject, resourceSetObjectIds })
 
-      return { permission, permissionsByObject, resourceSetObjectIds }
+      return { permission, permissionsByObject, resourceSetObjectIds, permissions }
     }
   }
 
@@ -285,9 +286,9 @@ export default class ObjectVisibility {
     const items = { __proto__: null }
     let isEmpty = true
 
-    const isObjectVisible = promoted ? undefined : await this.getObjectFilterForUser(userId)
+    const isObjectVisible = await this.getObjectFilterForUser(userId)
     for (const id in objects) {
-      if (isObjectVisible === undefined || isObjectVisible(id)) {
+      if (isObjectVisible(id)) {
         items[id] = objects[id]
         isEmpty = false
       }

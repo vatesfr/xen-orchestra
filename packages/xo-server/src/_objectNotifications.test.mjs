@@ -17,11 +17,11 @@ const onlyVm1 = id => id === 'vm-1'
 // ===================================================================
 
 describe('computeObjectNotifications', function () {
-  it('forwards everything when there is no predicate, as for an admin', function () {
+  it('forwards everything when the predicate accepts everything', function () {
     const { enter, exit } = computeObjectNotifications({
       entered: entered(VM_1, VM_2),
       exited: exited('vm-3'),
-      isObjectVisible: undefined,
+      isObjectVisible: () => true,
     })
 
     assert.deepEqual({ ...enter }, { 'vm-1': VM_1, 'vm-2': VM_2 })
