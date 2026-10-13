@@ -103,7 +103,7 @@ export function useNewBackupRepositoryForm() {
       name: general.formData.name,
       url: formatBackupRepositoryUrl({ ...urlInfo, ...general.buildUrlOptions() }),
       ...(options !== undefined && { options }),
-      ...(general.formData.proxy !== undefined && { proxy: general.formData.proxy }),
+      ...(general.formData.proxy && { proxy: general.formData.proxy }),
     }
   }
 

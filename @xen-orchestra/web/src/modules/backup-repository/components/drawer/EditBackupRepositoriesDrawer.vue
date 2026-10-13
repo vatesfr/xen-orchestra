@@ -1,11 +1,11 @@
 <template>
-  <UiDrawer class="edit-backup-repositories-drawer" @confirm="emit('confirm')" @dismiss="emit('cancel')">
+  <UiDrawer class="edit-backup-repositories-drawer" @confirm="handleConfirm()" @dismiss="emit('cancel')">
     <template #title>
       {{ t('edit-n-brs', { n: brs.length }) }}
     </template>
 
     <template #content>
-      <BackupRepositoryGeneralStep :bindings="general.bindings" />
+      <BackupRepositoryGeneralStep :bindings="general.bindings" hide-encryption />
       <div v-if="hasMixedTypes" class="details-section">
         <UiTitle>{{ t('details') }}</UiTitle>
         <UiAlert accent="info">{{ t('multi-edit-brs-different-types') }}</UiAlert>
@@ -30,6 +30,7 @@ import BackupRepositoryDetailsStep from '@/modules/backup-repository/components/
 import BackupRepositoryGeneralStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryGeneralStep.vue'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import { useEditBackupRepositoriesForm } from '@/modules/backup-repository/form/use-edit-backup-repositories-form.ts'
+import type { BulkEditBackupRepositoryPayloads } from '@/modules/backup-repository/jobs/xo-backup-repository-bulk-edit.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
@@ -42,17 +43,24 @@ const { brs } = defineProps<{
   brs: FrontXoBackupRepository[]
 }>()
 
-// TODO Emit the payloads once the editable fields are defined
 const emit = defineEmits<{
-  confirm: []
+  confirm: [payloads: BulkEditBackupRepositoryPayloads]
   cancel: []
 }>()
 
 const { t } = useI18n()
 
-const { general, details, hasMixedTypes } = useEditBackupRepositoriesForm(() => brs)
+const { general, details, hasMixedTypes, validateAndBuildPayloads } = useEditBackupRepositoriesForm(() => brs)
 
 const typeLabel = useXoBackupRepositoryTypeLabel(() => general.formData.type)
+
+async function handleConfirm() {
+  const payloads = await validateAndBuildPayloads()
+
+  if (payloads !== undefined) {
+    emit('confirm', payloads)
+  }
+}
 </script>
 
 <style lang="postcss" scoped>

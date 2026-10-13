@@ -8,8 +8,9 @@ export type S3BackupRepositoryDetailsForm = ReturnType<typeof useS3BackupReposit
 
 const INITIAL_FORM_DATA = {
   endpoint: '',
-  useHttps: false,
-  allowUnauthorized: false,
+  // undefined when the value differs between the BRs (multi-edition)
+  useHttps: false as boolean | undefined,
+  allowUnauthorized: false as boolean | undefined,
   region: '',
   accessKeyId: '',
   secret: '',
@@ -19,13 +20,27 @@ const INITIAL_FORM_DATA = {
 
 export type S3BackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 
-export function useS3BackupRepositoryDetailsForm(
-  initialData?: Partial<S3BackupRepositoryDetailsFormData>,
-  mixedFields: (keyof S3BackupRepositoryDetailsFormData)[] = []
-) {
+export function buildS3BackupRepositoryDetailsPayload(
+  data: S3BackupRepositoryDetailsFormData
+): BackupRepositoryDetailsPayload {
+  return {
+    urlInfo: {
+      type: 's3',
+      protocol: data.useHttps ? 'https' : 'http',
+      host: data.endpoint,
+      path: `${data.bucket}/${data.pathInBucket}`,
+      region: data.region,
+      username: data.accessKeyId,
+      password: data.secret,
+      ...(data.allowUnauthorized && { allowUnauthorized: true }),
+    },
+  }
+}
+
+export function useS3BackupRepositoryDetailsForm(initialData?: Partial<S3BackupRepositoryDetailsFormData>) {
   const { t } = useI18n()
 
-  const { formData, useField, validate, reset, getMixedPlaceholder } = useBackupRepositoryDetailsForm(
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
     { ...INITIAL_FORM_DATA, ...initialData },
     {
       errors: {
@@ -37,8 +52,7 @@ export function useS3BackupRepositoryDetailsForm(
           bucket: { required },
         }),
       },
-    },
-    mixedFields
+    }
   )
 
   watch(
@@ -55,50 +69,18 @@ export function useS3BackupRepositoryDetailsForm(
       label: t('endpoint-url'),
       required: true,
       info: t('s3-endpoint-sample'),
-      placeholder: getMixedPlaceholder('endpoint'),
     })),
     useHttps: useField('useHttps', () => ({ label: t('use-https') })),
     allowUnauthorized: useField('allowUnauthorized', () => ({ label: t('allow-unauthorized') })),
-    region: useField('region', () => ({
-      label: t('region'),
-      required: true,
-      placeholder: getMixedPlaceholder('region'),
-    })),
-    accessKeyId: useField('accessKeyId', () => ({
-      label: t('access-key-id'),
-      required: true,
-      placeholder: getMixedPlaceholder('accessKeyId'),
-    })),
-    secret: useField('secret', () => ({
-      label: t('secret'),
-      required: true,
-      type: 'password' as const,
-      placeholder: getMixedPlaceholder('secret'),
-    })),
-    bucket: useField('bucket', () => ({
-      label: t('bucket-name'),
-      required: true,
-      placeholder: getMixedPlaceholder('bucket'),
-    })),
-    pathInBucket: useField('pathInBucket', () => ({
-      label: t('path-in-bucket'),
-      placeholder: getMixedPlaceholder('pathInBucket'),
-    })),
+    region: useField('region', () => ({ label: t('region'), required: true })),
+    accessKeyId: useField('accessKeyId', () => ({ label: t('access-key-id'), required: true })),
+    secret: useField('secret', () => ({ label: t('secret'), required: true, type: 'password' as const })),
+    bucket: useField('bucket', () => ({ label: t('bucket-name'), required: true })),
+    pathInBucket: useField('pathInBucket', () => ({ label: t('path-in-bucket') })),
   })
 
   function buildPayload(): BackupRepositoryDetailsPayload {
-    return {
-      urlInfo: {
-        type: 's3',
-        protocol: formData.useHttps ? 'https' : 'http',
-        host: formData.endpoint,
-        path: `${formData.bucket}/${formData.pathInBucket}`,
-        region: formData.region,
-        username: formData.accessKeyId,
-        password: formData.secret,
-        ...(formData.allowUnauthorized && { allowUnauthorized: true }),
-      },
-    }
+    return buildS3BackupRepositoryDetailsPayload(formData)
   }
 
   return { formData, bindings, validate, buildPayload, reset }

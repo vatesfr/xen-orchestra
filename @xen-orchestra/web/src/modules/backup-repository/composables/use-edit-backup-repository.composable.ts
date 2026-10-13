@@ -1,4 +1,8 @@
 import {
+  type BulkEditBackupRepositoryPayloads,
+  useXoBackupRepositoryBulkEditJob,
+} from '@/modules/backup-repository/jobs/xo-backup-repository-bulk-edit.job.ts'
+import {
   type EditBackupRepositoryPayload,
   useXoBackupRepositoryEditJob,
 } from '@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'
@@ -17,6 +21,12 @@ export function useEditBackupRepository() {
   const { $context } = useXoBackupRepositoryCollection()
 
   const { run } = useXoBackupRepositoryEditJob(br, payload)
+
+  const brs = ref<FrontXoBackupRepository[]>([])
+
+  const payloads = ref<BulkEditBackupRepositoryPayloads>()
+
+  const { run: runBulkEdit } = useXoBackupRepositoryBulkEditJob(brs, payloads)
 
   const { open } = useOverlay({
     component: () => import('@/modules/backup-repository/components/drawer/EditBackupRepositoryDrawer.vue'),
@@ -37,11 +47,18 @@ export function useEditBackupRepository() {
     },
   })
 
-  // TODO add back call
   const { open: openMultiEdit } = useOverlay({
     component: () => import('@/modules/backup-repository/components/drawer/EditBackupRepositoriesDrawer.vue'),
     events: {
-      onConfirm: true,
+      onConfirm: async (newPayloads: BulkEditBackupRepositoryPayloads) => {
+        payloads.value = newPayloads
+
+        try {
+          await runBulkEdit()
+        } catch (error) {
+          console.error('Error when edit backup repositories', error)
+        }
+      },
       onCancel: true,
     },
   })
@@ -52,14 +69,16 @@ export function useEditBackupRepository() {
     return open({ props: { br: newBr } })
   }
 
-  function openEditBackupRepositoriesDrawer(brs: FrontXoBackupRepository[]) {
-    const [firstBr] = brs
+  function openEditBackupRepositoriesDrawer(newBrs: FrontXoBackupRepository[]) {
+    const [firstBr] = newBrs
 
-    if (brs.length === 1 && firstBr !== undefined) {
+    if (newBrs.length === 1 && firstBr !== undefined) {
       return openEditBackupRepositoryDrawer(firstBr)
     }
 
-    return openMultiEdit({ props: { brs } })
+    brs.value = newBrs
+
+    return openMultiEdit({ props: { brs: newBrs } })
   }
 
   return {

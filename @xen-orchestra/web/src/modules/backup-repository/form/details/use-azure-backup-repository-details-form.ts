@@ -10,7 +10,8 @@ export type AzureBackupRepositoryDetailsForm = ReturnType<typeof useAzureBackupR
 
 const INITIAL_FORM_DATA = {
   hostName: '',
-  useHttps: true,
+  // undefined when the value differs between the BRs (multi-edition)
+  useHttps: true as boolean | undefined,
   accountName: '',
   key: '',
   containerName: '',
@@ -19,16 +20,31 @@ const INITIAL_FORM_DATA = {
 
 export type AzureBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
 
+export function buildAzureBackupRepositoryDetailsPayload(
+  data: AzureBackupRepositoryDetailsFormData,
+  type: BackupRepositoryType | undefined
+): BackupRepositoryDetailsPayload {
+  return {
+    urlInfo: {
+      type: type === 'azurite' ? 'azurite' : 'azure',
+      protocol: data.useHttps ? 'https' : 'http',
+      host: data.hostName,
+      path: `${data.containerName}/${data.pathInContainer}`,
+      username: data.accountName,
+      password: data.key,
+    },
+  }
+}
+
 export function useAzureBackupRepositoryDetailsForm(
   rawType: MaybeRefOrGetter<BackupRepositoryType | undefined>,
-  initialData?: Partial<AzureBackupRepositoryDetailsFormData>,
-  mixedFields: (keyof AzureBackupRepositoryDetailsFormData)[] = []
+  initialData?: Partial<AzureBackupRepositoryDetailsFormData>
 ) {
   const { t } = useI18n()
 
   const type = toComputed(rawType)
 
-  const { formData, useField, validate, reset, getMixedPlaceholder } = useBackupRepositoryDetailsForm(
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
     { ...INITIAL_FORM_DATA, ...initialData },
     {
       errors: {
@@ -39,50 +55,20 @@ export function useAzureBackupRepositoryDetailsForm(
           containerName: { required },
         }),
       },
-    },
-    mixedFields
+    }
   )
 
   const bindings = reactive({
-    hostName: useField('hostName', () => ({
-      label: t('host-name'),
-      required: true,
-      placeholder: getMixedPlaceholder('hostName'),
-    })),
+    hostName: useField('hostName', () => ({ label: t('host-name'), required: true })),
     useHttps: useField('useHttps', () => ({ label: t('use-https') })),
-    accountName: useField('accountName', () => ({
-      label: t('account-name'),
-      required: true,
-      placeholder: getMixedPlaceholder('accountName'),
-    })),
-    key: useField('key', () => ({
-      label: t('key'),
-      required: true,
-      type: 'password' as const,
-      placeholder: getMixedPlaceholder('key'),
-    })),
-    containerName: useField('containerName', () => ({
-      label: t('container-name'),
-      required: true,
-      placeholder: getMixedPlaceholder('containerName'),
-    })),
-    pathInContainer: useField('pathInContainer', () => ({
-      label: t('path-in-container'),
-      placeholder: getMixedPlaceholder('pathInContainer'),
-    })),
+    accountName: useField('accountName', () => ({ label: t('account-name'), required: true })),
+    key: useField('key', () => ({ label: t('key'), required: true, type: 'password' as const })),
+    containerName: useField('containerName', () => ({ label: t('container-name'), required: true })),
+    pathInContainer: useField('pathInContainer', () => ({ label: t('path-in-container') })),
   })
 
   function buildPayload(): BackupRepositoryDetailsPayload {
-    return {
-      urlInfo: {
-        type: type.value === 'azurite' ? 'azurite' : 'azure',
-        protocol: formData.useHttps ? 'https' : 'http',
-        host: formData.hostName,
-        path: `${formData.containerName}/${formData.pathInContainer}`,
-        username: formData.accountName,
-        password: formData.key,
-      },
-    }
+    return buildAzureBackupRepositoryDetailsPayload(formData, type.value)
   }
 
   return { formData, bindings, validate, buildPayload, reset }
