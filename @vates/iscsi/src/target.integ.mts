@@ -56,17 +56,21 @@ function parseAttachedDisk(sessionOutput: string): string | undefined {
 }
 
 /**
- * `stat()`ing the device node only proves udev created it, not that the SCSI
- * layer has finished attaching it — `open()` right after can still fail with
- * ENXIO. `/sys/class/block/<name>/size` reporting nonzero is what actually
- * means ready, the same check `_cache.mjs`'s `openLocalDevice` uses for the
- * same reason on XAPI-plugged devices.
+ * Neither the device node nor a nonzero `/sys/class/block/<name>/size` means
+ * the disk can be opened: the sd driver sets the size before
+ * `device_add_disk()`, which creates the sysfs entry, then the `/dev` node, then
+ * registers the block device: until then `open()` fails with ENOENT or ENXIO.
+ * Only an `open()` that succeeds means ready.
  */
 async function isDeviceReady(name: string): Promise<boolean> {
   try {
-    return Number.parseInt(await readFile(`/sys/class/block/${name}/size`, 'utf8'), 10) > 0
-  } catch {
-    return false
+    await (await openFile(`/dev/${name}`, 'r')).close()
+    return true
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && (error.code === 'ENXIO' || error.code === 'ENOENT')) {
+      return false
+    }
+    throw error
   }
 }
 
