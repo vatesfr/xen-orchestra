@@ -6,7 +6,7 @@ import {
   createBackupLogTransferTask,
   createBackupLogVmTask,
 } from '@/test/create-backup-log.ts'
-import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-labelled-values.ts'
+import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'

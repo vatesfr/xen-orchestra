@@ -1,8 +1,13 @@
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import type { VueWrapper } from '@vue/test-utils'
 
 type QueryableWrapper = Pick<VueWrapper, 'findAll'>
 
 type PairSelectors = { root: string; label: string; value: string }
+
+const KEY_VALUE_ROW_SELECTOR = '.vts-tabular-key-value-row, .vts-key-value-row'
+
+const CARD_KEY_VALUE_ROW_SELECTOR = '.vts-card-row-key-value'
 
 /**
  * The reading strategy every helper below shares. Selectors travel in an object
@@ -21,9 +26,7 @@ function findPairs(wrapper: QueryableWrapper, { root, label, value }: PairSelect
  * Rows sharing the same label collapse into one entry: query those directly.
  */
 export function findLabelledValues(wrapper: QueryableWrapper): Record<string, string> {
-  const selectors = { root: '.vts-tabular-key-value-row, .vts-key-value-row', label: 'dt.label', value: 'dd.value' }
-
-  return Object.fromEntries(findPairs(wrapper, selectors))
+  return Object.fromEntries(findPairs(wrapper, { root: KEY_VALUE_ROW_SELECTOR, label: 'dt.label', value: 'dd.value' }))
 }
 
 /**
@@ -31,7 +34,36 @@ export function findLabelledValues(wrapper: QueryableWrapper): Record<string, st
  * the side-panel cards.
  */
 export function findCardLabelledValues(wrapper: QueryableWrapper): Record<string, string> {
-  return Object.fromEntries(findPairs(wrapper, { root: '.vts-card-row-key-value', label: '.key', value: '.value' }))
+  return Object.fromEntries(findPairs(wrapper, { root: CARD_KEY_VALUE_ROW_SELECTOR, label: '.key', value: '.value' }))
+}
+
+/**
+ * Reads the value each `VtsTabularKeyValueRow` / `VtsKeyValueRow` offers to copy, keyed
+ * by its label. Rows without a copy button are left out, so a single `toEqual` pins
+ * both which rows are copyable and what they copy.
+ */
+export function findCopiedValues(wrapper: QueryableWrapper): Record<string, unknown> {
+  return Object.fromEntries(
+    wrapper.findAll(KEY_VALUE_ROW_SELECTOR).flatMap(row => {
+      const button = row.findComponent(VtsCopyButton)
+
+      return button.exists() ? [[row.get('dt.label').text(), button.props('value')]] : []
+    })
+  )
+}
+
+/**
+ * Reads the value each `VtsCopyButton` of the `VtsCardRowKeyValue` rows would copy, in
+ * order — so a card test asserts what is copyable, and what is left out (a secret, an
+ * empty value).
+ *
+ * Scoped to the rows: a `UiPanelCardTitle` has a copy button of its own, for the id.
+ */
+export function findCardCopiedValues(wrapper: QueryableWrapper): unknown[] {
+  return wrapper
+    .findAll(CARD_KEY_VALUE_ROW_SELECTOR)
+    .flatMap(row => row.findAllComponents(VtsCopyButton))
+    .map(button => button.props('value'))
 }
 
 /**
