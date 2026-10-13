@@ -6,7 +6,7 @@ export default defineConfig({
   root: fileURLToPath(new URL('.', import.meta.url)),
   logLevel: 'info',
   build: {
-    outDir: fileURLToPath(new URL('./dist', import.meta.url)),
+    outDir: fileURLToPath(new URL('../../dist', import.meta.url)),
     emptyOutDir: true,
     minify: false,
     target: 'esnext',

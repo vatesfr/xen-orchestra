@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import xapiObjectToXo from '../index.mjs'
 import { createXapiGraph } from '../browser/index.mjs'
@@ -175,9 +175,7 @@ describe('a legacy host (platform_version < 2.1.1)', () => {
     const { getObjectByRef } = createXapiGraph({ recordsByType: legacy })
     const host = xapiObjectToXo(getObjectByRef(REFS.HOST))
 
-    expect(host.supplementalPacks).toEqual([
-      { name: 'xoa', description: 'XOA', author: 'vates', version: '5.0.0' },
-    ])
+    expect(host.supplementalPacks).toEqual([{ name: 'xoa', description: 'XOA', author: 'vates', version: '5.0.0' }])
   })
 })
 
@@ -209,24 +207,81 @@ describe('records in XO Lite shape', () => {
   })
 })
 
-// Found while building the fixture. Not a POC artefact: this is master's
-// behaviour, reached through the unmodified transform.
-describe('latent bug in the transform (unrelated to the browser question)', () => {
-  it('throws when `recommendations` holds exactly one restriction', () => {
-    const oneRestriction = {
-      ...recordsByType,
-      vm: {
-        [REFS.VM]: {
-          ...recordsByType.vm[REFS.VM],
-          recommendations: '<restrictions><restriction field="supports-uefi" value="yes"/></restrictions>',
-        },
-      },
-    }
-    const { getObjectByRef } = createXapiGraph({ recordsByType: oneRestriction })
+const withVm = vmFields => ({
+  ...recordsByType,
+  vm: { [REFS.VM]: { ...recordsByType.vm[REFS.VM], ...vmFields } },
+})
 
-    // fast-xml-parser returns an object for a lone element and an array for
-    // several; `isFirmwareSupported` calls `.find()` without normalizing.
-    expect(() => xapiObjectToXo(getObjectByRef(REFS.VM))).toThrow('restrictions.find is not a function')
+const translateVmWith = vmFields => {
+  const { getObjectByRef } = createXapiGraph({ recordsByType: withVm(vmFields) })
+
+  return xapiObjectToXo(getObjectByRef(REFS.VM))
+}
+
+// fast-xml-parser returns an object for a lone element and an array for several
+describe('a VM whose `recommendations` holds exactly one restriction', () => {
+  it.each([
+    ['yes', true],
+    ['no', false],
+  ])('reads the lone restriction (value %s)', (value, expected) => {
+    const vm = translateVmWith({
+      recommendations: `<restrictions><restriction field="supports-uefi" value="${value}"/></restrictions>`,
+    })
+
+    expect(vm.isFirmwareSupported).toBe(expected)
+  })
+
+  it('treats an absent restriction list as supported', () => {
+    expect(translateVmWith({ recommendations: '' }).isFirmwareSupported).toBe(true)
+  })
+})
+
+describe('a VM without `cores-per-socket`', () => {
+  it('translates without writing to XAPI', () => {
+    const { 'cores-per-socket': _coresPerSocket, ...platform } = recordsByType.vm[REFS.VM].platform
+    const { getObjectByRef } = createXapiGraph({ recordsByType: withVm({ platform }) })
+    const xapiVm = getObjectByRef(REFS.VM)
+    xapiVm.update_platform = vi.fn(() => Promise.resolve())
+
+    const vm = xapiObjectToXo(xapiVm)
+
+    expect(vm.coresPerSocket).toBeUndefined()
+    expect(xapiVm.update_platform).not.toHaveBeenCalled()
+  })
+})
+
+describe('dependents', () => {
+  it('reports the records a VM depends on without linking back to it', () => {
+    const { getObjectByRef } = build()
+    const dependents = {}
+
+    xapiObjectToXo(getObjectByRef(REFS.VM), dependents)
+
+    expect(dependents).toEqual({ [REFS.VM_METRICS]: 'vm-uuid-0000', [REFS.VM_GUEST_METRICS]: 'vm-uuid-0000' })
+  })
+})
+
+describe('an incrementally updated graph', () => {
+  it('reflects a modified record without rebuilding the others', () => {
+    const graph = createXapiGraph({ recordsByType })
+    const hostBefore = graph.getObjectByRef(REFS.HOST)
+
+    graph.setRecord('vm', REFS.VM, { ...recordsByType.vm[REFS.VM], name_label: 'renamed' })
+
+    expect(xapiObjectToXo(graph.getObjectByRef(REFS.VM)).name_label).toBe('renamed')
+    expect(graph.getObjectByRef(REFS.HOST)).toBe(hostBefore)
+  })
+
+  it('forgets a deleted record', () => {
+    const graph = createXapiGraph({ recordsByType })
+
+    graph.deleteRecord(REFS.VTPM)
+
+    expect(graph.getObjectByRef(REFS.VTPM)).toBeUndefined()
+  })
+
+  it('starts empty', () => {
+    expect(createXapiGraph().getObjectByRef(REFS.VM)).toBeUndefined()
   })
 })
 

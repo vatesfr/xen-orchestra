@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest'
 
 // `import.meta.url` is an http: URL under happy-dom, so resolve from the
 // package root (vitest's cwd) instead.
-const bundle = readFileSync(resolve('test/bundle/dist/poc.iife.js'), 'utf8')
+const bundle = readFileSync(resolve('dist/poc.iife.js'), 'utf8')
 
 describe('the browser bundle', () => {
   it('has no node globals available in the sandbox', () => {

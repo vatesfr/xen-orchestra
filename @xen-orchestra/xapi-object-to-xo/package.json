@@ -17,11 +17,12 @@
   },
   "dependencies": {
     "@vates/obfuscate": "^0.1.0",
-    "compare-versions": "^6.1.0",
+    "@vates/types": "^2.3.0",
+    "compare-versions": "^6.1.1",
     "d3-time-format": "^4.1.0",
-    "fast-xml-parser": "^4.3.4",
-    "lodash": "^4.17.21",
-    "semver": "^7.5.4"
+    "fast-xml-parser": "^4.0.0",
+    "lodash": "^4.18.0",
+    "semver": "^7.3.2"
   },
   "devDependencies": {
     "happy-dom": "^20.0.0",
@@ -29,6 +30,7 @@
     "vitest": "^4.0.0"
   },
   "scripts": {
+    "pretest": "yarn build-poc-bundle",
     "test": "vitest run",
     "build-poc-bundle": "vite build --config test/bundle/vite.config.mjs"
   }

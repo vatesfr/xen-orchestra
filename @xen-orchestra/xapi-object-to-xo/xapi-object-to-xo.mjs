@@ -1,7 +1,3 @@
-// POC: verbatim copy of packages/xo-server/src/xapi-object-to-xo.mjs except for
-// this import block and the `cores-per-socket` write flagged further down.
-// Every rewritten import points at a local copy of the same pure helper; each
-// copy's header says why the original module could not be imported as-is.
 import Obfuscate from '@vates/obfuscate'
 
 import * as xoData from './_xoData.mjs'
@@ -505,11 +501,7 @@ const TRANSFORMS = {
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,
       isFirmwareSupported: (() => {
-        const restrictions = parseXml(obj.recommendations)?.restrictions?.restriction
-
-        if (restrictions === undefined) {
-          return true
-        }
+        const restrictions = ensureArray(parseXml(obj.recommendations)?.restrictions?.restriction)
 
         const field = `supports-${obj.HVM_boot_params.firmware}`
         const firmwareRestriction = restrictions.find(restriction => restriction.field === field)
@@ -586,23 +578,6 @@ const TRANSFORMS = {
     const coresPerSocket = obj.platform['cores-per-socket']
     if (coresPerSocket !== undefined) {
       vm.coresPerSocket = +coresPerSocket
-    } else if (typeof obj.update_platform !== 'function') {
-      // POC FINDING: the transform is NOT pure — it issues a XAPI write here.
-      // A read-only consumer (or a fixture) has no `update_platform`, so this
-      // guard is what lets the translation run at all outside xo-server.
-      warn(`cores-per-socket write skipped for VM ${obj.$id}: no update_platform on this object`)
-    } else {
-      // https://github.com/vatesfr/xen-orchestra/issues/9111
-      // TODO: Remove when correctly handled by XCP-ng
-      // also remove the workaround here: https://github.com/vatesfr/xen-orchestra/pull/10201
-      obj
-        .update_platform('cores-per-socket', String(vm.CPUs.number))
-        .catch(err => {
-          warn(`unable to set default cores per socket property for VM: ${obj.$id}`, err)
-        })
-        .finally(() => {
-          debug(`cores-per-socket was called for: ${obj.$id}`)
-        })
     }
 
     if (obj.is_control_domain) {

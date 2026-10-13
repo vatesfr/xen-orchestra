@@ -118,12 +118,12 @@ type BaseXoVm = BaseXapiXo & {
   /**
    * @deprecated use pvDriversVersion instead
    */
-  xentools?:
+  xenTools?:
     | false
     | {
-        major: null | number
-        minor: null | number
-        version: null | string
+        major: number
+        minor: number
+        version: number
       }
 }
 

@@ -1,4 +1,4 @@
-type XapiRecord = Record<string, any>
+import type { XapiRecord } from '../index.d.ts'
 
 export declare const Ref: {
   EMPTY: string
@@ -10,11 +10,12 @@ export declare function createRecordWrapper(
   xapi: unknown
 ): (type: string, ref: string, data: Record<string, unknown>) => XapiRecord
 
-export declare function createXapiGraph(params: {
-  recordsByType: Record<string, Record<string, Record<string, unknown>>>
+export declare function createXapiGraph(params?: {
+  recordsByType?: Record<string, Record<string, Record<string, unknown>>>
   call?: (method: string, ...args: unknown[]) => Promise<unknown>
 }): {
   facade: unknown
-  objectsByRef: Map<string, XapiRecord>
   getObjectByRef: (ref: string) => XapiRecord | undefined
+  setRecord: (type: string, ref: string, data: object) => void
+  deleteRecord: (ref: string) => void
 }

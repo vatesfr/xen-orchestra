@@ -46,6 +46,28 @@ const MAX_TIMER_DELAY = 2 ** 31 - 1
 const DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY = 30 * 60 * 1000 // 30 minutes, same as config.toml
 const synchronizedLoadBalancerOperation = synchronized()(operation => operation())
 
+// https://github.com/vatesfr/xen-orchestra/issues/9111
+// TODO: Remove when correctly handled by XCP-ng
+// also remove the workaround here: https://github.com/vatesfr/xen-orchestra/pull/10201
+//
+// Kept out of xapiObjectToXo, which must not write to XAPI.
+function setDefaultCoresPerSocket(xapiObject, xoObject) {
+  const isVmWithoutCoresPerSocket = xapiObject.$type === 'VM' && xapiObject.platform['cores-per-socket'] === undefined
+
+  if (!isVmWithoutCoresPerSocket) {
+    return
+  }
+
+  xapiObject
+    .update_platform('cores-per-socket', String(xoObject.CPUs.number))
+    .catch(error => {
+      log.warn(`unable to set default cores per socket property for VM: ${xapiObject.$id}`, error)
+    })
+    .finally(() => {
+      log.debug(`cores-per-socket was called for: ${xapiObject.$id}`)
+    })
+}
+
 export default class XenServers {
   constructor(app, { safeMode }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
@@ -327,6 +349,8 @@ export default class XenServers {
         if (!xoObject) {
           return
         }
+
+        setDefaultCoresPerSocket(xapiObject, xoObject)
 
         const xoId = xoObject.id
         const previousXoId = xapiIdsToXo[xapiId]

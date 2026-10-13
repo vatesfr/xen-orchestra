@@ -1,4 +1,4 @@
-import assert from './_assert.mjs'
+// Copied from @xen-orchestra/xapi/xoData.mjs: `node:assert/strict` replaced by plain checks, browsers lack it.
 
 // This module provides a way to associate data with a XAPI object.
 //
@@ -33,8 +33,14 @@ export function extract({ other_config, uuid }) {
  * @returns {Promise<object|undefined>} A Promise that resolves to the updated XO data object, or undefined if the XO data for the given object is cleared.
  */
 export async function set({ $type, $ref, $xapi, uuid }, data) {
-  assert.equal(typeof data, 'object') // includes null
-  assert(!Array.isArray(data))
+  // typeof null is 'object', so null is accepted here
+  if (typeof data !== 'object') {
+    throw new Error(`expected data to be an object, got ${typeof data}`)
+  }
+
+  if (Array.isArray(data)) {
+    throw new Error('expected data not to be an array')
+  }
 
   const key = 'xo:' + uuid.slice(0, 8)
 

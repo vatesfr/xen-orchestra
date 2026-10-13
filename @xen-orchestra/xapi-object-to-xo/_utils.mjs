@@ -8,10 +8,13 @@
 import forEach from 'lodash/forEach.js'
 import isEmpty from 'lodash/isEmpty.js'
 import { XMLParser } from 'fast-xml-parser'
+import { createLogger } from './_log.mjs'
 
 // `export { default as forEach } from ...` would re-export without creating a
 // local binding, and `mapFilter` below needs one.
 export { forEach, isEmpty }
+
+const log = createLogger('xo:server:utils')
 
 // Returns the value of a property and removes it from the object.
 export function extractProperty(obj, prop) {
@@ -46,7 +49,7 @@ export const parseXml = (function () {
       // `Buffer` is a bare global reference and throws ReferenceError in a browser.
       return parser.parse(typeof xml === 'string' ? xml : String(xml))
     } catch (error) {
-      console.warn('parseXml', { error, xml })
+      log.warn('parseXml', { error, xml })
       return ''
     }
   }

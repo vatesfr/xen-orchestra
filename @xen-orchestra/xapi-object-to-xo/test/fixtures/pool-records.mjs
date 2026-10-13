@@ -93,9 +93,8 @@ const baseVm = {
   },
   power_state: 'Running',
   protection_policy: NULL,
-  // Real hosts send several <restriction> elements. Keep it that way: with
-  // exactly one, fast-xml-parser returns an object instead of an array and the
-  // transform's `restrictions.find(...)` throws — see the dedicated test.
+  // Real hosts send several <restriction> elements; the lone-element case has
+  // its own test.
   recommendations:
     '<restrictions>' +
     '<restriction field="memory-static-max" max="1409286144000"/>' +
