@@ -28,6 +28,9 @@ example.{,c,m}js.map
 *.spec.{,c,m}js.map
 *.test.{,c,m}js
 *.test.{,c,m}js.map
+*.spec.{,c,m}ts
+*.test.{,c,m}ts
+/vitest.config.*
 
 __snapshots__/
 
