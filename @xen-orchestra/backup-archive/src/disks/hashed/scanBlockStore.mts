@@ -1,3 +1,4 @@
+import { asyncEach } from '@vates/async-each'
 import type { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { join, normalize } from '@xen-orchestra/fs/path'
 
@@ -30,16 +31,22 @@ export async function scanBlockStore(
       }
       throw error
     }
-    for (const name of names) {
-      const path = join(dir, name)
-      if (depth + 1 < COPY_DEPTH) {
-        await visit(path, depth + 1) // a hash level: go down
-      } else if (depth + 1 === COPY_DEPTH) {
-        if (await removeIfOrphan(path)) {
-          removed++ // a store copy
+    await asyncEach(
+      names,
+      async name => {
+        const path = join(dir, name)
+        if (depth + 1 < COPY_DEPTH) {
+          await visit(path, depth + 1) // a hash level: go down
+        } else if (depth + 1 === COPY_DEPTH) {
+          if (await removeIfOrphan(path)) {
+            removed++ // a store copy
+          }
         }
+      },
+      {
+        concurrency: 2,
       }
-    }
+    )
   }
 
   async function removeIfOrphan(path: string): Promise<boolean> {
