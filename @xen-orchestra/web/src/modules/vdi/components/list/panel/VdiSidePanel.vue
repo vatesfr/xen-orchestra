@@ -8,9 +8,9 @@
       <VdiActions :vdi :vbd :vm />
     </template>
     <template v-if="vdi" #default>
-      <VdiInfosCard :vdi :vbd :from-context />
-      <VdiSpaceCard :vdi />
-      <VdiConfigurationCard :vdi :vbd :from-context />
+      <VdiInfosSidepanelCard :vdi :vbd :from-context />
+      <VdiSpaceSidepanelCard :vdi />
+      <VdiConfigurationSidepanelCard :vdi :vbd :from-context />
     </template>
   </VtsSidePanel>
 </template>
@@ -20,9 +20,9 @@ import VbdConnectButton from '@/modules/vbd/components/actions/connect/VbdConnec
 import VbdDisconnectButton from '@/modules/vbd/components/actions/disconnect/VbdDisconnectButton.vue'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiActions from '@/modules/vdi/components/actions/VdiActions.vue'
-import VdiConfigurationCard from '@/modules/vdi/components/list/panel/cards/VdiConfigurationCard.vue'
-import VdiInfosCard from '@/modules/vdi/components/list/panel/cards/VdiInfosCard.vue'
-import VdiSpaceCard from '@/modules/vdi/components/list/panel/cards/VdiSpaceCard.vue'
+import VdiConfigurationSidepanelCard from '@/modules/vdi/components/list/panel/cards/VdiConfigurationSidepanelCard.vue'
+import VdiInfosSidepanelCard from '@/modules/vdi/components/list/panel/cards/VdiInfosSidepanelCard.vue'
+import VdiSpaceSidepanelCard from '@/modules/vdi/components/list/panel/cards/VdiSpaceSidepanelCard.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { VdiPageContext } from '@/shared/constants.ts'
