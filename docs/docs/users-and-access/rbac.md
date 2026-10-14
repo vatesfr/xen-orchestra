@@ -86,14 +86,14 @@ To use them, **copy** a template into a new role and assign that copy to your us
 | **VMs administrator**       | Full control over VM actions, plus read access to VM snapshots.                                                                             |
 | **Network administrator**   | Scoped admin for networking: manages networks and VIFs, creates pool networks, reads and updates PIFs, and views pools, hosts and VMs.      |
 | **Storage administrator**   | Scoped admin for storage: full control over SRs, VDIs, VBDs, PBDs and backup repositories, read access to unmanaged VDIs and storage managers. |
-| **Backup administrator**    | Scoped admin for backups: full control over backup jobs, schedules, repositories, archives and restore logs, plus read access to VMs.       |
+| **Backup administrator**    | Scoped admin for backups: full control over backup jobs, backup repositories, backup archives, backup logs and restore logs, plus read access to schedules and VMs. |
 | **Administrator**           | Full access to the entire infrastructure and all XO objects.                                                                                |
 
-The **Administrator** template and the three scoped administrator roles below were introduced in Xen Orchestra 6.6.
+The **Administrator**, **Network administrator** and **Storage administrator** templates were introduced in Xen Orchestra 6.6.
 
 ### Scoped administrator roles
 
-The two scoped admin templates let you delegate a whole functional area (storage or networking) without handing out global admin rights. Here is exactly what each template grants:
+The three scoped admin templates let you delegate a whole functional area (storage, networking or backups) without handing out global admin rights. Here is exactly what each template grants:
 
 **Storage administrator**
 
@@ -119,12 +119,13 @@ A Network administrator can therefore manage the whole network stack, from pool 
 
 **Backup administrator**
 
-| Resource                                                                       | Access                                     |
-| ------------------------------------------------------------------------------- | ------------------------------------------- |
-| `backup-job`, `schedule`, `backup-repository`, `backup-archive`, `backup-log`, `restore-log` | Every action (`*`).           |
-| `vm`                                                                             | Read only.                                  |
+| Resource                                                    | Access                                                                                       |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `backup-repository`                                         | Every action (`*`): read, create, forget, benchmark, update, reclaim space.                  |
+| `backup-job`, `backup-archive`, `backup-log`, `restore-log` | Every action (`*`). Only `read` exists today; actions added later are granted automatically. |
+| `schedule`, `vm`                                            | Read only.                                                                                   |
 
-A Backup administrator can manage backup repositories in full (create, forget, benchmark, update) and read/run existing backup jobs, schedules, archives and logs, with VMs staying visible so they can be picked when reviewing a job's scope.
+A Backup administrator can manage backup repositories in full (create, forget, benchmark, update) and read existing backup jobs with their schedules, backup archives, backup logs and restore logs, with VMs staying visible so they can be picked when reviewing a job's scope. Schedules stay read only: they also drive other kinds of jobs, so this role cannot run them.
 
 To copy a template into an assignable role, use `POST /rest/v0/acl-roles/<template-id>/actions/copy`:
 
