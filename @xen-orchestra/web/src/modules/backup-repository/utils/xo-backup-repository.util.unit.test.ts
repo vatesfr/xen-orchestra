@@ -2,6 +2,7 @@ import {
   formatMountOptions,
   getBackupRepositoryIcon,
   getBackupRepositoryStatus,
+  getSmbPathOnShare,
   MASKED_SECRET,
   maskSecret,
   splitBackupRepositoryPath,
@@ -87,5 +88,17 @@ describe('maskSecret', () => {
 
   it('leaves a missing secret empty', () => {
     expect({ empty: maskSecret(''), undefined: maskSecret(undefined) }).toEqual({ empty: '', undefined: '' })
+  })
+})
+
+describe('getSmbPathOnShare', () => {
+  it('builds the UNC path from the host and the subfolder', () => {
+    expect(getSmbPathOnShare({ host: '192.168.100.10\\share', path: 'backups' })).toBe(
+      '\\\\192.168.100.10\\share\\backups'
+    )
+  })
+
+  it('does not add a trailing separator when there is no subfolder', () => {
+    expect(getSmbPathOnShare({ host: '192.168.100.10\\share', path: '' })).toBe('\\\\192.168.100.10\\share')
   })
 })
