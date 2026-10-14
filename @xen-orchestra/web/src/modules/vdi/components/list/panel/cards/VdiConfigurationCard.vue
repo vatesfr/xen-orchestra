@@ -8,7 +8,7 @@
           {{ t('vms') }}
         </template>
         <template #value>
-          <VdiVmLinks :vms />
+          <VmLinkList :vms />
         </template>
         <template v-if="vms.length > 0" #addons>
           <VtsCopyButton :value="vmNames" />
@@ -67,9 +67,9 @@
 import SrLink from '@/modules/storage-repository/components/SrLink.vue'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
-import VdiVmLinks from '@/modules/vdi/components/VdiVmLinks.vue'
 import { useVdiConfiguration } from '@/modules/vdi/composables/use-vdi-configuration.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import VmLinkList from '@/modules/vm/components/VmLinkList.vue'
 import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'

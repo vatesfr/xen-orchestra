@@ -1,5 +1,5 @@
 <template>
-  <div class="vdi-vm-links">
+  <div class="vm-link-list">
     <UiLink
       v-for="vm in vms"
       :key="vm.id"
@@ -24,7 +24,7 @@ defineProps<{
 </script>
 
 <style scoped lang="postcss">
-.vdi-vm-links {
+.vm-link-list {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
