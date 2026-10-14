@@ -5,7 +5,7 @@
     </UiTitle>
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('format')" :value="format" />
-      <VtsTabularKeyValueRow v-if="fromContext === VDI_PAGE_CONTEXT.SR" :label="t('vms')">
+      <VtsTabularKeyValueRow v-if="isFromSr" :label="t('vms')">
         <template #value>
           <VmLinkList :vms />
         </template>
@@ -15,7 +15,7 @@
           <SrLink :sr />
         </template>
       </VtsTabularKeyValueRow>
-      <template v-if="fromContext === VDI_PAGE_CONTEXT.VM">
+      <template v-if="isFromVm">
         <VtsTabularKeyValueRow :label="t('read-only')">
           <template #value>
             <VtsStatus :status="isReadOnly" />
@@ -56,9 +56,10 @@ import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsT
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdi, vdiSnapshot, vbd } = defineProps<{
+const { vdi, vdiSnapshot, vbd, fromContext } = defineProps<{
   vdi?: FrontXoVdi
   vdiSnapshot?: FrontXoVdiSnapshot
   vbd?: FrontXoVbd
@@ -71,4 +72,8 @@ const { sr, vms, format, isReadOnly, isBootable, isCbtEnabled, isSnapshottingEna
   () => vdi ?? vdiSnapshot,
   () => vbd
 )
+
+const isFromSr = computed(() => fromContext === VDI_PAGE_CONTEXT.SR)
+
+const isFromVm = computed(() => fromContext === VDI_PAGE_CONTEXT.VM)
 </script>

@@ -66,6 +66,8 @@ const { t } = useI18n()
 
 const selectedVdiId = useRouteQuery('id')
 
+const isFromVm = computed(() => fromContext === VDI_PAGE_CONTEXT.VM)
+
 const { getVbdsByIds, useGetVbdsByIds } = useXoVbdCollection()
 
 const searchQuery = ref('')
@@ -203,7 +205,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
         r({
           onClick: () => (selectedVdiId.value = vdi.id),
           actions: [
-            ...(fromContext === VDI_PAGE_CONTEXT.VM ? [connectionAction.value] : []),
+            ...(isFromVm.value ? [connectionAction.value] : []),
             {
               label: t('action:migrate-vdi-on-sr'),
               icon: 'action:migrate',
@@ -224,7 +226,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
                 },
               ],
             },
-            ...(fromContext === VDI_PAGE_CONTEXT.VM
+            ...(isFromVm.value
               ? [
                   {
                     label: t('action:detach-vdi'),
