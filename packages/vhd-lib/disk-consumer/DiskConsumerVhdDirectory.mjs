@@ -24,6 +24,8 @@ import assert from 'node:assert'
  * @property {Buffer?} parentUuid
  * @property {string?} parentPath
  * @property {(path: string) => Promise<void>} validator
+ * @property {boolean} [compressedBlocks] the source blocks are already stored with `compression` (bitmap and data
+ *   compressed together, see VhdDirectory#readCompressedBlock): write them as is
  */
 
 /**
@@ -47,7 +49,18 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
    * @returns {Promise<number>}
    */
   async write(signal) {
-    const { handler, path, compression, flags, validator, concurrency, uuid, parentUuid, parentPath } = this.#target
+    const {
+      handler,
+      path,
+      compression,
+      compressedBlocks = false,
+      flags,
+      validator,
+      concurrency,
+      uuid,
+      parentUuid,
+      parentPath,
+    } = this.#target
     const SUFFIX = '.alias.vhd'
     assert.ok(path.endsWith(SUFFIX), `filename must be an alias , got ${path}`)
     const base = basename(path).slice(0, -SUFFIX.length)
@@ -78,6 +91,11 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
         generator,
         async ({ index, data }) => {
           signal?.throwIfAborted()
+          if (compressedBlocks) {
+            // the size of a compressed block is not related to the block size
+            await vhd.writeCompressedBlock(index, data)
+            return
+          }
           if (truncatedBlock !== null) {
             throw new Error(
               `Expecting a ${DEFAULT_BLOCK_SIZE} bytes block, got a ${truncatedBlock.data.length}, for index ${truncatedBlock.index}`

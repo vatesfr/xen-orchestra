@@ -62,14 +62,34 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
     })
     // yeah , let's go
   }
+
+  /**
+   * the block files can be copied as stored, never decompressed nor recompressed, if all the writers write VHD
+   * directories with the same compression (the source disks must also use it, checked per disk when reading)
+   * @returns {string | undefined} the common compression, undefined if a writer writes plain VHD files or if they differ
+   */
+  #getRawBlocksCompression() {
+    const compressions = new Set([...this._writers].map(writer => writer.getVhdDirectoryCompression()))
+    // a single undefined value means plain VHD files on every writer: no raw blocks either
+    return compressions.size === 1 ? [...compressions][0] : undefined
+  }
+
   async _run() {
     const transferList = await this._computeTransferList(({ mode }) => mode === 'delta')
+    const rawBlocksCompression = this.#getRawBlocksCompression()
+    // the source remote writes with the same compression as all the writers: the blocks can be copied as stored
+    // this is based on the remote configurations, each source disk must still be checked since its compression may
+    // predate a configuration change
+    const sameCompression =
+      rawBlocksCompression !== undefined &&
+      rawBlocksCompression === this._sourceRemoteAdapter.getVhdDirectoryCompression()
     const nbTransferrableVms = transferList.length
     let nbTransferredVms = 0
     for (const metadata of transferList) {
       assert.strictEqual(metadata.mode, 'delta')
       const incrementalExport = await this._sourceRemoteAdapter.readIncrementalVmBackup(metadata, undefined, {
         useChain: false,
+        compressedBlocks: sameCompression,
       })
       // don't trust metadata too much
       // recompute if it's a base backup
@@ -103,6 +123,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
             deltaExport: forkDeltaExport(incrementalExport, writer.constructor.name),
             includeNonNbdQcow2Fix: metadata.includeNonNbdQcow2Fix,
             isVhdDifferencing,
+            sameCompression,
             timestamp: metadata.timestamp,
             vm: metadata.vm,
             vmSnapshot: metadata.vmSnapshot,

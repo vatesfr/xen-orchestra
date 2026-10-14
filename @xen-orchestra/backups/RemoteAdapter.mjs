@@ -3,6 +3,7 @@ import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { stringify } from 'uuid'
 import { decorateMethodsWith } from '@vates/decorate-with'
+import assert from 'node:assert'
 import { basename, dirname, join, resolve } from 'node:path'
 import { normalize } from '@xen-orchestra/fs/path'
 import { synchronized } from 'decorator-synchronized'
@@ -315,6 +316,14 @@ export class RemoteAdapter {
 
   useVhdDirectory() {
     return this.handler.getConfig('useVhdDirectory')
+  }
+
+  /**
+   * @returns {string | undefined} the compression of the VHD directories written on this remote ('none' if not
+   *   compressed), undefined if this remote writes plain VHD files
+   */
+  getVhdDirectoryCompression() {
+    return this.useVhdDirectory() ? (this.handler.getConfig('compressionType') ?? 'brotli') : undefined // compatibility layer
   }
 
   #useAlias() {
@@ -665,7 +674,15 @@ export class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
+  /**
+   * @param {boolean} [options.compressedBlocks] the disk blocks are stored with this remote compression, see
+   *   readIncrementalVmBackup
+   */
+  async writeVhd(
+    path,
+    disk,
+    { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath, compressedBlocks = false } = {}
+  ) {
     const handler = this._handler
 
     if (this.useVhdDirectory()) {
@@ -676,13 +693,15 @@ export class RemoteAdapter {
           path,
           concurrency: writeBlockConcurrency,
           validator,
-          compression: handler.getConfig('compressionType') ?? 'brotli', // compatibility layer
+          compression: this.getVhdDirectoryCompression(),
+          compressedBlocks,
           uuid,
           parentUuid,
           parentPath,
         },
       })
     } else {
+      assert.ok(!compressedBlocks, `can't write compressed blocks in a VHD file`)
       const stream = await toVhdStream(disk, { uuid, parentUuid, parentPath })
       const size = await this.outputStream(path, stream, {
         validator,
@@ -716,19 +735,36 @@ export class RemoteAdapter {
   }
 
   // open the  hierarchy of ancestors until we find a full one
-  async _createVhdDisk(handler, path, { useChain }) {
+  async _createVhdDisk(handler, path, { useChain, compressedBlocks = false }) {
     let disk
     if (useChain) {
+      assert.ok(!compressedBlocks, `can't read compressed blocks of a disk chain`)
       disk = await openDiskChain({ handler, path })
     } else {
-      disk = new RemoteVhdDisk({ handler, path })
+      disk = new RemoteVhdDisk({ handler, path, compressedBlocks })
       await disk.init()
+      // the configuration of the remote may have changed since this disk was written
+      if (compressedBlocks) {
+        const diskCompression = disk.getCompressionType()
+        const remoteCompression = this.getVhdDirectoryCompression()
+        if (diskCompression !== remoteCompression) {
+          await disk.close()
+          throw Object.assign(
+            new Error(`can't read compressed blocks, the disk compression differs from the remote one`),
+            { path, diskCompression, remoteCompression }
+          )
+        }
+      }
     }
     disk = new ReadAhead(disk)
     return disk
   }
 
-  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
+  /**
+   * @param {boolean} [options.compressedBlocks] read the blocks as stored, compressed with this remote compression,
+   *   to be written as is in a remote using the same compression (see writeVhd), VHD directories only
+   */
+  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true, compressedBlocks = false } = {}) {
     const handler = this._handler
     const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
     const dir = dirname(metadata._filename)
@@ -736,7 +772,7 @@ export class RemoteAdapter {
     const disks = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
       delete vdis[ref].baseVdi
-      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
+      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain, compressedBlocks })
     })
 
     return {
