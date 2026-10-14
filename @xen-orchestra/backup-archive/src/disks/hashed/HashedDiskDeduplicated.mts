@@ -560,7 +560,9 @@ export class HashedDiskDeduplicated extends HashedDisk {
         await this.#link(tmp, storePath)
         await this.#link(storePath, blockPath)
       } finally {
-        await this.#handler.unlink(tmp, { checksum: false })
+        await this.#handler
+          .unlink(tmp, { checksum: false })
+          .catch(error => warn('failed to remove a temporary block file', { path: this.#path, tmp, error }))
       }
       return
     }
