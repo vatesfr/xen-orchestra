@@ -7,7 +7,8 @@ import { createVdi } from '@/test/create-vdi.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
+import { objectIcon } from '@core/icons'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { mount } from '@vue/test-utils'
 
@@ -21,83 +22,94 @@ vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () =>
 
 beforeEach(() => {
   getVbdsByIds.mockReset()
-
   getVbdsByIds.mockReturnValue([])
 })
 
-function mountCard(vdi: FrontXoVdi = createVdi(), fromContext: VdiPageContext = VDI_PAGE_CONTEXT.SR, vbd?: FrontXoVbd) {
+const vdi = createVdi({
+  id: 'vdi-42' as FrontXoVdi['id'],
+  name_label: 'System disk',
+  name_description: 'Root filesystem',
+  tags: ['production'],
+})
+
+function mountCard(fromContext: VdiPageContext, vbd?: FrontXoVbd, cardVdi: FrontXoVdi = vdi) {
   return mount(VdiInfosSidepanelCard, {
-    props: { vdi, vbd, fromContext },
+    props: { vdi: cardVdi, vbd, fromContext },
     global: createGlobalTestConfig(),
   })
 }
 
-it('shows the description, tags, status and device of a VDI in the VM context', () => {
-  getVbdsByIds.mockReturnValue([createVbd({ attached: true })])
+function attachVbds(...attached: boolean[]) {
+  getVbdsByIds.mockReturnValue(attached.map(isAttached => createVbd({ attached: isAttached })))
+}
 
-  const wrapper = mountCard(
-    createVdi({ name_description: 'System disk', tags: ['prod'] }),
-    VDI_PAGE_CONTEXT.VM,
-    createVbd({ device: 'xvdb' })
-  )
+function findTitleLink(wrapper: ReturnType<typeof mountCard>) {
+  return wrapper.get('.ui-panel-card-title').getComponent(UiLink)
+}
 
-  expect(findCardLabelledValues(wrapper)).toEqual({
-    [t('description')]: 'System disk',
-    [t('tags')]: 'prod',
-    [t('status')]: t('connected'),
-    [t('device')]: 'xvdb',
-  })
-  expect(findCardCopiedValues(wrapper)).toEqual(['System disk', 'prod', CONNECTION_STATUS.CONNECTED, 'xvdb'])
+it('titles the card with the name of the VDI', () => {
+  expect(findTitleLink(mountCard(VDI_PAGE_CONTEXT.VM)).text()).toBe('System disk')
 })
 
-it('hides the device row in the SR context', () => {
-  expect(Object.keys(findCardLabelledValues(mountCard()))).toEqual([t('description'), t('tags'), t('status')])
+it.each([VDI_PAGE_CONTEXT.VM, VDI_PAGE_CONTEXT.SR])(
+  'links the title to the VDI page, opened from the %s',
+  fromContext => {
+    expect(findTitleLink(mountCard(fromContext)).attributes('href')).toBe(`/vdi/vdi-42/general?from=${fromContext}`)
+  }
+)
+
+it.each([
+  { attached: [true, true], icon: objectIcon('vdi', 'attached'), status: CONNECTION_STATUS.CONNECTED },
+  { attached: [true, false], icon: objectIcon('vdi', 'warning'), status: CONNECTION_STATUS.PARTIALLY_CONNECTED },
+  { attached: [false, false], icon: objectIcon('vdi', 'detached'), status: CONNECTION_STATUS.DISCONNECTED },
+  { attached: [], icon: objectIcon('vdi', 'detached'), status: CONNECTION_STATUS.DISCONNECTED },
+])('shows the $status icon and status when its VBDs are $attached', ({ attached, icon, status }) => {
+  attachVbds(...attached)
+
+  const wrapper = mountCard(VDI_PAGE_CONTEXT.SR)
+
+  expect(findTitleLink(wrapper).props('icon')).toBe(icon)
+  expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('status')]: t(status) })
 })
 
-it('links the title to the VDI page in the VM context', () => {
-  const wrapper = mountCard(createVdi({ id: 'vdi-1' as FrontXoVdi['id'] }), VDI_PAGE_CONTEXT.VM)
+describe('from a VM', () => {
+  it('shows the description, the tags, the status and the device of the VDI', () => {
+    attachVbds(true)
 
-  expect(wrapper.getComponent(UiPanelCardTitle).get('a').attributes('href')).toBe('/vdi/vdi-1/general?from=vm')
+    const wrapper = mountCard(VDI_PAGE_CONTEXT.VM, createVbd({ device: 'xvdb' }))
+
+    expect(findCardLabelledValues(wrapper)).toEqual({
+      [t('description')]: 'Root filesystem',
+      [t('tags')]: 'production',
+      [t('status')]: t('connected'),
+      [t('device')]: 'xvdb',
+    })
+    expect(findCardCopiedValues(wrapper)).toEqual([
+      'Root filesystem',
+      'production',
+      CONNECTION_STATUS.CONNECTED,
+      'xvdb',
+    ])
+  })
+
+  it('leaves the device empty and uncopyable without a VBD', () => {
+    const wrapper = mountCard(VDI_PAGE_CONTEXT.VM)
+
+    expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('device')]: '' })
+    expect(findCardCopiedValues(wrapper)).toEqual(['Root filesystem', 'production', CONNECTION_STATUS.DISCONNECTED])
+  })
 })
 
-it('links the title to the VDI page in the SR context', () => {
-  const wrapper = mountCard(createVdi({ id: 'vdi-1' as FrontXoVdi['id'] }), VDI_PAGE_CONTEXT.SR)
+describe('from an SR', () => {
+  it('does not show the device', () => {
+    const wrapper = mountCard(VDI_PAGE_CONTEXT.SR, createVbd({ device: 'xvdb' }))
 
-  expect(wrapper.getComponent(UiPanelCardTitle).get('a').attributes('href')).toBe('/vdi/vdi-1/general?from=sr')
+    expect(Object.keys(findCardLabelledValues(wrapper))).toEqual([t('description'), t('tags'), t('status')])
+  })
 })
 
-describe('status', () => {
-  it('is connected, with the attached icon, when every VBD of the VDI is attached', () => {
-    getVbdsByIds.mockReturnValue([createVbd({ attached: true }), createVbd({ attached: true })])
+it('offers nothing to copy for an empty description or no tag', () => {
+  const wrapper = mountCard(VDI_PAGE_CONTEXT.SR, undefined, createVdi({ name_description: '', tags: [] }))
 
-    const wrapper = mountCard()
-
-    expect(findCardLabelledValues(wrapper)[t('status')]).toBe(t('connected'))
-    expect(wrapper.getComponent(UiPanelCardTitle).props('icon')).toBe('object:vdi:attached')
-  })
-
-  it('is partially connected, with the warning icon, when only some VBDs of the VDI are attached', () => {
-    getVbdsByIds.mockReturnValue([createVbd({ attached: true }), createVbd({ attached: false })])
-
-    const wrapper = mountCard()
-
-    expect(findCardLabelledValues(wrapper)[t('status')]).toBe(t('partially-connected'))
-    expect(wrapper.getComponent(UiPanelCardTitle).props('icon')).toBe('object:vdi:warning')
-  })
-
-  it('is disconnected, with the detached icon, when no VBD of the VDI is attached', () => {
-    getVbdsByIds.mockReturnValue([createVbd({ attached: false })])
-
-    const wrapper = mountCard()
-
-    expect(findCardLabelledValues(wrapper)[t('status')]).toBe(t('disconnected'))
-    expect(wrapper.getComponent(UiPanelCardTitle).props('icon')).toBe('object:vdi:detached')
-  })
-
-  it('is disconnected, with the detached icon, for a VDI with no VBD', () => {
-    const wrapper = mountCard()
-
-    expect(findCardLabelledValues(wrapper)[t('status')]).toBe(t('disconnected'))
-    expect(wrapper.getComponent(UiPanelCardTitle).props('icon')).toBe('object:vdi:detached')
-  })
+  expect(findCardCopiedValues(wrapper)).toEqual([CONNECTION_STATUS.DISCONNECTED])
 })
