@@ -1,5 +1,5 @@
 import { createLogger } from '@xen-orchestra/log'
-import { findTaskByMessage } from './index.js'
+import { findInfoByMessage } from './index.js'
 import assert from 'node:assert'
 import { getSyncedHandler } from '@xen-orchestra/fs'
 
@@ -167,11 +167,12 @@ export const assertBackupSuccess = (result, context = 'Backup') => {
  * @param {number} vmCount - Number of VMs concerned by this backup job
  */
 export const assertSynchronizedSnapshot = (result, vmCount) => {
-  const snapshotVmTask = findTaskByMessage(result, 'snapshot VMs')
-  assert(snapshotVmTask, `Synchronized backup should have batched snapshots`)
+  const synchronizedInfo = findInfoByMessage(result, 'synchronized snapshot')
+  assert(synchronizedInfo, `Synchronized backup should have batched snapshots`)
+  const batchedVms = synchronizedInfo.data?.vms
   assert(
-    snapshotVmTask.tasks && snapshotVmTask.tasks.length === vmCount,
-    `Synchronized backup should have made a snapshot per vm`
+    batchedVms?.length === vmCount,
+    `Synchronized backup should have made a snapshot per vm (expected ${vmCount}, found ${batchedVms?.length})`
   )
 
   // Collect every task with a given message across the whole task tree.
@@ -195,6 +196,10 @@ export const assertSynchronizedSnapshot = (result, vmCount) => {
   // 'snapshot' task per VM (the batched ones) and none taken again during the
   // per-VM backup. A larger count means a VM was snapshotted a second time at
   // transfer time, i.e. the backup did NOT reuse the synchronized snapshot.
+  //
+  // Those tasks are subtasks of the VM they belong to, batched or not, hence
+  // the recursive walk: the batch phase does not have a task of its own, it is
+  // only reported by the 'synchronized snapshot' info above.
   const snapshots = collectByMessage('snapshot')
   assert(
     snapshots.length === vmCount,
@@ -205,5 +210,6 @@ export const assertSynchronizedSnapshot = (result, vmCount) => {
   assert(transfers.length > 0, `Synchronized backup should have transfered snapshots.`)
 
   const earliestStart = Math.min(...transfers.map(t => t.start))
-  assert(snapshotVmTask.end <= earliestStart, `Synchronized backup snapshots should be complete before transfer starts`)
+  const latestSnapshotEnd = Math.max(...snapshots.map(t => t.end))
+  assert(latestSnapshotEnd <= earliestStart, `Synchronized backup snapshots should be complete before transfer starts`)
 }

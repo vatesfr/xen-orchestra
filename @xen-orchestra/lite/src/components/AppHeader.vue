@@ -2,11 +2,15 @@
   <header class="app-header">
     <div class="left">
       <UiButtonIcon
-        ref="navigationTrigger"
+        v-tooltip="{
+          content: leftSidebar.isExpanded ? t('action:sidebar-close') : t('action:sidebar-open'),
+          placement: 'right',
+        }"
         :class="{ 'menu-to-right': !uiStore.isSmall }"
         accent="brand"
         icon="fa:bars"
         size="medium"
+        @click="leftSidebar.toggleExpand()"
       />
       <RouterLink :to="logoRoute" class="logo-container">
         <img v-if="uiStore.isSmall" alt="XO Lite" src="../assets/logo.svg" />
@@ -26,12 +30,12 @@
 import AccountMenu from '@/components/account-menu/AccountMenu.vue'
 import PoolOverrideWarning from '@/components/PoolOverrideWarning.vue'
 import XoaButton from '@/components/XoaButton.vue'
-import { useNavigationStore } from '@/stores/navigation.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiLogoText from '@core/components/ui/logo-text/UiLogoText.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { useLeftSidebarStore } from '@core/packages/sidebar'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
@@ -40,8 +44,7 @@ const uiStore = useUiStore()
 const { pool } = usePoolStore().getContext()
 const { t } = useI18n()
 
-const navigationStore = useNavigationStore()
-const { trigger: navigationTrigger } = storeToRefs(navigationStore)
+const leftSidebar = useLeftSidebarStore()
 
 const logoRoute = computed<RouteLocationRaw>(() =>
   pool.value

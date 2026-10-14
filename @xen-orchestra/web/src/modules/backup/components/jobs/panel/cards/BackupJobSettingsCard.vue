@@ -1,8 +1,6 @@
 <template>
   <UiPanelCard class="backup-job-settings-card">
-    <UiCardTitle>
-      {{ t('settings') }}
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('settings')" />
     <div class="content">
       <!-- Known settings -->
       <VtsCardRowKeyValue v-if="proxy !== undefined">
@@ -110,9 +108,9 @@ import { useXoBackupJobSettingsUtils } from '@/modules/backup/composables/backup
 import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{

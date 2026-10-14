@@ -3,6 +3,7 @@ import { createHostOperations } from '@/libs/xen-api/operations/host-operations.
 import { createNetworkOperations } from '@/libs/xen-api/operations/network-operations.ts'
 import { createPbdOperations } from '@/libs/xen-api/operations/pbd-operations.ts'
 import { createPifOperations } from '@/libs/xen-api/operations/pif-operations.ts'
+import { createPoolOperations } from '@/libs/xen-api/operations/pool-operations.ts'
 import { createSrOperations } from '@/libs/xen-api/operations/sr-operations.ts'
 import { createVbdOperations } from '@/libs/xen-api/operations/vbd-operations.ts'
 import { createVdiOperations } from '@/libs/xen-api/operations/vdi-operations.ts'
@@ -95,7 +96,7 @@ export default class XenApi {
     { abortSignal, host, query }: { abortSignal?: AbortSignal; host: XenApiHost; query: any }
   ) {
     const url = new URL('http://localhost')
-    url.protocol = window.location.protocol
+    url.protocol = new URL(this._hostUrl).protocol
     url.hostname = ipToHostname(host.address)
     url.pathname = pathname
     url.search = new URLSearchParams({
@@ -300,5 +301,9 @@ export default class XenApi {
 
   get host() {
     return createHostOperations(this)
+  }
+
+  get pool() {
+    return createPoolOperations(this)
   }
 }

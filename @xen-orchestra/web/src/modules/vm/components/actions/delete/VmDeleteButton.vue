@@ -9,10 +9,10 @@ import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts
 import { useXoVmDeleteJob } from '@/modules/vm/jobs/xo-vm-delete.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
-import { useRedirectAfterDelete } from '@/shared/composables/redirect-after-delete.composable.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
 import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
+import { useRedirectAfterDelete } from '@core/composables/redirect-after-delete.composable.ts'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -22,7 +22,7 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { run: deleteVM, canRun, isRunning } = useXoVmDeleteJob(() => [vm])
+const { run: deleteVm, canRun, isRunning } = useXoVmDeleteJob(() => [vm])
 
 const { xo5VmAdvancedHref } = useXoVmUtils(() => vm)
 
@@ -55,23 +55,13 @@ function openModal() {
     })
   }
 
-  openDeleteModal({
-    events: {
-      onConfirm: async () => {
-        let result
-
-        try {
-          result = await deleteVM()
-        } catch (error) {
-          console.error('Error when deleting VM:', error)
-        }
-
-        await redirectIfOnObjectPage(result)
-      },
-    },
+  return openDeleteModal({
     props: {
       subject: vm.name_label,
       confirmLabel: t('action:delete-n-vms', { n: 1 }),
+    },
+    events: {
+      onConfirm: () => deleteVm({ detached: true, onSuccess: redirectIfOnObjectPage }),
     },
   })
 }

@@ -1,4 +1,4 @@
-import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-backup-repository-collection.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 
 /**
  * Builds a fully-populated FrontXoBackupRepository for use in tests. Pass overrides to

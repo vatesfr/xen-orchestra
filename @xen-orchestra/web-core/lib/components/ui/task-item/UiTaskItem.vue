@@ -21,13 +21,9 @@
       </div>
 
       <div class="main-content">
-        <div v-if="task.nameParts || task.name" class="content-left">
-          <template v-if="task.nameParts">
-            <template v-for="(part, index) in task.nameParts" :key="index">
-              <UiLink size="medium" :to="part.to">{{ part.text }}</UiLink>
-            </template>
-          </template>
-          <UiLink v-else size="small">{{ task.name }}</UiLink>
+        <div class="content-left">
+          <VtsTaskName :task size="small" />
+
           <div v-if="shouldShowInfos || hasSubTasks" class="infos">
             <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="brand" variant="secondary" size="small" />
             <UiInfo v-if="hasInfos" accent="info" />
@@ -43,7 +39,7 @@
           <div class="progress">
             <UiCircleProgressBar :accent="progressAccent" size="small" :value="progress" />
           </div>
-          <div class="actions">
+          <div v-if="showEyeIcon" class="actions">
             <UiButtonIcon icon="fa:eye" size="small" accent="brand" @click="emit('select', task.id)" />
           </div>
         </div>
@@ -56,24 +52,33 @@
 </template>
 
 <script lang="ts" setup>
+import VtsTaskName from '@core/components/task/VtsTaskName.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
+import type { LinkOptions } from '@core/composables/link-component.composable.ts'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import type { TaskObjectSegment, TaskStatus } from '@core/types/task.type.ts'
 import { logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { RouteLocationRaw } from 'vue-router'
+
+export type TaskStatus = 'failure' | 'interrupted' | 'pending' | 'success'
+
+export type TaskObjectSegment = {
+  text: string
+  to?: RouteLocationRaw
+}
 
 export type Task = {
   id: string
   infos?: { data: unknown; message: string }[]
   name?: string
   nameParts?: TaskObjectSegment[]
+  to?: LinkOptions['to']
   progress?: number
   tag?: string
   userName?: string
@@ -84,12 +89,13 @@ export type Task = {
   warnings?: { data: unknown; message: string }[]
 }
 
-const { task } = defineProps<{
+const { task, showEyeIcon = false } = defineProps<{
   task: Task
   depth: number
   expanded?: boolean
   selected?: boolean
   selectedTaskId?: string
+  showEyeIcon?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -224,6 +230,10 @@ const progress = computed(() => {
       .actions {
         display: flex;
         gap: 1.6rem;
+      }
+
+      .progress:not(:has(+ .actions)) {
+        margin-inline-end: 4rem;
       }
     }
   }
