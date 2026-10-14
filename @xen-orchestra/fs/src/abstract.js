@@ -3,7 +3,7 @@ import getStream from 'get-stream'
 import { asyncEach } from '@vates/async-each'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { createLogger } from '@xen-orchestra/log'
-import { fromCallback, fromEvent, ignoreErrors, pRetry } from 'promise-toolbox'
+import { fromCallback, fromEvent, ignoreErrors, pRetry, TimeoutError } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parse } from 'xo-remote-parser'
 import { pipeline } from 'stream'
@@ -173,7 +173,21 @@ export default class RemoteHandlerAbstract {
   }
 
   _conditionRetry(error) {
-    return !['EEXIST', 'EISDIR', 'ENOTEMPTY', 'ENOENT', 'ENOTDIR', 'SystemInUse', 'ERR_ASSERTION'].includes(error?.code)
+    // the timed out call is still pending: retrying would start another one on the unresponsive remote
+    if (error instanceof TimeoutError) {
+      return false
+    }
+
+    return ![
+      'EEXIST',
+      'EISDIR',
+      'ENOTEMPTY',
+      'ENOENT',
+      'ENOTDIR',
+      'SystemInUse',
+      'ERR_ASSERTION',
+      'REMOTE_UNRESPONSIVE',
+    ].includes(error?.code)
   }
 
   #applySafeGuards(options) {
@@ -188,9 +202,24 @@ export default class RemoteHandlerAbstract {
       }
     })
 
+    // an operation which timed out may still be blocked (e.g. on a dead hard-mounted NFS), holding a thread of the
+    // libuv pool: no new operation is started on this remote until it settles, to avoid exhausting the pool
+    let nTimedOutOperations = 0
     this._withTimeout.forEach(functionName => {
       if (this[functionName] !== undefined) {
-        this[functionName] = withTimeout(this[functionName], DEFAULT_TIMEOUT)
+        const fnWithTimeout = withTimeout(this[functionName], DEFAULT_TIMEOUT, {
+          onTimeout: () => nTimedOutOperations++,
+          onSuccessAfterTimeout: () => nTimedOutOperations--,
+          onFailureAfterTimeout: () => nTimedOutOperations--,
+        })
+        this[functionName] = function (...args) {
+          if (nTimedOutOperations > 0) {
+            const error = new Error('the remote is unresponsive: an operation timed out and is still pending')
+            error.code = 'REMOTE_UNRESPONSIVE'
+            return Promise.reject(error)
+          }
+          return fnWithTimeout.apply(this, args)
+        }
       }
     })
 

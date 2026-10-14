@@ -128,6 +128,105 @@ describe('rmdir()', () => {
   })
 })
 
+// an operation on an unresponsive remote (e.g. a dead hard-mounted NFS) blocks a libuv thread until the remote
+// answers, even after it timed out: starting new operations on it would end up blocking all the threads
+describe('unresponsive remote', () => {
+  let nCalls
+  let pendingResult
+
+  // unlike TestHandler, keeps the default retry configuration
+  class UnresponsiveHandler extends AbstractHandler {
+    constructor() {
+      super({ url: 'test://' }, { timeout: TIMEOUT })
+      Object.defineProperty(this, 'isEncrypted', {
+        get: () => false,
+      })
+    }
+
+    _list() {
+      nCalls++
+      return pendingResult
+    }
+
+    _openFile() {
+      nCalls++
+      return pendingResult
+    }
+  }
+
+  const trackSettlement = promise => {
+    const state = { settled: false }
+    promise.then(
+      value => {
+        state.settled = true
+        state.value = value
+      },
+      error => {
+        state.settled = true
+        state.error = error
+      }
+    )
+    return state
+  }
+
+  let resolvePending
+  beforeEach(() => {
+    nCalls = 0
+    pendingResult = new Promise(resolve => {
+      resolvePending = resolve
+    })
+  })
+
+  it('does not retry an operation which timed out', async () => {
+    const handler = new UnresponsiveHandler()
+
+    const state = trackSettlement(handler.list('dir'))
+    // enough time for all the retry delays
+    await clock.tickAsync(TIMEOUT + 10e3)
+
+    assert.equal(nCalls, 1, 'the operation must not be retried while the first call is still pending')
+    assert.equal(state.settled, true)
+    assert.ok(state.error instanceof TimeoutError)
+  })
+
+  it('rejects new operations at once while a timed out one is still pending', async () => {
+    const handler = new UnresponsiveHandler()
+
+    trackSettlement(handler.list('dir'))
+    await clock.tickAsync(TIMEOUT)
+    const nCallsAfterTimeout = nCalls
+
+    const listState = trackSettlement(handler.list('other-dir'))
+    const openState = trackSettlement(handler.openFile('file', 'r'))
+    await clock.tickAsync(0)
+
+    assert.equal(nCalls, nCallsAfterTimeout, 'no new call must reach the unresponsive remote')
+    assert.equal(listState.settled, true)
+    assert.notEqual(listState.error, undefined)
+    assert.equal(openState.settled, true)
+    assert.notEqual(openState.error, undefined)
+  })
+
+  it('accepts operations again once the timed out one has settled', async () => {
+    const handler = new UnresponsiveHandler()
+
+    trackSettlement(handler.list('dir'))
+    await clock.tickAsync(TIMEOUT)
+
+    // the remote answers again
+    resolvePending([])
+    pendingResult = Promise.resolve(['file'])
+    await clock.tickAsync(0)
+
+    const nCallsBefore = nCalls
+    const state = trackSettlement(handler.list('dir'))
+    await clock.tickAsync(0)
+
+    assert.equal(nCalls, nCallsBefore + 1)
+    assert.deepEqual(state.value, ['file'])
+  })
+})
+
 describe('encryption', () => {
   let dir
   beforeEach(async () => {
