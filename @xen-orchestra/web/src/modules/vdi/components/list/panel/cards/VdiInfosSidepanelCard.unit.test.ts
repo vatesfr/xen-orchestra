@@ -1,5 +1,5 @@
 import type { FrontXoVbd, useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import VdiInfosCard from '@/modules/vdi/components/list/panel/cards/VdiInfosCard.vue'
+import VdiInfosSidepanelCard from '@/modules/vdi/components/list/panel/cards/VdiInfosSidepanelCard.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
 import { createVbd } from '@/test/create-vbd.ts'
@@ -26,7 +26,7 @@ beforeEach(() => {
 })
 
 function mountCard(vdi: FrontXoVdi = createVdi(), fromContext: VdiPageContext = VDI_PAGE_CONTEXT.SR, vbd?: FrontXoVbd) {
-  return mount(VdiInfosCard, {
+  return mount(VdiInfosSidepanelCard, {
     props: { vdi, vbd, fromContext },
     global: createGlobalTestConfig(),
   })

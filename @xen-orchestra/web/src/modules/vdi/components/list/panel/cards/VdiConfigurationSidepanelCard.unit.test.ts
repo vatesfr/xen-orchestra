@@ -2,7 +2,7 @@ import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo
 import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVbd, useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import VdiConfigurationCard from '@/modules/vdi/components/list/panel/cards/VdiConfigurationCard.vue'
+import VdiConfigurationSidepanelCard from '@/modules/vdi/components/list/panel/cards/VdiConfigurationSidepanelCard.vue'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
 import { createSr } from '@/test/create-sr.ts'
@@ -62,7 +62,7 @@ function givenVms(...vms: FrontXoVm[]) {
 }
 
 function mountCard(fromContext: VdiPageContext, vbd?: FrontXoVbd) {
-  return mount(VdiConfigurationCard, {
+  return mount(VdiConfigurationSidepanelCard, {
     props: { vdi: createVdi({ image_format: 'qcow2', cbt_enabled: true, tags: ['NOSNAP'] }), vbd, fromContext },
     global: createGlobalTestConfig(),
   })
