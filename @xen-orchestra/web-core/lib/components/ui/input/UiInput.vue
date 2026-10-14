@@ -182,6 +182,7 @@ defineExpose({ focus })
     border: none;
     width: 0;
     padding: 0;
+    outline: none;
   }
 
   .input {
