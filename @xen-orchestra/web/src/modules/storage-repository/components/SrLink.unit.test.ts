@@ -1,5 +1,5 @@
 import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import type { FrontXoPbd, useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import SrLink from '@/modules/storage-repository/components/SrLink.vue'
 import type {
   FrontXoSr,
@@ -33,52 +33,50 @@ vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () 
 beforeEach(() => {
   isDefaultSr.mockReset()
   getPbdsByIds.mockReset()
-
   isDefaultSr.mockReturnValue(false)
   getPbdsByIds.mockReturnValue([])
 })
 
-function mountSrLink(sr: FrontXoSr = createSr()) {
+function mountLink(sr: FrontXoSr = createSr({ id: 'sr-42' as FrontXoSr['id'], name_label: 'Local storage' })) {
   return mount(SrLink, {
     props: { sr },
     global: createGlobalTestConfig(),
   })
 }
 
-it('shows the SR name label and links to its general page', () => {
-  const wrapper = mountSrLink(createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'Fast SR' }))
+function attachPbds(...attached: boolean[]) {
+  getPbdsByIds.mockReturnValue(
+    attached.map((isAttached, index) => createPbd({ id: `pbd-${index}` as FrontXoPbd['id'], attached: isAttached }))
+  )
+}
 
-  expect(wrapper.text()).toBe('Fast SR')
-  expect(wrapper.get('.ui-link').attributes('href')).toBe('/sr/sr-1/general')
+it('shows the name of the SR', () => {
+  expect(mountLink().text()).toBe('Local storage')
 })
 
-it('picks the connected icon when every PBD of the SR is attached', () => {
-  getPbdsByIds.mockReturnValue([createPbd({ attached: true }), createPbd({ attached: true })])
-
-  expect(mountSrLink().getComponent(UiLink).props('icon')).toBe(objectIcon('sr', 'connected'))
+it('links to the general page of the SR', () => {
+  expect(mountLink().get('a.ui-link').attributes('href')).toBe('/sr/sr-42/general')
 })
 
-it('picks the partially connected icon when only some PBDs of the SR are attached', () => {
-  getPbdsByIds.mockReturnValue([createPbd({ attached: true }), createPbd({ attached: false })])
+it.each([
+  { attached: [true, true], status: 'connected' },
+  { attached: [true, false], status: 'partially-connected' },
+  { attached: [false, false], status: 'disconnected' },
+] as const)('shows the $status SR icon when its PBDs are $attached', ({ attached, status }) => {
+  attachPbds(...attached)
 
-  expect(mountSrLink().getComponent(UiLink).props('icon')).toBe(objectIcon('sr', 'partially-connected'))
+  expect(mountLink().getComponent(UiLink).props('icon')).toBe(objectIcon('sr', status))
 })
 
-it('picks the disconnected icon when no PBD of the SR is attached', () => {
-  getPbdsByIds.mockReturnValue([createPbd({ attached: false })])
-
-  expect(mountSrLink().getComponent(UiLink).props('icon')).toBe(objectIcon('sr', 'disconnected'))
-})
-
-it('flags the SR as primary when it is the default SR of its pool', () => {
+it('flags the default SR of the pool as primary', () => {
   isDefaultSr.mockReturnValue(true)
 
-  const link = mountSrLink().getComponent(UiLink)
+  const link = mountLink().getComponent(UiLink)
 
   expect(link.props('isPrimary')).toBe(true)
   expect(link.props('primaryTooltip')).toBe(t('default-storage-repository'))
 })
 
-it('does not flag the SR as primary when it is not the default SR of its pool', () => {
-  expect(mountSrLink().getComponent(UiLink).props('isPrimary')).toBe(false)
+it('does not flag any other SR as primary', () => {
+  expect(mountLink().getComponent(UiLink).props('isPrimary')).toBe(false)
 })
