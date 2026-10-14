@@ -3,7 +3,7 @@
     <UiPanelCardTitle size="medium" :label="t('configuration')" />
     <div class="content">
       <VdiFormatCardItem :format="vdi.image_format" />
-      <VtsCardRowKeyValue v-if="fromContext === VDI_PAGE_CONTEXT.SR" align-top>
+      <VtsCardRowKeyValue v-if="isFromSr" align-top>
         <template #key>
           {{ t('vms') }}
         </template>
@@ -25,7 +25,7 @@
           <VtsCopyButton :value="sr.name_label" />
         </template>
       </VtsCardRowKeyValue>
-      <template v-if="fromContext === VDI_PAGE_CONTEXT.VM">
+      <template v-if="isFromVm">
         <VtsCardRowKeyValue>
           <template #key>
             {{ t('read-only') }}
@@ -79,7 +79,7 @@ import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTi
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdi, vbd } = defineProps<{
+const { vdi, vbd, fromContext } = defineProps<{
   vdi: FrontXoVdi
   vbd?: FrontXoVbd
   fromContext: VdiPageContext
@@ -91,6 +91,10 @@ const { sr, vms, isReadOnly, isBootable, isCbtEnabled, isSnapshottingEnabled } =
   () => vdi,
   () => vbd
 )
+
+const isFromSr = computed(() => fromContext === VDI_PAGE_CONTEXT.SR)
+
+const isFromVm = computed(() => fromContext === VDI_PAGE_CONTEXT.VM)
 
 const vmNames = computed(() => vms.value.map(vm => vm.name_label).join(', '))
 </script>

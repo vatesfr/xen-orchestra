@@ -39,7 +39,7 @@
           <VtsCopyButton :value="vbdsStatus" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="fromContext === VDI_PAGE_CONTEXT.VM">
+      <VtsCardRowKeyValue v-if="isFromVm">
         <template #key>{{ t('device') }}</template>
         <template #value>{{ vdiDevice }}</template>
         <template v-if="vdiDevice" #addons>
@@ -68,7 +68,7 @@ import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdi, vbd } = defineProps<{
+const { vdi, vbd, fromContext } = defineProps<{
   vdi: FrontXoVdi
   vbd?: FrontXoVbd
   fromContext: VdiPageContext
@@ -97,6 +97,8 @@ const vbdsStatus = useMapper<VbdAttachmentStatus, (typeof CONNECTION_STATUS)[key
   },
   'noneAttached'
 )
+
+const isFromVm = computed(() => fromContext === VDI_PAGE_CONTEXT.VM)
 
 const vdiDevice = computed(() => vbd?.device ?? '')
 </script>
