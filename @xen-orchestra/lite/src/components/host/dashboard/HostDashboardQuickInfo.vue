@@ -54,10 +54,10 @@
 
 <script lang="ts" setup>
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
-import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
 import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
@@ -65,10 +65,8 @@ import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import useRelativeTime from '@core/composables/relative-time.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { parseDateTime } from '@core/utils/time.util.ts'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -81,20 +79,11 @@ const { t } = useI18n()
 
 const { isMasterHost, masterHost, isReady: isPoolReady } = usePoolStore().subscribe()
 const { isReady: isHostReady } = useHostStore().subscribe()
-const { isHostRunning, getHostMemory, isReady: isHostMetricsReady } = useHostMetricsStore().subscribe()
+const { getHostMemory, isReady: isHostMetricsReady } = useHostMetricsStore().subscribe()
+
+const { isRunning, powerState, relativeStartTime } = useHostUtils(() => host)
 
 const isReady = logicAnd(isPoolReady, isHostReady, isHostMetricsReady)
-
-const isRunning = computed(() => isHostRunning(host))
-
-const powerState = computed<{ text: string; icon: IconName }>(() => ({
-  text: isRunning.value ? t(`host:status:running`) : t('host:status:halted'),
-  icon: isRunning.value ? 'status:running-circle' : 'status:halted-circle',
-}))
-
-const date = computed(() => new Date(parseDateTime(Number(host.other_config.boot_time) * 1000)))
-
-const relativeStartTime = useRelativeTime(date)
 
 const isMaster = computed(() => isMasterHost(host.$ref))
 

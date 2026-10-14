@@ -40,8 +40,8 @@ usePageTitleStore().setTitle(t('storage'))
 const route = useRoute<'/host/[uuid]/storage'>()
 
 const { getByUuid: getHostByUuid } = useHostStore().subscribe()
-const { getByOpaqueRef: getSrByOpaqueRef, isReady: areSrsReady, hasError } = useSrStore().subscribe()
-const { getPbdsForHost, isReady: arePbdsReady } = usePbdStore().subscribe()
+const { getSrsForHost, isReady: areSrsReady, hasError } = useSrStore().subscribe()
+const { isReady: arePbdsReady } = usePbdStore().subscribe()
 const { pool } = usePoolStore().subscribe()
 const uiStore = useUiStore()
 
@@ -65,19 +65,7 @@ const srs = computed((): XenApiSr[] => {
     return []
   }
 
-  const hostPbds = getPbdsForHost(host.value.$ref)
-
-  return hostPbds
-    .reduce<XenApiSr[]>((acc, pbd) => {
-      const sr = getSrByOpaqueRef(pbd.SR)
-
-      if (sr !== undefined) {
-        acc.push(sr)
-      }
-
-      return acc
-    }, [])
-    .sort(sortByNameLabel)
+  return getSrsForHost(host.value.$ref).sort(sortByNameLabel)
 })
 
 const selectedSr = useRouteQuery<XenApiSr | undefined>('id', {
