@@ -73,7 +73,7 @@
         <template #key>{{ t('started') }}</template>
         <template #value>{{ relativeStartTime }}</template>
         <template v-if="relativeStartTime" #addons>
-          <VtsCopyButton :value="String(relativeStartTime)" />
+          <VtsCopyButton :value="relativeStartTime" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>

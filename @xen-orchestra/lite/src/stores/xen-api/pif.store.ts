@@ -1,4 +1,4 @@
-import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import type { XenApiHost, XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
 import { useBondStore } from '@/stores/xen-api/bond.store.ts'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config.ts'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store.ts'
@@ -35,6 +35,19 @@ export const usePifStore = defineStore('xen-api-pif', () => {
     return hostMasterPifsByNetworkMap
   })
 
+  const pifsByHost = computed(() => {
+    const pifsByHostMap = new Map<XenApiHost['$ref'], XenApiPif[]>()
+
+    baseContext.records.value.forEach(pif => {
+      if (!pifsByHostMap.has(pif.host)) {
+        pifsByHostMap.set(pif.host, [])
+      }
+      pifsByHostMap.get(pif.host)?.push(pif)
+    })
+
+    return pifsByHostMap
+  })
+
   const getPifsByNetworkRef = (networkRef: XenApiNetwork['$ref']) => {
     return baseContext.records.value.filter(pif => pif.network === networkRef)
   }
@@ -69,6 +82,7 @@ export const usePifStore = defineStore('xen-api-pif', () => {
   const context = {
     ...baseContext,
     hostMasterPifsByNetwork,
+    pifsByHost,
     getPifsByNetworkRef,
     getPifStatus,
     getBondsDevices,

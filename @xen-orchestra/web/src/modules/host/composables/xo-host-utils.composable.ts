@@ -3,7 +3,7 @@ import type { XoHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { getHostPendingStateOperation, getHostSmartRebootVmOperation } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { IconName } from '@core/icons'
-import useRelativeTime from '@core/composables/relative-time.composable.ts'
+import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { createMapper, useMapper } from '@core/packages/mapper'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -11,7 +11,7 @@ import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   const host = toComputed(rawHost)
 
@@ -28,9 +28,7 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
   )
 
   function getRelativeStartTime(startTime: number) {
-    const date = computed(() => new Date(parseDateTime(startTime * 1000)))
-
-    return useRelativeTime(date)
+    return getRelativeTime(new Date(parseDateTime(startTime * 1000)), locale.value)
   }
 
   const pendingStateOperation = computed(

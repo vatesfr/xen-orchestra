@@ -2,32 +2,55 @@ import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { getHostPendingStateOperation, getHostState, type HostState } from '@/modules/host/utils/host.util.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
+import type { IconName } from '@core/icons'
+import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { useMapper } from '@core/packages/mapper'
+import { parseDateTime } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
+import { HOST_POWER_STATE } from '@vates/types'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export function useHostUtils(rawHost: MaybeRefOrGetter<XenApiHost | undefined>) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   const host = toComputed(rawHost)
 
-  const { isHostRunning, getHostPowerState } = useHostMetricsStore().subscribe()
+  const { getHostPowerState } = useHostMetricsStore().subscribe()
+
+  const hostPowerState = computed(() => getHostPowerState(host.value))
+
+  const isRunning = computed(() => hostPowerState.value === HOST_POWER_STATE.RUNNING)
+
+  const hostState = computed(() => getHostState(host.value, hostPowerState.value))
+
+  const powerState = useMapper<HostState, { text: string; icon: IconName | undefined }>(
+    hostState,
+    () => ({
+      running: { text: t('host:status:running'), icon: 'status:running-circle' },
+      halted: { text: t('host:status:halted'), icon: 'status:halted-circle' },
+      disabled: { text: t('host:status:disabled'), icon: 'status:host-disabled-circle' },
+      unknown: { text: t('host:status:unknown'), icon: undefined },
+    }),
+    'unknown'
+  )
+
+  const relativeStartTime = computed(() => {
+    const bootTime = Number(host.value?.other_config.boot_time)
+
+    if (!bootTime) {
+      return undefined
+    }
+
+    return getRelativeTime(new Date(parseDateTime(bootTime * 1000)), locale.value)
+  })
 
   const pendingStateOperation = computed(() => {
     if (host.value === undefined) {
       return undefined
     }
 
-    return getHostPendingStateOperation(host.value, isHostRunning(host.value))
-  })
-
-  const hostState = computed<HostState>(() => {
-    if (host.value === undefined) {
-      return 'unknown'
-    }
-
-    return getHostState(host.value, getHostPowerState(host.value))
+    return getHostPendingStateOperation(host.value, isRunning.value)
   })
 
   const isChangingState = computed(() => pendingStateOperation.value !== undefined)
@@ -46,8 +69,11 @@ export function useHostUtils(rawHost: MaybeRefOrGetter<XenApiHost | undefined>) 
   )
 
   return {
+    isRunning,
     hostState,
+    powerState,
     isChangingState,
     currentOperation,
+    relativeStartTime,
   }
 }
