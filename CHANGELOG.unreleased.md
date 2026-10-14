@@ -49,7 +49,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [Servers] Fix a pool left in a broken state when its connection was lost twice in a row within 5 minutes (e.g. during a toolstack restart): it could be displayed as connecting while connected and its objects could no longer be acted upon, or it would never be reconnected automatically (PR [#XXXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXXX))
+- [Servers] Fix a pool left in a broken state when its connection was lost twice in a row within 5 minutes (e.g. during a toolstack restart): it could be displayed as connecting while connected and its objects could no longer be acted upon, or it would never be reconnected automatically (PR [#10577](https://github.com/vatesfr/xen-orchestra/pull/10577))
 - [Backups] Fix on distributed incremental replication and deleteFirst incorrectly disabled for non-distributed replication jobs (PR [#10452](https://github.com/vatesfr/xen-orchestra/pull/10452))
 - [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
 - [Host/VM] Fix the confirmation modal staying open and blocking the UI until the action was fully completed (PR [#10417](https://github.com/vatesfr/xen-orchestra/pull/10417))
