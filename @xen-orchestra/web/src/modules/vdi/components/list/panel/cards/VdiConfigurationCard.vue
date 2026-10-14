@@ -87,7 +87,7 @@ const { vdi, vbd, fromContext } = defineProps<{
 
 const { t } = useI18n()
 
-const { sr, vms, isReadOnly, isBootable, isCbtEnabled, isSnapshottingEnabled } = useVdiConfiguration(
+const { sr, vms, vmNames, isReadOnly, isBootable, isCbtEnabled, isSnapshottingEnabled } = useVdiConfiguration(
   () => vdi,
   () => vbd
 )
@@ -95,8 +95,6 @@ const { sr, vms, isReadOnly, isBootable, isCbtEnabled, isSnapshottingEnabled } =
 const isFromSr = computed(() => fromContext === VDI_PAGE_CONTEXT.SR)
 
 const isFromVm = computed(() => fromContext === VDI_PAGE_CONTEXT.VM)
-
-const vmNames = computed(() => vms.value.map(vm => vm.name_label).join(', '))
 </script>
 
 <style scoped lang="postcss">
