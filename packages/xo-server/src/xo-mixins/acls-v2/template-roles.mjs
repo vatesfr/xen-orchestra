@@ -139,17 +139,14 @@ export const STORAGE_ADMINISTRATOR = {
 export const BACKUP_ADMINISTRATOR = {
   roleTemplateId: 9,
   name: 'Backup administrator',
-  description: 'Full control over backups: jobs, schedules, repositories, archives and logs',
+  description: 'Full control over backup repositories, backup archives, backup logs and restore logs',
   privileges: [
-    // Core backup resources: full control (wildcard is future-proof for new actions,
-    // e.g. job/schedule create-update-delete are not wired into RBAC yet)
-    { action: '*', resource: 'backup-job', effect: 'allow' },
-    { action: '*', resource: 'schedule', effect: 'allow' },
+    // Core backup resources: full control (wildcard is future-proof for new actions)
     { action: '*', resource: 'backup-repository', effect: 'allow' },
     { action: '*', resource: 'backup-archive', effect: 'allow' },
     { action: '*', resource: 'backup-log', effect: 'allow' },
     { action: '*', resource: 'restore-log', effect: 'allow' },
-    // Visibility only: needed to pick VMs when scoping/reviewing backup jobs
+    // Visibility only: needed to tell which VM a backup archive or backup log belongs to
     { action: 'read', resource: 'vm', effect: 'allow' },
   ],
 }
