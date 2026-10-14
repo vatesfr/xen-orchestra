@@ -185,6 +185,11 @@ export function sha256hex(data: Buffer): BlockHash {
   return hash.update(data).digest('hex') as BlockHash
 }
 
+export function setVerifiedAt(header: Buffer, verifiedAt: number): Buffer {
+  header.writeBigInt64LE(BigInt(verifiedAt), OFFSET_VERIFIED_AT)
+  return header
+}
+
 export class HashEntrySet {
   #keys = new Set<string>()
 

@@ -25,6 +25,8 @@ import {
   HBD_HEADER_SIZE,
   parseBlockHeader,
   CODEC_RAW,
+  setVerifiedAt,
+  HBD_MAGIC,
 } from './hbdPaths.mjs'
 import { randomUUID } from 'node:crypto'
 
@@ -605,7 +607,6 @@ export class HashedDiskDeduplicated extends HashedDisk {
     }
   }
 
-
   /**
    * best effort: the new BAT is already safe, a failure only leaks
    */
@@ -704,32 +705,34 @@ export class HashedDiskDeduplicated extends HashedDisk {
 
   async #scrub(hash: BlockHash, data: Buffer, storePath: string): Promise<void> {
     try {
-      const header = Buffer.alloc(HBD_HEADER_SIZE)
+      const headerBuffer = Buffer.alloc(HBD_HEADER_SIZE)
       const now = Date.now()
       // read metadata
-      await this.#handler.read(storePath, header, 0)
-      let verifiedAt = 0
-      try {
-        verifiedAt = parseBlockHeader(header).verifiedAt
-      } catch {
-        verifiedAt = 0
-      }
-      if (now - verifiedAt < this.#scrubMaxAgeMs) {
+      await this.#handler.read(storePath, headerBuffer, 0)
+      const header = parseBlockHeader(headerBuffer)
+
+      // a header we can't trust (wrong magic, another hash, a date in the future)
+      // must not let its verifiedAt skip the check
+      const trusted = header.magic === HBD_MAGIC && header.payloadHash === hash && header.verifiedAt <= now
+      if (trusted && now - header.verifiedAt < this.#scrubMaxAgeMs) {
         return
       }
+
       this.#blocksScrubbed++
 
       // check block
+      const buffer = await this.#handler.readFile(storePath)
+
       let corrupted = false
       try {
-        decodeBlock(await this.#handler.readFile(storePath), this.getBlockSize(), hash)
+        decodeBlock(buffer, this.getBlockSize(), hash)
       } catch {
         corrupted = true
       }
 
       // update medata or rewrite block
       if (!corrupted) {
-        await this.#handler.write(storePath, buildBlockHeader(hash, CODEC_RAW, now), 0)
+        await this.#handler.write(storePath, setVerifiedAt(headerBuffer, now), 0)
       } else {
         this.#blocksCorrupted++
         warn('corrupted store block, repaired', { hash, storePath })

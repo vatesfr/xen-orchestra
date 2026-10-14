@@ -1427,3 +1427,101 @@ describe('scanBlockStore verify', () => {
     assert.equal(reads, 0)
   })
 })
+
+describe('scrub header trust', () => {
+  const STORE = 'xo-block-store'
+  const data = block(0xaa)
+  const hash = sha256hex(data)
+  const storeCopy = `/${STORE}/${blockRelPath(hash)}/0`
+  const DAY = 86400e3
+
+  const createStoreDisk = (opts = {}) =>
+    HashedDiskDeduplicated.create({
+      handler,
+      path: `xo-vm-backups/VMUUID/vdis/${uuid.v4()}/20260814T120000000Z.hbd`,
+      virtualSize: VIRTUAL_SIZE,
+      blockSize: BLOCK_SIZE,
+      uuid: uuid.v4(),
+      dedupType: 'PER_BACKUP_REPOSITORY',
+      blockStorePath: STORE,
+      ...opts,
+    })
+
+  const readHeader = async () => {
+    const header = Buffer.alloc(HBD_HEADER_SIZE)
+    await handler.read(storeCopy, header, 0)
+    return parseBlockHeader(header)
+  }
+
+  // overwrites the header in place: same inode, so every disk linking it sees it
+  async function writeHeader(header) {
+    const file = await open(join(tempDir, storeCopy), 'r+')
+    try {
+      await file.write(header, 0, header.length, 0)
+    } finally {
+      await file.close()
+    }
+  }
+
+  // a first disk publishes the block, never verified (verifiedAt = 0)
+  const publish = async () => (await createStoreDisk()).writeBlock({ index: 0, data })
+
+  test('a verifiedAt in the future does not skip the check', async () => {
+    await publish()
+    await writeHeader(buildBlockHeader(hash, CODEC_RAW, Date.now() + DAY))
+
+    const disk = await createStoreDisk({ scrubEnabled: true })
+    await disk.writeBlock({ index: 0, data })
+
+    assert.equal(disk.getBlocksScrubbed(), 1)
+    assert.ok((await readHeader()).verifiedAt <= Date.now(), 'the date is set back to now')
+  })
+
+  test('a recent date behind a wrong magic is not trusted, and the block is repaired', async () => {
+    const a = await createStoreDisk()
+    await a.writeBlock({ index: 0, data })
+    const header = buildBlockHeader(hash, CODEC_RAW, Date.now())
+    header.writeUInt32BE(0, 0) // magic broken, verifiedAt still recent
+    await writeHeader(header)
+
+    const b = await createStoreDisk({ scrubEnabled: true })
+    await b.writeBlock({ index: 0, data })
+
+    assert.equal(b.getBlocksCorrupted(), 1)
+    assert.equal((await readHeader()).magic, HBD_MAGIC)
+    assert.ok((await a.readBlock(0)).data.equals(data), 'repaired for every disk')
+  })
+
+  test('a read error is not a corruption: nothing is rewritten', async () => {
+    await publish()
+    const disk = await createStoreDisk({ scrubEnabled: true })
+    const readFile = handler.readFile
+    handler.readFile = (path, ...args) =>
+      String(path).includes(STORE)
+        ? Promise.reject(Object.assign(new Error('EIO: i/o error'), { code: 'EIO' }))
+        : readFile.call(handler, path, ...args)
+
+    await disk.writeBlock({ index: 0, data })
+
+    assert.equal(disk.getBlocksCorrupted(), 0)
+    assert.equal((await readHeader()).verifiedAt, 0, 'header untouched')
+    handler.readFile = readFile
+    assert.ok((await disk.readBlock(0)).data.equals(data))
+  })
+
+  test('a verified block keeps its header, only the date changes', async () => {
+    await publish()
+    // TODO: once codecs are implemented, write a real brotli payload here: this
+    // test relies on decodeBlock skipping the hash check of non raw codecs
+    await writeHeader(buildBlockHeader(hash, CODEC_BROTLI, 0))
+    const before = Date.now()
+
+    const disk = await createStoreDisk({ scrubEnabled: true })
+    await disk.writeBlock({ index: 0, data })
+
+    const header = await readHeader()
+    assert.equal(header.codec, CODEC_BROTLI, 'codec kept')
+    assert.equal(header.payloadHash, hash)
+    assert.ok(header.verifiedAt >= before, 'date updated')
+  })
+})
