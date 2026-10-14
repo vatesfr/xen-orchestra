@@ -5,6 +5,7 @@
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
     <HostHeader v-if="uiStore.hasUi" :host />
+    <StaleObjectBanner :object="host" />
     <component :is="Component" :host />
   </RouterView>
 </template>
@@ -12,6 +13,7 @@
 <script lang="ts" setup>
 import HostHeader from '@/modules/host/components/HostHeader.vue'
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import StaleObjectBanner from '@/shared/components/stale-object/StaleObjectBanner.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'

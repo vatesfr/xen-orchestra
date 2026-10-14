@@ -5,6 +5,7 @@
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
     <VmHeader v-if="uiStore.hasUi" :vm />
+    <StaleObjectBanner :object="vm" />
     <component :is="Component" :vm />
   </RouterView>
 </template>
@@ -12,6 +13,7 @@
 <script lang="ts" setup>
 import VmHeader from '@/modules/vm/components/VmHeader.vue'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import StaleObjectBanner from '@/shared/components/stale-object/StaleObjectBanner.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'

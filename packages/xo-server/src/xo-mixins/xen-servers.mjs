@@ -52,12 +52,18 @@ export default class XenServers {
     this._connectingXenServers = new Set()
     this._reconnectingXenServers = new Set()
     this._serverIdsByPool = { __proto__: null }
+    // objects kept, flagged with `$lastSeen`, after the loss of the connection
+    // which provided them, by server id: `{ timeout, xoIds }`
+    this._staleObjects = { __proto__: null }
     this._stats = new XapiStats()
     this._xapis = { __proto__: null }
     this._app = app
 
     app.config.watchDuration('xapiMarkDisconnectedDelay', xapiMarkDisconnectedDelay => {
       this._xapiMarkDisconnectedDelay = xapiMarkDisconnectedDelay
+    })
+    app.config.watchDuration('xapiStaleObjectsMaxAge', xapiStaleObjectsMaxAge => {
+      this._xapiStaleObjectsMaxAge = xapiStaleObjectsMaxAge
     })
 
     app.hooks.on('clean', () => this._servers.rebuildIndexes())
@@ -283,6 +289,11 @@ export default class XenServers {
 
     const serverId = this._serverIdsByPool[poolId]
     if (serverId === undefined) {
+      if (object.$lastSeen !== undefined) {
+        throw new Error(
+          `the pool of object ${object.id} is disconnected, last seen at ${new Date(object.$lastSeen).toISOString()}`
+        )
+      }
       throw new Error(`no connection found for object ${object.id}`)
     }
     return serverId
@@ -339,7 +350,8 @@ export default class XenServers {
         xapiIdsToXo[xapiId] = xoId
 
         const previous = objects.get(xoId, undefined)
-        if (previous && previous._xapiRef !== $ref) {
+        // a stale object is replaced by the one of the new connection
+        if (previous && previous._xapiRef !== $ref && previous.$lastSeen === undefined) {
           const conflicts_ = conflicts[xoId] || (conflicts[xoId] = { __proto__: null })
           conflicts_[conId] = xoObject
         } else {
@@ -393,6 +405,39 @@ export default class XenServers {
         objects.unset(xoId)
       }
     })
+  }
+
+  // keeps the (already flagged) objects of a lost connection until the server
+  // reconnects, or at most `xapiStaleObjectsMaxAge`
+  _keepStaleObjects(serverId, xoIds) {
+    let stale = this._staleObjects[serverId]
+    if (stale === undefined) {
+      stale = this._staleObjects[serverId] = {
+        timeout: setTimeout(() => this._purgeStaleObjects(serverId), this._xapiStaleObjectsMaxAge),
+        xoIds: new Set(),
+      }
+    }
+    for (const xoId of xoIds) {
+      stale.xoIds.add(xoId)
+    }
+  }
+
+  // removes the objects of a lost connection which have not been provided again
+  // since, i.e. which are still flagged
+  _purgeStaleObjects(serverId) {
+    const stale = this._staleObjects[serverId]
+    if (stale === undefined) {
+      return
+    }
+    delete this._staleObjects[serverId]
+    clearTimeout(stale.timeout)
+
+    const objects = this._app._objects
+    for (const xoId of stale.xoIds) {
+      if (objects.get(xoId, undefined)?.$lastSeen !== undefined) {
+        objects.unset(xoId)
+      }
+    }
   }
 
   // starts a reconnection loop for a server left `enabled` but without a
@@ -589,15 +634,38 @@ export default class XenServers {
             markPool()
             markPoolHandle = setInterval(markPool, poolMarkingInterval)
           },
-          uninstall() {
+          // stops following the XAPI objects, without removing the XO ones
+          detach() {
             clearInterval(markPoolHandle)
 
             objects.removeListener('add', onAddOrUpdate)
             objects.removeListener('update', onAddOrUpdate)
             objects.removeListener('remove', onRemove)
             objects.removeListener('finish', onFinish)
-
+          },
+          uninstall() {
+            this.detach()
             onRemove(objects.all)
+          },
+
+          getXoIds: () => Object.values(xapiIdsToXo),
+
+          // keeps the XO objects but flags them with the last time the pool
+          // was successfully reached, instead of removing them
+          markStale: () => {
+            const lastSeen = xapi.lastEventFetchedTimestamp ?? Date.now()
+            const xoObjects = this._app._objects
+            for (const xoId of Object.values(xapiIdsToXo)) {
+              const object = xoObjects.get(xoId, undefined)
+              if (object !== undefined && object.$lastSeen === undefined) {
+                xoObjects.set(xoId, { ...object, $lastSeen: lastSeen })
+              }
+            }
+          },
+
+          // replays the current XAPI objects, which replaces the flagged ones
+          refresh() {
+            onAddOrUpdate(objects.all)
           },
 
           addObject,
@@ -636,9 +704,17 @@ export default class XenServers {
       // this server, or stop the auto-reconnect loop which waits for
       // `disconnected`
       let markDisconnectedTimeout
+      // after the grace period, the objects are kept but flagged as stale, then
+      // removed once `xapiStaleObjectsMaxAge` is reached
+      let removeStaleTimeout
+      let staleRemoved = false
       const onEventFetchingError = () => {
         markDisconnectedTimeout = setTimeout(() => {
-          xapi.xo.uninstall()
+          xapi.xo.markStale()
+          removeStaleTimeout = setTimeout(() => {
+            xapi.xo.uninstall()
+            staleRemoved = true
+          }, this._xapiStaleObjectsMaxAge)
 
           // switch server status from connected to connecting
           this._forgetXenServerPool(server.id)
@@ -647,10 +723,17 @@ export default class XenServers {
         xapi.once('eventFetchingSuccess', () => {
           xapi.once('eventFetchingError', onEventFetchingError)
           if (serverIdsByPool[poolId] === undefined) {
-            // the pool may now be known under another identifier, `install()`
-            // replays the pool object which registers it under the right one
+            clearTimeout(removeStaleTimeout)
+
+            // the pool may now be known under another identifier, replaying
+            // the pool object registers it under the right one
             serverIdsByPool[poolId] = server.id
-            xapi.xo.install()
+            if (staleRemoved) {
+              staleRemoved = false
+              xapi.xo.install()
+            } else {
+              xapi.xo.refresh()
+            }
             _updateXenServer(server.id, { error: null, status: 'connected' })
           } else {
             clearTimeout(markDisconnectedTimeout)
@@ -661,7 +744,18 @@ export default class XenServers {
 
       xapi.once('disconnected', async () => {
         clearTimeout(markDisconnectedTimeout)
-        xapi.xo.uninstall()
+        clearTimeout(removeStaleTimeout)
+
+        // `disconnectXenServer` and failed connections forget the Xapi
+        // beforehand: deliberate disconnections remove the objects, the others
+        // keep them, flagged, until the server reconnects
+        if (this._xapis[server.id] === xapi) {
+          xapi.xo.markStale()
+          xapi.xo.detach()
+          this._keepStaleObjects(server.id, xapi.xo.getXoIds())
+        } else {
+          xapi.xo.uninstall()
+        }
         delete this._xapis[server.id]
         this._forgetXenServerPool(server.id)
         this._app.emit('server:disconnected', { server, xapi })
@@ -684,6 +778,9 @@ export default class XenServers {
         log.warn('objects take too long to fetch', { id, xapiMarkDisconnectedDelay: this._xapiMarkDisconnectedDelay })
         throw operationFailed({ objectId: id, code: 'TIMEOUT_CONNECT_SERVER' })
       }
+
+      // objects of the previous connection which no longer exist
+      this._purgeStaleObjects(server.id)
 
       this._app.emit('server:connected', { server, xapi })
       await this.updateXenServer(id, { error: null, status: 'connected' })::ignoreErrors()
@@ -759,6 +856,7 @@ export default class XenServers {
     this._forgetXenServerPool(id)
 
     await xapi?.disconnect()
+    this._purgeStaleObjects(id)
     if (status !== 'disconnected') {
       await this.updateXenServer(id, { status: 'disconnected' })
     }

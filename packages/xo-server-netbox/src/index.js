@@ -437,7 +437,9 @@ class Netbox {
     const clustersToUpdate = []
     for (const xoPoolId of xoPools) {
       const xoPool = this.getObject(xoPoolId)
-      if (xoPool === undefined) {
+      // the objects of a disconnected pool are stale: synchronizing them would
+      // spread outdated data, skip the pool as if it was not found
+      if (xoPool === undefined || xoPool.$lastSeen !== undefined) {
         // If we can't find the pool, don't synchronize anything within that pool
         log.warn('Synchronizing pools: cannot find pool', { pool: xoPoolId })
         delete allNbClusters[xoPoolId]
