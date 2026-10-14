@@ -10,10 +10,10 @@ import { HashedDisk } from './HashedDisk.mjs'
 import { BlockAllocationTable } from './BlockAllocationTable.mjs'
 import {
   blockRelPath,
-  buildBlockHeader,
   checkVersion,
   dataDirName,
   decodeBlock,
+  encodeBlock,
   hashesFileName,
   HbdFileError,
   sha256hex,
@@ -324,7 +324,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
     // reads the whole file: that is exactly header + payload, and unlike a
     // positional read it also works on an encrypted remote
     const buffer = await this.#handler.readFile(this.#blockPath(hash))
-    const { payload } = decodeBlock(buffer, this.getBlockSize(), hash)
+    const { payload } = decodeBlock(buffer, hash)
 
     return { index, data: payload }
   }
@@ -556,7 +556,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
    */
   async #storeBlock(hash: BlockHash, data: Buffer): Promise<void> {
     try {
-      await this.#handler.outputFile(this.#blockPath(hash), Buffer.concat([buildBlockHeader(hash), data]), {
+      await this.#handler.outputFile(this.#blockPath(hash), encodeBlock(hash, data), {
         flags: 'wx',
       })
     } catch (error: unknown) {
@@ -588,7 +588,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
 
         // link did not work, we need a new block
         const tmp = join(this.#tmpDir, randomUUID())
-        await this.#handler.outputFile(tmp, Buffer.concat([buildBlockHeader(hash), data]), { flags: 'wx' })
+        await this.#handler.outputFile(tmp, encodeBlock(hash, data), { flags: 'wx' })
         try {
           await this.#link(tmp, storePath)
           await this.#link(storePath, blockPath)
@@ -725,7 +725,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
 
       let corrupted = false
       try {
-        decodeBlock(buffer, this.getBlockSize(), hash)
+        decodeBlock(buffer, hash)
       } catch {
         corrupted = true
       }
@@ -736,7 +736,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
       } else {
         this.#blocksCorrupted++
         warn('corrupted store block, repaired', { hash, storePath })
-        await this.#handler.outputFile(storePath, Buffer.concat([buildBlockHeader(hash, CODEC_RAW, now), data]), {
+        await this.#handler.outputFile(storePath, encodeBlock(hash, data, CODEC_RAW, now), {
           flags: 'w',
         })
       }

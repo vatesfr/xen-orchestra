@@ -1,7 +1,7 @@
 import { asyncEach } from '@vates/async-each'
 import type { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { basename, join, normalize } from '@xen-orchestra/fs/path'
-import { asBlockHash, decodeBlock, HBD_HEADER_SIZE } from './hbdPaths.mjs'
+import { asBlockHash, decodeBlock } from './hbdPaths.mjs'
 
 // <store>/<ab>/<cd>/<hash>/<copy>: copies are always at this depth
 const COPY_DEPTH = 4
@@ -77,7 +77,7 @@ export async function scanBlockStore(
     try {
       const hash = asBlockHash(hashCopy)
       const buffer = await handler.readFile(path)
-      decodeBlock(buffer, buffer.length - HBD_HEADER_SIZE, hash)
+      decodeBlock(buffer, hash)
     } catch (error) {
       logWarn('corrupted store block', { path, error })
     }

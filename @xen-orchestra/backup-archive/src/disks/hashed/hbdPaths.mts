@@ -5,7 +5,8 @@
 //      8     8  verified_at: Unix timestamp in milliseconds of last successful hash check (0 = never)
 //     16    32  payload_hash: SHA-256 of the raw (uncompressed, unencrypted) payload — redundant with
 //               the store path but enables self-contained verification without path context
-//     48   464  reserved (zero)
+//     48     4  payload_length: bytes stored after the header, uint32 LE (never 0)
+//     52   460  reserved (zero)
 //    512     N  payload: raw block data (currently uncompressed, unencrypted; N = blockSize)
 import crypto from 'node:crypto'
 import { validate as validateUuid } from 'uuid'
@@ -26,6 +27,7 @@ const OFFSET_MAGIC = 0
 const OFFSET_CODEC = 4
 const OFFSET_VERIFIED_AT = 8
 const OFFSET_PAYLOAD_HASH = 16
+const OFFSET_PAYLOAD_LENGTH = 48
 
 export const CODEC_RAW = 0x00
 export const CODEC_BROTLI = 0x01
@@ -90,23 +92,28 @@ export interface HbdBlockHeader {
   codec: number
   verifiedAt: number // ms since epoch, 0 = never verified
   payloadHash: BlockHash
+  payloadLength: number // bytes stored after the header
 }
 
-export function buildBlockHeader(hash: BlockHash, codec = CODEC_RAW, verifiedAt = 0): Buffer {
+export function buildBlockHeader(hash: BlockHash, payloadLength: number, codec = CODEC_RAW, verifiedAt = 0): Buffer {
   if (!Number.isInteger(codec) || codec < 0 || codec > 0xff) {
     throw new Error(`codec must be a single byte, got ${codec}`)
   }
   if (!Number.isSafeInteger(verifiedAt) || verifiedAt < 0) {
     throw new Error(`verifiedAt must be a non negative safe integer, got ${verifiedAt}`)
   }
+  if (!Number.isInteger(payloadLength) || payloadLength <= 0 || payloadLength > 0xffffffff) {
+    throw new Error(`payloadLength must be a positive 32 bits integer, got ${payloadLength}`)
+  }
 
-  // zero filled, which is exactly what the reserved ranges (5..7 and 48..511) must contain
+  // zero filled, which is exactly what the reserved ranges (5..7 and 52..511) must contain
   const header = Buffer.alloc(HBD_HEADER_SIZE)
 
   // big endian so the bytes read as "HBD\0" in a hex dump
   header.writeUInt32BE(HBD_MAGIC, OFFSET_MAGIC)
   header.writeUInt8(codec, OFFSET_CODEC)
   header.writeBigInt64LE(BigInt(verifiedAt), OFFSET_VERIFIED_AT)
+  header.writeUInt32LE(payloadLength, OFFSET_PAYLOAD_LENGTH)
 
   if (header.write(hash, OFFSET_PAYLOAD_HASH, 'hex') !== HASH_SIZE) {
     throw new Error(`not a valid block hash: ${hash}`)
@@ -132,7 +139,13 @@ export function parseBlockHeader(buffer: Buffer): HbdBlockHeader {
     codec: buffer.readUInt8(OFFSET_CODEC),
     verifiedAt: Number(buffer.readBigInt64LE(OFFSET_VERIFIED_AT)),
     payloadHash: buffer.subarray(OFFSET_PAYLOAD_HASH, OFFSET_PAYLOAD_HASH + HASH_SIZE).toString('hex') as BlockHash,
+    payloadLength: buffer.readUInt32LE(OFFSET_PAYLOAD_LENGTH),
   }
+}
+
+/** a whole block file: its header, with the payload length recorded, then the payload */
+export function encodeBlock(hash: BlockHash, data: Buffer, codec = CODEC_RAW, verifiedAt = 0): Buffer {
+  return Buffer.concat([buildBlockHeader(hash, data.length, codec, verifiedAt), data])
 }
 
 /**
@@ -142,19 +155,24 @@ export function parseBlockHeader(buffer: Buffer): HbdBlockHeader {
  * the header is only cross checked against it. Pure, no I/O — the caller reads
  * the bytes and decides what to do with a throw.
  */
-export function decodeBlock(
-  buffer: Buffer,
-  blockSize: number,
-  expectedHash: BlockHash
-): { header: HbdBlockHeader; payload: Buffer } {
-  const expectedLength = HBD_HEADER_SIZE + blockSize
-  if (buffer.length < expectedLength) {
-    throw new Error(`truncated block: expected ${expectedLength} bytes, got ${buffer.length}`)
+export function decodeBlock(buffer: Buffer, expectedHash: BlockHash): { header: HbdBlockHeader; payload: Buffer } {
+  if (buffer.length < HBD_HEADER_SIZE) {
+    throw new Error(`truncated block: expected at least ${HBD_HEADER_SIZE} bytes, got ${buffer.length}`)
   }
 
   const header = parseBlockHeader(buffer)
   if (header.magic !== HBD_MAGIC) {
     throw new Error(`not a hbd block: magic is 0x${header.magic.toString(16)}`)
+  }
+  // the file is checked against its own header only
+  // Every block records its length, 0 means a damaged header
+  const { payloadLength } = header
+  if (payloadLength === 0) {
+    throw new Error('not a hbd block: no payload length')
+  }
+  const expectedLength = HBD_HEADER_SIZE + payloadLength
+  if (buffer.length < expectedLength) {
+    throw new Error(`truncated block: expected ${expectedLength} bytes, got ${buffer.length}`)
   }
   if (header.payloadHash !== expectedHash) {
     // wrong file at the right path, or a store file overwritten by another hash

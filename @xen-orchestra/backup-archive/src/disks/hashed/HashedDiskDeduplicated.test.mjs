@@ -17,6 +17,7 @@ import {
   CODEC_BROTLI,
   CODEC_RAW,
   decodeBlock,
+  encodeBlock,
   HASH_SIZE,
   HashedDiskDeduplicated,
   HBD_HEADER_SIZE,
@@ -94,7 +95,7 @@ describe('hbdPaths', () => {
 
   test('block header round trips, and its magic reads as HBD in a dump', () => {
     const hash = sha256hex(Buffer.from('payload'))
-    const header = buildBlockHeader(hash, CODEC_BROTLI, 1786807233123)
+    const header = buildBlockHeader(hash, 1234, CODEC_BROTLI, 1786807233123)
 
     assert.equal(header.length, HBD_HEADER_SIZE)
     assert.equal(header.subarray(0, 4).toString('latin1'), 'HBD\0')
@@ -104,39 +105,60 @@ describe('hbdPaths', () => {
       codec: CODEC_BROTLI,
       verifiedAt: 1786807233123,
       payloadHash: hash,
+      payloadLength: 1234,
     })
 
     // reserved ranges must stay zeroed
     assert.ok(header.subarray(5, 8).every(byte => byte === 0))
-    assert.ok(header.subarray(48, HBD_HEADER_SIZE).every(byte => byte === 0))
+    assert.ok(header.subarray(52, HBD_HEADER_SIZE).every(byte => byte === 0))
   })
 
   test('buildBlockHeader defaults to raw, never verified', () => {
-    const header = parseBlockHeader(buildBlockHeader(sha256hex(Buffer.from('x'))))
+    const header = parseBlockHeader(buildBlockHeader(sha256hex(Buffer.from('x')), BLOCK_SIZE))
     assert.equal(header.codec, CODEC_RAW)
     assert.equal(header.verifiedAt, 0)
+  })
+
+  test('encodeBlock records the payload length, so a truncated file is caught without the block size', () => {
+    const data = block(0x42)
+    const hash = sha256hex(data)
+    const encoded = encodeBlock(hash, data)
+
+    assert.equal(parseBlockHeader(encoded).payloadLength, BLOCK_SIZE)
+    assert.ok(decodeBlock(encoded, hash).payload.equals(data))
+    assert.throws(() => decodeBlock(encoded.subarray(0, encoded.length - 1), hash), /truncated block/)
+  })
+
+  test('buildBlockHeader and decodeBlock refuse a block without payload length', () => {
+    const data = block(0x42)
+    const hash = sha256hex(data)
+    assert.throws(() => buildBlockHeader(hash, 0), /payloadLength must be a positive/)
+
+    const damaged = encodeBlock(hash, data)
+    damaged.fill(0, 48, 52) // payload length zeroed
+    assert.throws(() => decodeBlock(damaged, hash), /no payload length/)
   })
 
   test('decodeBlock returns the payload, and rejects every way it can be wrong', () => {
     const data = block(0x42)
     const hash = sha256hex(data)
-    const valid = Buffer.concat([buildBlockHeader(hash), data])
+    const valid = encodeBlock(hash, data)
 
-    assert.ok(decodeBlock(valid, BLOCK_SIZE, hash).payload.equals(data))
+    assert.ok(decodeBlock(valid, hash).payload.equals(data))
 
-    assert.throws(() => decodeBlock(valid.subarray(0, valid.length - 1), BLOCK_SIZE, hash), /truncated block/)
+    assert.throws(() => decodeBlock(valid.subarray(0, valid.length - 1), hash), /truncated block/)
 
     const badMagic = Buffer.from(valid)
     badMagic.writeUInt32BE(0xdeadbeef, 0)
-    assert.throws(() => decodeBlock(badMagic, BLOCK_SIZE, hash), /not a hbd block/)
+    assert.throws(() => decodeBlock(badMagic, hash), /not a hbd block/)
 
     // right path, content of another hash
-    assert.throws(() => decodeBlock(valid, BLOCK_SIZE, sha256hex(block(0x43))), /block hash mismatch/)
+    assert.throws(() => decodeBlock(valid, sha256hex(block(0x43))), /block hash mismatch/)
 
     // payload rotted while the header still claims the old hash
     const corrupted = Buffer.from(valid)
     corrupted[HBD_HEADER_SIZE + 10] ^= 0xff
-    assert.throws(() => decodeBlock(corrupted, BLOCK_SIZE, hash), /block corruption on read/)
+    assert.throws(() => decodeBlock(corrupted, hash), /block corruption on read/)
   })
 
   test('BlockAllocationTable stores hashes per entry, not per byte', () => {
@@ -1413,6 +1435,17 @@ describe('scanBlockStore verify', () => {
     await handler.readFile(storeCopy)
   })
 
+  test('a truncated copy is reported, the header knows the expected length', async () => {
+    await linkedBlock()
+    const buffer = await handler.readFile(storeCopy)
+    await handler.writeFile(storeCopy, buffer.subarray(0, buffer.length - 10), { flags: 'w' })
+    const warned = []
+
+    await scanBlockStore(handler, STORE, { verify: true, logWarn: (message, data) => warned.push(data.path) })
+
+    assert.deepEqual(warned, [storeCopy])
+  })
+
   test('without verify, the copies in use are not read', async () => {
     await linkedBlock()
     let reads = 0
@@ -1468,7 +1501,7 @@ describe('scrub header trust', () => {
 
   test('a verifiedAt in the future does not skip the check', async () => {
     await publish()
-    await writeHeader(buildBlockHeader(hash, CODEC_RAW, Date.now() + DAY))
+    await writeHeader(buildBlockHeader(hash, BLOCK_SIZE, CODEC_RAW, Date.now() + DAY))
 
     const disk = await createStoreDisk({ scrubEnabled: true })
     await disk.writeBlock({ index: 0, data })
@@ -1480,7 +1513,7 @@ describe('scrub header trust', () => {
   test('a recent date behind a wrong magic is not trusted, and the block is repaired', async () => {
     const a = await createStoreDisk()
     await a.writeBlock({ index: 0, data })
-    const header = buildBlockHeader(hash, CODEC_RAW, Date.now())
+    const header = buildBlockHeader(hash, BLOCK_SIZE, CODEC_RAW, Date.now())
     header.writeUInt32BE(0, 0) // magic broken, verifiedAt still recent
     await writeHeader(header)
 
@@ -1513,7 +1546,7 @@ describe('scrub header trust', () => {
     await publish()
     // TODO: once codecs are implemented, write a real brotli payload here: this
     // test relies on decodeBlock skipping the hash check of non raw codecs
-    await writeHeader(buildBlockHeader(hash, CODEC_BROTLI, 0))
+    await writeHeader(buildBlockHeader(hash, BLOCK_SIZE, CODEC_BROTLI, 0))
     const before = Date.now()
 
     const disk = await createStoreDisk({ scrubEnabled: true })
