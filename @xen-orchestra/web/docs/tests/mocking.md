@@ -24,7 +24,7 @@ Note the cast: the typed form checks the factory return against the **whole** mo
 
 ## Resolving by id
 
-When what a composable decides is _which_ records it looks up — the SR of a VDI, the VMs behind its VBDs — a canned `useGetXById.mockReturnValue(computed(() => sr))` hands back the expected record whatever id was asked for, so the test only echoes the mock. Implement the lookup over fixtures instead, the way the real collection filters by id, and assert the record the composable ends up with:
+When a composable looks records up by id, make the mock find them by id too. With `mockReturnValue`, the test still passes if the composable asks for the wrong id:
 
 ```typescript
 useGetSrById.mockImplementation((id: MaybeRefOrGetter<FrontXoSr['id'] | undefined>) =>
