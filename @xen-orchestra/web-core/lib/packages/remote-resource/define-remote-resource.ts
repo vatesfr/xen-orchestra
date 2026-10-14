@@ -122,26 +122,23 @@ export function defineRemoteResource<
 }) {
   type EventBuffer<TData> = { events: ['update' | 'remove', TData][]; isProcessed: boolean }
 
-  const cache = shallowReactive(
-    new Map<
-      string,
-      {
-        count: number
-        evictionTimeout?: NodeJS.Timeout // TODO : Fixme , the actual type in browser is number, but NodeJS.Timeout in nodejs.
-        // Due to transitive types of vates/types, the type is NodeJS.Timeout.
-        pause: VoidFunction
-        resume: VoidFunction
-        execute: () => Promise<void>
-        isPaused: boolean
-        state: object
-        stateScope: EffectScope
-        isReady: Ref<boolean>
-        isFetching: Ref<boolean>
-        lastError: Ref<Error | undefined>
-        hasError: ComputedRef<boolean>
-      }
-    >()
-  )
+  type CacheEntry = {
+    count: number
+    evictionTimeout?: NodeJS.Timeout // TODO : Fixme , the actual type in browser is number, but NodeJS.Timeout in nodejs.
+    // Due to transitive types of vates/types, the type is NodeJS.Timeout.
+    pause: VoidFunction
+    resume: VoidFunction
+    execute: () => Promise<void>
+    isPaused: boolean
+    state: object
+    stateScope: EffectScope
+    isReady: Ref<boolean>
+    isFetching: Ref<boolean>
+    lastError: Ref<Error | undefined>
+    hasError: ComputedRef<boolean>
+  }
+
+  const cache = shallowReactive(new Map<string, CacheEntry>())
 
   const buildUrl = typeof config.url === 'string' ? () => config.url as string : config.url
 
@@ -149,7 +146,8 @@ export function defineRemoteResource<
 
   const buildState = config.state ?? ((data: Ref<TData>) => ({ data }))
 
-  const cacheExpiration = config.cacheExpirationMs ?? DEFAULT_CACHE_EXPIRATION_MS
+  const cacheExpiration =
+    config.cacheExpirationMs === false ? 0 : (config.cacheExpirationMs ?? DEFAULT_CACHE_EXPIRATION_MS)
 
   const pollingInterval = config.pollingIntervalMs ?? DEFAULT_POLLING_INTERVAL_MS
 
@@ -270,25 +268,16 @@ export function defineRemoteResource<
       return
     }
 
-    scheduleEviction(url)
+    scheduleEviction(url, entry)
   }
 
-  function scheduleEviction(url: string) {
-    const entry = cache.get(url)
-
-    if (!entry) {
-      return
-    }
-
-    entry.evictionTimeout = setTimeout(
-      () => {
-        entry.pause()
-        entry.isPaused = true
-        entry.stateScope.stop()
-        cache.delete(url)
-      },
-      cacheExpiration === false ? 0 : cacheExpiration
-    )
+  function scheduleEviction(url: string, entry: CacheEntry) {
+    entry.evictionTimeout = setTimeout(() => {
+      entry.pause()
+      entry.isPaused = true
+      entry.stateScope.stop()
+      cache.delete(url)
+    }, cacheExpiration)
   }
 
   function registerUrl(url: string, context: ResourceContext<TArgs>) {
@@ -427,7 +416,7 @@ export function defineRemoteResource<
 
     const state = stateScope.run(() => buildState(data, sharedContext))!
 
-    cache.set(url, {
+    const entry: CacheEntry = {
       count: 0,
       pause,
       resume,
@@ -439,9 +428,11 @@ export function defineRemoteResource<
       isFetching,
       lastError,
       hasError,
-    })
+    }
 
-    scheduleEviction(url)
+    cache.set(url, entry)
+
+    scheduleEviction(url, entry)
   }
 
   function initializeUrl(url: ComputedRef<string>, context: ResourceContext<TArgs>) {
