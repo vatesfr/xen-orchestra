@@ -1,4 +1,4 @@
-import BackupRepositoryGeneralInfo from '@/modules/backup-repository/components/detail/BackupRepositoryGeneralInfo.vue'
+import BackupRepositoryDetailGeneralInfo from '@/modules/backup-repository/components/detail/BackupRepositoryDetailGeneralInfo.vue'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createBr } from '@/test/create-br.ts'
@@ -25,7 +25,7 @@ beforeEach(() => {
 })
 
 function mountCard(br: FrontXoBackupRepository = createBr()) {
-  return mount(BackupRepositoryGeneralInfo, {
+  return mount(BackupRepositoryDetailGeneralInfo, {
     props: { br, parsedBrUrl: parseBackupRepositoryUrl(br.url) },
     global: createGlobalTestConfig(),
   })

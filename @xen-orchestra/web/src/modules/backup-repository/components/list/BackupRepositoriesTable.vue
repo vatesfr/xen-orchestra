@@ -58,8 +58,6 @@ const { t } = useI18n()
 
 const { useGetProxyById } = useXoProxyCollection()
 
-const { openEditBackupRepositoryDrawer } = useEditBackupRepository()
-
 const { items: filteredBrs, filter } = useQueryBuilderFilter('brs', () => brs)
 
 const schema = useQueryBuilderSchema<FrontXoBackupRepository>({
@@ -89,6 +87,13 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
     const typeLabel = useXoBackupRepositoryTypeLabel(() => parsedBrUrl.value?.type)
     const proxy = useGetProxyById(() => br.proxy)
 
+    const {
+      editBackupRepository,
+      canEditBackupRepository,
+      isEditingBackupRepository,
+      editBackupRepositoryErrorMessage,
+    } = useEditBackupRepository(() => br)
+
     return {
       backupRepository: r =>
         r({
@@ -110,7 +115,10 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
             {
               label: t('action:edit'),
               icon: 'action:edit',
-              onClick: () => openEditBackupRepositoryDrawer(br),
+              onClick: () => editBackupRepository(),
+              busy: isEditingBackupRepository.value,
+              disabled: !canEditBackupRepository.value,
+              hint: editBackupRepositoryErrorMessage.value,
             },
           ],
         }),

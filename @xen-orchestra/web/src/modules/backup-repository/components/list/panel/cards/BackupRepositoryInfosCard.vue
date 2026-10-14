@@ -2,10 +2,10 @@
   <UiPanelCard class="backup-repository-infos-card">
     <UiPanelCardTitle
       :id="br.id"
-      size="medium"
       :label="br.name"
       :to="{ name: '/admin/backup-repository/[id]/general', params: { id: br.id } }"
       :icon="brIcon"
+      size="medium"
     />
     <div class="content">
       <VtsCardRowKeyValue>
@@ -49,9 +49,15 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoBackupRepositoryUtils } from '@/modules/backup-repository/composables/use-xo-backup-repository-utils.composable.ts'
+import { useXoBackupRepositoryStorageModeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-storage-mode-label.composable.ts'
+import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import { getBackupRepositoryIcon } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import {
+  getBackupRepositoryIcon,
+  getBackupRepositoryStatus,
+  isBackupRepositoryEncrypted,
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -69,12 +75,19 @@ const { br, parsedBrUrl } = defineProps<{
 
 const { t } = useI18n()
 
-const { brStatus, brType, brStorageMode, brProxy, isEncrypted } = useXoBackupRepositoryUtils(
-  () => br,
-  () => parsedBrUrl
-)
+const { useGetProxyById } = useXoProxyCollection()
+
+const brType = useXoBackupRepositoryTypeLabel(() => parsedBrUrl?.type)
 
 const brIcon = computed(() => getBackupRepositoryIcon(br, parsedBrUrl?.type))
+
+const brStatus = computed(() => getBackupRepositoryStatus(br))
+
+const brStorageMode = useXoBackupRepositoryStorageModeLabel(() => parsedBrUrl)
+
+const isEncrypted = computed(() => isBackupRepositoryEncrypted(parsedBrUrl))
+
+const brProxy = useGetProxyById(() => br.proxy)
 </script>
 
 <style scoped lang="postcss">

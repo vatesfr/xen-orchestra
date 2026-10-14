@@ -1,4 +1,4 @@
-import BackupRepositorySpeed from '@/modules/backup-repository/components/detail/BackupRepositorySpeed.vue'
+import BackupRepositoryDetailSpeed from '@/modules/backup-repository/components/detail/BackupRepositoryDetailSpeed.vue'
 import type { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
@@ -41,7 +41,7 @@ function createBenchmark(overrides: Partial<XoBackupRepositoryBenchmark> = {}): 
 }
 
 function mountCard(br: FrontXoBackupRepository = createBr()) {
-  return mount(BackupRepositorySpeed, {
+  return mount(BackupRepositoryDetailSpeed, {
     props: { br },
     global: createGlobalTestConfig(),
   })

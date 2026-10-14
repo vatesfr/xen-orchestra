@@ -1,14 +1,13 @@
-import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
-import { useBackupRepositoryDetailsForms } from '@/modules/backup-repository/form/use-backup-repository-details-forms.ts'
+import { useBackupRepositoryFormBase } from '@/modules/backup-repository/form/use-backup-repository-form-base.ts'
 import {
   type BackupRepositoryGeneralFormData,
-  useBackupRepositoryGeneralForm,
+  ENCRYPTION_KEY_LENGTH,
+  ENCRYPTION_KEY_REGEX,
 } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
-import type { NewBackupRepositoryPayload } from '@/modules/backup-repository/jobs/xo-backup-repository-create.job.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
+import { regex, withMessage } from '@core/packages/form-validation'
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { format as formatBackupRepositoryUrl } from 'xo-remote-parser'
 
 const STEPS = ['general', 'details', 'review'] as const
 type Step = (typeof STEPS)[number]
@@ -16,7 +15,13 @@ type Step = (typeof STEPS)[number]
 export function useNewBackupRepositoryForm() {
   const { t } = useI18n()
 
-  const general = useBackupRepositoryGeneralForm(
+  const {
+    general,
+    details,
+    currentDetailsForm,
+    detailsTitle: detailsStepLabel,
+    validateAndBuildPayload,
+  } = useBackupRepositoryFormBase(
     reactive<BackupRepositoryGeneralFormData>({
       name: '',
       type: undefined,
@@ -24,20 +29,25 @@ export function useNewBackupRepositoryForm() {
       proxy: undefined,
       encrypted: false,
       encryptionKey: '',
-    })
+    }),
+    {
+      extraConfig: {
+        errors: {
+          onBlur: () => ({
+            encryptionKey: {
+              regex: withMessage(regex(ENCRYPTION_KEY_REGEX), () =>
+                t('encryption-key-invalid', { n: ENCRYPTION_KEY_LENGTH })
+              ),
+            },
+          }),
+        },
+      },
+    }
   )
-
-  const typeLabel = useXoBackupRepositoryTypeLabel(() => general.formData.type)
-
-  const { details, currentDetailsForm } = useBackupRepositoryDetailsForms(general.formData)
 
   const currentStepIndex = ref(0)
 
   const currentStep = computed(() => STEPS[currentStepIndex.value])
-
-  const detailsStepLabel = computed(() => {
-    return general.formData.type === undefined ? '' : t('br-type-details', { type: typeLabel.value })
-  })
 
   const steps = computed<StepDefinition[]>(() => [
     { label: t('br-details') },
@@ -80,30 +90,6 @@ export function useNewBackupRepositoryForm() {
   function back(): void {
     if (currentStepIndex.value > 0) {
       currentStepIndex.value--
-    }
-  }
-
-  async function validateAndBuildPayload(): Promise<NewBackupRepositoryPayload | undefined> {
-    const detailForm = currentDetailsForm.value
-
-    if (detailForm === undefined) {
-      return undefined
-    }
-
-    const isGeneralValid = await general.validate()
-    const areDetailsValid = await detailForm.validate()
-
-    if (!isGeneralValid || !areDetailsValid) {
-      return undefined
-    }
-
-    const { urlInfo, options } = detailForm.buildPayload()
-
-    return {
-      name: general.formData.name,
-      url: formatBackupRepositoryUrl({ ...urlInfo, ...general.buildUrlOptions() }),
-      ...(options !== undefined && { options }),
-      ...(general.formData.proxy !== undefined && { proxy: general.formData.proxy }),
     }
   }
 

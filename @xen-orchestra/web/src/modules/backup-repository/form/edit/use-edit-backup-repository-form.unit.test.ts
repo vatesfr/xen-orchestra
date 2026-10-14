@@ -1,4 +1,4 @@
-import { useEditBackupRepositoryForm } from '@/modules/backup-repository/form/use-edit-backup-repository-form.ts'
+import { useEditBackupRepositoryForm } from '@/modules/backup-repository/form/edit/use-edit-backup-repository-form.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createBr } from '@/test/create-br.ts'
@@ -24,7 +24,7 @@ const ENCRYPTED_NFS_BR = createBr({
 })
 
 function mountEditForm(br: FrontXoBackupRepository = ENCRYPTED_NFS_BR) {
-  return mountComposable(() => useEditBackupRepositoryForm(() => br)).wrapper.vm
+  return mountComposable(() => useEditBackupRepositoryForm(br)).wrapper.vm
 }
 
 describe('formData', () => {

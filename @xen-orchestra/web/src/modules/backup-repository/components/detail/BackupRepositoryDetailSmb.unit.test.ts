@@ -1,4 +1,4 @@
-import BackupRepositorySmbDetails from '@/modules/backup-repository/components/detail/BackupRepositorySmbDetails.vue'
+import BackupRepositoryDetailSmb from '@/modules/backup-repository/components/detail/BackupRepositoryDetailSmb.vue'
 import { MASKED_SECRET } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -19,7 +19,7 @@ function createSmbUrl(overrides: Partial<ParsedSmbBackupRepositoryUrl> = {}): Pa
 }
 
 function mountCard(smb = createSmbUrl(), options?: string) {
-  return mount(BackupRepositorySmbDetails, {
+  return mount(BackupRepositoryDetailSmb, {
     props: { smb, options },
     global: createGlobalTestConfig(),
   })
@@ -55,10 +55,10 @@ it('never shows the password', () => {
   expect(wrapper.text()).not.toContain('p4ssw0rd')
 })
 
-it('hides the password row when the url has no password', () => {
+it('leaves the password empty when the url has no password', () => {
   const wrapper = mountCard(createSmbUrl({ password: '' }))
 
-  expect(findLabelledValues(wrapper)).not.toHaveProperty(t('password'))
+  expect(findLabelledValues(wrapper)).toMatchObject({ [t('password')]: '' })
 })
 
 it('leaves the mount options empty when there are none', () => {

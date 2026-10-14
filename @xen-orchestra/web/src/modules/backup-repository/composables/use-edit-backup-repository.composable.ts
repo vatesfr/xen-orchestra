@@ -6,17 +6,25 @@ import {
   type FrontXoBackupRepository,
   useXoBackupRepositoryCollection,
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
-import { ref } from 'vue'
+import { toComputed } from '@core/utils/to-computed.util.ts'
+import { reactiveComputed } from '@vueuse/core'
+import { type MaybeRefOrGetter, ref } from 'vue'
 
-export function useEditBackupRepository() {
-  const br = ref<FrontXoBackupRepository>()
+export function useEditBackupRepository(rawBr: MaybeRefOrGetter<FrontXoBackupRepository>) {
+  const br = toComputed(rawBr)
 
   const payload = ref<EditBackupRepositoryPayload>()
 
   const { $context } = useXoBackupRepositoryCollection()
 
-  const { run } = useXoBackupRepositoryEditJob(br, payload)
+  const {
+    run,
+    canRun: canEditBackupRepository,
+    isRunning: isEditingBackupRepository,
+    errorMessage: editBackupRepositoryErrorMessage,
+  } = useXoBackupRepositoryEditJob(br, payload)
 
   const { open } = useOverlay({
     component: () => import('@/modules/backup-repository/components/drawer/EditBackupRepositoryDrawer.vue'),
@@ -30,20 +38,26 @@ export function useEditBackupRepository() {
           // Force reload while waiting for reactivity to be implemented for XO objects (XO-1013)
           $context.forceReload()
         } catch (error) {
-          console.error('Error when edit backup repository', error)
+          console.error('Error when editing backup repository', error)
+          return KEEP_OVERLAY_OPEN
         }
       },
       onCancel: true,
     },
   })
 
-  function openEditBackupRepositoryDrawer(newBr: FrontXoBackupRepository) {
-    br.value = newBr
+  const props = reactiveComputed(() => ({
+    br: br.value,
+  }))
 
-    return open({ props: { br: newBr } })
+  function editBackupRepository() {
+    return open({ props })
   }
 
   return {
-    openEditBackupRepositoryDrawer,
+    editBackupRepository,
+    canEditBackupRepository,
+    isEditingBackupRepository,
+    editBackupRepositoryErrorMessage,
   }
 }

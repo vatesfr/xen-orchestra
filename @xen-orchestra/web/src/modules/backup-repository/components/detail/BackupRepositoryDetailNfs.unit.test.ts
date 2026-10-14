@@ -1,4 +1,4 @@
-import BackupRepositoryNfsDetails from '@/modules/backup-repository/components/detail/BackupRepositoryNfsDetails.vue'
+import BackupRepositoryDetailNfs from '@/modules/backup-repository/components/detail/BackupRepositoryDetailNfs.vue'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -10,7 +10,7 @@ function createNfsUrl(overrides: Partial<ParsedNfsBackupRepositoryUrl> = {}): Pa
 }
 
 function mountCard(nfs = createNfsUrl(), options?: string) {
-  return mount(BackupRepositoryNfsDetails, {
+  return mount(BackupRepositoryDetailNfs, {
     props: { nfs, options },
     global: createGlobalTestConfig(),
   })

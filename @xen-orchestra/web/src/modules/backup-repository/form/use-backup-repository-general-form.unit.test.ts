@@ -45,7 +45,9 @@ async function mountGeneralForm(formData: Partial<BackupRepositoryGeneralFormDat
 }
 
 function createEditGeneralForm(formData: Partial<BackupRepositoryGeneralFormData>) {
-  return useBackupRepositoryGeneralForm(reactive({ ...createGeneralFormData(), ...formData }), true)
+  return useBackupRepositoryGeneralForm(reactive({ ...createGeneralFormData(), ...formData }), {
+    isEditing: true,
+  })
 }
 
 function mountEditGeneralForm(formData: Partial<BackupRepositoryGeneralFormData>) {
@@ -173,24 +175,12 @@ describe('validate', () => {
     expect(result.bindings.encryptionKey.error).toBeDefined()
   })
 
-  it.each(['0123456789abcdef', `${ENCRYPTION_KEY}0`, 'g123456789abcdef0123456789abcdef'])(
-    'rejects the malformed encryption key %s',
-    async encryptionKey => {
-      const result = await mountGeneralForm({ name: 'My repository', type: 's3', encrypted: true, encryptionKey })
-
-      expect(await result.validate()).toBe(false)
-      expect(result.bindings.encryptionKey.error).toMatchObject({
-        content: result.t('encryption-key-invalid', { n: 32 }),
-      })
-    }
-  )
-
-  it('accepts a 32 hexadecimal characters encryption key, whatever its case', async () => {
+  it('accepts any encryption key, its format being checked by the form using it', async () => {
     const result = await mountGeneralForm({
       name: 'My repository',
       type: 's3',
       encrypted: true,
-      encryptionKey: ENCRYPTION_KEY,
+      encryptionKey: '0123456789abcdef',
     })
 
     expect(await result.validate()).toBe(true)

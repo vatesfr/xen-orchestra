@@ -6,7 +6,7 @@
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('path-on-share')" :value="pathOnShare" />
       <VtsTabularKeyValueRow :label="t('username')" :value="smb.username" />
-      <VtsTabularKeyValueRow v-if="smb.password !== ''" :label="t('password')" :value="MASKED_SECRET" />
+      <VtsTabularKeyValueRow :label="t('password')" :value="maskedPassword" />
       <VtsTabularKeyValueRow :label="t('domain')" :value="smb.domain" />
       <VtsTabularKeyValueRow :label="t('custom-options')" :value="formattedOptions" />
     </VtsTabularKeyValueList>
@@ -16,8 +16,8 @@
 <script setup lang="ts">
 import {
   formatMountOptions,
-  getSmbPathOnShare,
-  MASKED_SECRET,
+  formatSmbPathOnShare,
+  maskSecret,
 } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
@@ -34,7 +34,9 @@ const { smb, options } = defineProps<{
 
 const { t } = useI18n()
 
-const pathOnShare = computed(() => getSmbPathOnShare(smb))
+const pathOnShare = computed(() => formatSmbPathOnShare(smb.host, smb.path))
+
+const maskedPassword = computed(() => maskSecret(smb.password))
 
 const formattedOptions = computed(() => formatMountOptions(options))
 </script>

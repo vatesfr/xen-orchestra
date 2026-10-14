@@ -1,17 +1,13 @@
+import type { BackupRepositoryPayload } from '@/modules/backup-repository/form/use-backup-repository-form-base.ts'
 import { payloadsArg } from '@/modules/backup-repository/jobs/xo-backup-repository-create-args.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { fetchGet, fetchPost } from '@/shared/utils/fetch.util.ts'
+import { checkBackupRepositoryHealth } from '@/modules/backup-repository/utils/xo-backup-repository-health.util.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
-export type NewBackupRepositoryPayload = {
-  name: string
-  url: string
-  options?: string
-  proxy?: FrontXoProxy['id']
-}
+export type NewBackupRepositoryPayload = BackupRepositoryPayload
 
 export const useXoBackupRepositoryCreateJob = defineJob('br.create', [payloadsArg], () => {
   const { t } = useI18n()
@@ -22,9 +18,7 @@ export const useXoBackupRepositoryCreateJob = defineJob('br.create', [payloadsAr
         payloads.map(async payload => {
           const { id } = await fetchPost<{ id: FrontXoBackupRepository['id'] }>(`backup-repositories`, payload)
 
-          // Mount the BR once so the server records its initial status (error or not)
-          // A failure here must not fail the creation: the BR exists and its error is stored on it
-          await fetchGet(`backup-repositories/${id}/health`).catch(() => {})
+          await checkBackupRepositoryHealth(id)
 
           return id
         })

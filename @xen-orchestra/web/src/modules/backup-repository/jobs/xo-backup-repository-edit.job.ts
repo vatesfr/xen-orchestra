@@ -1,8 +1,9 @@
 import { xoBackupRepositoryArg } from '@/modules/backup-repository/jobs/xo-backup-repository-args.ts'
 import { editPayloadArg } from '@/modules/backup-repository/jobs/xo-backup-repository-edit-args.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { checkBackupRepositoryHealth } from '@/modules/backup-repository/utils/xo-backup-repository-health.util.ts'
 import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { fetchGet, fetchPatch } from '@/shared/utils/fetch.util.ts'
+import { fetchPatch } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
@@ -21,9 +22,7 @@ export const useXoBackupRepositoryEditJob = defineJob('br.edit', [xoBackupReposi
     async run(br: FrontXoBackupRepository, payload: EditBackupRepositoryPayload) {
       await fetchPatch(`backup-repositories/${br.id}`, payload)
 
-      // Mount the BR once so the server records its immediate status (error or not)
-      // A failure here must not fail the edition: the BR exists and its error is stored on it
-      await fetchGet(`backup-repositories/${br.id}/health`).catch(() => {})
+      await checkBackupRepositoryHealth(br.id)
     },
 
     validate(isRunning, br: FrontXoBackupRepository | undefined, payload: EditBackupRepositoryPayload | undefined) {
@@ -35,8 +34,15 @@ export const useXoBackupRepositoryEditJob = defineJob('br.edit', [xoBackupReposi
         throw new JobRunningError(t('job:edit:in-progress'))
       }
 
+      const currentBrInfo = parseBackupRepositoryUrl(br.url)
+
+      if (currentBrInfo.type === undefined) {
+        throw new JobError(t('job:backup-repository-edit:unknown-type'))
+      }
+
+      // The payload only exists once the edit drawer is confirmed
       if (payload === undefined) {
-        throw new JobError(t('job:arg:missing-payload'))
+        return
       }
 
       if (payload.name === '') {
@@ -49,12 +55,12 @@ export const useXoBackupRepositoryEditJob = defineJob('br.edit', [xoBackupReposi
 
       const brInfo = parseBackupRepositoryUrl(payload.url)
 
-      if (brInfo.encryptionKey !== parseBackupRepositoryUrl(br.url).encryptionKey) {
+      if (brInfo.encryptionKey !== currentBrInfo.encryptionKey) {
         throw new JobError(t('job:backup-repository-edit:encryption-key-locked'))
       }
 
       if (brInfo.encryptionKey !== undefined && brInfo.useVhdDirectory !== true) {
-        throw new JobError(t('job:backup-repository-create:encryption-requires-block'))
+        throw new JobError(t('job:backup-repository-edit:encryption-requires-block'))
       }
     },
   }

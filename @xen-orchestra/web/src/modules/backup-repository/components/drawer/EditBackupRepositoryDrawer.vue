@@ -6,8 +6,8 @@
 
     <template #content>
       <BackupRepositoryGeneralStep :bindings="general.bindings" />
-      <div v-if="general.formData.type !== undefined" class="details-section">
-        <UiTitle>{{ t('br-type-details', { type: typeLabel }) }}</UiTitle>
+      <div class="details-section">
+        <UiTitle>{{ detailsTitle }}</UiTitle>
         <BackupRepositoryDetailsStep class="details-step" :type="general.formData.type" :details />
       </div>
     </template>
@@ -24,8 +24,7 @@
 <script lang="ts" setup>
 import BackupRepositoryDetailsStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryDetailsStep.vue'
 import BackupRepositoryGeneralStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryGeneralStep.vue'
-import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
-import { useEditBackupRepositoryForm } from '@/modules/backup-repository/form/use-edit-backup-repository-form.ts'
+import { useEditBackupRepositoryForm } from '@/modules/backup-repository/form/edit/use-edit-backup-repository-form.ts'
 import type { EditBackupRepositoryPayload } from '@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -45,9 +44,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { general, details, validateAndBuildPayload } = useEditBackupRepositoryForm(() => br)
-
-const typeLabel = useXoBackupRepositoryTypeLabel(() => general.formData.type)
+const { general, details, detailsTitle, validateAndBuildPayload } = useEditBackupRepositoryForm(br)
 
 async function handleConfirm() {
   const payload = await validateAndBuildPayload()

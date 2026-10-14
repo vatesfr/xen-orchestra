@@ -2,7 +2,7 @@ import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { InputType } from '@core/components/ui/input/UiInput.vue'
-import { regex, required, requiredIf, withMessage } from '@core/packages/form-validation'
+import { type FormValidationConfig, mergeValidationConfigs, required, requiredIf } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -17,8 +17,13 @@ export type BackupRepositoryGeneralFormData = {
   encryptionKey: string
 }
 
-const ENCRYPTION_KEY_LENGTH = 32
-const ENCRYPTION_KEY_REGEX = new RegExp(`^[0-9a-f]{${ENCRYPTION_KEY_LENGTH}}$`, 'i')
+export type BackupRepositoryGeneralFormOptions = {
+  isEditing?: boolean
+  extraConfig?: FormValidationConfig<BackupRepositoryGeneralFormData>
+}
+
+export const ENCRYPTION_KEY_LENGTH = 32
+export const ENCRYPTION_KEY_REGEX = new RegExp(`^[0-9a-f]{${ENCRYPTION_KEY_LENGTH}}$`, 'i')
 
 const BACKUP_FORMAT_DOC_URL = 'https://docs.xen-orchestra.com/xo5/incremental_backups'
 
@@ -26,23 +31,16 @@ const BLOCK_ONLY_TYPES: BackupRepositoryType[] = ['azure', 'azurite', 's3']
 
 export type BackupRepositoryGeneralForm = ReturnType<typeof useBackupRepositoryGeneralForm>
 
-export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneralFormData, isEditing = false) {
+export function useBackupRepositoryGeneralForm(
+  formData: BackupRepositoryGeneralFormData,
+  { isEditing = false, extraConfig }: BackupRepositoryGeneralFormOptions = {}
+) {
   const { t } = useI18n()
 
   const { proxies } = useXoProxyCollection()
 
-  const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
+  const baseConfig: FormValidationConfig<BackupRepositoryGeneralFormData> = {
     errors: {
-      // In edit mode, the key is locked and comes back obfuscated from the API, so it can't match the regex
-      onBlur: () => ({
-        encryptionKey: isEditing
-          ? {}
-          : {
-              regex: withMessage(regex(ENCRYPTION_KEY_REGEX), () =>
-                t('encryption-key-invalid', { n: ENCRYPTION_KEY_LENGTH })
-              ),
-            },
-      }),
       onSubmit: () => ({
         name: { required },
         type: { required },
@@ -52,7 +50,14 @@ export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneral
         },
       }),
     },
-  })
+  }
+
+  const { useField, useFormSelect, useSelect, validate } = useValidatedForm(
+    formData,
+    mergeValidationConfigs(baseConfig, extraConfig)
+  )
+
+  const encryptionKeyInputType: InputType = isEditing ? 'password' : 'text'
 
   const isBackupFormatLocked = computed(() => formData.type !== undefined && BLOCK_ONLY_TYPES.includes(formData.type))
 
@@ -132,7 +137,7 @@ export function useBackupRepositoryGeneralForm(formData: BackupRepositoryGeneral
     encryptionKey: useField('encryptionKey', () => ({
       label: t('key'),
       required: true,
-      type: (isEditing ? 'password' : 'text') as InputType,
+      type: encryptionKeyInputType,
       disabled: isEditing,
       info: t('n-hexadecimal-characters', { n: ENCRYPTION_KEY_LENGTH }),
     })),

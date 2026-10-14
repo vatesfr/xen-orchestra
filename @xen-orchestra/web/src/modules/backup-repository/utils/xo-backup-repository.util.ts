@@ -1,8 +1,7 @@
-import type { BackupRepositoryDetailsInitialData } from '@/modules/backup-repository/form/use-backup-repository-details-forms.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { IconName } from '@core/icons'
-import type { BackupRepositoryType, ParsedBackupRepositoryUrl, ParsedSmbBackupRepositoryUrl } from 'xo-remote-parser'
+import type { BackupRepositoryType, ParsedBackupRepositoryUrl } from 'xo-remote-parser'
 
 export const MASKED_SECRET = '•'.repeat(12)
 
@@ -38,6 +37,10 @@ export function formatMountOptions(options: string | undefined): string {
     .join(', ')
 }
 
+export function formatSmbPathOnShare(host: string, path: string): string {
+  return `\\\\${host}${path !== '' ? `\\${path}` : ''}`
+}
+
 export function splitBackupRepositoryPath(path: string): { root: string; subPath: string } {
   const parts = path.replace(/^\/+/, '').split('/')
 
@@ -47,81 +50,6 @@ export function splitBackupRepositoryPath(path: string): { root: string; subPath
   }
 }
 
-export function getSmbPathOnShare({ host, path }: Pick<ParsedSmbBackupRepositoryUrl, 'host' | 'path'>): string {
-  return `\\\\${host}${path !== '' ? `\\${path}` : ''}`
-}
-
-function splitPathForForm(path: string): { root: string; subPath: string } {
-  const { root, subPath } = splitBackupRepositoryPath(path)
-
-  // buildPayload rebuilds `${root}/${subPath}`: drop the leading slash to avoid `root//sub`
-  return { root, subPath: subPath.replace(/^\/+/, '') }
-}
-
-export function getBackupRepositoryDetailsInitialData(
-  parsedUrl: ParsedBackupRepositoryUrl,
-  options: FrontXoBackupRepository['options']
-): BackupRepositoryDetailsInitialData {
-  switch (parsedUrl.type) {
-    case 'file':
-      return { file: { path: parsedUrl.path } }
-
-    case 'nfs':
-      return {
-        nfs: {
-          host: parsedUrl.host,
-          port: parsedUrl.port ?? '',
-          path: parsedUrl.path,
-          customOptions: options ?? '',
-        },
-      }
-
-    case 'smb':
-      return {
-        smb: {
-          pathOnShare: parsedUrl.host,
-          subfolder: parsedUrl.path,
-          domain: parsedUrl.domain,
-          username: parsedUrl.username,
-          password: parsedUrl.password,
-          customOptions: options ?? '',
-        },
-      }
-
-    case 's3': {
-      const { root, subPath } = splitPathForForm(parsedUrl.path)
-
-      return {
-        s3: {
-          endpoint: parsedUrl.host,
-          useHttps: parsedUrl.protocol === 'https',
-          allowUnauthorized: parsedUrl.allowUnauthorized === true,
-          region: parsedUrl.region ?? '',
-          accessKeyId: parsedUrl.username,
-          secret: parsedUrl.password,
-          bucket: root,
-          pathInBucket: subPath,
-        },
-      }
-    }
-
-    case 'azure':
-    case 'azurite': {
-      const { root, subPath } = splitPathForForm(parsedUrl.path)
-
-      return {
-        azure: {
-          hostName: parsedUrl.host,
-          useHttps: parsedUrl.protocol === 'https',
-          accountName: parsedUrl.username,
-          key: parsedUrl.password,
-          containerName: root,
-          pathInContainer: subPath,
-        },
-      }
-    }
-
-    default:
-      return {}
-  }
+export function isBackupRepositoryEncrypted(parsedUrl: ParsedBackupRepositoryUrl | undefined): boolean {
+  return parsedUrl?.encryptionKey !== undefined
 }
