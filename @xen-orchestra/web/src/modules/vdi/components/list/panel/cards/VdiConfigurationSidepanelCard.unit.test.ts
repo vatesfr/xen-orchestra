@@ -123,7 +123,7 @@ describe('from an SR', () => {
 
     const wrapper = mountCard(VDI_PAGE_CONTEXT.SR)
 
-    expect(wrapper.findAll('.vm-link-list .ui-link').map(link => link.text())).toEqual(['Web server', 'Database'])
+    expect(wrapper.findAll('.ui-link-list .ui-link').map(link => link.text())).toEqual(['Web server', 'Database'])
   })
 
   it('copies the names of the VMs', () => {
