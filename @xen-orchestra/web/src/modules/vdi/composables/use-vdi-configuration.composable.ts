@@ -24,6 +24,8 @@ export function useVdiConfiguration(
 
   const vms = useGetVmsByIds(() => vbds.value.map(vbd => vbd.VM as FrontXoVm['id']))
 
+  const vmNames = computed(() => vms.value.map(vm => vm.name_label).join(', '))
+
   const format = computed(() => getVdiFormat(vdi.value?.image_format))
 
   const isReadOnly = computed(() => vbd.value?.read_only ?? false)
@@ -34,5 +36,5 @@ export function useVdiConfiguration(
 
   const isSnapshottingEnabled = computed(() => (vdi.value ? !vdi.value.tags.includes('NOSNAP') : false))
 
-  return { sr, vms, format, isReadOnly, isBootable, isCbtEnabled, isSnapshottingEnabled }
+  return { sr, vms, vmNames, format, isReadOnly, isBootable, isCbtEnabled, isSnapshottingEnabled }
 }
