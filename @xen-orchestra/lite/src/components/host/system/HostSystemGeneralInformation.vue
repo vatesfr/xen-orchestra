@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
+import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
@@ -81,8 +81,8 @@ const { host } = defineProps<{
 const { t } = useI18n()
 
 const { pool, isMasterHost, masterHost } = usePoolStore().subscribe()
-const { isHostRunning } = useHostMetricsStore().subscribe()
+
+const { isRunning } = useHostUtils(() => host)
 
 const isMaster = computed(() => isMasterHost(host.$ref))
-const isRunning = computed(() => isHostRunning(host))
 </script>

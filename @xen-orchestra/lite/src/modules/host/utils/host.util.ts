@@ -1,5 +1,6 @@
 import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { objectIcon } from '@core/icons'
 import { HOST_POWER_STATE } from '@vates/types'
 import { castArray } from 'lodash-es'
 
@@ -32,8 +33,8 @@ export const getHostPendingStateOperation = (host: XenApiHost, isHostRunning: bo
     isHostRunning ? RUNNING_CHANGING_STATE_OPERATIONS : NOT_RUNNING_CHANGING_STATE_OPERATIONS
   )
 
-export const getHostState = (host: XenApiHost, powerState: HOST_POWER_STATE): HostState => {
-  if (powerState === HOST_POWER_STATE.UNKNOWN) {
+export const getHostState = (host: XenApiHost | undefined, powerState: HOST_POWER_STATE): HostState => {
+  if (host === undefined || powerState === HOST_POWER_STATE.UNKNOWN) {
     return 'unknown'
   }
 
@@ -42,4 +43,17 @@ export const getHostState = (host: XenApiHost, powerState: HOST_POWER_STATE): Ho
   }
 
   return host.enabled ? 'running' : 'disabled'
+}
+
+export const getHostIcon = (host: XenApiHost | undefined, powerState: HOST_POWER_STATE) =>
+  objectIcon('host', getHostState(host, powerState))
+
+export const getHostCoreSocketInfo = (host: XenApiHost): string =>
+  `${host.cpu_info.cpu_count} (${host.cpu_info.socket_count})`
+
+export const getHostManufacturerInfo = (host: XenApiHost): string => {
+  const manufacturer = host.bios_strings['system-manufacturer'] ?? ''
+  const productName = host.bios_strings['system-product-name']
+
+  return manufacturer + (productName ? ` (${productName})` : '')
 }
