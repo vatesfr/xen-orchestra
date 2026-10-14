@@ -125,7 +125,7 @@ describe('from an SR', () => {
 
     const wrapper = mountConfiguration({ vdi: createVdi(), fromContext: VDI_PAGE_CONTEXT.SR })
 
-    expect(wrapper.findAll('.vm-link-list .ui-link').map(link => link.text())).toEqual(['Web server', 'Database'])
+    expect(wrapper.findAll('.ui-link-list .ui-link').map(link => link.text())).toEqual(['Web server', 'Database'])
   })
 })
 
