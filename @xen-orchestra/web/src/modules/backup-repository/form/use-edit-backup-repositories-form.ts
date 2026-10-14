@@ -47,32 +47,31 @@ type InitialBr = {
   parsedUrl: ParsedBackupRepositoryUrl
 }
 
-// Keeps the values shared by all the items, and lists the fields whose values differ.
+// Keeps the values shared by all the BRs datas, and lists the fields whose values differ
 function mergeValues<TFormData extends Record<string, unknown>>(
-  items: TFormData[],
+  datas: TFormData[],
   mixedValue: string,
   textFields?: (keyof TFormData)[]
 ) {
-  const data: Partial<TFormData> = {}
+  const data: Partial<Record<keyof TFormData, unknown>> = {}
   const mixedFields: (keyof TFormData)[] = []
 
-  for (const field of Object.keys(items[0] ?? {}) as (keyof TFormData)[]) {
-    const values = items.map(item => item[field])
+  for (const field of Object.keys(datas[0] ?? {}) as (keyof TFormData)[]) {
+    const values = datas.map(data => data[field])
 
-    if (new Set(values).size > 1) {
-      mixedFields.push(field)
-
-      data[field] = (
-        (textFields?.includes(field) ?? typeof values[0] === 'string') ? mixedValue : undefined
-      ) as TFormData[keyof TFormData]
-    } else {
+    if (new Set(values).size === 1) {
       data[field] = values[0]
+      continue
     }
+
+    mixedFields.push(field)
+
+    const isTextField = textFields?.includes(field) ?? typeof values[0] === 'string'
+
+    data[field] = isTextField ? mixedValue : undefined
   }
 
-  console.log(data, mixedFields)
-
-  return { data, mixedFields }
+  return { data: data as Partial<TFormData>, mixedFields }
 }
 
 // Keeps the values to apply to all the items: the ones left mixed don't change on each item
@@ -155,7 +154,8 @@ export function useEditBackupRepositoriesForm(rawBrs: MaybeRefOrGetter<FrontXoBa
       ...general.data,
     }),
     BACKUP_REPOSITORY_FORM_MODE.MULTI_EDIT,
-    isVhdForbidden
+    isVhdForbidden,
+    general.mixedFields
   )
 
   const detailsType = general.data.type === 'azurite' ? 'azure' : general.data.type
