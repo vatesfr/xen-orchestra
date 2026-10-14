@@ -1,4 +1,4 @@
-import VdiVmLinks from '@/modules/vdi/components/VdiVmLinks.vue'
+import VmLinkList from '@/modules/vm/components/VmLinkList.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -8,7 +8,7 @@ import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
 function mountVmLinks(vms: FrontXoVm[]) {
-  return mount(VdiVmLinks, {
+  return mount(VmLinkList, {
     props: { vms },
     global: createGlobalTestConfig(),
   })
