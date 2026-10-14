@@ -1,4 +1,4 @@
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import SrHeader from '@/modules/storage-repository/components/header/SrHeader.vue'
@@ -38,9 +38,9 @@ vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () 
   })) as unknown as typeof useXoPoolCollection,
 }))
 
-const POOL_SCOPE: SrScope = { type: SR_SCOPE_TYPE.POOL }
+const poolScope: SrScope = { type: SR_SCOPE_TYPE.POOL }
 
-async function mountHeader(scope: SrScope = POOL_SCOPE, initialPath?: string) {
+async function mountHeader(scope: SrScope = poolScope, initialPath?: string) {
   const router = createTestRouter()
 
   if (initialPath !== undefined) {
@@ -59,7 +59,7 @@ it('lists every tab of the SR, in order', async () => {
   expect(findTabs(wrapper).map(tab => tab.text())).toEqual([t('general'), t('hosts'), t('vdis')])
 })
 
-it('points every tab at the page of that SR, in the pool scope', async () => {
+it('points every tab at the page of that SR, keeping the pool scope', async () => {
   const wrapper = await mountHeader()
 
   expect(findTabs(wrapper).map(tab => tab.attributes('href'))).toEqual([
@@ -70,17 +70,17 @@ it('points every tab at the page of that SR, in the pool scope', async () => {
 })
 
 it('keeps the host scope on every tab', async () => {
-  const wrapper = await mountHeader({ type: SR_SCOPE_TYPE.HOST, hostId: 'host-1' as FrontXoHost['id'] })
+  const wrapper = await mountHeader({ type: SR_SCOPE_TYPE.HOST, hostId: 'host-7' })
 
   expect(findTabs(wrapper).map(tab => tab.attributes('href'))).toEqual([
-    '/sr/sr-42/general?from=host&host=host-1',
-    '/sr/sr-42/hosts?from=host&host=host-1',
-    '/sr/sr-42/vdis?from=host&host=host-1',
+    '/sr/sr-42/general?from=host&host=host-7',
+    '/sr/sr-42/hosts?from=host&host=host-7',
+    '/sr/sr-42/vdis?from=host&host=host-7',
   ])
 })
 
-it('marks the tab of the current route as the active one', async () => {
-  const wrapper = await mountHeader(POOL_SCOPE, '/sr/sr-42/vdis')
+it('marks the VDIs tab as active on the VDIs page of the SR', async () => {
+  const wrapper = await mountHeader(poolScope, '/sr/sr-42/vdis')
 
   const activeTabs = findTabs(wrapper)
     .filter(tab => tab.classes('active'))

@@ -7,32 +7,35 @@ import { objectIcon } from '@core/icons'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
-function mountVmLinks(vms: FrontXoVm[]) {
+function mountLinkList(vms: FrontXoVm[]) {
   return mount(VmLinkList, {
     props: { vms },
     global: createGlobalTestConfig(),
   })
 }
 
-it('links every VM to its dashboard, in order', () => {
-  const wrapper = mountVmLinks([
-    createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Web server' }),
-    createVm({ id: 'vm-2' as FrontXoVm['id'], name_label: 'Database' }),
-  ])
+const vms = [
+  createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Web server', power_state: VM_POWER_STATE.RUNNING }),
+  createVm({ id: 'vm-2' as FrontXoVm['id'], name_label: 'Database', power_state: VM_POWER_STATE.HALTED }),
+]
 
-  const links = wrapper.findAll('.ui-link').map(link => [link.text(), link.attributes('href')])
+it('lists the name of every VM, in order', () => {
+  const wrapper = mountLinkList(vms)
 
-  expect(links).toEqual([
-    ['Web server', '/vm/vm-1/dashboard'],
-    ['Database', '/vm/vm-2/dashboard'],
+  expect(wrapper.findAll('.ui-link').map(link => link.text())).toEqual(['Web server', 'Database'])
+})
+
+it('links every VM to its dashboard', () => {
+  const wrapper = mountLinkList(vms)
+
+  expect(wrapper.findAll('.ui-link').map(link => link.attributes('href'))).toEqual([
+    '/vm/vm-1/dashboard',
+    '/vm/vm-2/dashboard',
   ])
 })
 
-it('picks the icon matching the power state of each VM', () => {
-  const wrapper = mountVmLinks([
-    createVm({ id: 'vm-1' as FrontXoVm['id'], power_state: VM_POWER_STATE.RUNNING }),
-    createVm({ id: 'vm-2' as FrontXoVm['id'], power_state: VM_POWER_STATE.HALTED }),
-  ])
+it('shows the icon matching the power state of every VM', () => {
+  const wrapper = mountLinkList(vms)
 
   expect(wrapper.findAllComponents(UiLink).map(link => link.props('icon'))).toEqual([
     objectIcon('vm', 'running'),
@@ -40,6 +43,6 @@ it('picks the icon matching the power state of each VM', () => {
   ])
 })
 
-it('renders no link without any VM', () => {
-  expect(mountVmLinks([]).find('.ui-link').exists()).toBe(false)
+it('renders no link when there is no VM', () => {
+  expect(mountLinkList([]).findAll('.ui-link')).toHaveLength(0)
 })

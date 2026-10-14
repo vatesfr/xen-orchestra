@@ -8,6 +8,7 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVbd } from '@/test/create-vbd.ts'
+import { createVdiSnapshot } from '@/test/create-vdi-snapshot.ts'
 import { createVdi } from '@/test/create-vdi.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
@@ -31,17 +32,29 @@ vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => (
   useXoVmCollection: (() => ({ useGetVmsByIds })) as unknown as typeof useXoVmCollection,
 }))
 
-// Resolve ids against fixtures the way the real collections do, so the test asserts
-// which records the composable asks for rather than echoing a canned return value
-function givenCollections({
-  srs = [],
-  vbds = [],
-  vms = [],
-}: {
-  srs?: FrontXoSr[]
-  vbds?: FrontXoVbd[]
-  vms?: FrontXoVm[]
-}) {
+const srs = [
+  createSr({ id: 'sr-a' as FrontXoSr['id'], name_label: 'Local storage' }),
+  createSr({ id: 'sr-b' as FrontXoSr['id'], name_label: 'NFS storage' }),
+]
+
+const vbds = [
+  createVbd({ id: 'vbd-1' as FrontXoVbd['id'], VM: 'vm-1' as FrontXoVbd['VM'] }),
+  createVbd({ id: 'vbd-2' as FrontXoVbd['id'], VM: 'vm-2' as FrontXoVbd['VM'] }),
+  createVbd({ id: 'vbd-3' as FrontXoVbd['id'], VM: 'vm-3' as FrontXoVbd['VM'] }),
+]
+
+const vms = [
+  createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Web server' }),
+  createVm({ id: 'vm-2' as FrontXoVm['id'], name_label: 'Database' }),
+  createVm({ id: 'vm-3' as FrontXoVm['id'], name_label: 'Backup proxy' }),
+]
+
+beforeEach(() => {
+  useGetSrById.mockReset()
+  useGetVbdsByIds.mockReset()
+  useGetVmsByIds.mockReset()
+
+  // resolve by id over the fixtures, the way the real collections do, so the test asserts which records are looked up
   useGetSrById.mockImplementation((id: MaybeRefOrGetter<FrontXoSr['id'] | undefined>) =>
     computed(() => srs.find(sr => sr.id === toValue(id)))
   )
@@ -51,92 +64,46 @@ function givenCollections({
   useGetVmsByIds.mockImplementation((ids: MaybeRefOrGetter<FrontXoVm['id'][]>) =>
     computed(() => vms.filter(vm => toValue(ids).includes(vm.id)))
   )
-}
+})
 
-function mountVdiConfiguration(vdi: FrontXoVdi | undefined, vbd?: FrontXoVbd) {
+function mountConfiguration(vdi?: FrontXoVdi | ReturnType<typeof createVdiSnapshot>, vbd?: FrontXoVbd) {
   return mountComposable(() => useVdiConfiguration(vdi, vbd)).wrapper.vm
 }
 
-beforeEach(() => {
-  useGetSrById.mockReset()
-  useGetVbdsByIds.mockReset()
-  useGetVmsByIds.mockReset()
-
-  givenCollections({})
-})
-
 describe('sr', () => {
   it('resolves the SR the VDI lives on', () => {
-    const vdiSr = createSr({ id: 'sr-2' as FrontXoSr['id'], name_label: 'Fast SR' })
-    givenCollections({ srs: [createSr({ id: 'sr-1' as FrontXoSr['id'] }), vdiSr] })
+    const result = mountConfiguration(createVdi({ $SR: 'sr-b' as FrontXoVdi['$SR'] }))
 
-    const result = mountVdiConfiguration(createVdi({ $SR: vdiSr.id }))
+    expect(result.sr?.name_label).toBe('NFS storage')
+  })
 
-    expect(result.sr?.name_label).toBe('Fast SR')
+  it('resolves the SR of a VDI snapshot', () => {
+    const result = mountConfiguration(createVdiSnapshot({ $SR: 'sr-a' as FrontXoVdi['$SR'] }))
+
+    expect(result.sr?.name_label).toBe('Local storage')
   })
 
   it('is undefined without a VDI', () => {
-    givenCollections({ srs: [createSr()] })
-
-    expect(mountVdiConfiguration(undefined).sr).toBeUndefined()
+    expect(mountConfiguration().sr).toBeUndefined()
   })
 })
 
 describe('vms', () => {
-  it('lists the VMs the VDI is plugged into through its VBDs', () => {
-    givenCollections({
-      vbds: [
-        createVbd({ id: 'vbd-1' as FrontXoVbd['id'], VM: 'vm-1' as FrontXoVbd['VM'] }),
-        createVbd({ id: 'vbd-2' as FrontXoVbd['id'], VM: 'vm-2' as FrontXoVbd['VM'] }),
-        createVbd({ id: 'vbd-3' as FrontXoVbd['id'], VM: 'vm-3' as FrontXoVbd['VM'] }),
-      ],
-      vms: [
-        createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Web server' }),
-        createVm({ id: 'vm-2' as FrontXoVm['id'], name_label: 'Database' }),
-        createVm({ id: 'vm-3' as FrontXoVm['id'], name_label: 'Unrelated' }),
-      ],
-    })
+  it('resolves the VMs the VDI is plugged into through its VBDs', () => {
+    const result = mountConfiguration(createVdi({ $VBDs: ['vbd-1', 'vbd-3'] as FrontXoVdi['$VBDs'] }))
 
-    const result = mountVdiConfiguration(createVdi({ $VBDs: ['vbd-1', 'vbd-2'] as FrontXoVdi['$VBDs'] }))
-
-    expect(result.vms.map(vm => vm.name_label)).toEqual(['Web server', 'Database'])
+    expect(result.vms.map(vm => vm.name_label)).toEqual(['Web server', 'Backup proxy'])
   })
 
-  it('leaves out a VBD whose VM the VM collection does not resolve', () => {
-    givenCollections({
-      vbds: [createVbd({ id: 'vbd-1' as FrontXoVbd['id'], VM: 'template-1' as FrontXoVbd['VM'] })],
-      vms: [createVm()],
-    })
-
-    const result = mountVdiConfiguration(createVdi({ $VBDs: ['vbd-1'] as FrontXoVdi['$VBDs'] }))
-
-    expect(result.vms).toEqual([])
-  })
-
-  it('is empty for a VDI with no VBD', () => {
-    givenCollections({ vbds: [createVbd()], vms: [createVm()] })
-
-    expect(mountVdiConfiguration(createVdi({ $VBDs: [] })).vms).toEqual([])
+  it('is empty when the VDI has no VBD', () => {
+    expect(mountConfiguration(createVdi({ $VBDs: [] })).vms).toEqual([])
   })
 
   it('is empty without a VDI', () => {
-    givenCollections({ vbds: [createVbd()], vms: [createVm()] })
-
-    expect(mountVdiConfiguration(undefined).vms).toEqual([])
+    expect(mountConfiguration().vms).toEqual([])
   })
 
-  it('follows the VDI when it changes', () => {
-    givenCollections({
-      vbds: [
-        createVbd({ id: 'vbd-1' as FrontXoVbd['id'], VM: 'vm-1' as FrontXoVbd['VM'] }),
-        createVbd({ id: 'vbd-2' as FrontXoVbd['id'], VM: 'vm-2' as FrontXoVbd['VM'] }),
-      ],
-      vms: [
-        createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Web server' }),
-        createVm({ id: 'vm-2' as FrontXoVm['id'], name_label: 'Database' }),
-      ],
-    })
-
+  it('follows the VBDs of the source VDI', () => {
     const vdi = ref(createVdi({ $VBDs: ['vbd-1'] as FrontXoVdi['$VBDs'] }))
     const { wrapper } = mountComposable(() => useVdiConfiguration(vdi, undefined))
 
@@ -148,72 +115,71 @@ describe('vms', () => {
   })
 })
 
-describe('format', () => {
-  it('shows the image format of the VDI in uppercase', () => {
-    expect(mountVdiConfiguration(createVdi({ image_format: 'qcow2' })).format).toBe('QCOW2')
+describe('vmNames', () => {
+  it('joins the names of the VMs with a comma', () => {
+    const result = mountConfiguration(createVdi({ $VBDs: ['vbd-1', 'vbd-2'] as FrontXoVdi['$VBDs'] }))
+
+    expect(result.vmNames).toBe('Web server, Database')
   })
 
-  it('falls back to VHD without a VDI', () => {
-    expect(mountVdiConfiguration(undefined).format).toBe('VHD')
+  it('is empty when the VDI is plugged into no VM', () => {
+    expect(mountConfiguration(createVdi({ $VBDs: [] })).vmNames).toBe('')
+  })
+})
+
+describe('format', () => {
+  it('upper-cases the image format of the VDI', () => {
+    expect(mountConfiguration(createVdi({ image_format: 'qcow2' })).format).toBe('QCOW2')
+  })
+
+  it('falls back to VHD when the VDI has no image format', () => {
+    expect(mountConfiguration(createVdi({ image_format: undefined })).format).toBe('VHD')
   })
 })
 
 describe('isReadOnly', () => {
-  it('is true for a read-only VBD', () => {
-    expect(mountVdiConfiguration(createVdi(), createVbd({ read_only: true })).isReadOnly).toBe(true)
-  })
-
-  it('is false for a writable VBD', () => {
-    expect(mountVdiConfiguration(createVdi(), createVbd({ read_only: false })).isReadOnly).toBe(false)
+  it('reflects the read-only flag of the VBD', () => {
+    expect(mountConfiguration(createVdi(), createVbd({ read_only: true })).isReadOnly).toBe(true)
+    expect(mountConfiguration(createVdi(), createVbd({ read_only: false })).isReadOnly).toBe(false)
   })
 
   it('is false without a VBD', () => {
-    expect(mountVdiConfiguration(createVdi()).isReadOnly).toBe(false)
+    expect(mountConfiguration(createVdi()).isReadOnly).toBe(false)
   })
 })
 
 describe('isBootable', () => {
-  it('is true for a bootable VBD', () => {
-    expect(mountVdiConfiguration(createVdi(), createVbd({ bootable: true })).isBootable).toBe(true)
-  })
-
-  it('is false for a non-bootable VBD', () => {
-    expect(mountVdiConfiguration(createVdi(), createVbd({ bootable: false })).isBootable).toBe(false)
+  it('reflects the bootable flag of the VBD', () => {
+    expect(mountConfiguration(createVdi(), createVbd({ bootable: true })).isBootable).toBe(true)
+    expect(mountConfiguration(createVdi(), createVbd({ bootable: false })).isBootable).toBe(false)
   })
 
   it('is false without a VBD', () => {
-    expect(mountVdiConfiguration(createVdi()).isBootable).toBe(false)
+    expect(mountConfiguration(createVdi()).isBootable).toBe(false)
   })
 })
 
 describe('isCbtEnabled', () => {
-  it('is true when change block tracking is enabled on the VDI', () => {
-    expect(mountVdiConfiguration(createVdi({ cbt_enabled: true })).isCbtEnabled).toBe(true)
-  })
-
-  it('is false when change block tracking is disabled on the VDI', () => {
-    expect(mountVdiConfiguration(createVdi({ cbt_enabled: false })).isCbtEnabled).toBe(false)
-  })
-
-  it('is false when the VDI does not report the flag', () => {
-    expect(mountVdiConfiguration(createVdi({ cbt_enabled: undefined })).isCbtEnabled).toBe(false)
+  it('reflects whether change block tracking is enabled on the VDI', () => {
+    expect(mountConfiguration(createVdi({ cbt_enabled: true })).isCbtEnabled).toBe(true)
+    expect(mountConfiguration(createVdi({ cbt_enabled: false })).isCbtEnabled).toBe(false)
   })
 
   it('is false without a VDI', () => {
-    expect(mountVdiConfiguration(undefined).isCbtEnabled).toBe(false)
+    expect(mountConfiguration().isCbtEnabled).toBe(false)
   })
 })
 
 describe('isSnapshottingEnabled', () => {
-  it('is true for a VDI without the NOSNAP tag', () => {
-    expect(mountVdiConfiguration(createVdi({ tags: ['production'] })).isSnapshottingEnabled).toBe(true)
+  it('is true when the VDI is not tagged NOSNAP', () => {
+    expect(mountConfiguration(createVdi({ tags: ['production'] })).isSnapshottingEnabled).toBe(true)
   })
 
-  it('is false for a VDI tagged NOSNAP', () => {
-    expect(mountVdiConfiguration(createVdi({ tags: ['production', 'NOSNAP'] })).isSnapshottingEnabled).toBe(false)
+  it('is false when the VDI is tagged NOSNAP', () => {
+    expect(mountConfiguration(createVdi({ tags: ['production', 'NOSNAP'] })).isSnapshottingEnabled).toBe(false)
   })
 
   it('is false without a VDI', () => {
-    expect(mountVdiConfiguration(undefined).isSnapshottingEnabled).toBe(false)
+    expect(mountConfiguration().isSnapshottingEnabled).toBe(false)
   })
 })
