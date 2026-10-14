@@ -184,7 +184,7 @@ describe('RemoteAdapter#isMergeableParent compression resolution', { concurrency
   test('a remote without compressionType uses brotli', async () => {
     const adapter = await getAdapter({ useVhdDirectory: true })
     const targetUuid = uniqueIdBuffer()
-    await generateVhd(`${basePath}/disk.vhd`, { mode: 'directory', compression: 'gzip', uuid: targetUuid })
+    await generateVhd(`${basePath}/disk.vhd`, { mode: 'directory', compression: 'brotli', uuid: targetUuid })
 
     assert.equal(await adapter.isMergeableParent(targetUuid, `${basePath}/disk.vhd.alias.vhd`), false)
   })
