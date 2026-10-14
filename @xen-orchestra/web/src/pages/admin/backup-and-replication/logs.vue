@@ -27,9 +27,13 @@ const selectedBackupLog = useRouteQuery<FrontXoBackupLog | undefined>('id', {
   toQuery: backupLog => backupLog?.id ?? '',
 })
 
-watch(backupLogs, value => {
-  console.log(value)
-})
+watch(
+  backupLogs,
+  value => {
+    console.log('[backup-logs]', JSON.parse(JSON.stringify(value)))
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped lang="postcss">

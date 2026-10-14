@@ -42,7 +42,7 @@ export function useXoBackupLogsUtils() {
 
   // Same as XO5: only the direct `transfer` children of `export` tasks are counted (not the health check restore),
   // and a single transfer per VM, even with multiple targets
-  const findVmTransferSize = (vmTask: BackupLogTask): number | undefined => {
+  const findVmTransferTask = (vmTask: BackupLogTask): BackupLogTask | undefined => {
     for (const exportTask of vmTask.tasks ?? []) {
       if (!hasMessage(exportTask, 'export')) {
         continue
@@ -50,13 +50,16 @@ export function useXoBackupLogsUtils() {
 
       for (const task of exportTask.tasks ?? []) {
         if (hasMessage(task, 'transfer') && task.status === 'success' && typeof task.result?.size === 'number') {
-          return task.result.size
+          return task
         }
       }
     }
 
     return undefined
   }
+
+  const findVmTransferSize = (vmTask: BackupLogTask): number | undefined =>
+    findVmTransferTask(vmTask)?.result?.size as number | undefined
 
   const findTransferTaskSize = (vmTasks: FrontXoBackupLog['tasks']): number | undefined => {
     return vmTasks?.reduce((totalSize: number | undefined, vmTask) => {
@@ -74,10 +77,33 @@ export function useXoBackupLogsUtils() {
     return formatSizeRaw(findTransferTaskSize(backupLog.tasks), 2)
   }
 
+  // Total transferred size divided by the time between the start of the first transfer and the end of the last one,
+  // so that parallel transfers are not counted twice
+  function getTransferSpeed(backupLog: FrontXoBackupLog): number | undefined {
+    const transferTasks = (backupLog.tasks ?? [])
+      .map(vmTask => findVmTransferTask(vmTask))
+      .filter((task): task is BackupLogTask & { end: number } => task?.end !== undefined)
+
+    if (transferTasks.length === 0) {
+      return undefined
+    }
+
+    const size = transferTasks.reduce((totalSize, task) => totalSize + (task.result!.size as number), 0)
+    const start = Math.min(...transferTasks.map(task => task.start))
+    const end = Math.max(...transferTasks.map(task => task.end))
+
+    if (end <= start) {
+      return undefined
+    }
+
+    return (size * 1000) / (end - start)
+  }
+
   return {
     getBackupLogDate,
     getBackupLogDuration,
     getTransferSize,
     findTransferTaskSize,
+    getTransferSpeed,
   }
 }
