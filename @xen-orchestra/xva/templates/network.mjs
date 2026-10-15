@@ -1,0 +1,20 @@
+export const DEFAULT_NETWORK = {
+  class: 'network',
+  snapshot: {
+    allowed_operations: [],
+    assigned_ips: {},
+    blobs: {},
+    bridge: '',
+    current_operations: {},
+    default_locking_mode: 'unlocked',
+    managed: true,
+    MTU: 1500,
+    name_description: '',
+    name_label: 'network',
+    other_config: {},
+    PIFs: [],
+    purpose: [],
+    tags: [],
+    VIFs: [],
+  },
+}

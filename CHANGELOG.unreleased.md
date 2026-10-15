@@ -71,6 +71,7 @@
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xva minor
 - xo-server minor
 - xo-server-load-balancer patch
 - xo-web minor
