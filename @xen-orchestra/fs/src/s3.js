@@ -305,10 +305,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
   async _unlink(path) {
     try {
       await this.#s3.send(new DeleteObjectCommand(this.#createParams(path)))
-    } catch (e) {
+    } catch (error) {
       // Some providers answers 404 NoSuchKey where AWS answers 204
-      if (e.name !== 'NoSuchKey' && e.$metadata?.httpStatusCode !== 404) {
-        throw e
+      if (error.name !== 'NoSuchKey' && error.$metadata?.httpStatusCode !== 404) {
+        throw error
       }
     }
 
@@ -380,16 +380,16 @@ export default class S3Handler extends RemoteHandlerAbstract {
     try {
       const result = await this.#s3.send(new HeadObjectCommand(this.#createParams(file)))
       return +result.ContentLength
-    } catch (e) {
+    } catch (error) {
       // a HEAD response has no body, so a missing object is reported as
       // NotFound instead of the NoSuchKey the other methods get
-      if (e.name === 'NotFound' || e.$metadata?.httpStatusCode === 404) {
-        const error = new Error(`ENOENT: no such file '${file}'`, { cause: e })
-        error.code = 'ENOENT'
-        error.path = file
-        throw error
+      if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+        const enoentError = new Error(`ENOENT: no such file '${file}'`, { cause: e })
+        enoentError.code = 'ENOENT'
+        enoentError.path = file
+        throw enoentError
       }
-      throw e
+      throw error
     }
   }
 
