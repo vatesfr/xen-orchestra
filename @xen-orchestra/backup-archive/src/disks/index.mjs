@@ -1,11 +1,12 @@
 import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
-
+import { HashedDiskDeduplicated } from './hashed/HashedDiskDeduplicated.mjs'
 export { RemoteDisk } from './RemoteDisk.mjs'
 export { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 export { openDiskChain } from './openDiskChain.mjs'
 export { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
+export { HashedDiskDeduplicated } from './hashed/HashedDiskDeduplicated.mjs'
 
-const DISK_EXTENSIONS = ['.vhd']
+const DISK_EXTENSIONS = ['.vhd', '.hbd']
 
 /**
  * @typedef {import('@xen-orchestra/fs').RemoteHandlerAbstract} RemoteHandlerAbstract
@@ -19,6 +20,16 @@ export function isDisk(path) {
 
 /**
  *
+ * @param {RemoteHandlerAbstract} handler
+ * @param {string} path
+ * @returns {RemoteDisk}
+ */
+function instantiateDisk(handler, path) {
+  return path.endsWith('.hbd') ? new HashedDiskDeduplicated({ handler, path }) : new RemoteVhdDisk({ handler, path })
+}
+
+/**
+ *
  * @param {Object} params
  * @param {RemoteHandlerAbstract} params.handler
  * @param {string} params.path
@@ -27,7 +38,7 @@ export function isDisk(path) {
  * @returns {Promise<Disposable<RemoteDisk>>}
  */
 export async function openDisposableDisk({ handler, path, force = false, ignoreBlockIndexes = false }) {
-  const disk = new RemoteVhdDisk({ handler, path })
+  const disk = instantiateDisk(handler, path)
   if (ignoreBlockIndexes) {
     // Best-effort init: return the disk even if init fails so that callers
     // can still use operations that work without a fully-opened VHD (e.g. unlink, checkAlias).
@@ -50,7 +61,7 @@ export async function openDisposableDisk({ handler, path, force = false, ignoreB
  * @returns {Promise<RemoteDisk>}
  */
 export async function openDisk({ handler, path, force = false, ignoreBlockIndexes = false }) {
-  const disk = new RemoteVhdDisk({ handler, path })
+  const disk = instantiateDisk(handler, path)
   if (ignoreBlockIndexes) {
     // Best-effort init: return the disk even if init fails so that callers
     // can still use operations that work without a fully-opened VHD (e.g. unlink, checkAlias).
