@@ -94,6 +94,26 @@ const COMMANDS = {
       repl.on('error', reject).on('exit', resolve)
     })
   },
+
+  async 'disable-remote'(args) {
+    const id = args[0]
+    assert(id, 'disable-remote requires a remote id')
+
+    const db = await this.getDb('remote')
+    const remote = await db.first(id)
+
+    assert(remote, `Remote ${id} not found`)
+
+    if (remote.enabled !== true && remote.enabled !== 'true') {
+      process.stdout.write(`Remote ${remote.name} (${id}) already disabled\n`)
+      return
+    }
+
+    remote.enabled = false
+    await db.update(remote)
+
+    process.stdout.write(`Remote ${remote.name} (${id}) disabled\n`)
+  },
 }
 
 async function main(args) {
@@ -123,6 +143,13 @@ xo-server-db repl
     Available objects:
       - redis: a raw node-redis instance connected to the database
       - <namespace>: an xo-collection instance to the corresponding namespace in the database
+
+xo-server-db disable-remote <id>
+
+    Disable a remote so that xo-server does not mount it on its next start.
+
+    <id>
+      The id of the remote to disable.
 
 `)
     return
