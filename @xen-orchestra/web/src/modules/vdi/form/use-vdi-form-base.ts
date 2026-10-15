@@ -10,7 +10,6 @@ import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-co
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { ONE_GB } from '@/shared/constants.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { objectIcon } from '@core/icons'
 import { type FormValidationConfig, mergeValidationConfigs, required } from '@core/packages/form-validation'
@@ -49,7 +48,7 @@ export function useVdiFormBase<T extends BaseVdiFormData & Record<string, unknow
   const { useGetVdisByIds } = useXoVdiCollection()
   const { useGetVbdsByIds } = useXoVbdCollection()
 
-  const { getSrLocation } = useXoSrUtils()
+  const { getSrSelectLabel } = useXoSrUtils()
 
   const { notCdDriveVbds } = useXoVmVbdsUtils(vm)
 
@@ -105,10 +104,7 @@ export function useVdiFormBase<T extends BaseVdiFormData & Record<string, unknow
     searchable: true,
     required: true,
     option: {
-      label: sr => {
-        const gbLeft = Math.floor((sr.size - sr.physical_usage) / ONE_GB)
-        return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
-      },
+      label: sr => getSrSelectLabel(sr),
       value: 'id',
       properties: sr => ({ icon: objectIcon('sr', getPbdsConnectionStatus(pbdsBySr.value.get(sr.id) ?? [])) }),
     },

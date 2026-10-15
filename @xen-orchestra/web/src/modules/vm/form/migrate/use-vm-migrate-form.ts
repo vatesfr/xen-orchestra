@@ -29,7 +29,6 @@ export type VmMigrateFormData = {
 export type VmMigratePayload = {
   hostId: FrontXoHost['id']
   migrationNetworkId?: FrontXoNetwork['id']
-  srId?: FrontXoSr['id']
   srIdByVdiId?: Record<FrontXoVdi['id'], FrontXoSr['id']>
   networkIdByVifId?: Record<FrontXoVif['id'], FrontXoNetwork['id']>
 }
@@ -138,12 +137,12 @@ export function useVmMigrateForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     () => formData.pool,
     () => {
       formData.host = undefined
-      formData.migrationNetwork = undefined
     }
   )
 
-  watchImmediate(suggestedMigrationNetwork, network => {
-    formData.migrationNetwork = network?.id
+  // The suggestion may be unchanged between two hosts, so the host itself is watched to drop a manual choice
+  watchImmediate([() => formData.host, suggestedMigrationNetwork], () => {
+    formData.migrationNetwork = suggestedMigrationNetwork.value?.id
   })
 
   const migrationNetworkInfo = computed<InputWrapperMessage>(() => {
