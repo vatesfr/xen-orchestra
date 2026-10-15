@@ -52,6 +52,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import { getBackupLogRunRoute } from '@/modules/backup/utils/xo-backup-log.util.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -61,7 +62,6 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationAsRelative } from 'vue-router'
 
 const { backupRun } = defineProps<{
   backupRun: FrontXoBackupLog
@@ -88,15 +88,5 @@ const logContent = computed(() => {
 
 const scheduleName = computed(() => schedules.value.find(schedule => schedule.jobId === backupRun.jobId)?.name)
 
-const backupRunRoute = computed<RouteLocationAsRelative | undefined>(() => {
-  if (!backupRun.jobId) {
-    return undefined
-  }
-
-  return {
-    name: '/backup/[id]/runs',
-    params: { id: backupRun.jobId },
-    query: { id: backupRun.id },
-  }
-})
+const backupRunRoute = computed(() => getBackupLogRunRoute(backupRun))
 </script>

@@ -31,8 +31,7 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('transfer-size') }}</template>
-        <template v-if="transferSize !== undefined" #value>{{ transferSize.value }} {{ transferSize.prefix }}</template>
-        <template v-else #value />
+        <template #value>{{ transferSize }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="backupLog.tasks !== undefined && backupLog.tasks.length > 0">
         <template #key>{{ t('task') }}</template>
@@ -54,6 +53,7 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { formatSize } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -63,14 +63,18 @@ const { backupLog } = defineProps<{
 
 const { t } = useI18n()
 
-const { getBackupLogDate, getBackupLogDuration, getTransferSize } = useXoBackupLogsUtils()
+const { getBackupLogDate, getBackupLogDuration, findTransferTaskSize } = useXoBackupLogsUtils()
 
 const formattedStartDate = computed(() => getBackupLogDate(backupLog.start))
 const formattedEndDate = computed(() => getBackupLogDate(backupLog.end))
 
 const duration = computed(() => getBackupLogDuration(backupLog))
 
-const transferSize = computed(() => getTransferSize(backupLog))
+const transferSize = computed(() => {
+  const size = findTransferTaskSize(backupLog.tasks)
+
+  return size !== undefined ? formatSize(size, 2) : undefined
+})
 </script>
 
 <style scoped lang="postcss">
