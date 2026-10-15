@@ -21,7 +21,7 @@ export const useSrStore = defineStore('xen-api-sr', () => {
 
   const srs = computed(() => baseContext.records.value)
 
-  const isoSrs = computed(() => srs.value.filter(sr => sr.type === 'iso'))
+  const isoSrs = computed(() => srs.value.filter(sr => sr.type === 'iso' && !sr.is_tools_sr))
 
   const concatVdisArray = computed(() =>
     isoSrs.value.reduce((acc, sr) => {

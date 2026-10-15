@@ -83,7 +83,7 @@ describe('filterableServers', () => {
 })
 
 describe('getDisplayData', () => {
-  it('derives the host icons from the master host power state', () => {
+  it('derives the host icons from the state of the master host', () => {
     getHostById.mockReturnValue(createHost({ power_state: HOST_POWER_STATE.RUNNING }))
     isMasterHost.mockReturnValue(false)
 
@@ -110,6 +110,15 @@ describe('getDisplayData', () => {
     const displayData = mountFirstDisplayData()
 
     expect(displayData.hostIcon).toBe(objectIcon('host', 'halted'))
+  })
+
+  it('maps the host icons to the disabled state when the master host is running but not enabled', () => {
+    getHostById.mockReturnValue(createHost({ power_state: HOST_POWER_STATE.RUNNING, enabled: false }))
+    isMasterHost.mockReturnValue(false)
+
+    const displayData = mountFirstDisplayData()
+
+    expect(displayData.hostIcon).toBe(objectIcon('host', 'disabled'))
   })
 
   it('shows the primary-circle icon when the master host leads its pool', () => {

@@ -16,7 +16,8 @@
 </template>
 
 <script setup lang="ts">
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
@@ -24,10 +25,9 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { objectIcon, type IconName } from '@core/icons'
+import { type IconName } from '@core/icons'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
@@ -65,7 +65,7 @@ const parent = computed<SrBreadcrumbParent | undefined>(() => {
     }
 
     return {
-      icon: objectIcon('host', toLower(scopedHost.power_state)),
+      icon: getHostIcon(scopedHost),
       label: scopedHost.name_label,
       dashboardTo: { name: '/host/[id]/dashboard', params: { id: scopedHost.id } },
       storageTo: { name: '/host/[id]/storage', params: { id: scopedHost.id } },

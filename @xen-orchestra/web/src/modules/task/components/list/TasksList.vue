@@ -6,9 +6,7 @@
     <UiQuerySearchBar @search="value => (searchQuery = value)" />
     <div class="container">
       <div class="actions">
-        <UiTopBottomTable :selected-items="0" :total-items="0">
-          <UiTablePagination v-bind="paginationBindings" />
-        </UiTopBottomTable>
+        <UiTableControlsBar :pagination-bindings />
       </div>
       <VtsStateHero v-if="busy" format="card" type="busy" size="medium" />
       <VtsStateHero v-else-if="hasError" format="table" type="error" size="small" no-background>
@@ -26,9 +24,7 @@
       <VtsStateHero v-if="searchQuery && filteredTasks.length === 0" format="table" type="no-result" size="small">
         {{ t('no-result') }}
       </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0">
-        <UiTablePagination v-bind="paginationBindings" />
-      </UiTopBottomTable>
+      <UiTableControlsBar :pagination-bindings />
     </div>
   </div>
 </template>
@@ -37,10 +33,9 @@
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
+import UiTableControlsBar from '@core/components/ui/table-controls-bar/UiTableControlsBar.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed, ref } from 'vue'

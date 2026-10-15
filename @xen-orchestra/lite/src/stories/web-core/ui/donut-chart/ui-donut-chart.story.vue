@@ -15,7 +15,7 @@ import UiDonutChart, { type DonutSegment } from '@core/components/ui/donut-chart
 
 const segments: DonutSegment[] = [
   { value: 13, accent: 'info' },
-  { value: 14, accent: 'neutral' },
+  { value: 14, accent: 'secondary' },
   { value: 16, accent: 'success' },
   { value: 22, accent: 'warning' },
   { value: 35, accent: 'danger' },

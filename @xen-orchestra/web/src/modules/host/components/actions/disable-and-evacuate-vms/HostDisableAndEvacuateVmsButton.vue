@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canDisableHostAndEvacuateVMs && disableHostAndEvacuateVMsErrorMessage"
+    accent="neutral"
     :disabled="!canDisableHostAndEvacuateVMs"
     icon="action:disable-and-evacuate"
     :busy="isDisablingHostAndEvacuatingVMs"
@@ -34,16 +35,16 @@ const {
 const { open: openActionModal } = useActionModal()
 
 function disableHostAndEvacuateVms() {
-  openActionModal({
-    events: {
-      onConfirm: () => run(),
-    },
+  return openActionModal({
     props: {
       accent: 'info',
       action: 'disable-and-evacuate-vms',
       object: 'host',
       hostName: host.name_label,
       icon: 'status:info-picto',
+    },
+    events: {
+      onConfirm: () => run({ detached: true }),
     },
   })
 }

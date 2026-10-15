@@ -270,6 +270,7 @@ module.exports = {
               'sk',
               'pt',
               'ar',
+              'tr',
             ],
           },
         ],

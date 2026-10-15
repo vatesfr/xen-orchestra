@@ -12,7 +12,7 @@ import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
 import { VhdFile, Constants } from 'vhd-lib'
 import { rimraf } from 'rimraf'
 
-import { BACKUP_JOURNAL_DIR, formatJournalDay, formatJournalTime } from './_backupJournal.mjs'
+import { BACKUP_JOURNAL_DIR, formatJournalDay, formatJournalTime, journalCursorAt } from './_backupJournal.mjs'
 import { formatFilenameDate } from './_filenameDate.mjs'
 
 const { beforeEach, afterEach, describe } = test
@@ -65,13 +65,13 @@ function writeJournalEntryAt(timestamp, entry) {
   )
 }
 
-// journal entries are stamped with the writer's clock, therefore a watermark used in an assertion
-// must be strictly between the entries written before it and the ones written after it
+// journal entries are stamped with the writer's clock, therefore a cursor used in an assertion must
+// be strictly between the entries written before it and the ones written after it
 async function mark() {
   await sleep(5)
-  const since = Date.now()
+  const cursor = journalCursorAt(Date.now())
   await sleep(5)
-  return since
+  return cursor
 }
 
 async function generateVhd(path, opts = {}) {
@@ -128,7 +128,7 @@ describe('backup journal', { concurrency: 1 }, () => {
   test('writeVmBackupMetadata() records an `add` event', async () => {
     const path = await writeFullBackup()
 
-    const entries = await adapter.readBackupJournal(0)
+    const entries = await adapter.readBackupJournal()
     assert.equal(entries.length, 1)
 
     const { date, timestamp, _filename, ...entry } = entries[0]
@@ -147,7 +147,7 @@ describe('backup journal', { concurrency: 1 }, () => {
     const path = await writeFullBackup()
 
     const [entryPath] = await listJournal()
-    const { timestamp } = (await adapter.readBackupJournal(0))[0]
+    const { timestamp } = (await adapter.readBackupJournal())[0]
 
     const name = entryPath.split('/').pop()
     assert.equal(entryPath, `/${BACKUP_JOURNAL_DIR}/${formatJournalDay(timestamp)}/${name}`)
@@ -159,10 +159,10 @@ describe('backup journal', { concurrency: 1 }, () => {
     const full = await writeFullBackup(Date.now() - 2000)
     const delta = await writeDeltaBackup(Date.now() - 1000)
 
-    const since = await mark()
+    const cursor = await mark()
     await adapter.deleteVmBackups([full, delta])
 
-    const entries = await adapter.readBackupJournal(since)
+    const entries = await adapter.readBackupJournal(cursor)
     assert.deepEqual(
       entries
         .map(({ event, filename, vmUuid, reason, who }) => ({ event, filename, vmUuid, reason, who }))
@@ -178,10 +178,10 @@ describe('backup journal', { concurrency: 1 }, () => {
     await writeDeltaBackup()
     const [backup] = await adapter.listVmBackups(vmUuid)
 
-    const since = await mark()
+    const cursor = await mark()
     await adapter.deleteDeltaVmBackups([backup])
 
-    const entries = await adapter.readBackupJournal(since)
+    const entries = await adapter.readBackupJournal(cursor)
     assert.equal(entries.length, 1)
     assert.equal(entries[0].event, 'del')
     assert.equal(entries[0].reason, 'retention')
@@ -191,10 +191,10 @@ describe('backup journal', { concurrency: 1 }, () => {
     const path = await writeFullBackup()
     await handler.unlink(path)
 
-    const since = await mark()
+    const cursor = await mark()
     await adapter.deleteVmBackup(path)
 
-    const entries = await adapter.readBackupJournal(since)
+    const entries = await adapter.readBackupJournal(cursor)
     assert.equal(entries.length, 1)
     assert.equal(entries[0].event, 'del')
     assert.equal(entries[0].filename, path)
@@ -220,7 +220,7 @@ describe('backup journal', { concurrency: 1 }, () => {
       JSON.stringify({ mode: 'delta', vhds: { vdi: `${relativePath}/child.vhd` }, vdis: { vdi: {} }, size: 1 })
     )
 
-    const since = await mark()
+    const cursor = await mark()
     const result = await adapter.cleanVm(rootPath, {
       remove: true,
       merge: true,
@@ -230,7 +230,7 @@ describe('backup journal', { concurrency: 1 }, () => {
     })
     assert.ok(result.size > 0, 'nothing was merged')
 
-    const entries = await adapter.readBackupJournal(since)
+    const entries = await adapter.readBackupJournal(cursor)
     assert.deepEqual(
       entries.map(({ event, filename, vmUuid, reason }) => ({ event, filename, vmUuid, reason })).sort(byFilename),
       [
@@ -246,10 +246,10 @@ describe('backup journal', { concurrency: 1 }, () => {
       JSON.stringify({ mode: 'delta', vhds: { vdi: `${relativePath}/gone.vhd` }, vdis: { vdi: {} } })
     )
 
-    const since = await mark()
+    const cursor = await mark()
     await adapter.cleanVm(rootPath, { remove: false, logInfo: noop, logWarn: noop, lock: false })
 
-    assert.deepEqual(await adapter.readBackupJournal(since), [])
+    assert.deepEqual(await adapter.readBackupJournal(cursor), [])
   })
 
   test('a failure to journal does not fail the operation it journals', async () => {
@@ -274,22 +274,38 @@ describe('readBackupJournal()', { concurrency: 1 }, () => {
   const DAY = 24 * 60 * 60 * 1e3
 
   test('returns nothing on a repository without a journal', async () => {
-    assert.deepEqual(await adapter.readBackupJournal(0), [])
+    assert.deepEqual(await adapter.readBackupJournal(), [])
   })
 
-  test('replays the days since `since`, oldest first', async () => {
+  test('a missing journal directory is not an error unless mustExist is set', async () => {
+    const cursor = journalCursorAt(Date.now())
+    assert.deepEqual(await adapter.readBackupJournal(cursor), [])
+    await assert.rejects(adapter.readBackupJournal(cursor, { mustExist: true }), { code: 'ENOENT' })
+  })
+
+  test('a directory removed after an entry was read from it throws when mustExist is set', async () => {
+    await writeFullBackup()
+    const [cursor] = await listJournal()
+
+    await rimraf(`${tempDir}/${BACKUP_JOURNAL_DIR}`)
+
+    assert.deepEqual(await adapter.readBackupJournal(cursor), [])
+    await assert.rejects(adapter.readBackupJournal(cursor, { mustExist: true }), { code: 'ENOENT' })
+  })
+
+  test('replays the days since the cursor, oldest first', async () => {
     const old = `/${rootPath}/old.json`
     const twoDaysAgo = Date.now() - 2 * DAY
     await writeJournalEntryAt(twoDaysAgo, { event: 'add', vmUuid, filename: old, reason: 'backup' })
     const recent = await writeFullBackup()
 
     assert.deepEqual(
-      (await adapter.readBackupJournal(twoDaysAgo - 1000)).map(_ => _.filename),
+      (await adapter.readBackupJournal(journalCursorAt(twoDaysAgo - 1000))).map(_ => _.filename),
       [old, recent]
     )
   })
 
-  test('does not read the days older than `since`', async () => {
+  test('does not read the days older than the cursor', async () => {
     await writeJournalEntryAt(Date.now() - 2 * DAY, {
       event: 'add',
       vmUuid,
@@ -305,20 +321,20 @@ describe('readBackupJournal()', { concurrency: 1 }, () => {
       return list(dir, ...rest)
     }
 
-    const since = Date.now() - 60e3
+    const bound = Date.now() - 60e3
     assert.deepEqual(
-      (await adapter.readBackupJournal(since)).map(_ => _.filename),
+      (await adapter.readBackupJournal(journalCursorAt(bound))).map(_ => _.filename),
       [recent]
     )
 
     // only the journal root and today's directory, whatever the number of days the journal holds
-    assert.deepEqual(listed, [`/${BACKUP_JOURNAL_DIR}`, `/${BACKUP_JOURNAL_DIR}/${formatJournalDay(since)}`])
+    assert.deepEqual(listed, [`/${BACKUP_JOURNAL_DIR}`, `/${BACKUP_JOURNAL_DIR}/${formatJournalDay(bound)}`])
   })
 
-  test('`since` only bounds the time of its own day, not of the days after it', async () => {
-    // regression guard: entries are named after their time only, so the time of `since` must be
-    // compared with the entries of its own day and with no other, otherwise an entry of an early
-    // hour of a later day looks older than a `since` of a late hour
+  test('the cursor only bounds the time of its own day, not of the days after it', async () => {
+    // regression guard: entries are named after their time only, so the day+time of the cursor must
+    // be compared with the entries of its own day and with no other, otherwise an entry of an early
+    // hour of a later day looks older than a cursor of a late hour
     const midnight = Math.floor(Date.now() / DAY) * DAY
     const lateYesterday = `/${rootPath}/late-yesterday.json`
     const earlyToday = `/${rootPath}/early-today.json`
@@ -326,31 +342,31 @@ describe('readBackupJournal()', { concurrency: 1 }, () => {
     await writeJournalEntryAt(midnight + 30 * 60e3, { event: 'add', vmUuid, filename: earlyToday })
 
     assert.deepEqual(
-      (await adapter.readBackupJournal(midnight - 60 * 60e3)).map(_ => _.filename),
+      (await adapter.readBackupJournal(journalCursorAt(midnight - 60 * 60e3))).map(_ => _.filename),
       [lateYesterday, earlyToday]
     )
 
     // 23:45 of yesterday: its own day is bounded, today is not
     assert.deepEqual(
-      (await adapter.readBackupJournal(midnight - 15 * 60e3)).map(_ => _.filename),
+      (await adapter.readBackupJournal(journalCursorAt(midnight - 15 * 60e3))).map(_ => _.filename),
       [earlyToday]
     )
   })
 
-  test('returns the entries stamped after `since`, oldest first', async () => {
+  test('returns the entries after the cursor, oldest first', async () => {
     const first = await writeFullBackup(Date.now() - 2000)
-    const since = await mark()
+    const cursor = await mark()
     const second = await writeDeltaBackup(Date.now() - 1000)
 
     assert.deepEqual(
-      (await adapter.readBackupJournal(0)).map(_ => _.filename),
+      (await adapter.readBackupJournal()).map(_ => _.filename),
       [first, second]
     )
     assert.deepEqual(
-      (await adapter.readBackupJournal(since)).map(_ => _.filename),
+      (await adapter.readBackupJournal(cursor)).map(_ => _.filename),
       [second]
     )
-    assert.deepEqual(await adapter.readBackupJournal(Date.now() + 1000), [])
+    assert.deepEqual(await adapter.readBackupJournal(journalCursorAt(Date.now() + 1000)), [])
   })
 
   test('skips truncated entries and unrecognized filenames without hiding their siblings', async () => {
@@ -368,12 +384,152 @@ describe('readBackupJournal()', { concurrency: 1 }, () => {
     // a stray file where only day directories are expected
     await handler.writeFile(`/${BACKUP_JOURNAL_DIR}/README`, 'hello')
 
-    const entries = await adapter.readBackupJournal(0)
+    const entries = await adapter.readBackupJournal()
     assert.deepEqual(
       entries.map(_ => _.filename),
       [path]
     )
     assert.equal(entries[0]._filename, entryPath)
+  })
+})
+
+describe('readBackupJournalEvents()', { concurrency: 1 }, () => {
+  // records the paths whose metadata is read from now on, to check a replay does not re-read the
+  // same backup once per event
+  function watchMetadataReads() {
+    const read = adapter.readVmBackupMetadata.bind(adapter)
+    const paths = []
+    adapter.readVmBackupMetadata = path => {
+      paths.push(path)
+      return read(path)
+    }
+    return paths
+  }
+
+  test('reads the metadata of a backup once, whatever the number of events on it', async () => {
+    const path = await writeFullBackup()
+    const now = Date.now()
+    await writeJournalEntryAt(now + 1000, { event: 'change', vmUuid, filename: path, reason: 'merge' })
+    await writeJournalEntryAt(now + 2000, { event: 'change', vmUuid, filename: path, reason: 'merge' })
+
+    const reads = watchMetadataReads()
+    const { events } = await adapter.readBackupJournalEvents()
+
+    assert.deepEqual(reads, [path])
+    // the last event of a backup is its current state
+    assert.equal(events.length, 1)
+    assert.equal(events[0].event, 'change')
+    assert.equal(events[0].filename, path)
+    assert.equal(events[0].metadata._filename, path)
+  })
+
+  test('costs no metadata read at all for a backup which was added then deleted', async () => {
+    const path = await writeFullBackup()
+    await adapter.deleteVmBackup(path)
+
+    const reads = watchMetadataReads()
+    const { events } = await adapter.readBackupJournalEvents()
+
+    assert.deepEqual(reads, [])
+    assert.deepEqual(
+      events.filter(_ => _.filename === path),
+      [{ event: 'del', vmUuid, filename: path }]
+    )
+  })
+
+  test('reports a backup whose metadata is gone as deleted', async () => {
+    // deleted directly on the repository by a user or a third party tool, therefore not journaled
+    const path = await writeFullBackup()
+    await handler.unlink(path)
+
+    const { events } = await adapter.readBackupJournalEvents()
+    assert.deepEqual(events, [{ event: 'del', vmUuid, filename: path }])
+  })
+
+  test('names the backups the way a listing does, whatever the leading slash of the entry', async () => {
+    const path = await writeFullBackup()
+    await writeJournalEntryAt(Date.now() + 1000, {
+      event: 'change',
+      vmUuid,
+      filename: path.slice(1),
+      reason: 'merge',
+    })
+
+    const { events } = await adapter.readBackupJournalEvents()
+
+    // both entries are about the same backup, therefore they must reduce to a single event
+    assert.equal(events.length, 1)
+    assert.equal(events[0].filename, path)
+  })
+
+  test('ignores the event kinds it does not know', async () => {
+    const path = await writeFullBackup()
+    await writeJournalEntryAt(Date.now() + 1000, {
+      event: 'a-future-event',
+      vmUuid,
+      filename: `/${rootPath}/other.json`,
+    })
+
+    const { events } = await adapter.readBackupJournalEvents()
+    assert.deepEqual(
+      events.map(_ => _.filename),
+      [path]
+    )
+  })
+
+  test('keeps an unreadable metadata behind the cursor instead of failing the whole read', async () => {
+    const readable = await writeFullBackup(Date.now() - 2000)
+    const unreadable = await writeDeltaBackup(Date.now() - 1000)
+
+    const readFile = handler.readFile.bind(handler)
+    handler.readFile = async (path, ...rest) => {
+      if (path === unreadable) {
+        throw Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' })
+      }
+      return readFile(path, ...rest)
+    }
+
+    const { events, cursor } = await adapter.readBackupJournalEvents()
+
+    // the backups which could be read are still brought up to date
+    assert.deepEqual(
+      events.map(_ => _.filename),
+      [readable]
+    )
+
+    // and the one which could not is read again on the next call
+    handler.readFile = readFile
+    const { events: retried } = await adapter.readBackupJournalEvents(cursor)
+    assert.deepEqual(
+      retried.map(_ => _.filename),
+      [unreadable]
+    )
+  })
+
+  test('returns the cursor to start from on the next call', async () => {
+    await writeFullBackup(Date.now() - 2000)
+
+    const { events: first, cursor } = await adapter.readBackupJournalEvents()
+    assert.equal(first.length, 1)
+
+    await sleep(5)
+    const path = await writeDeltaBackup()
+
+    const { events } = await adapter.readBackupJournalEvents(cursor)
+    assert.deepEqual(
+      events.map(_ => _.filename),
+      [path]
+    )
+  })
+
+  test('keeps the same cursor when nothing new was read', async () => {
+    await writeFullBackup(Date.now() - 2000)
+
+    const { cursor } = await adapter.readBackupJournalEvents()
+    const { events, cursor: next } = await adapter.readBackupJournalEvents(cursor)
+
+    assert.deepEqual(events, [])
+    assert.equal(next, cursor)
   })
 })
 

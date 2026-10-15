@@ -134,6 +134,35 @@ declare namespace backup {
     url: string
   }
 
+  interface MountedDisk {
+    // handle to pass to `unmountDisk`
+    id: string
+    // UUID of the SR introduced on the host
+    srUuid: string
+    // UUID of the read-only VDI exposing the disk
+    vdiUuid: string
+    // IQN of the target serving the disk
+    iqn: string
+    // address of the portal, as advertised to the host
+    address: string
+    // port of the portal, ephemeral: one target per mount
+    port: number
+  }
+
+  interface RestoredVm {
+    // UUID of the restored VM
+    id: string
+    // bytes transferred
+    size: number
+    // disks live mounted instead of transferred, each attached to `hostId` (a host UUID)
+    liveMounts: (MountedDisk & { hostId: string })[]
+  }
+
+  // `mapVdisSrs` gives a target per disk, keyed by the uuid the disk has in the backup:
+  // `{ type: 'restore', sr?: string }`, `{ type: 'ignore' }`, `{ type: 'live-mount', host: string }`,
+  // or an SR uuid / `null` for the first two, in the legacy shape. A live mounted disk is served
+  // by this proxy, like `mountDisk` does, and outlives the restore: it is reported in `liveMounts`,
+  // and its `id` must be handed back to `unmountDisk`.
   function importVmBackup(_: {
     backupId: string
     remote: Remote
@@ -141,14 +170,46 @@ declare namespace backup {
     srUuid: string
     xapi: Xapi
     streamLogs: boolean = false
-  }): string
+  }): RestoredVm // with `streamLogs`, an ndjson stream of the task logs, the result in the end one
+
+  // Serve `disk` as a read-only iSCSI LUN and attach it, as an SR, to `host` — a host of the pool
+  // `xapi` points at. Nothing is copied: every read goes straight to the backup repository, and
+  // writes are refused. Undone by `unmountDisk`.
+  //
+  // The portal handed to the host is this proxy's address as seen from it, auto-detected unless
+  // `iscsi.advertisedAddress` is set in the proxy configuration.
+  //
+  // There is no method to list the mounts: a proxy is driven by a single XO, which is the one
+  // keeping track of them.
+  function mountDisk(_: {
+    disk: string
+    host: string
+    nameLabel?: string
+    remote: Remote
+    xapi: Xapi
+  }): MountedDisk
+
+  // Fails with a `noSuchObject` error (code 1, `data.type: 'live-mount'`) for an id this proxy does
+  // not serve, e.g. after a restart: the caller can then forget it.
+  function unmountDisk(_: { id: string })
 
   function listPoolMetadataBackups(_: { remotes: { [id: string]: Remote } }): {
     [remoteId: string]: { [poolUuid: string]: object[] }
   }
 
-  function listVmBackups(_: { remotes: { [remoteId: string]: Remote } }): {
+  function listVmBackups(_: { remotes: { [remoteId: string]: Remote }; vmId?: string }): {
     [remoteId: string]: { [vmUuid: string]: object[] }
+  }
+
+  // Reads the backup events which happened on the remote after `cursor`, reduced to the last event
+  // of each backup, with the added and changed ones resolved to their current value.
+  //
+  // `cursor` is the opaque position to pass back on the next call; it is unchanged when nothing new
+  // was read. `mustExist` makes a missing journal directory reject instead of returning no events,
+  // for a caller which has already read real entries from it before.
+  function listVmBackupsJournal(_: { remote: Remote; remoteId: string; cursor?: string; mustExist?: boolean }): {
+    events: { event: 'add' | 'change' | 'del'; vmUuid: string; filename: string; backup?: object }[]
+    cursor?: string
   }
 
   function listXoMetadataBackups(_: { remotes: { [id: string]: Remote } }): { [remoteId: string]: object[] }

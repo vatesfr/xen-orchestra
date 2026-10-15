@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canDisableHost && disableHostErrorMessage"
+    accent="neutral"
     :disabled="!canDisableHost"
     icon="action:disable"
     :busy="isDisablingHost"
@@ -35,13 +36,15 @@ const { open: openActionModal } = useActionModal()
 
 function openDisableHostModal() {
   return openActionModal({
-    events: { onConfirm: () => disableHost() },
     props: {
       accent: 'info',
       action: 'disable',
       object: 'host',
       hostName: host.name_label,
       icon: 'status:info-picto',
+    },
+    events: {
+      onConfirm: () => disableHost({ detached: true }),
     },
   })
 }

@@ -4,7 +4,7 @@ import addSubscriptions from 'add-subscriptions'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
-import { confirm } from 'modal'
+import { confirm, form } from 'modal'
 import { injectState, provideState } from 'reaclette'
 import { SelectXoCloudConfig } from 'select-objects'
 import { subscribeCloudXoConfig, subscribeCloudXoConfigBackups } from 'xo'
@@ -61,11 +61,21 @@ const CloudConfig = decorate([
         () =>
         async (state, { cloudXoConfig }) => {
           let passphrase
-          if (!cloudXoConfig?.enabled) {
-            const params = await confirm({
-              icon: 'backup',
+          if (cloudXoConfig?.enabled) {
+            await confirm({
+              icon: 'alarm',
               title: _('xoConfigCloudBackup'),
-              body: <BackupXoConfigModal />,
+              body: _('disableXoConfigCloudBackupConfirm'),
+            })
+          } else {
+            const params = await form({
+              defaultValue: { acknowledged: false },
+              header: (
+                <span>
+                  <Icon icon='backup' /> {_('xoConfigCloudBackup')}
+                </span>
+              ),
+              render: props => <BackupXoConfigModal {...props} />,
             })
             passphrase = params.passphrase
           }

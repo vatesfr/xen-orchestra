@@ -1,6 +1,7 @@
 import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
-import { getHostPendingStateOperation } from '@/modules/host/utils/host.util.ts'
+import { getHostPendingStateOperation, getHostState, type HostState } from '@/modules/host/utils/host.util.ts'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useMapper } from '@core/packages/mapper'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
@@ -11,12 +12,22 @@ export function useHostUtils(rawHost: MaybeRefOrGetter<XenApiHost | undefined>) 
 
   const host = toComputed(rawHost)
 
+  const { isHostRunning, getHostPowerState } = useHostMetricsStore().subscribe()
+
   const pendingStateOperation = computed(() => {
     if (host.value === undefined) {
       return undefined
     }
 
-    return getHostPendingStateOperation(host.value)
+    return getHostPendingStateOperation(host.value, isHostRunning(host.value))
+  })
+
+  const hostState = computed<HostState>(() => {
+    if (host.value === undefined) {
+      return 'unknown'
+    }
+
+    return getHostState(host.value, getHostPowerState(host.value))
   })
 
   const isChangingState = computed(() => pendingStateOperation.value !== undefined)
@@ -24,7 +35,9 @@ export function useHostUtils(rawHost: MaybeRefOrGetter<XenApiHost | undefined>) 
   const currentOperation = useMapper<string, string>(
     () => pendingStateOperation.value,
     {
+      [HOST_OPERATION.ENABLE]: t('operation:enable'),
       [HOST_OPERATION.EVACUATE]: t('operation:evacuate'),
+      [HOST_OPERATION.POWER_ON]: t('operation:start'),
       [HOST_OPERATION.REBOOT]: t('operation:clean-reboot'),
       [HOST_OPERATION.SHUTDOWN]: t('operation:shutdown'),
       unknown: '',
@@ -33,6 +46,7 @@ export function useHostUtils(rawHost: MaybeRefOrGetter<XenApiHost | undefined>) 
   )
 
   return {
+    hostState,
     isChangingState,
     currentOperation,
   }

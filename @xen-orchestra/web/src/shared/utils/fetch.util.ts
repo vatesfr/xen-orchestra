@@ -59,3 +59,9 @@ export async function fetchDelete(endpoint: string): Promise<void> {
     method: 'DELETE',
   })
 }
+
+export async function fetchGet<T>(endpoint: string): Promise<T> {
+  return fetchRequest<T>(endpoint, {
+    method: 'GET',
+  })
+}

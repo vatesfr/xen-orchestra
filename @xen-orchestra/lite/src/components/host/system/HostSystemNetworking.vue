@@ -4,9 +4,9 @@
       {{ t('networking') }}
     </UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('ip-address')" :value="host.address" />
+      <VtsTabularKeyValueRow :label="t('ip-address')" :value="host.address" copy />
       <VtsTabularKeyValueRow :label="t('remote-syslog')" :value="host.logging.syslog_destination" />
-      <VtsTabularKeyValueRow :label="t('iscsi-iqn')" :value="host.iscsi_iqn" />
+      <VtsTabularKeyValueRow :label="t('iscsi-iqn')" :value="host.iscsi_iqn" copy />
       <VtsTabularKeyValueRow :label="t('multi-pathing')">
         <template #value>
           <VtsStatus :status="host.multipathing" />

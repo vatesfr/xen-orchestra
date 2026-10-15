@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:duplicate" @click="handleDuplicate()">
+  <MenuItem accent="neutral" icon="action:duplicate" @click="handleDuplicate()">
     {{ t('action:duplicate') }}
   </MenuItem>
 </template>

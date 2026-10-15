@@ -237,8 +237,8 @@ export async function waitForSourceSnapshot(esxi, vmId, timeout = 120_000) {
  * snapshot.
  *
  * The snapshots are removed while the VM is halted so the consolidation does not compete with
- * a live guest. Note `#waitForTaskEnd` gives a task 60 s, so a very large delta to consolidate
- * would time out.
+ * a live guest. `removeAllSnapshots` gives the task 6 h, which a delta of any realistic size
+ * consolidates within.
  *
  * @param {Esxi} esxi - Connected ESXi client
  * @param {string} vmId - ESXi VM id

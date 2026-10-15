@@ -145,7 +145,7 @@ export default class Restore extends Component {
       body: <DeleteBackupsModalBody backups={data.backups} />,
       icon: 'delete',
     })
-      .then(deleteBackups, noop)
+      .then(({ backups, immediate }) => deleteBackups(backups, immediate), noop)
       .then(() => this._refreshBackupList())
 
   _bulkDelete = datas =>

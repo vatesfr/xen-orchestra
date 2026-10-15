@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canShutdownHost && shutdownHostErrorMessage"
+    accent="neutral"
     :disabled="!canShutdownHost"
     icon="action:shutdown"
     :busy="isShuttingDownHost"
@@ -29,21 +30,21 @@ const {
   canRun: canShutdownHost,
   isRunning: isShuttingDownHost,
   errorMessage: shutdownHostErrorMessage,
-} = useXoHostShutdownJob(() => host)
+} = useXoHostShutdownJob(() => host, false)
 
 const { open: openActionModal } = useActionModal()
 
 function shutdownHost() {
-  openActionModal({
-    events: {
-      onConfirm: () => run(),
-    },
+  return openActionModal({
     props: {
       accent: 'info',
       action: 'shutdown',
       object: 'host',
       hostName: host.name_label,
       icon: 'status:info-picto',
+    },
+    events: {
+      onConfirm: () => run({ detached: true }),
     },
   })
 }

@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="canDisplay" icon="action:force-shutdown" :busy="isRunning" @click="openModal()">
+  <MenuItem v-if="canDisplay" accent="neutral" icon="action:force-shutdown" :busy="isRunning" @click="openModal()">
     {{ t('action:force-shutdown') }}
   </MenuItem>
 </template>
@@ -41,9 +41,11 @@ const openModal = () => {
     return openBlockedModal({ props: { blockedOperation: 'hard_shutdown', href: xo5VmAdvancedHref.value } })
   }
 
-  openForceShutdownModal({
-    events: { onConfirm: () => forceShutdown() },
+  return openForceShutdownModal({
     props: { accent: 'info', action: 'force-shutdown', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
+    events: {
+      onConfirm: () => forceShutdown({ detached: true }),
+    },
   })
 }
 </script>

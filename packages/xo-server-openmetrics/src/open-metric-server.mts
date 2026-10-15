@@ -17,6 +17,7 @@
 import { createServer, type Server } from 'node:http'
 import { Agent, request as undiciRequest } from 'undici'
 import { asyncEach } from '@vates/async-each'
+import { coalesceCalls } from '@vates/coalesce-calls'
 import { createLogger } from '@xen-orchestra/log'
 
 import { parseRrdResponse, type ParsedRrdData } from './rrd-parser.mjs'
@@ -771,6 +772,16 @@ async function collectMetrics(): Promise<string> {
 // HTTP Server
 // ============================================================================
 
+/**
+ * Collect metrics, sharing one collection between overlapping scrapes.
+ *
+ * A collection can take long when hosts are unreachable,
+ * since each one costs a full RRD_FETCH_TIMEOUT_MS. This allows to wait for one
+ * metric instead of piling up, each pulling full payloads from
+ * the parent over IPC until the parent ran out of memory.
+ */
+const collectMetricsShared = coalesceCalls(collectMetrics)
+
 async function startServer(): Promise<void> {
   if (configuration === undefined) {
     throw new Error('Server not configured')
@@ -804,7 +815,7 @@ async function startServer(): Promise<void> {
     // Metrics endpoint
     if (url === '/metrics' && method === 'GET') {
       try {
-        const metrics = await collectMetrics()
+        const metrics = await collectMetricsShared()
         res.writeHead(200, {
           'Content-Type': 'application/openmetrics-text; version=1.0.0; charset=utf-8',
         })

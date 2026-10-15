@@ -15,13 +15,9 @@ export function useVdiExport(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
   const { open: exportVdi } = useOverlay({
     component: () => import('@/modules/vdi/components/drawer/VdiExportDrawer.vue'),
     events: {
-      onConfirm: async format => {
-        try {
-          selectedFormat.value = format
-          await run()
-        } catch (error) {
-          console.error('Error when exporting VDI:', error)
-        }
+      onConfirm: format => {
+        selectedFormat.value = format
+        run({ detached: true })
       },
       onCancel: true,
     },

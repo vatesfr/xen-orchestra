@@ -186,6 +186,8 @@ export class VmController extends XapiXoController<XoVm> {
    *
    * Special fields:
    * - `xenStoreData` keys are automatically prefixed with `vm-data/` when missing
+   * - `cpus` automatically set `cpusStaticMax` to the `cpus` value if `cpus` is higher than `vm.CPUs.max`
+   * - If `cpusStaticMax` is updated to a value that is incompatible with the VM topology, `vm.platform['cores-per-socket']` will be set to 1, unless `coresPerSocket` is explicitly specified
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example body {

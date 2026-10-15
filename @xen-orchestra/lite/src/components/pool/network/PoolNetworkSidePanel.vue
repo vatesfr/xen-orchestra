@@ -1,6 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!network" class="pool-network-side-panel" @close="emit('close')">
     <template v-if="network" #actions>
+      <VtsDeleteButton v-if="network.PIFs.length === 0" :busy="isDeletingNetworks" @click="deleteNetworks()" />
       <MenuList placement="bottom-end">
         <template #trigger="{ open, isOpen }">
           <UiButtonIcon
@@ -12,14 +13,14 @@
             @click="open($event)"
           />
         </template>
-        <MenuItem icon="action:copy" :disabled="!isClipboardSupported" @click="copy()">
+        <MenuItem accent="neutral" icon="action:copy" :disabled="!isClipboardSupported" @click="copy()">
           {{ t('action:copy-info-json') }}
         </MenuItem>
       </MenuList>
     </template>
     <template v-if="network" #default>
       <UiPanelCard>
-        <VtsCardObjectTitle :id="network.uuid" :label="network.name_label" />
+        <UiPanelCardTitle :id="network.uuid" size="medium" :label="network.name_label" />
         <div class="content">
           <!-- DESCRIPTION -->
           <VtsCardRowKeyValue truncate align-top>
@@ -65,10 +66,7 @@
         </div>
       </UiPanelCard>
       <UiPanelCard v-if="pifsCount && pifsCount > 0">
-        <div class="typo-body-bold">
-          {{ t('pifs') }}
-          <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
-        </div>
+        <UiPanelCardTitle size="medium" :label="t('pifs')" :counter="pifsCount" />
         <table class="simple-table">
           <thead>
             <tr>
@@ -96,16 +94,17 @@
 <script setup lang="ts">
 import PifRow from '@/components/pif/PifRow.vue'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
+import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useClipboard } from '@vueuse/core'
 import { computed } from 'vue'
@@ -122,6 +121,8 @@ const emit = defineEmits<{
 const { getPifsByNetworkRef } = usePifStore().subscribe()
 
 const { t } = useI18n()
+
+const { deleteNetworks, isDeletingNetworks } = useNetworkDelete(() => (network !== undefined ? [network] : []))
 
 const pifs = computed(() => (network !== undefined ? getPifsByNetworkRef(network.$ref) : []))
 

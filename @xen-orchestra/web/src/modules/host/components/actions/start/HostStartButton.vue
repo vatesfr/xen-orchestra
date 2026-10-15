@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canStartHost && startHostErrorMessage"
+    accent="neutral"
     :disabled="!canStartHost"
     icon="fa:play"
     :busy="isStartingHost"
@@ -34,16 +35,16 @@ const {
 const { open: openActionModal } = useActionModal()
 
 function startHost() {
-  openActionModal({
-    events: {
-      onConfirm: () => run(),
-    },
+  return openActionModal({
     props: {
       accent: 'info',
       action: 'start',
       object: 'host',
       hostName: host.name_label,
       icon: 'status:info-picto',
+    },
+    events: {
+      onConfirm: () => run({ detached: true }),
     },
   })
 }

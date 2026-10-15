@@ -483,7 +483,7 @@ export default class XoApp extends Component {
                     {_('disclaimerText3')}
                   </a>{' '}
                   <a
-                    href='https://docs.xen-orchestra.com/installation#banner-and-warnings'
+                    href='https://docs.xen-orchestra.com/getting-started/install-from-sources#about-the-banner'
                     rel='noopener noreferrer'
                     target='_blank'
                   >

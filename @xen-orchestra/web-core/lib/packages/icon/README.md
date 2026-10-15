@@ -2,7 +2,7 @@
 
 A flexible icon system for Vue applications supporting single icons, icon stacks, icon packs, and transformations.
 
-Currently supported icon format: FontAwesome, SimpleIcons
+Currently supported icon format: FontAwesome
 
 ## Core Concepts
 
@@ -160,7 +160,7 @@ Configuration for a single icon.
 
 ```ts
 type IconSingleConfig = {
-  icon?: IconDefinition | SimpleIcon | IconSingle | IconStack
+  icon?: IconDefinition | IconSingle | IconStack
 } & IconTransforms
 ```
 

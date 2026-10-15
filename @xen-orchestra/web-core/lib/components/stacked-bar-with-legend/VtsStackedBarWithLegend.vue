@@ -6,7 +6,7 @@
         v-for="segment in segments"
         :key="segment.label"
         :accent="segment.accent"
-        :tooltip="segment.tooltip"
+        :on-info-click="segment.onInfoClick"
         :unit="segment.unit"
         :value="segment.value"
       >

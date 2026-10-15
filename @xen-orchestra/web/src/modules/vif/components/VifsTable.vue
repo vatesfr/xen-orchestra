@@ -7,20 +7,18 @@
       </template>
     </UiTitle>
     <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-    <div class="container">
-      <VtsTable :state :pagination-bindings sticky="right">
-        <thead>
-          <tr>
-            <HeadCells />
-          </tr>
-        </thead>
-        <tbody>
-          <VtsRow v-for="vif of paginatedVifs" :key="vif.id" :selected="selectedVifId === vif.id">
-            <BodyCells :item="vif" />
-          </VtsRow>
-        </tbody>
-      </VtsTable>
-    </div>
+    <VtsTable :state :pagination-bindings sticky="right">
+      <thead>
+        <tr>
+          <HeadCells />
+        </tr>
+      </thead>
+      <tbody>
+        <VtsRow v-for="vif of paginatedVifs" :key="vif.id" :selected="selectedVifId === vif.id">
+          <BodyCells :item="vif" />
+        </VtsRow>
+      </tbody>
+    </VtsTable>
   </div>
 </template>
 
@@ -179,6 +177,7 @@ const { HeadCells, BodyCells } = useVifNetworkColumns({
               onClick: () => deleteVifs(),
               disabled: !canDeleteVifs.value,
               busy: isDeletingVifs.value,
+              accent: 'danger',
             },
           ],
         }),
@@ -192,12 +191,5 @@ const { HeadCells, BodyCells } = useVifNetworkColumns({
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
-
-  .table-actions,
-  .container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-  }
 }
 </style>

@@ -1,12 +1,9 @@
-import type { TablePaginationSize } from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { clamp, useLocalStorage } from '@vueuse/core'
-import { computed, type MaybeRefOrGetter } from 'vue'
+import { computed, type MaybeRefOrGetter, ref } from 'vue'
 
 export type PaginationBindings = {
-  size: TablePaginationSize
   showBy: number
   'onUpdate:showBy': (value: number) => void
   from: number
@@ -20,7 +17,7 @@ export type PaginationBindings = {
   onPrevious: () => void
 }
 
-export function usePagination<T>(id: string, _records: MaybeRefOrGetter<T[]>) {
+export function usePagination<T>(id: string, _records: MaybeRefOrGetter<T[]>, options?: { ignoreRoute?: boolean }) {
   const records = toComputed(_records)
 
   const showBy = useLocalStorage(`${id}.per-page`, 24)
@@ -36,11 +33,22 @@ export function usePagination<T>(id: string, _records: MaybeRefOrGetter<T[]>) {
     return Math.floor(index / pageSize.value) * pageSize.value
   }
 
-  const startIndex = useRouteQuery<number>(`${id}.idx`, {
-    defaultQuery: '0',
-    toData: value => toStartIndex(value),
-    toQuery: value => toStartIndex(value).toString(10),
-  })
+  function useLocalStartIndex() {
+    const localStartIndex = ref(0)
+
+    return computed({
+      get: () => toStartIndex(localStartIndex.value),
+      set: value => (localStartIndex.value = toStartIndex(value)),
+    })
+  }
+
+  const startIndex = options?.ignoreRoute
+    ? useLocalStartIndex()
+    : useRouteQuery<number>(`${id}.idx`, {
+        defaultQuery: '0',
+        toData: value => toStartIndex(value),
+        toQuery: value => toStartIndex(value).toString(10),
+      })
 
   const endIndex = computed(() => Math.min(startIndex.value + pageSize.value - 1, records.value.length - 1))
 
@@ -78,10 +86,7 @@ export function usePagination<T>(id: string, _records: MaybeRefOrGetter<T[]>) {
     startIndex.value = records.value.length - 1
   }
 
-  const uiStore = useUiStore()
-
   const paginationBindings = computed<PaginationBindings>(() => ({
-    size: (uiStore.isSmall ? 'small' : 'medium') as TablePaginationSize,
     showBy: showBy.value,
     'onUpdate:showBy': (value: number) => (showBy.value = value),
     from: Math.max(0, startIndex.value + 1),

@@ -134,8 +134,8 @@ export const makeEditObject = specs => {
       return set[0]
     }
 
-    return function (value, object) {
-      return Promise.all(set.map(set => set.call(this, value, object)))
+    return function (value, object, ...args) {
+      return Promise.all(set.map(set => set.call(this, value, object, ...args)))
     }
   }
 
@@ -235,7 +235,7 @@ export const makeEditObject = specs => {
         }
       }
 
-      const cb = () => spec.set.call(this, value, object)
+      const cb = () => spec.set.call(this, value, object, { ...values })
 
       const { constraints } = spec
       if (constraints) {

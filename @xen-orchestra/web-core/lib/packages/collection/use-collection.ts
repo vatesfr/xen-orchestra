@@ -2,12 +2,12 @@ import { guessItemId } from '@core/packages/collection/guess-item-id.ts'
 import type { EmptyObject } from '@core/types/utility.type.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type {
-  Collection,
   CollectionConfigFlags,
   CollectionItemId,
   CollectionItemProperties,
   ExtractSourceId,
   GetItemId,
+  RootCollection,
 } from './types.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { createCollection } from './create-collection.ts'
@@ -29,7 +29,7 @@ export function useCollection<
     flags?: CollectionConfigFlags<TFlag>
     properties?: (source: TSource, index: number) => TProperties
   }
-): Collection<TSource, TFlag, TProperties, $TId>
+): RootCollection<TSource, TFlag, TProperties, $TId>
 
 // Overload #2: Source is an object with id
 
@@ -46,7 +46,7 @@ export function useCollection<
     flags?: CollectionConfigFlags<TFlag>
     properties?: (source: TSource, index: number) => TProperties
   }
-): Collection<TSource, TFlag, TProperties, $TId>
+): RootCollection<TSource, TFlag, TProperties, $TId>
 
 // Overload #3: Any other case
 
@@ -63,7 +63,7 @@ export function useCollection<
     flags?: CollectionConfigFlags<TFlag>
     properties?: (source: TSource, index: number) => TProperties
   }
-): Collection<TSource, TFlag, TProperties, $TId>
+): RootCollection<TSource, TFlag, TProperties, $TId>
 
 // Implementation
 
@@ -80,7 +80,7 @@ export function useCollection<
     flags?: CollectionConfigFlags<TFlag>
     properties?: (source: TSource, index: number) => TProperties
   }
-): Collection<TSource, TFlag, TProperties, $TId> {
+): RootCollection<TSource, TFlag, TProperties, $TId> {
   const flagRegistry = useFlagRegistry<TFlag, $TId>(config?.flags)
 
   const sources = toComputed(_sources)
@@ -94,5 +94,8 @@ export function useCollection<
     })
   )
 
-  return createCollection(items, flagRegistry)
+  return {
+    ...createCollection(items, flagRegistry),
+    clearFlag: flagRegistry.clearFlag,
+  }
 }

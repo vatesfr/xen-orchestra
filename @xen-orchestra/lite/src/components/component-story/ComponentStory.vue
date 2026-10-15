@@ -20,7 +20,7 @@
           Presets
         </UiTabItem>
       </template>
-      <MenuItem v-for="(preset, label) in presets" :key="label" @click="applyPreset(preset)">
+      <MenuItem v-for="(preset, label) in presets" :key="label" accent="neutral" @click="applyPreset(preset)">
         {{ label }}
       </MenuItem>
     </MenuList>
@@ -307,6 +307,7 @@ const applyPreset = (preset: { props?: Record<string, any>; settings?: Record<st
 
   .tab-content {
     flex: 1;
+    min-width: 0;
     height: auto;
   }
 }

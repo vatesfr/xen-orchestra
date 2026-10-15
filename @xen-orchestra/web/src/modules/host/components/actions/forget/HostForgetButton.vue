@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canForgetHost && forgetHostErrorMessage"
-    class="forget"
+    accent="danger"
     :disabled="!canForgetHost"
     icon="action:forget"
     :busy="isForgettingHost"
@@ -15,9 +15,9 @@
 import { useXoHostForgetJob } from '@/modules/host/jobs/xo-host-forget.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useRedirectAfterDelete } from '@/shared/composables/redirect-after-delete.composable.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
+import { useRedirectAfterDelete } from '@core/composables/redirect-after-delete.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -53,19 +53,7 @@ const { redirect: redirectAfterForgetHost } = useRedirectAfterDelete({
 })
 
 function forgetHost() {
-  openActionModal({
-    events: {
-      onConfirm: async () => {
-        try {
-          await run()
-        } catch (error) {
-          console.error('Error when forgetting host:', error)
-          return
-        }
-
-        await redirectAfterForgetHost()
-      },
-    },
+  return openActionModal({
     props: {
       accent: 'danger',
       action: 'forget',
@@ -73,12 +61,9 @@ function forgetHost() {
       hostName: host.name_label,
       icon: 'status:danger-circle',
     },
+    events: {
+      onConfirm: () => run({ detached: true, onSuccess: redirectAfterForgetHost }),
+    },
   })
 }
 </script>
-
-<style lang="postcss" scoped>
-.forget {
-  color: var(--color-danger-item-base);
-}
-</style>

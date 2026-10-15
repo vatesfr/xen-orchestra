@@ -1,6 +1,10 @@
 # Immutability
 
-This page covers the immutability feature: what it is, why it matters, and how to set it up, whether you rely on object storage like Amazon S3 or on the native on-prem service.
+This page covers the immutability feature: what it is, why it matters, and how to set up the native on-prem service.
+
+:::info
+If your backup repository is an S3-compatible bucket, immutability is provided by the storage itself and behaves quite differently. See [S3 Object Lock](./object-lock.md) instead: the operational advice on this page does not transpose to it.
+:::
 
 ## What is immutability? {#what-is-immutability}
 
@@ -22,11 +26,13 @@ Immutability offers two distinct approaches to data protection, to meet differen
 
 ### Object storage {#object-storage}
 
-The first approach leverages **object storage solutions** like Amazon S3, where immutability is enforced using features such as [Object Lock](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html). In this setup, the storage provider itself manages the retention period. Once enabled, backups created by XO cannot be deleted or modified until the lock expires, providing an extra layer of security.
+The first approach leverages **object storage solutions** like Amazon S3, where immutability is enforced using features such as [Object Lock](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html). In this setup, the storage provider itself manages the retention period, and it applies it to every object as soon as it is uploaded.
+
+Object Lock protects object _versions_ rather than making files read-only, so XO's own operations keep succeeding on a locked bucket and the protection works differently from what the rest of this page describes. Its setup, its compatible backup settings and its cost model are covered in [S3 Object Lock](./object-lock.md).
 
 ### On-prem immutability {#on-prem-immmutability}
 
-The second model is an **on-premises immutable repository**. It uses a lightweight package, installed on the BR host itself. This service monitors the repository and enforces immutability at the filesystem level, ensuring that XO cannot delete or overwrite existing backups before the end of the protection period.
+The second model, and the subject of the rest of this page, is an **on-premises immutable repository**. It uses a lightweight package, installed on the BR host itself. This service monitors the repository and enforces immutability at the filesystem level, ensuring that XO cannot delete or overwrite existing backups before the end of the protection period.
 
 The protection follows a **governance** model: the local root account of the BR host can still lift immutability. This is by design, so that an administrator with direct access to the storage always keeps control.
 
@@ -135,7 +141,9 @@ On the first scan after the service starts, all files are checked unconditionall
 
 ## Working with immutable backups {#working-with-immutable-backups}
 
-When setting up backup jobs in Xen Orchestra, select your configured immutable backup repository (whether it's an S3 bucket or an on-premises one). Define your retention and rotation policies as you normally would. Immutability ensures that existing backups cannot be deleted or altered before their protection period expires, while still allowing new backups to be added.
+When setting up backup jobs in Xen Orchestra, select your configured immutable backup repository. Define your retention and rotation policies as you normally would. Immutability ensures that existing backups cannot be deleted or altered before their protection period expires, while still allowing new backups to be added.
+
+Retention and immutability are two independent mechanisms, and they only coexist peacefully within a specific range of settings. The [retention calculator](../calculator.md) models both, and shows what a given combination of retention, full backup interval and immutability duration actually protects. Run it before enabling immutability on a job.
 
 ## Best practices {#best-practices}
 
@@ -145,14 +153,18 @@ When setting up backup jobs in Xen Orchestra, select your configured immutable b
 Immutability should only be enabled on backup jobs that are already running correctly and whose retention policy is fully settled. Nothing will be lost, but there will be a lot of EACCESS/EPERM errors in the backup log.
 :::
 
+The points below describe the on-prem service, where a blocked operation surfaces as a permission error. On an object-locked bucket the same conflicts exist but produce no error at all, only silent storage growth: see [S3 Object Lock](./object-lock.md).
+
 Immutability and retention are two independent mechanisms, and they can conflict if a backup job is not in a clean state:
 
 - **Jobs that run more than once per schedule** (accidental duplicates, misconfigured triggers) will accumulate extra backups that XO cannot clean up while they are protected. Those backups count against storage but cannot be removed until their immutability duration expires.
 - **Backups in an incorrect or partial state** (failed mid-run, inconsistent chain) will be locked in place for the full immutability duration. The normal cleanup scripts cannot remove them, because any attempt to delete or overwrite a protected file raises a permission error (`EPERM`). Those errors are logged, but the files stay.
 - **Retention and immutability durations must be aligned.** If the immutability duration is longer than the retention window, XO will keep trying, and failing, to delete backups it considers expired. Set `immutabilityDuration` to be at most equal to the retention period, so that files are only released after XO has already rotated them out.
-- **Do not use Long Term Retention (LTR) with immutability.** LTR may select and remove intermediate backups from within a chain, for example to keep only one backup per month. If any of those intermediate files are still immutable, the deletion fails with `EPERM`. The backup chain is left in an inconsistent state that XO cannot repair until the immutability duration expires.
+- **Do not use Long Term Retention (LTR) with immutability.** [GFS long-term retention](../backup-features-and-settings.md#long-term-backup-retention-with-gfs-strategy) selects and removes intermediate backups from within a chain, for example to keep only one backup per month. If any of those intermediate files are still immutable, the deletion fails with `EPERM`. The backup chain is left in an inconsistent state that XO cannot repair until the immutability duration expires. The [retention calculator](../calculator.md) refuses the combination for that reason.
+- **The immutability duration must cover a whole backup chain.** A restore point is only usable if its base full backup is still there. If the duration is shorter than the span of a full backup interval, the oldest backups protected at any given time are deltas whose base full has already been merged away: the files are locked, but they no longer restore anything. Either set `immutabilityDuration` to at least the time covered by one full backup interval, or set the [full backup interval](../backup-types/incremental_backups.md#key-backup-interval) to `1` so that every chain is a single restore point.
+- **Keep the immutability duration shorter than the retention window.** If the duration covers the entire retention window, the oldest restore point is never mutable when retention wants to rotate it out, so the job can never advance and backups pile up.
 - **A broken chain root blocks cleanup of the rest of the chain.** In delta backup chains, removing any backup requires starting from the root. If the chain root is in a bad state (missing, corrupted, or partially written) and the remaining files are immutable, the cleanup script cannot remove them either: it encounters `EPERM` on each attempt and leaves the orphaned files in place until they age out naturally.
-- **Disks are not protected during upload.** The immutable attribute is applied only after all disk images for a given backup run have been fully uploaded. During the upload window, those files can still be modified or deleted. Coupling immutability with XO's at-rest encryption reduces this exposure, since an encrypted file is useless even if tampered with before locking.
+- **Disks are not protected during upload.** The immutable attribute is applied only after all disk images for a given backup run have been fully written. During that window, those files can still be modified or deleted. Coupling immutability with XO's at-rest encryption reduces this exposure, since an encrypted file is useless even if tampered with before locking. Object storage does not have this window: the bucket applies its retention at upload time.
 
 In short: make sure your backup jobs are stable and producing clean results before adding immutability. Applying it to a job that already has problems will lock those problems in place.
 
@@ -180,7 +192,9 @@ The immutability enforcement mechanism **must** operate independently of Xen Orc
 
 ## Limitations {#limitations}
 
-Cloud-based solutions such as S3 Object Lock depend on your provider's implementation; not all S3-compatible systems behave identically, so always test before production use. See the [supported object storage providers](./object-storage-support.md) list and its support tiers.
+The on-prem service depends on the immutable attribute of the underlying filesystem, so the repository must sit on a local filesystem that supports it. It cannot protect a repository mounted over NFS or SMB, because the attribute is enforced by the filesystem hosting the data, not by the client writing to it.
+
+Cloud-based solutions such as S3 Object Lock depend on your provider's implementation; not all S3-compatible systems behave identically, so always test before production use. See [S3 Object Lock](./object-lock.md) for the specifics, and the [supported object storage providers](./object-storage-support.md) list for support tiers.
 
 ## Troubleshooting {#troubleshooting}
 

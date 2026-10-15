@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     v-tooltip="!canRestartToolstack && restartToolstackErrorMessage"
+    accent="neutral"
     :disabled="!canRestartToolstack"
     icon="action:reboot"
     :busy="isRestartingToolstack"
@@ -43,9 +44,7 @@ function restartToolstack() {
       icon: 'status:info-picto',
     },
     events: {
-      onConfirm: async () => {
-        void run()
-      },
+      onConfirm: () => run({ detached: true }),
     },
   })
 }

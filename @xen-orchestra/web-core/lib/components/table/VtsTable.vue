@@ -4,21 +4,24 @@
       {{ state.message }}
     </VtsStateHero>
     <div v-else class="table-container">
-      <UiTablePagination v-if="paginationBindings" v-bind="paginationBindings" class="pagination" />
+      <UiTableControlsBar v-if="controlsBarProps" v-bind="controlsBarProps" />
       <div ref="wrapper" class="wrapper">
         <table class="table" vertical-border>
           <slot />
         </table>
       </div>
-      <UiTablePagination v-if="paginationBindings" v-bind="paginationBindings" class="pagination" />
+      <UiTableControlsBar v-if="controlsBarProps" v-bind="controlsBarProps" />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
+import UiTableControlsBar, {
+  type TableControlsBarProps,
+} from '@core/components/ui/table-controls-bar/UiTableControlsBar.vue'
 import type { PaginationBindings } from '@core/composables/pagination.composable.ts'
+import type { SelectionBindings } from '@core/composables/table-selection.composable.ts'
 import type { StateHeroType, StateHeroSize } from '@core/types/state-hero.type.ts'
 import { hasEllipsis } from '@core/utils/has-ellipsis.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
@@ -33,12 +36,25 @@ export type TableState = {
   size?: StateHeroSize
 }
 
-const { state, sticky } = defineProps<{
+const { state, sticky, paginationBindings, selectionBindings } = defineProps<{
   state?: TableState
   sticky?: TableStickySide
   paginationBindings?: PaginationBindings
+  selectionBindings?: SelectionBindings
   horizontal?: boolean
 }>()
+
+const controlsBarProps = computed<TableControlsBarProps | undefined>(() => {
+  if (selectionBindings !== undefined) {
+    return { selectionBindings, paginationBindings }
+  }
+
+  if (paginationBindings !== undefined) {
+    return { paginationBindings }
+  }
+
+  return undefined
+})
 
 const wrapper = useTemplateRef('wrapper')
 
@@ -70,10 +86,6 @@ const className = computed(() =>
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-  }
-
-  .pagination {
-    margin-left: auto;
   }
 
   .wrapper {

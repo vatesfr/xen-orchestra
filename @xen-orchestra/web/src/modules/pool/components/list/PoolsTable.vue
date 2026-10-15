@@ -165,6 +165,7 @@ const { HeadCells, BodyCells } = useServerColumns({
                   busy: isDisconnectingServer.value,
                   disabled: !canDisconnectServer.value,
                   onClick: () => disconnectServer(),
+                  accent: 'danger',
                 }
               : {
                   label: t('action:connect-pool'),
@@ -185,6 +186,7 @@ const { HeadCells, BodyCells } = useServerColumns({
               icon: 'action:forget',
               busy: isForgettingServer.value,
               onClick: () => forgetServer(),
+              accent: 'danger',
             },
           ],
         }),

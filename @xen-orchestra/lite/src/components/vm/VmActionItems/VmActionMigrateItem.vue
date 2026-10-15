@@ -5,6 +5,7 @@
       !isMigratable &&
       t(isSingleAction ? 'this-vm-cant-be-migrated' : 'no-selected-vm-can-be-migrated')
     "
+    accent="neutral"
     :busy="isMigrating"
     :disabled="isDisabled"
     icon="fa:route"

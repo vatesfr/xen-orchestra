@@ -3,7 +3,6 @@ import type {
   FormFieldMetadata,
   FormRuleTree,
   FormValidationConfig,
-  FormValidationRules,
   UseFormValidationReturn,
 } from './types.ts'
 import { useRegle } from '@regle/core'
@@ -19,45 +18,6 @@ type RegleStatusAccessor = {
   $validate: () => Promise<{ valid: boolean }>
   $reset: () => void
   $touch: () => void
-}
-
-/**
- * Automatically injects `$each: {}` into the rule tree for every field whose
- * current value is an array, if that field is present in the rules but has no
- * `$each` declared yet.
- *
- * This is required because Regle needs `$each` to know a field is a collection
- * and to produce the `{ $self, $each }` error shape instead of a flat string[].
- */
-function injectCollectionMarkers<TData extends Record<string, unknown>>(
-  data: TData,
-  rules: FormValidationRules<TData>
-): FormValidationRules<TData> {
-  const arrayKeys = Object.keys(data).filter(key => Array.isArray(data[key]))
-
-  if (arrayKeys.length === 0) {
-    return rules
-  }
-
-  const inject = (ruleTree: FormRuleTree<TData>): FormRuleTree<TData> => {
-    const result = { ...ruleTree } as Record<string, unknown>
-
-    for (const key of arrayKeys) {
-      const fieldRules = result[key]
-
-      if (fieldRules !== null && typeof fieldRules === 'object' && !('$each' in fieldRules)) {
-        result[key] = { ...(fieldRules as object), $each: {} }
-      }
-    }
-
-    return result as FormRuleTree<TData>
-  }
-
-  if (typeof rules === 'function') {
-    return () => inject((rules as () => FormRuleTree<TData>)())
-  }
-
-  return inject(rules)
 }
 
 /**
@@ -81,9 +41,10 @@ function toMessage(fieldErrors: unknown): string | undefined {
     return fieldErrors[0]
   }
 
-  // Collection-field errors take the { $self: string[], $each: ... } shape ? surface the first $self message.
+  // Collection-field errors take the { $self: string[], $each: ... } shape: surface the first $self message.
   if (fieldErrors !== null && typeof fieldErrors === 'object' && '$self' in fieldErrors) {
     const $self = (fieldErrors as { $self?: unknown }).$self
+
     if (Array.isArray($self)) {
       return $self[0]
     }
@@ -113,21 +74,10 @@ export function useFormValidation<TData extends Record<string, unknown>>(
 ): UseFormValidationReturn<TData> {
   // All four useRegle calls must be unconditional — Vue composables cannot be called conditionally.
   // When a group has no rules, an empty rule tree produces an empty $fields map.
-  // injectCollectionMarkers ensures array fields always have $each declared so Regle produces
-  // the { $self, $each } error shape.
-  const { r$: blurErrors$ } = callUseRegle(data, injectCollectionMarkers(data, config.errors?.onBlur ?? EMPTY_RULES))
-  const { r$: submitErrors$ } = callUseRegle(
-    data,
-    injectCollectionMarkers(data, config.errors?.onSubmit ?? EMPTY_RULES)
-  )
-  const { r$: blurWarnings$ } = callUseRegle(
-    data,
-    injectCollectionMarkers(data, config.warnings?.onBlur ?? EMPTY_RULES)
-  )
-  const { r$: submitWarnings$ } = callUseRegle(
-    data,
-    injectCollectionMarkers(data, config.warnings?.onSubmit ?? EMPTY_RULES)
-  )
+  const { r$: blurErrors$ } = callUseRegle(data, config.errors?.onBlur ?? EMPTY_RULES)
+  const { r$: submitErrors$ } = callUseRegle(data, config.errors?.onSubmit ?? EMPTY_RULES)
+  const { r$: blurWarnings$ } = callUseRegle(data, config.warnings?.onBlur ?? EMPTY_RULES)
+  const { r$: submitWarnings$ } = callUseRegle(data, config.warnings?.onSubmit ?? EMPTY_RULES)
 
   // Cast at the Regle boundary: Regle's inferred types are too complex to thread through
   // generics here, but the runtime shape is always compatible with RegleStatusAccessor.

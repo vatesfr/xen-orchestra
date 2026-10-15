@@ -21,6 +21,4 @@ export const IK_BUTTON_GROUP_OUTLINED = Symbol('IK_BUTTON_GROUP_OUTLINED') as In
 
 export const IK_BUTTON_GROUP_TRANSPARENT = Symbol('IK_BUTTON_GROUP_TRANSPARENT') as InjectionKey<ComputedRef<boolean>>
 
-export const IK_CARD_GROUP_VERTICAL = Symbol('IK_CARD_GROUP_VERTICAL') as InjectionKey<boolean>
-
 export const IK_INPUT_ID = Symbol('IK_INPUT_ID') as InjectionKey<ComputedRef<string>>

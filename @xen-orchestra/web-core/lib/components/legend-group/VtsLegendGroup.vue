@@ -8,7 +8,7 @@
         v-for="item in items"
         :key="item.label"
         :accent="item.accent"
-        :tooltip="item.tooltip"
+        :on-info-click="item.onInfoClick"
         :unit="item.unit"
         :value="item.value"
       >

@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:delete" :disabled="!canDeleteSrs" :busy="isDeletingSrs" @click="deleteSrs()">
+  <MenuItem icon="action:delete" accent="danger" :disabled="!canDeleteSrs" :busy="isDeletingSrs" @click="deleteSrs()">
     {{ t('action:delete') }}
   </MenuItem>
 </template>
@@ -18,9 +18,3 @@ const { t } = useI18n()
 
 const { deleteSrs, canDeleteSrs, isDeletingSrs } = useSrDelete(() => [sr])
 </script>
-
-<style lang="postcss" scoped>
-.delete {
-  color: var(--color-danger-item-base);
-}
-</style>

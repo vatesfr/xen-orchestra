@@ -7,7 +7,7 @@ The `useCollection` composable helps you manage a collection of items with flags
 ```typescript
 const { items, useSubset, useFlag } = useCollection(sources, {
   itemId: source => source.theId, // Required only if TSource doesn't have an `id` property
-  flags: ['selected', 'active', { highlighted: { multiple: false } }],
+  flags: { selected: true, active: true, highlighted: { multiple: false } },
   properties: source => ({
     isAvailable: source.status === 'available',
     fullName: `${source.firstName} ${source.lastName}`,
@@ -33,7 +33,7 @@ const { items, useSubset, useFlag } = useCollection(sources, {
 | Name         | Type                                           | Required | Description                                                                                     |
 | ------------ | ---------------------------------------------- | :------: | ----------------------------------------------------------------------------------------------- |
 | `itemId`     | `keyof TSource \| ((source: TSource) => TId)`  |    ~     | Function to retrieve the item ID or property of TSource (if not provided, `TSource.id` is used) |
-| `flags`      | `FlagsConfig<TFlag>`                           |          | Flags that can be applied to items in the collection                                            |
+| `flags`      | `CollectionConfigFlags<TFlag>`                 |          | Flags that can be applied to items in the collection                                            |
 | `properties` | `(source: TSource) => Record<string, unknown>` |          | Function that returns additional properties for each item (see below)                           |
 
 ### Item ID
@@ -42,11 +42,15 @@ The item ID will be retrieved automatically from `TSource.id`
 
 If `TSource` doesn't provide an `id`, then `options.itemId` will be required.
 
-### `FlagsConfig` type
+### `CollectionConfigFlags` type
 
 ```typescript
-type FlagsConfig = string[] | Record<string, { multiple?: MaybeRef<boolean> }>
+type FlagConfig = { multiple?: MaybeRef<boolean> }
+
+type CollectionConfigFlags<TFlag extends string> = Record<TFlag, true | FlagConfig>
 ```
+
+A flag that needs no configuration is declared with `true`.
 
 Values for `multiple`:
 
@@ -55,12 +59,16 @@ Values for `multiple`:
 
 ## Return Value
 
-| Name        | Type                                        | Description                                         |
-| ----------- | ------------------------------------------- | --------------------------------------------------- |
-| `items`     | `ComputedRef<CollectionItem[]>`             | Array of collection items with flags and properties |
-| `useSubset` | `(filter: (item) => boolean) => Collection` | Creates a sub collection matching the filter        |
-| `useFlag`   | `(flag: TFlag) => UseFlagReturn`            | Utilities for working with a specific flag          |
-| `count`     | `ComputedRef<number>`                       | Number of items in the collection                   |
+| Name         | Type                                        | Description                                                               |
+| ------------ | ------------------------------------------- | ------------------------------------------------------------------------- |
+| `items`      | `ComputedRef<CollectionItem[]>`             | Array of collection items with flags and properties                       |
+| `useSubset`  | `(filter: (item) => boolean) => Collection` | Creates a sub collection matching the filter                              |
+| `useFlag`    | `(flag: TFlag) => UseFlagReturn`            | Utilities for working with a specific flag                                |
+| `toggleFlag` | `(id, flag, shouldBeFlagged?) => void`      | Toggle a flag on a specific item                                          |
+| `count`      | `ComputedRef<number>`                       | Number of items in the collection                                         |
+| `clearFlag`  | `(flag: TFlag) => void`                     | Unset the flag on every item, including those no longer in the collection |
+
+`clearFlag` is only available on the collection returned by `useCollection`, never on a subset, since it unsets the flag on every item the collection ever knew about. Use `useFlag(flag).toggleAll(false)` to only unset the items of the current collection or subset.
 
 ### `CollectionItem` object
 
@@ -74,17 +82,18 @@ Values for `multiple`:
 
 ### UseFlagReturn object
 
-| Name        | Type                                        | Description                                            |
-| ----------- | ------------------------------------------- | ------------------------------------------------------ |
-| `items`     | `ComputedRef<CollectionItem[]>`             | Array of items that have this flag set                 |
-| `ids`       | `ComputedRef<TId[]>`                        | Array of IDs of items that have this flag set          |
-| `count`     | `ComputedRef<number>`                       | Number of items that have this flag set                |
-| `areAllOn`  | `ComputedRef<boolean>`                      | Whether all items in the collection have this flag set |
-| `areSomeOn` | `ComputedRef<boolean>`                      | Whether at least one item has this flag set            |
-| `areNoneOn` | `ComputedRef<boolean>`                      | Whether no items have this flag set                    |
-| `toggle`    | `(id, shouldBeFlagged?) => void`            | Toggle this flag on a specific item                    |
-| `toggleAll` | `(shouldBeFlagged?) => void`                | Toggle this flag on all items in the collection        |
-| `useSubset` | `(filter: (item) => boolean) => Collection` | Creates a sub collection matching the filter           |
+| Name        | Type                                        | Description                                                                                 |
+| ----------- | ------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `items`     | `ComputedRef<CollectionItem[]>`             | Array of items that have this flag set                                                      |
+| `ids`       | `ComputedRef<TId[]>`                        | Array of IDs of items that have this flag set                                               |
+| `count`     | `ComputedRef<number>`                       | Number of items that have this flag set                                                     |
+| `areAllOn`  | `ComputedRef<boolean>`                      | Whether all items in the collection have this flag set (`false` if the collection is empty) |
+| `areSomeOn` | `ComputedRef<boolean>`                      | Whether at least one item has this flag set                                                 |
+| `areNoneOn` | `ComputedRef<boolean>`                      | Whether no items have this flag set                                                         |
+| `isOn`      | `(id) => boolean`                           | Whether the given item has this flag set                                                    |
+| `toggle`    | `(id, shouldBeFlagged?) => void`            | Toggle this flag on a specific item                                                         |
+| `toggleAll` | `(shouldBeFlagged?) => void`                | Toggle this flag on all items in the collection                                             |
+| `useSubset` | `(filter: (item) => boolean) => Collection` | Creates a sub collection matching the filter                                                |
 
 ## Flag Operations
 
@@ -135,6 +144,14 @@ You can check if an item has a flag:
 const isSelected = item.flags.selected
 ```
 
+When you only have the item ID, use the `isOn` utility provided by `useFlag`:
+
+```typescript
+const { isOn: isSelected } = useFlag('selected')
+
+const isSelectedItem = isSelected(itemId)
+```
+
 ## Example
 
 ```typescript
@@ -143,7 +160,7 @@ const {
   useSubset,
   count,
 } = useCollection(rawUsers, {
-  flags: ['selected'],
+  flags: { selected: true },
   properties: user => ({
     fullName: `${user.firstName} ${user.lastName} (${user.group})`,
   }),

@@ -1,7 +1,8 @@
 <template>
   <UiPanelCard class="vm-info-card">
-    <VtsCardObjectTitle
+    <UiPanelCardTitle
       :id="vm.id"
+      size="medium"
       :label="vm.name_label"
       :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
       :icon="`object:vm:${toLower(vm.power_state)}`"
@@ -51,15 +52,7 @@
         <template #key>{{ t('host') }}</template>
         <template #value>
           <div v-if="host" class="value">
-            <UiLink
-              :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-              size="small"
-              :icon="`object:host:${hostPowerState}`"
-              :is-primary="isMaster"
-              :primary-tooltip="t('master')"
-            >
-              {{ host.name_label }}
-            </UiLink>
+            <HostLink :host="host" size="small" />
           </div>
         </template>
         <template v-if="host" #addons>
@@ -128,7 +121,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
@@ -137,15 +130,14 @@ import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources
 import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
-import { HOST_POWER_STATE } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -160,7 +152,6 @@ const { buildXo5Route } = useXoRoutes()
 
 const { useGetPoolById } = useXoPoolCollection()
 const { getVmHost } = useXoVmCollection()
-const { isMasterHost } = useXoHostCollection()
 
 const { user } = useXoUserResource({}, () => vm.creation?.user)
 
@@ -181,12 +172,6 @@ const xo5VmTemplateHref = computed(() =>
 const pool = useGetPoolById(() => vm.$pool)
 
 const host = computed(() => getVmHost(vm))
-
-const isMaster = computed(() => (host.value !== undefined ? isMasterHost(host.value.id) : false))
-
-const hostPowerState = computed(() =>
-  host.value ? toLower(host.value.power_state) : toLower(HOST_POWER_STATE.UNKNOWN)
-)
 
 const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useXoVmUtils(() => vm)
 </script>
