@@ -3,12 +3,12 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import type { VdiExportFormat } from '@/shared/constants.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { SUPPORTED_VDI_FORMAT } from '@vates/types'
+import { SUPPORTED_VDI_EXPORT_FORMAT } from '@vates/types'
 import { type MaybeRefOrGetter, ref } from 'vue'
 
 export function useVdiExport(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
   const vdi = toComputed(rawVdi)
-  const selectedFormat = ref<VdiExportFormat>(SUPPORTED_VDI_FORMAT.vhd)
+  const selectedFormat = ref<VdiExportFormat>(SUPPORTED_VDI_EXPORT_FORMAT.vhd)
 
   const { run, isRunning: isExportingVdi } = useXoVdiExportJob(vdi, selectedFormat)
 
