@@ -252,8 +252,9 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    * Returns the list of partitions of a disk in a backup archive.
    * Returns an empty array for disks without a partition table (use the files endpoints directly).
    *
-   * Required privilege:
+   * Required privileges:
    * - resource: backup-archive, action: mount
+   * - resource: backup-archive, action: read
    *
    * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
    * @example diskId "/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/vdis/8b650248-ddd6-4188-ad8b-c0502865ac6c/f1f3c902-dcaa-4ec6-943e-6162c9d85fb2/20250801T080832Z.vhd"
@@ -261,12 +262,20 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/disks/{diskId}/partitions')
   @Middlewares(
-    acl({
-      resource: 'backup-archive',
-      action: 'mount',
-      objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-    })
+    acl([
+      {
+        resource: 'backup-archive',
+        action: 'mount',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+      {
+        resource: 'backup-archive',
+        action: 'read',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+    ])
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -282,13 +291,14 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   /**
    * Downloads the selected files from a partition of a backup archive disk as a tgz or zip archive.
    *
-   * Required privilege:
+   * Required privileges:
    * - resource: backup-archive, action: mount
+   * - resource: backup-archive, action: read
+   * - resource: backup-archive, action: export
    *
    * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
    * @example diskId "/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/vdis/8b650248-ddd6-4188-ad8b-c0502865ac6c/f1f3c902-dcaa-4ec6-943e-6162c9d85fb2/20250801T080832Z.vhd"
    * @example partitionId "6c2d1b4a-0f3e-4c8d-9a1b-2e5f7c9d0a3b"
-   * @example format "tgz"
    * @example paths ["/etc/passwd", "/etc/hosts"]
    */
   @Extension('x-mcp-exposure', 'deny')
@@ -304,6 +314,12 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       {
         resource: 'backup-archive',
         action: 'read',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+      {
+        resource: 'backup-archive',
+        action: 'export',
         objectId: 'params.id',
         getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
       },
@@ -337,8 +353,9 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   /**
    * Returns the list of files at the given path inside a partition of a backup archive disk.
    *
-   * Required privilege:
+   * Required privileges:
    * - resource: backup-archive, action: mount
+   * - resource: backup-archive, action: read
    *
    * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
    * @example diskId "/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/vdis/8b650248-ddd6-4188-ad8b-c0502865ac6c/f1f3c902-dcaa-4ec6-943e-6162c9d85fb2/20250801T080832Z.vhd"
@@ -387,24 +404,19 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   /**
    * Downloads the selected files from a bare disk (no partition table) of a backup archive as a tgz or zip archive.
    *
-   * Required privilege:
+   * Required privileges:
    * - resource: backup-archive, action: mount
+   * - resource: backup-archive, action: read
+   * - resource: backup-archive, action: export
    *
    * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
    * @example diskId "/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/vdis/8b650248-ddd6-4188-ad8b-c0502865ac6c/f1f3c902-dcaa-4ec6-943e-6162c9d85fb2/20250801T080832Z.vhd"
-   * @example format "tgz"
    * @example paths ["/etc/passwd"]
    */
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/disks/{diskId}/files.{format}')
   @Middlewares(
     acl([
-      {
-        resource: 'backup-archive',
-        action: 'export',
-        objectId: 'params.id',
-        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-      },
       {
         resource: 'backup-archive',
         action: 'mount',
@@ -414,6 +426,12 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       {
         resource: 'backup-archive',
         action: 'read',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+      {
+        resource: 'backup-archive',
+        action: 'export',
         objectId: 'params.id',
         getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
       },
@@ -445,8 +463,9 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   /**
    * Returns the list of files at the given path on a bare disk (no partition table) of a backup archive.
    *
-   * Required privilege:
+   * Required privileges:
    * - resource: backup-archive, action: mount
+   * - resource: backup-archive, action: read
    *
    * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
    * @example diskId "/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/vdis/8b650248-ddd6-4188-ad8b-c0502865ac6c/f1f3c902-dcaa-4ec6-943e-6162c9d85fb2/20250801T080832Z.vhd"
@@ -455,12 +474,20 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/disks/{diskId}/files')
   @Middlewares(
-    acl({
-      resource: 'backup-archive',
-      action: 'mount',
-      objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-    })
+    acl([
+      {
+        resource: 'backup-archive',
+        action: 'mount',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+      {
+        resource: 'backup-archive',
+        action: 'read',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+    ])
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
