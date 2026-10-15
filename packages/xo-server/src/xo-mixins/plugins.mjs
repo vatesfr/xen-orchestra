@@ -24,9 +24,20 @@ export default class {
       strictRequired: false,
       useDefaults: true,
     }).addVocabulary(['$multiline', '$type', 'enumNames'])
+    this._app = app
     this._plugins = { __proto__: null }
 
     app.hooks.on('core started', () => {
+      // plugins live in memory, not in a database: their changes are signaled with `touchXoObject`
+      app.hooks.emit('registerCollection', {
+        collection: {
+          get: () => this.getPlugins(),
+          first: id => this.getOptionalPlugin(id),
+          on: noop,
+        },
+        type: 'plugin',
+      })
+
       this._pluginsMetadata = new PluginsMetadata({
         connection: app._redis,
         namespace: 'plugin-metadata',
@@ -55,6 +66,10 @@ export default class {
       throw noSuchObject(id, 'plugin')
     }
     return plugin
+  }
+
+  _touchPlugin(id) {
+    return this._app.touchXoObject('plugin', id)
   }
 
   _getPluginMetadata(id) {
@@ -100,21 +115,26 @@ export default class {
       })
     }
 
-    if (!plugin.configured) {
-      const tryEmptyConfig = configuration === undefined
-      try {
-        await this._configurePlugin(plugin, tryEmptyConfig ? {} : configuration)
-      } catch (error) {
-        // dont throw any error in case the empty config did not work
-        if (tryEmptyConfig) {
-          return
+    try {
+      if (!plugin.configured) {
+        const tryEmptyConfig = configuration === undefined
+        try {
+          await this._configurePlugin(plugin, tryEmptyConfig ? {} : configuration)
+        } catch (error) {
+          // dont throw any error in case the empty config did not work
+          if (tryEmptyConfig) {
+            return
+          }
+          throw error
         }
-        throw error
       }
-    }
 
-    if (autoload) {
-      await this.loadPlugin(id)
+      if (autoload) {
+        await this.loadPlugin(id)
+      }
+    } finally {
+      // the plugin is registered even if it could not be configured or loaded
+      await this._touchPlugin(id)
     }
   }
 
@@ -208,18 +228,21 @@ export default class {
 
     // Saves the configuration.
     await this._pluginsMetadata.merge(id, { configuration })
+    await this._touchPlugin(id)
   }
 
   async disablePluginAutoload(id) {
     // TODO: handle case where autoload is already disabled.
 
     await this._pluginsMetadata.merge(id, { autoload: false })
+    await this._touchPlugin(id)
   }
 
   async enablePluginAutoload(id) {
     // TODO: handle case where autoload is already enabled.
 
     await this._pluginsMetadata.merge(id, { autoload: true })
+    await this._touchPlugin(id)
   }
 
   async loadPlugin(id) {
@@ -243,6 +266,7 @@ export default class {
     } finally {
       plugin.loading = false
     }
+    await this._touchPlugin(id)
   }
 
   async unloadPlugin(id) {
@@ -257,6 +281,7 @@ export default class {
 
     await plugin.instance.unload()
     plugin.loaded = false
+    await this._touchPlugin(id)
   }
 
   async purgePluginConfiguration(id) {
@@ -274,6 +299,8 @@ export default class {
         log.info('plugin not configured after its configuration was deleted', { error, plugin: id })
       }
     }
+
+    await this._touchPlugin(id)
   }
 
   async testPlugin(id, data) {

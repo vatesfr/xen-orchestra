@@ -159,7 +159,6 @@ export class PluginController extends XoController<XoPlugin> {
   async deletePluginConfiguration(@Path() id: string): Promise<void> {
     const pluginId = id as XoPlugin['id']
 
-    // `purgePluginConfiguration` does not fail on unknown plugins
     await this.getObject(pluginId)
     await this.restApi.xoApp.purgePluginConfiguration(pluginId)
   }
