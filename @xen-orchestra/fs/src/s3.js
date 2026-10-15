@@ -384,7 +384,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
       // a HEAD response has no body, so a missing object is reported as
       // NotFound instead of the NoSuchKey the other methods get
       if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
-        const enoentError = new Error(`ENOENT: no such file '${file}'`, { cause: e })
+        const enoentError = new Error(`ENOENT: no such file '${file}'`, { cause: error })
         enoentError.code = 'ENOENT'
         enoentError.path = file
         throw enoentError
