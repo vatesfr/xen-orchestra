@@ -1,7 +1,7 @@
 <template>
   <UiDrawer class="edit-backup-repository-drawer" @confirm="handleConfirm()" @dismiss="emit('cancel')">
     <template #title>
-      {{ t('edit-br') }}
+      {{ t('action:edit-br') }}
     </template>
 
     <template #content>

@@ -29,21 +29,14 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupRepositoryStorageModeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-storage-mode-label.composable.ts'
-import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import { useXoBackupRepositoryUtils } from '@/modules/backup-repository/composables/use-xo-backup-repository-utils.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import {
-  getBackupRepositoryStatus,
-  isBackupRepositoryEncrypted,
-} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
-import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ParsedBackupRepositoryUrl } from 'xo-remote-parser'
 
@@ -54,15 +47,8 @@ const { br, parsedBrUrl } = defineProps<{
 
 const { t } = useI18n()
 
-const { useGetProxyById } = useXoProxyCollection()
-
-const brStatus = computed(() => getBackupRepositoryStatus(br))
-
-const brType = useXoBackupRepositoryTypeLabel(() => parsedBrUrl?.type)
-
-const brStorageMode = useXoBackupRepositoryStorageModeLabel(() => parsedBrUrl)
-
-const brProxy = useGetProxyById(() => br.proxy)
-
-const isEncrypted = computed(() => isBackupRepositoryEncrypted(parsedBrUrl))
+const { brStatus, brType, brStorageMode, brProxy, isEncrypted } = useXoBackupRepositoryUtils(
+  () => br,
+  () => parsedBrUrl
+)
 </script>

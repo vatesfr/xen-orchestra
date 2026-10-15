@@ -72,7 +72,7 @@ import BackupRepositoryNfsReview from '@/modules/backup-repository/components/fo
 import BackupRepositoryS3Review from '@/modules/backup-repository/components/form/review/BackupRepositoryS3Review.vue'
 import BackupRepositorySmbReview from '@/modules/backup-repository/components/form/review/BackupRepositorySmbReview.vue'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
-import type { BackupRepositoryDetailsForms } from '@/modules/backup-repository/form/use-backup-repository-form-base.js'
+import type { BackupRepositoryDetailsForms } from '@/modules/backup-repository/form/use-backup-repository-form-base.ts'
 import type { BackupRepositoryGeneralForm } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
