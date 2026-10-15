@@ -12,24 +12,28 @@ operator to download by hand.
 
 The client side of the protocol is written from public sources only: the
 vSphere API reference, Broadcom knowledge base articles, and
-measurements taken on ESXi 7 and 8 hosts. No proprietary binary or
+measurements taken on ESXi 6.0, 7 and 8 hosts. No proprietary binary or
 header is opened, and no third-party reimplementation is read. It is
 slower to write; it is the only way the result can be shipped.
 
-## Why ESXi 7 and 8, and nothing else
+## Which hosts
 
 - **vCenter as a relay.** The disk's files live on the ESXi host that
   holds the virtual machine. A vCenter answers the management calls and
   hands out a ticket that names that host; Vectura then opens the data
   port on the named host, not on the vCenter. The management plane is the
   same either way, so a vCenter needs no second kind of session.
-- **No ESXi 6.x.** Those hosts do not announce `SHA256 supported`, so the
-  data port could not be confirmed by anything better than SHA-1, and
-  their default TLS configuration is what a 2026 client should not
-  negotiate. Both lines of ESXi 6 are past their end of general support.
+- **ESXi 6.x, at a cost.** Both lines of ESXi 6 are past their end of
+  general support, and their disks still have to be read to leave them.
+  Those hosts do not announce `SHA256 supported`, so their data port is
+  verified by the ticket's SHA-1 and by both TLS sessions presenting the
+  same certificate, not by a SHA-256 confirmed in band. They also take
+  one read at a time and do not compress. Serving them costs that and
+  nothing else: there is no flag for it, the management port is verified
+  as on any host, and a 7.x or 8.x host is never read the 6.x way.
 - **Capabilities, not versions.** What a host can do is read from the
-  greeting line on port 902, not from a version string. A host that
-  announces the needed capabilities is served; one that does not is
+  greeting line on port 902, not from a version string. `SHA256 supported`
+  selects the dialect; a host that lacks what the transport needs is
   refused with the list of what it announced.
 
 ## Why standard input and output
@@ -68,8 +72,8 @@ thirty minutes, makes the ordinary run not need one.
 ## Why rustls, synchronous I/O and two threads
 
 - **rustls with aws-lc-rs, no OpenSSL.** One TLS stack, in the binary,
-  with no system library to match at run time and no shell out. ESXi 7
-  and 8 hosts negotiate TLS 1.2 with ECDHE and AES-GCM on both ports,
+  with no system library to match at run time and no shell out. ESXi 6.0,
+  7 and 8 hosts negotiate TLS 1.2 with ECDHE and AES-GCM on both ports,
   which rustls speaks.
 - **Synchronous `std` I/O, no async runtime.** A run is two sockets and
   two pipes. Two threads joined by a bounded channel cover that with
@@ -80,7 +84,8 @@ thirty minutes, makes the ordinary run not need one.
   read of at most 1 MiB, so throughput on a long link is a matter of
   keeping enough of them in flight. A window of 16, adjustable up to 32,
   does that on one connection and keeps the host's per-host budget
-  shared fairly between processes.
+  shared fairly between processes. An ESXi 6.x host loses reads sent
+  ahead of a reply, so there the window is 1.
 
 ## Why `skipz` by default
 

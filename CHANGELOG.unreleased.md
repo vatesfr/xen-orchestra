@@ -45,6 +45,7 @@
 
 - [XO5/Host/Patches] Warn when installing patches on a host while its pool master is not up to date (PR [#10523](https://github.com/vatesfr/xen-orchestra/pull/10523))
 - [XO6] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
+- [V2V] Import VMs from ESXi 6.x hosts: their disks are read one request at a time, so more slowly than from ESXi 7 and 8 (PR [#10590](https://github.com/vatesfr/xen-orchestra/pull/10590))
 
 ### Bug fixes
 
@@ -98,7 +99,7 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
