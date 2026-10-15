@@ -98,7 +98,7 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
