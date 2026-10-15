@@ -161,7 +161,7 @@ export type PoolRollingUpdateRecoveryRun = {
   variant?: 'xcp' | 'xs-cdn'
   /** 1 for the first attempt, incremented by each resume of the run */
   attempt?: number
-  /** whether a resume would be accepted: run failed or interrupted, and no host stopped after its evacuation */
+  /** whether a resume would be accepted: run failed or interrupted */
   resumable?: boolean
   hostOrder?: string[]
   hosts: Record<string, PoolRollingUpdateRecoveryHost>
