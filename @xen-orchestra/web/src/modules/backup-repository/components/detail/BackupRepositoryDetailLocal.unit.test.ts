@@ -1,4 +1,4 @@
-import BackupRepositoryLocalDetails from '@/modules/backup-repository/components/detail/BackupRepositoryLocalDetails.vue'
+import BackupRepositoryDetailLocal from '@/modules/backup-repository/components/detail/BackupRepositoryDetailLocal.vue'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -10,7 +10,7 @@ function createFileUrl(overrides: Partial<ParsedFileBackupRepositoryUrl> = {}): 
 }
 
 function mountCard(file = createFileUrl()) {
-  return mount(BackupRepositoryLocalDetails, {
+  return mount(BackupRepositoryDetailLocal, {
     props: { file },
     global: createGlobalTestConfig(),
   })

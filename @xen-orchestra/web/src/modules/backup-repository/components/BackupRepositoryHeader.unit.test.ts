@@ -1,5 +1,8 @@
 import BackupRepositoryHeader from '@/modules/backup-repository/components/BackupRepositoryHeader.vue'
-import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import type {
+  FrontXoBackupRepository,
+  useXoBackupRepositoryCollection,
+} from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -7,6 +10,12 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { objectIcon } from '@core/icons'
 import { mount } from '@vue/test-utils'
+
+vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
+  useXoBackupRepositoryCollection: (() => ({
+    $context: { forceReload: vi.fn() },
+  })) as unknown as typeof useXoBackupRepositoryCollection,
+}))
 
 function mountHeader(br: FrontXoBackupRepository = createBr()) {
   return mount(BackupRepositoryHeader, {
@@ -44,6 +53,12 @@ it('links the breadcrumb back to the list of backup repositories', () => {
   expect(wrapper.get('.ui-breadcrumb a.ui-link').attributes('href')).toBe(
     '/admin/backup-and-replication/backup-repositories'
   )
+})
+
+it('offers to edit the repository', () => {
+  const wrapper = mountHeader()
+
+  expect(wrapper.get('.ui-head-bar .actions').text()).toContain(t('action:edit'))
 })
 
 it('shows a connected icon for an enabled repository without error', () => {

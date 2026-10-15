@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import { useEditBackupRepository } from '@/modules/backup-repository/composables/use-edit-backup-repository.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
@@ -86,6 +87,13 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
     const typeLabel = useXoBackupRepositoryTypeLabel(() => parsedBrUrl.value?.type)
     const proxy = useGetProxyById(() => br.proxy)
 
+    const {
+      editBackupRepository,
+      canEditBackupRepository,
+      isEditingBackupRepository,
+      editBackupRepositoryErrorMessage,
+    } = useEditBackupRepository(() => br)
+
     return {
       backupRepository: r =>
         r({
@@ -100,7 +108,20 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
 
         return proxyName ? r(proxyName, { leftIcon: { icon: 'object:proxy' } }) : r('')
       },
-      selectItem: r => r(() => (selectedBrId.value = br.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedBrId.value = br.id),
+          actions: [
+            {
+              label: t('action:edit'),
+              icon: 'action:edit',
+              onClick: () => editBackupRepository(),
+              busy: isEditingBackupRepository.value,
+              disabled: !canEditBackupRepository.value,
+              hint: editBackupRepositoryErrorMessage.value,
+            },
+          ],
+        }),
     }
   },
 })

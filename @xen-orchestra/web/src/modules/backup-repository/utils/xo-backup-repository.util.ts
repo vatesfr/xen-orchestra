@@ -1,7 +1,7 @@
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { IconName } from '@core/icons'
-import type { BackupRepositoryType, ParsedSmbBackupRepositoryUrl } from 'xo-remote-parser'
+import type { BackupRepositoryType, ParsedBackupRepositoryUrl } from 'xo-remote-parser'
 
 export const MASKED_SECRET = '•'.repeat(12)
 
@@ -37,6 +37,10 @@ export function formatMountOptions(options: string | undefined): string {
     .join(', ')
 }
 
+export function formatSmbPathOnShare(host: string, path: string): string {
+  return `\\\\${host}${path !== '' ? `\\${path}` : ''}`
+}
+
 export function splitBackupRepositoryPath(path: string): { root: string; subPath: string } {
   const parts = path.replace(/^\/+/, '').split('/')
 
@@ -46,6 +50,6 @@ export function splitBackupRepositoryPath(path: string): { root: string; subPath
   }
 }
 
-export function getSmbPathOnShare({ host, path }: Pick<ParsedSmbBackupRepositoryUrl, 'host' | 'path'>): string {
-  return `\\\\${host}${path !== '' ? `\\${path}` : ''}`
+export function isBackupRepositoryEncrypted(parsedUrl: ParsedBackupRepositoryUrl | undefined): boolean {
+  return parsedUrl?.encryptionKey !== undefined
 }

@@ -12,17 +12,25 @@ const INITIAL_FORM_DATA = {
   path: '',
 }
 
-export function useLocalBackupRepositoryDetailsForm(rawProxy: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>) {
+export type LocalBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
+
+export function useLocalBackupRepositoryDetailsForm(
+  rawProxy: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>,
+  initialData?: Partial<LocalBackupRepositoryDetailsFormData>
+) {
   const proxy = toComputed(rawProxy)
   const { t } = useI18n()
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(INITIAL_FORM_DATA, {
-    errors: {
-      onSubmit: () => ({
-        path: { required },
-      }),
-    },
-  })
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+    { ...INITIAL_FORM_DATA, ...initialData },
+    {
+      errors: {
+        onSubmit: () => ({
+          path: { required },
+        }),
+      },
+    }
+  )
 
   const bindings = reactive({
     path: useField('path', () => ({

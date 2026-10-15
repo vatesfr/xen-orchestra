@@ -1,30 +1,30 @@
 <template>
   <VtsColumns extra-space-around>
     <VtsColumn>
-      <BackupRepositoryGeneralInfo :br :parsed-br-url />
-      <BackupRepositoryLocalDetails v-if="parsedBrUrl?.type === 'file'" :file="parsedBrUrl" />
-      <BackupRepositoryNfsDetails v-else-if="parsedBrUrl?.type === 'nfs'" :nfs="parsedBrUrl" :options="br.options" />
-      <BackupRepositorySmbDetails v-else-if="parsedBrUrl?.type === 'smb'" :smb="parsedBrUrl" :options="br.options" />
-      <BackupRepositoryS3Details v-else-if="parsedBrUrl?.type === 's3'" :s3="parsedBrUrl" />
-      <BackupRepositoryAzureAzuriteDetails
+      <BackupRepositoryDetailGeneralInfo :br :parsed-br-url />
+      <BackupRepositoryDetailLocal v-if="parsedBrUrl?.type === 'file'" :file="parsedBrUrl" />
+      <BackupRepositoryDetailNfs v-else-if="parsedBrUrl?.type === 'nfs'" :nfs="parsedBrUrl" :options="br.options" />
+      <BackupRepositoryDetailSmb v-else-if="parsedBrUrl?.type === 'smb'" :smb="parsedBrUrl" :options="br.options" />
+      <BackupRepositoryDetailS3 v-else-if="parsedBrUrl?.type === 's3'" :s3="parsedBrUrl" />
+      <BackupRepositoryDetailAzureAzurite
         v-else-if="parsedBrUrl?.type === 'azure' || parsedBrUrl?.type === 'azurite'"
         :azure="parsedBrUrl"
       />
     </VtsColumn>
     <VtsColumn>
-      <BackupRepositorySpeed :br />
+      <BackupRepositoryDetailSpeed :br />
     </VtsColumn>
   </VtsColumns>
 </template>
 
 <script setup lang="ts">
-import BackupRepositoryAzureAzuriteDetails from '@/modules/backup-repository/components/detail/BackupRepositoryAzureAzuriteDetails.vue'
-import BackupRepositoryGeneralInfo from '@/modules/backup-repository/components/detail/BackupRepositoryGeneralInfo.vue'
-import BackupRepositoryLocalDetails from '@/modules/backup-repository/components/detail/BackupRepositoryLocalDetails.vue'
-import BackupRepositoryNfsDetails from '@/modules/backup-repository/components/detail/BackupRepositoryNfsDetails.vue'
-import BackupRepositoryS3Details from '@/modules/backup-repository/components/detail/BackupRepositoryS3Details.vue'
-import BackupRepositorySmbDetails from '@/modules/backup-repository/components/detail/BackupRepositorySmbDetails.vue'
-import BackupRepositorySpeed from '@/modules/backup-repository/components/detail/BackupRepositorySpeed.vue'
+import BackupRepositoryDetailAzureAzurite from '@/modules/backup-repository/components/detail/BackupRepositoryDetailAzureAzurite.vue'
+import BackupRepositoryDetailGeneralInfo from '@/modules/backup-repository/components/detail/BackupRepositoryDetailGeneralInfo.vue'
+import BackupRepositoryDetailLocal from '@/modules/backup-repository/components/detail/BackupRepositoryDetailLocal.vue'
+import BackupRepositoryDetailNfs from '@/modules/backup-repository/components/detail/BackupRepositoryDetailNfs.vue'
+import BackupRepositoryDetailS3 from '@/modules/backup-repository/components/detail/BackupRepositoryDetailS3.vue'
+import BackupRepositoryDetailSmb from '@/modules/backup-repository/components/detail/BackupRepositoryDetailSmb.vue'
+import BackupRepositoryDetailSpeed from '@/modules/backup-repository/components/detail/BackupRepositoryDetailSpeed.vue'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'

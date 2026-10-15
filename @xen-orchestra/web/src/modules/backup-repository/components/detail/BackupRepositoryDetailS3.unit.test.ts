@@ -1,4 +1,4 @@
-import BackupRepositoryS3Details from '@/modules/backup-repository/components/detail/BackupRepositoryS3Details.vue'
+import BackupRepositoryDetailS3 from '@/modules/backup-repository/components/detail/BackupRepositoryDetailS3.vue'
 import { MASKED_SECRET } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -20,7 +20,7 @@ function createS3Url(overrides: Partial<ParsedS3BackupRepositoryUrl> = {}): Pars
 }
 
 function mountCard(s3 = createS3Url()) {
-  return mount(BackupRepositoryS3Details, {
+  return mount(BackupRepositoryDetailS3, {
     props: { s3 },
     global: createGlobalTestConfig(),
   })
