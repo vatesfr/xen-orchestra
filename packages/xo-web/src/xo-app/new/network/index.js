@@ -254,8 +254,8 @@ const NewNetwork = decorate([
               description,
               mtu,
               name,
-              // the API takes null for no NBD, which the select can't use as an option value
-              nbd: nbd === 'none' ? null : nbd,
+              nbd: nbd === 'nbd',
+              insecureNbd: nbd === 'insecure_nbd',
               pif: pif == null ? undefined : pif.id,
               pool: pool.id,
               vlan,

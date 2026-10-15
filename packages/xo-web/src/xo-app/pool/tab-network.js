@@ -119,8 +119,7 @@ class Nbd extends Component {
         return
       }
     }
-    // the API takes null for no NBD, which the select can't use as an option value
-    await editNetwork(network, { nbd: value === 'none' ? null : value })
+    await editNetwork(network, { nbd: value === 'nbd', insecureNbd: value === 'insecure_nbd' })
   }
 
   render() {

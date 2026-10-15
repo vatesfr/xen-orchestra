@@ -1,15 +1,16 @@
+import { invalidParameters } from 'xo-common/api-errors.js'
+
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 
 const RFC_MINIMUM_MTU = 68 // see RFC 791
-
-// 'nbd': NBD over TLS, 'insecure_nbd': NBD in clear, null: no NBD
-const NBD_PARAM = { enum: [null, 'nbd', 'insecure_nbd'], optional: true }
 
 export function getBondModes() {
   return ['balance-slb', 'active-backup', 'lacp']
 }
 
-export async function create({ pool, name, description, pif, mtu = 1500, vlan = 0, nbd }) {
+export async function create({ pool, name, description, pif, mtu = 1500, vlan = 0, nbd, insecureNbd }) {
+  assertNbdParams({ nbd, insecureNbd })
+
   const network = await this.getXapi(pool).createNetwork({
     name,
     description,
@@ -18,8 +19,10 @@ export async function create({ pool, name, description, pif, mtu = 1500, vlan = 
     vlan,
   })
 
-  if (nbd != null) {
-    await network.add_purpose(nbd)
+  if (nbd) {
+    await network.add_purpose('nbd')
+  } else if (insecureNbd) {
+    await network.add_purpose('insecure_nbd')
   }
 
   return xapiObjectToXo(network).id
@@ -28,7 +31,8 @@ export async function create({ pool, name, description, pif, mtu = 1500, vlan = 
 create.params = {
   pool: { type: 'string' },
   name: { type: 'string' },
-  nbd: NBD_PARAM,
+  nbd: { type: 'boolean', optional: true },
+  insecureNbd: { type: 'boolean', optional: true, description: 'NBD in clear, only on a network dedicated to backups' },
   description: { type: 'string', minLength: 0, optional: true },
   pif: { type: 'string', optional: true },
   mtu: { type: 'integer', optional: true, minimum: RFC_MINIMUM_MTU },
@@ -81,7 +85,10 @@ export async function set({
   name_description: nameDescription,
   name_label: nameLabel,
   nbd,
+  insecureNbd,
 }) {
+  assertNbdParams({ nbd, insecureNbd })
+
   network = this.getXapiObject(network)
 
   await Promise.all([
@@ -90,19 +97,43 @@ export async function set({
     mtu !== undefined && network.$setMtu(mtu),
     nameDescription !== undefined && network.set_name_description(nameDescription),
     nameLabel !== undefined && network.set_name_label(nameLabel),
-    nbd !== undefined && setNbdPurpose(network, nbd),
+    (nbd !== undefined || insecureNbd !== undefined) && setNbdPurposes(network, { nbd, insecureNbd }),
   ])
 }
 
-// nbd and insecure_nbd are incompatible purposes: the other one must be removed before adding one
-async function setNbdPurpose(network, nbd) {
-  for (const otherPurpose of ['nbd', 'insecure_nbd']) {
-    if (otherPurpose !== nbd) {
-      await network.remove_purpose(otherPurpose)
-    }
+function assertNbdParams({ nbd, insecureNbd }) {
+  if (nbd && insecureNbd) {
+    throw invalidParameters('nbd and insecureNbd are mutually exclusive')
   }
-  if (nbd !== null) {
-    await network.add_purpose(nbd)
+}
+
+// nbd and insecure_nbd are incompatible purposes: the other one must be removed before adding one
+//
+// a false or missing param only touches its own purpose, so that a client unaware of insecureNbd
+// sending nbd: false (e.g. the Terraform provider on each update) does not disable the insecure NBD
+async function setNbdPurposes(network, { nbd, insecureNbd }) {
+  const purposesToRemove = new Set()
+  let purposeToAdd
+
+  if (nbd === true) {
+    purposesToRemove.add('insecure_nbd')
+    purposeToAdd = 'nbd'
+  } else if (nbd === false) {
+    purposesToRemove.add('nbd')
+  }
+
+  if (insecureNbd === true) {
+    purposesToRemove.add('nbd')
+    purposeToAdd = 'insecure_nbd'
+  } else if (insecureNbd === false) {
+    purposesToRemove.add('insecure_nbd')
+  }
+
+  for (const purpose of purposesToRemove) {
+    await network.remove_purpose(purpose)
+  }
+  if (purposeToAdd !== undefined) {
+    await network.add_purpose(purposeToAdd)
   }
 }
 
@@ -132,7 +163,15 @@ set.params = {
     type: 'string',
     optional: true,
   },
-  nbd: NBD_PARAM,
+  nbd: {
+    type: 'boolean',
+    optional: true,
+  },
+  insecureNbd: {
+    type: 'boolean',
+    optional: true,
+    description: 'NBD in clear, only on a network dedicated to backups',
+  },
 }
 
 set.resolve = {
