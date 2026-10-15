@@ -297,16 +297,28 @@ export default class Xapi extends XapiBase {
   async setHostMultipathing($defer, hostId, multipathing) {
     const host = this.getObject(hostId)
 
+    // Only shared SRs are affected by multipathing, local SRs can stay connected.
+    //
+    // Unplugging a shared SR would break running VMs with disks on it, the
+    // user must migrate them first.
+    const vmsOnSharedSrs = host.$resident_VMs.filter(
+      vm => !vm.is_control_domain && vm.$VBDs.some(vbd => vbd.$VDI?.$SR.shared)
+    )
+    if (vmsOnSharedSrs.length !== 0) {
+      throw forbiddenOperation(
+        'set host multipathing',
+        `the following VMs have disks on shared SRs and must be migrated first: ${vmsOnSharedSrs
+          .map(vm => vm.name_label)
+          .join(', ')}`
+      )
+    }
+
     if (host.enabled) {
       await this.disableHost(hostId)
       $defer(() => this.enableHost(hostId))
     }
 
-    // Xen center evacuate running VMs before unplugging the PBDs.
-    // The evacuate method uses the live migration to migrate running VMs
-    // from host to another. It only works when a shared SR is present
-    // in the host. For this reason we chose to show a warning instead.
-    const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached)
+    const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached && pbd.$SR.shared)
     await asyncMapSettled(pluggedPbds, async pbd => {
       const ref = pbd.$ref
       await this.unplugPbd(ref)
