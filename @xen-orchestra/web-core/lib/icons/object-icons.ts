@@ -2,7 +2,6 @@ import { slash } from '@core/icons/custom-icons.ts'
 import { statusIcons } from '@core/icons/status-icons.ts'
 import { defineIcon, type IconSingleConfig } from '@core/packages/icon'
 import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
-import { faFileLines } from '@fortawesome/free-regular-svg-icons'
 import {
   faArchive,
   faArrowLeft,
@@ -274,7 +273,6 @@ export const objectIcons = defineIconPack({
       icon: runningNeutral,
     },
   ],
-  'backup-log': constructIcon(faFileLines),
   proxy: constructIcon(faCircleNodes),
   task: constructIcon(faBarsProgress),
   template: constructIcon(faPuzzlePiece),

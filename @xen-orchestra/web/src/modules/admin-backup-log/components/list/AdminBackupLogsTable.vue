@@ -105,7 +105,7 @@ const { HeadCells, BodyCells } = useAdminBackupLogColumns({
 
     const firstVm = computed(() => getVmById(vmIds.value[0]))
 
-    const isVmMissing = computed(() => vmIds.value.length > 0 || getBackupJobById(log.jobId)?.type === 'backup')
+    const isVmExpected = computed(() => vmIds.value.length > 0 || getBackupJobById(log.jobId)?.type === 'backup')
 
     const srIds = computed(() => getBackupLogSrIds(log))
 
@@ -126,7 +126,7 @@ const { HeadCells, BodyCells } = useAdminBackupLogColumns({
           })
         }
 
-        if (isVmMissing.value) {
+        if (isVmExpected.value) {
           return r({ label: t('vm-not-found'), icon: 'status:warning-circle', extraCount: vmIds.value.length - 1 })
         }
 

@@ -27,6 +27,8 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { formatSize } from '@core/utils/size.util.ts'
+import { formatSpeed } from '@core/utils/speed.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -36,18 +38,18 @@ const { backupLog } = defineProps<{
 
 const { t } = useI18n()
 
-const { getTransferSize, getTransferSpeed } = useXoBackupLogsUtils()
+const { findTransferTaskSize, getTransferSpeed } = useXoBackupLogsUtils()
 
 const size = computed(() => {
-  const transferSize = getTransferSize(backupLog)
+  const transferSize = findTransferTaskSize(backupLog.tasks)
 
-  return transferSize !== undefined ? `${transferSize.value} ${transferSize.prefix}` : undefined
+  return transferSize !== undefined ? formatSize(transferSize, 2) : undefined
 })
 
 const speed = computed(() => {
   const transferSpeed = getTransferSpeed(backupLog)
 
-  return transferSpeed !== undefined ? `${transferSpeed.value} ${transferSpeed.prefix}` : undefined
+  return transferSpeed !== undefined ? formatSpeed(transferSpeed) : undefined
 })
 </script>
 

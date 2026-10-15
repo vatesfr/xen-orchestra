@@ -1371,7 +1371,7 @@
   "vm-management": "VM management",
   "vm-name": "VM name",
   "vm-name-required": "VM name is required.",
-  "vm-not-found": "@:vm not found",
+  "vm-not-found": "@:vm @.lower:not-found",
   "vm-not-running": "VM not running",
   "vm-off": "This virtual machine is powered off.",
   "vm-protected-deletion": "This VM is currently protected against deletion.",

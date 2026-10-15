@@ -1,6 +1,5 @@
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { formatSpeedRaw } from '@core/utils/speed.util.ts'
 import type { Info, Scale } from 'human-format'
 import { useI18n } from 'vue-i18n'
 
@@ -44,7 +43,7 @@ export function useXoBackupLogsUtils() {
   }
 
   function hasMessage(task: BackupLogTask, message: string) {
-    return 'message' in task && task.message === message
+    return task.message === message
   }
 
   // Same as XO5: only the direct `transfer` children of `export` tasks are counted (not the health check restore),
@@ -87,9 +86,7 @@ export function useXoBackupLogsUtils() {
 
   // Total transferred size divided by the time between the start of the first transfer and the end of the last one,
   // so that parallel transfers are not counted twice
-  function getTransferSpeed(
-    backupLog: FrontXoBackupLog
-  ): Info<Scale<'B/s' | 'KiB/s' | 'MiB/s' | 'GiB/s' | 'TiB/s'>> | undefined {
+  function getTransferSpeed(backupLog: FrontXoBackupLog): number | undefined {
     const transfers = (backupLog.tasks ?? [])
       .map(vmTask => findVmTransfer(vmTask))
       .filter((transfer): transfer is VmTransfer & { end: number } => transfer?.end !== undefined)
@@ -106,7 +103,7 @@ export function useXoBackupLogsUtils() {
       return undefined
     }
 
-    return formatSpeedRaw(size, { maxDecimals: 2, milliseconds: end - start })
+    return (size * 1000) / (end - start)
   }
 
   return {

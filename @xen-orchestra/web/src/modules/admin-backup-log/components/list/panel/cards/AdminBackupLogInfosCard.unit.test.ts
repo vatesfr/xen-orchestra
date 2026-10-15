@@ -126,7 +126,7 @@ describe('title', () => {
   it('shows the backup log icon', () => {
     const wrapper = mountCard()
 
-    expect(wrapper.findComponent(UiPanelCardTitle).props('icon')).toBe('object:backup-log')
+    expect(wrapper.findComponent(UiPanelCardTitle).props('icon')).toBe('object:backup-run')
   })
 })
 

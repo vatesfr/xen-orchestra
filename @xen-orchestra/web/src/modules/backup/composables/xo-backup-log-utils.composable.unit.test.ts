@@ -9,7 +9,6 @@ import {
 import { d } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { formatSpeedRaw } from '@core/utils/speed.util.ts'
 
 function mountBackupLogsUtils() {
   return mountComposable(() => useXoBackupLogsUtils()).wrapper.vm
@@ -143,7 +142,7 @@ describe('getTransferSpeed', () => {
       ],
     })
 
-    expect(getTransferSpeed(backupLog)).toEqual(formatSpeedRaw(2_000, { maxDecimals: 2 }))
+    expect(getTransferSpeed(backupLog)).toBe(2_000)
   })
 
   it('divides the transferred size by the time from the first transfer to the last one', () => {
@@ -156,7 +155,7 @@ describe('getTransferSpeed', () => {
       ],
     })
 
-    expect(getTransferSpeed(backupLog)).toEqual(formatSpeedRaw(1_000, { maxDecimals: 2 }))
+    expect(getTransferSpeed(backupLog)).toBe(1_000)
   })
 
   it('ignores a transfer that has not ended', () => {
@@ -171,7 +170,7 @@ describe('getTransferSpeed', () => {
       ],
     })
 
-    expect(getTransferSpeed(backupLog)).toEqual(formatSpeedRaw(1_000, { maxDecimals: 2 }))
+    expect(getTransferSpeed(backupLog)).toBe(1_000)
   })
 
   it('returns undefined for a log without transfer', () => {

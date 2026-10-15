@@ -1,6 +1,6 @@
 <template>
   <UiPanelCard class="admin-backup-log-infos-card">
-    <UiPanelCardTitle :id="backupLog.id" size="medium" :label="logName" :href="logHref" icon="object:backup-log" />
+    <UiPanelCardTitle :id="backupLog.id" size="medium" :label="logName" :href="logHref" icon="object:backup-run" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('backup-date') }}</template>
