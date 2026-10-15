@@ -172,6 +172,8 @@ describe('XoListener on the backup-archive collection', () => {
 })
 
 describe('XoListener on the plugin collection', () => {
+  const plugin = { id: 'transport-email', name: 'transport-email', loaded: false }
+
   it('obfuscates the secrets of the plugins', async () => {
     const user = bindRestApi({ permission: 'admin' })
     const { frames, subscriber } = createSubscriber(user.id)
@@ -180,11 +182,11 @@ describe('XoListener on the plugin collection', () => {
     const listener = new XoListener('plugin', emitter)
     listener.addSubscriber(subscriber)
 
-    const plugin = (clientSecret: string) =>
+    const pluginWithSecret = (clientSecret: string) =>
       ({ id: 'auth-oidc', name: 'auth-oidc', configuration: { clientID: 'xo', clientSecret } }) as unknown as XoPlugin
-    emitter.emit('add', plugin('secret'), undefined)
-    emitter.emit('update', plugin('new secret'), plugin('secret'))
-    emitter.emit('remove', undefined, plugin('new secret'))
+    emitter.emit('add', pluginWithSecret('secret'), undefined)
+    emitter.emit('update', pluginWithSecret('new secret'), pluginWithSecret('secret'))
+    emitter.emit('remove', undefined, pluginWithSecret('new secret'))
 
     await flush()
 
@@ -195,5 +197,45 @@ describe('XoListener on the plugin collection', () => {
     frames.forEach(({ data }) => {
       assert.deepEqual(data.configuration, { clientID: 'xo', clientSecret: OBFUSCATED_VALUE })
     })
+  })
+
+  it('broadcasts the plugin changes to an administrator', async () => {
+    const user = bindRestApi({ permission: 'admin' })
+    const { frames, subscriber } = createSubscriber(user.id)
+
+    const emitter = new EventEmitter()
+    const listener = new XoListener('plugin', emitter)
+    listener.addSubscriber(subscriber)
+
+    emitter.emit('add', plugin, undefined)
+    emitter.emit('update', { ...plugin, loaded: true }, plugin)
+
+    await flush()
+
+    assert.deepEqual(
+      frames.map(({ event, data }) => [event, data.$subscription, data.loaded]),
+      [
+        ['add', 'plugin', false],
+        ['update', 'plugin', true],
+      ]
+    )
+  })
+
+  it('sends nothing to a user who is not an administrator, whatever their privileges', async () => {
+    const user = bindRestApi({ permission: 'none' }, [
+      { id: 'privilege-1', resource: '*', action: '*', effect: 'allow', roleId: 'role-1' },
+    ] as unknown as AnyPrivilege[])
+    const { frames, subscriber } = createSubscriber(user.id)
+
+    const emitter = new EventEmitter()
+    const listener = new XoListener('plugin', emitter)
+    listener.addSubscriber(subscriber)
+
+    emitter.emit('add', plugin, undefined)
+    emitter.emit('update', { ...plugin, loaded: true }, plugin)
+
+    await flush()
+
+    assert.deepEqual(frames, [])
   })
 })

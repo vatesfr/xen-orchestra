@@ -84,11 +84,13 @@ export function defineJob<const TJobArgs extends JobArg[], TRunResult>(
           return convertToArray(arg)
         }
 
+        const identifyArg = (item: unknown) => (item === undefined ? undefined : identify(item))
+
         if (toArray) {
-          return arg.map(identify)
+          return arg.map(identifyArg)
         }
 
-        return [identify(arg)]
+        return [identifyArg(arg)]
       })
     )
 
