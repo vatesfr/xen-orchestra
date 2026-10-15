@@ -43,6 +43,7 @@ const POOL_ID = 'pool-1' as FrontXoPool['id']
 const OTHER_POOL_ID = 'pool-2' as FrontXoPool['id']
 const SOURCE_HOST_ID = 'host-src' as FrontXoHost['id']
 const TARGET_HOST_ID = 'host-dst' as FrontXoHost['id']
+const SECOND_TARGET_HOST_ID = 'host-dst-2' as FrontXoHost['id']
 const OTHER_POOL_HOST_ID = 'host-other' as FrontXoHost['id']
 const MANAGEMENT_NETWORK_ID = 'net-mgmt' as FrontXoNetwork['id']
 const MIGRATION_NETWORK_ID = 'net-migr' as FrontXoNetwork['id']
@@ -120,12 +121,17 @@ const pools = [
 const hosts = [
   createHost({ id: SOURCE_HOST_ID, name_label: 'source', $pool: POOL_ID }),
   createHost({ id: TARGET_HOST_ID, name_label: 'target', $pool: POOL_ID }),
+  createHost({ id: SECOND_TARGET_HOST_ID, name_label: 'second target', $pool: POOL_ID }),
   createHost({ id: OTHER_POOL_HOST_ID, name_label: 'other', $pool: OTHER_POOL_ID }),
 ]
 
 const networks = [
   createNetwork({ id: MANAGEMENT_NETWORK_ID, name_label: 'Management', PIFs: ['pif-1' as FrontXoPif['id']] }),
-  createNetwork({ id: MIGRATION_NETWORK_ID, name_label: 'BackupNet', PIFs: ['pif-2' as FrontXoPif['id']] }),
+  createNetwork({
+    id: MIGRATION_NETWORK_ID,
+    name_label: 'BackupNet',
+    PIFs: ['pif-2' as FrontXoPif['id'], 'pif-5' as FrontXoPif['id']],
+  }),
   createNetwork({ id: NO_IP_NETWORK_ID, name_label: 'No IP', PIFs: ['pif-3' as FrontXoPif['id']] }),
   createNetwork({ id: 'net-nopif' as FrontXoNetwork['id'], name_label: 'No PIF' }),
   createNetwork({
@@ -147,6 +153,12 @@ const pifs = [
     $network: OTHER_POOL_NETWORK_ID,
     ip: '10.1.9.150',
     management: true,
+  }),
+  createPif({
+    id: 'pif-5' as FrontXoPif['id'],
+    $host: SECOND_TARGET_HOST_ID,
+    $network: MIGRATION_NETWORK_ID,
+    ip: '172.16.210.15',
   }),
 ]
 
@@ -208,10 +220,14 @@ function mountVmMigrateForm(vm: FrontXoVm = createVm({ $pool: POOL_ID, $containe
 
   const [hostProbe, networkProbe] = wrapper.findAllComponents(SelectProbe)
 
+  if (form === undefined || hostProbe === undefined || networkProbe === undefined) {
+    throw new Error('VM migrate form did not mount')
+  }
+
   return {
-    form: form!,
-    hostSelect: (hostProbe!.vm as unknown as SelectProbe).select,
-    networkSelect: (networkProbe!.vm as unknown as SelectProbe).select,
+    form,
+    hostSelect: (hostProbe.vm as unknown as SelectProbe).select,
+    networkSelect: (networkProbe.vm as unknown as SelectProbe).select,
   }
 }
 
@@ -219,7 +235,28 @@ describe('host select', () => {
   it('lists the hosts of the selected pool, current host excluded', () => {
     const { hostSelect } = mountVmMigrateForm()
 
-    expect(hostSelect.allOptions.value.map(option => option.id)).toEqual([TARGET_HOST_ID])
+    expect(hostSelect.allOptions.value.map(option => option.id)).toEqual([TARGET_HOST_ID, SECOND_TARGET_HOST_ID])
+  })
+
+  it('lists every host of the pool for a halted VM', () => {
+    const { hostSelect } = mountVmMigrateForm(createVm({ $pool: POOL_ID, $container: POOL_ID }))
+
+    expect(hostSelect.allOptions.value.map(option => option.id)).toEqual([
+      SOURCE_HOST_ID,
+      TARGET_HOST_ID,
+      SECOND_TARGET_HOST_ID,
+    ])
+  })
+
+  it('resets the host when the pool changes', async () => {
+    const { form } = mountVmMigrateForm()
+
+    form.formData.host = TARGET_HOST_ID
+    await nextTick()
+    form.formData.pool = OTHER_POOL_ID
+    await nextTick()
+
+    expect(form.formData.host).toBeUndefined()
   })
 })
 
@@ -267,6 +304,18 @@ describe('migration network select', () => {
 
     expect(form.formData.migrationNetwork).toBe(MIGRATION_NETWORK_ID)
     expect(networkSelect.selectedLabel.value).toBe('BackupNet')
+  })
+
+  it('drops a manual choice when the host changes, even if the suggested network is the same', async () => {
+    const { form } = mountVmMigrateForm()
+
+    form.formData.host = TARGET_HOST_ID
+    await nextTick()
+    form.formData.migrationNetwork = MANAGEMENT_NETWORK_ID
+    form.formData.host = SECOND_TARGET_HOST_ID
+    await nextTick()
+
+    expect(form.formData.migrationNetwork).toBe(MIGRATION_NETWORK_ID)
   })
 
   it('falls back to the management network for an inter-pool migration', async () => {

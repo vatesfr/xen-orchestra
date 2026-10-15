@@ -1,15 +1,14 @@
 <template>
-  <MenuItem accent="neutral" icon="action:migrate" :busy="isMigrating" @click="migrateVm()">
+  <MenuItem accent="neutral" icon="action:migrate" :disabled="isDisabled" :busy="isMigratingVm" @click="migrateVm()">
     {{ t('action:migrate') }}
+    <i v-if="isDisabled" class="em-dash-prefix">{{ migrateVmErrorMessage }}</i>
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
 import { useVmMigrate } from '@/modules/vm/composables/use-vm-migrate.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { VM_OPERATIONS } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -19,7 +18,7 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { migrateVm } = useVmMigrate(() => vm)
+const { migrateVm, canMigrateVm, isMigratingVm, isMigrationBlocked, migrateVmErrorMessage } = useVmMigrate(() => vm)
 
-const isMigrating = computed(() => isVmOperationPending(vm, [VM_OPERATIONS.POOL_MIGRATE, VM_OPERATIONS.MIGRATE_SEND]))
+const isDisabled = computed(() => !canMigrateVm.value && !isMigratingVm.value && !isMigrationBlocked.value)
 </script>
