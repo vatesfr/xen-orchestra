@@ -23,6 +23,7 @@ import {
   type HashedDiskMetadata,
   HashEntrySet,
   HBD_HEADER_SIZE,
+  BLOCK_STORE_PATH,
   parseBlockHeader,
   CODEC_RAW,
   setVerifiedAt,
@@ -30,7 +31,9 @@ import {
 } from './hbdPaths.mjs'
 import { randomUUID } from 'node:crypto'
 
-const { warn } = createLogger('xo:backup-archive:hbd')
+const { warn, debug } = createLogger('xo:backup-archive:hbd')
+
+const LEFTOVER_SAMPLE = 5
 
 /**
  * Content addressed disk: block index -> SHA-256 of the block payload, kept in a
@@ -43,7 +46,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
   #bat: BlockAllocationTable | undefined
   #dataDir: string | undefined
   #blocksDir: string | undefined
-  #blockStorePath: string | undefined
+  #blockStorePath: string
   #dirty = false
   #oldBlockCount = 0
   #scrubEnabled: boolean
@@ -54,7 +57,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
   constructor({
     handler,
     path,
-    blockStorePath,
+    blockStorePath = BLOCK_STORE_PATH,
     scrubEnabled = false,
     scrubMaxAgeMs = 30 * 86400e3, // 30 days
   }: {
@@ -91,7 +94,7 @@ export class HashedDiskDeduplicated extends HashedDisk {
     parentUuid,
     parentPath,
     dedupType = 'PER_DISK',
-    blockStorePath,
+    blockStorePath = BLOCK_STORE_PATH,
     scrubEnabled,
     scrubMaxAgeMs,
   }: {
@@ -121,10 +124,6 @@ export class HashedDiskDeduplicated extends HashedDisk {
       localBlocksPath: `${dataDir}/blocks/`,
       hashesPath,
     } satisfies HashedDiskMetadata
-
-    if (metadata.dedupType === 'PER_BACKUP_REPOSITORY' && blockStorePath === undefined) {
-      throw new Error("Can't init PER_BACKUP_REPOSITORY without blockStorePath")
-    }
 
     const bat = BlockAllocationTable.allocate(Math.ceil(virtualSize / blockSize))
 
@@ -438,23 +437,40 @@ export class HashedDiskDeduplicated extends HashedDisk {
     }
   }
 
-  async checkAndClean(): Promise<void> {
+  async clean({
+    remove = false,
+    logWarn = (message: string, data?: object) => {},
+    logInfo = (message: string, data?: object) => {},
+  } = {}): Promise<string | undefined> {
     const current = basename(this.#loadedMetadata.hashesPath)
+    const leftovers: string[] = []
     for (const filename of await this.#handler.list(this.#loadedDataDir)) {
       if (filename !== current && /^hashes\..+\.hash$/.test(filename)) {
-        await this.#handler
-          .unlink(join(this.#loadedDataDir, filename), { checksum: false })
-          .catch(error => warn('failed to clean a leftover file', { path: this.#path, filename, error }))
+        leftovers.push(join(this.#loadedDataDir, filename))
       }
     }
     if (this.#loadedMetadata.dedupType === 'PER_BACKUP_REPOSITORY') {
       const tmpDir = this.#tmpDir
       for (const filename of await this.#handler.list(tmpDir, { ignoreMissing: true })) {
-        await this.#handler
-          .unlink(join(tmpDir, filename), { checksum: false })
-          .catch(error => warn('failed to clean a leftover file', { path: this.#path, filename, error }))
+        leftovers.push(join(this.#tmpDir, filename))
       }
     }
+    if (leftovers.length > 0) {
+      logInfo('leftover files of a hashed disk', {
+        disk: this.#path,
+        count: leftovers.length,
+        sample: leftovers.slice(0, LEFTOVER_SAMPLE),
+      })
+    }
+    if (remove) {
+      for (const path of leftovers) {
+        debug('leftover file of a hashed disk', { disk: this.#path, path })
+        await this.#handler
+          .unlink(path, { checksum: false })
+          .catch(error => logWarn('failed to remove a leftover file', { path, error }))
+      }
+    }
+    return undefined
   }
 
   async mergeMetadata(childDisk) {
@@ -534,9 +550,6 @@ export class HashedDiskDeduplicated extends HashedDisk {
    * the caller and the hash is always hex
    */
   #storePath(hash: BlockHash, copy = 0): string {
-    if (this.#blockStorePath === undefined) {
-      throw new Error(`disk ${this.#path} is PER_BACKUP_REPOSITORY but no blockStorePath was given`)
-    }
     return join(this.#blockStorePath, blockRelPath(hash), String(copy))
   }
 

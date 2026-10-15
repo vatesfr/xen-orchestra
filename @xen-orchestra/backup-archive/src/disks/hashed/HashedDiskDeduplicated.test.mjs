@@ -11,6 +11,7 @@ import { rimraf } from 'rimraf'
 
 import {
   asBlockHash,
+  BLOCK_STORE_PATH,
   BlockAllocationTable,
   blockRelPath,
   buildBlockHeader,
@@ -468,9 +469,7 @@ describe('HashedDiskDeduplicated', () => {
 })
 
 describe('HashedDiskDeduplicated with a block store', () => {
-  const STORE = 'xo-block-store'
-
-  const createSharedDisk = async ({ blockStorePath = STORE } = {}) => {
+  const createSharedDisk = async () => {
     const dir = `xo-vm-backups/VMUUID/vdis/${uuid.v4()}`
     const diskUuid = uuid.v4()
     const path = `${dir}/20260814T120000000Z.hbd`
@@ -481,27 +480,18 @@ describe('HashedDiskDeduplicated with a block store', () => {
       blockSize: BLOCK_SIZE,
       uuid: diskUuid,
       dedupType: 'PER_BACKUP_REPOSITORY',
-      blockStorePath,
     })
     return { disk, path, tmpDir: `${dir}/data/${diskUuid}/blocks/.tmp` }
   }
 
   const nlink = async path => (await stat(join(tempDir, path))).nlink
 
-  test('create refuses PER_BACKUP_REPOSITORY without a blockStorePath, and writes nothing', async () => {
-    await assert.rejects(
-      () => createDisk({ dedupType: 'PER_BACKUP_REPOSITORY' }),
-      /Can't init PER_BACKUP_REPOSITORY without blockStorePath/
-    )
-    await assert.rejects(() => listFiles('xo-vm-backups'), { code: 'ENOENT' })
-  })
-
   test('create records the dedup type in the metadata, but not the store path', async () => {
     const { disk } = await createSharedDisk()
     const metadata = disk.getMetadata()
 
     assert.equal(metadata.dedupType, 'PER_BACKUP_REPOSITORY')
-    assert.ok(!JSON.stringify(metadata).includes(STORE), 'the store location must not be remote-controlled')
+    assert.ok(!JSON.stringify(metadata).includes(BLOCK_STORE_PATH), 'the store location must not be remote-controlled')
   })
 
   test('two disks writing the same payload share one inode', async () => {
@@ -512,7 +502,7 @@ describe('HashedDiskDeduplicated with a block store', () => {
     await a.writeBlock({ index: 0, data })
     await b.writeBlock({ index: 3, data })
 
-    const storeFiles = await listFiles(STORE)
+    const storeFiles = await listFiles(BLOCK_STORE_PATH)
     assert.equal(storeFiles.length, 1)
     assert.equal(await nlink(storeFiles[0]), 3, 'store copy + one link per disk')
 
@@ -530,7 +520,7 @@ describe('HashedDiskDeduplicated with a block store', () => {
     await b.writeBlock({ index: 1, data: block(3) })
     await b.writeBlock({ index: 2, data: block(2) })
 
-    assert.equal((await listFiles(STORE)).length, 3)
+    assert.equal((await listFiles(BLOCK_STORE_PATH)).length, 3)
     // disk side: 2 links in a, 3 in b
     assert.equal(await countBlockFiles(), 5)
   })
@@ -542,7 +532,7 @@ describe('HashedDiskDeduplicated with a block store', () => {
     await disk.writeBlock({ index: 0, data })
     await disk.writeBlock({ index: 7, data })
 
-    const storeFiles = await listFiles(STORE)
+    const storeFiles = await listFiles(BLOCK_STORE_PATH)
     assert.equal(storeFiles.length, 1)
     assert.equal(await nlink(storeFiles[0]), 2, 'the second index hits EEXIST on the disk link')
     assert.equal(await countBlockFiles(), 1)
@@ -560,23 +550,10 @@ describe('HashedDiskDeduplicated with a block store', () => {
     const data = block(0xaa)
     await disk.writeBlock({ index: 0, data })
 
-    const [storeFile] = await listFiles(STORE)
+    const [storeFile] = await listFiles(BLOCK_STORE_PATH)
     await handler.unlink(storeFile, { checksum: false })
 
     assert.ok((await disk.readBlock(0)).data.equals(data))
-  })
-
-  test('a disk reopened without a store can still be read, but not written', async () => {
-    const { disk, path } = await createSharedDisk()
-    const data = block(0xaa)
-    await disk.writeBlock({ index: 0, data })
-    await disk.close()
-
-    const reopened = new HashedDiskDeduplicated({ handler, path })
-    await reopened.init()
-
-    assert.ok((await reopened.readBlock(0)).data.equals(data))
-    await assert.rejects(() => reopened.writeBlock({ index: 1, data: block(0xbb) }), /no blockStorePath was given/)
   })
 
   test('a handler without link fails at write time', async () => {
@@ -590,8 +567,6 @@ describe('HashedDiskDeduplicated with a block store', () => {
 })
 
 describe('HashedDiskDeduplicated reference cleanup', () => {
-  const STORE = 'xo-block-store'
-
   const createSharedDisk = async () => {
     const dir = `xo-vm-backups/VMUUID/vdis/${uuid.v4()}`
     return HashedDiskDeduplicated.create({
@@ -601,13 +576,12 @@ describe('HashedDiskDeduplicated reference cleanup', () => {
       blockSize: BLOCK_SIZE,
       uuid: uuid.v4(),
       dedupType: 'PER_BACKUP_REPOSITORY',
-      blockStorePath: STORE,
     })
   }
 
   // store directories are never removed, only their files
   const listStore = () =>
-    listFiles(STORE).catch(error => {
+    listFiles(BLOCK_STORE_PATH).catch(error => {
       if (error.code === 'ENOENT') {
         return []
       }
@@ -808,8 +782,6 @@ describe('resize', () => {
 })
 
 describe('merge', () => {
-  const STORE = 'xo-block-store'
-
   const createSharedDisk = (opts = {}) =>
     HashedDiskDeduplicated.create({
       handler,
@@ -818,7 +790,6 @@ describe('merge', () => {
       blockSize: BLOCK_SIZE,
       uuid: uuid.v4(),
       dedupType: 'PER_BACKUP_REPOSITORY',
-      blockStorePath: STORE,
       ...opts,
     })
 
@@ -839,7 +810,7 @@ describe('merge', () => {
 
     assert.equal(await parent.mergeBlock(child, 0, false), 0)
 
-    const [storeFile] = await listFiles(STORE)
+    const [storeFile] = await listFiles(BLOCK_STORE_PATH)
     assert.equal(await nlink(storeFile), 3, 'store copy + parent + child, no new link')
   })
 
@@ -875,8 +846,8 @@ describe('merge', () => {
     await child.unlink() // what MergeRemoteDisk.removeUnused() does next
 
     await assertSameContent(parent, childContent)
-    assert.equal((await listFiles(STORE)).length, 5, 'the 3 replaced parent blocks are released')
-    for (const storeFile of await listFiles(STORE)) {
+    assert.equal((await listFiles(BLOCK_STORE_PATH)).length, 5, 'the 3 replaced parent blocks are released')
+    for (const storeFile of await listFiles(BLOCK_STORE_PATH)) {
       assert.equal(await nlink(storeFile), 2, 'store copy + parent, the child links are gone')
     }
   })
@@ -912,7 +883,7 @@ describe('merge', () => {
     await assert.rejects(() => parent.flushMetadata(child), /link failed/)
 
     assert.equal(parent.getMetadata().hashesPath, before.hashesPath, 'no new BAT written')
-    const reopened = new HashedDiskDeduplicated({ handler, path: parent.getPath(), blockStorePath: STORE })
+    const reopened = new HashedDiskDeduplicated({ handler, path: parent.getPath() })
     await reopened.init()
     assert.deepEqual(reopened.getMetadata(), before, 'the hbd on the remote is untouched')
     assert.equal(reopened.hasBlock(0), false)
@@ -929,7 +900,7 @@ describe('merge', () => {
     assert.equal(parent.getVirtualSize(), VIRTUAL_SIZE - 100)
     assert.equal(parent.getParentUuid(), 'grandparent-uuid')
 
-    const reopened = new HashedDiskDeduplicated({ handler, path: parent.getPath(), blockStorePath: STORE })
+    const reopened = new HashedDiskDeduplicated({ handler, path: parent.getPath() })
     await reopened.init()
     assert.equal(reopened.getUuid(), child.getUuid())
   })
@@ -947,7 +918,7 @@ describe('merge', () => {
     await parent.mergeMetadata(child)
     await child.unlink()
 
-    const reopened = new HashedDiskDeduplicated({ handler, path: parent.getPath(), blockStorePath: STORE })
+    const reopened = new HashedDiskDeduplicated({ handler, path: parent.getPath() })
     await reopened.init()
     assert.ok((await reopened.readBlock(0)).data.equals(block(0xaa)))
     assert.ok((await reopened.readBlock(1)).data.equals(block(0xbb)))
@@ -1023,7 +994,7 @@ describe('rename', () => {
   })
 })
 
-describe('cleanOrphanBats', () => {
+describe('clean', () => {
   const dataDir = () => `${diskDir}/data/${DISK_UUID}`
   const listData = async () => (await handler.list(dataDir())).sort()
 
@@ -1034,7 +1005,7 @@ describe('cleanOrphanBats', () => {
     const current = disk.getMetadata().hashesPath.split('/').pop()
     await handler.writeFile(`${dataDir()}/hashes.1.abcd1234.hash`, Buffer.alloc(HASH_SIZE * 10), { flags: 'wx' })
 
-    await disk.checkAndClean()
+    await disk.clean({ remove: true })
 
     assert.deepEqual(await listData(), ['blocks', current])
     const reopened = new HashedDiskDeduplicated({ handler, path: diskPath })
@@ -1049,7 +1020,7 @@ describe('cleanOrphanBats', () => {
       await handler.writeFile(`${dataDir()}/${name}`, 'x', { flags: 'wx' })
     }
 
-    await disk.checkAndClean()
+    await disk.clean({ remove: true })
 
     assert.deepEqual(await listData(), [current])
   })
@@ -1060,7 +1031,7 @@ describe('cleanOrphanBats', () => {
     await handler.writeFile(`${dataDir()}/notes.txt`, 'x', { flags: 'wx' })
     await handler.writeFile(`${dataDir()}/hashes.hash`, 'x', { flags: 'wx' })
 
-    await disk.checkAndClean()
+    await disk.clean({ remove: true })
 
     assert.ok((await listData()).includes('notes.txt'))
     assert.ok((await listData()).includes('hashes.hash'), 'not a hashes file name')
@@ -1068,32 +1039,43 @@ describe('cleanOrphanBats', () => {
   })
 
   test('empties blocks/.tmp of a store disk', async () => {
-    const disk = await createDisk({ dedupType: 'PER_BACKUP_REPOSITORY', blockStorePath: 'xo-block-store' })
+    const disk = await createDisk({ dedupType: 'PER_BACKUP_REPOSITORY' })
     await disk.writeBlock({ index: 0, data: block(0xaa) })
     // a store write interrupted between its temp file and the store link
     await handler.writeFile(`${dataDir()}/blocks/.tmp/leftover`, 'x', { flags: 'wx' })
 
-    await disk.checkAndClean()
+    await disk.clean({ remove: true })
 
     assert.deepEqual(await handler.list(`${dataDir()}/blocks/.tmp`), [])
     assert.ok((await disk.readBlock(0)).data.equals(block(0xaa)))
   })
 
-  test('does not fail without a blocks/.tmp directory', async () => {
-    const disk = await createDisk({ dedupType: 'PER_BACKUP_REPOSITORY', blockStorePath: 'xo-block-store' })
+  test('a dry run reports the leftovers and removes nothing', async () => {
+    const disk = await createDisk()
+    await handler.writeFile(`${dataDir()}/hashes.1.abcd1234.hash`, 'x', { flags: 'wx' })
+    const reported = []
 
-    await disk.checkAndClean()
+    await disk.clean({ logInfo: (message, data) => reported.push(data) })
+
+    // one summary line per disk, not one per file
+    assert.deepEqual(reported, [{ disk: `/${diskPath}`, count: 1, sample: [`/${dataDir()}/hashes.1.abcd1234.hash`] }])
+    assert.ok((await listData()).includes('hashes.1.abcd1234.hash'), 'still there')
+  })
+
+  test('does not fail without a blocks/.tmp directory', async () => {
+    const disk = await createDisk({ dedupType: 'PER_BACKUP_REPOSITORY' })
+
+    await disk.clean({ remove: true })
   })
 })
 
 describe('scanBlockStore', () => {
-  const STORE = 'xo-block-store'
-  const createStoreDisk = () => createDisk({ dedupType: 'PER_BACKUP_REPOSITORY', blockStorePath: STORE })
-  const storeDirOf = data => `${STORE}/${blockRelPath(sha256hex(data))}`
+  const createStoreDisk = () => createDisk({ dedupType: 'PER_BACKUP_REPOSITORY' })
+  const storeDirOf = data => `${BLOCK_STORE_PATH}/${blockRelPath(sha256hex(data))}`
   // a store file no disk links to, as a crash or a missed release leaves it
   const writeOrphan = (data, copy = 0) => handler.outputFile(`${storeDirOf(data)}/${copy}`, data, { flags: 'wx' })
   const listStore = () =>
-    listFiles(STORE).catch(error => {
+    listFiles(BLOCK_STORE_PATH).catch(error => {
       if (error.code === 'ENOENT') {
         return []
       }
@@ -1103,7 +1085,7 @@ describe('scanBlockStore', () => {
   test('removes a store file no disk links to', async () => {
     await writeOrphan(block(0xaa))
 
-    assert.deepEqual(await scanBlockStore(handler, STORE, { remove: true }), { removed: 1 })
+    assert.deepEqual(await scanBlockStore(handler, { remove: true }), { removed: 1 })
     assert.deepEqual(await listStore(), [])
   })
 
@@ -1111,13 +1093,13 @@ describe('scanBlockStore', () => {
     const disk = await createStoreDisk()
     await disk.writeBlock({ index: 0, data: block(0xaa) })
 
-    assert.deepEqual(await scanBlockStore(handler, STORE, { remove: true }), { removed: 0 })
+    assert.deepEqual(await scanBlockStore(handler, { remove: true }), { removed: 0 })
     assert.equal((await listStore()).length, 1)
     assert.ok((await disk.readBlock(0)).data.equals(block(0xaa)))
   })
 
   test('a missing store is not an error', async () => {
-    assert.deepEqual(await scanBlockStore(handler, STORE, { remove: true }), { removed: 0 })
+    assert.deepEqual(await scanBlockStore(handler, { remove: true }), { removed: 0 })
   })
 
   test('removes an orphan overflow copy and keeps the copy in use', async () => {
@@ -1125,23 +1107,25 @@ describe('scanBlockStore', () => {
     await disk.writeBlock({ index: 0, data: block(0xaa) })
     await writeOrphan(block(0xaa), 1)
 
-    assert.deepEqual(await scanBlockStore(handler, STORE, { remove: true }), { removed: 1 })
+    assert.deepEqual(await scanBlockStore(handler, { remove: true }), { removed: 1 })
     assert.deepEqual(await listStore(), [`/${storeDirOf(block(0xaa))}/0`])
   })
 
   test('leaves a file outside the store layout alone', async () => {
-    await handler.outputFile(`${STORE}/stray.txt`, 'x', { flags: 'wx' })
+    await handler.outputFile(`${BLOCK_STORE_PATH}/stray.txt`, 'x', { flags: 'wx' })
     await writeOrphan(block(0xaa))
 
-    assert.deepEqual(await scanBlockStore(handler, STORE, { remove: true }), { removed: 1 })
-    assert.deepEqual(await listStore(), [`/${STORE}/stray.txt`])
+    assert.deepEqual(await scanBlockStore(handler, { remove: true }), { removed: 1 })
+    assert.deepEqual(await listStore(), [`/${BLOCK_STORE_PATH}/stray.txt`])
   })
 
   test('a dry run reports the orphans and removes nothing', async () => {
     await writeOrphan(block(0xaa))
     const logged = []
 
-    const result = await scanBlockStore(handler, STORE, { logDebug: (message, data) => logged.push(data.path) })
+    const result = await scanBlockStore(handler, {
+      logDebug: (message, data) => logged.push(data.path),
+    })
 
     assert.deepEqual(result, { removed: 1 }, 'counts what would be removed')
     assert.equal((await listStore()).length, 1)
@@ -1150,9 +1134,8 @@ describe('scanBlockStore', () => {
 })
 
 describe('EMLINK', () => {
-  const STORE = 'xo-block-store'
   const data = block(0xaa)
-  const storeDir = `/${STORE}/${blockRelPath(sha256hex(data))}`
+  const storeDir = `/${BLOCK_STORE_PATH}/${blockRelPath(sha256hex(data))}`
 
   const createStoreDisk = () =>
     HashedDiskDeduplicated.create({
@@ -1162,7 +1145,6 @@ describe('EMLINK', () => {
       blockSize: BLOCK_SIZE,
       uuid: uuid.v4(),
       dedupType: 'PER_BACKUP_REPOSITORY',
-      blockStorePath: STORE,
     })
 
   const nlink = async path => (await stat(join(tempDir, path))).nlink
@@ -1186,7 +1168,7 @@ describe('EMLINK', () => {
     const b = await createStoreDisk()
     await b.writeBlock({ index: 0, data })
 
-    assert.deepEqual((await listFiles(STORE)).sort(), [`${storeDir}/0`, `${storeDir}/1`])
+    assert.deepEqual((await listFiles(BLOCK_STORE_PATH)).sort(), [`${storeDir}/0`, `${storeDir}/1`])
     assert.equal(await nlink(`${storeDir}/0`), 2, 'store copy + a')
     assert.equal(await nlink(`${storeDir}/1`), 2, 'store copy + b')
     assert.ok((await a.readBlock(0)).data.equals(data))
@@ -1202,7 +1184,7 @@ describe('EMLINK', () => {
 
     await b.unlink()
 
-    assert.deepEqual(await listFiles(STORE), [`${storeDir}/0`])
+    assert.deepEqual(await listFiles(BLOCK_STORE_PATH), [`${storeDir}/0`])
     assert.equal(await nlink(`${storeDir}/0`), 2, 'a still holds copy 0')
     assert.ok((await a.readBlock(0)).data.equals(data))
   })
@@ -1217,18 +1199,17 @@ describe('EMLINK', () => {
     const c = await createStoreDisk()
     await c.writeBlock({ index: 0, data })
 
-    assert.deepEqual((await listFiles(STORE)).sort(), [`${storeDir}/0`, `${storeDir}/1`])
+    assert.deepEqual((await listFiles(BLOCK_STORE_PATH)).sort(), [`${storeDir}/0`, `${storeDir}/1`])
     assert.equal(await nlink(`${storeDir}/1`), 3, 'store copy + b + c')
     assert.ok((await c.readBlock(0)).data.equals(data))
   })
 })
 
 describe('store directory', () => {
-  const STORE = 'xo-block-store'
   const data = block(0xaa)
   const hash = sha256hex(data)
   // <store>/<ab>/<cd>: the fan-out levels, kept; <hash>: removed once empty
-  const fanOutDir = `${STORE}/${hash.slice(0, 2)}/${hash.slice(2, 4)}`
+  const fanOutDir = `${BLOCK_STORE_PATH}/${hash.slice(0, 2)}/${hash.slice(2, 4)}`
 
   const createStoreDisk = () =>
     HashedDiskDeduplicated.create({
@@ -1238,7 +1219,6 @@ describe('store directory', () => {
       blockSize: BLOCK_SIZE,
       uuid: uuid.v4(),
       dedupType: 'PER_BACKUP_REPOSITORY',
-      blockStorePath: STORE,
     })
 
   test('releasing the last disk removes the hash directory, not the fan-out ones', async () => {
@@ -1279,9 +1259,8 @@ describe('store directory', () => {
 })
 
 describe('scrub', () => {
-  const STORE = 'xo-block-store'
   const data = block(0xaa)
-  const storeCopy = `/${STORE}/${blockRelPath(sha256hex(data))}/0`
+  const storeCopy = `/${BLOCK_STORE_PATH}/${blockRelPath(sha256hex(data))}/0`
 
   const createStoreDisk = (opts = {}) =>
     HashedDiskDeduplicated.create({
@@ -1291,7 +1270,6 @@ describe('scrub', () => {
       blockSize: BLOCK_SIZE,
       uuid: uuid.v4(),
       dedupType: 'PER_BACKUP_REPOSITORY',
-      blockStorePath: STORE,
       ...opts,
     })
 
@@ -1306,7 +1284,7 @@ describe('scrub', () => {
     const counter = { reads: 0 }
     const readFile = handler.readFile
     handler.readFile = (path, ...args) => {
-      if (String(path).includes(STORE)) {
+      if (String(path).includes(BLOCK_STORE_PATH)) {
         counter.reads++
       }
       return readFile.call(handler, path, ...args)
@@ -1399,12 +1377,11 @@ describe('scrub', () => {
 })
 
 describe('scanBlockStore verify', () => {
-  const STORE = 'xo-block-store'
   const data = block(0xaa)
-  const storeCopy = `/${STORE}/${blockRelPath(sha256hex(data))}/0`
+  const storeCopy = `/${BLOCK_STORE_PATH}/${blockRelPath(sha256hex(data))}/0`
 
   const linkedBlock = async () => {
-    const disk = await createDisk({ dedupType: 'PER_BACKUP_REPOSITORY', blockStorePath: STORE })
+    const disk = await createDisk({ dedupType: 'PER_BACKUP_REPOSITORY' })
     await disk.writeBlock({ index: 0, data })
     return disk
   }
@@ -1413,7 +1390,10 @@ describe('scanBlockStore verify', () => {
     await linkedBlock()
     const warned = []
 
-    await scanBlockStore(handler, STORE, { verify: true, logWarn: (message, data) => warned.push(data.path) })
+    await scanBlockStore(handler, {
+      verify: true,
+      logWarn: (message, data) => warned.push(data.path),
+    })
 
     assert.deepEqual(warned, [])
   })
@@ -1425,7 +1405,7 @@ describe('scanBlockStore verify', () => {
     await handler.writeFile(storeCopy, buffer, { flags: 'w' })
     const warned = []
 
-    await scanBlockStore(handler, STORE, {
+    await scanBlockStore(handler, {
       verify: true,
       remove: true,
       logWarn: (message, data) => warned.push(data.path),
@@ -1441,7 +1421,10 @@ describe('scanBlockStore verify', () => {
     await handler.writeFile(storeCopy, buffer.subarray(0, buffer.length - 10), { flags: 'w' })
     const warned = []
 
-    await scanBlockStore(handler, STORE, { verify: true, logWarn: (message, data) => warned.push(data.path) })
+    await scanBlockStore(handler, {
+      verify: true,
+      logWarn: (message, data) => warned.push(data.path),
+    })
 
     assert.deepEqual(warned, [storeCopy])
   })
@@ -1455,17 +1438,16 @@ describe('scanBlockStore verify', () => {
       return readFile.apply(handler, args)
     }
 
-    await scanBlockStore(handler, STORE)
+    await scanBlockStore(handler)
 
     assert.equal(reads, 0)
   })
 })
 
 describe('scrub header trust', () => {
-  const STORE = 'xo-block-store'
   const data = block(0xaa)
   const hash = sha256hex(data)
-  const storeCopy = `/${STORE}/${blockRelPath(hash)}/0`
+  const storeCopy = `/${BLOCK_STORE_PATH}/${blockRelPath(hash)}/0`
   const DAY = 86400e3
 
   const createStoreDisk = (opts = {}) =>
@@ -1476,7 +1458,6 @@ describe('scrub header trust', () => {
       blockSize: BLOCK_SIZE,
       uuid: uuid.v4(),
       dedupType: 'PER_BACKUP_REPOSITORY',
-      blockStorePath: STORE,
       ...opts,
     })
 
@@ -1530,7 +1511,7 @@ describe('scrub header trust', () => {
     const disk = await createStoreDisk({ scrubEnabled: true })
     const readFile = handler.readFile
     handler.readFile = (path, ...args) =>
-      String(path).includes(STORE)
+      String(path).includes(BLOCK_STORE_PATH)
         ? Promise.reject(Object.assign(new Error('EIO: i/o error'), { code: 'EIO' }))
         : readFile.call(handler, path, ...args)
 

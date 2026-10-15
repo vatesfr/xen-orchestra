@@ -21,6 +21,8 @@ export const VERSION = '0.0.1'
 export const HBD_HEADER_SIZE = 512
 export const HBD_MAGIC = 0x48424400
 export const HASH_SIZE = 32 // bytes, on disk
+// the block store, at the remote root: shared by every hashed disk of the remote
+export const BLOCK_STORE_PATH = 'xo-block-store'
 
 // block header field offsets, in bytes (see the layout table at the top of this file)
 const OFFSET_MAGIC = 0

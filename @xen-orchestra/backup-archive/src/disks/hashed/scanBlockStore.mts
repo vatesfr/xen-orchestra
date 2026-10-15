@@ -1,14 +1,13 @@
 import { asyncEach } from '@vates/async-each'
 import type { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { basename, join, normalize } from '@xen-orchestra/fs/path'
-import { asBlockHash, decodeBlock } from './hbdPaths.mjs'
+import { asBlockHash, BLOCK_STORE_PATH, decodeBlock } from './hbdPaths.mjs'
 
 // <store>/<ab>/<cd>/<hash>/<copy>: copies are always at this depth
 const COPY_DEPTH = 4
 
 export async function scanBlockStore(
   handler: RemoteHandlerAbstract,
-  blockStorePath: string,
   {
     remove = false,
     verify = false,
@@ -23,7 +22,6 @@ export async function scanBlockStore(
     logDebug?: (message: string, data?: object) => void
   } = {}
 ): Promise<{ removed: number }> {
-  blockStorePath = normalize(blockStorePath)
   let removed = 0
 
   async function visit(dir: string, depth: number): Promise<void> {
@@ -83,6 +81,6 @@ export async function scanBlockStore(
     }
   }
 
-  await visit(blockStorePath, 0)
+  await visit(normalize(BLOCK_STORE_PATH), 0)
   return { removed }
 }
