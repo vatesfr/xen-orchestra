@@ -34,7 +34,7 @@ export function useXoKubernetesTreeDefinitions(predicate: (node: TreeNodeBase) =
           },
           () => [
             ...defineTree('nodes', [], {
-              getId: 'id',
+              getId: 'node_id',
               getLabel: 'name',
               predicate,
               discriminator: 'kubernetes-node',

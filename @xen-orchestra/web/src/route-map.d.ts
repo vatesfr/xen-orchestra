@@ -228,6 +228,7 @@ declare module 'vue-router/auto-routes' {
       | '/kubernetes/clusters'
       | '/kubernetes/namespace/[id]'
       | '/kubernetes/node/[id]'
+      | '/kubernetes/nodes'
       | '/kubernetes/pod/[id]'
     >,
     '/kubernetes/cluster/[id]': RouteRecordInfo<
@@ -256,6 +257,13 @@ declare module 'vue-router/auto-routes' {
       '/kubernetes/node/:id',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
+      | never
+    >,
+    '/kubernetes/nodes': RouteRecordInfo<
+      '/kubernetes/nodes',
+      '/kubernetes/nodes',
+      Record<never, never>,
+      Record<never, never>,
       | never
     >,
     '/kubernetes/pod/[id]': RouteRecordInfo<
@@ -729,6 +737,7 @@ declare module 'vue-router/auto-routes' {
         | '/kubernetes/clusters'
         | '/kubernetes/namespace/[id]'
         | '/kubernetes/node/[id]'
+        | '/kubernetes/nodes'
         | '/kubernetes/pod/[id]'
       views:
         | 'default'
@@ -754,6 +763,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/kubernetes/node/[id].vue': {
       routes:
         | '/kubernetes/node/[id]'
+      views:
+        | never
+    }
+    'src/pages/kubernetes/nodes.vue': {
+      routes:
+        | '/kubernetes/nodes'
       views:
         | never
     }

@@ -16,7 +16,6 @@ export const useClusterColumns = defineColumns(() => {
     status: useStatusColumn({ headerLabel: () => t('status') }),
     controlPlaneNodes: useNumberColumn({ headerLabel: () => t('control-plane-replicas') }),
     workerNodes: useNumberColumn({ headerLabel: () => t('worker-replicas') }),
-    /* pods: useNumberColumn({ headerLabel: () => t('pods') }), */
     tags: useTagColumn({ headerLabel: () => t('tags') }),
     actions: useActionColumn({}),
   }

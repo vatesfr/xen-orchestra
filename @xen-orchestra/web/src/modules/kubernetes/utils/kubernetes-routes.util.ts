@@ -13,7 +13,7 @@ export function getKubernetesClusterRoute(clusterId: XoKubernetesCluster['id']):
   }
 }
 
-export function getKubernetesNodeRoute(nodeId: XoKubernetesNode['id']): RouteLocationAsRelative {
+export function getKubernetesNodeRoute(nodeId: XoKubernetesNode['node_id']): RouteLocationAsRelative {
   return {
     name: '/kubernetes/node/[id]',
     params: { id: nodeId },

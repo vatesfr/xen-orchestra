@@ -1,6 +1,6 @@
 import type {
   KubernetesClusterPhase,
-  KubernetesClusterStatus,
+  KubernetesReadyStatus,
   XoKubernetesCluster,
 } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { compareStrings } from '@core/utils/compare-strings.util.ts'
@@ -27,9 +27,7 @@ export function isClusterPhaseReady(phase: KubernetesClusterPhase): boolean {
   }
 }
 
-export function clusterReadyStatus(
-  cluster: XoKubernetesCluster
-): Extract<KubernetesClusterStatus, 'ready' | 'not-ready'> {
+export function clusterReadyStatus(cluster: XoKubernetesCluster): KubernetesReadyStatus {
   return cluster.is_available ? 'ready' : 'not-ready'
 }
 

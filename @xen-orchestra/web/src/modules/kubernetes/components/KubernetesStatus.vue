@@ -21,8 +21,6 @@ const { t } = useI18n()
 const currentStatus = useMapper<KubernetesStatus, { text: string; accent: InfoAccent }>(
   () => status,
   () => [
-    ['ready', { text: t('ready'), accent: 'success' }],
-    ['not-ready', { text: t('not-ready'), accent: 'danger' }],
     ['paused', { text: t('yes'), accent: 'warning' }],
     ['not-paused', { text: t('no'), accent: 'muted' }],
     ['Provisioned', { text: t('provisioned'), accent: 'success' }],
