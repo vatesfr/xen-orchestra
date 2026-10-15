@@ -689,6 +689,7 @@ describe('planRpuResume()', () => {
       evacuated: { evacuate: { status: 'observed-succeeded' } },
       updateRunning: { evacuate: { status: 'observed-succeeded' }, update: { status: 'running' } },
       rebootFailed: { ...allSteps('observed-succeeded'), reboot: { status: 'failed' } },
+      rebooting: { ...allSteps('observed-succeeded'), reboot: { status: 'running' }, enable: { status: 'pending' } },
       ignored: allSteps('not-needed'),
     })
     record.hosts.updateRunning.agentStartedAtBeforeUpdate = '1700000000.5'
@@ -704,12 +705,16 @@ describe('planRpuResume()', () => {
       'evacuated',
       'updateRunning',
       'rebootFailed',
+      'rebooting',
     ])
     assert.deepEqual(plan.unfinishedHosts.updateRunning, {
       agentStartedAtBeforeUpdate: '1700000000.5',
       enabledBeforeUpdate: true,
+      rebooting: false,
     })
-    assert.deepEqual([...plan.patchedHostIds], ['done', 'updateRunning', 'rebootFailed'])
+    assert.equal(plan.unfinishedHosts.rebootFailed.rebooting, false)
+    assert.equal(plan.unfinishedHosts.rebooting.rebooting, true)
+    assert.deepEqual([...plan.patchedHostIds], ['done', 'updateRunning', 'rebootFailed', 'rebooting'])
     assert.equal(plan.hostsStarted, true)
   })
 

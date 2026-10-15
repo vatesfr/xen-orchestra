@@ -6,6 +6,8 @@ import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
 
 import { replacer } from './_rpuObservability.mjs'
 
+/** @typedef {import('@vates/types').PoolRollingUpdateRecoveryRun} PoolRollingUpdateRecoveryRun */
+
 const log = createLogger('xo:rpu-recovery')
 
 export const RPU_RECOVERY_SCHEMA_VERSION = 1
@@ -551,6 +553,7 @@ export async function startRpuRecoveryRun({ store, poolId, options }) {
   return createRpuRecoveryRecorder({ store, record })
 }
 
+/** @type {PoolRollingUpdateRecoveryRun['status'][]} */
 const RESUMABLE_STATUSES = ['failed', 'interrupted']
 
 const STEPS_AFTER_EVACUATE = ['update', 'reboot', 'enable']
@@ -576,9 +579,9 @@ const isStepStarted = status => status !== 'pending' && status !== 'not-needed'
  * @param {object} record - Readable record
  * @returns {{ doneHostIds: Set<string>, unfinishedHosts: object, patchedHostIds: Set<string>, hostsStarted: boolean,
  *   hostOrder: string[], vmHomeById: object, haltedPinnedVms: object }} `unfinishedHosts` maps the id of each
- *   unfinished host to its `agentStartedAtBeforeUpdate` and `enabledBeforeUpdate`, `patchedHostIds` are the hosts
- *   whose update started, `hostsStarted` when a host was handled by a previous attempt, the other fields come from
- *   the record
+ *   unfinished host to its `agentStartedAtBeforeUpdate`, its `enabledBeforeUpdate` and whether the previous attempt
+ *   was rebooting it (`rebooting`), `patchedHostIds` are the hosts whose update started, `hostsStarted` when a host
+ *   was handled by a previous attempt, the other fields come from the record
  */
 export function planRpuResume(record) {
   const doneHostIds = new Set()
@@ -593,7 +596,11 @@ export function planRpuResume(record) {
     if (status('evacuate') === 'observed-succeeded' && STEPS_AFTER_EVACUATE.every(name => isStepOver(status(name)))) {
       doneHostIds.add(hostId)
     } else if (['evacuate', ...STEPS_AFTER_EVACUATE].some(name => isStepStarted(status(name)))) {
-      unfinishedHosts[hostId] = { agentStartedAtBeforeUpdate, enabledBeforeUpdate }
+      unfinishedHosts[hostId] = {
+        agentStartedAtBeforeUpdate,
+        enabledBeforeUpdate,
+        rebooting: status('reboot') === 'running',
+      }
     }
   }
   return {
