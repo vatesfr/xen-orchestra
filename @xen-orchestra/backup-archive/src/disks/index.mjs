@@ -4,7 +4,6 @@ export { RemoteDisk } from './RemoteDisk.mjs'
 export { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 export { openDiskChain } from './openDiskChain.mjs'
 export { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
-export { HashedDiskDeduplicated } from './hashed/HashedDiskDeduplicated.mjs'
 
 const DISK_EXTENSIONS = ['.vhd', '.hbd']
 

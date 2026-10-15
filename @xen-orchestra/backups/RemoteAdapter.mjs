@@ -28,6 +28,8 @@ import { watchStreamSize } from './_watchStreamSize.mjs'
 
 import { RemoteVhdDisk, openDiskChain, openDisposableDisk } from '@xen-orchestra/backup-archive/disks'
 import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
+import { writeHbd } from '@xen-orchestra/backup-archive/disks/hashed'
+
 import { ReadAhead } from '@xen-orchestra/disk-transform'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
@@ -73,6 +75,10 @@ export class RemoteAdapter {
     return await Disposable.use(openDisposableDisk({ handler: this.handler, path, ignoreBlockIndexes: true }), disk =>
       disk.isMergeableParent(stringify(packedParentUid))
     )
+  }
+
+  get #diskFormat() {
+    return this.handler.getConfig('diskFormat')
   }
 
   // Single funnel for all the backup deletions triggered by a user or by retention: forgets them
@@ -225,12 +231,16 @@ export class RemoteAdapter {
     return this.useVhdDirectory()
   }
 
-  // if we use alias on this remote, we have to name the file alias.vhd
+  // if we use alias on this remote, we have to name the file alias.{vhd|hbd}
   getDiskFileName(baseName) {
-    if (this.#useAlias()) {
-      return `${baseName}.alias.vhd`
+    if (this.#diskFormat === 'hbd') {
+      return `${baseName}.hbd`
+    } else {
+      if (this.#useAlias()) {
+        return `${baseName}.alias.vhd`
+      }
+      return `${baseName}.vhd`
     }
-    return `${baseName}.vhd`
   }
 
   async listAllVms() {
@@ -482,31 +492,43 @@ export class RemoteAdapter {
 
   async writeDisk(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
     const handler = this._handler
-
-    if (this.useVhdDirectory()) {
-      return await writeToVhdDirectory({
-        disk,
-        target: {
-          handler,
-          path,
+    const diskFormat = this.#diskFormat
+    switch (diskFormat) {
+      case 'vhd': {
+        const stream = await toVhdStream(disk, { uuid, parentUuid, parentPath })
+        const size = await this.outputStream(path, stream, {
+          validator,
+          // no checksum for VHDs, because they will be invalidated by
+          // merges and chains
+          checksum: false,
+        })
+        await validator(path)
+        return size
+      }
+      case 'vhdDirectory':
+        return await writeToVhdDirectory({
+          disk,
+          target: {
+            handler,
+            path,
+            concurrency: writeBlockConcurrency,
+            validator,
+            compression: handler.getConfig('compressionType') ?? 'brotli', // compatibility layer
+            uuid,
+            parentUuid,
+            parentPath,
+          },
+        })
+      case 'hbd':
+        return await writeHbd(handler, path, disk, {
+          uuid: stringify(uuid),
+          parentUuid: parentUuid && stringify(parentUuid),
+          parentPath,
           concurrency: writeBlockConcurrency,
           validator,
-          compression: handler.getConfig('compressionType') ?? 'brotli', // compatibility layer
-          uuid,
-          parentUuid,
-          parentPath,
-        },
-      })
-    } else {
-      const stream = await toVhdStream(disk, { uuid, parentUuid, parentPath })
-      const size = await this.outputStream(path, stream, {
-        validator,
-        // no checksum for VHDs, because they will be invalidated by
-        // merges and chains
-        checksum: false,
-      })
-      await validator(path)
-      return size
+        })
+      default:
+        throw new Error(`unknown disk format ${diskFormat} for ${path}`)
     }
   }
 
