@@ -291,7 +291,6 @@
   "cloud-config": "Cloud config",
   "cloud-init-config": "Configuration Cloud-init",
   "cluster": "Cluster",
-  "cluster-class": "Cluster class",
   "cluster-delete-warning": "La suppression de ce cluster Kubernetes est définitive et ne peut pas être annulée. Toutes les ressources, charges de travail et configurations associées pourraient devenir indisponibles. Assurez-vous que le cluster n'est plus en cours d'utilisation avant de confirmer. | La suppression de ces clusters Kubernetes est définitive et ne peut pas être annulée. Toutes les ressources, charges de travail et configurations associées pourraient devenir indisponibles. Assurez-vous que les clusters ne sont plus en cours d'utilisation avant de confirmer.",
   "cluster-missing": "Cluster manquant",
   "cluster-name": "Nom du cluster",
@@ -892,6 +891,7 @@
   "news-name": "Actualités {name}",
   "nfs": "NFS",
   "nic-type": "Type de carte réseau (NIC)",
+  "no": "Non",
   "no-active-backup-jobs": "Il n'y a aucune tâche de sauvegarde active sur ce site.",
   "no-alarm-detected": "Aucune alarme détectée",
   "no-alarm-triggered": "Aucune alarme déclenchée",
@@ -982,7 +982,6 @@
   "page-please-wait": "Accrochez-vous, astronaute ! La page est sur le point de décoller.{newline}Nous alignons les propulseurs et calibrons les systèmes. Plus que quelques instants, restez à l'écoute !",
   "pagination:all": "Tous",
   "partially-connected": "Partiellement connecté",
-  "partially-ready": "Partiellement prêt",
   "password": "Mot de passe",
   "password-invalid": "Mot de passe incorrect",
   "password-required": "Le mot de passe est requis.",
@@ -1472,6 +1471,7 @@
   "xoa-ssh-account": "Compte SSH de la XOA",
   "xoa-ssh-password-confirm-different": "La confirmation du mot de passe SSH est différente",
   "xva": "XVA",
+  "yes": "Oui",
   "you-are-currently-on": "Vous êtes actuellement sur : {0}",
   "zstd": "ZSTD"
 }

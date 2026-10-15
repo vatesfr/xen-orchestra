@@ -18,6 +18,9 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('paused') }}</template>
+        <template #value>
+          <KubernetesStatus :status="isPaused" />
+        </template>
       </VtsCardRowKeyValue>
     </div>
   </UiPanelCard>
@@ -25,10 +28,11 @@
 
 <script setup lang="ts">
 import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.vue'
-import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
+import type { KubernetesClusterStatus, XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { cluster } = defineProps<{
@@ -36,6 +40,8 @@ const { cluster } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const isPaused = computed<KubernetesClusterStatus>(() => (cluster.is_reconciliation_paused ? 'paused' : 'not-paused'))
 </script>
 
 <style scoped lang="postcss">

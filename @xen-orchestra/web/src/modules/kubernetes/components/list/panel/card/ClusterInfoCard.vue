@@ -22,15 +22,8 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('version') }}</template>
         <template #value>{{ version }}</template>
-        <template #addons>
+        <template v-if="version" #addons>
           <VtsCopyButton :value="version" />
-        </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('cluster-class') }}</template>
-        <template #value>{{ clusterClass }}</template>
-        <template #addons>
-          <VtsCopyButton :value="clusterClass" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -50,7 +43,7 @@
 import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.vue'
 import { useXoKubernetesClusterUtils } from '@/modules/kubernetes/composables/xo-kubernetes-cluster-utils.composable.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { clusterStatus } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
+import { clusterReadyStatus, clusterVersion } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { getKubernetesClusterRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
 import { kubernetesTagsToStrings } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -75,11 +68,9 @@ const clusterRoute = computed(() => getKubernetesClusterRoute(cluster.id))
 
 const displayTags = computed(() => kubernetesTagsToStrings(cluster.tags))
 
-const version = computed(() => '')
+const version = computed(() => clusterVersion(cluster))
 
-const clusterClass = computed(() => '')
-
-const status = computed(() => clusterStatus(cluster))
+const status = computed(() => clusterReadyStatus(cluster))
 </script>
 
 <style scoped lang="postcss">

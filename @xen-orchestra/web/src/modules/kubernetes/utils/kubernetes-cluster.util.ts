@@ -3,6 +3,7 @@ import type {
   KubernetesClusterStatus,
   XoKubernetesCluster,
 } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 
 export function isClusterDeletable(phase: KubernetesClusterPhase): boolean {
   switch (phase) {
@@ -26,17 +27,16 @@ export function isClusterPhaseReady(phase: KubernetesClusterPhase): boolean {
   }
 }
 
-export function clusterStatus(cluster: XoKubernetesCluster): KubernetesClusterStatus {
-  const isPhaseReady = isClusterPhaseReady(cluster.phase)
-  const isControlPlaneInitialized = false
-  const isInfrastructureProvisioned = false
+export function clusterReadyStatus(
+  cluster: XoKubernetesCluster
+): Extract<KubernetesClusterStatus, 'ready' | 'not-ready'> {
+  return cluster.is_available ? 'ready' : 'not-ready'
+}
 
-  // TODO if (isPhaseReady && isControlPlaneInitialized && isInfrastructureProvisioned) {
-  if (isPhaseReady) {
-    return 'ready'
-  } else if (!isPhaseReady && !isControlPlaneInitialized && !isInfrastructureProvisioned) {
-    return 'not-ready'
-  } else {
-    return 'partially-ready'
-  }
+export function clusterVersion(cluster: XoKubernetesCluster): string {
+  const versions = [...cluster.control_plane_status.versions, ...cluster.worker_status.versions].map(
+    ({ version }) => version
+  )
+
+  return [...new Set(versions)].sort(compareStrings).join('/')
 }

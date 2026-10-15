@@ -22,8 +22,9 @@ const currentStatus = useMapper<KubernetesStatus, { text: string; accent: InfoAc
   () => status,
   () => [
     ['ready', { text: t('ready'), accent: 'success' }],
-    ['partially-ready', { text: t('partially-ready'), accent: 'warning' }],
     ['not-ready', { text: t('not-ready'), accent: 'danger' }],
+    ['paused', { text: t('yes'), accent: 'warning' }],
+    ['not-paused', { text: t('no'), accent: 'muted' }],
     ['Provisioned', { text: t('provisioned'), accent: 'success' }],
     ['Provisioning', { text: t('provisioning'), accent: 'info' }],
     ['Running', { text: t('running'), accent: 'success' }],

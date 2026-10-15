@@ -291,7 +291,6 @@
   "cloud-config": "Cloud config",
   "cloud-init-config": "Cloud-init config",
   "cluster": "Cluster",
-  "cluster-class": "Cluster class",
   "cluster-delete-warning": "Deleting this Kubernetes cluster is permanent and cannot be undone. All associated resources, workloads, and configurations may become unavailable. Make sure this cluster is no longer in use before confirming. | Deleting these Kubernetes clusters is permanent and cannot be undone. All associated resources, workloads, and configurations may become unavailable. Make sure these clusters are no longer in use before confirming.",
   "cluster-missing": "Cluster is missing",
   "cluster-name": "Cluster name",
@@ -892,6 +891,7 @@
   "news-name": "{name} news",
   "nfs": "NFS",
   "nic-type": "NIC type",
+  "no": "No",
   "no-active-backup-jobs": "There are no active backup jobs on this site.",
   "no-alarm-detected": "No alarms detected",
   "no-alarm-triggered": "No alarm triggered",
@@ -982,7 +982,6 @@
   "page-please-wait": "Hold tight, astronaut! The page is getting ready to take off.{newline}We're just aligning the thrusters and calibrating the systems. It won't be long now, stay tuned!",
   "pagination:all": "@:all",
   "partially-connected": "Partially connected",
-  "partially-ready": "Partially ready",
   "password": "Password",
   "password-invalid": "Password invalid",
   "password-required": "Password is required.",
@@ -1472,6 +1471,7 @@
   "xoa-ssh-account": "XOA SSH account",
   "xoa-ssh-password-confirm-different": "SSH password confirmation is different",
   "xva": "XVA",
+  "yes": "Yes",
   "you-are-currently-on": "You are currently on: {0}",
   "zstd": "ZSTD"
 }

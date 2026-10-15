@@ -30,7 +30,6 @@ export type Status =
   | 'allow'
   | 'drop'
   | 'ready'
-  | 'partially-ready'
   | 'not-ready'
   | true
   | false
@@ -64,7 +63,6 @@ const currentStatus = useMapper<Status, { text: string; accent: InfoAccent }>(
     ['allow', { text: t('allow'), accent: 'success' }],
     ['drop', { text: t('drop'), accent: 'danger' }],
     ['ready', { text: t('ready'), accent: 'success' }],
-    ['partially-ready', { text: t('partially-ready'), accent: 'warning' }],
     ['not-ready', { text: t('not-ready'), accent: 'danger' }],
     [true, { text: t('enabled'), accent: 'success' }],
     [false, { text: t('disabled'), accent: 'muted' }],

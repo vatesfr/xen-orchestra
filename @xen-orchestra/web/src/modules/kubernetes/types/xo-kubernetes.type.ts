@@ -1,6 +1,6 @@
 import type { Status } from '@core/components/status/VtsStatus.vue'
 
-export type KubernetesClusterStatus = Extract<Status, 'ready' | 'partially-ready' | 'not-ready'>
+export type KubernetesClusterStatus = Extract<Status, 'ready' | 'not-ready'> | 'paused' | 'not-paused'
 
 export type KubernetesClusterPhase =
   | 'Pending'
@@ -23,11 +23,18 @@ export type XoKubernetesRoot = {
   type: 'kubernetes'
 }
 
+export type XoKubernetesReplicasVersion = {
+  replicas: number
+  version: string
+}
+
 export type XoKubernetesNodesStatus = {
   available_replicas: number
   desired_replicas: number
   ready_replicas: number
+  up_to_date_replicas: number
   replicas: number
+  versions: XoKubernetesReplicasVersion[]
 }
 
 export type XoKubernetesCluster = {
@@ -35,6 +42,8 @@ export type XoKubernetesCluster = {
   control_plane_status: XoKubernetesNodesStatus
   created_at: string
   id: string
+  is_available: boolean
+  is_reconciliation_paused: boolean
   name: string
   phase: KubernetesClusterPhase
   tags: Record<string, string> | null
