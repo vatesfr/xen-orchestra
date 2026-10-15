@@ -1470,12 +1470,39 @@ export const isPubKeyTooShort = host => {
   return _call('host.isPubKeyTooShort', { id: host.id })
 }
 
+const getMasterPatchesWarningId = async host => {
+  const { master } = getObject(store.getState(), host.$pool)
+  if (master === host.id) {
+    return
+  }
+
+  if (getObject(store.getState(), master).power_state !== 'Running') {
+    return 'installAllPatchesOnHostMasterUnknown'
+  }
+
+  const masterMissingPatches = await getHostMissingPatches(master)
+  if (masterMissingPatches === null) {
+    return 'installAllPatchesOnHostMasterUnknown'
+  }
+
+  if (masterMissingPatches.length > 0) {
+    return 'installAllPatchesOnHostMasterNotUpToDate'
+  }
+}
+
 // for XCP-ng now
-export const installAllPatchesOnHost = ({ host }) =>
-  confirm({
+export const installAllPatchesOnHost = async ({ host }) => {
+  const masterPatchesWarningId = await getMasterPatchesWarningId(host)
+
+  return confirm({
     body: (
       <div>
         <p>{_('installAllPatchesOnHostContent')}</p>
+        {masterPatchesWarningId !== undefined && (
+          <p className='text-danger'>
+            <Icon icon='alarm' /> {_(masterPatchesWarningId)}
+          </p>
+        )}
         <p className='text-warning'>
           {_('installAllPatchesXostorWarning')}
           <br />
@@ -1491,6 +1518,7 @@ export const installAllPatchesOnHost = ({ host }) =>
       subscribeHostMissingPatches.forceRefresh(host)
     )
   )
+}
 
 export const installPatches = (patches, pool) =>
   confirm({

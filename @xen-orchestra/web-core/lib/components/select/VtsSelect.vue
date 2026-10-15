@@ -1,5 +1,5 @@
 <template>
-  <div :class="className" class="vts-select">
+  <div ref="rootRef" :class="className" class="vts-select">
     <UiInput
       ref="triggerRef"
       :accent
@@ -53,7 +53,7 @@ import {
   useFormSelectController,
 } from '@core/packages/form-select'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { useCurrentElement, useElementSize } from '@vueuse/core'
+import { useElementSize } from '@vueuse/core'
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -86,11 +86,13 @@ const {
   isLoading,
 } = select as FormSelect
 
-const { triggerRef, dropdownRef, searchRef, isOpen, floatingStyles } = useFormSelectController(select as FormSelect)
+const { rootRef, triggerRef, dropdownRef, searchRef, isOpen, floatingStyles } = useFormSelectController(
+  select as FormSelect
+)
 
 const className = computed(() => toVariants({ accent }))
 
-const { width } = useElementSize(useCurrentElement())
+const { width } = useElementSize(rootRef)
 
 const minWidth = computed(() => `${width.value}px`)
 
@@ -106,7 +108,6 @@ defineExpose({
   }
 }
 
-/* Teleported */
 .dropdown-list {
   min-width: v-bind(minWidth);
   max-height: 36.2rem; /* 8 Dropdown items */

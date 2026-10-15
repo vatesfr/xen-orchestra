@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label :message="messages">
-    <UiInput v-model.trim="model" accent="brand" :type :required :placeholder :prefix @blur="emit('blur')" />
+    <UiInput v-model.trim="model" accent="brand" :type :required :disabled :placeholder :prefix @blur="emit('blur')" />
   </VtsInputWrapper>
 </template>
 
@@ -16,6 +16,7 @@ const { info, error } = defineProps<{
   info?: string
   error?: InputWrapperMessage
   required?: boolean
+  disabled?: boolean
   placeholder?: string
   prefix?: string
   type?: InputType

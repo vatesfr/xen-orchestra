@@ -144,7 +144,12 @@ const textMappingsByObject: TextMappingByObject = {
     detach: {
       title: t('modal:confirm-host-detach?', { host: hostName }),
       message: t('modal:host-detach-message'),
-      action: t('action:detach'),
+      action: t('action:detach-host'),
+    },
+    'emergency-shutdown': {
+      title: t('modal:confirm-host-emergency-shutdown?', { host: hostName }),
+      message: t('modal:host-emergency-shutdown-message'),
+      action: t('action:emergency-shutdown-host'),
     },
   },
 }

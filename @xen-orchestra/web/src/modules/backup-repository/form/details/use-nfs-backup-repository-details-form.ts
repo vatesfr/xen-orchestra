@@ -15,20 +15,25 @@ const INITIAL_FORM_DATA = {
   customOptions: '',
 }
 
-export function useNfsBackupRepositoryDetailsForm() {
+export type NfsBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
+
+export function useNfsBackupRepositoryDetailsForm(initialData?: Partial<NfsBackupRepositoryDetailsFormData>) {
   const { t } = useI18n()
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(INITIAL_FORM_DATA, {
-    errors: {
-      onBlur: () => ({
-        port: { port: withMessage(port, () => t('invalid-port')) },
-      }),
-      onSubmit: () => ({
-        host: { required },
-        path: { required },
-      }),
-    },
-  })
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+    { ...INITIAL_FORM_DATA, ...initialData },
+    {
+      errors: {
+        onBlur: () => ({
+          port: { port: withMessage(port, () => t('invalid-port')) },
+        }),
+        onSubmit: () => ({
+          host: { required },
+          path: { required },
+        }),
+      },
+    }
+  )
 
   const bindings = reactive({
     host: useField('host', () => ({ label: t('host-or-ip-address'), required: true })),

@@ -1,6 +1,6 @@
 <template>
   <div class="vts-key-value-row" :class="{ mobile: uiStore.isSmallOrMedium }">
-    <VtsKeyValuePair :label :value>
+    <VtsKeyValuePair :label :value :copy :copy-value>
       <template v-if="slots.label" #label>
         <slot name="label" />
       </template>
@@ -12,13 +12,10 @@
 </template>
 
 <script lang="ts" setup>
-import VtsKeyValuePair from '@core/components/key-value-pair/VtsKeyValuePair.vue'
+import VtsKeyValuePair, { type KeyValuePairProps } from '@core/components/key-value-pair/VtsKeyValuePair.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 
-defineProps<{
-  label?: string
-  value?: string
-}>()
+defineProps<KeyValuePairProps>()
 
 const slots = defineSlots<{
   label?(): any

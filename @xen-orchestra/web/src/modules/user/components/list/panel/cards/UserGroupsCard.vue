@@ -1,11 +1,6 @@
 <template>
   <UiPanelCard class="user-groups-card">
-    <UiCardTitle>
-      <div class="title">
-        {{ t('groups') }}
-        <UiCounter :value="userGroups.length" accent="neutral" size="small" variant="primary" />
-      </div>
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('groups')" :counter="userGroups.length" />
 
     <div v-if="userGroups.length > 0">
       <template v-for="group in userGroups" :key="group.id">
@@ -30,10 +25,9 @@ import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-co
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -54,12 +48,6 @@ const { t } = useI18n()
 
 <style scoped lang="postcss">
 .user-groups-card {
-  .title {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-  }
-
   .group-list {
     display: flex;
     gap: 0.6rem;

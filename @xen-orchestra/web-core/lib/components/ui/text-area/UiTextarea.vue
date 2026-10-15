@@ -4,7 +4,7 @@
     <UiLabel v-if="slots.default" :accent="labelAccent" :required :href :for="id">
       <slot />
     </UiLabel>
-    <textarea v-bind="attrs" :id ref="textarea" v-model="model" :disabled class="textarea" />
+    <textarea v-bind="attrs" :id ref="textarea" v-model="model" :disabled class="textarea typo-body-regular" />
     <UiCharacterLimit v-if="maxCharacters" :count="model.trim().length" :max="maxCharacters" />
     <UiInfo v-if="slots.info" accent="info">
       <slot name="info" />
@@ -79,6 +79,7 @@ const labelAccent = computed(() => {
   .textarea {
     border-radius: 0.4rem;
     border-width: 0.1rem;
+    border-style: solid;
     background-color: var(--color-neutral-background-primary);
     height: 8rem;
     outline: none;
