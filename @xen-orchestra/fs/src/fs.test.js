@@ -110,6 +110,30 @@ handlers.forEach(url => {
       })
     })
 
+    // no hard links on object storage
+    describe('#getLinkCount()', () => {
+      it('counts one link for a plain file', { skip: skipFsNotInAzure() }, async () => {
+        await handler.outputFile('file', TEST_DATA)
+        assert.equal(await handler.getLinkCount('file'), 1)
+      })
+
+      it('counts every name sharing the file', { skip: skipFsNotInAzure() }, async () => {
+        await handler.outputFile('file', TEST_DATA)
+        await handler.link('file', 'dir/other')
+
+        assert.equal(await handler.getLinkCount('file'), 2)
+        assert.equal(await handler.getLinkCount('dir/other'), 2)
+      })
+
+      it('returns 0 for a missing file, like after its last unlink', { skip: skipFsNotInAzure() }, async () => {
+        assert.equal(await handler.getLinkCount('missing'), 0)
+
+        await handler.outputFile('file', TEST_DATA)
+        await handler.unlink('file')
+        assert.equal(await handler.getLinkCount('file'), 0)
+      })
+    })
+
     describe('#list()', () => {
       it(`should list the content of folder`, async () => {
         await handler.outputFile('file', TEST_DATA)

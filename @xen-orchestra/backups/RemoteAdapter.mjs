@@ -218,7 +218,7 @@ export class RemoteAdapter {
   }
 
   useVhdDirectory() {
-    return this.handler.getConfig('useVhdDirectory')
+    return this.handler.getConfig('diskFormat') === 'vhdDirectory'
   }
 
   #useAlias() {

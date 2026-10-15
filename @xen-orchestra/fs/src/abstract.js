@@ -36,6 +36,11 @@ const DEFAULT_MAX_PARALLEL_OPERATIONS = 10
 const ENCRYPTION_DESC_FILENAME = 'encryption.json'
 const ENCRYPTION_METADATA_FILENAME = 'metadata.json'
 
+// value of a remote option the remote URL does not set
+const CONFIG_DEFAULTS = {
+  diskFormat: 'vhd',
+}
+
 const WITH_LIMIT = [
   'closeFile',
   'copy',
@@ -162,7 +167,12 @@ export default class RemoteHandlerAbstract {
   }
 
   getConfig(key) {
-    return this._remote[key]
+    const value = this._remote[key]
+    if (value === undefined && key === 'diskFormat') {
+      // handle legacy
+      return this._remote.useVhdDirectory ? 'vhdDirectory' : 'vhd'
+    }
+    return value ?? CONFIG_DEFAULTS[key]
   }
 
   constructor(remote, options = {}) {

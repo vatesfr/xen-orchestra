@@ -85,6 +85,18 @@ describe('getConfig()', () => {
   it('reads the remote-level compressionType override', () => {
     assert.equal(new TestHandler({ compressionType: 'brotli' }).getConfig('compressionType'), 'brotli')
   })
+
+  it('defaults diskFormat to vhd when the remote does not set it', () => {
+    assert.equal(new TestHandler().getConfig('diskFormat'), 'vhd')
+  })
+
+  it('defaults useVhdDirectory is undefined', () => {
+    assert.equal(new TestHandler().getConfig('useVhdDirectory'), undefined)
+  })
+
+  it('reads the remote-level diskFormat', () => {
+    assert.equal(new TestHandler({ diskFormat: 'hbd' }).getConfig('diskFormat'), 'hbd')
+  })
 })
 
 describe('getInfo()', () => {

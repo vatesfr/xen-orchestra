@@ -458,7 +458,7 @@ export class RemoteVhdDisk extends RemoteDisk {
       return false
     }
 
-    const useVhdDirectory = this.#handler.getConfig('useVhdDirectory') ?? false
+    const useVhdDirectory = this.#handler.getConfig('diskFormat') === 'vhdDirectory'
     const compressionType = this.#handler.getConfig('compressionType') ?? 'brotli'
     const isDirectory = await this.isDirectory()
     return isDirectory ? useVhdDirectory && this.#getCompressionType() === compressionType : !useVhdDirectory
