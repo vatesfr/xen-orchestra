@@ -210,7 +210,7 @@ export default class Jobs {
       key: job.key,
       type,
     }
-    const runJobId = logger.notice(`Starting execution of ${id}.`, jobData)
+    const runJobId = await logger.notice(`Starting execution of ${id}.`, jobData, true)
     const app = this._app
     // Links the backup log to the job run
     // We keep the jobs for this because of some mechanism related to jobs, like preventing double execution.
