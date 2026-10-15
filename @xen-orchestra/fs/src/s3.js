@@ -48,8 +48,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
   #minPartSize
 
   getConfig(key) {
-    if (key === 'useVhdDirectory') {
-      return true // compatibility layer
+    if (key === 'diskFormat') {
+      return 'vhdDirectory'
     }
     return super.getConfig(key)
   }
