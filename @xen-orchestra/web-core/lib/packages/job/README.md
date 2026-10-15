@@ -28,7 +28,7 @@ const userIdArg = defineJobArg<string>({
 })
 
 const itemsArg = defineJobArg<Item>({
-  identify: item => item.id, // `Item` not being a primitive, we need to use a function to get its identity
+  identify: item => item.id, // `Item` not being a primitive, we need to use a function to get its identity (never called with `undefined`, so `validate` can report a missing argument)
   toArray: true, // this argument will always be converted to an array if needed
 })
 

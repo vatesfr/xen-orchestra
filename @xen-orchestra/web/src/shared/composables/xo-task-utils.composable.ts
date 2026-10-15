@@ -40,27 +40,25 @@ export function useXoTaskUtils() {
         reject(new Error(`task ID: ${taskId} never received`))
       }, 2000)
 
-      const stop = watch(
-        task,
-        task => {
-          if (task !== undefined) {
-            clearTimeout(timeout)
-            if (task.status === 'success') {
-              cleanup()
-              resolve(task.result as TResult)
-            } else if (task.status === 'failure') {
-              cleanup()
-              reject(normalizeError(task.result, taskId))
-            } else if (task.status !== 'pending') {
-              cleanup()
-              reject(normalizeError(task.result, taskId))
-            }
-          }
-        },
-        {
-          immediate: true,
+      function handleTask(task: FrontXoTask | undefined) {
+        if (task === undefined) {
+          return
         }
-      )
+
+        clearTimeout(timeout)
+        if (task.status === 'success') {
+          cleanup()
+          resolve(task.result as TResult)
+        } else if (task.status !== 'pending') {
+          cleanup()
+          reject(normalizeError(task.result, taskId))
+        }
+      }
+
+      const stop = watch(task, handleTask)
+
+      // Handle the initial value only once `stop` is initialized, as the task may already be settled
+      handleTask(task.value)
 
       function cleanup() {
         stop()

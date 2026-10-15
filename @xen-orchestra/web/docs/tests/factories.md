@@ -12,6 +12,7 @@ Domain objects are created through factories in `src/test/`, one per object type
 | `createVbd`        | `FrontXoVbd`        |
 | `createVdi`        | `FrontXoVdi`        |
 | `createVmSnapshot` | `FrontXoVmSnapshot` |
+| `createPlugin`     | `FrontXoPlugin`     |
 | `createHostStats`  | `XapiHostStats`     |
 | `createVmStats`    | `XapiVmStats`       |
 | `createPoolStats`  | `XapiPoolStats`     |
