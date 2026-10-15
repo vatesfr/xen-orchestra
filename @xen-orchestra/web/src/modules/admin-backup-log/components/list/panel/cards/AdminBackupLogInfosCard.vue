@@ -115,10 +115,9 @@
 import { useXoBackupLogsUtils } from '@/modules/backup/composables/xo-backup-log-utils.composable.ts'
 import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import { getBackupLogSrIds, getBackupLogVmIds } from '@/modules/backup/utils/xo-backup-log.util.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
-import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -178,19 +177,9 @@ const runRoute = computed<RouteLocationAsRelative | undefined>(() => {
   }
 })
 
-const vmTasks = computed(() => (backupLog.tasks ?? []).filter(task => task.data?.type === 'VM'))
+const vms = computed(() => getBackupLogVmIds(backupLog).map(id => getVmById(id)))
 
-const vms = computed(() => vmTasks.value.map(vmTask => getVmById(vmTask.data!.id as FrontXoVm['id'])))
-
-const srs = computed(() =>
-  [
-    ...new Set(
-      vmTasks.value.flatMap(vmTask =>
-        (vmTask.tasks ?? []).filter(task => task.data?.type === 'SR').map(task => task.data!.id as FrontXoSr['id'])
-      )
-    ),
-  ].map(id => ({ id, sr: getSrById(id) }))
-)
+const srs = computed(() => getBackupLogSrIds(backupLog).map(id => ({ id, sr: getSrById(id) })))
 </script>
 
 <style scoped lang="postcss">

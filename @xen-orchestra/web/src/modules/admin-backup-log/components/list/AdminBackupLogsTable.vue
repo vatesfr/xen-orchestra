@@ -22,8 +22,8 @@
 import type { BackupLogFilterableData } from '@/modules/admin-backup-log/types.ts'
 import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.js'
+import { getBackupLogSrIds, getBackupLogVmIds } from '@/modules/backup/utils/xo-backup-log.util.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
-import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -102,21 +102,11 @@ const { HeadCells, BodyCells } = useAdminBackupLogColumns({
   body: (log: BackupLogFilterableData) => {
     const href = computed(() => buildXo5Route(`/backup/${log.jobId}/edit`))
 
-    const vmTasks = computed(() => (log.tasks ?? []).filter(task => task.data?.type === 'VM'))
+    const vmIds = computed(() => getBackupLogVmIds(log))
 
-    const firstVm = computed(() => {
-      const vmId = vmTasks.value[0]?.data!.id as FrontXoVm['id'] | undefined
+    const firstVm = computed(() => getVmById(vmIds.value[0]))
 
-      return vmId !== undefined ? getVmById(vmId) : undefined
-    })
-
-    const srIds = computed(() => [
-      ...new Set(
-        vmTasks.value.flatMap(vmTask =>
-          (vmTask.tasks ?? []).filter(task => task.data?.type === 'SR').map(task => task.data!.id as FrontXoSr['id'])
-        )
-      ),
-    ])
+    const srIds = computed(() => getBackupLogSrIds(log))
 
     const firstSrId = computed(() => srIds.value[0])
 
@@ -131,9 +121,9 @@ const { HeadCells, BodyCells } = useAdminBackupLogColumns({
               label: firstVm.value.name_label,
               to: { name: '/vm/[id]/dashboard', params: { id: firstVm.value.id } },
               icon: objectIcon('vm', toLower(firstVm.value.power_state)),
-              extraCount: vmTasks.value.length - 1,
+              extraCount: vmIds.value.length - 1,
             })
-          : r({ label: t('vm-not-found'), icon: 'status:warning-circle', extraCount: vmTasks.value.length - 1 }),
+          : r({ label: t('vm-not-found'), icon: 'status:warning-circle', extraCount: vmIds.value.length - 1 }),
       sr: r =>
         firstSr.value !== undefined
           ? r({
