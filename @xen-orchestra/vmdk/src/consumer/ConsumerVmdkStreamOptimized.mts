@@ -66,11 +66,8 @@ export interface ConsumerVmdkStreamOptimizedOptions {
 
 /** everything the generator needs, computed before the first byte is emitted */
 interface GenerationContext {
-  readonly withLength: boolean
   readonly capacitySectors: number
-  readonly nbTotalGrains: number
   readonly nbGrainTables: number
-  readonly grainDirectorySize: number
   readonly descriptor: Buffer
   /** end of the descriptor, where the data starts */
   readonly afterDescriptor: number
@@ -82,8 +79,6 @@ interface GenerationContext {
   readonly nbAllocatedGrains?: number
   /** grain tables of a `streaming` disk, filled while the grains are generated */
   readonly grainTables: Map<number, Buffer>
-  /** where the two grain directories ended up, the copy of the header has to point to them */
-  readonly emitted: { gd?: number; rgd?: number }
 }
 
 /**
@@ -234,21 +229,29 @@ export class ConsumerVmdkStreamOptimized {
     }
   }
 
-  *#yieldTables(context: GenerationContext): Generator<Buffer, void, unknown> {
-    for (let copy = 0; copy < 2; copy++) {
-      yield* this.#trackAndYield(this.#createMetadataMarker(MARKER_GT))
-      const firstGrainTableSector = this.#toSectorOffset(this.#offset)
-      yield* this.#yieldGrainTables(context)
-      yield* this.#trackAndYield(this.#createMetadataMarker(MARKER_GD))
-      const directorySector = this.#toSectorOffset(this.#offset)
-      yield* this.#trackAndYield(this.#createGrainDirectory(context.nbGrainTables, firstGrainTableSector))
-      // the first copy is the redundant one
-      if (copy === 0) {
-        context.emitted.rgd = directorySector
-      } else {
-        context.emitted.gd = directorySector
-      }
-    }
+  /**
+   * Yields one copy of the tables: marker, grain tables, marker, grain directory
+   *
+   * @returns the sector of its grain directory
+   */
+  *#yieldTablesCopy(context: GenerationContext): Generator<Buffer, number, unknown> {
+    yield* this.#trackAndYield(this.#createMetadataMarker(MARKER_GT))
+    const firstGrainTableSector = this.#toSectorOffset(this.#offset)
+    yield* this.#yieldGrainTables(context)
+    yield* this.#trackAndYield(this.#createMetadataMarker(MARKER_GD))
+    const directorySector = this.#toSectorOffset(this.#offset)
+    yield* this.#trackAndYield(this.#createGrainDirectory(context.nbGrainTables, firstGrainTableSector))
+    return directorySector
+  }
+
+  /**
+   * @returns the sectors of the two grain directories, the copy of the header has to point to them
+   */
+  *#yieldTables(context: GenerationContext): Generator<Buffer, { gd: number; rgd: number }, unknown> {
+    // the first copy is the redundant one
+    const rgd = yield* this.#yieldTablesCopy(context)
+    const gd = yield* this.#yieldTablesCopy(context)
+    return { gd, rgd }
   }
 
   async *#yieldGrains(context: GenerationContext, signal?: AbortSignal): AsyncGenerator<Buffer, void, unknown> {
@@ -300,7 +303,7 @@ export class ConsumerVmdkStreamOptimized {
   }
 
   async *#generate(context: GenerationContext, signal?: AbortSignal): AsyncGenerator<Buffer, void, unknown> {
-    const { withLength } = context
+    const { expectedStreamLength } = context
     signal?.throwIfAborted()
     // the tables come after the data in both layouts, so a reader has to look for the copy of the
     // header at `fileSize - 1024` to know where they are. Writing them first is what a stream
@@ -311,19 +314,19 @@ export class ConsumerVmdkStreamOptimized {
     assert.strictEqual(this.#offset, context.afterDescriptor, 'descriptor aligned')
 
     yield* this.#yieldGrains(context, signal)
-    if (withLength) {
-      const beforeTables = context.expectedStreamLength! - context.tablesSize - context.tailSize
+    if (expectedStreamLength !== undefined) {
+      const beforeTables = expectedStreamLength - context.tablesSize - context.tailSize
       yield* this.#yieldPadding(beforeTables - this.#offset)
       assert.strictEqual(this.#offset, beforeTables, 'grains aligned')
     }
-    yield* this.#yieldTables(context)
+    const directories = yield* this.#yieldTables(context)
 
     yield* this.#trackAndYield(this.#createMetadataMarker(MARKER_FOOTER))
-    yield* this.#trackAndYield(this.#packHeader(context, { gd: context.emitted.gd!, rgd: context.emitted.rgd! }))
+    yield* this.#trackAndYield(this.#packHeader(context, directories))
     yield* this.#trackAndYield(this.#createMetadataMarker(MARKER_EOS))
 
-    if (context.expectedStreamLength !== undefined) {
-      assert.strictEqual(this.#offset, context.expectedStreamLength, 'stream length')
+    if (expectedStreamLength !== undefined) {
+      assert.strictEqual(this.#offset, expectedStreamLength, 'stream length')
     }
   }
 
@@ -366,15 +369,11 @@ export class ConsumerVmdkStreamOptimized {
       afterDescriptor,
       capacitySectors,
       descriptor,
-      emitted: {},
       expectedStreamLength,
-      grainDirectorySize,
       grainTables: new Map(),
       nbAllocatedGrains,
       nbGrainTables,
-      nbTotalGrains,
       overheadSectors: afterDescriptor / SECTOR_SIZE,
-      withLength,
       tablesSize,
       tailSize,
     }
