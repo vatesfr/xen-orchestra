@@ -226,7 +226,7 @@ export class RemoteAdapter {
   }
 
   // if we use alias on this remote, we have to name the file alias.vhd
-  getVhdFileName(baseName) {
+  getDiskFileName(baseName) {
     if (this.#useAlias()) {
       return `${baseName}.alias.vhd`
     }
@@ -480,7 +480,7 @@ export class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
+  async writeDisk(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
     const handler = this._handler
 
     if (this.useVhdDirectory()) {

@@ -205,7 +205,7 @@ describe('RemoteAdapter#isMergeableParent compression resolution', { concurrency
 
 const DEFAULT_BLOCK_SIZE = 0x00200000 // 2MB, from vhd-lib spec
 
-// minimal source disk, enough for writeVhd() to produce a real, readable VHD
+// minimal source disk, enough for writeDisk() to produce a real, readable VHD
 class MockDisk extends RandomAccessDisk {
   #size
   #blockIndexes
@@ -258,9 +258,9 @@ describe('RemoteAdapter#writeVhd validated by checkDisk', { concurrency: 1 }, ()
 
     test(`${mode}: writes a base disk that passes validation and reads back`, async () => {
       const adapter = await getAdapter({ useVhdDirectory })
-      const path = `${basePath}/${adapter.getVhdFileName('base')}`
+      const path = `${basePath}/${adapter.getDiskFileName('base')}`
 
-      const size = await adapter.writeVhd(path, new MockDisk(2, [0, 1], 0x42), {
+      const size = await adapter.writeDisk(path, new MockDisk(2, [0, 1], 0x42), {
         validator: tmpPath => checkDisk(handler, tmpPath),
         uuid: uniqueIdBuffer(),
       })
@@ -280,15 +280,15 @@ describe('RemoteAdapter#writeVhd validated by checkDisk', { concurrency: 1 }, ()
 
     test(`${mode}: writes a differencing disk chained to its parent that passes validation`, async () => {
       const adapter = await getAdapter({ useVhdDirectory })
-      const parentPath = `${basePath}/${adapter.getVhdFileName('20000101T000000Z')}`
-      const childPath = `${basePath}/${adapter.getVhdFileName('20000102T000000Z')}`
+      const parentPath = `${basePath}/${adapter.getDiskFileName('20000101T000000Z')}`
+      const childPath = `${basePath}/${adapter.getDiskFileName('20000102T000000Z')}`
       const parentUuid = uniqueIdBuffer()
 
-      await adapter.writeVhd(parentPath, new MockDisk(2, [0, 1], 0xaa), {
+      await adapter.writeDisk(parentPath, new MockDisk(2, [0, 1], 0xaa), {
         validator: tmpPath => checkDisk(handler, tmpPath),
         uuid: parentUuid,
       })
-      await adapter.writeVhd(childPath, new MockDisk(2, [1], 0xbb, { differencing: true }), {
+      await adapter.writeDisk(childPath, new MockDisk(2, [1], 0xbb, { differencing: true }), {
         validator: tmpPath => checkDisk(handler, tmpPath),
         uuid: uniqueIdBuffer(),
         parentUuid,
@@ -304,10 +304,10 @@ describe('RemoteAdapter#writeVhd validated by checkDisk', { concurrency: 1 }, ()
 
     test(`${mode}: a rejected validation leaves no disk behind`, async () => {
       const adapter = await getAdapter({ useVhdDirectory })
-      const path = `${basePath}/${adapter.getVhdFileName('base')}`
+      const path = `${basePath}/${adapter.getDiskFileName('base')}`
 
       await assert.rejects(
-        adapter.writeVhd(path, new MockDisk(1, [0], 0x11), {
+        adapter.writeDisk(path, new MockDisk(1, [0], 0x11), {
           validator: async () => {
             throw new Error('boom')
           },

@@ -225,7 +225,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
               // don't do delta for it
               vdi.uuid
             : vdi.$snapshot_of$uuid
-        }/${adapter.getVhdFileName(filenameDate)}`
+        }/${adapter.getDiskFileName(filenameDate)}`
     )
 
     let metadataContent = await this._isAlreadyTransferred(timestamp)
@@ -273,7 +273,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             parentPath = relativeFromFile(path, parentDestPath)
           }
 
-          const transferred = await adapter.writeVhd(path, disk, {
+          const transferred = await adapter.writeDisk(path, disk, {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chains
             checksum: false,
