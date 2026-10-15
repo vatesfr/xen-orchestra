@@ -7,7 +7,6 @@ import {
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { ONE_GB } from '@/shared/constants.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { objectIcon } from '@core/icons'
 import { required } from '@core/packages/form-validation'
@@ -43,7 +42,7 @@ export function useVdiMigrateForm(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
   })
 
   const { srs, useGetSrById } = useXoSrCollection()
-  const { getSrLocation } = useXoSrUtils()
+  const { getSrSelectLabel } = useXoSrUtils()
   const { pbdsBySr } = useXoPbdCollection()
 
   const availableSrs = computed(() =>
@@ -69,10 +68,7 @@ export function useVdiMigrateForm(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
     required: true,
     placeholder: () => t('action:select-storage'),
     option: {
-      label: sr => {
-        const gbLeft = Math.floor(Math.max(sr.size - sr.physical_usage, 0) / ONE_GB)
-        return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
-      },
+      label: sr => getSrSelectLabel(sr),
       value: 'id',
       properties: sr => ({ icon: objectIcon('sr', getPbdsConnectionStatus(pbdsBySr.value.get(sr.id) ?? [])) }),
     },
