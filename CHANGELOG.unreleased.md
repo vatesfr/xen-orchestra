@@ -101,7 +101,6 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
-- vectura patch
 - xen-api minor
 - xo-cli patch
 - xo-server minor
