@@ -19,6 +19,7 @@
 </template>
 
 <script setup lang="ts">
+import type { BackupLogFilterableData } from '@/modules/admin-backup-log/types.ts'
 import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.js'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
@@ -26,19 +27,19 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
 import { objectIcon } from '@core/icons'
+import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
+import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
+import { useAdminBackupLogColumns } from '@core/tables/column-sets/admin-backup-log-columns.ts'
+import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { formatDate } from '@vueuse/core'
-import VtsQueryBuilder from '@xen-orchestra/web-core/components/query-builder/VtsQueryBuilder.vue'
-import VtsRow from '@xen-orchestra/web-core/components/table/VtsRow.vue'
-import VtsTable from '@xen-orchestra/web-core/components/table/VtsTable.vue'
-import UiTitle from '@xen-orchestra/web-core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@xen-orchestra/web-core/composables/pagination.composable.ts'
-import { useRouteQuery } from '@xen-orchestra/web-core/composables/route-query.composable.ts'
-import { useTableState } from '@xen-orchestra/web-core/composables/table-state.composable.ts'
-import { useQueryBuilderSchema } from '@xen-orchestra/web-core/packages/query-builder/schema/use-query-builder-schema.ts'
-import { useQueryBuilderFilter } from '@xen-orchestra/web-core/packages/query-builder/use-query-builder-filter.ts'
-import { useAdminBackupLogColumns } from '@xen-orchestra/web-core/tables/column-sets/admin-backup-log-columns.ts'
-import { useStringSchema } from '@xen-orchestra/web-core/utils/query-builder/use-string-schema.ts'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -62,8 +63,6 @@ const { getVmById } = useXoVmCollection()
 const { getSrById } = useXoSrCollection()
 
 const { getSrStatusIcon } = useXoSrUtils()
-
-type BackupLogFilterableData = FrontXoBackupLog & { jobName: string | undefined }
 
 const filterableBackupLogs = computed(() =>
   backupLogs.map(log => ({ ...log, jobName: getBackupJobById(log.jobId)?.name }))

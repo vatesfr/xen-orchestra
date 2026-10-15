@@ -18,7 +18,6 @@ import { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { watch } from 'vue'
 
 const { backupLogs, areBackupLogsReady, hasBackupLogFetchError, getBackupLogById } = useXoBackupLogCollection()
 
@@ -26,14 +25,6 @@ const selectedBackupLog = useRouteQuery<FrontXoBackupLog | undefined>('id', {
   toData: id => getBackupLogById(id as FrontXoBackupLog['id']),
   toQuery: backupLog => backupLog?.id ?? '',
 })
-
-watch(
-  backupLogs,
-  value => {
-    console.log('[backup-logs]', JSON.parse(JSON.stringify(value)))
-  },
-  { immediate: true }
-)
 </script>
 
 <style scoped lang="postcss">

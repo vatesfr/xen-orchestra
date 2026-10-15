@@ -146,7 +146,7 @@ const type = 'run'
 
 const { buildXo5Route } = useXoRoutes()
 
-const { getBackupJobById } = useXoBackupJobCollection()
+const { useGetBackupJobById } = useXoBackupJobCollection()
 
 const { getVmById } = useXoVmCollection()
 
@@ -160,11 +160,11 @@ const formattedStartDate = computed(() => formatDate(new Date(backupLog.start), 
 
 const duration = computed(() => getBackupLogDuration(backupLog))
 
-const job = computed(() => (backupLog.jobId !== undefined ? getBackupJobById(backupLog.jobId) : undefined))
+const job = useGetBackupJobById(() => backupLog.jobId)
 
-const jobHref = computed(() => buildXo5Route(`/backup/${backupLog.jobId}/edit`))
+const jobHref = computed(() => buildXo5Route('/settings/remotes'))
 
-const logHref = computed(() => buildXo5Route(`/backup/overview?s_logs=1_0_asc-${backupLog.id}`))
+const logHref = computed(() => buildXo5Route('/settings/remotes'))
 
 const runRoute = computed<RouteLocationAsRelative | undefined>(() => {
   if (backupLog.jobId === undefined) {

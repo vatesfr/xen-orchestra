@@ -5,6 +5,8 @@ import { useI18n } from 'vue-i18n'
 
 type BackupLogTask = NonNullable<FrontXoBackupLog['tasks']>[number]
 
+type VmTransfer = { size: number; start: number; end: number | undefined }
+
 export function useXoBackupLogsUtils() {
   const { d } = useI18n()
 
@@ -38,11 +40,13 @@ export function useXoBackupLogsUtils() {
     ].join(':')
   }
 
-  const hasMessage = (task: BackupLogTask, message: string) => 'message' in task && task.message === message
+  function hasMessage(task: BackupLogTask, message: string) {
+    return 'message' in task && task.message === message
+  }
 
   // Same as XO5: only the direct `transfer` children of `export` tasks are counted (not the health check restore),
   // and a single transfer per VM, even with multiple targets
-  const findVmTransferTask = (vmTask: BackupLogTask): BackupLogTask | undefined => {
+  function findVmTransfer(vmTask: BackupLogTask): VmTransfer | undefined {
     for (const exportTask of vmTask.tasks ?? []) {
       if (!hasMessage(exportTask, 'export')) {
         continue
@@ -50,7 +54,7 @@ export function useXoBackupLogsUtils() {
 
       for (const task of exportTask.tasks ?? []) {
         if (hasMessage(task, 'transfer') && task.status === 'success' && typeof task.result?.size === 'number') {
-          return task
+          return { size: task.result.size, start: task.start, end: task.end }
         }
       }
     }
@@ -58,10 +62,11 @@ export function useXoBackupLogsUtils() {
     return undefined
   }
 
-  const findVmTransferSize = (vmTask: BackupLogTask): number | undefined =>
-    findVmTransferTask(vmTask)?.result?.size as number | undefined
+  function findVmTransferSize(vmTask: BackupLogTask): number | undefined {
+    return findVmTransfer(vmTask)?.size
+  }
 
-  const findTransferTaskSize = (vmTasks: FrontXoBackupLog['tasks']): number | undefined => {
+  function findTransferTaskSize(vmTasks: FrontXoBackupLog['tasks']): number | undefined {
     return vmTasks?.reduce((totalSize: number | undefined, vmTask) => {
       const vmTransferSize = findVmTransferSize(vmTask)
 
@@ -80,17 +85,17 @@ export function useXoBackupLogsUtils() {
   // Total transferred size divided by the time between the start of the first transfer and the end of the last one,
   // so that parallel transfers are not counted twice
   function getTransferSpeed(backupLog: FrontXoBackupLog): number | undefined {
-    const transferTasks = (backupLog.tasks ?? [])
-      .map(vmTask => findVmTransferTask(vmTask))
-      .filter((task): task is BackupLogTask & { end: number } => task?.end !== undefined)
+    const transfers = (backupLog.tasks ?? [])
+      .map(vmTask => findVmTransfer(vmTask))
+      .filter((transfer): transfer is VmTransfer & { end: number } => transfer?.end !== undefined)
 
-    if (transferTasks.length === 0) {
+    if (transfers.length === 0) {
       return undefined
     }
 
-    const size = transferTasks.reduce((totalSize, task) => totalSize + (task.result!.size as number), 0)
-    const start = Math.min(...transferTasks.map(task => task.start))
-    const end = Math.max(...transferTasks.map(task => task.end))
+    const size = transfers.reduce((totalSize, transfer) => totalSize + transfer.size, 0)
+    const start = Math.min(...transfers.map(transfer => transfer.start))
+    const end = Math.max(...transfers.map(transfer => transfer.end))
 
     if (end <= start) {
       return undefined

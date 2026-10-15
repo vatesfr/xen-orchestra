@@ -31,6 +31,7 @@
 - [Mirror] The full mirrors between unencrypted remotes reuse the checksum of the source instead of computing it again (PR [#10537](https://github.com/vatesfr/xen-orchestra/pull/10537))
 - [SDN Controller] Fix events listening and stale objects on server reconnection (PR [#10440](https://github.com/vatesfr/xen-orchestra/pull/10440))
 - [BRs] Add backup repository detail page (PR [#10454](https://github.com/vatesfr/xen-orchestra/pull/10454))
+- [Backup logs] Add backup log list in admin menu (PR [#10572](https://github.com/vatesfr/xen-orchestra/pull/10572))
 
 - Host Probe SR REST API Endpoints:
 
