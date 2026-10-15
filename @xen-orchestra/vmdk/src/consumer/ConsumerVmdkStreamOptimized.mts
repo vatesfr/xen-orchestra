@@ -346,8 +346,8 @@ export class ConsumerVmdkStreamOptimized {
       geometry: this.#geometry ?? computeGeometry(virtualSize),
     })
 
-    // the tables are always written as: marker, grain tables, marker, grain directory - twice, the
-    // first copy being the redundant one. Only their position changes with the layout.
+    // the tables are always written after the grains, which ESXi requires, as: marker, grain tables,
+    // marker, grain directory - twice, the first copy being the redundant one.
     const tablesSize = 2 * (SECTOR_SIZE + nbGrainTables * GRAIN_TABLE_SIZE + SECTOR_SIZE + grainDirectorySize)
     // marker, copy of the header, end of stream marker
     const tailSize = 3 * SECTOR_SIZE
