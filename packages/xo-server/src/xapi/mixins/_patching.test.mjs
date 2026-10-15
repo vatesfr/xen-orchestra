@@ -1,6 +1,7 @@
 import assert from 'assert/strict'
 import test from 'node:test'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
+import { TimeoutError } from 'promise-toolbox'
 import { incorrectState } from 'xo-common/api-errors.js'
 
 import patchingMethods, { supportsRpuRecovery } from './patching.mjs'
@@ -76,12 +77,19 @@ class FakeXapi {
   }
 
   // a host by uuid, or the metrics of a host by ref
-  getObject(id) {
+  getObject(id, ...defaultValue) {
     const host = this.hosts.find(host => host.uuid === id)
     if (host !== undefined) {
       return host
     }
-    return { live: this.hosts.find(host => host.metrics === id).live }
+    const hostOfMetrics = this.hosts.find(host => host.metrics === id)
+    if (hostOfMetrics !== undefined) {
+      return { live: hostOfMetrics.live }
+    }
+    if (defaultValue.length !== 0) {
+      return defaultValue[0]
+    }
+    throw new Error(`no such object ${id}`)
   }
 
   async _waitObjectState(id, predicate) {
@@ -261,8 +269,8 @@ describe('rollingPoolUpdate', function () {
       haltedPinnedVms: {},
     })
     // host-B, touched by the previous attempt before its reboot
-    const unfinishedB = (enabledBeforeUpdate = true) =>
-      resumeOf(true, { 'host-B': { agentStartedAtBeforeUpdate: '2000', enabledBeforeUpdate } })
+    const unfinishedB = ({ enabledBeforeUpdate = true, rebooting = false } = {}) =>
+      resumeOf(true, { 'host-B': { agentStartedAtBeforeUpdate: '2000', enabledBeforeUpdate, rebooting } })
 
     const resumeUpdate = (xapi, resume) => {
       const observedSteps = []
@@ -354,11 +362,49 @@ describe('rollingPoolUpdate', function () {
       assert.deepEqual(xapi.steps, [[]])
     })
 
+    it('fails the run on an enable call which hangs', async function (t) {
+      t.mock.timers.enable({ apis: ['setTimeout'] })
+      const xapi = new FakeXapi([0, 0])
+      Object.assign(xapi.hosts[1], { enabled: false, other_config: { boot_time: '3000' } })
+      xapi.enableHost = () => new Promise(() => {})
+
+      const ticker = setInterval(() => t.mock.timers.tick(5e3), 1)
+      const { error } = await resumeUpdate(xapi, unfinishedB()).finally(() => clearInterval(ticker))
+
+      assert.ok(error instanceof TimeoutError, error)
+      assert.deepEqual(xapi.steps, [])
+    })
+
+    it('neither reboots nor updates an unfinished host the run did not patch, and enables it', async function () {
+      const xapi = new FakeXapi([0, 0])
+      // patched by hand after its evacuation, not rebooted since
+      xapi.hosts[1].enabled = false
+      const resume = { ...unfinishedB(), patchedHostIds: new Set(['host-A']) }
+
+      const { error } = await resumeUpdate(xapi, resume)
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.steps, [[]])
+      assert.deepEqual(xapi.installs, [])
+      assert.deepEqual(xapi.enabledHosts, ['host-B'])
+      assert.deepEqual([...xapi.resume.doneHostIds], ['host-A', 'host-B'])
+    })
+
+    it('ignores an unfinished host which left the pool', async function () {
+      const xapi = new FakeXapi([0, 2])
+      const resume = resumeOf(true, { 'host-C': { agentStartedAtBeforeUpdate: '2000', enabledBeforeUpdate: true } })
+
+      const { error } = await resumeUpdate(xapi, resume)
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.steps, [['host-B']])
+    })
+
     it('leaves disabled an unfinished host the operator had disabled', async function () {
       const xapi = new FakeXapi([0, 0])
       Object.assign(xapi.hosts[1], { enabled: false, other_config: { boot_time: '3000' } })
 
-      const { error } = await resumeUpdate(xapi, unfinishedB(false))
+      const { error } = await resumeUpdate(xapi, unfinishedB({ enabledBeforeUpdate: false }))
 
       assert.equal(error, undefined)
       assert.deepEqual(xapi.enabledHosts, [])
@@ -380,6 +426,20 @@ describe('rollingPoolUpdate', function () {
 
       assert.equal(error, undefined)
       // rebooted: nothing left to do on it
+      assert.deepEqual(xapi.steps, [[]])
+    })
+
+    it('waits for a reboot the previous attempt started although XAPI reports the host live', async function () {
+      const xapi = new FakeXapi([0, 0])
+      const host = xapi.hosts[1]
+      // live, its boot_time not refreshed yet
+      host.startAgent = async () => {
+        host.other_config = { boot_time: '3000', agent_start_time: '3100' }
+      }
+
+      const { error } = await resumeUpdate(xapi, unfinishedB({ rebooting: true }))
+
+      assert.equal(error, undefined)
       assert.deepEqual(xapi.steps, [[]])
     })
 

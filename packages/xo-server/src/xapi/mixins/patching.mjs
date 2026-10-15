@@ -50,6 +50,8 @@ const PENDING_GUIDANCES_LEVEL = {
   full: 2,
 }
 
+const ENABLE_HOST_TIMEOUT = 60e3
+
 const log = createLogger('xo:xapi')
 
 const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
@@ -765,14 +767,23 @@ const methods = {
       recorder.setVariant(isXcp ? 'xcp' : 'xs-cdn')
     }
 
+    // a host forgotten or ejected since the previous attempt has nothing left
+    // to do
+    const unfinishedHosts = pickBy(
+      resume.unfinishedHosts,
+      (_, hostId) => this.getObject(hostId, undefined) !== undefined
+    )
+
     // a host the previous attempt was rebooting may not be back yet. XAPI
-    // reports it live before refreshing its `boot_time`, read below: wait for
-    // the agent of the new boot too. A host not live without restarting (lost
-    // heartbeat) never gets a new agent: the resume fails on the timeout, the
-    // next one goes on with the host live
-    await asyncEach(Object.keys(resume.unfinishedHosts), async hostId => {
+    // reports it live before refreshing its `boot_time`, read below, and still
+    // live until it goes down: wait for the agent of the new boot too. A host
+    // not live without restarting (lost heartbeat), or whose reboot never
+    // started, never gets a new agent: the resume fails on the timeout, the
+    // next one goes on with the host live and its reboot step reset
+    await asyncEach(Object.entries(unfinishedHosts), async ([hostId, { agentStartedAtBeforeUpdate, rebooting }]) => {
       const { metrics, other_config } = this.getObject(hostId)
-      if (this.getObject(metrics, undefined)?.live) {
+      const rebootPending = rebooting && +other_config.boot_time <= +agentStartedAtBeforeUpdate
+      if (this.getObject(metrics, undefined)?.live && !rebootPending) {
         return
       }
       const agentStartTime = other_config.agent_start_time
@@ -878,37 +889,37 @@ const methods = {
 
     // what is left on the hosts a previous attempt did not finish: with no
     // missing patches, the update is not installed again, and the reboot only
-    // happens if the host did not reboot since the run touched it
+    // happens if the run patched the host and it did not reboot since. Like on
+    // a first attempt, a host patched outside of the run is not rebooted
     const doneHostIds = new Set(resume.doneHostIds)
     const rebootOnlyHostIds = new Set()
-    for (const [hostId, { agentStartedAtBeforeUpdate, enabledBeforeUpdate }] of Object.entries(
-      resume.unfinishedHosts
-    )) {
+    for (const [hostId, { agentStartedAtBeforeUpdate, enabledBeforeUpdate }] of Object.entries(unfinishedHosts)) {
       if (hasMissingPatchesByHost[hostId]) {
         continue
       }
       const host = this.getObject(hostId)
       // boot_time, unlike agent_start_time, is not changed by a toolstack restart
-      if (+host.other_config.boot_time > +agentStartedAtBeforeUpdate) {
-        // left disabled by the previous attempt, nothing is left to do on it
-        if (!host.enabled && enabledBeforeUpdate !== false) {
-          await Task.run({ properties: { name: 'Enabling host', hostId, hostName: host.name_label } }, () =>
-            // XAPI refuses until the end of the host startup, which comes after
-            // its agent started
-            pRetry(() => this.enableHost(hostId), {
-              delay: 5e3,
-              tries: 60,
-              when: { code: 'HOST_STILL_BOOTING' },
-            })
-          )
-        }
-        for (const name of ['evacuate', 'update', 'reboot', 'enable']) {
-          recorder.stepObserved(hostId, name)
-        }
-        doneHostIds.add(hostId)
-      } else {
+      if (resume.patchedHostIds.has(hostId) && +host.other_config.boot_time <= +agentStartedAtBeforeUpdate) {
         rebootOnlyHostIds.add(hostId)
+        continue
       }
+      // left disabled by the previous attempt, nothing is left to do on it
+      if (!host.enabled && enabledBeforeUpdate !== false) {
+        await Task.run({ properties: { name: 'Enabling host', hostId, hostName: host.name_label } }, () =>
+          // XAPI refuses until the end of the host startup, which comes after
+          // its agent started. A call which hangs fails the run instead of
+          // stalling it
+          pRetry(() => timeout.call(this.enableHost(hostId), ENABLE_HOST_TIMEOUT), {
+            delay: 5e3,
+            tries: 60,
+            when: { code: 'HOST_STILL_BOOTING' },
+          })
+        )
+      }
+      for (const name of ['evacuate', 'update', 'reboot', 'enable']) {
+        recorder.stepObserved(hostId, name)
+      }
+      doneHostIds.add(hostId)
     }
 
     await Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
