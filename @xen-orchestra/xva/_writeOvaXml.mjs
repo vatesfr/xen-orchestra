@@ -4,17 +4,26 @@ import { fromCallback } from 'promise-toolbox'
 import { v4 as uuid } from 'uuid'
 import defaultsDeep from 'lodash.defaultsdeep'
 
+import { DEFAULT_NETWORK } from './templates/network.mjs'
+import { DEFAULT_SR } from './templates/sr.mjs'
 import { DEFAULT_VBD } from './templates/vbd.mjs'
 import { DEFAULT_VDI } from './templates/vdi.mjs'
 import { DEFAULT_VIF } from './templates/vif.mjs'
 import { DEFAULT_VM } from './templates/vm.mjs'
 import toOvaXml from './_toOvaXml.mjs'
-import { XVA_DISK_CHUNK_LENGTH } from './_writeDisk.mjs'
+import { XVA_DISK_CHUNK_LENGTH } from './_constants.mjs'
 
+/**
+ * write the ova.xml file describing the VM, its VDIs, VBDs and VIFs
+ *
+ * `vdis[i]` is the metadata of the VDI backed by `[...vhds, ...disks][i]`
+ *
+ * @returns {Promise<Array<{ref: string, virtualSize: number}>>} the ref (in ova.xml) and the size of the VDI of each backing disk
+ */
 export default async function writeOvaXml(
   pack,
-  { memory, networks, nCpus, firmware, vdis, vhds, ...vmSnapshot },
-  { sr, network }
+  { memory, networks, nCpus, firmware, vdis = [], vhds = [], disks = [], ...vmSnapshot },
+  { sr, network } = {}
 ) {
   let refId = 0
   function nextRef() {
@@ -66,26 +75,43 @@ export default async function writeOvaXml(
     {
       class: 'SR',
       id: nextRef(),
-      snapshot: sr,
+      // only list the VDIs of this XVA, and don't mutate the record passed by the caller
+      snapshot: { ...sr, VDIs: [] },
     },
     {
       snapshot: {
-        VDIs: [],
+        // an unknown SR will be replaced by the SR used during the import
+        uuid: uuid(),
       },
-    }
+    },
+    // xapi needs all the fields of the record
+    DEFAULT_SR
   )
 
   data.objects.push(srObj)
-  assert.strictEqual(vhds.length, vdis.length)
-  for (let index = 0; index < vhds.length; index++) {
+  const backingDisks = [...vhds, ...disks]
+  assert.strictEqual(backingDisks.length, vdis.length)
+  const vdiRefs = []
+  for (let index = 0; index < backingDisks.length; index++) {
     const userdevice = index + 1
-    const vhd = vhds[index]
-    const alignedSize = Math.ceil(vdis[index].virtual_size / XVA_DISK_CHUNK_LENGTH) * XVA_DISK_CHUNK_LENGTH
+    const backingDisk = backingDisks[index]
+    const vdiMetadata = vdis[index] ?? {}
+    // legacy VHD must provide the size in the VDI metadata
+    const diskSize = index >= vhds.length ? backingDisk.getVirtualSize() : undefined
+    const virtualSize = vdiMetadata.virtual_size ?? diskSize
+    assert.ok(virtualSize > 0, `virtual_size of disk ${index} must be known`)
+    if (diskSize !== undefined) {
+      assert.ok(
+        virtualSize >= diskSize,
+        `virtual_size ${virtualSize} of VDI ${index} can't be smaller than its disk ${diskSize}`
+      )
+    }
+    const alignedSize = Math.ceil(virtualSize / XVA_DISK_CHUNK_LENGTH) * XVA_DISK_CHUNK_LENGTH
     const vdi = defaultsDeep(
       {
         id: nextRef(),
         // overwrite SR from an opaque ref to a ref:
-        snapshot: { ...vdis[index], SR: srObj.id, virtual_size: alignedSize },
+        snapshot: { ...vdiMetadata, SR: srObj.id, virtual_size: alignedSize },
       },
       {
         snapshot: {
@@ -97,7 +123,7 @@ export default async function writeOvaXml(
 
     data.objects.push(vdi)
     srObj.snapshot.VDIs.push(vdi.id)
-    vhd.ref = vdi.id
+    vdiRefs.push({ ref: vdi.id, virtualSize: alignedSize })
 
     const vbd = defaultsDeep(
       {
@@ -122,13 +148,11 @@ export default async function writeOvaXml(
       {
         class: 'network',
         id: nextRef(),
-        snapshot: network,
+        // only list the VIFs of this XVA, and don't mutate the record passed by the caller
+        snapshot: { ...network, VIFs: [] },
       },
-      {
-        snapshot: {
-          vifs: [],
-        },
-      }
+      // xapi needs all the fields of the record
+      DEFAULT_NETWORK
     )
     data.objects.push(networkObj)
     let vifIndex = 0
@@ -148,9 +172,10 @@ export default async function writeOvaXml(
         DEFAULT_VIF
       )
       data.objects.push(vif)
-      networkObj.snapshot.vifs.push(vif.id)
+      networkObj.snapshot.VIFs.push(vif.id)
     }
   }
   const xml = toOvaXml(data)
   await fromCallback.call(pack, pack.entry, { name: `ova.xml` }, xml)
+  return vdiRefs
 }
