@@ -460,6 +460,30 @@ export type XoPool = BaseXapiXo & {
   zstdSupported: boolean
 }
 
+export type XoPlugin = {
+  autoload: boolean
+  /** secret values (e.g. passwords) are obfuscated */
+  configuration?: Record<string, unknown>
+  configurationPresets?: Record<string, Record<string, unknown>>
+  /** JSON schema describing the expected configuration, undefined if the plugin is not configurable */
+  configurationSchema?: Record<string, unknown>
+  /**
+   * whether the plugin can be loaded: not configurable, configured, or accepting an empty configuration
+   * (in which case it has no saved `configuration`)
+   */
+  configured: boolean
+  description?: string
+  id: Branded<'plugin'>
+  keywords?: string[]
+  loaded?: boolean
+  name: string
+  testable: boolean
+  /** JSON schema describing the data expected by the plugin test */
+  testSchema?: Record<string, unknown>
+  unloadable: boolean
+  version?: string
+}
+
 export type XoProxy = {
   id: Branded<'proxy'>
   url: string
@@ -701,6 +725,7 @@ export type XoTask = {
       | 'backup-log'
       | 'backup-repository'
       | 'group'
+      | 'plugin'
       | 'proxy'
       | 'restore'
       | 'restore-log'
@@ -916,6 +941,7 @@ export type NonXapiXoRecord =
   | AnyXoLog
   | XoAuthenticationToken
   | XoGroup
+  | XoPlugin
   | XoProxy
   | XoJob
   | XoBackupRepository

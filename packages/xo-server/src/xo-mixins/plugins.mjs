@@ -122,6 +122,7 @@ export default class {
     const {
       configurationPresets,
       configurationSchema,
+      configured,
       description,
       keywords,
       loaded,
@@ -145,6 +146,7 @@ export default class {
       configuration: Obfuscate.obfuscate(configuration),
       configurationPresets,
       configurationSchema,
+      configured,
       testable,
       testSchema,
     }
@@ -258,8 +260,20 @@ export default class {
   }
 
   async purgePluginConfiguration(id) {
+    const plugin = this._getRawPlugin(id)
+
     await this.unloadPlugin(id).catch(noop)
     await this._pluginsMetadata.merge(id, { configuration: undefined })
+
+    if (plugin.configurationSchema !== undefined) {
+      // like at registration, the plugin stays configured only if an empty configuration is valid
+      plugin.configured = false
+      try {
+        await this._configurePlugin(plugin, {})
+      } catch (error) {
+        log.info('plugin not configured after its configuration was deleted', { error, plugin: id })
+      }
+    }
   }
 
   async testPlugin(id, data) {
