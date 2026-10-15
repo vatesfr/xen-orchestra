@@ -78,8 +78,8 @@ interface GenerationContext {
   readonly tailSize: number
   readonly overheadSectors: number
   readonly expectedStreamLength?: number
-  /** allocated grains of the disk, only built for the `withLength` layout */
-  readonly bitmap?: Uint8Array
+  /** number of allocated grains of the disk, only counted for the `withLength` layout */
+  readonly nbAllocatedGrains?: number
   /** grain tables of a `streaming` disk, filled while the grains are generated */
   readonly grainTables: Map<number, Buffer>
   /** where the two grain directories ended up, the copy of the header has to point to them */
@@ -138,23 +138,17 @@ export class ConsumerVmdkStreamOptimized {
   }
 
   /**
-   * Scans every grain index once to build the presence bitmap and the allocated grain count, used
-   * by the `withLength` layout to compute the tables - and the length of the output - before
-   * generating anything. Yields back to the event loop periodically so that a huge virtual disk
+   * Scans every grain index once to count the allocated grains, used by the `withLength` layout to
+   * compute the length of the output before generating anything. Yields back to the event loop periodically so that a huge virtual disk
    * does not block Node for seconds at a stretch, like `ConsumerQcowStream` does.
    */
-  async #buildGrainPresenceIndex(
-    nbTotalGrains: number,
-    signal?: AbortSignal
-  ): Promise<{ bitmap: Uint8Array; nbAllocatedGrains: number }> {
+  async #countAllocatedGrains(nbTotalGrains: number, signal?: AbortSignal): Promise<number> {
     const disk = this.#disk
-    const bitmap = new Uint8Array(Math.ceil(nbTotalGrains / 8))
     let nbAllocatedGrains = 0
 
     let lastYield = process.hrtime.bigint()
     for (let i = 0; i < nbTotalGrains; i++) {
       if (disk.hasBlock(i)) {
-        bitmap[i >> 3] |= 1 << (i & 7)
         nbAllocatedGrains++
       }
       // check the clock every 65536 grains: cheap enough to not affect throughput, frequent enough
@@ -169,7 +163,7 @@ export class ConsumerVmdkStreamOptimized {
       }
     }
 
-    return { bitmap, nbAllocatedGrains }
+    return nbAllocatedGrains
   }
 
   /**
@@ -216,11 +210,6 @@ export class ConsumerVmdkStreamOptimized {
     })
   }
 
-  #hasGrain(context: GenerationContext, index: number): boolean {
-    const bitmap = context.bitmap!
-    return (bitmap[index >> 3] & (1 << (index & 7))) !== 0
-  }
-
   *#yieldGrainTables(context: GenerationContext): Generator<Buffer, void, unknown> {
     const empty = Buffer.alloc(GRAIN_TABLE_SIZE)
     for (let i = 0; i < context.nbGrainTables; i++) {
@@ -263,16 +252,10 @@ export class ConsumerVmdkStreamOptimized {
   }
 
   async *#yieldGrains(context: GenerationContext, signal?: AbortSignal): AsyncGenerator<Buffer, void, unknown> {
-    const { withLength } = context
-    // index of the next allocated grain, only used by the `withLength` layout to check that the block
-    // generator agrees with the block indexes the presence index was built from
-    let cursor = 0
-    const nextAllocatedGrain = () => {
-      while (cursor < context.nbTotalGrains && !this.#hasGrain(context, cursor)) {
-        cursor++
-      }
-      return cursor
-    }
+    const { nbAllocatedGrains } = context
+    // the `withLength` layout only budgets the grains counted before the generation: fail as soon as
+    // the block generator goes past them, instead of when the padding turns negative
+    let nbGeneratedGrains = 0
     let previous = -1
     let truncated = false
 
@@ -293,14 +276,11 @@ export class ConsumerVmdkStreamOptimized {
       }
       const grain = data.length === GRAIN_SIZE ? data : Buffer.concat([data], GRAIN_SIZE)
 
-      if (withLength) {
-        const expected = nextAllocatedGrain()
-        if (index !== expected) {
-          throw new Error(
-            `expecting the grain ${expected}, got ${index}: the disk block indexes and its block generator disagree`
-          )
-        }
-        cursor++
+      nbGeneratedGrains++
+      if (nbAllocatedGrains !== undefined && nbGeneratedGrains > nbAllocatedGrains) {
+        throw new Error(
+          `got the grain ${index} past the ${nbAllocatedGrains} allocated grains: the disk block indexes and its block generator disagree`
+        )
       }
       if (!grain.equals(ZERO_GRAIN)) {
         // a grain full of zeros is simply not referenced by the grain table
@@ -315,15 +295,6 @@ export class ConsumerVmdkStreamOptimized {
           (index % DEFAULT_NB_GRAIN_TABLE_ENTRIES) * GRAIN_TABLE_ENTRY_SIZE
         )
         yield* this.#trackAndYield(await this.#createGrain(index, grain))
-      }
-    }
-
-    if (withLength) {
-      const remaining = nextAllocatedGrain()
-      if (remaining !== context.nbTotalGrains) {
-        throw new Error(
-          `the grain ${remaining} is allocated but was not generated: the disk block indexes and its block generator disagree`
-        )
       }
     }
   }
@@ -380,12 +351,11 @@ export class ConsumerVmdkStreamOptimized {
 
     const afterDescriptor = SPARSE_HEADER_SIZE + descriptor.length
 
-    let bitmap: Uint8Array | undefined
+    let nbAllocatedGrains: number | undefined
     let expectedStreamLength: number | undefined
     if (withLength) {
-      const index = await this.#buildGrainPresenceIndex(nbTotalGrains, signal)
-      bitmap = index.bitmap
-      expectedStreamLength = afterDescriptor + tablesSize + index.nbAllocatedGrains * GRAIN_SLOT_SIZE + tailSize
+      nbAllocatedGrains = await this.#countAllocatedGrains(nbTotalGrains, signal)
+      expectedStreamLength = afterDescriptor + tablesSize + nbAllocatedGrains * GRAIN_SLOT_SIZE + tailSize
       assert.ok(
         expectedStreamLength <= MAX_ADDRESSABLE_FILE_SIZE,
         `a VMDK addresses its grains with 32 bits sector offsets, a ${expectedStreamLength} bytes file is past the ${MAX_ADDRESSABLE_FILE_SIZE} bytes limit`
@@ -394,13 +364,13 @@ export class ConsumerVmdkStreamOptimized {
 
     const context: GenerationContext = {
       afterDescriptor,
-      bitmap,
       capacitySectors,
       descriptor,
       emitted: {},
       expectedStreamLength,
       grainDirectorySize,
       grainTables: new Map(),
+      nbAllocatedGrains,
       nbGrainTables,
       nbTotalGrains,
       overheadSectors: afterDescriptor / SECTOR_SIZE,

@@ -307,11 +307,22 @@ describe('ConsumerVmdkStreamOptimized', { concurrency: 1 }, () => {
     await assert.rejects(() => generate(disk, 'streaming'), /sorted disk/)
   })
 
-  test('refuses a block generator that disagrees with the block indexes', async () => {
+  test('refuses a block generator that yields more grains than counted', async () => {
     const disk = new MockDisk({ virtualSize: 8 * GRAIN_SIZE, indexes: [1, 2] })
-    // hasBlock() sees one more block than the generator will yield
-    disk.getBlockIndexes = () => [1]
+    // hasBlock() sees one less block than the generator will yield
+    disk.hasBlock = index => index === 1
     await assert.rejects(() => generate(disk, 'withLength'), /disagree/)
+  })
+
+  test('pads a block generator that yields fewer grains than counted', async () => {
+    const disk = new MockDisk({ virtualSize: 8 * GRAIN_SIZE, indexes: [1] })
+    // hasBlock() sees one more block than the generator will yield
+    disk.hasBlock = index => index === 1 || index === 2
+    const { file, announcedLength, raw } = await generate(disk, 'withLength')
+
+    assert.equal(announcedLength, file.length)
+    assert.ok(raw.subarray(GRAIN_SIZE, 2 * GRAIN_SIZE).equals(Buffer.alloc(GRAIN_SIZE, fillValue(1))))
+    assert.ok(raw.subarray(2 * GRAIN_SIZE, 3 * GRAIN_SIZE).equals(Buffer.alloc(GRAIN_SIZE)))
   })
 
   test('exposes the same result through the class and the function', async () => {
