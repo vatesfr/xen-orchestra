@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import type { BackupLogFilterableData } from '@/modules/admin-backup-log/types.ts'
 import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.js'
+import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { getBackupLogSrIds, getBackupLogVmIds } from '@/modules/backup/utils/xo-backup-log.util.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
@@ -39,7 +39,6 @@ import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-q
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useAdminBackupLogColumns } from '@core/tables/column-sets/admin-backup-log-columns.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import { formatDate } from '@vueuse/core'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -106,6 +105,8 @@ const { HeadCells, BodyCells } = useAdminBackupLogColumns({
 
     const firstVm = computed(() => getVmById(vmIds.value[0]))
 
+    const isVmMissing = computed(() => vmIds.value.length > 0 || getBackupJobById(log.jobId)?.type === 'backup')
+
     const srIds = computed(() => getBackupLogSrIds(log))
 
     const firstSrId = computed(() => srIds.value[0])
@@ -114,16 +115,23 @@ const { HeadCells, BodyCells } = useAdminBackupLogColumns({
 
     return {
       job: r => r({ label: log.jobName ?? t('untitled'), href: href.value, icon: 'object:backup-job' }),
-      backupDate: r => r(formatDate(new Date(log.start), 'YYYY-MM-DD HH:mm:ss')),
-      vm: r =>
-        firstVm.value !== undefined
-          ? r({
-              label: firstVm.value.name_label,
-              to: { name: '/vm/[id]/dashboard', params: { id: firstVm.value.id } },
-              icon: objectIcon('vm', toLower(firstVm.value.power_state)),
-              extraCount: vmIds.value.length - 1,
-            })
-          : r({ label: t('vm-not-found'), icon: 'status:warning-circle', extraCount: vmIds.value.length - 1 }),
+      backupDate: r => r(log.start),
+      vm: r => {
+        if (firstVm.value !== undefined) {
+          return r({
+            label: firstVm.value.name_label,
+            to: { name: '/vm/[id]/dashboard', params: { id: firstVm.value.id } },
+            icon: objectIcon('vm', toLower(firstVm.value.power_state)),
+            extraCount: vmIds.value.length - 1,
+          })
+        }
+
+        if (isVmMissing.value) {
+          return r({ label: t('vm-not-found'), icon: 'status:warning-circle', extraCount: vmIds.value.length - 1 })
+        }
+
+        return r({ label: '' })
+      },
       sr: r =>
         firstSr.value !== undefined
           ? r({

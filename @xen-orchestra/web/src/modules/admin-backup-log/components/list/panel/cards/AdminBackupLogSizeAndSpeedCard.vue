@@ -27,7 +27,6 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
-import { formatSpeed } from '@core/utils/speed.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -48,7 +47,7 @@ const size = computed(() => {
 const speed = computed(() => {
   const transferSpeed = getTransferSpeed(backupLog)
 
-  return transferSpeed !== undefined ? formatSpeed(transferSpeed) : undefined
+  return transferSpeed !== undefined ? `${transferSpeed.value} ${transferSpeed.prefix}` : undefined
 })
 </script>
 

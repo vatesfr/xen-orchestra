@@ -1,4 +1,9 @@
-import { getBackupLogSrIds, getBackupLogVmIds } from '@/modules/backup/utils/xo-backup-log.util.ts'
+import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import {
+  getBackupLogRunRoute,
+  getBackupLogSrIds,
+  getBackupLogVmIds,
+} from '@/modules/backup/utils/xo-backup-log.util.ts'
 import {
   createBackupLog,
   createBackupLogExportTask,
@@ -66,5 +71,24 @@ describe('getBackupLogSrIds', () => {
 
   it('returns an empty list for a log without tasks', () => {
     expect(getBackupLogSrIds(createBackupLog({ tasks: undefined }))).toEqual([])
+  })
+})
+
+describe('getBackupLogRunRoute', () => {
+  it('points to the run of the log in the runs of its job', () => {
+    const backupLog = createBackupLog({
+      id: 'backup-log-42' as FrontXoBackupLog['id'],
+      jobId: 'backup-job-7' as NonNullable<FrontXoBackupLog['jobId']>,
+    })
+
+    expect(getBackupLogRunRoute(backupLog)).toEqual({
+      name: '/backup/[id]/runs',
+      params: { id: 'backup-job-7' },
+      query: { id: 'backup-log-42' },
+    })
+  })
+
+  it('returns undefined for a log without job', () => {
+    expect(getBackupLogRunRoute(createBackupLog({ jobId: undefined }))).toBeUndefined()
   })
 })

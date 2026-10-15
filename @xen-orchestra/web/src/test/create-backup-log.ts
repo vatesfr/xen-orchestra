@@ -1,7 +1,5 @@
+import type { BackupLogTask } from '@/modules/backup/composables/xo-backup-log-utils.composable.ts'
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
-import type { XoTask } from '@vates/types'
-
-export type BackupLogTask = XoTask & { message?: string }
 
 /**
  * Builds a fully-populated `FrontXoBackupLog` for use in tests. Pass `overrides` to
@@ -21,7 +19,7 @@ export function createBackupLog(overrides: Partial<FrontXoBackupLog> = {}): Fron
 
 export function createBackupLogTask(overrides: Partial<BackupLogTask> = {}): BackupLogTask {
   return {
-    id: 'task-123' as XoTask['id'],
+    id: 'task-123' as BackupLogTask['id'],
     properties: {},
     start: 1_700_000_000_000,
     status: 'success',

@@ -9,13 +9,6 @@
     />
     <div class="content">
       <VtsCardRowKeyValue>
-        <template #key>{{ t('type') }}</template>
-        <template #value>{{ type }}</template>
-        <template #addons>
-          <VtsCopyButton :value="type" />
-        </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
         <template #key>{{ t('backup-date') }}</template>
         <template #value>{{ formattedStartDate }}</template>
         <template #addons>
@@ -30,7 +23,7 @@
         </template>
       </VtsCardRowKeyValue>
       <template v-if="vms.length > 0">
-        <VtsCardRowKeyValue v-for="(vm, index) in vms" :key="index">
+        <VtsCardRowKeyValue v-for="({ id, vm, icon }, index) in vms" :key="id">
           <template #key>
             <template v-if="index === 0">{{ t('vm') }}</template>
           </template>
@@ -38,7 +31,7 @@
             <UiLink
               v-if="vm !== undefined"
               size="small"
-              :icon="objectIcon('vm', toLower(vm.power_state))"
+              :icon
               :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
             >
               {{ vm.name_label }}
@@ -52,7 +45,9 @@
       </template>
       <VtsCardRowKeyValue v-else>
         <template #key>{{ t('vm') }}</template>
-        <template #value />
+        <template #value>
+          <UiInfo v-if="job?.type === 'backup'" accent="warning">{{ t('vm-not-found') }}</UiInfo>
+        </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('job') }}</template>
@@ -65,19 +60,8 @@
           <VtsCopyButton :value="job.name" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('run') }}</template>
-        <template #value>
-          <UiLink size="small" icon="object:backup-run" :to="runRoute">
-            {{ formattedStartDate }}
-          </UiLink>
-        </template>
-        <template #addons>
-          <VtsCopyButton :value="formattedStartDate" />
-        </template>
-      </VtsCardRowKeyValue>
       <template v-if="srs.length > 0">
-        <VtsCardRowKeyValue v-for="({ id, sr }, index) in srs" :key="id">
+        <VtsCardRowKeyValue v-for="({ id, sr, icon }, index) in srs" :key="id">
           <template #key>
             <template v-if="index === 0">{{ t('sr') }}</template>
           </template>
@@ -85,7 +69,7 @@
             <UiLink
               v-if="sr !== undefined"
               size="small"
-              :icon="getSrStatusIcon(sr)"
+              :icon
               :to="{ name: '/sr/[id]/general', params: { id: sr.id } }"
             >
               {{ sr.name_label }}
@@ -128,20 +112,15 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
-import { formatDate } from '@vueuse/core'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationAsRelative } from 'vue-router'
 
 const { backupLog } = defineProps<{
   backupLog: FrontXoBackupLog
 }>()
 
 const { t } = useI18n()
-
-// TODO: replace with the real type
-const type = 'run'
 
 const { buildXo5Route } = useXoRoutes()
 
@@ -153,9 +132,9 @@ const { getSrById } = useXoSrCollection()
 
 const { getSrStatusIcon } = useXoSrUtils()
 
-const { getBackupLogDuration } = useXoBackupLogsUtils()
+const { getBackupLogDate, getBackupLogDuration } = useXoBackupLogsUtils()
 
-const formattedStartDate = computed(() => formatDate(new Date(backupLog.start), 'YYYY-MM-DD HH:mm:ss'))
+const formattedStartDate = computed(() => getBackupLogDate(backupLog.start))
 
 const duration = computed(() => getBackupLogDuration(backupLog))
 
@@ -165,21 +144,21 @@ const jobHref = computed(() => buildXo5Route('/settings/remotes'))
 
 const logHref = computed(() => buildXo5Route('/settings/remotes'))
 
-const runRoute = computed<RouteLocationAsRelative | undefined>(() => {
-  if (backupLog.jobId === undefined) {
-    return undefined
-  }
+const vms = computed(() =>
+  getBackupLogVmIds(backupLog).map(id => {
+    const vm = getVmById(id)
 
-  return {
-    name: '/backup/[id]/runs',
-    params: { id: backupLog.jobId },
-    query: { id: backupLog.id },
-  }
-})
+    return { id, vm, icon: vm !== undefined ? objectIcon('vm', toLower(vm.power_state)) : undefined }
+  })
+)
 
-const vms = computed(() => getBackupLogVmIds(backupLog).map(id => getVmById(id)))
+const srs = computed(() =>
+  getBackupLogSrIds(backupLog).map(id => {
+    const sr = getSrById(id)
 
-const srs = computed(() => getBackupLogSrIds(backupLog).map(id => ({ id, sr: getSrById(id) })))
+    return { id, sr, icon: sr !== undefined ? getSrStatusIcon(sr) : undefined }
+  })
+)
 </script>
 
 <style scoped lang="postcss">

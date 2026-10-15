@@ -7,7 +7,9 @@
       </UiLink>
       <span v-if="slots.suffix" class="interpunct" />
       <slot name="suffix" />
-      <span v-if="extraCount && extraCount > 0" class="typo-body-regular-small extra-count">+{{ extraCount }}</span>
+      <span v-if="extraCount && extraCount > 0" class="typo-body-regular-small extra-count">
+        {{ t('plus-n', { n: extraCount }) }}
+      </span>
     </div>
   </UiTableCell>
 </template>
@@ -19,6 +21,7 @@ import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import type { LinkOptions } from '@core/composables/link-component.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
+import { useI18n } from 'vue-i18n'
 
 export type VtsLinkCellProps = LinkOptions & {
   icon?: IconName
@@ -37,6 +40,8 @@ const slots = defineSlots<{
   default(): any
   suffix?(): any
 }>()
+
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>

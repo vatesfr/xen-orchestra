@@ -4,7 +4,9 @@
       <VtsIcon v-tooltip="leftIcon?.tooltip ?? false" :name="leftIcon?.icon" size="medium" />
       <span><slot /></span>
       <VtsIcon v-tooltip="rightIcon?.tooltip ?? false" :name="rightIcon?.icon" size="medium" />
-      <span v-if="extraCount && extraCount > 0" class="typo-body-regular-small extra-count">+{{ extraCount }}</span>
+      <span v-if="extraCount && extraCount > 0" class="typo-body-regular-small extra-count">
+        {{ t('plus-n', { n: extraCount }) }}
+      </span>
     </div>
   </UiTableCell>
 </template>
@@ -14,6 +16,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
+import { useI18n } from 'vue-i18n'
 
 export type TextCellProps = {
   leftIcon?: {
@@ -28,6 +31,8 @@ export type TextCellProps = {
 }
 
 defineProps<TextCellProps>()
+
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
