@@ -21,7 +21,7 @@
   "dependencies": {
     "@xen-orchestra/fs": "^4.9.5",
     "@xen-orchestra/log": "^0.7.2",
-    "fuse-native": "^2.2.6",
+    "fuse-native": "github:sagemathinc/fuse-native",
     "lru-cache": "^7.14.0",
     "promise-toolbox": "^0.21.0",
     "vhd-lib": "^4.16.2"
