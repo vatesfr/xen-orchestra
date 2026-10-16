@@ -39,6 +39,14 @@ const logger = createLogger('xo:xo-mixins:backups-ng')
 const LISTING_RETRY_DELAY = 30e3
 const LISTING_TIMEOUT = 30e3
 const LISTING_RETRY_MAX_DELAY = 60 * 60 * 1e3 // cap at 1h
+
+// how often `#pollVmBackupArchives()` reads the repositories: not `backups.listingDebounce`, which a
+// user can set to 0, but that debounce still applies, and is the actual delay when it is longer
+const VM_BACKUP_ARCHIVES_POLL_INTERVAL = 60e3
+
+// the same for the repositories whose journal cannot be read: each read lists them in full
+const VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL = 10 * 60e3
+
 /**
  * @param {number} attempt number of consecutive failures so far, `0` for the first one
  * @returns {number} delay in ms before the next attempt is allowed
@@ -100,16 +108,6 @@ export default class BackupNg {
     return this._runningRestores
   }
 
-  /**
-   * the VM backup archives of the backup repositories, as a collection: `add`, `update` and
-   * `remove` events carrying the archive and its previous value
-   *
-   * @returns {import('node:events').EventEmitter}
-   */
-  get vmBackupArchives() {
-    return this.#vmBackupsCache.archives
-  }
-
   constructor(app) {
     this._app = app
     this._runningRestores = new Set()
@@ -125,6 +123,35 @@ export default class BackupNg {
     // remote, so that every one of them can be dropped when the listing state is reset
     /** @type {Record<XoBackupRepository['id'], Set<XoVm['id'] | undefined>>} */
     this._trackedVmIdsByRemote = { __proto__: null }
+
+    app.hooks.on('core started', () => {
+      app.hooks.emit('registerCollection', { collection: this.#vmBackupsCache.archives, type: 'backup-archive' })
+    })
+
+    let vmBackupArchivesPoll, vmBackupArchivesFullPoll, initialVmBackupArchivesListing
+    app.hooks.on('start', () => {
+      vmBackupArchivesPoll = setInterval(
+        () => this.#pollVmBackupArchives(this.#vmBackupsCache.replayableRepositoryIds()),
+        VM_BACKUP_ARCHIVES_POLL_INTERVAL
+      )
+      vmBackupArchivesFullPoll = setInterval(
+        () => this.#pollVmBackupArchives(this.#vmBackupsCache.unreplayableRepositoryIds()),
+        VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL
+      )
+    })
+    // once every start hook has run: the one of the remotes mixin invalidates the listing of every
+    // repository, which would drop what a listing started before it has read instead of announcing it
+    app.hooks.on('started', () => {
+      initialVmBackupArchivesListing = new AbortController()
+      this.#listAllVmBackupArchives(initialVmBackupArchivesListing.signal).catch(error => {
+        logger.warn('failed to list the backup repositories', { error })
+      })
+    })
+    app.hooks.on('stop', () => {
+      clearInterval(vmBackupArchivesPoll)
+      clearInterval(vmBackupArchivesFullPoll)
+      initialVmBackupArchivesListing?.abort()
+    })
 
     app.hooks.on('start', async () => {
       const executor = async ({
@@ -215,15 +242,23 @@ export default class BackupNg {
         const proxyId = job.proxy
         const useXoProxy = proxyId !== undefined
         const targetRemoteIds = unboxIdsFromPattern(job.remotes)
+
+        const onTaskUpdate = (log, event) => {
+          // a VM has been backed up on this repository, retention and clean-vm included: its archives
+          // are updated now rather than at the end of the job
+          if (event.type === 'end' && log.properties?.name === 'export' && log.properties.type === 'remote') {
+            this._refreshVmBackupsCache(log.properties.id)
+          }
+          handleBackupLog(log, event, { app: this._app, jobName: job.name })
+        }
+
         try {
           if (!useXoProxy && backupsConfig.disableWorkers) {
             const onLogFct = app.tasks.createExternalProgressHandler({
               onRootTaskStart: log => {
                 jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
               },
-              onTaskUpdate: (log, event) => {
-                handleBackupLog(log, event, { app: this._app, jobName: job.name })
-              },
+              onTaskUpdate,
             })
             return await Task.run(
               {
@@ -371,9 +406,7 @@ export default class BackupNg {
                 onRootTaskEnd: log => {
                   result = forwardResult(log)
                 },
-                onTaskUpdate: (log, event) => {
-                  handleBackupLog(log, event, { app: this._app, jobName: job.name })
-                },
+                onTaskUpdate,
               })
 
               for await (const log of logsStream) {
@@ -396,9 +429,7 @@ export default class BackupNg {
               onRootTaskEnd: log => {
                 result = forwardResult(log)
               },
-              onTaskUpdate: (log, event) => {
-                handleBackupLog(log, event, { app: this._app, jobName: job.name })
-              },
+              onTaskUpdate,
             })
 
             await runBackupWorker(
@@ -420,10 +451,6 @@ export default class BackupNg {
       }
       app.registerJobExecutor('backup', executor)
       app.registerJobExecutor('mirrorBackup', executor)
-    })
-
-    app.hooks.on('stop', () => {
-      this.#vmBackupsCache.archives.removeAllListeners()
     })
   }
 
@@ -702,9 +729,49 @@ export default class BackupNg {
   // current refresh window
   //
   // to call after a mutation triggered by this process, so that its effect is visible at once
+  //
+  // also replays its journal at once for the consumers of the archives, unless that means a full listing
   _refreshVmBackupsCache(remoteId) {
     this.#vmBackupsCache.refresh(remoteId)
     this.#resetVmBackupsListingState(remoteId)
+
+    if (this.#vmBackupsCache.isReplayable(remoteId)) {
+      // never rejects
+      this._listVmBackupsWithBackoff(remoteId)
+    }
+  }
+
+  // lists every enabled repository, so that the collection, and the timers which read its
+  // repositories, cover all of them rather than only those a client has listed since the app started
+  //
+  // one after another: each listing reads the metadata of every VM of the repository, and listing
+  // them in sequence also staggers their periodic rebuilds, which count from the listing
+  //
+  // through `_listVmBackupsWithBackoff()`, which never rejects: a repository which cannot be read is
+  // left out until a client lists it
+  async #listAllVmBackupArchives(signal) {
+    for (const remote of await this._app.getAllRemotes()) {
+      if (signal.aborted) {
+        return
+      }
+      if (remote.enabled) {
+        await this._listVmBackupsWithBackoff(remote.id)
+      }
+    }
+  }
+
+  // reads repositories of the collection for the changes this process did not make: the size the
+  // merge worker rewrites after the job, or another XO sharing the repository
+  //
+  // without resetting the listing state, unlike `_refreshVmBackupsCache()`: an unreachable repository
+  // keeps its retry delay instead of being read on every tick
+  #pollVmBackupArchives(remoteIds) {
+    for (const remoteId of remoteIds) {
+      // once the debounce of the previous listing is over, the refresh window of the cache, as long
+      // but started a bit later, would still skip the read
+      this.#vmBackupsCache.refresh(remoteId)
+      this._listVmBackupsWithBackoff(remoteId)
+    }
   }
 
   /**
