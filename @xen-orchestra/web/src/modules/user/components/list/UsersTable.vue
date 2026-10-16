@@ -99,6 +99,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useUserColumns({
+  exclude: ['firstName', 'lastName'],
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),
