@@ -55,6 +55,15 @@ export default class MigrateVm {
     }
   }
 
+  async getEsxiInventory({ host, user, password, sslVerify }) {
+    const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
+    try {
+      return await esxi.getInventory()
+    } finally {
+      await this.#closeEsxi(esxi, host)
+    }
+  }
+
   async #findBaseVM(xapi, metadata) {
     const { vmId, snapshots } = metadata
     const candidates = Object.values(xapi.objects.indexes.type.VM).filter(
