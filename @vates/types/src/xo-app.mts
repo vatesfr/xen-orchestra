@@ -9,6 +9,7 @@ import type {
   XoConfigBackupArchive,
   XoGroup,
   XoHost,
+  XoNetwork,
   XoPlugin,
   XoPool,
   XoPoolBackupArchive,
@@ -21,6 +22,7 @@ import type {
   XoVif,
   XoVm,
   XoVmBackupArchive,
+  XoVmTemplate,
 } from './xo.mjs'
 import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
@@ -203,6 +205,30 @@ type XoStoreRangeOptions = {
   reverse?: boolean
 }
 
+// `@xen-orchestra/vmware-explorer` is not typed
+export type EsxiConnectionParams = {
+  /** `host` or `host:port` */
+  host: string
+  user: string
+  password: string
+  sslVerify: boolean
+}
+
+/** a VM as listed by `Esxi#getAllVmMetadata()` */
+export type EsxiVmMetadata = {
+  /** VMware managed object reference */
+  id: string
+  /** false when a disk cannot be read through its datastore, e.g. on vSAN */
+  hasAllExtentsListed: boolean
+  nameLabel: string
+  memory: number
+  nCpus: number
+  guestToolsInstalled: boolean
+  firmware: 'bios' | 'uefi'
+  powerState: 'poweredOff' | 'poweredOn' | 'suspended'
+  storage: { used: number; free: number }
+}
+
 export type XoApp = EventEmitter & {
   hooks: EventEmitter
   _redis: {
@@ -248,7 +274,7 @@ export type XoApp = EventEmitter & {
   tasks: EventEmitter & {
     abort(id: XoTask['id'], reason?: string): Promise<void>
     clearLogs(): Promise<void>
-    create: (params: { name: string; objectId?: string; type?: string }) => VatesTask
+    create: (params: { name: string; objectId?: string; type?: string; [key: string]: unknown }) => VatesTask
     deleteLog(id: XoTask['id']): Promise<void>
     get(id: XoTask['id']): Promise<XoTask>
     list(opts?: { filter?: string | ((obj: XoTask) => boolean); limit?: number }): AsyncGenerator<XoTask>
@@ -285,6 +311,7 @@ export type XoApp = EventEmitter & {
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
   /* validate, apply and persist the configuration of a plugin */
   configurePlugin(id: string, configuration: unknown, mergeWithExisting?: boolean): Promise<void>
+  connectToEsxiAndList(params: EsxiConnectionParams): Promise<EsxiVmMetadata[]>
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
   // TODO: replace all XoAclBasePrivilege with a more strict type. (discriminate union)
@@ -442,6 +469,7 @@ export type XoApp = EventEmitter & {
   }>
   getUser: (id: XoUser['id'], opts?: { obfuscatePassword?: boolean }) => Promise<XoUser>
   getUserIdentityFields(): string[]
+  getEsxiInventory(params: EsxiConnectionParams): Promise<VmwareInventory>
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(
@@ -467,6 +495,17 @@ export type XoApp = EventEmitter & {
     backupRepositoryIds: XoBackupRepository['id'][],
     opts?: { _forceRefresh?: boolean; vmId?: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]> | null>>
+  /** imports one VM from VMware, resuming a previous partial import when possible, returns the UUID of the XCP-ng VM */
+  migrationfromEsxi(
+    params: EsxiConnectionParams & {
+      sr: XoSr['id']
+      network: XoNetwork['id']
+      template: XoVmTemplate['id']
+      stopSource: boolean
+      /** VMware moref of the VM */
+      vm: string
+    }
+  ): Promise<XoVm['uuid']>
   /**
    * Serve one disk of a backup archive as an iSCSI LUN and attach it to `host`
    * as an SR, read-only unless `cacheSrId` is set. Undone by `unmountBackupArchiveDisk`.
