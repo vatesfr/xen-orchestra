@@ -19,6 +19,7 @@
 - [Backup jobs] Add backup job side panel in admin menu (PR [#10631](https://github.com/vatesfr/xen-orchestra/pull/10631))
 - [Backup jobs] The backup links of the site dashboard and the VM Backups tab now use the backup jobs of the admin menu (PR [#10636](https://github.com/vatesfr/xen-orchestra/pull/10636))
 - [Pool/Dashboard] In the CPU and RAM usage cards, show a "No data to calculate" message when there is no host or VM to rank (PR [#10386](https://github.com/vatesfr/xen-orchestra/pull/10386))
+- [REST API/V2V] `POST /rest/v0/v2v/actions/inventory` reads the inventory of a vCenter or ESXi (datacenters, clusters, hosts, datastores, networks and VMs with their disks and network cards), and `POST /rest/v0/v2v/actions/start` imports a list of VMs into a pool, resuming partial imports with a delta. Restricted to administrators, credentials are never stored
 
 ### Bug fixes
 
@@ -44,11 +45,13 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/rest-api patch
+- @vates/types minor
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server patch
 - xo-server-sdn-controller patch
+- xo-server minor
 
 <!--packages-end-->

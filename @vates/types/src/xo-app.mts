@@ -23,6 +23,7 @@ import type {
 } from './xo.mjs'
 import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
+import type { VmwareInventory } from './lib/xen-orchestra-vmware-explorer.mjs'
 import type { RPU_RECOVERY_STEP_NAME } from './common.mjs'
 import {
   Xapi,
