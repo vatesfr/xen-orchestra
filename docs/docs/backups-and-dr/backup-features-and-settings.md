@@ -578,7 +578,7 @@ The SR introduced on the host is then named `[XO live restore] <VM name> (<backu
 
 The restored VM then has the live mounted disk on the `[XO live mount] <VM name> (<backup date>)` SR:
 
-<UiDetail src="/img/xo5/live-mount-vm-disks.png" alt="The Disks tab of the restored VM: the live mounted disk sits on the [XO backup] SR and is attached in read-only mode" width={760} />
+<UiDetail src="/img/xo5/live-mount-vm-disks.png" alt="The Disks tab of the restored VM: the live mounted disk sits on the [XO live mount] SR named after the VM and the backup date, and is attached in read-only mode" width={760} />
 
 ### Release a live mount {#release-live-mount}
 

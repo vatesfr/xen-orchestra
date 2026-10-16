@@ -17,7 +17,7 @@ import { formatFilenameDate } from './_filenameDate.mjs'
  */
 export function liveMountXapiLabels({ vmNameLabel, vdiNameLabel, timestamp, readWrite = false }) {
   const what = readWrite ? 'live restore' : 'live mount'
-  const restorePoint = `${vmNameLabel} (${formatFilenameDate(timestamp)})`
+  const restorePoint = `${vmNameLabel} (${formatFilenameDate(new Date(timestamp))})`
   return {
     srNameLabel: `[XO ${what}] ${restorePoint}`,
     vdiNameLabel,

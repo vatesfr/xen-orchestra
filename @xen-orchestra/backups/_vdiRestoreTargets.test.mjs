@@ -153,4 +153,9 @@ describe('hasCachedLiveMountTarget()', () => {
     assert.equal(hasCachedLiveMountTarget({ [VDI_1]: { type: 'live-mount', host: HOST } }), false)
     assert.equal(hasCachedLiveMountTarget({ [VDI_1]: SR, [VDI_2]: null, [VDI_3]: { type: 'ignore' } }), false)
   })
+
+  // the normalization rejects it, which is the error worth reporting
+  it('is false for a null cache SR', () => {
+    assert.equal(hasCachedLiveMountTarget({ [VDI_1]: { type: 'live-mount', host: HOST, cacheSr: null } }), false)
+  })
 })
