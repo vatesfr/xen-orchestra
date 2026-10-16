@@ -1,31 +1,15 @@
-import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
-import { HashedDiskDeduplicated } from './hashed/HashedDiskDeduplicated.mjs'
+import { instantiateDisk } from './instantiateDisk.mjs'
+export { isDisk } from './instantiateDisk.mjs'
 export { RemoteDisk } from './RemoteDisk.mjs'
 export { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 export { openDiskChain } from './openDiskChain.mjs'
 export { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
-
-const DISK_EXTENSIONS = ['.vhd', '.hbd']
 
 /**
  * @typedef {import('@xen-orchestra/fs').RemoteHandlerAbstract} RemoteHandlerAbstract
  * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
  * @typedef {import('./MergeRemoteDisk.mjs').MergeState} MergeState
  */
-
-export function isDisk(path) {
-  return DISK_EXTENSIONS.some(ext => path.endsWith(ext))
-}
-
-/**
- *
- * @param {RemoteHandlerAbstract} handler
- * @param {string} path
- * @returns {RemoteDisk}
- */
-function instantiateDisk(handler, path) {
-  return path.endsWith('.hbd') ? new HashedDiskDeduplicated({ handler, path }) : new RemoteVhdDisk({ handler, path })
-}
 
 /**
  *

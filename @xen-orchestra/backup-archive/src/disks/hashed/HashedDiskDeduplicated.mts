@@ -7,6 +7,7 @@ import pRetry from 'promise-toolbox/retry'
 import { createLogger } from '@xen-orchestra/log'
 
 import { HashedDisk } from './HashedDisk.mjs'
+import { HashedDiskChain } from './HashedDiskChain.mjs'
 import { BlockAllocationTable } from './BlockAllocationTable.mjs'
 import {
   blockRelPath,
@@ -34,6 +35,17 @@ import { randomUUID } from 'node:crypto'
 const { warn, debug } = createLogger('xo:backup-archive:hbd')
 
 const LEFTOVER_SAMPLE = 5
+
+/**
+ * What a hbd can be merged with: a single hbd, or a chain of them
+ */
+type MergeChild = HashedDiskDeduplicated | HashedDiskChain
+
+function assertMergeChild(childDisk: unknown): asserts childDisk is MergeChild {
+  if (!(childDisk instanceof HashedDiskDeduplicated || childDisk instanceof HashedDiskChain)) {
+    throw new Error(`can't merge different disk types`)
+  }
+}
 
 /**
  * Content addressed disk: block index -> SHA-256 of the block payload, kept in a
@@ -233,6 +245,16 @@ export class HashedDiskDeduplicated extends HashedDisk {
     return this.#loadedBat.hashAt(index)
   }
 
+  /**
+   * Path of the file holding the block at this index, inside this disk
+   */
+  getBlockPath(index: number): string {
+    if (!this.hasBlock(index)) {
+      throw new Error(`no block at index ${index} of ${this.#path}`)
+    }
+    return this.#blockPath(this.getBlockHashAt(index))
+  }
+
   /** store blocks fully reread and checked since this disk was opened */
   getBlocksScrubbed(): number {
     return this.#blocksScrubbed
@@ -245,6 +267,20 @@ export class HashedDiskDeduplicated extends HashedDisk {
 
   async isMergeableParent(parentUuid: string, { diskFormat }: { diskFormat: DiskFormat }): Promise<boolean> {
     return (await super.isMergeableParent(parentUuid, { diskFormat })) && diskFormat === 'hbd'
+  }
+
+  /**
+   * The parent of a hbd is always opened as a hbd: a chain never mixes formats,
+   * a parent of another format fails at init
+   */
+  instantiateParent(): HashedDiskDeduplicated {
+    return new HashedDiskDeduplicated({
+      handler: this.#handler,
+      path: this.getParentPath(),
+      blockStorePath: this.#blockStorePath,
+      scrubEnabled: this.#scrubEnabled,
+      scrubMaxAgeMs: this.#scrubMaxAgeMs,
+    })
   }
 
   // ---------------------------------------------------------------- public
@@ -356,14 +392,19 @@ export class HashedDiskDeduplicated extends HashedDisk {
     return blockSize
   }
 
-  async mergeBlock(childDisk: HashedDiskDeduplicated, index: number, isResumingMerge: boolean): Promise<number> {
-    if (this.#loadedBat.sameAt(index, childDisk.#loadedBat, index)) {
+  /**
+   * The child is usually a chain (see openDiskChain): only its public methods are used
+   */
+  async mergeBlock(childDisk: MergeChild, index: number, isResumingMerge: boolean): Promise<number> {
+    if (!childDisk.hasBlock(index)) {
+      return 0
+    }
+    const childHash = childDisk.getBlockHashAt(index)
+    if (this.hasBlock(index) && this.getBlockHashAt(index) === childHash) {
       return 0
     }
 
-    const childHash = childDisk.getBlockHashAt(index)
-
-    await this.#link(childDisk.#blockPath(childHash), this.#blockPath(childHash))
+    await this.#link(childDisk.getBlockPath(index), this.#blockPath(childHash))
 
     this.#setHash(index, childHash)
     return this.getBlockSize()
@@ -393,7 +434,8 @@ export class HashedDiskDeduplicated extends HashedDisk {
    * the hbd points at the new one.
    */
   async flushMetadata(childDisk?: unknown): Promise<void> {
-    if (childDisk instanceof HashedDiskDeduplicated) {
+    if (childDisk !== undefined) {
+      assertMergeChild(childDisk)
       await this.#mergeWithChild(childDisk)
     }
     const metadata = this.#loadedMetadata
@@ -429,15 +471,13 @@ export class HashedDiskDeduplicated extends HashedDisk {
     }
   }
 
-  async #mergeWithChild(childDisk: HashedDiskDeduplicated): Promise<void> {
+  async #mergeWithChild(childDisk: MergeChild): Promise<void> {
     if (childDisk.getBlockSize() !== this.getBlockSize()) {
       throw new Error(`can't merge a ${childDisk.getBlockSize()} bytes block disk into a ${this.getBlockSize()} one`)
     }
-    const childBat = childDisk.#loadedBat
-    for (const index of childBat.indexes()) {
-      if (!this.#loadedBat.sameAt(index, childBat, index)) {
-        await this.mergeBlock(childDisk, index, true)
-      }
+    // mergeBlock skips the indexes already holding the child's content
+    for (const index of childDisk.getBlockIndexes()) {
+      await this.mergeBlock(childDisk, index, true)
     }
   }
 
@@ -477,10 +517,9 @@ export class HashedDiskDeduplicated extends HashedDisk {
     return undefined
   }
 
-  async mergeMetadata(childDisk) {
-    if (!(childDisk instanceof HashedDiskDeduplicated)) {
-      throw new Error(`can't merge different disk types`)
-    }
+  async mergeMetadata(childDisk: unknown): Promise<void> {
+    assertMergeChild(childDisk)
+    // on a chain, the metadata of its newest disk
     const { uuid, virtualSize } = childDisk.getMetadata()
     if (Math.ceil(virtualSize / this.getBlockSize()) !== this.getMaxBlockCount()) {
       throw new Error(`the BAT of ${this.#path} is not sized for its child, resize first`)

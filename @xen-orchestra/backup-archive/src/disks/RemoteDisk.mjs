@@ -9,8 +9,9 @@ import { RandomAccessDisk } from '@xen-orchestra/disk-transform'
 export class RemoteDisk extends RandomAccessDisk {
   /**
    * Abstract
-   * @param {Object} options
-   * @param {boolean} options.force
+   * @param {Object} [options]
+   * @param {boolean} [options.force]
+   * @param {boolean} [options.ignoreBlockIndexes] skip reading the block index when the format allows it
    * @returns {Promise<void>}
    */
   async init(options = { force: false }) {

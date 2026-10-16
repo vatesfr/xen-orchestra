@@ -4,9 +4,28 @@
  * @typedef {import('@xen-orchestra/fs').RemoteHandlerAbstract} RemoteHandlerAbstract
  * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
  */
-import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 import { defer } from 'golike-defer'
+import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
+import { HashedDiskDeduplicated } from './hashed/HashedDiskDeduplicated.mjs'
+import { HashedDiskChain } from './hashed/HashedDiskChain.mjs'
+import { instantiateDisk } from './instantiateDisk.mjs'
+
+/**
+ * The chain class of the disks' format: a chain never mixes formats
+ * @param {string} path
+ * @param {RemoteDisk[]} disks
+ * @returns {RemoteDisk}
+ */
+function newChain(path, disks) {
+  if (disks.every(disk => disk instanceof HashedDiskDeduplicated)) {
+    return new HashedDiskChain({ disks })
+  }
+  if (disks.every(disk => disk instanceof RemoteVhdDisk)) {
+    return new RemoteVhdDiskChain({ disks })
+  }
+  throw new Error(`mixed disk formats in chain ${path}`)
+}
 
 /**
  * @param {any} $defer
@@ -20,15 +39,15 @@ import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
  */
 async function _openDiskChain($defer, { handler, path, until, force = false, ignoreBlockIndexes = false }) {
   /**
-   * @type {RemoteVhdDisk}
+   * @type {RemoteDisk}
    */
   let disk
   /**
-   * @type {Array<RemoteVhdDisk>}
+   * @type {Array<RemoteDisk>}
    */
   const disks = []
   $defer.onFailure(() => Promise.all(disks.map(disk => disk.close())))
-  disk = new RemoteVhdDisk({ handler, path })
+  disk = instantiateDisk(handler, path)
 
   await disk.init({ force, ignoreBlockIndexes })
   disks.push(disk)
@@ -40,15 +59,14 @@ async function _openDiskChain($defer, { handler, path, until, force = false, ign
     }
     // Instantiate + init the parent directly (instead of openParent()) so the
     // block allocation table read can be skipped when ignoreBlockIndexes is set.
-    disk = /** @type {RemoteVhdDisk} */ (disk.instantiateParent())
+    disk = disk.instantiateParent()
     await disk.init({ force, ignoreBlockIndexes })
     disks.unshift(disk)
   }
   if (!foundRootDisk) {
     throw new Error(`trying to open chain from ${path} to ${until}, root disk not found`)
   }
-  // the root disk
-  return new RemoteVhdDiskChain({ disks })
+  return newChain(path, disks)
 }
 
 /**
