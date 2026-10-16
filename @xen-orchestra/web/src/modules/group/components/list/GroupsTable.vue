@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import { useGroupDelete } from '@/modules/group/composables/use-group-delete.composable.ts'
 import {
   type FilterableGroup,
   useGroupQueryBuilder,
@@ -63,19 +64,37 @@ const state = useTableState({
 const { pageRecords: paginatedGroups, paginationBindings } = usePagination('groups', filteredGroups)
 
 const { HeadCells, BodyCells } = useGroupColumns({
-  exclude: ['checkbox', 'actions'],
-  body: (group: FilterableGroup) => ({
-    name: r =>
-      r({
-        label: group.name,
-        icon: 'table:group',
-        to: { name: '/admin/group/[id]/general', params: { id: group.id } },
-      }),
-    provider: r => r(group.provider),
-    users: r => r(group.usersCount),
-    roles: r => r(group.rolesCount),
-    selectItem: r => r(() => (selectedGroupId.value = group.id)),
-  }),
+  exclude: ['checkbox'],
+  body: (group: FilterableGroup) => {
+    const { deleteGroups, canDeleteGroups, isDeletingGroups, deleteGroupsErrorMessage } = useGroupDelete(() => [group])
+
+    return {
+      name: r =>
+        r({
+          label: group.name,
+          icon: 'table:group',
+          to: { name: '/admin/group/[id]/general', params: { id: group.id } },
+        }),
+      provider: r => r(group.provider),
+      users: r => r(group.usersCount),
+      roles: r => r(group.rolesCount),
+      actions: r =>
+        r({
+          onClick: () => (selectedGroupId.value = group.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              accent: 'danger',
+              onClick: () => deleteGroups(),
+              disabled: !canDeleteGroups.value,
+              busy: isDeletingGroups.value,
+              hint: deleteGroupsErrorMessage.value,
+            },
+          ],
+        }),
+    }
+  },
 })
 </script>
 

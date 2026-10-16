@@ -73,7 +73,7 @@ watch(selectedIds, ids => {
 })
 
 const { HeadCells, BodyCells } = useGroupColumns({
-  exclude: ['selectItem', 'actions'],
+  exclude: ['actions'],
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),

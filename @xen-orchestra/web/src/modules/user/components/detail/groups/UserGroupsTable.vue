@@ -95,7 +95,6 @@ const {
 } = useXoGroupUsersRemoveJob(selectedGroups, () => [user])
 
 const { HeadCells, BodyCells } = useGroupColumns({
-  exclude: ['selectItem'],
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),
