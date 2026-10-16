@@ -1183,6 +1183,7 @@
   "retry": "Retry",
   "review-and-confirm": "Review & confirm",
   "role": "Role",
+  "role-details": "Role details",
   "role:creating": "Creating the new role…",
   "role:delete-warning": "Deleting this role will permanently remove it along with all its privileges. This action cannot be undone. Proceed with caution. | Deleting these roles will permanently remove them along with all their privileges. This action cannot be undone. Proceed with caution.",
   "role:details": "Role details",

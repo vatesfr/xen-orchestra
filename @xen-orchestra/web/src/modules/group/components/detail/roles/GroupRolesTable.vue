@@ -106,7 +106,8 @@ const { HeadCells, BodyCells } = useRoleColumns({
 
     return {
       checkbox: r => r({ selected: isSelected(role.id), onToggle: () => toggleSelection(role.id) }),
-      name: r => r(role.name),
+      name: r =>
+        r({ label: role.name, icon: 'fa:key', to: { name: '/admin/role/[id]/general', params: { id: role.id } } }),
       description: r => r(role.description),
       privileges: r => r(role.privilegesCount),
       actions: r =>

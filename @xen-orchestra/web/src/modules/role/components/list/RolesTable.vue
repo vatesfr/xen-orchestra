@@ -84,7 +84,8 @@ const { HeadCells, BodyCells } = useRoleColumns({
     const { deleteRoles, canDeleteRoles, isDeletingRoles, deleteRolesErrorMessage } = useRoleDelete(() => [role])
 
     return {
-      name: r => r(role.name),
+      name: r =>
+        r({ label: role.name, icon: 'fa:key', to: { name: '/admin/role/[id]/general', params: { id: role.id } } }),
       description: r => r(role.description),
       users: r => r(role.usersCount),
       groups: r => r(role.groupsCount),

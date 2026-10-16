@@ -1,6 +1,12 @@
 <template>
   <UiPanelCard class="role-infos-card">
-    <UiPanelCardTitle :id="role.id" size="medium" :label="role.name" icon="fa:key" />
+    <UiPanelCardTitle
+      :id="role.id"
+      size="medium"
+      :label="role.name"
+      icon="fa:key"
+      :to="{ name: '/admin/role/[id]/general', params: { id: role.id } }"
+    />
     <div class="content">
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
