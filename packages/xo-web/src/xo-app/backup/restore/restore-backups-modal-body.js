@@ -5,6 +5,7 @@ import ChooseSrForEachVdisModal, { areVdiTargetsComplete } from 'xo/choose-sr-fo
 import Component from 'base-component'
 import StateButton from 'state-button'
 import store from 'store'
+import { createLogger } from '@xen-orchestra/log'
 import { createSelector, getObject } from 'selectors'
 import { find, keyBy } from 'lodash'
 import { getAllProxies, getXoVmUuid, isSrWritable } from 'xo'
@@ -13,6 +14,8 @@ import { Select, Toggle } from 'form'
 import { SelectSr } from 'select-objects'
 
 const BACKUP_RENDERER = getRenderXoItemOfType('backup')
+
+const log = createLogger('xo-web:restore-backups')
 
 export default class RestoreBackupsModalBody extends Component {
   state = {
@@ -26,12 +29,23 @@ export default class RestoreBackupsModalBody extends Component {
   }
 
   // the cache of a live restore is a VDI plugged onto the VM serving the mount: XO's, or the one of
-  // the proxy handling the backup repository
+  // the proxy handling the backup repository. Each is looked up on its own, so failing to find one
+  // does not disable the live restores the other one could serve
   componentDidMount() {
     if (!this.props.backupHealthCheck) {
-      Promise.all([getXoVmUuid(), getAllProxies()]).then(
-        ([xoVmUuid, proxies]) => this.setState({ proxies, xoVmUuid }),
-        () => this.setState({ proxies: [], xoVmUuid: null })
+      getXoVmUuid().then(
+        xoVmUuid => this.setState({ xoVmUuid }),
+        error => {
+          log.warn('cannot get the VM running XO, live restore disabled for the repositories it reads', { error })
+          this.setState({ xoVmUuid: null })
+        }
+      )
+      getAllProxies().then(
+        proxies => this.setState({ proxies }),
+        error => {
+          log.warn('cannot list the proxies, live restore disabled for the repositories they read', { error })
+          this.setState({ proxies: [] })
+        }
       )
     }
   }

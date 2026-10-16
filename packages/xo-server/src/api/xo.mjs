@@ -1,17 +1,14 @@
 import * as CM from 'complex-matcher'
 import { asyncEach } from '@vates/async-each'
-import { createLogger } from '@xen-orchestra/log'
 import { fromCallback } from 'promise-toolbox'
 import { getStreamAsBuffer } from 'get-stream'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { pipeline } from 'readable-stream'
 import { safeDateFormat } from '../utils.mjs'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
-import { getCurrentVmUuid as getCurrentVmUuidFromXenStore } from '../_XenStore.mjs'
+import { getCurrentVmUuid as getCurrentVmUuidFromXenStore, isNotInXenVm } from '../_XenStore.mjs'
 import iteratee from 'lodash/iteratee.js'
 import { ALL_VISIBLE } from '../_objectVisibility.mjs'
-
-const log = createLogger('xo:api:xo')
 
 // ===================================================================
 
@@ -158,13 +155,16 @@ export async function getCurrentVmUuid() {
   try {
     return await getCurrentVmUuidFromXenStore()
   } catch (error) {
-    // not running in a VM, or not allowed to read the XenStore
-    log.warn('cannot find the VM running XO', { error })
+    // any other failure, e.g. not being allowed to read the XenStore, is reported rather than
+    // turned into a missing VM, which would silently disable what depends on it
+    if (!isNotInXenVm(error)) {
+      throw error
+    }
     return null
   }
 }
 
-getCurrentVmUuid.description = 'UUID of the VM running XO, null when it cannot be found'
+getCurrentVmUuid.description = 'UUID of the VM running XO, null when XO does not run in a Xen VM'
 
 getCurrentVmUuid.permission = 'admin'
 
