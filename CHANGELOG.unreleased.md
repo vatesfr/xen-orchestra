@@ -11,6 +11,9 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Servers] The objects of a pool which can no longer be reached are kept and flagged as disconnected, with the last time the pool was reached, instead of disappearing. They are flagged after 30 seconds instead of 5 minutes (`xapiMarkDisconnectedDelay`), and removed after 1 hour (`xapiStaleObjectsMaxAge`) (PR [#10611](https://github.com/vatesfr/xen-orchestra/pull/10611))
+- [Servers] The time allowed to fetch the objects of a pool on connection is now set by `xapiObjectsFetchTimeout` (5 minutes), no longer by `xapiMarkDisconnectedDelay` (PR [#10611](https://github.com/vatesfr/xen-orchestra/pull/10611))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -38,6 +41,9 @@
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-netbox patch
+- xo-server-perf-alert patch
+- xo-server-usage-report patch
 - xo-web minor
 
 <!--packages-end-->
