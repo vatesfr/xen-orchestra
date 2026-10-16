@@ -1,10 +1,19 @@
 import { createPredicate } from 'value-matcher'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { noSuchObject } from 'xo-common/api-errors.js'
-import type { XoVmBackupJob, XoVm, XoSchedule, AnyXoJob, AnyXoBackupJob } from '@vates/types'
+import type {
+  XoVmBackupJob,
+  XoVm,
+  XoSchedule,
+  AnyXoJob,
+  AnyXoBackupJob,
+  XoMetadataBackupJob,
+  XoMirrorBackupJob,
+} from '@vates/types'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
+import type { CreateBackupJobBody, CreateBackupJobSchedule } from './backup-job.type.mjs'
 
 export class BackupJobService {
   #backupJobTypes = ['backup', 'metadataBackup', 'mirrorBackup']
@@ -21,6 +30,30 @@ export class BackupJobService {
     }
 
     return job
+  }
+
+  async createBackupJob({ schedules: _schedules = {}, ...props }: CreateBackupJobBody): Promise<AnyXoBackupJob> {
+    const xoApp = this.#restApi.xoApp
+
+    const schedules: Record<string, Pick<XoSchedule, 'cron' | 'enabled' | 'name' | 'timezone'>> = {}
+    for (const [tmpId, { enabled = false, ...schedule }] of Object.entries<CreateBackupJobSchedule>(_schedules)) {
+      schedules[tmpId] = { ...schedule, enabled }
+    }
+
+    if (props.type === 'metadataBackup') {
+      const userId = this.#restApi.getCurrentUser().id
+      return xoApp.createMetadataBackupJob(
+        { ...props, userId } as unknown as Omit<XoMetadataBackupJob, 'id' | 'type'>,
+        schedules
+      )
+    }
+
+    const { type, ...job } = props
+    return xoApp.createBackupNgJob<XoVmBackupJob | XoMirrorBackupJob>(
+      type,
+      job as unknown as Omit<XoVmBackupJob | XoMirrorBackupJob, 'id' | 'type'>,
+      schedules
+    )
   }
 
   isBackupJob(anyJob: AnyXoJob): anyJob is AnyXoBackupJob {
