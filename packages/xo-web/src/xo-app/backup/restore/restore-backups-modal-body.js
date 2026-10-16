@@ -56,7 +56,9 @@ export default class RestoreBackupsModalBody extends Component {
   // read by the modal to refuse the confirmation while a disk misses the destination its action
   // needs, which the server could not guess
   get isValid() {
-    return areVdiTargetsComplete(this.state.targetSrs, this._getDisks())
+    return areVdiTargetsComplete(this.state.targetSrs, this._getDisks(), {
+      cacheSrPredicate: this._getCacheSrPredicate(),
+    })
   }
 
   // every disk of the backup is listed, including the ones the user chose not to restore: that

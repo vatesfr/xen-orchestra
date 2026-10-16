@@ -62,9 +62,19 @@ const isLiveMountHostAllowed = (host, predicate) => {
   return object !== undefined && predicate(object)
 }
 
+// unlike a host, a cache SR cannot be checked without a predicate: it depends on the VM serving
+// the mount, and without one there is nothing to plug the cache onto
+const isCacheSrAllowed = (cacheSr, predicate) => {
+  if (cacheSr == null || predicate === undefined) {
+    return false
+  }
+  const sr = resolveObject(cacheSr)
+  return sr !== undefined && predicate(sr)
+}
+
 // a disk target is complete once the destination its action needs is known: a host to live mount
 // on, or an SR to restore to, which is the main SR unless one is set for this disk
-const isVdiTargetComplete = (target, mainSr) => {
+const isVdiTargetComplete = (target, mainSr, cacheSrPredicate) => {
   const type = target?.type ?? RESTORE
   if (type === RESTORE) {
     return (target?.sr ?? mainSr) != null
@@ -73,7 +83,7 @@ const isVdiTargetComplete = (target, mainSr) => {
     return target.host != null
   }
   if (type === LIVE_RESTORE) {
-    return target.host != null && target.cacheSr != null
+    return target.host != null && isCacheSrAllowed(target.cacheSr, cacheSrPredicate)
   }
   return true
 }
@@ -87,8 +97,8 @@ const getIncompleteTargetMessage = type =>
 
 // meant for the modal bodies embedding this component with `withVdiTargets`, to refuse a
 // confirmation which the server could not honor
-export const areVdiTargetsComplete = ({ mainSr, mapVdisSrs } = {}, vdis) =>
-  every(vdis, vdi => isVdiTargetComplete(mapVdisSrs?.[vdi.uuid], mainSr))
+export const areVdiTargetsComplete = ({ mainSr, mapVdisSrs } = {}, vdis, { cacheSrPredicate } = {}) =>
+  every(vdis, vdi => isVdiTargetComplete(mapVdisSrs?.[vdi.uuid], mainSr, cacheSrPredicate))
 
 const Collapsible = ({ collapsible, children, ...props }) =>
   collapsible ? (
@@ -127,6 +137,34 @@ export default class ChooseSrForEachVdisModal extends Component {
     // A live restore is held as `{ type: 'live-restore', host, cacheSr }`, which `restoreBackup`
     // sends as the cached live mount the server expects.
     withVdiTargets: PropTypes.bool,
+  }
+
+  // the SRs which can hold a cache change with the VM serving the mount, e.g. when another backup is
+  // picked: a cache SR chosen for the previous one is dropped instead of being kept, unusable
+  componentDidUpdate(prevProps) {
+    const {
+      cacheSrPredicate,
+      value: { mapVdisSrs },
+    } = this.props
+    if (cacheSrPredicate === prevProps.cacheSrPredicate || mapVdisSrs === undefined) {
+      return
+    }
+
+    let changed = false
+    const newMapVdisSrs = mapValues(mapVdisSrs, target => {
+      if (
+        target?.type !== LIVE_RESTORE ||
+        target.cacheSr == null ||
+        isCacheSrAllowed(target.cacheSr, cacheSrPredicate)
+      ) {
+        return target
+      }
+      changed = true
+      return { ...target, cacheSr: undefined }
+    })
+    if (changed) {
+      this._onChange({ mapVdisSrs: newMapVdisSrs })
+    }
   }
 
   _onChange = newValues => {
@@ -230,7 +268,7 @@ export default class ChooseSrForEachVdisModal extends Component {
               value={target?.cacheSr}
             />
           )}
-          {!isVdiTargetComplete(target, mainSr) && (
+          {!isVdiTargetComplete(target, mainSr, this.props.cacheSrPredicate) && (
             <span className='text-danger'>{getIncompleteTargetMessage(type)}</span>
           )}
         </Col>
@@ -251,7 +289,8 @@ export default class ChooseSrForEachVdisModal extends Component {
     } = props
 
     // the rows are collapsed by default, so what is missing in them has to be visible from outside
-    const incompleteTargets = withVdiTargets && !areVdiTargetsComplete(props.value, vdis)
+    const incompleteTargets =
+      withVdiTargets && !areVdiTargetsComplete(props.value, vdis, { cacheSrPredicate: props.cacheSrPredicate })
 
     return (
       <div>
