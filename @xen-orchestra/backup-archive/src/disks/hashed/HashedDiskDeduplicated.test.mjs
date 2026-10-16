@@ -994,6 +994,29 @@ describe('rename', () => {
   })
 })
 
+describe('isMergeableParent', () => {
+  test('accepts its own uuid on a hbd remote', async () => {
+    const disk = await createDisk()
+
+    assert.equal(await disk.isMergeableParent(DISK_UUID, { diskFormat: 'hbd' }), true)
+  })
+
+  test('refuses another uuid', async () => {
+    const disk = await createDisk()
+
+    assert.equal(await disk.isMergeableParent(uuid.v4(), { diskFormat: 'hbd' }), false)
+  })
+
+  // a chain never mixes formats: a delta written as VHD can't have a hbd parent
+  for (const diskFormat of ['vhd', 'vhdDirectory']) {
+    test(`refuses its own uuid on a ${diskFormat} remote`, async () => {
+      const disk = await createDisk()
+
+      assert.equal(await disk.isMergeableParent(DISK_UUID, { diskFormat }), false)
+    })
+  }
+})
+
 describe('clean', () => {
   const dataDir = () => `${diskDir}/data/${DISK_UUID}`
   const listData = async () => (await handler.list(dataDir())).sort()

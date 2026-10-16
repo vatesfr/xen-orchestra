@@ -9,7 +9,7 @@ import { relativeFromFile } from '@xen-orchestra/fs/path'
 import { Disposable, pFromCallback } from 'promise-toolbox'
 import { RandomAccessDisk } from '@xen-orchestra/disk-transform'
 import { openDisposableDisk } from '@xen-orchestra/backup-archive/disks'
-import { BLOCK_STORE_PATH } from '@xen-orchestra/backup-archive/disks/hashed'
+import { BLOCK_STORE_PATH, HashedDiskDeduplicated } from '@xen-orchestra/backup-archive/disks/hashed'
 import { RemoteAdapter } from './RemoteAdapter.mjs'
 import { checkDisk } from './_runners/_writers/_checkDisk.mjs'
 import { formatFilenameDate } from './_filenameDate.mjs'
@@ -170,6 +170,56 @@ describe('RemoteAdapter#isMergeableParent', { concurrency: 1 }, () => {
             assert.equal(await adapter.isMergeableParent(targetUuid, path), expected)
           })
         }
+      }
+    }
+  }
+})
+
+// a folder can hold disks of several formats, but a chain never mixes them: only a disk
+// of the format this remote writes can be the parent of the next delta
+describe('RemoteAdapter#isMergeableParent across disk formats', { concurrency: 1 }, () => {
+  const COMPRESSION = 'brotli'
+  // disk kind on the remote -> the only remote format that may chain onto it
+  const DISK_KINDS = {
+    file: 'vhd',
+    directory: 'vhdDirectory',
+    hbd: 'hbd',
+  }
+
+  async function createParent(kind, diskUuid) {
+    if (kind === 'hbd') {
+      const path = `${basePath}/disk.hbd`
+      const disk = await HashedDiskDeduplicated.create({
+        handler,
+        path,
+        virtualSize: DEFAULT_BLOCK_SIZE,
+        blockSize: DEFAULT_BLOCK_SIZE,
+        uuid: uuid.stringify(diskUuid),
+        dedupType: 'PER_BACKUP_REPOSITORY',
+      })
+      await disk.close()
+      return path
+    }
+    await generateVhd(`${basePath}/disk.vhd`, {
+      mode: kind,
+      compression: kind === 'directory' ? COMPRESSION : undefined,
+      uuid: diskUuid,
+    })
+    return kind === 'directory' ? `${basePath}/disk.vhd.alias.vhd` : `${basePath}/disk.vhd`
+  }
+
+  for (const [kind, matchingFormat] of Object.entries(DISK_KINDS)) {
+    for (const diskFormat of Object.values(DISK_KINDS)) {
+      for (const uuidMatches of [false, true]) {
+        const expected = uuidMatches && diskFormat === matchingFormat
+
+        test(`${kind} disk on a ${diskFormat} remote, uuidMatches=${uuidMatches} -> ${expected}`, async () => {
+          const adapter = await getAdapter({ diskFormat, remoteCompressionType: COMPRESSION })
+          const targetUuid = uniqueIdBuffer()
+          const path = await createParent(kind, uuidMatches ? targetUuid : uniqueIdBuffer())
+
+          assert.equal(await adapter.isMergeableParent(targetUuid, path), expected)
+        })
       }
     }
   }
