@@ -450,6 +450,9 @@ export type XoApp = EventEmitter & {
   getXapiPoolStats(poolId: XoPool['id'], granularity?: XapiStatsGranularity): Promise<XapiPoolStats>
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
+  /** the connection of the pool holding this object, which may not be connected */
+  getXenServerIdByObject<T extends XapiXoRecord>(maybeId: T['id'] | T, type?: T['type'] | T['type'][]): XoServer['id']
+  getXenServerWithCredentials(id: XoServer['id']): Promise<XoServer & { password: string }>
   getXoEventEmitterByType(type: string): EventEmitter
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean

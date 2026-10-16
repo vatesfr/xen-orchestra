@@ -824,7 +824,10 @@ export interface XenApiSr {
   VDIs: XenApiVdi['$ref'][]
   virtual_allocation: number
 }
-export type XenApiSrWrapped = WrapperXenApi<XenApiSr, 'SR', XenApiSrCallMethods>
+export type XenApiSrWrapped = WrapperXenApi<XenApiSr, 'SR', XenApiSrCallMethods> & {
+  // resolved by xen-api from `PBDs`
+  $PBDs: XenApiPbdWrapped[]
+}
 
 export interface XenApiSrStat {
   $ref: Branded<'sr_stat'>

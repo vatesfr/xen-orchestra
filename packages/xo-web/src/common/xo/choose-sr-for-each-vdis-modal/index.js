@@ -88,12 +88,13 @@ const isVdiTargetComplete = (target, mainSr, cacheSrPredicate) => {
   return true
 }
 
-const getIncompleteTargetMessage = type =>
-  type === LIVE_MOUNT
-    ? _('vdiTargetHostRequired')
-    : type === LIVE_RESTORE
-      ? _('vdiTargetLiveRestoreIncomplete')
-      : _('vdiTargetSrRequired')
+// a restore misses its SR, as does any other action
+const INCOMPLETE_TARGET_MESSAGES = {
+  [LIVE_MOUNT]: 'vdiTargetHostRequired',
+  [LIVE_RESTORE]: 'vdiTargetLiveRestoreIncomplete',
+}
+
+const getIncompleteTargetMessage = type => _(INCOMPLETE_TARGET_MESSAGES[type] ?? 'vdiTargetSrRequired')
 
 // meant for the modal bodies embedding this component with `withVdiTargets`, to refuse a
 // confirmation which the server could not honor

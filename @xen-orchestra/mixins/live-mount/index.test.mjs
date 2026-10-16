@@ -937,11 +937,20 @@ describe('the read cache', () => {
     assert.equal(disk.closed, true)
   })
 
-  it('waits for the device node of the hot-plugged VDI to appear', async () => {
-    const enoent = Object.assign(new Error('not there yet'), { code: 'ENOENT' })
-    const { mixin, cacheDevice } = makeMixin({ cacheDeviceOpenErrors: [enoent] })
+  it('waits for the device node of the hot-plugged VDI to appear', async t => {
+    t.mock.timers.enable({ apis: ['setTimeout'] })
+    const openErrors = [Object.assign(new Error('not there yet'), { code: 'ENOENT' })]
+    const { mixin, cacheDevice } = makeMixin({ cacheDeviceOpenErrors: openErrors })
 
-    await mountDisk(mixin, makeXapi(), CACHE)
+    const mount = mountDisk(mixin, makeXapi(), CACHE)
+    while (openErrors.length !== 0) {
+      await new Promise(resolve => setImmediate(resolve))
+    }
+    // once the failed attempt settled, the retry delay is scheduled: past it, instead of really
+    // waiting for it
+    await new Promise(resolve => setImmediate(resolve))
+    t.mock.timers.tick(200)
+    await mount
 
     assert.equal(cacheDevice.opened, true)
   })

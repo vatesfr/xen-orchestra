@@ -50,7 +50,7 @@ const wrapProxyError = (error, proxyId) =>
  * not declare, which is what an older proxy answers to a param added since. Any other invalid
  * parameter is a mistake of the caller, and says nothing about the proxy's version.
  *
- * @param {unknown} error
+ * @param {{ data?: { errors?: { keyword?: string, params?: { additionalProperty?: string } }[] } }} error - as a proxy reports Ajv's errors
  * @param {readonly string[]} names
  * @returns {boolean}
  */
@@ -65,12 +65,12 @@ export const rejectsUnknownParams = (error, names) =>
  * Connection options of the pool holding an object, as a proxy expects them.
  *
  * @param {XoApp} app
- * @param {string} objectId
+ * @param {import('@vates/types').XapiXoRecord['id'] | import('@vates/types').XapiXoRecord} object - or its id
  */
-async function getXapiOptions(app, objectId) {
+async function getXapiOptions(app, object) {
   // httpProxy is ignored when using XO Proxy
   const { allowUnauthorized, host, password, username } = await app.getXenServerWithCredentials(
-    app.getXenServerIdByObject(objectId)
+    app.getXenServerIdByObject(object)
   )
   return { allowUnauthorized, credentials: { username, password }, url: host }
 }
@@ -405,13 +405,7 @@ export default class BackupDiskMountsResolver {
   async #mountOnProxy({ cacheSrId, diskId, host, proxyId, remote, xapiLabels }) {
     const app = this.#app
     const cacheParams = cacheSrId === undefined ? undefined : await getProxyCacheParams(app, proxyId)
-    // httpProxy is ignored when using XO Proxy
-    const {
-      allowUnauthorized,
-      host: url,
-      password,
-      username,
-    } = await app.getXenServerWithCredentials(app.getXenServerIdByObject(host))
+    const xapi = await getXapiOptions(app, host)
 
     try {
       return await app.callProxyMethod(proxyId, 'backup.mountDisk', {
@@ -423,11 +417,7 @@ export default class BackupDiskMountsResolver {
           url: remote.url,
           options: remote.options,
         },
-        xapi: {
-          allowUnauthorized,
-          credentials: { username, password },
-          url,
-        },
+        xapi,
         xapiLabels,
       })
     } catch (error) {

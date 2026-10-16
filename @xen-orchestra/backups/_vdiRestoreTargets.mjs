@@ -139,13 +139,15 @@ export function hasLiveMountTarget(mapVdisSrs) {
 /**
  * Whether a raw `mapVdisSrs` setting asks for at least one cached, hence read/write, live mount.
  *
- * Such a mount needs the VM of the appliance serving it, which the caller has to look up.
+ * Such a mount needs the VM of the appliance serving it, which the caller has to look up. A `null`
+ * cache SR does not ask for one: it is invalid, and left to {@link normalizeVdiRestoreTargets} to
+ * reject, rather than failing on the lookup of a VM which was never needed.
  *
  * @param {object} [mapVdisSrs]
  * @returns {boolean}
  */
 export function hasCachedLiveMountTarget(mapVdisSrs) {
-  return Object.values(mapVdisSrs ?? {}).some(value => value?.type === 'live-mount' && value.cacheSr !== undefined)
+  return Object.values(mapVdisSrs ?? {}).some(value => value?.type === 'live-mount' && value.cacheSr != null)
 }
 
 /**

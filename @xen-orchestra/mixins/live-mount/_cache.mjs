@@ -16,25 +16,33 @@ const TRANSIENT_OPEN_ERRORS = ['EBUSY', 'ENOENT', 'ENOMEDIUM', 'ENXIO']
 const GET_FIELD_TIMEOUT = 60e3
 
 /**
+ * @typedef {import('@vates/types').Xapi} Xapi
+ * @typedef {import('@vates/types').XenApiSr} XenApiSr
+ * @typedef {import('@vates/types').XenApiVm} XenApiVm
+ * @typedef {import('@vates/iscsi').FileBlockDevice} FileBlockDevice
+ */
+
+/**
  * Create a VDI the size of the source disk, hot-plug it onto the appliance's VM
  * and open it as a block device.
  *
  * Everything is registered on the caller's `$defer`, so a failure later in the
  * mount unwinds it too.
  *
- * @param {object} $defer - the caller's golike-defer handle
+ * @param {{ onFailure(fn: () => unknown): void }} $defer - the caller's golike-defer handle
  * @param {object} params
- * @param {object} params.xapi - XAPI connection of the pool running this appliance
- * @param {object} params.disk - the source disk, already opened
+ * @param {Xapi} params.xapi - XAPI connection of the pool running this appliance
+ * @param {{ getVirtualSize(): number }} params.disk - the source disk, already opened
  * @param {string} params.diskPath - path of the source disk, for the logs
  * @param {string} params.id - id of the mount
  * @param {string} params.nameLabel - name of the disk being restored
  * @param {string} params.srUuid - SR holding the cache VDI
  * @param {string} params.vmUuid - VM of this appliance, the cache VDI is plugged onto it
- * @param {(options: { path: string, size: number }) => object} params.createCacheDevice
- * @returns {Promise<{ device: object, vbdRef: string, vdiRef: string }>}
+ * @param {(options: { path: string, size: number }) => FileBlockDevice} params.createCacheDevice
+ * @returns {Promise<{ device: FileBlockDevice, vbdRef: import('@vates/types').XenApiVbd['$ref'], vdiRef: import('@vates/types').XenApiVdi['$ref'] }>}
  */
 export async function createCache($defer, { xapi, disk, diskPath, id, nameLabel, srUuid, vmUuid, createCacheDevice }) {
+  /** @type {XenApiVm['$ref']} */
   let vmRef
   try {
     vmRef = await xapi.call('VM.get_by_uuid', vmUuid)
@@ -46,6 +54,7 @@ export async function createCache($defer, { xapi, disk, diskPath, id, nameLabel,
       cause: error,
     })
   }
+  /** @type {XenApiSr['$ref']} */
   let srRef
   try {
     srRef = await xapi.call('SR.get_by_uuid', srUuid)
