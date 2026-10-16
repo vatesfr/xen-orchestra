@@ -340,7 +340,6 @@
   "descending": "zostupne",
   "description": "Popis",
   "destination-sr": "Cieľový repozitár úložiska",
-  "destination-sr-mandatory": "Je potrebné určiť cieľový repozitár úložiska.",
   "device": "Zariadenie",
   "device-config": "Konfigurácia zariadenia",
   "dhcp": "DHCP",

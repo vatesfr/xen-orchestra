@@ -340,7 +340,6 @@
   "descending": "azalan",
   "description": "Açıklama",
   "destination-sr": "Hedef SR",
-  "destination-sr-mandatory": "Hedef SR zorunludur.",
   "device": "Aygıt",
   "device-config": "Aygıt yapılandırması",
   "dhcp": "DHCP",
