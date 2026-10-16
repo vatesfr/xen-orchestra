@@ -64,6 +64,10 @@ export class RemoteAdapter {
     this._handler = handler
     this._readCacheListVmBackups = synchronized.withKey()(this._readCacheListVmBackups)
     this._useGetDiskLegacy = useGetDiskLegacy
+
+    // Cache of the partition list per diskId, populated by listPartitions and evicted by
+    // getDisk when the disk is unmounted
+    this._partitionsCache = new Map()
   }
 
   get handler() {
