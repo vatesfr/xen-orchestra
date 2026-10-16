@@ -78,34 +78,19 @@ describe('createIsObjectVisible', function () {
       }
     })
 
-    it('resolves a VDI through the SR holding it', function () {
-      const isVisible = makeIsVisible({ permissionsByObject: view('sr-1') })
-
-      assert.equal(isVisible('vdi-1'), true)
-    })
-
-    it('resolves a VDI through a VM it is attached to', function () {
-      const isVisible = makeIsVisible({ permissionsByObject: view('vm-1') })
-
-      assert.equal(isVisible('vdi-1'), true)
-    })
-
-    it('resolves a VIF through its network or its VM', function () {
-      assert.equal(makeIsVisible({ permissionsByObject: view('net-1') })('vif-1'), true)
-      assert.equal(makeIsVisible({ permissionsByObject: view('vm-1') })('vif-1'), true)
-    })
-
-    it('resolves an unmanaged VDI through its SR, like any other disk', function () {
-      const isVisible = makeIsVisible({ permissionsByObject: view('sr-1') })
-
-      assert.equal(isVisible('vdi-u'), true)
-    })
-
-    it('resolves an unmanaged VDI through a VM it is attached to', function () {
-      const isVisible = makeIsVisible({ permissionsByObject: view('vm-1') })
-
-      assert.equal(isVisible('vdi-u-vm'), true)
-    })
+    const objectContainerArray = [
+      ['vdi-1', 'sr-1'],
+      ['vdi-1', 'vm-1'],
+      ['vdi-u', 'sr-1'],
+      ['vdi-u-vm', 'vm-1'],
+      ['vif-1', 'net-1'],
+      ['vif-1', 'vm-1'],
+    ]
+    for (const [objectId, containerId] of objectContainerArray) {
+      it(`resolves ${objectId} through ${containerId}`, function () {
+        assert.equal(makeIsVisible({ permissionsByObject: view(containerId) })(objectId), true)
+      })
+    }
 
     // `getObject` returns undefined for an unknown id on the server, where it
     // used to return an empty object in the client: dereferencing it blindly

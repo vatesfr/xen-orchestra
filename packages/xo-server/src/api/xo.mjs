@@ -8,6 +8,7 @@ import { safeDateFormat } from '../utils.mjs'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
 import { getCurrentVmUuid } from '../_XenStore.mjs'
 import iteratee from 'lodash/iteratee.js'
+import { ALL_VISIBLE } from '../_objectVisibility.mjs'
 
 // ===================================================================
 
@@ -63,7 +64,7 @@ function handleGetAllObjects(req, res, { filter, limit }) {
 function composeFilter(filter, isObjectVisible) {
   const predicate = filter === undefined ? undefined : iteratee(filter)
 
-  if (isObjectVisible === undefined) {
+  if (isObjectVisible === ALL_VISIBLE) {
     return predicate
   } else if (predicate === undefined) {
     return (object, id) => isObjectVisible(id)

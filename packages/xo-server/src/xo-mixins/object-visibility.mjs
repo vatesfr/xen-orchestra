@@ -1,4 +1,4 @@
-import { createPermissions, createIsObjectVisible } from '../_objectVisibility.mjs'
+import { createPermissions, createIsObjectVisible, ALL_VISIBLE } from '../_objectVisibility.mjs'
 import TTLCache from '@isaacs/ttlcache'
 import isEqual from 'lodash/isEqual.js'
 import { createLogger } from '@xen-orchestra/log'
@@ -6,12 +6,28 @@ import { createLogger } from '@xen-orchestra/log'
 const log = createLogger('xo:object-visibility')
 
 /**
+ * @typedef {{ [objectId: string]: { [permission: string]: 1 } }} PermissionsByObject
+ *
+ * @typedef {{ permission: 'admin' }} AdminSources
+ *
  * @typedef {{
  *   permission: string,
- *   permissionsByObject?: { [objectId: string]: { [permission: string]: 1 } },
- *   resourceSetObjectIds?: string[],
- *   permissions?: { [objectId: string]: { [permission: string]: 1 } },
- * }} Sources
+ *   permissionsByObject: PermissionsByObject,
+ *   resourceSetObjectIds: string[],
+ *   permissions: PermissionsByObject,
+ * }} UserSources
+ *
+ * An admin is resolved from their permission alone: the ACLs and resource sets
+ * are never read, so the rest of the fields are simply absent.
+ *
+ * @typedef {AdminSources | UserSources} Sources
+ *
+ * @typedef {{
+ *   timer: ReturnType<typeof setTimeout>,
+ *   previousSources: Map<string, Promise<Sources>>,
+ *   promise: Promise<void>,
+ *   resolve: () => void,
+ * }} PendingResync
  */
 
 /**
@@ -46,9 +62,12 @@ export default class ObjectVisibility {
   constructor(app) {
     this._app = app
     app.hooks?.on('stop', () => {
-      for (const { timer } of this.#pendingResyncs.values()) {
+      for (const { timer, resolve } of this.#pendingResyncs.values()) {
         clearTimeout(timer)
+        resolve()
       }
+
+      this.#pendingResyncs.clear()
     })
   }
 
@@ -64,7 +83,7 @@ export default class ObjectVisibility {
    * Resyncs waiting for the debounce window to close, by user id (or
    * `ALL_USERS`).
    *
-   * @type {Map<string | symbol, { timer: any, previousSources: Map<string, Promise<Sources>>, promise: Promise<void>, resolve: () => void }>}
+   * @type {Map<string | symbol, PendingResync>}
    */
   #pendingResyncs = new Map()
 
@@ -79,7 +98,7 @@ export default class ObjectVisibility {
     const { permission, permissions } = await this.#getSources(userId)
 
     if (permission === 'admin') {
-      return () => true
+      return ALL_VISIBLE
     } else {
       return createIsObjectVisible({
         getObject: objectId => {
@@ -104,7 +123,7 @@ export default class ObjectVisibility {
    * is kept so the resync can tell whose permissions actually moved.
    *
    * @param {string} [userId]
-   * @returns {Promise<void>} resolves once the connections have been resynced;
+   * @returns {Promise<void>} resolves once the connections have been resynced or when the server is stopped;
    *   callers may ignore it, it never rejects
    */
   async clearObjectFilterCache(userId = undefined) {
@@ -188,7 +207,7 @@ export default class ObjectVisibility {
    * made against the state from before the burst began, not against the one
    * its own first invalidation left behind.
    *
-   * @param {string} [userId]
+   * @param {string | undefined} userId
    * @param {Map<string, Promise<Sources>>} previousSources
    * @returns {Promise<void>}
    */
@@ -214,14 +233,15 @@ export default class ObjectVisibility {
       }
     }
 
-    entry.timer = setTimeout(() => {
+    const pending = entry
+    pending.timer = setTimeout(() => {
       this.#pendingResyncs.delete(key)
-      this.#resyncObjects(userId, entry.previousSources)
+      this.#resyncObjects(userId, pending.previousSources)
         .catch(error => log.warn('failed to resync objects', { error, userId }))
-        .then(entry.resolve)
+        .then(pending.resolve)
     }, DELAY)
 
-    return entry.promise
+    return pending.promise
   }
 
   /**
@@ -229,7 +249,7 @@ export default class ObjectVisibility {
    * holding a socket, a Redis hiccup — must not stop the others from being
    * resynced.
    *
-   * @param {string} [userId] - when given, only that user's connections
+   * @param {string | undefined} userId - when given, only that user's connections
    * @param {Map<string, Promise<Sources>>} previousSources
    */
   async #resyncObjects(userId, previousSources) {
@@ -260,7 +280,7 @@ export default class ObjectVisibility {
    * The opposite case needs nothing: xo-web keeps filtering client-side and
    * refreshes its permissions every 5s.
    *
-   * @param {object} connection
+   * @param {import('../connection.mjs').default} connection
    * @param {string} userId
    * @param {Map<string, Promise<Sources>>} previousSources
    */

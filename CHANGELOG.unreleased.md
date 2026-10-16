@@ -107,7 +107,11 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
+<<<<<<< HEAD
 - @xen-orchestra/qcow2 patch
+=======
+- @xen-orchestra/qa-test minor
+>>>>>>> 1bd67139b (fix review)
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmdk major
 - @xen-orchestra/vmware-explorer patch

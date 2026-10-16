@@ -5,6 +5,13 @@ import { test as testPermission } from 'xo-acl-resolver'
  */
 
 /**
+ * Recognizable instance of IsObjectVisible so no one has to treat `undefined` as everything
+ *
+ * @type {IsObjectVisible}
+ */
+export const ALL_VISIBLE = () => true
+
+/**
  * Builds the predicate deciding whether a user may see an XO object.
  *
  * It is the very same resolver xo-web uses to filter its own store, so the

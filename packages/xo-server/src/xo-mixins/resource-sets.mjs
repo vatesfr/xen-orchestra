@@ -69,6 +69,10 @@ const normalize = set => ({
   tags: set.tags || [],
 })
 
+const sameMembers = (a = [], b = []) => {
+  return a.length === b.length && difference(a, b).length === 0
+}
+
 // ===================================================================
 
 export default class {
@@ -105,7 +109,12 @@ export default class {
     }
 
     await this._store.put(set.id, set)
-    await this.#clearCacheForSubjects([...(previous?.subjects ?? []), ...set.subjects])
+
+    const previousSubjects = previous?.subjects ?? []
+    const previousObjects = previous?.objects ?? []
+    if (sameMembers(previousSubjects, set.subjects) && sameMembers(previousObjects, set.objects)) return
+
+    await this.#clearCacheForSubjects([...previousSubjects, ...set.subjects])
   }
 
   async #clearCacheForSubjects(subjectIds) {
@@ -127,7 +136,7 @@ export default class {
     }
 
     for (const userId of userIds) {
-      await this._app.clearObjectFilterCache(userId)
+      this._app.clearObjectFilterCache(userId)
     }
   }
 

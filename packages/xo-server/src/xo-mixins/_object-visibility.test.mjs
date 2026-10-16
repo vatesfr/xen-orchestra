@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { describe, it } from 'node:test'
+import { afterEach, beforeEach, describe, it, mock } from 'node:test'
 
 import ObjectVisibility from './object-visibility.mjs'
 
@@ -51,6 +51,12 @@ const createMockApp = ({ users, permissionsByUser = {}, resourceSetsByUser = {},
   }
 }
 
+const clearAndFlush = (mixin, userId) => {
+  const promise = mixin.clearObjectFilterCache(userId)
+  mock.timers.tick(1000)
+  return promise
+}
+
 const ADMIN = { id: 'admin-1', permission: 'admin' }
 const USER = { id: 'user-1', permission: 'none' }
 const OTHER_USER = { id: 'user-2', permission: 'none' }
@@ -60,6 +66,14 @@ const USERS = { 'admin-1': ADMIN, 'user-1': USER, 'user-2': OTHER_USER }
 // ===================================================================
 
 describe('ObjectVisibility', function () {
+  beforeEach(function () {
+    mock.timers.enable({ apis: ['setTimeout'] })
+  })
+
+  afterEach(function () {
+    mock.timers.reset()
+  })
+
   describe('#getObjectFilterForUser()', function () {
     it('gives an admin a predicate that accepts everything', async function () {
       const app = createMockApp({ users: USERS })
@@ -135,7 +149,7 @@ describe('ObjectVisibility', function () {
       const mixin = new ObjectVisibility(app)
 
       await mixin.getObjectFilterForUser('user-1')
-      mixin.clearObjectFilterCache()
+      await clearAndFlush(mixin)
       await mixin.getObjectFilterForUser('user-1')
 
       assert.equal(app.calls.getPermissionsForUser, 2)
@@ -149,7 +163,7 @@ describe('ObjectVisibility', function () {
       assert.equal((await mixin.getObjectFilterForUser('user-1'))('vm-1'), false)
 
       permissionsByUser['user-1'] = { 'vm-1': { view: 1 } }
-      mixin.clearObjectFilterCache()
+      await clearAndFlush(mixin)
 
       assert.equal((await mixin.getObjectFilterForUser('user-1'))('vm-1'), true)
     })
@@ -160,7 +174,7 @@ describe('ObjectVisibility', function () {
 
       await mixin.getObjectFilterForUser('user-1')
       await mixin.getObjectFilterForUser('user-2')
-      mixin.clearObjectFilterCache('user-1')
+      await clearAndFlush(mixin, 'user-1')
       await mixin.getObjectFilterForUser('user-1')
       await mixin.getObjectFilterForUser('user-2')
 
@@ -180,7 +194,7 @@ describe('ObjectVisibility', function () {
       await mixin.getObjectFilterForUser('user-1')
 
       permissionsByUser['user-1'] = { 'vm-1': { view: 1 } }
-      await mixin.clearObjectFilterCache('user-1')
+      await clearAndFlush(mixin, 'user-1')
 
       assert.equal(connection.notified.length, 1)
       assert.deepEqual(Object.keys(connection.notified[0].params.items), ['vm-1'])
@@ -198,7 +212,7 @@ describe('ObjectVisibility', function () {
       await mixin.getObjectFilterForUser('user-1')
 
       users['user-1'] = { id: 'user-1', permission: 'admin' }
-      await mixin.clearObjectFilterCache('user-1')
+      await clearAndFlush(mixin, 'user-1')
 
       assert.equal(connection.notified.length, 1)
       assert.deepEqual(Object.keys(connection.notified[0].params.items).sort(), Object.keys(OBJECTS).sort())
@@ -213,7 +227,7 @@ describe('ObjectVisibility', function () {
       const mixin = new ObjectVisibility(app)
 
       await mixin.getObjectFilterForUser('admin-1')
-      await mixin.clearObjectFilterCache('admin-1')
+      await clearAndFlush(mixin, 'admin-1')
 
       assert.deepEqual(connection.notified, [])
     })
@@ -227,7 +241,7 @@ describe('ObjectVisibility', function () {
       })
       const mixin = new ObjectVisibility(app)
 
-      await mixin.clearObjectFilterCache('user-1')
+      await clearAndFlush(mixin, 'user-1')
 
       assert.deepEqual(connection.notified, [])
     })
@@ -247,7 +261,7 @@ describe('ObjectVisibility', function () {
       const mixin = new ObjectVisibility(app)
 
       await mixin.getObjectFilterForUser('user-1')
-      await mixin.clearObjectFilterCache()
+      await clearAndFlush(mixin)
 
       assert.deepEqual(connection.notified, [])
     })
@@ -261,7 +275,7 @@ describe('ObjectVisibility', function () {
       await mixin.getObjectFilterForUser('user-1')
 
       permissionsByUser['user-1'] = { 'vm-1': { view: 1 } }
-      await mixin.clearObjectFilterCache()
+      await clearAndFlush(mixin)
 
       assert.equal(connection.notified.length, 1)
     })
@@ -276,7 +290,7 @@ describe('ObjectVisibility', function () {
       const mixin = new ObjectVisibility(app)
 
       // never looked at before: withholding would be the riskier guess
-      await mixin.clearObjectFilterCache()
+      await clearAndFlush(mixin)
 
       assert.equal(connection.notified.length, 1)
     })
@@ -290,7 +304,7 @@ describe('ObjectVisibility', function () {
       await mixin.getObjectFilterForUser('user-1')
 
       resourceSetsByUser['user-1'] = [{ id: 'rs-1', objects: ['vm-1', 'tpl-1'] }]
-      await mixin.clearObjectFilterCache()
+      await clearAndFlush(mixin)
 
       assert.deepEqual(connection.notified, [])
     })
@@ -308,7 +322,7 @@ describe('ObjectVisibility', function () {
       await mixin.getObjectFilterForUser('user-1')
 
       permissionsByUser['user-1'] = { 'vm-1': { view: 1 } }
-      const resyncs = [mixin.clearObjectFilterCache(), mixin.clearObjectFilterCache(), mixin.clearObjectFilterCache()]
+      const resyncs = [clearAndFlush(mixin), clearAndFlush(mixin), clearAndFlush(mixin)]
       await Promise.all(resyncs)
 
       assert.equal(connection.notified.length, 1)
@@ -324,9 +338,9 @@ describe('ObjectVisibility', function () {
 
       await mixin.getObjectFilterForUser('user-1')
 
-      const first = mixin.clearObjectFilterCache()
+      const first = clearAndFlush(mixin)
       permissionsByUser['user-1'] = { 'vm-2': { view: 1 } }
-      await Promise.all([first, mixin.clearObjectFilterCache()])
+      await Promise.all([first, clearAndFlush(mixin)])
 
       assert.equal(connection.notified.length, 1)
     })
@@ -351,7 +365,7 @@ describe('ObjectVisibility', function () {
       const mixin = new ObjectVisibility(app)
 
       await mixin.getObjectFilterForUser('user-1')
-      await mixin.clearObjectFilterCache('user-1')
+      await clearAndFlush(mixin, 'user-1')
       await mixin.getObjectFilterForUser('user-1')
 
       assert.equal(app.calls.getUser, 2)
@@ -380,7 +394,7 @@ describe('ObjectVisibility', function () {
       await mixin.getObjectFilterForUser('user-2')
 
       permissionsByUser['user-2'] = { 'vm-1': { view: 1 } }
-      await mixin.clearObjectFilterCache()
+      await clearAndFlush(mixin)
 
       assert.deepEqual(broken.notified, [])
       assert.equal(healthy.notified.length, 1, 'the healthy connection was skipped')

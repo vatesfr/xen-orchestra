@@ -23,14 +23,14 @@ import {
   wait,
   waitUntil,
   withTag,
-} from '../utils/rbacUtils.js'
+} from '../utils/aclUtils.js'
 
-const log = createLogger('xo:qa-test:rbac')
+const log = createLogger('xo:qa-test:acl')
 
 // Time left for the server to apply an ACL change before it is observed.
 const SETTLE = 2_000
 
-describe('RBAC — server-side object filtering', () => {
+describe('ACL — server-side object filtering', () => {
   /** admin connection: arranges the fixtures */
   let admin
   /** low-privilege connection: observes what the server sends it */
@@ -112,7 +112,7 @@ describe('RBAC — server-side object filtering', () => {
     it('receives no object on the event stream while the infrastructure changes', async () => {
       recorder.reset()
 
-      await withTag(admin, referenceVmId, `qa-rbac-${Date.now()}`, () => wait(EVENT_WINDOW))
+      await withTag(admin, referenceVmId, `qa-acl-${Date.now()}`, () => wait(EVENT_WINDOW))
 
       // `exited` is not asserted: removals carry ids only and are forwarded to
       // every connection by design
@@ -378,7 +378,7 @@ describe('RBAC — server-side object filtering', () => {
       recorder.reset()
       otherRecorder.reset()
 
-      await withTag(admin, referenceVmId, `qa-rbac-${Date.now()}`, () => wait(EVENT_WINDOW))
+      await withTag(admin, referenceVmId, `qa-acl-${Date.now()}`, () => wait(EVENT_WINDOW))
 
       assert.ok(recorder.entered.has(referenceVmId), 'the granted user was not told about the change')
 
@@ -461,7 +461,7 @@ describe('RBAC — server-side object filtering', () => {
 
       // and no further update about it must be pushed
       recorder.reset()
-      await withTag(admin, referenceVmId, `qa-rbac-${Date.now()}`, () => wait(EVENT_WINDOW))
+      await withTag(admin, referenceVmId, `qa-acl-${Date.now()}`, () => wait(EVENT_WINDOW))
 
       assert.ok(
         !recorder.entered.has(referenceVmId),
@@ -488,7 +488,7 @@ describe('RBAC — server-side object filtering', () => {
       }
 
       const set = await admin.call('resourceSet.create', {
-        name: `qa-rbac-${Date.now()}`,
+        name: `qa-acl-${Date.now()}`,
         subjects: [testUser.id],
         objects: Object.values(setObjects),
       })

@@ -896,19 +896,20 @@ export default class NewVm extends BaseComponent {
       return
     }
 
+    const usableSrs = resolveIds(
+      filter(
+        this._getResolvedResourceSet().objectsByType.SR,
+        sr => sr.$pool === template.$pool && sr.content_type !== 'iso' && sr.size > 0
+      )
+    )
+
+    // the pool is not necessarily visible: a resource set grants its objects,
+    // never their container
     const defaultSr = getObject(store.getState(), template.$pool, true)?.default_SR
 
-    return includes(
-      resolveIds(
-        filter(
-          this._getResolvedResourceSet().objectsByType.SR,
-          sr => sr.$pool === template.$pool && sr.content_type !== 'iso' && sr.size > 0
-        )
-      ),
-      defaultSr
-    )
-      ? defaultSr
-      : undefined
+    // fall back to any SR of the set, otherwise the disk rows come up with
+    // nothing selected
+    return includes(usableSrs, defaultSr) ? defaultSr : usableSrs[0]
   }
   _addVdi = () => {
     const { state } = this.state

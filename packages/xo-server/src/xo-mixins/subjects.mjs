@@ -22,6 +22,8 @@ const log = createLogger('xo:xo-mixins:subjects')
 const addToArraySet = (set, value) => (set !== undefined ? (set.includes(value) ? set : set.concat(value)) : [value])
 const removeFromArraySet = (set, value) => set && filter(set, current => current !== value)
 
+const onCacheInvalidationError = error => log.warn('failed to invalidate the object filter cache', { error })
+
 // ===================================================================
 
 export default class {
@@ -43,12 +45,12 @@ export default class {
         groupsDb.on(event, groups => {
           for (const group of groups) {
             for (const userId of group.users ?? []) {
-              app.clearObjectFilterCache(userId)
+              app.clearObjectFilterCache(userId).catch(onCacheInvalidationError)
             }
           }
         })
       }
-      groupsDb.on('remove', () => app.clearObjectFilterCache())
+      groupsDb.on('remove', () => app.clearObjectFilterCache().catch(onCacheInvalidationError))
 
       app.hooks.emit('registerCollection', {
         collection: groupsDb,
@@ -65,13 +67,13 @@ export default class {
       for (const event of ['add', 'update']) {
         usersDb.on(event, models => {
           for (const model of models) {
-            app.clearObjectFilterCache(model.id)
+            app.clearObjectFilterCache(model.id).catch(onCacheInvalidationError)
           }
         })
       }
       usersDb.on('remove', userIds => {
         for (const userId of userIds) {
-          app.clearObjectFilterCache(userId)
+          app.clearObjectFilterCache(userId).catch(onCacheInvalidationError)
         }
       })
 

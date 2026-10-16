@@ -48,10 +48,12 @@ set.permission = 'admin'
 export async function getAllConfigured() {
   const configuredTags = await this.getConfiguredTags()
 
-  const isObjectVisible = await this.getObjectFilterForUser(this.apiContext.user.id)
-  if (isObjectVisible === undefined) {
+  const { permission, user } = this.apiContext
+  if (permission === 'admin') {
     return configuredTags
   }
+
+  const isObjectVisible = await this.getObjectFilterForUser(user.id)
 
   const visibleTags = new Set()
   const objects = this.getObjects()

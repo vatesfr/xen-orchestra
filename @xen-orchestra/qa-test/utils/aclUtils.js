@@ -3,19 +3,32 @@ import { createLogger } from '@xen-orchestra/log'
 import { getRequiredEnv } from './index.js'
 import { xoConnection } from '../client/xoLibClient.js'
 
-const log = createLogger('xo:qa-test:rbac')
+const log = createLogger('xo:qa-test:acl')
+
+/**
+ * The subset of the xo-lib client this suite uses.
+ *
+ * @typedef {{
+ *   user: { id: string, email: string, permission: string },
+ *   call: (method: string, params?: object) => Promise<any>,
+ *   on: (event: string, listener: (...args: any[]) => void) => void,
+ *   removeListener: (event: string, listener: (...args: any[]) => void) => void,
+ *   close: () => Promise<void>,
+ * }} XoClient
+ */
 
 /**
  * How long to watch the event stream before concluding that nothing arrived.
  *
- * The event assertions are the only source of flakiness in the RBAC suite:
+ * The event assertions are the only source of flakiness in the ACL suite:
  * they prove a *negative* ("nothing was pushed"), so the window has to be long
  * enough for a change made by the admin to have travelled back.
  */
-export const EVENT_WINDOW = Number(process.env.RBAC_EVENT_WINDOW ?? 10_000)
+const configured = Number(process.env.ACL_EVENT_WINDOW)
+export const EVENT_WINDOW = Number.isFinite(configured) && configured > 0 ? configured : 10_000
 
 /** Prefix of every account created by this suite, so leftovers are recognizable. */
-export const TEST_USER_PREFIX = 'qa-rbac-'
+export const TEST_USER_PREFIX = 'qa-acl-'
 
 export const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -30,7 +43,7 @@ export const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
  * @param {object} credentials
  * @param {string} credentials.email
  * @param {string} credentials.password
- * @returns {Promise<object>} a signed-in xo-lib client
+ * @returns {Promise<XoClient>} a signed-in xo-lib client
  */
 export function connectAs({ email, password }) {
   return xoConnection({
@@ -44,7 +57,7 @@ export function connectAs({ email, password }) {
 /**
  * Creates a throw-away account.
  *
- * @param {object} xo - an admin connection
+ * @param {XoClient} xo - an admin connection
  * @param {object} [opts]
  * @param {string} [opts.permission] - defaults to `none`, i.e. the "User" role
  * @returns {Promise<{ id: string, email: string, password: string }>}
@@ -63,7 +76,7 @@ export async function createTestUser(xo, { permission = 'none' } = {}) {
  * Deletes an account, ignoring the error if it is already gone, so that
  * teardown never masks the failure that led to it.
  *
- * @param {object} xo - an admin connection
+ * @param {XoClient} xo - an admin connection
  * @param {string} id
  */
 export async function deleteTestUser(xo, id) {
@@ -78,7 +91,7 @@ export async function deleteTestUser(xo, id) {
 /**
  * Creates a throw-away group.
  *
- * @param {object} xo - an admin connection
+ * @param {XoClient} xo - an admin connection
  * @returns {Promise<{ id: string, name: string }>}
  */
 export async function createTestGroup(xo) {
@@ -93,7 +106,7 @@ export async function createTestGroup(xo) {
  * Deletes a group, ignoring the error if it is already gone, so that teardown
  * never masks the failure that led to it.
  *
- * @param {object} xo - an admin connection
+ * @param {XoClient} xo - an admin connection
  * @param {string} id
  */
 export async function deleteTestGroup(xo, id) {
@@ -114,7 +127,7 @@ export async function deleteTestGroup(xo, id) {
  * allowed to see it and forwards them to everyone. Assertions about leaked
  * data must therefore be made on `entered`.
  *
- * @param {object} xo
+ * @param {XoClient} xo
  * @returns {{ entered: Map<string, object>, exited: Set<string>, reset(): void, stop(): void }}
  */
 export function recordPushedObjects(xo) {
@@ -154,7 +167,7 @@ export function recordPushedObjects(xo) {
 /**
  * Everything the server is willing to hand over to this connection.
  *
- * @param {object} xo
+ * @param {XoClient} xo
  * @returns {Promise<{ [id: string]: object }>}
  */
 export function fetchAllObjects(xo) {
@@ -276,7 +289,7 @@ export function summarize(objects, max = 6) {
  * Tagging goes all the way to XAPI, so it produces a genuine object update
  * rather than something synthesised by xo-server.
  *
- * @param {object} xo - an admin connection
+ * @param {XoClient} xo - an admin connection
  * @param {string} objectId
  * @param {string} tag
  */
@@ -299,7 +312,7 @@ export async function withTag(xo, objectId, tag, fn) {
  * test that expects a push into a silent no-op. Revoking first guarantees the
  * grant produces something to observe.
  *
- * @param {object} xo - an admin connection
+ * @param {XoClient} xo - an admin connection
  * @param {string} subject - a user or group id
  * @param {string} object
  * @param {string} [action]
@@ -312,7 +325,7 @@ export async function grant(xo, subject, object, action = 'viewer') {
 /**
  * Revokes a permission, tolerating its absence.
  *
- * @param {object} xo - an admin connection
+ * @param {XoClient} xo - an admin connection
  * @param {string} subject
  * @param {string} object
  * @param {string} [action]
@@ -336,7 +349,7 @@ export async function revoke(xo, subject, object, action = 'viewer') {
  *
  * Deleting a user or a group removes its ACLs, so they need no separate pass.
  *
- * @param {object} xo - an admin connection
+ * @param {XoClient} xo - an admin connection
  */
 export async function purgeLeftoverFixtures(xo) {
   const mine = name => name !== undefined && name.startsWith(TEST_USER_PREFIX)

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { Writable } from 'node:stream'
+import { ALL_VISIBLE } from '../_objectVisibility.mjs'
 
 import * as handlers from './xo.mjs'
 
@@ -44,7 +45,7 @@ const USER = { id: 'user-1' }
 
 describe('xo.getAllObjects', function () {
   it('returns every object to an admin', async function () {
-    const app = createMockApp({ user: ADMIN, permission: 'admin', isObjectVisible: undefined })
+    const app = createMockApp({ user: ADMIN, permission: 'admin', isObjectVisible: ALL_VISIBLE })
 
     const result = await handlers.getAllObjects.call(app, {})
 
