@@ -1,11 +1,11 @@
 import PluginConfiguration from '@/modules/plugin/components/detail/PluginConfiguration.vue'
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
-import JsonSchemaErrorSummary from '@/modules/plugin/json-schema-form/JsonSchemaErrorSummary.vue'
 import JsonSchemaField from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import VtsFormErrorSummary from '@core/components/form-error-summary/VtsFormErrorSummary.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useOverlayStore } from '@core/packages/overlay/use-overlay-store.ts'
 import { flushPromises, mount } from '@vue/test-utils'
@@ -176,10 +176,10 @@ describe('missing fields', () => {
 
     expect(
       wrapper
-        .getComponent(JsonSchemaErrorSummary)
+        .getComponent(VtsFormErrorSummary)
         .props('errors')
-        .map(error => error.path)
-    ).toEqual([['host']])
+        .map(error => error.message)
+    ).toEqual([t('form:error:field-required', { field: 'host' })])
     expect(findRequests()).toEqual([])
   })
 

@@ -1,5 +1,5 @@
 <template>
-  <div :class="className" class="vts-select">
+  <div :id="elementId" :class="className" class="vts-select">
     <UiInput
       ref="triggerRef"
       :accent
@@ -75,6 +75,7 @@ if (!select) {
 }
 
 const {
+  elementId,
   options,
   searchTerm,
   selectedLabel,

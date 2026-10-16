@@ -1,12 +1,15 @@
 <template>
-  <!-- a field is built once from its schema (e.g. the options of a select), it is recreated when its structure changes -->
   <component
     :is="FIELD_COMPONENTS[fieldType]"
     v-if="fieldType !== undefined"
     :key="fieldKey"
     v-model="model"
     v-bind="fieldProps"
-  />
+  >
+    <template v-if="slots.actions" #actions>
+      <slot name="actions" />
+    </template>
+  </component>
   <UiInfo v-else accent="warning" wrap>{{ t('json-schema:unsupported-field', { label }) }}</UiInfo>
 </template>
 
@@ -47,6 +50,10 @@ export type JsonSchemaFieldComponentProps = JsonSchemaFieldProps & {
 const { schema, label, path = [], required, disabled } = defineProps<JsonSchemaFieldProps>()
 
 const model = defineModel<unknown>()
+
+const slots = defineSlots<{
+  actions?(): any
+}>()
 
 const { t } = useI18n()
 

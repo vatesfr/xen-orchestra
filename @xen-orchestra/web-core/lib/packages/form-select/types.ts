@@ -79,6 +79,7 @@ export type FormSelect<
   TMultiple extends boolean = boolean,
   TFormOption extends FormOption<TCustomProperties, TSource, TValue> = FormOption<TCustomProperties, TSource, TValue>,
 > = {
+  elementId: string
   isMultiple: ComputedRef<TMultiple>
   isDisabled: ComputedRef<boolean>
   isRequired: ComputedRef<boolean>
