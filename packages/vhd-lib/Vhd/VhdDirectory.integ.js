@@ -100,14 +100,10 @@ describe('VhdDirectory', async () => {
           await compressedVhd.writeEntireBlock(block)
         }
         await Promise.all([
-            await compressedVhd.writeHeader(),
-            await compressedVhd.writeFooter(),
-            await compressedVhd.writeBlockAllocationTable()
+          compressedVhd.writeHeader(),
+          compressedVhd.writeFooter(),
+          compressedVhd.writeBlockAllocationTable(),
         ])
-          (await compressedVhd.writeHeader(),
-          await compressedVhd.writeFooter(),
-          await compressedVhd.writeBlockAllocationTable())
-        ]
 
         // compressed vhd have a metadata file
         assert.equal(await fs.exists(`${tempDir}/compressed.vhd/chunk-filters.json`), true)

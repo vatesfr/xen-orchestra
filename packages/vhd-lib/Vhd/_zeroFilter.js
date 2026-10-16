@@ -27,98 +27,49 @@ const isZero = (buffer, start, end) =>
 const isStored = (filtered, pageIndex) => (filtered[LENGTH_SIZE + (pageIndex >> 3)] & (1 << (pageIndex & 7))) !== 0
 
 /**
- * @param {Buffer|Buffer[]} data - the chunk, or its parts (the chunk is their concatenation)
- * @returns {Buffer[]} the filtered chunk, in parts: the stored pages are views on the data, never copied
+ * @param {Buffer} chunk
+ * @returns {Buffer[]} the filtered chunk, in parts: the stored pages are views on the chunk, never copied
  */
-exports.removeZeroPages = function removeZeroPages(data) {
-  const parts = Array.isArray(data) ? data : [data]
-  let length = 0
-  for (const part of parts) {
-    length += part.length
-  }
+exports.removeZeroPages = function removeZeroPages(chunk) {
+  const { length } = chunk
   assert.ok(length <= 0xffffffff, `chunk of ${length} bytes is too large`)
   const nbPages = Math.ceil(length / PAGE_SIZE)
   const header = Buffer.alloc(LENGTH_SIZE + Math.ceil(nbPages / 8))
   header.writeUInt32BE(length, 0)
   const result = [header]
 
-  // the current run of stored bytes, in runPart
-  let runPart
+  // the consecutive stored pages are kept in a single view
   let runStart = 0
   let runEnd = 0
-  const store = (part, start, end) => {
-    if (part === runPart && start === runEnd) {
-      runEnd = end
-    } else {
-      if (runPart !== undefined) {
-        result.push(runPart.subarray(runStart, runEnd))
-      }
-      runPart = part
-      runStart = start
-      runEnd = end
-    }
-  }
-
-  let partIndex = 0
-  let partStart = 0 // offset of parts[partIndex] in the chunk
-  let pageStart = 0 // offsets in the chunk
-  let pageEnd = getFirstPageSize(length)
+  let start = 0
+  let end = getFirstPageSize(length)
   for (let pageIndex = 0; pageIndex < nbPages; ) {
-    while (pageStart >= partStart + parts[partIndex].length) {
-      partStart += parts[partIndex].length
-      partIndex++
-    }
-    const part = parts[partIndex]
-    const start = pageStart - partStart
-    const end = pageEnd - partStart
-
-    if (end <= part.length) {
-      // the page is in a single part
-      if (isZero(part, start, end)) {
-        pageIndex++
-        let next = end
-        while (
-          pageIndex + PAGES_PER_REGION <= nbPages &&
-          next + REGION_SIZE <= part.length &&
-          isZero(part, next, next + REGION_SIZE)
-        ) {
-          pageIndex += PAGES_PER_REGION
-          next += REGION_SIZE
-        }
-        pageStart = partStart + next
-        pageEnd = pageStart + PAGE_SIZE
-        continue
+    if (isZero(chunk, start, end)) {
+      pageIndex++
+      while (
+        pageIndex + PAGES_PER_REGION <= nbPages &&
+        end + REGION_SIZE <= length &&
+        isZero(chunk, end, end + REGION_SIZE)
+      ) {
+        pageIndex += PAGES_PER_REGION
+        end += REGION_SIZE
       }
-      store(part, start, end)
     } else {
-      // the page spans several parts
-      const slices = []
-      let sliceStart = start
-      for (let i = partIndex, remaining = pageEnd - pageStart; remaining > 0; i++) {
-        const sliceEnd = Math.min(parts[i].length, sliceStart + remaining)
-        if (sliceEnd > sliceStart) {
-          slices.push([parts[i], sliceStart, sliceEnd])
-          remaining -= sliceEnd - sliceStart
+      if (start !== runEnd) {
+        if (runEnd !== runStart) {
+          result.push(chunk.subarray(runStart, runEnd))
         }
-        sliceStart = 0
+        runStart = start
       }
-      if (slices.every(slice => isZero(...slice))) {
-        pageIndex++
-        pageStart = pageEnd
-        pageEnd += PAGE_SIZE
-        continue
-      }
-      for (const slice of slices) {
-        store(...slice)
-      }
+      runEnd = end
+      header[LENGTH_SIZE + (pageIndex >> 3)] |= 1 << (pageIndex & 7)
+      pageIndex++
     }
-    header[LENGTH_SIZE + (pageIndex >> 3)] |= 1 << (pageIndex & 7)
-    pageIndex++
-    pageStart = pageEnd
-    pageEnd += PAGE_SIZE
+    start = end
+    end += PAGE_SIZE
   }
-  if (runPart !== undefined) {
-    result.push(runPart.subarray(runStart, runEnd))
+  if (runEnd !== runStart) {
+    result.push(chunk.subarray(runStart, runEnd))
   }
   return result
 }
