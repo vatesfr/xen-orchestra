@@ -1,17 +1,13 @@
 import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import { getBackupRepositoryDiskFormat } from '@/modules/backup-repository/utils/xo-backup-repository-disk-format.util.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { type FormValidationConfig, mergeValidationConfigs, required, requiredIf } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {
-  BACKUP_REPOSITORY_TYPE,
-  type BackupRepositoryType,
-  type BackupRepositoryUrlOptions,
-  type DiskFormatType,
-} from 'xo-remote-parser'
+import { BACKUP_REPOSITORY_TYPE, type BackupRepositoryType, type BackupRepositoryUrlOptions } from 'xo-remote-parser'
 
 export type BackupRepositoryGeneralFormData = {
   name: string
@@ -33,12 +29,6 @@ export const ENCRYPTION_KEY_REGEX = new RegExp(`^[0-9a-f]{${ENCRYPTION_KEY_LENGT
 const BACKUP_FORMAT_DOC_URL = 'https://docs.xen-orchestra.com/xo5/incremental_backups'
 
 const BLOCK_ONLY_TYPES: BackupRepositoryType[] = ['azure', 'azurite', 's3']
-
-const DISK_FORMAT_BY_BACKUP_FORMAT: Record<XoBackupFormat, DiskFormatType> = {
-  block: 'vhdDirectory',
-  vhd: 'vhd',
-  hbd: 'hbd',
-}
 
 export type BackupRepositoryGeneralForm = ReturnType<typeof useBackupRepositoryGeneralForm>
 
@@ -159,7 +149,7 @@ export function useBackupRepositoryGeneralForm(
   function buildUrlOptions(): BackupRepositoryUrlOptions {
     return {
       ...(formData.encrypted && { encryptionKey: formData.encryptionKey }),
-      ...(formData.backupFormat !== undefined && { diskFormat: DISK_FORMAT_BY_BACKUP_FORMAT[formData.backupFormat] }),
+      ...(formData.backupFormat !== undefined && { diskFormat: getBackupRepositoryDiskFormat(formData.backupFormat) }),
     }
   }
 
