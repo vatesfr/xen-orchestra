@@ -10,6 +10,7 @@ export type FrontXoPool = Pick<XoPool, (typeof poolFields)[number]>
 
 const poolFields = [
   'id',
+  '$lastSeen',
   'name_label',
   'master',
   'default_SR',

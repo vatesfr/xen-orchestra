@@ -1,7 +1,11 @@
 <template>
   <UiHeadBar icon="object:pool">
     {{ pool.name_label }}
-    <template #actions>
+    <template v-if="pool.$lastSeen !== undefined" #status>
+      <StaleObjectTag :object="pool" />
+    </template>
+    <!-- actions cannot reach a stale pool -->
+    <template v-if="pool.$lastSeen === undefined" #actions>
       <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: pool.id } }" icon="fa:plus">
         {{ t('new-vm') }}
       </UiLink>
@@ -58,6 +62,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import StaleObjectTag from '@/shared/components/stale-object/StaleObjectTag.vue'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import TabList from '@core/components/tab-list/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'

@@ -13,6 +13,7 @@ export type FrontXoHost = Pick<XoHost, (typeof hostFields)[number]>
 
 const hostFields = [
   'id',
+  '$lastSeen',
   'name_label',
   'name_description',
   'power_state',

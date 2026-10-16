@@ -10,7 +10,11 @@
         :busy-tooltip="currentOperation"
       />
     </template>
-    <template #actions>
+    <template v-if="vm.$lastSeen !== undefined" #status>
+      <StaleObjectTag :object="vm" />
+    </template>
+    <!-- actions cannot reach the pool of a stale object -->
+    <template v-if="vm.$lastSeen === undefined" #actions>
       <UiLink :href="xo5VmGeneralHref" size="medium">
         {{ t('manage-vm-lifecycle-in-xo-5') }}
       </UiLink>
@@ -91,6 +95,7 @@ import VmMoreActions from '@/modules/vm/components/actions/VmMoreActions.vue'
 import VmPowerStateActions from '@/modules/vm/components/actions/VmPowerStateActions.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import StaleObjectTag from '@/shared/components/stale-object/StaleObjectTag.vue'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'

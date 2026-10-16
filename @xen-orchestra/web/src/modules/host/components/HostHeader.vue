@@ -13,10 +13,12 @@
         :state="hostState"
       />
     </template>
-    <template v-if="isMaster" #status>
-      <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
+    <template v-if="isMaster || host.$lastSeen !== undefined" #status>
+      <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
+      <StaleObjectTag :object="host" />
     </template>
-    <template #actions>
+    <!-- actions cannot reach the pool of a stale object -->
+    <template v-if="host.$lastSeen === undefined" #actions>
       <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: host.$pool } }" icon="fa:plus">
         {{ t('new-vm') }}
       </UiLink>
@@ -94,6 +96,7 @@ import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
+import StaleObjectTag from '@/shared/components/stale-object/StaleObjectTag.vue'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'

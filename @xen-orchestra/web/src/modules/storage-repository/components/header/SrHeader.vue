@@ -5,8 +5,14 @@
       <VtsObjectIcon type="sr" :state="srIconState" size="medium" />
     </template>
     {{ sr.name_label }}
-    <template v-if="isDefaultSr(sr)" #status>
-      <VtsIcon v-tooltip="t('default-storage-repository')" name="status:primary-circle" size="medium" />
+    <template v-if="isDefaultSr(sr) || sr.$lastSeen !== undefined" #status>
+      <VtsIcon
+        v-if="isDefaultSr(sr)"
+        v-tooltip="t('default-storage-repository')"
+        name="status:primary-circle"
+        size="medium"
+      />
+      <StaleObjectTag :object="sr" />
     </template>
   </UiHeadBar>
   <TabList>
@@ -38,6 +44,7 @@ import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-uti
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { toSrScopeQuery } from '@/modules/storage-repository/utils/sr-scope.util.ts'
+import StaleObjectTag from '@/shared/components/stale-object/StaleObjectTag.vue'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'

@@ -1,10 +1,11 @@
 <template>
   <VtsTreeItem expanded :node-id="leaf.data.id">
     <UiTreeItemLabel :route="`/vm/${leaf.data.id}`" no-indent>
-      {{ leaf.data.name_label }}
+      <span :class="{ stale: isStale }">{{ leaf.data.name_label }}</span>
       <template #icon>
         <VtsObjectIcon
-          v-tooltip="leaf.data.power_state"
+          v-tooltip="isStale ? t('pool-disconnected-last-seen', { time: lastSeenLabel }) : leaf.data.power_state"
+          :class="{ stale: isStale }"
           :state="leaf.data.power_state.toLocaleLowerCase() as POWER_STATE"
           size="medium"
           type="vm"
@@ -18,7 +19,7 @@
             content: currentOperation,
           }"
         />
-        <MenuList placement="bottom-start">
+        <MenuList v-if="!isStale" placement="bottom-start">
           <template #trigger="{ open, isOpen }">
             <UiButtonIcon
               v-tooltip="{
@@ -43,6 +44,7 @@
 import type { VmLeaf } from '@/modules/treeview/types/tree.type.ts'
 import VmActions from '@/modules/vm/components/actions/VmActions.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
+import { useStaleObject } from '@/shared/composables/stale-object.composable.ts'
 import type { POWER_STATE } from '@core/types/power-state.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -59,5 +61,14 @@ const { leaf } = defineProps<{
 
 const { t } = useI18n()
 
+const { isStale, lastSeenLabel } = useStaleObject(() => leaf.data)
+
 const { isChangingState, currentOperation } = useXoVmUtils(() => leaf.data)
 </script>
+
+<style lang="postcss" scoped>
+/* object of a disconnected pool, kept by XO but possibly outdated */
+.stale {
+  opacity: 0.5;
+}
+</style>
