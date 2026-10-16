@@ -13,7 +13,7 @@ type ApiKubernetesNode = Omit<XoKubernetesNode, 'id' | 'type'> & {
 function toXoNode(node: ApiKubernetesNode): XoKubernetesNode {
   return {
     ...node,
-    id: node.id ?? node.node_id,
+    id: node.id ?? node.node_id ?? node.name, // node_id can be missing from the API during node creation
     type: 'kubernetes-node',
   }
 }

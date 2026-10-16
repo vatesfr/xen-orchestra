@@ -1,12 +1,14 @@
 <template>
-  <UiPanelCard class="node-info-card">
-    <UiPanelCardTitle size="medium" :label="node.name" :to="nodeRoute" icon="object:node" />
+  <UiPanelCard class="node-networking-card">
+    <UiCardTitle>
+      {{ t('networking') }}
+    </UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
-        <template #key>{{ t('node-name') }}</template>
-        <template #value>{{ node.node_name }}</template>
-        <template #addons>
-          <VtsCopyButton :value="node.node_name" />
+        <template #key>{{ t('endpoint-url') }}</template>
+        <template v-if="node.endpoint" #value>{{ node.endpoint }}</template>
+        <template v-if="node.endpoint" #addons>
+          <VtsCopyButton :value="node.endpoint" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -15,12 +17,10 @@
 
 <script setup lang="ts">
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { getKubernetesNodeRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { node } = defineProps<{
@@ -28,12 +28,10 @@ const { node } = defineProps<{
 }>()
 
 const { t } = useI18n()
-
-const nodeRoute = computed(() => getKubernetesNodeRoute(node.id))
 </script>
 
 <style scoped lang="postcss">
-.node-info-card {
+.node-networking-card {
   .content {
     display: flex;
     flex-direction: column;

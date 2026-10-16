@@ -1,7 +1,8 @@
 import type { KubernetesClusterPhase, XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import {
-  clusterReadyStatus,
+  clusterStatus,
   clusterVersion,
+  formatNodesCount,
   isClusterDeletable,
   isClusterPhaseReady,
 } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
@@ -33,13 +34,28 @@ describe('isClusterPhaseReady', () => {
   )
 })
 
-describe('clusterReadyStatus', () => {
-  it('returns ready when the cluster is available', () => {
-    expect(clusterReadyStatus(createKubernetesCluster({ is_available: true }))).toBe('ready')
+describe('clusterStatus', () => {
+  it('returns available when the cluster is available', () => {
+    expect(clusterStatus(createKubernetesCluster({ is_available: true }))).toBe('available')
   })
 
-  it('returns not-ready when the cluster is not available', () => {
-    expect(clusterReadyStatus(createKubernetesCluster({ is_available: false }))).toBe('not-ready')
+  it('returns not-available when the cluster is not available', () => {
+    expect(clusterStatus(createKubernetesCluster({ is_available: false }))).toBe('not-available')
+  })
+})
+
+describe('formatNodesCount', () => {
+  it('formats ready and desired replica counts', () => {
+    expect(
+      formatNodesCount({
+        available_replicas: 1,
+        desired_replicas: 3,
+        ready_replicas: 2,
+        replicas: 2,
+        up_to_date_replicas: 2,
+        versions: [],
+      })
+    ).toBe('2/3')
   })
 })
 

@@ -24,8 +24,9 @@
 
 <script setup lang="ts">
 import ClusterActions from '@/modules/kubernetes/components/actions/ClusterActions.vue'
+import { useKubernetesClusterColumns } from '@/modules/kubernetes/tables/kubernetes-cluster-columns.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { clusterReadyStatus, clusterVersion } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
+import { clusterStatus, clusterVersion, formatNodesCount } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { getKubernetesClusterRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
 import { kubernetesTagsToStrings } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
@@ -38,7 +39,6 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
-import { useClusterColumns } from '@core/tables/column-sets/cluster-columns.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -81,7 +81,7 @@ const state = useTableState({
 
 const { pageRecords: paginatedClusters, paginationBindings } = usePagination('kubernetes-clusters', filteredClusters)
 
-const { HeadCells, BodyCells } = useClusterColumns({
+const { HeadCells, BodyCells } = useKubernetesClusterColumns({
   body: (cluster: XoKubernetesCluster) => {
     return {
       cluster: r =>
@@ -90,11 +90,10 @@ const { HeadCells, BodyCells } = useClusterColumns({
           to: getKubernetesClusterRoute(cluster.id),
           icon: icon('object:cluster'),
         }),
+      status: r => r(clusterStatus(cluster)),
       version: r => r(clusterVersion(cluster)),
-      status: r => r({ status: clusterReadyStatus(cluster) }),
-      controlPlaneNodes: r =>
-        r(`${cluster.control_plane_status.ready_replicas}/${cluster.control_plane_status.desired_replicas}`),
-      workerNodes: r => r(`${cluster.worker_status.ready_replicas}/${cluster.worker_status.desired_replicas}`),
+      controlPlaneNodes: r => r(formatNodesCount(cluster.control_plane_status)),
+      workerNodes: r => r(formatNodesCount(cluster.worker_status)),
       tags: r => r(kubernetesTagsToStrings(cluster.tags), 'info'),
       actions: r =>
         r({

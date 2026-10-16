@@ -29,7 +29,7 @@ export function useKubernetesClusterDelete(rawClusters: MaybeRefOrGetter<XoKuber
   )
 
   const { redirectIfOnObjectPage } = useRedirectAfterDelete({
-    isOnObjectPage: () => route.name === '/kubernetes/cluster/[id]',
+    isOnObjectPage: () => route.name?.startsWith('/kubernetes/cluster/[id]') ?? false,
     redirectTo: { name: '/kubernetes/clusters' },
   })
 

@@ -1,6 +1,6 @@
 <template>
   <KubernetesHeader />
-  <VtsContentSidePanel class="kubernetes-nodes">
+  <VtsContentSidePanel class="nodes">
     <UiCard class="container">
       <NodesTable :nodes :busy="!areNodesReady" :error="hasNodesFetchError" />
     </UiCard>
@@ -27,7 +27,7 @@ const selectedNode = useRouteQuery<XoKubernetesNode | undefined>('id', {
 </script>
 
 <style scoped lang="postcss">
-.kubernetes-nodes {
+.nodes {
   .container {
     height: fit-content;
     gap: 4rem;

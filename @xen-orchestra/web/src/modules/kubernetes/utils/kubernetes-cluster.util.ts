@@ -1,9 +1,14 @@
 import type {
   KubernetesClusterPhase,
-  KubernetesReadyStatus,
+  KubernetesAvailabilityStatus,
   XoKubernetesCluster,
+  XoKubernetesNodesStatus,
 } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { compareStrings } from '@core/utils/compare-strings.util.ts'
+
+export function formatNodesCount(status: XoKubernetesNodesStatus): string {
+  return `${status.ready_replicas}/${status.desired_replicas}`
+}
 
 export function isClusterDeletable(phase: KubernetesClusterPhase): boolean {
   switch (phase) {
@@ -27,8 +32,8 @@ export function isClusterPhaseReady(phase: KubernetesClusterPhase): boolean {
   }
 }
 
-export function clusterReadyStatus(cluster: XoKubernetesCluster): KubernetesReadyStatus {
-  return cluster.is_available ? 'ready' : 'not-ready'
+export function clusterStatus(cluster: XoKubernetesCluster): KubernetesAvailabilityStatus {
+  return cluster.is_available ? 'available' : 'not-available'
 }
 
 export function clusterVersion(cluster: XoKubernetesCluster): string {

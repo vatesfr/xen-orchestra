@@ -5,14 +5,15 @@ import { useStatusColumn } from '@core/tables/column-definitions/status-column.t
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
 import { useI18n } from 'vue-i18n'
 
-export const useNodeColumns = defineColumns(() => {
+export const useKubernetesNodeColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
     name: useLinkColumn({ headerLabel: () => t('name') }),
     status: useStatusColumn({ headerLabel: () => t('status') }),
     role: useTextColumn({ headerLabel: () => t('role') }),
-    cluster: useLinkColumn({ headerLabel: () => t('cluster') }),
+    version: useTextColumn({ headerLabel: () => t('version') }),
+    endpoint: useTextColumn({ headerLabel: () => t('ip-address') }),
     actions: useActionColumn({}),
   }
 })
