@@ -1,9 +1,15 @@
 <template>
   <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.data.id" :has-children="branch.hasChildren">
     <UiTreeItemLabel icon="object:host" :route="`/host/${branch.data.id}`" @toggle="branch.toggleCollapse()">
-      {{ branch.data.name_label }}
+      <span :class="{ stale: isStale }">{{ branch.data.name_label }}</span>
       <template #icon>
-        <VtsObjectIcon v-tooltip="hostState" type="host" size="medium" :state="hostState" />
+        <VtsObjectIcon
+          v-tooltip="isStale ? t('pool-disconnected-last-seen', { time: lastSeenLabel }) : hostState"
+          :class="{ stale: isStale }"
+          type="host"
+          size="medium"
+          :state="hostState"
+        />
       </template>
       <template #addons>
         <UiLoader
@@ -21,7 +27,7 @@
           variant="secondary"
           size="small"
         />
-        <MenuList placement="bottom-start">
+        <MenuList v-if="!isStale" placement="bottom-start">
           <template #trigger="{ open, isOpen }">
             <UiButtonIcon
               accent="brand"
@@ -45,6 +51,7 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import type { HostBranch } from '@/modules/treeview/types/tree.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useStaleObject } from '@/shared/composables/stale-object.composable.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -63,6 +70,8 @@ const { branch } = defineProps<{
 
 const { t } = useI18n()
 
+const { isStale, lastSeenLabel } = useStaleObject(() => branch.data)
+
 const { isMasterHost } = useXoHostCollection()
 const { runningVmsCountByContainer } = useXoVmCollection()
 
@@ -73,3 +82,10 @@ const hostState = computed(() => getHostState(branch.data))
 
 const runningVmsCount = computed(() => runningVmsCountByContainer.value.get(branch.data.id) ?? 0)
 </script>
+
+<style lang="postcss" scoped>
+/* object of a disconnected pool, kept by XO but possibly outdated */
+.stale {
+  opacity: 0.5;
+}
+</style>

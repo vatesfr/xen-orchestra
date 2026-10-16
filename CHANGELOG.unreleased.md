@@ -21,6 +21,7 @@
 - [New VM] Allow removing existing (template) disks (PR [#10292](https://github.com/vatesfr/xen-orchestra/pull/10292))
 - [Pool] Add validation to the pool connection form (PR [#10484](https://github.com/vatesfr/xen-orchestra/pull/10484))
 - [XO6] All objects displayed in the UI are now updated in real time, except backup logs and backup archives which are still refreshed every 30 seconds (PR [#10450](https://github.com/vatesfr/xen-orchestra/pull/10450))
+- [XO6] The objects of a disconnected pool are greyed out, with a warning and the last time the pool was reached (PR [#10612](https://github.com/vatesfr/xen-orchestra/pull/10612))
 - [REST API] Event subscriptions (`/rest/v0/events`) now support `authentication_token`: each user only receives events about their own tokens and `backup-logs` (PRs [#10450](https://github.com/vatesfr/xen-orchestra/pull/10450), [#10563](https://github.com/vatesfr/xen-orchestra/pull/10563))
 - [Side panels] Harmonize card titles across side panels (PR [#10289](https://github.com/vatesfr/xen-orchestra/pull/10289))
 - [Host] Add a condition to disable the detached action when the host is not running (PR [#10543](https://github.com/vatesfr/xen-orchestra/pull/10543))
