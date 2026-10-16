@@ -1282,20 +1282,20 @@ const messages = {
   rpuRecoveryInterrupted:
     'The last rolling pool update was interrupted by an xo-server restart. Some hosts may not be updated and some VMs may not be on their original host.',
   rpuRecoveryFailed:
-    'The last rolling pool update failed before completing. Some hosts may not be updated and some VMs may not be on their original host.',
+    'The last rolling pool update failed, or completed without restoring some of the settings it disabled. Some hosts may not be updated, some VMs may not be on their original host and some settings may still be disabled.',
   rpuRecoveryBlocked: 'The state of the last rolling pool update could not be read. Manual review is required.',
   rpuRecoveryLastError: 'Last error:',
   rpuRecoveryHaltedPinnedVms: 'VMs shut down for the update and not started again yet:',
   rpuRecoveryRecordExists:
     'A rolling pool update is in progress or was left incomplete. It must be resolved before a new one can start.',
   rpuRecoverySucceeded:
-    'The last rolling pool update completed but its record was kept: it could not be removed, or settings changed by an interrupted attempt are still to be restored. A new one cannot start until it is finalized.',
+    'The last rolling pool update completed but its record could not be removed. A new one cannot start until it is finalized.',
   rpuRecoveryNotResumable:
     'It cannot be resumed: a host stopped after its evacuation, while being updated or rebooted. Review the pool, then finalize.',
   rpuRecoveryAttempt: 'Attempt {attempt}',
   rpuRecoveryResume: 'Resume',
   rpuRecoveryResumeConfirm:
-    'Resume the rolling pool update: only the hosts with remaining work are handled, then the VMs are migrated back to their original host.',
+    'Resume the rolling pool update: only the hosts with remaining work are handled, then the VMs are migrated back to their original host. The settings it left disabled (HA, auto power on, backup schedules, WLB, load balancer) stay disabled until the end, then are restored.',
   rpuRecoveryFinalize: 'Finalize',
   rpuRecoveryFinalizeConfirm:
     'Finalize the last rolling pool update? Its record will be removed and a new rolling pool update will be allowed. This is refused if the update changed something it did not restore.',

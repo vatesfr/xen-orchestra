@@ -21,7 +21,6 @@ import {
   readRpuRecoveryView,
   reconcileRpuRecoveryAtBoot,
   resumeRpuRecoveryRun as resumeRpuRecoveryRunInStore,
-  RPU_SETTING_TYPES,
   startRpuRecoveryRun as startRpuRecoveryRunInStore,
 } from '../_rpuRecovery.mjs'
 
@@ -100,28 +99,15 @@ export default class Pools {
    * Continues the failed or interrupted run of a pool, see `resumeRpuRecoveryRun` in `_rpuRecovery.mjs`.
    *
    * @param {object} pool - XO pool object
-   * @returns {Promise<object>} the recorder, the options of the run, what the previous attempts did (see
-   *   `planRpuResume`), and the settings they left changed
+   * @returns {Promise<object>} the recorder, the options of the run, and what the previous attempts did, the
+   *   settings they left changed included (see `planRpuResume`)
    */
   async resumeRpuRecoveryRun(pool) {
     const { recorder, record, plan } = await resumeRpuRecoveryRunInStore({
       store: this._rpuRecoveryStore,
       poolId: pool.id,
     })
-    // the record is `resuming` on disk from here: a failure to read the live
-    // state (pool disconnected while its master reboots...) must fail the run,
-    // otherwise the record stays live and blocks resume and finalize until the
-    // next restart
-    let leftoverSettings
-    try {
-      leftoverSettings = (await this._listUnrestoredRpuItems(pool, record)).filter(item =>
-        RPU_SETTING_TYPES.has(item.type)
-      )
-    } catch (error) {
-      await recorder.fail(error)
-      throw error
-    }
-    return { recorder, options: record.options, resume: plan, leftoverSettings }
+    return { recorder, options: record.options, resume: plan }
   }
 
   getRollingUpdateRecovery(poolId) {
