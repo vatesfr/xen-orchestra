@@ -107,24 +107,18 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
-<<<<<<< HEAD
-- @xen-orchestra/qcow2 patch
-=======
 - @xen-orchestra/qa-test minor
->>>>>>> 1bd67139b (fix review)
+- @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmdk major
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-<<<<<<< HEAD
 - @xen-orchestra/xapi minor
 - vhd-lib minor
 - xen-api minor
-- xo-cli patch
-=======
 - xo-acl-resolver minor
->>>>>>> ca52b2883 (update changelog)
+- xo-cli patch
 - xo-server minor
 - xo-server-load-balancer minor
 - xo-server-sdn-controller patch
