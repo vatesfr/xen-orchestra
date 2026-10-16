@@ -481,15 +481,22 @@ type XoBackupJobGeneralSettings = {
   [key: string]: unknown
 }
 
+/**
+ * Keeps the last backup of each of the last `retention` days/weeks/months/years, in addition to `exportRetention`.
+ *
+ * Requires the `timezone` setting.
+ */
+export type XoBackupJobLongTermRetention = {
+  daily?: { retention: number; settings: Record<string, unknown> }
+  weekly?: { retention: number; settings: Record<string, unknown> }
+  monthly?: { retention: number; settings: Record<string, unknown> }
+  yearly?: { retention: number; settings: Record<string, unknown> }
+}
+
 export type XoVmBackupJobGeneralSettings = XoBackupJobGeneralSettings & {
   cbtDestroySnapshotData?: boolean
   concurrency?: number
-  longTermRetention?: {
-    daily?: { retention: number; settings: Record<string, unknown> }
-    weekly?: { retention: number; settings: Record<string, unknown> }
-    monthly?: { retention: number; settings: Record<string, unknown> }
-    yearly?: { retention: number; settings: Record<string, unknown> }
-  }
+  longTermRetention?: XoBackupJobLongTermRetention
   checkpointSnapshot?: boolean
   offlineSnapshot?: boolean
   maxExportRate?: number
@@ -546,12 +553,12 @@ export type XoMetadataBackupJob = BaseXoJob & {
 
 export type XoMirrorBackupGeneralSettings = XoBackupJobGeneralSettings & {
   concurrency?: number
+  longTermRetention?: XoBackupJobLongTermRetention
   nRetriesVmBackupFailures?: number
   mergeBackupsSynchronously?: boolean
   timeout?: number
   maxExportRate?: number
-  backupReportTpl?: 'compactMjml'
-  reportWhen: 'failure'
+  timezone?: string
 }
 export type XoMirrorBackupScheduleSettings = {
   exportRetention?: number
