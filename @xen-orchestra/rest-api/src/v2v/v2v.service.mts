@@ -1,8 +1,18 @@
-import type { EsxiConnectionParams } from '@vates/types'
+import { asyncEach } from '@vates/async-each'
+import { Task } from '@vates/task'
+import { invalidParameters } from 'xo-common/api-errors.js'
+import type { VatesTask } from '@vates/types/lib/vates/task'
+import type { EsxiConnectionParams, XoPool } from '@vates/types'
 
 import { ApiError } from '../helpers/error.helper.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
-import type { V2vConnection, V2vInventory } from './v2v.type.mjs'
+import { planMigration, type V2vVmPlan } from './v2v.plan.mjs'
+import type { V2vConnection, V2vInventory, V2vStartBody, V2vStartResult } from './v2v.type.mjs'
+
+/** the name of the root task */
+export const V2V_TASK_NAME = 'V2V migration'
+
+const DEFAULT_CONCURRENCY = 2
 
 export class V2vService {
   #restApi: RestApi
@@ -24,12 +34,7 @@ export class V2vService {
     if (port !== undefined && port !== 443) {
       address = `${address}:${port}`
     }
-    return {
-      host: address,
-      user: username,
-      password,
-      sslVerify: !skipSslCheck,
-    } satisfies EsxiConnectionParams
+    return { host: address, user: username, password, sslVerify: !skipSslCheck } satisfies EsxiConnectionParams
   }
 
   async getInventory(connection: V2vConnection): Promise<V2vInventory> {
@@ -38,6 +43,68 @@ export class V2vService {
       return { platform: 'vmware', ...inventory }
     } catch (error) {
       throw toSourceError(error, connection.host)
+    }
+  }
+
+  /**
+   * Everything is checked before the task is created: a refused launch imports nothing
+   */
+  async prepareStart(body: V2vStartBody): Promise<V2vVmPlan[]> {
+    // the pool has to exist
+    this.#restApi.getObject<XoPool>(body.pool as XoPool['id'], 'pool')
+
+    const { vms } = await this.getInventory(body.connection)
+
+    const { plans, problems } = planMigration(body, new Map(vms.map(vm => [vm.id, vm])))
+
+    if (problems.length > 0) {
+      throw invalidParameters('the migration cannot be started', problems)
+    }
+    return plans
+  }
+
+  async start(
+    task: VatesTask,
+    { connection, concurrency = DEFAULT_CONCURRENCY, stopOnError = false }: Readonly<V2vStartBody>,
+    plans: readonly V2vVmPlan[]
+  ): Promise<V2vStartResult> {
+    const connectionParams = V2vService.toConnectionParams(connection)
+    const result: V2vStartResult = {}
+    let done = 0
+    task.set('total', plans.length)
+    task.set('done', 0)
+    task.set('progress', 0)
+
+    try {
+      await asyncEach(
+        plans,
+        async ({ id, name, sr, network, template, stopSource }) => {
+          await Task.run({ properties: { name: `importing VM ${name}`, sourceVmId: id } }, async () => {
+            try {
+              result[id] = await this.#restApi.xoApp.migrationfromEsxi({
+                ...connectionParams,
+                vm: id,
+                sr,
+                network,
+                template,
+                stopSource,
+              })
+            } finally {
+              done++
+              task.set('done', done)
+              task.set('progress', Math.round((done * 100) / plans.length))
+            }
+          })
+        },
+        { concurrency, stopOnError }
+      )
+      return result
+    } catch (error) {
+      // same contract as `vm.importMultipleFromEsxi`: the VMs imported before the failure are not lost
+      if (error instanceof Error) {
+        Object.assign(error, { succeeded: result })
+      }
+      throw error
     }
   }
 }
@@ -52,9 +119,7 @@ function toSourceError(error: unknown, host: string): unknown {
   }
   const code = 'code' in error ? error.code : undefined
   if (code === 'InvalidLogin') {
-    const apiError = new ApiError('invalid credentials for the source', 400, {
-      data: { code, host },
-    })
+    const apiError = new ApiError('invalid credentials for the source', 400, { data: { code, host } })
     apiError.cause = error
     return apiError
   }

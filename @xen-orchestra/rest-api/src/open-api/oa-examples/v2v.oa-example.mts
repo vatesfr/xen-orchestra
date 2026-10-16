@@ -78,3 +78,7 @@ export const v2vInventory = {
     },
   ],
 }
+
+export const v2vStartResult = {
+  'vm-1042': '9d0d04f7-bb1f-8292-3294-17c6371827c5',
+}
