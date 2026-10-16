@@ -48,6 +48,8 @@ const makeXapi = ({
   // unlike `vbdCreateError`, the VBD exists: `VBD_create` creates it, then fails to plug it
   vbdPlugError,
   vbdDevice = 'xvdc',
+  // XAPI never answers the read of the VBD's device
+  vbdDeviceHangs = false,
   events,
   cacheSrPluggedOn = APPLIANCE_HOST_REF,
 } = {}) => {
@@ -58,8 +60,6 @@ const makeXapi = ({
   const records = {
     [SELF_VM_REF]: { resident_on: APPLIANCE_HOST_REF },
     [CACHE_SR_REF]: { $PBDs: [{ host: cacheSrPluggedOn, currently_attached: true }] },
-    // XAPI rounds the requested size up to the SR's allocation quantum
-    [CACHE_VDI_REF]: { virtual_size: DISK_SIZE + 2 * 1024 * 1024 },
   }
   const log = step => events?.push(step)
   // stands for xen-api's record cache: a `xo-collection` whose type index reports each removed
@@ -127,6 +127,16 @@ const makeXapi = ({
       if (type === 'VDI' && field === 'VBDs') {
         return [...cacheVdiVbds]
       }
+      if (type === 'VDI' && field === 'virtual_size') {
+        assert.equal(ref, CACHE_VDI_REF)
+        // XAPI rounds the requested size up to the SR's allocation quantum, and sends an int64 as a
+        // string
+        return String(DISK_SIZE + 2 * 1024 * 1024)
+      }
+      if (type === 'VBD' && field === 'device') {
+        assert.equal(ref, VBD_REF)
+        return vbdDeviceHangs ? new Promise(() => {}) : vbdDevice
+      }
       if (type === 'host' && field === 'address') {
         return '10.20.30.40' // the host's own management address, as XAPI reports it
       }
@@ -159,11 +169,6 @@ const makeXapi = ({
       calls.push(['VBD_destroy', ref])
       cacheVdiVbds.delete(ref)
       log('cache VBD destroyed')
-    },
-    async barrier(ref) {
-      calls.push(['barrier', ref])
-      assert.equal(ref, VBD_REF)
-      return { device: vbdDevice }
     },
     getObjectByRef(ref) {
       assert.ok(ref in records, `unexpected record ${ref}`)
@@ -1053,6 +1058,23 @@ describe('the read cache', () => {
 
       assert.deepEqual(events, ['cache VDI created', 'cache VBD created', 'cache VBD destroyed', 'cache VDI destroyed'])
       assert.equal(disk.closed, true)
+    })
+
+    it('on a device name XAPI does not answer, destroying both instead of waiting forever', async t => {
+      t.mock.timers.enable({ apis: ['setTimeout'] })
+      const { mixin, events } = makeMixin()
+      const xapi = makeXapi({ events, vbdDeviceHangs: true })
+
+      const mount = mountDisk(mixin, xapi, CACHE)
+      const isReadingDevice = () =>
+        xapi.calls.some(([method, type, , field]) => method === 'getField' && type === 'VBD' && field === 'device')
+      while (!isReadingDevice()) {
+        await new Promise(resolve => setImmediate(resolve))
+      }
+      t.mock.timers.tick(60e3)
+
+      await assert.rejects(mount, { name: 'TimeoutError' })
+      assert.deepEqual(events, ['cache VDI created', 'cache VBD created', 'cache VBD destroyed', 'cache VDI destroyed'])
     })
 
     it('on a VBD with an unusable device name, destroying both', async () => {
