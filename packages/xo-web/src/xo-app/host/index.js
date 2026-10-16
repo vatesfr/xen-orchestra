@@ -9,6 +9,7 @@ import Page from '../page'
 import PropTypes from 'prop-types'
 import React, { cloneElement, Component } from 'react'
 import Tooltip from 'tooltip'
+import { isStale, StaleObjectBanner, StaleObjectPill } from 'stale-object'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
 import { Pool } from 'render-xo-item'
@@ -258,6 +259,7 @@ export default class Host extends Component {
                 <Icon icon={`host-${state.toLowerCase()}`} />
               </Tooltip>{' '}
               <Text value={host.name_label} onChange={this._setNameLabel} />
+              <StaleObjectPill object={host} />
               {this.props.needsRestart && (
                 <Tooltip content={_('rebootUpdateHostLabel')}>
                   <Link to={`/hosts/${host.id}/patches`}>
@@ -279,6 +281,13 @@ export default class Host extends Component {
             </div>
           </Col>
         </Row>
+        {isStale(host) && (
+          <Row>
+            <Col>
+              <StaleObjectBanner object={host} />
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col>
             <NavTabs>

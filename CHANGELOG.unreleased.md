@@ -50,6 +50,7 @@
   - `POST /rest/v0/hosts/:id/actions/probe_nfs_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
 - [XO5/Host/Patches] Warn when installing patches on a host while its pool master is not up to date (PR [#10523](https://github.com/vatesfr/xen-orchestra/pull/10523))
+- [XO5] The objects of a disconnected pool are greyed out, with a warning and the last time the pool was reached (PR [#10613](https://github.com/vatesfr/xen-orchestra/pull/10613))
 - [XO6] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
 - [XO6] Export VDI as vmdk (PR [#10591](https://github.com/vatesfr/xen-orchestra/pull/10591))
 - [Servers] The objects of a pool which can no longer be reached are kept and flagged as disconnected, with the last time the pool was reached, instead of disappearing. They are flagged after 30 seconds instead of 5 minutes (`xapiMarkDisconnectedDelay`), and removed after 1 hour (`xapiStaleObjectsMaxAge`) (PR [#10611](https://github.com/vatesfr/xen-orchestra/pull/10611))
