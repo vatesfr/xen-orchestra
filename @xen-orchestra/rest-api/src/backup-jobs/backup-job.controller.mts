@@ -10,21 +10,26 @@ import { createLogger } from '@xen-orchestra/log'
 import { inject } from 'inversify'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import {
+  Body,
+  Delete,
   Deprecated,
   Example,
   Extension,
   Get,
   Hidden,
   Middlewares,
+  Patch,
   Path,
+  Post,
   Query,
   Request,
   Response,
   Route,
   Security,
+  SuccessResponse,
   Tags,
 } from 'tsoa'
-import type { Request as ExRequest, Response as ExResponse } from 'express'
+import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import { provide } from 'inversify-binding-decorators'
 
 import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
@@ -32,7 +37,10 @@ import { backupLog, backupLogIds, partialBackupLogs } from '../open-api/oa-examp
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
 import {
   badRequestResp,
+  createdResp,
   forbiddenOperationResp,
+  invalidParameters,
+  noContentResp,
   notFoundResp,
   unauthorizedResp,
   Unbrand,
@@ -40,7 +48,9 @@ import {
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { BASE_URL, limitAndFilterArray, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 import type {
+  CreateBackupJobBody,
   UnbrandAnyXoBackupJob,
+  UpdateBackupJobBody,
   UnbrandXoMetadataBackupJob,
   UnbrandXoMirrorBackupJob,
   UnbrandXoVmBackupJob,
@@ -48,6 +58,7 @@ import type {
 import { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import {
+  backupJobId,
   metadataBackupJob,
   metadataBackupJobIds,
   mirrorBackupJob,
@@ -137,6 +148,78 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
   @Response(notFoundResp.status, notFoundResp.description)
   getBackupJob(@Path() id: string): Promise<UnbrandAnyXoBackupJob> {
     return this.getObject(id as AnyXoBackupJob['id'])
+  }
+
+  /**
+   * Create a backup job, and optionally its schedules.
+   *
+   * `schedules` are keyed by temporary IDs that can be used as keys in `settings`,
+   * they are replaced by the IDs of the created schedules.
+   *
+   * Only usable by administrators.
+   *
+   * @example body {
+   *   "type": "backup",
+   *   "name": "Daily delta backup",
+   *   "mode": "delta",
+   *   "vms": { "id": "613f541c-4bed-fc77-7ca8-2db6b68f079c" },
+   *   "remotes": { "id": "b2b8a8d8-a7cd-4ac2-8a1b-a3e9ec9a7fe1" },
+   *   "settings": {
+   *     "": { "reportWhen": "failure" },
+   *     "tmp-schedule": { "exportRetention": 7 }
+   *   },
+   *   "schedules": {
+   *     "tmp-schedule": { "cron": "0 0 * * *", "enabled": true, "name": "daily", "timezone": "Europe/Paris" }
+   *   }
+   * }
+   */
+  @Example(backupJobId)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('')
+  @Middlewares(json())
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
+  async createBackupJob(@Body() body: CreateBackupJobBody): Promise<{ id: Unbrand<AnyXoBackupJob>['id'] }> {
+    const job = await this.#backupJobService.createBackupJob(body)
+    return { id: job.id }
+  }
+
+  /**
+   * Update a backup job.
+   *
+   * Root properties are replaced (`settings` must be passed entirely), a `null` value removes the property.
+   * The type of a job cannot be changed.
+   *
+   * Only usable by administrators.
+   *
+   * @example id "d33f3dc1-92b4-469c-ad58-4c2a106a4721"
+   * @example body { "name": "new backup job name" }
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Patch('{id}')
+  @Middlewares(json())
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
+  async updateBackupJob(@Path() id: string, @Body() body: UpdateBackupJobBody): Promise<void> {
+    const job = await this.getObject(id as AnyXoBackupJob['id'])
+    await this.restApi.xoApp.updateJob({ ...body, id: job.id })
+  }
+
+  /**
+   * Delete a backup job and its schedules.
+   *
+   * Only usable by administrators.
+   *
+   * @example id "d33f3dc1-92b4-469c-ad58-4c2a106a4721"
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteBackupJob(@Path() id: string): Promise<void> {
+    const job = await this.getObject(id as AnyXoBackupJob['id'])
+    await this.restApi.xoApp.removeJob(job.id)
   }
 }
 
