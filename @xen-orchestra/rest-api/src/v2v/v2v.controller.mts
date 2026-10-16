@@ -83,8 +83,12 @@ export class V2vController extends Controller {
    * delta, otherwise it is imported entirely. With `stopSource`, the source VM is stopped before the last
    * delta, which completes the import.
    *
-   * For now, all the disks of a VM go to one SR, all its network cards to one network, the MAC addresses
-   * are kept, and `tags`, `startVm` and `cleanup` are refused.
+   * Each disk goes to the SR given for its key in `disks` (e.g. `scsi0:0`, as listed by the inventory),
+   * each network card to the network given for its key in `nics` (e.g. `4000`), the others to the
+   * defaults. A resumed import keeps the SRs and networks of its first run. An unknown key fails the
+   * import of the VM before anything is done on either side.
+   *
+   * For now, the MAC addresses are kept, and `tags`, `startVm` and `cleanup` are refused.
    *
    * The request is checked before the import starts: 422 with the list of the problems.
    *

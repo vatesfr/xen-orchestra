@@ -500,6 +500,10 @@ export type XoApp = EventEmitter & {
     params: EsxiConnectionParams & {
       sr: XoSr['id']
       network: XoNetwork['id']
+      /** overrides `sr`, by disk node (e.g. `scsi0:0`) */
+      disks?: Record<string, XoSr['id']>
+      /** overrides `network`, by NIC device key (e.g. `4000`) */
+      nics?: Record<string, XoNetwork['id']>
       template: XoVmTemplate['id']
       stopSource: boolean
       /** VMware moref of the VM */
