@@ -645,6 +645,8 @@
   "job:pif-management-reconfigure:missing-ip": "IP address missing",
   "job:role-delete:missing-role": "No roles to delete",
   "job:role-delete:role-assigned": "A role assigned to users or groups cannot be deleted",
+  "job:role-groups:missing-group": "@:job:group-users:missing-group",
+  "job:role-groups:missing-role": "@:job:role-users:missing-role",
   "job:role-users:inherited-role": "A role inherited from a group cannot be detached from a user",
   "job:role-users:missing-role": "No role selected",
   "job:role-users:missing-user": "No user selected",
