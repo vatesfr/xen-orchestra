@@ -459,10 +459,11 @@ export class RemoteVhdDisk extends RemoteDisk {
     if (!(await super.isMergeableParent(parentUuid, { diskFormat }))) {
       return false
     }
-    const useVhdDirectory = diskFormat === 'vhdDirectory'
     const compressionType = this.#handler.getConfig('compressionType') ?? 'brotli'
     const isDirectory = await this.isDirectory()
-    return isDirectory ? useVhdDirectory && this.#getCompressionType() === compressionType : !useVhdDirectory
+    return isDirectory
+      ? diskFormat === 'vhdDirectory' && this.#getCompressionType() === compressionType
+      : diskFormat === 'vhd'
   }
 
   /**
