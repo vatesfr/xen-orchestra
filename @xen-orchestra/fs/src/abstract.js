@@ -148,6 +148,10 @@ export default class RemoteHandlerAbstract {
     return this.#rawEncryptor
   }
 
+  get _rejectWhileTimedOutOperationPending() {
+    return false
+  }
+
   getConfig(key) {
     return this._remote[key]
   }
@@ -173,7 +177,16 @@ export default class RemoteHandlerAbstract {
   }
 
   _conditionRetry(error) {
-    return !['EEXIST', 'EISDIR', 'ENOTEMPTY', 'ENOENT', 'ENOTDIR', 'SystemInUse', 'ERR_ASSERTION'].includes(error?.code)
+    return ![
+      'EEXIST',
+      'EISDIR',
+      'ENOTEMPTY',
+      'ENOENT',
+      'ENOTDIR',
+      'SystemInUse',
+      'ERR_ASSERTION',
+      'REMOTE_UNRESPONSIVE',
+    ].includes(error?.code)
   }
 
   #applySafeGuards(options) {
@@ -188,9 +201,29 @@ export default class RemoteHandlerAbstract {
       }
     })
 
+    // an operation which timed out may still be blocked (e.g. on a dead hard-mounted NFS), holding a thread of the
+    // libuv pool: no new operation is started on this remote until it settles, to avoid exhausting the pool
+    let nTimedOutOperations = 0
+    const rejectWhileTimedOutOperationPending = this._rejectWhileTimedOutOperationPending
     this._withTimeout.forEach(functionName => {
       if (this[functionName] !== undefined) {
-        this[functionName] = withTimeout(this[functionName], DEFAULT_TIMEOUT)
+        if (rejectWhileTimedOutOperationPending) {
+          const fnWithTimeout = withTimeout(this[functionName], DEFAULT_TIMEOUT, {
+            onTimeout: () => nTimedOutOperations++,
+            onSuccessAfterTimeout: () => nTimedOutOperations--,
+            onFailureAfterTimeout: () => nTimedOutOperations--,
+          })
+          this[functionName] = function (...args) {
+            if (nTimedOutOperations > 0) {
+              const error = new Error('the remote is unresponsive: an operation timed out and is still pending')
+              error.code = 'REMOTE_UNRESPONSIVE'
+              return Promise.reject(error)
+            }
+            return fnWithTimeout.apply(this, args)
+          }
+        } else {
+          this[functionName] = withTimeout(this[functionName], DEFAULT_TIMEOUT)
+        }
       }
     })
 
