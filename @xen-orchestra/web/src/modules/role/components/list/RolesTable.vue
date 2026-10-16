@@ -5,14 +5,14 @@
     </UiTitle>
     <VtsQueryBuilder v-model="filter" :schema />
     <div class="container">
-      <VtsTable :state :pagination-bindings>
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
           </tr>
         </thead>
         <tbody>
-          <VtsRow v-for="role of paginatedRoles" :key="role.id">
+          <VtsRow v-for="role of paginatedRoles" :key="role.id" :selected="selectedRoleId === role.id">
             <BodyCells :item="role" />
           </VtsRow>
         </tbody>
@@ -30,6 +30,7 @@ import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
@@ -57,6 +58,8 @@ const {
 }>()
 
 const { t } = useI18n()
+
+const selectedRoleId = useRouteQuery('id')
 
 const { getGroupsByIds } = useXoGroupCollection()
 
@@ -97,6 +100,7 @@ const { HeadCells, BodyCells } = useRoleColumns({
     users: r => r(role.usersCount),
     groups: r => r(role.groupsCount),
     privileges: r => r(role.privilegesCount),
+    selectItem: r => r(() => (selectedRoleId.value = role.id)),
   }),
 })
 </script>
