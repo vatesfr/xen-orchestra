@@ -425,10 +425,13 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         vdi.$VBDs.every(vbd => vbd?.$VM?.is_control_domain === true)
     )
 
-    await asyncMapSettled(orphanVdis, vdi =>
-      sr.$xapi
-        .call('VDI.destroy', vdi.$ref)
-        .catch(error => Task.warning('failed to delete orphan VDI', { vdi: vdi.uuid, error }))
+    await asyncEach(
+      orphanVdis,
+      vdi =>
+        sr.$xapi
+          .call('VDI.destroy', vdi.$ref)
+          .catch(error => Task.warning('failed to delete orphan VDI', { vdi: vdi.uuid, error })),
+      { concurrency: 5 }
     )
   }
 
