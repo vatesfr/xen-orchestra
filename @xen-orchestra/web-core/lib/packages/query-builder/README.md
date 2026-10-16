@@ -375,6 +375,19 @@ The component handles the complete filtering workflow:
 2. Or click the builder button to construct queries visually with dropdowns and inputs
 3. The `v-model` binding keeps the filter string synchronized
 
+**Updating the filter:**
+
+- `v-model` updates the filter on every keystroke
+- The `search` event is emitted with the filter on Enter, on a click on the search button, when the input is cleared and when the visual query builder is confirmed
+
+To apply the filter only on search, bind it one-way and update it from the `search` event:
+
+```vue
+<template>
+  <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+</template>
+```
+
 ### Building Blocks
 
 The `VtsQueryBuilder` component is built from smaller, composable components:
