@@ -1,11 +1,13 @@
 import _ from 'intl'
 import BulkIcons from 'bulk-icons'
+import classNames from 'classnames'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import Link, { BlockLink } from 'link'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
+import { isStale, StaleObjectPill } from 'stale-object'
 import Tooltip from 'tooltip'
 import HomeTags from 'home-tags'
 import { Col } from 'grid'
@@ -121,7 +123,7 @@ export default class SrItem extends Component {
     const xostorLicenseInfo = this.getXostorLicenseInfo()
 
     return (
-      <div className={styles.item}>
+      <div className={classNames(styles.item, isStale(sr) && styles.stale)}>
         <BlockLink to={`/srs/${sr.id}`}>
           <SingleLineRow>
             <Col smallSize={9} mediumSize={8} largeSize={3}>
@@ -133,6 +135,7 @@ export default class SrItem extends Component {
                 <Ellipsis>
                   <Text value={sr.name_label} onChange={this._setNameLabel} useLongClick />
                 </Ellipsis>
+                <StaleObjectPill object={sr} />
                 {isDefaultSr && <span className='tag tag-pill tag-info ml-1'>{_('defaultSr')}</span>}
                 {isHa && (
                   <Tooltip content={_('srHaTooltip')}>
