@@ -14,7 +14,7 @@
               <ClusterFormTextInput v-bind="nameInputBindings" />
               <ClusterFormTextInput v-bind="tagsInputBindings" />
             </div>
-            <FormTextarea v-bind="descriptionInputBindings" disabled />
+            <FormTextarea v-bind="descriptionInputBindings" />
           </div>
 
           <UiAlert accent="info" wrap>{{ t('control-plane-replicas-hint') }}</UiAlert>

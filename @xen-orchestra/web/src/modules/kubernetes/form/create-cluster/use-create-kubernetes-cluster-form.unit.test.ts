@@ -1,5 +1,6 @@
 import {
   buildKubernetesClusterCreatePayload,
+  KUBERNETES_CLUSTER_CREATE_KUBERNETES_VERSION,
   useCreateKubernetesClusterForm,
 } from '@/modules/kubernetes/form/create-cluster/use-create-kubernetes-cluster-form.ts'
 import type { CreateKubernetesClusterFormData } from '@/modules/kubernetes/form/create-cluster/use-create-kubernetes-cluster-form.ts'
@@ -42,6 +43,7 @@ describe('buildKubernetesClusterCreatePayload', () => {
       worker_replicas: 2,
       control_plane_ip: '10.0.0.1',
       vm_name_prefix: 'k8s-',
+      kubernetes_version: KUBERNETES_CLUSTER_CREATE_KUBERNETES_VERSION,
     })
   })
 
@@ -82,6 +84,7 @@ describe('validateAndBuildPayload', () => {
       worker_replicas: 2,
       control_plane_ip: '10.0.0.1',
       vm_name_prefix: 'k8s-',
+      kubernetes_version: KUBERNETES_CLUSTER_CREATE_KUBERNETES_VERSION,
     })
   })
 
@@ -126,6 +129,15 @@ describe('validateAndBuildPayload', () => {
 
     fillValidForm(result)
     updateField(result.tagsInputBindings, 'invalid-tag')
+
+    await expect(result.validateAndBuildPayload()).resolves.toBeUndefined()
+  })
+
+  it('builds no payload when description exceeds 4000 characters', async () => {
+    const result = mountCreateKubernetesClusterForm()
+
+    fillValidForm(result)
+    updateField(result.descriptionInputBindings, 'a'.repeat(4001))
 
     await expect(result.validateAndBuildPayload()).resolves.toBeUndefined()
   })

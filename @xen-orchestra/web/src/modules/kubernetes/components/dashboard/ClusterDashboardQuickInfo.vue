@@ -6,7 +6,7 @@
           <KubernetesStatus :status />
         </template>
       </VtsKeyValueRow>
-      <VtsKeyValueRow :label="t('version')" />
+      <VtsKeyValueRow :label="t('version')" :value="version" />
       <VtsKeyValueRow :label="t('created-on')">
         <template #value>
           <span v-tooltip="createdAtTooltip">{{ createdAtFormatted }}</span>
@@ -30,7 +30,11 @@ import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.v
 import { useXoKubernetesClusterUtils } from '@/modules/kubernetes/composables/xo-kubernetes-cluster-utils.composable.ts'
 import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { clusterReadyStatus, formatNodesCount } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
+import {
+  clusterReadyStatus,
+  clusterVersion,
+  formatNodesCount,
+} from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
 import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
@@ -49,6 +53,8 @@ const { areClustersReady } = useXoKubernetesClusterCollection()
 const { createdAtFormatted, createdAtTooltip } = useXoKubernetesClusterUtils(() => cluster)
 
 const status = computed(() => clusterReadyStatus(cluster))
+
+const version = computed(() => clusterVersion(cluster))
 
 const controlPlaneNodes = computed(() => formatNodesCount(cluster.control_plane_status))
 

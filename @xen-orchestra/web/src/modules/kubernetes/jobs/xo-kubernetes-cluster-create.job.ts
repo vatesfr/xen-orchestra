@@ -4,13 +4,14 @@ import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
 export type KubernetesClusterCreatePayload = {
-  name: string
-  description?: string
-  tags?: Record<string, string> | null
-  control_plane_replicas: number
-  worker_replicas: number
   control_plane_ip: string
+  control_plane_replicas: number
+  description?: string
+  kubernetes_version: string
+  name: string
+  tags?: Record<string, string> | null
   vm_name_prefix: string
+  worker_replicas: number
 }
 
 export const useXoKubernetesClusterCreateJob = defineJob('kubernetes-cluster.create', [payloadArg], () => {

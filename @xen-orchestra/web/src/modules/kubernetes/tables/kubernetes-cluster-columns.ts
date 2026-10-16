@@ -12,8 +12,8 @@ export const useKubernetesClusterColumns = defineColumns(() => {
 
   return {
     cluster: useLinkColumn({ headerLabel: () => t('cluster') }),
-    version: useTextColumn({ headerLabel: () => t('version') }),
     status: useKubernetesStatusColumn({ headerLabel: () => t('status') }),
+    version: useTextColumn({ headerLabel: () => t('version') }),
     controlPlaneNodes: useNumberColumn({ headerLabel: () => t('control-plane-replicas') }),
     workerNodes: useNumberColumn({ headerLabel: () => t('worker-replicas') }),
     tags: useTagColumn({ headerLabel: () => t('tags') }),

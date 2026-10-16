@@ -1,10 +1,15 @@
 import { kubernetesTagsSyntax } from '@/modules/kubernetes/form/kubernetes-tags-syntax.rule.ts'
 import type { KubernetesClusterCreatePayload } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-create.job.ts'
 import { parseKubernetesTagsString } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
-import { integer, ipv4OrCidr, minValue, required, withMessage } from '@core/packages/form-validation'
+import { integer, ipv4OrCidr, maxLength, minValue, required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+const DESCRIPTION_MAX_LENGTH = 4000
+
+/** Temporary default until the create-cluster form exposes a version field. */
+export const KUBERNETES_CLUSTER_CREATE_KUBERNETES_VERSION = '1.37.1'
 
 export type CreateKubernetesClusterFormData = {
   name: string
@@ -25,6 +30,7 @@ export function buildKubernetesClusterCreatePayload(
     worker_replicas: form.worker_replicas,
     control_plane_ip: form.control_plane_ip,
     vm_name_prefix: form.vm_name_prefix,
+    kubernetes_version: KUBERNETES_CLUSTER_CREATE_KUBERNETES_VERSION,
   }
 
   if (form.description !== '') {
@@ -61,6 +67,11 @@ export function useCreateKubernetesClusterForm() {
         worker_replicas: { required, integer, minValue: minValue(1) },
         control_plane_ip: { required, ipv4OrCidr: withMessage(ipv4OrCidr, () => t('ip-address-invalid')) },
         vm_name_prefix: { required },
+        description: {
+          maxLength: withMessage(maxLength(DESCRIPTION_MAX_LENGTH), () =>
+            t('field:exceeds-max-characters', { max: DESCRIPTION_MAX_LENGTH })
+          ),
+        },
         tagsRaw: {
           kubernetesTagsSyntax: withMessage(kubernetesTagsSyntax, () => t('form:error:invalid-tag-syntax')),
         },
@@ -70,7 +81,10 @@ export function useCreateKubernetesClusterForm() {
 
   const nameInputBindings = useField('name', () => ({ label: t('cluster-name'), required: true }))
 
-  const descriptionInputBindings = useField('description', () => ({ label: t('description') }))
+  const descriptionInputBindings = useField('description', () => ({
+    label: t('description'),
+    maxCharacters: DESCRIPTION_MAX_LENGTH,
+  }))
 
   const tagsInputBindings = useField('tagsRaw', () => ({
     label: t('tags'),

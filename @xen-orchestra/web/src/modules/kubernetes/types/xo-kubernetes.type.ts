@@ -74,6 +74,7 @@ export type XoKubernetesNode = {
   role: 'control-plane' | 'worker'
   status: 'Ready' | 'NotReady'
   type: 'kubernetes-node'
+  version: string
 }
 
 /* TODO Update when the /namespaces API endpoint is implemented */
