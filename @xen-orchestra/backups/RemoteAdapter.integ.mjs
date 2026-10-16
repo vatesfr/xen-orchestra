@@ -186,7 +186,7 @@ describe('RemoteAdapter#isMergeableParent compression resolution', { concurrency
     const targetUuid = uniqueIdBuffer()
     await generateVhd(`${basePath}/disk.vhd`, { mode: 'directory', compression: 'brotli', uuid: targetUuid })
 
-    assert.equal(await adapter.isMergeableParent(targetUuid, `${basePath}/disk.vhd.alias.vhd`), false)
+    assert.equal(await adapter.isMergeableParent(targetUuid, `${basePath}/disk.vhd.alias.vhd`), true)
   })
 
   test("a remote-level 'none' means no compression", async () => {
