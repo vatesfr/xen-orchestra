@@ -13,6 +13,10 @@
         <template #value>{{ nodesStatus.ready_replicas }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
+        <template #key>{{ t('up-to-date') }}</template>
+        <template #value>{{ nodesStatus.up_to_date_replicas }}</template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
         <template #key>{{ t('available') }}</template>
         <template #value>{{ nodesStatus.available_replicas }}</template>
       </VtsCardRowKeyValue>

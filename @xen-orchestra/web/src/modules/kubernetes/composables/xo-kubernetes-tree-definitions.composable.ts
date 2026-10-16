@@ -1,12 +1,15 @@
 import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
+import { useXoKubernetesNodeCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-node-collection.ts'
 import { KUBERNETES_ROOT_ID, type XoKubernetesRoot } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { KUBERNETES_NAME } from '@/shared/constants.ts'
 import type { TreeNodeBase } from '@core/packages/tree/tree-node-base.ts'
 import { defineTree } from '@core/packages/tree/define-tree.ts'
+import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 
 export function useXoKubernetesTreeDefinitions(predicate: (node: TreeNodeBase) => boolean | undefined) {
   const { clusters, areClustersReady } = useXoKubernetesClusterCollection()
+  const { nodesByCluster, areNodesReady } = useXoKubernetesNodeCollection()
 
   const kubernetesRoot: XoKubernetesRoot = {
     id: KUBERNETES_ROOT_ID,
@@ -32,8 +35,8 @@ export function useXoKubernetesTreeDefinitions(predicate: (node: TreeNodeBase) =
             predicate,
             discriminator: 'kubernetes-cluster',
           },
-          () => [
-            ...defineTree('nodes', [], {
+          cluster => [
+            ...defineTree('nodes', nodesByCluster.value.get(cluster.id) ?? [], {
               getId: 'id',
               getLabel: 'name',
               predicate,
@@ -52,6 +55,6 @@ export function useXoKubernetesTreeDefinitions(predicate: (node: TreeNodeBase) =
 
   return {
     definitions,
-    isReady: areClustersReady,
+    isReady: logicAnd(areClustersReady, areNodesReady),
   }
 }

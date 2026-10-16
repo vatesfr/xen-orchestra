@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import ClusterActions from '@/modules/kubernetes/components/actions/ClusterActions.vue'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { clusterStatus } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
+import { clusterReadyStatus, clusterVersion } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { getKubernetesClusterRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
 import { kubernetesTagsToStrings } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
@@ -90,12 +90,11 @@ const { HeadCells, BodyCells } = useClusterColumns({
           to: getKubernetesClusterRoute(cluster.id),
           icon: icon('object:cluster'),
         }),
-      version: r => r(''),
-      status: r => r({ status: clusterStatus(cluster) }),
+      version: r => r(clusterVersion(cluster)),
+      status: r => r({ status: clusterReadyStatus(cluster) }),
       controlPlaneNodes: r =>
         r(`${cluster.control_plane_status.ready_replicas}/${cluster.control_plane_status.desired_replicas}`),
       workerNodes: r => r(`${cluster.worker_status.ready_replicas}/${cluster.worker_status.desired_replicas}`),
-      /* pods: r => r(''), */
       tags: r => r(kubernetesTagsToStrings(cluster.tags), 'info'),
       actions: r =>
         r({

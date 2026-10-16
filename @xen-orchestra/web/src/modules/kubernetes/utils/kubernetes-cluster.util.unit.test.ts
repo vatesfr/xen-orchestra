@@ -1,6 +1,7 @@
-import type { KubernetesClusterPhase } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
+import type { KubernetesClusterPhase, XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import {
-  clusterStatus,
+  clusterReadyStatus,
+  clusterVersion,
   isClusterDeletable,
   isClusterPhaseReady,
 } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
@@ -32,16 +33,44 @@ describe('isClusterPhaseReady', () => {
   )
 })
 
-describe('clusterStatus', () => {
-  // TODO Update this test when the others conditions are implemented (isControlPlaneInitialized + isInfrastructureProvisioned)
-  it.each<KubernetesClusterPhase>(['Provisioned', 'Running'])('returns ready when phase is %s', phase => {
-    expect(clusterStatus(createKubernetesCluster({ phase }))).toBe('ready')
+describe('clusterReadyStatus', () => {
+  it('returns ready when the cluster is available', () => {
+    expect(clusterReadyStatus(createKubernetesCluster({ is_available: true }))).toBe('ready')
   })
 
-  it.each<KubernetesClusterPhase>(['Pending', 'Provisioning', 'Updating', 'Deleting', 'Deleted', 'Failed', 'Unknown'])(
-    'returns not-ready when phase is %s',
-    phase => {
-      expect(clusterStatus(createKubernetesCluster({ phase }))).toBe('not-ready')
+  it('returns not-ready when the cluster is not available', () => {
+    expect(clusterReadyStatus(createKubernetesCluster({ is_available: false }))).toBe('not-ready')
+  })
+})
+
+describe('clusterVersion', () => {
+  function createClusterWithVersions(controlPlaneVersions: string[], workerVersions: string[]): XoKubernetesCluster {
+    const cluster = createKubernetesCluster()
+
+    return {
+      ...cluster,
+      control_plane_status: {
+        ...cluster.control_plane_status,
+        versions: controlPlaneVersions.map(version => ({ replicas: 1, version })),
+      },
+      worker_status: {
+        ...cluster.worker_status,
+        versions: workerVersions.map(version => ({ replicas: 1, version })),
+      },
     }
-  )
+  }
+
+  it('returns an empty string when no version is reported', () => {
+    expect(clusterVersion(createClusterWithVersions([], []))).toBe('')
+  })
+
+  it('deduplicates versions across control plane and workers', () => {
+    expect(clusterVersion(createClusterWithVersions(['v1.30.0'], ['v1.30.0']))).toBe('v1.30.0')
+  })
+
+  it('sorts versions numerically', () => {
+    expect(clusterVersion(createClusterWithVersions(['v1.10.0', 'v1.9.0'], ['v1.10.0', 'v1.9.10', 'v1.9.2']))).toBe(
+      'v1.9.0/v1.9.2/v1.9.10/v1.10.0'
+    )
+  })
 })

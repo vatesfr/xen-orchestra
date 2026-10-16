@@ -1,6 +1,6 @@
 import type { Status } from '@core/components/status/VtsStatus.vue'
 
-export type KubernetesClusterStatus = Extract<Status, 'ready' | 'partially-ready' | 'not-ready'>
+export type KubernetesReadyStatus = Extract<Status, 'ready' | 'not-ready'>
 
 export type KubernetesClusterPhase =
   | 'Pending'
@@ -13,7 +13,7 @@ export type KubernetesClusterPhase =
   | 'Failed'
   | 'Unknown'
 
-export type KubernetesStatus = KubernetesClusterStatus | KubernetesClusterPhase | true | false
+export type KubernetesStatus = KubernetesClusterPhase | 'yes' | 'no' | 'paused' | true | false
 
 export const KUBERNETES_ROOT_ID = 'kubernetes-root'
 
@@ -23,11 +23,18 @@ export type XoKubernetesRoot = {
   type: 'kubernetes'
 }
 
+export type XoKubernetesReplicasVersion = {
+  replicas: number
+  version: string
+}
+
 export type XoKubernetesNodesStatus = {
   available_replicas: number
   desired_replicas: number
   ready_replicas: number
+  up_to_date_replicas: number
   replicas: number
+  versions: XoKubernetesReplicasVersion[]
 }
 
 export type XoKubernetesCluster = {
@@ -35,6 +42,10 @@ export type XoKubernetesCluster = {
   control_plane_status: XoKubernetesNodesStatus
   created_at: string
   id: string
+  is_available: boolean
+  is_control_plane_initialized: boolean
+  is_infrastructure_provisioned: boolean
+  is_reconciliation_paused: boolean
   name: string
   phase: KubernetesClusterPhase
   tags: Record<string, string> | null
@@ -46,28 +57,29 @@ export type XoKubernetesNode = {
   $cluster: string
   endpoint: string
   id: string
-  kubernetesUid?: string
+  is_reconciliation_paused: boolean
   name: string
-  providerId?: string
-  role: string
-  status: string
+  node_id: string
+  node_name: string
+  role: 'control-plane' | 'worker'
+  status: 'Ready' | 'NotReady'
   type: 'kubernetes-node'
 }
 
+/* TODO Update when the /namespaces API endpoint is implemented */
 export type XoKubernetesNamespace = {
   $cluster: string
   id: string
-  kubernetesUid?: string
   name: string
   phase?: string
   type: 'kubernetes-namespace'
 }
 
+/* TODO Update when the /pods API endpoint is implemented */
 export type XoKubernetesPod = {
   $cluster: string
   $namespace: string
   id: string
-  kubernetesUid?: string
   name: string
   phase?: string
   type: 'kubernetes-pod'

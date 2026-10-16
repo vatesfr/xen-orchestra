@@ -11,6 +11,11 @@
         {{ t('clusters') }}
       </UiTabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/kubernetes/nodes' }" custom>
+      <UiTabItem :active="isExactActive" :href tag="a">
+        {{ t('nodes') }}
+      </UiTabItem>
+    </RouterLink>
   </TabList>
 </template>
 

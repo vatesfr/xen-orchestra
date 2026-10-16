@@ -12,12 +12,21 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('control-plane-initialized') }}</template>
+        <template #value>
+          <KubernetesStatus :status="isControlPlaneInitialized" />
+        </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('infrastructure-provisioned') }}</template>
+        <template #value>
+          <KubernetesStatus :status="isInfrastructureProvisioned" />
+        </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('paused') }}</template>
+        <template #value>
+          <KubernetesStatus :status="isPaused" />
+        </template>
       </VtsCardRowKeyValue>
     </div>
   </UiPanelCard>
@@ -29,6 +38,7 @@ import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernet
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { cluster } = defineProps<{
@@ -36,6 +46,10 @@ const { cluster } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const isControlPlaneInitialized = computed(() => (cluster.is_control_plane_initialized ? 'yes' : 'no'))
+const isInfrastructureProvisioned = computed(() => (cluster.is_infrastructure_provisioned ? 'yes' : 'no'))
+const isPaused = computed(() => (cluster.is_reconciliation_paused ? 'paused' : 'no'))
 </script>
 
 <style scoped lang="postcss">
