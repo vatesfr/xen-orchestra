@@ -45,11 +45,15 @@ const makeXapi = ({
   probeError,
   vdiSmConfig,
   vbdCreateError,
+  // unlike `vbdCreateError`, the VBD exists: `VBD_create` creates it, then fails to plug it
+  vbdPlugError,
   vbdDevice = 'xvdc',
   events,
   cacheSrPluggedOn = APPLIANCE_HOST_REF,
 } = {}) => {
   const calls = []
+  // the VBDs of the cache VDI, as XAPI lists them in `VDI.VBDs`
+  const cacheVdiVbds = new Set()
   // what xen-api's object cache holds for the records the cache is built from
   const records = {
     [SELF_VM_REF]: { resident_on: APPLIANCE_HOST_REF },
@@ -120,6 +124,9 @@ const makeXapi = ({
     },
     async getField(type, ref, field) {
       calls.push(['getField', type, ref, field])
+      if (type === 'VDI' && field === 'VBDs') {
+        return [...cacheVdiVbds]
+      }
       if (type === 'host' && field === 'address') {
         return '10.20.30.40' // the host's own management address, as XAPI reports it
       }
@@ -141,11 +148,16 @@ const makeXapi = ({
       if (vbdCreateError !== undefined) {
         throw vbdCreateError
       }
+      cacheVdiVbds.add(VBD_REF)
       log('cache VBD created')
+      if (vbdPlugError !== undefined) {
+        throw vbdPlugError
+      }
       return VBD_REF
     },
     async VBD_destroy(ref) {
       calls.push(['VBD_destroy', ref])
+      cacheVdiVbds.delete(ref)
       log('cache VBD destroyed')
     },
     async barrier(ref) {
@@ -1023,13 +1035,23 @@ describe('the read cache', () => {
       assert.equal(disk.closed, true)
     })
 
-    it('on a VBD that cannot be plugged, destroying the VDI', async () => {
+    it('on a VBD that cannot be created, destroying the VDI', async () => {
       const { mixin, events, disk } = makeMixin()
       const xapi = makeXapi({ events, vbdCreateError: new Error('no free slot') })
 
       await assert.rejects(mountDisk(mixin, xapi, CACHE), /no free slot/)
 
       assert.deepEqual(events, ['cache VDI created', 'cache VDI destroyed'])
+      assert.equal(disk.closed, true)
+    })
+
+    it('on a VBD that cannot be plugged, destroying both although its ref was never returned', async () => {
+      const { mixin, events, disk } = makeMixin()
+      const xapi = makeXapi({ events, vbdPlugError: new Error('DEVICE_ALREADY_ATTACHED') })
+
+      await assert.rejects(mountDisk(mixin, xapi, CACHE), /DEVICE_ALREADY_ATTACHED/)
+
+      assert.deepEqual(events, ['cache VDI created', 'cache VBD created', 'cache VBD destroyed', 'cache VDI destroyed'])
       assert.equal(disk.closed, true)
     })
 

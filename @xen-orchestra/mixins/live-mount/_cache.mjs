@@ -74,6 +74,13 @@ export async function createCache($defer, { xapi, disk, diskPath, id, nameLabel,
     virtual_size: disk.getVirtualSize(),
   })
   $defer.onFailure(() => xapi.VDI_destroy(vdiRef))
+  // a VBD whose plug failed exists all the same, but `VBD_create` then throws without its ref: the
+  // VBDs are looked up from the VDI instead, and destroyed before it, which they could keep in use
+  $defer.onFailure(async () => {
+    for (const vbdRef of await xapi.getField('VDI', vdiRef, 'VBDs')) {
+      await xapi.VBD_destroy(vbdRef)
+    }
+  })
 
   // without `throwVbdPlug`, a plug failure is only logged
   const vbdRef = await xapi.VBD_create({
@@ -84,7 +91,6 @@ export async function createCache($defer, { xapi, disk, diskPath, id, nameLabel,
     VDI: vdiRef,
     VM: vmRef,
   })
-  $defer.onFailure(() => xapi.VBD_destroy(vbdRef))
 
   // the VBD is plugged, the barrier makes its `device` visible in the object cache
   const { device: deviceName } = await xapi.barrier(vbdRef)
