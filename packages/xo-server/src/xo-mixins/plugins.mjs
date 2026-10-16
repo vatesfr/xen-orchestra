@@ -15,6 +15,7 @@ const log = createLogger('xo:xo-mixins:plugins')
 
 export default class {
   constructor(app) {
+    this._app = app
     this._ajv = new Ajv({
       strict: 'log',
       // `strictRequired` option seems to require that the object's properties are defined in the same sub-schema (even
@@ -31,6 +32,13 @@ export default class {
         connection: app._redis,
         namespace: 'plugin-metadata',
         crypto: app.cryptoCredentials,
+      })
+
+      app.hooks.emit('registerCollection', {
+        collection: this._pluginsMetadata,
+        type: 'plugin',
+        // metadata of plugins that are not registered (yet) are ignored
+        decorate: ({ id }) => this.getOptionalPlugin(id),
       })
 
       app.addConfigManager(
@@ -87,35 +95,43 @@ export default class {
       version,
     })
 
-    const metadata = await this._getPluginMetadata(id)
-    let autoload = true
-    let configuration
-    if (metadata !== undefined) {
-      ;({ autoload, configuration } = metadata)
-    } else {
-      log.info(`[NOTICE] register plugin ${name} for the first time`)
-      await this._pluginsMetadata.update({
-        id,
-        autoload,
-      })
-    }
-
-    if (!plugin.configured) {
-      const tryEmptyConfig = configuration === undefined
-      try {
-        await this._configurePlugin(plugin, tryEmptyConfig ? {} : configuration)
-      } catch (error) {
-        // dont throw any error in case the empty config did not work
-        if (tryEmptyConfig) {
-          return
-        }
-        throw error
+    try {
+      const metadata = await this._getPluginMetadata(id)
+      let autoload = true
+      let configuration
+      if (metadata !== undefined) {
+        ;({ autoload, configuration } = metadata)
+      } else {
+        log.info(`[NOTICE] register plugin ${name} for the first time`)
+        await this._pluginsMetadata.update({
+          id,
+          autoload,
+        })
       }
-    }
 
-    if (autoload) {
-      await this.loadPlugin(id)
+      if (!plugin.configured) {
+        const tryEmptyConfig = configuration === undefined
+        try {
+          await this._configurePlugin(plugin, tryEmptyConfig ? {} : configuration)
+        } catch (error) {
+          // dont throw any error in case the empty config did not work
+          if (tryEmptyConfig) {
+            return
+          }
+          throw error
+        }
+      }
+
+      if (autoload) {
+        await this.loadPlugin(id)
+      }
+    } finally {
+      await this._touchPlugin(id)
     }
+  }
+
+  _touchPlugin(id) {
+    return this._app.touchXoObject('plugin', id)
   }
 
   async getPlugin(id) {
@@ -243,6 +259,7 @@ export default class {
     } finally {
       plugin.loading = false
     }
+    await this._touchPlugin(id)
   }
 
   async unloadPlugin(id) {
@@ -257,6 +274,7 @@ export default class {
 
     await plugin.instance.unload()
     plugin.loaded = false
+    await this._touchPlugin(id)
   }
 
   async purgePluginConfiguration(id) {
@@ -274,6 +292,7 @@ export default class {
         log.info('plugin not configured after its configuration was deleted', { error, plugin: id })
       }
     }
+    await this._touchPlugin(id)
   }
 
   async testPlugin(id, data) {

@@ -18,6 +18,7 @@ import {
   Tags,
 } from 'tsoa'
 import { inject } from 'inversify'
+import { incorrectState } from 'xo-common/api-errors.js'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoPlugin } from '@vates/types'
@@ -26,6 +27,7 @@ import {
   asynchronousActionResp,
   badRequestResp,
   forbiddenOperationResp,
+  incorrectStateResp,
   invalidParameters,
   noContentResp,
   notFoundResp,
@@ -39,12 +41,12 @@ import type { PluginConfigurationRequestBody, PluginTestRequestBody, UpdatePlugi
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 
 @Route('plugins')
 @Security('*')
 @Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
-@Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
 @Tags('plugins')
 @provide(PluginController)
 export class PluginController extends XoController<XoPlugin> {
@@ -61,7 +63,8 @@ export class PluginController extends XoController<XoPlugin> {
   }
 
   /**
-   * Restricted to administrators.
+   * Returns all plugins that match the following privilege:
+   * - resource: plugin, action: read
    *
    * @example fields "id,name,loaded,autoload"
    * @example filter "loaded?"
@@ -71,6 +74,7 @@ export class PluginController extends XoController<XoPlugin> {
   @Example(partialPlugins)
   @Extension('x-mcp-exposure', 'allow')
   @Get('')
+  @Security('*', ['acl'])
   async getPlugins(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -79,24 +83,38 @@ export class PluginController extends XoController<XoPlugin> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoPlugin>>> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter })), req, { limit })
+    return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'plugin' },
+    })
   }
 
   /**
-   * Restricted to administrators.
+   * Required privilege:
+   * - resource: plugin, action: read
    *
    * @example id "transport-email"
    */
   @Example(plugin)
   @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'plugin',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getPlugin,
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getPlugin(@Path() id: string): Promise<Unbrand<XoPlugin>> {
     return this.getObject(id as XoPlugin['id'])
   }
 
   /**
-   * Restricted to administrators.
+   * Required privilege per field provided in the body:
+   * - resource: plugin, action: update:&lt;field&gt; (e.g. update:autoload)
    *
    * `autoload`: whether the plugin is loaded when XO starts
    *
@@ -105,15 +123,21 @@ export class PluginController extends XoController<XoPlugin> {
    */
   @Extension('x-mcp-exposure', 'confirm')
   @Patch('{id}')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'plugin',
+      actions: actionsFromBody(['update:autoload']),
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getPlugin,
+    }),
+  ])
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async updatePlugin(@Path() id: string, @Body() body: UpdatePluginRequestBody): Promise<void> {
     const pluginId = id as XoPlugin['id']
     const { autoload } = body
-
-    // ensure the plugin exists even if there is nothing to update
-    await this.getObject(pluginId)
 
     if (autoload !== undefined) {
       await (autoload
@@ -123,11 +147,12 @@ export class PluginController extends XoController<XoPlugin> {
   }
 
   /**
-   * Restricted to administrators.
+   * Required privilege:
+   * - resource: plugin, action: configure
    *
    * Validate the configuration against the plugin `configurationSchema`, apply it and save it.
    *
-   * Obfuscated values (e.g. `"* obfuscated *"`) are replaced by the currently saved values.
+   * Obfuscated values (`"obfuscated-q3oi6d9X8uenGvdLnHk2"`) are replaced by the currently saved values.
    *
    * @example id "transport-email"
    * @example body {
@@ -137,8 +162,17 @@ export class PluginController extends XoController<XoPlugin> {
    */
   @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/configuration')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'plugin',
+      action: 'configure',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getPlugin,
+    }),
+  ])
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   async configurePlugin(@Path() id: string, @Body() body: PluginConfigurationRequestBody): Promise<void> {
@@ -146,70 +180,104 @@ export class PluginController extends XoController<XoPlugin> {
   }
 
   /**
-   * Restricted to administrators.
+   * Required privilege:
+   * - resource: plugin, action: delete-configuration
    *
-   * Unload the plugin and remove its configuration.
+   * Remove the plugin configuration. The plugin must be unloaded.
    *
    * @example id "transport-email"
    */
   @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/configuration')
+  @Middlewares(
+    acl({
+      resource: 'plugin',
+      action: 'delete-configuration',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getPlugin,
+    })
+  )
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, 'The plugin is loaded')
   async deletePluginConfiguration(@Path() id: string): Promise<void> {
-    const pluginId = id as XoPlugin['id']
+    const plugin = await this.getObject(id as XoPlugin['id'])
 
-    // `purgePluginConfiguration` does not fail on unknown plugins
-    await this.getObject(pluginId)
-    await this.restApi.xoApp.purgePluginConfiguration(pluginId)
+    if (plugin.loaded) {
+      throw incorrectState({ actual: plugin.loaded, expected: false, object: plugin.id, property: 'loaded' })
+    }
+
+    await this.restApi.xoApp.purgePluginConfiguration(plugin.id)
   }
 
   /**
-   * Restricted to administrators.
+   * Required privilege:
+   * - resource: plugin, action: load
    *
    * @example id "transport-email"
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/load')
+  @Middlewares(
+    acl({
+      resource: 'plugin',
+      action: 'load',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getPlugin,
+    })
+  )
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParameters.status, 'The plugin is already loaded, is loading or is not configured')
-  loadPlugin(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
-    const pluginId = id as XoPlugin['id']
+  async loadPlugin(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const plugin = await this.getObject(id as XoPlugin['id'])
 
-    return this.createAction<void>(() => this.restApi.xoApp.loadPlugin(pluginId), {
+    return this.createAction<void>(() => this.restApi.xoApp.loadPlugin(plugin.id), {
       statusCode: noContentResp.status,
       sync,
-      taskProperties: { name: 'load plugin', objectId: pluginId },
+      taskProperties: { name: `load ${plugin.name} plugin`, objectId: plugin.id },
     })
   }
 
   /**
-   * Restricted to administrators.
+   * Required privilege:
+   * - resource: plugin, action: unload
    *
    * @example id "transport-email"
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/unload')
+  @Middlewares(
+    acl({
+      resource: 'plugin',
+      action: 'unload',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getPlugin,
+    })
+  )
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParameters.status, 'The plugin is already unloaded or cannot be unloaded')
-  unloadPlugin(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
-    const pluginId = id as XoPlugin['id']
+  async unloadPlugin(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const plugin = await this.getObject(id as XoPlugin['id'])
 
-    return this.createAction<void>(() => this.restApi.xoApp.unloadPlugin(pluginId), {
+    return this.createAction<void>(() => this.restApi.xoApp.unloadPlugin(plugin.id), {
       statusCode: noContentResp.status,
       sync,
-      taskProperties: { name: 'unload plugin', objectId: pluginId },
+      taskProperties: { name: `unload ${plugin.name} plugin`, objectId: plugin.id },
     })
   }
 
   /**
-   * Restricted to administrators.
+   * Required privilege:
+   * - resource: plugin, action: test
    *
    * Test the plugin with its current configuration. The plugin must be loaded.
    *
@@ -221,22 +289,31 @@ export class PluginController extends XoController<XoPlugin> {
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/test')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'plugin',
+      action: 'test',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getPlugin,
+    }),
+  ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParameters.status, 'The plugin is not testable, not loaded or the data are invalid')
-  testPlugin(
+  async testPlugin(
     @Path() id: string,
     @Body() body: PluginTestRequestBody,
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
-    const pluginId = id as XoPlugin['id']
+    const plugin = await this.getObject(id as XoPlugin['id'])
 
-    return this.createAction<void>(() => this.restApi.xoApp.testPlugin(pluginId, body.data), {
+    return this.createAction<void>(() => this.restApi.xoApp.testPlugin(plugin.id, body.data), {
       statusCode: noContentResp.status,
       sync,
-      taskProperties: { name: 'test plugin', objectId: pluginId, params: body },
+      taskProperties: { name: `test ${plugin.name} plugin`, objectId: plugin.id },
     })
   }
 }
