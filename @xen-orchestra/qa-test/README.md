@@ -61,6 +61,13 @@ The following are required only for mirror backup tests (`qa:mirror`):
 | `MIRROR_DESTINATION_REPOSITORY_NAME` | Mirror destination repository name                                                                       | `Test mirror QA`             |
 | `MIRROR_DESTINATION_REPOSITORY_URL`  | `@xen-orchestra/fs` URL for the mirror destination. Same backend flexibility as `BACKUP_REPOSITORY_URL`. | `file:///tmp/xo-test-mirror` |
 
+The following are optional, for the hbd (deduplicated disks) tests (`qa:backup:hbd`). The suite is skipped when they are not set:
+
+| Variable                     | Description                                                                                                             | Example                                    |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `HBD_BACKUP_REPOSITORY_NAME` | hbd backup repository name                                                                                              | `Test hbd QA`                              |
+| `HBD_BACKUP_REPOSITORY_URL`  | `@xen-orchestra/fs` URL with `diskFormat="hbd"`. Needs hard links: not on S3 / Azure. Disk files are checked when local | `file:///tmp/xo-test-hbd?diskFormat="hbd"` |
+
 The following are optional, for load tests (disk churn via SSH). Leave `TEST_VM_SSH_KEY` unset
 to let `ssh` fall back to its own default identity files / `ssh-agent`:
 
@@ -95,6 +102,7 @@ Log namespaces follow the pattern `qa:<suite>[:<variant>]`:
 | `qa:backup:nbd`        | `tests/backup.nbd.test.js`                  |
 | `qa:backup:combined`   | `tests/backup-replication-combined.test.js` |
 | `qa:mirror`            | `tests/backup-mirror.test.js`               |
+| `qa:backup:hbd`        | `tests/backup.hbd.test.js`                  |
 | `qa:export`            | `tests/export.vhd.test.js`                  |
 | `qa:load:backup:delta` | `scripts/backup-load-delta.mjs`             |
 
@@ -114,6 +122,7 @@ yarn workspace @xen-orchestra/qa-test qa:vm                # VM lifecycle (clone
 yarn workspace @xen-orchestra/qa-test qa:backup            # Full and delta backup
 yarn workspace @xen-orchestra/qa-test qa:backup:nbd        # Backup with NBD protocol
 yarn workspace @xen-orchestra/qa-test qa:backup:combined   # Advanced scenarios (replication + backup)
+yarn workspace @xen-orchestra/qa-test qa:backup:hbd        # Backup, restore and mirror on a hbd repository
 yarn workspace @xen-orchestra/qa-test qa:export            # VHD/XVA export and restoration
 ```
 

@@ -35,6 +35,7 @@
     "qa:vm": "node --env-file-if-exists=.env --test tests/vm.test.js",
     "qa:backup:base": "node --env-file-if-exists=.env --test tests/backup.test.js",
     "qa:backup:nbd": "node --env-file-if-exists=.env --test tests/backup.nbd.test.js",
+    "qa:backup:hbd": "node --env-file-if-exists=.env --test --test-concurrency=1 tests/backup.hbd.test.js",
     "qa:backup:combined": "node --env-file-if-exists=.env --test tests/backup-replication-combined.test.js",
     "qa:backup:combined:cycle": "node --env-file-if-exists=.env --test tests/backup-replication-combined.test.js --test-name-pattern='Full Cycle'",
     "qa:backup:sync": "node --env-file-if-exists=.env --test tests/backup.synchronized.test.js --test-concurrency=1",
