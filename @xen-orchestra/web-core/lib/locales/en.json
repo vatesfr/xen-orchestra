@@ -1101,6 +1101,8 @@
   "privilege:scope-type:manual-selection": "Manual selection",
   "privilege:select-scope": "Select scope",
   "privilege:selector": "Selector",
+  "privilege:what-is-a-privilege-description": "A privilege is a granular permission that controls access to a specific action or resource in your environment, such as starting a VM, editing a network, or viewing storage. Each privilege belongs to exactly one role. Assign privileges to a role to define precisely what users with that role are allowed to do.",
+  "privilege:what-is-a-privilege?": "What is a privilege?",
   "privileges": "Privileges",
   "pro-support": "{name} pro support",
   "professional-support": "Professional support",

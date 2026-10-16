@@ -35,6 +35,7 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { usePrivilegeColumns } from '@core/tables/column-sets/privilege-columns.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { privileges, busy, error } = defineProps<{
@@ -57,12 +58,21 @@ const { pageRecords: paginatedPrivileges, paginationBindings } = usePagination('
 
 const scopeTypeLabels = usePrivilegeScopeTypeLabels()
 
+const privilegeNumberById = computed(
+  () => new Map(privileges.map((privilege, index) => [privilege.id, String(index + 1)]))
+)
+
 const { HeadCells, BodyCells } = usePrivilegeColumns({
   exclude: ['edit', 'remove'],
   body: (privilege: FrontXoPrivilege) => {
     const appliedToCount = usePrivilegeAppliedToCount(privilege)
 
     return {
+      index: r =>
+        r({
+          label: privilegeNumberById.value.get(privilege.id) ?? '',
+          to: { name: '/admin/privilege/[id]/general', params: { id: privilege.id } },
+        }),
       resource: r => r(privilege.resource),
       scope: r => r(scopeTypeLabels[getPrivilegeScopeType(privilege.selector)]),
       appliedTo: r => r(appliedToCount.value),

@@ -47,7 +47,7 @@ const { pageRecords: paginatedPrivileges, paginationBindings } = usePagination('
 const scopeTypeLabels = usePrivilegeScopeTypeLabels()
 
 const { HeadCells, BodyCells } = usePrivilegeColumns({
-  exclude: ['selectItem'],
+  exclude: ['index', 'selectItem'],
   body: (privilege: StagedPrivilege) => {
     const scopeLabel = computed(() => scopeTypeLabels[getPrivilegeScopeType(privilege.selector)])
 
