@@ -9,6 +9,7 @@ const COLUMN_WIDTH = '4rem'
 export type CheckboxCellBindings = {
   selected: boolean
   onToggle: () => void
+  disabled?: boolean
 }
 
 function renderHeadCheckbox(model: Ref<boolean | undefined>) {
@@ -21,9 +22,10 @@ function renderHeadCheckbox(model: Ref<boolean | undefined>) {
   })
 }
 
-function renderBodyCheckbox({ selected, onToggle }: CheckboxCellBindings) {
+function renderBodyCheckbox({ selected, onToggle, disabled }: CheckboxCellBindings) {
   return h(UiCheckbox, {
     accent: 'brand',
+    disabled,
     modelValue: selected,
     'onUpdate:modelValue': onToggle,
   })

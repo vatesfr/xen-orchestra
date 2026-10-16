@@ -155,6 +155,7 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | '/admin/user/[id]/general'
       | '/admin/user/[id]/groups'
+      | '/admin/user/[id]/roles'
     >,
     '/admin/user/[id]/general': RouteRecordInfo<
       '/admin/user/[id]/general',
@@ -166,6 +167,13 @@ declare module 'vue-router/auto-routes' {
     '/admin/user/[id]/groups': RouteRecordInfo<
       '/admin/user/[id]/groups',
       '/admin/user/:id/groups',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/user/[id]/roles': RouteRecordInfo<
+      '/admin/user/[id]/roles',
+      '/admin/user/:id/roles',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -695,6 +703,7 @@ declare module 'vue-router/auto-routes' {
         | '/admin/user/[id]'
         | '/admin/user/[id]/general'
         | '/admin/user/[id]/groups'
+        | '/admin/user/[id]/roles'
       views:
         | 'default'
     }
@@ -707,6 +716,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/user/[id]/groups.vue': {
       routes:
         | '/admin/user/[id]/groups'
+      views:
+        | never
+    }
+    'src/pages/admin/user/[id]/roles.vue': {
+      routes:
+        | '/admin/user/[id]/roles'
       views:
         | never
     }
