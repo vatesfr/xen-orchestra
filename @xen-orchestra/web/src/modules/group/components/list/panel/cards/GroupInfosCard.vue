@@ -1,6 +1,12 @@
 <template>
   <UiPanelCard class="group-infos-card">
-    <UiPanelCardTitle :id="group.id" size="medium" :label="group.name" icon="table:group" />
+    <UiPanelCardTitle
+      :id="group.id"
+      size="medium"
+      :label="group.name"
+      icon="table:group"
+      :to="{ name: '/admin/group/[id]/general', params: { id: group.id } }"
+    />
     <div class="content">
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('provider') }}</template>

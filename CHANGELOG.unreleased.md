@@ -78,6 +78,7 @@
 - [XO6/Users] Open a user's detail page from the users list or its side panel, to see its details
 - [XO6/Users] List the groups of a user in its detail page, add the user to groups and detach it from them
 - [XO6/Users] List the roles of a user in its detail page, whether assigned directly or inherited from its groups, assign roles to the user and detach its direct roles
+- [XO6/Groups] Open a group's detail page from the groups list or its side panel, to see its details
 
 ### Bug fixes
 
