@@ -36,7 +36,16 @@ describe('planMigration', function () {
 
     assert.deepEqual(result.problems, [])
     assert.deepEqual(result.plans, [
-      { id: 'vm-1', name: 'name of vm-1', sr: 'sr-1', network: 'net-1', template: 'tpl-1', stopSource: false },
+      {
+        id: 'vm-1',
+        name: 'name of vm-1',
+        sr: 'sr-1',
+        network: 'net-1',
+        disks: {},
+        nics: {},
+        template: 'tpl-1',
+        stopSource: false,
+      },
     ])
   })
 
@@ -55,40 +64,13 @@ describe('planMigration', function () {
     assert.deepEqual(result.plans[0], {
       id: 'vm-1',
       name: 'name of vm-1',
-      sr: 'sr-2',
-      network: 'net-2',
+      sr: 'sr-1',
+      network: 'net-1',
+      disks: { 'scsi0:0': 'sr-2' },
+      nics: { '4000': 'net-2' },
       template: 'tpl-2',
       stopSource: false,
     })
-  })
-
-  it('accepts overrides which send every disk to the same SR', function () {
-    const vms = [sourceVm('vm-1', { disks: ['scsi0:0', 'scsi0:1'] })]
-    const result = planMigration(
-      makeBody({ vms: [{ id: 'vm-1', disks: { 'scsi0:0': 'sr-2', 'scsi0:1': 'sr-2' } }] }),
-      makeContext({ vms })
-    )
-
-    assert.deepEqual(result.problems, [])
-    assert.equal(result.plans[0].sr, 'sr-2')
-  })
-
-  it('refuses disks of a VM going to several SRs, including through the default', function () {
-    const vms = [sourceVm('vm-1', { disks: ['scsi0:0', 'scsi0:1'] })]
-    const result = planMigration(
-      makeBody({ vms: [{ id: 'vm-1', disks: { 'scsi0:0': 'sr-2' } }] }),
-      makeContext({ vms })
-    )
-
-    assert.deepEqual(messagesOf(result), ['the disks of a VM must all go to the same SR for now'])
-    assert.deepEqual(result.plans, [])
-  })
-
-  it('refuses network cards of a VM going to several networks', function () {
-    const vms = [sourceVm('vm-1', { nics: ['4000', '4001'] })]
-    const result = planMigration(makeBody({ vms: [{ id: 'vm-1', nics: { '4001': 'net-2' } }] }), makeContext({ vms }))
-
-    assert.deepEqual(messagesOf(result), ['the network cards of a VM must all go to the same network for now'])
   })
 
   it('refuses the options the import does not support yet', function () {
@@ -112,24 +94,13 @@ describe('planMigration', function () {
     assert.deepEqual(result.problems, [])
   })
 
-  it('refuses unknown VMs, disks and cards, and a VM listed twice', function () {
+  it('refuses unknown VMs and a VM listed twice', function () {
     const result = planMigration(
-      makeBody({
-        vms: [
-          { id: 'vm-1', disks: { 'scsi9:9': 'sr-1' }, nics: { '9999': 'net-1' } },
-          { id: 'vm-1' },
-          { id: 'vm-unknown' },
-        ],
-      }),
+      makeBody({ vms: [{ id: 'vm-1' }, { id: 'vm-1' }, { id: 'vm-unknown' }] }),
       makeContext()
     )
 
-    assert.deepEqual(messagesOf(result), [
-      'no disk scsi9:9 on the VM',
-      'no network card 9999 on the VM',
-      'the VM is listed more than once',
-      'no such VM on the source',
-    ])
+    assert.deepEqual(messagesOf(result), ['the VM is listed more than once', 'no such VM on the source'])
   })
 
   it('refuses disks which cannot be read', function () {

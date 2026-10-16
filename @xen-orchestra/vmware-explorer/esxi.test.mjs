@@ -1146,7 +1146,30 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
     guestFullName: 'Ubuntu Linux (64-bit)',
     firmware: 'efi',
     files: { vmPathName },
-    hardware: { memoryMB: '2048', numCPU: '2' },
+    hardware: {
+      memoryMB: '2048',
+      numCPU: '2',
+      device: {
+        attributes: { 'xsi:type': 'ArrayOfVirtualDevice' },
+        VirtualDevice: [
+          {
+            attributes: { 'xsi:type': 'VirtualVmxnet3' },
+            key: '4000',
+            deviceInfo: { label: 'Network adapter 1' },
+            macAddress: '00:0c:29:00:00:01',
+            addressType: 'generated',
+            backing: { network: moRef('Network', 'network-13') },
+          },
+          {
+            attributes: { 'xsi:type': 'VirtualE1000e' },
+            key: '4001',
+            deviceInfo: { label: 'Network adapter 2' },
+            macAddress: '00:50:56:00:00:02',
+            addressType: 'manual',
+          },
+        ],
+      },
+    },
   })
 
   const RUNTIME = { attributes: { 'xsi:type': 'VirtualMachineRuntimeInfo' }, powerState: 'poweredOn' }
@@ -1222,7 +1245,23 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
     assert.equal(metadata.memory, 2048 * 1024 * 1024)
     assert.equal(metadata.nCpus, 2)
     assert.equal(metadata.cdrom, true)
-    assert.deepEqual(metadata.networks, [{ label: 'VM Network', macAddress: '00:0c:29:00:00:01', isGenerated: true }])
+    assert.deepEqual(metadata.networks, [
+      {
+        key: '4000',
+        label: 'Network adapter 1',
+        macAddress: '00:0c:29:00:00:01',
+        isGenerated: true,
+        network: 'network-13',
+      },
+      // a MAC set by hand is not in the vmx as a generated one: it used to be lost
+      {
+        key: '4001',
+        label: 'Network adapter 2',
+        macAddress: '00:50:56:00:00:02',
+        isGenerated: false,
+        network: undefined,
+      },
+    ])
   })
 
   it('treats a missing vmsd as a VM without snapshot', async function () {
