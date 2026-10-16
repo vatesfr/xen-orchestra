@@ -11,7 +11,7 @@ export function useNewInternalNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool[
     name: '',
     description: '',
     mtu: undefined,
-    nbd: false,
+    nbd: 'none',
   })
 
   const {
@@ -20,7 +20,7 @@ export function useNewInternalNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool[
     nameInputBindings,
     descriptionInputBindings,
     mtuInputBindings,
-    nbdCheckboxBindings,
+    nbdRadioBindings,
   } = useNetworkFormBase(_poolId, formData)
 
   async function validateAndBuildPayload(): Promise<NewInternalNetworkPayload | undefined> {
@@ -32,7 +32,7 @@ export function useNewInternalNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool[
     nameInputBindings,
     descriptionInputBindings,
     mtuInputBindings,
-    nbdCheckboxBindings,
+    nbdRadioBindings,
     validateAndBuildPayload,
   }
 }

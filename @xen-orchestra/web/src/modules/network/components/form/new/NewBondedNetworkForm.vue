@@ -13,7 +13,7 @@
     </div>
     <NetworkFormSelect v-bind="bondModeSelectBindings" class="bond-mode" />
     <div class="nbd">
-      <NewNetworkNbdCheckbox v-bind="nbdCheckboxBindings" />
+      <NewNetworkNbdRadio v-bind="nbdRadioBindings" />
     </div>
     <NewNetworkButtonsSection :cancel-to :submit-label="t('action:create-bonded-network')" />
   </form>
@@ -24,7 +24,7 @@ import NetworkFormNumberInput from '@/modules/network/components/form/new/inputs
 import NetworkFormSelect from '@/modules/network/components/form/new/inputs/NetworkFormSelect.vue'
 import NetworkFormTextInput from '@/modules/network/components/form/new/inputs/NetworkFormTextInput.vue'
 import NewNetworkDescriptionTextarea from '@/modules/network/components/form/new/inputs/NewNetworkDescriptionTextarea.vue'
-import NewNetworkNbdCheckbox from '@/modules/network/components/form/new/inputs/NewNetworkNbdCheckbox.vue'
+import NewNetworkNbdRadio from '@/modules/network/components/form/new/inputs/NewNetworkNbdRadio.vue'
 import NewNetworkButtonsSection from '@/modules/network/components/form/new/NewNetworkButtonsSection.vue'
 import { useNewBondedNetworkForm } from '@/modules/network/form/new-bonded/use-new-bonded-network-form.ts'
 import type { NewBondedNetworkPayload } from '@/modules/network/jobs/xo-bonded-network-create.job.ts'
@@ -49,7 +49,7 @@ const {
   nameInputBindings,
   mtuInputBindings,
   descriptionInputBindings,
-  nbdCheckboxBindings,
+  nbdRadioBindings,
   bondModeSelectBindings,
   validateAndBuildPayload,
 } = useNewBondedNetworkForm(() => poolId)
