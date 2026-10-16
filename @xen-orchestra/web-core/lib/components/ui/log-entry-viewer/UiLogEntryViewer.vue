@@ -2,7 +2,7 @@
 <template>
   <div class="ui-log-entry-viewer" :class="className">
     <div class="label-container">
-      <div :class="fontClasses.labelClass" class="label">
+      <div v-if="label" :class="fontClasses.labelClass" class="label">
         {{ label }}
       </div>
       <div class="actions">
@@ -36,7 +36,7 @@ const {
   accent,
   content: rawContent = '',
 } = defineProps<{
-  label: string
+  label?: string
   content: string | object | undefined
   size: LogEntryViewerSize
   accent: LogEntryViewerAccent
@@ -104,6 +104,7 @@ function openRawValueInNewTab() {
     }
 
     .actions {
+      margin-inline-start: auto;
       display: flex;
       gap: 0.8rem;
       align-items: center;

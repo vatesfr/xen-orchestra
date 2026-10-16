@@ -366,6 +366,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/role/new': RouteRecordInfo<
+      '/role/new',
+      '/role/new',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/settings': RouteRecordInfo<
       '/settings',
       '/settings',
@@ -850,6 +857,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/pool/connect.vue': {
       routes:
         | '/pool/connect'
+      views:
+        | never
+    }
+    'src/pages/role/new.vue': {
+      routes:
+        | '/role/new'
       views:
         | never
     }

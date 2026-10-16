@@ -2,8 +2,11 @@
   <div class="roles-table">
     <UiTitle>
       {{ t('roles') }}
+      <template #action>
+        <slot name="title-action" />
+      </template>
     </UiTitle>
-    <VtsQueryBuilder v-model="filter" :schema />
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <div class="container">
       <VtsTableBulkActions :actions="bulkActions" />
       <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
@@ -61,6 +64,10 @@ const {
   roles: FrontXoRole[]
   busy?: boolean
   error?: boolean
+}>()
+
+defineSlots<{
+  'title-action'(): any
 }>()
 
 const { t } = useI18n()

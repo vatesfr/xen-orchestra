@@ -66,17 +66,15 @@
 
 <script lang="ts" setup>
 import type { FrontXoRole } from '@/modules/role/remote-resources/use-xo-role-collection.ts'
-import {
-  type FrontXoPrivilege,
-  useXoRolePrivilegesCollection,
-} from '@/modules/role/remote-resources/use-xo-role-privileges-collection.ts'
+import { useXoRolePrivilegesCollection } from '@/modules/role/remote-resources/use-xo-role-privileges-collection.ts'
+import { EFFECT_ACCENTS } from '@/modules/role/utils/xo-privilege.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
-import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useI18n } from 'vue-i18n'
 
@@ -85,11 +83,6 @@ const { role } = defineProps<{
 }>()
 
 const { t } = useI18n()
-
-const EFFECT_ACCENTS = {
-  allow: 'success',
-  deny: 'danger',
-} as const satisfies Record<FrontXoPrivilege['effect'], TagAccent>
 
 const { privileges, arePrivilegesReady, hasPrivilegeFetchError } = useXoRolePrivilegesCollection({}, () => role.id)
 </script>
