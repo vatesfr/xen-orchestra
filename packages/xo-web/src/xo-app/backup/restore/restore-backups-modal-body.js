@@ -4,8 +4,10 @@ import React from 'react'
 import ChooseSrForEachVdisModal, { areVdiTargetsComplete } from 'xo/choose-sr-for-each-vdis-modal'
 import Component from 'base-component'
 import StateButton from 'state-button'
-import { createSelector } from 'selectors'
-import { keyBy } from 'lodash'
+import store from 'store'
+import { createSelector, getObject } from 'selectors'
+import { find, keyBy } from 'lodash'
+import { getAllProxies, getXoVmUuid, isSrWritable } from 'xo'
 import { getRenderXoItemOfType } from 'render-xo-item'
 import { Select, Toggle } from 'form'
 import { SelectSr } from 'select-objects'
@@ -22,6 +24,34 @@ export default class RestoreBackupsModalBody extends Component {
   get value() {
     return this.state
   }
+
+  // the cache of a live restore is a VDI plugged onto the VM serving the mount: XO's, or the one of
+  // the proxy handling the backup repository
+  componentDidMount() {
+    if (!this.props.backupHealthCheck) {
+      Promise.all([getXoVmUuid(), getAllProxies()]).then(
+        ([xoVmUuid, proxies]) => this.setState({ proxies, xoVmUuid }),
+        () => this.setState({ proxies: [], xoVmUuid: null })
+      )
+    }
+  }
+
+  _getApplianceVm = createSelector(
+    () => this.state.backup?.remote?.proxy,
+    () => this.state.proxies,
+    () => this.state.xoVmUuid,
+    (proxyId, proxies, xoVmUuid) => {
+      const vmUuid = proxyId === undefined ? xoVmUuid : find(proxies, { id: proxyId })?.vmUuid
+      return vmUuid == null ? undefined : getObject(store.getState(), vmUuid)
+    }
+  )
+
+  // a shared SR is plugged on every host of its pool, a local one on its own host only
+  _getCacheSrPredicate = createSelector(this._getApplianceVm, vm =>
+    vm === undefined
+      ? undefined
+      : sr => isSrWritable(sr) && (sr.shared ? sr.$pool === vm.$pool : sr.$container === vm.$container)
+  )
 
   // read by the modal to refuse the confirmation while a disk misses the destination its action
   // needs, which the server could not guess
@@ -61,6 +91,7 @@ export default class RestoreBackupsModalBody extends Component {
           <div>
             <div className='mb-1'>
               <ChooseSrForEachVdisModal
+                cacheSrPredicate={this._getCacheSrPredicate()}
                 onChange={this.linkState('targetSrs')}
                 placeholder={_('importBackupModalSelectSr')}
                 required

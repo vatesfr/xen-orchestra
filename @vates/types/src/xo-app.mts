@@ -14,6 +14,7 @@ import type {
   XoProxy,
   XoSchedule,
   XoServer,
+  XoSr,
   XoTask,
   XoUser,
   XoVif,
@@ -175,13 +176,13 @@ export type PoolRollingUpdateRecoveryBlocked = {
 
 export type PoolRollingUpdateRecovery = PoolRollingUpdateRecoveryRun | PoolRollingUpdateRecoveryBlocked
 
-/** A disk of a backup archive currently served as a read-only iSCSI LUN */
+/** A disk of a backup archive currently served as an iSCSI LUN */
 export type BackupArchiveDiskMount = {
   /** Handle to pass to `unmountBackupArchiveDisk` */
   id: string
   /** UUID of the SR introduced on the host */
   srUuid: string
-  /** UUID of the read-only VDI exposing the backup disk */
+  /** UUID of the VDI exposing the backup disk, read-only unless it is cached */
   vdiUuid: string
   /** IQN of the target serving the disk */
   iqn: string
@@ -429,14 +430,20 @@ export type XoApp = {
     opts?: { _forceRefresh?: boolean; vmId?: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]> | null>>
   /**
-   * Serve one disk of a backup archive as a read-only iSCSI LUN and attach it to
-   * `host` as an SR. Undone by `unmountBackupArchiveDisk`.
+   * Serve one disk of a backup archive as an iSCSI LUN and attach it to `host`
+   * as an SR, read-only unless `cacheSrId` is set. Undone by `unmountBackupArchiveDisk`.
    *
    * The LUN is served by whoever can read the backup repository: this appliance, or the proxy the
    * repository is linked to.
    */
   mountBackupArchiveDisk(params: {
     archiveId: XoVmBackupArchive['id']
+    /**
+     * SR of a VDI of the serving appliance, which the disk is materialized into as it is read and
+     * which holds the writes; unset, nothing is cached and the mount is read-only. On a local SR,
+     * the serving appliance must not be migrated while the mount lasts: the VDI cannot follow it
+     */
+    cacheSrId?: XoSr['id']
     /** One of the archive's `disks[].id` */
     diskId: string
     hostId: XoHost['id']
