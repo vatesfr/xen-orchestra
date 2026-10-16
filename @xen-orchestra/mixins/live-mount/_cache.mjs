@@ -1,5 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
 import pRetry from 'promise-toolbox/retry'
+import pTimeout from 'promise-toolbox/timeout'
 
 import { OC_MOUNT } from './_utils.mjs'
 
@@ -9,6 +10,10 @@ const { debug, info } = createLogger('xo:mixins:LiveMount')
 // (udev), the kernel may not have attached the backend yet, or a scanner (`blkid`,
 // `systemd-udevd`) may still hold it exclusively
 const TRANSIENT_OPEN_ERRORS = ['EBUSY', 'ENOENT', 'ENOMEDIUM', 'ENXIO']
+
+// XAPI's own call timeout is an hour: a field read stuck that long would keep the VDI plugged onto
+// this appliance before the cleanup could run
+const GET_FIELD_TIMEOUT = 60e3
 
 /**
  * Create a VDI the size of the source disk, hot-plug it onto the appliance's VM
@@ -92,14 +97,15 @@ export async function createCache($defer, { xapi, disk, diskPath, id, nameLabel,
     VM: vmRef,
   })
 
-  // the VBD is plugged, the barrier makes its `device` visible in the object cache
-  const { device: deviceName } = await xapi.barrier(vbdRef)
+  // read from XAPI rather than from the object cache, which would depend on the event stream
+  // catching up: the VBD is plugged, so its `device` is set
+  const deviceName = await pTimeout.call(xapi.getField('VBD', vbdRef, 'device'), GET_FIELD_TIMEOUT)
   if (!/^[a-z0-9]+$/i.test(deviceName ?? '')) {
     throw new Error(`unusable device name for the cache VBD ${vbdRef}: ${JSON.stringify(deviceName)}`)
   }
   const path = `/dev/${deviceName}`
   // XAPI may have rounded the size up to the SR allocation quantum
-  const size = Number(xapi.getObjectByRef(vdiRef).virtual_size)
+  const size = Number(await pTimeout.call(xapi.getField('VDI', vdiRef, 'virtual_size'), GET_FIELD_TIMEOUT))
 
   const device = createCacheDevice({ path, size })
   // the device node may lag behind the plug
