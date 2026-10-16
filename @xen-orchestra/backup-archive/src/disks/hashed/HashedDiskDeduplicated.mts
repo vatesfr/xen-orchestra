@@ -1,5 +1,5 @@
 import type { DiskBlock } from '@xen-orchestra/disk-transform'
-import { type RemoteHandlerAbstract } from '@xen-orchestra/fs'
+import { type RemoteHandlerAbstract, type DiskFormat } from '@xen-orchestra/fs'
 import { basename, dirname, join } from 'node:path'
 import { Readable } from 'node:stream'
 import { isInDir, normalize } from '@xen-orchestra/fs/path'
@@ -241,6 +241,10 @@ export class HashedDiskDeduplicated extends HashedDisk {
   /** store blocks found corrupted, and rewritten, since this disk was opened */
   getBlocksCorrupted(): number {
     return this.#blocksCorrupted
+  }
+
+  async isMergeableParent(parentUuid: string, { diskFormat }: { diskFormat: DiskFormat }): Promise<boolean> {
+    return (await super.isMergeableParent(parentUuid, { diskFormat })) && diskFormat === 'hbd'
   }
 
   // ---------------------------------------------------------------- public

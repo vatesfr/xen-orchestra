@@ -8,6 +8,8 @@ import { getHandler } from '@xen-orchestra/fs'
 import { relativeFromFile } from '@xen-orchestra/fs/path'
 import { Disposable, pFromCallback } from 'promise-toolbox'
 import { RandomAccessDisk } from '@xen-orchestra/disk-transform'
+import { openDisposableDisk } from '@xen-orchestra/backup-archive/disks'
+import { BLOCK_STORE_PATH } from '@xen-orchestra/backup-archive/disks/hashed'
 import { RemoteAdapter } from './RemoteAdapter.mjs'
 import { checkDisk } from './_runners/_writers/_checkDisk.mjs'
 import { formatFilenameDate } from './_filenameDate.mjs'
@@ -40,8 +42,18 @@ afterEach(async () => {
 const uniqueId = () => uuid.v1()
 const uniqueIdBuffer = () => uuid.v1({}, Buffer.alloc(16))
 
-async function getAdapter({ useVhdDirectory = false, vhdDirectoryCompression, remoteCompressionType } = {}) {
-  handler = getHandler({ url: `file://${tempDir}`, useVhdDirectory, compressionType: remoteCompressionType })
+async function getAdapter({
+  useVhdDirectory = false,
+  diskFormat,
+  vhdDirectoryCompression,
+  remoteCompressionType,
+} = {}) {
+  handler = getHandler({
+    url: `file://${tempDir}`,
+    useVhdDirectory,
+    diskFormat,
+    compressionType: remoteCompressionType,
+  })
   await handler.sync()
   return new RemoteAdapter(handler, { vhdDirectoryCompression })
 }
@@ -252,7 +264,7 @@ class MockDisk extends RandomAccessDisk {
 
 // IncrementalRemoteWriter._transfer(): the disk is written
 // through the adapter, and the *real* checkDisk() is used as the validator
-describe('RemoteAdapter#writeVhd validated by checkDisk', { concurrency: 1 }, () => {
+describe('RemoteAdapter#writeDisk validated by checkDisk', { concurrency: 1 }, () => {
   for (const useVhdDirectory of [false, true]) {
     const mode = useVhdDirectory ? 'directory' : 'file'
 
@@ -322,4 +334,105 @@ describe('RemoteAdapter#writeVhd validated by checkDisk', { concurrency: 1 }, ()
       assert.deepEqual(await handler.list(`${basePath}/data`, { ignoreMissing: true }), [])
     })
   }
+})
+
+// every `<hash>` entry of the shared block store
+async function listBlockStore() {
+  const hashes = []
+  for (const ab of await handler.list(BLOCK_STORE_PATH, { ignoreMissing: true })) {
+    for (const cd of await handler.list(`${BLOCK_STORE_PATH}/${ab}`)) {
+      hashes.push(...(await handler.list(`${BLOCK_STORE_PATH}/${ab}/${cd}`)))
+    }
+  }
+  return hashes
+}
+
+describe('RemoteAdapter#writeDisk on a hbd remote', { concurrency: 1 }, () => {
+  const writeHbdDisk = (adapter, path, disk, opts) =>
+    adapter.writeDisk(path, disk, {
+      validator: tmpPath => checkDisk(handler, tmpPath),
+      uuid: uniqueIdBuffer(),
+      ...opts,
+    })
+
+  test('names the disk file .hbd', async () => {
+    const adapter = await getAdapter({ diskFormat: 'hbd' })
+
+    assert.equal(adapter.getDiskFileName('20000101T000000Z'), '20000101T000000Z.hbd')
+  })
+
+  test('writes a base disk that passes validation and reads back', async () => {
+    const adapter = await getAdapter({ diskFormat: 'hbd' })
+    const path = `${basePath}/${adapter.getDiskFileName('base')}`
+    const source = new MockDisk(2, [0, 1], 0x42)
+    const diskUuid = uniqueIdBuffer()
+
+    const size = await writeHbdDisk(adapter, path, source, { uuid: diskUuid })
+
+    // what was read from the source: its 2 blocks, not its (geometry rounded) virtual size
+    assert.equal(size, 2 * DEFAULT_BLOCK_SIZE)
+    await Disposable.use(openDisposableDisk({ handler, path }), async disk => {
+      // the writer passes packed uuids, the hbd metadata holds them as strings
+      assert.equal(disk.getUuid(), uuid.stringify(diskUuid))
+      assert.equal(disk.isDifferencing(), false)
+      assert.deepEqual(disk.getBlockIndexes(), [0, 1])
+      for (const index of [0, 1]) {
+        const { data } = await disk.readBlock(index)
+        const expected = (await source.readBlock(index)).data
+        assert.deepEqual(data.subarray(0, expected.length), expected, `block ${index} should match the source`)
+      }
+    })
+  })
+
+  test('writes a differencing disk chained to its parent that passes validation', async () => {
+    const adapter = await getAdapter({ diskFormat: 'hbd' })
+    const parentPath = `${basePath}/${adapter.getDiskFileName('20000101T000000Z')}`
+    const childPath = `${basePath}/${adapter.getDiskFileName('20000102T000000Z')}`
+    const parentUuid = uniqueIdBuffer()
+
+    await writeHbdDisk(adapter, parentPath, new MockDisk(2, [0, 1], 0xaa), { uuid: parentUuid })
+    await writeHbdDisk(adapter, childPath, new MockDisk(2, [1], 0xbb, { differencing: true }), {
+      parentUuid,
+      parentPath: relativeFromFile(childPath, parentPath),
+    })
+
+    await Disposable.use(openDisposableDisk({ handler, path: childPath }), async disk => {
+      assert.equal(disk.isDifferencing(), true)
+      assert.equal(disk.getParentUuid(), uuid.stringify(parentUuid))
+      assert.equal(disk.getParentPath(), `/${parentPath}`)
+      assert.deepEqual(disk.getBlockIndexes(), [1])
+    })
+  })
+
+  test('identical content is stored once for the whole remote', async () => {
+    const adapter = await getAdapter({ diskFormat: 'hbd' })
+    const otherBasePath = `${rootPath}/vdis/${jobId}/${uniqueId()}`
+
+    await writeHbdDisk(adapter, `${basePath}/${adapter.getDiskFileName('a')}`, new MockDisk(2, [0, 1], 0x42))
+    const storeAfterFirst = await listBlockStore()
+
+    // another VDI of the same remote, same content
+    await writeHbdDisk(adapter, `${otherBasePath}/${adapter.getDiskFileName('b')}`, new MockDisk(2, [0, 1], 0x42))
+
+    assert.deepEqual((await listBlockStore()).sort(), storeAfterFirst.sort())
+  })
+
+  test('a rejected validation leaves no disk and no block behind', async () => {
+    const adapter = await getAdapter({ diskFormat: 'hbd' })
+    const path = `${basePath}/${adapter.getDiskFileName('base')}`
+
+    await assert.rejects(
+      writeHbdDisk(adapter, path, new MockDisk(1, [0], 0x11), {
+        validator: async () => {
+          throw new Error('boom')
+        },
+      }),
+      /boom/
+    )
+
+    // `data/` itself is shared with the other disks of the directory
+    assert.deepEqual(await handler.list(basePath, { ignoreMissing: true }), ['data'])
+    assert.deepEqual(await handler.list(`${basePath}/data`, { ignoreMissing: true }), [])
+    assert.deepEqual(await listBlockStore(), [])
+  })
 })

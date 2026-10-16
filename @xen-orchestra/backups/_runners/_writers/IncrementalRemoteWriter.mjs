@@ -16,7 +16,7 @@ import { MixinRemoteWriter } from './_MixinRemoteWriter.mjs'
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { checkDisk } from './_checkDisk.mjs'
 import { packUuid } from './_packUuid.mjs'
-import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
+import { isDisk, openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { VDI_FORMAT_QCOW2 } from '@xen-orchestra/xapi'
 import { diskHasData } from './_diskHasData.mjs'
 
@@ -39,7 +39,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
       const vhdDir = `${vdisDir}/${srcVdiUuid}`
       try {
         const vhds = await handler.list(vhdDir, {
-          filter: _ => _[0] !== '.' && _.endsWith('.vhd'),
+          filter: _ => _[0] !== '.' && isDisk(_),
           ignoreMissing: true,
           prependDir: true,
         })
@@ -92,7 +92,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     // parentDestPath is the chain tip = most-recent backup; its filename is stable under
     // merges (merges rename the OLDER disks), so unlike the root it maps reliably to its
     // metadata json.
-    const parentDate = basename(parentDestPath).replace(/\.(alias\.)?vhd$/, '')
+    const parentDate = basename(parentDestPath).replace(/\.(alias\.vhd|vhd|hbd)$/, '')
     let metadata
     try {
       metadata = await this._adapter.readVmBackupMetadata(`${this._vmBackupDir}/${parentDate}.json`)

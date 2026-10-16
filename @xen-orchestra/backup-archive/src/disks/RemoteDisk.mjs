@@ -2,6 +2,7 @@
 
 /**
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
+ * @typedef {import('@xen-orchestra/fs').DiskFormat} DiskFormat
  */
 
 import { RandomAccessDisk } from '@xen-orchestra/disk-transform'
@@ -238,9 +239,10 @@ export class RemoteDisk extends RandomAccessDisk {
    * compression, ...) — calling `super.isMergeableParent()` first.
    *
    * @param {string} parentUuid
+   * @param {{ diskFormat: DiskFormat }} options format of the disks written to the remote
    * @returns {Promise<boolean>}
    */
-  async isMergeableParent(parentUuid) {
+  async isMergeableParent(parentUuid, { diskFormat }) {
     return this.getUuid() === parentUuid
   }
 

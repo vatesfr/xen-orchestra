@@ -73,7 +73,7 @@ export class RemoteAdapter {
   // a requirement here.
   async isMergeableParent(packedParentUid, path) {
     return await Disposable.use(openDisposableDisk({ handler: this.handler, path, ignoreBlockIndexes: true }), disk =>
-      disk.isMergeableParent(stringify(packedParentUid))
+      disk.isMergeableParent(stringify(packedParentUid), { diskFormat: this.#diskFormat })
     )
   }
 

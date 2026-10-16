@@ -6,6 +6,7 @@
  * @typedef {import('vhd-lib/_createFooterHeader.js').VhdFooter} VhdFooter
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
  * @typedef {import('@xen-orchestra/fs').RemoteHandlerAbstract} RemoteHandlerAbstract
+ * @typedef {import('@xen-orchestra/fs').DiskFormat} DiskFormat
  *
 
  */
@@ -451,14 +452,14 @@ export class RemoteVhdDisk extends RemoteDisk {
    * sub-format (VHD directory vs plain) and, for directories, the compression codec
    * must match what this remote would write for a new disk.
    * @param {string} parentUuid
+   * @param {{ diskFormat: DiskFormat }} options format of the disks written to the remote
    * @returns {Promise<boolean>}
    */
-  async isMergeableParent(parentUuid) {
-    if (!(await super.isMergeableParent(parentUuid))) {
+  async isMergeableParent(parentUuid, { diskFormat }) {
+    if (!(await super.isMergeableParent(parentUuid, { diskFormat }))) {
       return false
     }
-
-    const useVhdDirectory = this.#handler.getConfig('diskFormat') === 'vhdDirectory'
+    const useVhdDirectory = diskFormat === 'vhdDirectory'
     const compressionType = this.#handler.getConfig('compressionType') ?? 'brotli'
     const isDirectory = await this.isDirectory()
     return isDirectory ? useVhdDirectory && this.#getCompressionType() === compressionType : !useVhdDirectory

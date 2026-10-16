@@ -12,7 +12,7 @@ export interface RemoteInfo {
   encryptionKey?: string
   immutable?: boolean
   useVhdDirectory?: boolean // legacy, read through diskFormat
-  diskFormat?: 'vhd' | 'vhdDirectory' | 'hbd'
+  diskFormat?: DiskFormat
   compressionType?: string
   [key: string]: unknown
 }
@@ -118,6 +118,8 @@ export interface LockDisposer {
   dispose: () => Promise<void>
 }
 
+export type DiskFormat = 'vhd' | 'vhdDirectory' | 'hbd'
+
 // ─── Abstract base class ─────────────────────────────────────────────────────
 
 export abstract class RemoteHandlerAbstract {
@@ -170,7 +172,7 @@ export abstract class RemoteHandlerAbstract {
   abstract test(): Promise<TestResult>
   abstract isImmutable(): boolean
   abstract getConfig(key: 'compressionType'): string | undefined
-  abstract getConfig(key: 'diskFormat'): 'vhd' | 'vhdDirectory' | 'hbd'
+  abstract getConfig(key: 'diskFormat'): DiskFormat
   abstract getConfig(key: string): unknown
   abstract addPrefix(prefix: string): RemoteHandlerAbstract
 }
