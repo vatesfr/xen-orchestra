@@ -131,7 +131,6 @@ const Item = ({ label, children, className }) => (
 )
 
 @addSubscriptions({
-  // eslint-disable-next-line standard/no-callback-literal
   ipPoolsConfigured: cb => subscribeIpPools(ipPools => cb(ipPools.length > 0)),
 })
 @injectIntl

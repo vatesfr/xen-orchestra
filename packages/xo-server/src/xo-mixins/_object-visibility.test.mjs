@@ -322,7 +322,8 @@ describe('ObjectVisibility', function () {
       await mixin.getObjectFilterForUser('user-1')
 
       permissionsByUser['user-1'] = { 'vm-1': { view: 1 } }
-      const resyncs = [clearAndFlush(mixin), clearAndFlush(mixin), clearAndFlush(mixin)]
+      const resyncs = [mixin.clearObjectFilterCache(), mixin.clearObjectFilterCache(), mixin.clearObjectFilterCache()]
+      mock.timers.tick(1000)
       await Promise.all(resyncs)
 
       assert.equal(connection.notified.length, 1)
@@ -338,9 +339,12 @@ describe('ObjectVisibility', function () {
 
       await mixin.getObjectFilterForUser('user-1')
 
-      const first = clearAndFlush(mixin)
+      const first = mixin.clearObjectFilterCache()
       permissionsByUser['user-1'] = { 'vm-2': { view: 1 } }
-      await Promise.all([first, clearAndFlush(mixin)])
+      await mixin.getObjectFilterForUser('user-1')
+      const second = mixin.clearObjectFilterCache()
+      mock.timers.tick(1000)
+      await Promise.all([first, second])
 
       assert.equal(connection.notified.length, 1)
     })
