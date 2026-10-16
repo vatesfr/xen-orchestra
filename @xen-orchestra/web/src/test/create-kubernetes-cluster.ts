@@ -16,6 +16,8 @@ export function createKubernetesCluster(overrides: Partial<XoKubernetesCluster> 
     type: 'kubernetes-cluster',
     phase: 'Running',
     is_available: true,
+    is_control_plane_initialized: true,
+    is_infrastructure_provisioned: true,
     is_reconciliation_paused: false,
     created_at: '2024-01-15T10:00:00.000Z',
     control_plane_endpoint: '10.0.0.1',

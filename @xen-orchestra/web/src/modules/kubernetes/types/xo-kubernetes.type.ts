@@ -13,7 +13,7 @@ export type KubernetesClusterPhase =
   | 'Failed'
   | 'Unknown'
 
-export type KubernetesStatus = KubernetesClusterPhase | 'paused' | 'not-paused' | true | false
+export type KubernetesStatus = KubernetesClusterPhase | 'yes' | 'no' | 'paused' | true | false
 
 export const KUBERNETES_ROOT_ID = 'kubernetes-root'
 
@@ -43,6 +43,8 @@ export type XoKubernetesCluster = {
   created_at: string
   id: string
   is_available: boolean
+  is_control_plane_initialized: boolean
+  is_infrastructure_provisioned: boolean
   is_reconciliation_paused: boolean
   name: string
   phase: KubernetesClusterPhase

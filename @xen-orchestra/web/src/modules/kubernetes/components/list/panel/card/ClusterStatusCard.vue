@@ -12,14 +12,20 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('control-plane-initialized') }}</template>
+        <template #value>
+          <KubernetesStatus :status="isControlPlaneInitialized" />
+        </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('infrastructure-provisioned') }}</template>
+        <template #value>
+          <KubernetesStatus :status="isInfrastructureProvisioned" />
+        </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('paused') }}</template>
         <template #value>
-          <KubernetesStatus :status="pausedStatus" />
+          <KubernetesStatus :status="isPaused" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -41,7 +47,9 @@ const { cluster } = defineProps<{
 
 const { t } = useI18n()
 
-const pausedStatus = computed(() => (cluster.is_reconciliation_paused ? 'paused' : 'not-paused'))
+const isControlPlaneInitialized = computed(() => (cluster.is_control_plane_initialized ? 'yes' : 'no'))
+const isInfrastructureProvisioned = computed(() => (cluster.is_infrastructure_provisioned ? 'yes' : 'no'))
+const isPaused = computed(() => (cluster.is_reconciliation_paused ? 'paused' : 'no'))
 </script>
 
 <style scoped lang="postcss">
