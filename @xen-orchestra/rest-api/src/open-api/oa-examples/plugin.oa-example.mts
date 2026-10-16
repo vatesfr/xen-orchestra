@@ -24,7 +24,7 @@ export const plugin = {
   version: '1.2.0',
   configuration: {
     from: { address: 'xo@example.org' },
-    transport: { host: 'smtp.example.org', port: 587, user: 'xo', password: '* obfuscated *' },
+    transport: { host: 'smtp.example.org', port: 587, user: 'xo', password: 'obfuscated-q3oi6d9X8uenGvdLnHk2' },
   },
   configurationSchema: {
     type: 'object',
