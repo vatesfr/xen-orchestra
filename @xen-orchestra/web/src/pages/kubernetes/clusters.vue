@@ -1,6 +1,6 @@
 <template>
   <KubernetesHeader />
-  <VtsContentSidePanel class="kubernetes-clusters">
+  <VtsContentSidePanel class="clusters">
     <UiCard class="container">
       <ClustersTable :clusters :busy="!areClustersReady" :error="hasClusterFetchError">
         <template #title-actions>
@@ -32,7 +32,7 @@ const selectedCluster = useRouteQuery<XoKubernetesCluster | undefined>('id', {
 </script>
 
 <style scoped lang="postcss">
-.kubernetes-clusters {
+.clusters {
   .container {
     height: fit-content;
     gap: 4rem;

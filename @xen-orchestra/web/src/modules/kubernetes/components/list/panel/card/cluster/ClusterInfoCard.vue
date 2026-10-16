@@ -47,7 +47,7 @@
 import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.vue'
 import { useXoKubernetesClusterUtils } from '@/modules/kubernetes/composables/xo-kubernetes-cluster-utils.composable.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { clusterReadyStatus, clusterVersion } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
+import { clusterStatus, clusterVersion } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { getKubernetesClusterRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
 import { kubernetesTagsToStrings } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -74,7 +74,7 @@ const displayTags = computed(() => kubernetesTagsToStrings(cluster.tags))
 
 const version = computed(() => clusterVersion(cluster))
 
-const status = computed(() => clusterReadyStatus(cluster))
+const status = computed(() => clusterStatus(cluster))
 </script>
 
 <style scoped lang="postcss">

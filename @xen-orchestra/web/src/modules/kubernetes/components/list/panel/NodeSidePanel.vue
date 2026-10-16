@@ -2,12 +2,14 @@
   <VtsSidePanel :has-selection="!!node" @close="emit('close')">
     <template v-if="node">
       <NodeInfoCard :node />
+      <NodeNetworkingCard :node />
     </template>
   </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
-import NodeInfoCard from '@/modules/kubernetes/components/list/panel/card/NodeInfoCard.vue'
+import NodeInfoCard from '@/modules/kubernetes/components/list/panel/card/node/NodeInfoCard.vue'
+import NodeNetworkingCard from '@/modules/kubernetes/components/list/panel/card/node/NodeNetworkingCard.vue'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 

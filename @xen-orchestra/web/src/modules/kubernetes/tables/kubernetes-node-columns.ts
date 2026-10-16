@@ -11,9 +11,9 @@ export const useKubernetesNodeColumns = defineColumns(() => {
   return {
     name: useLinkColumn({ headerLabel: () => t('name') }),
     status: useStatusColumn({ headerLabel: () => t('status') }),
-    version: useTextColumn({ headerLabel: () => t('version') }),
     role: useTextColumn({ headerLabel: () => t('role') }),
-    cluster: useLinkColumn({ headerLabel: () => t('cluster') }),
+    version: useTextColumn({ headerLabel: () => t('version') }),
+    endpoint: useTextColumn({ headerLabel: () => t('ip-address') }),
     actions: useActionColumn({}),
   }
 })

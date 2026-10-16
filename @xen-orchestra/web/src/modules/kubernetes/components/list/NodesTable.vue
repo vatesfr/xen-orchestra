@@ -20,11 +20,11 @@
 </template>
 
 <script setup lang="ts">
-import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
+import { useXoKubernetesNodeUtils } from '@/modules/kubernetes/composables/xo-kubernetes-node-utils.composable.ts'
 import { useKubernetesNodeColumns } from '@/modules/kubernetes/tables/kubernetes-node-columns.ts'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { isControlPlaneNode, nodeReadyStatus } from '@/modules/kubernetes/utils/kubernetes-node.util.ts'
-import { getKubernetesClusterRoute, getKubernetesNodeRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
+import { getKubernetesNodeRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -36,7 +36,6 @@ import { icon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
@@ -51,16 +50,11 @@ const {
 
 const { t } = useI18n()
 
-const { getClusterById } = useXoKubernetesClusterCollection()
-
 const selectedNodeId = useRouteQuery('id')
 
 const { items: filteredNodes, filter } = useQueryBuilderFilter('kubernetes-nodes', () => rawNodes)
 
-const roleLabels = computed<Record<XoKubernetesNode['role'], string>>(() => ({
-  'control-plane': t('control-plane'),
-  worker: t('worker'),
-}))
+const { roleLabels } = useXoKubernetesNodeUtils()
 
 const schema = useQueryBuilderSchema<XoKubernetesNode>({
   '': useStringSchema(t('any-property')),
@@ -97,14 +91,9 @@ const { HeadCells, BodyCells } = useKubernetesNodeColumns({
             : undefined,
         }),
       status: r => r({ status: nodeReadyStatus(node) }),
-      version: r => r(node.version),
       role: r => r(roleLabels.value[node.role]),
-      cluster: r =>
-        r({
-          label: getClusterById(node.$cluster)?.name ?? node.$cluster,
-          to: getKubernetesClusterRoute(node.$cluster),
-          icon: icon('object:cluster'),
-        }),
+      version: r => r(node.version),
+      endpoint: r => r(node.endpoint),
       actions: r =>
         r({
           onClick: () => (selectedNodeId.value = node.id),

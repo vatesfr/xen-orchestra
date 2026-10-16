@@ -15,10 +15,10 @@
 
 <script setup lang="ts">
 import ClusterActions from '@/modules/kubernetes/components/actions/ClusterActions.vue'
-import ClusterInfoCard from '@/modules/kubernetes/components/list/panel/card/ClusterInfoCard.vue'
-import ClusterNetworkingCard from '@/modules/kubernetes/components/list/panel/card/ClusterNetworkingCard.vue'
-import ClusterNodesReplicasCard from '@/modules/kubernetes/components/list/panel/card/ClusterNodesReplicasCard.vue'
-import ClusterStatusCard from '@/modules/kubernetes/components/list/panel/card/ClusterStatusCard.vue'
+import ClusterInfoCard from '@/modules/kubernetes/components/list/panel/card/cluster/ClusterInfoCard.vue'
+import ClusterNetworkingCard from '@/modules/kubernetes/components/list/panel/card/cluster/ClusterNetworkingCard.vue'
+import ClusterNodesReplicasCard from '@/modules/kubernetes/components/list/panel/card/cluster/ClusterNodesReplicasCard.vue'
+import ClusterStatusCard from '@/modules/kubernetes/components/list/panel/card/cluster/ClusterStatusCard.vue'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import { useI18n } from 'vue-i18n'

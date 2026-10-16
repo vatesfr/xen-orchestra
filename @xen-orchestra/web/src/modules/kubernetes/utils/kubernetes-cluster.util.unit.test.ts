@@ -1,6 +1,6 @@
 import type { KubernetesClusterPhase, XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import {
-  clusterReadyStatus,
+  clusterStatus,
   clusterVersion,
   formatNodesCount,
   isClusterDeletable,
@@ -34,13 +34,13 @@ describe('isClusterPhaseReady', () => {
   )
 })
 
-describe('clusterReadyStatus', () => {
+describe('clusterStatus', () => {
   it('returns available when the cluster is available', () => {
-    expect(clusterReadyStatus(createKubernetesCluster({ is_available: true }))).toBe('available')
+    expect(clusterStatus(createKubernetesCluster({ is_available: true }))).toBe('available')
   })
 
   it('returns not-available when the cluster is not available', () => {
-    expect(clusterReadyStatus(createKubernetesCluster({ is_available: false }))).toBe('not-available')
+    expect(clusterStatus(createKubernetesCluster({ is_available: false }))).toBe('not-available')
   })
 })
 

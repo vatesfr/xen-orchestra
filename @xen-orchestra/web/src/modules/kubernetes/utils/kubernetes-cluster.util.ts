@@ -32,7 +32,7 @@ export function isClusterPhaseReady(phase: KubernetesClusterPhase): boolean {
   }
 }
 
-export function clusterReadyStatus(cluster: XoKubernetesCluster): KubernetesAvailabilityStatus {
+export function clusterStatus(cluster: XoKubernetesCluster): KubernetesAvailabilityStatus {
   return cluster.is_available ? 'available' : 'not-available'
 }
 

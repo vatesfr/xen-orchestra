@@ -69,7 +69,7 @@ export type XoKubernetesNode = {
   id: string
   is_reconciliation_paused: boolean
   name: string
-  node_id: string
+  node_id?: string
   node_name: string
   role: 'control-plane' | 'worker'
   status: 'Ready' | 'NotReady'

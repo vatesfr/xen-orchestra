@@ -26,11 +26,7 @@
 import ClusterActions from '@/modules/kubernetes/components/actions/ClusterActions.vue'
 import { useKubernetesClusterColumns } from '@/modules/kubernetes/tables/kubernetes-cluster-columns.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import {
-  clusterReadyStatus,
-  clusterVersion,
-  formatNodesCount,
-} from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
+import { clusterStatus, clusterVersion, formatNodesCount } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { getKubernetesClusterRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
 import { kubernetesTagsToStrings } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
@@ -94,7 +90,7 @@ const { HeadCells, BodyCells } = useKubernetesClusterColumns({
           to: getKubernetesClusterRoute(cluster.id),
           icon: icon('object:cluster'),
         }),
-      status: r => r(clusterReadyStatus(cluster)),
+      status: r => r(clusterStatus(cluster)),
       version: r => r(clusterVersion(cluster)),
       controlPlaneNodes: r => r(formatNodesCount(cluster.control_plane_status)),
       workerNodes: r => r(formatNodesCount(cluster.worker_status)),

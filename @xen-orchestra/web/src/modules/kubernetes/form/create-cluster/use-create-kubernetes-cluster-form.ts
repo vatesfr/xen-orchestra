@@ -6,7 +6,7 @@ import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const DESCRIPTION_MAX_LENGTH = 4000
+export const DESCRIPTION_MAX_LENGTH = 4000
 
 /** Temporary default until the create-cluster form exposes a version field. */
 export const KUBERNETES_CLUSTER_CREATE_KUBERNETES_VERSION = '1.37.1'

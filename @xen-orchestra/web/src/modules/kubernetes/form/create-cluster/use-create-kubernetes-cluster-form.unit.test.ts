@@ -1,5 +1,6 @@
 import {
   buildKubernetesClusterCreatePayload,
+  DESCRIPTION_MAX_LENGTH,
   KUBERNETES_CLUSTER_CREATE_KUBERNETES_VERSION,
   useCreateKubernetesClusterForm,
 } from '@/modules/kubernetes/form/create-cluster/use-create-kubernetes-cluster-form.ts'
@@ -133,11 +134,11 @@ describe('validateAndBuildPayload', () => {
     await expect(result.validateAndBuildPayload()).resolves.toBeUndefined()
   })
 
-  it('builds no payload when description exceeds 4000 characters', async () => {
+  it('builds no payload when description exceeds the max length', async () => {
     const result = mountCreateKubernetesClusterForm()
 
     fillValidForm(result)
-    updateField(result.descriptionInputBindings, 'a'.repeat(4001))
+    updateField(result.descriptionInputBindings, 'a'.repeat(DESCRIPTION_MAX_LENGTH + 1))
 
     await expect(result.validateAndBuildPayload()).resolves.toBeUndefined()
   })
