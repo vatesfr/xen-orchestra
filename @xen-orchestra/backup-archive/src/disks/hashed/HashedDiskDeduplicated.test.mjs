@@ -23,6 +23,7 @@ import {
   HashedDiskDeduplicated,
   HBD_HEADER_SIZE,
   HBD_MAGIC,
+  HbdFileError,
   parseBlockHeader,
   scanBlockStore,
   sha256hex,
@@ -436,6 +437,25 @@ describe('HashedDiskDeduplicated', () => {
     await handler.writeFile(blockFile, buffer, { flags: 'w' })
 
     await assert.rejects(() => disk.readBlock(0), /block corruption on read/)
+  })
+
+  test('a corrupted block error names the block file and the disk', async () => {
+    const disk = await createDisk()
+    await disk.writeBlock({ index: 3, data: block(0xaa) })
+
+    const blockPath = disk.getBlockPath(3)
+    const buffer = await handler.readFile(blockPath)
+    buffer[HBD_HEADER_SIZE + 1] ^= 0xff
+    await handler.writeFile(blockPath, buffer, { flags: 'w' })
+
+    await assert.rejects(
+      () => disk.readBlock(3),
+      error =>
+        error instanceof HbdFileError &&
+        error.path === blockPath &&
+        error.message.includes(`at index 3 of ${disk.getPath()}`) &&
+        /block corruption on read/.test(error.cause.message)
+    )
   })
 
   test('listAssociatedFiles claims the data dir as a whole, not one entry per block', async () => {
