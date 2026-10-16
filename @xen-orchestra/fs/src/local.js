@@ -4,7 +4,7 @@ import fs from 'fs-extra'
 import lockfile from 'proper-lockfile'
 import { createLogger } from '@xen-orchestra/log'
 import { execFile } from 'node:child_process'
-import { fromEvent, retry } from 'promise-toolbox'
+import { fromEvent, retry, TimeoutError } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
 
@@ -88,6 +88,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return 'file'
   }
 
+  get _rejectWhileTimedOutOperationPending() {
+    return true
+  }
+
   getRealPath() {
     return this._remote.path
   }
@@ -98,6 +102,11 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   async _closeFile(fd) {
     return this.#addSyncStackTrace(fs.close, fd)
+  }
+
+  _conditionRetry(error) {
+    // the timed out call is still pending: retrying would start another one on the unresponsive remote
+    return !(error instanceof TimeoutError) && super._conditionRetry(error)
   }
 
   async _copy(oldPath, newPath) {
