@@ -6,7 +6,12 @@ import { type FormValidationConfig, mergeValidationConfigs, required, requiredIf
 import { useValidatedForm } from '@core/packages/validated-form'
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { BACKUP_REPOSITORY_TYPE, type BackupRepositoryType, type BackupRepositoryUrlOptions } from 'xo-remote-parser'
+import {
+  BACKUP_REPOSITORY_TYPE,
+  type BackupRepositoryType,
+  type BackupRepositoryUrlOptions,
+  type DiskFormatType,
+} from 'xo-remote-parser'
 
 export type BackupRepositoryGeneralFormData = {
   name: string
@@ -28,6 +33,12 @@ export const ENCRYPTION_KEY_REGEX = new RegExp(`^[0-9a-f]{${ENCRYPTION_KEY_LENGT
 const BACKUP_FORMAT_DOC_URL = 'https://docs.xen-orchestra.com/xo5/incremental_backups'
 
 const BLOCK_ONLY_TYPES: BackupRepositoryType[] = ['azure', 'azurite', 's3']
+
+const DISK_FORMAT_BY_BACKUP_FORMAT: Record<XoBackupFormat, DiskFormatType> = {
+  block: 'vhdDirectory',
+  vhd: 'vhd',
+  hbd: 'hbd',
+}
 
 export type BackupRepositoryGeneralForm = ReturnType<typeof useBackupRepositoryGeneralForm>
 
@@ -97,6 +108,7 @@ export function useBackupRepositoryGeneralForm(
   const backupFormatLabels = computed<Record<XoBackupFormat, string>>(() => ({
     block: t('block-based'),
     vhd: t('vhd-file'),
+    hbd: t('hbd'),
   }))
 
   function getBackupFormatLabel(format: XoBackupFormat | undefined): string | undefined {
@@ -104,8 +116,9 @@ export function useBackupRepositoryGeneralForm(
   }
 
   const backupFormatOptions = computed(() => [
-    { id: 'block', label: backupFormatLabels.value.block, value: 'block', hint: t('block-based-hint') },
+    { id: 'block', label: backupFormatLabels.value.block, value: 'block', hint: t('block-and-hbd-based-hint') },
     { id: 'vhd', label: backupFormatLabels.value.vhd, value: 'vhd', hint: t('vhd-file-hint') },
+    { id: 'hbd', label: backupFormatLabels.value.hbd, value: 'hbd', hint: t('block-and-hbd-based-hint') },
   ])
 
   const { id: backupFormatSelectId } = useFormSelect('backupFormat', backupFormatOptions, {
@@ -146,7 +159,7 @@ export function useBackupRepositoryGeneralForm(
   function buildUrlOptions(): BackupRepositoryUrlOptions {
     return {
       ...(formData.encrypted && { encryptionKey: formData.encryptionKey }),
-      ...(formData.backupFormat === 'block' && { useVhdDirectory: true }),
+      ...(formData.backupFormat !== undefined && { diskFormat: DISK_FORMAT_BY_BACKUP_FORMAT[formData.backupFormat] }),
     }
   }
 

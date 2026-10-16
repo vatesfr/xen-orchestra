@@ -6,7 +6,7 @@
 
     <template #content>
       <UiStepper :steps :current-step="currentStepIndex">
-        <BackupRepositoryGeneralStep v-if="currentStep === 'general'" :bindings="general.bindings" />
+        <BackupRepositoryGeneralStep v-if="currentStep === 'general'" :bindings="general.bindings" show-options />
         <BackupRepositoryDetailsStep v-else-if="currentStep === 'details'" :type="general.formData.type" :details />
         <NewBackupRepositoryReviewStep
           v-else

@@ -1,3 +1,4 @@
+import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
 import { useBackupRepositoryFormBase } from '@/modules/backup-repository/form/use-backup-repository-form-base.ts'
 import type { BackupRepositoryGeneralFormData } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import type { EditBackupRepositoryPayload } from '@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'
@@ -5,7 +6,13 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import { getBackupRepositoryDetailsInitialData } from '@/modules/backup-repository/utils/xo-backup-repository-details-initial-data.util.ts'
 import { isBackupRepositoryEncrypted } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { reactive } from 'vue'
-import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
+import { type DiskFormatType, parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
+
+const BACKUP_FORMAT_BY_DISK_FORMAT: Record<DiskFormatType, XoBackupFormat> = {
+  vhd: 'vhd',
+  vhdDirectory: 'block',
+  hbd: 'hbd',
+}
 
 export function useEditBackupRepositoryForm(br: FrontXoBackupRepository) {
   const parsedUrl = parseBackupRepositoryUrl(br.url)
@@ -19,7 +26,7 @@ export function useEditBackupRepositoryForm(br: FrontXoBackupRepository) {
     reactive<BackupRepositoryGeneralFormData>({
       name: br.name,
       type: parsedUrl.type,
-      backupFormat: parsedUrl.useVhdDirectory ? 'block' : 'vhd',
+      backupFormat: parsedUrl.diskFormat !== undefined ? BACKUP_FORMAT_BY_DISK_FORMAT[parsedUrl.diskFormat] : undefined,
       proxy: br.proxy,
       encrypted: isBackupRepositoryEncrypted(parsedUrl),
       encryptionKey: parsedUrl.encryptionKey ?? '',

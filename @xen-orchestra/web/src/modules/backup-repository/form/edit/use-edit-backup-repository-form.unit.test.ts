@@ -60,7 +60,7 @@ describe('formData', () => {
 })
 
 describe('validateAndBuildPayload', () => {
-  it('keeps the encryption key and the VHD directories of an encrypted repository left as is', async () => {
+  it('keeps the encryption key and the VHD directories disk format of an encrypted repository left as is', async () => {
     const payload = await mountEditForm().validateAndBuildPayload()
 
     expect(payload).toMatchObject({ name: 'Nightly backups', options: 'vers=3', proxy: PROXY_ID })
@@ -69,8 +69,8 @@ describe('validateAndBuildPayload', () => {
       host: '192.168.1.10',
       port: '2049',
       path: '/exports/backups',
-      useVhdDirectory: true,
       encryptionKey: OBFUSCATED_VALUE,
+      diskFormat: 'vhdDirectory',
     })
   })
 
@@ -101,14 +101,26 @@ describe('validateAndBuildPayload', () => {
   })
 
   it.each([
-    'file:///var/backups',
-    'nfs://192.168.1.10:2049:/exports/backups?useVhdDirectory=true',
-    'smb://admin:secret@CORP\\\\192.168.1.10\\share\0backups\\xo',
-    's3://AKID:secret@s3.us-east-2.amazonaws.com/bucket/backups/xo?useVhdDirectory=true#us-east-2',
-    'azure://account:key@account.blob.core.windows.net/container/backups?useVhdDirectory=true',
-    'azurite+http://devstoreaccount1:key@127.0.0.1:10000/container?useVhdDirectory=true',
+    'file:///var/backups?diskFormat=%22vhd%22',
+    'nfs://192.168.1.10:2049:/exports/backups?diskFormat=%22vhdDirectory%22',
+    'smb://admin:secret@CORP\\\\192.168.1.10\\share\0backups\\xo?diskFormat=%22vhd%22',
+    's3://AKID:secret@s3.us-east-2.amazonaws.com/bucket/backups/xo?diskFormat=%22vhdDirectory%22#us-east-2',
+    'azure://account:key@account.blob.core.windows.net/container/backups?diskFormat=%22vhdDirectory%22',
+    'azurite+http://devstoreaccount1:key@127.0.0.1:10000/container?diskFormat=%22vhdDirectory%22',
   ])('rebuilds the same url when nothing is edited: %s', async url => {
     const payload = await mountEditForm(createBr({ url })).validateAndBuildPayload()
+
+    expect(payload?.url).toBe(url)
+  })
+
+  it.each([
+    ['file:///var/backups', 'file:///var/backups?diskFormat=%22vhd%22'],
+    [
+      'nfs://192.168.1.10:2049:/exports/backups?useVhdDirectory=true',
+      'nfs://192.168.1.10:2049:/exports/backups?diskFormat=%22vhdDirectory%22',
+    ],
+  ])('rewrites the legacy url %s with its disk format', async (legacyUrl, url) => {
+    const payload = await mountEditForm(createBr({ url: legacyUrl })).validateAndBuildPayload()
 
     expect(payload?.url).toBe(url)
   })

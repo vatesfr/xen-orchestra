@@ -60,7 +60,7 @@ export const useXoBackupRepositoryEditJob = defineJob('br.edit', [xoBackupReposi
         throw new JobError(t('job:backup-repository-edit:encryption-key-locked'))
       }
 
-      if (isBackupRepositoryEncrypted(brInfo) && brInfo.useVhdDirectory !== true) {
+      if (isBackupRepositoryEncrypted(brInfo) && brInfo.diskFormat !== 'vhdDirectory') {
         throw new JobError(t('job:backup-repository-edit:encryption-requires-block'))
       }
     },

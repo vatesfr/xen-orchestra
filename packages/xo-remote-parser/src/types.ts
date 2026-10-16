@@ -9,6 +9,14 @@ export const BACKUP_REPOSITORY_TYPE = {
 
 export type BackupRepositoryType = (typeof BACKUP_REPOSITORY_TYPE)[keyof typeof BACKUP_REPOSITORY_TYPE]
 
+export const DISK_FORMAT = {
+  VHD: 'vhd',
+  VHD_DIRECTORY: 'vhdDirectory',
+  HBD: 'hbd',
+} as const
+
+export type DiskFormatType = (typeof DISK_FORMAT)[keyof typeof DISK_FORMAT]
+
 export type BackupRepositoryProtocol = 'http' | 'https'
 
 // Serialized options in the URL query string
@@ -17,6 +25,7 @@ export type BackupRepositoryUrlOptions = {
   encryptionKey?: string
   useVhdDirectory?: boolean
   compressionType?: string
+  diskFormat?: DiskFormatType
   [key: string]: unknown
 }
 

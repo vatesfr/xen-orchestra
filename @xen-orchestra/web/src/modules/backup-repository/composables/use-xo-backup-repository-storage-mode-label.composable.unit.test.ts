@@ -27,6 +27,30 @@ describe('useXoBackupRepositoryStorageModeLabel', () => {
     expect(result.storageModeLabel).toBe(result.t('file-based'))
   })
 
+  it('labels a repository with the VHD directory disk format as block based', () => {
+    const result = mountStorageModeLabel(
+      parseBackupRepositoryUrl('nfs://192.168.1.10:/exports/backups?diskFormat=%22vhdDirectory%22')
+    )
+
+    expect(result.storageModeLabel).toBe(result.t('block-based'))
+  })
+
+  it('labels a repository with the VHD disk format as file based', () => {
+    const result = mountStorageModeLabel(
+      parseBackupRepositoryUrl('nfs://192.168.1.10:/exports/backups?diskFormat=%22vhd%22')
+    )
+
+    expect(result.storageModeLabel).toBe(result.t('file-based'))
+  })
+
+  it('labels a repository with the HBD disk format as deduplicated block based', () => {
+    const result = mountStorageModeLabel(
+      parseBackupRepositoryUrl('nfs://192.168.1.10:/exports/backups?diskFormat=%22hbd%22')
+    )
+
+    expect(result.storageModeLabel).toBe(result.t('hbd'))
+  })
+
   it('falls back to unknown when the type could not be parsed', () => {
     const result = mountStorageModeLabel(parseBackupRepositoryUrl('ftp://192.168.1.10/backups'))
 

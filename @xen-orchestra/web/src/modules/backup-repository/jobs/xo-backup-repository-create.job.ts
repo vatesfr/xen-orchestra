@@ -45,7 +45,7 @@ export const useXoBackupRepositoryCreateJob = defineJob('br.create', [payloadsAr
 
         const brInfo = parseBackupRepositoryUrl(payload.url)
 
-        if (brInfo.encryptionKey !== undefined && brInfo.useVhdDirectory !== true) {
+        if (brInfo.encryptionKey !== undefined && brInfo.diskFormat !== 'vhdDirectory') {
           throw new JobError(t('job:backup-repository-create:encryption-requires-block'))
         }
       })
