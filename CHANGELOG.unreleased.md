@@ -24,6 +24,7 @@
 - [REST API] Create, update and delete backup jobs and schedules (admin only): `POST /rest/v0/backup-jobs`, `PATCH|DELETE /rest/v0/backup-jobs/:id`, `POST /rest/v0/schedules`, `PATCH|DELETE /rest/v0/schedules/:id` (PR [#10595](https://github.com/vatesfr/xen-orchestra/pull/10595))
 - [Web-Core/UiDropdownButton] Update dropdown buttons design and add a smaller size (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
 - [REST API] `PUT /rest/v0/acl-roles/:id/users/:userId` refuses to attach a role to an admin, and `GET /rest/v0/users/:id/acl-privileges` returns no privileges for an admin (PR [#10694](https://github.com/vatesfr/xen-orchestra/pull/10694))
+- [REST API/V2V] `POST /rest/v0/v2v/actions/inventory` reads the inventory of a vCenter or ESXi (datacenters, clusters, hosts, datastores, networks and VMs with their disks and network cards), and `POST /rest/v0/v2v/actions/start` imports a list of VMs into a pool, resuming partial imports with a delta. Restricted to administrators, credentials are never stored
 
 ### Bug fixes
 
@@ -52,6 +53,7 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/qa-test patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
