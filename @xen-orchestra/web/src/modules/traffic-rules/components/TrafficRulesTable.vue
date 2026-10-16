@@ -25,7 +25,7 @@
         </template>
       </I18nT>
     </UiAlert>
-    <VtsQueryBuilder v-model="filter" :schema />
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
