@@ -10,10 +10,16 @@ import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
 import { importDisksFromDatastore, importStream } from './importDisksfromDatastore.mjs'
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
+import { assertKnownDevices } from './_deviceMapping.mjs'
 import { finished, PassThrough } from 'node:stream'
 import { Ref } from 'xen-api'
 
 const { warn } = createLogger('xo:mixins:vmware')
+
+// written with `sourceVmId` on the imported VM: the id of a VM is only meaningful on its platform.
+// The imports made before this key existed are all from VMware
+const SOURCE_PLATFORM = 'vmware'
+const isFromThisPlatform = otherConfig => (otherConfig.sourcePlatform ?? SOURCE_PLATFORM) === SOURCE_PLATFORM
 
 export default class MigrateVm {
   constructor(app) {
@@ -50,11 +56,21 @@ export default class MigrateVm {
     }
   }
 
+  async getEsxiInventory({ host, user, password, sslVerify }) {
+    const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
+    try {
+      return await esxi.getInventory()
+    } finally {
+      await this.#closeEsxi(esxi, host)
+    }
+  }
+
   async #findBaseVM(xapi, metadata) {
     const { vmId, snapshots } = metadata
     const candidates = Object.values(xapi.objects.indexes.type.VM).filter(
       object =>
         object.is_a_snapshot === false &&
+        isFromThisPlatform(object.other_config) &&
         object.other_config.sourceVmId === vmId &&
         object.other_config.sourceSnapshotId === snapshots?.current &&
         object.blocked_operations?.start === 'Esxi migration in progress...' &&
@@ -89,7 +105,7 @@ export default class MigrateVm {
     return xapiVm
   }
 
-  async #createVmAndNetworks($defer, { metadata, networkId, template, xapi }) {
+  async #createVmAndNetworks($defer, { metadata, networkId, networkIdsByNic, template, xapi }) {
     const { cdrom, guestId, firmware, memory, name_label, networks, nCpus } = metadata
 
     const existingVm = await this.#findBaseVM(xapi, metadata)
@@ -132,7 +148,7 @@ export default class MigrateVm {
           const ref = await xapi.VIF_create(
             {
               device: vifDevices[i],
-              network: this._app.getXapiObject(networkId).$ref,
+              network: this._app.getXapiObject(networkIdsByNic?.[network.key] ?? networkId).$ref,
               VM: vm.$ref,
             },
             {
@@ -152,7 +168,7 @@ export default class MigrateVm {
     })
   }
 
-  async #importDisks($defer, { esxi, metadata, sr, stopSource, vm, vmId }) {
+  async #importDisks($defer, { esxi, metadata, sr, srsByNode, stopSource, vm, vmId }) {
     const { disks, powerState, snapshots } = metadata
 
     const isRunning = powerState !== 'poweredOff'
@@ -190,10 +206,12 @@ export default class MigrateVm {
       chainsByNodes: coldChainsByNodes,
       esxi,
       sr,
+      srsByNode,
       vm,
       vmId,
     })
     await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', {
+      sourcePlatform: SOURCE_PLATFORM,
       sourceVmId: vmId,
       sourceSnapshotId: snapshots?.current,
     })
@@ -205,10 +223,15 @@ export default class MigrateVm {
           chainsByNodes,
           esxi,
           sr,
+          srsByNode,
           vm,
           vmId,
         })
-        await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', { sourceVmId: vmId, sourceSnapshotId: null })
+        await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', {
+          sourcePlatform: SOURCE_PLATFORM,
+          sourceVmId: vmId,
+          sourceSnapshotId: null,
+        })
         await vm.$snapshot({ name_label: 'complete import from V2V' })
       } else {
         await Task.info(`VM was running, no stop source. We'll keep the partial import.`)
@@ -218,7 +241,20 @@ export default class MigrateVm {
   @decorateWith(deferrable)
   async migrationfromEsxi(
     $defer,
-    { host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, stopSource, template: templateId }
+    {
+      host,
+      user,
+      password,
+      sslVerify,
+      sr: srId,
+      network: networkId,
+      // optional overrides of `sr` by disk node (e.g. `scsi0:0`) and of `network` by NIC device key
+      disks: srIdsByNode = {},
+      nics: networkIdsByNic = {},
+      vm: vmId,
+      stopSource,
+      template: templateId,
+    }
   ) {
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
@@ -231,6 +267,13 @@ export default class MigrateVm {
     let metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, async () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
+    // before anything is done on either side: a mapping which cannot be applied would import the
+    // device to the default destination
+    assertKnownDevices(metadata, { srIdsByNode, networkIdsByNic, vmId })
+    const srsByNode = {}
+    for (const [node, diskSrId] of Object.entries(srIdsByNode)) {
+      srsByNode[node] = app.getXapiObject(diskSrId, 'SR')
+    }
 
     if (!metadata.snapshots || !metadata.snapshots.current) {
       if (metadata.powerState !== 'poweredOff') {
@@ -245,10 +288,10 @@ export default class MigrateVm {
       }
     }
     Task.abortSignal?.throwIfAborted()
-    const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, template, xapi })
+    const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, networkIdsByNic, template, xapi })
     Task.abortSignal?.throwIfAborted()
     await xapi.barrier()
-    await this.#importDisks($defer, { esxi, metadata, stopSource, vm, sr, vmId })
+    await this.#importDisks($defer, { esxi, metadata, stopSource, vm, sr, srsByNode, vmId })
     Task.abortSignal?.throwIfAborted()
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label

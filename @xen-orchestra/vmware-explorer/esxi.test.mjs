@@ -119,6 +119,82 @@ describe('search', function () {
   })
 })
 
+describe('getInventory', function () {
+  it('reads every kind of object once, with the properties it needs only', async function () {
+    const typesByPage = {
+      Datacenter: DATACENTERS,
+      HostSystem: [
+        {
+          obj: moRef('HostSystem', 'host-10'),
+          propSet: [
+            { name: 'name', val: { $value: 'esx1' } },
+            { name: 'parent', val: moRef('ClusterComputeResource', 'domain-c7') },
+          ],
+        },
+      ],
+      Network: [{ obj: moRef('DistributedVirtualPortgroup', 'dvportgroup-5'), propSet: { name: 'name', val: 'prod' } }],
+      DistributedVirtualPortgroup: [
+        {
+          obj: moRef('DistributedVirtualPortgroup', 'dvportgroup-5'),
+          propSet: [
+            { name: 'key', val: 'dvpg-key' },
+            { name: 'config.defaultPortConfig', val: { attributes: {}, vlan: { vlanId: '12' } } },
+          ],
+        },
+      ],
+      VirtualMachine: [
+        {
+          obj: moRef('VirtualMachine', 'vm-1'),
+          propSet: [
+            { name: 'config.name', val: 'web' },
+            { name: 'config.firmware', val: 'efi' },
+            { name: 'config.hardware.memoryMB', val: '1024' },
+            { name: 'runtime.powerState', val: 'poweredOn' },
+            { name: 'runtime.host', val: moRef('HostSystem', 'host-10') },
+            {
+              name: 'config.hardware.device',
+              val: {
+                attributes: { 'xsi:type': 'ArrayOfVirtualDevice' },
+                VirtualDevice: {
+                  attributes: { 'xsi:type': 'VirtualVmxnet3' },
+                  key: '4000',
+                  macAddress: '00:50:56:aa:bb:cc',
+                  backing: { port: { portgroupKey: 'dvpg-key' } },
+                },
+              },
+            },
+          ],
+        },
+      ],
+    }
+    const { esxi, vimClient } = await connectedEsxi({
+      responses: { RetrievePropertiesEx: ({ specSet }) => page(typesByPage[specSet[0].propSet[0].type] ?? []) },
+    })
+    vimClient.serviceContent.about = { name: 'VMware vCenter Server', apiType: 'VirtualCenter', instanceUuid: 'vc-1' }
+
+    const inventory = await esxi.getInventory()
+
+    const requested = vimClient.callsTo('RetrievePropertiesEx').map(({ args }) => args.specSet[0].propSet[0])
+    const vmSpec = requested.find(({ type }) => type === 'VirtualMachine')
+    assert.ok(!vmSpec.pathSet.includes('config'), 'the whole config is never requested')
+    assert.equal(vimClient.callsTo('DestroyView').length, requested.length)
+
+    assert.equal(inventory.productType, 'VirtualCenter')
+    assert.equal(inventory.instanceUuid, 'vc-1')
+    assert.deepEqual(inventory.hosts, [{ id: 'host-10', name: 'esx1', parent: 'domain-c7' }])
+    assert.deepEqual(inventory.networks, [
+      { id: 'dvportgroup-5', name: 'prod', distributed: true, key: 'dvpg-key', vlan: 12 },
+    ])
+    const [vm] = inventory.vms
+    assert.equal(vm.id, 'vm-1')
+    assert.equal(vm.firmware, 'uefi')
+    assert.equal(vm.memory, 1024 * 1024 * 1024)
+    assert.equal(vm.host, 'host-10')
+    assert.equal(vm.nics[0].network, 'dvportgroup-5')
+    assert.deepEqual(vm.disks, [])
+  })
+})
+
 describe('connection', function () {
   it('emits ready once the datacenters are known, without one request per datastore', async function () {
     const vimClient = new FakeVimClient()
@@ -1070,7 +1146,30 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
     guestFullName: 'Ubuntu Linux (64-bit)',
     firmware: 'efi',
     files: { vmPathName },
-    hardware: { memoryMB: '2048', numCPU: '2' },
+    hardware: {
+      memoryMB: '2048',
+      numCPU: '2',
+      device: {
+        attributes: { 'xsi:type': 'ArrayOfVirtualDevice' },
+        VirtualDevice: [
+          {
+            attributes: { 'xsi:type': 'VirtualVmxnet3' },
+            key: '4000',
+            deviceInfo: { label: 'Network adapter 1' },
+            macAddress: '00:0c:29:00:00:01',
+            addressType: 'generated',
+            backing: { network: moRef('Network', 'network-13') },
+          },
+          {
+            attributes: { 'xsi:type': 'VirtualE1000e' },
+            key: '4001',
+            deviceInfo: { label: 'Network adapter 2' },
+            macAddress: '00:50:56:00:00:02',
+            addressType: 'manual',
+          },
+        ],
+      },
+    },
   })
 
   const RUNTIME = { attributes: { 'xsi:type': 'VirtualMachineRuntimeInfo' }, powerState: 'poweredOn' }
@@ -1146,7 +1245,23 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
     assert.equal(metadata.memory, 2048 * 1024 * 1024)
     assert.equal(metadata.nCpus, 2)
     assert.equal(metadata.cdrom, true)
-    assert.deepEqual(metadata.networks, [{ label: 'VM Network', macAddress: '00:0c:29:00:00:01', isGenerated: true }])
+    assert.deepEqual(metadata.networks, [
+      {
+        key: '4000',
+        label: 'Network adapter 1',
+        macAddress: '00:0c:29:00:00:01',
+        isGenerated: true,
+        network: 'network-13',
+      },
+      // a MAC set by hand is not in the vmx as a generated one: it used to be lost
+      {
+        key: '4001',
+        label: 'Network adapter 2',
+        macAddress: '00:50:56:00:00:02',
+        isGenerated: false,
+        network: undefined,
+      },
+    ])
   })
 
   it('treats a missing vmsd as a VM without snapshot', async function () {

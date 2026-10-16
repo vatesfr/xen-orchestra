@@ -6,6 +6,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import { Agent } from 'undici'
 
 import { parseDatastorePath, resolveDiskLocation } from './_paths.mjs'
+import { flattenSnapshots, parseDevices, parseVlan, refOf, refsOf, toNumber } from './_inventory.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
 import { formatVecturaArgs, VECTURA_BIN } from './_vectura.mjs'
 import { COWD_HEADER_LENGTH, grainDirectoryToDataMap, parseCowdHeader } from './parsers/cowd.mjs'
@@ -600,6 +601,116 @@ export default class Esxi extends EventEmitter {
     }
   }
 
+  /**
+   * Everything needed to choose what to migrate and where: the whole inventory, read once.
+   *
+   * Only the properties used are requested: `config` as a whole is large, and read for every VM.
+   * The objects reference each other through their managed object references.
+   *
+   * @returns {Promise<object>}
+   */
+  async getInventory() {
+    await this.#connected
+    const [datacenters, clusters, hosts, datastores, networks, portgroups, vms] = await Promise.all([
+      this.search('Datacenter', ['name', 'datastore', 'network']),
+      this.search('ClusterComputeResource', ['name', 'parent', 'host']),
+      this.search('HostSystem', ['name', 'parent']),
+      this.search('Datastore', ['summary']),
+      // the distributed port groups are networks too, with more properties of their own below
+      this.search('Network', ['name']),
+      this.search('DistributedVirtualPortgroup', ['name', 'key', 'config.defaultPortConfig']),
+      this.search('VirtualMachine', [
+        'config.name',
+        'config.annotation',
+        'config.instanceUuid',
+        'config.firmware',
+        'config.bootOptions.efiSecureBootEnabled',
+        'config.guestId',
+        'config.guestFullName',
+        'config.template',
+        'config.hardware.numCPU',
+        'config.hardware.memoryMB',
+        'config.hardware.device',
+        'runtime.powerState',
+        'runtime.host',
+        'datastore',
+        'network',
+        'snapshot',
+      ]),
+    ])
+
+    const portgroupsByKey = {}
+    for (const [id, { key }] of Object.entries(portgroups)) {
+      portgroupsByKey[key] = id
+    }
+
+    // AboutInfo: `instanceUuid` is only set by a vCenter, `apiType` is `VirtualCenter` or `HostAgent`
+    const about = this.#vimClient.serviceContent?.about ?? {}
+
+    return {
+      product: about.name,
+      productType: about.apiType,
+      version: about.version,
+      build: about.build,
+      instanceUuid: about.instanceUuid,
+      datacenters: Object.entries(datacenters).map(([id, { name, datastore, network }]) => ({
+        id,
+        name,
+        datastores: refsOf(datastore),
+        networks: refsOf(network),
+      })),
+      clusters: Object.entries(clusters).map(([id, { name, parent, host }]) => ({
+        id,
+        name,
+        parent: refOf(parent),
+        hosts: refsOf(host),
+      })),
+      hosts: Object.entries(hosts).map(([id, { name, parent }]) => ({ id, name, parent: refOf(parent) })),
+      datastores: Object.entries(datastores).map(([id, { summary }]) => ({
+        id,
+        name: summary?.name,
+        type: summary?.type,
+        url: summary?.url,
+        capacity: toNumber(summary?.capacity),
+        freeSpace: toNumber(summary?.freeSpace),
+        accessible: isTrue(summary?.accessible),
+      })),
+      networks: Object.entries(networks).map(([id, { name }]) => {
+        const portgroup = portgroups[id]
+        return portgroup === undefined
+          ? { id, name, distributed: false }
+          : { id, name, distributed: true, key: portgroup.key, vlan: parseVlan(portgroup['config.defaultPortConfig']) }
+      }),
+      vms: Object.entries(vms).map(([id, properties]) => {
+        const { disks, nics } = parseDevices(properties['config.hardware.device'], portgroupsByKey)
+        const snapshot = properties.snapshot
+        const firmware = properties['config.firmware']
+        const memoryMb = toNumber(properties['config.hardware.memoryMB'])
+        return {
+          id,
+          name: properties['config.name'],
+          annotation: properties['config.annotation'],
+          instanceUuid: properties['config.instanceUuid'],
+          firmware: firmware === 'efi' ? 'uefi' : firmware,
+          secureBoot: isTrue(properties['config.bootOptions.efiSecureBootEnabled']),
+          guestId: properties['config.guestId'],
+          guestFullName: properties['config.guestFullName'],
+          isTemplate: isTrue(properties['config.template']),
+          cpus: toNumber(properties['config.hardware.numCPU']),
+          memory: memoryMb === undefined ? undefined : memoryMb * 1024 * 1024,
+          powerState: properties['runtime.powerState'],
+          host: refOf(properties['runtime.host']),
+          datastores: refsOf(properties.datastore),
+          networks: refsOf(properties.network),
+          currentSnapshot: refOf(snapshot?.currentSnapshot),
+          snapshots: flattenSnapshots(snapshot?.rootSnapshotList),
+          disks,
+          nics,
+        }
+      }),
+    }
+  }
+
   async getAllVmMetadata() {
     const datas = await this.search('VirtualMachine', ['config', 'storage', 'runtime', 'layoutEx'])
 
@@ -688,45 +799,46 @@ export default class Esxi extends EventEmitter {
     })
 
     const diskReferences = []
-    const networks = []
     let cdrom = false
 
     for (const key of Object.keys(vmx)) {
-      const channelMatches = key.match(/^(scsi|ide|ethernet|sata)[0-9]+$/)
+      const channelMatches = key.match(/^(scsi|ide|sata)[0-9]+$/)
       if (channelMatches === null) {
         continue
       }
       const channelType = channelMatches[1]
-      if (channelType === 'ide' || channelType === 'scsi' || channelType === 'sata' /* cdrom */) {
-        const diskChannel = vmx[key]
-        // the indexes of the channel are its own: iterating the compacted values used to label a
-        // channel holding only `scsi0:1` as `scsi0:0`, and `node` is the disk identity used to
-        // build the chains and to order the VBDs
-        for (const [diskIndex, disk] of Object.entries(diskChannel)) {
-          if (typeof disk !== 'object' || disk === null) {
-            continue
-          }
-          if (disk.deviceType?.match(/cdrom/i)) {
-            cdrom = true
-            continue
-          }
-          // can be something other than a disk, like a controller card
-          if (channelType === 'scsi' && disk.deviceType !== 'scsi-hardDisk') {
-            continue
-          }
-
-          diskReferences.push({ fileName: disk.fileName, node: `${key}:${diskIndex}` })
+      const diskChannel = vmx[key]
+      // the indexes of the channel are its own: iterating the compacted values used to label a
+      // channel holding only `scsi0:1` as `scsi0:0`, and `node` is the disk identity used to
+      // build the chains and to order the VBDs
+      for (const [diskIndex, disk] of Object.entries(diskChannel)) {
+        if (typeof disk !== 'object' || disk === null) {
+          continue
         }
-      } else if (channelType === 'ethernet') {
-        const ethernet = vmx[key]
+        if (disk.deviceType?.match(/cdrom/i)) {
+          cdrom = true
+          continue
+        }
+        // can be something other than a disk, like a controller card
+        if (channelType === 'scsi' && disk.deviceType !== 'scsi-hardDisk') {
+          continue
+        }
 
-        networks.push({
-          label: ethernet.networkName,
-          macAddress: ethernet.generatedAddress,
-          isGenerated: ethernet.addressType === 'generated',
-        })
+        diskReferences.push({ fileName: disk.fileName, node: `${key}:${diskIndex}` })
       }
     }
+
+    // the cards are read from the devices and not from the vmx: they carry the key the inventory names
+    // them by, the vmx only has the address of a generated MAC, and lists the cards which are not present
+    const networks = parseDevices(config.hardware?.device).nics.map(
+      ({ key, label, macAddress, addressType, network }) => ({
+        key,
+        label,
+        macAddress,
+        isGenerated: addressType === 'generated',
+        network,
+      })
+    )
     const inspect = fileName => this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), fileName, { signal })
 
     // one descriptor to download per disk: read serially, a long chain added a full round trip per
