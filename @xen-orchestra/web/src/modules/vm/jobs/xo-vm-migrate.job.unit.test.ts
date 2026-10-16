@@ -119,6 +119,15 @@ describe('run', () => {
     expect(monitorTaskMock).toHaveBeenCalledWith(TASK_ID)
   })
 
+  it('posts the force flag as is when the migration is forced', async () => {
+    const vm = createVm()
+    const job = mountMigrateJob(vm, { payload: { ...payload, force: true } })
+
+    await job.run()
+
+    expect(fetchPostMock).toHaveBeenCalledWith(`vms/${vm.id}/actions/migrate`, { ...payload, force: true })
+  })
+
   it('rejects when the task fails', async () => {
     const taskError = new Error('VM_INCOMPATIBLE_WITH_THIS_HOST()')
     monitorTaskMock.mockRejectedValue(taskError)
