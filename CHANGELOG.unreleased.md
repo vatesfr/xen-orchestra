@@ -33,6 +33,7 @@
 - [BRs] Add backup repository detail page (PR [#10454](https://github.com/vatesfr/xen-orchestra/pull/10454))
 - [Backup logs] Add backup log list in admin menu (PR [#10572](https://github.com/vatesfr/xen-orchestra/pull/10572))
 - [BRs] Add backup repository edit form (PR [#10478](https://github.com/vatesfr/xen-orchestra/pull/10478))
+- [BRs] Add the deduplicated block based (HBD) backup format to the backup repository forms (PR [#10601](https://github.com/vatesfr/xen-orchestra/pull/10601))
 
 - Host Probe SR REST API Endpoints:
 
@@ -109,6 +110,7 @@
 - @xen-orchestra/xapi minor
 - xen-api minor
 - xo-cli patch
+- xo-remote-parser minor
 - xo-server minor
 - xo-server-load-balancer minor
 - xo-server-sdn-controller patch

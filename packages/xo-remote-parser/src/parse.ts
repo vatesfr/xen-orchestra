@@ -32,11 +32,6 @@ function parseOptions(search: string): BackupRepositoryUrlOptions {
     }
   }
 
-  // Legacy code: older BRs still use the legacy `useVhdDirectory` instead of `diskFormat`, until the backend cleans up the database
-  if (options.diskFormat === undefined) {
-    options.diskFormat = options.useVhdDirectory === true ? 'vhdDirectory' : 'vhd'
-  }
-
   return options as BackupRepositoryUrlOptions
 }
 

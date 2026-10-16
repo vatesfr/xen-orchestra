@@ -1,5 +1,5 @@
 import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
-import type { DiskFormatType } from 'xo-remote-parser'
+import type { DiskFormatType, ParsedBackupRepositoryUrl } from 'xo-remote-parser'
 
 const DISK_FORMAT_BY_BACKUP_FORMAT: Record<XoBackupFormat, DiskFormatType> = {
   block: 'vhdDirectory',
@@ -19,4 +19,8 @@ export function getBackupRepositoryDiskFormat(backupFormat: XoBackupFormat): Dis
 
 export function getBackupRepositoryBackupFormat(diskFormat: DiskFormatType): XoBackupFormat {
   return BACKUP_FORMAT_BY_DISK_FORMAT[diskFormat]
+}
+
+export function getBackupRepositoryUrlDiskFormat(parsedUrl: ParsedBackupRepositoryUrl): DiskFormatType {
+  return parsedUrl.diskFormat ?? (parsedUrl.useVhdDirectory === true ? 'vhdDirectory' : 'vhd')
 }

@@ -3,7 +3,10 @@ import type { BackupRepositoryGeneralFormData } from '@/modules/backup-repositor
 import type { EditBackupRepositoryPayload } from '@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { getBackupRepositoryDetailsInitialData } from '@/modules/backup-repository/utils/xo-backup-repository-details-initial-data.util.ts'
-import { getBackupRepositoryBackupFormat } from '@/modules/backup-repository/utils/xo-backup-repository-disk-format.util.ts'
+import {
+  getBackupRepositoryBackupFormat,
+  getBackupRepositoryUrlDiskFormat,
+} from '@/modules/backup-repository/utils/xo-backup-repository-disk-format.util.ts'
 import { isBackupRepositoryEncrypted } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { reactive } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
@@ -20,8 +23,7 @@ export function useEditBackupRepositoryForm(br: FrontXoBackupRepository) {
     reactive<BackupRepositoryGeneralFormData>({
       name: br.name,
       type: parsedUrl.type,
-      backupFormat:
-        parsedUrl.diskFormat !== undefined ? getBackupRepositoryBackupFormat(parsedUrl.diskFormat) : undefined,
+      backupFormat: getBackupRepositoryBackupFormat(getBackupRepositoryUrlDiskFormat(parsedUrl)),
       proxy: br.proxy,
       encrypted: isBackupRepositoryEncrypted(parsedUrl),
       encryptionKey: parsedUrl.encryptionKey ?? '',
