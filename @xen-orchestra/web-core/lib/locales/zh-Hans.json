@@ -324,7 +324,6 @@
   "descending": "降序",
   "description": "备注说明",
   "destination-sr": "目标SR",
-  "destination-sr-mandatory": "必须指定目标SR。",
   "device": "设备",
   "device-config": "设备配置",
   "dhcp": "自动获取IP",

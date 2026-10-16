@@ -335,7 +335,6 @@
   "descending": "fallande",
   "description": "Beskrivning",
   "destination-sr": "Destinations-SR",
-  "destination-sr-mandatory": "Destinations-SR krävs.",
   "device": "Enhet",
   "device-config": "Enhetskonfiguration",
   "dhcp": "DHCP",
