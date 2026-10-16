@@ -46,6 +46,21 @@ declare module '@xen-orchestra/backup-archive/disks/openDiskChain.mjs' {
   }): Promise<RandomAccessDisk>
 }
 
+declare module '@xen-orchestra/backup-archive/disks/hashed' {
+  import type { RemoteHandler } from '@xen-orchestra/fs'
+
+  export function scanBlockStore(
+    handler: RemoteHandler,
+    opts?: {
+      remove?: boolean
+      verify?: boolean
+      logInfo?: (message: string, data?: object) => void
+      logWarn?: (message: string, data?: object) => void
+      logDebug?: (message: string, data?: object) => void
+    }
+  ): Promise<{ removed: number }>
+}
+
 declare module '@xen-orchestra/backup-archive/disks' {
   import type { RemoteHandler } from '@xen-orchestra/fs'
   import type { RandomAccessDisk } from '@xen-orchestra/disk-transform'

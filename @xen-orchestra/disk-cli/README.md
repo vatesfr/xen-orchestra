@@ -19,10 +19,12 @@ npm install --global @xen-orchestra/disk-cli
 ```
 $ xo-disk-cli --help
 Usage: xo-disk-cli <command> <handler-url> <path> [options]
+       xo-disk-cli scan-store <handler-url> [--remove] [--verify] [--verbose]
 
 Commands:
   info       Show disk info (virtual size, uid, parent uid, block size); --chain shows the full parent chain, --size adds the size on disk
   list       List all disks at a path and display their properties in a table; --size adds the size on disk
+  scan-store Maintenance of the hbd block store: reports the unused blocks, --remove deletes them, --verify rereads every block. Run with no backup job using the remote, after a backup cleanup
   transform  Convert a disk to another format and write to stdout (raw | vhd | qcow2)
 ```
 
@@ -113,6 +115,28 @@ $ xo-disk-cli list file:///mnt/backups /xo-vm-backups/<vm-uuid>/vdis/<vdi-uuid>/
 │ base.vhd     │ xxxxxxxx-...                         │ 1.20 GiB    │ 8.00 GiB     │ no          │ (none)                               │
 │ snapshot.vhd │ yyyyyyyy-...                         │ 128.00 MiB  │ 8.00 GiB     │ yes         │ ↑                                    │
 └──────────────┴──────────────────────────────────────┴─────────────┴──────────────┴─────────────┴──────────────────────────────────────┘
+```
+
+### `scan-store`
+
+Maintenance of the block store (`xo-block-store/`) of a remote holding hbd (deduplicated) disks. Never run by a backup.
+
+```
+xo-disk-cli scan-store <handler-url> [--remove] [--verify] [--verbose]
+```
+
+- reports the store blocks no disk uses any more (link count 1); `--remove` deletes them
+- `--verify` rereads every block still in use and checks it against its hash; a corrupted block is reported, never repaired nor removed
+- `--verbose` prints every unused block
+- run it with no backup job using the remote, after a backup cleanup: a temp file left by an interrupted backup keeps its block in use until the cleanup removes it
+
+```
+$ xo-disk-cli scan-store file:///mnt/backups
+unused store blocks: 12 found (dry run, use --remove to delete them)
+
+$ xo-disk-cli scan-store file:///mnt/backups --remove --verify
+unused store blocks: 12 removed
+corrupted store blocks: 0
 ```
 
 ### `transform`

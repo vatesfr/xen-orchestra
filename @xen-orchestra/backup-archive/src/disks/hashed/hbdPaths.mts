@@ -12,8 +12,6 @@ import crypto from 'node:crypto'
 import { validate as validateUuid } from 'uuid'
 import type { Branded } from '@vates/types'
 import { compareVersions } from 'compare-versions'
-import { createLogger } from '@xen-orchestra/log'
-const { warn } = createLogger('xo:backup-archive:hbd')
 
 export type BlockHash = Branded<'hbd-block-hash'>
 
@@ -188,7 +186,6 @@ export function decodeBlock(buffer: Buffer, expectedHash: BlockHash): { header: 
   if (header.codec === CODEC_RAW) {
     const actualHash = sha256hex(payload)
     if (actualHash !== expectedHash) {
-      warn('block corruption on read', { expected: expectedHash, actual: actualHash })
       throw new Error(`block corruption on read: expected ${expectedHash}, got ${actualHash}`)
     }
   }
