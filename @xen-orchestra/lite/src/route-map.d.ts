@@ -800,6 +800,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/menu-item/ui-menu-item': RouteRecordInfo<
+      '/story/web-core/ui/menu-item/ui-menu-item',
+      '/story/web-core/ui/menu-item/ui-menu-item',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/menu-list/ui-menu-list': RouteRecordInfo<
+      '/story/web-core/ui/menu-list/ui-menu-list',
+      '/story/web-core/ui/menu-list/ui-menu-list',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/modal/ui-modal': RouteRecordInfo<
       '/story/web-core/ui/modal/ui-modal',
       '/story/web-core/ui/modal/ui-modal',
@@ -1768,6 +1782,18 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/logo-text/ui-logo-text.story.vue': {
       routes:
         | '/story/web-core/ui/logo-text/ui-logo-text'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/menu-item/ui-menu-item.story.vue': {
+      routes:
+        | '/story/web-core/ui/menu-item/ui-menu-item'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/menu-list/ui-menu-list.story.vue': {
+      routes:
+        | '/story/web-core/ui/menu-list/ui-menu-list'
       views:
         | never
     }
