@@ -1,9 +1,15 @@
 import { useMapper } from '@core/packages/mapper'
 import { type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { ParsedBackupRepositoryUrl } from 'xo-remote-parser'
+import type { DiskFormatType, ParsedBackupRepositoryUrl } from 'xo-remote-parser'
 
-type BackupRepositoryStorageMode = 'block' | 'file' | 'unknown'
+type BackupRepositoryStorageMode = 'block' | 'file' | 'hbd' | 'unknown'
+
+const STORAGE_MODE_BY_DISK_FORMAT: Record<DiskFormatType, BackupRepositoryStorageMode> = {
+  vhd: 'file',
+  vhdDirectory: 'block',
+  hbd: 'hbd',
+}
 
 export function useXoBackupRepositoryStorageModeLabel(
   rawParsedUrl: MaybeRefOrGetter<ParsedBackupRepositoryUrl | undefined>
@@ -14,15 +20,16 @@ export function useXoBackupRepositoryStorageModeLabel(
     () => {
       const parsedUrl = toValue(rawParsedUrl)
 
-      if (parsedUrl?.type === undefined) {
+      if (parsedUrl?.type === undefined || parsedUrl.diskFormat === undefined) {
         return 'unknown'
       }
 
-      return parsedUrl.useVhdDirectory ? 'block' : 'file'
+      return STORAGE_MODE_BY_DISK_FORMAT[parsedUrl.diskFormat]
     },
     {
       block: t('block-based'),
       file: t('file-based'),
+      hbd: t('hbd'),
       unknown: t('unknown'),
     },
     'unknown'

@@ -188,22 +188,28 @@ describe('validate', () => {
 })
 
 describe('buildUrlOptions', () => {
-  it('is empty for an unencrypted VHD repository', async () => {
+  it('stores the backups in VHD files for the VHD format', async () => {
     const result = await mountGeneralForm({ type: 'nfs', backupFormat: 'vhd' })
 
-    expect(result.buildUrlOptions()).toEqual({})
+    expect(result.buildUrlOptions()).toEqual({ diskFormat: 'vhd' })
   })
 
   it('stores the backups in VHD directories for the block based format', async () => {
     const result = await mountGeneralForm({ type: 'nfs', backupFormat: 'block' })
 
-    expect(result.buildUrlOptions()).toEqual({ useVhdDirectory: true })
+    expect(result.buildUrlOptions()).toEqual({ diskFormat: 'vhdDirectory' })
+  })
+
+  it('stores the backups in HBD for the deduplicated block based format', async () => {
+    const result = await mountGeneralForm({ type: 'nfs', backupFormat: 'hbd' })
+
+    expect(result.buildUrlOptions()).toEqual({ diskFormat: 'hbd' })
   })
 
   it('carries the encryption key of an encrypted repository', async () => {
     const result = await mountGeneralForm({ type: 's3', encrypted: true, encryptionKey: ENCRYPTION_KEY })
 
-    expect(result.buildUrlOptions()).toEqual({ useVhdDirectory: true, encryptionKey: ENCRYPTION_KEY })
+    expect(result.buildUrlOptions()).toEqual({ diskFormat: 'vhdDirectory', encryptionKey: ENCRYPTION_KEY })
   })
 })
 
@@ -244,6 +250,6 @@ describe('edit mode', () => {
   it('keeps the key of an encrypted repository', () => {
     const result = mountEditGeneralForm(ENCRYPTED_NFS_FORM_DATA)
 
-    expect(result.buildUrlOptions()).toEqual({ useVhdDirectory: true, encryptionKey: OBFUSCATED_VALUE })
+    expect(result.buildUrlOptions()).toEqual({ diskFormat: 'vhdDirectory', encryptionKey: OBFUSCATED_VALUE })
   })
 })

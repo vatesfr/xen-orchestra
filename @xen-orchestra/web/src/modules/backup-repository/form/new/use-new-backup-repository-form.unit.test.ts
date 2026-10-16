@@ -226,7 +226,7 @@ describe('validateAndBuildPayload', () => {
 
     expect(await form.validateAndBuildPayload()).toEqual({
       name: 'My repository',
-      url: formatBackupRepositoryUrl({ type: 'file', path: '/var/lib/xoa/backups' }),
+      url: formatBackupRepositoryUrl({ type: 'file', path: '/var/lib/xoa/backups', diskFormat: 'vhd' }),
     })
   })
 
@@ -242,6 +242,7 @@ describe('validateAndBuildPayload', () => {
         host: '192.168.1.10',
         port: NFS_DEFAULT_PORT,
         path: '/exports/backups',
+        diskFormat: 'vhd',
       }),
     })
   })
@@ -265,6 +266,7 @@ describe('validateAndBuildPayload', () => {
         domain: SMB_DEFAULT_DOMAIN,
         username: 'admin',
         password: 'secret',
+        diskFormat: 'vhd',
       }),
     })
   })
@@ -292,7 +294,7 @@ describe('validateAndBuildPayload', () => {
         region: 'us-east-2',
         username: 'access-key',
         password: 'secret-key',
-        useVhdDirectory: true,
+        diskFormat: 'vhdDirectory',
       }),
     })
   })
@@ -316,7 +318,7 @@ describe('validateAndBuildPayload', () => {
         path: 'backups/',
         username: 'account',
         password: 'account-key',
-        useVhdDirectory: true,
+        diskFormat: 'vhdDirectory',
       }),
     })
   })

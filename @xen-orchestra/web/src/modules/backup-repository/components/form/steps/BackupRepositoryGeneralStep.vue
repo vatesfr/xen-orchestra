@@ -28,7 +28,7 @@
       </BackupRepositoryFormRow>
     </div>
 
-    <div class="section">
+    <div v-if="showOptions" class="section">
       <UiTitle>{{ t('options') }}</UiTitle>
 
       <UiAlert accent="info">
@@ -56,6 +56,7 @@ import { useI18n } from 'vue-i18n'
 
 defineProps<{
   bindings: BackupRepositoryGeneralForm['bindings']
+  showOptions?: boolean
 }>()
 
 const { t } = useI18n()
