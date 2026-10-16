@@ -137,6 +137,21 @@ export class RestApiClient {
   }
 
   /**
+   * Builds the error of a failed response, keeping its status and body so callers
+   * can react to a specific status (e.g. 404) and log the reason sent by XO.
+   *
+   * @param {Response} response - Non-ok fetch response
+   * @returns {Promise<Error & {status: number, body: string}>}
+   * @private
+   */
+  static async #httpError(response) {
+    const error = new Error(`HTTP ${response.status}: ${response.statusText}`)
+    error.status = response.status
+    error.body = await response.text().catch(() => '')
+    return error
+  }
+
+  /**
    * Basic GET request method.
    *
    * @param {string} endpoint - API endpoint path
@@ -157,7 +172,7 @@ export class RestApiClient {
         const text = await response.text()
         return text ? JSON.parse(text) : {}
       }
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      throw await RestApiClient.#httpError(response)
     } catch (error) {
       log.warn('GET request failed on ' + endpoint, { error })
       throw error
@@ -190,7 +205,7 @@ export class RestApiClient {
         const text = await response.text()
         return text ? JSON.parse(text) : {}
       }
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      throw await RestApiClient.#httpError(response)
     } catch (error) {
       log.warn(`${method} request failed`, { error })
       throw error
@@ -255,7 +270,7 @@ export class RestApiClient {
         const text = await response.text()
         return text ? JSON.parse(text) : {}
       }
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      throw await RestApiClient.#httpError(response)
     } catch (error) {
       log.warn('DELETE request failed', { error })
       throw error

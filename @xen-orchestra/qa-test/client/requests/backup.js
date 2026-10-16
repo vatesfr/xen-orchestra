@@ -5,82 +5,155 @@ import { AbstractRequest } from './abstract.js'
 const log = createLogger('xo:qa-test:backup')
 
 /**
+ * Converts a caller-friendly `{ [id]: anything }` map to the `{ id }` pattern expected by XO.
+ *
+ * @param {Object} [objectsById]
+ * @returns {Object|undefined} undefined if there is no ID
+ */
+const toIdPattern = objectsById => {
+  const ids = objectsById !== null && typeof objectsById === 'object' ? Object.keys(objectsById) : []
+  return ids.length > 0 ? toSimplePattern(ids) : undefined
+}
+
+/**
  * Specialized request handler for XenOrchestra backup operations.
  *
- * Provides comprehensive backup job management with REST API for read operations
- * and WebSocket for creation/execution operations. Handles job lifecycle,
- * execution monitoring, and log retrieval.
+ * Backup jobs (VM, mirror and metadata) and their schedules are created, updated, deleted
+ * and run through the REST API. Backup archive operations that are not exposed by the
+ * REST API yet still use the WebSocket API.
  *
  * @class BackupRequest
  * @extends AbstractRequest
  */
 export class BackupRequest extends AbstractRequest {
   /**
-   * REST API endpoint for backup jobs
-   * Note: This is primarily used for read operations
+   * REST API endpoint for backup jobs (all types: backup, mirrorBackup, metadataBackup)
    * @type {string}
    */
   endpoint = 'backup-jobs'
 
+  // ===========================================================================
+  // Backup jobs and schedules (REST API)
+  // ===========================================================================
+
   /**
-   * Creates a new backup job in XenOrchestra.
+   * Creates a backup job of any type with `POST /rest/v0/backup-jobs`.
    *
-   * Backup job creation is only available via WebSocket API.
-   * REST API doesn't support backup job creation operations.
+   * `config.schedules` are keyed by temporary IDs, which can be used as keys in
+   * `config.settings`: XO replaces them by the IDs of the created schedules.
    *
-   * @param {Object} config - Complete backup job configuration
+   * @param {'backup'|'mirrorBackup'|'metadataBackup'} type - Backup job type
+   * @param {Object} config - Job properties, in the XO format
    * @returns {Promise<string>} The created backup job ID
-   * @throws {Error} If backup job creation fails or configuration is invalid
    */
-  async createBackupJob(config) {
+  async #createJob(type, config) {
     this._ensureConnected()
 
     if (!config || typeof config !== 'object') {
       throw new Error('Valid backup configuration object is required')
     }
 
-    const convertConfig = cfg => {
-      const { vms, remotes, srs, ...rest } = cfg
-
-      const result = { ...rest }
-
-      const vmIds = vms && typeof vms === 'object' ? Object.keys(vms) : []
-      if (vmIds.length > 0) {
-        result.vms = toSimplePattern(vmIds)
-      }
-
-      const backupRepositoryIds = remotes && typeof remotes === 'object' ? Object.keys(remotes) : []
-      if (backupRepositoryIds.length > 0) {
-        result.remotes = toSimplePattern(backupRepositoryIds)
-      }
-
-      const srIds = srs && typeof srs === 'object' ? Object.keys(srs) : []
-      if (srIds.length > 0) {
-        result.srs = toSimplePattern(srIds)
-      }
-
-      return result
-    }
-
-    const xoConfig = convertConfig({ ...config, mode: config.mode || 'delta' })
-
     try {
-      const result = await this.dispatchClient.xoClient.call('backupNg.createJob', xoConfig)
-      return result
+      const { id } = await this.dispatchClient.restApiClient.post(`/rest/v0/${this.endpoint}`, { ...config, type })
+      return id
     } catch (error) {
-      log.warn('Backup job creation failed', { message: error.message, code: error.code, data: error.data })
+      log.warn('Backup job creation failed', { type, message: error.message, body: error.body })
       throw error
     }
   }
 
   /**
-   * Deletes an existing backup job.
+   * Creates a new VM backup job (backup or replication).
    *
-   * Backup job deletion is only available via WebSocket API.
+   * `vms`, `remotes` and `srs` are maps keyed by IDs, converted to the `{ id }` pattern expected by XO.
+   *
+   * @param {Object} config - Complete backup job configuration
+   * @returns {Promise<string>} The created backup job ID
+   */
+  async createBackupJob(config) {
+    const { vms, remotes, srs, ...rest } = config ?? {}
+
+    return this.#createJob('backup', {
+      ...rest,
+      mode: rest.mode || 'delta',
+      vms: toIdPattern(vms),
+      remotes: toIdPattern(remotes),
+      srs: toIdPattern(srs),
+    })
+  }
+
+  /**
+   * Creates a new mirror backup job, replicating backups from one remote to others.
+   *
+   * @param {Object} config - Mirror backup job configuration
+   * @param {string} config.mode - 'full' or 'delta'
+   * @param {string} config.sourceRemote - ID of the source remote
+   * @param {Object} config.remotes - Destination remotes (e.g., { [remoteId]: {} })
+   * @param {string} [config.name] - Job name
+   * @param {Object} [config.schedules] - Schedule definitions
+   * @param {Object} [config.settings] - Job settings
+   * @returns {Promise<string>} The created mirror backup job ID
+   */
+  async createMirrorBackupJob(config) {
+    const { remotes, ...rest } = config ?? {}
+
+    return this.#createJob('mirrorBackup', {
+      ...rest,
+      mode: rest.mode || 'full',
+      remotes: toIdPattern(remotes),
+    })
+  }
+
+  /**
+   * Creates a new metadata backup job.
+   *
+   * Accepts a caller-friendly shape:
+   *   { name, pools: { [poolId]: true }, remotes: { [remoteId]: true },
+   *     schedules, settings, xoMetadata }
+   *
+   * @param {Object} config - Metadata backup job configuration
+   * @returns {Promise<string>} The created job ID
+   */
+  async createMetadataBackupJob(config) {
+    const { pools, remotes, ...rest } = config ?? {}
+
+    return this.#createJob('metadataBackup', {
+      ...rest,
+      pools: toIdPattern(pools),
+      remotes: toIdPattern(remotes),
+    })
+  }
+
+  /**
+   * Updates a backup job of any type with `PATCH /rest/v0/backup-jobs/:id`.
+   *
+   * Root properties are replaced (`settings` must be passed entirely), a `null` value removes the property.
+   *
+   * @param {string} jobId - ID of the backup job to update
+   * @param {Object} changes - Properties to update, in the XO format
+   * @returns {Promise<void>}
+   */
+  async updateBackupJob(jobId, changes) {
+    this._ensureConnected()
+
+    if (!jobId || typeof jobId !== 'string') {
+      throw new Error('Valid backup job ID is required')
+    }
+
+    try {
+      await this.dispatchClient.restApiClient.patch(`/rest/v0/${this.endpoint}/${jobId}`, changes)
+    } catch (error) {
+      log.warn('Backup job update failed', { jobId, message: error.message, body: error.body })
+      throw error
+    }
+  }
+
+  /**
+   * Deletes a backup job of any type, and its schedules, with `DELETE /rest/v0/backup-jobs/:id`.
    *
    * @param {string} jobId - ID of the backup job to delete
-   * @returns {Promise<Object>} Deletion result
-   * @throws {Error} If deletion fails or job ID is invalid
+   * @returns {Promise<void>}
+   * @throws {Error} If deletion fails, `error.status` is 404 if the job does not exist
    */
   async deleteBackupJob(jobId) {
     this._ensureConnected()
@@ -89,18 +162,126 @@ export class BackupRequest extends AbstractRequest {
       throw new Error('Valid backup job ID is required')
     }
 
-    // Backup job deletion is only available via WebSocket API
     try {
-      const result = await this.dispatchClient.xoClient.call('backupNg.deleteJob', { id: jobId })
-      return result
+      await this.dispatchClient.restApiClient.delete(`/rest/v0/${this.endpoint}/${jobId}`)
     } catch (error) {
-      // "no such job" means the caller used the wrong delete method (e.g. mirror job) — let it handle the fallback
-      if (error?.data?.type !== 'job') {
-        log.warn('Delete backup job failed', { error })
+      // a missing job is handled by the caller (e.g. cleanup of an already deleted job)
+      if (error.status !== 404) {
+        log.warn('Delete backup job failed', { jobId, message: error.message, body: error.body })
       }
       throw error
     }
   }
+
+  /**
+   * Lists all schedules (of backup jobs and other jobs).
+   *
+   * @returns {Promise<Array<Object>>}
+   */
+  async listSchedules() {
+    this._ensureConnected()
+
+    return this.dispatchClient.restApiClient.getObjects('/rest/v0/schedules')
+  }
+
+  /**
+   * Gets a schedule by ID.
+   *
+   * @param {string} scheduleId
+   * @returns {Promise<Object>}
+   */
+  async getSchedule(scheduleId) {
+    this._ensureConnected()
+
+    return this.dispatchClient.restApiClient.get(`/rest/v0/schedules/${scheduleId}`)
+  }
+
+  /**
+   * Updates a schedule with `PATCH /rest/v0/schedules/:id`.
+   *
+   * @param {string} scheduleId
+   * @param {{cron?: string, enabled?: boolean, name?: string, timezone?: string}} changes
+   * @returns {Promise<void>}
+   */
+  async updateSchedule(scheduleId, changes) {
+    this._ensureConnected()
+
+    await this.dispatchClient.restApiClient.patch(`/rest/v0/schedules/${scheduleId}`, changes)
+  }
+
+  /**
+   * Deletes a schedule with `DELETE /rest/v0/schedules/:id`, its settings are removed from its job.
+   *
+   * @param {string} scheduleId
+   * @returns {Promise<void>}
+   */
+  async deleteSchedule(scheduleId) {
+    this._ensureConnected()
+
+    await this.dispatchClient.restApiClient.delete(`/rest/v0/schedules/${scheduleId}`)
+  }
+
+  /**
+   * Runs a backup job of any type through one of its schedules, and waits for its log.
+   *
+   * The run is started with `POST /rest/v0/schedules/:id/actions/run`, which returns
+   * immediately with the ID of the REST API task running the job.
+   *
+   * @param {string} jobId - Backup job ID, used to find the backup log
+   * @param {string} scheduleId - Schedule ID to use for this execution
+   * @returns {Promise<Object>} Complete backup log with status and details
+   * @throws {Error} If the job fails to start or times out
+   */
+  async runJobAndGetLog(jobId, scheduleId) {
+    this._ensureConnected()
+
+    log.debug('Running backup job', { jobId, scheduleId })
+
+    const restApiClient = this.dispatchClient.restApiClient
+
+    // Capture timestamp BEFORE starting the job (with small buffer for clock differences)
+    const runStartTime = Date.now() - 5000
+
+    let taskId
+    try {
+      ;({ taskId } = await restApiClient.post(`/rest/v0/schedules/${scheduleId}/actions/run`))
+    } catch (error) {
+      log.warn('Run backup job failed', { jobId, scheduleId, message: error.message, body: error.body })
+      throw error
+    }
+
+    // Wait for the backup to complete and get the log
+    const result = await waitUntil(
+      async () => {
+        const latestLog = await this.dispatchClient.backupLog.getLatestForJob(jobId, runStartTime)
+
+        if (latestLog !== undefined) {
+          // Check if the backup is complete (case-insensitive status check)
+          const status = latestLog.status?.toLowerCase()
+          return status === 'success' || status === 'failure' || latestLog.end ? { backupLog: latestLog } : false
+        }
+
+        // No log yet: the job may have failed before starting (e.g. feature not authorized)
+        const task = await restApiClient.get(`/rest/v0/tasks/${taskId}`)
+        return task.status === 'failure' ? { failedTask: task } : false
+      },
+      2000, // Check every 2 seconds
+      300_000, // 5 minute timeout
+      { exponentialBackoff: true, backoffMultiplier: 1.2, maxInterval: 10_000 }
+    )
+
+    if (result.failedTask !== undefined) {
+      const reason = result.failedTask.result?.message ?? JSON.stringify(result.failedTask.result)
+      throw new Error(`Backup job ${jobId} failed to start: ${reason}`)
+    }
+
+    log.debug('Backup completed', { status: result.backupLog.status })
+    return result.backupLog
+  }
+
+  // ===========================================================================
+  // Backup archives
+  // ===========================================================================
 
   /**
    * Lists VM backups for specified backup repositories.
@@ -238,272 +419,8 @@ export class BackupRequest extends AbstractRequest {
   }
 
   // ===========================================================================
-  // Mirror Backup operations (mirrorBackup.* API)
+  // Metadata backups
   // ===========================================================================
-
-  /**
-   * Creates a new mirror backup job in XenOrchestra.
-   *
-   * Mirror backup replicates backups from one remote to another.
-   * Uses `mirrorBackup.createJob` WebSocket API.
-   *
-   * @param {Object} config - Mirror backup job configuration
-   * @param {string} config.mode - 'full' or 'delta'
-   * @param {string} config.sourceRemote - ID of the source remote
-   * @param {Object} config.remotes - Destination remotes (e.g., { [remoteId]: {} })
-   * @param {string} [config.name] - Job name
-   * @param {Object} [config.schedules] - Schedule definitions
-   * @param {Object} [config.settings] - Job settings
-   * @param {Object} [config.filter] - VM filter (by UUID)
-   * @returns {Promise<string>} The created mirror backup job ID
-   */
-  async createMirrorBackupJob(config) {
-    this._ensureConnected()
-
-    if (!config || typeof config !== 'object') {
-      throw new Error('Valid mirror backup configuration object is required')
-    }
-
-    const { remotes, ...rest } = config
-
-    // Convert destination remotes to a simple pattern (supports one or several)
-    const remoteIds = remotes && typeof remotes === 'object' ? Object.keys(remotes) : []
-
-    const xoConfig = {
-      ...rest,
-      mode: config.mode || 'full',
-    }
-
-    if (remoteIds.length > 0) {
-      xoConfig.remotes = toSimplePattern(remoteIds)
-    }
-
-    try {
-      const result = await this.dispatchClient.xoClient.call('mirrorBackup.createJob', xoConfig)
-      return result
-    } catch (error) {
-      log.warn('Mirror backup job creation failed', { message: error.message, code: error.code, data: error.data })
-      throw error
-    }
-  }
-
-  /**
-   * Deletes a mirror backup job.
-   *
-   * @param {string} jobId - ID of the mirror backup job to delete
-   * @returns {Promise<Object>} Deletion result
-   */
-  async deleteMirrorBackupJob(jobId) {
-    this._ensureConnected()
-
-    if (!jobId || typeof jobId !== 'string') {
-      throw new Error('Valid mirror backup job ID is required')
-    }
-
-    try {
-      const result = await this.dispatchClient.xoClient.call('mirrorBackup.deleteJob', { id: jobId })
-      return result
-    } catch (error) {
-      if (error?.data?.type !== 'job') {
-        log.warn('Delete mirror backup job failed', { error })
-      }
-      throw error
-    }
-  }
-
-  /**
-   * Executes a mirror backup job and monitors completion.
-   *
-   * @param {string} jobId - Mirror backup job ID to execute
-   * @param {string} scheduleId - Schedule ID to use for this execution
-   * @returns {Promise<Object>} Complete backup log with status and details
-   */
-  async runMirrorJobAndGetLog(jobId, scheduleId) {
-    this._ensureConnected()
-
-    log.debug('Running mirror backup job', { jobId, scheduleId })
-
-    const runStartTime = Date.now() - 5000
-
-    try {
-      await this.dispatchClient.xoClient.call('mirrorBackup.runJob', {
-        id: jobId,
-        schedule: scheduleId,
-      })
-    } catch (wsError) {
-      log.warn('Run mirror backup job failed', { error: wsError.message })
-      throw wsError
-    }
-
-    const backupLog = await waitUntil(
-      async () => {
-        try {
-          const latestLog = await this.dispatchClient.backupLog.getLatestForJob(jobId, runStartTime)
-
-          if (!latestLog) {
-            return false
-          }
-
-          const status = latestLog.status?.toLowerCase()
-          if (status === 'success' || status === 'failure' || latestLog.end) {
-            return latestLog
-          }
-
-          return false
-        } catch (error) {
-          log.debug('Waiting for mirror backup completion', { error })
-          return false
-        }
-      },
-      2000,
-      300_000,
-      { exponentialBackoff: true, backoffMultiplier: 1.2, maxInterval: 10_000 }
-    )
-
-    log.debug('Mirror backup completed', { status: backupLog.status })
-    return backupLog
-  }
-
-  // ===========================================================================
-  // Metadata Backup operations (metadataBackup.* API)
-  // ===========================================================================
-
-  /**
-   * Creates a new metadata backup job in XenOrchestra.
-   *
-   * Accepts a caller-friendly shape:
-   *   { name, pools: { [poolId]: true }, remotes: { [remoteId]: true },
-   *     schedules, settings, xoMetadata }
-   * and converts pools/remotes to the { id } pattern expected by the API.
-   *
-   * @param {Object} config - Metadata backup job configuration
-   * @returns {Promise<string>} The created job ID
-   */
-  async createMetadataBackupJob(config) {
-    this._ensureConnected()
-
-    if (!config || typeof config !== 'object') {
-      throw new Error('Valid metadata backup configuration object is required')
-    }
-
-    const { pools, remotes, ...rest } = config
-
-    const poolIds = pools && typeof pools === 'object' ? Object.keys(pools) : []
-    const remoteIds = remotes && typeof remotes === 'object' ? Object.keys(remotes) : []
-
-    const xoConfig = { ...rest }
-    if (poolIds.length > 0) xoConfig.pools = toSimplePattern(poolIds)
-    if (remoteIds.length > 0) xoConfig.remotes = toSimplePattern(remoteIds)
-
-    try {
-      const result = await this.dispatchClient.xoClient.call('metadataBackup.createJob', xoConfig)
-      // metadataBackup.createJob returns the full job object (unlike backupNg.createJob which returns only the ID)
-      return result?.id ?? result
-    } catch (error) {
-      log.warn('Metadata backup job creation failed', { message: error.message, code: error.code, data: error.data })
-      throw error
-    }
-  }
-
-  /**
-   * Gets a metadata backup job by ID.
-   *
-   * Uses the WebSocket API because the backup-jobs REST endpoint only covers VM backup jobs.
-   *
-   * @param {string} jobId - Metadata backup job ID
-   * @returns {Promise<Object>} The job object
-   */
-  async getMetadataJob(jobId) {
-    this._ensureConnected()
-
-    if (!jobId || typeof jobId !== 'string') {
-      throw new Error('Valid job ID is required')
-    }
-
-    try {
-      return await this.dispatchClient.xoClient.call('metadataBackup.getJob', { id: jobId })
-    } catch (error) {
-      log.warn('Get metadata backup job failed', { jobId, error })
-      throw error
-    }
-  }
-
-  /**
-   * Deletes a metadata backup job.
-   *
-   * @param {string} jobId - Metadata backup job ID to delete
-   * @returns {Promise<void>}
-   */
-  async deleteMetadataBackupJob(jobId) {
-    this._ensureConnected()
-
-    if (!jobId || typeof jobId !== 'string') {
-      throw new Error('Valid job ID is required')
-    }
-
-    try {
-      return await this.dispatchClient.xoClient.call('metadataBackup.deleteJob', { id: jobId })
-    } catch (error) {
-      log.warn('Delete metadata backup job failed', { jobId, error })
-      throw error
-    }
-  }
-
-  /**
-   * Executes a metadata backup job and monitors completion.
-   *
-   * Same polling pattern as runJobAndGetLog, but calls metadataBackup.runJob.
-   *
-   * @param {string} jobId - Metadata backup job ID to execute
-   * @param {string} scheduleId - Schedule ID to use for this execution
-   * @returns {Promise<Object>} Complete backup log with status and details
-   */
-  async runMetadataJobAndGetLog(jobId, scheduleId) {
-    this._ensureConnected()
-
-    log.debug('Running metadata backup job', { jobId, scheduleId })
-
-    const runStartTime = Date.now()
-
-    try {
-      await this.dispatchClient.xoClient.call('metadataBackup.runJob', {
-        id: jobId,
-        schedule: scheduleId,
-      })
-    } catch (wsError) {
-      // The server has a known bug where a post-job cleanup error of `undefined` causes
-      // serializeError() to throw, returning a -32000 WS error even though the backup
-      // already completed. Continue polling for the log rather than failing immediately.
-      log.debug('metadataBackup.runJob returned a WS error, polling for backup log anyway', {
-        jobId,
-        code: wsError.code,
-        error: wsError.message,
-      })
-    }
-
-    const backupLog = await waitUntil(
-      async () => {
-        try {
-          const latestLog = await this.dispatchClient.backupLog.getLatestForJob(jobId, runStartTime)
-          if (!latestLog) return false
-          const status = latestLog.status?.toLowerCase()
-          if (status === 'success' || status === 'failure' || latestLog.end) {
-            return latestLog
-          }
-          return false
-        } catch (error) {
-          log.debug('Waiting for metadata backup completion', { error })
-          return false
-        }
-      },
-      2000,
-      300_000,
-      { exponentialBackoff: true, backoffMultiplier: 1.2, maxInterval: 10_000 }
-    )
-
-    log.debug('Metadata backup completed', { status: backupLog.status })
-    return backupLog
-  }
 
   /**
    * Lists metadata backups for the given backup repositories.
@@ -524,75 +441,5 @@ export class BackupRequest extends AbstractRequest {
       log.warn('List metadata backups failed', { error })
       throw error
     }
-  }
-
-  // ===========================================================================
-  // Standard Backup operations (backupNg.* API)
-  // ===========================================================================
-
-  /**
-   * Executes a backup job and monitors completion.
-   *
-   * Starts the backup job and waits for completion with detailed logging.
-   * Combines job execution and log monitoring in a single method.
-   *
-   * @param {string} jobId - Backup job ID to execute
-   * @param {string} scheduleId - Schedule ID to use for this execution
-   * @returns {Promise<Object>} Complete backup log with status and details
-   * @throws {Error} If job execution fails or times out
-   */
-  async runJobAndGetLog(jobId, scheduleId) {
-    this._ensureConnected()
-
-    log.debug('Running backup job', { jobId, scheduleId })
-
-    // Capture timestamp BEFORE starting the job (with small buffer for clock differences)
-    const runStartTime = Date.now() - 5000 // 5 second buffer before job start
-
-    // Backup job execution is only available via WebSocket API
-    try {
-      await this.dispatchClient.xoClient.call('backupNg.runJob', {
-        id: jobId,
-        schedule: scheduleId,
-      })
-    } catch (wsError) {
-      if (wsError.code === -32000 && wsError.message.includes('task has not started yet')) {
-        // sometimes we get a task not started error
-        await new Promise(resolve => setTimeout(resolve, 10_000))
-      } else {
-        console.error('❌ Run backup job failed:', wsError.message)
-        throw wsError
-      }
-    }
-
-    // Wait for the backup to complete and get the log
-    const backupLog = await waitUntil(
-      async () => {
-        try {
-          const latestLog = await this.dispatchClient.backupLog.getLatestForJob(jobId, runStartTime)
-
-          if (!latestLog) {
-            return false // Keep waiting
-          }
-
-          // Check if the backup is complete (case-insensitive status check)
-          const status = latestLog.status?.toLowerCase()
-          if (status === 'success' || status === 'failure' || latestLog.end) {
-            return latestLog
-          }
-
-          return false // Still running
-        } catch (error) {
-          log.debug('Waiting for backup completion', { error })
-          return false
-        }
-      },
-      2000, // Check every 2 seconds
-      300_000, // 5 minute timeout
-      { exponentialBackoff: true, backoffMultiplier: 1.2, maxInterval: 10_000 }
-    )
-
-    log.debug('Backup completed', { status: backupLog.status })
-    return backupLog
   }
 }

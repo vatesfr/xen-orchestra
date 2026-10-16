@@ -33,7 +33,7 @@ function findMetadataTask(tasks, type) {
 /**
  * Asserts that a metadata task of the given type exists and succeeded.
  *
- * @param {Object} logEntry - Backup log returned by runMetadataJobAndGetLog
+ * @param {Object} logEntry - Backup log returned by runJobAndGetLog
  * @param {'pool'|'xo'} type - Metadata task type to assert on
  */
 function assertMetadataTaskSuccess(logEntry, type) {
@@ -112,19 +112,15 @@ describe('Metadata backup tests', () => {
 
       assert.ok(jobId, 'createMetadataBackupJob should return a job ID')
 
-      const job = await dispatchClient.backup.getMetadataJob(jobId)
+      const job = await dispatchClient.backup.details(jobId)
       assert.strictEqual(job.name, name, 'Job name should match')
       assert.ok(job.pools, 'Job should have pools configured')
       assert.strictEqual(job.xoMetadata, true, 'Job should have xoMetadata enabled')
 
       log.debug('Metadata backup job created and verified', { jobId, name })
 
-      // Cleanup: this test only validates creation, delete the job immediately
-      await dispatchClient.backup.deleteMetadataBackupJob(jobId)
-      const scheduleKey = getScheduleKey(job)
-      if (scheduleKey) {
-        await dispatchClient.xoClient.call('schedule.delete', { id: scheduleKey })
-      }
+      // Cleanup: this test only validates creation, delete the job (and its schedule) immediately
+      await dispatchClient.backup.deleteBackupJob(jobId)
       log.debug('Metadata backup job cleaned up', { jobId })
     })
   })
@@ -150,7 +146,7 @@ describe('Metadata backup tests', () => {
         xoMetadata: true,
       })
 
-      const job = await dispatchClient.backup.getMetadataJob(jobId)
+      const job = await dispatchClient.backup.details(jobId)
       scheduleKey = getScheduleKey(job)
       assert.ok(scheduleKey, 'Metadata backup job should have a schedule key after creation')
 
@@ -160,19 +156,11 @@ describe('Metadata backup tests', () => {
     after(async () => {
       if (jobId) {
         try {
-          await dispatchClient.backup.deleteMetadataBackupJob(jobId)
+          // also deletes its schedule
+          await dispatchClient.backup.deleteBackupJob(jobId)
           log.debug('Deleted metadata backup job', { jobId })
         } catch (error) {
           log.warn('Failed to delete metadata backup job', { jobId, error })
-        }
-      }
-
-      if (scheduleKey) {
-        try {
-          await dispatchClient.xoClient.call('schedule.delete', { id: scheduleKey })
-          log.debug('Deleted schedule', { scheduleKey })
-        } catch (error) {
-          log.warn('Failed to delete schedule', { scheduleKey, error })
         }
       }
     })
@@ -187,7 +175,7 @@ describe('Metadata backup tests', () => {
 
         log.debug(`Running metadata backup job (${runIndex}/3)`, { jobId, scheduleKey })
 
-        const result = await dispatchClient.backup.runMetadataJobAndGetLog(jobId, scheduleKey)
+        const result = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
 
         assertBackupSuccess(result, `Metadata backup run ${runIndex}/3`)
         assertMetadataTaskSuccess(result, 'pool')
