@@ -10,7 +10,7 @@
           <HeadCells />
         </thead>
         <tbody>
-          <VtsRow v-for="node of paginatedNodes" :key="node.node_id" :selected="selectedNodeId === node.node_id">
+          <VtsRow v-for="node of paginatedNodes" :key="node.id" :selected="selectedNodeId === node.id">
             <BodyCells :item="node" />
           </VtsRow>
         </tbody>
@@ -20,8 +20,9 @@
 </template>
 
 <script setup lang="ts">
+import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { nodeReadyStatus } from '@/modules/kubernetes/utils/kubernetes-node.util.ts'
+import { isControlPlaneNode, nodeReadyStatus } from '@/modules/kubernetes/utils/kubernetes-node.util.ts'
 import { getKubernetesClusterRoute, getKubernetesNodeRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -35,6 +36,7 @@ import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-q
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useNodeColumns } from '@core/tables/column-sets/node-columns.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
@@ -49,26 +51,28 @@ const {
 
 const { t } = useI18n()
 
+const { getClusterById } = useXoKubernetesClusterCollection()
+
 const selectedNodeId = useRouteQuery('id')
 
 const { items: filteredNodes, filter } = useQueryBuilderFilter('kubernetes-nodes', () => rawNodes)
 
-function getRoleLabels(): Record<XoKubernetesNode['role'], string> {
-  return {
-    'control-plane': t('control-plane'),
-    worker: t('worker'),
-  }
-}
+const roleLabels = computed<Record<XoKubernetesNode['role'], string>>(() => ({
+  'control-plane': t('control-plane'),
+  worker: t('worker'),
+}))
 
 const schema = useQueryBuilderSchema<XoKubernetesNode>({
   '': useStringSchema(t('any-property')),
   name: useStringSchema(t('name')),
-  role: useStringSchema(t('role'), getRoleLabels()),
+  role: useStringSchema(t('role'), {
+    'control-plane': t('control-plane'),
+    worker: t('worker'),
+  }),
   status: useStringSchema(t('status'), {
     Ready: t('ready'),
     NotReady: t('not-ready'),
   }),
-  $cluster: useStringSchema(t('cluster')),
 })
 
 const state = useTableState({
@@ -86,20 +90,23 @@ const { HeadCells, BodyCells } = useNodeColumns({
       name: r =>
         r({
           label: node.name,
-          to: getKubernetesNodeRoute(node.node_id),
+          to: getKubernetesNodeRoute(node.id),
           icon: icon('object:node'),
+          rightIcon: isControlPlaneNode(node)
+            ? { icon: icon('status:primary-circle'), tooltip: t('control-plane') }
+            : undefined,
         }),
       status: r => r({ status: nodeReadyStatus(node) }),
-      role: r => r(getRoleLabels()[node.role]),
+      role: r => r(roleLabels.value[node.role]),
       cluster: r =>
         r({
-          label: node.$cluster,
+          label: getClusterById(node.$cluster)?.name ?? node.$cluster,
           to: getKubernetesClusterRoute(node.$cluster),
           icon: icon('object:cluster'),
         }),
       actions: r =>
         r({
-          onClick: () => (selectedNodeId.value = node.node_id),
+          onClick: () => (selectedNodeId.value = node.id),
         }),
     }
   },

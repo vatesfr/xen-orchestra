@@ -54,6 +54,7 @@ export type XoKubernetesCluster = {
 export type XoKubernetesNode = {
   $cluster: string
   endpoint: string
+  id: string
   is_reconciliation_paused: boolean
   name: string
   node_id: string

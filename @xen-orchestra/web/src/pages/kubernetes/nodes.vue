@@ -22,7 +22,7 @@ const { nodes, areNodesReady, hasNodesFetchError, getNodeById } = useXoKubernete
 
 const selectedNode = useRouteQuery<XoKubernetesNode | undefined>('id', {
   toData: id => getNodeById(id),
-  toQuery: node => node?.node_id ?? '',
+  toQuery: node => node?.id ?? '',
 })
 </script>
 

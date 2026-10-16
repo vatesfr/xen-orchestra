@@ -29,7 +29,7 @@ const { node } = defineProps<{
 
 const { t } = useI18n()
 
-const nodeRoute = computed(() => getKubernetesNodeRoute(node.node_id))
+const nodeRoute = computed(() => getKubernetesNodeRoute(node.id))
 </script>
 
 <style scoped lang="postcss">

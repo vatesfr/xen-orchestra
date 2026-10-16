@@ -17,6 +17,20 @@ function toXoCluster(cluster: ApiKubernetesCluster): XoKubernetesCluster {
   }
 }
 
+/*
+// Once API sends stable IDs:
+
+type ApiKubernetesCluster = Omit<XoKubernetesCluster, 'type'>
+
+function toXoCluster(cluster: ApiKubernetesCluster): XoKubernetesCluster {
+  return {
+    ...cluster,
+    type: 'kubernetes-cluster',
+    tags: cluster.tags ?? null,
+  }
+}
+*/
+
 export const useXoKubernetesClusterCollection = defineRemoteResource({
   url: `${BASE_URL}/kubernetes/clusters`,
   initialData: () => [] as XoKubernetesCluster[],
