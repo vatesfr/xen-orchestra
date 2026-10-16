@@ -20,7 +20,7 @@ import Disposable from 'promise-toolbox/Disposable'
 import * as XenStore from '../_XenStore.mjs'
 import Xapi from '../xapi/index.mjs'
 import { acquireRpuGuard } from '../_rpuGuard.mjs'
-import { noopRpuRecorder, noRpuResume } from '../_rpuRecovery.mjs'
+import { noopRpuRecorder, noRpuResume, restoreRpuSetting } from '../_rpuRecovery.mjs'
 import { getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
 import { supportsRpuRecovery } from '../xapi/mixins/patching.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
@@ -911,14 +911,15 @@ export default class XenServers {
   }
 
   _releaseRpuLoadBalancer(suspension, pool, recorder) {
-    // loading the plugin again is now up to the timer below, held in memory as
-    // after any run, or there is nothing to load: no work left in the record
-    recorder.settingRestored('loadBalancer')
-
     const { reEnableDelay, shouldReEnable } = suspension.value
+    // not taken over, a plugin a previous attempt left unloaded stays in the
+    // record
     if (!shouldReEnable) {
       return suspension.dispose()
     }
+    // loading the plugin again is now up to the timer below, held in memory as
+    // after any run: no work left in the record
+    recorder.settingRestored('loadBalancer')
 
     const poolId = pool.id
     const task = this._app.tasks.create({
@@ -959,6 +960,8 @@ export default class XenServers {
     $defer(() => this._releaseRpuLoadBalancer(suspension, pool, recorder))
 
     await synchronizedLoadBalancerOperation(async () => {
+      // an absent plugin keeps its entry: it may just not be registered yet,
+      // xo-server serves the API before it registers the plugins
       const plugin = await app.getOptionalPlugin('load-balancer')
       // the timer which would have loaded it again was lost with xo-server
       const leftByPreviousAttempt =
@@ -989,6 +992,23 @@ export default class XenServers {
         }
       }
     })
+  }
+
+  // the schedules a previous attempt of the run disabled stay disabled until
+  // the end of this one
+  _restoreRpuSchedules($defer, recorder, scheduleIds, schedules) {
+    for (const id of scheduleIds) {
+      const schedule = schedules.find(_ => _.id === id)
+      if (schedule?.enabled === false) {
+        $defer(() =>
+          restoreRpuSetting(recorder, 'schedules', () => this._app.updateSchedule({ ...schedule, enabled: true }), id)
+        )
+      } else {
+        // deleted or enabled again since: nothing left to restore, before an
+        // enabled one is recorded again
+        recorder.settingRestored('schedules', id)
+      }
+    }
   }
 
   /**
@@ -1046,7 +1066,9 @@ export default class XenServers {
 
   /**
    * Resumes the failed or interrupted rolling pool update of the pool: same run, only the hosts with remaining work
-   * are handled, then the VMs go back to the host they were on before the first attempt.
+   * are handled, then the VMs go back to the host they were on before the first attempt. The settings the previous
+   * attempts left disabled (HA, auto power on, backup schedules, WLB, load balancer) stay disabled until the end of
+   * the run, then are restored.
    *
    * @param {Function} $defer - Injected by the `defer` decorator
    * @param {object} pool - XO pool object
@@ -1136,19 +1158,7 @@ export default class XenServers {
 
       recorder.markRunning()
 
-      for (const id of changedByRun.schedules ?? []) {
-        const schedule = schedules.find(_ => _.id === id)
-        if (schedule?.enabled === false) {
-          $defer(async () => {
-            await app.updateSchedule({ ...schedule, enabled: true })
-            recorder.settingRestored('schedules', id)
-          })
-        } else {
-          // deleted or enabled again since: nothing left to restore, before an
-          // enabled one is recorded again below
-          recorder.settingRestored('schedules', id)
-        }
-      }
+      this._restoreRpuSchedules($defer, recorder, changedByRun.schedules ?? [], schedules)
 
       // Disable schedules
       const schedulesToDisable = schedules.filter(
@@ -1158,10 +1168,14 @@ export default class XenServers {
       // disable, and restored even if disabling it fails after the change
       for (const schedule of schedulesToDisable) {
         await recorder.settingChangedByRun('schedules', [schedule.id])
-        $defer(async () => {
-          await app.updateSchedule({ ...schedule, enabled: true })
-          recorder.settingRestored('schedules', schedule.id)
-        })
+        $defer(() =>
+          restoreRpuSetting(
+            recorder,
+            'schedules',
+            () => app.updateSchedule({ ...schedule, enabled: true }),
+            schedule.id
+          )
+        )
         await app.updateSchedule({ ...schedule, enabled: false })
       }
 
@@ -1172,10 +1186,7 @@ export default class XenServers {
       const wlbEnabled = await xapi.getField('pool', pool._xapiRef, 'wlb_enabled')
       // registered before disabling it, which may fail after the change
       if (wlbEnabled || changedByRun.wlb) {
-        $defer(async () => {
-          await xapi.call('pool.set_wlb_enabled', pool._xapiRef, true)
-          recorder.settingRestored('wlb')
-        })
+        $defer(() => restoreRpuSetting(recorder, 'wlb', () => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true)))
       }
       if (wlbEnabled) {
         await recorder.settingChangedByRun('wlb')

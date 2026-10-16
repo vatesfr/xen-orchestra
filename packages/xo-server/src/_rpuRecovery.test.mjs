@@ -12,6 +12,7 @@ import {
   planRpuResume,
   readRpuRecoveryView,
   reconcileRpuRecoveryAtBoot,
+  restoreRpuSetting,
   resumeRpuRecoveryRun,
   RPU_RECOVERY_SCHEMA_VERSION,
   startRpuRecoveryRun,
@@ -702,8 +703,11 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.deepEqual(record.changedByRun, { ha: { srs: ['sr1'], configuration: {} } })
     assert.match(record.lastError.message, /not restored: ha/)
     assert.equal(typeof record.finishedAt, 'string')
-    // the cleanup can be run again
+    // a resume restores it again
     await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    const resumed = store.data.get('pool1')
+    assert.equal(resumed.status, 'resuming')
+    assert.deepEqual(resumed.changedByRun, { ha: { srs: ['sr1'], configuration: {} } })
   })
 
   it('complete is strict: rejects when the record cannot be deleted', async () => {
@@ -950,5 +954,19 @@ describe('noopRpuRecorder', () => {
     await noopRpuRecorder.dropIfNothingToRecover()
     noopRpuRecorder.settingRestored('ha')
     await noopRpuRecorder.complete()
+  })
+})
+
+describe('restoreRpuSetting()', () => {
+  it('records the setting as restored only once the restore succeeded, and never throws', async () => {
+    const restored = []
+    const recorder = { ...noopRpuRecorder, settingRestored: (name, id) => restored.push([name, id]) }
+
+    await restoreRpuSetting(recorder, 'schedules', async () => {}, 'schedule-1')
+    await restoreRpuSetting(recorder, 'wlb', async () => {
+      throw new Error('WLB unreachable')
+    })
+
+    assert.deepEqual(restored, [['schedules', 'schedule-1']])
   })
 })

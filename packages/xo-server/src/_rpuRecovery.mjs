@@ -321,6 +321,27 @@ export const noopRpuRecorder = Object.freeze({
 })
 
 /**
+ * Restores a setting the run changed, meant to be deferred: the setting is
+ * recorded as restored only once the restore succeeded. Never throws, a failed
+ * restore is logged with the setting and leaves it in the record.
+ *
+ * @param {object} recorder
+ * @param {'ha' | 'autoPowerOn' | 'wlb' | 'schedules'} name
+ * @param {() => Promise<void>} restore
+ * @param {string} [id] - The schedule for `schedules`
+ * @returns {Promise<void>}
+ */
+export async function restoreRpuSetting(recorder, name, restore, id) {
+  try {
+    await restore()
+  } catch (error) {
+    log.warn('failed to restore a setting changed by the rolling pool update', { error, setting: name, id })
+    return
+  }
+  recorder.settingRestored(name, id)
+}
+
+/**
  * Creates the recorder tracking one RPU run into its recovery record.
  *
  * Intent writes are strict (`settingChangedByRun` and `recordHaltedPinnedVm`

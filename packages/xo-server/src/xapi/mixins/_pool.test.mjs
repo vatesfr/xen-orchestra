@@ -349,6 +349,31 @@ describe('rollingPoolReboot', function () {
     assert.ok(!events.some(([name]) => name === 'restored'))
   })
 
+  it('restores HA even when disabling it failed', async function () {
+    const { events, recorder, xapi } = settingsSpy(new FakeXapi([[30], [30]]))
+    xapi.pool.ha_enabled = true
+    xapi.pool.$ha_statefiles = [{ SR: 'OpaqueRef:sr-1', $SR: { uuid: 'sr-1' } }]
+    xapi.pool.ha_configuration = {}
+    const call = xapi.call
+    xapi.call = async (method, ...args) => {
+      const result = await call(method, ...args)
+      if (method === 'pool.disable_ha') {
+        throw new Error('XAPI timeout')
+      }
+      return result
+    }
+
+    const { error } = await rollingPoolReboot(xapi, { recorder })
+
+    assert.equal(error?.message, 'XAPI timeout')
+    assert.deepEqual(events, [
+      ['record', 'ha', { srs: ['sr-1'], configuration: {} }],
+      ['call', 'pool.disable_ha'],
+      ['call', 'pool.enable_ha', ['OpaqueRef:sr-1'], {}],
+      ['restored', 'ha'],
+    ])
+  })
+
   it('restores auto power on even when disabling it failed', async function () {
     const { events, recorder, xapi } = settingsSpy(new FakeXapi([[30], [30]]))
     xapi.pool.other_config.auto_poweron = 'true'
@@ -552,6 +577,30 @@ describe('rollingPoolReboot', function () {
         ['hostStarting', 'host-B', true],
         ['call', 'pool.enable_ha', ['OpaqueRef:sr-1'], { timeout: '60' }],
         ['restored', 'ha'],
+      ])
+    })
+
+    it('restores auto power on a previous attempt left disabled', async function () {
+      const { events, recorder, xapi } = settingsSpy(new FakeXapi([[10], [10]]))
+      xapi.pool.other_config.auto_poweron = 'false'
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+          changedByRun: { autoPowerOn: true },
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(events, [
+        ['hostStarting', 'host-A', true],
+        ['hostStarting', 'host-B', true],
+        ['other_config', 'auto_poweron', 'true'],
+        ['restored', 'autoPowerOn'],
       ])
     })
 

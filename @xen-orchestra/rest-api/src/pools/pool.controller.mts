@@ -796,7 +796,8 @@ export class PoolController extends XapiXoController<XoPool> {
   /**
    * Resume a failed or interrupted rolling pool update: the same run continues, only the hosts with remaining work
    * are evacuated, updated and rebooted, then the VMs are migrated back to the host they were on before the first
-   * attempt.
+   * attempt. The settings the previous attempts left disabled (HA, auto power on, backup schedules, WLB, load
+   * balancer) stay disabled until the end of the run, then are restored.
    *
    * The backup check is not taken from the previous attempts: set `bypassBackupCheck` again if needed.
    *

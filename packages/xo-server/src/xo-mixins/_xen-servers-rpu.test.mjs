@@ -182,7 +182,6 @@ describe('XenServers.rollingPoolUpdate', function () {
         { acceptCurrentStateAsBaseline: true, bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: false },
       ],
       ['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: false }],
-      ['recorder.settingRestored', 'loadBalancer', undefined],
       ['recorder.complete'],
     ])
   })
@@ -238,14 +237,13 @@ describe('XenServers.rollingPoolUpdate', function () {
     await assert.rejects(xenServers.rollingPoolUpdate(pool), error =>
       incorrectState.is(error, { property: 'partiallyUpdatedPool' })
     )
-    assert.deepEqual(calls.slice(-7), [
+    assert.deepEqual(calls.slice(-6), [
       ['updateSchedule', 'schedule-1', false],
       [
         'xapi.rollingPoolUpdate',
         { acceptCurrentStateAsBaseline: undefined, rebootVm: undefined, shutdownPinnedVms: undefined },
       ],
       ['recorder.fail'],
-      ['recorder.settingRestored', 'loadBalancer', undefined],
       ['updateSchedule', 'schedule-1', true],
       ['recorder.settingRestored', 'schedules', 'schedule-1'],
       ['recorder.dropIfNothingToRecover'],
@@ -300,7 +298,6 @@ describe('XenServers.rollingPoolUpdate', function () {
         'xapi.rollingPoolUpdate',
         { acceptCurrentStateAsBaseline: undefined, rebootVm: undefined, shutdownPinnedVms: undefined },
       ],
-      ['recorder.settingRestored', 'loadBalancer', undefined],
       ['recorder.complete'],
     ])
   })
@@ -331,7 +328,6 @@ describe('XenServers.rollingPoolUpdate', function () {
       ['recorder.fail'],
       ['xapi.call', 'pool.set_wlb_enabled', true],
       ['recorder.settingRestored', 'wlb', undefined],
-      ['recorder.settingRestored', 'loadBalancer', undefined],
       ['recorder.dropIfNothingToRecover'],
     ])
   })
@@ -385,7 +381,6 @@ describe('XenServers.resumeRollingPoolUpdate', function () {
           changedByRun: {},
         },
       ],
-      ['recorder.settingRestored', 'loadBalancer', undefined],
       ['recorder.complete'],
     ])
     assert.equal(taskProperties[0].runId, 'run-1')
@@ -434,13 +429,34 @@ describe('XenServers.resumeRollingPoolUpdate', function () {
     assert.equal(xenServers.isRpuLoadBalancerReEnablePending(), true)
   })
 
-  it('forgets the load balancer a previous attempt left unloaded once its plugin is uninstalled', async function () {
+  it('keeps the load balancer a previous attempt left unloaded while its plugin cannot be found', async function () {
+    // uninstalled, or not registered yet right after a restart
     const { calls, xenServers } = createXenServers({
       changedByRun: { loadBalancer: { autoload: false } },
       loadBalancerInstalled: false,
     })
     await xenServers.resumeRollingPoolUpdate(pool)
-    assert.deepEqual(calls.slice(-2), [['recorder.settingRestored', 'loadBalancer', undefined], ['recorder.complete']])
+    assert.deepEqual(
+      calls.filter(([name]) => name.startsWith('recorder.')),
+      [['recorder.complete']]
+    )
+    assert.equal(xenServers.isRpuLoadBalancerReEnablePending(), false)
+  })
+
+  it('keeps the load balancer a previous attempt left unloaded when this attempt cannot take it over', async function () {
+    const { calls, xenServers } = createXenServers({
+      changedByRun: { loadBalancer: { autoload: false } },
+      intentRefused: true,
+    })
+    await assert.rejects(xenServers.resumeRollingPoolUpdate(pool), { message: 'store unavailable' })
+    assert.deepEqual(
+      calls.filter(([name]) => name.startsWith('recorder.')),
+      [
+        ['recorder.settingChangedByRun', 'loadBalancer', { autoload: false }],
+        ['recorder.fail'],
+        ['recorder.dropIfNothingToRecover'],
+      ]
+    )
     assert.equal(xenServers.isRpuLoadBalancerReEnablePending(), false)
   })
 
@@ -450,8 +466,8 @@ describe('XenServers.resumeRollingPoolUpdate', function () {
       incorrectState.is(error, { property: 'partiallyUpdatedPool' })
     )
     assert.deepEqual(
-      calls.slice(-3).map(([name]) => name),
-      ['recorder.fail', 'recorder.settingRestored', 'recorder.dropIfNothingToRecover']
+      calls.slice(-2).map(([name]) => name),
+      ['recorder.fail', 'recorder.dropIfNothingToRecover']
     )
   })
 })
