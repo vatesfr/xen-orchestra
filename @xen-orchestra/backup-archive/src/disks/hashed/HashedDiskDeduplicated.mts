@@ -362,8 +362,15 @@ export class HashedDiskDeduplicated extends HashedDisk {
 
     // reads the whole file: that is exactly header + payload, and unlike a
     // positional read it also works on an encrypted remote
-    const buffer = await this.#handler.readFile(this.#blockPath(hash))
-    const { payload } = decodeBlock(buffer, hash)
+    const blockPath = this.#blockPath(hash)
+    const buffer = await this.#handler.readFile(blockPath)
+    let payload: Buffer
+    try {
+      ;({ payload } = decodeBlock(buffer, hash))
+    } catch (error: unknown) {
+      // says which file of which disk is broken
+      throw new HbdFileError(`${(error as Error).message} at index ${index} of ${this.#path}`, blockPath, error)
+    }
 
     return { index, data: payload }
   }
