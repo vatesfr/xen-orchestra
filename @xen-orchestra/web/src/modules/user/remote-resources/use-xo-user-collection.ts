@@ -11,6 +11,8 @@ const userFields = [
   'name',
   'permission',
   'email',
+  'firstname',
+  'lastname',
   'groups',
   'authProviders',
 ] as const satisfies readonly (keyof XoUser)[]

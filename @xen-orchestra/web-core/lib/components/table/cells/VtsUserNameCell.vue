@@ -2,7 +2,7 @@
   <UiTableCell>
     <div class="user-name">
       <UiUserLogo size="small" />
-      <UiLink :href size="medium">
+      <UiLink :to :href size="medium">
         {{ content }}
       </UiLink>
     </div>
@@ -13,11 +13,13 @@
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
+import type { LinkOptions } from '@core/composables/link-component.composable.ts'
 
-defineProps<{
-  content: string
-  href?: string
-}>()
+defineProps<
+  Pick<LinkOptions, 'to' | 'href'> & {
+    content: string
+  }
+>()
 </script>
 
 <style scoped lang="postcss">

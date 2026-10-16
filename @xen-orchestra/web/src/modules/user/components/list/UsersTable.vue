@@ -25,7 +25,6 @@
 <script setup lang="ts">
 import { useUserDelete } from '@/modules/user/composables/use-user-delete.composable.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -50,8 +49,6 @@ defineSlots<{
 
 const { t } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
-
 const searchQuery = ref('')
 
 const filteredUsers = computed(() => {
@@ -65,8 +62,6 @@ const filteredUsers = computed(() => {
 })
 
 const selectedUserId = useRouteQuery('id')
-
-const xo5UsersHref = computed(() => buildXo5Route('/settings/users'))
 
 const { pageRecords: paginatedUsers, paginationBindings } = usePagination('users', filteredUsers)
 
@@ -112,7 +107,7 @@ const { HeadCells, BodyCells } = useUserColumns({
 
     return {
       checkbox: r => r({ selected: isSelected(user.id), onToggle: () => toggleSelection(user.id) }),
-      username: r => r(user.name ?? '', { href: xo5UsersHref.value }),
+      username: r => r(user.name ?? '', { to: { name: '/admin/user/[id]/general', params: { id: user.id } } }),
       email: r => r(user.email),
       providers: r => {
         const providers = Object.keys(user.authProviders ?? {})
