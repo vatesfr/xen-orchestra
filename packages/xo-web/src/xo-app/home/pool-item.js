@@ -1,9 +1,11 @@
 import _ from 'intl'
+import classNames from 'classnames'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
+import { isStale, StaleObjectPill } from 'stale-object'
 import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import Link, { BlockLink } from 'link'
@@ -156,16 +158,23 @@ export default class PoolItem extends Component {
     const master = poolHosts[pool.master]
 
     return (
-      <div className={styles.item}>
+      <div className={classNames(styles.item, isStale(pool) && styles.stale)}>
         <BlockLink to={`/pools/${pool.id}`}>
           <SingleLineRow>
             <Col smallSize={10} mediumSize={9} largeSize={3}>
               <EllipsisContainer>
-                <input type='checkbox' checked={selected} onChange={this._onSelect} value={pool.id} />
+                <input
+                  type='checkbox'
+                  checked={selected}
+                  disabled={isStale(pool)}
+                  onChange={this._onSelect}
+                  value={pool.id}
+                />
                 &nbsp;&nbsp;
                 <Ellipsis>
                   <Text value={pool.name_label} onChange={this._setNameLabel} useLongClick />
                 </Ellipsis>
+                <StaleObjectPill object={pool} />
                 &nbsp;
                 <BulkIcons alerts={this._getAlerts()} />
                 &nbsp;

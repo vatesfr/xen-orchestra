@@ -16,6 +16,7 @@ import Pagination from 'pagination'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Shortcuts from 'shortcuts'
+import { isStale } from 'stale-object'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
@@ -566,7 +567,7 @@ export default class Home extends Component {
       (this._visibleItemsRecomputations || 0) <
       (this._visibleItemsRecomputations = this._getVisibleItems.recomputations())
     ) {
-      const newSelectedItems = pick(selectedItems, map(this._getVisibleItems(), 'id'))
+      const newSelectedItems = pick(selectedItems, map(this._getSelectableItems(), 'id'))
       if (size(newSelectedItems) < this._getNumberOfSelectedItems()) {
         this.setState({ selectedItems: newSelectedItems })
       }
@@ -781,6 +782,9 @@ export default class Home extends Component {
     () => this.state.homeItemsPerPage
   )
 
+  // the objects of a disconnected pool cannot be acted upon
+  _getSelectableItems = createSelector(this._getVisibleItems, items => filter(items, item => !isStale(item)))
+
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
 
   _onPageSelection = page => {
@@ -882,14 +886,15 @@ export default class Home extends Component {
 
   _getIsAllSelected = createSelector(
     () => this.state.selectedItems,
-    this._getVisibleItems,
-    (selectedItems, visibleItems) => size(visibleItems) > 0 && size(filter(selectedItems)) === size(visibleItems)
+    this._getSelectableItems,
+    (selectedItems, selectableItems) =>
+      size(selectableItems) > 0 && size(filter(selectedItems)) === size(selectableItems)
   )
   _getIsSomeSelected = createSelector(() => this.state.selectedItems, some)
   _toggleMaster = () => {
     const selectedItems = {}
     if (!this._getIsAllSelected()) {
-      forEach(this._getVisibleItems(), ({ id }) => {
+      forEach(this._getSelectableItems(), ({ id }) => {
         selectedItems[id] = true
       })
     }
@@ -928,7 +933,11 @@ export default class Home extends Component {
           })
           break
         case 'SELECT': {
-          const itemId = items[this.state.highlighted].id
+          const item = items[this.state.highlighted]
+          if (isStale(item)) {
+            break
+          }
+          const itemId = item.id
           this.setState({
             selectedItems: {
               ...this.state.selectedItems,
