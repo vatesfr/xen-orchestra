@@ -78,3 +78,11 @@ export function findCardNumbers(wrapper: QueryableWrapper): [string, string][] {
 
   return cards.map(card => [card.get('.label').text(), card.get('.values').text()])
 }
+
+/**
+ * Reads every `UiTabItem` of a mounted header, in order — each one rendered by a
+ * `RouterLink`, so its `href` and `active` class are addressable.
+ */
+export function findTabs(wrapper: QueryableWrapper) {
+  return wrapper.findAll('.ui-tab-item')
+}

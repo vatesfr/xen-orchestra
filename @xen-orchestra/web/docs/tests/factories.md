@@ -2,19 +2,21 @@
 
 Domain objects are created through factories in `src/test/`, one per object type:
 
-| Factory            | Builds              |
-| ------------------ | ------------------- |
-| `createVm`         | `FrontXoVm`         |
-| `createHost`       | `FrontXoHost`       |
-| `createServer`     | `FrontXoServer`     |
-| `createPool`       | `FrontXoPool`       |
-| `createSr`         | `FrontXoSr`         |
-| `createVbd`        | `FrontXoVbd`        |
-| `createVdi`        | `FrontXoVdi`        |
-| `createVmSnapshot` | `FrontXoVmSnapshot` |
-| `createHostStats`  | `XapiHostStats`     |
-| `createVmStats`    | `XapiVmStats`       |
-| `createPoolStats`  | `XapiPoolStats`     |
+| Factory             | Builds               |
+| ------------------- | -------------------- |
+| `createVm`          | `FrontXoVm`          |
+| `createHost`        | `FrontXoHost`        |
+| `createServer`      | `FrontXoServer`      |
+| `createPool`        | `FrontXoPool`        |
+| `createSr`          | `FrontXoSr`          |
+| `createPbd`         | `FrontXoPbd`         |
+| `createVbd`         | `FrontXoVbd`         |
+| `createVdi`         | `FrontXoVdi`         |
+| `createVdiSnapshot` | `FrontXoVdiSnapshot` |
+| `createVmSnapshot`  | `FrontXoVmSnapshot`  |
+| `createHostStats`   | `XapiHostStats`      |
+| `createVmStats`     | `XapiVmStats`        |
+| `createPoolStats`   | `XapiPoolStats`      |
 
 `createPoolStats` composes `createHostStats`, since pool stats are one entry per host: pass a `Partial<XapiHostStats>` per host id, or an `{ error }` entry for a host whose stats the pool could not fetch.
 

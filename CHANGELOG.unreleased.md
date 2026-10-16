@@ -22,6 +22,7 @@
 - [Pool] Add validation to the pool connection form (PR [#10484](https://github.com/vatesfr/xen-orchestra/pull/10484))
 - [XO6] All objects displayed in the UI are now updated in real time, except backup logs and backup archives which are still refreshed every 30 seconds (PR [#10450](https://github.com/vatesfr/xen-orchestra/pull/10450))
 - [REST API] Event subscriptions (`/rest/v0/events`) now support `authentication_token`: each user only receives events about their own tokens (PR [#10450](https://github.com/vatesfr/xen-orchestra/pull/10450))
+- [XO6/SR] Add VDIs tab to the dedicated Storage Repository page (PR [#10142](https://github.com/vatesfr/xen-orchestra/pull/10142))
 - [Side panels] Harmonize card titles across side panels (PR [#10289](https://github.com/vatesfr/xen-orchestra/pull/10289))
 - [Host] Add a condition to disable the detached action when the host is not running (PR [#10543](https://github.com/vatesfr/xen-orchestra/pull/10543))
 - [Treeview] Press Ctrl+K (Cmd+K on macOS) to focus the treeview search (PR [#10492](https://github.com/vatesfr/xen-orchestra/pull/10492))

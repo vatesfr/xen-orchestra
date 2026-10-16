@@ -4,63 +4,76 @@
       {{ t('configuration') }}
     </UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('format')" :value="displayedVdi?.image_format" />
-      <VtsTabularKeyValueRow :label="t('storage')">
-        <template v-if="sr" #value>
-          <UiLink
-            size="small"
-            :href="srHref"
-            :icon="srStatusIcon"
-            :is-primary="isDefaultSr(sr)"
-            :primary-tooltip="t('default-storage-repository')"
-          >
-            {{ sr.name_label }}
-          </UiLink>
-        </template>
-      </VtsTabularKeyValueRow>
-      <VtsTabularKeyValueRow v-if="vdi" :label="t('change-block-tracking')">
-        <template v-if="displayedVdi" #value>
-          <VtsStatus :status="displayedVdi.cbt_enabled ? 'enabled' : 'disabled'" />
-        </template>
-      </VtsTabularKeyValueRow>
-      <VtsTabularKeyValueRow v-if="vdi" :label="t('operation:snapshot')">
+      <VtsTabularKeyValueRow :label="t('format')" :value="format" />
+      <VtsTabularKeyValueRow v-if="isFromSr" :label="t('vms')">
         <template #value>
-          <VtsStatus :status="isSnapshottingEnabled ? 'enabled' : 'disabled'" />
+          <VmLinkList :vms />
         </template>
       </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow v-else :label="t('storage')">
+        <template v-if="sr" #value>
+          <SrLink :sr />
+        </template>
+      </VtsTabularKeyValueRow>
+      <template v-if="isFromVm">
+        <VtsTabularKeyValueRow :label="t('read-only')">
+          <template #value>
+            <VtsStatus :status="isReadOnly" />
+          </template>
+        </VtsTabularKeyValueRow>
+        <VtsTabularKeyValueRow :label="t('bootable')">
+          <template #value>
+            <VtsStatus :status="isBootable" />
+          </template>
+        </VtsTabularKeyValueRow>
+      </template>
+      <template v-if="vdi">
+        <VtsTabularKeyValueRow :label="t('change-block-tracking')">
+          <template #value>
+            <VtsStatus :status="isCbtEnabled" />
+          </template>
+        </VtsTabularKeyValueRow>
+        <VtsTabularKeyValueRow :label="t('operation:snapshot')">
+          <template #value>
+            <VtsStatus :status="isSnapshottingEnabled" />
+          </template>
+        </VtsTabularKeyValueRow>
+      </template>
     </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
-import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import SrLink from '@/modules/storage-repository/components/SrLink.vue'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { useVdiConfiguration } from '@/modules/vdi/composables/use-vdi-configuration.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import VmLinkList from '@/modules/vm/components/VmLinkList.vue'
+import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdi, vdiSnapshot } = defineProps<{ vdi?: FrontXoVdi; vdiSnapshot?: FrontXoVdiSnapshot }>()
+const { vdi, vdiSnapshot, vbd, fromContext } = defineProps<{
+  vdi?: FrontXoVdi
+  vdiSnapshot?: FrontXoVdiSnapshot
+  vbd?: FrontXoVbd
+  fromContext?: VdiPageContext
+}>()
 
 const { t } = useI18n()
 
-const { useGetSrById, isDefaultSr } = useXoSrCollection()
-const { buildXo5Route } = useXoRoutes()
+const { sr, vms, format, isReadOnly, isBootable, isCbtEnabled, isSnapshottingEnabled } = useVdiConfiguration(
+  () => vdi ?? vdiSnapshot,
+  () => vbd
+)
 
-const displayedVdi = computed(() => vdi ?? vdiSnapshot)
+const isFromSr = computed(() => fromContext === VDI_PAGE_CONTEXT.SR)
 
-const sr = useGetSrById(() => displayedVdi.value?.$SR)
-
-const { srStatusIcon } = useXoSrUtils(sr)
-
-const srHref = computed(() => (sr.value ? buildXo5Route(`/srs/${sr.value.id}/general`) : undefined))
-
-const isSnapshottingEnabled = computed(() => (displayedVdi.value ? !displayedVdi.value.tags.includes('NOSNAP') : false))
+const isFromVm = computed(() => fromContext === VDI_PAGE_CONTEXT.VM)
 </script>
