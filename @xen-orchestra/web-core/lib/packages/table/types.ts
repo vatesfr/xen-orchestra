@@ -7,4 +7,6 @@ export type ColumnRenderer<THeadArgs extends any[], TBodyArgs extends any[]> = {
 
 export type Columns = Record<string, ColumnRenderer<any, any>>
 
+export type ColumnSortDirection = 'asc' | 'desc'
+
 export type AreAllPropertiesOptional<T> = Record<string, never> extends T ? true : false

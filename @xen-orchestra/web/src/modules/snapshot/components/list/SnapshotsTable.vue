@@ -58,6 +58,9 @@ import { usePagination } from '@xen-orchestra/web-core/composables/pagination.co
 import { useRouteQuery } from '@xen-orchestra/web-core/composables/route-query.composable.ts'
 import { useTableState } from '@xen-orchestra/web-core/composables/table-state.composable.ts'
 import { useSnapshotColumns } from '@xen-orchestra/web-core/tables/column-sets/snapshot-columns.ts'
+import { compareStrings } from '@xen-orchestra/web-core/utils/compare-strings.util.ts'
+import { sortByNameDescription } from '@xen-orchestra/web-core/utils/sort-by-name-description.util.ts'
+import { sortByNameLabel } from '@xen-orchestra/web-core/utils/sort-by-name-label.util.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -92,12 +95,10 @@ const filteredSnapshots = computed(() => {
   )
 })
 
-const sortedSnapshots = useSorted(
+const defaultSortedSnapshots = useSorted(
   filteredSnapshots,
   (snapshot1, snapshot2) => snapshot2.snapshot_time - snapshot1.snapshot_time
 )
-
-const { pageRecords: paginatedSnapshots, paginationBindings } = usePagination('snapshots', sortedSnapshots)
 
 const state = useTableState({
   busy: !areSnapshotsReady,
@@ -110,7 +111,7 @@ const state = useTableState({
         : false,
 })
 
-const { HeadCells, BodyCells } = useSnapshotColumns({
+const { HeadCells, BodyCells, sortItems } = useSnapshotColumns({
   body: (snapshot: FrontXoVmSnapshot) => {
     const { deleteVmSnapshots, canDeleteVmSnapshots, isDeletingVmSnapshots } = useVmSnapshotDelete(() => [snapshot])
 
@@ -149,7 +150,18 @@ const { HeadCells, BodyCells } = useSnapshotColumns({
         }),
     }
   },
+  sort: {
+    name: sortByNameLabel,
+    description: sortByNameDescription,
+    creationDate: (snapshot1, snapshot2) => snapshot1.snapshot_time - snapshot2.snapshot_time,
+    trigger: (snapshot1, snapshot2) =>
+      compareStrings(getSnapshotTrigger(snapshot1).label, getSnapshotTrigger(snapshot2).label),
+  },
 })
+
+const sortedSnapshots = computed(() => sortItems(defaultSortedSnapshots.value))
+
+const { pageRecords: paginatedSnapshots, paginationBindings } = usePagination('snapshots', sortedSnapshots)
 </script>
 
 <style scoped lang="postcss">

@@ -75,7 +75,9 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 import { useVmColumns } from '@core/tables/column-sets/vm-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { useArrayFilter } from '@vueuse/shared'
@@ -126,15 +128,6 @@ const filteredVms = useArrayFilter(
 
 const filteredAndSortedVms = useSorted(filteredVms, (vm1, vm2) => compareFn.value(vm1, vm2))
 
-const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', filteredAndSortedVms)
-
-const { selected: selectedVmsRefs, areAllSelected: areAllVmsSelected } = useMultiSelect(
-  computed(() => vms.map(vm => vm.$ref)),
-  computed(() => paginatedVms.value.map(vm => vm.$ref))
-)
-
-titleStore.setCount(() => selectedVmsRefs.value.length)
-
 const state = useTableState({
   busy: () => busy,
   error: () => error,
@@ -142,23 +135,26 @@ const state = useTableState({
     vms.length === 0 ? t('no-vm-detected') : filteredVms.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const { HeadCells, BodyCells } = useVmColumns({
+const getIpAddresses = (vm: XenApiVm) => [
+  ...new Set(Object.values(getGuestMetrics(vm.guest_metrics)?.networks ?? {}).sort()),
+]
+
+const getVcpus = (vm: XenApiVm) => getVmMetrics(vm.metrics)?.VCPUs_number ?? vm.VCPUs_at_startup
+
+const getDiskSpace = (vm: XenApiVm) =>
+  getVdis(
+    getVbds(vm.VBDs)
+      .filter(vbd => vbd.type === 'Disk')
+      .map(vbd => vbd.VDI)
+  ).reduce((total, vdi) => total + (vdi.virtual_size ?? 0), 0)
+
+const { HeadCells, BodyCells, sortItems } = useVmColumns({
   exclude: ['actions', 'checkbox'],
   body: (vm: XenApiVm) => {
-    const guestMetrics = computed(() => getGuestMetrics(vm.guest_metrics))
-    const vmMetrics = computed(() => getVmMetrics(vm.metrics))
-    const ips = computed(() => [...new Set(Object.values(guestMetrics.value?.networks ?? {}).sort())])
+    const ips = computed(() => getIpAddresses(vm))
     const ram = computed(() => formatSizeRaw(vm.memory_dynamic_max, 0))
-    const vcpus = computed(() => vmMetrics.value?.VCPUs_number ?? vm.VCPUs_at_startup)
-    const vbds = computed(() => getVbds(vm.VBDs).filter(vbd => vbd.type === 'Disk'))
-    const vdis = computed(() => getVdis(vbds.value.map(vbd => vbd.VDI)))
-
-    const diskSpace = computed(() =>
-      formatSizeRaw(
-        vdis.value.reduce((total, vdi) => total + (vdi.virtual_size ?? 0), 0),
-        1
-      )
-    )
+    const vcpus = computed(() => getVcpus(vm))
+    const diskSpace = computed(() => formatSizeRaw(getDiskSpace(vm), 1))
 
     return {
       vm: r =>
@@ -170,7 +166,25 @@ const { HeadCells, BodyCells } = useVmColumns({
       tags: r => r(vm.tags),
     }
   },
+  sort: {
+    vm: sortByNameLabel,
+    ipAddresses: (vm1, vm2) => compareStrings(getIpAddresses(vm1)[0] ?? '', getIpAddresses(vm2)[0] ?? ''),
+    vcpus: (vm1, vm2) => getVcpus(vm1) - getVcpus(vm2),
+    ram: (vm1, vm2) => vm1.memory_dynamic_max - vm2.memory_dynamic_max,
+    diskSpace: (vm1, vm2) => getDiskSpace(vm1) - getDiskSpace(vm2),
+  },
 })
+
+const sortedVms = computed(() => sortItems(filteredAndSortedVms.value))
+
+const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', sortedVms)
+
+const { selected: selectedVmsRefs, areAllSelected: areAllVmsSelected } = useMultiSelect(
+  computed(() => vms.map(vm => vm.$ref)),
+  computed(() => paginatedVms.value.map(vm => vm.$ref))
+)
+
+titleStore.setCount(() => selectedVmsRefs.value.length)
 </script>
 
 <style lang="postcss" scoped>

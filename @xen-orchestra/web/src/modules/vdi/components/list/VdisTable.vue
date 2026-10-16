@@ -32,7 +32,7 @@ import { useVdiDelete } from '@/modules/vdi/composables/use-vdi-delete.composabl
 import { useVdiExport } from '@/modules/vdi/composables/use-vdi-export.composable.ts'
 import { useVdiMigrate } from '@/modules/vdi/composables/use-vdi-migrate.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
+import { compareVdiUsages, getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -46,7 +46,10 @@ import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import { type ActionItem } from '@core/tables/column-definitions/action-column.ts'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns.ts'
 import { CONNECTION_ACTION } from '@core/types/connection.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
+import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -86,9 +89,7 @@ const state = useTableState({
     vdis.length === 0 ? t('no-vdi-detected') : filteredVdis.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const { pageRecords: paginatedVdis, paginationBindings } = usePagination('vdis', filteredVdis)
-
-const { HeadCells, BodyCells } = useVdiColumns({
+const { HeadCells, BodyCells, sortItems } = useVdiColumns({
   exclude: ['selectItem'],
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
@@ -240,7 +241,18 @@ const { HeadCells, BodyCells } = useVdiColumns({
         }),
     }
   },
+  sort: {
+    vdi: sortByNameLabel,
+    description: sortByNameDescription,
+    usedSpace: compareVdiUsages,
+    size: (vdi1, vdi2) => vdi1.size - vdi2.size,
+    format: (vdi1, vdi2) => compareStrings(getVdiFormat(vdi1.image_format), getVdiFormat(vdi2.image_format)),
+  },
 })
+
+const sortedVdis = computed(() => sortItems(filteredVdis.value))
+
+const { pageRecords: paginatedVdis, paginationBindings } = usePagination('vdis', sortedVdis)
 </script>
 
 <style scoped lang="postcss">

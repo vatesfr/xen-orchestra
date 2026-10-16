@@ -31,7 +31,11 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { objectIcon } from '@core/icons'
 import { useHostColumns } from '@core/tables/column-sets/host-columns.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
+import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { logicNot } from '@vueuse/math'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -41,15 +45,13 @@ const { isHostRunning } = useHostMetricsStore().subscribe()
 
 usePageTitleStore().setTitle(() => t('hosts'))
 
-const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', hosts)
-
 const state = useTableState({
   busy: logicNot(isReady),
   error: hasError,
   empty: () => (hosts.value.length === 0 ? t('no-host-detected') : false),
 })
 
-const { HeadCells, BodyCells } = useHostColumns({
+const { HeadCells, BodyCells, sortItems } = useHostColumns({
   exclude: ['checkbox', 'selectItem', 'srStatus'],
   body: (host: XenApiHost) => {
     const state = isHostRunning(host) ? 'running' : 'halted'
@@ -61,7 +63,16 @@ const { HeadCells, BodyCells } = useHostColumns({
       ipAddresses: r => r(host.address),
     }
   },
+  sort: {
+    host: sortByNameLabel,
+    description: sortByNameDescription,
+    ipAddresses: (host1, host2) => compareStrings(host1.address, host2.address),
+  },
 })
+
+const sortedHosts = computed(() => sortItems(hosts.value))
+
+const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', sortedHosts)
 </script>
 
 <style lang="postcss" scoped>

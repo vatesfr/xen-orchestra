@@ -37,6 +37,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -97,8 +98,6 @@ const state = useTableState({
     pifs.length === 0 ? t('no-pif-detected') : filteredPifs.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', filteredPifs)
-
 function getManagementIcon(pif: XenApiPif) {
   if (!pif.management) {
     return undefined
@@ -110,7 +109,7 @@ function getManagementIcon(pif: XenApiPif) {
   }
 }
 
-const { HeadCells, BodyCells } = usePifColumns({
+const { HeadCells, BodyCells, sortItems } = usePifColumns({
   exclude: ['actions'],
   body: (pif: XenApiPif) => {
     const name = computed(() => getNetworkName(pif.network))
@@ -131,7 +130,24 @@ const { HeadCells, BodyCells } = usePifColumns({
       selectItem: r => r(() => (selectedPifId.value = pif.uuid)),
     }
   },
+  sort: {
+    network: (pif1, pif2) => compareStrings(getNetworkName(pif1.network), getNetworkName(pif2.network)),
+    device: (pif1, pif2) => compareStrings(pif1.device, pif2.device),
+    status: (pif1, pif2) => compareStrings(t(getPifStatus(pif1)), t(getPifStatus(pif2))),
+    vlan: (pif1, pif2) => pif1.VLAN - pif2.VLAN,
+    ip: (pif1, pif2) => compareStrings(getIpAddresses(pif1)[0] ?? '', getIpAddresses(pif2)[0] ?? ''),
+    mac: (pif1, pif2) => compareStrings(pif1.MAC, pif2.MAC),
+    mode: (pif1, pif2) =>
+      compareStrings(
+        getIpConfigurationMode(pif1.ip_configuration_mode),
+        getIpConfigurationMode(pif2.ip_configuration_mode)
+      ),
+  },
 })
+
+const sortedPifs = computed(() => sortItems(filteredPifs.value))
+
+const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', sortedPifs)
 </script>
 
 <style scoped lang="postcss">

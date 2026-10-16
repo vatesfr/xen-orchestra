@@ -1,6 +1,6 @@
-import type { AreAllPropertiesOptional, Columns } from '@core/packages/table/types.ts'
+import type { AreAllPropertiesOptional, Columns, ColumnSortDirection } from '@core/packages/table/types.ts'
 import { objectOmit, toReactive } from '@vueuse/shared'
-import { type Component, computed, defineComponent, Fragment, h, ref, type Ref, type VNode } from 'vue'
+import { cloneVNode, type Component, computed, defineComponent, Fragment, h, ref, type Ref, type VNode } from 'vue'
 
 export function defineColumns<TSetupArgs extends any[], TColumns extends Columns>(
   setup: (...args: TSetupArgs) => TColumns
@@ -25,6 +25,8 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
     config: {
       exclude?: TExcludedId[]
       body: (item: TBodyItem) => Omit<TBodyRenderers, TExcludedId>
+      // Keyed by `keyof TColumns`, not excluding `TExcludedId`: depending on it breaks `TBodyItem` inference
+      sort?: { [K in keyof TColumns]?: (item1: TBodyItem, item2: TBodyItem) => number }
     } & (AreAllPropertiesOptional<Omit<THeadRenderers, TExcludedId>> extends true
       ? { head?: (item: THeadItem) => Omit<THeadRenderers, TExcludedId> }
       : { head: (item: THeadItem) => Omit<THeadRenderers, TExcludedId> }),
@@ -56,6 +58,36 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
       }
     }
 
+    const sortState = ref<{ id: $TAvailableColumnId; direction: ColumnSortDirection }>()
+
+    function toggleSort(columnId: $TAvailableColumnId) {
+      if (sortState.value?.id !== columnId) {
+        sortState.value = { id: columnId, direction: 'asc' }
+      } else if (sortState.value.direction === 'asc') {
+        sortState.value = { id: columnId, direction: 'desc' }
+      } else {
+        sortState.value = undefined
+      }
+    }
+
+    function sortItems(items: TBodyItem[]) {
+      if (sortState.value === undefined) {
+        return items
+      }
+
+      const { id, direction } = sortState.value
+
+      const compareFn = config.sort?.[id]
+
+      if (compareFn === undefined) {
+        return items
+      }
+
+      return items
+        .slice()
+        .sort((item1, item2) => (direction === 'asc' ? compareFn(item1, item2) : compareFn(item2, item1)))
+    }
+
     const HeadCells = defineComponent({
       props: {
         item: {
@@ -72,7 +104,17 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
 
             const headCellRenderer = headCellRenderers[columnId as keyof typeof headCellRenderers]
 
-            return h(Fragment, { key: columnId }, [headCellRenderer ? headCellRenderer(renderHead) : renderHead()])
+            const headCell = headCellRenderer ? headCellRenderer(renderHead) : renderHead()
+
+            return h(Fragment, { key: columnId }, [
+              config.sort?.[columnId] === undefined
+                ? headCell
+                : cloneVNode(headCell, {
+                    sortable: true,
+                    sortDirection: sortState.value?.id === columnId ? sortState.value.direction : undefined,
+                    onSort: () => toggleSort(columnId),
+                  }),
+            ])
           })
       },
     })
@@ -110,6 +152,7 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
       BodyCells: BodyCells as Component<{ item: TBodyItem }>,
       toggle,
       colspan,
+      sortItems,
     }
   }
 

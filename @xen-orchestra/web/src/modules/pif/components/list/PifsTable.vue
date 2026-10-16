@@ -40,6 +40,7 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import type { IP_CONFIGURATION_MODE } from '@vates/types'
 import { logicAnd, logicNot, logicOr } from '@vueuse/math'
 import { computed, ref } from 'vue'
@@ -54,7 +55,7 @@ defineSlots<{
 }>()
 
 const { arePifsReady, hasPifFetchError } = useXoPifCollection()
-const { useGetNetworkById, areNetworksReady, hasNetworkFetchError } = useXoNetworkCollection()
+const { getNetworkById, useGetNetworkById, areNetworksReady, hasNetworkFetchError } = useXoNetworkCollection()
 
 const isReady = logicAnd(arePifsReady, areNetworksReady)
 
@@ -97,8 +98,6 @@ const getIpConfigurationMode = (ipMode: IP_CONFIGURATION_MODE) => {
   }
 }
 
-const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', filteredPifs)
-
 function getManagementIcon(pif: FrontXoPif) {
   if (!pif.management) {
     return undefined
@@ -110,7 +109,9 @@ function getManagementIcon(pif: FrontXoPif) {
   }
 }
 
-const { HeadCells, BodyCells } = usePifColumns({
+const getNetworkName = (pif: FrontXoPif) => getNetworkById(pif.$network)?.name_label ?? ''
+
+const { HeadCells, BodyCells, sortItems } = usePifColumns({
   exclude: ['selectItem'],
   body: (pif: FrontXoPif) => {
     const status = computed(() => getPifStatus(pif))
@@ -163,7 +164,20 @@ const { HeadCells, BodyCells } = usePifColumns({
         }),
     }
   },
+  sort: {
+    network: (pif1, pif2) => compareStrings(getNetworkName(pif1), getNetworkName(pif2)),
+    device: (pif1, pif2) => compareStrings(pif1.device, pif2.device),
+    status: (pif1, pif2) => compareStrings(t(getPifStatus(pif1)), t(getPifStatus(pif2))),
+    vlan: (pif1, pif2) => pif1.vlan - pif2.vlan,
+    ip: (pif1, pif2) => compareStrings(getIpAddresses(pif1)[0] ?? '', getIpAddresses(pif2)[0] ?? ''),
+    mac: (pif1, pif2) => compareStrings(pif1.mac, pif2.mac),
+    mode: (pif1, pif2) => compareStrings(getIpConfigurationMode(pif1.mode), getIpConfigurationMode(pif2.mode)),
+  },
 })
+
+const sortedPifs = computed(() => sortItems(filteredPifs.value))
+
+const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', sortedPifs)
 </script>
 
 <style scoped lang="postcss">

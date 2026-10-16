@@ -8,6 +8,8 @@ Domain objects are created through factories in `src/test/`, one per object type
 | `createHost`       | `FrontXoHost`       |
 | `createServer`     | `FrontXoServer`     |
 | `createPool`       | `FrontXoPool`       |
+| `createNetwork`    | `FrontXoNetwork`    |
+| `createPif`        | `FrontXoPif`        |
 | `createSr`         | `FrontXoSr`         |
 | `createVbd`        | `FrontXoVbd`        |
 | `createVdi`        | `FrontXoVdi`        |

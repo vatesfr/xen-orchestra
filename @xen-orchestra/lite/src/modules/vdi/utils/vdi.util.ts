@@ -23,3 +23,11 @@ export function getVbdsForVdi(
 export function getVdiFormat(format: string | undefined): string {
   return format !== undefined ? format.toUpperCase() : 'VHD'
 }
+
+function getVdiUsageRatio(vdi: XenApiVdi) {
+  return vdi.virtual_size === 0 ? 0 : vdi.physical_utilisation / vdi.virtual_size
+}
+
+export function compareVdiUsages(vdi1: XenApiVdi, vdi2: XenApiVdi) {
+  return getVdiUsageRatio(vdi1) - getVdiUsageRatio(vdi2)
+}

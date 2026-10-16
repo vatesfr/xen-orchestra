@@ -67,6 +67,7 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useTrafficRulesColumns } from '@core/tables/column-sets/traffic-rules-columns.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
@@ -124,8 +125,6 @@ const enrichedRules = computed(() =>
 )
 const { filter, items: filteredRules } = useQueryBuilderFilter('trafficRule', () => enrichedRules.value)
 
-const { pageRecords: paginatedRules, paginationBindings } = usePagination('trafficRules', filteredRules)
-
 const schema = useQueryBuilderSchema<EnrichedTrafficRule>({
   '': useStringSchema(t('any-property')),
   allow: useBooleanSchema(t('policy'), {
@@ -150,7 +149,7 @@ const state = useTableState({
         : false,
 })
 
-const { HeadCells, BodyCells } = useTrafficRulesColumns({
+const { HeadCells, BodyCells, sortItems } = useTrafficRulesColumns({
   body: (rule: EnrichedTrafficRule) => {
     const { deleteTrafficRules, canDeleteTrafficRules, isDeletingTrafficRules, deleteTrafficRulesErrorMessage } =
       useTrafficRuleDelete(() => [rule])
@@ -189,7 +188,20 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
         }),
     }
   },
+  sort: {
+    policy: (rule1, rule2) => Number(rule1.allow) - Number(rule2.allow),
+    protocol: (rule1, rule2) =>
+      compareStrings(rule1.protocol, rule2.protocol) || Number(rule1.port ?? -1) - Number(rule2.port ?? -1),
+    directionA: (rule1, rule2) => compareStrings(rule1.directionA, rule2.directionA),
+    target: (rule1, rule2) => compareStrings(rule1.ipRange, rule2.ipRange),
+    directionB: (rule1, rule2) => compareStrings(rule1.directionB, rule2.directionB),
+    object: (rule1, rule2) => compareStrings(rule1.objectLabel, rule2.objectLabel),
+  },
 })
+
+const sortedRules = computed(() => sortItems(filteredRules.value))
+
+const { pageRecords: paginatedRules, paginationBindings } = usePagination('trafficRules', sortedRules)
 </script>
 
 <style scoped lang="postcss">
