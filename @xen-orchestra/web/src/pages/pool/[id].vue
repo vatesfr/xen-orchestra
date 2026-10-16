@@ -5,6 +5,7 @@
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
     <PoolHeader :pool />
+    <StaleObjectBanner :object="pool" />
     <component :is="Component" :pool />
   </RouterView>
 </template>
@@ -12,6 +13,7 @@
 <script lang="ts" setup>
 import PoolHeader from '@/modules/pool/components/PoolHeader.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import StaleObjectBanner from '@/shared/components/stale-object/StaleObjectBanner.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import type { XoPool } from '@vates/types'

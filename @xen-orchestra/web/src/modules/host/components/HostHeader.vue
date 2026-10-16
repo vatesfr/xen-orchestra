@@ -4,7 +4,7 @@
     <template #icon>
       <VtsIcon :name="hostIcon" :tooltip="iconTooltip" size="medium" />
     </template>
-    <template v-if="isChangingState || isMaster" #status>
+    <template v-if="isChangingState || isMaster || host.$lastSeen !== undefined" #status>
       <UiLoader
         v-if="isChangingState"
         v-tooltip="{
@@ -13,8 +13,10 @@
         }"
       />
       <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
+      <StaleObjectTag :object="host" />
     </template>
-    <template #actions>
+    <!-- actions cannot reach the pool of a stale object -->
+    <template v-if="host.$lastSeen === undefined" #actions>
       <HostHeaderActions :host />
     </template>
   </UiHeadBar>
@@ -67,6 +69,7 @@ import HostHeaderActions from '@/modules/host/components/actions/HostHeaderActio
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
+import StaleObjectTag from '@/shared/components/stale-object/StaleObjectTag.vue'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TabList from '@core/components/tab-list/TabList.vue'
