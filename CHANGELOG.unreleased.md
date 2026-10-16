@@ -52,6 +52,8 @@
 - [XO5/Host/Patches] Warn when installing patches on a host while its pool master is not up to date (PR [#10523](https://github.com/vatesfr/xen-orchestra/pull/10523))
 - [XO6] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
 - [XO6] Export VDI as vmdk (PR [#10591](https://github.com/vatesfr/xen-orchestra/pull/10591))
+- [Servers] The objects of a pool which can no longer be reached are kept and flagged as disconnected, with the last time the pool was reached, instead of disappearing. They are flagged after 30 seconds instead of 5 minutes (`xapiMarkDisconnectedDelay`), and removed after 1 hour (`xapiStaleObjectsMaxAge`) (PR [#10611](https://github.com/vatesfr/xen-orchestra/pull/10611))
+- [Servers] The time allowed to fetch the objects of a pool on connection is now set by `xapiObjectsFetchTimeout` (5 minutes), no longer by `xapiMarkDisconnectedDelay` (PR [#10611](https://github.com/vatesfr/xen-orchestra/pull/10611))
 
 ### Bug fixes
 
@@ -118,7 +120,10 @@
 - xo-cli patch
 - xo-server minor
 - xo-server-load-balancer minor
+- xo-server-netbox patch
+- xo-server-perf-alert patch
 - xo-server-sdn-controller patch
+- xo-server-usage-report patch
 - xo-web minor
 
 <!--packages-end-->

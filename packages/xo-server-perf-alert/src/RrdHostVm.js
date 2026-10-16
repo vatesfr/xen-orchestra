@@ -303,7 +303,8 @@ export class RrdHostVm extends MonitorStrategy {
      * @type {Array<XoHost>}
      */
 
-    const hosts = Object.values(this.#xo.objects.indexes.type.host ?? {})
+    // the RRDs of the stale hosts of a disconnected pool are not reachable
+    const hosts = Object.values(this.#xo.objects.indexes.type.host ?? {}).filter(host => host.$lastSeen === undefined)
     /**
      * @type {Map<XoHost['id'], Set<XoVm['id']>}
      */

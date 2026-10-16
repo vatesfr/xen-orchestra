@@ -29,6 +29,12 @@ type BaseXapiXo = {
    */
   $poolId: XoPool['id']
 
+  /**
+   * Only present while the pool is disconnected: the object is kept but may be
+   * outdated, this is the last time (in milliseconds) the pool was reached
+   */
+  $lastSeen?: number
+
   _xapiRef: string
 
   uuid: string
