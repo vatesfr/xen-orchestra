@@ -7,6 +7,7 @@ import { Disposable, pFromCallback, TimeoutError } from 'promise-toolbox'
 import { getSyncedHandler } from '.'
 import { rimraf } from 'rimraf'
 import AbstractHandler from './abstract'
+import LocalHandler from './local'
 import fs from 'fs-extra'
 import tmp from 'tmp'
 
@@ -135,24 +136,31 @@ describe('unresponsive remote', () => {
   let pendingResult
 
   // unlike TestHandler, keeps the default retry configuration
-  class UnresponsiveHandler extends AbstractHandler {
-    constructor() {
-      super({ url: 'test://' }, { timeout: TIMEOUT })
-      Object.defineProperty(this, 'isEncrypted', {
-        get: () => false,
-      })
+  const withUnresponsiveOperations = Base =>
+    class extends Base {
+      constructor() {
+        super({ url: 'test://' }, { timeout: TIMEOUT })
+        Object.defineProperty(this, 'isEncrypted', {
+          get: () => false,
+        })
+      }
+
+      _list() {
+        nCalls++
+        return pendingResult
+      }
+
+      _openFile() {
+        nCalls++
+        return pendingResult
+      }
     }
 
-    _list() {
-      nCalls++
-      return pendingResult
-    }
+  // fs-backed (local, NFS, SMB): a pending operation holds a libuv thread
+  const UnresponsiveHandler = withUnresponsiveOperations(LocalHandler)
 
-    _openFile() {
-      nCalls++
-      return pendingResult
-    }
-  }
+  // HTTP-backed (S3, Azure): a pending operation holds no libuv thread, the behavior must not change
+  const UnresponsiveHttpHandler = withUnresponsiveOperations(AbstractHandler)
 
   const trackSettlement = promise => {
     const state = { settled: false }
@@ -224,6 +232,30 @@ describe('unresponsive remote', () => {
 
     assert.equal(nCalls, nCallsBefore + 1)
     assert.deepEqual(state.value, ['file'])
+  })
+
+  it('still retries an operation which timed out on a non fs-backed remote', async () => {
+    const handler = new UnresponsiveHttpHandler()
+
+    trackSettlement(handler.list('dir'))
+    // enough time for the first retry delay
+    await clock.tickAsync(TIMEOUT + 10e3)
+
+    assert.equal(nCalls, 2)
+  })
+
+  it('does not reject new operations while a timed out one is pending on a non fs-backed remote', async () => {
+    const handler = new UnresponsiveHttpHandler()
+
+    trackSettlement(handler.list('dir'))
+    await clock.tickAsync(TIMEOUT)
+    const nCallsAfterTimeout = nCalls
+
+    const state = trackSettlement(handler.list('other-dir'))
+    await clock.tickAsync(0)
+
+    assert.equal(nCalls, nCallsAfterTimeout + 1, 'the new call must reach the remote')
+    assert.equal(state.settled, false)
   })
 })
 
