@@ -51,6 +51,22 @@ function dontAddSyncStackTrace(fn, ...args) {
   return fn.apply(this, args)
 }
 
+// writes the buffers one after the other with writev: no need to concatenate them
+// libuv already resumes the partial writes, a short count means the write stopped (like a full disk)
+// fs-extra goes through graceful-fs: an EMFILE on open is queued, like with fs.writeFile
+async function writeBuffers(path, buffers, flags) {
+  const fd = await fs.open(path, flags)
+  try {
+    const length = buffers.reduce((sum, buffer) => sum + buffer.length, 0)
+    const { bytesWritten } = await fs.writev(fd, buffers, 0)
+    if (bytesWritten !== length) {
+      throw new Error(`incomplete write of ${path}: ${bytesWritten} of ${length} bytes`)
+    }
+  } finally {
+    await fs.close(fd)
+  }
+}
+
 export default class LocalHandler extends RemoteHandlerAbstract {
   #addSyncStackTrace
   #retriesOnEagain
@@ -250,6 +266,13 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   _writeFile(file, data, { flags }) {
+    if (Array.isArray(data)) {
+      return this.#addSyncStackTrace(writeBuffers, this.getFilePath(file), data, flags)
+    }
     return this.#addSyncStackTrace(fs.writeFile, this.getFilePath(file), data, { flag: flags })
+  }
+
+  get _writesBufferArrays() {
+    return true
   }
 }
