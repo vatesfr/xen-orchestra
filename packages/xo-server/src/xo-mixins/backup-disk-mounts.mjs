@@ -46,6 +46,22 @@ const wrapProxyError = (error, proxyId) =>
     : error
 
 /**
+ * Whether a proxy refused a call because of one of these params: its API rejects any param it does
+ * not declare, which is what an older proxy answers to a param added since. Any other invalid
+ * parameter is a mistake of the caller, and says nothing about the proxy's version.
+ *
+ * @param {unknown} error
+ * @param {readonly string[]} names
+ * @returns {boolean}
+ */
+export const rejectsUnknownParams = (error, names) =>
+  invalidParameters.is(error) &&
+  // the proxy reports Ajv's validation errors as is
+  error.data?.errors?.some(
+    ({ keyword, params }) => keyword === 'additionalProperties' && names.includes(params?.additionalProperty)
+  ) === true
+
+/**
  * Connection options of the pool holding an object, as a proxy expects them.
  *
  * @param {XoApp} app
