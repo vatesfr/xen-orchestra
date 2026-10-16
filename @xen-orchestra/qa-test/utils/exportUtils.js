@@ -1,5 +1,4 @@
 import { createLogger } from '@xen-orchestra/log'
-import assert from 'node:assert'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { waitUntil, assertNonEmptyString } from './index.js'
@@ -19,30 +18,6 @@ export const VHD_MAGIC = Buffer.from('conectix')
  * @constant {number}
  */
 export const VHD_FOOTER_SIZE = 512
-
-/**
- * Largest VDI that can be exported as VHD, bigger ones are rejected with a 422.
- * Same value as VHD_MAX_SIZE in @xen-orchestra/xapi.
- * @constant {number}
- */
-export const VHD_MAX_SIZE = 2 * 1024 * 1024 * 1024 * 1024 /* 2TB */ - 8 * 1024 /* metadata */
-
-/**
- * Returns the first VDI that can be exported as VHD.
- * The VM can also have disks over 2TB (qcow2), which can't be exported as VHD.
- *
- * @param {Array<{uuid: string, name_label: string, virtual_size: number}>} vdis - VDIs from getVdisForVm
- * @returns {{uuid: string, name_label: string, virtual_size: number}} The VDI to export
- * @throws {assert.AssertionError} If no VDI is small enough
- */
-export function findVhdExportableVdi(vdis) {
-  const vdi = vdis.find(vdi => vdi.virtual_size <= VHD_MAX_SIZE)
-  assert.ok(
-    vdi !== undefined,
-    `VM should have at least one VDI of at most ${formatBytes(VHD_MAX_SIZE)} to be exported as VHD, got ${vdis.length} VDIs`
-  )
-  return vdi
-}
 
 /**
  * Generates a unique export file name with timestamp.
