@@ -659,7 +659,8 @@ async function computeEvolution({ storedStatsPath, ...newStats }) {
 }
 
 async function dataBuilder({ currDate, periodicity, xo, storedStatsPath, all }) {
-  const xoObjects = values(xo.getObjects())
+  // objects of disconnected pools are kept by XO but their stats are not reachable
+  const xoObjects = values(xo.getObjects()).filter(object => object.$lastSeen === undefined)
   const runningVms = filter(xoObjects, { type: 'VM', power_state: 'Running' })
   const haltedVms = filter(xoObjects, { type: 'VM', power_state: 'Halted' })
   const runningHosts = filter(xoObjects, {

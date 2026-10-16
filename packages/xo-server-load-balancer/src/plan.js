@@ -258,6 +258,8 @@ export default class Plan {
       this.xo.getObjects(),
       object =>
         object.type === 'host' &&
+        // stale objects of a disconnected pool cannot be acted upon
+        object.$lastSeen === undefined &&
         includes(this._poolIds, object.$poolId) &&
         object.power_state === powerState &&
         !includes(this._excludedHosts, object.id) &&
@@ -270,6 +272,7 @@ export default class Plan {
       this.xo.getObjects(),
       object =>
         object.type === 'VM' &&
+        object.$lastSeen === undefined &&
         object.power_state === 'Running' &&
         !object.tags.some(tag => this._globalOptions.ignoredVmTags.has(tag))
     )
