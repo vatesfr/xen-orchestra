@@ -487,6 +487,7 @@ export default class Xo extends EventEmitter {
       },
       {
         concurrency: 10,
+        stopOnError: false,
       }
     )
   }
