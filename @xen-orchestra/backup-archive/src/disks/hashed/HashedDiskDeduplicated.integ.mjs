@@ -10,6 +10,8 @@ import { rimraf } from 'rimraf'
 
 import { MergeRemoteDisk } from '@xen-orchestra/backup-archive/disks'
 import { HashedDiskDeduplicated } from '@xen-orchestra/backup-archive/disks/hashed'
+// not exported by the package: built by the `test-integration` script
+import { RemoteDiskLineage } from '../../../dist/RemoteDiskLineage.mjs'
 
 const BLOCK_SIZE = 2 * 1024 * 1024
 const BLOCK_COUNT = 100
@@ -200,6 +202,103 @@ test('MergeRemoteDisk resumes a hashed merge interrupted before the parent was f
     // second run: fresh disks, restarts from the saved block and skips the ones before
     const resumed = new MergeRemoteDisk(handler, { removeUnused: true })
     await resumed.merge(await openDisk(handler, PARENT.path), await openDisk(handler, CHILD.path))
+
+    await assertMerged(handler, tempDir)
+  })
+})
+
+// ---------------------------------------------------------------- merge through RemoteDiskLineage
+
+// what a backup cleanup does: the lineage opens the merge child with openDiskChain, so the
+// child is a HashedDiskChain, never a bare disk
+const GRANDCHILD = { path: `${VDI_DIR}/20260816T120000000Z.hbd`, uuid: 'e2a7c5b1-9d34-4f6e-8b02-5c1d7a9e3f48' }
+const grandchildContent = index => (index === 1 ? Buffer.alloc(BLOCK_SIZE, 0xc1) : childContent(index))
+
+async function addGrandchild(handler) {
+  const grandchild = await HashedDiskDeduplicated.create({
+    handler,
+    ...GRANDCHILD,
+    virtualSize: BLOCK_SIZE * MERGE_BLOCKS,
+    blockSize: BLOCK_SIZE,
+    dedupType: 'PER_BACKUP_REPOSITORY',
+    blockStorePath: STORE,
+    parentUuid: CHILD.uuid,
+    parentPath: './20260815T120000000Z.hbd',
+  })
+  await grandchild.writeBlock({ index: 1, data: grandchildContent(1) })
+  await grandchild.close()
+}
+
+const LINEAGE_OPTS = { remove: true, merge: true, logInfo: () => {}, logWarn: () => {} }
+
+// only `activePath` is still referenced by a backup: every older disk is merged into it
+async function cleanLineage(handler, activePath, opts = {}) {
+  const lineage = new RemoteDiskLineage(handler, VDI_DIR, { ...LINEAGE_OPTS, ...opts })
+  await lineage.init()
+  lineage.addActiveDiskPath(activePath)
+  return lineage.clean()
+}
+
+test('RemoteDiskLineage merges a chain of 2 hbd disks', async () => {
+  await withRemote(async (handler, tempDir) => {
+    await createChain(handler)
+
+    const { merge } = await cleanLineage(handler, CHILD.path)
+
+    assert.equal(merge, true)
+    await assertMerged(handler, tempDir)
+  })
+})
+
+test('RemoteDiskLineage merges a chain of 3 hbd disks', async () => {
+  await withRemote(async handler => {
+    await createChain(handler)
+    await addGrandchild(handler)
+
+    await cleanLineage(handler, GRANDCHILD.path)
+
+    assert.deepEqual(
+      (await handler.list(VDI_DIR)).filter(name => name.endsWith('.hbd')),
+      ['20260816T120000000Z.hbd'],
+      'only the active disk is left'
+    )
+    const merged = await openDisk(handler, GRANDCHILD.path)
+    assert.equal(merged.getUuid(), GRANDCHILD.uuid)
+    assert.equal(merged.isDifferencing(), false)
+    for (let index = 0; index < MERGE_BLOCKS; index++) {
+      assert.ok((await merged.readBlock(index)).data.equals(grandchildContent(index)), `block ${index} differs`)
+    }
+    // the store only holds what the merged disk still references
+    const referenced = new Set(merged.getBlockIndexes().map(index => merged.getBlockHashAt(index)))
+    assert.equal((await listFiles(handler, STORE)).length, referenced.size)
+  })
+})
+
+test('RemoteDiskLineage resumes an interrupted merge of a hbd chain', async () => {
+  await withRemote(async (handler, tempDir) => {
+    await createChain(handler)
+
+    // first run: dies on the 4th block, like a killed process
+    const { mergeBlock } = HashedDiskDeduplicated.prototype
+    let calls = 0
+    HashedDiskDeduplicated.prototype.mergeBlock = function (...args) {
+      if (++calls === 4) {
+        throw new Error('crash')
+      }
+      return mergeBlock.apply(this, args)
+    }
+    try {
+      await assert.rejects(() => cleanLineage(handler, CHILD.path, { mergeBlockConcurrency: 1 }), /crash/)
+    } finally {
+      HashedDiskDeduplicated.prototype.mergeBlock = mergeBlock
+    }
+    assert.ok(
+      (await listFiles(handler, VDI_DIR)).some(file => file.endsWith('.merge.json')),
+      'the merge state is kept'
+    )
+
+    // second run: a fresh lineage finds the merge state and resumes it
+    await cleanLineage(handler, CHILD.path)
 
     await assertMerged(handler, tempDir)
   })
