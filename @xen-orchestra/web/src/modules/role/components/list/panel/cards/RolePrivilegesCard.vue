@@ -15,46 +15,7 @@
     <UiCollapsibleList v-else-if="privileges.length > 0" tag="div" :total-items="privileges.length">
       <div v-for="(privilege, index) of privileges" :key="privilege.id" class="privilege">
         <UiPanelCardTitle size="small" :label="t('privilege-number', { n: index + 1 })" />
-        <div class="rows">
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('privilege') }}</template>
-            <template #value>{{ privilege.id }}</template>
-            <template #addons>
-              <VtsCopyButton :value="privilege.id" />
-            </template>
-          </VtsCardRowKeyValue>
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('privilege:resource') }}</template>
-            <template #value>{{ privilege.resource }}</template>
-            <template #addons>
-              <VtsCopyButton :value="privilege.resource" />
-            </template>
-          </VtsCardRowKeyValue>
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('privilege:selector') }}</template>
-            <template #value>{{ privilege.selector }}</template>
-            <template v-if="privilege.selector" #addons>
-              <VtsCopyButton :value="privilege.selector" />
-            </template>
-          </VtsCardRowKeyValue>
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('privilege:action') }}</template>
-            <template #value>{{ privilege.action }}</template>
-            <template #addons>
-              <VtsCopyButton :value="privilege.action" />
-            </template>
-          </VtsCardRowKeyValue>
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('privilege:effect') }}</template>
-            <template #value>
-              <UiTagsList>
-                <UiTag :accent="EFFECT_ACCENTS[privilege.effect]" variant="secondary">
-                  {{ t(privilege.effect) }}
-                </UiTag>
-              </UiTagsList>
-            </template>
-          </VtsCardRowKeyValue>
-        </div>
+        <PrivilegeDetailsRows :privilege />
       </div>
     </UiCollapsibleList>
 
@@ -65,17 +26,13 @@
 </template>
 
 <script lang="ts" setup>
+import PrivilegeDetailsRows from '@/modules/role/components/privilege/PrivilegeDetailsRows.vue'
 import type { FrontXoRole } from '@/modules/role/remote-resources/use-xo-role-collection.ts'
 import { useXoRolePrivilegesCollection } from '@/modules/role/remote-resources/use-xo-role-privileges-collection.ts'
-import { EFFECT_ACCENTS } from '@/modules/role/utils/xo-privilege.util.ts'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
-import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useI18n } from 'vue-i18n'
 
 const { role } = defineProps<{
@@ -99,12 +56,6 @@ const { privileges, arePrivilegesReady, hasPrivilegeFetchError } = useXoRolePriv
     &:last-child {
       padding-block-end: 0;
       border-block-end: none;
-    }
-
-    .rows {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
     }
   }
 }
