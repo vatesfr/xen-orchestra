@@ -157,11 +157,7 @@ export class PluginController extends XoController<XoPlugin> {
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deletePluginConfiguration(@Path() id: string): Promise<void> {
-    const pluginId = id as XoPlugin['id']
-
-    // `purgePluginConfiguration` does not fail on unknown plugins
-    await this.getObject(pluginId)
-    await this.restApi.xoApp.purgePluginConfiguration(pluginId)
+    await this.restApi.xoApp.purgePluginConfiguration(id as XoPlugin['id'])
   }
 
   /**
