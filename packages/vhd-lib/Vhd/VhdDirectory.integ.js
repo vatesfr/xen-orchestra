@@ -99,7 +99,11 @@ describe('VhdDirectory', async () => {
         for await (const block of vhd.blocks()) {
           await compressedVhd.writeEntireBlock(block)
         }
-        await Promise.all[
+        await Promise.all([
+            await compressedVhd.writeHeader(),
+            await compressedVhd.writeFooter(),
+            await compressedVhd.writeBlockAllocationTable()
+        ])
           (await compressedVhd.writeHeader(),
           await compressedVhd.writeFooter(),
           await compressedVhd.writeBlockAllocationTable())
