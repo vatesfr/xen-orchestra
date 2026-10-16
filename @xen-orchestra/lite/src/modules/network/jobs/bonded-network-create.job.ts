@@ -24,6 +24,7 @@ export const useBondedNetworkCreateJob = defineJob('bonded-network.create', [pay
         pifRefs: payload.pifRefs,
         bondMode: payload.bondMode,
         nbd: payload.nbd,
+        insecureNbd: payload.insecureNbd,
       })
 
       return xapi.getField<XenApiNetwork['uuid']>('network', networkRef, 'uuid')

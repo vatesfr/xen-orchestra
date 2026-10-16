@@ -106,6 +106,14 @@ export function useMultiStepValidatedForm<
     }
   }
 
+  function backTo(stepName: keyof TSteps & string): void {
+    const stepIndex = stepKeys.indexOf(stepName)
+
+    if (stepIndex < currentStepIndex.value) {
+      currentStepIndex.value = stepIndex
+    }
+  }
+
   function resolveStepFromField<K extends FlatKeys<TData>>(key: K): keyof TData & string {
     const stepKey = fieldToStep.get(key)
 
@@ -190,6 +198,7 @@ export function useMultiStepValidatedForm<
     currentStep,
     next,
     back,
+    backTo,
     isStepValid,
     areAllStepsValid,
     isValidating,

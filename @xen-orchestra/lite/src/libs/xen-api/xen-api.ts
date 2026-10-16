@@ -96,7 +96,7 @@ export default class XenApi {
     { abortSignal, host, query }: { abortSignal?: AbortSignal; host: XenApiHost; query: any }
   ) {
     const url = new URL('http://localhost')
-    url.protocol = window.location.protocol
+    url.protocol = new URL(this._hostUrl).protocol
     url.hostname = ipToHostname(host.address)
     url.pathname = pathname
     url.search = new URLSearchParams({

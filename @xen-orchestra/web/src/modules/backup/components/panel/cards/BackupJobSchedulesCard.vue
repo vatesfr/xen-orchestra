@@ -1,9 +1,6 @@
 <template>
   <UiPanelCard class="backup-job-schedules-card">
-    <UiCardTitle>
-      {{ t('schedules') }}
-      <UiCounter :value="backupJobSchedules.length" accent="neutral" size="small" variant="primary" />
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('schedules')" :counter="backupJobSchedules.length" />
     <div class="content">
       <template v-for="(schedule, index) in backupJobSchedules" :key="schedule.id">
         <VtsDivider v-if="index > 0" class="divider" type="stretch" />
@@ -67,10 +64,9 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJobSchedules } = defineProps<{

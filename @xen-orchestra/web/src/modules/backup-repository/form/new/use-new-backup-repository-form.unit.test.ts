@@ -1,6 +1,6 @@
 import { NFS_DEFAULT_PORT } from '@/modules/backup-repository/form/details/use-nfs-backup-repository-details-form.ts'
 import { SMB_DEFAULT_DOMAIN } from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
-import { useNewBackupRepositoryForm } from '@/modules/backup-repository/form/use-new-backup-repository-form.ts'
+import { useNewBackupRepositoryForm } from '@/modules/backup-repository/form/new/use-new-backup-repository-form.ts'
 import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { flushPromises } from '@vue/test-utils'
@@ -9,6 +9,8 @@ import { useI18n } from 'vue-i18n'
 import { type BackupRepositoryType, format as formatBackupRepositoryUrl } from 'xo-remote-parser'
 
 const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
+
+const ENCRYPTION_KEY = '0123456789abcdef0123456789ABCDEF'
 
 vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({
@@ -92,6 +94,34 @@ describe('details', () => {
     await selectType(form, 'azurite')
 
     expect(form.details.azure.formData.hostName).toBe('')
+  })
+})
+
+describe('general', () => {
+  async function fillEncryptedGeneralStep(form: NewForm, encryptionKey: string) {
+    await fillGeneralStep(form, 's3')
+    Object.assign(form.general.formData, { encrypted: true, encryptionKey })
+    await flushPromises()
+  }
+
+  it.each(['0123456789abcdef', `${ENCRYPTION_KEY}0`, 'g123456789abcdef0123456789abcdef'])(
+    'rejects the malformed encryption key %s',
+    async encryptionKey => {
+      const form = mountNewForm()
+      await fillEncryptedGeneralStep(form, encryptionKey)
+
+      expect(await form.general.validate()).toBe(false)
+      expect(form.general.bindings.encryptionKey.error).toMatchObject({
+        content: form.t('encryption-key-invalid', { n: 32 }),
+      })
+    }
+  )
+
+  it('accepts a 32 hexadecimal characters encryption key, whatever its case', async () => {
+    const form = mountNewForm()
+    await fillEncryptedGeneralStep(form, ENCRYPTION_KEY)
+
+    expect(await form.general.validate()).toBe(true)
   })
 })
 

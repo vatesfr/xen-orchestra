@@ -40,11 +40,7 @@ const sections = computed<AdminMenuSection[]>(() => [
       { label: t('jobs'), href: buildXo5Route('/backup/overview'), to: undefined },
       { label: t('backup-repositories'), href: undefined, to: { name: '/admin/backup-and-replication' } },
       { label: t('archives'), href: buildXo5Route('/backup/restore'), to: undefined },
-      {
-        label: t('logs'),
-        href: buildXo5Route('/backup/overview'),
-        to: undefined,
-      },
+      { label: t('logs'), href: undefined, to: { name: '/admin/backup-and-replication/logs' } },
     ],
   },
   {

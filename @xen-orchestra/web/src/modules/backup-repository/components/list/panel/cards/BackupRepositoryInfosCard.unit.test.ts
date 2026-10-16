@@ -1,38 +1,30 @@
 import BackupRepositoryInfosCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryInfosCard.vue'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createBr } from '@/test/create-br.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 import type { XoProxy } from '@vates/types'
 import { mount } from '@vue/test-utils'
 import { computed } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
-const { useGetProxyById, buildXo5Route } = vi.hoisted(() => ({
+const { useGetProxyById } = vi.hoisted(() => ({
   useGetProxyById: vi.fn(),
-  buildXo5Route: vi.fn(),
 }))
 
 vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({ useGetProxyById })) as unknown as typeof useXoProxyCollection,
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
-}))
-
 beforeEach(() => {
   useGetProxyById.mockReset()
-  buildXo5Route.mockReset()
 
   useGetProxyById.mockReturnValue(computed(() => undefined))
-  buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)
 })
 
 function mountCard(br: FrontXoBackupRepository = createBr()) {
@@ -45,22 +37,23 @@ function mountCard(br: FrontXoBackupRepository = createBr()) {
 it('renders the name and the id of the repository as the card title', () => {
   const wrapper = mountCard(createBr({ name: 'Nightly backups', id: 'br-42' as FrontXoBackupRepository['id'] }))
 
-  expect(wrapper.get('.vts-card-object-title').text()).toContain('Nightly backups')
-  expect(wrapper.get('.vts-card-object-title').text()).toContain('br-42')
+  expect(wrapper.get('.ui-panel-card-title').text()).toContain('Nightly backups')
+  expect(wrapper.get('.ui-panel-card-title').text()).toContain('br-42')
 })
 
-it('links the title to the backup repositories settings of XO 5', () => {
-  const wrapper = mountCard()
+it('links the title to the backup repository page', () => {
+  const wrapper = mountCard(createBr({ id: 'br-42' as FrontXoBackupRepository['id'] }))
 
-  expect(wrapper.findComponent(VtsCardObjectTitle).findComponent(UiLink).props('href')).toBe(
-    'https://xo5.example.com/#/settings/remotes'
-  )
+  expect(wrapper.findComponent(UiPanelCardTitle).findComponent(UiLink).props('to')).toEqual({
+    name: '/admin/backup-repository/[id]/general',
+    params: { id: 'br-42' },
+  })
 })
 
 it('picks the title icon from the status of the repository', () => {
   const wrapper = mountCard(createBr({ error: { code: 'ENOENT' } }))
 
-  expect(wrapper.findComponent(VtsCardObjectTitle).props('icon')).toBe(objectIcon('br', 'disconnected'))
+  expect(wrapper.findComponent(UiPanelCardTitle).props('icon')).toBe(objectIcon('br', 'disconnected'))
 })
 
 it('lists every row of the card, in order', () => {

@@ -22,12 +22,15 @@
 </template>
 
 <script setup lang="ts">
+import { useEditBackupRepository } from '@/modules/backup-repository/composables/use-edit-backup-repository.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import {
+  getBackupRepositoryIcon,
+  getBackupRepositoryStatus,
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -39,7 +42,6 @@ import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-q
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBackupRepositoryColumns } from '@core/tables/column-sets/backup-repository-columns.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { brs, busy, error } = defineProps<{
@@ -54,8 +56,6 @@ defineSlots<{
 
 const { t } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
-
 const { useGetProxyById } = useXoProxyCollection()
 
 const { items: filteredBrs, filter } = useQueryBuilderFilter('brs', () => brs)
@@ -67,8 +67,6 @@ const schema = useQueryBuilderSchema<FrontXoBackupRepository>({
 })
 
 const selectedBrId = useRouteQuery('id')
-
-const xo5BrsHref = computed(() => buildXo5Route('/settings/remotes'))
 
 const { pageRecords: paginatedBrs, paginationBindings } = usePagination('brs', filteredBrs)
 
@@ -89,9 +87,20 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
     const typeLabel = useXoBackupRepositoryTypeLabel(() => parsedBrUrl.value?.type)
     const proxy = useGetProxyById(() => br.proxy)
 
+    const {
+      editBackupRepository,
+      canEditBackupRepository,
+      isEditingBackupRepository,
+      editBackupRepositoryErrorMessage,
+    } = useEditBackupRepository(() => br)
+
     return {
       backupRepository: r =>
-        r({ label: br.name, icon: getBackupRepositoryIcon(br, parsedBrUrl.value?.type), href: xo5BrsHref.value }),
+        r({
+          label: br.name,
+          to: { name: '/admin/backup-repository/[id]/general', params: { id: br.id } },
+          icon: getBackupRepositoryIcon(br, parsedBrUrl.value?.type),
+        }),
       status: r => r(getBackupRepositoryStatus(br)),
       type: r => r(typeLabel.value),
       proxy: r => {
@@ -99,7 +108,20 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
 
         return proxyName ? r(proxyName, { leftIcon: { icon: 'object:proxy' } }) : r('')
       },
-      selectItem: r => r(() => (selectedBrId.value = br.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedBrId.value = br.id),
+          actions: [
+            {
+              label: t('action:edit'),
+              icon: 'action:edit',
+              onClick: () => editBackupRepository(),
+              busy: isEditingBackupRepository.value,
+              disabled: !canEditBackupRepository.value,
+              hint: editBackupRepositoryErrorMessage.value,
+            },
+          ],
+        }),
     }
   },
 })

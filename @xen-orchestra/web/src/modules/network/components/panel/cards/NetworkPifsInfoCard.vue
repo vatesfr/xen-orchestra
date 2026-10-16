@@ -1,9 +1,6 @@
 <template>
   <UiPanelCard v-if="pifsCount && pifsCount > 0" class="network-pifs-info-card">
-    <div class="typo-body-bold">
-      {{ t('pifs') }}
-      <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
-    </div>
+    <UiPanelCardTitle size="medium" :label="t('pifs')" :counter="pifsCount" />
     <table class="simple-table">
       <thead>
         <tr>
@@ -30,8 +27,8 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import PifRow from '@/modules/pif/components/PifRow.vue'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

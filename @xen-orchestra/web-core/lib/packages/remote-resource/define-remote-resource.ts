@@ -6,7 +6,6 @@ import {
 } from '@core/packages/remote-resource/sse.store.ts'
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
 import type { VoidFunction } from '@core/types/utility.type.ts'
-import { ifElse } from '@core/utils/if-else.utils.ts'
 import { noop, useDebounceFn, useTimeoutPoll } from '@vueuse/core'
 import { merge, remove } from 'lodash-es'
 import readNDJSONStream from 'ndjson-readablestream'
@@ -22,6 +21,7 @@ import {
   reactive,
   type Ref,
   ref,
+  shallowReactive,
   shallowRef,
   toRef,
   toValue,
@@ -122,24 +122,23 @@ export function defineRemoteResource<
 }) {
   type EventBuffer<TData> = { events: ['update' | 'remove', TData][]; isProcessed: boolean }
 
-  const cache = new Map<
-    string,
-    {
-      count: number
-      evictionTimeout?: NodeJS.Timeout // TODO : Fixme , the actual type in browser is number, but NodeJS.Timeout in nodejs.
-      // Due to transitive types of vates/types, the type is NodeJS.Timeout.
-      pause: VoidFunction
-      resume: VoidFunction
-      execute: () => Promise<void>
-      isPaused: boolean
-      state: object
-      stateScope: EffectScope
-      isReady: Ref<boolean>
-      isFetching: Ref<boolean>
-      lastError: Ref<Error | undefined>
-      hasError: ComputedRef<boolean>
-    }
-  >()
+  type CacheEntry = {
+    count: number
+    evictionTimeout?: NodeJS.Timeout // TODO : Fixme , the actual type in browser is number, but NodeJS.Timeout in nodejs.
+    // Due to transitive types of vates/types, the type is NodeJS.Timeout.
+    pause: VoidFunction
+    resume: VoidFunction
+    execute: () => Promise<void>
+    isPaused: boolean
+    state: object
+    stateScope: EffectScope
+    isReady: Ref<boolean>
+    isFetching: Ref<boolean>
+    lastError: Ref<Error | undefined>
+    hasError: ComputedRef<boolean>
+  }
+
+  const cache = shallowReactive(new Map<string, CacheEntry>())
 
   const buildUrl = typeof config.url === 'string' ? () => config.url as string : config.url
 
@@ -147,7 +146,8 @@ export function defineRemoteResource<
 
   const buildState = config.state ?? ((data: Ref<TData>) => ({ data }))
 
-  const cacheExpiration = config.cacheExpirationMs ?? DEFAULT_CACHE_EXPIRATION_MS
+  const cacheExpiration =
+    config.cacheExpirationMs === false ? 0 : (config.cacheExpirationMs ?? DEFAULT_CACHE_EXPIRATION_MS)
 
   const pollingInterval = config.pollingIntervalMs ?? DEFAULT_POLLING_INTERVAL_MS
 
@@ -268,22 +268,16 @@ export function defineRemoteResource<
       return
     }
 
-    function cleanUp() {
-      if (entry === undefined) {
-        return
-      }
+    scheduleEviction(url, entry)
+  }
 
+  function scheduleEviction(url: string, entry: CacheEntry) {
+    entry.evictionTimeout = setTimeout(() => {
       entry.pause()
       entry.isPaused = true
       entry.stateScope.stop()
       cache.delete(url)
-    }
-
-    if (cacheExpiration !== false) {
-      entry.evictionTimeout = setTimeout(cleanUp, cacheExpiration)
-    } else {
-      cleanUp()
-    }
+    }, cacheExpiration)
   }
 
   function registerUrl(url: string, context: ResourceContext<TArgs>) {
@@ -422,7 +416,7 @@ export function defineRemoteResource<
 
     const state = stateScope.run(() => buildState(data, sharedContext))!
 
-    cache.set(url, {
+    const entry: CacheEntry = {
       count: 0,
       pause,
       resume,
@@ -434,25 +428,45 @@ export function defineRemoteResource<
       isFetching,
       lastError,
       hasError,
-    })
+    }
+
+    cache.set(url, entry)
+
+    scheduleEviction(url, entry)
   }
 
   function initializeUrl(url: ComputedRef<string>, context: ResourceContext<TArgs>) {
+    let subscribedUrl: string | undefined
+
     watch(
-      url,
-      (toUrl, fromUrl) => {
-        registerUrl(toUrl, context)
+      [url, context.isEnabled],
+      ([currentUrl, isEnabled]) => {
+        registerUrl(currentUrl, context)
 
-        if (context.isEnabled.value) {
-          subscribeToUrl(toUrl)
+        const targetUrl = isEnabled ? currentUrl : undefined
+
+        if (targetUrl === subscribedUrl) {
+          return
         }
 
-        if (fromUrl) {
-          unsubscribeFromUrl(fromUrl)
+        if (targetUrl !== undefined) {
+          subscribeToUrl(targetUrl)
         }
+
+        if (subscribedUrl !== undefined) {
+          unsubscribeFromUrl(subscribedUrl)
+        }
+
+        subscribedUrl = targetUrl
       },
       { immediate: true }
     )
+
+    onScopeDispose(() => {
+      if (subscribedUrl !== undefined) {
+        unsubscribeFromUrl(subscribedUrl)
+      }
+    })
   }
 
   return function useRemoteResource(
@@ -475,10 +489,6 @@ export function defineRemoteResource<
 
     return scope.run(() => {
       const url = computed(() => buildUrl(...(args.map(arg => toValue(arg)) as TArgs)))
-
-      onScopeDispose(() => {
-        unsubscribeFromUrl(url.value)
-      })
 
       const context: ResourceContext<TArgs> = {
         scope,
@@ -503,16 +513,12 @@ export function defineRemoteResource<
 
       const state = reactive({} as TState)
 
-      ifElse(
-        isEnabled,
-        () => subscribeToUrl(url.value),
-        () => unsubscribeFromUrl(url.value)
-      )
-
       watch(
-        url,
-        () => {
-          Object.assign(state, cache.get(url.value)!.state)
+        () => cache.get(url.value),
+        entry => {
+          if (entry !== undefined) {
+            Object.assign(state, entry.state)
+          }
         },
         { immediate: true }
       )
