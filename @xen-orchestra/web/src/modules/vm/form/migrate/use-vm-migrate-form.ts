@@ -31,6 +31,7 @@ export type VmMigratePayload = {
   migrationNetworkId?: FrontXoNetwork['id']
   srIdByVdiId?: Record<FrontXoVdi['id'], FrontXoSr['id']>
   networkIdByVifId?: Record<FrontXoVif['id'], FrontXoNetwork['id']>
+  force?: boolean
 }
 
 export function useVmMigrateForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
