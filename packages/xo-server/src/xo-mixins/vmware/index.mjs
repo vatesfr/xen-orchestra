@@ -15,6 +15,11 @@ import { Ref } from 'xen-api'
 
 const { warn } = createLogger('xo:mixins:vmware')
 
+// written with `sourceVmId` on the imported VM: the id of a VM is only meaningful on its platform.
+// The imports made before this key existed are all from VMware
+const SOURCE_PLATFORM = 'vmware'
+const isFromThisPlatform = otherConfig => (otherConfig.sourcePlatform ?? SOURCE_PLATFORM) === SOURCE_PLATFORM
+
 export default class MigrateVm {
   constructor(app) {
     this._app = app
@@ -55,6 +60,7 @@ export default class MigrateVm {
     const candidates = Object.values(xapi.objects.indexes.type.VM).filter(
       object =>
         object.is_a_snapshot === false &&
+        isFromThisPlatform(object.other_config) &&
         object.other_config.sourceVmId === vmId &&
         object.other_config.sourceSnapshotId === snapshots?.current &&
         object.blocked_operations?.start === 'Esxi migration in progress...' &&
@@ -194,6 +200,7 @@ export default class MigrateVm {
       vmId,
     })
     await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', {
+      sourcePlatform: SOURCE_PLATFORM,
       sourceVmId: vmId,
       sourceSnapshotId: snapshots?.current,
     })
@@ -208,7 +215,11 @@ export default class MigrateVm {
           vm,
           vmId,
         })
-        await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', { sourceVmId: vmId, sourceSnapshotId: null })
+        await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', {
+          sourcePlatform: SOURCE_PLATFORM,
+          sourceVmId: vmId,
+          sourceSnapshotId: null,
+        })
         await vm.$snapshot({ name_label: 'complete import from V2V' })
       } else {
         await Task.info(`VM was running, no stop source. We'll keep the partial import.`)
