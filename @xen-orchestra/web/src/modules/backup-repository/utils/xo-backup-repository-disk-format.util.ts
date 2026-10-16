@@ -13,14 +13,18 @@ const BACKUP_FORMAT_BY_DISK_FORMAT: Record<DiskFormatType, XoBackupFormat> = {
   hbd: 'hbd',
 }
 
-export function getBackupRepositoryDiskFormat(backupFormat: XoBackupFormat): DiskFormatType {
+export function getDiskFormatFromBackupFormat(backupFormat: XoBackupFormat): DiskFormatType {
   return DISK_FORMAT_BY_BACKUP_FORMAT[backupFormat]
 }
 
-export function getBackupRepositoryBackupFormat(diskFormat: DiskFormatType): XoBackupFormat {
+export function getBackupFormatFromDiskFormat(diskFormat: DiskFormatType): XoBackupFormat {
   return BACKUP_FORMAT_BY_DISK_FORMAT[diskFormat]
 }
 
-export function getBackupRepositoryUrlDiskFormat(parsedUrl: ParsedBackupRepositoryUrl): DiskFormatType {
+export function getDiskFormatFromUrl(parsedUrl: ParsedBackupRepositoryUrl): DiskFormatType {
   return parsedUrl.diskFormat ?? (parsedUrl.useVhdDirectory === true ? 'vhdDirectory' : 'vhd')
+}
+
+export function isBackupRepositoryUsingVhdDirectory(parsedUrl: ParsedBackupRepositoryUrl): boolean {
+  return getDiskFormatFromUrl(parsedUrl) === 'vhdDirectory'
 }

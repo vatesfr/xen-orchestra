@@ -48,7 +48,7 @@ describe('useXoBackupRepositoryStorageModeLabel', () => {
       parseBackupRepositoryUrl('nfs://192.168.1.10:/exports/backups?diskFormat=%22hbd%22')
     )
 
-    expect(result.storageModeLabel).toBe(result.t('hbd'))
+    expect(result.storageModeLabel).toBe(result.t('deduplicated-block-based'))
   })
 
   it('falls back to unknown when the type could not be parsed', () => {

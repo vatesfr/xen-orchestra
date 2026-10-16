@@ -4,8 +4,8 @@ import type { EditBackupRepositoryPayload } from '@/modules/backup-repository/jo
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { getBackupRepositoryDetailsInitialData } from '@/modules/backup-repository/utils/xo-backup-repository-details-initial-data.util.ts'
 import {
-  getBackupRepositoryBackupFormat,
-  getBackupRepositoryUrlDiskFormat,
+  getBackupFormatFromDiskFormat,
+  getDiskFormatFromUrl,
 } from '@/modules/backup-repository/utils/xo-backup-repository-disk-format.util.ts'
 import { isBackupRepositoryEncrypted } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { reactive } from 'vue'
@@ -23,7 +23,7 @@ export function useEditBackupRepositoryForm(br: FrontXoBackupRepository) {
     reactive<BackupRepositoryGeneralFormData>({
       name: br.name,
       type: parsedUrl.type,
-      backupFormat: getBackupRepositoryBackupFormat(getBackupRepositoryUrlDiskFormat(parsedUrl)),
+      backupFormat: getBackupFormatFromDiskFormat(getDiskFormatFromUrl(parsedUrl)),
       proxy: br.proxy,
       encrypted: isBackupRepositoryEncrypted(parsedUrl),
       encryptionKey: parsedUrl.encryptionKey ?? '',

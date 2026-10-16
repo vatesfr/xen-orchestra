@@ -1,6 +1,7 @@
 import type { BackupRepositoryPayload } from '@/modules/backup-repository/form/use-backup-repository-form-base.ts'
 import { payloadsArg } from '@/modules/backup-repository/jobs/xo-backup-repository-create-args.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { isBackupRepositoryUsingVhdDirectory } from '@/modules/backup-repository/utils/xo-backup-repository-disk-format.util.ts'
 import { checkBackupRepositoryHealth } from '@/modules/backup-repository/utils/xo-backup-repository-health.util.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
@@ -45,7 +46,7 @@ export const useXoBackupRepositoryCreateJob = defineJob('br.create', [payloadsAr
 
         const brInfo = parseBackupRepositoryUrl(payload.url)
 
-        if (brInfo.encryptionKey !== undefined && brInfo.diskFormat !== 'vhdDirectory') {
+        if (brInfo.encryptionKey !== undefined && !isBackupRepositoryUsingVhdDirectory(brInfo)) {
           throw new JobError(t('job:backup-repository-create:encryption-requires-block'))
         }
       })

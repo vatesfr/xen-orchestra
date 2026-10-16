@@ -1,6 +1,7 @@
 import { xoBackupRepositoryArg } from '@/modules/backup-repository/jobs/xo-backup-repository-args.ts'
 import { editPayloadArg } from '@/modules/backup-repository/jobs/xo-backup-repository-edit-args.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { isBackupRepositoryUsingVhdDirectory } from '@/modules/backup-repository/utils/xo-backup-repository-disk-format.util.ts'
 import { checkBackupRepositoryHealth } from '@/modules/backup-repository/utils/xo-backup-repository-health.util.ts'
 import { isBackupRepositoryEncrypted } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
@@ -60,7 +61,7 @@ export const useXoBackupRepositoryEditJob = defineJob('br.edit', [xoBackupReposi
         throw new JobError(t('job:backup-repository-edit:encryption-key-locked'))
       }
 
-      if (isBackupRepositoryEncrypted(brInfo) && brInfo.diskFormat !== 'vhdDirectory') {
+      if (isBackupRepositoryEncrypted(brInfo) && !isBackupRepositoryUsingVhdDirectory(brInfo)) {
         throw new JobError(t('job:backup-repository-edit:encryption-requires-block'))
       }
     },

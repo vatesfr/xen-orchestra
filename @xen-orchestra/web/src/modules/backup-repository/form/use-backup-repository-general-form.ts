@@ -1,6 +1,6 @@
 import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
-import { getBackupRepositoryDiskFormat } from '@/modules/backup-repository/utils/xo-backup-repository-disk-format.util.ts'
+import { getDiskFormatFromBackupFormat } from '@/modules/backup-repository/utils/xo-backup-repository-disk-format.util.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { type FormValidationConfig, mergeValidationConfigs, required, requiredIf } from '@core/packages/form-validation'
@@ -98,7 +98,7 @@ export function useBackupRepositoryGeneralForm(
   const backupFormatLabels = computed<Record<XoBackupFormat, string>>(() => ({
     block: t('block-based'),
     vhd: t('vhd-file'),
-    hbd: t('hbd'),
+    hbd: t('deduplicated-block-based'),
   }))
 
   function getBackupFormatLabel(format: XoBackupFormat | undefined): string | undefined {
@@ -149,7 +149,7 @@ export function useBackupRepositoryGeneralForm(
   function buildUrlOptions(): BackupRepositoryUrlOptions {
     return {
       ...(formData.encrypted && { encryptionKey: formData.encryptionKey }),
-      ...(formData.backupFormat !== undefined && { diskFormat: getBackupRepositoryDiskFormat(formData.backupFormat) }),
+      ...(formData.backupFormat !== undefined && { diskFormat: getDiskFormatFromBackupFormat(formData.backupFormat) }),
     }
   }
 

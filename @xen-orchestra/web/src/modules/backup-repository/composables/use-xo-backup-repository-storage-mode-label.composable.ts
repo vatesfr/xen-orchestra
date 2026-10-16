@@ -1,4 +1,4 @@
-import { getBackupRepositoryUrlDiskFormat } from '@/modules/backup-repository/utils/xo-backup-repository-disk-format.util.ts'
+import { getDiskFormatFromUrl } from '@/modules/backup-repository/utils/xo-backup-repository-disk-format.util.ts'
 import { useMapper } from '@core/packages/mapper'
 import { type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -25,12 +25,12 @@ export function useXoBackupRepositoryStorageModeLabel(
         return 'unknown'
       }
 
-      return STORAGE_MODE_BY_DISK_FORMAT[getBackupRepositoryUrlDiskFormat(parsedUrl)]
+      return STORAGE_MODE_BY_DISK_FORMAT[getDiskFormatFromUrl(parsedUrl)]
     },
     {
       block: t('block-based'),
       file: t('file-based'),
-      hbd: t('hbd'),
+      hbd: t('deduplicated-block-based'),
       unknown: t('unknown'),
     },
     'unknown'
