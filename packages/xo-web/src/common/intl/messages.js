@@ -55,6 +55,11 @@ const messages = {
   status: 'Status',
   statusConnecting: 'Connecting',
   statusDisconnected: 'Disconnected',
+  staleObject: 'Disconnected',
+  staleObjectLastSeen: 'Pool disconnected, last seen {time} ({relative})',
+  staleObjectBanner:
+    "This object's pool is disconnected: the information shown dates from {time} ({relative}) and may be outdated. Actions are unavailable until the pool is reconnected.",
+  staleObjectPowerState: 'Last known state: {state}',
   statusLoading: 'Loading…',
   errorPageNotFound: 'Page not found',
   errorNoSuchItem: 'No such item',
