@@ -50,9 +50,9 @@ export type V2vDefaults = V2vVmOptions & {
 export type V2vStartVm = V2vVmOptions & {
   /** VMware managed object reference of the VM */
   id: string
-  /** SR of a disk, by disk key (e.g. `scsi0:0`), when it is not the default one */
+  /** SR of a disk, by disk key (e.g. `scsi0:0`), when it is not the default one. Ignored for a disk already imported */
   disks?: Record<string, string>
-  /** network of a card, by NIC key, when it is not the default one */
+  /** network of a card, by NIC key (e.g. `4000`), when it is not the default one. Ignored when resuming an import */
   nics?: Record<string, string>
   template?: string
   /** not supported yet: must be empty */

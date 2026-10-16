@@ -10,6 +10,7 @@ import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
 import { importDisksFromDatastore, importStream } from './importDisksfromDatastore.mjs'
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
+import { assertKnownDevices } from './_deviceMapping.mjs'
 import { finished, PassThrough } from 'node:stream'
 import { Ref } from 'xen-api'
 
@@ -104,7 +105,7 @@ export default class MigrateVm {
     return xapiVm
   }
 
-  async #createVmAndNetworks($defer, { metadata, networkId, template, xapi }) {
+  async #createVmAndNetworks($defer, { metadata, networkId, networkIdsByNic, template, xapi }) {
     const { cdrom, guestId, firmware, memory, name_label, networks, nCpus } = metadata
 
     const existingVm = await this.#findBaseVM(xapi, metadata)
@@ -147,7 +148,7 @@ export default class MigrateVm {
           const ref = await xapi.VIF_create(
             {
               device: vifDevices[i],
-              network: this._app.getXapiObject(networkId).$ref,
+              network: this._app.getXapiObject(networkIdsByNic?.[network.key] ?? networkId).$ref,
               VM: vm.$ref,
             },
             {
@@ -167,7 +168,7 @@ export default class MigrateVm {
     })
   }
 
-  async #importDisks($defer, { esxi, metadata, sr, stopSource, vm, vmId }) {
+  async #importDisks($defer, { esxi, metadata, sr, srsByNode, stopSource, vm, vmId }) {
     const { disks, powerState, snapshots } = metadata
 
     const isRunning = powerState !== 'poweredOff'
@@ -205,6 +206,7 @@ export default class MigrateVm {
       chainsByNodes: coldChainsByNodes,
       esxi,
       sr,
+      srsByNode,
       vm,
       vmId,
     })
@@ -227,6 +229,7 @@ export default class MigrateVm {
           chainsByNodes,
           esxi,
           sr,
+          srsByNode,
           vm,
           vmId,
         })
@@ -244,7 +247,20 @@ export default class MigrateVm {
   @decorateWith(deferrable)
   async migrationfromEsxi(
     $defer,
-    { host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, stopSource, template: templateId }
+    {
+      host,
+      user,
+      password,
+      sslVerify,
+      sr: srId,
+      network: networkId,
+      // optional overrides of `sr` by disk node (e.g. `scsi0:0`) and of `network` by NIC device key
+      disks: srIdsByNode = {},
+      nics: networkIdsByNic = {},
+      vm: vmId,
+      stopSource,
+      template: templateId,
+    }
   ) {
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
@@ -257,6 +273,13 @@ export default class MigrateVm {
     let metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, async () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
+    // before anything is done on either side: a mapping which cannot be applied would import the
+    // device to the default destination
+    assertKnownDevices(metadata, { srIdsByNode, networkIdsByNic, vmId })
+    const srsByNode = {}
+    for (const [node, diskSrId] of Object.entries(srIdsByNode)) {
+      srsByNode[node] = app.getXapiObject(diskSrId, 'SR')
+    }
 
     // the change tracking of the host gives the blocks to read: every block the disk uses for the
     // full pass, powered off or not, and what changed since the snapshot for the delta pass. Without
@@ -334,10 +357,10 @@ export default class MigrateVm {
       }
     }
     Task.abortSignal?.throwIfAborted()
-    const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, template, xapi })
+    const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, networkIdsByNic, template, xapi })
     Task.abortSignal?.throwIfAborted()
     await xapi.barrier()
-    await this.#importDisks($defer, { esxi, metadata, stopSource, vm, sr, vmId })
+    await this.#importDisks($defer, { esxi, metadata, stopSource, vm, sr, srsByNode, vmId })
     Task.abortSignal?.throwIfAborted()
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label

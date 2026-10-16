@@ -799,45 +799,46 @@ export default class Esxi extends EventEmitter {
     })
 
     const diskReferences = []
-    const networks = []
     let cdrom = false
 
     for (const key of Object.keys(vmx)) {
-      const channelMatches = key.match(/^(scsi|ide|ethernet|sata)[0-9]+$/)
+      const channelMatches = key.match(/^(scsi|ide|sata)[0-9]+$/)
       if (channelMatches === null) {
         continue
       }
       const channelType = channelMatches[1]
-      if (channelType === 'ide' || channelType === 'scsi' || channelType === 'sata' /* cdrom */) {
-        const diskChannel = vmx[key]
-        // the indexes of the channel are its own: iterating the compacted values used to label a
-        // channel holding only `scsi0:1` as `scsi0:0`, and `node` is the disk identity used to
-        // build the chains and to order the VBDs
-        for (const [diskIndex, disk] of Object.entries(diskChannel)) {
-          if (typeof disk !== 'object' || disk === null) {
-            continue
-          }
-          if (disk.deviceType?.match(/cdrom/i)) {
-            cdrom = true
-            continue
-          }
-          // can be something other than a disk, like a controller card
-          if (channelType === 'scsi' && disk.deviceType !== 'scsi-hardDisk') {
-            continue
-          }
-
-          diskReferences.push({ fileName: disk.fileName, node: `${key}:${diskIndex}` })
+      const diskChannel = vmx[key]
+      // the indexes of the channel are its own: iterating the compacted values used to label a
+      // channel holding only `scsi0:1` as `scsi0:0`, and `node` is the disk identity used to
+      // build the chains and to order the VBDs
+      for (const [diskIndex, disk] of Object.entries(diskChannel)) {
+        if (typeof disk !== 'object' || disk === null) {
+          continue
         }
-      } else if (channelType === 'ethernet') {
-        const ethernet = vmx[key]
+        if (disk.deviceType?.match(/cdrom/i)) {
+          cdrom = true
+          continue
+        }
+        // can be something other than a disk, like a controller card
+        if (channelType === 'scsi' && disk.deviceType !== 'scsi-hardDisk') {
+          continue
+        }
 
-        networks.push({
-          label: ethernet.networkName,
-          macAddress: ethernet.generatedAddress,
-          isGenerated: ethernet.addressType === 'generated',
-        })
+        diskReferences.push({ fileName: disk.fileName, node: `${key}:${diskIndex}` })
       }
     }
+
+    // the cards are read from the devices and not from the vmx: they carry the key the inventory names
+    // them by, the vmx only has the address of a generated MAC, and lists the cards which are not present
+    const networks = parseDevices(config.hardware?.device).nics.map(
+      ({ key, label, macAddress, addressType, network }) => ({
+        key,
+        label,
+        macAddress,
+        isGenerated: addressType === 'generated',
+        network,
+      })
+    )
     const inspect = fileName => this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), fileName, { signal })
 
     // one descriptor to download per disk: read serially, a long chain added a full round trip per
