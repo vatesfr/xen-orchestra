@@ -3,10 +3,11 @@ import { watch } from 'vue'
 
 export type MonitoredTaskError = Error & {
   taskId: FrontXoTask['id']
+  code?: string
 }
 
 /**
- * Normalize a Task error into a JS Error. Keep the original stacktrace and the task ID
+ * Normalize a Task error into a JS Error. Keep the original stacktrace, the task ID and the error code (e.g. a XAPI error code)
  */
 function normalizeError(taskError: Record<string, unknown> | undefined, taskId: FrontXoTask['id']) {
   const error: MonitoredTaskError = Object.assign(new Error(), { taskId })
@@ -28,6 +29,10 @@ function normalizeError(taskError: Record<string, unknown> | undefined, taskId: 
     error.stack = taskError.stack as string
   }
 
+  if ('code' in taskError) {
+    error.code = taskError.code as string
+  }
+
   return error
 }
 
@@ -41,6 +46,14 @@ export function getErrorTaskId(error: unknown): FrontXoTask['id'] | undefined {
   }
 
   return error.taskId
+}
+
+export function getErrorCode(error: unknown): string | undefined {
+  if (!isMonitoredTaskError(error)) {
+    return undefined
+  }
+
+  return error.code
 }
 
 export function useXoTaskUtils() {
