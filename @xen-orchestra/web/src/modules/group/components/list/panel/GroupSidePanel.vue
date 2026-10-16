@@ -1,5 +1,8 @@
 <template>
   <VtsSidePanel :has-selection="group !== undefined" @close="emit('close')">
+    <template v-if="group && slots.actions" #actions>
+      <slot name="actions" />
+    </template>
     <template v-if="group" #default>
       <GroupInfosCard :group />
       <GroupUsersCard :group />
@@ -19,5 +22,9 @@ const { group } = defineProps<{
 
 const emit = defineEmits<{
   close: []
+}>()
+
+const slots = defineSlots<{
+  actions?(): any
 }>()
 </script>

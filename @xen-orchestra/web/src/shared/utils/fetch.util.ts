@@ -61,6 +61,12 @@ export async function fetchPatch<T>(endpoint: string, body?: unknown): Promise<T
   })
 }
 
+export async function fetchPut(endpoint: string): Promise<void> {
+  return fetchRequest<void>(endpoint, {
+    method: 'PUT',
+  })
+}
+
 export async function fetchDelete(endpoint: string): Promise<void> {
   return fetchRequest<void>(endpoint, {
     method: 'DELETE',
