@@ -1,11 +1,11 @@
 <template>
-  <UiAlert class="json-schema-error-summary" accent="danger">
-    {{ t('json-schema:n-errors-summary', errors.length) }}
+  <UiAlert v-if="errors.length > 0" class="vts-form-error-summary" accent="danger">
+    {{ t('form:n-errors-summary', errors.length) }}
     <template #description>
       <ul class="list">
         <li v-for="error of errors" :key="error.id">
           <UiButton variant="tertiary" accent="danger" size="small" @click="focusField(error.id)">
-            {{ t('form:error:field-required', { field: error.label }) }}
+            {{ error.message }}
           </UiButton>
         </li>
       </ul>
@@ -14,21 +14,25 @@
 </template>
 
 <script lang="ts" setup>
-import { focusField } from '@/modules/plugin/json-schema-form/focus-field.util.ts'
-import type { JsonSchemaFormError } from '@/modules/plugin/json-schema-form/use-json-schema-form.composable.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import { focusField } from '@core/utils/focus-field.util.ts'
 import { useI18n } from 'vue-i18n'
 
+export type FormErrorSummaryItem = {
+  id: string
+  message: string
+}
+
 defineProps<{
-  errors: JsonSchemaFormError[]
+  errors: FormErrorSummaryItem[]
 }>()
 
 const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
-.json-schema-error-summary {
+.vts-form-error-summary {
   .list {
     display: flex;
     flex-direction: column;

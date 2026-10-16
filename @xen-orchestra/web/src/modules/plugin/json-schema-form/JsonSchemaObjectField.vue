@@ -8,6 +8,9 @@
     :required
     :disabled
   >
+    <template v-if="slots.actions" #actions>
+      <slot name="actions" />
+    </template>
     <div
       v-for="group of propertyGroups"
       :key="group.fields[0].key"
@@ -47,6 +50,10 @@ import { computed } from 'vue'
 const { schema, required, path = [] } = defineProps<JsonSchemaFieldComponentProps>()
 
 const model = defineModel<unknown>()
+
+const slots = defineSlots<{
+  actions?(): any
+}>()
 
 const isUsed = useOptionalValue(model, {
   required: () => required,

@@ -8,7 +8,10 @@
     :required
     :disabled
   >
-    <div v-for="(field, index) of itemFields" :key="itemKeys[index]" class="item" :class="{ section: isSectionItem }">
+    <template v-if="slots.actions" #actions>
+      <slot name="actions" />
+    </template>
+    <div v-for="(field, index) of itemFields" :key="itemKeys[index]" class="item">
       <div class="item-field">
         <JsonSchemaField
           :model-value="field.value"
@@ -18,14 +21,15 @@
           :required="isSectionItem"
           :disabled
           @update:model-value="updateItem(index, $event)"
-        />
+        >
+          <template v-if="isSectionItem" #actions>
+            <JsonSchemaArrayItemDeleteButton :disabled @click="removeItem(index)" />
+          </template>
+        </JsonSchemaField>
       </div>
-      <UiButtonIcon
-        v-tooltip="t('action:delete')"
+      <JsonSchemaArrayItemDeleteButton
+        v-if="!isSectionItem"
         class="delete-button"
-        icon="fa:trash"
-        accent="danger"
-        size="small"
         :disabled
         @click="removeItem(index)"
       />
@@ -40,14 +44,13 @@
 
 <script lang="ts" setup>
 import { getFieldType, getSchemaDefaults, type JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
+import JsonSchemaArrayItemDeleteButton from '@/modules/plugin/json-schema-form/JsonSchemaArrayItemDeleteButton.vue'
 import type { JsonSchemaFieldComponentProps } from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
 import JsonSchemaField from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
 import JsonSchemaFieldset from '@/modules/plugin/json-schema-form/JsonSchemaFieldset.vue'
 import { useJsonSchemaItemLabel } from '@/modules/plugin/json-schema-form/use-json-schema-item-label.composable.ts'
 import { useOptionalValue } from '@/modules/plugin/json-schema-form/use-optional-value.composable.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { uniqueId } from 'lodash-es'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -55,6 +58,10 @@ import { useI18n } from 'vue-i18n'
 const { schema, required, path = [] } = defineProps<JsonSchemaFieldComponentProps>()
 
 const model = defineModel<unknown>()
+
+const slots = defineSlots<{
+  actions?(): any
+}>()
 
 const { t } = useI18n()
 
@@ -120,10 +127,10 @@ function updateItem(index: number, value: unknown) {
     gap: 0.8rem;
 
     /*
-     * the delete button is aligned with the label of a section, and centered on the input of a simple item:
+     * the delete button of a simple item is centered on its input:
      * label (2.4rem) + gap (0.4rem) of VtsInputWrapper, then the small button (2.4rem) centered on the input (4rem)
      */
-    &:not(.section) .delete-button {
+    .delete-button {
       margin-block-start: calc(2.4rem + 0.4rem + (4rem - 2.4rem) / 2);
     }
 
