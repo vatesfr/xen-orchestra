@@ -28,7 +28,7 @@
       </VtsInputWrapper>
 
       <div v-if="hasFeedback" ref="feedback" class="feedback">
-        <JsonSchemaErrorSummary v-if="summaryErrors.length > 0" :errors="summaryErrors" />
+        <VtsFormErrorSummary :errors="summaryErrors" />
         <ApiErrorAlert v-if="error !== undefined" :title="t('plugin:configuration-failed')" :error />
         <UiAlert v-if="isSaved" accent="success" close @close="isSaved = false">
           {{ t('plugin:configuration-saved') }}
@@ -80,11 +80,10 @@
 <script lang="ts" setup>
 import PluginConfigurationDelete from '@/modules/plugin/components/detail/PluginConfigurationDelete.vue'
 import { useXoPluginConfiguration } from '@/modules/plugin/composables/use-xo-plugin-configuration.composable.ts'
-import { focusField } from '@/modules/plugin/json-schema-form/focus-field.util.ts'
-import JsonSchemaErrorSummary from '@/modules/plugin/json-schema-form/JsonSchemaErrorSummary.vue'
 import JsonSchemaField from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import ApiErrorAlert from '@/shared/components/ApiErrorAlert.vue'
+import VtsFormErrorSummary from '@core/components/form-error-summary/VtsFormErrorSummary.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
@@ -93,6 +92,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { focusField } from '@core/utils/focus-field.util.ts'
 import { computed, nextTick, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -136,7 +136,6 @@ async function submit() {
     return
   }
 
-  // the result is displayed at the top of the form, while the user saved from the bottom
   await nextTick()
   feedbackElement.value?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
 }

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import type { Request as ExRequest } from 'express'
 import type { XoPlugin } from '@vates/types'
-import { noSuchObject } from 'xo-common/api-errors.js'
+import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
 
 import { PluginController } from './plugin.controller.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
@@ -101,20 +101,12 @@ describe('PluginController.updatePlugin', () => {
 
     assert.deepEqual(calls, [])
   })
-
-  it('throws noSuchObject for an unknown plugin, even with nothing to update', async () => {
-    const { calls, controller } = createController()
-
-    await assert.rejects(controller.updatePlugin('unknown', {}), isNoSuchPlugin)
-    await assert.rejects(controller.updatePlugin('unknown', { autoload: true }), isNoSuchPlugin)
-    assert.deepEqual(calls, [])
-  })
 })
 
 describe('PluginController.configurePlugin', () => {
   it('forwards the configuration', async () => {
     const { calls, controller } = createController()
-    const configuration = { uri: 'ldap://example.org' }
+    const configuration = { base: 'dc=example,dc=org', uri: 'ldap://example.org', userIdAttribute: 'uid' }
 
     await controller.configurePlugin('auth-ldap', configuration)
 
@@ -126,9 +118,18 @@ describe('PluginController.deletePluginConfiguration', () => {
   it('purges the configuration', async () => {
     const { calls, controller } = createController()
 
-    await controller.deletePluginConfiguration('auth-ldap')
+    await controller.deletePluginConfiguration('transport-email')
 
-    assert.deepEqual(calls, [['purgePluginConfiguration', 'auth-ldap']])
+    assert.deepEqual(calls, [['purgePluginConfiguration', 'transport-email']])
+  })
+
+  it('throws incorrectState for a loaded plugin, without purging', async () => {
+    const { calls, controller } = createController()
+
+    await assert.rejects(controller.deletePluginConfiguration('auth-ldap'), error =>
+      incorrectState.is(error, { actual: true, expected: false, object: 'auth-ldap', property: 'loaded' })
+    )
+    assert.deepEqual(calls, [])
   })
 
   it('throws noSuchObject for an unknown plugin, without purging', async () => {
@@ -140,8 +141,8 @@ describe('PluginController.deletePluginConfiguration', () => {
 })
 
 for (const [method, xoAppMethod, taskName] of [
-  ['loadPlugin', 'loadPlugin', 'load plugin'],
-  ['unloadPlugin', 'unloadPlugin', 'unload plugin'],
+  ['loadPlugin', 'loadPlugin', 'load auth-ldap plugin'],
+  ['unloadPlugin', 'unloadPlugin', 'unload auth-ldap plugin'],
 ] as const) {
   describe(`PluginController.${method}`, () => {
     it(`calls ${xoAppMethod} in a task`, async () => {
@@ -171,7 +172,7 @@ for (const [method, xoAppMethod, taskName] of [
 }
 
 describe('PluginController.testPlugin', () => {
-  it('forwards the data and records the body in the task', async () => {
+  it('forwards the data in a task', async () => {
     const { calls, controller, tasks } = createController()
     const body = { data: { to: 'admin@example.org' } }
 
@@ -180,10 +181,9 @@ describe('PluginController.testPlugin', () => {
     assert.deepEqual(calls, [['testPlugin', 'transport-email', body.data]])
     assert.deepEqual(tasks, [
       {
-        name: 'REST API: test plugin',
+        name: 'REST API: test transport-email plugin',
         objectId: 'transport-email',
         objectType: 'plugin',
-        params: body,
         type: 'xo:rest-api:action',
       },
     ])

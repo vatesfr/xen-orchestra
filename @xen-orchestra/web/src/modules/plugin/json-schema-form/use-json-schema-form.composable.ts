@@ -1,4 +1,3 @@
-import { focusField } from '@/modules/plugin/json-schema-form/focus-field.util.ts'
 import {
   getMissingFields,
   isPathWithin,
@@ -7,14 +6,14 @@ import {
 } from '@/modules/plugin/json-schema-form/json-schema-validation.util.ts'
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import { useJsonSchemaItemLabel } from '@/modules/plugin/json-schema-form/use-json-schema-item-label.composable.ts'
+import type { FormErrorSummaryItem } from '@core/components/form-error-summary/VtsFormErrorSummary.vue'
+import { focusField } from '@core/utils/focus-field.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type InjectionKey, type MaybeRefOrGetter, provide, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export type JsonSchemaFormError = {
+export type JsonSchemaFormError = FormErrorSummaryItem & {
   path: JsonSchemaPath
-  id: string
-  label: string
 }
 
 type JsonSchemaFormContext = {
@@ -53,11 +52,11 @@ export function useJsonSchemaForm(
       return []
     }
 
-    return getMissingFields(schema.value, value.value, { getItemLabel }).map(({ path, labels }) => ({
-      path,
-      id: getFieldId(path),
-      label: labels.reduce((parent, label) => t('json-schema:nested-label', { parent, label })),
-    }))
+    return getMissingFields(schema.value, value.value, { getItemLabel }).map(({ path, labels }) => {
+      const label = labels.reduce((parent, label) => t('json-schema:nested-label', { parent, label }))
+
+      return { path, id: getFieldId(path), message: t('form:error:field-required', { field: label }) }
+    })
   })
 
   const visibleErrors = computed(() =>

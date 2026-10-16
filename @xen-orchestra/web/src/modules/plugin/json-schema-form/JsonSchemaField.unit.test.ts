@@ -521,6 +521,18 @@ describe('array field', () => {
     expect(lastEmittedValue(wrapper)).toEqual(['a', 'c'])
   })
 
+  it('removes an object item from its header', async () => {
+    const wrapper = mountField({
+      schema: { type: 'array', items: { type: 'object', properties: { uri: { type: 'string' } } } },
+      required: true,
+      modelValue: [{ uri: 'a' }, { uri: 'b' }],
+    })
+
+    await wrapper.findAll('.json-schema-object-field .header button.ui-button-icon')[0].trigger('click')
+
+    expect(lastEmittedValue(wrapper)).toEqual([{ uri: 'b' }])
+  })
+
   it('updates an item', async () => {
     const wrapper = mountField({ schema, required: true, modelValue: ['a', 'b'] })
 

@@ -20,6 +20,9 @@
           variant="primary"
           size="small"
         />
+        <div v-if="slots.actions" class="actions">
+          <slot name="actions" />
+        </div>
       </div>
       <UiInfo v-if="description !== undefined" accent="info" wrap>{{ description }}</UiInfo>
       <UiInfo v-if="errorMessage !== undefined" accent="danger" wrap>{{ errorMessage.content }}</UiInfo>
@@ -54,8 +57,9 @@ const {
 
 const isUsed = defineModel<boolean>('used', { required: true })
 
-defineSlots<{
+const slots = defineSlots<{
   default(): any
+  actions?(): any
 }>()
 
 const { t } = useI18n()
@@ -88,6 +92,10 @@ const hasHeader = computed(() => isSection.value || description !== undefined)
     flex-wrap: wrap;
     align-items: center;
     gap: 0.8rem;
+  }
+
+  .actions {
+    margin-inline-start: auto;
   }
 
   .optional {

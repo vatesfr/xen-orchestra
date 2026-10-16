@@ -53,8 +53,8 @@ function mountForm(schema: JsonSchema | undefined, initialValue: unknown) {
   return { wrapper, value, context }
 }
 
-function findErrorLabels(errors: { label: string }[]) {
-  return errors.map(error => error.label)
+function findErrorMessages(errors: { message: string }[]) {
+  return errors.map(error => error.message)
 }
 
 describe('errors', () => {
@@ -63,11 +63,13 @@ describe('errors', () => {
 
     const { t } = wrapper.vm
 
-    expect(findErrorLabels(wrapper.vm.errors)).toEqual([
-      t('json-schema:nested-label', { parent: 'Server', label: 'Host' }),
-      t('json-schema:nested-label', { parent: 'Server', label: 'port' }),
-      'Base',
-    ])
+    expect(findErrorMessages(wrapper.vm.errors)).toEqual(
+      [
+        t('json-schema:nested-label', { parent: 'Server', label: 'Host' }),
+        t('json-schema:nested-label', { parent: 'Server', label: 'port' }),
+        'Base',
+      ].map(field => t('form:error:field-required', { field }))
+    )
   })
 
   it('labels the items of an array without title by their position', () => {
@@ -78,10 +80,12 @@ describe('errors', () => {
 
     const { t } = wrapper.vm
 
-    expect(findErrorLabels(wrapper.vm.errors)).toEqual([
-      t('json-schema:nested-label', {
-        parent: 'uris',
-        label: t('json-schema:numbered-item', { label: t('item'), n: 1 }),
+    expect(findErrorMessages(wrapper.vm.errors)).toEqual([
+      t('form:error:field-required', {
+        field: t('json-schema:nested-label', {
+          parent: 'uris',
+          label: t('json-schema:numbered-item', { label: t('item'), n: 1 }),
+        }),
       }),
     ])
   })
