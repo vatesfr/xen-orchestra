@@ -26,7 +26,7 @@
       <AppNavigationSidebar />
     </template>
     <template #content>
-      <VtsStateHero v-if="!isConnected && !isDevPage" format="page" type="busy" size="large">
+      <VtsStateHero v-if="showPleaseWait" format="page" type="busy" size="large">
         <div class="state-content">
           <span class="typo-caption">{{ t('loading') }}</span>
           <span class="title typo-h1">{{ t('please-wait') }}</span>
@@ -80,6 +80,21 @@ const { buildXo5Route } = useXoRoutes()
 const xo5Route = computed(() => buildXo5Route('/'))
 
 const isDevPage = computed(() => route.path.startsWith('/dev'))
+
+// With `ui=0` (console opened in a new tab), neither the header nor the sidebar is mounted,
+// so nothing opens the SSE connection before the page content does.
+// The page content handles its own loading state, so don't block it on the SSE connection.
+const showPleaseWait = computed(() => {
+  if (isDevPage.value) {
+    return false
+  }
+
+  if (!uiStore.hasUi) {
+    return false
+  }
+
+  return !isConnected.value
+})
 </script>
 
 <style lang="postcss" scoped>

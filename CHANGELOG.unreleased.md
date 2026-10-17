@@ -76,7 +76,7 @@
 - [V2V] Fix `vectura is not runnable` on XOA and other systems based on Debian 11 (glibc 2.31): the `vectura` binary required glibc 2.34
 - [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
 - [XO5/Hosts] Disable restart toolstack button for the hosts that belongs to a HA pools in the home page (PR [#10497](https://github.com/vatesfr/xen-orchestra/pull/10497))
-- [Backup/replication] fix to ensure distributed replications are deleted according to retention( PR [#10491] (https://github.com/vatesfr/xen-orchestra/pull/10491))
+- [Backup/replication] fix to ensure distributed replications are deleted according to retention (PR [#10491] (https://github.com/vatesfr/xen-orchestra/pull/10491))
 - [Replication] Fix `Cannot read properties of undefined (reading 'get')` error on continuous replication to multiple SRs (PR [#10519](https://github.com/vatesfr/xen-orchestra/pull/10519))
 - [Backup/NBD] Support NBD for pools reached through an HTTP proxy (e.g. an XO Proxy): NBD connections are now tunneled through the proxy instead of falling back to a stream export (PR [#10544](https://github.com/vatesfr/xen-orchestra/pull/10544))
 - [xo-cli] fix output failing when outputing a rest api answer (PR [#10541](https://github.com/vatesfr/xen-orchestra/pull/10541))
@@ -84,6 +84,7 @@
 - [Backups/DR] Report the actual XAPI error instead of `(intermediate value) is not iterable` when a VM import fails (PR [#10551](https://github.com/vatesfr/xen-orchestra/pull/10551/))
 - [VDI/Export] Fix pressing Escape in the format select closing the whole export drawer (PR [#10582](https://github.com/vatesfr/xen-orchestra/pull/10582))
 - [Servers] Fix a pool left in a broken state when its connection was lost twice in a row within 5 minutes (e.g. during a toolstack restart): it could be displayed as connecting while connected and its objects could no longer be acted upon, or it would never be reconnected automatically (PR [#10577](https://github.com/vatesfr/xen-orchestra/pull/10577))
+- [VM/console] Fix opening console in new tab (PR [#10616](https://github.com/vatesfr/xen-orchestra/pull/10616))
 
 ### Packages to release
 
