@@ -34,11 +34,11 @@ Status of XO Lite & XO 6:
 
 ## 📸 Screenshots
 
-![](https://vates.tech/assets/img/illustrations/xen-orchestra-screen-1.png.avif)
+![Xen Orchestra dashboard](https://docs.xen-orchestra.com/img/xo6/dashboard-dark.png)
 
-![](https://vates.tech/assets/img/illustrations/xen-orchestra-screen-3.png.avif)
+![Xen Orchestra dashboard, including Network stats](https://docs.xen-orchestra.com/img/xo6/lab-dashboard.webp)
 
-![](https://vates.tech/assets/img/illustrations/xen-orchestra-screen-4.png.avif)
+![Storage repository statistics (XO 5)](https://vates.tech/assets/img/illustrations/xen-orchestra-screen-4.png.avif)
 
 ## License
 
