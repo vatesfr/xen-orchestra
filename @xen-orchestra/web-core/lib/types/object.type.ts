@@ -1,6 +1,6 @@
 export type ObjectType = 'vm' | 'host'
 
-export type VmActions = 'reboot' | 'shutdown' | 'force-reboot' | 'force-shutdown'
+export type VmActions = 'reboot' | 'shutdown' | 'force-reboot' | 'force-shutdown' | 'force-migrate'
 export type HostActions =
   | 'enable'
   | 'disable'
@@ -23,6 +23,7 @@ export type VmBlockedOperations =
   | 'hard_reboot'
   | 'suspend'
   | 'destroy'
+  | 'migrate_send'
 
 export type ActionsByObject = {
   vm: VmActions
