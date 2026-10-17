@@ -25,6 +25,14 @@ const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWriter) {
   #parentVdiPaths
   #parentUuids
+
+  /**
+   * @returns {string | undefined} see RemoteAdapter#getVhdDirectoryCompression
+   */
+  getVhdDirectoryCompression() {
+    return this._adapter.getVhdDirectoryCompression()
+  }
+
   async checkBaseVdis(baseUuidToSrcVdi) {
     this.#parentVdiPaths = {}
     this.#parentUuids = {}
@@ -207,7 +215,10 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     }
   }
 
-  async _transfer($defer, { includeNonNbdQcow2Fix, isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot }) {
+  async _transfer(
+    $defer,
+    { includeNonNbdQcow2Fix, isVhdDifferencing, sameCompression, timestamp, deltaExport, vm, vmSnapshot }
+  ) {
     const adapter = this._adapter
     const job = this._job
     const scheduleId = this._schedule.id
@@ -282,6 +293,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             uuid: packUuid(vdi.uuid),
             parentUuid,
             parentPath,
+            compressedBlocks: sameCompression,
           })
           size += transferred
         },

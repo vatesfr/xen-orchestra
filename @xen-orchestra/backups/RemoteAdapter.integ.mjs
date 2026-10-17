@@ -323,3 +323,59 @@ describe('RemoteAdapter#writeVhd validated by checkDisk', { concurrency: 1 }, ()
     })
   }
 })
+
+// IncrementalRemote runner when source and targets use the same compression: the blocks are copied as stored
+describe('RemoteAdapter compressed blocks copy', { concurrency: 1 }, () => {
+  for (const compression of ['brotli', 'gzip', 'none']) {
+    test(`${compression}: a disk read and written with compressedBlocks is readable and identical`, async () => {
+      const adapter = await getAdapter({ useVhdDirectory: true, remoteCompressionType: compression })
+      const sourcePath = `${basePath}/${adapter.getVhdFileName('source')}`
+      const targetPath = `${basePath}/${adapter.getVhdFileName('target')}`
+      await adapter.writeVhd(sourcePath, new MockDisk(3, [0, 2], 0x42), { uuid: uniqueIdBuffer() })
+
+      const source = await adapter._createVhdDisk(handler, sourcePath, { useChain: false, compressedBlocks: true })
+      const { data: storedBlock } = await source.readBlock(2)
+      if (compression !== 'none') {
+        assert.ok(storedBlock.length < 2 * 1024 * 1024, 'the block should be read compressed')
+      }
+      await adapter.writeVhd(targetPath, source, {
+        validator: tmpPath => checkDisk(handler, tmpPath),
+        uuid: uniqueIdBuffer(),
+        compressedBlocks: true,
+      })
+
+      await Disposable.use(openVhd(handler, targetPath), async vhd => {
+        assert.equal(vhd.compressionType, compression)
+        await vhd.readBlockAllocationTable()
+        assert.ok(vhd.containsBlock(0))
+        assert.ok(!vhd.containsBlock(1))
+        const { data } = await vhd.readBlock(2)
+        assert.ok(
+          data.every(byte => byte === 0x42),
+          'block 2 should contain the source disk data'
+        )
+      })
+    })
+  }
+
+  test('a disk written before a compression change is rejected', async () => {
+    const gzipAdapter = await getAdapter({ useVhdDirectory: true, remoteCompressionType: 'gzip' })
+    const sourcePath = `${basePath}/${gzipAdapter.getVhdFileName('source')}`
+    await gzipAdapter.writeVhd(sourcePath, new MockDisk(1, [0], 0x42), { uuid: uniqueIdBuffer() })
+    await handler.forget()
+
+    const brotliAdapter = await getAdapter({ useVhdDirectory: true, remoteCompressionType: 'brotli' })
+    await assert.rejects(
+      brotliAdapter._createVhdDisk(handler, sourcePath, { useChain: false, compressedBlocks: true }),
+      /the disk compression differs from the remote one/
+    )
+  })
+
+  test('a VHD file target refuses compressed blocks', async () => {
+    const adapter = await getAdapter({ useVhdDirectory: false })
+    await assert.rejects(
+      adapter.writeVhd(`${basePath}/target.vhd`, new MockDisk(1, [0], 0x42), { compressedBlocks: true }),
+      /can't write compressed blocks in a VHD file/
+    )
+  })
+})
