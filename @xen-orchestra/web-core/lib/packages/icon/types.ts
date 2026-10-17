@@ -1,6 +1,6 @@
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-
 export const ICON_SYMBOL = Symbol('Icon')
+
+export type IconDefinition = [width: number, height: number, path: string | string[]]
 
 export type IconTransforms = {
   borderColor?: string

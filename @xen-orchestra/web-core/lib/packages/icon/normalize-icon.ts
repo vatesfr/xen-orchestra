@@ -1,6 +1,5 @@
 import { toArray } from '@core/utils/to-array.utils.ts'
-import type { NormalizedIcon } from './types.ts'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconDefinition, NormalizedIcon } from './types.ts'
 
 export function normalizeIcon(icon: IconDefinition | undefined): NormalizedIcon {
   if (icon === undefined) {
@@ -11,7 +10,7 @@ export function normalizeIcon(icon: IconDefinition | undefined): NormalizedIcon 
   }
 
   return {
-    viewBox: `0 0 ${icon.icon[0]} ${icon.icon[1]}`,
-    paths: toArray(icon.icon[4]),
+    viewBox: `0 0 ${icon[0]} ${icon[1]}`,
+    paths: toArray(icon[2]),
   }
 }
