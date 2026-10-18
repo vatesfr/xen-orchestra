@@ -40,6 +40,15 @@ const MAX_PENDING_BYTES = 1024 * 1024
 
 const noop = Function.prototype
 
+// connecting to a host name with several addresses (e.g. IPv4 and IPv6) fails
+// with an AggregateError without message, use the messages of its errors
+function withMessage(error) {
+  if (error.message === '' && Array.isArray(error.errors) && error.errors.length !== 0) {
+    error.message = error.errors.map(error => error.message).join(', ')
+  }
+  return error
+}
+
 // header fields must be printable ASCII characters without spaces
 const toHeaderField = (value, maxLength) => value.replace(/[^\x21-\x7e]/g, '_').slice(0, maxLength) || '-'
 
@@ -161,7 +170,7 @@ export class SyslogForwarder {
     }
 
     // pending writes fail with a generic error when the connection fails, report its cause instead
-    socket.write(message + '\n', error => cb(error == null ? error : (socket.errored ?? error)))
+    socket.write(message + '\n', error => cb(error == null ? error : withMessage(socket.errored ?? error)))
   }
 
   // one message per datagram, see https://datatracker.ietf.org/doc/html/rfc5426
