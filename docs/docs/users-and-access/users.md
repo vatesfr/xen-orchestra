@@ -678,6 +678,7 @@ To send the records to a SIEM or any other log collector, fill the `syslog` sect
 
 - `uri`: the address of the syslog server, like `udp://syslog.company.lan`, `tcp://syslog.company.lan:1514` or `tls://syslog.company.lan` (default port is `514`, `6514` for TLS)
 - `facility`: the syslog facility of the messages, `authpriv` by default
+- `framing` (TCP and TLS only): `lf` (default, a line feed after each message) or `octet-counting` (required by some servers, e.g. the `syslog()` driver of syslog-ng)
 - `ignoreUnauthorized` (TLS only): do not check the certificate of the server, e.g. when it is self-signed (prefer `certificateAuthorities`)
 - `certificateAuthorities` (TLS only): paths to PEM files of additional certificate authorities to trust, e.g. when the certificate of the server is issued by an internal authority
 
