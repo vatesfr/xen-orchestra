@@ -60,7 +60,7 @@ const formatMessage = ({ facility, msgid, message, severity, timestamp }) =>
 
 export class SyslogForwarder {
   // ca: contents of the certificate authorities to trust in addition to the system ones (TLS only)
-  constructor({ ca, checkCertificate = true, facility = 'authpriv', target }) {
+  constructor({ ca, facility = 'authpriv', ignoreUnauthorized = false, target }) {
     const matches = /^(tcp|tls|udp):\/\/(.+)$/.exec(target.trim())
     const protocol = matches?.[1]
 
@@ -81,7 +81,7 @@ export class SyslogForwarder {
         ? {
             // the `ca` option replaces the system certificate authorities
             ca: ca === undefined ? undefined : [...tls.rootCertificates, ...ca],
-            rejectUnauthorized: checkCertificate,
+            rejectUnauthorized: !ignoreUnauthorized,
           }
         : undefined
 
