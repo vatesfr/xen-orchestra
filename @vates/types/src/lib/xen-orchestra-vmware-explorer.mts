@@ -65,6 +65,8 @@ export type VmwareVmNic = {
   macAddress?: string
   addressType?: string
   network?: string
+  /** what the predictable name of the card in the guest derives from (192 → `ens192`) */
+  pciSlotNumber?: number
 }
 
 export type VmwareVm = {

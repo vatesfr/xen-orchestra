@@ -215,6 +215,19 @@ export type EsxiConnectionParams = {
   sslVerify: boolean
 }
 
+/** how the guest is prepared to boot on XCP-ng by the repair ISO (`xo-repair-<build>-<commit>.iso`) */
+export type EsxiRepairOptions = {
+  /** `standard` leaves the VMware components on disk, disabled, `full` removes them. Default: `standard` */
+  windowsCleanup?: 'standard' | 'full'
+  /** `;`-separated patterns of the packages of the guest tools ISO to install, in order. Default: `*.msi` */
+  windowsMsiPatterns?: string
+  /**
+   * build of the repair ISO to use, deployed as `xo-repair-<build>-<commit>.iso`: its date (`YYYYMMDD`) or a release
+   * tag. Default: the build this version of XO is tested with
+   */
+  isoVersion?: string
+}
+
 export type XoApp = EventEmitter & {
   hooks: EventEmitter
   _redis: {
@@ -492,6 +505,10 @@ export type XoApp = EventEmitter & {
       stopSource: boolean
       /** VMware moref of the VM */
       vm: string
+      /** repair the guest once the import is complete, off by default. A failed repair does not fail the import */
+      repair?: boolean | EsxiRepairOptions
+      /** start the VM once the import is complete, following the first boot of a repaired guest, off by default */
+      startVm?: boolean
     }
   ): Promise<XoVm['uuid']>
   /**
