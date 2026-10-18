@@ -2,6 +2,7 @@ import asyncIteratorToStream from 'async-iterator-to-stream'
 import ndjson from 'ndjson'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { createGzip, createUnzip } from 'zlib'
+import { readFile } from 'fs'
 import { createLogger } from '@xen-orchestra/log'
 import { createSchedule } from '@xen-orchestra/cron'
 import { decorateClass } from '@vates/decorate-with'
@@ -11,6 +12,8 @@ import { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } f
 import { PassThrough, pipeline, promises } from 'readable-stream'
 
 import { createRestRoutes } from './rest-api.js'
+import { redactData } from './redact.js'
+import { SYSLOG_FACILITIES, SyslogForwarder } from './syslog.js'
 
 const log = createLogger('xo:xo-server-audit')
 
@@ -192,6 +195,39 @@ export const configurationSchema = {
         'Whether to save user actions in the audit log (do not enable if you are planning to perform an audit log import)',
       type: 'boolean',
     },
+    syslog: {
+      type: 'object',
+      title: 'syslog',
+      description: 'Forward a copy of each new record, as JSON, to a remote syslog server (RFC 5424)',
+      properties: {
+        target: {
+          type: 'string',
+          description: 'udp://host[:port], tcp://host[:port] or tls://host[:port] (default port: 514, 6514 for TLS)',
+        },
+        facility: {
+          default: 'authpriv',
+          enum: Object.keys(SYSLOG_FACILITIES),
+        },
+        checkCertificate: {
+          title: 'Check certificate',
+          description:
+            "TLS only: enforce the validity of the server's certificate. You can disable it when connecting to a server that uses a self-signed certificate.",
+          type: 'boolean',
+          default: true,
+        },
+        certificateAuthorities: {
+          title: 'Certificate Authorities',
+          description:
+            'TLS only: paths to the PEM files of the certificate authorities to trust, in addition to the system ones',
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+      },
+      additionalProperties: false,
+      required: ['target'],
+    },
   },
 }
 
@@ -213,6 +249,7 @@ class AuditXoPlugin {
 
     this._auditCore = undefined
     this._storage = undefined
+    this._syslogForwarder = undefined
 
     this._listeners = {
       'xo:audit': this._handleEvent.bind(this),
@@ -220,7 +257,22 @@ class AuditXoPlugin {
     }
   }
 
-  configure({ active = false }, { loaded }) {
+  async configure({ active = false, syslog }, { loaded }) {
+    // created first so that an invalid configuration is rejected without altering the current one
+    let syslogForwarder
+    if (syslog !== undefined) {
+      const { certificateAuthorities, ...options } = syslog
+      syslogForwarder = new SyslogForwarder({
+        ...options,
+        ca:
+          certificateAuthorities === undefined
+            ? undefined
+            : await Promise.all(certificateAuthorities.map(path => fromCallback(readFile, path, 'utf8'))),
+      })
+    }
+    this._syslogForwarder?.close()
+    this._syslogForwarder = syslogForwarder
+
     this._active = active
 
     if (loaded) {
@@ -312,6 +364,7 @@ class AuditXoPlugin {
 
   unload() {
     this._removeListeners()
+    this._syslogForwarder?.close()
     this._cleaners.forEach(cleaner => cleaner())
     this._cleaners.length = 0
   }
@@ -337,19 +390,29 @@ class AuditXoPlugin {
   async _handleEvent(event, { userId, userIp, userName, ...data }) {
     try {
       if (event !== 'apiCall' || !this._blockedList[data.method]) {
-        return await this._auditCore.add(
+        const record = await this._auditCore.add(
           {
             userId,
             userIp,
             userName,
           },
           event,
-          data
+          redactData(data)
         )
+        this._syslogForwarder?.forward(record)
+        return record
       }
     } catch (error) {
       log.error(error)
     }
+  }
+
+  async test() {
+    const forwarder = this._syslogForwarder
+    if (forwarder === undefined) {
+      throw new Error('no syslog target configured')
+    }
+    return forwarder.test()
   }
 
   async _getRecords({ id, maxRecords = 10e3, ndjson = false }) {
