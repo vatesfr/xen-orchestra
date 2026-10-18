@@ -1,6 +1,6 @@
 import type { VmwareVm, XoNetwork, XoSr, XoVmTemplate } from '@vates/types'
 
-import type { V2vStartBody, V2vStartVm } from './v2v.type.mjs'
+import type { V2vRepairOptions, V2vStartBody, V2vStartVm } from './v2v.type.mjs'
 
 /** what the import of one VM will be given */
 export type V2vVmPlan = {
@@ -14,6 +14,8 @@ export type V2vVmPlan = {
   nics: Record<string, XoNetwork['id']>
   template: XoVmTemplate['id']
   stopSource: boolean
+  repair: false | V2vRepairOptions
+  startVm: boolean
 }
 
 export type V2vProblem = { vm?: string; field?: string; message: string }
@@ -38,9 +40,6 @@ export function planMigration(
   const problems: V2vProblem[] = []
   const plans: V2vVmPlan[] = []
 
-  if (defaults.startVm === true) {
-    problems.push({ field: 'defaults.startVm', message: 'starting the VM after its import is not supported yet' })
-  }
   if (defaults.cleanup === true) {
     problems.push({ field: 'defaults.cleanup', message: 'cleaning up the VM is not supported yet' })
   }
@@ -72,9 +71,6 @@ export function planMigration(
     }
 
     // options the import cannot honour yet: refused rather than silently ignored
-    if (vm.startVm === true) {
-      report('starting the VM after its import is not supported yet', 'startVm')
-    }
     if (vm.cleanup === true) {
       report('cleaning up the VM is not supported yet', 'cleanup')
     }
@@ -83,6 +79,18 @@ export function planMigration(
     }
     if (vm.keepMac === false) {
       report('the MAC addresses are always kept for now', 'keepMac')
+    }
+
+    const stopSource = vm.stopSource ?? defaults.stopSource ?? false
+    const repair = vm.repair ?? defaults.repair ?? false
+    const startVm = vm.startVm ?? defaults.startVm ?? false
+    // the guest is only repaired, and the VM only started, once its import is complete: it would silently not be
+    const isPartial = !stopSource && sourceVm.powerState !== 'poweredOff'
+    if (repair !== false && isPartial) {
+      report('the guest can only be repaired by a complete import: stop the source, or use stopSource', 'repair')
+    }
+    if (startVm && isPartial) {
+      report('the VM can only be started after a complete import: stop the source, or use stopSource', 'startVm')
     }
 
     for (const disk of sourceVm.disks) {
@@ -102,7 +110,9 @@ export function planMigration(
       disks: (vm.disks ?? {}) as Record<string, XoSr['id']>,
       nics: (vm.nics ?? {}) as Record<string, XoNetwork['id']>,
       template: (vm.template ?? defaults.template) as XoVmTemplate['id'],
-      stopSource: vm.stopSource ?? defaults.stopSource ?? false,
+      stopSource,
+      repair: repair === true ? {} : repair,
+      startVm,
     }
   }
 }
