@@ -200,7 +200,9 @@ export const configurationSchema = {
       title: 'syslog',
       description: 'Forward a copy of each new record, as JSON, to a remote syslog server (RFC 5424)',
       properties: {
-        target: {
+        // not `target`: xo-web considers an object with a `target` property as an
+        // event, which made the whole section not editable
+        uri: {
           type: 'string',
           description: 'udp://host[:port], tcp://host[:port] or tls://host[:port] (default port: 514, 6514 for TLS)',
         },
@@ -227,7 +229,7 @@ export const configurationSchema = {
         },
       },
       additionalProperties: false,
-      required: ['target'],
+      required: ['uri'],
     },
   },
 }
@@ -411,7 +413,7 @@ class AuditXoPlugin {
   async test() {
     const forwarder = this._syslogForwarder
     if (forwarder === undefined) {
-      throw new Error('no syslog target configured')
+      throw new Error('no syslog URI configured')
     }
     return forwarder.test()
   }
