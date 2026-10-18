@@ -155,7 +155,7 @@ configure(
 Optional dependency:
 
 ```
-> yarn add split-host syslog-client
+> yarn add @vates/syslog
 ```
 
 Configuration:
@@ -166,9 +166,24 @@ import transportSyslog from '@xen-orchestra/log/transports/syslog'
 // By default, log to udp://localhost:514
 configure(transportSyslog())
 
-// But TCP, a different host, or a different port can be used
+// But TCP, TLS, a different host, or a different port can be used
 configure(transportSyslog({ target: 'tcp://syslog.company.lan' }))
+
+configure(
+  transportSyslog({
+    target: 'tls://syslog.company.lan',
+
+    // paths to PEM files of certificate authorities to trust, in addition to the system ones
+    certificateAuthorities: ['/etc/ssl/certs/company-ca.pem'],
+
+    // other options of `@vates/syslog`'s `createClient()`
+    appName: 'my-app',
+    facility: 'local0',
+  })
+)
 ```
+
+The namespace of each log is used as message ID. Failures to send logs are reported on the console, not with the logger.
 
 ### Helpers
 

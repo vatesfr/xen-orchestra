@@ -167,7 +167,27 @@ port = 80
 
 # Uncomment this section to export the logs to an external syslog
 #[logs.transport.syslog]
+#
+# udp://host[:port] (default), tcp://host[:port] or tls://host[:port], the
+# default port is 514, or 6514 for TLS
 #target = 'tcp://syslog.company.lan:514'
+#
+# Default: the name of the process, usually 'node'
+#appName = 'xo-server'
+#
+# Default: 'user'
+#facility = 'local0'
+#
+# RFC 5424 messages by default, 'rfc3164' for the previous format
+#format = 'rfc3164'
+#
+# For TCP and TLS: 'lf' (default) or 'octet-counting' (RFC 5425, e.g. syslog-ng syslog() driver)
+#framing = 'octet-counting'
+#
+# TLS only: paths to PEM files of certificate authorities to trust, and whether
+# to accept any certificate (e.g. self-signed)
+#certificateAuthorities = ['/etc/ssl/certs/company-ca.pem']
+#ignoreUnauthorized = false
 
 #=====================================================================
 
