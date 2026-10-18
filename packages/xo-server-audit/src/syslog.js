@@ -60,15 +60,15 @@ const formatMessage = ({ facility, msgid, message, severity, timestamp }) =>
 
 export class SyslogForwarder {
   // ca: contents of the certificate authorities to trust in addition to the system ones (TLS only)
-  constructor({ ca, facility = 'authpriv', ignoreUnauthorized = false, target }) {
-    const matches = /^(tcp|tls|udp):\/\/(.+)$/.exec(target.trim())
+  constructor({ ca, facility = 'authpriv', ignoreUnauthorized = false, uri }) {
+    const matches = /^(tcp|tls|udp):\/\/(.+)$/.exec(uri.trim())
     const protocol = matches?.[1]
 
     // https://datatracker.ietf.org/doc/html/rfc5425#section-4.1
     const { host, port = protocol === 'tls' ? 6514 : 514 } = (matches !== null && splitHost(matches[2])) || {}
     if (!host) {
       throw new Error(
-        `invalid syslog target: ${target}, it should be like udp://host[:port], tcp://host[:port] or tls://host[:port]`
+        `invalid syslog URI: ${uri}, it should be like udp://host[:port], tcp://host[:port] or tls://host[:port]`
       )
     }
 
