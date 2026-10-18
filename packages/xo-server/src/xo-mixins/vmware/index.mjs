@@ -11,6 +11,9 @@ import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
 import { importDisksFromDatastore, importStream } from './importDisksfromDatastore.mjs'
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
 import { assertKnownDevices } from './_deviceMapping.mjs'
+import { repairImportedVm } from './_repair.mjs'
+import { REPAIR_ISO_VERSION } from './_repairInputs.mjs'
+import { firstBootOfRepairedVm } from './_firstBoot.mjs'
 import { finished, PassThrough } from 'node:stream'
 import { Ref } from 'xen-api'
 
@@ -20,6 +23,9 @@ const { warn } = createLogger('xo:mixins:vmware')
 // The imports made before this key existed are all from VMware
 const SOURCE_PLATFORM = 'vmware'
 const isFromThisPlatform = otherConfig => (otherConfig.sourcePlatform ?? SOURCE_PLATFORM) === SOURCE_PLATFORM
+
+// VMware guest ids of Windows: `windows2019srv_64Guest`, `winNetStandardGuest`…
+const isWindowsGuest = guestId => /^win/i.test(guestId ?? '')
 
 export default class MigrateVm {
   constructor(app) {
@@ -106,7 +112,7 @@ export default class MigrateVm {
   }
 
   async #createVmAndNetworks($defer, { metadata, networkId, networkIdsByNic, template, xapi }) {
-    const { cdrom, guestId, firmware, memory, name_label, networks, nCpus } = metadata
+    const { guestId, firmware, memory, name_label, networks, nCpus } = metadata
 
     const existingVm = await this.#findBaseVM(xapi, metadata)
     if (existingVm !== undefined) {
@@ -126,7 +132,8 @@ export default class MigrateVm {
           memory_static_min: Math.min(template.memory_static_min, memory),
           name_description: `from esxi -- source guest id :${guestId} -- template used:${template.name_label}`,
           name_label,
-          platform: { ...template.platform },
+          // Windows needs the Hyper-V enlightenments to run the XCP-ng PV drivers
+          platform: isWindowsGuest(guestId) ? { ...template.platform, viridian: 'true' } : { ...template.platform },
           VCPUs_at_startup: nCpus,
           VCPUs_max: nCpus,
         })
@@ -159,10 +166,9 @@ export default class MigrateVm {
         })
       )
 
-      if (cdrom) {
-        const ref = await xapi.VBD_create({ type: 'CD', VM: vm.$ref, VDI: Ref.EMPTY })
-        $defer.onFailure(() => xapi.call('VBD.destroy', ref))
-      }
+      // even when the source has none: the repair ISO, and later the guest tools ISO, are inserted there
+      const cdDriveRef = await xapi.VBD_create({ type: 'CD', VM: vm.$ref, VDI: Ref.EMPTY })
+      $defer.onFailure(() => xapi.call('VBD.destroy', cdDriveRef))
 
       return vm
     })
@@ -218,7 +224,13 @@ export default class MigrateVm {
     await vm.$snapshot({ name_label: `after ${isRunning ? 'partial' : 'complete'} import from V2V` })
     if (isRunning) {
       if (stopSource) {
-        await Task.run({ properties: { name: 'stopping source VM' } }, async () => esxi.powerOff(vmId))
+        await Task.run({ properties: { name: 'stopping source VM' } }, async () => {
+          // a clean shut down when the guest allows it: a power off leaves the file systems dirty
+          const stoppedBy = await esxi.shutdown(vmId, { signal: Task.abortSignal })
+          if (stoppedBy === 'powerOff') {
+            Task.warning('the guest could not be shut down cleanly, it was powered off')
+          }
+        })
         await importDisksFromDatastore({
           chainsByNodes,
           esxi,
@@ -238,6 +250,60 @@ export default class MigrateVm {
       }
     }
   }
+
+  // before the lock on start is removed: the VM cannot be started by somebody else between two runs of the ISO.
+  // A failed repair does not fail the import: the data is there, the snapshot of the import is the rollback.
+  // Returns the reports of the ISO, undefined when the guest has not been repaired
+  async #repairVm({ isComplete, isoVersion, metadata, options, vm }) {
+    if (!isComplete) {
+      Task.info('the import is partial, the guest will be repaired once it is complete')
+      return
+    }
+    const xapi = vm.$xapi
+    try {
+      const reports = await Task.run({ properties: { name: 'repairing the guest for XCP-ng' } }, () =>
+        repairImportedVm({ xapi, vmRef: vm.$ref, metadata, options, isoVersion })
+      )
+      await xapi.setFieldEntries('VM', vm.$ref, 'other_config', { 'xo:v2v:repair': JSON.stringify(reports) })
+      return reports
+    } catch (error) {
+      warn('the guest could not be repaired', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
+      Task.warning(`the guest could not be repaired: ${error.message}`)
+      // the outputs of the ISO are gone from `xenstore_data`: the reports are all that is left to understand
+      await xapi
+        .setFieldEntries('VM', vm.$ref, 'other_config', {
+          'xo:v2v:repair': JSON.stringify({ error: { code: error.code, message: error.message }, ...error.reports }),
+        })
+        .catch(storeError => warn('failed to store the repair report', { error: storeError, vmId: vm.uuid }))
+    }
+  }
+
+  // once the import is complete and the lock on start removed. A repaired guest is followed through its first
+  // boot, which does not fail the import either
+  async #startVm({ isoVersion, metadata, reports, vm }) {
+    const xapi = vm.$xapi
+    if (reports === undefined) {
+      await Task.run({ properties: { name: 'starting the VM' } }, () => xapi.call('VM.start', vm.$ref, false, false))
+      return
+    }
+    try {
+      await Task.run({ properties: { name: 'first boot on XCP-ng' } }, () =>
+        firstBootOfRepairedVm({ xapi, vmRef: vm.$ref, metadata, reports, isoVersion })
+      )
+    } catch (error) {
+      warn('the first boot of the repaired guest failed', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
+      Task.warning(`the first boot on XCP-ng failed: ${error.message}`)
+      await xapi
+        .setFieldEntries('VM', vm.$ref, 'other_config', {
+          'xo:v2v:first-boot': JSON.stringify({
+            error: { code: error.code, message: error.message },
+            report: error.report,
+          }),
+        })
+        .catch(storeError => warn('failed to store the first boot report', { error: storeError, vmId: vm.uuid }))
+    }
+  }
+
   @decorateWith(deferrable)
   async migrationfromEsxi(
     $defer,
@@ -254,6 +320,10 @@ export default class MigrateVm {
       vm: vmId,
       stopSource,
       template: templateId,
+      // prepare the guest to boot on XCP-ng with the repair ISO, once the import is complete. Off by default
+      repair = false,
+      // start the VM once the import is complete, and follow the first boot of a repaired guest. Off by default
+      startVm = false,
     }
   ) {
     const app = this._app
@@ -293,16 +363,37 @@ export default class MigrateVm {
     await xapi.barrier()
     await this.#importDisks($defer, { esxi, metadata, stopSource, vm, sr, srsByNode, vmId })
     Task.abortSignal?.throwIfAborted()
+    const isComplete = stopSource || metadata.powerState === 'poweredOff'
+    const repairOptions = typeof repair === 'object' ? repair : {}
+    // the build XO is tested with, unless another one is asked for, e.g. by a test of a specific build
+    const isoVersion = repairOptions.isoVersion ?? REPAIR_ISO_VERSION
+    let reports
+    if (repair) {
+      reports = await this.#repairVm({ isComplete, isoVersion, metadata, options: repairOptions, vm })
+    }
+    Task.abortSignal?.throwIfAborted()
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label
       await vm.set_name_label(metadata.name_label)
-      const wasStopped = metadata.powerState === 'poweredOff'
 
       // remove lock on start if the VM has been completly imported
-      if (stopSource || wasStopped) {
+      if (isComplete) {
         await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null))
       }
     })
+
+    if (startVm) {
+      if (!isComplete) {
+        Task.info('the import is partial, the VM is not started')
+      } else if (repair && reports === undefined) {
+        Task.warning('the VM is not started: its guest could not be repaired')
+      } else {
+        await this.#startVm({ isoVersion, metadata, reports, vm })
+      }
+    } else if (reports !== undefined && metadata.firmware === 'uefi' && metadata.secureBoot) {
+      // the repair disabled it, the first boot would have enabled it again
+      Task.warning('Secure Boot was enabled on the source: enable it again once the VM has booted')
+    }
 
     return vm.uuid
   }

@@ -424,6 +424,73 @@ const taskInfo = (state, extra = {}) =>
 
 const startedTask = () => ({ returnval: moRef('Task', 'task-1') })
 
+describe('shutdown', function () {
+  /**
+   * @param {object} params
+   * @param {string} [params.toolsStatus] - `guest.toolsRunningStatus`
+   * @param {string[]} params.powerStates - successive answers for `runtime.powerState`, the last one repeats
+   * @param {() => object} [params.shutdownGuest] - answer to `ShutdownGuest`, may throw
+   */
+  const shutdownEsxi = ({ toolsStatus = 'guestToolsRunning', powerStates, shutdownGuest = () => ({}) }) => {
+    const states = [...powerStates]
+    return connectedEsxi({
+      responses: {
+        ShutdownGuest: shutdownGuest,
+        PowerOffVM_Task: () => startedTask(),
+        RetrievePropertiesEx: ({ specSet }) => {
+          const { pathSet, type } = specSet[0].propSet[0]
+          if (type === 'Task') {
+            return taskInfo('success')
+          }
+          if (pathSet[0] === 'guest.toolsRunningStatus') {
+            return propertyOf('VirtualMachine', 'vm-1', pathSet[0], toolsStatus)
+          }
+          const state = states.length > 1 ? states.shift() : states[0]
+          return propertyOf('VirtualMachine', 'vm-1', pathSet[0], state)
+        },
+      },
+    })
+  }
+
+  it('asks the guest to shut down and waits for it', async function () {
+    const { esxi, vimClient } = await shutdownEsxi({ powerStates: ['poweredOn', 'poweredOn', 'poweredOff'] })
+
+    assert.equal(await esxi.shutdown('vm-1', { pollInterval: 1 }), 'shutdown')
+    assert.deepEqual(vimClient.callsTo('ShutdownGuest')[0].args, { _this: 'vm-1' })
+    assert.equal(vimClient.callsTo('PowerOffVM_Task').length, 0)
+  })
+
+  it('powers the VM off when the VMware tools do not run', async function () {
+    const { esxi, vimClient } = await shutdownEsxi({ toolsStatus: 'guestToolsNotRunning', powerStates: ['poweredOn'] })
+
+    assert.equal(await esxi.shutdown('vm-1', { pollInterval: 1 }), 'powerOff')
+    assert.equal(vimClient.callsTo('ShutdownGuest').length, 0)
+    assert.equal(vimClient.callsTo('PowerOffVM_Task').length, 1)
+  })
+
+  it('powers the VM off when the guest refuses, or does not shut down in time', async function () {
+    const refusing = await shutdownEsxi({
+      powerStates: ['poweredOn'],
+      shutdownGuest: () => {
+        throw Object.assign(new Error('ToolsUnavailable'), { code: 'ToolsUnavailable' })
+      },
+    })
+    assert.equal(await refusing.esxi.shutdown('vm-1', { pollInterval: 1 }), 'powerOff')
+
+    const stuck = await shutdownEsxi({ powerStates: ['poweredOn'] })
+    assert.equal(await stuck.esxi.shutdown('vm-1', { pollInterval: 1, timeout: 5 }), 'powerOff')
+    assert.equal(stuck.vimClient.callsTo('PowerOffVM_Task').length, 1)
+  })
+
+  it('does not power off a guest which completed its shut down after the timeout', async function () {
+    // the read while waiting, then the one before the power off
+    const { esxi, vimClient } = await shutdownEsxi({ powerStates: ['poweredOn', 'poweredOff'] })
+
+    assert.equal(await esxi.shutdown('vm-1', { pollInterval: 1, timeout: 0 }), 'shutdown')
+    assert.equal(vimClient.callsTo('PowerOffVM_Task').length, 0)
+  })
+})
+
 describe('tasks', function () {
   it('resolves with the info of the successful task', async function () {
     const { esxi, vimClient } = await connectedEsxi({
@@ -1145,34 +1212,39 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
     guestId: 'ubuntu64Guest',
     guestFullName: 'Ubuntu Linux (64-bit)',
     firmware: 'efi',
+    bootOptions: { efiSecureBootEnabled: 'true' },
     files: { vmPathName },
     hardware: {
       memoryMB: '2048',
       numCPU: '2',
-      device: {
-        attributes: { 'xsi:type': 'ArrayOfVirtualDevice' },
-        VirtualDevice: [
-          {
-            attributes: { 'xsi:type': 'VirtualVmxnet3' },
-            key: '4000',
-            deviceInfo: { label: 'Network adapter 1' },
-            macAddress: '00:0c:29:00:00:01',
-            addressType: 'generated',
-            backing: { network: moRef('Network', 'network-13') },
-          },
-          {
-            attributes: { 'xsi:type': 'VirtualE1000e' },
-            key: '4001',
-            deviceInfo: { label: 'Network adapter 2' },
-            macAddress: '00:50:56:00:00:02',
-            addressType: 'manual',
-          },
-        ],
-      },
+      // within `config`, the repeated `device` element, not an `ArrayOfVirtualDevice` as when it is read on its own
+      device: [
+        {
+          attributes: { 'xsi:type': 'VirtualVmxnet3' },
+          key: '4000',
+          deviceInfo: { label: 'Network adapter 1' },
+          macAddress: '00:0c:29:00:00:01',
+          addressType: 'generated',
+          backing: { network: moRef('Network', 'network-13') },
+          slotInfo: { pciSlotNumber: '192' },
+        },
+        {
+          attributes: { 'xsi:type': 'VirtualE1000e' },
+          key: '4001',
+          deviceInfo: { label: 'Network adapter 2' },
+          macAddress: '00:50:56:00:00:02',
+          addressType: 'manual',
+        },
+      ],
     },
   })
 
   const RUNTIME = { attributes: { 'xsi:type': 'VirtualMachineRuntimeInfo' }, powerState: 'poweredOn' }
+
+  const GUEST_NET = {
+    attributes: { 'xsi:type': 'ArrayOfGuestNicInfo' },
+    GuestNicInfo: { macAddress: '00:0c:29:00:00:01', deviceConfigId: '4000', ipAddress: '10.0.0.5' },
+  }
 
   const DATASTORE_SUMMARIES = [
     {
@@ -1185,8 +1257,13 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
    * @param {object} [options]
    * @param {string} [options.vmPathName] - `files.vmPathName` reported for the VM
    * @param {number} [options.vmsdStatus] - status of the response to the vmsd request
+   * @param {object | null} [options.guestNet] - `guest.net` of the VM, null when the guest does not report it
    */
-  const transferableEsxi = async ({ vmPathName = '[ds main] a.vm/a.vm.vmx', vmsdStatus = 404 } = {}) => {
+  const transferableEsxi = async ({
+    vmPathName = '[ds main] a.vm/a.vm.vmx',
+    vmsdStatus = 404,
+    guestNet = GUEST_NET,
+  } = {}) => {
     const requested = []
     const { esxi } = await connectedEsxi({
       responses: {
@@ -1198,6 +1275,12 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
           }
           if (type !== 'VirtualMachine') {
             return page(DATACENTERS)
+          }
+          if (pathSet[0] === 'guest.net') {
+            // vSphere leaves an unset property out of the answer
+            return guestNet === null
+              ? { returnval: { objects: [{ obj: moRef('VirtualMachine', 'vm-1') }] } }
+              : propertyOf('VirtualMachine', 'vm-1', 'guest.net', guestNet)
           }
           return pathSet[0] === 'runtime'
             ? propertyOf('VirtualMachine', 'vm-1', 'runtime', RUNTIME)
@@ -1241,10 +1324,12 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
     // used to be returned as a one element array
     assert.equal(metadata.guestFullName, 'Ubuntu Linux (64-bit)')
     assert.equal(metadata.firmware, 'uefi')
+    assert.equal(metadata.secureBoot, true)
     assert.equal(metadata.powerState, 'poweredOn')
     assert.equal(metadata.memory, 2048 * 1024 * 1024)
     assert.equal(metadata.nCpus, 2)
     assert.equal(metadata.cdrom, true)
+    assert.deepEqual(metadata.guestNics, [{ key: '4000', macAddress: '00:0c:29:00:00:01', addresses: ['10.0.0.5'] }])
     assert.deepEqual(metadata.networks, [
       {
         key: '4000',
@@ -1252,6 +1337,7 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
         macAddress: '00:0c:29:00:00:01',
         isGenerated: true,
         network: 'network-13',
+        pciSlotNumber: 192,
       },
       // a MAC set by hand is not in the vmx as a generated one: it used to be lost
       {
@@ -1260,8 +1346,15 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
         macAddress: '00:50:56:00:00:02',
         isGenerated: false,
         network: undefined,
+        pciSlotNumber: undefined,
       },
     ])
+  })
+
+  it('reports no guest network card when the guest runs without the tools', async function () {
+    const { esxi } = await transferableEsxi({ guestNet: null })
+
+    assert.deepEqual((await esxi.getTransferableVmMetadata('vm-1')).guestNics, [])
   })
 
   it('treats a missing vmsd as a VM without snapshot', async function () {

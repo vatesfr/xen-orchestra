@@ -34,6 +34,9 @@
 - [Backup logs] Add backup log list in admin menu (PR [#10572](https://github.com/vatesfr/xen-orchestra/pull/10572))
 - [BRs] Add backup repository edit form (PR [#10478](https://github.com/vatesfr/xen-orchestra/pull/10478))
 - [REST API/V2V] `POST /rest/v0/v2v/actions/inventory` reads the inventory of a vCenter or ESXi (datacenters, clusters, hosts, datastores, networks and VMs with their disks and network cards), and `POST /rest/v0/v2v/actions/start` imports a list of VMs into a pool, with an SR per disk and a network per network card, resuming partial imports with a delta. Restricted to administrators, credentials are never stored
+- [V2V] With `stopSource`, the source VM is shut down cleanly through the VMware tools, and only powered off when its tools do not run or it does not shut down within 10 minutes
+- [V2V] Optional `repair` of the guest once its import is complete: the VM boots on the repair ISO deployed on the pool (`xo-repair-<build date>-<commit>.iso`, the build XO is tested with), with the guest tools ISO, which prepares it to run on XCP-ng (Xen drivers, VMware tools disabled, guest agent, network interface names, Windows first boot). Off by default, available on `vm.importFromEsxi`, `vm.importMultipleFromEsxi` and `POST /rest/v0/v2v/actions/start`
+- [V2V] Optional `startVm` once the import is complete: a repaired guest is followed through its first boot (Windows drivers and agent installation, with a diagnosis of the VM when it does not complete), then Secure Boot is enabled again when the source had it
 
 - Host Probe SR REST API Endpoints:
 

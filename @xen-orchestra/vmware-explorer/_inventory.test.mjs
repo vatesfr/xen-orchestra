@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { flattenSnapshots, parseDevices, parseVlan } from './_inventory.mjs'
+import { flattenSnapshots, parseDevices, parseGuestNics, parseVlan } from './_inventory.mjs'
 
 // shaped as the SOAP library returns them: the nested references and types are not normalized
 const typed = (type, value) => ({ attributes: { 'xsi:type': type }, ...value })
@@ -35,6 +35,7 @@ const DEVICES = {
       key: '4000',
       macAddress: '00:50:56:aa:bb:cc',
       addressType: 'assigned',
+      slotInfo: typed('VirtualDevicePciBusSlotInfo', { pciSlotNumber: '192' }),
       backing: typed('VirtualEthernetCardNetworkBackingInfo', { network: ref('Network', 'network-13') }),
     }),
     typed('VirtualE1000e', {
@@ -86,6 +87,14 @@ describe('parseDevices', function () {
     )
   })
 
+  it('reports the PCI slot of a card, when the host assigned one', function () {
+    const { nics } = parseDevices(DEVICES)
+    assert.deepEqual(
+      nics.map(({ pciSlotNumber }) => pciSlotNumber),
+      [192, undefined]
+    )
+  })
+
   it('does not fail on a VM without devices', function () {
     assert.deepEqual(parseDevices(undefined), { disks: [], nics: [] })
   })
@@ -95,6 +104,39 @@ describe('parseDevices', function () {
       VirtualDevice: typed('VirtualDisk', { key: '2001', controllerKey: '999', unitNumber: '0', capacityInKB: '1' }),
     })
     assert.equal(disks[0].key, 'device-2001')
+  })
+})
+
+describe('parseGuestNics', function () {
+  it('reports the addresses of each card, by device key', function () {
+    const nics = parseGuestNics({
+      GuestNicInfo: [
+        typed('GuestNicInfo', {
+          macAddress: '00:50:56:aa:bb:cc',
+          deviceConfigId: '4000',
+          ipAddress: ['10.0.0.5'],
+          ipConfig: {
+            ipAddress: [
+              { ipAddress: '10.0.0.5', prefixLength: '24' },
+              { ipAddress: 'fe80::1', prefixLength: '64' },
+            ],
+          },
+        }),
+        // older tools only fill the deprecated list
+        typed('GuestNicInfo', { macAddress: '00:50:56:aa:bb:cd', deviceConfigId: '4001', ipAddress: '10.0.1.5' }),
+        // a card of the guest only
+        typed('GuestNicInfo', { macAddress: '02:00:00:00:00:01', deviceConfigId: '-1' }),
+      ],
+    })
+    assert.deepEqual(nics, [
+      { key: '4000', macAddress: '00:50:56:aa:bb:cc', addresses: ['10.0.0.5', 'fe80::1'] },
+      { key: '4001', macAddress: '00:50:56:aa:bb:cd', addresses: ['10.0.1.5'] },
+      { key: undefined, macAddress: '02:00:00:00:00:01', addresses: [] },
+    ])
+  })
+
+  it('does not fail without tools', function () {
+    assert.deepEqual(parseGuestNics(undefined), [])
   })
 })
 

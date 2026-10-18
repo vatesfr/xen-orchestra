@@ -88,7 +88,10 @@ export class V2vController extends Controller {
    * defaults. A resumed import keeps the SRs and networks of its first run. An unknown key fails the
    * import of the VM before anything is done on either side.
    *
-   * For now, the MAC addresses are kept, and `tags`, `startVm` and `cleanup` are refused.
+   * With `repair`, the guest is prepared to boot on XCP-ng by the repair ISO of the pool once the import is
+   * complete, and with `startVm` the VM is started, its first boot followed when it was repaired.
+   *
+   * For now, the MAC addresses are kept, and `tags` and `cleanup` are refused.
    *
    * The request is checked before the import starts: 422 with the list of the problems.
    *
