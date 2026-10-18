@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [Plugins/audit] Redact more sensitive values from new audit records (created API tokens, credentials and encryption keys in URLs, one-time download/upload links) (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -54,6 +56,7 @@
 - [XO6] Export VDI as vmdk (PR [#10591](https://github.com/vatesfr/xen-orchestra/pull/10591))
 - [XO5] Improve event handling (PR [#10568](https://github.com/vatesfr/xen-orchestra/pull/10568))
 - [Logs] The syslog transport (`[logs.transport.syslog]` in xo-server configuration) supports TLS (`tls://`), and the facility, application name and framing can be configured. Logs are sent as RFC 5424 messages with their namespace as message ID (`format = 'rfc3164'` for the previous format) (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
+- [Plugins/audit] Forward a copy of each new audit record, as JSON, to a remote syslog server (e.g. a SIEM) over UDP, TCP or TLS, configurable in the plugin settings (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
 
 ### Bug fixes
 
@@ -124,6 +127,7 @@
 - xo-acl-resolver minor
 - xo-cli patch
 - xo-server minor
+- xo-server-audit minor
 - xo-server-load-balancer minor
 - xo-server-sdn-controller patch
 - xo-web minor
