@@ -208,12 +208,13 @@ export const configurationSchema = {
           default: 'authpriv',
           enum: Object.keys(SYSLOG_FACILITIES),
         },
-        checkCertificate: {
-          title: 'Check certificate',
+        // not `checkCertificate` with `true` as default: xo-web displays a
+        // missing boolean as disabled, whatever its default
+        ignoreUnauthorized: {
+          title: 'Ignore certificate errors',
           description:
-            "TLS only: enforce the validity of the server's certificate. You can disable it when connecting to a server that uses a self-signed certificate.",
+            "TLS only: do not check the server's certificate (e.g. self-signed certificate), prefer adding its certificate authority below",
           type: 'boolean',
-          default: true,
         },
         certificateAuthorities: {
           title: 'Certificate Authorities',

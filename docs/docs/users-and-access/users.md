@@ -678,7 +678,7 @@ To send the records to a SIEM or any other log collector, fill the `syslog` sect
 
 - `target`: the address of the syslog server, like `udp://syslog.company.lan`, `tcp://syslog.company.lan:1514` or `tls://syslog.company.lan` (default port is `514`, `6514` for TLS)
 - `facility`: the syslog facility of the messages, `authpriv` by default
-- `checkCertificate` (TLS only): whether to check the certificate of the server, enabled by default
+- `ignoreUnauthorized` (TLS only): do not check the certificate of the server, e.g. when it is self-signed (prefer `certificateAuthorities`)
 - `certificateAuthorities` (TLS only): paths to PEM files of additional certificate authorities to trust, e.g. when the certificate of the server is issued by an internal authority
 
 Each new record is still stored in XO and a copy is sent as an [RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424) message:
