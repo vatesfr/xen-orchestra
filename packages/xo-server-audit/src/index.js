@@ -9,11 +9,12 @@ import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { fromCallback } from 'promise-toolbox'
 import { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } from '@xen-orchestra/audit-core'
+import { FACILITIES } from '@vates/syslog'
 import { PassThrough, pipeline, promises } from 'readable-stream'
 
 import { createRestRoutes } from './rest-api.js'
 import { redactData } from './redact.js'
-import { SYSLOG_FACILITIES, SyslogForwarder } from './syslog.js'
+import { SyslogForwarder } from './syslog.js'
 
 const log = createLogger('xo:xo-server-audit')
 
@@ -208,7 +209,12 @@ export const configurationSchema = {
         },
         facility: {
           default: 'authpriv',
-          enum: Object.keys(SYSLOG_FACILITIES),
+          enum: FACILITIES,
+        },
+        framing: {
+          description:
+            'TCP and TLS only: `lf` (default, a line feed after each message) or `octet-counting` (required by some servers, e.g. the `syslog()` driver of syslog-ng)',
+          enum: ['lf', 'octet-counting'],
         },
         // not `checkCertificate` with `true` as default: xo-web displays a
         // missing boolean as disabled, whatever its default
