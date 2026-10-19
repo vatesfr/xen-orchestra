@@ -10,7 +10,7 @@
       <UiCard class="container">
         <RolesTable :roles :busy="!areRolesReady" :error="hasRoleFetchError">
           <template #title-action>
-            <UiLink :to="{ name: '/role/new' }" icon="fa:plus" size="medium">
+            <UiLink :to="{ name: '/admin/role/new' }" icon="fa:plus" size="medium">
               {{ t('new') }}
             </UiLink>
           </template>
