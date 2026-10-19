@@ -16,14 +16,7 @@
           <template #value>{{ typeLabel }}</template>
           <template #addons>
             <VtsCopyButton :value="typeLabel" />
-            <UiButtonIcon
-              v-if="index === 0 && typeLabels.length > 1"
-              v-tooltip="t('coming-soon!')"
-              disabled
-              icon="fa:ellipsis"
-              size="small"
-              accent="brand"
-            />
+            <VtsCopyAllMenuItem v-if="index === 0 && typeLabels.length > 1" :values="typeLabels" />
           </template>
         </VtsCardRowKeyValue>
       </template>
@@ -87,13 +80,12 @@ import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-uti
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
