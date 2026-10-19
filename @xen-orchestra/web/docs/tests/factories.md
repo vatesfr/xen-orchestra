@@ -2,28 +2,30 @@
 
 Domain objects are created through factories in `src/test/`, one per object type:
 
-| Factory                                                                               | Builds                                                       |
-| ------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `createVm`                                                                            | `FrontXoVm`                                                  |
-| `createHost`                                                                          | `FrontXoHost`                                                |
-| `createServer`                                                                        | `FrontXoServer`                                              |
-| `createPool`                                                                          | `FrontXoPool`                                                |
-| `createSr`                                                                            | `FrontXoSr`                                                  |
-| `createVbd`                                                                           | `FrontXoVbd`                                                 |
-| `createNetwork`                                                                       | `FrontXoNetwork`                                             |
-| `createPif`, `createManagementPif`                                                    | `FrontXoPif`, the management PIF of a pool master            |
-| `createVmTemplate`                                                                    | `FrontXoVmTemplate`                                          |
-| `createVdi`                                                                           | `FrontXoVdi`                                                 |
-| `createVmSnapshot`                                                                    | `FrontXoVmSnapshot`                                          |
-| `createPlugin`                                                                        | `FrontXoPlugin`                                              |
-| `createHostStats`                                                                     | `XapiHostStats`                                              |
-| `createVmStats`                                                                       | `XapiVmStats`                                                |
-| `createPoolStats`                                                                     | `XapiPoolStats`                                              |
-| `createPoolDashboardTopFiveUsage`                                                     | `XoPoolDashboard` (top-five usage section)                   |
-| `createV2vConnection` / `createV2vRememberedConnection`                               | `XoV2vConnection` / `V2vRememberedConnection`                |
-| `createV2vInventory`, `createV2vVm`, `createV2vDatastore`                             | `XoV2vInventory` and its VM / datastore                      |
-| `createV2vImportVm`                                                                   | `FrontXoVm` imported by V2V (its markers, then VM overrides) |
-| `createV2vMigrationList`, `createV2vDestinationDefaults`, `createV2vMigrationListVms` | `V2vMigrationList`, its defaults and `count` VMs             |
+| Factory                                                                                            | Builds                                                                                                                 |
+| -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `createVm`                                                                                         | `FrontXoVm`                                                                                                            |
+| `createHost`                                                                                       | `FrontXoHost`                                                                                                          |
+| `createServer`                                                                                     | `FrontXoServer`                                                                                                        |
+| `createPool`                                                                                       | `FrontXoPool`                                                                                                          |
+| `createSr`                                                                                         | `FrontXoSr`                                                                                                            |
+| `createVbd`                                                                                        | `FrontXoVbd`                                                                                                           |
+| `createNetwork`                                                                                    | `FrontXoNetwork`                                                                                                       |
+| `createPif`, `createManagementPif`                                                                 | `FrontXoPif`, the management PIF of a pool master                                                                      |
+| `createVmTemplate`                                                                                 | `FrontXoVmTemplate`                                                                                                    |
+| `createVdi`                                                                                        | `FrontXoVdi`                                                                                                           |
+| `createVmSnapshot`                                                                                 | `FrontXoVmSnapshot`                                                                                                    |
+| `createTask`                                                                                       | `FrontXoTask`, still pending                                                                                           |
+| `createPlugin`                                                                                     | `FrontXoPlugin`                                                                                                        |
+| `createHostStats`                                                                                  | `XapiHostStats`                                                                                                        |
+| `createVmStats`                                                                                    | `XapiVmStats`                                                                                                          |
+| `createPoolStats`                                                                                  | `XapiPoolStats`                                                                                                        |
+| `createPoolDashboardTopFiveUsage`                                                                  | `XoPoolDashboard` (top-five usage section)                                                                             |
+| `createV2vConnection` / `createV2vRememberedConnection`                                            | `XoV2vConnection` / `V2vRememberedConnection`                                                                          |
+| `createV2vInventory`, `createV2vVm`, `createV2vVmWithDisks`, `createV2vDatastore`, `createV2vDisk` | `XoV2vInventory` and its VM (optionally from partial disks) / datastore / disk                                         |
+| `createV2vImportVm`                                                                                | `FrontXoVm` imported by V2V (its markers, `isImporting` for a start locked without source snapshot, then VM overrides) |
+| `createV2vPartialImportSnapshot`                                                                   | the `FrontXoVmSnapshot` a partial import leaves on the `createV2vImportVm` VM                                          |
+| `createV2vMigrationList`, `createV2vDestinationDefaults`, `createV2vMigrationListVms`              | `V2vMigrationList`, its defaults and `count` VMs                                                                       |
 
 `createPoolStats` composes `createHostStats`, since pool stats are one entry per host: pass a `Partial<XapiHostStats>` per host id, or an `{ error }` entry for a host whose stats the pool could not fetch.
 
