@@ -4,11 +4,13 @@
       <BackupJobInfosCard :backup-job />
       <BackupJobSchedulesCard v-if="schedules.length > 0" :schedules />
       <BackupJobLogsCard v-if="lastBackupLogs.length > 0" :backup-logs="lastBackupLogs" />
+      <BackupJobBackedUpVmsCard v-if="backupJob.type === 'backup' && backupJob.vms" :backed-up-vms="backupJob.vms" />
     </template>
   </VtsSidePanel>
 </template>
 
 <script lang="ts" setup>
+import BackupJobBackedUpVmsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobBackedUpVmsCard.vue'
 import BackupJobInfosCard from '@/modules/backup-job/components/list/panel/cards/BackupJobInfosCard.vue'
 import BackupJobLogsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobLogsCard.vue'
 import BackupJobSchedulesCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSchedulesCard.vue'
