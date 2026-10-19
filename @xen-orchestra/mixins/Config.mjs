@@ -25,12 +25,17 @@ export default class Config {
 
       app.hooks.once(
         'stop',
-        await watch({ appDir, appName, ignoreUnknownFormats: true }, (error, config) => {
+        await watch({ appDir, appName, ignoreUnknownFormats: true }, async (error, config) => {
           if (error != null) {
             return warn(error)
           }
 
           this._config = config
+          try {
+            await this.#refreshSources()
+          } catch (err) {
+            warn('refreshSources', { err })
+          }
           watchers.forEach(watcher => {
             watcher(config)
           })

@@ -1,5 +1,7 @@
 import { z } from 'zod'
+import { createLogger } from '@xen-orchestra/log'
 
+const { warn } = createLogger('xo:config-schema')
 // Sentinel for redacted values — use a string so Swagger renders it clearly
 const redacted = z.any().transform(() => '**REDACTED**')
 
@@ -93,6 +95,7 @@ export function applySchema(raw) {
   if (!result.success) {
     // Schema is permissive (.partial everywhere) so this should be rare.
     // Log but don't throw — return what we can.
+    warn('applySchema', { error: result.error })
     return {}
   }
   return result.data
