@@ -57,6 +57,7 @@
 - [XO6] Export VDI as vmdk (PR [#10591](https://github.com/vatesfr/xen-orchestra/pull/10591))
 - [XO5] Improve event handling (PR [#10568](https://github.com/vatesfr/xen-orchestra/pull/10568))
 - [Netbox] Support Netbox v4.7.x [#10565](https://github.com/vatesfr/xen-orchestra/issues/10565) (PR [#10574](https://github.com/vatesfr/xen-orchestra/pull/10574))
+- [XO6/V2V] Add the _Migrate VMs_ wizard in Administration › V2V, with its first step: connect to a VMware source, new or remembered in the browser (PR [#10623](https://github.com/vatesfr/xen-orchestra/pull/10623))
 
 ### Bug fixes
 
