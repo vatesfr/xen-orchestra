@@ -117,6 +117,15 @@ Read [Preparing the VMware environment](#-preparing-the-vmware-environment) to k
 
 Before starting the migration, make sure your VMware environment meets the following conditions:
 
+#### ESXi version
+
+ESXi 7.x and 8.x hosts are supported, directly or through a vCenter. ESXi 6.x hosts are supported too, with two differences:
+
+- The certificate of the NFC data port (902) is confirmed by its SHA-256 with ESXi 7 and later only. On ESXi 6.x, it is checked against the SHA-1 thumbprint that comes with the migration ticket.
+- On ESXi 6.x, the reads of a disk go one at a time, so the transfer is slower.
+
+ESXi 6.0 was tested with the host reached directly; ESXi 6.5, 6.7 and 6.x hosts behind a vCenter were not.
+
 #### Network
 
 XO must be able to connect to the ESXi host, or to the vCenter, through the port running the web UI (default port: 443), and to the ESXi host holding the VM through the NFC data port (default port: 902), even when going through a vCenter. At the time of writing, there is no way to select one network or another, so if possible, keep a single network path from XO to VMware.
