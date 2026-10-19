@@ -1,7 +1,7 @@
 <template>
   <CoreLayout class="app-layout">
     <template #header-start>
-      <RouterLink class="logo-link" :class="{ mobile: uiStore.isSmall }" :to="{ name: '/(site)/dashboard' }">
+      <RouterLink :class="{ mobile: uiStore.isSmall }" :to="{ name: '/(site)/dashboard' }" class="logo-link">
         <UiLogoText :text="t('xen-orchestra')" />
       </RouterLink>
       <UiButtonIcon
@@ -9,15 +9,15 @@
           content: leftSidebar.isExpanded ? t('action:sidebar-close') : t('action:sidebar-open'),
           placement: 'right',
         }"
-        accent="brand"
-        size="medium"
-        icon="fa:bars"
         :target-scale="1.8"
+        accent="brand"
+        icon="fa:bars"
+        size="medium"
         @click="leftSidebar.toggleExpand()"
       />
     </template>
     <template #header-end>
-      <UiLink size="medium" :href="xo5Route">{{ t('xo-5') }}</UiLink>
+      <UiLink :href="xo5Route" size="medium">{{ t('xo-5') }}</UiLink>
       <ThirdParties />
       <QuickTaskButton />
       <AccountMenu />
@@ -26,12 +26,12 @@
       <AppNavigationSidebar />
     </template>
     <template #content>
-      <VtsStateHero v-if="showPleaseWait" format="page" type="busy" size="large">
+      <VtsStateHero v-if="showLoader" format="page" size="large" type="busy">
         <div class="state-content">
           <span class="typo-caption">{{ t('loading') }}</span>
           <span class="title typo-h1">{{ t('please-wait') }}</span>
           <div class="description typo-body-bold">
-            <I18nT scope="global" keypath="page-please-wait">
+            <I18nT keypath="page-please-wait" scope="global">
               <template #newline><br /></template>
             </I18nT>
           </div>
@@ -84,7 +84,7 @@ const isDevPage = computed(() => route.path.startsWith('/dev'))
 // With `ui=0` (console opened in a new tab), neither the header nor the sidebar is mounted,
 // so nothing opens the SSE connection before the page content does.
 // The page content handles its own loading state, so don't block it on the SSE connection.
-const showPleaseWait = computed(() => {
+const showLoader = computed(() => {
   if (isDevPage.value) {
     return false
   }
