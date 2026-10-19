@@ -11,6 +11,10 @@ Domain objects are created through factories in `src/test/`, one per object type
 | `createSr`         | `FrontXoSr`         |
 | `createVbd`        | `FrontXoVbd`        |
 | `createVdi`        | `FrontXoVdi`        |
+| `createNetwork`    | `FrontXoNetwork`    |
+| `createPif`        | `FrontXoPif`        |
+| `createVif`        | `FrontXoVif`        |
+| `createPbd`        | `FrontXoPbd`        |
 | `createVmSnapshot` | `FrontXoVmSnapshot` |
 | `createHostStats`  | `XapiHostStats`     |
 | `createVmStats`    | `XapiVmStats`       |
@@ -25,7 +29,7 @@ const poolStats = createPoolStats({
 })
 ```
 
-Shared _helper_ factories live there too — `mount-composable.ts`, `mount-chart-card.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts`, `find-labelled-values.ts`, `i18n.ts` and `linear-chart-stub.ts`.
+Shared _helper_ factories live there too — `mount-composable.ts`, `mount-chart-card.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts`, `find-labelled-values.ts`, `group-by.ts`, `i18n.ts` and `linear-chart-stub.ts`.
 
 Each factory returns a **fully-populated** object of the real front-end type and accepts a `Partial<T>` of overrides, spread last, so a test only states the fields relevant to its case:
 
