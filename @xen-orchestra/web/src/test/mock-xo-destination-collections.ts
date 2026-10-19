@@ -29,6 +29,7 @@ import { ref } from 'vue'
 // reset it in `beforeEach`
 export const destinationCollectionsMock = {
   pools: ref<FrontXoPool[]>([]),
+  arePoolsReady: ref(true),
   hosts: ref<FrontXoHost[]>([]),
   srs: ref<FrontXoSr[]>([]),
   networks: ref<FrontXoNetwork[]>([]),
@@ -36,6 +37,7 @@ export const destinationCollectionsMock = {
   templates: ref<FrontXoVmTemplate[]>([]),
   reset() {
     this.pools.value = []
+    this.arePoolsReady.value = true
     this.hosts.value = []
     this.srs.value = []
     this.networks.value = []
@@ -48,6 +50,8 @@ export const destinationCollectionsMock = {
 // for each collection below: every mocked module picks its own export
 export const useXoPoolCollection = (() => ({
   pools: destinationCollectionsMock.pools,
+  arePoolsReady: destinationCollectionsMock.arePoolsReady,
+  hasPoolById: (id: FrontXoPool['id']) => destinationCollectionsMock.pools.value.some(pool => pool.id === id),
 })) as unknown as typeof realUseXoPoolCollection
 
 export const useXoHostCollection = (() => ({
