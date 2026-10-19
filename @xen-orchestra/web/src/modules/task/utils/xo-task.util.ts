@@ -134,9 +134,12 @@ function sumTransfers(task: TransferTask, now: number): TaskTransfer | undefined
 }
 
 /**
- * Sums the transfers (backups, restores) reported in a task and its subtasks.
+ * Sums the sizes read from the sources (backups, restores) reported in a task and its subtasks.
  *
- * A task reporting its own `transferredSize` is a transfer: its subtasks are not visited, so the same bytes are
+ * The backend reports them in one task per source (`read disk …`, `read`): a source consumed by multiple writers
+ * is counted once, the written sizes are not reported here.
+ *
+ * A task reporting its own `transferredSize` is a source: its subtasks are not visited, so the same bytes are
  * never counted twice.
  */
 export function getTaskTransfer(task: TransferTask, now = Date.now()): TaskTransfer | undefined {

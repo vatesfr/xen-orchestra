@@ -50,11 +50,11 @@
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="formattedSize !== undefined">
-        <template #key>{{ t('size') }}</template>
+        <template #key>{{ t('size-to-read') }}</template>
         <template #value>{{ formattedSize }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="formattedSpeed !== undefined">
-        <template #key>{{ t('speed') }}</template>
+        <template #key>{{ t('reading-speed') }}</template>
         <template #value>{{ formattedSpeed }}</template>
       </VtsCardRowKeyValue>
 
@@ -140,7 +140,8 @@ const formattedEndDate = computed(() => {
   return d(endTimestamp, 'datetime_short')
 })
 
-// sizes in bytes reported by the transfers of this task and its subtasks
+// sizes in bytes read from the sources (disks, XVA) of this task and its subtasks, each source counted once whatever
+// the number of targets: this is not the written size
 const transfer = computed(() => getTaskTransfer(task))
 
 const formattedSize = computed(() => {
