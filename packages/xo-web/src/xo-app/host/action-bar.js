@@ -11,10 +11,15 @@ import {
 } from 'xo'
 
 const hostActionBarByState = {
-  Running: ({ host }) => (
+  Running: ({ host, pool }) => (
     <ActionBar display='icon' handlerParam={host}>
       <Action handler={stopHost} icon='host-stop' label={_('stopHostLabel')} />
-      <Action handler={restartHostAgent} icon='host-restart-agent' label={_('restartHostAgent')} />
+      <Action
+        handler={restartHostAgent}
+        disabled={pool?.HA_enabled}
+        icon='host-restart-agent'
+        label={pool?.HA_enabled ? _('highAvailabilityNotDisabledTooltip') : _('restartHostAgent')}
+      />
       <Action handler={emergencyShutdownHost} icon='host-emergency-shutdown' label={_('emergencyModeLabel')} />
       <Action handler={restartHost} icon='host-reboot' label={_('rebootHostLabel')} />
     </ActionBar>
@@ -26,13 +31,13 @@ const hostActionBarByState = {
   ),
 }
 
-const HostActionBar = ({ host }) => {
+const HostActionBar = ({ host, pool }) => {
   const ActionBar = hostActionBarByState[host.power_state]
 
   if (!ActionBar) {
     return <p>No action bar for state {host.power_state}</p>
   }
 
-  return <ActionBar host={host} />
+  return <ActionBar host={host} pool={pool} />
 }
 export default HostActionBar

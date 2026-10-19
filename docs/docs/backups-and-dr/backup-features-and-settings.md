@@ -304,6 +304,24 @@ Since the VSS provider was removed from the guest tools and the `snapshot_with_q
 
 Both can be applied per VM with [backup modifier tags](#backup-modifier-tags). Old quiesced snapshots taken before the removal are still identified by an "info" icon in the VM's Snapshots tab.
 
+## Synchronized snapshots {#synchronized-snapshots}
+
+A backup job snapshots each VM right before exporting it, one VM after the other. When several VMs form a single system (an application server and its database, the nodes of a cluster...) their restore points end up minutes apart, and restoring the whole set gives you VMs that are not consistent with each other.
+
+Enable **Synchronize snapshots** in the _Advanced settings_ of a backup or replication job to snapshot every VM of the job up front, before the first export starts. All the restore points of a run are then taken within the same short window, so the whole job can be restored as a coherent set.
+
+The snapshots are taken in parallel, up to the job's snapshot concurrency (2 by default), and the VMs are not frozen: this narrows the window between the restore points, it does not make them simultaneous. The snapshot concurrency can be raised to narrow the window.
+
+:::note
+VMs that are exported without a snapshot are not part of the batch: offline backup, offline snapshot, or a halted VM in a full backup.
+:::
+
+Two consequences to keep in mind:
+
+- Each VM keeps its snapshot until its own export runs, so the snapshots taken first live for most of the job and grow as the VMs write to their disks. Expect more space used on the storage repository while the job runs, especially on thick-provisioned SRs.
+- In the backup logs, a VM's task starts when its snapshot is taken instead of when its export starts, so the duration reported for a VM includes the time it waited for its turn to export. The duration of the job itself is unchanged.
+
+
 ## Backup repositories (BR) {#remotes}
 
 Backup repositories (BR), formerly called _remotes_, are places where your _backup_ and _delta backup_ files will be stored.
@@ -476,7 +494,7 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
 - **Incremental backups only.** Live mount is not available for full backups, nor in [backup health checks](#backup-health-check).
 - **Read-only.** The VM sees a read-only disk. It is best suited for data disks: most operating systems need a writable system disk.
 - **One host per restore.** All the disks live mounted by one restore use the same host, and that host must be able to reach the main SR: its own host for a local SR, any host of its pool for a shared SR. The host selector only offers these hosts, and the most likely one is pre-selected.
-- **Network.** The hosts connect to Xen Orchestra (or the proxy) over iSCSI, on a TCP port picked for each mount. A firewall between the hosts and Xen Orchestra must let the hosts open TCP connections to it. The address given to the hosts is auto-detected; if they cannot reach it (NAT, several networks), set it in the [configuration file](../getting-started/configuration.md), for example `/etc/xo-server/config.iscsi.toml`:
+- **Network.** The hosts connect to Xen Orchestra (or the proxy) over iSCSI, on a TCP port picked for each mount. A firewall between the hosts and Xen Orchestra must let the hosts open TCP connections to it. For the firewall of XOA itself, see [Firewall of Xen Orchestra](#live-mount-firewall). The address given to the hosts is auto-detected; if they cannot reach it (NAT, several networks), set it in the [configuration file](../getting-started/configuration.md), for example `/etc/xo-server/config.iscsi.toml`:
 
   ```toml
   [iscsi]
@@ -487,6 +505,50 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
   ```
 
 - **Temporary.** A live mount only lasts as long as the Xen Orchestra process serving it: restarting or updating XOA ends it, and the disk becomes unavailable to the VM. Stop using the disk before restarting or updating XOA. If Xen Orchestra stopped unexpectedly, the `[XO backup] <VM name>` SR stays behind with nothing serving it: detach the disk from the VM and forget the SR.
+
+### Firewall of Xen Orchestra {#live-mount-firewall}
+
+Each live mounted disk is served on its own TCP port, picked when the disk is mounted, so it cannot be allowed in the firewall in advance. So when ufw is enabled on Xen Orchestra, as on XOA, **Xen Orchestra opens these ports in ufw itself, only when needed**. This is enabled by default.
+
+To turn it off, and manage the firewall yourself, add to the [configuration file](../getting-started/configuration.md), for example `/etc/xo-server/config.iscsi.toml`, then restart Xen Orchestra:
+
+```toml
+[iscsi]
+manageFirewall = false
+```
+
+If a firewall still blocks the hosts, the restore fails with `the host cannot reach the iSCSI target at <address>:<port>, check iscsi.advertisedAddress and the firewalls between them`.
+
+How it works:
+
+- **One rule per mount.** When a disk is mounted, Xen Orchestra adds a rule allowing **only the host it is mounted on** to connect, **only on the port of that mount**. The rule is removed when the mount is released, or right away if the mount fails.
+- **Host address.** The rule uses the management address of the host. If `advertisedAddress` points to another network, such as a storage network, the host connects from another address and the rule does not match: allow that network in ufw yourself.
+- **Not saved.** The rules exist only in the running firewall: they are not written to the ufw configuration and do not appear in `ufw status`. To list them:
+
+  ```sh
+  iptables -S ufw-user-input | grep xo-live-mount
+  # hosts with an IPv6 management address
+  ip6tables -S ufw6-user-input | grep xo-live-mount
+  ```
+
+- **Without ufw.** If iptables is not installed, if ufw is not enabled, or if Xen Orchestra does not run as root (XOA and the proxies do), no rule is added and the live mount goes on as usual: any other firewall must let the hosts in. When not running as root, a warning is logged for each mount, since ufw may be enabled and block the hosts.
+- **Only ufw** is supported: any other value than `'ufw'` or `false` makes live mounts fail with `unsupported iscsi.manageFirewall`.
+
+**What happens if ufw is changed** (`ufw allow`, `ufw delete`, `ufw reload`, `ufw disable` then `ufw enable`, restarting the ufw service):
+
+- ufw rebuilds its rules and **drops those added by Xen Orchestra**. XOA and the proxies are appliances: their firewall is not meant to be changed by hand while disks are live mounted.
+- A disk in use keeps working, since ufw still accepts established connections. But the next time the host has to connect again (network outage, host reboot, SR unplugged then plugged again), the connection is blocked and the VM gets I/O errors on that disk.
+- The rules are not added back automatically. To be safe, [release](#release-live-mount) the mounts and live mount the disks again. Releasing a mount whose rule was already dropped works as usual, and logs a warning.
+- Disks live mounted after the change are not affected: their rules are added as usual.
+
+**What happens if Xen Orchestra crashes** (process killed, appliance lost power):
+
+- Its rules can stay in the firewall. Nothing listens on their ports anymore, so a host trying to connect gets refused.
+- They are removed the **next time Xen Orchestra starts**, or when the appliance reboots, whichever comes first. Xen Orchestra and a proxy running on the same machine only remove their own rules.
+- If you set `manageFirewall = false` before restarting, Xen Orchestra no longer removes them. List them with the command above, then delete each one with `iptables -D`, followed by the rule as listed without its leading `-A`.
+- As with any crash, the `[XO backup] <VM name>` SR also stays behind (see **Temporary** above).
+
+A normal stop or restart of Xen Orchestra releases every mount, which removes their rules.
 
 ### Live mount a disk during a restore
 

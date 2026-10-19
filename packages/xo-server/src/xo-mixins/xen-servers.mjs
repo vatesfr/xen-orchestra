@@ -11,21 +11,24 @@ import { defer } from 'golike-defer'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { fibonacci } from 'iterable-backoff'
 import { networkInterfaces } from 'os'
-import { noSuchObject, incorrectState } from 'xo-common/api-errors.js'
+import { noSuchObject, incorrectState, operationFailed } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
-import { pDelay, ignoreErrors } from 'promise-toolbox'
+import { pDelay, ignoreErrors, timeout, TimeoutError } from 'promise-toolbox'
 import { Task } from '@vates/task'
 import Disposable from 'promise-toolbox/Disposable'
 
 import * as XenStore from '../_XenStore.mjs'
 import Xapi from '../xapi/index.mjs'
 import { acquireRpuGuard } from '../_rpuGuard.mjs'
+import { noopRpuRecorder } from '../_rpuRecovery.mjs'
 import { getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
+import { supportsRpuRecovery } from '../xapi/mixins/patching.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 import XapiStats from '../xapi-stats.mjs'
 import { autoReconnect } from '../_xenServerAutoReconnect.mjs'
 import { camelToSnakeCase, forEach, isEmpty, popProperty, serializeError } from '../utils.mjs'
 import { Servers } from '../models/server.mjs'
+import { DISCONNECTED_ERROR_CODE } from 'xen-api'
 
 // ===================================================================
 
@@ -628,8 +631,13 @@ export default class XenServers {
         this.updateXenServer(id, props)::ignoreErrors()
       }
 
+      // the grace period must not outlive this connection: forgetting the pool
+      // and marking the server `connecting` would hit the next connection of
+      // this server, or stop the auto-reconnect loop which waits for
+      // `disconnected`
+      let markDisconnectedTimeout
       const onEventFetchingError = () => {
-        const timeout = setTimeout(() => {
+        markDisconnectedTimeout = setTimeout(() => {
           xapi.xo.uninstall()
 
           // switch server status from connected to connecting
@@ -645,13 +653,14 @@ export default class XenServers {
             xapi.xo.install()
             _updateXenServer(server.id, { error: null, status: 'connected' })
           } else {
-            clearTimeout(timeout)
+            clearTimeout(markDisconnectedTimeout)
           }
         })
       }
       xapi.once('eventFetchingError', onEventFetchingError)
 
       xapi.once('disconnected', async () => {
+        clearTimeout(markDisconnectedTimeout)
         xapi.xo.uninstall()
         delete this._xapis[server.id]
         this._forgetXenServerPool(server.id)
@@ -665,11 +674,29 @@ export default class XenServers {
         // which case the loop stops on its own
         this._autoReconnectXenServer(server.id)
       })
+
+      try {
+        await timeout.call(xapi._interruptOnDisconnect(xapi.objectsFetched), this._xapiMarkDisconnectedDelay)
+      } catch (error) {
+        if (!(error instanceof TimeoutError)) {
+          throw error
+        }
+        log.warn('objects take too long to fetch', { id, xapiMarkDisconnectedDelay: this._xapiMarkDisconnectedDelay })
+        throw operationFailed({ objectId: id, code: 'TIMEOUT_CONNECT_SERVER' })
+      }
+
       this._app.emit('server:connected', { server, xapi })
       await this.updateXenServer(id, { error: null, status: 'connected' })::ignoreErrors()
     } catch (error) {
       delete this._xapis[server.id]
       await xapi.disconnect()::ignoreErrors()
+
+      // `_interruptOnDisconnect` rejects the pending call when the connection is
+      // closed: the attempt was aborted, and the disconnection handles the status
+      if (error.code === DISCONNECTED_ERROR_CODE) {
+        throw error
+      }
+
       await this.updateXenServer(id, { status: 'disconnected' })
 
       const serializedError = serializeError(error)
@@ -952,14 +979,16 @@ export default class XenServers {
    * @param {object} [opts]
    * @param {boolean} [opts.acceptCurrentStateAsBaseline] - Start even though the master is already up to date while
    *   another host is not, ie from a partially updated pool, otherwise such an update is refused with an
-   *   `incorrectState` error (property `partiallyUpdatedPool`)
+   *   `incorrectState` error (property `partiallyUpdatedPool`). Only checked on XCP-ng and XenServer 8.4+: older
+   *   XenServer and CH pools are updated without this check
    * @param {boolean} [opts.bypassBackupCheck] - Skip the backup guard, the bypass is logged
    * @param {boolean} [opts.rebootVm] - Accept the VM reboots required by the update guidances (XenServer 8.4+),
    *   otherwise such an update is refused with an `incorrectState` error
    * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
    * @param {boolean} [opts.shutdownPinnedVms] - Shut down the VMs that cannot be migrated before their host reboots
    * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool
-   * @throws {Error} `incorrectState` (property `rollingUpdateRecovery`) if a previous run left a recovery record
+   * @throws {Error} `incorrectState` (property `rollingUpdateRecovery`) if a previous run left a recovery record, only on
+   *   XCP-ng and XenServer 8.4+ where a run keeps one
    */
   async rollingPoolUpdate(
     $defer,
@@ -975,13 +1004,16 @@ export default class XenServers {
     $defer(acquireRpuGuard(poolId, 'rollingPoolUpdate'))
 
     // strict write before any side effect: if the record cannot be persisted,
-    // an interruption could not be reported, so the run must not start
-    const recorder = await app.startRpuRecoveryRun(poolId, {
-      acceptCurrentStateAsBaseline,
-      rebootVm,
-      bypassBackupCheck,
-      shutdownPinnedVms,
-    })
+    // an interruption could not be reported, so the run must not start. A pool
+    // without recovery runs without a record, as it did before recovery existed
+    const recorder = supportsRpuRecovery(this.getXapi(pool).pool.$master)
+      ? await app.startRpuRecoveryRun(poolId, {
+          acceptCurrentStateAsBaseline,
+          rebootVm,
+          bypassBackupCheck,
+          shutdownPinnedVms,
+        })
+      : noopRpuRecorder
 
     // a failure before the first host was handled leaves nothing to recover
     // once the restorations deferred below (schedules, load balancer, WLB)

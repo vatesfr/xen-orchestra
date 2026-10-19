@@ -1,13 +1,19 @@
 import type XenApi from '@/libs/xen-api/xen-api.ts'
 import type { XenApiHost, XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import type { MaybeArray } from '@core/types/utility.type.ts'
+import { toArray } from '@core/utils/to-array.utils.ts'
 import type { BOND_MODE } from '@vates/types'
 
 export function createNetworkOperations(xenApi: XenApi) {
+  type NetworkRefs = MaybeArray<XenApiNetwork['$ref']>
+
   type BaseNetworkCreateParams = {
     nameLabel: string
     nameDescription?: string
     mtu?: number
     nbd?: boolean
+    /** NBD in clear, only on a network dedicated to backups. Mutually exclusive with `nbd` */
+    insecureNbd?: boolean
   }
 
   type NetworkCreateParams = BaseNetworkCreateParams & {
@@ -30,18 +36,25 @@ export function createNetworkOperations(xenApi: XenApi) {
       },
     ])
 
+  // nbd and insecure_nbd are incompatible purposes, at most one of them is added
+  const addNbdPurpose = async (networkRef: XenApiNetwork['$ref'], { nbd, insecureNbd }: BaseNetworkCreateParams) => {
+    if (nbd) {
+      await xenApi.call('network.add_purpose', [networkRef, 'nbd'])
+    } else if (insecureNbd) {
+      await xenApi.call('network.add_purpose', [networkRef, 'insecure_nbd'])
+    }
+  }
+
   return {
     create: async (params: NetworkCreateParams): Promise<XenApiNetwork['$ref']> => {
-      const { nameLabel, nameDescription = '', mtu = 1500, vlan = 0, pifRef, nbd } = params
+      const { nameLabel, nameDescription = '', mtu = 1500, vlan = 0, pifRef } = params
 
       const networkRef = await createEmptyNetwork(nameLabel, nameDescription, mtu)
 
       try {
         await xenApi.call('pool.create_VLAN_from_PIF', [pifRef, networkRef, vlan])
 
-        if (nbd) {
-          await xenApi.call('network.add_purpose', [networkRef, 'nbd'])
-        }
+        await addNbdPurpose(networkRef, params)
       } catch (error) {
         await xenApi.call('network.destroy', [networkRef])
         throw error
@@ -51,7 +64,7 @@ export function createNetworkOperations(xenApi: XenApi) {
     },
 
     createBonded: async (params: BondedNetworkCreateParams): Promise<XenApiNetwork['$ref']> => {
-      const { nameLabel, nameDescription = '', mtu = 1500, pifRefs, bondMode, nbd } = params
+      const { nameLabel, nameDescription = '', mtu = 1500, pifRefs, bondMode } = params
 
       const networkRef = await createEmptyNetwork(nameLabel, nameDescription, mtu)
 
@@ -83,9 +96,7 @@ export function createNetworkOperations(xenApi: XenApi) {
           )
         )
 
-        if (nbd) {
-          await xenApi.call('network.add_purpose', [networkRef, 'nbd'])
-        }
+        await addNbdPurpose(networkRef, params)
       } catch (error) {
         await xenApi.call('network.destroy', [networkRef])
         throw error
@@ -95,20 +106,21 @@ export function createNetworkOperations(xenApi: XenApi) {
     },
 
     createInternal: async (params: BaseNetworkCreateParams): Promise<XenApiNetwork['$ref']> => {
-      const { nameLabel, nameDescription = '', mtu = 1500, nbd } = params
+      const { nameLabel, nameDescription = '', mtu = 1500 } = params
 
       const networkRef = await createEmptyNetwork(nameLabel, nameDescription, mtu)
 
-      if (nbd) {
-        try {
-          await xenApi.call('network.add_purpose', [networkRef, 'nbd'])
-        } catch (error) {
-          await xenApi.call('network.destroy', [networkRef])
-          throw error
-        }
+      try {
+        await addNbdPurpose(networkRef, params)
+      } catch (error) {
+        await xenApi.call('network.destroy', [networkRef])
+        throw error
       }
 
       return networkRef
     },
+
+    delete: (networkRefs: NetworkRefs) =>
+      Promise.allSettled(toArray(networkRefs).map(networkRef => xenApi.call('network.destroy', [networkRef]))),
   }
 }

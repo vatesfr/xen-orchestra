@@ -2,7 +2,7 @@
   "name": "@xen-orchestra/qa-test",
   "private": true,
   "type": "module",
-  "version": "1.2.1",
+  "version": "1.2.3",
   "description": "XenOrchestra QA Test Suite",
   "author": {
     "name": "Vates SAS",
@@ -22,16 +22,17 @@
   "dependencies": {
     "@vates/async-each": "^1.0.3",
     "@vates/read-chunk": "^1.2.1",
-    "@xen-orchestra/backups": "^0.75.0",
-    "@xen-orchestra/fs": "^4.9.4",
+    "@xen-orchestra/backups": "^0.76.1",
+    "@xen-orchestra/fs": "^4.9.5",
     "@xen-orchestra/log": "^0.7.2",
-    "@xen-orchestra/vmware-explorer": "^1.0.0",
+    "@xen-orchestra/vmware-explorer": "^1.0.2",
     "nodemailer": "^7.0.13",
     "xo-lib": "^0.11.2"
   },
   "scripts": {
     "qa": "node --env-file-if-exists=.env --test --test-concurrency=1 tests/*.test.js",
     "qa:infrastructure": "node --env-file-if-exists=.env --test tests/infrastructure.test.js",
+    "qa:acl": "node --env-file-if-exists=.env --test tests/acl.test.js",
     "qa:vm": "node --env-file-if-exists=.env --test tests/vm.test.js",
     "qa:backup:base": "node --env-file-if-exists=.env --test tests/backup.test.js",
     "qa:backup:nbd": "node --env-file-if-exists=.env --test tests/backup.nbd.test.js",

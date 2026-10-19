@@ -43,7 +43,7 @@ export class Users extends Collection {
   }
 
   _unserialize(user) {
-    if (user.permission === undefined) {
+    if (!Object.hasOwn(user, 'permission')) {
       user.permission = 'none'
     }
     user.authProviders = parseProp('user', user, 'authProviders', undefined)

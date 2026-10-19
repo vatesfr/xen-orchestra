@@ -54,8 +54,21 @@ export async function fetchPost<T>(endpoint: string, body?: unknown): Promise<T>
   })
 }
 
+export async function fetchPatch<T>(endpoint: string, body?: unknown): Promise<T> {
+  return fetchRequest<T>(endpoint, {
+    method: 'PATCH',
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  })
+}
+
 export async function fetchDelete(endpoint: string): Promise<void> {
   return fetchRequest<void>(endpoint, {
     method: 'DELETE',
+  })
+}
+
+export async function fetchGet<T>(endpoint: string): Promise<T> {
+  return fetchRequest<T>(endpoint, {
+    method: 'GET',
   })
 }

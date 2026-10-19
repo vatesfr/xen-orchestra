@@ -20,13 +20,7 @@ export function usePifManagementReconfigureModal(rawPif: MaybeRefOrGetter<FrontX
   function openModal() {
     return open({
       events: {
-        onConfirm: async () => {
-          try {
-            void run()
-          } catch (error) {
-            console.error('Error when reconfiguring PIF management interface:', error)
-          }
-        },
+        onConfirm: () => run({ detached: true }),
       },
     })
   }

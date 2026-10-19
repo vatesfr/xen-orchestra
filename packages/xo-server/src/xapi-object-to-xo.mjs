@@ -667,6 +667,7 @@ const TRANSFORMS = {
       type: 'SR',
 
       content_type: obj.content_type,
+      is_tools_sr: obj.is_tools_sr,
 
       // TODO: Should it replace usage?
       physical_usage: +obj.physical_utilisation,
@@ -724,7 +725,9 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  pif(obj) {
+  pif(obj, dependents) {
+    dependents[obj.metrics] = obj.$id
+
     const metrics = obj.$metrics
     const isBondMaster = !isEmpty(obj.bond_master_of)
     const isBondSlave = obj.bond_slave_of !== 'OpaqueRef:NULL'

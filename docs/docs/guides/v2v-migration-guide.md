@@ -98,8 +98,8 @@ Make sure your Xen Orchestra instance is up to date. The import page includes an
 
 The only dependency is `vectura`, a single binary that reads VMware disks over the NFC protocol. It
 is shipped with Xen Orchestra and runs from there: there is nothing to install, nothing to download
-from VMware or Broadcom, and nothing to compile. It needs a Linux x86-64 system with glibc 2.34 or
-later, such as Debian 12 or Ubuntu 22.04.
+from VMware or Broadcom, and nothing to compile. It needs a Linux x86-64 system with glibc 2.31 or
+later, such as Debian 11 or Ubuntu 20.04.
 
 Go to the **Import → VM → From VMware** section. Once the check passes, a **transfer form** appears:
 

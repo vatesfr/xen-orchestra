@@ -48,7 +48,9 @@ export async function probeScsiId({ xapi, hostRef, deviceConfig, address }) {
     throw new Error('SR.probe should have reported the LUN list')
   } catch (error) {
     if (error.code === PROBE_NO_TARGET_ERROR) {
-      const wrapped = new Error(`the host cannot reach the iSCSI target at ${address}, check iscsi.advertisedAddress`)
+      const wrapped = new Error(
+        `the host cannot reach the iSCSI target at ${address}:${deviceConfig.port}, check iscsi.advertisedAddress and the firewalls between them`
+      )
       wrapped.cause = error
       throw wrapped
     }

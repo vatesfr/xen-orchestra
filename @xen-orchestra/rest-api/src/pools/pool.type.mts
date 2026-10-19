@@ -20,6 +20,10 @@ type BaseCreateNetworkBody = {
    */
   mtu?: number
   nbd?: boolean
+  /**
+   * NBD in clear, only on a network dedicated to backups. Mutually exclusive with `nbd`
+   */
+  insecureNbd?: boolean
 }
 
 export type CreateNetworkBody = BaseCreateNetworkBody & {
@@ -75,7 +79,7 @@ export type CreateVmBody = Omit<
       }
     | {
         destroy: true
-        userdervice: string
+        userdevice: string
       }
   )[]
   install?:
@@ -157,7 +161,7 @@ export type RollingPoolUpdateBody = RollingPoolActionBody & {
   /**
    * Start the update even though the master is already up to date while another host is not, ie from a pool left
    * partially updated. Without it, such a pool is refused with an `incorrect state` error listing the outdated hosts.
-   * Defaults to false.
+   * Ignored on older XenServer and Citrix Hypervisor pools, which are never refused. Defaults to false.
    */
   acceptCurrentStateAsBaseline?: boolean
 }

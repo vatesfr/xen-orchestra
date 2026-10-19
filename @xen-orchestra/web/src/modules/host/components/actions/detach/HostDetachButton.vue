@@ -15,9 +15,9 @@
 import { useXoHostDetachJob } from '@/modules/host/jobs/xo-host-detach.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useRedirectAfterDelete } from '@/shared/composables/redirect-after-delete.composable.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
+import { useRedirectAfterDelete } from '@core/composables/redirect-after-delete.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -52,8 +52,8 @@ const { redirect: redirectAfterDetachHost } = useRedirectAfterDelete({
   },
 })
 
-async function detachHost() {
-  const { event } = await openActionModal({
+function detachHost() {
+  return openActionModal({
     props: {
       accent: 'warning',
       action: 'detach',
@@ -61,14 +61,9 @@ async function detachHost() {
       hostName: host.name_label,
       icon: 'status:warning-picto',
     },
+    events: {
+      onConfirm: () => run({ detached: true, onSuccess: redirectAfterDetachHost }),
+    },
   })
-
-  if (event !== 'onConfirm') {
-    return
-  }
-
-  await run()
-
-  await redirectAfterDetachHost()
 }
 </script>

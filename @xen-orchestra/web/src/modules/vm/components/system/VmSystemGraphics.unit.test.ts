@@ -32,7 +32,7 @@ it('shows VGA as disabled for any other adapter', () => {
 it('formats the video RAM with its unit', () => {
   const wrapper = mountGraphics(createVm({ videoram: 8 }))
 
-  expect(wrapper.text()).toContain('8 B')
+  expect(wrapper.text()).toContain('8 MiB')
 })
 
 it('omits the video RAM value when the VM has none', () => {

@@ -1,4 +1,4 @@
-import { EventEmitter } from 'node:stream'
+import type { EventEmitter, Readable } from 'node:stream'
 import type {
   AnyXoJob,
   AnyXoLog,
@@ -157,7 +157,7 @@ export type PoolRollingUpdateRecoveryRun = {
   finishedAt?: string
   interruptedAt?: string
   taskId?: string
-  variant?: 'xcp' | 'xs-cdn' | 'xs-legacy'
+  variant?: 'xcp' | 'xs-cdn'
   hostOrder?: string[]
   hosts: Record<string, PoolRollingUpdateRecoveryHost>
   lastError: PoolRollingUpdateRecoveryError | null
@@ -191,7 +191,16 @@ export type BackupArchiveDiskMount = {
   port: number
 }
 
-export type XoApp = {
+type XoStoreRangeOptions = {
+  gt?: string
+  gte?: string
+  lt?: string
+  lte?: string
+  limit?: number
+  reverse?: boolean
+}
+
+export type XoApp = EventEmitter & {
   hooks: EventEmitter
   _redis: {
     get(key: string): Promise<string | null>
@@ -233,6 +242,12 @@ export type XoApp = {
     }
   }
 
+  /**
+   * the VM backup archives of the backup repositories, as a collection: `add`, `update` and
+   * `remove` events carrying the archive and its previous value
+   */
+  vmBackupArchives: EventEmitter
+
   tasks: EventEmitter & {
     abort(id: XoTask['id'], reason?: string): Promise<void>
     clearLogs(): Promise<void>
@@ -246,6 +261,7 @@ export type XoApp = {
     user?: XoUser
     permission?: XoUser['permission'] | 'none' | null
   }
+  backupLogsEe: EventEmitter
 
   // methods ------------
   allocIpAddresses(vifId: XoVif['id'], addAddresses?: string[], removeAddresses?: string[]): Promise<void>
@@ -285,7 +301,18 @@ export type XoApp = {
     id: XoAclRole['id'],
     params?: { name?: XoAclRole['name']; description?: XoAclRole['description'] }
   ): Promise<XoAclRole['id']>
-  createAclV2Role(role: { name: XoAclRole['name']; description?: XoAclRole['description'] }): Promise<XoAclRole>
+  createAclV2Role(role: {
+    name: XoAclRole['name']
+    description?: XoAclRole['description']
+    privileges?: Omit<XoAclBasePrivilege, 'id' | 'roleId'>[]
+  }): Promise<XoAclRole>
+  createApiConnection(remoteAddress: string): EventEmitter & {
+    close(): void
+    get<T = unknown>(key: string, defaultValue: unknown): T
+    has(key: string): boolean
+    set(key: string, value: unknown): void
+    unset(key: string): void
+  }
   createAuthenticationToken(opts: {
     client?: {
       id?: string
@@ -332,6 +359,7 @@ export type XoApp = {
     roleId: XoAclRole['id'],
     opts?: { bypassAuthorization?: boolean }
   ): Promise<boolean>
+  deleteSchedule(id: XoSchedule['id']): Promise<void>
   getAclV2GroupRoles(
     groupId: XoGroup['id'],
     opts?: { bypassAuthorization?: boolean }
@@ -378,6 +406,10 @@ export type XoApp = {
   }
   getBackupNgLogs(): Promise<Record<string, AnyXoLog>>
   getBackupNgLogs(id: AnyXoLog['id']): Promise<AnyXoLog>
+  /** Please use `REMOVE_CACHE_ENTRY` const to clear the cache */
+  getBackupNgLogs(removeCacheEntry: {}): void
+  /** Please use `REMOVE_CACHE_ENTRY` const to clear a cache entry */
+  getBackupNgLogs(removeCacheEntry: {}, id: AnyXoLog['id']): void
   getBackupNgLogsSorted(opts: {
     after?: number
     before?: number
@@ -395,6 +427,18 @@ export type XoApp = {
   ) => Record<T['id'], T> | undefined
   getTotalBackupSizeOnRemote(id: XoBackupRepository['id']): Promise<{ onDisk: number }>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
+  getStore(namespace: string): Promise<{
+    /** rejects with an error having `notFound: true` when the key does not exist */
+    get(key: string): Promise<unknown>
+    has(key: string): Promise<boolean>
+    put(key: string, value: unknown): Promise<void>
+    del(key: string): Promise<void>
+    del(key: string, cb: (error?: Error | null) => void): void
+    /** object mode stream of `{ key, value }` */
+    createReadStream(opts?: XoStoreRangeOptions): Readable
+    /** object mode stream of keys */
+    createKeyStream(opts?: XoStoreRangeOptions): Readable
+  }>
   getUser: (id: XoUser['id'], opts?: { obfuscatePassword?: boolean }) => Promise<XoUser>
   getUserIdentityFields(): string[]
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi

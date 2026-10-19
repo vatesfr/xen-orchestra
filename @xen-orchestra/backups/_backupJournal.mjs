@@ -8,6 +8,8 @@ import { utcFormat, utcParse } from 'd3-time-format'
 
 const { debug, warn } = createLogger('xo:backups:backupJournal')
 
+const BACKUP_JOURNAL_EVENTS = /** @type {const} */ (['add', 'change', 'del'])
+
 /**
  * A remote handler, plus the two unencrypted read/write primitives this module relies on to keep
  * the journal readable without the encryption key. They are not part of the handler's declared
@@ -26,7 +28,7 @@ const { debug, warn } = createLogger('xo:backups:backupJournal')
  * - `change`: the metadata was rewritten in place, the backup itself still exists
  * - `del`: the backup was removed
  *
- * @typedef {'add'|'change'|'del'} BackupJournalEvent
+ * @typedef {(typeof BACKUP_JOURNAL_EVENTS)[number]} BackupJournalEvent
  */
 
 /**
@@ -79,6 +81,17 @@ const { debug, warn } = createLogger('xo:backups:backupJournal')
 // Entries are never modified nor overwritten, which makes the journal usable on immutable
 // (Object Lock) repositories, where `cache.json.gz` cannot be rewritten.
 export const BACKUP_JOURNAL_DIR = 'xo-backup-log'
+
+/**
+ * Whether this version knows what to do with an event.
+ *
+ * A journal can hold entries written by a more recent version, and a proxy can be more recent than
+ * the xo-server it answers to: readers drop the events this rejects instead of guessing.
+ *
+ * @param {unknown} event
+ * @returns {event is BackupJournalEvent}
+ */
+export const isKnownJournalEvent = event => BACKUP_JOURNAL_EVENTS.includes(/** @type {any} */ (event))
 
 // Same idea as `formatFilenameDate` but with milliseconds, so that two events on the same VM
 // within the same second keep distinct, ordered names.

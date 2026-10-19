@@ -59,7 +59,15 @@ class GenericModal extends Component {
 
   _getBodyInstance = () => {
     const { body } = this.refs
-    return body !== undefined && body.getWrappedInstance !== undefined ? body.getWrappedInstance() : body
+    if (body?.getWrappedInstance !== undefined) {
+      try {
+        return body.getWrappedInstance()
+      } catch (_) {
+        // wrapper created without `withRef`: the wrapped instance is not accessible
+        return
+      }
+    }
+    return body
   }
 
   _getBodyValue = () => this._getBodyInstance()?.value

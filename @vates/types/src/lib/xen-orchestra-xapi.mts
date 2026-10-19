@@ -25,6 +25,7 @@ import type {
   VM_OPERATIONS,
 } from '../common.mjs'
 import type { DiskPassthrough } from '@xen-orchestra/disk-transform'
+import type { EventEmitter } from 'node:events'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
   XapiXoRecord,
@@ -470,6 +471,12 @@ export interface Xapi {
   destroySr(id: XoSr['id']): Promise<void>
   xostor_delete(ref: XenApiSr['$ref']): Promise<void>
   objects: {
+    // emits `add`/`update`/`remove` only while the connection watches the pool events
+    allIndexes: {
+      type: {
+        getEventEmitterByType(type: WrappedXenApiRecord['$type']): EventEmitter
+      }
+    }
     indexes: {
       type: {
         [XenApiRecord in WrappedXenApiRecord as XenApiRecord['$type']]: Record<XenApiRecord['uuid'], XenApiRecord>

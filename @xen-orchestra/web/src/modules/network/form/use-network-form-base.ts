@@ -5,12 +5,15 @@ import { toComputed } from '@core/utils/to-computed.util.ts'
 import { type MaybeRefOrGetter, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+// 'nbd': NBD over TLS, 'insecure-nbd': NBD in clear, only on a network dedicated to backups
+export type NetworkNbdMode = 'none' | 'nbd' | 'insecure-nbd'
+
 export type BaseNetworkFormData = {
   pool: FrontXoPool['id'] | undefined
   name: string
   description: string
   mtu: number | undefined
-  nbd: boolean
+  nbd: NetworkNbdMode
 }
 
 export type BaseNetworkPayload = {
@@ -19,6 +22,7 @@ export type BaseNetworkPayload = {
   description?: string
   mtu?: number
   nbd?: boolean
+  insecureNbd?: boolean
 }
 
 export function useNetworkFormBase<T extends BaseNetworkFormData>(
@@ -62,7 +66,8 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
       name: formData.name,
       ...(formData.description !== '' && { description: formData.description }),
       ...(typeof formData.mtu === 'number' && { mtu: formData.mtu }),
-      ...(formData.nbd && { nbd: formData.nbd }),
+      ...(formData.nbd === 'nbd' && { nbd: true }),
+      ...(formData.nbd === 'insecure-nbd' && { insecureNbd: true }),
     }
   }
 
@@ -73,6 +78,6 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
     nameInputBindings: useField('name', () => ({ label: t('name'), required: true })),
     descriptionInputBindings: useField('description', () => ({ label: t('description') })),
     mtuInputBindings: useField('mtu', () => ({ label: t('mtu'), info: t('mtu-default-value-message') })),
-    nbdCheckboxBindings: useField('nbd'),
+    nbdRadioBindings: useField('nbd'),
   }
 }

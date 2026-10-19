@@ -118,7 +118,7 @@ type BaseXoVm = BaseXapiXo & {
   /**
    * @deprecated use pvDriversVersion instead
    */
-  xentools?:
+  xenTools?:
     | false
     | {
         major: null | number
@@ -201,8 +201,14 @@ export type XoPoolBackupArchive = XoMetadataBackupArchive & {
   type: 'xo-pool-metadata-backup'
 }
 
+export type XoBackupRepositoryBenchmark = {
+  readRate: number
+  timestamp: number
+  writeRate: number
+}
+
 export type XoBackupRepository = {
-  benchmarks?: { readRate: number; timestamp: number; writeRate: number }[]
+  benchmarks?: XoBackupRepositoryBenchmark[]
   enabled: boolean
   error?: Record<string, unknown>
   id: Branded<'backup-repository'>
@@ -603,6 +609,7 @@ export type XoServer = {
   label?: string
   master?: XoHost['id']
   poolId?: XoPool['id']
+  poolMembersAddresses?: string[]
   poolNameDescription?: string
   poolNameLabel?: string
   readOnly: boolean
@@ -622,6 +629,7 @@ export type XoSr = BaseXapiXo & {
   current_operations: Record<string, STORAGE_OPERATIONS>
   id: Branded<'SR'>
   inMaintenanceMode: boolean
+  is_tools_sr: boolean
   name_description: string
   name_label: string
   other_config: Record<string, string>
@@ -903,6 +911,7 @@ export type NonXapiXoRecord =
   | AnyXoBackupArchive
   | AnyXoJob
   | AnyXoLog
+  | XoAuthenticationToken
   | XoGroup
   | XoProxy
   | XoJob

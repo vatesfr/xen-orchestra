@@ -47,16 +47,6 @@ xe pool-param-set uuid=<pool-uuid> default-SR=<sr-uuid>
 
 Run the deploy again: it will work.
 
-### XOA unreachable, or starts then shuts down after a few seconds
-
-XOA runs in HVM mode, which requires hardware virtualization extensions (any hardware since roughly 2011). Check on your host:
-
-<Terminal shell title="host — check virtualization extensions">{`
-grep -cE 'vmx|svm' /proc/cpuinfo
-`}</Terminal>
-
-A result of `0` means the extensions are absent or disabled: enable virtualization in your BIOS/UEFI settings, or XOA cannot run on this hardware.
-
 ## Access issues
 
 ### Set or recover the XOA VM password

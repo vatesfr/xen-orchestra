@@ -1,4 +1,5 @@
 import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { safePushInMap } from '@/shared/utils/map.util.ts'
@@ -18,7 +19,9 @@ const scheduleFields = [
 ] as const satisfies readonly (keyof XoSchedule)[]
 
 export const useXoScheduleCollection = defineRemoteResource({
-  url: `${BASE_URL}/schedules?fields=${scheduleFields.join(',')}`,
+  url: `${BASE_URL}/schedules?fields=${scheduleFields.join(',')}&ndjson=true`,
+  stream: true,
+  initWatchCollection: () => useWatchCollection({ resource: 'schedule', fields: scheduleFields }),
   initialData: () => [] as FrontXoSchedule[],
   state: (schedules, context) => {
     const state = useXoCollectionState(schedules, {

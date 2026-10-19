@@ -19,7 +19,7 @@ function findIpAddresses(wrapper: ReturnType<typeof mountNetworkCard>) {
 it('renders the card title', () => {
   const wrapper = mountNetworkCard(createVm({ addresses: undefined }))
 
-  expect(wrapper.get('.ui-card-title .title').text()).toBe(t('networks'))
+  expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('networks'))
 })
 
 it('lists the IP addresses of the VM sorted alphabetically', () => {
@@ -44,11 +44,11 @@ it('shows an empty address row when the VM has no IP address', () => {
 it('links to the networks page when the VM has at least one IP address', () => {
   const wrapper = mountNetworkCard(createVm({ addresses: { '0/ipv4/0': '10.0.0.1' } }))
 
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('see-details'))
+  expect(wrapper.get('.ui-panel-card-title').text()).toContain(t('see-details'))
 })
 
 it('hides the networks page link when the VM has no IP address', () => {
   const wrapper = mountNetworkCard(createVm({ addresses: undefined }))
 
-  expect(wrapper.get('.ui-card-title').text()).not.toContain(t('see-details'))
+  expect(wrapper.get('.ui-panel-card-title').text()).not.toContain(t('see-details'))
 })

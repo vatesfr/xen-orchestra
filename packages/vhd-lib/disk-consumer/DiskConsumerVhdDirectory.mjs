@@ -5,7 +5,7 @@
  * @typedef {import('@xen-orchestra/disk-transform').Disk} Disk
  */
 
-import { BaseVhd, FULL_BLOCK_BITMAP } from './BaseVhd.mjs'
+import { BaseVhd } from './BaseVhd.mjs'
 import { basename, dirname } from 'node:path'
 import { asyncEach } from '@vates/async-each'
 import { VhdDirectory, VhdAbstract } from 'vhd-lib'
@@ -74,7 +74,6 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
        * @type {import('@xen-orchestra/disk-transform').DiskBlock | null}
        */
       let truncatedBlock = null
-      const EXPECTED_FULL_BUFFER_SIZE = DEFAULT_BLOCK_SIZE + FULL_BLOCK_BITMAP.length
       await asyncEach(
         generator,
         async ({ index, data }) => {
@@ -87,10 +86,11 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
           if (data.length < DEFAULT_BLOCK_SIZE) {
             truncatedBlock = { data, index }
           }
-          await vhd.writeEntireBlock({
-            id: index,
-            buffer: Buffer.concat([FULL_BLOCK_BITMAP, data], EXPECTED_FULL_BUFFER_SIZE),
-          })
+          // the last block of a disk may be shorter: pad it with zeros
+          await vhd.writeBlockData(
+            index,
+            data.length < DEFAULT_BLOCK_SIZE ? Buffer.concat([data], DEFAULT_BLOCK_SIZE) : data
+          )
         },
         { concurrency }
       )

@@ -1,9 +1,6 @@
 <template>
   <UiPanelCard class="backup-job-backed-up-vms-card">
-    <UiCardTitle>
-      {{ t('backed-up-vms') }}
-      <UiCounter :value="backedUpVmsCount" accent="neutral" size="small" variant="primary" />
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('backed-up-vms')" :counter="backedUpVmsCount" />
     <div>
       <!-- Smart mode state -->
       <VtsCardRowKeyValue>
@@ -79,11 +76,10 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { toLower } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
 

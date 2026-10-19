@@ -39,7 +39,10 @@ describe('Incremental backup restore targets', () => {
   let hostId
 
   before(async () => {
-    ;({ dispatchClient, tracker, vm, backupRepository } = await setup())
+    let vms
+    ;({ dispatchClient, tracker, vms, backupRepository } = await setup())
+    // only using one VM
+    vm = vms[0]
 
     const vdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
     assert(vdis.length > 0, 'The test VM must have at least one disk')
@@ -172,6 +175,94 @@ describe('Incremental backup restore targets', () => {
     })
   })
 
+  /**
+   * A live mounted disk is a VDI like any other: nothing stops a user from deleting it, or the VM
+   * it is attached to, without unmounting first. xo-server watches for its VDI to disappear and
+   * releases the mount on its own: the SR is forgotten and the mount id is no longer known.
+   */
+  describe('a live mount whose disk is deleted', () => {
+    // only the live mounted disk is kept, so nothing is copied and each restore is cheap
+    async function restoreLiveMountedOnly() {
+      const mapVdisSrs = Object.fromEntries(
+        backup.disks.map(({ name, uuid }) => [
+          uuid,
+          name === LIVE_MOUNTED_DISK ? { type: 'live-mount', host: hostId } : { type: 'ignore' },
+        ])
+      )
+      const restoredVmId = await restore(dispatchClient, tracker, backup, targetSrId, mapVdisSrs)
+
+      // the restore returns as soon as XAPI created the VM, XO sees it (then its disks) a bit later:
+      // nothing is copied here, so the lag is not hidden by a transfer as in the other restores
+      const vdis = await waitUntil(
+        async () => {
+          const restoredVdis = await dispatchClient.vdi.getVdisForVm(restoredVmId)
+          return restoredVdis.length !== 0 && restoredVdis
+        },
+        1000,
+        30_000
+      )
+      assert.strictEqual(vdis.length, 1, 'Only the live mounted disk should have been restored')
+      const [liveMountedVdi] = vdis
+
+      const mountId = await liveMountId(dispatchClient, liveMountedVdi.SR)
+      return { mountId, restoredVmId, srId: liveMountedVdi.SR, vdiId: liveMountedVdi.uuid }
+    }
+
+    async function assertReleased({ mountId, srId }) {
+      // the release is asynchronous: it follows the XAPI event reporting the VDI removal
+      await waitUntil(async () => !(await liveMountSrIds(dispatchClient)).includes(srId), 1000, 60_000)
+
+      await assert.rejects(
+        () => dispatchClient.backup.unmountLiveDisk(backup.id, mountId),
+        /HTTP 404/,
+        'xo-server should have forgotten the mount along with its SR'
+      )
+    }
+
+    it('is released when the VM holding it is deleted with its disks', async () => {
+      const mount = await restoreLiveMountedOnly()
+
+      // `VM_destroy` only warns when a disk fails to be destroyed: if the LUN backed VDI could not
+      // be, the mount stays and the wait below times out
+      await dispatchClient.vm.delete(mount.restoredVmId, { deleteDisks: true })
+
+      await assertReleased(mount)
+    })
+
+    it('is released when only its disk is deleted, the VM being kept', async () => {
+      const mount = await restoreLiveMountedOnly()
+
+      await dispatchClient.xoClient.call('vdi.delete', { id: mount.vdiId })
+
+      await assertReleased(mount)
+      assert.deepStrictEqual(
+        await dispatchClient.vdi.getVdisForVm(mount.restoredVmId),
+        [],
+        'The VM should be kept, without the deleted disk'
+      )
+    })
+
+    it('outlives the deletion of its VM when the disk is kept, until the disk is deleted', async () => {
+      const mount = await restoreLiveMountedOnly()
+
+      await dispatchClient.vm.delete(mount.restoredVmId, { deleteDisks: false })
+
+      // XO's objects and the mount watch are fed by the same XAPI events: once XO no longer shows
+      // the VM, the events of its deletion have been handled, and the VDI must still be there
+      await waitUntil(async () => !(await restObjectExists(dispatchClient, `vms/${mount.restoredVmId}`)), 1000, 60_000)
+      assert(await restObjectExists(dispatchClient, `vdis/${mount.vdiId}`), 'The disk should outlive its VM')
+      assert(
+        (await liveMountSrIds(dispatchClient)).includes(mount.srId),
+        'The mount should be kept as long as its disk exists'
+      )
+      assert.strictEqual(await liveMountId(dispatchClient, mount.srId), mount.mountId)
+
+      await dispatchClient.xoClient.call('vdi.delete', { id: mount.vdiId })
+
+      await assertReleased(mount)
+    })
+  })
+
   it('still accepts the legacy shape, an SR uuid or null per disk', async () => {
     const restoredVmId = await restore(dispatchClient, tracker, backup, targetSrId, {
       [diskUuid(backup, LIVE_MOUNTED_DISK)]: targetSrId,
@@ -239,6 +330,19 @@ async function resolveHostId(dispatchClient, vmUuid) {
 async function liveMountSrIds(dispatchClient) {
   const srs = await dispatchClient.restApiClient.get('/rest/v0/srs?fields=id,other_config')
   return srs.filter(sr => sr.other_config?.[OC_LIVE_MOUNT] !== undefined).map(sr => sr.id)
+}
+
+/** whether the REST API still knows an object, `path` being relative to `/rest/v0/` */
+async function restObjectExists(dispatchClient, path) {
+  try {
+    await dispatchClient.restApiClient.get(`/rest/v0/${path}?fields=id`)
+    return true
+  } catch (error) {
+    if (/HTTP 404/.test(error.message)) {
+      return false
+    }
+    throw error
+  }
 }
 
 /**
