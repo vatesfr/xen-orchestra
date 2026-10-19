@@ -1082,7 +1082,8 @@ fn legacy_messages<S: Read + Write>(plane: &mut S, mock: &Mock) -> Option<()> {
         let kind = word(&request, 0);
         match kind {
             LEGACY_OPEN => {
-                let mut path = vec![0_u8; word(&request, 4) as usize];
+                let path_len = usize::try_from(word(&request, 4)).expect("a path fits memory");
+                let mut path = vec![0_u8; path_len];
                 plane.read_exact(&mut path).ok()?;
                 let path = path.strip_suffix(&[0])?;
                 mock.record(Event::Record {

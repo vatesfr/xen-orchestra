@@ -265,7 +265,7 @@ pub enum Error {
     /// A legacy read reply does not describe the read in flight.
     #[error(
         "read {length} bytes at offset {offset} was answered with {answered_length} bytes \
-         at offset {answered_offset}, {announced} bytes announced"
+         at offset {answered_offset} ({answered_wire_length} sent), {announced} bytes announced"
     )]
     Misread {
         /// The disk offset the read asked.
@@ -276,6 +276,8 @@ pub enum Error {
         answered_offset: u64,
         /// The length the reply's block names.
         answered_length: u32,
+        /// How many data bytes the reply's block says follow it.
+        answered_wire_length: u32,
         /// How many bytes the reply announced after it, block included.
         announced: u32,
     },
@@ -1075,7 +1077,8 @@ fn legacy_chunk<R: Read>(
             offset: pending.offset,
             length: pending.length,
             answered_offset: block.offset,
-            answered_length: block.wire_length,
+            answered_length: block.length,
+            answered_wire_length: block.wire_length,
             announced,
         });
     }
@@ -2164,7 +2167,23 @@ mod tests {
 
         assert_eq!(
             error.to_string(),
-            "read 512 bytes at offset 0 was answered with 512 bytes at offset 512, 536 bytes announced"
+            "read 512 bytes at offset 0 was answered with 512 bytes at offset 512 (512 sent), 536 bytes announced"
+        );
+    }
+
+    #[test]
+    fn a_legacy_reply_echoing_another_length_is_refused_naming_it() {
+        let mut reply = legacy_data(0, &[0; 512]);
+        let at = reply.len() - 512 - 8;
+        reply[at..at + 4].copy_from_slice(&1024_u32.to_le_bytes());
+        let mut peer = Peer::replying(&[&reply]);
+        let pending = legacy_read(&mut peer, 0, 512).unwrap();
+
+        let error = legacy_chunk(&mut peer, &pending).unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            "read 512 bytes at offset 0 was answered with 1024 bytes at offset 0 (512 sent), 536 bytes announced"
         );
     }
 
