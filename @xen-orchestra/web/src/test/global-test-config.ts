@@ -3,7 +3,7 @@ import { createTestRouter } from '@/test/create-test-router.ts'
 import i18n from '@core/i18n.ts'
 import { RegleVuePlugin } from '@regle/core'
 import { createPinia } from 'pinia'
-import type { Plugin } from 'vue'
+import type { Component, Plugin } from 'vue'
 import type { Router } from 'vue-router'
 
 /**
@@ -18,9 +18,12 @@ import type { Router } from 'vue-router'
  * without it the injections miss, and reading `uiStore.hasUi` would throw.
  *
  * Pass a `router` to navigate before mounting, which is what makes an active
- * route assertable.
+ * route assertable, and `stubs` to replace the children covered by their own test.
  */
-export function createGlobalTestConfig({ router = createTestRouter() }: { router?: Router } = {}) {
+export function createGlobalTestConfig({
+  router = createTestRouter(),
+  stubs = {},
+}: { router?: Router; stubs?: Record<string, Component | boolean> } = {}) {
   const plugins: (Plugin | [Plugin, ...unknown[]])[] = [
     i18n,
     [RegleVuePlugin, formValidationConfig],
@@ -28,5 +31,5 @@ export function createGlobalTestConfig({ router = createTestRouter() }: { router
     router,
   ]
 
-  return { plugins }
+  return { plugins, stubs }
 }
