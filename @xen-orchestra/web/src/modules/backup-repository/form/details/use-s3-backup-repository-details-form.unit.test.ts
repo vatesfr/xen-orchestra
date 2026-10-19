@@ -1,4 +1,5 @@
 import { useS3BackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-s3-backup-repository-details-form.ts'
+import { requiredMessage } from '@/test/form-messages.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { nextTick } from 'vue'
 
@@ -37,11 +38,11 @@ describe('validate', () => {
     const result = mountS3Form()
 
     expect(await result.validate()).toBe(false)
-    expect(result.bindings.endpoint.error).toBeDefined()
-    expect(result.bindings.region.error).toBeDefined()
-    expect(result.bindings.accessKeyId.error).toBeDefined()
-    expect(result.bindings.secret.error).toBeDefined()
-    expect(result.bindings.bucket.error).toBeDefined()
+    expect(result.bindings.endpoint.error).toEqual(requiredMessage())
+    expect(result.bindings.region.error).toEqual(requiredMessage())
+    expect(result.bindings.accessKeyId.error).toEqual(requiredMessage())
+    expect(result.bindings.secret.error).toEqual(requiredMessage())
+    expect(result.bindings.bucket.error).toEqual(requiredMessage())
   })
 
   it('accepts the required fields without a path in the bucket', async () => {
