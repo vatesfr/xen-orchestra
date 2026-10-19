@@ -4,7 +4,7 @@ import BackupRepositoryNfsFields from '@/modules/backup-repository/components/fo
 import BackupRepositoryS3Fields from '@/modules/backup-repository/components/form/fields/BackupRepositoryS3Fields.vue'
 import BackupRepositorySmbFields from '@/modules/backup-repository/components/form/fields/BackupRepositorySmbFields.vue'
 import BackupRepositoryDetailsStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryDetailsStep.vue'
-import { useNewBackupRepositoryForm } from '@/modules/backup-repository/form/use-new-backup-repository-form.ts'
+import { useNewBackupRepositoryForm } from '@/modules/backup-repository/form/new/use-new-backup-repository-form.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { mountComposable } from '@/test/mount-composable.ts'

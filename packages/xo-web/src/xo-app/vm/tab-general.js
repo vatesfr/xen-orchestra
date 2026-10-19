@@ -32,6 +32,7 @@ import {
   connectStore,
   formatSizeShort,
   getVirtualizationModeLabel,
+  noop,
   osFamily,
   NumericDate,
 } from 'utils'
@@ -158,7 +159,8 @@ const GeneralTab = decorate([
   addSubscriptions(({ isAdmin, vm }) => ({
     vmCreator: isAdmin
       ? cb => subscribeUsers(users => cb(find(users, user => user.id === vm.creation?.user)))
-      : () => {},
+      : // a subscription must return its unsubscribe function
+        () => noop,
     vmSecurebootReadiness: subscribeSecurebootReadiness(vm),
   })),
   provideState({

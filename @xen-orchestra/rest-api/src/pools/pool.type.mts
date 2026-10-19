@@ -20,6 +20,10 @@ type BaseCreateNetworkBody = {
    */
   mtu?: number
   nbd?: boolean
+  /**
+   * NBD in clear, only on a network dedicated to backups. Mutually exclusive with `nbd`
+   */
+  insecureNbd?: boolean
 }
 
 export type CreateNetworkBody = BaseCreateNetworkBody & {
