@@ -1,7 +1,7 @@
-import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import { useCredentialsError } from '@/shared/composables/credentials-error.composable.ts'
 import { required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
-import { computed, type ComputedRef, reactive, ref, watch } from 'vue'
+import { computed, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type PoolConnectionFormData = {
@@ -40,21 +40,10 @@ export function usePoolConnectionForm() {
     httpProxy: formData.httpProxy === '' ? undefined : formData.httpProxy,
   }))
 
-  const credentialsError = ref<InputWrapperMessage>()
-
-  watch([() => formData.username, () => formData.password], () => {
-    credentialsError.value = undefined
-  })
-
-  function showCredentialsError() {
-    credentialsError.value = { content: t('invalid-username-or-password'), accent: 'danger' }
-  }
-
-  function withCredentialsError<T extends { error: InputWrapperMessage | undefined }>(
-    field: ComputedRef<T>
-  ): ComputedRef<T> {
-    return computed(() => ({ ...field.value, error: field.value.error ?? credentialsError.value }))
-  }
+  const { showCredentialsError, withCredentialsError } = useCredentialsError([
+    () => formData.username,
+    () => formData.password,
+  ])
 
   return {
     formData,
