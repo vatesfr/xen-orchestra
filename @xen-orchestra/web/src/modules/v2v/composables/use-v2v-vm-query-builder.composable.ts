@@ -1,3 +1,4 @@
+import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import type { PropertySchema, QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import { parseValues } from '@core/packages/query-builder/schema/parse-values.ts'
@@ -5,7 +6,6 @@ import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-q
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import { V2V_VM_POWER_STATE } from '@vates/types'
 import { mapValues } from 'lodash-es'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -21,26 +21,24 @@ function withEnumeratedValues(property: PropertySchema, values: string[]): Prope
   }
 }
 
-export function useV2vVmQueryBuilder(rows: MaybeRefOrGetter<V2vVmRow[]>, datastoreNames: MaybeRefOrGetter<string[]>) {
+export function useV2vVmQueryBuilder(
+  id: string,
+  rows: MaybeRefOrGetter<V2vVmRow[]>,
+  datastoreNames: MaybeRefOrGetter<string[]>,
+  options?: Parameters<typeof useQueryBuilderFilter>[2]
+) {
   const { t } = useI18n()
 
-  const { items, filter } = useQueryBuilderFilter('v2v-vms', rows)
+  const { statusLabels, powerLabels } = useV2vVmLabels()
+
+  const { items, filter } = useQueryBuilderFilter(id, rows, options)
 
   const staticSchema = useQueryBuilderSchema<V2vVmRow>({
     '': useStringSchema(t('any-property')),
     name: useStringSchema(t('name')),
     datastore: useStringSchema(t('datastores'), {}),
-    migration: useStringSchema(t('migration'), {
-      none: t('not-migrated'),
-      running: t('in-progress'),
-      warm: t('v2v:status:warm'),
-      cold: t('v2v:status:cold'),
-    }),
-    power: useStringSchema(t('power-state'), {
-      [V2V_VM_POWER_STATE.POWERED_ON]: t('vm:status:running'),
-      [V2V_VM_POWER_STATE.POWERED_OFF]: t('vm:status:halted'),
-      [V2V_VM_POWER_STATE.SUSPENDED]: t('vm:status:suspended'),
-    }),
+    migration: useStringSchema(t('migration'), statusLabels.value),
+    power: useStringSchema(t('power-state'), powerLabels.value),
     supported: useBooleanSchema(t('supported'), {
       true: t('supported'),
       false: t('unsupported'),
