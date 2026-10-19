@@ -37,6 +37,9 @@ const messages = {
   esxiImportStopSourceDescription:
     'Source VM stopped before the last delta transfer (after final snapshot). Needed to fully transfer a running VM',
   esxiImportStopOnErrorDescription: 'Stop on the first error when importing VMs',
+  esxiImportRepair: 'Automatic cleanup of the migrated VM',
+  esxiImportRepairDescription:
+    'Once the import is complete, boot the VM on the repair ISO of the pool to prepare its system for XCP-ng (VMware tools, drivers, network). Only done when the source VM is stopped or powered off. A failed cleanup does not fail the import, the details are in the description of the VM',
   esxiImportNoReferenceVm: 'No reference VM found: a full transfer will be performed',
   esxiImportReferenceVmSameSr: 'Reference VM found on the same SR: a delta transfer will be performed',
   esxiImportReferenceVmOtherSr: 'Reference VM found on another SR ({sr}): a FULL transfer will be performed',
