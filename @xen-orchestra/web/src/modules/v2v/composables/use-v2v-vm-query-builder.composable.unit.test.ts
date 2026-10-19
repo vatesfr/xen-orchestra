@@ -1,15 +1,12 @@
+import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vVmQueryBuilder } from '@/modules/v2v/composables/use-v2v-vm-query-builder.composable.ts'
-import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
-import { createV2vVmRow } from '@/test/create-v2v-vm-row.ts'
-import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
+import { createV2vVmRow, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
+import { parseValues } from '@core/packages/query-builder/schema/parse-values.ts'
 import { V2V_VM_POWER_STATE } from '@vates/types'
-import { flushPromises } from '@vue/test-utils'
 import { mapValues } from 'lodash-es'
 import { type MaybeRefOrGetter, ref } from 'vue'
-
-const FILTER_QUERY_KEY = 'qb.v2v-vms'
 
 const WEB_VM = createV2vVmRow({
   name: 'web-01',
@@ -35,14 +32,19 @@ const APP_VM = createV2vVmRow({
 
 const ROWS = [WEB_VM, DB_VM, APP_VM]
 
-async function mountQueryBuilder({
+function mountQueryBuilder({
   datastoreNames = ['ds-a', 'ds-b', 'ds-c'],
-  filter,
-}: { datastoreNames?: MaybeRefOrGetter<string[]>; filter?: string } = {}) {
-  const router = await createV2vWizardRouter('vms', { [FILTER_QUERY_KEY]: filter })
-  const result = mountComposableWithI18n(() => useV2vVmQueryBuilder(ROWS, datastoreNames), { router })
+  initialFilter,
+}: { datastoreNames?: MaybeRefOrGetter<string[]>; initialFilter?: string } = {}) {
+  return mountComposableWithI18n(() => {
+    const { statusLabels, powerLabels } = useV2vVmLabels()
 
-  return { result, router }
+    return {
+      ...useV2vVmQueryBuilder('v2v-vms', ROWS, datastoreNames, { initialFilter, ignoreRoute: true }),
+      statusLabels,
+      powerLabels,
+    }
+  })
 }
 
 function getLabels(entries: Record<string, { label: string }> | undefined) {
@@ -53,13 +55,9 @@ function getValueLabels(schema: QueryBuilderSchema, property: string) {
   return getLabels(schema[property].operators.is.values)
 }
 
-function getItemNames(items: V2vVmRow[]) {
-  return items.map(item => item.name)
-}
-
 describe('schema', () => {
-  it('exposes the filterable properties with their labels', async () => {
-    const { result } = await mountQueryBuilder()
+  it('exposes the filterable properties with their labels', () => {
+    const result = mountQueryBuilder()
 
     expect(getLabels(result.schema)).toEqual({
       '': result.t('any-property'),
@@ -71,29 +69,20 @@ describe('schema', () => {
     })
   })
 
-  it('labels each migration status', async () => {
-    const { result } = await mountQueryBuilder()
+  it('labels each migration status', () => {
+    const result = mountQueryBuilder()
 
-    expect(getValueLabels(result.schema, 'migration')).toEqual({
-      none: result.t('not-migrated'),
-      running: result.t('in-progress'),
-      warm: result.t('v2v:status:warm'),
-      cold: result.t('v2v:status:cold'),
-    })
+    expect(getValueLabels(result.schema, 'migration')).toEqual(result.statusLabels)
   })
 
-  it('labels each power state', async () => {
-    const { result } = await mountQueryBuilder()
+  it('labels each power state', () => {
+    const result = mountQueryBuilder()
 
-    expect(getValueLabels(result.schema, 'power')).toEqual({
-      [V2V_VM_POWER_STATE.POWERED_ON]: result.t('vm:status:running'),
-      [V2V_VM_POWER_STATE.POWERED_OFF]: result.t('vm:status:halted'),
-      [V2V_VM_POWER_STATE.SUSPENDED]: result.t('vm:status:suspended'),
-    })
+    expect(getValueLabels(result.schema, 'power')).toEqual(result.powerLabels)
   })
 
-  it('labels the supported and unsupported operators', async () => {
-    const { result } = await mountQueryBuilder()
+  it('labels the supported and unsupported operators', () => {
+    const result = mountQueryBuilder()
 
     expect(getLabels(result.schema.supported.operators)).toEqual({
       isNotEmpty: result.t('supported'),
@@ -101,9 +90,9 @@ describe('schema', () => {
     })
   })
 
-  it('offers each datastore name to the "is" and "is not" operators only', async () => {
-    const { result } = await mountQueryBuilder({ datastoreNames: ['ds-a', 'ds-b'] })
-    const values = { 'ds-a': { label: 'ds-a', value: 'ds-a' }, 'ds-b': { label: 'ds-b', value: 'ds-b' } }
+  it('offers each datastore name to the "is" and "is not" operators only', () => {
+    const result = mountQueryBuilder({ datastoreNames: ['ds-a', 'ds-b'] })
+    const values = parseValues({ 'ds-a': 'ds-a', 'ds-b': 'ds-b' })
 
     expect(mapValues(result.schema.datastore.operators, operator => operator.values)).toEqual({
       is: values,
@@ -113,17 +102,17 @@ describe('schema', () => {
     })
   })
 
-  it('follows a change of the datastore names', async () => {
+  it('follows a change of the datastore names', () => {
     const datastoreNames = ref(['ds-a'])
-    const { result } = await mountQueryBuilder({ datastoreNames })
+    const result = mountQueryBuilder({ datastoreNames })
 
     datastoreNames.value = ['ds-b', 'ds-c']
 
     expect(getValueLabels(result.schema, 'datastore')).toEqual({ 'ds-b': 'ds-b', 'ds-c': 'ds-c' })
   })
 
-  it('offers no datastore without datastore names', async () => {
-    const { result } = await mountQueryBuilder({ datastoreNames: [] })
+  it('offers no datastore without datastore names', () => {
+    const result = mountQueryBuilder({ datastoreNames: [] })
 
     expect(result.schema.datastore.operators.is.values).toEqual({})
   })
@@ -137,35 +126,26 @@ describe('items', () => {
     ['name:web', [WEB_VM.name]],
     ['datastore:/^ds-a$/', [WEB_VM.name]],
     ['datastore:/^ds-b$/', [WEB_VM.name, DB_VM.name]],
-  ])('keeps the rows matching %s', async (filter, names) => {
-    const { result } = await mountQueryBuilder()
+  ])('keeps the rows matching %s', (filter, names) => {
+    const result = mountQueryBuilder()
 
     result.filter = filter
 
-    expect(getItemNames(result.items)).toEqual(names)
+    expect(getV2vVmNames(result.items)).toEqual(names)
   })
 
-  it('keeps every row without filter', async () => {
-    const { result } = await mountQueryBuilder()
+  it('keeps every row without filter', () => {
+    const result = mountQueryBuilder()
 
-    expect(getItemNames(result.items)).toEqual(getItemNames(ROWS))
+    expect(getV2vVmNames(result.items)).toEqual(getV2vVmNames(ROWS))
   })
 })
 
 describe('filter', () => {
-  it('reads the initial filter from the route', async () => {
-    const { result } = await mountQueryBuilder({ filter: 'migration:/^cold$/' })
+  it('starts from the initial filter', () => {
+    const result = mountQueryBuilder({ initialFilter: 'migration:/^cold$/' })
 
     expect(result.filter).toBe('migration:/^cold$/')
-    expect(getItemNames(result.items)).toEqual([APP_VM.name])
-  })
-
-  it('writes the filter to the route', async () => {
-    const { result, router } = await mountQueryBuilder()
-
-    result.filter = 'datastore:/^ds-a$/'
-    await flushPromises()
-
-    expect(router.currentRoute.value.query[FILTER_QUERY_KEY]).toBe('datastore:/^ds-a$/')
+    expect(getV2vVmNames(result.items)).toEqual([APP_VM.name])
   })
 })

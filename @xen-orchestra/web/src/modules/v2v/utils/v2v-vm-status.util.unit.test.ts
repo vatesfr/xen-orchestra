@@ -1,37 +1,32 @@
-import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { getRunningV2vSourceVmIds, getV2vLastSyncAt, getV2vVmStatus } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
-import { createTask } from '@/test/create-task.ts'
+import { createTask, createV2vImportTask } from '@/test/create-task.ts'
 import { createV2vImportVm, createV2vPartialImportSnapshot } from '@/test/create-v2v-import-vm.ts'
-import { V2V_SNAPSHOT_NAME, V2V_TASK_PROPERTY } from '@vates/types'
+import { V2V_SNAPSHOT_NAME } from '@vates/types'
 
 const IMPORT_STATES = [
   ['warm', true],
   ['cold', false],
 ] as const
 
-function createImportTask(sourceVmIds: unknown, status: FrontXoTask['status'] = 'pending') {
-  return createTask({ status, properties: { [V2V_TASK_PROPERTY.SOURCE_VM_IDS]: sourceVmIds } })
-}
-
 describe('getRunningV2vSourceVmIds', () => {
   it('collects the source VM ids of the pending tasks', () => {
-    const tasks = [createImportTask(['vm-1', 'vm-2']), createImportTask(['vm-3'])]
+    const tasks = [createV2vImportTask(['vm-1', 'vm-2']), createV2vImportTask(['vm-3'])]
 
     expect(getRunningV2vSourceVmIds(tasks)).toEqual(new Set(['vm-1', 'vm-2', 'vm-3']))
   })
 
   it.each([
-    ['a successful task', createImportTask(['vm-1'], 'success')],
-    ['a failed task', createImportTask(['vm-1'], 'failure')],
-    ['an interrupted task', createImportTask(['vm-1'], 'interrupted')],
+    ['a successful task', createV2vImportTask(['vm-1'], 'success')],
+    ['a failed task', createV2vImportTask(['vm-1'], 'failure')],
+    ['an interrupted task', createV2vImportTask(['vm-1'], 'interrupted')],
     ['a task without source VM ids', createTask()],
-    ['a task whose source VM ids are not a list', createImportTask('vm-1')],
+    ['a task whose source VM ids are not a list', createV2vImportTask('vm-1')],
   ])('ignores %s', (_, task) => {
     expect(getRunningV2vSourceVmIds([task])).toEqual(new Set())
   })
 
   it('ignores the source VM ids that are not strings', () => {
-    expect(getRunningV2vSourceVmIds([createImportTask(['vm-1', 42, null])])).toEqual(new Set(['vm-1']))
+    expect(getRunningV2vSourceVmIds([createV2vImportTask(['vm-1', 42, null])])).toEqual(new Set(['vm-1']))
   })
 
   it('collects nothing without tasks', () => {

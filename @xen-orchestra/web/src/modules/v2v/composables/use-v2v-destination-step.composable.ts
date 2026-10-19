@@ -2,16 +2,14 @@ import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool
 import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vPoolIdQuery } from '@/modules/v2v/composables/use-v2v-pool-id-query.composable.ts'
+import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
 import { useV2vDestinationForm } from '@/modules/v2v/form/use-v2v-destination-form.ts'
 import type { V2vWizardStep } from '@/modules/v2v/utils/v2v-wizard-step.util.ts'
 import { whenever } from '@vueuse/core'
 import { computed, reactive, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 
 export function useV2vDestinationStep() {
-  const router = useRouter()
-
-  const route = useRoute()
+  const { goToStep } = useV2vWizardNavigation()
 
   const { connection, sourceId } = useV2vConnection()
 
@@ -55,7 +53,7 @@ export function useV2vDestinationStep() {
 
   // The route may not hold the chosen pool yet: its update is still pending right after a choice
   function goTo(step: V2vWizardStep) {
-    return router.push({ query: { ...route.query, pool: poolId.value, step } })
+    return goToStep(step, { pool: poolId.value })
   }
 
   async function submit() {

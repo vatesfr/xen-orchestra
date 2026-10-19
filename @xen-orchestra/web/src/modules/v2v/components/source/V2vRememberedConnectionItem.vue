@@ -6,7 +6,7 @@
         {{ connection.host }}
         <UiTag accent="neutral" variant="secondary">{{ t('vmware') }}</UiTag>
       </div>
-      <div class="description typo-body-regular-small interpunct-list">
+      <InlineParts class="description typo-body-regular-small">
         <span v-if="connection.product">{{ connection.product }} {{ connection.version }}</span>
         <span>{{ connection.username }}</span>
         <I18nT v-if="connection.lastUsedAt !== undefined" keypath="used-relative-time" tag="span" scope="global">
@@ -15,12 +15,11 @@
           </template>
         </I18nT>
         <span v-if="connection.skipSslCheck">{{ t('ssl-check-skipped') }}</span>
-      </div>
-      <div v-if="stats !== undefined" class="stats typo-body-regular-small interpunct-list">
+      </InlineParts>
+      <InlineParts v-if="progressLabels !== undefined" class="stats typo-body-regular-small">
         <span v-if="connection.vmCount !== undefined">{{ t('n-vms', { n: connection.vmCount }) }}</span>
-        <span>{{ t('n-migrated', { n: stats.cold }) }}</span>
-        <span>{{ t('n-partially-migrated', { n: stats.warm }) }}</span>
-      </div>
+        <span v-for="label of progressLabels" :key="label">{{ label }}</span>
+      </InlineParts>
     </div>
     <UiButton accent="brand" variant="primary" size="medium" :disabled @click="emit('connect', connection)">
       {{ t('action:connect') }}
@@ -56,8 +55,10 @@
 
 <script lang="ts" setup>
 import { useV2vSourceStats } from '@/modules/v2v/composables/use-v2v-source-stats.composable.ts'
+import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vRememberedConnection } from '@/modules/v2v/types/v2v-remembered-connection.type.ts'
 import { isV2vVcenter } from '@/modules/v2v/utils/v2v-source.util.ts'
+import InlineParts from '@/shared/components/InlineParts.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -84,6 +85,19 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const stats = useV2vSourceStats(() => connection.sourceId)
+
+const { getStatusCountLabel } = useV2vVmLabels()
+
+// The imports of the source, most advanced first
+const progressLabels = computed(() => {
+  const counts = stats.value
+
+  if (counts === undefined) {
+    return undefined
+  }
+
+  return [getStatusCountLabel('cold', counts.cold), getStatusCountLabel('warm', counts.warm)]
+})
 
 const icon = computed(() => (isV2vVcenter(connection.product) ? 'fa:building' : 'fa:server'))
 </script>
