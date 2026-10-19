@@ -13,6 +13,8 @@
 <script lang="ts" setup>
 import V2vSourceStep from '@/modules/v2v/components/source/V2vSourceStep.vue'
 import V2vWizardHeader from '@/modules/v2v/components/wizard/V2vWizardHeader.vue'
+import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
+import { useV2vPoolQuery } from '@/modules/v2v/composables/use-v2v-pool-query.composable.ts'
 import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import { resolveV2vWizardStep } from '@/modules/v2v/utils/v2v-wizard-step.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -25,12 +27,17 @@ const { t } = useI18n()
 
 const connectionStore = useV2vConnectionStore()
 
-const { connection } = storeToRefs(connectionStore)
+const { connection, sourceId } = storeToRefs(connectionStore)
 
 const requestedStep = useRouteQuery('step')
 
+const { list } = useV2vMigrationList(sourceId, useV2vPoolQuery())
+
 const currentStep = computed(() =>
-  resolveV2vWizardStep(requestedStep.value, { hasConnection: connection.value !== undefined })
+  resolveV2vWizardStep(requestedStep.value, {
+    hasConnection: connection.value !== undefined,
+    hasDestination: list.value !== undefined,
+  })
 )
 
 const summary = computed(() =>
