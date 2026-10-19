@@ -13,7 +13,12 @@ import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
 import { nextTick, type Ref, ref } from 'vue'
 
-const STORED_LIST = createV2vMigrationList({ vms: createV2vMigrationListVms(2) })
+const [FIRST_VM, SECOND_VM, THIRD_VM, FOURTH_VM] = createV2vMigrationListVms(4)
+
+const STORED_LIST = createV2vMigrationList({ vms: [FIRST_VM, SECOND_VM] })
+
+// Every write rebuilds the list without this field: finding it again proves nothing was written
+const UNWRITTEN_LIST = { ...STORED_LIST, unknownField: true }
 
 const { sourceId: SOURCE_ID, poolId: POOL_ID } = STORED_LIST
 
@@ -25,20 +30,47 @@ const NEW_DEFAULTS = createV2vDestinationDefaults({
 
 const STORAGE_KEY = getV2vMigrationListStorageKey(STORED_LIST)
 
-function mountMigrationList({
-  sourceId = ref(SOURCE_ID),
-  poolId = ref(POOL_ID),
-}: {
+type MountOptions = {
   sourceId?: Ref<string | undefined>
   poolId?: Ref<FrontXoPool['id'] | undefined>
-} = {}) {
+}
+
+function mountMigrationList({ sourceId = ref(SOURCE_ID), poolId = ref(POOL_ID) }: MountOptions = {}) {
   return mountComposable(() => useV2vMigrationList(sourceId, poolId)).wrapper.vm
 }
 
-const WITHOUT_SOURCE_OR_POOL: [string, Parameters<typeof mountMigrationList>[0]][] = [
+const WITHOUT_SOURCE_OR_POOL: [string, MountOptions][] = [
   ['source', { sourceId: ref(undefined) }],
   ['pool', { poolId: ref(undefined) }],
 ]
+
+type ListWrite = (result: ReturnType<typeof mountMigrationList>) => void
+
+function readStorageAfter(storedList: V2vMigrationList, write: ListWrite, options?: MountOptions) {
+  seedV2vMigrationList(storedList)
+  write(mountMigrationList(options))
+
+  return readV2vMigrationListStorage()
+}
+
+// A list is only written for a known source and pool, whichever function writes it
+function itStoresNothingWithoutSourceOrPool(write: ListWrite) {
+  it.each(WITHOUT_SOURCE_OR_POOL)('leaves the stored list untouched without a %s', (_, options) => {
+    expect(readStorageAfter(STORED_LIST, write, options)).toEqual(STORED_LIST)
+    expect(localStorage.length).toBe(1)
+  })
+}
+
+// The VMs cannot invent the destination defaults a stored list holds
+function itStoresNoVmWithoutList(write: ListWrite) {
+  it('stores nothing when no list is stored', () => {
+    write(mountMigrationList())
+
+    expect(localStorage.length).toBe(0)
+  })
+
+  itStoresNothingWithoutSourceOrPool(write)
+}
 
 beforeEach(() => {
   localStorage.clear()
@@ -93,30 +125,21 @@ describe('list', () => {
 })
 
 describe('saveDefaults', () => {
-  it('stores a new list with the defaults and no VM', async () => {
+  it('stores a new list with the defaults and no VM', () => {
     mountMigrationList().saveDefaults(NEW_DEFAULTS)
-    await nextTick()
 
     expect(readV2vMigrationListStorage()).toEqual(createV2vMigrationList({ defaults: NEW_DEFAULTS }))
   })
 
-  it('keeps the VMs of the stored list', async () => {
-    seedV2vMigrationList(STORED_LIST)
+  it('keeps the VMs of the stored list', () => {
+    const storedList = readStorageAfter(STORED_LIST, result => result.saveDefaults(NEW_DEFAULTS))
 
-    mountMigrationList().saveDefaults(NEW_DEFAULTS)
-    await nextTick()
-
-    expect(readV2vMigrationListStorage()).toEqual({ ...STORED_LIST, defaults: NEW_DEFAULTS })
+    expect(storedList).toEqual({ ...STORED_LIST, defaults: NEW_DEFAULTS })
   })
 
-  it.each(WITHOUT_SOURCE_OR_POOL)('stores nothing without a %s', async (_, options) => {
-    mountMigrationList(options).saveDefaults(NEW_DEFAULTS)
-    await nextTick()
+  itStoresNothingWithoutSourceOrPool(result => result.saveDefaults(NEW_DEFAULTS))
 
-    expect(localStorage.length).toBe(0)
-  })
-
-  it('keeps the list in memory when the storage cannot be written', async () => {
+  it('keeps the list in memory when the storage cannot be written', () => {
     const consoleError = silenceConsoleError()
     const setItem = vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
       throw new Error('Storage is full')
@@ -125,9 +148,66 @@ describe('saveDefaults', () => {
     const result = mountMigrationList()
 
     result.saveDefaults(NEW_DEFAULTS)
-    await nextTick()
 
     expect(result.list).toEqual(createV2vMigrationList({ defaults: NEW_DEFAULTS }))
     expect(consoleError).toHaveBeenCalled()
   })
+})
+
+describe('addVms', () => {
+  it('persists the VMs', () => {
+    const storedList = readStorageAfter(createV2vMigrationList(), result => result.addVms([FIRST_VM.id, SECOND_VM.id]))
+
+    expect(storedList).toEqual(STORED_LIST)
+  })
+
+  it('keeps the existing VMs first', () => {
+    const storedList = readStorageAfter(STORED_LIST, result => result.addVms([FOURTH_VM.id, THIRD_VM.id]))
+
+    expect(storedList).toEqual(createV2vMigrationList({ vms: [FIRST_VM, SECOND_VM, FOURTH_VM, THIRD_VM] }))
+  })
+
+  it('skips an id already in the list', () => {
+    const storedList = readStorageAfter(STORED_LIST, result => result.addVms([SECOND_VM.id, THIRD_VM.id]))
+
+    expect(storedList).toEqual(createV2vMigrationList({ vms: [FIRST_VM, SECOND_VM, THIRD_VM] }))
+  })
+
+  it('skips an id duplicated in its argument', () => {
+    const storedList = readStorageAfter(STORED_LIST, result => result.addVms([THIRD_VM.id, THIRD_VM.id]))
+
+    expect(storedList).toEqual(createV2vMigrationList({ vms: [FIRST_VM, SECOND_VM, THIRD_VM] }))
+  })
+
+  it('leaves the storage untouched when given no VM', () => {
+    expect(readStorageAfter(UNWRITTEN_LIST, result => result.addVms([]))).toEqual(UNWRITTEN_LIST)
+  })
+
+  itStoresNoVmWithoutList(result => result.addVms([THIRD_VM.id]))
+})
+
+describe('removeVm', () => {
+  it('deletes the VM and keeps the others', () => {
+    const storedList = readStorageAfter(STORED_LIST, result => result.removeVm(FIRST_VM.id))
+
+    expect(storedList).toEqual(createV2vMigrationList({ vms: [SECOND_VM] }))
+  })
+
+  it('leaves the storage untouched for an unknown VM', () => {
+    expect(readStorageAfter(UNWRITTEN_LIST, result => result.removeVm(THIRD_VM.id))).toEqual(UNWRITTEN_LIST)
+  })
+
+  itStoresNoVmWithoutList(result => result.removeVm(FIRST_VM.id))
+})
+
+describe('clearVms', () => {
+  it('empties the VMs and keeps the defaults', () => {
+    const listWithNewDefaults = createV2vMigrationList({ defaults: NEW_DEFAULTS, vms: [FIRST_VM] })
+
+    const storedList = readStorageAfter(listWithNewDefaults, result => result.clearVms())
+
+    expect(storedList).toEqual(createV2vMigrationList({ defaults: NEW_DEFAULTS }))
+  })
+
+  itStoresNoVmWithoutList(result => result.clearVms())
 })
