@@ -53,7 +53,7 @@ beforeEach(() => {
 // The connection form renders its own fields from a real form, covered by its own test: here only its wiring matters
 function mountStep() {
   return mount(V2vSourceStep, {
-    global: { ...createGlobalTestConfig(), stubs: { V2vSourceConnectionForm: true } },
+    global: createGlobalTestConfig({ stubs: { V2vSourceConnectionForm: true } }),
   })
 }
 
