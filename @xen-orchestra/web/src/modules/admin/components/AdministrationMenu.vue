@@ -59,6 +59,10 @@ const sections = computed<AdminMenuSection[]>(() => [
     ],
   },
   {
+    title: t('v2v'),
+    items: [{ label: t('migrate-vms'), href: undefined, to: { name: '/admin/v2v/migrate' } }],
+  },
+  {
     title: t('user-management'),
     items: [
       { label: t('users'), href: undefined, to: { name: '/admin/user-management' } },
