@@ -127,6 +127,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/admin/role/new': RouteRecordInfo<
+      '/admin/role/new',
+      '/admin/role/new',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/admin/user-management': RouteRecordInfo<
       '/admin/user-management',
       '/admin/user-management',
@@ -386,13 +393,6 @@ declare module 'vue-router/auto-routes' {
     '/pool/connect': RouteRecordInfo<
       '/pool/connect',
       '/pool/connect',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/role/new': RouteRecordInfo<
-      '/role/new',
-      '/role/new',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -674,6 +674,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/admin/role/new.vue': {
+      routes:
+        | '/admin/role/new'
+      views:
+        | never
+    }
     'src/pages/admin/user-management.vue': {
       routes:
         | '/admin/user-management'
@@ -903,12 +909,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/pool/connect.vue': {
       routes:
         | '/pool/connect'
-      views:
-        | never
-    }
-    'src/pages/role/new.vue': {
-      routes:
-        | '/role/new'
       views:
         | never
     }
