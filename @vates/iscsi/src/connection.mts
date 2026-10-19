@@ -24,7 +24,13 @@ import {
   TEXT_FLAG_FINAL,
 } from './constants.mjs'
 import { buildFixedSense, handleScsiCommand, type ScsiIdentity } from './scsi.mjs'
-import { buildSendTargetsResponse, LoginNegotiator, parseTextKeys } from './login.mjs'
+import {
+  buildSendTargetsResponse,
+  LOGIN_MAX_DATA_SEGMENT_LENGTH,
+  LoginNegotiator,
+  OUR_MAX_RECV_DATA_SEGMENT_LENGTH,
+  parseTextKeys,
+} from './login.mjs'
 import { allocBhs, assemblePdu, type IncomingPdu, readPdu, writePdu } from './pdu.mjs'
 import {
   decodeCdb,
@@ -81,6 +87,16 @@ export interface ConnectionDeps {
   allocateTsih(): number
   /** When set, require one-way CHAP: the target challenges and verifies the initiator. */
   readonly chap?: ChapCredentials
+  /**
+   * Time allowed to establish a Normal session, in ms (0 or unset disables):
+   * past it, the connection is closed. Also bounds Discovery sessions, which
+   * never become Normal ones.
+   */
+  readonly loginTimeoutMs?: number
+  /** Called once this connection has established a Normal session. */
+  onSessionEstablished?(connection: Connection): void
+  /** Max length of a single READ or WRITE, in bytes. */
+  readonly maxTransferLength?: number
 }
 
 type Phase = 'login' | 'fullFeature' | 'closed'
@@ -123,6 +139,8 @@ export class Connection implements CommandContext {
   readonly #pendingWrites = new Map<number, PendingWrite>()
   #nextTargetTransferTag = 1
 
+  #loginTimer?: ReturnType<typeof setTimeout>
+
   constructor(socket: Socket, deps: ConnectionDeps) {
     this.#socket = socket
     this.#deps = deps
@@ -142,9 +160,19 @@ export class Connection implements CommandContext {
 
   /** Read and service PDUs until the peer logs out or the connection drops. */
   async serve(): Promise<void> {
+    const { loginTimeoutMs = 0 } = this.#deps
+    if (loginTimeoutMs > 0) {
+      this.#loginTimer = setTimeout(() => {
+        log.warn('no session established in time, closing the connection', { remote: this.#socket.remoteAddress })
+        this.destroy()
+      }, loginTimeoutMs).unref()
+    }
     try {
       for (;;) {
-        const pdu = await readPdu(this.#socket)
+        const pdu = await readPdu(
+          this.#socket,
+          this.#phase === 'login' ? LOGIN_MAX_DATA_SEGMENT_LENGTH : OUR_MAX_RECV_DATA_SEGMENT_LENGTH
+        )
         if (pdu === null) {
           break // peer closed the connection
         }
@@ -156,6 +184,7 @@ export class Connection implements CommandContext {
     } catch (error) {
       this.#fail(error)
     } finally {
+      clearTimeout(this.#loginTimer)
       this.#phase = 'closed'
       this.#socket.destroy()
     }
@@ -299,6 +328,13 @@ export class Connection implements CommandContext {
     bhs[37] = statusDetail
     await this.#send(assemblePdu(bhs, data))
 
+    // destroyed while the response was being written (login timeout, target
+    // closing): the write still succeeds, but this connection must not go on
+    // and replace the current session
+    if (this.#phase === 'closed') {
+      return true
+    }
+
     if (statusClass !== LoginStatusClass.SUCCESS) {
       // RFC 7143 §6.3: the failure response goes out first (above), then the
       // target closes the connection.
@@ -316,6 +352,10 @@ export class Connection implements CommandContext {
         sessionType: this.#sessionType,
         target: this.#login.targetName,
       })
+      if (this.#sessionType === 'Normal') {
+        clearTimeout(this.#loginTimer)
+        this.#deps.onSessionEstablished?.(this)
+      }
     }
     return false
   }
@@ -389,13 +429,13 @@ export class Connection implements CommandContext {
       // Not awaited: the read loop must move on immediately rather than block on
       // this `lun.read()`. See the class doc for why no extra ordering is needed.
       void this.#readGate
-        .run(() => handleScsiCommand(cdb, pdu.itt, this, this.#deps.identity))
+        .run(() => handleScsiCommand(cdb, pdu.itt, this, this.#deps.identity, this.#deps.maxTransferLength))
         .catch(error => {
           this.#fail(error)
         })
       return
     }
-    await handleScsiCommand(cdb, pdu.itt, this, this.#deps.identity)
+    await handleScsiCommand(cdb, pdu.itt, this, this.#deps.identity, this.#deps.maxTransferLength)
   }
 
   async #sendReject(pdu: IncomingPdu, reason: number): Promise<void> {

@@ -7,6 +7,9 @@
 
 > Security fixes and new features should go in this section
 
+- [Backup/Live mount] A connection to the iSCSI target that has not logged in yet, such as a port scan or a failed CHAP login, no longer interrupts the mounted disk (PR [#10465](https://github.com/vatesfr/xen-orchestra/pull/10465))
+- [Backup/Live mount] The mounted disk is reported as write-protected, so the guest sees it read-only instead of getting I/O errors on write, and the iSCSI target bounds the size of what a client can make it buffer (PR [#10566](https://github.com/vatesfr/xen-orchestra/pull/10566))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -103,6 +106,7 @@
 
 <!--packages-start-->
 
+- @vates/iscsi minor
 - @vates/nbd-client minor
 - @vates/types minor
 - @xen-orchestra/acl minor
