@@ -97,11 +97,19 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       Record<never, never>,
       | '/admin/backup-and-replication/backup-repositories'
+      | '/admin/backup-and-replication/jobs'
       | '/admin/backup-and-replication/logs'
     >,
     '/admin/backup-and-replication/backup-repositories': RouteRecordInfo<
       '/admin/backup-and-replication/backup-repositories',
       '/admin/backup-and-replication/backup-repositories',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/backup-and-replication/jobs': RouteRecordInfo<
+      '/admin/backup-and-replication/jobs',
+      '/admin/backup-and-replication/jobs',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -622,6 +630,7 @@ declare module 'vue-router/auto-routes' {
       routes:
         | '/admin/backup-and-replication'
         | '/admin/backup-and-replication/backup-repositories'
+        | '/admin/backup-and-replication/jobs'
         | '/admin/backup-and-replication/logs'
       views:
         | 'default'
@@ -629,6 +638,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/backup-and-replication/backup-repositories.vue': {
       routes:
         | '/admin/backup-and-replication/backup-repositories'
+      views:
+        | never
+    }
+    'src/pages/admin/backup-and-replication/jobs.vue': {
+      routes:
+        | '/admin/backup-and-replication/jobs'
       views:
         | never
     }
