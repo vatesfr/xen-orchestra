@@ -5,7 +5,7 @@ sidebar_position: 2
 
 # XO architecture and components
 
-Xen Orchestra (XO) is built as **one server and several clients**: the two web interfaces ([XO 6](../getting-started/gettingstarted.md) and XO 5), the command line client `xo-cli`, and anything speaking the [REST API](../automation/restapi.md). The server, `xo-server`, is the only piece that talks to your infrastructure.
+Xen Orchestra (XO) is built as **one server and several clients**: the two web interfaces ([XO 6](coreconcepts/coreconcepts.md) and XO 5), the command line client `xo-cli`, and anything speaking the [REST API](../automation/restapi.md). The server, `xo-server`, is the only piece that talks to your infrastructure.
 
 :::tip
 XO is totally agent-less: nothing to install on your hosts. `xo-server` speaks XAPI, the native toolstack of XCP-ng, directly over the network.
@@ -173,7 +173,7 @@ Legacy clients ask the servers "anything new?" every few seconds: slow, and it c
 
 Two web UIs currently ship with Xen Orchestra, served by `xo-server` and talking to it over WebSockets:
 
-- **XO 6** (`@xen-orchestra/web`), the new default interface, built with Vue.js on a dedicated design system. See the [XO 6 documentation](../getting-started/gettingstarted.md).
+- **XO 6** (`@xen-orchestra/web`), the new default interface, built with Vue.js on a dedicated design system. See [How XO is organized](coreconcepts/coreconcepts.md).
 - **XO 5** (`xo-web`), the complete historical interface, built with React. See [the infrastructure management section](../manage-your-infrastructure/infrastructure/manage_infrastructure.md) for what you can do with it.
 
 <UiShot light="/img/xo6/dashboard-light.png" dark="/img/xo6/dashboard-dark.png" alt="XO 6, the new default web interface" url="https://your-xo/v6/#/dashboard" />

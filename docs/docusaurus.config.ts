@@ -251,8 +251,11 @@ export default {
             from: ['/xo6/xo6vsxo5', '/discover-xen-orchestra/xo6vsxo5'],
           },
           {
-            to: '/getting-started/gettingstarted',
-            from: ['/xo6/gettingstarted', '/discover-xen-orchestra/gettingstarted'],
+            // "First steps" (/getting-started/gettingstarted) is a draft, hidden
+            // in production: send its URLs to the closest published page until
+            // it is published again, then point them back to it.
+            to: '/core-concepts/coreconcepts',
+            from: ['/xo6/gettingstarted', '/discover-xen-orchestra/gettingstarted', '/getting-started/gettingstarted'],
           },
           {
             to: '/core-concepts/coreconcepts',
