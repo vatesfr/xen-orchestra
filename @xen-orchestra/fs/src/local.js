@@ -87,7 +87,11 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   get type() {
     return 'file'
   }
-
+  // a single timed out operation blocks the whole remote, so it must be safe to assume that an operation exceeding
+  // the timeout means the remote is unresponsive, not just slow:
+  // - data transfers (`_read`, `_write`, streams once created) are not subject to the timeout
+  // - `_copy` is only used on S3 (to emulate `rename`) and on chunks of at most 2 MiB, it is not expected to last
+  //   long on fs-backed remotes
   get _rejectWhileTimedOutOperationPending() {
     return true
   }
