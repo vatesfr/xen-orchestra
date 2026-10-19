@@ -3,6 +3,7 @@ import type {
   V2vRememberedConnection,
   V2vRememberedConnectionsStorage,
 } from '@/modules/v2v/types/v2v-remembered-connection.type.ts'
+import { readLocalStorageJson } from '@/test/local-storage.ts'
 
 // `xo5Imported` defaults to true so a test never gets the XO 5 connection imported behind its back
 export function createV2vRememberedConnectionsStorage(
@@ -24,5 +25,5 @@ export function seedV2vRememberedConnections(connections: V2vRememberedConnectio
 }
 
 export function readV2vRememberedConnectionsStorage() {
-  return JSON.parse(localStorage.getItem(V2V_REMEMBERED_CONNECTIONS_STORAGE_KEY) ?? 'null')
+  return readLocalStorageJson(V2V_REMEMBERED_CONNECTIONS_STORAGE_KEY)
 }
