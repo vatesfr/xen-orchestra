@@ -93,16 +93,7 @@ export class XoaService {
             continue
           }
 
-          let totalBackupSize: Awaited<ReturnType<typeof xoApp.getTotalBackupSizeOnRemote>>
-          try {
-            totalBackupSize = await xoApp.getTotalBackupSizeOnRemote(backupRepository.id)
-          } catch (error) {
-            log.warn('#getBackupRepositoriesSizeInfo cannot get the total backup size of BR', {
-              backupRepositoryId: backupRepository.id,
-              error,
-            })
-            continue
-          }
+          const totalBackupSize = await xoApp.getTotalBackupSizeOnRemote(backupRepository.id)
 
           const { available, size, used } = backupRepository
 
