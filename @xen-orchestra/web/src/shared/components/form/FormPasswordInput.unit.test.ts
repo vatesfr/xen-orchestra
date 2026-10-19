@@ -1,4 +1,5 @@
 import FormPasswordInput from '@/shared/components/form/FormPasswordInput.vue'
+import { findInputLabels } from '@/test/find-input-labels.ts'
 import { findInputMessages } from '@/test/find-input-messages.ts'
 import { invalidCredentialsMessage } from '@/test/form-messages.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -15,7 +16,7 @@ function mountPasswordInput(props: Partial<PasswordInputProps> = {}) {
 }
 
 it('renders its label', () => {
-  expect(mountPasswordInput().get('.ui-label').text()).toContain('Password')
+  expect(findInputLabels(mountPasswordInput())).toEqual(['Password'])
 })
 
 it('hides the typed password', () => {

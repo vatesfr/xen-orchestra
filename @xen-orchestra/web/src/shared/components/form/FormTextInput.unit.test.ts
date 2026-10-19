@@ -1,4 +1,5 @@
 import FormTextInput from '@/shared/components/form/FormTextInput.vue'
+import { findInputLabels } from '@/test/find-input-labels.ts'
 import { findInputMessages } from '@/test/find-input-messages.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -15,7 +16,7 @@ function mountTextInput(props: Partial<TextInputProps> = {}) {
 }
 
 it('renders its label', () => {
-  expect(mountTextInput().get('.ui-label').text()).toContain('Host')
+  expect(findInputLabels(mountTextInput())).toEqual(['Host'])
 })
 
 it('marks the input as required when asked to', () => {

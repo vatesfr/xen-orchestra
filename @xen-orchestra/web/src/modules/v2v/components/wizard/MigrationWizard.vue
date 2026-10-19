@@ -3,6 +3,7 @@
     <V2vWizardHeader :current-step :summary />
     <div class="content">
       <V2vSourceStep v-if="currentStep === 'source'" />
+      <V2vDestinationStep v-else-if="currentStep === 'destination'" />
       <VtsStateHero v-else format="page" type="under-construction" size="medium">
         {{ t('coming-soon!') }}
       </VtsStateHero>
@@ -11,6 +12,7 @@
 </template>
 
 <script lang="ts" setup>
+import V2vDestinationStep from '@/modules/v2v/components/destination/V2vDestinationStep.vue'
 import V2vSourceStep from '@/modules/v2v/components/source/V2vSourceStep.vue'
 import V2vWizardHeader from '@/modules/v2v/components/wizard/V2vWizardHeader.vue'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
