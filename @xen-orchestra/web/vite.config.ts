@@ -3,15 +3,17 @@ import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig, loadEnv, PluginOption } from 'vite'
 import vueRouter from 'vue-router/vite'
+import { v2vMockPlugin } from './dev/v2v-mock/plugin.ts'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const { VITE_XO_REST_HOST } = loadEnv(mode, process.cwd())
+  const { VITE_XO_REST_HOST, VITE_XO_V2V_MOCK, VITE_XO_V2V_MOCK_VECTURA_ERROR } = loadEnv(mode, process.cwd())
   const isDevMode = mode === 'development'
 
   return {
     base: './',
     plugins: [
+      v2vMockPlugin({ enabled: VITE_XO_V2V_MOCK === 'true', vecturaError: VITE_XO_V2V_MOCK_VECTURA_ERROR }),
       vueRouter({
         dts: isDevMode ? './src/route-map.d.ts' : false,
         exclude: isDevMode ? [] : ['src/pages/dev/**'],
