@@ -1,6 +1,8 @@
 import assert from 'assert/strict'
 import test from 'node:test'
-import { applySchema } from './config.schema.mjs'
+import { parse as parseToml } from 'smol-toml'
+import { readFileSync } from 'node:fs'
+import { applySchema, XoServerConfigSchema } from './config.schema.mjs'
 
 const { describe, it } = test
 
@@ -65,6 +67,15 @@ describe('applySchema()', function () {
         socket: '/tmp/redis.sock',
       },
     })
+  })
+
+  it('accepts the default config.toml', function () {
+    const config = parseToml(readFileSync(new URL('../config.toml', import.meta.url), 'utf8'))
+
+    const result = XoServerConfigSchema.safeParse(config)
+
+    assert.equal(result.success, true, result.error?.message)
+    assert.equal(result.data.backups.dirMode, 0o700)
   })
 
   it('returns an empty object for an empty configuration', function () {

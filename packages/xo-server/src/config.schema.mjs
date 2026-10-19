@@ -5,6 +5,9 @@ const { warn } = createLogger('xo:config-schema')
 // Sentinel for redacted values — use a string so Swagger renders it clearly
 const redacted = z.any().transform(() => '**REDACTED**')
 
+// durations can be strings ("1 min") or numbers (milliseconds), see @vates/parse-duration
+const duration = z.union([z.string(), z.number()])
+
 const providerSchema = z.object({
   type: z.string(),
   host: z.string().optional(),
@@ -71,16 +74,16 @@ export const XoServerConfigSchema = z
 
     backups: z
       .object({
-        dirMode: z.string().optional(),
+        dirMode: z.number().optional(), // octal in TOML (e.g. 0o700)
         vhdDirectoryCompression: z.string().optional(),
-        listingDebounce: z.string().optional(),
+        listingDebounce: duration.optional(),
         useGetDiskLegacy: z.boolean().optional(),
       })
       .partial()
       .optional(),
 
     datadir: z.string().optional(),
-    resourceCacheDelay: z.string().optional(),
+    resourceCacheDelay: duration.optional(),
 
     // Add more sections as needed.
     // Unknown top-level keys are passed through but redacted (see .catchall() below).
