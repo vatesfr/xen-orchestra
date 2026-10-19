@@ -21,6 +21,11 @@ const { url, isConsoleAvailable } = defineProps<{
   isConsoleAvailable: boolean
 }>()
 
+const emit = defineEmits<{
+  clipboard: [text: string]
+  connectionChange: [isConnected: boolean]
+}>()
+
 const { t } = useI18n()
 
 const uiStore = useUiStore()
@@ -57,6 +62,11 @@ function handleDisconnectionEvent() {
 function handleConnectionEvent() {
   nConnectionAttempts = 0
   isReady.value = true
+  emit('connectionChange', true)
+}
+
+function handleClipboardEvent(event: CustomEvent<{ text: string }>) {
+  emit('clipboard', event.detail.text)
 }
 
 function clearVncClient() {
@@ -65,6 +75,8 @@ function clearVncClient() {
     return
   }
 
+  emit('connectionChange', false)
+  vncClient.removeEventListener('clipboard', handleClipboardEvent)
   vncClient.removeEventListener('disconnect', handleDisconnectionEvent)
   vncClient.removeEventListener('connect', handleConnectionEvent)
   vncClient.disconnect()
@@ -90,6 +102,7 @@ async function createVncConnection() {
 
   vncClient.addEventListener('disconnect', handleDisconnectionEvent)
   vncClient.addEventListener('connect', handleConnectionEvent)
+  vncClient.addEventListener('clipboard', handleClipboardEvent)
   const canvas = consoleContainer.value?.querySelector('canvas') as HTMLCanvasElement | null
   if (canvas !== null) {
     // Todo: See with Clémence to specify the desired focus behavior
@@ -137,6 +150,7 @@ onBeforeUnmount(() => {
 
 defineExpose({
   sendCtrlAltDel: () => vncClient?.sendCtrlAltDel(),
+  setClipboard: (text: string) => vncClient?.clipboardPasteFrom(text),
 })
 </script>
 
