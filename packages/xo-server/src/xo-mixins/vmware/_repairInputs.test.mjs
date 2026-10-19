@@ -7,6 +7,7 @@ import {
   buildWindowsNics,
   clearRepairXenstoreData,
   describeFailures,
+  describeRepair,
   getBlockingFindings,
   isFirstBootOver,
   isRepairDone,
@@ -14,6 +15,8 @@ import {
   isRepairIsoVersion,
   readFirstBootState,
   readRepairOutput,
+  REPAIR_DESCRIPTION_MARKER,
+  replaceRepairDescription,
   userdeviceOfXvd,
 } from './_repairInputs.mjs'
 
@@ -263,4 +266,108 @@ test('userdeviceOfXvd', () => {
   assert.equal(userdeviceOfXvd('xvdb'), '1')
   assert.equal(userdeviceOfXvd('sda'), undefined)
   assert.equal(userdeviceOfXvd('xvdaa'), undefined)
+})
+
+test('describeRepair', async t => {
+  const report = ({ actions = [], findings = [], ...rest } = {}) => ({
+    result: 'ok',
+    firmware: 'uefi',
+    disks: ['xvda'],
+    tools: 'xvdd',
+    os: { kind: 'windows', name: 'Windows Server 2019' },
+    network: [],
+    findings,
+    actions,
+    ...rest,
+  })
+
+  await t.test('lists the actions and the findings worth a look of a repair', () => {
+    const repair = report({
+      result: 'warning',
+      actions: [
+        { code: 'disable_vmware_services', status: 'done' },
+        { code: 'windows_static_ip', status: 'failed', error: 'no adapter' },
+      ],
+      findings: [
+        { level: 'info', code: 'bitlocker' },
+        { level: 'warning', code: 'windows_static_ip_unmapped', message: 'Ethernet0' },
+        { level: 'error', code: 'action_failed', message: 'no adapter' },
+      ],
+    })
+    assert.equal(
+      describeRepair({ reports: { diagnose: report(), repair }, isoVersion: '20261018' }),
+      [
+        REPAIR_DESCRIPTION_MARKER,
+        'ISO: 20261018',
+        'repair: warning',
+        'OS: Windows Server 2019 (uefi)',
+        'actions:',
+        '- disable_vmware_services: done',
+        '- windows_static_ip: failed (no adapter)',
+        'findings:',
+        '- warning windows_static_ip_unmapped: Ethernet0',
+      ].join('\n')
+    )
+  })
+
+  await t.test('says a guest blocked at the diagnose was not changed', () => {
+    const diagnose = report({
+      result: 'error',
+      firmware: null,
+      os: { kind: 'linux' },
+      findings: [{ level: 'error', code: 'dynamic_disk' }],
+    })
+    assert.equal(
+      describeRepair({
+        reports: { diagnose },
+        error: { message: 'the guest cannot be repaired: dynamic_disk' },
+        isoVersion: '20261018',
+      }),
+      [
+        REPAIR_DESCRIPTION_MARKER,
+        'ISO: 20261018',
+        'repair failed: the guest cannot be repaired: dynamic_disk',
+        'OS: linux',
+        'the guest was only diagnosed, nothing was changed in it',
+        'findings:',
+        '- error dynamic_disk',
+      ].join('\n')
+    )
+  })
+
+  await t.test('keeps the error of a failure without any report', () => {
+    assert.equal(
+      describeRepair({ error: { message: 'the repair ISO did not report its result in time' }, isoVersion: '1' }),
+      [REPAIR_DESCRIPTION_MARKER, 'ISO: 1', 'repair failed: the repair ISO did not report its result in time'].join(
+        '\n'
+      )
+    )
+  })
+
+  await t.test('adds the failure of the first boot and says when details were dropped', () => {
+    const summary = describeRepair({
+      reports: { diagnose: report(), repair: report({ truncated: true }) },
+      firstBootError: { message: 'the guest agent did not report in time' },
+      isoVersion: '1',
+    })
+    assert.ok(
+      summary.endsWith(
+        'details were dropped from the report to fit in xenstore\nfirst boot failed: the guest agent did not report in time'
+      )
+    )
+  })
+})
+
+test('replaceRepairDescription', async t => {
+  const summary = `${REPAIR_DESCRIPTION_MARKER}\nISO: 2`
+
+  await t.test('appends the summary to the description', () => {
+    assert.equal(replaceRepairDescription('from esxi', summary), `from esxi\n\n${summary}`)
+    assert.equal(replaceRepairDescription('', summary), summary)
+  })
+
+  await t.test('replaces the summary of a previous write', () => {
+    const previous = replaceRepairDescription('from esxi', `${REPAIR_DESCRIPTION_MARKER}\nISO: 1\nrepair: ok`)
+    assert.equal(replaceRepairDescription(previous, summary), `from esxi\n\n${summary}`)
+  })
 })

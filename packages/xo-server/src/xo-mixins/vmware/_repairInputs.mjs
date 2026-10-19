@@ -254,6 +254,71 @@ export function describeFailures(report) {
  */
 export const guestLogsOf = report => GUEST_LOGS[report.os?.kind]
 
+// starts what the import writes in the description of the VM: a later write replaces everything after it
+export const REPAIR_DESCRIPTION_MARKER = '--- V2V repair ---'
+
+const describeAction = ({ code, status, error }) =>
+  error === undefined ? `- ${code}: ${status}` : `- ${code}: ${status} (${error})`
+
+const describeFinding = ({ level, code, message }) =>
+  message === undefined ? `- ${level} ${code}` : `- ${level} ${code}: ${message}`
+
+/**
+ * What the repair did to the guest, for humans, as written in the description of the VM.
+ *
+ * @param {object} params
+ * @param {{ diagnose?: RepairReport, repair?: RepairReport }} [params.reports] - all or part of them on a failure
+ * @param {{ message: string }} [params.error] - why the repair failed
+ * @param {{ message: string }} [params.firstBootError] - why the first boot of a repaired guest failed
+ * @param {string} params.isoVersion
+ * @returns {string}
+ */
+export function describeRepair({ reports = {}, error, firstBootError, isoVersion }) {
+  const lines = [REPAIR_DESCRIPTION_MARKER, `ISO: ${isoVersion}`]
+  // the repair run is the one which changed the guest, a diagnose alone did not change anything
+  const report = reports.repair ?? reports.diagnose
+  if (error !== undefined) {
+    lines.push(`repair failed: ${error.message}`)
+  } else if (report !== undefined) {
+    lines.push(`repair: ${report.result}`)
+  }
+  if (report !== undefined) {
+    const osName = report.os?.name ?? report.os?.kind
+    if (osName !== undefined) {
+      lines.push(report.firmware ? `OS: ${osName} (${report.firmware})` : `OS: ${osName}`)
+    }
+    if (reports.repair === undefined) {
+      lines.push('the guest was only diagnosed, nothing was changed in it')
+    }
+    if (report.actions.length !== 0) {
+      lines.push('actions:', ...report.actions.map(describeAction))
+    }
+    // a failed action is already in the actions
+    const findings = report.findings.filter(finding => finding.level !== 'info' && finding.code !== 'action_failed')
+    if (findings.length !== 0) {
+      lines.push('findings:', ...findings.map(describeFinding))
+    }
+    if (report.truncated) {
+      lines.push('details were dropped from the report to fit in xenstore')
+    }
+  }
+  if (firstBootError !== undefined) {
+    lines.push(`first boot failed: ${firstBootError.message}`)
+  }
+  return lines.join('\n')
+}
+
+/**
+ * @param {string} description - current description of the VM
+ * @param {string} summary - from `describeRepair`
+ * @returns {string} the description with the summary of a previous write replaced
+ */
+export function replaceRepairDescription(description, summary) {
+  const markerIndex = description.indexOf(REPAIR_DESCRIPTION_MARKER)
+  const ownDescription = (markerIndex === -1 ? description : description.slice(0, markerIndex)).trimEnd()
+  return ownDescription === '' ? summary : `${ownDescription}\n\n${summary}`
+}
+
 /**
  * The `userdevice` of a disk named by the ISO, `xvdb` → `1`.
  *
