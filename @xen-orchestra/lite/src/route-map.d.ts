@@ -807,6 +807,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/numbered-stepper/ui-numbered-stepper': RouteRecordInfo<
+      '/story/web-core/ui/numbered-stepper/ui-numbered-stepper',
+      '/story/web-core/ui/numbered-stepper/ui-numbered-stepper',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/object-link/ui-object-link': RouteRecordInfo<
       '/story/web-core/ui/object-link/ui-object-link',
       '/story/web-core/ui/object-link/ui-object-link',
@@ -1774,6 +1781,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/modal/ui-modal.story.vue': {
       routes:
         | '/story/web-core/ui/modal/ui-modal'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/numbered-stepper/ui-numbered-stepper.story.vue': {
+      routes:
+        | '/story/web-core/ui/numbered-stepper/ui-numbered-stepper'
       views:
         | never
     }
