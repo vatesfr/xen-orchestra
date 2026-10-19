@@ -302,13 +302,13 @@ export default class Xapi extends XapiBase {
     // Unplugging a shared SR would break running VMs with disks on it, the
     // user must migrate them first.
     const vmsOnSharedSrs = host.$resident_VMs.filter(
-      vm => !vm.is_control_domain && vm.$VBDs.some(vbd => vbd.$VDI?.$SR.shared)
+      vm => !vm.is_control_domain && vm.$VBDs.some(vbd => vbd.$VDI?.$SR?.shared)
     )
     if (vmsOnSharedSrs.length !== 0) {
       throw forbiddenOperation(
         'set host multipathing',
         `the following VMs have disks on shared SRs and must be migrated first: ${vmsOnSharedSrs
-          .map(vm => vm.name_label)
+          .map(vm => vm?.name_label + ': ' + vm.uuid)
           .join(', ')}`
       )
     }
@@ -318,7 +318,7 @@ export default class Xapi extends XapiBase {
       $defer(() => this.enableHost(hostId))
     }
 
-    const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached && pbd.$SR.shared)
+    const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached && pbd.$SR?.shared)
     await asyncMapSettled(pluggedPbds, async pbd => {
       const ref = pbd.$ref
       await this.unplugPbd(ref)
