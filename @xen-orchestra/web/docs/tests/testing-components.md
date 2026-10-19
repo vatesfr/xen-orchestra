@@ -61,6 +61,8 @@ expect(labelledValues).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8
 
 Prefer this shape: one assertion covering every row a user sees, and it fails loudly when a value lands under the wrong label. Assert against **class names and semantic elements**, never a positional chain of child indexes.
 
+The class must exist for the component's own CSS: **never add a class only for a test**, and remove one whose CSS is gone. Without a styled class, query the component (`getComponent`), a styled class of a child component, or the text the user reads.
+
 `src/test/find-labelled-values.ts` does exactly that reduction, so a card test does not re-roll it:
 
 | Helper                   | Reads                                                      |
@@ -114,6 +116,26 @@ Where the line falls:
 | a string the component composes from several translations  | a template literal of those `t(…)` calls           |
 | data reaching the component (a name, an id, an IP, a tag)  | the literal — it is the test's own input           |
 | a number the component formats (`'8 B'`, `'4 GiB'`, `'2'`) | the literal — deriving it would copy the template  |
+
+## Tables
+
+A table is read **by header label**, never by column position: `src/test/find-table-cells.ts` looks the label up in `thead th`, so a column added, moved or hidden does not shift the assertions.
+
+| Helper                                 | Reads                                                                 |
+| -------------------------------------- | --------------------------------------------------------------------- |
+| `findTableHeaders(wrapper)`            | the header labels, in order (`''` for a checkbox column)              |
+| `findTableColumn(wrapper, label)`      | the text of each cell of that column, one per body row                |
+| `findTableColumnCells(wrapper, label)` | the cells of that column, to query a link, a tag or a checkbox inside |
+| `findTableRows(wrapper)`               | the body rows, to read a row state such as its `selected` class       |
+| `findTableRowTexts(wrapper)`           | the text of each body row, for a table read row by row                |
+
+```typescript
+expect(findTableHeaders(wrapper)).toEqual(['', t('vm'), t('size')])
+expect(findTableColumn(wrapper, t('size'))).toEqual(['80GiB', '120GiB'])
+expect(findTableColumnCells(wrapper, t('vm'))[0].getComponent(UiLink).attributes('href')).toBe('/vm/vm-42/dashboard')
+```
+
+A label missing from the header throws, naming the label, rather than reading an empty column.
 
 ## Chart cards
 

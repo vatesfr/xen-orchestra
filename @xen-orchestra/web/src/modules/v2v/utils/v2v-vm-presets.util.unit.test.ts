@@ -6,7 +6,7 @@ import {
   V2V_VM_PRESETS,
   type V2vVmPresetId,
 } from '@/modules/v2v/utils/v2v-vm-presets.util.ts'
-import { createV2vVmRow } from '@/test/create-v2v-vm-row.ts'
+import { createV2vVmRow, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
 import { UNPARSABLE_FILTER } from '@/test/query-builder-filters.ts'
 import type { PropertyOperator } from '@core/packages/query-builder/types.ts'
 import { useRawFilter } from '@core/packages/query-builder/filter/use-raw-filter.ts'
@@ -28,7 +28,7 @@ const COLD_VM = createV2vVmRow({ name: 'cold', migration: 'cold' })
 const STATUS_ROWS = [NOT_MIGRATED_VM, UNSUPPORTED_VM, RUNNING_VM, WARM_VM, COLD_VM]
 
 function filterRows(rows: V2vVmRow[], filter: string) {
-  return rows.filter(parse(filter).createPredicate()).map(row => row.name)
+  return getV2vVmNames(rows.filter(parse(filter).createPredicate()))
 }
 
 describe('V2V_VM_PRESETS', () => {
@@ -102,21 +102,17 @@ describe('getActiveV2vPreset', () => {
     expect(getActiveV2vPreset(filter)).toBe(presetId)
   })
 
-  it('is all for an empty filter', () => {
-    expect(getActiveV2vPreset('')).toBe('all')
-  })
-
-  // Presets only edit the top-level clauses, as do the counts
-  it('is all for a status clause nested in a group', () => {
-    expect(getActiveV2vPreset('|(migration:/^warm$/ name:app)')).toBe('all')
-  })
-
-  // useQueryBuilderFilter shows every row for an unparsable filter
-  it('is all for an unparsable filter', () => {
-    expect(getActiveV2vPreset(UNPARSABLE_FILTER)).toBe('all')
+  it.each([
+    ['an empty filter', ''],
+    ['a group without status clause', `|(name:app ${DATASTORE_FILTER})`],
+  ])('is all for %s', (_, filter) => {
+    expect(getActiveV2vPreset(filter)).toBe('all')
   })
 
   it.each([
+    ['an unparsable filter', UNPARSABLE_FILTER],
+    ['a status clause nested in a group', '|(migration:/^warm$/ name:app)'],
+    ['a preset clause beside a status clause nested in a group', 'migration:/^warm$/ !(!supported? name:app)'],
     ['two migration values', 'migration:/^warm$/ migration:/^cold$/'],
     ['a migration and a supported clause', 'migration:/^none$/ !supported?'],
     ['a negated migration clause', '!migration:/^none$/'],

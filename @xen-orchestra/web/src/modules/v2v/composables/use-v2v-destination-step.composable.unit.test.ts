@@ -1,13 +1,12 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vDestinationStep } from '@/modules/v2v/composables/use-v2v-destination-step.composable.ts'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import { connectV2vSource } from '@/test/connect-v2v-source.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createManagementPif } from '@/test/create-pif.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
-import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import {
   createV2vDestinationDefaults,
   createV2vMigrationList,
@@ -71,7 +70,7 @@ async function mountDestinationStep(query: Record<string, string> = {}) {
 
   const result = mountComposable(
     () => {
-      useV2vConnectionStore().setConnection(CONNECTION, createV2vInventory())
+      connectV2vSource({ connection: CONNECTION })
 
       return useV2vDestinationStep()
     },

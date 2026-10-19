@@ -35,7 +35,11 @@ beforeEach(() => {
 })
 ```
 
+`vmCollectionMock.areVmsReady` is true after a reset; set it to false to hold the collection as still loading.
+
 Collections always read together share one mock module exporting each of their composables: `mock-xo-destination-collections.ts` stands for the pool, host, SR, network, PBD, PIF and VM template collections. Each `vi.mock` of these modules points to it (`vi.mock` is hoisted, it cannot be wrapped in a helper), and `destinationCollectionsMock.reset()` resets them all. Its pool collection also answers `hasPoolById` from `pools`, and `arePoolsReady` (true after a reset) lets a test hold the pools as still loading.
+
+The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snapshot collections the V2V VM rows are built from: `v2vVmRowsCollectionsMock` holds `vms`, `tasks`, `snapshots` and their `are…Ready` flags (true after a reset; set one to false to hold that collection as still loading).
 
 ## Network
 
