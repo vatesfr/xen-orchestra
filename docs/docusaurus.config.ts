@@ -215,8 +215,8 @@ export default {
             from: ['/sdn_controller', '/xo5/sdn_controller', '/manage-your-infrastructure/sdn_controller'],
           },
           {
-            to: '/setup-and-config/supported_hosts',
-            from: ['/supported_hosts', '/getting-started/supported_hosts'],
+            to: '/getting-started/requirements#host-compatibility-list',
+            from: ['/supported_hosts', '/getting-started/supported_hosts', '/setup-and-config/supported_hosts'],
           },
           {
             to: '/support-and-reference/troubleshooting',

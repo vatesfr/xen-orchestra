@@ -1,6 +1,6 @@
 ---
 sidebar_label: Installation
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 # Installing XOA
@@ -8,6 +8,10 @@ sidebar_position: 1
 Deploying Xen Orchestra takes a few minutes: you deploy the **Xen Orchestra Appliance (XOA)**, a pre-built VM with everything configured, directly on one of your hosts. Nothing is installed on the hosts themselves, and nothing changes in your infrastructure: XOA is just another VM.
 
 This page walks the whole journey: deploy, first login, registration, and the first console and network settings. If you prefer building from the sources instead, the community method has [its own page](install-from-sources.md).
+
+Before you start, check the [requirements](requirements.md): supported hosts and the resources to give to the appliance.
+
+If you are installing XOA to leave VMware, deploy it as described below, then follow the [VMware migration (V2V)](../migrate-from-vmware/v2v-migration-guide.md) guide: it explains how to prepare both environments and move your VMs to XCP-ng with Xen Orchestra.
 
 ## Deploy XOA {#xoa}
 
@@ -22,31 +26,6 @@ All the deploy code runs within your browser: nothing is sent to our servers. Yo
 The wizard walks four steps: **Connect** (your host address and credentials), **Configure** (storage and network for the appliance, DHCP or static), **Secure**, and **Deploy**. It then imports and starts the VM on the storage repository you picked:
 
 <UiDetail src="/img/xoa/deploy-wizard.png" alt="The four deploy steps: connect to your primary host, configure, secure, deploy" width={620} />
-
-## XOA specifications and sizing {#xoa-vm-specifications}
-
-By default, the deployed VM is configured with:
-
-- 2 vCPUs
-- 2 GiB of RAM
-- 20 GiB of free SR space (2 GiB on thin provisioned SR)
-
-### Sizing your XOA {#sizing}
-
-The right size depends on what you ask of it:
-
-| Usage                                                       | vCPUs  | RAM                    |
-| ----------------------------------------------------------- | ------ | ---------------------- |
-| A few pools, no backup jobs, no V2V                         | 2      | 2 GiB (strict minimum) |
-| Enterprise usage (backup jobs, V2V, more pools)             | 4      | 4 GiB minimum          |
-| Working at scale (large infrastructure, heavy backup load)  | 4 to 8 | 8 GiB                  |
-
-A few rules of thumb:
-
-- **2 GiB and 2 vCPUs is the strict minimum**, fine for a few pools without backups or V2V.
-- As soon as you use XOA in an enterprise context, **4 GiB and 4 vCPUs** should be your baseline.
-- **8 GiB** is better when working at scale, and **8 vCPUs** can bring extra speed when you run a lot of backups (transfers and compression are parallel workloads).
-- You can always give more, but **measure** afterwards to check the improvement is real before going further.
 
 ## First login
 
@@ -74,6 +53,45 @@ To try everything XO can do, start the trial from the same view ("Start Trial", 
 <UiDetail src="/img/xoa/start-trial.png" alt="Starting the 30-day Premium trial" width={520} />
 
 When the trial ends, the appliance keeps working and simply returns to the Free feature set: you lose no data and no configuration. For system-level settings of the appliance (firewall, NTP, service restart), see [the XOA appliance settings](../setup-and-config/configuration.md#xoa-appliance).
+
+## Change the default interface
+
+Starting with **Xen Orchestra 6**, the XO 6 UI becomes the default interface. That said, you can still switch back to XO 5, temporarily or by default.
+
+### Temporary Switch to XO 5
+
+To quickly access the old UI without changing any configuration, `/v5` to your URL (e.g., `https://xo.example.com/v5`).
+
+### Making XO 5 the default UI
+
+To permanently use XO 5 as the default interface, create a new config file (you can call it `config.mounts.toml`). This configuration file can be placed either in `~/.config/xo-server/` of the process running xo-server or if you are using a xoa in `/etc/xo-server/`. This file will contain :
+
+```toml
+[http.mounts]
+'/' = '/usr/local/lib/node_modules/xo-web/dist/'
+'/v5' = '/usr/local/lib/node_modules/xo-web/dist/'
+'/v6' = '/usr/local/lib/node_modules/@xen-orchestra/web/dist/'
+```
+
+If you are not using a xoa, replace the path `/usr/local/lib/node_modules/` with the real path of the modules.
+
+This configuration ensures:
+
+- Accessing `/` loads **XO 5**.
+- Accessing `/v5` loads **XO 5**.
+- Accessing `/v6` loads **XO 6**.
+
+For the possible locations of configuration files and the order in which they are loaded, see [Where to place the configuration file](../setup-and-config/configuration.md#where-to-place-the-configuration-file).
+
+### Apply the changes
+
+After updating the configuration, restart the XO server process:
+
+<Terminal shell title="xoa — apply the configuration">{`
+sudo systemctl restart xo-server
+`}</Terminal>
+
+XO 5 will now be served as the default UI.
 
 ## Alternative deployment methods {#alternative-install}
 

@@ -43,6 +43,16 @@ const MOVED_FROM_XOA: Record<string, string> = {
  * covers them.
  */
 const MOVED_SECTIONS: Record<string, Record<string, string>> = {
+  '/getting-started/installation': {
+    'xoa-vm-specifications': '/getting-started/requirements#xoa-vm-specifications',
+    sizing: '/getting-started/requirements#sizing',
+  },
+  '/setup-and-config/configuration': {
+    'using-xo-5-as-the-default-interface': '/getting-started/installation#change-the-default-interface',
+    'temporary-switch-to-xo-5': '/getting-started/installation#temporary-switch-to-xo-5',
+    'making-xo-5-the-default-ui': '/getting-started/installation#making-xo-5-the-default-ui',
+    'apply-the-changes': '/getting-started/installation#apply-the-changes',
+  },
   '/core-concepts/coreconcepts': {
     'dashboards-at-every-level': '/core-concepts/coreconcepts/dashboards',
     'tabs-tables-and-the-side-panel': '/core-concepts/coreconcepts/tabs-tables-side-panel',
