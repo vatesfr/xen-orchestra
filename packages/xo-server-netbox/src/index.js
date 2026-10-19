@@ -1,8 +1,10 @@
 import ipaddr from 'ipaddr.js'
 import semver from 'semver'
 import { createLogger } from '@xen-orchestra/log'
+import chunk from 'lodash/chunk'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
+import groupBy from 'lodash/groupBy'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import pick from 'lodash/pick'
@@ -11,6 +13,7 @@ import some from 'lodash/some'
 import trimEnd from 'lodash/trimEnd'
 
 import diff from './diff'
+import { resolveIpConflict } from './ip-conflict'
 import { deduplicateName } from './name-dedup'
 import slugify from './slugify'
 
@@ -87,12 +90,18 @@ class Netbox {
     if (state.loaded) {
       clearInterval(this.#intervalToken)
       if (this.#syncInterval !== undefined) {
-        this.#intervalToken = setInterval(this.#synchronize.bind(this), this.#syncInterval)
+        this.#intervalToken = setInterval(this.#scheduledSynchronize, this.#syncInterval)
       }
     }
   }
 
   #onUnload = []
+
+  #scheduledSynchronize = () => {
+    this.#synchronize().catch(error => {
+      log.error('Scheduled synchronization failed', { error })
+    })
+  }
 
   load() {
     const synchronize = ({ pools }) => this.#synchronize(pools)
@@ -108,7 +117,7 @@ class Netbox {
     )
 
     if (this.#syncInterval !== undefined) {
-      this.#intervalToken = setInterval(this.#synchronize.bind(this), this.#syncInterval)
+      this.#intervalToken = setInterval(this.#scheduledSynchronize, this.#syncInterval)
       this.#onUnload.push(() => {
         clearInterval(this.#intervalToken)
       })
@@ -813,15 +822,24 @@ class Netbox {
       }
     }
 
+    const getCompactIp = address => {
+      try {
+        return ipaddr.parse(address.split('/')[0]).toString()
+      } catch (error) {
+        log.error('Cannot parse IP address', { error, address })
+      }
+    }
+
+    const allNbIpsList = await this.#request('/ipam/ip-addresses/')
     // In Netbox, a device interface and a VM interface can have the same ID and
     // an IP address can be assigned to both types of interface, so we need to
     // make sure that we only get IPs that are assigned to a VM interface
     const nbIps = keyBy(
-      (await this.#request('/ipam/ip-addresses/')).filter(
-        address => address.assigned_object_type === 'virtualization.vminterface'
-      ),
+      allNbIpsList.filter(address => address.assigned_object_type === 'virtualization.vminterface'),
       'id'
     )
+    // Not assigned to a VM interface: only needed to find conflicting IPs
+    const otherNbIps = allNbIpsList.filter(address => address.assigned_object_type !== 'virtualization.vminterface')
     const nbPrefixes = await this.#request('/ipam/prefixes/')
 
     const ipsToDelete = []
@@ -907,7 +925,12 @@ class Netbox {
             delete nbIpsToCheck[nbIp.id]
           } else {
             // IP wasn't found in Netbox, create it
-            ipsToCreate.push(createNbIp(ip, smallestPrefix, nbIf.id))
+            ipsToCreate.push({
+              ip: xoCompactIp,
+              vm: xoVm.uuid,
+              running: xoVm.power_state === 'Running',
+              nbIp: createNbIp(ip, smallestPrefix, nbIf.id),
+            })
           }
         }
 
@@ -925,7 +948,144 @@ class Netbox {
     // Perform calls to Netbox
     await this.#request('/ipam/ip-addresses/', 'DELETE', ipsToDelete)
     ipsToDelete.forEach(({ id }) => delete nbIps[id])
-    Object.assign(nbIps, keyBy(await this.#request('/ipam/ip-addresses/', 'POST', ipsToCreate), 'id'))
+
+    const isBadRequest = error => error.response?.status === 400
+    const rejectedIps = []
+    const createIp = async ipToCreate => {
+      try {
+        const [nbIp] = await this.#request('/ipam/ip-addresses/', 'POST', [ipToCreate.nbIp])
+        nbIps[nbIp.id] = nbIp
+      } catch (error) {
+        if (!isBadRequest(error)) {
+          throw error
+        }
+
+        rejectedIps.push({ ...ipToCreate, error: error.netboxError })
+      }
+    }
+
+    // Send each address only once per request so that Netbox can detect
+    // duplicates: the other occurrences are created one by one afterwards
+    const seenIps = new Set()
+    const uniqueIpsToCreate = []
+    const duplicateIpsToCreate = []
+    for (const ipToCreate of ipsToCreate) {
+      if (seenIps.has(ipToCreate.ip)) {
+        duplicateIpsToCreate.push(ipToCreate)
+      } else {
+        seenIps.add(ipToCreate.ip)
+        uniqueIpsToCreate.push(ipToCreate)
+      }
+    }
+
+    // Netbox rejects a whole request if one of its IPs is invalid (e.g. it
+    // already exists), so retry them one by one in that case
+    for (const ipsChunk of chunk(uniqueIpsToCreate, CHUNK_SIZE)) {
+      try {
+        const newNbIps = await this.#request(
+          '/ipam/ip-addresses/',
+          'POST',
+          ipsChunk.map(({ nbIp }) => nbIp)
+        )
+        Object.assign(nbIps, keyBy(newNbIps, 'id'))
+      } catch (error) {
+        if (!isBadRequest(error)) {
+          throw error
+        }
+
+        for (const ipToCreate of ipsChunk) {
+          await createIp(ipToCreate)
+        }
+      }
+    }
+
+    for (const ipToCreate of duplicateIpsToCreate) {
+      await createIp(ipToCreate)
+    }
+
+    // An IP can only be assigned to one interface: when several VMs report the
+    // same IP, decide which one gets it
+    const nbIfsById = keyBy(nbIfs, 'id')
+    const nbVmsById = keyBy(nbVms, 'id')
+    const globalNbIps = new Map()
+    if (rejectedIps.length > 0) {
+      for (const nbIp of [...Object.values(nbIps), ...otherNbIps]) {
+        if (nbIp.vrf === null) {
+          globalNbIps.set(getCompactIp(nbIp.address), nbIp)
+        }
+      }
+    }
+
+    const ipConflicts = []
+    for (const [ip, candidates] of Object.entries(groupBy(rejectedIps, 'ip'))) {
+      const vms = candidates.map(({ vm }) => vm)
+      const existingNbIp = globalNbIps.get(ip)
+      if (existingNbIp === undefined) {
+        ipConflicts.push({ ip, vms, reason: 'Rejected by Netbox', error: candidates[0].error })
+        continue
+      }
+
+      let holder
+      if (existingNbIp.assigned_object_id != null) {
+        const holderNbIf =
+          existingNbIp.assigned_object_type === 'virtualization.vminterface'
+            ? nbIfsById[existingNbIp.assigned_object_id]
+            : undefined
+        const holderNbVm = nbVmsById[holderNbIf?.virtual_machine?.id]
+        holder =
+          holderNbVm === undefined
+            ? { managed: false }
+            : {
+                managed: true,
+                vm: holderNbVm.custom_fields.uuid,
+                running: this.getObject(holderNbVm.custom_fields.uuid)?.power_state === 'Running',
+                nbVm: holderNbVm,
+              }
+      }
+
+      const { owner, reason } = resolveIpConflict(candidates, holder)
+      if (reason !== undefined) {
+        ipConflicts.push({ ip, vms: holder?.managed ? [holder.vm, ...vms] : vms, owner: owner?.vm, reason })
+      }
+
+      if (owner === undefined || owner === holder) {
+        continue
+      }
+
+      try {
+        // Netbox refuses to move an IP that is the primary IP of its VM
+        if (holder !== undefined) {
+          const vmPatch = {}
+          if (holder.nbVm.primary_ip4?.id === existingNbIp.id) {
+            vmPatch.primary_ip4 = null
+          }
+
+          if (holder.nbVm.primary_ip6?.id === existingNbIp.id) {
+            vmPatch.primary_ip6 = null
+          }
+
+          if (!isEmpty(vmPatch)) {
+            const [nbVm] = await this.#request('/virtualization/virtual-machines/', 'PATCH', [
+              { id: holder.nbVm.id, ...vmPatch },
+            ])
+            nbVms[nbVm.custom_fields.uuid] = nbVm
+          }
+        }
+
+        const [nbIp] = await this.#request('/ipam/ip-addresses/', 'PATCH', [{ id: existingNbIp.id, ...owner.nbIp }])
+        nbIps[nbIp.id] = nbIp
+      } catch (error) {
+        if (!isBadRequest(error)) {
+          throw error
+        }
+
+        ipConflicts.push({ ip, vms, owner: owner.vm, reason: 'Could not assign IP', error: error.netboxError })
+      }
+    }
+
+    if (ipConflicts.length > 0) {
+      log.warn(`Could not assign ${ipConflicts.length} IP addresses to all the VMs reporting them`, { ipConflicts })
+    }
 
     // Primary IPs -------------------------------------------------------------
 
