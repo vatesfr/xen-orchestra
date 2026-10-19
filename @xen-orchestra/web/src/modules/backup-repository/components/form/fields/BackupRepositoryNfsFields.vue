@@ -1,12 +1,12 @@
 <template>
   <div class="backup-repository-nfs-fields">
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="bindings.host" />
-      <BackupRepositoryFormTextInput v-bind="bindings.port" />
+      <FormTextInput v-bind="bindings.host" />
+      <FormTextInput v-bind="bindings.port" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow wide>
-      <BackupRepositoryFormTextInput v-bind="bindings.path" />
+      <FormTextInput v-bind="bindings.path" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow wide>
@@ -18,8 +18,8 @@
 <script lang="ts" setup>
 import BackupRepositoryFormRow from '@/modules/backup-repository/components/form/BackupRepositoryFormRow.vue'
 import BackupRepositoryFormTextArea from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormTextArea.vue'
-import BackupRepositoryFormTextInput from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormTextInput.vue'
 import type { NfsBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-nfs-backup-repository-details-form.ts'
+import FormTextInput from '@/shared/components/form/FormTextInput.vue'
 
 defineProps<{ bindings: NfsBackupRepositoryDetailsForm['bindings'] }>()
 </script>

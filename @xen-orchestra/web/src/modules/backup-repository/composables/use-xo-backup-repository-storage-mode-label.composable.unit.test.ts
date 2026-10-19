@@ -1,15 +1,10 @@
 import { useXoBackupRepositoryStorageModeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-storage-mode-label.composable.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { mountComposableWithI18n } from '@/test/mount-composable.ts'
+import { type MaybeRefOrGetter, ref } from 'vue'
 import { type ParsedBackupRepositoryUrl, parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
-function mountStorageModeLabel(parsedUrl: ParsedBackupRepositoryUrl | undefined) {
-  return mountComposable(() => {
-    const { t } = useI18n()
-
-    return { storageModeLabel: useXoBackupRepositoryStorageModeLabel(parsedUrl), t }
-  }).wrapper.vm
+function mountStorageModeLabel(parsedUrl: MaybeRefOrGetter<ParsedBackupRepositoryUrl | undefined>) {
+  return mountComposableWithI18n(() => ({ storageModeLabel: useXoBackupRepositoryStorageModeLabel(parsedUrl) }))
 }
 
 describe('useXoBackupRepositoryStorageModeLabel', () => {
@@ -43,14 +38,10 @@ describe('useXoBackupRepositoryStorageModeLabel', () => {
     const parsedUrl = ref<ParsedBackupRepositoryUrl | undefined>(
       parseBackupRepositoryUrl('nfs://192.168.1.10:/exports/backups')
     )
-    const { wrapper } = mountComposable(() => {
-      const { t } = useI18n()
-
-      return { storageModeLabel: useXoBackupRepositoryStorageModeLabel(parsedUrl), t }
-    })
+    const result = mountStorageModeLabel(parsedUrl)
 
     parsedUrl.value = parseBackupRepositoryUrl('nfs://192.168.1.10:/exports/backups?useVhdDirectory=true')
 
-    expect(wrapper.vm.storageModeLabel).toBe(wrapper.vm.t('block-based'))
+    expect(result.storageModeLabel).toBe(result.t('block-based'))
   })
 })
