@@ -1073,12 +1073,14 @@ export class VmController extends XapiXoController<XoVm> {
    *
    * Networks and SRs must belong to the same pool as the destination host
    *
-   * Set `force` to `true` to retry a migration refused with `VM_INCOMPATIBLE_WITH_THIS_HOST`
+   * Set `bypassCpuCheck` to `true` to retry a migration refused with `VM_INCOMPATIBLE_WITH_THIS_HOST`
    * (e.g. CPU features mismatch between the source and the destination host)
+   *
+   * **Warning**: when `bypassCpuCheck` is used, the VM may crash after the migration
    *
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example body { "hostId": "b61a5c92-700e-4966-a13b-00633f03eea8" }
-   * @example body { "hostId": "b61a5c92-700e-4966-a13b-00633f03eea8", "force": true }
+   * @example body { "hostId": "b61a5c92-700e-4966-a13b-00633f03eea8", "bypassCpuCheck": true }
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
@@ -1102,11 +1104,11 @@ export class VmController extends XapiXoController<XoVm> {
     @Path() id: string,
     @Body()
     body:
-      | { hostId: string; migrationNetworkId?: string; force?: boolean }
+      | { hostId: string; migrationNetworkId?: string; bypassCpuCheck?: boolean }
       | {
           hostId: string
           migrationNetworkId?: string
-          force?: boolean
+          bypassCpuCheck?: boolean
           srId?: string
           srIdByVdiId?: { [key: string]: string }
           networkIdByVifId?: { [key: string]: string }
@@ -1115,14 +1117,14 @@ export class VmController extends XapiXoController<XoVm> {
   ): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const hostId = body.hostId as XoHost['id']
-    const force = body.force ?? false
+    const bypassCpuCheck = body.bypassCpuCheck ?? false
 
     const action = async () => {
       const { migrationNetworkId } = body
       const xapiVm = this.getXapiObject(vmId)
 
       await xapiVm.$xapi.migrateVm(vmId, this.getXapi(hostId), hostId, {
-        force,
+        force: bypassCpuCheck,
         mapVdisSrs: 'srIdByVdiId' in body ? (body.srIdByVdiId as Record<XoVdi['id'], XoSr['id']>) : undefined,
         mapVifsNetworks:
           'networkIdByVifId' in body ? (body.networkIdByVifId as Record<XoVif['id'], XoNetwork['id']>) : undefined,
