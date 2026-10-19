@@ -37,7 +37,10 @@
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
           <template #key>{{ t('next-run') }}</template>
-          <template #value />
+          <template #value>{{ nextRuns.get(schedule.id) }}</template>
+          <template v-if="nextRuns.get(schedule.id)" #addons>
+            <VtsCopyButton :value="nextRuns.get(schedule.id) ?? ''" />
+          </template>
         </VtsCardRowKeyValue>
       </template>
     </div>
@@ -46,6 +49,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoSchedule } from '@/modules/backup-job/remote-resources/use-xo-schedule-collection.ts'
+import { getScheduleNextRun } from '@/modules/backup-job/utils/xo-schedule.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -54,15 +58,30 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
+const { schedules } = defineProps<{
   schedules: FrontXoSchedule[]
 }>()
 
-const { t } = useI18n()
+const { t, d } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
+
+const nextRuns = computed(() => {
+  const formattedNextRuns = new Map<FrontXoSchedule['id'], string>()
+
+  schedules.forEach(schedule => {
+    const nextRun = getScheduleNextRun(schedule)
+
+    if (nextRun !== undefined) {
+      formattedNextRuns.set(schedule.id, d(nextRun, { dateStyle: 'short', timeStyle: 'medium' }))
+    }
+  })
+
+  return formattedNextRuns
+})
 </script>
 
 <style scoped lang="postcss">
