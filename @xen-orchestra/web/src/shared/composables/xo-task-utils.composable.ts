@@ -1,15 +1,11 @@
 import { type FrontXoTask, useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { watch } from 'vue'
 
-export type MonitoredTaskError = Error & {
-  taskId: FrontXoTask['id']
-}
-
 /**
- * Normalize a Task error into a JS Error. Keep the original stacktrace and the task ID
+ * Normalize a Task error into a JS Error. Keep the original stacktrace
  */
 function normalizeError(taskError: Record<string, unknown> | undefined, taskId: FrontXoTask['id']) {
-  const error: MonitoredTaskError = Object.assign(new Error(), { taskId })
+  const error = new Error()
 
   if (taskError === undefined) {
     error.message = `Task ${taskId} failed without error details`
@@ -29,18 +25,6 @@ function normalizeError(taskError: Record<string, unknown> | undefined, taskId: 
   }
 
   return error
-}
-
-export function isMonitoredTaskError(error: unknown): error is MonitoredTaskError {
-  return error instanceof Error && 'taskId' in error
-}
-
-export function getErrorTaskId(error: unknown): FrontXoTask['id'] | undefined {
-  if (!isMonitoredTaskError(error)) {
-    return undefined
-  }
-
-  return error.taskId
 }
 
 export function useXoTaskUtils() {

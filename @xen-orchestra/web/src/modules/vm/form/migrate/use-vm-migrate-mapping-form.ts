@@ -4,8 +4,8 @@ import {
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import {
   type FrontXoSr,
   useXoSrCollection,
@@ -17,8 +17,8 @@ import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.compo
 import type { VmMigratePayload } from '@/modules/vm/form/migrate/use-vm-migrate-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { watchImmediate } from '@vueuse/shared'
-import { computed, type MaybeRefOrGetter, ref } from 'vue'
+import { VM_POWER_STATE } from '@vates/types'
+import { computed, type MaybeRefOrGetter, ref, watch } from 'vue'
 
 export type VmMigrateVdiRow = {
   vdi: FrontXoVdi
@@ -30,6 +30,7 @@ export type VmMigrateVdiRow = {
 export type VmMigrateVifRow = {
   vif: FrontXoVif
   sourceNetwork: FrontXoNetwork | undefined
+  sourcePif: FrontXoPif | undefined
   targetNetworkId: FrontXoNetwork['id'] | undefined
 }
 
@@ -44,16 +45,13 @@ export function useVmMigrateMappingForm(
   const targetPoolId = toComputed(rawTargetPoolId)
   const targetHostId = toComputed(rawTargetHostId)
 
-  const { useGetPoolById } = useXoPoolCollection()
   const { notCdDriveVbds } = useXoVmVbdsUtils(vm)
-  const { getVdisByIds } = useXoVdiCollection()
+  const { useGetVdisByIds } = useXoVdiCollection()
   const { srs, getSrById } = useXoSrCollection()
   const { pbdsBySr } = useXoPbdCollection()
-  const { getVifsByIds } = useXoVifCollection()
+  const { useGetVifsByIds } = useXoVifCollection()
   const { networks, getNetworkById } = useXoNetworkCollection()
   const { pifsByHost, getPifsByIds } = useXoPifCollection()
-
-  const targetPool = useGetPoolById(targetPoolId)
 
   const isIntraPool = computed(() => targetPoolId.value === vm.value.$pool)
 
@@ -66,18 +64,6 @@ export function useVmMigrateMappingForm(
   const availableSrs = computed(() =>
     srs.value.filter(sr => sr.$pool === targetPoolId.value && isSrWritable(sr) && isSrConnectedToTargetHost(sr.id))
   )
-
-  const defaultDestinationSrId = computed(() => {
-    const poolDefaultSrId = targetPool.value?.default_SR
-
-    if (poolDefaultSrId === undefined) {
-      return undefined
-    }
-
-    const isAvailable = availableSrs.value.some(sr => sr.id === poolDefaultSrId)
-
-    return isAvailable ? poolDefaultSrId : undefined
-  })
 
   const targetHostNetworkIds = computed(() => {
     if (targetHostId.value === undefined) {
@@ -93,8 +79,14 @@ export function useVmMigrateMappingForm(
     networks.value.filter(network => network.$pool === targetPoolId.value && targetHostNetworkIds.value.has(network.id))
   )
 
-  const vdiRows = ref<VmMigrateVdiRow[]>([])
-  const vifRows = ref<VmMigrateVifRow[]>([])
+  const vmVdiIds = computed(() => notCdDriveVbds.value.flatMap(vbd => (vbd.VDI ? [vbd.VDI as FrontXoVdi['id']] : [])))
+
+  const vmVdis = useGetVdisByIds(vmVdiIds)
+
+  const vmVifs = useGetVifsByIds(() => vm.value.VIFs)
+
+  const targetSrIdByVdiId = ref(new Map<FrontXoVdi['id'], FrontXoSr['id'] | undefined>())
+  const targetNetworkIdByVifId = ref(new Map<FrontXoVif['id'], FrontXoNetwork['id'] | undefined>())
 
   const destinationSrId = ref<FrontXoSr['id'] | undefined>(undefined)
   const destinationNetworkId = ref<FrontXoNetwork['id'] | undefined>(undefined)
@@ -107,20 +99,24 @@ export function useVmMigrateMappingForm(
     return undefined
   }
 
-  function buildVdiRows(): VmMigrateVdiRow[] {
-    const vdiIds = notCdDriveVbds.value.flatMap(vbd => (vbd.VDI ? [vbd.VDI as FrontXoVdi['id']] : []))
+  const vdiRows = computed<VmMigrateVdiRow[]>(() => {
+    if (targetHostId.value === undefined) {
+      return []
+    }
 
-    return getVdisByIds(vdiIds).map(vdi => {
-      const targetSrId = getDefaultTargetSrId(vdi)
+    return vmVdis.value.map(vdi => {
+      const defaultTargetSrId = getDefaultTargetSrId(vdi)
+
+      const targetSrId = targetSrIdByVdiId.value.has(vdi.id) ? targetSrIdByVdiId.value.get(vdi.id) : defaultTargetSrId
 
       return {
         vdi,
         sourceSr: getSrById(vdi.$SR),
-        requiresSr: targetSrId === undefined,
+        requiresSr: defaultTargetSrId === undefined,
         targetSrId,
       }
     })
-  }
+  })
 
   function getNetworkVlans(network: FrontXoNetwork) {
     return getPifsByIds(network.PIFs)
@@ -148,66 +144,102 @@ export function useVmMigrateMappingForm(
     return availableNetworks.value.find(network => getNetworkVlans(network).some(vlan => sourceVlans.includes(vlan)))
   }
 
-  function buildVifRows(): VmMigrateVifRow[] {
-    if (isIntraPool.value) {
+  function findSourcePif(vif: FrontXoVif, sourceNetwork: FrontXoNetwork | undefined) {
+    const sourceHostPifs = pifsByHost.value.get(vm.value.$container as FrontXoHost['id']) ?? []
+    const sourceHostPif = sourceHostPifs.find(pif => pif.$network === vif.$network)
+
+    if (sourceHostPif !== undefined) {
+      return sourceHostPif
+    }
+
+    if (sourceNetwork === undefined) {
+      return undefined
+    }
+
+    const [firstNetworkPif] = getPifsByIds(sourceNetwork.PIFs)
+
+    return firstNetworkPif
+  }
+
+  const vifRows = computed<VmMigrateVifRow[]>(() => {
+    if (targetHostId.value === undefined || isIntraPool.value) {
       return []
     }
 
-    return getVifsByIds(vm.value.VIFs).map(vif => {
+    return vmVifs.value.map(vif => {
       const sourceNetwork = getNetworkById(vif.$network)
+
+      const targetNetworkId = targetNetworkIdByVifId.value.has(vif.id)
+        ? targetNetworkIdByVifId.value.get(vif.id)
+        : findMatchingNetwork(sourceNetwork)?.id
 
       return {
         vif,
         sourceNetwork,
-        targetNetworkId: findMatchingNetwork(sourceNetwork)?.id,
+        sourcePif: findSourcePif(vif, sourceNetwork),
+        targetNetworkId,
       }
     })
-  }
+  })
 
   const flaggedVdiRows = computed(() => vdiRows.value.filter(row => row.requiresSr))
 
-  function reset() {
-    destinationNetworkId.value = undefined
-
-    if (targetHostId.value === undefined) {
-      vdiRows.value = []
-      vifRows.value = []
-      destinationSrId.value = undefined
-      return
-    }
-
-    vdiRows.value = buildVdiRows()
-    vifRows.value = buildVifRows()
-
-    // The destination SR only feeds "fill empty SRs", so it is suggested only when a disk needs one
-    destinationSrId.value = flaggedVdiRows.value.length > 0 ? defaultDestinationSrId.value : undefined
+  function setTargetSrId(vdiId: FrontXoVdi['id'], srId: FrontXoSr['id'] | undefined) {
+    targetSrIdByVdiId.value.set(vdiId, srId)
   }
 
-  watchImmediate([targetPoolId, targetHostId], reset)
+  function setTargetNetworkId(vifId: FrontXoVif['id'], networkId: FrontXoNetwork['id'] | undefined) {
+    targetNetworkIdByVifId.value.set(vifId, networkId)
+  }
+
+  function resetSrs() {
+    targetSrIdByVdiId.value.clear()
+  }
+
+  function resetNetworks() {
+    targetNetworkIdByVifId.value.clear()
+  }
+
+  function reset() {
+    destinationSrId.value = undefined
+    destinationNetworkId.value = undefined
+    resetSrs()
+    resetNetworks()
+  }
+
+  watch([targetPoolId, targetHostId], reset)
 
   const movedVdiRows = computed(() =>
     vdiRows.value.filter(row => row.targetSrId !== undefined && row.targetSrId !== row.vdi.$SR)
   )
 
+  const isDiskMigrationRequired = computed(() => vm.value.power_state !== VM_POWER_STATE.RUNNING && isIntraPool.value)
+
+  const isMissingDiskMigration = computed(() => {
+    if (!isDiskMigrationRequired.value) {
+      return false
+    }
+
+    return movedVdiRows.value.length === 0
+  })
+
+  const hasNothingToMigrate = computed(() => isMissingDiskMigration.value && vdiRows.value.length === 0)
+
   const areAllSrsShared = computed(() => vdiRows.value.length > 0 && flaggedVdiRows.value.length === 0)
 
   const areAllVifsFollowing = computed(() => isIntraPool.value)
+
+  const missingSrRows = computed(() => flaggedVdiRows.value.filter(row => row.targetSrId === undefined))
+
+  const missingNetworkRows = computed(() => vifRows.value.filter(row => row.targetNetworkId === undefined))
 
   function fillEmptySrs() {
     if (destinationSrId.value === undefined) {
       return
     }
 
-    for (const row of flaggedVdiRows.value) {
-      if (row.targetSrId === undefined) {
-        row.targetSrId = destinationSrId.value
-      }
-    }
-  }
-
-  function resetSrs() {
-    for (const row of vdiRows.value) {
-      row.targetSrId = getDefaultTargetSrId(row.vdi)
+    for (const row of missingSrRows.value) {
+      setTargetSrId(row.vdi.id, destinationSrId.value)
     }
   }
 
@@ -216,28 +248,16 @@ export function useVmMigrateMappingForm(
       return
     }
 
-    for (const row of vifRows.value) {
-      if (row.targetNetworkId === undefined) {
-        row.targetNetworkId = destinationNetworkId.value
-      }
+    for (const row of missingNetworkRows.value) {
+      setTargetNetworkId(row.vif.id, destinationNetworkId.value)
     }
   }
-
-  function resetNetworks() {
-    for (const row of vifRows.value) {
-      row.targetNetworkId = findMatchingNetwork(row.sourceNetwork)?.id
-    }
-  }
-
-  const missingSrRows = computed(() => flaggedVdiRows.value.filter(row => row.targetSrId === undefined))
-
-  const missingNetworkRows = computed(() => vifRows.value.filter(row => row.targetNetworkId === undefined))
 
   const hasMissingSr = computed(() => missingSrRows.value.length > 0)
 
   const hasMissingNetwork = computed(() => missingNetworkRows.value.length > 0)
 
-  const isValid = computed(() => !hasMissingSr.value && !hasMissingNetwork.value)
+  const isValid = computed(() => !hasMissingSr.value && !hasMissingNetwork.value && !isMissingDiskMigration.value)
 
   function buildPayload(): VmMigrateMappingPayload | undefined {
     if (!isValid.value) {
@@ -287,7 +307,12 @@ export function useVmMigrateMappingForm(
     missingNetworkRows,
     hasMissingSr,
     hasMissingNetwork,
+    isDiskMigrationRequired,
+    isMissingDiskMigration,
+    hasNothingToMigrate,
     isValid,
+    setTargetSrId,
+    setTargetNetworkId,
     fillEmptySrs,
     resetSrs,
     fillEmptyNetworks,

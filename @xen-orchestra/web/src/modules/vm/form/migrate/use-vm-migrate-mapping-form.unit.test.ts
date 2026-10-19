@@ -5,11 +5,12 @@ import type {
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoPbd, useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type {
   FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
@@ -18,7 +19,6 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createNetwork } from '@/test/create-network.ts'
 import { createPbd } from '@/test/create-pbd.ts'
 import { createPif } from '@/test/create-pif.ts'
-import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVbd } from '@/test/create-vbd.ts'
 import { createVdi } from '@/test/create-vdi.ts'
@@ -26,10 +26,10 @@ import { createVif } from '@/test/create-vif.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { groupBy } from '@/test/group-by.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { VM_POWER_STATE } from '@vates/types'
 import { computed, type MaybeRefOrGetter, nextTick, ref, toValue } from 'vue'
 
 const {
-  useXoPoolCollectionMock,
   useXoVmVbdsUtilsMock,
   useXoVdiCollectionMock,
   useXoSrCollectionMock,
@@ -38,7 +38,6 @@ const {
   useXoNetworkCollectionMock,
   useXoPifCollectionMock,
 } = vi.hoisted(() => ({
-  useXoPoolCollectionMock: vi.fn(),
   useXoVmVbdsUtilsMock: vi.fn(),
   useXoVdiCollectionMock: vi.fn(),
   useXoSrCollectionMock: vi.fn(),
@@ -46,10 +45,6 @@ const {
   useXoVifCollectionMock: vi.fn(),
   useXoNetworkCollectionMock: vi.fn(),
   useXoPifCollectionMock: vi.fn(),
-}))
-
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: useXoPoolCollectionMock as unknown as typeof useXoPoolCollection,
 }))
 
 vi.mock(import('@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'), () => ({
@@ -102,15 +97,11 @@ const NET_B_NO_PIF = 'net-b-no-pif' as FrontXoNetwork['id']
 const NET_B_OTHER_HOST = 'net-b-other-host' as FrontXoNetwork['id']
 const NET_B_GUEST_VLAN = 'net-b-guest-vlan' as FrontXoNetwork['id']
 const PIF_A_GUEST = 'pif-a-guest' as FrontXoPif['id']
+const PIF_A2_GUEST = 'pif-a2-guest' as FrontXoPif['id']
 const PIF_B_PROD = 'pif-b-prod' as FrontXoPif['id']
 const PIF_B_MGMT = 'pif-b-mgmt' as FrontXoPif['id']
 const PIF_B_OTHER_HOST = 'pif-b-other-host' as FrontXoPif['id']
 const PIF_B_GUEST_VLAN = 'pif-b-guest-vlan' as FrontXoPif['id']
-
-const pools = [
-  createPool({ id: POOL_A, name_label: 'Pool A', default_SR: SR_SHARED }),
-  createPool({ id: POOL_B, name_label: 'Pool B', default_SR: SR_B }),
-]
 
 const srs = [
   createSr({ id: SR_SHARED, name_label: 'Shared', $pool: POOL_A, shared: true }),
@@ -139,7 +130,7 @@ const vbds = [sharedVbd, localVbd]
 
 const networks = [
   createNetwork({ id: NET_A_PROD, name_label: 'Prod', $pool: POOL_A }),
-  createNetwork({ id: NET_A_GUEST, name_label: 'Guest', $pool: POOL_A, PIFs: [PIF_A_GUEST] }),
+  createNetwork({ id: NET_A_GUEST, name_label: 'Guest', $pool: POOL_A, PIFs: [PIF_A2_GUEST, PIF_A_GUEST] }),
   createNetwork({ id: NET_B_PROD, name_label: 'Prod', $pool: POOL_B, PIFs: [PIF_B_PROD] }),
   createNetwork({ id: NET_B_MGMT, name_label: 'Management', $pool: POOL_B, PIFs: [PIF_B_MGMT] }),
   createNetwork({ id: NET_B_NO_PIF, name_label: 'No PIF', $pool: POOL_B, PIFs: [] }),
@@ -152,32 +143,23 @@ const vifs = [
   createVif({ id: VIF_GUEST, $network: NET_A_GUEST, $pool: POOL_A }),
 ]
 
-type FrontXoVbd = ReturnType<typeof createVbd>
-
 const pifs = [
-  createPif({ id: PIF_A_GUEST, $host: HOST_A1, $pool: POOL_A, $network: NET_A_GUEST }),
+  createPif({ id: PIF_A2_GUEST, $host: HOST_A2, $pool: POOL_A, $network: NET_A_GUEST, device: 'eth5' }),
+  createPif({ id: PIF_A_GUEST, $host: HOST_A1, $pool: POOL_A, $network: NET_A_GUEST, device: 'eth1' }),
   createPif({ id: PIF_B_PROD, $host: HOST_B1, $pool: POOL_B, $network: NET_B_PROD }),
   createPif({ id: PIF_B_MGMT, $host: HOST_B1, $pool: POOL_B, $network: NET_B_MGMT }),
   createPif({ id: PIF_B_GUEST_VLAN, $host: HOST_B1, $pool: POOL_B, $network: NET_B_GUEST_VLAN, vlan: 20 }),
   createPif({ id: PIF_B_OTHER_HOST, $host: HOST_B2, $pool: POOL_B, $network: NET_B_OTHER_HOST }),
 ]
 
-function mockPoolCollection(availablePools: FrontXoPool[] = pools) {
-  useXoPoolCollectionMock.mockReturnValue({
-    useGetPoolById: (id: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) =>
-      computed(() => availablePools.find(pool => pool.id === toValue(id))),
-  })
-}
-
-function mockPifCollection(availablePifs: FrontXoPif[] = pifs) {
-  useXoPifCollectionMock.mockReturnValue({
-    pifsByHost: computed(() => groupBy(availablePifs, pif => pif.$host)),
-    getPifsByIds: (ids: FrontXoPif['id'][]) => availablePifs.filter(pif => ids.includes(pif.id)),
-  })
-}
+// The collections load lazily, so each source is a ref a test can fill after the form is mounted
+const loadedVbds = ref<FrontXoVbd[]>([])
+const loadedVdis = ref<FrontXoVdi[]>([])
+const loadedPbds = ref<FrontXoPbd[]>([])
+const loadedVifs = ref<FrontXoVif[]>([])
+const loadedPifs = ref<FrontXoPif[]>([])
 
 beforeEach(() => {
-  useXoPoolCollectionMock.mockReset()
   useXoVmVbdsUtilsMock.mockReset()
   useXoVdiCollectionMock.mockReset()
   useXoSrCollectionMock.mockReset()
@@ -186,12 +168,17 @@ beforeEach(() => {
   useXoNetworkCollectionMock.mockReset()
   useXoPifCollectionMock.mockReset()
 
-  mockPoolCollection()
+  loadedVbds.value = vbds
+  loadedVdis.value = vdis
+  loadedPbds.value = pbds
+  loadedVifs.value = vifs
+  loadedPifs.value = pifs
 
-  useXoVmVbdsUtilsMock.mockReturnValue({ notCdDriveVbds: computed(() => vbds) })
+  useXoVmVbdsUtilsMock.mockReturnValue({ notCdDriveVbds: computed(() => loadedVbds.value) })
 
   useXoVdiCollectionMock.mockReturnValue({
-    getVdisByIds: (ids: FrontXoVdi['id'][]) => vdis.filter(vdi => ids.includes(vdi.id)),
+    useGetVdisByIds: (ids: MaybeRefOrGetter<FrontXoVdi['id'][]>) =>
+      computed(() => loadedVdis.value.filter(vdi => toValue(ids).includes(vdi.id))),
   })
 
   useXoSrCollectionMock.mockReturnValue({
@@ -200,11 +187,12 @@ beforeEach(() => {
   })
 
   useXoPbdCollectionMock.mockReturnValue({
-    pbdsBySr: computed(() => groupBy(pbds, pbd => pbd.SR)),
+    pbdsBySr: computed(() => groupBy(loadedPbds.value, pbd => pbd.SR)),
   })
 
   useXoVifCollectionMock.mockReturnValue({
-    getVifsByIds: (ids: FrontXoVif['id'][]) => vifs.filter(vif => ids.includes(vif.id)),
+    useGetVifsByIds: (ids: MaybeRefOrGetter<FrontXoVif['id'][]>) =>
+      computed(() => loadedVifs.value.filter(vif => toValue(ids).includes(vif.id))),
   })
 
   useXoNetworkCollectionMock.mockReturnValue({
@@ -212,7 +200,10 @@ beforeEach(() => {
     getNetworkById: (id: FrontXoNetwork['id'] | undefined) => networks.find(network => network.id === id),
   })
 
-  mockPifCollection()
+  useXoPifCollectionMock.mockReturnValue({
+    pifsByHost: computed(() => groupBy(loadedPifs.value, pif => pif.$host)),
+    getPifsByIds: (ids: FrontXoPif['id'][]) => loadedPifs.value.filter(pif => ids.includes(pif.id)),
+  })
 })
 
 function mountMappingForm(
@@ -226,28 +217,6 @@ function mountMappingForm(
   const { wrapper } = mountComposable(() => useVmMigrateMappingForm(vm, poolId, hostId))
 
   return { form: wrapper.vm, poolId, hostId }
-}
-
-type MappingForm = ReturnType<typeof mountMappingForm>['form']
-
-function getVdiRow(form: MappingForm, vdiId: FrontXoVdi['id']) {
-  const row = form.vdiRows.find(row => row.vdi.id === vdiId)
-
-  if (row === undefined) {
-    throw new Error(`No row found for VDI ${vdiId}`)
-  }
-
-  return row
-}
-
-function getVifRow(form: MappingForm, vifId: FrontXoVif['id']) {
-  const row = form.vifRows.find(row => row.vif.id === vifId)
-
-  if (row === undefined) {
-    throw new Error(`No row found for VIF ${vifId}`)
-  }
-
-  return row
 }
 
 describe('without a target host', () => {
@@ -305,21 +274,7 @@ describe('intra-pool migration', () => {
     expect(form.buildPayload()).toBeUndefined()
   })
 
-  it('pre-selects the pool default SR as destination SR when a disk needs one', () => {
-    const { form } = mountMappingForm(POOL_A, HOST_A2)
-
-    expect(form.destinationSrId).toBe(SR_SHARED)
-  })
-
-  it('pre-selects no destination SR when no disk needs one', () => {
-    const { form } = mountMappingForm(POOL_A, HOST_A1)
-
-    expect(form.destinationSrId).toBeUndefined()
-  })
-
-  it('pre-selects no destination SR when the pool default SR is not connected to the target host', () => {
-    mockPoolCollection([createPool({ id: POOL_A, name_label: 'Pool A', default_SR: SR_LOCAL_A1 })])
-
+  it('pre-selects no destination SR', () => {
     const { form } = mountMappingForm(POOL_A, HOST_A2)
 
     expect(form.destinationSrId).toBeUndefined()
@@ -362,7 +317,7 @@ describe('intra-pool migration', () => {
 
   it('builds an empty payload when every SR is shared', () => {
     const vm = createVm({ $pool: POOL_A, $container: HOST_A1, VIFs: [] })
-    useXoVmVbdsUtilsMock.mockReturnValue({ notCdDriveVbds: computed(() => [sharedVbd]) })
+    loadedVbds.value = [sharedVbd]
 
     const { form } = mountMappingForm(POOL_A, HOST_A2, vm)
 
@@ -381,13 +336,78 @@ describe('intra-pool migration', () => {
   it('includes a pre-filled disk once its target SR is changed', () => {
     const { form } = mountMappingForm(POOL_A, HOST_A1)
 
-    getVdiRow(form, VDI_SHARED).targetSrId = SR_LOCAL_A1
+    form.setTargetSrId(VDI_SHARED, SR_LOCAL_A1)
 
+    expect(form.buildPayload()).toEqual({ srIdByVdiId: { [VDI_SHARED]: SR_LOCAL_A1 } })
+  })
+
+  it('lets a pre-filled disk be cleared', () => {
+    const { form } = mountMappingForm(POOL_A, HOST_A1)
+
+    form.setTargetSrId(VDI_SHARED, undefined)
+
+    expect(form.vdiRows.map(row => row.targetSrId)).toEqual([undefined, SR_LOCAL_A1])
+  })
+
+  it('does not require a disk migration for a running VM', () => {
+    const { form } = mountMappingForm(POOL_A, HOST_A1)
+
+    expect(form.isDiskMigrationRequired).toBe(false)
+    expect(form.isMissingDiskMigration).toBe(false)
+    expect(form.isValid).toBe(true)
+  })
+
+  it('is invalid for a halted VM while no disk changes SR', () => {
+    const vm = createVm({ $pool: POOL_A, $container: POOL_A, power_state: VM_POWER_STATE.HALTED })
+    const { form } = mountMappingForm(POOL_A, HOST_A1, vm)
+
+    expect(form.isMissingDiskMigration).toBe(true)
+    expect(form.hasNothingToMigrate).toBe(false)
+    expect(form.isValid).toBe(false)
+    expect(form.buildPayload()).toBeUndefined()
+  })
+
+  it('has nothing to migrate for a halted VM without disk', () => {
+    const vm = createVm({ $pool: POOL_A, $container: POOL_A, power_state: VM_POWER_STATE.HALTED })
+    loadedVbds.value = []
+
+    const { form } = mountMappingForm(POOL_A, HOST_A1, vm)
+
+    expect(form.hasNothingToMigrate).toBe(true)
+    expect(form.isValid).toBe(false)
+    expect(form.buildPayload()).toBeUndefined()
+  })
+
+  it('is invalid for a suspended VM while no disk changes SR', () => {
+    const vm = createVm({ $pool: POOL_A, $container: HOST_A1, power_state: VM_POWER_STATE.SUSPENDED })
+    const { form } = mountMappingForm(POOL_A, HOST_A1, vm)
+
+    expect(form.isMissingDiskMigration).toBe(true)
+    expect(form.isValid).toBe(false)
+    expect(form.buildPayload()).toBeUndefined()
+  })
+
+  it('is valid for a halted VM once a disk changes SR', () => {
+    const vm = createVm({ $pool: POOL_A, $container: POOL_A, power_state: VM_POWER_STATE.HALTED })
+    const { form } = mountMappingForm(POOL_A, HOST_A1, vm)
+
+    form.setTargetSrId(VDI_SHARED, SR_LOCAL_A1)
+
+    expect(form.isDiskMigrationRequired).toBe(true)
+    expect(form.isMissingDiskMigration).toBe(false)
     expect(form.buildPayload()).toEqual({ srIdByVdiId: { [VDI_SHARED]: SR_LOCAL_A1 } })
   })
 })
 
 describe('inter-pool migration', () => {
+  it('does not require a disk migration for a halted VM', () => {
+    const vm = createVm({ $pool: POOL_A, $container: POOL_A, power_state: VM_POWER_STATE.HALTED })
+    const { form } = mountMappingForm(POOL_B, HOST_B1, vm)
+
+    expect(form.isDiskMigrationRequired).toBe(false)
+    expect(form.isMissingDiskMigration).toBe(false)
+  })
+
   it('flags every disk', () => {
     const { form } = mountMappingForm(POOL_B, HOST_B1)
 
@@ -413,10 +433,17 @@ describe('inter-pool migration', () => {
     expect(form.hasMissingNetwork).toBe(true)
   })
 
-  it('pre-selects the default SR of the target pool as destination SR', () => {
+  it('reads the source device from the PIF of the VM host', () => {
     const { form } = mountMappingForm(POOL_B, HOST_B1)
 
-    expect(form.destinationSrId).toBe(SR_B)
+    expect(form.vifRows.map(row => row.sourcePif?.id)).toEqual([undefined, PIF_A_GUEST])
+  })
+
+  it('falls back to any PIF of the source network when the VM runs on no host', () => {
+    const vm = createVm({ $pool: POOL_A, $container: POOL_A, VIFs: [VIF_PROD, VIF_GUEST] })
+    const { form } = mountMappingForm(POOL_B, HOST_B1, vm)
+
+    expect(form.vifRows.map(row => row.sourcePif?.id)).toEqual([undefined, PIF_A2_GUEST])
   })
 
   it('offers only the networks of the target pool that have a PIF on the target host', () => {
@@ -435,7 +462,7 @@ describe('inter-pool migration', () => {
   })
 
   it('pre-fills a network sharing a VLAN with the source network when no name matches', () => {
-    mockPifCollection(pifs.map(pif => (pif.id === PIF_A_GUEST ? { ...pif, vlan: 20 } : pif)))
+    loadedPifs.value = pifs.map(pif => (pif.id === PIF_A_GUEST ? { ...pif, vlan: 20 } : pif))
 
     const { form } = mountMappingForm(POOL_B, HOST_B1)
 
@@ -447,7 +474,7 @@ describe('inter-pool migration', () => {
 
     form.destinationNetworkId = NET_B_MGMT
     form.fillEmptyNetworks()
-    getVifRow(form, VIF_PROD).targetNetworkId = NET_B_MGMT
+    form.setTargetNetworkId(VIF_PROD, NET_B_MGMT)
     form.resetNetworks()
 
     expect(form.vifRows.map(row => row.targetNetworkId)).toEqual([NET_B_PROD, undefined])
@@ -479,11 +506,93 @@ describe('target change', () => {
     hostId.value = HOST_B1
     await nextTick()
 
-    expect(form.destinationSrId).toBe(SR_B)
+    expect(form.destinationSrId).toBeUndefined()
     expect(form.vdiRows.map(row => [row.requiresSr, row.targetSrId])).toEqual([
       [true, undefined],
       [true, undefined],
     ])
     expect(form.vifRows).toHaveLength(2)
+  })
+})
+
+describe('collections loaded after the target host is chosen', () => {
+  it('builds the VDI rows once the VDIs arrive', async () => {
+    loadedVdis.value = []
+
+    const { form } = mountMappingForm(POOL_A, HOST_A2)
+
+    expect(form.vdiRows).toEqual([])
+
+    loadedVdis.value = vdis
+    await nextTick()
+
+    expect(form.vdiRows.map(row => [row.vdi.id, row.targetSrId])).toEqual([
+      [VDI_SHARED, SR_SHARED],
+      [VDI_LOCAL, undefined],
+    ])
+  })
+
+  it('builds the VIF rows once the VIFs arrive', async () => {
+    loadedVifs.value = []
+
+    const { form } = mountMappingForm(POOL_B, HOST_B1)
+
+    expect(form.vifRows).toEqual([])
+    expect(form.hasMissingNetwork).toBe(false)
+
+    loadedVifs.value = vifs
+    await nextTick()
+
+    expect(form.vifRows.map(row => [row.vif.id, row.targetNetworkId])).toEqual([
+      [VIF_PROD, NET_B_PROD],
+      [VIF_GUEST, undefined],
+    ])
+    expect(form.hasMissingNetwork).toBe(true)
+  })
+
+  it('unflags a shared disk once the PBDs arrive', async () => {
+    loadedPbds.value = []
+
+    const { form } = mountMappingForm(POOL_A, HOST_A2)
+
+    expect(form.vdiRows.map(row => [row.requiresSr, row.targetSrId])).toEqual([
+      [true, undefined],
+      [true, undefined],
+    ])
+
+    loadedPbds.value = pbds
+    await nextTick()
+
+    expect(form.vdiRows.map(row => [row.requiresSr, row.targetSrId])).toEqual([
+      [false, SR_SHARED],
+      [true, undefined],
+    ])
+  })
+
+  it('pre-fills the networks once the PIFs arrive', async () => {
+    loadedPifs.value = []
+
+    const { form } = mountMappingForm(POOL_B, HOST_B1)
+
+    expect(form.availableNetworks).toEqual([])
+    expect(form.vifRows.map(row => row.targetNetworkId)).toEqual([undefined, undefined])
+
+    loadedPifs.value = pifs
+    await nextTick()
+
+    expect(form.vifRows.map(row => row.targetNetworkId)).toEqual([NET_B_PROD, undefined])
+  })
+
+  it('keeps the choices already made when the rows are rebuilt', async () => {
+    loadedVdis.value = vdis.filter(vdi => vdi.id === VDI_SHARED)
+
+    const { form } = mountMappingForm(POOL_B, HOST_B1)
+
+    form.setTargetSrId(VDI_SHARED, SR_B)
+
+    loadedVdis.value = vdis
+    await nextTick()
+
+    expect(form.vdiRows.map(row => row.targetSrId)).toEqual([SR_B, undefined])
   })
 })

@@ -2,10 +2,8 @@ import { useVmMigrate } from '@/modules/vm/composables/use-vm-migrate.composable
 import type { VmMigratePayload } from '@/modules/vm/form/migrate/use-vm-migrate-form.ts'
 import type { useXoVmMigrateJob } from '@/modules/vm/jobs/xo-vm-migrate.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { MonitoredTaskError } from '@/shared/composables/xo-task-utils.composable.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import type { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
 import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
@@ -40,19 +38,12 @@ vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
 }))
 
-const TASK_ID = 'task-1' as MonitoredTaskError['taskId']
-
 const payload: VmMigratePayload = { hostId: 'host-target' as VmMigratePayload['hostId'] }
 
-function createTaskError(message: string): MonitoredTaskError {
-  return Object.assign(new Error(message), { taskId: TASK_ID })
-}
-
-// Each `run()` records the payload the job was given at that moment, and fails with the next queued error, if any
+// Each `run()` records the payload the job was given at that moment
 let runPayloads: (VmMigratePayload | undefined)[]
-let runFailures: unknown[]
 
-// The two overlays the composable defines itself: the migrate drawer (`onConfirm`) and the error modal (`onClose`)
+// The overlay the composable defines itself: the migrate drawer (`onConfirm`)
 let overlays: OverlayStub[]
 
 function getOverlay(eventName: string): OverlayStub {
@@ -73,18 +64,11 @@ beforeEach(() => {
   buildXo5Route.mockReset()
 
   runPayloads = []
-  runFailures = []
   overlays = []
 
   useXoVmMigrateJobMock.mockImplementation((_vm: unknown, payloadRef: Ref<VmMigratePayload | undefined>) => {
-    runMock.mockImplementation(async () => {
+    runMock.mockImplementation(() => {
       runPayloads.push(payloadRef.value)
-
-      const failure = runFailures.shift()
-
-      if (failure !== undefined) {
-        throw failure
-      }
     })
 
     return {
@@ -104,8 +88,6 @@ beforeEach(() => {
   })
 
   buildXo5Route.mockImplementation((path: string) => `xo5:${path}`)
-
-  vi.spyOn(console, 'error').mockImplementation(() => {})
 })
 
 function mountVmMigrate(vm: FrontXoVm = createVm({ name_label: 'web-server' })) {
@@ -149,50 +131,13 @@ describe('migrateVm', () => {
     expect(getOverlay('onConfirm').open).not.toHaveBeenCalled()
   })
 
-  it('runs the migration with the payload confirmed in the drawer', async () => {
+  it('runs the migration detached with the payload confirmed in the drawer', async () => {
     const { result } = mountVmMigrate()
 
     result.migrateVm()
     await confirmDrawer()
 
     expect(runPayloads).toEqual([payload])
-    expect(getOverlay('onClose').open).not.toHaveBeenCalled()
-  })
-
-  it('shows the error with a link to the task when the task fails', async () => {
-    const error = createTaskError('VM_INCOMPATIBLE_WITH_THIS_HOST(OpaqueRef:host, OpaqueRef:vm)')
-    runFailures.push(error)
-
-    const { vm, result } = mountVmMigrate()
-
-    result.migrateVm()
-    await confirmDrawer()
-
-    expect(getOverlay('onClose').open).toHaveBeenCalledWith({
-      props: {
-        title: t('unable-to-migrate-vm', { name: vm.name_label }),
-        error: error.message,
-        vmId: vm.id,
-        taskId: TASK_ID,
-      },
-    })
-  })
-
-  it('shows the error without a task when the request itself failed', async () => {
-    runFailures.push(new Error('Bad Request'))
-
-    const { vm, result } = mountVmMigrate()
-
-    result.migrateVm()
-    await confirmDrawer()
-
-    expect(getOverlay('onClose').open).toHaveBeenCalledWith({
-      props: {
-        title: t('unable-to-migrate-vm', { name: vm.name_label }),
-        error: 'Bad Request',
-        vmId: vm.id,
-        taskId: undefined,
-      },
-    })
+    expect(runMock).toHaveBeenCalledWith({ detached: true })
   })
 })

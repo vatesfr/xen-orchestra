@@ -33,7 +33,7 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useFormSelect } from '@core/packages/form-select'
 import { useVmMigrateVifColumns } from '@core/tables/column-sets/vm-migrate-vif-columns.ts'
-import { computed, toRef } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { rows, networks, flaggedRows, showErrors } = defineProps<{
@@ -41,6 +41,10 @@ const { rows, networks, flaggedRows, showErrors } = defineProps<{
   networks: FrontXoNetwork[]
   flaggedRows: VmMigrateVifRow[]
   showErrors: boolean
+}>()
+
+const emit = defineEmits<{
+  selectNetwork: [vifId: VmMigrateVifRow['vif']['id'], networkId: FrontXoNetwork['id'] | undefined]
 }>()
 
 const { t } = useI18n()
@@ -59,28 +63,19 @@ const flaggedVifIds = computed(() => new Set(flaggedRows.map(row => row.vif.id))
 
 const { HeadCells, BodyCells } = useVmMigrateVifColumns({
   body: (row: VmMigrateVifRow) => {
+    const targetNetworkId = computed({
+      get: () => row.targetNetworkId,
+      set: networkId => emit('selectNetwork', row.vif.id, networkId),
+    })
+
     const { id: networkSelectId } = useFormSelect(() => networks, {
-      model: toRef(row, 'targetNetworkId'),
+      model: targetNetworkId,
       searchable: true,
       placeholder: () => t('action:select-network'),
       option: {
         label: 'name_label',
         value: 'id',
       },
-    })
-
-    const sourceDevice = computed(() => {
-      if (row.sourceNetwork === undefined) {
-        return ''
-      }
-
-      const [firstPif] = getPifsByIds(row.sourceNetwork.PIFs)
-
-      if (firstPif === undefined) {
-        return ''
-      }
-
-      return firstPif.device
     })
 
     const targetVlan = computed(() => {
@@ -101,7 +96,7 @@ const { HeadCells, BodyCells } = useVmMigrateVifColumns({
 
     return {
       fromNetwork: r => r(row.sourceNetwork?.name_label ?? ''),
-      fromDevice: r => r(sourceDevice.value),
+      fromDevice: r => r(row.sourcePif?.device ?? ''),
       toNetwork: r => r(networkSelectId),
       toVlan: r => r(targetVlan.value),
       flag: r => r(flaggedVifIds.value.has(row.vif.id)),

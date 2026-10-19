@@ -1,3 +1,4 @@
+import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { VmMigratePayload } from '@/modules/vm/form/migrate/use-vm-migrate-form.ts'
 import { xoVmArg } from '@/modules/vm/jobs/xo-vm-args.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -9,13 +10,34 @@ import { VM_POWER_STATE, type XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const xoVmMigratePayloadArg = defineJobArg<VmMigratePayload | undefined>({
-  identify: payload => payload?.hostId,
+  identify: false,
   toArray: false,
 })
 
 export const useXoVmMigrateJob = defineJob('vm.migrate', [xoVmArg, xoVmMigratePayloadArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
+  const { getHostById } = useXoHostCollection()
+
+  function isNotRunningIntraPoolMigrationWithoutDisk(
+    vm: FrontXoVm,
+    targetHost: FrontXoHost,
+    payload: VmMigratePayload
+  ) {
+    if (vm.power_state === VM_POWER_STATE.RUNNING) {
+      return false
+    }
+
+    if (targetHost.$pool !== vm.$pool) {
+      return false
+    }
+
+    if (payload.srIdByVdiId === undefined) {
+      return true
+    }
+
+    return Object.keys(payload.srIdByVdiId).length === 0
+  }
 
   return {
     async run(vm: FrontXoVm, payload: VmMigratePayload | undefined) {
@@ -28,7 +50,7 @@ export const useXoVmMigrateJob = defineJob('vm.migrate', [xoVmArg, xoVmMigratePa
       await monitorTask(taskId)
     },
 
-    validate: (isRunning, vm: FrontXoVm | undefined) => {
+    validate: (isRunning, vm: FrontXoVm | undefined, payload: VmMigratePayload | undefined) => {
       if (vm === undefined) {
         throw new JobError(t('job:vm-migrate:missing-vm'))
       }
@@ -37,12 +59,26 @@ export const useXoVmMigrateJob = defineJob('vm.migrate', [xoVmArg, xoVmMigratePa
         throw new JobRunningError(t('job:vm-migrate:in-progress'))
       }
 
-      if (vm.power_state !== VM_POWER_STATE.RUNNING) {
-        throw new JobError(t('job:vm-migrate:bad-power-state'))
+      if (vm.power_state === VM_POWER_STATE.PAUSED) {
+        throw new JobError(t('job:vm-migrate:paused'))
       }
 
       if (isVmMigrationBlocked(vm)) {
         throw new JobError(t('job:vm-migrate:blocked-operation'))
+      }
+
+      if (payload === undefined) {
+        return
+      }
+
+      const targetHost = getHostById(payload.hostId)
+
+      if (targetHost === undefined) {
+        throw new JobError(t('job:vm-migrate:missing-host'))
+      }
+
+      if (isNotRunningIntraPoolMigrationWithoutDisk(vm, targetHost, payload)) {
+        throw new JobError(t('job:vm-migrate:not-running-requires-disk-migration'))
       }
     },
   }

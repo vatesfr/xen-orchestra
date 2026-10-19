@@ -16,7 +16,7 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { groupBy } from '@/test/group-by.ts'
 import type { FormSelect, FormSelectId } from '@core/packages/form-select'
 import { mount } from '@vue/test-utils'
-import { computed, defineComponent, h, inject, nextTick, toValue, type MaybeRefOrGetter } from 'vue'
+import { computed, defineComponent, h, inject, nextTick, ref, toValue, type MaybeRefOrGetter } from 'vue'
 
 const { useXoPoolCollectionMock, useXoHostCollectionMock, useXoNetworkCollectionMock, useXoPifCollectionMock } =
   vi.hoisted(() => ({
@@ -122,6 +122,8 @@ const pifs = [
   }),
 ]
 
+const loadedNetworks = ref<FrontXoNetwork[]>([])
+
 beforeEach(() => {
   useXoPoolCollectionMock.mockReset()
   useXoHostCollectionMock.mockReset()
@@ -138,9 +140,11 @@ beforeEach(() => {
     hostsByPool: computed(() => groupBy(hosts, host => host.$pool)),
   })
 
+  loadedNetworks.value = networks
+
   useXoNetworkCollectionMock.mockReturnValue({
-    networks: computed(() => networks),
-    getNetworkById: (id: FrontXoNetwork['id'] | undefined) => networks.find(network => network.id === id),
+    networks: computed(() => loadedNetworks.value),
+    getNetworkById: (id: FrontXoNetwork['id'] | undefined) => loadedNetworks.value.find(network => network.id === id),
   })
 
   useXoPifCollectionMock.mockReturnValue({
@@ -266,6 +270,21 @@ describe('migration network select', () => {
     await nextTick()
 
     expect(form.formData.migrationNetwork).toBe(MIGRATION_NETWORK_ID)
+  })
+
+  it('keeps a manual choice when the suggested network object is replaced by a collection update', async () => {
+    const { form } = mountVmMigrateForm()
+
+    form.formData.host = TARGET_HOST_ID
+    await nextTick()
+    form.formData.migrationNetwork = MANAGEMENT_NETWORK_ID
+
+    loadedNetworks.value = networks.map(network =>
+      network.id === MIGRATION_NETWORK_ID ? { ...network, name_label: 'BackupNet renamed' } : network
+    )
+    await nextTick()
+
+    expect(form.formData.migrationNetwork).toBe(MANAGEMENT_NETWORK_ID)
   })
 
   it('falls back to the management network for an inter-pool migration', async () => {
