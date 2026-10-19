@@ -1046,8 +1046,7 @@ export default class XenServers {
    * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool, or a rolling pool update or reboot
    *   runs on the pool
    * @throws {Error} `noSuchObject` if the pool has no recovery record
-   * @throws {Error} `incorrectState` (property `status`) if the run is neither failed nor interrupted, (property
-   *   `resumableStep`) if a host stopped past its evacuation
+   * @throws {Error} `incorrectState` (property `status`) if the run is neither failed nor interrupted
    */
   async resumeRollingPoolUpdate($defer, pool, { bypassBackupCheck = false, parentTask } = {}) {
     const app = this._app
