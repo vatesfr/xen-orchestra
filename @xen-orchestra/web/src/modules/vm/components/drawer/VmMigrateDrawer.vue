@@ -17,22 +17,31 @@
       <div v-else class="form">
         <div class="section">
           <UiTitle>{{ t('storage-repositories') }}</UiTitle>
-          <UiAlert v-if="areAllSrsShared" accent="info">{{ t('all-srs-shared-storage-migration-optional') }}</UiAlert>
+          <UiAlert v-if="hasNothingToMigrate" :accent="showMappingErrors ? 'danger' : 'warning'">
+            {{ t('vm-not-running-no-disk-nothing-to-migrate') }}
+          </UiAlert>
+          <UiAlert v-else-if="isMissingDiskMigration" :accent="showMappingErrors ? 'danger' : 'warning'">
+            {{ t('vm-not-running-intra-pool-requires-sr-change') }}
+          </UiAlert>
+          <UiAlert v-else-if="areAllSrsShared && !isDiskMigrationRequired" accent="info">
+            {{ t('all-srs-shared-storage-migration-optional') }}
+          </UiAlert>
           <VmMigrateMappingToolbar
             :id="destinationSrSelectId"
-            :label="t('destination-sr')"
-            :fill-label="t('action:fill-empty-srs')"
             :fill-disabled="missingSrRows.length === 0"
             :fill-disabled-tooltip="t('no-empty-sr-to-fill')"
+            :fill-label="t('action:fill-empty-srs')"
+            :label="t('destination-sr')"
             :reset-label="t('action:reset-all-srs')"
             @fill="fillEmptySrs()"
             @reset="resetSrs()"
           />
           <VmMigrateVdisTable
-            :rows="vdiRows"
             :flagged-rows="missingSrRows"
+            :rows="vdiRows"
             :show-errors="showMappingErrors"
             :srs="availableSrs"
+            @select-sr="setTargetSrId"
           />
         </div>
 
@@ -44,17 +53,20 @@
           <template v-else>
             <VmMigrateMappingToolbar
               :id="destinationNetworkSelectId"
-              :label="t('destination-network')"
+              :fill-disabled="missingNetworkRows.length === 0"
+              :fill-disabled-tooltip="t('no-empty-network-to-fill')"
               :fill-label="t('action:fill-empty-networks')"
+              :label="t('destination-network')"
               :reset-label="t('action:reset-all-networks')"
               @fill="fillEmptyNetworks()"
               @reset="resetNetworks()"
             />
             <VmMigrateVifsTable
+              :flagged-rows="missingNetworkRows"
               :networks="availableNetworks"
               :rows="vifRows"
-              :flagged-rows="missingNetworkRows"
               :show-errors="showMappingErrors"
+              @select-network="setTargetNetworkId"
             />
           </template>
         </div>
@@ -123,6 +135,11 @@ const {
   areAllVifsFollowing,
   missingSrRows,
   missingNetworkRows,
+  isDiskMigrationRequired,
+  isMissingDiskMigration,
+  hasNothingToMigrate,
+  setTargetSrId,
+  setTargetNetworkId,
   fillEmptySrs,
   resetSrs,
   fillEmptyNetworks,

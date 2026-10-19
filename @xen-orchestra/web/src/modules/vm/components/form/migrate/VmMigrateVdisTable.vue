@@ -36,7 +36,7 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useFormSelect } from '@core/packages/form-select'
 import { useVmMigrateVdiColumns } from '@core/tables/column-sets/vm-migrate-vdi-columns.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { computed, toRef } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { rows, srs, flaggedRows, showErrors } = defineProps<{
@@ -44,6 +44,10 @@ const { rows, srs, flaggedRows, showErrors } = defineProps<{
   srs: FrontXoSr[]
   flaggedRows: VmMigrateVdiRow[]
   showErrors: boolean
+}>()
+
+const emit = defineEmits<{
+  selectSr: [vdiId: VmMigrateVdiRow['vdi']['id'], srId: FrontXoSr['id'] | undefined]
 }>()
 
 const { t } = useI18n()
@@ -63,8 +67,13 @@ const flaggedVdiIds = computed(() => new Set(flaggedRows.map(row => row.vdi.id))
 
 const { HeadCells, BodyCells } = useVmMigrateVdiColumns({
   body: (row: VmMigrateVdiRow) => {
+    const targetSrId = computed({
+      get: () => row.targetSrId,
+      set: srId => emit('selectSr', row.vdi.id, srId),
+    })
+
     const { id: srSelectId } = useFormSelect(() => srs, {
-      model: toRef(row, 'targetSrId'),
+      model: targetSrId,
       searchable: true,
       placeholder: () => t('action:select-storage'),
       option: {

@@ -140,8 +140,7 @@ export function useVmMigrateForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     }
   )
 
-  // The suggestion may be unchanged between two hosts, so the host itself is watched to drop a manual choice
-  watchImmediate([() => formData.host, suggestedMigrationNetwork], () => {
+  watchImmediate([() => formData.host, () => suggestedMigrationNetwork.value?.id], () => {
     formData.migrationNetwork = suggestedMigrationNetwork.value?.id
   })
 
