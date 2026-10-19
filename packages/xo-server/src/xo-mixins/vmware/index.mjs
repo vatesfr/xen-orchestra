@@ -12,7 +12,7 @@ import { importDisksFromDatastore, importStream } from './importDisksfromDatasto
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
 import { assertKnownDevices } from './_deviceMapping.mjs'
 import { repairImportedVm } from './_repair.mjs'
-import { REPAIR_ISO_VERSION } from './_repairInputs.mjs'
+import { describeRepair, REPAIR_ISO_VERSION, replaceRepairDescription } from './_repairInputs.mjs'
 import { firstBootOfRepairedVm } from './_firstBoot.mjs'
 import { finished, PassThrough } from 'node:stream'
 import { Ref } from 'xen-api'
@@ -265,6 +265,7 @@ export default class MigrateVm {
         repairImportedVm({ xapi, vmRef: vm.$ref, metadata, options, isoVersion })
       )
       await xapi.setFieldEntries('VM', vm.$ref, 'other_config', { 'xo:v2v:repair': JSON.stringify(reports) })
+      await this.#writeRepairDescription(vm, describeRepair({ reports, isoVersion }))
       return reports
     } catch (error) {
       warn('the guest could not be repaired', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
@@ -275,6 +276,18 @@ export default class MigrateVm {
           'xo:v2v:repair': JSON.stringify({ error: { code: error.code, message: error.message }, ...error.reports }),
         })
         .catch(storeError => warn('failed to store the repair report', { error: storeError, vmId: vm.uuid }))
+      await this.#writeRepairDescription(vm, describeRepair({ reports: error.reports, error, isoVersion }))
+    }
+  }
+
+  // what the repair did, where a user looks first. It is only a summary: a failure to write it fails nothing
+  async #writeRepairDescription(vm, summary) {
+    const xapi = vm.$xapi
+    try {
+      const description = await xapi.getField('VM', vm.$ref, 'name_description')
+      await xapi.setField('VM', vm.$ref, 'name_description', replaceRepairDescription(description, summary))
+    } catch (error) {
+      warn('failed to write the repair summary in the description', { error, vmId: vm.uuid })
     }
   }
 
@@ -301,6 +314,7 @@ export default class MigrateVm {
           }),
         })
         .catch(storeError => warn('failed to store the first boot report', { error: storeError, vmId: vm.uuid }))
+      await this.#writeRepairDescription(vm, describeRepair({ reports, firstBootError: error, isoVersion }))
     }
   }
 
