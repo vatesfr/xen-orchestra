@@ -2,61 +2,34 @@
 
 Domain objects are created through factories in `src/test/`, one per object type:
 
-<<<<<<< HEAD
-| Factory | Builds |
-| ------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `createVm` | `FrontXoVm` |
-| `createHost` | `FrontXoHost` |
-| `createServer` | `FrontXoServer` |
-| `createPool` | `FrontXoPool` |
-| `createSr` | `FrontXoSr` |
-| `createVbd` | `FrontXoVbd` |
-| `createVdi` | `FrontXoVdi` |
-| `createNetwork` | `FrontXoNetwork` |
-| `createPif`, `createManagementPif` | `FrontXoPif`, the management PIF of a pool master |
-| `createVmTemplate` | `FrontXoVmTemplate` |
-| `createVif` | `FrontXoVif` |
-| `createPbd` | `FrontXoPbd` |
-| `createVmSnapshot` | `FrontXoVmSnapshot` |
-| `createPlugin` | `FrontXoPlugin` |
-| `createHostStats` | `XapiHostStats` |
-| `createVmStats` | `XapiVmStats` |
-| `createPoolStats` | `XapiPoolStats` |
-| `createPoolDashboardTopFiveUsage` | `XoPoolDashboard` (top-five usage section) |
-| `createV2vConnection` / `createV2vRememberedConnection` | `XoV2vConnection` / `V2vRememberedConnection` |
-| `createV2vInventory`, `createV2vVm`, `createV2vDatastore` | `XoV2vInventory` and its VM / datastore |
-| `createV2vImportVm` | `FrontXoVm` imported by V2V (its markers, then VM overrides) |
-| `createV2vColdAndWarmImportVms` | one cold and one warm V2V import of the test source |
-| `createV2vMigrationList`, `createV2vDestinationDefaults`, `createV2vMigrationListVms` | `V2vMigrationList`, its defaults and `count` VMs |
-=======
-| Factory | Builds |
+| Factory                                                                                            | Builds                                                                                                                 |
 | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `createVm` | `FrontXoVm` |
-| `createHost` | `FrontXoHost` |
-| `createServer` | `FrontXoServer` |
-| `createPool` | `FrontXoPool` |
-| `createSr` | `FrontXoSr` |
-| `createVbd` | `FrontXoVbd` |
-| `createVdi` | `FrontXoVdi` |
-| `createNetwork` | `FrontXoNetwork` |
-| `createPif`, `createManagementPif` | `FrontXoPif`, the management PIF of a pool master |
-| `createVmTemplate` | `FrontXoVmTemplate` |
-| `createVif` | `FrontXoVif` |
-| `createPbd` | `FrontXoPbd` |
-| `createVmSnapshot` | `FrontXoVmSnapshot` |
-| `createTask` | `FrontXoTask`, still pending |
-| `createPlugin` | `FrontXoPlugin` |
-| `createHostStats` | `XapiHostStats` |
-| `createVmStats` | `XapiVmStats` |
-| `createPoolStats` | `XapiPoolStats` |
-| `createPoolDashboardTopFiveUsage` | `XoPoolDashboard` (top-five usage section) |
-| `createV2vConnection` / `createV2vRememberedConnection` | `XoV2vConnection` / `V2vRememberedConnection` |
-| `createV2vInventory`, `createV2vVm`, `createV2vVmWithDisks`, `createV2vDatastore`, `createV2vDisk` | `XoV2vInventory` and its VM (optionally from partial disks) / datastore / disk |
-| `createV2vImportVm` | `FrontXoVm` imported by V2V (its markers, `isImporting` for a start locked without source snapshot, then VM overrides) |
-| `createV2vPartialImportSnapshot` | the `FrontXoVmSnapshot` a partial import leaves on the `createV2vImportVm` VM |
-| `createV2vMigrationList`, `createV2vDestinationDefaults`, `createV2vMigrationListVms` | `V2vMigrationList`, its defaults and `count` VMs |
-
-> > > > > > > 0491aea67e (feat(web): add V2V VM status, checks and rows utils)
+| `createVm`                                                                                         | `FrontXoVm`                                                                                                            |
+| `createHost`                                                                                       | `FrontXoHost`                                                                                                          |
+| `createServer`                                                                                     | `FrontXoServer`                                                                                                        |
+| `createPool`                                                                                       | `FrontXoPool`                                                                                                          |
+| `createSr`                                                                                         | `FrontXoSr`                                                                                                            |
+| `createVbd`                                                                                        | `FrontXoVbd`                                                                                                           |
+| `createVdi`                                                                                        | `FrontXoVdi`                                                                                                           |
+| `createNetwork`                                                                                    | `FrontXoNetwork`                                                                                                       |
+| `createPif`, `createManagementPif`                                                                 | `FrontXoPif`, the management PIF of a pool master                                                                      |
+| `createVmTemplate`                                                                                 | `FrontXoVmTemplate`                                                                                                    |
+| `createVif`                                                                                        | `FrontXoVif`                                                                                                           |
+| `createPbd`                                                                                        | `FrontXoPbd`                                                                                                           |
+| `createVmSnapshot`                                                                                 | `FrontXoVmSnapshot`                                                                                                    |
+| `createTask`                                                                                       | `FrontXoTask`, still pending                                                                                           |
+| `createPlugin`                                                                                     | `FrontXoPlugin`                                                                                                        |
+| `createHostStats`                                                                                  | `XapiHostStats`                                                                                                        |
+| `createVmStats`                                                                                    | `XapiVmStats`                                                                                                          |
+| `createPoolStats`                                                                                  | `XapiPoolStats`                                                                                                        |
+| `createPoolDashboardTopFiveUsage`                                                                  | `XoPoolDashboard` (top-five usage section)                                                                             |
+| `createV2vConnection` / `createV2vRememberedConnection`                                            | `XoV2vConnection` / `V2vRememberedConnection`                                                                          |
+| `createV2vInventory`, `createV2vVm`, `createV2vVmWithDisks`, `createV2vDatastore`, `createV2vDisk` | `XoV2vInventory` and its VM (optionally from partial disks) / datastore / disk                                         |
+| `createV2vImportVm`                                                                                | `FrontXoVm` imported by V2V (its markers, `isImporting` for a start locked without source snapshot, then VM overrides) |
+| `createV2vColdAndWarmImportVms`                                                                    | one cold and one warm V2V import of the test source                                                                    |
+| `createV2vPartialImportSnapshot`                                                                   | the `FrontXoVmSnapshot` a partial import leaves on the `createV2vImportVm` VM                                          |
+| `createV2vMigrationList`, `createV2vDestinationDefaults`, `createV2vMigrationListVms`              | `V2vMigrationList`, its defaults and `count` VMs                                                                       |
+| `createV2vVmRow`                                                                                   | `V2vVmRow` of the default `createV2vInventory` VM, built by `buildV2vVmRows`, then overrides                           |
 
 `createPoolStats` composes `createHostStats`, since pool stats are one entry per host: pass a `Partial<XapiHostStats>` per host id, or an `{ error }` entry for a host whose stats the pool could not fetch.
 
@@ -73,7 +46,7 @@ const poolStats = createPoolStats({
 const dashboard = createPoolDashboardTopFiveUsage({ cpu: [createHostCpuUsage()] }, { cpu: [createVmCpuUsage()] })
 ```
 
-Shared _helper_ factories live there too — `mount-composable.ts`, `mount-chart-card.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts`, `create-job-result.ts` (what a mocked `defineJob` composable returns), `create-action-item.ts` (a menu / button `LeafActionItem`), `create-plugin-actions.ts` (what a mocked `useXoPluginActions` returns), `find-rendered-values.ts`, `find-tags.ts` (the labels of the rendered tags), `find-titles.ts` (the card and section titles), `find-tooltip-content.ts` (the tooltip an element shows on hover), `get-button.ts` (by its label: `getButton` the `<button>` to click, `getUiButton` the `UiButton` whose `busy` / `disabled` props the app sets), `get-checkbox.ts` (the input of a `UiCheckbox` by its label), `drawer.ts` (submit or cancel a drawer, read its buttons), `select.ts` (open a `VtsSelect`, read or pick its options, read the selection it shows), `mount-json-schema-form.ts` (a JSON schema form, or a composable run in one of its fields), `json-schema-item-label.ts` (the labels of the items of a JSON schema list), `find-parts.ts`, `find-input-labels.ts`, `find-input-messages.ts`, `find-card-title.ts`, `create-select-bindings.ts`, `find-select-stub-labels.ts`, `mount-with-select.ts`, `form-messages.ts`, `credentials-error-wiring.ts`, `stub-fetch-response.ts`, `stub-v2v-invalid-credentials-response.ts` (the 422 the V2V routes answer to rejected credentials), `silence-console-error.ts`, `create-v2v-wizard-router.ts`, `local-storage.ts`, `v2v-remembered-connections-storage.ts`, `v2v-migration-list-storage.ts`, `fill-v2v-connection-form.ts`, `choose-v2v-destination.ts` (choose the pool of the V2V destination form, or a complete destination), `seed-v2v-destination-pools.ts` (the collections a V2V destination pool offers its prefill from), `v2v-connection-provide.ts` (the V2V connection the migration page provides), `v2v-connection-reader.ts` (a component that reads the V2V connection its parent provides), `now.ts` (the fixed date of the fake timers), `group-by.ts`, `i18n.ts` and `linear-chart-stub.ts`. The shared module mocks (`mock-xo-*.ts`) live there as well, see [mocking.md](./mocking.md).
+Shared _helper_ factories live there too — `mount-composable.ts`, `mount-chart-card.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts`, `create-job-result.ts` (what a mocked `defineJob` composable returns), `create-action-item.ts` (a menu / button `LeafActionItem`), `create-plugin-actions.ts` (what a mocked `useXoPluginActions` returns), `find-rendered-values.ts`, `find-tags.ts` (the labels of the rendered tags), `find-titles.ts` (the card and section titles), `find-tooltip-content.ts` (the tooltip an element shows on hover), `get-button.ts` (by its label: `getButton` the `<button>` to click, `getUiButton` the `UiButton` whose `busy` / `disabled` props the app sets), `get-checkbox.ts` (the input of a `UiCheckbox` by its label), `drawer.ts` (submit or cancel a drawer, read its buttons), `select.ts` (open a `VtsSelect`, read or pick its options, read the selection it shows), `mount-json-schema-form.ts` (a JSON schema form, or a composable run in one of its fields), `json-schema-item-label.ts` (the labels of the items of a JSON schema list), `find-parts.ts`, `find-input-labels.ts`, `find-input-messages.ts`, `find-card-title.ts`, `create-select-bindings.ts`, `find-select-stub-labels.ts`, `mount-with-select.ts`, `form-messages.ts`, `credentials-error-wiring.ts`, `stub-fetch-response.ts`, `stub-v2v-invalid-credentials-response.ts` (the 422 the V2V routes answer to rejected credentials), `silence-console-error.ts`, `create-v2v-wizard-router.ts`, `query-builder-filters.ts` (`UNPARSABLE_FILTER`), `local-storage.ts`, `v2v-remembered-connections-storage.ts`, `v2v-migration-list-storage.ts`, `fill-v2v-connection-form.ts`, `choose-v2v-destination.ts` (choose the pool of the V2V destination form, or a complete destination), `seed-v2v-destination-pools.ts` (the collections a V2V destination pool offers its prefill from), `v2v-connection-provide.ts` (the V2V connection the migration page provides), `v2v-connection-reader.ts` (a component that reads the V2V connection its parent provides), `now.ts` (the fixed date of the fake timers), `group-by.ts`, `i18n.ts` and `linear-chart-stub.ts`. The shared module mocks (`mock-xo-*.ts`) live there as well, see [mocking.md](./mocking.md).
 
 Each factory returns a **fully-populated** object of the real front-end type and accepts a `Partial<T>` of overrides, spread last, so a test only states the fields relevant to its case:
 
