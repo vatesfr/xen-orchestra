@@ -8,9 +8,12 @@ import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-res
 import { useVmMigrateForm } from '@/modules/vm/form/migrate/use-vm-migrate-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
+import { createNetwork } from '@/test/create-network.ts'
+import { createPif } from '@/test/create-pif.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { groupBy } from '@/test/group-by.ts'
 import type { FormSelect, FormSelectId } from '@core/packages/form-select'
 import { mount } from '@vue/test-utils'
 import { computed, defineComponent, h, inject, nextTick, toValue, type MaybeRefOrGetter } from 'vue'
@@ -50,69 +53,6 @@ const MIGRATION_NETWORK_ID = 'net-migr' as FrontXoNetwork['id']
 const NO_IP_NETWORK_ID = 'net-noip' as FrontXoNetwork['id']
 const OTHER_POOL_NETWORK_ID = 'net-other' as FrontXoNetwork['id']
 
-function groupBy<TItem, TKey>(items: TItem[], getKey: (item: TItem) => TKey) {
-  const groups = new Map<TKey, TItem[]>()
-
-  for (const item of items) {
-    const key = getKey(item)
-    const group = groups.get(key) ?? []
-
-    group.push(item)
-    groups.set(key, group)
-  }
-
-  return groups
-}
-
-function createNetwork(overrides: Partial<FrontXoNetwork>): FrontXoNetwork {
-  return {
-    id: 'net' as FrontXoNetwork['id'],
-    name_label: 'Network',
-    name_description: '',
-    defaultIsLocked: false,
-    nbd: false,
-    tags: [],
-    $pool: POOL_ID,
-    MTU: 1500,
-    PIFs: [],
-    other_config: {},
-    type: 'network',
-    isBonded: false,
-    ...overrides,
-  }
-}
-
-function createPif(overrides: Partial<FrontXoPif>): FrontXoPif {
-  return {
-    id: 'pif' as FrontXoPif['id'],
-    $host: TARGET_HOST_ID,
-    $network: MANAGEMENT_NETWORK_ID,
-    $pool: POOL_ID,
-    attached: true,
-    carrier: true,
-    device: 'eth0',
-    dns: '',
-    gateway: '',
-    ip: '',
-    ipv6: [],
-    mac: '00:00:00:00:00:00',
-    management: false,
-    mode: 'Static',
-    mtu: 1500,
-    netmask: '',
-    speed: 1000,
-    vlan: -1,
-    isBondMaster: false,
-    isBondSlave: false,
-    bondSlaves: undefined,
-    physical: true,
-    type: 'PIF',
-    ipv6Mode: 'None',
-    primaryAddressType: 'IPv4',
-    ...overrides,
-  }
-}
-
 const pools = [
   createPool({ id: POOL_ID, name_label: 'nova', otherConfig: { 'xo:migrationNetwork': MIGRATION_NETWORK_ID } }),
   createPool({ id: OTHER_POOL_ID, name_label: 'other', otherConfig: {} }),
@@ -126,14 +66,20 @@ const hosts = [
 ]
 
 const networks = [
-  createNetwork({ id: MANAGEMENT_NETWORK_ID, name_label: 'Management', PIFs: ['pif-1' as FrontXoPif['id']] }),
+  createNetwork({
+    id: MANAGEMENT_NETWORK_ID,
+    name_label: 'Management',
+    $pool: POOL_ID,
+    PIFs: ['pif-1' as FrontXoPif['id']],
+  }),
   createNetwork({
     id: MIGRATION_NETWORK_ID,
     name_label: 'BackupNet',
+    $pool: POOL_ID,
     PIFs: ['pif-2' as FrontXoPif['id'], 'pif-5' as FrontXoPif['id']],
   }),
-  createNetwork({ id: NO_IP_NETWORK_ID, name_label: 'No IP', PIFs: ['pif-3' as FrontXoPif['id']] }),
-  createNetwork({ id: 'net-nopif' as FrontXoNetwork['id'], name_label: 'No PIF' }),
+  createNetwork({ id: NO_IP_NETWORK_ID, name_label: 'No IP', $pool: POOL_ID, PIFs: ['pif-3' as FrontXoPif['id']] }),
+  createNetwork({ id: 'net-nopif' as FrontXoNetwork['id'], name_label: 'No PIF', $pool: POOL_ID }),
   createNetwork({
     id: OTHER_POOL_NETWORK_ID,
     name_label: 'Other management',
@@ -143,9 +89,22 @@ const networks = [
 ]
 
 const pifs = [
-  createPif({ id: 'pif-1' as FrontXoPif['id'], $network: MANAGEMENT_NETWORK_ID, ip: '10.1.0.14', management: true }),
-  createPif({ id: 'pif-2' as FrontXoPif['id'], $network: MIGRATION_NETWORK_ID, ip: '172.16.210.14' }),
-  createPif({ id: 'pif-3' as FrontXoPif['id'], $network: NO_IP_NETWORK_ID, ip: '' }),
+  createPif({
+    id: 'pif-1' as FrontXoPif['id'],
+    $host: TARGET_HOST_ID,
+    $pool: POOL_ID,
+    $network: MANAGEMENT_NETWORK_ID,
+    ip: '10.1.0.14',
+    management: true,
+  }),
+  createPif({
+    id: 'pif-2' as FrontXoPif['id'],
+    $host: TARGET_HOST_ID,
+    $pool: POOL_ID,
+    $network: MIGRATION_NETWORK_ID,
+    ip: '172.16.210.14',
+  }),
+  createPif({ id: 'pif-3' as FrontXoPif['id'], $host: TARGET_HOST_ID, $pool: POOL_ID, $network: NO_IP_NETWORK_ID }),
   createPif({
     id: 'pif-4' as FrontXoPif['id'],
     $host: OTHER_POOL_HOST_ID,
@@ -157,6 +116,7 @@ const pifs = [
   createPif({
     id: 'pif-5' as FrontXoPif['id'],
     $host: SECOND_TARGET_HOST_ID,
+    $pool: POOL_ID,
     $network: MIGRATION_NETWORK_ID,
     ip: '172.16.210.15',
   }),

@@ -15,11 +15,16 @@ import type { FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resour
 import type { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import { useVmMigrateMappingForm } from '@/modules/vm/form/migrate/use-vm-migrate-mapping-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { createNetwork } from '@/test/create-network.ts'
+import { createPbd } from '@/test/create-pbd.ts'
+import { createPif } from '@/test/create-pif.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVbd } from '@/test/create-vbd.ts'
 import { createVdi } from '@/test/create-vdi.ts'
+import { createVif } from '@/test/create-vif.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { groupBy } from '@/test/group-by.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { computed, type MaybeRefOrGetter, nextTick, ref, toValue } from 'vue'
 
@@ -102,57 +107,6 @@ const PIF_B_MGMT = 'pif-b-mgmt' as FrontXoPif['id']
 const PIF_B_OTHER_HOST = 'pif-b-other-host' as FrontXoPif['id']
 const PIF_B_GUEST_VLAN = 'pif-b-guest-vlan' as FrontXoPif['id']
 
-function createPbd(overrides: Partial<FrontXoPbd>): FrontXoPbd {
-  return {
-    id: 'pbd' as FrontXoPbd['id'],
-    type: 'PBD',
-    attached: true,
-    host: HOST_A1,
-    SR: SR_SHARED,
-    device_config: {},
-    otherConfig: {},
-    $pool: POOL_A,
-    ...overrides,
-  }
-}
-
-function createVif(overrides: Partial<FrontXoVif>): FrontXoVif {
-  return {
-    id: 'vif' as FrontXoVif['id'],
-    $VM: 'vm-123' as FrontXoVif['$VM'],
-    $network: NET_A_PROD,
-    attached: true,
-    device: '0',
-    txChecksumming: true,
-    lockingMode: 'network_default',
-    MAC: '00:00:00:00:00:00',
-    MTU: 1500,
-    rateLimit: undefined,
-    type: 'VIF',
-    other_config: {},
-    $pool: POOL_A,
-    ...overrides,
-  }
-}
-
-function createNetwork(overrides: Partial<FrontXoNetwork>): FrontXoNetwork {
-  return {
-    id: 'net' as FrontXoNetwork['id'],
-    name_label: 'Network',
-    name_description: '',
-    defaultIsLocked: false,
-    nbd: false,
-    tags: [],
-    $pool: POOL_A,
-    MTU: 1500,
-    PIFs: ['pif' as FrontXoNetwork['PIFs'][number]],
-    other_config: {},
-    type: 'network',
-    isBonded: false,
-    ...overrides,
-  }
-}
-
 const pools = [
   createPool({ id: POOL_A, name_label: 'Pool A', default_SR: SR_SHARED }),
   createPool({ id: POOL_B, name_label: 'Pool B', default_SR: SR_B }),
@@ -166,9 +120,9 @@ const srs = [
 ]
 
 const pbds = [
-  createPbd({ id: 'pbd-1' as FrontXoPbd['id'], SR: SR_SHARED, host: HOST_A1 }),
-  createPbd({ id: 'pbd-2' as FrontXoPbd['id'], SR: SR_SHARED, host: HOST_A2 }),
-  createPbd({ id: 'pbd-3' as FrontXoPbd['id'], SR: SR_LOCAL_A1, host: HOST_A1 }),
+  createPbd({ id: 'pbd-1' as FrontXoPbd['id'], SR: SR_SHARED, host: HOST_A1, $pool: POOL_A }),
+  createPbd({ id: 'pbd-2' as FrontXoPbd['id'], SR: SR_SHARED, host: HOST_A2, $pool: POOL_A }),
+  createPbd({ id: 'pbd-3' as FrontXoPbd['id'], SR: SR_LOCAL_A1, host: HOST_A1, $pool: POOL_A }),
   createPbd({ id: 'pbd-4' as FrontXoPbd['id'], SR: SR_B, host: HOST_B1, $pool: POOL_B }),
   createPbd({ id: 'pbd-5' as FrontXoPbd['id'], SR: SR_ISO_B, host: HOST_B1, $pool: POOL_B }),
 ]
@@ -185,38 +139,28 @@ const vbds = [sharedVbd, localVbd]
 
 const networks = [
   createNetwork({ id: NET_A_PROD, name_label: 'Prod', $pool: POOL_A }),
-  createNetwork({ id: NET_A_GUEST, name_label: 'Guest', $pool: POOL_A }),
+  createNetwork({ id: NET_A_GUEST, name_label: 'Guest', $pool: POOL_A, PIFs: [PIF_A_GUEST] }),
   createNetwork({ id: NET_B_PROD, name_label: 'Prod', $pool: POOL_B, PIFs: [PIF_B_PROD] }),
   createNetwork({ id: NET_B_MGMT, name_label: 'Management', $pool: POOL_B, PIFs: [PIF_B_MGMT] }),
   createNetwork({ id: NET_B_NO_PIF, name_label: 'No PIF', $pool: POOL_B, PIFs: [] }),
   createNetwork({ id: NET_B_OTHER_HOST, name_label: 'Other host', $pool: POOL_B, PIFs: [PIF_B_OTHER_HOST] }),
+  createNetwork({ id: NET_B_GUEST_VLAN, name_label: 'Guest VLAN', $pool: POOL_B, PIFs: [PIF_B_GUEST_VLAN] }),
 ]
 
-const vifs = [createVif({ id: VIF_PROD, $network: NET_A_PROD }), createVif({ id: VIF_GUEST, $network: NET_A_GUEST })]
+const vifs = [
+  createVif({ id: VIF_PROD, $network: NET_A_PROD, $pool: POOL_A }),
+  createVif({ id: VIF_GUEST, $network: NET_A_GUEST, $pool: POOL_A }),
+]
 
 type FrontXoVbd = ReturnType<typeof createVbd>
 
-function createPif(overrides: Partial<FrontXoPif>): FrontXoPif {
-  return {
-    id: 'pif' as FrontXoPif['id'],
-    $network: NET_B_PROD,
-    $host: HOST_B1,
-    vlan: -1,
-    ...overrides,
-  } as FrontXoPif
-}
-
-const pifsByHost = new Map<FrontXoHost['id'], FrontXoPif[]>([
-  [
-    HOST_B1,
-    [
-      createPif({ id: PIF_B_PROD, $network: NET_B_PROD }),
-      createPif({ id: PIF_B_MGMT, $network: NET_B_MGMT }),
-      createPif({ id: PIF_B_GUEST_VLAN, $network: NET_B_GUEST_VLAN, vlan: 20 }),
-    ],
-  ],
-  [HOST_B2, [createPif({ id: PIF_B_OTHER_HOST, $network: NET_B_OTHER_HOST, $host: HOST_B2 })]],
-])
+const pifs = [
+  createPif({ id: PIF_A_GUEST, $host: HOST_A1, $pool: POOL_A, $network: NET_A_GUEST }),
+  createPif({ id: PIF_B_PROD, $host: HOST_B1, $pool: POOL_B, $network: NET_B_PROD }),
+  createPif({ id: PIF_B_MGMT, $host: HOST_B1, $pool: POOL_B, $network: NET_B_MGMT }),
+  createPif({ id: PIF_B_GUEST_VLAN, $host: HOST_B1, $pool: POOL_B, $network: NET_B_GUEST_VLAN, vlan: 20 }),
+  createPif({ id: PIF_B_OTHER_HOST, $host: HOST_B2, $pool: POOL_B, $network: NET_B_OTHER_HOST }),
+]
 
 function mockPoolCollection(availablePools: FrontXoPool[] = pools) {
   useXoPoolCollectionMock.mockReturnValue({
@@ -225,10 +169,10 @@ function mockPoolCollection(availablePools: FrontXoPool[] = pools) {
   })
 }
 
-function mockPifCollection(vlanByPifId = new Map<FrontXoPif['id'], number>()) {
+function mockPifCollection(availablePifs: FrontXoPif[] = pifs) {
   useXoPifCollectionMock.mockReturnValue({
-    pifsByHost: computed(() => pifsByHost),
-    getPifsByIds: (ids: FrontXoPif['id'][]) => ids.map(id => ({ id, vlan: vlanByPifId.get(id) ?? -1 })),
+    pifsByHost: computed(() => groupBy(availablePifs, pif => pif.$host)),
+    getPifsByIds: (ids: FrontXoPif['id'][]) => availablePifs.filter(pif => ids.includes(pif.id)),
   })
 }
 
@@ -256,15 +200,7 @@ beforeEach(() => {
   })
 
   useXoPbdCollectionMock.mockReturnValue({
-    pbdsBySr: computed(() => {
-      const map = new Map<FrontXoSr['id'], FrontXoPbd[]>()
-
-      for (const pbd of pbds) {
-        map.set(pbd.SR, [...(map.get(pbd.SR) ?? []), pbd])
-      }
-
-      return map
-    }),
+    pbdsBySr: computed(() => groupBy(pbds, pbd => pbd.SR)),
   })
 
   useXoVifCollectionMock.mockReturnValue({
@@ -486,7 +422,7 @@ describe('inter-pool migration', () => {
   it('offers only the networks of the target pool that have a PIF on the target host', () => {
     const { form } = mountMappingForm(POOL_B, HOST_B1)
 
-    expect(form.availableNetworks.map(network => network.id)).toEqual([NET_B_PROD, NET_B_MGMT])
+    expect(form.availableNetworks.map(network => network.id)).toEqual([NET_B_PROD, NET_B_MGMT, NET_B_GUEST_VLAN])
   })
 
   it('fills only the empty rows with the destination network', () => {
@@ -499,21 +435,7 @@ describe('inter-pool migration', () => {
   })
 
   it('pre-fills a network sharing a VLAN with the source network when no name matches', () => {
-    const networksWithVlan = [
-      ...networks.filter(network => network.id !== NET_A_GUEST),
-      createNetwork({ id: NET_A_GUEST, name_label: 'Guest', $pool: POOL_A, PIFs: [PIF_A_GUEST] }),
-      createNetwork({ id: NET_B_GUEST_VLAN, name_label: 'Guest VLAN', $pool: POOL_B, PIFs: [PIF_B_GUEST_VLAN] }),
-    ]
-    const vlanByPifId = new Map([
-      [PIF_A_GUEST, 20],
-      [PIF_B_GUEST_VLAN, 20],
-    ])
-
-    useXoNetworkCollectionMock.mockReturnValue({
-      networks: computed(() => networksWithVlan),
-      getNetworkById: (id: FrontXoNetwork['id'] | undefined) => networksWithVlan.find(network => network.id === id),
-    })
-    mockPifCollection(vlanByPifId)
+    mockPifCollection(pifs.map(pif => (pif.id === PIF_A_GUEST ? { ...pif, vlan: 20 } : pif)))
 
     const { form } = mountMappingForm(POOL_B, HOST_B1)
 
