@@ -5,7 +5,7 @@ import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { incorrectState } from 'xo-common/api-errors.js'
 import { isHostRunning } from '../utils.mjs'
-import { noopRpuRecorder, noRpuResume } from '../../_rpuRecovery.mjs'
+import { noopRpuRecorder, noRpuResume, restoreRpuSetting } from '../../_rpuRecovery.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import filter from 'lodash/filter.js'
@@ -70,19 +70,43 @@ const methods = {
     const skipHost = host => isDone(host) || (ignoreHost?.(host) ?? false)
     const skipMigrateBack = host => !isDone(host) && (ignoreHost?.(host) ?? false)
 
-    if (this.pool.ha_enabled) {
-      const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
-      const haConfig = this.pool.ha_configuration
-      await recorder.settingChangedByRun('ha')
+    // a setting a previous attempt disabled stays disabled until the end of
+    // this one, a setting disabled before the run is not in the record
+    const { changedByRun = {} } = resume
+
+    const haEnabled = this.pool.ha_enabled
+    const ha = haEnabled
+      ? { srs: this.pool.$ha_statefiles.map(vdi => vdi.$SR.uuid), configuration: this.pool.ha_configuration }
+      : changedByRun.ha
+    // registered before disabling it, which may fail after the change. HA
+    // recorded without its heartbeat SRs is left to the operator
+    if (ha?.srs !== undefined) {
+      $defer(() =>
+        restoreRpuSetting(recorder, 'ha', () =>
+          this.call(
+            'pool.enable_ha',
+            ha.srs.map(uuid => this.getObject(uuid).$ref),
+            ha.configuration
+          )
+        )
+      )
+    }
+    if (haEnabled) {
+      await recorder.settingChangedByRun('ha', ha)
       await this.call('pool.disable_ha')
-      $defer(() => this.call('pool.enable_ha', haSrs, haConfig))
     }
 
-    if (this.pool.other_config.auto_poweron === 'true') {
+    const autoPowerOn = this.pool.other_config.auto_poweron === 'true'
+    // registered before disabling it, which may fail after the change
+    if (autoPowerOn || changedByRun.autoPowerOn) {
+      $defer(() =>
+        restoreRpuSetting(recorder, 'autoPowerOn', () => this.pool.update_other_config('auto_poweron', 'true'))
+      )
+    }
+    if (autoPowerOn) {
       log.info(`temporarily disabling auto power on during the rolling reboot of pool ${this.pool.uuid}`)
       await recorder.settingChangedByRun('autoPowerOn')
       await this.pool.update_other_config('auto_poweron', 'false')
-      $defer(() => this.pool.update_other_config('auto_poweron', 'true'))
     }
 
     const hosts = filter(this.objects.all, { $type: 'host' })
