@@ -850,7 +850,7 @@ const methods = {
           },
           async () => {
             if (resume.hostsStarted) {
-              this.listMissingPatches(REMOVE_CACHE_ENTRY, hostUuid)
+              await this.listMissingPatches(REMOVE_CACHE_ENTRY, hostUuid)
             }
             const missingPatches = await this.listMissingPatches(hostUuid)
             hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
