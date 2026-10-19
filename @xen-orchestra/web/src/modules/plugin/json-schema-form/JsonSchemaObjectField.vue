@@ -39,6 +39,7 @@ import {
   getPropertyLabel,
   getSchemaDefaults,
   isObject,
+  isRequiredProperty,
   type JsonSchema,
 } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import type { JsonSchemaFieldComponentProps } from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
@@ -62,8 +63,6 @@ const isUsed = useOptionalValue(model, {
 
 type PropertyField = { key: string; schema: JsonSchema; label: string; path: JsonSchemaPath; required: boolean }
 
-const requiredKeys = computed(() => new Set(schema.required ?? []))
-
 const propertyGroups = computed(() => {
   const groups: { fields: PropertyField[]; isBooleans: boolean }[] = []
 
@@ -73,7 +72,7 @@ const propertyGroups = computed(() => {
       schema: propertySchema,
       label: getPropertyLabel(key, propertySchema),
       path: [...path, key],
-      required: requiredKeys.value.has(key),
+      required: isRequiredProperty(schema, key),
     }
     const isBoolean = getFieldType(propertySchema) === 'boolean'
     const lastGroup = groups.at(-1)

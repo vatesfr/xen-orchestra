@@ -1,7 +1,6 @@
 import PluginTest from '@/modules/plugin/components/detail/PluginTest.vue'
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import JsonSchemaField from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
-import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import type { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -30,8 +29,8 @@ const TEST_SCHEMA = {
   properties: { to: { type: 'string', default: 'admin@example.org' } },
 } satisfies JsonSchema
 
-function createTestablePlugin(overrides: Partial<FrontXoPlugin> = {}) {
-  return createPlugin({ id: 'transport-email' as FrontXoPlugin['id'], testable: true, loaded: true, ...overrides })
+function createTestablePlugin(overrides: Parameters<typeof createPlugin>[0] = {}) {
+  return createPlugin({ testable: true, loaded: true, ...overrides })
 }
 
 function mountCard(plugin = createTestablePlugin()) {

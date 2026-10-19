@@ -8,11 +8,18 @@ export type JsonSchemaDescription = {
   exampleGroups: JsonSchemaExampleGroup[]
 }
 
-const CODE_SPAN_RE = /`([^`]+)`/
-const INLINE_EXAMPLE_RE = /\s*e\.g\.:?\s*`([^`]+)`\.?/gi
+export type JsonSchemaTextSegment = {
+  text: string
+  isCode: boolean
+}
 
-function stripCodeSpans(text: string): string {
-  return text.replace(new RegExp(CODE_SPAN_RE, 'g'), '$1')
+const CODE_SPAN_RE = /`([^`]+)`/
+
+export function splitCodeSpans(text: string): JsonSchemaTextSegment[] {
+  return text
+    .split(new RegExp(CODE_SPAN_RE, 'g'))
+    .map((segment, index) => ({ text: segment, isCode: index % 2 === 1 }))
+    .filter(segment => segment.text !== '')
 }
 
 function isList(lines: string[]): boolean {
@@ -20,15 +27,14 @@ function isList(lines: string[]): boolean {
 }
 
 /**
- * Split a markdown description of a JSON schema into a plain help text and clickable examples
+ * Split a markdown description of a JSON schema into a help text and clickable examples
  *
  * - a bullet list of code spans becomes an example group, introduced by the paragraph before it
- * - an inline `e.g.: \`value\`` becomes an example
+ * - the other paragraphs make up the help text, their code spans are kept to be highlighted
  */
 export function parseSchemaDescription(description: string | undefined): JsonSchemaDescription {
   const paragraphs: string[] = []
   const exampleGroups: JsonSchemaExampleGroup[] = []
-  const inlineExamples: string[] = []
 
   for (const block of (description ?? '').trim().split(/\n\s*\n/)) {
     const lines = block
@@ -53,22 +59,7 @@ export function parseSchemaDescription(description: string | undefined): JsonSch
       }
     }
 
-    const paragraph = lines
-      .join(' ')
-      .replace(INLINE_EXAMPLE_RE, (_, value: string) => {
-        inlineExamples.push(value)
-
-        return ''
-      })
-      .trim()
-
-    if (paragraph !== '') {
-      paragraphs.push(stripCodeSpans(paragraph))
-    }
-  }
-
-  if (inlineExamples.length > 0) {
-    exampleGroups.unshift({ values: inlineExamples })
+    paragraphs.push(lines.join(' '))
   }
 
   return {

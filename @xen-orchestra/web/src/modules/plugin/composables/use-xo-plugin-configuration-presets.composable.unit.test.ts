@@ -30,12 +30,18 @@ function selectPreset(name: string) {
   selectModel.current.value = name
 }
 
+const gmailPreset = { from: { address: 'xo@gmail.com' }, transport: { host: 'smtp.gmail.com', port: 465 } }
+
+const office365Preset = { from: { address: 'xo@outlook.com' }, transport: { host: 'smtp.office365.com' } }
+
 const pluginWithPresets = createPlugin({
   configurationSchema: { type: 'object' },
-  configurationPresets: {
-    gmail: { transport: { host: 'smtp.gmail.com', port: 465 } },
-    office365: { transport: { host: 'smtp.office365.com' } },
-  },
+  configurationPresets: { gmail: gmailPreset, office365: office365Preset },
+})
+
+const pluginWithoutGmailPreset = createPlugin({
+  configurationSchema: { type: 'object' },
+  configurationPresets: { office365: office365Preset },
 })
 
 function mountPresets(plugin: MaybeRefOrGetter<FrontXoPlugin>, initialConfiguration: unknown = {}) {
@@ -87,7 +93,7 @@ describe('applyPreset', () => {
     presets.applyPreset()
 
     expect(configurationValue.value).toEqual({
-      from: { address: 'xo@example.org' },
+      from: { address: 'xo@gmail.com' },
       transport: { host: 'smtp.gmail.com', port: 465, user: 'xo' },
     })
   })
@@ -112,15 +118,12 @@ describe('applyPreset', () => {
   })
 
   it('does not change the configuration when the plugin no longer has the selected preset', () => {
-    const plugin = ref(pluginWithPresets)
+    const plugin = ref<FrontXoPlugin>(pluginWithPresets)
     const configuration = { transport: { host: 'smtp.example.org' } }
     const { presets, configurationValue } = mountPresets(plugin, configuration)
     selectPreset('gmail')
 
-    plugin.value = {
-      ...pluginWithPresets,
-      configurationPresets: { office365: { transport: { host: 'smtp.office365.com' } } },
-    }
+    plugin.value = pluginWithoutGmailPreset
     presets.applyPreset()
 
     expect(configurationValue.value).toBe(configuration)

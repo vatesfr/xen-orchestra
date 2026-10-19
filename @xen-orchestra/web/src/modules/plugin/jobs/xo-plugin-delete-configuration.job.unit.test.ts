@@ -19,7 +19,7 @@ beforeEach(() => {
 
 const configuredPlugin = createPlugin({
   configurationSchema: { type: 'object' },
-  configuration: { host: 'smtp.example.org' },
+  configuration: { from: { address: 'xo@example.org' }, transport: { host: 'smtp.example.org' } },
 })
 
 function mountJob(plugin: FrontXoPlugin | undefined) {

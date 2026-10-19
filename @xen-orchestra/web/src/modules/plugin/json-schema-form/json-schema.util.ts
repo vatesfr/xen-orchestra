@@ -110,6 +110,10 @@ export function getFieldType(schema: JsonSchema): JsonSchemaFieldType | undefine
   }
 }
 
+export function isRequiredProperty(schema: JsonSchema, key: string): boolean {
+  return schema.required?.includes(key) ?? false
+}
+
 export function getSchemaDefaults(schema: JsonSchema | undefined): Record<string, unknown> | undefined {
   if (getSchemaType(schema) !== 'object' || schema?.properties === undefined) {
     return undefined
@@ -122,7 +126,7 @@ export function getSchemaDefaults(schema: JsonSchema | undefined): Record<string
     if (propertySchema.default !== undefined) {
       result[key] = propertySchema.default
       hasDefaults = true
-    } else if (getSchemaType(propertySchema) === 'object') {
+    } else if (isRequiredProperty(schema, key) && getSchemaType(propertySchema) === 'object') {
       const nested = getSchemaDefaults(propertySchema)
 
       if (nested !== undefined) {

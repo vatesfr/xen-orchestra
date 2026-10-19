@@ -161,7 +161,13 @@ describe('string field', () => {
   it('displays the help text of the description', () => {
     const wrapper = mountField({ schema: { type: 'string', description: 'ID attribute. e.g.: `dn`' } })
 
-    expect(wrapper.get('.ui-info').text()).toBe('ID attribute.')
+    expect(wrapper.get('.ui-info').text()).toBe('ID attribute. e.g.: dn')
+  })
+
+  it('highlights the code spans of the description', () => {
+    const wrapper = mountField({ schema: { type: 'string', description: 'ID attribute. e.g.: `dn`' } })
+
+    expect(wrapper.findAll('.ui-info code').map(code => code.text())).toEqual(['dn'])
   })
 
   it('disables the input', () => {
@@ -173,7 +179,7 @@ describe('string field', () => {
 
 describe('string field helpers', () => {
   it('fills the value with an example', async () => {
-    const wrapper = mountField({ schema: { type: 'string', description: 'ID attribute. e.g.: `dn`' } })
+    const wrapper = mountField({ schema: { type: 'string', description: 'ID attribute:\n\n- `dn`' } })
 
     await getButton(wrapper, 'dn').trigger('click')
 
@@ -181,7 +187,7 @@ describe('string field helpers', () => {
   })
 
   it('fills a numeric value with an example as a number', async () => {
-    const wrapper = mountField({ schema: { type: 'integer', description: 'Port. e.g.: `587`' } })
+    const wrapper = mountField({ schema: { type: 'integer', description: 'Port:\n\n- `587`' } })
 
     await getButton(wrapper, '587').trigger('click')
 

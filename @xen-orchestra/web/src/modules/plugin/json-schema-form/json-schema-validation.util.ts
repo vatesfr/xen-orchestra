@@ -3,6 +3,7 @@ import {
   getPropertyLabel,
   getSchemaType,
   isObject,
+  isRequiredProperty,
   type JsonSchema,
 } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 
@@ -46,7 +47,6 @@ function getMissingProperties(schema: JsonSchema, value: unknown, location: Loca
   }
 
   const object = isObject(value) ? value : {}
-  const requiredKeys = new Set(schema.required ?? [])
 
   return Object.entries(schema.properties).flatMap(([key, propertySchema]) => {
     const propertyValue = object[key]
@@ -55,7 +55,7 @@ function getMissingProperties(schema: JsonSchema, value: unknown, location: Loca
       path: [...location.path, key],
       labels: [...location.labels, getPropertyLabel(key, propertySchema)],
     }
-    const isRequired = requiredKeys.has(key)
+    const isRequired = isRequiredProperty(schema, key)
     const fieldType = getFieldType(propertySchema)
 
     // a required object is always displayed, so its own fields are reported instead of the object, and an optional one

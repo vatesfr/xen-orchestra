@@ -16,20 +16,26 @@ beforeEach(() => {
 
 const SCHEMA = {
   type: 'object',
-  properties: { host: { type: 'string' } },
-  required: ['host'],
+  properties: {
+    from: { type: 'object', properties: { address: { type: 'string' } }, required: ['address'] },
+    transport: { type: 'object', properties: { host: { type: 'string' } }, required: ['host'] },
+  },
+  required: ['from', 'transport'],
 } satisfies JsonSchema
 
+const SAVED_CONFIGURATION = { from: { address: 'xo@example.org' }, transport: { host: 'smtp.example.org' } }
+
+const EDITED_CONFIGURATION = { from: { address: 'xo@example.org' }, transport: { host: 'smtp.example.com' } }
+
+const GMAIL_PRESET = { from: { address: 'xo@gmail.com' }, transport: { host: 'smtp.gmail.com', port: 587 } }
+
 const configuredPlugin = createPlugin({
-  id: 'transport-email' as FrontXoPlugin['id'],
-  name: 'transport-email',
   configurationSchema: SCHEMA,
-  configuration: { host: 'smtp.example.org' },
+  configuration: SAVED_CONFIGURATION,
   configured: true,
 })
 
 const unconfiguredPlugin = createPlugin({
-  id: 'transport-email' as FrontXoPlugin['id'],
   configurationSchema: SCHEMA,
   configuration: undefined,
   configured: false,
@@ -75,7 +81,7 @@ it('displays the saved configuration in a required form', () => {
 
   expect(wrapper.getComponent(JsonSchemaField).props()).toMatchObject({
     schema: SCHEMA,
-    modelValue: { host: 'smtp.example.org' },
+    modelValue: SAVED_CONFIGURATION,
     label: t('configuration'),
     required: true,
     disabled: false,
@@ -92,14 +98,14 @@ it('explains that a plugin without schema is not configurable', () => {
 
 describe('presets', () => {
   it('offers the presets of the plugin', () => {
-    const wrapper = mountCard(createPlugin({ ...configuredPlugin, configurationPresets: { gmail: { port: 587 } } }))
+    const wrapper = mountCard({ ...configuredPlugin, configurationPresets: { gmail: GMAIL_PRESET } })
 
     expect(wrapper.text()).toContain(t('plugin:configuration-presets'))
     expect(hasButton(wrapper, t('action:apply'))).toBe(true)
   })
 
   it('offers no preset for a plugin without presets', () => {
-    const wrapper = mountCard(createPlugin({ ...configuredPlugin, configurationPresets: undefined }))
+    const wrapper = mountCard({ ...configuredPlugin, configurationPresets: undefined })
 
     expect(wrapper.text()).not.toContain(t('plugin:configuration-presets'))
     expect(hasButton(wrapper, t('action:apply'))).toBe(false)
@@ -110,14 +116,14 @@ describe('save', () => {
   it('saves the edited configuration', async () => {
     const wrapper = mountCard()
 
-    await editConfiguration(wrapper, { host: 'smtp.example.com' })
+    await editConfiguration(wrapper, EDITED_CONFIGURATION)
     await save(wrapper)
 
     expect(findRequests()).toEqual([
       {
         url: '/rest/v0/plugins/transport-email/configuration',
         method: 'PUT',
-        body: JSON.stringify({ host: 'smtp.example.com' }),
+        body: JSON.stringify(EDITED_CONFIGURATION),
       },
     ])
   })
@@ -131,7 +137,7 @@ describe('save', () => {
   it('disables the form while the configuration is saved', async () => {
     const wrapper = mountCard()
 
-    await editConfiguration(wrapper, { host: 'smtp.example.com' })
+    await editConfiguration(wrapper, EDITED_CONFIGURATION)
     await save(wrapper)
 
     expect(wrapper.getComponent(JsonSchemaField).props('disabled')).toBe(true)
@@ -141,7 +147,7 @@ describe('save', () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 204 }))
     const wrapper = mountCard()
 
-    await editConfiguration(wrapper, { host: 'smtp.example.com' })
+    await editConfiguration(wrapper, EDITED_CONFIGURATION)
     await save(wrapper)
 
     expect(wrapper.get('.feedback').text()).toContain(t('plugin:configuration-saved'))
@@ -151,7 +157,7 @@ describe('save', () => {
     vi.mocked(fetch).mockRejectedValueOnce(new Error('invalid configuration'))
     const wrapper = mountCard()
 
-    await editConfiguration(wrapper, { host: 'smtp.example.com' })
+    await editConfiguration(wrapper, EDITED_CONFIGURATION)
     await save(wrapper)
 
     const feedback = wrapper.get('.feedback').text()
@@ -179,7 +185,10 @@ describe('missing fields', () => {
         .getComponent(VtsFormErrorSummary)
         .props('errors')
         .map(error => error.message)
-    ).toEqual([t('form:error:field-required', { field: 'host' })])
+    ).toEqual([
+      t('form:error:field-required', { field: 'from › address' }),
+      t('form:error:field-required', { field: 'transport › host' }),
+    ])
     expect(findRequests()).toEqual([])
   })
 
@@ -196,7 +205,7 @@ describe('missing fields', () => {
 
     await save(wrapper)
     wrapper.get('input').element.blur()
-    await findButton(wrapper, t('json-schema:go-to-first-of-n-errors', 1)).trigger('click')
+    await findButton(wrapper, t('json-schema:go-to-first-of-n-errors', 2)).trigger('click')
 
     expect(document.activeElement).toBe(wrapper.get('input').element)
   })
@@ -206,10 +215,10 @@ describe('cancel', () => {
   it('restores the saved configuration', async () => {
     const wrapper = mountCard()
 
-    await editConfiguration(wrapper, { host: 'smtp.example.com' })
+    await editConfiguration(wrapper, EDITED_CONFIGURATION)
     await findButton(wrapper, t('cancel')).trigger('click')
 
-    expect(wrapper.getComponent(JsonSchemaField).props('modelValue')).toEqual({ host: 'smtp.example.org' })
+    expect(wrapper.getComponent(JsonSchemaField).props('modelValue')).toEqual(SAVED_CONFIGURATION)
   })
 
   it('cannot cancel when nothing changed', () => {
@@ -233,7 +242,7 @@ describe('configuration deletion', () => {
   it('cannot delete the configuration while it is saved', async () => {
     const wrapper = mountCard()
 
-    await editConfiguration(wrapper, { host: 'smtp.example.com' })
+    await editConfiguration(wrapper, EDITED_CONFIGURATION)
     await save(wrapper)
 
     expect(findButton(wrapper, t('action:delete')).props('disabled')).toBe(true)

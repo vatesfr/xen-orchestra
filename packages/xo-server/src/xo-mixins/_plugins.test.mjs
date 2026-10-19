@@ -376,29 +376,28 @@ describe('Plugins', () => {
   })
 
   describe('plugin collection', () => {
-    it('registers the plugins as a collection when the core is started', async () => {
+    it('registers the plugins metadata as a collection when the core is started', async () => {
       const { app, plugins } = createPlugins()
       const registered = []
       app.hooks.on('registerCollection', options => registered.push(options))
       app.addConfigManager = () => {}
-      // just enough of Redis to create the plugins metadata, which are replaced by the ones of the test
+      // just enough of Redis to create the plugins metadata
       app._redis = { sAdd: async () => {}, get: async () => '20170905' }
 
-      // `_pluginsMetadata` is replaced by the one of the test, the collection must be registered anyway
-      const pluginsMetadata = plugins._pluginsMetadata
       app.hooks.emit('core started')
-      plugins._pluginsMetadata = pluginsMetadata
-      await register(plugins, 'foo', { instance: createInstance().instance })
 
       assert.equal(registered.length, 1)
-      const { collection, type } = registered[0]
+      const { collection, decorate, type } = registered[0]
       assert.equal(type, 'plugin')
-      assert.deepEqual(
-        (await collection.get()).map(plugin => plugin.id),
-        ['foo']
-      )
-      assert.equal((await collection.first('foo')).id, 'foo')
-      assert.equal(await collection.first('unknown'), undefined)
+      assert.equal(collection, plugins._pluginsMetadata)
+
+      // the plugins metadata are replaced by the ones of the test to register a plugin
+      plugins._pluginsMetadata = createPlugins().plugins._pluginsMetadata
+      await register(plugins, 'foo', { instance: createInstance().instance })
+
+      assert.equal((await decorate({ id: 'foo' })).id, 'foo')
+      // metadata of plugins that are not registered are ignored
+      assert.equal(await decorate({ id: 'unknown' }), undefined)
     })
 
     it('signals a registered plugin, even when it could not be configured', async () => {
@@ -409,13 +408,11 @@ describe('Plugins', () => {
       assert.deepEqual(touched, ['foo'])
     })
 
-    it('signals each change of the plugin state', async () => {
+    // changes of the metadata (configuration, autoload) are signaled by the collection itself
+    it('signals each change of the plugin state which is not stored in its metadata', async () => {
       const { plugins, touched } = createPlugins({ foo: { autoload: false } })
       await register(plugins, 'foo', { instance: createInstance().instance, configurationSchema: REQUIRED_SCHEMA })
-      touched.length = 0
-
       await plugins.configurePlugin('foo', { host: 'example.org' })
-      assert.deepEqual(touched, ['foo'], 'configure')
 
       touched.length = 0
       await plugins.loadPlugin('foo')
@@ -424,11 +421,6 @@ describe('Plugins', () => {
       touched.length = 0
       await plugins.unloadPlugin('foo')
       assert.deepEqual(touched, ['foo'], 'unload')
-
-      touched.length = 0
-      await plugins.enablePluginAutoload('foo')
-      await plugins.disablePluginAutoload('foo')
-      assert.deepEqual(touched, ['foo', 'foo'], 'autoload')
 
       touched.length = 0
       await plugins.purgePluginConfiguration('foo')

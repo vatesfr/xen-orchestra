@@ -24,7 +24,9 @@
           <slot name="actions" />
         </div>
       </div>
-      <UiInfo v-if="description !== undefined" accent="info" wrap>{{ description }}</UiInfo>
+      <UiInfo v-if="description !== undefined" accent="info" wrap>
+        <JsonSchemaText :text="description" />
+      </UiInfo>
       <UiInfo v-if="errorMessage !== undefined" accent="danger" wrap>{{ errorMessage.content }}</UiInfo>
     </div>
     <div v-if="isUsed" class="content">
@@ -35,6 +37,7 @@
 
 <script lang="ts" setup>
 import type { JsonSchemaPath } from '@/modules/plugin/json-schema-form/json-schema-validation.util.ts'
+import JsonSchemaText from '@/modules/plugin/json-schema-form/JsonSchemaText.vue'
 import { useJsonSchemaFieldValidation } from '@/modules/plugin/json-schema-form/use-json-schema-field-validation.composable.ts'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'

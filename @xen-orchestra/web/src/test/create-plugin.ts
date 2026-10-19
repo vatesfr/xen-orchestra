@@ -1,8 +1,11 @@
-import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
+import type { ToFrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
+import type { XoTransportEmailPlugin } from '@vates/types'
 
-export function createPlugin(overrides: Partial<FrontXoPlugin> = {}): FrontXoPlugin {
+type FrontXoTransportEmailPlugin = ToFrontXoPlugin<XoTransportEmailPlugin>
+
+export function createPlugin(overrides: Partial<FrontXoTransportEmailPlugin> = {}): FrontXoTransportEmailPlugin {
   return {
-    id: 'transport-email' as FrontXoPlugin['id'],
+    id: 'transport-email' as FrontXoTransportEmailPlugin['id'],
     name: 'transport-email',
     version: '1.0.0',
     description: 'Send emails',

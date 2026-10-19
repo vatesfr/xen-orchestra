@@ -27,15 +27,15 @@ function findTags(wrapper: ReturnType<typeof mountHeader>) {
 }
 
 it('shows the name of the plugin in the head bar', () => {
-  const wrapper = mountHeader(createPlugin({ name: 'auth-ldap' }))
+  const wrapper = mountHeader(createPlugin())
 
-  expect(wrapper.get('.ui-head-bar .label').text()).toBe('auth-ldap')
+  expect(wrapper.get('.ui-head-bar .label').text()).toBe('transport-email')
 })
 
 it('lists the plugins then the plugin in the breadcrumb', () => {
-  const wrapper = mountHeader(createPlugin({ name: 'auth-ldap' }))
+  const wrapper = mountHeader(createPlugin())
 
-  expect(wrapper.findAll('.ui-breadcrumb li').map(item => item.text())).toEqual([t('plugins'), 'auth-ldap'])
+  expect(wrapper.findAll('.ui-breadcrumb li').map(item => item.text())).toEqual([t('plugins'), 'transport-email'])
 })
 
 it('links the breadcrumb back to the list of plugins', () => {
