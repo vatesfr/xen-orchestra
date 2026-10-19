@@ -24,11 +24,11 @@ export function useXoBackupJobTypeLabels(rawBackupJob: MaybeRefOrGetter<FrontAny
         }
 
         if (hasIds(job.remotes)) {
-          labels.push(t('backup'))
+          labels.push(t('backup:vms-backup'))
         }
 
         if (hasIds(job.srs)) {
-          labels.push(t('backup:replication'))
+          labels.push(t('backup:vms-replication'))
         }
         break
       case 'metadataBackup':
@@ -41,7 +41,7 @@ export function useXoBackupJobTypeLabels(rawBackupJob: MaybeRefOrGetter<FrontAny
         }
         break
       case 'mirrorBackup':
-        labels.push(t('backup:mirror'))
+        labels.push(t('backup:vms-mirror'))
         break
     }
 
