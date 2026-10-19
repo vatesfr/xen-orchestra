@@ -1167,7 +1167,7 @@ class SDNController extends EventEmitter {
     if (!pif.currently_attached) {
       const tunnel = getHostTunnelForNetwork(pif.$host, pif.network)
       await tunnel.set_status({ active: 'false' })
-      if (privateNetwork.center.$ref !== pif.host) {
+      if (privateNetwork.center?.$ref !== pif.host) {
         return
       }
 
@@ -1478,7 +1478,7 @@ class SDNController extends EventEmitter {
 
   async _hostUnreachable(host) {
     let privateNetworks = filter(this.privateNetworks, privateNetwork => {
-      return privateNetwork.center.$ref === host.$ref
+      return privateNetwork.center?.$ref === host.$ref
     })
     for (const privateNetwork of privateNetworks) {
       log.debug('Unreachable star-center, electing a new one', {
