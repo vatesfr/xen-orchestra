@@ -1,0 +1,104 @@
+import { z } from 'zod'
+import { createLogger } from '@xen-orchestra/log'
+
+const { warn } = createLogger('xo:config-schema')
+// Sentinel for redacted values — use a string so Swagger renders it clearly
+const redacted = z.any().transform(() => '**REDACTED**')
+
+// durations can be strings ("1 min") or numbers (milliseconds), see @vates/parse-duration
+const duration = z.union([z.string(), z.number()])
+
+const providerSchema = z.object({
+  type: z.string(),
+  host: z.string().optional(),
+  bindDn: z.string().optional(),
+  issuer: z.string().optional(),
+  clientId: z.string().optional(),
+
+  bindPassword: redacted.optional(),
+  clientSecret: redacted.optional(),
+  certificate: redacted.optional(),
+  privateKey: redacted.optional(),
+})
+
+const listenSchema = z
+  .object({
+    port: z.number().optional(),
+    hostname: z.string().optional(),
+    acmeDomain: z.string().optional(),
+    key: redacted.optional(),
+    cert: redacted.optional(),
+    certificate: redacted.optional(),
+  })
+  .partial()
+  .catchall(z.any().transform(() => '**REDACTED**'))
+
+// Mirror the shape of xo-server's config here.
+// .partial() on every object because config files are always partial — missing keys are fine.
+export const XoServerConfigSchema = z
+  .object({
+    redis: z
+      .object({
+        uri: redacted, // contains credentials
+        socket: z.string().optional(),
+      })
+      .partial()
+      .optional(),
+
+    http: z
+      .object({
+        // record (`[http.listen.<name>]`) or legacy array (`[[http.listen]]`)
+        listen: z.union([z.record(z.string(), listenSchema), z.array(listenSchema)]).optional(),
+        listenOptions: z.record(z.unknown()).optional(),
+        redirectToHttps: z.boolean().optional(),
+        sessionSecret: redacted,
+        cookies: redacted,
+        useForwardedHeaders: z.unknown().optional(),
+        proxies: redacted,
+        publicMounts: z.record(z.string()).optional(),
+        mounts: z.record(z.string()).optional(),
+        helmet: z.record(z.unknown()).optional(),
+      })
+      .partial()
+      .optional(),
+
+    authentication: z
+      .object({
+        defaultTokenValidity: z.string().optional(),
+        maxTokenValidity: z.string().optional(),
+        providers: z.record(providerSchema), // provider configs may have secrets — review per provider
+      })
+      .partial()
+      .optional(),
+
+    backups: z
+      .object({
+        dirMode: z.number().optional(), // octal in TOML (e.g. 0o700)
+        vhdDirectoryCompression: z.string().optional(),
+        listingDebounce: duration.optional(),
+        useGetDiskLegacy: z.boolean().optional(),
+      })
+      .partial()
+      .optional(),
+
+    datadir: z.string().optional(),
+    resourceCacheDelay: duration.optional(),
+
+    // Add more sections as needed.
+    // Unknown top-level keys are passed through but redacted (see .catchall() below).
+  })
+  .catchall(z.any().transform(() => '**REDACTED**'))
+// Unknown keys are preserved in the output so their presence is visible for debugging,
+// but their values are always redacted.
+
+// Exported helper used by Config.mjs
+export function applySchema(raw) {
+  const result = XoServerConfigSchema.safeParse(raw)
+  if (!result.success) {
+    // Schema is permissive (.partial everywhere) so this should be rare.
+    // Log but don't throw — return what we can.
+    warn('applySchema', { error: result.error })
+    return {}
+  }
+  return result.data
+}

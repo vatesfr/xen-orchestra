@@ -24,7 +24,7 @@ import { pipeline } from 'node:stream'
 import { UniqueIndex as XoUniqueIndex } from 'xo-collection/unique-index.js'
 import { computeObjectNotifications } from './_objectNotifications.mjs'
 import { asyncEach } from '@vates/async-each'
-
+import { applySchema } from './config.schema.mjs'
 import mixins from './xo-mixins/index.mjs'
 import { generateToken, noop } from './utils.mjs'
 
@@ -50,7 +50,8 @@ export default class Xo extends EventEmitter {
   constructor(opts) {
     super()
 
-    mixin(this, { Config, Hooks, HttpProxy, LiveMount, SslCertificate, Tasks }, [opts])
+    mixin(this, { Config, Hooks, HttpProxy, LiveMount, SslCertificate, Tasks }, [{ ...opts, applySchema }])
+
     // a lot of mixins adds listener for start/stop/… events
     this.hooks.setMaxListeners(0)
 

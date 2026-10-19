@@ -1,0 +1,143 @@
+import assert from 'assert/strict'
+import test from 'node:test'
+import { parse as parseToml } from 'smol-toml'
+import { readFileSync } from 'node:fs'
+import { applySchema, XoServerConfigSchema } from './config.schema.mjs'
+
+const { describe, it } = test
+
+describe('applySchema()', function () {
+  it('redacts sensitive values', function () {
+    const input = {
+      http: {
+        sessionSecret: 'super-secret-value',
+      },
+    }
+
+    const result = applySchema(input)
+
+    assert.deepEqual(result, {
+      http: {
+        sessionSecret: '**REDACTED**',
+      },
+    })
+  })
+
+  it('keeps safe values', function () {
+    const input = {
+      http: {
+        listen: { 0: { port: 80 } },
+      },
+    }
+
+    const result = applySchema(input)
+
+    assert.deepEqual(result, {
+      http: {
+        listen: { 0: { port: 80 } },
+      },
+    })
+  })
+
+  it('redacts unknown keys that are not in schema', function () {
+    const input = {
+      unknownFeature: {
+        password: 'secret',
+      },
+    }
+
+    const result = applySchema(input)
+
+    assert.deepEqual(result, {
+      unknownFeature: '**REDACTED**',
+    })
+  })
+
+  it('accepts partial configuration', function () {
+    const input = {
+      redis: {
+        socket: '/tmp/redis.sock',
+      },
+    }
+
+    const result = applySchema(input)
+
+    assert.deepEqual(result, {
+      redis: {
+        socket: '/tmp/redis.sock',
+      },
+    })
+  })
+
+  it('accepts the default config.toml', function () {
+    const config = parseToml(readFileSync(new URL('../config.toml', import.meta.url), 'utf8'))
+
+    const result = XoServerConfigSchema.safeParse(config)
+
+    assert.equal(result.success, true, result.error?.message)
+    assert.equal(result.data.backups.dirMode, 0o700)
+  })
+
+  it('accepts the legacy sample.config.toml (http.listen as an array)', function () {
+    const config = parseToml(readFileSync(new URL('../sample.config.toml', import.meta.url), 'utf8'))
+
+    const result = XoServerConfigSchema.safeParse(config)
+
+    assert.equal(result.success, true, result.error?.message)
+    assert.ok(Array.isArray(result.data.http.listen))
+  })
+
+  it('returns an empty object for an empty configuration', function () {
+    assert.deepEqual(applySchema({}), {})
+  })
+
+  it('does not leak known secrets', function () {
+    const config = {
+      authentication: {
+        providers: {
+          ldap: {
+            bindDn: 'cn=xo,dc=company,dc=lan',
+            bindPassword: 'LDAP_BIND_PASSWORD',
+            host: 'ldap.company.lan',
+            type: 'ldap',
+          },
+          oidc: {
+            clientId: 'xo-server',
+            clientSecret: 'OIDC_CLIENT_SECRET',
+            privateKey: 'PRIVATE_KEY_MATERIAL',
+            issuer: 'https://idp.company.lan',
+            type: 'oidc',
+          },
+          saml: {
+            certificate: 'PRIVATE_KEY_MATERIAL',
+            entryPoint: 'https://idp.company.lan/saml',
+            type: 'saml',
+          },
+        },
+      },
+
+      http: {
+        cookies: {
+          sameSite: true,
+          secret: 'COOKIE_SECRET',
+          secure: true,
+        },
+        proxies: {
+          '/api': 'http://user:PROXY_PASSWORD@proxy.company.lan:3128',
+        },
+      },
+    }
+
+    const output = JSON.stringify(applySchema(config))
+
+    for (const secret of [
+      'PROXY_PASSWORD',
+      'COOKIE_SECRET',
+      'LDAP_BIND_PASSWORD',
+      'OIDC_CLIENT_SECRET',
+      'PRIVATE_KEY_MATERIAL',
+    ]) {
+      assert.equal(output.includes(secret), false, `secret leaked: ${secret}`)
+    }
+  })
+})

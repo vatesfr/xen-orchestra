@@ -200,7 +200,14 @@ type XoStoreRangeOptions = {
   reverse?: boolean
 }
 
-export type XoApp = EventEmitter & {
+export type ConfigSourceName = 'vendor' | 'system' | 'global' | 'local'
+
+export type ConfigSource = {
+  name: ConfigSourceName
+  files: string[]
+}
+
+export type XoApp = {
   hooks: EventEmitter
   _redis: {
     get(key: string): Promise<string | null>
@@ -232,6 +239,9 @@ export type XoApp = EventEmitter & {
             path: string
           }
     }>
+    getSources(): readonly ConfigSource[]
+    getFiltered(): Record<string, unknown>
+    parseSourceFiltered(path: string): Promise<Record<string, unknown>>
   }
 
   objects: EventEmitter & {

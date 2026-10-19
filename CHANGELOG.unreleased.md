@@ -57,6 +57,11 @@
 - [XO6] Export VDI as vmdk (PR [#10591](https://github.com/vatesfr/xen-orchestra/pull/10591))
 - [XO5] Improve event handling (PR [#10568](https://github.com/vatesfr/xen-orchestra/pull/10568))
 - [Netbox] Support Netbox v4.7.x [#10565](https://github.com/vatesfr/xen-orchestra/issues/10565) (PR [#10574](https://github.com/vatesfr/xen-orchestra/pull/10574))
+- [REST API] expose server config with redacted sensitive data through REST API Endpoints:
+
+  - `GET /server-config` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
+  - `GET /server-config/sources` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
+  - `GET /server-config/sources?path=` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
 
 ### Bug fixes
 
@@ -107,6 +112,7 @@
 
 <!--packages-start-->
 
+- @vates/app-conf major
 - @vates/iscsi minor
 - @vates/nbd-client minor
 - @vates/types minor
@@ -114,6 +120,10 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/immutable-backups minor
+- @xen-orchestra/mixins minor
+- @xen-orchestra/proxy minor
+- @xen-orchestra/proxy-cli minor
 - @xen-orchestra/qa-test minor
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
