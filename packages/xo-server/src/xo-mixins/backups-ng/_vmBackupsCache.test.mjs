@@ -304,13 +304,15 @@ describe('VmBackupsCache', () => {
 
   for (const [query, minutes] of [
     ['', 60],
-    ['?fullListingInterval=10m', 10],
-    ['?fullListingInterval=600000', 10],
-    // a typo must not make the repository unreadable, nor a duration which is not positive make every
-    // read list it in full: the default interval, with a warning
+    ['?fullListingInterval=10', 10],
+    ['?fullListingInterval=360', 360],
+    // a typo or a duration with a unit must not make the repository unreadable, nor an interval which is
+    // not positive make every read list it in full: the default interval, with a warning
     ['?fullListingInterval=often', 60],
+    ['?fullListingInterval=10m', 60],
+    ['?fullListingInterval=1.5', 60],
     ['?fullListingInterval=0', 60],
-    ['?fullListingInterval=-1h', 60],
+    ['?fullListingInterval=-10', 60],
   ]) {
     it(`rebuilds ${minutes} minutes after the entry was built, however recently it was replayed, for '${REPOSITORY.url + query}'`, async t => {
       const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))

@@ -6,7 +6,6 @@ import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'node:events'
 import { journalCursorAt } from '@xen-orchestra/backups/_backupJournal.mjs'
 import { parse } from 'xo-remote-parser'
-import { parseDuration } from '@vates/parse-duration'
 
 /**
  * A backup repository, as required by `VmBackupsCache`.
@@ -103,8 +102,9 @@ const isSameRepository = (entry, repository) =>
 
 /**
  * How long an entry of a repository is brought up to date from the journal before it is listed in
- * full again: the `fullListingInterval` parameter of its URL, a positive duration such as `6h` or a
- * number of milliseconds, otherwise `DEFAULT_REBUILD_INTERVAL`.
+ * full again: the `fullListingInterval` parameter of its URL, a positive whole number of minutes,
+ * otherwise `DEFAULT_REBUILD_INTERVAL`.
+ *
  *
  * Read when the entry is built: the URL changing rebuilds the entry anyway, see `isSameRepository()`.
  *
@@ -117,19 +117,11 @@ const rebuildIntervalOf = repository => {
     return DEFAULT_REBUILD_INTERVAL
   }
 
-  /** @type {number | undefined} */
-  let interval
-  try {
-    interval = parseDuration(fullListingInterval)
-  } catch (error) {
-    if (!(error instanceof TypeError)) {
-      throw error
-    }
-  }
-
-  // a typo in an optional setting must not make the repository unreadable, nor a duration which is not
-  // positive make every read list it in full, those of the timers included
-  if (interval === undefined || interval <= 0) {
+  // `parse()` reads the parameters of the URL as JSON: a number of minutes is already a number
+  //
+  // a typo in an optional setting, or a duration with a unit, must not make the repository
+  // unreadable, nor an interval which is not positive make every read list it in full
+  if (typeof fullListingInterval !== 'number' || !Number.isInteger(fullListingInterval) || fullListingInterval <= 0) {
     warn('invalid fullListingInterval, using the default one', {
       repositoryId: repository.id,
       fullListingInterval,
@@ -137,7 +129,7 @@ const rebuildIntervalOf = repository => {
     })
     return DEFAULT_REBUILD_INTERVAL
   }
-  return interval
+  return fullListingInterval * 60e3
 }
 
 /**
