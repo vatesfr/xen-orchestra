@@ -56,6 +56,7 @@ class EsxiImport extends Component {
     importing: false,
     isConnected: false,
     password: window.localStorage.getItem('esxi_password') ?? '',
+    repair: false,
     skipSslVerify: true,
     stopSource: true,
     stopOnError: true,
@@ -161,14 +162,27 @@ class EsxiImport extends Component {
   }
 
   _importVms = () => {
-    const { concurrency, hostIp, network, password, skipSslVerify, sr, stopSource, stopOnError, user, template, vms } =
-      this.state
+    const {
+      concurrency,
+      hostIp,
+      network,
+      password,
+      repair,
+      skipSslVerify,
+      sr,
+      stopSource,
+      stopOnError,
+      user,
+      template,
+      vms,
+    } = this.state
     this.setState({ importing: true })
     return importVmsFromEsxi({
       concurrency: +concurrency,
       host: hostIp,
       network: network?.id ?? this._getDefaultNetwork(),
       password,
+      repair: repair ? { windowsCleanup: 'standard' } : false,
       sr: resolveId(sr),
       sslVerify: !skipSslVerify,
       stopOnError,
@@ -218,6 +232,7 @@ class EsxiImport extends Component {
       importing: false,
       network: undefined,
       pool: undefined,
+      repair: false,
       sr: undefined,
       stopSource: false,
       stopOnError: true,
@@ -237,6 +252,7 @@ class EsxiImport extends Component {
       password,
       pool,
       rememberConnection,
+      repair,
       skipSslVerify,
       sr,
       stopSource,
@@ -391,6 +407,13 @@ class EsxiImport extends Component {
           <InputCol>
             <Toggle onChange={this.toggleState('stopOnError')} value={stopOnError} />
             <small className='form-text text-muted'>{_('esxiImportStopOnErrorDescription')}</small>
+          </InputCol>
+        </Row>
+        <Row>
+          <LabelCol>{_('esxiImportRepair')}</LabelCol>
+          <InputCol>
+            <Toggle onChange={this.toggleState('repair')} value={repair} />
+            <small className='form-text text-muted'>{_('esxiImportRepairDescription')}</small>
           </InputCol>
         </Row>
         <Row>
