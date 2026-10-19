@@ -18,6 +18,7 @@ export const useInternalNetworkCreateJob = defineJob('internal-network.create', 
         nameDescription: payload.description,
         mtu: payload.mtu,
         nbd: payload.nbd,
+        insecureNbd: payload.insecureNbd,
       })
 
       return xapi.getField<XenApiNetwork['uuid']>('network', networkRef, 'uuid')

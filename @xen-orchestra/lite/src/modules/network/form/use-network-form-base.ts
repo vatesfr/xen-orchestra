@@ -12,11 +12,14 @@ import { useValidatedForm } from '@core/packages/validated-form'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+// 'nbd': NBD over TLS, 'insecure-nbd': NBD in clear, only on a network dedicated to backups
+export type NetworkNbdMode = 'none' | 'nbd' | 'insecure-nbd'
+
 export type BaseNetworkFormData = {
   name: string
   description: string
   mtu: number | undefined
-  nbd: boolean
+  nbd: NetworkNbdMode
 }
 
 export function useNetworkFormBase<T extends BaseNetworkFormData>(formData: T, extraConfig?: FormValidationConfig<T>) {
@@ -65,8 +68,10 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(formData: T, e
       payload.mtu = formData.mtu
     }
 
-    if (formData.nbd) {
-      payload.nbd = formData.nbd
+    if (formData.nbd === 'nbd') {
+      payload.nbd = true
+    } else if (formData.nbd === 'insecure-nbd') {
+      payload.insecureNbd = true
     }
 
     return payload
@@ -81,6 +86,6 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(formData: T, e
     nameInputBindings: useField('name', () => ({ label: t('name'), required: true })),
     descriptionInputBindings: useField('description'),
     mtuInputBindings: useField('mtu', () => ({ label: t('mtu'), info: t('mtu-default-value-message') })),
-    nbdCheckboxBindings: useField('nbd'),
+    nbdRadioBindings: useField('nbd'),
   }
 }

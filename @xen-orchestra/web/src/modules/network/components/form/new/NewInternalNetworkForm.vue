@@ -9,7 +9,7 @@
       <NewNetworkDescriptionTextarea v-bind="descriptionInputBindings" />
     </div>
     <div class="nbd">
-      <NewNetworkNbdCheckbox v-bind="nbdCheckboxBindings" />
+      <NewNetworkNbdRadio v-bind="nbdRadioBindings" />
     </div>
     <NewNetworkButtonsSection :cancel-to :submit-label="t('action:create-internal-network')" />
   </form>
@@ -20,7 +20,7 @@ import NetworkFormNumberInput from '@/modules/network/components/form/new/inputs
 import NetworkFormSelect from '@/modules/network/components/form/new/inputs/NetworkFormSelect.vue'
 import NetworkFormTextInput from '@/modules/network/components/form/new/inputs/NetworkFormTextInput.vue'
 import NewNetworkDescriptionTextarea from '@/modules/network/components/form/new/inputs/NewNetworkDescriptionTextarea.vue'
-import NewNetworkNbdCheckbox from '@/modules/network/components/form/new/inputs/NewNetworkNbdCheckbox.vue'
+import NewNetworkNbdRadio from '@/modules/network/components/form/new/inputs/NewNetworkNbdRadio.vue'
 import NewNetworkButtonsSection from '@/modules/network/components/form/new/NewNetworkButtonsSection.vue'
 import { useNewInternalNetworkForm } from '@/modules/network/form/new-internal/use-new-internal-network-form.ts'
 import type { NewInternalNetworkPayload } from '@/modules/network/jobs/xo-internal-network-create.job.ts'
@@ -44,7 +44,7 @@ const {
   nameInputBindings,
   mtuInputBindings,
   descriptionInputBindings,
-  nbdCheckboxBindings,
+  nbdRadioBindings,
   validateAndBuildPayload,
 } = useNewInternalNetworkForm(() => poolId)
 
