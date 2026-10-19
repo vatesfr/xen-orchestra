@@ -1046,7 +1046,10 @@ const messages = {
   networkAutomaticTooltip: 'Network(s) selected by default for new VMs',
   noNbdConnection: 'No NBD Connection',
   nbdConnection: 'NBD Connection',
-  insecureNbdConnection: 'Insecure NBD Connection (not allowed through XO)',
+  insecureNbdConnection: 'Insecure NBD Connection (not encrypted)',
+  insecureNbdConfirmTitle: 'Enable insecure NBD?',
+  insecureNbdConfirmBody:
+    'The disk data of the backups will travel unencrypted on this network. Only enable it on a network dedicated to backups and isolated from the VMs and the users (dedicated VLAN or physical network).',
   // ----- Pool patches tab -----
   multiHostPoolUpdate: "Rolling pool update can only work when there's multiple hosts in a pool with a shared storage",
   nVmsRunningOnLocalStorage:

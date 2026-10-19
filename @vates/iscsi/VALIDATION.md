@@ -35,6 +35,11 @@ VM boot mechanics, and deployment specifics live elsewhere and aren't reproduced
    - Re-verified end-to-end after deploying the fix: same S3-backed boot scenario completed successfully
      (~5 min total, vs ~20-25s for the equivalent local-storage boot — S3 itself is slow, but the mount no
      longer wedges).
+   - Refined afterwards: the replacement used to happen as soon as the TCP connection was accepted, so any
+     peer reaching the port (a port scan, a failed CHAP login, a Discovery session) interrupted the session in
+     use. It now only happens once the new connection has established a Normal session; until then,
+     connections are bounded by `loginTimeoutMs` and `maxPendingConnections`. Regression tests:
+     `loopback.integ.mts`, `describe('connection admission', ...)`.
 
 ### Independently landed, cross-referenced against this pass's coverage
 

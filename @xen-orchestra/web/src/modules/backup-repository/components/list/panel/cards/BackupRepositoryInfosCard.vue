@@ -2,10 +2,10 @@
   <UiPanelCard class="backup-repository-infos-card">
     <UiPanelCardTitle
       :id="br.id"
-      size="medium"
       :label="br.name"
       :to="{ name: '/admin/backup-repository/[id]/general', params: { id: br.id } }"
       :icon="brIcon"
+      size="medium"
     />
     <div class="content">
       <VtsCardRowKeyValue>

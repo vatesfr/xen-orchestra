@@ -17,21 +17,29 @@ const INITIAL_FORM_DATA = {
   pathInContainer: '',
 }
 
-export function useAzureBackupRepositoryDetailsForm(rawType: MaybeRefOrGetter<BackupRepositoryType | undefined>) {
+export type AzureBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
+
+export function useAzureBackupRepositoryDetailsForm(
+  rawType: MaybeRefOrGetter<BackupRepositoryType | undefined>,
+  initialData?: Partial<AzureBackupRepositoryDetailsFormData>
+) {
   const { t } = useI18n()
 
   const type = toComputed(rawType)
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(INITIAL_FORM_DATA, {
-    errors: {
-      onSubmit: () => ({
-        hostName: { required },
-        accountName: { required },
-        key: { required },
-        containerName: { required },
-      }),
-    },
-  })
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+    { ...INITIAL_FORM_DATA, ...initialData },
+    {
+      errors: {
+        onSubmit: () => ({
+          hostName: { required },
+          accountName: { required },
+          key: { required },
+          containerName: { required },
+        }),
+      },
+    }
+  )
 
   const bindings = reactive({
     hostName: useField('hostName', () => ({ label: t('host-name'), required: true })),
