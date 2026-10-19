@@ -2,10 +2,10 @@ import { NFS_DEFAULT_PORT } from '@/modules/backup-repository/form/details/use-n
 import { SMB_DEFAULT_DOMAIN } from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
 import { useNewBackupRepositoryForm } from '@/modules/backup-repository/form/new/use-new-backup-repository-form.ts'
 import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
+import { dangerMessage } from '@/test/form-messages.ts'
+import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { type BackupRepositoryType, format as formatBackupRepositoryUrl } from 'xo-remote-parser'
 
 const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
@@ -19,11 +19,7 @@ vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), (
 }))
 
 function mountNewForm() {
-  return mountComposable(() => {
-    const { t } = useI18n()
-
-    return { ...useNewBackupRepositoryForm(), t }
-  }).wrapper.vm
+  return mountComposableWithI18n(() => useNewBackupRepositoryForm())
 }
 
 type NewForm = ReturnType<typeof mountNewForm>
@@ -111,9 +107,9 @@ describe('general', () => {
       await fillEncryptedGeneralStep(form, encryptionKey)
 
       expect(await form.general.validate()).toBe(false)
-      expect(form.general.bindings.encryptionKey.error).toMatchObject({
-        content: form.t('encryption-key-invalid', { n: 32 }),
-      })
+      expect(form.general.bindings.encryptionKey.error).toEqual(
+        dangerMessage(form.t('encryption-key-invalid', { n: 32 }))
+      )
     }
   )
 

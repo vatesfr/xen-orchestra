@@ -2,6 +2,7 @@ import {
   SMB_DEFAULT_DOMAIN,
   useSmbBackupRepositoryDetailsForm,
 } from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
+import { requiredMessage } from '@/test/form-messages.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { nextTick } from 'vue'
 
@@ -26,9 +27,9 @@ describe('validate', () => {
     const result = mountSmbForm()
 
     expect(await result.validate()).toBe(false)
-    expect(result.bindings.pathOnShare.error).toBeDefined()
-    expect(result.bindings.username.error).toBeDefined()
-    expect(result.bindings.password.error).toBeDefined()
+    expect(result.bindings.pathOnShare.error).toEqual(requiredMessage())
+    expect(result.bindings.username.error).toEqual(requiredMessage())
+    expect(result.bindings.password.error).toEqual(requiredMessage())
   })
 
   it('accepts a share with credentials, without subfolder, domain or custom options', async () => {

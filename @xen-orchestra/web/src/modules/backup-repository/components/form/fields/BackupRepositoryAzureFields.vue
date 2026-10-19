@@ -1,30 +1,30 @@
 <template>
   <div class="backup-repository-azure-fields">
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="bindings.hostName" />
-      <BackupRepositoryFormCheckbox v-if="isAzurite" v-bind="bindings.useHttps" />
+      <FormTextInput v-bind="bindings.hostName" />
+      <FormCheckbox v-if="isAzurite" v-bind="bindings.useHttps" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="bindings.accountName" />
-      <BackupRepositoryFormTextInput v-bind="bindings.key" />
+      <FormTextInput v-bind="bindings.accountName" />
+      <FormTextInput v-bind="bindings.key" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="bindings.containerName" />
+      <FormTextInput v-bind="bindings.containerName" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow wide>
-      <BackupRepositoryFormTextInput v-bind="bindings.pathInContainer" />
+      <FormTextInput v-bind="bindings.pathInContainer" />
     </BackupRepositoryFormRow>
   </div>
 </template>
 
 <script lang="ts" setup>
 import BackupRepositoryFormRow from '@/modules/backup-repository/components/form/BackupRepositoryFormRow.vue'
-import BackupRepositoryFormCheckbox from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormCheckbox.vue'
-import BackupRepositoryFormTextInput from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormTextInput.vue'
 import type { AzureBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-azure-backup-repository-details-form.ts'
+import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
+import FormTextInput from '@/shared/components/form/FormTextInput.vue'
 
 defineProps<{
   bindings: AzureBackupRepositoryDetailsForm['bindings']

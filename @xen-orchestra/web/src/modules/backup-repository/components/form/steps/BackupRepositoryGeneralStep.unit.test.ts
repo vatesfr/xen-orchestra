@@ -1,13 +1,13 @@
 import BackupRepositoryFormRow from '@/modules/backup-repository/components/form/BackupRepositoryFormRow.vue'
-import BackupRepositoryFormCheckbox from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormCheckbox.vue'
 import BackupRepositoryFormSelect from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormSelect.vue'
-import BackupRepositoryFormTextInput from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormTextInput.vue'
 import BackupRepositoryGeneralStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryGeneralStep.vue'
 import {
   type BackupRepositoryGeneralFormData,
   useBackupRepositoryGeneralForm,
 } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
+import FormTextInput from '@/shared/components/form/FormTextInput.vue'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
@@ -40,10 +40,7 @@ function mountGeneralStep(formData: Partial<BackupRepositoryGeneralFormData> = {
   return { wrapper, data }
 }
 
-function findLabels(
-  wrapper: VueWrapper,
-  component: typeof BackupRepositoryFormSelect | typeof BackupRepositoryFormTextInput
-) {
+function findLabels(wrapper: VueWrapper, component: typeof BackupRepositoryFormSelect | typeof FormTextInput) {
   return wrapper.findAllComponents(component).map(input => input.props('label'))
 }
 
@@ -60,7 +57,7 @@ it('splits the fields into a general information section and an options section'
 it('offers the name, type, backup format and proxy fields', () => {
   const { wrapper } = mountGeneralStep()
 
-  expect(findLabels(wrapper, BackupRepositoryFormTextInput)).toEqual([t('name')])
+  expect(findLabels(wrapper, FormTextInput)).toEqual([t('name')])
   expect(findLabels(wrapper, BackupRepositoryFormSelect)).toEqual([t('type'), t('backup-format'), t('proxy')])
 })
 
@@ -73,8 +70,8 @@ it('warns that the encryption is available for the block based format only', () 
 it('hides the encryption key until the encryption is enabled', () => {
   const { wrapper } = mountGeneralStep({ type: 's3', backupFormat: 'block' })
 
-  expect(wrapper.findComponent(BackupRepositoryFormCheckbox).exists()).toBe(true)
-  expect(findLabels(wrapper, BackupRepositoryFormTextInput)).not.toContain(t('key'))
+  expect(wrapper.findComponent(FormCheckbox).exists()).toBe(true)
+  expect(findLabels(wrapper, FormTextInput)).not.toContain(t('key'))
 })
 
 it('shows the encryption key on the same row as the encryption, once enabled', async () => {
@@ -85,9 +82,9 @@ it('shows the encryption key on the same row as the encryption, once enabled', a
 
   const encryptionRow = wrapper
     .findAllComponents(BackupRepositoryFormRow)
-    .find(row => row.findComponent(BackupRepositoryFormCheckbox).exists())
+    .find(row => row.findComponent(FormCheckbox).exists())
 
-  expect(findLabels(encryptionRow!, BackupRepositoryFormTextInput)).toEqual([t('key')])
+  expect(findLabels(encryptionRow!, FormTextInput)).toEqual([t('key')])
 })
 
 it('describes each backup format with its hint', async () => {
