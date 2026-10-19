@@ -1,7 +1,7 @@
 import type { VueWrapper } from '@vue/test-utils'
 
-// The parts of an `interpunct-list` are its children, the separators being CSS only
-export function findParts(wrapper: VueWrapper, selector: string) {
+// Each element an `InlineParts` lays out is one part, whatever its tag
+export function findParts(wrapper: Pick<VueWrapper, 'find'>, selector: string) {
   return wrapper
     .find(selector)
     .findAll(':scope > *')
