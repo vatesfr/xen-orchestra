@@ -318,7 +318,7 @@ export default class Xapi extends XapiBase {
       $defer(() => this.enableHost(hostId))
     }
 
-    const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached && pbd.$SR.shared)
+    const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached && pbd.$SR?.shared)
     await asyncMapSettled(pluggedPbds, async pbd => {
       const ref = pbd.$ref
       await this.unplugPbd(ref)
