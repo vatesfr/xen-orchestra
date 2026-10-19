@@ -1,6 +1,6 @@
 ---
 sidebar_label: Installation
-sidebar_position: 3
+sidebar_position: 1
 ---
 
 # Installing XOA
@@ -56,7 +56,7 @@ Once the VM is running, open its IP address in your browser. If you did not set 
 
 or check your router's DHCP leases for an `xoa` entry.
 
-- Default web UI credentials: `admin@admin.net` / `admin`. Change them right after the first login: create a new admin account and remove this one. If you ever lose your password, you can [reset the configuration](troubleshooting.md#reset-the-configuration) to get the default credentials back.
+- Default web UI credentials: `admin@admin.net` / `admin`. Change them right after the first login: create a new admin account and remove this one. If you ever lose your password, you can [reset the configuration](../support-and-reference/troubleshooting.md#reset-the-configuration) to get the default credentials back.
 - Console and SSH have **no default password**: you set one during deployment, or later [from the host](#first-console-connection).
 
 ## Register and start your trial {#registration}
@@ -73,7 +73,7 @@ To try everything XO can do, start the trial from the same view ("Start Trial", 
 
 <UiDetail src="/img/xoa/start-trial.png" alt="Starting the 30-day Premium trial" width={520} />
 
-When the trial ends, the appliance keeps working and simply returns to the Free feature set: you lose no data and no configuration. For system-level settings of the appliance (firewall, NTP, service restart), see [the XOA appliance settings](configuration.md#xoa-appliance).
+When the trial ends, the appliance keeps working and simply returns to the Free feature set: you lose no data and no configuration. For system-level settings of the appliance (firewall, NTP, service restart), see [the XOA appliance settings](../setup-and-config/configuration.md#xoa-appliance).
 
 ## Alternative deployment methods {#alternative-install}
 

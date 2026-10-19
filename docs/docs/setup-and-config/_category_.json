@@ -1,0 +1,9 @@
+{
+  "label": "XO 6 setup & config",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "slug": "/category/setup-and-config",
+    "description": "Install, configure, update and maintain your Xen Orchestra"
+  }
+}
