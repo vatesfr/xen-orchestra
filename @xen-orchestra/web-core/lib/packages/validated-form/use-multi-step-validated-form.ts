@@ -10,6 +10,7 @@ import type { EmptyObject } from '@core/types/utility.type.ts'
 import { computed, reactive, ref, shallowReactive, type ComputedRef, type MaybeRefOrGetter } from 'vue'
 import {
   useValidatedForm,
+  type FieldIdentity,
   type FieldMetadata,
   type ModelBinding,
   type UseFormSelectConfig,
@@ -59,6 +60,8 @@ export function useMultiStepValidatedForm<
   const stepValidStates = shallowReactive(new Map<keyof TSteps, boolean>())
   const isValidating = ref(false)
 
+  const errorSummary = computed(() => stepForms[currentStep.value].errorSummary.value)
+
   const areAllStepsValid = computed(
     () => stepKeys.length === stepValidStates.size && [...stepValidStates.values()].every(Boolean)
   )
@@ -81,7 +84,7 @@ export function useMultiStepValidatedForm<
     isValidating.value = true
 
     try {
-      const results = await Promise.all(stepKeys.map(key => stepForms[key].validate()))
+      const results = await Promise.all(stepKeys.map(key => stepForms[key].validate({ focus: false })))
       stepValidStates.clear()
       stepKeys.forEach((key, index) => stepValidStates.set(key, results[index]))
       return results.every(Boolean)
@@ -124,11 +127,13 @@ export function useMultiStepValidatedForm<
     return stepKey
   }
 
-  function useField<K extends FlatKeys<TData>>(key: K): ComputedRef<ModelBinding<FieldValue<TData, K>> & FieldMetadata>
+  function useField<K extends FlatKeys<TData>>(
+    key: K
+  ): ComputedRef<ModelBinding<FieldValue<TData, K>> & FieldIdentity & FieldMetadata>
   function useField<K extends FlatKeys<TData>, E extends Record<string, unknown>>(
     key: K,
     extras: () => E
-  ): ComputedRef<ModelBinding<FieldValue<TData, K>> & FieldMetadata & E>
+  ): ComputedRef<ModelBinding<FieldValue<TData, K>> & FieldIdentity & FieldMetadata & E>
   function useField<K extends FlatKeys<TData>, E extends Record<string, unknown>>(key: K, extras?: () => E): unknown {
     const stepKey = resolveStepFromField(key)
     const stepForm = stepForms[stepKey] as StepForms<TData>[keyof TData] & {
@@ -204,6 +209,7 @@ export function useMultiStepValidatedForm<
     isValidating,
     validateStep,
     validateAllSteps,
+    errorSummary,
   }
 }
 

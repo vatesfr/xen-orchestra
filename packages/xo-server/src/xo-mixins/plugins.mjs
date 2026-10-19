@@ -292,6 +292,7 @@ export default class {
         log.info('plugin not configured after its configuration was deleted', { error, plugin: id })
       }
     }
+
     await this._touchPlugin(id)
   }
 
