@@ -302,7 +302,7 @@ export default class Xapi extends XapiBase {
     // Unplugging a shared SR would break running VMs with disks on it, the
     // user must migrate them first.
     const vmsOnSharedSrs = host.$resident_VMs.filter(
-      vm => !vm.is_control_domain && vm.$VBDs.some(vbd => vbd.$VDI?.$SR.shared)
+      vm => !vm.is_control_domain && vm.$VBDs.some(vbd => vbd.$VDI?.$SR?.shared)
     )
     if (vmsOnSharedSrs.length !== 0) {
       throw forbiddenOperation(
