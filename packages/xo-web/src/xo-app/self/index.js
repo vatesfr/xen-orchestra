@@ -325,7 +325,7 @@ export class Edit extends Component {
 
   _onRemoveTag = tag =>
     this.setState(prevState => ({
-      tags: prevState.tags.filter(_tag => tag === _tag),
+      tags: prevState.tags.filter(_tag => tag !== _tag),
     }))
 
   _onAddTag = tag =>

@@ -166,6 +166,7 @@ export const SenseKey = {
   HARDWARE_ERROR: 0x04,
   ILLEGAL_REQUEST: 0x05,
   UNIT_ATTENTION: 0x06,
+  DATA_PROTECT: 0x07,
 } as const
 
 /** Additional Sense Code / Qualifier pairs we may emit. */
@@ -174,6 +175,7 @@ export const Asc = {
   INVALID_COMMAND_OPERATION_CODE: { asc: 0x20, ascq: 0x00 },
   INVALID_FIELD_IN_CDB: { asc: 0x24, ascq: 0x00 },
   LOGICAL_BLOCK_ADDRESS_OUT_OF_RANGE: { asc: 0x21, ascq: 0x00 },
+  WRITE_PROTECTED: { asc: 0x27, ascq: 0x00 },
 } as const
 
 /** Reject reason codes (Reject PDU byte 2). */

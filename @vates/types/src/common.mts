@@ -663,6 +663,19 @@ export const SUPPORTED_VDI_FORMAT = {
 
 export type SUPPORTED_VDI_FORMAT = (typeof SUPPORTED_VDI_FORMAT)[keyof typeof SUPPORTED_VDI_FORMAT]
 
+/**
+ * Formats a VDI can be exported to by XO: the XAPI ones, plus the ones XO generates
+ * itself from the blocks of the disk.
+ */
+export const SUPPORTED_VDI_EXPORT_FORMAT = {
+  raw: 'raw',
+  vhd: 'vhd',
+  qcow2: 'qcow2',
+  vmdk: 'vmdk',
+} as const
+
+export type SUPPORTED_VDI_EXPORT_FORMAT = (typeof SUPPORTED_VDI_EXPORT_FORMAT)[keyof typeof SUPPORTED_VDI_EXPORT_FORMAT]
+
 // ----- XAPI Stats
 
 type XapiStatsResponse<T> = {
@@ -800,3 +813,7 @@ export const XAPI_TYPES: readonly string[] = [
 export const RPU_RECOVERY_STEP_NAMES = ['evacuate', 'update', 'reboot', 'enable', 'restoreVms'] as const
 
 export type RPU_RECOVERY_STEP_NAME = (typeof RPU_RECOVERY_STEP_NAMES)[number]
+
+export const COMMON_TAG = {
+  NOBAK: 'xo:no-bak',
+} as const

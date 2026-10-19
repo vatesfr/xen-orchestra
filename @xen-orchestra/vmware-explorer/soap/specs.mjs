@@ -24,6 +24,58 @@ export const RETRIEVE_OPTIONS = Object.freeze(['maxObjects'])
 // missing`, naming a parameter which was in fact sent
 export const QUERY_CHANGED_DISK_AREAS = Object.freeze(['_this', 'snapshot', 'deviceKey', 'startOffset', 'changeId'])
 
+// only the part of the sequence this package sends: the whole type counts dozens of elements, an
+// element added here must be inserted at its place in the schema
+export const VIRTUAL_MACHINE_CONFIG_SPEC = Object.freeze(['deviceChange'])
+
+export const VIRTUAL_DEVICE_CONFIG_SPEC = Object.freeze([
+  'operation',
+  'fileOperation',
+  'device',
+  'profile',
+  'backing',
+  'filterSpec',
+  'changeMode',
+])
+
+// the elements of VirtualDevice, then the first ones of VirtualDisk: `capacityInKB` is not optional
+// in the schema, even for a disk whose file already exists
+export const VIRTUAL_DISK = Object.freeze([
+  'key',
+  'deviceInfo',
+  'backing',
+  'connectable',
+  'slotInfo',
+  'controllerKey',
+  'unitNumber',
+  'numaNode',
+  'deviceGroupInfo',
+  'capacityInKB',
+  'capacityInBytes',
+])
+
+// the elements of VirtualDeviceFileBackingInfo, then the ones of VirtualDiskFlatVer2BackingInfo
+export const VIRTUAL_DISK_FLAT_VER2_BACKING_INFO = Object.freeze([
+  'fileName',
+  'datastore',
+  'backingObjectId',
+  'diskMode',
+  'split',
+  'writeThrough',
+  'thinProvisioned',
+  'eagerlyScrub',
+  'uuid',
+  'contentId',
+  'changeId',
+  'parent',
+  'deltaDiskFormat',
+  'digestEnabled',
+  'deltaGrainSize',
+  'deltaDiskFormatVariant',
+  'sharing',
+  'keyId',
+])
+
 /**
  * A managed object reference.
  *
@@ -95,4 +147,20 @@ export function retrieveOptions(values) {
  */
 export function queryChangedDiskAreasArgs(values) {
   return orderedChildren(QUERY_CHANGED_DISK_AREAS, undefined, values)
+}
+
+export function virtualMachineConfigSpec(values) {
+  return orderedChildren(VIRTUAL_MACHINE_CONFIG_SPEC, 'VirtualMachineConfigSpec', values)
+}
+
+export function virtualDeviceConfigSpec(values) {
+  return orderedChildren(VIRTUAL_DEVICE_CONFIG_SPEC, 'VirtualDeviceConfigSpec', values)
+}
+
+export function virtualDisk(values) {
+  return orderedChildren(VIRTUAL_DISK, 'VirtualDisk', values)
+}
+
+export function virtualDiskFlatVer2BackingInfo(values) {
+  return orderedChildren(VIRTUAL_DISK_FLAT_VER2_BACKING_INFO, 'VirtualDiskFlatVer2BackingInfo', values)
 }

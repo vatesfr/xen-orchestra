@@ -145,8 +145,16 @@ describe('response encoders', () => {
   it('advertises supported VPD pages and rejects unknown ones', () => {
     const page00 = buildVpd(0x00, IDENTITY)
     assert.ok(page00 !== undefined)
-    assert.deepEqual([...page00.subarray(4)], [0x00, 0x80, 0x83])
+    assert.deepEqual([...page00.subarray(4)], [0x00, 0x80, 0x83, 0xb0])
     assert.equal(buildVpd(0x55, IDENTITY), undefined)
+  })
+
+  it('advertises the max transfer length in the block limits page', () => {
+    const page = buildVpd(0xb0, IDENTITY, 2048)
+    assert.ok(page !== undefined)
+    assert.equal(page[1], 0xb0)
+    assert.equal(page.readUInt16BE(2), 0x3c)
+    assert.equal(page.readUInt32BE(8), 2048)
   })
 })
 
@@ -233,5 +241,62 @@ describe('handleScsiCommand', () => {
     await handleScsiCommand(cdb(0xff), 1, ctx, IDENTITY)
     assert.equal(ctx.responses[0].status, ScsiStatus.CHECK_CONDITION)
     assert.equal(ctx.responses[0].options?.sense?.[12], 0x20) // INVALID COMMAND OPERATION CODE
+  })
+
+  for (const [name, opcode] of [
+    ['READ(10)', 0x28],
+    ['WRITE(10)', 0x2a],
+  ] as const) {
+    it(`refuses a ${name} longer than the max transfer length, without reading or soliciting data`, async () => {
+      let reads = 0
+      const lun = new MemoryBlockDevice(8192)
+      const read = lun.read.bind(lun)
+      lun.read = (offset, length) => {
+        reads++
+        return read(offset, length)
+      }
+      const ctx = new FakeContext(lun)
+      const buffer = Buffer.alloc(16)
+      buffer[0] = opcode
+      buffer.writeUInt16BE(3, 7) // 3 blocks, the limit is 2
+      await handleScsiCommand(buffer, 1, ctx, IDENTITY, 1024)
+      assert.equal(ctx.responses[0].status, ScsiStatus.CHECK_CONDITION)
+      assert.equal(ctx.responses[0].options?.sense?.[2], SenseKey.ILLEGAL_REQUEST)
+      assert.equal(ctx.responses[0].options?.sense?.[12], 0x24) // INVALID FIELD IN CDB
+      assert.equal(reads, 0)
+      assert.equal(ctx.writes.length, 0)
+    })
+  }
+
+  describe('read-only LUN', () => {
+    class ReadOnlyBlockDevice extends MemoryBlockDevice {
+      readonly readOnly = true
+    }
+
+    it('refuses WRITE(10) with DATA PROTECT, without soliciting its data', async () => {
+      const ctx = new FakeContext(new ReadOnlyBlockDevice(4096))
+      const buffer = Buffer.alloc(16)
+      buffer[0] = 0x2a
+      buffer.writeUInt16BE(1, 7)
+      await handleScsiCommand(buffer, 1, ctx, IDENTITY)
+      assert.equal(ctx.writes.length, 0)
+      assert.equal(ctx.responses[0].status, ScsiStatus.CHECK_CONDITION)
+      assert.equal(ctx.responses[0].options?.sense?.[2], SenseKey.DATA_PROTECT)
+      assert.equal(ctx.responses[0].options?.sense?.[12], 0x27) // WRITE PROTECTED
+    })
+
+    it('reports write protection in MODE SENSE(6) and MODE SENSE(10)', async () => {
+      const ctx = new FakeContext(new ReadOnlyBlockDevice(4096))
+      await handleScsiCommand(cdb(0x1a, 0x00, 0x3f, 0x00, 255), 1, ctx, IDENTITY)
+      await handleScsiCommand(cdb(0x5a, 0x00, 0x3f, 0, 0, 0, 0, 0x01, 0x00), 2, ctx, IDENTITY)
+      assert.equal(ctx.reads[0].data[2] & 0x80, 0x80)
+      assert.equal(ctx.reads[1].data[3] & 0x80, 0x80)
+    })
+
+    it('does not report a writable LUN as write-protected', async () => {
+      const ctx = new FakeContext(new MemoryBlockDevice(4096))
+      await handleScsiCommand(cdb(0x1a, 0x00, 0x3f, 0x00, 255), 1, ctx, IDENTITY)
+      assert.equal(ctx.reads[0].data[2] & 0x80, 0)
+    })
   })
 })

@@ -10,7 +10,7 @@ export type ResourceContext<TArgs extends any[]> = {
   isEnabled: Ref<boolean>
   enable: () => void
   disable: () => void
-  forceReload: () => void
+  forceReload: () => Promise<void>
 }
 
 export type UseRemoteResource<TState, TArgs extends any[]> = (
