@@ -90,6 +90,7 @@
 - [Servers] Fix a pool left in a broken state when its connection was lost twice in a row within 5 minutes (e.g. during a toolstack restart): it could be displayed as connecting while connected and its objects could no longer be acted upon, or it would never be reconnected automatically (PR [#10577](https://github.com/vatesfr/xen-orchestra/pull/10577))
 - [Swagger] Fixed a typo in the VM collection: `xentools` → `xenTools`, and added a missing type to the server collection `poolMembersAddresses` [#10514](https://github.com/vatesfr/xen-orchestra/issues/10514) (PR [#10598](https://github.com/vatesfr/xen-orchestra/pull/10598))
 - [VM/console] Fix opening console in new tab (PR [#10616](https://github.com/vatesfr/xen-orchestra/pull/10616))
+- [Host] Enabling multipathing on hosts only disconnects shared SRs, local storage SRs stay connected(PR [#10592](https://github.com/vatesfr/xen-orchestra/pull/10592))
 
 ### Packages to release
 
