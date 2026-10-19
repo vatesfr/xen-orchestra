@@ -225,6 +225,13 @@ expect(
 
 Pushing before mounting is what makes the active tab assertable; without a push the router sits at its start location and nothing is active.
 
+## Selects
+
+How `FormSelect` and `VtsSelect` render and open their options belongs to the web-core tests, never to an XO 6 one:
+
+- A component that only passes select bindings on is mounted with `createGlobalTestConfig({ stubs: { FormSelect: true } })`, given `createSelectBindings`, and read with `findSelectStubLabels`.
+- The options a form builds (their labels, their custom properties) are read by mounting the form with `mountWithSelect`, rendering a `VtsSelect` for its select, then `openSelect` and `findSelectOptionLabels`.
+
 ## What `happy-dom` cannot do
 
 There is no layout engine, and Vitest's `css` option is off, so component styles are never loaded. Out of reach:

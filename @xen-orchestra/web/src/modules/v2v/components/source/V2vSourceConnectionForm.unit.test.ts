@@ -2,12 +2,12 @@ import V2vPrerequisiteStatus from '@/modules/v2v/components/source/V2vPrerequisi
 import V2vSourceConnectionForm from '@/modules/v2v/components/source/V2vSourceConnectionForm.vue'
 import { useV2vConnectionForm } from '@/modules/v2v/form/use-v2v-connection-form.ts'
 import FormTextInput from '@/shared/components/form/FormTextInput.vue'
+import { findInputLabels } from '@/test/find-input-labels.ts'
 import { findInputMessages } from '@/test/find-input-messages.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { flushPromises, mount } from '@vue/test-utils'
@@ -48,12 +48,7 @@ it('shows the prerequisite check', () => {
 it('asks for the host, port, username and password, all required', () => {
   const wrapper = mountConnectionForm()
 
-  expect(wrapper.findAllComponents(VtsInputWrapper).map(field => field.props('label'))).toEqual([
-    t('host'),
-    t('port'),
-    t('username'),
-    t('password'),
-  ])
+  expect(findInputLabels(wrapper)).toEqual([t('host'), t('port'), t('username'), t('password')])
   expect(wrapper.findAllComponents(UiInput).map(input => input.props('required'))).toEqual([true, true, true, true])
 })
 

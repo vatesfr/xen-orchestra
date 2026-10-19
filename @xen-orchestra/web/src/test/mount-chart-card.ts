@@ -23,6 +23,6 @@ export type ChartCardProps<TStats> = {
 export function mountChartCard<TStats>(component: Component, props: ChartCardProps<TStats>) {
   return mount(component, {
     props: { loading: false, ...props },
-    global: { ...createGlobalTestConfig(), stubs: { VtsLinearChart: VtsLinearChartStub } },
+    global: createGlobalTestConfig({ stubs: { VtsLinearChart: VtsLinearChartStub } }),
   })
 }
