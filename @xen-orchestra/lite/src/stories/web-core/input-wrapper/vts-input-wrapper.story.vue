@@ -7,6 +7,10 @@
       prop('message').type('InputWrapperMessage').widget(object()).preset([]).help('See presets'),
       slot(),
       slot('label').help('Can be used in place of label prop'),
+      slot('message')
+        .prop('content', 'string')
+        .prop('accent', 'InfoAccent')
+        .help('Can be used to customize the content of each message'),
     ]"
     :presets
   >

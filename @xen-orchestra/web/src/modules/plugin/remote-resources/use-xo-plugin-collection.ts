@@ -6,13 +6,14 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import type { XoPlugin } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 
-export type FrontXoPlugin = Omit<
-  Pick<XoPlugin, (typeof pluginFields)[number]>,
-  'configurationSchema' | 'testSchema'
-> & {
-  configurationSchema?: JsonSchema
-  testSchema?: JsonSchema
-}
+export type ToFrontXoPlugin<TPlugin extends XoPlugin> = TPlugin extends XoPlugin
+  ? Omit<Pick<TPlugin, (typeof pluginFields)[number]>, 'configurationSchema' | 'testSchema'> & {
+      configurationSchema?: JsonSchema
+      testSchema?: JsonSchema
+    }
+  : never
+
+export type FrontXoPlugin = ToFrontXoPlugin<XoPlugin>
 
 const pluginFields = [
   'id',

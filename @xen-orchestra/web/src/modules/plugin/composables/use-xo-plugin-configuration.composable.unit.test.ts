@@ -47,19 +47,23 @@ beforeEach(() => {
 const configurationSchema = {
   type: 'object',
   properties: {
-    host: { type: 'string' },
-    port: { type: 'integer', default: 25 },
+    from: { type: 'object', properties: { address: { type: 'string' } }, required: ['address'] },
+    transport: {
+      type: 'object',
+      properties: { host: { type: 'string' }, port: { type: 'integer', default: 25 } },
+      required: ['host'],
+    },
   },
-  required: ['host'],
+  required: ['from', 'transport'],
 } satisfies JsonSchema
+
+const savedConfiguration = { from: { address: 'xo@example.org' }, transport: { host: 'smtp.example.org', port: 587 } }
+
+const editedConfiguration = { from: { address: 'xo@example.org' }, transport: { host: 'smtp.example.net' } }
 
 const unconfiguredPlugin = createPlugin({ configurationSchema, configuration: undefined, configured: false })
 
-const configuredPlugin = createPlugin({
-  configurationSchema,
-  configuration: { host: 'smtp.example.org', port: 587 },
-  configured: true,
-})
+const configuredPlugin = createPlugin({ configurationSchema, configuration: savedConfiguration, configured: true })
 
 function mountConfiguration(plugin: MaybeRefOrGetter<FrontXoPlugin>) {
   return mountComposable(() => useXoPluginConfiguration(plugin)).wrapper.vm
@@ -71,11 +75,11 @@ async function confirmDeletion() {
 
 describe('formValue', () => {
   it('is the saved configuration', () => {
-    expect(mountConfiguration(configuredPlugin).formValue).toEqual({ host: 'smtp.example.org', port: 587 })
+    expect(mountConfiguration(configuredPlugin).formValue).toEqual(savedConfiguration)
   })
 
   it('is the defaults of the schema when nothing is saved', () => {
-    expect(mountConfiguration(unconfiguredPlugin).formValue).toEqual({ port: 25 })
+    expect(mountConfiguration(unconfiguredPlugin).formValue).toEqual({ transport: { port: 25 } })
   })
 
   it('is the configuration sent when saving', async () => {
@@ -85,11 +89,11 @@ describe('formValue', () => {
       sentConfiguration = toValue(useConfigureJob.mock.calls[0][1])
     })
     const configuration = mountConfiguration(configuredPlugin)
-    configuration.formValue = { host: 'smtp.example.net', port: 587 }
+    configuration.formValue = editedConfiguration
 
     await configuration.save()
 
-    expect(sentConfiguration).toEqual({ host: 'smtp.example.net', port: 587 })
+    expect(sentConfiguration).toEqual(editedConfiguration)
   })
 })
 
@@ -101,7 +105,7 @@ describe('isDirty', () => {
   it('is true once the configuration is edited', () => {
     const configuration = mountConfiguration(configuredPlugin)
 
-    configuration.formValue = { host: 'smtp.example.net' }
+    configuration.formValue = editedConfiguration
 
     expect(configuration.isDirty).toBe(true)
   })
@@ -110,12 +114,12 @@ describe('isDirty', () => {
 describe('reset', () => {
   it('discards the edits', () => {
     const configuration = mountConfiguration(configuredPlugin)
-    configuration.formValue = { host: 'smtp.example.net' }
+    configuration.formValue = editedConfiguration
 
     configuration.reset()
 
     expect({ formValue: configuration.formValue, isDirty: configuration.isDirty }).toEqual({
-      formValue: { host: 'smtp.example.org', port: 587 },
+      formValue: savedConfiguration,
       isDirty: false,
     })
   })
@@ -140,12 +144,19 @@ describe('save', () => {
       isSaved: configuration.isSaved,
       runs: jobs.configure.run.mock.calls.length,
       missingPaths: configuration.summaryErrors.map(error => error.path),
-    }).toEqual({ isSaved: false, runs: 0, missingPaths: [['host']] })
+    }).toEqual({
+      isSaved: false,
+      runs: 0,
+      missingPaths: [
+        ['from', 'address'],
+        ['transport', 'host'],
+      ],
+    })
   })
 
   it('saves a valid configuration and keeps no edit', async () => {
     const configuration = mountConfiguration(unconfiguredPlugin)
-    configuration.formValue = { host: 'smtp.example.org', port: 25 }
+    configuration.formValue = savedConfiguration
 
     await configuration.save()
 
@@ -159,12 +170,12 @@ describe('save', () => {
   it('displays the saved configuration until the plugin update is received', async () => {
     const plugin = ref(unconfiguredPlugin)
     const configuration = mountConfiguration(plugin)
-    configuration.formValue = { host: 'smtp.example.org', port: 587 }
+    configuration.formValue = savedConfiguration
 
     await configuration.save()
 
     expect({ formValue: configuration.formValue, canSave: configuration.canSave }).toEqual({
-      formValue: { host: 'smtp.example.org', port: 587 },
+      formValue: savedConfiguration,
       canSave: false,
     })
   })
@@ -172,27 +183,27 @@ describe('save', () => {
   it('displays the configuration of the plugin once its update is received', async () => {
     const plugin = ref(unconfiguredPlugin)
     const configuration = mountConfiguration(plugin)
-    configuration.formValue = { host: 'smtp.example.org', port: 587 }
+    configuration.formValue = savedConfiguration
     await configuration.save()
 
-    plugin.value = { ...unconfiguredPlugin, configuration: { host: 'smtp.example.net', port: 25 }, configured: true }
+    plugin.value = { ...unconfiguredPlugin, configuration: editedConfiguration, configured: true }
     await nextTick()
 
-    expect(configuration.formValue).toEqual({ host: 'smtp.example.net', port: 25 })
+    expect(configuration.formValue).toEqual(editedConfiguration)
   })
 
   it('keeps the edits and the error when the configuration is rejected', async () => {
     const error = new Error('invalid configuration')
     jobs.configure.run.mockRejectedValue(error)
     const configuration = mountConfiguration(configuredPlugin)
-    configuration.formValue = { host: 'smtp.example.net' }
+    configuration.formValue = editedConfiguration
 
     await configuration.save()
 
     expect({ isSaved: configuration.isSaved, error: configuration.error, formValue: configuration.formValue }).toEqual({
       isSaved: false,
       error,
-      formValue: { host: 'smtp.example.net' },
+      formValue: editedConfiguration,
     })
   })
 })
@@ -200,10 +211,10 @@ describe('save', () => {
 describe('isSaved', () => {
   it('is cleared by the next edit', async () => {
     const configuration = mountConfiguration(configuredPlugin)
-    configuration.formValue = { host: 'smtp.example.net' }
+    configuration.formValue = editedConfiguration
     await configuration.save()
 
-    configuration.formValue = { host: 'smtp.example.com' }
+    configuration.formValue = { ...editedConfiguration, transport: { host: 'smtp.example.com' } }
 
     expect(configuration.isSaved).toBe(false)
   })
@@ -217,7 +228,7 @@ describe('canSave', () => {
   it('is true for an edited configuration', () => {
     const configuration = mountConfiguration(configuredPlugin)
 
-    configuration.formValue = { host: 'smtp.example.net' }
+    configuration.formValue = editedConfiguration
 
     expect(configuration.canSave).toBe(true)
   })
@@ -278,7 +289,7 @@ describe('isBusy', () => {
 describe('deleteConfiguration', () => {
   it('deletes the configuration once confirmed, and discards the edits', async () => {
     const configuration = mountConfiguration(configuredPlugin)
-    configuration.formValue = { host: 'smtp.example.net' }
+    configuration.formValue = editedConfiguration
 
     configuration.deleteConfiguration()
     await confirmDeletion()
@@ -293,7 +304,7 @@ describe('deleteConfiguration', () => {
     const error = new Error('request failed')
     jobs.deleteConfiguration.run.mockRejectedValue(error)
     const configuration = mountConfiguration(configuredPlugin)
-    configuration.formValue = { host: 'smtp.example.net' }
+    configuration.formValue = editedConfiguration
 
     configuration.deleteConfiguration()
     await confirmDeletion()
@@ -303,7 +314,7 @@ describe('deleteConfiguration', () => {
 
   it('clears the success of the previous save', async () => {
     const configuration = mountConfiguration(configuredPlugin)
-    configuration.formValue = { host: 'smtp.example.net' }
+    configuration.formValue = editedConfiguration
     await configuration.save()
 
     configuration.deleteConfiguration()

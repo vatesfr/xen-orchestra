@@ -29,7 +29,9 @@ beforeEach(() => {
   openModal.mockReset()
 })
 
-const plugin = createPlugin({ name: 'Email transport', configuration: { host: 'smtp.example.org' } })
+const plugin = createPlugin({
+  configuration: { from: { address: 'xo@example.org' }, transport: { host: 'smtp.example.org' } },
+})
 
 function mountDelete() {
   const onSuccess = vi.fn()
@@ -53,7 +55,7 @@ it('asks to confirm the deletion of the configuration of the plugin', () => {
   result.deleteConfiguration()
 
   expect(openModal.mock.calls[0][0].props).toEqual({
-    subject: result.t('plugin:configuration-of', { name: 'Email transport' }),
+    subject: result.t('plugin:configuration-of', { name: 'transport-email' }),
     description: result.t('plugin:delete-configuration-info'),
     confirmLabel: result.t('action:delete-configuration'),
   })

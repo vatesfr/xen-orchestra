@@ -1,39 +1,26 @@
-import { parseSchemaDescription } from '@/modules/plugin/json-schema-form/json-schema-description.util.ts'
+import {
+  parseSchemaDescription,
+  splitCodeSpans,
+} from '@/modules/plugin/json-schema-form/json-schema-description.util.ts'
 
 describe('parseSchemaDescription', () => {
   it.each([undefined, '', '  \n\n  '])('returns no text for the description %j', description => {
     expect(parseSchemaDescription(description)).toEqual({ text: undefined, exampleGroups: [] })
   })
 
-  it('joins the paragraphs and removes the code spans', () => {
+  it('joins the paragraphs and keeps the code spans', () => {
     expect(parseSchemaDescription('Paths to CA.\n\nFor AD, it can also be `<user>@<domain>`.')).toEqual({
-      text: 'Paths to CA. For AD, it can also be <user>@<domain>.',
+      text: 'Paths to CA. For AD, it can also be `<user>@<domain>`.',
       exampleGroups: [],
     })
   })
 
-  it('extracts inline examples', () => {
+  it('keeps the inline examples in the text', () => {
     expect(
-      parseSchemaDescription(
-        'Attribute used to find the members. e.g.: `memberUid`. The values must reference the user IDs'
-      )
+      parseSchemaDescription('Field to use as the XO username (e.g. `displayName`, `username` or `email`)')
     ).toEqual({
-      text: 'Attribute used to find the members. The values must reference the user IDs',
-      exampleGroups: [{ values: ['memberUid'] }],
-    })
-  })
-
-  it('extracts inline examples without colon, whatever their case', () => {
-    expect(parseSchemaDescription('Port of the server, E.g. `389`')).toEqual({
-      text: 'Port of the server,',
-      exampleGroups: [{ values: ['389'] }],
-    })
-  })
-
-  it('lists the inline examples before the lists of examples', () => {
-    expect(parseSchemaDescription('Attribute, e.g. `uid`\n\nOr:\n\n- `cn`')).toEqual({
-      text: 'Attribute,',
-      exampleGroups: [{ values: ['uid'] }, { caption: 'Or:', values: ['cn'] }],
+      text: 'Field to use as the XO username (e.g. `displayName`, `username` or `email`)',
+      exampleGroups: [],
     })
   })
 
@@ -69,5 +56,22 @@ For Microsoft Active Directory:
 
   it('keeps a list without code spans as text', () => {
     expect(parseSchemaDescription('Options:\n\n- first\n- second').text).toBe('Options: - first - second')
+  })
+})
+
+describe('splitCodeSpans', () => {
+  it('splits the text around the code spans', () => {
+    expect(splitCodeSpans('Must be unique. e.g.: `dn` or `uid`')).toEqual([
+      { text: 'Must be unique. e.g.: ', isCode: false },
+      { text: 'dn', isCode: true },
+      { text: ' or ', isCode: false },
+      { text: 'uid', isCode: true },
+    ])
+  })
+
+  it('returns the whole text without code span', () => {
+    expect(splitCodeSpans('Where to look for the groups.')).toEqual([
+      { text: 'Where to look for the groups.', isCode: false },
+    ])
   })
 })

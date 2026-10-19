@@ -7,7 +7,11 @@
     </div>
     <template v-if="areExamplesVisible">
       <div v-for="(group, index) of groups" :key="index" class="group">
-        <span v-if="group.caption !== undefined" class="caption typo-body-regular-small">{{ group.caption }}</span>
+        <JsonSchemaText
+          v-if="group.caption !== undefined"
+          :text="group.caption"
+          class="caption typo-body-regular-small"
+        />
         <div class="values">
           <UiButton
             v-for="value of group.values"
@@ -28,6 +32,7 @@
 
 <script lang="ts" setup>
 import type { JsonSchemaExampleGroup } from '@/modules/plugin/json-schema-form/json-schema-description.util.ts'
+import JsonSchemaText from '@/modules/plugin/json-schema-form/JsonSchemaText.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

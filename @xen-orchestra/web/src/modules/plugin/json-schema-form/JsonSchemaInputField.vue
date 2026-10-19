@@ -33,6 +33,9 @@
         </UiButton>
       </div>
     </div>
+    <template #message="{ content }">
+      <JsonSchemaText :text="content" />
+    </template>
   </VtsInputWrapper>
 </template>
 
@@ -40,6 +43,7 @@
 import { getSchemaType, isSecretProperty } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import JsonSchemaExamples from '@/modules/plugin/json-schema-form/JsonSchemaExamples.vue'
 import type { JsonSchemaFieldComponentProps } from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
+import JsonSchemaText from '@/modules/plugin/json-schema-form/JsonSchemaText.vue'
 import { useJsonSchemaFieldValidation } from '@/modules/plugin/json-schema-form/use-json-schema-field-validation.composable.ts'
 import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'

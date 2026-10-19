@@ -54,9 +54,9 @@ it('shows that a plugin without configuration schema is not configurable', () =>
 })
 
 it('links the title to the page of the plugin', () => {
-  const wrapper = mountCard(createPlugin({ id: 'auth-ldap' as FrontXoPlugin['id'], name: 'auth-ldap' }))
+  const wrapper = mountCard(createPlugin())
 
-  expect(wrapper.get('.ui-panel-card-title a').attributes('href')).toBe('/admin/plugin/auth-ldap')
+  expect(wrapper.get('.ui-panel-card-title a').attributes('href')).toBe('/admin/plugin/transport-email')
 })
 
 it('displays the state toggles of the plugin', () => {
@@ -84,7 +84,6 @@ describe('plugin which is not configured', () => {
   function mountUnconfiguredCard(router?: Router) {
     return mountCard(
       createPlugin({
-        id: 'auth-ldap' as FrontXoPlugin['id'],
         configurationSchema: CONFIGURATION_SCHEMA,
         configured: false,
       }),
@@ -109,6 +108,6 @@ describe('plugin which is not configured', () => {
     const wrapper = mountUnconfiguredCard(router)
 
     await wrapper.get('.open-button').trigger('click')
-    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/admin/plugin/auth-ldap'))
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/admin/plugin/transport-email'))
   })
 })

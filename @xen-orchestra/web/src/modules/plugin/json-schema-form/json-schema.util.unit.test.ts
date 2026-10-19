@@ -4,6 +4,7 @@ import {
   getSchemaType,
   getXoObjectReference,
   getXoObjectType,
+  isRequiredProperty,
   isSecretProperty,
 } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 
@@ -96,6 +97,17 @@ describe('getFieldType', () => {
   })
 })
 
+describe('isRequiredProperty', () => {
+  it('detects the properties listed in required', () => {
+    expect(isRequiredProperty({ type: 'object', required: ['foo'] }, 'foo')).toBe(true)
+    expect(isRequiredProperty({ type: 'object', required: ['foo'] }, 'bar')).toBe(false)
+  })
+
+  it('considers every property optional without required', () => {
+    expect(isRequiredProperty({ type: 'object' }, 'foo')).toBe(false)
+  })
+})
+
 describe('getSchemaDefaults', () => {
   it('returns undefined for non-object schemas', () => {
     expect(getSchemaDefaults({ type: 'string', default: 'foo' })).toBeUndefined()
@@ -110,10 +122,11 @@ describe('getSchemaDefaults', () => {
     expect(getSchemaDefaults({ type: 'object', properties: { foo: { type: 'string' } } })).toBeUndefined()
   })
 
-  it('collects defaults, including nested ones', () => {
+  it('collects defaults, including the ones of required nested objects', () => {
     expect(
       getSchemaDefaults({
         type: 'object',
+        required: ['nested', 'emptyNested'],
         properties: {
           foo: { type: 'string', default: 'bar' },
           noDefault: { type: 'string' },
@@ -130,6 +143,25 @@ describe('getSchemaDefaults', () => {
         },
       })
     ).toEqual({ foo: 'bar', nested: { port: 25 } })
+  })
+
+  it('skips the defaults of optional nested objects', () => {
+    expect(
+      getSchemaDefaults({
+        type: 'object',
+        properties: {
+          foo: { type: 'string', default: 'bar' },
+          optionalNested: {
+            type: 'object',
+            required: ['uri'],
+            properties: {
+              facility: { type: 'string', default: 'user' },
+              uri: { type: 'string' },
+            },
+          },
+        },
+      })
+    ).toEqual({ foo: 'bar' })
   })
 
   it('prefers the default of a nested object over the defaults of its properties', () => {
