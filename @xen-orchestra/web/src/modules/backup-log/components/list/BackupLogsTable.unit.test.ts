@@ -8,6 +8,7 @@ import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createBackupLog, createBackupLogVmTask } from '@/test/create-backup-log.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findTableColumnCells } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -73,9 +74,7 @@ function mountTable(backupLog: FrontXoBackupLog) {
 }
 
 function findVmCell(wrapper: ReturnType<typeof mountTable>) {
-  const headers = wrapper.findAll('thead th').map(header => header.text())
-
-  return wrapper.findAll('tbody tr td')[headers.indexOf(t('vm'))]
+  return findTableColumnCells(wrapper, t('vm'))[0]
 }
 
 describe('VM', () => {

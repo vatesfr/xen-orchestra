@@ -1,4 +1,5 @@
 import { useV2vRememberedConnections } from '@/modules/v2v/composables/use-v2v-remembered-connections.composable.ts'
+import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
 import { useV2vConnectionForm } from '@/modules/v2v/form/use-v2v-connection-form.ts'
 import { useXoV2vInventoryJob } from '@/modules/v2v/jobs/xo-v2v-inventory.job.ts'
 import { useXoV2vStatus } from '@/modules/v2v/remote-resources/use-xo-v2v-status.ts'
@@ -17,19 +18,15 @@ import {
   getRememberedConnectionKey,
 } from '@/modules/v2v/utils/v2v-remembered-connection.util.ts'
 import { getV2vSourceId } from '@/modules/v2v/utils/v2v-source.util.ts'
-import type { V2vWizardStep } from '@/modules/v2v/utils/v2v-wizard-step.util.ts'
 import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import type { XoV2vConnection } from '@vates/types'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
 
 export function useV2vSourceStep({ onPasswordRequired }: { onPasswordRequired?: () => void } = {}) {
   const { t } = useI18n()
 
-  const router = useRouter()
-
-  const route = useRoute()
+  const { goToStep } = useV2vWizardNavigation()
 
   const form = useV2vConnectionForm()
 
@@ -89,7 +86,7 @@ export function useV2vSourceStep({ onPasswordRequired }: { onPasswordRequired?: 
         }
       }
 
-      await router.push({ query: { ...route.query, step: 'destination' satisfies V2vWizardStep } })
+      await goToStep('destination')
     } catch (error) {
       if (isV2vInvalidCredentialsError(error)) {
         form.showCredentialsError()

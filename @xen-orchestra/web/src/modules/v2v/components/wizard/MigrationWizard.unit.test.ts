@@ -3,8 +3,8 @@ import V2vSourceStep from '@/modules/v2v/components/source/V2vSourceStep.vue'
 import MigrationWizard from '@/modules/v2v/components/wizard/MigrationWizard.vue'
 import V2vWizardHeader from '@/modules/v2v/components/wizard/V2vWizardHeader.vue'
 import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
+import { connectV2vSource } from '@/test/connect-v2v-source.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
-import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -31,7 +31,7 @@ async function mountWizard(
   })
 
   if (isConnected) {
-    useV2vConnectionStore().setConnection(createV2vConnection({ host: 'vcenter-prod.lab' }), createV2vInventory())
+    connectV2vSource({ connection: createV2vConnection({ host: 'vcenter-prod.lab' }) })
     await nextTick()
   }
 
