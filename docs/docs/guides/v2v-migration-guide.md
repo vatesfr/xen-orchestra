@@ -92,7 +92,7 @@ Performance gains can be significant, though results depend on the environment:
 
 Make sure your Xen Orchestra instance is up to date. The import page includes an automatic check that verifies that `vectura`, shipped with your Xen Orchestra, runs on this system. Errors must be resolved before the migration can start.
 
-<UiDetail src="/img/xo5/v2v-prerequisite-check.png" alt="The prerequisite check on the import page, showing the status of vectura" width={480} />
+<UiDetail src="/img/xo5/v2v-prerequisite-check.png" alt="The prerequisite check on the import page, showing the status of vectura" width={232} />
 
 ### Dependencies
 
