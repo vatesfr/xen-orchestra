@@ -238,16 +238,6 @@ describe('host select', () => {
     expect(hostSelect.allOptions.value.map(option => option.id)).toEqual([TARGET_HOST_ID, SECOND_TARGET_HOST_ID])
   })
 
-  it('lists every host of the pool for a halted VM', () => {
-    const { hostSelect } = mountVmMigrateForm(createVm({ $pool: POOL_ID, $container: POOL_ID }))
-
-    expect(hostSelect.allOptions.value.map(option => option.id)).toEqual([
-      SOURCE_HOST_ID,
-      TARGET_HOST_ID,
-      SECOND_TARGET_HOST_ID,
-    ])
-  })
-
   it('resets the host when the pool changes', async () => {
     const { form } = mountVmMigrateForm()
 

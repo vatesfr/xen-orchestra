@@ -2,7 +2,14 @@
   <div class="vm-migrate-mapping-toolbar">
     <VmMigrateFormSelect :id :label class="select" />
     <div class="actions">
-      <UiButton accent="brand" size="medium" variant="primary" @click="emit('fill')">
+      <UiButton
+        v-tooltip="fillTooltip"
+        accent="brand"
+        size="medium"
+        variant="primary"
+        :disabled="fillDisabled"
+        @click="emit('fill')"
+      >
         {{ fillLabel }}
       </UiButton>
       <VtsDivider type="stretch" />
@@ -18,18 +25,30 @@ import VmMigrateFormSelect from '@/modules/vm/components/form/migrate/VmMigrateF
 import type { FormSelectId } from '@core/packages/form-select'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { computed } from 'vue'
 
-defineProps<{
+const { fillDisabled, fillDisabledTooltip } = defineProps<{
   id: FormSelectId
   label: string
   fillLabel: string
   resetLabel: string
+  fillDisabled?: boolean
+  fillDisabledTooltip?: string
 }>()
 
 const emit = defineEmits<{
   fill: []
   reset: []
 }>()
+
+const fillTooltip = computed(() => {
+  if (fillDisabled && fillDisabledTooltip !== undefined) {
+    return fillDisabledTooltip
+  }
+
+  return false
+})
 </script>
 
 <style lang="postcss" scoped>

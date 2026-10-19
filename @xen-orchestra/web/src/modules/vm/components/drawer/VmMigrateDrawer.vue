@@ -22,6 +22,8 @@
             :id="destinationSrSelectId"
             :label="t('destination-sr')"
             :fill-label="t('action:fill-empty-srs')"
+            :fill-disabled="missingSrRows.length === 0"
+            :fill-disabled-tooltip="t('no-empty-sr-to-fill')"
             :reset-label="t('action:reset-all-srs')"
             @fill="fillEmptySrs()"
             @reset="resetSrs()"

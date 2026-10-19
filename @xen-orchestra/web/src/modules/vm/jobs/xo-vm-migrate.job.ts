@@ -37,8 +37,8 @@ export const useXoVmMigrateJob = defineJob('vm.migrate', [xoVmArg, xoVmMigratePa
         throw new JobRunningError(t('job:vm-migrate:in-progress'))
       }
 
-      if (vm.power_state !== VM_POWER_STATE.RUNNING && vm.power_state !== VM_POWER_STATE.HALTED) {
-        throw new JobError(t('job:vm-migrate:not-running-or-halted'))
+      if (vm.power_state !== VM_POWER_STATE.RUNNING) {
+        throw new JobError(t('job:vm-migrate:bad-power-state'))
       }
 
       if (isVmMigrationBlocked(vm)) {
