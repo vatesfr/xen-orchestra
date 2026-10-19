@@ -21,6 +21,29 @@ import type {
 import type * as CMType from './lib/complex-matcher.mjs'
 import { XoAclBasePrivilege, XoAclRole } from './lib/xen-orchestra-acl.mjs'
 import type { XenApiHost, XenApiPool } from './xen-api.mjs'
+import type {
+  XoAuditPlugin,
+  XoAuthGithubPlugin,
+  XoAuthGooglePlugin,
+  XoAuthLdapPlugin,
+  XoAuthOidcPlugin,
+  XoAuthSamlPlugin,
+  XoBackupReportsPlugin,
+  XoIpmiSensorsPlugin,
+  XoLoadBalancerPlugin,
+  XoNetboxPlugin,
+  XoOpenmetricsPlugin,
+  XoPerfAlertPlugin,
+  XoSdnControllerPlugin,
+  XoTestPluginPlugin,
+  XoTransportEmailPlugin,
+  XoTransportIcinga2Plugin,
+  XoTransportNagiosPlugin,
+  XoTransportSlackPlugin,
+  XoTransportXmppPlugin,
+  XoUsageReportPlugin,
+  XoWebHooksPlugin,
+} from './lib/xen-orchestra-plugins.mjs'
 
 type BaseXapiXo = {
   $pool: XoPool['id']
@@ -457,6 +480,29 @@ export type XoPool = BaseXapiXo & {
   zstdSupported: boolean
 }
 
+export type XoPlugin =
+  | XoAuditPlugin
+  | XoAuthGithubPlugin
+  | XoAuthGooglePlugin
+  | XoAuthLdapPlugin
+  | XoAuthOidcPlugin
+  | XoAuthSamlPlugin
+  | XoBackupReportsPlugin
+  | XoIpmiSensorsPlugin
+  | XoLoadBalancerPlugin
+  | XoNetboxPlugin
+  | XoOpenmetricsPlugin
+  | XoPerfAlertPlugin
+  | XoSdnControllerPlugin
+  | XoTestPluginPlugin
+  | XoTransportEmailPlugin
+  | XoTransportIcinga2Plugin
+  | XoTransportNagiosPlugin
+  | XoTransportSlackPlugin
+  | XoTransportXmppPlugin
+  | XoUsageReportPlugin
+  | XoWebHooksPlugin
+
 export type XoProxy = {
   id: Branded<'proxy'>
   url: string
@@ -698,6 +744,7 @@ export type XoTask = {
       | 'backup-log'
       | 'backup-repository'
       | 'group'
+      | 'plugin'
       | 'proxy'
       | 'restore'
       | 'restore-log'
@@ -913,6 +960,7 @@ export type NonXapiXoRecord =
   | AnyXoLog
   | XoAuthenticationToken
   | XoGroup
+  | XoPlugin
   | XoProxy
   | XoJob
   | XoBackupRepository
