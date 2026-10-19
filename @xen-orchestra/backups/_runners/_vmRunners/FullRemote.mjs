@@ -24,7 +24,7 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
     let nbTransferredVms = 0
     for (const metadata of transferList) {
       const stream = this._throttleStream(await this._sourceRemoteAdapter.readFullVmBackup(metadata))
-      const sizeContainer = watchStreamSize(stream)
+      const sizeContainer = watchStreamSize(stream, { size: 0, reportSize: true })
       let checksum
       try {
         // the unencrypted destinations store the same data as the source: no need to compute their checksum again

@@ -78,7 +78,7 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
       maxStreamLength += XVA_BLOCK_SIZE * nbBlocks + headersSize
     }
 
-    const sizeContainer = watchStreamSize(stream)
+    const sizeContainer = watchStreamSize(stream, { size: 0, reportSize: true })
 
     const transferStart = Date.now()
     await this._callWriters(
