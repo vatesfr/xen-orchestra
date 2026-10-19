@@ -1,6 +1,10 @@
 <template>
   <VtsSidePanel :has-selection="!!backupJob" @close="emit('close')">
     <template v-if="backupJob" #default>
+      <UiAlert v-if="schedules.length > 1" accent="warning">
+        {{ t('multiple-schedules') }}
+        <template #description>{{ t('multiple-schedules-advice') }}</template>
+      </UiAlert>
       <BackupJobInfosCard :backup-job />
       <BackupJobSchedulesCard v-if="schedules.length > 0" :schedules />
       <BackupJobLogsCard v-if="lastBackupLogs.length > 0" :backup-logs="lastBackupLogs" />
@@ -30,8 +34,10 @@ import {
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
   backupJob?: FrontAnyXoBackupJob
@@ -40,6 +46,8 @@ const { backupJob } = defineProps<{
 const emit = defineEmits<{
   close: []
 }>()
+
+const { t } = useI18n()
 
 const { schedulesByJobId } = useXoScheduleCollection()
 

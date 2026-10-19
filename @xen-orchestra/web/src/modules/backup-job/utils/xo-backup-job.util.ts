@@ -7,11 +7,17 @@ export function getBackupJobHealthCheckStatus(backupJob: FrontAnyXoBackupJob): S
     return undefined
   }
 
-  const isEnabled = Object.entries(backupJob.settings).some(
-    ([scheduleId, settings]) => scheduleId !== '' && settings?.healthCheckVmsWithTags !== undefined
-  )
+  const schedulesSettings = Object.entries(backupJob.settings)
+    .filter(([scheduleId]) => scheduleId !== '')
+    .map(([, settings]) => settings)
 
-  return isEnabled ? 'enabled' : 'disabled'
+  const enabledCount = schedulesSettings.filter(settings => settings?.healthCheckVmsWithTags !== undefined).length
+
+  if (enabledCount === 0) {
+    return 'disabled'
+  }
+
+  return enabledCount === schedulesSettings.length ? 'enabled' : 'at-least-one-enabled'
 }
 
 export function getBackupJobHealthCheckSrIds(backupJob: FrontAnyXoBackupJob): XoSr['id'][] {
