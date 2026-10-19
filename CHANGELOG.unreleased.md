@@ -14,7 +14,6 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-<<<<<<< HEAD
 - [REST API] `POST /rest/v0/acl-roles` now supports a `privileges` property, allowing privileges to be directly associated with the newly created role (PR [#10470](https://github.com/vatesfr/xen-orchestra/pull/10470))
 - [Tasks] Add link and object resolution to Tasks Overview panel, better text flow for resolved task names (PR [#10265](https://github.com/vatesfr/xen-orchestra/pull/10265))
 - [XO5/Settings/IPs] Show an example of the expected IP format when adding IPs to an IP pool (PR [#10522](https://github.com/vatesfr/xen-orchestra/pull/10522))
@@ -63,12 +62,6 @@
   - `GET /server-config` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
   - `GET /server-config/sources` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
   - `GET /server-config/sources?path=` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
-=======
-- [REST API] Expose the server configuration with redacted sensitive values through server-config REST API Endpoints:
-  - `GET /rest/v0/hosts/server-config` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
-  - `GET /rest/v0/hosts/server-config/sources` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
-  - `GET /rest/v0/hosts/server-config/sources?path=` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
->>>>>>> 8294365bc (updating CHANGELOG.unreleased.md after review)
 
 ### Bug fixes
 
@@ -118,7 +111,7 @@
 
 <!--packages-start-->
 
-<<<<<<< HEAD
+- @vates/app-conf major
 - @vates/iscsi minor
 - @vates/nbd-client minor
 - @vates/types minor
@@ -126,6 +119,10 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/immutable-backups minor
+- @xen-orchestra/mixins minor
+- @xen-orchestra/proxy minor
+- @xen-orchestra/proxy-cli minor
 - @xen-orchestra/qa-test minor
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
@@ -143,16 +140,5 @@
 - xo-server-netbox minor
 - xo-server-sdn-controller patch
 - xo-web minor
-=======
-- @vates/app-conf major
-- @vates/types minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/immutable-backups minor
-- @xen-orchestra/mixins minor
-- @xen-orchestra/proxy minor
-- @xen-orchestra/proxy-cli minor
-- @xen-orchestra/rest-api minor
-- xo-server minor
->>>>>>> 7938c31d9 (update changelog)
 
 <!--packages-end-->
