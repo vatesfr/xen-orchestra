@@ -103,8 +103,8 @@ const isSameRepository = (entry, repository) =>
 
 /**
  * How long an entry of a repository is brought up to date from the journal before it is listed in
- * full again: the `fullListingInterval` parameter of its URL, a duration such as `6h` or a number of
- * milliseconds, otherwise `DEFAULT_REBUILD_INTERVAL`.
+ * full again: the `fullListingInterval` parameter of its URL, a positive duration such as `6h` or a
+ * number of milliseconds, otherwise `DEFAULT_REBUILD_INTERVAL`.
  *
  * Read when the entry is built: the URL changing rebuilds the entry anyway, see `isSameRepository()`.
  *
@@ -117,14 +117,19 @@ const rebuildIntervalOf = repository => {
     return DEFAULT_REBUILD_INTERVAL
   }
 
+  /** @type {number | undefined} */
+  let interval
   try {
-    return parseDuration(fullListingInterval)
+    interval = parseDuration(fullListingInterval)
   } catch (error) {
     if (!(error instanceof TypeError)) {
       throw error
     }
+  }
 
-    // a typo in an optional setting must not make the repository unreadable
+  // a typo in an optional setting must not make the repository unreadable, nor a duration which is not
+  // positive make every read list it in full, those of the timers included
+  if (interval === undefined || interval <= 0) {
     warn('invalid fullListingInterval, using the default one', {
       repositoryId: repository.id,
       fullListingInterval,
@@ -132,6 +137,7 @@ const rebuildIntervalOf = repository => {
     })
     return DEFAULT_REBUILD_INTERVAL
   }
+  return interval
 }
 
 /**
@@ -161,9 +167,12 @@ const removeBackup = (backupsByVm, vmUuid, key) => {
  * `remove` their ids.
  *
  * @typedef {{
- *   on: (event: 'add' | 'update' | 'remove', listener: (payload: FormattedBackup[] | string[]) => void) => void,
+ *   on: (
+ *     event: 'add' | 'update' | 'remove',
+ *     listener: (payload: FormattedBackup[] | Array<FormattedBackup['id']>) => void
+ *   ) => void,
  *   get: () => Promise<FormattedBackup[]>,
- *   first: (id: string) => Promise<FormattedBackup | undefined>,
+ *   first: (id: FormattedBackup['id']) => Promise<FormattedBackup | undefined>,
  * }} Archives
  */
 
@@ -280,7 +289,7 @@ export class VmBackupsCache {
       this.#emitter.on(event, listener)
     },
     get: async () => this.#listArchives(),
-    first: async (/** @type {string} */ id) => this.#listArchives().find(archive => archive.id === id),
+    first: async id => this.#listArchives().find(archive => archive.id === id),
   }
 
   // repository id → { backupsByVm, builtAt, cursor, journalConfirmed, options, proxy, rebuildInterval,
@@ -299,7 +308,7 @@ export class VmBackupsCache {
   #source
 
   // ids of the repositories the source turned out not to be able to replay: bringing them up to date
-  // means listing them again in full
+  // means listing them again in full, until one of their replays succeeds
   /** @type {Set<Repository['id']>} */
   #unreplayable = new Set()
 
@@ -310,6 +319,12 @@ export class VmBackupsCache {
    */
   get archives() {
     return this.#archives
+  }
+
+  // the listeners of `archives` are the ones `registerCollection` attached: they must be removed when the
+  // app stops, otherwise a start after a stop would attach them a second time to the same emitter
+  removeArchivesListeners() {
+    this.#emitter.removeAllListeners()
   }
 
   /**
@@ -572,7 +587,7 @@ export class VmBackupsCache {
    * `registerCollection` handles them one by one anyway.
    *
    * @param {'add' | 'update' | 'remove'} event
-   * @param {string} repositoryId
+   * @param {Repository['id']} repositoryId
    * @param {FormattedBackup} backup the backup added, updated or removed
    * @returns {void}
    */
@@ -697,6 +712,15 @@ export class VmBackupsCache {
     const read = await this.#source.readJournal(repository, entry.cursor, { mustExist: entry.journalConfirmed })
     if (read === undefined) {
       return false
+    }
+
+    // e.g. the proxy it is attached to has been updated to a version which exposes its journal: it is
+    // no longer listed in full on each read
+    //
+    // only while the entry is still in place: one dropped during the read says nothing about the
+    // repository as it is now, e.g. it has been moved to another proxy
+    if (this.#entries.get(repository.id) === entry) {
+      this.#unreplayable.delete(repository.id)
     }
 
     // the repository may have been removed while its journal was being read: the entry is still

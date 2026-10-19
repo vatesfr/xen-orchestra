@@ -306,8 +306,11 @@ describe('VmBackupsCache', () => {
     ['', 60],
     ['?fullListingInterval=10m', 10],
     ['?fullListingInterval=600000', 10],
-    // a typo must not make the repository unreadable: the default interval, with a warning
+    // a typo must not make the repository unreadable, nor a duration which is not positive make every
+    // read list it in full: the default interval, with a warning
     ['?fullListingInterval=often', 60],
+    ['?fullListingInterval=0', 60],
+    ['?fullListingInterval=-1h', 60],
   ]) {
     it(`rebuilds ${minutes} minutes after the entry was built, however recently it was replayed, for '${REPOSITORY.url + query}'`, async t => {
       const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
@@ -403,6 +406,26 @@ describe('VmBackupsCache', () => {
     // the entry was not purged: it is still served for the rest of the window
     tick(30e3)
     await cache.get(REPOSITORY)
+    assert.equal(repository.nListings, 2)
+  })
+
+  it('replays the repository again once the source can replay it', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    repository.cannotReplay = true
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+    await cache.get(REPOSITORY)
+    assert.equal(cache.isReplayable(REPOSITORY.id), false)
+
+    // e.g. the proxy it is attached to has been updated to a version which exposes its journal
+    repository.cannotReplay = false
+    tick(60e3)
+    await cache.get(REPOSITORY)
+
+    assert.equal(cache.isReplayable(REPOSITORY.id), true)
     assert.equal(repository.nListings, 2)
   })
 

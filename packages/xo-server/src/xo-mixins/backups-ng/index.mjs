@@ -47,6 +47,10 @@ const VM_BACKUP_ARCHIVES_POLL_INTERVAL = 60e3
 // the same for the repositories whose journal cannot be read: each read lists them in full
 const VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL = 10 * 60e3
 
+// how many repositories `#pollVmBackupArchives()` reads at once: reading all of them together would
+// put the load of every repository on the same instant
+const VM_BACKUP_ARCHIVES_POLL_CONCURRENCY = 2
+
 /**
  * @param {number} attempt number of consecutive failures so far, `0` for the first one
  * @returns {number} delay in ms before the next attempt is allowed
@@ -128,14 +132,19 @@ export default class BackupNg {
       app.hooks.emit('registerCollection', { collection: this.#vmBackupsCache.archives, type: 'backup-archive' })
     })
 
-    let vmBackupArchivesPoll, vmBackupArchivesFullPoll, initialVmBackupArchivesListing
+    /** @type {(() => void) | undefined} */
+    let stopVmBackupArchivesPoll
+    /** @type {(() => void) | undefined} */
+    let stopVmBackupArchivesFullPoll
+    /** @type {AbortController | undefined} */
+    let initialVmBackupArchivesListing
     app.hooks.on('start', () => {
-      vmBackupArchivesPoll = setInterval(
-        () => this.#pollVmBackupArchives(this.#vmBackupsCache.replayableRepositoryIds()),
+      stopVmBackupArchivesPoll = this.#pollVmBackupArchives(
+        () => this.#vmBackupsCache.replayableRepositoryIds(),
         VM_BACKUP_ARCHIVES_POLL_INTERVAL
       )
-      vmBackupArchivesFullPoll = setInterval(
-        () => this.#pollVmBackupArchives(this.#vmBackupsCache.unreplayableRepositoryIds()),
+      stopVmBackupArchivesFullPoll = this.#pollVmBackupArchives(
+        () => this.#vmBackupsCache.unreplayableRepositoryIds(),
         VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL
       )
     })
@@ -148,9 +157,10 @@ export default class BackupNg {
       })
     })
     app.hooks.on('stop', () => {
-      clearInterval(vmBackupArchivesPoll)
-      clearInterval(vmBackupArchivesFullPoll)
+      stopVmBackupArchivesPoll?.()
+      stopVmBackupArchivesFullPoll?.()
       initialVmBackupArchivesListing?.abort()
+      this.#vmBackupsCache.removeArchivesListeners()
     })
 
     app.hooks.on('start', async () => {
@@ -725,12 +735,17 @@ export default class BackupNg {
     return timeout.call(this._listVmBackupsOnRemoteUncached(remoteId, opts), LISTING_TIMEOUT)
   }
 
-  // the next listing of this repository will replay its journal instead of waiting for the end of the
-  // current refresh window
-  //
-  // to call after a mutation triggered by this process, so that its effect is visible at once
-  //
-  // also replays its journal at once for the consumers of the archives, unless that means a full listing
+  /**
+   * the next listing of this repository will replay its journal instead of waiting for the end of the
+   * current refresh window
+   *
+   * to call after a mutation triggered by this process, so that its effect is visible at once
+   *
+   * also replays its journal at once for the consumers of the archives, unless that means a full listing
+   *
+   * @param {XoBackupRepository['id']} remoteId
+   * @returns {void}
+   */
   _refreshVmBackupsCache(remoteId) {
     this.#vmBackupsCache.refresh(remoteId)
     this.#resetVmBackupsListingState(remoteId)
@@ -741,14 +756,19 @@ export default class BackupNg {
     }
   }
 
-  // lists every enabled repository, so that the collection, and the timers which read its
-  // repositories, cover all of them rather than only those a client has listed since the app started
-  //
-  // one after another: each listing reads the metadata of every VM of the repository, and listing
-  // them in sequence also staggers their periodic rebuilds, which count from the listing
-  //
-  // through `_listVmBackupsWithBackoff()`, which never rejects: a repository which cannot be read is
-  // left out until a client lists it
+  /**
+   * lists every enabled repository, so that the collection, and the timers which read its
+   * repositories, cover all of them rather than only those a client has listed since the app started
+   *
+   * one after another: each listing reads the metadata of every VM of the repository, and listing
+   * them in sequence also staggers their periodic rebuilds, which count from the listing
+   *
+   * through `_listVmBackupsWithBackoff()`, which never rejects: a repository which cannot be read is
+   * left out until a client lists it
+   *
+   * @param {AbortSignal} signal stops the listing before the next repository
+   * @returns {Promise<void>}
+   */
   async #listAllVmBackupArchives(signal) {
     for (const remote of await this._app.getAllRemotes()) {
       if (signal.aborted) {
@@ -760,17 +780,56 @@ export default class BackupNg {
     }
   }
 
-  // reads repositories of the collection for the changes this process did not make: the size the
-  // merge worker rewrites after the job, or another XO sharing the repository
-  //
-  // without resetting the listing state, unlike `_refreshVmBackupsCache()`: an unreachable repository
-  // keeps its retry delay instead of being read on every tick
-  #pollVmBackupArchives(remoteIds) {
-    for (const remoteId of remoteIds) {
-      // once the debounce of the previous listing is over, the refresh window of the cache, as long
-      // but started a bit later, would still skip the read
-      this.#vmBackupsCache.refresh(remoteId)
-      this._listVmBackupsWithBackoff(remoteId)
+  /**
+   * reads, every `interval`, the repositories `getRemoteIds()` returns, for the changes this process
+   * did not make: the size the merge worker rewrites after the job, or another XO sharing the
+   * repository
+   *
+   * `VM_BACKUP_ARCHIVES_POLL_CONCURRENCY` at a time, and a tick which comes before the reads of the
+   * previous one are done is skipped rather than adding its reads to theirs
+   *
+   * without resetting the listing state, unlike `_refreshVmBackupsCache()`: an unreachable repository
+   * keeps its retry delay instead of being read on every tick
+   *
+   * @param {() => Array<XoBackupRepository['id']>} getRemoteIds called on each tick, and again before
+   * each read, so that a repository which has left the collection since the tick is not read
+   * @param {number} interval in milliseconds
+   * @returns {() => void} stops it, the reads still waiting for their turn included
+   */
+  #pollVmBackupArchives(getRemoteIds, interval) {
+    let running = false
+    let stopped = false
+    const timer = setInterval(async () => {
+      if (running) {
+        return
+      }
+      running = true
+      try {
+        await asyncEach(
+          getRemoteIds(),
+          async remoteId => {
+            // e.g. it has been removed or disabled while it was waiting for its turn: reading it would put
+            // its archives back in the collection
+            if (stopped || !getRemoteIds().includes(remoteId)) {
+              return
+            }
+
+            // once the debounce of the previous listing is over, the refresh window of the cache, as long
+            // but started a bit later, would still skip the read
+            this.#vmBackupsCache.refresh(remoteId)
+            // never rejects
+            await this._listVmBackupsWithBackoff(remoteId)
+          },
+          { concurrency: VM_BACKUP_ARCHIVES_POLL_CONCURRENCY }
+        )
+      } finally {
+        running = false
+      }
+    }, interval)
+
+    return () => {
+      clearInterval(timer)
+      stopped = true
     }
   }
 

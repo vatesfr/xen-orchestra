@@ -742,6 +742,78 @@ describe('the backup-archive collection', () => {
     hooks.emit('stop')
   })
 
+  // the mixin with three repositories in the collection, whose reads by the timers are recorded in
+  // `started` and only settle when their function in `pending` is called
+  const createBackupNgWithHeldReads = async () => {
+    const backupNg = createBackupNgWithRepository(new Repository([metadataOf(VM, '20260811T090000')]))
+    backupNg._app.getRemoteWithCredentials = async id => ({ id, url: 'file:///media/backup' })
+    await backupNg.listVmBackupsNg(['a', 'b', 'c'])
+
+    const started = []
+    const pending = []
+    backupNg._listVmBackupsWithBackoff = remoteId => {
+      started.push(remoteId)
+      return new Promise(resolve => pending.push(resolve))
+    }
+    return { backupNg, pending, started }
+  }
+
+  it('reads the repositories two at a time, and skips the ticks which come before they are done', async () => {
+    const { backupNg, pending, started } = await createBackupNgWithHeldReads()
+    const { hooks } = backupNg._app
+    hooks.emit('start')
+
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(started.length, 2)
+
+    // the next tick does not add its reads to those still running
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(started.length, 2)
+
+    // the third one starts as soon as one of the first two is done
+    pending.shift()()
+    await tick(0)
+    assert.equal(started.length, 3)
+
+    pending.splice(0).forEach(settle => settle())
+    await tick(0)
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(started.length, 5)
+
+    hooks.emit('stop')
+  })
+
+  it('does not read a repository forgotten while it was waiting for its turn', async () => {
+    const { backupNg, pending, started } = await createBackupNgWithHeldReads()
+    const { hooks } = backupNg._app
+    hooks.emit('start')
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+
+    // as the `remotes` mixin does when the backup repository is removed or disabled: reading it would
+    // put its archives back in the collection
+    const [waiting] = ['a', 'b', 'c'].filter(id => !started.includes(id))
+    backupNg.forgetVmBackupRepository(waiting)
+    pending.splice(0).forEach(settle => settle())
+    await tick(0)
+
+    assert.equal(started.length, 2)
+
+    hooks.emit('stop')
+  })
+
+  it('does not read the repositories still waiting for their turn once the app has stopped', async () => {
+    const { backupNg, pending, started } = await createBackupNgWithHeldReads()
+    const { hooks } = backupNg._app
+    hooks.emit('start')
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+
+    hooks.emit('stop')
+    pending.splice(0).forEach(settle => settle())
+    await tick(0)
+
+    assert.equal(started.length, 2)
+  })
+
   it('lists every enabled repository once the app has started', async () => {
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
     const backupNg = createBackupNgWithRepository(repository)
@@ -766,11 +838,8 @@ describe('the backup-archive collection', () => {
     assert.deepEqual(events, [{ event: 'add', id: idOf('20260811T090000') }])
     assert.equal(repository.nListings, 1)
 
-    // and from then on, the timer reads it: not on its first tick, which the debounce still serves the
-    // listing above, started after the timer
+    // and from then on, the timer reads it
     repository.add(metadataOf(VM, '20260811T100000'))
-    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
-    assert.equal(events.length, 1)
     await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
     assert.deepEqual(events.slice(1), [{ event: 'add', id: idOf('20260811T100000') }])
     assert.equal(repository.nListings, 1)
@@ -805,9 +874,9 @@ describe('the backup-archive collection', () => {
       await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
     }
 
-    // the second tick is served the failure of the first one, which the debounce still holds, and the
-    // third one fails again: a timer which reset the retry state would count a first failure each time
-    assert.equal(backupNg._backupsListingRetry[REMOTE_ID].attempt, 2)
+    // each tick fails again once the retry delay of the previous failure is over: a timer which reset
+    // the retry state would count a first failure each time
+    assert.equal(backupNg._backupsListingRetry[REMOTE_ID].attempt, 3)
 
     hooks.emit('stop')
   })
