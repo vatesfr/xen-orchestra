@@ -16,6 +16,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - Fix `cannot read properties of undefined (reading code)` (PR [#10668](https://github.com/vatesfr/xen-orchestra/pull/10668))
+- [SDN Controller] A Global Private Network that fails to be set up, or whose preferred star-center host was removed, no longer blocks the other private networks (PR [#10629](https://github.com/vatesfr/xen-orchestra/pull/10629))
 
 ### Packages to release
 
@@ -34,5 +35,6 @@
 <!--packages-start-->
 
 - xo-server patch
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
