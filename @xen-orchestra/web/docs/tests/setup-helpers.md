@@ -16,13 +16,13 @@ it('is true while a state-changing operation is pending', () => {
 })
 ```
 
-Two cases legitimately stay inline: a **reactivity** test, which needs a `ref` it can reassign, and a test that must call `useI18n()` _inside_ the `setup` callback to build its expected value (see [Testing composables](./testing-composables.md)).
+A helper returning `wrapper.vm` serves a **reactivity** test too, as long as it accepts the source as a `ref` (`MaybeRefOrGetter`): `wrapper.vm` keeps following the updates. Only a test that must call a function returned by the composable, or build its expected value, _inside_ the `setup` callback stays inline (see [Testing composables](./testing-composables.md)).
 
 Because mocks are read lazily, calling `getX.mockReturnValue(...)` in the test body _before_ invoking the helper still takes effect.
 
 This applies to **navigation into the result** too, not only to mounting. An expression such as `result.filterableServers[0]`, repeated across a `describe` block, is repeated setup — give it a helper and assert on a named local, rather than re-deriving it in every test.
 
-The exception is a **reactivity** test: it must keep the live `wrapper` so it can re-read through `wrapper.vm` after reassigning the source ref. A helper returning a snapshot of the first item would defeat the test.
+The exception is a **reactivity** test: it must keep reading through the mounted `vm` after reassigning the source ref. A helper returning a snapshot of the first item would defeat the test.
 
 ## Unmounting
 
