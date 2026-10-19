@@ -101,7 +101,13 @@ type XapiRecordByXapiXoRecord = {
 }
 
 type LicenseProductId =
-  'premium' | 'xcpng-enterprise' | 'xcpng-standard' | 'xo-proxy' | 'xosan.trial' | 'xostor' | 'xostor.trial'
+  | 'premium'
+  | 'xcpng-enterprise'
+  | 'xcpng-standard'
+  | 'xo-proxy'
+  | 'xosan.trial'
+  | 'xostor'
+  | 'xostor.trial'
 type LicenseProductType = 'xo' | 'xoproxy' | 'xcpng' | 'xosan' | 'xostor'
 
 type License = {
@@ -121,7 +127,6 @@ type License = {
   bundleInfo?: { name: string; id: string }
 }
 
-<<<<<<< HEAD
 export type PoolRollingUpdateRecoveryStep = {
   status: 'pending' | 'running' | 'observed-succeeded' | 'failed' | 'not-needed'
   startedAt?: string
@@ -194,9 +199,8 @@ type XoStoreRangeOptions = {
   limit?: number
   reverse?: boolean
 }
-=======
+
 export type ConfigSourceName = 'vendor' | 'system' | 'global' | 'local'
->>>>>>> d83168277 (adding ConfigSourceName type)
 
 export type ConfigSource = {
   name: ConfigSourceName
