@@ -1,8 +1,9 @@
 import type { VueWrapper } from '@vue/test-utils'
 
-export function findParts(wrapper: VueWrapper, selector: string) {
+// Each element an `InlineParts` lays out is one part, whatever its tag
+export function findParts(wrapper: Pick<VueWrapper, 'find'>, selector: string) {
   return wrapper
     .find(selector)
-    .findAll('.part')
+    .findAll(':scope > *')
     .map(part => part.text())
 }

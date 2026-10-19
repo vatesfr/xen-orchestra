@@ -81,12 +81,13 @@ it('only describes the username of a connection never used, checking SSL, withou
 it('shows the VM count and the migration progress of the source', () => {
   vmCollectionMock.vms.value = [
     createV2vImportVm({ isWarm: false }, { id: 'xo-vm-1' as FrontXoVm['id'] }),
-    createV2vImportVm({ isWarm: true }, { id: 'xo-vm-2' as FrontXoVm['id'] }),
+    createV2vImportVm({ isWarm: false }, { id: 'xo-vm-2' as FrontXoVm['id'] }),
+    createV2vImportVm({ isWarm: true }, { id: 'xo-vm-3' as FrontXoVm['id'] }),
   ]
 
   expect(findParts(mountItem(createV2vRememberedConnection({ vmCount: 148 })), '.stats')).toEqual([
     t('n-vms', { n: 148 }),
-    t('n-migrated', { n: 1 }),
+    t('n-migrated', { n: 2 }),
     t('n-partially-migrated', { n: 1 }),
   ])
 })
