@@ -43,6 +43,7 @@ const CONTROLLER_PREFIXES = {
  * @property {string | undefined} network - managed object reference, of a port group when distributed
  * @property {string | undefined} portgroupKey - only for a distributed port group
  * @property {string | undefined} opaqueNetworkId - only for an NSX opaque network
+ * @property {number | undefined} pciSlotNumber - what the predictable name of the card in the guest derives from (192 → `ens192`)
  */
 
 /**
@@ -96,10 +97,37 @@ export function parseDevices(devices, portgroupsByKey = {}) {
         network: portgroupKey === undefined ? refOf(backing?.network) : portgroupsByKey[portgroupKey],
         portgroupKey,
         opaqueNetworkId: backing?.opaqueNetworkId,
+        pciSlotNumber: toNumber(device.slotInfo?.pciSlotNumber),
       })
     }
   }
   return { disks, nics }
+}
+
+/**
+ * @typedef {object} GuestNic - a network card as seen by the guest, reported by the VMware tools
+ * @property {string | undefined} key - device key of the card, undefined for a card of the guest only (VPN…)
+ * @property {string | undefined} macAddress
+ * @property {string[]} addresses - IPv4 and IPv6, without prefix
+ */
+
+/**
+ * The network cards seen by the guest, from `guest.net`: empty when the VMware tools do not run.
+ *
+ * @param {unknown} net - value of `guest.net`
+ * @returns {GuestNic[]}
+ */
+export function parseGuestNics(net) {
+  return asArray(net?.GuestNicInfo).map(nic => {
+    const deviceConfigId = Number(nic.deviceConfigId)
+    // `ipAddress` is deprecated in favour of `ipConfig`, which older tools do not fill
+    const configured = asArray(nic.ipConfig?.ipAddress).map(({ ipAddress }) => ipAddress)
+    return {
+      key: Number.isInteger(deviceConfigId) && deviceConfigId >= 0 ? String(deviceConfigId) : undefined,
+      macAddress: nic.macAddress,
+      addresses: configured.length !== 0 ? configured : asArray(nic.ipAddress),
+    }
+  })
 }
 
 /**

@@ -31,11 +31,34 @@ export type V2vVmwareInventory = VmwareInventory & { platform: 'vmware' }
 
 export type V2vInventory = V2vVmwareInventory
 
+/** how the guest is prepared to boot on XCP-ng by the repair ISO */
+export type V2vRepairOptions = {
+  /** `standard` leaves the VMware components on disk, disabled, `full` removes them. Default: `standard` */
+  windowsCleanup?: 'standard' | 'full'
+  /** `;`-separated patterns of the packages of the guest tools ISO to install, in order. Default: `*.msi` */
+  windowsMsiPatterns?: string
+  /**
+   * build of the repair ISO to use, deployed as `xo-repair-<build>-<commit>.iso`: its date (`YYYYMMDD`) or a release
+   * tag. Default: the build this version of XO is tested with
+   */
+  isoVersion?: string
+}
+
 /** options which can be set for the whole launch, then overridden for a VM */
 export type V2vVmOptions = {
   /** stop the source VM before the last delta, which completes the import */
   stopSource?: boolean
-  /** not supported yet */
+  /**
+   * once the import is complete, boot the VM on the repair ISO deployed on the pool (`xo-repair-<build>-<commit>.iso`),
+   * which prepares the guest to run on XCP-ng. Off by default. Needs a complete import: a source stopped, or
+   * stopped by `stopSource`. A failed repair does not fail the import
+   */
+  repair?: boolean | V2vRepairOptions
+  /**
+   * start the VM once its import is complete. With `repair`, the first boot of the guest is followed: Windows
+   * installs its drivers and agent, then Secure Boot is enabled again when the source had it. Needs a complete
+   * import. A failed first boot does not fail the import
+   */
   startVm?: boolean
   /** not supported yet */
   cleanup?: boolean

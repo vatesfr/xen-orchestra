@@ -6,7 +6,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import { Agent } from 'undici'
 
 import { parseDatastorePath, resolveDiskLocation } from './_paths.mjs'
-import { flattenSnapshots, parseDevices, parseVlan, refOf, refsOf, toNumber } from './_inventory.mjs'
+import { flattenSnapshots, parseDevices, parseGuestNics, parseVlan, refOf, refsOf, toNumber } from './_inventory.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
 import { formatVecturaArgs, VECTURA_BIN } from './_vectura.mjs'
 import { COWD_HEADER_LENGTH, grainDirectoryToDataMap, parseCowdHeader } from './parsers/cowd.mjs'
@@ -774,9 +774,10 @@ export default class Esxi extends EventEmitter {
   }
 
   async getTransferableVmMetadata(vmId, { signal } = {}) {
-    const [config, runtime] = await Promise.all([
+    const [config, runtime, guestNics] = await Promise.all([
       this.#retrieveProperty('VirtualMachine', vmId, 'config', { signal }),
       this.#retrieveProperty('VirtualMachine', vmId, 'runtime', { signal }),
+      this.#getGuestNics(vmId, { signal }),
     ])
 
     const vmPathName = config.files.vmPathName
@@ -830,13 +831,16 @@ export default class Esxi extends EventEmitter {
 
     // the cards are read from the devices and not from the vmx: they carry the key the inventory names
     // them by, the vmx only has the address of a generated MAC, and lists the cards which are not present
-    const networks = parseDevices(config.hardware?.device).nics.map(
-      ({ key, label, macAddress, addressType, network }) => ({
+    // read on its own, `config.hardware.device` is an `ArrayOfVirtualDevice` holding `VirtualDevice` elements,
+    // within `config` it is the repeated `device` element itself: one device or an array of them
+    const networks = parseDevices({ VirtualDevice: config.hardware?.device }).nics.map(
+      ({ key, label, macAddress, addressType, network, pciSlotNumber }) => ({
         key,
         label,
         macAddress,
         isGenerated: addressType === 'generated',
         network,
+        pciSlotNumber,
       })
     )
     const inspect = fileName => this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), fileName, { signal })
@@ -893,12 +897,36 @@ export default class Esxi extends EventEmitter {
       guestId: config.guestId,
       guestFullName: config.guestFullName,
       firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
+      secureBoot: isTrue(config.bootOptions?.efiSecureBootEnabled),
       powerState: runtime.powerState,
       snapshots,
       cdrom,
       disks,
       networks,
+      guestNics,
       vmId,
+    }
+  }
+
+  /**
+   * The addresses of the network cards as the guest sees them, while it runs with the VMware tools.
+   * Best effort: only used to carry a static network configuration over to XCP-ng.
+   *
+   * @param {string} vmId
+   * @param {object} [options]
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<import('./_inventory.mjs').GuestNic[]>}
+   */
+  async #getGuestNics(vmId, { signal } = {}) {
+    try {
+      return parseGuestNics(await this.#retrieveProperty('VirtualMachine', vmId, 'guest.net', { signal }))
+    } catch (error) {
+      signal?.throwIfAborted()
+      // the property is absent when the guest does not run, or runs without the tools
+      if (error.code !== 'NO_PROPERTY') {
+        warn('failed to read the network cards of the guest', { error, vmId })
+      }
+      return []
     }
   }
 
@@ -1018,6 +1046,63 @@ export default class Esxi extends EventEmitter {
    */
   async powerOff(vmId, { signal, timeout = 5 * 60e3 } = {}) {
     return this.#runTask('PowerOffVM_Task', { _this: vmId }, { signal, timeout })
+  }
+
+  /**
+   * Shuts the guest down cleanly through the VMware tools, and waits for the VM to be off.
+   *
+   * A power off is the guest losing power: Windows leaves its NTFS volumes dirty, which then cannot be
+   * written offline, e.g. by the repair ISO. The VM is powered off anyway when its tools do not run, when
+   * the guest refuses to shut down, or does not within `timeout`.
+   *
+   * @param {string} vmId - id of the VM, powered on
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms, how long the guest is given to shut down
+   * @param {number} [options.pollInterval] - in ms, between two reads of the power state
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<'shutdown' | 'powerOff'>} how the VM was stopped
+   */
+  async shutdown(vmId, { signal, timeout = 10 * 60e3, pollInterval = 5e3 } = {}) {
+    const toolsStatus = await this.#retrieveProperty('VirtualMachine', vmId, 'guest.toolsRunningStatus', {
+      signal,
+    }).catch(error => {
+      signal?.throwIfAborted()
+      warn('failed to read the state of the VMware tools', { error, vmId })
+    })
+
+    if (toolsStatus === 'guestToolsRunning') {
+      try {
+        // not a task: the call returns once the guest has been asked to shut down
+        await this.#vimClient.call('ShutdownGuest', { _this: vmId })
+        await this.#waitPoweredOff(vmId, { signal, timeout, pollInterval })
+        return 'shutdown'
+      } catch (error) {
+        signal?.throwIfAborted()
+        warn('the guest did not shut down, powering it off', { error, vmId })
+      }
+    } else {
+      info('the VMware tools do not run, powering the VM off', { toolsStatus, vmId })
+    }
+
+    // the guest may have completed its shut down meanwhile, the power off would then be refused
+    if ((await this.#retrieveProperty('VirtualMachine', vmId, 'runtime.powerState', { signal })) === 'poweredOff') {
+      return 'shutdown'
+    }
+    await this.powerOff(vmId, { signal })
+    return 'powerOff'
+  }
+
+  async #waitPoweredOff(vmId, { signal, timeout, pollInterval }) {
+    const deadline = Date.now() + timeout
+    while ((await this.#retrieveProperty('VirtualMachine', vmId, 'runtime.powerState', { signal })) !== 'poweredOff') {
+      if (Date.now() >= deadline) {
+        const error = new Error(`the VM ${vmId} is still running ${timeout}ms after its guest was asked to shut down`)
+        error.code = 'SHUTDOWN_TIMEOUT'
+        error.vmId = vmId
+        throw error
+      }
+      await delay(pollInterval, undefined, { signal })
+    }
   }
 
   /**
