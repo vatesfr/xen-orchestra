@@ -1,8 +1,14 @@
-import type { V2vVmRow, V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
+import type { V2vVmRow, V2vVmStatus, V2vVmsTableView } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vUnsupportedReason } from '@/modules/v2v/utils/v2v-vm-checks.util.ts'
-import { getV2vLastSyncAt, getV2vVmStatus, type V2vImportSnapshot } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
+import {
+  getV2vLastSyncAt,
+  getV2vVmStatus,
+  V2V_VM_STATUSES,
+  type V2vImportSnapshot,
+} from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { safePushInMap } from '@/shared/utils/map.util.ts'
+import { objectFromEntries } from '@core/utils/object.util.ts'
 import type { XoV2vDatastore, XoV2vDisk, XoV2vInventory, XoV2vVm } from '@vates/types'
 
 export type V2vVmRowsInput = {
@@ -66,11 +72,41 @@ export function getV2vOtherDatastores(row: Pick<V2vVmRow, 'datastore'>, datastor
 }
 
 export function countV2vRowsByStatus(rows: Pick<V2vVmRow, 'migration'>[]): Record<V2vVmStatus, number> {
-  const counts: Record<V2vVmStatus, number> = { none: 0, running: 0, warm: 0, cold: 0 }
+  const counts = objectFromEntries(V2V_VM_STATUSES.map(status => [status, 0] as const))
 
   for (const row of rows) {
     counts[row.migration]++
   }
 
   return counts
+}
+
+// A VM already in the list is added once only
+export function isV2vVmRowSelectable(row: Pick<V2vVmRow, 'supported' | 'isInList'>): boolean {
+  return row.supported && !row.isInList
+}
+
+export function buildV2vVmsTableView(
+  rows: V2vVmRow[],
+  datastore: V2vDatastoreRef | undefined,
+  isSelected: (id: V2vVmRow['id']) => boolean
+): V2vVmsTableView {
+  const viewRows = rows.map(row => ({
+    ...row,
+    isSelectable: isV2vVmRowSelectable(row),
+    isSelected: isSelected(row.id),
+  }))
+
+  if (datastore === undefined) {
+    return { type: 'all', rows: viewRows }
+  }
+
+  return {
+    type: 'datastore',
+    rows: viewRows.map(row => ({
+      ...row,
+      otherDatastores: getV2vOtherDatastores(row, datastore),
+      sizeOnDatastore: getV2vSizeOnDatastore(row.vm, datastore),
+    })),
+  }
 }
