@@ -8,9 +8,9 @@ export const XO_LINKS = {
   COMMUNITY: 'https://xcp-ng.org/forum/category/12/xen-orchestra',
   DOC: 'https://docs.xen-orchestra.com',
   DOC_SDN_CONTROLLER_MIGRATION:
-    'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#migration-path',
+    'https://docs.xen-orchestra.com/manage-your-infrastructure/networking/sdn_controller#migration-path',
   DOC_SDN_CONTROLLER_XAPI_PLUGIN:
-    'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#xapi-plugin',
+    'https://docs.xen-orchestra.com/manage-your-infrastructure/networking/sdn_controller#xapi-plugin',
   TRANSLATION: 'https://translate.vates.tech/engage/xen-orchestra/',
 }
 

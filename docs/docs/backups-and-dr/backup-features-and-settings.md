@@ -14,8 +14,8 @@ The two replication job types now have clearer names, but the XO 5 screens below
 
 | Current name                                                       | Former name, still shown in XO 5 |
 | ------------------------------------------------------------------ | -------------------------------- |
-| [Full replication](./backup-types/full_replication.md)                          | Disaster Recovery (DR)           |
-| [Incremental replication](./backup-types/incremental_replication.md)               | Continuous Replication (CR)      |
+| [Full replication](../replication/full_replication.md)                          | Disaster Recovery (DR)           |
+| [Incremental replication](../replication/incremental_replication.md)               | Continuous Replication (CR)      |
 
 Nothing changed in behaviour: only the labels differ. XO 6 uses the current names, and the tags XO puts on replicas (`Disaster Recovery`, `Continuous Replication`) kept the former ones.
 :::
@@ -494,7 +494,7 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
 - **Incremental backups only.** Live mount is not available for full backups, nor in [backup health checks](#backup-health-check).
 - **Read-only.** The VM sees a read-only disk. It is best suited for data disks: most operating systems need a writable system disk.
 - **One host per restore.** All the disks live mounted by one restore use the same host, and that host must be able to reach the main SR: its own host for a local SR, any host of its pool for a shared SR. The host selector only offers these hosts, and the most likely one is pre-selected.
-- **Network.** The hosts connect to Xen Orchestra (or the proxy) over iSCSI, on a TCP port picked for each mount. A firewall between the hosts and Xen Orchestra must let the hosts open TCP connections to it. For the firewall of XOA itself, see [Firewall of Xen Orchestra](#live-mount-firewall). The address given to the hosts is auto-detected; if they cannot reach it (NAT, several networks), set it in the [configuration file](../getting-started/configuration.md), for example `/etc/xo-server/config.iscsi.toml`:
+- **Network.** The hosts connect to Xen Orchestra (or the proxy) over iSCSI, on a TCP port picked for each mount. A firewall between the hosts and Xen Orchestra must let the hosts open TCP connections to it. For the firewall of XOA itself, see [Firewall of Xen Orchestra](#live-mount-firewall). The address given to the hosts is auto-detected; if they cannot reach it (NAT, several networks), set it in the [configuration file](../setup-and-config/configuration.md), for example `/etc/xo-server/config.iscsi.toml`:
 
   ```toml
   [iscsi]
@@ -510,7 +510,7 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
 
 Each live mounted disk is served on its own TCP port, picked when the disk is mounted, so it cannot be allowed in the firewall in advance. So when ufw is enabled on Xen Orchestra, as on XOA, **Xen Orchestra opens these ports in ufw itself, only when needed**. This is enabled by default.
 
-To turn it off, and manage the firewall yourself, add to the [configuration file](../getting-started/configuration.md), for example `/etc/xo-server/config.iscsi.toml`, then restart Xen Orchestra:
+To turn it off, and manage the firewall yourself, add to the [configuration file](../setup-and-config/configuration.md), for example `/etc/xo-server/config.iscsi.toml`, then restart Xen Orchestra:
 
 ```toml
 [iscsi]

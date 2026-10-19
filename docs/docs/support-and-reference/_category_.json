@@ -1,0 +1,9 @@
+{
+  "label": "Support & reference",
+  "position": 12,
+  "link": {
+    "type": "generated-index",
+    "slug": "/category/support-and-reference",
+    "description": "Support, troubleshooting, community and reference material"
+  }
+}
