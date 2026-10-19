@@ -55,24 +55,25 @@ describe('validate', () => {
     expect(job.errorMessage).toBeUndefined()
   })
 
-  it('can run for a halted VM', () => {
+  it('cannot run for a halted VM', () => {
     const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.HALTED }))
 
-    expect(job.canRun).toBe(true)
+    expect(job.canRun).toBe(false)
+    expect(job.errorMessage).toBe(t('job:vm-migrate:bad-power-state'))
   })
 
   it('cannot run for a suspended VM', () => {
     const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.SUSPENDED }))
 
     expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:vm-migrate:not-running-or-halted'))
+    expect(job.errorMessage).toBe(t('job:vm-migrate:bad-power-state'))
   })
 
   it('cannot run for a paused VM', () => {
     const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.PAUSED }))
 
     expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:vm-migrate:not-running-or-halted'))
+    expect(job.errorMessage).toBe(t('job:vm-migrate:bad-power-state'))
   })
 
   it('reports a migration in progress while the VM is being migrated', () => {
@@ -147,7 +148,7 @@ describe('run', () => {
   it('rejects before posting when the VM cannot be migrated', async () => {
     const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.SUSPENDED }))
 
-    await expect(job.run()).rejects.toThrow(t('job:vm-migrate:not-running-or-halted'))
+    await expect(job.run()).rejects.toThrow(t('job:vm-migrate:bad-power-state'))
     expect(fetchPostMock).not.toHaveBeenCalled()
   })
 })

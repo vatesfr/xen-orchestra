@@ -189,7 +189,7 @@ export function useVmMigrateMappingForm(
     vdiRows.value.filter(row => row.targetSrId !== undefined && row.targetSrId !== row.vdi.$SR)
   )
 
-  const areAllSrsShared = computed(() => flaggedVdiRows.value.length === 0)
+  const areAllSrsShared = computed(() => vdiRows.value.length > 0 && flaggedVdiRows.value.length === 0)
 
   const areAllVifsFollowing = computed(() => isIntraPool.value)
 

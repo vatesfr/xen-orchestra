@@ -321,6 +321,12 @@ describe('without a target host', () => {
     expect(form.vdiRows).toEqual([])
     expect(form.vifRows).toEqual([])
   })
+
+  it('does not claim that all SRs are shared', () => {
+    const { form } = mountMappingForm(POOL_A, undefined)
+
+    expect(form.areAllSrsShared).toBe(false)
+  })
 })
 
 describe('intra-pool migration', () => {
