@@ -555,18 +555,25 @@ class SDNController extends EventEmitter {
             this.privateNetworks[uuid] = privateNetwork
           }
 
-          const vni = otherConfig['xo:sdn-controller:vni']
-          if (vni === undefined) {
-            noVniNetworks.push(network)
-          } else {
-            this._prevVni = Math.max(this._prevVni, +vni)
-          }
+          try {
+            const vni = otherConfig['xo:sdn-controller:vni']
+            if (vni === undefined) {
+              noVniNetworks.push(network)
+            } else {
+              this._prevVni = Math.max(this._prevVni, +vni)
+            }
 
-          await privateNetwork.addNetwork(network)
+            await privateNetwork.addNetwork(network)
 
-          this._networks.set(network.$id, network.$ref)
-          if (privateNetwork.center !== undefined) {
-            this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
+            this._networks.set(network.$id, network.$ref)
+            if (privateNetwork.center !== undefined) {
+              this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
+            }
+          } catch (error) {
+            log.warn('Error registering network for SDN controller', {
+              network: network.name_label,
+              error,
+            })
           }
         })
       )
