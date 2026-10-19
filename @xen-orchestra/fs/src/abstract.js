@@ -201,8 +201,11 @@ export default class RemoteHandlerAbstract {
       }
     })
 
-    // an operation which timed out may still be blocked (e.g. on a dead hard-mounted NFS), holding a thread of the
-    // libuv pool: no new operation is started on this remote until it settles, to avoid exhausting the pool
+    // on fs-backed remotes (see `_rejectWhileTimedOutOperationPending`), an operation which timed out may still be
+    // blocked (e.g. on a dead hard-mounted NFS), holding a thread of the libuv pool: while it is pending, new
+    // operations on this remote are rejected at once with `REMOTE_UNRESPONSIVE` to avoid exhausting the pool
+    //
+    // HTTP-backed remotes (S3, Azure) hold no libuv thread, they keep the plain timeout
     let nTimedOutOperations = 0
     const rejectWhileTimedOutOperationPending = this._rejectWhileTimedOutOperationPending
     this._withTimeout.forEach(functionName => {
