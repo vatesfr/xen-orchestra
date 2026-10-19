@@ -141,6 +141,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/v2v/migrate': RouteRecordInfo<
+      '/admin/v2v/migrate',
+      '/admin/v2v/migrate',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/backup/[id]': RouteRecordInfo<
       '/backup/[id]',
       '/backup/:id',
@@ -661,6 +668,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/user-management/users.vue': {
       routes:
         | '/admin/user-management/users'
+      views:
+        | never
+    }
+    'src/pages/admin/v2v/migrate.vue': {
+      routes:
+        | '/admin/v2v/migrate'
       views:
         | never
     }

@@ -1,23 +1,23 @@
 # Testing composables
 
-A composable that relies on a Vue context (`useI18n`, `inject`, an effect scope, plugins) must run **inside a mounted component**. Use the `mountComposable` helper from `src/test/mount-composable.ts`, which mounts a throwaway component with the real `vue-i18n` instance and a fresh Pinia:
+A composable that relies on a Vue context (`useI18n`, `inject`, an effect scope, plugins) must run **inside a mounted component**. Use the helpers from `src/test/mount-composable.ts`, which mount a throwaway component with `createGlobalTestConfig()`: the real `vue-i18n` instance, the app form validation messages, a fresh Pinia and a router.
+
+Because the real i18n instance is installed, translations resolve to actual strings, and the assertion builds its expected label with `t` instead of hard-coding the wording — see [Assert behaviour](./assert-behaviour.md). `mountComposableWithI18n` mounts the composable, spreads its result, adds the `t` of the mounted component and returns `wrapper.vm`:
 
 ```typescript
-import { mountComposable } from '@/test/mount-composable.ts'
+import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 
-const { wrapper } = mountComposable(() => {
-  const { t } = useI18n()
+const result = mountComposableWithI18n(() => useXoVmUtils(createVm({ power_state: VM_POWER_STATE.RUNNING })))
 
-  return { ...useXoVmUtils(createVm({ power_state: VM_POWER_STATE.RUNNING })), t }
-})
-
-expect(wrapper.vm.powerState.icon).toBe('status:running-circle')
-expect(wrapper.vm.powerState.text).toBe(wrapper.vm.t('vm:status:running'))
+expect(result.powerState.icon).toBe('status:running-circle')
+expect(result.powerState.text).toBe(result.t('vm:status:running'))
 ```
 
-The composable result becomes the component state, so `wrapper.vm` exposes it with refs **already unwrapped** — no `.value`. Read through `wrapper.vm` rather than destructuring it: a destructured value is a snapshot and stops following updates.
+`mountComposable` does the same without `t` and returns `{ wrapper }`, for a test that needs neither the translation nor a returned object spread.
 
-Because the real i18n instance is installed, translations resolve to actual strings. Return `t` from the `setup` callback so the assertion can build its expected label with it instead of hard-coding the wording — see [Assert behaviour](./assert-behaviour.md).
+Both take the options of `createGlobalTestConfig()` as a second argument, e.g. `{ router }` for a composable that navigates (build it with `createTestRouter()` and assert on `router.currentRoute.value`).
+
+The composable result becomes the component state, so `wrapper.vm` exposes it with refs **already unwrapped** — no `.value`. Read through it rather than destructuring it: a destructured value is a snapshot and stops following updates.
 
 The wrapper is unmounted after the test, so `onUnmounted` and `onScopeDispose` cleanup runs and no watcher of a previous test can re-fire in the next one.
 

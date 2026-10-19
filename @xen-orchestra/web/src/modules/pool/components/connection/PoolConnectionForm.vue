@@ -3,16 +3,16 @@
     <div class="primary-host-section">
       <UiTitle>{{ t('master') }}</UiTitle>
       <div class="inputs-container">
-        <PoolConnectionFormTextInput v-bind="hostInputBindings" />
-        <PoolConnectionFormTextInput v-bind="httpProxyInputBindings" />
-        <PoolConnectionFormTextInput v-bind="usernameInputBindings" />
-        <PoolConnectionFormPasswordInput v-bind="passwordInputBindings" />
+        <FormTextInput v-bind="hostInputBindings" />
+        <FormTextInput v-bind="httpProxyInputBindings" />
+        <FormTextInput v-bind="usernameInputBindings" />
+        <FormPasswordInput v-bind="passwordInputBindings" />
       </div>
     </div>
     <UiTitle>{{ t('options') }}</UiTitle>
     <div class="options-section">
-      <PoolConnectionFormCheckbox v-bind="readOnlyCheckboxBindings" />
-      <PoolConnectionFormCheckbox v-bind="allowUnauthorizedCheckboxBindings" />
+      <FormCheckbox v-bind="readOnlyCheckboxBindings" />
+      <FormCheckbox v-bind="allowUnauthorizedCheckboxBindings" />
     </div>
     <div class="buttons-container">
       <UiLink :to="{ name: '/(site)/dashboard' }" size="medium">
@@ -26,14 +26,14 @@
 </template>
 
 <script setup lang="ts">
-import PoolConnectionFormCheckbox from '@/modules/pool/components/connection/inputs/PoolConnectionFormCheckbox.vue'
-import PoolConnectionFormPasswordInput from '@/modules/pool/components/connection/inputs/PoolConnectionFormPasswordInput.vue'
-import PoolConnectionFormTextInput from '@/modules/pool/components/connection/inputs/PoolConnectionFormTextInput.vue'
 import { usePoolConnectionForm } from '@/modules/pool/form/use-pool-connection-form.ts'
 import { isAuthenticationFailedError } from '@/modules/pool/utils/xo-pool.util.ts'
 import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
 import { useXoServerCreateJob } from '@/modules/server/jobs/xo-server-create.job.ts'
 import { useXoServerForgetJob } from '@/modules/server/jobs/xo-server-forget.job.ts'
+import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
+import FormPasswordInput from '@/shared/components/form/FormPasswordInput.vue'
+import FormTextInput from '@/shared/components/form/FormTextInput.vue'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'

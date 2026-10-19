@@ -1,37 +1,37 @@
 <template>
   <div class="backup-repository-s3-fields">
     <div class="endpoint-row">
-      <BackupRepositoryFormTextInput v-bind="bindings.endpoint" class="endpoint" />
+      <FormTextInput v-bind="bindings.endpoint" class="endpoint" />
       <div class="checkboxes">
-        <BackupRepositoryFormCheckbox v-bind="bindings.useHttps" />
-        <BackupRepositoryFormCheckbox v-if="bindings.useHttps.modelValue" v-bind="bindings.allowUnauthorized" />
+        <FormCheckbox v-bind="bindings.useHttps" />
+        <FormCheckbox v-if="bindings.useHttps.modelValue" v-bind="bindings.allowUnauthorized" />
       </div>
     </div>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="bindings.region" />
+      <FormTextInput v-bind="bindings.region" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="bindings.accessKeyId" />
-      <BackupRepositoryFormTextInput v-bind="bindings.secret" />
+      <FormTextInput v-bind="bindings.accessKeyId" />
+      <FormTextInput v-bind="bindings.secret" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="bindings.bucket" />
+      <FormTextInput v-bind="bindings.bucket" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow wide>
-      <BackupRepositoryFormTextInput v-bind="bindings.pathInBucket" />
+      <FormTextInput v-bind="bindings.pathInBucket" />
     </BackupRepositoryFormRow>
   </div>
 </template>
 
 <script lang="ts" setup>
 import BackupRepositoryFormRow from '@/modules/backup-repository/components/form/BackupRepositoryFormRow.vue'
-import BackupRepositoryFormCheckbox from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormCheckbox.vue'
-import BackupRepositoryFormTextInput from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormTextInput.vue'
 import type { S3BackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-s3-backup-repository-details-form.ts'
+import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
+import FormTextInput from '@/shared/components/form/FormTextInput.vue'
 
 defineProps<{ bindings: S3BackupRepositoryDetailsForm['bindings'] }>()
 </script>

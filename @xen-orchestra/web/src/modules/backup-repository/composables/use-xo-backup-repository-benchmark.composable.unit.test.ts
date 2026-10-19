@@ -4,6 +4,7 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import { createBrBenchmark } from '@/test/create-br-benchmark.ts'
 import { createBr } from '@/test/create-br.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { formatSpeed } from '@core/utils/speed.util.ts'
 import { nextTick, ref } from 'vue'
 
@@ -58,7 +59,7 @@ describe('benchmark', () => {
   })
 
   it('stays unchanged when the benchmark run fails', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {})
+    silenceConsoleError()
     run.mockRejectedValue(new Error('Backup repository unreachable'))
     const stored = createBrBenchmark()
     const result = mountBenchmark(createBr({ benchmarks: [stored] }))

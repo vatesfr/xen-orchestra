@@ -2,7 +2,7 @@ import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
+import { mountComposable, mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
@@ -22,11 +22,7 @@ beforeEach(() => {
 })
 
 function mountVmUtils(overrides: Partial<FrontXoVm> = {}) {
-  return mountComposable(() => {
-    const { t } = useI18n()
-
-    return { ...useXoVmUtils(createVm(overrides)), t }
-  }).wrapper.vm
+  return mountComposableWithI18n(() => useXoVmUtils(createVm(overrides)))
 }
 
 describe('powerState', () => {
@@ -39,18 +35,14 @@ describe('powerState', () => {
 
   it('reacts to changes of the source VM', () => {
     const vm = ref(createVm({ power_state: VM_POWER_STATE.RUNNING }))
-    const { wrapper } = mountComposable(() => {
-      const { t } = useI18n()
+    const result = mountComposableWithI18n(() => useXoVmUtils(vm))
 
-      return { ...useXoVmUtils(vm), t }
-    })
-
-    expect(wrapper.vm.powerState.icon).toBe('status:running-circle')
+    expect(result.powerState.icon).toBe('status:running-circle')
 
     vm.value = createVm({ power_state: VM_POWER_STATE.HALTED })
 
-    expect(wrapper.vm.powerState.icon).toBe('status:halted-circle')
-    expect(wrapper.vm.powerState.text).toBe(wrapper.vm.t('vm:status:halted'))
+    expect(result.powerState.icon).toBe('status:halted-circle')
+    expect(result.powerState.text).toBe(result.t('vm:status:halted'))
   })
 })
 
@@ -90,13 +82,13 @@ describe('installDateFormatted', () => {
   it('formats the install date with the current locale', () => {
     const installTime = 1660000000
     const { wrapper } = mountComposable(() => {
-      const { locale, t } = useI18n()
+      const { locale } = useI18n()
       const { installDateFormatted } = useXoVmUtils(createVm({ installTime }))
       const expected = new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(
         new Date(parseDateTime(installTime * 1000))
       )
 
-      return { installDateFormatted, expected, t }
+      return { installDateFormatted, expected }
     })
 
     expect(wrapper.vm.installDateFormatted).toBe(wrapper.vm.expected)
@@ -130,8 +122,8 @@ describe('guestToolsDisplay', () => {
     expect(result.guestToolsDisplay).toEqual({
       type: 'missing',
       icon: 'status:halted-circle',
-      value: 'Install guest tools',
-      tooltip: 'Management agent not detected',
+      value: result.t('action:install-guest-tools'),
+      tooltip: result.t('management-agent-not-detected'),
     })
   })
 
@@ -158,7 +150,7 @@ describe('guestToolsDisplay', () => {
       type: 'up-to-date',
       icon: 'status:success-circle',
       value: '7.5.0',
-      tooltip: 'Installed',
+      tooltip: result.t('installed'),
     })
   })
 
@@ -175,7 +167,7 @@ describe('guestToolsDisplay', () => {
       type: 'outdated',
       icon: 'status:warning-circle',
       value: '7.5.0',
-      tooltip: 'Guest tools out of date',
+      tooltip: result.t('guest-tools-out-of-date'),
     })
   })
 
@@ -192,7 +184,7 @@ describe('guestToolsDisplay', () => {
       type: 'unknown',
       icon: 'status:info-circle',
       value: '7.5.0',
-      tooltip: 'Guest tools status unknown',
+      tooltip: result.t('guest-tools-status-unknown'),
     })
   })
 

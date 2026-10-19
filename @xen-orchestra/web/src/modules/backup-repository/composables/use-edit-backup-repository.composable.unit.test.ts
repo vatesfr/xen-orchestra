@@ -9,6 +9,7 @@ import type {
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { type Ref, ref } from 'vue'
@@ -57,7 +58,7 @@ beforeEach(() => {
   useOverlayMock.mockReset()
   open.mockReset()
 
-  vi.spyOn(console, 'error').mockImplementation(() => {})
+  silenceConsoleError()
 
   useEditJob.mockReturnValue({
     run,
