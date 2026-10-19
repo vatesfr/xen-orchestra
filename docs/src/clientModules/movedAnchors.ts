@@ -34,7 +34,7 @@ const MOVED_FROM_XOA: Record<string, string> = {
   'xoa-check': '/support-and-reference/troubleshooting#first-reflex-xoa-check',
   'support-tunnel': '/support-and-reference/troubleshooting#support-tunnel',
   'ssh-pro-support': '/support-and-reference/troubleshooting#support-tunnel',
-  'migrate-from-an-older-xoa': '/setup-and-config/migrate_to_new_xoa',
+  'migrate-from-an-older-xoa': 'https://docs.vates.tech/kb/vkb-1031/',
 }
 
 /**
