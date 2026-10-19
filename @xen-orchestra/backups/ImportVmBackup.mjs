@@ -432,7 +432,7 @@ export class ImportVmBackup {
         if (!isFull) {
           for (const disk of Object.values(backup.disks)) {
             disk.addProgressHandler(
-              new TaskProgressHandler({ estimatedSize: disk.getBlockIndexesCount() * disk.getBlockSize() })
+              new TaskProgressHandler({ size: disk.getBlockIndexesCount() * disk.getBlockSize() })
             )
           }
         }

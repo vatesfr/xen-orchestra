@@ -342,16 +342,23 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         }
         await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
 
-        let stream, format
-        if (vdi.virtual_size > VHD_MAX_SIZE) {
-          stream = await toQcow2Stream(disk)
-          format = 'qcow2'
-        } else {
-          stream = await toVhdStream(disk)
-          format = 'vhd'
-        }
+        // one subtask per disk: the per disk progress and sizes are reported in it
+        await Task.run(
+          { properties: { name: `transfer disk ${vdiRecords[id].name_label}`, vdiUuid: vdi.uuid } },
+          async () => {
+            let stream, format
+            if (vdi.virtual_size > VHD_MAX_SIZE) {
+              stream = await toQcow2Stream(disk)
+              format = 'qcow2'
+            } else {
+              stream = await toVhdStream(disk)
+              format = 'vhd'
+            }
 
-        await vdi.$importContent(stream, { cancelToken, format })
+            await vdi.$importContent(stream, { cancelToken, format })
+            return { size: disk.getNbGeneratedBlock() * disk.getBlockSize() }
+          }
+        )
 
         await xapi.setField('VDI', vdi.$ref, 'name_label', vdiRecords[id].name_label)
       }

@@ -273,16 +273,22 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             parentPath = relativeFromFile(path, parentDestPath)
           }
 
-          const transferred = await adapter.writeVhd(path, disk, {
-            // no checksum for VHDs, because they will be invalidated by
-            // merges and chains
-            checksum: false,
-            validator: tmpPath => checkDisk(handler, tmpPath),
-            writeBlockConcurrency: this._config.writeBlockConcurrency,
-            uuid: packUuid(vdi.uuid),
-            parentUuid,
-            parentPath,
-          })
+          // one subtask per disk: the per disk progress and sizes are reported in it
+          const { size: transferred } = await Task.run(
+            { properties: { name: `transfer disk ${vdi.name_label}`, vdiUuid: vdi.uuid } },
+            async () => ({
+              size: await adapter.writeVhd(path, disk, {
+                // no checksum for VHDs, because they will be invalidated by
+                // merges and chains
+                checksum: false,
+                validator: tmpPath => checkDisk(handler, tmpPath),
+                writeBlockConcurrency: this._config.writeBlockConcurrency,
+                uuid: packUuid(vdi.uuid),
+                parentUuid,
+                parentPath,
+              }),
+            })
+          )
           size += transferred
         },
         {

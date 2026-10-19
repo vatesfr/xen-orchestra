@@ -4,21 +4,17 @@ const MAX_DURATION_BETWEEN_PROGRESS_EMIT = 5e3
 const MIN_THRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT = 0.01
 
 export class TaskProgressHandler {
-  #estimatedSize
+  #size
   #lastProgressDate
   #lastProgressValue
 
   /**
    * @param {object} [opts]
-   * @param {number} [opts.estimatedSize] expected number of bytes to transfer, enables `transferredSize`
+   * @param {number} [opts.size] number of bytes to transfer, enables `transferredSize`
    */
-  constructor({ estimatedSize } = {}) {
-    this.#estimatedSize = estimatedSize
+  constructor({ size } = {}) {
+    this.#size = size
     Task.set('progress', 0)
-    if (estimatedSize !== undefined) {
-      Task.set('estimatedSize', estimatedSize)
-      Task.set('transferredSize', 0)
-    }
   }
   async setProgress(progress) {
     if (progress < 0 || progress > 1) {
@@ -33,11 +29,15 @@ export class TaskProgressHandler {
     ) {
       return
     }
+    // the sizes are emitted from the transfer context, the constructor may run in a parent task
+    if (this.#lastProgressDate === undefined && this.#size !== undefined) {
+      Task.set('size', this.#size)
+    }
     this.#lastProgressDate = Date.now()
     this.#lastProgressValue = progress
     Task.set('progress', Math.round(progress * 100))
-    if (this.#estimatedSize !== undefined) {
-      Task.set('transferredSize', Math.round(progress * this.#estimatedSize))
+    if (this.#size !== undefined) {
+      Task.set('transferredSize', Math.round(progress * this.#size))
     }
   }
   done() {}

@@ -79,9 +79,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       for (const key in incrementalExport.disks) {
         let disk = incrementalExport.disks[key]
         isVhdDifferencing[key] = disk.isDifferencing()
-        disk.addProgressHandler(
-          new TaskProgressHandler({ estimatedSize: disk.getBlockIndexesCount() * disk.getBlockSize() })
-        )
+        disk.addProgressHandler(new TaskProgressHandler({ size: disk.getBlockIndexesCount() * disk.getBlockSize() }))
         disk = new ThrottledDisk(disk, this._throttleGenerator)
         incrementalExport.disks[key] = new SynchronizedDisk(disk)
       }

@@ -49,6 +49,14 @@
           {{ formattedEndDate }}
         </template>
       </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="formattedSize !== undefined">
+        <template #key>{{ t('size') }}</template>
+        <template #value>{{ formattedSize }}</template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="formattedSpeed !== undefined">
+        <template #key>{{ t('speed') }}</template>
+        <template #value>{{ formattedSpeed }}</template>
+      </VtsCardRowKeyValue>
 
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
@@ -82,6 +90,8 @@ import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTi
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
+import { formatSize } from '@core/utils/size.util.ts'
+import { formatSpeed } from '@core/utils/speed.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -128,6 +138,39 @@ const formattedEndDate = computed(() => {
   const endTimestamp = task.start + estimatedTotal
 
   return d(endTimestamp, 'datetime_short')
+})
+
+// sizes in bytes, emitted by the backup transfers
+const getSizeProperty = (name: 'size' | 'transferredSize') => {
+  const size = task.properties[name]
+
+  return typeof size === 'number' ? size : undefined
+}
+
+const formattedSize = computed(() => {
+  const size = getSizeProperty('size')
+
+  return size !== undefined ? formatSize(size, 2) : undefined
+})
+
+// once ended, the transfer returns the real size it wrote
+const getResultSize = () => {
+  const size = task.end !== undefined ? task.result?.size : undefined
+
+  return typeof size === 'number' ? size : undefined
+}
+
+const formattedSpeed = computed(() => {
+  const transferredSize = getResultSize() ?? getSizeProperty('transferredSize')
+
+  if (transferredSize === undefined) {
+    return undefined
+  }
+
+  // recomputed each time transferredSize changes, so "now" is close to the date it was emitted
+  const elapsedMs = (task.end ?? Date.now()) - task.start
+
+  return elapsedMs > 0 ? formatSpeed((transferredSize * 1e3) / elapsedMs) : undefined
 })
 </script>
 
