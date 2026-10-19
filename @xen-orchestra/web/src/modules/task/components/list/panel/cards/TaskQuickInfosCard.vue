@@ -78,7 +78,7 @@
 <script lang="ts" setup>
 import { useXoTaskNameResolver } from '@/modules/task/composables/xo-task-name-resolver.composable.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import { getTaskAccents } from '@/modules/task/utils/xo-task.util.ts'
+import { getTaskAccents, getTaskTransfer } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -140,37 +140,20 @@ const formattedEndDate = computed(() => {
   return d(endTimestamp, 'datetime_short')
 })
 
-// sizes in bytes, emitted by the backup transfers
-const getSizeProperty = (name: 'size' | 'transferredSize') => {
-  const size = task.properties[name]
-
-  return typeof size === 'number' ? size : undefined
-}
+// sizes in bytes reported by the transfers of this task and its subtasks
+const transfer = computed(() => getTaskTransfer(task))
 
 const formattedSize = computed(() => {
-  const size = getSizeProperty('size')
+  const size = transfer.value?.size
 
   return size !== undefined ? formatSize(size, 2) : undefined
 })
 
-// once ended, the transfer returns the real size it wrote
-const getResultSize = () => {
-  const size = task.end !== undefined ? task.result?.size : undefined
-
-  return typeof size === 'number' ? size : undefined
-}
-
+// average speed once ended, otherwise the speed of the transfers still running
 const formattedSpeed = computed(() => {
-  const transferredSize = getResultSize() ?? getSizeProperty('transferredSize')
+  const bytesPerSecond = transfer.value?.bytesPerSecond
 
-  if (transferredSize === undefined) {
-    return undefined
-  }
-
-  // recomputed each time transferredSize changes, so "now" is close to the date it was emitted
-  const elapsedMs = (task.end ?? Date.now()) - task.start
-
-  return elapsedMs > 0 ? formatSpeed((transferredSize * 1e3) / elapsedMs) : undefined
+  return bytesPerSecond ? formatSpeed(bytesPerSecond) : undefined
 })
 </script>
 
