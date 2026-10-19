@@ -78,6 +78,15 @@ describe('applySchema()', function () {
     assert.equal(result.data.backups.dirMode, 0o700)
   })
 
+  it('accepts the legacy sample.config.toml (http.listen as an array)', function () {
+    const config = parseToml(readFileSync(new URL('../sample.config.toml', import.meta.url), 'utf8'))
+
+    const result = XoServerConfigSchema.safeParse(config)
+
+    assert.equal(result.success, true, result.error?.message)
+    assert.ok(Array.isArray(result.data.http.listen))
+  })
+
   it('returns an empty object for an empty configuration', function () {
     assert.deepEqual(applySchema({}), {})
   })

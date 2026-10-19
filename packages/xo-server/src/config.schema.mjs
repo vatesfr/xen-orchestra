@@ -21,6 +21,18 @@ const providerSchema = z.object({
   privateKey: redacted.optional(),
 })
 
+const listenSchema = z
+  .object({
+    port: z.number().optional(),
+    hostname: z.string().optional(),
+    acmeDomain: z.string().optional(),
+    key: redacted.optional(),
+    cert: redacted.optional(),
+    certificate: redacted.optional(),
+  })
+  .partial()
+  .catchall(z.any().transform(() => '**REDACTED**'))
+
 // Mirror the shape of xo-server's config here.
 // .partial() on every object because config files are always partial — missing keys are fine.
 export const XoServerConfigSchema = z
@@ -35,21 +47,8 @@ export const XoServerConfigSchema = z
 
     http: z
       .object({
-        listen: z
-          .record(
-            z
-              .object({
-                port: z.number().optional(),
-                hostname: z.string().optional(),
-                acmeDomain: z.string().optional(),
-                key: redacted.optional(),
-                cert: redacted.optional(),
-                certificate: redacted.optional(),
-              })
-              .partial()
-              .catchall(z.any().transform(() => '**REDACTED**'))
-          )
-          .optional(),
+        // record (`[http.listen.<name>]`) or legacy array (`[[http.listen]]`)
+        listen: z.union([z.record(z.string(), listenSchema), z.array(listenSchema)]).optional(),
         listenOptions: z.record(z.unknown()).optional(),
         redirectToHttps: z.boolean().optional(),
         sessionSecret: redacted,
