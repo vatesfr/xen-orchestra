@@ -539,10 +539,18 @@ class SDNController extends EventEmitter {
           let privateNetwork = this.privateNetworks[uuid]
           if (privateNetwork === undefined) {
             const preferredCenterUuid = otherConfig['xo:sdn-controller:preferred-center']
-            const preferredCenter =
-              preferredCenterUuid !== undefined
-                ? this._xo.getXapiObject(this._xo.getObject(preferredCenterUuid, 'host'))
-                : undefined
+            let preferredCenter
+            if (preferredCenterUuid !== undefined) {
+              try {
+                preferredCenter = this._xo.getXapiObject(this._xo.getObject(preferredCenterUuid, 'host'))
+              } catch (error) {
+                log.warn('Stale preferred center, will be elected when a host becomes available', {
+                  network: network.name_label,
+                  preferredCenterUuid,
+                  error,
+                })
+              }
+            }
             privateNetwork = new PrivateNetwork(this, uuid, preferredCenter)
             this.privateNetworks[uuid] = privateNetwork
           }
