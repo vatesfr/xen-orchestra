@@ -5,17 +5,17 @@
     </UiAlert>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="bindings.pathOnShare" />
-      <BackupRepositoryFormTextInput v-bind="bindings.subfolder" />
+      <FormTextInput v-bind="bindings.pathOnShare" />
+      <FormTextInput v-bind="bindings.subfolder" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="bindings.username" />
-      <BackupRepositoryFormTextInput v-bind="bindings.password" />
+      <FormTextInput v-bind="bindings.username" />
+      <FormTextInput v-bind="bindings.password" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow>
-      <BackupRepositoryFormTextInput v-bind="bindings.domain" />
+      <FormTextInput v-bind="bindings.domain" />
     </BackupRepositoryFormRow>
 
     <BackupRepositoryFormRow wide>
@@ -27,8 +27,8 @@
 <script lang="ts" setup>
 import BackupRepositoryFormRow from '@/modules/backup-repository/components/form/BackupRepositoryFormRow.vue'
 import BackupRepositoryFormTextArea from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormTextArea.vue'
-import BackupRepositoryFormTextInput from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormTextInput.vue'
 import type { SmbBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
+import FormTextInput from '@/shared/components/form/FormTextInput.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { useI18n } from 'vue-i18n'
 
