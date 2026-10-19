@@ -6,6 +6,7 @@
       <BackupJobLogsCard v-if="lastBackupLogs.length > 0" :backup-logs="lastBackupLogs" />
       <BackupJobBackedUpVmsCard v-if="backupJob.type === 'backup' && backupJob.vms" :backed-up-vms="backupJob.vms" />
       <BackupJobTargetsCard :storage-repository-targets :backup-repository-targets />
+      <BackupJobSettingsCard :backup-job />
     </template>
   </VtsSidePanel>
 </template>
@@ -15,6 +16,7 @@ import BackupJobBackedUpVmsCard from '@/modules/backup-job/components/list/panel
 import BackupJobInfosCard from '@/modules/backup-job/components/list/panel/cards/BackupJobInfosCard.vue'
 import BackupJobLogsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobLogsCard.vue'
 import BackupJobSchedulesCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSchedulesCard.vue'
+import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSettingsCard.vue'
 import BackupJobTargetsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobTargetsCard.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoBackupLogCollection } from '@/modules/backup-job/remote-resources/use-xo-backup-log-collection.ts'
