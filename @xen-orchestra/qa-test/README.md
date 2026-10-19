@@ -61,6 +61,16 @@ The following are required only for mirror backup tests (`qa:mirror`):
 | `MIRROR_DESTINATION_REPOSITORY_NAME` | Mirror destination repository name                                                                       | `Test mirror QA`             |
 | `MIRROR_DESTINATION_REPOSITORY_URL`  | `@xen-orchestra/fs` URL for the mirror destination. Same backend flexibility as `BACKUP_REPOSITORY_URL`. | `file:///tmp/xo-test-mirror` |
 
+The following are optional, for the VM folder lock tests (`qa:backup:lock`), which skip a backend whose URL is unset.
+The machine running the suite must reach these repositories as XO does.
+
+| Variable                       | Description                                   | Example                                                                           |
+| ------------------------------ | --------------------------------------------- | --------------------------------------------------------------------------------- |
+| `S3_BACKUP_REPOSITORY_NAME`    | S3 backup repository name in XO               | `Test backup QA S3`                                                               |
+| `S3_BACKUP_REPOSITORY_URL`     | `@xen-orchestra/fs` URL of an S3 bucket       | `s3://<access key>:<secret key>@<host>/<bucket>/<directory>`                      |
+| `AZURE_BACKUP_REPOSITORY_NAME` | Azure backup repository name in XO            | `Test backup QA Azure`                                                            |
+| `AZURE_BACKUP_REPOSITORY_URL`  | `@xen-orchestra/fs` URL of an Azure container | `azure://<account>:<key>@<account>.blob.core.windows.net/<container>/<directory>` |
+
 The following are optional, for load tests (disk churn via SSH). Leave `TEST_VM_SSH_KEY` unset
 to let `ssh` fall back to its own default identity files / `ssh-agent`:
 
@@ -94,6 +104,7 @@ Log namespaces follow the pattern `qa:<suite>[:<variant>]`:
 | `qa:backup:base`       | `tests/backup.test.js`                      |
 | `qa:backup:nbd`        | `tests/backup.nbd.test.js`                  |
 | `qa:backup:combined`   | `tests/backup-replication-combined.test.js` |
+| `qa:backup:lock`       | `tests/backup.lock.test.js`                 |
 | `qa:mirror`            | `tests/backup-mirror.test.js`               |
 | `qa:export`            | `tests/export.vhd.test.js`                  |
 | `qa:load:backup:delta` | `scripts/backup-load-delta.mjs`             |
@@ -114,8 +125,14 @@ yarn workspace @xen-orchestra/qa-test qa:vm                # VM lifecycle (clone
 yarn workspace @xen-orchestra/qa-test qa:backup            # Full and delta backup
 yarn workspace @xen-orchestra/qa-test qa:backup:nbd        # Backup with NBD protocol
 yarn workspace @xen-orchestra/qa-test qa:backup:combined   # Advanced scenarios (replication + backup)
+yarn workspace @xen-orchestra/qa-test qa:backup:lock       # VM backup folder lock (S3 and Azure only)
 yarn workspace @xen-orchestra/qa-test qa:export            # VHD/XVA export and restoration
 ```
+
+`qa:backup:lock` locks the backup folder of its test VM itself, from the machine running the suite, and checks that
+a backup of the VM fails while the folder is locked, and that XO releases its own lock at the end of a backup. It runs
+once per repository set in `S3_BACKUP_REPOSITORY_URL` and `AZURE_BACKUP_REPOSITORY_URL` (see above), and skips on an
+S3 provider which XO does not lock (no conditional writes, or Object Lock).
 
 ### Test subsets
 
