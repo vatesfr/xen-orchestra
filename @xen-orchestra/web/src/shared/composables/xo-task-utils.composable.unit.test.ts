@@ -1,10 +1,5 @@
 import type { FrontXoTask, useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import {
-  getErrorCode,
-  getErrorTaskId,
-  isMonitoredTaskError,
-  useXoTaskUtils,
-} from '@/shared/composables/xo-task-utils.composable.ts'
+import { getErrorTaskId, isMonitoredTaskError, useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { nextTick, ref } from 'vue'
 
@@ -49,40 +44,22 @@ beforeEach(() => {
 })
 
 describe('monitorTask', () => {
-  it('rejects with the task ID, the message and the error code when the task fails', async () => {
+  it('rejects with the task ID and the message when the task fails', async () => {
     const error: unknown = await monitorFailedTask({
-      code: 'VM_INCOMPATIBLE_WITH_THIS_HOST',
       message: 'VM_INCOMPATIBLE_WITH_THIS_HOST(OpaqueRef:host, OpaqueRef:vm)',
       name: 'XapiError',
     })
 
     expect(isMonitoredTaskError(error)).toBe(true)
     expect(getErrorTaskId(error)).toBe(TASK_ID)
-    expect(getErrorCode(error)).toBe('VM_INCOMPATIBLE_WITH_THIS_HOST')
     expect((error as Error).message).toBe('VM_INCOMPATIBLE_WITH_THIS_HOST(OpaqueRef:host, OpaqueRef:vm)')
     expect((error as Error).name).toBe('XapiError')
-  })
-
-  it('rejects without an error code when the task result has none', async () => {
-    const error: unknown = await monitorFailedTask({ message: 'Something went wrong' })
-
-    expect(getErrorTaskId(error)).toBe(TASK_ID)
-    expect(getErrorCode(error)).toBeUndefined()
   })
 
   it('rejects with a fallback message when the task result is missing', async () => {
     const error: unknown = await monitorFailedTask(undefined)
 
     expect(getErrorTaskId(error)).toBe(TASK_ID)
-    expect(getErrorCode(error)).toBeUndefined()
     expect((error as Error).message).toBe(`Task ${TASK_ID} failed without error details`)
-  })
-})
-
-describe('getErrorCode', () => {
-  it('returns undefined for an error that does not come from a monitored task', () => {
-    expect(getErrorCode(new Error('plain error'))).toBeUndefined()
-    expect(getErrorCode('not an error')).toBeUndefined()
-    expect(getErrorCode(undefined)).toBeUndefined()
   })
 })

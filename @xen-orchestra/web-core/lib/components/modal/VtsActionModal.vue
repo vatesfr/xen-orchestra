@@ -70,11 +70,6 @@ const { t } = useI18n()
 
 const textMappingsByObject: TextMappingByObject = {
   vm: {
-    'force-migrate': {
-      title: t('modal:confirm-vm-force-migrate?', { vm: vmName }),
-      message: t('modal:vm-force-migrate-message'),
-      action: t('modal:action:vm-force-migrate'),
-    },
     'force-reboot': {
       title: t('modal:confirm-vm-force-reboot?', { vm: vmName }),
       message: t('modal:vm-force-reboot-message'),

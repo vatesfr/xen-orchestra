@@ -7,7 +7,6 @@ import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import type { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import type { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
 import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { flushPromises } from '@vue/test-utils'
@@ -17,19 +16,11 @@ type OverlayEvents = Record<string, ((...args: unknown[]) => unknown) | true>
 
 type OverlayStub = { events: OverlayEvents; open: ReturnType<typeof vi.fn> }
 
-const {
-  useXoVmMigrateJobMock,
-  runMock,
-  useOverlayMock,
-  openBlockedModalMock,
-  openForceMigrateModalMock,
-  buildXo5Route,
-} = vi.hoisted(() => ({
+const { useXoVmMigrateJobMock, runMock, useOverlayMock, openBlockedModalMock, buildXo5Route } = vi.hoisted(() => ({
   useXoVmMigrateJobMock: vi.fn(),
   runMock: vi.fn(),
   useOverlayMock: vi.fn(),
   openBlockedModalMock: vi.fn(),
-  openForceMigrateModalMock: vi.fn(),
   buildXo5Route: vi.fn(),
 }))
 
@@ -45,10 +36,6 @@ vi.mock(import('@core/composables/modals/use-blocked-modal.ts'), () => ({
   useBlockedModal: (() => ({ open: openBlockedModalMock })) as unknown as typeof useBlockedModal,
 }))
 
-vi.mock(import('@core/composables/modals/use-action-modal.ts'), () => ({
-  useActionModal: (() => ({ open: openForceMigrateModalMock })) as unknown as typeof useActionModal,
-}))
-
 vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
 }))
@@ -57,8 +44,8 @@ const TASK_ID = 'task-1' as MonitoredTaskError['taskId']
 
 const payload: VmMigratePayload = { hostId: 'host-target' as VmMigratePayload['hostId'] }
 
-function createTaskError(code: string): MonitoredTaskError {
-  return Object.assign(new Error(`${code}(OpaqueRef:host, OpaqueRef:vm)`), { taskId: TASK_ID, code })
+function createTaskError(message: string): MonitoredTaskError {
+  return Object.assign(new Error(message), { taskId: TASK_ID })
 }
 
 // Each `run()` records the payload the job was given at that moment, and fails with the next queued error, if any
@@ -83,7 +70,6 @@ beforeEach(() => {
   runMock.mockReset()
   useOverlayMock.mockReset()
   openBlockedModalMock.mockReset()
-  openForceMigrateModalMock.mockReset()
   buildXo5Route.mockReset()
 
   runPayloads = []
@@ -139,13 +125,6 @@ async function confirmDrawer(migratePayload: VmMigratePayload = payload) {
   await flushPromises()
 }
 
-async function confirmForceMigration() {
-  const [openArgs] = openForceMigrateModalMock.mock.lastCall ?? []
-
-  openArgs.events.onConfirm()
-  await flushPromises()
-}
-
 describe('migrateVm', () => {
   it('opens the migrate drawer with the VM', () => {
     const { vm, result } = mountVmMigrate()
@@ -177,68 +156,11 @@ describe('migrateVm', () => {
     await confirmDrawer()
 
     expect(runPayloads).toEqual([payload])
-    expect(openForceMigrateModalMock).not.toHaveBeenCalled()
     expect(getOverlay('onClose').open).not.toHaveBeenCalled()
   })
 
-  it('asks to force the migration when the VM is incompatible with the destination host', async () => {
-    runFailures.push(createTaskError('VM_INCOMPATIBLE_WITH_THIS_HOST'))
-
-    const { vm, result } = mountVmMigrate()
-
-    result.migrateVm()
-    await confirmDrawer()
-
-    expect(openForceMigrateModalMock).toHaveBeenCalledWith({
-      props: {
-        object: 'vm',
-        action: 'force-migrate',
-        vmName: vm.name_label,
-        accent: 'warning',
-        icon: 'status:warning-picto',
-      },
-      events: { onConfirm: expect.any(Function) },
-    })
-    expect(getOverlay('onClose').open).not.toHaveBeenCalled()
-  })
-
-  it('retries once with the force flag when the forced migration is confirmed', async () => {
-    runFailures.push(createTaskError('VM_INCOMPATIBLE_WITH_THIS_HOST'))
-
-    const { result } = mountVmMigrate()
-
-    result.migrateVm()
-    await confirmDrawer()
-    await confirmForceMigration()
-
-    expect(runPayloads).toEqual([payload, { ...payload, force: true }])
-    expect(getOverlay('onClose').open).not.toHaveBeenCalled()
-  })
-
-  it('shows the error instead of asking again when the forced migration is still refused', async () => {
-    const forcedError = createTaskError('VM_INCOMPATIBLE_WITH_THIS_HOST')
-    runFailures.push(createTaskError('VM_INCOMPATIBLE_WITH_THIS_HOST'), forcedError)
-
-    const { vm, result } = mountVmMigrate()
-
-    result.migrateVm()
-    await confirmDrawer()
-    await confirmForceMigration()
-
-    expect(openForceMigrateModalMock).toHaveBeenCalledTimes(1)
-    expect(runMock).toHaveBeenCalledTimes(2)
-    expect(getOverlay('onClose').open).toHaveBeenCalledWith({
-      props: {
-        title: t('unable-to-migrate-vm', { name: vm.name_label }),
-        error: forcedError.message,
-        vmId: vm.id,
-        taskId: TASK_ID,
-      },
-    })
-  })
-
-  it('shows the error with a link to the task for any other task failure', async () => {
-    const error = createTaskError('HOST_NOT_ENOUGH_FREE_MEMORY')
+  it('shows the error with a link to the task when the task fails', async () => {
+    const error = createTaskError('VM_INCOMPATIBLE_WITH_THIS_HOST(OpaqueRef:host, OpaqueRef:vm)')
     runFailures.push(error)
 
     const { vm, result } = mountVmMigrate()
@@ -246,7 +168,6 @@ describe('migrateVm', () => {
     result.migrateVm()
     await confirmDrawer()
 
-    expect(openForceMigrateModalMock).not.toHaveBeenCalled()
     expect(getOverlay('onClose').open).toHaveBeenCalledWith({
       props: {
         title: t('unable-to-migrate-vm', { name: vm.name_label }),
@@ -265,7 +186,6 @@ describe('migrateVm', () => {
     result.migrateVm()
     await confirmDrawer()
 
-    expect(openForceMigrateModalMock).not.toHaveBeenCalled()
     expect(getOverlay('onClose').open).toHaveBeenCalledWith({
       props: {
         title: t('unable-to-migrate-vm', { name: vm.name_label }),
@@ -274,22 +194,5 @@ describe('migrateVm', () => {
         taskId: undefined,
       },
     })
-  })
-
-  it('migrates again without the force flag after a forced migration', async () => {
-    runFailures.push(createTaskError('VM_INCOMPATIBLE_WITH_THIS_HOST'))
-
-    const { result } = mountVmMigrate()
-
-    result.migrateVm()
-    await confirmDrawer()
-    await confirmForceMigration()
-
-    const secondPayload: VmMigratePayload = { hostId: 'host-other' as VmMigratePayload['hostId'] }
-
-    result.migrateVm()
-    await confirmDrawer(secondPayload)
-
-    expect(runPayloads).toEqual([payload, { ...payload, force: true }, secondPayload])
   })
 })
