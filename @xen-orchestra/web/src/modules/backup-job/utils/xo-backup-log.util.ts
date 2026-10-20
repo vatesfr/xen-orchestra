@@ -1,4 +1,4 @@
-import type { FrontXoBackupLog } from '@/modules/backup-job/remote-resources/use-xo-backup-log-collection.ts'
+import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import type { XoTask } from '@vates/types'
 import type { RouteLocationAsRelative } from 'vue-router'
 
