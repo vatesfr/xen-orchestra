@@ -154,14 +154,34 @@ const RPU_RECOVERY_MESSAGES = {
 const RPU_RECOVERY_STEP_NAMES = ['evacuate', 'update', 'reboot', 'enable', 'restoreVms']
 const isRpuStepOver = step => step?.status === 'observed-succeeded' || step?.status === 'not-needed'
 
+const RPU_VM_CONFLICT_MESSAGES = {
+  stopped: 'rpuRecoveryVmStopped',
+  deleted: 'rpuRecoveryVmDeleted',
+  'migration-failed': 'rpuRecoveryVmMigrationFailed',
+}
+
 const RpuRecoveryBanner = ({ poolId, recovery }) => {
   const message = RPU_RECOVERY_MESSAGES[recovery?.status]
   if (message === undefined) {
     return null
   }
 
-  const { attempt, blockedReason, hostOrder = [], hosts = {}, haltedPinnedVms = {}, lastError } = recovery
+  const {
+    attempt,
+    blockedReason,
+    hostOrder = [],
+    hosts = {},
+    haltedPinnedVms = {},
+    lastError,
+    vmConflicts = [],
+  } = recovery
   const haltedVmIds = Object.keys(haltedPinnedVms)
+  // every host is updated, only VMs are left to bring home
+  const onlyVmsLeft =
+    hostOrder.length > 0 &&
+    hostOrder.every(hostId =>
+      RPU_RECOVERY_STEP_NAMES.every(name => name === 'restoreVms' || isRpuStepOver(hosts[hostId]?.steps?.[name]))
+    )
 
   return (
     <Row>
@@ -170,7 +190,7 @@ const RpuRecoveryBanner = ({ poolId, recovery }) => {
           <h4>
             <Icon icon='alarm' /> {_('rpuRecoveryIncompleteTitle')}
           </h4>
-          <p>{_(message)}</p>
+          <p>{_(recovery.status === 'failed' && onlyVmsLeft ? 'rpuRecoveryVmsNotBack' : message)}</p>
           {attempt > 1 && <p>{_('rpuRecoveryAttempt', { attempt })}</p>}
           {blockedReason !== undefined && <p>{blockedReason}</p>}
           {hostOrder.length > 0 && (
@@ -199,6 +219,20 @@ const RpuRecoveryBanner = ({ poolId, recovery }) => {
               <ul>
                 {haltedVmIds.map(vmId => (
                   <li key={vmId}>{renderXoItemFromId(vmId)}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {vmConflicts.length > 0 && (
+            <div>
+              <strong>{_('rpuRecoveryVmConflicts')}</strong>
+              <ul>
+                {/* names, not items: the VM may have been deleted since */}
+                {vmConflicts.map(({ vmId, vmName, reason, message: error }) => (
+                  <li key={vmId}>
+                    {vmName ?? vmId} — {_(RPU_VM_CONFLICT_MESSAGES[reason])}
+                    {error !== undefined && ` (${error})`}
+                  </li>
                 ))}
               </ul>
             </div>

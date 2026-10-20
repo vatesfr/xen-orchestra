@@ -124,6 +124,7 @@ describe('buildRpuRecoveryView()', () => {
     record.vmHomeById = { vm1: 'h1' }
     record.hasMissingPatchesByHost = { h1: true, h2: false }
     record.haltedPinnedVms = { vm2: 'h1' }
+    record.vmConflicts = [{ vmId: 'vm3', vmName: 'vm 3', hostId: 'h2', reason: 'deleted' }]
     record.hosts.h1 = {
       agentStartedAtBeforeUpdate: '123',
       steps: { evacuate: { status: 'observed-succeeded' }, reboot: { status: 'running', startedAt: 'T' } },
@@ -137,7 +138,13 @@ describe('buildRpuRecoveryView()', () => {
     assert.equal(view.variant, 'xcp')
     assert.deepEqual(view.hostOrder, ['h1', 'h2'])
     assert.deepEqual(view.haltedPinnedVms, { vm2: 'h1' })
+    assert.deepEqual(view.vmConflicts, [{ vmId: 'vm3', vmName: 'vm 3', hostId: 'h2', reason: 'deleted' }])
     assert.equal(view.lastError, null)
+    // a record written before the VM conflicts existed
+    assert.deepEqual(
+      buildRpuRecoveryView(createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })).vmConflicts,
+      []
+    )
 
     // raw intent is never exposed
     assert.equal(view.options, undefined)
@@ -549,6 +556,28 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(stored().hosts.h1.lastError.message, 'second')
   })
 
+  it('markSucceeded forgets the error of a previous attempt', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    await recorder.fail(new Error('could not migrate VMs back to their host: vm 7'))
+    await recorder.markSucceeded()
+
+    assert.equal(stored().status, 'succeeded')
+    assert.equal(stored().lastError, null)
+  })
+
+  it('setVmConflicts replaces the VMs the previous migrate back could not bring home', async () => {
+    const { recorder, stored } = await makeRecorder()
+    const conflicts = [{ vmId: 'vm2', vmName: 'vm 2', hostId: 'h1', reason: 'stopped' }]
+
+    recorder.setVmConflicts([{ vmId: 'vm1', hostId: 'h2', reason: 'migration-failed', message: 'OPERATION_BLOCKED' }])
+    recorder.setVmConflicts(conflicts)
+    await recorder.markSucceeded()
+
+    assert.deepEqual(stored().vmConflicts, conflicts)
+    assert.deepEqual(recorder.getVmConflicts(), conflicts)
+  })
+
   it('hostSkipped marks every step not-needed', async () => {
     const { recorder, stored } = await makeRecorder()
 
@@ -891,5 +920,7 @@ describe('noopRpuRecorder', () => {
     await noopRpuRecorder.dropIfNothingToRecover()
     await noopRpuRecorder.markSucceeded()
     await noopRpuRecorder.delete()
+    noopRpuRecorder.setVmConflicts([{ vmId: 'vm1', hostId: 'h1', reason: 'stopped' }])
+    assert.deepEqual(noopRpuRecorder.getVmConflicts(), [])
   })
 })

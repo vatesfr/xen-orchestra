@@ -1283,20 +1283,26 @@ const messages = {
     'The last rolling pool update was interrupted by an xo-server restart. Some hosts may not be updated and some VMs may not be on their original host.',
   rpuRecoveryFailed:
     'The last rolling pool update failed before completing. Some hosts may not be updated and some VMs may not be on their original host.',
+  rpuRecoveryVmsNotBack:
+    'The last rolling pool update updated every host but could not migrate some VMs back to their original host. A resume tries again.',
   rpuRecoveryBlocked: 'The state of the last rolling pool update could not be read. Manual review is required.',
   rpuRecoveryLastError: 'Last error:',
   rpuRecoveryHaltedPinnedVms: 'VMs shut down for the update and not started again yet:',
+  rpuRecoveryVmConflicts: 'VMs not migrated back to their original host:',
+  rpuRecoveryVmStopped: 'stopped during the update',
+  rpuRecoveryVmDeleted: 'deleted during the update',
+  rpuRecoveryVmMigrationFailed: 'could not be migrated',
   rpuRecoveryRecordExists:
     'A rolling pool update is in progress or was left incomplete. It must be resolved before a new one can start.',
   rpuRecoverySucceeded:
-    'The last rolling pool update completed but its record was kept: it could not be removed, or settings changed by an interrupted attempt are still to be restored. A new one cannot start until it is finalized.',
+    'The last rolling pool update completed but its record was kept: it could not be removed, settings changed by an interrupted attempt are still to be restored, or some VMs were not migrated back. A new one cannot start until it is finalized.',
   rpuRecoveryAttempt: 'Attempt {attempt}',
   rpuRecoveryResume: 'Resume',
   rpuRecoveryResumeConfirm:
     'Resume the rolling pool update: only the hosts with remaining work are handled, then the VMs are migrated back to their original host.',
   rpuRecoveryFinalize: 'Finalize',
   rpuRecoveryFinalizeConfirm:
-    'Finalize the last rolling pool update? Its record will be removed and a new rolling pool update will be allowed. This is refused if the update changed something it did not restore.',
+    'Finalize the last rolling pool update? Its record will be removed and a new rolling pool update will be allowed. This is refused if the update changed something it did not restore. VMs that are not on their original host are left where they are.',
   rpuRecoveryForceFinalizeConfirm:
     'The update changed the following and did not restore them. Finalize anyway? Nothing will be restored: these items are abandoned and listed in the task.',
   rpuRecoveryForceFinalizeUnknownConfirm:

@@ -96,8 +96,8 @@ function deriveHostStatus(steps, isRunLive) {
 
 /**
  * Projects a readable record onto its public view: run identity and status,
- * dates, current task, per-host steps, last filtered error and halted pinned
- * VMs.
+ * dates, current task, per-host steps, last filtered error, halted pinned VMs
+ * and the VMs the run could not bring home.
  *
  * Never exposes the raw intent: options, initial VM placement and agent times
  * stay in the record.
@@ -150,6 +150,7 @@ export function buildRpuRecoveryView(record) {
     hosts,
     lastError: record.lastError ?? null,
     haltedPinnedVms: record.haltedPinnedVms ?? {},
+    vmConflicts: record.vmConflicts ?? [],
   }
 }
 
@@ -322,6 +323,8 @@ export const noopRpuRecorder = Object.freeze({
   dropIfNothingToRecover: asyncNoop,
   markSucceeded: asyncNoop,
   delete: asyncNoop,
+  setVmConflicts: noop,
+  getVmConflicts: () => [],
 })
 
 /**
@@ -364,6 +367,8 @@ export function createRpuRecoveryRecorder({ store, record }) {
   // reported as interrupted at the next restart
   const markSucceeded = async () => {
     record.status = 'succeeded'
+    // the error of a previous attempt is not current anymore
+    record.lastError = null
     record.finishedAt = new Date().toISOString()
     await enqueueWrite().catch(warnOnce)
   }
@@ -512,6 +517,15 @@ export function createRpuRecoveryRecorder({ store, record }) {
       if (record.attempt === undefined && Object.keys(record.hosts).length === 0) {
         await deleteRecord().catch(warnOnce)
       }
+    },
+    // the VMs the last migrate back could not bring home, and why: each
+    // migrate back replaces them
+    setVmConflicts(vmConflicts) {
+      record.vmConflicts = vmConflicts
+      write()
+    },
+    getVmConflicts() {
+      return record.vmConflicts ?? []
     },
     // a successful run which left some settings changed keeps its record, so
     // that Finalize lists them
